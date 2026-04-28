@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import {
   calculateNodeCapability,
-  calculateStats,
   distinctContextValues,
   rollupStepErrors,
 } from '@variscout/core/stats';
@@ -15,6 +14,8 @@ import type {
   ProcessHubInvestigation,
   ProcessHubInvestigationMetadata,
 } from '@variscout/core';
+
+const DEFAULT_CPK_TARGET = 1.33;
 
 export interface UseProductionLineGlanceDataInput {
   hub: ProcessHub;
@@ -128,36 +129,35 @@ export function useProductionLineGlanceData(
     });
   }, [hub, members, defectColumns, contextFilter]);
 
-  // Cpk trend: per-node Cpk values treated as a left-to-right sequence.
-  const cpkTrend = useMemo(() => {
-    const cpks = capabilityNodes
-      .map(n => n.result.cpk)
-      .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
-    if (cpks.length === 0) {
-      return { data: [] as ReadonlyArray<IChartDataPoint>, stats: null, specs: { target: 1.33 } };
-    }
-    const data: IChartDataPoint[] = cpks.map((y, i) => ({ x: i, y, originalIndex: i }));
-    const stats = calculateStats(cpks);
-    return { data, stats, specs: { target: 1.33 } };
-  }, [capabilityNodes]);
+  // Plan C1 ships an empty top row for the dashboard. The full top-left "Cpk
+  // vs target i-chart" slot requires a per-snapshot line-level Cp/Cpk series
+  // derived from a coherent measurement (the hub's outcome / line-level CTQ),
+  // which is engine work that has not yet shipped. Computing per-node Cpks
+  // and feeding them through control-chart math would aggregate Cp/Cpk across
+  // heterogeneous local processes — exactly the unsafe primitive Watson's
+  // rule (and the design spec's "structural absence" principle) excludes.
+  //
+  // The 2x2 dashboard renders empty slots gracefully; analysts see the spatial
+  // row (CapabilityBoxplot + StepErrorPareto) which is methodologically safe
+  // because each node's Cpk is visualized as its own distribution, never
+  // collapsed across nodes. The temporal row populates in a future PR once
+  // the engine exposes a per-snapshot line-level Cp/Cpk source.
+  const cpkTrend = useMemo(
+    () => ({
+      data: [] as ReadonlyArray<IChartDataPoint>,
+      stats: null as StatsResult | null,
+      specs: { target: DEFAULT_CPK_TARGET } as { target?: number; usl?: number; lsl?: number },
+    }),
+    []
+  );
 
-  // Cpk gap trend: (Cp − Cpk) per node, indicating centering loss.
-  const cpkGapTrend = useMemo(() => {
-    const gaps = capabilityNodes
-      .map(n => {
-        const cp = n.result.cp;
-        const cpk = n.result.cpk;
-        if (typeof cp !== 'number' || typeof cpk !== 'number') return undefined;
-        return cp - cpk;
-      })
-      .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
-    if (gaps.length === 0) {
-      return { series: [] as ReadonlyArray<IChartDataPoint>, stats: null };
-    }
-    const series: IChartDataPoint[] = gaps.map((y, i) => ({ x: i, y, originalIndex: i }));
-    const stats = calculateStats(gaps);
-    return { series, stats };
-  }, [capabilityNodes]);
+  const cpkGapTrend = useMemo(
+    () => ({
+      series: [] as ReadonlyArray<IChartDataPoint>,
+      stats: null as StatsResult | null,
+    }),
+    []
+  );
 
   // Available context: hub columns + tributary-attached context columns.
   const availableContext = useMemo(() => {

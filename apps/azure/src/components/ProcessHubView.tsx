@@ -24,8 +24,6 @@ import ProcessHubReviewPanel from './ProcessHubReviewPanel';
 import { ProcessHubCapabilityTab } from './ProcessHubCapabilityTab';
 import { useHubMigrationState } from '../features/processHub/useHubMigrationState';
 
-const NOOP_PERSIST = (_next: ProcessHubInvestigation): void => undefined;
-
 export interface ProcessHubViewProps {
   rollup: ProcessHubRollup<ProcessHubInvestigation>;
   onOpenInvestigation: (id: string) => void;
@@ -41,8 +39,7 @@ export interface ProcessHubViewProps {
   loadFindingsForItem: (item: ProcessStateItem, hubId: string) => Promise<readonly Finding[]>;
   onChipClick: (item: ProcessStateItem, hubId: string, count: number) => void;
   onFindingSelect: (item: ProcessStateItem, finding: Finding, hubId: string) => void;
-  /** Optional: persist a mutated investigation back to storage. When absent, migration save/decline are silently no-ops. */
-  persistInvestigation?: (next: ProcessHubInvestigation) => void;
+  persistInvestigation: (next: ProcessHubInvestigation) => void;
 }
 
 type TabKey = 'status' | 'capability';
@@ -58,7 +55,7 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
     hubId: rollup.hub.id,
     members: rollup.investigations,
     canonicalMap: rollup.hub.canonicalProcessMap,
-    persistInvestigation: persistInvestigation ?? NOOP_PERSIST,
+    persistInvestigation,
   });
 
   const tabClass = (key: TabKey) =>

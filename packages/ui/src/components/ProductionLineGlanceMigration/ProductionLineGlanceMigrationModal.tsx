@@ -134,9 +134,6 @@ export const ProductionLineGlanceMigrationModal: React.FC<
                         className="flex-1 text-sm text-content"
                       >
                         {s.label}
-                        <span className="ml-2 text-xs text-content-muted">
-                          ({Math.round(s.confidence * 100)}% match)
-                        </span>
                       </label>
                     </li>
                   ))}

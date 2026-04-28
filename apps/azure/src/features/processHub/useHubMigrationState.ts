@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useB0InvestigationsInHub, type UseB0InvestigationsInHubResult } from '@variscout/hooks';
 import type {
   ProcessHubInvestigation,
@@ -44,26 +44,25 @@ export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMi
   const openModal = useCallback(() => setIsModalOpen(true), []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
 
-  const modalEntries = b0.unmapped.map<ProductionLineGlanceMigrationModalEntry>(inv => {
-    const cols = getDatasetColumns(inv);
-    const engineSuggestions = canonicalMap ? suggestNodeMappings(canonicalMap, cols) : [];
-    const suggestions = engineSuggestions.map(s => {
-      const node = canonicalMap?.nodes.find(n => n.id === s.nodeId);
-      return {
-        nodeId: s.nodeId,
-        label: node?.name ?? s.nodeId,
-        confidence: 1.0,
-      };
-    });
-    // First suggestion's column, or empty string if none
-    const measurementColumn = engineSuggestions[0]?.measurementColumn ?? '';
-    return {
-      investigationId: inv.id,
-      investigationName: inv.name,
-      measurementColumn,
-      suggestions,
-    };
-  });
+  const modalEntries = useMemo<ProductionLineGlanceMigrationModalEntry[]>(
+    () =>
+      b0.unmapped.map(inv => {
+        const cols = getDatasetColumns(inv);
+        const engineSuggestions = canonicalMap ? suggestNodeMappings(canonicalMap, cols) : [];
+        const suggestions = engineSuggestions.map(s => {
+          const node = canonicalMap?.nodes.find(n => n.id === s.nodeId);
+          return { nodeId: s.nodeId, label: node?.name ?? s.nodeId, confidence: 1.0 };
+        });
+        const measurementColumn = engineSuggestions[0]?.measurementColumn ?? '';
+        return {
+          investigationId: inv.id,
+          investigationName: inv.name,
+          measurementColumn,
+          suggestions,
+        };
+      }),
+    [b0.unmapped, canonicalMap]
+  );
 
   const handleSave = useCallback(
     (

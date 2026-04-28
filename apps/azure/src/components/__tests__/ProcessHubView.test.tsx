@@ -35,6 +35,7 @@ const baseProps = {
   loadFindingsForItem: vi.fn().mockResolvedValue([]),
   onChipClick: noop,
   onFindingSelect: noop,
+  persistInvestigation: vi.fn(),
 } as const;
 
 describe('ProcessHubView', () => {
