@@ -146,6 +146,15 @@ export interface ProcessHubInvestigationMetadata {
    * capability computation. See `InvestigationNodeMapping` above.
    */
   nodeMappings?: InvestigationNodeMapping[];
+  /**
+   * ISO 8601 timestamp set when the analyst dismisses the B0 migration banner
+   * for this investigation. Dismissed investigations remain B0; the banner
+   * counts only un-dismissed unmapped investigations.
+   *
+   * See spec: docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md
+   * section "B0 migration UX".
+   */
+  migrationDeclinedAt?: string;
 }
 
 export interface ProcessHubInvestigation {

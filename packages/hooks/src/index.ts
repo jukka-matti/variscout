@@ -507,6 +507,13 @@ export type {
 export { useProductionLineGlanceFilter } from './useProductionLineGlanceFilter';
 export type { UseProductionLineGlanceFilterResult } from './useProductionLineGlanceFilter';
 
+// B0 Investigations In Hub (enumerates unmapped + non-dismissed for migration banner)
+export { useB0InvestigationsInHub } from './useB0InvestigationsInHub';
+export type {
+  UseB0InvestigationsInHubInput,
+  UseB0InvestigationsInHubResult,
+} from './useB0InvestigationsInHub';
+
 // Derived hooks (store-first state access)
 export { useFilteredData, type FilteredDataResult } from './useFilteredData';
 export { useAnalysisStats, type AnalysisStatsResult } from './useAnalysisStats';
