@@ -420,6 +420,8 @@ export interface CapabilityBoxplotProps extends BaseChartProps {
   hideTargetTicks?: boolean;
   /** Override the Y-axis label. Defaults to "Cpk". */
   yAxisLabel?: string;
+  /** Click handler — called with the clicked node's `nodeId`. */
+  onNodeClick?: (nodeId: string) => void;
 }
 
 /**
