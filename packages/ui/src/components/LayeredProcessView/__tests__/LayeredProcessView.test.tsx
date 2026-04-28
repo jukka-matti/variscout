@@ -128,6 +128,85 @@ describe('LayeredProcessView', () => {
     expect(operationsBand).toHaveTextContent('No factors mapped yet');
   });
 
+  it('replaces Operations band content when operationsBandContent is provided', () => {
+    const mapWithFactors: ProcessMap = {
+      ...emptyMap,
+      nodes: [
+        { id: 'step-1', name: 'Mix', order: 0 },
+        { id: 'step-2', name: 'Coat', order: 1 },
+      ],
+      tributaries: [
+        { id: 't-1', stepId: 'step-1', column: 'Temperature' },
+        { id: 't-2', stepId: 'step-2', column: 'Speed' },
+      ],
+    };
+    render(
+      <LayeredProcessView
+        map={mapWithFactors}
+        availableColumns={[]}
+        onChange={() => {}}
+        operationsBandContent={<div data-testid="custom-ops">CUSTOM</div>}
+      />
+    );
+    expect(screen.getByTestId('custom-ops')).toBeInTheDocument();
+  });
+
+  it('relocates tributary chips to Outcome band as Mapped factors when operationsBandContent is provided', () => {
+    const mapWithFactors: ProcessMap = {
+      ...emptyMap,
+      nodes: [
+        { id: 'step-1', name: 'Mix', order: 0 },
+        { id: 'step-2', name: 'Coat', order: 1 },
+      ],
+      tributaries: [
+        { id: 't-1', stepId: 'step-1', column: 'Temperature' },
+        { id: 't-2', stepId: 'step-2', column: 'Speed' },
+      ],
+    };
+    const { getByTestId } = render(
+      <LayeredProcessView
+        map={mapWithFactors}
+        availableColumns={[]}
+        onChange={() => {}}
+        operationsBandContent={<div>X</div>}
+      />
+    );
+    const outcome = getByTestId('band-outcome');
+    expect(outcome.textContent).toMatch(/Mapped factors/i);
+    expect(outcome.querySelector('[data-testid^="factor-chip-"]')).toBeTruthy();
+  });
+
+  it('renders filterStripContent above the Outcome band when provided', () => {
+    render(
+      <LayeredProcessView
+        map={emptyMap}
+        availableColumns={[]}
+        onChange={() => {}}
+        filterStripContent={<div data-testid="filter-strip">FILTER</div>}
+      />
+    );
+    expect(screen.getByTestId('filter-strip')).toBeInTheDocument();
+  });
+
+  it('keeps Operations band default content (tributary chips) when slot props are absent', () => {
+    const mapWithFactors: ProcessMap = {
+      ...emptyMap,
+      nodes: [
+        { id: 'step-1', name: 'Mix', order: 0 },
+        { id: 'step-2', name: 'Coat', order: 1 },
+      ],
+      tributaries: [
+        { id: 't-1', stepId: 'step-1', column: 'Temperature' },
+        { id: 't-2', stepId: 'step-2', column: 'Speed' },
+      ],
+    };
+    const { getByTestId } = render(
+      <LayeredProcessView map={mapWithFactors} availableColumns={[]} onChange={() => {}} />
+    );
+    const ops = getByTestId('band-operations');
+    expect(ops.querySelector('[data-testid^="factor-chip-"]')).toBeTruthy();
+  });
+
   it('renders all three band frames even when the map is fully empty', () => {
     render(<LayeredProcessView map={emptyMap} availableColumns={[]} onChange={() => {}} />);
 
