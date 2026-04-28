@@ -1,18 +1,28 @@
 /**
  * FrameView (Azure) — FRAME workspace (ADR-070).
  *
- * Azure-app equivalent of the PWA FrameView. Renders `LayeredProcessView`
+ * Azure-app equivalent of the PWA FrameView. Renders `LayeredProcessViewWithCapability`
  * wired to `projectStore.processContext.processMap` with live gap detection from
  * `@variscout/core/frame`.
  *
  * V1 is deterministic-only: no CoScout, no templates. Pre-data hunches
  * persist as draft SuspectedCause hubs through the projectStore +
  * investigationStore; the full integration lands in follow-up.
+ *
+ * Plan C2: ProductionLineGlanceDashboard is wired into the Operations band
+ * via a synthetic preview rollup (empty rows — authoring surface has no
+ * investigation data). Live-data wiring lands in C3 (right-hand drawer).
  */
 import React from 'react';
-import { LayeredProcessView } from '@variscout/ui';
+import { LayeredProcessViewWithCapability } from '@variscout/ui';
+import {
+  useProductionLineGlanceData,
+  useProductionLineGlanceFilter,
+  useProductionLineGlanceOpsToggle,
+} from '@variscout/hooks';
 import { useProjectStore } from '@variscout/stores';
-import type { ProcessContext } from '@variscout/core';
+import type { ProcessContext, ProcessHub, ProcessHubInvestigation } from '@variscout/core';
+import type { DataRow } from '@variscout/core';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
 
 const FrameView: React.FC = () => {
@@ -50,6 +60,35 @@ const FrameView: React.FC = () => {
     setSpecs({ ...(specs ?? {}), ...next });
   };
 
+  // Plan C2: URL-backed filter + ops-mode state.
+  const filter = useProductionLineGlanceFilter();
+  const ops = useProductionLineGlanceOpsToggle();
+
+  // Synthetic preview rollup — FrameView is a canonical-map authoring surface;
+  // investigation rows are not loaded here. The dashboard renders empty-state
+  // gracefully. Live data wiring lands in C3 (right-hand drawer).
+  const previewRollup = React.useMemo(() => {
+    const previewHub: ProcessHub = {
+      id: 'frame-preview',
+      name: 'Frame preview',
+      canonicalProcessMap: map,
+      canonicalMapVersion: 'preview',
+      contextColumns: [],
+    } as unknown as ProcessHub;
+    return {
+      hub: previewHub,
+      members: [] as ProcessHubInvestigation[],
+      rowsByInvestigation: new Map<string, ReadonlyArray<DataRow>>(),
+    };
+  }, [map]);
+
+  const data = useProductionLineGlanceData({
+    hub: previewRollup.hub,
+    members: previewRollup.members,
+    rowsByInvestigation: previewRollup.rowsByInvestigation,
+    contextFilter: filter.value,
+  });
+
   return (
     <div className="flex-1 overflow-auto" data-testid="frame-view">
       <div className="mx-auto max-w-6xl">
@@ -61,7 +100,7 @@ const FrameView: React.FC = () => {
             least one rational-subgroup axis.
           </p>
         </header>
-        <LayeredProcessView
+        <LayeredProcessViewWithCapability
           map={map}
           availableColumns={availableColumns}
           onChange={handleChange}
@@ -70,6 +109,15 @@ const FrameView: React.FC = () => {
           lsl={specs?.lsl}
           usl={specs?.usl}
           onSpecsChange={handleSpecsChange}
+          data={data}
+          filter={{
+            availableContext: data.availableContext,
+            contextValueOptions: data.contextValueOptions,
+            value: filter.value,
+            onChange: filter.onChange,
+          }}
+          mode={ops.mode}
+          onModeChange={ops.setMode}
         />
       </div>
     </div>
