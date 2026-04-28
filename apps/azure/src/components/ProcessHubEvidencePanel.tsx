@@ -47,7 +47,6 @@ function falseGreenSeverity(unsafeGreens: number, totalRows: number): 'green' | 
 
 type WizardState =
   | { step: 'idle' }
-  | { step: 'detecting'; rows: DataRow[]; rawText: string; sourceName: string }
   | {
       step: 'picking-profile';
       rows: DataRow[];
@@ -411,10 +410,6 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
       {/* ------------------------------------------------------------------ */}
       {/* Wizard steps                                                         */}
       {/* ------------------------------------------------------------------ */}
-
-      {wizard.step === 'detecting' && (
-        <p className="mt-4 text-sm text-content-secondary">Detecting profiles…</p>
-      )}
 
       {wizard.step === 'picking-profile' && (
         <div
