@@ -35,7 +35,7 @@ import ProjectCard from '../components/ProjectCard';
 import ProcessHubCard from '../components/ProcessHubCard';
 import ProcessHubEvidencePanel from '../components/ProcessHubEvidencePanel';
 import EvidenceSheet from '../components/EvidenceSheet';
-import ProcessHubReviewPanel from '../components/ProcessHubReviewPanel';
+import ProcessHubView from '../components/ProcessHubView';
 import SampleDataPicker from '../components/SampleDataPicker';
 import StateItemNotesDrawer from '../components/StateItemNotesDrawer';
 
@@ -711,7 +711,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           {selectedHubRollup && (
             <>
-              <ProcessHubReviewPanel
+              <ProcessHubView
                 rollup={selectedHubRollup}
                 onOpenInvestigation={id => onOpenProject(id)}
                 onStartInvestigation={() => onOpenProject(undefined, selectedHubRollup.hub.id)}
