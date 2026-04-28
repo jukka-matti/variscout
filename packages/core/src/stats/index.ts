@@ -208,3 +208,4 @@ export { lookupSpecRule, ruleMatches, ruleSpecificity } from './specRuleLookup';
 export { sampleConfidenceFor, SAMPLE_CONFIDENCE_THRESHOLDS } from './sampleConfidence';
 export type { SampleConfidence } from './sampleConfidence';
 export { isLegacyInvestigation, suggestNodeMappings } from './nodeCapabilityMigration';
+export { distinctContextValues } from './contextValueOptions';
