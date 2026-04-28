@@ -6,7 +6,12 @@ import {
   normalizeProcessHubId,
   linkFindingsToStateItems,
 } from '@variscout/core';
-import type { ProcessHub, SustainmentRecord, ControlHandoff } from '@variscout/core';
+import type {
+  ProcessHub,
+  ProcessHubInvestigation,
+  SustainmentRecord,
+  ControlHandoff,
+} from '@variscout/core';
 import type { EvidenceSnapshot } from '@variscout/core';
 import type { Finding } from '@variscout/core';
 import type {
@@ -500,6 +505,51 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [isSavingNote, projects, loadProject, saveProject, loadProjects]
   );
 
+  /**
+   * Persist a mutated ProcessHubInvestigation back to storage.
+   * The investigation is a lightweight projection of the underlying project;
+   * we load the full project, merge the updated metadata fields (nodeMappings,
+   * migrationDeclinedAt), then save it back. Fires-and-forgets; refreshes the
+   * project list on success.
+   */
+  const handlePersistInvestigation = useCallback(
+    (next: ProcessHubInvestigation): void => {
+      const projectMeta = projects.find(p => (p.id || p.name) === next.id);
+      if (!projectMeta) return;
+      void (async () => {
+        try {
+          const project = await loadProject(projectMeta.name, projectMeta.location);
+          if (!project) return;
+          const p = project as Record<string, unknown>;
+          const existingMeta =
+            p.metadata && typeof p.metadata === 'object'
+              ? (p.metadata as Record<string, unknown>)
+              : {};
+          const updatedMeta = next.metadata
+            ? {
+                ...existingMeta,
+                ...(next.metadata.nodeMappings !== undefined
+                  ? { nodeMappings: next.metadata.nodeMappings }
+                  : {}),
+                ...(next.metadata.migrationDeclinedAt !== undefined
+                  ? { migrationDeclinedAt: next.metadata.migrationDeclinedAt }
+                  : {}),
+              }
+            : existingMeta;
+          await saveProject(
+            { ...p, metadata: updatedMeta },
+            projectMeta.name,
+            projectMeta.location
+          );
+          await loadProjects();
+        } catch (err) {
+          console.error('[Dashboard] persistInvestigation failed:', err);
+        }
+      })();
+    },
+    [projects, loadProject, saveProject, loadProjects]
+  );
+
   const handleSampleSelect = (sample: SampleDataset): void => {
     if (onLoadSample) {
       onLoadSample(sample);
@@ -726,6 +776,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 loadFindingsForItem={loadFindingsForItem}
                 onChipClick={handleChipClick}
                 onFindingSelect={handleFindingSelect}
+                persistInvestigation={handlePersistInvestigation}
               />
               <ProcessHubEvidencePanel
                 hubId={selectedHubRollup.hub.id}

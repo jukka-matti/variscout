@@ -4,6 +4,8 @@
  * Two tabs: "Status" (the existing flat layout, default) and "Capability"
  * (the production-line-glance dashboard). Plan C1 — see spec
  * docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md.
+ *
+ * T11: B0 migration banner (above tablist) + modal (overlay).
  */
 import React, { useState } from 'react';
 import type {
@@ -14,8 +16,15 @@ import type {
   ProcessStateNote,
   ResponsePathAction,
 } from '@variscout/core';
+import {
+  ProductionLineGlanceMigrationBanner,
+  ProductionLineGlanceMigrationModal,
+} from '@variscout/ui';
 import ProcessHubReviewPanel from './ProcessHubReviewPanel';
 import { ProcessHubCapabilityTab } from './ProcessHubCapabilityTab';
+import { useHubMigrationState } from '../features/processHub/useHubMigrationState';
+
+const NOOP_PERSIST = (_next: ProcessHubInvestigation): void => undefined;
 
 export interface ProcessHubViewProps {
   rollup: ProcessHubRollup<ProcessHubInvestigation>;
@@ -32,12 +41,25 @@ export interface ProcessHubViewProps {
   loadFindingsForItem: (item: ProcessStateItem, hubId: string) => Promise<readonly Finding[]>;
   onChipClick: (item: ProcessStateItem, hubId: string, count: number) => void;
   onFindingSelect: (item: ProcessStateItem, finding: Finding, hubId: string) => void;
+  /** Optional: persist a mutated investigation back to storage. When absent, migration save/decline are silently no-ops. */
+  persistInvestigation?: (next: ProcessHubInvestigation) => void;
 }
 
 type TabKey = 'status' | 'capability';
 
-export const ProcessHubView: React.FC<ProcessHubViewProps> = ({ rollup, ...reviewProps }) => {
+export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
+  rollup,
+  persistInvestigation,
+  ...reviewProps
+}) => {
   const [activeTab, setActiveTab] = useState<TabKey>('status');
+
+  const migration = useHubMigrationState({
+    hubId: rollup.hub.id,
+    members: rollup.investigations,
+    canonicalMap: rollup.hub.canonicalProcessMap,
+    persistInvestigation: persistInvestigation ?? NOOP_PERSIST,
+  });
 
   const tabClass = (key: TabKey) =>
     activeTab === key
@@ -46,6 +68,17 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({ rollup, ...revie
 
   return (
     <div className="flex h-full flex-col">
+      <ProductionLineGlanceMigrationBanner
+        count={migration.count}
+        onMapClick={migration.openModal}
+      />
+      <ProductionLineGlanceMigrationModal
+        isOpen={migration.isModalOpen}
+        entries={migration.modalEntries}
+        onSave={migration.handleSave}
+        onDecline={migration.handleDecline}
+        onClose={migration.closeModal}
+      />
       <div
         role="tablist"
         aria-label="Process Hub view"
