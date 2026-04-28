@@ -19,8 +19,14 @@ export interface ProcessHubActionsContract {
 }
 
 export interface ProcessHubEvidenceContract {
-  findingsFor: (item: ProcessStateItem) => readonly Finding[];
-  onChipClick: (item: ProcessStateItem, findings: readonly Finding[]) => void;
+  /** Sync count for the chip — derived from rollup metadata. */
+  countFor: (item: ProcessStateItem) => number;
+  /** Async load for the sheet — called only when chip is clicked (consumer side). */
+  loadFindingsFor: (item: ProcessStateItem) => Promise<readonly Finding[]>;
+  /** Fired when chip is clicked — telemetry only. */
+  onChipClick: (item: ProcessStateItem) => void;
+  /** Fired when user selects a finding in the sheet. */
+  onFindingSelect: (item: ProcessStateItem, finding: Finding) => void;
 }
 
 export interface ProcessHubNotesContract {
@@ -157,8 +163,8 @@ const StateItemCard: React.FC<{
   item: ProcessStateItem;
   action: ResponsePathAction;
   onInvoke: (item: ProcessStateItem, action: ResponsePathAction) => void;
-  findings: readonly Finding[];
-  onChipClick: (item: ProcessStateItem, findings: readonly Finding[]) => void;
+  count: number;
+  onChipClick: () => void;
   notes: readonly ProcessStateNote[];
   currentUserId: string;
   onRequestAddNote: () => void;
@@ -168,7 +174,7 @@ const StateItemCard: React.FC<{
   item,
   action,
   onInvoke,
-  findings,
+  count,
   onChipClick,
   notes,
   currentUserId,
@@ -258,7 +264,7 @@ const StateItemCard: React.FC<{
               <span> · {UNSUPPORTED_PILL_LABEL[unsupportedReason]}</span>
             )}
           </p>
-          <EvidenceChip count={findings.length} onClick={() => onChipClick(item, findings)} />
+          <EvidenceChip count={count} onClick={onChipClick} />
         </div>
       </div>
 
@@ -348,8 +354,8 @@ export const ProcessHubCurrentStatePanel: React.FC<ProcessHubCurrentStatePanelPr
               item={item}
               action={actions.actionFor(item)}
               onInvoke={actions.onInvoke}
-              findings={evidence.findingsFor(item)}
-              onChipClick={evidence.onChipClick}
+              count={evidence.countFor(item)}
+              onChipClick={() => evidence.onChipClick(item)}
               notes={notes.notesFor(item)}
               currentUserId={notes.currentUserId}
               onRequestAddNote={() => notes.onRequestAddNote(item)}
