@@ -83,8 +83,7 @@ export function calculateNodeCapability(
   if (source.kind === 'column') {
     return calculateFromColumn(nodeId, source);
   }
-  // 'children' implementation lands in Task 9
-  return { ...EMPTY_INSUFFICIENT, nodeId, source: 'children' };
+  return calculateFromChildren(nodeId, source);
 }
 
 // ============================================================================
@@ -256,6 +255,66 @@ function calculateFromColumn(
     n: totalN,
     sampleConfidence: sampleConfidenceFor(totalN),
     source: 'column',
+    perContextResults,
+  };
+}
+
+// ============================================================================
+// Children-source implementation
+// ============================================================================
+
+function calculateFromChildren(
+  nodeId: string,
+  source: Extract<CalculateNodeCapabilitySource, { kind: 'children' }>
+): NodeCapabilityResult {
+  const { hub, members } = source;
+  const contributing: NonNullable<NodeCapabilityResult['contributingInvestigations']> = [];
+  const perContextResults: NonNullable<NodeCapabilityResult['perContextResults']> = [];
+  let totalN = 0;
+  let aggregateCpk: number | undefined;
+  let aggregateCp: number | undefined;
+
+  for (const member of members) {
+    const meta = member.metadata;
+    if (!meta) continue;
+    if (meta.processHubId !== hub.id) continue;
+    const tagged = meta.nodeMappings?.some(m => m.nodeId === nodeId) ?? false;
+    if (!tagged) continue;
+    const signal = meta.reviewSignal;
+    if (!signal) continue;
+    const cpk = signal.capability?.cpk;
+    const cp = signal.capability?.cp;
+    const n = signal.rowCount ?? 0;
+    if (n <= 0) continue;
+    contributing.push(member.id);
+    totalN += n;
+    if (cpk !== undefined) {
+      aggregateCpk = aggregateCpk === undefined ? cpk : Math.min(aggregateCpk, cpk);
+    }
+    if (cp !== undefined) {
+      aggregateCp = aggregateCp === undefined ? cp : Math.min(aggregateCp, cp);
+    }
+    // Each contributing investigation contributes one perContextResult row.
+    // Context tuple is empty here — children aggregation does not stratify by
+    // context columns; that's the column-source's job. (Future: aggregate
+    // signal.capability.perContextResults if signals carry them.)
+    perContextResults.push({
+      contextTuple: { investigationId: member.id },
+      cpk,
+      cp,
+      n,
+      sampleConfidence: sampleConfidenceFor(n),
+    });
+  }
+
+  return {
+    nodeId,
+    cpk: aggregateCpk,
+    cp: aggregateCp,
+    n: totalN,
+    sampleConfidence: sampleConfidenceFor(totalN),
+    source: 'children',
+    contributingInvestigations: contributing,
     perContextResults,
   };
 }
