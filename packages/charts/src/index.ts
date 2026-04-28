@@ -143,3 +143,9 @@ export {
   default as PerformanceCapability,
   PerformanceCapabilityBase,
 } from './PerformanceCapability';
+
+// Production-line-glance chart components (Plan B)
+export {
+  default as CapabilityGapTrendChart,
+  CapabilityGapTrendChartBase,
+} from './CapabilityGapTrendChart';
