@@ -1,6 +1,7 @@
 import type { JourneyPhase } from './ai/types';
 import type { EvidenceLatestSignal, EvidenceSnapshot } from './evidenceSources';
 import type { FindingStatus, QuestionStatus } from './findings/types';
+import type { ProcessMap } from './frame/types';
 import { buildReviewItem } from './processHubReview';
 import { buildCurrentProcessState } from './processState';
 import type {
@@ -55,6 +56,27 @@ export interface ProcessHub {
   processOwner?: ProcessParticipantRef;
   createdAt: string;
   updatedAt?: string;
+  /**
+   * Hub-level canonical Process Map. Investigations within this hub inherit
+   * structure (nodes, tributaries, capability scopes) by version-pinning to
+   * `canonicalMapVersion`. Absent for hubs that haven't promoted a canonical
+   * map yet.
+   *
+   * See spec: docs/superpowers/specs/2026-04-28-production-line-glance-design.md
+   */
+  canonicalProcessMap?: ProcessMap;
+  /**
+   * Version identifier for `canonicalProcessMap`. ISO 8601 timestamp by
+   * default; semver allowed if the team adopts it. Investigations pin this
+   * value at creation; pulling latest re-pins.
+   */
+  canonicalMapVersion?: string;
+  /**
+   * Hub-level context dimensions (e.g., `['product', 'shift']`). Combined
+   * with tributary-attached `contextColumns` at lookup time; engine treats
+   * both uniformly. Declaration location is UX metadata.
+   */
+  contextColumns?: string[];
 }
 
 export const DEFAULT_PROCESS_HUB: ProcessHub = {
