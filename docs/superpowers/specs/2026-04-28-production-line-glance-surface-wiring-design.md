@@ -254,6 +254,7 @@ Each sub-plan ships as its own PR per `feedback_no_backcompat_clean_architecture
 - Production-line-glance design: `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`
 - Engine plan (Plan A): `docs/superpowers/plans/2026-04-28-production-line-glance-engine.md` (merged as PR #103)
 - Charts plan (Plan B): `docs/superpowers/plans/2026-04-28-production-line-glance-charts.md` (merged as PR #105)
+- Data layer + Hub Capability tab plan (Plan C1): `docs/superpowers/plans/2026-04-28-production-line-glance-c1-data-and-hub-tab.md`
 - LayeredProcessView V1: `docs/superpowers/specs/2026-04-27-layered-process-view-design.md`
 - Operating model: `docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md`
 - ADR-045 modular architecture (downward dependency flow)

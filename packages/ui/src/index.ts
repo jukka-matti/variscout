@@ -657,3 +657,15 @@ export type {
   ProductionLineGlanceDashboardProps,
   ProductionLineGlanceFilterStripProps,
 } from './components/ProductionLineGlanceDashboard';
+
+// Production-line-glance migration UX (B0 banner + mapping modal)
+export {
+  ProductionLineGlanceMigrationBanner,
+  ProductionLineGlanceMigrationModal,
+} from './components/ProductionLineGlanceMigration';
+export type {
+  ProductionLineGlanceMigrationBannerProps,
+  ProductionLineGlanceMigrationModalProps,
+  ProductionLineGlanceMigrationModalEntry,
+  ProductionLineGlanceMigrationSuggestion,
+} from './components/ProductionLineGlanceMigration';

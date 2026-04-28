@@ -495,6 +495,25 @@ export {
   type PopoutMessageType,
 } from './popoutMessages';
 
+// Production Line Glance Data (hub-level capability + error rollup)
+export { useProductionLineGlanceData } from './useProductionLineGlanceData';
+export type {
+  UseProductionLineGlanceDataInput,
+  UseProductionLineGlanceDataResult,
+  CapabilityBoxplotInputNode,
+} from './useProductionLineGlanceData';
+
+// Production Line Glance Filter (URL search-param state for filter strip)
+export { useProductionLineGlanceFilter } from './useProductionLineGlanceFilter';
+export type { UseProductionLineGlanceFilterResult } from './useProductionLineGlanceFilter';
+
+// B0 Investigations In Hub (enumerates unmapped + non-dismissed for migration banner)
+export { useB0InvestigationsInHub } from './useB0InvestigationsInHub';
+export type {
+  UseB0InvestigationsInHubInput,
+  UseB0InvestigationsInHubResult,
+} from './useB0InvestigationsInHub';
+
 // Derived hooks (store-first state access)
 export { useFilteredData, type FilteredDataResult } from './useFilteredData';
 export { useAnalysisStats, type AnalysisStatsResult } from './useAnalysisStats';
