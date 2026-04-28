@@ -371,7 +371,7 @@ Hubs without `contextColumns` declared continue with single-spec-per-step (the `
 - **Real-time collaborative editing** of canonical map. Versioned-pull model is sufficient for V1.
 - **Mobile responsive specifics** — handled in Layered Process View V2 implementation plan.
 
-## Sequencing (engine plan: [`docs/superpowers/plans/2026-04-28-production-line-glance-engine.md`](../plans/2026-04-28-production-line-glance-engine.md), charts plan: [`docs/superpowers/plans/2026-04-28-production-line-glance-charts.md`](../plans/2026-04-28-production-line-glance-charts.md))
+## Sequencing (engine plan: [`docs/superpowers/plans/2026-04-28-production-line-glance-engine.md`](../plans/2026-04-28-production-line-glance-engine.md), charts plan: [`docs/superpowers/plans/2026-04-28-production-line-glance-charts.md`](../plans/2026-04-28-production-line-glance-charts.md), surface-wiring spec: [`docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md`](./2026-04-28-production-line-glance-surface-wiring-design.md))
 
 1. **W4 first**: resolve `mode` vs "instrument set" terminology drift. **DONE** — Option A (strike "instrument set" from copy) landed 2026-04-28 across operating-model, methodology, USER-JOURNEYS, llms.txt, and 4 related specs.
 2. **W1' core engine**: extend `ProcessMap`, `Investigation`, `ProcessHub` types; implement `calculateNodeCapability()` with deterministic-PRNG tests; verify NIST reference cases.
