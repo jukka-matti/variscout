@@ -29,6 +29,11 @@ interface AggregateResult {
 }
 
 function aggregateAndCompute(sorted: StepErrorParetoStep[], maxBars: number): AggregateResult {
+  // Floor to 2 — a chart with 0 or 1 bars before "Others" is degenerate.
+  // maxBars=2 produces [topStep, Others] which is the least surprising
+  // minimal-cardinality contract.
+  const effectiveMaxBars = Math.max(2, Math.floor(maxBars));
+
   const labelToNodeId = new Map<string, string>();
   const totalCount = sorted.reduce((sum, s) => sum + s.errorCount, 0);
 
@@ -38,11 +43,11 @@ function aggregateAndCompute(sorted: StepErrorParetoStep[], maxBars: number): Ag
 
   let head: StepErrorParetoStep[];
   let othersSum = 0;
-  if (sorted.length <= maxBars) {
+  if (sorted.length <= effectiveMaxBars) {
     head = sorted;
   } else {
-    head = sorted.slice(0, maxBars - 1);
-    othersSum = sorted.slice(maxBars - 1).reduce((sum, s) => sum + s.errorCount, 0);
+    head = sorted.slice(0, effectiveMaxBars - 1);
+    othersSum = sorted.slice(effectiveMaxBars - 1).reduce((sum, s) => sum + s.errorCount, 0);
   }
 
   head.forEach(s => labelToNodeId.set(s.label, s.nodeId));

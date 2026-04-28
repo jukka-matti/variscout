@@ -68,9 +68,8 @@ describe('StepErrorParetoBase', () => {
       />
     );
     const bars = container.querySelectorAll('rect');
-    if (bars.length > 0) {
-      fireEvent.click(bars[0]);
-    }
+    expect(bars.length).toBeGreaterThan(0);
+    fireEvent.click(bars[0]);
     expect(onStepClick).toHaveBeenCalled();
     const calledWith = onStepClick.mock.calls[0]?.[0];
     expect(['n1', 'n2', 'n3', 'n4']).toContain(calledWith);
@@ -90,5 +89,17 @@ describe('StepErrorParetoBase', () => {
     render(<StepErrorParetoBase parentWidth={600} parentHeight={300} steps={mixed} />);
     expect(screen.getAllByText('Has').length).toBeGreaterThan(0);
     expect(screen.queryByText('Zero')).not.toBeInTheDocument();
+  });
+
+  it('treats maxBars<2 as 2 (worst step + Others, not headless or mis-aggregated)', () => {
+    const many: StepErrorParetoStep[] = [
+      { nodeId: 'n1', label: 'Top', errorCount: 100 },
+      { nodeId: 'n2', label: 'Mid', errorCount: 50 },
+      { nodeId: 'n3', label: 'Low', errorCount: 25 },
+    ];
+    // maxBars=0 should NOT silently slice(0, -1); should behave like maxBars=2
+    render(<StepErrorParetoBase parentWidth={800} parentHeight={400} steps={many} maxBars={0} />);
+    expect(screen.getAllByText('Top').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Others/i).length).toBeGreaterThan(0);
   });
 });
