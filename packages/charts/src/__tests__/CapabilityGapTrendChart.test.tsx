@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { CapabilityGapTrendChartBase } from '../CapabilityGapTrendChart';
 import type { IChartDataPoint } from '../types';
+import type { StatsResult } from '@variscout/core';
 
 const makeGapSeries = (n: number): IChartDataPoint[] =>
   Array.from({ length: n }, (_, i) => ({
@@ -10,7 +11,16 @@ const makeGapSeries = (n: number): IChartDataPoint[] =>
     originalIndex: i,
   }));
 
-const STATS = { mean: 0.02, stdDev: 0.04, ucl: 0.14, lcl: -0.1, sigma: 0.04 } as const;
+const STATS: StatsResult = {
+  mean: 0.02,
+  median: 0.02,
+  stdDev: 0.04,
+  sigmaWithin: 0.03,
+  mrBar: 0.03,
+  ucl: 0.14,
+  lcl: -0.1,
+  outOfSpecPercentage: 0,
+};
 
 describe('CapabilityGapTrendChartBase', () => {
   it('renders an SVG with the gap series', () => {
@@ -19,7 +29,7 @@ describe('CapabilityGapTrendChartBase', () => {
         parentWidth={600}
         parentHeight={300}
         gapSeries={makeGapSeries(20)}
-        gapStats={STATS as unknown as Parameters<typeof CapabilityGapTrendChartBase>[0]['gapStats']}
+        gapStats={STATS}
       />
     );
     expect(document.querySelector('svg')).toBeTruthy();
@@ -31,7 +41,7 @@ describe('CapabilityGapTrendChartBase', () => {
         parentWidth={600}
         parentHeight={300}
         gapSeries={makeGapSeries(10)}
-        gapStats={STATS as never}
+        gapStats={STATS}
       />
     );
     expect(screen.getByText(/Δ\(Cp-Cpk\)/)).toBeInTheDocument();
@@ -43,7 +53,7 @@ describe('CapabilityGapTrendChartBase', () => {
         parentWidth={600}
         parentHeight={300}
         gapSeries={makeGapSeries(10)}
-        gapStats={STATS as never}
+        gapStats={STATS}
         yAxisLabel="Centering gap"
       />
     );
@@ -56,7 +66,7 @@ describe('CapabilityGapTrendChartBase', () => {
         parentWidth={600}
         parentHeight={300}
         gapSeries={makeGapSeries(10)}
-        gapStats={STATS as never}
+        gapStats={STATS}
       />
     );
     const labels = screen.getAllByText('0');
