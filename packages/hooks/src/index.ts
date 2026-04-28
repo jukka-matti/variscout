@@ -503,6 +503,10 @@ export type {
   CapabilityBoxplotInputNode,
 } from './useProductionLineGlanceData';
 
+// Production Line Glance Filter (URL search-param state for filter strip)
+export { useProductionLineGlanceFilter } from './useProductionLineGlanceFilter';
+export type { UseProductionLineGlanceFilterResult } from './useProductionLineGlanceFilter';
+
 // Derived hooks (store-first state access)
 export { useFilteredData, type FilteredDataResult } from './useFilteredData';
 export { useAnalysisStats, type AnalysisStatsResult } from './useAnalysisStats';
