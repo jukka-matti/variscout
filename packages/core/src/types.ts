@@ -132,6 +132,30 @@ export interface SpecLimits {
 }
 
 /**
+ * A single specification-rule entry. Looked up by matching the row's context
+ * tuple against `when`. Sparse: missing keys in `when` mean "any value matches".
+ * `null` value in `when` means "default / no specific value" (use when the row's
+ * column for that dimension is absent or empty).
+ */
+export interface SpecRule {
+  /**
+   * Context-column → context-value map. Missing keys are wildcards. `null`
+   * matches rows where that column is absent or empty. Most-specific match
+   * wins (more keys = more specific).
+   */
+  when?: Record<string, string | null>;
+  /** The specs to apply when this rule matches. */
+  specs: SpecLimits;
+}
+
+/**
+ * The context tuple extracted from a single data row, used to look up the
+ * matching `SpecRule`. Keys are context-column names; values are the row's
+ * value for that column (or `null` / `undefined` if absent).
+ */
+export type SpecLookupContext = Record<string, string | null | undefined>;
+
+/**
  * Nelson Rule 2 sequence detection result
  * Represents a consecutive run of 9+ points on one side of the mean
  */
