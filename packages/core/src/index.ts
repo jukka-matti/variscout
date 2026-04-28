@@ -208,6 +208,10 @@ export type {
   HubReviewTopFocus,
 } from './processReviewSignal';
 
+// Process state notes (team notes attached to current-state items)
+export { PROCESS_STATE_NOTE_KINDS, isProcessStateNoteKind } from './processStateNote';
+export type { ProcessStateNote, ProcessStateNoteKind } from './processStateNote';
+
 // Signal Cards
 export {
   buildBranchSignalWarnings,
