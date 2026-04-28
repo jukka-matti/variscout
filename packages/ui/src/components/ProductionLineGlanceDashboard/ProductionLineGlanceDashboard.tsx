@@ -29,7 +29,10 @@ export const ProductionLineGlanceDashboard: React.FC<ProductionLineGlanceDashboa
   filter,
   onStepClick,
   title,
+  mode = 'full',
+  onModeChange: _onModeChange,
 }) => {
+  const isSpatial = mode === 'spatial';
   return (
     <div className="flex h-full w-full flex-col">
       {title ? (
@@ -47,31 +50,39 @@ export const ProductionLineGlanceDashboard: React.FC<ProductionLineGlanceDashboa
         />
       ) : null}
 
-      <div className="grid flex-1 grid-cols-2 grid-rows-2 gap-px bg-edge">
-        <div data-testid="slot-cpk-trend" className="bg-surface p-3">
-          <IChart
-            data={[...cpkTrend.data]}
-            stats={cpkTrend.stats}
-            specs={cpkTrend.specs}
-            yAxisLabel={cpkTrend.yAxisLabel ?? 'Cpk'}
-          />
+      <div className="flex flex-1 flex-col">
+        <div
+          data-testid="dashboard-temporal-row"
+          aria-hidden={isSpatial ? 'true' : 'false'}
+          className={`grid grid-cols-2 gap-px bg-edge overflow-hidden transition-[max-height] duration-300 ease-in-out ${
+            isSpatial ? 'max-h-0' : 'max-h-[50vh]'
+          }`}
+        >
+          <div data-testid="slot-cpk-trend" className="bg-surface p-3">
+            <IChart
+              data={[...cpkTrend.data]}
+              stats={cpkTrend.stats}
+              specs={cpkTrend.specs}
+              yAxisLabel={cpkTrend.yAxisLabel ?? 'Cpk'}
+            />
+          </div>
+          <div data-testid="slot-cpk-gap" className="bg-surface p-3">
+            <CapabilityGapTrendChart gapSeries={cpkGapTrend.series} gapStats={cpkGapTrend.stats} />
+          </div>
         </div>
 
-        <div data-testid="slot-cpk-gap" className="bg-surface p-3">
-          <CapabilityGapTrendChart gapSeries={cpkGapTrend.series} gapStats={cpkGapTrend.stats} />
-        </div>
-
-        <div data-testid="slot-capability-boxplot" className="relative bg-surface p-3">
-          <CapabilityBoxplot nodes={capabilityNodes} />
-          {capabilityNodes.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center text-sm text-content-muted">
-              No mapped nodes — per-step capability unavailable.
-            </div>
-          ) : null}
-        </div>
-
-        <div data-testid="slot-step-pareto" className="bg-surface p-3">
-          <StepErrorPareto steps={errorSteps} onStepClick={onStepClick} />
+        <div className="grid flex-1 grid-cols-2 gap-px bg-edge">
+          <div data-testid="slot-capability-boxplot" className="relative bg-surface p-3">
+            <CapabilityBoxplot nodes={capabilityNodes} />
+            {capabilityNodes.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center text-sm text-content-muted">
+                No mapped nodes — per-step capability unavailable.
+              </div>
+            ) : null}
+          </div>
+          <div data-testid="slot-step-pareto" className="bg-surface p-3">
+            <StepErrorPareto steps={errorSteps} onStepClick={onStepClick} />
+          </div>
         </div>
       </div>
     </div>

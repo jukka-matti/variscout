@@ -112,4 +112,29 @@ describe('ProductionLineGlanceDashboard', () => {
     render(<ProductionLineGlanceDashboard {...baseProps} capabilityNodes={[]} />);
     expect(screen.getByText(/no mapped/i)).toBeInTheDocument();
   });
+
+  it('renders both rows when mode is full (default)', () => {
+    const { container } = render(<ProductionLineGlanceDashboard {...baseProps} />);
+    const temporal = container.querySelector('[data-testid="dashboard-temporal-row"]');
+    expect(temporal).toBeTruthy();
+    expect(temporal).toHaveAttribute('aria-hidden', 'false');
+  });
+
+  it('collapses temporal row to aria-hidden when mode="spatial"', () => {
+    const { container } = render(<ProductionLineGlanceDashboard {...baseProps} mode="spatial" />);
+    const temporal = container.querySelector('[data-testid="dashboard-temporal-row"]');
+    expect(temporal).toBeTruthy();
+    expect(temporal).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('keeps both rows mounted across mode changes (no chart re-mount)', () => {
+    const { container, rerender } = render(
+      <ProductionLineGlanceDashboard {...baseProps} mode="spatial" />
+    );
+    const initialBoxplot = container.querySelector('[data-testid="mock-capability-boxplot"]');
+    expect(initialBoxplot).toBeTruthy();
+    rerender(<ProductionLineGlanceDashboard {...baseProps} mode="full" />);
+    const afterBoxplot = container.querySelector('[data-testid="mock-capability-boxplot"]');
+    expect(afterBoxplot).toBe(initialBoxplot);
+  });
 });
