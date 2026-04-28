@@ -5,6 +5,7 @@ import type {
   Finding,
   ProcessStateItem,
   ProcessStateLens,
+  ProcessStateNote,
   ProcessStateResponsePath,
   ProcessStateSeverity,
   ResponsePathAction,
@@ -22,10 +23,23 @@ export interface ProcessHubEvidenceContract {
   onChipClick: (item: ProcessStateItem, findings: readonly Finding[]) => void;
 }
 
+export interface ProcessHubNotesContract {
+  notesFor: (item: ProcessStateItem) => readonly ProcessStateNote[];
+  /** Consumer opens its own drawer/dialog when this fires. */
+  onRequestAddNote: (item: ProcessStateItem) => void;
+  /** Consumer opens edit drawer/dialog when this fires. */
+  onRequestEditNote: (item: ProcessStateItem, note: ProcessStateNote) => void;
+  /** Direct delete — consumer may show confirm before invoking. */
+  onDeleteNote: (item: ProcessStateItem, noteId: string) => void;
+  /** Used to gate edit/delete affordances on own notes. */
+  currentUserId: string;
+}
+
 export interface ProcessHubCurrentStatePanelProps {
   state: CurrentProcessState;
   actions: ProcessHubActionsContract;
   evidence: ProcessHubEvidenceContract;
+  notes: ProcessHubNotesContract;
 }
 
 const LENS_LABELS: Record<ProcessStateLens, string> = {
@@ -145,7 +159,23 @@ const StateItemCard: React.FC<{
   onInvoke: (item: ProcessStateItem, action: ResponsePathAction) => void;
   findings: readonly Finding[];
   onChipClick: (item: ProcessStateItem, findings: readonly Finding[]) => void;
-}> = ({ item, action, onInvoke, findings, onChipClick }) => {
+  notes: readonly ProcessStateNote[];
+  currentUserId: string;
+  onRequestAddNote: () => void;
+  onRequestEditNote: (note: ProcessStateNote) => void;
+  onDeleteNote: (noteId: string) => void;
+}> = ({
+  item,
+  action,
+  onInvoke,
+  findings,
+  onChipClick,
+  notes,
+  currentUserId,
+  onRequestAddNote,
+  onRequestEditNote,
+  onDeleteNote,
+}) => {
   const detail = formatStateDetail(item);
   const isSupported = action.kind !== 'unsupported';
 
@@ -223,6 +253,58 @@ const StateItemCard: React.FC<{
         </p>
         <EvidenceChip count={findings.length} onClick={() => onChipClick(item, findings)} />
       </div>
+      {/* Notes row */}
+      <div className="mt-2 flex items-center gap-2">
+        <button
+          type="button"
+          data-testid="current-state-add-note"
+          className="text-xs font-medium text-content-secondary hover:text-content"
+          onClick={e => {
+            e.stopPropagation();
+            onRequestAddNote();
+          }}
+        >
+          + note
+        </button>
+      </div>
+      {notes.length > 0 && (
+        <ul data-testid="current-state-notes-list" className="mt-2 space-y-1">
+          {notes.map(note => (
+            <li key={note.id} className="text-xs text-content-secondary">
+              <span className="font-semibold uppercase tracking-wide">[{note.kind}]</span>{' '}
+              <span>{note.author}</span> <span>· {new Date(note.createdAt).toLocaleString()}</span>{' '}
+              <span>{note.text}</span>
+              {note.author === currentUserId && (
+                <>
+                  {' '}
+                  <button
+                    type="button"
+                    data-testid={`current-state-note-edit-${note.id}`}
+                    onClick={e => {
+                      e.stopPropagation();
+                      onRequestEditNote(note);
+                    }}
+                    className="text-blue-400 hover:underline"
+                  >
+                    Edit
+                  </button>{' '}
+                  <button
+                    type="button"
+                    data-testid={`current-state-note-delete-${note.id}`}
+                    onClick={e => {
+                      e.stopPropagation();
+                      onDeleteNote(note.id);
+                    }}
+                    className="text-rose-400 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
@@ -231,6 +313,7 @@ export const ProcessHubCurrentStatePanel: React.FC<ProcessHubCurrentStatePanelPr
   state,
   actions,
   evidence,
+  notes,
 }) => {
   const visibleItems = state.items.slice(0, 6);
   const hiddenCount = Math.max(0, state.items.length - visibleItems.length);
@@ -265,6 +348,11 @@ export const ProcessHubCurrentStatePanel: React.FC<ProcessHubCurrentStatePanelPr
               onInvoke={actions.onInvoke}
               findings={evidence.findingsFor(item)}
               onChipClick={evidence.onChipClick}
+              notes={notes.notesFor(item)}
+              currentUserId={notes.currentUserId}
+              onRequestAddNote={() => notes.onRequestAddNote(item)}
+              onRequestEditNote={note => notes.onRequestEditNote(item, note)}
+              onDeleteNote={noteId => notes.onDeleteNote(item, noteId)}
             />
           ))}
           {hiddenCount > 0 && (

@@ -6,6 +6,7 @@ import type {
   Finding,
   ProcessStateItem,
   ProcessStateLens,
+  ProcessStateNote,
 } from '@variscout/core';
 import type { ResponsePathAction } from '@variscout/core';
 import { ProcessHubCurrentStatePanel } from '../ProcessHubCurrentStatePanel';
@@ -63,6 +64,28 @@ function makeEvidence() {
   };
 }
 
+function makeNotes(
+  overrides: { notesFor?: (item: ProcessStateItem) => readonly ProcessStateNote[] } = {}
+) {
+  return {
+    notesFor: overrides.notesFor ?? (() => []),
+    onRequestAddNote: vi.fn(),
+    onRequestEditNote: vi.fn(),
+    onDeleteNote: vi.fn(),
+    currentUserId: 'tester',
+  };
+}
+
+const sampleNote = (overrides: Partial<ProcessStateNote> = {}): ProcessStateNote => ({
+  id: 'note-1',
+  itemId: 'item-1',
+  kind: 'question',
+  text: 'Are we sure?',
+  author: 'tester',
+  createdAt: '2026-04-27T14:00:00.000Z',
+  ...overrides,
+});
+
 describe('ProcessHubCurrentStatePanel', () => {
   it('renders the heading and overall severity badge', () => {
     render(
@@ -70,6 +93,7 @@ describe('ProcessHubCurrentStatePanel', () => {
         state={buildState({ overallSeverity: 'red' })}
         actions={makeActions()}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
     expect(screen.getByTestId('current-process-state')).toBeInTheDocument();
@@ -86,6 +110,7 @@ describe('ProcessHubCurrentStatePanel', () => {
         state={state}
         actions={makeActions()}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
     expect(screen.getByTestId('current-state-lens-outcome')).toHaveTextContent('3');
@@ -101,6 +126,7 @@ describe('ProcessHubCurrentStatePanel', () => {
         state={buildState()}
         actions={makeActions()}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
     expect(screen.getByText('No current process state signals yet')).toBeInTheDocument();
@@ -115,6 +141,7 @@ describe('ProcessHubCurrentStatePanel', () => {
         state={buildState({ items })}
         actions={makeActions()}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
     expect(screen.getAllByTestId('current-state-item')).toHaveLength(6);
@@ -131,6 +158,7 @@ describe('ProcessHubCurrentStatePanel', () => {
         state={buildState({ items: [item] })}
         actions={makeActions()}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
     const card = screen.getByTestId('current-state-item');
@@ -147,6 +175,7 @@ describe('ProcessHubCurrentStatePanel', () => {
         state={buildState({ items, overallSeverity: 'amber' })}
         actions={makeActions()}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
     expect(screen.getByText('1 change signal')).toBeInTheDocument();
@@ -160,6 +189,7 @@ describe('ProcessHubCurrentStatePanel', () => {
         state={buildState({ items: [item] })}
         actions={makeActions()}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
     expect(screen.getByText('Free-text fallback')).toBeInTheDocument();
@@ -172,6 +202,7 @@ describe('ProcessHubCurrentStatePanel', () => {
         state={buildState({ items: [item] })}
         actions={makeActions()}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
     expect(screen.getByText('Chartered project')).toBeInTheDocument();
@@ -193,6 +224,7 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
         state={buildState({ items: [item] })}
         actions={actions}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
 
@@ -213,6 +245,7 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
         state={buildState({ items: [item] })}
         actions={actions}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
 
@@ -233,6 +266,7 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
         state={buildState({ items: [item] })}
         actions={actions}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
 
@@ -251,6 +285,7 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
         state={buildState({ items: [item] })}
         actions={actions}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
 
@@ -269,6 +304,7 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
         state={buildState({ items: [item] })}
         actions={actions}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
 
@@ -290,6 +326,7 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
         state={buildState({ items: [item] })}
         actions={actions}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
 
@@ -314,6 +351,7 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
         state={buildState({ items: [item] })}
         actions={actions}
         evidence={makeEvidence()}
+        notes={makeNotes()}
       />
     );
 
@@ -343,6 +381,7 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
         state={buildState({ items: [item] })}
         actions={makeActions()}
         evidence={evidence}
+        notes={makeNotes()}
       />
     );
 
@@ -362,6 +401,7 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
         state={buildState({ items: [item] })}
         actions={makeActions()}
         evidence={evidence}
+        notes={makeNotes()}
       />
     );
 
@@ -380,6 +420,7 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
         state={buildState({ items: [item] })}
         actions={makeActions()}
         evidence={evidence}
+        notes={makeNotes()}
       />
     );
 
@@ -404,6 +445,7 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
           onInvoke,
         }}
         evidence={{ findingsFor: () => findings, onChipClick }}
+        notes={makeNotes()}
       />
     );
 
@@ -430,9 +472,86 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
           actionFor: () => ({ kind: 'unsupported' as const, reason: 'planned' as const }),
         })}
         evidence={evidence}
+        notes={makeNotes()}
       />
     );
 
     expect(screen.getByTestId('current-state-evidence-chip')).toHaveTextContent('1 finding');
+  });
+});
+
+describe('ProcessHubCurrentStatePanel — notes', () => {
+  it('renders a [+ note] affordance on each state-item card', () => {
+    const item = buildItem({ id: 'item-1' });
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={makeActions()}
+        evidence={makeEvidence()}
+        notes={makeNotes()}
+      />
+    );
+    expect(screen.getByTestId('current-state-add-note')).toBeInTheDocument();
+  });
+
+  it('does NOT show edit/delete affordances on notes by other authors', () => {
+    const item = buildItem({ id: 'item-1' });
+    const note = sampleNote({ author: 'someone-else' });
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={makeActions()}
+        evidence={makeEvidence()}
+        notes={makeNotes({ notesFor: () => [note] })}
+      />
+    );
+    expect(screen.queryByTestId(`current-state-note-edit-${note.id}`)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(`current-state-note-delete-${note.id}`)).not.toBeInTheDocument();
+  });
+
+  it('shows edit + delete affordances on own notes', () => {
+    const item = buildItem({ id: 'item-1' });
+    const note = sampleNote({ author: 'tester' });
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={makeActions()}
+        evidence={makeEvidence()}
+        notes={makeNotes({ notesFor: () => [note] })}
+      />
+    );
+    expect(screen.getByTestId(`current-state-note-edit-${note.id}`)).toBeInTheDocument();
+    expect(screen.getByTestId(`current-state-note-delete-${note.id}`)).toBeInTheDocument();
+  });
+
+  it('renders all notes for the item with kind label and text', () => {
+    const item = buildItem({ id: 'item-1' });
+    const notes = [
+      sampleNote({ id: 'n-1', kind: 'question', text: 'First note' }),
+      sampleNote({ id: 'n-2', kind: 'gemba', text: 'Second note' }),
+    ];
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={makeActions()}
+        evidence={makeEvidence()}
+        notes={makeNotes({ notesFor: () => notes })}
+      />
+    );
+    expect(screen.getByText('First note')).toBeInTheDocument();
+    expect(screen.getByText('Second note')).toBeInTheDocument();
+  });
+
+  it('omits the notes list when notesFor returns empty', () => {
+    const item = buildItem({ id: 'item-1' });
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={makeActions()}
+        evidence={makeEvidence()}
+        notes={makeNotes({ notesFor: () => [] })}
+      />
+    );
+    expect(screen.queryByTestId('current-state-notes-list')).not.toBeInTheDocument();
   });
 });
