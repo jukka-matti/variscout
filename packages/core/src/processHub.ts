@@ -10,6 +10,7 @@ import type {
   ProcessStateSeverity,
 } from './processState';
 import type { HubReviewSignal } from './processReviewSignal';
+import type { ProcessStateNote } from './processStateNote';
 import type { SurveyStatus } from './survey/types';
 import {
   isSustainmentDue,
@@ -77,6 +78,12 @@ export interface ProcessHubInvestigationMetadata {
   problemConditionSummary?: string;
   nextMove?: string;
   reviewSignal?: HubReviewSignal;
+  /**
+   * Team notes attached to current-state items. Persisted per-investigation
+   * via the existing Blob-Storage round-trip on project metadata.
+   * Re-rendered by Dashboard on mount via the rollup.
+   */
+  stateNotes?: ProcessStateNote[];
   /**
    * Lightweight projection of the active SustainmentRecord for this investigation,
    * surfaced on the hub for cadence rendering without re-querying the records list.
