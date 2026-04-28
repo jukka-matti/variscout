@@ -307,11 +307,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   const handleChipClick = React.useCallback(
-    async (item: ProcessStateItem, hubId: string) => {
+    async (item: ProcessStateItem, hubId: string, count: number) => {
       safeTrackEvent('process_hub.evidence_sheet_opened', {
         hubId,
         responsePath: item.responsePath,
         lens: item.lens,
+        evidenceCount: count,
       });
       setSheetState({ item, hubId, findings: null });
       try {

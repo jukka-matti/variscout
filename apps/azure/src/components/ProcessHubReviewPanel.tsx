@@ -33,7 +33,8 @@ interface ProcessHubReviewPanelProps {
   currentUserId: string;
   /** Evidence wiring (PR #2) — async finding loader; Dashboard owns sheet state. */
   loadFindingsForItem: (item: ProcessStateItem, hubId: string) => Promise<readonly Finding[]>;
-  onChipClick: (item: ProcessStateItem, hubId: string) => void;
+  /** count is threaded through so Dashboard can include it in chip-click telemetry. */
+  onChipClick: (item: ProcessStateItem, hubId: string, count: number) => void;
   onFindingSelect: (item: ProcessStateItem, finding: Finding, hubId: string) => void;
 }
 
@@ -188,7 +189,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         evidence={{
           countFor,
           loadFindingsFor: item => loadFindingsForItem(item, rollup.hub.id),
-          onChipClick: item => onChipClick(item, rollup.hub.id),
+          onChipClick: item => onChipClick(item, rollup.hub.id, countFor(item)),
           onFindingSelect: (item, finding) => onFindingSelect(item, finding, rollup.hub.id),
         }}
         notes={{
