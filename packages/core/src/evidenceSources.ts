@@ -197,7 +197,91 @@ export const AGENT_REVIEW_LOG_PROFILE: DataProfileDefinition = {
   },
 };
 
-export const DATA_PROFILE_REGISTRY: DataProfileDefinition[] = [AGENT_REVIEW_LOG_PROFILE];
+function isNumericValueLoose(value: unknown): boolean {
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (typeof value === 'string' && value.trim() !== '') {
+    return Number.isFinite(Number(value));
+  }
+  return false;
+}
+
+function classifyColumnNumeric(rows: DataRow[], col: string): boolean {
+  // A column is "numeric" if at least 70% of non-empty values parse as finite numbers.
+  let total = 0;
+  let numeric = 0;
+  for (const row of rows) {
+    const value = row[col];
+    if (value === undefined || value === null || value === '') continue;
+    total += 1;
+    if (isNumericValueLoose(value)) numeric += 1;
+  }
+  if (total === 0) return false;
+  return numeric / total >= 0.7;
+}
+
+function genericTabularConfidence(numericRatio: number): DataProfileConfidence {
+  if (numericRatio >= 0.6) return 'high';
+  if (numericRatio >= 0.3) return 'medium';
+  return 'low';
+}
+
+export const GENERIC_TABULAR_PROFILE: DataProfileDefinition = {
+  id: 'generic-tabular',
+  version: 1,
+  label: 'Generic tabular',
+
+  detect(rows: DataRow[]): DataProfileDetection | null {
+    if (rows.length === 0) return null;
+    const cols = columns(rows);
+    if (cols.length === 0) return null;
+
+    const numericCols = cols.filter(col => classifyColumnNumeric(rows, col));
+    if (numericCols.length === 0) return null;
+
+    const ratio = numericCols.length / cols.length;
+    const confidence = genericTabularConfidence(ratio);
+
+    // Recommended mapping: pick the first numeric column as the outcome candidate.
+    // The user is expected to confirm/correct in the mapping form (PR #3 UI).
+    const recommendedMapping: Record<string, string> = {
+      outcome: numericCols[0],
+    };
+
+    return {
+      profileId: 'generic-tabular',
+      profileVersion: 1,
+      confidence,
+      recommendedMapping,
+      reasons: [
+        `Detected ${numericCols.length} numeric column${numericCols.length === 1 ? '' : 's'} of ${cols.length} total.`,
+      ],
+    };
+  },
+
+  validate(rows: DataRow[], _mapping: Record<string, string>): EvidenceValidationResult {
+    if (rows.length === 0) {
+      return validation(false, ['Snapshot has zero rows.']);
+    }
+    return validation(true);
+  },
+
+  apply(rows: DataRow[], mapping: Record<string, string>): ProfileApplication {
+    // Identity transform — no derived signals for generic tabular.
+    return {
+      profileId: 'generic-tabular',
+      profileVersion: 1,
+      mapping,
+      validation: validation(true),
+      derivedColumns: [],
+      derivedRows: rows,
+    };
+  },
+};
+
+export const DATA_PROFILE_REGISTRY: DataProfileDefinition[] = [
+  AGENT_REVIEW_LOG_PROFILE,
+  GENERIC_TABULAR_PROFILE,
+];
 
 export function detectDataProfiles(rows: DataRow[]): DataProfileDetection[] {
   return DATA_PROFILE_REGISTRY.map(profile => profile.detect(rows)).filter(
