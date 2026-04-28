@@ -215,96 +215,98 @@ const StateItemCard: React.FC<{
         onKeyDown: handleKeyDown,
         'aria-label': `${item.label} — ${RESPONSE_LABELS[item.responsePath]}`,
       }
-    : { 'aria-disabled': true as const };
+    : {};
 
   return (
+    // Outer wrapper: visual chrome only (border, severity colour). Not interactive.
     <div
-      className={`rounded-md border bg-surface px-3 py-2 ${SEVERITY_CLASS[item.severity]} ${
-        isSupported
-          ? 'cursor-pointer transition-colors hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-blue-500'
-          : ''
-      }`}
-      data-testid="current-state-item"
-      // title attribute is unreachable on touch and unreliable for screen
-      // readers (WCAG 1.3.3 / 4.1.2). Visible 'Planned'/'Informational'
-      // pill text already conveys the state. Replace with a Tooltip /
-      // Popover primitive when the design system grows one.
-      title={tooltipText}
-      {...interactiveProps}
+      className={`rounded-md border bg-surface ${SEVERITY_CLASS[item.severity]}`}
+      aria-disabled={!isSupported || undefined}
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-content-secondary">
-            {LENS_LABELS[item.lens]}
-          </p>
-          <p className="mt-1 text-sm font-medium text-content">{item.label}</p>
-          {detail && <p className="mt-1 text-xs text-content-secondary">{detail}</p>}
+      {/* Interactive region: card body + pill + chip. Holds role=button only when supported.
+          data-testid and title live here so tests can find and interact with the card. */}
+      <div
+        data-testid="current-state-item"
+        // title attribute is unreachable on touch and unreliable for screen
+        // readers (WCAG 1.3.3 / 4.1.2). Visible 'Planned'/'Informational'
+        // pill text already conveys the state. Replace with a Tooltip /
+        // Popover primitive when the design system grows one.
+        title={tooltipText}
+        className={`px-3 py-2 ${
+          isSupported
+            ? 'cursor-pointer transition-colors hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-blue-500'
+            : ''
+        }`}
+        {...interactiveProps}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-content-secondary">
+              {LENS_LABELS[item.lens]}
+            </p>
+            <p className="mt-1 text-sm font-medium text-content">{item.label}</p>
+            {detail && <p className="mt-1 text-xs text-content-secondary">{detail}</p>}
+          </div>
+          <span className="rounded-sm border border-current px-2 py-0.5 text-xs font-medium">
+            {SEVERITY_LABELS[item.severity]}
+          </span>
         </div>
-        <span className="rounded-sm border border-current px-2 py-0.5 text-xs font-medium">
-          {SEVERITY_LABELS[item.severity]}
-        </span>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="inline-flex rounded-sm border border-edge px-2 py-0.5 text-xs font-medium text-content-secondary">
+            <span>{RESPONSE_LABELS[item.responsePath]}</span>
+            {unsupportedReason !== null && (
+              <span> · {UNSUPPORTED_PILL_LABEL[unsupportedReason]}</span>
+            )}
+          </p>
+          <EvidenceChip count={findings.length} onClick={() => onChipClick(item, findings)} />
+        </div>
       </div>
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="inline-flex rounded-sm border border-edge px-2 py-0.5 text-xs font-medium text-content-secondary">
-          <span>{RESPONSE_LABELS[item.responsePath]}</span>
-          {unsupportedReason !== null && (
-            <span> · {UNSUPPORTED_PILL_LABEL[unsupportedReason]}</span>
-          )}
-        </p>
-        <EvidenceChip count={findings.length} onClick={() => onChipClick(item, findings)} />
-      </div>
-      {/* Notes row */}
-      <div className="mt-2 flex items-center gap-2">
+
+      {/* Non-interactive sibling region: notes affordance + list.
+          Buttons here are NOT descendants of the interactive div — no HTML nesting violation. */}
+      <div className="border-t border-edge px-3 py-2">
         <button
           type="button"
           data-testid="current-state-add-note"
+          aria-label={`Add note for ${item.label}`}
           className="text-xs font-medium text-content-secondary hover:text-content"
-          onClick={e => {
-            e.stopPropagation();
-            onRequestAddNote();
-          }}
+          onClick={onRequestAddNote}
         >
           + note
         </button>
+        {notes.length > 0 && (
+          <ul data-testid="current-state-notes-list" className="mt-2 space-y-1">
+            {notes.map(note => (
+              <li key={note.id} className="text-xs text-content-secondary">
+                <span className="font-semibold uppercase tracking-wide">[{note.kind}]</span>{' '}
+                <span>{note.author}</span>{' '}
+                <span>· {new Date(note.createdAt).toLocaleString()}</span> <span>{note.text}</span>
+                {note.author === currentUserId && (
+                  <>
+                    {' '}
+                    <button
+                      type="button"
+                      data-testid={`current-state-note-edit-${note.id}`}
+                      onClick={() => onRequestEditNote(note)}
+                      className="text-blue-400 hover:underline"
+                    >
+                      Edit
+                    </button>{' '}
+                    <button
+                      type="button"
+                      data-testid={`current-state-note-delete-${note.id}`}
+                      onClick={() => onDeleteNote(note.id)}
+                      className="text-rose-400 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-      {notes.length > 0 && (
-        <ul data-testid="current-state-notes-list" className="mt-2 space-y-1">
-          {notes.map(note => (
-            <li key={note.id} className="text-xs text-content-secondary">
-              <span className="font-semibold uppercase tracking-wide">[{note.kind}]</span>{' '}
-              <span>{note.author}</span> <span>· {new Date(note.createdAt).toLocaleString()}</span>{' '}
-              <span>{note.text}</span>
-              {note.author === currentUserId && (
-                <>
-                  {' '}
-                  <button
-                    type="button"
-                    data-testid={`current-state-note-edit-${note.id}`}
-                    onClick={e => {
-                      e.stopPropagation();
-                      onRequestEditNote(note);
-                    }}
-                    className="text-blue-400 hover:underline"
-                  >
-                    Edit
-                  </button>{' '}
-                  <button
-                    type="button"
-                    data-testid={`current-state-note-delete-${note.id}`}
-                    onClick={e => {
-                      e.stopPropagation();
-                      onDeleteNote(note.id);
-                    }}
-                    className="text-rose-400 hover:underline"
-                  >
-                    Delete
-                  </button>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 };
