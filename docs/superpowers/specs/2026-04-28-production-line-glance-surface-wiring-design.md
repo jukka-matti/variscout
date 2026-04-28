@@ -243,7 +243,7 @@ The design above covers all three surfaces and the data layer as a single cohere
 
 1. **C1 — Data layer + Process Hub Capability tab.** Lands the `@variscout/core/stats` derivation utilities, the `@variscout/hooks` data hooks, the URL-state filter hook, and the dashboard wired into the Process Hub Capability tab in azure-app. Includes the B0 migration banner + mapping modal. Chrome walk validates the full data-to-render path on the highest-traffic surface first; this also closes the Plan B T3 overlay-alignment deferred check.
 
-2. **C2 — LayeredProcessView Operations band.** Adds `mode: 'spatial' | 'full'` to `ProductionLineGlanceDashboard`, replaces the Operations band content with `<ProductionLineGlanceDashboard mode='spatial' />`, adds the progressive-reveal affordance, hoists the filter strip to the top of LayeredProcessView, moves tributary chips to the Outcome band's "Mapped factors" section, amends the V1 LayeredProcessView spec.
+2. **C2 — LayeredProcessView Operations band.** Adds `mode: 'spatial' | 'full'` to `ProductionLineGlanceDashboard`, replaces the Operations band content with `<ProductionLineGlanceDashboard mode='spatial' />`, adds the progressive-reveal affordance, hoists the filter strip to the top of LayeredProcessView, moves tributary chips to the Outcome band's "Mapped factors" section, amends the V1 LayeredProcessView spec. Plan: [`docs/superpowers/plans/2026-04-28-production-line-glance-c2-layered-view.md`](../plans/2026-04-28-production-line-glance-c2-layered-view.md).
 
 3. **C3 — FRAME workspace right-hand drawer.** Adds a collapsible right-hand drawer to FRAME's canonical-map authoring mode that hosts the dashboard live-bound to authoring-state stores. Drawer collapse persists per-workspace in localStorage.
 

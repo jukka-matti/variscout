@@ -594,6 +594,11 @@ export { SubgroupConfigPopover, type SubgroupConfigProps } from './components/Su
 // FRAME workspace — visual Process Map (ADR-070)
 export { ProcessMapBase, type ProcessMapBaseProps } from './components/ProcessMap/ProcessMapBase';
 export { LayeredProcessView, type LayeredProcessViewProps } from './components/LayeredProcessView';
+export { LayeredProcessViewWithCapability } from './components/LayeredProcessView';
+export type {
+  LayeredProcessViewWithCapabilityProps,
+  ProductionLineGlanceOpsMode,
+} from './components/LayeredProcessView';
 export {
   ProcessHubCurrentStatePanel,
   type ProcessHubCurrentStatePanelProps,
