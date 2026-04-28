@@ -199,3 +199,12 @@ export { finiteOrUndefined, safeDivide, computeOptimum } from './safeMath';
 // UI relationship type mapping (5 engine types → 3 user-facing types)
 export type { UIRelationshipType, UIRelationshipInfo } from './relationshipTypeMapping';
 export { mapRelationshipType } from './relationshipTypeMapping';
+
+// Production-line glance engine — node capability, spec lookup, sample confidence,
+// migration helpers (Plan A: engine layer for canonical-map dashboard)
+export { calculateNodeCapability } from './nodeCapability';
+export type { NodeCapabilityResult, CalculateNodeCapabilitySource } from './nodeCapability';
+export { lookupSpecRule, ruleMatches, ruleSpecificity } from './specRuleLookup';
+export { sampleConfidenceFor, SAMPLE_CONFIDENCE_THRESHOLDS } from './sampleConfidence';
+export type { SampleConfidence } from './sampleConfidence';
+export { isLegacyInvestigation, suggestNodeMappings } from './nodeCapabilityMigration';

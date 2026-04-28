@@ -10,6 +10,8 @@
  * seeds mode inference, and surfaces data gaps as a measurement plan.
  */
 
+import type { SpecRule } from '../types';
+
 /** Role classification for a tributary (a little x feeding a process step). */
 export type TributaryRole =
   | 'machine'
@@ -32,6 +34,17 @@ export interface ProcessMapNode {
   order: number;
   /** Optional column measured at this step (a CTQ — Critical-to-Quality). */
   ctqColumn?: string;
+  /**
+   * Per-step capability scope. When set, enables the production-line-glance
+   * dashboard to compute Cp/Cpk for this step using `ctqColumn` and looking
+   * up specs from `specRules` by the row's context tuple.
+   *
+   * See spec: docs/superpowers/specs/2026-04-28-production-line-glance-design.md
+   */
+  capabilityScope?: {
+    /** Sparse SpecRule list. Most-specific match wins. */
+    specRules: SpecRule[];
+  };
 }
 
 /** A tributary — an x (factor) branching into a process step. */
@@ -45,6 +58,16 @@ export interface ProcessMapTributary {
   label?: string;
   /** Role classification (informational; used for UX affordances, not math). */
   role?: TributaryRole;
+  /**
+   * Input-attached context dimensions. Columns in the dataset that describe
+   * properties of THIS tributary's input (e.g., `['steel_supplier']` on a
+   * Steel tributary, `['paint_class']` on a Paint tributary). Engine treats
+   * these uniformly with hub-level context columns at SpecRule lookup time;
+   * declaration here is UX metadata so filter chips group sensibly.
+   *
+   * See spec: docs/superpowers/specs/2026-04-28-production-line-glance-design.md
+   */
+  contextColumns?: string[];
 }
 
 /** A pre-data hunch pinned to a step or tributary, lifted later to a SuspectedCause. */
