@@ -17,7 +17,6 @@ import { ProcessHubCurrentStatePanel } from '@variscout/ui';
 import ProcessHubCadenceQuestions from './ProcessHubCadenceQuestions';
 import ProcessHubCadenceQueues from './ProcessHubCadenceQueues';
 import { formatLatestActivity } from './ProcessHubFormat';
-import { safeTrackEvent } from '../lib/appInsights';
 
 interface ProcessHubReviewPanelProps {
   rollup: ProcessHubRollup<ProcessHubInvestigation>;
@@ -32,6 +31,11 @@ interface ProcessHubReviewPanelProps {
   onRequestEditNote: (item: ProcessStateItem, note: ProcessStateNote, hubId: string) => void;
   onDeleteNote: (item: ProcessStateItem, noteId: string, hubId: string) => void;
   currentUserId: string;
+  /** Evidence wiring (PR #2) — async finding loader; Dashboard owns sheet state. */
+  loadFindingsForItem: (item: ProcessStateItem, hubId: string) => Promise<readonly Finding[]>;
+  /** count is threaded through so Dashboard can include it in chip-click telemetry. */
+  onChipClick: (item: ProcessStateItem, hubId: string, count: number) => void;
+  onFindingSelect: (item: ProcessStateItem, finding: Finding, hubId: string) => void;
 }
 
 const SnapshotCard: React.FC<{
@@ -65,6 +69,9 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   onRequestEditNote,
   onDeleteNote,
   currentUserId,
+  loadFindingsForItem,
+  onChipClick,
+  onFindingSelect,
 }) => {
   const cadence = buildProcessHubCadence(rollup);
   const currentState = buildCurrentProcessState(rollup, cadence);
@@ -104,34 +111,18 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
     [rollup.investigations]
   );
 
-  // findingsFor: chip count is derived from
-  // ProcessHubInvestigationMetadata.findingCounts (already on the rollup —
-  // no extra data load needed). Returns an array of synthetic Finding-shaped
-  // placeholder objects with just enough surface (id) for the chip to count.
-  //
-  // Real Finding[] objects aren't loaded hub-wide on Dashboard today. The
-  // EvidenceSheet rendering (which would need the full objects) is deferred
-  // to a follow-up PR — see plan PR #5 future work.
-  const findingsFor = React.useCallback(
-    (item: ProcessStateItem): readonly Finding[] => {
+  // countFor: cheap derivation from rollup metadata (same arithmetic as the
+  // PR #99 synthetic-Finding length, but returns the integer directly).
+  const countFor = React.useCallback(
+    (item: ProcessStateItem): number => {
       const investigationIds = investigationIdResolver(item);
-      let totalRelevantCount = 0;
+      let total = 0;
       for (const invId of investigationIds) {
         const inv = rollup.investigations.find(i => i.id === invId);
         const counts = inv?.metadata?.findingCounts ?? {};
-        totalRelevantCount +=
-          (counts.analyzed ?? 0) + (counts.improving ?? 0) + (counts.resolved ?? 0);
+        total += (counts.analyzed ?? 0) + (counts.improving ?? 0) + (counts.resolved ?? 0);
       }
-      if (totalRelevantCount === 0) return [];
-      // Placeholder objects carry only `id` — chip rendering only reads `.length`.
-      // The double cast is the documented pragmatic shortcut for this PR (see
-      // spec § Implementation Reality Notes). The follow-up EvidenceSheet PR
-      // will introduce a narrow `FindingCountPlaceholder = Pick<Finding, 'id'>`
-      // type at the panel's evidence-contract boundary so the cast goes away.
-      // TODO(evidence-sheet-pr): remove this cast once contracts narrow.
-      return Array.from({ length: totalRelevantCount }, (_, idx) => ({
-        id: `${item.id}-finding-placeholder-${idx}`,
-      })) as unknown as readonly Finding[];
+      return total;
     },
     [rollup.investigations, investigationIdResolver]
   );
@@ -157,26 +148,6 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
       return all.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     },
     [rollup.investigations]
-  );
-
-  const handleChipClick = React.useCallback(
-    (item: ProcessStateItem, findings: readonly Finding[]) => {
-      safeTrackEvent('process_hub.evidence_chip_click', {
-        hubId: rollup.hub.id,
-        responsePath: item.responsePath,
-        lens: item.lens,
-        evidenceCount: findings.length,
-      });
-      // Navigate to a linked investigation. Per-investigation items use
-      // item.investigationIds[0] (the order the projection builder produced —
-      // typically a single linked investigation, so most-recency is moot).
-      // Hub-aggregate items fall back to defaultInvestigationId, which is
-      // sorted by `modified` descending. Full sheet rendering deferred to a
-      // follow-up PR — when Dashboard loads findings hub-wide.
-      const targetId = item.investigationIds?.[0] ?? defaultInvestigationId;
-      if (targetId) onOpenInvestigation(targetId);
-    },
-    [rollup.hub.id, defaultInvestigationId, onOpenInvestigation]
   );
 
   const headingId = `process-hub-current-state-${rollup.hub.id}`;
@@ -215,7 +186,12 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           actionFor,
           onInvoke: (item, action) => onResponsePathAction(item, action, rollup.hub.id),
         }}
-        evidence={{ findingsFor, onChipClick: handleChipClick }}
+        evidence={{
+          countFor,
+          loadFindingsFor: item => loadFindingsForItem(item, rollup.hub.id),
+          onChipClick: item => onChipClick(item, rollup.hub.id, countFor(item)),
+          onFindingSelect: (item, finding) => onFindingSelect(item, finding, rollup.hub.id),
+        }}
         notes={{
           notesFor,
           onRequestAddNote: item => onRequestAddNote(item, rollup.hub.id),

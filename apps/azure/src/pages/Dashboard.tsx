@@ -4,9 +4,11 @@ import {
   buildProcessHubRollups,
   hasTeamFeatures,
   normalizeProcessHubId,
+  linkFindingsToStateItems,
 } from '@variscout/core';
 import type { ProcessHub, SustainmentRecord, ControlHandoff } from '@variscout/core';
 import type { EvidenceSnapshot } from '@variscout/core';
+import type { Finding } from '@variscout/core';
 import type {
   ProcessStateItem,
   ProcessStateNote,
@@ -32,6 +34,7 @@ import { FileBrowseButton, type FilePickerResult } from '../components/FileBrows
 import ProjectCard from '../components/ProjectCard';
 import ProcessHubCard from '../components/ProcessHubCard';
 import ProcessHubEvidencePanel from '../components/ProcessHubEvidencePanel';
+import EvidenceSheet from '../components/EvidenceSheet';
 import ProcessHubReviewPanel from '../components/ProcessHubReviewPanel';
 import SampleDataPicker from '../components/SampleDataPicker';
 import StateItemNotesDrawer from '../components/StateItemNotesDrawer';
@@ -78,6 +81,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     | null
   >(null);
   const [isSavingNote, setIsSavingNote] = useState(false);
+  const [sheetState, setSheetState] = useState<{
+    item: ProcessStateItem;
+    hubId: string;
+    findings: readonly Finding[] | null;
+  } | null>(null);
 
   // Fetch current user ID for task ownership display
   useEffect(() => {
@@ -255,7 +263,96 @@ export const Dashboard: React.FC<DashboardProps> = ({
         onOpenProject(action.investigationId);
       }
     },
-    [onOpenProject, safeTrackEvent]
+    [onOpenProject]
+  );
+
+  const loadFindingsForItem = React.useCallback(
+    async (item: ProcessStateItem, hubId: string): Promise<readonly Finding[]> => {
+      // Find the rollup for this hub to know which investigations belong to it
+      const rollup = hubRollups.find(r => r.hub.id === hubId);
+      if (!rollup) return [];
+
+      // Resolver mirrors the one used in ProcessHubReviewPanel.notesFor:
+      // per-investigation items use item.investigationIds; aggregate items use all
+      const investigationIds =
+        item.investigationIds && item.investigationIds.length > 0
+          ? item.investigationIds
+          : rollup.investigations.map(i => i.id);
+
+      // Look up each investigation's project name (loadProject uses name+location)
+      const hubProjects = projects.filter(
+        p => normalizeProcessHubId(p.metadata?.processHubId) === normalizeProcessHubId(hubId)
+      );
+
+      // Load findings from each linked investigation in parallel
+      const findingsByInv = new Map<string, readonly Finding[]>();
+      await Promise.all(
+        investigationIds.map(async invId => {
+          const projectMeta = hubProjects.find(p => (p.id || p.name) === invId);
+          if (!projectMeta) return;
+          const project = await loadProject(projectMeta.name, projectMeta.location);
+          if (!project) return;
+          const findings = (project as { findings?: Finding[] }).findings;
+          if (Array.isArray(findings)) {
+            findingsByInv.set(invId, findings);
+          }
+        })
+      );
+
+      // Use the pure aggregator to filter to relevant statuses + match by item
+      const result = linkFindingsToStateItems([item], findingsByInv, () => investigationIds);
+      return result.byItemId.get(item.id) ?? [];
+    },
+    [hubRollups, projects, loadProject]
+  );
+
+  const handleChipClick = React.useCallback(
+    async (item: ProcessStateItem, hubId: string, count: number) => {
+      safeTrackEvent('process_hub.evidence_sheet_opened', {
+        hubId,
+        responsePath: item.responsePath,
+        lens: item.lens,
+        evidenceCount: count,
+      });
+      setSheetState({ item, hubId, findings: null });
+      try {
+        const findings = await loadFindingsForItem(item, hubId);
+        // Race guard: only apply if same item is still selected
+        setSheetState(prev =>
+          prev?.item.id === item.id && prev.hubId === hubId ? { ...prev, findings } : prev
+        );
+      } catch (err) {
+        console.error('[Dashboard] Loading evidence findings failed:', err);
+        setSheetState(prev =>
+          prev?.item.id === item.id && prev.hubId === hubId ? { ...prev, findings: [] } : prev
+        );
+      }
+    },
+    [loadFindingsForItem]
+  );
+
+  const handleFindingSelect = React.useCallback(
+    (item: ProcessStateItem, finding: Finding, hubId: string) => {
+      safeTrackEvent('process_hub.evidence_sheet_finding_clicked', {
+        hubId,
+        lens: item.lens,
+        findingStatus: finding.status,
+      });
+      setSheetState(null);
+      // Navigate to the linked investigation. Use the same heuristic as elsewhere:
+      // item.investigationIds[0], falling back to first hub investigation.
+      const rollup = hubRollups.find(r => r.hub.id === hubId);
+      const targetInvestigationId = item.investigationIds?.[0] ?? rollup?.investigations[0]?.id;
+      if (targetInvestigationId) {
+        onOpenProject(targetInvestigationId);
+        // Best-effort hash for finding deep-link; editor may or may not honor it yet.
+        // Always set — assigning the same value is a no-op in browsers.
+        setTimeout(() => {
+          window.location.hash = `finding-${finding.id}`;
+        }, 100);
+      }
+    },
+    [hubRollups, onOpenProject]
   );
 
   const handleRequestAddNote = useCallback((item: ProcessStateItem, hubId: string) => {
@@ -626,6 +723,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onRequestEditNote={handleRequestEditNote}
                 onDeleteNote={handleDeleteNote}
                 currentUserId={userId}
+                loadFindingsForItem={loadFindingsForItem}
+                onChipClick={handleChipClick}
+                onFindingSelect={handleFindingSelect}
               />
               <ProcessHubEvidencePanel
                 hubId={selectedHubRollup.hub.id}
@@ -668,6 +768,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
           onSave={handleSaveNote}
           onCancel={() => setNotesDrawerState(null)}
           disabled={isSavingNote}
+        />
+      )}
+
+      {/* Evidence sheet — bottom sheet for finding click-thru */}
+      {sheetState && (
+        <EvidenceSheet
+          item={sheetState.item}
+          findings={sheetState.findings}
+          onSelectFinding={finding =>
+            handleFindingSelect(sheetState.item, finding, sheetState.hubId)
+          }
+          onClose={() => setSheetState(null)}
         />
       )}
     </div>

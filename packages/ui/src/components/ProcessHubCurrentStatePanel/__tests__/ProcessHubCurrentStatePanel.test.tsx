@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { vi } from 'vitest';
 import type {
@@ -56,11 +56,17 @@ function makeActions(
   return { actionFor, onInvoke };
 }
 
-function makeEvidence() {
-  // Stubbed evidence contract for PR #4 tests; chip behavior is tested in PR #5.
+function makeEvidence(
+  overrides: {
+    countFor?: (item: ProcessStateItem) => number;
+    loadFindingsFor?: (item: ProcessStateItem) => Promise<readonly Finding[]>;
+  } = {}
+) {
   return {
-    findingsFor: () => [],
+    countFor: overrides.countFor ?? (() => 0),
+    loadFindingsFor: overrides.loadFindingsFor ?? (async () => []),
     onChipClick: vi.fn(),
+    onFindingSelect: vi.fn(),
   };
 }
 
@@ -364,17 +370,9 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
 });
 
 describe('ProcessHubCurrentStatePanel — evidence chip', () => {
-  it('shows the chip with finding count when findingsFor returns non-empty', () => {
+  it('shows the chip with finding count when countFor returns non-zero', () => {
     const item = buildItem({ id: 'item-e1', responsePath: 'focused-investigation' });
-    const findings = [
-      { id: 'f-1' } as unknown as Finding,
-      { id: 'f-2' } as unknown as Finding,
-      { id: 'f-3' } as unknown as Finding,
-    ];
-    const evidence = {
-      findingsFor: () => findings,
-      onChipClick: vi.fn(),
-    };
+    const evidence = makeEvidence({ countFor: () => 3 });
 
     render(
       <ProcessHubCurrentStatePanel
@@ -391,10 +389,7 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
 
   it('shows singular text for one finding', () => {
     const item = buildItem({ id: 'item-e2' });
-    const evidence = {
-      findingsFor: () => [{ id: 'f-only' } as unknown as Finding],
-      onChipClick: vi.fn(),
-    };
+    const evidence = makeEvidence({ countFor: () => 1 });
 
     render(
       <ProcessHubCurrentStatePanel
@@ -408,12 +403,9 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
     expect(screen.getByTestId('current-state-evidence-chip')).toHaveTextContent('1 finding');
   });
 
-  it('omits the chip when findingsFor returns empty', () => {
+  it('omits the chip when countFor returns zero', () => {
     const item = buildItem({ id: 'item-e3' });
-    const evidence = {
-      findingsFor: () => [],
-      onChipClick: vi.fn(),
-    };
+    const evidence = makeEvidence({ countFor: () => 0 });
 
     render(
       <ProcessHubCurrentStatePanel
@@ -427,9 +419,8 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
     expect(screen.queryByTestId('current-state-evidence-chip')).not.toBeInTheDocument();
   });
 
-  it('fires onChipClick with item + findings on chip click and stops card propagation', () => {
+  it('fires onChipClick(item) on chip click and stops card propagation', () => {
     const item = buildItem({ id: 'item-e4', responsePath: 'focused-investigation' });
-    const findings = [{ id: 'f-1' } as unknown as Finding];
     const onChipClick = vi.fn();
     const onInvoke = vi.fn();
 
@@ -444,26 +435,24 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
           }),
           onInvoke,
         }}
-        evidence={{ findingsFor: () => findings, onChipClick }}
+        evidence={{
+          countFor: () => 1,
+          loadFindingsFor: async () => [],
+          onChipClick,
+          onFindingSelect: vi.fn(),
+        }}
         notes={makeNotes()}
       />
     );
 
-    const chip = screen.getByTestId('current-state-evidence-chip');
-    chip.click();
-
-    expect(onChipClick).toHaveBeenCalledWith(item, findings);
-    // Card click should NOT have fired because chip stops propagation
+    fireEvent.click(screen.getByTestId('current-state-evidence-chip'));
+    expect(onChipClick).toHaveBeenCalledWith(item);
     expect(onInvoke).not.toHaveBeenCalled();
   });
 
   it('renders chip on Planned/unsupported cards too (chip independent of action support)', () => {
     const item = buildItem({ id: 'item-e5', responsePath: 'measurement-system-work' });
-    const findings = [{ id: 'f-1' } as unknown as Finding];
-    const evidence = {
-      findingsFor: () => findings,
-      onChipClick: vi.fn(),
-    };
+    const evidence = makeEvidence({ countFor: () => 1 });
 
     render(
       <ProcessHubCurrentStatePanel
@@ -477,6 +466,27 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
     );
 
     expect(screen.getByTestId('current-state-evidence-chip')).toHaveTextContent('1 finding');
+  });
+
+  it('does not call loadFindingsFor when only the count is needed for the chip', () => {
+    const loadFindingsFor = vi.fn(async () => []);
+    const item = buildItem();
+
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={makeActions()}
+        evidence={makeEvidence({ countFor: () => 5, loadFindingsFor })}
+        notes={makeNotes()}
+      />
+    );
+
+    expect(loadFindingsFor).not.toHaveBeenCalled();
+  });
+
+  it('exposes onFindingSelect on the contract for consumer-side sheet wiring', () => {
+    const evidence = makeEvidence();
+    expect(typeof evidence.onFindingSelect).toBe('function');
   });
 });
 
