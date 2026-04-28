@@ -13,6 +13,7 @@ import type {
 import type { HubReviewSignal } from './processReviewSignal';
 import type { ProcessStateNote } from './processStateNote';
 import type { SurveyStatus } from './survey/types';
+import type { SpecLimits } from './types';
 import {
   isSustainmentDue,
   isSustainmentOverdue,
@@ -85,6 +86,27 @@ export const DEFAULT_PROCESS_HUB: ProcessHub = {
   createdAt: '1970-01-01T00:00:00.000Z',
 };
 
+/**
+ * Maps one canonical-map node onto a column in this investigation's data.
+ * `nodeMappings.length === 1` is the B2 shape (investigation IS one step's
+ * deep-dive). Length > 1 is the B1 shape (investigation covers multiple
+ * steps). Absent/empty is the B0 shape (legacy investigation, falls back to
+ * global investigation-level specs).
+ *
+ * `specsOverride`, when set, is a flagged local fork — UI shows divergence
+ * from canonical for the analyst.
+ *
+ * See spec: docs/superpowers/specs/2026-04-28-production-line-glance-design.md
+ */
+export interface InvestigationNodeMapping {
+  /** ID of the canonical-map node this mapping addresses. */
+  nodeId: string;
+  /** Column in this investigation's data carrying the per-step measurement. */
+  measurementColumn: string;
+  /** Optional flagged local spec override (forks from canonical). */
+  specsOverride?: SpecLimits;
+}
+
 export interface ProcessHubInvestigationMetadata {
   processHubId?: string;
   investigationDepth?: InvestigationDepth;
@@ -113,6 +135,17 @@ export interface ProcessHubInvestigationMetadata {
    * which is erased at compile time and produces no runtime dependency.
    */
   sustainment?: SustainmentMetadataProjection;
+  /**
+   * Pinned version of the hub's canonicalProcessMap at investigation
+   * creation. Used by `pull-latest` to detect drift. Absent for legacy
+   * investigations or hubs without canonical maps.
+   */
+  canonicalMapVersion?: string;
+  /**
+   * Per-node measurement-column mappings. Drives per-(node × context-tuple)
+   * capability computation. See `InvestigationNodeMapping` above.
+   */
+  nodeMappings?: InvestigationNodeMapping[];
 }
 
 export interface ProcessHubInvestigation {
