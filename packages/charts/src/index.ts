@@ -150,3 +150,4 @@ export {
   CapabilityGapTrendChartBase,
 } from './CapabilityGapTrendChart';
 export { default as CapabilityBoxplot, CapabilityBoxplotBase } from './CapabilityBoxplot';
+export { default as StepErrorPareto, StepErrorParetoBase } from './StepErrorPareto';
