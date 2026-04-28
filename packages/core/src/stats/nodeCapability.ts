@@ -8,7 +8,7 @@ import type {
 } from '../processHub';
 import { lookupSpecRule } from './specRuleLookup';
 import { sampleConfidenceFor, type SampleConfidence } from './sampleConfidence';
-import { finiteOrUndefined, safeDivide } from './safeMath';
+import { safeDivide } from './safeMath';
 
 /**
  * Per-(canonical-node × context-tuple) capability result. Returned by
@@ -174,15 +174,16 @@ function computeCpCpk(values: readonly number[], specs: SpecLimits): { cp?: numb
   if (sigma === 0) return {};
 
   const { usl, lsl } = specs;
-  // Cp requires both
+  // Cp requires both. safeDivide already returns number | undefined for non-finite
+  // results — no need to wrap in finiteOrUndefined.
   let cp: number | undefined;
   if (usl !== undefined && lsl !== undefined) {
-    cp = finiteOrUndefined(safeDivide(usl - lsl, 6 * sigma));
+    cp = safeDivide(usl - lsl, 6 * sigma);
   }
   // Cpk = min(Cpu, Cpl) when both present; else single-sided
   let cpk: number | undefined;
-  const cpu = usl !== undefined ? finiteOrUndefined(safeDivide(usl - mean, 3 * sigma)) : undefined;
-  const cpl = lsl !== undefined ? finiteOrUndefined(safeDivide(mean - lsl, 3 * sigma)) : undefined;
+  const cpu = usl !== undefined ? safeDivide(usl - mean, 3 * sigma) : undefined;
+  const cpl = lsl !== undefined ? safeDivide(mean - lsl, 3 * sigma) : undefined;
   if (cpu !== undefined && cpl !== undefined) cpk = Math.min(cpu, cpl);
   else cpk = cpu ?? cpl;
   return { cp, cpk };

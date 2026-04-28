@@ -27,7 +27,19 @@ function inv(
               outcome: 'fill_volume',
               rowCount: n,
               latestTimeValue: undefined,
-              capability: { cpk, cpkTarget: 1.33, cp: cpk + 0.1 },
+              computedAt: '2026-04-28T10:00:00.000Z',
+              changeSignals: {
+                total: 0,
+                outOfControlCount: 0,
+                nelsonRule2Count: 0,
+                nelsonRule3Count: 0,
+              },
+              capability: {
+                cpk,
+                cpkTarget: 1.33,
+                cp: cpk + 0.1,
+                outOfSpecPercentage: 0,
+              },
             }
           : undefined,
     },
