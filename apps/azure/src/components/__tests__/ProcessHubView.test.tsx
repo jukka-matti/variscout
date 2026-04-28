@@ -7,6 +7,11 @@ vi.mock('../ProcessHubReviewPanel', () => ({
   default: () => <div data-testid="mock-process-hub-review-panel" />,
 }));
 
+vi.mock('../ProcessHubCapabilityTab', () => ({
+  ProcessHubCapabilityTab: () => <div data-testid="mock-process-hub-capability-tab" />,
+  default: () => <div data-testid="mock-process-hub-capability-tab" />,
+}));
+
 const hub: ProcessHub = { id: 'h1', name: 'Line A' } as ProcessHub;
 const rollup = {
   hub,
