@@ -58,6 +58,16 @@ export interface ProcessMapTributary {
   label?: string;
   /** Role classification (informational; used for UX affordances, not math). */
   role?: TributaryRole;
+  /**
+   * Input-attached context dimensions. Columns in the dataset that describe
+   * properties of THIS tributary's input (e.g., `['steel_supplier']` on a
+   * Steel tributary, `['paint_class']` on a Paint tributary). Engine treats
+   * these uniformly with hub-level context columns at SpecRule lookup time;
+   * declaration here is UX metadata so filter chips group sensibly.
+   *
+   * See spec: docs/superpowers/specs/2026-04-28-production-line-glance-design.md
+   */
+  contextColumns?: string[];
 }
 
 /** A pre-data hunch pinned to a step or tributary, lifted later to a SuspectedCause. */
