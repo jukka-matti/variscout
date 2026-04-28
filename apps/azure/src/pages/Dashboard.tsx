@@ -345,10 +345,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       if (targetInvestigationId) {
         onOpenProject(targetInvestigationId);
         // Best-effort hash for finding deep-link; editor may or may not honor it yet.
+        // Always set — assigning the same value is a no-op in browsers.
         setTimeout(() => {
-          if (window.location.hash !== `#finding-${finding.id}`) {
-            window.location.hash = `finding-${finding.id}`;
-          }
+          window.location.hash = `finding-${finding.id}`;
         }, 100);
       }
     },
