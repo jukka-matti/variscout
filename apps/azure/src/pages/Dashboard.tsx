@@ -313,7 +313,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         let nextNotes: ProcessStateNote[];
         if (notesDrawerState.mode === 'add') {
           const newNote: ProcessStateNote = {
-            id: `note-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+            id: `note-${crypto.randomUUID()}`,
             itemId: item.id,
             kind,
             text,
