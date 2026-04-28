@@ -144,6 +144,29 @@ The thesis places the I-Chart first in the sequence for practical reasons — ti
 | ANOVA        | Fisher (1920s) | Quantifies factor contribution (η²) for drill-down ranking         |
 | Nelson Rules | Nelson (1984)  | 8 pattern rules for I-Chart; catches non-random signals beyond ±3σ |
 
+### Observed vs Expected — the mathematical spine
+
+The deterministic stats engine's authority comes from one unifying principle:
+**every statistical instrument compares observed values to expected values
+under a model.** Chi-square asks whether observed counts match expected
+proportions. ANOVA decomposes total variation into observed-between-groups
+versus expected-within-groups noise. Linear regression fits a model and
+measures observed minus predicted residuals. Cp/Cpk compares observed
+process spread to the expected window from specs.
+
+This means instrument choice is not a personality test — it is a question
+of which observed-vs-expected comparison best matches the analytical
+question:
+
+- "Does the distribution match a hypothesized shape?" → chi-square / Anderson-Darling
+- "Does this factor contribute to variation?" → ANOVA / regression η²
+- "Does the process meet specs?" → Cp/Cpk against the spec window
+- "Does the time series show non-random structure?" → Nelson rules against expected ±3σ
+
+Each instrument is a different observed-vs-expected pairing. CoScout
+coaching uses this principle when explaining why a particular mode or
+test fits the current question.
+
 ---
 
 ## VariScout's Four Contributions

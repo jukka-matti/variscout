@@ -58,11 +58,10 @@ before "which mode?".
 
 Migration shape: the per-mode prompt modules in
 `packages/core/src/ai/prompts/coScout/` add level-aware overlays as the
-spec's Process Hub canonical map matures. Mode inference (`resolveMode()`
-
-- `getStrategy()` in `packages/core/src/strategy/`) remains the dispatch
-  point. The level overlay is grounding context, not a replacement for the
-  mode strategy.
+spec's Process Hub canonical map matures. Mode inference
+(`resolveMode()` and `getStrategy()` in `packages/core/src/strategy/`)
+remains the dispatch point. The level overlay is grounding context, not
+a replacement for the mode strategy.
 
 Implementation lands incrementally as Plans B/C/D for the production-line-
 glance dashboard ship the canonical-map and per-step capability primitives.
