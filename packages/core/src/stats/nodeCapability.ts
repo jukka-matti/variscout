@@ -1,4 +1,4 @@
-import type { DataRow, SpecLimits, SpecLookupContext } from '../types';
+import type { DataRow, SpecLimits, SpecLookupContext, SpecRule } from '../types';
 import { toNumericValue } from '../types';
 import type { ProcessMap, ProcessMapNode } from '../frame/types';
 import type {
@@ -48,6 +48,13 @@ export type CalculateNodeCapabilitySource =
       processMap: ProcessMap;
       investigationMeta: ProcessHubInvestigationMetadata;
       data: readonly DataRow[];
+      /**
+       * Hub-level context dimensions (e.g. `hub.contextColumns`). Merged with
+       * tributary-attached `contextColumns` and SpecRule `when` keys when
+       * grouping rows. Optional — single-investigation flows that don't yet
+       * have a hub may omit this.
+       */
+      hubContextColumns?: readonly string[];
     }
   | {
       kind: 'children';
@@ -193,7 +200,7 @@ function calculateFromColumn(
   nodeId: string,
   source: Extract<CalculateNodeCapabilitySource, { kind: 'column' }>
 ): NodeCapabilityResult {
-  const { processMap, investigationMeta, data } = source;
+  const { processMap, investigationMeta, data, hubContextColumns } = source;
   const node = findNode(processMap, nodeId);
   if (!node) return { ...EMPTY_INSUFFICIENT, nodeId };
 
@@ -205,7 +212,8 @@ function calculateFromColumn(
 
   const contextColumns = gatherContextColumns(
     processMap,
-    specRules /* hub-level columns merged at caller */
+    specRules,
+    hubContextColumns ? [...hubContextColumns] : undefined
   );
   // Group rows by context tuple
   const groups = new Map<string, { ctx: SpecLookupContext; values: number[] }>();
@@ -224,14 +232,17 @@ function calculateFromColumn(
 
   const perContextResults: NonNullable<NodeCapabilityResult['perContextResults']> = [];
   let totalN = 0;
-  // For aggregate cpk/cp at the node level, take the *minimum* across contexts —
-  // the worst-case capability is the methodologically correct summary when
-  // contexts have different specs (you can only commit to the worst one).
-  let aggregateCpk: number | undefined;
-  let aggregateCp: number | undefined;
+  // Track which spec rule each context resolved to. Node-level cpk/cp is only
+  // populated when ALL contexts matched the same rule (homogeneous specs),
+  // because Cpks computed against different specs are NOT comparable on a
+  // single scale — collapsing them to one number is exactly the
+  // cross-heterogeneous-process arithmetic the spec forbids.
+  // See: docs/superpowers/specs/2026-04-28-production-line-glance-design.md:148
+  const matchedRules = new Set<SpecRule | undefined>();
 
   for (const { ctx, values } of groups.values()) {
     const rule = lookupSpecRule(specRules, ctx);
+    matchedRules.add(rule);
     const { cp, cpk } = rule ? computeCpCpk(values, rule.specs) : {};
     perContextResults.push({
       contextTuple: ctx,
@@ -241,18 +252,28 @@ function calculateFromColumn(
       sampleConfidence: sampleConfidenceFor(values.length),
     });
     totalN += values.length;
-    if (cpk !== undefined) {
-      aggregateCpk = aggregateCpk === undefined ? cpk : Math.min(aggregateCpk, cpk);
-    }
-    if (cp !== undefined) {
-      aggregateCp = aggregateCp === undefined ? cp : Math.min(aggregateCp, cp);
+  }
+
+  // Single rule across all contexts → node-level scalars are meaningful (worst
+  // contributing context). Multiple rules → leave undefined; callers render
+  // the per-context distribution.
+  let nodeCpk: number | undefined;
+  let nodeCp: number | undefined;
+  if (matchedRules.size === 1) {
+    for (const r of perContextResults) {
+      if (r.cpk !== undefined) {
+        nodeCpk = nodeCpk === undefined ? r.cpk : Math.min(nodeCpk, r.cpk);
+      }
+      if (r.cp !== undefined) {
+        nodeCp = nodeCp === undefined ? r.cp : Math.min(nodeCp, r.cp);
+      }
     }
   }
 
   return {
     nodeId,
-    cpk: aggregateCpk,
-    cp: aggregateCp,
+    cpk: nodeCpk,
+    cp: nodeCp,
     n: totalN,
     sampleConfidence: sampleConfidenceFor(totalN),
     source: 'column',
@@ -272,8 +293,6 @@ function calculateFromChildren(
   const contributing: NonNullable<NodeCapabilityResult['contributingInvestigations']> = [];
   const perContextResults: NonNullable<NodeCapabilityResult['perContextResults']> = [];
   let totalN = 0;
-  let aggregateCpk: number | undefined;
-  let aggregateCp: number | undefined;
 
   for (const member of members) {
     const meta = member.metadata;
@@ -289,16 +308,12 @@ function calculateFromChildren(
     if (n <= 0) continue;
     contributing.push(member.id);
     totalN += n;
-    if (cpk !== undefined) {
-      aggregateCpk = aggregateCpk === undefined ? cpk : Math.min(aggregateCpk, cpk);
-    }
-    if (cp !== undefined) {
-      aggregateCp = aggregateCp === undefined ? cp : Math.min(aggregateCp, cp);
-    }
     // Each contributing investigation contributes one perContextResult row.
-    // Context tuple is empty here — children aggregation does not stratify by
-    // context columns; that's the column-source's job. (Future: aggregate
-    // signal.capability.perContextResults if signals carry them.)
+    // Per-investigation cpk values come pre-computed against THAT
+    // investigation's own specs — we cannot tell whether sibling investigations
+    // used identical specs, so node-level cpk/cp are intentionally left
+    // undefined. Callers render the per-investigation distribution.
+    // See spec line 148: cross-hub comparison is visual, never collapsed.
     perContextResults.push({
       contextTuple: { investigationId: member.id },
       cpk,
@@ -308,10 +323,14 @@ function calculateFromChildren(
     });
   }
 
+  // Node-level cpk/cp are deliberately undefined for the children source.
+  // Future: when reviewSignal carries per-context results with their resolved
+  // SpecRule identity, we could populate the scalar in the same-rule case
+  // (mirroring the column-source policy).
   return {
     nodeId,
-    cpk: aggregateCpk,
-    cp: aggregateCp,
+    cpk: undefined,
+    cp: undefined,
     n: totalN,
     sampleConfidence: sampleConfidenceFor(totalN),
     source: 'children',

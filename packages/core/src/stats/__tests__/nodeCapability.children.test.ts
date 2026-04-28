@@ -47,7 +47,11 @@ function inv(
 }
 
 describe('calculateNodeCapability — children source', () => {
-  it('aggregates over investigations tagged to the same node', () => {
+  it('aggregates over investigations tagged to the same node, exposing per-investigation rows but no node-level cpk', () => {
+    // Per-investigation cpks come pre-computed against THAT investigation's
+    // own specs. We cannot tell whether siblings used identical specs, so
+    // node-level cpk/cp stay undefined — callers render the per-investigation
+    // distribution. (Spec line 148.)
     const members: ProcessHubInvestigation[] = [
       inv('a', 'n-fill', 1.5, 100),
       inv('b', 'n-fill', 1.2, 80),
@@ -57,10 +61,14 @@ describe('calculateNodeCapability — children source', () => {
     expect(result.source).toBe('children');
     expect(result.contributingInvestigations).toEqual(['a', 'b']);
     expect(result.n).toBe(180);
-    // Aggregate cpk = worst-case across contributing investigations
-    expect(result.cpk).toBe(1.2);
     expect(result.sampleConfidence).toBe('trust');
     expect(result.perContextResults).toHaveLength(2);
+    // Per-investigation cpks preserved for the dashboard.
+    const cpks = result.perContextResults?.map(r => r.cpk).sort();
+    expect(cpks).toEqual([1.2, 1.5]);
+    // Node-level scalars deliberately undefined.
+    expect(result.cpk).toBeUndefined();
+    expect(result.cp).toBeUndefined();
   });
 
   it('excludes investigations with no reviewSignal', () => {
@@ -71,6 +79,8 @@ describe('calculateNodeCapability — children source', () => {
     const result = calculateNodeCapability('n-fill', { kind: 'children', hub, members });
     expect(result.contributingInvestigations).toEqual(['a']);
     expect(result.n).toBe(100);
+    expect(result.cpk).toBeUndefined();
+    expect(result.perContextResults?.[0]?.cpk).toBe(1.5);
   });
 
   it('returns insufficient when no contributors exist', () => {
@@ -96,6 +106,7 @@ describe('calculateNodeCapability — children source', () => {
       members: [inv('a', 'n-fill', 1.5, 100), otherHubInv],
     });
     expect(result.contributingInvestigations).toEqual(['a']);
-    expect(result.cpk).toBe(1.5);
+    expect(result.cpk).toBeUndefined();
+    expect(result.perContextResults?.[0]?.cpk).toBe(1.5);
   });
 });

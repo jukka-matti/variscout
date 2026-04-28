@@ -73,7 +73,11 @@ describe('calculateNodeCapability — column source', () => {
     expect(result.perContextResults?.[0]?.contextTuple).toEqual({ product: 'Coke 12oz' });
   });
 
-  it('computes cpk per product when both rules apply', () => {
+  it('computes per-context cpk when contexts use different rules; node-level scalar stays undefined', () => {
+    // Two products → two different SpecRules → heterogeneous specs.
+    // Per spec line 148, node-level cpk/cp must NOT collapse to a single
+    // number when contexts use different specs. Per-context results carry
+    // the meaningful values; the dashboard renders the distribution.
     const data = [
       ...rowsForProduct('Coke 12oz', 354, 40, 1.0),
       ...rowsForProduct('Coke 16oz', 473, 40, 1.0),
@@ -87,11 +91,59 @@ describe('calculateNodeCapability — column source', () => {
     expect(result.perContextResults).toHaveLength(2);
     const products = result.perContextResults?.map(r => r.contextTuple.product).sort();
     expect(products).toEqual(['Coke 12oz', 'Coke 16oz']);
-    // Both should have non-undefined cpk and 'trust' confidence.
+    // Each per-context cpk is meaningful (computed against that product's specs).
     for (const r of result.perContextResults ?? []) {
       expect(r.cpk).toBeGreaterThan(0);
       expect(r.sampleConfidence).toBe('trust');
     }
+    // Node-level scalars deliberately undefined when contexts use different rules.
+    expect(result.cpk).toBeUndefined();
+    expect(result.cp).toBeUndefined();
+  });
+
+  it('populates node-level cpk when all contexts resolve to the same rule', () => {
+    // Two products both fall through to the default rule (no rule for
+    // "Sprite 12oz" or "Coke 12oz" — both pick the default). Same specs
+    // across contexts → node-level scalar IS meaningful (worst-case across
+    // homogeneous-specs contexts).
+    const data = [
+      ...rowsForProduct('Coke 12oz', 354, 40, 1.0),
+      ...rowsForProduct('Sprite 12oz', 354, 40, 1.0),
+    ];
+    const result = calculateNodeCapability('n-fill', {
+      kind: 'column',
+      processMap,
+      investigationMeta,
+      data,
+    });
+    expect(result.perContextResults).toHaveLength(2);
+    expect(result.cpk).toBeDefined();
+    expect(result.cpk).toBeGreaterThan(0);
+    expect(result.cp).toBeDefined();
+  });
+
+  it('honours hub-level contextColumns passed via source', () => {
+    // A hub-level context column (e.g., 'shift') is declared on the hub but
+    // not in any tributary or specRule. The engine must group rows by it
+    // when threading hubContextColumns through the source.
+    const data = [
+      ...rowsForProduct('Coke 12oz', 354, 30, 1.0).map(r => ({ ...r, shift: 'A' })),
+      ...rowsForProduct('Coke 12oz', 354, 30, 1.0).map(r => ({ ...r, shift: 'B' })),
+    ];
+    const result = calculateNodeCapability('n-fill', {
+      kind: 'column',
+      processMap,
+      investigationMeta,
+      data,
+      hubContextColumns: ['shift'],
+    });
+    // Both shift values resolve to the same default rule, but they form two
+    // distinct context tuples.
+    expect(result.perContextResults).toHaveLength(2);
+    const shifts = result.perContextResults?.map(r => r.contextTuple.shift).sort();
+    expect(shifts).toEqual(['A', 'B']);
+    // Same rule → node-level scalar IS populated.
+    expect(result.cpk).toBeDefined();
   });
 
   it('badges insufficient when n<10', () => {

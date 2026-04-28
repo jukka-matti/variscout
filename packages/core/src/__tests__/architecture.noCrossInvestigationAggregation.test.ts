@@ -21,14 +21,31 @@ import * as path from 'node:path';
  * spec targets is captured by the explicit cross/portfolio/global variants.
  */
 const FORBIDDEN_NAMES = [
-  'aggregateCpkAcrossInvestigations',
-  'aggregateCapabilityAcrossInvestigations',
+  // Spec's own verification command names
+  'aggregateCpk',
+  'aggregateCapability',
   'meanCapability',
   'sumCpk',
   'portfolioCpk',
+  // Explicit cross-investigation / cross-hub variants
+  'aggregateCpkAcrossInvestigations',
+  'aggregateCapabilityAcrossInvestigations',
   'crossHubCpk',
+  'crossInvestigationCpk',
+  'crossInvestigationCapability',
   'globalCpk',
+  'hubLevelCpk',
+  // Common synonyms a developer might reach for
+  'rollupCpk',
+  'rollupCapability',
+  'combineCpk',
+  'combineCapability',
 ];
+
+// Cross-package enforcement is out of scope for this guard — it scans only
+// @variscout/core. Display-layer aggregations introduced in packages/charts,
+// packages/ui, or apps would not be caught here. A follow-up plan should
+// extend this guard (or add equivalents per package) once those layers exist.
 
 // Use import.meta.dirname (Node 20.11+) instead of __dirname so the file
 // satisfies the repo's browser-globals ESLint config for *.test.ts files
