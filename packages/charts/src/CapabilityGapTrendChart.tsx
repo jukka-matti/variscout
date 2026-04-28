@@ -24,19 +24,6 @@ export const CapabilityGapTrendChartBase: React.FC<CapabilityGapTrendChartProps>
   showBranding,
   brandingText,
 }) => {
-  // IChartBase returns null for empty data; render a minimal SVG shell instead
-  // so callers get a valid DOM node even before data arrives.
-  if (gapSeries.length === 0) {
-    return (
-      <svg
-        width={parentWidth}
-        height={parentHeight}
-        role="img"
-        aria-label="Δ(Cp-Cpk) trend chart — no data"
-      />
-    );
-  }
-
   return (
     <IChartBase
       parentWidth={parentWidth}
