@@ -165,14 +165,18 @@ describe('CapabilityBoxplotBase', () => {
     const { container } = render(
       <CapabilityBoxplotBase parentWidth={600} parentHeight={300} nodes={nodes} />
     );
-    expect(container.querySelectorAll('rect').length).toBeGreaterThan(0);
+    expect(container.querySelector('[data-testid="boxplot-box-Boxed"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="dot-fallback-Boxed-0"]')).toBeFalsy();
   });
 
   it('falls back to dot plot for nodes with fewer than 7 context Cpks', () => {
     const nodes = [makeNode({ nodeId: 'n1', label: 'Sparse', cpks: [1.0, 1.2, 1.4], totalN: 300 })];
-    render(<CapabilityBoxplotBase parentWidth={600} parentHeight={300} nodes={nodes} />);
-    // visx may render a hidden text-measurement element; assert at least one match.
-    expect(screen.getAllByText('Sparse').length).toBeGreaterThan(0);
+    const { container } = render(
+      <CapabilityBoxplotBase parentWidth={600} parentHeight={300} nodes={nodes} />
+    );
+    // Dots present, no box rect for this category
+    expect(container.querySelector('[data-testid="dot-fallback-Sparse-0"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="boxplot-box-Sparse"]')).toBeFalsy();
   });
 
   it('skips nodes with no usable per-context Cpks (all undefined)', () => {

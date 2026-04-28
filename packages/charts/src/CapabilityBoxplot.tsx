@@ -18,7 +18,7 @@ import { withParentSize } from '@visx/responsive';
 import { Group } from '@visx/group';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { calculateBoxplotStats } from '@variscout/core';
-import { BoxplotBase } from './Boxplot';
+import { BoxplotBase, BOXPLOT_BAND_PADDING } from './Boxplot';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout } from './hooks';
 import type { CapabilityBoxplotProps, CapabilityBoxplotNode, BoxplotGroupData } from './types';
@@ -93,13 +93,13 @@ export const CapabilityBoxplotBase: React.FC<CapabilityBoxplotProps> = ({
   );
   const [yMin, yMax] = useMemo(() => yDomainFor(usable, targetCpks), [usable, targetCpks]);
 
-  // Mirror BoxplotBase's scaleBand (padding: 0.4 = same paddingInner + paddingOuter).
+  // Mirror BoxplotBase's scaleBand — use the exported constant to guarantee alignment.
   const xScale = useMemo(
     () =>
       scaleBand<string>({
         domain: usable.map(u => u.node.label),
         range: [0, innerWidth],
-        padding: 0.4,
+        padding: BOXPLOT_BAND_PADDING,
       }),
     [usable, innerWidth]
   );
