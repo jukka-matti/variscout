@@ -49,10 +49,11 @@ const StateItemNotesDrawer: React.FC<StateItemNotesDrawerProps> = ({
           <button
             key={k}
             type="button"
+            aria-pressed={k === kind}
             onClick={() => setKind(k)}
             className={
               k === kind
-                ? 'rounded-sm border border-blue-500 bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-400'
+                ? 'rounded-sm border border-blue-500 bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-400'
                 : 'rounded-sm border border-edge px-2 py-0.5 text-xs font-medium text-content-secondary hover:bg-surface-hover'
             }
           >
