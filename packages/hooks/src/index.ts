@@ -495,6 +495,14 @@ export {
   type PopoutMessageType,
 } from './popoutMessages';
 
+// Production Line Glance Data (hub-level capability + error rollup)
+export { useProductionLineGlanceData } from './useProductionLineGlanceData';
+export type {
+  UseProductionLineGlanceDataInput,
+  UseProductionLineGlanceDataResult,
+  CapabilityBoxplotInputNode,
+} from './useProductionLineGlanceData';
+
 // Derived hooks (store-first state access)
 export { useFilteredData, type FilteredDataResult } from './useFilteredData';
 export { useAnalysisStats, type AnalysisStatsResult } from './useAnalysisStats';
