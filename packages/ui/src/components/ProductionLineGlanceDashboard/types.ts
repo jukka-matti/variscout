@@ -13,6 +13,8 @@ export interface ProductionLineGlanceDashboardProps {
     data: ReadonlyArray<IChartDataPoint>;
     stats: StatsResult | null;
     specs: SpecLimits;
+    /** Override the Y-axis label. Defaults to "Cpk". */
+    yAxisLabel?: string;
   };
   /** Top-right slot: Δ(Cp-Cpk) gap over time. */
   cpkGapTrend: {

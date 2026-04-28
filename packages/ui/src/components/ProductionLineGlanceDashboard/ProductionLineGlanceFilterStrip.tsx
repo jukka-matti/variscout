@@ -42,7 +42,7 @@ interface ColumnChipsProps {
 
 const ColumnChips: React.FC<ColumnChipsProps> = ({ column, options, selectedValue, onSelect }) => (
   <div className="flex flex-wrap items-center gap-2">
-    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{column}</span>
+    <span className="text-xs font-medium text-content-secondary">{column}</span>
     {options.map(opt => {
       const isActive = selectedValue === opt;
       return (
@@ -54,7 +54,7 @@ const ColumnChips: React.FC<ColumnChipsProps> = ({ column, options, selectedValu
           className={
             isActive
               ? 'rounded-full bg-blue-600 px-3 py-1 text-xs font-medium text-white'
-              : 'rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200'
+              : 'rounded-full bg-surface-secondary px-3 py-1 text-xs font-medium text-content-secondary hover:bg-surface-tertiary'
           }
         >
           {opt}
@@ -83,7 +83,7 @@ export const ProductionLineGlanceFilterStrip: React.FC<ProductionLineGlanceFilte
   };
 
   return (
-    <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+    <div className="flex flex-col gap-3 border-b border-edge px-4 py-3">
       {hubHasContent ? (
         <div className="flex flex-wrap gap-4">
           {hubColumns.map(col => (
@@ -101,7 +101,7 @@ export const ProductionLineGlanceFilterStrip: React.FC<ProductionLineGlanceFilte
       {tributaryGroups.map(group =>
         group.columns.length > 0 ? (
           <div key={group.tributaryLabel} className="flex flex-col gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-wide text-content-muted">
               {group.tributaryLabel}
             </span>
             <div className="flex flex-wrap gap-4 pl-3">

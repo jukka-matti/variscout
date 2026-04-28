@@ -33,8 +33,8 @@ export const ProductionLineGlanceDashboard: React.FC<ProductionLineGlanceDashboa
   return (
     <div className="flex h-full w-full flex-col">
       {title ? (
-        <div className="border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+        <div className="border-b border-edge bg-surface px-4 py-3">
+          <h2 className="text-base font-semibold text-content">{title}</h2>
         </div>
       ) : null}
 
@@ -47,33 +47,30 @@ export const ProductionLineGlanceDashboard: React.FC<ProductionLineGlanceDashboa
         />
       ) : null}
 
-      <div className="grid flex-1 grid-cols-2 grid-rows-2 gap-px bg-slate-200 dark:bg-slate-700">
-        <div data-testid="slot-cpk-trend" className="bg-white p-3 dark:bg-slate-900">
+      <div className="grid flex-1 grid-cols-2 grid-rows-2 gap-px bg-edge">
+        <div data-testid="slot-cpk-trend" className="bg-surface p-3">
           <IChart
             data={[...cpkTrend.data]}
             stats={cpkTrend.stats}
             specs={cpkTrend.specs}
-            yAxisLabel="Cpk"
+            yAxisLabel={cpkTrend.yAxisLabel ?? 'Cpk'}
           />
         </div>
 
-        <div data-testid="slot-cpk-gap" className="bg-white p-3 dark:bg-slate-900">
+        <div data-testid="slot-cpk-gap" className="bg-surface p-3">
           <CapabilityGapTrendChart gapSeries={cpkGapTrend.series} gapStats={cpkGapTrend.stats} />
         </div>
 
-        <div
-          data-testid="slot-capability-boxplot"
-          className="relative bg-white p-3 dark:bg-slate-900"
-        >
+        <div data-testid="slot-capability-boxplot" className="relative bg-surface p-3">
           <CapabilityBoxplot nodes={capabilityNodes} />
           {capabilityNodes.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-500 dark:text-slate-400">
+            <div className="absolute inset-0 flex items-center justify-center text-sm text-content-muted">
               No mapped nodes — per-step capability unavailable.
             </div>
           ) : null}
         </div>
 
-        <div data-testid="slot-step-pareto" className="bg-white p-3 dark:bg-slate-900">
+        <div data-testid="slot-step-pareto" className="bg-surface p-3">
           <StepErrorPareto steps={errorSteps} onStepClick={onStepClick} />
         </div>
       </div>

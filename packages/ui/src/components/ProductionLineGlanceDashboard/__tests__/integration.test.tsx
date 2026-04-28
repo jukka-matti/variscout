@@ -12,6 +12,7 @@ type RAFCallback = (time: number) => void;
 type ResizeObserverCb = (entries: ResizeObserverEntry[], observer: ResizeObserver) => void;
 
 const originalRAF = window.requestAnimationFrame;
+const originalRO = window.ResizeObserver;
 beforeAll(() => {
   // Run requestAnimationFrame callbacks synchronously so withParentSize.resize() fires.
   window.requestAnimationFrame = (cb: RAFCallback) => {
@@ -33,6 +34,7 @@ beforeAll(() => {
 });
 afterAll(() => {
   window.requestAnimationFrame = originalRAF;
+  window.ResizeObserver = originalRO;
 });
 
 const STATS: StatsResult = {
