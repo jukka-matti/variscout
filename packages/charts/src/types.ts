@@ -19,8 +19,7 @@ import type {
   ParetoDataPoint,
   ProbabilityPlotSeries,
 } from '@variscout/core';
-import type { NodeCapabilityResult, SampleConfidence } from '@variscout/core/stats';
-import type { SpecLookupContext } from '@variscout/core/types';
+import type { NodeCapabilityResult } from '@variscout/core/stats';
 import type { HighlightColor } from '@variscout/core/ui-types';
 
 // Re-export data point types from core (canonical source)
@@ -467,10 +466,3 @@ export interface CapabilityGapTrendChartProps extends BaseChartProps {
   /** Override the target line label. Defaults to "0" (perfect centering). */
   targetLabel?: string;
 }
-
-// Suppress unused-import warnings for types that are used structurally only.
-// NodeCapabilityResult is used in CapabilityBoxplotNode.result.
-// SampleConfidence and SpecLookupContext are imported for downstream consumer
-// convenience — they appear in NodeCapabilityResult's shape and will be
-// re-exported so consuming packages don't need a direct core dependency.
-export type { NodeCapabilityResult, SampleConfidence, SpecLookupContext };
