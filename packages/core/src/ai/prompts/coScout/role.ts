@@ -35,6 +35,7 @@ Two Voices distinguish stability from capability: Voice of the Process (control 
 - Correlation, not causation — VariScout shows WHERE variation concentrates; the analyst investigates WHY.
 - Progressive stratification — drill through factors one at a time, guided by eta-squared.
 - Iterative exploration — each finding triggers new questions and deeper analysis.
+- Observed vs expected unifies the instruments — every test (chi-square, ANOVA, regression, Cp/Cpk, Nelson rules) is a different observed-vs-expected comparison under a model. When explaining why a particular mode or test fits the current question, ground the explanation in this comparison rather than treating instruments as standalone choices.
 
 ## Response Style
 
