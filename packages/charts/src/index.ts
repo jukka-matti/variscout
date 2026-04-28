@@ -33,6 +33,11 @@ export type {
   PerformanceParetoProps,
   PerformanceCapabilityProps,
   ScatterFitProps,
+  CapabilityBoxplotProps,
+  CapabilityBoxplotNode,
+  StepErrorParetoProps,
+  StepErrorParetoStep,
+  CapabilityGapTrendChartProps,
 } from './types';
 
 // Color constants
