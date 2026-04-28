@@ -1,0 +1,88 @@
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { CapabilityGapTrendChartBase } from '../CapabilityGapTrendChart';
+import type { IChartDataPoint } from '../types';
+import type { StatsResult } from '@variscout/core';
+
+const makeGapSeries = (n: number): IChartDataPoint[] =>
+  Array.from({ length: n }, (_, i) => ({
+    x: i,
+    y: 0.05 + (i % 3) * 0.02 - 0.04, // small gap oscillations around 0
+    originalIndex: i,
+  }));
+
+const STATS: StatsResult = {
+  mean: 0.02,
+  median: 0.02,
+  stdDev: 0.04,
+  sigmaWithin: 0.03,
+  mrBar: 0.03,
+  ucl: 0.14,
+  lcl: -0.1,
+  outOfSpecPercentage: 0,
+};
+
+describe('CapabilityGapTrendChartBase', () => {
+  it('renders an SVG with the gap series', () => {
+    render(
+      <CapabilityGapTrendChartBase
+        parentWidth={600}
+        parentHeight={300}
+        gapSeries={makeGapSeries(20)}
+        gapStats={STATS}
+      />
+    );
+    expect(document.querySelector('svg')).toBeTruthy();
+  });
+
+  it('uses "Δ(Cp-Cpk)" as default Y-axis label', () => {
+    render(
+      <CapabilityGapTrendChartBase
+        parentWidth={600}
+        parentHeight={300}
+        gapSeries={makeGapSeries(10)}
+        gapStats={STATS}
+      />
+    );
+    expect(screen.getByText(/Δ\(Cp-Cpk\)/)).toBeInTheDocument();
+  });
+
+  it('honors yAxisLabel prop override', () => {
+    render(
+      <CapabilityGapTrendChartBase
+        parentWidth={600}
+        parentHeight={300}
+        gapSeries={makeGapSeries(10)}
+        gapStats={STATS}
+        yAxisLabel="Centering gap"
+      />
+    );
+    expect(screen.getByText('Centering gap')).toBeInTheDocument();
+  });
+
+  it('renders the target=0 line label as "0" by default', () => {
+    render(
+      <CapabilityGapTrendChartBase
+        parentWidth={600}
+        parentHeight={300}
+        gapSeries={makeGapSeries(10)}
+        gapStats={STATS}
+      />
+    );
+    const labels = screen.getAllByText('0');
+    expect(labels.length).toBeGreaterThan(0);
+  });
+
+  it('renders empty gracefully with zero data points', () => {
+    expect(() => {
+      render(
+        <CapabilityGapTrendChartBase
+          parentWidth={600}
+          parentHeight={300}
+          gapSeries={[]}
+          gapStats={null}
+        />
+      );
+    }).not.toThrow();
+  });
+});

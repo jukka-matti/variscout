@@ -19,6 +19,7 @@ import type {
   ParetoDataPoint,
   ProbabilityPlotSeries,
 } from '@variscout/core';
+import type { NodeCapabilityResult } from '@variscout/core/stats';
 import type { HighlightColor } from '@variscout/core/ui-types';
 
 // Re-export data point types from core (canonical source)
@@ -384,4 +385,86 @@ export interface ScatterFitProps extends BaseChartProps {
   yLabel?: string;
   /** Insight text shown below chart */
   insightText?: string;
+}
+
+// ============================================================================
+// Production-Line-Glance chart props (Plan B)
+// ============================================================================
+
+/**
+ * Per-node input for `CapabilityBoxplot`. One entry → one box (or jittered
+ * dot cluster when n<7) on the chart's X-axis.
+ */
+export interface CapabilityBoxplotNode {
+  /** Stable node identifier from the canonical ProcessMap. */
+  nodeId: string;
+  /** Display label (the node's `label`). */
+  label: string;
+  /**
+   * Target Cpk to draw as a per-node tick line. Resolved upstream by Plan C
+   * data wiring (e.g., dominant context's `targetCpk` or filtered context).
+   * Optional — when undefined, no tick is drawn for that node.
+   */
+  targetCpk?: number;
+  /** Engine output for this node. */
+  result: NodeCapabilityResult;
+}
+
+export interface CapabilityBoxplotProps extends BaseChartProps {
+  /** Nodes to render, in display order (left → right). */
+  nodes: ReadonlyArray<CapabilityBoxplotNode>;
+  /**
+   * Hide the per-node target ticks. Defaults to `false` (ticks visible).
+   * Useful for cross-hub overlays where targets vary per child hub.
+   */
+  hideTargetTicks?: boolean;
+  /** Override the Y-axis label. Defaults to "Cpk". */
+  yAxisLabel?: string;
+  /** Click handler — called with the clicked node's `nodeId`. */
+  onNodeClick?: (nodeId: string) => void;
+}
+
+/**
+ * Per-step input for `StepErrorPareto`. Bars rank by `errorCount` descending.
+ */
+export interface StepErrorParetoStep {
+  /** Stable node identifier from the canonical ProcessMap. */
+  nodeId: string;
+  /** Display label (the node's `label`). */
+  label: string;
+  /** Total errors observed at this step within the active filter. */
+  errorCount: number;
+  /**
+   * Optional per-step error breakdown for tooltips. Categories are not
+   * required to be sorted; the chart sorts them internally.
+   */
+  errorCategories?: ReadonlyArray<{ category: string; count: number }>;
+}
+
+export interface StepErrorParetoProps extends BaseChartProps {
+  /** Steps to rank. The chart sorts them by `errorCount` descending. */
+  steps: ReadonlyArray<StepErrorParetoStep>;
+  /** Override the Y-axis label. Defaults to "Errors". */
+  yAxisLabel?: string;
+  /**
+   * Maximum bars to render before aggregating into "Others". Defaults to
+   * `PARETO_MAX_CATEGORIES` (20) — same default as `ParetoChartBase`.
+   */
+  maxBars?: number;
+  /** Click handler — called with the step's `nodeId`. */
+  onStepClick?: (nodeId: string) => void;
+}
+
+export interface CapabilityGapTrendChartProps extends BaseChartProps {
+  /**
+   * The Δ(Cp-Cpk) series, one point per snapshot. Plan C builds this from
+   * per-snapshot `cp - cpk` arithmetic.
+   */
+  gapSeries: ReadonlyArray<IChartDataPoint>;
+  /** Stats (mean, sd, ucl, lcl) computed on the gap series. */
+  gapStats: StatsResult | null;
+  /** Override the Y-axis label. Defaults to "Δ(Cp-Cpk)". */
+  yAxisLabel?: string;
+  /** Override the target line label. Defaults to "0" (perfect centering). */
+  targetLabel?: string;
 }

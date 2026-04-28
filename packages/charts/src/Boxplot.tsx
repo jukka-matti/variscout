@@ -17,6 +17,9 @@ import { calculateKDE } from '@variscout/core';
 /** Minimum data points required to render a box-and-whisker; fewer renders jittered dots */
 export const MIN_BOXPLOT_VALUES = 7;
 
+/** scaleBand padding used for the X-axis; exported so overlay components can mirror it exactly */
+export const BOXPLOT_BAND_PADDING = 0.4;
+
 /** Category count above which X-axis labels are rotated */
 const BOXPLOT_ROTATE_THRESHOLD = 10;
 /** Maximum label length before truncation */
@@ -118,7 +121,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
       scaleBand({
         range: [0, width],
         domain: displayData.map(d => d.key),
-        padding: 0.4,
+        padding: BOXPLOT_BAND_PADDING,
       }),
     [data, width]
   );

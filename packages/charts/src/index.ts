@@ -33,6 +33,11 @@ export type {
   PerformanceParetoProps,
   PerformanceCapabilityProps,
   ScatterFitProps,
+  CapabilityBoxplotProps,
+  CapabilityBoxplotNode,
+  StepErrorParetoProps,
+  StepErrorParetoStep,
+  CapabilityGapTrendChartProps,
 } from './types';
 
 // Color constants
@@ -138,3 +143,11 @@ export {
   default as PerformanceCapability,
   PerformanceCapabilityBase,
 } from './PerformanceCapability';
+
+// Production-line-glance chart components (Plan B)
+export {
+  default as CapabilityGapTrendChart,
+  CapabilityGapTrendChartBase,
+} from './CapabilityGapTrendChart';
+export { default as CapabilityBoxplot, CapabilityBoxplotBase } from './CapabilityBoxplot';
+export { default as StepErrorPareto, StepErrorParetoBase } from './StepErrorPareto';

@@ -647,3 +647,13 @@ export { DefectSummary, type DefectSummaryProps } from './components/DefectSumma
 
 // Investigation components (regression sweet spot, etc.)
 export { SweetSpotCard, type SweetSpotCardProps } from './components/Investigation';
+
+// Production-line-glance dashboard + filter strip
+export {
+  ProductionLineGlanceDashboard,
+  ProductionLineGlanceFilterStrip,
+} from './components/ProductionLineGlanceDashboard';
+export type {
+  ProductionLineGlanceDashboardProps,
+  ProductionLineGlanceFilterStripProps,
+} from './components/ProductionLineGlanceDashboard';
