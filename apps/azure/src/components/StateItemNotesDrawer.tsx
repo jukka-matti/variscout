@@ -14,6 +14,8 @@ export interface StateItemNotesDrawerProps {
   initialText: string;
   onSave: (kind: ProcessStateNoteKind, text: string) => void;
   onCancel: () => void;
+  /** When true, save is disabled (e.g. during in-flight persistence). */
+  disabled?: boolean;
 }
 
 const StateItemNotesDrawer: React.FC<StateItemNotesDrawerProps> = ({
@@ -22,6 +24,7 @@ const StateItemNotesDrawer: React.FC<StateItemNotesDrawerProps> = ({
   initialText,
   onSave,
   onCancel,
+  disabled = false,
 }) => {
   const [kind, setKind] = React.useState<ProcessStateNoteKind>(initialKind);
   const [text, setText] = React.useState<string>(initialText);
@@ -78,7 +81,7 @@ const StateItemNotesDrawer: React.FC<StateItemNotesDrawerProps> = ({
         </button>
         <button
           type="button"
-          disabled={!canSave}
+          disabled={!canSave || disabled}
           onClick={() => onSave(kind, trimmed)}
           className="rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >

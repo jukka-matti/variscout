@@ -77,6 +77,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     | { mode: 'edit'; item: ProcessStateItem; note: ProcessStateNote; hubId: string }
     | null
   >(null);
+  const [isSavingNote, setIsSavingNote] = useState(false);
 
   // Fetch current user ID for task ownership display
   useEffect(() => {
@@ -271,113 +272,135 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const handleSaveNote = useCallback(
     async (kind: ProcessStateNoteKind, text: string) => {
       if (!notesDrawerState) return;
-      const { item, hubId } = notesDrawerState;
-      // Find a target investigation: prefer item's first linked, fall back to
-      // the most-recent investigation in the hub.
-      const hubProjects = projects.filter(p => p.metadata?.processHubId === hubId);
-      const targetInvestigationId =
-        item.investigationIds?.[0] ??
-        hubProjects.sort((a, b) => (b.modified ?? '').localeCompare(a.modified ?? ''))[0]?.id;
-      if (!targetInvestigationId) {
-        setNotesDrawerState(null);
-        return;
-      }
-      // Find the project for loadProject (it takes name + location)
-      const targetProjectMeta = hubProjects.find(p => p.id === targetInvestigationId);
-      if (!targetProjectMeta) {
-        setNotesDrawerState(null);
-        return;
-      }
-      const project = await loadProject(targetProjectMeta.name, targetProjectMeta.location);
-      if (!project) {
-        setNotesDrawerState(null);
-        return;
-      }
-      // Project is `unknown`; access processContext safely
-      const p = project as Record<string, unknown>;
-      const processContext =
-        p.processContext && typeof p.processContext === 'object'
-          ? (p.processContext as Record<string, unknown>)
-          : {};
-      const existingNotes = Array.isArray(processContext.stateNotes)
-        ? (processContext.stateNotes as ProcessStateNote[])
-        : [];
-      const nowIso = new Date().toISOString();
-
-      let nextNotes: ProcessStateNote[];
-      if (notesDrawerState.mode === 'add') {
-        const newNote: ProcessStateNote = {
-          id: `note-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
-          itemId: item.id,
-          kind,
-          text,
-          author: userId,
-          createdAt: nowIso,
-        };
-        nextNotes = [...existingNotes, newNote];
-        safeTrackEvent('process_hub.state_note_added', {
-          hubId,
-          kind,
-          severity: item.severity,
-          lens: item.lens,
-        });
-      } else {
-        // mode === 'edit'
-        const noteId = notesDrawerState.note.id;
-        nextNotes = existingNotes.map(n =>
-          n.id === noteId ? { ...n, text, kind, updatedAt: nowIso } : n
+      if (isSavingNote) return;
+      setIsSavingNote(true);
+      try {
+        const { item, hubId } = notesDrawerState;
+        // Find a target investigation: prefer item's first linked, fall back to
+        // the most-recent investigation in the hub.
+        const hubProjects = projects.filter(
+          p => normalizeProcessHubId(p.metadata?.processHubId) === normalizeProcessHubId(hubId)
         );
-        safeTrackEvent('process_hub.state_note_edited', { hubId, kind });
-      }
+        const targetInvestigationId =
+          item.investigationIds?.[0] ??
+          hubProjects.sort((a, b) => (b.modified ?? '').localeCompare(a.modified ?? ''))[0]?.id;
+        if (!targetInvestigationId) {
+          setNotesDrawerState(null);
+          return;
+        }
+        // Find the project for loadProject (it takes name + location)
+        const targetProjectMeta = hubProjects.find(p => p.id === targetInvestigationId);
+        if (!targetProjectMeta) {
+          setNotesDrawerState(null);
+          return;
+        }
+        const project = await loadProject(targetProjectMeta.name, targetProjectMeta.location);
+        if (!project) {
+          setNotesDrawerState(null);
+          return;
+        }
+        // Project is `unknown`; access processContext safely
+        const p = project as Record<string, unknown>;
+        const processContext =
+          p.processContext && typeof p.processContext === 'object'
+            ? (p.processContext as Record<string, unknown>)
+            : {};
+        const existingNotes = Array.isArray(processContext.stateNotes)
+          ? (processContext.stateNotes as ProcessStateNote[])
+          : [];
+        const nowIso = new Date().toISOString();
 
-      const nextProject = {
-        ...p,
-        processContext: {
-          ...processContext,
-          stateNotes: nextNotes,
-        },
-      };
-      await saveProject(nextProject, targetProjectMeta.name, targetProjectMeta.location);
+        let nextNotes: ProcessStateNote[];
+        if (notesDrawerState.mode === 'add') {
+          const newNote: ProcessStateNote = {
+            id: `note-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+            itemId: item.id,
+            kind,
+            text,
+            author: userId,
+            createdAt: nowIso,
+          };
+          nextNotes = [...existingNotes, newNote];
+          safeTrackEvent('process_hub.state_note_added', {
+            hubId,
+            kind,
+            severity: item.severity,
+            lens: item.lens,
+          });
+        } else {
+          // mode === 'edit'
+          const noteId = notesDrawerState.note.id;
+          nextNotes = existingNotes.map(n =>
+            n.id === noteId ? { ...n, text, kind, updatedAt: nowIso } : n
+          );
+          safeTrackEvent('process_hub.state_note_edited', { hubId, kind });
+        }
+
+        const nextProject = {
+          ...p,
+          processContext: {
+            ...processContext,
+            stateNotes: nextNotes,
+          },
+        };
+        await saveProject(nextProject, targetProjectMeta.name, targetProjectMeta.location);
+        await loadProjects();
+      } catch (err) {
+        console.error('[Dashboard] State note save failed:', err);
+        // Keep the drawer open so the user can retry.
+        return;
+      } finally {
+        setIsSavingNote(false);
+      }
       setNotesDrawerState(null);
-      await loadProjects();
     },
-    [notesDrawerState, projects, loadProject, saveProject, userId, loadProjects]
+    [notesDrawerState, isSavingNote, projects, loadProject, saveProject, userId, loadProjects]
   );
 
   const handleDeleteNote = useCallback(
     async (item: ProcessStateItem, noteId: string, hubId: string) => {
-      const hubProjects = projects.filter(p => p.metadata?.processHubId === hubId);
-      const targetInvestigationId =
-        item.investigationIds?.[0] ??
-        hubProjects.sort((a, b) => (b.modified ?? '').localeCompare(a.modified ?? ''))[0]?.id;
-      if (!targetInvestigationId) return;
-      const targetProjectMeta = hubProjects.find(p => p.id === targetInvestigationId);
-      if (!targetProjectMeta) return;
-      const project = await loadProject(targetProjectMeta.name, targetProjectMeta.location);
-      if (!project) return;
-      const p = project as Record<string, unknown>;
-      const processContext =
-        p.processContext && typeof p.processContext === 'object'
-          ? (p.processContext as Record<string, unknown>)
-          : {};
-      const existingNotes = Array.isArray(processContext.stateNotes)
-        ? (processContext.stateNotes as ProcessStateNote[])
-        : [];
-      const note = existingNotes.find(n => n.id === noteId);
-      if (!note) return;
-      const nextNotes = existingNotes.filter(n => n.id !== noteId);
-      const nextProject = {
-        ...p,
-        processContext: {
-          ...processContext,
-          stateNotes: nextNotes,
-        },
-      };
-      await saveProject(nextProject, targetProjectMeta.name, targetProjectMeta.location);
-      safeTrackEvent('process_hub.state_note_deleted', { hubId, kind: note.kind });
-      await loadProjects();
+      if (isSavingNote) return;
+      setIsSavingNote(true);
+      try {
+        const hubProjects = projects.filter(
+          p => normalizeProcessHubId(p.metadata?.processHubId) === normalizeProcessHubId(hubId)
+        );
+        const targetInvestigationId =
+          item.investigationIds?.[0] ??
+          hubProjects.sort((a, b) => (b.modified ?? '').localeCompare(a.modified ?? ''))[0]?.id;
+        if (!targetInvestigationId) return;
+        const targetProjectMeta = hubProjects.find(p => p.id === targetInvestigationId);
+        if (!targetProjectMeta) return;
+        const project = await loadProject(targetProjectMeta.name, targetProjectMeta.location);
+        if (!project) return;
+        const p = project as Record<string, unknown>;
+        const processContext =
+          p.processContext && typeof p.processContext === 'object'
+            ? (p.processContext as Record<string, unknown>)
+            : {};
+        const existingNotes = Array.isArray(processContext.stateNotes)
+          ? (processContext.stateNotes as ProcessStateNote[])
+          : [];
+        const note = existingNotes.find(n => n.id === noteId);
+        if (!note) return;
+        const nextNotes = existingNotes.filter(n => n.id !== noteId);
+        const nextProject = {
+          ...p,
+          processContext: {
+            ...processContext,
+            stateNotes: nextNotes,
+          },
+        };
+        await saveProject(nextProject, targetProjectMeta.name, targetProjectMeta.location);
+        safeTrackEvent('process_hub.state_note_deleted', { hubId, kind: note.kind });
+        await loadProjects();
+      } catch (err) {
+        console.error('[Dashboard] State note delete failed:', err);
+      } finally {
+        setIsSavingNote(false);
+      }
     },
-    [projects, loadProject, saveProject, loadProjects]
+    [isSavingNote, projects, loadProject, saveProject, loadProjects]
   );
 
   const handleSampleSelect = (sample: SampleDataset): void => {
@@ -644,6 +667,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           initialText={notesDrawerState.mode === 'edit' ? notesDrawerState.note.text : ''}
           onSave={handleSaveNote}
           onCancel={() => setNotesDrawerState(null)}
+          disabled={isSavingNote}
         />
       )}
     </div>
