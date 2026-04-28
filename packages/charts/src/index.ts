@@ -149,3 +149,4 @@ export {
   default as CapabilityGapTrendChart,
   CapabilityGapTrendChartBase,
 } from './CapabilityGapTrendChart';
+export { default as CapabilityBoxplot, CapabilityBoxplotBase } from './CapabilityBoxplot';
