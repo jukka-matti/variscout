@@ -292,24 +292,26 @@ VariScout should support comparison without false aggregation. For example, a
 global owner can compare capability patterns across tabletting families, but
 Cp/Cpk from unrelated local processes should not be treated as additive.
 
-## Analysis Modes Become Instrument Sets
+## Analysis Modes Are Question-Driven
 
-The current modes remain useful implementation instruments, but the user-facing
-question changes from "which mode?" to "what level and question are we working
-on?"
+Analysis modes stay analysis modes — both in code and in copy. What changes is
+the user-facing entry: instead of asking "which mode?", we frame the question
+as "what level and question are we working on?", and the deterministic mode
+inference picks the right mode from process understanding and data shape.
 
-| Instrument set | Primary level                     | Primary question                                           |
-| -------------- | --------------------------------- | ---------------------------------------------------------- |
-| Standard EDA   | Outcome -> flow -> local evidence | Where does variation concentrate?                          |
-| Capability     | Outcome and local evidence        | Is the process meeting spec consistently?                  |
-| Performance    | Outcome and flow                  | Which channel, head, cavity, or line is weakest?           |
-| Defect         | Outcome and flow                  | Where do failures concentrate and what burden do they add? |
-| Process Flow   | Flow                              | Where does time, rate, wait, or bottleneck loss live?      |
-| Yamazumi       | Flow -> local mechanism           | What work content or waste explains the selected step?     |
-| Survey         | All levels                        | What can this evidence support, and what is missing?       |
+| Mode         | Primary level                     | Primary question                                           |
+| ------------ | --------------------------------- | ---------------------------------------------------------- |
+| Standard EDA | Outcome -> flow -> local evidence | Where does variation concentrate?                          |
+| Capability   | Outcome and local evidence        | Is the process meeting spec consistently?                  |
+| Performance  | Outcome and flow                  | Which channel, head, cavity, or line is weakest?           |
+| Defect       | Outcome and flow                  | Where do failures concentrate and what burden do they add? |
+| Process Flow | Flow                              | Where does time, rate, wait, or bottleneck loss live?      |
+| Yamazumi     | Flow -> local mechanism           | What work content or waste explains the selected step?     |
+| Survey       | All levels                        | What can this evidence support, and what is missing?       |
 
-Mode inference can still exist in code. The UX should explain the inferred
-instrument set as a consequence of process understanding and data shape.
+Mode inference (`resolveMode()` + `getStrategy()` in `packages/core/src/strategy/`)
+remains the dispatch point. The UX explains the inferred mode as a consequence
+of process understanding and data shape.
 
 ## Investigations And Response Paths
 

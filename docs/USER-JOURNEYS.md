@@ -111,7 +111,7 @@ Every investigation - Standard, Yamazumi, Performance, Defect, Capability, or Pr
    finding). Problem Statement captures Watson's 3 Qs.
 
 2. **SCOUT.** Data is parsed (wide-form, stack columns, defect events all
-   supported). Characteristic types are inferred. Instrument sets surface
+   supported). Characteristic types are inferred. Analysis modes surface
    variation, capability, flow, defect, or work-content patterns. First clues
    and questions emerge.
 
@@ -128,7 +128,7 @@ Every investigation - Standard, Yamazumi, Performance, Defect, Capability, or Pr
    impact (ADR-035). Selected ideas become action items; implementation is
    captured; outcome is compared to prediction via What-If Explorer.
 
-## Instrument-set experience
+## Mode experience
 
 ### Standard mode
 

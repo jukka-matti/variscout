@@ -60,7 +60,7 @@ Key decisions:
 
 - The user works with **branches of understanding**, not raw object types.
 - `SURVEY` is a horizontal evaluator across phases, not only an import screen.
-- Existing analysis modes should be reframed as **instrument sets** selected by data shape and question.
+- Existing analysis modes should be **selected by data shape and question** through deterministic mode inference, not asked of the user as a primary mental model.
 - The first spec from this session is part of the same design: Process Flow locates the constraint, scoped-step Yamazumi explains waste inside it, and QDE 2.0 turns both outputs into clues and next moves inside Mechanism Branches.
 - The Claude Design UI concepts should be used through tracked design-system patterns, not copied directly from deck styling.
 - Investigation is not only evidence collection; it is process understanding and may surface missing deeper data.

@@ -220,7 +220,7 @@ The profile reinforces a broader architecture rule:
 ```text
 Normalize early into a common analysis shape.
 Keep transforms deterministic and inspectable.
-Use analysis modes as instrument sets, not product silos.
+Use analysis modes as question-driven dispatch points, not product silos.
 ```
 
 Do not add `agent-review` to `AnalysisMode` in the first implementation.

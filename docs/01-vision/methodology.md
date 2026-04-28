@@ -237,7 +237,7 @@ Process Hub cadence reviews.
 | Context     | Survey evaluates                                                                 |
 | ----------- | -------------------------------------------------------------------------------- |
 | FRAME       | Data affordance, missing columns, process-map gaps                               |
-| SCOUT       | Available instrument sets and practical next checks                              |
+| SCOUT       | Available analysis modes and practical next checks                               |
 | INVESTIGATE | Branch trust, power, counter-checks, and blind spots                             |
 | IMPROVE     | Verification data and before/after evidence readiness                            |
 | REPORT      | Whether claims are backed by signals and branches                                |
@@ -275,10 +275,10 @@ The lens metaphor is useful for marketing and teaching, but the methodology work
 
 ---
 
-### Analysis Modes As Instrument Sets
+### Analysis Modes
 
-Beyond the standard four-tool view, VariScout supports alternative instrument
-sets that reconfigure the dashboard for specific process questions:
+Beyond the standard four-tool view, VariScout supports alternative analysis
+modes that reconfigure the dashboard for specific process questions:
 
 - **Performance Mode** — Multi-channel Cpk comparison for wide-format data (fill heads, cavities, nozzles)
 - **Yamazumi Mode** — Lean time study with stacked activity bars and cycle time decomposition

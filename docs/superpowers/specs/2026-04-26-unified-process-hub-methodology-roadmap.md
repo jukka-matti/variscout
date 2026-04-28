@@ -152,7 +152,7 @@ Every investigation and cadence review should be readable through three levels:
 | Local mechanism / evidence | What physics, recipe, condition, or measurement issue explains?  |
 
 FRAME's process map is a flow-level lens. Capability, Process Flow, Yamazumi,
-Defect, Performance, and Standard EDA are instrument sets that help the user
+Defect, Performance, and Standard EDA are analysis modes that help the user
 move between levels. See
 [Process Learning Operating Model](2026-04-27-process-learning-operating-model-design.md).
 
@@ -172,7 +172,7 @@ the next methodological move.
 | Context     | Survey asks                                                              |
 | ----------- | ------------------------------------------------------------------------ |
 | FRAME       | What does this data afford, and what is missing?                         |
-| SCOUT       | Which instrument sets and checks are available?                          |
+| SCOUT       | Which analysis modes and checks are available?                           |
 | INVESTIGATE | What trust, power, and counter-checks would make this branch safer?      |
 | IMPROVE     | What data verifies whether the action worked?                            |
 | REPORT      | Which claims are backed by signals, checks, and branches?                |

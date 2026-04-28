@@ -43,7 +43,7 @@ This spec integrates the newer Claude Design ideas into that methodology:
 - `SURVEY` is not just an import step. It is a horizontal evaluator that runs whenever the analyst asks whether current data, signals, and evidence are enough.
 - The user-facing investigation unit is a **Mechanism Branch**: a branch of understanding that connects a problem condition to clues, checks, suspected mechanisms, and next moves.
 - The live issue-to-problem-statement artifact becomes **Current Understanding**. The Problem Statement is the approved summary of what the branches have taught, not a form completed upfront.
-- Analysis modes become **instrument sets** selected by data shape and question, not primary mental models.
+- Analysis modes are **selected by data shape and question** through deterministic mode inference, not asked of the user as a primary mental model.
 - Measurement trust becomes **Signal Cards** attached to important signals, clues, and branches.
 - Capability stays simple: show Cp and Cpk across meaningful process moments, not a statistical-theory cockpit.
 
@@ -136,7 +136,7 @@ The product version should be:
 
 ```text
 Ask or select a check
--> open the right instrument set
+-> open the right analysis mode
 -> brush, click, drill, or run Factor Intelligence
 -> pin a clue
 -> evaluate the branch
@@ -155,7 +155,7 @@ Each rotation either:
 
 The investigation should visibly move through three levels:
 
-| Level | Question                          | Typical instrument set                        | Output                          |
+| Level | Question                          | Typical analysis mode                         | Output                          |
 | ----- | --------------------------------- | --------------------------------------------- | ------------------------------- |
 | Y     | What problem condition exists?    | I-Chart, Histogram, Probability, Capability   | Problem condition               |
 | X     | Where does it concentrate?        | Boxplot, Pareto, Best Subsets, Process Flow   | Scoped pattern                  |
@@ -376,7 +376,7 @@ Next move types:
 | Next move           | Meaning                         | Example                                                                  |
 | ------------------- | ------------------------------- | ------------------------------------------------------------------------ |
 | Drill deeper        | Stay in SCOUT, narrow the data  | "Filter Night shift and inspect Heads 5-8."                              |
-| Switch instrument   | Use a different instrument set  | "Open Yamazumi for Station 3."                                           |
+| Switch mode         | Use a different analysis mode   | "Open Yamazumi for Station 3."                                           |
 | Collect deeper data | Add a missing data layer        | "Collect activity-level time study for Station 3 only."                  |
 | Gemba check         | Go inspect the physical process | "Inspect nozzle wear on Head 5-8 during Night shift."                    |
 | Expert check        | Ask domain knowledge            | "Ask maintenance about temperature-controller history."                  |
@@ -394,7 +394,7 @@ Do not make Survey only an import-time screen. Survey is a reusable evaluator ac
 | Phase       | Survey asks                                                                             |
 | ----------- | --------------------------------------------------------------------------------------- |
 | FRAME       | What does this data afford? What is missing?                                            |
-| SCOUT       | Which instrument sets and checks are available?                                         |
+| SCOUT       | Which analysis modes and checks are available?                                          |
 | INVESTIGATE | What evidence, trust, power, and counter-checks would make this branch safer to act on? |
 | IMPROVE     | What data verifies whether the action worked?                                           |
 | REPORT      | Which claims are backed by which signals, checks, and branches?                         |
@@ -468,18 +468,18 @@ After Survey Foundation, the next product step is Signal Cards and branch-level
 trust/power surfacing. A full measurement study planner can follow only when the
 statistical surface is production-grade.
 
-## Instrument Sets, Not User Mental Models
+## Modes Selected By Question, Not Picked By User
 
-The existing analysis modes remain useful in code. They should become instrument sets selected by the current question and data shape.
+Analysis modes stay analysis modes (in both code and copy). What changes is the user-facing entry: deterministic mode inference picks the right mode from the current question and data shape, rather than asking the user to choose.
 
-| Instrument set | Primary question                                               | Evidence language                               |
-| -------------- | -------------------------------------------------------------- | ----------------------------------------------- |
-| Standard       | Which factors explain variation in Y?                          | R²adj, eta-squared, chart separation            |
-| Capability     | Does the process meet specs, and where does Cp/Cpk break down? | Cp, Cpk, process-moment windows                 |
-| Performance    | Which channel/head/cavity is weak or drifting?                 | channel Cpk, channel distribution               |
-| Defect         | Which defect or failure mode dominates, and what drives it?    | defect rate, Pareto, cross-type factor patterns |
-| Yamazumi       | Where is work, wait, or waste inside the step/line?            | VA ratio, waste %, takt gap                     |
-| Process Flow   | Where does lead-time, wait-time, or bottleneck loss occur?     | cycle time, wait time, lead time, output rate   |
+| Mode         | Primary question                                               | Evidence language                               |
+| ------------ | -------------------------------------------------------------- | ----------------------------------------------- |
+| Standard     | Which factors explain variation in Y?                          | R²adj, eta-squared, chart separation            |
+| Capability   | Does the process meet specs, and where does Cp/Cpk break down? | Cp, Cpk, process-moment windows                 |
+| Performance  | Which channel/head/cavity is weak or drifting?                 | channel Cpk, channel distribution               |
+| Defect       | Which defect or failure mode dominates, and what drives it?    | defect rate, Pareto, cross-type factor patterns |
+| Yamazumi     | Where is work, wait, or waste inside the step/line?            | VA ratio, waste %, takt gap                     |
+| Process Flow | Where does lead-time, wait-time, or bottleneck loss occur?     | cycle time, wait time, lead time, output rate   |
 
 Users should feel they are following a learning loop, not switching apps.
 
@@ -661,7 +661,7 @@ interface NextMove {
     | 'verify';
   label: string;
   rationale: string;
-  suggestedInstrumentSet?: string;
+  suggestedMode?: string;
   targetStepId?: string;
   targetSignalId?: string;
 }
@@ -744,7 +744,7 @@ Design-system patterns to apply before product UI implementation:
 - No standalone Gage R&R mode in this spec.
 - No forced top-level `SURVEY` workspace decision yet.
 - No requirement that every user build a visual wall.
-- No attempt to collapse all instrument sets into one chart.
+- No attempt to collapse all analysis modes into one chart.
 - No automatic "confirmed" mechanism without post-action verification.
 - No formal causal proof language.
 

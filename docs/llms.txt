@@ -7,7 +7,7 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 ## Core orientation
 
 - [OVERVIEW.md](OVERVIEW.md): what VariScout does, the FRAME → SCOUT → INVESTIGATE → IMPROVE journey, six analysis modes, three distribution tiers.
-- [USER-JOURNEYS.md](USER-JOURNEYS.md): ten personas, unified journey spine, process learning levels, and instrument-set experiences.
+- [USER-JOURNEYS.md](USER-JOURNEYS.md): ten personas, unified journey spine, process learning levels, and analysis-mode experiences.
 - [DATA-FLOW.md](DATA-FLOW.md): parse → transform → stats → persist → sync → display → AI pipeline. Three numeric-safety boundaries.
 - [superpowers/specs/2026-04-27-product-method-roadmap-design.md](superpowers/specs/2026-04-27-product-method-roadmap-design.md): product-method maturity roadmap across Process Hub, Current Process State, Process Measurement System, process learning memory, and CoScout context.
 - [superpowers/specs/2026-04-27-process-learning-operating-model-design.md](superpowers/specs/2026-04-27-process-learning-operating-model-design.md): process learning operating model; Process Measurement System, Current Process State, response paths, and Makigami-style outcome/flow/local-mechanism levels.

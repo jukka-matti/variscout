@@ -85,7 +85,7 @@ Footer: exportable Survey briefing
 
 Shows what the current dataset affords:
 
-- available charts and instrument sets
+- available charts and analysis modes
 - reachable factors and process nodes
 - missing columns that would unlock stronger analysis
 - mode suggestions such as Standard, Capability, Process Flow, Yamazumi, or

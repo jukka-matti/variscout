@@ -95,7 +95,7 @@ the reasoning, and attach learning to a process context.
 
 **Already real or branch-ready:**
 
-- investigation journey and six instrument sets
+- investigation journey and six analysis modes
 - Process Hub rollups and cadence queues
 - quick, focused, and chartered work depth
 - Current Understanding, Problem Condition, and branch language
