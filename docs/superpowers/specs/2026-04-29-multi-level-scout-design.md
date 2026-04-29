@@ -119,7 +119,7 @@ Each surface keeps its primary level (its job-to-be-done) and gains lensed acces
 
 The inline LayeredProcessView strip on SCOUT renders the same primitive shipped in PR #107 (Operations band). It does not duplicate the Hub Capability tab — it is a navigation strip that links into it.
 
-The right-rail SuspectedCauses panel on SCOUT is read-only; promote-to-causal and gate authoring stay in the Investigation Wall, which owns the L3 hypothesis canvas.
+The right-rail SuspectedCauses panel on SCOUT is read-only; promote-to-causal and AND/OR/NOT composition authoring stay in the Investigation Wall, which owns the L3 hypothesis canvas.
 
 **Boundary-keeping rule.** Every cross-level click LINKS to the owner surface. No surface duplicates another's primary view; lensed views are mini panels that link out to the full owner. This keeps the surfaces orthogonal and prevents the "every surface becomes a dashboard" failure mode.
 

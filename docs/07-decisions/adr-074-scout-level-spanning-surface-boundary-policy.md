@@ -103,6 +103,8 @@ The policy is enforceable by structural absence (mirroring ADR-073's verificatio
 - `rg "LayeredProcessView|OperationsBand" packages/ui/src/components/EvidenceMap/` returns zero hits — Evidence Map does not reimplement L2 flow rendering.
 - A CI check (or pre-commit script) at `scripts/check-level-boundaries.sh` (to be added when the implementation plan lands) verifies the structural-absence claims continuously.
 
+These checks become meaningful once the relevant component directories are created — `InvestigationWall/`, `DashboardBase/`, `EvidenceMap/`, and `Frame*/` are referenced by the spec but do not all exist in the current codebase. Until they do, the absence of the directories is itself structural enforcement; the rg patterns are forward-looking guards that activate as the first-slice implementation lands.
+
 The verification is intentionally stricter than runtime enforcement — duplication is forbidden by tooling, not by lint rules that can be silenced. New code review must reject any PR introducing a primary-view reimplementation across the boundary; the rule applies to component names, exported types, and CoScout tool definitions.
 
 ## Status
