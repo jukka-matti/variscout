@@ -41,18 +41,24 @@ targets, subgroup logic, trust checks, known x-control measures, and cadence
 rules into Current Process State. Data Profiles sit behind recognized Evidence
 Sources as deterministic adapters, not as a separate user-facing journey.
 
+Today, the [Process Hub Capability tab](03-features/analysis/process-hub-capability.md)
+is the cadence-review surface inside the Hub: it embeds the
+production-line-glance dashboard (per-step Cpk vs target, gap trend, per-step
+boxplot, per-step error Pareto) so a process owner can read the hub's current
+state at a glance without leaving Hub IA.
+
 ## Usage levels
 
 VariScout serves one nested methodology at several levels of use:
 
-| Level                       | Typical user                      | Primary need                                                             |
-| --------------------------- | --------------------------------- | ------------------------------------------------------------------------ |
-| PWA / training              | Tina, Sara, Carlos                | Learn the investigation method without organizational persistence        |
-| Quick analyst dataset       | Alex, Eeva, Gary                  | Analyze one dataset and attach the learning to process context           |
-| Process-owner cadence       | Olivia, process owner, team lead  | Review Current Process State and choose the right response path          |
-| GB/BB multi-hub scan        | Gary, Olivia, sponsor             | Compare hubs for leverage, charter candidates, and blocked work          |
-| Evidence-source enablement  | Admin Aino, data team, consultant | Fit recurring exports to VariScout contracts without custom integrations |
-| Sustainment/control handoff | Owner, quality, operations        | Decide what stays in VariScout and what moves to live monitoring         |
+| Level                       | Typical user                      | Primary need                                                                                                                                      |
+| --------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PWA / training              | Tina, Sara, Carlos                | Learn the investigation method without organizational persistence                                                                                 |
+| Quick analyst dataset       | Alex, Eeva, Gary                  | Analyze one dataset and attach the learning to process context                                                                                    |
+| Process-owner cadence       | Olivia, process owner, team lead  | Review Current Process State and choose the right response path (today: see [Hub Capability tab](03-features/analysis/process-hub-capability.md)) |
+| GB/BB multi-hub scan        | Gary, Olivia, sponsor             | Compare hubs for leverage, charter candidates, and blocked work                                                                                   |
+| Evidence-source enablement  | Admin Aino, data team, consultant | Fit recurring exports to VariScout contracts without custom integrations                                                                          |
+| Sustainment/control handoff | Owner, quality, operations        | Decide what stays in VariScout and what moves to live monitoring                                                                                  |
 
 The same investigation journey sits inside each level. Survey acts as the
 readiness evaluator: it asks what the current data, signals, branches, and
@@ -121,7 +127,12 @@ Every investigation - Standard, Yamazumi, Performance, Defect, Capability, or Pr
    knowledge. The investigation may discover a new x, check which known x
    changed, validate a suspected mechanism, scope the problem, resolve a trust
    gap, or verify an action. The investigation spine has three threads
-   (ADR-066): regression discovery, hub UX, and EDA heartbeat.
+   (ADR-066): regression discovery, hub UX, and EDA heartbeat. The investigation
+   graph admits multiple projections — _Evidence Map_ shows it factor-centric
+   (which factors matter?), [_Investigation Wall_](03-features/workflows/investigation-wall.md)
+   shows it hypothesis-centric (which hypotheses are we betting on, what evidence
+   holds them, what's missing?), and the _Question framework_ shows it
+   question-centric (what are we trying to answer?).
 
 4. **IMPROVE.** Hubs with strong evidence become HMW ("How Might We")
    brainstorming starters. Ideas are prioritized by timeframe, cost, risk, and

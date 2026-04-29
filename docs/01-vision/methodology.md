@@ -327,6 +327,8 @@ for the capability mode details.
 
 **Distribution, Not Aggregation.** When capability indices come from heterogeneous units — different specs, different contexts, different process families, different hubs — VariScout shows their **distribution**, typically as a per-step boxplot, rather than collapsing them into a single number. A `mean Cpk` across hubs running different products is mathematically meaningless: each Cpk is interpretable only against the spec that produced it. The structural enforcement is design absence: the engine exposes no function that combines Cp/Cpk across heterogeneous units. The legitimate visualization is a per-step boxplot of per-`(node × context-tuple)` Cpks, side-by-side across hubs when needed; the analyst's eye does the pattern recognition. See ADR-073 and the [investigation-scope-and-drill-semantics spec](../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md).
 
+**One Graph, Three Projections.** An investigation graph (`SuspectedCause` + `CausalLink` + `Finding` + `Question`) admits three projections — _factor-centric_ ([Evidence Map](../superpowers/specs/2026-04-05-evidence-map-design.md): which factors matter?), _hypothesis-centric_ ([Investigation Wall](../03-features/workflows/investigation-wall.md): which hypotheses are we betting on, what evidence holds them, what's missing?), and _question-centric_ (the Question framework: what are we trying to answer?). Each projection is the same data, different lens. Skilled investigators move fluently between them — the Map to find which columns explain variation, the Wall to ask what would _contradict_ the leading hypothesis, the Question framework to verify nothing important was left unanswered.
+
 ---
 
 ## What VariScout Is NOT
