@@ -44,6 +44,12 @@ Shared agent map: `docs/llms.txt`
 
 Prefer retrieval over recall. Read the relevant ADR, spec, or package CLAUDE.md before writing non-trivial code. If an instruction contradicts code, trust code and flag the drift.
 
+Before re-opening any topic, check `docs/decision-log.md` first. When you defer, supersede, or close something, log it there with the appropriate state. The decision log is the durable home for decisions that would otherwise live only in a plan file.
+
+## Memory hygiene
+
+Memory holds durable facts (architecture, decisions, terminology, feedback). Ephemeral state (PR status, in-flight phase, currently-shipping) belongs in `git` / `gh`, not memory. Memory entries that need to reference PR state should say "see PR #N for delivery state" rather than encoding a status that ages out.
+
 ## Claude-Specific Notes
 
 - `.claude/settings.json` provides Claude hooks, statusline, permissions, and attribution.

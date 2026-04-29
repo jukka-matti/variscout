@@ -6,6 +6,7 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 
 ## Core orientation
 
+- [decision-log.md](decision-log.md): living decision tracker — open questions, named-future features, session backlog, journey state. Read this before re-opening any topic; it captures decisions that would otherwise live only in plan files.
 - [OVERVIEW.md](OVERVIEW.md): what VariScout does, the FRAME → SCOUT → INVESTIGATE → IMPROVE journey, six analysis modes, three distribution tiers.
 - [USER-JOURNEYS.md](USER-JOURNEYS.md): ten personas, unified journey spine, process learning levels, and analysis-mode experiences.
 - [DATA-FLOW.md](DATA-FLOW.md): parse → transform → stats → persist → sync → display → AI pipeline. Three numeric-safety boundaries.

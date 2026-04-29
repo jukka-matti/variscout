@@ -4,6 +4,8 @@ title: 'Architecture Decision Records'
 
 # Architecture Decision Records
 
+**Open decisions and named-future items live in [`../decision-log.md`](../decision-log.md).** This index lists _closed_ architectural decisions (ADRs); the decision log carries open and named-future ones.
+
 This section captures key architectural decisions made during VariScout development. Each decision includes context, the decision made, and consequences.
 
 ---

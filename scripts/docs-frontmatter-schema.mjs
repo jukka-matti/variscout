@@ -17,6 +17,8 @@ export const STATUS = [
   'reference',
   'template',
   'raw',
+  'review',
+  'living',
 ];
 
 export const CATEGORY = [
@@ -29,6 +31,7 @@ export const CATEGORY = [
   'design-spec',
   'implementation',
   'learning',
+  'living-index',
   'methodology',
   'navigation',
   'patterns',
