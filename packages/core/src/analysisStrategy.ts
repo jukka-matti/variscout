@@ -1,4 +1,5 @@
-import type { AnalysisMode } from './types';
+import type { AnalysisMode, SpecLookupContext } from './types';
+import type { TimelineWindow } from './timeline';
 
 export type ResolvedMode = 'standard' | 'capability' | 'performance' | 'yamazumi' | 'defect';
 
@@ -31,13 +32,40 @@ export type ChartSlotType =
   | 'yamazumi-summary'
   | 'defect-summary';
 
+/** Named alias for the four chart slots — used by RouterResult.chartVariants. */
+export interface ChartSlots {
+  slot1: ChartSlotType;
+  slot2: ChartSlotType;
+  slot3: ChartSlotType;
+  slot4: ChartSlotType;
+}
+
+// ---------------------------------------------------------------------------
+// Multi-level SCOUT V1 — dataRouter types
+// ---------------------------------------------------------------------------
+
+export type RouterScope = 'b0' | 'b1' | 'b2';
+export type RouterPhase = 'investigation' | 'hub';
+
+export interface RouterArgs {
+  scope: RouterScope;
+  phase: RouterPhase;
+  window: TimelineWindow;
+  context: SpecLookupContext;
+}
+
+export type RouterHook = 'useFilteredData' | 'useProductionLineGlanceData';
+
+export interface RouterResult {
+  hook: RouterHook;
+  /** Names of transform functions to invoke (e.g. 'calculateNodeCapability'). */
+  transforms?: ReadonlyArray<string>;
+  /** Strategy-level chart-slot overrides; empty object means "use defaults". */
+  chartVariants?: Partial<Record<keyof ChartSlots, ChartSlotType>>;
+}
+
 export interface AnalysisModeStrategy {
-  chartSlots: {
-    slot1: ChartSlotType;
-    slot2: ChartSlotType;
-    slot3: ChartSlotType;
-    slot4: ChartSlotType;
-  };
+  chartSlots: ChartSlots;
   kpiComponent: ResolvedMode;
   reportTitle: string;
   reportSections: string[];
@@ -46,6 +74,8 @@ export interface AnalysisModeStrategy {
   aiChartInsightKeys: string[];
   aiToolSet: 'standard' | 'performance' | 'yamazumi';
   questionStrategy: QuestionStrategy;
+  /** V1 Multi-level SCOUT — optional for backward compat; all shipped strategies implement it. */
+  dataRouter?: (args: RouterArgs) => RouterResult;
 }
 
 export function resolveMode(
@@ -76,6 +106,10 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       validationMethod: 'anova',
       questionFocus: 'Which factor explains most variation?',
     },
+    dataRouter: ({ phase }) => ({
+      hook: phase === 'hub' ? 'useProductionLineGlanceData' : 'useFilteredData',
+      transforms: phase === 'hub' ? ['calculateNodeCapability'] : [],
+    }),
   },
   capability: {
     chartSlots: { slot1: 'capability-ichart', slot2: 'boxplot', slot3: 'pareto', slot4: 'stats' },
@@ -92,6 +126,13 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       validationMethod: 'anovaWithSpecs',
       questionFocus: 'Which factor most affects Cpk?',
     },
+    dataRouter: ({ phase }) => ({
+      hook: phase === 'hub' ? 'useProductionLineGlanceData' : 'useFilteredData',
+      transforms:
+        phase === 'hub'
+          ? ['calculateNodeCapability', 'computeOutputRate', 'computeBottleneck']
+          : ['calculateStats'],
+    }),
   },
   performance: {
     chartSlots: {
@@ -113,6 +154,13 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       validationMethod: 'anova',
       questionFocus: 'Which channel performs worst?',
     },
+    dataRouter: ({ phase }) => ({
+      hook: phase === 'hub' ? 'useProductionLineGlanceData' : 'useFilteredData',
+      transforms:
+        phase === 'hub'
+          ? ['calculateChannelStats', 'calculateChannelPerformance']
+          : ['calculateChannelStats'],
+    }),
   },
   yamazumi: {
     chartSlots: {
@@ -135,6 +183,10 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       validationMethod: 'taktCompliance',
       questionFocus: 'Which step has the most waste?',
     },
+    dataRouter: () => ({
+      hook: 'useFilteredData', // hub-time yamazumi not built for V1
+      transforms: ['aggregateYamazumiData', 'classifyYamazumi'],
+    }),
   },
   defect: {
     chartSlots: { slot1: 'ichart', slot2: 'boxplot', slot3: 'pareto', slot4: 'defect-summary' },
@@ -152,6 +204,10 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       validationMethod: 'anova',
       questionFocus: 'Which defect type dominates and which factor drives defect rate variation?',
     },
+    dataRouter: () => ({
+      hook: 'useFilteredData',
+      transforms: ['computeDefectRates'],
+    }),
   },
 };
 
