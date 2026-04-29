@@ -4,7 +4,13 @@ import type { ProcessHubInvestigation, TimelineWindow } from '@variscout/core';
 const DEFAULT_CUMULATIVE: TimelineWindow = { kind: 'cumulative' };
 
 export interface UseTimelineWindowArgs {
-  /** Investigation envelope — only `id` and `metadata.timelineWindow` are read. */
+  /**
+   * Investigation envelope — only `id` and `metadata.timelineWindow` are read.
+   * Pass a stable reference (the actual stored investigation, not a fresh
+   * object literal each render); the returned `window` is memoized on
+   * `metadata.timelineWindow` identity, so a new object every render makes
+   * the memo thrash.
+   */
   investigation: Pick<ProcessHubInvestigation, 'id' | 'metadata'>;
   /**
    * Persistence callback. Caller wires this to its existing
