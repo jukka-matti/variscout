@@ -888,3 +888,6 @@ export {
 // Project Metadata (Portfolio view)
 export { buildProjectMetadata } from './projectMetadata';
 export type { ProjectMetadata } from './projectMetadata';
+
+// Timeline window types (Multi-level SCOUT V1)
+export * from './timeline';
