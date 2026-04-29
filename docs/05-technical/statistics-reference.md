@@ -731,6 +731,40 @@ Findings connect to charts via `FindingSource` metadata:
 - Idea management (`addIdea`, `updateIdea`, `removeIdea`)
 - `setIdeaProjection`, `selectIdea` for What-If integration
 
+### Finding Window Drift
+
+> Source: `packages/core/src/findings/drift.ts`. Spec §3.5 / ADR-049.
+
+Drift detection compares a Finding's stats at creation time to current-window stats:
+
+```
+relativeChange = (currentVal − beforeVal) / beforeVal
+drifted = |relativeChange| ≥ threshold   (default threshold = 0.20)
+```
+
+**Metric priority**: Cpk is used as the primary drift signal; falls back to mean if Cpk is absent, then sigma.
+
+**Per-finding override**: `WindowContext.driftThreshold` overrides the default 0.20. Use for high-stakes findings that need tighter alerting.
+
+**Returns `null`** when a Finding has no `windowContext` (created before V1 multi-level SCOUT). This is the backward-compatible path; callers must guard `result !== null` before reading `drifted`.
+
+**`WindowContext` shape** (stored on `Finding.windowContext`):
+
+| Field              | Type                         | Description                                 |
+| ------------------ | ---------------------------- | ------------------------------------------- |
+| `windowAtCreation` | `TimelineWindow`             | Active window when the finding was captured |
+| `statsAtCreation`  | `{ cpk?, mean?, sigma?, n }` | Key stats at capture time                   |
+| `driftThreshold`   | `number` (optional)          | Relative-change threshold override (0–1)    |
+
+**`DriftResult` shape**:
+
+| Field            | Type                         | Description                                |
+| ---------------- | ---------------------------- | ------------------------------------------ |
+| `drifted`        | `boolean`                    | Whether threshold was exceeded             |
+| `relativeChange` | `number`                     | Signed relative change (positive = higher) |
+| `metric`         | `'cpk' \| 'mean' \| 'sigma'` | Which metric was used for comparison       |
+| `threshold`      | `number`                     | Threshold applied (default or override)    |
+
 ---
 
 ## Part 15 — Unified GLM Regression Engine

@@ -4,6 +4,7 @@
  */
 
 import type { HypothesisCondition } from './hypothesisCondition';
+import type { TimelineWindow } from '../timeline';
 
 // ============================================================================
 // Investigation Status Types
@@ -446,6 +447,24 @@ export type FindingSource =
   | { chart: 'coscout'; messageId: string };
 
 // ============================================================================
+// Window Context (multi-level SCOUT V1 — drift detection)
+// ============================================================================
+
+/**
+ * Snapshot of the timeline window and key stats at the moment a Finding was created.
+ * Used by `computeFindingWindowDrift` to detect when current-window stats diverge
+ * from the context in which the finding was made.
+ */
+export interface WindowContext {
+  /** The active timeline window when the finding was created */
+  windowAtCreation: TimelineWindow;
+  /** Key stats captured at creation time */
+  statsAtCreation: { cpk?: number; mean?: number; sigma?: number; n: number };
+  /** Override the default drift threshold (0.20). Useful for high-stakes findings. */
+  driftThreshold?: number;
+}
+
+// ============================================================================
 // Finding Types
 // ============================================================================
 
@@ -514,6 +533,8 @@ export interface Finding {
   scoped?: boolean;
   /** Whether this finding's text annotation should be visible on the chart. Default: undefined (shown for backward compat). */
   showOnChart?: boolean;
+  /** Timeline window + stats snapshot at creation time. Used for drift detection (V1 multi-level SCOUT). Absent for findings created before V1. */
+  windowContext?: WindowContext;
 }
 
 // ============================================================================
