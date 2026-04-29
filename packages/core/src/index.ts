@@ -891,3 +891,6 @@ export type { ProjectMetadata } from './projectMetadata';
 
 // Timeline window types (Multi-level SCOUT V1)
 export * from './timeline';
+
+// Investigation scope classification (Multi-level SCOUT V1)
+export { detectScope, type Scope } from './scopeDetection';
