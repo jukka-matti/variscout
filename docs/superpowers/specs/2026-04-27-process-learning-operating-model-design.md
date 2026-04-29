@@ -481,6 +481,10 @@ This spec should drive several later implementation plans:
 8. **Terminology cleanup.** Keep `tributary` as internal code if needed, but use
    "process input" and "condition" in user-facing language.
 
+## See also
+
+- Investigation scope (B1/B2 unified) and drill patterns (Hub→Step / Step→Channels / Step→Sub-flow / Org Hub-of-Hubs) are designed in [Investigation Scope and Drill Semantics](./2026-04-29-investigation-scope-and-drill-semantics-design.md).
+
 ## References
 
 - Carnegie Mellon Software Engineering Institute, _The Subject Matter of

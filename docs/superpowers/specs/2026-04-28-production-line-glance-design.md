@@ -24,6 +24,8 @@ date: 2026-04-28
 
 ## Scope
 
+This dashboard is the first surface expressing the broader [Investigation Scope and Drill Semantics](./2026-04-29-investigation-scope-and-drill-semantics-design.md) design (Drill A: Hub→Step pattern).
+
 This is a **design spec**, not an implementation plan. It defines the data model, drill semantics, governance model, specs/context structure, and UI surface placement for a per-step capability dashboard primitive that closes Watson's Cp/Cpk aggregation-safety gap (devil's-advocate critique A3, D3) by structural design rather than by guard rule. The same primitive serves as the implementation of the Layered Process View Operations band V2, the Product-Method Roadmap H2 line 2 capability cards, and the Global-Process-Owner cross-hub analytical view.
 
 Implementation sequencing, exact chart visual tokens, mobile responsive specifics, and the future Portfolio Investigation entity are out of scope and belong to follow-up specs/plans.

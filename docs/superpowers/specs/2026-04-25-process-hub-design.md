@@ -135,9 +135,7 @@ chartered work that:
 - touches several Process Hubs, or
 - compares the same mechanism across multiple lines, queues, or flows.
 
-The MVP stores one primary `processHubId` per investigation. Cross-hub programs
-or formal project wrappers are deferred, but the model should not block future
-`relatedProcessHubIds` or `improvementProgramId` concepts.
+The MVP stores one primary `processHubId` per investigation. Cross-hub coordination is designed in [Investigation Scope and Drill Semantics](./2026-04-29-investigation-scope-and-drill-semantics-design.md) (Org Hub-of-Hubs view as visual side-by-side, never arithmetic). The model should not block future `relatedProcessHubIds` or `improvementProgramId` concepts associated with Portfolio Investigation (named-future, H3).
 
 ### Evidence Sources
 

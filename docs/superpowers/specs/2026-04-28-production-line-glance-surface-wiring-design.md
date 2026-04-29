@@ -21,9 +21,11 @@ date: 2026-04-28
 
 ## Scope
 
+Surface wiring (Plans A/B/C) implements [Investigation Scope and Drill Semantics](./2026-04-29-investigation-scope-and-drill-semantics-design.md). Plan D (Org Hub-of-Hubs) cross-hub view is designed there.
+
 This is a **design spec**, not an implementation plan. It defines how the production-line-glance dashboard primitives (delivered in Plan A engine + Plan B charts) are wired into three live surfaces — LayeredProcessView Operations band, Process Hub view, and FRAME workspace — together with the data layer, filter semantics, and B0 migration UX.
 
-The cross-hub context-filtered view at the Org Hub-of-Hubs is **out of scope** (Plan D). LayeredProcessView snapshot mode (deferred to H3 per `project_phase_2_v2_closure.md`) is **out of scope**. Plan C operates on live single-hub data only.
+The cross-hub context-filtered view at the Org Hub-of-Hubs is **out of scope** for this surface-wiring spec (Plan D); its design lives in [Investigation Scope and Drill Semantics](./2026-04-29-investigation-scope-and-drill-semantics-design.md) §6 Cross-hub context analysis. LayeredProcessView snapshot mode (deferred to H3 per `project_phase_2_v2_closure.md`) is **out of scope**. Plan C operates on live single-hub data only.
 
 ## Summary
 
