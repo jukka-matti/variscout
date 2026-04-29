@@ -85,6 +85,8 @@ The Capability tab renders `ProductionLineGlanceDashboard` with `mode='full'`. T
 
 ### 3. FRAME workspace right-hand drawer
 
+> **[Superseded 2026-04-29 — see Amendments below + `docs/decision-log.md` Replayed Decisions.]**
+
 When the analyst is in FRAME's canonical-map authoring mode, a right-hand drawer is collapsed to a 32 px sliver with the affordance "Capability preview". Click to expand to ~480 px wide; the drawer hosts the dashboard at `mode='full'`. As the analyst maps columns to nodes (or edits specs), the dashboard's slot inputs update reactively because the data hooks subscribe to the same authoring state Zustand stores.
 
 The drawer is collapsed by default — analysts new to canonical-map authoring don't need it; the visual feedback is opt-in. State persists per-workspace in `localStorage` (not URL) because it's a workspace-layout preference, not a shareable analytical state.
@@ -247,9 +249,9 @@ The design above covers all three surfaces and the data layer as a single cohere
 
 2. **C2 — LayeredProcessView Operations band.** Adds `mode: 'spatial' | 'full'` to `ProductionLineGlanceDashboard`, replaces the Operations band content with `<ProductionLineGlanceDashboard mode='spatial' />`, adds the progressive-reveal affordance, hoists the filter strip to the top of LayeredProcessView, moves tributary chips to the Outcome band's "Mapped factors" section, amends the V1 LayeredProcessView spec. Plan: [`docs/superpowers/plans/2026-04-28-production-line-glance-c2-layered-view.md`](../plans/2026-04-28-production-line-glance-c2-layered-view.md).
 
-3. **C3 — FRAME workspace right-hand drawer.** Adds a collapsible right-hand drawer to FRAME's canonical-map authoring mode that hosts the dashboard live-bound to authoring-state stores. Drawer collapse persists per-workspace in localStorage.
+3. **C3 — FRAME workspace right-hand drawer. _Superseded 2026-04-29._** The production-line-glance trio is closed at C2. The underlying need — _live capability feedback while mapping_ — is met instead by the FRAME thin-spot batch (per-column health badges, `suggestNodeMappings` exposed in the FRAME UI, USL/LSL data-range context, `processHubId` surfaced when editing the canonical map). See `docs/decision-log.md` Replayed Decisions for the durable record and the §Amendments block below for the full rationale.
 
-Each sub-plan ships as its own PR per `feedback_no_backcompat_clean_architecture.md`. Subagent code review per PR. Cross-hub view (Plan D) is the next natural follow-up after C3.
+Each sub-plan ships as its own PR per `feedback_no_backcompat_clean_architecture.md`. Subagent code review per PR. Cross-hub view (Plan D) is the next natural follow-up after C2; C3 is no longer in this sequence.
 
 ## References
 
@@ -263,3 +265,15 @@ Each sub-plan ships as its own PR per `feedback_no_backcompat_clean_architecture
 - ADR-056 PI Panel redesign (tab-based IA pattern)
 - ADR-059 customer-owned data
 - ADR-069 three-boundary numeric safety
+
+## Amendments
+
+### 2026-04-29 — C3 (FRAME workspace right-hand drawer) superseded by FRAME thin-spot batch
+
+The original §3 design called for a right-hand capability drawer in FRAME's canonical-map authoring mode. After review on 2026-04-29, this scope is **superseded**.
+
+**Rationale**: CoScout monopolizes the right rail in `EditorDashboardView` and `InvestigationWorkspace` today (`apps/azure/src/components/editor/CoScoutSection.tsx`, controlled by `panelsStore.isCoScoutOpen`). The FRAME-mode coaching prompt at `packages/core/src/ai/prompts/coScout/phases/frame.ts` already exists; CoScout being wired into FRAME is on the implicit roadmap. A right-hand capability drawer in FRAME would (1) stake a position CoScout claims everywhere else, (2) force a redesign the moment CoScout is wired into FRAME, and (3) force the user to choose "see CoScout coaching" vs "see capability feedback" instead of having both during authoring.
+
+**Redirect**: The underlying need — _live capability feedback while mapping_ — is met instead by four surgical FRAME helpers added to existing surfaces: per-column health badges, `suggestNodeMappings` exposed in the FRAME UI (currently only used in the hub-migration wizard), USL/LSL inputs gain data-range context and sanity checks, and `processHubId` is surfaced when the user is editing the canonical map for N investigations.
+
+**Future**: Any future capability-preview-during-FRAME-authoring would require a _fresh_ scope (left rail? modal? slot in FRAME header?) — not unblocking this spec. See `docs/decision-log.md` Replayed Decisions for the durable record.

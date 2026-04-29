@@ -1,9 +1,11 @@
 ---
 title: 'Teams Entry Experience Redesign'
-status: draft
+status: superseded
 ---
 
 # Teams Entry Experience Redesign
+
+> ⚠ **Superseded 2026-04-29 by ADR-059 (web-first deployment architecture).** VariScout no longer supports Teams as an entry channel. Retained for historical reference.
 
 ## Context
 
@@ -376,3 +378,15 @@ No new fields needed — `activeView: 'dashboard' | 'editor'` from ADR-042 alrea
 - Standard plan: no SharePoint button, "Local" sync, single-user activity
 - Offline: Portfolio shows cached project list, "Offline" badge
 - "What's new" empty state when nothing changed
+
+## Amendments
+
+### 2026-04-29 — Superseded by ADR-059 (web-first deployment architecture)
+
+This 2026-03-22 design described a Teams-embedded entry experience (Portfolio cards inside a Teams tab, channel-aware deep links, SharePoint-backed file open, Adaptive Cards, `TeamsTabConfig`). It is **superseded**.
+
+**Rationale**: ADR-059 (web-first deployment architecture) made VariScout web-first and removed Teams as an entry channel. The Portfolio / Overview / Analysis layering and the metadata-sidecar pattern are still useful concepts, but the _Teams_ framing — channel context, Teams SDK integration, Adaptive Cards, `TeamsTabConfig` — is no longer aligned with VariScout's deployment model. The customer-owned-data principle in ADR-059 routes entry through the customer's own tenant (Blob Storage + EasyAuth in the Azure app, IndexedDB in the PWA), not through a Teams tab.
+
+**Redirect**: Any future entry-experience work happens in the web-first context (PWA HomeScreen + Azure app Dashboard), not the Teams tab. The valuable ideas from this spec — rich project cards, "what's new" diff via timestamps, ID-based deep links, metadata sidecar — are available for cherry-picking into web-first specs but should not be lifted wholesale, because they were designed against a Teams-tab IA that no longer exists.
+
+**Disposition**: This spec is moved to `docs/archive/specs/` as part of the 2026-04-29 supersession-propagation pass. See `docs/decision-log.md` Replayed Decisions for the durable record. See ADR-059 for the architectural decision that made Teams entry obsolete.

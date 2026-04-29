@@ -375,7 +375,7 @@ Hubs without `contextColumns` declared continue with single-spec-per-step (the `
 
 ## Sequencing (engine plan: [`docs/superpowers/plans/2026-04-28-production-line-glance-engine.md`](../plans/2026-04-28-production-line-glance-engine.md), charts plan: [`docs/superpowers/plans/2026-04-28-production-line-glance-charts.md`](../plans/2026-04-28-production-line-glance-charts.md), surface-wiring spec: [`docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md`](./2026-04-28-production-line-glance-surface-wiring-design.md))
 
-1. **W4 first**: resolve `mode` vs "instrument set" terminology drift. **DONE** — Option A (strike "instrument set" from copy) landed 2026-04-28 across operating-model, methodology, USER-JOURNEYS, llms.txt, and 4 related specs.
+1. **W4 first**: resolve `mode` vs "instrument set" terminology drift [historical references to a deprecated alias for `mode`; VariScout standardized on `mode` per the W4 cleanup]. **DONE** — Option A (strike the deprecated alias from copy) landed 2026-04-28 across operating-model, methodology, USER-JOURNEYS, llms.txt, and 4 related specs.
 2. **W1' core engine**: extend `ProcessMap`, `Investigation`, `ProcessHub` types; implement `calculateNodeCapability()` with deterministic-PRNG tests; verify NIST reference cases.
 3. **W2 native integration**: extend capability stat returns with `sampleConfidence`; wire into `calculateNodeCapability()` results.
 4. **W3 native integration**: implement Δ(Cp-Cpk)-as-time-series chart variant.
