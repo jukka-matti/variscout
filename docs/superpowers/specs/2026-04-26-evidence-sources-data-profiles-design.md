@@ -153,6 +153,13 @@ process-hubs/{hubId}/evidence-sources/{sourceId}/snapshots/{snapshotId}/...
 The namespace should hold snapshot files, profile application metadata,
 validation reports, and related attachments as generalized support expands.
 
+When Evidence Sources become automated or hourly, raw Snapshot files should not
+be the browser's primary read model. Future customer-tenant ingestion work
+should derive compact manifests, latest signals, validation reports, and period
+rollups from the raw Blob evidence, then let Process Hub load raw Snapshot data
+only for explicit drill-down. See
+[Customer-Tenant Ingestion And Rollups Concept](2026-04-29-customer-tenant-ingestion-rollups-concept.md).
+
 ## Non-Goals
 
 - No deep or custom ERP, MES, QMS, CRM, ACD, AI-platform, or workflow
