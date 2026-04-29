@@ -6,6 +6,7 @@ status: draft
 date: 2026-04-29
 related:
   - multi-level-scout-design
+  - multi-level-scout-v1-decisions
   - adr-074-scout-level-spanning-surface-boundary-policy
   - investigation-scope-and-drill-semantics
 ---
