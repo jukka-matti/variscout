@@ -255,6 +255,7 @@ Each sub-plan ships as its own PR per `feedback_no_backcompat_clean_architecture
 
 ## References
 
+- Multi-level SCOUT design: `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md` — level-spanning surface architecture that lenses the L2 capability surfaces wired here; companion ADR-074 (`docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md`).
 - Production-line-glance design: `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`
 - Engine plan (Plan A): `docs/superpowers/plans/2026-04-28-production-line-glance-engine.md` (merged as PR #103)
 - Charts plan (Plan B): `docs/superpowers/plans/2026-04-28-production-line-glance-charts.md` (merged as PR #105)

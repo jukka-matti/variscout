@@ -350,6 +350,8 @@ Process Hub fits the unified methodology hierarchy:
 | Signal Cards          | Trust records that make hub rollups safer to act on           |
 | Sustainment handoff   | Choice between VariScout review and operationalized control   |
 
+The Hub Capability tab is the L2 (flow) authority surface; per ADR-074 (SCOUT level-spanning surface — boundary policy) it lenses L1 (outcome) and L3 (mechanism) by linking out to the surfaces that own those levels rather than recomputing them. See [Multi-level SCOUT design](./2026-04-29-multi-level-scout-design.md) and [`docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md`](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md) for the level-ownership policy.
+
 Implementation should land **EDA 2.0 Phase 1 before Process Hub product code**:
 
 1. Rename upfront "Problem Statement" surfaces to Issue / Concern.

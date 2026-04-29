@@ -455,6 +455,9 @@ ties back to the locked decisions, not to delivery convenience.
 
 ### Spec context
 
+- Multi-level SCOUT design (consumes the B0/B1/B2 scope and Drill A/B/C
+  semantics defined here as the level-spanning surface model):
+  `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md`
 - Production-line-glance design:
   `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`
 - Production-line-glance surface wiring (Plan A/B/C/D framing):

@@ -139,6 +139,8 @@ CoScout, when present, sits in a sidebar and offers: step-name suggestions, trib
 2. **Choose the analysis mode.** Deterministically, from map shape + column roles. This replaces today's keyword-heuristic mode guess. The mode becomes a _consequence_ of framing, not a silent default.
 3. **Identify data gaps.** The map declares what the methodology wants (CTS measure, CTQ per step, xs tributaries, time/batch axis, spec limits); the data declares what the user has; FRAME flags the delta as a measurement plan for later collection.
 
+Per [ADR-074](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md), FRAME is the L2 (flow / process model) **authoring** owner — the canonical surface for shaping the river-styled SIPOC and column-to-step mappings. Other surfaces lens L2 (read-only) by linking back to FRAME rather than redoing this authoring. The thin-spot helpers and how they fall out of the level-spanning model are described in [Multi-level SCOUT design](./2026-04-29-multi-level-scout-design.md).
+
 ## V1 scope (what ships)
 
 - **New workspace tab `FRAME`** inserted after Overview, before Analysis (amend ADR-055).

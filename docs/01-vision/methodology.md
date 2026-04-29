@@ -354,3 +354,4 @@ VariScout is **the first step** — finding where to focus before investing in d
 - [Investigation to Action](../03-features/workflows/investigation-to-action.md) — Findings panel, What-If Simulator, full analyst workflow
 - [Question-Driven Investigation](../03-features/workflows/question-driven-investigation.md) — Diamond pattern, validation types, tree view
 - [Mental Model Hierarchy](../05-technical/architecture/mental-model-hierarchy.md) — How all conceptual frameworks (journey, investigation diamond, lenses, report steps) relate and nest
+- [Multi-level SCOUT design](../superpowers/specs/2026-04-29-multi-level-scout-design.md) — How the three Process Learning Levels above are operationalized as a level-spanning surface architecture (each surface owns one level, lenses the others); boundary policy in [ADR-074](../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md).

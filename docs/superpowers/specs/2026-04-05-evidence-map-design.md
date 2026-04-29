@@ -8,6 +8,8 @@ related: [best-subsets, factor-intelligence, investigation-spine, causal-graph, 
 ---
 
 > **See also:** [Evidence Map as Analysis Spine](2026-04-05-evidence-map-spine-design.md) — extends this spec with phase-by-phase integration, PI Panel deep linking, and Investigation workspace redesign.
+>
+> **See also:** [Multi-level SCOUT design](2026-04-29-multi-level-scout-design.md) — Evidence Map is the canonical L3 factor-network owner per [ADR-074](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md); other surfaces lens L3 by linking back rather than re-rendering the factor graph.
 
 # Evidence Map — Data Relationship Visualization
 

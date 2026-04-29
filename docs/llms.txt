@@ -15,6 +15,7 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 - [superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md](superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md): canonical Evidence Sources, Data Profiles, Snapshots, and Profile Applications design.
 - [superpowers/specs/2026-04-27-layered-process-view-design.md](superpowers/specs/2026-04-27-layered-process-view-design.md): three-band visual language (Outcome / Process Flow / Operations) for FRAME, Process Hub, and multi-hub.
 - [superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md](superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md): investigation scope (B1/B2 unified), drill patterns (Hub→Step shipped; Step→Channels existing; Step→Sub-flow + Org Hub-of-Hubs designed), governance, and the no-statistical-roll-up policy.
+- [superpowers/specs/2026-04-29-multi-level-scout-design.md](superpowers/specs/2026-04-29-multi-level-scout-design.md): multi-level SCOUT — level-spanning surface architecture (L1 outcome / L2 flow / L3 mechanism lensed across SCOUT, FRAME, Hub Capability, Investigation Wall, Evidence Map) plus the timeline-window primitive; boundary policy at [07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md](07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md).
 - [01-vision/trainer-network.md](01-vision/trainer-network.md): lightweight trainer ecosystem model for VariScout growth, certification, and directory routing.
 
 ## Architecture

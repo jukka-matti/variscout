@@ -27,6 +27,8 @@ A Claude Design handoff (`~/Downloads/process-thinking 2/`) delivered five HTML 
 
 The Wall is **not a replacement** for Evidence Map. Both are projections of the same `SuspectedCause` + `CausalLink` + `Finding` + `Question` graph. Evidence Map answers _"which factors matter?"_ Wall answers _"which hypotheses are we betting on, what evidence holds them, and what's missing?"_
 
+Per [ADR-074](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md), the Investigation Wall is the canonical L3 hypothesis canvas — the surface other workspaces lens into when they need to expose hypothesis state. The level-spanning architecture is described in [Multi-level SCOUT design](./2026-04-29-multi-level-scout-design.md).
+
 ## Scope
 
 This spec delivers the full-vision Wall as a **view toggle inside Investigation**. It preserves ADR-066 (Map remains default) and ADR-053 (question-driven diamond intact). It re-uses ADR-061's append-only SSE pattern for hub comments. It extends ADR-029's 25-tool CoScout registry with 2 new tools. No enum migrations. Two external dependencies are named honestly and parked: live presence (needs new protocol) and per-step Cpk (needs FRAME schema extension).

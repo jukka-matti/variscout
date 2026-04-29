@@ -484,6 +484,7 @@ This spec should drive several later implementation plans:
 ## See also
 
 - Investigation scope (B1/B2 unified) and drill patterns (Hub→Step / Step→Channels / Step→Sub-flow / Org Hub-of-Hubs) are designed in [Investigation Scope and Drill Semantics](./2026-04-29-investigation-scope-and-drill-semantics-design.md).
+- The three levels above are operationalized as a level-spanning surface architecture in [Multi-level SCOUT design](./2026-04-29-multi-level-scout-design.md); the structural boundary policy that keeps each level owned by exactly one surface is captured in [ADR-074](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md).
 
 ## References
 

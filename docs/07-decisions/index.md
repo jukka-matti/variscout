@@ -87,6 +87,7 @@ This section captures key architectural decisions made during VariScout developm
 | [071](adr-071-coscout-voice-input.md)                              | CoScout Voice Input                                                                                                      | Accepted   | 2026-04-24                                                                                 |
 | [072](adr-072-process-hub-storage-and-coscout-context.md)          | Process Hub Storage and CoScout Context Boundary                                                                         | Accepted   | 2026-04-26                                                                                 |
 | [073](adr-073-no-statistical-rollup-across-heterogeneous-units.md) | No statistical roll-up across heterogeneous units (Watson locality enforced by design absence, not permission predicate) | Accepted   | 2026-04-29                                                                                 |
+| [074](adr-074-scout-level-spanning-surface-boundary-policy.md)     | SCOUT level-spanning surface — boundary policy                                                                           | Accepted   | 2026-04-29                                                                                 |
 
 ---
 
@@ -118,11 +119,12 @@ What becomes easier or harder as a result?
 
 ## Related Design Specs
 
-| Spec                                                                                         | Description                                                                                                                                                                |
-| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Investigation Spine](../superpowers/specs/2026-04-04-investigation-spine-design.md)         | Three Threads, Five Sentences, One Story — equation display, hub creation, EDA heartbeat, lean what-if, CoScout integration                                                |
-| [FRAME Workspace & Process Map](../superpowers/specs/2026-04-18-frame-process-map-design.md) | FRAME promoted to first-class tab · river-styled SIPOC visual map · data-seeded entry · deterministic mode inference · capability-view storytelling leg · CoScout optional |
-| [CoScout Voice Input v1](../superpowers/specs/2026-04-24-coscout-voice-input-design.md)      | Azure-only transcript-first voice input for CoScout and finding capture, with no durable audio retention                                                                   |
+| Spec                                                                                         | Description                                                                                                                                                                     |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Investigation Spine](../superpowers/specs/2026-04-04-investigation-spine-design.md)         | Three Threads, Five Sentences, One Story — equation display, hub creation, EDA heartbeat, lean what-if, CoScout integration                                                     |
+| [FRAME Workspace & Process Map](../superpowers/specs/2026-04-18-frame-process-map-design.md) | FRAME promoted to first-class tab · river-styled SIPOC visual map · data-seeded entry · deterministic mode inference · capability-view storytelling leg · CoScout optional      |
+| [CoScout Voice Input v1](../superpowers/specs/2026-04-24-coscout-voice-input-design.md)      | Azure-only transcript-first voice input for CoScout and finding capture, with no durable audio retention                                                                        |
+| [Multi-level SCOUT](../superpowers/specs/2026-04-29-multi-level-scout-design.md)             | Level-spanning surface architecture (L1/L2/L3 lensing across SCOUT, FRAME, Hub Capability, Investigation Wall, Evidence Map) + timeline window primitive · companion to ADR-074 |
 
 ---
 
