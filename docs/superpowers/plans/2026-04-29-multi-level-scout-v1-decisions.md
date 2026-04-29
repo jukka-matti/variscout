@@ -18,25 +18,25 @@ This document locks three load-bearing architectural decisions flagged in the de
 
 ## Decision #1: TimelineWindow attachment point
 
-**Decision:** `TimelineWindow` attaches as a top-level field on the **Investigation envelope**, not as an extension of `ProcessContext`.
+**Decision:** `TimelineWindow` attaches as a field on `ProcessHubInvestigationMetadata`, alongside `nodeMappings`. There is no abstract `Investigation` envelope in the codebase; `ProcessHubInvestigation.metadata` (defined in `packages/core/src/processHub.ts`) is the actual home for hub-attached scope + temporal framing.
 
 ```typescript
-// packages/core/src/types.ts (illustrative)
-interface Investigation {
-  // existing fields
-  processContext: ProcessContext;
-  nodeMappings: Record<string, NodeMapping>; // from scope spec
+// packages/core/src/processHub.ts
+export interface ProcessHubInvestigationMetadata {
+  processHubId?: string;
+  // …existing fields
+  nodeMappings?: InvestigationNodeMapping[]; // already exists, from scope spec
 
   // NEW — V1 first slice
-  window: TimelineWindow;
-
-  // …other fields (id, createdAt, etc.)
+  window?: TimelineWindow;
 }
 ```
 
-**Rationale:** `ProcessContext` is scope-binding-only — it holds the canonical map, factor roles, and spec rules. The timeline window is an analyst-time control that can change without invalidating the scope. Co-locating `window` with `nodeMappings` at the envelope level keeps scope and temporal framing coherent and makes it clear that the window can be adjusted independently of the process model.
+**Rationale:** The codebase models hub-attached investigations as `ProcessHubInvestigation` (a thin wrapper around `id`, `name`, `modified`, `metadata`). `metadata` already holds `nodeMappings`, `processHubId`, and other scope-binding fields. Co-locating `window` here keeps scope and temporal framing coherent and avoids inventing a new envelope. The window is optional (V1 backward-compat); when absent, defaults are applied per Decision #6.
 
-**Interaction:** This placement respects `nodeMappings` positioning (introduced by `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §2) and avoids conflating data-binding with temporal filtering.
+**Interaction:** This placement respects `nodeMappings` positioning in `metadata` and aligns with how `processHubId` is already plumbed through Azure's `useHubProvision` and related hooks.
+
+**Adaptation note (2026-04-29):** Originally Decision #1 said "Investigation envelope, not ProcessContext" — but `ProcessContext` does not exist as a TypeScript type in the codebase, and there is no `Investigation` envelope distinct from `ProcessHubInvestigation`. Updated during V1 Task 3 implementation when `detectScope` needed to operate against the actual type. The intent (window separate from scope, but co-located with mappings) is preserved.
 
 ---
 
