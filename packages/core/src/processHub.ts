@@ -13,6 +13,7 @@ import type {
 import type { HubReviewSignal } from './processReviewSignal';
 import type { ProcessStateNote } from './processStateNote';
 import type { SurveyStatus } from './survey/types';
+import type { TimelineWindow } from './timeline';
 import type { SpecLimits } from './types';
 import {
   isSustainmentDue,
@@ -146,6 +147,13 @@ export interface ProcessHubInvestigationMetadata {
    * capability computation. See `InvestigationNodeMapping` above.
    */
   nodeMappings?: InvestigationNodeMapping[];
+  /**
+   * Optional timeline window applied to this investigation's data when
+   * computing findings/charts. Co-located with nodeMappings per Decision #1
+   * (see docs/superpowers/plans/2026-04-29-multi-level-scout-v1-decisions.md).
+   * Absent → callers should use the mode's default window (typically `cumulative`).
+   */
+  timelineWindow?: TimelineWindow;
   /**
    * ISO 8601 timestamp set when the analyst dismisses the B0 migration banner
    * for this investigation. Dismissed investigations remain B0; the banner

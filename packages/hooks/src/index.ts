@@ -529,3 +529,9 @@ export { usePerformanceAnalysis } from './usePerformanceAnalysis';
 export { useYDomain, type YDomainResult } from './useYDomain';
 export { useSpecsForMeasure } from './useSpecsForMeasure';
 export { useProjectActions, type ProjectActionsResult } from './useProjectActions';
+
+export {
+  useTimelineWindow,
+  type UseTimelineWindowArgs,
+  type UseTimelineWindowResult,
+} from './useTimelineWindow';
