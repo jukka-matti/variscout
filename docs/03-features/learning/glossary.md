@@ -83,14 +83,14 @@ interface Concept {
 
 ## Term Categories
 
-| Category       | Terms                                                                                                                                                                                                                         |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| control-limits | UCL, LCL, USL, LSL, Target                                                                                                                                                                                                    |
-| capability     | Cp, Cpk, Pass Rate, Rejected                                                                                                                                                                                                  |
-| statistics     | Mean, Median, Std Dev, F-Statistic, p-value, η², Sum of Squares, Between/Within Variation                                                                                                                                     |
-| methodology    | Special Cause, Common Cause, Nelson Rule 2/3, In-Control, Staged Analysis, Characteristic Type, Probability Plot, Control vs Spec, Natural Variation, Process Stability, Out of Control, Rational Subgrouping, Stratification |
-| investigation  | Root Cause Analysis, Corrective Action, Preventive Action, Finding, Investigation Status, Key Driver, Action Item, Finding Outcome, Process Context, Hypothesis                                                               |
-| charts         | I-Chart, Boxplot, Pareto Chart, Capability Analysis, Violin Plot                                                                                                                                                              |
+| Category       | Terms                                                                                                                                                                                                                                                                                        |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| control-limits | UCL, LCL, USL, LSL, Target                                                                                                                                                                                                                                                                   |
+| capability     | Cp, Cpk, Pass Rate, Rejected                                                                                                                                                                                                                                                                 |
+| statistics     | Mean, Median, Std Dev, F-Statistic, p-value, η², Sum of Squares, Between/Within Variation                                                                                                                                                                                                    |
+| methodology    | Special Cause, Common Cause, Nelson Rule 2/3, In-Control, Staged Analysis, Characteristic Type, Probability Plot, Control vs Spec, Natural Variation, Process Stability, Out of Control, Rational Subgrouping, Stratification, Step Distribution, Side-by-Side Hub View, Investigation Scope |
+| investigation  | Root Cause Analysis, Corrective Action, Preventive Action, Finding, Investigation Status, Key Driver, Action Item, Finding Outcome, Process Context, Hypothesis                                                                                                                              |
+| charts         | I-Chart, Boxplot, Pareto Chart, Capability Analysis, Violin Plot                                                                                                                                                                                                                             |
 
 ## Concept Categories
 
@@ -135,12 +135,12 @@ Terms are organized by priority for AI Phase 1 launch. Each term will follow the
 
 **Analysis methodology:**
 
-| Term ID             | Label               | One-Line Description                                                                              | Category    |
-| ------------------- | ------------------- | ------------------------------------------------------------------------------------------------- | ----------- |
-| `rootCauseAnalysis` | Root Cause Analysis | Systematic investigation to identify the fundamental reason for a variation or defect.            | methodology |
-| `correctiveAction`  | Corrective Action   | Action taken to eliminate the cause of a detected problem and prevent recurrence.                 | methodology |
-| `preventiveAction`  | Preventive Action   | Action taken to eliminate potential causes of problems before they occur (CAPA).                  | methodology |
-| `measurementSystem` | Measurement System  | The complete process of obtaining measurements, including instruments, procedures, and operators. | methodology |
+| Term ID             | Label               | One-Line Description                                                                                                                                                                                                                                                                                                    | Category    |
+| ------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `rootCauseAnalysis` | Root Cause Analysis | Systematic investigation to identify the fundamental reason for a variation or defect.                                                                                                                                                                                                                                  | methodology |
+| `correctiveAction`  | Corrective Action   | Action taken to eliminate the cause of a detected problem and prevent recurrence.                                                                                                                                                                                                                                       | methodology |
+| `preventiveAction`  | Preventive Action   | Action taken to eliminate potential causes of problems before they occur (CAPA).                                                                                                                                                                                                                                        | methodology |
+| `measurementSystem` | Measurement System  | The complete process of obtaining measurements, including instruments, procedures, and operators. _Deferred — see ADR-073 framing: VariScout's "measurement system" refers to designed measures + evidence sources + cadence, not the AIAG MSA scope (Gage R&R, NDC, %Tolerance) which is itself deferred per ADR-010._ | methodology |
 
 **Investigation workflow terms:**
 

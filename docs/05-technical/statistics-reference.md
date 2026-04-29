@@ -130,6 +130,22 @@ calculateConformance(values: number[], usl?: number, lsl?: number): ConformanceR
 
 Counts pass/fail against specification limits. USL failure takes priority — a value above USL is counted as `failUsl` even if LSL also exists. Pass rate is `(pass / total) × 100`.
 
+### What This Engine Does NOT Do
+
+Several capabilities are intentionally absent from the engine API. Each absence reflects a methodological position, not a delivery gap.
+
+- **No cross-unit aggregation of Cp/Cpk.** The engine exposes no `meanCapabilityAcrossHubs()`, `aggregateCpk()`, `sumCpk()`, `portfolioCpk()`, or `meanAcrossHubs()` function. Capability indices computed against different specs are not arithmetically combinable (Watson locality): a Cpk of 1.0 against [349, 359] and a Cpk of 1.0 against [468, 478] live on unrelated physics. The legitimate visualization across heterogeneous units is the per-step distribution — a boxplot of per-`(node × context-tuple)` Cpks. Architectural guard tests in `packages/core/src/__tests__/architecture.noCrossInvestigationAggregation.test.ts` enforce this absence at CI time.
+- **`sampleConfidence` is a flag, not a confidence interval.** The `sampleConfidence` badge returned alongside `cpk` and `cp` from `calculateNodeCapability` is a heuristic based on n thresholds (n<10 insufficient, 10≤n<30 review, n≥30 trust). It does not compute a confidence interval on Cpk and is not derived from sampling theory.
+- **No power analysis.** Power calculations for hypothesis tests, regression, and ANOVA are not computed. `sampleConfidence` is a heuristic warning, not a power calculation.
+- **No Gage R&R / MSA scope.** Gage R&R, NDC, %Tolerance, linearity, and bias studies were intentionally deferred (ADR-010). The "measurement system" framing in product copy refers to designed measures, evidence sources, and cadence — not the AIAG MSA scope.
+
+References:
+
+- ADR-073 — no-aggregation policy (structural absence for cross-investigation / cross-hub Cp/Cpk).
+- [Investigation Scope and Drill Semantics](../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) — Watson locality (§1) and cross-hub context-filtered view (§6).
+- ADR-010 — Gage R&R / MSA deferral.
+- `feedback_aggregation_heterogeneous_specs.md` (memory) — the heterogeneous-physics hazard generalizes to any heterogeneity dimension.
+
 ---
 
 ## Part 2 — One-Way ANOVA

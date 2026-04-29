@@ -10,6 +10,7 @@ Shared agent map: `docs/llms.txt`
 - 4 domain Zustand stores are source of truth; no DataContext.
 - Deterministic stats engine is authority; CoScout (AI) adds context.
 - Package dependencies flow downward: core → hooks → ui → apps.
+- No statistical roll-up across heterogeneous units — distributions, not aggregates (ADR-073).
 
 ## Commands
 

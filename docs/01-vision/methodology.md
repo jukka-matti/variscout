@@ -325,6 +325,8 @@ for the capability mode details.
 
 **AI Augments, Never Replaces (Azure App only).** VariScout's statistical engine computes the conclusion. AI translates it into language and adds context — it does not generate competing statistics. The conclusion is reproducible and auditable. The PWA stays AI-free by design; the "guided frustration" pedagogy requires the analyst to do the thinking.
 
+**Distribution, Not Aggregation.** When capability indices come from heterogeneous units — different specs, different contexts, different process families, different hubs — VariScout shows their **distribution**, typically as a per-step boxplot, rather than collapsing them into a single number. A `mean Cpk` across hubs running different products is mathematically meaningless: each Cpk is interpretable only against the spec that produced it. The structural enforcement is design absence: the engine exposes no function that combines Cp/Cpk across heterogeneous units. The legitimate visualization is a per-step boxplot of per-`(node × context-tuple)` Cpks, side-by-side across hubs when needed; the analyst's eye does the pattern recognition. See ADR-073 and the [investigation-scope-and-drill-semantics spec](../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md).
+
 ---
 
 ## What VariScout Is NOT

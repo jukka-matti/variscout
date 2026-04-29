@@ -349,6 +349,42 @@ export const glossaryTerms: GlossaryTerm[] = [
     category: 'methodology',
     relatedTerms: ['rationalSubgrouping', 'etaSquared'],
   },
+
+  // — Process Learning System (added 2026-04-29 per ADR-073) —
+  {
+    id: 'stepDistribution',
+    label: 'Step Distribution',
+    definition:
+      'A boxplot showing the distribution of per-step Cpk values across a process map, instead of a single aggregate Cpk.',
+    description:
+      'Each box represents one canonical-map node; box position shows the distribution of Cpks computed for that node across context-tuples (e.g., product × shift). Shows variation across steps without falsely combining heterogeneous values into a single number.',
+    category: 'methodology',
+    learnMorePath: '/learn/distribution-not-aggregation',
+    relatedTerms: ['cpk', 'cp'],
+  },
+  {
+    id: 'sideBySideHubView',
+    label: 'Side-by-Side Hub View',
+    definition:
+      "An organizational coordination view that shows multiple hubs' per-step capability distributions next to each other, never combined arithmetically.",
+    description:
+      'Each hub computes its own per-step capability locally against its own specs. The view facilitates pattern-spotting (which hubs need attention, where the same problem recurs) without producing aggregate metrics. An optional context-filter chip strip applies the same context filter (e.g., shift, product) across all hubs.',
+    category: 'methodology',
+    learnMorePath: '/learn/distribution-not-aggregation',
+    relatedTerms: ['cpk', 'cp'],
+  },
+  {
+    id: 'investigationScope',
+    label: 'Investigation Scope',
+    definition:
+      'How an investigation maps to canonical process-map nodes — either covering many nodes at once or scoped to a single node.',
+    description:
+      'Same data model handles both: an investigation has nodeMappings linking measurement columns to process-map nodes. A whole-line investigation maps multiple nodes; a single-machine investigation maps one node. Both are first-class. The dashboard responds appropriately to either scope.',
+    category: 'methodology',
+    learnMorePath: '/learn/investigation-scope',
+    relatedTerms: [],
+  },
+
   {
     id: 'rootCauseAnalysis',
     label: 'Root Cause Analysis',
