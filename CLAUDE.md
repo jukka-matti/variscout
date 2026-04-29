@@ -46,9 +46,9 @@ Prefer retrieval over recall. Read the relevant ADR, spec, or package CLAUDE.md 
 
 Before re-opening any topic, check `docs/decision-log.md` first. When you defer, supersede, or close something, log it there with the appropriate state. The decision log is the durable home for decisions that would otherwise live only in a plan file.
 
-## Memory hygiene
+## Memory & ruflo hygiene
 
-Memory holds durable facts (architecture, decisions, terminology, feedback). Ephemeral state (PR status, in-flight phase, currently-shipping) belongs in `git` / `gh`, not memory. Memory entries that need to reference PR state should say "see PR #N for delivery state" rather than encoding a status that ages out.
+MEMORY.md and ruflo hold _durable_ facts (architecture, decisions, terminology, feedback). Ephemeral state (PR status, in-flight phase, test counts, sprint focus) belongs in `git`/`gh`, not memory — say "see PR #N for delivery state" instead of encoding status. Entries citing file paths, function names, or commit hashes are claims valid _at write time_; verify before recommending, and update/delete when referenced entities move. See `.claude/skills/using-ruflo/SKILL.md` for ruflo workflow.
 
 ## Claude-Specific Notes
 

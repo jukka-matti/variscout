@@ -102,6 +102,10 @@ npx ruflo@3.5.80 hooks pretrain
 
 Do NOT dispatch CLI memory writes in parallel from a session shell — they contend with the MCP server's connection and hang at 0% CPU.
 
+## Hygiene rule
+
+Same shape as memory hygiene (see CLAUDE.md "Ruflo hygiene"). Ruflo entries hold *durable* architectural facts: patterns, conventions, design decisions, supersession rationales. They should NOT hold ephemeral state — PR status, test counts, in-flight phase, sprint focus all belong elsewhere (MEMORY.md for session state; `git`/`gh` for delivery state). Entries that cite specific file paths, function names, or commit hashes are claims valid *at write time*; verify before recommending. When a referenced entity is renamed or removed, update or delete the entry.
+
 ## Gotchas
 
 - **Don't use ruflo for ephemeral task state** — use `TaskCreate` instead. Ruflo memory is for durable knowledge; TaskCreate is for session-scoped work tracking.
