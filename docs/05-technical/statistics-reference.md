@@ -1055,3 +1055,36 @@ Raw Data → [B1: Input] → Clean Data → [Stats Engine] → [B2: Output] → 
 ### Convention
 
 Stats functions return `number | undefined` (or `null` for ANOVA), never `NaN` or `Infinity`. The single exception is `andersonDarlingTest()` which returns `Infinity` intentionally for degenerate data.
+
+---
+
+## Part 17 — Throughput Metrics
+
+### `computeOutputRate(rows, timeColumn, { nodeId, stepColumn }, granularity)`
+
+Counts rows per time bucket for one step and computes rate-per-hour:
+
+```
+bucketStart = floor(t / bucketMs) × bucketMs
+bucketCount = |{ rows : t ∈ [bucketStart, bucketStart + bucketMs) ∧ row.step = nodeId }|
+ratePerHour = (bucketCount × MS_PER_HOUR) / bucketMs
+averageRatePerHour = mean(ratePerHour over all buckets)
+```
+
+Granularities: minute (60 s), hour (3 600 s), day (86 400 s), week (604 800 s).
+
+Returns `OutputRateResult` — `totalCount` is the raw row count for the step; `averageRatePerHour` is 0 when no rows are present.
+
+### `computeBottleneck(rates)`
+
+Identifies the step with the lowest average rate as the bottleneck:
+
+```
+bottleneck = argmin_step(averageRatePerHour)
+rank       = position of step in sorted-ascending-by-rate order (1 = slowest)
+isBottleneck = (step.nodeId == bottleneck.nodeId)
+```
+
+Input is a `ReadonlyArray<{ nodeId, averageRatePerHour }>` — typically the `averageRatePerHour` values from one `computeOutputRate` call per step. Returns `BottleneckResult[]` sorted ascending by rank.
+
+Source: `packages/core/src/throughput/aggregation.ts`. Per spec §3.5 (L2 Flow metrics).

@@ -897,3 +897,6 @@ export { detectScope, type Scope } from './scopeDetection';
 
 // Append-mode row-merge (Multi-level SCOUT V1)
 export { mergeRows, type MergeReport, type MergeResult } from './appendMode';
+
+// Throughput metrics (Multi-level SCOUT V1)
+export * from './throughput';
