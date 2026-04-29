@@ -111,6 +111,12 @@
             "command": "bash scripts/check-git-hygiene.sh || true",
             "timeout": 3000,
             "continueOnError": true
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/check-memory-pr-staleness.sh || true",
+            "timeout": 5000,
+            "continueOnError": true
           }
         ]
       }

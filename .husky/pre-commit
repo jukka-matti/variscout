@@ -12,3 +12,6 @@ bash scripts/check-claude-md-size.sh
 
 # Dead-link check — warn until 2026-05-01, then fail
 bash scripts/check-dead-links.sh
+
+# Decision-log reminder — warning-only, never blocks
+bash scripts/decision-log-reminder.sh
