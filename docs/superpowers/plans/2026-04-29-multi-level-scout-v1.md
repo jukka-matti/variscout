@@ -1221,98 +1221,137 @@ git commit -m "feat(core): AnalysisModeStrategy gains dataRouter for (scope, pha
 
 ## Task 8: useTimelineWindow hook
 
+**Revised 2026-04-30** (supersedes the original Zustand-store-in-hooks design). The original plan invented a 5th module-level Zustand store keyed by `investigationId` to hold the user's window choice. Three problems with that:
+
+1. **Wrong architectural layer.** CLAUDE.md invariant: "4 domain Zustand stores are source of truth." A window selector is _viewer state_ over investigation metadata, not a 5th domain store.
+2. **Memory leak by design.** A module-level `Map<investigationId, TimelineWindow>` has no eviction — every visited investigation leaves a record forever in PWA module state.
+3. **Decision #1 already located the window.** Commit `f059c591` revised Decision #1 to put `TimelineWindow` on `ProcessHubInvestigationMetadata` — co-located with `nodeMappings`, on the investigation envelope itself. Investigation envelopes are persisted by apps (Dexie + Blob in Azure, similar in PWA) via `persistInvestigation`. The original plan's parallel cache ignored that.
+
+**Revised design**: `useTimelineWindow` becomes a thin pure projection over the investigation envelope passed in by the caller. Persistence is the caller's responsibility (typically wired to the same `persistInvestigation` flow that already handles `nodeMappings` and `migrationDeclinedAt` — see `apps/azure/src/features/processHub/useHubMigrationState.ts:67-114` for the existing pattern). No new Zustand store, no module-level cache, no zustand dep added to `@variscout/hooks` — package flow stays clean (core → hooks → ui → apps).
+
+The window persists exactly where the investigation persists (IndexedDB / Blob per ADR-059). User reopens tomorrow, choice is there.
+
 **Files:**
 
+- Modify: `packages/core/src/processHub.ts` — add `timelineWindow?: TimelineWindow` to `ProcessHubInvestigationMetadata` (alongside `nodeMappings` per Decision #1). Import `TimelineWindow` via `import type` from the timeline module.
 - Create: `packages/hooks/src/useTimelineWindow.ts`
 - Create: `packages/hooks/src/__tests__/useTimelineWindow.test.ts`
 - Modify: `packages/hooks/src/index.ts`
 
-- [ ] **Step 8.1: Write failing test**
+- [ ] **Step 8.1: Add `timelineWindow` to metadata type**
+
+In `packages/core/src/processHub.ts`, in the `ProcessHubInvestigationMetadata` interface (after `nodeMappings`):
+
+```typescript
+  /**
+   * Optional timeline window applied to this investigation's data when
+   * computing findings/charts. Co-located with nodeMappings per Decision #1
+   * (see docs/superpowers/plans/2026-04-29-multi-level-scout-v1-decisions.md).
+   * Absent → callers should use the mode's default window (typically `cumulative`).
+   */
+  timelineWindow?: TimelineWindow;
+```
+
+Add at the top of the file: `import type { TimelineWindow } from './timeline';` (uses the existing timeline barrel — no cycle: timeline imports nothing from processHub).
+
+- [ ] **Step 8.2: Write failing test**
 
 ```typescript
 // packages/hooks/src/__tests__/useTimelineWindow.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import type { ProcessHubInvestigation } from '@variscout/core';
 import { useTimelineWindow } from '../useTimelineWindow';
 
+const inv = (
+  id: string,
+  metadata?: ProcessHubInvestigation['metadata']
+): Pick<ProcessHubInvestigation, 'id' | 'metadata'> => ({ id, metadata });
+
 describe('useTimelineWindow', () => {
-  it('initializes with cumulative when no investigation context', () => {
+  it('returns cumulative default when metadata.timelineWindow is absent', () => {
+    const onChange = vi.fn();
     const { result } = renderHook(() =>
-      useTimelineWindow({ investigationId: 'inv-1', defaultKind: 'cumulative' })
+      useTimelineWindow({ investigation: inv('inv-1'), onChange })
     );
-    expect(result.current.window.kind).toBe('cumulative');
+    expect(result.current.window).toEqual({ kind: 'cumulative' });
   });
 
-  it('switches to rolling and persists', () => {
-    const { result } = renderHook(() => useTimelineWindow({ investigationId: 'inv-1' }));
-    act(() => {
-      result.current.setWindow({ kind: 'rolling', windowDays: 30 });
-    });
+  it('reflects the metadata.timelineWindow when present', () => {
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useTimelineWindow({
+        investigation: inv('inv-1', { timelineWindow: { kind: 'rolling', windowDays: 30 } }),
+        onChange,
+      })
+    );
     expect(result.current.window).toEqual({ kind: 'rolling', windowDays: 30 });
+  });
+
+  it('setWindow delegates to onChange with investigationId', () => {
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useTimelineWindow({ investigation: inv('inv-1'), onChange })
+    );
+    act(() => result.current.setWindow({ kind: 'rolling', windowDays: 7 }));
+    expect(onChange).toHaveBeenCalledWith('inv-1', { kind: 'rolling', windowDays: 7 });
   });
 });
 ```
 
-- [ ] **Step 8.2: Implement (Zustand-backed, URL-synced)**
+- [ ] **Step 8.3: Run test, verify it fails**
+
+```bash
+pnpm --filter @variscout/hooks test -- useTimelineWindow
+```
+
+Expected: FAIL — module not found.
+
+- [ ] **Step 8.4: Implement (pure projection)**
 
 ```typescript
 // packages/hooks/src/useTimelineWindow.ts
-import { useEffect, useCallback, useMemo } from 'react';
-import { create } from 'zustand';
-import type { TimelineWindow } from '@variscout/core';
+import { useCallback, useMemo } from 'react';
+import type { ProcessHubInvestigation, TimelineWindow } from '@variscout/core';
 
-interface WindowStore {
-  windows: Record<string, TimelineWindow>; // keyed by investigationId
-  setWindow: (id: string, w: TimelineWindow) => void;
-}
-
-const useWindowStore = create<WindowStore>(set => ({
-  windows: {},
-  setWindow: (id, w) => set(s => ({ windows: { ...s.windows, [id]: w } })),
-}));
+const DEFAULT_CUMULATIVE: TimelineWindow = { kind: 'cumulative' };
 
 export interface UseTimelineWindowArgs {
-  investigationId: string;
-  defaultKind?: TimelineWindow['kind'];
+  /** Investigation envelope — only `id` and `metadata.timelineWindow` are read. */
+  investigation: Pick<ProcessHubInvestigation, 'id' | 'metadata'>;
+  /**
+   * Persistence callback. Caller wires this to its existing
+   * `persistInvestigation` flow (see apps/azure/src/features/processHub/
+   * useHubMigrationState.ts for the canonical pattern). Receives
+   * `investigationId` so the same callback can serve many investigations.
+   */
+  onChange: (investigationId: string, window: TimelineWindow) => void;
 }
 
 export interface UseTimelineWindowResult {
   window: TimelineWindow;
-  setWindow: (w: TimelineWindow) => void;
+  setWindow: (window: TimelineWindow) => void;
 }
 
-const DEFAULT_WINDOW_BY_KIND: Record<
-  NonNullable<UseTimelineWindowArgs['defaultKind']>,
-  TimelineWindow
-> = {
-  fixed: { kind: 'fixed', startISO: '1970-01-01T00:00:00Z', endISO: new Date().toISOString() },
-  rolling: { kind: 'rolling', windowDays: 30 },
-  openEnded: { kind: 'openEnded', startISO: new Date().toISOString() },
-  cumulative: { kind: 'cumulative' },
-};
-
 export function useTimelineWindow({
-  investigationId,
-  defaultKind = 'cumulative',
+  investigation,
+  onChange,
 }: UseTimelineWindowArgs): UseTimelineWindowResult {
-  const stored = useWindowStore(s => s.windows[investigationId]);
-  const setStored = useWindowStore(s => s.setWindow);
-
   const window = useMemo<TimelineWindow>(
-    () => stored ?? DEFAULT_WINDOW_BY_KIND[defaultKind],
-    [stored, defaultKind]
+    () => investigation.metadata?.timelineWindow ?? DEFAULT_CUMULATIVE,
+    [investigation.metadata?.timelineWindow]
   );
 
   const setWindow = useCallback(
-    (w: TimelineWindow) => setStored(investigationId, w),
-    [investigationId, setStored]
+    (w: TimelineWindow) => onChange(investigation.id, w),
+    [investigation.id, onChange]
   );
 
   return { window, setWindow };
 }
 ```
 
-- [ ] **Step 8.3: Re-export + run tests + commit**
+- [ ] **Step 8.5: Re-export + run tests + commit**
 
 Add to `packages/hooks/src/index.ts`:
 
@@ -1328,10 +1367,26 @@ export {
 pnpm --filter @variscout/hooks test -- useTimelineWindow
 ```
 
+Expected: 3 tests passed. Then run the full hooks suite to confirm no regressions:
+
 ```bash
-git add packages/hooks/src/useTimelineWindow.ts packages/hooks/src/__tests__/useTimelineWindow.test.ts packages/hooks/src/index.ts
-git commit -m "feat(hooks): useTimelineWindow — Zustand-backed window state per investigation"
+pnpm --filter @variscout/hooks test
 ```
+
+Type-check the dependent packages (`@variscout/hooks` consumes the new core type; `@variscout/ui` and `@variscout/azure-app` consume hooks):
+
+```bash
+pnpm --filter @variscout/core build
+pnpm --filter @variscout/hooks build
+pnpm --filter @variscout/ui build
+```
+
+```bash
+git add packages/core/src/processHub.ts packages/hooks/src/useTimelineWindow.ts packages/hooks/src/__tests__/useTimelineWindow.test.ts packages/hooks/src/index.ts
+git commit -m "feat(hooks): useTimelineWindow — pure projection over investigation metadata"
+```
+
+**Note for Tasks 11/14 (FilterContextBar wiring + app-level wiring)**: those tasks now wire `onChange` to the app's `persistInvestigation` (the same flow that updates `nodeMappings`). The hooks package stays persistence-agnostic.
 
 ---
 
