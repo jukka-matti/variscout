@@ -156,3 +156,7 @@ site/
 storybook-static/
 
 .superpowers/
+
+# Local-only Claude design references (PDFs + standalone HTML demos)
+docs/06-design-system/claude desing/
+docs/06-design-system/claude design/
