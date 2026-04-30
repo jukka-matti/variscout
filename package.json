@@ -22,8 +22,6 @@
     "docs:check:frontmatter": "node scripts/check-doc-frontmatter.mjs",
     "docs:sync": "bash scripts/sync-monorepo-counts.sh",
     "codex:ruflo-check": "bash scripts/check-codex-ruflo.sh",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
     "check:boundaries": "bash scripts/check-level-boundaries.sh",
     "check:i18n": "npx tsx scripts/check-i18n.ts"
   },
@@ -39,10 +37,6 @@
   "devDependencies": {
     "eslint-plugin-variscout": "workspace:*",
     "@eslint/js": "^9.39.4",
-    "@storybook/addon-a11y": "^10.3.5",
-    "@storybook/addon-themes": "^10.3.5",
-    "@storybook/react": "^10.3.5",
-    "@storybook/react-vite": "^10.3.5",
     "@tailwindcss/vite": "^4.2.4",
     "@testing-library/jest-dom": "^6.9.1",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
@@ -59,7 +53,6 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.3.3",
     "prettier": "^3.8.3",
-    "storybook": "^10.3.5",
     "tailwindcss": "^4.2.4",
     "turbo": "^2.9.6",
     "typescript": "^5.8.3"
