@@ -12,6 +12,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { useProjectStore } from '@variscout/stores';
 import { usePerformanceAnalysis } from '@variscout/hooks';
+import { resolveCpkTarget } from '@variscout/core/capability';
 import PerformanceSummary from './PerformanceSummary';
 import PerformanceIChart from './charts/PerformanceIChart';
 import PerformanceBoxplot from './charts/PerformanceBoxplot';
@@ -49,7 +50,14 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   const specs = useProjectStore(s => s.specs);
   const setSpecs = useProjectStore(s => s.setSpecs);
   const measureColumns = useProjectStore(s => s.measureColumns);
-  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  // Performance mode is multi-channel — resolve against the focused channel
+  // (selectedMeasure) when available; cascade falls back to projectCpkTarget.
+  const cpkTarget = resolveCpkTarget(selectedMeasure ?? '', {
+    measureSpecs,
+    projectCpkTarget,
+  });
 
   // Cp/Cpk toggle state (includes 'both' option)
   const [capabilityMetric, setCapabilityMetric] = useState<CapabilityMetric>('cpk');

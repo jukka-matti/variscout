@@ -46,7 +46,8 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   stats,
   specs,
   cpkTarget = 1.33,
-  onCpkTargetChange,
+  onCpkTargetCommit,
+  columnLabel,
   sampleCount,
   filterChipData,
   columnAliases = {},
@@ -127,12 +128,12 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   const handleCpkTargetCommit = useCallback(() => {
     const parsed = parseFloat(cpkTargetInput);
     if (!isNaN(parsed) && parsed > 0) {
-      onCpkTargetChange?.(parsed);
+      onCpkTargetCommit?.(parsed);
     } else {
       setCpkTargetInput(String(cpkTarget));
     }
     setEditingCpkTarget(false);
-  }, [cpkTargetInput, cpkTarget, onCpkTargetChange]);
+  }, [cpkTargetInput, cpkTarget, onCpkTargetCommit]);
 
   // Render stats section
   const renderStats = () => {
@@ -290,7 +291,7 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
           >
             Cpk {cpkStr}
           </button>
-          {onCpkTargetChange ? (
+          {onCpkTargetCommit ? (
             editingCpkTarget ? (
               <input
                 type="number"
@@ -321,6 +322,14 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
             )
           ) : (
             <span className="ml-1 text-content-muted">/{cpkTarget}</span>
+          )}
+          {columnLabel && (
+            <span
+              className="ml-1 text-[0.625rem] text-content-muted"
+              data-testid="cpk-target-column-chip"
+            >
+              for {columnLabel}
+            </span>
           )}
           {/* Projection: "→ Y if fixed" or centering opportunity */}
           {activeProjection && (

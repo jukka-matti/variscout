@@ -170,13 +170,6 @@ export {
 } from './components/ManualEntry';
 
 export {
-  SpecsPopover,
-  specsPopoverDefaultColorScheme,
-  type SpecsPopoverProps,
-  type SpecsPopoverColorScheme,
-} from './components/SpecsPopover';
-
-export {
   SpecEditor,
   specEditorDefaultColorScheme,
   type SpecEditorProps,

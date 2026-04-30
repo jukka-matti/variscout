@@ -16,6 +16,12 @@
 - `TimelineWindowPicker` lives in the `DashboardLayoutBase` chrome (above the chart grid), not in `FilterContextBar`. Slot ownership: chrome above grid = window; FilterContextBar = per-chart filter summary.
 - Error service (`errorService`) and hooks (`useIsMobile`, `useTheme`, `useGlossary`, `BREAKPOINTS`) are also exported from @variscout/ui.
 
+## Per-characteristic specs (Phase B)
+
+- `SpecEditor` is the single per-characteristic spec form: edits `usl`, `lsl`, `target`, `characteristicType`, and `cpkTarget` for one column. Consumers wire it via `measureSpecs[outcome]` + `setMeasureSpec(outcome, partial)` from `@variscout/stores`.
+- `ProcessHealthBar` exposes inline Cpk-target quick-tweak via `onCpkTargetCommit` (formerly `onCpkTargetChange`); pair it with `columnLabel` so the chip "for [column]" makes scope visible.
+- `SpecsPopover` was deleted. Do not reintroduce it — `SpecEditor` is the canonical form.
+
 ## Test command
 
 ```bash

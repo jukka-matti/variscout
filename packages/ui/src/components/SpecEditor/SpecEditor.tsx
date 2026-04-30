@@ -30,11 +30,18 @@ const SpecEditor = ({
 }: SpecEditorProps) => {
   const { t } = useTranslation();
   const cs = colorScheme;
-  const [localSpecs, setLocalSpecs] = useState<{ usl: string; lsl: string; target: string }>({
+  const [localSpecs, setLocalSpecs] = useState<{
+    usl: string;
+    lsl: string;
+    target: string;
+    cpkTarget: string;
+  }>({
     usl: specs.usl?.toString() || '',
     lsl: specs.lsl?.toString() || '',
     target: specs.target?.toString() || '',
+    cpkTarget: specs.cpkTarget?.toString() || '',
   });
+  const [cpkTargetEnabled, setCpkTargetEnabled] = useState<boolean>(specs.cpkTarget !== undefined);
   const [typeSelection, setTypeSelection] = useState<CharacteristicType | null>(
     specs.characteristicType ?? null
   );
@@ -47,10 +54,16 @@ const SpecEditor = ({
   });
 
   const handleSave = () => {
+    const parsedCpkTarget =
+      cpkTargetEnabled && localSpecs.cpkTarget ? parseFloat(localSpecs.cpkTarget) : undefined;
     const parsedSpecs = {
       usl: localSpecs.usl ? parseFloat(localSpecs.usl) : undefined,
       lsl: localSpecs.lsl ? parseFloat(localSpecs.lsl) : undefined,
       target: localSpecs.target ? parseFloat(localSpecs.target) : undefined,
+      cpkTarget:
+        parsedCpkTarget !== undefined && Number.isFinite(parsedCpkTarget)
+          ? parsedCpkTarget
+          : undefined,
       characteristicType: typeSelection ?? undefined,
     };
     onSave(parsedSpecs);
@@ -127,6 +140,42 @@ const SpecEditor = ({
               />
             </div>
           </div>
+        </div>
+
+        {/* Capability target (Cpk) — distinct from engineering Target above */}
+        <div>
+          <h4 className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">
+            Capability target (Cpk)
+          </h4>
+          <div className="flex items-center gap-2">
+            <input
+              id="spec-cpktarget-enabled"
+              name="spec-cpktarget-enabled"
+              type="checkbox"
+              checked={cpkTargetEnabled}
+              onChange={e => setCpkTargetEnabled(e.target.checked)}
+              className="w-4 h-4 rounded border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500"
+              aria-label="Enable per-characteristic Cpk target"
+            />
+            <input
+              id="spec-cpktarget"
+              name="spec-cpktarget"
+              type="number"
+              step="0.01"
+              min="0"
+              value={localSpecs.cpkTarget}
+              onChange={e => setLocalSpecs({ ...localSpecs, cpkTarget: e.target.value })}
+              disabled={!cpkTargetEnabled}
+              placeholder="1.33"
+              title="Industry standard: 1.33 (4σ), 1.67 (5σ), 2.00 (6σ)"
+              className={`${cs.input} ${!cpkTargetEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              style={{ minHeight: isMobile ? 44 : undefined }}
+              aria-label="Capability target (Cpk)"
+            />
+          </div>
+          <p className="mt-1 text-[0.625rem] text-content-muted">
+            Per-characteristic capability threshold. Falls back to investigation default when unset.
+          </p>
         </div>
       </div>
 

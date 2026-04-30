@@ -46,6 +46,7 @@ import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
 import { type ExclusionReason, type Question, toNumericValue } from '@variscout/core';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
+import { resolveCpkTarget } from '@variscout/core/capability';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
 import { useQuestionGeneration } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
@@ -129,7 +130,12 @@ function AppMain() {
   const analysisMode = useProjectStore(s => s.analysisMode);
   const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
   const displayOptions = useProjectStore(s => s.displayOptions);
-  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+    measureSpecs,
+    projectCpkTarget,
+  });
   const processContext = useProjectStore(s => s.processContext);
   const defectMapping = useProjectStore(s => s.defectMapping);
 

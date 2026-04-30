@@ -309,4 +309,61 @@ describe('ProcessHealthBar', () => {
       expect(bar.textContent).toContain('95.0%');
     });
   });
+
+  describe('Cpk target inline editor', () => {
+    const editableProps: ProcessHealthBarProps = {
+      ...defaultProps,
+      specs: specsWithLimits,
+      stats: { ...baseStats, cpk: 1.45 },
+      cpkTarget: 1.33,
+    };
+
+    it('renders the inline edit button when onCpkTargetCommit is provided', () => {
+      render(<ProcessHealthBar {...editableProps} onCpkTargetCommit={vi.fn()} />);
+      expect(screen.getByTestId('cpk-target-btn')).toBeDefined();
+    });
+
+    it('renders a static target when onCpkTargetCommit is not provided', () => {
+      render(<ProcessHealthBar {...editableProps} />);
+      expect(screen.queryByTestId('cpk-target-btn')).toBeNull();
+    });
+
+    it('calls onCpkTargetCommit with parsed value on Enter', () => {
+      const onCpkTargetCommit = vi.fn();
+      render(<ProcessHealthBar {...editableProps} onCpkTargetCommit={onCpkTargetCommit} />);
+      fireEvent.click(screen.getByTestId('cpk-target-btn'));
+      const input = screen.getByTestId('cpk-target-input');
+      fireEvent.change(input, { target: { value: '1.67' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+      expect(onCpkTargetCommit).toHaveBeenCalledWith(1.67);
+    });
+  });
+
+  describe('column label chip', () => {
+    it('renders the chip when columnLabel is provided', () => {
+      render(
+        <ProcessHealthBar
+          {...defaultProps}
+          specs={specsWithLimits}
+          stats={{ ...baseStats, cpk: 1.4 }}
+          cpkTarget={1.33}
+          columnLabel="Diameter"
+        />
+      );
+      const chip = screen.getByTestId('cpk-target-column-chip');
+      expect(chip.textContent).toContain('Diameter');
+    });
+
+    it('does not render the chip when columnLabel is omitted', () => {
+      render(
+        <ProcessHealthBar
+          {...defaultProps}
+          specs={specsWithLimits}
+          stats={{ ...baseStats, cpk: 1.4 }}
+          cpkTarget={1.33}
+        />
+      );
+      expect(screen.queryByTestId('cpk-target-column-chip')).toBeNull();
+    });
+  });
 });

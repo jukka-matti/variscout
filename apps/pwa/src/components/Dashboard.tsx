@@ -51,6 +51,7 @@ import {
   type TimelineWindow,
 } from '@variscout/core';
 import { resolveMode as resolveModeUtil } from '@variscout/core/strategy';
+import { resolveCpkTarget } from '@variscout/core/capability';
 import { subgroupAxisColumns } from '@variscout/core/frame';
 import { useProjectionStore } from '../features/projection/projectionStore';
 
@@ -118,6 +119,8 @@ const Dashboard = ({
   const setRawData = useProjectStore(s => s.setRawData);
   const specs = useProjectStore(s => s.specs);
   const setSpecs = useProjectStore(s => s.setSpecs);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
   const filters = useProjectStore(s => s.filters);
   const setFilters = useProjectStore(s => s.setFilters);
   const columnAliases = useProjectStore(s => s.columnAliases);
@@ -320,12 +323,16 @@ const Dashboard = ({
     projectionResult.specSuggestion,
   ]);
 
-  // Handler for saving specs from SpecEditor
+  // Handler for saving specs from SpecEditor (per-column when outcome is set)
   const handleSaveSpecs = useCallback(
     (newSpecs: SpecLimits) => {
-      setSpecs(newSpecs);
+      if (outcome) {
+        setMeasureSpec(outcome, newSpecs);
+      } else {
+        setSpecs(newSpecs);
+      }
     },
-    [setSpecs]
+    [outcome, setMeasureSpec, setSpecs]
   );
 
   // Keyboard navigation for Focus Mode
@@ -625,7 +632,12 @@ const Dashboard = ({
         <ProcessHealthBar
           stats={stats}
           specs={specs}
-          cpkTarget={cpkTarget}
+          cpkTarget={resolveCpkTarget(outcome ?? '', {
+            measureSpecs,
+            projectCpkTarget: cpkTarget,
+          })}
+          onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
+          columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
           sampleCount={filteredData?.length ?? 0}
           filterChipData={filterChipData}
           columnAliases={columnAliases}
@@ -980,7 +992,7 @@ const Dashboard = ({
         renderSpecEditor={
           showSpecEditor ? (
             <SpecEditor
-              specs={specs}
+              specs={outcome ? (measureSpecs[outcome] ?? specs) : specs}
               onSave={handleSaveSpecs}
               onClose={() => setShowSpecEditor(false)}
               style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}

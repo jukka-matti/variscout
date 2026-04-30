@@ -197,6 +197,7 @@ export interface ProjectActions {
   setAnalysisMode: (mode: AnalysisMode) => void;
   setSpecs: (specs: SpecLimits) => void;
   setMeasureSpecs: (specs: Record<string, SpecLimits>) => void;
+  setMeasureSpec: (column: string, partial: Partial<SpecLimits>) => void;
   setStageColumn: (col: string | null) => void;
   setStageOrderMode: (mode: StageOrderMode) => void;
 
@@ -399,6 +400,14 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
   setAnalysisMode: setAndMark(set, 'analysisMode'),
   setSpecs: setAndMark(set, 'specs'),
   setMeasureSpecs: setAndMark(set, 'measureSpecs'),
+  setMeasureSpec: (column, partial) =>
+    set(state => ({
+      measureSpecs: {
+        ...state.measureSpecs,
+        [column]: { ...(state.measureSpecs[column] ?? {}), ...partial },
+      },
+      hasUnsavedChanges: true,
+    })),
   setStageColumn: setAndMark(set, 'stageColumn'),
   setStageOrderMode: setAndMark(set, 'stageOrderMode'),
 

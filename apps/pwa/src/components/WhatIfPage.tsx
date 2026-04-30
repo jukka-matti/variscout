@@ -2,6 +2,7 @@ import React from 'react';
 import { useProjectStore } from '@variscout/stores';
 import { useFilteredData } from '@variscout/hooks';
 import { WhatIfExplorerPage } from '@variscout/ui';
+import { resolveCpkTarget } from '@variscout/core/capability';
 
 interface WhatIfPageProps {
   onBack: () => void;
@@ -14,7 +15,12 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack }) => {
   const specs = useProjectStore(s => s.specs);
   const filters = useProjectStore(s => s.filters);
   const factors = useProjectStore(s => s.factors);
-  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+    measureSpecs,
+    projectCpkTarget,
+  });
   const filterCount = Object.keys(filters).length;
 
   return (

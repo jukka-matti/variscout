@@ -12,6 +12,7 @@ import {
 import { useChartScale } from '../../hooks/useChartScale';
 import { IChartWrapperBase } from '@variscout/ui';
 import type { Finding, DataRow } from '@variscout/core';
+import { resolveCpkTarget } from '@variscout/core/capability';
 
 interface IChartProps {
   parentWidth: number;
@@ -52,7 +53,12 @@ const IChart = ({
   const selectedPoints = useProjectStore(s => s.selectedPoints);
   const setSelectedPoints = useProjectStore(s => s.setSelectedPoints);
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
-  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+    measureSpecs,
+    projectCpkTarget,
+  });
   const { min: autoMin, max: autoMax } = useChartScale();
 
   const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';

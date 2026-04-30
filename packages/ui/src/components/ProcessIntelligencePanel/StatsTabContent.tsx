@@ -5,6 +5,7 @@ import { useProjectStore } from '@variscout/stores';
 import { computeMainEffects, computeInteractionEffects } from '@variscout/core/stats';
 import type { BestSubsetsResult, FactorMainEffect } from '@variscout/core/stats';
 import type { StatsResult, SpecLimits, GlossaryTerm, StagedComparison } from '@variscout/core';
+import { resolveCpkTarget } from '@variscout/core/capability';
 import { useGlossary } from '../../hooks/useGlossary';
 import { HelpTooltip } from '../HelpTooltip';
 import { StagedComparisonCard } from './StagedComparisonCard';
@@ -245,13 +246,16 @@ const StatsTabContent: React.FC<StatsTabContentProps> = ({
   const specs = useProjectStore(s => s.specs);
   const outcome = useProjectStore(s => s.outcome);
   const storeCpkTarget = useProjectStore(s => s.cpkTarget);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
   const factors = useProjectStore(s => s.factors);
 
   // Hook reads
   const { stats } = useAnalysisStats();
   const { filteredData } = useFilteredData();
 
-  const cpkTarget = cpkTargetProp ?? storeCpkTarget;
+  const cpkTarget =
+    cpkTargetProp ??
+    resolveCpkTarget(outcome ?? '', { measureSpecs, projectCpkTarget: storeCpkTarget });
 
   // Factor Intelligence: compute main/interaction effects when we have enough data
   const hasFactorIntelligence =

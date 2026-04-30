@@ -42,7 +42,7 @@ Shared UI components for VariScout applications (PWA, Azure).
 
 ### Settings & Misc
 
-`SettingsPanelBase`, `SpecsPopover`, `SpecEditor`, `UpgradePrompt`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `WhatIfSimulator`, `WhatIfPageBase`, `DataTableBase`, `ErrorBoundary`, `Slider`, `FactorSelector`, `CharacteristicTypeSelector`, `PerformanceSetupPanelBase`
+`SettingsPanelBase`, `SpecEditor`, `UpgradePrompt`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `WhatIfSimulator`, `WhatIfPageBase`, `DataTableBase`, `ErrorBoundary`, `Slider`, `FactorSelector`, `CharacteristicTypeSelector`, `PerformanceSetupPanelBase`
 
 ### Hooks & Utilities
 

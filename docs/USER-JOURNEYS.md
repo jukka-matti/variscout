@@ -122,7 +122,10 @@ Every investigation - Standard, Yamazumi, Performance, Defect, Capability, or Pr
    and questions emerge. The dashboard chrome carries a [timeline-window picker](03-features/analysis/timeline-window-investigations.md)
    (fixed / rolling / open-ended / cumulative) so every chart, every Finding,
    and every drift comparison agrees on the same temporal scope. Investigation-time
-   defaults to `open-ended`.
+   defaults to `open-ended`. Per-column Cpk targets are editable inline in
+   `ProcessHealthBar` or in the detailed `SpecEditor`; banding surfaces resolve
+   the active target via the per-column → hub → investigation cascade
+   (`resolveCpkTarget`).
 
 3. **INVESTIGATE.** User builds one or more Mechanism Branches or
    SuspectedCause hubs. Each hub accumulates evidence: data (Evidence Map edges

@@ -9,6 +9,7 @@ import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotWrapperBase } from '@variscout/ui';
 import type { HighlightColor } from '@variscout/hooks';
 import type { Finding, DataRow } from '@variscout/core';
+import { resolveCpkTarget } from '@variscout/core/capability';
 
 interface BoxplotProps {
   factor: string;
@@ -50,7 +51,12 @@ const Boxplot = ({
   const setValueLabels = useProjectStore(s => s.setValueLabels);
   const displayOptions = useProjectStore(s => s.displayOptions);
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
-  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+    measureSpecs,
+    projectCpkTarget,
+  });
   const { min, max } = useChartScale();
 
   const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';

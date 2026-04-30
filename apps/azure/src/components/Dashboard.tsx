@@ -19,6 +19,7 @@ import {
   useDefectSummary,
 } from '@variscout/hooks';
 import { resolveMode } from '@variscout/core/strategy';
+import { resolveCpkTarget } from '@variscout/core/capability';
 import { subgroupAxisColumns } from '@variscout/core/frame';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { useDashboardCharts } from '../hooks';
@@ -176,6 +177,8 @@ const Dashboard = ({
   const setRawData = useProjectStore(s => s.setRawData);
   const specs = useProjectStore(s => s.specs);
   const setSpecs = useProjectStore(s => s.setSpecs);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
   const filters = useProjectStore(s => s.filters);
   const setFilters = useProjectStore(s => s.setFilters);
   const analysisMode = useProjectStore(s => s.analysisMode);
@@ -194,7 +197,6 @@ const Dashboard = ({
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const cpkTarget = useProjectStore(s => s.cpkTarget);
-  const setCpkTarget = useProjectStore(s => s.setCpkTarget);
   const selectedPoints = useProjectStore(s => s.selectedPoints);
   const clearSelection = useProjectStore(s => s.clearSelection);
   const defectMapping = useProjectStore(s => s.defectMapping);
@@ -543,8 +545,12 @@ const Dashboard = ({
           <ProcessHealthBar
             stats={stats}
             specs={specs}
-            cpkTarget={cpkTarget}
-            onCpkTargetChange={setCpkTarget}
+            cpkTarget={resolveCpkTarget(outcome ?? '', {
+              measureSpecs,
+              projectCpkTarget: cpkTarget,
+            })}
+            onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
+            columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
             sampleCount={filteredData?.length ?? 0}
             filterChipData={filterChipData}
             columnAliases={columnAliases}
@@ -695,10 +701,12 @@ const Dashboard = ({
               }}
               onDrillDown={handleDrillDown}
               stats={stats}
-              specs={specs}
+              specs={outcome ? (measureSpecs[outcome] ?? specs) : specs}
               filteredData={filteredData}
               outcome={outcome}
-              onSaveSpecs={setSpecs}
+              onSaveSpecs={
+                outcome ? (next: typeof specs) => setMeasureSpec(outcome, next) : setSpecs
+              }
               showCpk={displayOptions.showCpk !== false}
               anovaResult={anovaResult}
               onPinFinding={onPinFinding}
@@ -1028,10 +1036,10 @@ const Dashboard = ({
                   ) : undefined
                 }
                 renderSpecEditor={
-                  showSpecEditor ? (
+                  showSpecEditor && outcome ? (
                     <SpecEditor
-                      specs={specs}
-                      onSave={setSpecs}
+                      specs={measureSpecs[outcome] ?? {}}
+                      onSave={next => setMeasureSpec(outcome, next)}
                       onClose={() => setShowSpecEditor(false)}
                       style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}
                     />

@@ -36,6 +36,7 @@ import {
 import { detectEvidenceClusters } from '@variscout/core/findings';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
+import { resolveCpkTarget } from '@variscout/core/capability';
 import { wouldCreateCycle } from '@variscout/core/stats';
 import { GripVertical } from 'lucide-react';
 import {
@@ -147,7 +148,12 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const setProcessContext = useProjectStore(s => s.setProcessContext);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
-  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+    measureSpecs,
+    projectCpkTarget,
+  });
   const processMap = useProjectStore(s => s.processContext?.processMap);
   const { filteredData } = useFilteredData();
   const { stats } = useAnalysisStats();

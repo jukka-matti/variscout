@@ -104,6 +104,41 @@ Forward references — these surfaces become target-aware as the per-characteris
 
 This Phase A doc is about the foundation: type extension, single banding function, single cascade resolver. Phase B / C extend the resolution flow into editing surfaces and complete the per-characteristic story end-to-end.
 
+## How surfaces wire it (post Phase B / C)
+
+Each cascading surface reads `measureSpecs` + project-level `cpkTarget` from the store and resolves against the column it is grading:
+
+```ts
+const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+const measureSpecs = useProjectStore(s => s.measureSpecs);
+const cpkTarget = resolveCpkTarget(outcome ?? '', { measureSpecs, projectCpkTarget });
+```
+
+Surfaces wired this way today:
+
+- **Investigation outcome surfaces** (resolve against `outcome`):
+  `apps/azure/src/components/Dashboard.tsx`, `apps/pwa/src/components/Dashboard.tsx`,
+  `apps/azure/src/components/WhatIfPage.tsx`, `apps/pwa/src/components/WhatIfPage.tsx`,
+  `apps/azure/src/components/views/ReportView.tsx`,
+  `apps/azure/src/components/editor/InvestigationWorkspace.tsx`,
+  `apps/azure/src/pages/Editor.tsx`, `apps/pwa/src/App.tsx`,
+  `apps/azure/src/components/charts/IChart.tsx`,
+  `apps/azure/src/components/charts/Boxplot.tsx`,
+  `apps/pwa/src/components/charts/IChart.tsx`,
+  `apps/pwa/src/components/charts/Boxplot.tsx`,
+  `packages/ui/src/components/ProcessIntelligencePanel/StatsTabContent.tsx`,
+  `packages/ui/src/components/ProcessIntelligencePanel/QuestionsTabContent.tsx`.
+- **Multi-channel surfaces** (resolve against `selectedMeasure`):
+  `apps/azure/src/components/PerformanceDashboard.tsx`.
+
+Writers:
+
+- **Per-characteristic editor** (`SpecEditor`) — writes `usl`/`lsl`/`target`/`characteristicType`/`cpkTarget` via `setMeasureSpec(outcome, partial)`.
+- **Inline quick-tweak** (`ProcessHealthBar.onCpkTargetCommit`) — writes only `cpkTarget` via `setMeasureSpec(outcome, { cpkTarget })`. Adds a `columnLabel` chip so users see which column they are tuning.
+- **Project-wide setup writer** (`PerformanceSetupPanel`) — retains `setCpkTarget` for the multi-channel setup flow. Acts as the cascade fallback when no per-column override is set.
+
+The legacy `useProjectStore.specs` / `setSpecs` API remains for passive fallback when no `outcome` is in scope — no shipped surface writes to it from the SpecEditor / ProcessHealthBar paths anymore.
+
 ## See also
 
 - `docs/03-features/analysis/capability.md` — user-facing description of capability grades

@@ -42,11 +42,16 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
   openQuestionCount,
 }) => {
   const setSpecs = useProjectStore(s => s.setSpecs);
+  const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
   const handleSaveSpecs = (newSpecs: SpecLimits) => {
-    setSpecs(newSpecs);
+    if (outcome) {
+      setMeasureSpec(outcome, newSpecs);
+    } else {
+      setSpecs(newSpecs);
+    }
   };
 
   const presets = useMemo(() => {
