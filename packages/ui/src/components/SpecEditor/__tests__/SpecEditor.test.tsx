@@ -239,4 +239,57 @@ describe('SpecEditor', () => {
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  // --- cpkTarget field ---
+  it('loads existing cpkTarget into the input with the toggle enabled', () => {
+    render(
+      <SpecEditor specs={{ ...defaultSpecs, cpkTarget: 1.67 }} onSave={onSave} onClose={onClose} />
+    );
+    const cpkInput = screen.getByLabelText('Capability target (Cpk)') as HTMLInputElement;
+    const toggle = screen.getByLabelText(
+      'Enable per-characteristic Cpk target'
+    ) as HTMLInputElement;
+    expect(cpkInput.value).toBe('1.67');
+    expect(toggle.checked).toBe(true);
+    expect(cpkInput.disabled).toBe(false);
+  });
+
+  it('starts with cpkTarget toggle disabled when specs.cpkTarget is undefined', () => {
+    render(<SpecEditor specs={defaultSpecs} onSave={onSave} onClose={onClose} />);
+    const toggle = screen.getByLabelText(
+      'Enable per-characteristic Cpk target'
+    ) as HTMLInputElement;
+    const cpkInput = screen.getByLabelText('Capability target (Cpk)') as HTMLInputElement;
+    expect(toggle.checked).toBe(false);
+    expect(cpkInput.disabled).toBe(true);
+  });
+
+  it('saves cpkTarget when toggle is enabled and value parses', () => {
+    render(<SpecEditor specs={defaultSpecs} onSave={onSave} onClose={onClose} />);
+    fireEvent.click(screen.getByLabelText('Enable per-characteristic Cpk target'));
+    fireEvent.change(screen.getByLabelText('Capability target (Cpk)'), {
+      target: { value: '1.67' },
+    });
+    fireEvent.click(screen.getByText('Save'));
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ cpkTarget: 1.67 }));
+  });
+
+  it('omits cpkTarget when toggle is disabled', () => {
+    render(
+      <SpecEditor specs={{ ...defaultSpecs, cpkTarget: 1.5 }} onSave={onSave} onClose={onClose} />
+    );
+    fireEvent.click(screen.getByLabelText('Enable per-characteristic Cpk target')); // disable
+    fireEvent.click(screen.getByText('Save'));
+    const saved = onSave.mock.calls[0][0];
+    expect(saved.cpkTarget).toBeUndefined();
+  });
+
+  it('round-trips: load → edit → save preserves cpkTarget', () => {
+    render(<SpecEditor specs={{ usl: 5, cpkTarget: 1.33 }} onSave={onSave} onClose={onClose} />);
+    fireEvent.change(screen.getByLabelText('Capability target (Cpk)'), {
+      target: { value: '2.0' },
+    });
+    fireEvent.click(screen.getByText('Save'));
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ usl: 5, cpkTarget: 2.0 }));
+  });
 });

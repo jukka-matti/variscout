@@ -35,6 +35,36 @@ describe('LayeredProcessView', () => {
     expect(within(outcomeBand).getByText('1.33')).toBeInTheDocument();
   });
 
+  it('shows Cpk target row in Outcome band when cpkTarget is set', () => {
+    render(
+      <LayeredProcessView
+        map={emptyMap}
+        availableColumns={[]}
+        onChange={() => {}}
+        cpkTarget={1.67}
+      />
+    );
+
+    const outcomeBand = screen.getByTestId('band-outcome');
+    expect(within(outcomeBand).getByText('Cpk target:')).toBeInTheDocument();
+    expect(within(outcomeBand).getByText('1.67')).toBeInTheDocument();
+  });
+
+  it('treats cpkTarget alone as outcome data (no placeholder when only cpkTarget is set)', () => {
+    render(
+      <LayeredProcessView
+        map={emptyMap}
+        availableColumns={[]}
+        onChange={() => {}}
+        cpkTarget={1.33}
+      />
+    );
+
+    const outcomeBand = screen.getByTestId('band-outcome');
+    expect(outcomeBand).not.toHaveTextContent('No outcome target set');
+    expect(within(outcomeBand).getByText('Cpk target:')).toBeInTheDocument();
+  });
+
   it('shows USL and LSL in Outcome band when set', () => {
     render(
       <LayeredProcessView

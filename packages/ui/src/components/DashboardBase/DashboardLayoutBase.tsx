@@ -157,7 +157,7 @@ export interface DashboardLayoutBaseProps {
   // ---- Optional overrides / extensions ----
   /** Override I-Chart title (PWA: icon + branding) */
   ichartTitleSlot?: React.ReactNode;
-  /** Extra controls after stage selector (PWA: SpecsPopover) */
+  /** Extra controls after stage selector (e.g. SpecEditor trigger) */
   ichartExtraControls?: React.ReactNode;
   /** Extra controls after Manage Factors in I-Chart header (Azure: inline manage button) */
   ichartHeaderExtra?: React.ReactNode;

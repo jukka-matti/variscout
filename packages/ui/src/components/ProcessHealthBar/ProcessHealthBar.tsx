@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { ProcessHealthBarProps } from './types';
 import { FilterChipDropdown } from '../FilterChipDropdown';
+import { gradeCpk } from '@variscout/core/capability';
 import { useTranslation } from '@variscout/hooks';
 
 /**
@@ -28,9 +29,10 @@ function formatChipValues(values: (string | number)[]): string {
  * Returns Tailwind color class for a Cpk value relative to the target.
  */
 function cpkColor(cpk: number, target: number): string {
-  if (cpk >= target) return 'text-green-500';
-  if (cpk >= 1.0) return 'text-amber-500';
-  return 'text-red-400';
+  const grade = gradeCpk(cpk, target);
+  if (grade === 'green') return 'text-green-500';
+  if (grade === 'red') return 'text-red-400';
+  return 'text-amber-500';
 }
 
 /**
@@ -44,7 +46,8 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   stats,
   specs,
   cpkTarget = 1.33,
-  onCpkTargetChange,
+  onCpkTargetCommit,
+  columnLabel,
   sampleCount,
   filterChipData,
   columnAliases = {},
@@ -125,12 +128,12 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   const handleCpkTargetCommit = useCallback(() => {
     const parsed = parseFloat(cpkTargetInput);
     if (!isNaN(parsed) && parsed > 0) {
-      onCpkTargetChange?.(parsed);
+      onCpkTargetCommit?.(parsed);
     } else {
       setCpkTargetInput(String(cpkTarget));
     }
     setEditingCpkTarget(false);
-  }, [cpkTargetInput, cpkTarget, onCpkTargetChange]);
+  }, [cpkTargetInput, cpkTarget, onCpkTargetCommit]);
 
   // Render stats section
   const renderStats = () => {
@@ -288,7 +291,7 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
           >
             Cpk {cpkStr}
           </button>
-          {onCpkTargetChange ? (
+          {onCpkTargetCommit ? (
             editingCpkTarget ? (
               <input
                 type="number"
@@ -319,6 +322,14 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
             )
           ) : (
             <span className="ml-1 text-content-muted">/{cpkTarget}</span>
+          )}
+          {columnLabel && (
+            <span
+              className="ml-1 text-[0.625rem] text-content-muted"
+              data-testid="cpk-target-column-chip"
+            >
+              for {columnLabel}
+            </span>
           )}
           {/* Projection: "→ Y if fixed" or centering opportunity */}
           {activeProjection && (

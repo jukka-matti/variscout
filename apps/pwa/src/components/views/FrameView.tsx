@@ -25,8 +25,8 @@ import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/fra
 const FrameView: React.FC = () => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
-  const specs = useProjectStore(s => s.specs);
-  const setSpecs = useProjectStore(s => s.setSpecs);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
   const processContext = useProjectStore(s => s.processContext);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
 
@@ -37,15 +37,19 @@ const FrameView: React.FC = () => {
 
   const map: ProcessMap = processContext?.processMap ?? createEmptyMap();
 
+  // Phase D: per-column FRAME spec edits keyed off the canonical map's CTS column.
+  const ctsColumn = map.ctsColumn;
+  const ctsSpecs = ctsColumn ? measureSpecs[ctsColumn] : undefined;
+
   const gaps = React.useMemo(
     () =>
       detectGaps({
         processMap: map,
         columns: availableColumns,
         outcomeColumn: outcome ?? undefined,
-        specs: specs ?? undefined,
+        specs: ctsSpecs,
       }),
-    [map, availableColumns, outcome, specs]
+    [map, availableColumns, outcome, ctsSpecs]
   );
 
   const handleChange = (next: ProcessMap) => {
@@ -53,8 +57,14 @@ const FrameView: React.FC = () => {
     setProcessContext({ ...baseContext, processMap: next });
   };
 
-  const handleSpecsChange = (next: { target?: number; usl?: number; lsl?: number }) => {
-    setSpecs({ ...(specs ?? {}), ...next });
+  const handleSpecsChange = (next: {
+    target?: number;
+    usl?: number;
+    lsl?: number;
+    cpkTarget?: number;
+  }) => {
+    if (!ctsColumn) return; // No CTS picked yet — silently ignore until the user picks one.
+    setMeasureSpec(ctsColumn, next);
   };
 
   // Plan C2: URL-backed filter + ops-mode state.
@@ -102,9 +112,10 @@ const FrameView: React.FC = () => {
           availableColumns={availableColumns}
           onChange={handleChange}
           gaps={gaps}
-          target={specs?.target}
-          lsl={specs?.lsl}
-          usl={specs?.usl}
+          target={ctsSpecs?.target}
+          lsl={ctsSpecs?.lsl}
+          usl={ctsSpecs?.usl}
+          cpkTarget={ctsSpecs?.cpkTarget}
           onSpecsChange={handleSpecsChange}
           data={data}
           filter={{

@@ -441,6 +441,15 @@ export {
   stageColors,
 } from './responsive';
 
+// Capability target cascade + grading (single source of truth)
+export {
+  gradeCpk,
+  resolveCpkTarget,
+  DEFAULT_CPK_TARGET,
+  type CpkGrade,
+  type CapabilityTargetContext,
+} from './capability';
+
 // Time utilities
 export type { TimeComponents, TimeExtractionConfig, TimeGranularity } from './time';
 export {

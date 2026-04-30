@@ -94,6 +94,7 @@ export const PISection: React.FC<PISectionProps> = ({
 
   // Store reads
   const specs = useProjectStore(s => s.specs);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
@@ -329,11 +330,11 @@ export const PISection: React.FC<PISectionProps> = ({
   return (
     <>
       {/* Spec Editor overlay — rendered above the sidebar */}
-      {isEditingSpecs && (
+      {isEditingSpecs && outcome && (
         <SpecEditor
-          specs={specs}
+          specs={measureSpecs[outcome] ?? {}}
           onSave={newSpecs => {
-            useProjectStore.getState().setSpecs(newSpecs);
+            useProjectStore.getState().setMeasureSpec(outcome, newSpecs);
             setIsEditingSpecs(false);
           }}
           onClose={() => setIsEditingSpecs(false)}

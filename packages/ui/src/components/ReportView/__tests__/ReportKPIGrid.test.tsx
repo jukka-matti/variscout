@@ -77,14 +77,18 @@ describe('ReportKPIGrid', () => {
       expect(cpkValue).not.toBeNull();
     });
 
-    it('shows red when Cpk < 1.0', () => {
+    // Single banding rule (target-relative): red when cpk < target * 0.75.
+    // For default target=1.33 that's < 0.9975, so cpk=0.8 lands in red.
+    it('shows red when Cpk < target * 0.75', () => {
       const lowCpkStats = { ...mockStats, cpk: 0.8 };
       const { container } = render(<ReportKPIGrid stats={lowCpkStats} specs={specsSet} />);
       const cpkValue = container.querySelector('.text-red-600, .text-red-400');
       expect(cpkValue).not.toBeNull();
     });
 
-    it('shows amber when Cpk is between 1.0 and target (1.33)', () => {
+    // Single banding rule (target-relative): amber when cpk in [target*0.75, target).
+    // For default target=1.33 the amber band is [0.9975, 1.33), so cpk=1.1 is amber.
+    it('shows amber when Cpk in [target*0.75, target)', () => {
       const midCpkStats = { ...mockStats, cpk: 1.1 };
       const { container } = render(<ReportKPIGrid stats={midCpkStats} specs={specsSet} />);
       const cpkValue = container.querySelector('.text-amber-600, .text-amber-400');

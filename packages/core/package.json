@@ -8,6 +8,7 @@
     "./stats": "./src/stats/index.ts",
     "./parser": "./src/parser/index.ts",
     "./ai": "./src/ai/index.ts",
+    "./capability": "./src/capability/index.ts",
     "./findings": "./src/findings/index.ts",
     "./variation": "./src/variation/index.ts",
     "./yamazumi": "./src/yamazumi/index.ts",

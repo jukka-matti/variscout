@@ -3,6 +3,7 @@ import { useProjectStore } from '@variscout/stores';
 import { useFilteredData } from '@variscout/hooks';
 import { WhatIfExplorerPage } from '@variscout/ui';
 import type { FilterAction, FindingProjection } from '@variscout/core';
+import { resolveCpkTarget } from '@variscout/core/capability';
 
 interface WhatIfPageProps {
   onBack: () => void;
@@ -26,7 +27,12 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({
   const outcome = useProjectStore(s => s.outcome);
   const specs = useProjectStore(s => s.specs);
   const columnAliases = useProjectStore(s => s.columnAliases);
-  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+    measureSpecs,
+    projectCpkTarget,
+  });
   const viewState = useProjectStore(s => s.viewState);
   const analysisMode = useProjectStore(s => s.analysisMode);
 

@@ -71,6 +71,7 @@ import type {
   ProcessHub,
 } from '@variscout/core';
 import type { SurveyRecommendation } from '@variscout/core/survey';
+import { resolveCpkTarget } from '@variscout/core/capability';
 import type { BrainstormIdea } from '@variscout/core/findings';
 import { Check, X } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
@@ -312,7 +313,12 @@ export const Editor: React.FC<EditorProps> = ({
   const viewState = useProjectStore(s => s.viewState);
   const currentProjectName = useProjectStore(s => s.projectName);
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
-  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+    measureSpecs,
+    projectCpkTarget,
+  });
   const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
   const defectMapping = useProjectStore(s => s.defectMapping);
   const processContext = useProjectStore(s => s.processContext) ?? undefined;

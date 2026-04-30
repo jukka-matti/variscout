@@ -35,8 +35,10 @@ export interface ProcessHealthBarProps {
   specs: SpecLimits;
   /** Cpk target for color coding (default 1.33) */
   cpkTarget?: number;
-  /** Called when user changes the Cpk target */
-  onCpkTargetChange?: (target: number) => void;
+  /** Called when the user commits a new Cpk target via the inline editor. */
+  onCpkTargetCommit?: (target: number) => void;
+  /** Optional column label rendered next to the Cpk target — clarifies which characteristic the target applies to. */
+  columnLabel?: string;
   /** Total sample count */
   sampleCount: number;
   /** Filter chip data for active filters */

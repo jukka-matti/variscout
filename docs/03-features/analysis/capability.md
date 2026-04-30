@@ -117,14 +117,30 @@ When no specifications are configured, the top strip shows only basic statistics
 
 ---
 
-## Capability Grades
+## Capability Grades (target-relative)
 
-| Cpk       | Grade     | Interpretation |
-| --------- | --------- | -------------- |
-| ≥1.67     | Excellent | Very capable   |
-| 1.33-1.67 | Good      | Capable        |
-| 1.00-1.33 | Marginal  | Barely capable |
-| <1.00     | Poor      | Not capable    |
+VariScout grades Cpk relative to a **user-set Cpk target** (default `1.33`), not against fixed literature thresholds. The target is per-characteristic — each measurement column carries its own bar, set in the FRAME workspace (primary) or the Spec popover (quick edit).
+
+| Range                          | Grade                     |
+| ------------------------------ | ------------------------- |
+| `cpk ≥ target`                 | Green — meets the bar     |
+| `target × 0.75 ≤ cpk < target` | Amber — within 75% of bar |
+| `cpk < target × 0.75`          | Red — well below bar      |
+
+Source of truth: `gradeCpk` in `@variscout/core/capability`. Every banding surface (ProcessHealthBar, Report KPI grids, process moments, charts) calls this single function — there is no per-surface variant.
+
+### Where the target comes from (cascade)
+
+When a surface needs to grade Cpk for a column, it resolves the target via:
+
+1. **Per-column spec** — `measureSpecs[column].cpkTarget`, set in FRAME node-detail or SpecsPopover
+2. **Hub default** — `processHub.reviewSignal.capability.cpkTarget` (when in hub view)
+3. **Investigation default** — `projectStore.cpkTarget`
+4. **Hardcoded floor** — `1.33`
+
+See `resolveCpkTarget` in `@variscout/core/capability` for the implementation, and `docs/05-technical/architecture/capability-target-cascade.md` for the architecture write-up.
+
+For reference, the canonical literature thresholds (≥1.67 excellent, 1.33–1.67 good, 1.00–1.33 marginal, <1.00 not capable) are what most process-improvement texts assume when the analyst hasn't set a target. With `target = 1.33`, VariScout's green/amber boundary lands in the literature "capable" range.
 
 ### Dashboard Behavior in Capability Mode
 

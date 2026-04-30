@@ -356,3 +356,42 @@ describe('projectStore — additional setters', () => {
     expect(useProjectStore.getState().selectionIndexMap.size).toBe(0);
   });
 });
+
+describe('projectStore — setMeasureSpec', () => {
+  it('creates a new entry when column has no existing spec', () => {
+    useProjectStore.getState().setMeasureSpec('Diameter', { usl: 10, lsl: 9 });
+    expect(useProjectStore.getState().measureSpecs).toEqual({
+      Diameter: { usl: 10, lsl: 9 },
+    });
+  });
+
+  it('merges partial updates with existing spec', () => {
+    useProjectStore.getState().setMeasureSpecs({
+      Diameter: { usl: 10, lsl: 9, target: 9.5 },
+    });
+    useProjectStore.getState().setMeasureSpec('Diameter', { cpkTarget: 1.67 });
+    expect(useProjectStore.getState().measureSpecs.Diameter).toEqual({
+      usl: 10,
+      lsl: 9,
+      target: 9.5,
+      cpkTarget: 1.67,
+    });
+  });
+
+  it('overrides specific fields without clobbering siblings', () => {
+    useProjectStore.getState().setMeasureSpecs({
+      A: { usl: 5 },
+      B: { usl: 10 },
+    });
+    useProjectStore.getState().setMeasureSpec('A', { cpkTarget: 2.0 });
+    expect(useProjectStore.getState().measureSpecs).toEqual({
+      A: { usl: 5, cpkTarget: 2.0 },
+      B: { usl: 10 },
+    });
+  });
+
+  it('marks the project as unsaved', () => {
+    useProjectStore.getState().setMeasureSpec('Diameter', { cpkTarget: 1.33 });
+    expect(useProjectStore.getState().hasUnsavedChanges).toBe(true);
+  });
+});

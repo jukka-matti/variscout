@@ -3,6 +3,7 @@ import { useInvestigationStore, useProjectStore } from '@variscout/stores';
 import { useAnalysisStats, useHubComputations, useImprovementProjections } from '@variscout/hooks';
 import type { BestSubsetsResult } from '@variscout/core/stats';
 import type { Question } from '@variscout/core/findings';
+import { resolveCpkTarget } from '@variscout/core/capability';
 import QuestionsTabView from './QuestionsTabView';
 
 export interface QuestionsTabContentProps {
@@ -78,7 +79,13 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
   const findings = useInvestigationStore(s => s.findings);
   const hubs = useInvestigationStore(s => s.suspectedCauses);
   const processContext = useProjectStore(s => s.processContext);
-  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+  const outcome = useProjectStore(s => s.outcome);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+    measureSpecs,
+    projectCpkTarget,
+  });
 
   // Extract issue statement from process context
   const issueStatement = processContext?.issueStatement;

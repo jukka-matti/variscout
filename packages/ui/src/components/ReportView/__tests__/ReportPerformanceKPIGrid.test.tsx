@@ -23,7 +23,9 @@ describe('ReportPerformanceKPIGrid', () => {
     expect(screen.getByText('Head 7')).toBeDefined();
   });
 
-  it('colors worst Cpk red when below 1.0', () => {
+  // Single banding rule (target-relative): red when cpk < target * 0.75.
+  // For target=1.33 that's < 0.9975 — worstCpk=0.85 lands in the red band.
+  it('colors worst Cpk red when below target * 0.75', () => {
     const { container } = render(<ReportPerformanceKPIGrid {...props} />);
     const worstValue = container.querySelector('[data-testid="worst-cpk"]');
     expect(worstValue?.className).toContain('text-red');

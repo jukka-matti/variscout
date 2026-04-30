@@ -1,6 +1,7 @@
 import * as d3 from 'd3-array';
 import type { DataRow, SpecLimits } from './types';
 import { toNumericValue } from './types';
+import { gradeCpk } from './capability';
 import { calculateMovingRangeSigma } from './stats/basic';
 import { safeDivide } from './stats/safeMath';
 
@@ -88,9 +89,10 @@ function hasSpecs(specs: SpecLimits | undefined): boolean {
 }
 
 function statusForCpk(cpk: number, target: number): ProcessMomentStatus {
-  if (cpk >= target) return 'green';
-  if (cpk >= target * 0.75) return 'amber';
-  return 'red';
+  // Single source of truth — see @variscout/core/capability. ProcessMomentStatus
+  // adds 'insufficient' on top of CpkGrade; that variant is handled upstream
+  // (zero-sigma, missing specs, n<5) before reaching this banding step.
+  return gradeCpk(cpk, target);
 }
 
 export function computeProcessMoments(
