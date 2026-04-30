@@ -53,6 +53,24 @@ Design spec: [`2026-03-29-probability-plot-enhancement-design.md`](../archive/sp
 
 - [ ] **Wall native translations pass** — `wall.*` catalog keys (Phase 12 + `wall.missing.processMap` from PR #76 walk) currently use English fallback in all 31 non-English locales. Next translation batch should cover the 10 native locales: fi, de, es, fr, pt, ja, zhHans, zhHant, ko, nb.
 
+### Per-Characteristic Capability Targets
+
+Active workstream on `feat/per-characteristic-cpk-target`. Phase A landed in commit `33941743`; Phases B–D pending. Architectural rationale + design POV in `~/.claude/plans/where-did-we-leave-bright-garden.md`.
+
+The methodology requires per-characteristic capability bars (AIAG / AS9100 / ISO 13485 control plans assume each characteristic has its own Cpk requirement; critical-to-safety dimensions get ≥ 1.67, major characteristics ≥ 1.33, etc.). The data model supports it — `measureSpecs: Record<string, SpecLimits>` is persisted on `projectStore` — but the UI today edits a single project-wide `cpkTarget` and a single project-wide `specs`. Per-column specs as a feature isn't shipped.
+
+- [x] **Phase A — Foundation.** Single `gradeCpk` rule (target × 0.75 amber boundary) replaces 3 inline banding copies. New `@variscout/core/capability` module with `gradeCpk` + `resolveCpkTarget` cascade. `SpecLimits.cpkTarget` field added. New architecture doc at `docs/05-technical/architecture/capability-target-cascade.md`. No user-facing UX change.
+- [ ] **Phase B — Per-column specs editor.** Extend `SpecEditor` to include `cpkTarget` (today only edits USL/LSL/target/characteristicType). Refactor consumers (Dashboard, PISection, MobileChartCarousel, ProcessIntelligencePanel) to read `measureSpecs[outcome]` and write via `setMeasureSpec(outcome, ...)`. `SpecEditor` becomes the single per-characteristic spec form. Delete unused `SpecsPopover` per `feedback_no_backcompat_clean_architecture.md`. ProcessHealthBar inline target editor stays as Mode-2 quick-tweak with a column chip ("for [outcome]") so per-column scope is visible.
+- [ ] **Phase C — Banding surfaces use cascade.** ~15 surfaces (`ProcessHealthBar`, `ReportKPIGrid` family, `Dashboard` capability mode, `WhatIfPage`, `PerformanceDashboard`, `ImprovementSummaryBar`, `ImprovementContextPanel`, chart reference lines on `PerformanceIChart` / `CapabilityBoxplot` / `CapabilityGapTrendChart`, etc.) switch from reading `useProjectStore.cpkTarget` directly to calling `resolveCpkTarget(column, ctx)`. Per-column targets become visually live across the product.
+- [ ] **Phase D — FRAME node-detail target editor.** Per-mapping target field in `FrameView` / `LayeredProcessViewWithCapability`. Reuses Phase B's `SpecEditor` per mapping (or a thinner editor showing just spec/target). Methodologically the primary entry point for AIAG-style control-plan authoring at design time. Per-mapping `specsOverride` fork is a power-user affordance — V1 ships per-column-shared by default.
+
+Deferred to V2 (decision points along the way):
+
+- [ ] **Specs table (bulk audit surface)** — Settings panel listing all columns × USL × LSL × target × cpkTarget. Real value for review/handoff. Needs sort/filter/edit semantics design before scoping.
+- [ ] **Hub Capability tab header editor** — Quick set of `processHub.reviewSignal.capability.cpkTarget`. Defer until Phase B/C ship and we see whether hub default needs an explicit editor.
+- [ ] **Provenance labels** — Small "(per-spec)" / "(hub default)" caption under each band. Add only if usability testing surfaces confusion when targets differ across columns.
+- [ ] **Reconcile `PerformanceSetupPanel`'s project-wide write path** — When Performance mode itself goes per-channel-spec.
+
 ### UX Polish — Probability Plot & Charts
 
 - [ ] **Cp/Cpk on histogram** — When in capability mode, show Cp/Cpk on the histogram chart itself (Phase A follow-up).
