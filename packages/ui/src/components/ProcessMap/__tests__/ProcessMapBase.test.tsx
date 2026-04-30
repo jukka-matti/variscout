@@ -379,3 +379,95 @@ describe('ProcessMapBase — disabled mode', () => {
     expect(screen.getByTestId('process-map-step-name-step-1')).toBeInTheDocument();
   });
 });
+
+describe('ProcessMapBase — per-step CTQ specs editor (Task B)', () => {
+  it('renders the per-step specs editor when the step has a CTQ column and onStepSpecsChange is provided', () => {
+    render(
+      <ProcessMapBase
+        map={mapWithTwoSteps()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        stepSpecs={{ Fill_Weight: { target: 500, lsl: 495, usl: 505, cpkTarget: 1.33 } }}
+        onStepSpecsChange={vi.fn()}
+      />
+    );
+    // step-2 has ctqColumn=Fill_Weight; specs grid should render with the values from the lookup.
+    const lsl = screen.getByTestId('process-map-step-specs-step-2-lsl') as HTMLInputElement;
+    const target = screen.getByTestId('process-map-step-specs-step-2-target') as HTMLInputElement;
+    const usl = screen.getByTestId('process-map-step-specs-step-2-usl') as HTMLInputElement;
+    const cpk = screen.getByTestId('process-map-step-specs-step-2-cpk-target') as HTMLInputElement;
+    expect(lsl.value).toBe('495');
+    expect(target.value).toBe('500');
+    expect(usl.value).toBe('505');
+    expect(cpk.value).toBe('1.33');
+  });
+
+  it('hides the per-step specs editor for steps without a CTQ column', () => {
+    render(
+      <ProcessMapBase
+        map={mapWithTwoSteps()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        stepSpecs={{}}
+        onStepSpecsChange={vi.fn()}
+      />
+    );
+    // step-1 has no ctqColumn → no specs grid.
+    expect(screen.queryByTestId('process-map-step-specs-step-1-lsl')).not.toBeInTheDocument();
+    // step-2 has ctqColumn → specs grid renders.
+    expect(screen.getByTestId('process-map-step-specs-step-2-lsl')).toBeInTheDocument();
+  });
+
+  it('hides the per-step specs editor when onStepSpecsChange is omitted', () => {
+    render(
+      <ProcessMapBase map={mapWithTwoSteps()} availableColumns={COLUMNS} onChange={vi.fn()} />
+    );
+    expect(screen.queryByTestId('process-map-step-specs-step-2-lsl')).not.toBeInTheDocument();
+  });
+
+  it('emits onStepSpecsChange(column, next) when a per-step spec input changes (USL edit)', () => {
+    const onStepSpecsChange = vi.fn();
+    render(
+      <ProcessMapBase
+        map={mapWithTwoSteps()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        stepSpecs={{ Fill_Weight: { target: 500, lsl: 495, usl: 505, cpkTarget: 1.33 } }}
+        onStepSpecsChange={onStepSpecsChange}
+      />
+    );
+    fireEvent.change(screen.getByTestId('process-map-step-specs-step-2-usl'), {
+      target: { value: '510' },
+    });
+    expect(onStepSpecsChange).toHaveBeenCalledWith('Fill_Weight', {
+      target: 500,
+      usl: 510,
+      lsl: 495,
+      cpkTarget: 1.33,
+      characteristicType: undefined,
+    });
+  });
+
+  it('round-trips cpkTarget edits through onStepSpecsChange for the step CTQ column', () => {
+    const onStepSpecsChange = vi.fn();
+    render(
+      <ProcessMapBase
+        map={mapWithTwoSteps()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        stepSpecs={{ Fill_Weight: { target: 500, lsl: 495, usl: 505 } }}
+        onStepSpecsChange={onStepSpecsChange}
+      />
+    );
+    fireEvent.change(screen.getByTestId('process-map-step-specs-step-2-cpk-target'), {
+      target: { value: '1.67' },
+    });
+    expect(onStepSpecsChange).toHaveBeenCalledWith('Fill_Weight', {
+      target: 500,
+      usl: 505,
+      lsl: 495,
+      cpkTarget: 1.67,
+      characteristicType: undefined,
+    });
+  });
+});

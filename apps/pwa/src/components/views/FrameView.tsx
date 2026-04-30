@@ -117,6 +117,8 @@ const FrameView: React.FC = () => {
           usl={ctsSpecs?.usl}
           cpkTarget={ctsSpecs?.cpkTarget}
           onSpecsChange={handleSpecsChange}
+          stepSpecs={measureSpecs}
+          onStepSpecsChange={(column, next) => setMeasureSpec(column, next)}
           data={data}
           filter={{
             availableContext: data.availableContext,

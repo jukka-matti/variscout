@@ -116,9 +116,11 @@ Every investigation - Standard, Yamazumi, Performance, Defect, Capability, or Pr
    from data (Factor Intelligence), or observation-triggered (from a Four Lenses
    finding). Problem Statement captures Watson's 3 Qs. The Ocean spec editor
    writes per-column (USL / LSL / target / cpkTarget) to the CTS column's
-   `measureSpecs` entry, so the per-characteristic capability bar is set at the
-   methodology's primary control-plan authoring surface and the cascade
-   (`resolveCpkTarget`) sees it everywhere downstream.
+   `measureSpecs` entry, and each `StepCard` carries the same per-column
+   editor over its CTQ column, so the per-characteristic capability bar is
+   set at every authored quality requirement (CTS at the ocean and a CTQ per
+   process step) — the methodology's primary control-plan authoring surface —
+   and the cascade (`resolveCpkTarget`) sees it everywhere downstream.
 
 2. **SCOUT.** Data is parsed (wide-form, stack columns, defect events all
    supported). Characteristic types are inferred. Analysis modes surface

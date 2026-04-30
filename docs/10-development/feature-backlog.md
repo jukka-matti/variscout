@@ -66,7 +66,7 @@ The methodology requires per-characteristic capability bars (AIAG / AS9100 / ISO
 
 Deferred to V2 (decision points along the way):
 
-- [ ] **Per-step CTQ specs editor** — Per-step USL / LSL / target / cpkTarget editor on each `StepCard`'s CTQ column, mirroring Ocean's pattern. Phase D (V1) only wired Ocean's CTS column through `measureSpecs`; CTQ columns at intermediate process steps still inherit only the project-wide cascade. Lands when in-step capability views need step-local target tuning.
+- [x] **Per-step CTQ specs editor** — Per-step USL / LSL / target / cpkTarget editor on each `StepCard`'s CTQ column, mirroring Ocean's pattern. Each StepCard with a `ctqColumn` now renders a 2x2 SpecsGrid; edits route through `onStepSpecsChange(column, next)` to `setMeasureSpec(column, next)` on `projectStore.measureSpecs`. `OceanCard` was refactored to use the same shared `SpecsGrid` helper. Threaded through `ProcessMapBaseProps` → `LayeredProcessViewProps` → `LayeredProcessViewWithCapabilityProps` (inherited via `Omit`). PWA + Azure FrameViews wired symmetrically. AIAG control plans now have a single authoring surface for every step's quality requirement.
 - [ ] **Specs table (bulk audit surface)** — Settings panel listing all columns × USL × LSL × target × cpkTarget. Real value for review/handoff. Needs sort/filter/edit semantics design before scoping.
 - [ ] **Hub Capability tab header editor** — Quick set of `processHub.reviewSignal.capability.cpkTarget`. Defer until Phase B/C ship and we see whether hub default needs an explicit editor.
 - [ ] **Provenance labels** — Small "(per-spec)" / "(hub default)" caption under each band. Add only if usability testing surfaces confusion when targets differ across columns.

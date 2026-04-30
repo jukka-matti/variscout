@@ -18,6 +18,7 @@
 
 import React from 'react';
 import type { Gap, ProcessMap, ProcessMapTributary, ProcessMapHunch } from '@variscout/core/frame';
+import type { SpecLimits } from '@variscout/core';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
@@ -49,6 +50,18 @@ export interface ProcessMapBaseProps {
     lsl?: number;
     cpkTarget?: number;
   }) => void;
+  /**
+   * Per-CTQ-column specs lookup. Each StepCard reads `stepSpecs[step.ctqColumn]`
+   * to render its own USL / LSL / target / cpkTarget editor. Mirrors the Ocean
+   * pattern (V1 Phase D) — AIAG control plans assume each step's CTQ has its
+   * own quality requirement.
+   */
+  stepSpecs?: Record<string, SpecLimits>;
+  /**
+   * Called when a StepCard's specs change. `column` is the CTQ column for that
+   * step. The full `SpecLimits` shape is passed so consumers can `setMeasureSpec(column, next)`.
+   */
+  onStepSpecsChange?: (column: string, next: SpecLimits) => void;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -74,6 +87,105 @@ const globalGaps = (gaps: Gap[] | undefined): Gap[] => (gaps ?? []).filter(g => 
 // Sub-components (co-located; not exported from the package)
 // ────────────────────────────────────────────────────────────────────────────
 
+/**
+ * SpecsGrid — shared 2x2 input grid for editing USL / LSL / target / cpkTarget.
+ *
+ * Used by both `OceanCard` (CTS column) and `StepCard` (per-step CTQ column).
+ * The grid is fully controlled: it renders the four numeric inputs and emits
+ * the full `SpecLimits` shape on each change so callers can route to either
+ * the project-wide `setSpecs` or the per-column `setMeasureSpec(column, …)`.
+ *
+ * `idPrefix` and `ariaPrefix` parameterise the data-testid + aria-label values
+ * so the same grid renders distinct accessibility names per surface.
+ */
+interface SpecsGridProps {
+  target?: number;
+  usl?: number;
+  lsl?: number;
+  cpkTarget?: number;
+  disabled?: boolean;
+  idPrefix: string;
+  ariaPrefix: string;
+  onChange: (next: SpecLimits) => void;
+}
+
+const toNum = (s: string): number | undefined => {
+  if (s === '') return undefined;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : undefined;
+};
+
+const SpecsGrid: React.FC<SpecsGridProps> = ({
+  target,
+  usl,
+  lsl,
+  cpkTarget,
+  disabled,
+  idPrefix,
+  ariaPrefix,
+  onChange,
+}) => {
+  return (
+    <div className="grid grid-cols-2 gap-1">
+      <label className="text-xs text-content-secondary">
+        LSL
+        <input
+          type="number"
+          value={lsl ?? ''}
+          onChange={e => onChange({ target, usl, lsl: toNum(e.target.value), cpkTarget })}
+          disabled={disabled}
+          aria-label={
+            ariaPrefix ? `${ariaPrefix} lower specification limit` : 'Lower specification limit'
+          }
+          className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
+          data-testid={`${idPrefix}-lsl`}
+        />
+      </label>
+      <label className="text-xs text-content-secondary">
+        Target
+        <input
+          type="number"
+          value={target ?? ''}
+          onChange={e => onChange({ target: toNum(e.target.value), usl, lsl, cpkTarget })}
+          disabled={disabled}
+          aria-label={ariaPrefix ? `${ariaPrefix} target value` : 'Target value'}
+          className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
+          data-testid={`${idPrefix}-target`}
+        />
+      </label>
+      <label className="text-xs text-content-secondary">
+        USL
+        <input
+          type="number"
+          value={usl ?? ''}
+          onChange={e => onChange({ target, usl: toNum(e.target.value), lsl, cpkTarget })}
+          disabled={disabled}
+          aria-label={
+            ariaPrefix ? `${ariaPrefix} upper specification limit` : 'Upper specification limit'
+          }
+          className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
+          data-testid={`${idPrefix}-usl`}
+        />
+      </label>
+      <label className="text-xs text-content-secondary">
+        Cpk target
+        <input
+          type="number"
+          step="0.01"
+          value={cpkTarget ?? ''}
+          onChange={e => onChange({ target, usl, lsl, cpkTarget: toNum(e.target.value) })}
+          disabled={disabled}
+          aria-label={
+            ariaPrefix ? `${ariaPrefix} capability target (Cpk)` : 'Capability target (Cpk)'
+          }
+          className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
+          data-testid={`${idPrefix}-cpk-target`}
+        />
+      </label>
+    </div>
+  );
+};
+
 interface StepCardProps {
   step: ProcessMap['nodes'][number];
   tributaries: ProcessMapTributary[];
@@ -81,12 +193,16 @@ interface StepCardProps {
   availableColumns: string[];
   gaps: Gap[];
   disabled?: boolean;
+  /** Per-step CTQ specs (USL/LSL/target/cpkTarget). Only rendered when ctqColumn is set. */
+  ctqSpecs?: SpecLimits;
   onRename: (name: string) => void;
   onCtqChange: (column: string | undefined) => void;
   onRemove: () => void;
   onAddTributary: (column: string) => void;
   onRemoveTributary: (tributaryId: string) => void;
   onToggleSubgroupAxis: (tributaryId: string) => void;
+  /** Called with the full new SpecLimits shape when any per-step spec input changes. */
+  onCtqSpecsChange?: (next: SpecLimits) => void;
 }
 
 const StepCard: React.FC<StepCardProps> = ({
@@ -96,12 +212,14 @@ const StepCard: React.FC<StepCardProps> = ({
   availableColumns,
   gaps,
   disabled,
+  ctqSpecs,
   onRename,
   onCtqChange,
   onRemove,
   onAddTributary,
   onRemoveTributary,
   onToggleSubgroupAxis,
+  onCtqSpecsChange,
 }) => {
   const [newTribCol, setNewTribCol] = React.useState('');
   const availableForTrib = availableColumns.filter(
@@ -154,6 +272,21 @@ const StepCard: React.FC<StepCardProps> = ({
           ))}
         </select>
       </label>
+
+      {step.ctqColumn !== undefined && onCtqSpecsChange && (
+        <SpecsGrid
+          target={ctqSpecs?.target}
+          usl={ctqSpecs?.usl}
+          lsl={ctqSpecs?.lsl}
+          cpkTarget={ctqSpecs?.cpkTarget}
+          disabled={disabled}
+          idPrefix={`process-map-step-specs-${step.id}`}
+          ariaPrefix={`Step ${step.name || 'unnamed'} CTQ`}
+          onChange={next =>
+            onCtqSpecsChange({ ...next, characteristicType: ctqSpecs?.characteristicType })
+          }
+        />
+      )}
 
       {tributaries.length > 0 && (
         <ul className="flex flex-col gap-1">
@@ -265,12 +398,6 @@ const OceanCard: React.FC<OceanCardProps> = ({
   onCtsChange,
   onSpecsChange,
 }) => {
-  const toNum = (s: string): number | undefined => {
-    if (s === '') return undefined;
-    const n = Number(s);
-    return Number.isFinite(n) ? n : undefined;
-  };
-
   return (
     <div
       className="flex flex-col gap-2 min-w-[200px] p-3 bg-blue-50 dark:bg-blue-950/40 border-2 border-blue-300 dark:border-blue-700 rounded-2xl"
@@ -298,57 +425,23 @@ const OceanCard: React.FC<OceanCardProps> = ({
         </select>
       </label>
       {onSpecsChange && (
-        <div className="grid grid-cols-2 gap-1">
-          <label className="text-xs text-content-secondary">
-            LSL
-            <input
-              type="number"
-              value={lsl ?? ''}
-              onChange={e => onSpecsChange({ target, usl, lsl: toNum(e.target.value), cpkTarget })}
-              disabled={disabled}
-              aria-label="Lower specification limit"
-              className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
-              data-testid="process-map-ocean-lsl"
-            />
-          </label>
-          <label className="text-xs text-content-secondary">
-            Target
-            <input
-              type="number"
-              value={target ?? ''}
-              onChange={e => onSpecsChange({ target: toNum(e.target.value), usl, lsl, cpkTarget })}
-              disabled={disabled}
-              aria-label="Target value"
-              className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
-              data-testid="process-map-ocean-target"
-            />
-          </label>
-          <label className="text-xs text-content-secondary">
-            USL
-            <input
-              type="number"
-              value={usl ?? ''}
-              onChange={e => onSpecsChange({ target, usl: toNum(e.target.value), lsl, cpkTarget })}
-              disabled={disabled}
-              aria-label="Upper specification limit"
-              className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
-              data-testid="process-map-ocean-usl"
-            />
-          </label>
-          <label className="text-xs text-content-secondary">
-            Cpk target
-            <input
-              type="number"
-              step="0.01"
-              value={cpkTarget ?? ''}
-              onChange={e => onSpecsChange({ target, usl, lsl, cpkTarget: toNum(e.target.value) })}
-              disabled={disabled}
-              aria-label="Capability target (Cpk)"
-              className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
-              data-testid="process-map-ocean-cpk-target"
-            />
-          </label>
-        </div>
+        <SpecsGrid
+          target={target}
+          usl={usl}
+          lsl={lsl}
+          cpkTarget={cpkTarget}
+          disabled={disabled}
+          idPrefix="process-map-ocean"
+          ariaPrefix=""
+          onChange={next =>
+            onSpecsChange({
+              target: next.target,
+              usl: next.usl,
+              lsl: next.lsl,
+              cpkTarget: next.cpkTarget,
+            })
+          }
+        />
       )}
     </div>
   );
@@ -531,6 +624,8 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   lsl,
   cpkTarget,
   onSpecsChange,
+  stepSpecs,
+  onStepSpecsChange,
 }) => {
   const sortedSteps = React.useMemo(
     () => [...map.nodes].sort((a, b) => a.order - b.order),
@@ -643,12 +738,18 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
               availableColumns={availableColumns}
               gaps={gapsForStep(gaps, step.id)}
               disabled={disabled}
+              ctqSpecs={step.ctqColumn ? stepSpecs?.[step.ctqColumn] : undefined}
               onRename={name => renameStep(step.id, name)}
               onCtqChange={col => setStepCtq(step.id, col)}
               onRemove={() => removeStep(step.id)}
               onAddTributary={col => addTributary(step.id, col)}
               onRemoveTributary={removeTributary}
               onToggleSubgroupAxis={toggleSubgroupAxis}
+              onCtqSpecsChange={
+                onStepSpecsChange && step.ctqColumn
+                  ? next => onStepSpecsChange(step.ctqColumn!, next)
+                  : undefined
+              }
             />
             {i < sortedSteps.length - 1 && (
               <div
