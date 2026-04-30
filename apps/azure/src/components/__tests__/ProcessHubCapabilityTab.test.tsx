@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProcessHubCapabilityTab } from '../ProcessHubCapabilityTab';
+import { useProjectStore } from '@variscout/stores';
 import type {
   ProcessHubInvestigation,
   ProcessHubRollup,
@@ -134,6 +135,41 @@ describe('ProcessHubCapabilityTab', () => {
     const wrapper = screen.getByTestId('hub-capability-cpk-target');
     const input = wrapper.querySelector('input') as HTMLInputElement;
     expect(input.value).toBe('1.67');
+  });
+
+  it('resolves per-step targetCpks via cascade — per-column override beats hub default', () => {
+    // Per-column override for `mixCpk` should win over the hub-level cpkTarget.
+    useProjectStore.setState({
+      measureSpecs: { mixCpk: { cpkTarget: 1.5 } },
+      cpkTarget: 1.0,
+    });
+    const hubWithTarget = {
+      ...hub,
+      reviewSignal: {
+        rowCount: 0,
+        outcome: '',
+        computedAt: '2026-04-29T00:00:00.000Z',
+        changeSignals: {
+          total: 0,
+          outOfControlCount: 0,
+          nelsonRule2Count: 0,
+          nelsonRule3Count: 0,
+        },
+        capability: { outOfSpecPercentage: 0, cpkTarget: 1.67 },
+      },
+    } as unknown as ProcessHub;
+    const r = {
+      hub: hubWithTarget,
+      investigations: [member],
+    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    const { container } = render(
+      <ProcessHubCapabilityTab rollup={r} onHubCpkTargetCommit={vi.fn()} />
+    );
+    // CapabilityBoxplot renders a per-node target tick when targetCpk is finite.
+    // The cascade resolved 1.5 (per-column) → tick must exist for n1.
+    expect(container.querySelector('[data-testid="target-tick-n1"]')).not.toBeNull();
+    // Reset.
+    useProjectStore.setState({ measureSpecs: {}, cpkTarget: undefined });
   });
 
   it('calls onHubCpkTargetCommit when the editor commits a new value', () => {

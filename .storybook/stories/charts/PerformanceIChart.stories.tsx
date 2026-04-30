@@ -72,6 +72,6 @@ export const BothMetrics: Story = {
 export const CustomTarget: Story = {
   args: {
     ...Default.args,
-    cpkTarget: 1.67,
+    cpkTargets: [1.67],
   },
 };

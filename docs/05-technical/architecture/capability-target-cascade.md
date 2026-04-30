@@ -91,7 +91,7 @@ Banding surfaces calling `gradeCpk` (and, via the cascade, `resolveCpkTarget`):
 - `ProcessHealthBar` — toolbar Cpk chip color
 - `ReportKPIGrid` / `ReportCapabilityKPIGrid` / `ReportPerformanceKPIGrid` — Report view KPI cards
 - `processMoments.statusForCpk` — process-moment status (green / amber / red / insufficient; the first three come from `gradeCpk`)
-- Chart reference lines that draw the target — `PerformanceIChart`, `CapabilityBoxplot`, `CapabilityGapTrendChart` (cascade-aware target prop)
+- Chart reference lines that draw the target — `PerformanceIChart` (per-channel via `cpkTargets: number[]`, resolved at the `PerformanceDashboard` caller), `CapabilityBoxplot` (per-step via `node.targetCpk`, resolved at the `ProcessHubCapabilityTab` caller against each step's `ctqColumn`), `CapabilityGapTrendChart` (cascade-aware target prop)
 
 All of these import from `@variscout/core/capability`.
 

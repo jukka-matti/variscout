@@ -52,12 +52,17 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   const measureColumns = useProjectStore(s => s.measureColumns);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
-  // Performance mode is multi-channel — resolve against the focused channel
-  // (selectedMeasure) when available; cascade falls back to projectCpkTarget.
-  const { value: cpkTarget } = resolveCpkTarget(selectedMeasure ?? '', {
-    measureSpecs,
-    projectCpkTarget,
-  });
+  // Performance mode is multi-channel — resolve a target per channel via the
+  // cascade so each channel renders against its own per-column override (if
+  // any) and falls back to the project-wide default otherwise. The hub level
+  // is not in scope for the Performance Dashboard (no hub here).
+  const cpkTargets = React.useMemo(
+    () =>
+      (performanceResult?.channels ?? []).map(
+        ch => resolveCpkTarget(ch.id, { measureSpecs, projectCpkTarget }).value
+      ),
+    [performanceResult?.channels, measureSpecs, projectCpkTarget]
+  );
 
   // Cp/Cpk toggle state (includes 'both' option)
   const [capabilityMetric, setCapabilityMetric] = useState<CapabilityMetric>('cpk');
@@ -225,7 +230,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                   <PerformanceIChart
                     onChannelClick={handleMeasureClick}
                     capabilityMetric={capabilityMetric}
-                    cpkTarget={cpkTarget}
+                    cpkTargets={cpkTargets}
                   />
                 </ErrorBoundary>
               </div>
@@ -306,7 +311,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                   <PerformanceIChart
                     onChannelClick={handleMeasureClick}
                     capabilityMetric={capabilityMetric}
-                    cpkTarget={cpkTarget}
+                    cpkTargets={cpkTargets}
                   />
                 </ErrorBoundary>
               </div>
