@@ -1791,70 +1791,20 @@ git commit -m "feat(ui): Finding card renders window-context footer when present
 
 ---
 
-## Task 13: Refactor ProductionLineGlanceDashboard onto strategy + dataRouter
+## Task 13: Route ProcessHubCapabilityTab via useDataRouter, thread window into useProductionLineGlanceData
 
-**Files:**
+> **Revised 2026-04-30** (V1 interpretation). The original spec's `<strategy.chartSlots.slot1 />` code can't execute — `ChartSlots` carries `ChartSlotType` strings (e.g. `'capability-ichart'`), not React components. There is no slot-type-to-component registry in V1. ProductionLineGlanceDashboard keeps its hardcoded 4-chart composition (those charts are specific to the capability/hub phase). The "route via strategy" happens at the call site: `ProcessHubCapabilityTab` now consults `useDataRouter` (as a dev-mode sanity check on the dataflow choice — the hook used must remain known at compile time, since React forbids conditional hook calls) and threads a `TimelineWindow` into `useProductionLineGlanceData`. Slot-component registry is a V2/V3 concern.
 
-- Modify: `packages/ui/src/components/ProductionLineGlance/ProductionLineGlanceDashboard.tsx` (or wherever it lives; verify path)
-- Modify: `apps/azure/src/components/ProcessHubCapabilityTab.tsx`
+**Files actually modified:**
 
-- [ ] **Step 13.1: Inspect current shape**
+- `apps/azure/src/components/ProcessHubCapabilityTab.tsx` — adds `useDataRouter` sanity check; computes `scope` via `detectScope` (single member) or defaults to `b1` (hub aggregate); passes `window` to `useProductionLineGlanceData`. Window state is local `useState({ kind: 'cumulative' })` with a TODO referencing Task 14 (hub-level persistence is genuinely Task 14's problem; the hub envelope doesn't carry its own `TimelineWindow` field, and `useTimelineWindow` is keyed on a single investigation).
 
-Read the two files to understand:
+**Not modified:**
 
-- How `ProductionLineGlanceDashboard` receives data today (probably directly from `useProductionLineGlanceData`).
-- How `ProcessHubCapabilityTab` mounts it.
+- `packages/ui/src/components/ProductionLineGlanceDashboard/ProductionLineGlanceDashboard.tsx` — purely presentational, props-driven; no refactor needed.
+- `packages/core/src/analysisStrategy.ts` — `dataRouter` already exposed by Task 7.
 
-- [ ] **Step 13.2: Refactor dashboard to consume strategy slots**
-
-Replace direct chart rendering with strategy-resolved slots. The dashboard becomes:
-
-```tsx
-import { getStrategy, resolveMode } from '@variscout/core';
-import { useDataRouter } from '@variscout/hooks';
-
-export function ProductionLineGlanceDashboard({
-  hub,
-  members,
-  rowsByInvestigation,
-  contextFilter,
-  window,
-}: Props) {
-  const strategy = getStrategy(resolveMode('standard', { standardIChartMetric: 'capability' }));
-  const router = useDataRouter({
-    mode: 'standard',
-    modeContext: { standardIChartMetric: 'capability' },
-    scope: 'b1', // hub aggregates B1 investigations
-    phase: 'hub',
-    window,
-    context: contextFilter,
-  });
-
-  // The 4 slots from strategy.chartSlots:
-  return (
-    <DashboardLayoutBase /* … */>
-      <strategy.chartSlots.slot1 /* mapped to capability-ichart */ />
-      <strategy.chartSlots.slot2 /* boxplot */ />
-      <strategy.chartSlots.slot3 /* step error pareto */ />
-      <strategy.chartSlots.slot4 /* stats */ />
-    </DashboardLayoutBase>
-  );
-}
-```
-
-(The exact prop wiring depends on what each ChartSlotType expects — preserve current behaviour, just route via strategy instead of hardcoded composition.)
-
-- [ ] **Step 13.3: Run app tests + commit**
-
-```bash
-pnpm --filter @variscout/azure-app test
-pnpm --filter @variscout/ui test
-```
-
-```bash
-git add packages/ui/src/components/ProductionLineGlance/ apps/azure/src/components/ProcessHubCapabilityTab.tsx
-git commit -m "refactor(ui+azure): ProductionLineGlanceDashboard uses strategy + dataRouter"
-```
+**Verification:** `pnpm --filter @variscout/azure-app test` (970/970), `pnpm --filter @variscout/azure-app build` clean, `pnpm --filter @variscout/ui test` (1285/1285).
 
 ---
 
