@@ -194,7 +194,7 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
     reportTitle: 'Defect Analysis',
     reportSections: ['current-condition', 'drivers', 'evidence-trail', 'learning-loop'],
     metricLabel: () => 'Defect Rate',
-    formatMetricValue: (v: number) => (Number.isFinite(v) ? `${v.toFixed(1)}` : '--'),
+    formatMetricValue: (v: number) => (Number.isFinite(v) ? `${Math.round(v * 10) / 10}` : '--'),
     aiChartInsightKeys: ['ichart', 'boxplot', 'pareto'],
     aiToolSet: 'standard',
     questionStrategy: {
