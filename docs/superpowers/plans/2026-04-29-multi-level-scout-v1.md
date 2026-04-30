@@ -1808,64 +1808,27 @@ git commit -m "feat(ui): Finding card renders window-context footer when present
 
 ---
 
-## Task 14: Wire useTimelineWindow + TimelineWindowPicker into apps
+## Task 14: Wire timeline window into Dashboards + Hub Capability picker
 
-**Files:**
-
-- Modify: `apps/azure/src/components/Dashboard.tsx`
-- Modify: `apps/pwa/src/components/Dashboard.tsx`
-- Modify: `apps/azure/src/components/ProcessHubCapabilityTab.tsx`
-
-- [ ] **Step 14.1: Wire investigation-time window**
-
-In each dashboard component:
-
-```tsx
-import { useTimelineWindow } from '@variscout/hooks';
-
-const { window, setWindow } = useTimelineWindow({
-  investigationId: currentInvestigation.id,
-  defaultKind: 'openEnded', // investigation-time default
-});
-
-// Pass into DashboardLayoutBase:
-<DashboardLayoutBase
-  timelineWindow={window}
-  onTimelineWindowChange={setWindow}
-  // …
-/>;
-```
-
-- [ ] **Step 14.2: Wire hub-time window into Hub Capability tab**
-
-```tsx
-const cadence = hub.cadence ?? 'weekly';
-const cadenceDays: Record<string, number> = { hourly: 1, daily: 1, weekly: 7, monthly: 30 };
-
-const { window, setWindow } = useTimelineWindow({
-  investigationId: `hub-${hub.id}`,
-  defaultKind: 'rolling',
-});
-// First-mount default override based on cadence:
-useEffect(() => {
-  if (window.kind === 'cumulative') {
-    setWindow({ kind: 'rolling', windowDays: cadenceDays[cadence] ?? 7 });
-  }
-}, []); // first mount only
-```
-
-- [ ] **Step 14.3: Run end-to-end tests + commit**
-
-```bash
-pnpm test
-```
-
-Expected: all tests green across packages.
-
-```bash
-git add apps/
-git commit -m "feat(apps): wire useTimelineWindow into Dashboard + Hub Capability tab"
-```
+> **Revised 2026-04-30** (V1 interpretation). The original task body called `useTimelineWindow({ investigationId, defaultKind })` — that signature was rejected in commit `cf5daaa6` (Task 8 revision earlier in this same plan file). The current `useTimelineWindow` signature is `({ investigation, onChange })` — a pure projection over an investigation envelope, with `onChange` wired by the caller to `persistInvestigation`. It cannot be used in the dashboards as written.
+>
+> Reality on the ground:
+>
+> - `apps/azure/src/components/Dashboard.tsx` and `apps/pwa/src/components/Dashboard.tsx` do not receive a `ProcessHubInvestigation` envelope — they read state from `useProjectStore` (rawData/filters/outcome). With no investigation reachable, `useTimelineWindow` is the wrong shape; local `useState<TimelineWindow>({ kind: 'cumulative' })` is the correct V1 fit. A TODO references investigation-level persistence as the V2 path (when the dashboards become investigation-aware).
+> - `ProcessHubCapabilityTab` already held local `useState<TimelineWindow>` from Task 13 but did not render a picker. Task 14 surfaces the picker above the dashboard (below the existing `ProductionLineGlanceFilterStrip`).
+> - The `useEffect` cadence-default (Step 14.2) is **deferred to V1.5** — it is a UX nicety, not a structural requirement, and reading `hub.cadence` introduces dependencies whose contract isn't worth verifying for V1. A TODO captures it.
+>
+> **Files modified in this task:**
+>
+> - `apps/azure/src/components/Dashboard.tsx` — local `timelineWindow` state, threaded into `DashboardLayoutBase` (existing `timelineWindow`/`onTimelineWindowChange` props from Task 11) and into `useFilteredData({ window })` (Task 9).
+> - `apps/pwa/src/components/Dashboard.tsx` — same wiring as Azure.
+> - `apps/azure/src/components/ProcessHubCapabilityTab.tsx` — extends the existing `useState<TimelineWindow>(DEFAULT_WINDOW)` to expose the setter and renders `<TimelineWindowPicker>` (exported from `@variscout/ui` per Task 10) above `ProductionLineGlanceDashboard`.
+>
+> **Not modified (deliberately):**
+>
+> - `useTimelineWindow.ts`, `DashboardLayoutBase.tsx`, `TimelineWindowPicker.tsx`, `ProductionLineGlanceDashboard.tsx`, `@variscout/core` types — earlier tasks already exposed the props and contracts; Task 14 only plugs them in.
+>
+> **Verification:** `pnpm --filter @variscout/azure-app test` (970/970), `pnpm --filter @variscout/pwa test` (124/124), `pnpm --filter @variscout/azure-app build` clean.
 
 ---
 

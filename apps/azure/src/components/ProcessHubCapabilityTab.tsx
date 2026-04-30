@@ -17,7 +17,11 @@
  * and docs/superpowers/specs/2026-04-29-multi-level-scout-design.md.
  */
 import React, { useState } from 'react';
-import { ProductionLineGlanceDashboard, ProductionLineGlanceFilterStrip } from '@variscout/ui';
+import {
+  ProductionLineGlanceDashboard,
+  ProductionLineGlanceFilterStrip,
+  TimelineWindowPicker,
+} from '@variscout/ui';
 import {
   useDataRouter,
   useProductionLineGlanceData,
@@ -40,10 +44,11 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
 
   // Hub-level window state. Hub doesn't carry its own TimelineWindow envelope
   // in V1 — `useTimelineWindow` is keyed on a single ProcessHubInvestigation,
-  // and the hub view aggregates many. Local useState is the correct V1 fit;
-  // hub-level persistence is Task 14's problem.
-  // TODO(multi-level-scout V2/Task 14): wire hub-level window persistence.
-  const [window] = useState<TimelineWindow>(DEFAULT_WINDOW);
+  // and the hub view aggregates many. Local useState is the correct V1 fit.
+  // TODO(multi-level-scout V1.5): default the window to rolling matched to
+  // hub.cadence on first mount.
+  // TODO(multi-level-scout V2): wire hub-level window persistence.
+  const [window, setWindow] = useState<TimelineWindow>(DEFAULT_WINDOW);
 
   // Scope detection: hub views are typically `b1` (multi-step, multi-member).
   // If a single representative member exists, use detectScope on it; otherwise
@@ -86,6 +91,9 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
         value={filter.value}
         onChange={filter.onChange}
       />
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-edge bg-surface">
+        <TimelineWindowPicker window={window} onChange={setWindow} />
+      </div>
       <div className="flex-1 min-h-0">
         <ProductionLineGlanceDashboard
           cpkTrend={data.cpkTrend}
