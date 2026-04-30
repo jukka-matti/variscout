@@ -1,5 +1,5 @@
 import React from 'react';
-import { gradeCpk } from '@variscout/core/capability';
+import { gradeCpk, sourceLabelFor, type CpkTargetSource } from '@variscout/core/capability';
 
 export interface ReportPerformanceKPIGridProps {
   totalChannels: number;
@@ -8,6 +8,12 @@ export interface ReportPerformanceKPIGridProps {
   worstChannelName: string;
   meanCpk: number;
   cpkTarget: number;
+  /**
+   * Cascade level that produced `cpkTarget`. Appended as "(per-spec)" /
+   * "(hub default)" / etc to the target subtitle so users can see which
+   * cascade level is in effect.
+   */
+  cpkTargetSource?: CpkTargetSource;
 }
 
 function getCpkColor(cpk: number, target: number): string {
@@ -34,6 +40,7 @@ export const ReportPerformanceKPIGrid: React.FC<ReportPerformanceKPIGridProps> =
   worstChannelName,
   meanCpk,
   cpkTarget,
+  cpkTargetSource,
 }) => {
   return (
     <div data-report-kpi className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -66,8 +73,12 @@ export const ReportPerformanceKPIGrid: React.FC<ReportPerformanceKPIGridProps> =
         <div className={`mt-1 text-lg font-semibold ${getCpkColor(meanCpk, cpkTarget)}`}>
           {Number.isFinite(meanCpk) ? meanCpk.toFixed(2) : '—'}
         </div>
-        <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+        <div
+          className="mt-0.5 text-xs text-slate-500 dark:text-slate-400"
+          data-testid="cpk-target-caption"
+        >
           target: {Number.isFinite(cpkTarget) ? cpkTarget.toFixed(2) : '—'}
+          {cpkTargetSource ? ` (${sourceLabelFor(cpkTargetSource)})` : ''}
         </div>
       </div>
     </div>

@@ -113,6 +113,38 @@ describe('ReportKPIGrid', () => {
     });
   });
 
+  describe('Cpk target provenance caption', () => {
+    it('appends source label to target caption when cpkTargetSource is set', () => {
+      render(
+        <ReportKPIGrid stats={mockStats} specs={specsSet} cpkTarget={1.5} cpkTargetSource="spec" />
+      );
+      const caption = screen.getByTestId('cpk-target-caption');
+      expect(caption.textContent).toBe('target: 1.50 (per-spec)');
+    });
+
+    it('omits source label when cpkTargetSource is not provided', () => {
+      render(<ReportKPIGrid stats={mockStats} specs={specsSet} cpkTarget={1.5} />);
+      const caption = screen.getByTestId('cpk-target-caption');
+      expect(caption.textContent).toBe('target: 1.50');
+    });
+
+    it.each([
+      ['hub', 'hub default'],
+      ['investigation', 'investigation default'],
+      ['default', 'default'],
+    ] as const)('renders %s caption for source %s', (source, label) => {
+      render(
+        <ReportKPIGrid
+          stats={mockStats}
+          specs={specsSet}
+          cpkTarget={1.33}
+          cpkTargetSource={source}
+        />
+      );
+      expect(screen.getByTestId('cpk-target-caption').textContent).toContain(`(${label})`);
+    });
+  });
+
   describe('ReportKPIGrid specs gating', () => {
     it('hides Cpk and In-Spec% when no specs are set', () => {
       render(<ReportKPIGrid stats={mockStats} specs={emptySpecs} sampleCount={50} />);

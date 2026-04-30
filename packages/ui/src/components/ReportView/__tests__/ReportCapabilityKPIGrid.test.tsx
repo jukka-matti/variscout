@@ -41,4 +41,16 @@ describe('ReportCapabilityKPIGrid', () => {
     render(<ReportCapabilityKPIGrid {...props} />);
     expect(screen.getByText('18/20 subgroups')).toBeDefined();
   });
+
+  it('appends source label to target caption when cpkTargetSource is provided', () => {
+    render(<ReportCapabilityKPIGrid {...props} cpkTargetSource="hub" />);
+    const caption = screen.getByTestId('cpk-target-caption');
+    expect(caption.textContent).toBe('target: 1.33 (hub default)');
+  });
+
+  it('omits source label when cpkTargetSource is not provided', () => {
+    render(<ReportCapabilityKPIGrid {...props} />);
+    const caption = screen.getByTestId('cpk-target-caption');
+    expect(caption.textContent).toBe('target: 1.33');
+  });
 });

@@ -53,7 +53,7 @@ const Boxplot = ({
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
-  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+  const { value: cpkTarget } = resolveCpkTarget(outcome ?? '', {
     measureSpecs,
     projectCpkTarget,
   });

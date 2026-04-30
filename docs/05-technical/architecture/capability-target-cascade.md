@@ -111,8 +111,22 @@ Each cascading surface reads `measureSpecs` + project-level `cpkTarget` from the
 ```ts
 const projectCpkTarget = useProjectStore(s => s.cpkTarget);
 const measureSpecs = useProjectStore(s => s.measureSpecs);
-const cpkTarget = resolveCpkTarget(outcome ?? '', { measureSpecs, projectCpkTarget });
+const { value: cpkTarget, source: cpkTargetSource } = resolveCpkTarget(outcome ?? '', {
+  measureSpecs,
+  projectCpkTarget,
+});
 ```
+
+`resolveCpkTarget` returns `{ value, source }` where `source` is one of `'spec' | 'hub' | 'investigation' | 'default'` — the cascade level that produced the value. Surfaces destructure whichever fields they need; there is no number-returning back-compat shim.
+
+### Provenance affordance (chrome surfaces)
+
+Banding chrome surfaces render a small caption next to the displayed target so users can see why two columns at the same Cpk got different colors:
+
+- `ProcessHealthBar` — shows a `(per-spec)` / `(hub default)` / `(investigation default)` / `(default)` chip after the target value (or the subgroup-target threshold).
+- `ReportKPIGrid`, `ReportCapabilityKPIGrid`, `ReportPerformanceKPIGrid` — append `(<source label>)` to the existing `target: 1.33` subtitle under the Cpk card.
+
+Use `sourceLabelFor(source)` from `@variscout/core/capability` to render the literal English label. Chart reference lines and `FindingCard` window-context footers are deliberately out of scope for this V1 affordance.
 
 Surfaces wired this way today:
 

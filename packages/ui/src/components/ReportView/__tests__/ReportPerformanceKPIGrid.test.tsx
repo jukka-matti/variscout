@@ -38,7 +38,14 @@ describe('ReportPerformanceKPIGrid', () => {
 
   it('shows target subtitle', () => {
     render(<ReportPerformanceKPIGrid {...props} />);
-    expect(screen.getByText('target: 1.33')).toBeDefined();
+    const caption = screen.getByTestId('cpk-target-caption');
+    expect(caption.textContent).toBe('target: 1.33');
+  });
+
+  it('appends source label to target caption when cpkTargetSource is provided', () => {
+    render(<ReportPerformanceKPIGrid {...props} cpkTargetSource="investigation" />);
+    const caption = screen.getByTestId('cpk-target-caption');
+    expect(caption.textContent).toBe('target: 1.33 (investigation default)');
   });
 
   it('colors channels green when all passing', () => {

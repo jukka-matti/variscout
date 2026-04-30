@@ -54,7 +54,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   const measureSpecs = useProjectStore(s => s.measureSpecs);
   // Performance mode is multi-channel — resolve against the focused channel
   // (selectedMeasure) when available; cascade falls back to projectCpkTarget.
-  const cpkTarget = resolveCpkTarget(selectedMeasure ?? '', {
+  const { value: cpkTarget } = resolveCpkTarget(selectedMeasure ?? '', {
     measureSpecs,
     projectCpkTarget,
   });
