@@ -127,6 +127,11 @@ export interface SpecLimits {
   usl?: number;
   lsl?: number;
   target?: number;
+  /**
+   * Per-characteristic capability target. Cascade resolution lives in
+   * `@variscout/core/capability` (see `resolveCpkTarget`).
+   */
+  cpkTarget?: number;
   /** Quality characteristic type (inferred from specs if not set) */
   characteristicType?: CharacteristicType;
 }

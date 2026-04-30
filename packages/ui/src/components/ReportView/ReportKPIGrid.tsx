@@ -1,5 +1,6 @@
 import React from 'react';
 import type { StatsResult, SpecLimits } from '@variscout/core';
+import { gradeCpk } from '@variscout/core/capability';
 import { useTranslation } from '@variscout/hooks';
 
 export interface ReportKPIGridColorScheme {
@@ -26,8 +27,9 @@ export interface ReportKPIGridProps {
 
 function getCpkColor(cpk: number | undefined, target: number): string {
   if (cpk === undefined) return 'text-slate-900 dark:text-slate-100';
-  if (cpk >= target) return 'text-green-600 dark:text-green-400';
-  if (cpk < 1.0) return 'text-red-600 dark:text-red-400';
+  const grade = gradeCpk(cpk, target);
+  if (grade === 'green') return 'text-green-600 dark:text-green-400';
+  if (grade === 'red') return 'text-red-600 dark:text-red-400';
   return 'text-amber-600 dark:text-amber-400';
 }
 

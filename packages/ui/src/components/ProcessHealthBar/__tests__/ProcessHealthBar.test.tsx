@@ -99,7 +99,9 @@ describe('ProcessHealthBar', () => {
     expect(cpkBtn.className).toContain('text-green-500');
   });
 
-  it('renders Cpk color amber when cpk between 1.0 and target', () => {
+  // Single banding rule (target-relative): amber when cpk >= target * 0.75 and < target.
+  // For target=1.33 the amber boundary is 0.9975 — value 1.1 is inside the amber band.
+  it('renders Cpk color amber when cpk in [target*0.75, target)', () => {
     const propsWithSpecs: ProcessHealthBarProps = {
       ...defaultProps,
       specs: specsWithLimits,
@@ -111,7 +113,9 @@ describe('ProcessHealthBar', () => {
     expect(cpkBtn.className).toContain('text-amber-500');
   });
 
-  it('renders Cpk color red when cpk < 1.0', () => {
+  // Single banding rule (target-relative): red when cpk < target * 0.75.
+  // For target=1.33 that's < 0.9975 — value 0.8 lands in the red band.
+  it('renders Cpk color red when cpk < target * 0.75', () => {
     const propsWithSpecs: ProcessHealthBarProps = {
       ...defaultProps,
       specs: specsWithLimits,

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { ProcessHealthBarProps } from './types';
 import { FilterChipDropdown } from '../FilterChipDropdown';
+import { gradeCpk } from '@variscout/core/capability';
 import { useTranslation } from '@variscout/hooks';
 
 /**
@@ -28,9 +29,10 @@ function formatChipValues(values: (string | number)[]): string {
  * Returns Tailwind color class for a Cpk value relative to the target.
  */
 function cpkColor(cpk: number, target: number): string {
-  if (cpk >= target) return 'text-green-500';
-  if (cpk >= 1.0) return 'text-amber-500';
-  return 'text-red-400';
+  const grade = gradeCpk(cpk, target);
+  if (grade === 'green') return 'text-green-500';
+  if (grade === 'red') return 'text-red-400';
+  return 'text-amber-500';
 }
 
 /**

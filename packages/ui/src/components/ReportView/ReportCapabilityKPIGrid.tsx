@@ -1,4 +1,5 @@
 import React from 'react';
+import { gradeCpk } from '@variscout/core/capability';
 
 export interface ReportCapabilityKPIGridProps {
   meanCpk: number;
@@ -9,8 +10,9 @@ export interface ReportCapabilityKPIGridProps {
 }
 
 function getCpkColor(cpk: number, target: number): string {
-  if (cpk >= target) return 'text-green-600 dark:text-green-400';
-  if (cpk < 1.0) return 'text-red-600 dark:text-red-400';
+  const grade = gradeCpk(cpk, target);
+  if (grade === 'green') return 'text-green-600 dark:text-green-400';
+  if (grade === 'red') return 'text-red-600 dark:text-red-400';
   return 'text-amber-600 dark:text-amber-400';
 }
 
