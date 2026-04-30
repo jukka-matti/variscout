@@ -144,9 +144,12 @@ Surfaces wired this way today:
   `packages/ui/src/components/ProcessIntelligencePanel/QuestionsTabContent.tsx`.
 - **Multi-channel surfaces** (resolve against `selectedMeasure`):
   `apps/azure/src/components/PerformanceDashboard.tsx`.
+- **Hub-scope surfaces** (write the "hub" cascade level directly, no read):
+  `apps/azure/src/components/ProcessHubCapabilityTab.tsx` renders `CpkTargetInput` next to `TimelineWindowPicker`; commits propagate via `onHubCpkTargetCommit` → `Dashboard.handleHubCpkTargetCommit` → `saveProcessHub`.
 
 Writers:
 
+- **Hub-level default editor** (`CpkTargetInput` on the Hub Capability tab header) — writes `processHub.reviewSignal.capability.cpkTarget` (the cascade "hub" level). Persisted via `Dashboard.handleHubCpkTargetCommit` → `saveProcessHub`. The hub-level reviewSignal is first-class on `ProcessHub` and wins over the investigation-derived rollup signal in `buildProcessHubRollups`.
 - **Per-characteristic editor** (`SpecEditor`) — writes `usl`/`lsl`/`target`/`characteristicType`/`cpkTarget` via `setMeasureSpec(outcome, partial)`.
 - **FRAME Ocean spec editor** (`ProcessMapBase` `OceanCard`, surfaced through `LayeredProcessView` / `LayeredProcessViewWithCapability`) — writes per-column to `measureSpecs[ctsColumn]` via `setMeasureSpec(ctsColumn, { target, usl, lsl, cpkTarget })`. See the "FRAME workspace" section below.
 - **Inline quick-tweak** (`ProcessHealthBar.onCpkTargetCommit`) — writes only `cpkTarget` via `setMeasureSpec(outcome, { cpkTarget })`. Adds a `columnLabel` chip so users see which column they are tuning.

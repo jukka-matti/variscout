@@ -550,6 +550,57 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [projects, loadProject, saveProject, loadProjects]
   );
 
+  /**
+   * Persist a hub-level Cpk target default. Writes to
+   * `processHub.reviewSignal.capability.cpkTarget` — the "hub" level of the
+   * Cpk-target cascade (see capability-target-cascade.md). Mirrors the
+   * `setMeasureSpec(column, partial)` partial-update pattern used at the
+   * column level. `undefined` clears the hub-level default.
+   */
+  const handleHubCpkTargetCommit = useCallback(
+    (hubId: string, next: number | undefined): void => {
+      const hub = processHubs.find(h => h.id === hubId);
+      if (!hub) return;
+      const prevSignal = hub.reviewSignal;
+      const prevCapability = prevSignal?.capability;
+      const nextCapability =
+        next === undefined
+          ? prevCapability
+            ? { ...prevCapability, cpkTarget: undefined }
+            : undefined
+          : {
+              ...(prevCapability ?? { outOfSpecPercentage: 0 }),
+              cpkTarget: next,
+            };
+      const nextSignal = prevSignal
+        ? { ...prevSignal, capability: nextCapability }
+        : nextCapability
+          ? {
+              rowCount: 0,
+              outcome: '',
+              computedAt: new Date().toISOString(),
+              changeSignals: {
+                total: 0,
+                outOfControlCount: 0,
+                nelsonRule2Count: 0,
+                nelsonRule3Count: 0,
+              },
+              capability: nextCapability,
+            }
+          : undefined;
+      const updated: ProcessHub = {
+        ...hub,
+        reviewSignal: nextSignal,
+        updatedAt: new Date().toISOString(),
+      };
+      setProcessHubs(prev => prev.map(h => (h.id === hubId ? updated : h)));
+      void saveProcessHub(updated).catch(err => {
+        console.error('[Dashboard] handleHubCpkTargetCommit failed:', err);
+      });
+    },
+    [processHubs, saveProcessHub]
+  );
+
   const handleSampleSelect = (sample: SampleDataset): void => {
     if (onLoadSample) {
       onLoadSample(sample);
@@ -777,6 +828,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onChipClick={handleChipClick}
                 onFindingSelect={handleFindingSelect}
                 persistInvestigation={handlePersistInvestigation}
+                onHubCpkTargetCommit={handleHubCpkTargetCommit}
               />
               <ProcessHubEvidencePanel
                 hubId={selectedHubRollup.hub.id}

@@ -17,6 +17,7 @@ Azure Team App — Feature-Sliced Design with Zustand feature stores, IndexedDB 
 - Domain stores from `@variscout/stores` are the source of truth for project/investigation/improvement/session data. Feature stores hold UI-only state.
 - File Picker: local files only (`components/FileBrowseButton.tsx`). SharePoint picker removed per ADR-059.
 - Multi-level surfaces: SCOUT dashboard (investigation-time picker) and Hub Capability tab (hub-time, rolling default matched to cadence) link as peers; ADR-074 boundary policy applies.
+- Hub Capability tab exposes the hub-level Cpk target editor (`CpkTargetInput`) next to `TimelineWindowPicker`. Commits write `processHub.reviewSignal.capability.cpkTarget` via `Dashboard.handleHubCpkTargetCommit` → `saveProcessHub`. This is the cascade-level "hub" writer; the per-column writer is `setMeasureSpec`.
 
 ## Test command
 
