@@ -24,6 +24,7 @@
     "codex:ruflo-check": "bash scripts/check-codex-ruflo.sh",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "check:boundaries": "bash scripts/check-level-boundaries.sh",
     "check:i18n": "npx tsx scripts/check-i18n.ts"
   },
   "lint-staged": {

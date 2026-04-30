@@ -7,12 +7,13 @@ import { FilterContextBar } from '../FilterContextBar';
 import { BoxplotDisplayToggle } from '../BoxplotDisplayToggle';
 import { ChartInsightChip } from '../ChartInsightChip';
 import { AnnotationContextMenu } from '../AnnotationContextMenu';
+import { TimelineWindowPicker } from '../TimelineWindowPicker';
 import DashboardChartCard from './DashboardChartCard';
 import DashboardGrid from './DashboardGrid';
 import type { HighlightColor } from '../ChartAnnotationLayer/types';
 import type { UseChartInsightsReturn, ChartTitles } from '@variscout/hooks';
 import type { FilterChipData } from '../filterTypes';
-import type { GlossaryTerm } from '@variscout/core';
+import type { GlossaryTerm, TimelineWindow } from '@variscout/core';
 
 // ---------- Annotations shape ----------
 export interface DashboardAnnotations {
@@ -188,6 +189,16 @@ export interface DashboardLayoutBaseProps {
   paretoObservationCount?: number;
   /** Dashboard layout mode: 'grid' (viewport-fit) or 'scroll' (stacked) */
   layout?: 'grid' | 'scroll';
+
+  // ---- Timeline window (Multi-level SCOUT V1) ----
+  /**
+   * Optional dashboard-level TimelineWindow control. Renders the
+   * TimelineWindowPicker adjacent to the outcome selector when both
+   * `timelineWindow` and `onTimelineWindowChange` are provided.
+   * Hosts that don't pass these props are unchanged (no picker rendered).
+   */
+  timelineWindow?: TimelineWindow;
+  onTimelineWindowChange?: (w: TimelineWindow) => void;
 }
 
 /**
@@ -266,6 +277,8 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   boxplotObservationCount,
   paretoObservationCount,
   layout,
+  timelineWindow,
+  onTimelineWindowChange,
 }) => {
   const { formatStat } = useTranslation();
   const {
@@ -351,6 +364,15 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
         )}
 
         {ichartHeaderExtra}
+
+        {timelineWindow && onTimelineWindowChange && (
+          <div
+            className="flex items-center ml-2 pl-2 border-l border-edge"
+            data-testid="timeline-window-picker-host"
+          >
+            <TimelineWindowPicker window={timelineWindow} onChange={onTimelineWindowChange} />
+          </div>
+        )}
       </div>
       {ichartExtraControls}
 

@@ -53,7 +53,7 @@ import {
   useJourneyPhase,
   useCapabilityIChartData,
 } from '@variscout/hooks';
-import type { AIContext } from '@variscout/core';
+import type { AIContext, TimelineWindow } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
 
@@ -198,7 +198,12 @@ const Dashboard = ({
   const selectedPoints = useProjectStore(s => s.selectedPoints);
   const clearSelection = useProjectStore(s => s.clearSelection);
   const defectMapping = useProjectStore(s => s.defectMapping);
-  const { filteredData } = useFilteredData();
+  // Multi-level SCOUT V1: local timeline-window state. Investigation-level
+  // persistence — V2 wires through useTimelineWindow when the dashboards
+  // become investigation-aware (Dashboard currently reads useProjectStore
+  // and does not receive a ProcessHubInvestigation envelope).
+  const [timelineWindow, setTimelineWindow] = useState<TimelineWindow>({ kind: 'cumulative' });
+  const { filteredData } = useFilteredData({ window: timelineWindow });
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
@@ -705,6 +710,8 @@ const Dashboard = ({
           ) : (
             <div className="flex flex-1 min-h-0">
               <DashboardLayoutBase
+                timelineWindow={timelineWindow}
+                onTimelineWindowChange={setTimelineWindow}
                 outcome={outcome}
                 factors={factors}
                 columnAliases={columnAliases}

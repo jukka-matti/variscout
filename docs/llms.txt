@@ -36,6 +36,9 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 
 ## Reference
 
+- [Timeline Windows in Investigations](03-features/analysis/timeline-window-investigations.md): user-facing reference for the four window kinds and where the picker lives.
+- [Multi-Level Dashboard](03-features/analysis/multi-level-dashboard.md): user-facing reference for how SCOUT spans levels and links to Hub Capability / Evidence Map / Investigation Wall.
+- [Timeline Window & Multi-Level Routing Architecture](05-technical/architecture/timeline-window-architecture.md): engineer-facing reference for `dataRouter`, `detectScope`, TimelineWindow, throughput, drift detection.
 - [Glossary](03-features/learning/glossary.md): domain terms, statistical vocabulary.
 - [Feature parity matrix](08-products/feature-parity.md): PWA vs Azure Standard vs Azure Team.
 - [Statistics reference](05-technical/statistics-reference.md): formulas, NIST validation, citations.

@@ -6,6 +6,7 @@ status: draft
 date: 2026-04-29
 related:
   - multi-level-scout-design
+  - multi-level-scout-v1-decisions
   - adr-074-scout-level-spanning-surface-boundary-policy
   - investigation-scope-and-drill-semantics
 ---
@@ -1220,98 +1221,137 @@ git commit -m "feat(core): AnalysisModeStrategy gains dataRouter for (scope, pha
 
 ## Task 8: useTimelineWindow hook
 
+**Revised 2026-04-30** (supersedes the original Zustand-store-in-hooks design). The original plan invented a 5th module-level Zustand store keyed by `investigationId` to hold the user's window choice. Three problems with that:
+
+1. **Wrong architectural layer.** CLAUDE.md invariant: "4 domain Zustand stores are source of truth." A window selector is _viewer state_ over investigation metadata, not a 5th domain store.
+2. **Memory leak by design.** A module-level `Map<investigationId, TimelineWindow>` has no eviction — every visited investigation leaves a record forever in PWA module state.
+3. **Decision #1 already located the window.** Commit `f059c591` revised Decision #1 to put `TimelineWindow` on `ProcessHubInvestigationMetadata` — co-located with `nodeMappings`, on the investigation envelope itself. Investigation envelopes are persisted by apps (Dexie + Blob in Azure, similar in PWA) via `persistInvestigation`. The original plan's parallel cache ignored that.
+
+**Revised design**: `useTimelineWindow` becomes a thin pure projection over the investigation envelope passed in by the caller. Persistence is the caller's responsibility (typically wired to the same `persistInvestigation` flow that already handles `nodeMappings` and `migrationDeclinedAt` — see `apps/azure/src/features/processHub/useHubMigrationState.ts:67-114` for the existing pattern). No new Zustand store, no module-level cache, no zustand dep added to `@variscout/hooks` — package flow stays clean (core → hooks → ui → apps).
+
+The window persists exactly where the investigation persists (IndexedDB / Blob per ADR-059). User reopens tomorrow, choice is there.
+
 **Files:**
 
+- Modify: `packages/core/src/processHub.ts` — add `timelineWindow?: TimelineWindow` to `ProcessHubInvestigationMetadata` (alongside `nodeMappings` per Decision #1). Import `TimelineWindow` via `import type` from the timeline module.
 - Create: `packages/hooks/src/useTimelineWindow.ts`
 - Create: `packages/hooks/src/__tests__/useTimelineWindow.test.ts`
 - Modify: `packages/hooks/src/index.ts`
 
-- [ ] **Step 8.1: Write failing test**
+- [ ] **Step 8.1: Add `timelineWindow` to metadata type**
+
+In `packages/core/src/processHub.ts`, in the `ProcessHubInvestigationMetadata` interface (after `nodeMappings`):
+
+```typescript
+  /**
+   * Optional timeline window applied to this investigation's data when
+   * computing findings/charts. Co-located with nodeMappings per Decision #1
+   * (see docs/superpowers/plans/2026-04-29-multi-level-scout-v1-decisions.md).
+   * Absent → callers should use the mode's default window (typically `cumulative`).
+   */
+  timelineWindow?: TimelineWindow;
+```
+
+Add at the top of the file: `import type { TimelineWindow } from './timeline';` (uses the existing timeline barrel — no cycle: timeline imports nothing from processHub).
+
+- [ ] **Step 8.2: Write failing test**
 
 ```typescript
 // packages/hooks/src/__tests__/useTimelineWindow.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import type { ProcessHubInvestigation } from '@variscout/core';
 import { useTimelineWindow } from '../useTimelineWindow';
 
+const inv = (
+  id: string,
+  metadata?: ProcessHubInvestigation['metadata']
+): Pick<ProcessHubInvestigation, 'id' | 'metadata'> => ({ id, metadata });
+
 describe('useTimelineWindow', () => {
-  it('initializes with cumulative when no investigation context', () => {
+  it('returns cumulative default when metadata.timelineWindow is absent', () => {
+    const onChange = vi.fn();
     const { result } = renderHook(() =>
-      useTimelineWindow({ investigationId: 'inv-1', defaultKind: 'cumulative' })
+      useTimelineWindow({ investigation: inv('inv-1'), onChange })
     );
-    expect(result.current.window.kind).toBe('cumulative');
+    expect(result.current.window).toEqual({ kind: 'cumulative' });
   });
 
-  it('switches to rolling and persists', () => {
-    const { result } = renderHook(() => useTimelineWindow({ investigationId: 'inv-1' }));
-    act(() => {
-      result.current.setWindow({ kind: 'rolling', windowDays: 30 });
-    });
+  it('reflects the metadata.timelineWindow when present', () => {
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useTimelineWindow({
+        investigation: inv('inv-1', { timelineWindow: { kind: 'rolling', windowDays: 30 } }),
+        onChange,
+      })
+    );
     expect(result.current.window).toEqual({ kind: 'rolling', windowDays: 30 });
+  });
+
+  it('setWindow delegates to onChange with investigationId', () => {
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useTimelineWindow({ investigation: inv('inv-1'), onChange })
+    );
+    act(() => result.current.setWindow({ kind: 'rolling', windowDays: 7 }));
+    expect(onChange).toHaveBeenCalledWith('inv-1', { kind: 'rolling', windowDays: 7 });
   });
 });
 ```
 
-- [ ] **Step 8.2: Implement (Zustand-backed, URL-synced)**
+- [ ] **Step 8.3: Run test, verify it fails**
+
+```bash
+pnpm --filter @variscout/hooks test -- useTimelineWindow
+```
+
+Expected: FAIL — module not found.
+
+- [ ] **Step 8.4: Implement (pure projection)**
 
 ```typescript
 // packages/hooks/src/useTimelineWindow.ts
-import { useEffect, useCallback, useMemo } from 'react';
-import { create } from 'zustand';
-import type { TimelineWindow } from '@variscout/core';
+import { useCallback, useMemo } from 'react';
+import type { ProcessHubInvestigation, TimelineWindow } from '@variscout/core';
 
-interface WindowStore {
-  windows: Record<string, TimelineWindow>; // keyed by investigationId
-  setWindow: (id: string, w: TimelineWindow) => void;
-}
-
-const useWindowStore = create<WindowStore>(set => ({
-  windows: {},
-  setWindow: (id, w) => set(s => ({ windows: { ...s.windows, [id]: w } })),
-}));
+const DEFAULT_CUMULATIVE: TimelineWindow = { kind: 'cumulative' };
 
 export interface UseTimelineWindowArgs {
-  investigationId: string;
-  defaultKind?: TimelineWindow['kind'];
+  /** Investigation envelope — only `id` and `metadata.timelineWindow` are read. */
+  investigation: Pick<ProcessHubInvestigation, 'id' | 'metadata'>;
+  /**
+   * Persistence callback. Caller wires this to its existing
+   * `persistInvestigation` flow (see apps/azure/src/features/processHub/
+   * useHubMigrationState.ts for the canonical pattern). Receives
+   * `investigationId` so the same callback can serve many investigations.
+   */
+  onChange: (investigationId: string, window: TimelineWindow) => void;
 }
 
 export interface UseTimelineWindowResult {
   window: TimelineWindow;
-  setWindow: (w: TimelineWindow) => void;
+  setWindow: (window: TimelineWindow) => void;
 }
 
-const DEFAULT_WINDOW_BY_KIND: Record<
-  NonNullable<UseTimelineWindowArgs['defaultKind']>,
-  TimelineWindow
-> = {
-  fixed: { kind: 'fixed', startISO: '1970-01-01T00:00:00Z', endISO: new Date().toISOString() },
-  rolling: { kind: 'rolling', windowDays: 30 },
-  openEnded: { kind: 'openEnded', startISO: new Date().toISOString() },
-  cumulative: { kind: 'cumulative' },
-};
-
 export function useTimelineWindow({
-  investigationId,
-  defaultKind = 'cumulative',
+  investigation,
+  onChange,
 }: UseTimelineWindowArgs): UseTimelineWindowResult {
-  const stored = useWindowStore(s => s.windows[investigationId]);
-  const setStored = useWindowStore(s => s.setWindow);
-
   const window = useMemo<TimelineWindow>(
-    () => stored ?? DEFAULT_WINDOW_BY_KIND[defaultKind],
-    [stored, defaultKind]
+    () => investigation.metadata?.timelineWindow ?? DEFAULT_CUMULATIVE,
+    [investigation.metadata?.timelineWindow]
   );
 
   const setWindow = useCallback(
-    (w: TimelineWindow) => setStored(investigationId, w),
-    [investigationId, setStored]
+    (w: TimelineWindow) => onChange(investigation.id, w),
+    [investigation.id, onChange]
   );
 
   return { window, setWindow };
 }
 ```
 
-- [ ] **Step 8.3: Re-export + run tests + commit**
+- [ ] **Step 8.5: Re-export + run tests + commit**
 
 Add to `packages/hooks/src/index.ts`:
 
@@ -1327,10 +1367,26 @@ export {
 pnpm --filter @variscout/hooks test -- useTimelineWindow
 ```
 
+Expected: 3 tests passed. Then run the full hooks suite to confirm no regressions:
+
 ```bash
-git add packages/hooks/src/useTimelineWindow.ts packages/hooks/src/__tests__/useTimelineWindow.test.ts packages/hooks/src/index.ts
-git commit -m "feat(hooks): useTimelineWindow — Zustand-backed window state per investigation"
+pnpm --filter @variscout/hooks test
 ```
+
+Type-check the dependent packages (`@variscout/hooks` consumes the new core type; `@variscout/ui` and `@variscout/azure-app` consume hooks):
+
+```bash
+pnpm --filter @variscout/core build
+pnpm --filter @variscout/hooks build
+pnpm --filter @variscout/ui build
+```
+
+```bash
+git add packages/core/src/processHub.ts packages/hooks/src/useTimelineWindow.ts packages/hooks/src/__tests__/useTimelineWindow.test.ts packages/hooks/src/index.ts
+git commit -m "feat(hooks): useTimelineWindow — pure projection over investigation metadata"
+```
+
+**Note for Tasks 11/14 (FilterContextBar wiring + app-level wiring)**: those tasks now wire `onChange` to the app's `persistInvestigation` (the same flow that updates `nodeMappings`). The hooks package stays persistence-agnostic.
 
 ---
 
@@ -1735,131 +1791,44 @@ git commit -m "feat(ui): Finding card renders window-context footer when present
 
 ---
 
-## Task 13: Refactor ProductionLineGlanceDashboard onto strategy + dataRouter
+## Task 13: Route ProcessHubCapabilityTab via useDataRouter, thread window into useProductionLineGlanceData
 
-**Files:**
+> **Revised 2026-04-30** (V1 interpretation). The original spec's `<strategy.chartSlots.slot1 />` code can't execute — `ChartSlots` carries `ChartSlotType` strings (e.g. `'capability-ichart'`), not React components. There is no slot-type-to-component registry in V1. ProductionLineGlanceDashboard keeps its hardcoded 4-chart composition (those charts are specific to the capability/hub phase). The "route via strategy" happens at the call site: `ProcessHubCapabilityTab` now consults `useDataRouter` (as a dev-mode sanity check on the dataflow choice — the hook used must remain known at compile time, since React forbids conditional hook calls) and threads a `TimelineWindow` into `useProductionLineGlanceData`. Slot-component registry is a V2/V3 concern.
 
-- Modify: `packages/ui/src/components/ProductionLineGlance/ProductionLineGlanceDashboard.tsx` (or wherever it lives; verify path)
-- Modify: `apps/azure/src/components/ProcessHubCapabilityTab.tsx`
+**Files actually modified:**
 
-- [ ] **Step 13.1: Inspect current shape**
+- `apps/azure/src/components/ProcessHubCapabilityTab.tsx` — adds `useDataRouter` sanity check; computes `scope` via `detectScope` (single member) or defaults to `b1` (hub aggregate); passes `window` to `useProductionLineGlanceData`. Window state is local `useState({ kind: 'cumulative' })` with a TODO referencing Task 14 (hub-level persistence is genuinely Task 14's problem; the hub envelope doesn't carry its own `TimelineWindow` field, and `useTimelineWindow` is keyed on a single investigation).
 
-Read the two files to understand:
+**Not modified:**
 
-- How `ProductionLineGlanceDashboard` receives data today (probably directly from `useProductionLineGlanceData`).
-- How `ProcessHubCapabilityTab` mounts it.
+- `packages/ui/src/components/ProductionLineGlanceDashboard/ProductionLineGlanceDashboard.tsx` — purely presentational, props-driven; no refactor needed.
+- `packages/core/src/analysisStrategy.ts` — `dataRouter` already exposed by Task 7.
 
-- [ ] **Step 13.2: Refactor dashboard to consume strategy slots**
-
-Replace direct chart rendering with strategy-resolved slots. The dashboard becomes:
-
-```tsx
-import { getStrategy, resolveMode } from '@variscout/core';
-import { useDataRouter } from '@variscout/hooks';
-
-export function ProductionLineGlanceDashboard({
-  hub,
-  members,
-  rowsByInvestigation,
-  contextFilter,
-  window,
-}: Props) {
-  const strategy = getStrategy(resolveMode('standard', { standardIChartMetric: 'capability' }));
-  const router = useDataRouter({
-    mode: 'standard',
-    modeContext: { standardIChartMetric: 'capability' },
-    scope: 'b1', // hub aggregates B1 investigations
-    phase: 'hub',
-    window,
-    context: contextFilter,
-  });
-
-  // The 4 slots from strategy.chartSlots:
-  return (
-    <DashboardLayoutBase /* … */>
-      <strategy.chartSlots.slot1 /* mapped to capability-ichart */ />
-      <strategy.chartSlots.slot2 /* boxplot */ />
-      <strategy.chartSlots.slot3 /* step error pareto */ />
-      <strategy.chartSlots.slot4 /* stats */ />
-    </DashboardLayoutBase>
-  );
-}
-```
-
-(The exact prop wiring depends on what each ChartSlotType expects — preserve current behaviour, just route via strategy instead of hardcoded composition.)
-
-- [ ] **Step 13.3: Run app tests + commit**
-
-```bash
-pnpm --filter @variscout/azure-app test
-pnpm --filter @variscout/ui test
-```
-
-```bash
-git add packages/ui/src/components/ProductionLineGlance/ apps/azure/src/components/ProcessHubCapabilityTab.tsx
-git commit -m "refactor(ui+azure): ProductionLineGlanceDashboard uses strategy + dataRouter"
-```
+**Verification:** `pnpm --filter @variscout/azure-app test` (970/970), `pnpm --filter @variscout/azure-app build` clean, `pnpm --filter @variscout/ui test` (1285/1285).
 
 ---
 
-## Task 14: Wire useTimelineWindow + TimelineWindowPicker into apps
+## Task 14: Wire timeline window into Dashboards + Hub Capability picker
 
-**Files:**
-
-- Modify: `apps/azure/src/components/Dashboard.tsx`
-- Modify: `apps/pwa/src/components/Dashboard.tsx`
-- Modify: `apps/azure/src/components/ProcessHubCapabilityTab.tsx`
-
-- [ ] **Step 14.1: Wire investigation-time window**
-
-In each dashboard component:
-
-```tsx
-import { useTimelineWindow } from '@variscout/hooks';
-
-const { window, setWindow } = useTimelineWindow({
-  investigationId: currentInvestigation.id,
-  defaultKind: 'openEnded', // investigation-time default
-});
-
-// Pass into DashboardLayoutBase:
-<DashboardLayoutBase
-  timelineWindow={window}
-  onTimelineWindowChange={setWindow}
-  // …
-/>;
-```
-
-- [ ] **Step 14.2: Wire hub-time window into Hub Capability tab**
-
-```tsx
-const cadence = hub.cadence ?? 'weekly';
-const cadenceDays: Record<string, number> = { hourly: 1, daily: 1, weekly: 7, monthly: 30 };
-
-const { window, setWindow } = useTimelineWindow({
-  investigationId: `hub-${hub.id}`,
-  defaultKind: 'rolling',
-});
-// First-mount default override based on cadence:
-useEffect(() => {
-  if (window.kind === 'cumulative') {
-    setWindow({ kind: 'rolling', windowDays: cadenceDays[cadence] ?? 7 });
-  }
-}, []); // first mount only
-```
-
-- [ ] **Step 14.3: Run end-to-end tests + commit**
-
-```bash
-pnpm test
-```
-
-Expected: all tests green across packages.
-
-```bash
-git add apps/
-git commit -m "feat(apps): wire useTimelineWindow into Dashboard + Hub Capability tab"
-```
+> **Revised 2026-04-30** (V1 interpretation). The original task body called `useTimelineWindow({ investigationId, defaultKind })` — that signature was rejected in commit `cf5daaa6` (Task 8 revision earlier in this same plan file). The current `useTimelineWindow` signature is `({ investigation, onChange })` — a pure projection over an investigation envelope, with `onChange` wired by the caller to `persistInvestigation`. It cannot be used in the dashboards as written.
+>
+> Reality on the ground:
+>
+> - `apps/azure/src/components/Dashboard.tsx` and `apps/pwa/src/components/Dashboard.tsx` do not receive a `ProcessHubInvestigation` envelope — they read state from `useProjectStore` (rawData/filters/outcome). With no investigation reachable, `useTimelineWindow` is the wrong shape; local `useState<TimelineWindow>({ kind: 'cumulative' })` is the correct V1 fit. A TODO references investigation-level persistence as the V2 path (when the dashboards become investigation-aware).
+> - `ProcessHubCapabilityTab` already held local `useState<TimelineWindow>` from Task 13 but did not render a picker. Task 14 surfaces the picker above the dashboard (below the existing `ProductionLineGlanceFilterStrip`).
+> - The `useEffect` cadence-default (Step 14.2) is **deferred to V1.5** — it is a UX nicety, not a structural requirement, and reading `hub.cadence` introduces dependencies whose contract isn't worth verifying for V1. A TODO captures it.
+>
+> **Files modified in this task:**
+>
+> - `apps/azure/src/components/Dashboard.tsx` — local `timelineWindow` state, threaded into `DashboardLayoutBase` (existing `timelineWindow`/`onTimelineWindowChange` props from Task 11) and into `useFilteredData({ window })` (Task 9).
+> - `apps/pwa/src/components/Dashboard.tsx` — same wiring as Azure.
+> - `apps/azure/src/components/ProcessHubCapabilityTab.tsx` — extends the existing `useState<TimelineWindow>(DEFAULT_WINDOW)` to expose the setter and renders `<TimelineWindowPicker>` (exported from `@variscout/ui` per Task 10) above `ProductionLineGlanceDashboard`.
+>
+> **Not modified (deliberately):**
+>
+> - `useTimelineWindow.ts`, `DashboardLayoutBase.tsx`, `TimelineWindowPicker.tsx`, `ProductionLineGlanceDashboard.tsx`, `@variscout/core` types — earlier tasks already exposed the props and contracts; Task 14 only plugs them in.
+>
+> **Verification:** `pnpm --filter @variscout/azure-app test` (970/970), `pnpm --filter @variscout/pwa test` (124/124), `pnpm --filter @variscout/azure-app build` clean.
 
 ---
 
@@ -1871,7 +1840,7 @@ git commit -m "feat(apps): wire useTimelineWindow into Dashboard + Hub Capabilit
 - Modify: `package.json` (add npm script)
 - Modify: `.husky/pre-commit` (or `lint-staged` config) — add the check
 
-- [ ] **Step 15.1: Write the script**
+- [x] **Step 15.1: Write the script**
 
 ```bash
 #!/usr/bin/env bash
@@ -1915,7 +1884,7 @@ echo "✓ ADR-074 boundaries clean"
 chmod +x scripts/check-level-boundaries.sh
 ```
 
-- [ ] **Step 15.2: Add npm script + pre-commit hook**
+- [x] **Step 15.2: Add npm script + pre-commit hook**
 
 In `package.json` `scripts`:
 
@@ -1929,7 +1898,7 @@ In `.husky/pre-commit` (or add to `lint-staged.config.js`):
 bash scripts/check-level-boundaries.sh
 ```
 
-- [ ] **Step 15.3: Run + commit**
+- [x] **Step 15.3: Run + commit**
 
 ```bash
 bash scripts/check-level-boundaries.sh
@@ -1962,7 +1931,7 @@ git commit -m "chore: ADR-074 boundary check script + pre-commit wiring"
 - Modify: `docs/decision-log.md` — close V1 implementation row in §4 (state `done`, Closed `2026-04-29`); update SCOUT Journey Map row to `shipped (multi-level V1)` with chrome-walk date.
 - Modify: `docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md` — strike "to be added" note now that the script ships.
 
-- [ ] **Step 16.1: Write feature docs (user-facing)**
+- [x] **Step 16.1: Write feature docs (user-facing)**
 
 Create `docs/03-features/analysis/timeline-window-investigations.md` with frontmatter (audience: user) — explain the four window types, when to use each, and where the picker lives.
 
@@ -1970,11 +1939,11 @@ Create `docs/03-features/analysis/multi-level-dashboard.md` — explain how clic
 
 (Each doc needs proper frontmatter per `scripts/docs-frontmatter-schema.mjs`.)
 
-- [ ] **Step 16.2: Write architecture doc (engineer-facing)**
+- [x] **Step 16.2: Write architecture doc (engineer-facing)**
 
 Create `docs/05-technical/architecture/timeline-window-architecture.md` — the `dataRouter` contract, the strategy + dataRouter integration, scope detection, how new metric modules plug in. Mirror the style of existing technical docs.
 
-- [ ] **Step 16.3: Update vision + glossary**
+- [x] **Step 16.3: Update vision + glossary**
 
 Edit `docs/01-vision/methodology.md` — add a short paragraph on temporal scope as part of Watson's third question.
 
@@ -1982,13 +1951,13 @@ Edit `docs/01-vision/eda-mental-model.md` — note that SCOUT loops gain window 
 
 Edit `docs/03-features/learning/glossary.md` and `packages/core/src/glossary/terms.ts` — add: timeline window, output rate, bottleneck, finding drift, hub-time, investigation-time.
 
-- [ ] **Step 16.4: Update journey docs**
+- [x] **Step 16.4: Update journey docs**
 
 Edit `docs/USER-JOURNEYS.md`, `docs/USER-JOURNEYS-CAPABILITY.md` — mention the timeline picker in the journey spine.
 
 (Other per-mode files get full updates in V3 — V1 only updates Standard EDA + Capability journey.)
 
-- [ ] **Step 16.5: Update agent / package CLAUDE.md files**
+- [x] **Step 16.5: Update agent / package CLAUDE.md files**
 
 Edit `docs/llms.txt` — add new feature doc paths + architecture doc as priority entry points.
 
@@ -1999,7 +1968,7 @@ Edit `apps/azure/CLAUDE.md` and `apps/pwa/CLAUDE.md` (mention the multi-level su
 
 (Each edit is 1-3 sentences; preserve the host file's voice.)
 
-- [ ] **Step 16.6: Lifecycle updates**
+- [x] **Step 16.6: Lifecycle updates**
 
 In `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md`: change `status: draft` to `status: delivered`. Update `last-reviewed`.
 
@@ -2013,7 +1982,7 @@ Add a memory entry at `~/.claude/projects/.../memory/project_multi_level_scout.m
 
 Update `~/.claude/projects/.../memory/MEMORY.md` index — add the new entry; remove or supersede the older FRAME thin-spot entry per the deferral.
 
-- [ ] **Step 16.8: Run final pre-merge gate**
+- [x] **Step 16.8: Run final pre-merge gate**
 
 ```bash
 bash scripts/pr-ready-check.sh

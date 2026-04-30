@@ -49,3 +49,6 @@ export { projectMechanismBranch, projectMechanismBranches } from './mechanismBra
 // from this sub-path to avoid a duplicate identifier at the root barrel. The evaluator
 // accepts `Record<string, unknown>`-compatible rows; consumers get the canonical DataRow
 // via `@variscout/core` root or `@variscout/core/types` directly.
+export { computeFindingWindowDrift } from './drift';
+export type { DriftResult } from './drift';
+// WindowContext is already re-exported via `export * from './types'` above.

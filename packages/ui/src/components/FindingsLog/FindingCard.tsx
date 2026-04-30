@@ -16,8 +16,15 @@ import type {
   FindingSource,
   FindingStatus,
   FindingTag,
+  TimelineWindow,
 } from '@variscout/core';
-import { getFindingStatus } from '@variscout/core';
+import {
+  getFindingStatus,
+  isFixedWindow,
+  isOpenEndedWindow,
+  isRollingWindow,
+} from '@variscout/core';
+import { formatDate } from '@variscout/core/i18n';
 import { useTranslation } from '@variscout/hooks';
 import FindingEditor from './FindingEditor';
 import FindingStatusBadge from './FindingStatusBadge';
@@ -118,6 +125,27 @@ export interface FindingCardProps {
 }
 
 /**
+ * Format a TimelineWindow for compact display in the window-context footer.
+ * Locale-aware via formatDate from @variscout/core/i18n.
+ */
+function formatWindow(window: TimelineWindow, locale: Parameters<typeof formatDate>[1]): string {
+  if (isFixedWindow(window)) {
+    return `${formatDate(new Date(window.startISO), locale, 'short')} – ${formatDate(
+      new Date(window.endISO),
+      locale,
+      'short'
+    )}`;
+  }
+  if (isRollingWindow(window)) {
+    return `Rolling ${window.windowDays}d`;
+  }
+  if (isOpenEndedWindow(window)) {
+    return `Since ${formatDate(new Date(window.startISO), locale, 'short')}`;
+  }
+  return 'Cumulative';
+}
+
+/**
  * Individual finding card showing filter chips, stats, and analyst note.
  * Click the card body to restore its filter state.
  */
@@ -156,7 +184,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   renderActionAssigneePicker,
   voiceInput,
 }) => {
-  const { t, formatStat } = useTranslation();
+  const { t, formatStat, locale } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
   const status = getFindingStatus(finding);
@@ -457,6 +485,25 @@ const FindingCard: React.FC<FindingCardProps> = ({
             showAuthors={showAuthors}
             voiceInput={voiceInput}
           />
+        )}
+
+        {/* Window-context footer (multi-level SCOUT V1 — drift snapshot) */}
+        {finding.windowContext && (
+          <div
+            data-testid="finding-window-footer"
+            className="mt-2 border-t border-edge/50 pt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.625rem] text-content-muted"
+          >
+            <span>Captured: {formatWindow(finding.windowContext.windowAtCreation, locale)}</span>
+            {finding.windowContext.statsAtCreation.cpk !== undefined && (
+              <span>
+                Cpk @ creation{' '}
+                <span className="text-content-secondary">
+                  {formatStat(finding.windowContext.statsAtCreation.cpk, 2)}
+                </span>
+              </span>
+            )}
+            <span>n={finding.windowContext.statsAtCreation.n}</span>
+          </div>
         )}
       </div>
     </div>

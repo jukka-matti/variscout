@@ -190,6 +190,19 @@ Terms are organized by priority for AI Phase 1 launch. Each term will follow the
 
 ---
 
+## Multi-Level SCOUT Terms (added 2026-04-30)
+
+| Term ID             | Label              | Definition                                                                                                                                                                                                                                                               |
+| ------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `bottleneck`        | Bottleneck         | The slowest step in a multi-node process — the step with the lowest output rate over the active timeline window. Computed by `computeBottleneck` in `@variscout/core/throughput`.                                                                                        |
+| `findingDrift`      | Finding Drift      | The relative change between a Finding's saved window context and the current window context. Default threshold 0.20: when exceeded, the Finding's footer flags drift and CoScout offers to re-run the analysis on the current window.                                    |
+| `hubTime`           | Hub-Time           | The temporal scope of a Process Hub Capability tab. Defaults to a `rolling` window matched to the hub's review cadence (weekly hub → last 7 days; monthly hub → last 30 days). Distinct from investigation-time, which is per-investigation.                             |
+| `investigationTime` | Investigation-Time | The temporal scope of a single SCOUT investigation. Defaults to `open-ended` (start at the earliest row, no end) so the investigation grows as new data arrives. Distinct from hub-time.                                                                                 |
+| `outputRate`        | Output Rate        | Outputs per unit time over the active timeline window. Computed by `computeOutputRate` in `@variscout/core/throughput`. The basic L2 (flow) reading metric in V1; cycle time, FPY, RTY arrive in subsequent slices.                                                      |
+| `timelineWindow`    | Timeline Window    | The explicit temporal scope of an investigation or hub-time view. A tagged variant of `fixed`, `rolling`, `open-ended`, or `cumulative`. Travels with every chart, every Finding, and every drift comparison so the analysis answers "when does this happen?" precisely. |
+
+---
+
 ## Mobile Tooltip Behavior
 
 On phone (<640px), the HelpTooltip ⓘ icon uses touch-toggle interaction instead of hover.

@@ -6,6 +6,7 @@ import {
 } from '@variscout/core/stats';
 import type { NodeCapabilityResult } from '@variscout/core/stats';
 import type { SpecLookupContext } from '@variscout/core/types';
+import { applyWindow } from '@variscout/core';
 import type {
   DataRow,
   IChartDataPoint,
@@ -13,6 +14,7 @@ import type {
   ProcessHub,
   ProcessHubInvestigation,
   ProcessHubInvestigationMetadata,
+  TimelineWindow,
 } from '@variscout/core';
 
 const DEFAULT_CPK_TARGET = 1.33;
@@ -23,6 +25,17 @@ export interface UseProductionLineGlanceDataInput {
   rowsByInvestigation: ReadonlyMap<string, readonly DataRow[]>;
   contextFilter: SpecLookupContext;
   defectColumns?: readonly string[];
+  /**
+   * Optional timeline window applied per-investigation. Each member can declare
+   * its own time column via `timeColumnByInvestigation`; investigations missing
+   * a time column pass through unwindowed (safer fail-mode — show all data
+   * rather than silently drop it). This per-investigation routing respects
+   * ADR-073: no aggregation across heterogeneous units, including time
+   * conventions.
+   */
+  window?: TimelineWindow;
+  /** Map of investigation id → time column name. */
+  timeColumnByInvestigation?: ReadonlyMap<string, string>;
 }
 
 export interface CapabilityBoxplotInputNode {
@@ -73,21 +86,47 @@ function rowMatchesFilter(row: DataRow, filter: SpecLookupContext): boolean {
 export function useProductionLineGlanceData(
   input: UseProductionLineGlanceDataInput
 ): UseProductionLineGlanceDataResult {
-  const { hub, members, rowsByInvestigation, contextFilter, defectColumns } = input;
+  const {
+    hub,
+    members,
+    rowsByInvestigation,
+    contextFilter,
+    defectColumns,
+    window,
+    timeColumnByInvestigation,
+  } = input;
   const map = hub.canonicalProcessMap;
+
+  // Apply timeline window per-investigation. Each investigation may have its
+  // own time column (or none); we never aggregate timestamps across them.
+  // Investigations without a known timeColumn pass through unwindowed.
+  const windowedRowsByInvestigation = useMemo<ReadonlyMap<string, readonly DataRow[]>>(() => {
+    if (!window) return rowsByInvestigation;
+    const out = new Map<string, readonly DataRow[]>();
+    for (const [invId, rows] of rowsByInvestigation) {
+      const tc = timeColumnByInvestigation?.get(invId);
+      if (!tc) {
+        out.set(invId, rows);
+        continue;
+      }
+      // applyWindow expects a mutable DataRow[]; cast to mutable view.
+      out.set(invId, applyWindow(rows as DataRow[], tc, window));
+    }
+    return out;
+  }, [rowsByInvestigation, window, timeColumnByInvestigation]);
 
   // Collect all filtered rows across members for context-value discovery.
   const allFilteredRows = useMemo<DataRow[]>(() => {
     const out: DataRow[] = [];
     for (const member of members) {
       if (member.metadata?.processHubId !== hub.id) continue;
-      const rows = rowsByInvestigation.get(member.id) ?? [];
+      const rows = windowedRowsByInvestigation.get(member.id) ?? [];
       for (const row of rows) {
         if (rowMatchesFilter(row, contextFilter)) out.push(row);
       }
     }
     return out;
-  }, [hub.id, members, rowsByInvestigation, contextFilter]);
+  }, [hub.id, members, windowedRowsByInvestigation, contextFilter]);
 
   // Per-node capability results — one entry per (node × first-matching-member) pair.
   const capabilityNodes = useMemo<CapabilityBoxplotInputNode[]>(() => {
@@ -99,7 +138,7 @@ export function useProductionLineGlanceData(
         if (member.metadata?.processHubId !== hub.id) continue;
         const meta = member.metadata as ProcessHubInvestigationMetadata;
         if (!meta?.nodeMappings?.some(m => m.nodeId === node.id)) continue;
-        const rows = rowsByInvestigation.get(member.id) ?? [];
+        const rows = windowedRowsByInvestigation.get(member.id) ?? [];
         const filtered = rows.filter(r => rowMatchesFilter(r, contextFilter));
         if (filtered.length === 0) continue;
         const result = calculateNodeCapability(node.id, {
@@ -116,18 +155,33 @@ export function useProductionLineGlanceData(
       }
     }
     return results;
-  }, [map, members, rowsByInvestigation, contextFilter, hub.id, hub.contextColumns]);
+  }, [map, members, windowedRowsByInvestigation, contextFilter, hub.id, hub.contextColumns]);
 
   // Roll up step error counts. rollupStepErrors reads rows from member objects
-  // directly (duck-typed cast in core). Pass members as-is.
+  // directly (duck-typed cast in core). When a window is active we hand it
+  // shadow members whose `rows` field has been clipped per the same per-
+  // investigation window logic — so step-error counts honor the same temporal
+  // window as the capability boxplot, without rollupStepErrors needing to know
+  // about windows.
+  const windowedMembers = useMemo<readonly ProcessHubInvestigation[]>(() => {
+    if (!window) return members;
+    return members.map(member => {
+      const windowedRows = windowedRowsByInvestigation.get(member.id);
+      // Preserve all original member fields; swap rows only when we have
+      // a windowed view for it.
+      if (!windowedRows) return member;
+      return { ...member, rows: windowedRows } as ProcessHubInvestigation;
+    });
+  }, [members, window, windowedRowsByInvestigation]);
+
   const errorSteps = useMemo(() => {
     return rollupStepErrors({
       hub,
-      members,
+      members: windowedMembers,
       defectColumns,
       contextFilter,
     });
-  }, [hub, members, defectColumns, contextFilter]);
+  }, [hub, windowedMembers, defectColumns, contextFilter]);
 
   // Plan C1 ships an empty top row for the dashboard. The full top-left "Cpk
   // vs target i-chart" slot requires a per-snapshot line-level Cp/Cpk series

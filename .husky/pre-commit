@@ -7,6 +7,9 @@ pnpm docs:check
 # SSOT check — warn if CLAUDE.md sections duplicate content across files
 bash scripts/check-ssot.sh
 
+# ADR-074 level-spanning-surface boundary check
+bash scripts/check-level-boundaries.sh
+
 # CLAUDE.md size check — fail if >120% of per-file budget
 bash scripts/check-claude-md-size.sh
 

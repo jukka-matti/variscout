@@ -119,7 +119,10 @@ Every investigation - Standard, Yamazumi, Performance, Defect, Capability, or Pr
 2. **SCOUT.** Data is parsed (wide-form, stack columns, defect events all
    supported). Characteristic types are inferred. Analysis modes surface
    variation, capability, flow, defect, or work-content patterns. First clues
-   and questions emerge.
+   and questions emerge. The dashboard chrome carries a [timeline-window picker](03-features/analysis/timeline-window-investigations.md)
+   (fixed / rolling / open-ended / cumulative) so every chart, every Finding,
+   and every drift comparison agrees on the same temporal scope. Investigation-time
+   defaults to `open-ended`.
 
 3. **INVESTIGATE.** User builds one or more Mechanism Branches or
    SuspectedCause hubs. Each hub accumulates evidence: data (Evidence Map edges

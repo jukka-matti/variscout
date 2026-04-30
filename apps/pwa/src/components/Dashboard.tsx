@@ -43,7 +43,13 @@ import { useFilteredData, useAnalysisStats, useStagedAnalysis } from '@variscout
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity } from 'lucide-react';
-import { getColumnNames, getEtaSquared, type SpecLimits, type Finding } from '@variscout/core';
+import {
+  getColumnNames,
+  getEtaSquared,
+  type SpecLimits,
+  type Finding,
+  type TimelineWindow,
+} from '@variscout/core';
 import { resolveMode as resolveModeUtil } from '@variscout/core/strategy';
 import { subgroupAxisColumns } from '@variscout/core/frame';
 import { useProjectionStore } from '../features/projection/projectionStore';
@@ -133,7 +139,12 @@ const Dashboard = ({
   const clearSelection = useProjectStore(s => s.clearSelection);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
-  const { filteredData } = useFilteredData();
+  // Multi-level SCOUT V1: local timeline-window state. Investigation-level
+  // persistence — V2 wires through useTimelineWindow when the dashboards
+  // become investigation-aware (Dashboard currently reads useProjectStore
+  // and does not receive a ProcessHubInvestigation envelope).
+  const [timelineWindow, setTimelineWindow] = useState<TimelineWindow>({ kind: 'cumulative' });
+  const { filteredData } = useFilteredData({ window: timelineWindow });
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const [analysisLensTab, setAnalysisLensTab] = useState<AnalysisLensTab>('probability');
@@ -666,6 +677,8 @@ const Dashboard = ({
 
       {/* Dashboard View */}
       <DashboardLayoutBase
+        timelineWindow={timelineWindow}
+        onTimelineWindowChange={setTimelineWindow}
         outcome={effectiveOutcome}
         factors={effectiveFactors}
         columnAliases={columnAliases}

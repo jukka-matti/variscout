@@ -535,6 +535,68 @@ export const glossaryTerms: GlossaryTerm[] = [
   },
 
   // Investigation (additions)
+  // — Multi-level SCOUT V1 (added 2026-04-30) —
+  {
+    id: 'timelineWindow',
+    label: 'Timeline Window',
+    definition:
+      'The explicit temporal scope of an investigation or hub-time view — a tagged variant of fixed, rolling, open-ended, or cumulative.',
+    description:
+      'A timeline window travels with every chart, every Finding, and every drift comparison so the analysis answers "when does this happen?" precisely. Investigation-time defaults to open-ended; hub-time defaults to rolling matched to the hub cadence; baseline reads default to cumulative.',
+    category: 'methodology',
+    relatedTerms: ['investigationTime', 'hubTime', 'findingDrift'],
+  },
+  {
+    id: 'investigationTime',
+    label: 'Investigation-Time',
+    definition:
+      'The temporal scope of a single SCOUT investigation. Defaults to open-ended so the investigation grows as new data arrives.',
+    description:
+      'Investigation-time is per-investigation: the window that the analyst chose for this issue. Distinct from hub-time, which is the cadence-matched rolling view on the Process Hub Capability tab.',
+    category: 'methodology',
+    relatedTerms: ['timelineWindow', 'hubTime'],
+  },
+  {
+    id: 'hubTime',
+    label: 'Hub-Time',
+    definition:
+      'The temporal scope of a Process Hub Capability tab. Defaults to a rolling window matched to the hub review cadence.',
+    description:
+      'Hub-time keeps the Capability tab in sync with the hub review rhythm: weekly hubs read the last 7 days, monthly hubs the last 30. Distinct from investigation-time, which travels with a specific investigation.',
+    category: 'methodology',
+    relatedTerms: ['timelineWindow', 'investigationTime'],
+  },
+  {
+    id: 'outputRate',
+    label: 'Output Rate',
+    definition:
+      'Outputs per unit time over the active timeline window. The basic L2 (flow) reading metric in multi-level SCOUT V1.',
+    description:
+      'Computed by computeOutputRate in @variscout/core/throughput. Cycle time, FPY, RTY arrive in subsequent slices; OEE, takt, lead time, and WIP arrive in the third.',
+    category: 'methodology',
+    relatedTerms: ['bottleneck', 'timelineWindow'],
+  },
+  {
+    id: 'bottleneck',
+    label: 'Bottleneck',
+    definition:
+      'The slowest step in a multi-node process — the step with the lowest output rate over the active timeline window.',
+    description:
+      'Computed by computeBottleneck in @variscout/core/throughput. Requires multi-node scope (b2). Bottleneck identification is a structural-absence read: it does not aggregate Cpks, it points at the limiting step.',
+    category: 'methodology',
+    relatedTerms: ['outputRate', 'timelineWindow'],
+  },
+  {
+    id: 'findingDrift',
+    label: 'Finding Drift',
+    definition:
+      'The relative change between a Finding’s saved window context and the current window context. Default threshold 0.20.',
+    description:
+      'When drift exceeds the threshold, the Finding footer flags it and CoScout offers to re-run the analysis on the current window. Computed by computeFindingWindowDrift in @variscout/core/findings/drift.',
+    category: 'methodology',
+    relatedTerms: ['timelineWindow', 'finding'],
+  },
+
   {
     id: 'question',
     label: 'Question',

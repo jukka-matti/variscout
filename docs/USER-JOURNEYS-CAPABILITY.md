@@ -23,6 +23,10 @@ The engineer wants to answer three questions: Does my process fit within the cus
 
 After uploading data and completing column mapping, the engineer enters LSL, USL, and optionally a target. The characteristic type determines which limits apply: nominal (two-sided, Cp and Cpk both calculate), smaller-is-better (USL only, Cp = Cpk), or larger-is-better (LSL only, Cp = Cpk). Without at least one spec limit, capability indices are suppressed.
 
+### Choosing the timeline window
+
+Before reading capability, the engineer chooses a [timeline window](03-features/analysis/timeline-window-investigations.md) in the dashboard chrome. On the Process Hub Capability tab, the default is `rolling` matched to the hub cadence (weekly hub → last 7 days; monthly hub → last 30 days). For PPAP submissions the engineer typically switches to `fixed [start, end]` once the analysis period is locked. Findings record the active window so before/after capability comparisons stay explicit and drift between saved and current windows is flagged.
+
 ### Reading the standard capability view
 
 The laptop-first dashboard keeps the I-Chart visible and places capability reading in the adaptive right-hand lens. When specs exist, the lens labels the histogram tab **Capability** and pairs it with **Probability**. The top strip summarizes Cp/Cpk context and provides the spec shortcut.

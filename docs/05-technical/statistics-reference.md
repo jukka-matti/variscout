@@ -731,6 +731,40 @@ Findings connect to charts via `FindingSource` metadata:
 - Idea management (`addIdea`, `updateIdea`, `removeIdea`)
 - `setIdeaProjection`, `selectIdea` for What-If integration
 
+### Finding Window Drift
+
+> Source: `packages/core/src/findings/drift.ts`. Spec §3.5 / ADR-049.
+
+Drift detection compares a Finding's stats at creation time to current-window stats:
+
+```
+relativeChange = (currentVal − beforeVal) / beforeVal
+drifted = |relativeChange| ≥ threshold   (default threshold = 0.20)
+```
+
+**Metric priority**: Cpk is used as the primary drift signal; falls back to mean if Cpk is absent, then sigma.
+
+**Per-finding override**: `WindowContext.driftThreshold` overrides the default 0.20. Use for high-stakes findings that need tighter alerting.
+
+**Returns `null`** when a Finding has no `windowContext` (created before V1 multi-level SCOUT). This is the backward-compatible path; callers must guard `result !== null` before reading `drifted`.
+
+**`WindowContext` shape** (stored on `Finding.windowContext`):
+
+| Field              | Type                         | Description                                 |
+| ------------------ | ---------------------------- | ------------------------------------------- |
+| `windowAtCreation` | `TimelineWindow`             | Active window when the finding was captured |
+| `statsAtCreation`  | `{ cpk?, mean?, sigma?, n }` | Key stats at capture time                   |
+| `driftThreshold`   | `number` (optional)          | Relative-change threshold override (0–1)    |
+
+**`DriftResult` shape**:
+
+| Field            | Type                         | Description                                |
+| ---------------- | ---------------------------- | ------------------------------------------ |
+| `drifted`        | `boolean`                    | Whether threshold was exceeded             |
+| `relativeChange` | `number`                     | Signed relative change (positive = higher) |
+| `metric`         | `'cpk' \| 'mean' \| 'sigma'` | Which metric was used for comparison       |
+| `threshold`      | `number`                     | Threshold applied (default or override)    |
+
 ---
 
 ## Part 15 — Unified GLM Regression Engine
@@ -1021,3 +1055,36 @@ Raw Data → [B1: Input] → Clean Data → [Stats Engine] → [B2: Output] → 
 ### Convention
 
 Stats functions return `number | undefined` (or `null` for ANOVA), never `NaN` or `Infinity`. The single exception is `andersonDarlingTest()` which returns `Infinity` intentionally for degenerate data.
+
+---
+
+## Part 17 — Throughput Metrics
+
+### `computeOutputRate(rows, timeColumn, { nodeId, stepColumn }, granularity)`
+
+Counts rows per time bucket for one step and computes rate-per-hour:
+
+```
+bucketStart = floor(t / bucketMs) × bucketMs
+bucketCount = |{ rows : t ∈ [bucketStart, bucketStart + bucketMs) ∧ row.step = nodeId }|
+ratePerHour = (bucketCount × MS_PER_HOUR) / bucketMs
+averageRatePerHour = mean(ratePerHour over all buckets)
+```
+
+Granularities: minute (60 s), hour (3 600 s), day (86 400 s), week (604 800 s).
+
+Returns `OutputRateResult` — `totalCount` is the raw row count for the step; `averageRatePerHour` is 0 when no rows are present.
+
+### `computeBottleneck(rates)`
+
+Identifies the step with the lowest average rate as the bottleneck:
+
+```
+bottleneck = argmin_step(averageRatePerHour)
+rank       = position of step in sorted-ascending-by-rate order (1 = slowest)
+isBottleneck = (step.nodeId == bottleneck.nodeId)
+```
+
+Input is a `ReadonlyArray<{ nodeId, averageRatePerHour }>` — typically the `averageRatePerHour` values from one `computeOutputRate` call per step. Returns `BottleneckResult[]` sorted ascending by rank.
+
+Source: `packages/core/src/throughput/aggregation.ts`. Per spec §3.5 (L2 Flow metrics).
