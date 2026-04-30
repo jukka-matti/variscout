@@ -40,6 +40,11 @@ export interface ProcessHubViewProps {
   onChipClick: (item: ProcessStateItem, hubId: string, count: number) => void;
   onFindingSelect: (item: ProcessStateItem, finding: Finding, hubId: string) => void;
   persistInvestigation: (next: ProcessHubInvestigation) => void;
+  /**
+   * Persist the hub-level Cpk target default (cascade level "hub"). Writes to
+   * `processHub.reviewSignal.capability.cpkTarget`. `undefined` clears it.
+   */
+  onHubCpkTargetCommit: (hubId: string, next: number | undefined) => void;
 }
 
 type TabKey = 'status' | 'capability';
@@ -47,6 +52,7 @@ type TabKey = 'status' | 'capability';
 export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
   rollup,
   persistInvestigation,
+  onHubCpkTargetCommit,
   ...reviewProps
 }) => {
   const [activeTab, setActiveTab] = useState<TabKey>('status');
@@ -119,7 +125,7 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
           data-testid="process-hub-capability-tab-panel"
           className="flex-1 overflow-y-auto"
         >
-          <ProcessHubCapabilityTab rollup={rollup} />
+          <ProcessHubCapabilityTab rollup={rollup} onHubCpkTargetCommit={onHubCpkTargetCommit} />
         </div>
       )}
     </div>

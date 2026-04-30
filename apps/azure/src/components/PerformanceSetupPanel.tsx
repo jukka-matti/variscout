@@ -46,7 +46,7 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
   const setMeasureColumns = useProjectStore(s => s.setMeasureColumns);
   const setMeasureLabel = useProjectStore(s => s.setMeasureLabel);
   const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
-  const setCpkTarget = useProjectStore(s => s.setCpkTarget);
+  const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
 
   // Tier information for channel limit validation
   const { tier, maxChannels, upgradeUrl, validateChannels } = useTier();
@@ -72,17 +72,19 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
   );
 
   const handleEnable = useCallback(
-    (columns: string[], label: string, cpkTarget: number) => {
+    (columns: string[], label: string, cpkTargetPerChannel: Record<string, number>) => {
       if (onEnable) {
         onEnable(columns, label);
       } else {
         setMeasureColumns(columns);
         setMeasureLabel(label);
-        setCpkTarget(cpkTarget);
+        for (const [column, target] of Object.entries(cpkTargetPerChannel)) {
+          setMeasureSpec(column, { cpkTarget: target });
+        }
         setAnalysisMode('performance');
       }
     },
-    [onEnable, setMeasureColumns, setMeasureLabel, setCpkTarget, setAnalysisMode]
+    [onEnable, setMeasureColumns, setMeasureLabel, setMeasureSpec, setAnalysisMode]
   );
 
   return (

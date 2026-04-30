@@ -17,7 +17,7 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack }) => {
   const factors = useProjectStore(s => s.factors);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
-  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+  const { value: cpkTarget } = resolveCpkTarget(outcome ?? '', {
     measureSpecs,
     projectCpkTarget,
   });

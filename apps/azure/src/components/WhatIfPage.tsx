@@ -29,7 +29,7 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({
   const columnAliases = useProjectStore(s => s.columnAliases);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
-  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+  const { value: cpkTarget } = resolveCpkTarget(outcome ?? '', {
     measureSpecs,
     projectCpkTarget,
   });

@@ -14,14 +14,14 @@ interface PerformanceIChartProps {
   onChannelClick?: (channelId: string) => void;
   /** Which capability metric to display: 'cpk' (default), 'cp', or 'both' */
   capabilityMetric?: 'cp' | 'cpk' | 'both';
-  /** User-defined Cpk/Cp target line (default: 1.33) */
-  cpkTarget?: number;
+  /** Per-channel Cpk/Cp targets (one per channel, in the same order). */
+  cpkTargets?: ReadonlyArray<number>;
 }
 
 const PerformanceIChart: React.FC<PerformanceIChartProps> = ({
   onChannelClick,
   capabilityMetric = 'cpk',
-  cpkTarget,
+  cpkTargets,
 }) => {
   const performanceResult = usePerformanceAnalysis();
   const selectedMeasure = useProjectStore(s => s.selectedMeasure);
@@ -32,7 +32,7 @@ const PerformanceIChart: React.FC<PerformanceIChartProps> = ({
       selectedMeasure={selectedMeasure}
       onChannelClick={onChannelClick}
       capabilityMetric={capabilityMetric}
-      cpkTarget={cpkTarget}
+      cpkTargets={cpkTargets}
     />
   );
 };

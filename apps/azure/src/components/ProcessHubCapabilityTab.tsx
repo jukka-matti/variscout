@@ -16,8 +16,9 @@
  * See spec docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md
  * and docs/superpowers/specs/2026-04-29-multi-level-scout-design.md.
  */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
+  CpkTargetInput,
   ProductionLineGlanceDashboard,
   ProductionLineGlanceFilterStrip,
   TimelineWindowPicker,
@@ -28,17 +29,28 @@ import {
   useProductionLineGlanceFilter,
 } from '@variscout/hooks';
 import { detectScope } from '@variscout/core';
+import { resolveCpkTarget } from '@variscout/core/capability';
+import { useProjectStore } from '@variscout/stores';
 import type { TimelineWindow } from '@variscout/core';
 import { useHubProvision } from '../features/processHub';
 import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
 
 export interface ProcessHubCapabilityTabProps {
   rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  /**
+   * Persist the hub-level Cpk target default. Writes to
+   * `processHub.reviewSignal.capability.cpkTarget` (cascade level "hub").
+   * `undefined` clears the hub-level default.
+   */
+  onHubCpkTargetCommit: (hubId: string, next: number | undefined) => void;
 }
 
 const DEFAULT_WINDOW: TimelineWindow = { kind: 'cumulative' };
 
-export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = ({ rollup }) => {
+export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = ({
+  rollup,
+  onHubCpkTargetCommit,
+}) => {
   const provision = useHubProvision({ rollup });
   const filter = useProductionLineGlanceFilter();
 
@@ -83,6 +95,33 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
     // skips windowing for any member without a time column (safer fail-mode).
   });
 
+  // Resolve per-step Cpk targets via the cascade. Each canonical node has a
+  // measurement column (`ctqColumn`); resolve against that with the hub-level
+  // cpkTarget as the next fallback, then the project-wide default. The hook
+  // populates `targetCpk` from `defaultRule.specs.target` (the nominal target,
+  // not the cascade-aware capability target) — overriding here ensures the
+  // chart's per-node tick reflects the actual cascade resolution.
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const projectCpkTarget = useProjectStore(s => s.cpkTarget);
+  const hubCpkTarget = rollup.hub.reviewSignal?.capability?.cpkTarget;
+  const canonicalProcessMap = provision.hub.canonicalProcessMap;
+  const capabilityNodesWithResolvedTarget = useMemo(() => {
+    const canonicalNodes = canonicalProcessMap?.nodes ?? [];
+    return data.capabilityNodes.map(node => {
+      const canonical = canonicalNodes.find(n => n.id === node.nodeId);
+      const column = canonical?.ctqColumn;
+      // No measurement column → no cascade-resolved target. Leave undefined
+      // so the chart simply omits the per-node tick.
+      if (!column) return { ...node, targetCpk: undefined };
+      const { value } = resolveCpkTarget(column, {
+        measureSpecs,
+        hubCpkTarget,
+        projectCpkTarget,
+      });
+      return { ...node, targetCpk: value };
+    });
+  }, [data.capabilityNodes, canonicalProcessMap, measureSpecs, hubCpkTarget, projectCpkTarget]);
+
   return (
     <div className="flex h-full flex-col">
       <ProductionLineGlanceFilterStrip
@@ -91,14 +130,20 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
         value={filter.value}
         onChange={filter.onChange}
       />
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-edge bg-surface">
+      <div className="flex flex-wrap items-center gap-3 px-3 py-2 border-b border-edge bg-surface">
         <TimelineWindowPicker window={window} onChange={setWindow} />
+        <CpkTargetInput
+          value={rollup.hub.reviewSignal?.capability?.cpkTarget}
+          onCommit={next => onHubCpkTargetCommit(rollup.hub.id, next)}
+          columnLabel={`hub: ${rollup.hub.name}`}
+          data-testid="hub-capability-cpk-target"
+        />
       </div>
       <div className="flex-1 min-h-0">
         <ProductionLineGlanceDashboard
           cpkTrend={data.cpkTrend}
           cpkGapTrend={data.cpkGapTrend}
-          capabilityNodes={data.capabilityNodes}
+          capabilityNodes={capabilityNodesWithResolvedTarget}
           errorSteps={data.errorSteps}
         />
       </div>

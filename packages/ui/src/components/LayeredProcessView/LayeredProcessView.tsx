@@ -16,6 +16,7 @@
 
 import React from 'react';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
+import type { SpecLimits } from '@variscout/core';
 import { ProcessMapBase } from '../ProcessMap/ProcessMapBase';
 
 export interface LayeredProcessViewProps {
@@ -34,6 +35,10 @@ export interface LayeredProcessViewProps {
     lsl?: number;
     cpkTarget?: number;
   }) => void;
+  /** Per-CTQ-column specs lookup. Each StepCard reads `stepSpecs[step.ctqColumn]`. */
+  stepSpecs?: Record<string, SpecLimits>;
+  /** Called when a StepCard's specs change. `column` is the CTQ column for that step. */
+  onStepSpecsChange?: (column: string, next: SpecLimits) => void;
   /** Optional content rendered inside the Operations band. When provided,
    * tributary chips relocate to the Outcome band as a 'Mapped factors'
    * subsection. Plan C2. */
@@ -54,6 +59,8 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
   lsl,
   cpkTarget,
   onSpecsChange,
+  stepSpecs,
+  onStepSpecsChange,
   operationsBandContent,
   filterStripContent,
 }) => {
@@ -148,6 +155,8 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
             lsl={lsl}
             cpkTarget={cpkTarget}
             onSpecsChange={onSpecsChange}
+            stepSpecs={stepSpecs}
+            onStepSpecsChange={onStepSpecsChange}
           />
         </div>
       </section>

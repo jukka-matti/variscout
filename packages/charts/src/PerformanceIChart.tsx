@@ -41,12 +41,20 @@ interface TooltipData {
   status: CapabilityControlStatus | undefined;
 }
 
-/** Default Cpk target (industry standard for ~63 PPM defects) */
-const DEFAULT_CPK_TARGET = 1.33;
-
 export interface PerformanceIChartBaseProps extends PerformanceIChartProps {
-  /** User-defined Cpk/Cp target line (default: 1.33) */
-  cpkTarget?: number;
+  /**
+   * Per-channel Cpk/Cp target reference lines, one entry per channel in the
+   * same order as `channels`. Resolved upstream via the cascade
+   * (`resolveCpkTarget`).
+   *
+   * - Length === channels.length: one reference line per channel target.
+   * - Length === 1: a single shared reference line (legacy single-target case).
+   * - Length === 0: no reference lines rendered (graceful empty case).
+   *
+   * Defaults to `[]` so consumers that don't yet resolve targets render a clean
+   * empty case rather than a misleading default 1.33 line.
+   */
+  cpkTargets?: ReadonlyArray<number>;
   /** Show control status legend (default: false) */
   showLegend?: boolean;
 }
@@ -59,7 +67,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
   onChannelClick,
   showBranding = true,
   capabilityMetric = 'cpk',
-  cpkTarget = DEFAULT_CPK_TARGET,
+  cpkTargets = [],
   showLegend = false,
 }) => {
   const { chrome, formatStat, t } = useChartTheme();
@@ -120,8 +128,13 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
       maxMetric = Math.max(maxMetric, controlLimits.ucl);
     }
 
-    // Include target in scale
-    maxMetric = Math.max(maxMetric, cpkTarget);
+    // Include all per-channel targets in scale
+    if (cpkTargets.length > 0) {
+      const targetMin = Math.min(...cpkTargets);
+      const targetMax = Math.max(...cpkTargets);
+      minMetric = Math.min(minMetric, targetMin);
+      maxMetric = Math.max(maxMetric, targetMax);
+    }
 
     const padding = (maxMetric - minMetric) * 0.1;
 
@@ -159,12 +172,45 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
       });
     }
 
-    // Add target label
-    labels.push({
-      y: yScale(cpkTarget),
-      text: `${t('chart.label.target')} ${formatStat(cpkTarget)}`,
-      fill: chartColors.target,
-    });
+    // Per-channel target labels.
+    // - N=1: a single full-width target line — render its label like before.
+    // - N>1: per-channel target ticks (one per band). To avoid a label forest at
+    //   the right edge, label only the channel whose actual metric is furthest
+    //   from its target — the most informative annotation.
+    if (cpkTargets.length === 1) {
+      const t0 = cpkTargets[0];
+      labels.push({
+        y: yScale(t0),
+        text: `${t('chart.label.target')} ${formatStat(t0)}`,
+        fill: chartColors.target,
+      });
+    } else if (cpkTargets.length > 1) {
+      // Find the channel with the worst deviation (|metric - target|) across the
+      // visible metric. Use cpk for 'both' mode (consistent with control-limit choice).
+      const focusMetric = capabilityMetric === 'both' ? 'cpk' : capabilityMetric;
+      let worstIdx = -1;
+      let worstDev = -Infinity;
+      cpkTargets.forEach((target, i) => {
+        const ch = channels[i];
+        if (!ch) return;
+        const v = ch[focusMetric];
+        if (v === undefined || v === null || !Number.isFinite(v)) return;
+        const dev = Math.abs(v - target);
+        if (dev > worstDev) {
+          worstDev = dev;
+          worstIdx = i;
+        }
+      });
+      // Fallback: if no finite metric, label the first channel's target.
+      const labelIdx = worstIdx >= 0 ? worstIdx : 0;
+      const target = cpkTargets[labelIdx];
+      const channelLabel = channels[labelIdx]?.label ?? '';
+      labels.push({
+        y: yScale(target),
+        text: `${t('chart.label.target')} ${formatStat(target)}${channelLabel ? ` (${channelLabel})` : ''}`,
+        fill: chartColors.target,
+      });
+    }
 
     // Sort by Y position (top to bottom)
     labels.sort((a, b) => a.y - b.y);
@@ -279,16 +325,44 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
             </>
           )}
 
-          {/* Target line (user-defined reference) */}
-          <SpecLimitLine
-            value={cpkTarget}
-            type="target"
-            yScale={yScale}
-            width={width}
-            fonts={fonts}
-            showLabel={false}
-            decimalPlaces={2}
-          />
+          {/* Target reference lines (cascade-resolved per channel).
+              - N=0: render nothing.
+              - N=1: a single full-width reference line (legacy behavior).
+              - N>1: per-channel ticks centered on each channel's x-band,
+                like CapabilityBoxplot. Avoids a confusing dashed-line forest. */}
+          {cpkTargets.length === 1 && (
+            <SpecLimitLine
+              value={cpkTargets[0]}
+              type="target"
+              yScale={yScale}
+              width={width}
+              fonts={fonts}
+              showLabel={false}
+              decimalPlaces={2}
+            />
+          )}
+          {cpkTargets.length > 1 &&
+            cpkTargets.map((target, i) => {
+              const ch = channels[i];
+              if (!ch) return null;
+              if (!Number.isFinite(target)) return null;
+              const cx = (xScale(i.toString()) ?? 0) + xScale.bandwidth() / 2;
+              const halfBand = xScale.bandwidth() * 0.45;
+              const ty = yScale(target);
+              return (
+                <line
+                  key={`target-tick-${ch.id}`}
+                  data-testid={`target-tick-${ch.id}`}
+                  x1={cx - halfBand}
+                  x2={cx + halfBand}
+                  y1={ty}
+                  y2={ty}
+                  stroke={chartColors.target}
+                  strokeWidth={1.5}
+                  strokeDasharray="4 3"
+                />
+              );
+            })}
 
           {/* Data points */}
           {channels.map((channel, i) => {
@@ -310,6 +384,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
                     cy={yScale(cpkValue)}
                     r={isSelected ? 8 : 5}
                     fill={cpkColor} // Blue (#3b82f6) or red if out of control
+                    // eslint-disable-next-line variscout/no-hardcoded-chart-colors -- theme-independent selected highlight; pre-existing pattern
                     stroke={isSelected ? '#fff' : chrome.pointStroke}
                     strokeWidth={isSelected ? 2 : 1}
                     opacity={selectedMeasure && !isSelected ? 0.4 : 1}
@@ -342,6 +417,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
                     cy={yScale(cpValue)}
                     r={isSelected ? 8 : 5}
                     fill={cpColor} // Purple (#a855f7) or red if out of control
+                    // eslint-disable-next-line variscout/no-hardcoded-chart-colors -- theme-independent selected highlight; pre-existing pattern
                     stroke={isSelected ? '#fff' : chrome.pointStroke}
                     strokeWidth={isSelected ? 2 : 1}
                     opacity={selectedMeasure && !isSelected ? 0.4 : 1}
@@ -383,6 +459,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
                     cy={y}
                     r={isSelected ? 8 : 5}
                     fill={pointColor}
+                    // eslint-disable-next-line variscout/no-hardcoded-chart-colors -- theme-independent selected highlight; pre-existing pattern
                     stroke={isSelected ? '#fff' : chrome.pointStroke}
                     strokeWidth={isSelected ? 2 : 1}
                     opacity={selectedMeasure && !isSelected ? 0.4 : 1}

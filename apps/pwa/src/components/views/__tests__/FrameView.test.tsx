@@ -85,6 +85,36 @@ describe('FrameView (PWA)', () => {
     expect(screen.getByTestId('ops-band-dashboard')).toBeInTheDocument();
   });
 
+  it('writes per-step CTQ specs to measureSpecs[ctqColumn] when a StepCard USL changes (Task B)', () => {
+    storeStateRef.current = {
+      ...storeStateRef.current,
+      rawData: [{ Fill_Weight: 12, Bake_Time: 30, Machine: 'A' }],
+      processContext: {
+        processMap: {
+          version: 1,
+          nodes: [{ id: 'step-1', name: 'Bake', order: 0, ctqColumn: 'Bake_Time' }],
+          tributaries: [],
+          ctsColumn: 'Fill_Weight',
+          createdAt: '2026-04-29T00:00:00.000Z',
+          updatedAt: '2026-04-29T00:00:00.000Z',
+        },
+      },
+      measureSpecs: { Bake_Time: { target: 30, lsl: 28, usl: 32 } },
+    };
+    render(<FrameView />);
+    fireEvent.change(screen.getByTestId('process-map-step-specs-step-1-usl'), {
+      target: { value: '34' },
+    });
+    expect(setMeasureSpecMock).toHaveBeenCalledWith(
+      'Bake_Time',
+      expect.objectContaining({
+        target: 30,
+        lsl: 28,
+        usl: 34,
+      })
+    );
+  });
+
   it('writes per-column to measureSpecs[ctsColumn] when Cpk target changes (Phase D)', () => {
     storeStateRef.current = {
       ...storeStateRef.current,

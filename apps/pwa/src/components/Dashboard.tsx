@@ -632,10 +632,18 @@ const Dashboard = ({
         <ProcessHealthBar
           stats={stats}
           specs={specs}
-          cpkTarget={resolveCpkTarget(outcome ?? '', {
-            measureSpecs,
-            projectCpkTarget: cpkTarget,
-          })}
+          cpkTarget={
+            resolveCpkTarget(outcome ?? '', {
+              measureSpecs,
+              projectCpkTarget: cpkTarget,
+            }).value
+          }
+          cpkTargetSource={
+            resolveCpkTarget(outcome ?? '', {
+              measureSpecs,
+              projectCpkTarget: cpkTarget,
+            }).source
+          }
           onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
           columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
           sampleCount={filteredData?.length ?? 0}
