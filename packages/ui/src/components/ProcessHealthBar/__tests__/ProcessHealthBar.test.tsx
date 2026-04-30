@@ -166,6 +166,38 @@ describe('ProcessHealthBar', () => {
     expect(onSetSpecs).toHaveBeenCalled();
   });
 
+  describe('Cpk target provenance caption', () => {
+    it.each([
+      ['spec', 'per-spec'],
+      ['hub', 'hub default'],
+      ['investigation', 'investigation default'],
+      ['default', 'default'],
+    ] as const)('renders %s caption when cpkTargetSource is %s', (source, label) => {
+      render(
+        <ProcessHealthBar
+          {...defaultProps}
+          specs={specsWithLimits}
+          stats={{ ...baseStats, cpk: 1.4 }}
+          cpkTarget={1.33}
+          cpkTargetSource={source}
+        />
+      );
+      const chip = screen.getByTestId('cpk-target-source-chip');
+      expect(chip.textContent).toBe(`(${label})`);
+    });
+
+    it('does not render the chip when cpkTargetSource is omitted', () => {
+      render(
+        <ProcessHealthBar
+          {...defaultProps}
+          specs={specsWithLimits}
+          stats={{ ...baseStats, cpk: 1.4 }}
+        />
+      );
+      expect(screen.queryByTestId('cpk-target-source-chip')).toBeNull();
+    });
+  });
+
   it('does not show "Set specs" prompt when specs are set', () => {
     render(
       <ProcessHealthBar

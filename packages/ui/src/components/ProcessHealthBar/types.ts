@@ -1,4 +1,5 @@
 import type { StatsResult, SpecLimits } from '@variscout/core';
+import type { CpkTargetSource } from '@variscout/core/capability';
 import type {
   ProcessProjection,
   CenteringOpportunity,
@@ -35,6 +36,13 @@ export interface ProcessHealthBarProps {
   specs: SpecLimits;
   /** Cpk target for color coding (default 1.33) */
   cpkTarget?: number;
+  /**
+   * Which cascade level produced `cpkTarget`. When provided, ProcessHealthBar
+   * renders a small caption ("per-spec" / "hub default" / etc) next to the
+   * target so users can see why two columns at the same Cpk got different
+   * colors. Omit to suppress the caption.
+   */
+  cpkTargetSource?: CpkTargetSource;
   /** Called when the user commits a new Cpk target via the inline editor. */
   onCpkTargetCommit?: (target: number) => void;
   /** Optional column label rendered next to the Cpk target — clarifies which characteristic the target applies to. */

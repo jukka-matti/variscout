@@ -146,7 +146,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   const processContext = useProjectStore(s => s.processContext);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
-  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+  const { value: cpkTarget, source: cpkTargetSource } = resolveCpkTarget(outcome ?? '', {
     measureSpecs,
     projectCpkTarget,
   });
@@ -677,6 +677,7 @@ const ReportView: React.FC<ReportViewProps> = ({
                   meanCpk={capabilityKPIs.meanCpk}
                   meanCp={capabilityKPIs.meanCp}
                   cpkTarget={cpkTarget ?? 1.33}
+                  cpkTargetSource={cpkTargetSource}
                   subgroupCount={capabilityKPIs.subgroupCount}
                   passingCount={capabilityKPIs.passingCount}
                 />
@@ -712,6 +713,7 @@ const ReportView: React.FC<ReportViewProps> = ({
                           : 0
                       }
                       cpkTarget={target}
+                      cpkTargetSource={cpkTargetSource}
                     />
                     {!isSummary && (
                       <ReportChartSnapshot
@@ -757,7 +759,13 @@ const ReportView: React.FC<ReportViewProps> = ({
             ) : (
               stats && (
                 <>
-                  <ReportKPIGrid stats={stats} specs={specs} sampleCount={filteredData.length} />
+                  <ReportKPIGrid
+                    stats={stats}
+                    specs={specs}
+                    sampleCount={filteredData.length}
+                    cpkTarget={cpkTarget}
+                    cpkTargetSource={cpkTargetSource}
+                  />
                   {!isSummary && (
                     <ReportChartSnapshot
                       id="report-snapshot-ichart"

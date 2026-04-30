@@ -1,6 +1,6 @@
 import React from 'react';
 import type { StatsResult, SpecLimits } from '@variscout/core';
-import { gradeCpk } from '@variscout/core/capability';
+import { gradeCpk, sourceLabelFor, type CpkTargetSource } from '@variscout/core/capability';
 import { useTranslation } from '@variscout/hooks';
 
 export interface ReportKPIGridColorScheme {
@@ -22,6 +22,12 @@ export interface ReportKPIGridProps {
   specs: SpecLimits;
   sampleCount?: number;
   cpkTarget?: number;
+  /**
+   * Cascade level that produced `cpkTarget`. When provided, the Cpk card
+   * appends a small caption (e.g. "(per-spec)") so users can see which
+   * level of the cascade is in effect for this measure.
+   */
+  cpkTargetSource?: CpkTargetSource;
   colorScheme?: Partial<ReportKPIGridColorScheme>;
 }
 
@@ -38,6 +44,7 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
   specs,
   sampleCount,
   cpkTarget = 1.33,
+  cpkTargetSource,
   colorScheme,
 }) => {
   const { t, formatStat } = useTranslation();
@@ -81,6 +88,13 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
           <div className={scheme.label}>{t('report.kpi.cpk')}</div>
           <div className={`mt-1 text-lg font-semibold ${cpkColor}`}>
             {stats.cpk !== undefined ? formatStat(stats.cpk) : '—'}
+          </div>
+          <div
+            className="mt-0.5 text-xs text-slate-500 dark:text-slate-400"
+            data-testid="cpk-target-caption"
+          >
+            target: {Number.isFinite(cpkTarget) ? cpkTarget.toFixed(2) : '—'}
+            {cpkTargetSource ? ` (${sourceLabelFor(cpkTargetSource)})` : ''}
           </div>
         </div>
       )}

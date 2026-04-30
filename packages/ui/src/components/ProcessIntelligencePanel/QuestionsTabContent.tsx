@@ -82,7 +82,7 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const outcome = useProjectStore(s => s.outcome);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
-  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+  const { value: cpkTarget } = resolveCpkTarget(outcome ?? '', {
     measureSpecs,
     projectCpkTarget,
   });

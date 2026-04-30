@@ -255,7 +255,7 @@ const StatsTabContent: React.FC<StatsTabContentProps> = ({
 
   const cpkTarget =
     cpkTargetProp ??
-    resolveCpkTarget(outcome ?? '', { measureSpecs, projectCpkTarget: storeCpkTarget });
+    resolveCpkTarget(outcome ?? '', { measureSpecs, projectCpkTarget: storeCpkTarget }).value;
 
   // Factor Intelligence: compute main/interaction effects when we have enough data
   const hasFactorIntelligence =

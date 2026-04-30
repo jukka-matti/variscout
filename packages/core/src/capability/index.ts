@@ -1,2 +1,9 @@
 export { gradeCpk, type CpkGrade } from './grade';
-export { resolveCpkTarget, DEFAULT_CPK_TARGET, type CapabilityTargetContext } from './resolve';
+export {
+  resolveCpkTarget,
+  sourceLabelFor,
+  DEFAULT_CPK_TARGET,
+  type CapabilityTargetContext,
+  type CpkTargetSource,
+  type ResolvedCpkTarget,
+} from './resolve';

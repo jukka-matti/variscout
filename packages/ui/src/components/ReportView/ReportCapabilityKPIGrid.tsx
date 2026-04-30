@@ -1,10 +1,16 @@
 import React from 'react';
-import { gradeCpk } from '@variscout/core/capability';
+import { gradeCpk, sourceLabelFor, type CpkTargetSource } from '@variscout/core/capability';
 
 export interface ReportCapabilityKPIGridProps {
   meanCpk: number;
   meanCp?: number; // undefined for one-sided specs
   cpkTarget: number;
+  /**
+   * Cascade level that produced `cpkTarget`. Appended as "(per-spec)" /
+   * "(hub default)" / etc to the target subtitle so users can see which
+   * cascade level is in effect.
+   */
+  cpkTargetSource?: CpkTargetSource;
   subgroupCount: number;
   passingCount: number;
 }
@@ -31,6 +37,7 @@ export const ReportCapabilityKPIGrid: React.FC<ReportCapabilityKPIGridProps> = (
   meanCpk,
   meanCp,
   cpkTarget,
+  cpkTargetSource,
   subgroupCount,
   passingCount,
 }) => {
@@ -50,8 +57,12 @@ export const ReportCapabilityKPIGrid: React.FC<ReportCapabilityKPIGridProps> = (
         <div className={`mt-1 text-lg font-semibold ${getCpkColor(meanCpk, cpkTarget)}`}>
           {Number.isFinite(meanCpk) ? meanCpk.toFixed(2) : '—'}
         </div>
-        <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+        <div
+          className="mt-0.5 text-xs text-slate-500 dark:text-slate-400"
+          data-testid="cpk-target-caption"
+        >
           target: {Number.isFinite(cpkTarget) ? cpkTarget.toFixed(2) : '—'}
+          {cpkTargetSource ? ` (${sourceLabelFor(cpkTargetSource)})` : ''}
         </div>
       </div>
 

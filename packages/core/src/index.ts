@@ -445,9 +445,12 @@ export {
 export {
   gradeCpk,
   resolveCpkTarget,
+  sourceLabelFor,
   DEFAULT_CPK_TARGET,
   type CpkGrade,
   type CapabilityTargetContext,
+  type CpkTargetSource,
+  type ResolvedCpkTarget,
 } from './capability';
 
 // Time utilities

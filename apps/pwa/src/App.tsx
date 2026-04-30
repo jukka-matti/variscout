@@ -132,7 +132,7 @@ function AppMain() {
   const displayOptions = useProjectStore(s => s.displayOptions);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
-  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+  const { value: cpkTarget } = resolveCpkTarget(outcome ?? '', {
     measureSpecs,
     projectCpkTarget,
   });

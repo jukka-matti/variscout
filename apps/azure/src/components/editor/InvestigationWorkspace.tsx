@@ -150,7 +150,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const defectMapping = useProjectStore(s => s.defectMapping);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
-  const cpkTarget = resolveCpkTarget(outcome ?? '', {
+  const { value: cpkTarget } = resolveCpkTarget(outcome ?? '', {
     measureSpecs,
     projectCpkTarget,
   });

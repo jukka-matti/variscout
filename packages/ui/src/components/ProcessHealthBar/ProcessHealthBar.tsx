@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import type { ProcessHealthBarProps } from './types';
 import { FilterChipDropdown } from '../FilterChipDropdown';
-import { gradeCpk } from '@variscout/core/capability';
+import { gradeCpk, sourceLabelFor } from '@variscout/core/capability';
 import { useTranslation } from '@variscout/hooks';
 
 /**
@@ -46,6 +46,7 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   stats,
   specs,
   cpkTarget = 1.33,
+  cpkTargetSource,
   onCpkTargetCommit,
   columnLabel,
   sampleCount,
@@ -275,6 +276,14 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
             <span className="text-content-muted">Subgroups</span>
             <span className="ml-1 font-mono text-content">{subgroupPct}%</span>
             <span className="ml-1 text-content-muted">&ge; {cpkTarget}</span>
+            {cpkTargetSource && (
+              <span
+                className="ml-1 text-[0.625rem] text-content-muted"
+                data-testid="cpk-target-source-chip"
+              >
+                ({sourceLabelFor(cpkTargetSource)})
+              </span>
+            )}
           </span>
         ) : (
           <span>
@@ -322,6 +331,14 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
             )
           ) : (
             <span className="ml-1 text-content-muted">/{cpkTarget}</span>
+          )}
+          {cpkTargetSource && (
+            <span
+              className="ml-1 text-[0.625rem] text-content-muted"
+              data-testid="cpk-target-source-chip"
+            >
+              ({sourceLabelFor(cpkTargetSource)})
+            </span>
           )}
           {columnLabel && (
             <span
