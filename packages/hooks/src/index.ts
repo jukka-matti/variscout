@@ -503,6 +503,10 @@ export type {
   CapabilityBoxplotInputNode,
 } from './useProductionLineGlanceData';
 
+// Multi-level SCOUT V1 — useDataRouter (mode-strategy data-hook router)
+export { useDataRouter } from './useDataRouter';
+export type { UseDataRouterArgs } from './useDataRouter';
+
 // Production Line Glance Filter (URL search-param state for filter strip)
 export { useProductionLineGlanceFilter } from './useProductionLineGlanceFilter';
 export type { UseProductionLineGlanceFilterResult } from './useProductionLineGlanceFilter';
@@ -522,7 +526,11 @@ export type {
 } from './useB0InvestigationsInHub';
 
 // Derived hooks (store-first state access)
-export { useFilteredData, type FilteredDataResult } from './useFilteredData';
+export {
+  useFilteredData,
+  type FilteredDataResult,
+  type UseFilteredDataArgs,
+} from './useFilteredData';
 export { useAnalysisStats, type AnalysisStatsResult } from './useAnalysisStats';
 export { useStagedAnalysis, type StagedAnalysisResult } from './useStagedAnalysis';
 export { usePerformanceAnalysis } from './usePerformanceAnalysis';
