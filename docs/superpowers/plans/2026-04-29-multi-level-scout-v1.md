@@ -1931,7 +1931,7 @@ git commit -m "chore: ADR-074 boundary check script + pre-commit wiring"
 - Modify: `docs/decision-log.md` — close V1 implementation row in §4 (state `done`, Closed `2026-04-29`); update SCOUT Journey Map row to `shipped (multi-level V1)` with chrome-walk date.
 - Modify: `docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md` — strike "to be added" note now that the script ships.
 
-- [ ] **Step 16.1: Write feature docs (user-facing)**
+- [x] **Step 16.1: Write feature docs (user-facing)**
 
 Create `docs/03-features/analysis/timeline-window-investigations.md` with frontmatter (audience: user) — explain the four window types, when to use each, and where the picker lives.
 
@@ -1939,11 +1939,11 @@ Create `docs/03-features/analysis/multi-level-dashboard.md` — explain how clic
 
 (Each doc needs proper frontmatter per `scripts/docs-frontmatter-schema.mjs`.)
 
-- [ ] **Step 16.2: Write architecture doc (engineer-facing)**
+- [x] **Step 16.2: Write architecture doc (engineer-facing)**
 
 Create `docs/05-technical/architecture/timeline-window-architecture.md` — the `dataRouter` contract, the strategy + dataRouter integration, scope detection, how new metric modules plug in. Mirror the style of existing technical docs.
 
-- [ ] **Step 16.3: Update vision + glossary**
+- [x] **Step 16.3: Update vision + glossary**
 
 Edit `docs/01-vision/methodology.md` — add a short paragraph on temporal scope as part of Watson's third question.
 
@@ -1951,13 +1951,13 @@ Edit `docs/01-vision/eda-mental-model.md` — note that SCOUT loops gain window 
 
 Edit `docs/03-features/learning/glossary.md` and `packages/core/src/glossary/terms.ts` — add: timeline window, output rate, bottleneck, finding drift, hub-time, investigation-time.
 
-- [ ] **Step 16.4: Update journey docs**
+- [x] **Step 16.4: Update journey docs**
 
 Edit `docs/USER-JOURNEYS.md`, `docs/USER-JOURNEYS-CAPABILITY.md` — mention the timeline picker in the journey spine.
 
 (Other per-mode files get full updates in V3 — V1 only updates Standard EDA + Capability journey.)
 
-- [ ] **Step 16.5: Update agent / package CLAUDE.md files**
+- [x] **Step 16.5: Update agent / package CLAUDE.md files**
 
 Edit `docs/llms.txt` — add new feature doc paths + architecture doc as priority entry points.
 
@@ -1968,7 +1968,7 @@ Edit `apps/azure/CLAUDE.md` and `apps/pwa/CLAUDE.md` (mention the multi-level su
 
 (Each edit is 1-3 sentences; preserve the host file's voice.)
 
-- [ ] **Step 16.6: Lifecycle updates**
+- [x] **Step 16.6: Lifecycle updates**
 
 In `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md`: change `status: draft` to `status: delivered`. Update `last-reviewed`.
 
@@ -1982,7 +1982,7 @@ Add a memory entry at `~/.claude/projects/.../memory/project_multi_level_scout.m
 
 Update `~/.claude/projects/.../memory/MEMORY.md` index — add the new entry; remove or supersede the older FRAME thin-spot entry per the deferral.
 
-- [ ] **Step 16.8: Run final pre-merge gate**
+- [x] **Step 16.8: Run final pre-merge gate**
 
 ```bash
 bash scripts/pr-ready-check.sh

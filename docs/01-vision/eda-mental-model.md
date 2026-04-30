@@ -68,6 +68,8 @@ Step 1 produces the first version of the analysis plan: the issue statement, the
 
 Steps 2-4 are iterative. The analyst does not pass through them once — they cycle through them repeatedly, each iteration producing a more refined understanding. This is the EDA inner loop, and it is the heart of the methodology.
 
+In VariScout's multi-level SCOUT, each loop carries an explicit **timeline window** — fixed, rolling, open-ended, or cumulative — so the temporal scope of every iteration is preserved alongside its filters and findings. See [Timeline Windows in Investigations](../03-features/analysis/timeline-window-investigations.md).
+
 For full thesis excerpts and figure descriptions, see [Turtiainen (2019) Reference](references/turtiainen-2019-eda-mental-model.md).
 
 ---

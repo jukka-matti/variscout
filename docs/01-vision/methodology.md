@@ -210,6 +210,8 @@ A critical distinction underpins the investigation flow:
 - **Issue Statement** (the input): A vague concern that initiates the investigation. Example: _"Fill weight on line 3 seems too variable."_ Watson (2019a) defines an issue as a concern arising from a gap between customer expectation and observation.
 - **Problem Statement** (the output): A precise declaration answering Watson's three questions: (1) What measure needs to change? (2) How should it change? (3) What is the scope? Example: _"Reduce fill weight variation on line 3, night shift, heads 5-8, from Cpk 0.62 to target Cpk 1.33."_
 
+**Temporal scope is part of the third question.** The "when does this happen?" dimension is captured by a **timeline window** on the investigation — a tagged variant of fixed, rolling, open-ended, or cumulative — that travels with every chart, every Finding, and every drift comparison. Without an explicit window, "scope" stays vague; with one, the analysis can answer "this happens during these dates, on this rolling horizon, since this start" precisely. See [Timeline Windows in Investigations](../03-features/analysis/timeline-window-investigations.md).
+
 The gap between the two is the entire EDA journey. Every question asked and answered in VariScout exists to close this gap.
 
 #### Question Generation

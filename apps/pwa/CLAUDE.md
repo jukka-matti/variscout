@@ -12,7 +12,7 @@ Free PWA. Session-only (no persistence), Context-based state, education tier.
 
 - State via React Context (`DataContext`). No Zustand stores in PWA.
 - Embedded mode supported for iframes (see flows in `docs/02-journeys/flows/pwa-education.md`).
-- Entry: `src/components/Dashboard.tsx`.
+- Entry: `src/components/Dashboard.tsx`. Hosts the timeline-window picker in the dashboard chrome (investigation-time, default `open-ended`); session-local in V1.
 
 ## Test command
 

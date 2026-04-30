@@ -2,8 +2,9 @@
 title: Multi-level SCOUT — design
 audience: [product, designer, engineer, analyst]
 category: design-spec
-status: draft
+status: delivered
 date: 2026-04-29
+last-reviewed: 2026-04-30
 related:
   - process-learning-operating-model
   - investigation-scope-and-drill-semantics

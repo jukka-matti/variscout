@@ -16,6 +16,7 @@ Azure Team App — Feature-Sliced Design with Zustand feature stores, IndexedDB 
 - App Insights wired at `src/lib/appInsights.ts`. `services/storage.ts` is the facade for both local + cloud.
 - Domain stores from `@variscout/stores` are the source of truth for project/investigation/improvement/session data. Feature stores hold UI-only state.
 - File Picker: local files only (`components/FileBrowseButton.tsx`). SharePoint picker removed per ADR-059.
+- Multi-level surfaces: SCOUT dashboard (investigation-time picker) and Hub Capability tab (hub-time, rolling default matched to cadence) link as peers; ADR-074 boundary policy applies.
 
 ## Test command
 
