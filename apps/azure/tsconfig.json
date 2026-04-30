@@ -4,7 +4,6 @@
     "types": ["@testing-library/jest-dom/vitest"],
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@variscout/core": ["../../packages/core/src"],
