@@ -18,6 +18,7 @@
  */
 import React, { useState } from 'react';
 import {
+  CpkTargetInput,
   ProductionLineGlanceDashboard,
   ProductionLineGlanceFilterStrip,
   TimelineWindowPicker,
@@ -34,11 +35,20 @@ import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core'
 
 export interface ProcessHubCapabilityTabProps {
   rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  /**
+   * Persist the hub-level Cpk target default. Writes to
+   * `processHub.reviewSignal.capability.cpkTarget` (cascade level "hub").
+   * `undefined` clears the hub-level default.
+   */
+  onHubCpkTargetCommit: (hubId: string, next: number | undefined) => void;
 }
 
 const DEFAULT_WINDOW: TimelineWindow = { kind: 'cumulative' };
 
-export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = ({ rollup }) => {
+export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = ({
+  rollup,
+  onHubCpkTargetCommit,
+}) => {
   const provision = useHubProvision({ rollup });
   const filter = useProductionLineGlanceFilter();
 
@@ -91,8 +101,14 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
         value={filter.value}
         onChange={filter.onChange}
       />
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-edge bg-surface">
+      <div className="flex flex-wrap items-center gap-3 px-3 py-2 border-b border-edge bg-surface">
         <TimelineWindowPicker window={window} onChange={setWindow} />
+        <CpkTargetInput
+          value={rollup.hub.reviewSignal?.capability?.cpkTarget}
+          onCommit={next => onHubCpkTargetCommit(rollup.hub.id, next)}
+          columnLabel={`hub: ${rollup.hub.name}`}
+          data-testid="hub-capability-cpk-target"
+        />
       </div>
       <div className="flex-1 min-h-0">
         <ProductionLineGlanceDashboard

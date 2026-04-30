@@ -181,6 +181,8 @@ export {
   type CharacteristicTypeSelectorProps,
 } from './components/CharacteristicTypeSelector';
 
+export { CpkTargetInput, type CpkTargetInputProps } from './components/CpkTargetInput';
+
 export {
   CapabilityHistogram,
   type CapabilityHistogramProps,

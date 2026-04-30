@@ -79,6 +79,16 @@ export interface ProcessHub {
    * both uniformly. Declaration location is UX metadata.
    */
   contextColumns?: string[];
+  /**
+   * Hub-level review signal — analyst-set defaults that cascade to every
+   * investigation linked to this hub. Currently the only field set by UI is
+   * `capability.cpkTarget` (Hub Capability tab header editor). Other fields
+   * remain reserved for future explicit hub-level signals; the rollup-derived
+   * read-only signal still fills them when this is undefined.
+   *
+   * See `docs/05-technical/architecture/capability-target-cascade.md`.
+   */
+  reviewSignal?: HubReviewSignal;
 }
 
 export const DEFAULT_PROCESS_HUB: ProcessHub = {
@@ -515,7 +525,11 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
         currentUnderstandingSummary: summarySource?.metadata?.currentUnderstandingSummary,
         problemConditionSummary: summarySource?.metadata?.problemConditionSummary,
         nextMove: summarySource?.metadata?.nextMove,
-        reviewSignal: reviewSignalSource?.metadata?.reviewSignal,
+        // Hub-level reviewSignal (analyst-set) wins over investigation-derived.
+        // Today only `capability.cpkTarget` is set on the hub directly; the
+        // investigation-derived signal still provides the rest of the fields
+        // when no hub-level signal exists.
+        reviewSignal: hub.reviewSignal ?? reviewSignalSource?.metadata?.reviewSignal,
         evidenceSnapshots,
         sustainmentRecords,
         controlHandoffs,

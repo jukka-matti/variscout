@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { ProcessHubCapabilityTab } from '../ProcessHubCapabilityTab';
 import type {
   ProcessHubInvestigation,
@@ -89,13 +89,13 @@ describe('ProcessHubCapabilityTab', () => {
   });
 
   it('renders the dashboard with Mix node visible', () => {
-    render(<ProcessHubCapabilityTab rollup={rollup} />);
+    render(<ProcessHubCapabilityTab rollup={rollup} onHubCpkTargetCommit={vi.fn()} />);
     // The Mix label appears as a category in CapabilityBoxplot
     expect(screen.getAllByText('Mix').length).toBeGreaterThan(0);
   });
 
   it('renders the filter strip with hub-level chips populated from data', () => {
-    render(<ProcessHubCapabilityTab rollup={rollup} />);
+    render(<ProcessHubCapabilityTab rollup={rollup} onHubCpkTargetCommit={vi.fn()} />);
     expect(screen.getByText('product')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Coke/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sprite/ })).toBeInTheDocument();
@@ -106,7 +106,43 @@ describe('ProcessHubCapabilityTab', () => {
       hub,
       investigations: [],
     } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
-    render(<ProcessHubCapabilityTab rollup={emptyRollup} />);
+    render(<ProcessHubCapabilityTab rollup={emptyRollup} onHubCpkTargetCommit={vi.fn()} />);
     expect(screen.getByText(/no mapped/i)).toBeInTheDocument();
+  });
+
+  it('renders the hub-level Cpk target editor with the persisted value', () => {
+    const hubWithTarget = {
+      ...hub,
+      reviewSignal: {
+        rowCount: 0,
+        outcome: '',
+        computedAt: '2026-04-29T00:00:00.000Z',
+        changeSignals: {
+          total: 0,
+          outOfControlCount: 0,
+          nelsonRule2Count: 0,
+          nelsonRule3Count: 0,
+        },
+        capability: { outOfSpecPercentage: 0, cpkTarget: 1.67 },
+      },
+    } as unknown as ProcessHub;
+    const r = {
+      hub: hubWithTarget,
+      investigations: [member],
+    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    render(<ProcessHubCapabilityTab rollup={r} onHubCpkTargetCommit={vi.fn()} />);
+    const wrapper = screen.getByTestId('hub-capability-cpk-target');
+    const input = wrapper.querySelector('input') as HTMLInputElement;
+    expect(input.value).toBe('1.67');
+  });
+
+  it('calls onHubCpkTargetCommit when the editor commits a new value', () => {
+    const onHubCpkTargetCommit = vi.fn();
+    render(<ProcessHubCapabilityTab rollup={rollup} onHubCpkTargetCommit={onHubCpkTargetCommit} />);
+    const wrapper = screen.getByTestId('hub-capability-cpk-target');
+    const input = wrapper.querySelector('input') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '1.5' } });
+    fireEvent.blur(input);
+    expect(onHubCpkTargetCommit).toHaveBeenCalledWith('h1', 1.5);
   });
 });

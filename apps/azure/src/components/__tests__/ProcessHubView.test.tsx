@@ -36,6 +36,7 @@ const baseProps = {
   onChipClick: noop,
   onFindingSelect: noop,
   persistInvestigation: vi.fn(),
+  onHubCpkTargetCommit: vi.fn(),
 } as const;
 
 describe('ProcessHubView', () => {
