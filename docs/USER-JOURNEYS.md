@@ -114,7 +114,11 @@ Every investigation - Standard, Yamazumi, Performance, Defect, Capability, or Pr
    process-understanding level: outcome, flow, or local mechanism. Three entry
    points per P5 (amended constitution): upfront hypothesis, evidence-ranked
    from data (Factor Intelligence), or observation-triggered (from a Four Lenses
-   finding). Problem Statement captures Watson's 3 Qs.
+   finding). Problem Statement captures Watson's 3 Qs. The Ocean spec editor
+   writes per-column (USL / LSL / target / cpkTarget) to the CTS column's
+   `measureSpecs` entry, so the per-characteristic capability bar is set at the
+   methodology's primary control-plan authoring surface and the cascade
+   (`resolveCpkTarget`) sees it everywhere downstream.
 
 2. **SCOUT.** Data is parsed (wide-form, stack columns, defect events all
    supported). Characteristic types are inferred. Analysis modes surface

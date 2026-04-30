@@ -205,7 +205,7 @@ describe('ProcessMapBase — CTS / ocean', () => {
     expect(next.ctsColumn).toBe('Fill_Weight');
   });
 
-  it('invokes onSpecsChange when target/USL/LSL inputs change', () => {
+  it('invokes onSpecsChange when target/USL/LSL inputs change (carries cpkTarget through)', () => {
     const onChange = vi.fn();
     const onSpecsChange = vi.fn();
     render(
@@ -217,10 +217,55 @@ describe('ProcessMapBase — CTS / ocean', () => {
         target={500}
         lsl={495}
         usl={505}
+        cpkTarget={1.67}
       />
     );
     fireEvent.change(screen.getByTestId('process-map-ocean-lsl'), { target: { value: '490' } });
-    expect(onSpecsChange).toHaveBeenCalledWith({ target: 500, usl: 505, lsl: 490 });
+    expect(onSpecsChange).toHaveBeenCalledWith({
+      target: 500,
+      usl: 505,
+      lsl: 490,
+      cpkTarget: 1.67,
+    });
+  });
+
+  it('renders the Cpk target input alongside USL/LSL/target when onSpecsChange is provided', () => {
+    render(
+      <ProcessMapBase
+        map={emptyMap()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        onSpecsChange={vi.fn()}
+        cpkTarget={1.33}
+      />
+    );
+    const input = screen.getByTestId('process-map-ocean-cpk-target') as HTMLInputElement;
+    expect(input).toBeInTheDocument();
+    expect(input.value).toBe('1.33');
+  });
+
+  it('emits a cpkTarget change via onSpecsChange when the Cpk target input is edited', () => {
+    const onSpecsChange = vi.fn();
+    render(
+      <ProcessMapBase
+        map={emptyMap()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        onSpecsChange={onSpecsChange}
+        target={500}
+        lsl={495}
+        usl={505}
+      />
+    );
+    fireEvent.change(screen.getByTestId('process-map-ocean-cpk-target'), {
+      target: { value: '2.0' },
+    });
+    expect(onSpecsChange).toHaveBeenCalledWith({
+      target: 500,
+      usl: 505,
+      lsl: 495,
+      cpkTarget: 2.0,
+    });
   });
 });
 

@@ -40,8 +40,15 @@ export interface ProcessMapBaseProps {
   usl?: number;
   /** Optional LSL. */
   lsl?: number;
-  /** Called when target/usl/lsl change. */
-  onSpecsChange?: (next: { target?: number; usl?: number; lsl?: number }) => void;
+  /** Optional per-characteristic Cpk target ("capability bar" for the CTS column). */
+  cpkTarget?: number;
+  /** Called when target/usl/lsl/cpkTarget change. Single shape; callers refactor. */
+  onSpecsChange?: (next: {
+    target?: number;
+    usl?: number;
+    lsl?: number;
+    cpkTarget?: number;
+  }) => void;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -236,9 +243,15 @@ interface OceanCardProps {
   target?: number;
   usl?: number;
   lsl?: number;
+  cpkTarget?: number;
   disabled?: boolean;
   onCtsChange: (column: string | undefined) => void;
-  onSpecsChange?: (next: { target?: number; usl?: number; lsl?: number }) => void;
+  onSpecsChange?: (next: {
+    target?: number;
+    usl?: number;
+    lsl?: number;
+    cpkTarget?: number;
+  }) => void;
 }
 
 const OceanCard: React.FC<OceanCardProps> = ({
@@ -247,6 +260,7 @@ const OceanCard: React.FC<OceanCardProps> = ({
   target,
   usl,
   lsl,
+  cpkTarget,
   disabled,
   onCtsChange,
   onSpecsChange,
@@ -284,13 +298,13 @@ const OceanCard: React.FC<OceanCardProps> = ({
         </select>
       </label>
       {onSpecsChange && (
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-2 gap-1">
           <label className="text-xs text-content-secondary">
             LSL
             <input
               type="number"
               value={lsl ?? ''}
-              onChange={e => onSpecsChange({ target, usl, lsl: toNum(e.target.value) })}
+              onChange={e => onSpecsChange({ target, usl, lsl: toNum(e.target.value), cpkTarget })}
               disabled={disabled}
               aria-label="Lower specification limit"
               className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
@@ -302,7 +316,7 @@ const OceanCard: React.FC<OceanCardProps> = ({
             <input
               type="number"
               value={target ?? ''}
-              onChange={e => onSpecsChange({ target: toNum(e.target.value), usl, lsl })}
+              onChange={e => onSpecsChange({ target: toNum(e.target.value), usl, lsl, cpkTarget })}
               disabled={disabled}
               aria-label="Target value"
               className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
@@ -314,11 +328,24 @@ const OceanCard: React.FC<OceanCardProps> = ({
             <input
               type="number"
               value={usl ?? ''}
-              onChange={e => onSpecsChange({ target, usl: toNum(e.target.value), lsl })}
+              onChange={e => onSpecsChange({ target, usl: toNum(e.target.value), lsl, cpkTarget })}
               disabled={disabled}
               aria-label="Upper specification limit"
               className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
               data-testid="process-map-ocean-usl"
+            />
+          </label>
+          <label className="text-xs text-content-secondary">
+            Cpk target
+            <input
+              type="number"
+              step="0.01"
+              value={cpkTarget ?? ''}
+              onChange={e => onSpecsChange({ target, usl, lsl, cpkTarget: toNum(e.target.value) })}
+              disabled={disabled}
+              aria-label="Capability target (Cpk)"
+              className="mt-1 w-full text-xs bg-surface-primary border border-edge rounded px-1 py-0.5 disabled:opacity-60"
+              data-testid="process-map-ocean-cpk-target"
             />
           </label>
         </div>
@@ -502,6 +529,7 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   target,
   usl,
   lsl,
+  cpkTarget,
   onSpecsChange,
 }) => {
   const sortedSteps = React.useMemo(
@@ -648,6 +676,7 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
           target={target}
           usl={usl}
           lsl={lsl}
+          cpkTarget={cpkTarget}
           disabled={disabled}
           onCtsChange={setCts}
           onSpecsChange={onSpecsChange}

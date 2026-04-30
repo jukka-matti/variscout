@@ -3,22 +3,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // vi.mock MUST come before component imports (per writing-tests skill / testing.md rule)
 
-vi.mock('@variscout/stores', () => {
-  const setProcessContext = vi.fn();
-  const setSpecs = vi.fn();
-  return {
-    useProjectStore: vi.fn((selector: (s: unknown) => unknown) =>
-      selector({
-        rawData: [],
-        outcome: null,
-        specs: null,
-        setSpecs,
-        processContext: null,
-        setProcessContext,
-      })
-    ),
-  };
-});
+const setProcessContextMock = vi.fn();
+const setMeasureSpecMock = vi.fn();
+const storeStateRef: { current: Record<string, unknown> } = {
+  current: {
+    rawData: [],
+    outcome: null,
+    measureSpecs: {},
+    setMeasureSpec: setMeasureSpecMock,
+    processContext: null,
+    setProcessContext: setProcessContextMock,
+  },
+};
+
+vi.mock('@variscout/stores', () => ({
+  useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
+}));
 
 vi.mock('@variscout/hooks', async () => {
   const actual = await import('@variscout/hooks');
@@ -57,11 +57,22 @@ vi.mock('@variscout/charts', async importOriginal => {
   };
 });
 
+import { fireEvent } from '@testing-library/react';
 import FrameView from '../FrameView';
 
 describe('FrameView (Plan C2 wiring)', () => {
   beforeEach(() => {
     window.history.replaceState(null, '', '/test');
+    setProcessContextMock.mockClear();
+    setMeasureSpecMock.mockClear();
+    storeStateRef.current = {
+      rawData: [],
+      outcome: null,
+      measureSpecs: {},
+      setMeasureSpec: setMeasureSpecMock,
+      processContext: null,
+      setProcessContext: setProcessContextMock,
+    };
   });
 
   it('renders LayeredProcessViewWithCapability composition (three bands + ops dashboard)', () => {
@@ -72,5 +83,59 @@ describe('FrameView (Plan C2 wiring)', () => {
     expect(screen.getByTestId('band-process-flow')).toBeInTheDocument();
     expect(screen.getByTestId('band-operations')).toBeInTheDocument();
     expect(screen.getByTestId('ops-band-dashboard')).toBeInTheDocument();
+  });
+
+  it('writes per-column to measureSpecs[ctsColumn] when LSL changes (Phase D)', () => {
+    storeStateRef.current = {
+      ...storeStateRef.current,
+      rawData: [{ Fill_Weight: 12, Machine: 'A' }],
+      processContext: {
+        processMap: {
+          version: 1,
+          nodes: [],
+          tributaries: [],
+          ctsColumn: 'Fill_Weight',
+          createdAt: '2026-04-29T00:00:00.000Z',
+          updatedAt: '2026-04-29T00:00:00.000Z',
+        },
+      },
+      measureSpecs: { Fill_Weight: { target: 12, usl: 13, lsl: 11 } },
+    };
+    render(<FrameView />);
+    fireEvent.change(screen.getByTestId('process-map-ocean-lsl'), { target: { value: '10.5' } });
+    expect(setMeasureSpecMock).toHaveBeenCalledWith('Fill_Weight', {
+      target: 12,
+      usl: 13,
+      lsl: 10.5,
+      cpkTarget: undefined,
+    });
+  });
+
+  it('writes per-column to measureSpecs[ctsColumn] when Cpk target changes (Phase D)', () => {
+    storeStateRef.current = {
+      ...storeStateRef.current,
+      rawData: [{ Fill_Weight: 12, Machine: 'A' }],
+      processContext: {
+        processMap: {
+          version: 1,
+          nodes: [],
+          tributaries: [],
+          ctsColumn: 'Fill_Weight',
+          createdAt: '2026-04-29T00:00:00.000Z',
+          updatedAt: '2026-04-29T00:00:00.000Z',
+        },
+      },
+      measureSpecs: { Fill_Weight: { target: 12, usl: 13, lsl: 11 } },
+    };
+    render(<FrameView />);
+    fireEvent.change(screen.getByTestId('process-map-ocean-cpk-target'), {
+      target: { value: '1.67' },
+    });
+    expect(setMeasureSpecMock).toHaveBeenCalledWith('Fill_Weight', {
+      target: 12,
+      usl: 13,
+      lsl: 11,
+      cpkTarget: 1.67,
+    });
   });
 });

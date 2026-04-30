@@ -134,8 +134,23 @@ Surfaces wired this way today:
 Writers:
 
 - **Per-characteristic editor** (`SpecEditor`) — writes `usl`/`lsl`/`target`/`characteristicType`/`cpkTarget` via `setMeasureSpec(outcome, partial)`.
+- **FRAME Ocean spec editor** (`ProcessMapBase` `OceanCard`, surfaced through `LayeredProcessView` / `LayeredProcessViewWithCapability`) — writes per-column to `measureSpecs[ctsColumn]` via `setMeasureSpec(ctsColumn, { target, usl, lsl, cpkTarget })`. See the "FRAME workspace" section below.
 - **Inline quick-tweak** (`ProcessHealthBar.onCpkTargetCommit`) — writes only `cpkTarget` via `setMeasureSpec(outcome, { cpkTarget })`. Adds a `columnLabel` chip so users see which column they are tuning.
 - **Project-wide setup writer** (`PerformanceSetupPanel`) — retains `setCpkTarget` for the multi-channel setup flow. Acts as the cascade fallback when no per-column override is set.
+
+## FRAME workspace
+
+The FRAME workspace is the primary control-plan authoring surface in VariScout — it's where the user names the customer-felt outcome (CTS), the per-step CTQs, the tributary factors, and the spec limits the methodology will grade against. Its Ocean card carries the spec editor for the CTS column.
+
+Phase D wires that editor through the per-column cascade:
+
+- The Ocean card reads `target` / `usl` / `lsl` / `cpkTarget` props and renders LSL / Target / USL / Cpk target inputs in a 2×2 grid.
+- `FrameView` (Azure + PWA) selects `measureSpecs[map.ctsColumn]` from `projectStore` and passes the four spec fields down to `LayeredProcessViewWithCapability`.
+- On any edit the Ocean card emits `{ target?, usl?, lsl?, cpkTarget? }`; `FrameView` writes via `setMeasureSpec(ctsColumn, partial)`.
+- When no CTS column is picked yet, the Ocean card still renders, but `FrameView` silently no-ops on edit until a column is chosen — the spec edit needs a key to write under.
+- Gap detection (`detectGaps`) reads the same `measureSpecs[ctsColumn]` rather than the legacy project-wide `specs`, so the "no specification limits" required-gap clears the moment the user fills an LSL or USL on the CTS column.
+
+The legacy project-wide `useProjectStore.specs` / `setSpecs` API is no longer touched by FRAME. Per-step CTQ specs (per-StepCard USL / LSL / target / cpkTarget editor) are deferred — see `feature-backlog.md` "Per-step CTQ specs editor" under "Deferred to V2".
 
 The legacy `useProjectStore.specs` / `setSpecs` API remains for passive fallback when no `outcome` is in scope — no shipped surface writes to it from the SpecEditor / ProcessHealthBar paths anymore.
 

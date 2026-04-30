@@ -27,7 +27,13 @@ export interface LayeredProcessViewProps {
   target?: number;
   usl?: number;
   lsl?: number;
-  onSpecsChange?: (next: { target?: number; usl?: number; lsl?: number }) => void;
+  cpkTarget?: number;
+  onSpecsChange?: (next: {
+    target?: number;
+    usl?: number;
+    lsl?: number;
+    cpkTarget?: number;
+  }) => void;
   /** Optional content rendered inside the Operations band. When provided,
    * tributary chips relocate to the Outcome band as a 'Mapped factors'
    * subsection. Plan C2. */
@@ -46,11 +52,13 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
   target,
   usl,
   lsl,
+  cpkTarget,
   onSpecsChange,
   operationsBandContent,
   filterStripContent,
 }) => {
-  const hasOutcomeData = target !== undefined || usl !== undefined || lsl !== undefined;
+  const hasOutcomeData =
+    target !== undefined || usl !== undefined || lsl !== undefined || cpkTarget !== undefined;
 
   const tributariesContent =
     map.tributaries.length > 0 ? (
@@ -105,6 +113,12 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
                 <dd>{lsl}</dd>
               </div>
             )}
+            {cpkTarget !== undefined && (
+              <div className="flex gap-1">
+                <dt className="font-medium">Cpk target:</dt>
+                <dd>{cpkTarget}</dd>
+              </div>
+            )}
           </dl>
         ) : (
           <p className="mt-2 text-sm text-content-secondary italic">No outcome target set</p>
@@ -132,6 +146,7 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
             target={target}
             usl={usl}
             lsl={lsl}
+            cpkTarget={cpkTarget}
             onSpecsChange={onSpecsChange}
           />
         </div>
