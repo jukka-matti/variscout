@@ -364,6 +364,12 @@ export {
   type DefectTypeSelectorProps,
 } from './components/EvidenceMap/DefectTypeSelector';
 
+// Timeline Window Picker (four-kind window selector for multi-level SCOUT)
+export {
+  TimelineWindowPicker,
+  type TimelineWindowPickerProps,
+} from './components/TimelineWindowPicker';
+
 // Evidence Map Insufficient Data State (empty state when defect type lacks data)
 export {
   InsufficientDataState,
