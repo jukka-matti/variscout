@@ -103,10 +103,18 @@ export interface PerformanceSetupPanelBaseProps {
   initialSelection?: string[];
   /** Initial label (for modal) */
   initialLabel?: string;
-  /** Initial Cpk target value */
+  /** Initial Cpk target value (applied uniformly to all selected channels on submit) */
   initialCpkTarget?: number;
-  /** Callback when setup is confirmed */
-  onEnable: (columns: string[], label: string, cpkTarget: number) => void;
+  /**
+   * Callback when setup is confirmed.
+   *
+   * The wizard exposes a single Cpk-target input that applies to every selected channel
+   * (preserving the "set up Performance mode for these N channels with this bar" mental
+   * model). On submit, the same target is mapped onto every selected channel column and
+   * emitted as `cpkTargetPerChannel`. Consumers should write each entry through
+   * `setMeasureSpec(column, { cpkTarget })` so resolution stays per-characteristic.
+   */
+  onEnable: (columns: string[], label: string, cpkTargetPerChannel: Record<string, number>) => void;
   /** Callback when cancelled (modal only) */
   onCancel?: () => void;
   /** Callback to navigate to settings */
@@ -131,7 +139,7 @@ export interface PerformanceSetupPanelBaseProps {
  *   availableColumns={columns}
  *   hasData={true}
  *   hasSpecs={true}
- *   onEnable={(cols, label, target) => { ... }}
+ *   onEnable={(cols, label, cpkTargetPerChannel) => { ... }}
  *   colorScheme={pwaColorScheme}
  * />
  *
@@ -141,7 +149,7 @@ export interface PerformanceSetupPanelBaseProps {
  *   availableColumns={columns}
  *   hasData={true}
  *   hasSpecs={true}
- *   onEnable={(cols, label, target) => { ... }}
+ *   onEnable={(cols, label, cpkTargetPerChannel) => { ... }}
  *   tierProps={{ tier, maxChannels, upgradeUrl, validateChannels }}
  * />
  * ```
@@ -191,7 +199,11 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
   }, [availableColumns]);
 
   const handleEnable = useCallback(() => {
-    onEnable(selectedColumns, label, targetValue);
+    const cpkTargetPerChannel: Record<string, number> = {};
+    for (const column of selectedColumns) {
+      cpkTargetPerChannel[column] = targetValue;
+    }
+    onEnable(selectedColumns, label, cpkTargetPerChannel);
   }, [selectedColumns, label, targetValue, onEnable]);
 
   // No data loaded
