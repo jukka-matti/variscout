@@ -70,7 +70,7 @@ Deferred to V2 (decision points along the way):
 - [ ] **Specs table (bulk audit surface)** — Settings panel listing all columns × USL × LSL × target × cpkTarget. Real value for review/handoff. Needs sort/filter/edit semantics design before scoping.
 - [ ] **Hub Capability tab header editor** — Quick set of `processHub.reviewSignal.capability.cpkTarget`. Defer until Phase B/C ship and we see whether hub default needs an explicit editor.
 - [ ] **Provenance labels** — Small "(per-spec)" / "(hub default)" caption under each band. Add only if usability testing surfaces confusion when targets differ across columns.
-- [ ] **Reconcile `PerformanceSetupPanel`'s project-wide write path** — When Performance mode itself goes per-channel-spec.
+- [x] **Reconcile `PerformanceSetupPanel`'s project-wide write path** — Wizard now emits `cpkTargetPerChannel` and the Azure consumer fans out via `setMeasureSpec(column, { cpkTarget })` per selected channel; legacy `setCpkTarget` write removed from the setup flow.
 
 ### UX Polish — Probability Plot & Charts
 
