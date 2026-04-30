@@ -1840,7 +1840,7 @@ git commit -m "feat(ui): Finding card renders window-context footer when present
 - Modify: `package.json` (add npm script)
 - Modify: `.husky/pre-commit` (or `lint-staged` config) — add the check
 
-- [ ] **Step 15.1: Write the script**
+- [x] **Step 15.1: Write the script**
 
 ```bash
 #!/usr/bin/env bash
@@ -1884,7 +1884,7 @@ echo "✓ ADR-074 boundaries clean"
 chmod +x scripts/check-level-boundaries.sh
 ```
 
-- [ ] **Step 15.2: Add npm script + pre-commit hook**
+- [x] **Step 15.2: Add npm script + pre-commit hook**
 
 In `package.json` `scripts`:
 
@@ -1898,7 +1898,7 @@ In `.husky/pre-commit` (or add to `lint-staged.config.js`):
 bash scripts/check-level-boundaries.sh
 ```
 
-- [ ] **Step 15.3: Run + commit**
+- [x] **Step 15.3: Run + commit**
 
 ```bash
 bash scripts/check-level-boundaries.sh
