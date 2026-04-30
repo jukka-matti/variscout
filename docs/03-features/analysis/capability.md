@@ -117,14 +117,18 @@ When no specifications are configured, the top strip shows only basic statistics
 
 ---
 
-## Capability Grades
+## Capability Grades (target-relative)
 
-| Cpk       | Grade     | Interpretation |
-| --------- | --------- | -------------- |
-| ≥1.67     | Excellent | Very capable   |
-| 1.33-1.67 | Good      | Capable        |
-| 1.00-1.33 | Marginal  | Barely capable |
-| <1.00     | Poor      | Not capable    |
+VariScout grades Cpk relative to a **user-set Cpk target** (default `1.33`), not against fixed literature thresholds. The target is configurable per investigation (in the Spec editor) and per hub (on the capability signal). Raising the target raises the bar.
+
+| Surface                          | Green          | Amber                      | Red                   |
+| -------------------------------- | -------------- | -------------------------- | --------------------- |
+| Process moments (`statusForCpk`) | `cpk ≥ target` | `cpk ≥ target × 0.75`      | `cpk < target × 0.75` |
+| Report KPI grids (`getCpkColor`) | `cpk ≥ target` | `cpk ≥ 1.0` and `< target` | `cpk < 1.0`           |
+
+The two surfaces share the green threshold (always `target`); they differ slightly on the amber/red split. Source of truth: `statusForCpk` in `packages/core/src/processMoments.ts` and `getCpkColor` in `packages/ui/src/components/ReportView/ReportKPIGrid.tsx`.
+
+For reference, the canonical literature thresholds (≥1.67 excellent, 1.33–1.67 good, 1.00–1.33 marginal, <1.00 not capable) are what most process-improvement texts assume when the analyst hasn't set a target. With `target = 1.33`, VariScout's green/red boundary aligns with the literature "capable" line.
 
 ### Dashboard Behavior in Capability Mode
 
