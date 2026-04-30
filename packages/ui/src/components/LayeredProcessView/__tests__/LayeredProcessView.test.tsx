@@ -1,5 +1,5 @@
-import { render, screen, within } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { render, screen, within, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { LayeredProcessView } from '../LayeredProcessView';
 import type { ProcessMap } from '@variscout/core/frame';
 
@@ -248,5 +248,30 @@ describe('LayeredProcessView', () => {
     // Outcome and Operations show their placeholders
     expect(screen.getByTestId('band-outcome')).toHaveTextContent('No outcome target set');
     expect(screen.getByTestId('band-operations')).toHaveTextContent('No factors mapped yet');
+  });
+
+  it('threads stepSpecs + onStepSpecsChange through to the embedded ProcessMapBase StepCard (Task B)', () => {
+    const mapWithCtq: ProcessMap = {
+      ...emptyMap,
+      nodes: [{ id: 'step-1', name: 'Fill', order: 0, ctqColumn: 'Fill_Weight' }],
+      tributaries: [],
+    };
+    const onStepSpecsChange = vi.fn();
+    render(
+      <LayeredProcessView
+        map={mapWithCtq}
+        availableColumns={['Fill_Weight']}
+        onChange={() => {}}
+        stepSpecs={{ Fill_Weight: { target: 500, lsl: 495, usl: 505 } }}
+        onStepSpecsChange={onStepSpecsChange}
+      />
+    );
+    const usl = screen.getByTestId('process-map-step-specs-step-1-usl') as HTMLInputElement;
+    expect(usl.value).toBe('505');
+    fireEvent.change(usl, { target: { value: '510' } });
+    expect(onStepSpecsChange).toHaveBeenCalledWith(
+      'Fill_Weight',
+      expect.objectContaining({ usl: 510, lsl: 495, target: 500 })
+    );
   });
 });
