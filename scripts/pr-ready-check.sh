@@ -55,6 +55,12 @@ run_step "tests (turbo)"       pnpm test
 run_step "lint (turbo)"        pnpm lint
 run_step "docs:check"          pnpm docs:check
 
+# PWA build + dist integrity. Catches the stale-chunk-hash regression class
+# (index.html referencing /assets/X.js that doesn't exist on disk) before
+# merge. Build first so the integrity check has fresh output to inspect.
+run_step "pwa build"           pnpm --filter @variscout/pwa build
+run_step "dist integrity (PWA)" node scripts/check-dist-integrity.mjs apps/pwa/dist
+
 echo ""
 echo "=== Summary ==="
 if [ "$FAILED" -eq 0 ]; then
