@@ -1,5 +1,6 @@
 import React, { Suspense, useCallback, useState, useEffect, useMemo } from 'react';
 import { downloadCSV } from './lib/export';
+import { lazyWithRetry } from './lib/chunkReload';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
@@ -61,21 +62,23 @@ import { useStatsWorker } from './workers/useStatsWorker';
 
 // Lazy-loaded heavy components for code splitting
 const dashboardImport = () => import('./components/Dashboard');
-const Dashboard = React.lazy(dashboardImport);
+const Dashboard = lazyWithRetry(dashboardImport);
 void dashboardImport(); // Prefetch so sample→Dashboard transition is instant
-const HomeScreen = React.lazy(() => import('./components/HomeScreen'));
-const PasteScreen = React.lazy(() => import('./components/data/PasteScreen'));
-const ManualEntry = React.lazy(() => import('./components/data/ManualEntry'));
-const WhatIfPage = React.lazy(() => import('./components/WhatIfPage'));
-const SettingsPanel = React.lazy(() => import('./components/settings/SettingsPanel'));
-const DataTableModal = React.lazy(() => import('./components/data/DataTableModal'));
-const FindingsPanel = React.lazy(() => import('./components/FindingsPanel'));
-const YamazumiDashboard = React.lazy(() => import('./components/YamazumiDashboard'));
-const ProcessIntelligencePanel = React.lazy(() => import('./components/ProcessIntelligencePanel'));
-const FrameView = React.lazy(() => import('./components/views/FrameView'));
-const InvestigationView = React.lazy(() => import('./components/views/InvestigationView'));
-const ImprovementView = React.lazy(() => import('./components/views/ImprovementView'));
-const ReportView = React.lazy(() => import('./components/views/ReportView'));
+const HomeScreen = lazyWithRetry(() => import('./components/HomeScreen'));
+const PasteScreen = lazyWithRetry(() => import('./components/data/PasteScreen'));
+const ManualEntry = lazyWithRetry(() => import('./components/data/ManualEntry'));
+const WhatIfPage = lazyWithRetry(() => import('./components/WhatIfPage'));
+const SettingsPanel = lazyWithRetry(() => import('./components/settings/SettingsPanel'));
+const DataTableModal = lazyWithRetry(() => import('./components/data/DataTableModal'));
+const FindingsPanel = lazyWithRetry(() => import('./components/FindingsPanel'));
+const YamazumiDashboard = lazyWithRetry(() => import('./components/YamazumiDashboard'));
+const ProcessIntelligencePanel = lazyWithRetry(
+  () => import('./components/ProcessIntelligencePanel')
+);
+const FrameView = lazyWithRetry(() => import('./components/views/FrameView'));
+const InvestigationView = lazyWithRetry(() => import('./components/views/InvestigationView'));
+const ImprovementView = lazyWithRetry(() => import('./components/views/ImprovementView'));
+const ReportView = lazyWithRetry(() => import('./components/views/ReportView'));
 
 const LazyFallback = () => (
   <div className="flex items-center justify-center h-dvh">
