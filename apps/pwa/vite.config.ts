@@ -30,8 +30,7 @@ export default defineConfig(async () => {
       }),
       tailwindcss(),
       VitePWA({
-        registerType: 'prompt',
-        injectRegister: false,
+        registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
         manifest: {
           name: 'VariScout',
@@ -62,6 +61,7 @@ export default defineConfig(async () => {
         },
         workbox: {
           maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB
+          skipWaiting: true,
           clientsClaim: true,
           cleanupOutdatedCaches: true,
           navigateFallback: '/index.html',
