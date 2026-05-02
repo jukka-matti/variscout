@@ -52,7 +52,6 @@ import { computeCenteringOpportunity } from '@variscout/core/variation';
 import { useQuestionGeneration } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { EvidenceMapPopout } from './components/EvidenceMapPopout';
-import UpdatePrompt from './components/UpdatePrompt';
 import { useAppPanels } from './hooks/useAppPanels';
 import { useFindingsStore, groupFindingsByChart } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
@@ -1098,8 +1097,6 @@ function AppMain() {
           showImproveTab={true}
         />
       )}
-
-      <UpdatePrompt />
 
       {/* More bottom sheet (phone only) */}
       {mobileActiveTab === 'more' && isPhone && rawData.length > 0 && (
