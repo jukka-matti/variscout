@@ -6,11 +6,13 @@ interface RegisterSWArgs {
   onOfflineReady?: () => void;
 }
 
-const mockState = {
-  capturedOptions: undefined as RegisterSWArgs | undefined,
-  updateSW: vi.fn<(reloadPage?: boolean) => Promise<void>>(),
-  registerSW: vi.fn<(options: RegisterSWArgs) => void>(),
-};
+const { mockState } = vi.hoisted(() => ({
+  mockState: {
+    capturedOptions: undefined as RegisterSWArgs | undefined,
+    updateSW: vi.fn<(reloadPage?: boolean) => Promise<void>>(),
+    registerSW: vi.fn<(options: RegisterSWArgs) => void>(),
+  },
+}));
 
 vi.mock('virtual:pwa-register', () => ({
   registerSW: (options: RegisterSWArgs) => {
