@@ -66,7 +66,18 @@ const dashboardImport = () => import('./components/Dashboard');
 const Dashboard = lazyWithRetry(dashboardImport);
 void dashboardImport(); // Prefetch so sample→Dashboard transition is instant
 const HomeScreen = lazyWithRetry(() => import('./components/HomeScreen'));
-const PasteScreen = lazyWithRetry(() => import('./components/data/PasteScreen'));
+const pasteScreenImport = () => import('./components/data/PasteScreen');
+const PasteScreen = lazyWithRetry(pasteScreenImport);
+const schedulePrefetch = (fn: () => void): void => {
+  if (typeof window === 'undefined') return;
+  const ric = (window as Window & { requestIdleCallback?: (cb: () => void) => void })
+    .requestIdleCallback;
+  if (ric) ric(fn);
+  else window.setTimeout(fn, 1500);
+};
+schedulePrefetch(() => {
+  void pasteScreenImport().catch(() => {});
+});
 const ManualEntry = lazyWithRetry(() => import('./components/data/ManualEntry'));
 const WhatIfPage = lazyWithRetry(() => import('./components/WhatIfPage'));
 const SettingsPanel = lazyWithRetry(() => import('./components/settings/SettingsPanel'));
