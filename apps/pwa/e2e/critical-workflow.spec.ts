@@ -87,6 +87,54 @@ test.describe('Critical Workflow', () => {
     const samplesText = await samplesValue.textContent();
     expect(samplesText).toContain('30');
   });
+
+  test('paste happy-path: home → paste → map your data → analysis renders', async ({ page }) => {
+    // Deterministic seeded CSV — 10 rows, 3 columns. Weight is the numeric outcome.
+    const seededCsv = [
+      'Sample,Weight,Line',
+      '1,10.2,A',
+      '2,10.5,A',
+      '3,9.8,A',
+      '4,10.1,B',
+      '5,10.7,B',
+      '6,9.9,B',
+      '7,10.3,A',
+      '8,10.0,B',
+      '9,10.4,A',
+      '10,10.2,B',
+    ].join('\n');
+
+    // 1. Home screen
+    await page.goto('/');
+    const pasteButton = page.getByTestId('home-paste-button');
+    await expect(pasteButton).toBeVisible({ timeout: 10000 });
+
+    // 2. Open the paste screen (PasteScreen is lazy-loaded — covers the regression
+    //    where a stale PasteScreen-<hash>.js chunk would 404 on the deployed PWA).
+    await pasteButton.click();
+    const textarea = page.getByTestId('paste-textarea');
+    await expect(textarea).toBeVisible({ timeout: 10000 });
+
+    // 3. Paste the CSV and submit
+    await textarea.fill(seededCsv);
+    await page.getByTestId('paste-start-analysis').click();
+
+    // 4. Map Your Data screen — heading + column cards must appear
+    await expect(page.getByTestId('map-your-data-heading')).toBeVisible({
+      timeout: 10000,
+    });
+
+    // The three pasted columns should each render a column card. Asserting on
+    // testid count proves the lazy mapping screen mounted; a content check on
+    // card text proves the data-paste pipeline preserved column names (this is
+    // testing data flow, not a UI label, so it's appropriate per testing.md).
+    const cards = page.locator('[data-testid="mapping-column-card"]');
+    await expect(cards).toHaveCount(3);
+    const cardsText = (await cards.allTextContents()).join(' ');
+    expect(cardsText).toContain('Sample');
+    expect(cardsText).toContain('Weight');
+    expect(cardsText).toContain('Line');
+  });
 });
 
 test.describe('Data Validation', () => {

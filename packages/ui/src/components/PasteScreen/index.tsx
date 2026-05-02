@@ -119,6 +119,7 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
           <textarea
             id="paste-data"
             name="paste-data"
+            data-testid="paste-textarea"
             ref={textareaRef}
             value={text}
             onChange={e => setText(e.target.value)}
@@ -157,6 +158,7 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
           </button>
 
           <button
+            data-testid="paste-start-analysis"
             onClick={handleAnalyze}
             disabled={!hasText || isAnalyzing}
             className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl transition-colors ${c.analyzeButton}`}

@@ -54,6 +54,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
         {/* Paste from Excel button — primary action */}
         <button
+          data-testid="home-paste-button"
           onClick={onOpenPaste}
           className="w-full flex items-center justify-center gap-3 p-5 bg-gradient-to-r from-blue-600/20 to-blue-500/10 hover:from-blue-600/30 hover:to-blue-500/20 border border-blue-500/30 hover:border-blue-400/50 rounded-2xl transition-all group"
         >

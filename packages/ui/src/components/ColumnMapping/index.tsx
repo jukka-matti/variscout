@@ -348,7 +348,9 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             <div className="p-2 bg-blue-600/20 text-blue-400 rounded-lg">
               <Settings2 size={24} />
             </div>
-            <h2 className="text-xl font-bold text-white">{t('data.mapHeading')}</h2>
+            <h2 data-testid="map-your-data-heading" className="text-xl font-bold text-white">
+              {t('data.mapHeading')}
+            </h2>
           </div>
           <p className="text-slate-400 text-sm">
             Confirm which columns to analyze from <strong>{datasetName}</strong>. You can adjust

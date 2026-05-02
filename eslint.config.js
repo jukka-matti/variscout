@@ -29,7 +29,7 @@ export default [
   // recommended-latest includes purity, immutability, refs, static-components etc.
   reactHooks.configs.flat['recommended-latest'],
   {
-    files: ['**/src/**/*.{ts,tsx}'],
+    files: ['**/src/**/*.{ts,tsx}', 'apps/*/e2e/**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

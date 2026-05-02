@@ -126,6 +126,7 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
 
   return (
     <Wrapper
+      data-testid="mapping-column-card"
       className={`flex flex-col gap-1.5 p-3 rounded-lg border cursor-pointer transition-all text-left ${borderClass}`}
       onClick={disabled ? undefined : isOutcome ? undefined : onSelect}
       onKeyDown={
