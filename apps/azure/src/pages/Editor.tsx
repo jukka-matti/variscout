@@ -1,4 +1,5 @@
-import React, { useMemo, useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
+import React, { useMemo, useEffect, useState, useCallback, useRef, Suspense } from 'react';
+import { lazyWithRetry } from '../lib/chunkReload';
 import type { SampleDataset } from '@variscout/data';
 import { useStorage } from '../services/storage';
 import type { StorageLocation } from '../services/storage';
@@ -105,8 +106,8 @@ import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
 import { useAIStore } from '../features/ai/aiStore';
 
-const WhatIfPage = lazy(() => import('../components/WhatIfPage'));
-const ReportView = lazy(() => import('../components/views/ReportView'));
+const WhatIfPage = lazyWithRetry(() => import('../components/WhatIfPage'));
+const ReportView = lazyWithRetry(() => import('../components/views/ReportView'));
 
 const INVESTIGATION_DEPTHS: InvestigationDepth[] = ['quick', 'focused', 'chartered'];
 const INVESTIGATION_STATUSES: InvestigationStatus[] = [

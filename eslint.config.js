@@ -23,13 +23,13 @@ const testGlobals = {
 export default [
   js.configs.recommended,
   {
-    ignores: ['dist/**', 'node_modules/**', '*.config.js', '*.config.ts'],
+    ignores: ['dist/**', 'node_modules/**', '**/*.config.js', '**/*.config.ts'],
   },
   // React Compiler validation rules (from eslint-plugin-react-hooks v7+)
   // recommended-latest includes purity, immutability, refs, static-components etc.
   reactHooks.configs.flat['recommended-latest'],
   {
-    files: ['**/src/**/*.{ts,tsx}'],
+    files: ['**/src/**/*.{ts,tsx}', 'apps/*/e2e/**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
