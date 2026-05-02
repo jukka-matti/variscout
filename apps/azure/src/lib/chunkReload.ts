@@ -28,10 +28,19 @@ export async function loadWithChunkRetry<T>(importer: () => Promise<T>): Promise
   } catch (error) {
     if (!isChunkLoadError(error)) throw error;
 
-    const alreadyAttempted = window.sessionStorage.getItem(RELOAD_SENTINEL) === '1';
+    let alreadyAttempted = false;
+    try {
+      alreadyAttempted = window.sessionStorage.getItem(RELOAD_SENTINEL) === '1';
+    } catch {
+      // noop
+    }
     if (alreadyAttempted) throw error;
 
-    window.sessionStorage.setItem(RELOAD_SENTINEL, '1');
+    try {
+      window.sessionStorage.setItem(RELOAD_SENTINEL, '1');
+    } catch {
+      // noop
+    }
     await evictWorkboxPrecaches();
     window.location.reload();
     return new Promise<T>(() => {});

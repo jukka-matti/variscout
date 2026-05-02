@@ -59,24 +59,26 @@ describe('loadWithChunkRetry', () => {
   });
 
   it('reloads, sets sentinel, and evicts workbox-precache-* on first ChunkLoadError', async () => {
-    const err = new Error('Loading chunk PasteScreen failed');
-    err.name = 'ChunkLoadError';
+    vi.useFakeTimers();
+    try {
+      const err = new Error('Loading chunk PasteScreen failed');
+      err.name = 'ChunkLoadError';
 
-    const racePromise = Promise.race([
-      loadWithChunkRetry(async () => {
+      void loadWithChunkRetry(async () => {
         throw err;
-      }).then(() => 'resolved' as const),
-      new Promise<'pending'>(resolve => setTimeout(() => resolve('pending'), 50)),
-    ]);
+      });
 
-    const outcome = await racePromise;
-    expect(outcome).toBe('pending');
-    expect(reloadSpy).toHaveBeenCalledTimes(1);
-    expect(window.sessionStorage.getItem(RELOAD_SENTINEL)).toBe('1');
-    expect(cachesMock.delete).toHaveBeenCalledWith('workbox-precache-v2-https://example.com/');
-    expect(cachesMock.delete).toHaveBeenCalledWith('workbox-precache-v2-other');
-    expect(cachesMock.delete).not.toHaveBeenCalledWith('workbox-runtime-cache');
-    expect(cachesMock.delete).not.toHaveBeenCalledWith('js-cache');
+      await vi.runAllTimersAsync();
+
+      expect(reloadSpy).toHaveBeenCalledTimes(1);
+      expect(window.sessionStorage.getItem(RELOAD_SENTINEL)).toBe('1');
+      expect(cachesMock.delete).toHaveBeenCalledWith('workbox-precache-v2-https://example.com/');
+      expect(cachesMock.delete).toHaveBeenCalledWith('workbox-precache-v2-other');
+      expect(cachesMock.delete).not.toHaveBeenCalledWith('workbox-runtime-cache');
+      expect(cachesMock.delete).not.toHaveBeenCalledWith('js-cache');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('rethrows on second ChunkLoadError when sentinel is already set', async () => {
@@ -94,18 +96,21 @@ describe('loadWithChunkRetry', () => {
   });
 
   it('reloads on a non-ChunkLoadError name when message matches the dynamic-import pattern', async () => {
-    const err = new Error('Failed to fetch dynamically imported module: /assets/PasteScreen.js');
+    vi.useFakeTimers();
+    try {
+      const err = new Error('Failed to fetch dynamically imported module: /assets/PasteScreen.js');
 
-    const outcome = await Promise.race([
-      loadWithChunkRetry(async () => {
+      void loadWithChunkRetry(async () => {
         throw err;
-      }).then(() => 'resolved' as const),
-      new Promise<'pending'>(resolve => setTimeout(() => resolve('pending'), 50)),
-    ]);
+      });
 
-    expect(outcome).toBe('pending');
-    expect(reloadSpy).toHaveBeenCalledTimes(1);
-    expect(window.sessionStorage.getItem(RELOAD_SENTINEL)).toBe('1');
+      await vi.runAllTimersAsync();
+
+      expect(reloadSpy).toHaveBeenCalledTimes(1);
+      expect(window.sessionStorage.getItem(RELOAD_SENTINEL)).toBe('1');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('rethrows immediately for a non-chunk error and does not reload', async () => {
@@ -121,20 +126,65 @@ describe('loadWithChunkRetry', () => {
   });
 
   it('still reloads when the caches API is unavailable', async () => {
-    delete (window as unknown as { caches?: unknown }).caches;
+    vi.useFakeTimers();
+    try {
+      delete (window as unknown as { caches?: unknown }).caches;
 
-    const err = new Error('Loading chunk failed');
-    err.name = 'ChunkLoadError';
+      const err = new Error('Loading chunk failed');
+      err.name = 'ChunkLoadError';
 
-    const outcome = await Promise.race([
-      loadWithChunkRetry(async () => {
+      void loadWithChunkRetry(async () => {
         throw err;
-      }).then(() => 'resolved' as const),
-      new Promise<'pending'>(resolve => setTimeout(() => resolve('pending'), 50)),
-    ]);
+      });
 
-    expect(outcome).toBe('pending');
-    expect(reloadSpy).toHaveBeenCalledTimes(1);
+      await vi.runAllTimersAsync();
+
+      expect(reloadSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('still reloads when sessionStorage.getItem throws (Safari private mode)', async () => {
+    vi.useFakeTimers();
+    const originalSessionStorage = Object.getOwnPropertyDescriptor(window, 'sessionStorage');
+    try {
+      const throwingStorage = {
+        getItem: vi.fn(() => {
+          throw new DOMException('QuotaExceededError', 'SecurityError');
+        }),
+        setItem: vi.fn(() => {
+          throw new DOMException('QuotaExceededError', 'SecurityError');
+        }),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+        key: vi.fn(),
+        length: 0,
+      };
+      Object.defineProperty(window, 'sessionStorage', {
+        value: throwingStorage,
+        configurable: true,
+        writable: true,
+      });
+
+      const err = new Error('Loading chunk failed');
+      err.name = 'ChunkLoadError';
+
+      void loadWithChunkRetry(async () => {
+        throw err;
+      });
+
+      await vi.runAllTimersAsync();
+
+      expect(reloadSpy).toHaveBeenCalledTimes(1);
+      expect(throwingStorage.getItem).toHaveBeenCalledWith(RELOAD_SENTINEL);
+      expect(throwingStorage.setItem).toHaveBeenCalledWith(RELOAD_SENTINEL, '1');
+    } finally {
+      if (originalSessionStorage) {
+        Object.defineProperty(window, 'sessionStorage', originalSessionStorage);
+      }
+      vi.useRealTimers();
+    }
   });
 });
 
