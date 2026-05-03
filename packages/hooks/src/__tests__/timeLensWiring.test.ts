@@ -1,5 +1,5 @@
 /**
- * Task 3 — timeLens wiring tests
+ * timeLens wiring tests
  *
  * Verifies that useIChartData, useBoxplotData, useProbabilityPlotData,
  * useParetoChartData, and useAnalysisStats all consume the global `timeLens`
@@ -153,6 +153,43 @@ describe('useProbabilityPlotData — timeLens wiring', () => {
     );
     const totalN = result.current.reduce((sum, s) => sum + s.n, 0);
     expect(totalN).toBe(50);
+  });
+
+  it('fixed anchor beyond length returns zero series (empty-sliced path)', () => {
+    // lens anchor=99 on a 5-row fixture — window is entirely out-of-bounds
+    act(() => {
+      useSessionStore.setState({ timeLens: { mode: 'fixed', anchor: 99, windowSize: 5 } });
+    });
+    const smallRows = buildRows(5, 'v') as import('@variscout/core').DataRow[];
+    const values = smallRows.map(r => r.v as number);
+    const { result } = renderHook(() =>
+      useProbabilityPlotData({ values, factorColumn: 'factor', rows: smallRows })
+    );
+    expect(result.current).toHaveLength(0);
+  });
+
+  it('defect-mode style: parallel rows+values arrays of same length align correctly', () => {
+    // Simulates a defect-mode call where `values` is derived from effectiveData
+    // and `rows` is filteredData — both length-N but object-distinct.
+    // The integer-index alignment must slice both at the same positions.
+    const n = 20;
+    const parallelRows = Array.from({ length: n }, (_, i) => ({
+      factor: i < 10 ? 'A' : 'B',
+    })) as import('@variscout/core').DataRow[];
+    // values is a separate array — same length, not referencing any row object
+    const parallelValues = Array.from({ length: n }, (_, i) => (i + 1) * 1.5);
+
+    act(() => {
+      useSessionStore.setState({ timeLens: { mode: 'rolling', windowSize: 10 } });
+    });
+    const { result } = renderHook(() =>
+      useProbabilityPlotData({ values: parallelValues, factorColumn: 'factor', rows: parallelRows })
+    );
+    // rolling last-10 of 20 rows → indices 10..19 → all factor='B'
+    const totalN = result.current.reduce((sum, s) => sum + s.n, 0);
+    expect(totalN).toBe(10);
+    // All lensed rows have factor 'B'
+    expect(result.current.every(s => s.key === 'B')).toBe(true);
   });
 });
 

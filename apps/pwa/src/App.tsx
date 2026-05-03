@@ -29,6 +29,7 @@ import {
   useJournalEntries,
   useFilteredData,
   useAnalysisStats,
+  useLensedSampleCount,
   usePopoutChannel,
   useDefectTransform,
   useDefectSummary,
@@ -163,6 +164,7 @@ function AppMain() {
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
+  const lensedSampleCount = useLensedSampleCount();
   const workerApi = useStatsWorker();
   const { stats } = useAnalysisStats(workerApi);
 
@@ -880,13 +882,13 @@ function AppMain() {
                 questions={questionsState.questions}
                 columnAliases={columnAliases}
                 dataFilename={dataFilename}
-                sampleCount={filteredData?.length ?? 0}
+                sampleCount={lensedSampleCount}
                 analysisMode={analysisMode}
                 defectSummary={
                   defectSummaryProps
                     ? {
                         ...defectSummaryProps,
-                        sampleCount: filteredData?.length ?? 0,
+                        sampleCount: lensedSampleCount,
                       }
                     : null
                 }

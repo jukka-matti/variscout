@@ -62,7 +62,7 @@ function computeBoxplotGroup(key: string, values: number[]): BoxplotGroupData | 
  * with interleaved ordering per category.
  *
  * Reads `timeLens` from `useSessionStore` and applies `applyTimeLens` to
- * `filteredData` before grouping. Task 3 wiring.
+ * `filteredData` before grouping.
  */
 export function useBoxplotData(
   filteredData: Record<string, unknown>[],
@@ -75,6 +75,7 @@ export function useBoxplotData(
   const timeLens = useSessionStore(s => s.timeLens);
 
   const lensedData = useMemo(
+    // timeColumn unused in current applyTimeLens (rows pre-sorted upstream); see Task 2 docstring.
     () => applyTimeLens(filteredData, timeLens, ''),
     [filteredData, timeLens]
   );

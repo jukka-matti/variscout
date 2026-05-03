@@ -214,4 +214,4 @@ export type { StepErrorRollupInput, StepErrorRollupResult } from './stepErrorAgg
 
 // Time lens — global observation-set filter (consumed by chart hooks + page stats)
 export type { TimeLens, TimeLensMode } from './timeLens';
-export { DEFAULT_TIME_LENS, applyTimeLens } from './timeLens';
+export { DEFAULT_TIME_LENS, applyTimeLens, timeLensIndices } from './timeLens';

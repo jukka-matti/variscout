@@ -84,6 +84,7 @@ export function useParetoChartData({
 
   // Apply lens to filteredData only — rawData stays as the full comparison baseline.
   const lensedFilteredData = useMemo(
+    // timeColumn unused in current applyTimeLens (rows pre-sorted upstream); see Task 2 docstring.
     () => applyTimeLens(filteredData, timeLens, ''),
     [filteredData, timeLens]
   );

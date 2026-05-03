@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { calculateProbabilityPlotData } from '@variscout/core/stats';
 import { andersonDarlingTest } from '@variscout/core/stats';
-import { applyTimeLens } from '@variscout/core';
+import { timeLensIndices } from '@variscout/core';
 import type { ProbabilityPlotSeries, DataRow } from '@variscout/core';
 import * as d3 from 'd3-array';
 import { useSessionStore } from '@variscout/stores';
@@ -28,8 +28,11 @@ interface UseProbabilityPlotDataOptions {
  * - Anderson-Darling normality test per group (null when n < 7)
  * - Original row indices for cross-chart brush highlighting
  *
- * Reads `timeLens` from `useSessionStore` and applies `applyTimeLens` to
- * both `rows` and the aligned `values` slice before computing series. Task 3 wiring.
+ * Reads `timeLens` from `useSessionStore` and applies integer-index math
+ * via `timeLensIndices` to both `rows` and the aligned `values` slice before
+ * computing series. This avoids object-reference equality bugs (indexOf) and
+ * correctly handles defect-mode-style calls where rows and values are parallel
+ * but distinct arrays.
  */
 export function useProbabilityPlotData({
   values,
@@ -39,29 +42,27 @@ export function useProbabilityPlotData({
   const timeLens = useSessionStore(s => s.timeLens);
 
   /**
-   * When rows are present, apply the lens to them and re-slice values to match.
-   * values[i] is the numeric outcome for rows[i], so the same index window applies.
-   * When rows are absent (single-series, values-only path), apply the lens to a
-   * synthetic index array and use it to slice values.
+   * When rows are present, derive [start, end) from the lens against rows.length
+   * and slice both arrays identically — pure integer math, no reference tricks.
+   *
+   * When rows are absent (values-only path), derive indices against values.length
+   * instead, then slice values directly.
    */
   const { lensedValues, lensedRows } = useMemo(() => {
     if (!rows || rows.length === 0) {
-      // values-only path: build synthetic rows, apply lens, extract slice
-      const syntheticRows = values.map((v, i) => ({ __idx: i, __v: v }));
-      const sliced = applyTimeLens(syntheticRows, timeLens, '__idx');
+      // values-only path: apply lens indices against values length directly.
+      const { start, end } = timeLensIndices(values.length, timeLens);
       return {
-        lensedValues: sliced.map(r => r.__v),
+        lensedValues: values.slice(start, end),
         lensedRows: undefined,
       };
     }
-    const sliced = applyTimeLens(rows, timeLens, '');
-    // Determine which original indices were kept so we can slice values in sync.
-    // applyTimeLens returns a contiguous slice, so we can compute the offset.
-    const startIdx = rows.indexOf(sliced[0] ?? rows[rows.length]);
-    const safeStart = startIdx < 0 ? 0 : startIdx;
+    // rows+values path: both are parallel arrays of the same length; use a
+    // single [start,end) derived from rows.length to slice both identically.
+    const { start, end } = timeLensIndices(rows.length, timeLens);
     return {
-      lensedValues: values.slice(safeStart, safeStart + sliced.length),
-      lensedRows: sliced,
+      lensedValues: values.slice(start, end),
+      lensedRows: rows.slice(start, end),
     };
   }, [values, rows, timeLens]);
 

@@ -14,6 +14,7 @@ import { useProjectStore } from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
+  useLensedSampleCount,
   useStagedAnalysis,
   useDefectTransform,
   useDefectSummary,
@@ -206,6 +207,7 @@ const Dashboard = ({
   // and does not receive a ProcessHubInvestigation envelope).
   const [timelineWindow, setTimelineWindow] = useState<TimelineWindow>({ kind: 'cumulative' });
   const { filteredData } = useFilteredData({ window: timelineWindow });
+  const lensedSampleCount = useLensedSampleCount();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
@@ -559,7 +561,7 @@ const Dashboard = ({
             }
             onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
             columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
-            sampleCount={filteredData?.length ?? 0}
+            sampleCount={lensedSampleCount}
             filterChipData={filterChipData}
             columnAliases={columnAliases}
             onUpdateFilterValues={handleUpdateFilterValues}

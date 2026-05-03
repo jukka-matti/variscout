@@ -24,8 +24,9 @@ export function useAnalysisStats(workerApi?: StatsWorkerAPI | null): AnalysisSta
   const specs = useProjectStore(s => s.specs);
   const timeLens = useSessionStore(s => s.timeLens);
 
-  // Apply time lens before extracting values (Task 3 wiring).
+  // Apply time lens before extracting values.
   const lensedData = useMemo(
+    // timeColumn unused in current applyTimeLens (rows pre-sorted upstream); see Task 2 docstring.
     () => applyTimeLens(filteredData, timeLens, ''),
     [filteredData, timeLens]
   );

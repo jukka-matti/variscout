@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_TIME_LENS,
   applyTimeLens,
+  timeLensIndices,
   type TimeLens,
   type TimeLensMode,
 } from '@variscout/core';
@@ -238,5 +239,186 @@ describe('applyTimeLens — input immutability', () => {
     const first = applyTimeLens(rows, lens, 't');
     const second = applyTimeLens(rows, lens, 't');
     expect(first).toEqual(second);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// timeLensIndices — one it per mode + edge cases
+// ---------------------------------------------------------------------------
+
+describe('timeLensIndices — cumulative', () => {
+  it('returns [0, length) for the full dataset', () => {
+    expect(timeLensIndices(5, { mode: 'cumulative' })).toEqual({ start: 0, end: 5 });
+  });
+
+  it('returns [0, 0) for length=0', () => {
+    expect(timeLensIndices(0, { mode: 'cumulative' })).toEqual({ start: 0, end: 0 });
+  });
+
+  it('slice derived from indices deep-equals applyTimeLens result', () => {
+    const lens: TimeLens = { mode: 'cumulative' };
+    const arr = [...rows];
+    const { start, end } = timeLensIndices(arr.length, lens);
+    expect(arr.slice(start, end)).toEqual(applyTimeLens(arr, lens, 't'));
+  });
+});
+
+describe('timeLensIndices — rolling', () => {
+  it('returns last windowSize indices for a typical window', () => {
+    expect(timeLensIndices(5, { mode: 'rolling', windowSize: 3 })).toEqual({ start: 2, end: 5 });
+  });
+
+  it('returns [0, length) when windowSize exceeds length', () => {
+    expect(timeLensIndices(5, { mode: 'rolling', windowSize: 100 })).toEqual({ start: 0, end: 5 });
+  });
+
+  it('returns empty window [length, length) when windowSize is 0', () => {
+    const { start, end } = timeLensIndices(5, { mode: 'rolling', windowSize: 0 });
+    expect(start).toBe(end);
+    expect(end - start).toBe(0);
+  });
+
+  it('returns empty window when windowSize is negative', () => {
+    const { start, end } = timeLensIndices(5, { mode: 'rolling', windowSize: -5 });
+    expect(end - start).toBe(0);
+  });
+
+  it('slice derived from indices deep-equals applyTimeLens result', () => {
+    const lens: TimeLens = { mode: 'rolling', windowSize: 3 };
+    const arr = [...rows];
+    const { start, end } = timeLensIndices(arr.length, lens);
+    expect(arr.slice(start, end)).toEqual(applyTimeLens(arr, lens, 't'));
+  });
+});
+
+describe('timeLensIndices — fixed', () => {
+  it('returns [anchor, anchor+windowSize) for a typical window', () => {
+    expect(timeLensIndices(5, { mode: 'fixed', anchor: 1, windowSize: 3 })).toEqual({
+      start: 1,
+      end: 4,
+    });
+  });
+
+  it('truncates end to length when window extends past the end', () => {
+    expect(timeLensIndices(5, { mode: 'fixed', anchor: 3, windowSize: 5 })).toEqual({
+      start: 3,
+      end: 5,
+    });
+  });
+
+  it('returns [0,0) when anchor equals length', () => {
+    expect(timeLensIndices(5, { mode: 'fixed', anchor: 5, windowSize: 2 })).toEqual({
+      start: 0,
+      end: 0,
+    });
+  });
+
+  it('returns [0,0) when anchor is beyond length (e.g. anchor=99, length=5)', () => {
+    expect(timeLensIndices(5, { mode: 'fixed', anchor: 99, windowSize: 5 })).toEqual({
+      start: 0,
+      end: 0,
+    });
+  });
+
+  it('returns [0,0) when windowSize is 0', () => {
+    expect(timeLensIndices(5, { mode: 'fixed', anchor: 0, windowSize: 0 })).toEqual({
+      start: 0,
+      end: 0,
+    });
+  });
+
+  it('returns [0,0) when anchor is negative', () => {
+    expect(timeLensIndices(5, { mode: 'fixed', anchor: -1, windowSize: 2 })).toEqual({
+      start: 0,
+      end: 0,
+    });
+  });
+
+  it('slice derived from indices deep-equals applyTimeLens result', () => {
+    const lens: TimeLens = { mode: 'fixed', anchor: 1, windowSize: 3 };
+    const arr = [...rows];
+    const { start, end } = timeLensIndices(arr.length, lens);
+    expect(arr.slice(start, end)).toEqual(applyTimeLens(arr, lens, 't'));
+  });
+
+  it('slice from out-of-bounds anchor returns empty (anchor=99, length=5)', () => {
+    const lens: TimeLens = { mode: 'fixed', anchor: 99, windowSize: 5 };
+    const arr = [...rows];
+    const { start, end } = timeLensIndices(arr.length, lens);
+    expect(arr.slice(start, end)).toEqual(applyTimeLens(arr, lens, 't'));
+    expect(end - start).toBe(0);
+  });
+});
+
+describe('timeLensIndices — openEnded', () => {
+  it('returns [anchor, length) from anchor', () => {
+    expect(timeLensIndices(5, { mode: 'openEnded', anchor: 2 })).toEqual({ start: 2, end: 5 });
+  });
+
+  it('returns [0, length) when anchor is 0', () => {
+    expect(timeLensIndices(5, { mode: 'openEnded', anchor: 0 })).toEqual({ start: 0, end: 5 });
+  });
+
+  it('returns [0,0) when anchor equals length', () => {
+    expect(timeLensIndices(5, { mode: 'openEnded', anchor: 5 })).toEqual({ start: 0, end: 0 });
+  });
+
+  it('returns [0,0) when anchor is beyond length', () => {
+    expect(timeLensIndices(5, { mode: 'openEnded', anchor: 99 })).toEqual({ start: 0, end: 0 });
+  });
+
+  it('returns [0,0) when anchor is negative', () => {
+    expect(timeLensIndices(5, { mode: 'openEnded', anchor: -1 })).toEqual({ start: 0, end: 0 });
+  });
+
+  it('slice derived from indices deep-equals applyTimeLens result', () => {
+    const lens: TimeLens = { mode: 'openEnded', anchor: 2 };
+    const arr = [...rows];
+    const { start, end } = timeLensIndices(arr.length, lens);
+    expect(arr.slice(start, end)).toEqual(applyTimeLens(arr, lens, 't'));
+  });
+});
+
+describe('timeLensIndices — empty array invariants', () => {
+  it('cumulative on length=0 gives [0,0)', () => {
+    const { start, end } = timeLensIndices(0, { mode: 'cumulative' });
+    expect(start).toBe(0);
+    expect(end).toBe(0);
+  });
+
+  it('rolling on length=0 gives start===end', () => {
+    const { start, end } = timeLensIndices(0, { mode: 'rolling', windowSize: 5 });
+    expect(start).toBe(end);
+  });
+
+  it('fixed on length=0 gives [0,0)', () => {
+    const { start, end } = timeLensIndices(0, { mode: 'fixed', anchor: 0, windowSize: 5 });
+    expect(start).toBe(0);
+    expect(end).toBe(0);
+  });
+
+  it('openEnded on length=0 gives [0,0)', () => {
+    const { start, end } = timeLensIndices(0, { mode: 'openEnded', anchor: 0 });
+    expect(start).toBe(0);
+    expect(end).toBe(0);
+  });
+});
+
+describe('timeLensIndices — parallel-array alignment invariant', () => {
+  it('for every mode, arr.slice(start,end) deep-equals applyTimeLens(arr, lens, col)', () => {
+    const arr = [...rows];
+    const lenses: TimeLens[] = [
+      { mode: 'cumulative' },
+      { mode: 'rolling', windowSize: 3 },
+      { mode: 'rolling', windowSize: 0 },
+      { mode: 'fixed', anchor: 1, windowSize: 2 },
+      { mode: 'fixed', anchor: 99, windowSize: 5 },
+      { mode: 'openEnded', anchor: 2 },
+      { mode: 'openEnded', anchor: 99 },
+    ];
+    for (const lens of lenses) {
+      const { start, end } = timeLensIndices(arr.length, lens);
+      expect(arr.slice(start, end)).toEqual(applyTimeLens(arr, lens, 't'));
+    }
   });
 });

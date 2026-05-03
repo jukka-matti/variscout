@@ -8,7 +8,7 @@ import { useSessionStore } from '@variscout/stores';
  * Applies LTTB decimation for large datasets when chartWidth is provided.
  *
  * Reads `timeLens` from `useSessionStore` and filters `sourceData` through
- * `applyTimeLens` before computing chart points. Task 3 wiring.
+ * `applyTimeLens` before computing chart points.
  */
 export function useIChartData(
   sourceData: Record<string, unknown>[],
@@ -25,6 +25,7 @@ export function useIChartData(
   const timeLens = useSessionStore(s => s.timeLens);
 
   const lensedData = useMemo(
+    // timeColumn unused in current applyTimeLens (rows pre-sorted upstream); see applyTimeLens docstring.
     () => applyTimeLens(sourceData, timeLens, timeColumn ?? ''),
     [sourceData, timeLens, timeColumn]
   );
