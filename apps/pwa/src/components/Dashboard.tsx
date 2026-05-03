@@ -41,7 +41,12 @@ import {
   useTranslation,
 } from '@variscout/hooks';
 import { useProjectStore } from '@variscout/stores';
-import { useFilteredData, useAnalysisStats, useStagedAnalysis } from '@variscout/hooks';
+import {
+  useFilteredData,
+  useAnalysisStats,
+  useStagedAnalysis,
+  useLensedSampleCount,
+} from '@variscout/hooks';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity } from 'lucide-react';
@@ -139,6 +144,7 @@ const Dashboard = ({
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
   const { filteredData } = useFilteredData();
+  const lensedSampleCount = useLensedSampleCount();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { t } = useTranslation();
@@ -638,7 +644,7 @@ const Dashboard = ({
           }
           onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
           columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
-          sampleCount={filteredData?.length ?? 0}
+          sampleCount={lensedSampleCount}
           filterChipData={filterChipData}
           columnAliases={columnAliases}
           onUpdateFilterValues={handleUpdateFilterValues}
