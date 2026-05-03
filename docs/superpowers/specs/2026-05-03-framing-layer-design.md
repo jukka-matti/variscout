@@ -2,7 +2,7 @@
 title: VariScout Framing Layer — Hub Creation, Data Ingestion, and Investigation Entry
 audience: [product, engineer, designer]
 category: design-spec
-status: draft
+status: active
 last-reviewed: 2026-05-03
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
