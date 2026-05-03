@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { group, quantile, ascending, mean, deviation } from 'd3-array';
-import { calculateKDE } from '@variscout/core';
+import { calculateKDE, applyTimeLens } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/core';
+import { useSessionStore } from '@variscout/stores';
 
 /** Pre-computed KDE density data keyed by category */
 export type ViolinDataMap = Map<string, Array<{ value: number; count: number }>>;
@@ -59,6 +60,9 @@ function computeBoxplotGroup(key: string, values: number[]): BoxplotGroupData | 
  *
  * When stageColumn is provided, creates composite keys like "Station 2 · Before"
  * with interleaved ordering per category.
+ *
+ * Reads `timeLens` from `useSessionStore` and applies `applyTimeLens` to
+ * `filteredData` before grouping. Task 3 wiring.
  */
 export function useBoxplotData(
   filteredData: Record<string, unknown>[],
@@ -68,13 +72,20 @@ export function useBoxplotData(
   stageColumn?: string,
   stageOrder?: string[]
 ): UseBoxplotDataResult {
+  const timeLens = useSessionStore(s => s.timeLens);
+
+  const lensedData = useMemo(
+    () => applyTimeLens(filteredData, timeLens, ''),
+    [filteredData, timeLens]
+  );
+
   const data = useMemo(() => {
     if (!outcome) return [];
 
     if (stageColumn) {
       // Two-level grouping: factor → stage
       const factorGroups = group(
-        filteredData,
+        lensedData,
         (d: Record<string, unknown>) => d[factor],
         (d: Record<string, unknown>) => d[stageColumn]
       );
@@ -86,7 +97,7 @@ export function useBoxplotData(
       } else {
         // Discover stages in data order
         const stageSet = new Set<string>();
-        for (const row of filteredData) {
+        for (const row of lensedData) {
           const sv = String(row[stageColumn] ?? '');
           if (sv) stageSet.add(sv);
         }
@@ -113,23 +124,23 @@ export function useBoxplotData(
     }
 
     // Standard single-level grouping
-    const groups = group(filteredData, (d: Record<string, unknown>) => d[factor]);
+    const groups = group(lensedData, (d: Record<string, unknown>) => d[factor]);
     return Array.from(groups, ([key, groupValues]) => {
       const values = groupValues.map((d: Record<string, unknown>) => Number(d[outcome]));
       return computeBoxplotGroup(String(key), values);
     }).filter((d): d is BoxplotGroupData => d !== null);
-  }, [filteredData, factor, outcome, stageColumn, stageOrder]);
+  }, [lensedData, factor, outcome, stageColumn, stageOrder]);
 
   const stageInfo = useMemo((): StageInfo | undefined => {
     if (!stageColumn) return undefined;
     const stageSet = new Set<string>();
-    for (const row of filteredData) {
+    for (const row of lensedData) {
       const sv = String(row[stageColumn] ?? '');
       if (sv) stageSet.add(sv);
     }
     const stageKeys = stageOrder && stageOrder.length > 0 ? stageOrder : Array.from(stageSet);
     return { stageKeys, groupSize: stageKeys.length };
-  }, [filteredData, stageColumn, stageOrder]);
+  }, [lensedData, stageColumn, stageOrder]);
 
   const violinData = useMemo(() => {
     if (!showViolin || data.length === 0) {
