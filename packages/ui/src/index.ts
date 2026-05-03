@@ -752,3 +752,9 @@ export type {
 // Outcome No Match Banner (framing layer graceful degradation)
 export { OutcomeNoMatchBanner } from './components/OutcomeNoMatchBanner/OutcomeNoMatchBanner';
 export type { OutcomeNoMatchBannerProps } from './components/OutcomeNoMatchBanner/OutcomeNoMatchBanner';
+
+// Canvas first-paint components (framing layer)
+export { GoalBanner } from './components/GoalBanner/GoalBanner';
+export type { GoalBannerProps } from './components/GoalBanner/GoalBanner';
+export { OutcomePin } from './components/OutcomePin/OutcomePin';
+export type { OutcomePinProps } from './components/OutcomePin/OutcomePin';
