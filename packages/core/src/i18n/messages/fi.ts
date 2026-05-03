@@ -988,4 +988,14 @@ export const fi: MessageCatalog = {
   'frame.spec.editor.invalidRange': 'USL:n täytyy olla suurempi kuin LSL.',
   'capability.noSpec.prompt':
     'Aseta tavoite / spesifikaatio mittarille {measure} nähdäksesi Cp/Cpk.',
+
+  // Time lens (ProcessHealthBar) — TODO(i18n): translate
+  'timeLens.button': 'Time',
+  'timeLens.popover.title': 'Time window',
+  'timeLens.mode.cumulative': 'Cumulative',
+  'timeLens.mode.rolling': 'Rolling',
+  'timeLens.mode.fixed': 'Fixed',
+  'timeLens.mode.openEnded': 'Open-ended',
+  'timeLens.input.windowSize': 'Window size',
+  'timeLens.input.anchor': 'Anchor',
 };

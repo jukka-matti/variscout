@@ -1080,4 +1080,14 @@ export interface MessageCatalog {
 
   // Capability (FRAME b0)
   'capability.noSpec.prompt': string;
+
+  // Time lens (ProcessHealthBar)
+  'timeLens.button': string;
+  'timeLens.popover.title': string;
+  'timeLens.mode.cumulative': string;
+  'timeLens.mode.rolling': string;
+  'timeLens.mode.fixed': string;
+  'timeLens.mode.openEnded': string;
+  'timeLens.input.windowSize': string;
+  'timeLens.input.anchor': string;
 }

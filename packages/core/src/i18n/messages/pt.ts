@@ -990,4 +990,14 @@ export const pt: MessageCatalog = {
   'frame.spec.editor.cancel': 'Cancel',
   'frame.spec.editor.invalidRange': 'USL must be greater than LSL.', // TODO(i18n): translate
   'capability.noSpec.prompt': 'Set a target / spec on {measure} to see Cp/Cpk.',
+
+  // Time lens (ProcessHealthBar) — TODO(i18n): translate
+  'timeLens.button': 'Time',
+  'timeLens.popover.title': 'Time window',
+  'timeLens.mode.cumulative': 'Cumulative',
+  'timeLens.mode.rolling': 'Rolling',
+  'timeLens.mode.fixed': 'Fixed',
+  'timeLens.mode.openEnded': 'Open-ended',
+  'timeLens.input.windowSize': 'Window size',
+  'timeLens.input.anchor': 'Anchor',
 };
