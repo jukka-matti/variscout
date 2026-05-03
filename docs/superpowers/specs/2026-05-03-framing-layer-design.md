@@ -636,6 +636,13 @@ V1 delivery is complete when:
 
 **Predecessor brainstorm:** the §8 vision walkthrough at `~/.claude/plans/lets-do-this-next-rustling-simon.md` locked Q0 + Q1–Q11; this spec inherits those anchors (§14).
 
+**Implementation plans:** V1 is delivered in 4 slices.
+
+- **Slice 1 (in flight):** [`docs/superpowers/plans/2026-05-03-framing-layer-v1-slice-1.md`](../plans/2026-05-03-framing-layer-v1-slice-1.md) — Mode B Stages 1–3 + canvas first paint + Mode A.1 reopen + PWA opt-in IndexedDB persistence + `.vrs` export/import (Q8-revised hybrid).
+- **Slice 2 (planned):** Mode A.2-paste match-summary card + Mode A.2-evidence-source background ingestion + per-row provenance fields + Stage 5 modal full implementation.
+- **Slice 3 (planned):** Multi-source via shared keys (join detection + per-source provenance + per-source independent timelines).
+- **Slice 4 (planned):** Defect anchoring (multi-anchor) + Pareto on canvas (per-step mini + system) + two pickers + Y-axis adapts to mode + canvas-wide scope filter + three composable filter states UI.
+
 **Visual companion mockups** archived at `.superpowers/brainstorm/6149-1777834116/content/` (gitignored; preserved locally for reference). Mockups: `framing-layer-flow-v4.html` (Stage 3 inline specs); `mode-a-temporal-alignment.html` (match-summary card with timeline preview); `multi-source-join.html` (join-key suggestion); `pareto-on-canvas.html` (defect-mode Pareto integration); `pareto-multi-product.html` (two pickers + scope selection); `pareto-no-defects.html` (capability-mode Pareto Y-axis adaptation).
 
 **Next:** brainstorming Spec 2 (manual canvas authoring) — drag-to-connect, multi-select sub-step grouping, branch/join. The Frame layer's anchored decisions (process goal banner; outcome pin; primary scope dimensions; canvas first paint expectations) carry into Spec 2.
