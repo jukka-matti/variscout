@@ -1,5 +1,6 @@
 ---
 title: Scout UI / Navigation consolidation
+status: delivered
 ---
 
 # Scout UI / Navigation consolidation

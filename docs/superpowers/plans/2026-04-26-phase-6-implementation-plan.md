@@ -1,5 +1,6 @@
 ---
 title: Phase 6 — Sustainment & Control Handoff Implementation Plan
+status: deferred
 ---
 
 # Phase 6 — Sustainment & Control Handoff Implementation Plan
