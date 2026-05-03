@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { DEFAULT_TIME_LENS, type TimeLens } from '@variscout/core';
 import { idbStorage } from './persistence/idbAdapter';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -66,6 +67,11 @@ export interface SessionState {
    *  Defaults to false (prompt shown).
    */
   skipQuestionLinkPrompt: boolean;
+  /** Global time lens — filters the observation set fed to charts and page-level stats.
+   *  Replaces the old per-card I-Chart segmented buttons. Defaults to DEFAULT_TIME_LENS
+   *  ({ mode: 'cumulative' }).
+   */
+  timeLens: TimeLens;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -100,6 +106,7 @@ export interface SessionActions {
   setAIPreferences: (prefs: Record<string, boolean>) => void;
   setKnowledgeSearchFolder: (folder: string | null) => void;
   setSkipQuestionLinkPrompt: (value: boolean) => void;
+  setTimeLens: (lens: TimeLens) => void;
 
   // Persistence
   initFromViewState: (
@@ -130,6 +137,7 @@ export const getSessionInitialState = (): SessionState => ({
   aiPreferences: {},
   knowledgeSearchFolder: null,
   skipQuestionLinkPrompt: false,
+  timeLens: DEFAULT_TIME_LENS,
 });
 
 // ── Store ────────────────────────────────────────────────────────────────────
@@ -178,6 +186,7 @@ export const useSessionStore = create<SessionStore>()(
       setAIPreferences: prefs => set({ aiPreferences: prefs }),
       setKnowledgeSearchFolder: folder => set({ knowledgeSearchFolder: folder }),
       setSkipQuestionLinkPrompt: value => set({ skipQuestionLinkPrompt: value }),
+      setTimeLens: lens => set({ timeLens: lens }),
 
       // Persistence
       initFromViewState: viewState => {
@@ -215,6 +224,7 @@ export const useSessionStore = create<SessionStore>()(
         aiPreferences: state.aiPreferences,
         knowledgeSearchFolder: state.knowledgeSearchFolder,
         skipQuestionLinkPrompt: state.skipQuestionLinkPrompt,
+        timeLens: state.timeLens,
       }),
     }
   )

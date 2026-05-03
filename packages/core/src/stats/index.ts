@@ -211,3 +211,7 @@ export { isLegacyInvestigation, suggestNodeMappings } from './nodeCapabilityMigr
 export { distinctContextValues } from './contextValueOptions';
 export { rollupStepErrors } from './stepErrorAggregation';
 export type { StepErrorRollupInput, StepErrorRollupResult } from './stepErrorAggregation';
+
+// Time lens — global observation-set filter (consumed by chart hooks + page stats)
+export type { TimeLens, TimeLensMode } from './timeLens';
+export { DEFAULT_TIME_LENS } from './timeLens';

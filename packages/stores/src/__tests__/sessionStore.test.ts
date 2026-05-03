@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 import { useSessionStore, getSessionInitialState } from '../sessionStore';
 
 beforeEach(() => {
@@ -256,5 +257,43 @@ describe('sessionStore — skipQuestionLinkPrompt', () => {
     useSessionStore.getState().setSkipQuestionLinkPrompt(false);
     const persistedFalse = partialize(useSessionStore.getState());
     expect(persistedFalse.skipQuestionLinkPrompt).toBe(false);
+  });
+});
+
+describe('sessionStore — timeLens', () => {
+  it('defaults to DEFAULT_TIME_LENS in getSessionInitialState()', () => {
+    const initial = getSessionInitialState();
+    expect(initial.timeLens).toBe(DEFAULT_TIME_LENS);
+    expect(initial.timeLens).toEqual({ mode: 'cumulative' });
+  });
+
+  it('store initializes with DEFAULT_TIME_LENS', () => {
+    expect(useSessionStore.getState().timeLens).toEqual({ mode: 'cumulative' });
+  });
+
+  it('setTimeLens replaces the lens (rolling)', () => {
+    useSessionStore.getState().setTimeLens({ mode: 'rolling', windowSize: 100 });
+    expect(useSessionStore.getState().timeLens).toEqual({ mode: 'rolling', windowSize: 100 });
+  });
+
+  it('setTimeLens replaces (does not merge) on second call', () => {
+    useSessionStore.getState().setTimeLens({ mode: 'fixed', windowSize: 30, anchor: 10 });
+    useSessionStore.getState().setTimeLens({ mode: 'cumulative' });
+    const lens = useSessionStore.getState().timeLens;
+    expect(lens).toEqual({ mode: 'cumulative' });
+    expect(lens.windowSize).toBeUndefined();
+    expect(lens.anchor).toBeUndefined();
+  });
+
+  it('setTimeLens supports openEnded mode with anchor only', () => {
+    useSessionStore.getState().setTimeLens({ mode: 'openEnded', anchor: 25 });
+    expect(useSessionStore.getState().timeLens).toEqual({ mode: 'openEnded', anchor: 25 });
+  });
+
+  it('timeLens round-trips through partialize (persisted)', () => {
+    useSessionStore.getState().setTimeLens({ mode: 'rolling', windowSize: 50 });
+    const partialize = useSessionStore.persist.getOptions().partialize;
+    const persisted = partialize(useSessionStore.getState());
+    expect(persisted.timeLens).toEqual({ mode: 'rolling', windowSize: 50 });
   });
 });
