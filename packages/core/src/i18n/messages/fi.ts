@@ -377,6 +377,7 @@ export const fi: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ poraudu tähän',
   'chart.percent': 'Prosentti',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Y-akselin skaalaus',

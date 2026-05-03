@@ -489,6 +489,7 @@ export interface MessageCatalog {
   'chart.type.pareto': string;
   'chart.drillHere': string;
   'chart.percent': string;
+  'boxplot.factor.label': string;
 
   // Y-axis popover
   'chart.yAxisScale': string;

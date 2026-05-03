@@ -330,6 +330,7 @@ export const hu: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ lebontás itt',
   'chart.percent': 'Százalék',
+  'boxplot.factor.label': 'Factor',
   'chart.yAxisScale': 'Y-tengely skála',
   'validation.minLessThanMax': 'A min értéknek kisebbnek kell lennie a max értéknél',
   'action.noChanges': 'Nincs változás',

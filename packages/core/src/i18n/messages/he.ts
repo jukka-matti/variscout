@@ -373,6 +373,7 @@ export const he: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ חפור כאן',
   'chart.percent': 'אחוז',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'סולם ציר Y',

@@ -341,6 +341,7 @@ export const tr: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ buraya detaylandır',
   'chart.percent': 'Yüzde',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Y Ekseni Ölçeği',

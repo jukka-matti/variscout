@@ -375,6 +375,7 @@ export const bg: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ детайли тук',
   'chart.percent': 'Процент',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Скала на Y-оста',

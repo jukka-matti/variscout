@@ -375,6 +375,7 @@ export const hi: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ यहाँ ड्रिल करें',
   'chart.percent': 'प्रतिशत',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Y-अक्ष स्केल',

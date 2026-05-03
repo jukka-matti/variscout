@@ -374,6 +374,7 @@ export const ar: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ التنقيب هنا',
   'chart.percent': 'النسبة المئوية',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'مقياس المحور الصادي',

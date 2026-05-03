@@ -342,6 +342,7 @@ export const nl: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ hier inzoomen',
   'chart.percent': 'Percentage',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Y-asschaal',

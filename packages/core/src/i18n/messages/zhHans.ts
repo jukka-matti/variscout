@@ -339,6 +339,7 @@ export const zhHans: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ 在此钻取',
   'chart.percent': '百分比',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Y轴刻度',

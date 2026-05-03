@@ -340,6 +340,7 @@ export const ko: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ 여기로 드릴다운',
   'chart.percent': '퍼센트',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Y축 스케일',

@@ -340,6 +340,7 @@ export const ja: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ ここを掘り下げる',
   'chart.percent': 'パーセント',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Y軸スケール',

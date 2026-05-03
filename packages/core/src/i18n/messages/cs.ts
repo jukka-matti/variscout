@@ -331,6 +331,7 @@ export const cs: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ rozložit zde',
   'chart.percent': 'Procenta',
+  'boxplot.factor.label': 'Factor',
   'chart.yAxisScale': 'Stupnice osy Y',
   'validation.minLessThanMax': 'Min musí být menší než Max',
   'action.noChanges': 'Žádné změny',

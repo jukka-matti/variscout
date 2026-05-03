@@ -367,6 +367,7 @@ export const ro: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ detaliere aici',
   'chart.percent': 'Procent',
+  'boxplot.factor.label': 'Factor',
   'chart.yAxisScale': 'Scala axei Y',
   'validation.minLessThanMax': 'Min trebuie să fie mai mic decât Max',
   'action.noChanges': 'Fără modificări',

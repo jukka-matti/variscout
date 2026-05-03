@@ -367,6 +367,7 @@ export const uk: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ деталізація тут',
   'chart.percent': 'Відсоток',
+  'boxplot.factor.label': 'Factor',
   'chart.yAxisScale': 'Шкала осі Y',
   'validation.minLessThanMax': 'Мін має бути менше Макс',
   'action.noChanges': 'Без змін',

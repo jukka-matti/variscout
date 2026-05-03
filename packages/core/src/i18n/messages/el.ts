@@ -374,6 +374,7 @@ export const el: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ ανάλυση εδώ',
   'chart.percent': 'Ποσοστό',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Κλίμακα Άξονα Y',

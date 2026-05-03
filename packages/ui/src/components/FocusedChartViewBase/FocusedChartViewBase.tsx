@@ -121,6 +121,7 @@ const BoxplotFocusedSection: React.FC<{
         <HelpTooltip term={getTerm('boxplot')} iconSize={12} />
       </h3>
       <FactorSelector
+        variant="tabs"
         factors={boxplot.factors}
         selected={boxplot.factor}
         onChange={boxplot.onSetFactor}
@@ -179,6 +180,7 @@ const ParetoFocusedSection: React.FC<{
         <HelpTooltip term={getTerm('paretoChart')} iconSize={12} />
       </h3>
       <FactorSelector
+        variant="tabs"
         factors={pareto.factors}
         selected={pareto.factor}
         onChange={pareto.onSetFactor}

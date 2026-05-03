@@ -375,6 +375,7 @@ export const hr: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ detalji ovdje',
   'chart.percent': 'Postotak',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Skala Y-osi',

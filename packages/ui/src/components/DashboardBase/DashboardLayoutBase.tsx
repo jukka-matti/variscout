@@ -267,7 +267,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   paretoObservationCount,
   layout,
 }) => {
-  const { formatStat } = useTranslation();
+  const { formatStat, t } = useTranslation();
   const {
     contextMenu,
     closeContextMenu,
@@ -373,26 +373,28 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
     </>
   );
 
-  // ---- Boxplot factor selector (with optional wrapper) ----
-  const boxplotFactorSelector =
+  // ---- Boxplot factor dropdown (inline in title row) ----
+  const boxplotFactorDropdown =
     factors.length > 0 ? (
       <FactorSelector
+        variant="dropdown"
         factors={factors}
         selected={boxplotFactor}
         onChange={setBoxplotFactor}
         hasActiveFilter={!!filters?.[boxplotFactor]?.length}
         columnAliases={columnAliases}
+        label={t('boxplot.factor.label')}
+        testId="boxplot-factor-dropdown"
       />
     ) : null;
 
   const wrappedBoxplotFactor = boxplotFactorWrapper
-    ? boxplotFactorWrapper(boxplotFactorSelector)
-    : boxplotFactorSelector;
+    ? boxplotFactorWrapper(boxplotFactorDropdown)
+    : boxplotFactorDropdown;
 
-  // ---- Boxplot controls ----
+  // ---- Boxplot controls (display toggle + clear — factor dropdown moved to title row) ----
   const boxplotControls = boxplotFactor ? (
     <>
-      {wrappedBoxplotFactor}
       <BoxplotDisplayToggle
         showViolin={showViolin}
         onToggleViolin={value => onDisplayOptionChange('showViolin', value)}
@@ -420,6 +422,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   const paretoControls = (
     <>
       <FactorSelector
+        variant="tabs"
         factors={factors}
         selected={paretoFactor}
         onChange={setParetoFactor}
@@ -515,13 +518,16 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
               observationCount={boxplotObservationCount}
               utilityActions="maximize-only"
               title={
-                <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                  <EditableChartTitle
-                    defaultTitle={boxplotFactor ? `Boxplot: ${boxplotFactor}` : 'Variation Sources'}
-                    value={chartTitles.boxplot || ''}
-                    onChange={title => onChartTitleChange('boxplot', title)}
-                  />
-                </h3>
+                <div className="flex items-center gap-2 min-w-0">
+                  <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider min-w-0">
+                    <EditableChartTitle
+                      defaultTitle={boxplotFactor ? 'Variation Sources' : 'Variation Sources'}
+                      value={chartTitles.boxplot || ''}
+                      onChange={title => onChartTitleChange('boxplot', title)}
+                    />
+                  </h3>
+                  {wrappedBoxplotFactor}
+                </div>
               }
               controls={boxplotControls}
               filterBar={filterBar}

@@ -367,6 +367,7 @@ export const vi: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ phân tích chi tiết tại đây',
   'chart.percent': 'Phần trăm',
+  'boxplot.factor.label': 'Factor',
   'chart.yAxisScale': 'Tỷ lệ trục Y',
   'validation.minLessThanMax': 'Giá trị nhỏ nhất phải nhỏ hơn giá trị lớn nhất',
   'action.noChanges': 'Không có thay đổi',

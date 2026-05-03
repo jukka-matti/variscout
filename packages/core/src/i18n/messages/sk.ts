@@ -375,6 +375,7 @@ export const sk: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ podrobnosti tu',
   'chart.percent': 'Percento',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Mierka osi Y',

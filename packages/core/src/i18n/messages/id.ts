@@ -366,6 +366,7 @@ export const id: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ telusuri di sini',
   'chart.percent': 'Persen',
+  'boxplot.factor.label': 'Factor',
   'chart.yAxisScale': 'Skala Sumbu Y',
   'validation.minLessThanMax': 'Min harus lebih kecil dari Maks',
   'action.noChanges': 'Tidak Ada Perubahan',

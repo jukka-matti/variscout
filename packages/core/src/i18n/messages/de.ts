@@ -378,6 +378,7 @@ export const de: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ hier aufschlüsseln',
   'chart.percent': 'Prozent',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Y-Achsen-Skalierung',

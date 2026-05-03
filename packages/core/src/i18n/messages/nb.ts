@@ -330,6 +330,7 @@ export const nb: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ bor ned her',
   'chart.percent': 'Prosent',
+  'boxplot.factor.label': 'Factor',
   'chart.yAxisScale': 'Y-akseskala',
   'validation.minLessThanMax': 'Min må være mindre enn Maks',
   'action.noChanges': 'Ingen endringer',

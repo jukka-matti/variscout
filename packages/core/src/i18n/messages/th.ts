@@ -365,6 +365,7 @@ export const th: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ เจาะลึกที่นี่',
   'chart.percent': 'เปอร์เซ็นต์',
+  'boxplot.factor.label': 'Factor',
   'chart.yAxisScale': 'สเกลแกน Y',
   'validation.minLessThanMax': 'ค่าต่ำสุดต้องน้อยกว่าค่าสูงสุด',
   'action.noChanges': 'ไม่มีการเปลี่ยนแปลง',

@@ -375,6 +375,7 @@ export const ms: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ terokai di sini',
   'chart.percent': 'Peratus',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Skala Paksi-Y',
