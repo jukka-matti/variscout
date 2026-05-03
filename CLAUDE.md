@@ -18,7 +18,7 @@ Shared agent map: `docs/llms.txt`
 - `pnpm --filter @variscout/azure-app dev` — Azure app
 - `pnpm test` — all packages (turbo)
 - `pnpm build` — all packages + apps
-- `claude --chrome` — enable browser for E2E
+- `claude --chrome` — enable the **official [Claude for Chrome extension](https://claude.com/claude-for-chrome)** for browser-assisted E2E (drives your real Chrome with your login state). NOT the ruflo browser MCP.
 
 ## Where to look
 
@@ -53,5 +53,6 @@ MEMORY.md and ruflo hold _durable_ facts (architecture, decisions, terminology, 
 ## Claude-Specific Notes
 
 - `.claude/settings.json` provides Claude hooks, statusline, permissions, and attribution.
-- `claude --chrome` is the supported browser-assisted E2E path in this repo.
+- **Browser E2E**: install [Claude for Chrome](https://claude.com/claude-for-chrome) and start with `claude --chrome` (or `/chrome` → Enabled by default). This is the canonical browser path — gives Claude `chrome_*` tools that drive your real Chrome with login state, bookmarks, and devtools console access. Docs: https://code.claude.com/docs/en/chrome.
+- **Do NOT use `mcp__ruflo__browser_*` MCP tools for E2E** — those are a separate headless-Chromium agent stack (different UX, no real browser state, slower iteration). Reserve ruflo MCP for `mcp__ruflo__memory_*`, `mcp__ruflo__agentdb_*`, `mcp__ruflo__hooks_*` (per `.claude/skills/using-ruflo/SKILL.md`).
 - `AGENTS.md` is the Codex entrypoint; keep shared repo guidance consistent across both wrappers.
