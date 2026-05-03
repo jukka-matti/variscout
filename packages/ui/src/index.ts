@@ -734,3 +734,10 @@ export type {
 // Hub Goal Form (framing layer Stage 1 — free-text narrative + scaffold chips)
 export { HubGoalForm } from './components/HubGoalForm/HubGoalForm';
 export type { HubGoalFormProps } from './components/HubGoalForm/HubGoalForm';
+
+// Outcome Candidate Row (framing layer Stage 3 — inline per-candidate specs)
+export { OutcomeCandidateRow } from './components/OutcomeCandidateRow/OutcomeCandidateRow';
+export type {
+  OutcomeCandidate,
+  OutcomeCandidateRowProps,
+} from './components/OutcomeCandidateRow/OutcomeCandidateRow';

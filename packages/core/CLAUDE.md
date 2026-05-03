@@ -12,7 +12,7 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 ## Invariants
 
 - Sub-path exports are public API. Adding a new sub-path requires updating `packages/core/package.json` exports field + `tsconfig.json` paths.
-- Available sub-paths: root (barrel), /stats, /ai, /capability, /parser, /findings (incl. `findings/drift.ts`), /variation, /yamazumi, /tier, /types, /i18n, /glossary, /export, /navigation, /responsive, /performance, /time, /timeline (TimelineWindow + applyWindow), /throughput (computeOutputRate, computeBottleneck), /projectMetadata, /strategy, /ui-types, /evidenceMap, /defect.
+- Available sub-paths: root (barrel), /stats, /ai, /capability, /parser, /processHub (CharacteristicType, OutcomeSpec, ProcessHub, InvestigationStatus, etc.), /findings (incl. `findings/drift.ts`), /variation, /yamazumi, /tier, /types, /i18n, /glossary, /export, /navigation, /responsive, /performance, /time, /timeline (TimelineWindow + applyWindow), /throughput (computeOutputRate, computeBottleneck), /projectMetadata, /strategy, /ui-types, /evidenceMap, /defect.
 - `resolveMode()` + `getStrategy()` in `src/analysisStrategy.ts` is the mode dispatch point. New analysis modes must register here.
 - The stats engine is the authority for numeric claims. CoScout receives stat results; it does not recompute.
 - Numeric safety has three boundaries (ADR-069): B1 parser rejects NaN via `toNumericValue`; B2 stats functions return `undefined`; B3 display uses `formatStatistic`.
