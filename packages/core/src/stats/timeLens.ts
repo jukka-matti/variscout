@@ -36,7 +36,6 @@ export const DEFAULT_TIME_LENS = { mode: 'cumulative' } as const;
 export function applyTimeLens<T>(
   rows: readonly T[],
   lens: TimeLens,
-
   _timeColumn: keyof T | string
 ): T[] {
   switch (lens.mode) {
@@ -52,7 +51,7 @@ export function applyTimeLens<T>(
 
     case 'fixed': {
       const { anchor, windowSize } = lens;
-      if (anchor >= rows.length || windowSize <= 0) return [];
+      if (anchor < 0 || anchor >= rows.length || windowSize <= 0) return [];
       return rows.slice(anchor, anchor + windowSize);
     }
 

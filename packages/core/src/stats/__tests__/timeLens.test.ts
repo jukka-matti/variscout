@@ -147,6 +147,12 @@ describe('applyTimeLens — fixed', () => {
     const result = applyTimeLens(rows, lens, 't');
     expect(result).toEqual([]);
   });
+
+  it('returns empty when anchor is negative', () => {
+    const lens: TimeLens = { mode: 'fixed', anchor: -1, windowSize: 2 };
+    const result = applyTimeLens(rows, lens, 't');
+    expect(result).toEqual([]);
+  });
 });
 
 describe('applyTimeLens — openEnded', () => {
@@ -181,6 +187,30 @@ describe('applyTimeLens — openEnded', () => {
   it('returns empty when anchor is negative', () => {
     const lens: TimeLens = { mode: 'openEnded', anchor: -1 };
     const result = applyTimeLens(rows, lens, 't');
+    expect(result).toEqual([]);
+  });
+});
+
+describe('applyTimeLens — empty rows', () => {
+  const emptyRows: { t: number; v: number }[] = [];
+
+  it('cumulative returns empty array', () => {
+    const result = applyTimeLens(emptyRows, { mode: 'cumulative' }, 't');
+    expect(result).toEqual([]);
+  });
+
+  it('rolling returns empty array', () => {
+    const result = applyTimeLens(emptyRows, { mode: 'rolling', windowSize: 5 }, 't');
+    expect(result).toEqual([]);
+  });
+
+  it('fixed returns empty array (anchor >= rows.length fires when length is 0)', () => {
+    const result = applyTimeLens(emptyRows, { mode: 'fixed', anchor: 0, windowSize: 5 }, 't');
+    expect(result).toEqual([]);
+  });
+
+  it('openEnded returns empty array (anchor >= rows.length fires when length is 0)', () => {
+    const result = applyTimeLens(emptyRows, { mode: 'openEnded', anchor: 0 }, 't');
     expect(result).toEqual([]);
   });
 });
