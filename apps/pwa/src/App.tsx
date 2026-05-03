@@ -557,14 +557,21 @@ function AppMain() {
     [findingsState.findings]
   );
 
-  // Findings: restore filter state
+  // Findings: restore filter state AND time lens.
+  // NOTE: useFindingsOrchestration in features/findings/useFindingsOrchestration.ts
+  // provides a parallel implementation (lens-only) intended as a companion to this
+  // handler. If App.tsx is ever refactored to use that hook, consolidate here.
   const handleRestoreFinding = useCallback(
     (id: string) => {
-      const ctx = findingsState.getFindingContext(id);
-      if (!ctx) return;
-      setFilters(ctx.activeFilters);
+      const finding = findingsState.findings.find(f => f.id === id);
+      if (!finding) return;
+      // Restore time lens first so chart data is scoped correctly when filters apply.
+      if (finding.source?.timeLens) {
+        useSessionStore.getState().setTimeLens(finding.source.timeLens);
+      }
+      setFilters(finding.context.activeFilters);
     },
-    [findingsState, setFilters]
+    [findingsState.findings, setFilters]
   );
 
   // Findings popout: open in separate window
