@@ -598,9 +598,12 @@ export const fi: MessageCatalog = {
     'Etä-SharePoint-tietolähteet käyttävät käyttäjäkohtaisia käyttöoikeuksia. Jokaisella käyttäjällä täytyy olla SharePoint-pääsy dokumentteihin.\nTarkista, estävätkö ehdolliset käyttöoikeuskäytännöt kyseisiä käyttäjiä.\nVarmista, että järjestelmänvalvojan suostumus on myönnetty delegoidulle Sites.Read.All-käyttöoikeudelle.\nPyydä kyseisiä käyttäjiä kirjautumaan ulos ja takaisin sisään tunnuksen päivittämiseksi.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

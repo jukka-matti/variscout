@@ -545,9 +545,12 @@ export const vi: MessageCatalog = {
     'Nguồn tri thức Remote SharePoint sử dụng quyền theo từng người dùng. Mỗi người dùng phải có quyền truy cập SharePoint vào tài liệu.\nKiểm tra người dùng bị ảnh hưởng có bị chặn bởi chính sách Conditional Access không.\nXác minh đã cấp đồng ý quản trị viên cho quyền ủy quyền Sites.Read.All.\nYêu cầu người dùng bị ảnh hưởng đăng xuất và đăng nhập lại để làm mới token.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

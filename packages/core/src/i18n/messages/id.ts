@@ -546,9 +546,12 @@ export const id: MessageCatalog = {
     'Sumber pengetahuan Remote SharePoint menggunakan izin per pengguna. Setiap pengguna harus memiliki akses SharePoint ke dokumen.\nPeriksa apakah pengguna yang terpengaruh diblokir oleh kebijakan Conditional Access.\nVerifikasi persetujuan admin telah diberikan untuk izin delegasi Sites.Read.All.\nMinta pengguna yang terpengaruh untuk keluar dan masuk kembali untuk menyegarkan token mereka.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

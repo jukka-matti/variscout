@@ -560,9 +560,12 @@ export const da: MessageCatalog = {
     'Remote SharePoint-videnkilder bruger rettigheder per bruger. Hver bruger skal have SharePoint-adgang til dokumenterne.\nKontrollér om de berørte brugere er blokeret af politikker for betinget adgang.\nBekræft at administratorsamtykke er givet for den delegerede rettighed Sites.Read.All.\nBed de berørte brugere om at logge ud og logge ind igen for at opdatere deres token.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

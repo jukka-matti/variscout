@@ -691,9 +691,12 @@ export interface MessageCatalog {
   'admin.issue.kbPartialSteps': string;
 
   // Workspace navigation
+  'workspace.frame': string;
   'workspace.analysis': string;
-  'workspace.findings': string;
+  'workspace.investigation': string;
   'workspace.improvement': string;
+  'workspace.report': string;
+  'workspace.findings': string;
 
   // Synthesis card
   'synthesis.title': string;

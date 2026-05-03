@@ -559,9 +559,12 @@ export const ko: MessageCatalog = {
     'Remote SharePoint 지식 소스는 사용자별 권한을 사용합니다. 각 사용자는 문서에 대한 SharePoint 접근 권한이 있어야 합니다.\n영향을 받는 사용자가 조건부 접근 정책에 의해 차단되었는지 확인하세요.\nSites.Read.All 위임 권한에 대한 관리자 동의가 부여되었는지 확인하세요.\n영향을 받는 사용자에게 로그아웃한 후 다시 로그인하여 토큰을 새로 고치도록 요청하세요.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

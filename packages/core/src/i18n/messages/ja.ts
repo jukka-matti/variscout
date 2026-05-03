@@ -560,9 +560,12 @@ export const ja: MessageCatalog = {
     'リモートSharePointナレッジソースはユーザーごとの権限を使用します。各ユーザーはドキュメントへのSharePointアクセスが必要です。\n影響を受けるユーザーが条件付きアクセスポリシーによってブロックされていないか確認してください。\nSites.Read.All委任アクセス許可に管理者の同意が付与されていることを確認してください。\n影響を受けるユーザーにサインアウトしてサインインし直してトークンを更新するよう依頼してください。',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

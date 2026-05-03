@@ -565,9 +565,12 @@ export const tr: MessageCatalog = {
     'Remote SharePoint bilgi kaynakları kullanıcı bazlı izinler kullanır. Her kullanıcının belgelere SharePoint erişimi olmalıdır.\nEtkilenen kullanıcıların Koşullu Erişim ilkeleri tarafından engellenip engellenmediğini kontrol edin.\nSites.Read.All temsilci izni için yönetici onayının verildiğini doğrulayın.\nEtkilenen kullanıcılardan belirteçlerini yenilemek için oturumu kapatıp tekrar açmalarını isteyin.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

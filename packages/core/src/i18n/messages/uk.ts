@@ -547,9 +547,12 @@ export const uk: MessageCatalog = {
     'Віддалені джерела знань SharePoint використовують дозволи на рівні користувача. Кожен користувач повинен мати доступ SharePoint до документів.\nПеревірте, чи не блокуються відповідні користувачі політиками умовного доступу.\nПеревірте, що надано згоду адміністратора для делегованого дозволу Sites.Read.All.\nПопросіть відповідних користувачів вийти та увійти знову для оновлення їхнього токена.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

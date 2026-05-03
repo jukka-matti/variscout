@@ -41,7 +41,7 @@ import {
   useSessionStore,
   useWallLayoutStore,
 } from '@variscout/stores';
-import AppHeader from './components/layout/AppHeader';
+import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
@@ -592,6 +592,18 @@ function AppMain() {
     setQuestionLinkPromptOpen(false);
   }, []);
 
+  // Phase tab navigation handler (used by AppHeader inline tabs)
+  const handlePhaseChange = useCallback(
+    (phase: PhaseId) => {
+      if (phase === 'frame') panels.showFrame();
+      else if (phase === 'analysis') panels.showAnalysis();
+      else if (phase === 'investigation') panels.showInvestigation();
+      else if (phase === 'improvement') panels.showImprovement();
+      else panels.showReport();
+    },
+    [panels]
+  );
+
   // Wall-variant propose-hypothesis CTA
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const createHubFromFinding = useInvestigationStore(s => s.createHubFromFinding);
@@ -699,6 +711,15 @@ function AppMain() {
           isPISidebarOpen={panels.isPISidebarOpen}
           onTogglePISidebar={rawData.length > 0 ? panels.handleTogglePISidebar : undefined}
           hideFindings={panels.activeView === 'investigation'}
+          activePhase={
+            rawData.length > 0 &&
+            !importFlow.isPasteMode &&
+            !importFlow.isManualEntry &&
+            !importFlow.isMapping
+              ? panels.activeView
+              : undefined
+          }
+          onPhaseChange={handlePhaseChange}
         />
       )}
 
@@ -758,44 +779,6 @@ function AppMain() {
 
         {/* Main content area */}
         <div className="flex-1 overflow-hidden flex flex-col">
-          {/* Workspace tabs — visible when data is loaded and past mapping */}
-          {rawData.length > 0 &&
-            !importFlow.isPasteMode &&
-            !importFlow.isManualEntry &&
-            !importFlow.isMapping &&
-            !isEmbedMode &&
-            !isPhone && (
-              <div className="flex border-b border-edge flex-shrink-0 bg-surface">
-                {(
-                  [
-                    { id: 'frame', label: 'Frame' },
-                    { id: 'analysis', label: 'Analysis' },
-                    { id: 'investigation', label: 'Investigation' },
-                    { id: 'improvement', label: 'Improvement' },
-                    { id: 'report', label: 'Report' },
-                  ] as const
-                ).map(ws => (
-                  <button
-                    key={ws.id}
-                    className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
-                      panels.activeView === ws.id
-                        ? 'border-blue-500 text-blue-500'
-                        : 'border-transparent text-content-secondary hover:text-content hover:border-content-tertiary'
-                    }`}
-                    onClick={() => {
-                      if (ws.id === 'frame') panels.showFrame();
-                      else if (ws.id === 'analysis') panels.showAnalysis();
-                      else if (ws.id === 'investigation') panels.showInvestigation();
-                      else if (ws.id === 'improvement') panels.showImprovement();
-                      else if (ws.id === 'report') panels.showReport();
-                    }}
-                  >
-                    {ws.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
           <Suspense fallback={<LazyFallback />}>
             {importFlow.isPasteMode ? (
               <PasteScreen

@@ -600,9 +600,12 @@ export const de: MessageCatalog = {
     'Remote-SharePoint-Wissensquellen verwenden benutzerspezifische Berechtigungen. Jeder Benutzer muss SharePoint-Zugriff auf die Dokumente haben.\nPrüfen Sie, ob die betroffenen Benutzer durch Richtlinien für bedingten Zugriff blockiert werden.\nÜberprüfen Sie, ob die Admin-Zustimmung für die delegierte Berechtigung Sites.Read.All erteilt wurde.\nBitten Sie die betroffenen Benutzer, sich ab- und wieder anzumelden, um ihr Token zu aktualisieren.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

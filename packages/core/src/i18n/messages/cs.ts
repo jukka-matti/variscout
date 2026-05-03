@@ -508,9 +508,12 @@ export const cs: MessageCatalog = {
     'Vzdálené SharePoint zdroje znalostí používají oprávnění na úrovni uživatele. Každý uživatel musí mít přístup SharePoint k dokumentům.\nZkontrolujte, zda jsou dotčení uživatelé blokováni zásadami podmíněného přístupu.\nOvěřte, že byl udělen souhlas správce pro delegované oprávnění Sites.Read.All.\nPožádejte dotčené uživatele, aby se odhlásili a znovu přihlásili pro obnovení tokenu.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

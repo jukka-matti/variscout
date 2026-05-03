@@ -565,9 +565,12 @@ export const pl: MessageCatalog = {
     'Źródła wiedzy Remote SharePoint używają uprawnień per użytkownik. Każdy użytkownik musi mieć dostęp SharePoint do dokumentów.\nSprawdź, czy dotknięci użytkownicy są blokowani przez zasady dostępu warunkowego.\nSprawdź, czy udzielono zgody administratora na delegowane uprawnienie Sites.Read.All.\nPoproś dotkniętych użytkowników o wylogowanie się i ponowne zalogowanie, aby odświeżyć token.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

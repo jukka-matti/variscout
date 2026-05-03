@@ -567,9 +567,12 @@ export const nl: MessageCatalog = {
     'Remote SharePoint-kennisbronnen gebruiken machtigingen per gebruiker. Elke gebruiker moet SharePoint-toegang tot de documenten hebben.\nControleer of de getroffen gebruikers worden geblokkeerd door Voorwaardelijke toegang-beleid.\nControleer of beheerderstoestemming is verleend voor de gedelegeerde machtiging Sites.Read.All.\nVraag de getroffen gebruikers om uit te loggen en weer in te loggen om hun token te vernieuwen.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

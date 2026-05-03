@@ -512,9 +512,12 @@ export const hu: MessageCatalog = {
     'A távoli SharePoint tudásforrások felhasználónkénti engedélyeket használnak. Minden felhasználónak SharePoint hozzáféréssel kell rendelkeznie a dokumentumokhoz.\nEllenőrizze, hogy az érintett felhasználókat nem blokkolják-e feltételes hozzáférési szabályzatok.\nEllenőrizze, hogy megadták-e a rendszergazdai hozzájárulást a Sites.Read.All delegált engedélyhez.\nKérje meg az érintett felhasználókat, hogy jelentkezzenek ki és újra be a tokenjük frissítéséhez.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

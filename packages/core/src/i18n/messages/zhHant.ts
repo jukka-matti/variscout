@@ -549,9 +549,12 @@ export const zhHant: MessageCatalog = {
     '遠端SharePoint知識來源使用每位使用者的權限。每位使用者必須擁有對文件的SharePoint存取權限。\n檢查受影響的使用者是否被條件式存取原則封鎖。\n驗證是否已授予Sites.Read.All委派權限的管理員同意。\n要求受影響的使用者登出並重新登入以重新整理其權杖。',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

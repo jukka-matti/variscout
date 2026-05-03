@@ -598,9 +598,12 @@ export const ms: MessageCatalog = {
     'Sumber pengetahuan Remote SharePoint menggunakan kebenaran setiap pengguna. Setiap pengguna mesti mempunyai akses SharePoint ke dokumen.\nSemak jika pengguna yang terjejas disekat oleh dasar Akses Bersyarat.\nSahkan persetujuan pentadbir telah diberikan untuk kebenaran terwakil Sites.Read.All.\nMinta pengguna yang terjejas log keluar dan log masuk semula untuk menyegarkan token mereka.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

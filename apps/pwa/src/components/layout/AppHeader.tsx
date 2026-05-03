@@ -9,6 +9,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
+import type { MessageCatalog } from '@variscout/core';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
@@ -47,6 +48,8 @@ const HeaderIconButton: React.FC<HeaderIconButtonProps> = ({
   </button>
 );
 
+export type PhaseId = 'frame' | 'analysis' | 'investigation' | 'improvement' | 'report';
+
 interface AppHeaderProps {
   hasData: boolean;
   dataFilename: string | null;
@@ -66,6 +69,9 @@ interface AppHeaderProps {
   onTogglePISidebar?: () => void;
   /** Hide findings toggle when in Investigation workspace (workspace IS findings) */
   hideFindings?: boolean;
+  /** Phase tabs rendered inside the app bar between filename and toolbar */
+  activePhase?: PhaseId;
+  onPhaseChange?: (phase: PhaseId) => void;
 }
 
 /**
@@ -76,6 +82,14 @@ interface AppHeaderProps {
  * - Logo clickable → new analysis (home screen)
  * - Data panel toggle persists
  */
+const PHASE_TABS: { id: PhaseId; labelKey: keyof MessageCatalog }[] = [
+  { id: 'frame', labelKey: 'workspace.frame' },
+  { id: 'analysis', labelKey: 'workspace.analysis' },
+  { id: 'investigation', labelKey: 'workspace.investigation' },
+  { id: 'improvement', labelKey: 'workspace.improvement' },
+  { id: 'report', labelKey: 'workspace.report' },
+];
+
 const AppHeader: React.FC<AppHeaderProps> = ({
   hasData,
   dataFilename,
@@ -94,18 +108,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   isPISidebarOpen = false,
   onTogglePISidebar,
   hideFindings = false,
+  activePhase,
+  onPhaseChange,
 }) => {
   const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const shareButtonRef = useRef<HTMLButtonElement>(null);
 
+  const showPhaseTabs = hasData && activePhase !== undefined && onPhaseChange !== undefined;
+
   return (
-    <header className="h-14 border-b border-edge flex items-center justify-between px-4 sm:px-6 bg-surface/50 backdrop-blur-md z-10">
+    <header className="border-b border-edge bg-surface/50 backdrop-blur-md z-10 flex flex-wrap items-center gap-x-2 px-4 sm:px-6 min-h-14">
       {/* Logo and dataset name - clickable to start new analysis */}
       <button
         onClick={onNewAnalysis}
-        className="flex items-center gap-2 sm:gap-3 group hover:opacity-90 transition-opacity"
+        className="flex items-center gap-2 sm:gap-3 group hover:opacity-90 transition-opacity py-2"
         title={t('nav.newAnalysis')}
         aria-label={t('nav.newAnalysis')}
       >
@@ -126,6 +144,31 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           )}
         </div>
       </button>
+
+      {/* Phase tabs — inline between filename and toolbar */}
+      {showPhaseTabs && (
+        <nav
+          aria-label="Workspace phases"
+          data-testid="phase-tabs-inline"
+          className="flex items-center gap-0.5 py-1"
+        >
+          {PHASE_TABS.map(tab => (
+            <button
+              key={tab.id}
+              data-testid={`phase-tab-${tab.id}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                activePhase === tab.id
+                  ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                  : 'text-content-secondary hover:text-content hover:bg-surface-secondary border border-transparent'
+              }`}
+              onClick={() => onPhaseChange(tab.id)}
+              aria-pressed={activePhase === tab.id}
+            >
+              {t(tab.labelKey)}
+            </button>
+          ))}
+        </nav>
+      )}
 
       <div className="flex-1" />
 

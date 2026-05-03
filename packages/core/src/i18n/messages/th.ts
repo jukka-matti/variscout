@@ -537,9 +537,12 @@ export const th: MessageCatalog = {
     'แหล่งความรู้ Remote SharePoint ใช้สิทธิ์ต่อผู้ใช้ ผู้ใช้แต่ละคนต้องมีสิทธิ์เข้าถึง SharePoint ไปยังเอกสาร\nตรวจสอบว่าผู้ใช้ที่ได้รับผลกระทบถูกบล็อกโดยนโยบาย Conditional Access หรือไม่\nตรวจสอบว่าได้ให้ admin consent สำหรับสิทธิ์ delegated Sites.Read.All แล้ว\nขอให้ผู้ใช้ที่ได้รับผลกระทบออกจากระบบและเข้าสู่ระบบอีกครั้งเพื่อรีเฟรช token',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

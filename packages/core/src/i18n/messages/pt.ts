@@ -600,9 +600,12 @@ export const pt: MessageCatalog = {
     'Fontes de conhecimento remotas do SharePoint usam permissões por usuário. Cada usuário deve ter acesso SharePoint aos documentos.\nVerifique se os usuários afetados estão bloqueados por políticas de acesso condicional.\nVerifique se o consentimento do administrador foi concedido para a permissão delegada Sites.Read.All.\nPeça aos usuários afetados para fazer logout e login novamente para atualizar seu token.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',

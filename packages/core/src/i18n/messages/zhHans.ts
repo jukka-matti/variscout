@@ -549,9 +549,12 @@ export const zhHans: MessageCatalog = {
     '远程SharePoint知识源使用每用户权限。每个用户必须拥有对文档的SharePoint访问权限。\n检查受影响的用户是否被条件访问策略阻止。\n验证是否已授予Sites.Read.All委托权限的管理员同意。\n要求受影响的用户注销并重新登录以刷新其令牌。',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',
