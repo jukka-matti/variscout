@@ -172,7 +172,7 @@ export type {
 
 // Time lens — global observation-set filter (consumed by chart hooks + page stats)
 export type { TimeLens, TimeLensMode } from './stats';
-export { DEFAULT_TIME_LENS } from './stats';
+export { DEFAULT_TIME_LENS, applyTimeLens } from './stats';
 
 // Tier (Azure Marketplace multi-tier licensing) — primary module
 export type { LicenseTier, TierLimits, ChannelLimitResult, MarketplacePlan } from './tier';
