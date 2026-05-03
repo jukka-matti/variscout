@@ -21,6 +21,8 @@ date: 2026-04-27
 
 # Product-Method Roadmap
 
+> **Status: superseded as a vision document; retained as a delivery-sequence reference.** Per Q6 of the 2026-05-03 vision §8 walkthrough, horizons (H0 – H4) live here outside the canonical vision spec. **This document describes _sequencing_, not _destination_.** The destination — what VariScout is and what it does — lives in [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../../superpowers/specs/2026-05-03-variscout-vision-design.md). Read the vision spec first; consult this doc for delivery-order intent only. Stakeholders asking "what is VariScout?" should be pointed at the vision spec; stakeholders asking "when does X land?" can be pointed here.
+
 ## Summary
 
 VariScout should mature from a strong investigation tool into a process

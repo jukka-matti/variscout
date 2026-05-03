@@ -8,6 +8,8 @@ status: stable
 # VariScout Methodology
 
 > **Canonical product vision lives at [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../superpowers/specs/2026-05-03-variscout-vision-design.md).** This methodology document remains as a longer narrative companion; the vision spec's §2 (Methodology spine) is the authoritative summary. Where the two diverge, the vision spec wins. Reconciliation is a follow-up edit (see vision spec §6).
+>
+> **Canonical terminology lives at [`docs/glossary.md`](../glossary.md).** This methodology narrative cross-references the glossary rather than re-defining terms. The glossary is the home for canvas vocabulary (step / sub-step / column / input / output / outcome) and for the retired-terms list (tributary / CTS / FRAME / Analysis tab / etc) per Q10 of the 2026-05-03 vision §8 resolution.
 
 Single-page consolidation of VariScout's analytical approach — how the product is designed to think, and why.
 

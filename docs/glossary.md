@@ -7,7 +7,78 @@ status: stable
 
 # Glossary
 
-Statistical and quality terms used across VariScout.
+Statistical, quality, and methodology terms used across VariScout. **This is the canonical home for VariScout terminology.** Process narrative lives in [`docs/01-vision/methodology.md`](01-vision/methodology.md) and the [product vision spec](superpowers/specs/2026-05-03-variscout-vision-design.md); both cross-reference this glossary rather than re-defining terms.
+
+---
+
+## Process methodology terms
+
+Canvas vocabulary canonicalized by the 2026-05-03 vision spec (§3.3 commitment 9). The methodological CTS-vs-CTQ distinction survives as concept; the acronyms do not survive as user-facing labels.
+
+### Step
+
+A node on the Process Hub canvas. Represents one stage of the process flow. Steps connect via directed arrows (flow); each step holds zero or more inbound columns (inputs / measurements) and zero or more outbound columns (outputs / intermediate Ys).
+
+**Related:** [Sub-step](#sub-step), [Column](#column), [Outcome](#outcome)
+
+### Sub-step
+
+A child of a step. Two-level nesting only (no grandchildren). Tagged either **parallel** (default — siblings like chambers) or **sequential** (a sub-sequence inside the parent step). When parallel sub-steps converge to a downstream step, that step's analysis is automatically grouped by upstream origin (context propagation).
+
+**Related:** [Step](#step), [Branch](#branch--join)
+
+### Column
+
+A single column of incoming data, mapped to a step (or marked unassigned). Direction encodes meaning: column → step = input / control to the step; step → column = measured AT the step (output / intermediate Y).
+
+**Related:** [Step](#step), [Input](#input), [Output](#output)
+
+### Input
+
+A column whose arrow points INTO a step. The variable controlling, measuring, or describing what enters the step.
+
+**Related:** [Output](#output), [Column](#column)
+
+### Output
+
+A column whose arrow points OUT of a step. The variable measured AT the step. May feed into a downstream step or serve as the final outcome.
+
+**Related:** [Input](#input), [Outcome](#outcome)
+
+### Outcome
+
+The Y measure(s) on the right end of the canvas — what the customer experiences. System-level (Level 1) result of the process. Per Hub there is at least one outcome.
+
+**Related:** [Output](#output), [Step](#step)
+
+### Branch & Join
+
+A step can branch (one → many downstream paths) and join (many → one). Real processes do both. Branch / join structures are the load-bearing primitive for ADR-073 (no statistical roll-up across heterogeneous units): heterogeneous siblings cannot be silently averaged.
+
+**Related:** [Step](#step), [Sub-step](#sub-step)
+
+### Process Hub
+
+The persistent home of one process line. Hub IS its logic map — there is no separate Hub model and map model. Holds: map structure, specs per column / per step, named contexts, cadence definition, snapshot history, finding history, investigation history.
+
+**Related:** [Outcome](#outcome), [Step](#step)
+
+---
+
+## Retired terms
+
+Terms removed from user-facing surfaces in the 2026-05-03 vision pivot. Listed here so future contributors recognize them in legacy code, comments, or external context. Do not reintroduce.
+
+| Retired term             | Replacement                                                                | Why retired                                                                                                                      |
+| ------------------------ | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Tributary**            | _factor_, _input_, _input arrow_, or simply removed                        | River metaphor was load-bearing in ADR-070's FRAME workspace; canvas drops the river framing.                                    |
+| **CTS**                  | "outcome at the customer," "system outcome," or simply [Outcome](#outcome) | Acronym opaque to users; the CTS-vs-CTQ methodological distinction survives as concept.                                          |
+| **Critical-to-X**        | Plain language describing the relationship being asserted                  | Acronym family same as CTS — concept survives, label does not.                                                                   |
+| **River-SIPOC**          | _Canvas_                                                                   | The visual metaphor (left→right SIPOC; tributaries entering from banks) retired; the canvas uses spatial DAG with branch + join. |
+| **FRAME workspace**      | _Canvas_ (top-level surface)                                               | FRAME tab retires per Q0 in the §8 resolution. ADR-070 amended 2026-05-03 with supersession note.                                |
+| **Analysis tab**         | _Canvas_ + mode lenses (per vision §5.4)                                   | Same job as Frame — looking at the live map and its current state. Consolidated into Canvas.                                     |
+| **Layered Process View** | _Canvas_ with mode lenses                                                  | Three-band visual (Outcome / Process Flow / Operations) absorbed; semantic preserved as overlays.                                |
+| **Hub of Hubs**          | _Plant-hub layout_ (named-future, see decision-log)                        | Implementation term that surfaced in product-method roadmap; named-future in delivery-sequence reference.                        |
 
 ---
 
