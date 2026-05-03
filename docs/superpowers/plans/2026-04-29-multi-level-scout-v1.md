@@ -2,7 +2,7 @@
 title: 'Multi-level SCOUT V1 (first slice) — implementation plan'
 audience: [engineer, architect]
 category: implementation
-status: draft
+status: in-progress
 date: 2026-04-29
 related:
   - multi-level-scout-design

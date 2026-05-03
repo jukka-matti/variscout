@@ -2,7 +2,7 @@
 title: Production-Line-Glance — C2 LayeredProcessView Operations Band Implementation Plan
 audience: [engineer, architect]
 category: implementation
-status: in-progress
+status: delivered
 related:
   [
     production-line-glance-surface-wiring-design,
@@ -20,6 +20,7 @@ date: 2026-04-28
 **Goal:** Wire the production-line-glance dashboard into LayeredProcessView's Operations band with progressive reveal, in both azure-app and PWA. Land the `mode: 'spatial' | 'full'` prop on `ProductionLineGlanceDashboard`, the URL-state toggle hook (`?ops=full`), the slot-prop API change on LayeredProcessView, and the surface wiring in both `apps/azure/src/components/editor/FrameView.tsx` and `apps/pwa/src/components/views/FrameView.tsx`.
 
 **Architecture:** Three contract additions, no new components:
+
 1. `ProductionLineGlanceDashboard` gets `mode?: 'spatial' | 'full'` (default `'full'`). When `'spatial'`, the temporal row's wrapper transitions `max-height: 0` (no chart re-mounts).
 2. `LayeredProcessView` gets `operationsBandContent?: React.ReactNode` and `filterStripContent?: React.ReactNode` slot props. When `operationsBandContent` is provided, the band renders that node and the existing tributary chips relocate to the Outcome band's "Mapped factors" subsection. Default behavior (no slot props) is unchanged — preserves current FRAME usage.
 3. `useProductionLineGlanceOpsToggle` (new in `@variscout/hooks`) syncs the `ops` URL search-param to `'spatial' | 'full'` mode state with `replaceState` semantics matching `useProductionLineGlanceFilter`.
@@ -890,15 +891,16 @@ In `packages/ui/src/components/LayeredProcessView/index.ts`:
 export { LayeredProcessView } from './LayeredProcessView';
 export type { LayeredProcessViewProps } from './LayeredProcessView';
 export { LayeredProcessViewWithCapability } from './LayeredProcessViewWithCapability';
-export type { LayeredProcessViewWithCapabilityProps, ProductionLineGlanceOpsMode } from './LayeredProcessViewWithCapability';
+export type {
+  LayeredProcessViewWithCapabilityProps,
+  ProductionLineGlanceOpsMode,
+} from './LayeredProcessViewWithCapability';
 ```
 
 In `packages/ui/src/index.ts` append:
 
 ```typescript
-export {
-  LayeredProcessViewWithCapability,
-} from './components/LayeredProcessView';
+export { LayeredProcessViewWithCapability } from './components/LayeredProcessView';
 export type {
   LayeredProcessViewWithCapabilityProps,
   ProductionLineGlanceOpsMode,
@@ -942,6 +944,7 @@ Understand which props the existing `<LayeredProcessView ... />` receives and wh
 - [ ] **Step 2: Replace `<LayeredProcessView>` with `<LayeredProcessViewWithCapability>`**
 
 Pull the rollup (or hub + members + rows) from the existing FrameView state. Use:
+
 - `useHubProvision({ rollup })` — but FrameView may not have a rollup yet (it's an investigation-editor surface, not a hub view). If so, BUILD a synthetic rollup from the current investigation: `{ hub: { id: 'frame-preview', canonicalProcessMap: map, ... }, investigations: [currentInvestigation] }`. The dashboard will show data scoped to the investigation being authored.
 - `useProductionLineGlanceData({ hub, members, rowsByInvestigation, contextFilter })` with the synthetic rollup.
 - `useProductionLineGlanceFilter()` for filter state.
@@ -1018,6 +1021,7 @@ pnpm --filter @variscout/azure-app dev
 ```
 
 Open the FrameView. Validate:
+
 - LayeredProcessView renders three bands.
 - Operations band shows the dashboard's spatial row (CapabilityBoxplot left, StepErrorPareto right).
 - Filter strip appears above the Outcome band.
@@ -1078,6 +1082,7 @@ gh pr merge --squash --delete-branch
 ## Self-review
 
 **Spec coverage:**
+
 - ✅ `mode` prop on dashboard (T1)
 - ✅ URL `?ops` state (T2)
 - ✅ Slot-prop API (T3)
@@ -1091,6 +1096,7 @@ gh pr merge --squash --delete-branch
 **Type consistency:** `ProductionLineGlanceOpsMode` defined in T2 (`@variscout/hooks`) and T4 (`@variscout/ui`). The duplication is intentional: hooks owns URL state; ui owns composition. Both reduce to `'spatial' | 'full'` and are interchangeable.
 
 **Risk reminders:**
+
 - T5/T6 may discover that FrameView's data layer doesn't project cleanly to ProcessHubRollup. Pragmatic fallback: pass empty `data` props and document live-data wiring as V2 follow-up. The composition is the value; live data is icing.
 - The temporal row's `max-height` transition with content of unknown height (depends on viewport) needs the right CSS — use `max-h-screen` for full or rely on actual element height via `style.maxHeight`. T1 implementer chooses.
 - The "Mapped factors" subsection in Outcome band may overflow at small widths. Wrap chip list with `flex-wrap` (already in original code).

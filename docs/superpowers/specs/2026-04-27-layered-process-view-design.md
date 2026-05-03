@@ -222,7 +222,7 @@ The Operations band in Hub current-state aggregates evidence across investigatio
 
 ## Vocabulary changes
 
-Per [Process Learning Operating Model](2026-04-27-process-learning-operating-model-design.md) line 478–479 which already sanctions internal/external split:
+Per [VariScout Product Vision](2026-05-03-variscout-vision-design.md) §2 — methodology spine (supersedes the 2026-04-27 operating-model spec which sanctioned the internal/external split):
 
 | Old (UI)  | New (UI)   | Code                                                                                                                                                                                              |
 | --------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -334,8 +334,7 @@ Explicitly not in this spec, deferred to follow-up specs:
 
 ## References
 
-- [Process Learning Operating Model](2026-04-27-process-learning-operating-model-design.md) — three-level methodology this design renders
-- [Product-Method Roadmap](2026-04-27-product-method-roadmap-design.md) — maturity horizons; this design lands in H1 (state-to-response actionability)
+- [VariScout Product Vision](2026-05-03-variscout-vision-design.md) — supersedes the 2026-04-27 operating-model + roadmap specs; §2 holds the three-level methodology this design renders, §3 holds the canvas commitments that supersede this V1 design's surface choices
 - [FRAME Workspace](2026-04-18-frame-process-map-design.md) and [ADR-070](../../07-decisions/adr-070-frame-workspace.md) — predecessor; the river-SIPOC stays inside Process Flow band; existing `ProcessMap` / `ProcessMapBase` / `FrameView` / `detectGaps` / `inferMode` / subgroup axes are reused
 - [Investigation Wall](2026-04-19-investigation-wall-design.md) — separate paradigm (hypothesis-centric), out of scope here
 - [EDA Mental Model](../../01-vision/eda-mental-model.md) — Y/X/x three-level structure that the bands generalize

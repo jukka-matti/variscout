@@ -2,7 +2,7 @@
 title: Question-Driven EDA 2.0 — Session Handoff
 audience: [engineer, product]
 category: implementation
-status: draft
+status: in-progress
 date: 2026-04-25
 related:
   [

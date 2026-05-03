@@ -7,6 +7,8 @@ status: stable
 
 # VariScout Methodology
 
+> **Canonical product vision lives at [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../superpowers/specs/2026-05-03-variscout-vision-design.md).** This methodology document remains as a longer narrative companion; the vision spec's §2 (Methodology spine) is the authoritative summary. Where the two diverge, the vision spec wins. Reconciliation is a follow-up edit (see vision spec §6).
+
 Single-page consolidation of VariScout's analytical approach — how the product is designed to think, and why.
 
 ---
@@ -89,7 +91,7 @@ stronger frame is the Y / X / x three-level set of process understanding
 The FRAME process map is one important flow-level lens. It is not the whole
 method. The full model links one-off datasets, investigations, recurring
 Evidence Sources, Process Hub cadence, and sustainment/control handoff. See
-[Process Learning Operating Model](../superpowers/specs/2026-04-27-process-learning-operating-model-design.md).
+[VariScout Product Vision](../superpowers/specs/2026-05-03-variscout-vision-design.md) (supersedes the 2026-04-27 operating-model spec, now archived).
 
 These levels generalize the older three-level EDA language:
 
