@@ -935,3 +935,9 @@ export type { DataStats } from './specs/characteristicTypeDefaults';
 // Scope dimension suggestion (Framing Layer V1)
 export { suggestPrimaryDimensions } from './scopeDimensions/suggestPrimaryDimensions';
 export type { DimensionCandidate } from './scopeDimensions/suggestPrimaryDimensions';
+
+// .vrs file format (Framing Layer V1)
+export { vrsExport } from './serialization/vrsExport';
+export { vrsImport } from './serialization/vrsImport';
+export { VRS_VERSION } from './serialization/vrsFormat';
+export type { VrsFile } from './serialization/vrsFormat';
