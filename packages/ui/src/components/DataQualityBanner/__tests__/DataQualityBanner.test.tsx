@@ -48,6 +48,7 @@ function makeReport(overrides: Partial<DataQualityReport> = {}): DataQualityRepo
     validRows: 100,
     excludedRows: [],
     columnIssues: [],
+    perOutcome: {},
     ...overrides,
   };
 }

@@ -301,6 +301,7 @@ export type {
   ExclusionReason,
   ExcludedRow,
   ColumnIssue,
+  PerOutcomeQuality,
   DataQualityReport,
   ParetoRow,
   DetectChannelsOptions,

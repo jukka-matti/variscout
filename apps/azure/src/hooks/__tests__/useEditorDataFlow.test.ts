@@ -202,7 +202,7 @@ describe('useEditorDataFlow', () => {
       expect(options.setDataFilename).toHaveBeenCalledWith('Pasted Data');
       expect(options.setOutcome).toHaveBeenCalledWith('Weight');
       expect(options.setFactors).toHaveBeenCalledWith(['Operator']);
-      expect(mockValidateData).toHaveBeenCalledWith(parsedData, 'Weight');
+      expect(mockValidateData).toHaveBeenCalledWith(parsedData, ['Weight']);
       expect(options.setDataQualityReport).toHaveBeenCalled();
       expect(result.current.isPasteMode).toBe(false);
       expect(result.current.isMapping).toBe(true);

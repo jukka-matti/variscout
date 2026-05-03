@@ -212,9 +212,9 @@ describe('parser module', () => {
   });
 
   describe('validateData', () => {
-    it('should return empty report for null outcome column', () => {
+    it('should return empty report for empty outcome columns array', () => {
       const data: DataRow[] = [{ value: 10 }, { value: 12 }];
-      const result = validateData(data, null);
+      const result = validateData(data, []);
       expect(result.totalRows).toBe(2);
       expect(result.validRows).toBe(2);
       expect(result.excludedRows).toEqual([]);
@@ -222,7 +222,7 @@ describe('parser module', () => {
     });
 
     it('should return empty report for empty data', () => {
-      const result = validateData([], 'value');
+      const result = validateData([], ['value']);
       expect(result.totalRows).toBe(0);
       expect(result.validRows).toBe(0);
       expect(result.excludedRows).toEqual([]);
@@ -236,7 +236,7 @@ describe('parser module', () => {
         { value: '' },
         { value: 15 },
       ];
-      const result = validateData(data, 'value');
+      const result = validateData(data, ['value']);
       expect(result.excludedRows.length).toBe(3);
       expect(result.validRows).toBe(2);
       expect(result.columnIssues).toContainEqual({
@@ -254,7 +254,7 @@ describe('parser module', () => {
         { value: 'NaN' },
         { value: 15 },
       ];
-      const result = validateData(data, 'value');
+      const result = validateData(data, ['value']);
       expect(result.excludedRows.length).toBe(2);
       expect(result.columnIssues).toContainEqual({
         column: 'value',
@@ -266,14 +266,14 @@ describe('parser module', () => {
 
     it('should accept numeric strings as valid', () => {
       const data: DataRow[] = [{ value: '10.5' }, { value: '12' }, { value: '-5.5' }];
-      const result = validateData(data, 'value');
+      const result = validateData(data, ['value']);
       expect(result.validRows).toBe(3);
       expect(result.excludedRows.length).toBe(0);
     });
 
     it('should detect no variation in outcome column', () => {
       const data: DataRow[] = [{ value: 10 }, { value: 10 }, { value: 10 }];
-      const result = validateData(data, 'value');
+      const result = validateData(data, ['value']);
       expect(result.columnIssues).toContainEqual({
         column: 'value',
         type: 'no_variation',
@@ -290,14 +290,14 @@ describe('parser module', () => {
         { value: 'bad' },
         { value: 15 },
       ];
-      const result = validateData(data, 'value');
+      const result = validateData(data, ['value']);
       expect(result.excludedRows.map(r => r.index)).toContain(1);
       expect(result.excludedRows.map(r => r.index)).toContain(3);
     });
 
     it('should include exclusion reasons', () => {
       const data: DataRow[] = [{ value: null }, { value: 'not_numeric' }];
-      const result = validateData(data, 'value');
+      const result = validateData(data, ['value']);
 
       const missingRow = result.excludedRows.find(r => r.index === 0);
       expect(missingRow?.reasons[0].type).toBe('missing');
@@ -310,13 +310,13 @@ describe('parser module', () => {
     it('should truncate long non-numeric values in reasons', () => {
       const longValue = 'a'.repeat(100);
       const data: DataRow[] = [{ value: longValue }];
-      const result = validateData(data, 'value');
+      const result = validateData(data, ['value']);
       expect(result.excludedRows[0].reasons[0].value?.length).toBeLessThanOrEqual(50);
     });
 
     it('should handle Infinity as non-numeric', () => {
       const data: DataRow[] = [{ value: Infinity }, { value: -Infinity }, { value: 10 }];
-      const result = validateData(data, 'value');
+      const result = validateData(data, ['value']);
       // Infinity should be excluded (it's not a finite number)
       // Note: The current implementation treats Infinity as number type,
       // but toNumericValue returns undefined for Infinity
@@ -325,9 +325,29 @@ describe('parser module', () => {
 
     it('should handle NaN as non-numeric', () => {
       const data: DataRow[] = [{ value: NaN }, { value: 10 }];
-      const result = validateData(data, 'value');
+      const result = validateData(data, ['value']);
       // NaN should be excluded
       expect(result.validRows).toBe(1);
+    });
+  });
+
+  describe('validateData with multiple outcomes', () => {
+    const data: DataRow[] = [
+      { weight_g: 4.5, defect_count: 0 },
+      { weight_g: NaN, defect_count: 1 },
+      { weight_g: 4.4, defect_count: 'bad' },
+    ];
+
+    it('accepts an array of outcome columns', () => {
+      const report = validateData(data, ['weight_g', 'defect_count']);
+      expect(report.totalRows).toBe(3);
+      expect(report.perOutcome['weight_g']?.invalidCount).toBe(1); // NaN
+      expect(report.perOutcome['defect_count']?.invalidCount).toBe(1); // 'bad'
+    });
+
+    it('reports a row excluded if ANY outcome is invalid', () => {
+      const report = validateData(data, ['weight_g', 'defect_count']);
+      expect(report.excludedRows).toHaveLength(2);
     });
   });
 });

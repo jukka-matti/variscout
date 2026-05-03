@@ -55,11 +55,19 @@ export interface ColumnIssue {
   severity: 'warning' | 'info';
 }
 
+export interface PerOutcomeQuality {
+  validCount: number;
+  invalidCount: number;
+  missingCount: number;
+}
+
 export interface DataQualityReport {
   totalRows: number;
   validRows: number;
   excludedRows: ExcludedRow[];
   columnIssues: ColumnIssue[];
+  /** Per-outcome quality summary. Present when validateData is called with an array. */
+  perOutcome: Record<string, PerOutcomeQuality>;
 }
 
 export interface ParetoRow {
