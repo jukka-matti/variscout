@@ -29,6 +29,7 @@ import {
   ErrorBoundary,
   ProcessHealthBar,
   VerificationCard,
+  SegmentedControl,
   NarrativeBar,
   SelectionPanel,
   CreateFactorModal,
@@ -54,6 +55,7 @@ import {
   useProcessProjection,
   useJourneyPhase,
   useCapabilityIChartData,
+  useTranslation,
 } from '@variscout/hooks';
 import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
@@ -206,7 +208,11 @@ const Dashboard = ({
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
+  const { t } = useTranslation();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
+
+  type AzureAnalysisLensTab = 'probability' | 'distribution';
+  const [analysisLensTab, setAnalysisLensTab] = useState<AzureAnalysisLensTab>('probability');
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveMode(analysisMode) === 'defect';
@@ -436,6 +442,28 @@ const Dashboard = ({
     factorColumn: boxplotFactor,
     rows: filteredData,
   });
+
+  // Verify card tabs (Probability / Capability|Distribution)
+  const hasSpecs = !!(specs.usl !== undefined || specs.lsl !== undefined);
+  const azureAnalysisLensTabs: {
+    id: AzureAnalysisLensTab;
+    label: string;
+    content: React.ReactNode;
+  }[] = [
+    {
+      id: 'probability',
+      label: t('verify.tab.probability'),
+      content: <ProbabilityPlot series={probabilitySeries} />,
+    },
+    {
+      id: 'distribution',
+      label: hasSpecs ? t('verify.tab.capability') : t('verify.tab.distribution'),
+      content: <CapabilityHistogram data={histogramData} specs={specs} mean={stats?.mean ?? 0} />,
+    },
+  ];
+  const activeAzureAnalysisLensTab = azureAnalysisLensTabs.some(tab => tab.id === analysisLensTab)
+    ? analysisLensTab
+    : (azureAnalysisLensTabs[0]?.id ?? 'probability');
 
   // Keyboard: clear selection on Escape (complement to hook's focused-mode ESC)
   useEffect(() => {
@@ -914,30 +942,26 @@ const Dashboard = ({
                 }
                 /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
                    Stats sidebar (left) provides detailed view when toggled. */
+                verificationCardTitle={
+                  histogramData.length > 0 && stats && !(isDefectMode && defectSummaryProps) ? (
+                    <SegmentedControl
+                      options={azureAnalysisLensTabs.map(tab => ({
+                        value: tab.id,
+                        label: tab.label,
+                      }))}
+                      value={activeAzureAnalysisLensTab}
+                      onChange={tabId => setAnalysisLensTab(tabId as AzureAnalysisLensTab)}
+                      testId="verify-tab"
+                    />
+                  ) : undefined
+                }
                 renderVerificationCard={
                   isDefectMode && defectSummaryProps ? (
                     <DefectSummary {...defectSummaryProps} />
                   ) : histogramData.length > 0 && stats ? (
                     <VerificationCard
-                      defaultTab="probability"
-                      tabs={[
-                        {
-                          id: 'probability',
-                          label: 'Probability',
-                          content: <ProbabilityPlot series={probabilitySeries} />,
-                        },
-                        {
-                          id: 'distribution',
-                          label: specs ? 'Capability' : 'Distribution',
-                          content: (
-                            <CapabilityHistogram
-                              data={histogramData}
-                              specs={specs}
-                              mean={stats.mean}
-                            />
-                          ),
-                        },
-                      ]}
+                      tabs={azureAnalysisLensTabs}
+                      activeTab={activeAzureAnalysisLensTab}
                     />
                   ) : undefined
                 }

@@ -990,6 +990,12 @@ export const fi: MessageCatalog = {
   'capability.noSpec.prompt':
     'Aseta tavoite / spesifikaatio mittarille {measure} nähdäksesi Cp/Cpk.',
 
+  // Verify card segmented tabs — TODO(i18n): translate
+  'verify.tab.probability': 'Probability',
+  'verify.tab.distribution': 'Distribution',
+  'verify.tab.capability': 'Capability',
+  'verify.tab.pareto': 'Pareto',
+
   // Time lens (ProcessHealthBar) — TODO(i18n): translate
   'timeLens.button': 'Time',
   'timeLens.popover.title': 'Time window',

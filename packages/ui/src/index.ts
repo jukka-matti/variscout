@@ -194,7 +194,17 @@ export {
   type ProbabilityPlotTooltipProps,
 } from './components/ProbabilityPlotTooltip';
 
-export { VerificationCard, type VerificationCardProps } from './components/VerificationCard';
+export {
+  VerificationCard,
+  type VerificationCardProps,
+  type VerificationCardTab,
+} from './components/VerificationCard';
+
+export {
+  SegmentedControl,
+  type SegmentedControlProps,
+  type SegmentedControlOption,
+} from './components/SegmentedControl';
 
 export { FilterContextBar, type FilterContextBarProps } from './components/FilterContextBar';
 

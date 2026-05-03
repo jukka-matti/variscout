@@ -928,6 +928,12 @@ export const th: MessageCatalog = {
   'frame.spec.editor.invalidRange': 'USL must be greater than LSL.', // TODO(i18n): translate
   'capability.noSpec.prompt': 'Set a target / spec on {measure} to see Cp/Cpk.',
 
+  // Verify card segmented tabs — TODO(i18n): translate
+  'verify.tab.probability': 'Probability',
+  'verify.tab.distribution': 'Distribution',
+  'verify.tab.capability': 'Capability',
+  'verify.tab.pareto': 'Pareto',
+
   // Time lens (ProcessHealthBar) — TODO(i18n): translate
   'timeLens.button': 'Time',
   'timeLens.popover.title': 'Time window',

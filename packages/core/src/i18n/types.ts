@@ -1082,6 +1082,12 @@ export interface MessageCatalog {
   // Capability (FRAME b0)
   'capability.noSpec.prompt': string;
 
+  // Verify card segmented tabs
+  'verify.tab.probability': string;
+  'verify.tab.distribution': string;
+  'verify.tab.capability': string;
+  'verify.tab.pareto': string;
+
   // Time lens (ProcessHealthBar)
   'timeLens.button': string;
   'timeLens.popover.title': string;

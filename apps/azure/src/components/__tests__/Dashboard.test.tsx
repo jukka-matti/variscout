@@ -62,8 +62,39 @@ vi.mock('@variscout/ui', () => ({
     </select>
   ),
   ProcessHealthBar: () => <div data-testid="process-health-bar">Health Bar</div>,
-  VerificationCard: ({ tabs }: { tabs: Array<{ content: React.ReactNode }> }) => (
-    <div data-testid="verification-card">{tabs[0]?.content}</div>
+  VerificationCard: ({
+    tabs,
+    activeTab,
+  }: {
+    tabs: Array<{ id: string; content: React.ReactNode }>;
+    activeTab: string;
+  }) => (
+    <div data-testid="verification-card">
+      {tabs.find(t => t.id === activeTab)?.content ?? tabs[0]?.content}
+    </div>
+  ),
+  SegmentedControl: ({
+    options,
+    value,
+    onChange,
+    testId,
+  }: {
+    options: Array<{ value: string; label: string }>;
+    value: string;
+    onChange: (v: string) => void;
+    testId?: string;
+  }) => (
+    <div data-testid={testId ?? 'segmented-control'}>
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          aria-pressed={opt.value === value}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
   ),
   FilterBreadcrumb: () => <div data-testid="filter-breadcrumb">Breadcrumb</div>,
   EditableChartTitle: ({ defaultTitle }: { defaultTitle: string }) => (
@@ -449,6 +480,11 @@ vi.mock('@variscout/hooks', () => ({
   useProbabilityPlotData: () => [],
   useDefectTransform: () => null,
   useDefectSummary: () => null,
+  useLensedSampleCount: () => null,
+  useTranslation: () => ({
+    t: (key: string) => key,
+    formatStat: (v: unknown) => String(v),
+  }),
 }));
 
 // Improvement store mock removed — projectedCpkMap is now passed as a prop

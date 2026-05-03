@@ -996,6 +996,12 @@ export const en: MessageCatalog = {
   'frame.spec.editor.invalidRange': 'USL must be greater than LSL.',
   'capability.noSpec.prompt': 'Set a target / spec on {measure} to see Cp/Cpk.',
 
+  // Verify card segmented tabs
+  'verify.tab.probability': 'Probability',
+  'verify.tab.distribution': 'Distribution',
+  'verify.tab.capability': 'Capability',
+  'verify.tab.pareto': 'Pareto',
+
   // Time lens (ProcessHealthBar)
   'timeLens.button': 'Time',
   'timeLens.popover.title': 'Time window',

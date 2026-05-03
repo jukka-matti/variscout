@@ -147,6 +147,11 @@ export interface DashboardLayoutBaseProps {
   renderFocusedView?: React.ReactNode;
   /** Tabbed verification card (Histogram/ProbPlot) */
   renderVerificationCard?: React.ReactNode;
+  /**
+   * Segmented control rendered as the Verify card's header title.
+   * Replaces the empty title placeholder so the control sits in the card header row.
+   */
+  verificationCardTitle?: React.ReactNode;
   /** Focus target for the adaptive right-hand lens */
   verificationCardFocusTarget?: 'histogram' | 'probability-plot' | 'pareto' | null;
 
@@ -247,6 +252,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   renderPIPanel,
   renderFocusedView,
   renderVerificationCard,
+  verificationCardTitle,
   verificationCardFocusTarget,
   renderSpecEditor,
   ichartTitleSlot,
@@ -598,7 +604,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
                 onDownloadSvg={onDownloadSvg}
                 onShareChart={onShareChart}
                 utilityActions="maximize-only"
-                title={<></>}
+                title={verificationCardTitle ?? <></>}
               >
                 {renderVerificationCard}
               </DashboardChartCard>

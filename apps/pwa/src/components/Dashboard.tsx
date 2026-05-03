@@ -14,6 +14,7 @@ import {
   ErrorBoundary,
   ProcessHealthBar,
   VerificationCard,
+  SegmentedControl,
   SelectionPanel,
   CreateFactorModal,
   DashboardLayoutBase,
@@ -37,6 +38,7 @@ import {
   useCapabilityIChartData,
   useDefectTransform,
   useDefectSummary,
+  useTranslation,
 } from '@variscout/hooks';
 import { useProjectStore } from '@variscout/stores';
 import { useFilteredData, useAnalysisStats, useStagedAnalysis } from '@variscout/hooks';
@@ -139,6 +141,7 @@ const Dashboard = ({
   const { filteredData } = useFilteredData();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
+  const { t } = useTranslation();
   const [analysisLensTab, setAnalysisLensTab] = useState<AnalysisLensTab>('probability');
 
   // Defect mode: transform filtered data into aggregated defect rates
@@ -421,19 +424,19 @@ const Dashboard = ({
   const analysisLensTabs = [
     {
       id: 'probability',
-      label: 'Probability',
+      label: t('verify.tab.probability'),
       content: <ProbabilityPlot series={probabilitySeries} />,
     },
     {
       id: 'distribution',
-      label: hasSpecs ? 'Capability' : 'Distribution',
+      label: hasSpecs ? t('verify.tab.capability') : t('verify.tab.distribution'),
       content: <CapabilityHistogram data={histogramData} specs={specs} mean={stats?.mean ?? 0} />,
     },
     ...(paretoFactor
       ? [
           {
             id: 'pareto',
-            label: 'Pareto',
+            label: t('verify.tab.pareto'),
             content: (
               <ErrorBoundary componentName="Pareto Chart">
                 <ParetoChart
@@ -878,16 +881,21 @@ const Dashboard = ({
         }
         /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
            Stats sidebar (Azure) or Stats toggle provides detailed view when needed. */
+        verificationCardTitle={
+          histogramData.length > 0 && stats && !(isDefectMode && defectSummaryProps) ? (
+            <SegmentedControl
+              options={analysisLensTabs.map(tab => ({ value: tab.id, label: tab.label }))}
+              value={activeAnalysisLensTab}
+              onChange={tabId => setAnalysisLensTab(tabId as AnalysisLensTab)}
+              testId="verify-tab"
+            />
+          ) : undefined
+        }
         renderVerificationCard={
           isDefectMode && defectSummaryProps ? (
             <DefectSummary {...defectSummaryProps} />
           ) : histogramData.length > 0 && stats ? (
-            <VerificationCard
-              tabs={analysisLensTabs}
-              activeTab={activeAnalysisLensTab}
-              onTabChange={tabId => setAnalysisLensTab(tabId as AnalysisLensTab)}
-              defaultTab="probability"
-            />
+            <VerificationCard tabs={analysisLensTabs} activeTab={activeAnalysisLensTab} />
           ) : undefined
         }
         verificationCardFocusTarget={
