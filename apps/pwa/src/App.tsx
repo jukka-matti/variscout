@@ -558,9 +558,8 @@ function AppMain() {
   );
 
   // Findings: restore filter state AND time lens.
-  // NOTE: useFindingsOrchestration in features/findings/useFindingsOrchestration.ts
-  // provides a parallel implementation (lens-only) intended as a companion to this
-  // handler. If App.tsx is ever refactored to use that hook, consolidate here.
+  // Single owner — the parallel useFindingsOrchestration hook was deleted (dead code,
+  // never called from PWA). App.tsx is the canonical restore handler for the PWA.
   const handleRestoreFinding = useCallback(
     (id: string) => {
       const finding = findingsState.findings.find(f => f.id === id);

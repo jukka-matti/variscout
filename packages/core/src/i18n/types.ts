@@ -1086,6 +1086,7 @@ export interface MessageCatalog {
   'capability.noSpec.prompt': string;
 
   // Verify card segmented tabs
+  'verify.tabs.label': string;
   'verify.tab.probability': string;
   'verify.tab.distribution': string;
   'verify.tab.capability': string;

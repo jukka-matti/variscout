@@ -87,17 +87,26 @@ describe('AppHeader', () => {
       }
     });
 
-    it('marks the active phase tab with aria-pressed=true', () => {
+    it('marks the active phase tab with aria-selected=true (role="tab" pattern)', () => {
       const onPhaseChange = vi.fn();
       render(
         <AppHeader {...withDataProps} activePhase="investigation" onPhaseChange={onPhaseChange} />
       );
 
       const investigationBtn = screen.getByTestId('phase-tab-investigation');
-      expect(investigationBtn.getAttribute('aria-pressed')).toBe('true');
+      expect(investigationBtn.getAttribute('aria-selected')).toBe('true');
+      expect(investigationBtn.getAttribute('role')).toBe('tab');
 
       const analysisBtn = screen.getByTestId('phase-tab-analysis');
-      expect(analysisBtn.getAttribute('aria-pressed')).toBe('false');
+      expect(analysisBtn.getAttribute('aria-selected')).toBe('false');
+    });
+
+    it('renders a tablist container for the phase tabs', () => {
+      const onPhaseChange = vi.fn();
+      render(<AppHeader {...withDataProps} activePhase="analysis" onPhaseChange={onPhaseChange} />);
+
+      const tablist = screen.getByRole('tablist');
+      expect(tablist).toBeTruthy();
     });
 
     it('calls onPhaseChange with the correct phase id when a tab is clicked', () => {

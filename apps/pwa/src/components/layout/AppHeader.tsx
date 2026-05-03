@@ -146,27 +146,32 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       </button>
 
       {/* Phase tabs — inline between filename and toolbar */}
+      {/* TODO(a11y): add roving-tabindex / arrow-key navigation when a reusable hook is available */}
       {showPhaseTabs && (
         <nav
           aria-label="Workspace phases"
           data-testid="phase-tabs-inline"
           className="flex items-center gap-0.5 py-1"
         >
-          {PHASE_TABS.map(tab => (
-            <button
-              key={tab.id}
-              data-testid={`phase-tab-${tab.id}`}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                activePhase === tab.id
-                  ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
-                  : 'text-content-secondary hover:text-content hover:bg-surface-secondary border border-transparent'
-              }`}
-              onClick={() => onPhaseChange(tab.id)}
-              aria-pressed={activePhase === tab.id}
-            >
-              {t(tab.labelKey)}
-            </button>
-          ))}
+          {/* role="tablist" scopes the tabs for AT. Each child carries role="tab" + aria-selected. */}
+          <div role="tablist" aria-label="Workspace phases" className="flex items-center gap-0.5">
+            {PHASE_TABS.map(tab => (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={activePhase === tab.id}
+                data-testid={`phase-tab-${tab.id}`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  activePhase === tab.id
+                    ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                    : 'text-content-secondary hover:text-content hover:bg-surface-secondary border border-transparent'
+                }`}
+                onClick={() => onPhaseChange(tab.id)}
+              >
+                {t(tab.labelKey)}
+              </button>
+            ))}
+          </div>
         </nav>
       )}
 

@@ -51,6 +51,7 @@ vi.mock('@variscout/ui', async () => {
       options: Array<{ value: string; label: string }>;
       value: string;
       onChange: (v: string) => void;
+      'aria-label': string;
       testId?: string;
     }) => (
       <div data-testid={testId ?? 'segmented-control'}>

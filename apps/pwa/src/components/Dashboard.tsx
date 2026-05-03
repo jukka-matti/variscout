@@ -887,6 +887,7 @@ const Dashboard = ({
               options={analysisLensTabs.map(tab => ({ value: tab.id, label: tab.label }))}
               value={activeAnalysisLensTab}
               onChange={tabId => setAnalysisLensTab(tabId as AnalysisLensTab)}
+              aria-label={t('verify.tabs.label')}
               testId="verify-tab"
             />
           ) : undefined

@@ -941,6 +941,7 @@ export const vi: MessageCatalog = {
   'capability.noSpec.prompt': 'Set a target / spec on {measure} to see Cp/Cpk.',
 
   // Verify card segmented tabs — TODO(i18n): translate
+  'verify.tabs.label': 'Verify view',
   'verify.tab.probability': 'Probability',
   'verify.tab.distribution': 'Distribution',
   'verify.tab.capability': 'Capability',

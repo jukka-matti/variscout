@@ -13,6 +13,7 @@ import {
 import type { ProcessHealthBarProps } from './types';
 import { FilterChipDropdown } from '../FilterChipDropdown';
 import { gradeCpk, sourceLabelFor } from '@variscout/core/capability';
+import { assertNever } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { useSessionStore } from '@variscout/stores';
 import type { TimeLens } from '@variscout/core/stats';
@@ -195,6 +196,8 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
         case 'openEnded':
           setTimeLens({ mode: 'openEnded', anchor: fixedAnchor });
           break;
+        default:
+          return assertNever(newMode);
       }
     },
     [setTimeLens, rollingWindow, fixedAnchor, fixedWindow]

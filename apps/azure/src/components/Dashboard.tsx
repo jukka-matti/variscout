@@ -951,6 +951,7 @@ const Dashboard = ({
                       }))}
                       value={activeAzureAnalysisLensTab}
                       onChange={tabId => setAnalysisLensTab(tabId as AzureAnalysisLensTab)}
+                      aria-label={t('verify.tabs.label')}
                       testId="verify-tab"
                     />
                   ) : undefined

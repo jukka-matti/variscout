@@ -9,6 +9,8 @@ export interface SegmentedControlProps<T extends string> {
   options: SegmentedControlOption<T>[];
   value: T;
   onChange: (value: T) => void;
+  /** Accessible label for the control group — required for screen-reader context. */
+  'aria-label': string;
   /** data-testid prefix; each button gets `${testId}-${option.value}` */
   testId?: string;
 }
@@ -26,12 +28,15 @@ function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
+  'aria-label': ariaLabel,
   testId,
 }: SegmentedControlProps<T>): React.ReactElement | null {
   if (options.length === 0) return null;
 
   return (
     <div
+      role="group"
+      aria-label={ariaLabel}
       className="flex gap-0.5 bg-surface/50 p-0.5 rounded-lg border border-edge/50"
       data-export-hide
     >
