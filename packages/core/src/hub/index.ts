@@ -1,0 +1,1 @@
+export { extractHubName } from './extractHubName';

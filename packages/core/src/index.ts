@@ -920,3 +920,6 @@ export { mergeRows, type MergeReport, type MergeResult } from './appendMode';
 
 // Throughput metrics (Multi-level SCOUT V1)
 export * from './throughput';
+
+// Hub utilities (Framing Layer V1)
+export * from './hub';
