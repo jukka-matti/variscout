@@ -151,6 +151,9 @@ package-lock.json
 # Vite temp files
 vite.config.ts.timestamp*
 
+# Astro generated content cache
+apps/docs/.astro/
+
 # Build output
 site/
 
