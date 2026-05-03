@@ -18,7 +18,10 @@ import {
   QuestionsTabView,
   JournalTabView,
   QuestionLinkPrompt,
+  GoalBanner,
 } from '@variscout/ui';
+import { SessionProvider, useSession } from './store/sessionStore';
+import { hubRepository } from './db/hubRepository';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
   useFindings,
@@ -127,10 +130,31 @@ function App() {
     return <EvidenceMapPopout />;
   }
 
-  return <AppMain />;
+  return (
+    <SessionProvider>
+      <AppMain />
+    </SessionProvider>
+  );
 }
 
 function AppMain() {
+  // ── Session (current Hub + opt-in persistence hydration) ───────────────
+  // Mode A.1 (D5): on mount, check the persistence opt-in flag. If set, load
+  // the saved Hub-of-one from IndexedDB and seed the session. Otherwise the
+  // app stays session-only (default PWA invariant).
+  const { hub: sessionHub, setHub: setSessionHub } = useSession();
+  useEffect(() => {
+    let cancelled = false;
+    void hubRepository.getOptInFlag().then(async opted => {
+      if (!opted || cancelled) return;
+      const loaded = await hubRepository.loadHub();
+      if (loaded && !cancelled) setSessionHub(loaded);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [setSessionHub]);
+
   // ── Zustand store selectors (replaces useDataStateCtx) ──────────────────
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
@@ -754,6 +778,10 @@ function AppMain() {
           </div>
         </div>
       )}
+
+      {/* Goal banner — surfaces the Hub processGoal when restored from
+          opt-in persistence (Mode A.1) or set via the framing layer flow. */}
+      {sessionHub?.processGoal ? <GoalBanner goal={sessionHub.processGoal} /> : null}
 
       {/* Main Content */}
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
