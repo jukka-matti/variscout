@@ -64,4 +64,24 @@ describe('ProcessHubView', () => {
     fireEvent.click(screen.getByRole('tab', { name: /capability/i }));
     expect(screen.getByTestId('process-hub-capability-tab-panel')).toBeInTheDocument();
   });
+
+  it('renders the GoalBanner above the tab container when hub.processGoal is set', () => {
+    const goalHub: ProcessHub = {
+      id: 'h2',
+      name: 'Line B',
+      processGoal: 'We mold barrels for medical customers.',
+    } as ProcessHub;
+    const goalRollup = {
+      hub: goalHub,
+      investigations: [],
+      evidenceSnapshots: [],
+    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    render(<ProcessHubView {...baseProps} rollup={goalRollup} />);
+    expect(screen.getByTestId('goal-banner')).toBeInTheDocument();
+  });
+
+  it('does not render the GoalBanner when hub.processGoal is absent', () => {
+    render(<ProcessHubView {...baseProps} />);
+    expect(screen.queryByTestId('goal-banner')).not.toBeInTheDocument();
+  });
 });

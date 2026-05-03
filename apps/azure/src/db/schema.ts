@@ -107,6 +107,14 @@ export class VariScoutDatabase extends Dexie {
       sustainmentReviews: 'id, recordId, investigationId, hubId, reviewedAt',
       controlHandoffs: 'id, investigationId, hubId, handoffDate',
     });
+
+    // Version 7: Framing Layer V1 Slice 1 — no-op schema bump.
+    // Task 1 added optional ProcessHub fields (processGoal, outcomes,
+    // primaryScopeDimensions). These are TypeScript-only additions; Dexie
+    // stores them transparently because `processHubs` uses `id` as the only
+    // declared index. The empty-stores object signals "no schema change" and
+    // flushes any cached schema for the bumped version.
+    this.version(7).stores({});
   }
 }
 
