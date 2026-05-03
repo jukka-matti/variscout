@@ -211,6 +211,15 @@ export const useSessionStore = create<SessionStore>()(
     }),
     {
       name: 'variscout-session',
+      version: 1,
+      migrate: (persistedState: unknown, version: number) => {
+        const state = (persistedState ?? {}) as Record<string, unknown>;
+        if (version < 1) {
+          // Task 1: timeLens added — guard against pre-v1 blobs that lack the key.
+          return { ...state, timeLens: state['timeLens'] ?? DEFAULT_TIME_LENS };
+        }
+        return state;
+      },
       storage: createJSONStorage(() => idbStorage),
       partialize: state => ({
         // Only persist user preferences, not transient highlights
