@@ -1044,4 +1044,40 @@ export interface MessageCatalog {
   'wall.palette.kind.finding': string;
   'wall.card.questions': string;
   'wall.minimap.ariaLabel': string;
+
+  // FRAME b0 lightweight render
+  'frame.b0.q1.headline': string;
+  'frame.b0.q1.hint': string;
+  'frame.b0.q2.headline': string;
+  'frame.b0.q2.hint': string;
+  'frame.b0.runOrderHint': string;
+  'frame.b0.addProcessSteps.label': string;
+  'frame.b0.addProcessSteps.helper': string;
+  'frame.b0.addHypothesis.label': string;
+  'frame.b0.addHypothesis.helper': string;
+  'frame.b0.seeData.cta': string;
+  'frame.b0.seeData.pickYHint': string;
+  'frame.b0.step.addCtq': string;
+  'frame.b0.q1.empty': string;
+  'frame.b0.q2.empty': string;
+  'frame.b0.aria.yCandidates': string;
+  'frame.b0.aria.selectedXs': string;
+  'frame.b0.aria.availableXs': string;
+  'frame.b1.heading': string;
+  'frame.b1.description': string;
+  'frame.spec.notSet': string;
+  'frame.spec.set': string;
+  'frame.spec.add': string;
+  'frame.spec.editor.title': string;
+  'frame.spec.editor.usl': string;
+  'frame.spec.editor.lsl': string;
+  'frame.spec.editor.target': string;
+  'frame.spec.editor.cpkTarget': string;
+  'frame.spec.editor.suggestedFromData': string;
+  'frame.spec.editor.confirm': string;
+  'frame.spec.editor.cancel': string;
+  'frame.spec.editor.invalidRange': string;
+
+  // Capability (FRAME b0)
+  'capability.noSpec.prompt': string;
 }

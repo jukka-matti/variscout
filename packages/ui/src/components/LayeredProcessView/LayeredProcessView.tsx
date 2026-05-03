@@ -46,6 +46,14 @@ export interface LayeredProcessViewProps {
   /** Optional content rendered above the Outcome band (typically the
    * dashboard's filter strip). Plan C2. */
   filterStripContent?: React.ReactNode;
+  /**
+   * Whether to render the inner ProcessMap's GapStrip warning bar. Defaults
+   * to `true` for backward compatibility with b1+ (process-map authoring)
+   * flows. The b0 FrameView passes `false` because the lightweight
+   * investigator entry uses inline `+ add spec` affordances instead of
+   * upfront warnings. (W3-8 prep — passthrough for ProcessMapBase.showGaps.)
+   */
+  showGaps?: boolean;
 }
 
 export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
@@ -63,6 +71,7 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
   onStepSpecsChange,
   operationsBandContent,
   filterStripContent,
+  showGaps = true,
 }) => {
   const hasOutcomeData =
     target !== undefined || usl !== undefined || lsl !== undefined || cpkTarget !== undefined;
@@ -157,6 +166,7 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
             onSpecsChange={onSpecsChange}
             stepSpecs={stepSpecs}
             onStepSpecsChange={onStepSpecsChange}
+            showGaps={showGaps}
           />
         </div>
       </section>

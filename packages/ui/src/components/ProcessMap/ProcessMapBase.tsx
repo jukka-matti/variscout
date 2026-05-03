@@ -62,6 +62,13 @@ export interface ProcessMapBaseProps {
    * step. The full `SpecLimits` shape is passed so consumers can `setMeasureSpec(column, next)`.
    */
   onStepSpecsChange?: (column: string, next: SpecLimits) => void;
+  /**
+   * Whether to render the GapStrip warning bar. Defaults to `true` for backward
+   * compatibility with b1+ (process-map authoring) flows. The b0 FrameView passes
+   * `false` because the lightweight investigator entry uses inline `+ add spec`
+   * affordances and a soft Capability-tab prompt instead of upfront warnings.
+   */
+  showGaps?: boolean;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -626,6 +633,7 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   onSpecsChange,
   stepSpecs,
   onStepSpecsChange,
+  showGaps = true,
 }) => {
   const sortedSteps = React.useMemo(
     () => [...map.nodes].sort((a, b) => a.order - b.order),
@@ -793,7 +801,7 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
         onRemove={removeHunch}
       />
 
-      <GapStrip gaps={globalGaps(gaps)} />
+      {showGaps && <GapStrip gaps={globalGaps(gaps)} />}
     </div>
   );
 };

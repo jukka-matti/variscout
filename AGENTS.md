@@ -22,8 +22,9 @@ Structured investigation for process improvement. Browser-based, customer-owned 
 - Shared repo map: `docs/llms.txt`
 - Product context: `docs/OVERVIEW.md`, `docs/USER-JOURNEYS.md`, `docs/DATA-FLOW.md`
 - Package context: `packages/*/CLAUDE.md` and `apps/*/CLAUDE.md`
-- Decisions: `docs/07-decisions/`
+- Decisions: `docs/07-decisions/` (live ADRs) and `docs/decision-log.md` (Replayed Decisions, Open Questions, Named-Future) — read before re-opening any topic.
 - Designs: `docs/superpowers/specs/`
+- Investigations: `docs/investigations.md` — code smells / UX follow-ups / architectural questions surfaced during work that aren't yet decisions. Lighter than an Open Question, heavier than a TODO. Add an entry when shipping fix A surfaces problem B you don't want to lose.
 - Ruflo workflow: `docs/05-technical/implementation/ruflo-workflow.md`
 - Codex-specific notes: `docs/05-technical/implementation/codex-ruflo-workflow.md`
 

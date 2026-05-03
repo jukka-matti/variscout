@@ -45,7 +45,7 @@ const IChart = ({
   const outcome = outcomeOverride ?? storeOutcome;
   const timeColumn = useProjectStore(s => s.timeColumn);
   const stageColumn = useProjectStore(s => s.stageColumn);
-  const specs = useProjectStore(s => s.specs);
+  const projectSpecs = useProjectStore(s => s.specs);
   const axisSettings = useProjectStore(s => s.axisSettings);
   const setAxisSettings = useProjectStore(s => s.setAxisSettings);
   const columnAliases = useProjectStore(s => s.columnAliases);
@@ -59,6 +59,12 @@ const IChart = ({
     measureSpecs,
     projectCpkTarget,
   });
+  // Prefer per-column spec over project-wide. FRAME b0 saves to
+  // measureSpecs[outcome] (Dashboard / PIPanel do the same when an outcome
+  // is set), so reading projectSpecs alone leaves USL/LSL/target lines
+  // missing from the I-Chart even after the user saved a spec.
+  const measureSpec = outcome ? measureSpecs[outcome] : undefined;
+  const specs = measureSpec ?? projectSpecs;
   const { min: autoMin, max: autoMax } = useChartScale();
 
   const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';

@@ -361,6 +361,20 @@ describe('ProcessMapBase — gap rendering', () => {
     );
     expect(screen.queryByTestId('process-map-gap-strip')).not.toBeInTheDocument();
   });
+
+  it('GapStrip is suppressed when showGaps is false (b0 FrameView opt-out)', () => {
+    render(
+      <ProcessMapBase
+        map={mapWithTwoSteps()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        gaps={[requiredGap, recommendedGap]}
+        showGaps={false}
+      />
+    );
+    // Even though the parent supplied global gaps, the strip is hidden in b0.
+    expect(screen.queryByTestId('process-map-gap-strip')).not.toBeInTheDocument();
+  });
 });
 
 describe('ProcessMapBase — disabled mode', () => {

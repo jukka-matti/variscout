@@ -903,4 +903,39 @@ export const zhHant: MessageCatalog = {
   'wall.palette.kind.question': 'QUESTION',
   'wall.palette.kind.finding': 'FINDING',
   'wall.minimap.ariaLabel': 'Investigation Wall minimap',
+
+  // FRAME b0 lightweight render — TODO(i18n): translate
+  'frame.b0.q1.headline': 'What do you want to investigate?',
+  'frame.b0.q1.hint': 'your Y / output measurement',
+  'frame.b0.q2.headline': 'What might be affecting it?',
+  'frame.b0.q2.hint': "your X's / inputs",
+  'frame.b0.runOrderHint': '(run order: {column})',
+  'frame.b0.addProcessSteps.label': 'Add process steps',
+  'frame.b0.addProcessSteps.helper': "optional — useful when your X's belong to specific stages",
+  'frame.b0.addHypothesis.label': 'Add a hypothesis',
+  'frame.b0.addHypothesis.helper': 'optional — what you suspect',
+  'frame.b0.seeData.cta': 'See the data →',
+  'frame.b0.seeData.pickYHint': 'Pick a Y first to see the analysis.',
+  'frame.b0.step.addCtq': '+ add measurement at this step (optional)',
+  'frame.b0.q1.empty': 'No numeric columns detected — add or import data to begin.', // TODO(i18n): translate
+  'frame.b0.q2.empty': 'No X candidates — once you pick a Y, factor candidates appear here.', // TODO(i18n): translate
+  'frame.b0.aria.yCandidates': 'Y candidate chips', // TODO(i18n): translate
+  'frame.b0.aria.selectedXs': 'Selected X chips', // TODO(i18n): translate
+  'frame.b0.aria.availableXs': 'Available X chips', // TODO(i18n): translate
+  'frame.b1.heading': 'Frame the investigation', // TODO(i18n): translate
+  'frame.b1.description':
+    'Build your process map so the analysis has context. The map drives mode selection and a measurement-gap report; the methodology wants CTS at the ocean, a CTQ per step, and at least one rational-subgroup axis.', // TODO(i18n): translate
+  'frame.spec.notSet': 'spec: not set',
+  'frame.spec.set': 'spec: set', // TODO(i18n): translate
+  'frame.spec.add': '+ add spec',
+  'frame.spec.editor.title': 'Set spec for {measure}',
+  'frame.spec.editor.usl': 'USL',
+  'frame.spec.editor.lsl': 'LSL',
+  'frame.spec.editor.target': 'Target',
+  'frame.spec.editor.cpkTarget': 'Cpk target',
+  'frame.spec.editor.suggestedFromData': 'Suggested from data: mean ± 3σ. Confirm to save.',
+  'frame.spec.editor.confirm': 'Save',
+  'frame.spec.editor.cancel': 'Cancel',
+  'frame.spec.editor.invalidRange': 'USL must be greater than LSL.', // TODO(i18n): translate
+  'capability.noSpec.prompt': 'Set a target / spec on {measure} to see Cp/Cpk.',
 };

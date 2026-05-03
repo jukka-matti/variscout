@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectScope } from '../scopeDetection';
+import { detectScope, detectScopeFromMap } from '../scopeDetection';
 import type { ProcessHubInvestigation, InvestigationNodeMapping } from '../processHub';
 
 const makeInvestigation = (nodeMappings?: InvestigationNodeMapping[]): ProcessHubInvestigation => ({
@@ -32,5 +32,23 @@ describe('detectScope', () => {
       { nodeId: 'n2', measurementColumn: 'col2' },
     ]);
     expect(detectScope(inv)).toBe('b1');
+  });
+});
+
+describe('detectScopeFromMap', () => {
+  it('returns b0 when processMap is undefined', () => {
+    expect(detectScopeFromMap(undefined)).toBe('b0');
+  });
+
+  it('returns b0 when processMap has zero nodes', () => {
+    expect(detectScopeFromMap({ nodes: [] })).toBe('b0');
+  });
+
+  it('returns b2 when processMap has exactly one node', () => {
+    expect(detectScopeFromMap({ nodes: [{ id: 'n1' }] })).toBe('b2');
+  });
+
+  it('returns b1 when processMap has two or more nodes', () => {
+    expect(detectScopeFromMap({ nodes: [{ id: 'n1' }, { id: 'n2' }] })).toBe('b1');
   });
 });
