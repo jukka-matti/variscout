@@ -741,3 +741,10 @@ export type {
   OutcomeCandidate,
   OutcomeCandidateRowProps,
 } from './components/OutcomeCandidateRow/OutcomeCandidateRow';
+
+// Primary Scope Dimensions Selector (framing layer Stage 3 sub-step)
+export { PrimaryScopeDimensionsSelector } from './components/PrimaryScopeDimensionsSelector/PrimaryScopeDimensionsSelector';
+export type {
+  DimensionRow,
+  PrimaryScopeDimensionsSelectorProps,
+} from './components/PrimaryScopeDimensionsSelector/PrimaryScopeDimensionsSelector';

@@ -931,3 +931,7 @@ export {
   inferOutcomeCharacteristicType,
 } from './specs/characteristicTypeDefaults';
 export type { DataStats } from './specs/characteristicTypeDefaults';
+
+// Scope dimension suggestion (Framing Layer V1)
+export { suggestPrimaryDimensions } from './scopeDimensions/suggestPrimaryDimensions';
+export type { DimensionCandidate } from './scopeDimensions/suggestPrimaryDimensions';
