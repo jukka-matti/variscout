@@ -2,14 +2,14 @@
  * Tests for DashboardLayoutBase component
  *
  * Validates: chart card rendering, focused view toggle, annotation context menu,
- * spec editor slot, insight chips, and render slot composition.
+ * spec editor slot, insight chips, render slot composition, and I-Chart header
+ * one-row layout with inline staged-stats chips.
  */
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import DashboardLayoutBase from '../DashboardLayoutBase';
 import type { DashboardLayoutBaseProps } from '../DashboardLayoutBase';
-import type { TimelineWindow } from '@variscout/core';
 
 const noopAsync = vi.fn().mockResolvedValue(undefined);
 const noop = vi.fn();
@@ -170,7 +170,7 @@ describe('DashboardLayoutBase', () => {
     expect(screen.queryByText(/LCL:/)).toBeNull();
   });
 
-  it('renders staged stats when stageColumn is set', () => {
+  it('renders staged stats as inline chips in the controls row when stageColumn is set', () => {
     render(
       <DashboardLayoutBase
         {...baseProps}
@@ -178,8 +178,24 @@ describe('DashboardLayoutBase', () => {
         stagedStats={{ stageOrder: ['A', 'B', 'C'], overallStats: { mean: 9.5 } }}
       />
     );
+    const chipsHost = screen.getByTestId('staged-stats-chips');
+    expect(chipsHost).toBeDefined();
     expect(screen.getByText('3 stages')).toBeDefined();
     expect(screen.getByText('9.50')).toBeDefined();
+  });
+
+  it('does not render staged stats chips when stageColumn is null', () => {
+    render(<DashboardLayoutBase {...baseProps} stageColumn={null} stagedStats={null} />);
+    expect(screen.queryByTestId('staged-stats-chips')).toBeNull();
+  });
+
+  it('does not render Fixed/Rolling/Open-ended/Cumulative windowing buttons', () => {
+    render(<DashboardLayoutBase {...baseProps} />);
+    expect(screen.queryByTestId('timeline-window-picker-host')).toBeNull();
+    expect(screen.queryByText('Fixed')).toBeNull();
+    expect(screen.queryByText('Rolling')).toBeNull();
+    expect(screen.queryByText('Open-ended')).toBeNull();
+    expect(screen.queryByText('Cumulative')).toBeNull();
   });
 
   it('renders outcome selector with available outcomes', () => {
@@ -196,28 +212,6 @@ describe('DashboardLayoutBase', () => {
       />
     );
     expect(screen.getByTestId('custom-title')).toBeDefined();
-  });
-
-  it('renders TimelineWindowPicker when window + change handler are provided, and propagates kind changes', () => {
-    const onTimelineWindowChange = vi.fn();
-    const window: TimelineWindow = { kind: 'cumulative' };
-    render(
-      <DashboardLayoutBase
-        {...baseProps}
-        timelineWindow={window}
-        onTimelineWindowChange={onTimelineWindowChange}
-      />
-    );
-    expect(screen.getByTestId('timeline-window-picker-host')).toBeDefined();
-    // Click "Rolling" chip — switches kind, fires onChange with rolling default.
-    fireEvent.click(screen.getByTestId('timeline-window-chip-rolling'));
-    expect(onTimelineWindowChange).toHaveBeenCalledTimes(1);
-    expect(onTimelineWindowChange.mock.calls[0][0]).toMatchObject({ kind: 'rolling' });
-  });
-
-  it('does not render TimelineWindowPicker when timelineWindow prop is omitted', () => {
-    render(<DashboardLayoutBase {...baseProps} />);
-    expect(screen.queryByTestId('timeline-window-picker-host')).toBeNull();
   });
 
   it('uses a neutral variation-sources title when no subgroup factor is selected', () => {

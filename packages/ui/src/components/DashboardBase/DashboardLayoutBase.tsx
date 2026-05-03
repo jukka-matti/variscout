@@ -7,13 +7,12 @@ import { FilterContextBar } from '../FilterContextBar';
 import { BoxplotDisplayToggle } from '../BoxplotDisplayToggle';
 import { ChartInsightChip } from '../ChartInsightChip';
 import { AnnotationContextMenu } from '../AnnotationContextMenu';
-import { TimelineWindowPicker } from '../TimelineWindowPicker';
 import DashboardChartCard from './DashboardChartCard';
 import DashboardGrid from './DashboardGrid';
 import type { HighlightColor } from '../ChartAnnotationLayer/types';
 import type { UseChartInsightsReturn, ChartTitles } from '@variscout/hooks';
 import type { FilterChipData } from '../filterTypes';
-import type { GlossaryTerm, TimelineWindow } from '@variscout/core';
+import type { GlossaryTerm } from '@variscout/core';
 
 // ---------- Annotations shape ----------
 export interface DashboardAnnotations {
@@ -189,16 +188,6 @@ export interface DashboardLayoutBaseProps {
   paretoObservationCount?: number;
   /** Dashboard layout mode: 'grid' (viewport-fit) or 'scroll' (stacked) */
   layout?: 'grid' | 'scroll';
-
-  // ---- Timeline window (Multi-level SCOUT V1) ----
-  /**
-   * Optional dashboard-level TimelineWindow control. Renders the
-   * TimelineWindowPicker adjacent to the outcome selector when both
-   * `timelineWindow` and `onTimelineWindowChange` are provided.
-   * Hosts that don't pass these props are unchanged (no picker rendered).
-   */
-  timelineWindow?: TimelineWindow;
-  onTimelineWindowChange?: (w: TimelineWindow) => void;
 }
 
 /**
@@ -277,8 +266,6 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   boxplotObservationCount,
   paretoObservationCount,
   layout,
-  timelineWindow,
-  onTimelineWindowChange,
 }) => {
   const { formatStat } = useTranslation();
   const {
@@ -365,28 +352,24 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
 
         {ichartHeaderExtra}
 
-        {timelineWindow && onTimelineWindowChange && (
+        {stageColumn && stagedStats && (
           <div
-            className="flex items-center ml-2 pl-2 border-l border-edge"
-            data-testid="timeline-window-picker-host"
+            className="flex items-center gap-2 ml-2 pl-2 border-l border-edge"
+            data-testid="staged-stats-chips"
           >
-            <TimelineWindowPicker window={timelineWindow} onChange={onTimelineWindowChange} />
+            <span className="text-xs font-medium text-blue-400 bg-blue-500/10 border border-blue-500/30 rounded-full px-2 py-0.5 whitespace-nowrap">
+              {stagedStats.stageOrder.length} stages
+            </span>
+            <span className="text-xs text-content-secondary whitespace-nowrap">
+              Mean:{' '}
+              <span className="font-mono text-content">
+                {formatStat(stagedStats.overallStats.mean)}
+              </span>
+            </span>
           </div>
         )}
       </div>
       {ichartExtraControls}
-
-      {stageColumn && stagedStats && (
-        <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
-          <span className="text-blue-400 font-medium">{stagedStats.stageOrder.length} stages</span>
-          <span className="text-content-secondary">
-            Overall Mean:{' '}
-            <span className="text-content font-mono">
-              {formatStat(stagedStats.overallStats.mean)}
-            </span>
-          </span>
-        </div>
-      )}
     </>
   );
 
