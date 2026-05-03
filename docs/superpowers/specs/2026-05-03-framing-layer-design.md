@@ -527,19 +527,19 @@ This spec ends at _"canvas first paint"_ (Mode B) or _"canvas with restored stat
 
 ## 14. Inheritance — anchors from §8 walkthrough
 
-| Anchor | Locked decision                        | This spec                                                                                 |
-| ------ | -------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Q0     | Canvas eats Frame + Analysis tabs      | Stage 4 = canvas first paint (no Frame tab)                                               |
-| Q1     | Drill-down = floating overlay          | Stage 5 modal uses same form factor                                                       |
-| Q2     | Spec edit = `[✎]` icon + fallback rule | Stage 3 spec inputs + skip-spec → fallback                                                |
-| Q3     | Modes / levels orthogonal              | Pareto Y axis adapts to mode; level inferred from canvas zoom (§9.4)                      |
-| Q4     | Wall dual-home                         | Investigation tab still the canonical destination; canvas overlay deferred to Spec 4      |
-| Q5     | No CoScout map drafting in V1          | Manual canvas authoring (Spec 2); CoScout coaches but doesn't draft                       |
-| Q7     | Hard cutover, no migration             | Mode A.2-paste UX is the data-migration path; existing Hubs are net-new (no users yet)    |
-| Q8     | PWA = local Hub-of-one                 | A.2-evidence-source is Azure-only; PWA gets A.1 + A.2-paste only                          |
-| Q9     | `lazyWithRetry` on Canvas              | Implementation detail; framing card lazy-loads consistently                               |
-| Q10    | `docs/glossary.md` canonical           | All term references go to glossary, not re-defined here                                   |
-| Q11    | Hypothesis overlay (promoted vs draft) | Deferred to Spec 4 (canvas overlays); investigation grammar surfaces hypotheses textually |
+| Anchor | Locked decision                                                                                                                                                                   | This spec                                                                                 |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Q0     | Canvas eats Frame + Analysis tabs                                                                                                                                                 | Stage 4 = canvas first paint (no Frame tab)                                               |
+| Q1     | Drill-down = floating overlay                                                                                                                                                     | Stage 5 modal uses same form factor                                                       |
+| Q2     | Spec edit = `[✎]` icon + fallback rule                                                                                                                                            | Stage 3 spec inputs + skip-spec → fallback                                                |
+| Q3     | Modes / levels orthogonal                                                                                                                                                         | Pareto Y axis adapts to mode; level inferred from canvas zoom (§9.4)                      |
+| Q4     | Wall dual-home                                                                                                                                                                    | Investigation tab still the canonical destination; canvas overlay deferred to Spec 4      |
+| Q5     | No CoScout map drafting in V1                                                                                                                                                     | Manual canvas authoring (Spec 2); CoScout coaches but doesn't draft                       |
+| Q7     | Hard cutover, no migration                                                                                                                                                        | Mode A.2-paste UX is the data-migration path; existing Hubs are net-new (no users yet)    |
+| Q8     | PWA = session-only by default; opt-in IndexedDB Hub-of-one AND `.vrs` export/import (Option 4 hybrid; revised 2026-05-03). `.vrs` doubles as shareable training scenario package. | A.2-evidence-source is Azure-only; PWA gets A.1 (after opt-in) + A.2-paste only           |
+| Q9     | `lazyWithRetry` on Canvas                                                                                                                                                         | Implementation detail; framing card lazy-loads consistently                               |
+| Q10    | `docs/glossary.md` canonical                                                                                                                                                      | All term references go to glossary, not re-defined here                                   |
+| Q11    | Hypothesis overlay (promoted vs draft)                                                                                                                                            | Deferred to Spec 4 (canvas overlays); investigation grammar surfaces hypotheses textually |
 
 ## 15. Delivery phasing (V1 vs V2)
 
@@ -551,6 +551,7 @@ Per `feedback_full_vision_spec`, the design above is the complete vision. Phasin
 - Mode B Stages 1–3 + Stage 5
 - Mode A.1 + A.2-paste (PWA + Azure)
 - Mode A.2-evidence-source background ingestion (Azure)
+- **PWA persistence (Q8-revised — Option 4 hybrid):** session-only by default; opt-in "Save to this browser" surfaces an IndexedDB-backed Hub-of-one (`apps/pwa` Dexie schema with single Hub row); `.vrs` file export/import always available as escape hatch. Constitution P1 + P8 preserved. `apps/pwa/CLAUDE.md` hard rule updated.
 - Match-summary card: 2-axis classifier with all 4 source cases + 6 temporal cases
 - Block on overlap and different-grain
 - Multi-source via shared keys: detection + name+overlap join-key suggestion + per-source provenance + per-source independent timelines

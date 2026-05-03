@@ -1,10 +1,11 @@
 # @variscout/pwa
 
-Free PWA. Session-only (no persistence), Context-based state, education tier.
+Free PWA. Session-only by default; opt-in local persistence; education + training tier.
 
 ## Hard rules
 
-- No persistence. No IndexedDB, no localStorage, no cloud sync. Session ends, data is gone. This is the product principle.
+- **Session-only by default.** Opt-in IndexedDB persistence allowed only via explicit user action ("Save to this browser" → single Hub-of-one) AND/OR `.vrs` file export/import. `.vrs` files double as **shareable training scenarios** — trainers package datasets + Hub state; students import. No cloud sync (Azure-only). Per Q8-revised in `docs/superpowers/specs/2026-05-03-framing-layer-design.md` and `docs/decision-log.md` "Q8 revised" entry.
+- **No AI in free tier** (Constitution P8). CoScout is Azure-only.
 - Tailwind v4 requires `@source` directives in `src/index.css` for shared packages (`@source "../../../packages/ui/src/**/*.tsx"`, etc).
 - Free tier only — branding is shown in chart footers (`isPaidTier()` from `@variscout/core/tier` returns false).
 
