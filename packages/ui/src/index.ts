@@ -748,3 +748,7 @@ export type {
   DimensionRow,
   PrimaryScopeDimensionsSelectorProps,
 } from './components/PrimaryScopeDimensionsSelector/PrimaryScopeDimensionsSelector';
+
+// Outcome No Match Banner (framing layer graceful degradation)
+export { OutcomeNoMatchBanner } from './components/OutcomeNoMatchBanner/OutcomeNoMatchBanner';
+export type { OutcomeNoMatchBannerProps } from './components/OutcomeNoMatchBanner/OutcomeNoMatchBanner';
