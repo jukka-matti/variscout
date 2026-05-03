@@ -924,3 +924,10 @@ export * from './throughput';
 
 // Hub utilities (Framing Layer V1)
 export * from './hub';
+
+// Characteristic-type-aware spec defaults (Framing Layer V1)
+export {
+  defaultSpecsFor,
+  inferOutcomeCharacteristicType,
+} from './specs/characteristicTypeDefaults';
+export type { DataStats } from './specs/characteristicTypeDefaults';
