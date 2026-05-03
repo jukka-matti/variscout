@@ -730,3 +730,7 @@ export type {
   ProductionLineGlanceMigrationModalEntry,
   ProductionLineGlanceMigrationSuggestion,
 } from './components/ProductionLineGlanceMigration';
+
+// Hub Goal Form (framing layer Stage 1 — free-text narrative + scaffold chips)
+export { HubGoalForm } from './components/HubGoalForm/HubGoalForm';
+export type { HubGoalFormProps } from './components/HubGoalForm/HubGoalForm';
