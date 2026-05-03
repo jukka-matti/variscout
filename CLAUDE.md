@@ -35,10 +35,9 @@ Shared agent map: `docs/llms.txt`
 
 ## Workflow
 
-- **Tooling / docs / config** (`.claude/`, `scripts/`, `docs/`, `CLAUDE.md`, `package.json`, etc.): direct commit to main is fine.
-- **Product code** (`packages/*/src/`, `apps/*/src/`): branch → PR → `bash scripts/pr-ready-check.sh` green → subagent code review → squash-merge. Don't use `gh pr merge --admin` unless it's an emergency.
-- Pre-push hook warns (non-blocking) if a direct-to-main push touches product code.
-- **Before pushing to a feature branch**: `git fetch && git log HEAD..origin/main` — if ≥10 commits drift, merge main first. Drive-by fixes on PRs >3 days old or ≥15 commits behind go to main directly, not the stale branch.
+- **Tooling / docs / config** (`.claude/`, `scripts/`, `docs/`, `CLAUDE.md`, `package.json`): direct commit to main is fine. **Product code** (`packages/*/src/`, `apps/*/src/`): branch → PR → `bash scripts/pr-ready-check.sh` green → subagent code review → squash-merge. Pre-push hook warns (non-blocking) on direct-to-main product touches. Don't `gh pr merge --admin` unless emergency.
+- **Before pushing a feature branch**: `git fetch && git log HEAD..origin/main` — if ≥10 commits drift, merge main first. Drive-by fixes on PRs >3 days old or ≥15 commits behind go to main, not the stale branch.
+- **Plans + implementation**: brainstorming → `superpowers:writing-plans` → `superpowers:subagent-driven-development` by default (one worktree per plan, fresh implementer per task, spec + quality reviewer pair per task, final code-reviewer at the end). Pick smallest model per role — **Sonnet for ≥70% of dispatches**, Opus for final-branch review + design/plan work. Inline only for trivial / secrets / exploration-only tasks.
 
 ## When uncertain
 
