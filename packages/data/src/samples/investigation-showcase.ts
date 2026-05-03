@@ -1,6 +1,7 @@
 import type { SampleDataset } from '../types';
 import { seedRandom, generateNormal, round } from '../utils';
 import type { Finding, Question, SuspectedCause, InvestigationCategory } from '@variscout/core';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 // ============================================================================
 // Stable IDs for cross-referencing between questions, findings, and hubs
@@ -265,7 +266,7 @@ function buildFindings(): Finding[] {
         },
       ],
       statusChangedAt: epoch(25),
-      source: { chart: 'boxplot', category: 'Line 2' },
+      source: { chart: 'boxplot', category: 'Line 2', timeLens: DEFAULT_TIME_LENS },
       questionId: IDS.Q_LINE,
       validationStatus: 'supports',
       projection: {
@@ -307,7 +308,7 @@ function buildFindings(): Finding[] {
         },
       ],
       statusChangedAt: epoch(36),
-      source: { chart: 'boxplot', category: 'Night' },
+      source: { chart: 'boxplot', category: 'Night', timeLens: DEFAULT_TIME_LENS },
       questionId: IDS.Q_SHIFT,
       validationStatus: 'supports',
     },
@@ -324,7 +325,7 @@ function buildFindings(): Finding[] {
       status: 'observed',
       comments: [],
       statusChangedAt: epoch(8),
-      source: { chart: 'boxplot', category: 'Batch C' },
+      source: { chart: 'boxplot', category: 'Batch C', timeLens: DEFAULT_TIME_LENS },
       questionId: IDS.Q_BATCH,
       validationStatus: 'inconclusive',
     },

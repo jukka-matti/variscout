@@ -8,6 +8,7 @@
 
 import { useMemo, useCallback, useEffect } from 'react';
 import { useFindings, buildFindingContext, buildFindingSource } from '@variscout/hooks';
+import { useSessionStore } from '@variscout/stores';
 import type { DrillStep } from '@variscout/hooks';
 import { useFindingsStore, groupFindingsByChart } from './findingsStore';
 import { usePanelsStore } from '../panels/panelsStore';
@@ -75,10 +76,17 @@ export function useFindingsOrchestration({
     [filters, drillPath, filteredData, outcome, specs, findingsState, setHighlightedFindingId]
   );
 
-  // Restore filter state from a finding (caller handles setFilters)
-  const handleRestoreFinding = useCallback((_id: string) => {
-    // Context restoration is handled by the caller (App.tsx setFilters)
-  }, []);
+  // Restore time lens from a finding source so charts replay with the right window.
+  // Filter state restoration is handled by the caller (App.tsx setFilters).
+  const handleRestoreFinding = useCallback(
+    (id: string) => {
+      const finding = findingsState.findings.find(f => f.id === id);
+      if (finding?.source?.timeLens) {
+        useSessionStore.getState().setTimeLens(finding.source.timeLens);
+      }
+    },
+    [findingsState.findings]
+  );
 
   // Status change
   const handleSetFindingStatus = useCallback(

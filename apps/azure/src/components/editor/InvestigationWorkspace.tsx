@@ -562,7 +562,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       const newFinding = findingsState.addFinding(
         `Observation about ${factor}`,
         { activeFilters: filters, cumulativeScope: null },
-        { chart: 'boxplot', category: factor }
+        { chart: 'boxplot', category: factor, timeLens: useSessionStore.getState().timeLens }
       );
       if (!skipQuestionLinkPrompt) {
         setMapPromptFindingId(newFinding.id);

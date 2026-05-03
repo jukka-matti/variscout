@@ -21,6 +21,7 @@ import type {
   CausalLink,
   InvestigationCategory,
 } from '@variscout/core';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 // ============================================================================
 // Stable IDs — enable cross-references between questions, findings, hubs, links
@@ -370,7 +371,7 @@ function buildFindings(): Finding[] {
         },
       ],
       statusChangedAt: epochAt(4),
-      source: { chart: 'probability', anchorX: 11.7, anchorY: 0.02 },
+      source: { chart: 'probability', anchorX: 11.7, anchorY: 0.02, timeLens: DEFAULT_TIME_LENS },
       questionId: IDS.Q_CAPABILITY,
       validationStatus: 'supports',
     },
@@ -394,7 +395,7 @@ function buildFindings(): Finding[] {
         },
       ],
       statusChangedAt: epochAt(10),
-      source: { chart: 'boxplot', category: 'L3' },
+      source: { chart: 'boxplot', category: 'L3', timeLens: DEFAULT_TIME_LENS },
       questionId: IDS.Q_LOT,
       validationStatus: 'supports',
     },
@@ -463,7 +464,7 @@ function buildFindings(): Finding[] {
         },
       ],
       statusChangedAt: epochAt(14),
-      source: { chart: 'boxplot', category: 'Cav2' },
+      source: { chart: 'boxplot', category: 'Cav2', timeLens: DEFAULT_TIME_LENS },
       questionId: IDS.Q_CAVITY,
       validationStatus: 'supports',
     },
@@ -487,7 +488,7 @@ function buildFindings(): Finding[] {
         },
       ],
       statusChangedAt: epochAt(18),
-      source: { chart: 'pareto', category: 'Underweight' },
+      source: { chart: 'pareto', category: 'Underweight', timeLens: DEFAULT_TIME_LENS },
       questionId: IDS.Q_DEFECT_MIX,
       validationStatus: 'supports',
     },

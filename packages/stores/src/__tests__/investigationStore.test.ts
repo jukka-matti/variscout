@@ -9,6 +9,7 @@ import type {
   InvestigationCategory,
   GateNode,
 } from '@variscout/core';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 // ============================================================================
 // Helpers
@@ -32,7 +33,7 @@ beforeEach(() => {
 describe('investigationStore — findings', () => {
   it('adds a finding with text, context, source, and questionId', () => {
     const ctx = makeContext();
-    const source = { chart: 'boxplot' as const, category: 'A' };
+    const source = { chart: 'boxplot' as const, category: 'A', timeLens: DEFAULT_TIME_LENS };
     const finding = useInvestigationStore.getState().addFinding('test note', ctx, source, 'q-1');
 
     const state = useInvestigationStore.getState();

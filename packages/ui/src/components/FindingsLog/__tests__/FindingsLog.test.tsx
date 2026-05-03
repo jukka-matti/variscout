@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import FindingsLog from '../FindingsLog';
 import type { Finding } from '@variscout/core';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
@@ -130,7 +131,7 @@ describe('FindingsLog', () => {
       makeFinding({
         id: 'f-src',
         text: 'Source finding',
-        source: { chart: 'boxplot', category: 'Machine B' },
+        source: { chart: 'boxplot', category: 'Machine B', timeLens: DEFAULT_TIME_LENS },
       }),
     ];
 
@@ -146,7 +147,7 @@ describe('FindingsLog', () => {
       makeFinding({
         id: 'f-pareto',
         text: 'Pareto finding',
-        source: { chart: 'pareto', category: 'Shift C' },
+        source: { chart: 'pareto', category: 'Shift C', timeLens: DEFAULT_TIME_LENS },
       }),
     ];
 
@@ -160,7 +161,7 @@ describe('FindingsLog', () => {
       makeFinding({
         id: 'f-ichart',
         text: 'IChart finding',
-        source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 },
+        source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3, timeLens: DEFAULT_TIME_LENS },
       }),
     ];
 
@@ -233,7 +234,11 @@ describe('FindingsLog', () => {
 
   it('fires onNavigateToChart when source badge is clicked', () => {
     const onNavigate = vi.fn();
-    const source = { chart: 'boxplot' as const, category: 'Machine B' };
+    const source = {
+      chart: 'boxplot' as const,
+      category: 'Machine B',
+      timeLens: DEFAULT_TIME_LENS,
+    };
     const findings = [makeFinding({ id: 'f-nav', source })];
 
     render(<FindingsLog {...defaultProps} findings={findings} onNavigateToChart={onNavigate} />);

@@ -11,6 +11,7 @@ import type {
   FindingStatus,
   FindingOutcome,
 } from '@variscout/core';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 const makeContext = (overrides?: Partial<FindingContext>): FindingContext => ({
   activeFilters: { Machine: ['A'] },
@@ -499,7 +500,11 @@ describe('useFindings', () => {
     it('addFinding with source creates a finding with source metadata', () => {
       const { result } = renderHook(() => useFindings());
       const ctx = makeContext();
-      const source: FindingSource = { chart: 'boxplot', category: 'Machine A' };
+      const source: FindingSource = {
+        chart: 'boxplot',
+        category: 'Machine A',
+        timeLens: DEFAULT_TIME_LENS,
+      };
 
       let finding: Finding;
       act(() => {
@@ -516,7 +521,11 @@ describe('useFindings', () => {
     });
 
     it('findDuplicateSource returns the existing finding when source matches', () => {
-      const source: FindingSource = { chart: 'pareto', category: 'Nozzle 3' };
+      const source: FindingSource = {
+        chart: 'pareto',
+        category: 'Nozzle 3',
+        timeLens: DEFAULT_TIME_LENS,
+      };
       const initial = [
         makeFinding({
           id: 'f-1',
@@ -533,7 +542,11 @@ describe('useFindings', () => {
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
 
-      const dup = result.current.findDuplicateSource({ chart: 'pareto', category: 'Nozzle 3' });
+      const dup = result.current.findDuplicateSource({
+        chart: 'pareto',
+        category: 'Nozzle 3',
+        timeLens: DEFAULT_TIME_LENS,
+      });
       expect(dup).toBeDefined();
       expect(dup!.id).toBe('f-1');
     });
@@ -544,12 +557,16 @@ describe('useFindings', () => {
           id: 'f-1',
           text: 'Boxplot note',
           context: makeContext(),
-          source: { chart: 'boxplot', category: 'Shift A' },
+          source: { chart: 'boxplot', category: 'Shift A', timeLens: DEFAULT_TIME_LENS },
         }),
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
 
-      const dup = result.current.findDuplicateSource({ chart: 'pareto', category: 'Shift A' });
+      const dup = result.current.findDuplicateSource({
+        chart: 'pareto',
+        category: 'Shift A',
+        timeLens: DEFAULT_TIME_LENS,
+      });
       expect(dup).toBeUndefined();
     });
 
@@ -559,14 +576,14 @@ describe('useFindings', () => {
           id: 'f-1',
           text: 'Boxplot observation',
           context: makeContext(),
-          source: { chart: 'boxplot', category: 'Line 1' },
+          source: { chart: 'boxplot', category: 'Line 1', timeLens: DEFAULT_TIME_LENS },
         }),
         makeFinding({
           id: 'f-2',
           text: 'Pareto observation',
           createdAt: 2000,
           context: makeContext(),
-          source: { chart: 'pareto', category: 'Line 2' },
+          source: { chart: 'pareto', category: 'Line 2', timeLens: DEFAULT_TIME_LENS },
         }),
         makeFinding({
           id: 'f-3',
@@ -589,21 +606,21 @@ describe('useFindings', () => {
           id: 'f-1',
           text: 'I-Chart note',
           context: makeContext(),
-          source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 },
+          source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3, timeLens: DEFAULT_TIME_LENS },
         }),
         makeFinding({
           id: 'f-2',
           text: 'Boxplot note',
           createdAt: 2000,
           context: makeContext(),
-          source: { chart: 'boxplot', category: 'Head 1' },
+          source: { chart: 'boxplot', category: 'Head 1', timeLens: DEFAULT_TIME_LENS },
         }),
         makeFinding({
           id: 'f-3',
           text: 'Another I-Chart note',
           createdAt: 3000,
           context: makeContext(),
-          source: { chart: 'ichart', anchorX: 0.8, anchorY: 0.6 },
+          source: { chart: 'ichart', anchorX: 0.8, anchorY: 0.6, timeLens: DEFAULT_TIME_LENS },
         }),
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
@@ -620,7 +637,7 @@ describe('useFindings', () => {
           id: 'f-1',
           text: 'Boxplot note',
           context: makeContext(),
-          source: { chart: 'boxplot', category: 'Zone A' },
+          source: { chart: 'boxplot', category: 'Zone A', timeLens: DEFAULT_TIME_LENS },
         }),
         makeFinding({
           id: 'f-2',

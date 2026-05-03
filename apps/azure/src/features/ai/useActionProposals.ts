@@ -17,6 +17,7 @@ import type {
   FindingComment,
 } from '@variscout/core';
 import type { UseQuestionsReturn } from '@variscout/hooks';
+import { useSessionStore } from '@variscout/stores';
 
 // ── Interfaces ────────────────────────────────────────────────────────────
 
@@ -213,10 +214,12 @@ export function useActionProposals({
                 : undefined,
             };
             // Create finding with coscout source — use a generated messageId
-            // since tool-call proposals don't carry the parent message ID
+            // since tool-call proposals don't carry the parent message ID.
+            // Snapshot timeLens at the moment of recording so replay restores it.
             const source: FindingSource = {
               chart: 'coscout',
               messageId: `tool-${proposal.id}`,
+              timeLens: useSessionStore.getState().timeLens,
             };
             const newFinding = findingsState.addFinding(text, findingContext, source);
             // Link to question if suggested

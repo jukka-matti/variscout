@@ -25,6 +25,7 @@ import {
   computeRiskLevel,
 } from '../findings';
 import type { Finding, FindingAssignee, FindingStatus, FindingSource } from '../findings';
+import { DEFAULT_TIME_LENS } from '../stats';
 
 describe('filtersEqual', () => {
   it('returns true for identical filters', () => {
@@ -328,7 +329,11 @@ describe('migrateFindings', () => {
 
 describe('createFinding with source', () => {
   it('sets source field on the resulting finding', () => {
-    const source: FindingSource = { chart: 'boxplot', category: 'Machine A' };
+    const source: FindingSource = {
+      chart: 'boxplot',
+      category: 'Machine A',
+      timeLens: DEFAULT_TIME_LENS,
+    };
     const f = createFinding(
       'High spread on Machine A',
       { Machine: ['A'] },
@@ -359,25 +364,57 @@ describe('findDuplicateBySource', () => {
 
   it('finds duplicate by same chart + category', () => {
     const findings = [
-      makeFindingWithSource('f-1', { chart: 'boxplot', category: 'Machine A' }),
-      makeFindingWithSource('f-2', { chart: 'pareto', category: 'Shift B' }),
+      makeFindingWithSource('f-1', {
+        chart: 'boxplot',
+        category: 'Machine A',
+        timeLens: DEFAULT_TIME_LENS,
+      }),
+      makeFindingWithSource('f-2', {
+        chart: 'pareto',
+        category: 'Shift B',
+        timeLens: DEFAULT_TIME_LENS,
+      }),
     ];
-    const result = findDuplicateBySource(findings, { chart: 'boxplot', category: 'Machine A' });
+    const result = findDuplicateBySource(findings, {
+      chart: 'boxplot',
+      category: 'Machine A',
+      timeLens: DEFAULT_TIME_LENS,
+    });
     expect(result).toBeDefined();
     expect(result!.id).toBe('f-1');
   });
 
   it('returns undefined for I-Chart (always unique)', () => {
     const findings = [
-      makeFindingWithSource('f-1', { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 }),
+      makeFindingWithSource('f-1', {
+        chart: 'ichart',
+        anchorX: 0.5,
+        anchorY: 0.3,
+        timeLens: DEFAULT_TIME_LENS,
+      }),
     ];
-    const result = findDuplicateBySource(findings, { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 });
+    const result = findDuplicateBySource(findings, {
+      chart: 'ichart',
+      anchorX: 0.5,
+      anchorY: 0.3,
+      timeLens: DEFAULT_TIME_LENS,
+    });
     expect(result).toBeUndefined();
   });
 
   it('returns undefined when no match', () => {
-    const findings = [makeFindingWithSource('f-1', { chart: 'boxplot', category: 'Machine A' })];
-    const result = findDuplicateBySource(findings, { chart: 'boxplot', category: 'Machine B' });
+    const findings = [
+      makeFindingWithSource('f-1', {
+        chart: 'boxplot',
+        category: 'Machine A',
+        timeLens: DEFAULT_TIME_LENS,
+      }),
+    ];
+    const result = findDuplicateBySource(findings, {
+      chart: 'boxplot',
+      category: 'Machine B',
+      timeLens: DEFAULT_TIME_LENS,
+    });
     expect(result).toBeUndefined();
   });
 });

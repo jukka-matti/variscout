@@ -7,6 +7,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useIChartWrapperData } from '../useIChartWrapperData';
 import type { StatsResult, Finding } from '@variscout/core';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 const MOCK_STATS: StatsResult = {
   mean: 50,
@@ -27,7 +28,7 @@ const ICHART_FINDING: Finding = {
   createdAt: Date.now(),
   comments: [],
   statusChangedAt: Date.now(),
-  source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 },
+  source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3, timeLens: DEFAULT_TIME_LENS },
 };
 
 describe('useIChartWrapperData', () => {

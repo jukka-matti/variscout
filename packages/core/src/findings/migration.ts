@@ -3,6 +3,7 @@
  * from older status models and data shapes.
  */
 import type { Finding, FindingSource, FindingAssignee } from './types';
+import { DEFAULT_TIME_LENS } from '../stats/timeLens';
 
 /**
  * Migrate a finding from the old 4-status model to the new 3-status model.
@@ -23,25 +24,30 @@ export function migrateFindingStatus(finding: Finding): Finding {
 
 /**
  * Normalize a legacy flat FindingSource to the discriminated union shape.
+ * Also backfills `timeLens` with `DEFAULT_TIME_LENS` on older findings that
+ * were created before Task 9 added the field (read-boundary migration).
  * Safe to call on already-migrated data.
  */
 function migrateSource(source: FindingSource | undefined): FindingSource | undefined {
   if (!source) return undefined;
+  // Default lens for findings that predate the timeLens field
+  const s = source as Record<string, unknown>;
+  const timeLens = (s.timeLens as FindingSource['timeLens']) ?? DEFAULT_TIME_LENS;
+
   if (source.chart === 'ichart') {
-    // Ensure ichart shape has required anchorX/anchorY
-    const s = source as Record<string, unknown>;
     return {
       chart: 'ichart',
       anchorX: (s.anchorX as number) ?? 0,
       anchorY: (s.anchorY as number) ?? 0,
+      timeLens,
     };
   }
   // Yamazumi: category-based with optional activityType
   if (source.chart === 'yamazumi') {
-    const s = source as Record<string, unknown>;
     const result: FindingSource = {
       chart: 'yamazumi',
       category: (s.category as string) ?? '',
+      timeLens,
     };
     if (s.activityType)
       (result as { activityType?: string }).activityType = s.activityType as string;
@@ -49,14 +55,13 @@ function migrateSource(source: FindingSource | undefined): FindingSource | undef
   }
   // CoScout findings: no category, keyed by messageId
   if (source.chart === 'coscout') {
-    const s = source as Record<string, unknown>;
-    return { chart: 'coscout', messageId: (s.messageId as string) ?? '' };
+    return { chart: 'coscout', messageId: (s.messageId as string) ?? '', timeLens };
   }
   // Ensure boxplot/pareto shape has required category
-  const s = source as Record<string, unknown>;
   return {
     chart: source.chart as 'boxplot' | 'pareto',
     category: (s.category as string) ?? '',
+    timeLens,
   };
 }
 
