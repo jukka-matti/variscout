@@ -11,6 +11,7 @@ import type {
   StackSuggestion,
   DetectChannelsOptions,
   DetectWideFormatOptions,
+  DetectColumnsOptions,
 } from './types';
 import {
   OUTCOME_KEYWORDS,
@@ -19,8 +20,30 @@ import {
   matchesChannelPattern,
   matchesMetadataPattern,
 } from './keywords';
+import { tokenize } from './stopwords';
 
-export type { ColumnAnalysis, DetectedColumns, DetectChannelsOptions, DetectWideFormatOptions };
+export type {
+  ColumnAnalysis,
+  DetectedColumns,
+  DetectChannelsOptions,
+  DetectWideFormatOptions,
+  DetectColumnsOptions,
+};
+
+/**
+ * Returns an additive score bonus in [0, 1] for an outcome column based on token
+ * overlap between the column name and the goal narrative.
+ * Returns 0 when goalContext is undefined — no-op for legacy callers (D4).
+ */
+function goalKeywordBonus(columnName: string, goalContext: string | undefined): number {
+  if (!goalContext) return 0;
+  const goalTokens = new Set(tokenize(goalContext));
+  if (goalTokens.size === 0) return 0;
+  const colTokens = tokenize(columnName.replace(/_/g, ' '));
+  if (colTokens.length === 0) return 0;
+  const overlap = colTokens.filter(t => goalTokens.has(t)).length;
+  return overlap / colTokens.length;
+}
 
 /**
  * Analyze a single column to determine its type and characteristics.
@@ -100,9 +123,10 @@ export function analyzeColumn(data: DataRow[], colName: string): ColumnAnalysis 
  * Detect column mappings with smart keyword matching.
  *
  * @param data - Array of data rows to analyze
+ * @param options - Optional detection options (e.g. goalContext for biasing)
  * @returns DetectedColumns with suggested outcome, factors, and time column
  */
-export function detectColumns(data: DataRow[]): DetectedColumns {
+export function detectColumns(data: DataRow[], options?: DetectColumnsOptions): DetectedColumns {
   if (data.length === 0) {
     return {
       outcome: null,
@@ -116,15 +140,24 @@ export function detectColumns(data: DataRow[]): DetectedColumns {
   const columns = Object.keys(data[0]);
   const columnAnalysis = columns.map(col => analyzeColumn(data, col));
 
-  // Find outcome: numeric column with keyword match, or first numeric with variation
+  // Find outcome: numeric column with keyword match, or first numeric with variation.
+  // When goalContext is provided, apply an additive bonus to rank columns whose names
+  // share tokens with the goal higher — does not replace existing scoring (D4).
   const numericCols = columnAnalysis.filter(c => c.type === 'numeric');
 
-  let outcome = numericCols.find(
-    c => c.hasVariation && OUTCOME_KEYWORDS.some(kw => c.name.toLowerCase().includes(kw))
-  );
-  if (!outcome) {
-    outcome = numericCols.find(c => c.hasVariation);
-  }
+  const scoredNumericCols = numericCols.map(c => {
+    const keywordMatch = OUTCOME_KEYWORDS.some(kw => c.name.toLowerCase().includes(kw)) ? 1 : 0;
+    const bonus = goalKeywordBonus(c.name, options?.goalContext);
+    return { col: c, finalScore: keywordMatch + bonus * 0.5 };
+  });
+
+  // Sort descending by finalScore; stable fallback preserves original order within equal scores
+  scoredNumericCols.sort((a, b) => b.finalScore - a.finalScore);
+
+  // Pick best scoring candidate that has variation; fall back to any with variation
+  let outcome =
+    scoredNumericCols.find(s => s.col.hasVariation && s.finalScore > 0)?.col ??
+    numericCols.find(c => c.hasVariation);
 
   // Find factors: categorical columns, prioritize keyword matches
   const categoricalCols = columnAnalysis

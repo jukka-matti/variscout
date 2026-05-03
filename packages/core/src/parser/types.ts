@@ -87,3 +87,16 @@ export interface DetectWideFormatOptions extends DetectChannelsOptions {
   /** Minimum percentage of channels with matching pattern for high confidence (default: 0.5) */
   patternMatchThreshold?: number;
 }
+
+/**
+ * Options for column detection
+ */
+export interface DetectColumnsOptions {
+  /**
+   * Free-text description of the investigation goal (e.g. "Reduce defect rate at our line.").
+   * Keywords extracted from this string are used to apply an additive score bonus to outcome
+   * candidates whose column names share tokens with the goal. Does not replace keyword-based
+   * scoring — purely additive (D4).
+   */
+  goalContext?: string;
+}
