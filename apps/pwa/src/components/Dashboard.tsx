@@ -14,6 +14,7 @@ import {
   ErrorBoundary,
   ProcessHealthBar,
   VerificationCard,
+  SegmentedControl,
   SelectionPanel,
   CreateFactorModal,
   DashboardLayoutBase,
@@ -37,19 +38,19 @@ import {
   useCapabilityIChartData,
   useDefectTransform,
   useDefectSummary,
+  useTranslation,
 } from '@variscout/hooks';
 import { useProjectStore } from '@variscout/stores';
-import { useFilteredData, useAnalysisStats, useStagedAnalysis } from '@variscout/hooks';
+import {
+  useFilteredData,
+  useAnalysisStats,
+  useStagedAnalysis,
+  useLensedSampleCount,
+} from '@variscout/hooks';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity } from 'lucide-react';
-import {
-  getColumnNames,
-  getEtaSquared,
-  type SpecLimits,
-  type Finding,
-  type TimelineWindow,
-} from '@variscout/core';
+import { getColumnNames, getEtaSquared, type SpecLimits, type Finding } from '@variscout/core';
 import { resolveMode as resolveModeUtil } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { subgroupAxisColumns } from '@variscout/core/frame';
@@ -142,14 +143,11 @@ const Dashboard = ({
   const clearSelection = useProjectStore(s => s.clearSelection);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
-  // Multi-level SCOUT V1: local timeline-window state. Investigation-level
-  // persistence — V2 wires through useTimelineWindow when the dashboards
-  // become investigation-aware (Dashboard currently reads useProjectStore
-  // and does not receive a ProcessHubInvestigation envelope).
-  const [timelineWindow, setTimelineWindow] = useState<TimelineWindow>({ kind: 'cumulative' });
-  const { filteredData } = useFilteredData({ window: timelineWindow });
+  const { filteredData } = useFilteredData();
+  const lensedSampleCount = useLensedSampleCount();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
+  const { t } = useTranslation();
   const [analysisLensTab, setAnalysisLensTab] = useState<AnalysisLensTab>('probability');
 
   // Defect mode: transform filtered data into aggregated defect rates
@@ -432,19 +430,19 @@ const Dashboard = ({
   const analysisLensTabs = [
     {
       id: 'probability',
-      label: 'Probability',
+      label: t('verify.tab.probability'),
       content: <ProbabilityPlot series={probabilitySeries} />,
     },
     {
       id: 'distribution',
-      label: hasSpecs ? 'Capability' : 'Distribution',
+      label: hasSpecs ? t('verify.tab.capability') : t('verify.tab.distribution'),
       content: <CapabilityHistogram data={histogramData} specs={specs} mean={stats?.mean ?? 0} />,
     },
     ...(paretoFactor
       ? [
           {
             id: 'pareto',
-            label: 'Pareto',
+            label: t('verify.tab.pareto'),
             content: (
               <ErrorBoundary componentName="Pareto Chart">
                 <ParetoChart
@@ -646,7 +644,7 @@ const Dashboard = ({
           }
           onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
           columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
-          sampleCount={filteredData?.length ?? 0}
+          sampleCount={lensedSampleCount}
           filterChipData={filterChipData}
           columnAliases={columnAliases}
           onUpdateFilterValues={handleUpdateFilterValues}
@@ -697,8 +695,6 @@ const Dashboard = ({
 
       {/* Dashboard View */}
       <DashboardLayoutBase
-        timelineWindow={timelineWindow}
-        onTimelineWindowChange={setTimelineWindow}
         outcome={effectiveOutcome}
         factors={effectiveFactors}
         columnAliases={columnAliases}
@@ -891,16 +887,22 @@ const Dashboard = ({
         }
         /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
            Stats sidebar (Azure) or Stats toggle provides detailed view when needed. */
+        verificationCardTitle={
+          histogramData.length > 0 && stats && !(isDefectMode && defectSummaryProps) ? (
+            <SegmentedControl
+              options={analysisLensTabs.map(tab => ({ value: tab.id, label: tab.label }))}
+              value={activeAnalysisLensTab}
+              onChange={tabId => setAnalysisLensTab(tabId as AnalysisLensTab)}
+              aria-label={t('verify.tabs.label')}
+              testId="verify-tab"
+            />
+          ) : undefined
+        }
         renderVerificationCard={
           isDefectMode && defectSummaryProps ? (
             <DefectSummary {...defectSummaryProps} />
           ) : histogramData.length > 0 && stats ? (
-            <VerificationCard
-              tabs={analysisLensTabs}
-              activeTab={activeAnalysisLensTab}
-              onTabChange={tabId => setAnalysisLensTab(tabId as AnalysisLensTab)}
-              defaultTab="probability"
-            />
+            <VerificationCard tabs={analysisLensTabs} activeTab={activeAnalysisLensTab} />
           ) : undefined
         }
         verificationCardFocusTarget={

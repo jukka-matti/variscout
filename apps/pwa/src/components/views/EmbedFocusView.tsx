@@ -112,6 +112,7 @@ const EmbedFocusView: React.FC<EmbedFocusViewProps> = ({
               />
             </span>
             <FactorSelector
+              variant="tabs"
               factors={factors}
               selected={boxplotFactor}
               onChange={onBoxplotFactorChange}
@@ -137,6 +138,7 @@ const EmbedFocusView: React.FC<EmbedFocusViewProps> = ({
               />
             </span>
             <FactorSelector
+              variant="tabs"
               factors={factors}
               selected={paretoFactor}
               onChange={onParetoFactorChange}

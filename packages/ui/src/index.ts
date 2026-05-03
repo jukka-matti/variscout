@@ -194,7 +194,17 @@ export {
   type ProbabilityPlotTooltipProps,
 } from './components/ProbabilityPlotTooltip';
 
-export { VerificationCard, type VerificationCardProps } from './components/VerificationCard';
+export {
+  VerificationCard,
+  type VerificationCardProps,
+  type VerificationCardTab,
+} from './components/VerificationCard';
+
+export {
+  SegmentedControl,
+  type SegmentedControlProps,
+  type SegmentedControlOption,
+} from './components/SegmentedControl';
 
 export { FilterContextBar, type FilterContextBarProps } from './components/FilterContextBar';
 
@@ -364,6 +374,51 @@ export {
   TimelineWindowPicker,
   type TimelineWindowPickerProps,
 } from './components/TimelineWindowPicker';
+
+// Column Candidate Chip (FRAME b0 column-selection primitive — Y/X picker)
+export {
+  ColumnCandidateChip,
+  type ColumnCandidateChipProps,
+  type ColumnCandidateChipState,
+} from './components/ColumnCandidateChip';
+
+// Y Picker Section (FRAME b0 Y / outcome selection UI)
+export {
+  YPickerSection,
+  type YPickerSectionProps,
+  type YPickerSectionCandidate,
+} from './components/YPickerSection';
+
+// X Picker Section (FRAME b0 X / factor multi-selection UI)
+export {
+  XPickerSection,
+  type XPickerSectionProps,
+  type XCandidate,
+} from './components/XPickerSection';
+
+// Inline Spec Editor (FRAME b0 inline popover for setting USL/LSL/Target/Cpk target)
+export {
+  InlineSpecEditor,
+  type InlineSpecEditorProps,
+  type SpecValues,
+  type SpecSuggestion,
+} from './components/InlineSpecEditor';
+
+// Process Steps Expander (FRAME b0 disclosure widget for opt-in process map authoring)
+export {
+  ProcessStepsExpander,
+  type ProcessStepsExpanderProps,
+} from './components/ProcessStepsExpander';
+
+// See The Data CTA (FRAME b0 primary action — navigates to Analysis tab via parent)
+export { SeeTheDataCta, type SeeTheDataCtaProps } from './components/SeeTheDataCta';
+
+// FrameViewB0 (FRAME b0 lightweight render composition — Y/X pickers + spec + CTA)
+export {
+  FrameViewB0,
+  type FrameViewB0Props,
+  type FrameViewB0YCandidate,
+} from './components/FrameViewB0';
 
 // Evidence Map Insufficient Data State (empty state when defect type lacks data)
 export {

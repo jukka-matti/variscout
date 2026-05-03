@@ -11,9 +11,10 @@
  */
 import { useMemo } from 'react';
 import { rollup, sum } from 'd3-array';
-import { getResponsiveMargins } from '@variscout/core';
+import { getResponsiveMargins, applyTimeLens } from '@variscout/core';
 import type { ParetoDataPoint } from '@variscout/core';
 import type { DataRow, DataCellValue, ParetoRow } from '@variscout/core';
+import { useSessionStore } from '@variscout/stores';
 
 /** Maximum categories before aggregating remaining into "Others" */
 export const PARETO_MAX_CATEGORIES = 20;
@@ -79,6 +80,15 @@ export function useParetoChartData({
   parentWidth,
   maxCategories = PARETO_MAX_CATEGORIES,
 }: UseParetoChartDataOptions): UseParetoChartDataResult {
+  const timeLens = useSessionStore(s => s.timeLens);
+
+  // Apply lens to filteredData only — rawData stays as the full comparison baseline.
+  const lensedFilteredData = useMemo(
+    // timeColumn unused in current applyTimeLens (rows pre-sorted upstream); see Task 2 docstring.
+    () => applyTimeLens(filteredData, timeLens, ''),
+    [filteredData, timeLens]
+  );
+
   // Determine if using separate Pareto data
   const usingSeparateData =
     paretoMode === 'separate' && !!separateParetoData && separateParetoData.length > 0;
@@ -122,7 +132,7 @@ export function useParetoChartData({
         .sort((a, b) => b.value - a.value);
     } else if (aggregation === 'value' && outcome) {
       const sums = rollup(
-        filteredData,
+        lensedFilteredData,
         (rows: DataRow[]) => sum(rows, (d: DataRow) => Number(d[outcome]) || 0),
         (d: DataRow) => d[factor]
       );
@@ -132,7 +142,7 @@ export function useParetoChartData({
       })).sort((a, b) => b.value - a.value);
     } else {
       const counts = rollup(
-        filteredData,
+        lensedFilteredData,
         (v: DataRow[]) => v.length,
         (d: DataRow) => d[factor]
       );
@@ -161,7 +171,7 @@ export function useParetoChartData({
 
     return { data: withCumulative, totalCount: total, originalCount };
   }, [
-    filteredData,
+    lensedFilteredData,
     factor,
     aggregation,
     outcome,

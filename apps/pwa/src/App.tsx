@@ -29,6 +29,7 @@ import {
   useJournalEntries,
   useFilteredData,
   useAnalysisStats,
+  useLensedSampleCount,
   usePopoutChannel,
   useDefectTransform,
   useDefectSummary,
@@ -40,7 +41,7 @@ import {
   useSessionStore,
   useWallLayoutStore,
 } from '@variscout/stores';
-import AppHeader from './components/layout/AppHeader';
+import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
@@ -163,6 +164,7 @@ function AppMain() {
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
+  const lensedSampleCount = useLensedSampleCount();
   const workerApi = useStatsWorker();
   const { stats } = useAnalysisStats(workerApi);
 
@@ -555,14 +557,20 @@ function AppMain() {
     [findingsState.findings]
   );
 
-  // Findings: restore filter state
+  // Findings: restore filter state AND time lens.
+  // Single owner — the parallel useFindingsOrchestration hook was deleted (dead code,
+  // never called from PWA). App.tsx is the canonical restore handler for the PWA.
   const handleRestoreFinding = useCallback(
     (id: string) => {
-      const ctx = findingsState.getFindingContext(id);
-      if (!ctx) return;
-      setFilters(ctx.activeFilters);
+      const finding = findingsState.findings.find(f => f.id === id);
+      if (!finding) return;
+      // Restore time lens first so chart data is scoped correctly when filters apply.
+      if (finding.source?.timeLens) {
+        useSessionStore.getState().setTimeLens(finding.source.timeLens);
+      }
+      setFilters(finding.context.activeFilters);
     },
-    [findingsState, setFilters]
+    [findingsState.findings, setFilters]
   );
 
   // Findings popout: open in separate window
@@ -589,6 +597,18 @@ function AppMain() {
   const handleQuestionPromptClose = useCallback(() => {
     setQuestionLinkPromptOpen(false);
   }, []);
+
+  // Phase tab navigation handler (used by AppHeader inline tabs)
+  const handlePhaseChange = useCallback(
+    (phase: PhaseId) => {
+      if (phase === 'frame') panels.showFrame();
+      else if (phase === 'analysis') panels.showAnalysis();
+      else if (phase === 'investigation') panels.showInvestigation();
+      else if (phase === 'improvement') panels.showImprovement();
+      else panels.showReport();
+    },
+    [panels]
+  );
 
   // Wall-variant propose-hypothesis CTA
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
@@ -697,6 +717,15 @@ function AppMain() {
           isPISidebarOpen={panels.isPISidebarOpen}
           onTogglePISidebar={rawData.length > 0 ? panels.handleTogglePISidebar : undefined}
           hideFindings={panels.activeView === 'investigation'}
+          activePhase={
+            rawData.length > 0 &&
+            !importFlow.isPasteMode &&
+            !importFlow.isManualEntry &&
+            !importFlow.isMapping
+              ? panels.activeView
+              : undefined
+          }
+          onPhaseChange={handlePhaseChange}
         />
       )}
 
@@ -756,44 +785,6 @@ function AppMain() {
 
         {/* Main content area */}
         <div className="flex-1 overflow-hidden flex flex-col">
-          {/* Workspace tabs — visible when data is loaded and past mapping */}
-          {rawData.length > 0 &&
-            !importFlow.isPasteMode &&
-            !importFlow.isManualEntry &&
-            !importFlow.isMapping &&
-            !isEmbedMode &&
-            !isPhone && (
-              <div className="flex border-b border-edge flex-shrink-0 bg-surface">
-                {(
-                  [
-                    { id: 'frame', label: 'Frame' },
-                    { id: 'analysis', label: 'Analysis' },
-                    { id: 'investigation', label: 'Investigation' },
-                    { id: 'improvement', label: 'Improvement' },
-                    { id: 'report', label: 'Report' },
-                  ] as const
-                ).map(ws => (
-                  <button
-                    key={ws.id}
-                    className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
-                      panels.activeView === ws.id
-                        ? 'border-blue-500 text-blue-500'
-                        : 'border-transparent text-content-secondary hover:text-content hover:border-content-tertiary'
-                    }`}
-                    onClick={() => {
-                      if (ws.id === 'frame') panels.showFrame();
-                      else if (ws.id === 'analysis') panels.showAnalysis();
-                      else if (ws.id === 'investigation') panels.showInvestigation();
-                      else if (ws.id === 'improvement') panels.showImprovement();
-                      else if (ws.id === 'report') panels.showReport();
-                    }}
-                  >
-                    {ws.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
           <Suspense fallback={<LazyFallback />}>
             {importFlow.isPasteMode ? (
               <PasteScreen
@@ -880,13 +871,13 @@ function AppMain() {
                 questions={questionsState.questions}
                 columnAliases={columnAliases}
                 dataFilename={dataFilename}
-                sampleCount={filteredData?.length ?? 0}
+                sampleCount={lensedSampleCount}
                 analysisMode={analysisMode}
                 defectSummary={
                   defectSummaryProps
                     ? {
                         ...defectSummaryProps,
-                        sampleCount: filteredData?.length ?? 0,
+                        sampleCount: lensedSampleCount,
                       }
                     : null
                 }

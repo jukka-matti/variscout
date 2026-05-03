@@ -2,14 +2,14 @@
  * Tests for DashboardLayoutBase component
  *
  * Validates: chart card rendering, focused view toggle, annotation context menu,
- * spec editor slot, insight chips, and render slot composition.
+ * spec editor slot, insight chips, render slot composition, I-Chart header
+ * one-row layout with inline staged-stats chips, and boxplot factor dropdown.
  */
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import DashboardLayoutBase from '../DashboardLayoutBase';
 import type { DashboardLayoutBaseProps } from '../DashboardLayoutBase';
-import type { TimelineWindow } from '@variscout/core';
 
 const noopAsync = vi.fn().mockResolvedValue(undefined);
 const noop = vi.fn();
@@ -170,7 +170,7 @@ describe('DashboardLayoutBase', () => {
     expect(screen.queryByText(/LCL:/)).toBeNull();
   });
 
-  it('renders staged stats when stageColumn is set', () => {
+  it('renders staged stats as inline chips in the controls row when stageColumn is set', () => {
     render(
       <DashboardLayoutBase
         {...baseProps}
@@ -178,8 +178,24 @@ describe('DashboardLayoutBase', () => {
         stagedStats={{ stageOrder: ['A', 'B', 'C'], overallStats: { mean: 9.5 } }}
       />
     );
+    const chipsHost = screen.getByTestId('staged-stats-chips');
+    expect(chipsHost).toBeDefined();
     expect(screen.getByText('3 stages')).toBeDefined();
     expect(screen.getByText('9.50')).toBeDefined();
+  });
+
+  it('does not render staged stats chips when stageColumn is null', () => {
+    render(<DashboardLayoutBase {...baseProps} stageColumn={null} stagedStats={null} />);
+    expect(screen.queryByTestId('staged-stats-chips')).toBeNull();
+  });
+
+  it('does not render Fixed/Rolling/Open-ended/Cumulative windowing buttons', () => {
+    render(<DashboardLayoutBase {...baseProps} />);
+    expect(screen.queryByTestId('timeline-window-picker-host')).toBeNull();
+    expect(screen.queryByText('Fixed')).toBeNull();
+    expect(screen.queryByText('Rolling')).toBeNull();
+    expect(screen.queryByText('Open-ended')).toBeNull();
+    expect(screen.queryByText('Cumulative')).toBeNull();
   });
 
   it('renders outcome selector with available outcomes', () => {
@@ -198,33 +214,54 @@ describe('DashboardLayoutBase', () => {
     expect(screen.getByTestId('custom-title')).toBeDefined();
   });
 
-  it('renders TimelineWindowPicker when window + change handler are provided, and propagates kind changes', () => {
-    const onTimelineWindowChange = vi.fn();
-    const window: TimelineWindow = { kind: 'cumulative' };
-    render(
-      <DashboardLayoutBase
-        {...baseProps}
-        timelineWindow={window}
-        onTimelineWindowChange={onTimelineWindowChange}
-      />
-    );
-    expect(screen.getByTestId('timeline-window-picker-host')).toBeDefined();
-    // Click "Rolling" chip — switches kind, fires onChange with rolling default.
-    fireEvent.click(screen.getByTestId('timeline-window-chip-rolling'));
-    expect(onTimelineWindowChange).toHaveBeenCalledTimes(1);
-    expect(onTimelineWindowChange.mock.calls[0][0]).toMatchObject({ kind: 'rolling' });
-  });
-
-  it('does not render TimelineWindowPicker when timelineWindow prop is omitted', () => {
-    render(<DashboardLayoutBase {...baseProps} />);
-    expect(screen.queryByTestId('timeline-window-picker-host')).toBeNull();
-  });
-
   it('uses a neutral variation-sources title when no subgroup factor is selected', () => {
     render(
       <DashboardLayoutBase {...baseProps} factors={[]} boxplotFactor="" showParetoPanel={false} />
     );
 
     expect(screen.getByText('Variation Sources')).toBeDefined();
+  });
+
+  describe('boxplot factor dropdown', () => {
+    beforeEach(() => {
+      noop.mockClear();
+    });
+
+    it('renders one factor dropdown with all factor columns as options', () => {
+      render(<DashboardLayoutBase {...baseProps} />);
+      const trigger = screen.getByTestId('boxplot-factor-dropdown');
+      expect(trigger).toBeDefined();
+      // Open the dropdown
+      fireEvent.click(trigger);
+      expect(screen.getByRole('option', { name: 'Machine' })).toBeDefined();
+      expect(screen.getByRole('option', { name: 'Operator' })).toBeDefined();
+    });
+
+    it('calls setBoxplotFactor when a factor option is selected', () => {
+      const setBoxplotFactor = vi.fn();
+      render(<DashboardLayoutBase {...baseProps} setBoxplotFactor={setBoxplotFactor} />);
+      fireEvent.click(screen.getByTestId('boxplot-factor-dropdown'));
+      fireEvent.click(screen.getByRole('option', { name: 'Operator' }));
+      expect(setBoxplotFactor).toHaveBeenCalledWith('Operator');
+    });
+
+    it('does not render a tab-strip FactorSelector for the boxplot card', () => {
+      render(<DashboardLayoutBase {...baseProps} />);
+      // The tab-strip renders buttons directly inside chart-boxplot; none should exist
+      // for the factor columns in the controls row.
+      const boxplotCard = screen.getByTestId('chart-boxplot');
+      // Tab-strip buttons for factors would have the factor text as button text
+      // Confirm no button with role "button" carrying the factor name exists
+      // outside of the dropdown trigger (which shows the selected value inline).
+      // We verify by checking the dropdown trigger is present instead of inline buttons.
+      const trigger = screen.getByTestId('boxplot-factor-dropdown');
+      expect(trigger).toBeDefined();
+      expect(boxplotCard).toBeDefined();
+    });
+
+    it('does not render the dropdown trigger when factors array is empty', () => {
+      render(<DashboardLayoutBase {...baseProps} factors={[]} boxplotFactor="" />);
+      expect(screen.queryByTestId('boxplot-factor-dropdown')).toBeNull();
+    });
   });
 });

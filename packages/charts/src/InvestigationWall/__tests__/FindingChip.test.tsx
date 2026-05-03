@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { FindingChip } from '../FindingChip';
 import type { Finding } from '@variscout/core';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 const finding: Finding = {
   id: 'f1',
@@ -11,7 +12,7 @@ const finding: Finding = {
   status: 'observed',
   comments: [],
   statusChangedAt: 0,
-  source: { chart: 'ichart', anchorX: 10, anchorY: 120 },
+  source: { chart: 'ichart', anchorX: 10, anchorY: 120, timeLens: DEFAULT_TIME_LENS },
 };
 
 describe('FindingChip', () => {

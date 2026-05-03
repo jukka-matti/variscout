@@ -3,6 +3,7 @@ import { buildAIContext, detectInvestigationPhase } from '../buildAIContext';
 import type { AIStatsInput } from '../buildAIContext';
 import { createQuestion, type Finding, type Question } from '../../findings';
 import type { ProcessContext } from '../types';
+import { DEFAULT_TIME_LENS } from '../../stats';
 
 const mockStats: AIStatsInput = {
   mean: 10.5,
@@ -106,7 +107,7 @@ describe('buildAIContext', () => {
         status: 'investigating',
         comments: [],
         statusChangedAt: 1000,
-        source: { chart: 'coscout', messageId: 'msg-1' },
+        source: { chart: 'coscout', messageId: 'msg-1', timeLens: DEFAULT_TIME_LENS },
       },
       {
         id: 'f-2',
@@ -116,7 +117,7 @@ describe('buildAIContext', () => {
         status: 'analyzed',
         comments: [],
         statusChangedAt: 2000,
-        source: { chart: 'coscout', messageId: 'msg-2' },
+        source: { chart: 'coscout', messageId: 'msg-2', timeLens: DEFAULT_TIME_LENS },
       },
       {
         id: 'f-3',
@@ -126,7 +127,7 @@ describe('buildAIContext', () => {
         status: 'observed',
         comments: [],
         statusChangedAt: 3000,
-        source: { chart: 'boxplot', category: 'Head 3' },
+        source: { chart: 'boxplot', category: 'Head 3', timeLens: DEFAULT_TIME_LENS },
       },
     ];
     const ctx = buildAIContext({ findings });

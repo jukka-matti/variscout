@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { proposeDisconfirmationMove } from '../proposeDisconfirmationMove';
 import type { SuspectedCause, Finding } from '@variscout/core';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 function finding(
   id: string,
@@ -39,8 +40,8 @@ describe('proposeDisconfirmationMove', () => {
   it('returns undefined when hub has <3 supporting findings', () => {
     const h = hub('h1', ['f1', 'f2']);
     const findings = [
-      finding('f1', { chart: 'boxplot', category: 'night' }),
-      finding('f2', { chart: 'boxplot', category: 'night' }),
+      finding('f1', { chart: 'boxplot', category: 'night', timeLens: DEFAULT_TIME_LENS }),
+      finding('f2', { chart: 'boxplot', category: 'night', timeLens: DEFAULT_TIME_LENS }),
     ];
     expect(proposeDisconfirmationMove(h, findings, data)).toBeUndefined();
   });
@@ -48,10 +49,14 @@ describe('proposeDisconfirmationMove', () => {
   it('returns undefined when a contradicting finding already exists', () => {
     const h = hub('h1', ['f1', 'f2', 'f3', 'f4']);
     const findings = [
-      finding('f1', { chart: 'boxplot', category: 'night' }),
-      finding('f2', { chart: 'boxplot', category: 'night' }),
-      finding('f3', { chart: 'boxplot', category: 'night' }),
-      finding('f4', { chart: 'boxplot', category: 'day' }, 'contradicts'),
+      finding('f1', { chart: 'boxplot', category: 'night', timeLens: DEFAULT_TIME_LENS }),
+      finding('f2', { chart: 'boxplot', category: 'night', timeLens: DEFAULT_TIME_LENS }),
+      finding('f3', { chart: 'boxplot', category: 'night', timeLens: DEFAULT_TIME_LENS }),
+      finding(
+        'f4',
+        { chart: 'boxplot', category: 'day', timeLens: DEFAULT_TIME_LENS },
+        'contradicts'
+      ),
     ];
     expect(proposeDisconfirmationMove(h, findings, data)).toBeUndefined();
   });
@@ -59,9 +64,9 @@ describe('proposeDisconfirmationMove', () => {
   it('suggests complementary categorical brush when eligible', () => {
     const h = hub('h1', ['f1', 'f2', 'f3']);
     const findings = [
-      finding('f1', { chart: 'boxplot', category: 'night' }),
-      finding('f2', { chart: 'boxplot', category: 'night' }),
-      finding('f3', { chart: 'boxplot', category: 'night' }),
+      finding('f1', { chart: 'boxplot', category: 'night', timeLens: DEFAULT_TIME_LENS }),
+      finding('f2', { chart: 'boxplot', category: 'night', timeLens: DEFAULT_TIME_LENS }),
+      finding('f3', { chart: 'boxplot', category: 'night', timeLens: DEFAULT_TIME_LENS }),
     ];
     const result = proposeDisconfirmationMove(h, findings, data);
     expect(result).toBeDefined();
@@ -74,9 +79,9 @@ describe('proposeDisconfirmationMove', () => {
   it('returns undefined for coscout-only findings', () => {
     const h = hub('h1', ['f1', 'f2', 'f3']);
     const findings = [
-      finding('f1', { chart: 'coscout', messageId: 'm1' }),
-      finding('f2', { chart: 'coscout', messageId: 'm2' }),
-      finding('f3', { chart: 'coscout', messageId: 'm3' }),
+      finding('f1', { chart: 'coscout', messageId: 'm1', timeLens: DEFAULT_TIME_LENS }),
+      finding('f2', { chart: 'coscout', messageId: 'm2', timeLens: DEFAULT_TIME_LENS }),
+      finding('f3', { chart: 'coscout', messageId: 'm3', timeLens: DEFAULT_TIME_LENS }),
     ];
     expect(proposeDisconfirmationMove(h, findings, data)).toBeUndefined();
   });
@@ -85,9 +90,9 @@ describe('proposeDisconfirmationMove', () => {
     const numericData = [{ VALUE: 105 }, { VALUE: 120 }, { VALUE: 130 }, { VALUE: 95 }];
     const h = hub('h1', ['f1', 'f2', 'f3']);
     const findings = [
-      finding('f1', { chart: 'ichart', anchorX: 1, anchorY: 120 }),
-      finding('f2', { chart: 'ichart', anchorX: 2, anchorY: 125 }),
-      finding('f3', { chart: 'ichart', anchorX: 3, anchorY: 130 }),
+      finding('f1', { chart: 'ichart', anchorX: 1, anchorY: 120, timeLens: DEFAULT_TIME_LENS }),
+      finding('f2', { chart: 'ichart', anchorX: 2, anchorY: 125, timeLens: DEFAULT_TIME_LENS }),
+      finding('f3', { chart: 'ichart', anchorX: 3, anchorY: 130, timeLens: DEFAULT_TIME_LENS }),
     ];
     const result = proposeDisconfirmationMove(h, findings, numericData);
     expect(result).toBeDefined();

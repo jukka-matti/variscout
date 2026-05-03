@@ -399,6 +399,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       {(activeView === 'boxplot' || activeView === 'pareto') && factors.length > 0 && (
         <div className="px-3 py-2 bg-surface/50 border-b border-edge/50 flex justify-center">
           <FactorSelector
+            variant="tabs"
             factors={factors}
             selected={activeView === 'boxplot' ? boxplotFactor : paretoFactor}
             onChange={f =>

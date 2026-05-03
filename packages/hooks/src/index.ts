@@ -532,6 +532,7 @@ export {
   type UseFilteredDataArgs,
 } from './useFilteredData';
 export { useAnalysisStats, type AnalysisStatsResult } from './useAnalysisStats';
+export { useLensedSampleCount } from './useLensedSampleCount';
 export { useStagedAnalysis, type StagedAnalysisResult } from './useStagedAnalysis';
 export { usePerformanceAnalysis } from './usePerformanceAnalysis';
 export { useYDomain, type YDomainResult } from './useYDomain';

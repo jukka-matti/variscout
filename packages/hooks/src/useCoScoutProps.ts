@@ -28,6 +28,7 @@ import type { UseFindingsReturn } from './useFindings';
 import type { UseQuestionsReturn } from './useQuestions';
 import type { UseAICoScoutReturn } from './useAICoScout';
 import type { UseKnowledgeSearchReturn, DocumentResult } from './useKnowledgeSearch';
+import { useSessionStore } from '@variscout/stores';
 
 // ---------------------------------------------------------------------------
 // Inline minimal shapes for the aiOrch and actionProposalsState parameters.
@@ -191,7 +192,11 @@ export function useCoScoutProps(options: UseCoScoutPropsOptions): UseCoScoutProp
               }
             : undefined,
         },
-        { chart: 'coscout', messageId: sourceMessageId }
+        {
+          chart: 'coscout',
+          messageId: sourceMessageId,
+          timeLens: useSessionStore.getState().timeLens,
+        }
       );
     },
     [findingsState, filters, stats, filteredDataLength]

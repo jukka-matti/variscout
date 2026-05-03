@@ -14,6 +14,7 @@ import {
   buildFindingContext,
   buildFindingSource,
 } from '@variscout/hooks';
+import { useSessionStore } from '@variscout/stores';
 import { useFindingsStore, groupFindingsByChart } from './findingsStore';
 import { usePanelsStore } from '../panels/panelsStore';
 import { usePopoutSync } from './usePopoutSync';
@@ -183,11 +184,18 @@ export function useFindingsOrchestration({
     [filters, drillPath, filteredData, outcome, specs, findingsState]
   );
 
-  // Restore a finding's filters
+  // Restore a finding's filters and time lens
   const handleRestoreFinding = useCallback(
     (id: string) => {
       const ctx = findingsState.getFindingContext(id);
       if (!ctx) return;
+      // Restore the time lens that was active when this finding was recorded.
+      // Must call setTimeLens BEFORE setFilters so chart hooks pick up the
+      // correct window on the very next render cycle.
+      const finding = findingsState.findings.find(f => f.id === id);
+      if (finding?.source?.timeLens) {
+        useSessionStore.getState().setTimeLens(finding.source.timeLens);
+      }
       setFilters(ctx.activeFilters);
     },
     [findingsState, setFilters]

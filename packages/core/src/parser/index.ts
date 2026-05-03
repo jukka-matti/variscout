@@ -54,3 +54,7 @@ export {
 // Stack (unpivot) columns — wide-to-long transform
 export { stackColumns, previewStack } from './stack';
 export type { StackConfig, StackResult } from './stack';
+
+// Y-likelihood ranking — orders numeric columns for FRAME b0 Y-picker
+export { rankYCandidates } from './yLikelihood';
+export type { RankedColumn } from './yLikelihood';

@@ -320,7 +320,7 @@ describe('useCoScoutProps', () => {
           cumulativeScope: null,
           stats: expect.objectContaining({ mean: 10, median: 9.5, samples: 50 }),
         }),
-        { chart: 'coscout', messageId: 'msg-abc' }
+        expect.objectContaining({ chart: 'coscout', messageId: 'msg-abc' })
       );
     });
 

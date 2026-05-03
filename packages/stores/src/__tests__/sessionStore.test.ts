@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 import { useSessionStore, getSessionInitialState } from '../sessionStore';
 
 beforeEach(() => {
@@ -256,5 +257,81 @@ describe('sessionStore — skipQuestionLinkPrompt', () => {
     useSessionStore.getState().setSkipQuestionLinkPrompt(false);
     const persistedFalse = partialize(useSessionStore.getState());
     expect(persistedFalse.skipQuestionLinkPrompt).toBe(false);
+  });
+});
+
+describe('sessionStore — timeLens', () => {
+  it('defaults to DEFAULT_TIME_LENS in getSessionInitialState()', () => {
+    const initial = getSessionInitialState();
+    expect(initial.timeLens).toBe(DEFAULT_TIME_LENS);
+    expect(initial.timeLens).toEqual({ mode: 'cumulative' });
+  });
+
+  it('store initializes with DEFAULT_TIME_LENS', () => {
+    expect(useSessionStore.getState().timeLens).toEqual({ mode: 'cumulative' });
+  });
+
+  it('setTimeLens replaces the lens (rolling)', () => {
+    useSessionStore.getState().setTimeLens({ mode: 'rolling', windowSize: 100 });
+    expect(useSessionStore.getState().timeLens).toEqual({ mode: 'rolling', windowSize: 100 });
+  });
+
+  it('setTimeLens replaces (does not merge) on second call — cumulative carries no extra fields', () => {
+    useSessionStore.getState().setTimeLens({ mode: 'fixed', anchor: 10, windowSize: 30 });
+    useSessionStore.getState().setTimeLens({ mode: 'cumulative' });
+    const lens = useSessionStore.getState().timeLens;
+    expect(lens).toEqual({ mode: 'cumulative' });
+    // Discriminated union: cumulative variant has no windowSize / anchor keys
+    expect(Object.keys(lens)).toEqual(['mode']);
+  });
+
+  it('setTimeLens supports openEnded mode with anchor only', () => {
+    useSessionStore.getState().setTimeLens({ mode: 'openEnded', anchor: 25 });
+    expect(useSessionStore.getState().timeLens).toEqual({ mode: 'openEnded', anchor: 25 });
+  });
+
+  it('timeLens round-trips through partialize (persisted)', () => {
+    useSessionStore.getState().setTimeLens({ mode: 'rolling', windowSize: 50 });
+    const partialize = useSessionStore.persist.getOptions().partialize;
+    const persisted = partialize(useSessionStore.getState());
+    expect(persisted.timeLens).toEqual({ mode: 'rolling', windowSize: 50 });
+  });
+});
+
+describe('sessionStore — persist migration safety', () => {
+  it('migrate from version 0 (pre-Task-1 blob lacking timeLens) defaults to DEFAULT_TIME_LENS', () => {
+    // Simulate a persisted blob written before Task 1 introduced timeLens.
+    const priorBlob: Record<string, unknown> = {
+      activeView: 'analysis',
+      isPISidebarOpen: false,
+      piActiveTab: 'stats',
+      isCoScoutOpen: false,
+      isWhatIfOpen: false,
+      isFindingsOpen: false,
+      aiEnabled: true,
+      aiPreferences: {},
+      knowledgeSearchFolder: null,
+      skipQuestionLinkPrompt: false,
+      // timeLens intentionally absent
+    };
+
+    const migrate = useSessionStore.persist.getOptions().migrate;
+    if (!migrate) throw new Error('migrate must be defined on variscout-session persist config');
+
+    const result = migrate(priorBlob, 0) as Record<string, unknown>;
+    expect(result['timeLens']).toEqual({ mode: 'cumulative' });
+  });
+
+  it('migrate from version 1 (blob already has timeLens) preserves existing value', () => {
+    const priorBlob: Record<string, unknown> = {
+      activeView: 'analysis',
+      timeLens: { mode: 'rolling', windowSize: 20 },
+    };
+
+    const migrate = useSessionStore.persist.getOptions().migrate;
+    if (!migrate) throw new Error('migrate must be defined on variscout-session persist config');
+
+    const result = migrate(priorBlob, 1) as Record<string, unknown>;
+    expect(result['timeLens']).toEqual({ mode: 'rolling', windowSize: 20 });
   });
 });

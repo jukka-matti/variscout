@@ -138,3 +138,25 @@ extends `ProcessMapNode` with `capabilityScope.specRules`, adds
 `canonicalMapVersion`. These are additive: existing single-investigation
 FRAME flows are unaffected; canonical-map inheritance kicks in when a hub
 is configured. Engine layer shipped as PR #103.
+
+## Amendment — 2026-05-02 (FRAME b0 lightweight render)
+
+FRAME now branches on scope at the workspace's render layer. The b0 case (no
+process model — `processMap.nodes.length === 0`) renders a lightweight Y/X
+picker via `<FrameViewB0 />` (`packages/ui/src/components/FrameViewB0/`)
+instead of the river-styled SIPOC authoring canvas. The b1 (multi-step) and
+b2 (single-step) cases continue to render the canvas exactly as this ADR
+specifies — ADR-070's authoring surface is unchanged for the populations it
+was designed for.
+
+Dispatch goes through `detectScopeFromMap(processMap)` in
+`packages/core/src/scopeDetection.ts`, called from PWA + Azure FrameView.
+Adding the first process step in the b0 expander auto-promotes scope to b2,
+and the canvas takes over the surface on the next render — the transition
+is structural, not a mode toggle.
+
+See [ADR-076](adr-076-frame-b0-lightweight-render.md) for the two-archetype
+rationale (investigator vs author), the no-auto-pick principle, the
+`showGaps={false}` opt-out for the b0 case, and the plain-language
+relabeling that frames the b0 surface for users who have a CSV and a
+question but no process model yet.

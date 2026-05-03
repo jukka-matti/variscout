@@ -31,8 +31,40 @@ vi.mock('@variscout/ui', async () => {
   return {
     ...actual,
     ProcessHealthBar: () => <div data-testid="process-health-bar">Health Bar</div>,
-    VerificationCard: ({ renderHistogram }: { renderHistogram: React.ReactNode }) => (
-      <div data-testid="verification-card">{renderHistogram}</div>
+    VerificationCard: ({
+      tabs,
+      activeTab,
+    }: {
+      tabs: Array<{ id: string; content: React.ReactNode }>;
+      activeTab: string;
+    }) => (
+      <div data-testid="verification-card">
+        {tabs.find((tab: { id: string }) => tab.id === activeTab)?.content ?? tabs[0]?.content}
+      </div>
+    ),
+    SegmentedControl: ({
+      options,
+      value,
+      onChange,
+      testId,
+    }: {
+      options: Array<{ value: string; label: string }>;
+      value: string;
+      onChange: (v: string) => void;
+      'aria-label': string;
+      testId?: string;
+    }) => (
+      <div data-testid={testId ?? 'segmented-control'}>
+        {options.map((opt: { value: string; label: string }) => (
+          <button
+            key={opt.value}
+            onClick={() => onChange(opt.value)}
+            aria-pressed={opt.value === value}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
     ),
   };
 });

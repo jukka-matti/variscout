@@ -89,6 +89,7 @@ This section captures key architectural decisions made during VariScout developm
 | [073](adr-073-no-statistical-rollup-across-heterogeneous-units.md) | No statistical roll-up across heterogeneous units (Watson locality enforced by design absence, not permission predicate) | Accepted   | 2026-04-29                                                                                 |
 | [074](adr-074-scout-level-spanning-surface-boundary-policy.md)     | SCOUT level-spanning surface — boundary policy                                                                           | Accepted   | 2026-04-29                                                                                 |
 | [075](adr-075-pwa-atomic-deploy-and-update-policy.md)              | PWA atomic deploy + update policy                                                                                        | Accepted   | 2026-05-02                                                                                 |
+| [076](adr-076-frame-b0-lightweight-render.md)                      | FRAME b0 lightweight render — investigator vs author archetypes                                                          | Accepted   | 2026-05-02                                                                                 |
 
 ---
 

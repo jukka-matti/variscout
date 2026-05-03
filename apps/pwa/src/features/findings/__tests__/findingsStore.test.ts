@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useFindingsStore, groupFindingsByChart } from '../findingsStore';
 import type { Finding } from '@variscout/core';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
   id: `f-${Math.random()}`,
@@ -41,8 +42,8 @@ describe('findingsStore', () => {
 describe('groupFindingsByChart', () => {
   it('groups findings by source chart type', () => {
     const findings = [
-      makeFinding({ source: { chart: 'boxplot', category: 'A' } }),
-      makeFinding({ source: { chart: 'pareto', category: 'B' } }),
+      makeFinding({ source: { chart: 'boxplot', category: 'A', timeLens: DEFAULT_TIME_LENS } }),
+      makeFinding({ source: { chart: 'pareto', category: 'B', timeLens: DEFAULT_TIME_LENS } }),
       makeFinding(),
     ];
     const result = groupFindingsByChart(findings);

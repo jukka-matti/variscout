@@ -1,5 +1,41 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import type { TimeLens } from '@variscout/core/stats';
+
+// ---- Mock stores BEFORE component imports (vi.mock is hoisted) ----
+// Closure pattern: wrap mutable state in a factory so the module mock can
+// reference the latest values without closure-capture issues at hoist time.
+const makeStoreState = () => {
+  let _lens: TimeLens = { mode: 'cumulative' };
+  const _setTimeLens = vi.fn((l: TimeLens) => {
+    _lens = l;
+  });
+  return {
+    get lens() {
+      return _lens;
+    },
+    set lens(v: TimeLens) {
+      _lens = v;
+    },
+    setTimeLens: _setTimeLens,
+  };
+};
+
+let storeState = makeStoreState();
+
+vi.mock('@variscout/stores', () => {
+  return {
+    useSessionStore: (
+      selector: (s: { timeLens: TimeLens; setTimeLens: (l: TimeLens) => void }) => unknown
+    ) =>
+      selector({
+        get timeLens() {
+          return storeState.lens;
+        },
+        setTimeLens: storeState.setTimeLens,
+      }),
+  };
+});
 
 // Mock @variscout/hooks BEFORE any imports that use it
 vi.mock('@variscout/hooks', () => {
@@ -21,6 +57,31 @@ vi.mock('@variscout/hooks', () => {
 // Mock @variscout/core to avoid import issues
 vi.mock('@variscout/core', () => {
   return {};
+});
+
+// Mock @variscout/core/stats (TimeLens types — imported at runtime by ProcessHealthBar)
+vi.mock('@variscout/core/stats', () => {
+  return {};
+});
+
+// Mock @variscout/core/capability (imported by ProcessHealthBar)
+vi.mock('@variscout/core/capability', () => {
+  return {
+    gradeCpk: (cpk: number, target: number) => {
+      if (cpk >= target) return 'green';
+      if (cpk >= target * 0.75) return 'amber';
+      return 'red';
+    },
+    sourceLabelFor: (source: string) => {
+      const map: Record<string, string> = {
+        spec: 'per-spec',
+        hub: 'hub default',
+        investigation: 'investigation default',
+        default: 'default',
+      };
+      return map[source] ?? source;
+    },
+  };
 });
 
 import ProcessHealthBar from '../ProcessHealthBar';
@@ -65,6 +126,12 @@ const defaultProps: ProcessHealthBarProps = {
 };
 
 describe('ProcessHealthBar', () => {
+  beforeEach(() => {
+    // Reset store state to cumulative (default) before each test
+    storeState = makeStoreState();
+    vi.clearAllMocks();
+  });
+
   it('renders Mean, sigma, n when no specs', () => {
     render(<ProcessHealthBar {...defaultProps} />);
     // Mean label
@@ -396,6 +463,85 @@ describe('ProcessHealthBar', () => {
         />
       );
       expect(screen.queryByTestId('cpk-target-column-chip')).toBeNull();
+    });
+  });
+
+  describe('Time lens button + popover', () => {
+    it('shows "timeLens.button: Cumulative ▾" by default', () => {
+      render(<ProcessHealthBar {...defaultProps} />);
+      const btn = screen.getByTestId('btn-time-lens');
+      // t() returns the key; timeLensLabel returns 'Cumulative'
+      expect(btn.textContent).toContain('timeLens.button');
+      expect(btn.textContent).toContain('Cumulative');
+    });
+
+    it('click button → popover renders with 4 mode options', () => {
+      render(<ProcessHealthBar {...defaultProps} />);
+      fireEvent.click(screen.getByTestId('btn-time-lens'));
+      expect(screen.getByTestId('time-lens-popover')).toBeDefined();
+      expect(screen.getByTestId('time-lens-mode-cumulative')).toBeDefined();
+      expect(screen.getByTestId('time-lens-mode-rolling')).toBeDefined();
+      expect(screen.getByTestId('time-lens-mode-fixed')).toBeDefined();
+      expect(screen.getByTestId('time-lens-mode-openEnded')).toBeDefined();
+    });
+
+    it('click "Rolling" → window-size input appears; setTimeLens dispatched with default 100', () => {
+      const setTimeLens = storeState.setTimeLens;
+      render(<ProcessHealthBar {...defaultProps} />);
+      fireEvent.click(screen.getByTestId('btn-time-lens'));
+      fireEvent.click(screen.getByTestId('time-lens-mode-rolling'));
+      expect(screen.getByTestId('time-lens-rolling-window')).toBeDefined();
+      expect(setTimeLens).toHaveBeenCalledWith({ mode: 'rolling', windowSize: 100 });
+    });
+
+    it('change window size to 50 → setTimeLens dispatched', () => {
+      const setTimeLens = storeState.setTimeLens;
+      render(<ProcessHealthBar {...defaultProps} />);
+      fireEvent.click(screen.getByTestId('btn-time-lens'));
+      fireEvent.click(screen.getByTestId('time-lens-mode-rolling'));
+      const input = screen.getByTestId('time-lens-rolling-window');
+      fireEvent.change(input, { target: { value: '50' } });
+      expect(setTimeLens).toHaveBeenLastCalledWith({ mode: 'rolling', windowSize: 50 });
+    });
+
+    it('click "Fixed" → anchor + window-size inputs; setTimeLens dispatched', () => {
+      const setTimeLens = storeState.setTimeLens;
+      render(<ProcessHealthBar {...defaultProps} />);
+      fireEvent.click(screen.getByTestId('btn-time-lens'));
+      fireEvent.click(screen.getByTestId('time-lens-mode-fixed'));
+      expect(screen.getByTestId('time-lens-fixed-anchor')).toBeDefined();
+      expect(screen.getByTestId('time-lens-fixed-window')).toBeDefined();
+      expect(setTimeLens).toHaveBeenCalledWith({ mode: 'fixed', anchor: 0, windowSize: 100 });
+    });
+
+    it('reopening with rolling lens shows current mode + window size', () => {
+      storeState.lens = { mode: 'rolling', windowSize: 75 };
+      render(<ProcessHealthBar {...defaultProps} />);
+      // Button should show "Rolling 75"
+      const btn = screen.getByTestId('btn-time-lens');
+      expect(btn.textContent).toContain('Rolling 75');
+      // Open popover — rolling input should be pre-populated with 75
+      fireEvent.click(btn);
+      const input = screen.getByTestId('time-lens-rolling-window') as HTMLInputElement;
+      expect(input.value).toBe('75');
+    });
+
+    it('click outside popover → closes', () => {
+      render(<ProcessHealthBar {...defaultProps} />);
+      fireEvent.click(screen.getByTestId('btn-time-lens'));
+      expect(screen.getByTestId('time-lens-popover')).toBeDefined();
+      // Simulate click outside
+      fireEvent.mouseDown(document.body);
+      expect(screen.queryByTestId('time-lens-popover')).toBeNull();
+    });
+
+    it('click "Open-ended" → anchor input appears; setTimeLens dispatched', () => {
+      const setTimeLens = storeState.setTimeLens;
+      render(<ProcessHealthBar {...defaultProps} />);
+      fireEvent.click(screen.getByTestId('btn-time-lens'));
+      fireEvent.click(screen.getByTestId('time-lens-mode-openEnded'));
+      expect(screen.getByTestId('time-lens-open-anchor')).toBeDefined();
+      expect(setTimeLens).toHaveBeenCalledWith({ mode: 'openEnded', anchor: 0 });
     });
   });
 });

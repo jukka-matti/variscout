@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { Finding } from '@variscout/core';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 import { useFindingsStore, groupFindingsByChart } from '../findingsStore';
 
 /** Reset store to defaults before each test. */
@@ -55,10 +56,26 @@ describe('findingsStore', () => {
 describe('groupFindingsByChart', () => {
   it('groups findings by chart source', () => {
     const findings = [
-      { id: '1', text: 'boxplot finding', source: { chart: 'boxplot' } },
-      { id: '2', text: 'pareto finding', source: { chart: 'pareto' } },
-      { id: '3', text: 'ichart finding', source: { chart: 'ichart' } },
-      { id: '4', text: 'another boxplot', source: { chart: 'boxplot' } },
+      {
+        id: '1',
+        text: 'boxplot finding',
+        source: { chart: 'boxplot', category: '', timeLens: DEFAULT_TIME_LENS },
+      },
+      {
+        id: '2',
+        text: 'pareto finding',
+        source: { chart: 'pareto', category: '', timeLens: DEFAULT_TIME_LENS },
+      },
+      {
+        id: '3',
+        text: 'ichart finding',
+        source: { chart: 'ichart', anchorX: 0, anchorY: 0, timeLens: DEFAULT_TIME_LENS },
+      },
+      {
+        id: '4',
+        text: 'another boxplot',
+        source: { chart: 'boxplot', category: '', timeLens: DEFAULT_TIME_LENS },
+      },
     ] as Finding[];
 
     const result = groupFindingsByChart(findings);

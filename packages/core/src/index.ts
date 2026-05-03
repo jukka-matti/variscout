@@ -170,6 +170,10 @@ export type {
   InteractionEffectsResult,
 } from './stats';
 
+// Time lens — global observation-set filter (consumed by chart hooks + page stats)
+export type { TimeLens, TimeLensMode } from './stats';
+export { DEFAULT_TIME_LENS, applyTimeLens, timeLensIndices } from './stats';
+
 // Tier (Azure Marketplace multi-tier licensing) — primary module
 export type { LicenseTier, TierLimits, ChannelLimitResult, MarketplacePlan } from './tier';
 export {
@@ -713,6 +717,10 @@ export {
 export { stackColumns, previewStack } from './parser';
 export type { StackConfig, StackResult } from './parser';
 
+// Y-likelihood ranking — orders numeric columns for FRAME b0 Y-picker
+export { rankYCandidates } from './parser';
+export type { RankedColumn } from './parser';
+
 // Findings (scouting report)
 export type {
   Finding,
@@ -905,7 +913,7 @@ export type { ProjectMetadata } from './projectMetadata';
 export * from './timeline';
 
 // Investigation scope classification (Multi-level SCOUT V1)
-export { detectScope, type Scope } from './scopeDetection';
+export { detectScope, detectScopeFromMap, type Scope } from './scopeDetection';
 
 // Append-mode row-merge (Multi-level SCOUT V1)
 export { mergeRows, type MergeReport, type MergeResult } from './appendMode';

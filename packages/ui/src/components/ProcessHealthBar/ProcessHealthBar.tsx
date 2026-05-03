@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   LayoutGrid,
   List,
@@ -8,11 +8,15 @@ import {
   Download,
   Presentation,
   Pin,
+  Clock,
 } from 'lucide-react';
 import type { ProcessHealthBarProps } from './types';
 import { FilterChipDropdown } from '../FilterChipDropdown';
 import { gradeCpk, sourceLabelFor } from '@variscout/core/capability';
+import { assertNever } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
+import { useSessionStore } from '@variscout/stores';
+import type { TimeLens } from '@variscout/core/stats';
 
 /**
  * Format selected values for chip display.
@@ -23,6 +27,23 @@ function formatChipValues(values: (string | number)[]): string {
   const displayed = values.slice(0, 2).map(String);
   const overflow = values.length > 2 ? ` +${values.length - 2}` : '';
   return displayed.join(', ') + overflow;
+}
+
+/**
+ * Produce a short display label for the current TimeLens.
+ * Format matches spec: "Cumulative", "Rolling 100", "Fixed @50 +30", "From 50"
+ */
+function timeLensLabel(lens: TimeLens): string {
+  switch (lens.mode) {
+    case 'cumulative':
+      return 'Cumulative';
+    case 'rolling':
+      return `Rolling ${lens.windowSize}`;
+    case 'fixed':
+      return `Fixed @${lens.anchor} +${lens.windowSize}`;
+    case 'openEnded':
+      return `From ${lens.anchor}`;
+  }
 }
 
 /**
@@ -74,7 +95,113 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   leanStats,
   leanProjection,
 }) => {
-  const { formatStat } = useTranslation();
+  const { t, formatStat } = useTranslation();
+
+  // Time lens state from session store
+  const timeLens = useSessionStore(s => s.timeLens);
+  const setTimeLens = useSessionStore(s => s.setTimeLens);
+
+  // Time lens popover state
+  const [timeLensOpen, setTimeLensOpen] = useState(false);
+  const [timeLensPosition, setTimeLensPosition] = useState({ top: 0, left: 0 });
+  const timeLensButtonRef = useRef<HTMLButtonElement>(null);
+  const timeLensPopoverRef = useRef<HTMLDivElement>(null);
+
+  // Local editable fields for the popover — initialised from current lens
+  const [lensMode, setLensMode] = useState<TimeLens['mode']>(timeLens.mode);
+  const [rollingWindow, setRollingWindow] = useState<number>(
+    timeLens.mode === 'rolling' ? timeLens.windowSize : 100
+  );
+  const [fixedAnchor, setFixedAnchor] = useState<number>(
+    timeLens.mode === 'fixed' || timeLens.mode === 'openEnded' ? timeLens.anchor : 0
+  );
+  const [fixedWindow, setFixedWindow] = useState<number>(
+    timeLens.mode === 'fixed' ? timeLens.windowSize : 100
+  );
+
+  // Sync local form state when popover opens
+  useEffect(() => {
+    if (timeLensOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting form when popover opens
+      setLensMode(timeLens.mode);
+      if (timeLens.mode === 'rolling') {
+        setRollingWindow(timeLens.windowSize);
+      }
+      if (timeLens.mode === 'fixed') {
+        setFixedAnchor(timeLens.anchor);
+        setFixedWindow(timeLens.windowSize);
+      }
+      if (timeLens.mode === 'openEnded') {
+        setFixedAnchor(timeLens.anchor);
+      }
+    }
+  }, [timeLensOpen, timeLens]);
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!timeLensOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      if (
+        timeLensPopoverRef.current &&
+        target &&
+        !timeLensPopoverRef.current.contains(target) &&
+        !timeLensButtonRef.current?.contains(target)
+      ) {
+        setTimeLensOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [timeLensOpen]);
+
+  // Close popover on Escape
+  useEffect(() => {
+    if (!timeLensOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setTimeLensOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [timeLensOpen]);
+
+  const handleTimeLensButtonClick = useCallback(() => {
+    if (!timeLensOpen && timeLensButtonRef.current) {
+      const rect = timeLensButtonRef.current.getBoundingClientRect();
+      const popoverWidth = 200;
+      const padding = 8;
+      const maxLeft = window.innerWidth - popoverWidth - padding;
+      setTimeLensPosition({
+        top: rect.bottom + 4,
+        left: Math.min(rect.left, maxLeft),
+      });
+    }
+    setTimeLensOpen(prev => !prev);
+  }, [timeLensOpen]);
+
+  /** Build and dispatch the lens when mode changes. */
+  const applyMode = useCallback(
+    (newMode: TimeLens['mode']) => {
+      setLensMode(newMode);
+      switch (newMode) {
+        case 'cumulative':
+          setTimeLens({ mode: 'cumulative' });
+          break;
+        case 'rolling':
+          setTimeLens({ mode: 'rolling', windowSize: rollingWindow });
+          break;
+        case 'fixed':
+          setTimeLens({ mode: 'fixed', anchor: fixedAnchor, windowSize: fixedWindow });
+          break;
+        case 'openEnded':
+          setTimeLens({ mode: 'openEnded', anchor: fixedAnchor });
+          break;
+        default:
+          return assertNever(newMode);
+      }
+    },
+    [setTimeLens, rollingWindow, fixedAnchor, fixedWindow]
+  );
 
   const hasSpecs = !!(specs.usl !== undefined || specs.lsl !== undefined);
   const chips = filterChipData ?? [];
@@ -531,6 +658,21 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
 
       {/* Right: actions */}
       <div className="flex items-center gap-1 ml-auto shrink-0" data-export-hide>
+        {/* Time lens button */}
+        <button
+          ref={timeLensButtonRef}
+          onClick={handleTimeLensButtonClick}
+          data-testid="btn-time-lens"
+          className="flex items-center gap-1 px-2 py-0.5 rounded text-xs text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
+          aria-label={t('timeLens.button')}
+          aria-expanded={timeLensOpen}
+        >
+          <Clock size={12} />
+          <span>
+            {t('timeLens.button')}: {timeLensLabel(timeLens)} ▾
+          </span>
+        </button>
+
         {onExportCSV && (
           <button
             onClick={onExportCSV}
@@ -564,6 +706,160 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
           onClose={handleDropdownClose}
           anchorRect={dropdownAnchorRect}
         />
+      )}
+
+      {/* Time lens popover */}
+      {timeLensOpen && (
+        <div
+          ref={timeLensPopoverRef}
+          role="dialog"
+          aria-label={t('timeLens.popover.title')}
+          data-testid="time-lens-popover"
+          className="fixed z-50 w-52 bg-surface-secondary border border-edge rounded-lg shadow-2xl"
+          style={{ top: timeLensPosition.top, left: timeLensPosition.left }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-edge">
+            <h4 className="text-xs font-semibold text-content-secondary uppercase tracking-wider">
+              {t('timeLens.popover.title')}
+            </h4>
+            <button
+              onClick={() => setTimeLensOpen(false)}
+              className="p-1 text-content-muted hover:text-content rounded transition-colors"
+              aria-label={t('action.close')}
+            >
+              <X size={14} />
+            </button>
+          </div>
+
+          {/* Mode selector */}
+          <div className="p-3 space-y-3">
+            <div className="grid grid-cols-2 gap-1">
+              {(
+                [
+                  ['cumulative', t('timeLens.mode.cumulative')],
+                  ['rolling', t('timeLens.mode.rolling')],
+                  ['fixed', t('timeLens.mode.fixed')],
+                  ['openEnded', t('timeLens.mode.openEnded')],
+                ] as [TimeLens['mode'], string][]
+              ).map(([modeKey, modeLabel]) => (
+                <button
+                  key={modeKey}
+                  onClick={() => applyMode(modeKey)}
+                  data-testid={`time-lens-mode-${modeKey}`}
+                  className={`px-2 py-1 text-xs rounded border transition-colors ${
+                    lensMode === modeKey
+                      ? 'bg-blue-500/20 border-blue-500 text-blue-400'
+                      : 'bg-surface border-edge text-content-secondary hover:border-edge-secondary'
+                  }`}
+                  aria-pressed={lensMode === modeKey}
+                >
+                  {modeLabel}
+                </button>
+              ))}
+            </div>
+
+            {/* Conditional inputs */}
+            {lensMode === 'rolling' && (
+              <div>
+                <label
+                  htmlFor="time-lens-rolling-window"
+                  className="block text-[0.625rem] text-content-muted uppercase mb-1"
+                >
+                  {t('timeLens.input.windowSize')}
+                </label>
+                <input
+                  id="time-lens-rolling-window"
+                  name="time-lens-rolling-window"
+                  type="number"
+                  min={1}
+                  value={rollingWindow}
+                  data-testid="time-lens-rolling-window"
+                  onChange={e => {
+                    const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                    setRollingWindow(val);
+                    setTimeLens({ mode: 'rolling', windowSize: val });
+                  }}
+                  className="w-full bg-surface border border-edge rounded px-2 py-1.5 text-sm text-content text-right outline-none focus:border-blue-500 transition-colors"
+                />
+              </div>
+            )}
+
+            {lensMode === 'fixed' && (
+              <>
+                <div>
+                  <label
+                    htmlFor="time-lens-fixed-anchor"
+                    className="block text-[0.625rem] text-content-muted uppercase mb-1"
+                  >
+                    {t('timeLens.input.anchor')}
+                  </label>
+                  <input
+                    id="time-lens-fixed-anchor"
+                    name="time-lens-fixed-anchor"
+                    type="number"
+                    min={0}
+                    value={fixedAnchor}
+                    data-testid="time-lens-fixed-anchor"
+                    onChange={e => {
+                      const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                      setFixedAnchor(val);
+                      setTimeLens({ mode: 'fixed', anchor: val, windowSize: fixedWindow });
+                    }}
+                    className="w-full bg-surface border border-edge rounded px-2 py-1.5 text-sm text-content text-right outline-none focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="time-lens-fixed-window"
+                    className="block text-[0.625rem] text-content-muted uppercase mb-1"
+                  >
+                    {t('timeLens.input.windowSize')}
+                  </label>
+                  <input
+                    id="time-lens-fixed-window"
+                    name="time-lens-fixed-window"
+                    type="number"
+                    min={1}
+                    value={fixedWindow}
+                    data-testid="time-lens-fixed-window"
+                    onChange={e => {
+                      const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                      setFixedWindow(val);
+                      setTimeLens({ mode: 'fixed', anchor: fixedAnchor, windowSize: val });
+                    }}
+                    className="w-full bg-surface border border-edge rounded px-2 py-1.5 text-sm text-content text-right outline-none focus:border-blue-500 transition-colors"
+                  />
+                </div>
+              </>
+            )}
+
+            {lensMode === 'openEnded' && (
+              <div>
+                <label
+                  htmlFor="time-lens-open-anchor"
+                  className="block text-[0.625rem] text-content-muted uppercase mb-1"
+                >
+                  {t('timeLens.input.anchor')}
+                </label>
+                <input
+                  id="time-lens-open-anchor"
+                  name="time-lens-open-anchor"
+                  type="number"
+                  min={0}
+                  value={fixedAnchor}
+                  data-testid="time-lens-open-anchor"
+                  onChange={e => {
+                    const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                    setFixedAnchor(val);
+                    setTimeLens({ mode: 'openEnded', anchor: val });
+                  }}
+                  className="w-full bg-surface border border-edge rounded px-2 py-1.5 text-sm text-content text-right outline-none focus:border-blue-500 transition-colors"
+                />
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

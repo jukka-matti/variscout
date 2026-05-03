@@ -377,6 +377,7 @@ export const fi: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ poraudu tähän',
   'chart.percent': 'Prosentti',
+  'boxplot.factor.label': 'Factor',
 
   // Y-axis popover
   'chart.yAxisScale': 'Y-akselin skaalaus',
@@ -597,9 +598,12 @@ export const fi: MessageCatalog = {
     'Etä-SharePoint-tietolähteet käyttävät käyttäjäkohtaisia käyttöoikeuksia. Jokaisella käyttäjällä täytyy olla SharePoint-pääsy dokumentteihin.\nTarkista, estävätkö ehdolliset käyttöoikeuskäytännöt kyseisiä käyttäjiä.\nVarmista, että järjestelmänvalvojan suostumus on myönnetty delegoidulle Sites.Read.All-käyttöoikeudelle.\nPyydä kyseisiä käyttäjiä kirjautumaan ulos ja takaisin sisään tunnuksen päivittämiseksi.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',
@@ -951,4 +955,58 @@ export const fi: MessageCatalog = {
   'wall.palette.kind.question': 'QUESTION',
   'wall.palette.kind.finding': 'FINDING',
   'wall.minimap.ariaLabel': 'Investigation Wall minimap',
+
+  // FRAME b0 lightweight render
+  'frame.b0.q1.headline': 'Mitä haluat tutkia?',
+  'frame.b0.q1.hint': 'Y-mittari / lopputulos',
+  'frame.b0.q2.headline': 'Mikä saattaa vaikuttaa siihen?',
+  'frame.b0.q2.hint': 'X-tekijät / syötteet',
+  'frame.b0.runOrderHint': '(juoksujärjestys: {column})',
+  'frame.b0.addProcessSteps.label': 'Lisää prosessivaiheet',
+  'frame.b0.addProcessSteps.helper':
+    'valinnainen — hyödyllinen kun X-tekijät kuuluvat tiettyihin vaiheisiin',
+  'frame.b0.addHypothesis.label': 'Lisää hypoteesi',
+  'frame.b0.addHypothesis.helper': 'valinnainen — mitä epäilet',
+  'frame.b0.seeData.cta': 'Näytä data →',
+  'frame.b0.seeData.pickYHint': 'Valitse ensin Y nähdäksesi analyysin.',
+  'frame.b0.step.addCtq': '+ lisää mittaus tähän vaiheeseen (valinnainen)',
+  'frame.b0.q1.empty': 'Numeerisia sarakkeita ei löytynyt — lisää tai tuo dataa aloittaaksesi.',
+  'frame.b0.q2.empty': 'Ei X-ehdokkaita — kun valitset Y:n, tekijät ilmestyvät tähän.',
+  'frame.b0.aria.yCandidates': 'Y-ehdokassirut',
+  'frame.b0.aria.selectedXs': 'Valitut X-sirut',
+  'frame.b0.aria.availableXs': 'Saatavilla olevat X-sirut',
+  'frame.b1.heading': 'Kehystä tutkimus',
+  'frame.b1.description':
+    'Rakenna prosessikartta, jotta analyysillä on konteksti. Kartta ohjaa moodivalintaa ja mittaus­puute­raporttia; menetelmä haluaa CTS:n valtamerellä, CTQ:n per vaihe ja vähintään yhden rational-subgroup-akselin.',
+  'frame.spec.notSet': 'spesifikaatio: ei asetettu',
+  'frame.spec.set': 'spesifikaatio: asetettu',
+  'frame.spec.add': '+ lisää spesifikaatio',
+  'frame.spec.editor.title': 'Aseta spesifikaatio mittarille {measure}',
+  'frame.spec.editor.usl': 'USL',
+  'frame.spec.editor.lsl': 'LSL',
+  'frame.spec.editor.target': 'Tavoite',
+  'frame.spec.editor.cpkTarget': 'Cpk-tavoite',
+  'frame.spec.editor.suggestedFromData': 'Ehdotettu datasta: keskiarvo ± 3σ. Vahvista tallennus.',
+  'frame.spec.editor.confirm': 'Tallenna',
+  'frame.spec.editor.cancel': 'Peruuta',
+  'frame.spec.editor.invalidRange': 'USL:n täytyy olla suurempi kuin LSL.',
+  'capability.noSpec.prompt':
+    'Aseta tavoite / spesifikaatio mittarille {measure} nähdäksesi Cp/Cpk.',
+
+  // Verify card segmented tabs — TODO(i18n): translate
+  'verify.tabs.label': 'Verify view',
+  'verify.tab.probability': 'Probability',
+  'verify.tab.distribution': 'Distribution',
+  'verify.tab.capability': 'Capability',
+  'verify.tab.pareto': 'Pareto',
+
+  // Time lens (ProcessHealthBar) — TODO(i18n): translate
+  'timeLens.button': 'Time',
+  'timeLens.popover.title': 'Time window',
+  'timeLens.mode.cumulative': 'Cumulative',
+  'timeLens.mode.rolling': 'Rolling',
+  'timeLens.mode.fixed': 'Fixed',
+  'timeLens.mode.openEnded': 'Open-ended',
+  'timeLens.input.windowSize': 'Window size',
+  'timeLens.input.anchor': 'Anchor',
 };

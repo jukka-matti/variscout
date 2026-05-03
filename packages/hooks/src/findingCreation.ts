@@ -1,5 +1,6 @@
 import type { FindingContext, FindingSource, DataRow, SpecLimits } from '@variscout/core';
 import { calculateStats } from '@variscout/core';
+import { useSessionStore } from '@variscout/stores';
 import type { DrillStep } from './useDrillPath';
 
 /**
@@ -36,6 +37,10 @@ export function buildFindingContext(
 
 /**
  * Builds a FindingSource from chart context menu parameters.
+ *
+ * Snapshots the current `timeLens` from `useSessionStore.getState()` at the
+ * moment of recording so the lens can be restored on replay — even if the
+ * user changes the lens before revisiting this finding.
  */
 export function buildFindingSource(
   chartType: 'boxplot' | 'pareto' | 'ichart',
@@ -43,8 +48,9 @@ export function buildFindingSource(
   anchorX?: number,
   anchorY?: number
 ): FindingSource {
+  const timeLens = useSessionStore.getState().timeLens;
   if (chartType === 'ichart') {
-    return { chart: 'ichart', anchorX: anchorX ?? 0, anchorY: anchorY ?? 0 };
+    return { chart: 'ichart', anchorX: anchorX ?? 0, anchorY: anchorY ?? 0, timeLens };
   }
-  return { chart: chartType, category: categoryKey ?? '' };
+  return { chart: chartType, category: categoryKey ?? '', timeLens };
 }

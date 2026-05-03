@@ -60,6 +60,30 @@ VariScout serves one nested methodology at several levels of use:
 | Evidence-source enablement  | Admin Aino, data team, consultant | Fit recurring exports to VariScout contracts without custom integrations                                                                          |
 | Sustainment/control handoff | Owner, quality, operations        | Decide what stays in VariScout and what moves to live monitoring                                                                                  |
 
+### Investigator vs author archetypes (FRAME entry shape)
+
+Two archetypes share the FRAME workspace and dispatch on whether the user
+already has a process model:
+
+- **Investigator (b0).** Has a CSV and a question; has not modeled the
+  process. Typical: Sara on the PWA, Carlos exploring, Alex with a one-shot
+  dataset, Fiona arriving from a gemba observation. FRAME b0 renders a
+  **lightweight Y/X picker** — the user picks "what do you want to
+  investigate?" (Y), optionally adds a spec inline, picks "what might be
+  affecting it?" (Xs), and clicks "See the data →" to advance to the
+  Analysis tab. No SIPOC ceremony before they see their data.
+- **Author (b1/b2).** Has (or is building) a process model. Typical: Eeva
+  encoding a production line, Olivia authoring a hub canonical map, Gary
+  spec'ing CTQs across steps. FRAME b1/b2 renders the **river-styled SIPOC
+  authoring canvas** (ADR-070) with step cards, tributaries, per-step CTQs,
+  and the gap detector. Unchanged from prior shape.
+
+The transition is structural, not modal. Adding the first process step in
+the b0 disclosure expander auto-promotes scope to b2; the canvas takes over
+on the next render. No "leave investigator mode" toggle exists or is
+needed. See [ADR-076](07-decisions/adr-076-frame-b0-lightweight-render.md)
+for the dispatch rationale; ADR-070 stays canonical for the canvas itself.
+
 The same investigation journey sits inside each level. Survey acts as the
 readiness evaluator: it asks what the current data, signals, branches, and
 verification evidence can support next.
@@ -114,7 +138,14 @@ Every investigation - Standard, Yamazumi, Performance, Defect, Capability, or Pr
    process-understanding level: outcome, flow, or local mechanism. Three entry
    points per P5 (amended constitution): upfront hypothesis, evidence-ranked
    from data (Factor Intelligence), or observation-triggered (from a Four Lenses
-   finding). Problem Statement captures Watson's 3 Qs. The Ocean spec editor
+   finding). Problem Statement captures Watson's 3 Qs. **FRAME branches on
+   scope** ([ADR-076](07-decisions/adr-076-frame-b0-lightweight-render.md)):
+   the **b0 path** (no process model — investigator archetype) renders a
+   lightweight Y/X picker — paste data → ColumnMapping → FRAME b0 → "See the
+   data →" advances to the Analysis tab. Adding the first process step in
+   the b0 disclosure expander auto-promotes scope to b2 and the
+   canvas takes over. The **b1/b2 path** (one or more steps — author
+   archetype) renders the river-styled SIPOC canvas: the Ocean spec editor
    writes per-column (USL / LSL / target / cpkTarget) to the CTS column's
    `measureSpecs` entry, and each `StepCard` carries the same per-column
    editor over its CTQ column, so the per-characteristic capability bar is

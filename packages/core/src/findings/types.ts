@@ -5,6 +5,7 @@
 
 import type { HypothesisCondition } from './hypothesisCondition';
 import type { TimelineWindow } from '../timeline';
+import type { TimeLens } from '../stats/timeLens';
 
 // ============================================================================
 // Investigation Status Types
@@ -438,13 +439,24 @@ export interface FindingProjectionModelContext {
 // Finding Source (chart observation origin)
 // ============================================================================
 
-/** Where a chart observation originated — discriminated union by chart type */
+/** Where a chart observation originated — discriminated union by chart type.
+ *  `timeLens` carries the global time lens that was active when the finding
+ *  was recorded so it can be restored on replay. Required for all new findings;
+ *  old on-disk findings without the field rehydrate via `migrateFindings`
+ *  with `DEFAULT_TIME_LENS`.
+ */
 export type FindingSource =
-  | { chart: 'boxplot' | 'pareto'; category: string }
-  | { chart: 'ichart'; anchorX: number; anchorY: number }
-  | { chart: 'probability'; anchorX: number; anchorY: number; seriesKey?: string }
-  | { chart: 'yamazumi'; category: string; activityType?: string }
-  | { chart: 'coscout'; messageId: string };
+  | { chart: 'boxplot' | 'pareto'; category: string; timeLens: TimeLens }
+  | { chart: 'ichart'; anchorX: number; anchorY: number; timeLens: TimeLens }
+  | {
+      chart: 'probability';
+      anchorX: number;
+      anchorY: number;
+      seriesKey?: string;
+      timeLens: TimeLens;
+    }
+  | { chart: 'yamazumi'; category: string; activityType?: string; timeLens: TimeLens }
+  | { chart: 'coscout'; messageId: string; timeLens: TimeLens };
 
 // ============================================================================
 // Window Context (multi-level SCOUT V1 — drift detection)

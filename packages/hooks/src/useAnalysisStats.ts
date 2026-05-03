@@ -7,7 +7,8 @@
 
 import { useMemo } from 'react';
 import type { StatsResult, StatsWorkerAPI } from '@variscout/core';
-import { useProjectStore } from '@variscout/stores';
+import { applyTimeLens } from '@variscout/core';
+import { useProjectStore, useSessionStore } from '@variscout/stores';
 import { useFilteredData } from './useFilteredData';
 import { useAsyncStats } from './useAsyncStats';
 
@@ -21,17 +22,25 @@ export function useAnalysisStats(workerApi?: StatsWorkerAPI | null): AnalysisSta
   const { filteredData } = useFilteredData();
   const outcome = useProjectStore(s => s.outcome);
   const specs = useProjectStore(s => s.specs);
+  const timeLens = useSessionStore(s => s.timeLens);
+
+  // Apply time lens before extracting values.
+  const lensedData = useMemo(
+    // timeColumn unused in current applyTimeLens (rows pre-sorted upstream); see Task 2 docstring.
+    () => applyTimeLens(filteredData, timeLens, ''),
+    [filteredData, timeLens]
+  );
 
   // Extract numeric values (memoized to prevent unnecessary Worker calls)
   const values = useMemo(() => {
-    if (!outcome || filteredData.length === 0) return [];
-    return filteredData
+    if (!outcome || lensedData.length === 0) return [];
+    return lensedData
       .map(d => {
         const v = d[outcome];
         return typeof v === 'number' ? v : Number(v);
       })
       .filter(v => !isNaN(v));
-  }, [filteredData, outcome]);
+  }, [lensedData, outcome]);
 
   return useAsyncStats({
     values,

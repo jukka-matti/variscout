@@ -174,20 +174,14 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   const [showAllFactors, setShowAllFactors] = useState(false);
   const [dismissedRoles, setDismissedRoles] = useState<Set<string>>(new Set());
 
-  // Stack config state (internal — syncs to parent via onStackConfigChange)
+  // Stack config state (internal — syncs to parent via onStackConfigChange).
+  // Auto-enable is intentionally OFF: the heuristic flagged 21/33 cols as
+  // stackable on a 35-col wide-form sensor dataset where each column was a
+  // distinct measurement, blocking Start Analysis with "Name the stacked
+  // columns to continue." Stack Columns remains opt-in via the toggle, with
+  // the suggestion still surfaced as a hint (`suggestedStack`).
   const [stackConfig, setStackConfig] = useState<StackConfig | null>(() => {
-    if (initialStackConfig) return initialStackConfig;
-    if (
-      suggestedStack &&
-      (suggestedStack.confidence === 'high' || suggestedStack.confidence === 'medium')
-    ) {
-      return {
-        columnsToStack: suggestedStack.columnsToStack,
-        measureName: suggestedStack.measureName ?? '',
-        labelName: suggestedStack.labelName ?? '',
-      };
-    }
-    return null;
+    return initialStackConfig ?? null;
   });
 
   const handleStackConfigChange = useCallback(

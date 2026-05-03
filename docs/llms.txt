@@ -16,6 +16,7 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 - [superpowers/specs/2026-04-27-layered-process-view-design.md](superpowers/specs/2026-04-27-layered-process-view-design.md): three-band visual language (Outcome / Process Flow / Operations) for FRAME, Process Hub, and multi-hub.
 - [superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md](superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md): investigation scope (B1/B2 unified), drill patterns (Hub→Step shipped; Step→Channels existing; Step→Sub-flow + Org Hub-of-Hubs designed), governance, and the no-statistical-roll-up policy.
 - [superpowers/specs/2026-04-29-multi-level-scout-design.md](superpowers/specs/2026-04-29-multi-level-scout-design.md): multi-level SCOUT — level-spanning surface architecture (L1 outcome / L2 flow / L3 mechanism lensed across SCOUT, FRAME, Hub Capability, Investigation Wall, Evidence Map) plus the timeline-window primitive; boundary policy at [07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md](07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md).
+- [07-decisions/adr-076-frame-b0-lightweight-render.md](07-decisions/adr-076-frame-b0-lightweight-render.md): FRAME branches on scope — investigator (b0, lightweight Y/X picker) vs author (b1/b2, river-styled SIPOC canvas — ADR-070). `detectScopeFromMap(map)` is the dispatch point. No auto-pick, no upfront warnings in b0.
 - [01-vision/trainer-network.md](01-vision/trainer-network.md): lightweight trainer ecosystem model for VariScout growth, certification, and directory routing.
 
 ## Architecture
@@ -42,6 +43,20 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 - [Glossary](03-features/learning/glossary.md): domain terms, statistical vocabulary.
 - [Feature parity matrix](08-products/feature-parity.md): PWA vs Azure Standard vs Azure Team.
 - [Statistics reference](05-technical/statistics-reference.md): formulas, NIST validation, citations.
+
+## FRAME b0 lightweight render (ADR-076)
+
+Priority entry points for the b0 (investigator archetype) FRAME surface — paste data → ColumnMapping → Y/X picker → "See the data →".
+
+- `../packages/ui/src/components/FrameViewB0/`: b0 lightweight composition — stacks Y picker, optional inline spec editor, X picker, process-steps disclosure expander, and the "See the data →" CTA.
+- `../packages/ui/src/components/ColumnCandidateChip/`: chip primitive shared by Y and X picker sections.
+- `../packages/ui/src/components/YPickerSection/`: Y picker — surfaces ranked Y candidates from `rankYCandidates`; "+ add spec" affordance opens the inline editor.
+- `../packages/ui/src/components/XPickerSection/`: X picker — appears after Y is selected; multi-select; auto-detected run-order column hidden.
+- `../packages/ui/src/components/InlineSpecEditor/`: popover-style spec editor anchored under the Y row; edits USL / LSL / target / cpkTarget; suggestion seeded from mean ± 3σ.
+- `../packages/ui/src/components/ProcessStepsExpander/`: disclosure that embeds the existing `LayeredProcessViewWithCapability` canvas with `showGaps={false}`. Adding the first step flips scope b0 → b2 and the canvas takes over.
+- `../packages/ui/src/components/SeeTheDataCta/`: primary CTA to advance to the Analysis tab; disabled until a Y is selected.
+- `../packages/core/src/parser/yLikelihood.ts`: `rankYCandidates` heuristic — 16 case-insensitive name patterns + rich-variation bonus, capped; never auto-picks.
+- `../packages/core/src/scopeDetection.ts`: `detectScopeFromMap(map)` — b0/b1/b2 dispatch from `ProcessMap.nodes.length`. Mirrors `detectScope(investigation)` for surfaces that have a map but no `nodeMappings` yet (PWA + Azure FRAME entry).
 
 ## Tooling
 

@@ -367,6 +367,7 @@ export const ro: MessageCatalog = {
   'chart.type.pareto': 'Pareto',
   'chart.drillHere': '↓ detaliere aici',
   'chart.percent': 'Procent',
+  'boxplot.factor.label': 'Factor',
   'chart.yAxisScale': 'Scala axei Y',
   'validation.minLessThanMax': 'Min trebuie să fie mai mic decât Max',
   'action.noChanges': 'Fără modificări',
@@ -545,9 +546,12 @@ export const ro: MessageCatalog = {
     'Sursele de cunoștințe SharePoint remote folosesc permisiuni per utilizator. Fiecare utilizator trebuie să aibă acces SharePoint la documente.\nVerificați dacă utilizatorii afectați sunt blocați de politicile de acces condiționat.\nVerificați că s-a acordat consimțământul administratorului pentru permisiunea delegată Sites.Read.All.\nCereți utilizatorilor afectați să se deconecteze și să se reconecteze pentru a reîmprospăta token-ul.',
 
   // Workspace navigation
+  'workspace.frame': 'Frame',
   'workspace.analysis': 'Analysis',
+  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.report': 'Report',
 
   // Synthesis card
   'synthesis.title': 'Suspected Cause',
@@ -901,4 +905,56 @@ export const ro: MessageCatalog = {
   'wall.palette.kind.question': 'QUESTION',
   'wall.palette.kind.finding': 'FINDING',
   'wall.minimap.ariaLabel': 'Investigation Wall minimap',
+
+  // FRAME b0 lightweight render — TODO(i18n): translate
+  'frame.b0.q1.headline': 'What do you want to investigate?',
+  'frame.b0.q1.hint': 'your Y / output measurement',
+  'frame.b0.q2.headline': 'What might be affecting it?',
+  'frame.b0.q2.hint': "your X's / inputs",
+  'frame.b0.runOrderHint': '(run order: {column})',
+  'frame.b0.addProcessSteps.label': 'Add process steps',
+  'frame.b0.addProcessSteps.helper': "optional — useful when your X's belong to specific stages",
+  'frame.b0.addHypothesis.label': 'Add a hypothesis',
+  'frame.b0.addHypothesis.helper': 'optional — what you suspect',
+  'frame.b0.seeData.cta': 'See the data →',
+  'frame.b0.seeData.pickYHint': 'Pick a Y first to see the analysis.',
+  'frame.b0.step.addCtq': '+ add measurement at this step (optional)',
+  'frame.b0.q1.empty': 'No numeric columns detected — add or import data to begin.', // TODO(i18n): translate
+  'frame.b0.q2.empty': 'No X candidates — once you pick a Y, factor candidates appear here.', // TODO(i18n): translate
+  'frame.b0.aria.yCandidates': 'Y candidate chips', // TODO(i18n): translate
+  'frame.b0.aria.selectedXs': 'Selected X chips', // TODO(i18n): translate
+  'frame.b0.aria.availableXs': 'Available X chips', // TODO(i18n): translate
+  'frame.b1.heading': 'Frame the investigation', // TODO(i18n): translate
+  'frame.b1.description':
+    'Build your process map so the analysis has context. The map drives mode selection and a measurement-gap report; the methodology wants CTS at the ocean, a CTQ per step, and at least one rational-subgroup axis.', // TODO(i18n): translate
+  'frame.spec.notSet': 'spec: not set',
+  'frame.spec.set': 'spec: set', // TODO(i18n): translate
+  'frame.spec.add': '+ add spec',
+  'frame.spec.editor.title': 'Set spec for {measure}',
+  'frame.spec.editor.usl': 'USL',
+  'frame.spec.editor.lsl': 'LSL',
+  'frame.spec.editor.target': 'Target',
+  'frame.spec.editor.cpkTarget': 'Cpk target',
+  'frame.spec.editor.suggestedFromData': 'Suggested from data: mean ± 3σ. Confirm to save.',
+  'frame.spec.editor.confirm': 'Save',
+  'frame.spec.editor.cancel': 'Cancel',
+  'frame.spec.editor.invalidRange': 'USL must be greater than LSL.', // TODO(i18n): translate
+  'capability.noSpec.prompt': 'Set a target / spec on {measure} to see Cp/Cpk.',
+
+  // Verify card segmented tabs — TODO(i18n): translate
+  'verify.tabs.label': 'Verify view',
+  'verify.tab.probability': 'Probability',
+  'verify.tab.distribution': 'Distribution',
+  'verify.tab.capability': 'Capability',
+  'verify.tab.pareto': 'Pareto',
+
+  // Time lens (ProcessHealthBar) — TODO(i18n): translate
+  'timeLens.button': 'Time',
+  'timeLens.popover.title': 'Time window',
+  'timeLens.mode.cumulative': 'Cumulative',
+  'timeLens.mode.rolling': 'Rolling',
+  'timeLens.mode.fixed': 'Fixed',
+  'timeLens.mode.openEnded': 'Open-ended',
+  'timeLens.input.windowSize': 'Window size',
+  'timeLens.input.anchor': 'Anchor',
 };

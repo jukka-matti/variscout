@@ -14,6 +14,7 @@ import { useProjectStore } from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
+  useLensedSampleCount,
   useStagedAnalysis,
   useDefectTransform,
   useDefectSummary,
@@ -28,6 +29,7 @@ import {
   ErrorBoundary,
   ProcessHealthBar,
   VerificationCard,
+  SegmentedControl,
   NarrativeBar,
   SelectionPanel,
   CreateFactorModal,
@@ -53,8 +55,9 @@ import {
   useProcessProjection,
   useJourneyPhase,
   useCapabilityIChartData,
+  useTranslation,
 } from '@variscout/hooks';
-import type { AIContext, TimelineWindow } from '@variscout/core';
+import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
 
@@ -200,16 +203,16 @@ const Dashboard = ({
   const selectedPoints = useProjectStore(s => s.selectedPoints);
   const clearSelection = useProjectStore(s => s.clearSelection);
   const defectMapping = useProjectStore(s => s.defectMapping);
-  // Multi-level SCOUT V1: local timeline-window state. Investigation-level
-  // persistence — V2 wires through useTimelineWindow when the dashboards
-  // become investigation-aware (Dashboard currently reads useProjectStore
-  // and does not receive a ProcessHubInvestigation envelope).
-  const [timelineWindow, setTimelineWindow] = useState<TimelineWindow>({ kind: 'cumulative' });
-  const { filteredData } = useFilteredData({ window: timelineWindow });
+  const { filteredData } = useFilteredData();
+  const lensedSampleCount = useLensedSampleCount();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
+  const { t } = useTranslation();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
+
+  type AzureAnalysisLensTab = 'probability' | 'distribution';
+  const [analysisLensTab, setAnalysisLensTab] = useState<AzureAnalysisLensTab>('probability');
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveMode(analysisMode) === 'defect';
@@ -440,6 +443,28 @@ const Dashboard = ({
     rows: filteredData,
   });
 
+  // Verify card tabs (Probability / Capability|Distribution)
+  const hasSpecs = !!(specs.usl !== undefined || specs.lsl !== undefined);
+  const azureAnalysisLensTabs: {
+    id: AzureAnalysisLensTab;
+    label: string;
+    content: React.ReactNode;
+  }[] = [
+    {
+      id: 'probability',
+      label: t('verify.tab.probability'),
+      content: <ProbabilityPlot series={probabilitySeries} />,
+    },
+    {
+      id: 'distribution',
+      label: hasSpecs ? t('verify.tab.capability') : t('verify.tab.distribution'),
+      content: <CapabilityHistogram data={histogramData} specs={specs} mean={stats?.mean ?? 0} />,
+    },
+  ];
+  const activeAzureAnalysisLensTab = azureAnalysisLensTabs.some(tab => tab.id === analysisLensTab)
+    ? analysisLensTab
+    : (azureAnalysisLensTabs[0]?.id ?? 'probability');
+
   // Keyboard: clear selection on Escape (complement to hook's focused-mode ESC)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -559,7 +584,7 @@ const Dashboard = ({
             }
             onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
             columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
-            sampleCount={filteredData?.length ?? 0}
+            sampleCount={lensedSampleCount}
             filterChipData={filterChipData}
             columnAliases={columnAliases}
             onUpdateFilterValues={handleUpdateFilterValues}
@@ -726,8 +751,6 @@ const Dashboard = ({
           ) : (
             <div className="flex flex-1 min-h-0">
               <DashboardLayoutBase
-                timelineWindow={timelineWindow}
-                onTimelineWindowChange={setTimelineWindow}
                 outcome={outcome}
                 factors={factors}
                 columnAliases={columnAliases}
@@ -919,30 +942,27 @@ const Dashboard = ({
                 }
                 /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
                    Stats sidebar (left) provides detailed view when toggled. */
+                verificationCardTitle={
+                  histogramData.length > 0 && stats && !(isDefectMode && defectSummaryProps) ? (
+                    <SegmentedControl
+                      options={azureAnalysisLensTabs.map(tab => ({
+                        value: tab.id,
+                        label: tab.label,
+                      }))}
+                      value={activeAzureAnalysisLensTab}
+                      onChange={tabId => setAnalysisLensTab(tabId as AzureAnalysisLensTab)}
+                      aria-label={t('verify.tabs.label')}
+                      testId="verify-tab"
+                    />
+                  ) : undefined
+                }
                 renderVerificationCard={
                   isDefectMode && defectSummaryProps ? (
                     <DefectSummary {...defectSummaryProps} />
                   ) : histogramData.length > 0 && stats ? (
                     <VerificationCard
-                      defaultTab="probability"
-                      tabs={[
-                        {
-                          id: 'probability',
-                          label: 'Probability',
-                          content: <ProbabilityPlot series={probabilitySeries} />,
-                        },
-                        {
-                          id: 'distribution',
-                          label: specs ? 'Capability' : 'Distribution',
-                          content: (
-                            <CapabilityHistogram
-                              data={histogramData}
-                              specs={specs}
-                              mean={stats.mean}
-                            />
-                          ),
-                        },
-                      ]}
+                      tabs={azureAnalysisLensTabs}
+                      activeTab={activeAzureAnalysisLensTab}
                     />
                   ) : undefined
                 }
