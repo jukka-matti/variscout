@@ -1,3 +1,7 @@
+---
+title: Phase 6 — Sustainment & Control Handoff Implementation Plan
+---
+
 # Phase 6 — Sustainment & Control Handoff Implementation Plan
 
 > ## Session Resumption Status (paused 2026-04-27)

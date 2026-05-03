@@ -1,3 +1,7 @@
+---
+title: Scout UI / Navigation consolidation
+---
+
 # Scout UI / Navigation consolidation
 
 ## Context
