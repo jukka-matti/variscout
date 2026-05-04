@@ -19,6 +19,7 @@ export function GoalBanner({ goal = '', onChange }: GoalBannerProps) {
   };
 
   const save = () => {
+    if (draft.trim() === '') return; // non-empty guard: stay in edit mode
     onChange?.(draft);
     setEditing(false);
   };

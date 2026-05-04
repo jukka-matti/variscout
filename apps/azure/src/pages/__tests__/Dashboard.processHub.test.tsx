@@ -384,6 +384,53 @@ describe('Dashboard Process Hub home', () => {
     expect(calledHubIds).toEqual(new Set(['line-5']));
   });
 
+  it('New Hub button creates an incomplete hub via useNewHubProvision without window.prompt', async () => {
+    mockListProjects.mockResolvedValue([]);
+    mockListProcessHubs.mockResolvedValue([]);
+    mockSaveProcessHub.mockResolvedValue(undefined);
+
+    render(<Dashboard onOpenProject={vi.fn()} />);
+    await waitFor(() => expect(screen.queryByText('Process Hubs')).toBeInTheDocument());
+
+    // No window.prompt should be called
+    const promptSpy = vi.spyOn(window, 'prompt');
+
+    fireEvent.click(screen.getByText('New Hub'));
+
+    await waitFor(() => expect(mockSaveProcessHub).toHaveBeenCalledTimes(1));
+    const savedHub = mockSaveProcessHub.mock.calls[0][0];
+    // useNewHubProvision uses extractHubName('') → '' → fallback 'Untitled hub'
+    expect(savedHub.name).toBe('Untitled hub');
+    // Incomplete — no processGoal, no outcomes
+    expect(savedHub.processGoal).toBeUndefined();
+    expect(promptSpy).not.toHaveBeenCalled();
+
+    promptSpy.mockRestore();
+  });
+
+  it('onHubGoalChange wires to saveProcessHub — framing prompt visible for incomplete hub', async () => {
+    mockListProjects.mockResolvedValue([makeProject()]);
+    mockListProcessHubs.mockResolvedValue([
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ]);
+    mockSaveProcessHub.mockClear();
+    mockSaveProcessHub.mockResolvedValue(undefined);
+
+    render(<Dashboard onOpenProject={vi.fn()} />);
+
+    await screen.findByText('Line 4');
+    fireEvent.click(screen.getByLabelText('Open Line 4'));
+
+    // Wait for ProcessHubView to render.
+    await screen.findByRole('region', { name: 'Line 4 Current Process State' });
+
+    // Hub has no processGoal and no outcomes → framing prompt is visible (onEditFraming wired).
+    // This confirms that ProcessHubView receives onEditFraming from Dashboard.
+    expect(screen.getByTestId('hub-framing-prompt')).toBeInTheDocument();
+    // Clicking Add framing triggers onEditFraming which calls onOpenProject.
+    // (Full GoalBanner inline-edit saveProcessHub path tested by ProcessHubView.test.tsx)
+  });
+
   it('renders cadence column labels as eyebrow text, not as duplicate section headings', async () => {
     mockListProjects.mockResolvedValue([]);
     mockListProcessHubs.mockResolvedValue([

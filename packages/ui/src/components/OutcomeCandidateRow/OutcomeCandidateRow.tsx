@@ -33,7 +33,7 @@ export function OutcomeCandidateRow(props: OutcomeCandidateRowProps) {
   return (
     <div className={`outcome-candidate-row ${isSelected ? 'selected' : ''}`}>
       <input
-        type="radio"
+        type="checkbox"
         checked={isSelected}
         onChange={onToggleSelect}
         aria-label={candidate.columnName}

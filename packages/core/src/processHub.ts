@@ -429,6 +429,27 @@ export function normalizeProcessHubId(processHubId?: string | null): string {
   return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_PROCESS_HUB_ID;
 }
 
+/**
+ * Returns `true` when a ProcessHub contains the minimum framing-layer fields
+ * required for canvas first paint (Mode A.1 reopen path).
+ *
+ * Required:
+ * - `processGoal` — non-empty string (the goal narrative was stated)
+ * - `outcomes` — at least one OutcomeSpec with a non-empty `columnName`
+ *
+ * `primaryScopeDimensions` is intentionally NOT required: the analyst may have
+ * skipped the sub-step (empty array is valid, absent is valid — both mean
+ * "no explicit scope dimensions chosen").
+ */
+export function isProcessHubComplete(hub: ProcessHub): boolean {
+  const hasGoal = typeof hub.processGoal === 'string' && hub.processGoal.trim().length > 0;
+  const hasOutcome =
+    Array.isArray(hub.outcomes) &&
+    hub.outcomes.length > 0 &&
+    hub.outcomes.every(o => typeof o.columnName === 'string' && o.columnName.trim().length > 0);
+  return hasGoal && hasOutcome;
+}
+
 export function investigationStatusFromJourneyPhase(phase: JourneyPhase): InvestigationStatus {
   switch (phase) {
     case 'frame':

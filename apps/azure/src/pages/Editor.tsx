@@ -25,7 +25,6 @@ import { AppHeader } from '../components/AppHeader';
 import PasteScreen from '../components/data/PasteScreen';
 import ManualEntry from '../components/data/ManualEntry';
 import {
-  ColumnMapping,
   ImprovementWorkspaceBase,
   ImprovementContextPanel,
   WhatIfExplorerPage,
@@ -36,7 +35,7 @@ import {
   QuestionLinkPrompt,
   SurveyNotebookBase,
   DEFAULT_PRESETS,
-  type AnalysisBrief,
+  type ColumnMappingConfirmPayload,
   type MatrixDimension,
 } from '@variscout/ui';
 import {
@@ -64,7 +63,6 @@ import type {
   ExclusionReason,
   Finding,
   Question,
-  InvestigationCategory,
   IdeaDirection,
   InvestigationDepth,
   InvestigationStatus,
@@ -98,6 +96,7 @@ import { useToast } from '../context/ToastContext';
 import { SustainmentEntryRow } from './Editor.sustainment';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
+import { HubCreationFlow } from '../features/hubCreation';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { InvestigationWorkspace } from '../components/editor/InvestigationWorkspace';
 import FrameView from '../components/editor/FrameView';
@@ -293,7 +292,13 @@ export const Editor: React.FC<EditorProps> = ({
   initialSample,
   initialProcessHubId,
 }) => {
-  const { syncStatus, listProjects, listProcessHubs, saveProject: saveToCloud } = useStorage();
+  const {
+    syncStatus,
+    listProjects,
+    listProcessHubs,
+    saveProject: saveToCloud,
+    saveProcessHub,
+  } = useStorage();
   const { locale } = useLocale();
   const { showToast } = useToast();
 
@@ -703,6 +708,28 @@ export const Editor: React.FC<EditorProps> = ({
   const handleDashboardResumeAnalysis = useCallback(() => {
     usePanelsStore.getState().showAnalysis();
   }, []);
+
+  /**
+   * Mode B entry: "New Hub" from the dashboard starts the paste → framing flow.
+   * Navigates to the analysis view so PasteScreen is visible, then opens paste.
+   */
+  const handleNewHub = useCallback(() => {
+    usePanelsStore.getState().showAnalysis();
+    dataFlow.startPaste();
+  }, [dataFlow]);
+
+  /**
+   * Called by HubCreationFlow once Stage 1 creates a hub. Adds the new hub to
+   * the local list and sets it as the active hub in processContext so the
+   * ColumnMapping confirm (Stage 3) can persist outcomes to it.
+   */
+  const handleHubCreated = useCallback(
+    (hub: ProcessHub) => {
+      setProcessHubs(prev => [...prev, hub]);
+      setProcessContext(prev => ({ ...(prev ?? {}), processHubId: hub.id }));
+    },
+    [setProcessContext]
+  );
 
   // Share handlers
   const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
@@ -1195,16 +1222,32 @@ export const Editor: React.FC<EditorProps> = ({
     }
   }, [isCoScoutOpen, aiOrch.coscout]);
 
-  // Pass categories and brief from ColumnMapping into DataContext
+  // Handle ColumnMapping confirm — adopts new Hub-shaped payload (slice-2 contract).
+  // Wire categories, brief, and investigation state; persist outcomes + primaryScopeDimensions
+  // to the active Hub via saveProcessHub (Task H will surface this on ProcessHubView — for
+  // Task A we wire the data path so it's available from this point forward).
   const handleMappingConfirmWithCategories = useCallback(
-    (
-      newOutcome: string,
-      newFactors: string[],
-      newSpecs?: { target?: number; lsl?: number; usl?: number },
-      newCategories?: InvestigationCategory[],
-      brief?: AnalysisBrief
-    ) => {
+    (payload: ColumnMappingConfirmPayload) => {
+      const { categories: newCategories, brief, outcomes, primaryScopeDimensions } = payload;
+
+      // Derive legacy 3-arg shape for dataFlow (investigation store compat).
+      const newOutcome = outcomes[0]?.columnName ?? '';
+      const newFactors = primaryScopeDimensions;
+      const firstSpec = outcomes[0];
+      const newSpecs =
+        firstSpec &&
+        (firstSpec.target !== undefined ||
+          firstSpec.lsl !== undefined ||
+          firstSpec.usl !== undefined)
+          ? {
+              ...(firstSpec.target !== undefined ? { target: firstSpec.target } : {}),
+              ...(firstSpec.lsl !== undefined ? { lsl: firstSpec.lsl } : {}),
+              ...(firstSpec.usl !== undefined ? { usl: firstSpec.usl } : {}),
+            }
+          : undefined;
+
       if (newCategories) setCategories(newCategories);
+
       if (brief) {
         const updatedContext = { ...processContext };
         if (brief.issueStatement) updatedContext.issueStatement = brief.issueStatement;
@@ -1220,9 +1263,39 @@ export const Editor: React.FC<EditorProps> = ({
           }
         }
       }
+
+      // Persist outcomes + primaryScopeDimensions to the active Hub.
+      // The Hub is identified by processContext.processHubId; save is async
+      // (fire-and-forget here — ProcessHubView Task H surfaces the persisted state).
+      if (
+        (outcomes.length > 0 || primaryScopeDimensions.length > 0) &&
+        processContext?.processHubId
+      ) {
+        const currentHub = processHubs.find(h => h.id === processContext.processHubId);
+        if (currentHub) {
+          saveProcessHub({
+            ...currentHub,
+            outcomes,
+            primaryScopeDimensions,
+            updatedAt: new Date().toISOString(),
+          }).catch(() => {
+            // Non-blocking — storage failure is logged by the storage service
+          });
+        }
+      }
+
+      // Delegate to investigation flow (legacy 3-arg form for importFlow compat).
       dataFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
     },
-    [dataFlow, setCategories, processContext, setProcessContext, questionsState]
+    [
+      dataFlow,
+      setCategories,
+      processContext,
+      setProcessContext,
+      questionsState,
+      processHubs,
+      saveProcessHub,
+    ]
   );
 
   // Compute excluded row data for DataTableModal
@@ -1306,8 +1379,15 @@ export const Editor: React.FC<EditorProps> = ({
   }
 
   if (dataFlow.isMapping) {
+    /*
+     * Mode B (new investigation, not a re-edit): gate ColumnMapping behind
+     * Stage 1 (HubGoalForm) via HubCreationFlow. On re-edit or when a hub
+     * already exists the HubCreationFlow skips Stage 1 and renders
+     * ColumnMapping directly — same net behaviour as before.
+     */
+    const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
     return (
-      <ColumnMapping
+      <HubCreationFlow
         columnAnalysis={dataFlow.mappingColumnAnalysis}
         availableColumns={Object.keys(rawData[0] || {})}
         previewRows={rawData.slice(0, 5)}
@@ -1316,21 +1396,23 @@ export const Editor: React.FC<EditorProps> = ({
         onColumnRename={dataFlow.handleColumnRename}
         initialOutcome={outcome}
         initialFactors={factors}
+        initialOutcomes={activeHub?.outcomes}
+        initialPrimaryScopeDimensions={activeHub?.primaryScopeDimensions}
         datasetName={dataFilename || 'Pasted Data'}
         onConfirm={handleMappingConfirmWithCategories}
         onCancel={dataFlow.handleMappingCancel}
         dataQualityReport={dataQualityReport}
         maxFactors={6}
-        mode={dataFlow.isMappingReEdit ? 'edit' : 'setup'}
+        isMappingReEdit={dataFlow.isMappingReEdit}
         initialCategories={categories}
         timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
         hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
         onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
-        showBrief={true}
-        initialIssueStatement={processContext?.issueStatement}
         suggestedStack={dataFlow.suggestedStack}
         onStackConfigChange={dataFlow.handleStackConfigChange}
         rowLimit={250000}
+        processHubId={processContext?.processHubId}
+        onHubCreated={handleHubCreated}
       />
     );
   }
@@ -1456,6 +1538,7 @@ export const Editor: React.FC<EditorProps> = ({
                   projects={overviewProjects}
                   onViewPortfolio={onBack}
                   onUpdateLastViewed={handleUpdateLastViewed}
+                  onNewHub={handleNewHub}
                 />
               </div>
             ) : activeView === 'frame' ? (
@@ -1669,7 +1752,8 @@ export const Editor: React.FC<EditorProps> = ({
             )}
           </>
         ) : (
-          <ColumnMapping
+          /* rawData present but no outcome yet — treat same as isMapping (Mode B gate) */
+          <HubCreationFlow
             columnAnalysis={dataFlow.mappingColumnAnalysis}
             availableColumns={Object.keys(rawData[0] || {})}
             previewRows={rawData.slice(0, 5)}
@@ -1683,14 +1767,19 @@ export const Editor: React.FC<EditorProps> = ({
             onCancel={dataFlow.handleMappingCancel}
             dataQualityReport={dataQualityReport}
             maxFactors={6}
+            isMappingReEdit={false}
             initialCategories={categories}
             timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
             hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
             onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
-            showBrief={true}
-            initialIssueStatement={processContext?.issueStatement}
             suggestedStack={dataFlow.suggestedStack}
             rowLimit={250000}
+            processHubId={processContext?.processHubId}
+            onHubCreated={handleHubCreated}
+            initialOutcomes={processHubs.find(h => h.id === processContext?.processHubId)?.outcomes}
+            initialPrimaryScopeDimensions={
+              processHubs.find(h => h.id === processContext?.processHubId)?.primaryScopeDimensions
+            }
           />
         )}
       </div>

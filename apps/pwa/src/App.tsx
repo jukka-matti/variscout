@@ -4,6 +4,7 @@ import { lazyWithRetry } from './lib/chunkReload';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
+  type ColumnMappingConfirmPayload,
   FindingsWindow,
   openFindingsPopout,
   updateFindingsPopout,
@@ -20,7 +21,10 @@ import {
   QuestionLinkPrompt,
   GoalBanner,
   HubGoalForm,
+  OutcomePin,
 } from '@variscout/ui';
+import { SaveToBrowserButton } from './components/SaveToBrowserButton';
+import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
 import { hubRepository } from './db/hubRepository';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
@@ -630,36 +634,72 @@ function AppMain() {
     setQuestionLinkPromptOpen(false);
   }, []);
 
-  // Mode B: when ColumnMapping confirms, fold the Stage 1 narrative into the
-  // session Hub so the GoalBanner picks it up immediately. Slice 1 keeps the
-  // Hub minimal (id + name + processGoal + createdAt); the slice-2 refactor
-  // will populate `outcomes` / `primaryScopeDimensions` from the new Stage 3
-  // mapping rows. We preserve any pre-existing sessionHub fields (e.g. when
-  // restored from opt-in persistence — Mode A.1) by spreading first.
+  // Mode B: when ColumnMapping confirms, fold the Stage 1 narrative + Stage 3
+  // Hub-shaped payload (outcomes, primaryScopeDimensions) into the session Hub
+  // so the GoalBanner picks it up immediately. Preserve any pre-existing
+  // sessionHub fields (Mode A.1 restore path) by spreading first.
   const handleMappingConfirmWithGoal = useCallback(
-    (
-      newOutcome: string,
-      newFactors: string[],
-      newSpecs?: { target?: number; lsl?: number; usl?: number }
-    ) => {
-      importFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
-      if (goalNarrative && goalNarrative.trim()) {
-        const base = sessionHub ?? {
-          id: crypto.randomUUID(),
-          name: '',
-          createdAt: new Date().toISOString(),
-        };
-        setSessionHub({
-          ...base,
-          name: extractHubName(goalNarrative) || base.name || 'Untitled hub',
-          processGoal: goalNarrative,
-          updatedAt: new Date().toISOString(),
-        });
-      }
-      // TODO(slice-2): wire outcomes[] + primaryScopeDimensions into Hub
-      // construction once Stage 3 ColumnMapping refactor lands.
+    (payload: ColumnMappingConfirmPayload) => {
+      // Delegate legacy investigation flow (importFlow still takes the 3-arg form).
+      // Derive single-outcome and factors from the Hub-shaped payload.
+      const firstOutcome = payload.outcomes[0]?.columnName ?? '';
+      const legacyFactors = payload.primaryScopeDimensions;
+      const firstSpec = payload.outcomes[0];
+      const legacySpecs =
+        firstSpec &&
+        (firstSpec.target !== undefined ||
+          firstSpec.lsl !== undefined ||
+          firstSpec.usl !== undefined)
+          ? {
+              ...(firstSpec.target !== undefined ? { target: firstSpec.target } : {}),
+              ...(firstSpec.lsl !== undefined ? { lsl: firstSpec.lsl } : {}),
+              ...(firstSpec.usl !== undefined ? { usl: firstSpec.usl } : {}),
+            }
+          : undefined;
+      importFlow.handleMappingConfirm(firstOutcome, legacyFactors, legacySpecs);
+
+      const base = sessionHub ?? {
+        id: crypto.randomUUID(),
+        name: '',
+        createdAt: new Date().toISOString(),
+      };
+
+      const goalNarrativeForHub = goalNarrative && goalNarrative.trim() ? goalNarrative : undefined;
+
+      setSessionHub({
+        ...base,
+        ...(goalNarrativeForHub
+          ? {
+              name: extractHubName(goalNarrativeForHub) || base.name || 'Untitled hub',
+              processGoal: goalNarrativeForHub,
+            }
+          : {}),
+        // Wire outcomes + primaryScopeDimensions into the Hub (resolves slice-1 TODO).
+        outcomes: payload.outcomes,
+        primaryScopeDimensions: payload.primaryScopeDimensions,
+        updatedAt: new Date().toISOString(),
+      });
     },
     [importFlow, goalNarrative, sessionHub, setSessionHub]
+  );
+
+  // .vrs import: restore Hub + raw data, skip framing flow, go straight to canvas.
+  // Wired to HomeScreen's onImportVrs prop so trainers / returning analysts can
+  // reload a packaged scenario without re-pasting data.
+  const handleImportVrs = useCallback(
+    (imported: import('@variscout/core').VrsFile) => {
+      const { hub, rawData: vrsData } = imported;
+      setSessionHub(hub);
+      // Seed the project store directly — bypasses the paste/mapping flow.
+      if (vrsData && vrsData.length > 0) {
+        setRawData(vrsData as import('@variscout/core').DataRow[]);
+        const firstOutcome = hub.outcomes?.[0]?.columnName;
+        if (firstOutcome) setOutcome(firstOutcome);
+        const dims = hub.primaryScopeDimensions ?? [];
+        if (dims.length > 0) setFactors(dims);
+      }
+    },
+    [setSessionHub, setRawData, setOutcome, setFactors]
   );
 
   // Phase tab navigation handler (used by AppHeader inline tabs)
@@ -820,8 +860,62 @@ function AppMain() {
       )}
 
       {/* Goal banner — surfaces the Hub processGoal when restored from
-          opt-in persistence (Mode A.1) or set via the framing layer flow. */}
-      {sessionHub?.processGoal ? <GoalBanner goal={sessionHub.processGoal} /> : null}
+          opt-in persistence (Mode A.1) or set via the framing layer flow.
+          onChange lets the analyst edit the goal inline; updates sessionHub. */}
+      {sessionHub?.processGoal ? (
+        <GoalBanner
+          goal={sessionHub.processGoal}
+          onChange={next => {
+            setSessionHub({
+              ...sessionHub,
+              processGoal: next,
+              updatedAt: new Date().toISOString(),
+            });
+          }}
+        />
+      ) : null}
+
+      {/* Canvas framing toolbar — visible when data is loaded and we are on the
+          analysis canvas (not in a framing modal). Shows OutcomePin, Save-to-browser,
+          .vrs export, and Edit-framing re-entry. */}
+      {rawData.length > 0 &&
+        !importFlow.isPasteMode &&
+        !importFlow.isManualEntry &&
+        !importFlow.isMapping &&
+        sessionHub && (
+          <div
+            className="flex items-center gap-2 px-4 py-1.5 bg-surface-secondary border-b border-edge flex-wrap"
+            data-testid="framing-toolbar"
+          >
+            {/* OutcomePin per outcome — one pin per outcome in sessionHub.outcomes.
+                Falls back to mean=0/sigma=0 when analysis stats are not yet ready. */}
+            {sessionHub.outcomes &&
+              sessionHub.outcomes.length > 0 &&
+              sessionHub.outcomes.map(outcomeEntry => (
+                <OutcomePin
+                  key={outcomeEntry.columnName}
+                  outcome={outcomeEntry}
+                  stats={{
+                    mean: stats?.mean ?? 0,
+                    sigma: stats?.stdDev ?? 0,
+                    n: filteredData?.length ?? rawData.length,
+                  }}
+                  onAddSpecs={_col => importFlow.openFactorManager()}
+                />
+              ))}
+            <div className="flex-1" />
+            <SaveToBrowserButton currentHub={sessionHub} />
+            <VrsExportButton currentHub={sessionHub} currentData={rawData} />
+            <button
+              type="button"
+              className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+              onClick={importFlow.openFactorManager}
+              data-testid="edit-framing-button"
+            >
+              Edit framing
+            </button>
+          </div>
+        )}
 
       {/* Main Content */}
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
@@ -870,6 +964,7 @@ function AppMain() {
                 onLoadSample={ingestion.loadSample}
                 onOpenPaste={importFlow.handleOpenPaste}
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
+                onImportVrs={handleImportVrs}
               />
             ) : importFlow.isMapping && goalNarrative === null ? (
               // Mode B Stage 1: ask for the process goal narrative before
@@ -892,6 +987,14 @@ function AppMain() {
                 onColumnRename={importFlow.handleColumnRename}
                 initialOutcome={outcome}
                 initialFactors={factors}
+                initialOutcomes={
+                  importFlow.isMappingReEdit ? (sessionHub?.outcomes ?? undefined) : undefined
+                }
+                initialPrimaryScopeDimensions={
+                  importFlow.isMappingReEdit
+                    ? (sessionHub?.primaryScopeDimensions ?? undefined)
+                    : undefined
+                }
                 datasetName={dataFilename || undefined}
                 onConfirm={handleMappingConfirmWithGoal}
                 onCancel={importFlow.handleMappingCancel}

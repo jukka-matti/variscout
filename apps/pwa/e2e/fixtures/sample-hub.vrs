@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "exportedAt": "2026-05-04T00:00:00.000Z",
+  "hub": {
+    "id": "e2e-fixture-hub-001",
+    "name": "Syringe barrel moulding",
+    "processGoal": "We mold syringe barrels for medical customers. Weight in grams matters most.",
+    "createdAt": "2026-05-04T00:00:00.000Z",
+    "updatedAt": "2026-05-04T00:00:00.000Z",
+    "outcomes": [
+      {
+        "columnName": "weight_g",
+        "characteristicType": "nominalIsBest",
+        "target": 4.5,
+        "usl": 4.7,
+        "lsl": 4.3,
+        "cpkTarget": 1.33
+      }
+    ],
+    "primaryScopeDimensions": ["product", "shift"]
+  },
+  "rawData": [
+    { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B1" },
+    { "weight_g": 4.4, "product": "A", "shift": "morning", "batch_id": "B1" },
+    { "weight_g": 4.6, "product": "B", "shift": "evening", "batch_id": "B2" },
+    { "weight_g": 4.5, "product": "B", "shift": "evening", "batch_id": "B2" },
+    { "weight_g": 4.4, "product": "A", "shift": "morning", "batch_id": "B3" },
+    { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B3" },
+    { "weight_g": 4.6, "product": "B", "shift": "evening", "batch_id": "B4" },
+    { "weight_g": 4.3, "product": "A", "shift": "morning", "batch_id": "B4" },
+    { "weight_g": 4.7, "product": "B", "shift": "evening", "batch_id": "B5" },
+    { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B5" }
+  ],
+  "metadata": {
+    "exportSource": "pwa",
+    "appVersion": "e2e-fixture"
+  }
+}

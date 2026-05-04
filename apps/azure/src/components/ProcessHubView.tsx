@@ -16,8 +16,10 @@ import type {
   ProcessStateNote,
   ResponsePathAction,
 } from '@variscout/core';
+import { isProcessHubComplete } from '@variscout/core';
 import {
   GoalBanner,
+  OutcomePin,
   ProductionLineGlanceMigrationBanner,
   ProductionLineGlanceMigrationModal,
 } from '@variscout/ui';
@@ -46,6 +48,17 @@ export interface ProcessHubViewProps {
    * `processHub.reviewSignal.capability.cpkTarget`. `undefined` clears it.
    */
   onHubCpkTargetCommit: (hubId: string, next: number | undefined) => void;
+  /**
+   * Called when the analyst edits the goal narrative inline via GoalBanner.
+   * Absent → GoalBanner is read-only (existing behaviour pre-Task H).
+   */
+  onHubGoalChange?: (hubId: string, next: string) => void;
+  /**
+   * Opens the framing flow for this hub (HubCreationFlow or equivalent).
+   * When provided, an "Edit framing" / "Add framing" CTA is shown on hubs
+   * that fail isProcessHubComplete(). Absent → no CTA rendered.
+   */
+  onEditFraming?: (hubId: string) => void;
 }
 
 type TabKey = 'status' | 'capability';
@@ -54,9 +67,12 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
   rollup,
   persistInvestigation,
   onHubCpkTargetCommit,
+  onHubGoalChange,
+  onEditFraming,
   ...reviewProps
 }) => {
   const [activeTab, setActiveTab] = useState<TabKey>('status');
+  const hubIsComplete = isProcessHubComplete(rollup.hub);
 
   const migration = useHubMigrationState({
     hubId: rollup.hub.id,
@@ -79,11 +95,60 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
         empty, so unbiased Hubs (pre-Framing-Layer Hubs without processGoal)
         keep the existing layout untouched.
 
-        TODO(slice-2): wire `onChange` once HubCreationFlow + Hub-update
-        mutation hook lands. Read-only for slice 1 because ProcessHubView
-        does not currently receive a Hub-update callback in its props.
+        onChange wired to onHubGoalChange to persist inline edits (Task H).
       */}
-      <GoalBanner goal={rollup.hub.processGoal} />
+      <GoalBanner
+        goal={rollup.hub.processGoal}
+        onChange={onHubGoalChange ? next => onHubGoalChange(rollup.hub.id, next) : undefined}
+      />
+
+      {/* Incomplete-hub framing prompt — shown when hub lacks goal or outcomes,
+          and an onEditFraming handler is wired in. Gives returning analysts a
+          single-click path back to the framing flow without blocking navigation. */}
+      {!hubIsComplete && onEditFraming && (
+        <div
+          className="flex items-center gap-3 px-4 py-2 bg-amber-500/10 border-b border-amber-500/30 text-sm"
+          data-testid="hub-framing-prompt"
+        >
+          <span className="text-amber-700 dark:text-amber-400 flex-1">
+            This hub hasn&apos;t been framed yet — add a process goal and outcome to unlock full
+            analysis.
+          </span>
+          <button
+            type="button"
+            className="text-xs px-3 py-1 rounded border border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
+            onClick={() => onEditFraming(rollup.hub.id)}
+            data-testid="hub-framing-prompt-cta"
+          >
+            Add framing
+          </button>
+        </div>
+      )}
+      {/* OutcomePin row — one pin per outcome when hub is complete.
+          Stats are not available in the rollup model without a live analysis;
+          the pin renders in the fallback (mean ± σ + n = 0) state and shows
+          an "+ Add specs" chip that opens the framing flow for spec entry. */}
+      {hubIsComplete && rollup.hub.outcomes && rollup.hub.outcomes.length > 0 && (
+        <div
+          className="flex flex-wrap gap-2 px-4 py-2 border-b border-edge bg-surface-secondary"
+          data-testid="outcome-pin-row"
+        >
+          {rollup.hub.outcomes.map(outcome => (
+            <OutcomePin
+              key={outcome.columnName}
+              outcome={outcome}
+              stats={{
+                mean: rollup.reviewSignal?.capability
+                  ? ((rollup.reviewSignal as { mean?: number }).mean ?? 0)
+                  : 0,
+                sigma: 0,
+                n: rollup.reviewSignal?.rowCount ?? 0,
+              }}
+              onAddSpecs={_col => onEditFraming?.(rollup.hub.id)}
+            />
+          ))}
+        </div>
+      )}
       <ProductionLineGlanceMigrationBanner
         count={migration.count}
         onMapClick={migration.openModal}

@@ -18,6 +18,7 @@ export { DataQualityBanner, type DataQualityBannerProps } from './components/Dat
 export {
   ColumnMapping,
   type ColumnMappingProps,
+  type ColumnMappingConfirmPayload,
   type AnalysisBrief,
 } from './components/ColumnMapping';
 export { SelectionPanel, type SelectionPanelProps } from './components/SelectionPanel';

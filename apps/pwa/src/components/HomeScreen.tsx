@@ -2,6 +2,8 @@ import React from 'react';
 import { BarChart2, ClipboardPaste, PenLine, ArrowUpRight } from 'lucide-react';
 import type { SampleDataset } from '@variscout/data';
 import { useTranslation } from '@variscout/hooks';
+import type { VrsFile } from '@variscout/core';
+import { VrsImportButton } from './VrsImportButton';
 import SampleSection from './data/SampleSection';
 
 interface HomeScreenProps {
@@ -9,6 +11,7 @@ interface HomeScreenProps {
   onOpenPaste: () => void;
   onOpenManualEntry: () => void;
   onOpenSettings?: () => void;
+  onImportVrs?: (imported: VrsFile) => void;
 }
 
 /**
@@ -20,6 +23,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onLoadSample,
   onOpenPaste,
   onOpenManualEntry,
+  onImportVrs,
 }) => {
   const { t } = useTranslation();
 
@@ -68,7 +72,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
         </button>
 
-        {/* Secondary: manual entry link */}
+        {/* Secondary: manual entry + .vrs import */}
         <div className="text-center space-y-2">
           <button
             onClick={onOpenManualEntry}
@@ -77,6 +81,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             <PenLine size={12} />
             {t('home.manualEntry')}
           </button>
+          {onImportVrs && (
+            <div>
+              <VrsImportButton onImport={onImportVrs} />
+            </div>
+          )}
           <div>
             <a
               href="https://variscout.com/en/pricing"

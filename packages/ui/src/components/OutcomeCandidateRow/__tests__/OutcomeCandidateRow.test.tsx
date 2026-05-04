@@ -14,7 +14,7 @@ const baseCandidate = {
 };
 
 describe('OutcomeCandidateRow', () => {
-  it('unselected: renders radio + name + sparkline + quality + match — no spec inputs', () => {
+  it('unselected: renders checkbox + name + sparkline + quality + match — no spec inputs', () => {
     render(
       <OutcomeCandidateRow
         candidate={baseCandidate}
@@ -87,7 +87,7 @@ describe('OutcomeCandidateRow', () => {
     expect(onSpecsChange).toHaveBeenCalledWith(expect.objectContaining({ target: 4.5 }));
   });
 
-  it('clicking radio emits onToggleSelect', () => {
+  it('clicking checkbox emits onToggleSelect', () => {
     const onToggleSelect = vi.fn();
     render(
       <OutcomeCandidateRow
@@ -98,7 +98,7 @@ describe('OutcomeCandidateRow', () => {
         onSpecsChange={vi.fn()}
       />
     );
-    fireEvent.click(screen.getByRole('radio', { name: /weight_g/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /weight_g/i }));
     expect(onToggleSelect).toHaveBeenCalled();
   });
 });

@@ -46,6 +46,42 @@ vi.mock('../../components/ProjectDashboard', () => ({
   default: () => <div data-testid="project-dashboard-mock">ProjectDashboard</div>,
 }));
 
+/**
+ * HubCreationFlow is the Mode B router. In Editor integration tests we care
+ * that the mapping UI surfaces — not about Stage 1 internals. Mock it to
+ * expose the same data-testid as ColumnMapping so existing routing tests pass.
+ */
+vi.mock('../../features/hubCreation', () => ({
+  HubCreationFlow: ({
+    onConfirm,
+    onCancel,
+  }: {
+    onConfirm: (payload: {
+      outcomes: Array<{ columnName: string; characteristicType: string }>;
+      primaryScopeDimensions: string[];
+      outcome: string;
+      factors: string[];
+    }) => void;
+    onCancel: () => void;
+  }) => (
+    <div data-testid="column-mapping">
+      <button
+        onClick={() =>
+          onConfirm({
+            outcomes: [{ columnName: 'Weight', characteristicType: 'nominalIsBest' }],
+            primaryScopeDimensions: ['Machine'],
+            outcome: 'Weight',
+            factors: ['Machine'],
+          })
+        }
+      >
+        Confirm
+      </button>
+      <button onClick={onCancel}>Cancel</button>
+    </div>
+  ),
+}));
+
 // ── Mock @variscout/core ──
 
 vi.mock('@variscout/core', async importOriginal => {
@@ -120,11 +156,27 @@ vi.mock('@variscout/ui', () => ({
     onConfirm,
     onCancel,
   }: {
-    onConfirm: (outcome: string, factors: string[]) => void;
+    onConfirm: (payload: {
+      outcomes: Array<{ columnName: string; characteristicType: string }>;
+      primaryScopeDimensions: string[];
+      outcome: string;
+      factors: string[];
+    }) => void;
     onCancel: () => void;
   }) => (
     <div data-testid="column-mapping">
-      <button onClick={() => onConfirm('Weight', ['Machine'])}>Confirm</button>
+      <button
+        onClick={() =>
+          onConfirm({
+            outcomes: [{ columnName: 'Weight', characteristicType: 'nominalIsBest' }],
+            primaryScopeDimensions: ['Machine'],
+            outcome: 'Weight',
+            factors: ['Machine'],
+          })
+        }
+      >
+        Confirm
+      </button>
       <button onClick={onCancel}>Cancel</button>
     </div>
   ),

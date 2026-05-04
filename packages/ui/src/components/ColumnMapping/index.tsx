@@ -1,13 +1,14 @@
 /**
- * ColumnMapping - Data-rich column mapping UI for data setup
+ * ColumnMapping — Hub-level data mapper for Stage 3 of Mode B.
  *
- * Allows users to:
- * - Preview first rows of data in a collapsible table
- * - Select outcome (Y) column with type-filtered cards
- * - Select factor (X) columns with type-filtered cards
- * - Rename columns (writes to columnAliases)
- * - Optionally upload separate Pareto file
- * - Shows data quality validation results
+ * Refactored in slice 2 to be the canonical Hub-level mapper:
+ * - Multi-outcome selection via OutcomeCandidateRow (each row is independently toggled)
+ * - Inline specs per selected outcome (within the row, no separate SpecsSection for setup)
+ * - PrimaryScopeDimensionsSelector sub-step for scope dimension confirmation
+ * - OutcomeNoMatchBanner when all candidates score below threshold
+ * - onConfirm emits ColumnMappingConfirmPayload (Hub-shaped, no legacy 3-arg form)
+ *
+ * In mode='edit': pre-loads existing Hub outcomes + primaryScopeDimensions.
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
@@ -21,9 +22,14 @@ import SpecsSection from './SpecsSection';
 import ParetoUpload from './ParetoUpload';
 import TimeExtractionPanel from './TimeExtractionPanel';
 import { StackSection } from './StackSection';
+import { OutcomeCandidateRow } from '../OutcomeCandidateRow/OutcomeCandidateRow';
+import type { OutcomeCandidate } from '../OutcomeCandidateRow/OutcomeCandidateRow';
+import { PrimaryScopeDimensionsSelector } from '../PrimaryScopeDimensionsSelector/PrimaryScopeDimensionsSelector';
+import { OutcomeNoMatchBanner } from '../OutcomeNoMatchBanner/OutcomeNoMatchBanner';
+import type { OutcomeSpec } from '@variscout/core/processHub';
 import type {
   ColumnAnalysis,
-  CharacteristicType,
+  CharacteristicType as LegacyCharacteristicType,
   DataQualityReport,
   DataRow,
   TimeExtractionConfig,
@@ -31,6 +37,7 @@ import type {
   TargetMetric,
   StackConfig,
   StackSuggestion,
+  ParetoMode,
 } from '@variscout/core';
 import {
   inferCategoryName,
@@ -38,6 +45,7 @@ import {
   createInvestigationCategory,
   CATEGORY_COLORS,
 } from '@variscout/core';
+import { suggestPrimaryDimensions } from '@variscout/core';
 
 /** Analysis brief data for investigation context (optional) */
 export interface AnalysisBrief {
@@ -53,6 +61,40 @@ export interface AnalysisBrief {
   };
 }
 
+/**
+ * Hub-shaped onConfirm contract.
+ * All call sites use this shape; legacy (outcome, factors, specs) fields are gone.
+ */
+export interface ColumnMappingConfirmPayload {
+  /** Multi-outcome selection. */
+  outcomes: OutcomeSpec[];
+  /** Columns the analyst will slice analysis by most often. */
+  primaryScopeDimensions: string[];
+  /** Stack config from wide-form detection (unchanged from slice-1). */
+  stack?: StackConfig | null;
+  /** Time extraction config (unchanged from slice-1). */
+  timeExtraction?: TimeExtractionConfig;
+  /** Pareto mode (unchanged from slice-1). */
+  paretoMode?: ParetoMode;
+  /** Separate Pareto filename when paretoMode='separate' (unchanged from slice-1). */
+  separateParetoFilename?: string | null;
+  /**
+   * Investigation categories inferred from factor selection (edit mode).
+   * Used by the downstream investigation store for category grouping.
+   */
+  categories?: InvestigationCategory[];
+  /** Analysis brief from Azure full-brief fields. */
+  brief?: AnalysisBrief;
+  /**
+   * Free-text note from the OutcomeNoMatchBanner "I expected the outcome to be" input.
+   * Present when the banner surfaced and the analyst typed a note.
+   * Carry-forward: ProcessHub has no field for this yet — downstream handlers
+   * may attach it to hub metadata when the field lands (see decision-log entry
+   * "Slice 2 — OutcomeNoMatchBanner expectedOutcomeNote carry-forward").
+   */
+  expectedOutcomeNote?: string;
+}
+
 export interface ColumnMappingProps {
   /** Rich column metadata from detectColumns(). Preferred over availableColumns. */
   columnAnalysis?: ColumnAnalysis[];
@@ -66,21 +108,23 @@ export interface ColumnMappingProps {
   columnAliases?: Record<string, string>;
   /** Callback when user renames a column */
   onColumnRename?: (originalName: string, alias: string) => void;
+  /**
+   * Legacy initial outcome column name.
+   * Used to seed the initial selected outcome when no initialOutcomes provided.
+   */
   initialOutcome: string | null;
+  /**
+   * Legacy initial factor columns.
+   * Used to seed initial scope dimensions when no initialPrimaryScopeDimensions provided.
+   */
   initialFactors: string[];
+  /** Initial outcomes (Hub-level, for mode='edit' round-trip). */
+  initialOutcomes?: OutcomeSpec[];
+  /** Initial primary scope dimensions (Hub-level, for mode='edit' round-trip). */
+  initialPrimaryScopeDimensions?: string[];
   datasetName?: string;
-  onConfirm: (
-    outcome: string,
-    factors: string[],
-    specs?: {
-      target?: number;
-      lsl?: number;
-      usl?: number;
-      characteristicType?: CharacteristicType;
-    },
-    categories?: InvestigationCategory[],
-    brief?: AnalysisBrief
-  ) => void;
+  /** New Hub-shaped onConfirm contract. */
+  onConfirm: (payload: ColumnMappingConfirmPayload) => void;
   onCancel: () => void;
   onBack?: () => void;
   /** Pre-existing investigation categories (from project load / previous mapping) */
@@ -116,6 +160,13 @@ export interface ColumnMappingProps {
   rowLimit?: number;
   /** Hide specification limits section (e.g., defect mode where Cpk is not applicable) */
   hideSpecs?: boolean;
+  /**
+   * Goal narrative from Stage 1, used for outcome detection biasing.
+   * Keywords extracted deterministically (D4) to bias candidate ranking.
+   */
+  goalContext?: string;
+  /** Score threshold below which OutcomeNoMatchBanner is shown (default: 0.1) */
+  noMatchThreshold?: number;
 }
 
 /**
@@ -132,6 +183,90 @@ function buildStubAnalysis(names: string[]): ColumnAnalysis[] {
   }));
 }
 
+/** Threshold for outcome candidate match score below which the banner surfaces. */
+const DEFAULT_NO_MATCH_THRESHOLD = 0.1;
+
+/**
+ * Build OutcomeCandidate list from ColumnAnalysis, biased by goal context keywords.
+ * Uses deterministic scoring (D4): keyword overlap in column name is additive on top
+ * of existing type-based ranking. No σ-based suggestions (spec §3.3).
+ */
+function buildOutcomeCandidates(
+  columns: ColumnAnalysis[],
+  goalContext?: string
+): OutcomeCandidate[] {
+  // Extract goal keywords deterministically (D4)
+  const goalKeywords = goalContext
+    ? goalContext
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(w => w.length > 2)
+    : [];
+
+  return columns.map(col => {
+    // Base score: numeric columns score higher as outcome candidates
+    let score = col.type === 'numeric' ? 0.5 : 0.05;
+
+    // Bonus for column names matching typical outcome heuristics
+    const lower = col.name.toLowerCase();
+    const outcomeKeywords = [
+      'weight',
+      'height',
+      'length',
+      'width',
+      'temp',
+      'temperature',
+      'pressure',
+      'yield',
+      'rate',
+      'count',
+      'defect',
+      'time',
+      'duration',
+      'measure',
+      'value',
+      'output',
+      'result',
+    ];
+    if (outcomeKeywords.some(k => lower.includes(k))) {
+      score += 0.2;
+    }
+
+    // Goal context bias (D4): keyword match is additive
+    let goalKeywordMatch: string | undefined;
+    for (const kw of goalKeywords) {
+      const nameParts = lower.split(/[_\s-]+/);
+      if (nameParts.some(part => part === kw || part.startsWith(kw) || kw.startsWith(part))) {
+        score += 0.3;
+        goalKeywordMatch = kw;
+        break;
+      }
+    }
+
+    // Parse numeric values from sampleValues
+    const values: number[] = col.sampleValues
+      .map(v => parseFloat(String(v)))
+      .filter(v => Number.isFinite(v));
+
+    // Determine characteristic type: default to nominalIsBest
+    const characteristicType: OutcomeSpec['characteristicType'] = 'nominalIsBest';
+
+    return {
+      columnName: col.name,
+      type: col.type === 'numeric' ? ('continuous' as const) : ('discrete' as const),
+      characteristicType,
+      values,
+      matchScore: Math.min(1, score),
+      goalKeywordMatch,
+      qualityReport: {
+        validCount: (col.uniqueCount || 0) + values.length, // approximate
+        invalidCount: 0,
+        missingCount: col.missingCount,
+      },
+    };
+  });
+}
+
 export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   columnAnalysis: columnAnalysisProp,
   availableColumns,
@@ -141,6 +276,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   onColumnRename,
   initialOutcome,
   initialFactors,
+  initialOutcomes,
+  initialPrimaryScopeDimensions,
   datasetName = 'Uploaded Dataset',
   onConfirm,
   onCancel,
@@ -165,21 +302,13 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   onStackConfigChange,
   rowLimit = 50000,
   hideSpecs = false,
+  goalContext,
+  noMatchThreshold = DEFAULT_NO_MATCH_THRESHOLD,
 }) => {
   const { t } = useTranslation();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
-  const [outcome, setOutcome] = useState<string>(initialOutcome || '');
-  const [factors, setFactors] = useState<string[]>(initialFactors || []);
-  const [showAllOutcome, setShowAllOutcome] = useState(false);
-  const [showAllFactors, setShowAllFactors] = useState(false);
-  const [dismissedRoles, setDismissedRoles] = useState<Set<string>>(new Set());
 
-  // Stack config state (internal — syncs to parent via onStackConfigChange).
-  // Auto-enable is intentionally OFF: the heuristic flagged 21/33 cols as
-  // stackable on a 35-col wide-form sensor dataset where each column was a
-  // distinct measurement, blocking Start Analysis with "Name the stacked
-  // columns to continue." Stack Columns remains opt-in via the toggle, with
-  // the suggestion still surfaced as a hint (`suggestedStack`).
+  // ── Stack config ─────────────────────────────────────────────────────────
   const [stackConfig, setStackConfig] = useState<StackConfig | null>(() => {
     return initialStackConfig ?? null;
   });
@@ -192,36 +321,154 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     [onStackConfigChange]
   );
 
-  // Stack validation: both names required when stack is enabled
   const isStackValid =
     !stackConfig ||
     (!!stackConfig.measureName.trim() &&
       !!stackConfig.labelName.trim() &&
       stackConfig.columnsToStack.length > 0);
 
-  // Brief fields state
-  const [issueStatement, setIssueStatement] = useState(initialIssueStatement || '');
-  const [briefQuestions, setBriefQuestions] = useState<
-    Array<{ text: string; factor: string; level: string }>
-  >([]);
-  const [briefExpanded, setBriefExpanded] = useState(!!initialIssueStatement);
-  const [targetMetric, setTargetMetric] = useState<TargetMetric | ''>('');
-  const [targetDirection, setTargetDirection] = useState<'minimize' | 'maximize' | 'target'>(
-    'minimize'
-  );
-  const [targetValue, setTargetValue] = useState('');
+  // ── Resolve column analysis ───────────────────────────────────────────────
+  const columns = useMemo(() => {
+    if (columnAnalysisProp && columnAnalysisProp.length > 0) return columnAnalysisProp;
+    if (availableColumns && availableColumns.length > 0) return buildStubAnalysis(availableColumns);
+    return [];
+  }, [columnAnalysisProp, availableColumns]);
 
+  const hasRichData = !!(columnAnalysisProp && columnAnalysisProp.length > 0);
+  const numericColumns = useMemo(() => columns.filter(c => c.type === 'numeric'), [columns]);
+  const nonNumericColumns = useMemo(() => columns.filter(c => c.type !== 'numeric'), [columns]);
+
+  // ── Outcome candidates (Hub-level multi-select) ───────────────────────────
+  const outcomeCandidates = useMemo(
+    () => buildOutcomeCandidates(columns, goalContext),
+    [columns, goalContext]
+  );
+
+  /**
+   * Map of columnName → selected OutcomeSpec (partial — user fills in specs inline).
+   * Seeded from initialOutcomes (edit mode) or initialOutcome (legacy setup mode).
+   */
+  const [selectedOutcomeSpecs, setSelectedOutcomeSpecs] = useState<
+    Record<string, Partial<OutcomeSpec>>
+  >(() => {
+    if (initialOutcomes && initialOutcomes.length > 0) {
+      return Object.fromEntries(initialOutcomes.map(o => [o.columnName, o]));
+    }
+    if (initialOutcome) {
+      const candidate = outcomeCandidates.find(c => c.columnName === initialOutcome);
+      return {
+        [initialOutcome]: {
+          columnName: initialOutcome,
+          characteristicType: candidate?.characteristicType ?? 'nominalIsBest',
+        },
+      };
+    }
+    return {};
+  });
+
+  const selectedOutcomeNames = useMemo(
+    () => new Set(Object.keys(selectedOutcomeSpecs)),
+    [selectedOutcomeSpecs]
+  );
+
+  const handleToggleOutcome = useCallback((columnName: string, candidate: OutcomeCandidate) => {
+    setSelectedOutcomeSpecs(prev => {
+      if (columnName in prev) {
+        // Deselect
+        const { [columnName]: _removed, ...rest } = prev;
+        return rest;
+      }
+      // Select — seed with characteristicType from candidate
+      return {
+        ...prev,
+        [columnName]: {
+          columnName,
+          characteristicType: candidate.characteristicType,
+        },
+      };
+    });
+  }, []);
+
+  const handleSpecsChange = useCallback((columnName: string, specs: Partial<OutcomeSpec>) => {
+    setSelectedOutcomeSpecs(prev => ({
+      ...prev,
+      [columnName]: { ...prev[columnName], ...specs, columnName },
+    }));
+  }, []);
+
+  // Determine if no-match banner should surface
+  const allCandidatesBelowThreshold = useMemo(
+    () =>
+      outcomeCandidates.length > 0 && outcomeCandidates.every(c => c.matchScore < noMatchThreshold),
+    [outcomeCandidates, noMatchThreshold]
+  );
+
+  // ── Primary scope dimensions ───────────────────────────────────────────────
+  const dimensionCandidates = useMemo(
+    () =>
+      nonNumericColumns.map(c => ({
+        name: c.name,
+        uniqueCount: c.uniqueCount || c.sampleValues.length,
+      })),
+    [nonNumericColumns]
+  );
+
+  const suggestedDimensions = useMemo(
+    () => suggestPrimaryDimensions(dimensionCandidates),
+    [dimensionCandidates]
+  );
+
+  const [primaryScopeDimensions, setPrimaryScopeDimensions] = useState<string[]>(() => {
+    if (initialPrimaryScopeDimensions && initialPrimaryScopeDimensions.length > 0) {
+      return initialPrimaryScopeDimensions;
+    }
+    // In legacy setup mode, seed from initialFactors
+    if (initialFactors && initialFactors.length > 0) {
+      return initialFactors;
+    }
+    // Auto-suggest on first render (setup mode)
+    return [];
+  });
+
+  // ── OutcomeNoMatchBanner state ────────────────────────────────────────────
+  const [expectedOutcomeNote, setExpectedOutcomeNote] = useState('');
+
+  // ── Legacy factor selection (kept for factors → categories inference) ─────
+  const [factors, setFactors] = useState<string[]>(initialFactors || []);
+  const [showAllOutcome, setShowAllOutcome] = useState(false);
+  const [showAllFactors, setShowAllFactors] = useState(false);
+  const [dismissedRoles, setDismissedRoles] = useState<Set<string>>(new Set());
+
+  const outcomeColumns = hasRichData && !showAllOutcome ? numericColumns : columns;
+  const factorColumns = hasRichData && !showAllFactors ? nonNumericColumns : columns;
+
+  // Derived legacy outcome string for factors section exclusion logic
+  const legacyOutcome = useMemo(
+    () => (selectedOutcomeNames.size > 0 ? [...selectedOutcomeNames][0] : (initialOutcome ?? '')),
+    [selectedOutcomeNames, initialOutcome]
+  );
+
+  const toggleFactor = (col: string) => {
+    if (selectedOutcomeNames.has(col)) return;
+    if (factors.includes(col)) {
+      setFactors(factors.filter(f => f !== col));
+    } else {
+      if (factors.length < maxFactors) {
+        setFactors([...factors, col]);
+      }
+    }
+  };
+
+  // ── Category inference (kept for downstream investigation store compat) ───
   const initialCategories = useMemo(() => {
     if (initialCategoriesProp && initialCategoriesProp.length > 0) return initialCategoriesProp;
     return [];
   }, [initialCategoriesProp]);
 
-  // Infer category names for selected factors
   const inferredCategories = useMemo(() => {
     const result: Record<string, { categoryName: string; keyword: string }> = {};
     for (const factor of factors) {
       if (dismissedRoles.has(factor)) continue;
-      // Check initialCategories first (persisted from previous session)
       const existingCat = initialCategories.find(c => c.factorNames.includes(factor));
       if (existingCat) {
         result[factor] = {
@@ -239,15 +486,12 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     return result;
   }, [factors, dismissedRoles, initialCategories]);
 
-  // Compute color map for unique category names
   const categoryColorMap = useMemo(() => {
     const uniqueNames = [...new Set(Object.values(inferredCategories).map(c => c.categoryName))];
     const colorMap: Record<string, string> = {};
-    // Preserve colors from initialCategories first
     for (const cat of initialCategories) {
       if (cat.color) colorMap[cat.name] = cat.color;
     }
-    // Assign colors to remaining unique names
     let colorIndex = initialCategories.length;
     for (const name of uniqueNames) {
       if (!colorMap[name]) {
@@ -258,7 +502,18 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     return colorMap;
   }, [inferredCategories, initialCategories]);
 
-  // Brief question helpers
+  // ── Analysis brief state ──────────────────────────────────────────────────
+  const [issueStatement, setIssueStatement] = useState(initialIssueStatement || '');
+  const [briefQuestions, setBriefQuestions] = useState<
+    Array<{ text: string; factor: string; level: string }>
+  >([]);
+  const [briefExpanded, setBriefExpanded] = useState(!!initialIssueStatement);
+  const [targetMetric, setTargetMetric] = useState<TargetMetric | ''>('');
+  const [targetDirection, setTargetDirection] = useState<'minimize' | 'maximize' | 'target'>(
+    'minimize'
+  );
+  const [targetValue, setTargetValue] = useState('');
+
   const addBriefQuestion = useCallback(() => {
     setBriefQuestions(prev => [...prev, { text: '', factor: '', level: '' }]);
   }, []);
@@ -278,24 +533,6 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     setBriefQuestions(prev => prev.filter((_, i) => i !== index));
   }, []);
 
-  // Optional specs state
-  const [specsExpanded, setSpecsExpanded] = useState(false);
-  const [specTarget, setSpecTarget] = useState('');
-  const [specLsl, setSpecLsl] = useState('');
-  const [specUsl, setSpecUsl] = useState('');
-  const [specCharType, setSpecCharType] = useState<CharacteristicType | null>(null);
-
-  // Resolve column analysis: prefer rich data, fall back to stubs from names
-  const columns = useMemo(() => {
-    if (columnAnalysisProp && columnAnalysisProp.length > 0) return columnAnalysisProp;
-    if (availableColumns && availableColumns.length > 0) return buildStubAnalysis(availableColumns);
-    return [];
-  }, [columnAnalysisProp, availableColumns]);
-
-  // Has rich metadata?
-  const hasRichData = !!(columnAnalysisProp && columnAnalysisProp.length > 0);
-
-  // Get unique levels for a factor column from columnAnalysis
   const getFactorLevels = useCallback(
     (factorName: string): string[] => {
       const col = columns.find(c => c.name === factorName);
@@ -305,34 +542,108 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     [columns]
   );
 
-  // Type-separated columns
-  const numericColumns = useMemo(() => columns.filter(c => c.type === 'numeric'), [columns]);
-  const nonNumericColumns = useMemo(() => columns.filter(c => c.type !== 'numeric'), [columns]);
+  // ── Standalone specs section (edit mode only, or when hideSpecs=false & no candidates) ──
+  // In setup mode, specs are now inline per OutcomeCandidateRow.
+  // In edit mode, the standalone SpecsSection remains for single-outcome compat.
+  const [specsExpanded, setSpecsExpanded] = useState(false);
+  const [specTarget, setSpecTarget] = useState('');
+  const [specLsl, setSpecLsl] = useState('');
+  const [specUsl, setSpecUsl] = useState('');
+  const [specCharType, setSpecCharType] = useState<LegacyCharacteristicType | null>(null);
 
-  // Columns shown in each section
-  const outcomeColumns = hasRichData && !showAllOutcome ? numericColumns : columns;
-  const factorColumns = hasRichData && !showAllFactors ? nonNumericColumns : columns;
+  // ── Validation ────────────────────────────────────────────────────────────
+  const hasAtLeastOneOutcome = selectedOutcomeNames.size > 0;
+  const isValid = hasAtLeastOneOutcome && isStackValid;
 
-  const toggleFactor = (col: string) => {
-    if (col === outcome) return;
-    if (factors.includes(col)) {
-      setFactors(factors.filter(f => f !== col));
-    } else {
-      if (factors.length < maxFactors) {
-        setFactors([...factors, col]);
+  // ── Confirm handler ───────────────────────────────────────────────────────
+  const handleConfirm = useCallback(() => {
+    // Build OutcomeSpec[] from selected specs
+    const outcomes: OutcomeSpec[] = Object.entries(selectedOutcomeSpecs).map(
+      ([columnName, partial]) => ({
+        columnName,
+        characteristicType: partial.characteristicType ?? 'nominalIsBest',
+        ...(partial.target !== undefined ? { target: partial.target } : {}),
+        ...(partial.lsl !== undefined ? { lsl: partial.lsl } : {}),
+        ...(partial.usl !== undefined ? { usl: partial.usl } : {}),
+        ...(partial.cpkTarget !== undefined ? { cpkTarget: partial.cpkTarget } : {}),
+      })
+    );
+
+    // Build legacy categories from inferred
+    const catGroups = new Map<string, string[]>();
+    for (const [factorName, { categoryName }] of Object.entries(inferredCategories)) {
+      const group = catGroups.get(categoryName) || [];
+      group.push(factorName);
+      catGroups.set(categoryName, group);
+    }
+    let categories: InvestigationCategory[] | undefined;
+    if (catGroups.size > 0) {
+      categories = [];
+      let idx = 0;
+      for (const [name, factorNames] of catGroups) {
+        const existing = initialCategories.find(c => c.name === name);
+        if (existing) {
+          categories.push({ ...existing, factorNames });
+        } else {
+          categories.push(createInvestigationCategory(name, factorNames, idx));
+        }
+        idx++;
       }
     }
-  };
 
-  const handleOutcomeChange = (col: string) => {
-    setOutcome(col);
-    if (factors.includes(col)) {
-      setFactors(factors.filter(f => f !== col));
+    // Build analysis brief
+    const brief: AnalysisBrief = {};
+    if (issueStatement.trim()) brief.issueStatement = issueStatement.trim();
+    const validQuestions = briefQuestions.filter(h => h.text.trim());
+    if (validQuestions.length > 0) {
+      brief.questions = validQuestions.map(h => ({
+        text: h.text.trim(),
+        ...(h.factor ? { factor: h.factor } : {}),
+        ...(h.level ? { level: h.level } : {}),
+      }));
     }
-  };
+    const tv = parseFloat(targetValue);
+    if (targetMetric && !isNaN(tv)) {
+      brief.target = {
+        metric: targetMetric as TargetMetric,
+        direction: targetDirection,
+        value: tv,
+      };
+    }
+    const hasBrief = brief.issueStatement || brief.questions || brief.target;
 
-  const isValid = !!outcome && isStackValid;
+    onConfirm({
+      outcomes,
+      primaryScopeDimensions,
+      // Stack/time/pareto pass-through
+      stack: stackConfig,
+      // timeExtraction is managed by parent via onTimeExtractionChange; not stored here
+      paretoMode: paretoMode as ColumnMappingConfirmPayload['paretoMode'],
+      separateParetoFilename: separateParetoFilename ?? null,
+      // Investigation categories (edit mode — downstream store compat)
+      categories: categories ?? undefined,
+      brief: hasBrief ? brief : undefined,
+      // OutcomeNoMatchBanner note (carry-forward: no ProcessHub field yet)
+      expectedOutcomeNote: expectedOutcomeNote || undefined,
+    });
+  }, [
+    selectedOutcomeSpecs,
+    primaryScopeDimensions,
+    inferredCategories,
+    initialCategories,
+    issueStatement,
+    briefQuestions,
+    targetMetric,
+    targetDirection,
+    targetValue,
+    stackConfig,
+    paretoMode,
+    separateParetoFilename,
+    expectedOutcomeNote,
+    onConfirm,
+  ]);
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
       <div className="w-full max-w-2xl max-h-[90vh] bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
@@ -551,8 +862,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             />
           )}
 
-          {/* Outcome Selection */}
-          <div>
+          {/* ── Outcome candidates (Hub-level multi-select) ── */}
+          <div data-testid="outcome-candidates-section">
             <div className="flex items-center gap-2 mb-3">
               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold">
                 Y
@@ -563,100 +874,162 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             </div>
             <p className="text-xs text-slate-500 mb-3">{t('data.outcomeDesc')}</p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
-              {outcomeColumns.map(col => (
-                <ColumnCard
-                  key={`outcome-${col.name}`}
-                  column={col}
-                  role="outcome"
-                  selected={outcome === col.name}
-                  alias={columnAliases?.[col.name]}
-                  onSelect={() => handleOutcomeChange(col.name)}
-                  onRename={onColumnRename}
-                />
-              ))}
-            </div>
-
-            {/* Show all toggle for outcome */}
-            {hasRichData && numericColumns.length < columns.length && (
-              <button
-                onClick={() => setShowAllOutcome(!showAllOutcome)}
-                className="flex items-center gap-1.5 mt-2 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                type="button"
-                data-testid="show-all-outcome"
-              >
-                <Eye size={12} />
-                {showAllOutcome
-                  ? `${t('data.showNumericOnly')} (${numericColumns.length})`
-                  : `${t('data.showAllColumns')} (${columns.length})`}
-              </button>
+            {/* OutcomeNoMatchBanner — surfaces when all candidates score below threshold */}
+            {allCandidatesBelowThreshold && (
+              <OutcomeNoMatchBanner
+                onRename={(oldName, newName) => {
+                  // Delegate to the parent's column rename callback (sets a display alias)
+                  onColumnRename?.(oldName, newName);
+                }}
+                onExpectedChange={note => {
+                  // Store the analyst's free-text note; included in confirm payload
+                  setExpectedOutcomeNote(note);
+                }}
+                onSkip={() => {
+                  // Clear all selected outcomes — canvas falls back to all-unclassified
+                  setSelectedOutcomeSpecs({});
+                }}
+              />
             )}
-          </div>
 
-          {/* Factors Selection */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold">
-                X
-              </div>
-              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
-                {t('data.selectFactors')}
-              </h3>
-              <span className="text-xs text-slate-500 ml-auto">
-                {factors.length}/{maxFactors} selected
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mb-3">{t('data.factorsDesc')}</p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
-              {factorColumns.map(col => {
-                const isOutcomeCol = outcome === col.name;
-                const inferred = inferredCategories[col.name];
-                return (
-                  <ColumnCard
-                    key={`factor-${col.name}`}
-                    column={col}
-                    role="factor"
-                    selected={factors.includes(col.name)}
-                    disabled={isOutcomeCol}
-                    disabledReason={t('data.alreadyOutcome')}
-                    alias={columnAliases?.[col.name]}
-                    onSelect={() => toggleFactor(col.name)}
-                    onRename={onColumnRename}
-                    roleBadge={
-                      inferred
-                        ? {
-                            categoryName: inferred.categoryName,
-                            categoryColor: categoryColorMap[inferred.categoryName],
-                            matchedKeyword: inferred.keyword,
-                            onDismiss: () =>
-                              setDismissedRoles(prev => new Set([...prev, col.name])),
-                          }
-                        : undefined
-                    }
+            {/* OutcomeCandidateRow list — multi-select */}
+            {outcomeCandidates.length > 0 ? (
+              <div
+                className="space-y-2 max-h-64 overflow-y-auto"
+                data-testid="outcome-candidate-list"
+              >
+                {outcomeCandidates.map(candidate => (
+                  <OutcomeCandidateRow
+                    key={candidate.columnName}
+                    candidate={candidate}
+                    isSelected={selectedOutcomeNames.has(candidate.columnName)}
+                    onToggleSelect={() => handleToggleOutcome(candidate.columnName, candidate)}
+                    specs={selectedOutcomeSpecs[candidate.columnName] ?? {}}
+                    onSpecsChange={specs => handleSpecsChange(candidate.columnName, specs)}
                   />
-                );
-              })}
-            </div>
-
-            {/* Show all toggle for factors */}
-            {hasRichData && nonNumericColumns.length < columns.length && (
-              <button
-                onClick={() => setShowAllFactors(!showAllFactors)}
-                className="flex items-center gap-1.5 mt-2 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                type="button"
-                data-testid="show-all-factors"
-              >
-                <Eye size={12} />
-                {showAllFactors
-                  ? `${t('data.showCategoricalOnly')} (${nonNumericColumns.length})`
-                  : `${t('data.showAllColumns')} (${columns.length})`}
-              </button>
+                ))}
+              </div>
+            ) : (
+              /* Fallback: legacy ColumnCard-based outcome selection when no rich analysis */
+              <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
+                  {outcomeColumns.map(col => (
+                    <ColumnCard
+                      key={`outcome-${col.name}`}
+                      column={col}
+                      role="outcome"
+                      selected={legacyOutcome === col.name}
+                      alias={columnAliases?.[col.name]}
+                      onSelect={() => {
+                        const candidate = outcomeCandidates.find(
+                          c => c.columnName === col.name
+                        ) ?? {
+                          columnName: col.name,
+                          type: 'continuous' as const,
+                          characteristicType: 'nominalIsBest' as const,
+                          values: [],
+                          matchScore: 0.5,
+                          qualityReport: { validCount: 0, invalidCount: 0, missingCount: 0 },
+                        };
+                        handleToggleOutcome(col.name, candidate);
+                      }}
+                      onRename={onColumnRename}
+                    />
+                  ))}
+                </div>
+                {hasRichData && numericColumns.length < columns.length && (
+                  <button
+                    onClick={() => setShowAllOutcome(!showAllOutcome)}
+                    className="flex items-center gap-1.5 mt-2 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                    type="button"
+                    data-testid="show-all-outcome"
+                  >
+                    <Eye size={12} />
+                    {showAllOutcome
+                      ? `${t('data.showNumericOnly')} (${numericColumns.length})`
+                      : `${t('data.showAllColumns')} (${columns.length})`}
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
-          {/* Specification Limits (hidden in edit mode or defect mode — specs have their own editor / Cpk not applicable) */}
-          {mode === 'setup' && !hideSpecs && (
+          {/* ── Primary scope dimensions (replaces factor-picker in setup) ── */}
+          {mode === 'setup' && dimensionCandidates.length > 0 && (
+            <PrimaryScopeDimensionsSelector
+              columns={dimensionCandidates}
+              suggested={suggestedDimensions}
+              value={primaryScopeDimensions}
+              onChange={setPrimaryScopeDimensions}
+              onSkip={() => setPrimaryScopeDimensions([])}
+            />
+          )}
+
+          {/* ── Legacy factor selection (edit mode — keeps investigation compat) ── */}
+          {mode === 'edit' && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold">
+                  X
+                </div>
+                <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                  {t('data.selectFactors')}
+                </h3>
+                <span className="text-xs text-slate-500 ml-auto">
+                  {factors.length}/{maxFactors} selected
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mb-3">{t('data.factorsDesc')}</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
+                {factorColumns.map(col => {
+                  const isOutcomeCol = selectedOutcomeNames.has(col.name);
+                  const inferred = inferredCategories[col.name];
+                  return (
+                    <ColumnCard
+                      key={`factor-${col.name}`}
+                      column={col}
+                      role="factor"
+                      selected={factors.includes(col.name)}
+                      disabled={isOutcomeCol}
+                      disabledReason={t('data.alreadyOutcome')}
+                      alias={columnAliases?.[col.name]}
+                      onSelect={() => toggleFactor(col.name)}
+                      onRename={onColumnRename}
+                      roleBadge={
+                        inferred
+                          ? {
+                              categoryName: inferred.categoryName,
+                              categoryColor: categoryColorMap[inferred.categoryName],
+                              matchedKeyword: inferred.keyword,
+                              onDismiss: () =>
+                                setDismissedRoles(prev => new Set([...prev, col.name])),
+                            }
+                          : undefined
+                      }
+                    />
+                  );
+                })}
+              </div>
+
+              {hasRichData && nonNumericColumns.length < columns.length && (
+                <button
+                  onClick={() => setShowAllFactors(!showAllFactors)}
+                  className="flex items-center gap-1.5 mt-2 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                  type="button"
+                  data-testid="show-all-factors"
+                >
+                  <Eye size={12} />
+                  {showAllFactors
+                    ? `${t('data.showCategoricalOnly')} (${nonNumericColumns.length})`
+                    : `${t('data.showAllColumns')} (${columns.length})`}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Specification Limits (edit mode only — in setup mode specs are inline per row) */}
+          {mode === 'edit' && !hideSpecs && (
             <SpecsSection
               expanded={specsExpanded}
               onToggle={() => setSpecsExpanded(!specsExpanded)}
@@ -704,69 +1077,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
           </button>
 
           <button
-            onClick={() => {
-              const target = specTarget.trim() ? parseFloat(specTarget) : undefined;
-              const lsl = specLsl.trim() ? parseFloat(specLsl) : undefined;
-              const usl = specUsl.trim() ? parseFloat(specUsl) : undefined;
-              const hasAnySpec =
-                (target !== undefined && !isNaN(target)) ||
-                (lsl !== undefined && !isNaN(lsl)) ||
-                (usl !== undefined && !isNaN(usl));
-              const specs = hasAnySpec
-                ? {
-                    ...(target !== undefined && !isNaN(target) ? { target } : {}),
-                    ...(lsl !== undefined && !isNaN(lsl) ? { lsl } : {}),
-                    ...(usl !== undefined && !isNaN(usl) ? { usl } : {}),
-                    ...(specCharType ? { characteristicType: specCharType } : {}),
-                  }
-                : undefined;
-              // Build InvestigationCategory[] from inferred categories
-              // Group factors by category name
-              const catGroups = new Map<string, string[]>();
-              for (const [factorName, { categoryName }] of Object.entries(inferredCategories)) {
-                const group = catGroups.get(categoryName) || [];
-                group.push(factorName);
-                catGroups.set(categoryName, group);
-              }
-              let categories: InvestigationCategory[] | undefined;
-              if (catGroups.size > 0) {
-                categories = [];
-                let idx = 0;
-                for (const [name, factorNames] of catGroups) {
-                  // Reuse existing category if available (preserves ID and color)
-                  const existing = initialCategories.find(c => c.name === name);
-                  if (existing) {
-                    categories.push({ ...existing, factorNames });
-                  } else {
-                    categories.push(createInvestigationCategory(name, factorNames, idx));
-                  }
-                  idx++;
-                }
-              }
-              // Build analysis brief from state
-              const brief: AnalysisBrief = {};
-              if (issueStatement.trim()) {
-                brief.issueStatement = issueStatement.trim();
-              }
-              const validQuestions = briefQuestions.filter(h => h.text.trim());
-              if (validQuestions.length > 0) {
-                brief.questions = validQuestions.map(h => ({
-                  text: h.text.trim(),
-                  ...(h.factor ? { factor: h.factor } : {}),
-                  ...(h.level ? { level: h.level } : {}),
-                }));
-              }
-              const tv = parseFloat(targetValue);
-              if (targetMetric && !isNaN(tv)) {
-                brief.target = {
-                  metric: targetMetric as TargetMetric,
-                  direction: targetDirection,
-                  value: tv,
-                };
-              }
-              const hasBrief = brief.issueStatement || brief.questions || brief.target;
-              onConfirm(outcome, factors, specs, categories, hasBrief ? brief : undefined);
-            }}
+            onClick={handleConfirm}
             disabled={!isValid}
             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"
           >

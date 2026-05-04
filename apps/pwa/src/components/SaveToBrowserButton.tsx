@@ -28,6 +28,7 @@ export function SaveToBrowserButton({ currentHub }: SaveToBrowserButtonProps) {
     return (
       <button
         type="button"
+        data-testid="save-to-browser-button"
         disabled={busy}
         onClick={async () => {
           setBusy(true);
@@ -45,6 +46,7 @@ export function SaveToBrowserButton({ currentHub }: SaveToBrowserButtonProps) {
   return (
     <button
       type="button"
+      data-testid="save-to-browser-saved"
       disabled={busy}
       onClick={async () => {
         if (!window.confirm('Forget this saved Hub from this browser? This cannot be undone.'))
