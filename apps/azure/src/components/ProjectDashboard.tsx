@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Play, Upload, FileText, ListChecks } from 'lucide-react';
+import { Play, Plus, Upload, FileText, ListChecks } from 'lucide-react';
 
 import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
 import { useJourneyPhase } from '@variscout/hooks';
@@ -27,6 +27,8 @@ export interface ProjectDashboardProps {
   onViewPortfolio?: () => void;
   /** Called once on mount to update the lastViewedAt timestamp */
   onUpdateLastViewed?: () => void;
+  /** Mode B entry point — start framing a new investigation hub */
+  onNewHub?: () => void;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -41,6 +43,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
   projects,
   onViewPortfolio,
   onUpdateLastViewed,
+  onNewHub,
 }) => {
   // Store selectors (replaces useDataStateCtx)
   const rawData = useProjectStore(s => s.rawData);
@@ -174,6 +177,16 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
               <Upload size={14} />
               Add data
             </button>
+            {onNewHub && (
+              <button
+                onClick={onNewHub}
+                className="flex items-center gap-2 px-3 py-2 rounded-md border border-edge bg-surface-primary text-content text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                data-testid="action-new-hub"
+              >
+                <Plus size={14} />
+                New Hub
+              </button>
+            )}
             {hasFindings && (
               <button
                 onClick={() => onNavigate('report')}

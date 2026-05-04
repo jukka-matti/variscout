@@ -45,6 +45,7 @@ vi.mock('@variscout/hooks', () => ({
 
 vi.mock('lucide-react', () => ({
   Play: () => <span data-testid="icon-play" />,
+  Plus: () => <span data-testid="icon-plus" />,
   Upload: () => <span data-testid="icon-upload" />,
   FileText: () => <span data-testid="icon-file-text" />,
   ListChecks: () => <span data-testid="icon-list-checks" />,
@@ -387,6 +388,24 @@ describe('ProjectDashboard', () => {
     render(<ProjectDashboard {...defaultProps} onAddData={onAddData} />);
     fireEvent.click(screen.getByTestId('action-add-data'));
     expect(onAddData).toHaveBeenCalled();
+  });
+
+  it('renders New Hub button when onNewHub is provided', () => {
+    const onNewHub = vi.fn();
+    render(<ProjectDashboard {...defaultProps} onNewHub={onNewHub} />);
+    expect(screen.getByTestId('action-new-hub')).toBeInTheDocument();
+  });
+
+  it('does not render New Hub button when onNewHub is absent', () => {
+    render(<ProjectDashboard {...defaultProps} />);
+    expect(screen.queryByTestId('action-new-hub')).not.toBeInTheDocument();
+  });
+
+  it('calls onNewHub when New Hub button is clicked', () => {
+    const onNewHub = vi.fn();
+    render(<ProjectDashboard {...defaultProps} onNewHub={onNewHub} />);
+    fireEvent.click(screen.getByTestId('action-new-hub'));
+    expect(onNewHub).toHaveBeenCalledOnce();
   });
 
   it('calls onNavigate with report when View report is clicked', () => {
