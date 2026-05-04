@@ -33,6 +33,27 @@ vi.mock('../../../features/panels/panelsStore', () => ({
   }),
 }));
 
+// Shared ref for useCanvasFilters state so tests can manipulate it.
+const canvasFiltersStateRef: {
+  current: {
+    timelineWindow: import('@variscout/core').TimelineWindow;
+    scopeFilter: import('@variscout/core').ScopeFilter | undefined;
+    paretoGroupBy: string | undefined;
+    setTimelineWindow: ReturnType<typeof vi.fn>;
+    setScopeFilter: ReturnType<typeof vi.fn>;
+    setParetoGroupBy: ReturnType<typeof vi.fn>;
+  };
+} = {
+  current: {
+    timelineWindow: { kind: 'cumulative' },
+    scopeFilter: undefined,
+    paretoGroupBy: undefined,
+    setTimelineWindow: vi.fn(),
+    setScopeFilter: vi.fn(),
+    setParetoGroupBy: vi.fn(),
+  },
+};
+
 vi.mock('@variscout/hooks', async () => {
   const actual = await import('@variscout/hooks');
   return {
@@ -54,6 +75,7 @@ vi.mock('@variscout/hooks', async () => {
       availableContext: { hubColumns: [], tributaryGroups: [] },
       contextValueOptions: {},
     })),
+    useCanvasFilters: vi.fn(() => canvasFiltersStateRef.current),
   };
 });
 
@@ -71,6 +93,7 @@ vi.mock('@variscout/charts', async importOriginal => {
 });
 
 import { fireEvent } from '@testing-library/react';
+import type { ScopeFilter, TimelineWindow } from '@variscout/core';
 import FrameView from '../FrameView';
 
 describe('FrameView (PWA)', () => {
@@ -81,6 +104,15 @@ describe('FrameView (PWA)', () => {
     setOutcomeMock.mockClear();
     setFactorsMock.mockClear();
     showAnalysisMock.mockClear();
+    // Reset canvas filter state to defaults for each test.
+    canvasFiltersStateRef.current = {
+      timelineWindow: { kind: 'cumulative' },
+      scopeFilter: undefined,
+      paretoGroupBy: undefined,
+      setTimelineWindow: vi.fn(),
+      setScopeFilter: vi.fn(),
+      setParetoGroupBy: vi.fn(),
+    };
     storeStateRef.current = {
       rawData: [],
       outcome: null,
@@ -206,5 +238,75 @@ describe('FrameView (PWA)', () => {
     render(<FrameView />);
     fireEvent.click(screen.getByTestId('see-the-data-cta'));
     expect(showAnalysisMock).toHaveBeenCalledTimes(1);
+  });
+
+  // ── P3.6: CanvasFilterChips integration ────────────────────────────────────
+
+  it('renders the canvasFilterChips slot (layered-canvas-filter-chips) in b1/b2 when timelineWindow is non-cumulative', () => {
+    canvasFiltersStateRef.current = {
+      ...canvasFiltersStateRef.current,
+      timelineWindow: { kind: 'rolling', windowDays: 30 } satisfies TimelineWindow,
+    };
+    storeStateRef.current = {
+      ...storeStateRef.current,
+      processContext: {
+        processMap: {
+          version: 1,
+          nodes: [{ id: 'step-1', name: 'Bake', order: 0 }],
+          tributaries: [],
+          createdAt: '2026-04-29T00:00:00.000Z',
+          updatedAt: '2026-04-29T00:00:00.000Z',
+        },
+      },
+    };
+    render(<FrameView />);
+    // The slot wrapper is always present; the chip inside renders only when active.
+    expect(screen.getByTestId('layered-canvas-filter-chips')).toBeInTheDocument();
+    expect(screen.getByTestId('filter-chip-window')).toBeInTheDocument();
+  });
+
+  it('renders the scope chip in b1/b2 when scopeFilter is set', () => {
+    canvasFiltersStateRef.current = {
+      ...canvasFiltersStateRef.current,
+      scopeFilter: { factor: 'Machine', values: ['A'] } satisfies ScopeFilter,
+    };
+    storeStateRef.current = {
+      ...storeStateRef.current,
+      processContext: {
+        processMap: {
+          version: 1,
+          nodes: [{ id: 'step-1', name: 'Mix', order: 0 }],
+          tributaries: [],
+          createdAt: '2026-04-29T00:00:00.000Z',
+          updatedAt: '2026-04-29T00:00:00.000Z',
+        },
+      },
+    };
+    render(<FrameView />);
+    expect(screen.getByTestId('filter-chip-scope')).toBeInTheDocument();
+  });
+
+  it('clear time-window chip calls setTimelineWindow with cumulative', () => {
+    canvasFiltersStateRef.current = {
+      ...canvasFiltersStateRef.current,
+      timelineWindow: { kind: 'rolling', windowDays: 7 } satisfies TimelineWindow,
+    };
+    storeStateRef.current = {
+      ...storeStateRef.current,
+      processContext: {
+        processMap: {
+          version: 1,
+          nodes: [{ id: 'step-1', name: 'Mix', order: 0 }],
+          tributaries: [],
+          createdAt: '2026-04-29T00:00:00.000Z',
+          updatedAt: '2026-04-29T00:00:00.000Z',
+        },
+      },
+    };
+    render(<FrameView />);
+    fireEvent.click(screen.getByLabelText(/Clear Last 7d/i));
+    expect(canvasFiltersStateRef.current.setTimelineWindow).toHaveBeenCalledWith({
+      kind: 'cumulative',
+    });
   });
 });

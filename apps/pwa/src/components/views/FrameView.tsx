@@ -19,11 +19,13 @@
  */
 import React from 'react';
 import {
+  CanvasFilterChips,
   FrameViewB0,
   type FrameViewB0YCandidate,
   LayeredProcessViewWithCapability,
 } from '@variscout/ui';
 import {
+  useCanvasFilters,
   useProductionLineGlanceData,
   useProductionLineGlanceFilter,
   useProductionLineGlanceOpsToggle,
@@ -39,13 +41,32 @@ import {
   type ProcessContext,
   type ProcessHub,
   type ProcessHubInvestigation,
+  type ProcessHubInvestigationMetadata,
   type SpecLimits,
+  type TimelineWindow,
 } from '@variscout/core';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
 import type { XCandidate } from '@variscout/ui';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 
 const DEFAULT_CPK_TARGET = 1.33;
+
+/**
+ * Format a TimelineWindow into a user-readable label for the canvas filter chip.
+ * Covers all four kinds (cumulative, fixed, rolling, openEnded).
+ */
+function formatTimelineWindow(w: TimelineWindow): string {
+  if (w.kind === 'cumulative') return 'Cumulative';
+  if (w.kind === 'fixed') return `${w.startISO} → ${w.endISO}`;
+  if (w.kind === 'rolling') return `Last ${w.windowDays}d`;
+  if (w.kind === 'openEnded') return `From ${w.startISO}`;
+  // Exhaustive fallback — narrows to never; string cast satisfies the return type
+  // while preserving forward-compat for future TimelineWindow kinds.
+  return (w as { kind: string }).kind;
+}
+
+/** Stable sentinel used when FrameView has no real investigation in scope. */
+const FRAME_CANVAS_INVESTIGATION_ID = 'frame-canvas-local';
 
 /** Toggle a value in/out of an array, returning a fresh array. */
 function toggleArray<T>(arr: readonly T[], item: T): T[] {
@@ -157,6 +178,46 @@ const FrameView: React.FC = () => {
   // Plan C2: URL-backed filter + ops-mode state.
   const filter = useProductionLineGlanceFilter();
   const ops = useProductionLineGlanceOpsToggle();
+
+  // ── Canvas filter chips (slice 4 — P3.6) ─────────────────────────────────
+  // FrameView is a canonical-map authoring surface with no real investigation
+  // in scope. We use session-local metadata state (same pattern as previewRollup
+  // below) — chips are live during the session but not persisted.
+  const [canvasFilterMeta, setCanvasFilterMeta] = React.useState<ProcessHubInvestigationMetadata>(
+    {}
+  );
+  const syntheticInvestigation = React.useMemo<Pick<ProcessHubInvestigation, 'id' | 'metadata'>>(
+    () => ({ id: FRAME_CANVAS_INVESTIGATION_ID, metadata: canvasFilterMeta }),
+    [canvasFilterMeta]
+  );
+  const handleCanvasFilterChange = React.useCallback(
+    (_id: string, patch: Partial<ProcessHubInvestigationMetadata>) => {
+      setCanvasFilterMeta(prev => ({ ...prev, ...patch }));
+    },
+    []
+  );
+  const {
+    timelineWindow,
+    setTimelineWindow,
+    scopeFilter,
+    setScopeFilter,
+    paretoGroupBy,
+    setParetoGroupBy,
+  } = useCanvasFilters({
+    investigation: syntheticInvestigation,
+    onChange: handleCanvasFilterChange,
+  });
+  const canvasFilterChipsNode = (
+    <CanvasFilterChips
+      timelineWindow={timelineWindow}
+      scopeFilter={scopeFilter}
+      paretoGroupBy={paretoGroupBy}
+      formatTimelineWindow={formatTimelineWindow}
+      onClearTimelineWindow={() => setTimelineWindow({ kind: 'cumulative' })}
+      onClearScopeFilter={() => setScopeFilter(undefined)}
+      onClearParetoGroupBy={() => setParetoGroupBy(undefined)}
+    />
+  );
 
   // Synthetic preview rollup — FrameView is a canonical-map authoring surface;
   // investigation rows are not loaded here. The dashboard renders empty-state
@@ -270,6 +331,7 @@ const FrameView: React.FC = () => {
             mode={ops.mode}
             onModeChange={ops.setMode}
             showGaps={false}
+            canvasFilterChips={canvasFilterChipsNode}
           />
         </FrameViewB0>
       </div>
@@ -304,6 +366,7 @@ const FrameView: React.FC = () => {
           }}
           mode={ops.mode}
           onModeChange={ops.setMode}
+          canvasFilterChips={canvasFilterChipsNode}
         />
       </div>
     </div>
