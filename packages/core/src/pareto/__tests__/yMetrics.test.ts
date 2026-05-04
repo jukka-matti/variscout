@@ -21,11 +21,6 @@ const TEN_ROWS: ReadonlyArray<Record<string, unknown>> = [
 
 const EMPTY: ReadonlyArray<Record<string, unknown>> = [];
 
-// For percent-out-of-spec: 10 rows, 3 below LSL=97, 2 above USL=103, 5 in-spec
-// Values: [100, 102, 98, 101, 103, 99, 100, 104, 97, 96]
-// LSL=97 → strictly less: 96 → 1 row below
-// USL=103 → strictly greater: 104 → 1 row above
-// That gives 20%. Let's use a clearer fixture.
 const OUT_OF_SPEC_ROWS: ReadonlyArray<Record<string, unknown>> = [
   { v: 80 }, // below LSL=90
   { v: 85 }, // below LSL=90
@@ -500,7 +495,7 @@ describe('computeParetoY — throughput', () => {
 // 12. Registry shape — exhaustiveness checks
 // ============================================================================
 
-const ALL_IDS: ParetoYMetricId[] = [
+const ALL_IDS = [
   'count',
   'cost',
   'time',
@@ -512,7 +507,7 @@ const ALL_IDS: ParetoYMetricId[] = [
   'waste-time',
   'step-duration',
   'throughput',
-];
+] as const satisfies readonly ParetoYMetricId[];
 
 describe('PARETO_Y_METRICS registry shape', () => {
   it('has all 11 IDs as keys', () => {

@@ -15,6 +15,7 @@
  */
 
 import { safeDivide } from '../stats/safeMath';
+import { DEFAULT_CPK_TARGET } from '../capability/resolve';
 
 // ============================================================================
 // ID union
@@ -254,6 +255,7 @@ function computeCpkForValues(
   if (sigma === 0) return undefined;
 
   const mean = sampleMean(values);
+  // 3σ spread: standard Cpk convention uses three-sigma capability bounds
   const threeS = 3 * sigma;
 
   const cpu = spec.usl !== undefined ? safeDivide(spec.usl - mean, threeS) : undefined;
@@ -293,7 +295,7 @@ function computeCpkForValues(
  * - Missing `spec.target` for `mean-minus-target`.
  *
  * @pure No I/O, no randomness, no globals. Deterministic for any given inputs.
- * @returns A finite number ≥ 0. Never NaN or Infinity.
+ * @returns A finite number. For most metrics ≥ 0; `cpk` may be negative when the mean is far outside spec. Never NaN or Infinity.
  */
 export function computeParetoY(
   metricId: ParetoYMetricId,
@@ -400,7 +402,7 @@ export function computeParetoY(
         throw new Error('computeParetoY: missing context.outcomeColumn for metric "cpk-gap"');
       }
       const spec = context.spec ?? {};
-      const cpkTarget = spec.cpkTarget ?? 1.33;
+      const cpkTarget = spec.cpkTarget ?? DEFAULT_CPK_TARGET;
 
       const values = finiteValues(rowsForGroup, context.outcomeColumn);
       if (values.length < 2) return 0;
