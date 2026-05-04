@@ -1,6 +1,7 @@
 /**
  * P4.5 — Verify that the "Add framing" CTA in ProcessHubView navigates
- * the user to the Editor paste flow by calling onOpenProject(undefined, hubId).
+ * the user to the Editor paste flow by calling onOpenProject(undefined, hubId, true).
+ * The third argument (startPaste=true) ensures Editor opens directly into PasteScreen.
  *
  * Test-shape note: We test via the full pages/Dashboard render path (same as
  * Dashboard.processHub.test.tsx) rather than mocking ProcessHubView, because
@@ -68,7 +69,7 @@ describe('Dashboard — onEditFraming wiring (P4.5)', () => {
     expect(screen.getByTestId('hub-framing-prompt-cta')).toBeInTheDocument();
   });
 
-  it('clicking Add framing CTA calls onOpenProject(undefined, hubId)', async () => {
+  it('clicking Add framing CTA calls onOpenProject(undefined, hubId, true)', async () => {
     const onOpenProject = vi.fn();
     render(<Dashboard onOpenProject={onOpenProject} />);
 
@@ -78,6 +79,7 @@ describe('Dashboard — onEditFraming wiring (P4.5)', () => {
     const cta = await screen.findByTestId('hub-framing-prompt-cta');
     fireEvent.click(cta);
 
-    await waitFor(() => expect(onOpenProject).toHaveBeenCalledWith(undefined, 'line-4'));
+    // startPaste=true so Editor opens directly into PasteScreen rather than EmptyState
+    await waitFor(() => expect(onOpenProject).toHaveBeenCalledWith(undefined, 'line-4', true));
   });
 });

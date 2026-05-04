@@ -283,6 +283,11 @@ interface EditorProps {
   initialSample?: SampleDataset | null;
   /** Process Hub to assign when starting a new investigation from the hub home */
   initialProcessHubId?: string;
+  /**
+   * When true, open PasteScreen immediately on mount (used by "Add framing" CTA
+   * to route directly to the paste flow rather than stopping at EditorEmptyState).
+   */
+  startPasteOnMount?: boolean;
 }
 
 export const Editor: React.FC<EditorProps> = ({
@@ -295,6 +300,7 @@ export const Editor: React.FC<EditorProps> = ({
   initialMode,
   initialSample,
   initialProcessHubId,
+  startPasteOnMount,
 }) => {
   const {
     syncStatus,
@@ -554,6 +560,15 @@ export const Editor: React.FC<EditorProps> = ({
     loadSample: ingestion.loadSample,
     applyTimeExtraction: ingestion.applyTimeExtraction,
   });
+
+  // Start paste mode immediately when opened via "Add framing" CTA so the
+  // analyst lands directly on PasteScreen rather than EditorEmptyState.
+  useEffect(() => {
+    if (!startPasteOnMount) return;
+    usePanelsStore.getState().showAnalysis();
+    dataFlow.startPaste();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Mobile "More" sheet action handler
   const handleMobileMore = useCallback(

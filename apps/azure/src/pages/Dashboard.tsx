@@ -46,7 +46,7 @@ import SampleDataPicker from '../components/SampleDataPicker';
 import StateItemNotesDrawer from '../components/StateItemNotesDrawer';
 
 interface DashboardProps {
-  onOpenProject: (id?: string, processHubId?: string) => void;
+  onOpenProject: (id?: string, processHubId?: string, startPaste?: boolean) => void;
   /** Load a .vrs project file (from SharePoint download) */
   onLoadProjectFile?: (file: File) => void;
   /** Load a sample dataset directly into a new analysis */
@@ -640,7 +640,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
    */
   const handleEditFraming = useCallback(
     (hubId: string): void => {
-      onOpenProject(undefined, hubId);
+      // startPaste=true so the Editor opens directly into PasteScreen
+      // rather than stopping at EditorEmptyState.
+      onOpenProject(undefined, hubId, true);
     },
     [onOpenProject]
   );
