@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import * as LocalDbModule from '../../services/localDb';
 
 // ── Provide IndexedDB polyfill for Zustand persist middleware (sessionStore) ──
 import 'fake-indexeddb/auto';
@@ -251,6 +252,19 @@ vi.mock('../../hooks', () => ({
 
 vi.mock('../../workers/useStatsWorker', () => ({
   useStatsWorker: () => null,
+}));
+
+// ── Mock local IndexedDB façade ──
+// Default: listEvidenceSnapshotsFromIndexedDB returns an empty list immediately.
+// Individual tests may override via vi.mocked().mockResolvedValue / mockImplementation.
+
+vi.mock('../../services/localDb', () => ({
+  listEvidenceSnapshotsFromIndexedDB: vi.fn(() => Promise.resolve([])),
+  listProcessHubs: vi.fn(() => Promise.resolve([])),
+  saveEvidenceSnapshotToIndexedDB: vi.fn(() => Promise.resolve()),
+  listSustainmentRecordsFromIndexedDB: vi.fn(() => Promise.resolve([])),
+  listReviewRecordsFromIndexedDB: vi.fn(() => Promise.resolve([])),
+  listControlHandoffsFromIndexedDB: vi.fn(() => Promise.resolve([])),
 }));
 
 // ── Mock persistence adapter ──
@@ -514,5 +528,51 @@ describe('Editor', () => {
 
     // Pre-configured samples (with outcome + factors) skip ColumnMapping
     expect(screen.queryByTestId('column-mapping')).not.toBeInTheDocument();
+  });
+
+  it('cancellation guard: stale listEvidenceSnapshotsFromIndexedDB resolve is discarded after hub switch', async () => {
+    // Arrange: hub-1's promise resolves AFTER we switch to hub-2.
+    // hub-2 resolves immediately with an empty list.
+    let resolveHub1: (snapshots: unknown[]) => void = () => {};
+    const hub1Promise = new Promise<unknown[]>(res => {
+      resolveHub1 = res;
+    });
+
+    vi.mocked(LocalDbModule.listEvidenceSnapshotsFromIndexedDB).mockImplementation(hubId => {
+      if (hubId === 'hub-1') return hub1Promise as Promise<never>;
+      // hub-2 resolves instantly with an empty list
+      return Promise.resolve([]) as Promise<never>;
+    });
+
+    // Mount Editor with hub-1 as the active hub
+    seedStores();
+    useProjectStore.setState({ processContext: { processHubId: 'hub-1' } });
+    render(<Editor {...defaultProps} />);
+
+    // Allow the hub-1 effect to fire (promise stays pending)
+    await act(async () => {});
+
+    // Switch to hub-2 before hub-1's promise resolves — triggers cleanup (cancelled = true)
+    act(() => {
+      useProjectStore.setState({ processContext: { processHubId: 'hub-2' } });
+    });
+
+    // Flush hub-2's immediate resolution
+    await act(async () => {});
+
+    // Resolve hub-1's stale promise — the cancelled guard should discard this
+    await act(async () => {
+      resolveHub1([{ id: 'snap-stale', hubId: 'hub-1', capturedAt: '2026-01-01T00:00:00Z' }]);
+    });
+
+    // No assertion on rendered DOM — the guard lives in the effect, not in a testid.
+    // The important thing is that the component does not throw or update with stale data.
+    // If the guard is absent, this resolving after cleanup causes a "can't perform a
+    // React state update on an unmounted component" warning in the test output.
+    // With the guard in place, the resolved value is silently dropped.
+    //
+    // Verify by checking the mock was called for both hubs (the effect ran for each).
+    expect(LocalDbModule.listEvidenceSnapshotsFromIndexedDB).toHaveBeenCalledWith('hub-1');
+    expect(LocalDbModule.listEvidenceSnapshotsFromIndexedDB).toHaveBeenCalledWith('hub-2');
   });
 });

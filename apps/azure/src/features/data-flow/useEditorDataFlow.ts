@@ -210,7 +210,7 @@ export interface UseEditorDataFlowOptions {
   /** Active process hub — when set and complete, paste triggers the Mode A.2 match-summary path. */
   activeHub?: ProcessHub;
   /**
-   * Evidence snapshots for the active hub, sorted ascending by `importedAt`.
+   * Evidence snapshots for the active hub, sorted ascending by `capturedAt`.
    * The most-recent snapshot (`at(-1)`) supplies `rowTimestampRange` to
    * `classifyPaste` for temporal-axis classification (overlap / append / backfill).
    *
@@ -641,8 +641,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
             dispatch({ type: 'START_PASTE' });
             _proceedWithParsedData(merged);
           } else {
-            // No overlap range available (existingRange not yet wired); fall back to
-            // replacing the full dataset with the new rows.
+            // overlapRange absent when classifyPaste could not determine the overlap window
+            // (no time column, or no prior snapshots) — fall back to replacing the full
+            // dataset with the new rows.
             dispatch({ type: 'START_PASTE' });
             _proceedWithParsedData(ms.newRows);
           }

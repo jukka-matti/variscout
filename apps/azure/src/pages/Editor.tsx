@@ -442,7 +442,7 @@ export const Editor: React.FC<EditorProps> = ({
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
   // Evidence snapshots for the active hub — loaded separately so ProcessHub stays
   // a pure data-only type (no denormalised snapshot list). Sorted ascending by
-  // importedAt so `at(-1)` in useEditorDataFlow yields the most-recent snapshot.
+  // capturedAt so `at(-1)` in useEditorDataFlow yields the most-recent snapshot.
   const [hubEvidenceSnapshots, setHubEvidenceSnapshots] = useState<EvidenceSnapshot[]>([]);
 
   // Reset mobile tab when data is cleared
@@ -464,12 +464,20 @@ export const Editor: React.FC<EditorProps> = ({
       setHubEvidenceSnapshots([]);
       return;
     }
+    let cancelled = false;
     listEvidenceSnapshotsFromIndexedDB(activeHubId)
-      .then(snapshots =>
-        // DB returns descending by capturedAt; reverse to get ascending importedAt order.
-        setHubEvidenceSnapshots([...snapshots].reverse())
-      )
-      .catch(() => setHubEvidenceSnapshots([]));
+      .then(snapshots => {
+        if (cancelled) return;
+        // DB returns descending by capturedAt; reverse to get ascending capturedAt order.
+        setHubEvidenceSnapshots([...snapshots].reverse());
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setHubEvidenceSnapshots([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [activeHubId]);
 
   useEffect(() => {

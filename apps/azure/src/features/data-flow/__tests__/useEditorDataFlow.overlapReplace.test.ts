@@ -307,8 +307,13 @@ describe('useEditorDataFlow — existingRange wiring (ADR-077 follow-up)', () =>
     expect(ctx.existingRange).toBeUndefined();
   });
 
-  it('Case D: does not call classifyPaste at all when activeHub is undefined', async () => {
-    const { result } = renderHook(() => useEditorDataFlow(makeOptions({ activeHub: undefined })));
+  it('Case D: does not call classifyPaste when no Hub is active and no prior data', async () => {
+    // rawData: [] ensures the Mode-B window.confirm path is not taken, so the
+    // assertion holds for the right reason: classifyPaste is unreachable because
+    // activeHub is undefined, not because window.confirm returned falsy.
+    const { result } = renderHook(() =>
+      useEditorDataFlow(makeOptions({ activeHub: undefined, rawData: [] }))
+    );
 
     await act(async () => {
       await result.current.handlePasteAnalyze(CSV_TEXT);
