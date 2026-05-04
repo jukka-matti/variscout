@@ -28,7 +28,7 @@ import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
 
 export interface HubCreationFlowProps {
   // Mapping passthrough props (subset of ColumnMappingProps the Editor wires)
-  columnAnalysis: ColumnAnalysis | null;
+  columnAnalysis?: ColumnAnalysis[];
   availableColumns: string[];
   previewRows: DataRow[];
   totalRows: number;
@@ -146,7 +146,7 @@ export function HubCreationFlow({
       hasTimeComponent={hasTimeComponent}
       onTimeExtractionChange={onTimeExtractionChange}
       showBrief={true}
-      suggestedStack={suggestedStack}
+      suggestedStack={suggestedStack ?? undefined}
       onStackConfigChange={onStackConfigChange}
       rowLimit={rowLimit}
       goalContext={goalNarrative || undefined}

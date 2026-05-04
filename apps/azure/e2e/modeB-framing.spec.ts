@@ -5,17 +5,16 @@
 // Test groups:
 //   1. Full Mode B via Editor paste — from "Paste Data" button through HubGoalForm and
 //      ColumnMapping to the analysis canvas (I-chart visible confirms outcome is set).
-//   2. GoalBanner edit roundtrip via ProcessHubView — navigates to portfolio, opens a
-//      hub card, edits GoalBanner inline, saves.  Skips gracefully when portfolio
-//      is not accessible from a clean context (no saved projects).
+//   2. GoalBanner edit roundtrip via ProcessHubView — seeds a framed hub, navigates
+//      to portfolio, opens the hub card, edits GoalBanner inline, saves.
 //   3. "New Hub" from ProjectDashboard sidebar — loads a sample, navigates to Overview
 //      tab, clicks action-new-hub, runs Mode B paste flow again.
 //      Skips gracefully when sample picker is unavailable.
-//   4. Portfolio ProcessHubView "Add framing" CTA — navigates back from editor to
-//      portfolio, clicks "New Hub", verifies hub-framing-prompt.
-//      Skips gracefully when portfolio is not accessible.
+//   4. Portfolio ProcessHubView "Add framing" CTA — seeds an incomplete hub, navigates
+//      to portfolio, clicks the hub card, verifies hub-framing-prompt and CTA routing.
 import { test, expect } from '@playwright/test';
 import { confirmColumnMapping, pasteDataAndAnalyze, completeStage1, MODE_B_CSV } from './helpers';
+import { seedPortfolioHub, seedIncompleteHub } from './fixtures/portfolio-state';
 
 const GOAL_NARRATIVE =
   'We mold syringe barrels for medical customers. Weight in grams matters most.';
@@ -112,55 +111,35 @@ test.describe('Azure Mode B framing — GoalBanner edit roundtrip (portfolio)', 
   test('GoalBanner click → textarea → save → updated text (portfolio ProcessHubView)', async ({
     page,
   }) => {
-    // 1. Complete Mode B flow to create a framed Hub
-    await openPasteScreen(page);
-    await pasteDataAndAnalyze(page, MODE_B_CSV);
-    await completeStage1(page, GOAL_NARRATIVE);
-    await confirmColumnMapping(page, 'weight_g');
-    await dismissAutoFireModals(page);
-    // Wait for analysis to load
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+    // Seed a framed hub and auto-navigate to portfolio.
+    // seedPortfolioHub: goto('/') → evaluates IDB write → reloads.
+    // App.tsx sees the seeded project on reload and auto-redirects to portfolio
+    // (Dashboard view). Returns when 'text=Process Hubs' is visible.
+    await seedPortfolioHub(page);
 
-    // 2. Navigate to portfolio (back button requires canNavigateBack = true).
-    //    The logo/back button aria-label is set by t('nav.backToDashboard').
-    //    If not accessible (no saved projects), skip.
-    const backButton = page.getByRole('button', { name: /back to dashboard/i });
-    const portfolioAccessible = await backButton.isVisible({ timeout: 3000 }).catch(() => false);
-    if (!portfolioAccessible) {
-      test.skip();
-      return;
-    }
+    // 1. Portfolio is already shown — open the seeded hub card by name.
+    //    ProcessHubCard renders an inner <button> with the hub name that calls onOpen().
+    //    The portfolio may also show "General / Unassigned" (default hub); target the
+    //    fixture hub specifically so we hit one with processGoal set.
+    //    Use the ArrowRight open-button (aria-label "Open <name>") for reliable click targeting.
+    const openHubButton = page.getByRole('button', { name: 'Open Fixture Syringe Barrel Line' });
+    await expect(openHubButton).toBeVisible({ timeout: 5000 });
+    await openHubButton.click();
 
-    await backButton.click();
-    await expect(page.locator('text=Process Hubs')).toBeVisible({ timeout: 10000 });
-
-    // 3. Find a hub card with a processGoal set and open its ProcessHubView
-    const hubCards = page.getByTestId('process-hub-card');
-    const count = await hubCards.count().catch(() => 0);
-    if (count === 0) {
-      test.skip();
-      return;
-    }
-    await hubCards.first().click();
-
-    // 4. GoalBanner is shown above the hub tabs when processGoal is set
+    // 2. GoalBanner is shown above the hub tabs when processGoal is set
     const goalBanner = page.getByTestId('goal-banner');
-    const bannerVisible = await goalBanner.isVisible({ timeout: 5000 }).catch(() => false);
-    if (!bannerVisible) {
-      test.skip();
-      return;
-    }
+    await expect(goalBanner).toBeVisible({ timeout: 5000 });
 
-    // 5. Click GoalBanner to enter edit mode (inline textarea)
+    // 3. Click GoalBanner to enter edit mode (inline textarea)
     await goalBanner.click();
     const goalTextarea = goalBanner.locator('textarea');
     await expect(goalTextarea).toBeVisible({ timeout: 3000 });
 
-    // 6. Replace goal text and save
+    // 4. Replace goal text and save
     await goalTextarea.fill(EDITED_GOAL);
     await goalBanner.locator('button:has-text("Save")').click();
 
-    // 7. Banner should show the updated text
+    // 5. Banner should show the updated text
     await expect(goalBanner).toContainText('precision medical components');
   });
 });
@@ -248,32 +227,31 @@ test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point',
 });
 
 // ---------------------------------------------------------------------------
-// Test group 4: Portfolio ProcessHubView — "New Hub" → incomplete-Hub CTA
-// Skips gracefully when portfolio is not accessible from a clean context.
+// Test group 4: Portfolio ProcessHubView — incomplete-Hub "Add framing" CTA
 // ---------------------------------------------------------------------------
 
-test.describe('Azure Mode B framing — portfolio ProcessHubView (environment-dependent)', () => {
+test.describe('Azure Mode B framing — portfolio ProcessHubView (incomplete hub)', () => {
   test('"New Hub" in portfolio creates incomplete Hub with Add framing CTA', async ({ page }) => {
-    await waitForApp(page);
+    // Seed an incomplete hub (no processGoal, no outcomes).
+    // seedIncompleteHub: goto('/') → evaluates IDB write → reloads.
+    // App.tsx auto-redirects to portfolio. Returns when 'text=Process Hubs' is visible.
+    await seedIncompleteHub(page);
 
-    // Portfolio is accessible only when canNavigateBack = true (saved projects exist).
-    const backButton = page.getByRole('button', { name: /back to dashboard/i });
-    const portfolioAccessible = await backButton.isVisible({ timeout: 3000 }).catch(() => false);
-    if (!portfolioAccessible) {
-      test.skip();
-      return;
-    }
+    // Portfolio is already shown — open the seeded incomplete hub card.
+    //    ProcessHubCard renders an ArrowRight open-button (aria-label "Open <name>").
+    const openIncompleteHubButton = page.getByRole('button', {
+      name: 'Open Incomplete Hub Fixture',
+    });
+    await expect(openIncompleteHubButton).toBeVisible({ timeout: 5000 });
+    await openIncompleteHubButton.click();
 
-    // Navigate to portfolio
-    await backButton.click();
-    await expect(page.locator('text=Process Hubs')).toBeVisible({ timeout: 10000 });
-
-    // Click "New Hub" in the portfolio action row
-    await page.getByRole('button', { name: /^New Hub$/i }).click();
-
-    // ProcessHubView should show the incomplete-hub framing prompt
+    // ProcessHubView should show the incomplete-hub framing prompt with Add framing CTA.
     await expect(page.getByTestId('hub-framing-prompt')).toBeVisible({ timeout: 8000 });
     await expect(page.getByTestId('hub-framing-prompt-cta')).toBeVisible();
     await expect(page.getByTestId('hub-framing-prompt-cta')).toContainText('Add framing');
+
+    // Clicking the CTA routes to the Editor paste flow (wired in P4.5).
+    await page.getByTestId('hub-framing-prompt-cta').click();
+    await expect(page.getByTestId('paste-textarea')).toBeVisible({ timeout: 8000 });
   });
 });

@@ -48,6 +48,12 @@ export interface EvidenceSnapshot {
   rowCount: number;
   profileApplication?: ProfileApplication;
   latestSignals?: EvidenceLatestSignal[];
+  /** Import-id of the paste / file / Evidence Source that produced this snapshot. */
+  origin: string;
+  /** Wall-clock ISO 8601 timestamp when VariScout ingested the data. */
+  importedAt: string;
+  /** Span of `row_timestamp` values when a time column is present in the dataset. */
+  rowTimestampRange?: { startISO: string; endISO: string };
 }
 
 export interface DataProfileDetection {
@@ -65,6 +71,26 @@ export interface DataProfileDefinition {
   detect(rows: DataRow[]): DataProfileDetection | null;
   validate(rows: DataRow[], mapping: Record<string, string>): EvidenceValidationResult;
   apply(rows: DataRow[], mapping: Record<string, string>): ProfileApplication;
+}
+
+/**
+ * Snapshot-level provenance fields. All rows from a single paste / file / Evidence
+ * Source share these fields via reference to the snapshot's `id`.
+ */
+export interface SnapshotProvenance {
+  origin: string;
+  importedAt: string;
+  rowTimestampRange?: { startISO: string; endISO: string };
+}
+
+/**
+ * Per-row provenance tag. ONLY populated when a multi-source join occurs (different
+ * sources joined via shared key). Single-source pastes use snapshot-level provenance
+ * via `EvidenceSnapshot.origin` instead.
+ */
+export interface RowProvenanceTag {
+  source: string;
+  joinKey: string;
 }
 
 function columns(rows: DataRow[]): string[] {

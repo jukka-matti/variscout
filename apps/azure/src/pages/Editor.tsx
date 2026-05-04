@@ -37,7 +37,11 @@ import {
   DEFAULT_PRESETS,
   type ColumnMappingConfirmPayload,
   type MatrixDimension,
+  StageFiveModal,
+  MatchSummaryCard,
+  type ColumnShape,
 } from '@variscout/ui';
+import { useStageFiveOpener } from '../features/hubCreation/useStageFiveOpener';
 import {
   useControlViolations,
   useQuestions,
@@ -279,6 +283,11 @@ interface EditorProps {
   initialSample?: SampleDataset | null;
   /** Process Hub to assign when starting a new investigation from the hub home */
   initialProcessHubId?: string;
+  /**
+   * When true, open PasteScreen immediately on mount (used by "Add framing" CTA
+   * to route directly to the paste flow rather than stopping at EditorEmptyState).
+   */
+  startPasteOnMount?: boolean;
 }
 
 export const Editor: React.FC<EditorProps> = ({
@@ -291,6 +300,7 @@ export const Editor: React.FC<EditorProps> = ({
   initialMode,
   initialSample,
   initialProcessHubId,
+  startPasteOnMount,
 }) => {
   const {
     syncStatus,
@@ -521,6 +531,8 @@ export const Editor: React.FC<EditorProps> = ({
   );
 
   // Data flow hook
+  const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
+
   const dataFlow = useEditorDataFlow({
     rawData,
     outcome,
@@ -531,6 +543,7 @@ export const Editor: React.FC<EditorProps> = ({
     analysisMode,
     measureColumns,
     measureLabel,
+    activeHub,
     setRawData,
     setOutcome,
     setFactors,
@@ -547,6 +560,15 @@ export const Editor: React.FC<EditorProps> = ({
     loadSample: ingestion.loadSample,
     applyTimeExtraction: ingestion.applyTimeExtraction,
   });
+
+  // Start paste mode immediately when opened via "Add framing" CTA so the
+  // analyst lands directly on PasteScreen rather than EditorEmptyState.
+  useEffect(() => {
+    if (!startPasteOnMount) return;
+    usePanelsStore.getState().showAnalysis();
+    dataFlow.startPaste();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Mobile "More" sheet action handler
   const handleMobileMore = useCallback(
@@ -718,6 +740,9 @@ export const Editor: React.FC<EditorProps> = ({
     dataFlow.startPaste();
   }, [dataFlow]);
 
+  // Stage 5 modal — opens after Mode B Stage 3 confirm and via on-demand button.
+  const stageFive = useStageFiveOpener();
+
   /**
    * Called by HubCreationFlow once Stage 1 creates a hub. Adds the new hub to
    * the local list and sets it as the active hub in processContext so the
@@ -726,9 +751,9 @@ export const Editor: React.FC<EditorProps> = ({
   const handleHubCreated = useCallback(
     (hub: ProcessHub) => {
       setProcessHubs(prev => [...prev, hub]);
-      setProcessContext(prev => ({ ...(prev ?? {}), processHubId: hub.id }));
+      setProcessContext({ ...(processContext ?? {}), processHubId: hub.id });
     },
-    [setProcessContext]
+    [processContext, setProcessContext]
   );
 
   // Share handlers
@@ -1252,7 +1277,8 @@ export const Editor: React.FC<EditorProps> = ({
         const updatedContext = { ...processContext };
         if (brief.issueStatement) updatedContext.issueStatement = brief.issueStatement;
         if (brief.target) {
-          updatedContext.targetMetric = brief.target.metric;
+          updatedContext.targetMetric = brief.target
+            .metric as import('@variscout/core').TargetMetric;
           updatedContext.targetValue = brief.target.value;
           updatedContext.targetDirection = brief.target.direction;
         }
@@ -1286,6 +1312,10 @@ export const Editor: React.FC<EditorProps> = ({
 
       // Delegate to investigation flow (legacy 3-arg form for importFlow compat).
       dataFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
+
+      // Stage 5 (spec §5.5): open the floating investigation-context modal before
+      // the canvas paints so the analyst can capture issue / questions upfront.
+      stageFive.openModeB();
     },
     [
       dataFlow,
@@ -1295,6 +1325,7 @@ export const Editor: React.FC<EditorProps> = ({
       questionsState,
       processHubs,
       saveProcessHub,
+      stageFive,
     ]
   );
 
@@ -1385,7 +1416,6 @@ export const Editor: React.FC<EditorProps> = ({
      * already exists the HubCreationFlow skips Stage 1 and renders
      * ColumnMapping directly — same net behaviour as before.
      */
-    const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
     return (
       <HubCreationFlow
         columnAnalysis={dataFlow.mappingColumnAnalysis}
@@ -1407,7 +1437,9 @@ export const Editor: React.FC<EditorProps> = ({
         initialCategories={categories}
         timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
         hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
-        onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
+        onTimeExtractionChange={config =>
+          dataFlow.setTimeExtractionConfig(prev => ({ ...prev, ...config }))
+        }
         suggestedStack={dataFlow.suggestedStack}
         onStackConfigChange={dataFlow.handleStackConfigChange}
         rowLimit={250000}
@@ -1526,6 +1558,24 @@ export const Editor: React.FC<EditorProps> = ({
           />
         ) : outcome ? (
           <>
+            {/* Canvas framing toolbar — '+New investigation' on-demand entry
+                (Mode A.1 reopen path, spec §5.5). Visible whenever data + outcome are
+                set (i.e. the analyst is on the canvas, not in a mapping modal). */}
+            <div
+              className="flex items-center gap-2 px-4 py-1.5 bg-surface-secondary border-b border-edge"
+              data-testid="framing-toolbar"
+            >
+              <div className="flex-1" />
+              <button
+                type="button"
+                onClick={stageFive.openOnDemand}
+                data-testid="canvas-new-investigation"
+                className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+              >
+                + New investigation
+              </button>
+            </div>
+
             {/* Workspace content (ADR-055) — tabs are in AppHeader */}
             {activeView === 'dashboard' ? (
               <div className="flex-1 overflow-y-auto">
@@ -1771,7 +1821,9 @@ export const Editor: React.FC<EditorProps> = ({
             initialCategories={categories}
             timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
             hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
-            onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
+            onTimeExtractionChange={config =>
+              dataFlow.setTimeExtractionConfig(prev => ({ ...prev, ...config }))
+            }
             suggestedStack={dataFlow.suggestedStack}
             rowLimit={250000}
             processHubId={processContext?.processHubId}
@@ -1933,6 +1985,63 @@ export const Editor: React.FC<EditorProps> = ({
           setBrainstormIdeas([]);
         }}
       />
+
+      {/* Stage 5 modal — investigation context capture.
+          Opens after Mode B Stage 3 confirm (openModeB) and via on-demand button
+          on the canvas chrome (openOnDemand). Brief contents are NOT logged to
+          App Insights or any telemetry — they are customer PII (ADR-059). */}
+      <StageFiveModal
+        open={stageFive.open}
+        mode={stageFive.mode}
+        onOpenInvestigation={brief => {
+          // Wire issueStatement into processContext (same path as brief.issueStatement
+          // in handleMappingConfirmWithCategories — the existing setter accepts this).
+          // NOTE: brief contents must NOT be logged to App Insights (PII).
+          if (brief.issueStatement || brief.target || brief.questions) {
+            const updatedContext = { ...(processContext ?? {}) };
+            if (brief.issueStatement) updatedContext.issueStatement = brief.issueStatement;
+            if (brief.target) {
+              updatedContext.targetMetric = brief.target
+                .metric as import('@variscout/core').TargetMetric;
+              updatedContext.targetValue = brief.target.value;
+              updatedContext.targetDirection = brief.target.direction;
+            }
+            setProcessContext(updatedContext);
+            if (brief.questions) {
+              for (const q of brief.questions) {
+                questionsState.addQuestion(q.text, q.factor, q.level);
+              }
+            }
+          }
+          // TODO slice 4: persist brief.hypothesisDraft to investigation as a draft Hypothesis entity.
+          stageFive.close();
+        }}
+        onSkip={stageFive.close}
+        onClose={stageFive.close}
+      />
+
+      {/* Match Summary Card — Mode A.2 paste into existing complete Hub (D9).
+          Rendered inline (not over a backdrop) per spec. */}
+      {dataFlow.matchSummary &&
+        (() => {
+          const hubCols: readonly string[] = activeHub?.outcomes?.map(o => o.columnName) ?? [];
+          const newCols = dataFlow.matchSummary.newColumns;
+          const columnShape: ColumnShape = {
+            matched: newCols.filter(c => hubCols.includes(c)),
+            added: newCols.filter(c => !hubCols.includes(c)),
+            missing: (hubCols as string[]).filter(c => !newCols.includes(c)),
+          };
+          return (
+            <div className="fixed bottom-4 right-4 z-40 w-full max-w-2xl px-4">
+              <MatchSummaryCard
+                classification={dataFlow.matchSummary.classification}
+                columnShape={columnShape}
+                onChoose={dataFlow.acceptMatchSummary}
+                onCancel={dataFlow.cancelMatchSummary}
+              />
+            </div>
+          );
+        })()}
     </div>
   );
 };

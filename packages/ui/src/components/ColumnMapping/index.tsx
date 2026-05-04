@@ -47,19 +47,8 @@ import {
 } from '@variscout/core';
 import { suggestPrimaryDimensions } from '@variscout/core';
 
-/** Analysis brief data for investigation context (optional) */
-export interface AnalysisBrief {
-  /** What is being investigated (max 500 chars) */
-  issueStatement?: string;
-  /** Upfront question entries */
-  questions?: Array<{ text: string; factor?: string; level?: string }>;
-  /** Improvement target */
-  target?: {
-    metric: TargetMetric;
-    direction: 'minimize' | 'maximize' | 'target';
-    value: number;
-  };
-}
+import type { AnalysisBrief } from '@variscout/core/findings';
+export type { AnalysisBrief };
 
 /**
  * Hub-shaped onConfirm contract.

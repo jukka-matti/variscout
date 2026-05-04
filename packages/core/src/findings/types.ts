@@ -777,3 +777,36 @@ export type GateNode =
   | { kind: 'hub'; hubId: string }
   | { kind: 'and' | 'or'; children: GateNode[] }
   | { kind: 'not'; child: GateNode };
+
+// ============================================================================
+// Analysis Brief (Stage 5 modal — investigation entry context)
+// ============================================================================
+
+/**
+ * Investigation-level brief captured by Stage 5 modal (and historically by ColumnMapping).
+ * Per D7 (slice 3): stays as a flat shape; "Open investigation →" creates Investigation +
+ * Question entities via store mutation; "Skip" lands on canvas with no active investigation.
+ *
+ * `target.metric` aligns with the existing `TargetMetric` type from the UI package; this
+ * file owns the canonical definition now.
+ */
+export type AnalysisBriefTargetMetric = 'mean' | 'cpk' | 'defectRate' | 'cycleTime' | string;
+
+export interface AnalysisBrief {
+  /** What is being investigated (max 500 chars) */
+  issueStatement?: string;
+  /** Upfront question entries */
+  questions?: Array<{ text: string; factor?: string; level?: string }>;
+  /**
+   * Optional draft hypothesis text entered at Stage 5.
+   * Stored as-is; consumer apps decide how to surface it.
+   * Slice 4 will persist this to an investigation Hypothesis entity.
+   */
+  hypothesisDraft?: string;
+  /** Improvement target */
+  target?: {
+    metric: AnalysisBriefTargetMetric;
+    direction: 'minimize' | 'maximize' | 'target';
+    value: number;
+  };
+}

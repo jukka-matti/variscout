@@ -8,6 +8,7 @@ import {
   detectDefectFormat,
   augmentWithTimeColumns,
   stackColumns,
+  parseTimeValue,
 } from '@variscout/core';
 import type {
   AnalysisMode,
@@ -17,7 +18,16 @@ import type {
   YamazumiDetection,
   DefectDetection,
   StackConfig,
+  ProcessHub,
 } from '@variscout/core';
+import {
+  classifyPaste,
+  archiveReplacedRows,
+  type MatchSummaryClassification,
+} from '@variscout/core/matchSummary';
+import { isProcessHubComplete } from '@variscout/core/processHub';
+import type { RowProvenanceTag } from '@variscout/core/evidenceSources';
+import type { MatchSummaryActionChoice } from '@variscout/ui';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../../components/data/ManualEntry';
 import { detectMergeStrategy, mergeColumns, mergeRows } from '../../hooks/useDataMerge';
@@ -180,6 +190,13 @@ export function editorFlowReducer(
 
 // ── Hook interface ─────────────────────────────────────────────────────────
 
+export interface MatchSummaryPending {
+  classification: MatchSummaryClassification;
+  newRows: DataRow[];
+  newColumns: string[];
+  newTimeColumn?: string;
+}
+
 export interface UseEditorDataFlowOptions {
   rawData: DataRow[];
   outcome: string | null;
@@ -190,6 +207,8 @@ export interface UseEditorDataFlowOptions {
   analysisMode: AnalysisMode;
   measureColumns: string[] | null;
   measureLabel: string | null;
+  /** Active process hub — when set and complete, paste triggers the Mode A.2 match-summary path. */
+  activeHub?: ProcessHub;
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
@@ -206,6 +225,8 @@ export interface UseEditorDataFlowOptions {
   processFile: (file: File) => Promise<boolean>;
   loadSample: (sample: SampleDataset) => void;
   applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
+  /** Optional — populated only on multi-source join confirmation (P3.4). */
+  setRowProvenance?: (startIndex: number, tags: RowProvenanceTag[]) => void;
 }
 
 export interface UseEditorDataFlowReturn {
@@ -272,9 +293,24 @@ export interface UseEditorDataFlowReturn {
   defectDetection: DefectDetection | null;
   dismissDefectDetection: () => void;
   handleDefectDetectedFromIngestion: (result: DefectDetection) => void;
+  // Match-summary (Mode A.2 paste into existing complete Hub)
+  matchSummary: MatchSummaryPending | undefined;
+  acceptMatchSummary: (choice: MatchSummaryActionChoice) => void;
+  cancelMatchSummary: () => void;
 }
 
 // ── Hook implementation ────────────────────────────────────────────────────
+
+/**
+ * Derives a stable source identifier from the distinguishing columns of the
+ * new dataset (those NOT present in the existing hub columns).
+ * Deterministic — no randomness.
+ */
+function deriveSourceId(hubColumns: readonly string[], newColumns: readonly string[]): string {
+  const distinguishing = newColumns.find(c => !hubColumns.includes(c));
+  if (distinguishing) return distinguishing.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return 'source-2';
+}
 
 /**
  * Manages data ingestion orchestration for the Azure Editor:
@@ -291,6 +327,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     analysisMode,
     measureColumns,
     measureLabel,
+    activeHub,
     setRawData,
     setOutcome,
     setFactors,
@@ -305,6 +342,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     processFile: processFileFromPicker,
     loadSample,
     applyTimeExtraction,
+    setRowProvenance,
   } = options;
 
   const [flowState, dispatch] = useReducer(editorFlowReducer, initialFlowState);
@@ -338,6 +376,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     (result: DefectDetection) => setDefectDetection(result),
     []
   );
+
+  // Mode A.2 match-summary state — set when paste detects an existing complete Hub.
+  const [matchSummary, setMatchSummary] = useState<MatchSummaryPending | undefined>(undefined);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const appendFileInputRef = useRef<HTMLInputElement>(null);
@@ -400,77 +441,62 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   // Open ColumnMapping in re-edit mode (mid-analysis factor management)
   const openFactorManager = useCallback(() => dispatch({ type: 'OPEN_FACTOR_MANAGER' }), []);
 
-  // Confirm before replacing active analysis with new data
-  const confirmReplaceIfNeeded = useCallback((): boolean => {
-    if (rawData.length > 0 && outcome) {
-      return window.confirm('Replace current data? This will start a new analysis.');
-    }
-    return true;
-  }, [rawData.length, outcome]);
-
   // ── Flow handlers ────────────────────────────────────────────────────────
 
-  // Handle paste -> parse -> auto-detect -> show ColumnMapping (initial load)
-  const handlePasteAnalyze = useCallback(
-    async (text: string) => {
-      if (!confirmReplaceIfNeeded()) return;
-      dispatch({ type: 'PASTE_ERROR', error: '' }); // clear previous error
-      try {
-        const data = await parseText(text);
-        setRawData(data);
-        setDataFilename('Pasted Data');
+  /**
+   * Inner function: run the post-parse pipeline on already-parsed rows.
+   * Called both from handlePasteAnalyze (first parse) and from acceptMatchSummary
+   * (re-dispatch after user confirms match-summary choice).
+   */
+  const _proceedWithParsedData = useCallback(
+    (data: DataRow[]) => {
+      setRawData(data);
+      setDataFilename('Pasted Data');
 
-        const detected = detectColumns(data);
-        if (detected.outcome) setOutcome(detected.outcome);
-        if (detected.factors.length > 0) setFactors(detected.factors);
+      const detected = detectColumns(data);
+      if (detected.outcome) setOutcome(detected.outcome);
+      if (detected.factors.length > 0) setFactors(detected.factors);
 
-        const report = validateData(data, detected.outcome ? [detected.outcome] : []);
-        setDataQualityReport(report);
+      const report = validateData(data, detected.outcome ? [detected.outcome] : []);
+      setDataQualityReport(report);
 
-        // Check for Yamazumi format (more specific than wide format)
-        const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
-        if (yamazumiResult.isYamazumiFormat) {
-          setYamazumiDetection(yamazumiResult);
+      // Check for Yamazumi format (more specific than wide format)
+      const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
+      if (yamazumiResult.isYamazumiFormat) {
+        setYamazumiDetection(yamazumiResult);
+      } else {
+        // Check for defect format before falling back to wide/standard
+        const defectResult = detectDefectFormat(data, detected.columnAnalysis);
+        if (defectResult.isDefectFormat) {
+          setDefectDetection(defectResult);
         } else {
-          // Check for defect format before falling back to wide/standard
-          const defectResult = detectDefectFormat(data, detected.columnAnalysis);
-          if (defectResult.isDefectFormat) {
-            setDefectDetection(defectResult);
-          } else {
-            const wideFormat = detectWideFormat(data);
-            if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
-              setMeasureColumns(wideFormat.channels.map(c => c.id));
-              setMeasureLabel('Channel');
-              setAnalysisMode('performance');
-            }
+          const wideFormat = detectWideFormat(data);
+          if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
+            setMeasureColumns(wideFormat.channels.map(c => c.id));
+            setMeasureLabel('Channel');
+            setAnalysisMode('performance');
           }
         }
-
-        if (detected.timeColumn) {
-          const hasTime = detected.columnAnalysis.some(
-            c =>
-              c.name === detected.timeColumn &&
-              c.sampleValues.some(v => v.includes('T') || v.includes(':'))
-          );
-          setTimeExtractionPrompt({
-            timeColumn: detected.timeColumn,
-            hasTimeComponent: hasTime,
-          });
-          if (hasTime) {
-            setTimeExtractionConfig(prev => ({ ...prev, extractHour: true }));
-          }
-        }
-
-        dispatch({ type: 'PASTE_ANALYZED' });
-      } catch (err) {
-        dispatch({
-          type: 'PASTE_ERROR',
-          error: err instanceof Error ? err.message : 'Failed to parse data',
-        });
       }
+
+      if (detected.timeColumn) {
+        const hasTime = detected.columnAnalysis.some(
+          c =>
+            c.name === detected.timeColumn &&
+            c.sampleValues.some(v => v.includes('T') || v.includes(':'))
+        );
+        setTimeExtractionPrompt({
+          timeColumn: detected.timeColumn,
+          hasTimeComponent: hasTime,
+        });
+        if (hasTime) {
+          setTimeExtractionConfig(prev => ({ ...prev, extractHour: true }));
+        }
+      }
+
+      dispatch({ type: 'PASTE_ANALYZED' });
     },
     [
-      confirmReplaceIfNeeded,
       setRawData,
       setDataFilename,
       setOutcome,
@@ -481,6 +507,151 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       setAnalysisMode,
     ]
   );
+
+  // Handle paste -> parse -> auto-detect -> show ColumnMapping (initial load).
+  // When activeHub is a complete Hub (D9), route through match-summary card instead
+  // of the legacy window.confirm('Replace current data?').
+  const handlePasteAnalyze = useCallback(
+    async (text: string) => {
+      dispatch({ type: 'PASTE_ERROR', error: '' }); // clear previous error
+
+      // Mode B / no complete Hub: legacy confirm-before-parse path — keep original
+      // order so the user is prompted before any parse work happens.
+      if (!(activeHub && isProcessHubComplete(activeHub))) {
+        if (rawData.length > 0 && outcome) {
+          if (!window.confirm('Replace current data? This will start a new analysis.')) return;
+        }
+      }
+
+      try {
+        const data = await parseText(text);
+
+        // Mode A.2: complete Hub present → classify the paste and surface the card.
+        if (activeHub && isProcessHubComplete(activeHub)) {
+          const hubColumns = activeHub.outcomes?.map(o => o.columnName) ?? [];
+          const newColumns = data.length > 0 ? Object.keys(data[0]) : [];
+          const detected = detectColumns(data);
+          const classification = classifyPaste(
+            {
+              hubColumns,
+              existingRows: rawData.slice(0, 1000),
+              existingTimeColumn: undefined,
+            },
+            {
+              newColumns,
+              newRows: data,
+              newTimeColumn: detected.timeColumn ?? undefined,
+            }
+          );
+          setMatchSummary({
+            classification,
+            newRows: data,
+            newColumns,
+            newTimeColumn: detected.timeColumn ?? undefined,
+          });
+          // Transition out of paste mode — match-summary card takes over.
+          dispatch({ type: 'CANCEL_PASTE' });
+          return;
+        }
+
+        _proceedWithParsedData(data);
+      } catch (err) {
+        dispatch({
+          type: 'PASTE_ERROR',
+          error: err instanceof Error ? err.message : 'Failed to parse data',
+        });
+      }
+    },
+    [activeHub, rawData, outcome, _proceedWithParsedData]
+  );
+
+  /**
+   * Accept a match-summary action choice.
+   * Proceed-cases re-dispatch the pending rows through the existing column-mapping
+   * pipeline. Cancel/separate-hub cases dismiss the card without committing data.
+   */
+  const acceptMatchSummary = useCallback(
+    (choice: MatchSummaryActionChoice) => {
+      const ms = matchSummary;
+      if (!ms) return;
+      setMatchSummary(undefined);
+
+      switch (choice.kind) {
+        case 'overlap-cancel':
+        case 'different-grain-cancel':
+        case 'different-grain-separate-hub':
+        case 'different-source-no-key-new-hub':
+          // TODO (slice 4): 'separate-hub' / 'new-hub' intents trigger a new Hub creation
+          // flow. For now, cancel the paste — block-case discipline is the critical part.
+          return;
+
+        case 'multi-source-join': {
+          // P3.4: populate the sidecar provenance Map before appending rows.
+          const hubCols = activeHub?.outcomes?.map(o => o.columnName) ?? [];
+          const sourceId = deriveSourceId(hubCols, ms.newColumns);
+          const startIndex = rawData.length;
+          const tags: RowProvenanceTag[] = ms.newRows.map(() => ({
+            source: sourceId,
+            joinKey: choice.candidate.hubColumn,
+          }));
+          setRowProvenance?.(startIndex, tags);
+          dispatch({ type: 'START_PASTE' });
+          _proceedWithParsedData(ms.newRows);
+          return;
+        }
+
+        case 'overlap-replace': {
+          // Archive existing rows that fall within the overlap range, then merge:
+          // non-overlap existing rows ∪ archived overlap rows ∪ new rows.
+          const importId = crypto.randomUUID();
+          const overlapRange = ms.classification.overlapRange;
+          const timeCol = ms.newTimeColumn;
+
+          if (overlapRange && timeCol) {
+            const overlapStart = new Date(overlapRange.startISO).getTime();
+            const overlapEnd = new Date(overlapRange.endISO).getTime();
+
+            const overlapRows: DataRow[] = [];
+            const nonOverlapRows: DataRow[] = [];
+
+            for (const row of rawData) {
+              const parsed = parseTimeValue(row[timeCol]);
+              const ms2 = parsed ? parsed.getTime() : NaN;
+              if (Number.isFinite(ms2) && ms2 >= overlapStart && ms2 <= overlapEnd) {
+                overlapRows.push(row);
+              } else {
+                nonOverlapRows.push(row);
+              }
+            }
+
+            const archived = archiveReplacedRows(overlapRows, importId);
+            const merged = [...nonOverlapRows, ...archived, ...ms.newRows];
+            dispatch({ type: 'START_PASTE' });
+            _proceedWithParsedData(merged);
+          } else {
+            // No overlap range available (existingRange not yet wired); fall back to
+            // replacing the full dataset with the new rows.
+            dispatch({ type: 'START_PASTE' });
+            _proceedWithParsedData(ms.newRows);
+          }
+          return;
+        }
+
+        case 'append':
+        case 'backfill':
+        case 'replace':
+        case 'no-timestamp':
+        case 'overlap-keep-both':
+          // Re-enter paste mode momentarily so the pipeline dispatch lands cleanly.
+          dispatch({ type: 'START_PASTE' });
+          _proceedWithParsedData(ms.newRows);
+          return;
+      }
+    },
+    [matchSummary, activeHub, rawData, setRowProvenance, _proceedWithParsedData]
+  );
+
+  const cancelMatchSummary = useCallback(() => setMatchSummary(undefined), []);
 
   // Handle paste in append context: auto-detect rows vs columns
   const handleAppendPaste = useCallback(
@@ -552,7 +723,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   // Handle sample load (with replace confirmation)
   const handleLoadSample = useCallback(
     (sample: SampleDataset) => {
-      if (!confirmReplaceIfNeeded()) return;
+      if (rawData.length > 0 && outcome) {
+        if (!window.confirm('Replace current data? This will start a new analysis.')) return;
+      }
       loadSample(sample);
       // Pre-configured samples already have outcome/factors — skip ColumnMapping
       const hasPreconfigured =
@@ -561,7 +734,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         dispatch({ type: 'OPEN_MAPPING' });
       }
     },
-    [confirmReplaceIfNeeded, loadSample]
+    [rawData.length, outcome, loadSample]
   );
 
   // Handle column mapping confirm
@@ -651,9 +824,11 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   // File upload handling (initial load, replaces data)
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!confirmReplaceIfNeeded()) {
-        if (e.target) e.target.value = '';
-        return;
+      if (rawData.length > 0 && outcome) {
+        if (!window.confirm('Replace current data? This will start a new analysis.')) {
+          if (e.target) e.target.value = '';
+          return;
+        }
       }
       dispatch({ type: 'START_FILE_PARSE' });
       try {
@@ -663,7 +838,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         dispatch({ type: 'FILE_PARSE_DONE' });
       }
     },
-    [confirmReplaceIfNeeded, handleFileUpload]
+    [rawData.length, outcome, handleFileUpload]
   );
 
   const triggerFileUpload = useCallback(() => {
@@ -674,7 +849,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   // Used by SharePoint File Picker integration (ADR-030)
   const handleFile = useCallback(
     async (file: File) => {
-      if (!confirmReplaceIfNeeded()) return;
+      if (rawData.length > 0 && outcome) {
+        if (!window.confirm('Replace current data? This will start a new analysis.')) return;
+      }
       dispatch({ type: 'START_FILE_PARSE' });
       try {
         await processFileFromPicker(file);
@@ -683,7 +860,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         dispatch({ type: 'FILE_PARSE_DONE' });
       }
     },
-    [confirmReplaceIfNeeded, processFileFromPicker]
+    [rawData.length, outcome, processFileFromPicker]
   );
 
   return {
@@ -736,5 +913,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     defectDetection,
     dismissDefectDetection,
     handleDefectDetectedFromIngestion,
+    // Match-summary (Mode A.2 paste into existing complete Hub)
+    matchSummary,
+    acceptMatchSummary,
+    cancelMatchSummary,
   };
 }

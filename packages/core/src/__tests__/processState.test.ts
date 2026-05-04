@@ -145,6 +145,8 @@ describe('buildCurrentProcessState', () => {
         sourceId: 'src-agent-log',
         capturedAt: '2026-04-26T11:00:00.000Z',
         rowCount: 100,
+        origin: 'fixture:process-state-cadence',
+        importedAt: '2026-04-26T11:00:00.000Z',
         latestSignals: [
           {
             id: 'sig-red',
@@ -251,6 +253,8 @@ describe('buildCurrentProcessState', () => {
         sourceId: 'src-1',
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
+        origin: 'fixture:evidence-state-ordering',
+        importedAt: '2026-04-26T10:00:00.000Z',
         latestSignals: [
           {
             id: 'sig-green',
@@ -267,6 +271,8 @@ describe('buildCurrentProcessState', () => {
         sourceId: 'src-1',
         capturedAt: '2026-04-25T10:00:00.000Z',
         rowCount: 100,
+        origin: 'fixture:evidence-state-ordering',
+        importedAt: '2026-04-25T10:00:00.000Z',
         latestSignals: [
           {
             id: 'sig-red',

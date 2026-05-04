@@ -22,7 +22,11 @@ import {
   GoalBanner,
   HubGoalForm,
   OutcomePin,
+  StageFiveModal,
+  MatchSummaryCard,
+  type ColumnShape,
 } from '@variscout/ui';
+import { useStageFiveOpener } from './hooks/useStageFiveOpener';
 import { SaveToBrowserButton } from './components/SaveToBrowserButton';
 import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
@@ -258,6 +262,7 @@ function AppMain() {
     columnAliases,
     dataFilename,
     dataQualityReport,
+    activeHub: sessionHub ?? undefined,
     setRawData,
     setOutcome,
     setFactors,
@@ -343,6 +348,9 @@ function AppMain() {
       addAction: findingsState.addAction,
     },
   });
+
+  // Stage 5 modal — opens after Mode B Stage 3 confirm and via on-demand button.
+  const stageFive = useStageFiveOpener();
 
   const investigationQuestionsMap = investigation.questionsMap;
 
@@ -679,8 +687,12 @@ function AppMain() {
         primaryScopeDimensions: payload.primaryScopeDimensions,
         updatedAt: new Date().toISOString(),
       });
+
+      // Stage 5 (spec §5.5): open the floating investigation-context modal before
+      // the canvas paints so the analyst can capture issue / questions upfront.
+      stageFive.openModeB();
     },
-    [importFlow, goalNarrative, sessionHub, setSessionHub]
+    [importFlow, goalNarrative, sessionHub, setSessionHub, stageFive]
   );
 
   // .vrs import: restore Hub + raw data, skip framing flow, go straight to canvas.
@@ -904,6 +916,14 @@ function AppMain() {
                 />
               ))}
             <div className="flex-1" />
+            <button
+              type="button"
+              onClick={stageFive.openOnDemand}
+              data-testid="canvas-new-investigation"
+              className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+            >
+              + New investigation
+            </button>
             <SaveToBrowserButton currentHub={sessionHub} />
             <VrsExportButton currentHub={sessionHub} currentData={rawData} />
             <button
@@ -1223,6 +1243,29 @@ function AppMain() {
         />
       )}
 
+      {/* Match Summary Card — Mode A.2 paste into existing complete Hub.
+          Rendered inline (not over a backdrop) per spec. */}
+      {importFlow.matchSummary &&
+        (() => {
+          const hubCols: readonly string[] = sessionHub?.outcomes?.map(o => o.columnName) ?? [];
+          const newCols = importFlow.matchSummary.newColumns;
+          const columnShape: ColumnShape = {
+            matched: newCols.filter(c => hubCols.includes(c)),
+            added: newCols.filter(c => !hubCols.includes(c)),
+            missing: (hubCols as string[]).filter(c => !newCols.includes(c)),
+          };
+          return (
+            <div className="fixed bottom-4 right-4 z-40 w-full max-w-2xl px-4">
+              <MatchSummaryCard
+                classification={importFlow.matchSummary.classification}
+                columnShape={columnShape}
+                onChoose={importFlow.acceptMatchSummary}
+                onCancel={importFlow.cancelMatchSummary}
+              />
+            </div>
+          );
+        })()}
+
       {/* Capability Suggestion Modal */}
       {showCapabilitySuggestion && (
         <CapabilitySuggestionModal
@@ -1259,6 +1302,37 @@ function AppMain() {
         onClose={handleQuestionPromptClose}
         wallActive={wallViewMode === 'wall'}
         onProposeHypothesis={handleProposeHypothesisFromFinding}
+      />
+
+      {/* Stage 5 modal — investigation context capture.
+          Opens after Mode B Stage 3 confirm (openModeB) and via on-demand button
+          on the canvas chrome (openOnDemand). Does NOT log brief contents to console
+          or any analytics — contents are PII (process issue / questions). */}
+      <StageFiveModal
+        open={stageFive.open}
+        mode={stageFive.mode}
+        onOpenInvestigation={brief => {
+          // Persist issueStatement + questions from the brief into the investigation.
+          // PWA has no AnalysisBrief field on processContext (session-only store);
+          // we wire questions via questionsState.addQuestion (the domain store setter).
+          // issueStatement is logged as a first question with a sentinel prefix so it
+          // is visible in the Questions panel — a dedicated issueStatement field on
+          // the domain store is deferred to a later slice.
+          if (brief.issueStatement) {
+            questionsState.addQuestion(brief.issueStatement);
+          }
+          if (brief.questions) {
+            for (const q of brief.questions) {
+              questionsState.addQuestion(q.text, q.factor, q.level);
+            }
+          }
+          // TODO slice 4: persist brief.hypothesisDraft to investigation as a draft Hypothesis entity.
+          // TODO (slice 4): wire brief.target into processContext once PWA gains a
+          // processContext or equivalent improvement-target store field.
+          stageFive.close();
+        }}
+        onSkip={stageFive.close}
+        onClose={stageFive.close}
       />
 
       {/* Mobile Tab Bar (phone only) */}

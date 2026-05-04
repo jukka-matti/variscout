@@ -33,6 +33,13 @@ export type ProcessHubRecord = import('@variscout/core').ProcessHub;
 export type EvidenceSourceRecord = import('@variscout/core').EvidenceSource;
 export type EvidenceSnapshotRecord = import('@variscout/core').EvidenceSnapshot;
 
+export interface EvidenceSourceCursor {
+  hubId: string;
+  sourceId: string;
+  lastSeenSnapshotId: string;
+  lastSeenAt: string; // ISO 8601
+}
+
 export class VariScoutDatabase extends Dexie {
   projects!: Dexie.Table<ProjectRecord, string>;
   syncQueue!: Dexie.Table<SyncItem, number>;
@@ -43,6 +50,7 @@ export class VariScoutDatabase extends Dexie {
   sustainmentRecords!: Dexie.Table<import('@variscout/core').SustainmentRecord, string>;
   sustainmentReviews!: Dexie.Table<import('@variscout/core').SustainmentReview, string>;
   controlHandoffs!: Dexie.Table<import('@variscout/core').ControlHandoff, string>;
+  evidenceSourceCursors!: Dexie.Table<EvidenceSourceCursor, [string, string]>;
 
   constructor() {
     super('VaRiScoutAzure');
@@ -115,6 +123,14 @@ export class VariScoutDatabase extends Dexie {
     // declared index. The empty-stores object signals "no schema change" and
     // flushes any cached schema for the bumped version.
     this.version(7).stores({});
+
+    // Version 8: Framing Layer V1 Slice 3 — per-(hubId, sourceId) cursor for
+    // diff-on-open polling (D8). Compound primary key tracks the most-recently
+    // seen snapshot so the goal banner can show "X new snapshots ↑" without
+    // re-fetching the full history on every open.
+    this.version(8).stores({
+      evidenceSourceCursors: '[hubId+sourceId]',
+    });
   }
 }
 

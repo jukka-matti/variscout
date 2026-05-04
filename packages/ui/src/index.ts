@@ -21,6 +21,7 @@ export {
   type ColumnMappingConfirmPayload,
   type AnalysisBrief,
 } from './components/ColumnMapping';
+export { StageFiveModal, type StageFiveModalProps } from './components/StageFiveModal';
 export { SelectionPanel, type SelectionPanelProps } from './components/SelectionPanel';
 export { CreateFactorModal, type CreateFactorModalProps } from './components/CreateFactorModal';
 export { UpgradePrompt, type UpgradePromptProps } from './components/UpgradePrompt';
@@ -759,3 +760,13 @@ export { GoalBanner } from './components/GoalBanner/GoalBanner';
 export type { GoalBannerProps } from './components/GoalBanner/GoalBanner';
 export { OutcomePin } from './components/OutcomePin/OutcomePin';
 export type { OutcomePinProps } from './components/OutcomePin/OutcomePin';
+
+// Match summary card (framing layer — paste classification UX)
+export { MatchSummaryCard } from './components/MatchSummaryCard';
+export type {
+  MatchSummaryCardProps,
+  MatchSummaryActionChoice,
+} from './components/MatchSummaryCard';
+export type { ColumnShape } from './components/MatchSummaryCard/ColumnShapeSubSummary';
+export { JoinKeySuggestion } from './components/MatchSummaryCard/JoinKeySuggestion';
+export type { JoinKeySuggestionProps } from './components/MatchSummaryCard/JoinKeySuggestion';

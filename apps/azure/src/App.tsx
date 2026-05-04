@@ -185,6 +185,9 @@ function AppContent({
   const [currentProject, setCurrentProject] = useState<string | null>(null);
   const [pendingProcessHubId, setPendingProcessHubId] = useState<string | null>(null);
   const [pendingSample, setPendingSample] = useState<SampleDataset | null>(null);
+  // When true, Editor mounts directly into PasteScreen (used by "Add framing" CTA).
+  // Reset to false once consumed so subsequent navigations don't re-trigger paste.
+  const [pendingStartPaste, setPendingStartPaste] = useState(false);
 
   // Resolve deep link from URL params
   const deepLink = useMemo<DeepLinkParams>(() => {
@@ -242,14 +245,16 @@ function AppContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const navigateToEditor = (projectId?: string, processHubId?: string) => {
+  const navigateToEditor = (projectId?: string, processHubId?: string, startPaste?: boolean) => {
     setCurrentProject(projectId || null);
     setPendingProcessHubId(processHubId || null);
+    if (startPaste) setPendingStartPaste(true);
     setCurrentView('editor');
   };
 
   const navigateToDashboard = () => {
     setCurrentProject(null);
+    setPendingStartPaste(false);
     setCurrentView('dashboard');
   };
 
@@ -285,7 +290,9 @@ function AppContent({
         )}
         {currentView === 'dashboard' && !deepLinkError && (
           <ProjectDashboard
-            onOpenProject={(id, processHubId) => navigateToEditor(id, processHubId)}
+            onOpenProject={(id, processHubId, startPaste) =>
+              navigateToEditor(id, processHubId, startPaste)
+            }
             onLoadSample={handleLoadSample}
           />
         )}
@@ -295,6 +302,7 @@ function AppContent({
             onBack={navigateToDashboard}
             initialProcessHubId={currentProject ? undefined : (pendingProcessHubId ?? undefined)}
             initialSample={pendingSample}
+            startPasteOnMount={pendingStartPaste}
             onOpenSettings={() => setIsSettingsOpen(true)}
             initialFindingId={
               deepLink.project === currentProject ? (deepLink.findingId ?? undefined) : undefined

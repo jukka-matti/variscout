@@ -12,4 +12,5 @@ export type {
   EditorFlowAction,
   UseEditorDataFlowOptions,
   UseEditorDataFlowReturn,
+  MatchSummaryPending,
 } from '../features/data-flow/useEditorDataFlow';
