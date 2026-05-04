@@ -29,4 +29,28 @@ describe('createSnapshotProvenance', () => {
     const prov = createSnapshotProvenance('paste:test', rows, 'ts');
     expect(prov.rowTimestampRange).toBeUndefined();
   });
+
+  it('handles 70,000-row pastes without stack-overflow and returns correct range', () => {
+    // Jan 1–365 repeated deterministically — no Math.random
+    const rows: DataRow[] = Array.from({ length: 70000 }, (_, i) => ({
+      ts: new Date(Date.UTC(2026, 0, 1 + (i % 365))).toISOString(),
+    }));
+    const prov = createSnapshotProvenance('paste:large', rows, 'ts');
+    expect(prov.rowTimestampRange).toBeDefined();
+    // First day of range is Jan 1 2026 (i=0,365,...), last is Dec 31 2026 (i=364,729,...)
+    expect(prov.rowTimestampRange?.startISO).toBe('2026-01-01T00:00:00.000Z');
+    expect(prov.rowTimestampRange?.endISO).toBe('2026-12-31T00:00:00.000Z');
+  });
+
+  it('derives rowTimestampRange from Excel serial numbers', () => {
+    // Excel serial 44927 = Jan 1, 2023 (serial 60 bug accounted for)
+    const rows: DataRow[] = [
+      { ts: 44927, weight_g: 100 }, // 2023-01-01
+      { ts: 45292, weight_g: 101 }, // 2024-01-01
+    ];
+    const prov = createSnapshotProvenance('paste:excel', rows, 'ts');
+    expect(prov.rowTimestampRange).toBeDefined();
+    expect(prov.rowTimestampRange?.startISO).toBe('2023-01-01T00:00:00.000Z');
+    expect(prov.rowTimestampRange?.endISO).toBe('2024-01-01T00:00:00.000Z');
+  });
 });
