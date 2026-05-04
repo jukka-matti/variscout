@@ -21,6 +21,7 @@ import type {
 } from '@variscout/core';
 import { classifyPaste, type MatchSummaryClassification } from '@variscout/core/matchSummary';
 import { isProcessHubComplete } from '@variscout/core/processHub';
+import type { RowProvenanceTag } from '@variscout/core/evidenceSources';
 import type { MatchSummaryActionChoice } from '@variscout/ui';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../../components/data/ManualEntry';
@@ -219,6 +220,8 @@ export interface UseEditorDataFlowOptions {
   processFile: (file: File) => Promise<boolean>;
   loadSample: (sample: SampleDataset) => void;
   applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
+  /** Optional — populated only on multi-source join confirmation (P3.4). */
+  setRowProvenance?: (startIndex: number, tags: RowProvenanceTag[]) => void;
 }
 
 export interface UseEditorDataFlowReturn {
@@ -294,6 +297,17 @@ export interface UseEditorDataFlowReturn {
 // ── Hook implementation ────────────────────────────────────────────────────
 
 /**
+ * Derives a stable source identifier from the distinguishing columns of the
+ * new dataset (those NOT present in the existing hub columns).
+ * Deterministic — no randomness.
+ */
+function deriveSourceId(hubColumns: readonly string[], newColumns: readonly string[]): string {
+  const distinguishing = newColumns.find(c => !hubColumns.includes(c));
+  if (distinguishing) return distinguishing.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return 'source-2';
+}
+
+/**
  * Manages data ingestion orchestration for the Azure Editor:
  * paste flow, file upload, sample loading, column mapping,
  * manual entry, and Performance Mode drill navigation.
@@ -323,6 +337,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     processFile: processFileFromPicker,
     loadSample,
     applyTimeExtraction,
+    setRowProvenance,
   } = options;
 
   const [flowState, dispatch] = useReducer(editorFlowReducer, initialFlowState);
@@ -565,6 +580,21 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           // flow. For now, cancel the paste — block-case discipline is the critical part.
           return;
 
+        case 'multi-source-join': {
+          // P3.4: populate the sidecar provenance Map before appending rows.
+          const hubCols = activeHub?.outcomes?.map(o => o.columnName) ?? [];
+          const sourceId = deriveSourceId(hubCols, ms.newColumns);
+          const startIndex = rawData.length;
+          const tags: RowProvenanceTag[] = ms.newRows.map(() => ({
+            source: sourceId,
+            joinKey: choice.candidate.hubColumn,
+          }));
+          setRowProvenance?.(startIndex, tags);
+          dispatch({ type: 'START_PASTE' });
+          _proceedWithParsedData(ms.newRows);
+          return;
+        }
+
         case 'overlap-replace':
         // archiveReplacedRows is invoked at the snapshot store level when sidecar
         // provenance lands in P3.4. For now, proceed identically to append.
@@ -580,7 +610,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           return;
       }
     },
-    [matchSummary, _proceedWithParsedData]
+    [matchSummary, activeHub, rawData.length, setRowProvenance, _proceedWithParsedData]
   );
 
   const cancelMatchSummary = useCallback(() => setMatchSummary(undefined), []);

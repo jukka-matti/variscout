@@ -18,6 +18,7 @@ import {
 } from '@variscout/core';
 import { classifyPaste, type MatchSummaryClassification } from '@variscout/core/matchSummary';
 import { isProcessHubComplete } from '@variscout/core/processHub';
+import type { RowProvenanceTag } from '@variscout/core/evidenceSources';
 import type { MatchSummaryActionChoice } from '@variscout/ui';
 
 // ── Reducer types ──────────────────────────────────────────────────────────
@@ -131,6 +132,8 @@ export interface UsePasteImportFlowOptions {
   clearData: () => void;
   clearSelection: () => void;
   applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
+  /** Optional — populated only on multi-source join confirmation (P3.4). */
+  setRowProvenance?: (startIndex: number, tags: RowProvenanceTag[]) => void;
 }
 
 export interface MatchSummaryPending {
@@ -190,6 +193,17 @@ export interface UsePasteImportFlowReturn {
 }
 
 /**
+ * Derives a stable source identifier from the distinguishing columns of the
+ * new dataset (those NOT present in the existing hub columns).
+ * Deterministic — no randomness.
+ */
+function deriveSourceId(hubColumns: readonly string[], newColumns: readonly string[]): string {
+  const distinguishing = newColumns.find(c => !hubColumns.includes(c));
+  if (distinguishing) return distinguishing.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return 'source-2';
+}
+
+/**
  * Manages the paste/import/manual-entry state machine for the PWA.
  *
  * Accepts data context setters via dependency injection so it never
@@ -210,6 +224,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     clearData,
     clearSelection,
     applyTimeExtraction,
+    setRowProvenance,
   } = options;
 
   // Flow state machine
@@ -392,6 +407,21 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           // is the critical behaviour; the new-Hub action is a future slice.
           return;
 
+        case 'multi-source-join': {
+          // P3.4: populate the sidecar provenance Map before appending rows.
+          const hubCols = activeHub?.outcomes?.map(o => o.columnName) ?? [];
+          const sourceId = deriveSourceId(hubCols, ms.newColumns);
+          const startIndex = rawData.length;
+          const tags: RowProvenanceTag[] = ms.newRows.map(() => ({
+            source: sourceId,
+            joinKey: choice.candidate.hubColumn,
+          }));
+          setRowProvenance?.(startIndex, tags);
+          dispatch({ type: 'START_PASTE' });
+          _proceedWithParsedData(ms.newRows);
+          return;
+        }
+
         case 'overlap-replace':
         // archiveReplacedRows is invoked at the snapshot store level when sidecar
         // provenance lands in P3.4. For now, proceed identically to append.
@@ -408,7 +438,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           return;
       }
     },
-    [matchSummary, _proceedWithParsedData]
+    [matchSummary, activeHub, rawData.length, setRowProvenance, _proceedWithParsedData]
   );
 
   const cancelMatchSummary = useCallback(() => setMatchSummary(undefined), []);
