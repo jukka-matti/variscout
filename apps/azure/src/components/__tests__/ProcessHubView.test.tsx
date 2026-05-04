@@ -1,7 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProcessHubView } from '../ProcessHubView';
-import type { ProcessHubRollup, ProcessHubInvestigation, ProcessHub } from '@variscout/core';
+import type {
+  ProcessHubRollup,
+  ProcessHubInvestigation,
+  ProcessHub,
+  OutcomeSpec,
+} from '@variscout/core';
 
 vi.mock('../ProcessHubReviewPanel', () => ({
   default: () => <div data-testid="mock-process-hub-review-panel" />,
@@ -83,5 +88,64 @@ describe('ProcessHubView', () => {
   it('does not render the GoalBanner when hub.processGoal is absent', () => {
     render(<ProcessHubView {...baseProps} />);
     expect(screen.queryByTestId('goal-banner')).not.toBeInTheDocument();
+  });
+
+  it('wires GoalBanner onChange to onHubGoalChange with hubId', () => {
+    const onHubGoalChange = vi.fn();
+    const goalHub: ProcessHub = {
+      id: 'h2',
+      name: 'Line B',
+      processGoal: 'Initial goal.',
+    } as ProcessHub;
+    const goalRollup = {
+      hub: goalHub,
+      investigations: [],
+      evidenceSnapshots: [],
+    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    render(<ProcessHubView {...baseProps} rollup={goalRollup} onHubGoalChange={onHubGoalChange} />);
+    // GoalBanner enters edit mode on click; saves via Save button
+    fireEvent.click(screen.getByTestId('goal-banner'));
+    const textarea = screen.getByRole('textbox');
+    fireEvent.change(textarea, { target: { value: 'Updated goal.' } });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    expect(onHubGoalChange).toHaveBeenCalledWith('h2', 'Updated goal.');
+  });
+
+  it('shows the framing prompt when hub is incomplete and onEditFraming is provided', () => {
+    // hub has no processGoal and no outcomes → isProcessHubComplete returns false
+    const onEditFraming = vi.fn();
+    render(<ProcessHubView {...baseProps} onEditFraming={onEditFraming} />);
+    expect(screen.getByTestId('hub-framing-prompt')).toBeInTheDocument();
+  });
+
+  it('hides the framing prompt when hub is complete', () => {
+    const completeOutcome: OutcomeSpec = { columnName: 'FillWeight' } as OutcomeSpec;
+    const completeHub: ProcessHub = {
+      id: 'h3',
+      name: 'Line C',
+      processGoal: 'Reduce fill weight variation.',
+      outcomes: [completeOutcome],
+    } as ProcessHub;
+    const completeRollup = {
+      hub: completeHub,
+      investigations: [],
+      evidenceSnapshots: [],
+    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    const onEditFraming = vi.fn();
+    render(<ProcessHubView {...baseProps} rollup={completeRollup} onEditFraming={onEditFraming} />);
+    expect(screen.queryByTestId('hub-framing-prompt')).not.toBeInTheDocument();
+  });
+
+  it('hides the framing prompt when onEditFraming is absent even if hub is incomplete', () => {
+    // No onEditFraming passed, hub is incomplete (no processGoal)
+    render(<ProcessHubView {...baseProps} />);
+    expect(screen.queryByTestId('hub-framing-prompt')).not.toBeInTheDocument();
+  });
+
+  it('calls onEditFraming with hubId when Add framing CTA is clicked', () => {
+    const onEditFraming = vi.fn();
+    render(<ProcessHubView {...baseProps} onEditFraming={onEditFraming} />);
+    fireEvent.click(screen.getByTestId('hub-framing-prompt-cta'));
+    expect(onEditFraming).toHaveBeenCalledWith('h1');
   });
 });
