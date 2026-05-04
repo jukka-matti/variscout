@@ -16,6 +16,8 @@ import { GridRows } from '@visx/grid';
 import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { sortChannels, CPK_THRESHOLDS } from '@variscout/core';
+import { PARETO_Y_METRICS } from '@variscout/core/pareto';
+import type { ParetoYMetricId, ParetoYMetric } from '@variscout/core/pareto';
 import type { PerformanceParetoProps, ChannelResult } from './types';
 import { chartColors } from './colors';
 import { useChartTheme, getDocumentFontScale } from './useChartTheme';
@@ -30,6 +32,33 @@ interface TooltipData {
   cumulativePct: number;
 }
 
+/**
+ * Supported Y metrics for PerformancePareto.
+ *
+ * Uses pre-computed ChannelResult fields:
+ *   - 'cpk':               d.channel.cpk (smallerIsWorse → ascending sort)
+ *   - 'percent-out-of-spec': d.channel.outOfSpecPercentage (largerIsWorse → descending sort)
+ *
+ * Note: computeParetoY from @variscout/core/pareto operates on raw DataRow[]; this
+ * component uses already-aggregated ChannelResult[], so we read the pre-computed
+ * fields directly (Option B migration — raw-row wiring is a future task).
+ */
+export const PERFORMANCE_PARETO_Y_METRICS: ParetoYMetric[] = [
+  PARETO_Y_METRICS['cpk'],
+  PARETO_Y_METRICS['percent-out-of-spec'],
+];
+
+/** Get the Y value for a channel given the active metric. */
+function getChannelYValue(channel: ChannelResult, metricId: ParetoYMetricId): number {
+  switch (metricId) {
+    case 'percent-out-of-spec':
+      return channel.outOfSpecPercentage;
+    case 'cpk':
+    default:
+      return channel.cpk ?? 0;
+  }
+}
+
 export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
   parentWidth,
   parentHeight,
@@ -39,6 +68,9 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
   onChannelClick,
   showBranding = true,
   cpkThresholds = CPK_THRESHOLDS,
+  yMetric = 'cpk',
+  availableYMetrics,
+  onYMetricSwitch,
 }) => {
   const { chrome, formatStat } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
@@ -52,11 +84,19 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
   const width = Math.max(0, parentWidth - margin.left - margin.right);
   const height = Math.max(0, parentHeight - margin.top - margin.bottom);
 
-  // Sort channels by Cpk ascending (worst first) and limit display
+  // Sort channels by the active metric (worst first) and limit display.
+  // cpk: ascending (lower Cpk = worse) — uses sortChannels for consistent null handling.
+  // percent-out-of-spec: descending (higher % = worse) — sort by outOfSpecPercentage desc.
   const sortedChannels = useMemo(() => {
-    const sorted = sortChannels(channels, 'cpk-asc');
+    let sorted: ChannelResult[];
+    if (yMetric === 'percent-out-of-spec') {
+      sorted = [...channels].sort((a, b) => b.outOfSpecPercentage - a.outOfSpecPercentage);
+    } else {
+      // Default: cpk ascending (worst first)
+      sorted = sortChannels(channels, 'cpk-asc');
+    }
     return sorted.slice(0, maxDisplayed);
-  }, [channels, maxDisplayed]);
+  }, [channels, maxDisplayed, yMetric]);
 
   // Calculate cumulative percentage (based on total channels needing review)
   const dataWithCumulative = useMemo(() => {
@@ -84,20 +124,31 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
     [dataWithCumulative, width]
   );
 
-  // Y scale - Cpk values (inverted so lower is worse/taller)
+  // Y scale — domain driven by the active metric's values.
+  // For cpk: [0, max(cpk, 2)] so reference threshold lines fit.
+  // For percent-out-of-spec: [0, 100] (always a percentage).
   const yScale = useMemo(() => {
     if (dataWithCumulative.length === 0) {
-      return scaleLinear({ range: [height, 0], domain: [0, 2] });
+      return scaleLinear({
+        range: [height, 0],
+        domain: [0, yMetric === 'percent-out-of-spec' ? 100 : 2],
+      });
+    }
+
+    if (yMetric === 'percent-out-of-spec') {
+      return scaleLinear({
+        range: [height, 0],
+        domain: [0, 100],
+      });
     }
 
     const maxCpk = Math.max(...dataWithCumulative.map(d => d.channel.cpk ?? 0), 2);
-
     return scaleLinear({
       range: [height, 0],
       domain: [0, maxCpk],
       nice: true,
     });
-  }, [dataWithCumulative, height]);
+  }, [dataWithCumulative, height, yMetric]);
 
   // Y scale for cumulative percentage (right axis)
   const yPercScale = useMemo(
@@ -135,84 +186,131 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
     );
   }
 
+  // Show Cpk threshold lines only when the y metric is cpk (they are meaningless for % out-of-spec)
+  const showCpkThresholds = yMetric !== 'percent-out-of-spec';
+
+  // Picker visibility: requires ≥ 2 available options and an onYMetricSwitch callback
+  const showPicker =
+    availableYMetrics !== undefined && availableYMetrics.length >= 2 && !!onYMetricSwitch;
+
   return (
     <div style={{ position: 'relative' }}>
+      {/* Y-metric picker chip — positioned top-right, above the SVG */}
+      {showPicker && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 2,
+            right: 8,
+            zIndex: 10,
+            display: 'flex',
+            gap: 4,
+          }}
+        >
+          {availableYMetrics!.map(m => (
+            <button
+              key={m.id}
+              aria-label="Y axis metric"
+              aria-pressed={m.id === yMetric}
+              onClick={() => onYMetricSwitch!(m.id)}
+              title={m.description ?? m.label}
+              style={{
+                fontSize: 11,
+                padding: '2px 6px',
+                borderRadius: 4,
+                border: 'none',
+                cursor: 'pointer',
+                background:
+                  m.id === yMetric ? `${chartColors.selected}33` : `${chrome.labelSecondary}26`,
+                color: m.id === yMetric ? chartColors.selected : chrome.labelSecondary,
+                fontWeight: m.id === yMetric ? 600 : 400,
+              }}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      )}
       <svg
         width={parentWidth}
         height={parentHeight}
         role="img"
-        aria-label="Performance Pareto: Cpk ranking"
+        aria-label={`Performance Pareto: ${yMetric === 'percent-out-of-spec' ? '% out of spec' : 'Cpk'} ranking`}
       >
         <Group left={margin.left} top={margin.top}>
           <GridRows scale={yScale} width={width} stroke={chrome.gridLine} />
 
-          {/* Reference lines for Cpk thresholds */}
-          {/* Critical threshold line */}
-          <line
-            x1={0}
-            x2={width}
-            y1={yScale(cpkThresholds.critical)}
-            y2={yScale(cpkThresholds.critical)}
-            stroke={chartColors.fail}
-            strokeWidth={1}
-            strokeDasharray="4,4"
-            opacity={0.6}
-          />
-          <text
-            x={width - 4}
-            y={yScale(cpkThresholds.critical) - 4}
-            fontSize={fonts.tickLabel}
-            fill={chartColors.fail}
-            textAnchor="end"
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
-          >
-            {formatStat(cpkThresholds.critical)}
-          </text>
+          {/* Reference lines for Cpk thresholds — only shown in cpk mode */}
+          {showCpkThresholds && (
+            <>
+              {/* Critical threshold line */}
+              <line
+                x1={0}
+                x2={width}
+                y1={yScale(cpkThresholds.critical)}
+                y2={yScale(cpkThresholds.critical)}
+                stroke={chartColors.fail}
+                strokeWidth={1}
+                strokeDasharray="4,4"
+                opacity={0.6}
+              />
+              <text
+                x={width - 4}
+                y={yScale(cpkThresholds.critical) - 4}
+                fontSize={fonts.tickLabel}
+                fill={chartColors.fail}
+                textAnchor="end"
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
+              >
+                {formatStat(cpkThresholds.critical)}
+              </text>
 
-          {/* Warning threshold line */}
-          <line
-            x1={0}
-            x2={width}
-            y1={yScale(cpkThresholds.warning)}
-            y2={yScale(cpkThresholds.warning)}
-            stroke={chartColors.pass}
-            strokeWidth={1}
-            strokeDasharray="4,4"
-            opacity={0.6}
-          />
-          <text
-            x={width - 4}
-            y={yScale(cpkThresholds.warning) - 4}
-            fontSize={fonts.tickLabel}
-            fill={chartColors.pass}
-            textAnchor="end"
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
-          >
-            {formatStat(cpkThresholds.warning)}
-          </text>
+              {/* Warning threshold line */}
+              <line
+                x1={0}
+                x2={width}
+                y1={yScale(cpkThresholds.warning)}
+                y2={yScale(cpkThresholds.warning)}
+                stroke={chartColors.pass}
+                strokeWidth={1}
+                strokeDasharray="4,4"
+                opacity={0.6}
+              />
+              <text
+                x={width - 4}
+                y={yScale(cpkThresholds.warning) - 4}
+                fontSize={fonts.tickLabel}
+                fill={chartColors.pass}
+                textAnchor="end"
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
+              >
+                {formatStat(cpkThresholds.warning)}
+              </text>
+            </>
+          )}
 
           {/* Bars */}
           {dataWithCumulative.map(d => {
-            const cpk = d.channel.cpk ?? 0;
+            const yValue = getChannelYValue(d.channel, yMetric);
             const x = xScale(d.channel.id) ?? 0;
-            const barHeight = height - yScale(cpk);
+            const barHeight = height - yScale(yValue);
             const isSelected = selectedMeasure === d.channel.id;
 
             return (
               <Bar
                 key={d.channel.id}
                 x={x}
-                y={yScale(cpk)}
+                y={yScale(yValue)}
                 width={xScale.bandwidth()}
                 height={Math.max(0, barHeight)}
                 fill={chartColors.mean}
                 fillOpacity={isSelected ? 1 : selectedMeasure ? 0.4 : 0.8}
-                stroke={isSelected ? '#fff' : undefined}
+                stroke={isSelected ? chrome.tooltipText : undefined}
                 strokeWidth={isSelected ? 2 : 0}
                 rx={4}
                 style={{ cursor: onChannelClick ? 'pointer' : 'default' }}
                 onClick={() => onChannelClick?.(d.channel.id)}
-                onMouseEnter={() => showTooltip(d, x + xScale.bandwidth() / 2, yScale(cpk))}
+                onMouseEnter={() => showTooltip(d, x + xScale.bandwidth() / 2, yScale(yValue))}
                 onMouseLeave={hideTooltip}
               />
             );
@@ -282,7 +380,7 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
             textAnchor="middle"
             transform="rotate(-90)"
           >
-            Cpk
+            {yMetric === 'percent-out-of-spec' ? '% out of spec' : 'Cpk'}
           </text>
 
           {/* Right Y Axis (Cumulative %) */}
@@ -333,14 +431,23 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
             <div>
               Rank: <span style={{ fontFamily: 'monospace' }}>#{tooltipData.rank}</span>
             </div>
-            <div>
-              Cpk:{' '}
-              <span style={{ fontFamily: 'monospace' }}>
-                {tooltipData.channel.cpk !== undefined && tooltipData.channel.cpk !== null
-                  ? formatStat(tooltipData.channel.cpk)
-                  : 'N/A'}
-              </span>
-            </div>
+            {yMetric === 'percent-out-of-spec' ? (
+              <div>
+                % out of spec:{' '}
+                <span style={{ fontFamily: 'monospace' }}>
+                  {formatStat(tooltipData.channel.outOfSpecPercentage, 1)}%
+                </span>
+              </div>
+            ) : (
+              <div>
+                Cpk:{' '}
+                <span style={{ fontFamily: 'monospace' }}>
+                  {tooltipData.channel.cpk !== undefined && tooltipData.channel.cpk !== null
+                    ? formatStat(tooltipData.channel.cpk)
+                    : 'N/A'}
+                </span>
+              </div>
+            )}
             <div>
               n: <span style={{ fontFamily: 'monospace' }}>{tooltipData.channel.n}</span>
             </div>

@@ -106,6 +106,14 @@ export {
   type DefectSummaryProps as UseDefectSummaryProps,
 } from './useDefectSummary';
 
+// Defect Step Pareto (adapts per-step bucketing to Pareto-formatted data)
+export {
+  useStepDefectPareto,
+  type StepDefectParetoData,
+  type UseStepDefectParetoArgs,
+  type UseStepDefectParetoResult,
+} from './useStepDefectPareto';
+
 // Defect Evidence Map (lazy per-type Best Subsets with progressive caching)
 export {
   useDefectEvidenceMap,
@@ -544,3 +552,9 @@ export {
   type UseTimelineWindowArgs,
   type UseTimelineWindowResult,
 } from './useTimelineWindow';
+
+export {
+  useCanvasFilters,
+  type UseCanvasFiltersArgs,
+  type UseCanvasFiltersResult,
+} from './useCanvasFilters';

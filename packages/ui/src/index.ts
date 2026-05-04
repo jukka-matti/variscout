@@ -558,6 +558,12 @@ export {
 // Preview Badge
 export { PreviewBadge } from './components/PreviewBadge';
 
+// Step Defect Indicator (per-step defect count badge — future step-card mounting)
+export {
+  StepDefectIndicator,
+  type StepDefectIndicatorProps,
+} from './components/StepDefectIndicator';
+
 // AI Onboarding Tooltip
 export {
   AIOnboardingTooltip,
@@ -770,3 +776,11 @@ export type {
 export type { ColumnShape } from './components/MatchSummaryCard/ColumnShapeSubSummary';
 export { JoinKeySuggestion } from './components/MatchSummaryCard/JoinKeySuggestion';
 export type { JoinKeySuggestionProps } from './components/MatchSummaryCard/JoinKeySuggestion';
+
+// Canvas filter chips (framing layer — composable investigation filter state chips)
+export { CanvasFilterChips } from './components/CanvasFilterChips';
+export type { CanvasFilterChipsProps } from './components/CanvasFilterChips';
+
+// Pareto make-scope button (framing layer — scope-to-investigation affordance, spec §9.2)
+export { ParetoMakeScopeButton, buildIssueStatement } from './components/ParetoMakeScopeButton';
+export type { ParetoMakeScopeButtonProps } from './components/ParetoMakeScopeButton';

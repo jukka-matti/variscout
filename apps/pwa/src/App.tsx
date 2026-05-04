@@ -263,6 +263,9 @@ function AppMain() {
     dataFilename,
     dataQualityReport,
     activeHub: sessionHub ?? undefined,
+    // PWA has no evidenceSnapshots persistence yet (Spec 5 / Q8). The overlap-replace UI
+    // is currently unreachable in PWA; wiring is in place for when snapshot persistence lands.
+    evidenceSnapshots: undefined,
     setRawData,
     setOutcome,
     setFactors,

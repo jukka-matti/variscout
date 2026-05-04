@@ -1,5 +1,7 @@
 import type { AnalysisMode, SpecLookupContext } from './types';
 import type { TimelineWindow } from './timeline';
+import type { ParetoYMetric, ParetoYMetricId } from './pareto';
+import { PARETO_Y_METRICS } from './pareto';
 
 export type ResolvedMode = 'standard' | 'capability' | 'performance' | 'yamazumi' | 'defect';
 
@@ -76,6 +78,17 @@ export interface AnalysisModeStrategy {
   questionStrategy: QuestionStrategy;
   /** V1 Multi-level SCOUT — optional for backward compat; all shipped strategies implement it. */
   dataRouter?: (args: RouterArgs) => RouterResult;
+  /**
+   * Ordered list of Pareto Y-axis metric options for this mode (D11).
+   * The FIRST entry is the default Y for the mode; subsequent entries are
+   * picker alternatives. When length === 1, the picker should be hidden in UI.
+   */
+  paretoYOptions: ParetoYMetric[];
+}
+
+/** Build an ordered `ParetoYMetric[]` from the registry by ID. Order is preserved. */
+function paretoOptions(...ids: ParetoYMetricId[]): ParetoYMetric[] {
+  return ids.map(id => PARETO_Y_METRICS[id]);
 }
 
 export function resolveMode(
@@ -106,6 +119,7 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       validationMethod: 'anova',
       questionFocus: 'Which factor explains most variation?',
     },
+    paretoYOptions: paretoOptions('count'),
     dataRouter: ({ phase }) => ({
       hook: phase === 'hub' ? 'useProductionLineGlanceData' : 'useFilteredData',
       transforms: phase === 'hub' ? ['calculateNodeCapability'] : [],
@@ -126,6 +140,7 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       validationMethod: 'anovaWithSpecs',
       questionFocus: 'Which factor most affects Cpk?',
     },
+    paretoYOptions: paretoOptions('percent-out-of-spec', 'cpk-gap', 'mean-minus-target'),
     dataRouter: ({ phase }) => ({
       hook: phase === 'hub' ? 'useProductionLineGlanceData' : 'useFilteredData',
       transforms:
@@ -154,6 +169,7 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       validationMethod: 'anova',
       questionFocus: 'Which channel performs worst?',
     },
+    paretoYOptions: paretoOptions('cpk', 'percent-out-of-spec'),
     dataRouter: ({ phase }) => ({
       hook: phase === 'hub' ? 'useProductionLineGlanceData' : 'useFilteredData',
       transforms:
@@ -183,6 +199,7 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       validationMethod: 'taktCompliance',
       questionFocus: 'Which step has the most waste?',
     },
+    paretoYOptions: paretoOptions('cycle-time', 'waste-time'),
     dataRouter: () => ({
       hook: 'useFilteredData', // hub-time yamazumi not built for V1
       transforms: ['aggregateYamazumiData', 'classifyYamazumi'],
@@ -204,6 +221,7 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       validationMethod: 'anova',
       questionFocus: 'Which defect type dominates and which factor drives defect rate variation?',
     },
+    paretoYOptions: paretoOptions('count', 'time', 'cost'),
     dataRouter: () => ({
       hook: 'useFilteredData',
       transforms: ['computeDefectRates'],

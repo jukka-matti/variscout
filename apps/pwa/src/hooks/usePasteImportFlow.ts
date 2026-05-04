@@ -23,7 +23,7 @@ import {
   type MatchSummaryClassification,
 } from '@variscout/core/matchSummary';
 import { isProcessHubComplete } from '@variscout/core/processHub';
-import type { RowProvenanceTag } from '@variscout/core/evidenceSources';
+import type { EvidenceSnapshot, RowProvenanceTag } from '@variscout/core/evidenceSources';
 import type { MatchSummaryActionChoice } from '@variscout/ui';
 
 // ── Reducer types ──────────────────────────────────────────────────────────
@@ -127,6 +127,16 @@ export interface UsePasteImportFlowOptions {
   dataQualityReport: DataQualityReport | null;
   /** Active session Hub — when set and complete, paste triggers the Mode A.2 match-summary path. */
   activeHub?: ProcessHub;
+  /**
+   * Evidence snapshots for the active hub, sorted ascending by `capturedAt`.
+   * The most-recent snapshot (`at(-1)`) supplies `rowTimestampRange` to
+   * `classifyPaste` for temporal-axis classification (overlap / append / backfill).
+   *
+   * PWA has no snapshot persistence (Spec 5 / Q8). Pass `undefined` — the
+   * overlap-replace UI is currently unreachable in PWA; wiring is in place for
+   * when snapshot persistence lands.
+   */
+  evidenceSnapshots?: EvidenceSnapshot[];
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
@@ -219,6 +229,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     rawData,
     columnAliases,
     activeHub,
+    evidenceSnapshots,
     setRawData,
     setOutcome,
     setFactors,
@@ -361,6 +372,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
               hubColumns,
               existingRows: rawData.slice(0, 1000),
               existingTimeColumn: undefined,
+              existingRange: evidenceSnapshots?.at(-1)?.rowTimestampRange,
             },
             {
               newColumns,
@@ -387,7 +399,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         });
       }
     },
-    [activeHub, rawData, _proceedWithParsedData]
+    [activeHub, evidenceSnapshots, rawData, _proceedWithParsedData]
   );
 
   /**
@@ -456,8 +468,9 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
             dispatch({ type: 'START_PASTE' });
             _proceedWithParsedData(merged);
           } else {
-            // No overlap range available (existingRange not yet wired); fall back to
-            // replacing the full dataset with the new rows.
+            // overlapRange absent when classifyPaste could not determine the overlap window
+            // (no time column, or no prior snapshots) — fall back to replacing the full
+            // dataset with the new rows.
             dispatch({ type: 'START_PASTE' });
             _proceedWithParsedData(ms.newRows);
           }

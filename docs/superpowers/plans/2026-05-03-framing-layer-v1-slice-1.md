@@ -5,7 +5,7 @@ category: implementation
 status: draft
 date: 2026-05-03
 related:
-  - docs/superpowers/specs/2026-05-03-framing-layer-design.md
+  - docs/archive/specs/2026-05-03-framing-layer-design.md
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/decision-log.md
 ---
@@ -3279,7 +3279,7 @@ Plan to be written after slice 1 lands.
 
 ## References
 
-- Framing-layer spec: [`docs/superpowers/specs/2026-05-03-framing-layer-design.md`](../specs/2026-05-03-framing-layer-design.md)
+- Framing-layer spec: [`docs/archive/specs/2026-05-03-framing-layer-design.md`](../../archive/specs/2026-05-03-framing-layer-design.md)
 - Vision spec: [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../specs/2026-05-03-variscout-vision-design.md)
 - Decision log Q8-revised entry: [`docs/decision-log.md`](../../decision-log.md)
 - §8 walkthrough plan (predecessor): `~/.claude/plans/lets-do-this-next-rustling-simon.md`

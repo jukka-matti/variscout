@@ -7,7 +7,7 @@ date: 2026-05-04
 related:
   - adr-073-no-statistical-rollup-across-heterogeneous-units
   - adr-074-scout-level-spanning-surface-boundary-policy
-  - framing-layer-design
+  - archive/specs/2026-05-03-framing-layer-design
 ---
 
 # ADR-077: Snapshot-level provenance + match-summary wedge for paste-into-existing-Hub
@@ -21,7 +21,7 @@ related:
 **Related**:
 [ADR-073](adr-073-no-statistical-rollup-across-heterogeneous-units.md) (no statistical roll-up across heterogeneous units — this ADR's per-source timeline model honors the same locality rule),
 [ADR-074](adr-074-scout-level-spanning-surface-boundary-policy.md) (level-spanning boundary policy — per-row provenance lives at the store layer, not on any single surface),
-[Framing Layer design](../superpowers/specs/2026-05-03-framing-layer-design.md) §7 (match-summary card), §8 (multi-source ingestion + per-row provenance)
+[Framing Layer design](../archive/specs/2026-05-03-framing-layer-design.md) §7 (match-summary card), §8 (multi-source ingestion + per-row provenance)
 
 ---
 
@@ -50,9 +50,10 @@ Three fields live on `EvidenceSnapshot` in `packages/core/src/evidenceSources.ts
 ```ts
 export interface EvidenceSnapshot {
   id: string;
-  origin: string;              // import-id of the paste / file / Evidence Source
-  importedAt: string;          // wall-clock ISO 8601 (window.crypto.randomUUID()-derived)
-  rowTimestampRange?: {         // derived from the time column when present
+  origin: string; // import-id of the paste / file / Evidence Source
+  importedAt: string; // wall-clock ISO 8601 (window.crypto.randomUUID()-derived)
+  rowTimestampRange?: {
+    // derived from the time column when present
     startISO: string;
     endISO: string;
   };
@@ -70,8 +71,8 @@ When a confirmed multi-source join occurs — a user pastes data with a differen
 
 ```ts
 export type RowProvenanceTag = {
-  source: string;   // source identifier (e.g., "telemetry", "qc-inspection")
-  joinKey: string;  // name of the column used to join this row
+  source: string; // source identifier (e.g., "telemetry", "qc-inspection")
+  joinKey: string; // name of the column used to join this row
 };
 ```
 
@@ -145,7 +146,7 @@ Rejected. `window.confirm` is not dismissable programmatically, blocks the JS th
 
 ## References
 
-- Framing layer spec §7 (match-summary card): `docs/superpowers/specs/2026-05-03-framing-layer-design.md`
+- Framing layer spec §7 (match-summary card): `docs/archive/specs/2026-05-03-framing-layer-design.md`
 - Framing layer spec §8 (multi-source ingestion + per-row provenance fields): same file
 - Type definitions: `packages/core/src/evidenceSources.ts`
 - `createSnapshotProvenance` factory + `archiveReplacedRows` helper: `packages/core/src/matchSummary/provenance.ts`

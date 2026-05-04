@@ -577,6 +577,7 @@ export type {
   InvestigationDepth,
   InvestigationStatus,
   ProcessHubAttentionReason,
+  ScopeFilter,
   ProcessHubCadenceQueue,
   ProcessHubCadenceSnapshot,
   ProcessHubCadenceSummary,
@@ -886,6 +887,7 @@ export type {
   DefectDataShape,
   DefectMapping,
   DefectDetection,
+  DefectStepRollup,
   DefectTransformResult,
   DefectQuestionInput,
 } from './defect';

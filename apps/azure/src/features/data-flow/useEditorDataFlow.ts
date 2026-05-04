@@ -26,7 +26,7 @@ import {
   type MatchSummaryClassification,
 } from '@variscout/core/matchSummary';
 import { isProcessHubComplete } from '@variscout/core/processHub';
-import type { RowProvenanceTag } from '@variscout/core/evidenceSources';
+import type { EvidenceSnapshot, RowProvenanceTag } from '@variscout/core/evidenceSources';
 import type { MatchSummaryActionChoice } from '@variscout/ui';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../../components/data/ManualEntry';
@@ -209,6 +209,16 @@ export interface UseEditorDataFlowOptions {
   measureLabel: string | null;
   /** Active process hub — when set and complete, paste triggers the Mode A.2 match-summary path. */
   activeHub?: ProcessHub;
+  /**
+   * Evidence snapshots for the active hub, sorted ascending by `capturedAt`.
+   * The most-recent snapshot (`at(-1)`) supplies `rowTimestampRange` to
+   * `classifyPaste` for temporal-axis classification (overlap / append / backfill).
+   *
+   * Loaded separately from IndexedDB by the caller (Editor.tsx) so that
+   * `ProcessHub` remains a pure data-only type with no denormalised snapshot list.
+   * Pass `undefined` (or omit) when no snapshots are available.
+   */
+  evidenceSnapshots?: EvidenceSnapshot[];
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
@@ -328,6 +338,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     measureColumns,
     measureLabel,
     activeHub,
+    evidenceSnapshots,
     setRawData,
     setOutcome,
     setFactors,
@@ -536,6 +547,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
               hubColumns,
               existingRows: rawData.slice(0, 1000),
               existingTimeColumn: undefined,
+              existingRange: evidenceSnapshots?.at(-1)?.rowTimestampRange,
             },
             {
               newColumns,
@@ -562,7 +574,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         });
       }
     },
-    [activeHub, rawData, outcome, _proceedWithParsedData]
+    [activeHub, evidenceSnapshots, rawData, outcome, _proceedWithParsedData]
   );
 
   /**
@@ -629,8 +641,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
             dispatch({ type: 'START_PASTE' });
             _proceedWithParsedData(merged);
           } else {
-            // No overlap range available (existingRange not yet wired); fall back to
-            // replacing the full dataset with the new rows.
+            // overlapRange absent when classifyPaste could not determine the overlap window
+            // (no time column, or no prior snapshots) — fall back to replacing the full
+            // dataset with the new rows.
             dispatch({ type: 'START_PASTE' });
             _proceedWithParsedData(ms.newRows);
           }

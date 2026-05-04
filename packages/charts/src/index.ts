@@ -22,6 +22,7 @@ export type {
   BoxplotProps,
   ParetoDataPoint,
   ParetoChartProps,
+  BarClickContext,
   CapabilityHistogramProps,
   ProbabilityPlotProps,
   ChartSourceBarProps,
@@ -138,7 +139,11 @@ export { default as ScatterFit, ScatterFitBase } from './ScatterFit';
 // Performance chart components
 export { default as PerformanceIChart, PerformanceIChartBase } from './PerformanceIChart';
 export { default as PerformanceBoxplot, PerformanceBoxplotBase } from './PerformanceBoxplot';
-export { default as PerformancePareto, PerformanceParetoBase } from './PerformancePareto';
+export {
+  default as PerformancePareto,
+  PerformanceParetoBase,
+  PERFORMANCE_PARETO_Y_METRICS,
+} from './PerformancePareto';
 export {
   default as PerformanceCapability,
   PerformanceCapabilityBase,

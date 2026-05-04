@@ -55,3 +55,28 @@ export const PASS_FAIL_COLUMN_KEYWORDS = [
   'verdict',
   'judgment',
 ];
+
+/**
+ * Keywords matching the column that identifies which step caught/rejected each defect.
+ * See spec §9.1 (defect anchoring) — when present, defect data anchors per-step.
+ *
+ * Order matters: more specific multi-word keywords appear first so they pre-empt the bare
+ * 'step' fallback for column names like `process_step` or `step_id`.
+ * The matcher uses substring matching, so e.g. `reject_step` matches a column named
+ * `my_reject_step_v2`.
+ */
+export const STEP_REJECTED_AT_KEYWORDS = [
+  'step_rejected_at',
+  'reject_step',
+  'rejection_step',
+  'step_of_origin',
+  'failed_at_step',
+  'defect_step',
+  'caught_at_step',
+  'caught_at',
+  'step_caught',
+  'fail_step',
+  'rejected_step',
+  // Bare 'step' is a final fallback — more specific keywords above pre-empt it.
+  'step',
+];

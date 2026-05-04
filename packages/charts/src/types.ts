@@ -21,6 +21,7 @@ import type {
 } from '@variscout/core';
 import type { NodeCapabilityResult } from '@variscout/core/stats';
 import type { HighlightColor } from '@variscout/core/ui-types';
+import type { ParetoYMetricId, ParetoYMetric } from '@variscout/core/pareto';
 
 // Re-export data point types from core (canonical source)
 export type { IChartDataPoint, ParetoDataPoint } from '@variscout/core';
@@ -167,6 +168,15 @@ export interface BoxplotProps extends BaseChartProps {
 }
 
 /**
+ * Modifier-key context passed as the second argument to `onBarClick`.
+ * Callers that only need the key can ignore this parameter.
+ */
+export interface BarClickContext {
+  /** True when the Shift key was held during the click. */
+  shiftKey: boolean;
+}
+
+/**
  * Pareto chart props
  */
 export interface ParetoChartProps extends BaseChartProps {
@@ -180,8 +190,12 @@ export interface ParetoChartProps extends BaseChartProps {
   yAxisLabel?: string;
   /** Currently selected bars */
   selectedBars?: string[];
-  /** Callback when a bar is clicked */
-  onBarClick?: (key: string) => void;
+  /**
+   * Callback when a bar is clicked. The second argument carries modifier-key
+   * context (e.g. shiftKey) and is optional for backward-compat with callers
+   * that only need the bar key.
+   */
+  onBarClick?: (key: string, ctx?: BarClickContext) => void;
   /** Callback when Y-axis label area is clicked (for editing) */
   onYAxisClick?: () => void;
   /** Callback when X-axis label area is clicked (for editing) */
@@ -315,6 +329,19 @@ export interface PerformanceParetoProps extends BaseChartProps {
   onChannelClick?: (channelId: string) => void;
   /** Custom Cpk thresholds for health classification and reference lines (defaults to industry standards) */
   cpkThresholds?: CpkThresholds;
+  /**
+   * Active Y-axis metric. Defaults to `'cpk'` (current behaviour — channels ranked by Cpk ascending).
+   * Set to `'percent-out-of-spec'` to rank channels by % out-of-spec descending instead.
+   */
+  yMetric?: ParetoYMetricId;
+  /**
+   * Available Y-axis metric options for the picker chip.
+   * Picker is hidden when undefined or fewer than 2 options.
+   * Typically `getStrategy('performance').paretoYOptions`.
+   */
+  availableYMetrics?: ParetoYMetric[];
+  /** Callback when user picks a different Y metric. */
+  onYMetricSwitch?: (metricId: ParetoYMetricId) => void;
 }
 
 /**

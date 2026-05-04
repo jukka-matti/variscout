@@ -211,3 +211,102 @@ describe('usePasteImportFlow — overlap-replace provenance (Issue 1)', () => {
     expect(calledWith).toHaveLength(NEW_ROWS.length);
   });
 });
+
+// ─── existingRange call-site wiring tests ─────────────────────────────────────
+// These cases test the `evidenceSnapshots` hook option (not `ProcessHub.evidenceSnapshots`,
+// which does not exist). The caller (App.tsx) passes `undefined` since PWA has no snapshot
+// persistence yet (Spec 5 / Q8). Wiring is in place for when persistence lands.
+
+describe('usePasteImportFlow — existingRange wiring (ADR-077 follow-up)', () => {
+  const TIME_RANGE = { startISO: '2026-05-01T00:00:00.000Z', endISO: '2026-05-04T23:59:59.999Z' };
+
+  // Minimal non-blocking classification so handlePasteAnalyze proceeds to setMatchSummary.
+  const PASSTHROUGH_CLASSIFICATION = {
+    source: 'same-source' as const,
+    temporal: 'append' as const,
+    blockReasons: [] as never[],
+  };
+
+  beforeEach(() => {
+    vi.mocked(classifyPaste).mockReturnValue(PASSTHROUGH_CLASSIFICATION);
+  });
+
+  it('Case A: forwards existingRange when evidenceSnapshots option has a snapshot with rowTimestampRange', async () => {
+    const evidenceSnapshots = [
+      {
+        id: 'snap-1',
+        hubId: 'hub-1',
+        sourceId: 'src-1',
+        capturedAt: '2026-05-01T00:00:00Z',
+        importedAt: '2026-05-01T00:00:00Z',
+        origin: 'paste-abc',
+        rowCount: 4,
+        rowTimestampRange: TIME_RANGE,
+      },
+    ];
+
+    const { result } = renderHook(() =>
+      usePasteImportFlow(makeOptions({ activeHub: COMPLETE_HUB, evidenceSnapshots }))
+    );
+
+    await act(async () => {
+      await result.current.handlePasteAnalyze(CSV_TEXT);
+    });
+
+    expect(classifyPaste).toHaveBeenCalledTimes(1);
+    const [ctx] = vi.mocked(classifyPaste).mock.calls[0];
+    expect(ctx.existingRange).toEqual(TIME_RANGE);
+  });
+
+  it('Case B: forwards existingRange as undefined when evidenceSnapshots option is empty', async () => {
+    const { result } = renderHook(() =>
+      usePasteImportFlow(makeOptions({ activeHub: COMPLETE_HUB, evidenceSnapshots: [] }))
+    );
+
+    await act(async () => {
+      await result.current.handlePasteAnalyze(CSV_TEXT);
+    });
+
+    expect(classifyPaste).toHaveBeenCalledTimes(1);
+    const [ctx] = vi.mocked(classifyPaste).mock.calls[0];
+    expect(ctx.existingRange).toBeUndefined();
+  });
+
+  it('Case C: forwards existingRange as undefined when latest snapshot has no rowTimestampRange', async () => {
+    const evidenceSnapshots = [
+      {
+        id: 'snap-1',
+        hubId: 'hub-1',
+        sourceId: 'src-1',
+        capturedAt: '2026-05-01T00:00:00Z',
+        importedAt: '2026-05-01T00:00:00Z',
+        origin: 'paste-abc',
+        rowCount: 4,
+        // rowTimestampRange intentionally absent
+      },
+    ];
+
+    const { result } = renderHook(() =>
+      usePasteImportFlow(makeOptions({ activeHub: COMPLETE_HUB, evidenceSnapshots }))
+    );
+
+    await act(async () => {
+      await result.current.handlePasteAnalyze(CSV_TEXT);
+    });
+
+    expect(classifyPaste).toHaveBeenCalledTimes(1);
+    const [ctx] = vi.mocked(classifyPaste).mock.calls[0];
+    expect(ctx.existingRange).toBeUndefined();
+  });
+
+  it('Case D: does not call classifyPaste at all when activeHub is undefined', async () => {
+    const { result } = renderHook(() => usePasteImportFlow(makeOptions({ activeHub: undefined })));
+
+    await act(async () => {
+      await result.current.handlePasteAnalyze(CSV_TEXT);
+    });
+
+    // No complete Hub → Mode A.2 branch is skipped entirely.
+    expect(classifyPaste).not.toHaveBeenCalled();
+  });
+});
