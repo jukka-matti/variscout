@@ -149,4 +149,52 @@ describe('StageFiveModal interactions', () => {
     fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it('includes hypothesisDraft when filled', () => {
+    const onOpenInvestigation = vi.fn();
+    render(
+      <StageFiveModal
+        open
+        mode="mode-b"
+        onOpenInvestigation={onOpenInvestigation}
+        onSkip={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+    fireEvent.change(screen.getByTestId('stage-five-issue-input'), {
+      target: { value: 'Issue' },
+    });
+    fireEvent.change(screen.getByTestId('stage-five-question-input'), {
+      target: { value: 'Question?' },
+    });
+    fireEvent.change(screen.getByTestId('stage-five-hypothesis-input'), {
+      target: { value: 'Resin lot drift' },
+    });
+    fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
+    expect(onOpenInvestigation).toHaveBeenCalledWith({
+      issueStatement: 'Issue',
+      questions: [{ text: 'Question?' }],
+      hypothesisDraft: 'Resin lot drift',
+    });
+  });
+
+  it('omits hypothesisDraft from brief when hypothesis field is blank', () => {
+    const onOpenInvestigation = vi.fn();
+    render(
+      <StageFiveModal
+        open
+        mode="mode-b"
+        onOpenInvestigation={onOpenInvestigation}
+        onSkip={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+    fireEvent.change(screen.getByTestId('stage-five-issue-input'), {
+      target: { value: 'Issue' },
+    });
+    fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
+    expect(onOpenInvestigation).toHaveBeenCalledWith({
+      issueStatement: 'Issue',
+    });
+  });
 });

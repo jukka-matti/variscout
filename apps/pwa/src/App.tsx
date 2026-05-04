@@ -1326,6 +1326,7 @@ function AppMain() {
               questionsState.addQuestion(q.text, q.factor, q.level);
             }
           }
+          // TODO slice 4: persist brief.hypothesisDraft to investigation as a draft Hypothesis entity.
           // TODO (slice 4): wire brief.target into processContext once PWA gains a
           // processContext or equivalent improvement-target store field.
           stageFive.close();

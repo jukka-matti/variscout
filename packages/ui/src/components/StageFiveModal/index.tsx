@@ -26,6 +26,7 @@ export function StageFiveModal({
     const brief: AnalysisBrief = {};
     if (issue.trim()) brief.issueStatement = issue.trim();
     if (question.trim()) brief.questions = [{ text: question.trim() }];
+    if (hypothesis.trim()) brief.hypothesisDraft = hypothesis.trim();
     onOpenInvestigation(brief);
   };
 

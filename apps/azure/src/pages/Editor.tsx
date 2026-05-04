@@ -2013,6 +2013,7 @@ export const Editor: React.FC<EditorProps> = ({
               }
             }
           }
+          // TODO slice 4: persist brief.hypothesisDraft to investigation as a draft Hypothesis entity.
           stageFive.close();
         }}
         onSkip={stageFive.close}

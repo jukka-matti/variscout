@@ -797,6 +797,12 @@ export interface AnalysisBrief {
   issueStatement?: string;
   /** Upfront question entries */
   questions?: Array<{ text: string; factor?: string; level?: string }>;
+  /**
+   * Optional draft hypothesis text entered at Stage 5.
+   * Stored as-is; consumer apps decide how to surface it.
+   * Slice 4 will persist this to an investigation Hypothesis entity.
+   */
+  hypothesisDraft?: string;
   /** Improvement target */
   target?: {
     metric: AnalysisBriefTargetMetric;
