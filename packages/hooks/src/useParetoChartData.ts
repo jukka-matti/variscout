@@ -14,6 +14,8 @@ import { rollup, sum } from 'd3-array';
 import { getResponsiveMargins, applyTimeLens } from '@variscout/core';
 import type { ParetoDataPoint } from '@variscout/core';
 import type { DataRow, DataCellValue, ParetoRow } from '@variscout/core';
+import type { ParetoYMetricId, ComputeParetoYContext } from '@variscout/core/pareto';
+import { computeParetoY, PARETO_Y_METRICS } from '@variscout/core/pareto';
 import { useSessionStore } from '@variscout/stores';
 
 /** Maximum categories before aggregating remaining into "Others" */
@@ -42,6 +44,34 @@ export interface UseParetoChartDataOptions {
   parentWidth: number;
   /** Maximum categories before aggregating into "Others" (default: 20) */
   maxCategories?: number;
+  /**
+   * Optional Y-axis metric id. When provided AND not `'count'`, the hook
+   * groups `filteredData` by `factor` and computes the Y value per group via
+   * `computeParetoY(yMetric, rowsForGroup, yMetricContext)`. When omitted or
+   * set to `'count'`, the legacy `aggregation` field controls behavior.
+   *
+   * Caller is responsible for supplying `yMetricContext` with the columns / spec
+   * required by the chosen metric. See `ComputeParetoYContext`.
+   *
+   * If `computeParetoY` throws (e.g., metric requires a column not provided in
+   * context), the error propagates — failing loud surfaces misconfiguration in dev.
+   *
+   * **`yMetricContext` is an object** — callers MUST provide a stable reference
+   * (memoize with `useMemo` upstream). The hook adds it directly to the
+   * dependency array without deep comparison.
+   *
+   * Note: when `usingSeparateData` is true, `yMetric` is ignored. The separate
+   * Pareto file already encodes its own values (`row.value`/`row.count`); the
+   * dispatch path is for `filteredData` only.
+   */
+  yMetric?: ParetoYMetricId;
+  /**
+   * Context fields required by `computeParetoY` for non-`count` metrics.
+   * Caller assembles this from the active mode strategy + Hub config.
+   * Ignored when `yMetric` is undefined or `'count'`, or when using separate
+   * Pareto data.
+   */
+  yMetricContext?: ComputeParetoYContext;
 }
 
 export interface UseParetoChartDataResult {
@@ -79,6 +109,8 @@ export function useParetoChartData({
   filters,
   parentWidth,
   maxCategories = PARETO_MAX_CATEGORIES,
+  yMetric,
+  yMetricContext,
 }: UseParetoChartDataOptions): UseParetoChartDataResult {
   const timeLens = useSessionStore(s => s.timeLens);
 
@@ -124,12 +156,34 @@ export function useParetoChartData({
     let sorted: { key: string; value: number }[];
 
     if (usingSeparateData && separateParetoData) {
+      // Separate Pareto file already encodes its own values — ignore yMetric here.
       sorted = separateParetoData
         .map(row => ({
           key: row.category,
           value: aggregation === 'value' && row.value !== undefined ? row.value : row.count,
         }))
         .sort((a, b) => b.value - a.value);
+    } else if (!usingSeparateData && yMetric !== undefined && yMetric !== 'count') {
+      // yMetric dispatch path: group filteredData by factor, compute Y per group
+      // via computeParetoY. Errors propagate (failing loud surfaces misconfiguration).
+      const grouped = rollup(
+        lensedFilteredData,
+        (rows: DataRow[]) => computeParetoY(yMetric, rows, yMetricContext ?? {}),
+        (d: DataRow) => d[factor]
+      );
+      sorted = Array.from(grouped, ([key, value]: [DataCellValue, number]) => ({
+        key: String(key),
+        value,
+      }));
+
+      // Honor smallerIsWorse: ascending sort puts worst (smallest) first so the
+      // biggest capability gap / most critical group appears at the left of the chart.
+      const metric = PARETO_Y_METRICS[yMetric];
+      if (metric.smallerIsWorse) {
+        sorted.sort((a, b) => a.value - b.value);
+      } else {
+        sorted.sort((a, b) => b.value - a.value);
+      }
     } else if (aggregation === 'value' && outcome) {
       const sums = rollup(
         lensedFilteredData,
@@ -178,6 +232,8 @@ export function useParetoChartData({
     usingSeparateData,
     separateParetoData,
     maxCategories,
+    yMetric,
+    yMetricContext,
   ]);
 
   // Convert comparison percentages to expected values (same scale as bars)
