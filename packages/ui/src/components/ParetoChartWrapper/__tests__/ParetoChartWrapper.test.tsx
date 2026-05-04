@@ -88,6 +88,42 @@ vi.mock('@variscout/core/pareto', () => {
   return {};
 });
 
+// Mock @variscout/core/findings (sub-path) — only types are used at runtime
+vi.mock('@variscout/core/findings', () => {
+  return {};
+});
+
+// Mock ParetoMakeScopeButton — renders the button only when selectedBars is non-empty,
+// matching the real component's null-return guard. Fires onCreateInvestigation with a
+// deterministic brief so click assertions stay simple.
+vi.mock('../../ParetoMakeScopeButton', () => {
+  return {
+    ParetoMakeScopeButton: ({
+      factor,
+      selectedBars,
+      onCreateInvestigation,
+    }: {
+      factor: string;
+      selectedBars: ReadonlyArray<string | number>;
+      onCreateInvestigation: (brief: { issueStatement: string }) => void;
+    }) => {
+      if (selectedBars.length === 0) return null;
+      return (
+        <button
+          data-testid="pareto-make-scope-button"
+          onClick={() =>
+            onCreateInvestigation({
+              issueStatement: `Top Pareto category in ${factor}: ${selectedBars.map(String).join(', ')}`,
+            })
+          }
+        >
+          Make this the investigation scope
+        </button>
+      );
+    },
+  };
+});
+
 // Mock internal sibling components
 vi.mock('../../ChartAnnotationLayer', () => ({
   ChartAnnotationLayer: () => null,
@@ -358,5 +394,99 @@ describe('ParetoChartWrapperBase — scope filter click routing (P3.5)', () => {
 
     expect(screen.getByTestId('bar-A')).toHaveAttribute('data-selected', 'false');
     expect(screen.getByTestId('bar-B')).toHaveAttribute('data-selected', 'true');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// P4.2 — onMakeInvestigationScope wiring through ParetoChartWrapperBase
+// ---------------------------------------------------------------------------
+describe('ParetoChartWrapperBase — onMakeInvestigationScope (P4.2)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('button is absent when onMakeInvestigationScope is not provided (even with bars selected)', () => {
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        scopeFilterValues={['A']}
+        // onMakeInvestigationScope intentionally omitted
+      />
+    );
+    expect(screen.queryByTestId('pareto-make-scope-button')).not.toBeInTheDocument();
+  });
+
+  it('button is absent when selectedBars is empty (scopeFilterValues=[]) and prop is set', () => {
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        scopeFilterValues={[]}
+        onMakeInvestigationScope={vi.fn()}
+      />
+    );
+    expect(screen.queryByTestId('pareto-make-scope-button')).not.toBeInTheDocument();
+  });
+
+  it('button is absent when no scopeFilterValues and filters[factor] is empty', () => {
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        filters={{ Machine: [] }}
+        onMakeInvestigationScope={vi.fn()}
+      />
+    );
+    expect(screen.queryByTestId('pareto-make-scope-button')).not.toBeInTheDocument();
+  });
+
+  it('button renders when onMakeInvestigationScope provided and bars selected via filters[factor]', () => {
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        filters={{ Machine: ['A'] }}
+        onMakeInvestigationScope={vi.fn()}
+      />
+    );
+    expect(screen.getByTestId('pareto-make-scope-button')).toBeInTheDocument();
+  });
+
+  it('button renders when onMakeInvestigationScope provided and scopeFilterValues is non-empty', () => {
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        scopeFilterValues={['A', 'B']}
+        onMakeInvestigationScope={vi.fn()}
+      />
+    );
+    expect(screen.getByTestId('pareto-make-scope-button')).toBeInTheDocument();
+  });
+
+  it('click fires onMakeInvestigationScope with correct issueStatement (legacy filters path)', () => {
+    const onMakeInvestigationScope = vi.fn();
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        filters={{ Machine: ['A'] }}
+        onMakeInvestigationScope={onMakeInvestigationScope}
+      />
+    );
+    fireEvent.click(screen.getByTestId('pareto-make-scope-button'));
+    expect(onMakeInvestigationScope).toHaveBeenCalledTimes(1);
+    const brief = onMakeInvestigationScope.mock.calls[0][0] as { issueStatement: string };
+    expect(brief.issueStatement).toBe('Top Pareto category in Machine: A');
+  });
+
+  it('click fires onMakeInvestigationScope with correct issueStatement (scopeFilterValues path)', () => {
+    const onMakeInvestigationScope = vi.fn();
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        scopeFilterValues={['A', 'B']}
+        onMakeInvestigationScope={onMakeInvestigationScope}
+      />
+    );
+    fireEvent.click(screen.getByTestId('pareto-make-scope-button'));
+    expect(onMakeInvestigationScope).toHaveBeenCalledTimes(1);
+    const brief = onMakeInvestigationScope.mock.calls[0][0] as { issueStatement: string };
+    expect(brief.issueStatement).toBe('Top Pareto category in Machine: A, B');
   });
 });

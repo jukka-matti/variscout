@@ -17,6 +17,7 @@ import { useParetoChartData, useTranslation } from '@variscout/hooks';
 import { shouldShowBranding, getBrandingText } from '@variscout/core';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
 import { AxisEditor } from '../AxisEditor';
+import { ParetoMakeScopeButton } from '../ParetoMakeScopeButton';
 import {
   Eye,
   EyeOff,
@@ -29,6 +30,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import type { DataRow, ParetoRow, Finding } from '@variscout/core';
+import type { AnalysisBrief } from '@variscout/core/findings';
 import type { ParetoYMetric, ParetoYMetricId, ComputeParetoYContext } from '@variscout/core/pareto';
 import type { HighlightColor, ParetoMode } from '@variscout/hooks';
 
@@ -108,6 +110,18 @@ export interface ParetoChartWrapperBaseProps {
    * the highlight state.
    */
   scopeFilterValues?: ReadonlyArray<string | number>;
+  /**
+   * When provided AND bars are selected (via `scopeFilterValues` or `filters[factor]`),
+   * renders a "Make this the investigation scope" affordance next to the picker header.
+   * On click, builds an {@link AnalysisBrief} with auto-filled `issueStatement` and
+   * emits it via this callback.
+   *
+   * Consumers should wire this to a StageFiveModal opener. Consumer-app integration
+   * (opening StageFiveModal with the brief, creating an Investigation entity via the
+   * appropriate store) is per-app and is currently a follow-up — see slice 4 plan
+   * P4.2 scope notes.
+   */
+  onMakeInvestigationScope?: (brief: AnalysisBrief) => void;
   /**
    * Active Y-axis metric id. When set, takes precedence over `aggregation` for
    * non-count metrics. Forwarded to useParetoChartData.
@@ -312,6 +326,7 @@ export const ParetoChartWrapperBase = ({
   onUploadPareto,
   availableFactors = [],
   onFactorSwitch,
+  onMakeInvestigationScope,
   yMetric,
   availableYMetrics,
   onYMetricSwitch,
@@ -445,6 +460,18 @@ export const ParetoChartWrapperBase = ({
               onSelect={onYMetricSwitch}
             />
           )}
+
+        {onMakeInvestigationScope && (
+          <ParetoMakeScopeButton
+            factor={factor}
+            selectedBars={
+              scopeFilterValues
+                ? scopeFilterValues.map(v => v as string | number)
+                : filters[factor] || []
+            }
+            onCreateInvestigation={onMakeInvestigationScope}
+          />
+        )}
 
         {usingSeparateData && (
           <div className="flex items-center gap-1 text-xs text-amber-500 mr-2">
