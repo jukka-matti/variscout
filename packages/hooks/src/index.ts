@@ -558,3 +558,7 @@ export {
   type UseCanvasFiltersArgs,
   type UseCanvasFiltersResult,
 } from './useCanvasFilters';
+export {
+  useSessionCanvasFilters,
+  type UseSessionCanvasFiltersResult,
+} from './useSessionCanvasFilters';

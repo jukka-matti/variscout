@@ -657,6 +657,7 @@ export { SubgroupConfigPopover, type SubgroupConfigProps } from './components/Su
 
 // FRAME workspace — visual Process Map (ADR-070)
 export { Canvas, type CanvasProps } from './components/Canvas';
+export { CanvasWorkspace, type CanvasWorkspaceProps } from './components/Canvas/CanvasWorkspace';
 export { LayeredProcessView, type LayeredProcessViewProps } from './components/LayeredProcessView';
 export { LayeredProcessViewWithCapability } from './components/LayeredProcessView';
 export type {
