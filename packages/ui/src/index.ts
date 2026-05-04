@@ -776,3 +776,7 @@ export type {
 export type { ColumnShape } from './components/MatchSummaryCard/ColumnShapeSubSummary';
 export { JoinKeySuggestion } from './components/MatchSummaryCard/JoinKeySuggestion';
 export type { JoinKeySuggestionProps } from './components/MatchSummaryCard/JoinKeySuggestion';
+
+// Canvas filter chips (framing layer — composable investigation filter state chips)
+export { CanvasFilterChips } from './components/CanvasFilterChips';
+export type { CanvasFilterChipsProps } from './components/CanvasFilterChips';
