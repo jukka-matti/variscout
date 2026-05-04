@@ -14,6 +14,15 @@ export type TemporalAxisCase =
 
 export type BlockReason = 'overlap' | 'different-grain' | 'different-source-no-key';
 
+export interface JoinKeyCandidate {
+  hubColumn: string;
+  newColumn: string;
+  nameMatchScore: number; // 0–1
+  valueOverlapPct: number; // 0–1
+  cardinalityCompatible: boolean;
+  totalScore: number; // weighted combo
+}
+
 export interface MatchSummaryClassification {
   source: SourceAxisCase;
   temporal: TemporalAxisCase;
@@ -26,6 +35,8 @@ export interface MatchSummaryClassification {
   overlapRange?: { startISO: string; endISO: string };
   /** Estimated duplicate-row rate when temporal === 'replace'. */
   duplicateRate?: number;
+  /** Multi-source candidates ranked when source === 'different-source-joinable'. */
+  candidates?: JoinKeyCandidate[];
 }
 
 export interface ClassifyPasteContext {
