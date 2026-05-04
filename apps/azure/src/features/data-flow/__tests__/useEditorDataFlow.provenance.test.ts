@@ -83,7 +83,6 @@ function makeOptions(overrides: Partial<UseEditorDataFlowOptions> = {}): UseEdit
     specs: {},
     columnAliases: {},
     dataFilename: null,
-    dataQualityReport: null,
     analysisMode: 'standard',
     measureColumns: null,
     measureLabel: null,
