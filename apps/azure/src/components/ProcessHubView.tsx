@@ -19,6 +19,7 @@ import type {
 import { isProcessHubComplete } from '@variscout/core';
 import {
   GoalBanner,
+  OutcomePin,
   ProductionLineGlanceMigrationBanner,
   ProductionLineGlanceMigrationModal,
 } from '@variscout/ui';
@@ -121,6 +122,31 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
           >
             Add framing
           </button>
+        </div>
+      )}
+      {/* OutcomePin row — one pin per outcome when hub is complete.
+          Stats are not available in the rollup model without a live analysis;
+          the pin renders in the fallback (mean ± σ + n = 0) state and shows
+          an "+ Add specs" chip that opens the framing flow for spec entry. */}
+      {hubIsComplete && rollup.hub.outcomes && rollup.hub.outcomes.length > 0 && (
+        <div
+          className="flex flex-wrap gap-2 px-4 py-2 border-b border-edge bg-surface-secondary"
+          data-testid="outcome-pin-row"
+        >
+          {rollup.hub.outcomes.map(outcome => (
+            <OutcomePin
+              key={outcome.columnName}
+              outcome={outcome}
+              stats={{
+                mean: rollup.reviewSignal?.capability
+                  ? ((rollup.reviewSignal as { mean?: number }).mean ?? 0)
+                  : 0,
+                sigma: 0,
+                n: rollup.reviewSignal?.rowCount ?? 0,
+              }}
+              onAddSpecs={_col => onEditFraming?.(rollup.hub.id)}
+            />
+          ))}
         </div>
       )}
       <ProductionLineGlanceMigrationBanner

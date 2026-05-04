@@ -148,4 +148,32 @@ describe('ProcessHubView', () => {
     fireEvent.click(screen.getByTestId('hub-framing-prompt-cta'));
     expect(onEditFraming).toHaveBeenCalledWith('h1');
   });
+
+  // ── OutcomePin per outcome ──────────────────────────────────────────────────
+
+  it('renders no OutcomePin for an incomplete hub', () => {
+    // base rollup hub has no processGoal and no outcomes → incomplete
+    render(<ProcessHubView {...baseProps} />);
+    expect(screen.queryByTestId('outcome-pin-row')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('outcome-pin')).not.toBeInTheDocument();
+  });
+
+  it('renders one OutcomePin per outcome for a complete hub', () => {
+    const outcome1: OutcomeSpec = { columnName: 'FillWeight' } as OutcomeSpec;
+    const outcome2: OutcomeSpec = { columnName: 'CycleTime' } as OutcomeSpec;
+    const completeHub: ProcessHub = {
+      id: 'h4',
+      name: 'Line D',
+      processGoal: 'Reduce fill weight variation.',
+      outcomes: [outcome1, outcome2],
+    } as ProcessHub;
+    const completeRollup = {
+      hub: completeHub,
+      investigations: [],
+      evidenceSnapshots: [],
+    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    render(<ProcessHubView {...baseProps} rollup={completeRollup} />);
+    const pins = screen.getAllByTestId('outcome-pin');
+    expect(pins).toHaveLength(2);
+  });
 });
