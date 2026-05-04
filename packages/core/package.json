@@ -32,7 +32,8 @@
     "./signalCards": "./src/signalCards.ts",
     "./processMoments": "./src/processMoments.ts",
     "./evidenceSources": "./src/evidenceSources.ts",
-    "./matchSummary": "./src/matchSummary/index.ts"
+    "./matchSummary": "./src/matchSummary/index.ts",
+    "./pareto": "./src/pareto/index.ts"
   },
   "scripts": {
     "test": "vitest",
