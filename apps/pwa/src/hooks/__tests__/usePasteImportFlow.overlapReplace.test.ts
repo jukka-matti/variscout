@@ -165,7 +165,7 @@ describe('usePasteImportFlow — overlap-replace provenance (Issue 1)', () => {
     expect(nonOverlapDates).toContain('2026-05-04');
 
     // New rows (May 2–3 replacements) should also be present without __replacedBy.
-    const newRows = mergedData.filter(r => !r['__replacedBy'] && r['weight_g'] >= 200);
+    const newRows = mergedData.filter(r => !r['__replacedBy'] && (r['weight_g'] as number) >= 200);
     expect(newRows).toHaveLength(2);
     expect(newRows.map(r => r['ts']).sort()).toEqual(['2026-05-02', '2026-05-03']);
 
