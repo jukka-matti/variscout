@@ -1,6 +1,7 @@
-import type { MatchSummaryClassification } from '@variscout/core/matchSummary';
+import type { JoinKeyCandidate, MatchSummaryClassification } from '@variscout/core/matchSummary';
 import { TimelinePreview } from './TimelinePreview';
 import { ColumnShapeSubSummary, type ColumnShape } from './ColumnShapeSubSummary';
+import { JoinKeySuggestion } from './JoinKeySuggestion';
 
 export type { ColumnShape };
 
@@ -14,7 +15,8 @@ export type MatchSummaryActionChoice =
   | { kind: 'overlap-cancel' }
   | { kind: 'different-grain-cancel' }
   | { kind: 'different-grain-separate-hub' }
-  | { kind: 'different-source-no-key-new-hub' };
+  | { kind: 'different-source-no-key-new-hub' }
+  | { kind: 'multi-source-join'; candidate: JoinKeyCandidate };
 
 export interface MatchSummaryCardProps {
   classification: MatchSummaryClassification;
@@ -93,6 +95,21 @@ export function MatchSummaryCard({
       );
     }
 
+    if (classification.source === 'different-source-joinable') {
+      // The JoinKeySuggestion sub-card is the primary action for this case.
+      // The action row shows only a Cancel escape hatch.
+      return (
+        <button
+          type="button"
+          onClick={onCancel}
+          data-testid="match-summary-cancel"
+          className="px-3 py-1 text-gray-700 hover:bg-gray-100 rounded"
+        >
+          Cancel
+        </button>
+      );
+    }
+
     if (classification.source === 'different-source-no-key') {
       return (
         <button
@@ -151,6 +168,13 @@ export function MatchSummaryCard({
       />
 
       <ColumnShapeSubSummary shape={columnShape} />
+
+      {classification.source === 'different-source-joinable' && classification.candidates && (
+        <JoinKeySuggestion
+          candidates={classification.candidates}
+          onConfirm={c => onChoose({ kind: 'multi-source-join', candidate: c })}
+        />
+      )}
 
       <div className="flex gap-2 justify-end mt-4">{renderActions()}</div>
     </div>

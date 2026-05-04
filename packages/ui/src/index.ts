@@ -768,3 +768,5 @@ export type {
   MatchSummaryActionChoice,
 } from './components/MatchSummaryCard';
 export type { ColumnShape } from './components/MatchSummaryCard/ColumnShapeSubSummary';
+export { JoinKeySuggestion } from './components/MatchSummaryCard/JoinKeySuggestion';
+export type { JoinKeySuggestionProps } from './components/MatchSummaryCard/JoinKeySuggestion';
