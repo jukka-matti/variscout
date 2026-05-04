@@ -139,6 +139,73 @@ extends `ProcessMapNode` with `capabilityScope.specRules`, adds
 FRAME flows are unaffected; canonical-map inheritance kicks in when a hub
 is configured. Engine layer shipped as PR #103.
 
+## Amendment — 2026-05-03 (Superseded by Canvas; FRAME workspace retired as a top-level route)
+
+The 2026-05-03 product vision spec
+([`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../superpowers/specs/2026-05-03-variscout-vision-design.md))
+**retires the FRAME workspace as a top-level navigation tab.** The Canvas
+absorbs both Frame and Analysis as a single continuous surface; the river-styled
+SIPOC metaphor is dropped as a user-facing visual; "tributary" terminology is
+retired (replaced by "factor" / "input arrow"); the FRAME tab disappears from
+the AppHeader in both PWA and Azure.
+
+This is decided in the §8 walk-through summarized in
+`~/.claude/plans/lets-do-this-next-rustling-simon.md` and the
+2026-05-03 Vision §8 resolution entry in
+[`docs/decision-log.md`](../decision-log.md). The migration mode is hard
+cutover (Q7 — no parallel-run, no back-compat) because VariScout has no
+production users yet to preserve.
+
+What survives from this ADR:
+
+- The deterministic mode-inference principle (rules from map shape + column
+  roles, not silent keyword guesses) — implemented as the Canvas mode-lens
+  picker per vision §5.4. The `inferMode()` helper at
+  `packages/core/src/frame/modeInference.ts` continues to seed the
+  suggested-lens prompt (vision §5.4 — "today's silent mode auto-inference
+  survives as a suggested lens prompt").
+- The data-gap-detector idea — the methodology declares what it wants
+  (CTS / per-step CTQ / xs / time axis / spec limits); data declares what's
+  there; gaps surface as a measurement plan. Re-homed onto the Canvas as
+  card-level affordances (e.g., the "+ Add specs" chip per vision §5.2).
+- The capability-storytelling leg (rational subgroups from the user-sketched
+  axes; mode-aware coaching) — survives unchanged inside the Canvas.
+
+What gets deleted in the same PR that ships the Canvas:
+
+- `apps/azure/src/components/editor/FrameView.tsx` and the PWA equivalent.
+- `packages/ui/src/components/LayeredProcessView/LayeredProcessView.tsx` +
+  `LayeredProcessViewWithCapability.tsx`.
+- `packages/ui/src/components/ProcessMap/ProcessMapBase.tsx`.
+- `FrameViewB0` (the b0 lightweight render from the 2026-05-02 amendment
+  below — its job is now the sparse-Canvas first paint when no map is
+  authored yet).
+- The Frame and Analysis tab buttons in `AppHeader` (PWA + Azure).
+- The river-SIPOC SVG primitives in `packages/charts/src/ProcessMap/`.
+- "Tributary" UI strings, i18n keys (`wall.tributary.ariaLabel`), and
+  related code comments.
+
+`JourneyPhase = 'frame' | 'scout' | 'investigate' | 'improve'` stays in
+`packages/core/src/types` because Investigation continues to use phase-based
+CoScout tool gating internally — but it no longer drives the top-level nav.
+
+The 2026-04-28 amendment ("FRAME as one flow lens within a layered process
+view") is now subsumed: the layered-view bands + the FRAME flow lens are all
+expressed on the Canvas (vision §5.4 mode lenses + §5.2 cards). The Layered
+Process View design spec at
+[`docs/superpowers/specs/2026-04-27-layered-process-view-design.md`](../superpowers/specs/2026-04-27-layered-process-view-design.md)
+should be re-tagged or archived as a follow-up.
+
+The 2026-05-02 amendment below ("FRAME b0 lightweight render") describes a
+component that is itself absorbed: `FrameViewB0` becomes the deterministic
+"sparse Canvas" first paint when `processMap.nodes.length === 0`. The
+two-archetype rationale (investigator b0 vs author b1/b2) survives as a
+Canvas-state distinction, not a separate component.
+
+This amendment marks the ADR as **superseded for the workspace-tab role**;
+the methodology principles cited in §1–§6 of the original Decision live on
+inside the Canvas surface.
+
 ## Amendment — 2026-05-02 (FRAME b0 lightweight render)
 
 FRAME now branches on scope at the workspace's render layer. The b0 case (no

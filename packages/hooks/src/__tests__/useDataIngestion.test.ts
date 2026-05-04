@@ -242,7 +242,7 @@ describe('useDataIngestion', () => {
       result.current.loadSample(standardSample);
     });
 
-    expect(mockedValidateData).toHaveBeenCalledWith(standardSample.data, 'Weight');
+    expect(mockedValidateData).toHaveBeenCalledWith(standardSample.data, ['Weight']);
     expect(mockActions.setDataQualityReport).toHaveBeenCalledWith({ issues: [] });
   });
 });

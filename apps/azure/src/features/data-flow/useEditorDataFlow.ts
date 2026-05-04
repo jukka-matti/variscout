@@ -424,7 +424,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         if (detected.outcome) setOutcome(detected.outcome);
         if (detected.factors.length > 0) setFactors(detected.factors);
 
-        const report = validateData(data, detected.outcome);
+        const report = validateData(data, detected.outcome ? [detected.outcome] : []);
         setDataQualityReport(report);
 
         // Check for Yamazumi format (more specific than wide format)
@@ -496,7 +496,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           const merged = mergeRows(rawData, incoming);
           reapplyTimeColumns(merged, factors);
           setRawData(merged);
-          const report = validateData(merged, outcome!);
+          const report = validateData(merged, outcome ? [outcome] : []);
           setDataQualityReport(report);
           const feedback = `Appended ${incoming.length} rows (${merged.length} total)`;
           dispatch({ type: 'APPEND_ROWS_DONE', feedback });
@@ -504,7 +504,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         } else {
           const { data: merged, addedColumns } = mergeColumns(rawData, incoming);
           setRawData(merged);
-          const report = validateData(merged, outcome!);
+          const report = validateData(merged, outcome ? [outcome] : []);
           setDataQualityReport(report);
           const feedback = `Added ${addedColumns.length} column${addedColumns.length !== 1 ? 's' : ''} (${addedColumns.join(', ')})`;
           dispatch({ type: 'APPEND_COLUMNS_DONE', feedback });

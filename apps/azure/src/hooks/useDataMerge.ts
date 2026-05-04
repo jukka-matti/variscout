@@ -174,7 +174,7 @@ export function useDataMerge({
         setSpecs(finalConfig.specs);
       }
 
-      const report = validateData(finalData, finalConfig.outcome);
+      const report = validateData(finalData, finalConfig.outcome ? [finalConfig.outcome] : []);
       setDataQualityReport(report);
 
       if (

@@ -2,7 +2,7 @@
 title: Production-Line-Glance — Chart Components Layer (Plan B)
 audience: [engineer, architect]
 category: implementation
-status: in-progress
+status: delivered
 related: [production-line-glance-design, production-line-glance-engine]
 date: 2026-04-28
 ---

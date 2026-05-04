@@ -1,8 +1,10 @@
 ---
-title: Product-Method Roadmap
+title: Product-Method Roadmap (SUPERSEDED)
 audience: [product, designer, engineer, analyst, manager]
 category: design-spec
-status: draft
+status: superseded
+superseded-by: docs/superpowers/specs/2026-05-03-variscout-vision-design.md
+superseded-on: 2026-05-03
 related:
   [
     product-method,
@@ -18,6 +20,8 @@ date: 2026-04-27
 ---
 
 # Product-Method Roadmap
+
+> **Status: superseded as a vision document; retained as a delivery-sequence reference.** Per Q6 of the 2026-05-03 vision §8 walkthrough, horizons (H0 – H4) live here outside the canonical vision spec. **This document describes _sequencing_, not _destination_.** The destination — what VariScout is and what it does — lives in [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../../superpowers/specs/2026-05-03-variscout-vision-design.md). Read the vision spec first; consult this doc for delivery-order intent only. Stakeholders asking "what is VariScout?" should be pointed at the vision spec; stakeholders asking "when does X land?" can be pointed here.
 
 ## Summary
 
@@ -352,10 +356,10 @@ VariScout is:
 
 ## Related Docs
 
-- [Process Learning Operating Model](2026-04-27-process-learning-operating-model-design.md)
-- [Unified Process Hub Methodology Roadmap](2026-04-26-unified-process-hub-methodology-roadmap.md)
-- [Evidence Sources And Data Profiles](2026-04-26-evidence-sources-data-profiles-design.md)
-- [Customer-Tenant Ingestion And Rollups Concept](2026-04-29-customer-tenant-ingestion-rollups-concept.md) — Future automated/hourly Evidence Sources should use raw Blob evidence plus manifest-first rollups, with TypeScript-first VariScout product logic and Python allowed at the customer data edge.
-- [Process Hub Design](2026-04-25-process-hub-design.md)
-- [Question-Driven EDA 2.0](2026-04-25-question-driven-eda-2-design.md)
-- [Investigation Scope and Drill Semantics](2026-04-29-investigation-scope-and-drill-semantics-design.md) — Hub-of-Hubs design constraints (no statistical roll-up; visual side-by-side; cross-hub context filter) are specified here.
+- [Process Learning Operating Model](2026-04-27-process-learning-operating-model-design.md) (sibling in archive)
+- [Unified Process Hub Methodology Roadmap](../../superpowers/specs/2026-04-26-unified-process-hub-methodology-roadmap.md)
+- [Evidence Sources And Data Profiles](../../superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md)
+- [Customer-Tenant Ingestion And Rollups Concept](../../superpowers/specs/2026-04-29-customer-tenant-ingestion-rollups-concept.md) — Future automated/hourly Evidence Sources should use raw Blob evidence plus manifest-first rollups, with TypeScript-first VariScout product logic and Python allowed at the customer data edge.
+- [Process Hub Design](../../superpowers/specs/2026-04-25-process-hub-design.md)
+- [Question-Driven EDA 2.0](../../superpowers/specs/2026-04-25-question-driven-eda-2-design.md)
+- [Investigation Scope and Drill Semantics](../../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) — Hub-of-Hubs design constraints (no statistical roll-up; visual side-by-side; cross-hub context filter) are specified here.

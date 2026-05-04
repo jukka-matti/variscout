@@ -17,6 +17,7 @@ import type {
   ResponsePathAction,
 } from '@variscout/core';
 import {
+  GoalBanner,
   ProductionLineGlanceMigrationBanner,
   ProductionLineGlanceMigrationModal,
 } from '@variscout/ui';
@@ -71,6 +72,18 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
 
   return (
     <div className="flex h-full flex-col">
+      {/*
+        Mode A.1 reopen: surface the saved process goal immediately on Hub
+        load. Azure Standard tier persists Hub-level state via Dexie always
+        (no opt-in needed). GoalBanner self-renders nothing when goal is
+        empty, so unbiased Hubs (pre-Framing-Layer Hubs without processGoal)
+        keep the existing layout untouched.
+
+        TODO(slice-2): wire `onChange` once HubCreationFlow + Hub-update
+        mutation hook lands. Read-only for slice 1 because ProcessHubView
+        does not currently receive a Hub-update callback in its props.
+      */}
+      <GoalBanner goal={rollup.hub.processGoal} />
       <ProductionLineGlanceMigrationBanner
         count={migration.count}
         onMapClick={migration.openModal}

@@ -30,7 +30,7 @@ process, service workflow, or development value stream.
 For the horizon-level product-method roadmap that places Process Hub inside
 the broader progression from one dataset to Process Measurement System,
 process learning memory, and CoScout context layer, see
-[Product-Method Roadmap](2026-04-27-product-method-roadmap-design.md).
+[VariScout Product Vision](2026-05-03-variscout-vision-design.md) (supersedes the 2026-04-27 product-method-roadmap, now in `docs/archive/specs/`).
 
 Process Hub does not replace the investigation method. Each investigation still
 uses the VariScout journey:
@@ -154,7 +154,7 @@ Every investigation and cadence review should be readable through three levels:
 FRAME's process map is a flow-level lens. Capability, Process Flow, Yamazumi,
 Defect, Performance, and Standard EDA are analysis modes that help the user
 move between levels. See
-[Process Learning Operating Model](2026-04-27-process-learning-operating-model-design.md).
+[VariScout Product Vision](2026-05-03-variscout-vision-design.md) §2 (supersedes the 2026-04-27 operating-model, now in `docs/archive/specs/`).
 
 ### Question-Driven EDA
 

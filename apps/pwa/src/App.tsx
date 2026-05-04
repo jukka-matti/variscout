@@ -18,7 +18,11 @@ import {
   QuestionsTabView,
   JournalTabView,
   QuestionLinkPrompt,
+  GoalBanner,
+  HubGoalForm,
 } from '@variscout/ui';
+import { SessionProvider, useSession } from './store/sessionStore';
+import { hubRepository } from './db/hubRepository';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
   useFindings,
@@ -46,7 +50,12 @@ import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
-import { type ExclusionReason, type Question, toNumericValue } from '@variscout/core';
+import {
+  type ExclusionReason,
+  type Question,
+  toNumericValue,
+  extractHubName,
+} from '@variscout/core';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
@@ -127,10 +136,31 @@ function App() {
     return <EvidenceMapPopout />;
   }
 
-  return <AppMain />;
+  return (
+    <SessionProvider>
+      <AppMain />
+    </SessionProvider>
+  );
 }
 
 function AppMain() {
+  // ── Session (current Hub + opt-in persistence hydration) ───────────────
+  // Mode A.1 (D5): on mount, check the persistence opt-in flag. If set, load
+  // the saved Hub-of-one from IndexedDB and seed the session. Otherwise the
+  // app stays session-only (default PWA invariant).
+  const { hub: sessionHub, setHub: setSessionHub, goalNarrative, setGoalNarrative } = useSession();
+  useEffect(() => {
+    let cancelled = false;
+    void hubRepository.getOptInFlag().then(async opted => {
+      if (!opted || cancelled) return;
+      const loaded = await hubRepository.loadHub();
+      if (loaded && !cancelled) setSessionHub(loaded);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [setSessionHub]);
+
   // ── Zustand store selectors (replaces useDataStateCtx) ──────────────────
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
@@ -321,6 +351,8 @@ function AppMain() {
     if (rawData.length === 0) {
       setMobileActiveTab('analysis');
       panels.showAnalysis();
+      // Mode B: reset Stage 1 narrative gate so the next paste flow re-asks.
+      setGoalNarrative(null);
     }
   }, [rawData.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -598,6 +630,38 @@ function AppMain() {
     setQuestionLinkPromptOpen(false);
   }, []);
 
+  // Mode B: when ColumnMapping confirms, fold the Stage 1 narrative into the
+  // session Hub so the GoalBanner picks it up immediately. Slice 1 keeps the
+  // Hub minimal (id + name + processGoal + createdAt); the slice-2 refactor
+  // will populate `outcomes` / `primaryScopeDimensions` from the new Stage 3
+  // mapping rows. We preserve any pre-existing sessionHub fields (e.g. when
+  // restored from opt-in persistence — Mode A.1) by spreading first.
+  const handleMappingConfirmWithGoal = useCallback(
+    (
+      newOutcome: string,
+      newFactors: string[],
+      newSpecs?: { target?: number; lsl?: number; usl?: number }
+    ) => {
+      importFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
+      if (goalNarrative && goalNarrative.trim()) {
+        const base = sessionHub ?? {
+          id: crypto.randomUUID(),
+          name: '',
+          createdAt: new Date().toISOString(),
+        };
+        setSessionHub({
+          ...base,
+          name: extractHubName(goalNarrative) || base.name || 'Untitled hub',
+          processGoal: goalNarrative,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      // TODO(slice-2): wire outcomes[] + primaryScopeDimensions into Hub
+      // construction once Stage 3 ColumnMapping refactor lands.
+    },
+    [importFlow, goalNarrative, sessionHub, setSessionHub]
+  );
+
   // Phase tab navigation handler (used by AppHeader inline tabs)
   const handlePhaseChange = useCallback(
     (phase: PhaseId) => {
@@ -755,6 +819,10 @@ function AppMain() {
         </div>
       )}
 
+      {/* Goal banner — surfaces the Hub processGoal when restored from
+          opt-in persistence (Mode A.1) or set via the framing layer flow. */}
+      {sessionHub?.processGoal ? <GoalBanner goal={sessionHub.processGoal} /> : null}
+
       {/* Main Content */}
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
         {/* Stats Sidebar (left) */}
@@ -803,6 +871,17 @@ function AppMain() {
                 onOpenPaste={importFlow.handleOpenPaste}
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
               />
+            ) : importFlow.isMapping && goalNarrative === null ? (
+              // Mode B Stage 1: ask for the process goal narrative before
+              // showing ColumnMapping. The sentinel pattern (null = unasked,
+              // '' = skipped, string = provided) lets us gate exactly once
+              // per import. ColumnMapping internals are unchanged in slice 1.
+              <div className="max-w-2xl mx-auto p-6 w-full">
+                <HubGoalForm
+                  onConfirm={narrative => setGoalNarrative(narrative)}
+                  onSkip={() => setGoalNarrative('')}
+                />
+              </div>
             ) : importFlow.isMapping ? (
               <ColumnMapping
                 columnAnalysis={importFlow.mappingColumnAnalysis}
@@ -814,7 +893,7 @@ function AppMain() {
                 initialOutcome={outcome}
                 initialFactors={factors}
                 datasetName={dataFilename || undefined}
-                onConfirm={importFlow.handleMappingConfirm}
+                onConfirm={handleMappingConfirmWithGoal}
                 onCancel={importFlow.handleMappingCancel}
                 dataQualityReport={dataQualityReport}
                 onViewExcludedRows={panels.openDataTableExcluded}

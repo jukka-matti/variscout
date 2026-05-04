@@ -66,3 +66,35 @@ a replacement for the mode strategy.
 Implementation lands incrementally as Plans B/C/D for the production-line-
 glance dashboard ship the canonical-map and per-step capability primitives.
 See `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`.
+
+## Amendment — 2026-05-03: Modes and levels are orthogonal axes
+
+The 2026-05-03 product vision spec
+([`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../superpowers/specs/2026-05-03-variscout-vision-design.md))
+§5.4 sharpens the mode/level relationship into an explicit
+**orthogonality**:
+
+- **Modes** answer _which analytical lens are we applying?_ (capability /
+  yamazumi / defect / performance / process-flow). They re-skin Canvas
+  cards.
+- **Levels** answer _which slice of the process are we scanning?_
+  (System / Process Flow / Local Mechanism). They are expressed as a
+  Canvas pan/zoom state, not a separate picker.
+
+The two cross-cut: a user can read at any level in any mode. Level is
+**inferred from the Canvas zoom state**, not selected from a dropdown — so
+CoScout's level-aware overlays do not require any new user gesture; they
+read the current zoom state and adjust the tier1/tier2 prompt context
+accordingly.
+
+This refines (does not replace) the 2026-04-28 amendment above. The
+mode-aware coaching modules in `packages/core/src/ai/prompts/coScout/`
+continue to be the dispatch point; the level overlay reads the Canvas zoom
+state via the same context-builder pipeline (`coScout/context/`).
+
+Resolves the "modes vs levels" tension flagged in
+`~/.claude/plans/i-would-need-to-drifting-hummingbird.md` (the devil's-
+advocate critique of the 2026-04-27 operating-model pivot). Locked as Q3
+in the 2026-05-03 vision §8 walkthrough — see
+`~/.claude/plans/lets-do-this-next-rustling-simon.md` and the matching
+entry in [`docs/decision-log.md`](../decision-log.md).

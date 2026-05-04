@@ -142,7 +142,6 @@ hub-of-hubs design without forcing implementation scope.
 ## Related Docs
 
 - [Evidence Sources And Data Profiles](2026-04-26-evidence-sources-data-profiles-design.md)
-- [Product-Method Roadmap](2026-04-27-product-method-roadmap-design.md)
-- [Process Learning Operating Model](2026-04-27-process-learning-operating-model-design.md)
+- [VariScout Product Vision](2026-05-03-variscout-vision-design.md) (supersedes the 2026-04-27 product-method-roadmap and operating-model specs, both now in `docs/archive/specs/`)
 - [Process Hub Storage and CoScout Context Boundary](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md)
 - [No Statistical Roll-Up Across Heterogeneous Units](../../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md)

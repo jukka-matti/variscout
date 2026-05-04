@@ -2,7 +2,7 @@
 title: Production-Line-Glance — C1 Data Layer + Hub Capability Tab Implementation Plan
 audience: [engineer, architect]
 category: implementation
-status: in-progress
+status: delivered
 related:
   [
     production-line-glance-surface-wiring-design,
@@ -137,7 +137,11 @@ describe('distinctContextValues', () => {
   ];
 
   it('returns distinct values for a column, sorted lexicographically', () => {
-    expect(distinctContextValues(rows, 'product')).toEqual(['Coke 12oz', 'Coke 16oz', 'Sprite 12oz']);
+    expect(distinctContextValues(rows, 'product')).toEqual([
+      'Coke 12oz',
+      'Coke 16oz',
+      'Sprite 12oz',
+    ]);
   });
 
   it('excludes null and empty values', () => {
@@ -153,7 +157,9 @@ describe('distinctContextValues', () => {
   });
 
   it('caps cardinality at 50 (returns first 50 sorted)', () => {
-    const many: DataRow[] = Array.from({ length: 100 }, (_, i) => ({ k: `v${String(i).padStart(3, '0')}` }));
+    const many: DataRow[] = Array.from({ length: 100 }, (_, i) => ({
+      k: `v${String(i).padStart(3, '0')}`,
+    }));
     const result = distinctContextValues(many, 'k');
     expect(result.length).toBe(50);
     expect(result[0]).toBe('v000');
@@ -195,10 +201,7 @@ const MAX_DISTINCT_VALUES = 50;
  * Used by `useProductionLineGlanceData` to populate the filter strip's
  * per-column chip options.
  */
-export function distinctContextValues(
-  rows: readonly DataRow[],
-  column: string
-): string[] {
+export function distinctContextValues(rows: readonly DataRow[], column: string): string[] {
   const seen = new Set<string>();
   for (const row of rows) {
     const raw = row[column];
@@ -383,7 +386,10 @@ describe('rollupStepErrors', () => {
   it('aggregates across multiple investigations mapped to the same node', () => {
     const m1 = makeMember({
       id: 'i1',
-      rows: [{ mixCpk: 1.0, defect: 'crack' }, { mixCpk: 1.0, defect: 'crack' }],
+      rows: [
+        { mixCpk: 1.0, defect: 'crack' },
+        { mixCpk: 1.0, defect: 'crack' },
+      ],
       nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }],
     });
     const m2 = makeMember({
@@ -605,11 +611,7 @@ Create `packages/hooks/src/__tests__/useProductionLineGlanceData.test.ts`:
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useProductionLineGlanceData } from '../useProductionLineGlanceData';
-import type {
-  ProcessHub,
-  ProcessHubInvestigation,
-  DataRow,
-} from '@variscout/core';
+import type { ProcessHub, ProcessHubInvestigation, DataRow } from '@variscout/core';
 
 const map = {
   version: 1 as const,
@@ -674,7 +676,11 @@ describe('useProductionLineGlanceData', () => {
     const m = makeMember({
       id: 'i1',
       nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }],
-      rows: Array.from({ length: 30 }, (_, i) => ({ mixCpk: 1.0 + (i % 7) * 0.1, product: 'A', defect: 'pass' })),
+      rows: Array.from({ length: 30 }, (_, i) => ({
+        mixCpk: 1.0 + (i % 7) * 0.1,
+        product: 'A',
+        defect: 'pass',
+      })),
     });
     const rowsByInv = new Map([['i1', m.rows ?? []]]);
     const { result } = renderHook(() =>
@@ -710,7 +716,11 @@ describe('useProductionLineGlanceData', () => {
       { mixCpk: 1.4, product: 'Sprite 12oz' },
       { mixCpk: 1.1, product: 'Coke 12oz' },
     ];
-    const m = makeMember({ id: 'i1', nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }], rows });
+    const m = makeMember({
+      id: 'i1',
+      nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }],
+      rows,
+    });
     const { result } = renderHook(() =>
       useProductionLineGlanceData({
         hub,
@@ -729,7 +739,11 @@ describe('useProductionLineGlanceData', () => {
       { mixCpk: 0.5, product: 'B' },
       { mixCpk: 0.4, product: 'B' },
     ];
-    const m = makeMember({ id: 'i1', nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }], rows });
+    const m = makeMember({
+      id: 'i1',
+      nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }],
+      rows,
+    });
     const { result } = renderHook(() =>
       useProductionLineGlanceData({
         hub,
@@ -764,7 +778,11 @@ describe('useProductionLineGlanceData', () => {
       { mixCpk: 1.0, defect: 'crack' },
       { mixCpk: 1.0, defect: 'crack' },
     ];
-    const m = makeMember({ id: 'i1', nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }], rows });
+    const m = makeMember({
+      id: 'i1',
+      nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }],
+      rows,
+    });
     const { result } = renderHook(() =>
       useProductionLineGlanceData({
         hub,
@@ -883,7 +901,8 @@ export function useProductionLineGlanceData(
         // Run engine per (member × node) — collect first non-empty
         for (const member of members) {
           if ((member as { processHubId?: string }).processHubId !== hub.id) continue;
-          const meta = (member as { metadata?: { nodeMappings?: Array<{ nodeId: string }> } }).metadata;
+          const meta = (member as { metadata?: { nodeMappings?: Array<{ nodeId: string }> } })
+            .metadata;
           if (!meta?.nodeMappings?.some(m => m.nodeId === node.id)) continue;
           const rows = rowsByInvestigation.get(member.id) ?? [];
           const filtered = rows.filter(r => rowMatchesFilter(r, contextFilter));
@@ -996,9 +1015,7 @@ Expected: PASS — 6/6.
 - [ ] **Step 5: Re-export from `packages/hooks/src/index.ts`**
 
 ```typescript
-export {
-  useProductionLineGlanceData,
-} from './useProductionLineGlanceData';
+export { useProductionLineGlanceData } from './useProductionLineGlanceData';
 export type {
   UseProductionLineGlanceDataInput,
   UseProductionLineGlanceDataResult,
@@ -1203,12 +1220,8 @@ Expected: PASS — 6/6.
 - [ ] **Step 6: Re-export from `packages/hooks/src/index.ts`**
 
 ```typescript
-export {
-  useProductionLineGlanceFilter,
-} from './useProductionLineGlanceFilter';
-export type {
-  UseProductionLineGlanceFilterResult,
-} from './useProductionLineGlanceFilter';
+export { useProductionLineGlanceFilter } from './useProductionLineGlanceFilter';
+export type { UseProductionLineGlanceFilterResult } from './useProductionLineGlanceFilter';
 ```
 
 - [ ] **Step 7: Commit**
@@ -1347,7 +1360,8 @@ export function useB0InvestigationsInHub(
   return useMemo(() => {
     const unmapped = members.filter(m => {
       if ((m as { processHubId?: string }).processHubId !== hubId) return false;
-      const meta = (m as { metadata?: { nodeMappings?: unknown[]; migrationDeclinedAt?: string } }).metadata;
+      const meta = (m as { metadata?: { nodeMappings?: unknown[]; migrationDeclinedAt?: string } })
+        .metadata;
       if (!meta) return true;
       const mappings = meta.nodeMappings ?? [];
       if (mappings.length > 0) return false;
@@ -1367,9 +1381,7 @@ Expected: PASS — 4/4.
 - [ ] **Step 5: Re-export from `packages/hooks/src/index.ts`**
 
 ```typescript
-export {
-  useB0InvestigationsInHub,
-} from './useB0InvestigationsInHub';
+export { useB0InvestigationsInHub } from './useB0InvestigationsInHub';
 export type {
   UseB0InvestigationsInHubInput,
   UseB0InvestigationsInHubResult,
@@ -1952,9 +1964,7 @@ Identify how `ProcessHubReviewPanel` currently receives `rollup: ProcessHubRollu
 If the rollup already contains `rows` per member (per the test fixtures earlier in this plan), then T8's hook just unpacks those and extracts the rows map:
 
 ```typescript
-const rowsByInvestigation = new Map(
-  rollup.investigations.map(inv => [inv.id, inv.rows ?? []])
-);
+const rowsByInvestigation = new Map(rollup.investigations.map(inv => [inv.id, inv.rows ?? []]));
 ```
 
 If rows are NOT yet on the rollup (separate Dexie tables), T8 fetches them via `useLiveQuery` (a Dexie-React hook used elsewhere in this codebase — verify by `grep`).
@@ -2640,10 +2650,7 @@ Create `apps/azure/src/features/processHub/useHubMigrationState.ts`:
 
 ```typescript
 import { useCallback, useState } from 'react';
-import {
-  useB0InvestigationsInHub,
-  type UseB0InvestigationsInHubResult,
-} from '@variscout/hooks';
+import { useB0InvestigationsInHub, type UseB0InvestigationsInHubResult } from '@variscout/hooks';
 import {
   suggestNodeMappings,
   type ProcessHubInvestigation,
@@ -2672,9 +2679,7 @@ export interface UseHubMigrationStateResult extends UseB0InvestigationsInHubResu
   handleDecline: (investigationId: string) => void;
 }
 
-export function useHubMigrationState(
-  input: UseHubMigrationStateInput
-): UseHubMigrationStateResult {
+export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMigrationStateResult {
   const { hubId, members, canonicalMap, persistInvestigation } = input;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const b0 = useB0InvestigationsInHub({ hubId, members });
@@ -2686,7 +2691,7 @@ export function useHubMigrationState(
     const meta = (inv as { metadata?: ProcessHubInvestigationMetadata }).metadata;
     const measurementColumn = meta?.legacyMeasurementColumn ?? '';
     const suggestions = canonicalMap
-      ? suggestNodeMappings({ canonicalMap, measurementColumn }) ?? []
+      ? (suggestNodeMappings({ canonicalMap, measurementColumn }) ?? [])
       : [];
     return {
       investigationId: inv.id,
@@ -2701,7 +2706,13 @@ export function useHubMigrationState(
   });
 
   const handleSave = useCallback(
-    (mappings: ReadonlyArray<{ investigationId: string; nodeId: string; measurementColumn: string }>) => {
+    (
+      mappings: ReadonlyArray<{
+        investigationId: string;
+        nodeId: string;
+        measurementColumn: string;
+      }>
+    ) => {
       const byId = new Map(mappings.map(m => [m.investigationId, m]));
       for (const inv of members) {
         const m = byId.get(inv.id);

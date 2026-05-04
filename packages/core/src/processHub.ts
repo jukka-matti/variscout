@@ -51,6 +51,23 @@ export interface ProcessParticipantRef {
   displayName: string;
 }
 
+export type CharacteristicType = 'nominalIsBest' | 'smallerIsBetter' | 'largerIsBetter';
+
+export interface OutcomeSpec {
+  /** Column name from the dataset that quantifies delivery on the goal. */
+  columnName: string;
+  /** Characteristic type — drives spec input UI (nominal disables nothing; smaller-is-better disables LSL; larger-is-better disables USL). */
+  characteristicType: CharacteristicType;
+  /** Target value. Customer-driven; UI may suggest dataset mean for nominal-is-best as a starting point. */
+  target?: number;
+  /** Lower spec limit. Customer-driven (no σ-based suggestions). N/A for smaller-is-better. */
+  lsl?: number;
+  /** Upper spec limit. Customer-driven (no σ-based suggestions). N/A for larger-is-better. */
+  usl?: number;
+  /** Cpk target. Defaults to 1.33 (literature standard). */
+  cpkTarget?: number;
+}
+
 export interface ProcessHub {
   id: string;
   name: string;
@@ -79,6 +96,12 @@ export interface ProcessHub {
    * both uniformly. Declaration location is UX metadata.
    */
   contextColumns?: string[];
+  /** Process goal narrative (Hub-level, durable). One paragraph; 1–5 sentences typical. */
+  processGoal?: string;
+  /** Outcome columns and their specs. Multiple outcomes supported per Hub. */
+  outcomes?: OutcomeSpec[];
+  /** Discrete columns the analyst slices analysis by most often. Marked dimensions get prominent picker access. */
+  primaryScopeDimensions?: string[];
   /**
    * Hub-level review signal — analyst-set defaults that cascade to every
    * investigation linked to this hub. Currently the only field set by UI is

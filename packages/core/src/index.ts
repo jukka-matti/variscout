@@ -301,6 +301,7 @@ export type {
   ExclusionReason,
   ExcludedRow,
   ColumnIssue,
+  PerOutcomeQuality,
   DataQualityReport,
   ParetoRow,
   DetectChannelsOptions,
@@ -920,3 +921,23 @@ export { mergeRows, type MergeReport, type MergeResult } from './appendMode';
 
 // Throughput metrics (Multi-level SCOUT V1)
 export * from './throughput';
+
+// Hub utilities (Framing Layer V1)
+export * from './hub';
+
+// Characteristic-type-aware spec defaults (Framing Layer V1)
+export {
+  defaultSpecsFor,
+  inferOutcomeCharacteristicType,
+} from './specs/characteristicTypeDefaults';
+export type { DataStats } from './specs/characteristicTypeDefaults';
+
+// Scope dimension suggestion (Framing Layer V1)
+export { suggestPrimaryDimensions } from './scopeDimensions/suggestPrimaryDimensions';
+export type { DimensionCandidate } from './scopeDimensions/suggestPrimaryDimensions';
+
+// .vrs file format (Framing Layer V1)
+export { vrsExport } from './serialization/vrsExport';
+export { vrsImport } from './serialization/vrsImport';
+export { VRS_VERSION } from './serialization/vrsFormat';
+export type { VrsFile } from './serialization/vrsFormat';

@@ -55,11 +55,19 @@ export interface ColumnIssue {
   severity: 'warning' | 'info';
 }
 
+export interface PerOutcomeQuality {
+  validCount: number;
+  invalidCount: number;
+  missingCount: number;
+}
+
 export interface DataQualityReport {
   totalRows: number;
   validRows: number;
   excludedRows: ExcludedRow[];
   columnIssues: ColumnIssue[];
+  /** Per-outcome quality summary. Present when validateData is called with an array. */
+  perOutcome: Record<string, PerOutcomeQuality>;
 }
 
 export interface ParetoRow {
@@ -86,4 +94,17 @@ export interface DetectWideFormatOptions extends DetectChannelsOptions {
   minChannels?: number;
   /** Minimum percentage of channels with matching pattern for high confidence (default: 0.5) */
   patternMatchThreshold?: number;
+}
+
+/**
+ * Options for column detection
+ */
+export interface DetectColumnsOptions {
+  /**
+   * Free-text description of the investigation goal (e.g. "Reduce defect rate at our line.").
+   * Keywords extracted from this string are used to apply an additive score bonus to outcome
+   * candidates whose column names share tokens with the goal. Does not replace keyword-based
+   * scoring — purely additive (D4).
+   */
+  goalContext?: string;
 }

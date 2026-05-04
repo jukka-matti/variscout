@@ -260,7 +260,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           setFactors(detected.factors);
         }
 
-        const report = validateData(data, detected.outcome);
+        const report = validateData(data, detected.outcome ? [detected.outcome] : []);
         setDataQualityReport(report);
 
         const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
@@ -332,7 +332,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         setSpecs(config.specs);
       }
 
-      const report = validateData(data, config.outcome);
+      const report = validateData(data, config.outcome ? [config.outcome] : []);
       setDataQualityReport(report);
 
       clearSelection();

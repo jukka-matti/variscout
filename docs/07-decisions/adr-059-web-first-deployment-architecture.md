@@ -152,3 +152,43 @@ Conflict resolution: ETag-based optimistic concurrency on `metadata.json`.
 ### Documentation Changes
 
 See design spec `docs/archive/specs/2026-04-02-web-first-deployment-architecture-design.md` for full 20-file documentation impact.
+
+---
+
+## Amendment — 2026-05-03: PWA local Hub-of-one (IndexedDB persistence stays browser-tenant-only)
+
+The 2026-05-03 product vision spec
+([`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../superpowers/specs/2026-05-03-variscout-vision-design.md))
+§7 commits PWA to a **local Hub-of-one**: a single Process Hub persisted in
+IndexedDB, surviving page refresh and offline use. Same Canvas UX as the Azure
+tier (build map, set specs, run analysis, return later, data persists).
+Multi-Hub portfolio + cloud sync + cadence-driven Evidence Sources + CoScout
+
+- team features remain Azure-tier exclusive.
+
+This refines (does not change) the customer-owned-data principle established
+in this ADR:
+
+- **PWA local Hub data is browser-tenant-only.** IndexedDB lives in the user's
+  browser profile under the PWA's origin. No data leaves the device. No
+  back-end, no sync, no telemetry payload that could re-export user data.
+- **Constitution P1 (browser-only processing) holds.** The PWA continues to
+  process all data client-side; the only change is that processed data now
+  persists across sessions instead of evaporating on tab close.
+- **Constitution P8 (no AI in free tier) holds.** CoScout remains an Azure-
+  tier feature. PWA's local Hub never sees a CoScout prompt.
+- **Azure tier's customer-owned-data principle is unchanged.** Customer data
+  in Azure flows to customer-tenant Blob Storage via SAS-token-gated
+  `/api/storage-token`; no data leaves the customer's Azure subscription.
+
+**Schema implications.** The new IndexedDB persistence layer in PWA needs to
+hold: `ProcessMap` (steps + sub-steps + arrows + branches/joins + named
+contexts), `Specs` per column / per step (target / USL / LSL / cpkTarget /
+characteristic type), `Investigations` (questions + hypotheses + findings +
+SuspectedCauses + causalLinks), `Snapshots` (per-dataset history), and
+display state for the Canvas zoom / overlay toggles. Schema details belong
+to the FRAME canvas detail spec when it brainstorms persistence.
+
+Locked as Q8 in the 2026-05-03 vision §8 walkthrough — see
+`~/.claude/plans/lets-do-this-next-rustling-simon.md` and the matching
+entry in [`docs/decision-log.md`](../decision-log.md).

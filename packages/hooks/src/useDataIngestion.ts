@@ -228,7 +228,7 @@ export function useDataIngestion(
           if (detected.factors.length > 0) setFactors(detected.factors);
 
           // Run validation and store report
-          const report = validateData(data, detected.outcome);
+          const report = validateData(data, detected.outcome ? [detected.outcome] : []);
           setDataQualityReport(report);
 
           // Check for Yamazumi format (more specific than wide format)
@@ -375,7 +375,7 @@ export function useDataIngestion(
 
       if (newColumns.length > 0) {
         setFactors([...currentFactors, ...newColumns]);
-        const report = validateData(rawData, outcome);
+        const report = validateData(rawData, outcome ? [outcome] : []);
         setDataQualityReport(report);
       }
     },
@@ -389,7 +389,10 @@ export function useDataIngestion(
       setOutcome(sample.config.outcome);
       setFactors(sample.config.factors);
       setSpecs(sample.config.specs);
-      const report = validateData(sample.data as DataRow[], sample.config.outcome);
+      const report = validateData(
+        sample.data as DataRow[],
+        sample.config.outcome ? [sample.config.outcome] : []
+      );
       setDataQualityReport(report);
       // Pareto data source: sample-seeded (pre-aggregated QC defects) or derived from factors.
       if (sample.config.separateParetoData?.length) {

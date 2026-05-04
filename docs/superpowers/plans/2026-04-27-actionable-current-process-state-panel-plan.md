@@ -1,6 +1,6 @@
 ---
 title: Actionable Current Process State Panel — Implementation Plan
-status: draft
+status: delivered
 ---
 
 # Actionable Current Process State Panel — Implementation Plan

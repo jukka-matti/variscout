@@ -1,0 +1,50 @@
+export const STOPWORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'are',
+  'as',
+  'at',
+  'be',
+  'by',
+  'for',
+  'from',
+  'has',
+  'have',
+  'in',
+  'is',
+  'it',
+  'of',
+  'on',
+  'or',
+  'that',
+  'the',
+  'this',
+  'to',
+  'was',
+  'we',
+  'will',
+  'with',
+  'our',
+  'their',
+  'they',
+  'do',
+  'does',
+  'did',
+  'can',
+  'could',
+  'should',
+  'would',
+  'about',
+  'into',
+  'over',
+  'under',
+  'than',
+]);
+
+export function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-z0-9_]+/)
+    .filter(t => t.length > 2 && !STOPWORDS.has(t));
+}

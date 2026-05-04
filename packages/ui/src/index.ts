@@ -730,3 +730,31 @@ export type {
   ProductionLineGlanceMigrationModalEntry,
   ProductionLineGlanceMigrationSuggestion,
 } from './components/ProductionLineGlanceMigration';
+
+// Hub Goal Form (framing layer Stage 1 — free-text narrative + scaffold chips)
+export { HubGoalForm } from './components/HubGoalForm/HubGoalForm';
+export type { HubGoalFormProps } from './components/HubGoalForm/HubGoalForm';
+
+// Outcome Candidate Row (framing layer Stage 3 — inline per-candidate specs)
+export { OutcomeCandidateRow } from './components/OutcomeCandidateRow/OutcomeCandidateRow';
+export type {
+  OutcomeCandidate,
+  OutcomeCandidateRowProps,
+} from './components/OutcomeCandidateRow/OutcomeCandidateRow';
+
+// Primary Scope Dimensions Selector (framing layer Stage 3 sub-step)
+export { PrimaryScopeDimensionsSelector } from './components/PrimaryScopeDimensionsSelector/PrimaryScopeDimensionsSelector';
+export type {
+  DimensionRow,
+  PrimaryScopeDimensionsSelectorProps,
+} from './components/PrimaryScopeDimensionsSelector/PrimaryScopeDimensionsSelector';
+
+// Outcome No Match Banner (framing layer graceful degradation)
+export { OutcomeNoMatchBanner } from './components/OutcomeNoMatchBanner/OutcomeNoMatchBanner';
+export type { OutcomeNoMatchBannerProps } from './components/OutcomeNoMatchBanner/OutcomeNoMatchBanner';
+
+// Canvas first-paint components (framing layer)
+export { GoalBanner } from './components/GoalBanner/GoalBanner';
+export type { GoalBannerProps } from './components/GoalBanner/GoalBanner';
+export { OutcomePin } from './components/OutcomePin/OutcomePin';
+export type { OutcomePinProps } from './components/OutcomePin/OutcomePin';

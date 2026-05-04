@@ -262,6 +262,9 @@ importers:
       d3-array:
         specifier: ^3.2.4
         version: 3.2.4
+      dexie:
+        specifier: ^4.4.2
+        version: 4.4.2
       html-to-image:
         specifier: ^1.11.13
         version: 1.11.13

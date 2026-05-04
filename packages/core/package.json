@@ -7,6 +7,7 @@
     ".": "./src/index.ts",
     "./stats": "./src/stats/index.ts",
     "./parser": "./src/parser/index.ts",
+    "./processHub": "./src/processHub.ts",
     "./ai": "./src/ai/index.ts",
     "./capability": "./src/capability/index.ts",
     "./findings": "./src/findings/index.ts",
