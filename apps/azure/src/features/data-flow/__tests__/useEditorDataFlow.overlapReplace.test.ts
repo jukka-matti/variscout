@@ -221,6 +221,9 @@ describe('useEditorDataFlow — overlap-replace provenance (Issue 1)', () => {
 });
 
 // ─── existingRange call-site wiring tests ─────────────────────────────────────
+// These cases test the `evidenceSnapshots` hook option (not `ProcessHub.evidenceSnapshots`,
+// which does not exist). The caller (Editor.tsx) loads snapshots from IndexedDB separately
+// and passes them via this option. ProcessHub stays a pure data-only type.
 
 describe('useEditorDataFlow — existingRange wiring (ADR-077 follow-up)', () => {
   const TIME_RANGE = { startISO: '2026-05-01T00:00:00.000Z', endISO: '2026-05-04T23:59:59.999Z' };
@@ -236,25 +239,22 @@ describe('useEditorDataFlow — existingRange wiring (ADR-077 follow-up)', () =>
     vi.mocked(classifyPaste).mockReturnValue(PASSTHROUGH_CLASSIFICATION);
   });
 
-  it('Case A: forwards existingRange when latest snapshot has a rowTimestampRange', async () => {
-    const hubWithRange: ProcessHub = {
-      ...COMPLETE_HUB,
-      evidenceSnapshots: [
-        {
-          id: 'snap-1',
-          hubId: 'hub-1',
-          sourceId: 'src-1',
-          capturedAt: '2026-05-01T00:00:00Z',
-          importedAt: '2026-05-01T00:00:00Z',
-          origin: 'paste-abc',
-          rowCount: 4,
-          rowTimestampRange: TIME_RANGE,
-        },
-      ],
-    };
+  it('Case A: forwards existingRange when evidenceSnapshots option has a snapshot with rowTimestampRange', async () => {
+    const evidenceSnapshots = [
+      {
+        id: 'snap-1',
+        hubId: 'hub-1',
+        sourceId: 'src-1',
+        capturedAt: '2026-05-01T00:00:00Z',
+        importedAt: '2026-05-01T00:00:00Z',
+        origin: 'paste-abc',
+        rowCount: 4,
+        rowTimestampRange: TIME_RANGE,
+      },
+    ];
 
     const { result } = renderHook(() =>
-      useEditorDataFlow(makeOptions({ activeHub: hubWithRange }))
+      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB, evidenceSnapshots }))
     );
 
     await act(async () => {
@@ -266,14 +266,9 @@ describe('useEditorDataFlow — existingRange wiring (ADR-077 follow-up)', () =>
     expect(ctx.existingRange).toEqual(TIME_RANGE);
   });
 
-  it('Case B: forwards existingRange as undefined when evidenceSnapshots is empty', async () => {
-    const hubNoSnapshots: ProcessHub = {
-      ...COMPLETE_HUB,
-      evidenceSnapshots: [],
-    };
-
+  it('Case B: forwards existingRange as undefined when evidenceSnapshots option is empty', async () => {
     const { result } = renderHook(() =>
-      useEditorDataFlow(makeOptions({ activeHub: hubNoSnapshots }))
+      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB, evidenceSnapshots: [] }))
     );
 
     await act(async () => {
@@ -286,24 +281,21 @@ describe('useEditorDataFlow — existingRange wiring (ADR-077 follow-up)', () =>
   });
 
   it('Case C: forwards existingRange as undefined when latest snapshot has no rowTimestampRange', async () => {
-    const hubSnapshotNoRange: ProcessHub = {
-      ...COMPLETE_HUB,
-      evidenceSnapshots: [
-        {
-          id: 'snap-1',
-          hubId: 'hub-1',
-          sourceId: 'src-1',
-          capturedAt: '2026-05-01T00:00:00Z',
-          importedAt: '2026-05-01T00:00:00Z',
-          origin: 'paste-abc',
-          rowCount: 4,
-          // rowTimestampRange intentionally absent
-        },
-      ],
-    };
+    const evidenceSnapshots = [
+      {
+        id: 'snap-1',
+        hubId: 'hub-1',
+        sourceId: 'src-1',
+        capturedAt: '2026-05-01T00:00:00Z',
+        importedAt: '2026-05-01T00:00:00Z',
+        origin: 'paste-abc',
+        rowCount: 4,
+        // rowTimestampRange intentionally absent
+      },
+    ];
 
     const { result } = renderHook(() =>
-      useEditorDataFlow(makeOptions({ activeHub: hubSnapshotNoRange }))
+      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB, evidenceSnapshots }))
     );
 
     await act(async () => {

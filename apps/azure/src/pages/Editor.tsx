@@ -60,6 +60,8 @@ import {
   getColumnNames,
 } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
+import { listEvidenceSnapshotsFromIndexedDB } from '../services/localDb';
+import type { EvidenceSnapshot } from '@variscout/core/evidenceSources';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
@@ -438,6 +440,10 @@ export const Editor: React.FC<EditorProps> = ({
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
   const [isMobileSurveyOpen, setIsMobileSurveyOpen] = useState(false);
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
+  // Evidence snapshots for the active hub — loaded separately so ProcessHub stays
+  // a pure data-only type (no denormalised snapshot list). Sorted ascending by
+  // importedAt so `at(-1)` in useEditorDataFlow yields the most-recent snapshot.
+  const [hubEvidenceSnapshots, setHubEvidenceSnapshots] = useState<EvidenceSnapshot[]>([]);
 
   // Reset mobile tab when data is cleared
   useEffect(() => {
@@ -449,6 +455,22 @@ export const Editor: React.FC<EditorProps> = ({
       .then(setProcessHubs)
       .catch(() => setProcessHubs([]));
   }, [listProcessHubs]);
+
+  // Load evidence snapshots whenever the active hub changes. Sorted ascending so
+  // useEditorDataFlow can read `.at(-1)` to get the most-recent snapshot.
+  const activeHubId = processContext?.processHubId;
+  useEffect(() => {
+    if (!activeHubId) {
+      setHubEvidenceSnapshots([]);
+      return;
+    }
+    listEvidenceSnapshotsFromIndexedDB(activeHubId)
+      .then(snapshots =>
+        // DB returns descending by capturedAt; reverse to get ascending importedAt order.
+        setHubEvidenceSnapshots([...snapshots].reverse())
+      )
+      .catch(() => setHubEvidenceSnapshots([]));
+  }, [activeHubId]);
 
   useEffect(() => {
     if (!initialProcessHubId || projectId || processContext?.processHubId) return;
@@ -544,6 +566,9 @@ export const Editor: React.FC<EditorProps> = ({
     measureColumns,
     measureLabel,
     activeHub,
+    // PWA-equivalent path: snapshots loaded separately from IndexedDB and passed here so
+    // ProcessHub stays a pure data type. See useEditorDataFlow for how this is consumed.
+    evidenceSnapshots: hubEvidenceSnapshots,
     setRawData,
     setOutcome,
     setFactors,
