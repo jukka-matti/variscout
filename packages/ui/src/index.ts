@@ -558,6 +558,12 @@ export {
 // Preview Badge
 export { PreviewBadge } from './components/PreviewBadge';
 
+// Step Defect Indicator (per-step defect count badge — future step-card mounting)
+export {
+  StepDefectIndicator,
+  type StepDefectIndicatorProps,
+} from './components/StepDefectIndicator';
+
 // AI Onboarding Tooltip
 export {
   AIOnboardingTooltip,

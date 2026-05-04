@@ -886,6 +886,7 @@ export type {
   DefectDataShape,
   DefectMapping,
   DefectDetection,
+  DefectStepRollup,
   DefectTransformResult,
   DefectQuestionInput,
 } from './defect';
