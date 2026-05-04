@@ -33,8 +33,13 @@ export function VrsImportButton({ onImport }: VrsImportButtonProps) {
         onChange={onChange}
         style={{ display: 'none' }}
         aria-label="import .vrs file"
+        data-testid="vrs-import-input"
       />
-      <button type="button" onClick={() => inputRef.current?.click()}>
+      <button
+        type="button"
+        data-testid="vrs-import-button"
+        onClick={() => inputRef.current?.click()}
+      >
         Choose .vrs file
       </button>
     </label>
