@@ -2,6 +2,12 @@ import type { SnapshotProvenance } from '../evidenceSources';
 import type { DataRow } from '../types';
 import { parseTimeValue } from '../time';
 
+const REPLACED_BY = '__replacedBy';
+
+export function archiveReplacedRows(rows: ReadonlyArray<DataRow>, importId: string): DataRow[] {
+  return rows.map(r => ({ ...r, [REPLACED_BY]: importId }));
+}
+
 export function createSnapshotProvenance(
   origin: string,
   rows: DataRow[],

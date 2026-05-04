@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createSnapshotProvenance } from '../provenance';
+import { createSnapshotProvenance, archiveReplacedRows } from '../provenance';
 import type { DataRow } from '../../types';
 
 describe('createSnapshotProvenance', () => {
@@ -52,5 +52,19 @@ describe('createSnapshotProvenance', () => {
     expect(prov.rowTimestampRange).toBeDefined();
     expect(prov.rowTimestampRange?.startISO).toBe('2023-01-01T00:00:00.000Z');
     expect(prov.rowTimestampRange?.endISO).toBe('2024-01-01T00:00:00.000Z');
+  });
+});
+
+describe('archiveReplacedRows', () => {
+  it('tags replaced rows with __replacedBy:<importId>', () => {
+    const existing: DataRow[] = [
+      { ts: '2026-04-15', v: 100 },
+      { ts: '2026-04-16', v: 101 },
+    ];
+    const replaced = archiveReplacedRows(existing, 'import-abc');
+    expect(replaced).toEqual([
+      { ts: '2026-04-15', v: 100, __replacedBy: 'import-abc' },
+      { ts: '2026-04-16', v: 101, __replacedBy: 'import-abc' },
+    ]);
   });
 });
