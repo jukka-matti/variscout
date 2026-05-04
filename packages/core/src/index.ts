@@ -512,6 +512,7 @@ export {
   buildProcessHubReview,
   buildProcessHubRollups,
   investigationStatusFromJourneyPhase,
+  isProcessHubComplete,
   normalizeProcessHubId,
 } from './processHub';
 export { buildCurrentProcessState } from './processState';
