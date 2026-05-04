@@ -601,6 +601,41 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [processHubs, saveProcessHub]
   );
 
+  /**
+   * Persist an inline goal-narrative edit from GoalBanner back to the Hub.
+   * Mirrors handleHubCpkTargetCommit's optimistic-update + async-save pattern.
+   */
+  const handleHubGoalChange = useCallback(
+    (hubId: string, nextGoal: string): void => {
+      const hub = processHubs.find(h => h.id === hubId);
+      if (!hub) return;
+      const updated: ProcessHub = {
+        ...hub,
+        processGoal: nextGoal,
+        updatedAt: new Date().toISOString(),
+      };
+      setProcessHubs(prev => prev.map(h => (h.id === hubId ? updated : h)));
+      void saveProcessHub(updated).catch(err => {
+        console.error('[Dashboard] handleHubGoalChange failed:', err);
+      });
+    },
+    [processHubs, saveProcessHub]
+  );
+
+  /**
+   * "Edit framing" / "Add framing" CTA: re-open the Editor on the hub's
+   * investigation to surface HubCreationFlow. For incomplete Hubs this
+   * opens a new Editor entry (Mode B); for complete Hubs it could be used
+   * to re-enter Stage 3.  We navigate via onOpenProject with the hub id so
+   * the Editor picks up the existing Hub context.
+   */
+  const handleEditFraming = useCallback(
+    (hubId: string): void => {
+      onOpenProject(undefined, hubId);
+    },
+    [onOpenProject]
+  );
+
   const handleSampleSelect = (sample: SampleDataset): void => {
     if (onLoadSample) {
       onLoadSample(sample);
@@ -624,20 +659,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
     input.click();
   };
 
-  const handleCreateHub = async (): Promise<void> => {
-    const name = window.prompt('Process Hub name');
-    const trimmed = name?.trim();
-    if (!trimmed) return;
-    const id = trimmed
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+  /**
+   * Mode B entry — create a minimal incomplete Hub record and navigate to its
+   * ProcessHubView where the "Add framing" CTA (onEditFraming) takes over.
+   * Replaces the old window.prompt path (no native blocking dialogs per plan).
+   */
+  const handleCreateHub = useCallback(async (): Promise<void> => {
     const now = new Date().toISOString();
-    const hub: ProcessHub = { id: id || `hub-${Date.now()}`, name: trimmed, createdAt: now };
+    const hub: ProcessHub = {
+      id: crypto.randomUUID(),
+      name: 'New Hub',
+      createdAt: now,
+      updatedAt: now,
+    };
     await saveProcessHub(hub);
+    setProcessHubs(prev => [...prev, hub]);
     setSelectedHubId(hub.id);
-    await loadProjects();
-  };
+  }, [saveProcessHub]);
 
   // Get sync status display
   const getSyncStatusDisplay = (): React.ReactNode => {
@@ -829,6 +867,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onFindingSelect={handleFindingSelect}
                 persistInvestigation={handlePersistInvestigation}
                 onHubCpkTargetCommit={handleHubCpkTargetCommit}
+                onHubGoalChange={handleHubGoalChange}
+                onEditFraming={handleEditFraming}
               />
               <ProcessHubEvidencePanel
                 hubId={selectedHubRollup.hub.id}
