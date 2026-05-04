@@ -31,4 +31,16 @@ describe('GoalBanner', () => {
     fireEvent.click(screen.getByText(/cancel/i));
     expect(onChange).not.toHaveBeenCalled();
   });
+
+  it('Save with empty draft does NOT invoke onChange and banner stays in edit mode', () => {
+    const onChange = vi.fn();
+    render(<GoalBanner goal="Old text" onChange={onChange} />);
+    fireEvent.click(screen.getByTestId('goal-banner'));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '' } });
+    fireEvent.click(screen.getByText(/save/i));
+    // onChange must not fire
+    expect(onChange).not.toHaveBeenCalled();
+    // Still in edit mode — textarea still present
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
 });
