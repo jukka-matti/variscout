@@ -10,6 +10,7 @@ import {
   DEFECT_COUNT_KEYWORDS,
   PASS_FAIL_VALUES,
   PASS_FAIL_COLUMN_KEYWORDS,
+  STEP_REJECTED_AT_KEYWORDS,
 } from '../parser/defectKeywords';
 import { TIME_KEYWORDS } from '../parser/keywords';
 
@@ -68,6 +69,34 @@ function matchesPassFailValues(data: DataRow[], columnName: string): boolean {
     const pair = [a.toLowerCase(), b.toLowerCase()].sort();
     return sorted[0] === pair[0] && sorted[1] === pair[1];
   });
+}
+
+/**
+ * Suggest the column most likely to identify which step caught each defect.
+ *
+ * Strategy:
+ * 1. Filter to categorical columns with reasonable cardinality (≥ 2 levels, ≤ 50).
+ *    A column with just 1 unique value carries no information; > 50 levels is
+ *    almost certainly a join key, not a step identifier.
+ * 2. Score each candidate by matching its normalized name against
+ *    STEP_REJECTED_AT_KEYWORDS in order — first match wins. Earlier (more
+ *    specific) keywords beat later (more generic) ones.
+ * 3. Return the highest-scoring column's name, or undefined if none match.
+ *
+ * @returns Column name of the best candidate, or undefined when no name matches.
+ */
+export function suggestStepRejectedAtColumn(columns: ColumnAnalysis[]): string | undefined {
+  // Iterate keywords in priority order; for each keyword, find any column
+  // whose normalized name contains it. Return the first found.
+  for (const keyword of STEP_REJECTED_AT_KEYWORDS) {
+    const match = columns.find(col => {
+      if (col.type !== 'categorical') return false;
+      if (col.uniqueCount < 2 || col.uniqueCount > 50) return false;
+      return normalizeColumnName(col.name).includes(keyword);
+    });
+    if (match) return match.name;
+  }
+  return undefined;
 }
 
 /**
@@ -160,6 +189,7 @@ export function detectDefectFormat(
         countColumn: countCol.name,
         aggregationUnit: groupingCol.name,
         unitsProducedColumn: unitsProducedCol?.name,
+        stepRejectedAtColumn: suggestStepRejectedAtColumn(columnAnalysis),
       },
     };
   }
@@ -174,6 +204,7 @@ export function detectDefectFormat(
         dataShape: 'event-log',
         defectTypeColumn: defectTypeCol.name,
         aggregationUnit: groupingCol?.name ?? '',
+        stepRejectedAtColumn: suggestStepRejectedAtColumn(columnAnalysis),
       },
     };
   }
@@ -196,6 +227,7 @@ export function detectDefectFormat(
         dataShape: 'pass-fail',
         resultColumn: passFail.name,
         aggregationUnit: groupingCol?.name ?? '',
+        stepRejectedAtColumn: suggestStepRejectedAtColumn(columnAnalysis),
       },
     };
   }
