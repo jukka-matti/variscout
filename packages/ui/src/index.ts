@@ -21,6 +21,7 @@ export {
   type ColumnMappingConfirmPayload,
   type AnalysisBrief,
 } from './components/ColumnMapping';
+export { StageFiveModal, type StageFiveModalProps } from './components/StageFiveModal';
 export { SelectionPanel, type SelectionPanelProps } from './components/SelectionPanel';
 export { CreateFactorModal, type CreateFactorModalProps } from './components/CreateFactorModal';
 export { UpgradePrompt, type UpgradePromptProps } from './components/UpgradePrompt';
