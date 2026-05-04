@@ -120,11 +120,27 @@ vi.mock('@variscout/ui', () => ({
     onConfirm,
     onCancel,
   }: {
-    onConfirm: (outcome: string, factors: string[]) => void;
+    onConfirm: (payload: {
+      outcomes: Array<{ columnName: string; characteristicType: string }>;
+      primaryScopeDimensions: string[];
+      outcome: string;
+      factors: string[];
+    }) => void;
     onCancel: () => void;
   }) => (
     <div data-testid="column-mapping">
-      <button onClick={() => onConfirm('Weight', ['Machine'])}>Confirm</button>
+      <button
+        onClick={() =>
+          onConfirm({
+            outcomes: [{ columnName: 'Weight', characteristicType: 'nominalIsBest' }],
+            primaryScopeDimensions: ['Machine'],
+            outcome: 'Weight',
+            factors: ['Machine'],
+          })
+        }
+      >
+        Confirm
+      </button>
       <button onClick={onCancel}>Cancel</button>
     </div>
   ),

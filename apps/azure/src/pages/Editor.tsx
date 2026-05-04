@@ -36,7 +36,7 @@ import {
   QuestionLinkPrompt,
   SurveyNotebookBase,
   DEFAULT_PRESETS,
-  type AnalysisBrief,
+  type ColumnMappingConfirmPayload,
   type MatrixDimension,
 } from '@variscout/ui';
 import {
@@ -64,7 +64,6 @@ import type {
   ExclusionReason,
   Finding,
   Question,
-  InvestigationCategory,
   IdeaDirection,
   InvestigationDepth,
   InvestigationStatus,
@@ -293,7 +292,13 @@ export const Editor: React.FC<EditorProps> = ({
   initialSample,
   initialProcessHubId,
 }) => {
-  const { syncStatus, listProjects, listProcessHubs, saveProject: saveToCloud } = useStorage();
+  const {
+    syncStatus,
+    listProjects,
+    listProcessHubs,
+    saveProject: saveToCloud,
+    saveProcessHub,
+  } = useStorage();
   const { locale } = useLocale();
   const { showToast } = useToast();
 
@@ -1195,16 +1200,24 @@ export const Editor: React.FC<EditorProps> = ({
     }
   }, [isCoScoutOpen, aiOrch.coscout]);
 
-  // Pass categories and brief from ColumnMapping into DataContext
+  // Handle ColumnMapping confirm — adopts new Hub-shaped payload (slice-2 contract).
+  // Wire categories, brief, and investigation state; persist outcomes + primaryScopeDimensions
+  // to the active Hub via saveProcessHub (Task H will surface this on ProcessHubView — for
+  // Task A we wire the data path so it's available from this point forward).
   const handleMappingConfirmWithCategories = useCallback(
-    (
-      newOutcome: string,
-      newFactors: string[],
-      newSpecs?: { target?: number; lsl?: number; usl?: number },
-      newCategories?: InvestigationCategory[],
-      brief?: AnalysisBrief
-    ) => {
+    (payload: ColumnMappingConfirmPayload) => {
+      const {
+        categories: newCategories,
+        brief,
+        outcome: newOutcome,
+        factors: newFactors,
+        specs: newSpecs,
+        outcomes,
+        primaryScopeDimensions,
+      } = payload;
+
       if (newCategories) setCategories(newCategories);
+
       if (brief) {
         const updatedContext = { ...processContext };
         if (brief.issueStatement) updatedContext.issueStatement = brief.issueStatement;
@@ -1220,9 +1233,39 @@ export const Editor: React.FC<EditorProps> = ({
           }
         }
       }
+
+      // Persist outcomes + primaryScopeDimensions to the active Hub.
+      // The Hub is identified by processContext.processHubId; save is async
+      // (fire-and-forget here — ProcessHubView Task H surfaces the persisted state).
+      if (
+        (outcomes.length > 0 || primaryScopeDimensions.length > 0) &&
+        processContext?.processHubId
+      ) {
+        const currentHub = processHubs.find(h => h.id === processContext.processHubId);
+        if (currentHub) {
+          saveProcessHub({
+            ...currentHub,
+            outcomes,
+            primaryScopeDimensions,
+            updatedAt: new Date().toISOString(),
+          }).catch(() => {
+            // Non-blocking — storage failure is logged by the storage service
+          });
+        }
+      }
+
+      // Delegate to investigation flow (legacy 3-arg form for importFlow compat).
       dataFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
     },
-    [dataFlow, setCategories, processContext, setProcessContext, questionsState]
+    [
+      dataFlow,
+      setCategories,
+      processContext,
+      setProcessContext,
+      questionsState,
+      processHubs,
+      saveProcessHub,
+    ]
   );
 
   // Compute excluded row data for DataTableModal

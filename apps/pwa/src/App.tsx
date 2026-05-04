@@ -4,6 +4,7 @@ import { lazyWithRetry } from './lib/chunkReload';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
+  type ColumnMappingConfirmPayload,
   FindingsWindow,
   openFindingsPopout,
   updateFindingsPopout,
@@ -630,34 +631,37 @@ function AppMain() {
     setQuestionLinkPromptOpen(false);
   }, []);
 
-  // Mode B: when ColumnMapping confirms, fold the Stage 1 narrative into the
-  // session Hub so the GoalBanner picks it up immediately. Slice 1 keeps the
-  // Hub minimal (id + name + processGoal + createdAt); the slice-2 refactor
-  // will populate `outcomes` / `primaryScopeDimensions` from the new Stage 3
-  // mapping rows. We preserve any pre-existing sessionHub fields (e.g. when
-  // restored from opt-in persistence — Mode A.1) by spreading first.
+  // Mode B: when ColumnMapping confirms, fold the Stage 1 narrative + Stage 3
+  // Hub-shaped payload (outcomes, primaryScopeDimensions) into the session Hub
+  // so the GoalBanner picks it up immediately. Preserve any pre-existing
+  // sessionHub fields (Mode A.1 restore path) by spreading first.
   const handleMappingConfirmWithGoal = useCallback(
-    (
-      newOutcome: string,
-      newFactors: string[],
-      newSpecs?: { target?: number; lsl?: number; usl?: number }
-    ) => {
-      importFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
-      if (goalNarrative && goalNarrative.trim()) {
-        const base = sessionHub ?? {
-          id: crypto.randomUUID(),
-          name: '',
-          createdAt: new Date().toISOString(),
-        };
-        setSessionHub({
-          ...base,
-          name: extractHubName(goalNarrative) || base.name || 'Untitled hub',
-          processGoal: goalNarrative,
-          updatedAt: new Date().toISOString(),
-        });
-      }
-      // TODO(slice-2): wire outcomes[] + primaryScopeDimensions into Hub
-      // construction once Stage 3 ColumnMapping refactor lands.
+    (payload: ColumnMappingConfirmPayload) => {
+      // Delegate legacy investigation flow (importFlow still takes the 3-arg form).
+      // Pass the first outcome for single-outcome compat; full outcomes[] are on the Hub.
+      importFlow.handleMappingConfirm(payload.outcome, payload.factors, payload.specs);
+
+      const base = sessionHub ?? {
+        id: crypto.randomUUID(),
+        name: '',
+        createdAt: new Date().toISOString(),
+      };
+
+      const goalNarrativeForHub = goalNarrative && goalNarrative.trim() ? goalNarrative : undefined;
+
+      setSessionHub({
+        ...base,
+        ...(goalNarrativeForHub
+          ? {
+              name: extractHubName(goalNarrativeForHub) || base.name || 'Untitled hub',
+              processGoal: goalNarrativeForHub,
+            }
+          : {}),
+        // Wire outcomes + primaryScopeDimensions into the Hub (resolves slice-1 TODO).
+        outcomes: payload.outcomes,
+        primaryScopeDimensions: payload.primaryScopeDimensions,
+        updatedAt: new Date().toISOString(),
+      });
     },
     [importFlow, goalNarrative, sessionHub, setSessionHub]
   );
