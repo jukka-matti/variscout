@@ -194,6 +194,7 @@ vi.mock('@variscout/ui', () => ({
   JournalTabContent: () => null,
   DocumentShelfBase: () => null,
   WhatIfExplorerPage: () => null,
+  StageFiveModal: () => null,
   computePresets: vi.fn(() => undefined),
   useIsMobile: () => false,
   useGlossary: () => ({ getTerm: (key: string) => key }),

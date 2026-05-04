@@ -37,7 +37,9 @@ import {
   DEFAULT_PRESETS,
   type ColumnMappingConfirmPayload,
   type MatrixDimension,
+  StageFiveModal,
 } from '@variscout/ui';
+import { useStageFiveOpener } from '../features/hubCreation/useStageFiveOpener';
 import {
   useControlViolations,
   useQuestions,
@@ -718,6 +720,9 @@ export const Editor: React.FC<EditorProps> = ({
     dataFlow.startPaste();
   }, [dataFlow]);
 
+  // Stage 5 modal — opens after Mode B Stage 3 confirm and via on-demand button.
+  const stageFive = useStageFiveOpener();
+
   /**
    * Called by HubCreationFlow once Stage 1 creates a hub. Adds the new hub to
    * the local list and sets it as the active hub in processContext so the
@@ -1287,6 +1292,10 @@ export const Editor: React.FC<EditorProps> = ({
 
       // Delegate to investigation flow (legacy 3-arg form for importFlow compat).
       dataFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
+
+      // Stage 5 (spec §5.5): open the floating investigation-context modal before
+      // the canvas paints so the analyst can capture issue / questions upfront.
+      stageFive.openModeB();
     },
     [
       dataFlow,
@@ -1296,6 +1305,7 @@ export const Editor: React.FC<EditorProps> = ({
       questionsState,
       processHubs,
       saveProcessHub,
+      stageFive,
     ]
   );
 
@@ -1529,6 +1539,24 @@ export const Editor: React.FC<EditorProps> = ({
           />
         ) : outcome ? (
           <>
+            {/* Canvas framing toolbar — '+New investigation' on-demand entry
+                (Mode A.1 reopen path, spec §5.5). Visible whenever data + outcome are
+                set (i.e. the analyst is on the canvas, not in a mapping modal). */}
+            <div
+              className="flex items-center gap-2 px-4 py-1.5 bg-surface-secondary border-b border-edge"
+              data-testid="framing-toolbar"
+            >
+              <div className="flex-1" />
+              <button
+                type="button"
+                onClick={stageFive.openOnDemand}
+                data-testid="canvas-new-investigation"
+                className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+              >
+                + New investigation
+              </button>
+            </div>
+
             {/* Workspace content (ADR-055) — tabs are in AppHeader */}
             {activeView === 'dashboard' ? (
               <div className="flex-1 overflow-y-auto">
@@ -1937,6 +1965,39 @@ export const Editor: React.FC<EditorProps> = ({
           setBrainstormQuestionId(null);
           setBrainstormIdeas([]);
         }}
+      />
+
+      {/* Stage 5 modal — investigation context capture.
+          Opens after Mode B Stage 3 confirm (openModeB) and via on-demand button
+          on the canvas chrome (openOnDemand). Brief contents are NOT logged to
+          App Insights or any telemetry — they are customer PII (ADR-059). */}
+      <StageFiveModal
+        open={stageFive.open}
+        mode={stageFive.mode}
+        onOpenInvestigation={brief => {
+          // Wire issueStatement into processContext (same path as brief.issueStatement
+          // in handleMappingConfirmWithCategories — the existing setter accepts this).
+          // NOTE: brief contents must NOT be logged to App Insights (PII).
+          if (brief.issueStatement || brief.target || brief.questions) {
+            const updatedContext = { ...(processContext ?? {}) };
+            if (brief.issueStatement) updatedContext.issueStatement = brief.issueStatement;
+            if (brief.target) {
+              updatedContext.targetMetric = brief.target
+                .metric as import('@variscout/core').TargetMetric;
+              updatedContext.targetValue = brief.target.value;
+              updatedContext.targetDirection = brief.target.direction;
+            }
+            setProcessContext(updatedContext);
+            if (brief.questions) {
+              for (const q of brief.questions) {
+                questionsState.addQuestion(q.text, q.factor, q.level);
+              }
+            }
+          }
+          stageFive.close();
+        }}
+        onSkip={stageFive.close}
+        onClose={stageFive.close}
       />
     </div>
   );
