@@ -120,3 +120,35 @@ describe('classifyPaste — temporal axis', () => {
     expect(result.blockReasons).toContain('different-grain');
   });
 });
+
+describe('classifyPaste — source axis (multi-source detection)', () => {
+  it('different-source-joinable when shared key has high name + value match', () => {
+    const result = classifyPaste(
+      {
+        hubColumns: ['ts', 'weight_g', 'lot_id'],
+        existingTimeColumn: 'ts',
+        existingRange: { startISO: '2026-04-01T00:00:00Z', endISO: '2026-04-30T00:00:00Z' },
+        existingRows: [{ ts: '2026-04-01T00:00:00Z', weight_g: 100, lot_id: 'L1' }],
+      },
+      {
+        newColumns: ['inspection_ts', 'defect_type', 'lot_id'],
+        newRows: [{ inspection_ts: '2026-05-05T00:00:00Z', defect_type: 'scratch', lot_id: 'L1' }],
+        newTimeColumn: 'inspection_ts',
+      }
+    );
+    expect(result.source).toBe('different-source-joinable');
+    expect(result.blockReasons).not.toContain('different-source-no-key');
+    expect(result.candidates).toBeDefined();
+    expect(result.candidates![0].hubColumn).toBe('lot_id');
+    expect(result.candidates![0].newColumn).toBe('lot_id');
+  });
+
+  it('still emits different-source-no-key when no candidates pass the threshold', () => {
+    const result = classifyPaste(
+      { hubColumns: ['weight_g', 'machine_id'], existingRows: [{ machine_id: 'm1' }] },
+      { newColumns: ['defect_type'], newRows: [{ defect_type: 'crack' }] }
+    );
+    expect(result.source).toBe('different-source-no-key');
+    expect(result.candidates).toBeUndefined();
+  });
+});

@@ -3,13 +3,16 @@ import type { DataCellValue } from '../types';
 import type {
   ClassifyPasteContext,
   ClassifyPasteInput,
+  JoinKeyCandidate,
   MatchSummaryClassification,
   TemporalAxisCase,
   SourceAxisCase,
   BlockReason,
 } from './types';
+import { rankJoinKeyCandidates } from './joinKey';
 
 const REPLACE_DUPLICATE_THRESHOLD = 0.7;
+const JOINABLE_THRESHOLD = 0.5;
 const ONE_DAY_MS = 86_400_000;
 /** Threshold log10(ratio) for grain divergence (~ratio of 3.16x). */
 const GRAIN_DIVERGENCE_LOG10 = 0.5;
@@ -122,18 +125,36 @@ function classifyTemporal(
   return { temporal: 'append' };
 }
 
-function classifySource(ctx: ClassifyPasteContext, input: ClassifyPasteInput): SourceAxisCase {
+interface SourceClassification {
+  source: SourceAxisCase;
+  candidates?: JoinKeyCandidate[];
+}
+
+function classifySource(
+  ctx: ClassifyPasteContext,
+  input: ClassifyPasteInput
+): SourceClassification {
   const overlapColumns = input.newColumns.filter(c => ctx.hubColumns.includes(c));
   const newColumnsCount = input.newColumns.length - overlapColumns.length;
 
-  // Phase 2 ships a naive source axis: full overlap = same-source, no overlap = no-key,
-  // partial overlap = mixed. Phase 3 adds 'different-source-joinable' detection via
-  // rankJoinKeyCandidates.
   if (newColumnsCount === 0 && overlapColumns.length === input.newColumns.length) {
-    return 'same-source';
+    return { source: 'same-source' };
   }
-  if (overlapColumns.length === 0) return 'different-source-no-key';
-  return 'mixed';
+
+  // Attempt join-key detection for 'different-source-joinable'. Passes when at least
+  // one column pair scores above JOINABLE_THRESHOLD (value overlap weighted 0.6).
+  const candidates = rankJoinKeyCandidates(
+    ctx.hubColumns,
+    ctx.existingRows ?? [],
+    input.newColumns,
+    input.newRows
+  );
+
+  if (candidates.length > 0 && candidates[0].totalScore > JOINABLE_THRESHOLD) {
+    return { source: 'different-source-joinable', candidates };
+  }
+  if (overlapColumns.length === 0) return { source: 'different-source-no-key' };
+  return { source: 'mixed' };
 }
 
 export function classifyPaste(
@@ -142,7 +163,7 @@ export function classifyPaste(
 ): MatchSummaryClassification {
   const newRange = input.newTimeColumn ? rangeOf(input.newRows, input.newTimeColumn) : undefined;
   const { temporal, overlapRange, duplicateRate } = classifyTemporal(ctx, input, newRange);
-  const source = classifySource(ctx, input);
+  const { source, candidates } = classifySource(ctx, input);
 
   const blockReasons: BlockReason[] = [];
   if (temporal === 'overlap') blockReasons.push('overlap');
@@ -157,5 +178,6 @@ export function classifyPaste(
     newRange,
     overlapRange,
     duplicateRate,
+    candidates,
   };
 }
