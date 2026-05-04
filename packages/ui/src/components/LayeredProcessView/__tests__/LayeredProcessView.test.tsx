@@ -250,6 +250,40 @@ describe('LayeredProcessView', () => {
     expect(screen.getByTestId('band-operations')).toHaveTextContent('No factors mapped yet');
   });
 
+  it('omitting canvasFilterChips renders no chip-row container', () => {
+    render(<LayeredProcessView map={emptyMap} availableColumns={[]} onChange={() => {}} />);
+    expect(screen.queryByTestId('layered-canvas-filter-chips')).toBeNull();
+  });
+
+  it('renders canvasFilterChips ABOVE filterStripContent in the DOM', () => {
+    render(
+      <LayeredProcessView
+        map={emptyMap}
+        availableColumns={[]}
+        onChange={() => {}}
+        canvasFilterChips={<span data-testid="chips">CHIPS</span>}
+        filterStripContent={<span data-testid="strip">STRIP</span>}
+      />
+    );
+    const chips = screen.getByTestId('layered-canvas-filter-chips');
+    const strip = screen.getByTestId('layered-filter-strip');
+    // chips must precede strip in the DOM
+    expect(chips.compareDocumentPosition(strip) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('renders canvasFilterChips without filterStripContent', () => {
+    render(
+      <LayeredProcessView
+        map={emptyMap}
+        availableColumns={[]}
+        onChange={() => {}}
+        canvasFilterChips={<span data-testid="chips-only">CHIPS</span>}
+      />
+    );
+    expect(screen.getByTestId('layered-canvas-filter-chips')).toBeInTheDocument();
+    expect(screen.queryByTestId('layered-filter-strip')).toBeNull();
+  });
+
   it('threads stepSpecs + onStepSpecsChange through to the embedded ProcessMapBase StepCard (Task B)', () => {
     const mapWithCtq: ProcessMap = {
       ...emptyMap,

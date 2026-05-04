@@ -47,6 +47,12 @@ export interface LayeredProcessViewProps {
    * dashboard's filter strip). Plan C2. */
   filterStripContent?: React.ReactNode;
   /**
+   * Optional React node rendered ABOVE `filterStripContent`. Reserved for slice 4's
+   * canvas filter chip rows (purple/blue/amber chips for time window / scope filter /
+   * Pareto group-by per spec §10). Absent → no chips rendered (default).
+   */
+  canvasFilterChips?: React.ReactNode;
+  /**
    * Whether to render the inner ProcessMap's GapStrip warning bar. Defaults
    * to `true` for backward compatibility with b1+ (process-map authoring)
    * flows. The b0 FrameView passes `false` because the lightweight
@@ -71,6 +77,7 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
   onStepSpecsChange,
   operationsBandContent,
   filterStripContent,
+  canvasFilterChips,
   showGaps = true,
 }) => {
   const hasOutcomeData =
@@ -100,6 +107,9 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
 
   return (
     <div data-testid="layered-process-view" className="flex flex-col">
+      {canvasFilterChips ? (
+        <div data-testid="layered-canvas-filter-chips">{canvasFilterChips}</div>
+      ) : null}
       {filterStripContent ? (
         <div data-testid="layered-filter-strip">{filterStripContent}</div>
       ) : null}

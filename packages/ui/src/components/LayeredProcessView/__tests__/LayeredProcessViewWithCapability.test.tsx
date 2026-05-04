@@ -101,6 +101,23 @@ describe('LayeredProcessViewWithCapability', () => {
     expect(onModeChange).toHaveBeenCalledWith('full');
   });
 
+  it('passes canvasFilterChips through to LayeredProcessView', () => {
+    render(
+      <LayeredProcessViewWithCapability
+        map={map}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        mode="spatial"
+        onModeChange={vi.fn()}
+        canvasFilterChips={<span data-testid="passthrough-chips">CHIPS</span>}
+      />
+    );
+    expect(screen.getByTestId('layered-canvas-filter-chips')).toBeInTheDocument();
+    expect(screen.getByTestId('passthrough-chips')).toBeInTheDocument();
+  });
+
   it('renders filter strip above the Outcome band', () => {
     render(
       <LayeredProcessViewWithCapability
