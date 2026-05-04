@@ -669,6 +669,25 @@ function AppMain() {
     [importFlow, goalNarrative, sessionHub, setSessionHub]
   );
 
+  // .vrs import: restore Hub + raw data, skip framing flow, go straight to canvas.
+  // Wired to HomeScreen's onImportVrs prop so trainers / returning analysts can
+  // reload a packaged scenario without re-pasting data.
+  const handleImportVrs = useCallback(
+    (imported: import('@variscout/core').VrsFile) => {
+      const { hub, rawData: vrsData } = imported;
+      setSessionHub(hub);
+      // Seed the project store directly — bypasses the paste/mapping flow.
+      if (vrsData && vrsData.length > 0) {
+        setRawData(vrsData as import('@variscout/core').DataRow[]);
+        const firstOutcome = hub.outcomes?.[0]?.columnName;
+        if (firstOutcome) setOutcome(firstOutcome);
+        const dims = hub.primaryScopeDimensions ?? [];
+        if (dims.length > 0) setFactors(dims);
+      }
+    },
+    [setSessionHub, setRawData, setOutcome, setFactors]
+  );
+
   // Phase tab navigation handler (used by AppHeader inline tabs)
   const handlePhaseChange = useCallback(
     (phase: PhaseId) => {
@@ -927,6 +946,7 @@ function AppMain() {
                 onLoadSample={ingestion.loadSample}
                 onOpenPaste={importFlow.handleOpenPaste}
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
+                onImportVrs={handleImportVrs}
               />
             ) : importFlow.isMapping && goalNarrative === null ? (
               // Mode B Stage 1: ask for the process goal narrative before
