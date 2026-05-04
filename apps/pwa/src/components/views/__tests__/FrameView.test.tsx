@@ -126,9 +126,9 @@ describe('FrameView (PWA)', () => {
     };
   });
 
-  it('renders LayeredProcessViewWithCapability composition (three bands + ops dashboard) when scope is b1/b2', () => {
+  it('renders Canvas facade composition (three bands + ops dashboard) when scope is b1/b2', () => {
     // Add a step so detectScopeFromMap returns b2 — the b1/b2 path renders
-    // the canvas directly (b0 wraps it inside the closed expander).
+    // the Canvas facade directly (b0 wraps it inside the closed expander).
     storeStateRef.current = {
       ...storeStateRef.current,
       processContext: {

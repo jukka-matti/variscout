@@ -9,19 +9,14 @@
  *   `showGaps={false}` because b0 surfaces missing-spec via inline
  *   affordances, not the upfront GapStrip warning.
  * - **b1 / b2** (one or more process steps): renders the existing
- *   `<LayeredProcessViewWithCapability />` canvas as before.
+ *   `<Canvas />` facade as before.
  *
  * Plan C2: ProductionLineGlanceDashboard is wired into the Operations band
  * via a synthetic preview rollup (empty rows — authoring surface has no
  * investigation data).
  */
 import React from 'react';
-import {
-  CanvasFilterChips,
-  FrameViewB0,
-  type FrameViewB0YCandidate,
-  LayeredProcessViewWithCapability,
-} from '@variscout/ui';
+import { Canvas, CanvasFilterChips, FrameViewB0, type FrameViewB0YCandidate } from '@variscout/ui';
 import {
   useCanvasFilters,
   useProductionLineGlanceData,
@@ -307,7 +302,7 @@ const FrameView: React.FC = () => {
           onConfirmYSpec={handleConfirmYSpec}
           onSeeData={handleSeeData}
         >
-          <LayeredProcessViewWithCapability
+          <Canvas
             map={map}
             availableColumns={availableColumns}
             onChange={handleChange}
@@ -343,7 +338,7 @@ const FrameView: React.FC = () => {
           <h2 className="text-lg font-semibold text-content">{t('frame.b1.heading')}</h2>
           <p className="text-sm text-content-secondary">{t('frame.b1.description')}</p>
         </header>
-        <LayeredProcessViewWithCapability
+        <Canvas
           map={map}
           availableColumns={availableColumns}
           onChange={handleChange}
