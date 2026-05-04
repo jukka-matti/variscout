@@ -112,6 +112,16 @@ export interface ProcessHub {
    * See `docs/05-technical/architecture/capability-target-cascade.md`.
    */
   reviewSignal?: HubReviewSignal;
+  /**
+   * Evidence snapshots for this hub, ordered by `importedAt` ascending.
+   * Populated by the paste-flow and Evidence Source sync on save; absent
+   * on newly created hubs that haven't received any data yet. The most-recent
+   * snapshot (`at(-1)`) supplies `rowTimestampRange` used by `classifyPaste`
+   * to determine the temporal axis case (overlap / append / backfill).
+   *
+   * ADR-077 § "Known follow-up: existingRange wiring".
+   */
+  evidenceSnapshots?: EvidenceSnapshot[];
 }
 
 export const DEFAULT_PROCESS_HUB: ProcessHub = {

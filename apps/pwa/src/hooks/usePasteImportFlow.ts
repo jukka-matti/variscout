@@ -361,6 +361,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
               hubColumns,
               existingRows: rawData.slice(0, 1000),
               existingTimeColumn: undefined,
+              existingRange: activeHub.evidenceSnapshots?.at(-1)?.rowTimestampRange,
             },
             {
               newColumns,
