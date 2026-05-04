@@ -168,6 +168,15 @@ export interface BoxplotProps extends BaseChartProps {
 }
 
 /**
+ * Modifier-key context passed as the second argument to `onBarClick`.
+ * Callers that only need the key can ignore this parameter.
+ */
+export interface BarClickContext {
+  /** True when the Shift key was held during the click. */
+  shiftKey: boolean;
+}
+
+/**
  * Pareto chart props
  */
 export interface ParetoChartProps extends BaseChartProps {
@@ -181,8 +190,12 @@ export interface ParetoChartProps extends BaseChartProps {
   yAxisLabel?: string;
   /** Currently selected bars */
   selectedBars?: string[];
-  /** Callback when a bar is clicked */
-  onBarClick?: (key: string) => void;
+  /**
+   * Callback when a bar is clicked. The second argument carries modifier-key
+   * context (e.g. shiftKey) and is optional for backward-compat with callers
+   * that only need the bar key.
+   */
+  onBarClick?: (key: string, ctx?: BarClickContext) => void;
   /** Callback when Y-axis label area is clicked (for editing) */
   onYAxisClick?: () => void;
   /** Callback when X-axis label area is clicked (for editing) */

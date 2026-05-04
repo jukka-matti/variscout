@@ -22,6 +22,7 @@ export type {
   BoxplotProps,
   ParetoDataPoint,
   ParetoChartProps,
+  BarClickContext,
   CapabilityHistogramProps,
   ProbabilityPlotProps,
   ChartSourceBarProps,

@@ -173,7 +173,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
               }
               fillOpacity={highlightedCategories?.[d.key] ? 0.7 : 1}
               rx={4}
-              onClick={() => onBarClick?.(d.key)}
+              onClick={(e: React.MouseEvent) => onBarClick?.(d.key, { shiftKey: e.shiftKey })}
               onContextMenu={
                 onBarContextMenu
                   ? (e: React.MouseEvent) => {

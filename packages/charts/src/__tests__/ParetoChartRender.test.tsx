@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, fireEvent } from '@testing-library/react';
 import { ParetoChartBase } from '../ParetoChart';
-import type { ParetoDataPoint } from '../types';
+import type { ParetoDataPoint, BarClickContext } from '../types';
 
 const testData: ParetoDataPoint[] = [
   { key: 'A', value: 50, cumulative: 50, cumulativePercentage: 50 },
@@ -99,5 +99,61 @@ describe('ParetoChartBase rendering', () => {
 
     const svg = container.querySelector('svg');
     expect(svg).not.toBeNull();
+  });
+});
+
+describe('ParetoChartBase — onBarClick signature extension (P3.5)', () => {
+  it('calls onBarClick with key and shiftKey:false on a plain click', () => {
+    const onBarClick = vi.fn<[string, BarClickContext | undefined], void>();
+    const { getAllByRole } = render(
+      <ParetoChartBase data={testData} {...defaultProps} onBarClick={onBarClick} />
+    );
+
+    // Bars with onBarClick get role="button" via getBarA11yProps
+    const bars = getAllByRole('button');
+    expect(bars.length).toBeGreaterThanOrEqual(testData.length);
+
+    fireEvent.click(bars[0], { shiftKey: false });
+
+    expect(onBarClick).toHaveBeenCalledTimes(1);
+    const [key, ctx] = onBarClick.mock.calls[0];
+    expect(typeof key).toBe('string');
+    expect(ctx?.shiftKey).toBe(false);
+  });
+
+  it('calls onBarClick with key and shiftKey:true on a shift-click', () => {
+    const onBarClick = vi.fn<[string, BarClickContext | undefined], void>();
+    const { getAllByRole } = render(
+      <ParetoChartBase data={testData} {...defaultProps} onBarClick={onBarClick} />
+    );
+
+    const bars = getAllByRole('button');
+    fireEvent.click(bars[0], { shiftKey: true });
+
+    expect(onBarClick).toHaveBeenCalledTimes(1);
+    const [key, ctx] = onBarClick.mock.calls[0];
+    expect(typeof key).toBe('string');
+    expect(ctx?.shiftKey).toBe(true);
+  });
+
+  it('backward-compat: callers using only the first arg still receive the bar key', () => {
+    const receivedKeys: string[] = [];
+    // Simulates a caller that only uses (barKey: string) — ignores ctx
+    const onBarClick = (barKey: string) => {
+      receivedKeys.push(barKey);
+    };
+
+    const { getAllByRole } = render(
+      <ParetoChartBase data={testData} {...defaultProps} onBarClick={onBarClick} />
+    );
+
+    const bars = getAllByRole('button');
+    fireEvent.click(bars[0]);
+    fireEvent.click(bars[1]);
+
+    expect(receivedKeys).toHaveLength(2);
+    // Keys must be non-empty strings matching testData keys
+    expect(testData.map(d => d.key)).toContain(receivedKeys[0]);
+    expect(testData.map(d => d.key)).toContain(receivedKeys[1]);
   });
 });

@@ -44,15 +44,30 @@ vi.mock('@variscout/hooks', () => {
   };
 });
 
-// Mock @variscout/charts — render a simple stub so we don't need visx in JSDOM
+// Mock @variscout/charts — render a simple stub so we don't need visx in JSDOM.
+// Bars render as <button data-testid="bar-{key}"> so tests can fireEvent.click them.
+// onBarClick and selectedBars are wired through the stub for routing/highlight assertions.
 vi.mock('@variscout/charts', () => {
   return {
-    ParetoChartBase: ({ data }: { data: { key: string; value: number }[] }) => (
+    ParetoChartBase: ({
+      data,
+      onBarClick,
+      selectedBars = [],
+    }: {
+      data: { key: string; value: number }[];
+      onBarClick?: (key: string, ctx?: { shiftKey: boolean }) => void;
+      selectedBars?: string[];
+    }) => (
       <div data-testid="pareto-chart-base">
         {data.map(d => (
-          <span key={d.key} data-testid={`bar-${d.key}`}>
+          <button
+            key={d.key}
+            data-testid={`bar-${d.key}`}
+            data-selected={selectedBars.includes(d.key) ? 'true' : 'false'}
+            onClick={(e: React.MouseEvent) => onBarClick?.(d.key, { shiftKey: e.shiftKey })}
+          >
             {d.key}:{d.value}
-          </span>
+          </button>
         ))}
       </div>
     ),
@@ -234,5 +249,114 @@ describe('ParetoChartWrapperBase — Y-metric picker', () => {
     );
     const opts = mockUseParetoChartDataOptions.last as Record<string, unknown>;
     expect(opts['yMetricContext']).toBe(ctx);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// P3.5 — onScopeFilterClick routing + scopeFilterValues highlight
+// ---------------------------------------------------------------------------
+describe('ParetoChartWrapperBase — scope filter click routing (P3.5)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('onScopeFilterClick fires on plain click with shiftKey:false', () => {
+    const onScopeFilterClick = vi.fn();
+    render(<ParetoChartWrapperBase {...baseProps} onScopeFilterClick={onScopeFilterClick} />);
+
+    fireEvent.click(screen.getByTestId('bar-A'), { shiftKey: false });
+
+    expect(onScopeFilterClick).toHaveBeenCalledTimes(1);
+    expect(onScopeFilterClick).toHaveBeenCalledWith('Machine', 'A', { shiftKey: false });
+  });
+
+  it('onScopeFilterClick fires on shift-click with shiftKey:true', () => {
+    const onScopeFilterClick = vi.fn();
+    render(<ParetoChartWrapperBase {...baseProps} onScopeFilterClick={onScopeFilterClick} />);
+
+    fireEvent.click(screen.getByTestId('bar-A'), { shiftKey: true });
+
+    expect(onScopeFilterClick).toHaveBeenCalledTimes(1);
+    expect(onScopeFilterClick).toHaveBeenCalledWith('Machine', 'A', { shiftKey: true });
+  });
+
+  it('onScopeFilterClick is NOT called when onDrillDown is set — onDrillDown wins', () => {
+    const onScopeFilterClick = vi.fn();
+    const onDrillDown = vi.fn();
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        onDrillDown={onDrillDown}
+        onScopeFilterClick={onScopeFilterClick}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('bar-A'));
+
+    expect(onDrillDown).toHaveBeenCalledTimes(1);
+    expect(onDrillDown).toHaveBeenCalledWith('Machine', 'A');
+    expect(onScopeFilterClick).not.toHaveBeenCalled();
+  });
+
+  it('legacy onFiltersChange fires when onScopeFilterClick is not provided', () => {
+    const onFiltersChange = vi.fn();
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        filters={{}}
+        onFiltersChange={onFiltersChange}
+        // onScopeFilterClick intentionally omitted
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('bar-A'));
+
+    expect(onFiltersChange).toHaveBeenCalledTimes(1);
+    // Should toggle 'A' into the Machine filter
+    expect(onFiltersChange).toHaveBeenCalledWith({ Machine: ['A'] });
+  });
+
+  it('legacy onFiltersChange is NOT called when onScopeFilterClick is provided', () => {
+    const onFiltersChange = vi.fn();
+    const onScopeFilterClick = vi.fn();
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        onFiltersChange={onFiltersChange}
+        onScopeFilterClick={onScopeFilterClick}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('bar-A'));
+
+    expect(onScopeFilterClick).toHaveBeenCalledTimes(1);
+    expect(onFiltersChange).not.toHaveBeenCalled();
+  });
+
+  it('scopeFilterValues drives selectedBars highlight when provided', () => {
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        scopeFilterValues={['A']}
+        onScopeFilterClick={vi.fn()}
+      />
+    );
+
+    // The stub renders data-selected="true" for bars whose key is in selectedBars
+    expect(screen.getByTestId('bar-A')).toHaveAttribute('data-selected', 'true');
+    expect(screen.getByTestId('bar-B')).toHaveAttribute('data-selected', 'false');
+  });
+
+  it('selectedBars falls back to filters[factor] when scopeFilterValues not provided', () => {
+    render(
+      <ParetoChartWrapperBase
+        {...baseProps}
+        filters={{ Machine: ['B'] }}
+        // scopeFilterValues intentionally omitted
+      />
+    );
+
+    expect(screen.getByTestId('bar-A')).toHaveAttribute('data-selected', 'false');
+    expect(screen.getByTestId('bar-B')).toHaveAttribute('data-selected', 'true');
   });
 });

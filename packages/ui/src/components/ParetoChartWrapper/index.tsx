@@ -89,6 +89,26 @@ export interface ParetoChartWrapperBaseProps {
   /** Callback to switch the Pareto grouping factor (inline dropdown) */
   onFactorSwitch?: (factorName: string) => void;
   /**
+   * When provided, takes precedence over `onFiltersChange` for bar clicks.
+   * Plain click replaces selection (single-bar); shift-click toggles add/remove.
+   * Receiver typically calls `setScopeFilter` via `useCanvasFilters`.
+   *
+   * Precedence order (highest to lowest):
+   *   1. `onDrillDown` — if set, runs and short-circuits everything else.
+   *   2. `onScopeFilterClick` — if set (and no onDrillDown), routes here.
+   *   3. Legacy `onFiltersChange` toggle — default when neither above is set.
+   */
+  onScopeFilterClick?: (factor: string, value: string, ctx: { shiftKey: boolean }) => void;
+  /**
+   * Currently-active scope filter values for `factor`. Drives `selectedBars`
+   * highlight on the chart. Caller derives this from `useCanvasFilters.scopeFilter`
+   * when `scopeFilter.factor === factor`; pass empty array otherwise.
+   *
+   * When provided, takes precedence over the legacy `filters[factor]` source for
+   * the highlight state.
+   */
+  scopeFilterValues?: ReadonlyArray<string | number>;
+  /**
    * Active Y-axis metric id. When set, takes precedence over `aggregation` for
    * non-count metrics. Forwarded to useParetoChartData.
    */
@@ -275,6 +295,8 @@ export const ParetoChartWrapperBase = ({
   paretoMode,
   separateParetoData,
   onDrillDown,
+  onScopeFilterClick,
+  scopeFilterValues,
   showComparison = false,
   onToggleComparison,
   aggregation = 'count',
@@ -322,16 +344,21 @@ export const ParetoChartWrapperBase = ({
     yMetricContext,
   });
 
-  const handleBarClick = (key: string) => {
+  const handleBarClick = (key: string, ctx?: { shiftKey: boolean }) => {
     if (onDrillDown) {
       onDrillDown(factor, key);
-    } else {
-      const currentFilters = filters[factor] || [];
-      const newFilters = currentFilters.includes(key)
-        ? currentFilters.filter(v => v !== key)
-        : [...currentFilters, key];
-      onFiltersChange({ ...filters, [factor]: newFilters });
+      return;
     }
+    if (onScopeFilterClick) {
+      onScopeFilterClick(factor, key, { shiftKey: ctx?.shiftKey ?? false });
+      return;
+    }
+    // Legacy behavior: toggle filter membership in filters[factor]
+    const currentFilters = filters[factor] || [];
+    const newFilters = currentFilters.includes(key)
+      ? currentFilters.filter(v => v !== key)
+      : [...currentFilters, key];
+    onFiltersChange({ ...filters, [factor]: newFilters });
   };
 
   const handleSaveAlias = (newAlias: string) => {
@@ -388,7 +415,10 @@ export const ParetoChartWrapperBase = ({
   const yAxisLabel =
     aggregation === 'value' && outcome ? columnAliases[outcome] || outcome : 'Count';
   const xAxisLabel = columnAliases[factor] || factor;
-  const selectedBars = (filters[factor] || []).map(String);
+  // Prefer scopeFilterValues (new canvas-filter path) over legacy filters[factor]
+  const selectedBars = scopeFilterValues
+    ? scopeFilterValues.map(String)
+    : (filters[factor] || []).map(String);
   const fonts = getScaledFonts(parentWidth);
 
   return (
