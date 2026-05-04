@@ -23,6 +23,22 @@ export interface MatchSummaryCardProps {
   columnShape: ColumnShape;
   onChoose: (choice: MatchSummaryActionChoice) => void;
   onCancel: () => void;
+  /**
+   * Step-anchor picker props — forwarded to ColumnShapeSubSummary.
+   * Provide these in the Mode A.2-paste flow when the incoming columns
+   * contain plausible step-of-origin candidates (e.g. `step_rejected_at`).
+   * Filter `columnShape.added` via `suggestStepRejectedAtColumn` from
+   * `@variscout/core/defect` before passing here.
+   *
+   * Consumer integration (applying the picked column to the Hub's
+   * `defectMapping`) is out of scope for this component — this card only
+   * surfaces and propagates the user's selection via `onStepRejectedAtChange`.
+   */
+  stepCandidates?: string[];
+  /** Currently-selected step column (undefined = "None / not set"). */
+  stepRejectedAtColumn?: string;
+  /** Called when the user picks or clears the step column. */
+  onStepRejectedAtChange?: (column: string | undefined) => void;
 }
 
 const TEMPORAL_LABEL: Record<MatchSummaryClassification['temporal'], string> = {
@@ -39,6 +55,9 @@ export function MatchSummaryCard({
   columnShape,
   onChoose,
   onCancel,
+  stepCandidates,
+  stepRejectedAtColumn,
+  onStepRejectedAtChange,
 }: MatchSummaryCardProps) {
   const renderActions = () => {
     if (classification.temporal === 'overlap') {
@@ -167,7 +186,12 @@ export function MatchSummaryCard({
         overlap={classification.overlapRange}
       />
 
-      <ColumnShapeSubSummary shape={columnShape} />
+      <ColumnShapeSubSummary
+        shape={columnShape}
+        stepCandidates={stepCandidates}
+        stepRejectedAtColumn={stepRejectedAtColumn}
+        onStepRejectedAtChange={onStepRejectedAtChange}
+      />
 
       {classification.source === 'different-source-joinable' && classification.candidates && (
         <JoinKeySuggestion

@@ -14,6 +14,7 @@ registerLocaleLoaders(
 // No mocks needed for MatchSummaryCard — it is a self-contained presentational component.
 
 import { MatchSummaryCard } from '../index';
+import { ColumnShapeSubSummary } from '../ColumnShapeSubSummary';
 
 const APPEND = {
   source: 'same-source' as const,
@@ -165,5 +166,133 @@ describe('MatchSummaryCard', () => {
     );
     fireEvent.click(screen.getByTestId('match-summary-cancel'));
     expect(onCancel).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ColumnShapeSubSummary — step-anchor picker (P2.4)
+// ---------------------------------------------------------------------------
+
+const SHAPE_WITH_STEP_COL = {
+  matched: ['ts', 'weight_g'],
+  added: ['step_rejected_at', 'operator'],
+  missing: [],
+};
+
+describe('ColumnShapeSubSummary — step-anchor picker', () => {
+  it('picker hidden when stepCandidates is undefined (Mode A.1 reopen)', () => {
+    render(<ColumnShapeSubSummary shape={SHAPE_WITH_STEP_COL} />);
+    expect(screen.queryByTestId('step-anchor-picker')).not.toBeInTheDocument();
+  });
+
+  it('picker hidden when stepCandidates is empty []', () => {
+    render(
+      <ColumnShapeSubSummary
+        shape={SHAPE_WITH_STEP_COL}
+        stepCandidates={[]}
+        onStepRejectedAtChange={vi.fn()}
+      />
+    );
+    expect(screen.queryByTestId('step-anchor-picker')).not.toBeInTheDocument();
+  });
+
+  it('picker hidden when onStepRejectedAtChange is undefined', () => {
+    render(
+      <ColumnShapeSubSummary shape={SHAPE_WITH_STEP_COL} stepCandidates={['step_rejected_at']} />
+    );
+    expect(screen.queryByTestId('step-anchor-picker')).not.toBeInTheDocument();
+  });
+
+  it('picker renders with label, candidates and None option when conditions met', () => {
+    render(
+      <ColumnShapeSubSummary
+        shape={SHAPE_WITH_STEP_COL}
+        stepCandidates={['step_rejected_at']}
+        onStepRejectedAtChange={vi.fn()}
+      />
+    );
+    expect(screen.getByTestId('step-anchor-picker')).toBeInTheDocument();
+    expect(screen.getByTestId('step-rejected-at-select')).toBeInTheDocument();
+    // "None" option is present
+    expect(
+      screen.getByRole('option', { name: /None — defects anchor to outcome/i })
+    ).toBeInTheDocument();
+    // candidate option is present
+    expect(screen.getByRole('option', { name: 'step_rejected_at' })).toBeInTheDocument();
+  });
+
+  it('selecting a column fires onStepRejectedAtChange with that column name', () => {
+    const onChange = vi.fn();
+    render(
+      <ColumnShapeSubSummary
+        shape={SHAPE_WITH_STEP_COL}
+        stepCandidates={['step_rejected_at', 'rejected_step']}
+        onStepRejectedAtChange={onChange}
+      />
+    );
+    const select = screen.getByTestId('step-rejected-at-select');
+    fireEvent.change(select, { target: { value: 'step_rejected_at' } });
+    expect(onChange).toHaveBeenCalledWith('step_rejected_at');
+  });
+
+  it('selecting "None" fires onStepRejectedAtChange with undefined', () => {
+    const onChange = vi.fn();
+    render(
+      <ColumnShapeSubSummary
+        shape={SHAPE_WITH_STEP_COL}
+        stepCandidates={['step_rejected_at']}
+        stepRejectedAtColumn="step_rejected_at"
+        onStepRejectedAtChange={onChange}
+      />
+    );
+    const select = screen.getByTestId('step-rejected-at-select');
+    fireEvent.change(select, { target: { value: '__none__' } });
+    expect(onChange).toHaveBeenCalledWith(undefined);
+  });
+
+  it('auto-fill — stepRejectedAtColumn pre-selects the dropdown', () => {
+    render(
+      <ColumnShapeSubSummary
+        shape={SHAPE_WITH_STEP_COL}
+        stepCandidates={['step_rejected_at', 'rejected_step']}
+        stepRejectedAtColumn="rejected_step"
+        onStepRejectedAtChange={vi.fn()}
+      />
+    );
+    const select = screen.getByTestId('step-rejected-at-select') as HTMLSelectElement;
+    expect(select.value).toBe('rejected_step');
+  });
+
+  // MatchSummaryCard integration — picker props forwarded through parent card
+  it('MatchSummaryCard passes picker props through to ColumnShapeSubSummary', () => {
+    const onChange = vi.fn();
+    render(
+      <MatchSummaryCard
+        classification={APPEND}
+        columnShape={SHAPE_WITH_STEP_COL}
+        onChoose={vi.fn()}
+        onCancel={vi.fn()}
+        stepCandidates={['step_rejected_at']}
+        stepRejectedAtColumn="step_rejected_at"
+        onStepRejectedAtChange={onChange}
+      />
+    );
+    expect(screen.getByTestId('step-anchor-picker')).toBeInTheDocument();
+    const select = screen.getByTestId('step-rejected-at-select') as HTMLSelectElement;
+    expect(select.value).toBe('step_rejected_at');
+    fireEvent.change(select, { target: { value: '__none__' } });
+    expect(onChange).toHaveBeenCalledWith(undefined);
+  });
+
+  it('MatchSummaryCard hides picker when stepCandidates not provided', () => {
+    render(
+      <MatchSummaryCard
+        classification={APPEND}
+        columnShape={SHAPE_WITH_STEP_COL}
+        onChoose={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+    expect(screen.queryByTestId('step-anchor-picker')).not.toBeInTheDocument();
   });
 });
