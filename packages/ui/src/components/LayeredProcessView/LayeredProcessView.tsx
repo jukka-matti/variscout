@@ -17,7 +17,7 @@
 import React from 'react';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
 import type { SpecLimits } from '@variscout/core';
-import { ProcessMapBase } from '../ProcessMap/ProcessMapBase';
+import { ProcessMapBase } from '../Canvas/internal/ProcessMapBase';
 
 export interface LayeredProcessViewProps {
   map: ProcessMap;

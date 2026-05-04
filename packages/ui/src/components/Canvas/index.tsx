@@ -1,13 +1,188 @@
 import React from 'react';
+import type { ProcessMap, Gap } from '@variscout/core/frame';
+import type { SpecLimits } from '@variscout/core';
 import {
-  LayeredProcessViewWithCapability,
-  type LayeredProcessViewWithCapabilityProps,
-} from '../LayeredProcessView';
+  ProductionLineGlanceDashboard,
+  type ProductionLineGlanceFilterStripProps,
+  ProductionLineGlanceFilterStrip,
+} from '../ProductionLineGlanceDashboard';
+import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlanceDashboard/types';
+import { ProcessMapBase } from './internal/ProcessMapBase';
 
-export type CanvasProps = LayeredProcessViewWithCapabilityProps;
+export type ProductionLineGlanceOpsMode = 'spatial' | 'full';
 
-export const Canvas: React.FC<CanvasProps> = props => {
-  return <LayeredProcessViewWithCapability {...props} />;
+export interface CanvasProps {
+  map: ProcessMap;
+  availableColumns: string[];
+  onChange: (next: ProcessMap) => void;
+  gaps?: Gap[];
+  disabled?: boolean;
+  target?: number;
+  usl?: number;
+  lsl?: number;
+  cpkTarget?: number;
+  onSpecsChange?: (next: {
+    target?: number;
+    usl?: number;
+    lsl?: number;
+    cpkTarget?: number;
+  }) => void;
+  stepSpecs?: Record<string, SpecLimits>;
+  onStepSpecsChange?: (column: string, next: SpecLimits) => void;
+  canvasFilterChips?: React.ReactNode;
+  showGaps?: boolean;
+  data: Pick<
+    ProductionLineGlanceDashboardProps,
+    'cpkTrend' | 'cpkGapTrend' | 'capabilityNodes' | 'errorSteps'
+  >;
+  filter: ProductionLineGlanceFilterStripProps;
+  mode: ProductionLineGlanceOpsMode;
+  onModeChange: (next: ProductionLineGlanceOpsMode) => void;
+  onStepClick?: (nodeId: string) => void;
+}
+
+export const Canvas: React.FC<CanvasProps> = ({
+  map,
+  availableColumns,
+  onChange,
+  gaps,
+  disabled,
+  target,
+  usl,
+  lsl,
+  cpkTarget,
+  onSpecsChange,
+  stepSpecs,
+  onStepSpecsChange,
+  canvasFilterChips,
+  showGaps = true,
+  data,
+  filter,
+  mode,
+  onModeChange,
+  onStepClick,
+}) => {
+  const hasOutcomeData =
+    target !== undefined || usl !== undefined || lsl !== undefined || cpkTarget !== undefined;
+  const isFull = mode === 'full';
+  const affordanceLabel = isFull ? 'Hide temporal trends' : 'Show temporal trends';
+  const affordanceArrow = isFull ? '↓' : '↑';
+
+  const tributariesContent =
+    map.tributaries.length > 0 ? (
+      <ul className="mt-2 flex flex-wrap gap-2">
+        {map.tributaries.map(trib => {
+          const parentStep = map.nodes.find(n => n.id === trib.stepId);
+          const stepLabel = parentStep?.name ?? 'Unmapped';
+          return (
+            <li
+              key={trib.id}
+              data-testid={`factor-chip-${trib.id}`}
+              className="rounded-md border border-edge bg-surface px-2 py-1 text-xs"
+            >
+              <span className="font-medium text-content">{trib.column}</span>
+              <span className="ml-1 text-content-secondary">at {stepLabel}</span>
+            </li>
+          );
+        })}
+      </ul>
+    ) : (
+      <p className="mt-2 text-sm text-content-secondary italic">No factors mapped yet</p>
+    );
+
+  return (
+    <div data-testid="layered-process-view" className="flex flex-col">
+      {canvasFilterChips ? (
+        <div data-testid="layered-canvas-filter-chips">{canvasFilterChips}</div>
+      ) : null}
+      <div data-testid="layered-filter-strip">
+        <ProductionLineGlanceFilterStrip {...filter} />
+      </div>
+
+      <section
+        data-testid="band-outcome"
+        className="border-b border-edge px-4 py-3 bg-surface-secondary"
+      >
+        <h3 className="text-sm font-semibold text-content">Outcome</h3>
+        {hasOutcomeData ? (
+          <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-content-secondary">
+            {target !== undefined && (
+              <div className="flex gap-1">
+                <dt className="font-medium">Target:</dt>
+                <dd>{target}</dd>
+              </div>
+            )}
+            {usl !== undefined && (
+              <div className="flex gap-1">
+                <dt className="font-medium">USL:</dt>
+                <dd>{usl}</dd>
+              </div>
+            )}
+            {lsl !== undefined && (
+              <div className="flex gap-1">
+                <dt className="font-medium">LSL:</dt>
+                <dd>{lsl}</dd>
+              </div>
+            )}
+            {cpkTarget !== undefined && (
+              <div className="flex gap-1">
+                <dt className="font-medium">Cpk target:</dt>
+                <dd>{cpkTarget}</dd>
+              </div>
+            )}
+          </dl>
+        ) : (
+          <p className="mt-2 text-sm text-content-secondary italic">No outcome target set</p>
+        )}
+
+        <div className="mt-3">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-content-muted">
+            Mapped factors
+          </h4>
+          {tributariesContent}
+        </div>
+      </section>
+
+      <section data-testid="band-process-flow" className="border-b border-edge px-4 py-3">
+        <h3 className="text-sm font-semibold text-content">Process Flow</h3>
+        <div className="mt-2">
+          <ProcessMapBase
+            map={map}
+            availableColumns={availableColumns}
+            onChange={onChange}
+            gaps={gaps}
+            disabled={disabled}
+            target={target}
+            usl={usl}
+            lsl={lsl}
+            cpkTarget={cpkTarget}
+            onSpecsChange={onSpecsChange}
+            stepSpecs={stepSpecs}
+            onStepSpecsChange={onStepSpecsChange}
+            showGaps={showGaps}
+          />
+        </div>
+      </section>
+
+      <section data-testid="band-operations" className="px-4 py-3 bg-surface-secondary">
+        <h3 className="text-sm font-semibold text-content">Operations</h3>
+        <div className="mt-2">
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => onModeChange(isFull ? 'spatial' : 'full')}
+              className="self-start rounded text-xs font-medium text-content-secondary transition-colors hover:text-content"
+            >
+              {affordanceLabel} {affordanceArrow}
+            </button>
+            <div data-testid="ops-band-dashboard">
+              <ProductionLineGlanceDashboard {...data} mode={mode} onStepClick={onStepClick} />
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 };
 
 export default Canvas;

@@ -38,7 +38,7 @@ const filter = {
 };
 
 describe('Canvas', () => {
-  it('delegates to LayeredProcessViewWithCapability without changing behavior', () => {
+  it('owns the three-band rendering path without changing behavior', () => {
     const onModeChange = vi.fn();
 
     render(
