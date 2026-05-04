@@ -72,7 +72,7 @@ beforeEach(() => {
 });
 
 const baseProps: HubCreationFlowProps = {
-  columnAnalysis: null,
+  columnAnalysis: undefined,
   availableColumns: ['Weight', 'Machine'],
   previewRows: [{ Weight: 10, Machine: 'A' }],
   totalRows: 5,

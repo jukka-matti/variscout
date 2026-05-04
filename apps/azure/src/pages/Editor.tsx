@@ -726,9 +726,9 @@ export const Editor: React.FC<EditorProps> = ({
   const handleHubCreated = useCallback(
     (hub: ProcessHub) => {
       setProcessHubs(prev => [...prev, hub]);
-      setProcessContext(prev => ({ ...(prev ?? {}), processHubId: hub.id }));
+      setProcessContext({ ...(processContext ?? {}), processHubId: hub.id });
     },
-    [setProcessContext]
+    [processContext, setProcessContext]
   );
 
   // Share handlers
@@ -1407,7 +1407,9 @@ export const Editor: React.FC<EditorProps> = ({
         initialCategories={categories}
         timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
         hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
-        onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
+        onTimeExtractionChange={config =>
+          dataFlow.setTimeExtractionConfig(prev => ({ ...prev, ...config }))
+        }
         suggestedStack={dataFlow.suggestedStack}
         onStackConfigChange={dataFlow.handleStackConfigChange}
         rowLimit={250000}
@@ -1771,7 +1773,9 @@ export const Editor: React.FC<EditorProps> = ({
             initialCategories={categories}
             timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
             hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
-            onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
+            onTimeExtractionChange={config =>
+              dataFlow.setTimeExtractionConfig(prev => ({ ...prev, ...config }))
+            }
             suggestedStack={dataFlow.suggestedStack}
             rowLimit={250000}
             processHubId={processContext?.processHubId}

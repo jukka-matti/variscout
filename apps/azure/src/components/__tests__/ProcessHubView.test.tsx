@@ -1,12 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProcessHubView } from '../ProcessHubView';
-import type {
-  ProcessHubRollup,
-  ProcessHubInvestigation,
-  ProcessHub,
-  OutcomeSpec,
-} from '@variscout/core';
+import type { ProcessHubRollup, ProcessHubInvestigation, ProcessHub } from '@variscout/core';
+import type { OutcomeSpec } from '@variscout/core/processHub';
 
 vi.mock('../ProcessHubReviewPanel', () => ({
   default: () => <div data-testid="mock-process-hub-review-panel" />,
