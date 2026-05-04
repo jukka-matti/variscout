@@ -720,6 +720,9 @@ export const zhHant: MessageCatalog = {
   'defect.detected.aggregationUnit': 'Group defects by',
   'defect.detected.dismiss': 'Use Standard Mode',
   'defect.detected.enable': 'Enable Defect Mode',
+  'defect.detected.stepOfOrigin': 'Step of origin',
+  'defect.detected.stepOfOriginHint':
+    'Identifies which step caught each defect. Optional — defects anchor to outcome when not set.',
   'yamazumi.metric.total': 'Total',
   'yamazumi.metric.va': 'VA',
   'yamazumi.metric.nva': 'NVA',

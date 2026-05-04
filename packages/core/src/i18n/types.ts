@@ -872,6 +872,8 @@ export interface MessageCatalog {
   'defect.detected.aggregationUnit': string;
   'defect.detected.dismiss': string;
   'defect.detected.enable': string;
+  'defect.detected.stepOfOrigin': string;
+  'defect.detected.stepOfOriginHint': string;
 
   'yamazumi.metric.total': string;
   'yamazumi.metric.va': string;

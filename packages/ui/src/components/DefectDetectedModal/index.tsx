@@ -94,6 +94,9 @@ export const DefectDetectedModal: React.FC<DefectDetectedModalProps> = ({
   const [unitsProducedColumn, setUnitsProducedColumn] = useState<string | undefined>(
     detection.suggestedMapping.unitsProducedColumn
   );
+  const [stepRejectedAtColumn, setStepRejectedAtColumn] = useState<string | undefined>(
+    detection.suggestedMapping.stepRejectedAtColumn
+  );
   const [aggregationUnit, setAggregationUnit] = useState<string>(
     detection.suggestedMapping.aggregationUnit ?? columnNames[0] ?? ''
   );
@@ -134,6 +137,7 @@ export const DefectDetectedModal: React.FC<DefectDetectedModalProps> = ({
       resultColumn,
       aggregationUnit,
       unitsProducedColumn,
+      stepRejectedAtColumn,
     };
     onEnable(mapping);
   };
@@ -239,6 +243,22 @@ export const DefectDetectedModal: React.FC<DefectDetectedModalProps> = ({
               allowNone
               icon={<Check size={14} className="text-blue-400 shrink-0" />}
             />
+
+            {/* Step of origin - always shown, optional */}
+            <div className="space-y-1">
+              <ColumnDropdown
+                label={t?.('defect.detected.stepOfOrigin') ?? 'Step of origin'}
+                value={stepRejectedAtColumn}
+                onChange={setStepRejectedAtColumn}
+                options={columnNames}
+                allowNone
+                icon={<Check size={14} className="text-blue-400 shrink-0" />}
+              />
+              <p className="text-xs text-content-secondary italic pl-4">
+                {t?.('defect.detected.stepOfOriginHint') ??
+                  'Identifies which step caught each defect. Optional — defects anchor to outcome when not set.'}
+              </p>
+            </div>
           </div>
 
           {/* Aggregation unit selector */}
