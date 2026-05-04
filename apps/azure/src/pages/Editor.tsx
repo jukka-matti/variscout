@@ -1252,7 +1252,8 @@ export const Editor: React.FC<EditorProps> = ({
         const updatedContext = { ...processContext };
         if (brief.issueStatement) updatedContext.issueStatement = brief.issueStatement;
         if (brief.target) {
-          updatedContext.targetMetric = brief.target.metric;
+          updatedContext.targetMetric = brief.target
+            .metric as import('@variscout/core').TargetMetric;
           updatedContext.targetValue = brief.target.value;
           updatedContext.targetDirection = brief.target.direction;
         }
