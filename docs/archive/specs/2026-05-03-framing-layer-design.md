@@ -2,8 +2,8 @@
 title: VariScout Framing Layer — Hub Creation, Data Ingestion, and Investigation Entry
 audience: [product, engineer, designer]
 category: design-spec
-status: active
-last-reviewed: 2026-05-03
+status: delivered
+last-reviewed: 2026-05-04
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/decision-log.md
@@ -638,7 +638,7 @@ V1 delivery is complete when:
 
 **Implementation plans:** V1 is delivered in 4 slices.
 
-- **Slice 1 (in flight):** [`docs/superpowers/plans/2026-05-03-framing-layer-v1-slice-1.md`](../plans/2026-05-03-framing-layer-v1-slice-1.md) — Mode B Stages 1–3 + canvas first paint + Mode A.1 reopen + PWA opt-in IndexedDB persistence + `.vrs` export/import (Q8-revised hybrid).
+- **Slice 1 (delivered):** [`docs/superpowers/plans/2026-05-03-framing-layer-v1-slice-1.md`](../../superpowers/plans/2026-05-03-framing-layer-v1-slice-1.md) — Mode B Stages 1–3 + canvas first paint + Mode A.1 reopen + PWA opt-in IndexedDB persistence + `.vrs` export/import (Q8-revised hybrid).
 - **Slice 2 (planned):** Mode A.2-paste match-summary card + Mode A.2-evidence-source background ingestion + per-row provenance fields + Stage 5 modal full implementation.
 - **Slice 3 (planned):** Multi-source via shared keys (join detection + per-source provenance + per-source independent timelines).
 - **Slice 4 (planned):** Defect anchoring (multi-anchor) + Pareto on canvas (per-step mini + system) + two pickers + Y-axis adapts to mode + canvas-wide scope filter + three composable filter states UI.

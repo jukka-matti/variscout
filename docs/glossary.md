@@ -67,7 +67,7 @@ The persistent home of one process line. Hub IS its logic map — there is no se
 
 ## Data ingestion and provenance
 
-Terms introduced by the framing-layer design (spec `docs/superpowers/specs/2026-05-03-framing-layer-design.md`) and formalized in ADR-077.
+Terms introduced by the framing-layer design (spec `docs/archive/specs/2026-05-03-framing-layer-design.md`) and formalized in ADR-077.
 
 ### evidence-source cursor
 
@@ -97,7 +97,7 @@ Sidecar metadata `{ source: string; joinKey: string }` attached via a `Map<rowIn
 
 The floating modal that opens at the end of Mode B Stage 3 (and on demand via "+ New investigation" in Mode A.1 canvas chrome) to collect investigation-level context before canvas work begins. The user fills in an issue description, a question, and an optional hypothesis draft; the modal creates an `Investigation` entity and a linked `Question` entity when the user clicks "Open investigation →", or returns to the canvas with no active investigation context when the user clicks "Skip — explore canvas instead." The same modal form factor reuses the Q1 floating-overlay decision (vision §8 anchor Q1). Both paths are valid starting points; the skip path supports observation-triggered EDA without forcing a pre-formed question.
 
-**See:** framing-layer spec §5.5; `docs/superpowers/specs/2026-05-03-framing-layer-design.md`
+**See:** framing-layer spec §5.5; `docs/archive/specs/2026-05-03-framing-layer-design.md`
 
 ---
 
