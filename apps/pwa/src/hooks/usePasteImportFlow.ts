@@ -7,6 +7,7 @@ import {
   detectYamazumiFormat,
   detectDefectFormat,
   stackColumns,
+  parseTimeValue,
   type DataRow,
   type DataQualityReport,
   type WideFormatDetection,
@@ -16,7 +17,11 @@ import {
   type StackConfig,
   type ProcessHub,
 } from '@variscout/core';
-import { classifyPaste, type MatchSummaryClassification } from '@variscout/core/matchSummary';
+import {
+  classifyPaste,
+  archiveReplacedRows,
+  type MatchSummaryClassification,
+} from '@variscout/core/matchSummary';
 import { isProcessHubComplete } from '@variscout/core/processHub';
 import type { RowProvenanceTag } from '@variscout/core/evidenceSources';
 import type { MatchSummaryActionChoice } from '@variscout/ui';
@@ -422,10 +427,43 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           return;
         }
 
-        case 'overlap-replace':
-        // archiveReplacedRows is invoked at the snapshot store level when sidecar
-        // provenance lands in P3.4. For now, proceed identically to append.
-        // eslint-disable-next-line no-fallthrough
+        case 'overlap-replace': {
+          // Archive existing rows that fall within the overlap range, then merge:
+          // non-overlap existing rows ∪ archived overlap rows ∪ new rows.
+          const importId = crypto.randomUUID();
+          const overlapRange = ms.classification.overlapRange;
+          const timeCol = ms.newTimeColumn;
+
+          if (overlapRange && timeCol) {
+            const overlapStart = new Date(overlapRange.startISO).getTime();
+            const overlapEnd = new Date(overlapRange.endISO).getTime();
+
+            const overlapRows: DataRow[] = [];
+            const nonOverlapRows: DataRow[] = [];
+
+            for (const row of rawData) {
+              const parsed = parseTimeValue(row[timeCol]);
+              const ms2 = parsed ? parsed.getTime() : NaN;
+              if (Number.isFinite(ms2) && ms2 >= overlapStart && ms2 <= overlapEnd) {
+                overlapRows.push(row);
+              } else {
+                nonOverlapRows.push(row);
+              }
+            }
+
+            const archived = archiveReplacedRows(overlapRows, importId);
+            const merged = [...nonOverlapRows, ...archived, ...ms.newRows];
+            dispatch({ type: 'START_PASTE' });
+            _proceedWithParsedData(merged);
+          } else {
+            // No overlap range available (existingRange not yet wired); fall back to
+            // replacing the full dataset with the new rows.
+            dispatch({ type: 'START_PASTE' });
+            _proceedWithParsedData(ms.newRows);
+          }
+          return;
+        }
+
         case 'append':
         case 'backfill':
         case 'replace':
@@ -438,7 +476,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           return;
       }
     },
-    [matchSummary, activeHub, rawData.length, setRowProvenance, _proceedWithParsedData]
+    [matchSummary, activeHub, rawData, setRowProvenance, _proceedWithParsedData]
   );
 
   const cancelMatchSummary = useCallback(() => setMatchSummary(undefined), []);
