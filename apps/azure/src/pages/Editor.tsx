@@ -38,6 +38,8 @@ import {
   type ColumnMappingConfirmPayload,
   type MatrixDimension,
   StageFiveModal,
+  MatchSummaryCard,
+  type ColumnShape,
 } from '@variscout/ui';
 import { useStageFiveOpener } from '../features/hubCreation/useStageFiveOpener';
 import {
@@ -523,6 +525,8 @@ export const Editor: React.FC<EditorProps> = ({
   );
 
   // Data flow hook
+  const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
+
   const dataFlow = useEditorDataFlow({
     rawData,
     outcome,
@@ -533,6 +537,7 @@ export const Editor: React.FC<EditorProps> = ({
     analysisMode,
     measureColumns,
     measureLabel,
+    activeHub,
     setRawData,
     setOutcome,
     setFactors,
@@ -1396,7 +1401,6 @@ export const Editor: React.FC<EditorProps> = ({
      * already exists the HubCreationFlow skips Stage 1 and renders
      * ColumnMapping directly — same net behaviour as before.
      */
-    const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
     return (
       <HubCreationFlow
         columnAnalysis={dataFlow.mappingColumnAnalysis}
@@ -1999,6 +2003,29 @@ export const Editor: React.FC<EditorProps> = ({
         onSkip={stageFive.close}
         onClose={stageFive.close}
       />
+
+      {/* Match Summary Card — Mode A.2 paste into existing complete Hub (D9).
+          Rendered inline (not over a backdrop) per spec. */}
+      {dataFlow.matchSummary &&
+        (() => {
+          const hubCols: readonly string[] = activeHub?.outcomes?.map(o => o.columnName) ?? [];
+          const newCols = dataFlow.matchSummary.newColumns;
+          const columnShape: ColumnShape = {
+            matched: newCols.filter(c => hubCols.includes(c)),
+            added: newCols.filter(c => !hubCols.includes(c)),
+            missing: (hubCols as string[]).filter(c => !newCols.includes(c)),
+          };
+          return (
+            <div className="fixed bottom-4 right-4 z-40 w-full max-w-2xl px-4">
+              <MatchSummaryCard
+                classification={dataFlow.matchSummary.classification}
+                columnShape={columnShape}
+                onChoose={dataFlow.acceptMatchSummary}
+                onCancel={dataFlow.cancelMatchSummary}
+              />
+            </div>
+          );
+        })()}
     </div>
   );
 };
