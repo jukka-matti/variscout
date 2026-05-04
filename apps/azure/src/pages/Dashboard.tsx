@@ -24,6 +24,7 @@ import { actionToHref } from '../lib/processHubRoutes';
 import { safeTrackEvent } from '../lib/appInsights';
 import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
+import { useNewHubProvision } from '../features/hubCreation/useNewHubProvision';
 import { getEasyAuthUser } from '../auth/easyAuth';
 import {
   Plus,
@@ -77,6 +78,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [sustainmentRecords, setSustainmentRecords] = useState<SustainmentRecord[]>([]);
   const [controlHandoffs, setControlHandoffs] = useState<ControlHandoff[]>([]);
   const [selectedHubId, setSelectedHubId] = useState<string | null>(null);
+
+  const { createHubFromGoal } = useNewHubProvision({
+    onCreated: hub => {
+      setProcessHubs(prev => [...prev, hub]);
+      setSelectedHubId(hub.id);
+    },
+  });
+
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSamplePickerOpen, setIsSamplePickerOpen] = useState(false);
@@ -660,22 +669,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   /**
-   * Mode B entry — create a minimal incomplete Hub record and navigate to its
-   * ProcessHubView where the "Add framing" CTA (onEditFraming) takes over.
-   * Replaces the old window.prompt path (no native blocking dialogs per plan).
+   * Mode B entry — create an incomplete Hub via useNewHubProvision (canonical
+   * creator with extractHubName). An empty goal narrative produces 'Untitled hub'
+   * as the fallback name. onCreated updates processHubs + selectedHubId so
+   * ProcessHubView's empty-state panel picks up the new hub immediately.
    */
   const handleCreateHub = useCallback(async (): Promise<void> => {
-    const now = new Date().toISOString();
-    const hub: ProcessHub = {
-      id: crypto.randomUUID(),
-      name: 'New Hub',
-      createdAt: now,
-      updatedAt: now,
-    };
-    await saveProcessHub(hub);
-    setProcessHubs(prev => [...prev, hub]);
-    setSelectedHubId(hub.id);
-  }, [saveProcessHub]);
+    // Pass empty narrative — extractHubName returns '' → useNewHubProvision falls back to 'Untitled hub'
+    await createHubFromGoal('');
+  }, [createHubFromGoal]);
 
   // Get sync status display
   const getSyncStatusDisplay = (): React.ReactNode => {

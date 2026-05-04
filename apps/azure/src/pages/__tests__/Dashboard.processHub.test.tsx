@@ -384,7 +384,7 @@ describe('Dashboard Process Hub home', () => {
     expect(calledHubIds).toEqual(new Set(['line-5']));
   });
 
-  it('New Hub button creates an incomplete hub and selects it without window.prompt', async () => {
+  it('New Hub button creates an incomplete hub via useNewHubProvision without window.prompt', async () => {
     mockListProjects.mockResolvedValue([]);
     mockListProcessHubs.mockResolvedValue([]);
     mockSaveProcessHub.mockResolvedValue(undefined);
@@ -399,7 +399,8 @@ describe('Dashboard Process Hub home', () => {
 
     await waitFor(() => expect(mockSaveProcessHub).toHaveBeenCalledTimes(1));
     const savedHub = mockSaveProcessHub.mock.calls[0][0];
-    expect(savedHub.name).toBe('New Hub');
+    // useNewHubProvision uses extractHubName('') → '' → fallback 'Untitled hub'
+    expect(savedHub.name).toBe('Untitled hub');
     // Incomplete — no processGoal, no outcomes
     expect(savedHub.processGoal).toBeUndefined();
     expect(promptSpy).not.toHaveBeenCalled();
