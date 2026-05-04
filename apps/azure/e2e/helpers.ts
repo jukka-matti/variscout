@@ -22,17 +22,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export async function confirmColumnMapping(page: Page, outcomeName?: string) {
   await expect(page.locator('text=Map Your Data')).toBeVisible({ timeout: 5000 });
 
-  // If a specific outcome was requested, select it via the radio input with
+  // If a specific outcome was requested, select it via the checkbox input with
   // the matching aria-label on the OutcomeCandidateRow.
   if (outcomeName) {
-    const outcomeRadio = page.locator(
-      `[data-testid="outcome-candidate-list"] input[type="radio"][aria-label="${outcomeName}"]`
+    const outcomeCheckbox = page.locator(
+      `[data-testid="outcome-candidate-list"] input[type="checkbox"][aria-label="${outcomeName}"]`
     );
-    const isVisible = await outcomeRadio.isVisible().catch(() => false);
+    const isVisible = await outcomeCheckbox.isVisible().catch(() => false);
     if (isVisible) {
-      const isChecked = await outcomeRadio.isChecked().catch(() => false);
+      const isChecked = await outcomeCheckbox.isChecked().catch(() => false);
       if (!isChecked) {
-        await outcomeRadio.click();
+        await outcomeCheckbox.click();
       }
     }
   }

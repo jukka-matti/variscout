@@ -88,7 +88,7 @@ test.describe('Framing layer Mode B (PWA) — happy path', () => {
     await expect(page.getByTestId('outcome-candidate-list')).toBeVisible({ timeout: 5000 });
     const weightRadio = page
       .getByTestId('outcome-candidate-list')
-      .locator('input[type="radio"][aria-label="weight_g"]');
+      .locator('input[type="checkbox"][aria-label="weight_g"]');
     await expect(weightRadio).toBeVisible({ timeout: 5000 });
 
     // Select weight_g if not already checked
@@ -147,6 +147,62 @@ test.describe('Framing layer Mode B (PWA) — happy path', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Test: Multi-outcome confirm path — select 2 checkboxes, confirm, assert 2 OutcomePins
+// ---------------------------------------------------------------------------
+
+const TWO_OUTCOME_CSV = [
+  'weight_g,length_mm,product,shift',
+  '4.5,12.1,A,morning',
+  '4.4,11.9,A,morning',
+  '4.6,12.3,B,evening',
+  '4.5,12.0,B,evening',
+  '4.4,11.8,A,morning',
+].join('\n');
+
+test.describe('Framing layer Mode B (PWA) — multi-outcome confirm', () => {
+  test('select 2 outcome checkboxes → workspace shows 2 OutcomePins', async ({ page }) => {
+    await openPasteScreen(page);
+
+    await page.getByTestId('paste-textarea').fill(TWO_OUTCOME_CSV);
+    await page.getByTestId('paste-start-analysis').click();
+
+    // Stage 1
+    await expect(page.getByTestId('hub-goal-form')).toBeVisible({ timeout: 8000 });
+    await page.getByRole('textbox', { name: /process goal/i }).fill('Analyze weight and length.');
+    await page.getByRole('button', { name: /Continue/i }).click();
+
+    // Stage 3: ColumnMapping
+    await expect(page.getByTestId('map-your-data-heading')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByTestId('outcome-candidate-list')).toBeVisible({ timeout: 5000 });
+
+    // Select weight_g checkbox
+    const weightCheckbox = page
+      .getByTestId('outcome-candidate-list')
+      .locator('input[type="checkbox"][aria-label="weight_g"]');
+    const weightChecked = await weightCheckbox.isChecked().catch(() => false);
+    if (!weightChecked) {
+      await weightCheckbox.click();
+    }
+
+    // Select length_mm checkbox
+    const lengthCheckbox = page
+      .getByTestId('outcome-candidate-list')
+      .locator('input[type="checkbox"][aria-label="length_mm"]');
+    await expect(lengthCheckbox).toBeVisible({ timeout: 5000 });
+    const lengthChecked = await lengthCheckbox.isChecked().catch(() => false);
+    if (!lengthChecked) {
+      await lengthCheckbox.click();
+    }
+
+    // Confirm
+    await page.locator('button:has-text("Start Analysis")').first().click();
+
+    // Workspace should show 2 OutcomePins
+    await expect(page.getByTestId('outcome-pin')).toHaveCount(2, { timeout: 10000 });
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Test 2: Cryptic column names → OutcomeNoMatchBanner
 // ---------------------------------------------------------------------------
 
@@ -169,6 +225,29 @@ test.describe('Framing layer Mode B (PWA) — cryptic column names', () => {
     // OutcomeNoMatchBanner should be visible (role=alert, text starts with "⚠ No clear outcome match")
     await expect(page.getByRole('alert')).toBeVisible({ timeout: 8000 });
     await expect(page.getByRole('alert')).toContainText('No clear outcome match');
+  });
+
+  test('OutcomeNoMatchBanner Skip → workspace renders without OutcomePin', async ({ page }) => {
+    await openPasteScreen(page);
+
+    await page.getByTestId('paste-textarea').fill(ALL_TEXT_CSV);
+    await page.getByTestId('paste-start-analysis').click();
+
+    // Stage 1
+    await expect(page.getByTestId('hub-goal-form')).toBeVisible({ timeout: 8000 });
+    await page.getByRole('textbox', { name: /process goal/i }).fill('We make widgets.');
+    await page.getByRole('button', { name: /Continue/i }).click();
+
+    // Stage 3: ColumnMapping — banner should appear
+    await expect(page.getByTestId('map-your-data-heading')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('alert')).toBeVisible({ timeout: 8000 });
+
+    // Click Skip — clears all selected outcomes
+    await page.getByRole('button', { name: /Skip outcome/i }).click();
+
+    // Start Analysis should now be disabled (no outcome selected)
+    const startBtn = page.locator('button:has-text("Start Analysis")').first();
+    await expect(startBtn).toBeDisabled({ timeout: 3000 });
   });
 });
 
