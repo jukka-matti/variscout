@@ -21,7 +21,10 @@ import {
   QuestionLinkPrompt,
   GoalBanner,
   HubGoalForm,
+  OutcomePin,
 } from '@variscout/ui';
+import { SaveToBrowserButton } from './components/SaveToBrowserButton';
+import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
 import { hubRepository } from './db/hubRepository';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
@@ -824,8 +827,58 @@ function AppMain() {
       )}
 
       {/* Goal banner — surfaces the Hub processGoal when restored from
-          opt-in persistence (Mode A.1) or set via the framing layer flow. */}
-      {sessionHub?.processGoal ? <GoalBanner goal={sessionHub.processGoal} /> : null}
+          opt-in persistence (Mode A.1) or set via the framing layer flow.
+          onChange lets the analyst edit the goal inline; updates sessionHub. */}
+      {sessionHub?.processGoal ? (
+        <GoalBanner
+          goal={sessionHub.processGoal}
+          onChange={next => {
+            setSessionHub({
+              ...sessionHub,
+              processGoal: next,
+              updatedAt: new Date().toISOString(),
+            });
+          }}
+        />
+      ) : null}
+
+      {/* Canvas framing toolbar — visible when data is loaded and we are on the
+          analysis canvas (not in a framing modal). Shows OutcomePin, Save-to-browser,
+          .vrs export, and Edit-framing re-entry. */}
+      {rawData.length > 0 &&
+        !importFlow.isPasteMode &&
+        !importFlow.isManualEntry &&
+        !importFlow.isMapping &&
+        sessionHub && (
+          <div
+            className="flex items-center gap-2 px-4 py-1.5 bg-surface-secondary border-b border-edge flex-wrap"
+            data-testid="framing-toolbar"
+          >
+            {/* OutcomePin for first outcome — fallback to mean ± σ + n when no specs */}
+            {sessionHub.outcomes && sessionHub.outcomes.length > 0 && stats && (
+              <OutcomePin
+                outcome={sessionHub.outcomes[0]}
+                stats={{
+                  mean: stats.mean,
+                  sigma: stats.stdDev,
+                  n: filteredData?.length ?? rawData.length,
+                }}
+                onAddSpecs={_col => importFlow.openFactorManager()}
+              />
+            )}
+            <div className="flex-1" />
+            <SaveToBrowserButton currentHub={sessionHub} />
+            <VrsExportButton currentHub={sessionHub} currentData={rawData} />
+            <button
+              type="button"
+              className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+              onClick={importFlow.openFactorManager}
+              data-testid="edit-framing-button"
+            >
+              Edit framing
+            </button>
+          </div>
+        )}
 
       {/* Main Content */}
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
