@@ -14,7 +14,11 @@ import {
   type YamazumiDetection,
   type DefectDetection,
   type StackConfig,
+  type ProcessHub,
 } from '@variscout/core';
+import { classifyPaste, type MatchSummaryClassification } from '@variscout/core/matchSummary';
+import { isProcessHubComplete } from '@variscout/core/processHub';
+import type { MatchSummaryActionChoice } from '@variscout/ui';
 
 // ── Reducer types ──────────────────────────────────────────────────────────
 
@@ -115,6 +119,8 @@ export interface UsePasteImportFlowOptions {
   columnAliases: Record<string, string>;
   dataFilename: string | null;
   dataQualityReport: DataQualityReport | null;
+  /** Active session Hub — when set and complete, paste triggers the Mode A.2 match-summary path. */
+  activeHub?: ProcessHub;
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
@@ -125,6 +131,13 @@ export interface UsePasteImportFlowOptions {
   clearData: () => void;
   clearSelection: () => void;
   applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
+}
+
+export interface MatchSummaryPending {
+  classification: MatchSummaryClassification;
+  newRows: DataRow[];
+  newColumns: string[];
+  newTimeColumn?: string;
 }
 
 export interface UsePasteImportFlowReturn {
@@ -170,6 +183,10 @@ export interface UsePasteImportFlowReturn {
   handleDismissDefect: () => void;
   isMappingReEdit: boolean;
   openFactorManager: () => void;
+  /** Pending match-summary classification — set when Mode A.2 paste is detected. */
+  matchSummary: MatchSummaryPending | undefined;
+  acceptMatchSummary: (choice: MatchSummaryActionChoice) => void;
+  cancelMatchSummary: () => void;
 }
 
 /**
@@ -182,6 +199,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
   const {
     rawData,
     columnAliases,
+    activeHub,
     setRawData,
     setOutcome,
     setFactors,
@@ -210,6 +228,9 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     extractDayOfWeek: true,
     extractHour: false,
   });
+
+  // Mode A.2 match-summary state — set when paste detects an existing complete Hub.
+  const [matchSummary, setMatchSummary] = useState<MatchSummaryPending | undefined>(undefined);
 
   const handleWideFormatDetected = useCallback((result: WideFormatDetection) => {
     dispatch({ type: 'WIDE_FORMAT_DETECTED', detection: result });
@@ -242,6 +263,64 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     [columnAliases, setColumnAliases]
   );
 
+  /**
+   * Inner function: run the post-parse pipeline on already-parsed rows.
+   * Called both from handlePasteAnalyze (first parse) and from acceptMatchSummary
+   * (re-dispatch after user confirms match-summary choice).
+   */
+  const _proceedWithParsedData = useCallback(
+    (data: DataRow[]) => {
+      setRawData(data);
+      setDataFilename('Pasted Data');
+
+      const detected = detectColumns(data);
+      if (detected.outcome) {
+        setOutcome(detected.outcome);
+      }
+      if (detected.factors.length > 0) {
+        setFactors(detected.factors);
+      }
+
+      const report = validateData(data, detected.outcome ? [detected.outcome] : []);
+      setDataQualityReport(report);
+
+      const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
+      if (yamazumiResult.isYamazumiFormat) {
+        dispatch({ type: 'YAMAZUMI_DETECTED', detection: yamazumiResult });
+      }
+
+      // Check for defect format (only if not already detected as yamazumi)
+      if (!yamazumiResult.isYamazumiFormat) {
+        const defectResult = detectDefectFormat(data, detected.columnAnalysis);
+        if (
+          defectResult.isDefectFormat &&
+          (defectResult.confidence === 'high' || defectResult.confidence === 'medium')
+        ) {
+          dispatch({ type: 'DEFECT_DETECTED', detection: defectResult });
+        }
+      }
+
+      const wideFormat = detectWideFormat(data);
+      if (wideFormat.isWideFormat) {
+        dispatch({ type: 'PASTE_ANALYZED_WIDE', detection: wideFormat });
+      } else {
+        dispatch({ type: 'PASTE_ANALYZED' });
+      }
+
+      if (detected.timeColumn) {
+        setTimeExtractionPrompt({
+          timeColumn: detected.timeColumn,
+          hasTimeComponent: detected.columnAnalysis.some(
+            c =>
+              c.name === detected.timeColumn &&
+              c.sampleValues.some(v => v.includes('T') || v.includes(':'))
+          ),
+        });
+      }
+    },
+    [setRawData, setDataFilename, setOutcome, setFactors, setDataQualityReport]
+  );
+
   const handlePasteAnalyze = useCallback(
     async (text: string) => {
       dispatch({ type: 'START_PASTE' }); // clears pasteError
@@ -249,53 +328,38 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       // The purpose here is just to clear pasteError before attempting parse
       try {
         const data = await parseText(text);
-        setRawData(data);
-        setDataFilename('Pasted Data');
 
-        const detected = detectColumns(data);
-        if (detected.outcome) {
-          setOutcome(detected.outcome);
-        }
-        if (detected.factors.length > 0) {
-          setFactors(detected.factors);
-        }
-
-        const report = validateData(data, detected.outcome ? [detected.outcome] : []);
-        setDataQualityReport(report);
-
-        const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
-        if (yamazumiResult.isYamazumiFormat) {
-          dispatch({ type: 'YAMAZUMI_DETECTED', detection: yamazumiResult });
-        }
-
-        // Check for defect format (only if not already detected as yamazumi)
-        if (!yamazumiResult.isYamazumiFormat) {
-          const defectResult = detectDefectFormat(data, detected.columnAnalysis);
-          if (
-            defectResult.isDefectFormat &&
-            (defectResult.confidence === 'high' || defectResult.confidence === 'medium')
-          ) {
-            dispatch({ type: 'DEFECT_DETECTED', detection: defectResult });
-          }
-        }
-
-        const wideFormat = detectWideFormat(data);
-        if (wideFormat.isWideFormat) {
-          dispatch({ type: 'PASTE_ANALYZED_WIDE', detection: wideFormat });
-        } else {
-          dispatch({ type: 'PASTE_ANALYZED' });
-        }
-
-        if (detected.timeColumn) {
-          setTimeExtractionPrompt({
-            timeColumn: detected.timeColumn,
-            hasTimeComponent: detected.columnAnalysis.some(
-              c =>
-                c.name === detected.timeColumn &&
-                c.sampleValues.some(v => v.includes('T') || v.includes(':'))
-            ),
+        // Mode A.2: when there is an existing complete Hub, classify the paste and
+        // surface the match-summary card instead of proceeding directly. The user
+        // must confirm (or cancel) before the paste is committed.
+        if (activeHub && isProcessHubComplete(activeHub)) {
+          const hubColumns = activeHub.outcomes?.map(o => o.columnName) ?? [];
+          const newColumns = data.length > 0 ? Object.keys(data[0]) : [];
+          const detected = detectColumns(data);
+          const classification = classifyPaste(
+            {
+              hubColumns,
+              existingRows: rawData.slice(0, 1000),
+              existingTimeColumn: undefined,
+            },
+            {
+              newColumns,
+              newRows: data,
+              newTimeColumn: detected.timeColumn ?? undefined,
+            }
+          );
+          setMatchSummary({
+            classification,
+            newRows: data,
+            newColumns,
+            newTimeColumn: detected.timeColumn ?? undefined,
           });
+          // Transition out of paste mode — match-summary card takes over.
+          dispatch({ type: 'CANCEL_PASTE' });
+          return;
         }
+
+        _proceedWithParsedData(data);
       } catch (err) {
         dispatch({
           type: 'PASTE_ERROR',
@@ -303,8 +367,51 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         });
       }
     },
-    [setRawData, setDataFilename, setOutcome, setFactors, setDataQualityReport]
+    [activeHub, rawData, _proceedWithParsedData]
   );
+
+  /**
+   * Accept a match-summary action choice.
+   * Proceed-cases (append/backfill/replace/no-timestamp/overlap-replace/overlap-keep-both)
+   * re-dispatch the pending rows through the existing column-mapping pipeline.
+   * Cancel/separate-hub cases dismiss the card without committing data.
+   */
+  const acceptMatchSummary = useCallback(
+    (choice: MatchSummaryActionChoice) => {
+      const ms = matchSummary;
+      if (!ms) return;
+      setMatchSummary(undefined);
+
+      switch (choice.kind) {
+        case 'overlap-cancel':
+        case 'different-grain-cancel':
+        case 'different-grain-separate-hub':
+        case 'different-source-no-key-new-hub':
+          // TODO (slice 4): 'separate-hub' / 'new-hub' intents trigger a new Hub creation
+          // flow. For now, cancel the paste — the block-case discipline (user must decide)
+          // is the critical behaviour; the new-Hub action is a future slice.
+          return;
+
+        case 'overlap-replace':
+        // archiveReplacedRows is invoked at the snapshot store level when sidecar
+        // provenance lands in P3.4. For now, proceed identically to append.
+        // eslint-disable-next-line no-fallthrough
+        case 'append':
+        case 'backfill':
+        case 'replace':
+        case 'no-timestamp':
+        case 'overlap-keep-both':
+          // Re-enter paste mode momentarily so the pipeline dispatch lands cleanly,
+          // then proceed through the column-mapping flow.
+          dispatch({ type: 'START_PASTE' });
+          _proceedWithParsedData(ms.newRows);
+          return;
+      }
+    },
+    [matchSummary, _proceedWithParsedData]
+  );
+
+  const cancelMatchSummary = useCallback(() => setMatchSummary(undefined), []);
 
   const handlePasteCancel = useCallback(() => {
     dispatch({ type: 'CANCEL_PASTE' });
@@ -458,5 +565,8 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     handleDismissDefect,
     isMappingReEdit: flowState.isMappingReEdit,
     openFactorManager,
+    matchSummary,
+    acceptMatchSummary,
+    cancelMatchSummary,
   };
 }

@@ -23,6 +23,8 @@ import {
   HubGoalForm,
   OutcomePin,
   StageFiveModal,
+  MatchSummaryCard,
+  type ColumnShape,
 } from '@variscout/ui';
 import { useStageFiveOpener } from './hooks/useStageFiveOpener';
 import { SaveToBrowserButton } from './components/SaveToBrowserButton';
@@ -260,6 +262,7 @@ function AppMain() {
     columnAliases,
     dataFilename,
     dataQualityReport,
+    activeHub: sessionHub ?? undefined,
     setRawData,
     setOutcome,
     setFactors,
@@ -1239,6 +1242,29 @@ function AppMain() {
           onDismiss={importFlow.handleDismissDefect}
         />
       )}
+
+      {/* Match Summary Card — Mode A.2 paste into existing complete Hub.
+          Rendered inline (not over a backdrop) per spec. */}
+      {importFlow.matchSummary &&
+        (() => {
+          const hubCols: readonly string[] = sessionHub?.outcomes?.map(o => o.columnName) ?? [];
+          const newCols = importFlow.matchSummary.newColumns;
+          const columnShape: ColumnShape = {
+            matched: newCols.filter(c => hubCols.includes(c)),
+            added: newCols.filter(c => !hubCols.includes(c)),
+            missing: (hubCols as string[]).filter(c => !newCols.includes(c)),
+          };
+          return (
+            <div className="fixed bottom-4 right-4 z-40 w-full max-w-2xl px-4">
+              <MatchSummaryCard
+                classification={importFlow.matchSummary.classification}
+                columnShape={columnShape}
+                onChoose={importFlow.acceptMatchSummary}
+                onCancel={importFlow.cancelMatchSummary}
+              />
+            </div>
+          );
+        })()}
 
       {/* Capability Suggestion Modal */}
       {showCapabilitySuggestion && (
