@@ -75,6 +75,44 @@ export async function loadPerformanceSample(page: Page) {
   await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 }
 
+// ── Mode B helpers ────────────────────────────────────────────────────────────
+
+/** CSV data with a clear numeric outcome (weight_g) + two categoricals */
+export const MODE_B_CSV = [
+  'weight_g,product,shift,batch_id',
+  '4.5,A,morning,B1',
+  '4.4,A,morning,B1',
+  '4.6,B,evening,B2',
+  '4.5,B,evening,B2',
+  '4.4,A,morning,B3',
+  '4.5,A,morning,B3',
+  '4.6,B,evening,B4',
+  '4.3,A,morning,B4',
+  '4.7,B,evening,B5',
+  '4.5,A,morning,B5',
+].join('\n');
+
+/**
+ * Paste CSV data into the PasteScreen (data-testid="paste-textarea") and
+ * click Start Analysis.
+ */
+export async function pasteDataAndAnalyze(page: Page, csv: string = MODE_B_CSV): Promise<void> {
+  await expect(page.getByTestId('paste-textarea')).toBeVisible({ timeout: 8000 });
+  await page.getByTestId('paste-textarea').fill(csv);
+  await page.getByTestId('paste-start-analysis').click();
+}
+
+/**
+ * Complete Stage 1 (HubGoalForm) in HubCreationFlow.
+ * Waits for the hub-creation-stage1 container, fills the goal narrative,
+ * and clicks Continue.
+ */
+export async function completeStage1(page: Page, narrative: string): Promise<void> {
+  await expect(page.getByTestId('hub-creation-stage1')).toBeVisible({ timeout: 8000 });
+  await page.getByRole('textbox', { name: /process goal/i }).fill(narrative);
+  await page.getByRole('button', { name: /Continue/i }).click();
+}
+
 /**
  * Mock the AI endpoint with a fixture response.
  * Intercepts requests to the AI endpoint and returns fixture data.
