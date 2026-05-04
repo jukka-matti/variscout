@@ -987,6 +987,14 @@ function AppMain() {
                 onColumnRename={importFlow.handleColumnRename}
                 initialOutcome={outcome}
                 initialFactors={factors}
+                initialOutcomes={
+                  importFlow.isMappingReEdit ? (sessionHub?.outcomes ?? undefined) : undefined
+                }
+                initialPrimaryScopeDimensions={
+                  importFlow.isMappingReEdit
+                    ? (sessionHub?.primaryScopeDimensions ?? undefined)
+                    : undefined
+                }
                 datasetName={dataFilename || undefined}
                 onConfirm={handleMappingConfirmWithGoal}
                 onCancel={importFlow.handleMappingCancel}

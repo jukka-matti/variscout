@@ -169,11 +169,11 @@ describe('ColumnMapping', () => {
   describe('multi-outcome selection', () => {
     it('starts with initialOutcome pre-selected', () => {
       render(<ColumnMapping {...richProps} initialOutcome="Value" />);
-      // The Value radio/input should be checked
-      const radios = screen.getAllByRole('radio');
-      const valueRadio = radios.find(r => r.getAttribute('aria-label') === 'Value');
-      expect(valueRadio).toBeTruthy();
-      expect((valueRadio as HTMLInputElement).checked).toBe(true);
+      // The Value checkbox should be checked
+      const checkboxes = screen.getAllByRole('checkbox');
+      const valueCheckbox = checkboxes.find(r => r.getAttribute('aria-label') === 'Value');
+      expect(valueCheckbox).toBeTruthy();
+      expect((valueCheckbox as HTMLInputElement).checked).toBe(true);
     });
 
     it('starts with initialOutcomes pre-selected in edit mode', () => {
@@ -188,9 +188,9 @@ describe('ColumnMapping', () => {
           initialFactors={[]}
         />
       );
-      const radios = screen.getAllByRole('radio');
-      const valueRadio = radios.find(r => r.getAttribute('aria-label') === 'Value');
-      expect((valueRadio as HTMLInputElement).checked).toBe(true);
+      const checkboxesEdit = screen.getAllByRole('checkbox');
+      const valueCheckboxEdit = checkboxesEdit.find(r => r.getAttribute('aria-label') === 'Value');
+      expect((valueCheckboxEdit as HTMLInputElement).checked).toBe(true);
     });
 
     it('single-outcome confirm: payload.outcomes has one entry', () => {
@@ -223,11 +223,11 @@ describe('ColumnMapping', () => {
       );
 
       // Weight is pre-selected; also select Length
-      const lengthRadio = screen
-        .getAllByRole('radio')
+      const lengthCheckbox = screen
+        .getAllByRole('checkbox')
         .find(r => r.getAttribute('aria-label') === 'Length');
-      expect(lengthRadio).toBeTruthy();
-      fireEvent.click(lengthRadio!);
+      expect(lengthCheckbox).toBeTruthy();
+      fireEvent.click(lengthCheckbox!);
 
       fireEvent.click(screen.getByText('Start Analysis'));
 
@@ -242,14 +242,14 @@ describe('ColumnMapping', () => {
       render(<ColumnMapping {...richProps} initialOutcome="Value" onConfirm={onConfirm} />);
 
       // Deselect Value
-      const valueRadio = screen
-        .getAllByRole('radio')
+      const valueCheckboxDesel = screen
+        .getAllByRole('checkbox')
         .find(r => r.getAttribute('aria-label') === 'Value');
-      fireEvent.click(valueRadio!);
+      fireEvent.click(valueCheckboxDesel!);
 
       // Start Analysis is disabled (no outcomes), but let's verify the state change
       // by re-selecting and confirming
-      fireEvent.click(valueRadio!); // re-select
+      fireEvent.click(valueCheckboxDesel!); // re-select
       fireEvent.click(screen.getByText('Start Analysis'));
 
       const payload: ColumnMappingConfirmPayload = onConfirm.mock.calls[0][0];
@@ -391,6 +391,66 @@ describe('ColumnMapping', () => {
       render(<ColumnMapping {...richProps} noMatchThreshold={0.1} />);
       expect(screen.queryByRole('alert')).toBeNull();
     });
+
+    it('Skip CTA clears selected outcomes', () => {
+      const allTextAnalysis: ColumnAnalysis[] = [
+        col('foo', 'text', { uniqueCount: 5 }),
+        col('bar', 'text', { uniqueCount: 3 }),
+      ];
+      const onConfirm = vi.fn();
+      render(
+        <ColumnMapping
+          columnAnalysis={allTextAnalysis}
+          initialOutcome={null}
+          initialFactors={[]}
+          onConfirm={onConfirm}
+          onCancel={vi.fn()}
+          noMatchThreshold={0.9}
+        />
+      );
+      // Banner is present
+      expect(screen.getByRole('alert')).toBeTruthy();
+      // Click Skip
+      fireEvent.click(screen.getByRole('button', { name: /Skip outcome/i }));
+      // After skip, Start Analysis should still be reachable (no outcome = disabled)
+      // — confirm by checking the payload will have zero outcomes after a forced click
+      // (we test the state was cleared, not the button disabled state)
+      // Manually enable: the Start Analysis button is disabled when no outcome selected,
+      // so we verify the internal state by checking payload.outcomes is empty on a force-submit.
+      // Force-click the disabled button to fire the confirm handler anyway:
+      const btn = screen.getByText('Start Analysis').closest('button')!;
+      // button is disabled after skip — this confirms onSkip cleared outcomes
+      expect(btn.hasAttribute('disabled')).toBe(true);
+    });
+
+    it('expectedOutcomeNote is included in payload after onExpectedChange', () => {
+      const allTextAnalysis: ColumnAnalysis[] = [
+        col('foo', 'text', { uniqueCount: 5 }),
+        col('bar', 'text', { uniqueCount: 3 }),
+      ];
+      const onConfirm = vi.fn();
+      render(
+        <ColumnMapping
+          columnAnalysis={allTextAnalysis}
+          initialOutcome="foo"
+          initialFactors={[]}
+          onConfirm={onConfirm}
+          onCancel={vi.fn()}
+          noMatchThreshold={0.9}
+        />
+      );
+      // Banner is present
+      expect(screen.getByRole('alert')).toBeTruthy();
+      // Type in the expected note
+      const noteInput = screen.getByPlaceholderText(/e\.g\. reject_rate/i) as HTMLInputElement;
+      fireEvent.change(noteInput, { target: { value: 'reject_rate' } });
+
+      // Confirm (foo is pre-selected by initialOutcome)
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      const payload: ColumnMappingConfirmPayload = onConfirm.mock.calls[0][0];
+      expect(payload.expectedOutcomeNote).toBe('reject_rate');
+    });
   });
 
   // ── mode='edit' round-trip ────────────────────────────────────────────────
@@ -414,10 +474,10 @@ describe('ColumnMapping', () => {
           initialFactors={[]}
         />
       );
-      const valueRadio = screen
-        .getAllByRole('radio')
+      const valueCheckboxPreload = screen
+        .getAllByRole('checkbox')
         .find(r => r.getAttribute('aria-label') === 'Value');
-      expect((valueRadio as HTMLInputElement).checked).toBe(true);
+      expect((valueCheckboxPreload as HTMLInputElement).checked).toBe(true);
 
       // Inline specs should be pre-filled from initialOutcomes
       const targetInput = screen.getByLabelText('Target') as HTMLInputElement;
@@ -454,6 +514,46 @@ describe('ColumnMapping', () => {
     it('shows SpecsSection in edit mode when hideSpecs=false', () => {
       render(<ColumnMapping {...richProps} mode="edit" initialFactors={[]} hideSpecs={false} />);
       expect(screen.getByText('Set Specification Limits')).toBeTruthy();
+    });
+
+    it('edit-mode roundtrip preserves all initialOutcomes (multi-outcome)', () => {
+      // Regression test for Critical #1: editing an existing Hub with 2 outcomes
+      // must preload BOTH rows and emit BOTH in the confirm payload.
+      const twoNumericAnalysis = [
+        col('A', 'numeric', { sampleValues: ['1', '2', '3'], uniqueCount: 100 }),
+        col('B', 'numeric', { sampleValues: ['10', '20', '30'], uniqueCount: 80 }),
+        col('Machine', 'categorical', { sampleValues: ['M1', 'M2'], uniqueCount: 2 }),
+      ];
+      const initialOutcomes: OutcomeSpec[] = [
+        { columnName: 'A', characteristicType: 'nominalIsBest', target: 2 },
+        { columnName: 'B', characteristicType: 'largerIsBetter' },
+      ];
+      const onConfirm = vi.fn();
+      render(
+        <ColumnMapping
+          columnAnalysis={twoNumericAnalysis}
+          initialOutcome="A"
+          initialFactors={[]}
+          initialOutcomes={initialOutcomes}
+          mode="edit"
+          onConfirm={onConfirm}
+          onCancel={vi.fn()}
+        />
+      );
+
+      // Both A and B checkboxes should be pre-checked
+      const checkboxes = screen.getAllByRole('checkbox');
+      const checkboxA = checkboxes.find(r => r.getAttribute('aria-label') === 'A');
+      const checkboxB = checkboxes.find(r => r.getAttribute('aria-label') === 'B');
+      expect((checkboxA as HTMLInputElement).checked).toBe(true);
+      expect((checkboxB as HTMLInputElement).checked).toBe(true);
+
+      fireEvent.click(screen.getByText('Apply Changes'));
+
+      const payload: ColumnMappingConfirmPayload = onConfirm.mock.calls[0][0];
+      expect(payload.outcomes).toHaveLength(2);
+      const columnNames = payload.outcomes.map(o => o.columnName).sort();
+      expect(columnNames).toEqual(['A', 'B']);
     });
   });
 

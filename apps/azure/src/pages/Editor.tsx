@@ -1385,6 +1385,7 @@ export const Editor: React.FC<EditorProps> = ({
      * already exists the HubCreationFlow skips Stage 1 and renders
      * ColumnMapping directly — same net behaviour as before.
      */
+    const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
     return (
       <HubCreationFlow
         columnAnalysis={dataFlow.mappingColumnAnalysis}
@@ -1395,6 +1396,8 @@ export const Editor: React.FC<EditorProps> = ({
         onColumnRename={dataFlow.handleColumnRename}
         initialOutcome={outcome}
         initialFactors={factors}
+        initialOutcomes={activeHub?.outcomes}
+        initialPrimaryScopeDimensions={activeHub?.primaryScopeDimensions}
         datasetName={dataFilename || 'Pasted Data'}
         onConfirm={handleMappingConfirmWithCategories}
         onCancel={dataFlow.handleMappingCancel}
@@ -1773,6 +1776,10 @@ export const Editor: React.FC<EditorProps> = ({
             rowLimit={250000}
             processHubId={processContext?.processHubId}
             onHubCreated={handleHubCreated}
+            initialOutcomes={processHubs.find(h => h.id === processContext?.processHubId)?.outcomes}
+            initialPrimaryScopeDimensions={
+              processHubs.find(h => h.id === processContext?.processHubId)?.primaryScopeDimensions
+            }
           />
         )}
       </div>

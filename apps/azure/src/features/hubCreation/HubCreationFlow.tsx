@@ -24,7 +24,7 @@ import type {
   StackSuggestion,
 } from '@variscout/core';
 import { useNewHubProvision } from './useNewHubProvision';
-import type { ProcessHub } from '@variscout/core/processHub';
+import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
 
 export interface HubCreationFlowProps {
   // Mapping passthrough props (subset of ColumnMappingProps the Editor wires)
@@ -49,6 +49,10 @@ export interface HubCreationFlowProps {
   suggestedStack?: StackSuggestion | null;
   onStackConfigChange?: (config: StackConfig | null) => void;
   rowLimit?: number;
+  /** Initial Hub outcomes — passed to ColumnMapping in edit mode for round-trip. */
+  initialOutcomes?: OutcomeSpec[];
+  /** Initial Hub primary scope dimensions — passed to ColumnMapping in edit mode. */
+  initialPrimaryScopeDimensions?: string[];
   // Hub context
   /** Current processHubId — when truthy, Stage 1 is already done */
   processHubId?: string | null;
@@ -83,6 +87,8 @@ export function HubCreationFlow({
   suggestedStack,
   onStackConfigChange,
   rowLimit,
+  initialOutcomes,
+  initialPrimaryScopeDimensions,
   processHubId,
   onHubCreated,
 }: HubCreationFlowProps) {
@@ -127,6 +133,8 @@ export function HubCreationFlow({
       onColumnRename={onColumnRename}
       initialOutcome={initialOutcome}
       initialFactors={initialFactors}
+      initialOutcomes={isMappingReEdit ? initialOutcomes : undefined}
+      initialPrimaryScopeDimensions={isMappingReEdit ? initialPrimaryScopeDimensions : undefined}
       datasetName={datasetName}
       onConfirm={onConfirm}
       onCancel={onCancel}
