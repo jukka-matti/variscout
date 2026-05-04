@@ -116,4 +116,37 @@ describe('StageFiveModal interactions', () => {
     fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
     expect(onOpenInvestigation).toHaveBeenCalledWith({});
   });
+
+  it('strips whitespace-only input from brief', () => {
+    const onOpenInvestigation = vi.fn();
+    render(
+      <StageFiveModal
+        open
+        mode="mode-b"
+        onOpenInvestigation={onOpenInvestigation}
+        onSkip={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+    fireEvent.change(screen.getByTestId('stage-five-issue-input'), {
+      target: { value: '   ' },
+    });
+    fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
+    expect(onOpenInvestigation).toHaveBeenCalledWith({});
+  });
+
+  it('does not call onClose when inner card is clicked', () => {
+    const onClose = vi.fn();
+    render(
+      <StageFiveModal
+        open
+        mode="mode-b"
+        onOpenInvestigation={vi.fn()}
+        onSkip={vi.fn()}
+        onClose={onClose}
+      />
+    );
+    fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });
