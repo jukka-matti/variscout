@@ -552,3 +552,9 @@ export {
   type UseTimelineWindowArgs,
   type UseTimelineWindowResult,
 } from './useTimelineWindow';
+
+export {
+  useCanvasFilters,
+  type UseCanvasFiltersArgs,
+  type UseCanvasFiltersResult,
+} from './useCanvasFilters';
