@@ -199,6 +199,8 @@ describe('blobClient', () => {
           sourceId: 'source-1',
           capturedAt: '2026-04-26T12:00:00.000Z',
           rowCount: 3,
+          origin: 'evidence-source:source-1',
+          importedAt: '2026-04-26T12:00:00.000Z',
           profileApplication: {
             profileId: 'agent-review-log',
             profileVersion: 1,

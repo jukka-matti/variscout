@@ -48,6 +48,12 @@ export interface EvidenceSnapshot {
   rowCount: number;
   profileApplication?: ProfileApplication;
   latestSignals?: EvidenceLatestSignal[];
+  /** Import-id of the paste / file / Evidence Source that produced this snapshot. */
+  origin: string;
+  /** Wall-clock ISO 8601 timestamp when VariScout ingested the data. */
+  importedAt: string;
+  /** Span of `row_timestamp` values when a time column is present in the dataset. */
+  rowTimestampRange?: { startISO: string; endISO: string };
 }
 
 export interface DataProfileDetection {

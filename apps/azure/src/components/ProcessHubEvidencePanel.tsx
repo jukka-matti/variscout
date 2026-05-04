@@ -178,6 +178,8 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
         sourceId: selectedSource.id,
         capturedAt,
         rowCount: rows.length,
+        origin: `evidence-source:${selectedSource.id}`,
+        importedAt: capturedAt,
         profileApplication: application,
         latestSignals: [
           {
@@ -322,6 +324,8 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
         sourceId,
         capturedAt: timestamp,
         rowCount: rows.length,
+        origin: `evidence-source:${sourceId}`,
+        importedAt: timestamp,
         profileApplication: application,
       };
       await saveEvidenceSnapshot(snapshot, rawText);

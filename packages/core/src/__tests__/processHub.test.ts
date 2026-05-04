@@ -495,6 +495,8 @@ describe('buildProcessHubCadence', () => {
         sourceId: 'src-1',
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
+        origin: 'fixture:severity-ordering',
+        importedAt: '2026-04-26T10:00:00.000Z',
         latestSignals: [
           {
             id: 'sig-green',
@@ -511,6 +513,8 @@ describe('buildProcessHubCadence', () => {
         sourceId: 'src-1',
         capturedAt: '2026-04-25T10:00:00.000Z',
         rowCount: 100,
+        origin: 'fixture:severity-ordering',
+        importedAt: '2026-04-25T10:00:00.000Z',
         latestSignals: [
           {
             id: 'sig-red',
@@ -527,6 +531,8 @@ describe('buildProcessHubCadence', () => {
         sourceId: 'src-1',
         capturedAt: '2026-04-24T10:00:00.000Z',
         rowCount: 100,
+        origin: 'fixture:severity-ordering',
+        importedAt: '2026-04-24T10:00:00.000Z',
         latestSignals: [
           {
             id: 'sig-amber',
@@ -543,6 +549,8 @@ describe('buildProcessHubCadence', () => {
         sourceId: 'src-1',
         capturedAt: '2026-04-26T11:00:00.000Z',
         rowCount: 100,
+        origin: 'fixture:severity-ordering',
+        importedAt: '2026-04-26T11:00:00.000Z',
         latestSignals: [
           {
             id: 'sig-neutral',
@@ -577,6 +585,8 @@ describe('buildProcessHubCadence', () => {
         sourceId: 'src-1',
         capturedAt: '2026-04-24T10:00:00.000Z',
         rowCount: 100,
+        origin: 'fixture:severity-tie-breaking',
+        importedAt: '2026-04-24T10:00:00.000Z',
         latestSignals: [
           {
             id: 'sig-red-old',
@@ -593,6 +603,8 @@ describe('buildProcessHubCadence', () => {
         sourceId: 'src-1',
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
+        origin: 'fixture:severity-tie-breaking',
+        importedAt: '2026-04-26T10:00:00.000Z',
         latestSignals: [
           {
             id: 'sig-red-new',
@@ -711,6 +723,8 @@ describe('buildProcessHubRollups', () => {
         sourceId: 'src-1',
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
+        origin: 'fixture:orphan-hub-fallback',
+        importedAt: '2026-04-26T10:00:00.000Z',
         latestSignals: [],
       },
     ];
