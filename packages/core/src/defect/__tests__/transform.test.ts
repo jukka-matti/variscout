@@ -439,4 +439,256 @@ describe('computeDefectRates', () => {
       expect(result.data.every(r => r['DefectType'] === 'Scratch')).toBe(true);
     });
   });
+
+  // ──────────────────────────────────────────────
+  // Per-step bucketing (stepRejectedAtColumn)
+  // ──────────────────────────────────────────────
+
+  describe('per-step bucketing', () => {
+    // ── event-log ──────────────────────────────
+
+    describe('event-log shape', () => {
+      const data: DataRow[] = [
+        { Batch: 'B1', DefectType: 'Scratch', Step: 'Mold', Cost: 10 },
+        { Batch: 'B1', DefectType: 'Scratch', Step: 'Mold', Cost: 15 },
+        { Batch: 'B1', DefectType: 'Dent', Step: 'Mold', Cost: 5 },
+        { Batch: 'B2', DefectType: 'Dent', Step: 'QC', Cost: 20 },
+        { Batch: 'B2', DefectType: 'Scratch', Step: 'QC', Cost: 8 },
+      ];
+
+      it('absent column → perStep is undefined (regression)', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'event-log',
+          aggregationUnit: 'Batch',
+          defectTypeColumn: 'DefectType',
+        };
+        const result = computeDefectRates(data, mapping);
+        expect(result.perStep).toBeUndefined();
+      });
+
+      it('present column → emits per-step rollup with correct counts', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'event-log',
+          aggregationUnit: 'Batch',
+          defectTypeColumn: 'DefectType',
+          stepRejectedAtColumn: 'Step',
+        };
+        const result = computeDefectRates(data, mapping);
+        expect(result.perStep).toBeDefined();
+        expect(result.perStep).toHaveLength(2);
+
+        const mold = result.perStep!.find(s => s.stepKey === 'Mold');
+        const qc = result.perStep!.find(s => s.stepKey === 'QC');
+        expect(mold?.defectCount).toBe(3);
+        expect(qc?.defectCount).toBe(2);
+      });
+
+      it('present column + costColumn → costTotal correct per step', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'event-log',
+          aggregationUnit: 'Batch',
+          defectTypeColumn: 'DefectType',
+          stepRejectedAtColumn: 'Step',
+          costColumn: 'Cost',
+        };
+        const result = computeDefectRates(data, mapping);
+        const mold = result.perStep!.find(s => s.stepKey === 'Mold');
+        const qc = result.perStep!.find(s => s.stepKey === 'QC');
+        expect(mold?.costTotal).toBeCloseTo(30); // 10 + 15 + 5
+        expect(qc?.costTotal).toBeCloseTo(28); // 20 + 8
+      });
+
+      it('sorted descending by defectCount', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'event-log',
+          aggregationUnit: 'Batch',
+          defectTypeColumn: 'DefectType',
+          stepRejectedAtColumn: 'Step',
+        };
+        const result = computeDefectRates(data, mapping);
+        const counts = result.perStep!.map(s => s.defectCount);
+        expect(counts[0]).toBeGreaterThanOrEqual(counts[1]);
+      });
+
+      it('rows with empty/null step not in perStep but counted in system total', () => {
+        const dataWithNulls: DataRow[] = [
+          { Batch: 'B1', DefectType: 'Scratch', Step: 'Mold' },
+          { Batch: 'B1', DefectType: 'Dent', Step: null },
+          { Batch: 'B2', DefectType: 'Scratch', Step: '' },
+          { Batch: 'B2', DefectType: 'Dent', Step: 'QC' },
+        ];
+        const mapping: DefectMapping = {
+          dataShape: 'event-log',
+          aggregationUnit: 'Batch',
+          stepRejectedAtColumn: 'Step',
+        };
+        const result = computeDefectRates(dataWithNulls, mapping);
+
+        // System-level total: 4 rows → DefectCount aggregated by batch
+        const systemTotal = result.data.reduce((acc, r) => acc + (r['DefectCount'] as number), 0);
+        expect(systemTotal).toBe(4);
+
+        // Only rows with non-empty step appear in perStep
+        const perStepTotal = result.perStep!.reduce((acc, s) => acc + s.defectCount, 0);
+        expect(perStepTotal).toBe(2); // only Mold + QC rows have valid step keys
+
+        // No entry with an empty key
+        expect(result.perStep!.every(s => s.stepKey !== '' && s.stepKey !== 'null')).toBe(true);
+      });
+
+      it('defectRate per step is undefined when no unitsProducedColumn', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'event-log',
+          aggregationUnit: 'Batch',
+          stepRejectedAtColumn: 'Step',
+        };
+        const result = computeDefectRates(data, mapping);
+        expect(result.perStep!.every(s => s.defectRate === undefined)).toBe(true);
+      });
+    });
+
+    // ── pre-aggregated ──────────────────────────
+
+    describe('pre-aggregated shape', () => {
+      const data: DataRow[] = [
+        { Station: 'S1', Defects: 5, Step: 'Mold' },
+        { Station: 'S2', Defects: 3, Step: 'Mold' },
+        { Station: 'S3', Defects: 7, Step: 'QC' },
+        { Station: 'S4', Defects: 2, Step: 'QC' },
+      ];
+
+      it('absent column → perStep is undefined (regression)', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'pre-aggregated',
+          aggregationUnit: 'Station',
+          countColumn: 'Defects',
+        };
+        const result = computeDefectRates(data, mapping);
+        expect(result.perStep).toBeUndefined();
+      });
+
+      it('present column → sums countColumn per step', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'pre-aggregated',
+          aggregationUnit: 'Station',
+          countColumn: 'Defects',
+          stepRejectedAtColumn: 'Step',
+        };
+        const result = computeDefectRates(data, mapping);
+        expect(result.perStep).toBeDefined();
+        expect(result.perStep).toHaveLength(2);
+
+        const mold = result.perStep!.find(s => s.stepKey === 'Mold');
+        const qc = result.perStep!.find(s => s.stepKey === 'QC');
+        expect(mold?.defectCount).toBe(8); // 5 + 3
+        expect(qc?.defectCount).toBe(9); // 7 + 2
+      });
+
+      it('sorted descending by defectCount', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'pre-aggregated',
+          aggregationUnit: 'Station',
+          countColumn: 'Defects',
+          stepRejectedAtColumn: 'Step',
+        };
+        const result = computeDefectRates(data, mapping);
+        const counts = result.perStep!.map(s => s.defectCount);
+        expect(counts[0]).toBeGreaterThanOrEqual(counts[1]);
+      });
+
+      it('rows with null step not in perStep but row-count preserved in data', () => {
+        const dataWithNull: DataRow[] = [
+          { Station: 'S1', Defects: 5, Step: 'Mold' },
+          { Station: 'S2', Defects: 3, Step: null },
+        ];
+        const mapping: DefectMapping = {
+          dataShape: 'pre-aggregated',
+          aggregationUnit: 'Station',
+          countColumn: 'Defects',
+          stepRejectedAtColumn: 'Step',
+        };
+        const result = computeDefectRates(dataWithNull, mapping);
+        // System data unchanged (2 rows pass through)
+        expect(result.data).toHaveLength(2);
+        // perStep only has Mold (S2 had null step)
+        expect(result.perStep).toHaveLength(1);
+        expect(result.perStep![0].stepKey).toBe('Mold');
+        expect(result.perStep![0].defectCount).toBe(5);
+      });
+    });
+
+    // ── pass-fail ───────────────────────────────
+
+    describe('pass-fail shape', () => {
+      const data: DataRow[] = [
+        { Batch: 'B1', Result: 'Fail', Step: 'Mold' },
+        { Batch: 'B1', Result: 'Fail', Step: 'Mold' },
+        { Batch: 'B1', Result: 'Pass', Step: 'Mold' },
+        { Batch: 'B2', Result: 'Fail', Step: 'QC' },
+        { Batch: 'B2', Result: 'Pass', Step: 'QC' },
+        { Batch: 'B2', Result: 'Fail', Step: 'QC' },
+      ];
+
+      it('absent column → perStep is undefined (regression)', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'pass-fail',
+          aggregationUnit: 'Batch',
+          resultColumn: 'Result',
+        };
+        const result = computeDefectRates(data, mapping);
+        expect(result.perStep).toBeUndefined();
+      });
+
+      it('present column → only fail rows bucketed per step', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'pass-fail',
+          aggregationUnit: 'Batch',
+          resultColumn: 'Result',
+          stepRejectedAtColumn: 'Step',
+        };
+        const result = computeDefectRates(data, mapping);
+        expect(result.perStep).toBeDefined();
+        expect(result.perStep).toHaveLength(2);
+
+        const mold = result.perStep!.find(s => s.stepKey === 'Mold');
+        const qc = result.perStep!.find(s => s.stepKey === 'QC');
+        // Only fail rows: B1 has 2 fails on Mold, B2 has 2 fails on QC
+        expect(mold?.defectCount).toBe(2);
+        expect(qc?.defectCount).toBe(2);
+      });
+
+      it('sorted descending by defectCount (tie preserves insertion order)', () => {
+        const mapping: DefectMapping = {
+          dataShape: 'pass-fail',
+          aggregationUnit: 'Batch',
+          resultColumn: 'Result',
+          stepRejectedAtColumn: 'Step',
+        };
+        const result = computeDefectRates(data, mapping);
+        const counts = result.perStep!.map(s => s.defectCount);
+        expect(counts[0]).toBeGreaterThanOrEqual(counts[1]);
+      });
+
+      it('rows with empty step value not in perStep', () => {
+        const dataWithEmpty: DataRow[] = [
+          { Batch: 'B1', Result: 'Fail', Step: 'Mold' },
+          { Batch: 'B1', Result: 'Fail', Step: '' },
+          { Batch: 'B1', Result: 'Fail', Step: 'QC' },
+        ];
+        const mapping: DefectMapping = {
+          dataShape: 'pass-fail',
+          aggregationUnit: 'Batch',
+          resultColumn: 'Result',
+          stepRejectedAtColumn: 'Step',
+        };
+        const result = computeDefectRates(dataWithEmpty, mapping);
+        // System level: B1 has 3 fails
+        const b1 = result.data.find(r => r['Batch'] === 'B1');
+        expect(b1?.['DefectCount']).toBe(3);
+        // Only Mold and QC appear in perStep (empty string excluded)
+        expect(result.perStep).toHaveLength(2);
+        expect(result.perStep!.every(s => s.stepKey !== '')).toBe(true);
+      });
+    });
+  });
 });
