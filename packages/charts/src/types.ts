@@ -21,6 +21,7 @@ import type {
 } from '@variscout/core';
 import type { NodeCapabilityResult } from '@variscout/core/stats';
 import type { HighlightColor } from '@variscout/core/ui-types';
+import type { ParetoYMetricId, ParetoYMetric } from '@variscout/core/pareto';
 
 // Re-export data point types from core (canonical source)
 export type { IChartDataPoint, ParetoDataPoint } from '@variscout/core';
@@ -315,6 +316,19 @@ export interface PerformanceParetoProps extends BaseChartProps {
   onChannelClick?: (channelId: string) => void;
   /** Custom Cpk thresholds for health classification and reference lines (defaults to industry standards) */
   cpkThresholds?: CpkThresholds;
+  /**
+   * Active Y-axis metric. Defaults to `'cpk'` (current behaviour — channels ranked by Cpk ascending).
+   * Set to `'percent-out-of-spec'` to rank channels by % out-of-spec descending instead.
+   */
+  yMetric?: ParetoYMetricId;
+  /**
+   * Available Y-axis metric options for the picker chip.
+   * Picker is hidden when undefined or fewer than 2 options.
+   * Typically `getStrategy('performance').paretoYOptions`.
+   */
+  availableYMetrics?: ParetoYMetric[];
+  /** Callback when user picks a different Y metric. */
+  onYMetricSwitch?: (metricId: ParetoYMetricId) => void;
 }
 
 /**

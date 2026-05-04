@@ -29,6 +29,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import type { DataRow, ParetoRow, Finding } from '@variscout/core';
+import type { ParetoYMetric, ParetoYMetricId, ComputeParetoYContext } from '@variscout/core/pareto';
 import type { HighlightColor, ParetoMode } from '@variscout/hooks';
 
 export interface ParetoChartWrapperBaseProps {
@@ -87,6 +88,23 @@ export interface ParetoChartWrapperBaseProps {
   availableFactors?: string[];
   /** Callback to switch the Pareto grouping factor (inline dropdown) */
   onFactorSwitch?: (factorName: string) => void;
+  /**
+   * Active Y-axis metric id. When set, takes precedence over `aggregation` for
+   * non-count metrics. Forwarded to useParetoChartData.
+   */
+  yMetric?: ParetoYMetricId;
+  /**
+   * Available Y-metric options (typically `getStrategy(mode).paretoYOptions`).
+   * Picker is hidden when undefined or length ≤ 1.
+   */
+  availableYMetrics?: ParetoYMetric[];
+  /** Callback when user picks a different Y metric. */
+  onYMetricSwitch?: (metricId: ParetoYMetricId) => void;
+  /**
+   * Context required by computeParetoY for non-`count` metrics.
+   * Caller MUST memoize this object to avoid re-render loops.
+   */
+  yMetricContext?: ComputeParetoYContext;
 }
 
 /** Compact dropdown for switching the Pareto grouping factor */
@@ -165,6 +183,84 @@ const FactorSelectorDropdown = ({
   );
 };
 
+/** Compact dropdown for switching the Pareto Y-axis metric */
+const YMetricSelectorDropdown = ({
+  currentMetricId,
+  availableYMetrics,
+  onSelect,
+}: {
+  currentMetricId: ParetoYMetricId;
+  availableYMetrics: ParetoYMetric[];
+  onSelect: (metricId: ParetoYMetricId) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const currentMetric = availableYMetrics.find(m => m.id === currentMetricId);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        onClick={() => setIsOpen(prev => !prev)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label="Y axis metric"
+        className="flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded bg-surface-tertiary/50 text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors max-w-[120px]"
+        title={`Y axis: ${currentMetric?.label ?? currentMetricId}`}
+      >
+        <span className="truncate">{currentMetric?.label ?? currentMetricId}</span>
+        <ChevronDown
+          size={10}
+          className={`flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {isOpen && (
+        <div
+          role="listbox"
+          className="absolute top-full right-0 mt-0.5 min-w-[140px] max-w-[220px] bg-surface-elevated border border-edge rounded shadow-lg z-20 py-0.5 max-h-[200px] overflow-y-auto"
+        >
+          {availableYMetrics.map(m => (
+            <button
+              key={m.id}
+              role="option"
+              aria-selected={m.id === currentMetricId}
+              onClick={() => {
+                onSelect(m.id);
+                setIsOpen(false);
+              }}
+              className={`w-full text-left text-xs px-2 py-1 truncate transition-colors ${
+                m.id === currentMetricId
+                  ? 'bg-blue-500/15 text-blue-400'
+                  : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
+              }`}
+              title={m.description ?? m.label}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const ParetoChartWrapperBase = ({
   parentWidth,
   parentHeight,
@@ -194,6 +290,10 @@ export const ParetoChartWrapperBase = ({
   onUploadPareto,
   availableFactors = [],
   onFactorSwitch,
+  yMetric,
+  availableYMetrics,
+  onYMetricSwitch,
+  yMetricContext,
 }: ParetoChartWrapperBaseProps) => {
   const { formatStat } = useTranslation();
   const [editingAxis, setEditingAxis] = useState<string | null>(null);
@@ -218,6 +318,8 @@ export const ParetoChartWrapperBase = ({
     separateParetoData: separateParetoData ?? null,
     filters,
     parentWidth,
+    yMetric,
+    yMetricContext,
   });
 
   const handleBarClick = (key: string) => {
@@ -301,6 +403,18 @@ export const ParetoChartWrapperBase = ({
             onSelect={onFactorSwitch}
           />
         )}
+
+        {/* Y-axis metric picker — visible when ≥ 2 options + switch callback */}
+        {availableYMetrics !== undefined &&
+          availableYMetrics.length >= 2 &&
+          onYMetricSwitch &&
+          yMetric !== undefined && (
+            <YMetricSelectorDropdown
+              currentMetricId={yMetric}
+              availableYMetrics={availableYMetrics}
+              onSelect={onYMetricSwitch}
+            />
+          )}
 
         {usingSeparateData && (
           <div className="flex items-center gap-1 text-xs text-amber-500 mr-2">
