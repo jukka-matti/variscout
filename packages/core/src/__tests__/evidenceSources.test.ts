@@ -9,6 +9,7 @@ import {
   type EvidenceSnapshot,
   type EvidenceSource,
 } from '../index';
+import type { SnapshotProvenance, RowProvenanceTag } from '../evidenceSources';
 import type { DataRow } from '../types';
 
 const rows: DataRow[] = [
@@ -158,6 +159,26 @@ describe('Evidence Sources and Data Profiles', () => {
 
     expect(cadence.snapshot.latestEvidenceSignals).toBe(1);
     expect(cadence.latestEvidenceSignals.items).toEqual([snapshot.latestSignals![0]]);
+  });
+});
+
+describe('SnapshotProvenance + RowProvenanceTag types', () => {
+  it('SnapshotProvenance carries origin + importedAt + range', () => {
+    const prov: SnapshotProvenance = {
+      origin: 'paste:abc123',
+      importedAt: '2026-05-04T10:00:00.000Z',
+      rowTimestampRange: { startISO: '2026-05-01T00:00:00Z', endISO: '2026-05-04T00:00:00Z' },
+    };
+    expect(prov.origin).toBe('paste:abc123');
+  });
+
+  it('RowProvenanceTag carries source + joinKey for joined rows', () => {
+    const tag: RowProvenanceTag = {
+      source: 'qc-inspection',
+      joinKey: 'lot_id',
+    };
+    expect(tag.source).toBe('qc-inspection');
+    expect(tag.joinKey).toBe('lot_id');
   });
 });
 
