@@ -457,35 +457,34 @@ describe('ColumnMapping', () => {
     });
   });
 
-  // ── Legacy compat: payload.outcome + payload.factors ──────────────────────
+  // ── Hub-shaped payload shape ───────────────────────────────────────────────
 
-  describe('legacy compat fields in payload', () => {
-    it('payload.outcome is the first selected outcome columnName', () => {
+  describe('Hub-shaped payload (no legacy compat fields)', () => {
+    it('payload has no "outcome" or "factors" fields', () => {
       const onConfirm = vi.fn();
       render(<ColumnMapping {...richProps} initialOutcome="Value" onConfirm={onConfirm} />);
 
       fireEvent.click(screen.getByText('Start Analysis'));
 
       const payload: ColumnMappingConfirmPayload = onConfirm.mock.calls[0][0];
-      expect(payload.outcome).toBe('Value');
+      // New shape: no legacy single-outcome or factor fields
+      expect('outcome' in payload).toBe(false);
+      expect('factors' in payload).toBe(false);
+      expect('specs' in payload).toBe(false);
+      // Hub-shaped fields present
+      expect(Array.isArray(payload.outcomes)).toBe(true);
+      expect(Array.isArray(payload.primaryScopeDimensions)).toBe(true);
     });
 
-    it('payload.factors carries the initialFactors in setup mode', () => {
+    it('outcomes[] is the canonical field for selected outcomes', () => {
       const onConfirm = vi.fn();
-      render(
-        <ColumnMapping
-          {...richProps}
-          initialOutcome="Value"
-          initialFactors={['Machine']}
-          onConfirm={onConfirm}
-        />
-      );
+      render(<ColumnMapping {...richProps} initialOutcome="Value" onConfirm={onConfirm} />);
 
       fireEvent.click(screen.getByText('Start Analysis'));
 
       const payload: ColumnMappingConfirmPayload = onConfirm.mock.calls[0][0];
-      // factors is the legacy factor selection (seeded from initialFactors in setup)
-      expect(payload.factors).toEqual(['Machine']);
+      expect(payload.outcomes).toHaveLength(1);
+      expect(payload.outcomes[0].columnName).toBe('Value');
     });
   });
 

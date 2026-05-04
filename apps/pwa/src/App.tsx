@@ -641,8 +641,22 @@ function AppMain() {
   const handleMappingConfirmWithGoal = useCallback(
     (payload: ColumnMappingConfirmPayload) => {
       // Delegate legacy investigation flow (importFlow still takes the 3-arg form).
-      // Pass the first outcome for single-outcome compat; full outcomes[] are on the Hub.
-      importFlow.handleMappingConfirm(payload.outcome, payload.factors, payload.specs);
+      // Derive single-outcome and factors from the Hub-shaped payload.
+      const firstOutcome = payload.outcomes[0]?.columnName ?? '';
+      const legacyFactors = payload.primaryScopeDimensions;
+      const firstSpec = payload.outcomes[0];
+      const legacySpecs =
+        firstSpec &&
+        (firstSpec.target !== undefined ||
+          firstSpec.lsl !== undefined ||
+          firstSpec.usl !== undefined)
+          ? {
+              ...(firstSpec.target !== undefined ? { target: firstSpec.target } : {}),
+              ...(firstSpec.lsl !== undefined ? { lsl: firstSpec.lsl } : {}),
+              ...(firstSpec.usl !== undefined ? { usl: firstSpec.usl } : {}),
+            }
+          : undefined;
+      importFlow.handleMappingConfirm(firstOutcome, legacyFactors, legacySpecs);
 
       const base = sessionHub ?? {
         id: crypto.randomUUID(),
@@ -873,18 +887,22 @@ function AppMain() {
             className="flex items-center gap-2 px-4 py-1.5 bg-surface-secondary border-b border-edge flex-wrap"
             data-testid="framing-toolbar"
           >
-            {/* OutcomePin for first outcome — fallback to mean ± σ + n when no specs */}
-            {sessionHub.outcomes && sessionHub.outcomes.length > 0 && stats && (
-              <OutcomePin
-                outcome={sessionHub.outcomes[0]}
-                stats={{
-                  mean: stats.mean,
-                  sigma: stats.stdDev,
-                  n: filteredData?.length ?? rawData.length,
-                }}
-                onAddSpecs={_col => importFlow.openFactorManager()}
-              />
-            )}
+            {/* OutcomePin per outcome — one pin per outcome in sessionHub.outcomes.
+                Falls back to mean=0/sigma=0 when analysis stats are not yet ready. */}
+            {sessionHub.outcomes &&
+              sessionHub.outcomes.length > 0 &&
+              sessionHub.outcomes.map(outcomeEntry => (
+                <OutcomePin
+                  key={outcomeEntry.columnName}
+                  outcome={outcomeEntry}
+                  stats={{
+                    mean: stats?.mean ?? 0,
+                    sigma: stats?.stdDev ?? 0,
+                    n: filteredData?.length ?? rawData.length,
+                  }}
+                  onAddSpecs={_col => importFlow.openFactorManager()}
+                />
+              ))}
             <div className="flex-1" />
             <SaveToBrowserButton currentHub={sessionHub} />
             <VrsExportButton currentHub={sessionHub} currentData={rawData} />

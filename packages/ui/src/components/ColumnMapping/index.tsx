@@ -62,13 +62,13 @@ export interface AnalysisBrief {
 }
 
 /**
- * New onConfirm contract — Hub-shaped payload.
- * All three call sites use this shape; the legacy (outcome, factors, specs) signature is gone.
+ * Hub-shaped onConfirm contract.
+ * All call sites use this shape; legacy (outcome, factors, specs) fields are gone.
  */
 export interface ColumnMappingConfirmPayload {
-  /** Multi-outcome selection (was: single `outcome` string). */
+  /** Multi-outcome selection. */
   outcomes: OutcomeSpec[];
-  /** Columns the analyst will slice analysis by most often (was: `factors` in setup mode). */
+  /** Columns the analyst will slice analysis by most often. */
   primaryScopeDimensions: string[];
   /** Stack config from wide-form detection (unchanged from slice-1). */
   stack?: StackConfig | null;
@@ -79,37 +79,12 @@ export interface ColumnMappingConfirmPayload {
   /** Separate Pareto filename when paretoMode='separate' (unchanged from slice-1). */
   separateParetoFilename?: string | null;
   /**
-   * Investigation categories inferred from the selected factors.
-   * Carried forward for downstream investigation store compatibility.
-   * @deprecated Investigation categories are inferred separately; this is
-   * included for backward compatibility with existing factor-based inference.
+   * Investigation categories inferred from factor selection (edit mode).
+   * Used by the downstream investigation store for category grouping.
    */
   categories?: InvestigationCategory[];
   /** Analysis brief from Azure full-brief fields. */
   brief?: AnalysisBrief;
-  /**
-   * Legacy single factor columns (for downstream investigation flow compat).
-   * Set to the union of all selected outcome columnNames where they behave
-   * as inputs — OR to the explicitly selected factor columns in edit mode.
-   * Remove this field in a future slice when importFlow is fully migrated.
-   */
-  factors: string[];
-  /**
-   * Legacy single outcome column name.
-   * Set to the first selected outcome's columnName for importFlow compat.
-   * Remove in a future slice when importFlow is fully migrated.
-   */
-  outcome: string;
-  /**
-   * Legacy specs — first outcome's specs for importFlow compat.
-   * Remove in a future slice when importFlow is fully migrated.
-   */
-  specs?: {
-    target?: number;
-    lsl?: number;
-    usl?: number;
-    characteristicType?: LegacyCharacteristicType;
-  };
 }
 
 export interface ColumnMappingProps {
@@ -626,44 +601,6 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     }
     const hasBrief = brief.issueStatement || brief.questions || brief.target;
 
-    // Build legacy specs for the first selected outcome (importFlow compat)
-    const firstOutcome = outcomes[0];
-    // Build legacy specs for importFlow compat (first outcome's numeric values).
-    // Note: characteristicType is omitted here because the OutcomeSpec type
-    // ('nominalIsBest'|'smallerIsBetter'|'largerIsBetter') differs from the legacy
-    // SpecLimits CharacteristicType ('nominal'|'smaller'|'larger'). Downstream
-    // importFlow only uses target/lsl/usl; characteristicType from standalone
-    // SpecsSection (edit mode) uses the legacy type and is kept.
-    const legacySpecs =
-      firstOutcome &&
-      (firstOutcome.target !== undefined ||
-        firstOutcome.lsl !== undefined ||
-        firstOutcome.usl !== undefined)
-        ? {
-            ...(firstOutcome.target !== undefined ? { target: firstOutcome.target } : {}),
-            ...(firstOutcome.lsl !== undefined ? { lsl: firstOutcome.lsl } : {}),
-            ...(firstOutcome.usl !== undefined ? { usl: firstOutcome.usl } : {}),
-            // characteristicType intentionally omitted: processHub and legacy types differ
-          }
-        : // Fall back to standalone specs section values (edit mode)
-          (() => {
-            const target = specTarget.trim() ? parseFloat(specTarget) : undefined;
-            const lsl = specLsl.trim() ? parseFloat(specLsl) : undefined;
-            const usl = specUsl.trim() ? parseFloat(specUsl) : undefined;
-            const hasAnySpec =
-              (target !== undefined && !isNaN(target)) ||
-              (lsl !== undefined && !isNaN(lsl)) ||
-              (usl !== undefined && !isNaN(usl));
-            return hasAnySpec
-              ? {
-                  ...(target !== undefined && !isNaN(target) ? { target } : {}),
-                  ...(lsl !== undefined && !isNaN(lsl) ? { lsl } : {}),
-                  ...(usl !== undefined && !isNaN(usl) ? { usl } : {}),
-                  ...(specCharType ? { characteristicType: specCharType } : {}),
-                }
-              : undefined;
-          })();
-
     onConfirm({
       outcomes,
       primaryScopeDimensions,
@@ -672,12 +609,9 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
       // timeExtraction is managed by parent via onTimeExtractionChange; not stored here
       paretoMode: paretoMode as ColumnMappingConfirmPayload['paretoMode'],
       separateParetoFilename: separateParetoFilename ?? null,
-      // Legacy compat fields
+      // Investigation categories (edit mode — downstream store compat)
       categories: categories ?? undefined,
       brief: hasBrief ? brief : undefined,
-      factors,
-      outcome: firstOutcome?.columnName ?? legacyOutcome,
-      specs: legacySpecs,
     });
   }, [
     selectedOutcomeSpecs,
@@ -689,15 +623,9 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     targetMetric,
     targetDirection,
     targetValue,
-    specTarget,
-    specLsl,
-    specUsl,
-    specCharType,
     stackConfig,
     paretoMode,
     separateParetoFilename,
-    factors,
-    legacyOutcome,
     onConfirm,
   ]);
 

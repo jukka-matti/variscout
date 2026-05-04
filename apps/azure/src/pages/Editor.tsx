@@ -1228,15 +1228,23 @@ export const Editor: React.FC<EditorProps> = ({
   // Task A we wire the data path so it's available from this point forward).
   const handleMappingConfirmWithCategories = useCallback(
     (payload: ColumnMappingConfirmPayload) => {
-      const {
-        categories: newCategories,
-        brief,
-        outcome: newOutcome,
-        factors: newFactors,
-        specs: newSpecs,
-        outcomes,
-        primaryScopeDimensions,
-      } = payload;
+      const { categories: newCategories, brief, outcomes, primaryScopeDimensions } = payload;
+
+      // Derive legacy 3-arg shape for dataFlow (investigation store compat).
+      const newOutcome = outcomes[0]?.columnName ?? '';
+      const newFactors = primaryScopeDimensions;
+      const firstSpec = outcomes[0];
+      const newSpecs =
+        firstSpec &&
+        (firstSpec.target !== undefined ||
+          firstSpec.lsl !== undefined ||
+          firstSpec.usl !== undefined)
+          ? {
+              ...(firstSpec.target !== undefined ? { target: firstSpec.target } : {}),
+              ...(firstSpec.lsl !== undefined ? { lsl: firstSpec.lsl } : {}),
+              ...(firstSpec.usl !== undefined ? { usl: firstSpec.usl } : {}),
+            }
+          : undefined;
 
       if (newCategories) setCategories(newCategories);
 
