@@ -577,6 +577,7 @@ export type {
   InvestigationDepth,
   InvestigationStatus,
   ProcessHubAttentionReason,
+  ScopeFilter,
   ProcessHubCadenceQueue,
   ProcessHubCadenceSnapshot,
   ProcessHubCadenceSummary,

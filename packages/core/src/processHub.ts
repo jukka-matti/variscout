@@ -141,6 +141,22 @@ export interface InvestigationNodeMapping {
   specsOverride?: SpecLimits;
 }
 
+/**
+ * Canvas-wide scope filter applied to the active investigation. Populated when
+ * the user clicks a Pareto bar (or adds a chip explicitly). Drives downstream
+ * chart filtering across the LayeredProcessView. Absent → no scope filter.
+ *
+ * Per spec §10 (three composable canvas filter states) and ADR-073 (no
+ * statistical roll-up across heterogeneous units — scope filter creates
+ * per-(node × context-tuple × scope) buckets, never aggregates across).
+ */
+export interface ScopeFilter {
+  /** Column name being filtered (typically a primary scope dimension). */
+  factor: string;
+  /** Selected category values (single-select default; multi-select via shift-click). */
+  values: ReadonlyArray<string | number>;
+}
+
 export interface ProcessHubInvestigationMetadata {
   processHubId?: string;
   investigationDepth?: InvestigationDepth;
@@ -196,6 +212,16 @@ export interface ProcessHubInvestigationMetadata {
    * section "B0 migration UX".
    */
   migrationDeclinedAt?: string;
+  /**
+   * Per-investigation scope filter — set by Pareto bar click or chip add.
+   * See spec §10 + ADR-073. Composable with `timelineWindow`. Absent → no scope filter.
+   */
+  scopeFilter?: ScopeFilter;
+  /**
+   * Per-investigation Pareto group-by column. Default = first primary scope dimension
+   * from the Hub config. Absent → caller picks default at render time.
+   */
+  paretoGroupBy?: string;
 }
 
 export interface ProcessHubInvestigation {
