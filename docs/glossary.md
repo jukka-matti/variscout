@@ -65,6 +65,42 @@ The persistent home of one process line. Hub IS its logic map — there is no se
 
 ---
 
+## Data ingestion and provenance
+
+Terms introduced by the framing-layer design (spec `docs/superpowers/specs/2026-05-03-framing-layer-design.md`) and formalized in ADR-077.
+
+### evidence-source cursor
+
+A per-(hubId, sourceId) record in the Azure IndexedDB `evidenceSourceCursors` table that tracks the most recently seen Evidence Source snapshot for a given Hub and source pairing. Used by `useEvidenceSourceSync` to compute the "X new snapshots ↑" diff shown in the canvas goal banner when a user reopens a Hub. Only relevant on the Azure tier; PWA uses the opt-in A.2-paste path instead.
+
+**See:** framing-layer spec §6.3; `apps/azure/src/features/data-flow/`
+
+### JoinKeyCandidate
+
+A ranked candidate column-pair returned by `rankJoinKeyCandidates` when pasted data has a different column shape than the Hub but contains at least one column that matches by name or by a `*_id` / `lot` / `batch` / `serial` / `part` naming heuristic. Each candidate is scored by name match, value overlap percentage, and cardinality compatibility; the ranked list is surfaced via the `JoinKeySuggestion` sub-card inside the match-summary card. The user confirms or selects an alternative key before multi-source ingestion proceeds.
+
+**See:** framing-layer spec §8.1; ADR-077; `packages/core/src/matchSummary/`
+
+### match-summary card
+
+The UI overlay that opens when a user pastes new data into an existing complete Hub. Classifies the paste along two independent axes — source (same source / different source joinable / different source no key / mixed) and temporal (append / backfill / overlap / replace / no timestamp / different grain) — and surfaces a `TimelineWindow` preview plus a column-shape sub-summary. Block cases (overlap, different grain, different source with no join key) require an explicit user choice before import proceeds; non-block cases proceed with a single confirmation. Replaces the legacy `window.confirm('Replace current data?')` dialog. Implemented in `packages/ui/src/components/MatchSummaryCard/`; driven by the deterministic `classifyPaste` function in `packages/core/src/matchSummary/`.
+
+**See:** framing-layer spec §7; ADR-077
+
+### RowProvenanceTag
+
+Sidecar metadata `{ source: string; joinKey: string }` attached via a `Map<rowIndex, RowProvenanceTag>` in the analysis store only when a confirmed multi-source join occurs. Records which source identifier (e.g., `"telemetry"`, `"qc-inspection"`) and which join-key column each row was joined on. Single-source pastes do not populate this map; they rely on snapshot-level provenance via `EvidenceSnapshot.origin` instead. The sidecar design preserves ADR-073's locality rule: per-source rows are never silently co-mingled in the analysis engine.
+
+**See:** ADR-077 D6; framing-layer spec §8.3; `packages/core/src/evidenceSources.ts`; `packages/core/src/matchSummary/provenance.ts`
+
+### Stage 5 modal
+
+The floating modal that opens at the end of Mode B Stage 3 (and on demand via "+ New investigation" in Mode A.1 canvas chrome) to collect investigation-level context before canvas work begins. The user fills in an issue description, a question, and an optional hypothesis draft; the modal creates an `Investigation` entity and a linked `Question` entity when the user clicks "Open investigation →", or returns to the canvas with no active investigation context when the user clicks "Skip — explore canvas instead." The same modal form factor reuses the Q1 floating-overlay decision (vision §8 anchor Q1). Both paths are valid starting points; the skip path supports observation-triggered EDA without forcing a pre-formed question.
+
+**See:** framing-layer spec §5.5; `docs/superpowers/specs/2026-05-03-framing-layer-design.md`
+
+---
+
 ## Retired terms
 
 Terms removed from user-facing surfaces in the 2026-05-03 vision pivot. Listed here so future contributors recognize them in legacy code, comments, or external context. Do not reintroduce.
