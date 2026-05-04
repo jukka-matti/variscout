@@ -85,6 +85,14 @@ export interface ColumnMappingConfirmPayload {
   categories?: InvestigationCategory[];
   /** Analysis brief from Azure full-brief fields. */
   brief?: AnalysisBrief;
+  /**
+   * Free-text note from the OutcomeNoMatchBanner "I expected the outcome to be" input.
+   * Present when the banner surfaced and the analyst typed a note.
+   * Carry-forward: ProcessHub has no field for this yet — downstream handlers
+   * may attach it to hub metadata when the field lands (see decision-log entry
+   * "Slice 2 — OutcomeNoMatchBanner expectedOutcomeNote carry-forward").
+   */
+  expectedOutcomeNote?: string;
 }
 
 export interface ColumnMappingProps {
@@ -422,6 +430,9 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     return [];
   });
 
+  // ── OutcomeNoMatchBanner state ────────────────────────────────────────────
+  const [expectedOutcomeNote, setExpectedOutcomeNote] = useState('');
+
   // ── Legacy factor selection (kept for factors → categories inference) ─────
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
   const [showAllOutcome, setShowAllOutcome] = useState(false);
@@ -612,6 +623,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
       // Investigation categories (edit mode — downstream store compat)
       categories: categories ?? undefined,
       brief: hasBrief ? brief : undefined,
+      // OutcomeNoMatchBanner note (carry-forward: no ProcessHub field yet)
+      expectedOutcomeNote: expectedOutcomeNote || undefined,
     });
   }, [
     selectedOutcomeSpecs,
@@ -626,6 +639,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     stackConfig,
     paretoMode,
     separateParetoFilename,
+    expectedOutcomeNote,
     onConfirm,
   ]);
 
@@ -863,9 +877,18 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             {/* OutcomeNoMatchBanner — surfaces when all candidates score below threshold */}
             {allCandidatesBelowThreshold && (
               <OutcomeNoMatchBanner
-                onRename={() => {}}
-                onExpectedChange={() => {}}
-                onSkip={() => {}}
+                onRename={(oldName, newName) => {
+                  // Delegate to the parent's column rename callback (sets a display alias)
+                  onColumnRename?.(oldName, newName);
+                }}
+                onExpectedChange={note => {
+                  // Store the analyst's free-text note; included in confirm payload
+                  setExpectedOutcomeNote(note);
+                }}
+                onSkip={() => {
+                  // Clear all selected outcomes — canvas falls back to all-unclassified
+                  setSelectedOutcomeSpecs({});
+                }}
               />
             )}
 
