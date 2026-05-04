@@ -780,3 +780,7 @@ export type { JoinKeySuggestionProps } from './components/MatchSummaryCard/JoinK
 // Canvas filter chips (framing layer — composable investigation filter state chips)
 export { CanvasFilterChips } from './components/CanvasFilterChips';
 export type { CanvasFilterChipsProps } from './components/CanvasFilterChips';
+
+// Pareto make-scope button (framing layer — scope-to-investigation affordance, spec §9.2)
+export { ParetoMakeScopeButton, buildIssueStatement } from './components/ParetoMakeScopeButton';
+export type { ParetoMakeScopeButtonProps } from './components/ParetoMakeScopeButton';
