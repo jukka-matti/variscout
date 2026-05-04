@@ -25,7 +25,6 @@ import { AppHeader } from '../components/AppHeader';
 import PasteScreen from '../components/data/PasteScreen';
 import ManualEntry from '../components/data/ManualEntry';
 import {
-  ColumnMapping,
   ImprovementWorkspaceBase,
   ImprovementContextPanel,
   WhatIfExplorerPage,
@@ -97,6 +96,7 @@ import { useToast } from '../context/ToastContext';
 import { SustainmentEntryRow } from './Editor.sustainment';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
+import { HubCreationFlow } from '../features/hubCreation';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { InvestigationWorkspace } from '../components/editor/InvestigationWorkspace';
 import FrameView from '../components/editor/FrameView';
@@ -708,6 +708,28 @@ export const Editor: React.FC<EditorProps> = ({
   const handleDashboardResumeAnalysis = useCallback(() => {
     usePanelsStore.getState().showAnalysis();
   }, []);
+
+  /**
+   * Mode B entry: "New Hub" from the dashboard starts the paste → framing flow.
+   * Navigates to the analysis view so PasteScreen is visible, then opens paste.
+   */
+  const handleNewHub = useCallback(() => {
+    usePanelsStore.getState().showAnalysis();
+    dataFlow.startPaste();
+  }, [dataFlow]);
+
+  /**
+   * Called by HubCreationFlow once Stage 1 creates a hub. Adds the new hub to
+   * the local list and sets it as the active hub in processContext so the
+   * ColumnMapping confirm (Stage 3) can persist outcomes to it.
+   */
+  const handleHubCreated = useCallback(
+    (hub: ProcessHub) => {
+      setProcessHubs(prev => [...prev, hub]);
+      setProcessContext(prev => ({ ...(prev ?? {}), processHubId: hub.id }));
+    },
+    [setProcessContext]
+  );
 
   // Share handlers
   const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
@@ -1349,8 +1371,14 @@ export const Editor: React.FC<EditorProps> = ({
   }
 
   if (dataFlow.isMapping) {
+    /*
+     * Mode B (new investigation, not a re-edit): gate ColumnMapping behind
+     * Stage 1 (HubGoalForm) via HubCreationFlow. On re-edit or when a hub
+     * already exists the HubCreationFlow skips Stage 1 and renders
+     * ColumnMapping directly — same net behaviour as before.
+     */
     return (
-      <ColumnMapping
+      <HubCreationFlow
         columnAnalysis={dataFlow.mappingColumnAnalysis}
         availableColumns={Object.keys(rawData[0] || {})}
         previewRows={rawData.slice(0, 5)}
@@ -1364,16 +1392,16 @@ export const Editor: React.FC<EditorProps> = ({
         onCancel={dataFlow.handleMappingCancel}
         dataQualityReport={dataQualityReport}
         maxFactors={6}
-        mode={dataFlow.isMappingReEdit ? 'edit' : 'setup'}
+        isMappingReEdit={dataFlow.isMappingReEdit}
         initialCategories={categories}
         timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
         hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
         onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
-        showBrief={true}
-        initialIssueStatement={processContext?.issueStatement}
         suggestedStack={dataFlow.suggestedStack}
         onStackConfigChange={dataFlow.handleStackConfigChange}
         rowLimit={250000}
+        processHubId={processContext?.processHubId}
+        onHubCreated={handleHubCreated}
       />
     );
   }
@@ -1499,6 +1527,7 @@ export const Editor: React.FC<EditorProps> = ({
                   projects={overviewProjects}
                   onViewPortfolio={onBack}
                   onUpdateLastViewed={handleUpdateLastViewed}
+                  onNewHub={handleNewHub}
                 />
               </div>
             ) : activeView === 'frame' ? (
@@ -1712,7 +1741,8 @@ export const Editor: React.FC<EditorProps> = ({
             )}
           </>
         ) : (
-          <ColumnMapping
+          /* rawData present but no outcome yet — treat same as isMapping (Mode B gate) */
+          <HubCreationFlow
             columnAnalysis={dataFlow.mappingColumnAnalysis}
             availableColumns={Object.keys(rawData[0] || {})}
             previewRows={rawData.slice(0, 5)}
@@ -1726,14 +1756,15 @@ export const Editor: React.FC<EditorProps> = ({
             onCancel={dataFlow.handleMappingCancel}
             dataQualityReport={dataQualityReport}
             maxFactors={6}
+            isMappingReEdit={false}
             initialCategories={categories}
             timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
             hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
             onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
-            showBrief={true}
-            initialIssueStatement={processContext?.issueStatement}
             suggestedStack={dataFlow.suggestedStack}
             rowLimit={250000}
+            processHubId={processContext?.processHubId}
+            onHubCreated={handleHubCreated}
           />
         )}
       </div>
