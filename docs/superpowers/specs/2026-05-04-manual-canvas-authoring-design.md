@@ -440,6 +440,8 @@ Implementation of this spec lands as **canvas migration PR4**. PR1–PR3 must me
 
 ---
 
+**Implementation plan:** [`docs/superpowers/plans/2026-05-04-canvas-manual-authoring-pr4.md`](../plans/2026-05-04-canvas-manual-authoring-pr4.md) — three sequenced sub-PRs (4a state + actions; 4b chip placement UI; 4c structural authoring + undo + a11y).
+
 **Next step after this spec is approved:**
 
 1. Implementation plan for **PR4 (this spec)** via `superpowers:writing-plans`. Multi-PR sequencing per `feedback_slice_size_cap` — likely 2–3 sub-PRs of ~6–8 tasks each.
