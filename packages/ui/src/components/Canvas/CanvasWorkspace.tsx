@@ -247,8 +247,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
         value: filter.value,
         onChange: filter.onChange,
       }}
-      mode={ops.mode}
-      onModeChange={ops.setMode}
+      opsMode={ops.mode}
+      onOpsModeChange={ops.setMode}
       showGaps={scope !== 'b0'}
       canvasFilterChips={canvasFilterChipsNode}
     />

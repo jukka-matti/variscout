@@ -46,15 +46,15 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        mode="spatial"
-        onModeChange={vi.fn()}
+        opsMode="spatial"
+        onOpsModeChange={vi.fn()}
       />
     );
     expect(screen.getByTestId('mock-capability-boxplot')).toBeInTheDocument();
     expect(screen.getByTestId('mock-step-pareto')).toBeInTheDocument();
   });
 
-  it('shows "Show temporal trends" affordance when mode=spatial', () => {
+  it('shows "Show temporal trends" affordance when opsMode=spatial', () => {
     render(
       <LayeredProcessViewWithCapability
         map={map}
@@ -62,14 +62,14 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        mode="spatial"
-        onModeChange={vi.fn()}
+        opsMode="spatial"
+        onOpsModeChange={vi.fn()}
       />
     );
     expect(screen.getByRole('button', { name: /show temporal trends/i })).toBeInTheDocument();
   });
 
-  it('shows "Hide temporal trends" affordance when mode=full', () => {
+  it('shows "Hide temporal trends" affordance when opsMode=full', () => {
     render(
       <LayeredProcessViewWithCapability
         map={map}
@@ -77,15 +77,15 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        mode="full"
-        onModeChange={vi.fn()}
+        opsMode="full"
+        onOpsModeChange={vi.fn()}
       />
     );
     expect(screen.getByRole('button', { name: /hide temporal trends/i })).toBeInTheDocument();
   });
 
-  it('fires onModeChange("full") when toggling from spatial', () => {
-    const onModeChange = vi.fn();
+  it('fires onOpsModeChange("full") when toggling from spatial', () => {
+    const onOpsModeChange = vi.fn();
     render(
       <LayeredProcessViewWithCapability
         map={map}
@@ -93,12 +93,12 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        mode="spatial"
-        onModeChange={onModeChange}
+        opsMode="spatial"
+        onOpsModeChange={onOpsModeChange}
       />
     );
     fireEvent.click(screen.getByRole('button', { name: /show temporal trends/i }));
-    expect(onModeChange).toHaveBeenCalledWith('full');
+    expect(onOpsModeChange).toHaveBeenCalledWith('full');
   });
 
   it('passes canvasFilterChips through to LayeredProcessView', () => {
@@ -109,8 +109,8 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        mode="spatial"
-        onModeChange={vi.fn()}
+        opsMode="spatial"
+        onOpsModeChange={vi.fn()}
         canvasFilterChips={<span data-testid="passthrough-chips">CHIPS</span>}
       />
     );
@@ -130,10 +130,28 @@ describe('LayeredProcessViewWithCapability', () => {
           availableContext: { hubColumns: ['product'] },
           contextValueOptions: { product: ['A'] },
         }}
-        mode="spatial"
-        onModeChange={vi.fn()}
+        opsMode="spatial"
+        onOpsModeChange={vi.fn()}
       />
     );
     expect(screen.getByText('product')).toBeInTheDocument();
+  });
+
+  it('keeps authoring mode separate from Operations reveal mode', () => {
+    render(
+      <LayeredProcessViewWithCapability
+        map={map}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        mode="read"
+        opsMode="spatial"
+        onOpsModeChange={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: /show temporal trends/i })).toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-temporal-row')).toHaveAttribute('aria-hidden', 'true');
   });
 });

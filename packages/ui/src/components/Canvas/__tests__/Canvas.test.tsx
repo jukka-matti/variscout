@@ -39,7 +39,7 @@ const filter = {
 
 describe('Canvas', () => {
   it('owns the three-band rendering path without changing behavior', () => {
-    const onModeChange = vi.fn();
+    const onOpsModeChange = vi.fn();
 
     render(
       <Canvas
@@ -48,8 +48,8 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        mode="spatial"
-        onModeChange={onModeChange}
+        opsMode="spatial"
+        onOpsModeChange={onOpsModeChange}
       />
     );
 
@@ -58,6 +58,24 @@ describe('Canvas', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /show temporal trends/i }));
 
-    expect(onModeChange).toHaveBeenCalledWith('full');
+    expect(onOpsModeChange).toHaveBeenCalledWith('full');
+  });
+
+  it('uses opsMode for temporal trends while authoring mode is inert', () => {
+    render(
+      <Canvas
+        map={map}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        mode="read"
+        opsMode="spatial"
+        onOpsModeChange={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: /show temporal trends/i })).toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-temporal-row')).toHaveAttribute('aria-hidden', 'true');
   });
 });

@@ -32,7 +32,7 @@ export type ProductionLineGlanceOpsMode = 'spatial' | 'full';
  *
  * `map`, specs, dashboard data, filter state, and operations mode are supplied
  * by the caller. `onChange`, `onSpecsChange`, `onStepSpecsChange`, and
- * `onModeChange` are the only mutation channels; Canvas must not write stores
+ * `onOpsModeChange` are the only mutation channels; Canvas must not write stores
  * or persistence directly.
  */
 export interface CanvasProps {
@@ -60,8 +60,9 @@ export interface CanvasProps {
     'cpkTrend' | 'cpkGapTrend' | 'capabilityNodes' | 'errorSteps'
   >;
   filter: ProductionLineGlanceFilterStripProps;
-  mode: ProductionLineGlanceOpsMode;
-  onModeChange: (next: ProductionLineGlanceOpsMode) => void;
+  mode?: 'author' | 'read';
+  opsMode: ProductionLineGlanceOpsMode;
+  onOpsModeChange: (next: ProductionLineGlanceOpsMode) => void;
   onStepClick?: (nodeId: string) => void;
 }
 
@@ -82,13 +83,15 @@ export const Canvas: React.FC<CanvasProps> = ({
   showGaps = true,
   data,
   filter,
-  mode,
-  onModeChange,
+  mode: authoringMode = 'author',
+  opsMode,
+  onOpsModeChange,
   onStepClick,
 }) => {
+  void authoringMode;
   const hasOutcomeData =
     target !== undefined || usl !== undefined || lsl !== undefined || cpkTarget !== undefined;
-  const isFull = mode === 'full';
+  const isFull = opsMode === 'full';
   const affordanceLabel = isFull ? 'Hide temporal trends' : 'Show temporal trends';
   const affordanceArrow = isFull ? '↓' : '↑';
 
@@ -194,13 +197,13 @@ export const Canvas: React.FC<CanvasProps> = ({
           <div className="flex flex-col gap-2">
             <button
               type="button"
-              onClick={() => onModeChange(isFull ? 'spatial' : 'full')}
+              onClick={() => onOpsModeChange(isFull ? 'spatial' : 'full')}
               className="self-start rounded text-xs font-medium text-content-secondary transition-colors hover:text-content"
             >
               {affordanceLabel} {affordanceArrow}
             </button>
             <div data-testid="ops-band-dashboard">
-              <ProductionLineGlanceDashboard {...data} mode={mode} onStepClick={onStepClick} />
+              <ProductionLineGlanceDashboard {...data} mode={opsMode} onStepClick={onStepClick} />
             </div>
           </div>
         </div>

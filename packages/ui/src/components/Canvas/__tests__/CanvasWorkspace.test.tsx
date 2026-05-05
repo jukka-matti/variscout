@@ -37,6 +37,20 @@ const canvasFiltersStateRef: {
   },
 };
 
+const opsToggleStateRef: {
+  current: {
+    mode: 'spatial' | 'full';
+    setMode: ReturnType<typeof vi.fn>;
+    toggle: ReturnType<typeof vi.fn>;
+  };
+} = {
+  current: {
+    mode: 'spatial',
+    setMode: vi.fn(),
+    toggle: vi.fn(),
+  },
+};
+
 vi.mock('@variscout/hooks', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
@@ -48,9 +62,9 @@ vi.mock('@variscout/hooks', () => ({
     onChange: vi.fn(),
   })),
   useProductionLineGlanceOpsToggle: vi.fn(() => ({
-    mode: 'spatial' as const,
-    setMode: vi.fn(),
-    toggle: vi.fn(),
+    mode: opsToggleStateRef.current.mode,
+    setMode: opsToggleStateRef.current.setMode,
+    toggle: opsToggleStateRef.current.toggle,
   })),
   useProductionLineGlanceData: vi.fn(() => ({
     cpkTrend: { data: [], stats: null, specs: {} },
@@ -116,6 +130,11 @@ describe('CanvasWorkspace', () => {
       setScopeFilter: vi.fn(),
       setParetoGroupBy: vi.fn(),
     };
+    opsToggleStateRef.current = {
+      mode: 'spatial',
+      setMode: vi.fn(),
+      toggle: vi.fn(),
+    };
   });
 
   it('renders b0 with the lightweight picker and collapsed canvas expander', () => {
@@ -134,6 +153,19 @@ describe('CanvasWorkspace', () => {
     expect(screen.getByTestId('band-process-flow')).toBeInTheDocument();
     expect(screen.getByTestId('band-operations')).toBeInTheDocument();
     expect(screen.getByTestId('ops-band-dashboard')).toBeInTheDocument();
+  });
+
+  it('wires the operations reveal mode toggle into Canvas', () => {
+    opsToggleStateRef.current = {
+      mode: 'full',
+      setMode: vi.fn(),
+      toggle: vi.fn(),
+    };
+    renderWorkspace({ processContext: { processMap: mapWithStep() } });
+
+    fireEvent.click(screen.getByRole('button', { name: /hide temporal trends/i }));
+
+    expect(opsToggleStateRef.current.setMode).toHaveBeenCalledWith('spatial');
   });
 
   it('writes per-step CTQ specs through the provided spec callback', () => {
