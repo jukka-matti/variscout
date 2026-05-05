@@ -35,6 +35,16 @@ vi.mock('@variscout/stores', () => ({
 }));
 
 vi.mock('@variscout/hooks', () => ({
+  CANVAS_LENS_REGISTRY: {
+    default: { id: 'default', label: 'Default', enabled: true, description: '' },
+    capability: { id: 'capability', label: 'Capability', enabled: true, description: '' },
+    defect: { id: 'defect', label: 'Defect', enabled: true, description: '' },
+    performance: { id: 'performance', label: 'Performance', enabled: false, description: '' },
+    yamazumi: { id: 'yamazumi', label: 'Yamazumi', enabled: false, description: '' },
+  },
+  coerceCanvasLens: (value: unknown) =>
+    value === 'capability' || value === 'defect' ? value : 'default',
+  useCanvasStepCards: () => ({ cards: [] }),
   usePerformanceAnalysis: () => ({
     channels: [
       { id: 'A', label: 'A', n: 30, mean: 10, stdDev: 0.5, cpk: 1.0 },

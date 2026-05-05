@@ -14,10 +14,11 @@ vi.mock('@variscout/charts', async () => {
 import { render, screen, fireEvent } from '@testing-library/react';
 import { LayeredProcessViewWithCapability } from '../LayeredProcessViewWithCapability';
 import type { ProcessMap } from '@variscout/core/frame';
+import type { CanvasStepCardModel } from '@variscout/hooks';
 
 const map: ProcessMap = {
   version: 1,
-  nodes: [],
+  nodes: [{ id: 'step-1', name: 'Bake', order: 0, ctqColumn: 'Bake_Time' }],
   tributaries: [],
   createdAt: '2026-04-28T00:00:00.000Z',
   updatedAt: '2026-04-28T00:00:00.000Z',
@@ -37,8 +38,22 @@ const filter = {
   onChange: vi.fn(),
 };
 
+const stepCards: CanvasStepCardModel[] = [
+  {
+    stepId: 'step-1',
+    stepName: 'Bake',
+    assignedColumns: ['Bake_Time'],
+    metricColumn: 'Bake_Time',
+    metricKind: 'numeric',
+    values: [29, 30, 31],
+    distribution: [],
+    capability: { state: 'suppressed', n: 3, canAddSpecs: false },
+    defectCount: 2,
+  },
+];
+
 describe('LayeredProcessViewWithCapability', () => {
-  it('renders the dashboard inside the Operations band slot', () => {
+  it('renders the Canvas card surface instead of a dedicated Operations dashboard', () => {
     render(
       <LayeredProcessViewWithCapability
         map={map}
@@ -46,15 +61,15 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
+        stepCards={stepCards}
       />
     );
-    expect(screen.getByTestId('mock-capability-boxplot')).toBeInTheDocument();
-    expect(screen.getByTestId('mock-step-pareto')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-card-surface')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-step-card-step-1')).toBeInTheDocument();
+    expect(screen.queryByTestId('ops-band-dashboard')).not.toBeInTheDocument();
   });
 
-  it('shows "Show temporal trends" affordance when opsMode=spatial', () => {
+  it('shows the Default lens as active by default', () => {
     render(
       <LayeredProcessViewWithCapability
         map={map}
@@ -62,14 +77,17 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
+        stepCards={stepCards}
       />
     );
-    expect(screen.getByRole('button', { name: /show temporal trends/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /default lens/i })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
   });
 
-  it('shows "Hide temporal trends" affordance when opsMode=full', () => {
+  it('fires onLensChange when changing lens', () => {
+    const onLensChange = vi.fn();
     render(
       <LayeredProcessViewWithCapability
         map={map}
@@ -77,28 +95,12 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        opsMode="full"
-        onOpsModeChange={vi.fn()}
+        stepCards={stepCards}
+        onLensChange={onLensChange}
       />
     );
-    expect(screen.getByRole('button', { name: /hide temporal trends/i })).toBeInTheDocument();
-  });
-
-  it('fires onOpsModeChange("full") when toggling from spatial', () => {
-    const onOpsModeChange = vi.fn();
-    render(
-      <LayeredProcessViewWithCapability
-        map={map}
-        availableColumns={[]}
-        onChange={() => {}}
-        data={data}
-        filter={filter}
-        opsMode="spatial"
-        onOpsModeChange={onOpsModeChange}
-      />
-    );
-    fireEvent.click(screen.getByRole('button', { name: /show temporal trends/i }));
-    expect(onOpsModeChange).toHaveBeenCalledWith('full');
+    fireEvent.click(screen.getByRole('button', { name: /capability lens/i }));
+    expect(onLensChange).toHaveBeenCalledWith('capability');
   });
 
   it('passes canvasFilterChips through to LayeredProcessView', () => {
@@ -109,8 +111,7 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
+        stepCards={stepCards}
         canvasFilterChips={<span data-testid="passthrough-chips">CHIPS</span>}
       />
     );
@@ -130,14 +131,13 @@ describe('LayeredProcessViewWithCapability', () => {
           availableContext: { hubColumns: ['product'] },
           contextValueOptions: { product: ['A'] },
         }}
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
+        stepCards={stepCards}
       />
     );
     expect(screen.getByText('product')).toBeInTheDocument();
   });
 
-  it('keeps authoring mode separate from Operations reveal mode', () => {
+  it('keeps authoring mode separate from lens selection', () => {
     render(
       <LayeredProcessViewWithCapability
         map={map}
@@ -146,12 +146,15 @@ describe('LayeredProcessViewWithCapability', () => {
         data={data}
         filter={filter}
         mode="read"
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
+        activeLens="defect"
+        stepCards={stepCards}
       />
     );
 
-    expect(screen.getByRole('button', { name: /show temporal trends/i })).toBeInTheDocument();
-    expect(screen.getByTestId('dashboard-temporal-row')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.queryByTestId('structural-toolbar')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /defect lens/i })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
   });
 });

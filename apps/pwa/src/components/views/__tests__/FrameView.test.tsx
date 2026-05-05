@@ -6,6 +6,8 @@ const setMeasureSpecMock = vi.fn();
 const setOutcomeMock = vi.fn();
 const setFactorsMock = vi.fn();
 const showAnalysisMock = vi.fn();
+const showImprovementMock = vi.fn();
+const showInvestigationMock = vi.fn();
 
 const storeStateRef: { current: Record<string, unknown> } = {
   current: {
@@ -32,12 +34,38 @@ vi.mock('@variscout/stores', () => ({
 vi.mock('@variscout/ui', async () => {
   const React = await import('react');
   return {
-    CanvasWorkspace: (props: { onSeeData: () => void }) => {
+    CanvasWorkspace: (props: {
+      onSeeData: () => void;
+      onQuickAction?: (stepId: string) => void;
+      onFocusedInvestigation?: (stepId: string) => void;
+    }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
-        'button',
-        { type: 'button', 'data-testid': 'canvas-workspace', onClick: props.onSeeData },
-        'Canvas workspace'
+        'div',
+        { 'data-testid': 'canvas-workspace' },
+        React.createElement(
+          'button',
+          { type: 'button', 'data-testid': 'see-data', onClick: props.onSeeData },
+          'See data'
+        ),
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            'data-testid': 'quick-action',
+            onClick: () => props.onQuickAction?.('step-1'),
+          },
+          'Quick action'
+        ),
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            'data-testid': 'focused-investigation',
+            onClick: () => props.onFocusedInvestigation?.('step-1'),
+          },
+          'Focused investigation'
+        )
       );
     },
   };
@@ -45,7 +73,11 @@ vi.mock('@variscout/ui', async () => {
 
 vi.mock('../../../features/panels/panelsStore', () => ({
   usePanelsStore: Object.assign(vi.fn(), {
-    getState: () => ({ showAnalysis: showAnalysisMock }),
+    getState: () => ({
+      showAnalysis: showAnalysisMock,
+      showImprovement: showImprovementMock,
+      showInvestigation: showInvestigationMock,
+    }),
   }),
 }));
 
@@ -55,6 +87,8 @@ describe('FrameView (PWA shell)', () => {
   beforeEach(() => {
     hoisted.canvasWorkspaceMock.mockClear();
     showAnalysisMock.mockClear();
+    showImprovementMock.mockClear();
+    showInvestigationMock.mockClear();
     storeStateRef.current = {
       rawData: [{ Fill_Weight: 12 }],
       outcome: 'Fill_Weight',
@@ -90,8 +124,18 @@ describe('FrameView (PWA shell)', () => {
   it('wires See Data to the PWA Analysis panel action', () => {
     render(<FrameView />);
 
-    fireEvent.click(screen.getByTestId('canvas-workspace'));
+    fireEvent.click(screen.getByTestId('see-data'));
 
     expect(showAnalysisMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('wires Canvas response paths to the PWA workflow panels', () => {
+    render(<FrameView />);
+
+    fireEvent.click(screen.getByTestId('quick-action'));
+    fireEvent.click(screen.getByTestId('focused-investigation'));
+
+    expect(showImprovementMock).toHaveBeenCalledTimes(1);
+    expect(showInvestigationMock).toHaveBeenCalledTimes(1);
   });
 });

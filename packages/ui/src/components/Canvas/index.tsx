@@ -4,11 +4,16 @@
  */
 import React from 'react';
 import { DndContext } from '@dnd-kit/core';
-import { useCanvasKeyboard, useChipDragAndDrop } from '@variscout/hooks';
+import {
+  coerceCanvasLens,
+  useCanvasKeyboard,
+  useChipDragAndDrop,
+  type CanvasLensId,
+  type CanvasStepCardModel,
+} from '@variscout/hooks';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
 import type { SpecLimits } from '@variscout/core';
 import {
-  ProductionLineGlanceDashboard,
   type ProductionLineGlanceFilterStripProps,
   ProductionLineGlanceFilterStrip,
 } from '../ProductionLineGlanceDashboard';
@@ -18,6 +23,9 @@ import { ChipRail, type ChipRailEntry } from '../ChipRail';
 import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
 import { CanvasModeToggle } from '../CanvasModeToggle';
 import { StructuralToolbar } from '../StructuralToolbar';
+import { CanvasLensPicker } from './internal/CanvasLensPicker';
+import { CanvasStepCard } from './internal/CanvasStepCard';
+import { CanvasStepOverlay } from './internal/CanvasStepOverlay';
 
 /**
  * Canonical FRAME canvas surface.
@@ -81,9 +89,15 @@ export interface CanvasProps {
   chips?: ChipRailEntry[];
   onPlaceChip?: (chipId: string, stepId: string) => void;
   onCreateStepFromChip?: (chipId: string) => void;
-  opsMode: ProductionLineGlanceOpsMode;
-  onOpsModeChange: (next: ProductionLineGlanceOpsMode) => void;
+  opsMode?: ProductionLineGlanceOpsMode;
+  onOpsModeChange?: (next: ProductionLineGlanceOpsMode) => void;
   onStepClick?: (nodeId: string) => void;
+  stepCards?: CanvasStepCardModel[];
+  activeLens?: CanvasLensId;
+  onLensChange?: (next: CanvasLensId) => void;
+  onStepSpecsRequest?: (column: string, stepId: string) => void;
+  onQuickAction?: (stepId: string) => void;
+  onFocusedInvestigation?: (stepId: string) => void;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
@@ -101,7 +115,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   onStepSpecsChange,
   canvasFilterChips,
   showGaps = true,
-  data,
   filter,
   mode: authoringMode = 'author',
   onModeChange,
@@ -116,16 +129,21 @@ export const Canvas: React.FC<CanvasProps> = ({
   chips = [],
   onPlaceChip,
   onCreateStepFromChip,
-  opsMode,
-  onOpsModeChange,
-  onStepClick,
+  stepCards = [],
+  activeLens = 'default',
+  onLensChange,
+  onStepSpecsRequest,
+  onQuickAction,
+  onFocusedInvestigation,
 }) => {
   const isAuthorMode = authoringMode === 'author';
+  const resolvedLens = coerceCanvasLens(activeLens);
   const canPlaceChips = isAuthorMode && !disabled && chips.length > 0;
   const showChipRail = canPlaceChips;
   const [pendingStepChipId, setPendingStepChipId] = React.useState<string | null>(null);
   const [keyboardChipId, setKeyboardChipId] = React.useState<string | null>(null);
   const [selectedStepIds, setSelectedStepIds] = React.useState<string[]>([]);
+  const [activeStepCardId, setActiveStepCardId] = React.useState<string | null>(null);
   const pendingStepChip = pendingStepChipId
     ? chips.find(chip => chip.chipId === pendingStepChipId)
     : undefined;
@@ -197,55 +215,31 @@ export const Canvas: React.FC<CanvasProps> = ({
     },
     onCreateStep: handleCreateStepRequest,
   });
-
-  const hasOutcomeData =
-    target !== undefined || usl !== undefined || lsl !== undefined || cpkTarget !== undefined;
-  const isFull = opsMode === 'full';
-  const affordanceLabel = isFull ? 'Hide temporal trends' : 'Show temporal trends';
-  const affordanceArrow = isFull ? '↓' : '↑';
-
-  const tributariesContent =
-    map.tributaries.length > 0 ? (
-      <ul className="mt-2 flex flex-wrap gap-2">
-        {map.tributaries.map(trib => {
-          const parentStep = map.nodes.find(n => n.id === trib.stepId);
-          const stepLabel = parentStep?.name ?? 'Unmapped';
-          return (
-            <li
-              key={trib.id}
-              data-testid={`factor-chip-${trib.id}`}
-              className="rounded-md border border-edge bg-surface px-2 py-1 text-xs"
-            >
-              <span className="font-medium text-content">{trib.column}</span>
-              <span className="ml-1 text-content-secondary">at {stepLabel}</span>
-            </li>
-          );
-        })}
-      </ul>
-    ) : (
-      <p className="mt-2 text-sm text-content-secondary italic">No factors mapped yet</p>
-    );
+  const activeStepCard = stepCards.find(card => card.stepId === activeStepCardId);
 
   const canvasContent = (
-    <div data-testid="layered-process-view" className="flex flex-col">
-      <div className="flex items-center justify-between gap-2 border-b border-edge px-4 py-2">
-        {isAuthorMode ? (
-          <StructuralToolbar
-            selectedStepCount={selectedStepIds.length}
-            onAddStep={() => onAddStep?.()}
-            onGroupSelection={groupSelection}
-            onBranchSelection={branchSelection}
-            onJoinSelection={joinSelection}
-            onUndo={() => onUndo?.()}
-            onRedo={() => onRedo?.()}
-            disabled={disabled}
-          />
-        ) : (
-          <span aria-hidden="true" />
-        )}
-        {onModeChange ? (
-          <CanvasModeToggle mode={authoringMode} onChange={onModeChange} disabled={disabled} />
-        ) : null}
+    <div data-testid="layered-process-view" className="flex flex-col bg-surface-background">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-edge px-4 py-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {isAuthorMode ? (
+            <StructuralToolbar
+              selectedStepCount={selectedStepIds.length}
+              onAddStep={() => onAddStep?.()}
+              onGroupSelection={groupSelection}
+              onBranchSelection={branchSelection}
+              onJoinSelection={joinSelection}
+              onUndo={() => onUndo?.()}
+              onRedo={() => onRedo?.()}
+              disabled={disabled}
+            />
+          ) : null}
+          <CanvasLensPicker activeLens={resolvedLens} onChange={onLensChange} />
+        </div>
+        <div className="flex items-center gap-2">
+          {onModeChange ? (
+            <CanvasModeToggle mode={authoringMode} onChange={onModeChange} disabled={disabled} />
+          ) : null}
+        </div>
       </div>
 
       {canvasFilterChips ? (
@@ -255,53 +249,32 @@ export const Canvas: React.FC<CanvasProps> = ({
         <ProductionLineGlanceFilterStrip {...filter} />
       </div>
 
-      <section
-        data-testid="band-outcome"
-        className="border-b border-edge px-4 py-3 bg-surface-secondary"
-      >
-        <h3 className="text-sm font-semibold text-content">Outcome</h3>
-        {hasOutcomeData ? (
-          <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-content-secondary">
-            {target !== undefined && (
-              <div className="flex gap-1">
-                <dt className="font-medium">Target:</dt>
-                <dd>{target}</dd>
-              </div>
-            )}
-            {usl !== undefined && (
-              <div className="flex gap-1">
-                <dt className="font-medium">USL:</dt>
-                <dd>{usl}</dd>
-              </div>
-            )}
-            {lsl !== undefined && (
-              <div className="flex gap-1">
-                <dt className="font-medium">LSL:</dt>
-                <dd>{lsl}</dd>
-              </div>
-            )}
-            {cpkTarget !== undefined && (
-              <div className="flex gap-1">
-                <dt className="font-medium">Cpk target:</dt>
-                <dd>{cpkTarget}</dd>
-              </div>
-            )}
-          </dl>
+      <section className="px-4 py-4" data-testid="canvas-card-surface">
+        {stepCards.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {stepCards.map(card => (
+              <CanvasStepCard
+                key={card.stepId}
+                card={card}
+                activeLens={resolvedLens}
+                onOpen={setActiveStepCardId}
+                onStepSpecsRequest={onStepSpecsRequest}
+              />
+            ))}
+          </div>
         ) : (
-          <p className="mt-2 text-sm text-content-secondary italic">No outcome target set</p>
+          <div className="rounded-md border border-dashed border-edge bg-surface-primary p-4 text-sm text-content-secondary">
+            Add process steps to create live canvas cards.
+          </div>
         )}
-
-        <div className="mt-3">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-content-muted">
-            Mapped factors
-          </h4>
-          {tributariesContent}
-        </div>
       </section>
 
-      <section data-testid="band-process-flow" className="border-b border-edge px-4 py-3">
-        <h3 className="text-sm font-semibold text-content">Process Flow</h3>
-        <div className="mt-2">
+      <section className="border-t border-edge px-4 py-3" data-testid="canvas-authoring-map">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-content">Map structure</h3>
+          <span className="text-xs text-content-muted">Authoring model</span>
+        </div>
+        <div>
           <ProcessMapBase
             map={map}
             availableColumns={availableColumns}
@@ -329,24 +302,14 @@ export const Canvas: React.FC<CanvasProps> = ({
           />
         </div>
       </section>
-
-      <section data-testid="band-operations" className="px-4 py-3 bg-surface-secondary">
-        <h3 className="text-sm font-semibold text-content">Operations</h3>
-        <div className="mt-2">
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => onOpsModeChange(isFull ? 'spatial' : 'full')}
-              className="self-start rounded text-xs font-medium text-content-secondary transition-colors hover:text-content"
-            >
-              {affordanceLabel} {affordanceArrow}
-            </button>
-            <div data-testid="ops-band-dashboard">
-              <ProductionLineGlanceDashboard {...data} mode={opsMode} onStepClick={onStepClick} />
-            </div>
-          </div>
-        </div>
-      </section>
+      {activeStepCard ? (
+        <CanvasStepOverlay
+          card={activeStepCard}
+          onClose={() => setActiveStepCardId(null)}
+          onQuickAction={onQuickAction}
+          onFocusedInvestigation={onFocusedInvestigation}
+        />
+      ) : null}
     </div>
   );
 
