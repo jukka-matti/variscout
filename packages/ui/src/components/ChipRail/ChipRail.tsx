@@ -9,9 +9,10 @@ export interface ChipRailEntry {
 export interface ChipRailProps {
   chips: ChipRailEntry[];
   className?: string;
+  onKeyboardPickUp?: (chipId: string) => void;
 }
 
-export function ChipRail({ chips, className }: ChipRailProps) {
+export function ChipRail({ chips, className, onKeyboardPickUp }: ChipRailProps) {
   const rootClass = [
     'flex flex-col gap-3 border-r border-edge bg-surface-secondary p-3 text-content',
     className,
@@ -33,6 +34,7 @@ export function ChipRail({ chips, className }: ChipRailProps) {
               chipId={chip.chipId}
               label={chip.label}
               role={chip.role}
+              onKeyboardPickUp={onKeyboardPickUp}
             />
           ))}
         </div>

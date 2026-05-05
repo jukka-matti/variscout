@@ -117,6 +117,35 @@ vi.mock('@variscout/hooks', () => ({
       onPlace(chipId, String(overId).replace(/^step:/, ''));
     },
   }),
+  useCanvasKeyboard: ({
+    onUndo,
+    onRedo,
+    onToggleMode,
+    onExitAuthorMode,
+  }: {
+    onUndo: () => void;
+    onRedo: () => void;
+    onToggleMode: () => void;
+    onExitAuthorMode: () => void;
+  }) => {
+    React.useEffect(() => {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        const key = event.key.toLowerCase();
+        if ((event.metaKey || event.ctrlKey) && key === 'z') {
+          if (event.shiftKey) onRedo();
+          else onUndo();
+        } else if (event.ctrlKey && key === 'y') {
+          onRedo();
+        } else if (key === 'e') {
+          onToggleMode();
+        } else if (event.key === 'Escape') {
+          onExitAuthorMode();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onUndo, onRedo, onToggleMode, onExitAuthorMode]);
+  },
   useTranslation: () => ({
     t: (key: string) => key,
     tf: (key: string, values?: Record<string, unknown>) =>
@@ -272,6 +301,12 @@ describe('CanvasWorkspace', () => {
     } satisfies Partial<SpecLimits>);
   });
 
+  it('does not seed sigma-derived spec suggestions in b0', () => {
+    renderWorkspace({ processContext: { processMap: emptyMap() } });
+
+    expect(screen.queryByText(/suggested/i)).not.toBeInTheDocument();
+  });
+
   it('fires the See Data callback from b0', () => {
     const onSeeData = vi.fn();
     renderWorkspace({ processContext: { processMap: emptyMap() }, onSeeData });
@@ -387,5 +422,16 @@ describe('CanvasWorkspace', () => {
     fireEvent.click(screen.getByTestId('test-drop-bake-time-on-step-1'));
 
     expect(useCanvasStore.getState().historyDepth()).toBe(1);
+  });
+
+  it('wires authoring mode keyboard toggle and undo through canvasStore', () => {
+    renderWorkspace({ processContext: { processMap: mapWithStep() } });
+
+    fireEvent.click(screen.getByTestId('test-drop-bake-time-on-step-1'));
+    expect(useCanvasStore.getState().historyDepth()).toBe(1);
+
+    fireEvent.keyDown(window, { key: 'z', metaKey: true });
+
+    expect(useCanvasStore.getState().historyDepth()).toBe(0);
   });
 });

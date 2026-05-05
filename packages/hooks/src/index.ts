@@ -48,6 +48,8 @@ export {
   type UseChipDragAndDropResult,
 } from './useChipDragAndDrop';
 
+export { useCanvasKeyboard, type UseCanvasKeyboardArgs } from './useCanvasKeyboard';
+
 // Responsive Chart Utilities
 export {
   useResponsiveChartMargins,

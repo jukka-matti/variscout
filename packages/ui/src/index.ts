@@ -401,6 +401,10 @@ export {
   type AutoStepCreatePromptPosition,
 } from './components/AutoStepCreatePrompt';
 
+export { CanvasModeToggle, type CanvasModeToggleProps } from './components/CanvasModeToggle';
+
+export { StructuralToolbar, type StructuralToolbarProps } from './components/StructuralToolbar';
+
 // Y Picker Section (FRAME b0 Y / outcome selection UI)
 export {
   YPickerSection,
@@ -673,7 +677,7 @@ export {
 export { SubgroupConfigPopover, type SubgroupConfigProps } from './components/SubgroupConfig';
 
 // FRAME workspace — visual Process Map (ADR-070)
-export { Canvas, type CanvasProps } from './components/Canvas';
+export { Canvas, type CanvasProps, type CanvasAuthoringMode } from './components/Canvas';
 export { CanvasWorkspace, type CanvasWorkspaceProps } from './components/Canvas/CanvasWorkspace';
 export { LayeredProcessView, type LayeredProcessViewProps } from './components/LayeredProcessView';
 export { LayeredProcessViewWithCapability } from './components/LayeredProcessView';

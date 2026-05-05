@@ -19,7 +19,7 @@ import {
 } from '@variscout/core';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
 import { useCanvasStore } from '@variscout/stores';
-import { Canvas } from './index';
+import { Canvas, type CanvasAuthoringMode } from './index';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
 import type { XCandidate } from '../XPickerSection';
@@ -60,20 +60,6 @@ function numericValuesFor(column: string, rows: readonly DataRow[]): number[] {
     if (Number.isFinite(n)) out.push(n);
   }
   return out;
-}
-
-function computeMeanPlusMinusSigma(
-  outcome: string | null,
-  rawData: readonly DataRow[]
-): { target?: number; usl?: number; lsl?: number } | undefined {
-  if (!outcome) return undefined;
-  const values = numericValuesFor(outcome, rawData);
-  if (values.length < 2) return undefined;
-  const mean = values.reduce((s, v) => s + v, 0) / values.length;
-  const variance = values.reduce((s, v) => s + (v - mean) * (v - mean), 0) / (values.length - 1);
-  const sigma = Math.sqrt(variance);
-  if (!Number.isFinite(sigma)) return undefined;
-  return { target: mean, usl: mean + 3 * sigma, lsl: mean - 3 * sigma };
 }
 
 function levelsFor(
@@ -160,6 +146,15 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const hydrateCanvasDocument = useCanvasStore(state => state.hydrateCanvasDocument);
   const placeChipOnStep = useCanvasStore(state => state.placeChipOnStep);
   const createStepFromChip = useCanvasStore(state => state.createStepFromChip);
+  const addStep = useCanvasStore(state => state.addStep);
+  const removeStep = useCanvasStore(state => state.removeStep);
+  const renameStep = useCanvasStore(state => state.renameStep);
+  const connectSteps = useCanvasStore(state => state.connectSteps);
+  const disconnectSteps = useCanvasStore(state => state.disconnectSteps);
+  const groupIntoSubStep = useCanvasStore(state => state.groupIntoSubStep);
+  const ungroupSubStep = useCanvasStore(state => state.ungroupSubStep);
+  const undoCanvas = useCanvasStore(state => state.undo);
+  const redoCanvas = useCanvasStore(state => state.redo);
   const mapHydrationSignature = React.useMemo(() => JSON.stringify(map), [map]);
   const lastHydratedMapSignature = React.useRef<string | null>(null);
 
@@ -280,9 +275,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [columnAnalysis, outcome, runOrderColumn, map.assignments]
   );
 
-  const yspecSuggestion = React.useMemo(
-    () => computeMeanPlusMinusSigma(outcome, rawData),
-    [outcome, rawData]
+  const [authoringMode, setAuthoringMode] = React.useState<CanvasAuthoringMode>(() =>
+    map.nodes.length > 0 && chips.length === 0 ? 'read' : 'author'
   );
 
   const handleConfirmYSpec = React.useCallback(
@@ -316,6 +310,69 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [chips, createStepFromChip, persistCanvasStoreMap]
   );
 
+  const handleAddStep = React.useCallback(() => {
+    addStep('New step');
+    persistCanvasStoreMap();
+  }, [addStep, persistCanvasStoreMap]);
+
+  const handleRemoveStep = React.useCallback(
+    (stepId: string) => {
+      removeStep(stepId);
+      persistCanvasStoreMap();
+    },
+    [persistCanvasStoreMap, removeStep]
+  );
+
+  const handleRenameStep = React.useCallback(
+    (stepId: string, newName: string) => {
+      renameStep(stepId, newName);
+      persistCanvasStoreMap();
+    },
+    [persistCanvasStoreMap, renameStep]
+  );
+
+  const handleConnectSteps = React.useCallback(
+    (fromStepId: string, toStepId: string) => {
+      connectSteps(fromStepId, toStepId);
+      persistCanvasStoreMap();
+    },
+    [connectSteps, persistCanvasStoreMap]
+  );
+
+  const handleDisconnectSteps = React.useCallback(
+    (fromStepId: string, toStepId: string) => {
+      disconnectSteps(fromStepId, toStepId);
+      persistCanvasStoreMap();
+    },
+    [disconnectSteps, persistCanvasStoreMap]
+  );
+
+  const handleGroupIntoSubStep = React.useCallback(
+    (stepIds: string[], parentStepId: string) => {
+      groupIntoSubStep(stepIds, parentStepId);
+      persistCanvasStoreMap();
+    },
+    [groupIntoSubStep, persistCanvasStoreMap]
+  );
+
+  const handleUngroupSubStep = React.useCallback(
+    (stepId: string) => {
+      ungroupSubStep(stepId);
+      persistCanvasStoreMap();
+    },
+    [persistCanvasStoreMap, ungroupSubStep]
+  );
+
+  const handleUndo = React.useCallback(() => {
+    undoCanvas();
+    persistCanvasStoreMap();
+  }, [persistCanvasStoreMap, undoCanvas]);
+
+  const handleRedo = React.useCallback(() => {
+    redoCanvas();
+    persistCanvasStoreMap();
+  }, [persistCanvasStoreMap, redoCanvas]);
+
   const canvasNode = (
     <Canvas
       map={map}
@@ -340,9 +397,20 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onOpsModeChange={ops.setMode}
       showGaps={scope !== 'b0'}
       canvasFilterChips={canvasFilterChipsNode}
+      mode={authoringMode}
+      onModeChange={setAuthoringMode}
       chips={chips}
       onPlaceChip={handlePlaceChip}
       onCreateStepFromChip={handleCreateStepFromChip}
+      onAddStep={handleAddStep}
+      onRemoveStep={handleRemoveStep}
+      onRenameStep={handleRenameStep}
+      onConnectSteps={handleConnectSteps}
+      onDisconnectSteps={handleDisconnectSteps}
+      onGroupIntoSubStep={handleGroupIntoSubStep}
+      onUngroupSubStep={handleUngroupSubStep}
+      onUndo={handleUndo}
+      onRedo={handleRedo}
     />
   );
 
@@ -358,7 +426,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           onToggleX={name => setFactors(toggleArray(factors, name))}
           runOrderColumn={runOrderColumn}
           currentYSpec={outcome ? measureSpecs[outcome] : undefined}
-          yspecSuggestion={yspecSuggestion}
+          yspecSuggestion={undefined}
           defaultCpkTarget={DEFAULT_CPK_TARGET}
           onConfirmYSpec={handleConfirmYSpec}
           onSeeData={onSeeData}

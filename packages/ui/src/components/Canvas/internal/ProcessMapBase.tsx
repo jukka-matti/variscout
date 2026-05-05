@@ -21,6 +21,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { CANVAS_EMPTY_DROP_ID, encodeStepDropId } from '@variscout/hooks';
 import type { Gap, ProcessMap, ProcessMapTributary, ProcessMapHunch } from '@variscout/core/frame';
 import type { SpecLimits } from '@variscout/core';
+import { StepArrow } from './StepArrow';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
@@ -73,6 +74,15 @@ export interface ProcessMapBaseProps {
   showGaps?: boolean;
   /** Enables chip-placement drop targets for existing steps and empty process-flow space. */
   chipDropTargets?: boolean;
+  selectedStepIds?: string[];
+  onSelectionChange?: (stepIds: string[]) => void;
+  onAddStep?: (stepName: string) => void;
+  onRenameStep?: (stepId: string, newName: string) => void;
+  onRemoveStep?: (stepId: string) => void;
+  onConnectSteps?: (fromStepId: string, toStepId: string) => void;
+  onDisconnectSteps?: (fromStepId: string, toStepId: string) => void;
+  onKeyboardChipDrop?: (stepId: string) => void;
+  keyboardChipLabel?: string | null;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -214,6 +224,11 @@ interface StepCardProps {
   /** Called with the full new SpecLimits shape when any per-step spec input changes. */
   onCtqSpecsChange?: (next: SpecLimits) => void;
   chipDropTargets?: boolean;
+  selected?: boolean;
+  keyboardChipLabel?: string | null;
+  onToggleSelected?: (additive: boolean) => void;
+  onConnectFrom?: () => void;
+  onKeyboardChipDrop?: () => void;
 }
 
 const StepCard: React.FC<StepCardProps> = ({
@@ -232,6 +247,11 @@ const StepCard: React.FC<StepCardProps> = ({
   onToggleSubgroupAxis,
   onCtqSpecsChange,
   chipDropTargets,
+  selected = false,
+  keyboardChipLabel,
+  onToggleSelected,
+  onConnectFrom,
+  onKeyboardChipDrop,
 }) => {
   const [newTribCol, setNewTribCol] = React.useState('');
   const availableForTrib = availableColumns.filter(
@@ -246,9 +266,27 @@ const StepCard: React.FC<StepCardProps> = ({
   return (
     <div
       ref={setNodeRef}
+      role="button"
+      tabIndex={0}
+      aria-selected={selected}
+      aria-label={`Step ${step.name || 'unnamed'}, contains ${tributaries.length} columns${keyboardChipLabel ? `, press Enter to place ${keyboardChipLabel}` : ''}`}
+      onClick={event => {
+        if (event.metaKey || event.ctrlKey) {
+          event.preventDefault();
+          onToggleSelected?.(true);
+        }
+      }}
+      onKeyDown={event => {
+        if (!onKeyboardChipDrop) return;
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.target !== event.currentTarget) return;
+        event.preventDefault();
+        onKeyboardChipDrop();
+      }}
       className={[
         'flex flex-col gap-2 min-w-[180px] p-3 bg-surface-primary border border-edge rounded-lg',
         chipDropTargets && isOver ? 'ring-2 ring-blue-500/50' : '',
+        selected ? 'ring-2 ring-blue-500' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -266,6 +304,16 @@ const StepCard: React.FC<StepCardProps> = ({
           className="flex-1 text-sm font-medium bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-edge-strong rounded px-1 disabled:text-content-secondary"
           data-testid={`process-map-step-name-${step.id}`}
         />
+        {!disabled && (
+          <button
+            type="button"
+            onClick={onConnectFrom}
+            className="text-content-secondary hover:text-content text-xs"
+            aria-label={`Start arrow from ${step.name || 'unnamed'}`}
+          >
+            +
+          </button>
+        )}
         {!disabled && (
           <button
             type="button"
@@ -648,6 +696,15 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   onStepSpecsChange,
   showGaps = true,
   chipDropTargets = false,
+  selectedStepIds = [],
+  onSelectionChange,
+  onAddStep,
+  onRenameStep,
+  onRemoveStep,
+  onConnectSteps,
+  onDisconnectSteps,
+  onKeyboardChipDrop,
+  keyboardChipLabel,
 }) => {
   const sortedSteps = React.useMemo(
     () => [...map.nodes].sort((a, b) => a.order - b.order),
@@ -659,8 +716,14 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   });
 
   const update = (next: ProcessMap) => onChange(bumpUpdated(next));
+  const selectedStepSet = React.useMemo(() => new Set(selectedStepIds), [selectedStepIds]);
+  const [pendingArrowFromStepId, setPendingArrowFromStepId] = React.useState<string | null>(null);
 
   const addStep = () => {
+    if (onAddStep) {
+      onAddStep('');
+      return;
+    }
     const newOrder = sortedSteps.length;
     update({
       ...map,
@@ -669,6 +732,10 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   };
 
   const renameStep = (stepId: string, name: string) => {
+    if (onRenameStep) {
+      onRenameStep(stepId, name);
+      return;
+    }
     update({
       ...map,
       nodes: map.nodes.map(n => (n.id === stepId ? { ...n, name } : n)),
@@ -683,6 +750,10 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   };
 
   const removeStep = (stepId: string) => {
+    if (onRemoveStep) {
+      onRemoveStep(stepId);
+      return;
+    }
     const remaining = map.nodes.filter(n => n.id !== stepId);
     // Re-pack `order` so it stays 0..N-1 monotonic.
     const reordered = [...remaining]
@@ -701,6 +772,46 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
       hunches: (map.hunches ?? []).filter(h => h.stepId !== stepId),
     });
   };
+
+  const disconnectSteps = (fromStepId: string, toStepId: string) => {
+    if (onDisconnectSteps) {
+      onDisconnectSteps(fromStepId, toStepId);
+      return;
+    }
+    update({
+      ...map,
+      arrows: (map.arrows ?? []).filter(
+        arrow => arrow.fromStepId !== fromStepId || arrow.toStepId !== toStepId
+      ),
+    });
+  };
+
+  const toggleStepSelection = (stepId: string, additive: boolean) => {
+    if (!onSelectionChange) return;
+    if (!additive) {
+      onSelectionChange([stepId]);
+      return;
+    }
+    onSelectionChange(
+      selectedStepSet.has(stepId)
+        ? selectedStepIds.filter(id => id !== stepId)
+        : [...selectedStepIds, stepId]
+    );
+  };
+
+  const connectFromStep = (stepId: string) => {
+    if (!pendingArrowFromStepId) {
+      setPendingArrowFromStepId(stepId);
+      return;
+    }
+    if (pendingArrowFromStepId !== stepId) {
+      onConnectSteps?.(pendingArrowFromStepId, stepId);
+    }
+    setPendingArrowFromStepId(null);
+  };
+
+  const labelForStep = (stepId: string): string =>
+    map.nodes.find(node => node.id === stepId)?.name || stepId;
 
   const addTributary = (stepId: string, column: string) => {
     const newT: ProcessMapTributary = { id: uid('trib'), stepId, column };
@@ -783,6 +894,15 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
                   : undefined
               }
               chipDropTargets={chipDropTargets}
+              selected={selectedStepSet.has(step.id)}
+              keyboardChipLabel={keyboardChipLabel}
+              onToggleSelected={additive => toggleStepSelection(step.id, additive)}
+              onConnectFrom={() => connectFromStep(step.id)}
+              onKeyboardChipDrop={
+                onKeyboardChipDrop && keyboardChipLabel
+                  ? () => onKeyboardChipDrop(step.id)
+                  : undefined
+              }
             />
             {i < sortedSteps.length - 1 && (
               <div
@@ -829,6 +949,23 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
           onSpecsChange={onSpecsChange}
         />
       </div>
+
+      {(map.arrows ?? []).length > 0 && (
+        <div
+          className="flex flex-wrap items-center gap-2"
+          data-testid="process-map-explicit-arrows"
+        >
+          {(map.arrows ?? []).map(arrow => (
+            <StepArrow
+              key={arrow.id}
+              arrow={arrow}
+              fromLabel={labelForStep(arrow.fromStepId)}
+              toLabel={labelForStep(arrow.toStepId)}
+              onDisconnect={disconnectSteps}
+            />
+          ))}
+        </div>
+      )}
 
       <HunchList
         hunches={map.hunches ?? []}

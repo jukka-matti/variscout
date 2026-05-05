@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { DndContext } from '@dnd-kit/core';
-import { useChipDragAndDrop } from '@variscout/hooks';
+import { useCanvasKeyboard, useChipDragAndDrop } from '@variscout/hooks';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
 import type { SpecLimits } from '@variscout/core';
 import {
@@ -16,6 +16,8 @@ import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlance
 import { ProcessMapBase } from './internal/ProcessMapBase';
 import { ChipRail, type ChipRailEntry } from '../ChipRail';
 import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
+import { CanvasModeToggle } from '../CanvasModeToggle';
+import { StructuralToolbar } from '../StructuralToolbar';
 
 /**
  * Canonical FRAME canvas surface.
@@ -30,6 +32,7 @@ import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
  * component stays focused on the rendered canvas bands.
  */
 export type ProductionLineGlanceOpsMode = 'spatial' | 'full';
+export type CanvasAuthoringMode = 'author' | 'read';
 
 /**
  * Controlled inputs for the canonical Canvas implementation.
@@ -64,7 +67,17 @@ export interface CanvasProps {
     'cpkTrend' | 'cpkGapTrend' | 'capabilityNodes' | 'errorSteps'
   >;
   filter: ProductionLineGlanceFilterStripProps;
-  mode?: 'author' | 'read';
+  mode?: CanvasAuthoringMode;
+  onModeChange?: (next: CanvasAuthoringMode) => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  onAddStep?: () => void;
+  onRenameStep?: (stepId: string, newName: string) => void;
+  onRemoveStep?: (stepId: string) => void;
+  onConnectSteps?: (fromStepId: string, toStepId: string) => void;
+  onDisconnectSteps?: (fromStepId: string, toStepId: string) => void;
+  onGroupIntoSubStep?: (stepIds: string[], parentStepId: string) => void;
+  onUngroupSubStep?: (stepId: string) => void;
   chips?: ChipRailEntry[];
   onPlaceChip?: (chipId: string, stepId: string) => void;
   onCreateStepFromChip?: (chipId: string) => void;
@@ -91,6 +104,15 @@ export const Canvas: React.FC<CanvasProps> = ({
   data,
   filter,
   mode: authoringMode = 'author',
+  onModeChange,
+  onUndo,
+  onRedo,
+  onAddStep,
+  onRenameStep,
+  onRemoveStep,
+  onConnectSteps,
+  onDisconnectSteps,
+  onGroupIntoSubStep,
   chips = [],
   onPlaceChip,
   onCreateStepFromChip,
@@ -102,10 +124,26 @@ export const Canvas: React.FC<CanvasProps> = ({
   const canPlaceChips = isAuthorMode && !disabled && chips.length > 0;
   const showChipRail = canPlaceChips;
   const [pendingStepChipId, setPendingStepChipId] = React.useState<string | null>(null);
+  const [keyboardChipId, setKeyboardChipId] = React.useState<string | null>(null);
+  const [selectedStepIds, setSelectedStepIds] = React.useState<string[]>([]);
   const pendingStepChip = pendingStepChipId
     ? chips.find(chip => chip.chipId === pendingStepChipId)
     : undefined;
   const activePendingStepChip = canPlaceChips ? pendingStepChip : undefined;
+  const keyboardChip = keyboardChipId
+    ? chips.find(chip => chip.chipId === keyboardChipId)
+    : undefined;
+
+  const toggleMode = React.useCallback(() => {
+    onModeChange?.(authoringMode === 'author' ? 'read' : 'author');
+  }, [authoringMode, onModeChange]);
+
+  useCanvasKeyboard({
+    onUndo: () => onUndo?.(),
+    onRedo: () => onRedo?.(),
+    onToggleMode: toggleMode,
+    onExitAuthorMode: () => onModeChange?.('read'),
+  });
 
   const handleCreateStepRequest = React.useCallback(
     (chipId: string) => {
@@ -124,6 +162,33 @@ export const Canvas: React.FC<CanvasProps> = ({
   const handleCancelCreateStep = React.useCallback(() => {
     setPendingStepChipId(null);
   }, []);
+
+  const handleKeyboardChipDrop = React.useCallback(
+    (stepId: string) => {
+      if (!canPlaceChips || !keyboardChipId) return;
+      onPlaceChip?.(keyboardChipId, stepId);
+      setKeyboardChipId(null);
+    },
+    [canPlaceChips, keyboardChipId, onPlaceChip]
+  );
+
+  const groupSelection = React.useCallback(() => {
+    if (selectedStepIds.length < 2) return;
+    const [parentStepId, ...childStepIds] = selectedStepIds;
+    onGroupIntoSubStep?.(childStepIds, parentStepId);
+  }, [onGroupIntoSubStep, selectedStepIds]);
+
+  const branchSelection = React.useCallback(() => {
+    if (selectedStepIds.length < 2) return;
+    const [fromStepId, ...toStepIds] = selectedStepIds;
+    for (const toStepId of toStepIds) onConnectSteps?.(fromStepId, toStepId);
+  }, [onConnectSteps, selectedStepIds]);
+
+  const joinSelection = React.useCallback(() => {
+    if (selectedStepIds.length < 2) return;
+    const toStepId = selectedStepIds[selectedStepIds.length - 1];
+    for (const fromStepId of selectedStepIds.slice(0, -1)) onConnectSteps?.(fromStepId, toStepId);
+  }, [onConnectSteps, selectedStepIds]);
 
   const { handleDragEnd } = useChipDragAndDrop({
     onPlace: (chipId, stepId) => {
@@ -163,6 +228,26 @@ export const Canvas: React.FC<CanvasProps> = ({
 
   const canvasContent = (
     <div data-testid="layered-process-view" className="flex flex-col">
+      <div className="flex items-center justify-between gap-2 border-b border-edge px-4 py-2">
+        {isAuthorMode ? (
+          <StructuralToolbar
+            selectedStepCount={selectedStepIds.length}
+            onAddStep={() => onAddStep?.()}
+            onGroupSelection={groupSelection}
+            onBranchSelection={branchSelection}
+            onJoinSelection={joinSelection}
+            onUndo={() => onUndo?.()}
+            onRedo={() => onRedo?.()}
+            disabled={disabled}
+          />
+        ) : (
+          <span aria-hidden="true" />
+        )}
+        {onModeChange ? (
+          <CanvasModeToggle mode={authoringMode} onChange={onModeChange} disabled={disabled} />
+        ) : null}
+      </div>
+
       {canvasFilterChips ? (
         <div data-testid="layered-canvas-filter-chips">{canvasFilterChips}</div>
       ) : null}
@@ -232,6 +317,15 @@ export const Canvas: React.FC<CanvasProps> = ({
             onStepSpecsChange={onStepSpecsChange}
             showGaps={showGaps}
             chipDropTargets={canPlaceChips}
+            selectedStepIds={selectedStepIds}
+            onSelectionChange={setSelectedStepIds}
+            onAddStep={onAddStep ? () => onAddStep() : undefined}
+            onRenameStep={onRenameStep}
+            onRemoveStep={onRemoveStep}
+            onConnectSteps={onConnectSteps}
+            onDisconnectSteps={onDisconnectSteps}
+            onKeyboardChipDrop={handleKeyboardChipDrop}
+            keyboardChipLabel={keyboardChip?.label ?? null}
           />
         </div>
       </section>
@@ -259,7 +353,9 @@ export const Canvas: React.FC<CanvasProps> = ({
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <div className="relative flex" data-testid="canvas-dnd-surface">
-        {showChipRail ? <ChipRail chips={chips} className="w-64 shrink-0" /> : null}
+        {showChipRail ? (
+          <ChipRail chips={chips} className="w-64 shrink-0" onKeyboardPickUp={setKeyboardChipId} />
+        ) : null}
         <div className="min-w-0 flex-1">{canvasContent}</div>
         {activePendingStepChip ? (
           <AutoStepCreatePrompt

@@ -35,6 +35,11 @@ const mapWithTwoSteps = (): ProcessMap => ({
   updatedAt: isoNow(),
 });
 
+const mapWithExplicitArrow = (): ProcessMap => ({
+  ...mapWithTwoSteps(),
+  arrows: [{ id: 'arrow-step-1-to-step-2', fromStepId: 'step-1', toStepId: 'step-2' }],
+});
+
 const COLUMNS = ['Fill_Weight', 'Machine', 'Shift', 'Lot', 'Timestamp'];
 
 describe('Canvas internal process map — rendering', () => {
@@ -95,6 +100,42 @@ describe('Canvas internal process map — rendering', () => {
       'data-droppable-id',
       CANVAS_EMPTY_DROP_ID
     );
+  });
+
+  it('selects steps with Cmd/Ctrl-click and exposes aria-selected', () => {
+    const onSelectionChange = vi.fn();
+    render(
+      <ProcessMapBase
+        map={mapWithTwoSteps()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        selectedStepIds={[]}
+        onSelectionChange={onSelectionChange}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('process-map-step-step-1'), { metaKey: true });
+
+    expect(onSelectionChange).toHaveBeenCalledWith(['step-1']);
+  });
+
+  it('renders explicit map arrows and disconnects them through callback', () => {
+    const onDisconnectSteps = vi.fn();
+    render(
+      <ProcessMapBase
+        map={mapWithExplicitArrow()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        onDisconnectSteps={onDisconnectSteps}
+      />
+    );
+
+    expect(
+      screen.getByTestId('process-map-explicit-arrow-arrow-step-1-to-step-2')
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /disconnect Mix to Fill/i }));
+
+    expect(onDisconnectSteps).toHaveBeenCalledWith('step-1', 'step-2');
   });
 });
 

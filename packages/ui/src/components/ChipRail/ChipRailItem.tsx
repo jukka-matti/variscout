@@ -8,9 +8,10 @@ export interface ChipRailItemProps {
   chipId: string;
   label: string;
   role: ChipRailItemRole;
+  onKeyboardPickUp?: (chipId: string) => void;
 }
 
-export function ChipRailItem({ chipId, label, role }: ChipRailItemProps) {
+export function ChipRailItem({ chipId, label, role, onKeyboardPickUp }: ChipRailItemProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: encodeChipDragId(chipId),
   });
@@ -32,6 +33,12 @@ export function ChipRailItem({ chipId, label, role }: ChipRailItemProps) {
       style={style}
       {...attributes}
       {...listeners}
+      onKeyDown={event => {
+        if (!onKeyboardPickUp) return;
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        onKeyboardPickUp(chipId);
+      }}
     >
       <span className="min-w-0 truncate font-medium">{label}</span>
       <span className="shrink-0 rounded border border-edge bg-surface-secondary px-1.5 py-0.5 text-xs font-medium text-content-secondary">
