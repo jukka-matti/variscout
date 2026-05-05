@@ -33,6 +33,7 @@ Structured investigation for process improvement. Browser-based, customer-owned 
 - Tooling, docs, and config changes can go direct to `main`.
 - Product code changes should follow the repo PR workflow: branch, PR, `bash scripts/pr-ready-check.sh`, review, squash-merge.
 - Prefer retrieval over recall. Read the relevant ADR, spec, or package doc before non-trivial edits.
+- **Use a dedicated worktree.** Codex must operate from `.worktrees/<branch>/` (not the repo root) when writing code, even for solo work — and ALWAYS when running concurrently with another agent. The repo root stays reserved for the human / main Claude Code session (docs, specs, decisions). Sharing a checkout across writing agents causes branch-switch races, stash accumulation, and dangling commits. See `~/.claude/projects/.../memory/feedback_one_worktree_per_agent.md` for the slice 4 followup retro evidence. Setup: `git worktree add .worktrees/<branch> -b <branch> origin/main && cd .worktrees/<branch> && pnpm install`.
 
 ## Using Ruflo From Codex
 
@@ -47,3 +48,4 @@ Structured investigation for process improvement. Browser-based, customer-owned 
 1. Read `AGENTS.md` and `docs/llms.txt`.
 2. Run `pnpm codex:ruflo-check`.
 3. If Ruflo is missing or registered with the wrong version, follow the remove/add repair commands printed by the check.
+4. **Create or attach to a dedicated worktree** for any code work: `git worktree add .worktrees/<feature-branch> -b <feature-branch> origin/main && cd .worktrees/<feature-branch> && pnpm install`. Do NOT operate from the repo root if you will write — that's reserved for the main session.
