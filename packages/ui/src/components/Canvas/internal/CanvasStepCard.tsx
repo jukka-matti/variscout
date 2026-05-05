@@ -7,13 +7,16 @@ import { CanvasStepMiniChart } from './CanvasStepMiniChart';
 interface CanvasStepCardProps {
   card: CanvasStepCardModel;
   activeLens: CanvasLensId;
-  onOpen: (stepId: string) => void;
+  onOpen: (stepId: string, element: HTMLElement) => void;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
 }
 
 function capabilityText(card: CanvasStepCardModel): string {
   const c = card.capability;
   const cpkText = c.cpk === undefined ? '—' : formatStatistic(c.cpk, 'en', 2);
+  if (c.state === 'no-specs' && card.stats) {
+    return `${formatStatistic(card.stats.mean, 'en', 2)} +/- ${formatStatistic(card.stats.stdDev, 'en', 2)} · n=${c.n}`;
+  }
   if (c.state === 'no-specs') return 'mean +/- sigma';
   if (c.state === 'partial-specs') return 'complete specs';
   if (c.state === 'suppressed') return `Cpk hidden, n=${c.n}`;
@@ -48,11 +51,11 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
       tabIndex={0}
       className="flex min-h-44 flex-col gap-3 rounded-md border border-edge bg-surface-primary p-3 text-left shadow-sm transition-colors hover:border-edge-strong"
       data-testid={`canvas-step-card-${card.stepId}`}
-      onClick={() => onOpen(card.stepId)}
+      onClick={event => onOpen(card.stepId, event.currentTarget)}
       onKeyDown={event => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
-        onOpen(card.stepId);
+        onOpen(card.stepId, event.currentTarget);
       }}
     >
       <div className="flex items-start justify-between gap-2">

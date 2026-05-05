@@ -25,7 +25,7 @@ import { CanvasModeToggle } from '../CanvasModeToggle';
 import { StructuralToolbar } from '../StructuralToolbar';
 import { CanvasLensPicker } from './internal/CanvasLensPicker';
 import { CanvasStepCard } from './internal/CanvasStepCard';
-import { CanvasStepOverlay } from './internal/CanvasStepOverlay';
+import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
 
 /**
  * Canonical FRAME canvas surface.
@@ -144,6 +144,9 @@ export const Canvas: React.FC<CanvasProps> = ({
   const [keyboardChipId, setKeyboardChipId] = React.useState<string | null>(null);
   const [selectedStepIds, setSelectedStepIds] = React.useState<string[]>([]);
   const [activeStepCardId, setActiveStepCardId] = React.useState<string | null>(null);
+  const [stepOverlayAnchor, setStepOverlayAnchor] = React.useState<CanvasOverlayAnchorRect | null>(
+    null
+  );
   const pendingStepChip = pendingStepChipId
     ? chips.find(chip => chip.chipId === pendingStepChipId)
     : undefined;
@@ -216,6 +219,23 @@ export const Canvas: React.FC<CanvasProps> = ({
     onCreateStep: handleCreateStepRequest,
   });
   const activeStepCard = stepCards.find(card => card.stepId === activeStepCardId);
+  const handleOpenStepCard = React.useCallback((stepId: string, element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    setActiveStepCardId(stepId);
+    setStepOverlayAnchor({
+      top: rect.top,
+      left: rect.left,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    });
+  }, []);
+
+  const handleCloseStepOverlay = React.useCallback(() => {
+    setActiveStepCardId(null);
+    setStepOverlayAnchor(null);
+  }, []);
 
   const canvasContent = (
     <div data-testid="layered-process-view" className="flex flex-col bg-surface-background">
@@ -257,7 +277,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                 key={card.stepId}
                 card={card}
                 activeLens={resolvedLens}
-                onOpen={setActiveStepCardId}
+                onOpen={handleOpenStepCard}
                 onStepSpecsRequest={onStepSpecsRequest}
               />
             ))}
@@ -305,7 +325,8 @@ export const Canvas: React.FC<CanvasProps> = ({
       {activeStepCard ? (
         <CanvasStepOverlay
           card={activeStepCard}
-          onClose={() => setActiveStepCardId(null)}
+          anchorRect={stepOverlayAnchor}
+          onClose={handleCloseStepOverlay}
           onQuickAction={onQuickAction}
           onFocusedInvestigation={onFocusedInvestigation}
         />

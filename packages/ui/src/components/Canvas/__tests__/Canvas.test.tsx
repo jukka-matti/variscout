@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 vi.mock('@variscout/charts', async () => {
   const React = await import('react');
@@ -83,7 +83,16 @@ const stepCards: CanvasStepCardModel[] = [
   },
 ];
 
+function setViewport(width: number, height: number) {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+  Object.defineProperty(window, 'innerHeight', { configurable: true, value: height });
+}
+
 describe('Canvas', () => {
+  beforeEach(() => {
+    setViewport(1024, 768);
+  });
+
   it('renders the PR5 card surface instead of the dedicated operations band', () => {
     render(
       <Canvas
@@ -99,6 +108,7 @@ describe('Canvas', () => {
     expect(screen.getByTestId('layered-process-view')).toBeInTheDocument();
     expect(screen.getByTestId('canvas-card-surface')).toBeInTheDocument();
     expect(screen.getByTestId('canvas-step-card-step-1')).toHaveTextContent('Mix');
+    expect(screen.getByTestId('canvas-step-card-step-1')).toHaveTextContent('11.50 +/- 1.29 · n=4');
     expect(screen.queryByTestId('ops-band-dashboard')).not.toBeInTheDocument();
   });
 
@@ -300,6 +310,117 @@ describe('Canvas', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
 
     expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
+  });
+
+  it('anchors the desktop step overlay near the clicked card', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+      />
+    );
+
+    const card = screen.getByTestId('canvas-step-card-step-1');
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({
+      x: 200,
+      y: 120,
+      top: 120,
+      left: 200,
+      right: 320,
+      bottom: 280,
+      width: 120,
+      height: 160,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.click(card);
+
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveStyle({
+      top: '120px',
+      left: '332px',
+    });
+  });
+
+  it('clamps the desktop step overlay inside the viewport near edge cards', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+      />
+    );
+
+    const card = screen.getByTestId('canvas-step-card-step-1');
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({
+      x: 940,
+      y: 700,
+      top: 700,
+      left: 940,
+      right: 1020,
+      bottom: 760,
+      width: 80,
+      height: 60,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.click(card);
+
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveStyle({
+      top: '392px',
+      left: '568px',
+    });
+  });
+
+  it('renders the mobile step overlay as a swipe-dismiss bottom sheet', () => {
+    setViewport(500, 760);
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
+
+    const overlay = screen.getByTestId('canvas-step-overlay');
+    expect(screen.getByTestId('canvas-step-overlay-handle')).toBeInTheDocument();
+    expect(overlay).toHaveClass('rounded-t-lg');
+    expect(overlay).not.toHaveStyle({ top: '120px' });
+
+    fireEvent.touchStart(overlay, { touches: [{ clientY: 100 }] });
+    fireEvent.touchEnd(overlay, { changedTouches: [{ clientY: 180 }] });
+
+    expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
+  });
+
+  it('shows capability state and defect count in the step overlay when projected', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-2'));
+
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent('Capability');
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent('Defects: 7');
   });
 
   it('keeps spec edit affordances separate from card drill-down', () => {

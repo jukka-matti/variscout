@@ -215,8 +215,8 @@ Eight phases. Each PR is ~5–8 tasks per `feedback_slice_size_cap`, on its own 
 
 ### PR5 — Spec 3 (cards / drill-down / mode lenses)
 
-**Implemented slice:** `canvas-migration-phase-5-cards-overlay-lenses`
-**~3 sub-PR shape:** cards, step overlay, thin lenses. Implemented as one branch for this delivery pass.
+**Implemented slices:** `canvas-migration-phase-5-cards-overlay-lenses` (PR5a) plus `canvas-migration-phase-5b-overlay-continuity` (PR5b).
+**Sub-PR shape:** PR5a landed the cards-first foundation, lens registry, overlay MVP, app-shell response paths, and docs. PR5b tightens original-scope continuity for anchored overlay behavior, mobile sheet interaction, and card fallback fidelity.
 
 PR5 makes Canvas capable of replacing the Analysis reading surface without deleting or hiding the existing Analysis routes yet. It is the first cards-first Canvas slice:
 
