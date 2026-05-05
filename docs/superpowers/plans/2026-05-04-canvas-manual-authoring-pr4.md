@@ -26,6 +26,43 @@ related:
 - **Canvas migration PR1+PR2+PR3** must be merged to main first (PR #126 covers this bundle). PR4's branches rebase onto main after that lands.
 - **Spec 2** at `docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md` (on main as of `01de9177`).
 
+## Plan revisions (2026-05-05)
+
+Two grounding fixes surfaced by PR #126 spec-compliance review. Implementers MUST honor these or the plan diverges from real interfaces:
+
+### R1 — `Canvas.mode` prop name collision
+
+The PR1–PR3 `Canvas` component already exposes `mode: ProductionLineGlanceOpsMode` (`'spatial' | 'full'`) for the Operations-band toggle. This plan's `mode: 'author' | 'read'` (B4 visibility toggle) clashes.
+
+**Resolution:** As Task 4a.0 (NEW, prerequisite to all other 4a tasks):
+
+1. Rename `Canvas.mode` → `Canvas.opsMode` in `packages/ui/src/components/Canvas/index.tsx`. Same rename in `LayeredProcessViewWithCapability` re-export shim and `CanvasWorkspace`.
+2. Migrate consumers (`apps/pwa/src/components/views/FrameView.tsx`, `apps/azure/src/components/editor/FrameView.tsx`, any other call sites — verify with `grep -r "mode={ops"` and `grep -r "mode='spatial'\|mode='full'"` across `apps/`, `packages/`).
+3. Add new `mode: 'author' | 'read'` prop to `Canvas` (default `'author'` when context computes to author; `'read'` for mature hubs per Spec 2 Decision B4).
+4. Tests: rename existing `mode` test fixtures to `opsMode`; add new tests asserting both props work independently.
+
+This rename happens BEFORE any 4a/4b/4c tasks. It's a small isolated commit on the 4a branch but must land first to give downstream tasks the API surface they assume.
+
+### R2 — `canonicalMap` shape: align with existing `ProcessMap`, not a new shape
+
+Throughout this plan, test pseudocode uses `canonicalMap: { steps: [], arrows: [], assignments: {} }` — a shape that doesn't match the existing `ProcessMap` type (`{ version, nodes, tributaries, ... }` per `packages/core/src/processHub.ts` and what `ProcessMapBase` consumes).
+
+**Resolution:** Use `ProcessMap` as the canonical shape; extend it where Spec 2 requires fields it lacks (chip assignments, branch/join arrows, sub-step parent refs). Specifically:
+
+1. **Audit existing `ProcessMap`** at the start of Task 4a.1: read `packages/core/src/processHub.ts` (`ProcessMap`, `ProcessMapNode`, `ProcessMapTributary`). Document which Spec 2 commitments the type already covers and which need extension.
+2. **Extend `ProcessMap`** with the missing fields:
+   - `assignments: Record<string, string>` (column id → step id mapping; new for Spec 2)
+   - `arrows: ProcessMapArrow[]` for branch/join (new; the existing `tributaries` is the river-SIPOC layout, not branch/join arrows)
+   - `parentStepId?: string | null` on `ProcessMapNode` (sub-step grouping; per vision §3.3 #5)
+     These extensions land in **Task 4a.1** before action types reference them.
+3. **`canvasStore.canonicalMap`** is typed as the extended `ProcessMap` (no new `CanvasMap` type; one canonical shape per vision §3.1 _"the map IS the Hub"_).
+4. **Test pseudocode in this plan** that uses `{ steps, arrows, assignments }` should be read as `{ version, nodes, arrows, assignments, tributaries }` — i.e., the extended ProcessMap shape with `nodes` (existing) replacing `steps`. Implementers translate the pseudocode at TDD time using actual `ProcessMap` field names.
+5. **No `CanonicalMap` type introduced.** A future V2 cleanup may rename `ProcessMap` → `CanonicalMap` (better aligns with vision §3 "Canvas = Logic Map") but this plan does not do that rename.
+
+**Implementer note:** the plan's tests are written for clarity, not as transplant-ready code. Where the test code references `canonicalMap.steps[0].name`, read as `canonicalMap.nodes[0].name`. Where it says `addStep('Mold')`, the action creates a `ProcessMapNode` with `name: 'Mold'`. The actions and store API are correct in shape; only the underlying type names differ from the pseudocode.
+
+These two revisions resolve the gaps surfaced by PR #126 review at https://github.com/jukka-matti/variscout/pull/126#issuecomment-4377093546.
+
 ## Slice Scope
 
 ### In scope (PR4 across 4a + 4b + 4c)
