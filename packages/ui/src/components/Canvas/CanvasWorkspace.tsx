@@ -13,7 +13,6 @@ import {
   type ColumnAnalysis,
   type DataRow,
   type ProcessContext,
-  type ProcessHub,
   type ProcessHubInvestigation,
   type SpecLimits,
   type TimelineWindow,
@@ -170,13 +169,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   );
 
   const previewRollup = React.useMemo(() => {
-    const previewHub: ProcessHub = {
+    const previewHub = {
       id: 'frame-preview',
-      name: 'Frame preview',
       canonicalProcessMap: map,
-      canonicalMapVersion: 'preview',
       contextColumns: [],
-    } as unknown as ProcessHub;
+    };
     return {
       hub: previewHub,
       members: [] as ProcessHubInvestigation[],

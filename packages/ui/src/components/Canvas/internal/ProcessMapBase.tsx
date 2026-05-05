@@ -75,8 +75,7 @@ export interface ProcessMapBaseProps {
 // Helpers
 // ────────────────────────────────────────────────────────────────────────────
 
-const uid = (prefix: string): string =>
-  `${prefix}-${Math.random().toString(36).slice(2, 8)}-${Date.now().toString(36)}`;
+const uid = (prefix: string): string => `${prefix}-${crypto.randomUUID()}`;
 
 const bumpUpdated = (map: ProcessMap): ProcessMap => ({
   ...map,
@@ -367,7 +366,7 @@ const StepCard: React.FC<StepCardProps> = ({
       {gaps.length > 0 && (
         <ul className="flex flex-col gap-0.5" data-testid={`process-map-step-gaps-${step.id}`}>
           {gaps.map((g, i) => (
-            <li key={`${g.kind}-${i}`} className="text-[11px] text-amber-700">
+            <li key={`${g.kind}-${i}`} className="text-[11px] text-status-warning">
               ⚠ {g.message}
             </li>
           ))}
@@ -407,12 +406,10 @@ const OceanCard: React.FC<OceanCardProps> = ({
 }) => {
   return (
     <div
-      className="flex flex-col gap-2 min-w-[200px] p-3 bg-blue-50 dark:bg-blue-950/40 border-2 border-blue-300 dark:border-blue-700 rounded-2xl"
+      className="flex flex-col gap-2 min-w-[200px] p-3 bg-surface-secondary border-2 border-edge rounded-2xl"
       data-testid="process-map-ocean"
     >
-      <div className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-        Customer outcome (CTS)
-      </div>
+      <div className="text-sm font-semibold text-content">Customer outcome (CTS)</div>
       <label className="text-xs text-content-secondary">
         Measure
         <select
@@ -580,18 +577,16 @@ const GapStrip: React.FC<GapStripProps> = ({ gaps }) => {
   const recommended = gaps.filter(g => g.severity === 'recommended');
   return (
     <section
-      className="flex flex-col gap-1 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 rounded-lg"
+      className="flex flex-col gap-1 p-3 bg-surface-secondary border border-edge rounded-lg"
       data-testid="process-map-gap-strip"
     >
-      <h4 className="text-sm font-medium text-amber-900 dark:text-amber-100">
-        Missing from your map ({gaps.length})
-      </h4>
+      <h4 className="text-sm font-medium text-content">Missing from your map ({gaps.length})</h4>
       {required.length > 0 && (
         <ul className="flex flex-col gap-0.5">
           {required.map((g, i) => (
             <li
               key={`req-${g.kind}-${i}`}
-              className="text-xs text-red-700 dark:text-red-400"
+              className="text-xs text-status-fail"
               data-testid={`process-map-gap-required-${g.kind}`}
             >
               ● required · {g.message}
@@ -604,7 +599,7 @@ const GapStrip: React.FC<GapStripProps> = ({ gaps }) => {
           {recommended.map((g, i) => (
             <li
               key={`rec-${g.kind}-${i}`}
-              className="text-xs text-amber-700 dark:text-amber-300"
+              className="text-xs text-status-warning"
               data-testid={`process-map-gap-recommended-${g.kind}`}
             >
               ○ recommended · {g.message}

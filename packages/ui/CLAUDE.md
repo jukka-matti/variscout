@@ -15,7 +15,7 @@
 - PI Panel tabs config via `PIPanelBase` (PITabConfig API). Store-aware tab content is the default.
 - `TimelineWindowPicker` lives in the `DashboardLayoutBase` chrome (above the chart grid), not in `FilterContextBar`. Slot ownership: chrome above grid = window; FilterContextBar = per-chart filter summary.
 - Error service (`errorService`) and hooks (`useIsMobile`, `useTheme`, `useGlossary`, `BREAKPOINTS`) are also exported from @variscout/ui.
-- `Canvas` is the canonical canvas surface for FRAME / Process Hub migration work. In PR1 it is a thin facade over `LayeredProcessViewWithCapability`; `LayeredProcessView`, `LayeredProcessViewWithCapability`, and `ProcessMapBase` remain public legacy internals until later canvas migration phases absorb them.
+- `Canvas` is the canonical canvas implementation for FRAME / Process Hub migration work. `LayeredProcessViewWithCapability` and `ProcessMapBase` remain deprecated compatibility wrappers/stubs during the migration; new work should target `Canvas` or `CanvasWorkspace`.
 
 ## Per-characteristic specs (Phase B)
 

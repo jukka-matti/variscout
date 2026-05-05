@@ -1,3 +1,7 @@
+/**
+ * Canvas is the canonical FRAME canvas surface for process-map, outcome, and
+ * operations-band rendering.
+ */
 import React from 'react';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
 import type { SpecLimits } from '@variscout/core';
@@ -9,8 +13,28 @@ import {
 import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlanceDashboard/types';
 import { ProcessMapBase } from './internal/ProcessMapBase';
 
+/**
+ * Canonical FRAME canvas surface.
+ *
+ * Canvas renders the controlled process-map, outcome, and operations bands. It
+ * owns no app store, persistence, or session state: callers pass the full
+ * current canvas state in props and receive all edits through callbacks. That
+ * keeps the surface ready for later CRDT-backed ownership because every map and
+ * spec mutation remains explicit at the boundary.
+ *
+ * `CanvasWorkspace` owns b0/b1 routing and app-session filter composition. This
+ * component stays focused on the rendered canvas bands.
+ */
 export type ProductionLineGlanceOpsMode = 'spatial' | 'full';
 
+/**
+ * Controlled inputs for the canonical Canvas implementation.
+ *
+ * `map`, specs, dashboard data, filter state, and operations mode are supplied
+ * by the caller. `onChange`, `onSpecsChange`, `onStepSpecsChange`, and
+ * `onModeChange` are the only mutation channels; Canvas must not write stores
+ * or persistence directly.
+ */
 export interface CanvasProps {
   map: ProcessMap;
   availableColumns: string[];
