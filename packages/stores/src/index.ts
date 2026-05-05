@@ -49,6 +49,13 @@ export type {
   GateNodePath,
   UndoEntry,
 } from './wallLayoutStore';
+export { useCanvasStore, getCanvasInitialState } from './canvasStore';
+export type {
+  CanvasStoreState,
+  CanvasStoreActions,
+  CanvasStore,
+  CanvasHistoryControls,
+} from './canvasStore';
 export {
   selectHubCommentStream,
   selectHypothesisTributaries,
