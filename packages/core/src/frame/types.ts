@@ -32,6 +32,8 @@ export interface ProcessMapNode {
   name: string;
   /** 0-based left→right order. Monotonic. */
   order: number;
+  /** Parent step when this node is modeled as a sub-step. */
+  parentStepId?: string | null;
   /** Optional column measured at this step (a CTQ — Critical-to-Quality). */
   ctqColumn?: string;
   /**
@@ -45,6 +47,13 @@ export interface ProcessMapNode {
     /** Sparse SpecRule list. Most-specific match wins. */
     specRules: SpecRule[];
   };
+}
+
+/** Directed connection between two process steps on the map. */
+export interface ProcessMapArrow {
+  id: string;
+  fromStepId: string;
+  toStepId: string;
 }
 
 /** A tributary — an x (factor) branching into a process step. */
@@ -104,6 +113,10 @@ export interface ProcessMap {
   nodes: ProcessMapNode[];
   /** Tributaries (xs) branching into each step. */
   tributaries: ProcessMapTributary[];
+  /** Chip-to-step assignments keyed by chip ID. */
+  assignments?: Record<string, string>;
+  /** Directed step-to-step connections. */
+  arrows?: ProcessMapArrow[];
   /** The customer-felt outcome column — maps to the ocean at the right. */
   ctsColumn?: string;
   /**
