@@ -24,6 +24,14 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showAnalysis();
   }, []);
 
+  const handleQuickAction = React.useCallback(() => {
+    usePanelsStore.getState().showImprovement();
+  }, []);
+
+  const handleFocusedInvestigation = React.useCallback(() => {
+    usePanelsStore.getState().showInvestigation();
+  }, []);
+
   return (
     <CanvasWorkspace
       rawData={rawData}
@@ -36,6 +44,8 @@ const FrameView: React.FC = () => {
       processContext={processContext}
       setProcessContext={setProcessContext}
       onSeeData={handleSeeData}
+      onQuickAction={handleQuickAction}
+      onFocusedInvestigation={handleFocusedInvestigation}
     />
   );
 };

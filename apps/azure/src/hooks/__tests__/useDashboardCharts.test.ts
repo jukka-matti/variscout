@@ -37,6 +37,16 @@ const defaultBaseResult = {
 };
 
 vi.mock('@variscout/hooks', () => ({
+  CANVAS_LENS_REGISTRY: {
+    default: { id: 'default', label: 'Default', enabled: true, description: '' },
+    capability: { id: 'capability', label: 'Capability', enabled: true, description: '' },
+    defect: { id: 'defect', label: 'Defect', enabled: true, description: '' },
+    performance: { id: 'performance', label: 'Performance', enabled: false, description: '' },
+    yamazumi: { id: 'yamazumi', label: 'Yamazumi', enabled: false, description: '' },
+  },
+  coerceCanvasLens: (value: unknown) =>
+    value === 'capability' || value === 'defect' ? value : 'default',
+  useCanvasStepCards: () => ({ cards: [] }),
   useDashboardChartsBase: () => defaultBaseResult,
   useKeyboardNavigation: vi.fn(),
   useFilteredData: () => ({

@@ -3,7 +3,7 @@ title: Canvas Migration Strategy — strangler-pattern phased delivery + three-l
 audience: [product, engineer, designer]
 category: design-spec
 status: active
-last-reviewed: 2026-05-04
+last-reviewed: 2026-05-05
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/archive/specs/2026-05-03-framing-layer-design.md
@@ -215,7 +215,23 @@ Eight phases. Each PR is ~5–8 tasks per `feedback_slice_size_cap`, on its own 
 
 ### PR5 — Spec 3 (cards / drill-down / mode lenses)
 
-**Brainstorm + plan needed.** Operations band absorption per Decision 4 happens here.
+**Implemented slices:** `canvas-migration-phase-5-cards-overlay-lenses` (PR5a) plus `canvas-migration-phase-5b-overlay-continuity` (PR5b).
+**Sub-PR shape:** PR5a landed the cards-first foundation, lens registry, overlay MVP, app-shell response paths, and docs. PR5b tightens original-scope continuity for anchored overlay behavior, mobile sheet interaction, and card fallback fidelity.
+
+PR5 makes Canvas capable of replacing the Analysis reading surface without deleting or hiding the existing Analysis routes yet. It is the first cards-first Canvas slice:
+
+- Adds a shared lens model: `CanvasLensId = 'default' | 'capability' | 'defect' | 'performance' | 'yamazumi'`.
+- Enables `default`, `capability`, and `defect` in PR5; keeps `performance` and `yamazumi` as deterministic fallback registry entries until they have complete card renderers.
+- Stores the active lens as session-scoped **View** state, initialized from `analysisMode` where available and deliberately not persisted as Document state.
+- Derives `CanvasStepCardModel[]` in the hook/model layer from `ProcessMap`, raw rows, measure specs, assigned columns, and production-line-glance projections.
+- Uses metric precedence `node.ctqColumn` -> first numeric assigned column -> first assigned column -> empty card state.
+- Renders numeric cards with compact histogram/sparkline primitives, categorical cards with compact distributions, and empty cards with assigned-column context only.
+- Uses deterministic capability helpers (`gradeCpk`, `sampleConfidenceFor`, and per-column specs). Cpk is suppressed for `n < 10`; `10 <= n < 30` shows trust-pending; `n >= 30` grades normally. Cards without specs show `mean +/- sigma + n` and an Add specs affordance.
+- Replaces the dedicated Canvas Operations band with card/lens rendering. `ProductionLineGlanceDashboard` is not deleted and remains valid outside Canvas; Canvas reuses its data contracts/projections instead of treating it as a separate band.
+- Adds a step overlay: desktop floats near the clicked card with close / click-out / `Esc`; mobile follows the existing bottom-sheet pattern.
+- Wires two real response paths through app-shell callbacks: Quick action opens Improvement, and Focused investigation opens Investigation. Charter, Sustainment, and Handoff remain visible but disabled / context-limited in PR5.
+
+**Acceptance:** Canvas shows per-step cards, lens switching changes card emphasis without mutating `ProcessMap`, spec-edit affordances do not open the overlay, card click opens the overlay, PWA and Azure pass navigation callbacks, and existing Analysis routes remain intact until a later cleanup phase.
 
 ### PR6 — Spec 4 (canvas overlays + Wall sync)
 

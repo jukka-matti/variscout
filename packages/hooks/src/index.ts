@@ -50,6 +50,24 @@ export {
 
 export { useCanvasKeyboard, type UseCanvasKeyboardArgs } from './useCanvasKeyboard';
 
+// Canvas step cards and lens registry
+export {
+  CANVAS_LENS_REGISTRY,
+  buildCanvasStepCards,
+  coerceCanvasLens,
+  enabledCanvasLenses,
+  useCanvasStepCards,
+  type BuildCanvasStepCardsArgs,
+  type CanvasLensDefinition,
+  type CanvasLensId,
+  type CanvasStepCapability,
+  type CanvasStepCardModel,
+  type CanvasStepCategory,
+  type CanvasStepMetricKind,
+  type UseCanvasStepCardsArgs,
+  type UseCanvasStepCardsResult,
+} from './useCanvasStepCards';
+
 // Responsive Chart Utilities
 export {
   useResponsiveChartMargins,

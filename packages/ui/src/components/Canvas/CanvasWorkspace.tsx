@@ -1,8 +1,8 @@
 import React from 'react';
 import {
+  useCanvasStepCards,
   useProductionLineGlanceData,
   useProductionLineGlanceFilter,
-  useProductionLineGlanceOpsToggle,
   useSessionCanvasFilters,
   useTranslation,
 } from '@variscout/hooks';
@@ -38,6 +38,8 @@ export interface CanvasWorkspaceProps {
   setMeasureSpec: (column: string, partial: Partial<SpecLimits>) => void;
   setProcessContext: (context: ProcessContext | null) => void;
   onSeeData: () => void;
+  onQuickAction?: (stepId: string) => void;
+  onFocusedInvestigation?: (stepId: string) => void;
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -131,6 +133,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   setMeasureSpec,
   setProcessContext,
   onSeeData,
+  onQuickAction,
+  onFocusedInvestigation,
 }) => {
   const { t } = useTranslation();
   const fallbackMap = React.useMemo(() => createEmptyMap(), []);
@@ -196,7 +200,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   );
 
   const filter = useProductionLineGlanceFilter();
-  const ops = useProductionLineGlanceOpsToggle();
   const {
     timelineWindow,
     setTimelineWindow,
@@ -204,6 +207,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     setScopeFilter,
     paretoGroupBy,
     setParetoGroupBy,
+    activeCanvasLens,
+    setActiveCanvasLens,
   } = useSessionCanvasFilters();
 
   const canvasFilterChipsNode = (
@@ -236,6 +241,14 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     members: previewRollup.members,
     rowsByInvestigation: previewRollup.rowsByInvestigation,
     contextFilter: filter.value,
+  });
+
+  const { cards: stepCards } = useCanvasStepCards({
+    map,
+    rows: rawData,
+    measureSpecs,
+    capabilityNodes: data.capabilityNodes,
+    errorSteps: data.errorSteps,
   });
 
   const detected = React.useMemo(
@@ -393,10 +406,13 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
         value: filter.value,
         onChange: filter.onChange,
       }}
-      opsMode={ops.mode}
-      onOpsModeChange={ops.setMode}
       showGaps={scope !== 'b0'}
       canvasFilterChips={canvasFilterChipsNode}
+      stepCards={stepCards}
+      activeLens={activeCanvasLens}
+      onLensChange={setActiveCanvasLens}
+      onQuickAction={onQuickAction}
+      onFocusedInvestigation={onFocusedInvestigation}
       mode={authoringMode}
       onModeChange={setAuthoringMode}
       chips={chips}

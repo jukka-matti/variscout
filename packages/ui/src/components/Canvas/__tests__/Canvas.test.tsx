@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 vi.mock('@variscout/charts', async () => {
   const React = await import('react');
@@ -13,6 +13,7 @@ vi.mock('@variscout/charts', async () => {
 
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ProcessMap } from '@variscout/core/frame';
+import type { CanvasStepCardModel } from '@variscout/hooks';
 import { Canvas } from '../index';
 
 const map: ProcessMap = {
@@ -48,10 +49,51 @@ const filter = {
   onChange: vi.fn(),
 };
 
-describe('Canvas', () => {
-  it('owns the three-band rendering path without changing behavior', () => {
-    const onOpsModeChange = vi.fn();
+const stepCards: CanvasStepCardModel[] = [
+  {
+    stepId: 'step-1',
+    stepName: 'Mix',
+    assignedColumns: ['Pressure'],
+    metricColumn: 'Pressure',
+    metricKind: 'numeric',
+    values: [10, 11, 12, 13],
+    distribution: [],
+    stats: {
+      mean: 11.5,
+      median: 11.5,
+      stdDev: 1.29,
+      sigmaWithin: 0.89,
+      mrBar: 1,
+      ucl: 14.17,
+      lcl: 8.83,
+      outOfSpecPercentage: 0,
+    },
+    capability: { state: 'no-specs', n: 4, canAddSpecs: true },
+  },
+  {
+    stepId: 'step-2',
+    stepName: 'Fill',
+    assignedColumns: ['Defect'],
+    metricColumn: 'Defect',
+    metricKind: 'categorical',
+    values: [],
+    distribution: [{ label: 'Scratch', count: 7 }],
+    capability: { state: 'no-specs', n: 0, canAddSpecs: true },
+    defectCount: 7,
+  },
+];
 
+function setViewport(width: number, height: number) {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+  Object.defineProperty(window, 'innerHeight', { configurable: true, value: height });
+}
+
+describe('Canvas', () => {
+  beforeEach(() => {
+    setViewport(1024, 768);
+  });
+
+  it('renders the PR5 card surface instead of the dedicated operations band', () => {
     render(
       <Canvas
         map={map}
@@ -59,35 +101,15 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        opsMode="spatial"
-        onOpsModeChange={onOpsModeChange}
+        stepCards={stepCards}
       />
     );
 
     expect(screen.getByTestId('layered-process-view')).toBeInTheDocument();
-    expect(screen.getByTestId('ops-band-dashboard')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /show temporal trends/i }));
-
-    expect(onOpsModeChange).toHaveBeenCalledWith('full');
-  });
-
-  it('uses opsMode for temporal trends while authoring mode is inert', () => {
-    render(
-      <Canvas
-        map={map}
-        availableColumns={[]}
-        onChange={() => {}}
-        data={data}
-        filter={filter}
-        mode="read"
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
-      />
-    );
-
-    expect(screen.getByRole('button', { name: /show temporal trends/i })).toBeInTheDocument();
-    expect(screen.getByTestId('dashboard-temporal-row')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByTestId('canvas-card-surface')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-step-card-step-1')).toHaveTextContent('Mix');
+    expect(screen.getByTestId('canvas-step-card-step-1')).toHaveTextContent('11.50 +/- 1.29 · n=4');
+    expect(screen.queryByTestId('ops-band-dashboard')).not.toBeInTheDocument();
   });
 
   it('renders the chip rail in author mode when chips are available', () => {
@@ -99,8 +121,6 @@ describe('Canvas', () => {
         data={data}
         filter={filter}
         mode="author"
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
       />
     );
@@ -122,8 +142,6 @@ describe('Canvas', () => {
         data={data}
         filter={filter}
         mode="read"
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
       />
     );
@@ -144,8 +162,6 @@ describe('Canvas', () => {
         data={data}
         filter={filter}
         mode="author"
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
       />
     );
 
@@ -166,8 +182,6 @@ describe('Canvas', () => {
         filter={filter}
         mode="author"
         disabled
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
       />
     );
@@ -189,8 +203,6 @@ describe('Canvas', () => {
         filter={filter}
         mode="read"
         onModeChange={vi.fn()}
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
       />
     );
@@ -217,8 +229,6 @@ describe('Canvas', () => {
         onAddStep={onAddStep}
         onUndo={onUndo}
         onRedo={onRedo}
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
       />
     );
 
@@ -242,8 +252,6 @@ describe('Canvas', () => {
         data={data}
         filter={filter}
         mode="author"
-        opsMode="spatial"
-        onOpsModeChange={vi.fn()}
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
         onPlaceChip={onPlaceChip}
       />
@@ -253,5 +261,212 @@ describe('Canvas', () => {
     fireEvent.keyDown(screen.getByTestId('process-map-step-step-1'), { key: 'Enter' });
 
     expect(onPlaceChip).toHaveBeenCalledWith('Bake_Time', 'step-1');
+  });
+
+  it('renders a lens picker and forwards enabled lens changes', () => {
+    const onLensChange = vi.fn();
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+        activeLens="default"
+        onLensChange={onLensChange}
+      />
+    );
+
+    expect(screen.getByTestId('canvas-lens-picker')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /default lens/i })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /capability lens/i }));
+
+    expect(onLensChange).toHaveBeenCalledWith('capability');
+    expect(screen.getByRole('button', { name: /performance lens/i })).toBeDisabled();
+  });
+
+  it('opens and dismisses the step overlay from a card click', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
+
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent('Mix');
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
+  });
+
+  it('anchors the desktop step overlay near the clicked card', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+      />
+    );
+
+    const card = screen.getByTestId('canvas-step-card-step-1');
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({
+      x: 200,
+      y: 120,
+      top: 120,
+      left: 200,
+      right: 320,
+      bottom: 280,
+      width: 120,
+      height: 160,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.click(card);
+
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveStyle({
+      top: '120px',
+      left: '332px',
+    });
+  });
+
+  it('clamps the desktop step overlay inside the viewport near edge cards', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+      />
+    );
+
+    const card = screen.getByTestId('canvas-step-card-step-1');
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({
+      x: 940,
+      y: 700,
+      top: 700,
+      left: 940,
+      right: 1020,
+      bottom: 760,
+      width: 80,
+      height: 60,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.click(card);
+
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveStyle({
+      top: '392px',
+      left: '568px',
+    });
+  });
+
+  it('renders the mobile step overlay as a swipe-dismiss bottom sheet', () => {
+    setViewport(500, 760);
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
+
+    const overlay = screen.getByTestId('canvas-step-overlay');
+    expect(screen.getByTestId('canvas-step-overlay-handle')).toBeInTheDocument();
+    expect(overlay).toHaveClass('rounded-t-lg');
+    expect(overlay).not.toHaveStyle({ top: '120px' });
+
+    fireEvent.touchStart(overlay, { touches: [{ clientY: 100 }] });
+    fireEvent.touchEnd(overlay, { changedTouches: [{ clientY: 180 }] });
+
+    expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
+  });
+
+  it('shows capability state and defect count in the step overlay when projected', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-2'));
+
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent('Capability');
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent('Defects: 7');
+  });
+
+  it('keeps spec edit affordances separate from card drill-down', () => {
+    const onStepSpecsRequest = vi.fn();
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+        onStepSpecsRequest={onStepSpecsRequest}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /add specs for mix/i }));
+
+    expect(onStepSpecsRequest).toHaveBeenCalledWith('Pressure', 'step-1');
+    expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
+  });
+
+  it('wires the two PR5 response paths from the overlay', () => {
+    const onQuickAction = vi.fn();
+    const onFocusedInvestigation = vi.fn();
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+        onQuickAction={onQuickAction}
+        onFocusedInvestigation={onFocusedInvestigation}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
+    fireEvent.click(screen.getByRole('button', { name: /quick action/i }));
+    fireEvent.click(screen.getByRole('button', { name: /focused investigation/i }));
+
+    expect(onQuickAction).toHaveBeenCalledWith('step-1');
+    expect(onFocusedInvestigation).toHaveBeenCalledWith('step-1');
+    expect(screen.getByRole('button', { name: /charter/i })).toBeDisabled();
   });
 });

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import type { ScopeFilter, SpecLimits, TimelineWindow } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
+import type { CanvasLensId, CanvasStepCardModel } from '@variscout/hooks';
 import { useCanvasStore } from '@variscout/stores';
 
 vi.mock('@variscout/charts', async importOriginal => {
@@ -66,18 +67,22 @@ const canvasFiltersStateRef: {
     timelineWindow: TimelineWindow;
     scopeFilter: ScopeFilter | undefined;
     paretoGroupBy: string | undefined;
+    activeCanvasLens: CanvasLensId;
     setTimelineWindow: ReturnType<typeof vi.fn>;
     setScopeFilter: ReturnType<typeof vi.fn>;
     setParetoGroupBy: ReturnType<typeof vi.fn>;
+    setActiveCanvasLens: ReturnType<typeof vi.fn>;
   };
 } = {
   current: {
     timelineWindow: { kind: 'cumulative' },
     scopeFilter: undefined,
     paretoGroupBy: undefined,
+    activeCanvasLens: 'default',
     setTimelineWindow: vi.fn(),
     setScopeFilter: vi.fn(),
     setParetoGroupBy: vi.fn(),
+    setActiveCanvasLens: vi.fn(),
   },
 };
 
@@ -95,8 +100,76 @@ const opsToggleStateRef: {
   },
 };
 
+const mockStepCards: CanvasStepCardModel[] = [
+  {
+    stepId: 'step-1',
+    stepName: 'Bake',
+    assignedColumns: ['Bake_Time'],
+    metricColumn: 'Bake_Time',
+    metricKind: 'numeric',
+    values: [29, 30, 31],
+    distribution: [],
+    stats: {
+      mean: 30,
+      median: 30,
+      stdDev: 1,
+      sigmaWithin: 1,
+      mrBar: 1,
+      ucl: 33,
+      lcl: 27,
+      cp: 0.67,
+      cpk: 0.67,
+      outOfSpecPercentage: 0,
+    },
+    specs: { target: 30, lsl: 28, usl: 32 },
+    capability: {
+      state: 'suppressed',
+      n: 3,
+      confidence: 'insufficient',
+      target: 1.33,
+      canAddSpecs: false,
+    },
+    defectCount: 2,
+  },
+];
+
 vi.mock('@variscout/hooks', () => ({
+  CANVAS_LENS_REGISTRY: {
+    default: {
+      id: 'default',
+      label: 'Default',
+      enabled: true,
+      description: 'Step metrics, specs, and current card state.',
+    },
+    capability: {
+      id: 'capability',
+      label: 'Capability',
+      enabled: true,
+      description: 'Capability, Cpk trust, and step health.',
+    },
+    defect: {
+      id: 'defect',
+      label: 'Defect',
+      enabled: true,
+      description: 'Defect counts projected onto process steps.',
+    },
+    performance: {
+      id: 'performance',
+      label: 'Performance',
+      enabled: false,
+      description: 'Future within-step channel lens.',
+    },
+    yamazumi: {
+      id: 'yamazumi',
+      label: 'Yamazumi',
+      enabled: false,
+      description: 'Future time-study lens.',
+    },
+  },
   CANVAS_EMPTY_DROP_ID: 'canvas:empty',
+  coerceCanvasLens: vi.fn((value: unknown) =>
+    value === 'capability' || value === 'defect' ? value : 'default'
+  ),
   encodeChipDragId: (chipId: string) => `chip:${chipId}`,
   encodeStepDropId: (stepId: string) => `step:${stepId}`,
   useChipDragAndDrop: ({
@@ -168,6 +241,7 @@ vi.mock('@variscout/hooks', () => ({
     availableContext: { hubColumns: [], tributaryGroups: [] },
     contextValueOptions: {},
   })),
+  useCanvasStepCards: vi.fn(() => ({ cards: mockStepCards })),
   useSessionCanvasFilters: vi.fn(() => canvasFiltersStateRef.current),
 }));
 
@@ -221,9 +295,11 @@ describe('CanvasWorkspace', () => {
       timelineWindow: { kind: 'cumulative' },
       scopeFilter: undefined,
       paretoGroupBy: undefined,
+      activeCanvasLens: 'default',
       setTimelineWindow: vi.fn(),
       setScopeFilter: vi.fn(),
       setParetoGroupBy: vi.fn(),
+      setActiveCanvasLens: vi.fn(),
     };
     opsToggleStateRef.current = {
       mode: 'spatial',
@@ -240,27 +316,40 @@ describe('CanvasWorkspace', () => {
     expect(screen.queryByTestId('layered-process-view')).toBeNull();
   });
 
-  it('renders b1/b2 directly with three bands and the operations dashboard', () => {
+  it('renders b1/b2 directly with the card surface and authoring map', () => {
     renderWorkspace({ processContext: { processMap: mapWithStep() } });
 
     expect(screen.getByTestId('layered-process-view')).toBeInTheDocument();
-    expect(screen.getByTestId('band-outcome')).toBeInTheDocument();
-    expect(screen.getByTestId('band-process-flow')).toBeInTheDocument();
-    expect(screen.getByTestId('band-operations')).toBeInTheDocument();
-    expect(screen.getByTestId('ops-band-dashboard')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-card-surface')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-authoring-map')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-step-card-step-1')).toBeInTheDocument();
+    expect(screen.queryByTestId('band-operations')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('ops-band-dashboard')).not.toBeInTheDocument();
   });
 
-  it('wires the operations reveal mode toggle into Canvas', () => {
-    opsToggleStateRef.current = {
-      mode: 'full',
-      setMode: vi.fn(),
-      toggle: vi.fn(),
-    };
+  it('wires lens changes through session canvas filters', () => {
     renderWorkspace({ processContext: { processMap: mapWithStep() } });
 
-    fireEvent.click(screen.getByRole('button', { name: /hide temporal trends/i }));
+    fireEvent.click(screen.getByRole('button', { name: /capability lens/i }));
 
-    expect(opsToggleStateRef.current.setMode).toHaveBeenCalledWith('spatial');
+    expect(canvasFiltersStateRef.current.setActiveCanvasLens).toHaveBeenCalledWith('capability');
+  });
+
+  it('forwards step overlay response paths to app shell callbacks', () => {
+    const onQuickAction = vi.fn();
+    const onFocusedInvestigation = vi.fn();
+    renderWorkspace({
+      processContext: { processMap: mapWithStep() },
+      onQuickAction,
+      onFocusedInvestigation,
+    });
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
+    fireEvent.click(screen.getByRole('button', { name: /quick action/i }));
+    fireEvent.click(screen.getByRole('button', { name: /focused investigation/i }));
+
+    expect(onQuickAction).toHaveBeenCalledWith('step-1');
+    expect(onFocusedInvestigation).toHaveBeenCalledWith('step-1');
   });
 
   it('writes per-step CTQ specs through the provided spec callback', () => {
