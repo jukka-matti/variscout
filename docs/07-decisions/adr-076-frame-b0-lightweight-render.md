@@ -2,7 +2,9 @@
 title: 'ADR-076: FRAME b0 lightweight render — investigator vs author archetypes'
 audience: [product, designer, engineer, analyst]
 category: architecture
-status: accepted
+status: superseded
+superseded-by: docs/superpowers/specs/2026-05-04-canvas-migration-design.md
+superseded-on: 2026-05-04
 date: 2026-05-02
 related:
   - adr-070-frame-workspace
@@ -14,7 +16,9 @@ related:
 
 # ADR-076: FRAME b0 lightweight render — investigator vs author archetypes
 
-**Status**: Accepted
+> **Superseded:** This ADR is superseded by the Canvas Migration spec. b0 ceases to exist as a separate render path after PR2 of the canvas migration; Canvas handles the empty-to-full spectrum natively. ADR-076 retained as historical record only.
+
+**Status**: Superseded
 
 **Date**: 2026-05-02
 

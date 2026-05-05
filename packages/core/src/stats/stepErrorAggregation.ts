@@ -2,8 +2,10 @@ import type { ProcessHub, ProcessHubInvestigation } from '../processHub';
 import type { ProcessMap, ProcessMapNode } from '../frame/types';
 import type { DataRow, SpecLookupContext } from '../types';
 
+export type StepErrorRollupHub = Pick<ProcessHub, 'id' | 'canonicalProcessMap'>;
+
 export interface StepErrorRollupInput {
-  hub: ProcessHub;
+  hub: StepErrorRollupHub;
   members: readonly ProcessHubInvestigation[];
   defectColumns?: readonly string[];
   contextFilter?: SpecLookupContext;

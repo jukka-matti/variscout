@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ProcessMapBase } from '../ProcessMapBase';
+import { ProcessMapBase } from '../internal/ProcessMapBase';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
 
 const isoNow = () => new Date('2026-04-18T12:00:00.000Z').toISOString();
@@ -36,7 +36,7 @@ const mapWithTwoSteps = (): ProcessMap => ({
 
 const COLUMNS = ['Fill_Weight', 'Machine', 'Shift', 'Lot', 'Timestamp'];
 
-describe('ProcessMapBase — rendering', () => {
+describe('Canvas internal process map — rendering', () => {
   it('renders steps in `order`, regardless of array order', () => {
     const map = emptyMap();
     map.nodes = [
@@ -77,7 +77,7 @@ describe('ProcessMapBase — rendering', () => {
   });
 });
 
-describe('ProcessMapBase — step CRUD', () => {
+describe('Canvas internal process map — step CRUD', () => {
   it('invokes onChange with a new step appended when the "+ step" button is clicked', () => {
     const onChange = vi.fn();
     render(<ProcessMapBase map={emptyMap()} availableColumns={COLUMNS} onChange={onChange} />);
@@ -144,7 +144,7 @@ describe('ProcessMapBase — step CRUD', () => {
   });
 });
 
-describe('ProcessMapBase — tributary CRUD', () => {
+describe('Canvas internal process map — tributary CRUD', () => {
   it('adds a tributary to a step via the inline selector', () => {
     const onChange = vi.fn();
     render(
@@ -194,7 +194,7 @@ describe('ProcessMapBase — tributary CRUD', () => {
   });
 });
 
-describe('ProcessMapBase — CTS / ocean', () => {
+describe('Canvas internal process map — CTS / ocean', () => {
   it('sets the CTS column via the ocean dropdown', () => {
     const onChange = vi.fn();
     render(<ProcessMapBase map={emptyMap()} availableColumns={COLUMNS} onChange={onChange} />);
@@ -269,7 +269,7 @@ describe('ProcessMapBase — CTS / ocean', () => {
   });
 });
 
-describe('ProcessMapBase — hunches', () => {
+describe('Canvas internal process map — hunches', () => {
   it('adds a hunch via the text input + "+ hunch" button', () => {
     const onChange = vi.fn();
     render(
@@ -310,7 +310,7 @@ describe('ProcessMapBase — hunches', () => {
   });
 });
 
-describe('ProcessMapBase — gap rendering', () => {
+describe('Canvas internal process map — gap rendering', () => {
   const requiredGap: Gap = {
     kind: 'missing-spec-limits',
     severity: 'required',
@@ -377,7 +377,7 @@ describe('ProcessMapBase — gap rendering', () => {
   });
 });
 
-describe('ProcessMapBase — disabled mode', () => {
+describe('Canvas internal process map — disabled mode', () => {
   it('hides destructive / additive controls when disabled', () => {
     render(
       <ProcessMapBase
@@ -394,7 +394,7 @@ describe('ProcessMapBase — disabled mode', () => {
   });
 });
 
-describe('ProcessMapBase — per-step CTQ specs editor (Task B)', () => {
+describe('Canvas internal process map — per-step CTQ specs editor (Task B)', () => {
   it('renders the per-step specs editor when the step has a CTQ column and onStepSpecsChange is provided', () => {
     render(
       <ProcessMapBase

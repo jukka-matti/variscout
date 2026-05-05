@@ -10,17 +10,22 @@ import { applyWindow } from '@variscout/core';
 import type {
   DataRow,
   IChartDataPoint,
-  StatsResult,
   ProcessHub,
   ProcessHubInvestigation,
   ProcessHubInvestigationMetadata,
+  StatsResult,
   TimelineWindow,
 } from '@variscout/core';
 
 const DEFAULT_CPK_TARGET = 1.33;
 
+export type ProductionLineGlanceHub = Pick<
+  ProcessHub,
+  'id' | 'canonicalProcessMap' | 'contextColumns'
+>;
+
 export interface UseProductionLineGlanceDataInput {
-  hub: ProcessHub;
+  hub: ProductionLineGlanceHub;
   members: readonly ProcessHubInvestigation[];
   rowsByInvestigation: ReadonlyMap<string, readonly DataRow[]>;
   contextFilter: SpecLookupContext;

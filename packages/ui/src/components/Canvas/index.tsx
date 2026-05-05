@@ -1,25 +1,41 @@
 /**
- * LayeredProcessView — three-band Makigami-style process visual.
- *
- * Stacks Outcome / Process Flow / Operations bands vertically. The Process
- * Flow band wraps the existing `ProcessMapBase` river-SIPOC; the Outcome and
- * Operations bands surround it. See spec at
- * `docs/superpowers/specs/2026-04-27-layered-process-view-design.md` (V1).
- *
- * Plan C2 slot props:
- * - `operationsBandContent` — replaces the default tributary chips in the
- *   Operations band. When provided, the tributary chips relocate to the
- *   Outcome band as a "Mapped factors" subsection.
- * - `filterStripContent` — renders above the Outcome band (e.g. dashboard
- *   filter strip).
+ * Canvas is the canonical FRAME canvas surface for process-map, outcome, and
+ * operations-band rendering.
  */
-
 import React from 'react';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
 import type { SpecLimits } from '@variscout/core';
-import { ProcessMapBase } from '../Canvas/internal/ProcessMapBase';
+import {
+  ProductionLineGlanceDashboard,
+  type ProductionLineGlanceFilterStripProps,
+  ProductionLineGlanceFilterStrip,
+} from '../ProductionLineGlanceDashboard';
+import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlanceDashboard/types';
+import { ProcessMapBase } from './internal/ProcessMapBase';
 
-export interface LayeredProcessViewProps {
+/**
+ * Canonical FRAME canvas surface.
+ *
+ * Canvas renders the controlled process-map, outcome, and operations bands. It
+ * owns no app store, persistence, or session state: callers pass the full
+ * current canvas state in props and receive all edits through callbacks. That
+ * keeps the surface ready for later CRDT-backed ownership because every map and
+ * spec mutation remains explicit at the boundary.
+ *
+ * `CanvasWorkspace` owns b0/b1 routing and app-session filter composition. This
+ * component stays focused on the rendered canvas bands.
+ */
+export type ProductionLineGlanceOpsMode = 'spatial' | 'full';
+
+/**
+ * Controlled inputs for the canonical Canvas implementation.
+ *
+ * `map`, specs, dashboard data, filter state, and operations mode are supplied
+ * by the caller. `onChange`, `onSpecsChange`, `onStepSpecsChange`, and
+ * `onModeChange` are the only mutation channels; Canvas must not write stores
+ * or persistence directly.
+ */
+export interface CanvasProps {
   map: ProcessMap;
   availableColumns: string[];
   onChange: (next: ProcessMap) => void;
@@ -35,34 +51,21 @@ export interface LayeredProcessViewProps {
     lsl?: number;
     cpkTarget?: number;
   }) => void;
-  /** Per-CTQ-column specs lookup. Each StepCard reads `stepSpecs[step.ctqColumn]`. */
   stepSpecs?: Record<string, SpecLimits>;
-  /** Called when a StepCard's specs change. `column` is the CTQ column for that step. */
   onStepSpecsChange?: (column: string, next: SpecLimits) => void;
-  /** Optional content rendered inside the Operations band. When provided,
-   * tributary chips relocate to the Outcome band as a 'Mapped factors'
-   * subsection. Plan C2. */
-  operationsBandContent?: React.ReactNode;
-  /** Optional content rendered above the Outcome band (typically the
-   * dashboard's filter strip). Plan C2. */
-  filterStripContent?: React.ReactNode;
-  /**
-   * Optional React node rendered ABOVE `filterStripContent`. Reserved for slice 4's
-   * canvas filter chip rows (purple/blue/amber chips for time window / scope filter /
-   * Pareto group-by per spec §10). Absent → no chips rendered (default).
-   */
   canvasFilterChips?: React.ReactNode;
-  /**
-   * Whether to render the inner ProcessMap's GapStrip warning bar. Defaults
-   * to `true` for backward compatibility with b1+ (process-map authoring)
-   * flows. The b0 FrameView passes `false` because the lightweight
-   * investigator entry uses inline `+ add spec` affordances instead of
-   * upfront warnings. (W3-8 prep — passthrough for ProcessMapBase.showGaps.)
-   */
   showGaps?: boolean;
+  data: Pick<
+    ProductionLineGlanceDashboardProps,
+    'cpkTrend' | 'cpkGapTrend' | 'capabilityNodes' | 'errorSteps'
+  >;
+  filter: ProductionLineGlanceFilterStripProps;
+  mode: ProductionLineGlanceOpsMode;
+  onModeChange: (next: ProductionLineGlanceOpsMode) => void;
+  onStepClick?: (nodeId: string) => void;
 }
 
-export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
+export const Canvas: React.FC<CanvasProps> = ({
   map,
   availableColumns,
   onChange,
@@ -75,13 +78,19 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
   onSpecsChange,
   stepSpecs,
   onStepSpecsChange,
-  operationsBandContent,
-  filterStripContent,
   canvasFilterChips,
   showGaps = true,
+  data,
+  filter,
+  mode,
+  onModeChange,
+  onStepClick,
 }) => {
   const hasOutcomeData =
     target !== undefined || usl !== undefined || lsl !== undefined || cpkTarget !== undefined;
+  const isFull = mode === 'full';
+  const affordanceLabel = isFull ? 'Hide temporal trends' : 'Show temporal trends';
+  const affordanceArrow = isFull ? '↓' : '↑';
 
   const tributariesContent =
     map.tributaries.length > 0 ? (
@@ -110,9 +119,9 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
       {canvasFilterChips ? (
         <div data-testid="layered-canvas-filter-chips">{canvasFilterChips}</div>
       ) : null}
-      {filterStripContent ? (
-        <div data-testid="layered-filter-strip">{filterStripContent}</div>
-      ) : null}
+      <div data-testid="layered-filter-strip">
+        <ProductionLineGlanceFilterStrip {...filter} />
+      </div>
 
       <section
         data-testid="band-outcome"
@@ -150,14 +159,12 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
           <p className="mt-2 text-sm text-content-secondary italic">No outcome target set</p>
         )}
 
-        {operationsBandContent ? (
-          <div className="mt-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-content-muted">
-              Mapped factors
-            </h4>
-            {tributariesContent}
-          </div>
-        ) : null}
+        <div className="mt-3">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-content-muted">
+            Mapped factors
+          </h4>
+          {tributariesContent}
+        </div>
       </section>
 
       <section data-testid="band-process-flow" className="border-b border-edge px-4 py-3">
@@ -183,12 +190,23 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
 
       <section data-testid="band-operations" className="px-4 py-3 bg-surface-secondary">
         <h3 className="text-sm font-semibold text-content">Operations</h3>
-        {operationsBandContent ? (
-          <div className="mt-2">{operationsBandContent}</div>
-        ) : (
-          tributariesContent
-        )}
+        <div className="mt-2">
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => onModeChange(isFull ? 'spatial' : 'full')}
+              className="self-start rounded text-xs font-medium text-content-secondary transition-colors hover:text-content"
+            >
+              {affordanceLabel} {affordanceArrow}
+            </button>
+            <div data-testid="ops-band-dashboard">
+              <ProductionLineGlanceDashboard {...data} mode={mode} onStepClick={onStepClick} />
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   );
 };
+
+export default Canvas;
