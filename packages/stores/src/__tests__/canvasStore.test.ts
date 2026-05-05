@@ -142,6 +142,24 @@ describe('canvasStore grouping actions', () => {
       useCanvasStore.getState().canonicalMap.nodes.find(node => node.id === childId)?.parentStepId
     ).toBeNull();
   });
+
+  it('treats ungroupSubStep on a top-level step as a no-op', () => {
+    const stepId = addStepAndGetId('Inspect');
+    const version = useCanvasStore.getState().canonicalMapVersion;
+    const historyDepth = useCanvasStore.getState().historyDepth();
+    const nodeBefore = useCanvasStore
+      .getState()
+      .canonicalMap.nodes.find(candidate => candidate.id === stepId);
+
+    useCanvasStore.getState().ungroupSubStep(stepId);
+
+    const nodeAfter = useCanvasStore
+      .getState()
+      .canonicalMap.nodes.find(candidate => candidate.id === stepId);
+    expect(nodeAfter).toEqual(nodeBefore);
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(version);
+    expect(useCanvasStore.getState().historyDepth()).toBe(historyDepth);
+  });
 });
 
 describe('canvasStore versions and immutable updates', () => {
@@ -187,6 +205,34 @@ describe('canvasStore history controls', () => {
     expect(useCanvasStore.getState().canonicalMap.assignments?.['chip-a']).toBe('step-a');
     expect(useCanvasStore.getState().historyDepth()).toBe(1);
     expect(useCanvasStore.getState().redoDepth()).toBe(0);
+  });
+
+  it('undo and redo restore the full document snapshot including canonicalMapVersion', () => {
+    const initialVersion = useCanvasStore.getState().canonicalMapVersion;
+
+    const stepId = addStepAndGetId('Mix');
+    const addedVersion = useCanvasStore.getState().canonicalMapVersion;
+    expect(addedVersion).not.toBe(initialVersion);
+
+    useCanvasStore.getState().renameStep(stepId, 'Blend');
+    const renamedVersion = useCanvasStore.getState().canonicalMapVersion;
+    expect(renamedVersion).not.toBe(addedVersion);
+
+    useCanvasStore.getState().undo();
+    expect(useCanvasStore.getState().canonicalMap.nodes[0]?.name).toBe('Mix');
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(addedVersion);
+
+    useCanvasStore.getState().undo();
+    expect(useCanvasStore.getState().canonicalMap.nodes).toEqual([]);
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(initialVersion);
+
+    useCanvasStore.getState().redo();
+    expect(useCanvasStore.getState().canonicalMap.nodes[0]?.name).toBe('Mix');
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(addedVersion);
+
+    useCanvasStore.getState().redo();
+    expect(useCanvasStore.getState().canonicalMap.nodes[0]?.name).toBe('Blend');
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(renamedVersion);
   });
 
   it('undoes and redoes step creation and removal', () => {
@@ -235,6 +281,28 @@ describe('canvasStore history controls', () => {
 
     useCanvasStore.getState().clearHistory();
 
+    expect(useCanvasStore.getState().historyDepth()).toBe(0);
+    expect(useCanvasStore.getState().redoDepth()).toBe(0);
+  });
+
+  it('notifies subscribers when history and redo depths change', () => {
+    const observedDepths: Array<[number, number]> = [];
+    const unsubscribe = useCanvasStore.subscribe(state => {
+      observedDepths.push([state.historyDepth(), state.redoDepth()]);
+    });
+
+    useCanvasStore.getState().placeChipOnStep('chip-a', 'step-a');
+    useCanvasStore.getState().undo();
+    useCanvasStore.getState().redo();
+    useCanvasStore.getState().clearHistory();
+    unsubscribe();
+
+    expect(observedDepths).toEqual([
+      [1, 0],
+      [0, 1],
+      [1, 0],
+      [0, 0],
+    ]);
     expect(useCanvasStore.getState().historyDepth()).toBe(0);
     expect(useCanvasStore.getState().redoDepth()).toBe(0);
   });

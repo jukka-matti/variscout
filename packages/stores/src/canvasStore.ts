@@ -12,6 +12,8 @@ export interface CanvasStoreState {
   outcomes: OutcomeSpec[];
   primaryScopeDimensions: string[];
   canonicalMapVersion: string;
+  undoStack: CanvasHistoryEntry[];
+  redoStack: CanvasHistoryEntry[];
 }
 
 export interface CanvasHistoryControls {
@@ -37,21 +39,22 @@ export interface CanvasStoreActions {
 
 export type CanvasStore = CanvasStoreState & CanvasHistoryControls & CanvasStoreActions;
 
-type CanvasDocumentSnapshot = CanvasStoreState;
+export interface CanvasDocumentSnapshot {
+  canonicalMap: ProcessMap;
+  outcomes: OutcomeSpec[];
+  primaryScopeDimensions: string[];
+  canonicalMapVersion: string;
+}
 
-interface CanvasHistoryEntry {
+export interface CanvasHistoryEntry {
   before: CanvasDocumentSnapshot;
   after: CanvasDocumentSnapshot;
 }
 
-let undoStack: CanvasHistoryEntry[] = [];
-let redoStack: CanvasHistoryEntry[] = [];
 let versionSequence = 0;
 let generatedStepSequence = 1;
 
 function resetCanvasLocalState() {
-  undoStack = [];
-  redoStack = [];
   versionSequence = 0;
   generatedStepSequence = 1;
 }
@@ -86,11 +89,8 @@ function bumpCanonicalMapVersion(draft: CanvasStoreState) {
   draft.canonicalMap.updatedAt = new Date().toISOString();
 }
 
-function recordUndo(before: CanvasDocumentSnapshot, after: CanvasDocumentSnapshot) {
-  const nextStack = [...undoStack, { before, after }];
-  undoStack =
-    nextStack.length > HISTORY_CAP ? nextStack.slice(nextStack.length - HISTORY_CAP) : nextStack;
-  redoStack = [];
+function cappedUndoStack(entries: CanvasHistoryEntry[]): CanvasHistoryEntry[] {
+  return entries.length > HISTORY_CAP ? entries.slice(entries.length - HISTORY_CAP) : entries;
 }
 
 function slugifyStepName(stepName: string): string {
@@ -126,6 +126,8 @@ export function getCanvasInitialState(): CanvasStoreState {
     outcomes: [],
     primaryScopeDimensions: [],
     canonicalMapVersion: 'canvas-map-0',
+    undoStack: [],
+    redoStack: [],
   };
 }
 
@@ -142,28 +144,30 @@ export const useCanvasStore = create<CanvasStore>()(
         set(
           draft => {
             changed = mutator(draft);
-            if (changed) bumpCanonicalMapVersion(draft);
+            if (!changed) return;
+
+            bumpCanonicalMapVersion(draft);
+            const after = documentSnapshot(draft);
+            draft.undoStack = cappedUndoStack([...draft.undoStack, { before, after }]);
+            draft.redoStack = [];
           },
           false,
           actionName
         );
-
-        if (!changed) return;
-        recordUndo(before, documentSnapshot(get()));
       }
 
       return {
         ...getCanvasInitialState(),
 
         undo: () => {
-          const entry = undoStack.at(-1);
+          const entry = get().undoStack.at(-1);
           if (!entry) return;
 
-          undoStack = undoStack.slice(0, -1);
-          redoStack = [...redoStack, entry];
           set(
             draft => {
               applyDocumentSnapshot(draft, entry.before);
+              draft.undoStack = draft.undoStack.slice(0, -1);
+              draft.redoStack = [...draft.redoStack, entry];
             },
             false,
             'canvas/undo'
@@ -171,25 +175,31 @@ export const useCanvasStore = create<CanvasStore>()(
         },
 
         redo: () => {
-          const entry = redoStack.at(-1);
+          const entry = get().redoStack.at(-1);
           if (!entry) return;
 
-          redoStack = redoStack.slice(0, -1);
-          undoStack = [...undoStack, entry];
           set(
             draft => {
               applyDocumentSnapshot(draft, entry.after);
+              draft.undoStack = [...draft.undoStack, entry];
+              draft.redoStack = draft.redoStack.slice(0, -1);
             },
             false,
             'canvas/redo'
           );
         },
 
-        historyDepth: () => undoStack.length,
-        redoDepth: () => redoStack.length,
+        historyDepth: () => get().undoStack.length,
+        redoDepth: () => get().redoStack.length,
         clearHistory: () => {
-          undoStack = [];
-          redoStack = [];
+          set(
+            draft => {
+              draft.undoStack = [];
+              draft.redoStack = [];
+            },
+            false,
+            'canvas/clearHistory'
+          );
         },
 
         placeChipOnStep: (chipId, stepId) => {
@@ -311,7 +321,7 @@ export const useCanvasStore = create<CanvasStore>()(
         ungroupSubStep: stepId => {
           applyUndoable('canvas/ungroupSubStep', draft => {
             const node = draft.canonicalMap.nodes.find(candidate => candidate.id === stepId);
-            if (!node || node.parentStepId === null) return false;
+            if (!node || node.parentStepId == null) return false;
             node.parentStepId = null;
             return true;
           });

@@ -55,6 +55,8 @@ export type {
   CanvasStoreActions,
   CanvasStore,
   CanvasHistoryControls,
+  CanvasDocumentSnapshot,
+  CanvasHistoryEntry,
 } from './canvasStore';
 export {
   selectHubCommentStream,
