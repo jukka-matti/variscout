@@ -10,6 +10,8 @@ export function createEmptyMap(): ProcessMap {
     version: 1,
     nodes: [],
     tributaries: [],
+    assignments: {},
+    arrows: [],
     createdAt: now,
     updatedAt: now,
   };

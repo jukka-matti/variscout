@@ -28,6 +28,7 @@
     "./evidenceMap": "./src/evidenceMap/index.ts",
     "./defect": "./src/defect/index.ts",
     "./frame": "./src/frame/index.ts",
+    "./canvas": "./src/canvas/index.ts",
     "./survey": "./src/survey/index.ts",
     "./signalCards": "./src/signalCards.ts",
     "./processMoments": "./src/processMoments.ts",

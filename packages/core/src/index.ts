@@ -791,6 +791,7 @@ export type {
 export type {
   ProcessMap,
   ProcessMapNode,
+  ProcessMapArrow,
   ProcessMapTributary,
   ProcessMapHunch,
   TributaryRole,

@@ -4,6 +4,7 @@
 export type {
   TributaryRole,
   ProcessMapNode,
+  ProcessMapArrow,
   ProcessMapTributary,
   ProcessMapHunch,
   ProcessMapLayout,
