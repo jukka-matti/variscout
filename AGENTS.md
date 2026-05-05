@@ -38,9 +38,10 @@ Structured investigation for process improvement. Browser-based, customer-owned 
 ## Using Ruflo From Codex
 
 - The tracked Ruflo expectation lives in `scripts/check-codex-ruflo.sh`; local `.mcp.json` and Codex MCP config can drift and must be verified.
-- At session start, run `pnpm codex:ruflo-check` for the Codex-side health summary and recovery command.
-- Before complex work, query ruflo memory for architecture, domain, or prior patterns.
-- Before PR prep, run diff analysis and dispatch audit or test-gap workers when relevant.
+- At session start, run `pnpm codex:ruflo-check` for the Codex-side registration/version health summary and recovery command. Treat any direct Ruflo CLI probe in that check as diagnostic only.
+- Use the Ruflo MCP tools for in-session work. Query memory/status/diff/workers through `mcp__ruflo__*` (lazy-load with tool search if needed), not by running `npx ruflo ...` from the shell.
+- Before complex work, query Ruflo MCP memory for architecture, domain, or prior patterns.
+- Before PR prep, run MCP diff analysis and dispatch MCP audit or test-gap workers when relevant.
 - Codex does not use Claude-only hooks from `.claude/settings.json`; treat those as client-specific automation.
 
 ## Codex Session Start

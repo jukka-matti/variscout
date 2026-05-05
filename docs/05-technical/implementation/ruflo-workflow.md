@@ -16,7 +16,7 @@ Ruflo is a **pull-based knowledge system**. Hooks passively learn from your oper
 ```
 Claude Code ──hooks──▶ ruflo (learns passively)
 Claude Code ──MCP────▶ ruflo (query on demand) ──results──▶ Claude Code
-Codex      ──────────▶ ruflo (query on demand) ──results──▶ Codex
+Codex      ──MCP────▶ ruflo (query on demand) ──results──▶ Codex
 ```
 
 Claude has extra local automation via `.claude/settings.json`. Codex shares the same MCP-backed memory and analysis workflow, but should not assume Claude hooks or statusline behavior.
@@ -31,21 +31,21 @@ Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the ac
 
 No additional setup is needed once the MCP server is available.
 
-Direct `npx ruflo@3.5.80 ...` CLI probes are best-effort diagnostics for Codex. They can be affected by sandbox, npm cache, or PATH permissions, so CLI warnings are non-blocking when MCP registration and MCP tools work.
+Direct `npx ruflo@3.5.80 ...` CLI probes are best-effort diagnostics for Codex, not the normal in-session workflow. They can be affected by sandbox, npm cache, PATH permissions, or MCP/SQLite contention, so CLI warnings are non-blocking when MCP registration and MCP tools work. Use `mcp__ruflo__*` tools for memory, status, workers, and diff analysis.
 
 ### 2. Before Starting a Feature
 
 Search ruflo memory for domain context before writing code:
 
 ```
-mcp__ruflo__memory_search(query: "Azure authentication", namespace: "domain")
-mcp__ruflo__memory_search(query: "Cpk calculation stats", namespace: "architecture")
-mcp__ruflo__memory_search(query: "similar feature patterns", namespace: "decisions")
+mcp__ruflo__memory_search_unified(query: "Azure authentication", namespace: "domain", limit: 5)
+mcp__ruflo__memory_search_unified(query: "Cpk calculation stats", namespace: "architecture", limit: 5)
+mcp__ruflo__memory_search_unified(query: "similar feature patterns", namespace: "decisions", limit: 5)
 ```
 
 This surfaces prior decisions, architectural patterns, and domain knowledge that may not be in CLAUDE.md or the immediate code.
 
-Codex may lazy-load Ruflo tools. If `memory_search` is not initially visible, search the tool registry for Ruflo memory tools before assuming the capability is missing.
+Codex may lazy-load Ruflo tools. If the Ruflo MCP memory/status tools are not initially visible, search the tool registry for Ruflo before assuming the capability is missing.
 
 ### 3. During Coding (passive)
 
@@ -74,7 +74,7 @@ mcp__ruflo__hooks_worker-dispatch(trigger: "testgaps", context: "Pre-PR audit", 
 mcp__ruflo__hooks_worker-dispatch(trigger: "audit", context: "Pre-PR security", priority: "critical")
 ```
 
-If `analyze_diff` fails through MCP, use `git diff --stat`, targeted review of changed files, and `bash scripts/pr-ready-check.sh` as the fallback gate. Do not block PR prep solely on a degraded Ruflo diff-analysis tool.
+Use the ref format accepted by the current MCP tool. Some versions accept only simple branch names or commit SHAs and reject slashes/ranges. If `analyze_diff` fails through MCP, use `git diff --stat`, targeted review of changed files, and `bash scripts/pr-ready-check.sh` as the fallback gate. Do not switch to ad hoc Ruflo CLI diff commands or block PR prep solely on a degraded Ruflo diff-analysis tool.
 
 ### 5. After Major Changes
 
