@@ -384,6 +384,23 @@ export {
   type ColumnCandidateChipState,
 } from './components/ColumnCandidateChip';
 
+// Chip Rail (FRAME canvas unassigned-column drag rail)
+export {
+  ChipRail,
+  ChipRailItem,
+  type ChipRailEntry,
+  type ChipRailProps,
+  type ChipRailItemProps,
+  type ChipRailItemRole,
+} from './components/ChipRail';
+
+// Auto Step Create Prompt (FRAME canvas dropped-chip confirmation)
+export {
+  AutoStepCreatePrompt,
+  type AutoStepCreatePromptProps,
+  type AutoStepCreatePromptPosition,
+} from './components/AutoStepCreatePrompt';
+
 // Y Picker Section (FRAME b0 Y / outcome selection UI)
 export {
   YPickerSection,

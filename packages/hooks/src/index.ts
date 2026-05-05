@@ -34,6 +34,20 @@ export type {
 // Chart Scale
 export { useChartScale } from './useChartScale';
 
+// Canvas Chip Drag and Drop
+export {
+  useChipDragAndDrop,
+  CHIP_DRAG_PREFIX,
+  STEP_DROP_PREFIX,
+  CANVAS_EMPTY_DROP_ID,
+  encodeChipDragId,
+  decodeChipDragId,
+  encodeStepDropId,
+  decodeStepDropId,
+  type UseChipDragAndDropArgs,
+  type UseChipDragAndDropResult,
+} from './useChipDragAndDrop';
+
 // Responsive Chart Utilities
 export {
   useResponsiveChartMargins,

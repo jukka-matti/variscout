@@ -17,6 +17,8 @@
  */
 
 import React from 'react';
+import { useDroppable } from '@dnd-kit/core';
+import { CANVAS_EMPTY_DROP_ID, encodeStepDropId } from '@variscout/hooks';
 import type { Gap, ProcessMap, ProcessMapTributary, ProcessMapHunch } from '@variscout/core/frame';
 import type { SpecLimits } from '@variscout/core';
 
@@ -69,6 +71,8 @@ export interface ProcessMapBaseProps {
    * affordances and a soft Capability-tab prompt instead of upfront warnings.
    */
   showGaps?: boolean;
+  /** Enables chip-placement drop targets for existing steps and empty process-flow space. */
+  chipDropTargets?: boolean;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -209,6 +213,7 @@ interface StepCardProps {
   onToggleSubgroupAxis: (tributaryId: string) => void;
   /** Called with the full new SpecLimits shape when any per-step spec input changes. */
   onCtqSpecsChange?: (next: SpecLimits) => void;
+  chipDropTargets?: boolean;
 }
 
 const StepCard: React.FC<StepCardProps> = ({
@@ -226,16 +231,29 @@ const StepCard: React.FC<StepCardProps> = ({
   onRemoveTributary,
   onToggleSubgroupAxis,
   onCtqSpecsChange,
+  chipDropTargets,
 }) => {
   const [newTribCol, setNewTribCol] = React.useState('');
   const availableForTrib = availableColumns.filter(
     c => !tributaries.some(t => t.column === c) && c !== step.ctqColumn
   );
+  const droppableId = encodeStepDropId(step.id);
+  const { setNodeRef, isOver } = useDroppable({
+    id: droppableId,
+    disabled: !chipDropTargets,
+  });
 
   return (
     <div
-      className="flex flex-col gap-2 min-w-[180px] p-3 bg-surface-primary border border-edge rounded-lg"
+      ref={setNodeRef}
+      className={[
+        'flex flex-col gap-2 min-w-[180px] p-3 bg-surface-primary border border-edge rounded-lg',
+        chipDropTargets && isOver ? 'ring-2 ring-blue-500/50' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       data-testid={`process-map-step-${step.id}`}
+      data-droppable-id={chipDropTargets ? droppableId : undefined}
     >
       <div className="flex items-center justify-between gap-2">
         <input
@@ -629,11 +647,16 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   stepSpecs,
   onStepSpecsChange,
   showGaps = true,
+  chipDropTargets = false,
 }) => {
   const sortedSteps = React.useMemo(
     () => [...map.nodes].sort((a, b) => a.order - b.order),
     [map.nodes]
   );
+  const { setNodeRef: setEmptyDropTargetNode, isOver: isEmptyDropTargetOver } = useDroppable({
+    id: CANVAS_EMPTY_DROP_ID,
+    disabled: !chipDropTargets,
+  });
 
   const update = (next: ProcessMap) => onChange(bumpUpdated(next));
 
@@ -665,10 +688,16 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
     const reordered = [...remaining]
       .sort((a, b) => a.order - b.order)
       .map((n, i) => ({ ...n, order: i }));
+    const assignments = Object.fromEntries(
+      Object.entries(map.assignments ?? {}).filter(
+        ([, assignedStepId]) => assignedStepId !== stepId
+      )
+    );
     update({
       ...map,
       nodes: reordered,
       tributaries: map.tributaries.filter(t => t.stepId !== stepId),
+      assignments,
       hunches: (map.hunches ?? []).filter(h => h.stepId !== stepId),
     });
   };
@@ -753,6 +782,7 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
                   ? next => onStepSpecsChange(step.ctqColumn!, next)
                   : undefined
               }
+              chipDropTargets={chipDropTargets}
             />
             {i < sortedSteps.length - 1 && (
               <div
@@ -774,6 +804,19 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
             →
           </div>
         )}
+        <div
+          ref={setEmptyDropTargetNode}
+          className={[
+            'min-h-24 min-w-32 rounded-lg border border-dashed border-edge',
+            chipDropTargets ? 'bg-surface-primary/60' : 'hidden',
+            isEmptyDropTargetOver ? 'ring-2 ring-blue-500/50' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          data-testid="process-map-empty-drop-target"
+          data-droppable-id={chipDropTargets ? CANVAS_EMPTY_DROP_ID : undefined}
+          aria-label="Empty process flow drop target"
+        />
         <OceanCard
           ctsColumn={map.ctsColumn}
           availableColumns={availableColumns}

@@ -1,8 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type React from 'react';
+import React from 'react';
 import type { ScopeFilter, SpecLimits, TimelineWindow } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
+import { useCanvasStore } from '@variscout/stores';
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -16,6 +17,49 @@ vi.mock('@variscout/charts', async importOriginal => {
     StepErrorPareto: () => React.createElement('div', { 'data-testid': 'mock-step-pareto' }),
   };
 });
+
+vi.mock('@dnd-kit/core', () => ({
+  DndContext: ({
+    children,
+    onDragEnd,
+  }: {
+    children: React.ReactNode;
+    onDragEnd?: (event: { active: { id: string }; over: { id: string } | null }) => void;
+  }) => (
+    <div>
+      <button
+        type="button"
+        data-testid="test-drop-bake-time-on-step-1"
+        onClick={() =>
+          onDragEnd?.({ active: { id: 'chip:Bake_Time' }, over: { id: 'step:step-1' } })
+        }
+      >
+        drop Bake_Time on step-1
+      </button>
+      <button
+        type="button"
+        data-testid="test-drop-machine-on-empty-canvas"
+        onClick={() =>
+          onDragEnd?.({ active: { id: 'chip:Machine' }, over: { id: 'canvas:empty' } })
+        }
+      >
+        drop Machine on empty canvas
+      </button>
+      {children}
+    </div>
+  ),
+  useDraggable: () => ({
+    attributes: {},
+    listeners: {},
+    setNodeRef: vi.fn(),
+    transform: null,
+    isDragging: false,
+  }),
+  useDroppable: () => ({
+    setNodeRef: vi.fn(),
+    isOver: false,
+  }),
+}));
 
 const canvasFiltersStateRef: {
   current: {
@@ -52,6 +96,27 @@ const opsToggleStateRef: {
 };
 
 vi.mock('@variscout/hooks', () => ({
+  CANVAS_EMPTY_DROP_ID: 'canvas:empty',
+  encodeChipDragId: (chipId: string) => `chip:${chipId}`,
+  encodeStepDropId: (stepId: string) => `step:${stepId}`,
+  useChipDragAndDrop: ({
+    onPlace,
+    onCreateStep,
+  }: {
+    onPlace: (chipId: string, stepId: string) => void;
+    onCreateStep: (chipId: string) => void;
+  }) => ({
+    handleDragEnd: (event: { active: { id: string }; over: { id: string } | null }) => {
+      const chipId = String(event.active.id).replace(/^chip:/, '');
+      const overId = event.over?.id;
+      if (!overId) return;
+      if (overId === 'canvas:empty') {
+        onCreateStep(chipId);
+        return;
+      }
+      onPlace(chipId, String(overId).replace(/^step:/, ''));
+    },
+  }),
   useTranslation: () => ({
     t: (key: string) => key,
     tf: (key: string, values?: Record<string, unknown>) =>
@@ -122,6 +187,7 @@ function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWo
 
 describe('CanvasWorkspace', () => {
   beforeEach(() => {
+    useCanvasStore.setState(useCanvasStore.getInitialState());
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
       scopeFilter: undefined,
@@ -228,5 +294,98 @@ describe('CanvasWorkspace', () => {
     expect(canvasFiltersStateRef.current.setTimelineWindow).toHaveBeenCalledWith({
       kind: 'cumulative',
     });
+  });
+
+  it('derives unassigned chips from detected columns excluding outcome, run-order, and assigned columns', () => {
+    renderWorkspace({
+      rawData: Array.from({ length: 51 }, (_, index) => ({
+        Fill_Weight: 12 + (index % 3),
+        Bake_Time: 30 + (index % 5),
+        Oven_Temp: 180 + index,
+        Machine: index % 2 === 0 ? 'A' : 'B',
+        Operator_Note: `batch note ${index}`,
+        Timestamp: `2026-05-01T00:${String(index).padStart(2, '0')}:00.000Z`,
+      })),
+      outcome: 'Fill_Weight',
+      processContext: {
+        processMap: {
+          ...mapWithStep(),
+          assignments: { Machine: 'step-1' },
+        },
+      },
+    });
+
+    expect(screen.getByTestId('chip-rail-item-Oven_Temp')).toBeInTheDocument();
+    expect(screen.getByTestId('chip-rail-item-Bake_Time')).toBeInTheDocument();
+    expect(screen.getByTestId('chip-rail-item-Oven_Temp')).toHaveTextContent('factor');
+    expect(screen.queryByTestId('chip-rail-item-Fill_Weight')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('chip-rail-item-Timestamp')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('chip-rail-item-Machine')).not.toBeInTheDocument();
+  });
+
+  it('persists store-backed chip placement and empty-canvas step creation through setProcessContext', () => {
+    const setProcessContext = vi.fn();
+    renderWorkspace({
+      processContext: { processMap: mapWithStep() },
+      setProcessContext,
+    });
+
+    fireEvent.click(screen.getByTestId('test-drop-bake-time-on-step-1'));
+
+    expect(setProcessContext).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        processMap: expect.objectContaining({
+          assignments: expect.objectContaining({ Bake_Time: 'step-1' }),
+        }),
+      })
+    );
+
+    fireEvent.click(screen.getByTestId('test-drop-machine-on-empty-canvas'));
+    fireEvent.click(screen.getByRole('button', { name: /create step/i }));
+
+    expect(setProcessContext).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        processMap: expect.objectContaining({
+          assignments: expect.objectContaining({
+            Machine: expect.stringMatching(/^step-machine-/),
+          }),
+          nodes: expect.arrayContaining([
+            expect.objectContaining({
+              id: expect.stringMatching(/^step-machine-/),
+              name: 'Machine',
+            }),
+          ]),
+        }),
+      })
+    );
+  });
+
+  it('keeps canvasStore undo history after the persisted map rerenders from the parent', () => {
+    const Harness = () => {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: mapWithStep() });
+
+      return (
+        <CanvasWorkspace
+          rawData={rawData}
+          outcome="Fill_Weight"
+          factors={[]}
+          measureSpecs={{}}
+          processContext={processContext}
+          setOutcome={vi.fn()}
+          setFactors={vi.fn()}
+          setMeasureSpec={vi.fn()}
+          setProcessContext={next => setProcessContext(next ?? { processMap: mapWithStep() })}
+          onSeeData={vi.fn()}
+        />
+      );
+    };
+
+    render(<Harness />);
+
+    fireEvent.click(screen.getByTestId('test-drop-bake-time-on-step-1'));
+
+    expect(useCanvasStore.getState().historyDepth()).toBe(1);
   });
 });
