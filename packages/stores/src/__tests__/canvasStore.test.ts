@@ -106,6 +106,121 @@ describe('canvasStore step actions', () => {
       expect.objectContaining({ fromStepId: childId, toStepId: nextId }),
     ]);
   });
+
+  it('creates a step from a chip and assigns the chip in one undoable change', () => {
+    useCanvasStore.getState().placeChipOnStep('existing-chip', 'existing-step');
+    useCanvasStore.getState().undo();
+    expect(useCanvasStore.getState().redoDepth()).toBe(1);
+
+    useCanvasStore.getState().createStepFromChip('chip-a', '  Inspect  ');
+
+    const [node] = useCanvasStore.getState().canonicalMap.nodes;
+    expect(node).toMatchObject({
+      id: expect.stringMatching(/^step-inspect-\d+$/),
+      name: 'Inspect',
+      order: 0,
+    });
+    expect(useCanvasStore.getState().canonicalMap.assignments?.['chip-a']).toBe(node?.id);
+    expect(useCanvasStore.getState().historyDepth()).toBe(1);
+    expect(useCanvasStore.getState().redoDepth()).toBe(0);
+
+    useCanvasStore.getState().undo();
+    expect(useCanvasStore.getState().canonicalMap.nodes).toEqual([]);
+    expect(useCanvasStore.getState().canonicalMap.assignments?.['chip-a']).toBeUndefined();
+    expect(useCanvasStore.getState().redoDepth()).toBe(1);
+
+    useCanvasStore.getState().redo();
+    expect(useCanvasStore.getState().canonicalMap.nodes).toMatchObject([
+      { id: node?.id, name: 'Inspect', order: 0 },
+    ]);
+    expect(useCanvasStore.getState().canonicalMap.assignments?.['chip-a']).toBe(node?.id);
+  });
+
+  it('does not create a step from a chip when the step name is blank', () => {
+    const version = useCanvasStore.getState().canonicalMapVersion;
+
+    useCanvasStore.getState().createStepFromChip('chip-a', '   ');
+
+    expect(useCanvasStore.getState().canonicalMap.nodes).toEqual([]);
+    expect(useCanvasStore.getState().canonicalMap.assignments?.['chip-a']).toBeUndefined();
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(version);
+    expect(useCanvasStore.getState().historyDepth()).toBe(0);
+  });
+});
+
+describe('canvasStore document hydration', () => {
+  it('hydrates a canvas document without creating history and preserves provided version', () => {
+    useCanvasStore.getState().addStep('Draft');
+    useCanvasStore.getState().undo();
+    expect(useCanvasStore.getState().redoDepth()).toBe(1);
+
+    useCanvasStore.getState().hydrateCanvasDocument({
+      canonicalMap: {
+        version: 1,
+        nodes: [{ id: 'step-loaded', name: 'Loaded', order: 0 }],
+        tributaries: [],
+        assignments: { 'chip-a': 'step-loaded' },
+        arrows: [],
+        createdAt: '2026-05-05T00:00:00.000Z',
+        updatedAt: '2026-05-05T00:00:00.000Z',
+      },
+      outcomes: [{ columnName: 'yield', characteristicType: 'largerIsBetter' }],
+      primaryScopeDimensions: ['line'],
+      canonicalMapVersion: 'snapshot-version',
+    });
+
+    expect(useCanvasStore.getState().canonicalMap.nodes).toEqual([
+      { id: 'step-loaded', name: 'Loaded', order: 0 },
+    ]);
+    expect(useCanvasStore.getState().canonicalMap.assignments).toEqual({
+      'chip-a': 'step-loaded',
+    });
+    expect(useCanvasStore.getState().outcomes).toEqual([
+      { columnName: 'yield', characteristicType: 'largerIsBetter' },
+    ]);
+    expect(useCanvasStore.getState().primaryScopeDimensions).toEqual(['line']);
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe('snapshot-version');
+    expect(useCanvasStore.getState().historyDepth()).toBe(0);
+    expect(useCanvasStore.getState().redoDepth()).toBe(0);
+  });
+
+  it('hydrates older maps with safe document defaults', () => {
+    useCanvasStore.getState().hydrateCanvasDocument({
+      canonicalMap: {
+        version: 1,
+        nodes: [{ id: 'step-legacy', name: 'Legacy', order: 0 }],
+        tributaries: [],
+        createdAt: '2026-05-05T00:00:00.000Z',
+        updatedAt: '2026-05-05T00:00:00.000Z',
+      },
+    });
+
+    expect(useCanvasStore.getState().canonicalMap.assignments).toEqual({});
+    expect(useCanvasStore.getState().canonicalMap.arrows).toEqual([]);
+    expect(useCanvasStore.getState().outcomes).toEqual([]);
+    expect(useCanvasStore.getState().primaryScopeDimensions).toEqual([]);
+    expect(useCanvasStore.getState().canonicalMapVersion).toEqual(expect.any(String));
+    expect(useCanvasStore.getState().canonicalMapVersion).not.toBe('');
+    expect(useCanvasStore.getState().historyDepth()).toBe(0);
+    expect(useCanvasStore.getState().redoDepth()).toBe(0);
+  });
+
+  it('advances generated versions after hydrating a generated map version', () => {
+    useCanvasStore.getState().hydrateCanvasDocument({
+      canonicalMap: {
+        version: 1,
+        nodes: [],
+        tributaries: [],
+        createdAt: '2026-05-05T00:00:00.000Z',
+        updatedAt: '2026-05-05T00:00:00.000Z',
+      },
+      canonicalMapVersion: 'canvas-map-7',
+    });
+
+    useCanvasStore.getState().addStep('Next');
+
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe('canvas-map-8');
+  });
 });
 
 describe('canvasStore arrow actions', () => {

@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProcessMapBase } from '../internal/ProcessMapBase';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
+import { CANVAS_EMPTY_DROP_ID, encodeStepDropId } from '@variscout/hooks';
 
 const isoNow = () => new Date('2026-04-18T12:00:00.000Z').toISOString();
 
@@ -75,6 +76,26 @@ describe('Canvas internal process map — rendering', () => {
     expect(screen.getByTestId('process-map-arrow-0')).toBeInTheDocument();
     expect(screen.getByTestId('process-map-ocean-arrow')).toBeInTheDocument();
   });
+
+  it('marks process steps and the empty flow area as chip drop targets when enabled', () => {
+    render(
+      <ProcessMapBase
+        map={mapWithOneStep()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        chipDropTargets
+      />
+    );
+
+    expect(screen.getByTestId('process-map-step-step-1')).toHaveAttribute(
+      'data-droppable-id',
+      encodeStepDropId('step-1')
+    );
+    expect(screen.getByTestId('process-map-empty-drop-target')).toHaveAttribute(
+      'data-droppable-id',
+      CANVAS_EMPTY_DROP_ID
+    );
+  });
 });
 
 describe('Canvas internal process map — step CRUD', () => {
@@ -122,6 +143,7 @@ describe('Canvas internal process map — step CRUD', () => {
     const onChange = vi.fn();
     const map: ProcessMap = {
       ...mapWithTwoSteps(),
+      assignments: { Machine: 'step-2', Operator: 'step-1' },
       hunches: [{ id: 'h-1', text: 'Nozzle wear', stepId: 'step-2' }],
     };
     render(<ProcessMapBase map={map} availableColumns={COLUMNS} onChange={onChange} />);
@@ -130,6 +152,7 @@ describe('Canvas internal process map — step CRUD', () => {
     expect(next.nodes.some(n => n.id === 'step-2')).toBe(false);
     expect(next.tributaries.some(t => t.stepId === 'step-2')).toBe(false);
     expect(next.hunches?.some(h => h.stepId === 'step-2')).toBe(false);
+    expect(next.assignments).toEqual({ Operator: 'step-1' });
   });
 
   it('sets the CTQ column on a step via the dropdown', () => {

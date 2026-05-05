@@ -25,10 +25,12 @@ export interface CanvasHistoryControls {
 }
 
 export interface CanvasStoreActions {
+  hydrateCanvasDocument: (snapshot: CanvasHydrationSnapshot) => void;
   placeChipOnStep: (chipId: string, stepId: string) => void;
   unassignChip: (chipId: string) => void;
   reorderChipInStep: (chipId: string, stepId: string, toIndex: number) => void;
   addStep: (stepName: string, position?: { x: number; y: number }) => void;
+  createStepFromChip: (chipId: string, stepName: string) => void;
   removeStep: (stepId: string) => void;
   renameStep: (stepId: string, newName: string) => void;
   connectSteps: (fromStepId: string, toStepId: string) => void;
@@ -45,6 +47,9 @@ export interface CanvasDocumentSnapshot {
   primaryScopeDimensions: string[];
   canonicalMapVersion: string;
 }
+
+export type CanvasHydrationSnapshot = Pick<CanvasDocumentSnapshot, 'canonicalMap'> &
+  Partial<Omit<CanvasDocumentSnapshot, 'canonicalMap'>>;
 
 export interface CanvasHistoryEntry {
   before: CanvasDocumentSnapshot;
@@ -79,9 +84,28 @@ function applyDocumentSnapshot(draft: CanvasStoreState, snapshot: CanvasDocument
   draft.canonicalMapVersion = snapshot.canonicalMapVersion;
 }
 
+function normalizeHydrationSnapshot(snapshot: CanvasHydrationSnapshot): CanvasDocumentSnapshot {
+  const canonicalMap = cloneJson(snapshot.canonicalMap);
+  canonicalMap.assignments ??= {};
+  canonicalMap.arrows ??= [];
+
+  return {
+    canonicalMap,
+    outcomes: cloneJson(snapshot.outcomes ?? []),
+    primaryScopeDimensions: cloneJson(snapshot.primaryScopeDimensions ?? []),
+    canonicalMapVersion: snapshot.canonicalMapVersion ?? nextCanvasMapVersion(),
+  };
+}
+
 function nextCanvasMapVersion(): string {
   versionSequence += 1;
   return `canvas-map-${versionSequence}`;
+}
+
+function advanceVersionSequenceFrom(version: string) {
+  const match = /^canvas-map-(\d+)$/.exec(version);
+  if (!match) return;
+  versionSequence = Math.max(versionSequence, Number(match[1]));
 }
 
 function bumpCanonicalMapVersion(draft: CanvasStoreState) {
@@ -159,6 +183,21 @@ export const useCanvasStore = create<CanvasStore>()(
       return {
         ...getCanvasInitialState(),
 
+        hydrateCanvasDocument: snapshot => {
+          const normalizedSnapshot = normalizeHydrationSnapshot(snapshot);
+          advanceVersionSequenceFrom(normalizedSnapshot.canonicalMapVersion);
+
+          set(
+            draft => {
+              applyDocumentSnapshot(draft, normalizedSnapshot);
+              draft.undoStack = [];
+              draft.redoStack = [];
+            },
+            false,
+            'canvas/hydrateCanvasDocument'
+          );
+        },
+
         undo: () => {
           const entry = get().undoStack.at(-1);
           if (!entry) return;
@@ -234,6 +273,23 @@ export const useCanvasStore = create<CanvasStore>()(
               name: stepName,
               order: draft.canonicalMap.nodes.length,
             });
+            return true;
+          });
+        },
+
+        createStepFromChip: (chipId, stepName) => {
+          applyUndoable('canvas/createStepFromChip', draft => {
+            const name = stepName.trim();
+            if (!name) return false;
+
+            const id = nextStepId(draft.canonicalMap.nodes, name);
+            draft.canonicalMap.nodes.push({
+              id,
+              name,
+              order: draft.canonicalMap.nodes.length,
+            });
+            draft.canonicalMap.assignments ??= {};
+            draft.canonicalMap.assignments[chipId] = id;
             return true;
           });
         },

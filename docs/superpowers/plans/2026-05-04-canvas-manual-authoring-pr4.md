@@ -985,32 +985,41 @@ gh pr create --base main --head canvas-migration-phase-4a-state \
 
 This phase ships the Mode 1 (chip placement) UX surface using `@dnd-kit/core`.
 
-### Task 4b.1: Install `@dnd-kit/core` + supporting packages
+Grounded API corrections for PR4b:
+
+- `ProcessMap` is the grounded frame shape: `nodes` + `tributaries`, with optional `assignments` and `arrows`. Do not introduce a `{ steps: ... }` shape, and do not add a `canonicalMap` prop to `Canvas`.
+- `Canvas` owns the render surface and accepts `mode?: 'author' | 'read'` for authoring state plus `opsMode` for the operations temporal mode. Keep those concepts separate.
+- PWA and Azure `FrameView` shells are intentionally thin. Chip-placement derivation and action wiring belongs in shared `CanvasWorkspace` and `Canvas`, not duplicated inside each shell.
+- `canvasStore` needs PR4b surface actions before chip placement can wire cleanly: hydration from the current `ProcessMap`, placement on existing nodes, and `createStepFromChip` for empty-canvas drops.
+- `@dnd-kit` scope for PR4b is `@dnd-kit/core` only in `@variscout/hooks` and `@variscout/ui`, unless implementation imports another dnd-kit package later.
+
+### Task 4b.1: Install `@dnd-kit/core`
 
 **Files:**
 
 - Modify: `packages/ui/package.json`
 - Modify: `packages/hooks/package.json`
 
-- [ ] **Step 1: Add dnd-kit packages**
+- [ ] **Step 1: Add dnd-kit package**
 
 ```bash
 cd .worktrees/canvas-migration-phase-4b-chip-placement
-pnpm --filter @variscout/ui add @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
-pnpm --filter @variscout/hooks add @dnd-kit/core
+pnpm --filter @variscout/ui add @dnd-kit/core@^6.3.1
+pnpm --filter @variscout/hooks add @dnd-kit/core@^6.3.1
 ```
 
 - [ ] **Step 2: Verify install**
 
 ```bash
 pnpm --filter @variscout/ui list @dnd-kit/core
+pnpm --filter @variscout/hooks list @dnd-kit/core
 ```
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add packages/ui/package.json packages/hooks/package.json pnpm-lock.yaml
-git commit -m "feat(4b): add @dnd-kit/core + sortable for canvas chip placement"
+git commit -m "feat(4b): add @dnd-kit/core for canvas chip placement"
 ```
 
 ### Task 4b.2: `useChipDragAndDrop` hook
@@ -1623,8 +1632,9 @@ describe('Canvas with chip placement', () => {
     render(
       <Canvas
         mode="author"
+        opsMode="spatial"
         chips={[{ chipId: 'col-1', label: 'pressure_psi', role: 'factor' }]}
-        canonicalMap={{ steps: [], arrows: [], assignments: {} }}
+        map={{ nodes: [], tributaries: [], assignments: {}, arrows: [] }}
       />
     );
     expect(screen.getByTestId('chip-rail')).toBeInTheDocument();
@@ -1635,8 +1645,9 @@ describe('Canvas with chip placement', () => {
     render(
       <Canvas
         mode="read"
+        opsMode="spatial"
         chips={[{ chipId: 'col-1', label: 'pressure_psi', role: 'factor' }]}
-        canonicalMap={{ steps: [], arrows: [], assignments: {} }}
+        map={{ nodes: [], tributaries: [], assignments: {}, arrows: [] }}
       />
     );
     expect(screen.queryByTestId('chip-rail')).not.toBeInTheDocument();
@@ -1646,7 +1657,7 @@ describe('Canvas with chip placement', () => {
 
 - [ ] **Step 2: Extend Canvas component**
 
-In `packages/ui/src/components/Canvas/index.tsx`, add the ChipRail mount when `mode === 'author'`. Wrap children in `DndContext`. Wire `useChipDragAndDrop` and `canvasStore` actions. Reference Spec 2 §8 for the component structure.
+In `packages/ui/src/components/Canvas/index.tsx`, add the ChipRail mount when `mode === 'author'`. Wrap children in `DndContext`. Wire `useChipDragAndDrop` to `canvasStore` actions against the existing `ProcessMap` `nodes`/`tributaries` shape. Keep `opsMode` as the temporal operations mode; do not overload `mode` for operations display. Reference Spec 2 §8 for the component structure.
 
 - [ ] **Step 3: Tests pass; build clean**
 
@@ -1662,18 +1673,23 @@ git add packages/ui/src/components/Canvas
 git commit -m "feat(4b): mount ChipRail + DndContext in Canvas"
 ```
 
-### Task 4b.8: Wire Canvas + canvasStore in PWA + Azure FrameView
+### Task 4b.8: Wire CanvasWorkspace + canvasStore
 
 **Files:**
 
-- Modify: `apps/pwa/src/components/views/FrameView.tsx`
-- Modify: `apps/azure/src/components/editor/FrameView.tsx`
-- Modify: `apps/pwa/src/components/views/__tests__/FrameView.test.tsx`
-- Modify: `apps/azure/src/components/editor/__tests__/FrameView.test.tsx`
+- Modify: `packages/ui/src/components/Canvas/CanvasWorkspace.tsx`
+- Modify: `packages/ui/src/components/Canvas/__tests__/CanvasWorkspace.test.tsx`
+- Modify: `packages/stores/src/canvasStore.ts`
+- Modify: `packages/stores/src/__tests__/canvasStore.test.ts`
+- Only touch PWA/Azure `FrameView` files if the shared `CanvasWorkspace` contract changes.
 
-- [ ] **Step 1: PWA FrameView integration**
+- [ ] **Step 1: canvasStore PR4b actions**
 
-PWA FrameView uses `CanvasWorkspace` (PR3 of canvas migration). Extend FrameView to (a) compute `chips` array from `detectColumns()` output minus already-assigned columns, (b) wire `canvasStore` actions to `Canvas` props, (c) initialize `canvasStore` from session hub on mount.
+Extend `canvasStore` to hydrate from the current `ProcessMap`, place a chip on an existing node assignment, and create a new node from an empty-canvas chip drop via `createStepFromChip`. Keep the store API grounded in `ProcessMap.nodes` and optional `assignments`/`arrows`; do not introduce a separate `steps` model.
+
+- [ ] **Step 2: CanvasWorkspace integration**
+
+`CanvasWorkspace` owns the shared b0/b1 canvas composition. Extend it to (a) compute `chips` from detected columns minus assigned columns, (b) hydrate `canvasStore` from the active map when the workspace changes, and (c) pass chip-placement props/actions to `Canvas`.
 
 ```tsx
 // Pseudocode:
@@ -1682,25 +1698,27 @@ const chips = useMemo(
   [detectedColumns, assignments]
 );
 const placeChip = useCanvasStore(s => s.placeChipOnStep);
-// Mount Canvas with chips + canonicalMap + actions
+const createStepFromChip = useCanvasStore(s => s.createStepFromChip);
+// Mount Canvas with chips + ProcessMap nodes/tributaries + actions
 ```
 
-- [ ] **Step 2: Azure FrameView integration (mirror)**
+- [ ] **Step 3: PWA/Azure FrameView check**
 
-- [ ] **Step 3: Run tests + build**
+Verify both app shells still pass only the thin shared `CanvasWorkspace` inputs. Avoid duplicating chip derivation or store action wiring in PWA/Azure shell components.
+
+- [ ] **Step 4: Run tests + build**
 
 ```bash
-CI=1 pnpm --filter @variscout/pwa test
-CI=1 pnpm --filter @variscout/azure-app test
-pnpm --filter @variscout/pwa build
-pnpm --filter @variscout/azure-app build
+CI=1 pnpm --filter @variscout/stores test
+CI=1 pnpm --filter @variscout/ui test
+pnpm --filter @variscout/ui build
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add apps/pwa apps/azure
-git commit -m "feat(4b): wire chip placement in PWA + Azure FrameView"
+git add packages/stores/src/canvasStore.ts packages/stores/src/__tests__/canvasStore.test.ts packages/ui/src/components/Canvas
+git commit -m "feat(4b): wire chip placement in CanvasWorkspace"
 ```
 
 ### Phase 4b wrap

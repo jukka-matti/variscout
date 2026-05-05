@@ -495,6 +495,9 @@ importers:
 
   packages/hooks:
     dependencies:
+      '@dnd-kit/core':
+        specifier: ^6.3.1
+        version: 6.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@variscout/core':
         specifier: workspace:*
         version: link:../core
@@ -569,6 +572,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@dnd-kit/core':
+        specifier: ^6.3.1
+        version: 6.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@variscout/charts':
         specifier: workspace:*
         version: link:../charts

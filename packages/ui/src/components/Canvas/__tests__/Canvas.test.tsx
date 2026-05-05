@@ -78,4 +78,93 @@ describe('Canvas', () => {
     expect(screen.getByRole('button', { name: /show temporal trends/i })).toBeInTheDocument();
     expect(screen.getByTestId('dashboard-temporal-row')).toHaveAttribute('aria-hidden', 'true');
   });
+
+  it('renders the chip rail in author mode when chips are available', () => {
+    render(
+      <Canvas
+        map={map}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        mode="author"
+        opsMode="spatial"
+        onOpsModeChange={vi.fn()}
+        chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
+      />
+    );
+
+    expect(screen.getByTestId('chip-rail')).toBeInTheDocument();
+    expect(screen.getByTestId('chip-rail-item-Bake_Time')).toBeInTheDocument();
+    expect(screen.getByTestId('process-map-empty-drop-target')).toHaveAttribute(
+      'data-droppable-id',
+      'canvas:empty'
+    );
+  });
+
+  it('hides the chip rail in read mode even when chips are available', () => {
+    render(
+      <Canvas
+        map={map}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        mode="read"
+        opsMode="spatial"
+        onOpsModeChange={vi.fn()}
+        chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
+      />
+    );
+
+    expect(screen.queryByTestId('chip-rail')).not.toBeInTheDocument();
+    expect(screen.getByTestId('process-map-empty-drop-target')).toHaveClass('hidden');
+    expect(screen.getByTestId('process-map-empty-drop-target')).not.toHaveAttribute(
+      'data-droppable-id'
+    );
+  });
+
+  it('does not expose chip placement drop targets when no chips are available', () => {
+    render(
+      <Canvas
+        map={map}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        mode="author"
+        opsMode="spatial"
+        onOpsModeChange={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByTestId('chip-rail')).not.toBeInTheDocument();
+    expect(screen.getByTestId('process-map-empty-drop-target')).toHaveClass('hidden');
+    expect(screen.getByTestId('process-map-empty-drop-target')).not.toHaveAttribute(
+      'data-droppable-id'
+    );
+  });
+
+  it('does not expose chip placement controls when the canvas is disabled', () => {
+    render(
+      <Canvas
+        map={map}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        mode="author"
+        disabled
+        opsMode="spatial"
+        onOpsModeChange={vi.fn()}
+        chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
+      />
+    );
+
+    expect(screen.queryByTestId('chip-rail')).not.toBeInTheDocument();
+    expect(screen.getByTestId('process-map-empty-drop-target')).toHaveClass('hidden');
+    expect(screen.getByTestId('process-map-empty-drop-target')).not.toHaveAttribute(
+      'data-droppable-id'
+    );
+  });
 });

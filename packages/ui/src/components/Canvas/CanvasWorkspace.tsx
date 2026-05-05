@@ -18,10 +18,12 @@ import {
   type TimelineWindow,
 } from '@variscout/core';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
+import { useCanvasStore } from '@variscout/stores';
 import { Canvas } from './index';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
 import type { XCandidate } from '../XPickerSection';
+import type { ChipRailEntry } from '../ChipRail';
 
 const DEFAULT_CPK_TARGET = 1.33;
 
@@ -95,6 +97,43 @@ function toXCandidate(column: ColumnAnalysis, rows: readonly DataRow[]): XCandid
   return { column, levels: levelsFor(column.name, rows) };
 }
 
+function stepNameFromChipLabel(label: string): string {
+  return label.trim().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ') || 'New step';
+}
+
+function isRunOrderLikeColumn(name: string): boolean {
+  const normalized = name.toLowerCase();
+  return normalized.includes('timestamp') || normalized.includes('datetime');
+}
+
+function deriveUnassignedChips({
+  columnAnalysis,
+  outcome,
+  runOrderColumn,
+  assignments,
+}: {
+  columnAnalysis: readonly ColumnAnalysis[];
+  outcome: string | null;
+  runOrderColumn: string | null;
+  assignments: ProcessMap['assignments'] | undefined;
+}): ChipRailEntry[] {
+  const assignedColumns = new Set(Object.keys(assignments ?? {}));
+
+  return columnAnalysis
+    .filter(column => {
+      if (column.name === outcome) return false;
+      if (column.name === runOrderColumn) return false;
+      if (isRunOrderLikeColumn(column.name)) return false;
+      if (assignedColumns.has(column.name)) return false;
+      return column.hasVariation;
+    })
+    .map(column => ({
+      chipId: column.name,
+      label: stepNameFromChipLabel(column.name),
+      role: column.type === 'numeric' || column.type === 'categorical' ? 'factor' : 'metadata',
+    }));
+}
+
 export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   rawData,
   outcome,
@@ -108,15 +147,31 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onSeeData,
 }) => {
   const { t } = useTranslation();
+  const fallbackMap = React.useMemo(() => createEmptyMap(), []);
   const availableColumns = React.useMemo(
     () => (rawData.length > 0 ? Object.keys(rawData[0]) : []),
     [rawData]
   );
 
-  const map: ProcessMap = processContext?.processMap ?? createEmptyMap();
+  const map: ProcessMap = processContext?.processMap ?? fallbackMap;
   const scope = detectScopeFromMap(map);
   const ctsColumn = map.ctsColumn;
   const ctsSpecs = ctsColumn ? measureSpecs[ctsColumn] : undefined;
+  const hydrateCanvasDocument = useCanvasStore(state => state.hydrateCanvasDocument);
+  const placeChipOnStep = useCanvasStore(state => state.placeChipOnStep);
+  const createStepFromChip = useCanvasStore(state => state.createStepFromChip);
+  const mapHydrationSignature = React.useMemo(() => JSON.stringify(map), [map]);
+  const lastHydratedMapSignature = React.useRef<string | null>(null);
+
+  React.useEffect(() => {
+    if (lastHydratedMapSignature.current === mapHydrationSignature) return;
+    if (JSON.stringify(useCanvasStore.getState().canonicalMap) === mapHydrationSignature) {
+      lastHydratedMapSignature.current = mapHydrationSignature;
+      return;
+    }
+    hydrateCanvasDocument({ canonicalMap: map });
+    lastHydratedMapSignature.current = mapHydrationSignature;
+  }, [hydrateCanvasDocument, map, mapHydrationSignature]);
 
   const gaps = React.useMemo(
     () =>
@@ -214,6 +269,17 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       .map(col => toXCandidate(col, rawData));
   }, [columnAnalysis, outcome, runOrderColumn, rawData]);
 
+  const chips = React.useMemo(
+    () =>
+      deriveUnassignedChips({
+        columnAnalysis,
+        outcome,
+        runOrderColumn,
+        assignments: map.assignments,
+      }),
+    [columnAnalysis, outcome, runOrderColumn, map.assignments]
+  );
+
   const yspecSuggestion = React.useMemo(
     () => computeMeanPlusMinusSigma(outcome, rawData),
     [outcome, rawData]
@@ -225,6 +291,29 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       setMeasureSpec(outcome, values);
     },
     [outcome, setMeasureSpec]
+  );
+
+  const persistCanvasStoreMap = React.useCallback(() => {
+    const nextMap = useCanvasStore.getState().canonicalMap;
+    lastHydratedMapSignature.current = JSON.stringify(nextMap);
+    handleChange(nextMap);
+  }, [handleChange]);
+
+  const handlePlaceChip = React.useCallback(
+    (chipId: string, stepId: string) => {
+      placeChipOnStep(chipId, stepId);
+      persistCanvasStoreMap();
+    },
+    [persistCanvasStoreMap, placeChipOnStep]
+  );
+
+  const handleCreateStepFromChip = React.useCallback(
+    (chipId: string) => {
+      const chip = chips.find(candidate => candidate.chipId === chipId);
+      createStepFromChip(chipId, stepNameFromChipLabel(chip?.label ?? chipId));
+      persistCanvasStoreMap();
+    },
+    [chips, createStepFromChip, persistCanvasStoreMap]
   );
 
   const canvasNode = (
@@ -251,6 +340,9 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onOpsModeChange={ops.setMode}
       showGaps={scope !== 'b0'}
       canvasFilterChips={canvasFilterChipsNode}
+      chips={chips}
+      onPlaceChip={handlePlaceChip}
+      onCreateStepFromChip={handleCreateStepFromChip}
     />
   );
 

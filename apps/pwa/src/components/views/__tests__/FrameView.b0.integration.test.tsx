@@ -64,9 +64,13 @@ const baseStoreState = {
 
 const storeStateRef: { current: typeof baseStoreState } = { current: { ...baseStoreState } };
 
-vi.mock('@variscout/stores', () => ({
-  useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
-}));
+vi.mock('@variscout/stores', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/stores')>();
+  return {
+    ...actual,
+    useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
+  };
+});
 
 vi.mock('../../../features/panels/panelsStore', () => ({
   usePanelsStore: Object.assign(vi.fn(), {

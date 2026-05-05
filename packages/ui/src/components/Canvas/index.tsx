@@ -3,6 +3,8 @@
  * operations-band rendering.
  */
 import React from 'react';
+import { DndContext } from '@dnd-kit/core';
+import { useChipDragAndDrop } from '@variscout/hooks';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
 import type { SpecLimits } from '@variscout/core';
 import {
@@ -12,6 +14,8 @@ import {
 } from '../ProductionLineGlanceDashboard';
 import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlanceDashboard/types';
 import { ProcessMapBase } from './internal/ProcessMapBase';
+import { ChipRail, type ChipRailEntry } from '../ChipRail';
+import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
 
 /**
  * Canonical FRAME canvas surface.
@@ -61,6 +65,9 @@ export interface CanvasProps {
   >;
   filter: ProductionLineGlanceFilterStripProps;
   mode?: 'author' | 'read';
+  chips?: ChipRailEntry[];
+  onPlaceChip?: (chipId: string, stepId: string) => void;
+  onCreateStepFromChip?: (chipId: string) => void;
   opsMode: ProductionLineGlanceOpsMode;
   onOpsModeChange: (next: ProductionLineGlanceOpsMode) => void;
   onStepClick?: (nodeId: string) => void;
@@ -84,11 +91,48 @@ export const Canvas: React.FC<CanvasProps> = ({
   data,
   filter,
   mode: authoringMode = 'author',
+  chips = [],
+  onPlaceChip,
+  onCreateStepFromChip,
   opsMode,
   onOpsModeChange,
   onStepClick,
 }) => {
-  void authoringMode;
+  const isAuthorMode = authoringMode === 'author';
+  const canPlaceChips = isAuthorMode && !disabled && chips.length > 0;
+  const showChipRail = canPlaceChips;
+  const [pendingStepChipId, setPendingStepChipId] = React.useState<string | null>(null);
+  const pendingStepChip = pendingStepChipId
+    ? chips.find(chip => chip.chipId === pendingStepChipId)
+    : undefined;
+  const activePendingStepChip = canPlaceChips ? pendingStepChip : undefined;
+
+  const handleCreateStepRequest = React.useCallback(
+    (chipId: string) => {
+      if (!canPlaceChips || !onCreateStepFromChip) return;
+      setPendingStepChipId(chipId);
+    },
+    [canPlaceChips, onCreateStepFromChip]
+  );
+
+  const handleConfirmCreateStep = React.useCallback(() => {
+    if (!canPlaceChips || !pendingStepChipId || !onCreateStepFromChip) return;
+    onCreateStepFromChip(pendingStepChipId);
+    setPendingStepChipId(null);
+  }, [canPlaceChips, onCreateStepFromChip, pendingStepChipId]);
+
+  const handleCancelCreateStep = React.useCallback(() => {
+    setPendingStepChipId(null);
+  }, []);
+
+  const { handleDragEnd } = useChipDragAndDrop({
+    onPlace: (chipId, stepId) => {
+      if (!canPlaceChips) return;
+      onPlaceChip?.(chipId, stepId);
+    },
+    onCreateStep: handleCreateStepRequest,
+  });
+
   const hasOutcomeData =
     target !== undefined || usl !== undefined || lsl !== undefined || cpkTarget !== undefined;
   const isFull = opsMode === 'full';
@@ -117,7 +161,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       <p className="mt-2 text-sm text-content-secondary italic">No factors mapped yet</p>
     );
 
-  return (
+  const canvasContent = (
     <div data-testid="layered-process-view" className="flex flex-col">
       {canvasFilterChips ? (
         <div data-testid="layered-canvas-filter-chips">{canvasFilterChips}</div>
@@ -187,6 +231,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             stepSpecs={stepSpecs}
             onStepSpecsChange={onStepSpecsChange}
             showGaps={showGaps}
+            chipDropTargets={canPlaceChips}
           />
         </div>
       </section>
@@ -209,6 +254,23 @@ export const Canvas: React.FC<CanvasProps> = ({
         </div>
       </section>
     </div>
+  );
+
+  return (
+    <DndContext onDragEnd={handleDragEnd}>
+      <div className="relative flex" data-testid="canvas-dnd-surface">
+        {showChipRail ? <ChipRail chips={chips} className="w-64 shrink-0" /> : null}
+        <div className="min-w-0 flex-1">{canvasContent}</div>
+        {activePendingStepChip ? (
+          <AutoStepCreatePrompt
+            chipLabel={activePendingStepChip.label}
+            position={{ x: 16, y: 16 }}
+            onConfirm={handleConfirmCreateStep}
+            onCancel={handleCancelCreateStep}
+          />
+        ) : null}
+      </div>
+    </DndContext>
   );
 };
 
