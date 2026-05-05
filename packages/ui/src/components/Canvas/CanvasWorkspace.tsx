@@ -1,20 +1,26 @@
 import React from 'react';
 import {
   useCanvasStepCards,
+  useCanvasInvestigationOverlays,
   useProductionLineGlanceData,
   useProductionLineGlanceFilter,
   useSessionCanvasFilters,
   useTranslation,
+  type CanvasInvestigationFocus,
 } from '@variscout/hooks';
 import {
   detectColumns,
   detectScopeFromMap,
   rankYCandidates,
+  type CausalLink,
   type ColumnAnalysis,
   type DataRow,
+  type Finding,
   type ProcessContext,
   type ProcessHubInvestigation,
+  type Question,
   type SpecLimits,
+  type SuspectedCause,
   type TimelineWindow,
 } from '@variscout/core';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
@@ -40,6 +46,11 @@ export interface CanvasWorkspaceProps {
   onSeeData: () => void;
   onQuickAction?: (stepId: string) => void;
   onFocusedInvestigation?: (stepId: string) => void;
+  questions?: readonly Question[];
+  findings?: readonly Finding[];
+  suspectedCauses?: readonly SuspectedCause[];
+  causalLinks?: readonly CausalLink[];
+  onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -135,6 +146,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onSeeData,
   onQuickAction,
   onFocusedInvestigation,
+  questions = [],
+  findings = [],
+  suspectedCauses = [],
+  causalLinks = [],
+  onOpenInvestigationFocus,
 }) => {
   const { t } = useTranslation();
   const fallbackMap = React.useMemo(() => createEmptyMap(), []);
@@ -209,6 +225,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     setParetoGroupBy,
     activeCanvasLens,
     setActiveCanvasLens,
+    activeCanvasOverlays,
+    toggleCanvasOverlay,
   } = useSessionCanvasFilters();
 
   const canvasFilterChipsNode = (
@@ -249,6 +267,14 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     measureSpecs,
     capabilityNodes: data.capabilityNodes,
     errorSteps: data.errorSteps,
+  });
+
+  const { overlays: investigationOverlays } = useCanvasInvestigationOverlays({
+    map,
+    questions,
+    findings,
+    suspectedCauses,
+    causalLinks,
   });
 
   const detected = React.useMemo(
@@ -411,8 +437,12 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       stepCards={stepCards}
       activeLens={activeCanvasLens}
       onLensChange={setActiveCanvasLens}
+      activeOverlays={activeCanvasOverlays}
+      onOverlayToggle={toggleCanvasOverlay}
+      investigationOverlays={investigationOverlays}
       onQuickAction={onQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}
+      onOpenInvestigationFocus={onOpenInvestigationFocus}
       mode={authoringMode}
       onModeChange={setAuthoringMode}
       chips={chips}

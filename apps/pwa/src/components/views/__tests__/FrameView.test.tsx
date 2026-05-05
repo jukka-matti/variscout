@@ -8,6 +8,7 @@ const setFactorsMock = vi.fn();
 const showAnalysisMock = vi.fn();
 const showImprovementMock = vi.fn();
 const showInvestigationMock = vi.fn();
+const expandToQuestionMock = vi.fn();
 
 const storeStateRef: { current: Record<string, unknown> } = {
   current: {
@@ -23,12 +24,24 @@ const storeStateRef: { current: Record<string, unknown> } = {
   },
 };
 
+const investigationStateRef: { current: Record<string, unknown> } = {
+  current: {
+    findings: [],
+    questions: [],
+    suspectedCauses: [],
+    causalLinks: [],
+  },
+};
+
 const hoisted = vi.hoisted(() => ({
   canvasWorkspaceMock: vi.fn(),
 }));
 
 vi.mock('@variscout/stores', () => ({
   useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
+  useInvestigationStore: vi.fn((selector: (s: unknown) => unknown) =>
+    selector(investigationStateRef.current)
+  ),
 }));
 
 vi.mock('@variscout/ui', async () => {
@@ -38,6 +51,7 @@ vi.mock('@variscout/ui', async () => {
       onSeeData: () => void;
       onQuickAction?: (stepId: string) => void;
       onFocusedInvestigation?: (stepId: string) => void;
+      onOpenInvestigationFocus?: (focus: { questionId?: string }) => void;
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -65,6 +79,15 @@ vi.mock('@variscout/ui', async () => {
             onClick: () => props.onFocusedInvestigation?.('step-1'),
           },
           'Focused investigation'
+        ),
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            'data-testid': 'overlay-question',
+            onClick: () => props.onOpenInvestigationFocus?.({ questionId: 'q-1' }),
+          },
+          'Overlay question'
         )
       );
     },
@@ -81,6 +104,14 @@ vi.mock('../../../features/panels/panelsStore', () => ({
   }),
 }));
 
+vi.mock('../../../features/investigation/investigationStore', () => ({
+  useInvestigationFeatureStore: Object.assign(vi.fn(), {
+    getState: () => ({
+      expandToQuestion: expandToQuestionMock,
+    }),
+  }),
+}));
+
 import FrameView from '../FrameView';
 
 describe('FrameView (PWA shell)', () => {
@@ -89,6 +120,7 @@ describe('FrameView (PWA shell)', () => {
     showAnalysisMock.mockClear();
     showImprovementMock.mockClear();
     showInvestigationMock.mockClear();
+    expandToQuestionMock.mockClear();
     storeStateRef.current = {
       rawData: [{ Fill_Weight: 12 }],
       outcome: 'Fill_Weight',
@@ -99,6 +131,12 @@ describe('FrameView (PWA shell)', () => {
       setMeasureSpec: setMeasureSpecMock,
       processContext: { currentUnderstanding: 'fill line' },
       setProcessContext: setProcessContextMock,
+    };
+    investigationStateRef.current = {
+      findings: [{ id: 'f-1' }],
+      questions: [{ id: 'q-1' }],
+      suspectedCauses: [{ id: 'hub-1' }],
+      causalLinks: [{ id: 'link-1' }],
     };
   });
 
@@ -117,6 +155,10 @@ describe('FrameView (PWA shell)', () => {
         setFactors: setFactorsMock,
         setMeasureSpec: setMeasureSpecMock,
         setProcessContext: setProcessContextMock,
+        findings: [{ id: 'f-1' }],
+        questions: [{ id: 'q-1' }],
+        suspectedCauses: [{ id: 'hub-1' }],
+        causalLinks: [{ id: 'link-1' }],
       })
     );
   });
@@ -136,6 +178,15 @@ describe('FrameView (PWA shell)', () => {
     fireEvent.click(screen.getByTestId('focused-investigation'));
 
     expect(showImprovementMock).toHaveBeenCalledTimes(1);
+    expect(showInvestigationMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens Investigation and expands a question for overlay focus', () => {
+    render(<FrameView />);
+
+    fireEvent.click(screen.getByTestId('overlay-question'));
+
+    expect(expandToQuestionMock).toHaveBeenCalledWith('q-1');
     expect(showInvestigationMock).toHaveBeenCalledTimes(1);
   });
 });

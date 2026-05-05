@@ -3,7 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import type { ScopeFilter, SpecLimits, TimelineWindow } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
-import type { CanvasLensId, CanvasStepCardModel } from '@variscout/hooks';
+import type {
+  CanvasInvestigationOverlayModel,
+  CanvasLensId,
+  CanvasOverlayId,
+  CanvasStepCardModel,
+} from '@variscout/hooks';
 import { useCanvasStore } from '@variscout/stores';
 
 vi.mock('@variscout/charts', async importOriginal => {
@@ -68,10 +73,13 @@ const canvasFiltersStateRef: {
     scopeFilter: ScopeFilter | undefined;
     paretoGroupBy: string | undefined;
     activeCanvasLens: CanvasLensId;
+    activeCanvasOverlays: CanvasOverlayId[];
     setTimelineWindow: ReturnType<typeof vi.fn>;
     setScopeFilter: ReturnType<typeof vi.fn>;
     setParetoGroupBy: ReturnType<typeof vi.fn>;
     setActiveCanvasLens: ReturnType<typeof vi.fn>;
+    setActiveCanvasOverlays: ReturnType<typeof vi.fn>;
+    toggleCanvasOverlay: ReturnType<typeof vi.fn>;
   };
 } = {
   current: {
@@ -79,10 +87,13 @@ const canvasFiltersStateRef: {
     scopeFilter: undefined,
     paretoGroupBy: undefined,
     activeCanvasLens: 'default',
+    activeCanvasOverlays: [],
     setTimelineWindow: vi.fn(),
     setScopeFilter: vi.fn(),
     setParetoGroupBy: vi.fn(),
     setActiveCanvasLens: vi.fn(),
+    setActiveCanvasOverlays: vi.fn(),
+    toggleCanvasOverlay: vi.fn(),
   },
 };
 
@@ -133,6 +144,29 @@ const mockStepCards: CanvasStepCardModel[] = [
   },
 ];
 
+const mockInvestigationOverlays: CanvasInvestigationOverlayModel = {
+  byStep: {
+    'step-1': {
+      stepId: 'step-1',
+      questions: [
+        {
+          id: 'q-1',
+          text: 'Does bake time drive fill weight?',
+          status: 'open',
+          factor: 'Bake_Time',
+          focus: { kind: 'question', id: 'q-1', questionId: 'q-1' },
+        },
+      ],
+      findings: [],
+      suspectedCauses: [],
+      causalLinks: [],
+      investigationCounts: { open: 1, supported: 0, refuted: 0 },
+    },
+  },
+  arrows: [],
+  unresolved: { questions: [], findings: [], suspectedCauses: [], causalLinks: [] },
+};
+
 vi.mock('@variscout/hooks', () => ({
   CANVAS_LENS_REGISTRY: {
     default: {
@@ -166,6 +200,63 @@ vi.mock('@variscout/hooks', () => ({
       description: 'Future time-study lens.',
     },
   },
+  CANVAS_OVERLAY_REGISTRY: {
+    investigations: {
+      id: 'investigations',
+      label: 'Investigations',
+      enabled: true,
+      description: 'Question and investigation activity projected onto process steps.',
+    },
+    hypotheses: {
+      id: 'hypotheses',
+      label: 'Hypotheses',
+      enabled: true,
+      description: 'Draft causal links rendered as faint step-to-step arrows.',
+    },
+    'suspected-causes': {
+      id: 'suspected-causes',
+      label: 'Suspected causes',
+      enabled: true,
+      description: 'Promoted mechanism branches rendered as step markers.',
+    },
+    findings: {
+      id: 'findings',
+      label: 'Findings',
+      enabled: true,
+      description: 'Recent finding pins anchored to process steps.',
+    },
+  },
+  coerceCanvasOverlays: vi.fn((values: unknown[]) =>
+    values.filter(value =>
+      ['investigations', 'hypotheses', 'suspected-causes', 'findings'].includes(String(value))
+    )
+  ),
+  enabledCanvasOverlays: vi.fn(() => [
+    {
+      id: 'investigations',
+      label: 'Investigations',
+      enabled: true,
+      description: 'Question and investigation activity projected onto process steps.',
+    },
+    {
+      id: 'hypotheses',
+      label: 'Hypotheses',
+      enabled: true,
+      description: 'Draft causal links rendered as faint step-to-step arrows.',
+    },
+    {
+      id: 'suspected-causes',
+      label: 'Suspected causes',
+      enabled: true,
+      description: 'Promoted mechanism branches rendered as step markers.',
+    },
+    {
+      id: 'findings',
+      label: 'Findings',
+      enabled: true,
+      description: 'Recent finding pins anchored to process steps.',
+    },
+  ]),
   CANVAS_EMPTY_DROP_ID: 'canvas:empty',
   coerceCanvasLens: vi.fn((value: unknown) =>
     value === 'capability' || value === 'defect' ? value : 'default'
@@ -242,6 +333,7 @@ vi.mock('@variscout/hooks', () => ({
     contextValueOptions: {},
   })),
   useCanvasStepCards: vi.fn(() => ({ cards: mockStepCards })),
+  useCanvasInvestigationOverlays: vi.fn(() => ({ overlays: mockInvestigationOverlays })),
   useSessionCanvasFilters: vi.fn(() => canvasFiltersStateRef.current),
 }));
 
@@ -296,10 +388,13 @@ describe('CanvasWorkspace', () => {
       scopeFilter: undefined,
       paretoGroupBy: undefined,
       activeCanvasLens: 'default',
+      activeCanvasOverlays: [],
       setTimelineWindow: vi.fn(),
       setScopeFilter: vi.fn(),
       setParetoGroupBy: vi.fn(),
       setActiveCanvasLens: vi.fn(),
+      setActiveCanvasOverlays: vi.fn(),
+      toggleCanvasOverlay: vi.fn(),
     };
     opsToggleStateRef.current = {
       mode: 'spatial',
@@ -333,6 +428,16 @@ describe('CanvasWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: /capability lens/i }));
 
     expect(canvasFiltersStateRef.current.setActiveCanvasLens).toHaveBeenCalledWith('capability');
+  });
+
+  it('wires overlay changes through session canvas filters', () => {
+    renderWorkspace({ processContext: { processMap: mapWithStep() } });
+
+    fireEvent.click(screen.getByRole('button', { name: /investigations overlay/i }));
+
+    expect(canvasFiltersStateRef.current.toggleCanvasOverlay).toHaveBeenCalledWith(
+      'investigations'
+    );
   });
 
   it('forwards step overlay response paths to app shell callbacks', () => {

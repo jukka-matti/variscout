@@ -235,7 +235,31 @@ PR5 makes Canvas capable of replacing the Analysis reading surface without delet
 
 ### PR6 — Spec 4 (canvas overlays + Wall sync)
 
-**Brainstorm + plan needed.** Investigation graph projections onto canvas (per vision §5.4).
+**Implemented slice:** `canvas-migration-phase-6-overlays-wall-projection`.
+
+PR6 implements the first read-side Wall projection slice for Canvas. The
+Investigation Wall remains the canonical workspace; Canvas adds session-scoped
+overlay toggles and projects existing investigation graph entities onto step
+cards for glance/read context:
+
+- Adds an enabled overlay registry for investigations, hypotheses,
+  suspected-causes, and findings. Active overlays are session-scoped View state
+  and default to off.
+- Derives per-step overlay projections from `ProcessMap`, questions, findings,
+  suspected causes, and causal links without introducing new persistence or
+  Canvas-side authoring.
+- Resolves graph entities to steps through assignments, tributaries, question
+  factors, finding filters, suspected-cause hub bindings, and deterministic
+  causal-link endpoint resolution.
+- Renders investigation activity badges, finding pins, suspected-cause markers,
+  and faint draft hypothesis arrows only when their overlay is active.
+- Extends the step overlay linked-investigation section with related questions,
+  findings, suspected causes, and causal links. Focus callbacks open the
+  Investigation surface and expand the linked question when available.
+
+**Out of scope for PR6:** Canvas-side hypothesis creation/editing,
+investigation-loading semantics, multi-investigation switching, new persistence
+schema, Wall layout rewrites, and Analysis route cleanup.
 
 ### PR7 — Spec 5 (PWA IndexedDB persistence schema)
 

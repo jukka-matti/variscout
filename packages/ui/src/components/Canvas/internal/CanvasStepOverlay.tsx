@@ -1,7 +1,11 @@
 import React from 'react';
 import FocusTrap from 'focus-trap-react';
 import { formatStatistic } from '@variscout/core/i18n';
-import type { CanvasStepCardModel } from '@variscout/hooks';
+import type {
+  CanvasInvestigationFocus,
+  CanvasStepCardModel,
+  CanvasStepInvestigationOverlay,
+} from '@variscout/hooks';
 
 export interface CanvasOverlayAnchorRect {
   top: number;
@@ -18,6 +22,8 @@ interface CanvasStepOverlayProps {
   onClose: () => void;
   onQuickAction?: (stepId: string) => void;
   onFocusedInvestigation?: (stepId: string) => void;
+  investigationOverlay?: CanvasStepInvestigationOverlay;
+  onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
 }
 
 const DESKTOP_WIDTH = 440;
@@ -81,6 +87,8 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
   onClose,
   onQuickAction,
   onFocusedInvestigation,
+  investigationOverlay,
+  onOpenInvestigationFocus,
 }) => {
   const touchStartY = React.useRef<number | null>(null);
   const mobile = isMobileViewport();
@@ -195,7 +203,56 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
               <h4 className="text-xs font-semibold uppercase text-content-muted">
                 Linked investigations
               </h4>
-              <p className="mt-1 text-content-secondary">No linked investigations in PR5.</p>
+              {investigationOverlay &&
+              (investigationOverlay.questions.length > 0 ||
+                investigationOverlay.findings.length > 0 ||
+                investigationOverlay.suspectedCauses.length > 0 ||
+                investigationOverlay.causalLinks.length > 0) ? (
+                <div className="mt-2 grid gap-2">
+                  {investigationOverlay.suspectedCauses.map(cause => (
+                    <button
+                      key={`cause-${cause.id}`}
+                      type="button"
+                      className="rounded border border-edge bg-surface-primary px-2 py-1 text-left text-content-secondary hover:bg-surface-tertiary hover:text-content"
+                      onClick={() => onOpenInvestigationFocus?.(cause.focus)}
+                    >
+                      Cause: {cause.name}
+                    </button>
+                  ))}
+                  {investigationOverlay.findings.map(finding => (
+                    <button
+                      key={`finding-${finding.id}`}
+                      type="button"
+                      className="rounded border border-edge bg-surface-primary px-2 py-1 text-left text-content-secondary hover:bg-surface-tertiary hover:text-content"
+                      onClick={() => onOpenInvestigationFocus?.(finding.focus)}
+                    >
+                      Finding: {finding.text}
+                    </button>
+                  ))}
+                  {investigationOverlay.questions.map(question => (
+                    <button
+                      key={`question-${question.id}`}
+                      type="button"
+                      className="rounded border border-edge bg-surface-primary px-2 py-1 text-left text-content-secondary hover:bg-surface-tertiary hover:text-content"
+                      onClick={() => onOpenInvestigationFocus?.(question.focus)}
+                    >
+                      Question: {question.text}
+                    </button>
+                  ))}
+                  {investigationOverlay.causalLinks.map(link => (
+                    <button
+                      key={`link-${link.id}`}
+                      type="button"
+                      className="rounded border border-edge bg-surface-primary px-2 py-1 text-left text-content-secondary hover:bg-surface-tertiary hover:text-content"
+                      onClick={() => onOpenInvestigationFocus?.(link.focus)}
+                    >
+                      Link: {link.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-1 text-content-secondary">No linked investigations yet.</p>
+              )}
             </div>
           </div>
 

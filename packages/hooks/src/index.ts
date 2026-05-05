@@ -448,6 +448,26 @@ export {
   type UseCurrentUnderstandingReturn,
 } from './useCurrentUnderstanding';
 
+// Canvas investigation overlays (Wall projection onto Canvas)
+export {
+  CANVAS_OVERLAY_REGISTRY,
+  buildCanvasInvestigationOverlays,
+  coerceCanvasOverlays,
+  enabledCanvasOverlays,
+  useCanvasInvestigationOverlays,
+  type CanvasInvestigationFocus,
+  type CanvasInvestigationOverlayModel,
+  type CanvasOverlayCausalLinkItem,
+  type CanvasOverlayDefinition,
+  type CanvasOverlayFindingItem,
+  type CanvasOverlayId,
+  type CanvasOverlayQuestionItem,
+  type CanvasOverlaySuspectedCauseItem,
+  type CanvasStepInvestigationOverlay,
+  type UseCanvasInvestigationOverlaysArgs,
+  type UseCanvasInvestigationOverlaysResult,
+} from './useCanvasInvestigationOverlays';
+
 // Suspected Cause Hubs (named mechanism groupings for investigation synthesis)
 export {
   useSuspectedCauses,

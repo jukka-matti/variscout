@@ -1,14 +1,22 @@
 import React from 'react';
 import { formatStatistic } from '@variscout/core/i18n';
-import type { CanvasLensId, CanvasStepCardModel } from '@variscout/hooks';
+import type {
+  CanvasLensId,
+  CanvasOverlayId,
+  CanvasStepCardModel,
+  CanvasStepInvestigationOverlay,
+} from '@variscout/hooks';
 import { StepDefectIndicator } from '../../StepDefectIndicator';
 import { CanvasStepMiniChart } from './CanvasStepMiniChart';
 
 interface CanvasStepCardProps {
   card: CanvasStepCardModel;
   activeLens: CanvasLensId;
+  activeOverlays?: CanvasOverlayId[];
+  investigationOverlay?: CanvasStepInvestigationOverlay;
   onOpen: (stepId: string, element: HTMLElement) => void;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
+  registerCardElement?: (stepId: string, element: HTMLElement | null) => void;
 }
 
 function capabilityText(card: CanvasStepCardModel): string {
@@ -35,11 +43,23 @@ function gradeClass(card: CanvasStepCardModel): string {
 export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
   card,
   activeLens,
+  activeOverlays = [],
+  investigationOverlay,
   onOpen,
   onStepSpecsRequest,
+  registerCardElement,
 }) => {
   const showDefects = activeLens === 'defect' && card.defectCount !== undefined;
   const showCapability = activeLens === 'capability' || activeLens === 'default';
+  const showInvestigations = activeOverlays.includes('investigations') && investigationOverlay;
+  const showFindings = activeOverlays.includes('findings') && investigationOverlay?.findings.length;
+  const showSuspectedCauses =
+    activeOverlays.includes('suspected-causes') && investigationOverlay?.suspectedCauses.length;
+  const activityCount = investigationOverlay
+    ? investigationOverlay.investigationCounts.open +
+      investigationOverlay.investigationCounts.supported +
+      investigationOverlay.investigationCounts.refuted
+    : 0;
   const specButtonLabel =
     card.capability.state === 'no-specs'
       ? `Add specs for ${card.stepName}`
@@ -47,6 +67,7 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
 
   return (
     <article
+      ref={element => registerCardElement?.(card.stepId, element)}
       role="button"
       tabIndex={0}
       className="flex min-h-44 flex-col gap-3 rounded-md border border-edge bg-surface-primary p-3 text-left shadow-sm transition-colors hover:border-edge-strong"
@@ -75,6 +96,31 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
       <CanvasStepMiniChart card={card} />
 
       <div className="flex flex-wrap items-center gap-1">
+        {showInvestigations && activityCount > 0 ? (
+          <span
+            className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[11px] font-medium text-blue-700"
+            data-testid={`canvas-step-investigation-badge-${card.stepId}`}
+            title={`${activityCount} investigation item${activityCount === 1 ? '' : 's'}`}
+          >
+            {activityCount} investigation
+          </span>
+        ) : null}
+        {showFindings ? (
+          <span
+            className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[11px] font-medium text-sky-700"
+            data-testid={`canvas-step-finding-pin-${card.stepId}`}
+          >
+            {investigationOverlay?.findings.length} finding
+          </span>
+        ) : null}
+        {showSuspectedCauses ? (
+          <span
+            className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+            data-testid={`canvas-step-suspected-cause-marker-${card.stepId}`}
+          >
+            {investigationOverlay?.suspectedCauses.length} cause
+          </span>
+        ) : null}
         {showCapability ? (
           <span
             className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${gradeClass(card)}`}

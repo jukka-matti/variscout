@@ -13,7 +13,7 @@ vi.mock('@variscout/charts', async () => {
 
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ProcessMap } from '@variscout/core/frame';
-import type { CanvasStepCardModel } from '@variscout/hooks';
+import type { CanvasInvestigationOverlayModel, CanvasStepCardModel } from '@variscout/hooks';
 import { Canvas } from '../index';
 
 const map: ProcessMap = {
@@ -82,6 +82,71 @@ const stepCards: CanvasStepCardModel[] = [
     defectCount: 7,
   },
 ];
+
+const investigationOverlays: CanvasInvestigationOverlayModel = {
+  byStep: {
+    'step-1': {
+      stepId: 'step-1',
+      questions: [
+        {
+          id: 'q-1',
+          text: 'Does pressure drive fill?',
+          status: 'open',
+          factor: 'Pressure',
+          focus: { kind: 'question', id: 'q-1', questionId: 'q-1' },
+        },
+      ],
+      findings: [
+        {
+          id: 'f-1',
+          text: 'Pressure shift on Machine A',
+          status: 'observed',
+          questionId: 'q-1',
+          focus: { kind: 'finding', id: 'f-1', questionId: 'q-1' },
+        },
+      ],
+      suspectedCauses: [
+        {
+          id: 'hub-1',
+          name: 'Pressure setup drift',
+          status: 'suspected',
+          questionId: 'q-1',
+          focus: { kind: 'suspected-cause', id: 'hub-1', questionId: 'q-1' },
+        },
+      ],
+      causalLinks: [
+        {
+          id: 'link-1',
+          fromStepId: 'step-1',
+          toStepId: 'step-2',
+          label: 'Pressure drives fill',
+          questionId: 'q-1',
+          focus: { kind: 'causal-link', id: 'link-1', questionId: 'q-1' },
+        },
+      ],
+      investigationCounts: { open: 2, supported: 0, refuted: 0 },
+    },
+    'step-2': {
+      stepId: 'step-2',
+      questions: [],
+      findings: [],
+      suspectedCauses: [],
+      causalLinks: [],
+      investigationCounts: { open: 0, supported: 0, refuted: 0 },
+    },
+  },
+  arrows: [
+    {
+      id: 'link-1',
+      fromStepId: 'step-1',
+      toStepId: 'step-2',
+      label: 'Pressure drives fill',
+      questionId: 'q-1',
+      focus: { kind: 'causal-link', id: 'link-1', questionId: 'q-1' },
+    },
+  ],
+  unresolved: { questions: [], findings: [], suspectedCauses: [], causalLinks: [] },
+};
 
 function setViewport(width: number, height: number) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
@@ -291,6 +356,89 @@ describe('Canvas', () => {
     expect(screen.getByRole('button', { name: /performance lens/i })).toBeDisabled();
   });
 
+  it('renders overlay picker and forwards overlay toggles without changing the map', () => {
+    const onChange = vi.fn();
+    const onOverlayToggle = vi.fn();
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={onChange}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+        activeOverlays={[]}
+        onOverlayToggle={onOverlayToggle}
+      />
+    );
+
+    expect(screen.getByTestId('canvas-overlay-picker')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /findings overlay/i }));
+
+    expect(onOverlayToggle).toHaveBeenCalledWith('findings');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('projects investigation, finding, and suspected-cause markers only when overlays are active', () => {
+    const { rerender } = render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+        investigationOverlays={investigationOverlays}
+        activeOverlays={[]}
+      />
+    );
+
+    expect(screen.queryByTestId('canvas-step-investigation-badge-step-1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('canvas-step-finding-pin-step-1')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('canvas-step-suspected-cause-marker-step-1')
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+        investigationOverlays={investigationOverlays}
+        activeOverlays={['investigations', 'findings', 'suspected-causes']}
+      />
+    );
+
+    expect(screen.getByTestId('canvas-step-investigation-badge-step-1')).toHaveTextContent(
+      '2 investigation'
+    );
+    expect(screen.getByTestId('canvas-step-finding-pin-step-1')).toHaveTextContent('1 finding');
+    expect(screen.getByTestId('canvas-step-suspected-cause-marker-step-1')).toHaveTextContent(
+      '1 cause'
+    );
+  });
+
+  it('renders hypothesis arrows when the hypotheses overlay is active', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+        investigationOverlays={investigationOverlays}
+        activeOverlays={['hypotheses']}
+      />
+    );
+
+    expect(screen.getByTestId('canvas-hypothesis-arrow-link-1')).toBeInTheDocument();
+  });
+
   it('opens and dismisses the step overlay from a card click', () => {
     render(
       <Canvas
@@ -421,6 +569,38 @@ describe('Canvas', () => {
 
     expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent('Capability');
     expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent('Defects: 7');
+  });
+
+  it('shows linked investigation items in the step overlay and opens focus callbacks', () => {
+    const onOpenInvestigationFocus = vi.fn();
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        stepCards={stepCards}
+        investigationOverlays={investigationOverlays}
+        onOpenInvestigationFocus={onOpenInvestigationFocus}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
+    fireEvent.click(screen.getByRole('button', { name: /question: does pressure drive fill/i }));
+
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent(
+      'Finding: Pressure shift on Machine A'
+    );
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent(
+      'Cause: Pressure setup drift'
+    );
+    expect(onOpenInvestigationFocus).toHaveBeenCalledWith({
+      kind: 'question',
+      id: 'q-1',
+      questionId: 'q-1',
+    });
   });
 
   it('keeps spec edit affordances separate from card drill-down', () => {

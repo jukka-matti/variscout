@@ -6,9 +6,13 @@ import React from 'react';
 import { DndContext } from '@dnd-kit/core';
 import {
   coerceCanvasLens,
+  coerceCanvasOverlays,
   useCanvasKeyboard,
   useChipDragAndDrop,
+  type CanvasInvestigationFocus,
+  type CanvasInvestigationOverlayModel,
   type CanvasLensId,
+  type CanvasOverlayId,
   type CanvasStepCardModel,
 } from '@variscout/hooks';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
@@ -24,6 +28,7 @@ import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
 import { CanvasModeToggle } from '../CanvasModeToggle';
 import { StructuralToolbar } from '../StructuralToolbar';
 import { CanvasLensPicker } from './internal/CanvasLensPicker';
+import { CanvasOverlayPicker } from './internal/CanvasOverlayPicker';
 import { CanvasStepCard } from './internal/CanvasStepCard';
 import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
 
@@ -41,6 +46,28 @@ import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/Canv
  */
 export type ProductionLineGlanceOpsMode = 'spatial' | 'full';
 export type CanvasAuthoringMode = 'author' | 'read';
+
+type ArrowSegment = {
+  id: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+};
+
+function areArrowSegmentsEqual(left: ArrowSegment[], right: ArrowSegment[]) {
+  if (left.length !== right.length) return false;
+  return left.every((segment, index) => {
+    const next = right[index];
+    return (
+      segment.id === next.id &&
+      segment.x1 === next.x1 &&
+      segment.y1 === next.y1 &&
+      segment.x2 === next.x2 &&
+      segment.y2 === next.y2
+    );
+  });
+}
 
 /**
  * Controlled inputs for the canonical Canvas implementation.
@@ -95,9 +122,13 @@ export interface CanvasProps {
   stepCards?: CanvasStepCardModel[];
   activeLens?: CanvasLensId;
   onLensChange?: (next: CanvasLensId) => void;
+  activeOverlays?: CanvasOverlayId[];
+  onOverlayToggle?: (overlay: CanvasOverlayId) => void;
+  investigationOverlays?: CanvasInvestigationOverlayModel;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
   onQuickAction?: (stepId: string) => void;
   onFocusedInvestigation?: (stepId: string) => void;
+  onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
@@ -132,12 +163,20 @@ export const Canvas: React.FC<CanvasProps> = ({
   stepCards = [],
   activeLens = 'default',
   onLensChange,
+  activeOverlays = [],
+  onOverlayToggle,
+  investigationOverlays,
   onStepSpecsRequest,
   onQuickAction,
   onFocusedInvestigation,
+  onOpenInvestigationFocus,
 }) => {
   const isAuthorMode = authoringMode === 'author';
   const resolvedLens = coerceCanvasLens(activeLens);
+  const resolvedOverlays = React.useMemo(
+    () => coerceCanvasOverlays(activeOverlays),
+    [activeOverlays]
+  );
   const canPlaceChips = isAuthorMode && !disabled && chips.length > 0;
   const showChipRail = canPlaceChips;
   const [pendingStepChipId, setPendingStepChipId] = React.useState<string | null>(null);
@@ -147,6 +186,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   const [stepOverlayAnchor, setStepOverlayAnchor] = React.useState<CanvasOverlayAnchorRect | null>(
     null
   );
+  const cardElements = React.useRef(new Map<string, HTMLElement>());
+  const [arrowSegments, setArrowSegments] = React.useState<ArrowSegment[]>([]);
   const pendingStepChip = pendingStepChipId
     ? chips.find(chip => chip.chipId === pendingStepChipId)
     : undefined;
@@ -219,6 +260,45 @@ export const Canvas: React.FC<CanvasProps> = ({
     onCreateStep: handleCreateStepRequest,
   });
   const activeStepCard = stepCards.find(card => card.stepId === activeStepCardId);
+  const activeStepInvestigationOverlay = activeStepCardId
+    ? investigationOverlays?.byStep[activeStepCardId]
+    : undefined;
+  const cardSurfaceRef = React.useRef<HTMLDivElement | null>(null);
+
+  const registerCardElement = React.useCallback((stepId: string, element: HTMLElement | null) => {
+    if (element) cardElements.current.set(stepId, element);
+    else cardElements.current.delete(stepId);
+  }, []);
+
+  React.useLayoutEffect(() => {
+    if (
+      !resolvedOverlays.includes('hypotheses') ||
+      !investigationOverlays ||
+      !cardSurfaceRef.current
+    ) {
+      setArrowSegments(current => (current.length === 0 ? current : []));
+      return;
+    }
+    const surfaceRect = cardSurfaceRef.current.getBoundingClientRect();
+    const next = investigationOverlays.arrows.flatMap(arrow => {
+      const from = cardElements.current.get(arrow.fromStepId);
+      const to = cardElements.current.get(arrow.toStepId);
+      if (!from || !to) return [];
+      const fromRect = from.getBoundingClientRect();
+      const toRect = to.getBoundingClientRect();
+      return [
+        {
+          id: arrow.id,
+          x1: fromRect.left + fromRect.width / 2 - surfaceRect.left,
+          y1: fromRect.top + fromRect.height / 2 - surfaceRect.top,
+          x2: toRect.left + toRect.width / 2 - surfaceRect.left,
+          y2: toRect.top + toRect.height / 2 - surfaceRect.top,
+        },
+      ];
+    });
+    setArrowSegments(current => (areArrowSegmentsEqual(current, next) ? current : next));
+  }, [investigationOverlays, resolvedOverlays, stepCards]);
+
   const handleOpenStepCard = React.useCallback((stepId: string, element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
     setActiveStepCardId(stepId);
@@ -254,6 +334,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             />
           ) : null}
           <CanvasLensPicker activeLens={resolvedLens} onChange={onLensChange} />
+          <CanvasOverlayPicker activeOverlays={resolvedOverlays} onToggle={onOverlayToggle} />
         </div>
         <div className="flex items-center gap-2">
           {onModeChange ? (
@@ -269,7 +350,33 @@ export const Canvas: React.FC<CanvasProps> = ({
         <ProductionLineGlanceFilterStrip {...filter} />
       </div>
 
-      <section className="px-4 py-4" data-testid="canvas-card-surface">
+      <section
+        ref={cardSurfaceRef}
+        className="relative px-4 py-4"
+        data-testid="canvas-card-surface"
+      >
+        {resolvedOverlays.includes('hypotheses') && arrowSegments.length > 0 ? (
+          <svg
+            className="pointer-events-none absolute inset-0 z-10 h-full w-full"
+            data-testid="canvas-hypothesis-arrows"
+            aria-hidden="true"
+          >
+            {arrowSegments.map(segment => (
+              <line
+                key={segment.id}
+                data-testid={`canvas-hypothesis-arrow-${segment.id}`}
+                x1={segment.x1}
+                y1={segment.y1}
+                x2={segment.x2}
+                y2={segment.y2}
+                stroke="currentColor"
+                strokeDasharray="5 5"
+                strokeWidth="2"
+                className="text-amber-500/60"
+              />
+            ))}
+          </svg>
+        ) : null}
         {stepCards.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {stepCards.map(card => (
@@ -277,8 +384,11 @@ export const Canvas: React.FC<CanvasProps> = ({
                 key={card.stepId}
                 card={card}
                 activeLens={resolvedLens}
+                activeOverlays={resolvedOverlays}
+                investigationOverlay={investigationOverlays?.byStep[card.stepId]}
                 onOpen={handleOpenStepCard}
                 onStepSpecsRequest={onStepSpecsRequest}
+                registerCardElement={registerCardElement}
               />
             ))}
           </div>
@@ -329,6 +439,8 @@ export const Canvas: React.FC<CanvasProps> = ({
           onClose={handleCloseStepOverlay}
           onQuickAction={onQuickAction}
           onFocusedInvestigation={onFocusedInvestigation}
+          investigationOverlay={activeStepInvestigationOverlay}
+          onOpenInvestigationFocus={onOpenInvestigationFocus}
         />
       ) : null}
     </div>

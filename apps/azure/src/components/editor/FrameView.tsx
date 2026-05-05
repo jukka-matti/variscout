@@ -6,8 +6,10 @@
  */
 import React from 'react';
 import { CanvasWorkspace } from '@variscout/ui';
-import { useProjectStore } from '@variscout/stores';
+import { useInvestigationStore, useProjectStore } from '@variscout/stores';
+import type { CanvasInvestigationFocus } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
+import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
 
 const FrameView: React.FC = () => {
   const rawData = useProjectStore(s => s.rawData);
@@ -19,6 +21,10 @@ const FrameView: React.FC = () => {
   const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
   const processContext = useProjectStore(s => s.processContext);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
+  const findings = useInvestigationStore(s => s.findings);
+  const questions = useInvestigationStore(s => s.questions);
+  const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
+  const causalLinks = useInvestigationStore(s => s.causalLinks);
 
   const handleSeeData = React.useCallback(() => {
     usePanelsStore.getState().showAnalysis();
@@ -29,6 +35,12 @@ const FrameView: React.FC = () => {
   }, []);
 
   const handleFocusedInvestigation = React.useCallback(() => {
+    usePanelsStore.getState().showInvestigation();
+  }, []);
+
+  const handleOpenInvestigationFocus = React.useCallback((focus: CanvasInvestigationFocus) => {
+    if (focus.questionId)
+      useInvestigationFeatureStore.getState().expandToQuestion(focus.questionId);
     usePanelsStore.getState().showInvestigation();
   }, []);
 
@@ -46,6 +58,11 @@ const FrameView: React.FC = () => {
       onSeeData={handleSeeData}
       onQuickAction={handleQuickAction}
       onFocusedInvestigation={handleFocusedInvestigation}
+      findings={findings}
+      questions={questions}
+      suspectedCauses={suspectedCauses}
+      causalLinks={causalLinks}
+      onOpenInvestigationFocus={handleOpenInvestigationFocus}
     />
   );
 };
