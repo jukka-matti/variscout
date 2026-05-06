@@ -12,7 +12,7 @@
 //   vi.mock() BEFORE subject imports — required per testing.md and MEMORY.md.
 //   vi is imported explicitly (globals:true gives runtime access; tsc needs the import).
 
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // vi.hoisted + vi.mock must appear before the subject imports so that vitest
 // can hoist them above the import block at transform time.
@@ -243,6 +243,169 @@ describe('PwaHubRepository', () => {
       mocks.loadHub.mockResolvedValue(null);
       const result = await repo.canvasState.getByHub('hub-of-one');
       expect(result).toBeUndefined();
+    });
+  });
+
+  // ---- dispatch end-to-end ----
+  //
+  // These integration tests prove that dispatch() calls loadHub → applyAction → saveHub
+  // with the correct contract for each action category.
+  //
+  // applyAction.test.ts proves recipe correctness in isolation;
+  // these tests prove the wiring is intact through the repository layer.
+
+  describe('dispatch end-to-end', () => {
+    // Freeze time for all tests in this block so Date.now()-dependent assertions are
+    // deterministic. Use the plan's reference timestamp: 2026-05-06T12:00:00.000Z.
+    const FROZEN_MS = new Date('2026-05-06T12:00:00.000Z').getTime();
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-05-06T12:00:00.000Z'));
+      mocks.saveHub.mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('HUB_PERSIST_SNAPSHOT replaces the hub blob entirely', async () => {
+      const initial = makeHub({ id: 'hub-of-one', name: 'Old Hub' });
+      const replacement = makeHub({
+        id: 'hub-of-one',
+        name: 'New Hub',
+        processGoal: 'ship on time',
+      });
+      mocks.loadHub.mockResolvedValue(initial);
+
+      await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: replacement });
+
+      expect(mocks.saveHub).toHaveBeenCalledOnce();
+      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
+      expect(saved).toEqual(replacement);
+    });
+
+    it('HUB_UPDATE_GOAL persists the new processGoal and sets updatedAt', async () => {
+      const hub = makeHub({ id: 'hub-of-one', processGoal: 'old goal' });
+      mocks.loadHub.mockResolvedValue(hub);
+
+      await repo.dispatch({
+        kind: 'HUB_UPDATE_GOAL',
+        hubId: 'hub-of-one',
+        processGoal: 'new goal',
+      });
+
+      expect(mocks.saveHub).toHaveBeenCalledOnce();
+      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
+      expect(saved.processGoal).toBe('new goal');
+      expect(saved.updatedAt).toBe(FROZEN_MS);
+    });
+
+    it('OUTCOME_ADD pushes the new outcome to the outcomes array', async () => {
+      const hub = makeHub({ id: 'hub-of-one', outcomes: [] });
+      mocks.loadHub.mockResolvedValue(hub);
+      const newOutcome = makeOutcome('outcome-new');
+
+      await repo.dispatch({
+        kind: 'OUTCOME_ADD',
+        hubId: 'hub-of-one',
+        outcome: newOutcome,
+      });
+
+      expect(mocks.saveHub).toHaveBeenCalledOnce();
+      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
+      expect(saved.outcomes).toHaveLength(1);
+      expect(saved.outcomes![0].id).toBe('outcome-new');
+    });
+
+    it('OUTCOME_UPDATE patches the target on the matching outcome', async () => {
+      const outcome = makeOutcome('outcome-1');
+      const hub = makeHub({ id: 'hub-of-one', outcomes: [outcome] });
+      mocks.loadHub.mockResolvedValue(hub);
+
+      await repo.dispatch({
+        kind: 'OUTCOME_UPDATE',
+        outcomeId: 'outcome-1',
+        patch: { target: 5 },
+      });
+
+      expect(mocks.saveHub).toHaveBeenCalledOnce();
+      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
+      expect(saved.outcomes![0].target).toBe(5);
+    });
+
+    it('OUTCOME_ARCHIVE soft-marks deletedAt on the matching outcome', async () => {
+      const outcome = makeOutcome('outcome-1', null);
+      const hub = makeHub({ id: 'hub-of-one', outcomes: [outcome] });
+      mocks.loadHub.mockResolvedValue(hub);
+
+      await repo.dispatch({ kind: 'OUTCOME_ARCHIVE', outcomeId: 'outcome-1' });
+
+      expect(mocks.saveHub).toHaveBeenCalledOnce();
+      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
+      expect(saved.outcomes![0].deletedAt).toBe(FROZEN_MS);
+    });
+
+    it('OUTCOME_ARCHIVE is idempotent: second dispatch preserves the first deletedAt', async () => {
+      const outcome = makeOutcome('outcome-1', null);
+      const hub = makeHub({ id: 'hub-of-one', outcomes: [outcome] });
+
+      // First dispatch — captures FROZEN_MS as deletedAt
+      mocks.loadHub.mockResolvedValue(hub);
+      await repo.dispatch({ kind: 'OUTCOME_ARCHIVE', outcomeId: 'outcome-1' });
+      const savedFirst = mocks.saveHub.mock.calls[0][0] as ProcessHub;
+      const firstDeletedAt = savedFirst.outcomes![0].deletedAt;
+      expect(firstDeletedAt).toBe(FROZEN_MS);
+
+      // Advance frozen clock so a second mutation would use a different timestamp
+      vi.advanceTimersByTime(30_000);
+
+      // Second dispatch — loadHub returns the already-archived hub from the first call
+      mocks.saveHub.mockReset();
+      mocks.saveHub.mockResolvedValue(undefined);
+      mocks.loadHub.mockResolvedValue(savedFirst);
+      await repo.dispatch({ kind: 'OUTCOME_ARCHIVE', outcomeId: 'outcome-1' });
+
+      expect(mocks.saveHub).toHaveBeenCalledOnce();
+      const savedSecond = mocks.saveHub.mock.calls[0][0] as ProcessHub;
+      // deletedAt must not be overwritten by the second dispatch
+      expect(savedSecond.outcomes![0].deletedAt).toBe(firstDeletedAt);
+    });
+
+    it('INVESTIGATION_ARCHIVE is a no-op for the PWA blob (investigations are session-only)', async () => {
+      // Contract: INVESTIGATION_ARCHIVE dispatches successfully but does not mutate
+      // the hub blob on PWA, because investigations are not blob-resident (F3 normalizes).
+      // The hub is saved unchanged (same reference equality via Immer structural sharing
+      // is not guaranteed, but the shape must be deep-equal to the input).
+      const outcome = makeOutcome('outcome-1', null);
+      const hub = makeHub({ id: 'hub-of-one', outcomes: [outcome] });
+      mocks.loadHub.mockResolvedValue(hub);
+
+      await repo.dispatch({ kind: 'INVESTIGATION_ARCHIVE', investigationId: 'inv-1' });
+
+      expect(mocks.saveHub).toHaveBeenCalledOnce();
+      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
+      // Hub shape is unchanged — no outcome mutations because investigation cascade
+      // finds no blob-resident children (hub→outcome only cascades when parentKind='hub').
+      expect(saved.outcomes).toHaveLength(1);
+      expect(saved.outcomes![0].deletedAt).toBeNull();
+    });
+
+    it('PLACE_CHIP_ON_STEP is a no-op for the PWA blob (canvas mutations live in canvasStore, R15)', async () => {
+      // Contract: canvas actions dispatch successfully but do not mutate the hub blob.
+      // Canvas state is owned by canvasStore; the blob is overwritten via
+      // HUB_PERSIST_SNAPSHOT when the user saves. See R15 in applyAction.ts.
+      const hub = makeHub({ id: 'hub-of-one', outcomes: [makeOutcome('outcome-1', null)] });
+      mocks.loadHub.mockResolvedValue(hub);
+
+      await repo.dispatch({ kind: 'PLACE_CHIP_ON_STEP', chipId: 'chip-1', stepId: 'step-1' });
+
+      expect(mocks.saveHub).toHaveBeenCalledOnce();
+      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
+      // Hub blob is unchanged — canvas is not a blob-resident structure on PWA.
+      expect(saved).toMatchObject({ id: 'hub-of-one' });
+      expect(saved.outcomes).toHaveLength(1);
+      expect(saved.outcomes![0].deletedAt).toBeNull();
     });
   });
 
