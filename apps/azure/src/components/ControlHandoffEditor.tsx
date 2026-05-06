@@ -48,7 +48,9 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
     existingHandoff?.operationalOwner.displayName ?? ''
   );
   const [handoffDate, setHandoffDate] = useState(
-    existingHandoff?.handoffDate ? existingHandoff.handoffDate.slice(0, 10) : todayString()
+    existingHandoff?.handoffDate
+      ? new Date(existingHandoff.handoffDate).toISOString().slice(0, 10)
+      : todayString()
   );
   const [description, setDescription] = useState(existingHandoff?.description ?? '');
   const [referenceUri, setReferenceUri] = useState(existingHandoff?.referenceUri ?? '');
@@ -59,7 +61,7 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const now = new Date().toISOString();
+    const nowMs = Date.now();
 
     const handoff: ControlHandoff = {
       id: existingHandoff?.id ?? crypto.randomUUID(),
@@ -71,11 +73,12 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
       // We have no people picker yet, so userId is omitted (optional on ProcessParticipantRef);
       // recordedBy below carries the submitter's identity.
       operationalOwner: { displayName: operationalOwnerName },
-      handoffDate: new Date(handoffDate + 'T00:00:00.000Z').toISOString(),
+      handoffDate: new Date(handoffDate + 'T00:00:00.000Z').getTime(),
       description,
       referenceUri: referenceUri || undefined,
       retainSustainmentReview,
-      recordedAt: existingHandoff?.recordedAt ?? now,
+      createdAt: existingHandoff?.createdAt ?? nowMs,
+      deletedAt: existingHandoff?.deletedAt ?? null,
       recordedBy: existingHandoff?.recordedBy ?? {
         userId: currentUser.userId,
         displayName: recordedByDisplayName,
@@ -88,7 +91,7 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
       await storage.saveSustainmentRecord({
         ...relatedRecord,
         controlHandoffId: handoff.id,
-        updatedAt: new Date().toISOString(),
+        updatedAt: nowMs,
       });
     }
 

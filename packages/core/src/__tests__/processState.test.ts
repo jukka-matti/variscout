@@ -183,8 +183,9 @@ describe('buildCurrentProcessState', () => {
         hubId: 'line-4',
         cadence: 'monthly',
         nextReviewDue: '2026-04-25T00:00:00.000Z',
-        createdAt: '2026-03-25T00:00:00.000Z',
-        updatedAt: '2026-04-25T00:00:00.000Z',
+        createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z
+        updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        deletedAt: null,
       },
     ];
     const controlHandoffs: ControlHandoff[] = [];

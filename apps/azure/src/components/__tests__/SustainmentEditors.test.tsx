@@ -163,15 +163,16 @@ describe('SustainmentRecordEditor', () => {
     expect(dateInput.value).toBe('2027-01-15');
   });
 
-  it('preserves an existing record’s next-review-due when cadence changes (treated as user-set)', () => {
+  it("preserves an existing record's next-review-due when cadence changes (treated as user-set)", () => {
     const existingRecord: SustainmentRecord = {
       id: 'rec-existing',
       investigationId: 'inv-abc',
       hubId: 'hub-1',
       cadence: 'monthly',
       nextReviewDue: '2026-12-01T00:00:00.000Z',
-      createdAt: '2026-04-01T00:00:00.000Z',
-      updatedAt: '2026-04-01T00:00:00.000Z',
+      createdAt: 1743465600000, // 2026-04-01T00:00:00.000Z
+      updatedAt: 1743465600000,
+      deletedAt: null,
     };
     render(
       <SustainmentRecordEditor
@@ -245,8 +246,9 @@ describe('SustainmentReviewLogger', () => {
     hubId: 'hub-1',
     cadence: 'monthly',
     nextReviewDue: '2026-04-27T00:00:00.000Z',
-    createdAt: '2026-03-01T00:00:00.000Z',
-    updatedAt: '2026-03-01T00:00:00.000Z',
+    createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z
+    updatedAt: 1740787200000,
+    deletedAt: null,
   };
 
   it('fills form with verdict=holding, submits, updates record with latestVerdict and nextReviewDue', async () => {
@@ -286,7 +288,8 @@ describe('SustainmentReviewLogger', () => {
     expect(savedReview.verdict).toBe('holding');
     expect(savedReview.reviewer.displayName).toBe('Alice');
     expect(savedReview.reviewer.userId).toBe(FIXTURE_USER.userId);
-    expect(savedReview.reviewedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(typeof savedReview.reviewedAt).toBe('number');
+    expect(savedReview.reviewedAt).toBeGreaterThan(0);
 
     // Record should be updated with latestVerdict and nextReviewDue
     await waitFor(() => expect(mockSaveSustainmentRecord).toHaveBeenCalledTimes(1));
@@ -364,7 +367,9 @@ describe('ControlHandoffEditor', () => {
     expect(saved.surface).toBe('qms-procedure');
     expect(saved.systemName).toBe('Veeva QMS');
     expect(saved.operationalOwner.displayName).toBe('Dave Smith');
-    expect(saved.handoffDate).toMatch(/^2026-04-27T/);
+    expect(typeof saved.handoffDate).toBe('number');
+    // 2026-04-27T00:00:00.000Z = 1745712000000
+    expect(new Date(saved.handoffDate).toISOString().startsWith('2026-04-27')).toBe(true);
     expect(saved.description).toBe('Procedure updated in QMS');
     expect(saved.recordedBy.displayName).toBe('Carol');
     expect(saved.recordedBy.userId).toBe(FIXTURE_USER.userId);
@@ -380,8 +385,9 @@ describe('ControlHandoffEditor', () => {
       investigationId: 'inv-abc',
       hubId: 'hub-1',
       cadence: 'monthly',
-      createdAt: '2026-03-01T00:00:00.000Z',
-      updatedAt: '2026-03-01T00:00:00.000Z',
+      createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z
+      updatedAt: 1740787200000,
+      deletedAt: null,
     };
 
     const onSave = vi.fn();

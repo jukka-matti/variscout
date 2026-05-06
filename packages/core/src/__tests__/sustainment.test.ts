@@ -63,8 +63,9 @@ function makeRecord(nextReviewDue?: string): SustainmentRecord {
     hubId: 'hub-1',
     cadence: 'monthly',
     nextReviewDue,
-    createdAt: '2026-04-01T00:00:00.000Z',
-    updatedAt: '2026-04-01T00:00:00.000Z',
+    createdAt: 1743465600000,
+    updatedAt: 1743465600000,
+    deletedAt: null,
   };
 }
 
@@ -88,10 +89,10 @@ describe('isSustainmentDue', () => {
     ).toBe(false);
   });
 
-  it('returns false for tombstoned records', () => {
+  it('returns false for soft-deleted records (deletedAt !== null)', () => {
     const record = {
       ...makeRecord('2026-04-01T00:00:00.000Z'),
-      tombstoneAt: '2026-04-20T00:00:00.000Z',
+      deletedAt: 1745107200000, // 2026-04-20T00:00:00.000Z
     };
     expect(isSustainmentDue(record, new Date('2026-04-26T00:00:00.000Z'))).toBe(false);
   });
@@ -110,10 +111,10 @@ describe('isSustainmentOverdue', () => {
     expect(isSustainmentOverdue(record, new Date('2026-05-04T00:00:00.000Z'), 7)).toBe(true);
   });
 
-  it('returns false for tombstoned records even when past due', () => {
+  it('returns false for soft-deleted records even when past due', () => {
     const record = {
       ...makeRecord('2026-04-01T00:00:00.000Z'),
-      tombstoneAt: '2026-04-20T00:00:00.000Z',
+      deletedAt: 1745107200000, // 2026-04-20T00:00:00.000Z
     };
     expect(isSustainmentOverdue(record, new Date('2026-04-26T00:00:00.000Z'), 0)).toBe(false);
   });
@@ -174,11 +175,12 @@ function makeHandoff(
     surface,
     systemName: 'System',
     operationalOwner: { userId: 'u-1', displayName: 'Op' },
-    handoffDate: '2026-04-26T00:00:00.000Z',
+    handoffDate: 1745625600000, // 2026-04-26T00:00:00.000Z
     description: '',
     retainSustainmentReview: retain,
-    recordedAt: '2026-04-26T00:00:00.000Z',
+    createdAt: 1745625600000, // 2026-04-26T00:00:00.000Z (formerly recordedAt)
     recordedBy: { userId: 'u-1', displayName: 'Op' },
+    deletedAt: null,
   };
 }
 
@@ -268,24 +270,24 @@ describe('selectSustainmentReviews', () => {
     expect(result.map(r => r.investigation.id)).toEqual(['inv-1']);
   });
 
-  it('skips tombstoned records', () => {
-    const tombstoned = {
+  it('skips soft-deleted records (deletedAt !== null)', () => {
+    const softDeleted = {
       ...makeRecord('2026-04-25T00:00:00.000Z'),
       id: 'rec-1',
       investigationId: 'inv-1',
-      tombstoneAt: '2026-04-26T00:00:00.000Z',
+      deletedAt: 1745625600000, // 2026-04-26T00:00:00.000Z
     };
     const investigations = [
       makeInvestigation('inv-1', 'resolved', {
         recordId: 'rec-1',
         cadence: 'monthly',
-        nextReviewDue: tombstoned.nextReviewDue,
+        nextReviewDue: softDeleted.nextReviewDue,
       }),
     ];
 
     const result = selectSustainmentReviews(
       investigations,
-      [tombstoned],
+      [softDeleted],
       [],
       new Date('2026-04-26T00:00:00.000Z')
     );
@@ -332,8 +334,9 @@ describe('selectSustainmentBuckets', () => {
       hubId: 'hub-1',
       cadence: 'monthly',
       nextReviewDue,
-      createdAt: '2026-03-01T00:00:00.000Z',
-      updatedAt: '2026-04-01T00:00:00.000Z',
+      createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z
+      updatedAt: 1743465600000, // 2026-04-01T00:00:00.000Z
+      deletedAt: null,
       ...overrides,
     };
   }
@@ -430,13 +433,13 @@ describe('selectSustainmentBuckets', () => {
     ).toHaveLength(1);
   });
 
-  it('excludes tombstoned records from all buckets', () => {
+  it('excludes soft-deleted records from all buckets', () => {
     const inv = makeInvestigation('inv-1', 'controlled', {
       recordId: 'rec-inv-1',
       cadence: 'monthly',
     });
     const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z', {
-      tombstoneAt: '2026-04-24T00:00:00.000Z',
+      deletedAt: 1745020800000, // 2026-04-24T00:00:00.000Z
       latestReviewAt: '2026-04-20T00:00:00.000Z',
     });
     const result = selectSustainmentBuckets([inv], [record], [], NOW);

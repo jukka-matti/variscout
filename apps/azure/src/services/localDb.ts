@@ -270,7 +270,7 @@ export async function listSustainmentReviewsFromIndexedDB(
   recordId: string
 ): Promise<SustainmentReview[]> {
   const rows = await db.sustainmentReviews.where('recordId').equals(recordId).toArray();
-  return rows.sort((a, b) => b.reviewedAt.localeCompare(a.reviewedAt));
+  return rows.sort((a, b) => b.reviewedAt - a.reviewedAt);
 }
 
 export async function saveControlHandoffToIndexedDB(handoff: ControlHandoff): Promise<void> {
@@ -320,7 +320,7 @@ export async function recomputeSustainmentProjectionForRecord(
 
 export async function tombstoneSustainmentRecordsForInvestigation(
   investigationId: string,
-  tombstoneAt: string
+  deletedAt: number
 ): Promise<number> {
   const records = await db.sustainmentRecords
     .where('investigationId')
@@ -329,10 +329,10 @@ export async function tombstoneSustainmentRecordsForInvestigation(
   if (records.length === 0) return 0;
   let updated = 0;
   for (const record of records) {
-    if (record.tombstoneAt) continue; // already archived; skip
+    if (record.deletedAt !== null) continue; // already archived; skip
     await db.sustainmentRecords.update(record.id, {
-      tombstoneAt,
-      updatedAt: tombstoneAt,
+      deletedAt,
+      updatedAt: deletedAt,
     });
     updated += 1;
   }

@@ -908,7 +908,7 @@ function buildSustainmentSummary(
   now: Date,
   candidates: number
 ): ProcessHubContextContract['sustainment'] {
-  const liveRecords = records.filter(record => !record.tombstoneAt);
+  const liveRecords = records.filter(record => record.deletedAt === null);
   const due = liveRecords.filter(record => isSustainmentDue(record, now)).length;
   const overdue = liveRecords.filter(record => isSustainmentOverdue(record, now, 0)).length;
   const verdicts: Partial<Record<SustainmentVerdict, number>> = {};

@@ -278,8 +278,9 @@ describe('blobClient', () => {
         hubId: 'hub-1',
         investigationId: 'inv-1',
         cadence: 'monthly',
-        createdAt: '2026-04-27T00:00:00.000Z',
-        updatedAt: '2026-04-27T00:00:00.000Z',
+        createdAt: 1745712000000, // 2026-04-27T00:00:00.000Z
+        updatedAt: 1745712000000,
+        deletedAt: null,
       });
 
       expect(fetchSpy).toHaveBeenLastCalledWith(
@@ -302,8 +303,9 @@ describe('blobClient', () => {
                 hubId: 'hub-1',
                 investigationId: 'inv-1',
                 cadence: 'monthly',
-                createdAt: '2026-04-27T00:00:00.000Z',
-                updatedAt: '2026-04-27T00:00:00.000Z',
+                createdAt: 1745712000000,
+                updatedAt: 1745712000000,
+                deletedAt: null,
               },
             ]),
             { status: 200 }
@@ -328,7 +330,9 @@ describe('blobClient', () => {
         recordId: 'rec-1',
         hubId: 'hub-1',
         investigationId: 'inv-1',
-        reviewedAt: '2026-04-27T00:00:00.000Z',
+        reviewedAt: 1745712000000, // 2026-04-27T00:00:00.000Z
+        createdAt: 1745712000000,
+        deletedAt: null,
         reviewer: { userId: 'u1', displayName: 'Alice' },
         verdict: 'holding',
       });
@@ -351,10 +355,11 @@ describe('blobClient', () => {
         surface: 'qms-procedure',
         systemName: 'QMS-101',
         operationalOwner: { userId: 'u2', displayName: 'Bob' },
-        handoffDate: '2026-04-27',
+        handoffDate: 1745712000000, // 2026-04-27
         description: 'Procedure handoff',
         retainSustainmentReview: true,
-        recordedAt: '2026-04-27T00:00:00.000Z',
+        createdAt: 1745712000000, // formerly recordedAt
+        deletedAt: null,
         recordedBy: { userId: 'u1', displayName: 'Alice' },
       });
 

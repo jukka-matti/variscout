@@ -167,8 +167,8 @@ describe('Dashboard Process Hub home', () => {
     const onOpenProject = vi.fn();
     mockListProjects.mockResolvedValue([makeProject()]);
     mockListProcessHubs.mockResolvedValue([
-      { id: 'general-unassigned', name: 'General / Unassigned', createdAt: '' },
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'general-unassigned', name: 'General / Unassigned', createdAt: 0, deletedAt: null },
+      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
 
     render(<Dashboard onOpenProject={onOpenProject} />);
@@ -187,7 +187,7 @@ describe('Dashboard Process Hub home', () => {
   it('shows latest hub review signals on Process Hub cards', async () => {
     mockListProjects.mockResolvedValue([makeProject()]);
     mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
 
     render(<Dashboard onOpenProject={vi.fn()} />);
@@ -206,7 +206,7 @@ describe('Dashboard Process Hub home', () => {
       makeResolvedProject(),
     ]);
     mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
 
     render(<Dashboard onOpenProject={onOpenProject} />);
@@ -260,7 +260,7 @@ describe('Dashboard Process Hub home', () => {
   it('shows readiness queue reasons in the cadence review panel', async () => {
     mockListProjects.mockResolvedValue([makeReadinessProject()]);
     mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
 
     render(<Dashboard onOpenProject={vi.fn()} />);
@@ -289,7 +289,7 @@ describe('Dashboard Process Hub home', () => {
       makeReadinessProject(5),
     ]);
     mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
     mockListSustainmentRecords.mockResolvedValue([
       {
@@ -298,8 +298,9 @@ describe('Dashboard Process Hub home', () => {
         hubId: 'line-4',
         cadence: 'monthly',
         nextReviewDue: '2026-04-25T00:00:00.000Z',
-        createdAt: '2026-04-01T00:00:00.000Z',
-        updatedAt: '2026-04-01T00:00:00.000Z',
+        createdAt: 1743465600000,
+        updatedAt: 1743465600000,
+        deletedAt: null,
       },
     ]);
 
@@ -322,7 +323,7 @@ describe('Dashboard Process Hub home', () => {
   it('keeps process hubs visible when search filters the investigation list', async () => {
     mockListProjects.mockResolvedValue([makeProject()]);
     mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
 
     render(<Dashboard onOpenProject={vi.fn()} />);
@@ -344,7 +345,7 @@ describe('Dashboard Process Hub home', () => {
   it('shows empty review states for a selected hub without investigations', async () => {
     mockListProjects.mockResolvedValue([]);
     mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
 
     render(<Dashboard onOpenProject={vi.fn()} />);
@@ -364,9 +365,9 @@ describe('Dashboard Process Hub home', () => {
   it('defers evidence loading until a hub is selected', async () => {
     mockListProjects.mockResolvedValue([]);
     mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
-      { id: 'line-5', name: 'Line 5', createdAt: '2026-04-25T00:00:00.000Z' },
-      { id: 'line-6', name: 'Line 6', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
+      { id: 'line-5', name: 'Line 5', createdAt: 1745539200000, deletedAt: null },
+      { id: 'line-6', name: 'Line 6', createdAt: 1745539200000, deletedAt: null },
     ]);
     mockListEvidenceSources.mockClear();
     mockListEvidenceSnapshots.mockClear();
@@ -411,7 +412,7 @@ describe('Dashboard Process Hub home', () => {
   it('onHubGoalChange wires to saveProcessHub — framing prompt visible for incomplete hub', async () => {
     mockListProjects.mockResolvedValue([makeProject()]);
     mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
     mockSaveProcessHub.mockClear();
     mockSaveProcessHub.mockResolvedValue(undefined);
@@ -434,7 +435,7 @@ describe('Dashboard Process Hub home', () => {
   it('renders cadence column labels as eyebrow text, not as duplicate section headings', async () => {
     mockListProjects.mockResolvedValue([]);
     mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
 
     render(<Dashboard onOpenProject={vi.fn()} />);

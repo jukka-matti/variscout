@@ -168,9 +168,11 @@ export const sustainmentBandAnswer = (
   );
   if (!sustainmentEligible) return null;
   const due = records.filter(
-    r => r.nextReviewDue && new Date(r.nextReviewDue) <= now && !r.tombstoneAt
+    r => r.nextReviewDue && new Date(r.nextReviewDue) <= now && r.deletedAt === null
   ).length;
-  const holdingCount = records.filter(r => r.latestVerdict === 'holding' && !r.tombstoneAt).length;
+  const holdingCount = records.filter(
+    r => r.latestVerdict === 'holding' && r.deletedAt === null
+  ).length;
 
   let base: string;
   if (due === 0 && holdingCount > 0) {

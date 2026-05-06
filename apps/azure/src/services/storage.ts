@@ -272,9 +272,9 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const wasSustainment = oldStatus === 'resolved' || oldStatus === 'controlled';
       const isSustainment = newStatus === 'resolved' || newStatus === 'controlled';
       if (wasSustainment && !isSustainment) {
-        // Investigation reopened — tombstone its sustainment records.
+        // Investigation reopened — soft-delete its sustainment records (deletedAt).
         // Use the project name as the investigationId, matching Task 18's keying.
-        await tombstoneSustainmentRecordsForInvestigation(name, new Date().toISOString());
+        await tombstoneSustainmentRecordsForInvestigation(name, Date.now());
       }
 
       // Always save to IndexedDB first (instant feedback)

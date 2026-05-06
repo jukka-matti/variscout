@@ -495,8 +495,9 @@ describe('buildProcessHubCadence', () => {
         hubId: 'line-4',
         cadence: 'monthly',
         nextReviewDue: '2026-04-25T00:00:00.000Z',
-        createdAt: '2026-03-25T00:00:00.000Z',
-        updatedAt: '2026-04-25T00:00:00.000Z',
+        createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z
+        updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        deletedAt: null,
       },
     ];
     const now = new Date('2026-04-26T12:00:00.000Z');
@@ -722,8 +723,9 @@ describe('buildProcessHubCadence — sustainment lane', () => {
         hubId: 'hub-1',
         cadence: 'monthly',
         nextReviewDue: '2026-04-25T00:00:00.000Z',
-        createdAt: '2026-03-25T00:00:00.000Z',
-        updatedAt: '2026-04-25T00:00:00.000Z',
+        createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z
+        updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        deletedAt: null,
       },
       {
         id: 'rec-future',
@@ -731,8 +733,9 @@ describe('buildProcessHubCadence — sustainment lane', () => {
         hubId: 'hub-1',
         cadence: 'monthly',
         nextReviewDue: '2026-05-25T00:00:00.000Z',
-        createdAt: '2026-04-25T00:00:00.000Z',
-        updatedAt: '2026-04-25T00:00:00.000Z',
+        createdAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        deletedAt: null,
       },
     ];
     const controlHandoffs: ControlHandoff[] = [];
@@ -1117,8 +1120,9 @@ describe('buildProcessHubContext — sustainment', () => {
         cadence: 'monthly',
         nextReviewDue: '2026-04-25T00:00:00.000Z',
         latestVerdict: 'holding',
-        createdAt: '2026-03-25T00:00:00.000Z',
-        updatedAt: '2026-04-25T00:00:00.000Z',
+        createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z
+        updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        deletedAt: null,
       },
     ];
 

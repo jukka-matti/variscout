@@ -95,8 +95,9 @@ describe('SustainmentEntryRow', () => {
         investigationId: 'inv-123',
         hubId: 'hub-1',
         cadence: 'monthly',
-        createdAt: '2026-04-26T00:00:00.000Z',
-        updatedAt: '2026-04-26T00:00:00.000Z',
+        createdAt: 1745625600000,
+        updatedAt: 1745625600000,
+        deletedAt: null,
       },
     ]);
     render(<SustainmentEntryRow investigationId="inv-123" hubId="hub-1" />);
@@ -105,16 +106,16 @@ describe('SustainmentEntryRow', () => {
     expect(screen.getByTestId('editor-mode')).toHaveTextContent('edit:rec-1');
   });
 
-  it('ignores tombstoned records — shows "Set up" not "Edit"', async () => {
+  it('ignores soft-deleted records (deletedAt !== null) — shows "Set up" not "Edit"', async () => {
     mockListSustainmentRecords.mockResolvedValue([
       {
         id: 'rec-old',
         investigationId: 'inv-123',
         hubId: 'hub-1',
         cadence: 'monthly',
-        tombstoneAt: '2026-04-20T00:00:00.000Z',
-        createdAt: '2026-04-01T00:00:00.000Z',
-        updatedAt: '2026-04-20T00:00:00.000Z',
+        deletedAt: 1745107200000, // 2026-04-20T00:00:00.000Z
+        createdAt: 1743465600000, // 2026-04-01T00:00:00.000Z
+        updatedAt: 1745107200000, // 2026-04-20T00:00:00.000Z
       },
     ]);
     render(<SustainmentEntryRow investigationId="inv-123" hubId="hub-1" />);
@@ -128,8 +129,9 @@ describe('SustainmentEntryRow', () => {
         investigationId: 'inv-123',
         hubId: 'hub-1',
         cadence: 'monthly',
-        createdAt: '2026-04-26T00:00:00.000Z',
-        updatedAt: '2026-04-26T00:00:00.000Z',
+        createdAt: 1745625600000,
+        updatedAt: 1745625600000,
+        deletedAt: null,
       },
     ]);
     render(<SustainmentEntryRow investigationId="inv-123" hubId="hub-1" />);

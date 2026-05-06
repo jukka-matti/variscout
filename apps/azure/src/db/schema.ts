@@ -127,6 +127,13 @@ export class VariScoutDatabase extends Dexie {
     this.version(8).stores({
       evidenceSourceCursors: '[hubId+sourceId]',
     });
+
+    // Version 9: F1 data-flow foundation — P1.4b.
+    // sustainmentRecords: rename indexed field tombstoneAt → deletedAt (EntityBase alignment).
+    // All timestamps (createdAt, updatedAt, deletedAt) are now Unix ms numbers.
+    this.version(9).stores({
+      sustainmentRecords: 'id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
+    });
   }
 }
 
