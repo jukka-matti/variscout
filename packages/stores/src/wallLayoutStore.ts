@@ -7,6 +7,7 @@
  * causalLinks, problemContributionTree) live in investigationStore.
  */
 
+// R12 exception: separate Dexie DB for cross-app wall UI state — does not flow through pwaHubRepository / azureHubRepository.dispatch. ESLint allow-listed in eslint.config.js.
 import Dexie, { type Table } from 'dexie';
 import { applyPatches, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { create } from 'zustand';

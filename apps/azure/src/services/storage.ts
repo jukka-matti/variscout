@@ -544,6 +544,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     try {
       const cloudHubs = await listProcessHubsFromCloud('blob-sas');
+      // Bootstrap cache-fill from cloud — direct write is intentional; HUB_PERSIST_SNAPSHOT is for user save paths. F3 may unify under HubAction.
       for (const hub of cloudHubs) {
         await saveProcessHubToIndexedDB(hub);
       }

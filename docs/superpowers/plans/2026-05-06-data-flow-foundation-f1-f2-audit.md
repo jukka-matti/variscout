@@ -1,7 +1,7 @@
 ---
 title: F1+F2 Audit — entity / factory / persistence / store / canvas-action inventories
 audience: [engineer]
-category: implementation-audit
+category: implementation
 status: active
 last-reviewed: 2026-05-06
 related:
