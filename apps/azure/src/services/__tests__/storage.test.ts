@@ -19,6 +19,13 @@ const {
   mockUpdateBlobIndex,
   mockListBlobProcessHubs,
   mockUpdateBlobProcessHubs,
+  mockListBlobEvidenceSnapshots,
+  mockSaveBlobEvidenceSnapshot,
+  mockUpdateBlobEvidenceSnapshots,
+  mockListBlobEvidenceSources,
+  mockSaveBlobEvidenceSource,
+  mockUpdateBlobEvidenceSources,
+  mockDispatch,
 } = vi.hoisted(() => ({
   mockProjects: {
     put: vi.fn().mockResolvedValue(undefined),
@@ -42,6 +49,13 @@ const {
   mockUpdateBlobIndex: vi.fn().mockResolvedValue(undefined),
   mockListBlobProcessHubs: vi.fn().mockResolvedValue([]),
   mockUpdateBlobProcessHubs: vi.fn().mockResolvedValue(undefined),
+  mockListBlobEvidenceSnapshots: vi.fn().mockResolvedValue([]),
+  mockSaveBlobEvidenceSnapshot: vi.fn().mockResolvedValue(undefined),
+  mockUpdateBlobEvidenceSnapshots: vi.fn().mockResolvedValue(undefined),
+  mockListBlobEvidenceSources: vi.fn().mockResolvedValue([]),
+  mockSaveBlobEvidenceSource: vi.fn().mockResolvedValue(undefined),
+  mockUpdateBlobEvidenceSources: vi.fn().mockResolvedValue(undefined),
+  mockDispatch: vi.fn().mockResolvedValue(undefined),
 }));
 
 // ---------------------------------------------------------------------------
@@ -51,6 +65,11 @@ vi.mock('../../db/schema', () => ({
   db: {
     projects: mockProjects,
     syncState: mockSyncState,
+    // processHubs needed by ensureDefaultProcessHubInIndexedDB (called inside saveProcessHub)
+    processHubs: {
+      get: vi.fn().mockResolvedValue({ id: 'default' }),
+      put: vi.fn().mockResolvedValue(undefined),
+    },
   },
   addToSyncQueue: mockAddToSyncQueue,
   getPendingSyncItems: mockGetPending,
@@ -107,6 +126,21 @@ vi.mock('../blobClient', () => ({
   updateBlobIndex: mockUpdateBlobIndex,
   listBlobProcessHubs: mockListBlobProcessHubs,
   updateBlobProcessHubs: mockUpdateBlobProcessHubs,
+  listBlobEvidenceSnapshots: mockListBlobEvidenceSnapshots,
+  saveBlobEvidenceSnapshot: mockSaveBlobEvidenceSnapshot,
+  updateBlobEvidenceSnapshots: mockUpdateBlobEvidenceSnapshots,
+  listBlobEvidenceSources: mockListBlobEvidenceSources,
+  saveBlobEvidenceSource: mockSaveBlobEvidenceSource,
+  updateBlobEvidenceSources: mockUpdateBlobEvidenceSources,
+}));
+
+// ---------------------------------------------------------------------------
+// Mock: ../../persistence (azureHubRepository.dispatch)
+// ---------------------------------------------------------------------------
+vi.mock('../../persistence', () => ({
+  azureHubRepository: {
+    dispatch: mockDispatch,
+  },
 }));
 
 // ---------------------------------------------------------------------------
@@ -519,6 +553,126 @@ describe('storage service', () => {
 
       expect(projects).toHaveLength(1);
       expect(projects[0].name).toBe('safe-local');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // saveProcessHub — routes IndexedDB write through dispatch
+  // -------------------------------------------------------------------------
+  describe('saveProcessHub', () => {
+    const sampleHub = {
+      id: 'hub-1',
+      name: 'Test Hub',
+      createdAt: 1000,
+      deletedAt: null,
+    } as import('@variscout/core').ProcessHub;
+
+    it('calls dispatch with HUB_PERSIST_SNAPSHOT action', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveProcessHub(sampleHub);
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({ kind: 'HUB_PERSIST_SNAPSHOT', hub: sampleHub });
+    });
+
+    it('also syncs to cloud when online with team features', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveProcessHub(sampleHub);
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({ kind: 'HUB_PERSIST_SNAPSHOT', hub: sampleHub });
+      expect(mockUpdateBlobProcessHubs).toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // saveEvidenceSource — routes IndexedDB write through dispatch
+  // -------------------------------------------------------------------------
+  describe('saveEvidenceSource', () => {
+    const sampleSource = {
+      id: 'src-1',
+      hubId: 'hub-1',
+      name: 'Fill Weight',
+      cadence: 'daily' as const,
+      createdAt: 1000,
+      deletedAt: null,
+    } as import('@variscout/core').EvidenceSource;
+
+    it('calls dispatch with EVIDENCE_SOURCE_ADD action', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveEvidenceSource(sampleSource);
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        kind: 'EVIDENCE_SOURCE_ADD',
+        hubId: sampleSource.hubId,
+        source: sampleSource,
+      });
+    });
+
+    it('also syncs to cloud when online with team features', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveEvidenceSource(sampleSource);
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        kind: 'EVIDENCE_SOURCE_ADD',
+        hubId: sampleSource.hubId,
+        source: sampleSource,
+      });
+      expect(mockSaveBlobEvidenceSource).toHaveBeenCalled();
+      expect(mockUpdateBlobEvidenceSources).toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // saveEvidenceSnapshot — routes IndexedDB write through dispatch
+  // -------------------------------------------------------------------------
+  describe('saveEvidenceSnapshot', () => {
+    const sampleSnapshot = {
+      id: 'snap-1',
+      hubId: 'hub-1',
+      sourceId: 'src-1',
+      capturedAt: '2026-05-01T00:00:00Z',
+      rowCount: 50,
+      origin: 'evidence-source:src-1',
+      importedAt: 1000,
+      createdAt: 1000,
+      deletedAt: null,
+    } as import('@variscout/core').EvidenceSnapshot;
+
+    it('calls dispatch with EVIDENCE_ADD_SNAPSHOT action', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveEvidenceSnapshot(sampleSnapshot);
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        kind: 'EVIDENCE_ADD_SNAPSHOT',
+        hubId: sampleSnapshot.hubId,
+        snapshot: sampleSnapshot,
+        provenance: [],
+      });
+    });
+
+    it('also syncs to cloud when online with team features', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveEvidenceSnapshot(sampleSnapshot, 'csv-data');
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        kind: 'EVIDENCE_ADD_SNAPSHOT',
+        hubId: sampleSnapshot.hubId,
+        snapshot: sampleSnapshot,
+        provenance: [],
+      });
+      expect(mockSaveBlobEvidenceSnapshot).toHaveBeenCalled();
+      expect(mockUpdateBlobEvidenceSnapshots).toHaveBeenCalled();
     });
   });
 

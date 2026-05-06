@@ -206,5 +206,49 @@ export default [
       'variscout/no-interaction-moderator': 'error',
     },
   },
+  // Persistence boundary guard (F1+F2 P7.2, audit R12+R13):
+  // Domain stores and non-persistence app code must not import `dexie` directly.
+  // Persistence access is via @variscout/core HubRepository (pwaHubRepository /
+  // azureHubRepository .dispatch). Exceptions: documented R12 (wallLayoutStore
+  // separate DB) and R13 (azure services/storage, services/localDb, services/cloudSync,
+  // lib/persistence — cloud-sync + project-overlay writes pre-dating HubAction dispatch).
+  // Also blocks direct `db` imports from app db/schema modules (R12+R13 same policy).
+  {
+    files: ['packages/stores/**/*.ts', 'apps/*/src/**/*.{ts,tsx}'],
+    ignores: [
+      // R12: wallLayoutStore operates a separate Dexie DB for cross-app UI state
+      'packages/stores/src/wallLayoutStore.ts',
+      // R13 / persistence layer: all files under persistence/ and db/ are the designated home
+      'apps/*/src/persistence/**',
+      'apps/*/src/db/**',
+      // R13: Azure services that pre-date HubAction dispatch
+      'apps/azure/src/services/storage.ts',
+      'apps/azure/src/services/localDb.ts',
+      'apps/azure/src/services/cloudSync.ts',
+      'apps/azure/src/lib/persistence.ts',
+      // Test files: mocks routinely import db/dexie for setup
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/__tests__/**',
+    ],
+    rules: {
+      'no-restricted-imports': ['error', {
+        paths: [
+          {
+            name: 'dexie',
+            message:
+              'Persistence access is via @variscout/core HubRepository. Use pwaHubRepository.dispatch / azureHubRepository.dispatch or see apps/<app>/src/persistence/ for the implementation.',
+          },
+        ],
+        patterns: [
+          {
+            group: ['**/db/schema'],
+            message:
+              'Direct `db` access from db/schema bypasses the repository dispatch boundary. Use azureHubRepository.dispatch / pwaHubRepository.dispatch or a service in apps/<app>/src/persistence/.',
+          },
+        ],
+      }],
+    },
+  },
   prettier,
 ];

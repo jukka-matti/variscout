@@ -4,24 +4,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('../../../services/cloudSync', () => ({
   listEvidenceSnapshotsFromCloud: vi.fn(),
 }));
-vi.mock('../../../db/schema', () => ({
-  db: {
-    evidenceSourceCursors: {
-      get: vi.fn(),
-      put: vi.fn(),
+vi.mock('../../../persistence', () => ({
+  azureHubRepository: {
+    evidenceSources: {
+      getCursor: vi.fn(),
     },
+    dispatch: vi.fn(),
   },
 }));
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { useEvidenceSourceSync } from '../useEvidenceSourceSync';
 import { listEvidenceSnapshotsFromCloud } from '../../../services/cloudSync';
-import { db } from '../../../db/schema';
+import { azureHubRepository } from '../../../persistence';
 import type { EvidenceSnapshot } from '@variscout/core';
 
 const mockedList = vi.mocked(listEvidenceSnapshotsFromCloud);
-const mockedGet = vi.mocked(db.evidenceSourceCursors.get);
-const mockedPut = vi.mocked(db.evidenceSourceCursors.put);
+const mockedGetCursor = vi.mocked(azureHubRepository.evidenceSources.getCursor);
+const mockedDispatch = vi.mocked(azureHubRepository.dispatch);
 
 const makeSnap = (id: string, capturedAt: string): EvidenceSnapshot => ({
   id,
@@ -38,10 +38,11 @@ const makeSnap = (id: string, capturedAt: string): EvidenceSnapshot => ({
 describe('useEvidenceSourceSync', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedDispatch.mockResolvedValue(undefined);
   });
 
   it('returns 0 new when no snapshots from cloud', async () => {
-    mockedGet.mockResolvedValue(undefined);
+    mockedGetCursor.mockResolvedValue(undefined);
     mockedList.mockResolvedValue([]);
     const { result } = renderHook(() => useEvidenceSourceSync('h1', 's1', 'token-abc'));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -50,7 +51,7 @@ describe('useEvidenceSourceSync', () => {
   });
 
   it('returns all snapshots as new when no cursor exists', async () => {
-    mockedGet.mockResolvedValue(undefined);
+    mockedGetCursor.mockResolvedValue(undefined);
     const snaps = [
       makeSnap('s-1', '2026-05-01T00:00:00Z'),
       makeSnap('s-2', '2026-05-02T00:00:00Z'),
@@ -63,7 +64,7 @@ describe('useEvidenceSourceSync', () => {
   });
 
   it('returns only snapshots after lastSeenAt when cursor exists', async () => {
-    mockedGet.mockResolvedValue({
+    mockedGetCursor.mockResolvedValue({
       id: 'cursor-h1-s1',
       createdAt: 1746352800000,
       deletedAt: null,
@@ -89,25 +90,28 @@ describe('useEvidenceSourceSync', () => {
     expect(result.current.newCount).toBe(0);
   });
 
-  it('markSeen advances the cursor to the most recent snapshot', async () => {
-    mockedGet.mockResolvedValue(undefined);
+  it('markSeen dispatches EVIDENCE_SOURCE_UPDATE_CURSOR with correct cursor shape', async () => {
+    mockedGetCursor.mockResolvedValue(undefined);
     mockedList.mockResolvedValue([
       makeSnap('s-1', '2026-05-01T00:00:00Z'),
       makeSnap('s-2', '2026-05-02T00:00:00Z'),
     ]);
-    mockedPut.mockResolvedValue([0, 0] as never);
     const { result } = renderHook(() => useEvidenceSourceSync('h1', 's1', 'token-abc'));
     await waitFor(() => expect(result.current.newCount).toBe(2));
 
     await result.current.markSeen();
 
-    expect(mockedPut).toHaveBeenCalledWith(
+    expect(mockedDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        hubId: 'h1',
+        kind: 'EVIDENCE_SOURCE_UPDATE_CURSOR',
         sourceId: 's1',
-        lastSeenSnapshotId: 's-2',
-        lastSeenAt: new Date('2026-05-02T00:00:00Z').getTime(),
-        deletedAt: null,
+        cursor: expect.objectContaining({
+          hubId: 'h1',
+          sourceId: 's1',
+          lastSeenSnapshotId: 's-2',
+          lastSeenAt: new Date('2026-05-02T00:00:00Z').getTime(),
+          deletedAt: null,
+        }),
       })
     );
   });

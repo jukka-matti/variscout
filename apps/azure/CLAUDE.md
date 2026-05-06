@@ -12,12 +12,14 @@ Azure Team App — Feature-Sliced Design with Zustand feature stores, IndexedDB 
 ## Invariants
 
 - 6 feature modules in `src/features/`, each with a co-located Zustand feature store suffixed `*FeatureStore` where ambiguity needed: `panels/panelsStore`, `findings/findingsStore`, `investigation/useInvestigationFeatureStore`, `ai/aiStore`, `data-flow/`, `improvement/` (the improvement UI-state store was deleted April 2026; its state moved to `panelsStore`).
+- **Persistence boundary** (F1+F2 PR3): hub-domain writes flow through `azureHubRepository` (`apps/azure/src/persistence/`, module-scoped singleton implementing `@variscout/core/persistence#HubRepository`). Domain stores **never import `dexie` directly** — access is via `azureHubRepository.dispatch(action)`. An ESLint `no-restricted-imports` rule (P7.2) enforces this boundary. Documented exceptions: **R12** — `packages/stores/src/wallLayoutStore.ts` (separate `variscout-wall-layout` DB for cross-app Wall UI state); **R13** — `apps/azure/src/services/{storage,localDb,cloudSync}.ts` and `apps/azure/src/lib/persistence.ts` (project-overlay + cloud-sync writes that pre-date HubAction dispatch; F3 may unify).
 - Persistence: IndexedDB via Dexie (`src/db/schema.ts`, `services/localDb.ts`). Blob Storage sync for Team tier (`services/cloudSync.ts`). SAS tokens minted by `/api/storage-token` endpoint in `server.js`.
 - App Insights wired at `src/lib/appInsights.ts`. `services/storage.ts` is the facade for both local + cloud.
 - Domain stores from `@variscout/stores` are the source of truth for project/investigation/improvement/session data. Feature stores hold UI-only state.
 - File Picker: local files only (`components/FileBrowseButton.tsx`). SharePoint picker removed per ADR-059.
 - Multi-level surfaces: SCOUT dashboard (investigation-time picker) and Hub Capability tab (hub-time, rolling default matched to cadence) link as peers; ADR-074 boundary policy applies.
 - Hub Capability tab exposes the hub-level Cpk target editor (`CpkTargetInput`) next to `TimelineWindowPicker`. Commits write `processHub.reviewSignal.capability.cpkTarget` via `Dashboard.handleHubCpkTargetCommit` → `saveProcessHub`. This is the cascade-level "hub" writer; the per-column writer is `setMeasureSpec`.
+- **Sustainment + handoff deferral**: `sustainmentRecords`, `sustainmentReviews`, and `controlHandoffs` are NOT yet hub-domain-dispatched; their HubAction kinds do not exist. Editors continue calling `saveSustainmentRecordToIndexedDB` and friends directly via `services/localDb.ts` (R13 allow-listed). F3 may unify them under HubAction.
 
 ## Test command
 

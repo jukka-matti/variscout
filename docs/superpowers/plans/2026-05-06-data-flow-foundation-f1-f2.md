@@ -1,7 +1,7 @@
 ---
 title: Data-Flow Foundation F1+F2 Implementation Plan — type-level normalization + repository pattern
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: active
 last-reviewed: 2026-05-06
 related:

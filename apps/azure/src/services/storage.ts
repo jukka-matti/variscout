@@ -90,6 +90,7 @@ import {
   recomputeSustainmentProjectionForRecord,
   tombstoneSustainmentRecordsForInvestigation,
 } from './localDb';
+import { azureHubRepository } from '../persistence';
 
 // ── StorageProvider Context ─────────────────────────────────────────────
 
@@ -543,6 +544,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     try {
       const cloudHubs = await listProcessHubsFromCloud('blob-sas');
+      // Bootstrap cache-fill from cloud — direct write is intentional; HUB_PERSIST_SNAPSHOT is for user save paths. F3 may unify under HubAction.
       for (const hub of cloudHubs) {
         await saveProcessHubToIndexedDB(hub);
       }
@@ -561,7 +563,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const saveProcessHub = useCallback(async (hub: ProcessHub): Promise<void> => {
     await ensureDefaultProcessHubInIndexedDB();
-    await saveProcessHubToIndexedDB(hub);
+    // Route IndexedDB write through azureHubRepository.dispatch (F1+F2 P6).
+    await azureHubRepository.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub });
 
     if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
       return;
@@ -606,7 +609,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   const saveEvidenceSource = useCallback(async (source: EvidenceSource): Promise<void> => {
-    await saveEvidenceSourceToIndexedDB(source);
+    // Route IndexedDB write through azureHubRepository.dispatch (F1+F2 P6).
+    await azureHubRepository.dispatch({ kind: 'EVIDENCE_SOURCE_ADD', hubId: source.hubId, source });
 
     if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
       return;
@@ -655,7 +659,15 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const saveEvidenceSnapshot = useCallback(
     async (snapshot: EvidenceSnapshot, sourceCsv?: string): Promise<void> => {
-      await saveEvidenceSnapshotToIndexedDB(snapshot);
+      // Route IndexedDB write through azureHubRepository.dispatch (F1+F2 P6).
+      // provenance is empty here — storage facade has no row-level provenance;
+      // applyAction uses only action.snapshot (rowProvenance is Azure no-op today per F3 note).
+      await azureHubRepository.dispatch({
+        kind: 'EVIDENCE_ADD_SNAPSHOT',
+        hubId: snapshot.hubId,
+        snapshot,
+        provenance: [],
+      });
 
       if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
         return;
