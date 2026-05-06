@@ -12,10 +12,12 @@
 ## Invariants
 
 - `sessionStore` auto-persists via idb-keyval middleware. Domain stores (project/investigation/improvement) persist at document-level via `useProjectActions`.
-- `wallLayoutStore` persists to a dedicated Dexie DB (`variscout-wall-layout`, distinct from `VaRiScoutAzure`) keyed by `projectId`. Call `rehydrateWallLayout(projectId)` on project open, `persistWallLayout(projectId)` debounced on mutations. PWA is session-only (hook is no-op when projectId is null).
+- Domain stores (project/investigation/improvement/canvas/session) stay persistence-free; the dispatch boundary lives at app/UI composition root via `pwaHubRepository.dispatch(action)` (PWA, `apps/pwa/src/persistence/`) and `azureHubRepository.dispatch(action)` (Azure, F2 PR3). `addHubComment` network IO in `investigationStore` is a deliberate exception (optimistic-update IO, not persistence) — see plan audit R14.
+- `canvasStore` exposes its own `dispatch(action: CanvasAction)` as the canvas-state mutation entry (audit R15); per-action methods stay as transitional wrappers for PR2 and are removed in PR3 cleanup.
+- `wallLayoutStore` persists to a dedicated Dexie DB (`variscout-wall-layout`, distinct from `VaRiScoutAzure`) keyed by `projectId`. Call `rehydrateWallLayout(projectId)` on project open, `persistWallLayout(projectId)` debounced on mutations. PWA is session-only (hook is no-op when projectId is null). Whitelisted from F2's "no `dexie` outside persistence" ESLint rule because it operates a separate DB for cross-app UI state — audit R12.
 - Testing pattern: `beforeEach(() => useStore.setState(useStore.getInitialState()))` to reset between tests. Selectors tested as pure functions.
 - Cross-store reads: `otherStore.getState()` inside a selector is allowed but should be mocked in tests.
-- Complete list of stores: `projectStore`, `investigationStore`, `improvementStore`, `sessionStore`, `wallLayoutStore`.
+- Complete list of stores: `projectStore`, `investigationStore`, `improvementStore`, `sessionStore`, `canvasStore`, `wallLayoutStore`.
 
 ## Test command
 

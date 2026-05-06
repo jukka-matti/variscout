@@ -1,7 +1,8 @@
 // apps/pwa/src/components/SaveToBrowserButton.tsx
 import { useEffect, useState } from 'react';
 import type { ProcessHub } from '@variscout/core/processHub';
-import { hubRepository } from '../db/hubRepository';
+import { hubRepository } from '../db/hubRepository'; // getOptInFlag / setOptInFlag only
+import { pwaHubRepository } from '../persistence';
 
 export interface SaveToBrowserButtonProps {
   currentHub: ProcessHub;
@@ -18,7 +19,7 @@ export function SaveToBrowserButton({ currentHub }: SaveToBrowserButtonProps) {
   // Auto-save on Hub change once opted in
   useEffect(() => {
     if (optedIn) {
-      void hubRepository.saveHub(currentHub);
+      void pwaHubRepository.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: currentHub });
     }
   }, [optedIn, currentHub]);
 
@@ -33,7 +34,7 @@ export function SaveToBrowserButton({ currentHub }: SaveToBrowserButtonProps) {
         onClick={async () => {
           setBusy(true);
           await hubRepository.setOptInFlag(true);
-          await hubRepository.saveHub(currentHub);
+          await pwaHubRepository.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: currentHub });
           setOptedIn(true);
           setBusy(false);
         }}

@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SaveToBrowserButton } from '../SaveToBrowserButton';
 import { hubRepository } from '../../db/hubRepository';
+import { pwaHubRepository } from '../../persistence';
 import { DEFAULT_PROCESS_HUB } from '@variscout/core/processHub';
 
 const hub = { ...DEFAULT_PROCESS_HUB, processGoal: 'Test goal.' };
@@ -42,5 +43,21 @@ describe('SaveToBrowserButton', () => {
     fireEvent.click(await screen.findByRole('button', { name: /saved.*forget/i }));
     await waitFor(async () => expect(await hubRepository.getOptInFlag()).toBe(false));
     expect(await hubRepository.loadHub()).toBeNull();
+  });
+
+  it('clicking save routes through pwaHubRepository.dispatch with HUB_PERSIST_SNAPSHOT', async () => {
+    // Verifies the dispatch path is exercised — the write goes through
+    // pwaHubRepository.dispatch rather than hubRepository.saveHub directly.
+    const dispatchSpy = vi.spyOn(pwaHubRepository, 'dispatch');
+    render(<SaveToBrowserButton currentHub={hub} />);
+    fireEvent.click(await screen.findByRole('button', { name: /save to this browser/i }));
+    await waitFor(() => expect(dispatchSpy).toHaveBeenCalled());
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'HUB_PERSIST_SNAPSHOT',
+        hub: expect.objectContaining({ processGoal: 'Test goal.' }),
+      })
+    );
+    dispatchSpy.mockRestore();
   });
 });

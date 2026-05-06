@@ -31,6 +31,7 @@ import { SaveToBrowserButton } from './components/SaveToBrowserButton';
 import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
 import { hubRepository } from './db/hubRepository';
+import { pwaHubRepository } from './persistence';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
   useFindings,
@@ -161,7 +162,10 @@ function AppMain() {
     let cancelled = false;
     void hubRepository.getOptInFlag().then(async opted => {
       if (!opted || cancelled) return;
-      const loaded = await hubRepository.loadHub();
+      // Load via repository pattern (P4.2). pwaHubRepository.hubs.list() returns
+      // [] or [hub]; no literal ID needed. hubRepository.getOptInFlag stays
+      // direct-call — no HubAction equivalent until F3 adds HubMetaAction.
+      const [loaded] = await pwaHubRepository.hubs.list();
       if (loaded && !cancelled) setSessionHub(loaded);
     });
     return () => {

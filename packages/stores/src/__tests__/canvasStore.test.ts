@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useCanvasStore } from '../canvasStore';
+import type { CanvasAction } from '@variscout/core/actions';
 
 function resetCanvasStore() {
   useCanvasStore.setState(useCanvasStore.getInitialState());
@@ -447,5 +448,157 @@ describe('canvasStore history controls', () => {
     expect(useCanvasStore.getState().canonicalMap).toBe(before);
     expect(useCanvasStore.getState().historyDepth()).toBe(0);
     expect(useCanvasStore.getState().redoDepth()).toBe(0);
+  });
+});
+
+describe('canvasStore dispatch', () => {
+  it('PLACE_CHIP_ON_STEP routes through placeChipOnStep', () => {
+    useCanvasStore.getState().addStep('Step A');
+    const stepId = useCanvasStore.getState().canonicalMap.nodes[0]!.id;
+
+    const action: CanvasAction = { kind: 'PLACE_CHIP_ON_STEP', chipId: 'chip-1', stepId };
+    useCanvasStore.getState().dispatch(action);
+
+    expect(useCanvasStore.getState().canonicalMap.assignments?.['chip-1']).toBe(stepId);
+  });
+
+  it('UNASSIGN_CHIP routes through unassignChip', () => {
+    useCanvasStore.getState().addStep('Step A');
+    const stepId = useCanvasStore.getState().canonicalMap.nodes[0]!.id;
+    useCanvasStore.getState().placeChipOnStep('chip-1', stepId);
+
+    const action: CanvasAction = { kind: 'UNASSIGN_CHIP', chipId: 'chip-1' };
+    useCanvasStore.getState().dispatch(action);
+
+    expect(useCanvasStore.getState().canonicalMap.assignments?.['chip-1']).toBeUndefined();
+  });
+
+  it('REORDER_CHIP_IN_STEP routes through reorderChipInStep (stable no-op)', () => {
+    useCanvasStore.getState().addStep('Step A');
+    const stepId = useCanvasStore.getState().canonicalMap.nodes[0]!.id;
+    useCanvasStore.getState().placeChipOnStep('chip-1', stepId);
+    const version = useCanvasStore.getState().canonicalMapVersion;
+
+    const action: CanvasAction = {
+      kind: 'REORDER_CHIP_IN_STEP',
+      chipId: 'chip-1',
+      stepId,
+      toIndex: 2,
+    };
+    useCanvasStore.getState().dispatch(action);
+
+    // reorderChipInStep is a stable no-op — version must not change
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(version);
+  });
+
+  it('ADD_STEP routes through addStep and creates a new node', () => {
+    const action: CanvasAction = { kind: 'ADD_STEP', stepName: 'Weld' };
+    useCanvasStore.getState().dispatch(action);
+
+    expect(useCanvasStore.getState().canonicalMap.nodes).toHaveLength(1);
+    expect(useCanvasStore.getState().canonicalMap.nodes[0]?.name).toBe('Weld');
+  });
+
+  it('REMOVE_STEP routes through removeStep', () => {
+    useCanvasStore.getState().addStep('Remove Me');
+    const stepId = useCanvasStore.getState().canonicalMap.nodes[0]!.id;
+
+    const action: CanvasAction = { kind: 'REMOVE_STEP', stepId };
+    useCanvasStore.getState().dispatch(action);
+
+    expect(useCanvasStore.getState().canonicalMap.nodes).toHaveLength(0);
+  });
+
+  it('RENAME_STEP routes through renameStep', () => {
+    useCanvasStore.getState().addStep('Old Name');
+    const stepId = useCanvasStore.getState().canonicalMap.nodes[0]!.id;
+
+    const action: CanvasAction = { kind: 'RENAME_STEP', stepId, newName: 'New Name' };
+    useCanvasStore.getState().dispatch(action);
+
+    expect(useCanvasStore.getState().canonicalMap.nodes[0]?.name).toBe('New Name');
+  });
+
+  it('CONNECT_STEPS routes through connectSteps', () => {
+    useCanvasStore.getState().addStep('From');
+    useCanvasStore.getState().addStep('To');
+    const [fromNode, toNode] = useCanvasStore.getState().canonicalMap.nodes;
+    const fromStepId = fromNode!.id;
+    const toStepId = toNode!.id;
+
+    const action: CanvasAction = { kind: 'CONNECT_STEPS', fromStepId, toStepId };
+    useCanvasStore.getState().dispatch(action);
+
+    expect(useCanvasStore.getState().canonicalMap.arrows).toHaveLength(1);
+    expect(useCanvasStore.getState().canonicalMap.arrows?.[0]).toMatchObject({
+      fromStepId,
+      toStepId,
+    });
+  });
+
+  it('DISCONNECT_STEPS routes through disconnectSteps', () => {
+    useCanvasStore.getState().addStep('From');
+    useCanvasStore.getState().addStep('To');
+    const [fromNode, toNode] = useCanvasStore.getState().canonicalMap.nodes;
+    const fromStepId = fromNode!.id;
+    const toStepId = toNode!.id;
+    useCanvasStore.getState().connectSteps(fromStepId, toStepId);
+
+    const action: CanvasAction = { kind: 'DISCONNECT_STEPS', fromStepId, toStepId };
+    useCanvasStore.getState().dispatch(action);
+
+    expect(useCanvasStore.getState().canonicalMap.arrows).toHaveLength(0);
+  });
+
+  it('GROUP_INTO_SUB_STEP routes through groupIntoSubStep', () => {
+    useCanvasStore.getState().addStep('Parent');
+    useCanvasStore.getState().addStep('Child');
+    const [parentNode, childNode] = useCanvasStore.getState().canonicalMap.nodes;
+    const parentStepId = parentNode!.id;
+    const childStepId = childNode!.id;
+
+    const action: CanvasAction = {
+      kind: 'GROUP_INTO_SUB_STEP',
+      stepIds: [childStepId],
+      parentStepId,
+    };
+    useCanvasStore.getState().dispatch(action);
+
+    const childAfter = useCanvasStore
+      .getState()
+      .canonicalMap.nodes.find(node => node.id === childStepId);
+    expect(childAfter?.parentStepId).toBe(parentStepId);
+  });
+
+  it('UNGROUP_SUB_STEP routes through ungroupSubStep', () => {
+    useCanvasStore.getState().addStep('Parent');
+    useCanvasStore.getState().addStep('Child');
+    const [parentNode, childNode] = useCanvasStore.getState().canonicalMap.nodes;
+    const parentStepId = parentNode!.id;
+    const childStepId = childNode!.id;
+    useCanvasStore.getState().groupIntoSubStep([childStepId], parentStepId);
+
+    const action: CanvasAction = { kind: 'UNGROUP_SUB_STEP', stepId: childStepId };
+    useCanvasStore.getState().dispatch(action);
+
+    const childAfter = useCanvasStore
+      .getState()
+      .canonicalMap.nodes.find(node => node.id === childStepId);
+    expect(childAfter?.parentStepId).toBeNull();
+  });
+
+  it('dispatch produces the same state as the equivalent direct method call', () => {
+    // Dispatch ADD_STEP and compare to direct addStep result
+    useCanvasStore.getState().dispatch({ kind: 'ADD_STEP', stepName: 'Via Dispatch' });
+    const dispatchedNode = useCanvasStore.getState().canonicalMap.nodes[0];
+
+    resetCanvasStore();
+
+    useCanvasStore.getState().addStep('Via Dispatch');
+    const directNode = useCanvasStore.getState().canonicalMap.nodes[0];
+
+    // Node names match; ids differ due to sequential counters but shape is the same
+    expect(dispatchedNode?.name).toBe(directNode?.name);
+    expect(dispatchedNode?.order).toBe(directNode?.order);
   });
 });

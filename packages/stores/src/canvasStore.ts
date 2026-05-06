@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import type { ProcessHub } from '@variscout/core';
+import { assertNever, type ProcessHub } from '@variscout/core';
+import type { CanvasAction } from '@variscout/core/actions';
 import { createEmptyMap, type ProcessMap, type ProcessMapNode } from '@variscout/core/frame';
 
 const HISTORY_CAP = 50;
@@ -26,6 +27,14 @@ export interface CanvasHistoryControls {
 
 export interface CanvasStoreActions {
   hydrateCanvasDocument: (snapshot: CanvasHydrationSnapshot) => void;
+  /**
+   * Action-shape entry point. Dispatches the canvas action to the corresponding
+   * method-per-action handler. Per audit R15: per-action methods stay as transitional
+   * wrappers in PR2; PR3 cleanup removes them once consumers migrate to `dispatch`.
+   * Only handles `CanvasAction` kinds — `createStepFromChip` and `hydrateCanvasDocument`
+   * remain method-only because they're not in the canonical CanvasAction union.
+   */
+  dispatch: (action: CanvasAction) => void;
   placeChipOnStep: (chipId: string, stepId: string) => void;
   unassignChip: (chipId: string) => void;
   reorderChipInStep: (chipId: string, stepId: string, toIndex: number) => void;
@@ -196,6 +205,43 @@ export const useCanvasStore = create<CanvasStore>()(
             false,
             'canvas/hydrateCanvasDocument'
           );
+        },
+
+        dispatch: action => {
+          switch (action.kind) {
+            case 'PLACE_CHIP_ON_STEP':
+              get().placeChipOnStep(action.chipId, action.stepId);
+              return;
+            case 'UNASSIGN_CHIP':
+              get().unassignChip(action.chipId);
+              return;
+            case 'REORDER_CHIP_IN_STEP':
+              get().reorderChipInStep(action.chipId, action.stepId, action.toIndex);
+              return;
+            case 'ADD_STEP':
+              get().addStep(action.stepName, action.position);
+              return;
+            case 'REMOVE_STEP':
+              get().removeStep(action.stepId);
+              return;
+            case 'RENAME_STEP':
+              get().renameStep(action.stepId, action.newName);
+              return;
+            case 'CONNECT_STEPS':
+              get().connectSteps(action.fromStepId, action.toStepId);
+              return;
+            case 'DISCONNECT_STEPS':
+              get().disconnectSteps(action.fromStepId, action.toStepId);
+              return;
+            case 'GROUP_INTO_SUB_STEP':
+              get().groupIntoSubStep(action.stepIds, action.parentStepId);
+              return;
+            case 'UNGROUP_SUB_STEP':
+              get().ungroupSubStep(action.stepId);
+              return;
+            default:
+              assertNever(action);
+          }
         },
 
         undo: () => {
