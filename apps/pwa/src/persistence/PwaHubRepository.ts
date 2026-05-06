@@ -170,7 +170,6 @@ export class PwaHubRepository implements HubRepository {
   };
 }
 
-// Module-scoped singleton — matches the existing hubRepository export pattern.
+// Module-scoped singleton. Composition root + dispatch boundary documented in apps/pwa/CLAUDE.md.
 // Vitest module-mocking handles test override.
-// P4.6 will lock this decision in apps/pwa/CLAUDE.md.
 export const pwaHubRepository = new PwaHubRepository();
