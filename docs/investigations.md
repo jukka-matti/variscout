@@ -228,3 +228,24 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 **Promotion path:** Low priority while investigations are single-tenant and not aggregated cross-investigation. Becomes a safety gap if multi-investigation queries or cascade deletes are added (see ADR-073 boundary policy). Log in `decision-log.md` as a named-future item when cascade-delete scope is tackled.
 
 ---
+
+### Azure `rowProvenance` Dexie table — deferred
+
+**Surfaced by:** Data-Flow Foundation F3.5 plan + P2 implementation, 2026-05-06.
+
+**Description:** F3.5's `EVIDENCE_ADD_SNAPSHOT` handler in Azure (`apps/azure/src/persistence/applyAction.ts`) persists snapshot only; provenance tracking stays session-only via the existing `setRowProvenance` prop callback in `apps/azure/src/features/data-flow/useEditorDataFlow.ts`. Asymmetric persistence vs PWA (which atomically writes provenance inside `db.transaction('rw', [evidenceSnapshots, rowProvenance], ...)`) is accepted for the F3.5 scope per locked decision D3. Adding a `rowProvenance` table to Azure requires:
+
+- Azure Dexie schema bump (new table declaration with `&id, snapshotId` index)
+- New cascade rule consumer (mirror PWA's bulkUpdate-on-archive pattern)
+- Migration of any existing session-only provenance tracking surface to dispatch through the action layer
+- Updates to `apps/azure/src/persistence/applyAction.ts` for both `EVIDENCE_ADD_SNAPSHOT` (atomic write) and `EVIDENCE_ARCHIVE_SNAPSHOT` (cascade soft-delete)
+
+**Possible directions:**
+
+- F3.6 (Azure normalization parity): A dedicated slice immediately after F3.5 — adds the table + atomic handler + cascade rule. Estimated 6-8 tasks.
+- F4 (three-layer state codification): Folded into the broader Document/Annotation/View boundary work; provenance becomes part of the Annotation layer.
+- Status quo: Accept asymmetric persistence indefinitely until cross-app provenance reconciliation becomes a feature need.
+
+**Promotion path:** Recommendation is F3.6 if cloud-tier provenance becomes a paid-tier requirement (e.g., audit trail compliance for Six Sigma sessions); otherwise defer to F4 absorption. Logged 2026-05-06.
+
+---

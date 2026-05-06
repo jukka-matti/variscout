@@ -144,15 +144,36 @@ export async function applyAction(action: HubAction): Promise<void> {
     // -------------------------------------------------------------------------
 
     case 'EVIDENCE_ADD_SNAPSHOT': {
+      // F3.5 D3: snapshot persistence only — Azure has no rowProvenance Dexie
+      // table today (PWA does, per F3 normalization). The caller continues to
+      // use the in-memory `setRowProvenance` prop callback for session-only
+      // provenance tracking. Adding the table is deferred to F3.6 or F4
+      // (logged in docs/investigations.md). This asymmetry vs PWA's atomic
+      // snapshot+provenance write is intentional — same action surface,
+      // different persistence model per ADR-078 D2 (tier-agnostic state shapes,
+      // tier-gated persistence implementations).
+      //
+      // No db.transaction wrapper: this case writes only to evidenceSnapshots.
+      // The optional update + put pair is not strictly atomic (mid-call browser
+      // close could leave the replaced snapshot soft-deleted without the new
+      // one inserted), but this is acceptable for Azure's single-table model
+      // pre-F3.6. Future Azure normalization will revisit.
+      if (action.replacedSnapshotId) {
+        await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: Date.now() });
+      }
       await db.evidenceSnapshots.put(action.snapshot);
-      // rowProvenance has no Azure Dexie table today (F3 normalizes); no-op for provenance.
       return;
     }
 
     case 'EVIDENCE_ARCHIVE_SNAPSHOT': {
-      // rowProvenance cascade is a no-op for Azure today (F3 normalizes).
-      // A single Dexie update is atomic on its own.
-      // Not idempotent — repeated calls refresh deletedAt; this is intentional (aligns with Dexie.update semantics, contrasts with OUTCOME_ARCHIVE's idempotent guard).
+      // F3.5 D3: snapshot soft-delete only. Azure has no rowProvenance Dexie
+      // table; cascade-to-provenance is a PWA-only operation (closure happens
+      // in apps/pwa/src/persistence/applyAction.ts).
+      //
+      // Not idempotent: repeated calls refresh deletedAt. Intentional — aligns
+      // with Dexie.update semantics; contrasts with OUTCOME_ARCHIVE's
+      // skip-if-already-deleted guard (where the embedded-array model makes
+      // idempotence cheap).
       await db.evidenceSnapshots.update(action.snapshotId, { deletedAt: Date.now() });
       return;
     }
