@@ -20,12 +20,8 @@ import {
   type CausalLink,
 } from './types';
 
-/** Generate a unique ID */
-export function generateId(): string {
-  return typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `f-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
+import { generateDeterministicId } from '../identity';
+export { generateDeterministicId as generateId } from '../identity';
 
 /**
  * Create a new Question with a unique ID
@@ -39,7 +35,7 @@ export function createQuestion(
 ): Question {
   const now = new Date().toISOString();
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     text,
     factor,
     level,
@@ -64,7 +60,7 @@ export function createFinding(
   source?: FindingSource
 ): Finding {
   const finding: Finding = {
-    id: generateId(),
+    id: generateDeterministicId(),
     text,
     createdAt: Date.now(),
     context: {
@@ -85,7 +81,7 @@ export function createFinding(
  */
 export function createPhotoAttachment(filename: string): PhotoAttachment {
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     filename,
     uploadStatus: 'pending',
     capturedAt: Date.now(),
@@ -101,7 +97,7 @@ export function createCommentAttachment(
   sizeBytes: number
 ): CommentAttachment {
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     filename,
     mimeType,
     sizeBytes,
@@ -115,7 +111,7 @@ export function createCommentAttachment(
  */
 export function createFindingComment(text: string, author?: string): FindingComment {
   const comment: FindingComment = {
-    id: generateId(),
+    id: generateDeterministicId(),
     text,
     createdAt: Date.now(),
   };
@@ -133,7 +129,7 @@ export function createActionItem(
   ideaId?: string
 ): ActionItem {
   const action: ActionItem = {
-    id: generateId(),
+    id: generateDeterministicId(),
     text,
     assignee,
     dueDate,
@@ -164,7 +160,7 @@ export function createFindingOutcome(
  */
 export function createImprovementIdea(text: string): ImprovementIdea {
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     text,
     createdAt: new Date().toISOString(),
   };
@@ -205,8 +201,11 @@ export interface FactorFindingBundle {
 export function createFactorFinding(input: FactorFindingInput): FactorFindingBundle {
   const { factor, bestLevel, worstLevel, etaSquared, effectRange, pValue } = input;
 
-  const etaPct = (etaSquared * 100).toFixed(1);
-  const findingText = `${factor} explains ${etaPct}% of variation (η²=${etaSquared.toFixed(3)}, p=${pValue < 0.001 ? '<0.001' : pValue.toFixed(3)}). Effect range: ${effectRange.toFixed(1)}.`;
+  const etaPct = Number.isFinite(etaSquared) ? (etaSquared * 100).toFixed(1) : '—';
+  const etaStr = Number.isFinite(etaSquared) ? etaSquared.toFixed(3) : '—';
+  const pStr = pValue < 0.001 ? '<0.001' : Number.isFinite(pValue) ? pValue.toFixed(3) : '—';
+  const rangeStr = Number.isFinite(effectRange) ? effectRange.toFixed(1) : '—';
+  const findingText = `${factor} explains ${etaPct}% of variation (η²=${etaStr}, p=${pStr}). Effect range: ${rangeStr}.`;
 
   const finding = createFinding(
     findingText,
@@ -232,7 +231,7 @@ export function createFactorFinding(input: FactorFindingInput): FactorFindingBun
 
   // Seed improvement idea
   const idea = createImprovementIdea(
-    `Change ${factor} from "${worstLevel}" to "${bestLevel}" (expected improvement: ${effectRange.toFixed(1)} units)`
+    `Change ${factor} from "${worstLevel}" to "${bestLevel}" (expected improvement: ${Number.isFinite(effectRange) ? effectRange.toFixed(1) : '—'} units)`
   );
   idea.direction = 'eliminate';
 
@@ -263,7 +262,7 @@ export function createSuspectedCause(
 ): SuspectedCause {
   const now = new Date().toISOString();
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     name,
     synthesis,
     questionIds,
@@ -301,7 +300,7 @@ export function createCausalLink(
 ): CausalLink {
   const now = new Date().toISOString();
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     fromFactor,
     toFactor,
     fromLevel: options?.fromLevel,
@@ -329,7 +328,7 @@ export function createInvestigationCategory(
   inferredFrom?: string
 ): InvestigationCategory {
   const category: InvestigationCategory = {
-    id: generateId(),
+    id: generateDeterministicId(),
     name,
     factorNames,
     color: CATEGORY_COLORS[existingCount % CATEGORY_COLORS.length],

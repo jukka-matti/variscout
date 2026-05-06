@@ -914,6 +914,10 @@ export {
 export { buildProjectMetadata } from './projectMetadata';
 export type { ProjectMetadata } from './projectMetadata';
 
+// Identity + lifecycle (F1 foundation — canonical ID generator + EntityBase shape)
+export type { EntityBase } from './identity';
+export { generateDeterministicId } from './identity';
+
 // Timeline window types (Multi-level SCOUT V1)
 export * from './timeline';
 
