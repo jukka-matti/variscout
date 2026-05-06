@@ -23,6 +23,7 @@ import type {
 import type { HubAction } from '@variscout/core/actions';
 import { db } from '../db/schema';
 import { saveProcessHubToIndexedDB } from '../services/localDb';
+import { applyAction } from './applyAction';
 
 export class AzureHubRepository implements HubRepository {
   // ---------------------------------------------------------------------------
@@ -38,11 +39,8 @@ export class AzureHubRepository implements HubRepository {
       return;
     }
 
-    // All other action kinds are handled by P5.2 (cascade transaction) and
-    // P5.3 (per-action handlers wrapping Azure table writes).
-    throw new Error(
-      `AzureHubRepository.dispatch: handler for kind "${action.kind}" not yet implemented (P5.2/P5.3)`
-    );
+    // All other action kinds are handled by applyAction (P5.3).
+    await applyAction(action);
   }
 
   // ---------------------------------------------------------------------------

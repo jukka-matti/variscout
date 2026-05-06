@@ -19,6 +19,7 @@ Azure Team App — Feature-Sliced Design with Zustand feature stores, IndexedDB 
 - File Picker: local files only (`components/FileBrowseButton.tsx`). SharePoint picker removed per ADR-059.
 - Multi-level surfaces: SCOUT dashboard (investigation-time picker) and Hub Capability tab (hub-time, rolling default matched to cadence) link as peers; ADR-074 boundary policy applies.
 - Hub Capability tab exposes the hub-level Cpk target editor (`CpkTargetInput`) next to `TimelineWindowPicker`. Commits write `processHub.reviewSignal.capability.cpkTarget` via `Dashboard.handleHubCpkTargetCommit` → `saveProcessHub`. This is the cascade-level "hub" writer; the per-column writer is `setMeasureSpec`.
+- **Sustainment + handoff deferral**: `sustainmentRecords`, `sustainmentReviews`, and `controlHandoffs` are NOT yet hub-domain-dispatched; their HubAction kinds do not exist. Editors continue calling `saveSustainmentRecordToIndexedDB` and friends directly via `services/localDb.ts` (R13 allow-listed). F3 may unify them under HubAction.
 
 ## Test command
 
