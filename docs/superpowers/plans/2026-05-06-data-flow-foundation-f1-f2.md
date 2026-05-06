@@ -322,7 +322,57 @@ Per R10: same as PWA — Azure persistence calls are in UI/app code, not store f
 
 ---
 
-## Session 2 status (2026-05-06 afternoon) — handoff to Session 3
+## F1+F2 SHIPPED 2026-05-06 — Session 3 closeout
+
+**Spec status:** active → **delivered**. The plan target (4-layer architecture + repository pattern + EntityBase + cascadeRules + ESLint guard) is on `origin/main` in three squash commits:
+
+- `d2822eab` — PR #130 (F1 types + interfaces)
+- `7fc1a360` — PR #131 (F2 PWA repository + composition migration; PWA tests 189 → 298, +109)
+- `2490fc8f` — PR #132 (F2 Azure repository + ESLint guard; Azure tests 1042 → 1179, +137)
+
+### What Session 3 shipped (PR3)
+
+- ✅ **P5.1** `AzureHubRepository` skeleton at `apps/azure/src/persistence/` + composition root singleton (mirrors PWA pattern)
+- ✅ **P5.2** `cascadeArchive.ts` Dexie transaction wrapper using `transitiveCascade` walker; `EVIDENCE_SOURCE_REMOVE` wraps cascade + parent update in single `db.transaction('rw', [...])`
+- ✅ **P5.3** Per-action handlers wrapping today's table writes (36 action kinds with `assertNever` exhaustiveness)
+- ✅ **P6.1–P6.4** Composition migration consolidated (call-site analysis showed only `services/storage.ts` facade + `useEvidenceSourceSync.ts` cursor were real migration targets; UI components calling `useStorage()` were auto-satisfied — plan-reality delta #2)
+- ✅ **P7.1** Documentation update across `packages/stores/CLAUDE.md`, `apps/pwa/CLAUDE.md`, `apps/azure/CLAUDE.md`
+- ✅ **P7.2** ESLint repository-boundary guard: blocks BOTH `dexie` package AND `**/db/schema` glob imports (broader than original spec — caught the `useEvidenceSourceSync.ts` pattern). Smoke-tested live by planting `import Dexie from 'dexie'` in `ProcessHubEvidencePanel.tsx`.
+- ✅ **P8.1** [OPUS] final-branch review across PR1 + PR2 + PR3 — verified F3 swap point is clean (PwaHubRepository.dispatch is the only place that needs to change from blob-write to normalized-table-write; no store-side changes required)
+- ✅ **P8.2** PR #132 squash-merged at `2490fc8f` 2026-05-06 17:14 UTC
+
+### Plan-reality deltas absorbed during PR3 execution
+
+(Documented in `docs/decision-log.md` 2026-05-06 entry + memory file.)
+
+1. **Sustainment/handoff dispatch deferred** — no `SUSTAINMENT_*`/`HANDOFF_*` HubAction kinds yet. Sustainment editors continue calling `services/localDb.ts` directly (R13 allow-listed). F5 may unify.
+2. **P6 sub-tasks consolidated** — only `services/storage.ts` facade + `useEvidenceSourceSync.ts` cursor were real migration targets; UI components calling `useStorage()` auto-satisfied.
+3. **Bootstrap cache-fill at `storage.ts:548` left direct** — cloud→local sync, not user-driven dispatch; documented exception.
+4. **ESLint rule extended to block `**/db/schema`** — broader than original `dexie`-only spec.
+5. **`--chrome` walk deferred to user pre-merge** — controller session lacked chrome\_\* tools.
+
+### F-series sequence forward
+
+The plan target shipped. Remaining workstreams (separate plans):
+
+- **F3 (PR7 in canvas migration sequence)** — PWA Dexie `version(1)` normalized schema; `PwaHubRepository.dispatch` swaps from blob-write to normalized-table-write. **Clean swap point per Opus review.** No store-side changes.
+- **F3.5** — ingestion action layer (paste / upload / evidence-source unified onto `EVIDENCE_ADD_SNAPSHOT`); `existingRange` wiring drops out.
+- **F4** — three-layer state codification (Document / Annotation / View).
+- **F5** — discriminated-union actions full coverage. Likely scope: `SUSTAINMENT_*` + `HANDOFF_*` action kinds added to `HubAction`; sustainment editors migrate off direct `localDb.ts`.
+- **F6 (named-future)** — multi-investigation lifecycle (deferred per ADR-078 D3).
+
+### Watchlist (carries into F3+)
+
+- **`generateDeterministicId` → `generateEntityId` rename** — flagged Important by P1 reviewers; not surfaced during PR2/PR3 reviews. Carry into F3.
+- **`'general-unassigned'` placeholder** leaking through `Finding.investigationId` / `Question.investigationId` — runtime guard target at repository layer in F3 or F5.
+- **`RowProvenanceTag.snapshotId = ''`** placeholder at paste-flow call sites — F3.5 wiring gap.
+- **~33 pre-existing tsc errors** (core/stores/hooks/charts vitest globals + `import.meta.env`) — out of F-series scope.
+- **`useEvidenceSourceSync.markSeen` overwrites `createdAt` on every `put`** — F3 normalization concern.
+- **`id: \`snapshot-${Date.now()}\``in`ProcessHubEvidencePanel.tsx:333`** — should reuse captured timestamp. F3 will replace surface entirely.
+
+---
+
+## Session 2 status (2026-05-06 afternoon) — PR2 history
 
 **PR1 #130 + PR2 #131 BOTH MERGED.** PR2 squashed at `7fc1a360` 2026-05-06 13:50 UTC.
 
