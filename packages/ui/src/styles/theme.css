@@ -29,6 +29,11 @@
   --color-status-pass: var(--status-pass);
   --color-status-fail: var(--status-fail);
   --color-status-warning: var(--status-warning);
+  --color-status-info: var(--status-info);
+  --color-status-info-soft: var(--status-info-soft);
+  --color-status-pass-soft: var(--status-pass-soft);
+  --color-status-warning-soft: var(--status-warning-soft);
+  --color-status-fail-soft: var(--status-fail-soft);
 
   /* shadcn/ui colors (HSL-based) */
   --color-background: hsl(var(--background));
@@ -102,10 +107,15 @@ html {
   /* HelpTooltip link color */
   --help-link-color: #3b82f6; /* blue-500 */
 
-  /* Status colors (universal - same in light/dark) */
-  --status-pass: #22c55e; /* green-500 */
-  --status-fail: #ef4444; /* red-500 */
-  --status-warning: #f59e0b; /* amber-500 */
+  /* Status colors */
+  --status-pass: #166534; /* green-800 */
+  --status-fail: #991b1b; /* red-800 */
+  --status-warning: #78350f; /* amber-900 */
+  --status-info: #1e40af; /* blue-800 */
+  --status-info-soft: #dbeafe; /* blue-100 */
+  --status-pass-soft: #dcfce7; /* green-100 */
+  --status-warning-soft: #fef3c7; /* amber-100 */
+  --status-fail-soft: #fee2e2; /* red-100 */
 
   /* Chart chrome colors */
   --chart-grid: #f1f5f9; /* slate-100 */
@@ -145,10 +155,15 @@ html {
   /* HelpTooltip link color */
   --help-link-color: #3b82f6; /* blue-500 */
 
-  /* Status colors (universal) */
-  --status-pass: #22c55e;
-  --status-fail: #ef4444;
-  --status-warning: #f59e0b;
+  /* Status colors */
+  --status-pass: #86efac;
+  --status-fail: #fca5a5;
+  --status-warning: #fcd34d;
+  --status-info: #bfdbfe;
+  --status-info-soft: #1e3a5f;
+  --status-pass-soft: #14532d;
+  --status-warning-soft: #78350f;
+  --status-fail-soft: #7f1d1d;
 
   /* Chart chrome colors */
   --chart-grid: #1e293b; /* slate-800 */

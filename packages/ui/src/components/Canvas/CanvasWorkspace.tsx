@@ -164,6 +164,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const ctsColumn = map.ctsColumn;
   const ctsSpecs = ctsColumn ? measureSpecs[ctsColumn] : undefined;
   const hydrateCanvasDocument = useCanvasStore(state => state.hydrateCanvasDocument);
+  const currentCanonicalMap = useCanvasStore(state => state.canonicalMap);
   const placeChipOnStep = useCanvasStore(state => state.placeChipOnStep);
   const createStepFromChip = useCanvasStore(state => state.createStepFromChip);
   const addStep = useCanvasStore(state => state.addStep);
@@ -176,17 +177,21 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const undoCanvas = useCanvasStore(state => state.undo);
   const redoCanvas = useCanvasStore(state => state.redo);
   const mapHydrationSignature = React.useMemo(() => JSON.stringify(map), [map]);
+  const currentCanonicalMapSignature = React.useMemo(
+    () => JSON.stringify(currentCanonicalMap),
+    [currentCanonicalMap]
+  );
   const lastHydratedMapSignature = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     if (lastHydratedMapSignature.current === mapHydrationSignature) return;
-    if (JSON.stringify(useCanvasStore.getState().canonicalMap) === mapHydrationSignature) {
+    if (currentCanonicalMapSignature === mapHydrationSignature) {
       lastHydratedMapSignature.current = mapHydrationSignature;
       return;
     }
     hydrateCanvasDocument({ canonicalMap: map });
     lastHydratedMapSignature.current = mapHydrationSignature;
-  }, [hydrateCanvasDocument, map, mapHydrationSignature]);
+  }, [currentCanonicalMapSignature, hydrateCanvasDocument, map, mapHydrationSignature]);
 
   const gaps = React.useMemo(
     () =>

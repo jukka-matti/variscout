@@ -26,7 +26,7 @@ export const CanvasOverlayPicker: React.FC<CanvasOverlayPickerProps> = ({
             type="button"
             className={`rounded-md border px-2 py-1 text-xs font-medium ${
               pressed
-                ? 'border-blue-500 bg-blue-500/10 text-blue-700'
+                ? 'border-status-info bg-status-info-soft text-status-info'
                 : 'border-edge bg-surface-primary text-content-secondary hover:bg-surface-secondary'
             }`}
             aria-pressed={pressed}

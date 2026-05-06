@@ -81,6 +81,7 @@ export interface ProcessMapBaseProps {
   onRemoveStep?: (stepId: string) => void;
   onConnectSteps?: (fromStepId: string, toStepId: string) => void;
   onDisconnectSteps?: (fromStepId: string, toStepId: string) => void;
+  onUngroupSubStep?: (stepId: string) => void;
   onKeyboardChipDrop?: (stepId: string) => void;
   keyboardChipLabel?: string | null;
 }
@@ -285,8 +286,8 @@ const StepCard: React.FC<StepCardProps> = ({
       }}
       className={[
         'flex flex-col gap-2 min-w-[180px] p-3 bg-surface-primary border border-edge rounded-lg',
-        chipDropTargets && isOver ? 'ring-2 ring-blue-500/50' : '',
-        selected ? 'ring-2 ring-blue-500' : '',
+        chipDropTargets && isOver ? 'ring-2 ring-status-info/50' : '',
+        selected ? 'ring-2 ring-status-info' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -703,6 +704,7 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   onRemoveStep,
   onConnectSteps,
   onDisconnectSteps,
+  onUngroupSubStep,
   onKeyboardChipDrop,
   keyboardChipLabel,
 }) => {
@@ -874,36 +876,48 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
       <div className="flex items-start gap-3 overflow-x-auto pb-2" data-testid="process-map-spine">
         {sortedSteps.map((step, i) => (
           <React.Fragment key={step.id}>
-            <StepCard
-              step={step}
-              tributaries={map.tributaries.filter(t => t.stepId === step.id)}
-              subgroupAxes={map.subgroupAxes ?? []}
-              availableColumns={availableColumns}
-              gaps={gapsForStep(gaps, step.id)}
-              disabled={disabled}
-              ctqSpecs={step.ctqColumn ? stepSpecs?.[step.ctqColumn] : undefined}
-              onRename={name => renameStep(step.id, name)}
-              onCtqChange={col => setStepCtq(step.id, col)}
-              onRemove={() => removeStep(step.id)}
-              onAddTributary={col => addTributary(step.id, col)}
-              onRemoveTributary={removeTributary}
-              onToggleSubgroupAxis={toggleSubgroupAxis}
-              onCtqSpecsChange={
-                onStepSpecsChange && step.ctqColumn
-                  ? next => onStepSpecsChange(step.ctqColumn!, next)
-                  : undefined
-              }
-              chipDropTargets={chipDropTargets}
-              selected={selectedStepSet.has(step.id)}
-              keyboardChipLabel={keyboardChipLabel}
-              onToggleSelected={additive => toggleStepSelection(step.id, additive)}
-              onConnectFrom={() => connectFromStep(step.id)}
-              onKeyboardChipDrop={
-                onKeyboardChipDrop && keyboardChipLabel
-                  ? () => onKeyboardChipDrop(step.id)
-                  : undefined
-              }
-            />
+            <div className="flex flex-col gap-2">
+              <StepCard
+                step={step}
+                tributaries={map.tributaries.filter(t => t.stepId === step.id)}
+                subgroupAxes={map.subgroupAxes ?? []}
+                availableColumns={availableColumns}
+                gaps={gapsForStep(gaps, step.id)}
+                disabled={disabled}
+                ctqSpecs={step.ctqColumn ? stepSpecs?.[step.ctqColumn] : undefined}
+                onRename={name => renameStep(step.id, name)}
+                onCtqChange={col => setStepCtq(step.id, col)}
+                onRemove={() => removeStep(step.id)}
+                onAddTributary={col => addTributary(step.id, col)}
+                onRemoveTributary={removeTributary}
+                onToggleSubgroupAxis={toggleSubgroupAxis}
+                onCtqSpecsChange={
+                  onStepSpecsChange && step.ctqColumn
+                    ? next => onStepSpecsChange(step.ctqColumn!, next)
+                    : undefined
+                }
+                chipDropTargets={chipDropTargets}
+                selected={selectedStepSet.has(step.id)}
+                keyboardChipLabel={keyboardChipLabel}
+                onToggleSelected={additive => toggleStepSelection(step.id, additive)}
+                onConnectFrom={() => connectFromStep(step.id)}
+                onKeyboardChipDrop={
+                  onKeyboardChipDrop && keyboardChipLabel
+                    ? () => onKeyboardChipDrop(step.id)
+                    : undefined
+                }
+              />
+              {!disabled && step.parentStepId != null && onUngroupSubStep ? (
+                <button
+                  type="button"
+                  onClick={() => onUngroupSubStep(step.id)}
+                  className="self-start text-xs px-2 py-0.5 bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded"
+                  aria-label={`Ungroup step ${step.name || 'unnamed'}`}
+                >
+                  Ungroup
+                </button>
+              ) : null}
+            </div>
             {i < sortedSteps.length - 1 && (
               <div
                 aria-hidden="true"
@@ -929,7 +943,7 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
           className={[
             'min-h-24 min-w-32 rounded-lg border border-dashed border-edge',
             chipDropTargets ? 'bg-surface-primary/60' : 'hidden',
-            isEmptyDropTargetOver ? 'ring-2 ring-blue-500/50' : '',
+            isEmptyDropTargetOver ? 'ring-2 ring-status-info/50' : '',
           ]
             .filter(Boolean)
             .join(' ')}

@@ -34,9 +34,9 @@ function capabilityText(card: CanvasStepCardModel): string {
 }
 
 function gradeClass(card: CanvasStepCardModel): string {
-  if (card.capability.grade === 'green') return 'bg-emerald-500/10 text-emerald-700';
-  if (card.capability.grade === 'amber') return 'bg-amber-500/10 text-amber-700';
-  if (card.capability.grade === 'red') return 'bg-red-500/10 text-red-700';
+  if (card.capability.grade === 'green') return 'bg-status-pass-soft text-status-pass';
+  if (card.capability.grade === 'amber') return 'bg-status-warning-soft text-status-warning';
+  if (card.capability.grade === 'red') return 'bg-status-fail-soft text-status-fail';
   return 'bg-surface-secondary text-content-secondary';
 }
 
@@ -66,7 +66,7 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
       : `Edit specs for ${card.stepName}`;
 
   return (
-    <article
+    <div
       ref={element => registerCardElement?.(card.stepId, element)}
       role="button"
       tabIndex={0}
@@ -74,6 +74,7 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
       data-testid={`canvas-step-card-${card.stepId}`}
       onClick={event => onOpen(card.stepId, event.currentTarget)}
       onKeyDown={event => {
+        if (event.target !== event.currentTarget) return;
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
         onOpen(card.stepId, event.currentTarget);
@@ -98,7 +99,7 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
       <div className="flex flex-wrap items-center gap-1">
         {showInvestigations && activityCount > 0 ? (
           <span
-            className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[11px] font-medium text-blue-700"
+            className="rounded-full bg-status-info-soft px-2 py-0.5 text-[11px] font-medium text-status-info"
             data-testid={`canvas-step-investigation-badge-${card.stepId}`}
             title={`${activityCount} investigation item${activityCount === 1 ? '' : 's'}`}
           >
@@ -107,7 +108,7 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
         ) : null}
         {showFindings ? (
           <span
-            className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[11px] font-medium text-sky-700"
+            className="rounded-full bg-status-info-soft px-2 py-0.5 text-[11px] font-medium text-status-info"
             data-testid={`canvas-step-finding-pin-${card.stepId}`}
           >
             {investigationOverlay?.findings.length} finding
@@ -115,7 +116,7 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
         ) : null}
         {showSuspectedCauses ? (
           <span
-            className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+            className="rounded-full bg-status-warning-soft px-2 py-0.5 text-[11px] font-medium text-status-warning"
             data-testid={`canvas-step-suspected-cause-marker-${card.stepId}`}
           >
             {investigationOverlay?.suspectedCauses.length} cause
@@ -152,6 +153,6 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
           {card.capability.canAddSpecs ? '+ Add specs' : 'Edit specs'}
         </button>
       ) : null}
-    </article>
+    </div>
   );
 };

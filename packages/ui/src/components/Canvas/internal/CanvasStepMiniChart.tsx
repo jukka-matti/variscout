@@ -1,4 +1,5 @@
 import React from 'react';
+import { chartColors } from '@variscout/charts';
 import type { CanvasStepCardModel } from '@variscout/hooks';
 
 interface CanvasStepMiniChartProps {
@@ -26,8 +27,11 @@ export const CanvasStepMiniChart: React.FC<CanvasStepMiniChartProps> = ({ card }
           bars.map((height, index) => (
             <span
               key={`${card.stepId}-bar-${index}`}
-              className="w-full rounded-sm bg-blue-500/60"
-              style={{ height: `${Math.max(15, height * 100)}%` }}
+              className="w-full rounded-sm"
+              style={{
+                backgroundColor: `${chartColors.mean}99`,
+                height: `${Math.max(15, height * 100)}%`,
+              }}
             />
           ))
         ) : (
@@ -49,8 +53,11 @@ export const CanvasStepMiniChart: React.FC<CanvasStepMiniChartProps> = ({ card }
           <div key={item.label} className="flex items-center gap-1 text-[11px] text-content-muted">
             <span className="w-12 truncate">{item.label}</span>
             <span
-              className="h-1.5 rounded-full bg-amber-500/70"
-              style={{ width: `${Math.max(12, (item.count / max) * 72)}px` }}
+              className="h-1.5 rounded-full"
+              style={{
+                backgroundColor: `${chartColors.warning}b3`,
+                width: `${Math.max(12, (item.count / max) * 72)}px`,
+              }}
             />
             <span>{item.count}</span>
           </div>
