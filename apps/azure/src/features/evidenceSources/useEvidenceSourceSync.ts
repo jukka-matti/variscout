@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { listEvidenceSnapshotsFromCloud } from '../../services/cloudSync';
-import { db } from '../../db/schema';
+import { azureHubRepository } from '../../persistence';
 import type { EvidenceSnapshot } from '@variscout/core';
 
 export interface NewSnapshotsState {
@@ -40,7 +40,8 @@ export function useEvidenceSourceSync(
     setIsLoading(true);
     (async () => {
       try {
-        const cursor = await db.evidenceSourceCursors.get([hubId, sourceId]);
+        // Option B-1: read via repository (P5.1 read API) — no direct Dexie access.
+        const cursor = await azureHubRepository.evidenceSources.getCursor(hubId, sourceId);
         const cloudSnapshots = await listEvidenceSnapshotsFromCloud(token, hubId, sourceId);
         if (cancelled) return;
         const cursorTime = cursor ? cursor.lastSeenAt : -Infinity;
@@ -65,16 +66,21 @@ export function useEvidenceSourceSync(
     if (newSnapshots.length === 0) return;
     const latest = newSnapshots[newSnapshots.length - 1];
     const now = Date.now();
-    await db.evidenceSourceCursors.put({
-      // EntityBase fields — id is composite key [hubId+sourceId] at Dexie layer;
-      // provide a stable string for the EntityBase id field.
-      id: `cursor-${hubId}-${sourceId}`,
-      createdAt: now,
-      deletedAt: null,
-      hubId,
+    // Route cursor write through azureHubRepository.dispatch (F1+F2 P6).
+    await azureHubRepository.dispatch({
+      kind: 'EVIDENCE_SOURCE_UPDATE_CURSOR',
       sourceId,
-      lastSeenSnapshotId: latest.id,
-      lastSeenAt: new Date(latest.capturedAt).getTime(),
+      cursor: {
+        // EntityBase fields — id is composite key [hubId+sourceId] at Dexie layer;
+        // provide a stable string for the EntityBase id field.
+        id: `cursor-${hubId}-${sourceId}`,
+        createdAt: now,
+        deletedAt: null,
+        hubId,
+        sourceId,
+        lastSeenSnapshotId: latest.id,
+        lastSeenAt: new Date(latest.capturedAt).getTime(),
+      },
     });
     setNewSnapshots([]);
     setColumnDriftMessage(undefined);
