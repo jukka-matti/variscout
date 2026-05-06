@@ -14,7 +14,7 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
 }
 
 function makeQuestion(overrides: Partial<Question> = {}): Question {
-  const base = createQuestion('Test question');
+  const base = createQuestion('Test question', 'inv-test-001');
   return { ...base, ...overrides };
 }
 

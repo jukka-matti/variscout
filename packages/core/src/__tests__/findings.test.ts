@@ -534,7 +534,7 @@ describe('Finding 5-status extensions', () => {
 
 describe('createQuestion', () => {
   it('creates a question with required fields', () => {
-    const q = createQuestion('Worn bearing on head 3');
+    const q = createQuestion('Worn bearing on head 3', 'inv-test-001');
     expect(q.id).toBeTruthy();
     expect(q.text).toBe('Worn bearing on head 3');
     expect(q.createdAt).toBeTruthy();
@@ -543,8 +543,8 @@ describe('createQuestion', () => {
   });
 
   it('generates unique ids for each question', () => {
-    const q1 = createQuestion('Cause A');
-    const q2 = createQuestion('Cause B');
+    const q1 = createQuestion('Cause A', 'inv-test-001');
+    const q2 = createQuestion('Cause B', 'inv-test-001');
     expect(q1.id).not.toBe(q2.id);
   });
 
@@ -555,7 +555,7 @@ describe('createQuestion', () => {
   });
 
   it('defaults status to open', () => {
-    const q = createQuestion('Vibration');
+    const q = createQuestion('Vibration', 'inv-test-001');
     expect(q.status).toBe('open');
   });
 });

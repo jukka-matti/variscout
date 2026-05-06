@@ -542,7 +542,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-ordering',
-        importedAt: '2026-04-26T10:00:00.000Z',
+        importedAt: 1745664000000,
+        createdAt: 1745664000000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-green',
@@ -560,7 +562,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-25T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-ordering',
-        importedAt: '2026-04-25T10:00:00.000Z',
+        importedAt: 1745577600000,
+        createdAt: 1745577600000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-red',
@@ -578,7 +582,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-24T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-ordering',
-        importedAt: '2026-04-24T10:00:00.000Z',
+        importedAt: 1745491200000,
+        createdAt: 1745491200000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-amber',
@@ -596,7 +602,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-26T11:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-ordering',
-        importedAt: '2026-04-26T11:00:00.000Z',
+        importedAt: 1745667600000,
+        createdAt: 1745667600000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-neutral',
@@ -632,7 +640,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-24T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-tie-breaking',
-        importedAt: '2026-04-24T10:00:00.000Z',
+        importedAt: 1745491200000,
+        createdAt: 1745491200000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-red-old',
@@ -650,7 +660,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-tie-breaking',
-        importedAt: '2026-04-26T10:00:00.000Z',
+        importedAt: 1745664000000,
+        createdAt: 1745664000000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-red-new',
@@ -776,7 +788,9 @@ describe('buildProcessHubRollups', () => {
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:orphan-hub-fallback',
-        importedAt: '2026-04-26T10:00:00.000Z',
+        importedAt: 1745664000000,
+        createdAt: 1745664000000,
+        deletedAt: null,
         latestSignals: [],
       },
     ];

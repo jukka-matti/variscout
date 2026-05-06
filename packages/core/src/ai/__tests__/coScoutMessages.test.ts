@@ -55,7 +55,7 @@ describe('buildCoScoutMessageInput', () => {
     const history: CoScoutMessage[] = [
       makeMessage('1', 'user', 'Good question'),
       makeMessage('2', 'assistant', 'Error response', {
-        type: 'api_error',
+        type: 'server',
         message: 'Something failed',
         retryable: true,
       }),

@@ -12,8 +12,10 @@ function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
     text: 'Test question',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     ...overrides,
   };
 }

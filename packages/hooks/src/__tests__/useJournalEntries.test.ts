@@ -13,6 +13,8 @@ const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
   text: 'Night shift 2.5mm higher',
   status: 'observed',
   createdAt: new Date('2026-04-01T10:45:00Z').getTime(),
+  deletedAt: null,
+  investigationId: 'inv-test-001',
   statusChangedAt: new Date('2026-04-01T10:45:00Z').getTime(),
   context: makeContext(),
   comments: [],
@@ -24,8 +26,10 @@ const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
   text: 'Does Shift affect fill weight?',
   status: 'answered',
   linkedFindingIds: ['f1'],
-  createdAt: '2026-04-01T10:20:00Z',
-  updatedAt: '2026-04-01T10:45:00Z',
+  createdAt: new Date('2026-04-01T10:20:00Z').getTime(),
+  updatedAt: new Date('2026-04-01T10:45:00Z').getTime(),
+  deletedAt: null,
+  investigationId: 'inv-test-001',
   questionSource: 'factor-intel',
   evidence: { rSquaredAdj: 0.15 },
   ...overrides,
@@ -53,6 +57,9 @@ describe('useJournalEntries', () => {
           id: 'c1',
           text: 'Confirmed by operator',
           createdAt: new Date('2026-04-01T11:00:00Z').getTime(),
+          deletedAt: null,
+          parentId: 'f1',
+          parentKind: 'finding' as const,
         },
       ],
     });
@@ -147,7 +154,7 @@ describe('useJournalEntries', () => {
       createdAt: new Date('2026-04-01T09:00:00Z').getTime(),
     });
     const laterQuestion = makeQuestion({
-      updatedAt: '2026-04-01T11:00:00Z',
+      updatedAt: new Date('2026-04-01T11:00:00Z').getTime(),
     });
     const { result } = renderHook(() =>
       useJournalEntries({

@@ -132,7 +132,8 @@ describe('computeIdeaImpact', () => {
     return {
       id: 'idea-1',
       text: 'Test idea',
-      createdAt: new Date().toISOString(),
+      createdAt: 1714000000000,
+      deletedAt: null,
       ...overrides,
     };
   }

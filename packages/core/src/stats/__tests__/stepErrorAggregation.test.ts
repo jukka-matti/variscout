@@ -22,7 +22,8 @@ const map: ProcessMap = {
 const hub: ProcessHub = {
   id: 'hub-1',
   name: 'Line A',
-  createdAt: '2026-04-28T00:00:00.000Z',
+  createdAt: 1745836800000,
+  deletedAt: null,
   canonicalProcessMap: map,
   canonicalMapVersion: '2026-04-28',
 };
@@ -35,14 +36,16 @@ function makeMember(opts: {
   return {
     id: opts.id,
     name: `Investigation ${opts.id}`,
-    modified: '2026-04-28T00:00:00.000Z',
+    createdAt: 1745836800000,
+    updatedAt: 1745836800000,
+    deletedAt: null,
     metadata: {
       processHubId: 'hub-1',
       nodeMappings: opts.nodeMappings,
       canonicalMapVersion: '2026-04-28',
     } as never,
     rows: opts.rows,
-  } as ProcessHubInvestigation;
+  } as unknown as ProcessHubInvestigation;
 }
 
 describe('rollupStepErrors', () => {

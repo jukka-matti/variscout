@@ -28,22 +28,26 @@ const map: ProcessMap = {
 };
 
 function question(overrides: Partial<Question> & { id: string; factor?: string }): Question {
+  const { id } = overrides;
   return {
-    id: overrides.id,
-    text: `Question ${overrides.id}`,
+    text: `Question ${id}`,
     status: 'open',
     linkedFindingIds: [],
-    createdAt: '2026-05-05T00:00:00.000Z',
-    updatedAt: '2026-05-05T00:00:00.000Z',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     ...overrides,
   };
 }
 
 function finding(overrides: Partial<Finding> & { id: string }): Finding {
+  const { id } = overrides;
   return {
-    id: overrides.id,
-    text: `Finding ${overrides.id}`,
+    text: `Finding ${id}`,
     createdAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
@@ -53,22 +57,23 @@ function finding(overrides: Partial<Finding> & { id: string }): Finding {
 }
 
 function hub(overrides: Partial<SuspectedCause> & { id: string }): SuspectedCause {
+  const { id } = overrides;
   return {
-    id: overrides.id,
-    name: `Hub ${overrides.id}`,
+    name: `Hub ${id}`,
     synthesis: 'Evidence connects here.',
     questionIds: [],
     findingIds: [],
     status: 'suspected',
-    createdAt: '2026-05-05T00:00:00.000Z',
-    updatedAt: '2026-05-05T00:00:00.000Z',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     ...overrides,
   };
 }
 
 function link(overrides: Partial<CausalLink> & { id: string }): CausalLink {
   return {
-    id: overrides.id,
     fromFactor: 'Machine',
     toFactor: 'Fill Head',
     whyStatement: 'Machine drives fill head behavior',
@@ -77,8 +82,9 @@ function link(overrides: Partial<CausalLink> & { id: string }): CausalLink {
     questionIds: [],
     findingIds: [],
     source: 'analyst',
-    createdAt: '2026-05-05T00:00:00.000Z',
-    updatedAt: '2026-05-05T00:00:00.000Z',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
     ...overrides,
   };
 }

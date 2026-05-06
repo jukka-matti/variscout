@@ -7,7 +7,8 @@ import {
   computeBenchmarkProjection,
 } from '../variation/projection';
 import { isFindingScoped, getScopedFindings } from '../findings/helpers';
-import type { StatsResult, Finding } from '../types';
+import type { StatsResult } from '../types';
+import type { Finding } from '../findings/types';
 
 describe('computeDrillProjection', () => {
   const specs = { usl: 12, lsl: 10 };
@@ -252,11 +253,13 @@ describe('isFindingScoped', () => {
   const baseFinding: Finding = {
     id: '1',
     text: 'test',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
   };
 
   it('auto-scopes investigating and analyzed findings', () => {
@@ -283,11 +286,13 @@ describe('getScopedFindings', () => {
   const baseFinding: Finding = {
     id: '1',
     text: 'test',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'analyzed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
   };
 
   it('excludes benchmark findings', () => {

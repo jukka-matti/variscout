@@ -11,11 +11,13 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
     id: 'f-1',
     text: 'Test finding',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
     ...overrides,
   };
 }
@@ -26,8 +28,10 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
     text: 'Test question',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     ...overrides,
   };
 }
@@ -59,7 +63,7 @@ describe('useReportSections — report type detection', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'Fix something', createdAt: Date.now() }],
+        actions: [{ id: 'a-1', text: 'Fix something', createdAt: 1714000000000, deletedAt: null }],
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
@@ -71,9 +75,15 @@ describe('useReportSections — report type detection', () => {
       makeFinding({
         id: 'f-1',
         actions: [
-          { id: 'a-1', text: 'Fix something', completedAt: Date.now(), createdAt: Date.now() },
+          {
+            id: 'a-1',
+            text: 'Fix something',
+            completedAt: 1714000000000,
+            createdAt: 1714000000000,
+            deletedAt: null,
+          },
         ],
-        outcome: { effective: 'yes', notes: 'Process improved', verifiedAt: Date.now() },
+        outcome: { effective: 'yes', notes: 'Process improved', verifiedAt: 1714000000000 },
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
@@ -101,8 +111,16 @@ describe('useReportSections — section count', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
-        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
+        actions: [
+          {
+            id: 'a-1',
+            text: 'action',
+            completedAt: 1714000000000,
+            createdAt: 1714000000000,
+            deletedAt: null,
+          },
+        ],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: 1714000000000 },
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
@@ -139,8 +157,16 @@ describe('useReportSections — section status (improvement-story)', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
-        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
+        actions: [
+          {
+            id: 'a-1',
+            text: 'action',
+            completedAt: 1714000000000,
+            createdAt: 1714000000000,
+            deletedAt: null,
+          },
+        ],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: 1714000000000 },
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
@@ -174,8 +200,16 @@ describe('useReportSections — workspace assignment', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
-        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
+        actions: [
+          {
+            id: 'a-1',
+            text: 'action',
+            completedAt: 1714000000000,
+            createdAt: 1714000000000,
+            deletedAt: null,
+          },
+        ],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: 1714000000000 },
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
@@ -211,8 +245,16 @@ describe('useReportSections — section ordering', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
-        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
+        actions: [
+          {
+            id: 'a-1',
+            text: 'action',
+            completedAt: 1714000000000,
+            createdAt: 1714000000000,
+            deletedAt: null,
+          },
+        ],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: 1714000000000 },
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
@@ -231,8 +273,16 @@ describe('useReportSections — section ordering', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
-        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
+        actions: [
+          {
+            id: 'a-1',
+            text: 'action',
+            completedAt: 1714000000000,
+            createdAt: 1714000000000,
+            deletedAt: null,
+          },
+        ],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: 1714000000000 },
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
@@ -266,8 +316,16 @@ describe('useReportSections — evidence trail title', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
-        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
+        actions: [
+          {
+            id: 'a-1',
+            text: 'action',
+            completedAt: 1714000000000,
+            createdAt: 1714000000000,
+            deletedAt: null,
+          },
+        ],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: 1714000000000 },
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));

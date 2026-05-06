@@ -1341,7 +1341,9 @@ describe('buildReportPrompt', () => {
   const mockFinding: Finding = {
     id: 'f1',
     text: 'High variation in Machine B',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: {
       activeFilters: { Machine: ['B'] },
       cumulativeScope: 45.2,
@@ -1350,7 +1352,7 @@ describe('buildReportPrompt', () => {
     status: 'analyzed',
     tag: 'key-driver',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
     questionId: 'q1',
   };
 
@@ -1360,8 +1362,10 @@ describe('buildReportPrompt', () => {
     factor: 'Machine',
     status: 'answered',
     linkedFindingIds: ['f1'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    investigationId: 'inv-test-001',
+    deletedAt: null,
   };
 
   it('includes process description when provided', () => {
@@ -1689,7 +1693,9 @@ describe('buildCoScoutTools', () => {
     expect(tool).toBeDefined();
     expect(tool!.parameters.properties).toHaveProperty('question_id');
     expect(tool!.parameters.properties).toHaveProperty('cause_name');
-    expect(tool!.parameters.properties.ideas.type).toBe('array');
+    expect((tool!.parameters.properties as Record<string, { type: string }>).ideas.type).toBe(
+      'array'
+    );
   });
 
   it('does not include spark_brainstorm_ideas in SCOUT phase', () => {

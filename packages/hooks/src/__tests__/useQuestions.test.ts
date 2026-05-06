@@ -63,7 +63,7 @@ describe('useQuestions', () => {
 
   describe('editQuestion', () => {
     it('updates question text', () => {
-      const initial = [createQuestion('Original')];
+      const initial = [createQuestion('Original', 'inv-test-001')];
       const { result } = renderHook(() => useQuestions({ initialQuestions: initial }));
       act(() => {
         result.current.editQuestion(initial[0].id, { text: 'Updated' });
@@ -72,7 +72,7 @@ describe('useQuestions', () => {
     });
 
     it('updates factor and level', () => {
-      const initial = [createQuestion('Test')];
+      const initial = [createQuestion('Test', 'inv-test-001')];
       const { result } = renderHook(() => useQuestions({ initialQuestions: initial }));
       act(() => {
         result.current.editQuestion(initial[0].id, { factor: 'Machine', level: 'A' });
@@ -84,7 +84,7 @@ describe('useQuestions', () => {
 
   describe('deleteQuestion', () => {
     it('removes question and returns linked finding IDs', () => {
-      const q = createQuestion('Test');
+      const q = createQuestion('Test', 'inv-test-001');
       q.linkedFindingIds = ['f-1', 'f-2'];
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
 
@@ -99,7 +99,7 @@ describe('useQuestions', () => {
 
   describe('linkFinding / unlinkFinding', () => {
     it('links a finding to a question', () => {
-      const q = createQuestion('Test');
+      const q = createQuestion('Test', 'inv-test-001');
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
       act(() => {
         result.current.linkFinding(q.id, 'f-1');
@@ -108,7 +108,7 @@ describe('useQuestions', () => {
     });
 
     it('does not duplicate finding links', () => {
-      const q = createQuestion('Test');
+      const q = createQuestion('Test', 'inv-test-001');
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
       act(() => {
         result.current.linkFinding(q.id, 'f-1');
@@ -118,7 +118,7 @@ describe('useQuestions', () => {
     });
 
     it('unlinks a finding from a question', () => {
-      const q = createQuestion('Test');
+      const q = createQuestion('Test', 'inv-test-001');
       q.linkedFindingIds = ['f-1', 'f-2'];
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
       act(() => {
@@ -130,7 +130,7 @@ describe('useQuestions', () => {
 
   describe('getQuestion / getByFactor', () => {
     it('gets a question by ID', () => {
-      const q = createQuestion('Test');
+      const q = createQuestion('Test', 'inv-test-001');
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
       expect(result.current.getQuestion(q.id)?.text).toBe('Test');
     });
@@ -178,7 +178,7 @@ describe('useQuestions', () => {
     });
 
     it('stays open when no factor linked', () => {
-      const q = createQuestion('Unknown cause');
+      const q = createQuestion('Unknown cause', 'inv-test-001');
       const anova = { Machine: makeAnova(0.3) };
       const { result } = renderHook(() =>
         useQuestions({ initialQuestions: [q], anovaByFactor: anova })
@@ -231,7 +231,7 @@ describe('useQuestions', () => {
 
   describe('sub-questions', () => {
     it('adds a sub-question under a parent', () => {
-      const parent = createQuestion('Root cause');
+      const parent = createQuestion('Root cause', 'inv-test-001');
       const { result } = renderHook(() => useQuestions({ initialQuestions: [parent] }));
       act(() => {
         result.current.addSubQuestion(parent.id, 'Sub cause', 'Machine', 'A', 'data');
@@ -253,7 +253,7 @@ describe('useQuestions', () => {
 
     it('enforces max depth constraint', () => {
       // Build a chain of max depth
-      const root = createQuestion('L0');
+      const root = createQuestion('L0', 'inv-test-001');
       const l1 = createQuestion('L1', 'general-unassigned', undefined, undefined, root.id);
       const l2 = createQuestion('L2', 'general-unassigned', undefined, undefined, l1.id);
       const { result } = renderHook(() => useQuestions({ initialQuestions: [root, l1, l2] }));
@@ -266,7 +266,7 @@ describe('useQuestions', () => {
     });
 
     it('enforces max children constraint', () => {
-      const parent = createQuestion('Root');
+      const parent = createQuestion('Root', 'inv-test-001');
       const children = Array.from({ length: MAX_CHILDREN_PER_PARENT }, (_, i) =>
         createQuestion(`Child ${i}`, 'general-unassigned', undefined, undefined, parent.id)
       );
@@ -282,7 +282,7 @@ describe('useQuestions', () => {
   });
 
   describe('tree navigation', () => {
-    const root = createQuestion('Root');
+    const root = createQuestion('Root', 'inv-test-001');
     const child1 = createQuestion('Child 1', 'general-unassigned', undefined, undefined, root.id);
     const child2 = createQuestion('Child 2', 'general-unassigned', undefined, undefined, root.id);
     const grandchild = createQuestion(
@@ -326,7 +326,7 @@ describe('useQuestions', () => {
 
   describe('cascade delete', () => {
     it('deletes question and all descendants', () => {
-      const root = createQuestion('Root');
+      const root = createQuestion('Root', 'inv-test-001');
       root.linkedFindingIds = ['f-root'];
       const child = createQuestion('Child', 'general-unassigned', undefined, undefined, root.id);
       child.linkedFindingIds = ['f-child'];
@@ -345,7 +345,7 @@ describe('useQuestions', () => {
     });
 
     it('deletes only subtree, leaves siblings', () => {
-      const root = createQuestion('Root');
+      const root = createQuestion('Root', 'inv-test-001');
       const child1 = createQuestion('Keep', 'general-unassigned', undefined, undefined, root.id);
       const child2 = createQuestion('Delete', 'general-unassigned', undefined, undefined, root.id);
       const gc = createQuestion(
@@ -420,7 +420,7 @@ describe('useQuestions', () => {
 
   describe('getChildrenSummary', () => {
     it('returns correct counts', () => {
-      const parent = createQuestion('Root');
+      const parent = createQuestion('Root', 'inv-test-001');
       const c1 = createQuestion('Answered', 'general-unassigned', 'Machine', undefined, parent.id);
       const c2 = createQuestion('Ruled out', 'general-unassigned', 'Shift', undefined, parent.id);
       const c3 = createQuestion('Open', 'general-unassigned', undefined, undefined, parent.id);
@@ -447,7 +447,9 @@ describe('useQuestions', () => {
     });
 
     it('returns true at capacity', () => {
-      const many = Array.from({ length: MAX_TOTAL_QUESTIONS }, (_, i) => createQuestion(`Q${i}`));
+      const many = Array.from({ length: MAX_TOTAL_QUESTIONS }, (_, i) =>
+        createQuestion(`Q${i}`, 'inv-test-001')
+      );
       const { result } = renderHook(() => useQuestions({ initialQuestions: many }));
       expect(result.current.isAtCapacity).toBe(true);
     });
@@ -455,7 +457,7 @@ describe('useQuestions', () => {
 
   describe('status propagation from children', () => {
     it('parent with all children ruled-out → parent ruled-out', () => {
-      const parent = createQuestion('Root');
+      const parent = createQuestion('Root', 'inv-test-001');
       const c1 = createQuestion('C1', 'general-unassigned', 'A', undefined, parent.id);
       const c2 = createQuestion('C2', 'general-unassigned', 'B', undefined, parent.id);
       const anova = {
@@ -469,7 +471,7 @@ describe('useQuestions', () => {
     });
 
     it('parent with one answered child → parent answered', () => {
-      const parent = createQuestion('Root');
+      const parent = createQuestion('Root', 'inv-test-001');
       const c1 = createQuestion('C1', 'general-unassigned', 'A', undefined, parent.id);
       const c2 = createQuestion('C2', 'general-unassigned', 'B', undefined, parent.id);
       const anova = {
@@ -483,7 +485,7 @@ describe('useQuestions', () => {
     });
 
     it('parent with mix of investigating and ruled-out → investigating', () => {
-      const parent = createQuestion('Root');
+      const parent = createQuestion('Root', 'inv-test-001');
       const c1 = createQuestion('C1', 'general-unassigned', 'A', undefined, parent.id);
       const c2 = createQuestion('C2', 'general-unassigned', 'B', undefined, parent.id);
       const anova = {
@@ -512,7 +514,7 @@ describe('useQuestions', () => {
     });
 
     it('multi-level propagation (grandchild → child → root)', () => {
-      const root = createQuestion('Root');
+      const root = createQuestion('Root', 'inv-test-001');
       const child = createQuestion('Child', 'general-unassigned', undefined, undefined, root.id);
       const gc1 = createQuestion('GC1', 'general-unassigned', 'A', undefined, child.id);
       const gc2 = createQuestion('GC2', 'general-unassigned', 'B', undefined, child.id);
@@ -543,7 +545,7 @@ describe('useQuestions', () => {
     });
 
     it('addIdea adds idea to question and returns it', () => {
-      const q = createQuestion('Root cause');
+      const q = createQuestion('Root cause', 'inv-test-001');
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
 
       let idea: ReturnType<typeof result.current.addIdea> = null;
@@ -570,7 +572,7 @@ describe('useQuestions', () => {
     });
 
     it('updateIdea updates idea text, timeframe, and notes', () => {
-      const q = createQuestion('Root cause');
+      const q = createQuestion('Root cause', 'inv-test-001');
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
 
       let ideaId: string;
@@ -594,7 +596,7 @@ describe('useQuestions', () => {
     });
 
     it('removeIdea removes idea from question', () => {
-      const q = createQuestion('Root cause');
+      const q = createQuestion('Root cause', 'inv-test-001');
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
 
       let ideaId: string;
@@ -613,7 +615,7 @@ describe('useQuestions', () => {
     });
 
     it('setIdeaProjection attaches projection to idea', () => {
-      const q = createQuestion('Root cause');
+      const q = createQuestion('Root cause', 'inv-test-001');
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
 
       let ideaId: string;
@@ -635,7 +637,7 @@ describe('useQuestions', () => {
     });
 
     it('selectIdea toggles selected flag', () => {
-      const q = createQuestion('Root cause');
+      const q = createQuestion('Root cause', 'inv-test-001');
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
 
       let ideaId: string;
@@ -657,7 +659,7 @@ describe('useQuestions', () => {
 
     it('onQuestionsChange callback fires on idea operations', () => {
       const onChange = vi.fn();
-      const q = createQuestion('Root cause');
+      const q = createQuestion('Root cause', 'inv-test-001');
       const { result } = renderHook(() =>
         useQuestions({ initialQuestions: [q], onQuestionsChange: onChange })
       );

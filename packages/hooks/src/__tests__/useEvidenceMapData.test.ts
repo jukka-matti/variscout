@@ -92,8 +92,10 @@ function makeQuestion(overrides: Partial<Question> & Pick<Question, 'id' | 'stat
   return {
     text: 'Does the factor affect the outcome?',
     linkedFindingIds: [],
-    createdAt: '2026-04-05T00:00:00Z',
-    updatedAt: '2026-04-05T00:00:00Z',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     ...overrides,
   };
 }
@@ -133,7 +135,7 @@ describe('useEvidenceMapData — explored node state', () => {
     );
     expect(result.current.isEmpty).toBe(true);
     expect(result.current.factorNodes).toHaveLength(0);
-    expect((result.current as Record<string, unknown>).exploredFactors).toBeUndefined();
+    expect((result.current as unknown as Record<string, unknown>).exploredFactors).toBeUndefined();
   });
 
   it('marks a factor as explored when it has an answered question', () => {

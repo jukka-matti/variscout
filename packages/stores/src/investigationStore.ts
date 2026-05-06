@@ -334,7 +334,8 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
         context.cumulativeScope,
         context.stats,
         undefined,
-        source
+        source,
+        'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
       );
       if (questionId) {
         finding.questionId = questionId;

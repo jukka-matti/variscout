@@ -23,8 +23,9 @@ function makeLink(from: string, to: string, id?: string): CausalLink {
     questionIds: [],
     findingIds: [],
     source: 'analyst',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
   };
 }
 

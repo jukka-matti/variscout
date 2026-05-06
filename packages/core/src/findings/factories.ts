@@ -24,11 +24,16 @@ import { generateDeterministicId } from '../identity';
 export { generateDeterministicId as generateId } from '../identity';
 
 /**
- * Create a new Question with a unique ID
+ * Create a new Question with a unique ID.
+ *
+ * @param text - Question text
+ * @param investigationId - FK to the owning investigation. Callers must pass
+ *   explicitly; use 'general-unassigned' as a sentinel until investigations
+ *   become first-class (F6 named-future, tracked in docs/investigations.md).
  */
 export function createQuestion(
   text: string,
-  investigationId: string = 'general-unassigned',
+  investigationId: string,
   factor?: string,
   level?: string,
   parentId?: string,
@@ -52,7 +57,11 @@ export function createQuestion(
 }
 
 /**
- * Create a new Finding with a unique ID
+ * Create a new Finding with a unique ID.
+ *
+ * @param investigationId - FK to the owning investigation. Callers must pass
+ *   explicitly; use 'general-unassigned' as a sentinel until investigations
+ *   become first-class (F6 named-future, tracked in docs/investigations.md).
  */
 export function createFinding(
   text: string,
@@ -61,7 +70,7 @@ export function createFinding(
   stats?: { mean: number; median?: number; cpk?: number; samples: number },
   status?: FindingStatus,
   source?: FindingSource,
-  investigationId: string = 'general-unassigned'
+  investigationId = 'general-unassigned' // callers should pass explicitly; sentinel until F6 first-class investigations
 ): Finding {
   const now = Date.now();
   const finding: Finding = {
@@ -293,7 +302,7 @@ export function createSuspectedCause(
   synthesis: string,
   questionIds: string[] = [],
   findingIds: string[] = [],
-  investigationId: string = 'general-unassigned'
+  investigationId = 'general-unassigned' // callers must pass explicitly; sentinel until F6 first-class investigations
 ): SuspectedCause {
   const now = Date.now();
   return {

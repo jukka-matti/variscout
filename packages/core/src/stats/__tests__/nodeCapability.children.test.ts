@@ -5,7 +5,8 @@ import type { ProcessHub, ProcessHubInvestigation } from '../../processHub';
 const hub: ProcessHub = {
   id: 'hub-1',
   name: 'Bottling Line A',
-  createdAt: '2026-04-28T10:00:00.000Z',
+  createdAt: 1745836800000,
+  deletedAt: null,
 };
 
 function inv(
@@ -17,7 +18,9 @@ function inv(
   return {
     id,
     name: `inv-${id}`,
-    modified: '2026-04-28T10:00:00.000Z',
+    createdAt: 1745836800000,
+    updatedAt: 1745836800000,
+    deletedAt: null,
     metadata: {
       processHubId: 'hub-1',
       nodeMappings: nodeId ? [{ nodeId, measurementColumn: 'unused' }] : undefined,

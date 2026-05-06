@@ -162,7 +162,9 @@ describe('buildCurrentProcessState', () => {
         capturedAt: '2026-04-26T11:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:process-state-cadence',
-        importedAt: '2026-04-26T11:00:00.000Z',
+        importedAt: 1745667600000,
+        createdAt: 1745667600000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-red',
@@ -270,7 +272,9 @@ describe('buildCurrentProcessState', () => {
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:evidence-state-ordering',
-        importedAt: '2026-04-26T10:00:00.000Z',
+        importedAt: 1745664000000,
+        createdAt: 1745664000000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-green',
@@ -288,7 +292,9 @@ describe('buildCurrentProcessState', () => {
         capturedAt: '2026-04-25T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:evidence-state-ordering',
-        importedAt: '2026-04-25T10:00:00.000Z',
+        importedAt: 1745577600000,
+        createdAt: 1745577600000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-red',

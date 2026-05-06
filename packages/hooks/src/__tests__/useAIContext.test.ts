@@ -52,7 +52,15 @@ describe('useAIContext', () => {
       useAIContext({
         enabled: true,
         filters: { Machine: ['A', 'B'] },
-        categories: [{ id: 'c1', name: 'Equipment', factorNames: ['Machine'] }],
+        categories: [
+          {
+            id: 'c1',
+            name: 'Equipment',
+            factorNames: ['Machine'],
+            createdAt: 1714000000000,
+            deletedAt: null,
+          },
+        ],
       })
     );
     expect(result.current.context!.filters).toHaveLength(1);

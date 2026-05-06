@@ -76,25 +76,43 @@ describe('HypothesisCondition type', () => {
 
 describe('deriveConditionFromFindingSource', () => {
   it('derives eq leaf from boxplot category', () => {
-    const source: FindingSource = { chart: 'boxplot', category: 'night' };
+    const source: FindingSource = {
+      chart: 'boxplot',
+      category: 'night',
+      timeLens: { mode: 'cumulative' },
+    };
     const result = deriveConditionFromFindingSource(source, { groupColumn: 'SHIFT' });
     expect(result).toEqual({ kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' });
   });
 
   it('derives eq leaf from pareto category', () => {
-    const source: FindingSource = { chart: 'pareto', category: 'SupplierB' };
+    const source: FindingSource = {
+      chart: 'pareto',
+      category: 'SupplierB',
+      timeLens: { mode: 'cumulative' },
+    };
     const result = deriveConditionFromFindingSource(source, { dimensionColumn: 'SUPPLIER' });
     expect(result).toEqual({ kind: 'leaf', column: 'SUPPLIER', op: 'eq', value: 'SupplierB' });
   });
 
   it('derives gte leaf from ichart anchor', () => {
-    const source: FindingSource = { chart: 'ichart', anchorX: 10, anchorY: 120 };
+    const source: FindingSource = {
+      chart: 'ichart',
+      anchorX: 10,
+      anchorY: 120,
+      timeLens: { mode: 'cumulative' },
+    };
     const result = deriveConditionFromFindingSource(source, { metricColumn: 'NOZZLE.TEMP' });
     expect(result).toEqual({ kind: 'leaf', column: 'NOZZLE.TEMP', op: 'gte', value: 120 });
   });
 
   it('derives between leaf from probability plot', () => {
-    const source: FindingSource = { chart: 'probability', anchorX: 10, anchorY: 100 };
+    const source: FindingSource = {
+      chart: 'probability',
+      anchorX: 10,
+      anchorY: 100,
+      timeLens: { mode: 'cumulative' },
+    };
     const result = deriveConditionFromFindingSource(source, {
       metricColumn: 'FILL',
       anchorYMax: 110,
@@ -103,45 +121,80 @@ describe('deriveConditionFromFindingSource', () => {
   });
 
   it('derives eq leaf from yamazumi activity', () => {
-    const source: FindingSource = { chart: 'yamazumi', category: 'Bending' };
+    const source: FindingSource = {
+      chart: 'yamazumi',
+      category: 'Bending',
+      timeLens: { mode: 'cumulative' },
+    };
     const result = deriveConditionFromFindingSource(source, { activityColumn: 'ACTIVITY' });
     expect(result).toEqual({ kind: 'leaf', column: 'ACTIVITY', op: 'eq', value: 'Bending' });
   });
 
   it('returns undefined for coscout findings', () => {
-    const source: FindingSource = { chart: 'coscout', messageId: 'abc123' };
+    const source: FindingSource = {
+      chart: 'coscout',
+      messageId: 'abc123',
+      timeLens: { mode: 'cumulative' },
+    };
     const result = deriveConditionFromFindingSource(source, {});
     expect(result).toBeUndefined();
   });
 
   it('returns undefined when no columnHint is provided for a boxplot', () => {
-    const source: FindingSource = { chart: 'boxplot', category: 'night' };
+    const source: FindingSource = {
+      chart: 'boxplot',
+      category: 'night',
+      timeLens: { mode: 'cumulative' },
+    };
     const result = deriveConditionFromFindingSource(source, {});
     expect(result).toBeUndefined();
   });
 
   it('returns undefined when metricColumn missing for ichart', () => {
-    const source: FindingSource = { chart: 'ichart', anchorX: 10, anchorY: 120 };
+    const source: FindingSource = {
+      chart: 'ichart',
+      anchorX: 10,
+      anchorY: 120,
+      timeLens: { mode: 'cumulative' },
+    };
     expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();
   });
 
   it('returns undefined when metricColumn missing for probability', () => {
-    const source: FindingSource = { chart: 'probability', anchorX: 10, anchorY: 100 };
+    const source: FindingSource = {
+      chart: 'probability',
+      anchorX: 10,
+      anchorY: 100,
+      timeLens: { mode: 'cumulative' },
+    };
     expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();
   });
 
   it('returns undefined when anchorYMax missing for probability', () => {
-    const source: FindingSource = { chart: 'probability', anchorX: 10, anchorY: 100 };
+    const source: FindingSource = {
+      chart: 'probability',
+      anchorX: 10,
+      anchorY: 100,
+      timeLens: { mode: 'cumulative' },
+    };
     expect(deriveConditionFromFindingSource(source, { metricColumn: 'FILL' })).toBeUndefined();
   });
 
   it('returns undefined when dimensionColumn missing for pareto', () => {
-    const source: FindingSource = { chart: 'pareto', category: 'Supplier' };
+    const source: FindingSource = {
+      chart: 'pareto',
+      category: 'Supplier',
+      timeLens: { mode: 'cumulative' },
+    };
     expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();
   });
 
   it('returns undefined when activityColumn missing for yamazumi', () => {
-    const source: FindingSource = { chart: 'yamazumi', category: 'Bending' };
+    const source: FindingSource = {
+      chart: 'yamazumi',
+      category: 'Bending',
+      timeLens: { mode: 'cumulative' },
+    };
     expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();
   });
 });

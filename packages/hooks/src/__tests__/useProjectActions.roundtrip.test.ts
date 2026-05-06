@@ -84,7 +84,7 @@ function createInMemoryAdapter(): PersistenceAdapter {
         specs: {},
         filters: {},
         axisSettings: {},
-      }) as AnalysisState,
+      }) as unknown as AnalysisState,
   };
 }
 
@@ -103,11 +103,13 @@ function makeFinding(id: string, text: string): Finding {
   return {
     id,
     text,
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: 0, stats: { mean: 15, samples: 4 } },
     status: 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
   };
 }
 
@@ -116,8 +118,10 @@ function makeQuestion(id: string, text: string): Question {
     id,
     text,
     status: 'open',
-    createdAt: '2026-04-01T00:00:00Z',
-    updatedAt: '2026-04-01T00:00:00Z',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     linkedFindingIds: [],
   };
 }
@@ -148,7 +152,7 @@ describe('useProjectActions persistence roundtrip', () => {
     useProjectStore.getState().setRawData(sampleData);
     useProjectStore.getState().setOutcome('Weight');
     useProjectStore.getState().setFactors(['Machine']);
-    useProjectStore.getState().setSpecs({ LSL: 5, USL: 45 });
+    useProjectStore.getState().setSpecs({ lsl: 5, usl: 45 });
 
     // Save
     let savedProject!: SavedProject;
@@ -172,7 +176,7 @@ describe('useProjectActions persistence roundtrip', () => {
     expect(ps.rawData).toEqual(sampleData);
     expect(ps.outcome).toBe('Weight');
     expect(ps.factors).toEqual(['Machine']);
-    expect(ps.specs).toEqual({ LSL: 5, USL: 45 });
+    expect(ps.specs).toEqual({ lsl: 5, usl: 45 });
     expect(ps.projectId).toBe(savedProject.id);
     expect(ps.projectName).toBe('Roundtrip Project');
     expect(ps.hasUnsavedChanges).toBe(false);
@@ -276,8 +280,24 @@ describe('useProjectActions persistence roundtrip', () => {
     const { result } = renderHook(() => useProjectActions(adapter));
 
     const filterStack: FilterAction[] = [
-      { type: 'filter', factor: 'Machine', values: ['A'] },
-      { type: 'filter', factor: 'Line', values: ['L1', 'L2'] },
+      {
+        id: 'fa-1',
+        type: 'filter',
+        source: 'boxplot',
+        factor: 'Machine',
+        values: ['A'],
+        timestamp: 1714000000000,
+        label: 'Machine = A',
+      },
+      {
+        id: 'fa-2',
+        type: 'filter',
+        source: 'boxplot',
+        factor: 'Line',
+        values: ['L1', 'L2'],
+        timestamp: 1714000001000,
+        label: 'Line = L1, L2',
+      },
     ];
 
     useProjectStore.getState().setRawData(sampleData);

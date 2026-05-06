@@ -6,32 +6,36 @@ import type { Finding, Question, ActionItem, ImprovementIdea } from '../../findi
 
 function makeFinding(overrides: Partial<Finding> & { id: string; text: string }): Finding {
   return {
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: {
       activeFilters: {},
       cumulativeScope: null,
     },
     status: 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
     ...overrides,
   };
 }
 
 function makeQuestion(overrides: Partial<Question> & { id: string; text: string }): Question {
-  const now = new Date().toISOString();
   return {
     status: 'open',
     linkedFindingIds: [],
-    createdAt: now,
-    updatedAt: now,
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    investigationId: 'inv-test-001',
+    deletedAt: null,
     ...overrides,
   };
 }
 
 function makeAction(overrides: Partial<ActionItem> & { id: string; text: string }): ActionItem {
   return {
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
     ...overrides,
   };
 }
@@ -40,7 +44,8 @@ function makeIdea(
   overrides: Partial<ImprovementIdea> & { id: string; text: string }
 ): ImprovementIdea {
   return {
-    createdAt: new Date().toISOString(),
+    createdAt: 1714000000000,
+    deletedAt: null,
     ...overrides,
   };
 }

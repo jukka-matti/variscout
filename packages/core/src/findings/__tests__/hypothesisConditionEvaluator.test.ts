@@ -209,8 +209,10 @@ function hub(id: string, cond: HypothesisCondition | undefined): SuspectedCause 
     findingIds: [],
     status: 'suspected',
     condition: cond,
-    createdAt: '2026-04-19T00:00:00Z',
-    updatedAt: '2026-04-19T00:00:00Z',
+    createdAt: 1745625600000,
+    updatedAt: 1745625600000,
+    investigationId: 'inv-test-001',
+    deletedAt: null,
   };
 }
 

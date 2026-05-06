@@ -164,7 +164,16 @@ describe('canvasStore document hydration', () => {
         createdAt: '2026-05-05T00:00:00.000Z',
         updatedAt: '2026-05-05T00:00:00.000Z',
       },
-      outcomes: [{ columnName: 'yield', characteristicType: 'largerIsBetter' }],
+      outcomes: [
+        {
+          id: 'o-1',
+          hubId: 'hub-loaded',
+          createdAt: 1714000000000,
+          deletedAt: null,
+          columnName: 'yield',
+          characteristicType: 'largerIsBetter',
+        },
+      ],
       primaryScopeDimensions: ['line'],
       canonicalMapVersion: 'snapshot-version',
     });
@@ -176,7 +185,14 @@ describe('canvasStore document hydration', () => {
       'chip-a': 'step-loaded',
     });
     expect(useCanvasStore.getState().outcomes).toEqual([
-      { columnName: 'yield', characteristicType: 'largerIsBetter' },
+      {
+        id: 'o-1',
+        hubId: 'hub-loaded',
+        createdAt: 1714000000000,
+        deletedAt: null,
+        columnName: 'yield',
+        characteristicType: 'largerIsBetter',
+      },
     ]);
     expect(useCanvasStore.getState().primaryScopeDimensions).toEqual(['line']);
     expect(useCanvasStore.getState().canonicalMapVersion).toBe('snapshot-version');

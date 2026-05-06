@@ -26,8 +26,10 @@ const question = (overrides: Partial<Question> = {}): Question => ({
   factor: 'Machine',
   status: 'answered',
   linkedFindingIds: ['f-1'],
-  createdAt: '2026-04-26T00:00:00.000Z',
-  updatedAt: '2026-04-26T00:00:00.000Z',
+  createdAt: 1745625600000,
+  updatedAt: 1745625600000,
+  investigationId: 'inv-test-001',
+  deletedAt: null,
   ...overrides,
 });
 
@@ -35,6 +37,8 @@ const finding = (overrides: Partial<Finding> = {}): Finding => ({
   id: 'f-1',
   text: 'Machine M2 has the highest fill-weight spread.',
   createdAt: 1760000000000,
+  deletedAt: null,
+  investigationId: 'inv-test-001',
   context: { activeFilters: {}, cumulativeScope: null },
   status: 'analyzed',
   comments: [],
@@ -51,8 +55,10 @@ const branch = (overrides: Partial<SuspectedCause> = {}): SuspectedCause => ({
   questionIds: ['q-1'],
   findingIds: ['f-1'],
   status: 'suspected',
-  createdAt: '2026-04-26T00:00:00.000Z',
-  updatedAt: '2026-04-26T00:00:00.000Z',
+  createdAt: 1745625600000,
+  updatedAt: 1745625600000,
+  investigationId: 'inv-test-001',
+  deletedAt: null,
   ...overrides,
 });
 

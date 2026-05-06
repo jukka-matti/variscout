@@ -118,7 +118,11 @@ function makeMockQuestionsState(initialQuestions: Question[] = []) {
           autoAnswered?: boolean;
           source: string;
         }) => ({
-          ...createQuestion(q.text, q.factors.length === 1 ? q.factors[0] : undefined),
+          ...createQuestion(
+            q.text,
+            'inv-test-001',
+            q.factors.length === 1 ? q.factors[0] : undefined
+          ),
           questionSource: q.source,
           evidence: { rSquaredAdj: q.rSquaredAdj },
           status: q.autoAnswered ? 'ruled-out' : 'open',
@@ -348,7 +352,7 @@ describe('useQuestionGeneration', () => {
       );
 
       const question = {
-        ...createQuestion('Is the process in control?'),
+        ...createQuestion('Is the process in control?', 'inv-test-001'),
         questionSource: 'factor-intel' as const,
       };
 

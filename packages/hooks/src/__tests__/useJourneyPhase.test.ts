@@ -11,6 +11,8 @@ const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
   id: 'f-1',
   text: 'Test finding',
   createdAt: 1000,
+  deletedAt: null,
+  investigationId: 'inv-test-001',
   context: {
     activeFilters: {},
     cumulativeScope: null,
@@ -43,7 +45,7 @@ describe('useJourneyPhase', () => {
       makeFinding({
         id: 'f-1',
         text: 'Fix required',
-        actions: [{ id: 'a-1', text: 'Adjust calibration', createdAt: 2000 }],
+        actions: [{ id: 'a-1', text: 'Adjust calibration', createdAt: 2000, deletedAt: null }],
       }),
     ];
     const { result } = renderHook(() => useJourneyPhase(true, findings));
@@ -56,7 +58,7 @@ describe('useJourneyPhase', () => {
       makeFinding({
         id: 'f-2',
         text: 'Has actions',
-        actions: [{ id: 'a-1', text: 'Retrain operator', createdAt: 2000 }],
+        actions: [{ id: 'a-1', text: 'Retrain operator', createdAt: 2000, deletedAt: null }],
       }),
     ];
     const { result } = renderHook(() => useJourneyPhase(true, findings));

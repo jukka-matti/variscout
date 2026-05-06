@@ -37,6 +37,8 @@ describe('createPhotoAttachment', () => {
       thumbnailDataUrl: 'data:image/jpeg;base64,abc',
       uploadStatus: 'uploaded',
       capturedAt: 1000,
+      createdAt: 1714000000000,
+      deletedAt: null,
     };
 
     expect(photo.uploadStatus).toBe('uploaded');

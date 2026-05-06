@@ -9,8 +9,10 @@ const makeQuestion = (factor: string, status = 'open' as const): Question => ({
   factor,
   status,
   linkedFindingIds: [],
-  createdAt: '2026-04-01T10:00:00Z',
-  updatedAt: '2026-04-01T10:00:00Z',
+  createdAt: 1714000000000,
+  updatedAt: 1714000000000,
+  deletedAt: null,
+  investigationId: 'inv-test-001',
   questionSource: 'factor-intel',
 });
 

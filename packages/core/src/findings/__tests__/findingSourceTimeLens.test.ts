@@ -17,11 +17,13 @@ function makeFindingWith(source: FindingSource): Finding {
   return {
     id: 'f-test',
     text: 'test',
-    createdAt: 1000,
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
-    statusChangedAt: 1000,
+    statusChangedAt: 1714000000000,
     source,
   };
 }
@@ -178,11 +180,13 @@ describe('migrateFindings — timeLens back-fill', () => {
     const noSource: Finding = {
       id: 'f-nosrc',
       text: 'no source',
-      createdAt: 1000,
+      createdAt: 1714000000000,
+      deletedAt: null,
+      investigationId: 'inv-test-001',
       context: { activeFilters: {}, cumulativeScope: null },
       status: 'observed',
       comments: [],
-      statusChangedAt: 1000,
+      statusChangedAt: 1714000000000,
     };
     const [migrated] = migrateFindings([noSource]);
     expect(migrated.source).toBeUndefined();

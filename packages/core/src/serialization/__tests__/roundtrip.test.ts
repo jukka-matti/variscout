@@ -11,6 +11,10 @@ describe('vrs roundtrip', () => {
     processGoal: 'We mold barrels.',
     outcomes: [
       {
+        id: 'outcome-1',
+        hubId: DEFAULT_PROCESS_HUB.id,
+        createdAt: 1714000000000,
+        deletedAt: null,
         columnName: 'weight_g',
         characteristicType: 'nominalIsBest' as const,
         target: 4.5,
