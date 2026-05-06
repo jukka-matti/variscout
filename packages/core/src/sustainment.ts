@@ -1,10 +1,13 @@
 import { buildReviewItem } from './processHubReview';
+import type { EntityBase } from './identity';
 import type {
+  ProcessHub,
   ProcessHubAttentionReason,
   ProcessHubInvestigation,
   ProcessHubReviewItem,
   ProcessParticipantRef,
 } from './processHub';
+import type { EvidenceSnapshot } from './evidenceSources';
 
 export type SustainmentCadence =
   | 'weekly'
@@ -28,49 +31,54 @@ export type ControlHandoffSurface =
   | 'ticket-queue'
   | 'other';
 
-export interface SustainmentRecord {
-  id: string;
-  investigationId: string;
-  hubId: string;
+export interface SustainmentRecord extends EntityBase {
+  // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null)
+  // deletedAt replaces the former tombstoneAt field (renamed 2026-05-06, P1.4b).
+  // Set to a non-null number when the investigation leaves SUSTAINMENT_STATUSES;
+  // record is archived but readable.
+  investigationId: ProcessHubInvestigation['id'];
+  hubId: ProcessHub['id'];
   cadence: SustainmentCadence;
   nextReviewDue?: string;
   latestVerdict?: SustainmentVerdict;
   latestReviewAt?: string;
-  latestReviewId?: string;
+  latestReviewId?: SustainmentReview['id'];
   owner?: ProcessParticipantRef;
   openConcerns?: string;
-  controlHandoffId?: string;
-  /** Set when the investigation has left SUSTAINMENT_STATUSES; record is archived but readable. */
-  tombstoneAt?: string;
-  createdAt: string;
-  updatedAt: string;
+  controlHandoffId?: ControlHandoff['id'];
+  updatedAt: number;
 }
 
-export interface SustainmentReview {
-  id: string;
-  recordId: string;
-  investigationId: string;
-  hubId: string;
-  reviewedAt: string;
+export interface SustainmentReview extends EntityBase {
+  // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null).
+  // createdAt == reviewedAt at construction (both set to Date.now() when the review is logged).
+  // reviewedAt is the domain field for "when was this review conducted";
+  // createdAt is the EntityBase lifecycle field. They are set to the same value at creation.
+  recordId: SustainmentRecord['id'];
+  investigationId: ProcessHubInvestigation['id'];
+  hubId: ProcessHub['id'];
+  reviewedAt: number;
   reviewer: ProcessParticipantRef;
   verdict: SustainmentVerdict;
-  snapshotId?: string;
+  snapshotId?: EvidenceSnapshot['id'];
   observation?: string;
-  escalatedInvestigationId?: string;
+  escalatedInvestigationId?: ProcessHubInvestigation['id'];
 }
 
-export interface ControlHandoff {
-  id: string;
-  investigationId: string;
-  hubId: string;
+export interface ControlHandoff extends EntityBase {
+  // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null).
+  // recordedAt was renamed to createdAt (P1.4b, 2026-05-06) — they were semantically identical
+  // (the system timestamp when this handoff entity was created).
+  investigationId: ProcessHubInvestigation['id'];
+  hubId: ProcessHub['id'];
   surface: ControlHandoffSurface;
   systemName: string;
   operationalOwner: ProcessParticipantRef;
-  handoffDate: string;
+  /** User-stated effective date of the handoff (wall-clock, Unix ms). */
+  handoffDate: number;
   description: string;
   referenceUri?: string;
   retainSustainmentReview: boolean;
-  recordedAt: string;
   recordedBy: ProcessParticipantRef;
 }
 
@@ -142,11 +150,10 @@ function addMonthsClamped(date: Date, months: number): void {
 
 /**
  * Returns true when a sustainment record's next review is at or before `now`.
- * Tombstoned records (those whose investigation has left SUSTAINMENT_STATUSES)
- * are never due.
+ * Soft-deleted records (deletedAt !== null; formerly tombstoneAt) are never due.
  */
 export function isSustainmentDue(record: SustainmentRecord, now: Date): boolean {
-  if (record.tombstoneAt) return false;
+  if (record.deletedAt !== null) return false;
   if (!record.nextReviewDue) return false;
   return new Date(record.nextReviewDue).getTime() <= now.getTime();
 }
@@ -154,14 +161,14 @@ export function isSustainmentDue(record: SustainmentRecord, now: Date): boolean 
 /**
  * Returns true only when `now > nextReviewDue + graceDays * 24h`. The
  * grace day itself (and the due day with default `graceDays = 0`) is NOT
- * overdue — the cliff is exclusive. Tombstoned records are never overdue.
+ * overdue — the cliff is exclusive. Soft-deleted records are never overdue.
  */
 export function isSustainmentOverdue(
   record: SustainmentRecord,
   now: Date,
   graceDays: number = 0
 ): boolean {
-  if (record.tombstoneAt) return false;
+  if (record.deletedAt !== null) return false;
   if (!record.nextReviewDue) return false;
   const safeGraceDays = Math.max(0, graceDays);
   const dueMs = new Date(record.nextReviewDue).getTime();
@@ -255,7 +262,7 @@ export function selectSustainmentBuckets<TInv extends ProcessHubInvestigation>(
     const status = inv.metadata?.investigationStatus;
     if (status !== 'resolved' && status !== 'controlled') continue;
     const record = recordByInvestigation.get(inv.id);
-    if (!record || record.tombstoneAt) continue;
+    if (!record || record.deletedAt !== null) continue;
     if (status === 'controlled') {
       const handoff = handoffByInvestigation.get(inv.id);
       if (handoff && handoff.retainSustainmentReview === false) continue;

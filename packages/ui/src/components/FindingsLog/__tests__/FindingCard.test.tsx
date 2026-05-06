@@ -10,7 +10,9 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
     id: 'f-window-1',
     text: 'Drift suspected on Line 2',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: {
       activeFilters: { Machine: ['B'] },
       cumulativeScope: 30,

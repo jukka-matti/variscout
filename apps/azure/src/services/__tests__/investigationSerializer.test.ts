@@ -33,8 +33,10 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
     status: 'answered',
     factor: 'Shift',
     linkedFindingIds: [],
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-02T00:00:00.000Z',
+    createdAt: 1704067200000, // 2024-01-01T00:00:00.000Z
+    updatedAt: 1704153600000, // 2024-01-02T00:00:00.000Z
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     ...overrides,
   };
 }
@@ -55,8 +57,10 @@ function makeSuspectedCause(overrides: Partial<SuspectedCause> = {}): SuspectedC
       },
     },
     status: 'suspected',
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-02T00:00:00.000Z',
+    createdAt: 1704067200000, // 2024-01-01T00:00:00.000Z
+    updatedAt: 1704153600000, // 2024-01-02T00:00:00.000Z
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     ...overrides,
   };
 }
@@ -85,8 +89,22 @@ describe('serializeFindings', () => {
   it('includes comment texts, flattened from FindingComment objects', () => {
     const finding = makeFinding({
       comments: [
-        { id: 'c-1', text: 'First observation', createdAt: 1700000001000 },
-        { id: 'c-2', text: 'Second observation', createdAt: 1700000002000 },
+        {
+          id: 'c-1',
+          text: 'First observation',
+          createdAt: 1700000001000,
+          parentId: 'f-test',
+          parentKind: 'finding' as const,
+          deletedAt: null,
+        },
+        {
+          id: 'c-2',
+          text: 'Second observation',
+          createdAt: 1700000002000,
+          parentId: 'f-test',
+          parentKind: 'finding' as const,
+          deletedAt: null,
+        },
       ],
     });
     const parsed = JSON.parse(serializeFindings([finding]));
@@ -123,11 +141,13 @@ describe('serializeFindings', () => {
           assignee: { upn: 'jane@contoso.com', displayName: 'Jane Smith' },
           completedAt: 1700000020000,
           createdAt: 1700000000000,
+          deletedAt: null,
         },
         {
           id: 'a-2',
           text: 'Update SOP',
           createdAt: 1700000001000,
+          deletedAt: null,
         },
       ],
     });
@@ -211,7 +231,8 @@ describe('serializeQuestions', () => {
           selected: true,
           direction: 'prevent',
           timeframe: 'weeks',
-          createdAt: '2024-01-01T00:00:00.000Z',
+          createdAt: 1704067200000,
+          deletedAt: null,
         },
         {
           id: 'i-2',
@@ -219,7 +240,8 @@ describe('serializeQuestions', () => {
           selected: false,
           direction: 'eliminate',
           timeframe: 'months',
-          createdAt: '2024-01-01T00:00:00.000Z',
+          createdAt: 1704067200000,
+          deletedAt: null,
         },
       ],
     });

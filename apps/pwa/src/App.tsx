@@ -672,7 +672,8 @@ function AppMain() {
       const base = sessionHub ?? {
         id: crypto.randomUUID(),
         name: '',
-        createdAt: new Date().toISOString(),
+        createdAt: Date.now(),
+        deletedAt: null as null,
       };
 
       const goalNarrativeForHub = goalNarrative && goalNarrative.trim() ? goalNarrative : undefined;
@@ -688,7 +689,7 @@ function AppMain() {
         // Wire outcomes + primaryScopeDimensions into the Hub (resolves slice-1 TODO).
         outcomes: payload.outcomes,
         primaryScopeDimensions: payload.primaryScopeDimensions,
-        updatedAt: new Date().toISOString(),
+        updatedAt: Date.now(),
       });
 
       // Stage 5 (spec §5.5): open the floating investigation-context modal before
@@ -884,7 +885,7 @@ function AppMain() {
             setSessionHub({
               ...sessionHub,
               processGoal: next,
-              updatedAt: new Date().toISOString(),
+              updatedAt: Date.now(),
             });
           }}
         />

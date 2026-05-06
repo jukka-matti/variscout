@@ -7,7 +7,8 @@ describe('createSnapshotProvenance', () => {
     const rows: DataRow[] = [{ weight_g: 100 }, { weight_g: 101 }];
     const prov = createSnapshotProvenance('paste:test', rows);
     expect(prov.origin).toBe('paste:test');
-    expect(prov.importedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(typeof prov.importedAt).toBe('number');
+    expect(prov.importedAt).toBeGreaterThan(0);
     expect(prov.rowTimestampRange).toBeUndefined();
   });
 

@@ -6,6 +6,7 @@
  */
 
 import type { AnalysisState } from '@variscout/hooks';
+import { generateDeterministicId } from '@variscout/core/identity';
 import { db } from '../db/schema';
 
 export interface SavedProject {
@@ -22,11 +23,6 @@ export interface SavedProject {
 
 const VERSION = '1.0.0';
 
-// Generate unique ID
-export function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-}
-
 // Save project to IndexedDB (local cache)
 export async function saveProjectLocally(
   name: string,
@@ -34,7 +30,7 @@ export async function saveProjectLocally(
   location: 'team' | 'personal'
 ): Promise<SavedProject> {
   const project: SavedProject = {
-    id: generateId(),
+    id: generateDeterministicId(),
     name,
     location,
     state: { ...state, version: VERSION },

@@ -65,11 +65,13 @@ const sampleData: DataRow[] = [
 const makeFinding = (id: string, text: string): Finding => ({
   id,
   text,
-  createdAt: Date.now(),
+  createdAt: 1714000000000,
+  deletedAt: null,
+  investigationId: 'inv-test-001',
   context: { activeFilters: {}, cumulativeScope: 0, stats: { mean: 10, samples: 100 } },
   status: 'observed',
   comments: [],
-  statusChangedAt: Date.now(),
+  statusChangedAt: 1714000000000,
 });
 
 // ============================================================================
@@ -98,7 +100,7 @@ describe('useProjectActions', () => {
       useProjectStore.getState().setRawData(sampleData);
       useProjectStore.getState().setOutcome('Weight');
       useProjectStore.getState().setFactors(['Machine']);
-      useProjectStore.getState().setSpecs({ LSL: 5, USL: 45 });
+      useProjectStore.getState().setSpecs({ lsl: 5, usl: 45 });
 
       const { result } = renderHook(() => useProjectActions(persistence));
 
@@ -112,7 +114,7 @@ describe('useProjectActions', () => {
           rawData: sampleData,
           outcome: 'Weight',
           factors: ['Machine'],
-          specs: { LSL: 5, USL: 45 },
+          specs: { lsl: 5, usl: 45 },
         })
       );
     });
@@ -230,7 +232,7 @@ describe('useProjectActions', () => {
           rawData: sampleData,
           outcome: 'Weight',
           factors: ['Machine'],
-          specs: { LSL: 5, USL: 45 },
+          specs: { lsl: 5, usl: 45 },
           filters: {},
           axisSettings: {},
           analysisMode: 'standard',
@@ -251,7 +253,7 @@ describe('useProjectActions', () => {
       expect(ps.rawData).toEqual(sampleData);
       expect(ps.outcome).toBe('Weight');
       expect(ps.factors).toEqual(['Machine']);
-      expect(ps.specs).toEqual({ LSL: 5, USL: 45 });
+      expect(ps.specs).toEqual({ lsl: 5, usl: 45 });
       expect(ps.hasUnsavedChanges).toBe(false);
     });
 
@@ -272,8 +274,24 @@ describe('useProjectActions', () => {
     it('should derive flat filters from filterStack on load', async () => {
       const persistence = createMockPersistence();
       const filterStack: FilterAction[] = [
-        { type: 'filter', factor: 'Machine', values: ['A'] },
-        { type: 'filter', factor: 'Line', values: ['L1', 'L2'] },
+        {
+          id: 'fa-1',
+          type: 'filter',
+          source: 'boxplot',
+          factor: 'Machine',
+          values: ['A'],
+          timestamp: 1714000000000,
+          label: 'Machine = A',
+        },
+        {
+          id: 'fa-2',
+          type: 'filter',
+          source: 'boxplot',
+          factor: 'Line',
+          values: ['L1', 'L2'],
+          timestamp: 1714000001000,
+          label: 'Line = L1, L2',
+        },
       ];
 
       (persistence.loadProject as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -379,8 +397,10 @@ describe('useProjectActions', () => {
           id: 'q1',
           text: 'Why?',
           status: 'open' as const,
-          createdAt: '2026-03-01',
-          updatedAt: '2026-03-01',
+          createdAt: 1714000000000,
+          updatedAt: 1714000000000,
+          deletedAt: null as null,
+          investigationId: 'inv-test-001',
           linkedFindingIds: [],
         },
       ];
@@ -642,7 +662,7 @@ describe('useProjectActions', () => {
         rawData: sampleData,
         outcome: 'Weight',
         factors: ['Machine'],
-        specs: { LSL: 5, USL: 45 },
+        specs: { lsl: 5, usl: 45 },
         filters: {},
         axisSettings: {},
         findings: [makeFinding('f1', 'Imported finding')],
@@ -671,7 +691,17 @@ describe('useProjectActions', () => {
 
     it('should derive flat filters from filterStack on import', async () => {
       const persistence = createMockPersistence();
-      const filterStack: FilterAction[] = [{ type: 'filter', factor: 'Machine', values: ['A'] }];
+      const filterStack: FilterAction[] = [
+        {
+          id: 'fa-1',
+          type: 'filter',
+          source: 'boxplot',
+          factor: 'Machine',
+          values: ['A'],
+          timestamp: 1714000000000,
+          label: 'Machine = A',
+        },
+      ];
       (persistence.importFromFile as ReturnType<typeof vi.fn>).mockResolvedValue({
         version: '1',
         rawData: sampleData,

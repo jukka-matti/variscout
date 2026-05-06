@@ -56,12 +56,9 @@ export function critiqueInvestigationState(input: CritiqueInput): CritiqueResult
     if (!hubQuestionIds.has(q.id)) {
       gaps.push({ kind: 'orphan-question', questionId: q.id, questionText: q.text });
     }
-    const createdMs = Date.parse(q.createdAt);
-    if (!Number.isNaN(createdMs)) {
-      const daysOpen = Math.floor((now - createdMs) / MS_PER_DAY);
-      if (daysOpen > STALE_DAYS) {
-        gaps.push({ kind: 'stale-question', questionId: q.id, questionText: q.text, daysOpen });
-      }
+    const daysOpen = Math.floor((now - q.createdAt) / MS_PER_DAY);
+    if (daysOpen > STALE_DAYS) {
+      gaps.push({ kind: 'stale-question', questionId: q.id, questionText: q.text, daysOpen });
     }
   }
 

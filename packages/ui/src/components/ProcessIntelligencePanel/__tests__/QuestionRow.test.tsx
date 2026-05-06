@@ -14,8 +14,10 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
     factor: 'Operator',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     ...overrides,
   };
 }
@@ -24,7 +26,9 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
     id: 'f1',
     text: 'Night shift shows higher spread',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],

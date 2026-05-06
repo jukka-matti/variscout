@@ -25,9 +25,11 @@ const ICHART_FINDING: Finding = {
   text: 'Test note',
   status: 'observed',
   context: { activeFilters: {}, cumulativeScope: null },
-  createdAt: Date.now(),
+  createdAt: 1714000000000,
+  deletedAt: null,
+  investigationId: 'inv-test-001',
   comments: [],
-  statusChangedAt: Date.now(),
+  statusChangedAt: 1714000000000,
   source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3, timeLens: DEFAULT_TIME_LENS },
 };
 

@@ -11,11 +11,13 @@ const stubContext: Finding['context'] = {
 const makeFinding = (atCreation: WindowContext['statsAtCreation']): Finding => ({
   id: 'f1',
   text: 'Test finding',
-  createdAt: Date.now(),
+  createdAt: 1714000000000,
+  deletedAt: null,
+  investigationId: 'inv-test-001',
   context: stubContext,
   status: 'observed',
   comments: [],
-  statusChangedAt: Date.now(),
+  statusChangedAt: 1714000000000,
   windowContext: {
     windowAtCreation: {
       kind: 'fixed',
@@ -62,11 +64,13 @@ describe('computeFindingWindowDrift', () => {
     const finding: Finding = {
       id: 'f1',
       text: 'no ctx',
-      createdAt: Date.now(),
+      createdAt: 1714000000000,
+      deletedAt: null,
+      investigationId: 'inv-test-001',
       context: stubContext,
       status: 'observed',
       comments: [],
-      statusChangedAt: Date.now(),
+      statusChangedAt: 1714000000000,
     };
     const result = computeFindingWindowDrift(finding, { cpk: 0.5, n: 100 });
     expect(result).toBeNull();

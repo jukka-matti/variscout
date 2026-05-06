@@ -14,8 +14,10 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
     factor: 'Shift',
     status: 'answered',
     linkedFindingIds: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     ...overrides,
   };
 }
@@ -24,7 +26,9 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
     id: 'f1',
     text: 'Night shift shows higher spread',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
@@ -126,8 +130,10 @@ describe('HubComposer', () => {
       questionIds: ['q1'],
       findingIds: [],
       status: 'suspected',
-      createdAt: '2026-04-04T00:00:00Z',
-      updatedAt: '2026-04-04T00:00:00Z',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
+      investigationId: 'general-unassigned',
     };
 
     render(<HubComposer {...defaultProps()} editingHub={editingHub} />);
@@ -147,8 +153,10 @@ describe('HubComposer', () => {
       findingIds: [],
       status: 'suspected',
       nextMove: 'Check nozzle temperature after the night run.',
-      createdAt: '2026-04-04T00:00:00Z',
-      updatedAt: '2026-04-04T00:00:00Z',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
+      investigationId: 'general-unassigned',
     };
 
     render(<HubComposer {...defaultProps()} editingHub={editingHub} />);

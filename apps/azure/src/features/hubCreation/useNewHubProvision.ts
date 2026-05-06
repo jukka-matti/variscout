@@ -36,12 +36,13 @@ export function useNewHubProvision({
     async (goalNarrative: string): Promise<ProcessHub> => {
       const trimmed = goalNarrative.trim();
       const name = extractHubName(trimmed) || 'Untitled hub';
-      const now = new Date().toISOString();
+      const now = Date.now();
       const hub: ProcessHub = {
         id: crypto.randomUUID(),
         name,
         processGoal: trimmed || undefined,
         createdAt: now,
+        deletedAt: null,
         updatedAt: now,
       };
 

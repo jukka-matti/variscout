@@ -44,14 +44,16 @@ const SustainmentReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const reviewedAt = new Date().toISOString();
+    const nowMs = Date.now();
 
     const review: SustainmentReview = {
       id: crypto.randomUUID(),
       recordId,
       investigationId,
       hubId,
-      reviewedAt,
+      reviewedAt: nowMs,
+      createdAt: nowMs,
+      deletedAt: null,
       reviewer: { userId: currentUser.userId, displayName: reviewerDisplayName },
       verdict,
       snapshotId: snapshotId || undefined,
@@ -65,13 +67,13 @@ const SustainmentReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
     const records = await storage.listSustainmentRecords(hubId);
     const parentRecord = records.find(r => r.id === recordId);
     if (parentRecord) {
-      const nextDue = nextDueFromCadence(cadence, new Date(reviewedAt));
+      const nextDue = nextDueFromCadence(cadence, new Date(nowMs));
       const updatedRecord = {
         ...parentRecord,
         latestVerdict: verdict,
-        latestReviewAt: reviewedAt,
+        latestReviewAt: new Date(nowMs).toISOString(),
         latestReviewId: review.id,
-        updatedAt: new Date().toISOString(),
+        updatedAt: nowMs,
       };
       if (nextDue !== undefined) {
         updatedRecord.nextReviewDue = nextDue;

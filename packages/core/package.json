@@ -34,7 +34,10 @@
     "./processMoments": "./src/processMoments.ts",
     "./evidenceSources": "./src/evidenceSources.ts",
     "./matchSummary": "./src/matchSummary/index.ts",
-    "./pareto": "./src/pareto/index.ts"
+    "./pareto": "./src/pareto/index.ts",
+    "./identity": "./src/identity.ts",
+    "./actions": "./src/actions/index.ts",
+    "./persistence": "./src/persistence/index.ts"
   },
   "scripts": {
     "test": "vitest",

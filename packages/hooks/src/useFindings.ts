@@ -159,7 +159,8 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
         context.cumulativeScope,
         context.stats,
         undefined,
-        source
+        source,
+        'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
       );
       if (questionId) {
         finding.questionId = questionId;
@@ -263,7 +264,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
 
   const addFindingComment = useCallback(
     (id: string, text: string, author?: string) => {
-      const comment = createFindingComment(text, author);
+      const comment = createFindingComment(text, id, 'finding', author);
       setFindings(prev => {
         const next = prev.map(f =>
           f.id === id ? { ...f, comments: [...f.comments, comment] } : f

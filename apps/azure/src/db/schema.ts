@@ -29,16 +29,12 @@ export interface SyncItem {
   queuedAt: string;
 }
 
+import type { EvidenceSourceCursor } from '@variscout/core';
+
+export type { EvidenceSourceCursor };
 export type ProcessHubRecord = import('@variscout/core').ProcessHub;
 export type EvidenceSourceRecord = import('@variscout/core').EvidenceSource;
 export type EvidenceSnapshotRecord = import('@variscout/core').EvidenceSnapshot;
-
-export interface EvidenceSourceCursor {
-  hubId: string;
-  sourceId: string;
-  lastSeenSnapshotId: string;
-  lastSeenAt: string; // ISO 8601
-}
 
 export class VariScoutDatabase extends Dexie {
   projects!: Dexie.Table<ProjectRecord, string>;
@@ -130,6 +126,13 @@ export class VariScoutDatabase extends Dexie {
     // re-fetching the full history on every open.
     this.version(8).stores({
       evidenceSourceCursors: '[hubId+sourceId]',
+    });
+
+    // Version 9: F1 data-flow foundation — P1.4b.
+    // sustainmentRecords: rename indexed field tombstoneAt → deletedAt (EntityBase alignment).
+    // All timestamps (createdAt, updatedAt, deletedAt) are now Unix ms numbers.
+    this.version(9).stores({
+      sustainmentRecords: 'id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
     });
   }
 }

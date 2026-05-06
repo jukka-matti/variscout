@@ -30,7 +30,9 @@ const makeSnap = (id: string, capturedAt: string): EvidenceSnapshot => ({
   capturedAt,
   rowCount: 100,
   origin: `evidence-source:s1`,
-  importedAt: capturedAt,
+  importedAt: new Date(capturedAt).getTime(),
+  createdAt: new Date(capturedAt).getTime(),
+  deletedAt: null,
 });
 
 describe('useEvidenceSourceSync', () => {
@@ -62,10 +64,13 @@ describe('useEvidenceSourceSync', () => {
 
   it('returns only snapshots after lastSeenAt when cursor exists', async () => {
     mockedGet.mockResolvedValue({
+      id: 'cursor-h1-s1',
+      createdAt: 1746352800000,
+      deletedAt: null,
       hubId: 'h1',
       sourceId: 's1',
       lastSeenSnapshotId: 's-1',
-      lastSeenAt: '2026-05-01T12:00:00Z',
+      lastSeenAt: new Date('2026-05-01T12:00:00Z').getTime(),
     });
     mockedList.mockResolvedValue([
       makeSnap('s-1', '2026-05-01T00:00:00Z'), // before cursor — old
@@ -101,7 +106,8 @@ describe('useEvidenceSourceSync', () => {
         hubId: 'h1',
         sourceId: 's1',
         lastSeenSnapshotId: 's-2',
-        lastSeenAt: '2026-05-02T00:00:00Z',
+        lastSeenAt: new Date('2026-05-02T00:00:00Z').getTime(),
+        deletedAt: null,
       })
     );
   });

@@ -227,7 +227,9 @@ describe('findings export', () => {
   const mockFinding: Finding = {
     id: 'f1',
     text: 'High variation in Machine B',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: {
       activeFilters: { Machine: ['B'] },
       cumulativeScope: 45.2,
@@ -236,7 +238,7 @@ describe('findings export', () => {
     status: 'analyzed',
     tag: 'key-driver',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000001000,
     questionId: 'q1',
   };
 
@@ -246,8 +248,10 @@ describe('findings export', () => {
     factor: 'Machine',
     status: 'answered',
     linkedFindingIds: ['f1'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    investigationId: 'inv-test-001',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
   };
 
   describe('generateFindingsCSV', () => {

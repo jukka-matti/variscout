@@ -98,9 +98,7 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
   const updateHub = useCallback(
     (hubId: string, updates: SuspectedCauseUpdate): void => {
       update(prev =>
-        prev.map(h =>
-          h.id === hubId ? { ...h, ...updates, updatedAt: new Date().toISOString() } : h
-        )
+        prev.map(h => (h.id === hubId ? { ...h, ...updates, updatedAt: Date.now() } : h))
       );
     },
     [update]
@@ -122,7 +120,7 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
           return {
             ...h,
             questionIds: [...h.questionIds, questionId],
-            updatedAt: new Date().toISOString(),
+            updatedAt: Date.now(),
           };
         })
       );
@@ -139,7 +137,7 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
             : {
                 ...h,
                 questionIds: h.questionIds.filter(id => id !== questionId),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
         )
       );
@@ -156,7 +154,7 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
           return {
             ...h,
             findingIds: [...h.findingIds, findingId],
-            updatedAt: new Date().toISOString(),
+            updatedAt: Date.now(),
           };
         })
       );
@@ -173,7 +171,7 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
             : {
                 ...h,
                 findingIds: h.findingIds.filter(id => id !== findingId),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
         )
       );
@@ -191,9 +189,7 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
 
   const setHubStatus = useCallback(
     (hubId: string, status: SuspectedCause['status']): void => {
-      update(prev =>
-        prev.map(h => (h.id !== hubId ? h : { ...h, status, updatedAt: new Date().toISOString() }))
-      );
+      update(prev => prev.map(h => (h.id !== hubId ? h : { ...h, status, updatedAt: Date.now() })));
     },
     [update]
   );

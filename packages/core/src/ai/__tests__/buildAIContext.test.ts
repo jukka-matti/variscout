@@ -34,8 +34,20 @@ describe('buildAIContext', () => {
     const ctx = buildAIContext({
       filters: { Machine: ['A', 'B'], Shift: ['Night'] },
       categories: [
-        { id: 'c1', name: 'Equipment', factorNames: ['Machine'] },
-        { id: 'c2', name: 'Temporal', factorNames: ['Shift'] },
+        {
+          id: 'c1',
+          name: 'Equipment',
+          factorNames: ['Machine'],
+          createdAt: 1714000000000,
+          deletedAt: null,
+        },
+        {
+          id: 'c2',
+          name: 'Temporal',
+          factorNames: ['Shift'],
+          createdAt: 1714000000000,
+          deletedAt: null,
+        },
       ],
     });
     expect(ctx.filters).toHaveLength(2);
@@ -75,6 +87,8 @@ describe('buildAIContext', () => {
         id: 'f-1',
         text: 'Head 3 drift',
         createdAt: 1000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         tag: 'key-driver',
@@ -85,6 +99,8 @@ describe('buildAIContext', () => {
         id: 'f-2',
         text: 'Shift B spread',
         createdAt: 2000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'observed',
         comments: [],
@@ -103,6 +119,8 @@ describe('buildAIContext', () => {
         id: 'f-1',
         text: 'Nozzle 3 shows 2x variation',
         createdAt: 1000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'investigating',
         comments: [],
@@ -113,6 +131,8 @@ describe('buildAIContext', () => {
         id: 'f-2',
         text: 'Temperature adjustment ineffective',
         createdAt: 2000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -123,6 +143,8 @@ describe('buildAIContext', () => {
         id: 'f-3',
         text: 'Manual observation from boxplot',
         createdAt: 3000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'observed',
         comments: [],
@@ -148,6 +170,8 @@ describe('buildAIContext', () => {
         id: 'f-1',
         text: 'Manual observation',
         createdAt: 1000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'observed',
         comments: [],
@@ -173,6 +197,8 @@ describe('buildAIContext', () => {
         id: 'f-1',
         text: 'Test',
         createdAt: 1000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'observed',
         comments: [],
@@ -204,8 +230,15 @@ describe('buildAIContext', () => {
   });
 
   it('populates questionTree with root questions and children', () => {
-    const root = createQuestion('Root cause', 'Machine');
-    const child = createQuestion('Sub cause', 'Shift', undefined, root.id, 'gemba');
+    const root = createQuestion('Root cause', 'general-unassigned', 'Machine');
+    const child = createQuestion(
+      'Sub cause',
+      'general-unassigned',
+      'Shift',
+      undefined,
+      root.id,
+      'gemba'
+    );
     const ctx = buildAIContext({
       process: { issueStatement: 'Cpk below target' },
       questions: [root, child],
@@ -216,7 +249,7 @@ describe('buildAIContext', () => {
   });
 
   it('populates ideas from questions', () => {
-    const root = createQuestion('Root cause', 'Machine');
+    const root = createQuestion('Root cause', 'general-unassigned', 'Machine');
     root.status = 'answered';
     root.ideas = [
       {
@@ -224,6 +257,8 @@ describe('buildAIContext', () => {
         text: 'Simplify setup',
         timeframe: 'just-do',
         selected: true,
+        createdAt: 1714000000000,
+        deletedAt: null,
         projection: {
           baselineMean: 10,
           baselineSigma: 0.5,
@@ -234,7 +269,6 @@ describe('buildAIContext', () => {
           simulationParams: { meanAdjustment: -0.5, variationReduction: 20 },
           createdAt: '2026-03-15T00:00:00Z',
         },
-        createdAt: '2026-03-15T00:00:00Z',
       },
     ];
     const ctx = buildAIContext({
@@ -266,8 +300,20 @@ describe('buildAIContext', () => {
   it('derives factorRoles from categories', () => {
     const ctx = buildAIContext({
       categories: [
-        { id: 'c1', name: 'Equipment', factorNames: ['Machine'] },
-        { id: 'c2', name: 'Temporal', factorNames: ['Shift', 'Day'] },
+        {
+          id: 'c1',
+          name: 'Equipment',
+          factorNames: ['Machine'],
+          createdAt: 1714000000000,
+          deletedAt: null,
+        },
+        {
+          id: 'c2',
+          name: 'Temporal',
+          factorNames: ['Shift', 'Day'],
+          createdAt: 1714000000000,
+          deletedAt: null,
+        },
       ],
     });
     expect(ctx.process.factorRoles).toEqual({
@@ -306,8 +352,20 @@ describe('buildAIContext', () => {
         { factor: 'Batch', etaSquared: 0.05 },
       ],
       categories: [
-        { id: 'c1', name: 'Equipment', factorNames: ['Machine'] },
-        { id: 'c2', name: 'Temporal', factorNames: ['Shift'] },
+        {
+          id: 'c1',
+          name: 'Equipment',
+          factorNames: ['Machine'],
+          createdAt: 1714000000000,
+          deletedAt: null,
+        },
+        {
+          id: 'c2',
+          name: 'Temporal',
+          factorNames: ['Shift'],
+          createdAt: 1714000000000,
+          deletedAt: null,
+        },
       ],
     });
     expect(ctx.variationContributions![0].category).toBe('Equipment');
@@ -393,9 +451,9 @@ describe('buildAIContext', () => {
   });
 
   it('detects investigation phase', () => {
-    const root = createQuestion('Root');
+    const root = createQuestion('Root', 'inv-test-001');
     root.status = 'answered';
-    const child = createQuestion('Child', undefined, undefined, root.id);
+    const child = createQuestion('Child', 'inv-test-001', undefined, undefined, root.id);
     child.status = 'answered';
     const ctx = buildAIContext({
       process: { issueStatement: 'Test' },
@@ -488,64 +546,66 @@ describe('detectInvestigationPhase', () => {
   });
 
   it('returns initial for root-only open questions', () => {
-    const q = createQuestion('Test');
+    const q = createQuestion('Test', 'inv-test-001');
     expect(detectInvestigationPhase([q])).toBe('initial');
   });
 
   it('returns diverging when children exist and mostly open', () => {
-    const root = createQuestion('Root');
-    const c1 = createQuestion('C1', undefined, undefined, root.id);
-    const c2 = createQuestion('C2', undefined, undefined, root.id);
+    const root = createQuestion('Root', 'inv-test-001');
+    const c1 = createQuestion('C1', 'inv-test-001', undefined, undefined, root.id);
+    const c2 = createQuestion('C2', 'inv-test-001', undefined, undefined, root.id);
     expect(detectInvestigationPhase([root, c1, c2])).toBe('diverging');
   });
 
   it('returns converging when most are answered', () => {
-    const root = createQuestion('Root');
+    const root = createQuestion('Root', 'inv-test-001');
     root.status = 'answered';
-    const child = createQuestion('Child', undefined, undefined, root.id);
+    const child = createQuestion('Child', 'inv-test-001', undefined, undefined, root.id);
     child.status = 'ruled-out';
     expect(detectInvestigationPhase([root, child])).toBe('converging');
   });
 
   it('returns acting when findings have actions', () => {
-    const q = createQuestion('Test');
+    const q = createQuestion('Test', 'inv-test-001');
     q.status = 'answered';
     const findings = [
       {
         id: 'f1',
         text: 'finding',
-        createdAt: 0,
+        createdAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'general-unassigned',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'improving' as const,
         comments: [],
-        statusChangedAt: 0,
-        actions: [{ id: 'a1', text: 'Fix it', createdAt: 0 }],
+        statusChangedAt: 1714000000000,
+        actions: [{ id: 'a1', text: 'Fix it', createdAt: 1714000000000, deletedAt: null }],
       },
     ];
     expect(detectInvestigationPhase([q], findings)).toBe('improving');
   });
 
   it('returns validating when 1 root answered and 1 root open (no children)', () => {
-    const q1 = createQuestion('Answered root');
+    const q1 = createQuestion('Answered root', 'inv-test-001');
     q1.status = 'answered';
-    const q2 = createQuestion('Open root');
+    const q2 = createQuestion('Open root', 'inv-test-001');
     // q2 is open by default
     expect(detectInvestigationPhase([q1, q2])).toBe('validating');
   });
 
   it('returns validating at 50/50 boundary (2 answered + 2 open, no children)', () => {
-    const q1 = createQuestion('Answered 1');
+    const q1 = createQuestion('Answered 1', 'inv-test-001');
     q1.status = 'answered';
-    const q2 = createQuestion('Answered 2');
+    const q2 = createQuestion('Answered 2', 'inv-test-001');
     q2.status = 'ruled-out';
-    const q3 = createQuestion('Open 1');
-    const q4 = createQuestion('Open 2');
+    const q3 = createQuestion('Open 1', 'inv-test-001');
+    const q4 = createQuestion('Open 2', 'inv-test-001');
     // 2 answered vs 2 open — not strictly more answered, so falls through to validating
     expect(detectInvestigationPhase([q1, q2, q3, q4])).toBe('validating');
   });
 
   it('does not return acting with empty findings array and answered questions', () => {
-    const q = createQuestion('Test');
+    const q = createQuestion('Test', 'inv-test-001');
     q.status = 'answered';
     const phase = detectInvestigationPhase([q], []);
     expect(phase).not.toBe('improving');
@@ -554,9 +614,9 @@ describe('detectInvestigationPhase', () => {
   });
 
   it('returns converging when all questions are ruled out', () => {
-    const q1 = createQuestion('Question A');
+    const q1 = createQuestion('Question A', 'inv-test-001');
     q1.status = 'ruled-out';
-    const q2 = createQuestion('Question B');
+    const q2 = createQuestion('Question B', 'inv-test-001');
     q2.status = 'ruled-out';
     expect(detectInvestigationPhase([q1, q2])).toBe('converging');
   });
@@ -639,6 +699,8 @@ function makeFinding(overrides: Partial<Finding> & { id: string; createdAt: numb
   return {
     text: 'Test finding',
     status: 'observed',
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     comments: [],
     statusChangedAt: overrides.createdAt,
@@ -651,8 +713,10 @@ function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
     text: 'Does factor X affect Y?',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    investigationId: 'inv-test-001',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
     ...overrides,
   };
 }
@@ -755,8 +819,22 @@ describe('ADR-060 Pillar 1', () => {
         id: 'f1',
         createdAt: 1000,
         comments: [
-          { id: 'c1', text: 'Comment 1', createdAt: 1 },
-          { id: 'c2', text: 'Comment 2', createdAt: 2 },
+          {
+            id: 'c1',
+            text: 'Comment 1',
+            createdAt: 1,
+            parentId: 'f1',
+            parentKind: 'finding' as const,
+            deletedAt: null,
+          },
+          {
+            id: 'c2',
+            text: 'Comment 2',
+            createdAt: 2,
+            parentId: 'f1',
+            parentKind: 'finding' as const,
+            deletedAt: null,
+          },
         ],
       });
 
@@ -822,6 +900,7 @@ describe('ADR-060 Pillar 1', () => {
               text: 'Fix the bearing',
               dueDate: new Date(now - 5 * msPerDay).toISOString().slice(0, 10),
               createdAt: 1000,
+              deletedAt: null,
             },
           ],
         }),
@@ -834,12 +913,14 @@ describe('ADR-060 Pillar 1', () => {
               text: 'Retrain operators',
               dueDate: new Date(now - 10 * msPerDay).toISOString().slice(0, 10),
               createdAt: 1000,
+              deletedAt: null,
             },
             {
               id: 'a3',
               text: 'Inspect tooling',
               dueDate: new Date(now - 2 * msPerDay).toISOString().slice(0, 10),
               createdAt: 1000,
+              deletedAt: null,
             },
           ],
         }),
@@ -868,6 +949,7 @@ describe('ADR-060 Pillar 1', () => {
           text: `Action ${i}`,
           dueDate: new Date(now - (i + 1) * msPerDay).toISOString().slice(0, 10),
           createdAt: 1000,
+          deletedAt: null as null,
         })),
       });
 
@@ -889,6 +971,7 @@ describe('ADR-060 Pillar 1', () => {
             dueDate: new Date(now - 5 * msPerDay).toISOString().slice(0, 10),
             completedAt: now - msPerDay,
             createdAt: 1000,
+            deletedAt: null,
           },
         ],
       });
@@ -910,6 +993,7 @@ describe('ADR-060 Pillar 1', () => {
             text: 'Future action',
             dueDate: new Date(now + 5 * msPerDay).toISOString().slice(0, 10),
             createdAt: 1000,
+            deletedAt: null,
           },
         ],
       });
@@ -932,6 +1016,7 @@ describe('ADR-060 Pillar 1', () => {
             dueDate: new Date(now - 3 * msPerDay).toISOString().slice(0, 10),
             assignee: { upn: 'jane@example.com', displayName: 'Jane Smith' },
             createdAt: 1000,
+            deletedAt: null,
           },
         ],
       });
@@ -1006,7 +1091,8 @@ describe('ADR-060 Pillar 1', () => {
               text: 'Standardize setup procedure',
               direction: 'prevent',
               timeframe: 'days',
-              createdAt: new Date().toISOString(),
+              createdAt: 1714000000000,
+              deletedAt: null,
             },
           ],
         }),
@@ -1029,7 +1115,8 @@ describe('ADR-060 Pillar 1', () => {
               id: 'idea1',
               text: 'Change supplier',
               risk: { axis1: 3, axis2: 2, computed: 'high' },
-              createdAt: new Date().toISOString(),
+              createdAt: 1714000000000,
+              deletedAt: null,
             },
           ],
         }),
@@ -1048,9 +1135,6 @@ describe('ADR-060 Pillar 1', () => {
 
   it('should include evidenceMapTopology when provided', () => {
     const context = buildAIContext({
-      outcome: 'Weight',
-      factors: ['Machine', 'Shift'],
-      data: [],
       evidenceMapTopology: {
         factorNodes: [
           {

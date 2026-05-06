@@ -20,40 +20,48 @@ import {
   type CausalLink,
 } from './types';
 
-/** Generate a unique ID */
-export function generateId(): string {
-  return typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `f-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
+import { generateDeterministicId } from '../identity';
+export { generateDeterministicId as generateId } from '../identity';
 
 /**
- * Create a new Question with a unique ID
+ * Create a new Question with a unique ID.
+ *
+ * @param text - Question text
+ * @param investigationId - FK to the owning investigation. Callers must pass
+ *   explicitly; use 'general-unassigned' as a sentinel until investigations
+ *   become first-class (F6 named-future, tracked in docs/investigations.md).
  */
 export function createQuestion(
   text: string,
+  investigationId: string,
   factor?: string,
   level?: string,
   parentId?: string,
   validationType?: QuestionValidationType
 ): Question {
-  const now = new Date().toISOString();
+  const now = Date.now();
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     text,
+    investigationId,
     factor,
     level,
     status: 'open',
     linkedFindingIds: [],
     createdAt: now,
     updatedAt: now,
+    deletedAt: null,
     parentId,
     validationType,
   };
 }
 
 /**
- * Create a new Finding with a unique ID
+ * Create a new Finding with a unique ID.
+ *
+ * @param investigationId - FK to the owning investigation. Callers must pass
+ *   explicitly; use 'general-unassigned' as a sentinel until investigations
+ *   become first-class (F6 named-future, tracked in docs/investigations.md).
  */
 export function createFinding(
   text: string,
@@ -61,12 +69,16 @@ export function createFinding(
   cumulativeScope: number | null,
   stats?: { mean: number; median?: number; cpk?: number; samples: number },
   status?: FindingStatus,
-  source?: FindingSource
+  source?: FindingSource,
+  investigationId = 'general-unassigned' // callers should pass explicitly; sentinel until F6 first-class investigations
 ): Finding {
+  const now = Date.now();
   const finding: Finding = {
-    id: generateId(),
+    id: generateDeterministicId(),
     text,
-    createdAt: Date.now(),
+    createdAt: now,
+    deletedAt: null,
+    investigationId,
     context: {
       activeFilters,
       cumulativeScope,
@@ -74,7 +86,7 @@ export function createFinding(
     },
     status: status ?? 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: now,
   };
   if (source) finding.source = source;
   return finding;
@@ -84,11 +96,14 @@ export function createFinding(
  * Create a PhotoAttachment with a unique ID and pending upload status
  */
 export function createPhotoAttachment(filename: string): PhotoAttachment {
+  const now = Date.now();
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     filename,
     uploadStatus: 'pending',
-    capturedAt: Date.now(),
+    capturedAt: now,
+    createdAt: now,
+    deletedAt: null,
   };
 }
 
@@ -100,24 +115,40 @@ export function createCommentAttachment(
   mimeType: string,
   sizeBytes: number
 ): CommentAttachment {
+  const now = Date.now();
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     filename,
     mimeType,
     sizeBytes,
     uploadStatus: 'pending',
-    attachedAt: Date.now(),
+    attachedAt: now,
+    createdAt: now,
+    deletedAt: null,
   };
 }
 
 /**
- * Create a timestamped comment with a unique ID
+ * Create a timestamped comment with a unique ID.
+ *
+ * @param text - Comment text
+ * @param parentId - ID of the owning entity (Finding or SuspectedCause)
+ * @param parentKind - Which entity type owns this comment
+ * @param author - Optional author display name
  */
-export function createFindingComment(text: string, author?: string): FindingComment {
+export function createFindingComment(
+  text: string,
+  parentId: string,
+  parentKind: 'finding' | 'suspectedCause',
+  author?: string
+): FindingComment {
   const comment: FindingComment = {
-    id: generateId(),
+    id: generateDeterministicId(),
     text,
+    parentId,
+    parentKind,
     createdAt: Date.now(),
+    deletedAt: null,
   };
   if (author) comment.author = author;
   return comment;
@@ -133,11 +164,12 @@ export function createActionItem(
   ideaId?: string
 ): ActionItem {
   const action: ActionItem = {
-    id: generateId(),
+    id: generateDeterministicId(),
     text,
     assignee,
     dueDate,
     createdAt: Date.now(),
+    deletedAt: null,
   };
   if (ideaId) action.ideaId = ideaId;
   return action;
@@ -164,9 +196,10 @@ export function createFindingOutcome(
  */
 export function createImprovementIdea(text: string): ImprovementIdea {
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     text,
-    createdAt: new Date().toISOString(),
+    createdAt: Date.now(),
+    deletedAt: null,
   };
 }
 
@@ -202,22 +235,31 @@ export interface FactorFindingBundle {
  *
  * The improvement idea targets the factor change: worst → best.
  */
-export function createFactorFinding(input: FactorFindingInput): FactorFindingBundle {
+export function createFactorFinding(
+  input: FactorFindingInput,
+  investigationId: string = 'general-unassigned'
+): FactorFindingBundle {
   const { factor, bestLevel, worstLevel, etaSquared, effectRange, pValue } = input;
 
-  const etaPct = (etaSquared * 100).toFixed(1);
-  const findingText = `${factor} explains ${etaPct}% of variation (η²=${etaSquared.toFixed(3)}, p=${pValue < 0.001 ? '<0.001' : pValue.toFixed(3)}). Effect range: ${effectRange.toFixed(1)}.`;
+  const etaPct = Number.isFinite(etaSquared) ? (etaSquared * 100).toFixed(1) : '—';
+  const etaStr = Number.isFinite(etaSquared) ? etaSquared.toFixed(3) : '—';
+  const pStr = pValue < 0.001 ? '<0.001' : Number.isFinite(pValue) ? pValue.toFixed(3) : '—';
+  const rangeStr = Number.isFinite(effectRange) ? effectRange.toFixed(1) : '—';
+  const findingText = `${factor} explains ${etaPct}% of variation (η²=${etaStr}, p=${pStr}). Effect range: ${rangeStr}.`;
 
   const finding = createFinding(
     findingText,
     {}, // no active filters — observation comes from Factor Intelligence
     null,
     undefined,
-    'investigating' // skip 'observed' — Factor Intelligence already validated statistically
+    'investigating', // skip 'observed' — Factor Intelligence already validated statistically
+    undefined,
+    investigationId
   );
 
   const question = createQuestion(
     `${factor} level "${worstLevel}" causes worse outcome — target: change to "${bestLevel}"`,
+    investigationId,
     factor,
     worstLevel,
     undefined,
@@ -232,7 +274,7 @@ export function createFactorFinding(input: FactorFindingInput): FactorFindingBun
 
   // Seed improvement idea
   const idea = createImprovementIdea(
-    `Change ${factor} from "${worstLevel}" to "${bestLevel}" (expected improvement: ${effectRange.toFixed(1)} units)`
+    `Change ${factor} from "${worstLevel}" to "${bestLevel}" (expected improvement: ${Number.isFinite(effectRange) ? effectRange.toFixed(1) : '—'} units)`
   );
   idea.direction = 'eliminate';
 
@@ -259,18 +301,21 @@ export function createSuspectedCause(
   name: string,
   synthesis: string,
   questionIds: string[] = [],
-  findingIds: string[] = []
+  findingIds: string[] = [],
+  investigationId = 'general-unassigned' // callers must pass explicitly; sentinel until F6 first-class investigations
 ): SuspectedCause {
-  const now = new Date().toISOString();
+  const now = Date.now();
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     name,
     synthesis,
     questionIds,
     findingIds,
+    investigationId,
     status: 'suspected',
     createdAt: now,
     updatedAt: now,
+    deletedAt: null,
   };
 }
 
@@ -299,9 +344,9 @@ export function createCausalLink(
     relationshipType?: CausalLink['relationshipType'];
   }
 ): CausalLink {
-  const now = new Date().toISOString();
+  const now = Date.now();
   return {
-    id: generateId(),
+    id: generateDeterministicId(),
     fromFactor,
     toFactor,
     fromLevel: options?.fromLevel,
@@ -316,6 +361,7 @@ export function createCausalLink(
     source: options?.source ?? 'analyst',
     createdAt: now,
     updatedAt: now,
+    deletedAt: null,
   };
 }
 
@@ -329,10 +375,12 @@ export function createInvestigationCategory(
   inferredFrom?: string
 ): InvestigationCategory {
   const category: InvestigationCategory = {
-    id: generateId(),
+    id: generateDeterministicId(),
     name,
     factorNames,
     color: CATEGORY_COLORS[existingCount % CATEGORY_COLORS.length],
+    createdAt: Date.now(),
+    deletedAt: null,
   };
   if (inferredFrom) category.inferredFrom = inferredFrom;
   return category;

@@ -18,6 +18,8 @@ const buildFinding = (id: string, status: Finding['status'], text = 'A finding')
     id,
     text,
     createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: {} as Finding['context'],
     status,
     comments: [],

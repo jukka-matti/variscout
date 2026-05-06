@@ -38,13 +38,15 @@ describe('processHub defaults', () => {
 describe('buildProcessHubReview', () => {
   it('projects focus, verification, overdue action, and next-move queues from a hub rollup', () => {
     const hubs: ProcessHub[] = [
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const [rollup] = buildProcessHubRollups(hubs, [
       {
         id: 'change-signal',
         name: 'Heads 5-8 drift',
-        modified: '2026-04-26T08:00:00.000Z',
+        updatedAt: 1777190400000,
+        createdAt: 1777190400000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'investigating',
@@ -67,7 +69,9 @@ describe('buildProcessHubReview', () => {
       {
         id: 'verify',
         name: 'Check post-action shift',
-        modified: '2026-04-25T12:00:00.000Z',
+        updatedAt: 1777118400000,
+        createdAt: 1777118400000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'verifying',
@@ -96,13 +100,15 @@ describe('buildProcessHubReview', () => {
 
   it('sorts focus items by change signals, Cpk gap, top focus, then modified time', () => {
     const hubs: ProcessHub[] = [
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const [rollup] = buildProcessHubRollups(hubs, [
       {
         id: 'recent',
         name: 'Recent smaller issue',
-        modified: '2026-04-26T10:00:00.000Z',
+        updatedAt: 1777197600000,
+        createdAt: 1777197600000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           reviewSignal: {
@@ -123,7 +129,9 @@ describe('buildProcessHubReview', () => {
       {
         id: 'largest-gap',
         name: 'Largest capability gap',
-        modified: '2026-04-24T10:00:00.000Z',
+        updatedAt: 1777024800000,
+        createdAt: 1777024800000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           reviewSignal: {
@@ -144,7 +152,9 @@ describe('buildProcessHubReview', () => {
       {
         id: 'same-signals-lower-gap',
         name: 'Lower capability gap',
-        modified: '2026-04-25T10:00:00.000Z',
+        updatedAt: 1777111200000,
+        createdAt: 1777111200000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           reviewSignal: {
@@ -175,13 +185,15 @@ describe('buildProcessHubReview', () => {
 
   it('returns empty queues when a hub has no attention metadata', () => {
     const hubs: ProcessHub[] = [
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const [rollup] = buildProcessHubRollups(hubs, [
       {
         id: 'quiet',
         name: 'Quiet investigation',
-        modified: '2026-04-26T10:00:00.000Z',
+        updatedAt: 1777197600000,
+        createdAt: 1777197600000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'scouting',
@@ -199,13 +211,15 @@ describe('buildProcessHubReview', () => {
 
   it('groups active cadence work by depth and resolved work into sustainment review', () => {
     const hubs: ProcessHub[] = [
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const [rollup] = buildProcessHubRollups(hubs, [
       {
         id: 'quick-check',
         name: 'Label jam after changeover',
-        modified: '2026-04-26T09:00:00.000Z',
+        updatedAt: 1777194000000,
+        createdAt: 1777194000000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationDepth: 'quick',
@@ -215,7 +229,9 @@ describe('buildProcessHubReview', () => {
       {
         id: 'focused-check',
         name: 'Night shift overfill',
-        modified: '2026-04-26T08:00:00.000Z',
+        updatedAt: 1777190400000,
+        createdAt: 1777190400000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationDepth: 'focused',
@@ -225,7 +241,9 @@ describe('buildProcessHubReview', () => {
       {
         id: 'chartered-check',
         name: 'Reduce scrap from 4.2%',
-        modified: '2026-04-26T07:00:00.000Z',
+        updatedAt: 1777186800000,
+        createdAt: 1777186800000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationDepth: 'chartered',
@@ -235,7 +253,9 @@ describe('buildProcessHubReview', () => {
       {
         id: 'resolved-check',
         name: 'Nozzle replacement verified',
-        modified: '2026-04-26T06:00:00.000Z',
+        updatedAt: 1777183200000,
+        createdAt: 1777183200000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationDepth: 'focused',
@@ -246,7 +266,9 @@ describe('buildProcessHubReview', () => {
       {
         id: 'controlled-check',
         name: 'Inspection checklist updated',
-        modified: '2026-04-26T05:00:00.000Z',
+        updatedAt: 1777179600000,
+        createdAt: 1777179600000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationDepth: 'quick',
@@ -272,13 +294,15 @@ describe('buildProcessHubReview', () => {
 
   it('surfaces readiness gaps separately from focus and action queues', () => {
     const hubs: ProcessHub[] = [
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const [rollup] = buildProcessHubRollups(hubs, [
       {
         id: 'legacy-context',
         name: 'Legacy context setup',
-        modified: '2026-04-26T10:00:00.000Z',
+        updatedAt: 1777197600000,
+        createdAt: 1777197600000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'framing',
@@ -294,7 +318,9 @@ describe('buildProcessHubReview', () => {
       {
         id: 'verify-gap',
         name: 'Verification missing after action',
-        modified: '2026-04-26T09:00:00.000Z',
+        updatedAt: 1777194000000,
+        createdAt: 1777194000000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'verifying',
@@ -305,7 +331,9 @@ describe('buildProcessHubReview', () => {
       {
         id: 'sustainment-candidate',
         name: 'Nozzle change sustained',
-        modified: '2026-04-26T08:00:00.000Z',
+        updatedAt: 1777190400000,
+        createdAt: 1777190400000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'resolved',
@@ -335,13 +363,15 @@ describe('buildProcessHubReview', () => {
 describe('buildProcessHubCadence', () => {
   it('builds snapshot counts and truncated cadence queues from a hub rollup', () => {
     const hubs: ProcessHub[] = [
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const investigations = [
       {
         id: 'signal-1',
         name: 'Newest change signal',
-        modified: '2026-04-26T10:00:00.000Z',
+        updatedAt: 1777197600000,
+        createdAt: 1777197600000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'investigating',
@@ -365,7 +395,9 @@ describe('buildProcessHubCadence', () => {
       {
         id: 'ready-1',
         name: 'Missing process context 1',
-        modified: '2026-04-26T09:00:00.000Z',
+        updatedAt: 1777194000000,
+        createdAt: 1777194000000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'framing',
@@ -374,7 +406,9 @@ describe('buildProcessHubCadence', () => {
       {
         id: 'ready-2',
         name: 'Missing process context 2',
-        modified: '2026-04-26T08:00:00.000Z',
+        updatedAt: 1777190400000,
+        createdAt: 1777190400000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'framing',
@@ -383,7 +417,9 @@ describe('buildProcessHubCadence', () => {
       {
         id: 'ready-3',
         name: 'Missing process context 3',
-        modified: '2026-04-26T07:00:00.000Z',
+        updatedAt: 1777186800000,
+        createdAt: 1777186800000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'framing',
@@ -392,7 +428,9 @@ describe('buildProcessHubCadence', () => {
       {
         id: 'ready-4',
         name: 'Missing process context 4',
-        modified: '2026-04-26T06:00:00.000Z',
+        updatedAt: 1777183200000,
+        createdAt: 1777183200000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'framing',
@@ -401,7 +439,9 @@ describe('buildProcessHubCadence', () => {
       {
         id: 'ready-5',
         name: 'Missing process context 5',
-        modified: '2026-04-26T05:00:00.000Z',
+        updatedAt: 1777179600000,
+        createdAt: 1777179600000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'framing',
@@ -410,7 +450,9 @@ describe('buildProcessHubCadence', () => {
       {
         id: 'verify-1',
         name: 'Waiting verification',
-        modified: '2026-04-26T04:00:00.000Z',
+        updatedAt: 1777176000000,
+        createdAt: 1777176000000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'verifying',
@@ -421,7 +463,9 @@ describe('buildProcessHubCadence', () => {
       {
         id: 'actions-1',
         name: 'Overdue action',
-        modified: '2026-04-26T03:00:00.000Z',
+        updatedAt: 1777172400000,
+        createdAt: 1777172400000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'improving',
@@ -433,7 +477,9 @@ describe('buildProcessHubCadence', () => {
       {
         id: 'sustain-1',
         name: 'Sustainment candidate',
-        modified: '2026-04-26T02:00:00.000Z',
+        updatedAt: 1777168800000,
+        createdAt: 1777168800000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationStatus: 'resolved',
@@ -449,8 +495,9 @@ describe('buildProcessHubCadence', () => {
         hubId: 'line-4',
         cadence: 'monthly',
         nextReviewDue: '2026-04-25T00:00:00.000Z',
-        createdAt: '2026-03-25T00:00:00.000Z',
-        updatedAt: '2026-04-25T00:00:00.000Z',
+        createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z
+        updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        deletedAt: null,
       },
     ];
     const now = new Date('2026-04-26T12:00:00.000Z');
@@ -486,7 +533,7 @@ describe('buildProcessHubCadence', () => {
 
   it('orders evidence signals by severity (red > amber > green > neutral) over capturedAt', () => {
     const hubs: ProcessHub[] = [
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const evidenceSnapshots: EvidenceSnapshot[] = [
       {
@@ -496,7 +543,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-ordering',
-        importedAt: '2026-04-26T10:00:00.000Z',
+        importedAt: 1745664000000,
+        createdAt: 1745664000000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-green',
@@ -514,7 +563,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-25T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-ordering',
-        importedAt: '2026-04-25T10:00:00.000Z',
+        importedAt: 1745577600000,
+        createdAt: 1745577600000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-red',
@@ -532,7 +583,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-24T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-ordering',
-        importedAt: '2026-04-24T10:00:00.000Z',
+        importedAt: 1745491200000,
+        createdAt: 1745491200000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-amber',
@@ -550,7 +603,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-26T11:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-ordering',
-        importedAt: '2026-04-26T11:00:00.000Z',
+        importedAt: 1745667600000,
+        createdAt: 1745667600000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-neutral',
@@ -576,7 +631,7 @@ describe('buildProcessHubCadence', () => {
 
   it('breaks severity ties with capturedAt newest first', () => {
     const hubs: ProcessHub[] = [
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const evidenceSnapshots: EvidenceSnapshot[] = [
       {
@@ -586,7 +641,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-24T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-tie-breaking',
-        importedAt: '2026-04-24T10:00:00.000Z',
+        importedAt: 1745491200000,
+        createdAt: 1745491200000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-red-old',
@@ -604,7 +661,9 @@ describe('buildProcessHubCadence', () => {
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:severity-tie-breaking',
-        importedAt: '2026-04-26T10:00:00.000Z',
+        importedAt: 1745664000000,
+        createdAt: 1745664000000,
+        deletedAt: null,
         latestSignals: [
           {
             id: 'sig-red-new',
@@ -630,14 +689,16 @@ describe('buildProcessHubCadence', () => {
 describe('buildProcessHubCadence — sustainment lane', () => {
   it('populates the sustainment queue from due records and excludes future-due ones', () => {
     const hubs: ProcessHub[] = [
-      { id: 'hub-1', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'hub-1', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const now = new Date('2026-04-26T00:00:00.000Z');
     const investigations = [
       {
         id: 'inv-due',
         name: 'Due review',
-        modified: '2026-04-26T00:00:00.000Z',
+        updatedAt: 1777161600000,
+        createdAt: 1777161600000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'hub-1',
           investigationStatus: 'resolved',
@@ -646,7 +707,9 @@ describe('buildProcessHubCadence — sustainment lane', () => {
       {
         id: 'inv-future',
         name: 'Not yet due',
-        modified: '2026-04-26T00:00:00.000Z',
+        updatedAt: 1777161600000,
+        createdAt: 1777161600000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'hub-1',
           investigationStatus: 'resolved',
@@ -660,8 +723,9 @@ describe('buildProcessHubCadence — sustainment lane', () => {
         hubId: 'hub-1',
         cadence: 'monthly',
         nextReviewDue: '2026-04-25T00:00:00.000Z',
-        createdAt: '2026-03-25T00:00:00.000Z',
-        updatedAt: '2026-04-25T00:00:00.000Z',
+        createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z
+        updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        deletedAt: null,
       },
       {
         id: 'rec-future',
@@ -669,8 +733,9 @@ describe('buildProcessHubCadence — sustainment lane', () => {
         hubId: 'hub-1',
         cadence: 'monthly',
         nextReviewDue: '2026-05-25T00:00:00.000Z',
-        createdAt: '2026-04-25T00:00:00.000Z',
-        updatedAt: '2026-04-25T00:00:00.000Z',
+        createdAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        deletedAt: null,
       },
     ];
     const controlHandoffs: ControlHandoff[] = [];
@@ -687,14 +752,16 @@ describe('buildProcessHubCadence — sustainment lane', () => {
 
   it('includes controlled investigations missing a ControlHandoff in the sustainment lane', () => {
     const hubs: ProcessHub[] = [
-      { id: 'hub-1', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'hub-1', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const now = new Date('2026-04-26T00:00:00.000Z');
     const investigations = [
       {
         id: 'inv-controlled',
         name: 'Needs handoff',
-        modified: '2026-04-26T00:00:00.000Z',
+        updatedAt: 1777161600000,
+        createdAt: 1777161600000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'hub-1',
           investigationStatus: 'controlled',
@@ -724,7 +791,9 @@ describe('buildProcessHubRollups', () => {
         capturedAt: '2026-04-26T10:00:00.000Z',
         rowCount: 100,
         origin: 'fixture:orphan-hub-fallback',
-        importedAt: '2026-04-26T10:00:00.000Z',
+        importedAt: 1745664000000,
+        createdAt: 1745664000000,
+        deletedAt: null,
         latestSignals: [],
       },
     ];
@@ -741,7 +810,9 @@ describe('buildProcessHubRollups', () => {
       {
         id: 'orphan-investigation',
         name: 'Orphan investigation',
-        modified: '2026-04-26T00:00:00.000Z',
+        updatedAt: 1777161600000,
+        createdAt: 1777161600000,
+        deletedAt: null,
         metadata: makeMetadata({ processHubId: 'deleted-hub-abc123' }),
       },
     ];
@@ -756,19 +827,23 @@ describe('buildProcessHubRollups', () => {
   it('groups investigations under their hub and computes deterministic rollups', () => {
     const hubs: ProcessHub[] = [
       DEFAULT_PROCESS_HUB,
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const investigations = [
       {
         id: 'legacy',
         name: 'Legacy analysis',
-        modified: '2026-04-20T00:00:00.000Z',
+        updatedAt: 1776643200000,
+        createdAt: 1776643200000,
+        deletedAt: null,
         metadata: makeMetadata({ processHubId: undefined, investigationStatus: 'scouting' }),
       },
       {
         id: 'line-4-a',
         name: 'Night shift overfill',
-        modified: '2026-04-24T00:00:00.000Z',
+        updatedAt: 1776988800000,
+        createdAt: 1776988800000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationDepth: 'focused',
@@ -782,7 +857,9 @@ describe('buildProcessHubRollups', () => {
       {
         id: 'line-4-b',
         name: 'Label jam',
-        modified: '2026-04-23T00:00:00.000Z',
+        updatedAt: 1776902400000,
+        createdAt: 1776902400000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationDepth: 'quick',
@@ -799,7 +876,7 @@ describe('buildProcessHubRollups', () => {
     expect(rollups[0].statusCounts).toEqual({ investigating: 1, verifying: 1 });
     expect(rollups[0].depthCounts).toEqual({ focused: 1, quick: 1 });
     expect(rollups[0].overdueActionCount).toBe(1);
-    expect(rollups[0].latestActivity).toBe('2026-04-24T00:00:00.000Z');
+    expect(rollups[0].latestActivity).toBe(1776988800000);
     expect(rollups[0].currentUnderstandingSummary).toBe(
       'Variation is concentrated on night shift.'
     );
@@ -812,13 +889,15 @@ describe('buildProcessHubRollups', () => {
 
   it('uses the newest available review signal for the hub rollup', () => {
     const hubs: ProcessHub[] = [
-      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const investigations = [
       {
         id: 'older',
         name: 'Older signal',
-        modified: '2026-04-24T00:00:00.000Z',
+        updatedAt: 1776988800000,
+        createdAt: 1776988800000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           reviewSignal: {
@@ -838,13 +917,17 @@ describe('buildProcessHubRollups', () => {
       {
         id: 'newer-no-signal',
         name: 'Newer legacy project',
-        modified: '2026-04-26T00:00:00.000Z',
+        updatedAt: 1777161600000,
+        createdAt: 1777161600000,
+        deletedAt: null,
         metadata: makeMetadata({ processHubId: 'line-4' }),
       },
       {
         id: 'newer-signal',
         name: 'Newer signal',
-        modified: '2026-04-25T00:00:00.000Z',
+        updatedAt: 1777075200000,
+        createdAt: 1777075200000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           reviewSignal: {
@@ -878,7 +961,8 @@ describe('buildProcessHubRollups', () => {
         id: 'line-4',
         name: 'Line 4',
         description: 'High-volume bottle filling process.',
-        createdAt: '2026-04-25T00:00:00.000Z',
+        createdAt: 1777075200000,
+        deletedAt: null,
         processOwner: { displayName: 'Pat Process', upn: 'pat@example.com' },
       },
     ];
@@ -886,7 +970,9 @@ describe('buildProcessHubRollups', () => {
       {
         id: 'line-4-a',
         name: 'Night shift overfill',
-        modified: '2026-04-26T08:00:00.000Z',
+        updatedAt: 1777190400000,
+        createdAt: 1777190400000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationDepth: 'focused',
@@ -923,7 +1009,9 @@ describe('buildProcessHubRollups', () => {
       {
         id: 'line-4-b',
         name: 'Post-action shift check',
-        modified: '2026-04-25T08:00:00.000Z',
+        updatedAt: 1777104000000,
+        createdAt: 1777104000000,
+        deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
           investigationDepth: 'quick',
@@ -1012,13 +1100,15 @@ describe('buildProcessHubContext — sustainment', () => {
   it('exposes due, overdue, and verdict counts (no PII)', () => {
     const now = new Date('2026-04-26T00:00:00.000Z');
     const hubs: ProcessHub[] = [
-      { id: 'hub-1', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'hub-1', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const investigations = [
       {
         id: 'inv-1',
         name: 'A',
-        modified: '2026-04-26T00:00:00.000Z',
+        updatedAt: 1777161600000,
+        createdAt: 1777161600000,
+        deletedAt: null,
         metadata: makeMetadata({ processHubId: 'hub-1', investigationStatus: 'resolved' }),
       },
     ];
@@ -1030,8 +1120,9 @@ describe('buildProcessHubContext — sustainment', () => {
         cadence: 'monthly',
         nextReviewDue: '2026-04-25T00:00:00.000Z',
         latestVerdict: 'holding',
-        createdAt: '2026-03-25T00:00:00.000Z',
-        updatedAt: '2026-04-25T00:00:00.000Z',
+        createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z
+        updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
+        deletedAt: null,
       },
     ];
 

@@ -5,7 +5,11 @@ import type {
   ProcessHubInvestigationMetadata,
   ScopeFilter,
 } from '../../processHub';
-import { DEFAULT_PROCESS_HUB, isProcessHubComplete } from '../../processHub';
+import {
+  DEFAULT_PROCESS_HUB,
+  DEFAULT_PROCESS_HUB_ID,
+  isProcessHubComplete,
+} from '../../processHub';
 
 describe('ProcessHub framing-layer fields', () => {
   it('accepts a process goal narrative', () => {
@@ -15,6 +19,10 @@ describe('ProcessHub framing-layer fields', () => {
 
   it('accepts a list of outcome specs', () => {
     const outcome: OutcomeSpec = {
+      id: 'outcome-001',
+      createdAt: 1714000000000,
+      deletedAt: null,
+      hubId: DEFAULT_PROCESS_HUB_ID,
       columnName: 'weight_g',
       characteristicType: 'nominalIsBest',
       target: 4.5,
@@ -44,6 +52,10 @@ describe('ProcessHub framing-layer fields', () => {
 
 describe('isProcessHubComplete', () => {
   const baseOutcome: OutcomeSpec = {
+    id: 'outcome-base',
+    createdAt: 1714000000000,
+    deletedAt: null,
+    hubId: DEFAULT_PROCESS_HUB_ID,
     columnName: 'weight_g',
     characteristicType: 'nominalIsBest',
   };
@@ -95,7 +107,16 @@ describe('isProcessHubComplete', () => {
     const hub: ProcessHub = {
       ...DEFAULT_PROCESS_HUB,
       processGoal: 'We mold barrels.',
-      outcomes: [{ columnName: '  ', characteristicType: 'nominalIsBest' }],
+      outcomes: [
+        {
+          id: 'outcome-empty',
+          createdAt: 1714000000000,
+          deletedAt: null,
+          hubId: DEFAULT_PROCESS_HUB_ID,
+          columnName: '  ',
+          characteristicType: 'nominalIsBest',
+        },
+      ],
     };
     expect(isProcessHubComplete(hub)).toBe(false);
   });
@@ -115,8 +136,22 @@ describe('isProcessHubComplete', () => {
       ...DEFAULT_PROCESS_HUB,
       processGoal: 'We mold barrels.',
       outcomes: [
-        { columnName: 'weight_g', characteristicType: 'nominalIsBest' },
-        { columnName: 'length_mm', characteristicType: 'smallerIsBetter' },
+        {
+          id: 'outcome-weight',
+          createdAt: 1714000000000,
+          deletedAt: null,
+          hubId: DEFAULT_PROCESS_HUB_ID,
+          columnName: 'weight_g',
+          characteristicType: 'nominalIsBest',
+        },
+        {
+          id: 'outcome-length',
+          createdAt: 1714000000000,
+          deletedAt: null,
+          hubId: DEFAULT_PROCESS_HUB_ID,
+          columnName: 'length_mm',
+          characteristicType: 'smallerIsBetter',
+        },
       ],
     };
     expect(isProcessHubComplete(hub)).toBe(true);

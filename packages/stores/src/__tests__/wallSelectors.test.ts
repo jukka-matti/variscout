@@ -9,7 +9,14 @@ import type { SuspectedCause, Finding, Question, FindingComment } from '@varisco
 import type { ProcessMap } from '@variscout/core/frame';
 
 function fc(id: string, text: string, createdAt: number): FindingComment {
-  return { id, text, createdAt };
+  return {
+    id,
+    text,
+    createdAt,
+    deletedAt: null,
+    parentId: 'hub-default',
+    parentKind: 'suspectedCause',
+  };
 }
 
 describe('selectHubCommentStream', () => {
@@ -25,14 +32,18 @@ describe('selectHubCommentStream', () => {
       questionIds: [],
       findingIds: ['f1'],
       status: 'suspected',
-      createdAt: '',
-      updatedAt: '',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
+      investigationId: 'inv-test-001',
       comments: [hubComment],
     };
     const f1: Finding = {
       id: 'f1',
       text: '',
       createdAt: 0,
+      deletedAt: null,
+      investigationId: 'inv-test-001',
       context: { activeFilters: {}, cumulativeScope: null },
       status: 'observed',
       comments: [fComment1, fComment2],
@@ -73,8 +84,10 @@ describe('selectHypothesisTributaries', () => {
       questionIds: [],
       findingIds: [],
       status: 'suspected',
-      createdAt: '',
-      updatedAt: '',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
+      investigationId: 'inv-test-001',
       tributaryIds: ['t2'],
     };
     const result = selectHypothesisTributaries(hub, [], processMap);
@@ -89,8 +102,10 @@ describe('selectHypothesisTributaries', () => {
       questionIds: [],
       findingIds: [],
       status: 'suspected',
-      createdAt: '',
-      updatedAt: '',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
+      investigationId: 'inv-test-001',
     };
     const result = selectHypothesisTributaries(hub, [], processMap);
     expect(result).toEqual([]);
@@ -104,13 +119,17 @@ describe('selectHypothesisTributaries', () => {
       questionIds: [],
       findingIds: ['f1'],
       status: 'suspected',
-      createdAt: '',
-      updatedAt: '',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
+      investigationId: 'inv-test-001',
     };
     const f1: Finding = {
       id: 'f1',
       text: '',
       createdAt: 0,
+      deletedAt: null,
+      investigationId: 'inv-test-001',
       context: {
         activeFilters: { SHIFT: ['night'] },
         cumulativeScope: null,
@@ -131,8 +150,10 @@ describe('selectHypothesisTributaries', () => {
       questionIds: [],
       findingIds: [],
       status: 'suspected',
-      createdAt: '',
-      updatedAt: '',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
+      investigationId: 'inv-test-001',
       tributaryIds: ['t2'],
     };
     const result = selectHypothesisTributaries(hub, [], undefined);
@@ -150,8 +171,10 @@ describe('selectOpenQuestionsWithoutHub', () => {
         questionIds: ['q1'],
         findingIds: [],
         status: 'suspected',
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
       },
     ];
     const questions: Question[] = [
@@ -160,24 +183,30 @@ describe('selectOpenQuestionsWithoutHub', () => {
         text: 'linked',
         status: 'open',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
       },
       {
         id: 'q2',
         text: 'orphan',
         status: 'open',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
       },
       {
         id: 'q3',
         text: 'answered',
         status: 'answered',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
       },
     ];
     const result = selectOpenQuestionsWithoutHub(questions, hubs);
@@ -195,27 +224,42 @@ describe('selectQuestionsForHub', () => {
         questionIds: ['q1', 'q2'],
         findingIds: [],
         status: 'suspected',
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
       },
     ];
     const questions: Question[] = [
-      { id: 'q1', text: 'a', status: 'open', linkedFindingIds: [], createdAt: '', updatedAt: '' },
+      {
+        id: 'q1',
+        text: 'a',
+        status: 'open',
+        linkedFindingIds: [],
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
+      },
       {
         id: 'q2',
         text: 'b',
         status: 'investigating',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
       },
       {
         id: 'q3',
         text: 'unused',
         status: 'open',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
       },
     ];
     const result = selectQuestionsForHub('h1', hubs, questions);

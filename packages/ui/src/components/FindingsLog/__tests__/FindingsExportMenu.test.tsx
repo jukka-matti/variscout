@@ -27,7 +27,9 @@ vi.mock('@variscout/core', () => ({
 const mockFinding: Finding = {
   id: 'f1',
   text: 'Test finding',
-  createdAt: Date.now(),
+  createdAt: 1714000000000,
+  deletedAt: null,
+  investigationId: 'general-unassigned',
   context: { activeFilters: {}, cumulativeScope: null },
   status: 'observed',
   comments: [],

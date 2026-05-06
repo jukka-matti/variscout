@@ -1,18 +1,33 @@
 import type { DataRow } from './types';
+import type { EntityBase } from './identity';
+import type { ProcessHub } from './processHub';
 
 export type EvidenceCadence = 'manual' | 'hourly' | 'shiftly' | 'daily' | 'weekly';
 export type DataProfileConfidence = 'high' | 'medium' | 'low';
 export type EvidenceSignalSeverity = 'green' | 'amber' | 'red' | 'neutral';
 
-export interface EvidenceSource {
-  id: string;
-  hubId: string;
+export interface EvidenceSource extends EntityBase {
+  // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null)
+  hubId: ProcessHub['id'];
   name: string;
   cadence: EvidenceCadence;
   profileId?: string;
   description?: string;
-  createdAt: string;
-  updatedAt?: string;
+  /** Optional last-modified timestamp (Unix ms). Present when the source has been updated after creation. */
+  updatedAt?: number;
+}
+
+/**
+ * Per-source cursor tracking the most-recently seen snapshot for diff-on-open polling (D8).
+ * Relocated from apps/azure/src/db/schema.ts to core per F1 R4.
+ * Composite primary key [hubId, sourceId] is maintained at the Dexie layer.
+ */
+export interface EvidenceSourceCursor extends EntityBase {
+  // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null)
+  hubId: ProcessHub['id'];
+  sourceId: EvidenceSource['id'];
+  lastSeenSnapshotId: string;
+  lastSeenAt: number; // Unix ms — was ISO string in azure schema
 }
 
 export interface EvidenceValidationResult {
@@ -40,18 +55,25 @@ export interface EvidenceLatestSignal {
   snapshotId?: string;
 }
 
-export interface EvidenceSnapshot {
-  id: string;
-  hubId: string;
-  sourceId: string;
+export interface EvidenceSnapshot extends EntityBase {
+  // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null)
+  hubId: ProcessHub['id'];
+  sourceId: EvidenceSource['id'];
+  /** Data-time: ISO 8601 string representing the temporal scope of the captured dataset. */
   capturedAt: string;
   rowCount: number;
   profileApplication?: ProfileApplication;
   latestSignals?: EvidenceLatestSignal[];
   /** Import-id of the paste / file / Evidence Source that produced this snapshot. */
   origin: string;
-  /** Wall-clock ISO 8601 timestamp when VariScout ingested the data. */
-  importedAt: string;
+  /**
+   * Wall-clock Unix ms timestamp when VariScout ingested the data.
+   * Distinct from `capturedAt` (data-time) and `createdAt` (EntityBase lifecycle).
+   * `importedAt` is the domain-specific name for the ingest event; `createdAt`
+   * (from EntityBase) holds the same value and serves as the canonical lifecycle field.
+   * Both are initialized to `Date.now()` at snapshot creation.
+   */
+  importedAt: number;
   /** Span of `row_timestamp` values when a time column is present in the dataset. */
   rowTimestampRange?: { startISO: string; endISO: string };
 }
@@ -76,10 +98,12 @@ export interface DataProfileDefinition {
 /**
  * Snapshot-level provenance fields. All rows from a single paste / file / Evidence
  * Source share these fields via reference to the snapshot's `id`.
+ * Value object — merges into EvidenceSnapshot at construction.
  */
 export interface SnapshotProvenance {
   origin: string;
-  importedAt: string;
+  /** Wall-clock Unix ms timestamp when VariScout ingested the data (was ISO string pre-F1). */
+  importedAt: number;
   rowTimestampRange?: { startISO: string; endISO: string };
 }
 
@@ -87,9 +111,20 @@ export interface SnapshotProvenance {
  * Per-row provenance tag. ONLY populated when a multi-source join occurs (different
  * sources joined via shared key). Single-source pastes use snapshot-level provenance
  * via `EvidenceSnapshot.origin` instead.
+ *
+ * Extended to EntityBase in F1 (P1.3). The sidecar Map<rowKey, RowProvenanceTag> is
+ * preserved as the runtime indexing structure; the value type now carries lifecycle
+ * fields. F3 will normalize this to a Dexie table (rowProvenance).
  */
-export interface RowProvenanceTag {
+export interface RowProvenanceTag extends EntityBase {
+  // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null)
+  /** FK to the parent EvidenceSnapshot. */
+  snapshotId: EvidenceSnapshot['id'];
+  /** Row identifier — was the Map's key; now carried explicitly on the value. */
+  rowKey: string;
+  /** Source identifier (e.g., "telemetry", "qc-inspection"). */
   source: string;
+  /** Name of the column used to join this row across sources. */
   joinKey: string;
 }
 

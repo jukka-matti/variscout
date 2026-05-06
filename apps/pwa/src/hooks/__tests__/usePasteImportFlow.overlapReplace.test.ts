@@ -45,9 +45,19 @@ import { usePasteImportFlow, type UsePasteImportFlowOptions } from '../usePasteI
 const COMPLETE_HUB: ProcessHub = {
   id: 'hub-1',
   name: 'Fill-Weight Hub',
-  createdAt: '2026-05-01T00:00:00Z',
+  createdAt: 1746057600000,
+  deletedAt: null,
   processGoal: 'Reduce fill-weight variation.',
-  outcomes: [{ columnName: 'weight_g', characteristicType: 'nominalIsBest' }],
+  outcomes: [
+    {
+      id: 'outcome-weight',
+      hubId: 'hub-1',
+      createdAt: 1746057600000,
+      deletedAt: null,
+      columnName: 'weight_g',
+      characteristicType: 'nominalIsBest',
+    },
+  ],
 };
 
 // Existing data: rows on May 1–4 (the middle two will fall in the overlap range).
@@ -238,7 +248,9 @@ describe('usePasteImportFlow — existingRange wiring (ADR-077 follow-up)', () =
         hubId: 'hub-1',
         sourceId: 'src-1',
         capturedAt: '2026-05-01T00:00:00Z',
-        importedAt: '2026-05-01T00:00:00Z',
+        importedAt: 1746057600000,
+        createdAt: 1746057600000,
+        deletedAt: null,
         origin: 'paste-abc',
         rowCount: 4,
         rowTimestampRange: TIME_RANGE,
@@ -279,7 +291,9 @@ describe('usePasteImportFlow — existingRange wiring (ADR-077 follow-up)', () =
         hubId: 'hub-1',
         sourceId: 'src-1',
         capturedAt: '2026-05-01T00:00:00Z',
-        importedAt: '2026-05-01T00:00:00Z',
+        importedAt: 1746057600000,
+        createdAt: 1746057600000,
+        deletedAt: null,
         origin: 'paste-abc',
         rowCount: 4,
         // rowTimestampRange intentionally absent

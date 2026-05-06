@@ -11,11 +11,13 @@ function finding(
   return {
     id,
     text: '',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
     source,
     validationStatus,
   };
@@ -29,8 +31,10 @@ function hub(id: string, findingIds: string[]): SuspectedCause {
     questionIds: [],
     findingIds,
     status: 'suspected',
-    createdAt: '2026-04-19T00:00:00Z',
-    updatedAt: '2026-04-19T00:00:00Z',
+    createdAt: 1745625600000,
+    updatedAt: 1745625600000,
+    investigationId: 'inv-test-001',
+    deletedAt: null,
   };
 }
 

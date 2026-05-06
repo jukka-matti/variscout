@@ -20,6 +20,8 @@ const baseFinding = (overrides: Partial<Finding> = {}): Finding => ({
   id: `finding-${++findingSeq}`,
   text: 'A finding',
   createdAt: 1714000000000,
+  deletedAt: null,
+  investigationId: 'inv-test-001',
   context: {} as Finding['context'],
   status: 'analyzed',
   comments: [],

@@ -231,7 +231,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
         ...q,
         status: computed,
         evidence: etaSquared !== undefined ? { ...q.evidence, etaSquared } : q.evidence,
-        updatedAt: new Date().toISOString(),
+        updatedAt: Date.now(),
       };
     });
 
@@ -279,7 +279,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
       const childStatuses = childIndices.map(i => result[i].status);
       const derived = deriveStatusFromChildren(childStatuses);
       if (derived !== null && derived !== result[pidx].status) {
-        result[pidx] = { ...result[pidx], status: derived, updatedAt: new Date().toISOString() };
+        result[pidx] = { ...result[pidx], status: derived, updatedAt: Date.now() };
       }
     }
 
@@ -301,7 +301,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
 
   const addQuestion = useCallback(
     (text: string, factor?: string, level?: string): Question => {
-      const question = createQuestion(text, factor, level);
+      const question = createQuestion(text, 'general-unassigned', factor, level);
       update(prev => [...prev, question]);
       return question;
     },
@@ -328,7 +328,14 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
       const childCount = validatedQuestions.filter(q => q.parentId === parentId).length;
       if (childCount >= MAX_CHILDREN_PER_PARENT) return null;
 
-      const question = createQuestion(text, factor, level, parentId, validationType);
+      const question = createQuestion(
+        text,
+        'general-unassigned',
+        factor,
+        level,
+        parentId,
+        validationType
+      );
       update(prev => [...prev, question]);
       return question;
     },
@@ -338,7 +345,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
   const editQuestion = useCallback(
     (id: string, updates: Partial<Pick<Question, 'text' | 'factor' | 'level'>>) => {
       update(prev =>
-        prev.map(q => (q.id === id ? { ...q, ...updates, updatedAt: new Date().toISOString() } : q))
+        prev.map(q => (q.id === id ? { ...q, ...updates, updatedAt: Date.now() } : q))
       );
     },
     [update]
@@ -383,7 +390,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
             ? {
                 ...q,
                 linkedFindingIds: [...q.linkedFindingIds, findingId],
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         )
@@ -400,7 +407,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
             ? {
                 ...q,
                 linkedFindingIds: q.linkedFindingIds.filter(fid => fid !== findingId),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         )
@@ -459,9 +466,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
   const setValidationTask = useCallback(
     (id: string, task: string) => {
       update(prev =>
-        prev.map(q =>
-          q.id === id ? { ...q, validationTask: task, updatedAt: new Date().toISOString() } : q
-        )
+        prev.map(q => (q.id === id ? { ...q, validationTask: task, updatedAt: Date.now() } : q))
       );
     },
     [update]
@@ -470,9 +475,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
   const completeTask = useCallback(
     (id: string) => {
       update(prev =>
-        prev.map(q =>
-          q.id === id ? { ...q, taskCompleted: true, updatedAt: new Date().toISOString() } : q
-        )
+        prev.map(q => (q.id === id ? { ...q, taskCompleted: true, updatedAt: Date.now() } : q))
       );
     },
     [update]
@@ -487,7 +490,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
                 ...q,
                 status,
                 manualNote: note,
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         )
@@ -520,7 +523,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
       update(prev =>
         prev.map(q =>
           q.id === questionId
-            ? { ...q, ideas: [...(q.ideas ?? []), idea], updatedAt: new Date().toISOString() }
+            ? { ...q, ideas: [...(q.ideas ?? []), idea], updatedAt: Date.now() }
             : q
         )
       );
@@ -546,7 +549,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
             ? {
                 ...q,
                 ideas: q.ideas.map(i => (i.id === ideaId ? { ...i, ...updates } : i)),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         )
@@ -563,7 +566,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
             ? {
                 ...q,
                 ideas: q.ideas.filter(i => i.id !== ideaId),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         )
@@ -580,7 +583,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
             ? {
                 ...q,
                 ideas: q.ideas.map(i => (i.id === ideaId ? { ...i, projection } : i)),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         )
@@ -597,7 +600,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
             ? {
                 ...q,
                 ideas: q.ideas.map(i => (i.id === ideaId ? { ...i, selected } : i)),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         )
@@ -608,15 +611,14 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
 
   const setCauseRole = useCallback(
     (questionId: string, role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined) => {
-      update(prev => {
-        const now = new Date().toISOString();
-        return prev.map(q => {
+      update(prev =>
+        prev.map(q => {
           if (q.id === questionId) {
-            return { ...q, causeRole: role, updatedAt: now };
+            return { ...q, causeRole: role, updatedAt: Date.now() };
           }
           return q;
-        });
-      });
+        })
+      );
     },
     [update]
   );
@@ -627,7 +629,11 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
     (generatedQuestions: GeneratedQuestion[], _issueStatement?: string): Question[] => {
       const created: Question[] = [];
       for (const gq of generatedQuestions) {
-        const q = createQuestion(gq.text, gq.factors.length === 1 ? gq.factors[0] : undefined);
+        const q = createQuestion(
+          gq.text,
+          'general-unassigned',
+          gq.factors.length === 1 ? gq.factors[0] : undefined
+        );
         // Enrich with question-specific fields
         const enriched: Question = {
           ...q,
@@ -657,7 +663,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
             linkedFindingIds: alreadyLinked
               ? q.linkedFindingIds
               : [...q.linkedFindingIds, findingId],
-            updatedAt: new Date().toISOString(),
+            updatedAt: Date.now(),
           };
         })
       );

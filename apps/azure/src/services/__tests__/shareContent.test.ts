@@ -8,9 +8,11 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
     id: 'f1',
     text: 'High variation in fill head 3',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     status: 'observed',
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
     comments: [],
     context: {
       activeFilters: { 'Fill Head': ['3'] },

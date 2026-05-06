@@ -70,7 +70,7 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    const now = new Date().toISOString();
+    const nowMs = Date.now();
     const record: SustainmentRecord = {
       id: existingRecord?.id ?? crypto.randomUUID(),
       investigationId,
@@ -90,9 +90,9 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
       latestReviewAt: existingRecord?.latestReviewAt,
       latestReviewId: existingRecord?.latestReviewId,
       controlHandoffId: existingRecord?.controlHandoffId,
-      tombstoneAt: existingRecord?.tombstoneAt,
-      createdAt: existingRecord?.createdAt ?? now,
-      updatedAt: now,
+      deletedAt: existingRecord?.deletedAt ?? null,
+      createdAt: existingRecord?.createdAt ?? nowMs,
+      updatedAt: nowMs,
     };
 
     try {

@@ -44,6 +44,7 @@ import {
   findMatchedCategoryKeyword,
   createInvestigationCategory,
   CATEGORY_COLORS,
+  generateDeterministicId,
 } from '@variscout/core';
 import { suggestPrimaryDimensions } from '@variscout/core';
 
@@ -156,6 +157,12 @@ export interface ColumnMappingProps {
   goalContext?: string;
   /** Score threshold below which OutcomeNoMatchBanner is shown (default: 0.1) */
   noMatchThreshold?: number;
+  /**
+   * ID of the ProcessHub this mapping is creating/editing outcomes for.
+   * Required to set OutcomeSpec.hubId on confirm; defaults to empty string
+   * when not yet known (e.g. Hub not yet persisted at confirm time).
+   */
+  hubId?: string;
 }
 
 /**
@@ -293,6 +300,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   hideSpecs = false,
   goalContext,
   noMatchThreshold = DEFAULT_NO_MATCH_THRESHOLD,
+  hubId = '',
 }) => {
   const { t } = useTranslation();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
@@ -547,8 +555,13 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   // ── Confirm handler ───────────────────────────────────────────────────────
   const handleConfirm = useCallback(() => {
     // Build OutcomeSpec[] from selected specs
+    const now = Date.now();
     const outcomes: OutcomeSpec[] = Object.entries(selectedOutcomeSpecs).map(
       ([columnName, partial]) => ({
+        id: generateDeterministicId(),
+        hubId,
+        createdAt: now,
+        deletedAt: null,
         columnName,
         characteristicType: partial.characteristicType ?? 'nominalIsBest',
         ...(partial.target !== undefined ? { target: partial.target } : {}),

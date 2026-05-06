@@ -33,7 +33,8 @@ const map = {
 const hub: ProcessHub = {
   id: 'hub-1',
   name: 'Line A',
-  createdAt: '2026-04-28T00:00:00.000Z',
+  createdAt: 1745836800000,
+  deletedAt: null,
   canonicalProcessMap: map,
   canonicalMapVersion: '2026-04-28',
   contextColumns: ['product'],
@@ -47,8 +48,9 @@ function makeMember(opts: {
   return {
     id: opts.id,
     name: `Inv ${opts.id}`,
-    modified: '2026-04-28T00:00:00.000Z',
-    processHubId: 'hub-1',
+    createdAt: 1745836800000,
+    updatedAt: 1745836800000,
+    deletedAt: null,
     metadata: {
       processHubId: 'hub-1',
       nodeMappings: opts.nodeMappings,
@@ -56,7 +58,7 @@ function makeMember(opts: {
     },
     rows: opts.rows,
     reviewSignal: { ok: 0, review: 0, alarm: 0 },
-  } as ProcessHubInvestigation & { rows: DataRow[] };
+  } as unknown as ProcessHubInvestigation & { rows: DataRow[] };
 }
 
 describe('useProductionLineGlanceData', () => {

@@ -21,8 +21,8 @@ export const formatChangeSignals = (count: number): string =>
 export const formatOverdueActions = (count: number): string =>
   `${count} ${formatPlural(count, { one: 'overdue action', other: 'overdue actions' })}`;
 
-export const formatLatestActivity = (value: string | null): string => {
-  if (!value) return 'No activity yet';
+export const formatLatestActivity = (value: number | null): string => {
+  if (value === null || value === undefined) return 'No activity yet';
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return 'Activity date unknown';
   return `Latest activity ${date.toLocaleDateString('en', {
@@ -168,9 +168,11 @@ export const sustainmentBandAnswer = (
   );
   if (!sustainmentEligible) return null;
   const due = records.filter(
-    r => r.nextReviewDue && new Date(r.nextReviewDue) <= now && !r.tombstoneAt
+    r => r.nextReviewDue && new Date(r.nextReviewDue) <= now && r.deletedAt === null
   ).length;
-  const holdingCount = records.filter(r => r.latestVerdict === 'holding' && !r.tombstoneAt).length;
+  const holdingCount = records.filter(
+    r => r.latestVerdict === 'holding' && r.deletedAt === null
+  ).length;
 
   let base: string;
   if (due === 0 && holdingCount > 0) {

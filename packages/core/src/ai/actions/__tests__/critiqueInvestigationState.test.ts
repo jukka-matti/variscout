@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { critiqueInvestigationState } from '../critiqueInvestigationState';
 import type { SuspectedCause, Question, Finding } from '@variscout/core';
 
+const FIXED_NOW = Date.parse('2026-04-19T00:00:00Z');
+
 function hub(id: string, findingIds: string[], questionIds: string[] = []): SuspectedCause {
   return {
     id,
@@ -10,8 +12,10 @@ function hub(id: string, findingIds: string[], questionIds: string[] = []): Susp
     questionIds,
     findingIds,
     status: 'suspected',
-    createdAt: '2026-04-19T00:00:00Z',
-    updatedAt: '2026-04-19T00:00:00Z',
+    createdAt: FIXED_NOW,
+    updatedAt: FIXED_NOW,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
   };
 }
 
@@ -25,8 +29,10 @@ function question(
     text: id,
     status,
     linkedFindingIds,
-    createdAt: '2026-04-19T00:00:00Z',
-    updatedAt: '2026-04-19T00:00:00Z',
+    createdAt: FIXED_NOW,
+    updatedAt: FIXED_NOW,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
   };
 }
 
@@ -34,11 +40,13 @@ function finding(id: string, validationStatus?: Finding['validationStatus']): Fi
   return {
     id,
     text: '',
-    createdAt: Date.now(),
+    createdAt: FIXED_NOW,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: FIXED_NOW,
     validationStatus,
   };
 }
@@ -78,11 +86,11 @@ describe('critiqueInvestigationState', () => {
   });
 
   it('flags stale open questions older than 7 days', () => {
-    const staleDate = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
-    const freshDate = new Date().toISOString();
+    const staleTs = Date.now() - 8 * 24 * 60 * 60 * 1000;
+    const freshTs = Date.now();
     const questions: Question[] = [
-      { ...question('qStale'), createdAt: staleDate, updatedAt: staleDate },
-      { ...question('qFresh'), createdAt: freshDate, updatedAt: freshDate },
+      { ...question('qStale'), createdAt: staleTs, updatedAt: staleTs },
+      { ...question('qFresh'), createdAt: freshTs, updatedAt: freshTs },
     ];
     const result = critiqueInvestigationState({ hubs: [], questions, findings: [] });
     expect(result.gaps.some(g => g.kind === 'stale-question' && g.questionId === 'qStale')).toBe(

@@ -67,7 +67,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
       records: Array<{
         latestVerdict?: string;
         nextReviewDue?: string;
-        tombstoneAt?: string;
+        deletedAt?: number | null;
       }>,
       evidenceSnapshots?: Array<{
         capturedAt: string;
@@ -78,7 +78,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
         investigations: investigationStatuses.map(s => ({
           metadata: s ? { investigationStatus: s } : undefined,
         })),
-        sustainmentRecords: records,
+        sustainmentRecords: records.map(r => ({ deletedAt: null, ...r })),
         evidenceSnapshots: evidenceSnapshots ?? [],
       }) as unknown as ProcessHubRollup<ProcessHubInvestigation>;
 
@@ -134,14 +134,14 @@ describe('ProcessHubFormat sustainment helpers', () => {
       expect(sustainmentBandAnswer(rollup, NOW)).toBe('2 sustainment reviews due now.');
     });
 
-    it('ignores tombstoned records', () => {
+    it('ignores soft-deleted records (deletedAt !== null)', () => {
       const rollup = makeRollup(
         ['resolved'],
         [
           {
             latestVerdict: 'holding',
             nextReviewDue: '2026-04-25T00:00:00.000Z',
-            tombstoneAt: '2026-04-24T00:00:00.000Z',
+            deletedAt: 1745020800000, // 2026-04-24T00:00:00.000Z
           },
         ]
       );

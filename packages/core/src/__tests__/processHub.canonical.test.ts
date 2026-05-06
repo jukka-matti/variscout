@@ -7,7 +7,8 @@ describe('ProcessHub canonical map fields', () => {
     const minimal: ProcessHub = {
       id: 'hub-1',
       name: 'Bottling Line A',
-      createdAt: '2026-04-28T10:00:00.000Z',
+      createdAt: 1777370400000,
+      deletedAt: null,
     };
     expect(minimal.canonicalProcessMap).toBeUndefined();
     expect(minimal.canonicalMapVersion).toBeUndefined();
@@ -25,7 +26,8 @@ describe('ProcessHub canonical map fields', () => {
     const hub: ProcessHub = {
       id: 'hub-1',
       name: 'Bottling Line A',
-      createdAt: '2026-04-28T10:00:00.000Z',
+      createdAt: 1777370400000,
+      deletedAt: null,
       canonicalProcessMap: map,
       canonicalMapVersion: '2026-04-28T10:00:00Z',
       contextColumns: ['product', 'shift'],

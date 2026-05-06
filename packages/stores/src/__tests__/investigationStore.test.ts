@@ -615,8 +615,10 @@ describe('investigationStore — suspected cause hubs', () => {
         questionIds: [],
         findingIds: [],
         status: 'suspected',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'inv-test-001',
       },
     ];
     useInvestigationStore.getState().resetHubs(newHubs);
@@ -744,19 +746,23 @@ describe('investigationStore — bulk operations', () => {
     const finding = {
       id: 'f-1',
       text: 'Test',
-      createdAt: Date.now(),
+      createdAt: 1714000000000,
+      deletedAt: null as null,
+      investigationId: 'inv-test-001',
       context: ctx,
       status: 'observed' as const,
       comments: [],
-      statusChangedAt: Date.now(),
+      statusChangedAt: 1714000000000,
     };
     const question = {
       id: 'q-1',
       text: 'Why?',
       status: 'open' as const,
       linkedFindingIds: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null as null,
+      investigationId: 'inv-test-001',
     };
     const hub: SuspectedCause = {
       id: 'h-1',
@@ -765,13 +771,17 @@ describe('investigationStore — bulk operations', () => {
       questionIds: ['q-1'],
       findingIds: ['f-1'],
       status: 'suspected',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
+      investigationId: 'inv-test-001',
     };
     const category: InvestigationCategory = {
       id: 'c-1',
       name: 'Equipment',
       factorNames: ['Machine'],
+      createdAt: 1714000000000,
+      deletedAt: null,
     };
 
     useInvestigationStore.getState().loadInvestigationState({
@@ -813,8 +823,20 @@ describe('investigationStore — bulk operations', () => {
 
   it('setCategories replaces categories', () => {
     const cats: InvestigationCategory[] = [
-      { id: 'c-1', name: 'People', factorNames: ['Operator'] },
-      { id: 'c-2', name: 'Equipment', factorNames: ['Machine'] },
+      {
+        id: 'c-1',
+        name: 'People',
+        factorNames: ['Operator'],
+        createdAt: 1714000000000,
+        deletedAt: null,
+      },
+      {
+        id: 'c-2',
+        name: 'Equipment',
+        factorNames: ['Machine'],
+        createdAt: 1714000000000,
+        deletedAt: null,
+      },
     ];
     useInvestigationStore.getState().setCategories(cats);
     expect(useInvestigationStore.getState().categories).toEqual(cats);
@@ -959,12 +981,14 @@ describe('investigationStore — causalLink cascade behavior', () => {
     // Manually set hubId via updateCausalLink — the store doesn't have a direct setHubId action,
     // so we use loadInvestigationState to set it
     useInvestigationStore.setState(state => ({
-      causalLinks: state.causalLinks.map(l => (l.id === link!.id ? { ...l, hubId: hub.id } : l)),
+      causalLinks: state.causalLinks.map(l =>
+        l.id === link!.id ? { ...l, suspectedCauseId: hub.id } : l
+      ),
     }));
-    expect(useInvestigationStore.getState().causalLinks[0].hubId).toBe(hub.id);
+    expect(useInvestigationStore.getState().causalLinks[0].suspectedCauseId).toBe(hub.id);
 
     useInvestigationStore.getState().deleteHub(hub.id);
-    expect(useInvestigationStore.getState().causalLinks[0].hubId).toBeUndefined();
+    expect(useInvestigationStore.getState().causalLinks[0].suspectedCauseId).toBeUndefined();
   });
 });
 

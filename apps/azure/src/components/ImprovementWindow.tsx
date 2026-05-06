@@ -198,8 +198,9 @@ const ImprovementWindow: React.FC = () => {
                       id: `tmp-${Date.now()}`,
                       text,
                       selected: false,
-                      createdAt: new Date().toISOString(),
-                    } as import('@variscout/core').ImprovementIdea,
+                      createdAt: Date.now(),
+                      deletedAt: null,
+                    },
                   ],
                 }
               : h

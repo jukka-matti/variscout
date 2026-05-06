@@ -56,8 +56,22 @@ describe('createInvestigationCategory', () => {
 
 describe('getCategoryForFactor', () => {
   const categories: InvestigationCategory[] = [
-    { id: '1', name: 'Equipment', factorNames: ['Machine', 'Fill Head'], color: '#3b82f6' },
-    { id: '2', name: 'Temporal', factorNames: ['Shift'], color: '#a855f7' },
+    {
+      id: '1',
+      name: 'Equipment',
+      factorNames: ['Machine', 'Fill Head'],
+      color: '#3b82f6',
+      createdAt: 1714000000000,
+      deletedAt: null,
+    },
+    {
+      id: '2',
+      name: 'Temporal',
+      factorNames: ['Shift'],
+      color: '#a855f7',
+      createdAt: 1714000000000,
+      deletedAt: null,
+    },
   ];
 
   it('returns the category containing the factor', () => {

@@ -94,15 +94,13 @@ const WhatsNewSection: React.FC<WhatsNewSectionProps> = ({ findings, questions, 
       }
     }
 
-    // Question status changes
-    // NOTE: Question.createdAt and updatedAt are ISO strings — use Date.parse()
+    // Question status changes — updatedAt is now a Unix ms number
     for (const h of questions) {
-      const updatedAtMs = Date.parse(h.updatedAt);
-      if (updatedAtMs > lastViewedAt) {
+      if (h.updatedAt > lastViewedAt) {
         result.push({
           type: 'question-status',
           text: `\u2018${truncate(h.text)}\u2019 question \u2192 ${h.status}`,
-          timestamp: updatedAtMs,
+          timestamp: h.updatedAt,
         });
       }
     }

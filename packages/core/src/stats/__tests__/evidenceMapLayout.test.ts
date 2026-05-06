@@ -202,6 +202,9 @@ describe('computeEvidenceMapLayout', () => {
         {
           factorA: 'A',
           factorB: 'B',
+          levelsA: [],
+          levelsB: [],
+          rSquaredMainEffects: 0.55,
           rSquaredMain: 0.55,
           rSquaredWithInteraction: 0.65,
           deltaRSquared: 0.1,

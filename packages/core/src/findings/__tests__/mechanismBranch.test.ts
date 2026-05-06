@@ -10,8 +10,10 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
     factor: 'SHIFT',
     status: 'answered',
     linkedFindingIds: [],
-    createdAt: '2026-04-25T00:00:00.000Z',
-    updatedAt: '2026-04-25T00:00:00.000Z',
+    createdAt: 1745625600000,
+    updatedAt: 1745625600000,
+    investigationId: 'inv-test-001',
+    deletedAt: null,
     ...overrides,
   };
 }
@@ -20,11 +22,13 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
     id: 'f-support',
     text: 'Night shift has wider spread.',
-    createdAt: 1,
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'analyzed',
     comments: [],
-    statusChangedAt: 1,
+    statusChangedAt: 1714000000000,
     validationStatus: 'supports',
     ...overrides,
   };
@@ -38,8 +42,10 @@ function makeHub(overrides: Partial<SuspectedCause> = {}): SuspectedCause {
     questionIds: ['q-support', 'q-open'],
     findingIds: ['f-support', 'f-counter'],
     status: 'suspected',
-    createdAt: '2026-04-25T00:00:00.000Z',
-    updatedAt: '2026-04-25T00:00:00.000Z',
+    createdAt: 1745625600000,
+    updatedAt: 1745625600000,
+    investigationId: 'inv-test-001',
+    deletedAt: null,
     ...overrides,
   };
 }

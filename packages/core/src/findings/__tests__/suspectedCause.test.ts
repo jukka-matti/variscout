@@ -36,8 +36,10 @@ describe('computeHubContribution', () => {
     text: '',
     status: 'answered',
     linkedFindingIds: [],
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    investigationId: 'inv-test-001',
+    deletedAt: null,
     evidence: { etaSquared: eta, rSquaredAdj: rSq },
   });
 
@@ -50,8 +52,10 @@ describe('computeHubContribution', () => {
       questionIds: ['q1', 'q2'],
       findingIds: [],
       status: 'suspected',
-      createdAt: '',
-      updatedAt: '',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      investigationId: 'inv-test-001',
+      deletedAt: null,
     };
     expect(computeHubContribution(hub, questions)).toBeCloseTo(0.56);
   });
@@ -65,8 +69,10 @@ describe('computeHubContribution', () => {
       questionIds: ['q1'],
       findingIds: [],
       status: 'suspected',
-      createdAt: '',
-      updatedAt: '',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      investigationId: 'inv-test-001',
+      deletedAt: null,
     };
     expect(computeHubContribution(hub, questions)).toBeCloseTo(0.47);
   });
@@ -79,8 +85,10 @@ describe('computeHubContribution', () => {
       questionIds: [],
       findingIds: [],
       status: 'suspected',
-      createdAt: '',
-      updatedAt: '',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      investigationId: 'inv-test-001',
+      deletedAt: null,
     };
     expect(computeHubContribution(hub, [])).toBe(0);
   });
@@ -94,8 +102,10 @@ describe('computeHubContribution', () => {
       questionIds: ['q1'],
       findingIds: [],
       status: 'suspected',
-      createdAt: '',
-      updatedAt: '',
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      investigationId: 'inv-test-001',
+      deletedAt: null,
     };
     expect(computeHubContribution(hub, questions)).toBeCloseTo(0.34);
   });
@@ -115,8 +125,10 @@ describe('migrateCauseRolesToHubs', () => {
     causeRole: causeRole as 'suspected-cause' | 'contributing' | 'ruled-out',
     evidence: { etaSquared: 0.3 },
     linkedFindingIds: findingIds,
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    investigationId: 'inv-test-001',
+    deletedAt: null,
   });
 
   it('should create individual hubs for suspected-cause questions', () => {
@@ -155,8 +167,10 @@ describe('migrateCauseRolesToHubs', () => {
         status: 'answered',
         causeRole: 'suspected-cause',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        investigationId: 'inv-test-001',
+        deletedAt: null,
       },
     ];
     expect(migrateCauseRolesToHubs(questions)).toEqual([]);
@@ -170,8 +184,10 @@ describe('computeHubEvidence', () => {
     status: 'answered',
     factor,
     linkedFindingIds: [],
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    investigationId: 'inv-test-001',
+    deletedAt: null,
     evidence: { etaSquared: eta, rSquaredAdj: rSq },
   });
 
@@ -182,8 +198,10 @@ describe('computeHubEvidence', () => {
     questionIds,
     findingIds: [],
     status: 'suspected',
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    investigationId: 'inv-test-001',
+    deletedAt: null,
   });
 
   const bestSubsets: BestSubsetsResult = {
@@ -197,6 +215,8 @@ describe('computeHubEvidence', () => {
         pValue: 0.001,
         isSignificant: true,
         dfModel: 1,
+        levelEffects: new Map(),
+        cellMeans: new Map(),
       },
       {
         factors: ['Head'],
@@ -207,6 +227,8 @@ describe('computeHubEvidence', () => {
         pValue: 0.004,
         isSignificant: true,
         dfModel: 1,
+        levelEffects: new Map(),
+        cellMeans: new Map(),
       },
       {
         factors: ['Head', 'Shift'],
@@ -217,6 +239,8 @@ describe('computeHubEvidence', () => {
         pValue: 0.0001,
         isSignificant: true,
         dfModel: 3,
+        levelEffects: new Map(),
+        cellMeans: new Map(),
       },
     ],
     n: 300,
@@ -264,8 +288,10 @@ describe('computeHubEvidence', () => {
         text: 'gemba check',
         status: 'answered',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1714000000000,
+        updatedAt: 1714000000000,
+        investigationId: 'inv-test-001',
+        deletedAt: null,
       },
     ];
     const hub = makeHub(['q1']);
@@ -310,8 +336,10 @@ describe('SuspectedCause optional Wall fields', () => {
       questionIds: [],
       findingIds: [],
       status: 'suspected',
-      createdAt: '2026-04-19T00:00:00.000Z',
-      updatedAt: '2026-04-19T00:00:00.000Z',
+      createdAt: 1745625600000,
+      updatedAt: 1745625600000,
+      investigationId: 'inv-test-001',
+      deletedAt: null,
     };
     expect(hub.condition).toBeUndefined();
   });
@@ -332,8 +360,10 @@ describe('SuspectedCause optional Wall fields', () => {
       findingIds: [],
       status: 'suspected',
       condition,
-      createdAt: '2026-04-19T00:00:00.000Z',
-      updatedAt: '2026-04-19T00:00:00.000Z',
+      createdAt: 1745625600000,
+      updatedAt: 1745625600000,
+      investigationId: 'inv-test-001',
+      deletedAt: null,
     };
     expect(hub.condition?.kind).toBe('and');
   });
@@ -342,7 +372,10 @@ describe('SuspectedCause optional Wall fields', () => {
     const comment: FindingComment = {
       id: 'c-1',
       text: 'H1 looks tight',
-      createdAt: Date.now(),
+      createdAt: 1714000000000,
+      parentId: 'hub-3',
+      parentKind: 'suspectedCause',
+      deletedAt: null,
     };
     const hub: SuspectedCause = {
       id: 'hub-3',
@@ -353,8 +386,10 @@ describe('SuspectedCause optional Wall fields', () => {
       status: 'suspected',
       tributaryIds: ['trib-123'],
       comments: [comment],
-      createdAt: '2026-04-19T00:00:00.000Z',
-      updatedAt: '2026-04-19T00:00:00.000Z',
+      createdAt: 1745625600000,
+      updatedAt: 1745625600000,
+      investigationId: 'inv-test-001',
+      deletedAt: null,
     };
     expect(hub.tributaryIds).toEqual(['trib-123']);
     expect(hub.comments?.length).toBe(1);

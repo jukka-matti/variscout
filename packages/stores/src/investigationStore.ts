@@ -334,7 +334,8 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
         context.cumulativeScope,
         context.stats,
         undefined,
-        source
+        source,
+        'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
       );
       if (questionId) {
         finding.questionId = questionId;
@@ -358,7 +359,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
           return {
             ...l,
             findingIds: l.findingIds.filter(fid => fid !== id),
-            updatedAt: new Date().toISOString(),
+            updatedAt: Date.now(),
           };
         }),
       }));
@@ -387,7 +388,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     },
 
     addFindingComment: (id, text, author?) => {
-      const comment = createFindingComment(text, author);
+      const comment = createFindingComment(text, id, 'finding', author);
       set(state => ({
         findings: state.findings.map(f =>
           f.id === id ? { ...f, comments: [...f.comments, comment] } : f
@@ -662,7 +663,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     // ========================================================================
 
     addQuestion: (text, factor?, level?) => {
-      const question = createQuestion(text, factor, level);
+      const question = createQuestion(text, 'general-unassigned', factor, level);
       set(state => ({ questions: [...state.questions, question] }));
       return question;
     },
@@ -680,7 +681,14 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       const childCount = questions.filter(q => q.parentId === parentId).length;
       if (childCount >= MAX_CHILDREN_PER_PARENT) return null;
 
-      const question = createQuestion(text, factor, level, parentId, validationType);
+      const question = createQuestion(
+        text,
+        'general-unassigned',
+        factor,
+        level,
+        parentId,
+        validationType
+      );
       set(state => ({ questions: [...state.questions, question] }));
       return question;
     },
@@ -688,7 +696,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     editQuestion: (id, updates) => {
       set(state => ({
         questions: state.questions.map(q =>
-          q.id === id ? { ...q, ...updates, updatedAt: new Date().toISOString() } : q
+          q.id === id ? { ...q, ...updates, updatedAt: Date.now() } : q
         ),
       }));
     },
@@ -718,7 +726,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
           const filtered = l.questionIds.filter(qid => !idsToDelete.has(qid));
           return filtered.length === l.questionIds.length
             ? l
-            : { ...l, questionIds: filtered, updatedAt: new Date().toISOString() };
+            : { ...l, questionIds: filtered, updatedAt: Date.now() };
         }),
       }));
 
@@ -728,7 +736,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     setQuestionStatus: (id, status) => {
       set(state => ({
         questions: state.questions.map(q =>
-          q.id === id ? { ...q, status, updatedAt: new Date().toISOString() } : q
+          q.id === id ? { ...q, status, updatedAt: Date.now() } : q
         ),
       }));
     },
@@ -740,7 +748,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             ? {
                 ...q,
                 linkedFindingIds: [...q.linkedFindingIds, findingId],
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         ),
@@ -754,7 +762,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             ? {
                 ...q,
                 linkedFindingIds: q.linkedFindingIds.filter(fid => fid !== findingId),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         ),
@@ -769,7 +777,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       set(state => ({
         questions: state.questions.map(q =>
           q.id === questionId
-            ? { ...q, ideas: [...(q.ideas ?? []), idea], updatedAt: new Date().toISOString() }
+            ? { ...q, ideas: [...(q.ideas ?? []), idea], updatedAt: Date.now() }
             : q
         ),
       }));
@@ -783,7 +791,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             ? {
                 ...q,
                 ideas: q.ideas.map(i => (i.id === ideaId ? { ...i, ...updates } : i)),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         ),
@@ -797,7 +805,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             ? {
                 ...q,
                 ideas: q.ideas.filter(i => i.id !== ideaId),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         ),
@@ -811,7 +819,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             ? {
                 ...q,
                 ideas: q.ideas.map(i => (i.id === ideaId ? { ...i, selected } : i)),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         ),
@@ -825,7 +833,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             ? {
                 ...q,
                 ideas: q.ideas.map(i => (i.id === ideaId ? { ...i, projection } : i)),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : q
         ),
@@ -859,7 +867,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     updateHub: (hubId, updates) => {
       set(state => ({
         suspectedCauses: state.suspectedCauses.map(h =>
-          h.id === hubId ? { ...h, ...updates, updatedAt: new Date().toISOString() } : h
+          h.id === hubId ? { ...h, ...updates, updatedAt: Date.now() } : h
         ),
       }));
     },
@@ -869,7 +877,9 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
         suspectedCauses: state.suspectedCauses.filter(h => h.id !== hubId),
         // Clear hubId from causal links that reference the deleted hub
         causalLinks: state.causalLinks.map(l =>
-          l.hubId === hubId ? { ...l, hubId: undefined, updatedAt: new Date().toISOString() } : l
+          l.suspectedCauseId === hubId
+            ? { ...l, suspectedCauseId: undefined, updatedAt: Date.now() }
+            : l
         ),
       }));
     },
@@ -882,7 +892,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
           return {
             ...h,
             questionIds: [...h.questionIds, questionId],
-            updatedAt: new Date().toISOString(),
+            updatedAt: Date.now(),
           };
         }),
       }));
@@ -896,7 +906,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             : {
                 ...h,
                 questionIds: h.questionIds.filter(id => id !== questionId),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
         ),
       }));
@@ -910,7 +920,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
           return {
             ...h,
             findingIds: [...h.findingIds, findingId],
-            updatedAt: new Date().toISOString(),
+            updatedAt: Date.now(),
           };
         }),
       }));
@@ -924,7 +934,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             : {
                 ...h,
                 findingIds: h.findingIds.filter(id => id !== findingId),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
         ),
       }));
@@ -933,7 +943,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     setHubStatus: (hubId, status) => {
       set(state => ({
         suspectedCauses: state.suspectedCauses.map(h =>
-          h.id !== hubId ? h : { ...h, status, updatedAt: new Date().toISOString() }
+          h.id !== hubId ? h : { ...h, status, updatedAt: Date.now() }
         ),
       }));
     },
@@ -941,7 +951,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     setHubEvidence: (hubId, evidence) => {
       set(state => ({
         suspectedCauses: state.suspectedCauses.map(h =>
-          h.id !== hubId ? h : { ...h, evidence, updatedAt: new Date().toISOString() }
+          h.id !== hubId ? h : { ...h, evidence, updatedAt: Date.now() }
         ),
       }));
     },
@@ -954,7 +964,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       // 1. Build the comment locally so optimistic append + server payload
       //    share the same id — keeps the SSE echo idempotent (server dedupes
       //    by id, so the echo that fans back via the stream is a no-op).
-      const comment = createFindingComment(text, author);
+      const comment = createFindingComment(text, hubId, 'suspectedCause', author);
 
       // 2. Optimistic update: append to the hub's comments array.
       set(state => ({
@@ -963,7 +973,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             ? {
                 ...h,
                 comments: [...(h.comments ?? []), comment],
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
             : h
         ),
@@ -1034,7 +1044,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     updateCausalLink: (id, updates) => {
       set(state => ({
         causalLinks: state.causalLinks.map(l =>
-          l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l
+          l.id === id ? { ...l, ...updates, updatedAt: Date.now() } : l
         ),
       }));
     },
@@ -1047,7 +1057,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
           return {
             ...l,
             questionIds: [...l.questionIds, questionId],
-            updatedAt: new Date().toISOString(),
+            updatedAt: Date.now(),
           };
         }),
       }));
@@ -1061,7 +1071,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
           return {
             ...l,
             findingIds: [...l.findingIds, findingId],
-            updatedAt: new Date().toISOString(),
+            updatedAt: Date.now(),
           };
         }),
       }));
@@ -1075,7 +1085,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             : {
                 ...l,
                 questionIds: l.questionIds.filter(id => id !== questionId),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
         ),
       }));
@@ -1089,7 +1099,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             : {
                 ...l,
                 findingIds: l.findingIds.filter(id => id !== findingId),
-                updatedAt: new Date().toISOString(),
+                updatedAt: Date.now(),
               }
         ),
       }));

@@ -602,7 +602,14 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           const hubCols = activeHub?.outcomes?.map(o => o.columnName) ?? [];
           const sourceId = deriveSourceId(hubCols, ms.newColumns);
           const startIndex = rawData.length;
-          const tags: RowProvenanceTag[] = ms.newRows.map(() => ({
+          const now = Date.now();
+          const tags: RowProvenanceTag[] = ms.newRows.map((_, i) => ({
+            id: crypto.randomUUID(),
+            createdAt: now,
+            deletedAt: null,
+            // snapshotId is '' until the snapshot is persisted (F3 wiring).
+            snapshotId: '',
+            rowKey: String(startIndex + i),
             source: sourceId,
             joinKey: choice.candidate.hubColumn,
           }));

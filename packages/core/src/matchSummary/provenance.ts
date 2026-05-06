@@ -13,7 +13,7 @@ export function createSnapshotProvenance(
   rows: DataRow[],
   timeColumn?: string
 ): SnapshotProvenance {
-  const importedAt = new Date().toISOString();
+  const importedAt = Date.now();
   if (!timeColumn || rows.length === 0) {
     return { origin, importedAt };
   }

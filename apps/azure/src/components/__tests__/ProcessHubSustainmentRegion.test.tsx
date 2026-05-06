@@ -12,8 +12,8 @@ import type {
 const HUB = {
   id: 'hub-1',
   name: 'Line 4',
-  createdAt: '2026-01-01T00:00:00.000Z',
-  updatedAt: '2026-01-01T00:00:00.000Z',
+  createdAt: 1735689600000,
+  deletedAt: null,
 };
 
 function makeInvestigation(
@@ -22,7 +22,9 @@ function makeInvestigation(
   return {
     id: overrides.id,
     name: overrides.name,
-    modified: '2026-01-01T00:00:00.000Z',
+    createdAt: 1735689600000,
+    updatedAt: 1735689600000,
+    deletedAt: null,
     metadata: overrides.metadata,
   };
 }
@@ -83,8 +85,9 @@ function makeRecord(
     investigationId,
     hubId: 'hub-1',
     cadence: 'monthly',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
+    createdAt: 1735689600000, // 2026-01-01T00:00:00.000Z
+    updatedAt: 1735689600000, // 2026-01-01T00:00:00.000Z
+    deletedAt: null,
     ...overrides,
   };
 }
@@ -184,10 +187,11 @@ describe('ProcessHubSustainmentRegion', () => {
         surface: 'qms-procedure',
         systemName: 'QMS',
         operationalOwner: { displayName: 'Alice' },
-        handoffDate: '2026-03-01T00:00:00.000Z',
+        handoffDate: 1740787200000, // 2026-03-01T00:00:00.000Z
         description: 'Procedure updated',
         retainSustainmentReview: true,
-        recordedAt: '2026-03-01T00:00:00.000Z',
+        createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z (formerly recordedAt)
+        deletedAt: null,
         recordedBy: { displayName: 'Alice' },
       },
     ];
@@ -322,10 +326,11 @@ describe('ProcessHubSustainmentRegion', () => {
         surface: 'dashboard-only',
         systemName: 'Dashboard',
         operationalOwner: { displayName: 'Bob' },
-        handoffDate: '2026-03-15T00:00:00.000Z',
+        handoffDate: 1742000000000, // 2026-03-15T~
         description: 'Dashboard monitoring in place',
         retainSustainmentReview: false,
-        recordedAt: '2026-03-15T00:00:00.000Z',
+        createdAt: 1742000000000, // (formerly recordedAt)
+        deletedAt: null,
         recordedBy: { displayName: 'Bob' },
       },
     ];

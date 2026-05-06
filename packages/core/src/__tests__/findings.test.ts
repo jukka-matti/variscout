@@ -82,11 +82,13 @@ describe('findDuplicateFinding', () => {
   ): Finding => ({
     id,
     text: `Finding ${id}`,
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: { activeFilters, cumulativeScope: null },
     status: 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
   });
 
   it('returns matching finding when filters match', () => {
@@ -129,15 +131,17 @@ describe('createFinding', () => {
 
 describe('createFindingComment', () => {
   it('creates a comment with id, text, and timestamp', () => {
-    const c = createFindingComment('Checked operator logs');
+    const c = createFindingComment('Checked operator logs', 'f-1', 'finding');
     expect(c.id).toBeTruthy();
     expect(c.text).toBe('Checked operator logs');
     expect(c.createdAt).toBeGreaterThan(0);
+    expect(c.parentId).toBe('f-1');
+    expect(c.parentKind).toBe('finding');
   });
 
   it('generates unique ids', () => {
-    const c1 = createFindingComment('a');
-    const c2 = createFindingComment('b');
+    const c1 = createFindingComment('a', 'f-1', 'finding');
+    const c2 = createFindingComment('b', 'f-2', 'finding');
     expect(c1.id).not.toBe(c2.id);
   });
 });
@@ -148,6 +152,8 @@ describe('getFindingStatus', () => {
       id: 'f-1',
       text: 'Test',
       createdAt: 1000,
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       context: { activeFilters: {}, cumulativeScope: null },
       status: 'analyzed',
       comments: [],
@@ -161,11 +167,13 @@ describe('groupFindingsByStatus', () => {
   const makeFinding = (id: string, status: FindingStatus): Finding => ({
     id,
     text: `Finding ${id}`,
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     status,
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
   });
 
   it('groups findings correctly across 5 statuses', () => {
@@ -236,6 +244,8 @@ describe('migrateFindingStatus', () => {
     id: 'f-1',
     text: 'Test',
     createdAt: 1000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     status: status as FindingStatus,
     tag: tag as Finding['tag'],
@@ -290,6 +300,8 @@ describe('migrateFindings', () => {
         id: 'f-1',
         text: 'A',
         createdAt: 1000,
+        deletedAt: null,
+        investigationId: 'general-unassigned',
         status: 'observed' as FindingStatus,
         context: { activeFilters: {}, cumulativeScope: null },
         comments: [],
@@ -299,6 +311,8 @@ describe('migrateFindings', () => {
         id: 'f-2',
         text: 'B',
         createdAt: 2000,
+        deletedAt: null,
+        investigationId: 'general-unassigned',
         status: 'confirmed' as FindingStatus,
         context: { activeFilters: {}, cumulativeScope: null },
         comments: [],
@@ -308,6 +322,8 @@ describe('migrateFindings', () => {
         id: 'f-3',
         text: 'C',
         createdAt: 3000,
+        deletedAt: null,
+        investigationId: 'general-unassigned',
         status: 'dismissed' as FindingStatus,
         context: { activeFilters: {}, cumulativeScope: null },
         comments: [],
@@ -354,11 +370,13 @@ describe('findDuplicateBySource', () => {
   const makeFindingWithSource = (id: string, source: FindingSource): Finding => ({
     id,
     text: `Finding ${id}`,
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
     source,
   });
 
@@ -516,7 +534,7 @@ describe('Finding 5-status extensions', () => {
 
 describe('createQuestion', () => {
   it('creates a question with required fields', () => {
-    const q = createQuestion('Worn bearing on head 3');
+    const q = createQuestion('Worn bearing on head 3', 'inv-test-001');
     expect(q.id).toBeTruthy();
     expect(q.text).toBe('Worn bearing on head 3');
     expect(q.createdAt).toBeTruthy();
@@ -525,19 +543,19 @@ describe('createQuestion', () => {
   });
 
   it('generates unique ids for each question', () => {
-    const q1 = createQuestion('Cause A');
-    const q2 = createQuestion('Cause B');
+    const q1 = createQuestion('Cause A', 'inv-test-001');
+    const q2 = createQuestion('Cause B', 'inv-test-001');
     expect(q1.id).not.toBe(q2.id);
   });
 
   it('accepts optional factor and level', () => {
-    const q = createQuestion('Tool wear', 'Machine', 'A');
+    const q = createQuestion('Tool wear', 'general-unassigned', 'Machine', 'A');
     expect(q.factor).toBe('Machine');
     expect(q.level).toBe('A');
   });
 
   it('defaults status to open', () => {
-    const q = createQuestion('Vibration');
+    const q = createQuestion('Vibration', 'inv-test-001');
     expect(q.status).toBe('open');
   });
 });
@@ -582,11 +600,10 @@ describe('createImprovementIdea', () => {
     expect(idea.text).toBe('Simplify setup with visual guides');
   });
 
-  it('sets createdAt as ISO string', () => {
+  it('sets createdAt as Unix ms number', () => {
     const idea = createImprovementIdea('Reduce changeover time');
-    expect(idea.createdAt).toBeTruthy();
-    // ISO string format check
-    expect(new Date(idea.createdAt).toISOString()).toBe(idea.createdAt);
+    expect(idea.createdAt).toBeGreaterThan(0);
+    expect(typeof idea.createdAt).toBe('number');
   });
 
   it('no timeframe/projection/selected/notes by default', () => {
@@ -654,6 +671,8 @@ describe('migrateFindings action assignee migration', () => {
         id: 'f-1',
         text: 'Test',
         createdAt: 1000,
+        deletedAt: null,
+        investigationId: 'general-unassigned',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'improving',
         comments: [],
@@ -664,6 +683,7 @@ describe('migrateFindings action assignee migration', () => {
             text: 'Fix',
             assignee: 'Bob' as unknown as FindingAssignee,
             createdAt: 1000,
+            deletedAt: null,
           },
         ],
       },
@@ -678,11 +698,13 @@ describe('migrateFindings action assignee migration', () => {
         id: 'f-1',
         text: 'Test',
         createdAt: 1000,
+        deletedAt: null,
+        investigationId: 'general-unassigned',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'improving',
         comments: [],
         statusChangedAt: 1000,
-        actions: [{ id: 'a-1', text: 'Fix', createdAt: 1000 }],
+        actions: [{ id: 'a-1', text: 'Fix', createdAt: 1000, deletedAt: null }],
       },
     ];
     const migrated = migrateFindings(findings);

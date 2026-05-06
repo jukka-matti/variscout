@@ -38,7 +38,7 @@ export const SustainmentEntryRow: React.FC<SustainmentEntryRowProps> = ({
     }
     listSustainmentRecords(hubId).then(records => {
       if (cancelled) return;
-      const live = records.find(r => r.investigationId === investigationId && !r.tombstoneAt);
+      const live = records.find(r => r.investigationId === investigationId && r.deletedAt === null);
       setExistingRecord(live ?? null);
     });
     return () => {

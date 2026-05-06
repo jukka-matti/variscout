@@ -161,6 +161,26 @@ Rejected. `window.confirm` is not dismissable programmatically, blocks the JS th
 
 Accepted (2026-05-04). Delivered in slice 3 (PR #123). The `existingRange` wiring follow-up is logged in `docs/decision-log.md`.
 
+## Amendment — 2026-05-06
+
+**Context**: F1+F2 data-flow foundation refactor (task P1.3, plan `docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2.md`, design spec `docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`).
+
+**Changes to D6:**
+
+1. **`RowProvenanceTag` is now a full entity (extends `EntityBase`)**. The original D6 shape `{ source: string, joinKey: string }` gains `id: string`, `createdAt: number`, `deletedAt: number | null` from `EntityBase`, plus two new fields: `snapshotId: EvidenceSnapshot['id']` (FK to parent snapshot — currently set to `''` at call sites until F3 wires the snapshot-creation path) and `rowKey: string` (the row identifier, was the sidecar Map's key; now carried explicitly on the value). The sidecar `Map<rowKey, RowProvenanceTag>` is preserved as the runtime indexing structure; the value type is extended.
+
+2. **`EvidenceSource` extends `EntityBase`**. `createdAt: string` (ISO) becomes `createdAt: number` (Unix ms). `deletedAt: number | null` added. `hubId` retyped to `ProcessHub['id']`. `updatedAt?: string` becomes `updatedAt?: number`.
+
+3. **`EvidenceSnapshot` extends `EntityBase`**. `importedAt: string` (ISO) becomes `importedAt: number` (Unix ms). `createdAt: number` and `deletedAt: number | null` added from `EntityBase`. `capturedAt: string` remains as ISO string (data-time, distinct concept). `hubId` retyped to `ProcessHub['id']`, `sourceId` retyped to `EvidenceSource['id']`. Decision on `importedAt` vs `createdAt`: both fields are retained — `importedAt` is the domain name for the ingest event (documented throughout this ADR); `createdAt` is the `EntityBase` lifecycle field. Both are initialized to `Date.now()` at snapshot creation and carry the same value.
+
+4. **`SnapshotProvenance.importedAt`** changes from ISO string to `number` (Unix ms) to match `EvidenceSnapshot.importedAt`.
+
+5. **`EvidenceSourceCursor` relocated from `apps/azure/src/db/schema.ts` to `packages/core/src/evidenceSources.ts`** (per R4). The local declaration is removed; the azure schema now re-exports the type from `@variscout/core`. `lastSeenAt: string` (ISO) becomes `lastSeenAt: number` (Unix ms). `EntityBase` fields (`id`, `createdAt`, `deletedAt`) added. The Dexie composite key `[hubId+sourceId]` is unchanged.
+
+**Call-site impact**: `useEvidenceSourceSync.ts` updated to pass `lastSeenAt` as `Date.now()` number and compare directly (no `new Date(...).getTime()` parse needed). Both paste-flow wedges (`useEditorDataFlow.ts`, `usePasteImportFlow.ts`) updated to provide `EntityBase` fields on constructed `RowProvenanceTag` values; `snapshotId: ''` is the placeholder until F3 provides the persisted snapshot id at tag-creation time. `ProcessHubEvidencePanel.tsx` updated: `nowIso()` → `nowMs()` for lifecycle fields.
+
+**F3 note**: `RowProvenanceTag.snapshotId` will be populated when the snapshot-creation path is completed in F3. The `rowKey` field enables direct identity without consulting the Map key.
+
 ## Supersedes / superseded by
 
 - Supersedes: none (new decision).

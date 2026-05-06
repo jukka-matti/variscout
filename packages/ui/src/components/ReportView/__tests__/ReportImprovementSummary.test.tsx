@@ -8,7 +8,8 @@ const makeIdea = (overrides: Partial<ImprovementIdea> = {}): ImprovementIdea => 
   id: 'idea1',
   text: 'Install temperature sensor',
   selected: false,
-  createdAt: new Date().toISOString(),
+  createdAt: 1714000000000,
+  deletedAt: null,
   ...overrides,
 });
 

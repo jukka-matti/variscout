@@ -273,8 +273,11 @@ export type {
   EvidenceSignalSeverity,
   EvidenceSnapshot,
   EvidenceSource,
+  EvidenceSourceCursor,
   EvidenceValidationResult,
   ProfileApplication,
+  RowProvenanceTag,
+  SnapshotProvenance,
 } from './evidenceSources';
 
 // Preview feature registry
@@ -914,6 +917,10 @@ export {
 export { buildProjectMetadata } from './projectMetadata';
 export type { ProjectMetadata } from './projectMetadata';
 
+// Identity + lifecycle (F1 foundation — canonical ID generator + EntityBase shape)
+export type { EntityBase } from './identity';
+export { generateDeterministicId } from './identity';
+
 // Timeline window types (Multi-level SCOUT V1)
 export * from './timeline';
 
@@ -945,3 +952,22 @@ export { vrsExport } from './serialization/vrsExport';
 export { vrsImport } from './serialization/vrsImport';
 export { VRS_VERSION } from './serialization/vrsFormat';
 export type { VrsFile } from './serialization/vrsFormat';
+
+// Action types (F2 — HubAction discriminated union, kind + SCREAMING_SNAKE_CASE per R2)
+export type {
+  HubAction,
+  OutcomeAction,
+  EvidenceAction,
+  EvidenceSourceAction,
+  InvestigationAction,
+  FindingAction,
+  QuestionAction,
+  CausalLinkAction,
+  SuspectedCauseAction,
+  HubMetaAction,
+  CanvasAction,
+} from './actions';
+
+// Persistence types + helpers (F2 — HubRepository interface + cascadeRules)
+export type { HubRepository, EntityKind, CascadeRule, CascadeRuleset } from './persistence';
+export { cascadeRules, transitiveCascade } from './persistence';

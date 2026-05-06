@@ -14,7 +14,9 @@ function inv(opts: {
   return {
     id: opts.id,
     name: opts.id,
-    modified: '2026-04-28T00:00:00.000Z',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
     metadata: {
       processHubId: opts.hubId,
       nodeMappings: opts.nodeMappings,

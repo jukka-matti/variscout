@@ -36,9 +36,19 @@ import { useEditorDataFlow, type UseEditorDataFlowOptions } from '../useEditorDa
 const COMPLETE_HUB: ProcessHub = {
   id: 'hub-1',
   name: 'Test Hub',
-  createdAt: '2026-05-01T00:00:00Z',
+  createdAt: 1746057600000,
+  deletedAt: null,
   processGoal: 'Reduce barrel diameter variation.',
-  outcomes: [{ columnName: 'diameter_mm', characteristicType: 'nominalIsBest' }],
+  outcomes: [
+    {
+      id: 'outcome-diameter',
+      hubId: 'hub-1',
+      createdAt: 1746057600000,
+      deletedAt: null,
+      columnName: 'diameter_mm',
+      characteristicType: 'nominalIsBest',
+    },
+  ],
 };
 
 // ─── Default mock option builders ─────────────────────────────────────────────
@@ -149,8 +159,18 @@ describe('useEditorDataFlow — match-summary wedge (P2.4 / D9)', () => {
     const incompleteHub: ProcessHub = {
       id: 'hub-2',
       name: 'Incomplete',
-      createdAt: '2026-05-01T00:00:00Z',
-      outcomes: [{ columnName: 'diameter_mm', characteristicType: 'nominalIsBest' }],
+      createdAt: 1746057600000,
+      deletedAt: null,
+      outcomes: [
+        {
+          id: 'outcome-diameter-2',
+          hubId: 'hub-2',
+          createdAt: 1746057600000,
+          deletedAt: null,
+          columnName: 'diameter_mm',
+          characteristicType: 'nominalIsBest',
+        },
+      ],
       // no processGoal → isProcessHubComplete returns false
     };
     const setRawData = vi.fn();

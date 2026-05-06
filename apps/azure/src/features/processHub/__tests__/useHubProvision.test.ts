@@ -3,12 +3,19 @@ import { renderHook } from '@testing-library/react';
 import { useHubProvision } from '../useHubProvision';
 import type { ProcessHubRollup, ProcessHubInvestigation, ProcessHub } from '@variscout/core';
 
-const hub: ProcessHub = { id: 'h1', name: 'Line A', createdAt: '2026-04-28T00:00:00.000Z' };
+const hub: ProcessHub = {
+  id: 'h1',
+  name: 'Line A',
+  createdAt: 1745798400000,
+  deletedAt: null,
+};
 
 const m1: ProcessHubInvestigation = {
   id: 'i1',
   name: 'I1',
-  modified: '2026-04-28T00:00:00.000Z',
+  createdAt: 1745798400000,
+  updatedAt: 1745798400000,
+  deletedAt: null,
   metadata: { processHubId: 'h1', nodeMappings: [] },
   rows: [{ a: 1 }, { a: 2 }],
   reviewSignal: { ok: 0, review: 0, alarm: 0 },

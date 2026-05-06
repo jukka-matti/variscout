@@ -23,6 +23,8 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
     id: 'f1',
     text: 'Original finding',
     createdAt: 1000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
@@ -36,6 +38,9 @@ function makeComment(overrides: Partial<FindingComment> = {}): FindingComment {
     id: 'c1',
     text: 'A comment',
     createdAt: 2000,
+    parentId: 'f1',
+    parentKind: 'finding',
+    deletedAt: null,
     ...overrides,
   };
 }

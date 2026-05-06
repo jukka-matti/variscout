@@ -25,6 +25,8 @@ const makeFinding = (
   overrides: Partial<Finding> & { id: string; text: string; context: FindingContext }
 ): Finding => ({
   createdAt: 1000,
+  deletedAt: null,
+  investigationId: 'inv-test-001',
   status: 'observed',
   comments: [],
   statusChangedAt: 1000,
@@ -236,7 +238,16 @@ describe('useFindings', () => {
         id: 'f-1',
         text: 'Test',
         context: makeContext(),
-        comments: [{ id: 'c-1', text: 'Original', createdAt: 500 }],
+        comments: [
+          {
+            id: 'c-1',
+            text: 'Original',
+            createdAt: 500,
+            deletedAt: null,
+            parentId: 'f-1',
+            parentKind: 'finding' as const,
+          },
+        ],
       }),
     ];
     const { result } = renderHook(() => useFindings({ initialFindings: initial }));
@@ -256,8 +267,22 @@ describe('useFindings', () => {
         text: 'Test',
         context: makeContext(),
         comments: [
-          { id: 'c-1', text: 'Keep', createdAt: 500 },
-          { id: 'c-2', text: 'Remove', createdAt: 600 },
+          {
+            id: 'c-1',
+            text: 'Keep',
+            createdAt: 500,
+            deletedAt: null,
+            parentId: 'f-1',
+            parentKind: 'finding' as const,
+          },
+          {
+            id: 'c-2',
+            text: 'Remove',
+            createdAt: 600,
+            deletedAt: null,
+            parentId: 'f-1',
+            parentKind: 'finding' as const,
+          },
         ],
       }),
     ];
@@ -348,7 +373,16 @@ describe('useFindings', () => {
         id: 'f-1',
         text: 'Test',
         context: makeContext(),
-        comments: [{ id: 'c-1', text: 'Look at this', createdAt: 500 }],
+        comments: [
+          {
+            id: 'c-1',
+            text: 'Look at this',
+            createdAt: 500,
+            deletedAt: null,
+            parentId: 'f-1',
+            parentKind: 'finding' as const,
+          },
+        ],
       }),
     ];
     const onChange = vi.fn();
@@ -362,6 +396,8 @@ describe('useFindings', () => {
         filename: 'photo.jpg',
         uploadStatus: 'pending',
         capturedAt: 1000,
+        createdAt: 1000,
+        deletedAt: null,
       });
     });
 
@@ -378,7 +414,16 @@ describe('useFindings', () => {
         id: 'f-1',
         text: 'Test',
         context: makeContext(),
-        comments: [{ id: 'c-1', text: 'No photos yet', createdAt: 500 }],
+        comments: [
+          {
+            id: 'c-1',
+            text: 'No photos yet',
+            createdAt: 500,
+            deletedAt: null,
+            parentId: 'f-1',
+            parentKind: 'finding' as const,
+          },
+        ],
       }),
     ];
     const { result } = renderHook(() => useFindings({ initialFindings: initial }));
@@ -389,6 +434,8 @@ describe('useFindings', () => {
         filename: 'test.jpg',
         uploadStatus: 'pending',
         capturedAt: 1000,
+        createdAt: 1000,
+        deletedAt: null,
       });
     });
 
@@ -406,12 +453,17 @@ describe('useFindings', () => {
             id: 'c-1',
             text: 'Photo here',
             createdAt: 500,
+            deletedAt: null,
+            parentId: 'f-1',
+            parentKind: 'finding' as const,
             photos: [
               {
                 id: 'p-1',
                 filename: 'test.jpg',
                 uploadStatus: 'pending' as const,
                 capturedAt: 1000,
+                createdAt: 1000,
+                deletedAt: null,
               },
             ],
           },
@@ -444,12 +496,17 @@ describe('useFindings', () => {
             id: 'c-1',
             text: 'Photo here',
             createdAt: 500,
+            deletedAt: null,
+            parentId: 'f-1',
+            parentKind: 'finding' as const,
             photos: [
               {
                 id: 'p-1',
                 filename: 'test.jpg',
                 uploadStatus: 'pending' as const,
                 capturedAt: 1000,
+                createdAt: 1000,
+                deletedAt: null,
               },
             ],
           },
@@ -958,7 +1015,7 @@ describe('useFindings', () => {
           text: 'Test',
           status: 'analyzed',
           context: makeContext(),
-          actions: [{ id: 'a-1', text: 'Existing', createdAt: 1000 }],
+          actions: [{ id: 'a-1', text: 'Existing', createdAt: 1000, deletedAt: null }],
         }),
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
@@ -999,6 +1056,7 @@ describe('useFindings', () => {
               text: 'Old text',
               assignee: { upn: 'alice@co.com', displayName: 'Alice' },
               createdAt: 1000,
+              deletedAt: null,
             },
           ],
         }),
@@ -1025,7 +1083,7 @@ describe('useFindings', () => {
           id: 'f-1',
           text: 'Test',
           context: makeContext(),
-          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000 }],
+          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000, deletedAt: null }],
         }),
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
@@ -1045,7 +1103,7 @@ describe('useFindings', () => {
           id: 'f-1',
           text: 'Test',
           context: makeContext(),
-          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000 }],
+          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000, deletedAt: null }],
         }),
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
@@ -1063,7 +1121,9 @@ describe('useFindings', () => {
           id: 'f-1',
           text: 'Test',
           context: makeContext(),
-          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000, completedAt: 5000 }],
+          actions: [
+            { id: 'a-1', text: 'Do it', createdAt: 1000, completedAt: 5000, deletedAt: null },
+          ],
         }),
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
@@ -1082,7 +1142,7 @@ describe('useFindings', () => {
           id: 'f-1',
           text: 'Test',
           context: makeContext(),
-          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000 }],
+          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000, deletedAt: null }],
         }),
       ];
       const { result } = renderHook(() =>
@@ -1105,8 +1165,8 @@ describe('useFindings', () => {
           text: 'Test',
           context: makeContext(),
           actions: [
-            { id: 'a-1', text: 'Keep', createdAt: 1000 },
-            { id: 'a-2', text: 'Remove', createdAt: 2000 },
+            { id: 'a-1', text: 'Keep', createdAt: 1000, deletedAt: null },
+            { id: 'a-2', text: 'Remove', createdAt: 2000, deletedAt: null },
           ],
         }),
       ];
@@ -1159,7 +1219,9 @@ describe('useFindings', () => {
           text: 'Test',
           status: 'improving',
           context: makeContext(),
-          actions: [{ id: 'a-1', text: 'Done', createdAt: 1000, completedAt: 2000 }],
+          actions: [
+            { id: 'a-1', text: 'Done', createdAt: 1000, completedAt: 2000, deletedAt: null },
+          ],
         }),
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
@@ -1181,7 +1243,7 @@ describe('useFindings', () => {
           text: 'Test',
           status: 'improving',
           context: makeContext(),
-          actions: [{ id: 'a-1', text: 'Not done', createdAt: 1000 }],
+          actions: [{ id: 'a-1', text: 'Not done', createdAt: 1000, deletedAt: null }],
         }),
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
@@ -1203,7 +1265,9 @@ describe('useFindings', () => {
           text: 'Test',
           status: 'analyzed',
           context: makeContext(),
-          actions: [{ id: 'a-1', text: 'Done', createdAt: 1000, completedAt: 2000 }],
+          actions: [
+            { id: 'a-1', text: 'Done', createdAt: 1000, completedAt: 2000, deletedAt: null },
+          ],
         }),
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
@@ -1247,7 +1311,9 @@ describe('useFindings', () => {
           text: 'Test',
           status: 'improving',
           context: makeContext(),
-          actions: [{ id: 'a-1', text: 'Done', createdAt: 1000, completedAt: 2000 }],
+          actions: [
+            { id: 'a-1', text: 'Done', createdAt: 1000, completedAt: 2000, deletedAt: null },
+          ],
         }),
       ];
       const onStatusChange = vi.fn();
