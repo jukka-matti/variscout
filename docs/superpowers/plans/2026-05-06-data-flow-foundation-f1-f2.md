@@ -322,9 +322,91 @@ Per R10: same as PWA — Azure persistence calls are in UI/app code, not store f
 
 ---
 
-## Session 1 status (2026-05-06) — handoff to fresh session
+## Session 2 status (2026-05-06 afternoon) — handoff to Session 3
 
-**PR1 OPEN at #130** (`https://github.com/jukka-matti/variscout/pull/130`). 8 commits on branch `data-flow-foundation-f1-f2`, 174 files (+3334 / -1107), `pr-ready-check.sh` green. Awaiting CI + merge.
+**PR1 #130 + PR2 #131 BOTH MERGED.** PR2 squashed at `7fc1a360` 2026-05-06 13:50 UTC.
+
+### What Session 2 shipped (PR2)
+
+- ✅ **P3.1** `PwaHubRepository` skeleton at `apps/pwa/src/persistence/` + module-scoped singleton composition root (Vitest `vi.hoisted` + module-mock pattern documented in `apps/pwa/CLAUDE.md`)
+- ✅ **P3.2** `applyAction` per-action Immer recipes — HUB*\*/OUTCOME*\* with real mutations; all other action kinds documented as no-ops with "F3 normalizes" comments (per **D-P2** PWA blob constraint: PWA persists ONLY a single hub-of-one ProcessHub blob; investigations/findings/etc. are session-only Zustand state)
+- ✅ **P3.3** Cascade walkers in `applyAction.ts`
+- ✅ **P3.4** Tests for `PwaHubRepository.dispatch`
+- ✅ **P4.1–4.6** Composition migration — `SaveToBrowserButton.tsx`, `App.tsx`, `canvasStore.dispatch(CanvasAction)` transitional wrapper added (per-action methods stay until PR3 cleanup per R15)
+- ✅ **HUB_PERSIST_SNAPSHOT bootstrap path:** `PwaHubRepository.dispatch` short-circuits this kind to skip the no-active-hub guard — required for first-save when opt-in is initially false. All other actions still require existing hub.
+- ✅ **PR #131** opened, reviewed, merged at `7fc1a360`
+
+### Test counts at PR2 merge
+
+- pwa: 189 → **298** (+109 from new persistence + composition tests)
+- stores: 261 → **272** (+11 from `canvasStore.dispatch` wrapper coverage)
+- core / ui / azure-app / hooks / charts unchanged
+
+### R10 outcome confirmed
+
+PR2's diff was small because domain stores (`projectStore`, `investigationStore`, `improvementStore`) make ZERO Dexie calls today — migration target was UI/composition layer. Store files were untouched. The audit's R10 finding held.
+
+### Caveat: `--chrome` walk deferred to user pre-merge
+
+P4.7 manual `claude --chrome` walk (Save-to-browser round-trip, paste persist) was deferred — chrome\_\* tools were unavailable in the controller session. User performed the walk pre-merge. Worth noting for any future regression sleuthing.
+
+---
+
+## Session 3 resume — start PR3
+
+**Goal:** AzureHubRepository + Azure composition migration + ESLint guard + final Opus review (P8.1 final-branch review across all three PRs).
+
+### Setup
+
+```bash
+# Fresh worktree off current main (7fc1a360 + any newer)
+git fetch origin --prune
+git worktree add .worktrees/data-flow-foundation-pr3 -b data-flow-foundation-pr3
+cd .worktrees/data-flow-foundation-pr3
+pnpm install --frozen-lockfile
+pnpm --filter @variscout/azure-app test  # baseline 1042 ✓
+```
+
+### Phase sequence (per plan §"Phase P5–P8")
+
+1. **P5.1** `AzureHubRepository` skeleton at `apps/azure/src/persistence/` + composition root singleton (mirror PWA pattern from PR2)
+2. **P5.2** Cascade handler with Dexie transactions (Azure already normalized; cascade is meaningful — investigation→findings/questions/links/causes)
+3. **P5.3** Per-action handlers wrapping today's table writes (`saveProcessHubToIndexedDB`, `saveEvidenceSourceToIndexedDB`, `saveSustainmentRecord*`, etc.)
+4. **P6.1** `ProcessHubEvidencePanel.tsx` (lines 150, 194, 318, 331) → `azureHubRepository.dispatch({ kind: 'EVIDENCE_ADD_SNAPSHOT', ... })` etc.
+5. **P6.2** `SustainmentRecordEditor.tsx`, `SustainmentReviewLogger.tsx`, `ControlHandoffEditor.tsx` migrate to dispatch
+6. **P6.3** `useNewHubProvision.ts`, `Dashboard.tsx`, `Editor.tsx` hub writes → dispatch
+7. **P6.4** `useEvidenceSourceSync.ts` cursor read/write → dispatch (per R4 cursor lives on repository)
+8. **P6.5** `--chrome` walk in Azure (sign in, paste, evidence sources, sustainment, archive cascade)
+9. **P7.1** Update `packages/stores/CLAUDE.md`, `apps/pwa/CLAUDE.md`, `apps/azure/CLAUDE.md` with the dispatch-only rule
+10. **P7.2** ESLint `no-restricted-imports` rule for `dexie` with explicit allow-list per audit R12+R13: `apps/pwa/src/db/**`, `apps/pwa/src/persistence/**`, `apps/azure/src/db/**`, `apps/azure/src/persistence/**`, `apps/azure/src/services/storage.ts`, `apps/azure/src/services/localDb.ts`, `apps/azure/src/services/cloudSync.ts`, `apps/azure/src/lib/persistence.ts`, `packages/stores/src/wallLayoutStore.ts`. Test files exempt.
+11. **P7.3** Verify `pnpm lint` runs the rule via `scripts/pr-ready-check.sh`
+12. **P8.1** [OPUS] Final-branch code review across PR1 + PR2 + PR3 — verify every entity has EntityBase, every store write goes through `repo.dispatch`, cascade rules applied consistently, ESLint blocks regressions, no `Math.random` introductions, tests deterministic, all builds green
+13. **P8.2** Open PR3 → CI green → squash-merge
+
+### Sizing
+
+PR3 is materially larger than PR2 — Azure has 12+ Dexie tables across 8 schema versions vs PWA's 2-table blob. Budget for **≥1 fresh session**, possibly more depending on Azure consumer sweep depth.
+
+### Dispatch model
+
+- Sonnet workhorse for P5+P6+P7 implementers + per-task spec/quality reviewers
+- **Opus reserved for P8.1** final-branch review across all three PRs
+- Fresh subagent per task per `superpowers:subagent-driven-development`
+
+### Open watchlist (still pending after PR2)
+
+- **`generateDeterministicId` → `generateEntityId` rename** — flagged Important by P1 reviewers; not surfaced during PR2 review. Carry into PR3 / F3.
+- **`'general-unassigned'` placeholder** leaking through `Finding.investigationId` / `Question.investigationId` — runtime guard target at repository layer in F2 PR3 or F3.
+- **`RowProvenanceTag.snapshotId = ''`** placeholder at paste-flow call sites — F3.5 wiring gap.
+- **~33 pre-existing tsc errors** in core/stores/hooks/charts (vitest globals + `import.meta.env`) — out of F-series scope.
+- **`useEvidenceSourceSync.markSeen`** overwrites `createdAt` on every `put` — F3 normalization concern.
+- **`id: \`snapshot-${Date.now()}\``in`ProcessHubEvidencePanel.tsx:333`** — should reuse captured timestamp. F3 will replace surface entirely.
+
+---
+
+## Session 1 status (2026-05-06 morning) — PR1 history
+
+**PR1 #130 squashed at `d2822eab`.** 8 commits on branch `data-flow-foundation-f1-f2`, 174 files (+3334 / -1107), `pr-ready-check.sh` green.
 
 ### What's done
 
