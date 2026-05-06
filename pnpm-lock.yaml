@@ -268,6 +268,9 @@ importers:
       html-to-image:
         specifier: ^1.11.13
         version: 1.11.13
+      immer:
+        specifier: ^11.1.4
+        version: 11.1.4
       lucide-react:
         specifier: ^1.14.0
         version: 1.14.0(react@19.2.5)

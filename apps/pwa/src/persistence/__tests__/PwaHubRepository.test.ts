@@ -106,11 +106,20 @@ describe('PwaHubRepository', () => {
       );
     });
 
-    it('propagates the applyAction "not yet implemented" error when hub IS loaded', async () => {
-      mocks.loadHub.mockResolvedValue(makeHub());
-      await expect(repo.dispatch(STUB_ACTION)).rejects.toThrow(
-        'applyAction not yet implemented (P3.2)'
-      );
+    it('calls saveHub with the next hub snapshot when dispatch succeeds', async () => {
+      const hub = makeHub();
+      mocks.loadHub.mockResolvedValue(hub);
+      mocks.saveHub.mockResolvedValue(undefined);
+      // OUTCOME_UPDATE on a hub with no outcomes is a no-op that still saves
+      const action: HubAction = {
+        kind: 'OUTCOME_UPDATE',
+        outcomeId: 'nonexistent',
+        patch: { target: 5 },
+      };
+      await repo.dispatch(action);
+      expect(mocks.saveHub).toHaveBeenCalledOnce();
+      // The saved hub should equal the input hub (OUTCOME_UPDATE on nonexistent id is a no-op)
+      expect(mocks.saveHub).toHaveBeenCalledWith(expect.objectContaining({ id: 'hub-of-one' }));
     });
 
     it('does not call saveHub when loadHub returns null', async () => {
