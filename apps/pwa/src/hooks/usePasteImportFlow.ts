@@ -146,6 +146,9 @@ export interface MatchSummaryPending {
   newRows: DataRow[];
   newColumns: string[];
   newTimeColumn?: string;
+  /** Id of the most-recent live snapshot at classification time — threads into
+   *  replacedSnapshotId on overlap-replace dispatch to activate the P1 cascade (D2). */
+  priorSnapshotId?: EvidenceSnapshot['id'];
 }
 
 export interface UsePasteImportFlowReturn {
@@ -367,9 +370,10 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           // repository for the most-recent live snapshot's rowTimestampRange, which
           // seeds the classifier's overlap-detection branch.
           const liveSnapshots = await pwaHubRepository.evidenceSnapshots.listByHub(activeHub.id);
-          const existingRange = liveSnapshots
+          const mostRecentSnapshot = liveSnapshots
             .slice()
-            .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))[0]?.rowTimestampRange;
+            .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))[0];
+          const existingRange = mostRecentSnapshot?.rowTimestampRange;
 
           const classification = classifyPaste(
             {
@@ -389,6 +393,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
             newRows: data,
             newColumns,
             newTimeColumn: detected.timeColumn ?? undefined,
+            priorSnapshotId: mostRecentSnapshot?.id,
           });
           // Transition out of paste mode — match-summary card takes over.
           dispatch({ type: 'CANCEL_PASTE' });
@@ -487,7 +492,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           // non-overlap existing rows ∪ archived overlap rows ∪ new rows.
           // archiveReplacedRows annotates in-memory rows with __replacedBy sentinel;
           // the persistence-side replacement cascade goes through the handler via
-          // replacedSnapshotId (when available from future snapshot-id tracking).
+          // replacedSnapshotId (threaded from priorSnapshotId captured at classification time).
           const importId = generateDeterministicId();
           const overlapRange = ms.classification.overlapRange;
           const timeCol = ms.newTimeColumn;
@@ -534,16 +539,16 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
               ...(overlapRange ? { rowTimestampRange: overlapRange } : {}),
             };
 
-            // replacedSnapshotId is undefined here — we do not yet track the prior
-            // snapshot id at the hook layer (that linkage lands when the snapshot
-            // is persisted on first paste and its id is threaded back). The handler
-            // will insert the new snapshot without cascading deletion; the in-memory
-            // archiveReplacedRows call handles the UI-level marker.
+            // replacedSnapshotId is threaded from the most-recent live snapshot read
+            // at classification time (priorSnapshotId on the matchSummary state).
+            // This activates the P1 handler's atomic-cascade path (D2): the handler
+            // will soft-delete the prior snapshot in the same Dexie transaction.
             void pwaHubRepository.dispatch({
               kind: 'EVIDENCE_ADD_SNAPSHOT',
               hubId: activeHub.id,
               snapshot,
               provenance: [],
+              replacedSnapshotId: ms.priorSnapshotId,
             });
 
             dispatch({ type: 'START_PASTE' });
@@ -572,6 +577,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
               hubId: activeHub.id,
               snapshot,
               provenance: [],
+              replacedSnapshotId: ms.priorSnapshotId,
             });
 
             dispatch({ type: 'START_PASTE' });

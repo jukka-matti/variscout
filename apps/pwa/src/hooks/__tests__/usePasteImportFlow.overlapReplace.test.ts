@@ -218,6 +218,73 @@ describe('usePasteImportFlow — overlap-replace provenance (Issue 1)', () => {
     expect(dispatchArg.kind).toBe('EVIDENCE_ADD_SNAPSHOT');
   });
 
+  it('threads replacedSnapshotId from the most-recent live snapshot when overlap-replacing', async () => {
+    // Pre-seed: mock listByHub to return one prior snapshot, activating D2 cascade.
+    const priorSnapshot: EvidenceSnapshot = {
+      id: 'snap-prior',
+      hubId: 'hub-1',
+      sourceId: 'weight_g',
+      capturedAt: '2026-04-30T12:00:00Z',
+      importedAt: 1746014400000,
+      createdAt: 1746014400000,
+      deletedAt: null,
+      origin: 'paste:overlap-replace',
+      rowCount: 4,
+      rowTimestampRange: {
+        startISO: '2026-05-01T00:00:00.000Z',
+        endISO: '2026-05-04T23:59:59.999Z',
+      },
+    };
+    vi.mocked(pwaHubRepository.evidenceSnapshots.listByHub).mockResolvedValue([priorSnapshot]);
+
+    const { result } = renderHook(() =>
+      usePasteImportFlow(makeOptions({ activeHub: COMPLETE_HUB }))
+    );
+
+    // Trigger paste → overlap classification
+    await act(async () => {
+      await result.current.handlePasteAnalyze(CSV_TEXT);
+    });
+
+    // Accept overlap-replace
+    await act(async () => {
+      result.current.acceptMatchSummary({ kind: 'overlap-replace' });
+    });
+
+    // The dispatch must include replacedSnapshotId matching the prior snapshot id.
+    expect(pwaHubRepository.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'EVIDENCE_ADD_SNAPSHOT',
+        replacedSnapshotId: 'snap-prior',
+      })
+    );
+  });
+
+  it('sets replacedSnapshotId to undefined when no prior snapshots exist (first paste)', async () => {
+    // listByHub returns empty array — no prior snapshot → priorSnapshotId is undefined.
+    vi.mocked(pwaHubRepository.evidenceSnapshots.listByHub).mockResolvedValue([]);
+
+    const { result } = renderHook(() =>
+      usePasteImportFlow(makeOptions({ activeHub: COMPLETE_HUB }))
+    );
+
+    await act(async () => {
+      await result.current.handlePasteAnalyze(CSV_TEXT);
+    });
+
+    await act(async () => {
+      result.current.acceptMatchSummary({ kind: 'overlap-replace' });
+    });
+
+    // dispatch is still called but without a replacedSnapshotId value.
+    expect(pwaHubRepository.dispatch).toHaveBeenCalledTimes(1);
+    const rawArg = vi.mocked(pwaHubRepository.dispatch).mock.calls[0][0];
+    expect(rawArg.kind).toBe('EVIDENCE_ADD_SNAPSHOT');
+    // Cast to extract the EVIDENCE_ADD_SNAPSHOT variant for the optional field check.
+    const dispatchArg = rawArg as Extract<typeof rawArg, { kind: 'EVIDENCE_ADD_SNAPSHOT' }>;
+    expect(dispatchArg.replacedSnapshotId).toBeUndefined();
+  });
+
   it('falls back to new-rows-only when overlapRange is absent', async () => {
     const setRawData = vi.fn();
     // Classification with no overlapRange (e.g. existingRange not yet wired)
