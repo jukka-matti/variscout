@@ -29,6 +29,9 @@
 //   db.transaction('rw', [...]) so both succeed or neither does.
 //   Hub-blob read-modify-write (OUTCOME_*, HUB_UPDATE_*) is atomic per Dexie
 //   put — each dispatch call is one atomic unit.
+//   EVIDENCE_ADD_SNAPSHOT is non-atomic (update + put on evidenceSnapshots
+//   only when replacedSnapshotId is set; see case comment for accepted
+//   failure mode pre-F3.6).
 //
 // NOTE: HUB_PERSIST_SNAPSHOT is handled by AzureHubRepository.dispatch before
 //   reaching this function — do not handle it here.
