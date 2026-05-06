@@ -24,7 +24,9 @@ import {
 } from '@variscout/core/matchSummary';
 import { isProcessHubComplete } from '@variscout/core/processHub';
 import type { EvidenceSnapshot, RowProvenanceTag } from '@variscout/core/evidenceSources';
+import { generateDeterministicId } from '@variscout/core/identity';
 import type { MatchSummaryActionChoice } from '@variscout/ui';
+import { pwaHubRepository } from '../persistence';
 
 // ── Reducer types ──────────────────────────────────────────────────────────
 
@@ -127,16 +129,6 @@ export interface UsePasteImportFlowOptions {
   dataQualityReport: DataQualityReport | null;
   /** Active session Hub — when set and complete, paste triggers the Mode A.2 match-summary path. */
   activeHub?: ProcessHub;
-  /**
-   * Evidence snapshots for the active hub, sorted ascending by `capturedAt`.
-   * The most-recent snapshot (`at(-1)`) supplies `rowTimestampRange` to
-   * `classifyPaste` for temporal-axis classification (overlap / append / backfill).
-   *
-   * PWA has no snapshot persistence (Spec 5 / Q8). Pass `undefined` — the
-   * overlap-replace UI is currently unreachable in PWA; wiring is in place for
-   * when snapshot persistence lands.
-   */
-  evidenceSnapshots?: EvidenceSnapshot[];
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
@@ -147,8 +139,6 @@ export interface UsePasteImportFlowOptions {
   clearData: () => void;
   clearSelection: () => void;
   applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
-  /** Optional — populated only on multi-source join confirmation (P3.4). */
-  setRowProvenance?: (startIndex: number, tags: RowProvenanceTag[]) => void;
 }
 
 export interface MatchSummaryPending {
@@ -223,13 +213,18 @@ function deriveSourceId(hubColumns: readonly string[], newColumns: readonly stri
  *
  * Accepts data context setters via dependency injection so it never
  * imports from Zustand stores directly.
+ *
+ * F3.5 D4: `evidenceSnapshots?` and `setRowProvenance?` props dropped.
+ * - existingRange is now read from pwaHubRepository.evidenceSnapshots.listByHub()
+ *   inside handlePasteAnalyze (Option A from audit S4).
+ * - Snapshot + provenance persistence is routed through
+ *   pwaHubRepository.dispatch({ kind: 'EVIDENCE_ADD_SNAPSHOT', ... }).
  */
 export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePasteImportFlowReturn {
   const {
     rawData,
     columnAliases,
     activeHub,
-    evidenceSnapshots,
     setRawData,
     setOutcome,
     setFactors,
@@ -240,7 +235,6 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     clearData,
     clearSelection,
     applyTimeExtraction,
-    setRowProvenance,
   } = options;
 
   // Flow state machine
@@ -367,12 +361,22 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           const hubColumns = activeHub.outcomes?.map(o => o.columnName) ?? [];
           const newColumns = data.length > 0 ? Object.keys(data[0]) : [];
           const detected = detectColumns(data);
+
+          // F3.5 D4 + audit S4 Option A: read existingRange from the repo directly.
+          // The evidenceSnapshots prop has been dropped; the hook queries the
+          // repository for the most-recent live snapshot's rowTimestampRange, which
+          // seeds the classifier's overlap-detection branch.
+          const liveSnapshots = await pwaHubRepository.evidenceSnapshots.listByHub(activeHub.id);
+          const existingRange = liveSnapshots
+            .slice()
+            .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))[0]?.rowTimestampRange;
+
           const classification = classifyPaste(
             {
               hubColumns,
               existingRows: rawData.slice(0, 1000),
               existingTimeColumn: undefined,
-              existingRange: evidenceSnapshots?.at(-1)?.rowTimestampRange,
+              existingRange,
             },
             {
               newColumns,
@@ -399,7 +403,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         });
       }
     },
-    [activeHub, evidenceSnapshots, rawData, _proceedWithParsedData]
+    [activeHub, rawData, _proceedWithParsedData]
   );
 
   /**
@@ -407,6 +411,11 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
    * Proceed-cases (append/backfill/replace/no-timestamp/overlap-replace/overlap-keep-both)
    * re-dispatch the pending rows through the existing column-mapping pipeline.
    * Cancel/separate-hub cases dismiss the card without committing data.
+   *
+   * F3.5 D4: persistence routes through pwaHubRepository.dispatch(EVIDENCE_ADD_SNAPSHOT).
+   * archiveReplacedRows is kept for in-memory sentinel-column mutation only
+   * (the overlap-replace branch still annotates the in-memory row array with __replacedBy).
+   * The persistence-side replacement cascade is handled by the action handler (P1).
    */
   const acceptMatchSummary = useCallback(
     (choice: MatchSummaryActionChoice) => {
@@ -425,22 +434,49 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           return;
 
         case 'multi-source-join': {
-          // P3.4: populate the sidecar provenance Map before appending rows.
-          const hubCols = activeHub?.outcomes?.map(o => o.columnName) ?? [];
+          // P3.4 / F3.5: dispatch snapshot + provenance through the repository.
+          // The handler writes snapshot + provenance atomically (D2) and populates
+          // snapshotId on each provenance tag — closes the snapshotId = '' placeholder
+          // gap from F1+F2 P1.3 (ADR-077 amendment).
+          if (!activeHub) return;
+          const hubCols = activeHub.outcomes?.map(o => o.columnName) ?? [];
           const sourceId = deriveSourceId(hubCols, ms.newColumns);
           const startIndex = rawData.length;
           const now = Date.now();
-          const tags: RowProvenanceTag[] = ms.newRows.map((_, i) => ({
-            id: crypto.randomUUID(),
+          const snapshotId = generateDeterministicId();
+
+          const snapshot: EvidenceSnapshot = {
+            id: snapshotId,
+            hubId: activeHub.id,
+            sourceId,
+            capturedAt: new Date(now).toISOString(),
+            rowCount: ms.newRows.length,
+            origin: `paste:${sourceId}`,
+            importedAt: now,
             createdAt: now,
             deletedAt: null,
-            // snapshotId is '' until the snapshot is persisted (F3 wiring).
+          };
+
+          const tags: RowProvenanceTag[] = ms.newRows.map((_, i) => ({
+            id: generateDeterministicId(),
+            createdAt: now,
+            deletedAt: null,
+            // snapshotId is populated by the handler at write time (closes F3.5 gap).
+            // Passed here as empty string per the existing contract; the handler
+            // overwrites it with action.snapshot.id inside the transaction.
             snapshotId: '',
             rowKey: String(startIndex + i),
             source: sourceId,
             joinKey: choice.candidate.hubColumn,
           }));
-          setRowProvenance?.(startIndex, tags);
+
+          void pwaHubRepository.dispatch({
+            kind: 'EVIDENCE_ADD_SNAPSHOT',
+            hubId: activeHub.id,
+            snapshot,
+            provenance: tags,
+          });
+
           dispatch({ type: 'START_PASTE' });
           _proceedWithParsedData(ms.newRows);
           return;
@@ -449,9 +485,18 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         case 'overlap-replace': {
           // Archive existing rows that fall within the overlap range, then merge:
           // non-overlap existing rows ∪ archived overlap rows ∪ new rows.
-          const importId = crypto.randomUUID();
+          // archiveReplacedRows annotates in-memory rows with __replacedBy sentinel;
+          // the persistence-side replacement cascade goes through the handler via
+          // replacedSnapshotId (when available from future snapshot-id tracking).
+          const importId = generateDeterministicId();
           const overlapRange = ms.classification.overlapRange;
           const timeCol = ms.newTimeColumn;
+
+          if (!activeHub) {
+            dispatch({ type: 'START_PASTE' });
+            _proceedWithParsedData(ms.newRows);
+            return;
+          }
 
           if (overlapRange && timeCol) {
             const overlapStart = new Date(overlapRange.startISO).getTime();
@@ -472,12 +517,63 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
 
             const archived = archiveReplacedRows(overlapRows, importId);
             const merged = [...nonOverlapRows, ...archived, ...ms.newRows];
+
+            const now = Date.now();
+            const snapshotId = generateDeterministicId();
+            const sourceId = activeHub.outcomes?.[0]?.columnName ?? 'paste';
+            const snapshot: EvidenceSnapshot = {
+              id: snapshotId,
+              hubId: activeHub.id,
+              sourceId,
+              capturedAt: new Date(now).toISOString(),
+              rowCount: ms.newRows.length,
+              origin: `paste:overlap-replace`,
+              importedAt: now,
+              createdAt: now,
+              deletedAt: null,
+              ...(overlapRange ? { rowTimestampRange: overlapRange } : {}),
+            };
+
+            // replacedSnapshotId is undefined here — we do not yet track the prior
+            // snapshot id at the hook layer (that linkage lands when the snapshot
+            // is persisted on first paste and its id is threaded back). The handler
+            // will insert the new snapshot without cascading deletion; the in-memory
+            // archiveReplacedRows call handles the UI-level marker.
+            void pwaHubRepository.dispatch({
+              kind: 'EVIDENCE_ADD_SNAPSHOT',
+              hubId: activeHub.id,
+              snapshot,
+              provenance: [],
+            });
+
             dispatch({ type: 'START_PASTE' });
             _proceedWithParsedData(merged);
           } else {
             // overlapRange absent when classifyPaste could not determine the overlap window
             // (no time column, or no prior snapshots) — fall back to replacing the full
             // dataset with the new rows.
+            const now = Date.now();
+            const snapshotId = generateDeterministicId();
+            const sourceId = activeHub.outcomes?.[0]?.columnName ?? 'paste';
+            const snapshot: EvidenceSnapshot = {
+              id: snapshotId,
+              hubId: activeHub.id,
+              sourceId,
+              capturedAt: new Date(now).toISOString(),
+              rowCount: ms.newRows.length,
+              origin: `paste:overlap-replace-fallback`,
+              importedAt: now,
+              createdAt: now,
+              deletedAt: null,
+            };
+
+            void pwaHubRepository.dispatch({
+              kind: 'EVIDENCE_ADD_SNAPSHOT',
+              hubId: activeHub.id,
+              snapshot,
+              provenance: [],
+            });
+
             dispatch({ type: 'START_PASTE' });
             _proceedWithParsedData(ms.newRows);
           }
@@ -496,7 +592,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           return;
       }
     },
-    [matchSummary, activeHub, rawData, setRowProvenance, _proceedWithParsedData]
+    [matchSummary, activeHub, rawData, _proceedWithParsedData]
   );
 
   const cancelMatchSummary = useCallback(() => setMatchSummary(undefined), []);
