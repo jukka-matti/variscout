@@ -29,7 +29,7 @@ export function ChipRailItem({ chipId, label, role, onKeyboardPickUp }: ChipRail
       data-testid={`chip-rail-item-${chipId}`}
       data-dragging={isDragging ? 'true' : 'false'}
       aria-label={`${label} ${role} column`}
-      className="flex w-full items-center justify-between gap-3 rounded-md border border-edge bg-surface-primary px-3 py-2 text-left text-sm text-content shadow-sm transition-colors hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500/50 data-[dragging=true]:opacity-60"
+      className="flex w-full items-center justify-between gap-3 rounded-md border border-edge bg-surface-primary px-3 py-2 text-left text-sm text-content shadow-sm transition-colors hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-status-info/50 data-[dragging=true]:opacity-60"
       style={style}
       {...attributes}
       {...listeners}

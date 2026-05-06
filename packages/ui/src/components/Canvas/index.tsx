@@ -4,6 +4,7 @@
  */
 import React from 'react';
 import { DndContext } from '@dnd-kit/core';
+import { chartColors } from '@variscout/charts';
 import {
   coerceCanvasLens,
   coerceCanvasOverlays,
@@ -157,6 +158,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onConnectSteps,
   onDisconnectSteps,
   onGroupIntoSubStep,
+  onUngroupSubStep,
   chips = [],
   onPlaceChip,
   onCreateStepFromChip,
@@ -372,7 +374,8 @@ export const Canvas: React.FC<CanvasProps> = ({
                 stroke="currentColor"
                 strokeDasharray="5 5"
                 strokeWidth="2"
-                className="text-amber-500/60"
+                opacity={0.6}
+                style={{ color: chartColors.warning }}
               />
             ))}
           </svg>
@@ -427,6 +430,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             onRemoveStep={onRemoveStep}
             onConnectSteps={onConnectSteps}
             onDisconnectSteps={onDisconnectSteps}
+            onUngroupSubStep={onUngroupSubStep}
             onKeyboardChipDrop={handleKeyboardChipDrop}
             keyboardChipLabel={keyboardChip?.label ?? null}
           />

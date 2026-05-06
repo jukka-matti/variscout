@@ -3,6 +3,10 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 vi.mock('@variscout/charts', async () => {
   const React = await import('react');
   return {
+    chartColors: {
+      mean: '#3b82f6',
+      warning: '#f59e0b',
+    },
     IChart: () => React.createElement('div', { 'data-testid': 'mock-cpk-trend' }),
     CapabilityGapTrendChart: () => React.createElement('div', { 'data-testid': 'mock-gap-trend' }),
     CapabilityBoxplot: () =>
@@ -29,6 +33,17 @@ const mapWithSteps: ProcessMap = {
   nodes: [
     { id: 'step-1', name: 'Mix', order: 0 },
     { id: 'step-2', name: 'Fill', order: 1 },
+  ],
+  tributaries: [],
+  createdAt: '2026-05-04T00:00:00.000Z',
+  updatedAt: '2026-05-04T00:00:00.000Z',
+};
+
+const mapWithGroupedChildStep: ProcessMap = {
+  version: 1,
+  nodes: [
+    { id: 'step-1', name: 'Mix', order: 0 },
+    { id: 'step-2', name: 'Fill', order: 1, parentStepId: 'step-1' },
   ],
   tributaries: [],
   createdAt: '2026-05-04T00:00:00.000Z',
@@ -328,6 +343,30 @@ describe('Canvas', () => {
     expect(onPlaceChip).toHaveBeenCalledWith('Bake_Time', 'step-1');
   });
 
+  it('exposes ungroup controls for grouped child steps and forwards the child step id', () => {
+    const onUngroupSubStep = vi.fn();
+
+    render(
+      <Canvas
+        map={mapWithGroupedChildStep}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        onUngroupSubStep={onUngroupSubStep}
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: /ungroup step mix/i })).not.toBeInTheDocument();
+
+    const ungroupButton = screen.getByRole('button', { name: /ungroup step fill/i });
+    expect(screen.getByTestId('process-map-step-step-2')).not.toContainElement(ungroupButton);
+
+    fireEvent.click(ungroupButton);
+
+    expect(onUngroupSubStep).toHaveBeenCalledWith('step-2');
+  });
+
   it('renders a lens picker and forwards enabled lens changes', () => {
     const onLensChange = vi.fn();
 
@@ -618,10 +657,32 @@ describe('Canvas', () => {
       />
     );
 
+    const mixCard = screen.getByTestId('canvas-step-card-step-1');
+    expect(mixCard.tagName).toBe('DIV');
+
+    fireEvent.click(mixCard);
+
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent('Mix');
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
+
     fireEvent.click(screen.getByRole('button', { name: /add specs for mix/i }));
 
     expect(onStepSpecsRequest).toHaveBeenCalledWith('Pressure', 'step-1');
     expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
+
+    fireEvent.keyDown(screen.getByRole('button', { name: /add specs for mix/i }), {
+      key: 'Enter',
+    });
+
+    expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
+
+    mixCard.focus();
+    fireEvent.keyDown(mixCard, { key: 'Enter' });
+
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent('Mix');
   });
 
   it('wires the two PR5 response paths from the overlay', () => {

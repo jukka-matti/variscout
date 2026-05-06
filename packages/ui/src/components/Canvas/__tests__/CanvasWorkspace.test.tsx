@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import type { ScopeFilter, SpecLimits, TimelineWindow } from '@variscout/core';
@@ -362,6 +362,15 @@ const mapWithStep = (): ProcessMap => ({
   updatedAt: '2026-05-04T00:00:00.000Z',
 });
 
+const mapWithSecondStep = (): ProcessMap => ({
+  ...mapWithStep(),
+  nodes: [
+    { id: 'step-1', name: 'Bake', order: 0, ctqColumn: 'Bake_Time' },
+    { id: 'step-2', name: 'Pack', order: 1 },
+  ],
+  updatedAt: '2026-05-04T00:01:00.000Z',
+});
+
 function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWorkspace>> = {}) {
   const props: React.ComponentProps<typeof CanvasWorkspace> = {
     rawData,
@@ -618,8 +627,140 @@ describe('CanvasWorkspace', () => {
     expect(useCanvasStore.getState().historyDepth()).toBe(1);
   });
 
+  it('does not rehydrate or clear history when an equal-signature parent map rerenders', () => {
+    const originalHydrate = useCanvasStore.getState().hydrateCanvasDocument;
+    const hydrateCanvasDocument = vi.fn(originalHydrate);
+    useCanvasStore.setState({ hydrateCanvasDocument });
+
+    const cloneMap = (map: ProcessMap): ProcessMap => JSON.parse(JSON.stringify(map));
+
+    const readActualCanvasState = useCanvasStore.getState;
+
+    const Harness = () => {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: mapWithStep() });
+
+      return (
+        <>
+          <button
+            type="button"
+            data-testid="sync-parent-to-store-map"
+            onClick={() => {
+              setProcessContext({ processMap: cloneMap(readActualCanvasState().canonicalMap) });
+            }}
+          >
+            sync parent to store map
+          </button>
+          <CanvasWorkspace
+            rawData={rawData}
+            outcome="Fill_Weight"
+            factors={[]}
+            measureSpecs={{}}
+            processContext={processContext}
+            setOutcome={vi.fn()}
+            setFactors={vi.fn()}
+            setMeasureSpec={vi.fn()}
+            setProcessContext={next => setProcessContext(next ?? { processMap: mapWithStep() })}
+            onSeeData={vi.fn()}
+          />
+        </>
+      );
+    };
+
+    render(<Harness />);
+
+    act(() => {
+      useCanvasStore.getState().placeChipOnStep('Bake_Time', 'step-1');
+    });
+
+    expect(useCanvasStore.getState().historyDepth()).toBe(1);
+
+    const getState = vi.spyOn(useCanvasStore, 'getState').mockImplementation(() => ({
+      ...readActualCanvasState(),
+      canonicalMap: mapWithStep(),
+    }));
+
+    try {
+      fireEvent.click(screen.getByTestId('sync-parent-to-store-map'));
+
+      expect(hydrateCanvasDocument).toHaveBeenCalledTimes(1);
+      expect(readActualCanvasState().historyDepth()).toBe(1);
+    } finally {
+      getState.mockRestore();
+    }
+  });
+
+  it('hydrates an unequal-signature parent map after initial hydration', () => {
+    useCanvasStore.getState().hydrateCanvasDocument({ canonicalMap: mapWithStep() });
+    const initialParentMap = useCanvasStore.getState().canonicalMap;
+    const originalHydrate = useCanvasStore.getState().hydrateCanvasDocument;
+    const hydrateCanvasDocument = vi.fn(originalHydrate);
+    useCanvasStore.setState({ hydrateCanvasDocument });
+
+    const Harness = () => {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: initialParentMap });
+
+      return (
+        <>
+          <button
+            type="button"
+            data-testid="replace-parent-map"
+            onClick={() => setProcessContext({ processMap: mapWithSecondStep() })}
+          >
+            replace parent map
+          </button>
+          <CanvasWorkspace
+            rawData={rawData}
+            outcome="Fill_Weight"
+            factors={[]}
+            measureSpecs={{}}
+            processContext={processContext}
+            setOutcome={vi.fn()}
+            setFactors={vi.fn()}
+            setMeasureSpec={vi.fn()}
+            setProcessContext={next => setProcessContext(next ?? { processMap: initialParentMap })}
+            onSeeData={vi.fn()}
+          />
+        </>
+      );
+    };
+
+    render(<Harness />);
+
+    const callsAfterInitialHydration = hydrateCanvasDocument.mock.calls.length;
+
+    fireEvent.click(screen.getByTestId('replace-parent-map'));
+
+    expect(hydrateCanvasDocument).toHaveBeenCalledTimes(callsAfterInitialHydration + 1);
+    expect(useCanvasStore.getState().canonicalMap.nodes).toEqual(mapWithSecondStep().nodes);
+  });
+
   it('wires authoring mode keyboard toggle and undo through canvasStore', () => {
-    renderWorkspace({ processContext: { processMap: mapWithStep() } });
+    const Harness = () => {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: mapWithStep() });
+
+      return (
+        <CanvasWorkspace
+          rawData={rawData}
+          outcome="Fill_Weight"
+          factors={[]}
+          measureSpecs={{}}
+          processContext={processContext}
+          setOutcome={vi.fn()}
+          setFactors={vi.fn()}
+          setMeasureSpec={vi.fn()}
+          setProcessContext={next => setProcessContext(next ?? { processMap: mapWithStep() })}
+          onSeeData={vi.fn()}
+        />
+      );
+    };
+
+    render(<Harness />);
 
     fireEvent.click(screen.getByTestId('test-drop-bake-time-on-step-1'));
     expect(useCanvasStore.getState().historyDepth()).toBe(1);

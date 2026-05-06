@@ -3,6 +3,10 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@variscout/charts', async () => {
   const React = await import('react');
   return {
+    chartColors: {
+      mean: '#3b82f6',
+      warning: '#f59e0b',
+    },
     IChart: () => React.createElement('div', { 'data-testid': 'mock-cpk-trend' }),
     CapabilityGapTrendChart: () => React.createElement('div', { 'data-testid': 'mock-gap-trend' }),
     CapabilityBoxplot: () =>
