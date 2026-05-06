@@ -19,6 +19,12 @@ const {
   mockUpdateBlobIndex,
   mockListBlobProcessHubs,
   mockUpdateBlobProcessHubs,
+  mockListBlobEvidenceSnapshots,
+  mockSaveBlobEvidenceSnapshot,
+  mockUpdateBlobEvidenceSnapshots,
+  mockListBlobEvidenceSources,
+  mockSaveBlobEvidenceSource,
+  mockUpdateBlobEvidenceSources,
   mockDispatch,
 } = vi.hoisted(() => ({
   mockProjects: {
@@ -43,6 +49,12 @@ const {
   mockUpdateBlobIndex: vi.fn().mockResolvedValue(undefined),
   mockListBlobProcessHubs: vi.fn().mockResolvedValue([]),
   mockUpdateBlobProcessHubs: vi.fn().mockResolvedValue(undefined),
+  mockListBlobEvidenceSnapshots: vi.fn().mockResolvedValue([]),
+  mockSaveBlobEvidenceSnapshot: vi.fn().mockResolvedValue(undefined),
+  mockUpdateBlobEvidenceSnapshots: vi.fn().mockResolvedValue(undefined),
+  mockListBlobEvidenceSources: vi.fn().mockResolvedValue([]),
+  mockSaveBlobEvidenceSource: vi.fn().mockResolvedValue(undefined),
+  mockUpdateBlobEvidenceSources: vi.fn().mockResolvedValue(undefined),
   mockDispatch: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -114,6 +126,12 @@ vi.mock('../blobClient', () => ({
   updateBlobIndex: mockUpdateBlobIndex,
   listBlobProcessHubs: mockListBlobProcessHubs,
   updateBlobProcessHubs: mockUpdateBlobProcessHubs,
+  listBlobEvidenceSnapshots: mockListBlobEvidenceSnapshots,
+  saveBlobEvidenceSnapshot: mockSaveBlobEvidenceSnapshot,
+  updateBlobEvidenceSnapshots: mockUpdateBlobEvidenceSnapshots,
+  listBlobEvidenceSources: mockListBlobEvidenceSources,
+  saveBlobEvidenceSource: mockSaveBlobEvidenceSource,
+  updateBlobEvidenceSources: mockUpdateBlobEvidenceSources,
 }));
 
 // ---------------------------------------------------------------------------
@@ -594,6 +612,21 @@ describe('storage service', () => {
         source: sampleSource,
       });
     });
+
+    it('also syncs to cloud when online with team features', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveEvidenceSource(sampleSource);
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        kind: 'EVIDENCE_SOURCE_ADD',
+        hubId: sampleSource.hubId,
+        source: sampleSource,
+      });
+      expect(mockSaveBlobEvidenceSource).toHaveBeenCalled();
+      expect(mockUpdateBlobEvidenceSources).toHaveBeenCalled();
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -632,9 +665,14 @@ describe('storage service', () => {
       await act(async () => {
         await result.current.saveEvidenceSnapshot(sampleSnapshot, 'csv-data');
       });
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ kind: 'EVIDENCE_ADD_SNAPSHOT' })
-      );
+      expect(mockDispatch).toHaveBeenCalledWith({
+        kind: 'EVIDENCE_ADD_SNAPSHOT',
+        hubId: sampleSnapshot.hubId,
+        snapshot: sampleSnapshot,
+        provenance: [],
+      });
+      expect(mockSaveBlobEvidenceSnapshot).toHaveBeenCalled();
+      expect(mockUpdateBlobEvidenceSnapshots).toHaveBeenCalled();
     });
   });
 
