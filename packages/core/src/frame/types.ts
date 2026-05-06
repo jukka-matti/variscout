@@ -33,7 +33,7 @@ export interface ProcessMapNode {
   /** 0-based left→right order. Monotonic. */
   order: number;
   /** Parent step when this node is modeled as a sub-step. */
-  parentStepId?: string | null;
+  parentStepId?: ProcessMapNode['id'] | null;
   /** Optional column measured at this step (a CTQ — Critical-to-Quality). */
   ctqColumn?: string;
   /**
@@ -52,15 +52,15 @@ export interface ProcessMapNode {
 /** Directed connection between two process steps on the map. */
 export interface ProcessMapArrow {
   id: string;
-  fromStepId: string;
-  toStepId: string;
+  fromStepId: ProcessMapNode['id'];
+  toStepId: ProcessMapNode['id'];
 }
 
 /** A tributary — an x (factor) branching into a process step. */
 export interface ProcessMapTributary {
   id: string;
   /** The step this tributary feeds into. */
-  stepId: string;
+  stepId: ProcessMapNode['id'];
   /** Source column in the dataset (the "x"). */
   column: string;
   /** Friendly label (defaults to column name if omitted). */
@@ -85,9 +85,9 @@ export interface ProcessMapHunch {
   /** Human-readable hunch (e.g. "Nozzle wear on night shift"). */
   text: string;
   /** Pin to a specific tributary when the hunch is about one x. */
-  tributaryId?: string;
+  tributaryId?: ProcessMapTributary['id'];
   /** Pin to a specific step when the hunch is about the step itself. */
-  stepId?: string;
+  stepId?: ProcessMapNode['id'];
 }
 
 /** Optional render hints; never affects logic. V2 may introduce auto-layout. */
