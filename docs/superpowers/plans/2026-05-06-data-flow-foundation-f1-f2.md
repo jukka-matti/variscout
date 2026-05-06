@@ -322,6 +322,69 @@ Per R10: same as PWA — Azure persistence calls are in UI/app code, not store f
 
 ---
 
+## Session 1 status (2026-05-06) — handoff to fresh session
+
+**PR1 OPEN at #130** (`https://github.com/jukka-matti/variscout/pull/130`). 8 commits on branch `data-flow-foundation-f1-f2`, 174 files (+3334 / -1107), `pr-ready-check.sh` green. Awaiting CI + merge.
+
+### What's done
+
+- ✅ **P0** audit (15 plan-revising findings absorbed as R1–R15 above)
+- ✅ **P1.1** `@variscout/core/identity` (`160978ea`) — sweeps both `Math.random` `generateId` instances
+- ✅ **P1.2** `ProcessHub` + `OutcomeSpec` (surrogate id) + `ProcessHubInvestigation` EntityBase (`34cb664d`)
+- ✅ **P1.3** Evidence types EntityBase + `EvidenceSourceCursor` relocated azure→core (`a006f420`); ADR-077 amended
+- ✅ **P1.4** Findings types EntityBase + `CausalLink.hubId → suspectedCauseId` rename (`94051a31`)
+- ✅ **P1.4 review fixes** — tsc-clean fixtures, factory `investigationId` hardening, `'general-unassigned'` debt logged in `investigations.md` (`51abfb80`)
+- ✅ **P1.4b** Sustainment + ControlHandoff EntityBase + `tombstoneAt → deletedAt` rename (`bb6c078d`)
+- ✅ **P1.5** Canvas embedded entity typed FKs (`5c6b9183`); `ProcessMap` itself stays non-EntityBase per R6
+- ✅ **P2.1–P2.5** `HubAction` (`kind` + SCREAMING_SNAKE_CASE per R2) + `HubRepository` interface + `cascadeRules` + exhaustiveness test (`e7a9938e`)
+- ✅ **P2.6** PR1 spec compliance — per-task spec/quality reviewers approved each phase + holistic `pr-ready-check.sh` green
+- ✅ **P2.7** PR1 opened at #130 (squash-merge after CI/review)
+
+### Test counts at branch HEAD
+
+- core: **3241** (3230 baseline + 11 new from P2 actions/cascade)
+- ui: **1604** / azure-app: **1042** / pwa: **189** / hooks: **1099** / charts: **272** / stores: **261** / eslint-plugin: **39**
+- All package builds clean (ui/azure-app/pwa tsc all 0 errors); `pr-ready-check.sh` green
+
+### Resume point — Session 2 starts PR2
+
+After PR1 #130 merges (squash):
+
+1. **Sync the worktree:**
+
+   ```bash
+   git -C .worktrees/data-flow-foundation-f1-f2 fetch origin
+   git -C .worktrees/data-flow-foundation-f1-f2 reset --hard origin/main
+   # (or `git rebase origin/main` — but squash means a clean reset is simpler since the branch's commits collapse into one squash commit on main)
+   ```
+
+2. **Dispatch P3.1** (PwaHubRepository skeleton + module-scoped singleton at `apps/pwa/src/persistence/`) per `superpowers:subagent-driven-development` with Sonnet workhorse.
+
+3. Continue through:
+   - **P3.x** PWA repo + `applyAction` per-action Immer recipes + tests
+   - **P4.x** PWA composition migration — re-scoped per R10 to UI/app files (`SaveToBrowserButton.tsx`, `App.tsx`, `usePasteImportFlow.ts`), NOT store files
+   - **P4.5** `canvasStore.dispatch` entry that delegates to existing per-action methods (transitional wrapper, removed in PR3 cleanup per R15)
+   - **P4.7** `claude --chrome` walk in PWA — verify Save-to-browser round-trip, paste persist, archive cascade
+
+4. **PR2** = phases P3 + P4 = `Data-Flow Foundation F1+F2 — PR2: PWA repository + composition migration`. Likely 30+ task subagent dispatches based on PR1's pattern; budget for ≥1 fresh session.
+
+5. **PR3** = phases P5 (AzureHubRepository) + P6 (Azure composition migration) + P7 (ESLint guard) + P8 (final Opus review). Per audit R12+R13: ESLint allow-list includes `wallLayoutStore.ts` + project-overlay paths.
+
+### Open watchlist items (deferred to PR2 review or later)
+
+- **`generateDeterministicId` rename to `generateEntityId`** — both P1.1 + P1.2 reviewers flagged this Important. Cheap to rename in PR2 if it surfaces during review; spec D2 + plan D-P3 update along with it.
+- **`'general-unassigned'` placeholder** leaking through store actions (`addFinding`/`addQuestion`/`addSuspectedCause`) — runtime guard at repository layer in F2 PR2/PR3 per `docs/investigations.md` entry.
+- **`RowProvenanceTag.snapshotId = ''`** placeholder at paste-flow call sites — F3 wiring gap (snapshot doesn't exist when tag is constructed; reorder in F3.5 ingestion action layer).
+- **Pre-existing tsc errors** (~33 across core/stores/hooks/charts) — vitest globals + `import.meta.env` config-level; out of F-series scope; track in a separate cleanup if it becomes load-bearing.
+- **`useEvidenceSourceSync.markSeen` overwrites `createdAt` on every put** — F3 normalization concern.
+- **`id: \`snapshot-${Date.now()}\``in`ProcessHubEvidencePanel.tsx:333`** — should reuse captured `timestamp`. F3 will replace surface entirely.
+
+### Context budget note
+
+Session 1 used substantial context across 6 implementer dispatches + 4 reviewer dispatches + audit + fix subagent. Session 2 should start fresh with this plan + audit + the merged PR1 state as loaded context. Keep PR2 dispatches Sonnet-workhorse; reserve Opus for PR3 P8.1 final-branch review.
+
+---
+
 ## Sequencing
 
 Per `superpowers:subagent-driven-development`. **Sonnet workhorse ≥ 70%.** One worktree, three sequential PRs off branch `data-flow-foundation-f1-f2`. Branch from `main` at `e1352c16`.
