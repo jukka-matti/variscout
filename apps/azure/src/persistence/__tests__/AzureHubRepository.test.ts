@@ -104,6 +104,13 @@ describe('AzureHubRepository dispatch', () => {
     expect(mocks.saveProcessHubToIndexedDB).toHaveBeenCalledTimes(2);
   });
 
+  it('propagates errors from saveProcessHubToIndexedDB', async () => {
+    mocks.saveProcessHubToIndexedDB.mockRejectedValue(new Error('QuotaExceededError'));
+    await expect(repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: makeHub() })).rejects.toThrow(
+      'QuotaExceededError'
+    );
+  });
+
   it('HUB_UPDATE_GOAL throws the P5.2/P5.3 not-implemented error', async () => {
     await expect(
       repo.dispatch({ kind: 'HUB_UPDATE_GOAL', hubId: 'hub-azure-1', processGoal: 'goal' })

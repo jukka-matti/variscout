@@ -1,7 +1,7 @@
 // apps/azure/src/persistence/__tests__/AzureHubRepository.read.test.ts
 //
 // Read API tests for AzureHubRepository skeleton (P5.1).
-// fake-indexeddb/auto must appear before any db import — kept at line 1.
+// fake-indexeddb/auto must be the first import statement.
 //
 // - hubs.get / hubs.list — wired against db.processHubs
 // - outcomes.get / outcomes.listByHub — extracted from hub blob, live only
@@ -153,6 +153,14 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
       const result = await repo.hubs.list();
       expect(result).toEqual([]);
     });
+
+    it('list() omits hubs with deletedAt set', async () => {
+      const live = makeHub({ id: 'hub-live', deletedAt: null });
+      const archived = makeHub({ id: 'hub-archived', deletedAt: 12345 });
+      await db.processHubs.bulkPut([live, archived]);
+      const result = await repo.hubs.list();
+      expect(result.map(h => h.id)).toEqual(['hub-live']);
+    });
   });
 
   // ---- outcomes.get ----
@@ -177,6 +185,14 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
     it('returns undefined when table is empty', async () => {
       const result = await repo.outcomes.get('outcome-1');
       expect(result).toBeUndefined();
+    });
+
+    it('get(id) finds an outcome that lives in a non-first hub', async () => {
+      const hub1 = makeHub({ id: 'hub-1', outcomes: [makeOutcome('outcome-a', null)] });
+      const hub2 = makeHub({ id: 'hub-2', outcomes: [makeOutcome('outcome-b', null)] });
+      await db.processHubs.bulkPut([hub1, hub2]);
+      const result = await repo.outcomes.get('outcome-b');
+      expect(result?.id).toBe('outcome-b');
     });
   });
 

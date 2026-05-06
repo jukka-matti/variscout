@@ -51,11 +51,13 @@ export class AzureHubRepository implements HubRepository {
   // ---------------------------------------------------------------------------
 
   hubs: HubReadAPI = {
+    // hubs.get is unscoped — direct id lookup; hubs.list filters tombstones
     async get(id) {
       return db.processHubs.get(id);
     },
     async list() {
-      return db.processHubs.toArray();
+      const all = await db.processHubs.toArray();
+      return all.filter(h => h.deletedAt === null);
     },
   };
 
@@ -68,6 +70,7 @@ export class AzureHubRepository implements HubRepository {
   // ---------------------------------------------------------------------------
 
   outcomes: OutcomeReadAPI = {
+    // O(n hubs) linear scan — acceptable for P5.1; F3 normalization will remove this.
     async get(id) {
       const hubs = await db.processHubs.toArray();
       for (const hub of hubs) {
