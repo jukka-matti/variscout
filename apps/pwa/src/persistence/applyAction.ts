@@ -19,9 +19,10 @@
 //   - OUTCOME_ARCHIVE: idempotent soft-delete (deletedAt = Date.now()).
 //   - EVIDENCE_ADD_SNAPSHOT / EVIDENCE_ARCHIVE_SNAPSHOT — F3.5 wired (atomic
 //     snapshot + provenance writes; cascade-soft-delete on archive).
+//   - EVIDENCE_SOURCE_UPDATE_CURSOR — F3.5 P5 wired (id-keyed put per D5;
+//     caller-provided id preserved; generates one if absent).
 //
 // Out of scope (no-op with comments):
-//   - EVIDENCE_SOURCE_UPDATE_CURSOR — F3.5 P5 wires this; currently no-op.
 //   - EVIDENCE_SOURCE_ADD / EVIDENCE_SOURCE_REMOVE — pending future use.
 //   - INVESTIGATION_* / FINDING_* / QUESTION_* / CAUSAL_LINK_* /
 //     SUSPECTED_CAUSE_* — F5 wires this when investigation entity action
@@ -36,6 +37,7 @@
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
 import type { HubAction } from '@variscout/core/actions';
+import { generateDeterministicId } from '@variscout/core/identity';
 import type { PwaDatabase } from '../db/schema';
 
 // ---------------------------------------------------------------------------
@@ -254,10 +256,24 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
       return;
     }
 
-    // F3.5 P5 wires EVIDENCE_SOURCE_UPDATE_CURSOR; EVIDENCE_SOURCE_ADD /
-    // EVIDENCE_SOURCE_REMOVE stay no-op pending future use.
+    // F3.5 P5 — cursor reconciliation (D5). PWA schema: &id, sourceId — primary
+    // key is `id`. Caller-provided synthetic id (e.g., `cursor-${hubId}-${sourceId}`
+    // per the Azure useEvidenceSourceSync pattern, audit S8) is preserved. The
+    // `id ?? generateDeterministicId()` fallback is defensive: EvidenceSourceCursor.id
+    // is typed as string, so the guard only fires if a non-typed caller omits the
+    // field. Audit S6 (markSeen createdAt overwrite): intentionally NOT guarded here
+    // per D7 — the put is unconditional; the caller's cursor is written as-is.
+    case 'EVIDENCE_SOURCE_UPDATE_CURSOR': {
+      const cursorWithId = {
+        ...action.cursor,
+        id: action.cursor.id ?? generateDeterministicId(),
+      };
+      await db.evidenceSourceCursors.put(cursorWithId);
+      return;
+    }
+
+    // EVIDENCE_SOURCE_ADD + EVIDENCE_SOURCE_REMOVE stay no-op pending future use.
     case 'EVIDENCE_SOURCE_ADD':
-    case 'EVIDENCE_SOURCE_UPDATE_CURSOR':
     case 'EVIDENCE_SOURCE_REMOVE': {
       return;
     }

@@ -490,7 +490,8 @@ describe('applyAction — no-op action kinds', () => {
 
   it.each([
     'EVIDENCE_SOURCE_ADD',
-    'EVIDENCE_SOURCE_UPDATE_CURSOR',
+    // EVIDENCE_SOURCE_UPDATE_CURSOR is no longer a no-op (F3.5 P5.1 wired it).
+    // See applyAction.cursor.test.ts for its full coverage.
     'EVIDENCE_SOURCE_REMOVE',
     'INVESTIGATION_UPDATE_METADATA',
     'INVESTIGATION_ARCHIVE',

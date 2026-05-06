@@ -191,7 +191,12 @@ export async function applyAction(action: HubAction): Promise<void> {
     }
 
     case 'EVIDENCE_SOURCE_UPDATE_CURSOR': {
-      // Compound primary key [hubId+sourceId] — put replaces or inserts.
+      // F3.5 P5 cursor reconciliation (D5). Azure schema: [hubId+sourceId] compound
+      // primary key — Dexie auto-resolves the key from cursor.hubId + cursor.sourceId;
+      // no explicit id needed for the key path (asymmetric vs PWA's id-keyed &id put).
+      // put() replaces the existing row or inserts a new one (upsert semantics).
+      // Audit S6 (markSeen createdAt overwrite): put is unconditional per D7 scope;
+      // a future F4 normalization pass may add a createdat-preserving merge strategy.
       await db.evidenceSourceCursors.put(action.cursor);
       return;
     }
