@@ -1,6 +1,6 @@
 # @variscout/stores
 
-4 Zustand domain stores (project, investigation, improvement, session) + 1 cross-app feature store (wallLayout).
+5 Zustand domain stores (project, investigation, improvement, session, canvas) + 1 cross-app feature store (wallLayout). Per ADR-078.
 
 ## Hard rules
 

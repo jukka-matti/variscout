@@ -265,9 +265,26 @@ schema, Wall layout rewrites, and Analysis route cleanup.
 
 **Brainstorm + plan needed.** Q8-revised hybrid persistence for hub-of-one.
 
-### PR8 — Cleanup: delete legacy components
+### PR8 — Vision Alignment (closes PR4c–PR6 retrospective gaps)
 
-**Branch:** `canvas-migration-phase-8-cleanup`
+**NEW phase inserted 2026-05-06** per the canvas PR4c–PR6 retrospective findings (`docs/superpowers/plans/2026-05-06-canvas-pr4c-pr6-followup.md` + `docs/decision-log.md` 2026-05-06 entry). PR4c–PR6 shipped functioning canvas authoring + cards + overlays but left six unmet vision-spec commitments and one critical bug. **PR8 closes the vision gaps**; the legacy-component cleanup originally scheduled for PR8 is renumbered to PR9.
+
+PR8 splits into multiple sub-PRs, each scoped to one vision-spec commitment:
+
+| Sub-PR | Vision item                                                                                                                                                      | Source      |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| **8a** | Mode-aware response-path CTAs (Charter / Sustainment / Handoff tier-gated with copy, not hardcoded `disabled`)                                                   | §5.3 + §2.4 |
+| **8b** | Drift indicator (data model + UI; reads `EvidenceSnapshot` history) AND time-series mini-chart for high-cardinality columns                                      | §5.2        |
+| **8c** | _(reserved — bundled with 8b)_                                                                                                                                   |             |
+| **8d** | Hypothesis-arrow drawing affordance (Mode 2 toolbar tool; promoted-vs-draft visual; column/step source/target). **Brainstorm needed (Spec 4 extension).**        | §3.4        |
+| **8e** | Wall mirror in canvas overlay vs status-quo badge-projection. **Brainstorm needed (Spec 4 extension)** to pick between embedded-Wall and badge-projection-as-V1. | §5.6        |
+| **8f** | Levels-as-pan/zoom orthogonal axis (canvas viewport architecture). **Large; may warrant its own design spec.** Likely deferred to V2 with explicit ADR.          | §5.4        |
+
+Each sub-PR has its own brainstorm or brief design note + plan + branch + PR per `feedback_slice_size_cap`. Tracked as entries in `docs/investigations.md` until promoted to plans.
+
+### PR9 — Cleanup: delete legacy components (renumbered from PR8)
+
+**Branch:** `canvas-migration-phase-9-cleanup`
 **~4 tasks**
 
 - Delete `packages/ui/src/components/LayeredProcessView/` (LayeredProcessView + LayeredProcessViewWithCapability)

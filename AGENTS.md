@@ -5,7 +5,7 @@ Structured investigation for process improvement. Browser-based, customer-owned 
 ## Invariants
 
 - Browser-only processing; data stays in customer's tenant (ADR-059).
-- 4 domain Zustand stores are source of truth; no DataContext.
+- 5 domain Zustand stores are source of truth (project, investigation, improvement, session, canvas) + 1 cross-app feature store (wallLayout); no DataContext per ADR-078.
 - Deterministic stats engine is authority; CoScout (AI) adds context.
 - Package dependencies flow downward: core -> hooks -> ui -> apps.
 
