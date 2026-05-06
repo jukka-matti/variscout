@@ -273,8 +273,11 @@ export type {
   EvidenceSignalSeverity,
   EvidenceSnapshot,
   EvidenceSource,
+  EvidenceSourceCursor,
   EvidenceValidationResult,
   ProfileApplication,
+  RowProvenanceTag,
+  SnapshotProvenance,
 } from './evidenceSources';
 
 // Preview feature registry

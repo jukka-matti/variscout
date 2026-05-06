@@ -42,8 +42,9 @@ const source: EvidenceSource = {
   name: 'Agent review log',
   cadence: 'weekly',
   profileId: AGENT_REVIEW_LOG_PROFILE.id,
-  createdAt: '2026-04-26T00:00:00.000Z',
-  updatedAt: '2026-04-26T00:00:00.000Z',
+  createdAt: 1745625600000,
+  deletedAt: null,
+  updatedAt: 1745625600000,
 };
 
 describe('Evidence Sources and Data Profiles', () => {
@@ -108,7 +109,9 @@ describe('Evidence Sources and Data Profiles', () => {
       rowCount: rows.length,
       profileApplication: application,
       origin: 'fixture:validates-snapshot-metadata',
-      importedAt: '2026-04-26T12:00:00.000Z',
+      importedAt: 1745668800000,
+      createdAt: 1745668800000,
+      deletedAt: null,
     };
 
     expect(validateEvidenceSourceSnapshot(source, snapshot)).toEqual({
@@ -138,7 +141,9 @@ describe('Evidence Sources and Data Profiles', () => {
       rowCount: rows.length,
       profileApplication: application,
       origin: 'fixture:latest-evidence-signals',
-      importedAt: '2026-04-26T12:00:00.000Z',
+      importedAt: 1745668800000,
+      createdAt: 1745668800000,
+      deletedAt: null,
       latestSignals: [
         {
           id: 'false-green',
@@ -163,27 +168,36 @@ describe('Evidence Sources and Data Profiles', () => {
 });
 
 describe('SnapshotProvenance + RowProvenanceTag types', () => {
-  it('SnapshotProvenance carries origin + importedAt + range', () => {
+  it('SnapshotProvenance carries origin + importedAt (number) + range', () => {
     const prov: SnapshotProvenance = {
       origin: 'paste:abc123',
-      importedAt: '2026-05-04T10:00:00.000Z',
+      importedAt: 1746352800000,
       rowTimestampRange: { startISO: '2026-05-01T00:00:00Z', endISO: '2026-05-04T00:00:00Z' },
     };
     expect(prov.origin).toBe('paste:abc123');
+    expect(typeof prov.importedAt).toBe('number');
   });
 
-  it('RowProvenanceTag carries source + joinKey for joined rows', () => {
+  it('RowProvenanceTag carries EntityBase fields + snapshotId + rowKey + source + joinKey', () => {
     const tag: RowProvenanceTag = {
+      id: 'tag-001',
+      createdAt: 1746352800000,
+      deletedAt: null,
+      snapshotId: 'snapshot-001',
+      rowKey: 'row-0',
       source: 'qc-inspection',
       joinKey: 'lot_id',
     };
     expect(tag.source).toBe('qc-inspection');
     expect(tag.joinKey).toBe('lot_id');
+    expect(tag.snapshotId).toBe('snapshot-001');
+    expect(tag.rowKey).toBe('row-0');
+    expect(tag.deletedAt).toBeNull();
   });
 });
 
 describe('EvidenceSnapshot provenance fields', () => {
-  it('accepts origin, importedAt, and optional rowTimestampRange', () => {
+  it('accepts origin, importedAt (number), createdAt, deletedAt, and optional rowTimestampRange', () => {
     const snap: EvidenceSnapshot = {
       id: 'snap-1',
       hubId: 'hub-1',
@@ -191,11 +205,14 @@ describe('EvidenceSnapshot provenance fields', () => {
       capturedAt: '2026-05-04T10:00:00.000Z',
       rowCount: 100,
       origin: 'paste:abc123',
-      importedAt: '2026-05-04T10:00:00.500Z',
+      importedAt: 1746352800500,
+      createdAt: 1746352800500,
+      deletedAt: null,
       rowTimestampRange: { startISO: '2026-05-01T00:00:00Z', endISO: '2026-05-04T00:00:00Z' },
     };
     expect(snap.origin).toBe('paste:abc123');
-    expect(snap.importedAt).toBe('2026-05-04T10:00:00.500Z');
+    expect(typeof snap.importedAt).toBe('number');
+    expect(snap.importedAt).toBe(snap.createdAt);
     expect(snap.rowTimestampRange?.startISO).toBe('2026-05-01T00:00:00Z');
   });
 
@@ -207,7 +224,9 @@ describe('EvidenceSnapshot provenance fields', () => {
       capturedAt: '2026-05-04T10:00:00.000Z',
       rowCount: 0,
       origin: 'evidence-source:auto-001',
-      importedAt: '2026-05-04T10:00:00.500Z',
+      importedAt: 1746352800500,
+      createdAt: 1746352800500,
+      deletedAt: null,
     };
     expect(snap.rowTimestampRange).toBeUndefined();
   });

@@ -10,7 +10,9 @@ const makeSnap = (id: string, capturedAt: string): EvidenceSnapshot => ({
   capturedAt,
   rowCount: 10,
   origin: 'test',
-  importedAt: capturedAt,
+  importedAt: new Date(capturedAt).getTime(),
+  createdAt: new Date(capturedAt).getTime(),
+  deletedAt: null,
 });
 
 describe('SnapshotTimelineStrip', () => {

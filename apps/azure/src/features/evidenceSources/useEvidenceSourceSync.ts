@@ -43,7 +43,7 @@ export function useEvidenceSourceSync(
         const cursor = await db.evidenceSourceCursors.get([hubId, sourceId]);
         const cloudSnapshots = await listEvidenceSnapshotsFromCloud(token, hubId, sourceId);
         if (cancelled) return;
-        const cursorTime = cursor ? new Date(cursor.lastSeenAt).getTime() : -Infinity;
+        const cursorTime = cursor ? cursor.lastSeenAt : -Infinity;
         const filtered = cloudSnapshots
           .filter(s => new Date(s.capturedAt).getTime() > cursorTime)
           .sort((a, b) => new Date(a.capturedAt).getTime() - new Date(b.capturedAt).getTime());
@@ -64,11 +64,17 @@ export function useEvidenceSourceSync(
   const markSeen = useCallback(async () => {
     if (newSnapshots.length === 0) return;
     const latest = newSnapshots[newSnapshots.length - 1];
+    const now = Date.now();
     await db.evidenceSourceCursors.put({
+      // EntityBase fields — id is composite key [hubId+sourceId] at Dexie layer;
+      // provide a stable string for the EntityBase id field.
+      id: `cursor-${hubId}-${sourceId}`,
+      createdAt: now,
+      deletedAt: null,
       hubId,
       sourceId,
       lastSeenSnapshotId: latest.id,
-      lastSeenAt: latest.capturedAt,
+      lastSeenAt: new Date(latest.capturedAt).getTime(),
     });
     setNewSnapshots([]);
     setColumnDriftMessage(undefined);

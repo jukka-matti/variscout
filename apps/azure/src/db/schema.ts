@@ -29,16 +29,12 @@ export interface SyncItem {
   queuedAt: string;
 }
 
+import type { EvidenceSourceCursor } from '@variscout/core';
+
+export type { EvidenceSourceCursor };
 export type ProcessHubRecord = import('@variscout/core').ProcessHub;
 export type EvidenceSourceRecord = import('@variscout/core').EvidenceSource;
 export type EvidenceSnapshotRecord = import('@variscout/core').EvidenceSnapshot;
-
-export interface EvidenceSourceCursor {
-  hubId: string;
-  sourceId: string;
-  lastSeenSnapshotId: string;
-  lastSeenAt: string; // ISO 8601
-}
 
 export class VariScoutDatabase extends Dexie {
   projects!: Dexie.Table<ProjectRecord, string>;

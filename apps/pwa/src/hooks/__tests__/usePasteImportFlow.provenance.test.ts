@@ -182,8 +182,25 @@ describe('usePasteImportFlow — provenance sidecar (P3.4)', () => {
     expect(tags).toHaveLength(2);
     // Hub has outcome 'weight_g'; new columns are ['lot_id', 'defect_type'].
     // First new-only column (not in ['weight_g']) is 'lot_id' → source = 'lot-id'.
-    expect(tags[0]).toEqual({ source: 'lot-id', joinKey: 'lot_id' });
-    expect(tags[1]).toEqual({ source: 'lot-id', joinKey: 'lot_id' });
+    // Tags now extend EntityBase — use objectContaining for non-deterministic id/createdAt.
+    expect(tags[0]).toEqual(
+      expect.objectContaining({
+        source: 'lot-id',
+        joinKey: 'lot_id',
+        rowKey: '2',
+        snapshotId: '',
+        deletedAt: null,
+      })
+    );
+    expect(tags[1]).toEqual(
+      expect.objectContaining({
+        source: 'lot-id',
+        joinKey: 'lot_id',
+        rowKey: '3',
+        snapshotId: '',
+        deletedAt: null,
+      })
+    );
   });
 
   it('single-source append does NOT populate provenance sidecar', async () => {

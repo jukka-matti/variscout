@@ -20,6 +20,11 @@ interface ProcessHubEvidencePanelProps {
   onEvidenceChanged?: () => void;
 }
 
+function nowMs(): number {
+  return Date.now();
+}
+
+// capturedAt is the data-time field (string ISO); reuse this helper where strings are needed.
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -137,14 +142,15 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
   // ---------------------------------------------------------------------------
 
   const handleCreateAgentReviewSource = async (): Promise<void> => {
-    const timestamp = nowIso();
+    const timestamp = nowMs();
     const source: EvidenceSource = {
-      id: `agent-review-log-${Date.now()}`,
+      id: `agent-review-log-${timestamp}`,
       hubId,
       name: 'Agent review log',
       cadence: 'weekly',
       profileId: AGENT_REVIEW_LOG_PROFILE.id,
       createdAt: timestamp,
+      deletedAt: null,
       updatedAt: timestamp,
     };
     await saveEvidenceSource(source);
@@ -172,14 +178,17 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
         severity === 'green'
           ? `${selectedSource.id}:safe-green`
           : `${selectedSource.id}:false-green`;
+      const snapshotNow = nowMs();
       const snapshot: EvidenceSnapshot = {
-        id: `snapshot-${Date.now()}`,
+        id: `snapshot-${snapshotNow}`,
         hubId,
         sourceId: selectedSource.id,
         capturedAt,
         rowCount: rows.length,
         origin: `evidence-source:${selectedSource.id}`,
-        importedAt: capturedAt,
+        importedAt: snapshotNow,
+        createdAt: snapshotNow,
+        deletedAt: null,
         profileApplication: application,
         latestSignals: [
           {
@@ -304,8 +313,8 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
       cadence: chosenCadence,
     });
     try {
-      const timestamp = nowIso();
-      const sourceId = `evidence-source-${Date.now()}`;
+      const timestamp = nowMs();
+      const sourceId = `evidence-source-${timestamp}`;
       const source: EvidenceSource = {
         id: sourceId,
         hubId,
@@ -313,19 +322,23 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
         cadence: chosenCadence,
         profileId: profile.id,
         createdAt: timestamp,
+        deletedAt: null,
         updatedAt: timestamp,
       };
       await saveEvidenceSource(source);
 
+      const capturedAt = nowIso(); // capturedAt is data-time (string)
       const application = profile.apply(rows, mapping);
       const snapshot: EvidenceSnapshot = {
         id: `snapshot-${Date.now()}`,
         hubId,
         sourceId,
-        capturedAt: timestamp,
+        capturedAt,
         rowCount: rows.length,
         origin: `evidence-source:${sourceId}`,
         importedAt: timestamp,
+        createdAt: timestamp,
+        deletedAt: null,
         profileApplication: application,
       };
       await saveEvidenceSnapshot(snapshot, rawText);

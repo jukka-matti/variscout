@@ -50,8 +50,9 @@ describe('ProcessHubEvidencePanel', () => {
     expect(saved.profileId).toBe('agent-review-log');
     expect(saved.cadence).toBe('weekly');
     expect(saved.name).toBe('Agent review log');
-    expect(typeof saved.createdAt).toBe('string');
+    expect(typeof saved.createdAt).toBe('number');
     expect(saved.createdAt).toBe(saved.updatedAt);
+    expect(saved.deletedAt).toBeNull();
   });
 
   it('shows status confirmation after creating a source', async () => {
@@ -72,8 +73,9 @@ describe('ProcessHubEvidencePanel', () => {
       name: 'Agent review log',
       cadence: 'weekly' as const,
       profileId: 'agent-review-log',
-      createdAt: '2026-04-26T00:00:00.000Z',
-      updatedAt: '2026-04-26T00:00:00.000Z',
+      createdAt: 1745625600000,
+      deletedAt: null,
+      updatedAt: 1745625600000,
     };
     mockListEvidenceSources.mockResolvedValue([source]);
 
@@ -105,8 +107,9 @@ describe('ProcessHubEvidencePanel', () => {
       name: 'Agent review log',
       cadence: 'weekly' as const,
       profileId: 'agent-review-log',
-      createdAt: '2026-04-26T00:00:00.000Z',
-      updatedAt: '2026-04-26T00:00:00.000Z',
+      createdAt: 1745625600000,
+      deletedAt: null,
+      updatedAt: 1745625600000,
     };
     mockListEvidenceSources.mockResolvedValue([source]);
 
@@ -131,8 +134,9 @@ describe('ProcessHubEvidencePanel', () => {
       name: 'Agent review log',
       cadence: 'weekly' as const,
       profileId: 'agent-review-log',
-      createdAt: '2026-04-26T00:00:00.000Z',
-      updatedAt: '2026-04-26T00:00:00.000Z',
+      createdAt: 1745625600000,
+      deletedAt: null,
+      updatedAt: 1745625600000,
     };
     mockListEvidenceSources.mockResolvedValue([source]);
 
@@ -159,8 +163,9 @@ describe('ProcessHubEvidencePanel', () => {
       name: 'Agent review log',
       cadence: 'weekly' as const,
       profileId: 'agent-review-log',
-      createdAt: '2026-04-26T00:00:00.000Z',
-      updatedAt: '2026-04-26T00:00:00.000Z',
+      createdAt: 1745625600000,
+      deletedAt: null,
+      updatedAt: 1745625600000,
     };
     mockListEvidenceSources.mockResolvedValue([source]);
 

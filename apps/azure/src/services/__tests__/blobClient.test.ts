@@ -173,8 +173,9 @@ describe('blobClient', () => {
         name: 'Agent review log',
         cadence: 'weekly',
         profileId: 'agent-review-log',
-        createdAt: '2026-04-26T00:00:00.000Z',
-        updatedAt: '2026-04-26T00:00:00.000Z',
+        createdAt: 1745625600000,
+        deletedAt: null,
+        updatedAt: 1745625600000,
       });
 
       expect(fetchSpy).toHaveBeenLastCalledWith(
@@ -200,7 +201,9 @@ describe('blobClient', () => {
           capturedAt: '2026-04-26T12:00:00.000Z',
           rowCount: 3,
           origin: 'evidence-source:source-1',
-          importedAt: '2026-04-26T12:00:00.000Z',
+          importedAt: 1745668800000,
+          createdAt: 1745668800000,
+          deletedAt: null,
           profileApplication: {
             profileId: 'agent-review-log',
             profileVersion: 1,
