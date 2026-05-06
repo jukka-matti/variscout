@@ -9,11 +9,16 @@
 //   - HUB_PERSIST_SNAPSHOT returns action.hub directly (reference equality)
 //   - Canvas actions return input hub unchanged (canvasStore is canonical)
 //   - assertNever fires for unhandled actions (TypeScript prevents this in prod)
+//   - Cascade helpers via transitiveCascade (P3.3):
+//       hub→outcome cascade soft-marks all hub outcomes (only observable path on PWA blob)
+//       investigation/finding/question/causalLink/suspectedCause archive actions are no-ops
+//       hub→outcome cascade is idempotent (already-archived outcomes keep original timestamp)
 //
 // Determinism: vi.useFakeTimers + vi.setSystemTime pins Date.now() to a fixed value.
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { applyAction } from '../applyAction';
+import { produce } from 'immer';
+import { applyAction, cascadeArchiveDescendantsInDraft } from '../applyAction';
 import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
 import type { OutcomeAction, HubMetaAction, CanvasAction } from '@variscout/core/actions';
 
@@ -476,4 +481,158 @@ describe('Input immutability', () => {
     applyAction(input, action);
     expect(input).toEqual(inputCopy); // input unchanged
   });
+});
+
+// ---------------------------------------------------------------------------
+// Cascade helpers (P3.3) — cascadeArchiveDescendantsInDraft
+//
+// PWA cascade paths:
+//   hub → outcome          OBSERVABLE: only PWA-blob-resident cascade target
+//   investigation → …      NO-OP: findings/questions/causalLinks/suspectedCauses
+//                          not on blob
+//   evidenceSnapshot → …   NO-OP: rowProvenance not on blob
+//   evidenceSource → …     NO-OP: evidenceSourceCursor not on blob
+//   All leaf kinds (outcome, finding, question, etc.) → empty cascade (no-ops)
+// ---------------------------------------------------------------------------
+
+const OUTCOME_A: OutcomeSpec = { ...BASE_OUTCOME, id: 'outcome-a', deletedAt: null };
+const OUTCOME_B: OutcomeSpec = { ...BASE_OUTCOME, id: 'outcome-b', deletedAt: null };
+
+const HUB_TWO_OUTCOMES: ProcessHub = {
+  ...BASE_HUB,
+  outcomes: [clone(OUTCOME_A), clone(OUTCOME_B)],
+};
+
+describe('cascadeArchiveDescendantsInDraft — hub → outcome (observable cascade)', () => {
+  it('soft-marks all hub outcomes when parentKind is hub and parentId matches', () => {
+    const result = produce(clone(HUB_TWO_OUTCOMES), draft => {
+      cascadeArchiveDescendantsInDraft(draft, 'hub', 'hub-001', FIXED_NOW_MS);
+    });
+    expect(result.outcomes![0].deletedAt).toBe(FIXED_NOW_MS);
+    expect(result.outcomes![1].deletedAt).toBe(FIXED_NOW_MS);
+  });
+
+  it('skips outcomes that are already archived (idempotent)', () => {
+    const PRIOR_ARCHIVE_TS = 999_000;
+    const hubWithOneArchived: ProcessHub = {
+      ...BASE_HUB,
+      outcomes: [
+        { ...OUTCOME_A, deletedAt: PRIOR_ARCHIVE_TS }, // already archived
+        { ...OUTCOME_B, deletedAt: null }, // not yet archived
+      ],
+    };
+    const result = produce(clone(hubWithOneArchived), draft => {
+      cascadeArchiveDescendantsInDraft(draft, 'hub', 'hub-001', FIXED_NOW_MS);
+    });
+    // Already-archived outcome keeps original timestamp
+    expect(result.outcomes![0].deletedAt).toBe(PRIOR_ARCHIVE_TS);
+    // Unarchived outcome gets new timestamp
+    expect(result.outcomes![1].deletedAt).toBe(FIXED_NOW_MS);
+  });
+
+  it('idempotency — applying cascade twice leaves timestamps unchanged', () => {
+    const FIRST_ARCHIVE_TS = FIXED_NOW_MS;
+    // First pass
+    const afterFirst = produce(clone(HUB_TWO_OUTCOMES), draft => {
+      cascadeArchiveDescendantsInDraft(draft, 'hub', 'hub-001', FIRST_ARCHIVE_TS);
+    });
+    expect(afterFirst.outcomes![0].deletedAt).toBe(FIRST_ARCHIVE_TS);
+    expect(afterFirst.outcomes![1].deletedAt).toBe(FIRST_ARCHIVE_TS);
+
+    // Second pass with a different timestamp — already-archived outcomes are skipped
+    const SECOND_ARCHIVE_TS = FIXED_NOW_MS + 5_000;
+    const afterSecond = produce(afterFirst, draft => {
+      cascadeArchiveDescendantsInDraft(draft, 'hub', 'hub-001', SECOND_ARCHIVE_TS);
+    });
+    expect(afterSecond.outcomes![0].deletedAt).toBe(FIRST_ARCHIVE_TS); // unchanged
+    expect(afterSecond.outcomes![1].deletedAt).toBe(FIRST_ARCHIVE_TS); // unchanged
+  });
+
+  it('is a no-op when parentId does not match hub.id', () => {
+    const result = produce(clone(HUB_TWO_OUTCOMES), draft => {
+      cascadeArchiveDescendantsInDraft(draft, 'hub', 'different-hub-id', FIXED_NOW_MS);
+    });
+    expect(result.outcomes![0].deletedAt).toBeNull();
+    expect(result.outcomes![1].deletedAt).toBeNull();
+  });
+
+  it('is a no-op when hub has no outcomes', () => {
+    const result = produce(clone(BASE_HUB), draft => {
+      cascadeArchiveDescendantsInDraft(draft, 'hub', 'hub-001', FIXED_NOW_MS);
+    });
+    // No crash; outcomes still undefined/empty
+    expect(result.outcomes ?? []).toHaveLength(0);
+  });
+});
+
+describe('cascadeArchiveDescendantsInDraft — non-hub parents are no-ops on PWA blob', () => {
+  // For each of these parent kinds, the transitive cascade descendants are not
+  // resident on the PWA blob, so the hub should be returned deep-equal to input.
+
+  const noopParents = [
+    { parentKind: 'investigation' as const, parentId: 'inv-001' },
+    { parentKind: 'finding' as const, parentId: 'f-001' },
+    { parentKind: 'question' as const, parentId: 'q-001' },
+    { parentKind: 'causalLink' as const, parentId: 'cl-001' },
+    { parentKind: 'suspectedCause' as const, parentId: 'sc-001' },
+    { parentKind: 'evidenceSnapshot' as const, parentId: 'snap-001' },
+    { parentKind: 'evidenceSource' as const, parentId: 'src-001' },
+    { parentKind: 'outcome' as const, parentId: 'outcome-001' }, // leaf — cascadesTo = []
+  ] as const;
+
+  for (const { parentKind, parentId } of noopParents) {
+    it(`${parentKind} cascade leaves hub deep-equal to input`, () => {
+      const input = clone(HUB_TWO_OUTCOMES);
+      const result = produce(input, draft => {
+        cascadeArchiveDescendantsInDraft(draft, parentKind, parentId, FIXED_NOW_MS);
+      });
+      expect(result).toEqual(input);
+    });
+  }
+});
+
+describe('cascadeArchiveDescendantsInDraft — INVESTIGATION_ARCHIVE action is no-op via helper', () => {
+  // The archive helpers (archiveInvestigationInDraft etc.) call
+  // cascadeArchiveDescendantsInDraft internally. Confirm via action dispatch
+  // that the returned hub is deep-equal (the cascade walk is a no-op on PWA blob).
+  type A = Parameters<typeof applyAction>[1];
+
+  const archiveCases: Array<{ label: string; action: A }> = [
+    {
+      label: 'INVESTIGATION_ARCHIVE',
+      action: { kind: 'INVESTIGATION_ARCHIVE', investigationId: 'inv-001' } as A,
+    },
+    {
+      label: 'FINDING_ARCHIVE',
+      action: { kind: 'FINDING_ARCHIVE', findingId: 'f-001' } as A,
+    },
+    {
+      label: 'QUESTION_ARCHIVE',
+      action: { kind: 'QUESTION_ARCHIVE', questionId: 'q-001' } as A,
+    },
+    {
+      label: 'CAUSAL_LINK_ARCHIVE',
+      action: { kind: 'CAUSAL_LINK_ARCHIVE', linkId: 'cl-001' } as A,
+    },
+    {
+      label: 'SUSPECTED_CAUSE_ARCHIVE',
+      action: { kind: 'SUSPECTED_CAUSE_ARCHIVE', causeId: 'sc-001' } as A,
+    },
+    {
+      label: 'EVIDENCE_ARCHIVE_SNAPSHOT',
+      action: { kind: 'EVIDENCE_ARCHIVE_SNAPSHOT', snapshotId: 'snap-001' } as A,
+    },
+  ];
+
+  for (const { label, action } of archiveCases) {
+    it(`${label} — hub outcomes remain unchanged (cascade is no-op on PWA blob)`, () => {
+      const input = clone(HUB_TWO_OUTCOMES);
+      const result = applyAction(input, action);
+      // outcomes must not be touched — cascade walk found no blob-resident descendants
+      expect(result.outcomes![0].deletedAt).toBeNull();
+      expect(result.outcomes![1].deletedAt).toBeNull();
+      // full hub deep-equals input
+      expect(result).toEqual(input);
+    });
+  }
 });

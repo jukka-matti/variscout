@@ -8,6 +8,12 @@
 //   investigations, findings, questions, causalLinks, suspectedCauses, evidenceSnapshots,
 //   or evidenceSources — those live in session-only Zustand stores today.
 //
+// CASCADE STRATEGY:
+//   Cascade helpers use transitiveCascade() from @variscout/core/persistence to walk
+//   descendant kinds. On the PWA blob, only hub→outcome produces observable mutations;
+//   all other parent kinds are structurally correct but yield no mutations because their
+//   arrays do not exist on the blob. F3 normalization will add Dexie queries for the rest.
+//
 // CANVAS STRATEGY (R15):
 //   Canvas mutations live in canvasStore; the hub's canonicalProcessMap is overwritten
 //   via HUB_PERSIST_SNAPSHOT when the user saves. All CANVAS_* cases are therefore no-ops
@@ -23,6 +29,7 @@
 import { produce, type Draft } from 'immer';
 import type { HubAction } from '@variscout/core/actions';
 import type { ProcessHub } from '@variscout/core/processHub';
+import { transitiveCascade, type EntityKind } from '@variscout/core/persistence';
 
 // ---------------------------------------------------------------------------
 // Exhaustiveness helper
@@ -33,27 +40,148 @@ function assertNever(x: never): never {
 }
 
 // ---------------------------------------------------------------------------
-// Stub cascade helpers (P3.3 will replace with real transitiveCascade walkers)
+// Cascade helpers
+//
+// PWA blob holds only `outcomes` and `canonicalProcessMap`. Investigations,
+// findings, questions, causalLinks, suspectedCauses, evidenceSnapshots,
+// evidenceSources, rowProvenance, evidenceSourceCursors, and canvasState live
+// in session-only Zustand stores (or Dexie tables introduced in F3) — the walk
+// below is structurally correct but yields zero mutations on the PWA blob today
+// for all parent kinds except hub→outcome. F3 normalization will fill in the
+// remaining cases with real Dexie queries; the helper shape is already correct.
 // ---------------------------------------------------------------------------
 
-function archiveInvestigationInDraft(_draft: Draft<ProcessHub>, _investigationId: string): void {
-  // P3.3 implements; PWA blob has no investigations array today, so this stays a no-op.
+/**
+ * Soft-mark descendants of a single EntityKind on the draft hub.
+ *
+ * The switch below covers every EntityKind. The only PWA-blob-resident kind
+ * that can be cascade-targeted is `outcome` (via hub→outcome). All other kinds
+ * are documented no-ops for PWA; F3 will add Dexie queries for the rest.
+ *
+ * The exhaustive switch (with no `default`) means TypeScript will error if a
+ * new EntityKind is added to cascadeRules without updating this function.
+ */
+function archiveDescendantsOfKindInDraft(
+  draft: Draft<ProcessHub>,
+  kind: EntityKind,
+  parentKind: EntityKind,
+  parentId: string,
+  archivedAt: number
+): void {
+  switch (kind) {
+    case 'outcome': {
+      // hub.outcomes is the only cascade target resident on the PWA blob.
+      // Soft-mark all unarchived outcomes whose hubId matches the parent.
+      if (parentKind === 'hub' && draft.id === parentId) {
+        for (const outcome of draft.outcomes ?? []) {
+          if (outcome.deletedAt === null) outcome.deletedAt = archivedAt;
+        }
+      }
+      return;
+    }
+    case 'hub':
+    case 'investigation':
+    case 'finding':
+    case 'question':
+    case 'causalLink':
+    case 'suspectedCause':
+    case 'evidenceSnapshot':
+    case 'evidenceSource':
+    case 'rowProvenance':
+    case 'evidenceSourceCursor':
+    case 'canvasState':
+      // PWA blob does not persist these arrays today; F3 will fill in.
+      return;
+  }
 }
 
-function archiveFindingInDraft(_draft: Draft<ProcessHub>, _findingId: string): void {
-  // P3.3 implements; PWA blob has no findings array today, so this stays a no-op.
+/**
+ * Walks the transitive cascade rules for the given parent and soft-marks
+ * matching descendants on the draft hub.
+ *
+ * On PWA, only the hub→outcome cascade has observable mutations. All other
+ * parent kinds (investigation, evidenceSnapshot, evidenceSource, …) are
+ * structurally correct but yield zero mutations because their descendant
+ * arrays do not exist on the PWA blob. F3 normalizes.
+ *
+ * @internal Exported for unit-testing only. Do not call from app code.
+ */
+export function cascadeArchiveDescendantsInDraft(
+  draft: Draft<ProcessHub>,
+  parentKind: EntityKind,
+  parentId: string,
+  archivedAt: number
+): void {
+  const descendantKinds = transitiveCascade(parentKind);
+  for (const kind of descendantKinds) {
+    archiveDescendantsOfKindInDraft(draft, kind, parentKind, parentId, archivedAt);
+  }
 }
 
-function archiveQuestionInDraft(_draft: Draft<ProcessHub>, _questionId: string): void {
-  // P3.3 implements; PWA blob has no questions array today, so this stays a no-op.
+/**
+ * Archive an investigation and its cascade descendants (finding, question,
+ * causalLink, suspectedCause) on the draft hub.
+ *
+ * PWA blob has no investigations array; the parent soft-mark and the cascade
+ * walk are both no-ops today. F3 normalizes.
+ */
+function archiveInvestigationInDraft(draft: Draft<ProcessHub>, investigationId: string): void {
+  // PWA blob has no investigations array; the parent soft-mark is a no-op today.
+  // The cascade walk also yields no mutations on the PWA blob. F3 normalizes.
+  const archivedAt = Date.now();
+  cascadeArchiveDescendantsInDraft(draft, 'investigation', investigationId, archivedAt);
 }
 
-function archiveCausalLinkInDraft(_draft: Draft<ProcessHub>, _linkId: string): void {
-  // P3.3 implements; PWA blob has no causalLinks array today, so this stays a no-op.
+/**
+ * Archive a finding and its cascade descendants on the draft hub.
+ *
+ * PWA blob has no findings array; both the parent soft-mark and cascade walk
+ * are no-ops today. F3 normalizes.
+ */
+function archiveFindingInDraft(draft: Draft<ProcessHub>, findingId: string): void {
+  // PWA blob has no findings array; the parent soft-mark is a no-op today.
+  // The cascade walk also yields no mutations on the PWA blob. F3 normalizes.
+  const archivedAt = Date.now();
+  cascadeArchiveDescendantsInDraft(draft, 'finding', findingId, archivedAt);
 }
 
-function archiveSuspectedCauseInDraft(_draft: Draft<ProcessHub>, _causeId: string): void {
-  // P3.3 implements; PWA blob has no suspectedCauses array today, so this stays a no-op.
+/**
+ * Archive a question and its cascade descendants on the draft hub.
+ *
+ * PWA blob has no questions array; both the parent soft-mark and cascade walk
+ * are no-ops today. F3 normalizes.
+ */
+function archiveQuestionInDraft(draft: Draft<ProcessHub>, questionId: string): void {
+  // PWA blob has no questions array; the parent soft-mark is a no-op today.
+  // The cascade walk also yields no mutations on the PWA blob. F3 normalizes.
+  const archivedAt = Date.now();
+  cascadeArchiveDescendantsInDraft(draft, 'question', questionId, archivedAt);
+}
+
+/**
+ * Archive a causal link and its cascade descendants on the draft hub.
+ *
+ * PWA blob has no causalLinks array; both the parent soft-mark and cascade walk
+ * are no-ops today. F3 normalizes.
+ */
+function archiveCausalLinkInDraft(draft: Draft<ProcessHub>, linkId: string): void {
+  // PWA blob has no causalLinks array; the parent soft-mark is a no-op today.
+  // The cascade walk also yields no mutations on the PWA blob. F3 normalizes.
+  const archivedAt = Date.now();
+  cascadeArchiveDescendantsInDraft(draft, 'causalLink', linkId, archivedAt);
+}
+
+/**
+ * Archive a suspected cause and its cascade descendants on the draft hub.
+ *
+ * PWA blob has no suspectedCauses array; both the parent soft-mark and cascade
+ * walk are no-ops today. F3 normalizes.
+ */
+function archiveSuspectedCauseInDraft(draft: Draft<ProcessHub>, causeId: string): void {
+  // PWA blob has no suspectedCauses array; the parent soft-mark is a no-op today.
+  // The cascade walk also yields no mutations on the PWA blob. F3 normalizes.
+  const archivedAt = Date.now();
+  cascadeArchiveDescendantsInDraft(draft, 'suspectedCause', causeId, archivedAt);
 }
 
 // ---------------------------------------------------------------------------
