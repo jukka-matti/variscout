@@ -17,7 +17,7 @@
     "@variscout/core": "workspace:*",
     "@variscout/data": "workspace:*",
     "@variscout/ui": "workspace:*",
-    "astro": "^6.1.10",
+    "astro": "^6.2.1",
     "lucide-astro": "^0.556.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
