@@ -3,4 +3,5 @@
 
 export { AzureHubRepository, azureHubRepository } from './AzureHubRepository';
 export { cascadeArchiveDescendants } from './cascadeArchive';
+/** @internal — use `AzureHubRepository.dispatch()`; direct calls bypass the HUB_PERSIST_SNAPSHOT short-circuit. */
 export { applyAction } from './applyAction';

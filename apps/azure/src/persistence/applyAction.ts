@@ -75,6 +75,8 @@ export async function applyAction(action: HubAction): Promise<void> {
 
     // -------------------------------------------------------------------------
     // Hub meta — read-modify-write via saveProcessHubToIndexedDB
+    // Single-actor assumption: concurrent dispatches on the same hub can race
+    // (last-write-wins). Acceptable for P5.3; F3 normalization removes embedded arrays.
     // -------------------------------------------------------------------------
 
     case 'HUB_UPDATE_GOAL': {
@@ -150,6 +152,7 @@ export async function applyAction(action: HubAction): Promise<void> {
     case 'EVIDENCE_ARCHIVE_SNAPSHOT': {
       // rowProvenance cascade is a no-op for Azure today (F3 normalizes).
       // A single Dexie update is atomic on its own.
+      // Not idempotent — repeated calls refresh deletedAt; this is intentional (aligns with Dexie.update semantics, contrasts with OUTCOME_ARCHIVE's idempotent guard).
       await db.evidenceSnapshots.update(action.snapshotId, { deletedAt: Date.now() });
       return;
     }
