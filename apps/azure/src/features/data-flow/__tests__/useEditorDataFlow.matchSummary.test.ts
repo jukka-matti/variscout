@@ -7,6 +7,12 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // vi.mock BEFORE any imports that transitively load the mocked module.
+vi.mock('../../../persistence', () => ({
+  azureHubRepository: {
+    dispatch: vi.fn(),
+  },
+}));
+
 vi.mock('@variscout/core', async importOriginal => {
   const real = await importOriginal<typeof import('@variscout/core')>();
   return {
