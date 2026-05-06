@@ -1,35 +1,39 @@
 // apps/pwa/src/persistence/applyAction.ts
 //
-// Per-action Immer recipe dispatcher for the PWA hub blob.
+// F3 transactional Dexie writer for the PWA persistence layer.
 //
-// PWA PERSISTENCE MODEL (Hub-of-one blob):
-//   The hub blob (ProcessHub) contains: name, processGoal, outcomes, primaryScopeDimensions,
-//   canonicalProcessMap, reviewSignal, plus EntityBase fields. It does NOT contain
-//   investigations, findings, questions, causalLinks, suspectedCauses, evidenceSnapshots,
-//   or evidenceSources — those live in session-only Zustand stores today.
+// Replaces the F2-era pure Immer recipe (`applyAction(hub, action) → next hub`)
+// with an async transactional dispatcher that writes directly to the F3
+// normalized schema:
 //
-// CASCADE STRATEGY:
-//   Cascade helpers use transitiveCascade() from @variscout/core/persistence to walk
-//   descendant kinds. On the PWA blob, only hub→outcome produces observable mutations;
-//   all other parent kinds are structurally correct but yield no mutations because their
-//   arrays do not exist on the blob. F3 normalization will add Dexie queries for the rest.
+//   applyAction(db: PwaDatabase, action: HubAction): Promise<void>
 //
-// CANVAS STRATEGY (R15):
-//   Canvas mutations live in canvasStore; the hub's canonicalProcessMap is overwritten
-//   via HUB_PERSIST_SNAPSHOT when the user saves. All CANVAS_* cases are therefore no-ops
-//   here. F3 may revisit if canvas state is normalized into its own Dexie table.
+// Action coverage (F3 — narrow):
+//   - HUB_PERSIST_SNAPSHOT: bootstrap/full-save path. Decomposes the incoming
+//     ProcessHub into hubs / outcomes / canvasState rows in a single
+//     `db.transaction('rw', ...)`.
+//   - HUB_UPDATE_GOAL / HUB_UPDATE_PRIMARY_SCOPE_DIMENSIONS: hubs row patches.
+//   - OUTCOME_ADD: validates parent hub exists; adds an outcome row carrying
+//     the FK `hubId`.
+//   - OUTCOME_UPDATE: idempotent patch on the outcome row.
+//   - OUTCOME_ARCHIVE: idempotent soft-delete (deletedAt = Date.now()).
 //
-// NON-HUB-RESIDENT ACTIONS:
-//   INVESTIGATION_*, FINDING_*, QUESTION_*, CAUSAL_LINK_*, SUSPECTED_CAUSE_*,
-//   EVIDENCE_*, and EVIDENCE_SOURCE_* handlers exist for type-exhaustiveness (TypeScript
-//   validates the switch is exhaustive) but their bodies are no-ops. The dispatch still
-//   satisfies the HubRepository contract; the entities live in session-only stores.
-//   F3 normalization will give these handlers real bodies.
+// Out of scope (no-op with comments):
+//   - EVIDENCE_* — F3.5 wires this when ingestion action layer lands.
+//   - INVESTIGATION_* / FINDING_* / QUESTION_* / CAUSAL_LINK_* /
+//     SUSPECTED_CAUSE_* — F5 wires this when investigation entity action
+//     coverage lands.
+//   - CANVAS_* — canvasStore remains the canonical mutation surface;
+//     canonicalProcessMap reaches the canvasState table only via
+//     HUB_PERSIST_SNAPSHOT until F5 introduces direct canvas action coverage.
+//
+// `assertNever(action)` enforces TypeScript exhaustiveness — adding a new
+// HubAction kind without a case here is a compile error.
+//
+// Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
-import { produce, type Draft } from 'immer';
 import type { HubAction } from '@variscout/core/actions';
-import type { ProcessHub } from '@variscout/core/processHub';
-import { transitiveCascade, type EntityKind } from '@variscout/core/persistence';
+import type { PwaDatabase } from '../db/schema';
 
 // ---------------------------------------------------------------------------
 // Exhaustiveness helper
@@ -40,411 +44,191 @@ function assertNever(x: never): never {
 }
 
 // ---------------------------------------------------------------------------
-// Cascade helpers
-//
-// PWA blob holds only `outcomes` and `canonicalProcessMap`. Investigations,
-// findings, questions, causalLinks, suspectedCauses, evidenceSnapshots,
-// evidenceSources, rowProvenance, evidenceSourceCursors, and canvasState live
-// in session-only Zustand stores (or Dexie tables introduced in F3) — the walk
-// below is structurally correct but yields zero mutations on the PWA blob today
-// for all parent kinds except hub→outcome. F3 normalization will fill in the
-// remaining cases with real Dexie queries; the helper shape is already correct.
-// ---------------------------------------------------------------------------
-
-/**
- * Soft-mark descendants of a single EntityKind on the draft hub.
- *
- * The switch below covers every EntityKind. The only PWA-blob-resident kind
- * that can be cascade-targeted is `outcome` (via hub→outcome). All other kinds
- * are documented no-ops for PWA; F3 will add Dexie queries for the rest.
- *
- * The exhaustive switch (with no `default`) means TypeScript will error if a
- * new EntityKind is added to cascadeRules without updating this function.
- */
-function archiveDescendantsOfKindInDraft(
-  draft: Draft<ProcessHub>,
-  kind: EntityKind,
-  parentKind: EntityKind,
-  parentId: string,
-  archivedAt: number
-): void {
-  switch (kind) {
-    case 'outcome': {
-      // hub.outcomes is the only cascade target resident on the PWA blob.
-      // Soft-mark all unarchived outcomes whose hubId matches the parent.
-      if (parentKind === 'hub' && draft.id === parentId) {
-        for (const outcome of draft.outcomes ?? []) {
-          if (outcome.deletedAt === null) outcome.deletedAt = archivedAt;
-        }
-      }
-      return;
-    }
-    case 'hub':
-    case 'investigation':
-    case 'finding':
-    case 'question':
-    case 'causalLink':
-    case 'suspectedCause':
-    case 'evidenceSnapshot':
-    case 'evidenceSource':
-    case 'rowProvenance':
-    case 'evidenceSourceCursor':
-    case 'canvasState':
-      // PWA blob does not persist these arrays today; F3 will fill in.
-      return;
-  }
-}
-
-/**
- * Walks the transitive cascade rules for the given parent and soft-marks
- * matching descendants on the draft hub.
- *
- * On PWA, only the hub→outcome cascade has observable mutations. All other
- * parent kinds (investigation, evidenceSnapshot, evidenceSource, …) are
- * structurally correct but yield zero mutations because their descendant
- * arrays do not exist on the PWA blob. F3 normalizes.
- *
- * @internal Exported for unit-testing only. Do not call from app code.
- */
-export function cascadeArchiveDescendantsInDraft(
-  draft: Draft<ProcessHub>,
-  parentKind: EntityKind,
-  parentId: string,
-  archivedAt: number
-): void {
-  const descendantKinds = transitiveCascade(parentKind);
-  for (const kind of descendantKinds) {
-    archiveDescendantsOfKindInDraft(draft, kind, parentKind, parentId, archivedAt);
-  }
-}
-
-/**
- * Archive an investigation and its cascade descendants (finding, question,
- * causalLink, suspectedCause) on the draft hub.
- *
- * PWA blob has no investigations array; the parent soft-mark and the cascade
- * walk are both no-ops today. F3 normalizes.
- */
-function archiveInvestigationInDraft(draft: Draft<ProcessHub>, investigationId: string): void {
-  // PWA blob has no investigations array; the parent soft-mark is a no-op today.
-  // The cascade walk also yields no mutations on the PWA blob. F3 normalizes.
-  const archivedAt = Date.now();
-  cascadeArchiveDescendantsInDraft(draft, 'investigation', investigationId, archivedAt);
-}
-
-/**
- * Archive a finding and its cascade descendants on the draft hub.
- *
- * PWA blob has no findings array; both the parent soft-mark and cascade walk
- * are no-ops today. F3 normalizes.
- */
-function archiveFindingInDraft(draft: Draft<ProcessHub>, findingId: string): void {
-  // PWA blob has no findings array; the parent soft-mark is a no-op today.
-  // The cascade walk also yields no mutations on the PWA blob. F3 normalizes.
-  const archivedAt = Date.now();
-  cascadeArchiveDescendantsInDraft(draft, 'finding', findingId, archivedAt);
-}
-
-/**
- * Archive a question and its cascade descendants on the draft hub.
- *
- * PWA blob has no questions array; both the parent soft-mark and cascade walk
- * are no-ops today. F3 normalizes.
- */
-function archiveQuestionInDraft(draft: Draft<ProcessHub>, questionId: string): void {
-  // PWA blob has no questions array; the parent soft-mark is a no-op today.
-  // The cascade walk also yields no mutations on the PWA blob. F3 normalizes.
-  const archivedAt = Date.now();
-  cascadeArchiveDescendantsInDraft(draft, 'question', questionId, archivedAt);
-}
-
-/**
- * Archive a causal link and its cascade descendants on the draft hub.
- *
- * PWA blob has no causalLinks array; both the parent soft-mark and cascade walk
- * are no-ops today. F3 normalizes.
- */
-function archiveCausalLinkInDraft(draft: Draft<ProcessHub>, linkId: string): void {
-  // PWA blob has no causalLinks array; the parent soft-mark is a no-op today.
-  // The cascade walk also yields no mutations on the PWA blob. F3 normalizes.
-  const archivedAt = Date.now();
-  cascadeArchiveDescendantsInDraft(draft, 'causalLink', linkId, archivedAt);
-}
-
-/**
- * Archive a suspected cause and its cascade descendants on the draft hub.
- *
- * PWA blob has no suspectedCauses array; both the parent soft-mark and cascade
- * walk are no-ops today. F3 normalizes.
- */
-function archiveSuspectedCauseInDraft(draft: Draft<ProcessHub>, causeId: string): void {
-  // PWA blob has no suspectedCauses array; the parent soft-mark is a no-op today.
-  // The cascade walk also yields no mutations on the PWA blob. F3 normalizes.
-  const archivedAt = Date.now();
-  cascadeArchiveDescendantsInDraft(draft, 'suspectedCause', causeId, archivedAt);
-}
-
-// ---------------------------------------------------------------------------
 // applyAction
 // ---------------------------------------------------------------------------
 
 /**
- * Apply a single HubAction to a ProcessHub snapshot and return the next snapshot.
- * Pure function — no side effects, no I/O.
+ * Apply a single HubAction by performing Dexie writes against the PWA database.
  *
- * Hub-resident actions produce real Immer mutations.
- * Non-hub-resident actions are no-ops (documented above).
- * Canvas actions are no-ops (canvasStore is the canonical mutation surface).
- * Exhaustiveness is enforced at the TypeScript level via assertNever().
+ * Transactional where multiple tables are touched (HUB_PERSIST_SNAPSHOT). Single
+ * `.update()` / `.add()` calls are atomic at the Dexie level; no explicit
+ * transaction needed for them.
+ *
+ * Loud failure on hub-existence preconditions (OUTCOME_ADD); idempotent on
+ * already-deleted-or-missing rows (OUTCOME_UPDATE / OUTCOME_ARCHIVE).
+ *
+ * Exhaustiveness is enforced at the TypeScript level via `assertNever()`.
  */
-export function applyAction(hub: ProcessHub, action: HubAction): ProcessHub {
-  // HUB_PERSIST_SNAPSHOT is a full replacement — bypass produce for clarity.
-  if (action.kind === 'HUB_PERSIST_SNAPSHOT') {
-    return action.hub;
-  }
+export async function applyAction(db: PwaDatabase, action: HubAction): Promise<void> {
+  switch (action.kind) {
+    // -----------------------------------------------------------------------
+    // Hub bootstrap / full-save — atomic decompose into 3 tables.
+    //
+    // The incoming ProcessHub is split:
+    //   hubMeta       → hubs table
+    //   outcomes[]    → outcomes table (each row tagged with hubId)
+    //   canonicalProcessMap → canvasState table (1 row, keyed by hubId)
+    //
+    // Wrapping all three writes in a single read/write transaction guarantees
+    // partial-state recovery semantics: if any write throws, none commit.
+    // -----------------------------------------------------------------------
 
-  return produce(hub, draft => {
-    switch (action.kind) {
-      // -----------------------------------------------------------------------
-      // Hub meta — hub-resident real mutations
-      // -----------------------------------------------------------------------
-
-      case 'HUB_UPDATE_GOAL': {
-        if (action.hubId !== draft.id) break; // defensive: should never happen in hub-of-one
-        draft.processGoal = action.processGoal;
-        draft.updatedAt = Date.now();
-        break;
-      }
-
-      case 'HUB_UPDATE_PRIMARY_SCOPE_DIMENSIONS': {
-        if (action.hubId !== draft.id) break; // defensive: should never happen in hub-of-one
-        draft.primaryScopeDimensions = action.dimensions;
-        draft.updatedAt = Date.now();
-        break;
-      }
-
-      // -----------------------------------------------------------------------
-      // Outcomes — hub-resident real mutations
-      // -----------------------------------------------------------------------
-
-      case 'OUTCOME_ADD': {
-        if (action.hubId !== draft.id) {
-          // Loud failure: hub-of-one constraint — foreign outcomes must never arrive.
-          throw new Error(`OUTCOME_ADD hubId mismatch: expected ${draft.id}, got ${action.hubId}`);
+    case 'HUB_PERSIST_SNAPSHOT': {
+      const { canonicalProcessMap, outcomes, ...hubMeta } = action.hub;
+      await db.transaction('rw', [db.hubs, db.outcomes, db.canvasState], async () => {
+        await db.hubs.put(hubMeta);
+        // HUB_PERSIST_SNAPSHOT carries the hub's authoritative full state; rows
+        // that exist for this hub but are absent from the incoming snapshot are
+        // stale and must be removed inside the same transaction (preserves the
+        // F2 blob-replacement invariant in the normalized world). bulkPut/put
+        // alone are upserts and would leave dropped outcomes / a removed
+        // canonicalProcessMap visible on the next joinHub.
+        const incomingOutcomeIds = new Set((outcomes ?? []).map(o => o.id));
+        await db.outcomes
+          .where('hubId')
+          .equals(hubMeta.id)
+          .filter(o => !incomingOutcomeIds.has(o.id))
+          .delete();
+        if (outcomes && outcomes.length > 0) {
+          await db.outcomes.bulkPut(outcomes.map(outcome => ({ ...outcome, hubId: hubMeta.id })));
         }
-        if (!draft.outcomes) {
-          draft.outcomes = [];
+        if (canonicalProcessMap) {
+          await db.canvasState.put({ hubId: hubMeta.id, ...canonicalProcessMap });
+        } else {
+          // Snapshot lacks a canonical process map — clear any stale row so
+          // joinHub won't resurrect it.
+          await db.canvasState.delete(hubMeta.id);
         }
-        draft.outcomes.push(action.outcome);
-        break;
-      }
-
-      case 'OUTCOME_UPDATE': {
-        const outcome = draft.outcomes?.find(o => o.id === action.outcomeId);
-        if (!outcome) break; // no-op per Immer recipe pattern
-        Object.assign(outcome, action.patch);
-        break;
-      }
-
-      case 'OUTCOME_ARCHIVE': {
-        const outcome = draft.outcomes?.find(o => o.id === action.outcomeId);
-        if (!outcome || outcome.deletedAt !== null) break; // idempotent
-        outcome.deletedAt = Date.now();
-        // outcome has no cascadesTo descendants (cascadeRules.outcome.cascadesTo === [])
-        break;
-      }
-
-      // -----------------------------------------------------------------------
-      // Investigations — PWA blob does not persist investigations today; F3 normalizes.
-      // -----------------------------------------------------------------------
-
-      case 'INVESTIGATION_CREATE': {
-        // PWA blob does not persist investigations today; F3 normalizes.
-        break;
-      }
-
-      case 'INVESTIGATION_UPDATE_METADATA': {
-        // PWA blob does not persist investigations today; F3 normalizes.
-        break;
-      }
-
-      case 'INVESTIGATION_ARCHIVE': {
-        // PWA blob does not persist investigations today; F3 normalizes.
-        archiveInvestigationInDraft(draft, action.investigationId);
-        break;
-      }
-
-      // -----------------------------------------------------------------------
-      // Findings — PWA blob does not persist findings today; F3 normalizes.
-      // -----------------------------------------------------------------------
-
-      case 'FINDING_ADD': {
-        // PWA blob does not persist findings today; F3 normalizes.
-        break;
-      }
-
-      case 'FINDING_UPDATE': {
-        // PWA blob does not persist findings today; F3 normalizes.
-        break;
-      }
-
-      case 'FINDING_ARCHIVE': {
-        // PWA blob does not persist findings today; F3 normalizes.
-        archiveFindingInDraft(draft, action.findingId);
-        break;
-      }
-
-      // -----------------------------------------------------------------------
-      // Questions — PWA blob does not persist questions today; F3 normalizes.
-      // -----------------------------------------------------------------------
-
-      case 'QUESTION_ADD': {
-        // PWA blob does not persist questions today; F3 normalizes.
-        break;
-      }
-
-      case 'QUESTION_UPDATE': {
-        // PWA blob does not persist questions today; F3 normalizes.
-        break;
-      }
-
-      case 'QUESTION_ARCHIVE': {
-        // PWA blob does not persist questions today; F3 normalizes.
-        archiveQuestionInDraft(draft, action.questionId);
-        break;
-      }
-
-      // -----------------------------------------------------------------------
-      // Causal links — PWA blob does not persist causalLinks today; F3 normalizes.
-      // -----------------------------------------------------------------------
-
-      case 'CAUSAL_LINK_ADD': {
-        // PWA blob does not persist causalLinks today; F3 normalizes.
-        break;
-      }
-
-      case 'CAUSAL_LINK_UPDATE': {
-        // PWA blob does not persist causalLinks today; F3 normalizes.
-        break;
-      }
-
-      case 'CAUSAL_LINK_ARCHIVE': {
-        // PWA blob does not persist causalLinks today; F3 normalizes.
-        archiveCausalLinkInDraft(draft, action.linkId);
-        break;
-      }
-
-      // -----------------------------------------------------------------------
-      // Suspected causes — PWA blob does not persist suspectedCauses today; F3 normalizes.
-      // -----------------------------------------------------------------------
-
-      case 'SUSPECTED_CAUSE_ADD': {
-        // PWA blob does not persist suspectedCauses today; F3 normalizes.
-        break;
-      }
-
-      case 'SUSPECTED_CAUSE_UPDATE': {
-        // PWA blob does not persist suspectedCauses today; F3 normalizes.
-        break;
-      }
-
-      case 'SUSPECTED_CAUSE_ARCHIVE': {
-        // PWA blob does not persist suspectedCauses today; F3 normalizes.
-        archiveSuspectedCauseInDraft(draft, action.causeId);
-        break;
-      }
-
-      // -----------------------------------------------------------------------
-      // Evidence snapshots — PWA blob does not persist evidenceSnapshots today; F3 normalizes.
-      // -----------------------------------------------------------------------
-
-      case 'EVIDENCE_ADD_SNAPSHOT': {
-        // PWA blob does not persist evidenceSnapshots today; F3 normalizes.
-        break;
-      }
-
-      case 'EVIDENCE_ARCHIVE_SNAPSHOT': {
-        // PWA blob does not persist evidenceSnapshots today; F3 normalizes.
-        break;
-      }
-
-      // -----------------------------------------------------------------------
-      // Evidence sources — PWA blob does not persist evidenceSources today; F3 normalizes.
-      // -----------------------------------------------------------------------
-
-      case 'EVIDENCE_SOURCE_ADD': {
-        // PWA blob does not persist evidenceSources today; F3 normalizes.
-        break;
-      }
-
-      case 'EVIDENCE_SOURCE_UPDATE_CURSOR': {
-        // PWA blob does not persist evidenceSourceCursors today; F3 normalizes.
-        break;
-      }
-
-      case 'EVIDENCE_SOURCE_REMOVE': {
-        // PWA blob does not persist evidenceSources today; F3 normalizes.
-        break;
-      }
-
-      // -----------------------------------------------------------------------
-      // Canvas actions — no-ops: canvasStore is the canonical mutation surface.
-      // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT
-      // carrying the assembled canonicalProcessMap. F3 may revisit.
-      // -----------------------------------------------------------------------
-
-      case 'PLACE_CHIP_ON_STEP': {
-        // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT.
-        break;
-      }
-
-      case 'UNASSIGN_CHIP': {
-        // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT.
-        break;
-      }
-
-      case 'REORDER_CHIP_IN_STEP': {
-        // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT.
-        break;
-      }
-
-      case 'ADD_STEP': {
-        // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT.
-        break;
-      }
-
-      case 'REMOVE_STEP': {
-        // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT.
-        break;
-      }
-
-      case 'RENAME_STEP': {
-        // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT.
-        break;
-      }
-
-      case 'CONNECT_STEPS': {
-        // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT.
-        break;
-      }
-
-      case 'DISCONNECT_STEPS': {
-        // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT.
-        break;
-      }
-
-      case 'GROUP_INTO_SUB_STEP': {
-        // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT.
-        break;
-      }
-
-      case 'UNGROUP_SUB_STEP': {
-        // Canvas mutations live in canvasStore; PWA persists via HUB_PERSIST_SNAPSHOT.
-        break;
-      }
-
-      default:
-        assertNever(action);
+      });
+      return;
     }
-  });
+
+    // -----------------------------------------------------------------------
+    // Hub meta — single-row patches with updatedAt bump.
+    // -----------------------------------------------------------------------
+
+    case 'HUB_UPDATE_GOAL': {
+      // Loud failure on missing hub — matches OUTCOME_ADD's invariant.
+      // Dexie's `.update()` returns 0 silently on missing rows; in the
+      // normalized world that silence is misleading (caller's `await
+      // dispatch(...)` resolves without error even though nothing happened).
+      const hub = await db.hubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(`HUB_UPDATE_GOAL hubId mismatch: hub '${action.hubId}' not found`);
+      }
+      await db.hubs.update(action.hubId, {
+        processGoal: action.processGoal,
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'HUB_UPDATE_PRIMARY_SCOPE_DIMENSIONS': {
+      // Loud failure on missing hub — see HUB_UPDATE_GOAL for rationale.
+      const hub = await db.hubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(
+          `HUB_UPDATE_PRIMARY_SCOPE_DIMENSIONS hubId mismatch: hub '${action.hubId}' not found`
+        );
+      }
+      await db.hubs.update(action.hubId, {
+        primaryScopeDimensions: action.dimensions,
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    // -----------------------------------------------------------------------
+    // Outcomes — single-row inserts/patches against the outcomes table.
+    // -----------------------------------------------------------------------
+
+    case 'OUTCOME_ADD': {
+      const hub = await db.hubs.get(action.hubId);
+      if (!hub) {
+        // Loud failure: parent-hub invariant from F2 preserved.
+        throw new Error(`OUTCOME_ADD: parent hub ${action.hubId} does not exist`);
+      }
+      await db.outcomes.add({ ...action.outcome, hubId: action.hubId });
+      return;
+    }
+
+    case 'OUTCOME_UPDATE': {
+      // Idempotent: Dexie's `.update()` returns 0 on missing rows without throwing.
+      await db.outcomes.update(action.outcomeId, action.patch);
+      return;
+    }
+
+    case 'OUTCOME_ARCHIVE': {
+      // Idempotent soft-delete. `OutcomeSpec` has no cascade descendants
+      // (cascadeRules.outcome.cascadesTo === []), so no further work.
+      await db.outcomes.update(action.outcomeId, { deletedAt: Date.now() });
+      return;
+    }
+
+    // -----------------------------------------------------------------------
+    // Investigation entity actions (investigation / finding / question /
+    // causalLink / suspectedCause) — F5 wires these when the investigation
+    // entity action coverage lands. The corresponding tables already exist
+    // (declared by F3 P1) but writes are not yet routed here.
+    // -----------------------------------------------------------------------
+
+    case 'INVESTIGATION_CREATE':
+    case 'INVESTIGATION_UPDATE_METADATA':
+    case 'INVESTIGATION_ARCHIVE':
+    case 'FINDING_ADD':
+    case 'FINDING_UPDATE':
+    case 'FINDING_ARCHIVE':
+    case 'QUESTION_ADD':
+    case 'QUESTION_UPDATE':
+    case 'QUESTION_ARCHIVE':
+    case 'CAUSAL_LINK_ADD':
+    case 'CAUSAL_LINK_UPDATE':
+    case 'CAUSAL_LINK_ARCHIVE':
+    case 'SUSPECTED_CAUSE_ADD':
+    case 'SUSPECTED_CAUSE_UPDATE':
+    case 'SUSPECTED_CAUSE_ARCHIVE': {
+      return;
+    }
+
+    // -----------------------------------------------------------------------
+    // Evidence — F3.5 wires this when ingestion action layer lands.
+    // -----------------------------------------------------------------------
+
+    case 'EVIDENCE_ADD_SNAPSHOT':
+    case 'EVIDENCE_ARCHIVE_SNAPSHOT':
+    case 'EVIDENCE_SOURCE_ADD':
+    case 'EVIDENCE_SOURCE_UPDATE_CURSOR':
+    case 'EVIDENCE_SOURCE_REMOVE': {
+      // evidenceSnapshots / evidenceSources / evidenceSourceCursors /
+      // rowProvenance tables exist (F3 P1 declared them) but writes are not
+      // yet wired. F3.5 implements.
+      return;
+    }
+
+    // -----------------------------------------------------------------------
+    // Canvas — canvasStore remains the canonical mutation surface for
+    // canvas state. canvasState reaches the IDB table only via
+    // HUB_PERSIST_SNAPSHOT (which decomposes hub.canonicalProcessMap into a
+    // canvasState row). F5 introduces direct canvas action coverage if/when
+    // canvas mutations move out of the session-only Zustand store.
+    // -----------------------------------------------------------------------
+
+    case 'PLACE_CHIP_ON_STEP':
+    case 'UNASSIGN_CHIP':
+    case 'REORDER_CHIP_IN_STEP':
+    case 'ADD_STEP':
+    case 'REMOVE_STEP':
+    case 'RENAME_STEP':
+    case 'CONNECT_STEPS':
+    case 'DISCONNECT_STEPS':
+    case 'GROUP_INTO_SUB_STEP':
+    case 'UNGROUP_SUB_STEP': {
+      // Canvas mutations live in canvasStore; canvasState row is overwritten
+      // via HUB_PERSIST_SNAPSHOT. F5 wires direct canvas action coverage.
+      return;
+    }
+
+    default:
+      assertNever(action);
+  }
 }

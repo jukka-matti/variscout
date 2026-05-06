@@ -1,16 +1,17 @@
 // apps/pwa/src/__tests__/modeA1.test.tsx
 //
-// Mode A.1 — PWA reopen with persistence.
+// F3 P5 — Mode A.1 (PWA reopen with persistence) end-to-end behavior.
 //
-// Verifies that on app load:
-//   - opt-in flag false → user lands on HomeScreen
-//   - opt-in flag true + Hub saved → canvas restored with GoalBanner
+// Verifies that on App mount:
+//   - opt-in flag false → user lands on HomeScreen (no Hub restore)
+//   - opt-in flag true + persisted Hub → canvas restored, GoalBanner visible
 //
-// vi.mock() must come BEFORE any imports of components under test (testing.md rule).
+// vi.mock() must come BEFORE any imports of components under test (testing.md
+// invariant). The full Dashboard / view trees are stubbed so the mounted App
+// renders quickly in jsdom.
 import 'fake-indexeddb/auto';
 import { vi } from 'vitest';
 
-// Stub heavy lazy-loaded components so the App can render quickly in jsdom.
 vi.mock('../components/Dashboard', () => ({
   default: () => <div data-testid="dashboard-stub">Dashboard</div>,
 }));
@@ -52,8 +53,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import App from '../App';
 import { LocaleProvider } from '../context/LocaleContext';
-import { hubRepository } from '../db/hubRepository';
+import { db } from '../db/schema';
+import { setOptInFlag, pwaHubRepository } from '../persistence';
 import { DEFAULT_PROCESS_HUB, registerLocaleLoaders, type MessageCatalog } from '@variscout/core';
+import { useProjectStore } from '@variscout/stores';
 
 // Register locale loaders (mirrors main.tsx) so useTranslation works.
 registerLocaleLoaders(
@@ -71,15 +74,27 @@ function renderApp() {
   );
 }
 
-describe('Mode A.1 — PWA reopen with persistence', () => {
+describe('Mode A.1 — PWA reopen with persistence (F3)', () => {
   beforeEach(async () => {
-    await hubRepository.clearAll();
+    if (!db.isOpen()) await db.open();
+    await Promise.all([
+      db.meta.clear(),
+      db.hubs.clear(),
+      db.outcomes.clear(),
+      db.canvasState.clear(),
+    ]);
+    // Reset the project store so prior test mutations don't leak rawData.
+    useProjectStore.setState({
+      rawData: [],
+      outcome: null,
+      factors: [],
+    });
   });
 
   it('with opt-in flag false: lands on HomeScreen', async () => {
     renderApp();
-    // HomeScreen surfaces the "Paste from Excel" affordance via a sample-section /
-    // import button. We assert the heading or paste affordance is present.
+
+    // HomeScreen surfaces the "Paste from Excel" affordance via data-testid.
     await waitFor(
       () => {
         expect(screen.getByTestId('home-paste-button')).toBeInTheDocument();
@@ -88,13 +103,15 @@ describe('Mode A.1 — PWA reopen with persistence', () => {
     );
   });
 
-  it('with opt-in flag true and Hub saved: restores canvas with goal banner', async () => {
-    await hubRepository.setOptInFlag(true);
-    await hubRepository.saveHub({
-      ...DEFAULT_PROCESS_HUB,
-      processGoal: 'Restored goal.',
+  it('with opt-in flag true and Hub persisted: restores canvas with goal banner', async () => {
+    await setOptInFlag(true);
+    await pwaHubRepository.dispatch({
+      kind: 'HUB_PERSIST_SNAPSHOT',
+      hub: { ...DEFAULT_PROCESS_HUB, processGoal: 'Restored goal.' },
     });
+
     renderApp();
+
     await waitFor(
       () => {
         expect(screen.getByTestId('goal-banner')).toHaveTextContent('Restored goal');

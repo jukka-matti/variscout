@@ -1,5 +1,8 @@
 // apps/pwa/src/persistence/index.ts
-// Barrel: re-exports the class, singleton, and applyAction stub.
+//
+// Barrel for the PWA persistence module.
+// Composition root + dispatch boundary documented in apps/pwa/CLAUDE.md.
 
 export { PwaHubRepository, pwaHubRepository } from './PwaHubRepository';
 export { applyAction } from './applyAction';
+export { getOptInFlag, setOptInFlag } from './optIn';

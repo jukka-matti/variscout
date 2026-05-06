@@ -1,10 +1,36 @@
 // apps/pwa/src/persistence/PwaHubRepository.ts
 //
-// PWA persistence model: Hub-of-one blob only.
-// The PWA stores exactly one row in IndexedDB — `{ id: 'hub-of-one', hub: ProcessHub }`.
-// There are no per-entity tables. The grouped read APIs below serve data from
-// that single hub blob; F3 will normalize into dedicated tables.
+// F3 normalized PWA hub repository.
+//
+// Replaces the F2-era hub-of-one blob façade with the canonical implementation
+// of `@variscout/core/persistence#HubRepository` against the F3 normalized
+// 13-table schema (see `../db/schema.ts`).
+//
+// Write path:
+//   - `dispatch(action)` routes every HubAction to `applyAction(db, action)`,
+//     which performs transactional Dexie writes against the new schema.
+//   - The `HUB_PERSIST_SNAPSHOT` short-circuit is gone: bootstrap is just
+//     another transaction now, since the action carries the full ProcessHub.
+//
+// Read path:
+//   - `hubs.get` / `hubs.list` query `db.hubs`, then **join** outcomes
+//     (live entries only — `deletedAt === null`) and `canvasState` back into
+//     the in-memory `ProcessHub` shape consumers (stores, hooks) expect today.
+//   - `outcomes.get` / `outcomes.listByHub` filter by `deletedAt === null`.
+//   - `canvasState.getByHub` returns the row, stripped of the `hubId` FK.
+//   - `evidenceSnapshots` / `evidenceSources` / `investigations` /
+//     `findings` / `questions` / `causalLinks` / `suspectedCauses` query the
+//     real (empty) tables. Until F3.5 (evidence) and F5 (investigation
+//     entities) wire writes, these consistently return empty rows.
+//
+// Best-effort legacy DB cleanup:
+//   On first construction, kicks off a fire-and-forget
+//   `Dexie.delete('variscout-pwa').catch(() => {})` to remove the orphaned
+//   pre-F3 IDB database on dev machines. Failures are swallowed — pre-
+//   production, no recovery needed; the new `variscout-pwa-normalized` DB is
+//   already live regardless.
 
+import Dexie from 'dexie';
 import type {
   HubRepository,
   HubReadAPI,
@@ -19,31 +45,52 @@ import type {
   CanvasStateReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
-import { hubRepository } from '../db/hubRepository';
+import type { ProcessHub } from '@variscout/core/processHub';
+import type { ProcessMap } from '@variscout/core/frame';
+import { db, type HubRow } from '../db/schema';
 import { applyAction } from './applyAction';
 
+const LEGACY_DB_NAME = 'variscout-pwa';
+
 export class PwaHubRepository implements HubRepository {
+  constructor() {
+    // Best-effort cleanup of the pre-F3 IDB database on dev machines. Fire-
+    // and-forget; we do not block construction on its outcome. Failures
+    // (database doesn't exist, browser denies access, etc.) are swallowed.
+    void Dexie.delete(LEGACY_DB_NAME).catch(() => {
+      /* legacy DB cleanup is best-effort; ignore errors */
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // Single write path
   // ---------------------------------------------------------------------------
 
   async dispatch(action: HubAction): Promise<void> {
-    // HUB_PERSIST_SNAPSHOT is the bootstrap/save path — the action carries the
-    // full hub blob, so no existing hub needs to be loaded first. This is the
-    // only action that can execute before a hub has been persisted (e.g. the
-    // first "Save to this browser" click). applyAction still handles this kind
-    // for purity over HubAction, but dispatch short-circuits to avoid the
-    // unnecessary load round-trip and to support the null-hub bootstrap case.
-    if (action.kind === 'HUB_PERSIST_SNAPSHOT') {
-      await hubRepository.saveHub(action.hub);
-      return;
-    }
-    const hub = await hubRepository.loadHub();
-    if (!hub) {
-      throw new Error('No active hub to dispatch action against');
-    }
-    const next = applyAction(hub, action);
-    await hubRepository.saveHub(next);
+    await applyAction(db, action);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Join helper — rebuilds the in-memory ProcessHub shape from row data.
+  //
+  // `hub.outcomes` collects all live outcomes for the hub (deletedAt === null);
+  // `hub.canonicalProcessMap` rejoins the canvasState row (stripped of the
+  // `hubId` FK). Consumers see the same denormalized view they saw under the
+  // F2 hub-of-one model.
+  // ---------------------------------------------------------------------------
+
+  private async joinHub(hubMeta: HubRow): Promise<ProcessHub> {
+    const [outcomes, canvasRow] = await Promise.all([
+      db.outcomes.where('hubId').equals(hubMeta.id).toArray(),
+      db.canvasState.get(hubMeta.id),
+    ]);
+    const liveOutcomes = outcomes.filter(o => o.deletedAt === null);
+    const canonicalProcessMap = canvasRow ? stripHubId(canvasRow) : undefined;
+    return {
+      ...hubMeta,
+      ...(liveOutcomes.length > 0 ? { outcomes: liveOutcomes } : {}),
+      ...(canonicalProcessMap ? { canonicalProcessMap } : {}),
+    } as ProcessHub;
   }
 
   // ---------------------------------------------------------------------------
@@ -51,123 +98,174 @@ export class PwaHubRepository implements HubRepository {
   // ---------------------------------------------------------------------------
 
   hubs: HubReadAPI = {
-    async get(id) {
-      const hub = await hubRepository.loadHub();
-      return hub?.id === id ? hub : undefined;
+    // Wrap multi-table joins in a read transaction so a concurrent write
+    // between db.hubs.get and the outcomes/canvasState reads in joinHub can't
+    // splice partial state across versions. Dexie read transactions don't
+    // reenter; joinHub stays a private helper that only touches the three
+    // tables already declared in the transaction scope.
+    get: async id => {
+      return db.transaction('r', [db.hubs, db.outcomes, db.canvasState], async () => {
+        const hubMeta = await db.hubs.get(id);
+        if (!hubMeta) return undefined;
+        if (hubMeta.deletedAt !== null) return undefined;
+        return this.joinHub(hubMeta);
+      });
     },
-    async list() {
-      const hub = await hubRepository.loadHub();
-      return hub ? [hub] : [];
+    list: async () => {
+      return db.transaction('r', [db.hubs, db.outcomes, db.canvasState], async () => {
+        const allHubs = await db.hubs.toArray();
+        const liveHubs = allHubs.filter(h => h.deletedAt === null);
+        return Promise.all(liveHubs.map(h => this.joinHub(h)));
+      });
     },
   };
 
   // ---------------------------------------------------------------------------
   // Read APIs — outcomes
-  // Outcomes are hub-resident arrays; filter for live entries (deletedAt === null).
   // ---------------------------------------------------------------------------
 
   outcomes: OutcomeReadAPI = {
-    async get(id) {
-      const hub = await hubRepository.loadHub();
-      return hub?.outcomes?.find(o => o.id === id && o.deletedAt === null);
+    get: async id => {
+      const row = await db.outcomes.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
     },
-    async listByHub(hubId) {
-      const hub = await hubRepository.loadHub();
-      if (!hub || hub.id !== hubId) return [];
-      return (hub.outcomes ?? []).filter(o => o.deletedAt === null);
+    listByHub: async hubId => {
+      const rows = await db.outcomes.where('hubId').equals(hubId).toArray();
+      return rows.filter(o => o.deletedAt === null);
     },
   };
 
   // ---------------------------------------------------------------------------
   // Read APIs — canvas state
-  // canonicalProcessMap is the hub's canvas snapshot.
   // ---------------------------------------------------------------------------
 
   canvasState: CanvasStateReadAPI = {
-    async getByHub(hubId) {
-      const hub = await hubRepository.loadHub();
-      if (!hub || hub.id !== hubId) return undefined;
-      return hub.canonicalProcessMap;
+    getByHub: async hubId => {
+      const row = await db.canvasState.get(hubId);
+      if (!row) return undefined;
+      return stripHubId(row);
     },
   };
 
   // ---------------------------------------------------------------------------
-  // Stub read APIs — entities not yet stored in PWA hub blob.
-  // PWA persists hub blob only; F3 normalizes these into dedicated tables.
+  // Read APIs — entities the F3 schema declares but does not yet write.
+  // F3.5 (evidence) and F5 (investigation entities) wire dispatch handlers;
+  // until then these reads return empty rows from real (empty) tables.
   // ---------------------------------------------------------------------------
 
   evidenceSnapshots: EvidenceSnapshotReadAPI = {
-    // PWA persists hub blob only; F3 normalizes evidenceSnapshots into a dedicated table.
-    async get(_id) {
-      return undefined;
+    get: async id => {
+      const row = await db.evidenceSnapshots.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
     },
-    async listByHub(_hubId) {
-      return [];
+    listByHub: async hubId => {
+      const rows = await db.evidenceSnapshots.where('hubId').equals(hubId).toArray();
+      return rows.filter(r => r.deletedAt === null);
     },
   };
 
   evidenceSources: EvidenceSourceReadAPI = {
-    // PWA persists hub blob only; F3 normalizes evidenceSources into a dedicated table.
-    async get(_id) {
-      return undefined;
+    get: async id => {
+      const row = await db.evidenceSources.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
     },
-    async listByHub(_hubId) {
-      return [];
+    listByHub: async hubId => {
+      const rows = await db.evidenceSources.where('hubId').equals(hubId).toArray();
+      return rows.filter(r => r.deletedAt === null);
     },
-    async getCursor(_hubId, _sourceId) {
-      return undefined;
+    getCursor: async (hubId, sourceId) => {
+      // Dexie schema indexes evidenceSourceCursors by `&id, sourceId`, but the
+      // semantic key per F1 R4 / Azure parity is `[hubId, sourceId]` — the
+      // cursor row's hubId FK is carried on the entity. Filter post-fetch by
+      // hubId so F3.5 writes can't return a foreign hub's cursor when two
+      // hubs happen to share a sourceId.
+      const row = await db.evidenceSourceCursors
+        .where('sourceId')
+        .equals(sourceId)
+        .filter(c => c.hubId === hubId)
+        .first();
+      return row;
     },
   };
 
   investigations: InvestigationReadAPI = {
-    // PWA persists hub blob only; investigations live in session-only Zustand store today.
-    async get(_id) {
-      return undefined;
+    get: async id => {
+      const row = await db.investigations.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
     },
-    async listByHub(_hubId) {
-      return [];
+    listByHub: async hubId => {
+      const rows = await db.investigations.where('hubId').equals(hubId).toArray();
+      return rows.filter(r => r.deletedAt === null);
     },
   };
 
   findings: FindingReadAPI = {
-    // PWA persists hub blob only; findings live in session-only Zustand store today.
-    async get(_id) {
-      return undefined;
+    get: async id => {
+      const row = await db.findings.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
     },
-    async listByInvestigation(_investigationId) {
-      return [];
+    listByInvestigation: async investigationId => {
+      const rows = await db.findings.where('investigationId').equals(investigationId).toArray();
+      return rows.filter(r => r.deletedAt === null);
     },
   };
 
   questions: QuestionReadAPI = {
-    // PWA persists hub blob only; questions live in session-only Zustand store today.
-    async get(_id) {
-      return undefined;
+    get: async id => {
+      const row = await db.questions.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
     },
-    async listByInvestigation(_investigationId) {
-      return [];
+    listByInvestigation: async investigationId => {
+      const rows = await db.questions.where('investigationId').equals(investigationId).toArray();
+      return rows.filter(r => r.deletedAt === null);
     },
   };
 
   causalLinks: CausalLinkReadAPI = {
-    // PWA persists hub blob only; causalLinks live in session-only Zustand store today.
-    async get(_id) {
-      return undefined;
+    get: async id => {
+      const row = await db.causalLinks.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
     },
-    async listByInvestigation(_investigationId) {
-      return [];
+    listByInvestigation: async investigationId => {
+      const rows = await db.causalLinks.where('investigationId').equals(investigationId).toArray();
+      return rows.filter(r => r.deletedAt === null);
     },
   };
 
   suspectedCauses: SuspectedCauseReadAPI = {
-    // PWA persists hub blob only; suspectedCauses live in session-only Zustand store today.
-    async get(_id) {
-      return undefined;
+    get: async id => {
+      const row = await db.suspectedCauses.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
     },
-    async listByInvestigation(_investigationId) {
-      return [];
+    listByInvestigation: async investigationId => {
+      const rows = await db.suspectedCauses
+        .where('investigationId')
+        .equals(investigationId)
+        .toArray();
+      return rows.filter(r => r.deletedAt === null);
     },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Strip the `hubId` FK from a canvasState row, returning the underlying ProcessMap. */
+function stripHubId(row: { hubId: string } & ProcessMap): ProcessMap {
+  // Object rest preserves the ProcessMap shape (version, nodes, tributaries,
+  // ctsColumn, etc.) without leaking the FK column to consumers.
+  const { hubId: _hubId, ...processMap } = row;
+  void _hubId;
+  return processMap;
 }
 
 // Module-scoped singleton. Composition root + dispatch boundary documented in apps/pwa/CLAUDE.md.

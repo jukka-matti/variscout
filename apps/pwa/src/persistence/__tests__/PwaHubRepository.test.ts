@@ -1,505 +1,495 @@
 // apps/pwa/src/persistence/__tests__/PwaHubRepository.test.ts
 //
-// Smoke tests for PwaHubRepository skeleton (P3.1).
-// - dispatch error paths (no-hub, applyAction-not-implemented)
-// - hubs.get / hubs.list happy + empty paths
-// - outcomes.listByHub with live + tombstoned entries
-// - canvasState.getByHub with matching + mismatched hubId
-// - stub APIs return undefined / [] as documented
+// F3 P5 — read-side + dispatch tests for PwaHubRepository against the
+// normalized 13-table schema.
 //
-// Mocking strategy:
-//   vi.hoisted() ensures mock vars are available inside vi.mock factory closures.
-//   vi.mock() BEFORE subject imports — required per testing.md and MEMORY.md.
-//   vi is imported explicitly (globals:true gives runtime access; tsc needs the import).
+// Coverage:
+//   - dispatch routes through applyAction (HUB_PERSIST_SNAPSHOT bootstrap)
+//   - hubs.get / hubs.list rebuild the ProcessHub shape (outcomes + canvasState)
+//   - outcomes filter by deletedAt === null
+//   - canvasState.getByHub strips the hubId FK
+//   - evidenceSources.getCursor enforces the [hubId+sourceId] semantic key
+//   - read transactions wrap multi-table joins
+//   - legacy DB cleanup fires Dexie.delete('variscout-pwa') at construction
+//   - empty stub read APIs return [] / undefined safely
+//
+// fake-indexeddb/auto polyfills IndexedDB globally; the real Dexie instance
+// works end-to-end in jsdom.
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-
-// vi.hoisted + vi.mock must appear before the subject imports so that vitest
-// can hoist them above the import block at transform time.
-const mocks = vi.hoisted(() => ({
-  loadHub: vi.fn(),
-  saveHub: vi.fn(),
-}));
-
-vi.mock('../../db/hubRepository', () => ({
-  hubRepository: {
-    loadHub: mocks.loadHub,
-    saveHub: mocks.saveHub,
-    getOptInFlag: vi.fn(),
-    setOptInFlag: vi.fn(),
-    clearHub: vi.fn(),
-    clearAll: vi.fn(),
-  },
-}));
-
-import { PwaHubRepository } from '../PwaHubRepository';
+import 'fake-indexeddb/auto';
+import Dexie from 'dexie';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '@variscout/core';
 import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
 import type { ProcessMap } from '@variscout/core/frame';
-import type { HubAction } from '@variscout/core/actions';
-
-// ---------------------------------------------------------------------------
-// Minimal ProcessMap fixture (required fields only)
-// ---------------------------------------------------------------------------
-
-const FIXTURE_MAP: ProcessMap = {
-  version: 1,
-  nodes: [],
-  tributaries: [],
-  createdAt: '2026-05-06T00:00:00.000Z',
-  updatedAt: '2026-05-06T00:00:00.000Z',
-};
+import { db } from '../../db/schema';
+import { PwaHubRepository } from '../PwaHubRepository';
+import { applyAction } from '../applyAction';
 
 // ---------------------------------------------------------------------------
 // Fixture helpers
 // ---------------------------------------------------------------------------
 
-const NOW = 1_700_000_000_000;
+const NOW = 1_746_352_800_000;
 
-function makeHub(overrides: Partial<ProcessHub> = {}): ProcessHub {
+function makeHub(id: string, overrides: Partial<ProcessHub> = {}): ProcessHub {
   return {
-    id: 'hub-of-one',
-    name: 'Test Hub',
+    id,
+    name: `Hub ${id}`,
     createdAt: NOW,
     deletedAt: null,
     ...overrides,
   };
 }
 
-function makeOutcome(id: string, deletedAt: number | null = null): OutcomeSpec {
+function makeOutcome(id: string, hubId: string, overrides: Partial<OutcomeSpec> = {}): OutcomeSpec {
   return {
     id,
-    hubId: 'hub-of-one',
+    hubId,
     columnName: 'fill_weight',
     characteristicType: 'nominalIsBest',
     createdAt: NOW,
-    deletedAt,
+    deletedAt: null,
+    ...overrides,
   };
 }
 
-// Minimal stub action — kind does not matter for skeleton dispatch tests because
-// applyAction will throw before reaching any switch branch.
-const STUB_ACTION: HubAction = {
-  kind: 'OUTCOME_UPSERT',
-  payload: makeOutcome('outcome-1'),
-} as unknown as HubAction;
+function makeProcessMap(overrides: Partial<ProcessMap> = {}): ProcessMap {
+  return {
+    version: 1,
+    nodes: [],
+    tributaries: [],
+    createdAt: '2026-05-06T00:00:00.000Z',
+    updatedAt: '2026-05-06T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
+function makeEvidenceSource(id: string, hubId: string): EvidenceSource {
+  return {
+    id,
+    hubId,
+    name: `Source ${id}`,
+    cadence: 'manual',
+    createdAt: NOW,
+    deletedAt: null,
+  };
+}
+
+function makeEvidenceSnapshot(id: string, hubId: string, sourceId: string): EvidenceSnapshot {
+  return {
+    id,
+    hubId,
+    sourceId,
+    capturedAt: '2026-05-06T00:00:00.000Z',
+    rowCount: 0,
+    origin: 'paste',
+    importedAt: NOW,
+    createdAt: NOW,
+    deletedAt: null,
+  };
+}
+
+function makeCursor(id: string, hubId: string, sourceId: string): EvidenceSourceCursor {
+  return {
+    id,
+    hubId,
+    sourceId,
+    lastSeenSnapshotId: `snap-${sourceId}`,
+    lastSeenAt: NOW,
+    createdAt: NOW,
+    deletedAt: null,
+  };
+}
 
 // ---------------------------------------------------------------------------
-// Tests
+// Setup / teardown — clear every table the repo reads from.
 // ---------------------------------------------------------------------------
 
-describe('PwaHubRepository', () => {
-  let repo: PwaHubRepository;
+beforeEach(async () => {
+  await Promise.all([
+    db.hubs.clear(),
+    db.outcomes.clear(),
+    db.canvasState.clear(),
+    db.evidenceSnapshots.clear(),
+    db.evidenceSources.clear(),
+    db.evidenceSourceCursors.clear(),
+    db.investigations.clear(),
+    db.findings.clear(),
+    db.questions.clear(),
+    db.causalLinks.clear(),
+    db.suspectedCauses.clear(),
+  ]);
+});
 
-  beforeEach(() => {
-    repo = new PwaHubRepository();
-    mocks.loadHub.mockReset();
-    mocks.saveHub.mockReset();
+afterEach(async () => {
+  vi.restoreAllMocks();
+});
+
+// ---------------------------------------------------------------------------
+// dispatch
+// ---------------------------------------------------------------------------
+
+describe('PwaHubRepository.dispatch', () => {
+  it('routes HUB_PERSIST_SNAPSHOT through applyAction (bootstrap path)', async () => {
+    const repo = new PwaHubRepository();
+    const hub = makeHub('hub-d', {
+      processGoal: 'goal',
+      outcomes: [makeOutcome('out-d', 'hub-d')],
+    });
+
+    await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub });
+
+    // Verify the dispatch produced the same row state as a direct applyAction call.
+    const hubRow = await db.hubs.get('hub-d');
+    expect(hubRow?.processGoal).toBe('goal');
+    const outcomes = await db.outcomes.where('hubId').equals('hub-d').toArray();
+    expect(outcomes).toHaveLength(1);
   });
 
-  // ---- dispatch ----
+  it('propagates rejections from applyAction (loud-fail invariant)', async () => {
+    const repo = new PwaHubRepository();
 
-  describe('dispatch', () => {
-    it('throws "No active hub" when loadHub returns null', async () => {
-      mocks.loadHub.mockResolvedValue(null);
-      await expect(repo.dispatch(STUB_ACTION)).rejects.toThrow(
-        'No active hub to dispatch action against'
-      );
-    });
-
-    it('calls saveHub with the next hub snapshot when dispatch succeeds', async () => {
-      const hub = makeHub();
-      mocks.loadHub.mockResolvedValue(hub);
-      mocks.saveHub.mockResolvedValue(undefined);
-      // OUTCOME_UPDATE on a hub with no outcomes is a no-op that still saves
-      const action: HubAction = {
-        kind: 'OUTCOME_UPDATE',
-        outcomeId: 'nonexistent',
-        patch: { target: 5 },
-      };
-      await repo.dispatch(action);
-      expect(mocks.saveHub).toHaveBeenCalledOnce();
-      // The saved hub should equal the input hub (OUTCOME_UPDATE on nonexistent id is a no-op)
-      expect(mocks.saveHub).toHaveBeenCalledWith(expect.objectContaining({ id: 'hub-of-one' }));
-    });
-
-    it('does not call saveHub when loadHub returns null', async () => {
-      mocks.loadHub.mockResolvedValue(null);
-      await expect(repo.dispatch(STUB_ACTION)).rejects.toThrow();
-      expect(mocks.saveHub).not.toHaveBeenCalled();
-    });
+    await expect(
+      repo.dispatch({ kind: 'HUB_UPDATE_GOAL', hubId: 'ghost', processGoal: 'x' })
+    ).rejects.toThrow(/ghost/);
   });
 
-  // ---- hubs.get ----
+  it('bootstrap: HUB_PERSIST_SNAPSHOT works against an empty repository', async () => {
+    const repo = new PwaHubRepository();
+    expect(await db.hubs.count()).toBe(0);
 
-  describe('hubs.get', () => {
-    it('returns the hub when ids match', async () => {
-      const hub = makeHub({ id: 'hub-of-one' });
-      mocks.loadHub.mockResolvedValue(hub);
-      const result = await repo.hubs.get('hub-of-one');
-      expect(result).toEqual(hub);
+    await repo.dispatch({
+      kind: 'HUB_PERSIST_SNAPSHOT',
+      hub: makeHub('hub-boot'),
     });
 
-    it('returns undefined when ids do not match', async () => {
-      mocks.loadHub.mockResolvedValue(makeHub({ id: 'hub-of-one' }));
-      const result = await repo.hubs.get('different-id');
-      expect(result).toBeUndefined();
+    expect(await db.hubs.count()).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// hubs.get / hubs.list
+// ---------------------------------------------------------------------------
+
+describe('PwaHubRepository.hubs', () => {
+  it('get rebuilds the ProcessHub shape with outcomes + canonicalProcessMap re-attached', async () => {
+    const repo = new PwaHubRepository();
+    await applyAction(db, {
+      kind: 'HUB_PERSIST_SNAPSHOT',
+      hub: makeHub('hub-r1', {
+        processGoal: 'restored',
+        outcomes: [makeOutcome('out-r1', 'hub-r1', { columnName: 'a' })],
+        canonicalProcessMap: makeProcessMap({ ctsColumn: 'cts' }),
+      }),
     });
 
-    it('returns undefined when no hub is loaded', async () => {
-      mocks.loadHub.mockResolvedValue(null);
-      const result = await repo.hubs.get('hub-of-one');
-      expect(result).toBeUndefined();
-    });
+    const hub = await repo.hubs.get('hub-r1');
+    expect(hub?.id).toBe('hub-r1');
+    expect(hub?.processGoal).toBe('restored');
+    expect(hub?.outcomes).toHaveLength(1);
+    expect(hub?.outcomes?.[0].id).toBe('out-r1');
+    expect(hub?.canonicalProcessMap?.ctsColumn).toBe('cts');
+    // hubId FK must not leak through into the ProcessMap.
+    expect((hub?.canonicalProcessMap as unknown as { hubId?: string })?.hubId).toBeUndefined();
   });
 
-  // ---- hubs.list ----
+  it('get filters out outcomes with non-null deletedAt', async () => {
+    const repo = new PwaHubRepository();
+    await db.hubs.put({ ...makeHub('hub-flt') });
+    await db.outcomes.bulkPut([
+      makeOutcome('out-live', 'hub-flt'),
+      makeOutcome('out-arch', 'hub-flt', { deletedAt: NOW }),
+    ]);
 
-  describe('hubs.list', () => {
-    it('returns [hub] when a hub is loaded', async () => {
-      const hub = makeHub();
-      mocks.loadHub.mockResolvedValue(hub);
-      const result = await repo.hubs.list();
-      expect(result).toEqual([hub]);
-    });
-
-    it('returns [] when no hub is loaded', async () => {
-      mocks.loadHub.mockResolvedValue(null);
-      const result = await repo.hubs.list();
-      expect(result).toEqual([]);
-    });
+    const hub = await repo.hubs.get('hub-flt');
+    expect(hub?.outcomes).toHaveLength(1);
+    expect(hub?.outcomes?.[0].id).toBe('out-live');
   });
 
-  // ---- outcomes.listByHub ----
+  it('get omits canonicalProcessMap when no canvasState row exists', async () => {
+    const repo = new PwaHubRepository();
+    await applyAction(db, { kind: 'HUB_PERSIST_SNAPSHOT', hub: makeHub('hub-noc') });
 
-  describe('outcomes.listByHub', () => {
-    it('returns only live outcomes (deletedAt === null) for matching hubId', async () => {
-      const live = makeOutcome('outcome-live', null);
-      const tombstoned = makeOutcome('outcome-dead', NOW);
-      mocks.loadHub.mockResolvedValue(makeHub({ outcomes: [live, tombstoned] }));
-      const result = await repo.outcomes.listByHub('hub-of-one');
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('outcome-live');
-    });
-
-    it('returns [] when hubId does not match', async () => {
-      mocks.loadHub.mockResolvedValue(makeHub({ outcomes: [makeOutcome('outcome-1')] }));
-      const result = await repo.outcomes.listByHub('other-hub');
-      expect(result).toEqual([]);
-    });
-
-    it('returns [] when hub has no outcomes array', async () => {
-      mocks.loadHub.mockResolvedValue(makeHub({ outcomes: undefined }));
-      const result = await repo.outcomes.listByHub('hub-of-one');
-      expect(result).toEqual([]);
-    });
-
-    it('returns [] when no hub is loaded', async () => {
-      mocks.loadHub.mockResolvedValue(null);
-      const result = await repo.outcomes.listByHub('hub-of-one');
-      expect(result).toEqual([]);
-    });
+    const hub = await repo.hubs.get('hub-noc');
+    expect(hub?.id).toBe('hub-noc');
+    expect(hub?.canonicalProcessMap).toBeUndefined();
   });
 
-  // ---- outcomes.get ----
-
-  describe('outcomes.get', () => {
-    it('returns the matching live outcome', async () => {
-      const outcome = makeOutcome('outcome-1');
-      mocks.loadHub.mockResolvedValue(makeHub({ outcomes: [outcome] }));
-      const result = await repo.outcomes.get('outcome-1');
-      expect(result).toEqual(outcome);
-    });
-
-    it('returns undefined for a tombstoned outcome', async () => {
-      const tombstoned = makeOutcome('outcome-dead', NOW);
-      mocks.loadHub.mockResolvedValue(makeHub({ outcomes: [tombstoned] }));
-      const result = await repo.outcomes.get('outcome-dead');
-      expect(result).toBeUndefined();
-    });
+  it('get returns undefined when the hub does not exist', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.hubs.get('does-not-exist')).toBeUndefined();
   });
 
-  // ---- canvasState.getByHub ----
-
-  describe('canvasState.getByHub', () => {
-    it('returns canonicalProcessMap when hubId matches', async () => {
-      mocks.loadHub.mockResolvedValue(makeHub({ canonicalProcessMap: FIXTURE_MAP }));
-      const result = await repo.canvasState.getByHub('hub-of-one');
-      expect(result).toEqual(FIXTURE_MAP);
-    });
-
-    it('returns undefined when hubId does not match', async () => {
-      mocks.loadHub.mockResolvedValue(makeHub({ canonicalProcessMap: FIXTURE_MAP }));
-      const result = await repo.canvasState.getByHub('other-hub');
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined when hub has no canonicalProcessMap', async () => {
-      mocks.loadHub.mockResolvedValue(makeHub({ canonicalProcessMap: undefined }));
-      const result = await repo.canvasState.getByHub('hub-of-one');
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined when no hub is loaded', async () => {
-      mocks.loadHub.mockResolvedValue(null);
-      const result = await repo.canvasState.getByHub('hub-of-one');
-      expect(result).toBeUndefined();
-    });
+  it('get returns undefined when the hub has been soft-deleted', async () => {
+    const repo = new PwaHubRepository();
+    await db.hubs.put({ ...makeHub('hub-dead'), deletedAt: NOW });
+    expect(await repo.hubs.get('hub-dead')).toBeUndefined();
   });
 
-  // ---- dispatch end-to-end ----
-  //
-  // These integration tests prove that dispatch() calls loadHub → applyAction → saveHub
-  // with the correct contract for each action category.
-  //
-  // applyAction.test.ts proves recipe correctness in isolation;
-  // these tests prove the wiring is intact through the repository layer.
-
-  describe('dispatch end-to-end', () => {
-    // Freeze time for all tests in this block so Date.now()-dependent assertions are
-    // deterministic. Use the plan's reference timestamp: 2026-05-06T12:00:00.000Z.
-    const FROZEN_MS = new Date('2026-05-06T12:00:00.000Z').getTime();
-
-    beforeEach(() => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date('2026-05-06T12:00:00.000Z'));
-      mocks.saveHub.mockResolvedValue(undefined);
+  it('list returns an array of joined hubs', async () => {
+    const repo = new PwaHubRepository();
+    await applyAction(db, {
+      kind: 'HUB_PERSIST_SNAPSHOT',
+      hub: makeHub('hub-l1', { outcomes: [makeOutcome('out-l1', 'hub-l1')] }),
+    });
+    await applyAction(db, {
+      kind: 'HUB_PERSIST_SNAPSHOT',
+      hub: makeHub('hub-l2'),
     });
 
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('HUB_PERSIST_SNAPSHOT replaces the hub blob entirely (existing hub in store)', async () => {
-      // dispatch short-circuits for HUB_PERSIST_SNAPSHOT — loadHub is NOT called.
-      // The action payload IS the new hub; no load+merge round-trip needed.
-      const replacement = makeHub({
-        id: 'hub-of-one',
-        name: 'New Hub',
-        processGoal: 'ship on time',
-      });
-
-      await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: replacement });
-
-      expect(mocks.loadHub).not.toHaveBeenCalled();
-      expect(mocks.saveHub).toHaveBeenCalledOnce();
-      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
-      expect(saved).toEqual(replacement);
-    });
-
-    it('HUB_PERSIST_SNAPSHOT works when no hub is loaded (bootstrap path)', async () => {
-      // First "Save to this browser" click: no hub in IndexedDB yet. dispatch must
-      // not throw even when loadHub would return null.
-      mocks.loadHub.mockResolvedValue(null);
-      const newHub = makeHub({ id: 'hub-of-one', name: 'Brand New Hub' });
-
-      await expect(
-        repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: newHub })
-      ).resolves.toBeUndefined();
-
-      expect(mocks.loadHub).not.toHaveBeenCalled();
-      expect(mocks.saveHub).toHaveBeenCalledOnce();
-      expect(mocks.saveHub).toHaveBeenCalledWith(newHub);
-    });
-
-    it('HUB_PERSIST_SNAPSHOT saves action.hub, not the previously loaded hub', async () => {
-      // Replacement semantics: even if a different hub is in the store, the
-      // action payload wins — no merge, no load.
-      const actionHub = makeHub({ id: 'hub-of-one', name: 'Action Hub', processGoal: 'new goal' });
-
-      await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: actionHub });
-
-      expect(mocks.saveHub).toHaveBeenCalledWith(actionHub);
-    });
-
-    it('HUB_UPDATE_GOAL persists the new processGoal and sets updatedAt', async () => {
-      const hub = makeHub({ id: 'hub-of-one', processGoal: 'old goal' });
-      mocks.loadHub.mockResolvedValue(hub);
-
-      await repo.dispatch({
-        kind: 'HUB_UPDATE_GOAL',
-        hubId: 'hub-of-one',
-        processGoal: 'new goal',
-      });
-
-      expect(mocks.saveHub).toHaveBeenCalledOnce();
-      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
-      expect(saved.processGoal).toBe('new goal');
-      expect(saved.updatedAt).toBe(FROZEN_MS);
-    });
-
-    it('OUTCOME_ADD pushes the new outcome to the outcomes array', async () => {
-      const hub = makeHub({ id: 'hub-of-one', outcomes: [] });
-      mocks.loadHub.mockResolvedValue(hub);
-      const newOutcome = makeOutcome('outcome-new');
-
-      await repo.dispatch({
-        kind: 'OUTCOME_ADD',
-        hubId: 'hub-of-one',
-        outcome: newOutcome,
-      });
-
-      expect(mocks.saveHub).toHaveBeenCalledOnce();
-      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
-      expect(saved.outcomes).toHaveLength(1);
-      expect(saved.outcomes![0].id).toBe('outcome-new');
-    });
-
-    it('OUTCOME_UPDATE patches the target on the matching outcome', async () => {
-      const outcome = makeOutcome('outcome-1');
-      const hub = makeHub({ id: 'hub-of-one', outcomes: [outcome] });
-      mocks.loadHub.mockResolvedValue(hub);
-
-      await repo.dispatch({
-        kind: 'OUTCOME_UPDATE',
-        outcomeId: 'outcome-1',
-        patch: { target: 5 },
-      });
-
-      expect(mocks.saveHub).toHaveBeenCalledOnce();
-      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
-      expect(saved.outcomes![0].target).toBe(5);
-    });
-
-    it('OUTCOME_ARCHIVE soft-marks deletedAt on the matching outcome', async () => {
-      const outcome = makeOutcome('outcome-1', null);
-      const hub = makeHub({ id: 'hub-of-one', outcomes: [outcome] });
-      mocks.loadHub.mockResolvedValue(hub);
-
-      await repo.dispatch({ kind: 'OUTCOME_ARCHIVE', outcomeId: 'outcome-1' });
-
-      expect(mocks.saveHub).toHaveBeenCalledOnce();
-      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
-      expect(saved.outcomes![0].deletedAt).toBe(FROZEN_MS);
-    });
-
-    it('OUTCOME_ARCHIVE is idempotent: second dispatch preserves the first deletedAt', async () => {
-      const outcome = makeOutcome('outcome-1', null);
-      const hub = makeHub({ id: 'hub-of-one', outcomes: [outcome] });
-
-      // First dispatch — captures FROZEN_MS as deletedAt
-      mocks.loadHub.mockResolvedValue(hub);
-      await repo.dispatch({ kind: 'OUTCOME_ARCHIVE', outcomeId: 'outcome-1' });
-      const savedFirst = mocks.saveHub.mock.calls[0][0] as ProcessHub;
-      const firstDeletedAt = savedFirst.outcomes![0].deletedAt;
-      expect(firstDeletedAt).toBe(FROZEN_MS);
-
-      // Advance frozen clock so a second mutation would use a different timestamp
-      vi.advanceTimersByTime(30_000);
-
-      // Second dispatch — loadHub returns the already-archived hub from the first call
-      mocks.saveHub.mockReset();
-      mocks.saveHub.mockResolvedValue(undefined);
-      mocks.loadHub.mockResolvedValue(savedFirst);
-      await repo.dispatch({ kind: 'OUTCOME_ARCHIVE', outcomeId: 'outcome-1' });
-
-      expect(mocks.saveHub).toHaveBeenCalledOnce();
-      const savedSecond = mocks.saveHub.mock.calls[0][0] as ProcessHub;
-      // deletedAt must not be overwritten by the second dispatch
-      expect(savedSecond.outcomes![0].deletedAt).toBe(firstDeletedAt);
-    });
-
-    it('INVESTIGATION_ARCHIVE is a no-op for the PWA blob (investigations are session-only)', async () => {
-      // Contract: INVESTIGATION_ARCHIVE dispatches successfully but does not mutate
-      // the hub blob on PWA, because investigations are not blob-resident (F3 normalizes).
-      // The hub is saved unchanged (same reference equality via Immer structural sharing
-      // is not guaranteed, but the shape must be deep-equal to the input).
-      const outcome = makeOutcome('outcome-1', null);
-      const hub = makeHub({ id: 'hub-of-one', outcomes: [outcome] });
-      mocks.loadHub.mockResolvedValue(hub);
-
-      await repo.dispatch({ kind: 'INVESTIGATION_ARCHIVE', investigationId: 'inv-1' });
-
-      expect(mocks.saveHub).toHaveBeenCalledOnce();
-      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
-      // Hub shape is unchanged — no outcome mutations because investigation cascade
-      // finds no blob-resident children (hub→outcome only cascades when parentKind='hub').
-      expect(saved.outcomes).toHaveLength(1);
-      expect(saved.outcomes![0].deletedAt).toBeNull();
-    });
-
-    it('PLACE_CHIP_ON_STEP is a no-op for the PWA blob (canvas mutations live in canvasStore, R15)', async () => {
-      // Contract: canvas actions dispatch successfully but do not mutate the hub blob.
-      // Canvas state is owned by canvasStore; the blob is overwritten via
-      // HUB_PERSIST_SNAPSHOT when the user saves. See R15 in applyAction.ts.
-      const hub = makeHub({ id: 'hub-of-one', outcomes: [makeOutcome('outcome-1', null)] });
-      mocks.loadHub.mockResolvedValue(hub);
-
-      await repo.dispatch({ kind: 'PLACE_CHIP_ON_STEP', chipId: 'chip-1', stepId: 'step-1' });
-
-      expect(mocks.saveHub).toHaveBeenCalledOnce();
-      const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
-      // Hub blob is unchanged — canvas is not a blob-resident structure on PWA.
-      expect(saved).toMatchObject({ id: 'hub-of-one' });
-      expect(saved.outcomes).toHaveLength(1);
-      expect(saved.outcomes![0].deletedAt).toBeNull();
-    });
+    const hubs = await repo.hubs.list();
+    expect(Array.isArray(hubs)).toBe(true);
+    expect(hubs).toHaveLength(2);
+    const byId = new Map(hubs.map(h => [h.id, h]));
+    expect(byId.get('hub-l1')?.outcomes).toHaveLength(1);
+    expect(byId.get('hub-l2')?.outcomes).toBeUndefined();
   });
 
-  // ---- stub APIs ----
+  it('list excludes soft-deleted hubs', async () => {
+    const repo = new PwaHubRepository();
+    await db.hubs.put({ ...makeHub('hub-live') });
+    await db.hubs.put({ ...makeHub('hub-soft'), deletedAt: NOW });
 
-  describe('stub read APIs (F3 not yet implemented)', () => {
-    beforeEach(() => {
-      mocks.loadHub.mockResolvedValue(makeHub());
+    const hubs = await repo.hubs.list();
+    expect(hubs).toHaveLength(1);
+    expect(hubs[0].id).toBe('hub-live');
+  });
+
+  it('list returns [] when no hubs exist', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.hubs.list()).toEqual([]);
+  });
+
+  it('hubs.get wraps reads in a db.transaction across the three joined tables', async () => {
+    // The read-transaction wrap is the F3 fix-commit Issue 4 contract — guards
+    // against partial-state splice across hub / outcomes / canvasState writes
+    // happening between the .get() and the joinHub() reads.
+    const repo = new PwaHubRepository();
+    await applyAction(db, { kind: 'HUB_PERSIST_SNAPSHOT', hub: makeHub('hub-tx') });
+
+    const txSpy = vi.spyOn(db, 'transaction');
+    await repo.hubs.get('hub-tx');
+
+    expect(txSpy).toHaveBeenCalled();
+    // First call: mode 'r', table list includes hubs + outcomes + canvasState.
+    const call = txSpy.mock.calls[0] as unknown as [string, unknown];
+    const [mode, tables] = call;
+    expect(mode).toBe('r');
+    expect(Array.isArray(tables)).toBe(true);
+    const tableArray = tables as unknown[];
+    expect(tableArray).toContain(db.hubs);
+    expect(tableArray).toContain(db.outcomes);
+    expect(tableArray).toContain(db.canvasState);
+  });
+
+  it('hubs.list wraps reads in a db.transaction across the three joined tables', async () => {
+    const repo = new PwaHubRepository();
+    const txSpy = vi.spyOn(db, 'transaction');
+
+    await repo.hubs.list();
+
+    expect(txSpy).toHaveBeenCalled();
+    const call = txSpy.mock.calls[0] as unknown as [string, unknown];
+    const [mode, tables] = call;
+    expect(mode).toBe('r');
+    const tableArray = tables as unknown[];
+    expect(tableArray).toContain(db.hubs);
+    expect(tableArray).toContain(db.outcomes);
+    expect(tableArray).toContain(db.canvasState);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// outcomes
+// ---------------------------------------------------------------------------
+
+describe('PwaHubRepository.outcomes', () => {
+  it('get returns a live outcome row', async () => {
+    const repo = new PwaHubRepository();
+    await db.outcomes.put(makeOutcome('out-1', 'hub-x'));
+
+    const row = await repo.outcomes.get('out-1');
+    expect(row?.id).toBe('out-1');
+  });
+
+  it('get returns undefined for a soft-deleted outcome', async () => {
+    const repo = new PwaHubRepository();
+    await db.outcomes.put(makeOutcome('out-arch', 'hub-x', { deletedAt: NOW }));
+    expect(await repo.outcomes.get('out-arch')).toBeUndefined();
+  });
+
+  it('get returns undefined for a missing outcome', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.outcomes.get('ghost')).toBeUndefined();
+  });
+
+  it('listByHub filters by deletedAt === null', async () => {
+    const repo = new PwaHubRepository();
+    await db.outcomes.bulkPut([
+      makeOutcome('o-live-1', 'hub-l'),
+      makeOutcome('o-live-2', 'hub-l'),
+      makeOutcome('o-dead', 'hub-l', { deletedAt: NOW }),
+      makeOutcome('o-other', 'hub-other'),
+    ]);
+
+    const rows = await repo.outcomes.listByHub('hub-l');
+    expect(rows).toHaveLength(2);
+    const ids = rows.map(r => r.id).sort();
+    expect(ids).toEqual(['o-live-1', 'o-live-2']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// canvasState
+// ---------------------------------------------------------------------------
+
+describe('PwaHubRepository.canvasState', () => {
+  it('getByHub returns the ProcessMap with hubId stripped', async () => {
+    const repo = new PwaHubRepository();
+    await applyAction(db, {
+      kind: 'HUB_PERSIST_SNAPSHOT',
+      hub: makeHub('hub-c1', {
+        canonicalProcessMap: makeProcessMap({ ctsColumn: 'col' }),
+      }),
     });
 
-    it('evidenceSnapshots.get returns undefined', async () => {
-      expect(await repo.evidenceSnapshots.get('any')).toBeUndefined();
-    });
+    const map = await repo.canvasState.getByHub('hub-c1');
+    expect(map?.ctsColumn).toBe('col');
+    expect(map?.version).toBe(1);
+    // hubId FK must not leak.
+    expect((map as unknown as { hubId?: string })?.hubId).toBeUndefined();
+  });
 
-    it('evidenceSnapshots.listByHub returns []', async () => {
-      expect(await repo.evidenceSnapshots.listByHub('hub-of-one')).toEqual([]);
-    });
+  it('getByHub returns undefined when no row exists', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.canvasState.getByHub('absent')).toBeUndefined();
+  });
+});
 
-    it('evidenceSources.get returns undefined', async () => {
-      expect(await repo.evidenceSources.get('any')).toBeUndefined();
-    });
+// ---------------------------------------------------------------------------
+// evidenceSources.getCursor — Issue 3 fix: hubId+sourceId composite filter
+// ---------------------------------------------------------------------------
 
-    it('evidenceSources.listByHub returns []', async () => {
-      expect(await repo.evidenceSources.listByHub('hub-of-one')).toEqual([]);
-    });
+describe('PwaHubRepository.evidenceSources.getCursor', () => {
+  it('returns the cursor when hubId AND sourceId both match', async () => {
+    const repo = new PwaHubRepository();
+    await db.evidenceSourceCursors.put(makeCursor('cur-A', 'hub-A', 'src-1'));
 
-    it('evidenceSources.getCursor returns undefined', async () => {
-      expect(await repo.evidenceSources.getCursor('hub-of-one', 'src-1')).toBeUndefined();
-    });
+    const found = await repo.evidenceSources.getCursor('hub-A', 'src-1');
+    expect(found?.id).toBe('cur-A');
+    expect(found?.hubId).toBe('hub-A');
+    expect(found?.sourceId).toBe('src-1');
+  });
 
-    it('investigations.get returns undefined', async () => {
-      expect(await repo.investigations.get('any')).toBeUndefined();
-    });
+  it('returns undefined when sourceId matches but hubId does not (filter must fire)', async () => {
+    // Two cursors with the same sourceId but different hubIds — the post-fetch
+    // hubId filter is the contract that prevents cross-hub leakage.
+    const repo = new PwaHubRepository();
+    await db.evidenceSourceCursors.put(makeCursor('cur-A', 'hub-A', 'src-shared'));
 
-    it('investigations.listByHub returns []', async () => {
-      expect(await repo.investigations.listByHub('hub-of-one')).toEqual([]);
-    });
+    const found = await repo.evidenceSources.getCursor('hub-B', 'src-shared');
+    expect(found).toBeUndefined();
+  });
 
-    it('findings.get returns undefined', async () => {
-      expect(await repo.findings.get('any')).toBeUndefined();
-    });
+  it('returns undefined when neither hubId nor sourceId match', async () => {
+    const repo = new PwaHubRepository();
+    await db.evidenceSourceCursors.put(makeCursor('cur-x', 'hub-x', 'src-x'));
 
-    it('findings.listByInvestigation returns []', async () => {
-      expect(await repo.findings.listByInvestigation('inv-1')).toEqual([]);
-    });
+    const found = await repo.evidenceSources.getCursor('hub-y', 'src-y');
+    expect(found).toBeUndefined();
+  });
 
-    it('questions.get returns undefined', async () => {
-      expect(await repo.questions.get('any')).toBeUndefined();
-    });
+  it('returns the right cursor when two hubs share a sourceId', async () => {
+    const repo = new PwaHubRepository();
+    await db.evidenceSourceCursors.bulkPut([
+      makeCursor('cur-A', 'hub-A', 'src-shared'),
+      makeCursor('cur-B', 'hub-B', 'src-shared'),
+    ]);
 
-    it('questions.listByInvestigation returns []', async () => {
-      expect(await repo.questions.listByInvestigation('inv-1')).toEqual([]);
-    });
+    const a = await repo.evidenceSources.getCursor('hub-A', 'src-shared');
+    const b = await repo.evidenceSources.getCursor('hub-B', 'src-shared');
+    expect(a?.id).toBe('cur-A');
+    expect(b?.id).toBe('cur-B');
+  });
+});
 
-    it('causalLinks.get returns undefined', async () => {
-      expect(await repo.causalLinks.get('any')).toBeUndefined();
-    });
+// ---------------------------------------------------------------------------
+// Stub read APIs — F3 declares tables, F3.5/F5 wire writes; reads must work
+// against the (empty) tables today without throwing.
+// ---------------------------------------------------------------------------
 
-    it('causalLinks.listByInvestigation returns []', async () => {
-      expect(await repo.causalLinks.listByInvestigation('inv-1')).toEqual([]);
-    });
+describe('PwaHubRepository — stub read APIs (empty tables until F3.5/F5)', () => {
+  it('evidenceSnapshots.listByHub returns []', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.evidenceSnapshots.listByHub('hub-x')).toEqual([]);
+  });
 
-    it('suspectedCauses.get returns undefined', async () => {
-      expect(await repo.suspectedCauses.get('any')).toBeUndefined();
-    });
+  it('evidenceSnapshots.get returns the row when it exists (post-F3.5 ready)', async () => {
+    const repo = new PwaHubRepository();
+    await db.evidenceSnapshots.put(makeEvidenceSnapshot('snap-1', 'hub-x', 'src-x'));
+    expect((await repo.evidenceSnapshots.get('snap-1'))?.id).toBe('snap-1');
+  });
 
-    it('suspectedCauses.listByInvestigation returns []', async () => {
-      expect(await repo.suspectedCauses.listByInvestigation('inv-1')).toEqual([]);
-    });
+  it('evidenceSources.listByHub returns []', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.evidenceSources.listByHub('hub-x')).toEqual([]);
+  });
+
+  it('evidenceSources.get returns the row when it exists (post-F3.5 ready)', async () => {
+    const repo = new PwaHubRepository();
+    await db.evidenceSources.put(makeEvidenceSource('src-1', 'hub-x'));
+    expect((await repo.evidenceSources.get('src-1'))?.id).toBe('src-1');
+  });
+
+  it('investigations.listByHub returns []', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.investigations.listByHub('hub-x')).toEqual([]);
+  });
+
+  it('findings.listByInvestigation returns []', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.findings.listByInvestigation('inv-x')).toEqual([]);
+  });
+
+  it('questions.listByInvestigation returns []', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.questions.listByInvestigation('inv-x')).toEqual([]);
+  });
+
+  it('causalLinks.listByInvestigation returns []', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.causalLinks.listByInvestigation('inv-x')).toEqual([]);
+  });
+
+  it('suspectedCauses.listByInvestigation returns []', async () => {
+    const repo = new PwaHubRepository();
+    expect(await repo.suspectedCauses.listByInvestigation('inv-x')).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Legacy DB cleanup — best-effort fire-and-forget Dexie.delete on construction
+// ---------------------------------------------------------------------------
+
+describe('PwaHubRepository — legacy DB cleanup', () => {
+  it('calls Dexie.delete with the legacy DB name on construction', async () => {
+    const deleteSpy = vi.spyOn(Dexie, 'delete').mockResolvedValue(undefined);
+
+    const repo = new PwaHubRepository();
+    void repo; // keep the instance alive until end-of-test
+
+    expect(deleteSpy).toHaveBeenCalledWith('variscout-pwa');
+    deleteSpy.mockRestore();
+  });
+
+  it('swallows errors from the legacy DB delete (does not throw at construction)', async () => {
+    const deleteSpy = vi.spyOn(Dexie, 'delete').mockRejectedValue(new Error('Simulated IDB error'));
+
+    expect(() => new PwaHubRepository()).not.toThrow();
+
+    // Allow the unhandled-rejection .catch swallow to settle.
+    await new Promise(resolve => setTimeout(resolve, 0));
+    deleteSpy.mockRestore();
   });
 });
