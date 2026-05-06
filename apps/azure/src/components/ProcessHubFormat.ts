@@ -21,8 +21,8 @@ export const formatChangeSignals = (count: number): string =>
 export const formatOverdueActions = (count: number): string =>
   `${count} ${formatPlural(count, { one: 'overdue action', other: 'overdue actions' })}`;
 
-export const formatLatestActivity = (value: string | null): string => {
-  if (!value) return 'No activity yet';
+export const formatLatestActivity = (value: number | null): string => {
+  if (value === null || value === undefined) return 'No activity yet';
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return 'Activity date unknown';
   return `Latest activity ${date.toLocaleDateString('en', {

@@ -106,9 +106,19 @@ describe('PWA framing toolbar — OutcomePin per outcome', () => {
     await hubRepository.saveHub({
       id: 'test-hub',
       name: 'Test Hub',
-      createdAt: new Date().toISOString(),
+      createdAt: 1746057600000,
+      deletedAt: null,
       processGoal: 'Single outcome hub.',
-      outcomes: [{ columnName: 'FillWeight', characteristicType: 'nominalIsBest' }],
+      outcomes: [
+        {
+          id: 'outcome-fillweight',
+          hubId: 'test-hub',
+          createdAt: 1746057600000,
+          deletedAt: null,
+          columnName: 'FillWeight',
+          characteristicType: 'nominalIsBest',
+        },
+      ],
     });
 
     // Seed raw data so the framing toolbar becomes visible.
@@ -133,11 +143,26 @@ describe('PWA framing toolbar — OutcomePin per outcome', () => {
     await hubRepository.saveHub({
       id: 'test-hub-2',
       name: 'Test Hub 2',
-      createdAt: new Date().toISOString(),
+      createdAt: 1746057600000,
+      deletedAt: null,
       processGoal: 'Multi-outcome hub.',
       outcomes: [
-        { columnName: 'FillWeight', characteristicType: 'nominalIsBest' },
-        { columnName: 'CycleTime', characteristicType: 'smallerIsBetter' },
+        {
+          id: 'outcome-fillweight-2',
+          hubId: 'test-hub-2',
+          createdAt: 1746057600000,
+          deletedAt: null,
+          columnName: 'FillWeight',
+          characteristicType: 'nominalIsBest',
+        },
+        {
+          id: 'outcome-cycletime',
+          hubId: 'test-hub-2',
+          createdAt: 1746057600000,
+          deletedAt: null,
+          columnName: 'CycleTime',
+          characteristicType: 'smallerIsBetter',
+        },
       ],
     });
 

@@ -45,9 +45,19 @@ import { useEditorDataFlow, type UseEditorDataFlowOptions } from '../useEditorDa
 const COMPLETE_HUB: ProcessHub = {
   id: 'hub-1',
   name: 'Barrel Hub',
-  createdAt: '2026-05-01T00:00:00Z',
+  createdAt: 1746057600000,
+  deletedAt: null,
   processGoal: 'Reduce barrel diameter variation.',
-  outcomes: [{ columnName: 'diameter_mm', characteristicType: 'nominalIsBest' }],
+  outcomes: [
+    {
+      id: 'outcome-diameter',
+      hubId: 'hub-1',
+      createdAt: 1746057600000,
+      deletedAt: null,
+      columnName: 'diameter_mm',
+      characteristicType: 'nominalIsBest',
+    },
+  ],
 };
 
 const JOIN_CANDIDATE: JoinKeyCandidate = {
@@ -217,8 +227,22 @@ describe('useEditorDataFlow — provenance sidecar (P3.4)', () => {
     const hubWithAllCols: ProcessHub = {
       ...COMPLETE_HUB,
       outcomes: [
-        { columnName: 'lot_id', characteristicType: 'nominalIsBest' },
-        { columnName: 'defect_type', characteristicType: 'nominalIsBest' },
+        {
+          id: 'outcome-lot',
+          hubId: 'hub-1',
+          createdAt: 1746057600000,
+          deletedAt: null,
+          columnName: 'lot_id',
+          characteristicType: 'nominalIsBest',
+        },
+        {
+          id: 'outcome-defect',
+          hubId: 'hub-1',
+          createdAt: 1746057600000,
+          deletedAt: null,
+          columnName: 'defect_type',
+          characteristicType: 'nominalIsBest',
+        },
       ],
     };
 

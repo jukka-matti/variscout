@@ -45,9 +45,19 @@ import { useEditorDataFlow, type UseEditorDataFlowOptions } from '../useEditorDa
 const COMPLETE_HUB: ProcessHub = {
   id: 'hub-1',
   name: 'Barrel Hub',
-  createdAt: '2026-05-01T00:00:00Z',
+  createdAt: 1746057600000,
+  deletedAt: null,
   processGoal: 'Reduce barrel diameter variation.',
-  outcomes: [{ columnName: 'diameter_mm', characteristicType: 'nominalIsBest' }],
+  outcomes: [
+    {
+      id: 'outcome-diameter',
+      hubId: 'hub-1',
+      createdAt: 1746057600000,
+      deletedAt: null,
+      columnName: 'diameter_mm',
+      characteristicType: 'nominalIsBest',
+    },
+  ],
 };
 
 // Existing data: rows on May 1–4 (the middle two will fall in the overlap range).

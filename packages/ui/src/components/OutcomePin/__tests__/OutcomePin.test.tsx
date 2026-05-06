@@ -4,6 +4,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { OutcomePin } from '../OutcomePin';
 
 const baseOutcome = {
+  id: 'outcome-weight',
+  hubId: 'hub-test',
+  createdAt: 1714000000000,
+  deletedAt: null as null,
   columnName: 'weight_g',
   characteristicType: 'nominalIsBest' as const,
 };

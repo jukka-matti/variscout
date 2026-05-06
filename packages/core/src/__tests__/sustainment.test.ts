@@ -148,7 +148,9 @@ function makeInvestigation(
   return {
     id,
     name: id,
-    modified: '2026-04-26T00:00:00.000Z',
+    createdAt: 1777161600000,
+    updatedAt: 1777161600000,
+    deletedAt: null,
     metadata: {
       findingCounts: {},
       questionCounts: {},

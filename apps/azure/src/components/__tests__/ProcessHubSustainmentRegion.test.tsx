@@ -12,8 +12,8 @@ import type {
 const HUB = {
   id: 'hub-1',
   name: 'Line 4',
-  createdAt: '2026-01-01T00:00:00.000Z',
-  updatedAt: '2026-01-01T00:00:00.000Z',
+  createdAt: 1735689600000,
+  deletedAt: null,
 };
 
 function makeInvestigation(
@@ -22,7 +22,9 @@ function makeInvestigation(
   return {
     id: overrides.id,
     name: overrides.name,
-    modified: '2026-01-01T00:00:00.000Z',
+    createdAt: 1735689600000,
+    updatedAt: 1735689600000,
+    deletedAt: null,
     metadata: overrides.metadata,
   };
 }

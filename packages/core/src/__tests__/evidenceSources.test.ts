@@ -151,7 +151,7 @@ describe('Evidence Sources and Data Profiles', () => {
     };
 
     const [rollup] = buildProcessHubRollups(
-      [{ id: 'hub-1', name: 'Claims hub', createdAt: '2026-04-26T00:00:00.000Z' }],
+      [{ id: 'hub-1', name: 'Claims hub', createdAt: 1777161600000, deletedAt: null }],
       [],
       { evidenceSnapshots: [snapshot] }
     );

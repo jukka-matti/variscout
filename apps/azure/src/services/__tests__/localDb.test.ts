@@ -144,7 +144,8 @@ describe('localDb Process Hub support', () => {
     await saveProcessHubToIndexedDB({
       id: 'line-4',
       name: 'Line 4',
-      createdAt: '2026-04-25T00:00:00.000Z',
+      createdAt: 1745539200000,
+      deletedAt: null,
     });
 
     const hubs = await listProcessHubsFromIndexedDB();

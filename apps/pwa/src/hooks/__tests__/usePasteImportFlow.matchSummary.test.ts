@@ -36,9 +36,19 @@ import { usePasteImportFlow, type UsePasteImportFlowOptions } from '../usePasteI
 const COMPLETE_HUB: ProcessHub = {
   id: 'hub-1',
   name: 'Test Hub',
-  createdAt: '2026-05-01T00:00:00Z',
+  createdAt: 1746057600000,
+  deletedAt: null,
   processGoal: 'Make weights right.',
-  outcomes: [{ columnName: 'weight_g', characteristicType: 'nominalIsBest' }],
+  outcomes: [
+    {
+      id: 'outcome-weight',
+      hubId: 'hub-1',
+      createdAt: 1746057600000,
+      deletedAt: null,
+      columnName: 'weight_g',
+      characteristicType: 'nominalIsBest',
+    },
+  ],
 };
 
 // ─── Default mock option builders ─────────────────────────────────────────────
@@ -145,8 +155,18 @@ describe('usePasteImportFlow — match-summary wedge (P2.3)', () => {
     const incompleteHub: ProcessHub = {
       id: 'hub-2',
       name: 'Incomplete',
-      createdAt: '2026-05-01T00:00:00Z',
-      outcomes: [{ columnName: 'weight_g', characteristicType: 'nominalIsBest' }],
+      createdAt: 1746057600000,
+      deletedAt: null,
+      outcomes: [
+        {
+          id: 'outcome-weight-2',
+          hubId: 'hub-2',
+          createdAt: 1746057600000,
+          deletedAt: null,
+          columnName: 'weight_g',
+          characteristicType: 'nominalIsBest',
+        },
+      ],
       // no processGoal → isProcessHubComplete returns false
     };
     const setRawData = vi.fn();

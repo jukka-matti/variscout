@@ -45,9 +45,19 @@ import { usePasteImportFlow, type UsePasteImportFlowOptions } from '../usePasteI
 const COMPLETE_HUB: ProcessHub = {
   id: 'hub-1',
   name: 'Fill-Weight Hub',
-  createdAt: '2026-05-01T00:00:00Z',
+  createdAt: 1746057600000,
+  deletedAt: null,
   processGoal: 'Reduce fill-weight variation.',
-  outcomes: [{ columnName: 'weight_g', characteristicType: 'nominalIsBest' }],
+  outcomes: [
+    {
+      id: 'outcome-weight',
+      hubId: 'hub-1',
+      createdAt: 1746057600000,
+      deletedAt: null,
+      columnName: 'weight_g',
+      characteristicType: 'nominalIsBest',
+    },
+  ],
 };
 
 // Existing data: rows on May 1–4 (the middle two will fall in the overlap range).

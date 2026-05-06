@@ -213,7 +213,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       sortedProjects.map(project => ({
         id: project.id || project.name,
         name: project.name,
-        modified: project.modified,
+        createdAt: new Date(project.modified).getTime() || 0,
+        updatedAt: new Date(project.modified).getTime() || 0,
+        deletedAt: null,
         metadata: project.metadata,
       })),
       { evidenceSnapshots, sustainmentRecords, controlHandoffs }
@@ -600,7 +602,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const updated: ProcessHub = {
         ...hub,
         reviewSignal: nextSignal,
-        updatedAt: new Date().toISOString(),
+        updatedAt: Date.now(),
       };
       setProcessHubs(prev => prev.map(h => (h.id === hubId ? updated : h)));
       void saveProcessHub(updated).catch(err => {
@@ -621,7 +623,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const updated: ProcessHub = {
         ...hub,
         processGoal: nextGoal,
-        updatedAt: new Date().toISOString(),
+        updatedAt: Date.now(),
       };
       setProcessHubs(prev => prev.map(h => (h.id === hubId ? updated : h)));
       void saveProcessHub(updated).catch(err => {

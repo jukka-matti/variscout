@@ -5,7 +5,9 @@ import type { ProcessHubInvestigation, InvestigationNodeMapping } from '../proce
 const makeInvestigation = (nodeMappings?: InvestigationNodeMapping[]): ProcessHubInvestigation => ({
   id: 'test',
   name: 'Test Investigation',
-  modified: '2026-04-29T00:00:00.000Z',
+  createdAt: 1777420800000,
+  updatedAt: 1777420800000,
+  deletedAt: null,
   metadata: {
     processHubId: 'hub-1',
     nodeMappings,

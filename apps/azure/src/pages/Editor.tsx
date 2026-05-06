@@ -1336,7 +1336,7 @@ export const Editor: React.FC<EditorProps> = ({
             ...currentHub,
             outcomes,
             primaryScopeDimensions,
-            updatedAt: new Date().toISOString(),
+            updatedAt: Date.now(),
           }).catch(() => {
             // Non-blocking — storage failure is logged by the storage service
           });

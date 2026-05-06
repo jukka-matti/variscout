@@ -178,7 +178,15 @@ describe('ColumnMapping', () => {
 
     it('starts with initialOutcomes pre-selected in edit mode', () => {
       const initialOutcomes: OutcomeSpec[] = [
-        { columnName: 'Value', characteristicType: 'nominalIsBest', target: 24 },
+        {
+          id: 'outcome-value-1',
+          hubId: '',
+          createdAt: 1714000000000,
+          deletedAt: null,
+          columnName: 'Value',
+          characteristicType: 'nominalIsBest',
+          target: 24,
+        },
       ];
       render(
         <ColumnMapping
@@ -459,6 +467,10 @@ describe('ColumnMapping', () => {
     it('preloads initialOutcomes', () => {
       const initialOutcomes: OutcomeSpec[] = [
         {
+          id: 'outcome-value-2',
+          hubId: '',
+          createdAt: 1714000000000,
+          deletedAt: null,
           columnName: 'Value',
           characteristicType: 'nominalIsBest',
           target: 24,
@@ -492,7 +504,14 @@ describe('ColumnMapping', () => {
     it('edit confirm updates outcomes and factors in payload', () => {
       const onConfirm = vi.fn();
       const initialOutcomes: OutcomeSpec[] = [
-        { columnName: 'Value', characteristicType: 'nominalIsBest' },
+        {
+          id: 'outcome-value-3',
+          hubId: '',
+          createdAt: 1714000000000,
+          deletedAt: null,
+          columnName: 'Value',
+          characteristicType: 'nominalIsBest',
+        },
       ];
       render(
         <ColumnMapping
@@ -525,8 +544,23 @@ describe('ColumnMapping', () => {
         col('Machine', 'categorical', { sampleValues: ['M1', 'M2'], uniqueCount: 2 }),
       ];
       const initialOutcomes: OutcomeSpec[] = [
-        { columnName: 'A', characteristicType: 'nominalIsBest', target: 2 },
-        { columnName: 'B', characteristicType: 'largerIsBetter' },
+        {
+          id: 'outcome-a',
+          hubId: '',
+          createdAt: 1714000000000,
+          deletedAt: null,
+          columnName: 'A',
+          characteristicType: 'nominalIsBest',
+          target: 2,
+        },
+        {
+          id: 'outcome-b',
+          hubId: '',
+          createdAt: 1714000000000,
+          deletedAt: null,
+          columnName: 'B',
+          characteristicType: 'largerIsBetter',
+        },
       ];
       const onConfirm = vi.fn();
       render(

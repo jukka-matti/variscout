@@ -81,8 +81,8 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   // change-signals, top-focus). For per-investigation items, the action
   // uses item.investigationIds[0] instead.
   const defaultInvestigationId = React.useMemo(() => {
-    const sorted = [...rollup.investigations].sort((a, b) =>
-      (b.modified ?? '').localeCompare(a.modified ?? '')
+    const sorted = [...rollup.investigations].sort(
+      (a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0)
     );
     // Empty fallback when the rollup has no investigations: deriveResponsePathAction
     // will then return unsupported actions for hub-aggregate items, which actionToHref

@@ -144,7 +144,7 @@ describe('blobClient', () => {
         .mockResolvedValueOnce(new Response('', { status: 201 }));
 
       await updateBlobProcessHubs([
-        { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+        { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
       ]);
 
       expect(fetchSpy).toHaveBeenLastCalledWith(
@@ -152,7 +152,7 @@ describe('blobClient', () => {
         expect.objectContaining({
           method: 'PUT',
           body: JSON.stringify([
-            { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+            { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
           ]),
         })
       );

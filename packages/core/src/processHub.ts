@@ -2,6 +2,7 @@ import type { JourneyPhase } from './ai/types';
 import type { EvidenceLatestSignal, EvidenceSnapshot } from './evidenceSources';
 import type { FindingStatus, QuestionStatus } from './findings/types';
 import type { ProcessMap } from './frame/types';
+import type { EntityBase } from './identity';
 import { buildReviewItem } from './processHubReview';
 import { buildCurrentProcessState } from './processState';
 import type {
@@ -53,7 +54,9 @@ export interface ProcessParticipantRef {
 
 export type CharacteristicType = 'nominalIsBest' | 'smallerIsBetter' | 'largerIsBetter';
 
-export interface OutcomeSpec {
+export interface OutcomeSpec extends EntityBase {
+  /** Typed FK back to the owning hub. Enables cascade rules to find outcomes by hub. */
+  hubId: ProcessHub['id'];
   /** Column name from the dataset that quantifies delivery on the goal. */
   columnName: string;
   /** Characteristic type — drives spec input UI (nominal disables nothing; smaller-is-better disables LSL; larger-is-better disables USL). */
@@ -68,13 +71,12 @@ export interface OutcomeSpec {
   cpkTarget?: number;
 }
 
-export interface ProcessHub {
-  id: string;
+export interface ProcessHub extends EntityBase {
   name: string;
   description?: string;
   processOwner?: ProcessParticipantRef;
-  createdAt: string;
-  updatedAt?: string;
+  /** Optional last-modified timestamp (Unix ms). Present when the hub has been updated after creation. */
+  updatedAt?: number;
   /**
    * Hub-level canonical Process Map. Investigations within this hub inherit
    * structure (nodes, tributaries, capability scopes) by version-pinning to
@@ -117,7 +119,8 @@ export interface ProcessHub {
 export const DEFAULT_PROCESS_HUB: ProcessHub = {
   id: DEFAULT_PROCESS_HUB_ID,
   name: DEFAULT_PROCESS_HUB_NAME,
-  createdAt: '1970-01-01T00:00:00.000Z',
+  createdAt: 0,
+  deletedAt: null,
 };
 
 /**
@@ -224,10 +227,10 @@ export interface ProcessHubInvestigationMetadata {
   paretoGroupBy?: string;
 }
 
-export interface ProcessHubInvestigation {
-  id: string;
+export interface ProcessHubInvestigation extends EntityBase {
   name: string;
-  modified: string;
+  /** Unix ms timestamp of the last modification. Renamed from the legacy `modified: string` field. */
+  updatedAt: number;
   metadata?: ProcessHubInvestigationMetadata;
 }
 
@@ -240,7 +243,8 @@ export interface ProcessHubRollup<
   statusCounts: Partial<Record<InvestigationStatus, number>>;
   depthCounts: Partial<Record<InvestigationDepth, number>>;
   overdueActionCount: number;
-  latestActivity: string | null;
+  /** Unix ms timestamp of the most recently modified investigation, or null if none. */
+  latestActivity: number | null;
   currentUnderstandingSummary?: string;
   problemConditionSummary?: string;
   nextMove?: string;
@@ -304,7 +308,8 @@ export interface ProcessHubReview<
 > {
   hub: ProcessHub;
   activeInvestigationCount: number;
-  latestActivity: string | null;
+  /** Unix ms timestamp of the most recently modified investigation, or null if none. */
+  latestActivity: number | null;
   depthQueues: Record<InvestigationDepth, ProcessHubReviewItem<TInvestigation>[]>;
   whereToFocus: ProcessHubReviewItem<TInvestigation>[];
   verificationQueue: ProcessHubReviewItem<TInvestigation>[];
@@ -340,7 +345,8 @@ export interface ProcessHubCadenceSummary<
 > {
   hub: ProcessHub;
   activeInvestigationCount: number;
-  latestActivity: string | null;
+  /** Unix ms timestamp of the most recently modified investigation, or null if none. */
+  latestActivity: number | null;
   snapshot: ProcessHubCadenceSnapshot;
   latestSignals: ProcessHubCadenceQueue<TInvestigation>;
   latestEvidenceSignals: {
@@ -359,7 +365,8 @@ export interface ProcessHubCadenceSummary<
 export interface ProcessHubContextInvestigation {
   id: string;
   name: string;
-  modified: string;
+  /** Unix ms timestamp of the last modification. */
+  updatedAt: number;
   status: InvestigationStatus;
   depth?: InvestigationDepth;
   currentUnderstandingSummary?: string;
@@ -492,13 +499,11 @@ export function investigationStatusFromJourneyPhase(phase: JourneyPhase): Invest
 function newestInvestigation<TInvestigation extends ProcessHubInvestigation>(
   investigations: TInvestigation[]
 ): TInvestigation | undefined {
-  return [...investigations].sort(
-    (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime()
-  )[0];
+  return [...investigations].sort((a, b) => b.updatedAt - a.updatedAt)[0];
 }
 
 function synthesizeOrphanHub(hubId: string): ProcessHub {
-  return { id: hubId, name: 'Unknown hub', createdAt: '1970-01-01T00:00:00.000Z' };
+  return { id: hubId, name: 'Unknown hub', createdAt: 0, deletedAt: null };
 }
 
 export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestigation>(
@@ -550,7 +555,7 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
   return Array.from(hubMap.values())
     .map(hub => {
       const hubInvestigations = [...(grouped.get(hub.id) ?? [])].sort(
-        (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime()
+        (a, b) => b.updatedAt - a.updatedAt
       );
       const statusCounts: Partial<Record<InvestigationStatus, number>> = {};
       const depthCounts: Partial<Record<InvestigationDepth, number>> = {};
@@ -591,7 +596,7 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
         statusCounts,
         depthCounts,
         overdueActionCount,
-        latestActivity: latest?.modified ?? null,
+        latestActivity: latest?.updatedAt ?? null,
         currentUnderstandingSummary: summarySource?.metadata?.currentUnderstandingSummary,
         problemConditionSummary: summarySource?.metadata?.problemConditionSummary,
         nextMove: summarySource?.metadata?.nextMove,
@@ -612,16 +617,15 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
         rollup.hub.id !== DEFAULT_PROCESS_HUB_ID
     )
     .sort((a, b) => {
-      const aTime = a.latestActivity ? new Date(a.latestActivity).getTime() : 0;
-      const bTime = b.latestActivity ? new Date(b.latestActivity).getTime() : 0;
+      const aTime = a.latestActivity ?? 0;
+      const bTime = b.latestActivity ?? 0;
       if (aTime !== bTime) return bTime - aTime;
       return a.hub.name.localeCompare(b.hub.name);
     });
 }
 
 function modifiedTime(investigation: ProcessHubInvestigation): number {
-  const time = new Date(investigation.modified).getTime();
-  return Number.isFinite(time) ? time : 0;
+  return Number.isFinite(investigation.updatedAt) ? investigation.updatedAt : 0;
 }
 
 function cpkGap(signal?: HubReviewSignal): number | undefined {
@@ -1004,7 +1008,7 @@ export function buildProcessHubContext<TInvestigation extends ProcessHubInvestig
     investigations: investigations.map(investigation => ({
       id: investigation.id,
       name: investigation.name,
-      modified: investigation.modified,
+      updatedAt: investigation.updatedAt,
       status: investigation.metadata?.investigationStatus ?? 'scouting',
       depth: investigation.metadata?.investigationDepth,
       currentUnderstandingSummary: investigation.metadata?.currentUnderstandingSummary,
