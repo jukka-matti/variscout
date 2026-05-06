@@ -269,20 +269,46 @@ describe('PwaHubRepository', () => {
       vi.useRealTimers();
     });
 
-    it('HUB_PERSIST_SNAPSHOT replaces the hub blob entirely', async () => {
-      const initial = makeHub({ id: 'hub-of-one', name: 'Old Hub' });
+    it('HUB_PERSIST_SNAPSHOT replaces the hub blob entirely (existing hub in store)', async () => {
+      // dispatch short-circuits for HUB_PERSIST_SNAPSHOT — loadHub is NOT called.
+      // The action payload IS the new hub; no load+merge round-trip needed.
       const replacement = makeHub({
         id: 'hub-of-one',
         name: 'New Hub',
         processGoal: 'ship on time',
       });
-      mocks.loadHub.mockResolvedValue(initial);
 
       await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: replacement });
 
+      expect(mocks.loadHub).not.toHaveBeenCalled();
       expect(mocks.saveHub).toHaveBeenCalledOnce();
       const saved = mocks.saveHub.mock.calls[0][0] as ProcessHub;
       expect(saved).toEqual(replacement);
+    });
+
+    it('HUB_PERSIST_SNAPSHOT works when no hub is loaded (bootstrap path)', async () => {
+      // First "Save to this browser" click: no hub in IndexedDB yet. dispatch must
+      // not throw even when loadHub would return null.
+      mocks.loadHub.mockResolvedValue(null);
+      const newHub = makeHub({ id: 'hub-of-one', name: 'Brand New Hub' });
+
+      await expect(
+        repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: newHub })
+      ).resolves.toBeUndefined();
+
+      expect(mocks.loadHub).not.toHaveBeenCalled();
+      expect(mocks.saveHub).toHaveBeenCalledOnce();
+      expect(mocks.saveHub).toHaveBeenCalledWith(newHub);
+    });
+
+    it('HUB_PERSIST_SNAPSHOT saves action.hub, not the previously loaded hub', async () => {
+      // Replacement semantics: even if a different hub is in the store, the
+      // action payload wins — no merge, no load.
+      const actionHub = makeHub({ id: 'hub-of-one', name: 'Action Hub', processGoal: 'new goal' });
+
+      await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: actionHub });
+
+      expect(mocks.saveHub).toHaveBeenCalledWith(actionHub);
     });
 
     it('HUB_UPDATE_GOAL persists the new processGoal and sets updatedAt', async () => {

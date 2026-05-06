@@ -28,6 +28,16 @@ export class PwaHubRepository implements HubRepository {
   // ---------------------------------------------------------------------------
 
   async dispatch(action: HubAction): Promise<void> {
+    // HUB_PERSIST_SNAPSHOT is the bootstrap/save path — the action carries the
+    // full hub blob, so no existing hub needs to be loaded first. This is the
+    // only action that can execute before a hub has been persisted (e.g. the
+    // first "Save to this browser" click). applyAction still handles this kind
+    // for purity over HubAction, but dispatch short-circuits to avoid the
+    // unnecessary load round-trip and to support the null-hub bootstrap case.
+    if (action.kind === 'HUB_PERSIST_SNAPSHOT') {
+      await hubRepository.saveHub(action.hub);
+      return;
+    }
     const hub = await hubRepository.loadHub();
     if (!hub) {
       throw new Error('No active hub to dispatch action against');
