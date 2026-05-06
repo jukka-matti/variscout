@@ -195,7 +195,7 @@ function mapConvergencePoint(
   const incomingQuestionIds = new Set(cp.incomingLinks.flatMap(l => l.questionIds));
   const incomingFindingIds = new Set(cp.incomingLinks.flatMap(l => l.findingIds));
   const incomingHubIds = new Set(
-    cp.incomingLinks.map(l => l.hubId).filter((id): id is string => id !== undefined)
+    cp.incomingLinks.map(l => l.suspectedCauseId).filter((id): id is string => id !== undefined)
   );
 
   const matchingHub = suspectedCauses.find(

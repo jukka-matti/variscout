@@ -6,11 +6,13 @@ import { DEFAULT_TIME_LENS } from '@variscout/core';
 const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
   id: `f-${Math.random()}`,
   text: 'test finding',
-  createdAt: Date.now(),
+  createdAt: 1714000000000,
+  deletedAt: null,
+  investigationId: 'general-unassigned',
   context: { activeFilters: {}, cumulativeScope: null },
   status: 'observed',
   comments: [],
-  statusChangedAt: Date.now(),
+  statusChangedAt: 1714000000000,
   ...overrides,
 });
 

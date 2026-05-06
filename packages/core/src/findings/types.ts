@@ -6,6 +6,9 @@
 import type { HypothesisCondition } from './hypothesisCondition';
 import type { TimelineWindow } from '../timeline';
 import type { TimeLens } from '../stats/timeLens';
+import type { EntityBase } from '../identity';
+import type { ProcessHubInvestigation } from '../processHub';
+import type { ProcessMapTributary } from '../frame/types';
 
 // ============================================================================
 // Investigation Status Types
@@ -68,15 +71,14 @@ export const PWA_STATUSES: FindingStatus[] = ['observed', 'investigating', 'anal
 export type PhotoUploadStatus = 'pending' | 'uploaded' | 'failed';
 
 /** A photo attached to a finding comment */
-export interface PhotoAttachment {
-  id: string;
+export interface PhotoAttachment extends EntityBase {
   filename: string;
   /** OneDrive file ID, set after successful upload */
   driveItemId?: string;
   /** Base64 data URL thumbnail (~50KB), persisted in .vrs for offline viewing */
   thumbnailDataUrl?: string;
   uploadStatus: PhotoUploadStatus;
-  /** Timestamp when the photo was captured (Date.now()) */
+  /** Timestamp when the photo was captured (Date.now()). Distinct from createdAt (EntityBase). */
   capturedAt: number;
 }
 
@@ -90,8 +92,7 @@ export interface PhotoAttachment {
  * Team plan: uploaded to OneDrive under /VariScout/Attachments/.
  * Standard plan: stored as local filename reference only (no upload).
  */
-export interface CommentAttachment {
-  id: string;
+export interface CommentAttachment extends EntityBase {
   filename: string;
   /** MIME type of the file (e.g. 'application/pdf', 'text/csv') */
   mimeType: string;
@@ -102,17 +103,22 @@ export interface CommentAttachment {
   /** SharePoint web URL for the uploaded file (Team plan only) */
   webUrl?: string;
   uploadStatus: PhotoUploadStatus;
-  /** Timestamp when the attachment was added */
+  /** Timestamp when the attachment was added. Distinct from createdAt (EntityBase). */
   attachedAt: number;
 }
 
 /** A timestamped comment in a finding's investigation log */
-export interface FindingComment {
-  id: string;
+export interface FindingComment extends EntityBase {
   text: string;
-  createdAt: number;
   /** Author display name (from EasyAuth or Teams user context). Optional for backward compat. */
   author?: string;
+  /**
+   * Explicit parent entity this comment belongs to. Required for normalized storage.
+   * Polymorphic: a comment can belong to a Finding or a SuspectedCause.
+   */
+  parentId: Finding['id'] | SuspectedCause['id'];
+  /** Discriminator for parentId — which entity type owns this comment. */
+  parentKind: 'finding' | 'suspectedCause';
   /** Photo attachments (Team plan only) */
   photos?: PhotoAttachment[];
   /** Non-image file attachments (PDF, XLSX, CSV, TXT). Team plan: OneDrive upload. Standard: local reference. */
@@ -138,15 +144,13 @@ export interface FindingAssignee {
 // ============================================================================
 
 /** A corrective/preventive action task within a finding */
-export interface ActionItem {
-  id: string;
+export interface ActionItem extends EntityBase {
   text: string;
   assignee?: FindingAssignee;
   dueDate?: string; // ISO date string (YYYY-MM-DD)
-  completedAt?: number; // Date.now() timestamp
-  createdAt: number;
+  completedAt?: number; // Date.now() timestamp — soft-completion; distinct from deletedAt
   /** Link to the ImprovementIdea that spawned this action (for traceability) */
-  ideaId?: string;
+  ideaId?: ImprovementIdea['id'];
 }
 
 // ============================================================================
@@ -246,9 +250,7 @@ export function computeRiskLevel(axis1: RiskLevel, axis2: RiskLevel): ComputedRi
  * An improvement idea attached to an answered/investigating question.
  * Bridges validated suspected cause and corrective actions.
  */
-export interface ImprovementIdea {
-  /** Unique identifier */
-  id: string;
+export interface ImprovementIdea extends EntityBase {
   /** Idea description (e.g., "Simplify setup with visual guides") */
   text: string;
   /** Implementation timeframe estimate */
@@ -273,8 +275,6 @@ export interface ImprovementIdea {
   voteCount?: number;
   /** @deprecated Use `direction` instead. Alias kept for migration. */
   category?: IdeaDirection;
-  /** Timestamp of creation */
-  createdAt: string;
 }
 
 /** Four Ideation Directions — replaces old CAPA categories */
@@ -316,9 +316,7 @@ export type QuestionValidationType = 'data' | 'gemba' | 'expert';
  * and form a tree structure. The analyst investigates by linking findings as evidence.
  * Supports tree structure via parentId for sub-questions.
  */
-export interface Question {
-  /** Unique identifier */
-  id: string;
+export interface Question extends EntityBase {
   /** Question text (e.g., "Does shift affect fill weight?") */
   text: string;
   /** Linked factor column name */
@@ -328,15 +326,15 @@ export interface Question {
   /** Investigation status */
   status: QuestionStatus;
   /** IDs of findings that link to this question */
-  linkedFindingIds: string[];
-  /** Timestamp of creation */
-  createdAt: string;
-  /** Timestamp of last update */
-  updatedAt: string;
+  linkedFindingIds: Finding['id'][];
+  /** Timestamp of last update (Unix ms) */
+  updatedAt: number;
+  /** FK to the owning investigation. Required for normalized storage. */
+  investigationId: ProcessHubInvestigation['id'];
 
   // --- Tree structure (sub-questions) ---
   /** Parent question ID — enables tree (sub-questions). Undefined for root questions. */
-  parentId?: string;
+  parentId?: Question['id'];
   /** How this question is validated: data (auto η²), gemba (go-and-see), or expert opinion */
   validationType?: QuestionValidationType;
   /** Task description for gemba/expert validation */
@@ -506,13 +504,9 @@ export interface BenchmarkStats {
 /**
  * A single finding — a bookmarked filter state with analyst notes
  */
-export interface Finding {
-  /** Unique identifier */
-  id: string;
+export interface Finding extends EntityBase {
   /** Analyst's note describing the finding */
   text: string;
-  /** Timestamp of creation (Date.now()) */
-  createdAt: number;
   /** Dashboard state snapshot */
   context: FindingContext;
   /** Investigation status */
@@ -523,12 +517,14 @@ export interface Finding {
   comments: FindingComment[];
   /** When status was last changed */
   statusChangedAt: number;
+  /** FK to the owning investigation. Required for normalized storage. */
+  investigationId: ProcessHubInvestigation['id'];
   /** Chart observation origin — links finding to a specific chart element */
   source?: FindingSource;
   /** Optional assignee for Team plan @mention workflow */
   assignee?: FindingAssignee;
   /** Link to a question (replaces deprecated suspectedCause) */
-  questionId?: string;
+  questionId?: Question['id'];
   /** How this finding relates to its linked question */
   validationStatus?: 'supports' | 'contradicts' | 'inconclusive';
   /** What-If projection attached to this finding */
@@ -558,11 +554,10 @@ export interface Finding {
  *
  * Three-level investigation tree: Category → Factor → Question
  */
-export interface InvestigationCategory {
-  id: string;
+export interface InvestigationCategory extends EntityBase {
   /** User-defined name: "Equipment", "Drying Method", "Staff", etc. */
   name: string;
-  /** Which factor columns belong to this category */
+  /** Which factor columns belong to this category (column-name strings, not entity FKs) */
   factorNames: string[];
   /** Badge color — auto-assigned from palette or user-picked */
   color?: string;
@@ -677,16 +672,19 @@ export type MechanismBranchReadiness =
  *
  * See: docs/superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md
  */
-export interface SuspectedCause {
-  id: string;
+export interface SuspectedCause extends EntityBase {
   /** Analyst-chosen name: "Nozzle wear on night shift" */
   name: string;
   /** Analyst's synthesis: how the evidence connects */
   synthesis: string;
   /** Connected question IDs */
-  questionIds: string[];
+  questionIds: Question['id'][];
   /** Connected finding IDs */
-  findingIds: string[];
+  findingIds: Finding['id'][];
+  /** Updated timestamp (Unix ms) */
+  updatedAt: number;
+  /** FK to the owning investigation. Required for normalized storage. */
+  investigationId: ProcessHubInvestigation['id'];
   /** Mode-aware evidence — contribution stored, projection computed live */
   evidence?: SuspectedCauseEvidence;
   /** Whether this cause is selected for the current improvement round */
@@ -700,24 +698,21 @@ export interface SuspectedCause {
   /** Branch-level next move. Investigation-level `ProcessContext.nextMove` remains separate. */
   nextMove?: string;
   /** Explicit finding IDs that should render as counter-clues for this branch. */
-  counterFindingIds?: string[];
+  counterFindingIds?: Finding['id'][];
   /** Explicit question IDs that should render as open branch checks. */
-  checkQuestionIds?: string[];
+  checkQuestionIds?: Question['id'][];
   /** Predicate tree used by the Investigation Wall to evaluate HOLDS X/Y.
    * Auto-derived from the first finding's `findingSource` on creation; analyst-editable.
    * Absent for hubs created before Wall ships. */
   condition?: HypothesisCondition;
   /** Explicit ProcessMap binding. Falls back to column-matching derivation via
    * findings' columns when absent. */
-  tributaryIds?: string[];
-  /** Signal Cards that this branch relies on for measurement or factor evidence. */
+  tributaryIds?: ProcessMapTributary['id'][];
+  /** Signal Cards that this branch relies on for measurement or factor evidence.
+   * Left as string[] — signal cards are not yet entities. */
   signalCardIds?: string[];
   /** Timestamped hypothesis-level team discussion. Same shape as FindingComment. */
   comments?: FindingComment[];
-  /** Created timestamp */
-  createdAt: string;
-  /** Updated timestamp */
-  updatedAt: string;
 }
 
 // ============================================================================
@@ -725,8 +720,7 @@ export interface SuspectedCause {
 // ============================================================================
 
 /** Directed causal relationship between factors in the investigation DAG */
-export interface CausalLink {
-  id: string;
+export interface CausalLink extends EntityBase {
   fromFactor: string; // Factor column name (e.g., "Shift")
   toFactor: string; // Factor column name (e.g., "Fill Head")
   fromLevel?: string; // Specific condition (e.g., "Night")
@@ -734,14 +728,19 @@ export interface CausalLink {
   whyStatement: string; // "Night shift runs cause thermal drift"
   direction: 'drives' | 'modulates' | 'confounds';
   evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
-  questionIds: string[]; // Questions supporting this link
-  findingIds: string[]; // Findings supporting this link
-  hubId?: string; // SuspectedCause hub this belongs to
+  questionIds: Question['id'][]; // Questions supporting this link
+  findingIds: Finding['id'][]; // Findings supporting this link
+  /**
+   * The SuspectedCause this link belongs to.
+   * Renamed from `hubId` (R5) — the old name was misleading; it references
+   * SuspectedCause.id, not ProcessHub.id.
+   */
+  suspectedCauseId?: SuspectedCause['id'];
   strength?: number; // ΔR² or computed from R²adj comparison
   relationshipType?: 'independent' | 'overlapping' | 'synergistic' | 'interactive' | 'redundant';
   source: 'analyst' | 'coscout' | 'auto';
-  createdAt: string;
-  updatedAt: string;
+  /** Updated timestamp (Unix ms) */
+  updatedAt: number;
 }
 
 export type CausalDirection = CausalLink['direction'];

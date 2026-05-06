@@ -6,7 +6,7 @@ describe('ImprovementQuestion type', () => {
     const q: ImprovementQuestion = {
       id: 'q-1',
       text: 'Fix shift',
-      ideas: [{ id: 'i-1', text: 'Train', createdAt: '' }],
+      ideas: [{ id: 'i-1', text: 'Train', createdAt: 1714000000000, deletedAt: null }],
     };
     expect(q.id).toBe('q-1');
     expect(q.ideas).toHaveLength(1);

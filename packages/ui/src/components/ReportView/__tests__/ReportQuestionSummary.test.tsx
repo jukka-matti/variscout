@@ -8,8 +8,10 @@ const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
   text: 'Temperature causes defects',
   status: 'answered' as const,
   linkedFindingIds: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: 1714000000000,
+  updatedAt: 1714000000000,
+  deletedAt: null,
+  investigationId: 'general-unassigned',
   ...overrides,
 });
 

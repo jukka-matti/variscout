@@ -16,8 +16,10 @@ function makeHub(overrides: Partial<SuspectedCause> = {}): SuspectedCause {
     questionIds: ['q1', 'q2'],
     findingIds: ['f1'],
     status: 'suspected',
-    createdAt: '2026-04-04T00:00:00Z',
-    updatedAt: '2026-04-04T00:00:00Z',
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     ...overrides,
   };
 }

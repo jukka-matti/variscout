@@ -128,7 +128,8 @@ describe('useSuspectedCauses', () => {
       act(() => {
         result.current.updateHub(initial[0].id, { name: 'Updated' });
       });
-      expect(result.current.hubs[0].updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      expect(typeof result.current.hubs[0].updatedAt).toBe('number');
+      expect(result.current.hubs[0].updatedAt).toBeGreaterThan(0);
     });
 
     it('calls onHubsChange', () => {
@@ -206,7 +207,8 @@ describe('useSuspectedCauses', () => {
         result.current.connectQuestion(initial[0].id, 'q-001');
       });
       expect(onChange).toHaveBeenCalledTimes(1);
-      expect(result.current.hubs[0].updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      expect(typeof result.current.hubs[0].updatedAt).toBe('number');
+      expect(result.current.hubs[0].updatedAt).toBeGreaterThan(0);
     });
   });
 
@@ -319,7 +321,8 @@ describe('useSuspectedCauses', () => {
         result.current.setHubStatus(initial[0].id, 'confirmed');
       });
       expect(onChange).toHaveBeenCalledTimes(1);
-      expect(result.current.hubs[0].updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      expect(typeof result.current.hubs[0].updatedAt).toBe('number');
+      expect(result.current.hubs[0].updatedAt).toBeGreaterThan(0);
     });
   });
 

@@ -959,12 +959,14 @@ describe('investigationStore — causalLink cascade behavior', () => {
     // Manually set hubId via updateCausalLink — the store doesn't have a direct setHubId action,
     // so we use loadInvestigationState to set it
     useInvestigationStore.setState(state => ({
-      causalLinks: state.causalLinks.map(l => (l.id === link!.id ? { ...l, hubId: hub.id } : l)),
+      causalLinks: state.causalLinks.map(l =>
+        l.id === link!.id ? { ...l, suspectedCauseId: hub.id } : l
+      ),
     }));
-    expect(useInvestigationStore.getState().causalLinks[0].hubId).toBe(hub.id);
+    expect(useInvestigationStore.getState().causalLinks[0].suspectedCauseId).toBe(hub.id);
 
     useInvestigationStore.getState().deleteHub(hub.id);
-    expect(useInvestigationStore.getState().causalLinks[0].hubId).toBeUndefined();
+    expect(useInvestigationStore.getState().causalLinks[0].suspectedCauseId).toBeUndefined();
   });
 });
 

@@ -18,8 +18,10 @@ function makeHub(
     status,
     questionIds: [],
     findingIds: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     synthesis: '',
     selectedForImprovement: false,
   };

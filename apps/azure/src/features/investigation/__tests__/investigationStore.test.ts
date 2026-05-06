@@ -126,7 +126,7 @@ describe('buildIdeaImpacts', () => {
         id: 'q1',
         text: 'test',
         status: 'investigating',
-        ideas: [{ id: 'i1', text: 'Fix it', createdAt: '' }],
+        ideas: [{ id: 'i1', text: 'Fix it', createdAt: 1714000000000, deletedAt: null }],
       },
     ] as Question[];
     const impacts = buildIdeaImpacts(questions, undefined, null);

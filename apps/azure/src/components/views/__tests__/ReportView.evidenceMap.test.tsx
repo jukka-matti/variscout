@@ -26,8 +26,9 @@ function makeCausalLink(overrides?: Partial<CausalLink>): CausalLink {
     source: 'analyst',
     questionIds: [],
     findingIds: [],
-    createdAt: '2026-03-15T10:00:00.000Z',
-    updatedAt: '2026-03-15T10:00:00.000Z',
+    createdAt: Date.parse('2026-03-15T10:00:00.000Z'),
+    updatedAt: Date.parse('2026-03-15T10:00:00.000Z'),
+    deletedAt: null,
     ...overrides,
   };
 }
@@ -64,8 +65,10 @@ function makeQuestion(overrides?: Partial<Question>): Question {
     factor: 'Temperature',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: '2026-03-14T09:00:00.000Z',
-    updatedAt: '2026-03-14T09:00:00.000Z',
+    createdAt: Date.parse('2026-03-14T09:00:00.000Z'),
+    updatedAt: Date.parse('2026-03-14T09:00:00.000Z'),
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     ...overrides,
   } as Question;
 }
@@ -78,8 +81,10 @@ function makeSuspectedCause(overrides?: Partial<SuspectedCause>): SuspectedCause
     status: 'suspected',
     questionIds: [],
     findingIds: [],
-    createdAt: '2026-03-17T12:00:00.000Z',
-    updatedAt: '2026-03-17T12:00:00.000Z',
+    createdAt: Date.parse('2026-03-17T12:00:00.000Z'),
+    updatedAt: Date.parse('2026-03-17T12:00:00.000Z'),
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     ...overrides,
   };
 }
@@ -114,12 +119,15 @@ describe('useEvidenceMapTimeline', () => {
     });
 
     it('frames are cumulative — earlier frame has fewer links than later frame', () => {
-      const link1 = makeCausalLink({ id: 'link-1', createdAt: '2026-03-10T00:00:00.000Z' });
+      const link1 = makeCausalLink({
+        id: 'link-1',
+        createdAt: Date.parse('2026-03-10T00:00:00.000Z'),
+      });
       const link2 = makeCausalLink({
         id: 'link-2',
         fromFactor: 'Pressure',
         toFactor: 'Fill Weight',
-        createdAt: '2026-03-20T00:00:00.000Z',
+        createdAt: Date.parse('2026-03-20T00:00:00.000Z'),
       });
 
       const { result } = renderHook(() => useEvidenceMapTimeline({ causalLinks: [link1, link2] }));
@@ -135,7 +143,7 @@ describe('useEvidenceMapTimeline', () => {
     });
 
     it('frames have a human-readable label derived from createdAt', () => {
-      const link = makeCausalLink({ createdAt: '2026-03-15T10:00:00.000Z' });
+      const link = makeCausalLink({ createdAt: Date.parse('2026-03-15T10:00:00.000Z') });
       const { result } = renderHook(() => useEvidenceMapTimeline({ causalLinks: [link] }));
 
       const label = result.current.frames[0].label;
@@ -198,8 +206,14 @@ describe('useEvidenceMapTimeline', () => {
     });
 
     it('play() sets isPlaying to true', () => {
-      const link1 = makeCausalLink({ id: 'link-1', createdAt: '2026-03-10T00:00:00.000Z' });
-      const link2 = makeCausalLink({ id: 'link-2', createdAt: '2026-03-20T00:00:00.000Z' });
+      const link1 = makeCausalLink({
+        id: 'link-1',
+        createdAt: Date.parse('2026-03-10T00:00:00.000Z'),
+      });
+      const link2 = makeCausalLink({
+        id: 'link-2',
+        createdAt: Date.parse('2026-03-20T00:00:00.000Z'),
+      });
 
       const { result } = renderHook(() => useEvidenceMapTimeline({ causalLinks: [link1, link2] }));
 
@@ -211,8 +225,14 @@ describe('useEvidenceMapTimeline', () => {
     });
 
     it('pause() sets isPlaying to false', () => {
-      const link1 = makeCausalLink({ id: 'link-1', createdAt: '2026-03-10T00:00:00.000Z' });
-      const link2 = makeCausalLink({ id: 'link-2', createdAt: '2026-03-20T00:00:00.000Z' });
+      const link1 = makeCausalLink({
+        id: 'link-1',
+        createdAt: Date.parse('2026-03-10T00:00:00.000Z'),
+      });
+      const link2 = makeCausalLink({
+        id: 'link-2',
+        createdAt: Date.parse('2026-03-20T00:00:00.000Z'),
+      });
 
       const { result } = renderHook(() => useEvidenceMapTimeline({ causalLinks: [link1, link2] }));
 
@@ -227,9 +247,18 @@ describe('useEvidenceMapTimeline', () => {
     });
 
     it('seek() jumps to the specified frame and stops playback', () => {
-      const link1 = makeCausalLink({ id: 'link-1', createdAt: '2026-03-10T00:00:00.000Z' });
-      const link2 = makeCausalLink({ id: 'link-2', createdAt: '2026-03-20T00:00:00.000Z' });
-      const link3 = makeCausalLink({ id: 'link-3', createdAt: '2026-03-25T00:00:00.000Z' });
+      const link1 = makeCausalLink({
+        id: 'link-1',
+        createdAt: Date.parse('2026-03-10T00:00:00.000Z'),
+      });
+      const link2 = makeCausalLink({
+        id: 'link-2',
+        createdAt: Date.parse('2026-03-20T00:00:00.000Z'),
+      });
+      const link3 = makeCausalLink({
+        id: 'link-3',
+        createdAt: Date.parse('2026-03-25T00:00:00.000Z'),
+      });
 
       const { result } = renderHook(() =>
         useEvidenceMapTimeline({ causalLinks: [link1, link2, link3] })
@@ -277,7 +306,10 @@ describe('useEvidenceMapTimeline', () => {
     });
 
     it('includes factor from Question in visibleFactors', () => {
-      const question = makeQuestion({ factor: 'Pressure', createdAt: '2026-03-14T09:00:00.000Z' });
+      const question = makeQuestion({
+        factor: 'Pressure',
+        createdAt: Date.parse('2026-03-14T09:00:00.000Z'),
+      });
       const { result } = renderHook(() => useEvidenceMapTimeline({ questions: [question] }));
 
       expect(result.current.frames[0].visibleFactors).toContain('Pressure');

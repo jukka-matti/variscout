@@ -5,7 +5,7 @@ import QuestionNode from '../QuestionNode';
 import { createQuestion, createInvestigationCategory } from '@variscout/core';
 
 const makeQuestion = (text: string, parentId?: string, factor?: string) => {
-  return createQuestion(text, factor, undefined, parentId);
+  return createQuestion(text, 'general-unassigned', factor, undefined, parentId);
 };
 
 describe('QuestionTreeView', () => {
@@ -204,7 +204,14 @@ describe('QuestionTreeView', () => {
 
   describe('ValidationTaskSection (gemba/expert)', () => {
     it('renders task input for gemba type without validationTask', () => {
-      const h = createQuestion('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      const h = createQuestion(
+        'Check nozzle',
+        'general-unassigned',
+        'Machine',
+        undefined,
+        undefined,
+        'gemba'
+      );
       render(
         <QuestionNode
           question={h}
@@ -223,7 +230,14 @@ describe('QuestionTreeView', () => {
 
     it('calls onSetValidationTask on Enter', () => {
       const onSet = vi.fn();
-      const h = createQuestion('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      const h = createQuestion(
+        'Check nozzle',
+        'general-unassigned',
+        'Machine',
+        undefined,
+        undefined,
+        'gemba'
+      );
       render(
         <QuestionNode
           question={h}
@@ -244,7 +258,14 @@ describe('QuestionTreeView', () => {
     });
 
     it('shows complete checkbox when task exists', () => {
-      const h = createQuestion('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      const h = createQuestion(
+        'Check nozzle',
+        'general-unassigned',
+        'Machine',
+        undefined,
+        undefined,
+        'gemba'
+      );
       h.validationTask = 'Go check Machine 5';
       render(
         <QuestionNode
@@ -264,7 +285,14 @@ describe('QuestionTreeView', () => {
 
     it('calls onCompleteTask when checkbox clicked', () => {
       const onComplete = vi.fn();
-      const h = createQuestion('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      const h = createQuestion(
+        'Check nozzle',
+        'general-unassigned',
+        'Machine',
+        undefined,
+        undefined,
+        'gemba'
+      );
       h.validationTask = 'Go check Machine 5';
       render(
         <QuestionNode
@@ -284,7 +312,14 @@ describe('QuestionTreeView', () => {
     });
 
     it('shows status buttons after task completed', () => {
-      const h = createQuestion('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      const h = createQuestion(
+        'Check nozzle',
+        'general-unassigned',
+        'Machine',
+        undefined,
+        undefined,
+        'gemba'
+      );
       h.validationTask = 'Go check Machine 5';
       h.taskCompleted = true;
       render(

@@ -26,7 +26,7 @@ describe('useQuestions', () => {
   });
 
   it('starts with initial questions', () => {
-    const initial = [createQuestion('Test', 'Machine')];
+    const initial = [createQuestion('Test', 'general-unassigned', 'Machine')];
     const { result } = renderHook(() => useQuestions({ initialQuestions: initial }));
     expect(result.current.questions).toHaveLength(1);
     expect(result.current.questions[0].text).toBe('Test');
@@ -141,8 +141,8 @@ describe('useQuestions', () => {
     });
 
     it('filters by factor', () => {
-      const q1 = createQuestion('Machine issue', 'Machine');
-      const q2 = createQuestion('Shift issue', 'Shift');
+      const q1 = createQuestion('Machine issue', 'general-unassigned', 'Machine');
+      const q2 = createQuestion('Shift issue', 'general-unassigned', 'Shift');
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q1, q2] }));
       expect(result.current.getByFactor('Machine')).toHaveLength(1);
       expect(result.current.getByFactor('Machine')[0].text).toBe('Machine issue');
@@ -151,7 +151,7 @@ describe('useQuestions', () => {
 
   describe('auto-validation', () => {
     it('sets answered when eta² >= 15%', () => {
-      const q = createQuestion('Machine issue', 'Machine');
+      const q = createQuestion('Machine issue', 'general-unassigned', 'Machine');
       const anova = { Machine: makeAnova(0.2) };
       const { result } = renderHook(() =>
         useQuestions({ initialQuestions: [q], anovaByFactor: anova })
@@ -160,7 +160,7 @@ describe('useQuestions', () => {
     });
 
     it('sets ruled-out when eta² < 5%', () => {
-      const q = createQuestion('Weak factor', 'Shift');
+      const q = createQuestion('Weak factor', 'general-unassigned', 'Shift');
       const anova = { Shift: makeAnova(0.03) };
       const { result } = renderHook(() =>
         useQuestions({ initialQuestions: [q], anovaByFactor: anova })
@@ -169,7 +169,7 @@ describe('useQuestions', () => {
     });
 
     it('sets investigating when 5% <= eta² < 15%', () => {
-      const q = createQuestion('Moderate factor', 'Operator');
+      const q = createQuestion('Moderate factor', 'general-unassigned', 'Operator');
       const anova = { Operator: makeAnova(0.1) };
       const { result } = renderHook(() =>
         useQuestions({ initialQuestions: [q], anovaByFactor: anova })
@@ -187,7 +187,7 @@ describe('useQuestions', () => {
     });
 
     it('stays open when factor has no ANOVA', () => {
-      const q = createQuestion('Missing ANOVA', 'Batch');
+      const q = createQuestion('Missing ANOVA', 'general-unassigned', 'Batch');
       const anova = { Machine: makeAnova(0.3) };
       const { result } = renderHook(() =>
         useQuestions({ initialQuestions: [q], anovaByFactor: anova })
@@ -196,7 +196,14 @@ describe('useQuestions', () => {
     });
 
     it('skips auto-validation for gemba questions', () => {
-      const q = createQuestion('Gemba check', 'Machine', undefined, undefined, 'gemba');
+      const q = createQuestion(
+        'Gemba check',
+        'general-unassigned',
+        'Machine',
+        undefined,
+        undefined,
+        'gemba'
+      );
       const anova = { Machine: makeAnova(0.3) };
       const { result } = renderHook(() =>
         useQuestions({ initialQuestions: [q], anovaByFactor: anova })
@@ -205,7 +212,14 @@ describe('useQuestions', () => {
     });
 
     it('skips auto-validation for expert questions', () => {
-      const q = createQuestion('Expert opinion', 'Machine', undefined, undefined, 'expert');
+      const q = createQuestion(
+        'Expert opinion',
+        'general-unassigned',
+        'Machine',
+        undefined,
+        undefined,
+        'expert'
+      );
       q.status = 'answered'; // manually set
       const anova = { Machine: makeAnova(0.02) }; // would be ruled-out if data-type
       const { result } = renderHook(() =>
@@ -240,8 +254,8 @@ describe('useQuestions', () => {
     it('enforces max depth constraint', () => {
       // Build a chain of max depth
       const root = createQuestion('L0');
-      const l1 = createQuestion('L1', undefined, undefined, root.id);
-      const l2 = createQuestion('L2', undefined, undefined, l1.id);
+      const l1 = createQuestion('L1', 'general-unassigned', undefined, undefined, root.id);
+      const l2 = createQuestion('L2', 'general-unassigned', undefined, undefined, l1.id);
       const { result } = renderHook(() => useQuestions({ initialQuestions: [root, l1, l2] }));
       // L2 is at depth 2, adding child would be depth 3 which is >= MAX_QUESTION_DEPTH - 1
       let sub: ReturnType<typeof result.current.addSubQuestion> = null;
@@ -254,7 +268,7 @@ describe('useQuestions', () => {
     it('enforces max children constraint', () => {
       const parent = createQuestion('Root');
       const children = Array.from({ length: MAX_CHILDREN_PER_PARENT }, (_, i) =>
-        createQuestion(`Child ${i}`, undefined, undefined, parent.id)
+        createQuestion(`Child ${i}`, 'general-unassigned', undefined, undefined, parent.id)
       );
       const { result } = renderHook(() =>
         useQuestions({ initialQuestions: [parent, ...children] })
@@ -269,9 +283,15 @@ describe('useQuestions', () => {
 
   describe('tree navigation', () => {
     const root = createQuestion('Root');
-    const child1 = createQuestion('Child 1', undefined, undefined, root.id);
-    const child2 = createQuestion('Child 2', undefined, undefined, root.id);
-    const grandchild = createQuestion('Grandchild', undefined, undefined, child1.id);
+    const child1 = createQuestion('Child 1', 'general-unassigned', undefined, undefined, root.id);
+    const child2 = createQuestion('Child 2', 'general-unassigned', undefined, undefined, root.id);
+    const grandchild = createQuestion(
+      'Grandchild',
+      'general-unassigned',
+      undefined,
+      undefined,
+      child1.id
+    );
     const allQuestions = [root, child1, child2, grandchild];
 
     it('getChildren returns direct children', () => {
@@ -308,9 +328,9 @@ describe('useQuestions', () => {
     it('deletes question and all descendants', () => {
       const root = createQuestion('Root');
       root.linkedFindingIds = ['f-root'];
-      const child = createQuestion('Child', undefined, undefined, root.id);
+      const child = createQuestion('Child', 'general-unassigned', undefined, undefined, root.id);
       child.linkedFindingIds = ['f-child'];
-      const grandchild = createQuestion('GC', undefined, undefined, child.id);
+      const grandchild = createQuestion('GC', 'general-unassigned', undefined, undefined, child.id);
       grandchild.linkedFindingIds = ['f-gc'];
       const { result } = renderHook(() =>
         useQuestions({ initialQuestions: [root, child, grandchild] })
@@ -326,9 +346,15 @@ describe('useQuestions', () => {
 
     it('deletes only subtree, leaves siblings', () => {
       const root = createQuestion('Root');
-      const child1 = createQuestion('Keep', undefined, undefined, root.id);
-      const child2 = createQuestion('Delete', undefined, undefined, root.id);
-      const gc = createQuestion('GC of Delete', undefined, undefined, child2.id);
+      const child1 = createQuestion('Keep', 'general-unassigned', undefined, undefined, root.id);
+      const child2 = createQuestion('Delete', 'general-unassigned', undefined, undefined, root.id);
+      const gc = createQuestion(
+        'GC of Delete',
+        'general-unassigned',
+        undefined,
+        undefined,
+        child2.id
+      );
       const { result } = renderHook(() =>
         useQuestions({ initialQuestions: [root, child1, child2, gc] })
       );
@@ -343,7 +369,14 @@ describe('useQuestions', () => {
 
   describe('gemba/expert validation', () => {
     it('setValidationTask updates task text', () => {
-      const q = createQuestion('Gemba check', 'Machine', undefined, undefined, 'gemba');
+      const q = createQuestion(
+        'Gemba check',
+        'general-unassigned',
+        'Machine',
+        undefined,
+        undefined,
+        'gemba'
+      );
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
       act(() => {
         result.current.setValidationTask(q.id, 'Go check Machine 5 nozzle');
@@ -352,7 +385,14 @@ describe('useQuestions', () => {
     });
 
     it('completeTask marks task as completed', () => {
-      const q = createQuestion('Gemba check', 'Machine', undefined, undefined, 'gemba');
+      const q = createQuestion(
+        'Gemba check',
+        'general-unassigned',
+        'Machine',
+        undefined,
+        undefined,
+        'gemba'
+      );
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
       act(() => {
         result.current.completeTask(q.id);
@@ -361,7 +401,14 @@ describe('useQuestions', () => {
     });
 
     it('setManualStatus updates status and note', () => {
-      const q = createQuestion('Expert opinion', undefined, undefined, undefined, 'expert');
+      const q = createQuestion(
+        'Expert opinion',
+        'general-unassigned',
+        undefined,
+        undefined,
+        undefined,
+        'expert'
+      );
       const { result } = renderHook(() => useQuestions({ initialQuestions: [q] }));
       act(() => {
         result.current.setManualStatus(q.id, 'answered', 'Expert confirmed nozzle wear pattern');
@@ -374,9 +421,9 @@ describe('useQuestions', () => {
   describe('getChildrenSummary', () => {
     it('returns correct counts', () => {
       const parent = createQuestion('Root');
-      const c1 = createQuestion('Answered', 'Machine', undefined, parent.id);
-      const c2 = createQuestion('Ruled out', 'Shift', undefined, parent.id);
-      const c3 = createQuestion('Open', undefined, undefined, parent.id);
+      const c1 = createQuestion('Answered', 'general-unassigned', 'Machine', undefined, parent.id);
+      const c2 = createQuestion('Ruled out', 'general-unassigned', 'Shift', undefined, parent.id);
+      const c3 = createQuestion('Open', 'general-unassigned', undefined, undefined, parent.id);
       const anova = {
         Machine: makeAnova(0.2), // answered
         Shift: makeAnova(0.03), // ruled-out
@@ -409,8 +456,8 @@ describe('useQuestions', () => {
   describe('status propagation from children', () => {
     it('parent with all children ruled-out → parent ruled-out', () => {
       const parent = createQuestion('Root');
-      const c1 = createQuestion('C1', 'A', undefined, parent.id);
-      const c2 = createQuestion('C2', 'B', undefined, parent.id);
+      const c1 = createQuestion('C1', 'general-unassigned', 'A', undefined, parent.id);
+      const c2 = createQuestion('C2', 'general-unassigned', 'B', undefined, parent.id);
       const anova = {
         A: makeAnova(0.02), // ruled-out
         B: makeAnova(0.03), // ruled-out
@@ -423,8 +470,8 @@ describe('useQuestions', () => {
 
     it('parent with one answered child → parent answered', () => {
       const parent = createQuestion('Root');
-      const c1 = createQuestion('C1', 'A', undefined, parent.id);
-      const c2 = createQuestion('C2', 'B', undefined, parent.id);
+      const c1 = createQuestion('C1', 'general-unassigned', 'A', undefined, parent.id);
+      const c2 = createQuestion('C2', 'general-unassigned', 'B', undefined, parent.id);
       const anova = {
         A: makeAnova(0.2), // answered
         B: makeAnova(0.03), // ruled-out
@@ -437,8 +484,8 @@ describe('useQuestions', () => {
 
     it('parent with mix of investigating and ruled-out → investigating', () => {
       const parent = createQuestion('Root');
-      const c1 = createQuestion('C1', 'A', undefined, parent.id);
-      const c2 = createQuestion('C2', 'B', undefined, parent.id);
+      const c1 = createQuestion('C1', 'general-unassigned', 'A', undefined, parent.id);
+      const c2 = createQuestion('C2', 'general-unassigned', 'B', undefined, parent.id);
       const anova = {
         A: makeAnova(0.1), // investigating
         B: makeAnova(0.03), // ruled-out
@@ -450,9 +497,9 @@ describe('useQuestions', () => {
     });
 
     it('parent with any open child → keeps own status', () => {
-      const parent = createQuestion('Root', 'Machine');
-      const c1 = createQuestion('C1', 'A', undefined, parent.id);
-      const c2 = createQuestion('C2', undefined, undefined, parent.id); // no factor → open
+      const parent = createQuestion('Root', 'general-unassigned', 'Machine');
+      const c1 = createQuestion('C1', 'general-unassigned', 'A', undefined, parent.id);
+      const c2 = createQuestion('C2', 'general-unassigned', undefined, undefined, parent.id); // no factor → open
       const anova = {
         Machine: makeAnova(0.2), // parent's own factor → answered
         A: makeAnova(0.2), // child answered
@@ -466,9 +513,9 @@ describe('useQuestions', () => {
 
     it('multi-level propagation (grandchild → child → root)', () => {
       const root = createQuestion('Root');
-      const child = createQuestion('Child', undefined, undefined, root.id);
-      const gc1 = createQuestion('GC1', 'A', undefined, child.id);
-      const gc2 = createQuestion('GC2', 'B', undefined, child.id);
+      const child = createQuestion('Child', 'general-unassigned', undefined, undefined, root.id);
+      const gc1 = createQuestion('GC1', 'general-unassigned', 'A', undefined, child.id);
+      const gc2 = createQuestion('GC2', 'general-unassigned', 'B', undefined, child.id);
       const anova = {
         A: makeAnova(0.2), // answered
         B: makeAnova(0.1), // investigating

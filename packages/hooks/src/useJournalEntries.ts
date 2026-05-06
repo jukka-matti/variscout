@@ -1,5 +1,6 @@
 import { useMemo, useRef } from 'react';
 import type { Finding, Question } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
 
 export interface JournalEntry {
   id: string;
@@ -69,7 +70,7 @@ export function useJournalEntries({
       );
       entries.push({
         id: 'j-qg',
-        timestamp: earliest,
+        timestamp: new Date(earliest).toISOString(),
         type: 'questions-generated',
         text: `${questions.length} questions generated`,
         detail: questions
@@ -83,18 +84,18 @@ export function useJournalEntries({
       if (q.status === 'answered') {
         entries.push({
           id: `j-qa-${q.id}`,
-          timestamp: q.updatedAt,
+          timestamp: new Date(q.updatedAt).toISOString(),
           type: 'question-answered',
           text: `${q.factor ?? q.text} → Answered`,
           detail: q.evidence?.rSquaredAdj
-            ? `R²adj ${(q.evidence.rSquaredAdj * 100).toFixed(0)}%`
+            ? `R²adj ${formatStatistic(q.evidence.rSquaredAdj * 100, 'en', 0)}%`
             : undefined,
           relatedQuestionId: q.id,
         });
       } else if (q.status === 'ruled-out') {
         entries.push({
           id: `j-qr-${q.id}`,
-          timestamp: q.updatedAt,
+          timestamp: new Date(q.updatedAt).toISOString(),
           type: 'question-ruled-out',
           text: `${q.factor ?? q.text} → Ruled out`,
           relatedQuestionId: q.id,
@@ -102,7 +103,7 @@ export function useJournalEntries({
       } else if (q.status === 'investigating') {
         entries.push({
           id: `j-qi-${q.id}`,
-          timestamp: q.updatedAt,
+          timestamp: new Date(q.updatedAt).toISOString(),
           type: 'question-investigating',
           text: `${q.factor ?? q.text} → Investigating`,
           relatedQuestionId: q.id,

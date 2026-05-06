@@ -204,8 +204,15 @@ describe('buildAIContext', () => {
   });
 
   it('populates questionTree with root questions and children', () => {
-    const root = createQuestion('Root cause', 'Machine');
-    const child = createQuestion('Sub cause', 'Shift', undefined, root.id, 'gemba');
+    const root = createQuestion('Root cause', 'general-unassigned', 'Machine');
+    const child = createQuestion(
+      'Sub cause',
+      'general-unassigned',
+      'Shift',
+      undefined,
+      root.id,
+      'gemba'
+    );
     const ctx = buildAIContext({
       process: { issueStatement: 'Cpk below target' },
       questions: [root, child],
@@ -216,7 +223,7 @@ describe('buildAIContext', () => {
   });
 
   it('populates ideas from questions', () => {
-    const root = createQuestion('Root cause', 'Machine');
+    const root = createQuestion('Root cause', 'general-unassigned', 'Machine');
     root.status = 'answered';
     root.ideas = [
       {
@@ -224,6 +231,8 @@ describe('buildAIContext', () => {
         text: 'Simplify setup',
         timeframe: 'just-do',
         selected: true,
+        createdAt: 1714000000000,
+        deletedAt: null,
         projection: {
           baselineMean: 10,
           baselineSigma: 0.5,
@@ -234,7 +243,6 @@ describe('buildAIContext', () => {
           simulationParams: { meanAdjustment: -0.5, variationReduction: 20 },
           createdAt: '2026-03-15T00:00:00Z',
         },
-        createdAt: '2026-03-15T00:00:00Z',
       },
     ];
     const ctx = buildAIContext({
@@ -494,15 +502,15 @@ describe('detectInvestigationPhase', () => {
 
   it('returns diverging when children exist and mostly open', () => {
     const root = createQuestion('Root');
-    const c1 = createQuestion('C1', undefined, undefined, root.id);
-    const c2 = createQuestion('C2', undefined, undefined, root.id);
+    const c1 = createQuestion('C1', 'general-unassigned', undefined, undefined, root.id);
+    const c2 = createQuestion('C2', 'general-unassigned', undefined, undefined, root.id);
     expect(detectInvestigationPhase([root, c1, c2])).toBe('diverging');
   });
 
   it('returns converging when most are answered', () => {
     const root = createQuestion('Root');
     root.status = 'answered';
-    const child = createQuestion('Child', undefined, undefined, root.id);
+    const child = createQuestion('Child', 'general-unassigned', undefined, undefined, root.id);
     child.status = 'ruled-out';
     expect(detectInvestigationPhase([root, child])).toBe('converging');
   });
@@ -514,12 +522,14 @@ describe('detectInvestigationPhase', () => {
       {
         id: 'f1',
         text: 'finding',
-        createdAt: 0,
+        createdAt: 1714000000000,
+        deletedAt: null,
+        investigationId: 'general-unassigned',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'improving' as const,
         comments: [],
-        statusChangedAt: 0,
-        actions: [{ id: 'a1', text: 'Fix it', createdAt: 0 }],
+        statusChangedAt: 1714000000000,
+        actions: [{ id: 'a1', text: 'Fix it', createdAt: 1714000000000, deletedAt: null }],
       },
     ];
     expect(detectInvestigationPhase([q], findings)).toBe('improving');

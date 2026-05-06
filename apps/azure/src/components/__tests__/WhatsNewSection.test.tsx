@@ -14,6 +14,8 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
     id: 'f-1',
     text: 'Test finding',
     createdAt: LAST_VIEWED - 1000, // before lastViewed by default
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
@@ -28,8 +30,10 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
     text: 'Night shift causes drift',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: new Date(LAST_VIEWED - 5000).toISOString(),
-    updatedAt: new Date(LAST_VIEWED - 5000).toISOString(), // before lastViewed by default
+    createdAt: LAST_VIEWED - 5000,
+    updatedAt: LAST_VIEWED - 5000, // before lastViewed by default
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     ...overrides,
   };
 }
@@ -95,11 +99,11 @@ describe('WhatsNewSection', () => {
     expect(screen.queryByTestId('whats-new-item-finding-status')).not.toBeInTheDocument();
   });
 
-  it('shows question status changes using Date.parse for ISO strings', () => {
+  it('shows question status changes after lastViewedAt', () => {
     const question = makeQuestion({
       text: 'Operator training gap',
       status: 'answered',
-      updatedAt: new Date(LAST_VIEWED + 3000).toISOString(), // ISO string, after lastViewed
+      updatedAt: LAST_VIEWED + 3000, // after lastViewed
     });
     render(<WhatsNewSection findings={[]} questions={[question]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.getByText(/Operator training gap.*answered/)).toBeInTheDocument();
@@ -107,7 +111,7 @@ describe('WhatsNewSection', () => {
 
   it('does not show questions updated before lastViewedAt', () => {
     const question = makeQuestion({
-      updatedAt: new Date(LAST_VIEWED - 1000).toISOString(),
+      updatedAt: LAST_VIEWED - 1000,
     });
     render(<WhatsNewSection findings={[]} questions={[question]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.getByTestId('whats-new-empty')).toBeInTheDocument();
@@ -122,6 +126,7 @@ describe('WhatsNewSection', () => {
           text: 'Retrain operators',
           createdAt: LAST_VIEWED - 10000,
           completedAt: LAST_VIEWED + 5000, // completed after lastViewed
+          deletedAt: null,
         },
       ],
     });
@@ -137,6 +142,7 @@ describe('WhatsNewSection', () => {
           text: 'Old action',
           createdAt: LAST_VIEWED - 20000,
           completedAt: LAST_VIEWED - 10000,
+          deletedAt: null,
         },
       ],
     });
@@ -147,7 +153,16 @@ describe('WhatsNewSection', () => {
   it('shows new comments after lastViewedAt', () => {
     const finding = makeFinding({
       text: 'Temperature spike',
-      comments: [{ id: 'c-1', text: 'Checked with ops team', createdAt: LAST_VIEWED + 1000 }],
+      comments: [
+        {
+          id: 'c-1',
+          text: 'Checked with ops team',
+          createdAt: LAST_VIEWED + 1000,
+          parentId: 'f-1',
+          parentKind: 'finding',
+          deletedAt: null,
+        },
+      ],
     });
     render(<WhatsNewSection findings={[finding]} questions={[]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.getByText(/New comment on.*Temperature spike/)).toBeInTheDocument();

@@ -11,7 +11,9 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
     id: 'f-1',
     text: 'Machine B has high variation',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: {
       activeFilters: { Machine: ['B'] },
       cumulativeScope: 35,

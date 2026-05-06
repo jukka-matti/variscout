@@ -208,6 +208,8 @@ function mergeSingleFinding(
     id: base.id,
     text,
     createdAt: base.createdAt,
+    deletedAt: base.deletedAt ?? null,
+    investigationId: base.investigationId,
     context,
     status,
     tag,

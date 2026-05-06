@@ -126,8 +126,10 @@ function buildQuestions(): Question[] {
       factor: 'Line',
       status: 'answered',
       linkedFindingIds: [IDS.F_LINE2_HIGH, IDS.F_LINE2_NIGHT],
-      createdAt: iso(0),
-      updatedAt: iso(24),
+      createdAt: epoch(0),
+      updatedAt: epoch(24),
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       validationType: 'data',
       questionSource: 'factor-intel',
       evidence: {
@@ -143,7 +145,8 @@ function buildQuestions(): Question[] {
           direction: 'eliminate',
           selected: true,
           notes: 'Maintenance team estimates 4-hour downtime for replacement',
-          createdAt: iso(26),
+          createdAt: epoch(26),
+          deletedAt: null,
         },
         {
           id: IDS.IDEA_SCHEDULE,
@@ -152,7 +155,8 @@ function buildQuestions(): Question[] {
           cost: { category: 'none' },
           direction: 'prevent',
           selected: false,
-          createdAt: iso(26),
+          createdAt: epoch(26),
+          deletedAt: null,
         },
       ],
     },
@@ -164,8 +168,10 @@ function buildQuestions(): Question[] {
       level: 'Line 2',
       status: 'investigating',
       linkedFindingIds: [IDS.F_LINE2_HIGH],
-      createdAt: iso(2),
-      updatedAt: iso(48),
+      createdAt: epoch(2),
+      updatedAt: epoch(48),
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       parentId: IDS.Q_LINE,
       validationType: 'gemba',
       validationTask: 'Inspect Line 2 nozzle for wear marks and measure orifice diameter',
@@ -179,8 +185,10 @@ function buildQuestions(): Question[] {
       factor: 'Shift',
       status: 'investigating',
       linkedFindingIds: [IDS.F_NIGHT_SPREAD],
-      createdAt: iso(1),
-      updatedAt: iso(36),
+      createdAt: epoch(1),
+      updatedAt: epoch(36),
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       validationType: 'data',
       questionSource: 'factor-intel',
       evidence: {
@@ -195,8 +203,10 @@ function buildQuestions(): Question[] {
       level: 'Night',
       status: 'open',
       linkedFindingIds: [],
-      createdAt: iso(38),
-      updatedAt: iso(38),
+      createdAt: epoch(38),
+      updatedAt: epoch(38),
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       parentId: IDS.Q_SHIFT,
       validationType: 'gemba',
       validationTask: 'Interview night shift operators about workload and break schedule',
@@ -209,8 +219,10 @@ function buildQuestions(): Question[] {
       factor: 'Material_Batch',
       status: 'ruled-out',
       linkedFindingIds: [IDS.F_BATCHC_LOW],
-      createdAt: iso(1),
-      updatedAt: iso(30),
+      createdAt: epoch(1),
+      updatedAt: epoch(30),
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       validationType: 'data',
       questionSource: 'factor-intel',
       evidence: {
@@ -226,8 +238,10 @@ function buildQuestions(): Question[] {
       factor: 'Operator',
       status: 'ruled-out',
       linkedFindingIds: [],
-      createdAt: iso(1),
-      updatedAt: iso(24),
+      createdAt: epoch(1),
+      updatedAt: epoch(24),
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       validationType: 'data',
       questionSource: 'factor-intel',
       evidence: {
@@ -244,6 +258,8 @@ function buildFindings(): Finding[] {
     // F1: Line 2 runs high — ANALYZED, key-driver
     {
       id: IDS.F_LINE2_HIGH,
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       text: 'Line 2 runs consistently high — mean ~502g vs 500g target. Also shows wider spread than Lines 1 and 3.',
       createdAt: epoch(3),
       context: {
@@ -258,11 +274,17 @@ function buildFindings(): Finding[] {
           id: 'c-1',
           text: 'Boxplot clearly shows Line 2 higher and wider than others. This is the dominant factor.',
           createdAt: epoch(4),
+          parentId: IDS.F_LINE2_HIGH,
+          parentKind: 'finding' as const,
+          deletedAt: null,
         },
         {
           id: 'c-2',
           text: 'Pareto confirms Line 2 has the highest variation contribution. Best Subsets R²adj = 0.23 for Line alone.',
           createdAt: epoch(25),
+          parentId: IDS.F_LINE2_HIGH,
+          parentKind: 'finding' as const,
+          deletedAt: null,
         },
       ],
       statusChangedAt: epoch(25),
@@ -292,6 +314,8 @@ function buildFindings(): Finding[] {
     // F2: Night shift spread — INVESTIGATING
     {
       id: IDS.F_NIGHT_SPREAD,
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       text: 'Night shift has wider spread across all lines. IQR is ~1.5× larger than Morning shift.',
       createdAt: epoch(6),
       context: {
@@ -305,6 +329,9 @@ function buildFindings(): Finding[] {
           id: 'c-3',
           text: 'Filtering to Night only shows increased variation. Need to check if this is fatigue or maintenance related.',
           createdAt: epoch(7),
+          parentId: IDS.F_NIGHT_SPREAD,
+          parentKind: 'finding' as const,
+          deletedAt: null,
         },
       ],
       statusChangedAt: epoch(36),
@@ -315,6 +342,8 @@ function buildFindings(): Finding[] {
     // F3: Batch C slightly low — OBSERVED
     {
       id: IDS.F_BATCHC_LOW,
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       text: 'Batch C fill weights slightly low but within spec. Mean ~499.5g.',
       createdAt: epoch(8),
       context: {
@@ -332,6 +361,8 @@ function buildFindings(): Finding[] {
     // F4: Line 2 + Night worst combination — INVESTIGATING
     {
       id: IDS.F_LINE2_NIGHT,
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       text: 'Line 2 + Night shift combination shows worst Cpk (~0.35). This is the critical interaction.',
       createdAt: epoch(12),
       context: {
@@ -345,6 +376,9 @@ function buildFindings(): Finding[] {
           id: 'c-4',
           text: 'Interaction between worn nozzle (Line 2) and night shift fatigue creates the worst-case scenario.',
           createdAt: epoch(13),
+          parentId: IDS.F_LINE2_NIGHT,
+          parentKind: 'finding' as const,
+          deletedAt: null,
         },
       ],
       statusChangedAt: epoch(36),
@@ -354,6 +388,8 @@ function buildFindings(): Finding[] {
     // F5: Benchmark — Line 1 Morning
     {
       id: IDS.F_BENCHMARK,
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       text: 'Line 1 Morning shift is the best-in-class benchmark. Centered at target with tight spread.',
       createdAt: epoch(20),
       context: {
@@ -379,6 +415,8 @@ function buildSuspectedCauses(): SuspectedCause[] {
   return [
     {
       id: IDS.HUB_NOZZLE,
+      deletedAt: null,
+      investigationId: 'general-unassigned',
       name: 'Line 2 nozzle wear',
       synthesis:
         'Line 2 consistently overfills by ~2g with approximately twice the variation of other lines. ' +
@@ -396,8 +434,8 @@ function buildSuspectedCauses(): SuspectedCause[] {
       },
       selectedForImprovement: true,
       status: 'suspected',
-      createdAt: iso(28),
-      updatedAt: iso(48),
+      createdAt: epoch(28),
+      updatedAt: epoch(48),
     },
   ];
 }
@@ -406,6 +444,8 @@ function buildCategories(): InvestigationCategory[] {
   return [
     {
       id: IDS.CAT_EQUIPMENT,
+      createdAt: epoch(0),
+      deletedAt: null,
       name: 'Equipment',
       factorNames: ['Line'],
       color: '#3b82f6', // blue
@@ -413,6 +453,8 @@ function buildCategories(): InvestigationCategory[] {
     },
     {
       id: IDS.CAT_OPERATIONS,
+      createdAt: epoch(0),
+      deletedAt: null,
       name: 'Operations',
       factorNames: ['Shift', 'Operator'],
       color: '#a855f7', // purple

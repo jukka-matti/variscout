@@ -80,14 +80,16 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
     id: 'f-1',
     text: 'Test finding',
-    createdAt: Date.now(),
+    createdAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     context: {
       activeFilters: { Shift: ['Night'] },
       cumulativeScope: null,
     },
     status: 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: 1714000000000,
     ...overrides,
   };
 }
@@ -98,8 +100,10 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
     text: 'Night shift causes drift',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: 1714000000000,
+    updatedAt: 1714000000000,
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     ...overrides,
   };
 }
@@ -239,8 +243,14 @@ describe('ProjectStatusCard', () => {
       makeFinding({
         id: 'f-1',
         actions: [
-          { id: 'a-1', text: 'Fix it', createdAt: Date.now(), completedAt: Date.now() },
-          { id: 'a-2', text: 'Test it', createdAt: Date.now() },
+          {
+            id: 'a-1',
+            text: 'Fix it',
+            createdAt: 1714000000000,
+            completedAt: 1714000001000,
+            deletedAt: null,
+          },
+          { id: 'a-2', text: 'Test it', createdAt: 1714000000000, deletedAt: null },
         ],
       }),
     ];
@@ -365,7 +375,7 @@ describe('ProjectDashboard', () => {
       investigation: {
         findings: [
           makeFinding({
-            actions: [{ id: 'a-1', text: 'Fix', createdAt: Date.now() }],
+            actions: [{ id: 'a-1', text: 'Fix', createdAt: 1714000000000, deletedAt: null }],
           }),
         ],
         questions: [],

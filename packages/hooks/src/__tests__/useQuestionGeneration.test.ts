@@ -300,7 +300,7 @@ describe('useQuestionGeneration', () => {
       );
 
       const question = {
-        ...createQuestion('Does Shift explain variation?', 'Shift'),
+        ...createQuestion('Does Shift explain variation?', 'general-unassigned', 'Shift'),
         questionSource: 'factor-intel' as const,
       };
 
@@ -324,7 +324,7 @@ describe('useQuestionGeneration', () => {
       );
 
       const question = {
-        ...createQuestion('Does Shift explain variation?', 'Shift'),
+        ...createQuestion('Does Shift explain variation?', 'general-unassigned', 'Shift'),
         questionSource: 'factor-intel' as const,
       };
 

@@ -185,7 +185,14 @@ const FindingsWindow: React.FC = () => {
                   ...f,
                   comments: [
                     ...f.comments,
-                    { id: `tmp-${Date.now()}`, text, createdAt: Date.now() },
+                    {
+                      id: `tmp-${Date.now()}`,
+                      text,
+                      createdAt: Date.now(),
+                      parentId: f.id,
+                      parentKind: 'finding' as const,
+                      deletedAt: null,
+                    },
                   ],
                 }
               : f

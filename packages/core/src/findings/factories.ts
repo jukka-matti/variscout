@@ -28,21 +28,24 @@ export { generateDeterministicId as generateId } from '../identity';
  */
 export function createQuestion(
   text: string,
+  investigationId: string = 'general-unassigned',
   factor?: string,
   level?: string,
   parentId?: string,
   validationType?: QuestionValidationType
 ): Question {
-  const now = new Date().toISOString();
+  const now = Date.now();
   return {
     id: generateDeterministicId(),
     text,
+    investigationId,
     factor,
     level,
     status: 'open',
     linkedFindingIds: [],
     createdAt: now,
     updatedAt: now,
+    deletedAt: null,
     parentId,
     validationType,
   };
@@ -57,12 +60,16 @@ export function createFinding(
   cumulativeScope: number | null,
   stats?: { mean: number; median?: number; cpk?: number; samples: number },
   status?: FindingStatus,
-  source?: FindingSource
+  source?: FindingSource,
+  investigationId: string = 'general-unassigned'
 ): Finding {
+  const now = Date.now();
   const finding: Finding = {
     id: generateDeterministicId(),
     text,
-    createdAt: Date.now(),
+    createdAt: now,
+    deletedAt: null,
+    investigationId,
     context: {
       activeFilters,
       cumulativeScope,
@@ -70,7 +77,7 @@ export function createFinding(
     },
     status: status ?? 'observed',
     comments: [],
-    statusChangedAt: Date.now(),
+    statusChangedAt: now,
   };
   if (source) finding.source = source;
   return finding;
@@ -80,11 +87,14 @@ export function createFinding(
  * Create a PhotoAttachment with a unique ID and pending upload status
  */
 export function createPhotoAttachment(filename: string): PhotoAttachment {
+  const now = Date.now();
   return {
     id: generateDeterministicId(),
     filename,
     uploadStatus: 'pending',
-    capturedAt: Date.now(),
+    capturedAt: now,
+    createdAt: now,
+    deletedAt: null,
   };
 }
 
@@ -96,24 +106,40 @@ export function createCommentAttachment(
   mimeType: string,
   sizeBytes: number
 ): CommentAttachment {
+  const now = Date.now();
   return {
     id: generateDeterministicId(),
     filename,
     mimeType,
     sizeBytes,
     uploadStatus: 'pending',
-    attachedAt: Date.now(),
+    attachedAt: now,
+    createdAt: now,
+    deletedAt: null,
   };
 }
 
 /**
- * Create a timestamped comment with a unique ID
+ * Create a timestamped comment with a unique ID.
+ *
+ * @param text - Comment text
+ * @param parentId - ID of the owning entity (Finding or SuspectedCause)
+ * @param parentKind - Which entity type owns this comment
+ * @param author - Optional author display name
  */
-export function createFindingComment(text: string, author?: string): FindingComment {
+export function createFindingComment(
+  text: string,
+  parentId: string,
+  parentKind: 'finding' | 'suspectedCause',
+  author?: string
+): FindingComment {
   const comment: FindingComment = {
     id: generateDeterministicId(),
     text,
+    parentId,
+    parentKind,
     createdAt: Date.now(),
+    deletedAt: null,
   };
   if (author) comment.author = author;
   return comment;
@@ -134,6 +160,7 @@ export function createActionItem(
     assignee,
     dueDate,
     createdAt: Date.now(),
+    deletedAt: null,
   };
   if (ideaId) action.ideaId = ideaId;
   return action;
@@ -162,7 +189,8 @@ export function createImprovementIdea(text: string): ImprovementIdea {
   return {
     id: generateDeterministicId(),
     text,
-    createdAt: new Date().toISOString(),
+    createdAt: Date.now(),
+    deletedAt: null,
   };
 }
 
@@ -198,7 +226,10 @@ export interface FactorFindingBundle {
  *
  * The improvement idea targets the factor change: worst → best.
  */
-export function createFactorFinding(input: FactorFindingInput): FactorFindingBundle {
+export function createFactorFinding(
+  input: FactorFindingInput,
+  investigationId: string = 'general-unassigned'
+): FactorFindingBundle {
   const { factor, bestLevel, worstLevel, etaSquared, effectRange, pValue } = input;
 
   const etaPct = Number.isFinite(etaSquared) ? (etaSquared * 100).toFixed(1) : '—';
@@ -212,11 +243,14 @@ export function createFactorFinding(input: FactorFindingInput): FactorFindingBun
     {}, // no active filters — observation comes from Factor Intelligence
     null,
     undefined,
-    'investigating' // skip 'observed' — Factor Intelligence already validated statistically
+    'investigating', // skip 'observed' — Factor Intelligence already validated statistically
+    undefined,
+    investigationId
   );
 
   const question = createQuestion(
     `${factor} level "${worstLevel}" causes worse outcome — target: change to "${bestLevel}"`,
+    investigationId,
     factor,
     worstLevel,
     undefined,
@@ -258,18 +292,21 @@ export function createSuspectedCause(
   name: string,
   synthesis: string,
   questionIds: string[] = [],
-  findingIds: string[] = []
+  findingIds: string[] = [],
+  investigationId: string = 'general-unassigned'
 ): SuspectedCause {
-  const now = new Date().toISOString();
+  const now = Date.now();
   return {
     id: generateDeterministicId(),
     name,
     synthesis,
     questionIds,
     findingIds,
+    investigationId,
     status: 'suspected',
     createdAt: now,
     updatedAt: now,
+    deletedAt: null,
   };
 }
 
@@ -298,7 +335,7 @@ export function createCausalLink(
     relationshipType?: CausalLink['relationshipType'];
   }
 ): CausalLink {
-  const now = new Date().toISOString();
+  const now = Date.now();
   return {
     id: generateDeterministicId(),
     fromFactor,
@@ -315,6 +352,7 @@ export function createCausalLink(
     source: options?.source ?? 'analyst',
     createdAt: now,
     updatedAt: now,
+    deletedAt: null,
   };
 }
 
@@ -332,6 +370,8 @@ export function createInvestigationCategory(
     name,
     factorNames,
     color: CATEGORY_COLORS[existingCount % CATEGORY_COLORS.length],
+    createdAt: Date.now(),
+    deletedAt: null,
   };
   if (inferredFrom) category.inferredFrom = inferredFrom;
   return category;

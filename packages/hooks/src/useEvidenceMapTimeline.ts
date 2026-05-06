@@ -85,7 +85,7 @@ function collectArtifacts(
   for (const link of causalLinks) {
     const factors = [link.fromFactor, link.toFactor];
     artifacts.push({
-      timestamp: link.createdAt,
+      timestamp: new Date(link.createdAt).toISOString(),
       type: 'link',
       id: link.id,
       factors,
@@ -95,7 +95,7 @@ function collectArtifacts(
   for (const q of questions) {
     const factors = q.factor ? [q.factor] : [];
     artifacts.push({
-      timestamp: q.createdAt,
+      timestamp: new Date(q.createdAt).toISOString(),
       type: 'question',
       id: q.id,
       factors,
@@ -103,10 +103,8 @@ function collectArtifacts(
   }
 
   for (const f of findings) {
-    // Finding.createdAt is a numeric timestamp (Date.now())
-    const isoTimestamp = new Date(f.createdAt).toISOString();
     artifacts.push({
-      timestamp: isoTimestamp,
+      timestamp: new Date(f.createdAt).toISOString(),
       type: 'finding',
       id: f.id,
       factors: [], // Findings don't directly reference factors
@@ -115,7 +113,7 @@ function collectArtifacts(
 
   for (const sc of suspectedCauses) {
     artifacts.push({
-      timestamp: sc.createdAt,
+      timestamp: new Date(sc.createdAt).toISOString(),
       type: 'hub',
       id: sc.id,
       factors: [], // Hub factors come from connected links
