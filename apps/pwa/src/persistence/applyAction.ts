@@ -77,11 +77,27 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
       const { canonicalProcessMap, outcomes, ...hubMeta } = action.hub;
       await db.transaction('rw', [db.hubs, db.outcomes, db.canvasState], async () => {
         await db.hubs.put(hubMeta);
+        // HUB_PERSIST_SNAPSHOT carries the hub's authoritative full state; rows
+        // that exist for this hub but are absent from the incoming snapshot are
+        // stale and must be removed inside the same transaction (preserves the
+        // F2 blob-replacement invariant in the normalized world). bulkPut/put
+        // alone are upserts and would leave dropped outcomes / a removed
+        // canonicalProcessMap visible on the next joinHub.
+        const incomingOutcomeIds = new Set((outcomes ?? []).map(o => o.id));
+        await db.outcomes
+          .where('hubId')
+          .equals(hubMeta.id)
+          .filter(o => !incomingOutcomeIds.has(o.id))
+          .delete();
         if (outcomes && outcomes.length > 0) {
           await db.outcomes.bulkPut(outcomes.map(outcome => ({ ...outcome, hubId: hubMeta.id })));
         }
         if (canonicalProcessMap) {
           await db.canvasState.put({ hubId: hubMeta.id, ...canonicalProcessMap });
+        } else {
+          // Snapshot lacks a canonical process map — clear any stale row so
+          // joinHub won't resurrect it.
+          await db.canvasState.delete(hubMeta.id);
         }
       });
       return;
@@ -92,6 +108,14 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     // -----------------------------------------------------------------------
 
     case 'HUB_UPDATE_GOAL': {
+      // Loud failure on missing hub — matches OUTCOME_ADD's invariant.
+      // Dexie's `.update()` returns 0 silently on missing rows; in the
+      // normalized world that silence is misleading (caller's `await
+      // dispatch(...)` resolves without error even though nothing happened).
+      const hub = await db.hubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(`HUB_UPDATE_GOAL hubId mismatch: hub '${action.hubId}' not found`);
+      }
       await db.hubs.update(action.hubId, {
         processGoal: action.processGoal,
         updatedAt: Date.now(),
@@ -100,6 +124,13 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     }
 
     case 'HUB_UPDATE_PRIMARY_SCOPE_DIMENSIONS': {
+      // Loud failure on missing hub — see HUB_UPDATE_GOAL for rationale.
+      const hub = await db.hubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(
+          `HUB_UPDATE_PRIMARY_SCOPE_DIMENSIONS hubId mismatch: hub '${action.hubId}' not found`
+        );
+      }
       await db.hubs.update(action.hubId, {
         primaryScopeDimensions: action.dimensions,
         updatedAt: Date.now(),

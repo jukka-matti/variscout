@@ -98,16 +98,25 @@ export class PwaHubRepository implements HubRepository {
   // ---------------------------------------------------------------------------
 
   hubs: HubReadAPI = {
+    // Wrap multi-table joins in a read transaction so a concurrent write
+    // between db.hubs.get and the outcomes/canvasState reads in joinHub can't
+    // splice partial state across versions. Dexie read transactions don't
+    // reenter; joinHub stays a private helper that only touches the three
+    // tables already declared in the transaction scope.
     get: async id => {
-      const hubMeta = await db.hubs.get(id);
-      if (!hubMeta) return undefined;
-      if (hubMeta.deletedAt !== null) return undefined;
-      return this.joinHub(hubMeta);
+      return db.transaction('r', [db.hubs, db.outcomes, db.canvasState], async () => {
+        const hubMeta = await db.hubs.get(id);
+        if (!hubMeta) return undefined;
+        if (hubMeta.deletedAt !== null) return undefined;
+        return this.joinHub(hubMeta);
+      });
     },
     list: async () => {
-      const allHubs = await db.hubs.toArray();
-      const liveHubs = allHubs.filter(h => h.deletedAt === null);
-      return Promise.all(liveHubs.map(h => this.joinHub(h)));
+      return db.transaction('r', [db.hubs, db.outcomes, db.canvasState], async () => {
+        const allHubs = await db.hubs.toArray();
+        const liveHubs = allHubs.filter(h => h.deletedAt === null);
+        return Promise.all(liveHubs.map(h => this.joinHub(h)));
+      });
     },
   };
 
@@ -167,13 +176,17 @@ export class PwaHubRepository implements HubRepository {
       const rows = await db.evidenceSources.where('hubId').equals(hubId).toArray();
       return rows.filter(r => r.deletedAt === null);
     },
-    getCursor: async (_hubId, sourceId) => {
-      // EvidenceSourceCursor is keyed by sourceId; the cursor row's hubId
-      // FK is preserved on the entity itself. Filter post-fetch when the
-      // hubId argument is meaningful (currently the F2 contract simply
-      // narrows by sourceId; F3.5 will revisit if multi-hub cursor lookup
-      // becomes a real path).
-      const row = await db.evidenceSourceCursors.where('sourceId').equals(sourceId).first();
+    getCursor: async (hubId, sourceId) => {
+      // Dexie schema indexes evidenceSourceCursors by `&id, sourceId`, but the
+      // semantic key per F1 R4 / Azure parity is `[hubId, sourceId]` — the
+      // cursor row's hubId FK is carried on the entity. Filter post-fetch by
+      // hubId so F3.5 writes can't return a foreign hub's cursor when two
+      // hubs happen to share a sourceId.
+      const row = await db.evidenceSourceCursors
+        .where('sourceId')
+        .equals(sourceId)
+        .filter(c => c.hubId === hubId)
+        .first();
       return row;
     },
   };
