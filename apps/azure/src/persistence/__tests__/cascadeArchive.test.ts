@@ -146,6 +146,9 @@ describe('cascadeArchiveDescendants — hub parent (multi-table)', () => {
     await db.evidenceSnapshots.put(makeEvidenceSnapshot('snap-2', hubId, src1));
     await db.evidenceSnapshots.put(makeEvidenceSnapshot('snap-3', hubId, src2));
     await db.evidenceSourceCursors.put(makeCursor(hubId, src1));
+    // Fan-out: a second cursor for src2 — verifies the compound key-range query
+    // archives ALL cursors belonging to the hub, not just the first one.
+    await db.evidenceSourceCursors.put(makeCursor(hubId, src2));
 
     await cascadeArchiveDescendants('hub', hubId, NOW);
 
@@ -163,9 +166,11 @@ describe('cascadeArchiveDescendants — hub parent (multi-table)', () => {
     expect(snap2?.deletedAt).toBe(NOW);
     expect(snap3?.deletedAt).toBe(NOW);
 
-    // evidenceSourceCursor — archived.
-    const cursor = await db.evidenceSourceCursors.get([hubId, src1]);
-    expect(cursor?.deletedAt).toBe(NOW);
+    // evidenceSourceCursors — both archived (fan-out: hub → src1 cursor + src2 cursor).
+    const cursor1 = await db.evidenceSourceCursors.get([hubId, src1]);
+    const cursor2 = await db.evidenceSourceCursors.get([hubId, src2]);
+    expect(cursor1?.deletedAt).toBe(NOW);
+    expect(cursor2?.deletedAt).toBe(NOW);
 
     // The hub blob itself is NOT touched by the cascade helper (P5.3 handler owns that).
     const hub = await db.processHubs.get(hubId);
@@ -257,9 +262,10 @@ describe('cascadeArchiveDescendants — rollback path', () => {
 
     // After Dexie auto-rollback, the evidenceSnapshot write (which happened before
     // the failure) should be rolled back too.
-    // NOTE: fake-indexeddb's transaction rollback is spec-compliant for Dexie 4.
-    // If fake-indexeddb does not roll back the evidenceSnapshot write, this assertion
-    // will fail — escalate as DONE_WITH_CONCERNS in that case.
+    // Verified rollback path: fake-indexeddb honors Dexie 4's transaction-abort
+    // propagation. The bulkUpdate rejection inside the transaction callback aborts
+    // the underlying IDBTransaction, which restores the prior evidenceSnapshot row
+    // to its pre-transaction state (deletedAt: null).
     const snap = await db.evidenceSnapshots.get('snap-rollback');
     expect(snap?.deletedAt).toBeNull();
 

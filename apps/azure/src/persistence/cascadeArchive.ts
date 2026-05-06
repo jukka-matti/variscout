@@ -244,6 +244,27 @@ async function archiveKindRows(
  *   entire transaction automatically. All intermediate writes are rolled back.
  *   Errors propagate to the caller without re-wrapping.
  *
+ * ## Atomic call pattern (P5.3+)
+ *
+ * To atomically combine this cascade with the parent row's own deletedAt
+ * update, wrap both in a single `db.transaction` that covers the parent
+ * table plus the descendant tables this helper writes to:
+ *
+ * ```ts
+ * await db.transaction('rw',
+ *   [db.processHubs, db.evidenceSnapshots, db.evidenceSources, db.evidenceSourceCursors],
+ *   async () => {
+ *     await cascadeArchiveDescendants('hub', hubId, now);
+ *     await db.processHubs.update(hubId, { deletedAt: now });
+ *   });
+ * ```
+ *
+ * Dexie 4 reuses the outer transaction zone when the helper's inner
+ * `db.transaction(...)` call detects an active outer transaction whose
+ * locked tables are a superset of the helper's required tables. Calling
+ * the helper outside of an outer transaction (today's tests, simple flows)
+ * still works — the helper opens its own transaction.
+ *
  * @param parentKind The EntityKind of the entity being archived (e.g. 'hub', 'evidenceSource').
  * @param parentId   The id of the entity being archived.
  * @param archivedAt Unix ms timestamp for the soft-delete mark.
