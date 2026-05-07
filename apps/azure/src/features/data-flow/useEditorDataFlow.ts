@@ -27,6 +27,8 @@ import {
 } from '@variscout/core/matchSummary';
 import { isProcessHubComplete } from '@variscout/core/processHub';
 import type { EvidenceSnapshot, RowProvenanceTag } from '@variscout/core/evidenceSources';
+import { generateDeterministicId } from '@variscout/core/identity';
+import { azureHubRepository } from '../../persistence';
 import type { MatchSummaryActionChoice } from '@variscout/ui';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../../components/data/ManualEntry';
@@ -598,21 +600,51 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           return;
 
         case 'multi-source-join': {
-          // P3.4: populate the sidecar provenance Map before appending rows.
-          const hubCols = activeHub?.outcomes?.map(o => o.columnName) ?? [];
+          // F3.5 D3: dispatch snapshot through repository + keep setRowProvenance prop for
+          // session-only in-memory tracking (Azure has no rowProvenance Dexie table per D3;
+          // provenance tags are session-only via the existing setRowProvenance prop callback).
+          if (!activeHub) return;
+          const hubCols = activeHub.outcomes?.map(o => o.columnName) ?? [];
           const sourceId = deriveSourceId(hubCols, ms.newColumns);
           const startIndex = rawData.length;
           const now = Date.now();
-          const tags: RowProvenanceTag[] = ms.newRows.map((_, i) => ({
-            id: crypto.randomUUID(),
+          const snapshotId = generateDeterministicId();
+
+          const snapshot: EvidenceSnapshot = {
+            id: snapshotId,
+            hubId: activeHub.id,
+            sourceId,
+            capturedAt: new Date(now).toISOString(),
+            rowCount: ms.newRows.length,
+            origin: `paste:${sourceId}`,
+            importedAt: now,
             createdAt: now,
             deletedAt: null,
-            // snapshotId is '' until the snapshot is persisted (F3 wiring).
+          };
+
+          const tags: RowProvenanceTag[] = ms.newRows.map((_, i) => ({
+            id: generateDeterministicId(),
+            createdAt: now,
+            deletedAt: null,
+            // snapshotId is '' until the snapshot is persisted; the Azure handler writes
+            // the snapshot only (D3 — no rowProvenance table); snapshotId stays ''
+            // in the session-only tags (Azure D3 asymmetry vs PWA's atomic write).
             snapshotId: '',
             rowKey: String(startIndex + i),
             source: sourceId,
             joinKey: choice.candidate.hubColumn,
           }));
+
+          // F3.5 D3: dispatch persists snapshot only (Azure has no rowProvenance Dexie
+          // table); setRowProvenance retains the in-memory session-only tracking path.
+          // provenance is passed for action-shape symmetry with PWA; Azure handler ignores it.
+          void azureHubRepository.dispatch({
+            kind: 'EVIDENCE_ADD_SNAPSHOT',
+            hubId: activeHub.id,
+            snapshot,
+            provenance: tags,
+          });
+
           setRowProvenance?.(startIndex, tags);
           dispatch({ type: 'START_PASTE' });
           _proceedWithParsedData(ms.newRows);
@@ -622,9 +654,14 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         case 'overlap-replace': {
           // Archive existing rows that fall within the overlap range, then merge:
           // non-overlap existing rows ∪ archived overlap rows ∪ new rows.
-          const importId = crypto.randomUUID();
+          // archiveReplacedRows annotates in-memory rows with __replacedBy sentinel;
+          // the persistence-side replacement cascade goes through the handler via
+          // replacedSnapshotId (threaded from evidenceSnapshots?.at(-1)?.id per D3).
+          const importId = generateDeterministicId();
           const overlapRange = ms.classification.overlapRange;
           const timeCol = ms.newTimeColumn;
+          // Read the replaced snapshot id from the evidenceSnapshots prop (D3: prop stays).
+          const replacedSnapshotId = evidenceSnapshots?.at(-1)?.id;
 
           if (overlapRange && timeCol) {
             const overlapStart = new Date(overlapRange.startISO).getTime();
@@ -645,12 +682,67 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
             const archived = archiveReplacedRows(overlapRows, importId);
             const merged = [...nonOverlapRows, ...archived, ...ms.newRows];
+
+            if (activeHub) {
+              const now = Date.now();
+              const snapshotId = generateDeterministicId();
+              const sourceId = activeHub.outcomes?.[0]?.columnName ?? 'paste';
+              const snapshot: EvidenceSnapshot = {
+                id: snapshotId,
+                hubId: activeHub.id,
+                sourceId,
+                capturedAt: new Date(now).toISOString(),
+                rowCount: ms.newRows.length,
+                origin: 'paste:overlap-replace',
+                importedAt: now,
+                createdAt: now,
+                deletedAt: null,
+                rowTimestampRange: overlapRange,
+              };
+
+              // F3.5 D3: replacedSnapshotId activates the P2 handler's cascade
+              // (sets deletedAt on the prior snapshot before inserting the new one).
+              // No rowProvenance write — Azure has no rowProvenance Dexie table (D3).
+              void azureHubRepository.dispatch({
+                kind: 'EVIDENCE_ADD_SNAPSHOT',
+                hubId: activeHub.id,
+                snapshot,
+                provenance: [],
+                replacedSnapshotId,
+              });
+            }
+
             dispatch({ type: 'START_PASTE' });
             _proceedWithParsedData(merged);
           } else {
             // overlapRange absent when classifyPaste could not determine the overlap window
             // (no time column, or no prior snapshots) — fall back to replacing the full
             // dataset with the new rows.
+            if (activeHub) {
+              const now = Date.now();
+              const snapshotId = generateDeterministicId();
+              const sourceId = activeHub.outcomes?.[0]?.columnName ?? 'paste';
+              const snapshot: EvidenceSnapshot = {
+                id: snapshotId,
+                hubId: activeHub.id,
+                sourceId,
+                capturedAt: new Date(now).toISOString(),
+                rowCount: ms.newRows.length,
+                origin: 'paste:overlap-replace-fallback',
+                importedAt: now,
+                createdAt: now,
+                deletedAt: null,
+              };
+
+              void azureHubRepository.dispatch({
+                kind: 'EVIDENCE_ADD_SNAPSHOT',
+                hubId: activeHub.id,
+                snapshot,
+                provenance: [],
+                replacedSnapshotId,
+              });
+            }
+
             dispatch({ type: 'START_PASTE' });
             _proceedWithParsedData(ms.newRows);
           }
@@ -668,7 +760,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           return;
       }
     },
-    [matchSummary, activeHub, rawData, setRowProvenance, _proceedWithParsedData]
+    [matchSummary, activeHub, rawData, evidenceSnapshots, setRowProvenance, _proceedWithParsedData]
   );
 
   const cancelMatchSummary = useCallback(() => setMatchSummary(undefined), []);

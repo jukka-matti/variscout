@@ -20,6 +20,16 @@ vi.mock('@variscout/core', async importOriginal => {
   };
 });
 
+// Mock the persistence singleton so the hook's async repo call resolves cleanly.
+vi.mock('../../persistence', () => ({
+  pwaHubRepository: {
+    dispatch: vi.fn().mockResolvedValue(undefined),
+    evidenceSnapshots: {
+      listByHub: vi.fn().mockResolvedValue([]),
+    },
+  },
+}));
+
 import { renderHook, act } from '@testing-library/react';
 import {
   parseText,
@@ -30,6 +40,7 @@ import {
   detectDefectFormat,
 } from '@variscout/core';
 import type { ProcessHub } from '@variscout/core';
+import { pwaHubRepository } from '../../persistence';
 import { usePasteImportFlow, type UsePasteImportFlowOptions } from '../usePasteImportFlow';
 
 // ─── Minimal stub for a complete Hub ──────────────────────────────────────────
@@ -84,6 +95,10 @@ const PARSED_ROWS = [
 
 beforeEach(() => {
   vi.clearAllMocks();
+
+  // Re-apply persistence mock returns after clearAllMocks resets them.
+  vi.mocked(pwaHubRepository.dispatch).mockResolvedValue(undefined);
+  vi.mocked(pwaHubRepository.evidenceSnapshots.listByHub).mockResolvedValue([]);
 
   // Default detectColumns stub — returns minimal shape
   vi.mocked(detectColumns).mockReturnValue({

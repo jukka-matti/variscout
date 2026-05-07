@@ -8,6 +8,12 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // vi.mock BEFORE any imports that transitively load the mocked module.
+vi.mock('../../../persistence', () => ({
+  azureHubRepository: {
+    dispatch: vi.fn(),
+  },
+}));
+
 vi.mock('@variscout/core', async importOriginal => {
   const real = await importOriginal<typeof import('@variscout/core')>();
   return {
@@ -38,7 +44,12 @@ import {
 } from '@variscout/core';
 import { classifyPaste } from '@variscout/core/matchSummary';
 import type { ProcessHub } from '@variscout/core';
+import type { EvidenceSnapshot } from '@variscout/core/evidenceSources';
+import type { HubAction } from '@variscout/core/actions';
+import { azureHubRepository } from '../../../persistence';
 import { useEditorDataFlow, type UseEditorDataFlowOptions } from '../useEditorDataFlow';
+
+const mockedDispatch = vi.mocked(azureHubRepository.dispatch);
 
 // ─── Stubs ────────────────────────────────────────────────────────────────────
 
@@ -199,6 +210,28 @@ describe('useEditorDataFlow — overlap-replace provenance (Issue 1)', () => {
 
     // Total row count: 2 non-overlap + 2 archived + 2 new = 6.
     expect(mergedData).toHaveLength(6);
+
+    // F3.5 P4.2: azureHubRepository.dispatch called with EVIDENCE_ADD_SNAPSHOT.
+    // replacedSnapshotId is undefined here (no evidenceSnapshots passed in makeOptions).
+    expect(mockedDispatch).toHaveBeenCalledTimes(1);
+    const dispatchCall = mockedDispatch.mock.calls[0][0] as Extract<
+      HubAction,
+      { kind: 'EVIDENCE_ADD_SNAPSHOT' }
+    >;
+    expect(dispatchCall).toMatchObject({
+      kind: 'EVIDENCE_ADD_SNAPSHOT',
+      hubId: 'hub-1',
+      snapshot: expect.objectContaining({
+        hubId: 'hub-1',
+        origin: 'paste:overlap-replace',
+        rowCount: 2,
+        rowTimestampRange: OVERLAP_CLASSIFICATION.overlapRange,
+        deletedAt: null,
+      }),
+      provenance: [],
+    });
+    // No replacedSnapshotId when evidenceSnapshots is not provided.
+    expect(dispatchCall.replacedSnapshotId).toBeUndefined();
   });
 
   it('falls back to new-rows-only when overlapRange is absent', async () => {
@@ -227,6 +260,67 @@ describe('useEditorDataFlow — overlap-replace provenance (Issue 1)', () => {
     // Falls back: setRawData receives the new rows only (no merge / archival).
     const calledWith = setRawData.mock.calls[0][0] as unknown[];
     expect(calledWith).toHaveLength(NEW_ROWS.length);
+
+    // F3.5 P4.2: dispatch still fires for the fallback path with origin 'paste:overlap-replace-fallback'.
+    expect(mockedDispatch).toHaveBeenCalledTimes(1);
+    const fallbackDispatch = mockedDispatch.mock.calls[0][0];
+    expect(fallbackDispatch).toMatchObject({
+      kind: 'EVIDENCE_ADD_SNAPSHOT',
+      hubId: 'hub-1',
+      snapshot: expect.objectContaining({
+        hubId: 'hub-1',
+        origin: 'paste:overlap-replace-fallback',
+        rowCount: 2,
+        deletedAt: null,
+      }),
+      provenance: [],
+    });
+  });
+
+  it('threads replacedSnapshotId from evidenceSnapshots?.at(-1)?.id on overlap-replace', async () => {
+    const setRawData = vi.fn();
+    // Provide a prior snapshot so replacedSnapshotId is threaded.
+    const priorSnapshot: EvidenceSnapshot = {
+      id: 'snap-prior-1',
+      hubId: 'hub-1',
+      sourceId: 'diameter_mm',
+      capturedAt: '2026-05-01T00:00:00.000Z',
+      importedAt: 1746057600000,
+      createdAt: 1746057600000,
+      deletedAt: null,
+      origin: 'paste:diameter_mm',
+      rowCount: 4,
+      rowTimestampRange: {
+        startISO: '2026-05-01T00:00:00.000Z',
+        endISO: '2026-05-04T23:59:59.999Z',
+      },
+    };
+
+    const { result } = renderHook(() =>
+      useEditorDataFlow(
+        makeOptions({
+          activeHub: COMPLETE_HUB,
+          setRawData,
+          evidenceSnapshots: [priorSnapshot],
+        })
+      )
+    );
+
+    await act(async () => {
+      await result.current.handlePasteAnalyze(CSV_TEXT);
+    });
+
+    await act(async () => {
+      result.current.acceptMatchSummary({ kind: 'overlap-replace' });
+    });
+
+    // replacedSnapshotId must be the prior snapshot's id (activates P2 handler cascade).
+    expect(mockedDispatch).toHaveBeenCalledTimes(1);
+    const dispatchCall = mockedDispatch.mock.calls[0][0] as Extract<
+      HubAction,
+      { kind: 'EVIDENCE_ADD_SNAPSHOT' }
+    >;
+    expect(dispatchCall.replacedSnapshotId).toBe('snap-prior-1');
   });
 });
 

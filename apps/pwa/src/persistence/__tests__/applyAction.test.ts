@@ -423,28 +423,6 @@ describe('applyAction — OUTCOME_ARCHIVE', () => {
 // ---------------------------------------------------------------------------
 
 describe('applyAction — no-op action kinds', () => {
-  it('EVIDENCE_ADD_SNAPSHOT does not mutate any table', async () => {
-    await applyAction(db, {
-      kind: 'EVIDENCE_ADD_SNAPSHOT',
-      hubId: 'hub-x',
-      snapshot: {
-        id: 'snap-x',
-        hubId: 'hub-x',
-        sourceId: 'src-x',
-        capturedAt: '2026-05-06T00:00:00.000Z',
-        rowCount: 0,
-        origin: 'paste',
-        importedAt: NOW,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-      provenance: [],
-    });
-
-    expect(await db.evidenceSnapshots.count()).toBe(0);
-    expect(await db.rowProvenance.count()).toBe(0);
-  });
-
   it('INVESTIGATION_CREATE does not mutate any table', async () => {
     await applyAction(db, {
       kind: 'INVESTIGATION_CREATE',
@@ -511,9 +489,9 @@ describe('applyAction — no-op action kinds', () => {
   });
 
   it.each([
-    'EVIDENCE_ARCHIVE_SNAPSHOT',
     'EVIDENCE_SOURCE_ADD',
-    'EVIDENCE_SOURCE_UPDATE_CURSOR',
+    // EVIDENCE_SOURCE_UPDATE_CURSOR is no longer a no-op (F3.5 P5.1 wired it).
+    // See applyAction.cursor.test.ts for its full coverage.
     'EVIDENCE_SOURCE_REMOVE',
     'INVESTIGATION_UPDATE_METADATA',
     'INVESTIGATION_ARCHIVE',

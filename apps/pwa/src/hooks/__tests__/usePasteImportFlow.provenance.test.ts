@@ -1,8 +1,11 @@
 /**
- * P3.4 — usePasteImportFlow sidecar RowProvenanceTag tests.
+ * F3.5 P3.2 — usePasteImportFlow provenance dispatch tests.
  *
- * Verifies that multi-source-join confirmation populates the provenanceTags
- * sidecar via setRowProvenance, and that single-source pastes do not.
+ * Verifies that multi-source-join confirmation dispatches
+ * pwaHubRepository.dispatch({ kind: 'EVIDENCE_ADD_SNAPSHOT', ... }) with the
+ * correct provenance payload, and that single-source pastes do NOT dispatch.
+ *
+ * Replaces the pre-F3.5 setRowProvenance prop assertions per locked decision D4.
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
@@ -25,6 +28,16 @@ vi.mock('@variscout/core/matchSummary', async importOriginal => {
   return { ...real, classifyPaste: vi.fn() };
 });
 
+// Mock the persistence singleton — vi.mock hoist-safe: factory uses no top-level vars.
+vi.mock('../../persistence', () => ({
+  pwaHubRepository: {
+    dispatch: vi.fn().mockResolvedValue(undefined),
+    evidenceSnapshots: {
+      listByHub: vi.fn().mockResolvedValue([]),
+    },
+  },
+}));
+
 import { renderHook, act } from '@testing-library/react';
 import {
   parseText,
@@ -37,7 +50,7 @@ import {
 import { classifyPaste } from '@variscout/core/matchSummary';
 import type { ProcessHub } from '@variscout/core';
 import type { JoinKeyCandidate } from '@variscout/core/matchSummary';
-import type { RowProvenanceTag } from '@variscout/core/evidenceSources';
+import { pwaHubRepository } from '../../persistence';
 import { usePasteImportFlow, type UsePasteImportFlowOptions } from '../usePasteImportFlow';
 
 // ─── Stubs ────────────────────────────────────────────────────────────────────
@@ -112,6 +125,10 @@ function makeOptions(
 beforeEach(() => {
   vi.clearAllMocks();
 
+  // Re-apply default mock returns after clearAllMocks resets them.
+  vi.mocked(pwaHubRepository.dispatch).mockResolvedValue(undefined);
+  vi.mocked(pwaHubRepository.evidenceSnapshots.listByHub).mockResolvedValue([]);
+
   vi.mocked(detectColumns).mockReturnValue({
     outcome: 'weight_g',
     factors: [],
@@ -144,16 +161,10 @@ beforeEach(() => {
 
 const CSV_TEXT = 'lot_id,defect_type\nA1,scratch\nA2,dent';
 
-describe('usePasteImportFlow — provenance sidecar (P3.4)', () => {
-  it('multi-source-join populates sidecar Map via setRowProvenance', async () => {
-    const setRowProvenance = vi.fn();
+describe('usePasteImportFlow — provenance dispatch (F3.5 D4)', () => {
+  it('multi-source-join dispatches EVIDENCE_ADD_SNAPSHOT with provenance tags', async () => {
     const { result } = renderHook(() =>
-      usePasteImportFlow(
-        makeOptions({
-          activeHub: COMPLETE_HUB,
-          setRowProvenance,
-        })
-      )
+      usePasteImportFlow(makeOptions({ activeHub: COMPLETE_HUB }))
     );
 
     // Trigger paste → shows matchSummary
@@ -174,37 +185,46 @@ describe('usePasteImportFlow — provenance sidecar (P3.4)', () => {
 
     expect(result.current.matchSummary).toBeUndefined();
 
-    // setRowProvenance should be called with startIndex=2 (existing 2 rows)
-    // and 2 tags (one per new row)
-    expect(setRowProvenance).toHaveBeenCalledTimes(1);
-    const [startIndex, tags] = setRowProvenance.mock.calls[0] as [number, RowProvenanceTag[]];
-    expect(startIndex).toBe(2);
-    expect(tags).toHaveLength(2);
-    // Hub has outcome 'weight_g'; new columns are ['lot_id', 'defect_type'].
-    // First new-only column (not in ['weight_g']) is 'lot_id' → source = 'lot-id'.
-    // Tags now extend EntityBase — use objectContaining for non-deterministic id/createdAt.
-    expect(tags[0]).toEqual(
+    // dispatch must have been called with EVIDENCE_ADD_SNAPSHOT
+    expect(pwaHubRepository.dispatch).toHaveBeenCalledTimes(1);
+    const dispatchArg = vi.mocked(pwaHubRepository.dispatch).mock.calls[0][0];
+    expect(dispatchArg.kind).toBe('EVIDENCE_ADD_SNAPSHOT');
+    if (dispatchArg.kind !== 'EVIDENCE_ADD_SNAPSHOT') return; // type narrowing
+
+    expect(dispatchArg.hubId).toBe('hub-1');
+    expect(dispatchArg.snapshot).toEqual(
       expect.objectContaining({
+        id: expect.any(String),
+        hubId: 'hub-1',
+        rowCount: 2,
+      })
+    );
+    // Hub has outcome 'weight_g'; new columns are ['lot_id', 'defect_type'].
+    // First new-only column (not in ['weight_g']) is 'lot_id' → sourceId = 'lot-id'.
+    expect(dispatchArg.snapshot.sourceId).toBe('lot-id');
+
+    // 2 provenance tags (one per new row), each with correct rowKey and joinKey.
+    expect(dispatchArg.provenance).toHaveLength(2);
+    expect(dispatchArg.provenance[0]).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
         source: 'lot-id',
         joinKey: 'lot_id',
-        rowKey: '2',
-        snapshotId: '',
+        rowKey: '2', // existing 2 rows → startIndex = 2
         deletedAt: null,
       })
     );
-    expect(tags[1]).toEqual(
+    expect(dispatchArg.provenance[1]).toEqual(
       expect.objectContaining({
         source: 'lot-id',
         joinKey: 'lot_id',
         rowKey: '3',
-        snapshotId: '',
         deletedAt: null,
       })
     );
   });
 
-  it('single-source append does NOT populate provenance sidecar', async () => {
-    const setRowProvenance = vi.fn();
+  it('single-source append does NOT dispatch EVIDENCE_ADD_SNAPSHOT', async () => {
     const appendClassification = {
       source: 'same-source' as const,
       temporal: 'append' as const,
@@ -213,12 +233,7 @@ describe('usePasteImportFlow — provenance sidecar (P3.4)', () => {
     vi.mocked(classifyPaste).mockReturnValue(appendClassification);
 
     const { result } = renderHook(() =>
-      usePasteImportFlow(
-        makeOptions({
-          activeHub: COMPLETE_HUB,
-          setRowProvenance,
-        })
-      )
+      usePasteImportFlow(makeOptions({ activeHub: COMPLETE_HUB }))
     );
 
     await act(async () => {
@@ -229,12 +244,11 @@ describe('usePasteImportFlow — provenance sidecar (P3.4)', () => {
       result.current.acceptMatchSummary({ kind: 'append' });
     });
 
-    // setRowProvenance must NOT have been called for a single-source paste
-    expect(setRowProvenance).not.toHaveBeenCalled();
+    // dispatch must NOT have been called for a single-source append
+    expect(pwaHubRepository.dispatch).not.toHaveBeenCalled();
   });
 
   it('source ID falls back to source-2 when all new columns match hub outcome columns', async () => {
-    const setRowProvenance = vi.fn();
     // Hub whose outcomes include both new columns → deriveSourceId returns 'source-2'
     const hubWithAllCols: ProcessHub = {
       ...COMPLETE_HUB,
@@ -263,7 +277,6 @@ describe('usePasteImportFlow — provenance sidecar (P3.4)', () => {
         makeOptions({
           activeHub: hubWithAllCols,
           rawData: [{ lot_id: 'A0', weight_g: 100 }],
-          setRowProvenance,
         })
       )
     );
@@ -279,10 +292,14 @@ describe('usePasteImportFlow — provenance sidecar (P3.4)', () => {
       });
     });
 
-    expect(setRowProvenance).toHaveBeenCalledTimes(1);
-    const [, tags] = setRowProvenance.mock.calls[0] as [number, RowProvenanceTag[]];
+    expect(pwaHubRepository.dispatch).toHaveBeenCalledTimes(1);
+    const dispatchArg = vi.mocked(pwaHubRepository.dispatch).mock.calls[0][0];
+    expect(dispatchArg.kind).toBe('EVIDENCE_ADD_SNAPSHOT');
+    if (dispatchArg.kind !== 'EVIDENCE_ADD_SNAPSHOT') return;
+
     // hubCols = ['lot_id', 'defect_type']; newColumns = ['lot_id', 'defect_type']
     // → no distinguishing column → fallback 'source-2'
-    expect(tags[0].source).toBe('source-2');
+    expect(dispatchArg.snapshot.sourceId).toBe('source-2');
+    expect(dispatchArg.provenance[0]).toEqual(expect.objectContaining({ source: 'source-2' }));
   });
 });

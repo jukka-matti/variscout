@@ -8,7 +8,7 @@
 //
 //   applyAction(db: PwaDatabase, action: HubAction): Promise<void>
 //
-// Action coverage (F3 — narrow):
+// Action coverage (F3 — narrow; F3.5 extends with evidence handlers):
 //   - HUB_PERSIST_SNAPSHOT: bootstrap/full-save path. Decomposes the incoming
 //     ProcessHub into hubs / outcomes / canvasState rows in a single
 //     `db.transaction('rw', ...)`.
@@ -17,9 +17,13 @@
 //     the FK `hubId`.
 //   - OUTCOME_UPDATE: idempotent patch on the outcome row.
 //   - OUTCOME_ARCHIVE: idempotent soft-delete (deletedAt = Date.now()).
+//   - EVIDENCE_ADD_SNAPSHOT / EVIDENCE_ARCHIVE_SNAPSHOT — F3.5 wired (atomic
+//     snapshot + provenance writes; cascade-soft-delete on archive).
+//   - EVIDENCE_SOURCE_UPDATE_CURSOR — F3.5 P5 wired (id-keyed put per D5;
+//     caller-provided id preserved; generates one if absent).
 //
 // Out of scope (no-op with comments):
-//   - EVIDENCE_* — F3.5 wires this when ingestion action layer lands.
+//   - EVIDENCE_SOURCE_ADD / EVIDENCE_SOURCE_REMOVE — pending future use.
 //   - INVESTIGATION_* / FINDING_* / QUESTION_* / CAUSAL_LINK_* /
 //     SUSPECTED_CAUSE_* — F5 wires this when investigation entity action
 //     coverage lands.
@@ -33,6 +37,7 @@
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
 import type { HubAction } from '@variscout/core/actions';
+import { generateDeterministicId } from '@variscout/core/identity';
 import type { PwaDatabase } from '../db/schema';
 
 // ---------------------------------------------------------------------------
@@ -191,17 +196,85 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     }
 
     // -----------------------------------------------------------------------
-    // Evidence — F3.5 wires this when ingestion action layer lands.
+    // Evidence — F3.5 ingestion action layer.
     // -----------------------------------------------------------------------
 
-    case 'EVIDENCE_ADD_SNAPSHOT':
-    case 'EVIDENCE_ARCHIVE_SNAPSHOT':
+    // F3.5 D2 atomic ingestion handler. Closes the RowProvenanceTag.snapshotId = ''
+    // placeholder gap introduced in F1+F2 P1.3 (ADR-077 amendment) — the handler
+    // receives tags with snapshotId still empty and populates it from
+    // action.snapshot.id inside the transaction. If replacedSnapshotId is
+    // present (D1 replacement cascade), the old snapshot + its provenance rows
+    // are soft-deleted inside the same transaction before the new rows are
+    // written, ensuring no partial state is observable.
+    case 'EVIDENCE_ADD_SNAPSHOT': {
+      await db.transaction('rw', [db.evidenceSnapshots, db.rowProvenance], async () => {
+        const now = Date.now();
+
+        // Cascade: if replacing, mark replaced snapshot + its provenance rows.
+        if (action.replacedSnapshotId) {
+          await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: now });
+          const replacedTags = await db.rowProvenance
+            .where('snapshotId')
+            .equals(action.replacedSnapshotId)
+            .toArray();
+          if (replacedTags.length > 0) {
+            await db.rowProvenance.bulkUpdate(
+              replacedTags.map(t => ({ key: t.id, changes: { deletedAt: now } }))
+            );
+          }
+        }
+
+        // Insert the new snapshot.
+        await db.evidenceSnapshots.put(action.snapshot);
+
+        // Insert provenance tags with snapshotId now populated (closes F3.5 wiring gap).
+        if (action.provenance.length > 0) {
+          const tagsWithSnapshotId = action.provenance.map(t => ({
+            ...t,
+            snapshotId: action.snapshot.id,
+          }));
+          await db.rowProvenance.bulkPut(tagsWithSnapshotId);
+        }
+      });
+      return;
+    }
+
+    // Cascade-soft-delete to provenance per F3.5. Idempotent on already-deleted
+    // rows — Dexie's `.update()` returns 0 silently on a missing key, same
+    // pattern as the existing OUTCOME_ARCHIVE handler.
+    case 'EVIDENCE_ARCHIVE_SNAPSHOT': {
+      await db.transaction('rw', [db.evidenceSnapshots, db.rowProvenance], async () => {
+        const now = Date.now();
+        await db.evidenceSnapshots.update(action.snapshotId, { deletedAt: now });
+        const tags = await db.rowProvenance.where('snapshotId').equals(action.snapshotId).toArray();
+        if (tags.length > 0) {
+          await db.rowProvenance.bulkUpdate(
+            tags.map(t => ({ key: t.id, changes: { deletedAt: now } }))
+          );
+        }
+      });
+      return;
+    }
+
+    // F3.5 P5 — cursor reconciliation (D5). PWA schema: &id, sourceId — primary
+    // key is `id`. Caller-provided synthetic id (e.g., `cursor-${hubId}-${sourceId}`
+    // per the Azure useEvidenceSourceSync pattern, audit S8) is preserved. The
+    // `id ?? generateDeterministicId()` fallback is defensive: EvidenceSourceCursor.id
+    // is typed as string, so the guard only fires if a non-typed caller omits the
+    // field. Audit S6 (markSeen createdAt overwrite): intentionally NOT guarded here
+    // per D7 — the put is unconditional; the caller's cursor is written as-is.
+    case 'EVIDENCE_SOURCE_UPDATE_CURSOR': {
+      const cursorWithId = {
+        ...action.cursor,
+        id: action.cursor.id ?? generateDeterministicId(),
+      };
+      await db.evidenceSourceCursors.put(cursorWithId);
+      return;
+    }
+
+    // EVIDENCE_SOURCE_ADD + EVIDENCE_SOURCE_REMOVE stay no-op pending future use.
     case 'EVIDENCE_SOURCE_ADD':
-    case 'EVIDENCE_SOURCE_UPDATE_CURSOR':
     case 'EVIDENCE_SOURCE_REMOVE': {
-      // evidenceSnapshots / evidenceSources / evidenceSourceCursors /
-      // rowProvenance tables exist (F3 P1 declared them) but writes are not
-      // yet wired. F3.5 implements.
       return;
     }
 
