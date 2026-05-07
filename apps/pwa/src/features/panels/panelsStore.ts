@@ -5,7 +5,15 @@ import { create } from 'zustand';
 interface PanelsState {
   // Workspace navigation (aligned with Azure's activeView naming per ADR-055
   // and extended with 'frame' per ADR-070).
-  activeView: 'frame' | 'analysis' | 'investigation' | 'improvement' | 'report';
+  activeView:
+    | 'frame'
+    | 'analysis'
+    | 'investigation'
+    | 'improvement'
+    | 'report'
+    | 'charter'
+    | 'sustainment'
+    | 'handoff';
 
   // Panel visibility
   isSettingsOpen: boolean;
@@ -33,6 +41,9 @@ interface PanelsActions {
   showInvestigation: () => void;
   showImprovement: () => void;
   showReport: () => void;
+  showCharter: () => void;
+  showSustainment: () => void;
+  showHandoff: () => void;
 
   // Simple toggles
   setSettingsOpen: (open: boolean) => void;
@@ -89,6 +100,9 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   showInvestigation: () => set({ activeView: 'investigation', isFindingsOpen: false }),
   showImprovement: () => set({ activeView: 'improvement' }),
   showReport: () => set({ activeView: 'report' }),
+  showCharter: () => set({ activeView: 'charter', isFindingsOpen: false }),
+  showSustainment: () => set({ activeView: 'sustainment', isFindingsOpen: false }),
+  showHandoff: () => set({ activeView: 'handoff', isFindingsOpen: false }),
 
   // Simple toggles
   setSettingsOpen: open => set({ isSettingsOpen: open }),

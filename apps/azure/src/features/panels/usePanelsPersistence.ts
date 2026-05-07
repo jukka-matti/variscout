@@ -2,6 +2,11 @@ import { useEffect, useRef } from 'react';
 import { usePanelsStore } from './panelsStore';
 import type { ViewState } from '@variscout/hooks';
 
+/** Stub views are transient surfaces; do not persist them to ViewState. */
+const STUB_VIEWS = new Set(['charter', 'sustainment', 'handoff'] as const);
+
+type PersistedActiveView = NonNullable<ViewState['activeView']>;
+
 /**
  * Bridge hook: watches Zustand panelsStore and persists visibility state
  * to DataContext (project-level persistence via IndexedDB/OneDrive).
@@ -35,7 +40,11 @@ export function usePanelsPersistence(
       return;
     }
     prevRef.current = { isFindingsOpen, isWhatIfOpen, activeView };
-    onViewStateChange?.({ isFindingsOpen, isWhatIfOpen, activeView });
+    // Stub views are not persisted — omit activeView from the payload when on a stub.
+    const persistedView = STUB_VIEWS.has(activeView as 'charter' | 'sustainment' | 'handoff')
+      ? undefined
+      : (activeView as PersistedActiveView | undefined);
+    onViewStateChange?.({ isFindingsOpen, isWhatIfOpen, activeView: persistedView });
   }, [isFindingsOpen, isWhatIfOpen, activeView, onViewStateChange]);
 
   // Highlight timeout

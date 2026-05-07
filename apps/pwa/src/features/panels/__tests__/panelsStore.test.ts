@@ -128,4 +128,27 @@ describe('panelsStore', () => {
       expect(usePanelsStore.getState().showResetConfirm).toBe(false);
     });
   });
+
+  describe('response-path stub navigation', () => {
+    it('showCharter sets activeView to charter', () => {
+      usePanelsStore.getState().showCharter();
+      expect(usePanelsStore.getState().activeView).toBe('charter');
+    });
+
+    it('showCharter closes findings panel', () => {
+      usePanelsStore.setState({ isFindingsOpen: true });
+      usePanelsStore.getState().showCharter();
+      expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
+    });
+
+    it('showSustainment sets activeView to sustainment', () => {
+      usePanelsStore.getState().showSustainment();
+      expect(usePanelsStore.getState().activeView).toBe('sustainment');
+    });
+
+    it('showHandoff sets activeView to handoff', () => {
+      usePanelsStore.getState().showHandoff();
+      expect(usePanelsStore.getState().activeView).toBe('handoff');
+    });
+  });
 });

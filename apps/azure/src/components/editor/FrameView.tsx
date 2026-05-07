@@ -8,6 +8,7 @@ import React from 'react';
 import { CanvasWorkspace } from '@variscout/ui';
 import { useInvestigationStore, useProjectStore } from '@variscout/stores';
 import type { CanvasInvestigationFocus } from '@variscout/hooks';
+import type { WorkflowReadinessSignals } from '@variscout/core';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
 
@@ -26,6 +27,11 @@ const FrameView: React.FC = () => {
   const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
 
+  const signals: WorkflowReadinessSignals = React.useMemo(
+    () => ({ hasIntervention: false, sustainmentConfirmed: false }),
+    []
+  );
+
   const handleSeeData = React.useCallback(() => {
     usePanelsStore.getState().showAnalysis();
   }, []);
@@ -42,6 +48,18 @@ const FrameView: React.FC = () => {
     if (focus.questionId)
       useInvestigationFeatureStore.getState().expandToQuestion(focus.questionId);
     usePanelsStore.getState().showInvestigation();
+  }, []);
+
+  const handleCharter = React.useCallback(() => {
+    usePanelsStore.getState().showCharter();
+  }, []);
+
+  const handleSustainment = React.useCallback(() => {
+    usePanelsStore.getState().showSustainment();
+  }, []);
+
+  const handleHandoff = React.useCallback(() => {
+    usePanelsStore.getState().showHandoff();
   }, []);
 
   return (
@@ -63,6 +81,10 @@ const FrameView: React.FC = () => {
       suspectedCauses={suspectedCauses}
       causalLinks={causalLinks}
       onOpenInvestigationFocus={handleOpenInvestigationFocus}
+      signals={signals}
+      onCharter={handleCharter}
+      onSustainment={handleSustainment}
+      onHandoff={handleHandoff}
     />
   );
 };

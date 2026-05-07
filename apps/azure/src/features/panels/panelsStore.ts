@@ -3,7 +3,16 @@ import { create } from 'zustand';
 // ── State ────────────────────────────────────────────────────────────────────
 
 interface PanelsState {
-  activeView: 'dashboard' | 'frame' | 'analysis' | 'investigation' | 'improvement' | 'report';
+  activeView:
+    | 'dashboard'
+    | 'frame'
+    | 'analysis'
+    | 'investigation'
+    | 'improvement'
+    | 'report'
+    | 'charter'
+    | 'sustainment'
+    | 'handoff';
   isDataTableOpen: boolean;
   /** @deprecated Findings are moving to the Investigation workspace. Kept for backward compat; always false. Task 10 will remove consumers. */
   isFindingsOpen: boolean;
@@ -39,6 +48,9 @@ interface PanelsActions {
   showInvestigation: () => void;
   showImprovement: () => void;
   showReport: () => void;
+  showCharter: () => void;
+  showSustainment: () => void;
+  showHandoff: () => void;
   openDataTable: () => void;
   closeDataTable: () => void;
   setFindingsOpen: (open: boolean) => void;
@@ -64,7 +76,16 @@ interface PanelsActions {
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
-      activeView?: 'dashboard' | 'frame' | 'analysis' | 'investigation' | 'improvement' | 'report';
+      activeView?:
+        | 'dashboard'
+        | 'frame'
+        | 'analysis'
+        | 'investigation'
+        | 'improvement'
+        | 'report'
+        | 'charter'
+        | 'sustainment'
+        | 'handoff';
       isFindingsOpen?: boolean;
       isWhatIfOpen?: boolean;
     } | null
@@ -113,6 +134,9 @@ export const usePanelsStore = create<PanelsStore>(set => ({
       isWhatIfOpen: false,
     })),
   showReport: () => set(() => ({ activeView: 'report' })),
+  showCharter: () => set(() => ({ activeView: 'charter', isFindingsOpen: false })),
+  showSustainment: () => set(() => ({ activeView: 'sustainment', isFindingsOpen: false })),
+  showHandoff: () => set(() => ({ activeView: 'handoff', isFindingsOpen: false })),
 
   // Data table
   openDataTable: () => set({ isDataTableOpen: true }),

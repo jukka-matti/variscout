@@ -104,6 +104,9 @@ import { HubCreationFlow } from '../features/hubCreation';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { InvestigationWorkspace } from '../components/editor/InvestigationWorkspace';
 import FrameView from '../components/editor/FrameView';
+import CharterPanel from '../components/charter/CharterPanel';
+import SustainmentPanel from '../components/sustainment/SustainmentPanel';
+import HandoffPanel from '../components/handoff/HandoffPanel';
 import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
@@ -1489,7 +1492,11 @@ export const Editor: React.FC<EditorProps> = ({
         syncStatus={syncStatus}
         saveStatus={saveStatus}
         hasData={rawData.length > 0}
-        activeView={activeView}
+        activeView={
+          activeView === 'charter' || activeView === 'sustainment' || activeView === 'handoff'
+            ? undefined
+            : activeView
+        }
         openQuestionCount={
           questionsState.questions.filter(h => h.questionSource && h.status === 'open').length
         }
@@ -1592,6 +1599,12 @@ export const Editor: React.FC<EditorProps> = ({
               </div>
             ) : activeView === 'frame' ? (
               <FrameView />
+            ) : activeView === 'charter' ? (
+              <CharterPanel onBack={() => usePanelsStore.getState().showFrame()} />
+            ) : activeView === 'sustainment' ? (
+              <SustainmentPanel onBack={() => usePanelsStore.getState().showFrame()} />
+            ) : activeView === 'handoff' ? (
+              <HandoffPanel onBack={() => usePanelsStore.getState().showFrame()} />
             ) : activeView === 'investigation' ? (
               <InvestigationWorkspace
                 findingsState={findingsState}
