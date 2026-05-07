@@ -12,6 +12,7 @@ import { AdminHub, type AdminTab } from './components/admin/AdminHub';
 import { useAdminAccess, type AdminGatingMode } from './hooks/useAdminAccess';
 import SettingsPanel from './components/settings/SettingsPanel';
 import { SyncToastContainer } from './components/SyncToast';
+import { PasteConflictToast } from './components/PasteConflictToast';
 import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
 import ImprovementWindow from './components/ImprovementWindow';
 import { EvidenceMapWindow } from './pages/EvidenceMapWindow';
@@ -154,6 +155,7 @@ function AppMain() {
                 />
               </ErrorBoundary>
               <SyncToasts />
+              <PasteConflictToast />
             </div>
           </ToastProvider>
         </StorageProvider>

@@ -1,7 +1,7 @@
 // apps/azure/src/persistence/__tests__/applyAction.evidence.test.ts
 //
-// F3.5 P2.3 — tests for EVIDENCE_ADD_SNAPSHOT + EVIDENCE_ARCHIVE_SNAPSHOT handlers
-// in the Azure applyAction dispatcher.
+// F3.5 P2.3 / F3.6-β P2.2 — tests for EVIDENCE_ADD_SNAPSHOT + EVIDENCE_ARCHIVE_SNAPSHOT
+// handlers in the Azure applyAction dispatcher.
 //
 // Coverage:
 //   1. EVIDENCE_ADD_SNAPSHOT inserts snapshot
@@ -11,6 +11,8 @@
 //      (D3 asymmetry: no rowProvenance table in Azure — D3 intentional)
 //   4. EVIDENCE_ARCHIVE_SNAPSHOT marks snapshot deletedAt
 //   5. EVIDENCE_ARCHIVE_SNAPSHOT is idempotent on a missing snapshot — no throw, no row creation
+//   6. EVIDENCE_ARCHIVE_SNAPSHOT preserves provenance envelope on the snapshot record
+//      (regression guard: archive must not clear provenance; soft-delete is deletedAt only)
 //
 // D3 asymmetry note (locked decision in F3.5 plan):
 //   Azure has no `rowProvenance` Dexie table today (PWA does, per F3 normalization).
@@ -23,7 +25,7 @@
 // polyfill before db.ts runs its module-load side effects.
 
 import 'fake-indexeddb/auto';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { EvidenceSnapshot, RowProvenanceTag } from '@variscout/core';
 import { applyAction } from '../applyAction';
 import { db } from '../../db/schema';
@@ -90,7 +92,6 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await db.evidenceSnapshots.clear();
-  vi.restoreAllMocks();
 });
 
 // ---------------------------------------------------------------------------
@@ -153,11 +154,12 @@ describe('applyAction (Azure) — EVIDENCE_ADD_SNAPSHOT', () => {
   });
 
   it('accepts a non-empty provenance array without error — D3 asymmetry: no rowProvenance table', async () => {
-    // D3: Azure has no rowProvenance Dexie table. Dispatching EVIDENCE_ADD_SNAPSHOT
-    // with a non-empty provenance array must not throw. The handler ignores the
-    // provenance payload for persistence (session-only provenance via setRowProvenance
-    // prop callback is the in-memory tracking surface). No rowProvenance table to
-    // assert against — D3 asymmetry is intentional per the F3.5 plan and ADR-078 D2.
+    // D3: Azure has no separate `rowProvenance` Dexie table. Provenance is persisted as
+    // an envelope facet on the snapshot record itself (F3.6-β P2.1). This test confirms
+    // that a non-empty provenance array round-trips through the handler without throwing
+    // and that the snapshot is stored. The absence of a separate `rowProvenance` table is
+    // intentional per ADR-078 D2 (tier-agnostic state shapes; tier-gated persistence
+    // implementations).
     const snapshot = makeEvidenceSnapshot('snapshot-prov', 'hub-2');
     const tags: RowProvenanceTag[] = [
       makeProvenanceTag('tag-a', '0'),
@@ -174,15 +176,61 @@ describe('applyAction (Azure) — EVIDENCE_ADD_SNAPSHOT', () => {
       })
     ).resolves.toBeUndefined();
 
-    // Snapshot still persisted correctly despite non-empty provenance payload.
+    // Snapshot persisted correctly and provenance round-trips as envelope facet.
     const stored = await db.evidenceSnapshots.get('snapshot-prov');
     expect(stored?.id).toBe('snapshot-prov');
     expect(stored?.deletedAt).toBeNull();
+    expect(stored?.provenance).toHaveLength(3);
+    expect(stored?.provenance?.[0].id).toBe('tag-a');
+    expect(stored?.provenance?.[2].id).toBe('tag-c');
 
-    // Verify: the Azure db instance has no rowProvenance table.
+    // Verify: the Azure db instance has no separate rowProvenance table.
     // If this assertion fails, Azure schema has been modified to add the table —
     // update this test and the D3 deferral entry in docs/investigations.md.
     expect('rowProvenance' in db).toBe(false);
+  });
+
+  it('persists provenance tags as envelope facet on the snapshot record (F3.6-β P2.1)', async () => {
+    // F3.6-β envelope: provenance rides on the snapshot; no separate Dexie table.
+    // The stored snapshot.provenance must equal the dispatched provenance array.
+    const snapshot = makeEvidenceSnapshot('snapshot-env', 'hub-env');
+    const tags: RowProvenanceTag[] = [
+      makeProvenanceTag('tag-x', 'row-0'),
+      makeProvenanceTag('tag-y', 'row-1'),
+    ];
+
+    await applyAction({
+      kind: 'EVIDENCE_ADD_SNAPSHOT',
+      hubId: 'hub-env',
+      snapshot,
+      provenance: tags,
+    });
+
+    const stored = await db.evidenceSnapshots.get('snapshot-env');
+    expect(stored).toBeDefined();
+    // Envelope round-trip: provenance array must be stored intact.
+    expect(stored?.provenance).toHaveLength(2);
+    expect(stored?.provenance?.[0].id).toBe('tag-x');
+    expect(stored?.provenance?.[0].rowKey).toBe('row-0');
+    expect(stored?.provenance?.[1].id).toBe('tag-y');
+    expect(stored?.provenance?.[1].rowKey).toBe('row-1');
+  });
+
+  it('stores snapshot with empty provenance array when provenance is empty', async () => {
+    // When no join occurred, provenance: [] must not be coerced to undefined.
+    // The facet is present but empty — consistent envelope shape.
+    const snapshot = makeEvidenceSnapshot('snapshot-empty-prov', 'hub-ep');
+
+    await applyAction({
+      kind: 'EVIDENCE_ADD_SNAPSHOT',
+      hubId: 'hub-ep',
+      snapshot,
+      provenance: [],
+    });
+
+    const stored = await db.evidenceSnapshots.get('snapshot-empty-prov');
+    expect(stored).toBeDefined();
+    expect(stored?.provenance).toEqual([]);
   });
 });
 
@@ -217,5 +265,29 @@ describe('applyAction (Azure) — EVIDENCE_ARCHIVE_SNAPSHOT', () => {
     // No row created as a side-effect.
     const count = await db.evidenceSnapshots.count();
     expect(count).toBe(0);
+  });
+
+  it('preserves provenance envelope on archived snapshot (regression guard)', async () => {
+    // If someone erroneously adds `provenance: []` clearing logic to the archive
+    // handler, this test catches it. Soft-delete is deletedAt-only; the envelope
+    // facet must survive unchanged on the same Dexie record.
+    const tag = makeProvenanceTag('prov-tag-1', 'row-key-1', { snapshotId: 'snapshot-prov-arc' });
+    const snapshot = makeEvidenceSnapshot('snapshot-prov-arc', 'hub-4', {
+      provenance: [tag],
+    });
+    await db.evidenceSnapshots.put(snapshot);
+
+    await applyAction({
+      kind: 'EVIDENCE_ARCHIVE_SNAPSHOT',
+      snapshotId: 'snapshot-prov-arc',
+    });
+
+    const archived = await db.evidenceSnapshots.get('snapshot-prov-arc');
+    // deletedAt is set
+    expect(typeof archived?.deletedAt).toBe('number');
+    expect(archived?.deletedAt).toBeGreaterThan(0);
+    // provenance envelope is intact
+    expect(archived?.provenance).toHaveLength(1);
+    expect(archived?.provenance?.[0].id).toBe('prov-tag-1');
   });
 });

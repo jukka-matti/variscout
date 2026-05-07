@@ -28,7 +28,7 @@ import {
   saveBlobEvidenceSnapshot,
   saveBlobEvidenceSource,
   updateBlobEvidenceSources,
-  updateBlobEvidenceSnapshots,
+  updateBlobEvidenceSnapshotsConditional,
   listBlobSustainmentRecords,
   saveBlobSustainmentRecord,
   updateBlobSustainmentCatalog,
@@ -75,6 +75,50 @@ export interface SyncNotification {
   message: string;
   action?: { label: string; onClick: () => void };
   dismissAfter?: number; // ms, undefined = persistent
+}
+
+// ── Paste-conflict event channel (F3.6-β P4.2) ────────────────────────────
+//
+// Emitted when `saveEvidenceSnapshotToCloud` encounters a `concurrency-exhausted`
+// result from `updateBlobEvidenceSnapshotsConditional`. P5.1 subscribes here
+// to show a non-blocking `PasteConflictToast`.
+//
+// Local Dexie write already succeeded before this fires — no data is lost.
+// The toast tells the user "another teammate updated; refreshing."
+
+/** Payload carried by the paste-conflict event channel. */
+export interface PasteConflictEvent {
+  kind: 'paste-conflict';
+  hubId: string;
+  sourceId: string;
+  snapshotId: string;
+}
+
+type PasteConflictHandler = (event: PasteConflictEvent) => void;
+
+const _pasteConflictHandlers = new Set<PasteConflictHandler>();
+
+/**
+ * Subscribe to paste-conflict events emitted when an ETag-conditional snapshot
+ * catalog update is exhausted after all retries.
+ *
+ * @returns An unsubscribe function — call it in useEffect cleanup or on unmount.
+ */
+export function subscribePasteConflict(handler: PasteConflictHandler): () => void {
+  _pasteConflictHandlers.add(handler);
+  return () => {
+    _pasteConflictHandlers.delete(handler);
+  };
+}
+
+function _emitPasteConflict(event: PasteConflictEvent): void {
+  for (const handler of _pasteConflictHandlers) {
+    try {
+      handler(event);
+    } catch {
+      // Handlers must not crash the sync path — silently swallow.
+    }
+  }
 }
 
 // ── Error Classification ────────────────────────────────────────────────
@@ -247,6 +291,15 @@ export async function listEvidenceSnapshotsFromCloud(
   return wrapBlobCall(() => listBlobEvidenceSnapshots(hubId, sourceId));
 }
 
+/**
+ * Upload an EvidenceSnapshot envelope (including `provenance?: RowProvenanceTag[]`) to
+ * Blob Storage via a single atomic PUT (F3.6-β D1 / ADR-077 amendment 2026-05-07).
+ *
+ * Serialization path: `saveBlobEvidenceSnapshot` → `putJsonBlob` → `JSON.stringify(snapshot)`.
+ * No replacer is applied, so every field present on the snapshot — including `provenance` —
+ * is preserved verbatim in the uploaded blob. Snapshot id is the path key, making the PUT
+ * idempotent: transient-failure retries re-upload the same object.
+ */
 export async function saveEvidenceSnapshotToCloud(
   _token: string,
   snapshot: EvidenceSnapshot,
@@ -256,10 +309,43 @@ export async function saveEvidenceSnapshotToCloud(
   const next = existing.some(item => item.id === snapshot.id)
     ? existing.map(item => (item.id === snapshot.id ? snapshot : item))
     : [...existing, snapshot];
-  await wrapBlobCall(async () => {
-    await saveBlobEvidenceSnapshot(snapshot, sourceCsv);
-    await updateBlobEvidenceSnapshots(snapshot.hubId, snapshot.sourceId, next);
-  });
+
+  // Upload the snapshot blob unconditionally — each snapshot lives at a unique
+  // path keyed by snapshot.id, so there is no concurrency surface on this PUT.
+  await wrapBlobCall(() => saveBlobEvidenceSnapshot(snapshot, sourceCsv));
+
+  // Update the per-source catalog with ETag optimistic concurrency (F3.6-β P4.2).
+  // The catalog is a shared blob that multiple concurrent writers could race on.
+  const result = await updateBlobEvidenceSnapshotsConditional(
+    snapshot.hubId,
+    snapshot.sourceId,
+    next
+  );
+
+  if (result.ok) {
+    // Success — catalog updated. Nothing more to do.
+    return;
+  }
+
+  if (result.reason === 'concurrency-exhausted') {
+    // All retries failed; another writer kept winning. The local Dexie write
+    // already succeeded and is the source of truth. Surface a non-blocking
+    // event so the UI can inform the user (P5.1 will show PasteConflictToast).
+    // Do NOT re-queue: the next paste/sync naturally succeeds.
+    _emitPasteConflict({
+      kind: 'paste-conflict',
+      hubId: snapshot.hubId,
+      sourceId: snapshot.sourceId,
+      snapshotId: snapshot.id,
+    });
+    return;
+  }
+
+  // network | auth — surface as a thrown error so the caller's error boundary
+  // or retry logic (storage.ts wrapBlobCall / StorageProvider) can handle it.
+  throw new Error(
+    `[cloudSync] saveEvidenceSnapshotToCloud: catalog update failed (${result.reason})`
+  );
 }
 
 export async function loadFromCloud(

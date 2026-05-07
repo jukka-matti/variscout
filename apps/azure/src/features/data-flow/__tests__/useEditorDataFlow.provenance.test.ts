@@ -1,8 +1,11 @@
 /**
- * P3.4 — useEditorDataFlow sidecar RowProvenanceTag tests.
+ * P5.4 — useEditorDataFlow provenance dispatch tests (P3.4 updated for F3.6-β).
  *
- * Verifies that multi-source-join confirmation populates the provenanceTags
- * sidecar via setRowProvenance, and that single-source pastes do not.
+ * P5.2 dropped the `setRowProvenance?` prop; provenance is now carried exclusively
+ * in the EVIDENCE_ADD_SNAPSHOT action envelope dispatched to azureHubRepository.
+ *
+ * Verifies that multi-source-join confirmation dispatches EVIDENCE_ADD_SNAPSHOT with
+ * provenance tags, and that single-source pastes do not dispatch at all.
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
@@ -10,6 +13,9 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 vi.mock('../../../persistence', () => ({
   azureHubRepository: {
     dispatch: vi.fn(),
+    evidenceSnapshots: {
+      listByHub: vi.fn().mockResolvedValue([]),
+    },
   },
 }));
 
@@ -160,16 +166,11 @@ beforeEach(() => {
 
 const CSV_TEXT = 'lot_id,defect_type\nA1,scratch\nA2,dent';
 
-describe('useEditorDataFlow — provenance sidecar (P3.4)', () => {
-  it('multi-source-join populates sidecar Map via setRowProvenance', async () => {
-    const setRowProvenance = vi.fn();
+describe('useEditorDataFlow — provenance dispatch (P5.4 / F3.6-β)', () => {
+  it('multi-source-join dispatches EVIDENCE_ADD_SNAPSHOT with provenance tags (no setRowProvenance)', async () => {
+    // P5.2: setRowProvenance prop dropped. Provenance now rides the dispatch envelope only.
     const { result } = renderHook(() =>
-      useEditorDataFlow(
-        makeOptions({
-          activeHub: COMPLETE_HUB,
-          setRowProvenance,
-        })
-      )
+      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB }))
     );
 
     // Trigger paste → shows matchSummary
@@ -190,20 +191,26 @@ describe('useEditorDataFlow — provenance sidecar (P3.4)', () => {
 
     expect(result.current.matchSummary).toBeUndefined();
 
-    // setRowProvenance called with startIndex=2 (2 existing rows) and 2 tags
-    expect(setRowProvenance).toHaveBeenCalledTimes(1);
-    const [startIndex, tags] = setRowProvenance.mock.calls[0] as [number, RowProvenanceTag[]];
-    expect(startIndex).toBe(2);
+    // azureHubRepository.dispatch called once with EVIDENCE_ADD_SNAPSHOT + provenance.
+    expect(mockedDispatch).toHaveBeenCalledTimes(1);
+    const dispatchCall = mockedDispatch.mock.calls[0][0] as Extract<
+      HubAction,
+      { kind: 'EVIDENCE_ADD_SNAPSHOT' }
+    >;
+    expect(dispatchCall.kind).toBe('EVIDENCE_ADD_SNAPSHOT');
+    expect(dispatchCall.hubId).toBe('hub-1');
+
+    // provenance carries 2 tags (one per new row).
+    const tags = dispatchCall.provenance as RowProvenanceTag[];
     expect(tags).toHaveLength(2);
+
     // Hub has outcome 'diameter_mm'; new columns are ['lot_id', 'defect_type'].
     // First new-only column (not in ['diameter_mm']) is 'lot_id' → source = 'lot-id'.
-    // Tags now extend EntityBase — use objectContaining for non-deterministic id/createdAt.
     expect(tags[0]).toEqual(
       expect.objectContaining({
         source: 'lot-id',
         joinKey: 'lot_id',
         rowKey: '2',
-        snapshotId: '',
         deletedAt: null,
       })
     );
@@ -212,21 +219,10 @@ describe('useEditorDataFlow — provenance sidecar (P3.4)', () => {
         source: 'lot-id',
         joinKey: 'lot_id',
         rowKey: '3',
-        snapshotId: '',
         deletedAt: null,
       })
     );
 
-    // F3.5 P4.2: azureHubRepository.dispatch called with EVIDENCE_ADD_SNAPSHOT.
-    // Azure handler ignores provenance (D3 — no rowProvenance table); the dispatch
-    // payload carries provenance for action-shape symmetry with PWA.
-    expect(mockedDispatch).toHaveBeenCalledTimes(1);
-    const dispatchCall = mockedDispatch.mock.calls[0][0] as Extract<
-      HubAction,
-      { kind: 'EVIDENCE_ADD_SNAPSHOT' }
-    >;
-    expect(dispatchCall.kind).toBe('EVIDENCE_ADD_SNAPSHOT');
-    expect(dispatchCall.hubId).toBe('hub-1');
     expect(dispatchCall).toMatchObject({
       kind: 'EVIDENCE_ADD_SNAPSHOT',
       hubId: 'hub-1',
@@ -243,8 +239,8 @@ describe('useEditorDataFlow — provenance sidecar (P3.4)', () => {
     expect(dispatchCall.replacedSnapshotId).toBeUndefined();
   });
 
-  it('single-source append does NOT populate provenance sidecar', async () => {
-    const setRowProvenance = vi.fn();
+  it('single-source append does NOT dispatch EVIDENCE_ADD_SNAPSHOT', async () => {
+    // P5.2: append branch does not dispatch — no snapshot created for single-source appends.
     const appendClassification = {
       source: 'same-source' as const,
       temporal: 'append' as const,
@@ -253,12 +249,7 @@ describe('useEditorDataFlow — provenance sidecar (P3.4)', () => {
     vi.mocked(classifyPaste).mockReturnValue(appendClassification);
 
     const { result } = renderHook(() =>
-      useEditorDataFlow(
-        makeOptions({
-          activeHub: COMPLETE_HUB,
-          setRowProvenance,
-        })
-      )
+      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB }))
     );
 
     await act(async () => {
@@ -269,15 +260,12 @@ describe('useEditorDataFlow — provenance sidecar (P3.4)', () => {
       result.current.acceptMatchSummary({ kind: 'append' });
     });
 
-    // setRowProvenance must NOT have been called for a single-source paste
-    expect(setRowProvenance).not.toHaveBeenCalled();
     // azureHubRepository.dispatch must NOT have been called for a single-source paste
     // (append branch does not dispatch EVIDENCE_ADD_SNAPSHOT per plan).
     expect(mockedDispatch).not.toHaveBeenCalled();
   });
 
   it('source ID falls back to source-2 when all new columns match hub outcome columns', async () => {
-    const setRowProvenance = vi.fn();
     // Hub whose outcomes include both new columns → deriveSourceId returns 'source-2'
     const hubWithAllCols: ProcessHub = {
       ...COMPLETE_HUB,
@@ -306,7 +294,6 @@ describe('useEditorDataFlow — provenance sidecar (P3.4)', () => {
         makeOptions({
           activeHub: hubWithAllCols,
           rawData: [{ lot_id: 'A0', diameter_mm: 25.0 }],
-          setRowProvenance,
         })
       )
     );
@@ -322,23 +309,22 @@ describe('useEditorDataFlow — provenance sidecar (P3.4)', () => {
       });
     });
 
-    expect(setRowProvenance).toHaveBeenCalledTimes(1);
-    const [, tags] = setRowProvenance.mock.calls[0] as [number, RowProvenanceTag[]];
-    // hubCols = ['lot_id', 'defect_type']; newColumns = ['lot_id', 'defect_type']
-    // → no distinguishing column → fallback 'source-2'
-    expect(tags[0].source).toBe('source-2');
-
-    // Dispatch also fires with the correct sourceId.
+    // Dispatch fires with the correct sourceId fallback.
     expect(mockedDispatch).toHaveBeenCalledTimes(1);
     const dispatchCall = mockedDispatch.mock.calls[0][0] as Extract<
       HubAction,
       { kind: 'EVIDENCE_ADD_SNAPSHOT' }
     >;
     expect(dispatchCall.kind).toBe('EVIDENCE_ADD_SNAPSHOT');
+    // hubCols = ['lot_id', 'defect_type']; newColumns = ['lot_id', 'defect_type']
+    // → no distinguishing column → fallback 'source-2'
     expect(dispatchCall.snapshot).toMatchObject({
       hubId: 'hub-1',
       sourceId: 'source-2',
       origin: 'paste:source-2',
     });
+    // provenance tags also have source = 'source-2'
+    const tags = dispatchCall.provenance as RowProvenanceTag[];
+    expect(tags[0].source).toBe('source-2');
   });
 });

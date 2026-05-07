@@ -231,3 +231,122 @@ describe('EvidenceSnapshot provenance fields', () => {
     expect(snap.rowTimestampRange).toBeUndefined();
   });
 });
+
+describe('EvidenceSnapshot.provenance envelope facet (F3.6-β P1.1)', () => {
+  // Deterministic RowProvenanceTag fixtures — no Date.now() / Math.random() in value positions
+  const tagA: RowProvenanceTag = {
+    id: 'prov-tag-001',
+    createdAt: 1746435600000,
+    deletedAt: null,
+    snapshotId: 'snap-prov-1',
+    rowKey: 'row-0',
+    source: 'telemetry',
+    joinKey: 'lot_id',
+  };
+  const tagB: RowProvenanceTag = {
+    id: 'prov-tag-002',
+    createdAt: 1746435600000,
+    deletedAt: null,
+    snapshotId: 'snap-prov-1',
+    rowKey: 'row-1',
+    source: 'qc-inspection',
+    joinKey: 'lot_id',
+  };
+
+  it('accepts provenance as an array of RowProvenanceTag (present case)', () => {
+    const snap: EvidenceSnapshot = {
+      id: 'snap-prov-1',
+      hubId: 'hub-prov',
+      sourceId: 'src-prov',
+      capturedAt: '2026-05-05T08:00:00.000Z',
+      rowCount: 2,
+      origin: 'paste:multi-source-join',
+      importedAt: 1746435600000,
+      createdAt: 1746435600000,
+      deletedAt: null,
+      provenance: [tagA, tagB],
+    };
+
+    expect(snap.provenance).toHaveLength(2);
+    expect(snap.provenance![0]!.source).toBe('telemetry');
+    expect(snap.provenance![1]!.joinKey).toBe('lot_id');
+  });
+
+  it('accepts provenance as an empty array (empty case)', () => {
+    const snap: EvidenceSnapshot = {
+      id: 'snap-prov-2',
+      hubId: 'hub-prov',
+      sourceId: 'src-prov',
+      capturedAt: '2026-05-05T08:00:00.000Z',
+      rowCount: 0,
+      origin: 'paste:empty-join',
+      importedAt: 1746435600000,
+      createdAt: 1746435600000,
+      deletedAt: null,
+      provenance: [],
+    };
+
+    expect(snap.provenance).toBeDefined();
+    expect(snap.provenance).toHaveLength(0);
+  });
+
+  it('treats provenance as optional — absent when not a multi-source join (absent case)', () => {
+    const snap: EvidenceSnapshot = {
+      id: 'snap-prov-3',
+      hubId: 'hub-single',
+      sourceId: 'src-single',
+      capturedAt: '2026-05-05T08:00:00.000Z',
+      rowCount: 50,
+      origin: 'paste:single-csv',
+      importedAt: 1746435600000,
+      createdAt: 1746435600000,
+      deletedAt: null,
+    };
+
+    expect(snap.provenance).toBeUndefined();
+  });
+
+  it('round-trips through JSON.stringify / JSON.parse without data loss', () => {
+    const snap: EvidenceSnapshot = {
+      id: 'snap-prov-rt',
+      hubId: 'hub-rt',
+      sourceId: 'src-rt',
+      capturedAt: '2026-05-05T08:00:00.000Z',
+      rowCount: 1,
+      origin: 'paste:round-trip',
+      importedAt: 1746435600000,
+      createdAt: 1746435600000,
+      deletedAt: null,
+      provenance: [tagA],
+    };
+
+    const serialized = JSON.stringify(snap);
+    const restored = JSON.parse(serialized) as EvidenceSnapshot;
+
+    expect(restored.provenance).toHaveLength(1);
+    expect(restored.provenance![0]!.id).toBe('prov-tag-001');
+    expect(restored.provenance![0]!.source).toBe('telemetry');
+    expect(restored.provenance![0]!.joinKey).toBe('lot_id');
+    expect(restored.provenance![0]!.rowKey).toBe('row-0');
+    expect(restored.provenance![0]!.snapshotId).toBe('snap-prov-1');
+    expect(restored.provenance![0]!.createdAt).toBe(1746435600000);
+    expect(restored.provenance![0]!.deletedAt).toBeNull();
+  });
+
+  it('round-trips through JSON when provenance is absent — field stays absent', () => {
+    const snap: EvidenceSnapshot = {
+      id: 'snap-prov-rt2',
+      hubId: 'hub-rt2',
+      sourceId: 'src-rt2',
+      capturedAt: '2026-05-05T08:00:00.000Z',
+      rowCount: 10,
+      origin: 'evidence-source:auto',
+      importedAt: 1746435600000,
+      createdAt: 1746435600000,
+      deletedAt: null,
+    };
+
+    const restored = JSON.parse(JSON.stringify(snap)) as EvidenceSnapshot;
+    expect(restored.provenance).toBeUndefined();
+  });
+});

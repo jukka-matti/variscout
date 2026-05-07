@@ -659,9 +659,16 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const saveEvidenceSnapshot = useCallback(
     async (snapshot: EvidenceSnapshot, sourceCsv?: string): Promise<void> => {
-      // Route IndexedDB write through azureHubRepository.dispatch (F1+F2 P6).
-      // provenance is empty here — storage facade has no row-level provenance;
-      // applyAction uses only action.snapshot (rowProvenance is Azure no-op today per F3 note).
+      /**
+       * Envelope shape (F3.6-β D1 / ADR-077 amendment 2026-05-07):
+       *   snapshot.provenance?: RowProvenanceTag[]
+       * The field rides inline with the snapshot blob through the full write path:
+       *   dispatch (IndexedDB) → saveEvidenceSnapshotToCloud → saveBlobEvidenceSnapshot
+       *   → putJsonBlob → JSON.stringify(snapshot) → Blob Storage PUT.
+       * No replacer is applied; provenance is preserved end-to-end without extra mediation.
+       * The dispatch action carries provenance:[] because the storage facade operates at
+       * snapshot granularity — row-level tags are already embedded in snapshot.provenance.
+       */
       await azureHubRepository.dispatch({
         kind: 'EVIDENCE_ADD_SNAPSHOT',
         hubId: snapshot.hubId,

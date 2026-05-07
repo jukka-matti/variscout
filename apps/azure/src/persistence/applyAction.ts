@@ -36,6 +36,7 @@
 // NOTE: HUB_PERSIST_SNAPSHOT is handled by AzureHubRepository.dispatch before
 //   reaching this function — do not handle it here.
 
+import type { EvidenceSnapshot } from '@variscout/core';
 import type { HubAction } from '@variscout/core/actions';
 import { db } from '../db/schema';
 import { saveProcessHubToIndexedDB } from '../services/localDb';
@@ -147,14 +148,10 @@ export async function applyAction(action: HubAction): Promise<void> {
     // -------------------------------------------------------------------------
 
     case 'EVIDENCE_ADD_SNAPSHOT': {
-      // F3.5 D3: snapshot persistence only — Azure has no rowProvenance Dexie
-      // table today (PWA does, per F3 normalization). The caller continues to
-      // use the in-memory `setRowProvenance` prop callback for session-only
-      // provenance tracking. Adding the table is deferred to F3.6 or F4
-      // (logged in docs/investigations.md). This asymmetry vs PWA's atomic
-      // snapshot+provenance write is intentional — same action surface,
-      // different persistence model per ADR-078 D2 (tier-agnostic state shapes,
-      // tier-gated persistence implementations).
+      // F3.6-β envelope write: provenance rides on the snapshot facet —
+      // no separate rowProvenance Dexie table (Azure model per ADR-077 amendment
+      // 2026-05-07). One record in evidenceSnapshots carries both snapshot data
+      // and its provenance tags, matching the cloud-sync envelope shape.
       //
       // No db.transaction wrapper: this case writes only to evidenceSnapshots.
       // The optional update + put pair is not strictly atomic (mid-call browser
@@ -164,7 +161,11 @@ export async function applyAction(action: HubAction): Promise<void> {
       if (action.replacedSnapshotId) {
         await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: Date.now() });
       }
-      await db.evidenceSnapshots.put(action.snapshot);
+      const envelope: EvidenceSnapshot = {
+        ...action.snapshot,
+        provenance: action.provenance,
+      };
+      await db.evidenceSnapshots.put(envelope);
       return;
     }
 

@@ -197,6 +197,9 @@ export interface MatchSummaryPending {
   newRows: DataRow[];
   newColumns: string[];
   newTimeColumn?: string;
+  /** Id of the most-recent live snapshot at classification time — threads into
+   *  replacedSnapshotId on overlap-replace dispatch to activate the handler cascade. */
+  priorSnapshotId?: EvidenceSnapshot['id'];
 }
 
 export interface UseEditorDataFlowOptions {
@@ -211,16 +214,6 @@ export interface UseEditorDataFlowOptions {
   measureLabel: string | null;
   /** Active process hub — when set and complete, paste triggers the Mode A.2 match-summary path. */
   activeHub?: ProcessHub;
-  /**
-   * Evidence snapshots for the active hub, sorted ascending by `capturedAt`.
-   * The most-recent snapshot (`at(-1)`) supplies `rowTimestampRange` to
-   * `classifyPaste` for temporal-axis classification (overlap / append / backfill).
-   *
-   * Loaded separately from IndexedDB by the caller (Editor.tsx) so that
-   * `ProcessHub` remains a pure data-only type with no denormalised snapshot list.
-   * Pass `undefined` (or omit) when no snapshots are available.
-   */
-  evidenceSnapshots?: EvidenceSnapshot[];
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
@@ -237,8 +230,6 @@ export interface UseEditorDataFlowOptions {
   processFile: (file: File) => Promise<boolean>;
   loadSample: (sample: SampleDataset) => void;
   applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
-  /** Optional — populated only on multi-source join confirmation (P3.4). */
-  setRowProvenance?: (startIndex: number, tags: RowProvenanceTag[]) => void;
 }
 
 export interface UseEditorDataFlowReturn {
@@ -340,7 +331,6 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     measureColumns,
     measureLabel,
     activeHub,
-    evidenceSnapshots,
     setRawData,
     setOutcome,
     setFactors,
@@ -355,7 +345,6 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     processFile: processFileFromPicker,
     loadSample,
     applyTimeExtraction,
-    setRowProvenance,
   } = options;
 
   const [flowState, dispatch] = useReducer(editorFlowReducer, initialFlowState);
@@ -544,12 +533,22 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           const hubColumns = activeHub.outcomes?.map(o => o.columnName) ?? [];
           const newColumns = data.length > 0 ? Object.keys(data[0]) : [];
           const detected = detectColumns(data);
+
+          // F3.6-β P5.2: read existingRange from the repository directly (mirroring PWA D4 + S4
+          // Option A). The evidenceSnapshots prop has been dropped; the hook queries the
+          // repository for the most-recent live snapshot's rowTimestampRange.
+          const liveSnapshots = await azureHubRepository.evidenceSnapshots.listByHub(activeHub.id);
+          const mostRecentSnapshot = liveSnapshots
+            .slice()
+            .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))[0];
+          const existingRange = mostRecentSnapshot?.rowTimestampRange;
+
           const classification = classifyPaste(
             {
               hubColumns,
               existingRows: rawData.slice(0, 1000),
               existingTimeColumn: undefined,
-              existingRange: evidenceSnapshots?.at(-1)?.rowTimestampRange,
+              existingRange,
             },
             {
               newColumns,
@@ -562,6 +561,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
             newRows: data,
             newColumns,
             newTimeColumn: detected.timeColumn ?? undefined,
+            priorSnapshotId: mostRecentSnapshot?.id,
           });
           // Transition out of paste mode — match-summary card takes over.
           dispatch({ type: 'CANCEL_PASTE' });
@@ -576,7 +576,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         });
       }
     },
-    [activeHub, evidenceSnapshots, rawData, outcome, _proceedWithParsedData]
+    [activeHub, rawData, outcome, _proceedWithParsedData]
   );
 
   /**
@@ -600,9 +600,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           return;
 
         case 'multi-source-join': {
-          // F3.5 D3: dispatch snapshot through repository + keep setRowProvenance prop for
-          // session-only in-memory tracking (Azure has no rowProvenance Dexie table per D3;
-          // provenance tags are session-only via the existing setRowProvenance prop callback).
+          // F3.6-β P5.2: dispatch snapshot with provenance through repository (mirrors PWA D4).
+          // setRowProvenance prop dropped — provenance rides the envelope exclusively.
           if (!activeHub) return;
           const hubCols = activeHub.outcomes?.map(o => o.columnName) ?? [];
           const sourceId = deriveSourceId(hubCols, ms.newColumns);
@@ -626,18 +625,14 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
             id: generateDeterministicId(),
             createdAt: now,
             deletedAt: null,
-            // snapshotId is '' until the snapshot is persisted; the Azure handler writes
-            // the snapshot only (D3 — no rowProvenance table); snapshotId stays ''
-            // in the session-only tags (Azure D3 asymmetry vs PWA's atomic write).
+            // snapshotId is '' here; the handler overwrites it with action.snapshot.id.
             snapshotId: '',
             rowKey: String(startIndex + i),
             source: sourceId,
             joinKey: choice.candidate.hubColumn,
           }));
 
-          // F3.5 D3: dispatch persists snapshot only (Azure has no rowProvenance Dexie
-          // table); setRowProvenance retains the in-memory session-only tracking path.
-          // provenance is passed for action-shape symmetry with PWA; Azure handler ignores it.
+          // Provenance rides the envelope; Azure handler writes snapshot + provenance atomically.
           void azureHubRepository.dispatch({
             kind: 'EVIDENCE_ADD_SNAPSHOT',
             hubId: activeHub.id,
@@ -645,7 +640,6 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
             provenance: tags,
           });
 
-          setRowProvenance?.(startIndex, tags);
           dispatch({ type: 'START_PASTE' });
           _proceedWithParsedData(ms.newRows);
           return;
@@ -656,12 +650,13 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           // non-overlap existing rows ∪ archived overlap rows ∪ new rows.
           // archiveReplacedRows annotates in-memory rows with __replacedBy sentinel;
           // the persistence-side replacement cascade goes through the handler via
-          // replacedSnapshotId (threaded from evidenceSnapshots?.at(-1)?.id per D3).
+          // replacedSnapshotId (threaded from ms.priorSnapshotId captured at classification time).
           const importId = generateDeterministicId();
           const overlapRange = ms.classification.overlapRange;
           const timeCol = ms.newTimeColumn;
-          // Read the replaced snapshot id from the evidenceSnapshots prop (D3: prop stays).
-          const replacedSnapshotId = evidenceSnapshots?.at(-1)?.id;
+          // F3.6-β P5.2: priorSnapshotId is now stored on MatchSummaryPending (read from
+          // azureHubRepository.evidenceSnapshots.listByHub at handlePasteAnalyze time).
+          const replacedSnapshotId = ms.priorSnapshotId;
 
           if (overlapRange && timeCol) {
             const overlapStart = new Date(overlapRange.startISO).getTime();
@@ -700,9 +695,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
                 rowTimestampRange: overlapRange,
               };
 
-              // F3.5 D3: replacedSnapshotId activates the P2 handler's cascade
+              // replacedSnapshotId activates the handler's cascade
               // (sets deletedAt on the prior snapshot before inserting the new one).
-              // No rowProvenance write — Azure has no rowProvenance Dexie table (D3).
               void azureHubRepository.dispatch({
                 kind: 'EVIDENCE_ADD_SNAPSHOT',
                 hubId: activeHub.id,
@@ -760,7 +754,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           return;
       }
     },
-    [matchSummary, activeHub, rawData, evidenceSnapshots, setRowProvenance, _proceedWithParsedData]
+    [matchSummary, activeHub, rawData, _proceedWithParsedData]
   );
 
   const cancelMatchSummary = useCallback(() => setMatchSummary(undefined), []);

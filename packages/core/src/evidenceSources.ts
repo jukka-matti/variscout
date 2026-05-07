@@ -76,6 +76,19 @@ export interface EvidenceSnapshot extends EntityBase {
   importedAt: number;
   /** Span of `row_timestamp` values when a time column is present in the dataset. */
   rowTimestampRange?: { startISO: string; endISO: string };
+  /**
+   * Envelope facet: per-row provenance tags from a multi-source join.
+   * ONLY populated when rows from two or more sources were joined on a shared key.
+   * Single-source pastes (paste of one CSV, Evidence Source wizard) leave this undefined.
+   * Empty array `[]` is valid — a join was attempted but no rows qualified.
+   *
+   * All fields are JSON-safe (string | number | null) — no serialization concerns.
+   * Both undefined and [] round-trip cleanly through JSON.stringify / JSON.parse.
+   *
+   * Architecture: OpenLineage-style envelope facet pattern (ADR-077 amendment 2026-05-07).
+   * One field on EvidenceSnapshot → one Blob Storage object → atomicity for free.
+   */
+  provenance?: RowProvenanceTag[];
 }
 
 export interface DataProfileDetection {
