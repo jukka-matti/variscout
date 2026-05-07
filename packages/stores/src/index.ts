@@ -31,15 +31,6 @@ export {
   STORE_LAYER as INVESTIGATION_STORE_LAYER,
 } from './investigationStore';
 export type { InvestigationState, InvestigationActions } from './investigationStore';
-export { useSessionStore, getSessionInitialState } from './sessionStore';
-export type {
-  SessionState,
-  SessionActions,
-  SessionStore,
-  WorkspaceView,
-  PITab,
-  PersistedViewState,
-} from './sessionStore';
 export {
   useWallLayoutStore,
   persistWallLayout,
@@ -88,9 +79,7 @@ export type {
   PreferencesState,
   PreferencesActions,
   PreferencesStore,
-  // WorkspaceView and PITab are also exported from sessionStore during the F4 migration window.
-  // Use aliased names here to avoid duplicate-export collision; Task 9 collapses these when
-  // sessionStore is deleted and the canonical names are promoted.
-  WorkspaceView as PreferencesWorkspaceView,
-  PITab as PreferencesPITab,
+  WorkspaceView,
+  PITab,
 } from './preferencesStore';
+export type { DocumentSnapshot } from './documentSnapshot';
