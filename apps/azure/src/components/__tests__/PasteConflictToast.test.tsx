@@ -160,4 +160,13 @@ describe('PasteConflictToast', () => {
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAttribute('aria-modal', 'true');
   });
+
+  it('pressing Escape closes the modal', () => {
+    const { fireConflict } = renderAndCapture();
+    fireConflict();
+
+    expect(screen.getByTestId('paste-conflict-modal')).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByTestId('paste-conflict-modal')).not.toBeInTheDocument();
+  });
 });
