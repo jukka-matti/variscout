@@ -61,6 +61,18 @@ export interface ViewActions {
   setSelectionIndexMap: (map: Map<number, number>) => void;
   /** Clear brushing selection. Called by projectStore on loadProject / newProject. */
   clearTransientSelections: () => void;
+
+  // Rich selection actions (relocated from projectStore in F4 — spec D1)
+  /** Add the given indices to the selection set. */
+  addToSelection: (indices: number[]) => void;
+  /** Remove the given indices from the selection set. */
+  removeFromSelection: (indices: number[]) => void;
+  /** Clear ONLY the selectedPoints set; leaves selectionIndexMap untouched.
+   *  Differs from clearTransientSelections (which clears both) — preserves the
+   *  legacy projectStore.clearSelection semantics that consumers depend on. */
+  clearSelection: () => void;
+  /** Toggle whether a single index is in the selection set. */
+  togglePointSelection: (index: number) => void;
 }
 
 export type ViewStore = ViewState & ViewActions;
@@ -100,6 +112,27 @@ export const useViewStore = create<ViewStore>(set => ({
   setSelectedPoints: points => set({ selectedPoints: points }),
   setSelectionIndexMap: map => set({ selectionIndexMap: map }),
   clearTransientSelections: () => set({ selectedPoints: new Set(), selectionIndexMap: new Map() }),
+
+  addToSelection: indices =>
+    set(s => {
+      const newSet = new Set(s.selectedPoints);
+      indices.forEach(i => newSet.add(i));
+      return { selectedPoints: newSet };
+    }),
+  removeFromSelection: indices =>
+    set(s => {
+      const newSet = new Set(s.selectedPoints);
+      indices.forEach(i => newSet.delete(i));
+      return { selectedPoints: newSet };
+    }),
+  clearSelection: () => set({ selectedPoints: new Set() }),
+  togglePointSelection: index =>
+    set(s => {
+      const newSet = new Set(s.selectedPoints);
+      if (newSet.has(index)) newSet.delete(index);
+      else newSet.add(index);
+      return { selectedPoints: newSet };
+    }),
 }));
 
 // Expose getInitialState on the store instance for the canonical test reset

@@ -293,6 +293,16 @@ describe('projectStore — additional setters', () => {
     expect('selectionIndexMap' in state).toBe(false);
   });
 
+  it('does not expose selection actions (relocated to useViewStore in F4)', () => {
+    const state = useProjectStore.getState() as Record<string, unknown>;
+    expect('setSelectedPoints' in state).toBe(false);
+    expect('addToSelection' in state).toBe(false);
+    expect('removeFromSelection' in state).toBe(false);
+    expect('clearSelection' in state).toBe(false);
+    expect('togglePointSelection' in state).toBe(false);
+    expect('setSelectionIndexMap' in state).toBe(false);
+  });
+
   // --- View state ---
 
   it('setViewState updates viewState and marks unsaved', () => {

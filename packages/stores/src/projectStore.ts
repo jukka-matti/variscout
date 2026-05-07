@@ -229,14 +229,6 @@ export interface ProjectActions {
   setProcessContext: (context: ProcessContext | null) => void;
   setEntryScenario: (scenario: EntryScenario | null) => void;
 
-  // Selection (delegated to useViewStore — convenience bridge for existing consumers)
-  setSelectedPoints: (points: Set<number>) => void;
-  addToSelection: (indices: number[]) => void;
-  removeFromSelection: (indices: number[]) => void;
-  clearSelection: () => void;
-  togglePointSelection: (index: number) => void;
-  setSelectionIndexMap: (map: Map<number, number>) => void;
-
   // View state
   setViewState: (state: ViewState | null) => void;
 
@@ -444,34 +436,6 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
 
   setProcessContext: setAndMark(set, 'processContext'),
   setEntryScenario: setAndMark(set, 'entryScenario'),
-
-  // --- Selection (delegated to useViewStore — state lives there after F4) ---
-
-  setSelectedPoints: points => useViewStore.getState().setSelectedPoints(points),
-  addToSelection: indices => {
-    const view = useViewStore.getState();
-    const newSet = new Set(view.selectedPoints);
-    indices.forEach(i => newSet.add(i));
-    view.setSelectedPoints(newSet);
-  },
-  removeFromSelection: indices => {
-    const view = useViewStore.getState();
-    const newSet = new Set(view.selectedPoints);
-    indices.forEach(i => newSet.delete(i));
-    view.setSelectedPoints(newSet);
-  },
-  clearSelection: () => useViewStore.getState().clearTransientSelections(),
-  togglePointSelection: index => {
-    const view = useViewStore.getState();
-    const newSet = new Set(view.selectedPoints);
-    if (newSet.has(index)) {
-      newSet.delete(index);
-    } else {
-      newSet.add(index);
-    }
-    view.setSelectedPoints(newSet);
-  },
-  setSelectionIndexMap: map => useViewStore.getState().setSelectionIndexMap(map),
 
   // --- View state ---
 

@@ -52,6 +52,7 @@ import {
   useInvestigationStore,
   usePreferencesStore,
   useWallLayoutStore,
+  useViewStore,
 } from '@variscout/stores';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
@@ -223,7 +224,7 @@ function AppMain() {
   const setDataQualityReport = useProjectStore(s => s.setDataQualityReport);
   const setFilters = useProjectStore(s => s.setFilters);
   const setColumnAliases = useProjectStore(s => s.setColumnAliases);
-  const clearSelection = useProjectStore(s => s.clearSelection);
+  const clearSelection = useViewStore(s => s.clearSelection);
   const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
   const setYamazumiMapping = useProjectStore(s => s.setYamazumiMapping);
   const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
