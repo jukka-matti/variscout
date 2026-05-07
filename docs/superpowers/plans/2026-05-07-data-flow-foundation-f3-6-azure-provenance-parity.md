@@ -12,6 +12,7 @@ related:
   - docs/07-decisions/adr-058-deployment-lifecycle.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
   - docs/decision-log.md
+  - docs/superpowers/plans/2026-05-07-data-flow-foundation-f3-6-chrome-walk.md
 ---
 
 # Data-Flow Foundation F3.6-β Implementation Plan
