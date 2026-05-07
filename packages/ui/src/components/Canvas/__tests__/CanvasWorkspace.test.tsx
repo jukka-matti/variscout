@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
-import type { ScopeFilter, SpecLimits, TimelineWindow } from '@variscout/core';
+import type { ScopeFilter, SpecLimits, StepCapabilityStamp, TimelineWindow } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import type {
   CanvasInvestigationOverlayModel,
@@ -9,6 +9,7 @@ import type {
   CanvasOverlayId,
   CanvasStepCardModel,
 } from '@variscout/hooks';
+import { useCanvasStepCards } from '@variscout/hooks';
 import { useCanvasStore } from '@variscout/stores';
 
 vi.mock('@variscout/charts', async importOriginal => {
@@ -413,6 +414,7 @@ describe('CanvasWorkspace', () => {
       setMode: vi.fn(),
       toggle: vi.fn(),
     };
+    vi.mocked(useCanvasStepCards).mockClear();
   });
 
   it('renders b0 with the lightweight picker and collapsed canvas expander', () => {
@@ -432,6 +434,23 @@ describe('CanvasWorkspace', () => {
     expect(screen.getByTestId('canvas-step-card-step-1')).toBeInTheDocument();
     expect(screen.queryByTestId('band-operations')).not.toBeInTheDocument();
     expect(screen.queryByTestId('ops-band-dashboard')).not.toBeInTheDocument();
+  });
+
+  it('passes priorStepStats into useCanvasStepCards', () => {
+    const priorStepStats = new Map<string, StepCapabilityStamp>([
+      ['step-1', { stepId: 'step-1', n: 30, mean: 30, cpk: 0.8 }],
+    ]);
+
+    renderWorkspace({
+      processContext: { processMap: mapWithStep() },
+      priorStepStats,
+    });
+
+    expect(useCanvasStepCards).toHaveBeenCalledWith(
+      expect.objectContaining({
+        priorStepStats,
+      })
+    );
   });
 
   it('wires lens changes through session canvas filters', () => {

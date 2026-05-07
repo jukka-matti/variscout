@@ -116,6 +116,15 @@ vi.mock('@variscout/charts', async importOriginal => {
 });
 
 import FrameView from '../FrameView';
+import { SessionProvider } from '../../../store/sessionStore';
+
+function renderFrameView() {
+  return render(
+    <SessionProvider>
+      <FrameView />
+    </SessionProvider>
+  );
+}
 
 describe('FrameView b0 — happy-path integration', () => {
   beforeEach(() => {
@@ -130,7 +139,7 @@ describe('FrameView b0 — happy-path integration', () => {
 
   it('renders b0 surface, ranks Y, then accepts Y → X → See-the-data flow', () => {
     // ── Step 2: empty processMap → b0 path. Verify b0 surface rendered. ─────
-    render(<FrameView />);
+    renderFrameView();
     expect(screen.getByTestId('frame-view')).toBeInTheDocument();
     expect(screen.getByTestId('y-picker-section')).toBeInTheDocument();
 
@@ -156,7 +165,7 @@ describe('FrameView b0 — happy-path integration', () => {
     storeStateRef.current = { ...baseStoreState, outcome: 'Down_Content_%' };
 
     // ── Step 5 (re-render with outcome): X picker visible, run-order hint. ─
-    render(<FrameView />);
+    renderFrameView();
     expect(screen.getByTestId('x-picker-section')).toBeInTheDocument();
 
     // Run-order hint mentions Lot_Start_DateTime (date column auto-detected
@@ -193,7 +202,7 @@ describe('FrameView b0 — happy-path integration', () => {
     };
 
     // ── Step 7: re-render with Y + X picked → CTA enabled → click → showAnalysis.
-    render(<FrameView />);
+    renderFrameView();
     const cta = screen.getByTestId('see-the-data-cta');
     expect(cta.getAttribute('data-disabled')).toBe('false');
     fireEvent.click(cta);

@@ -20,6 +20,7 @@ import {
   type ProcessHubInvestigation,
   type Question,
   type SpecLimits,
+  type StepCapabilityStamp,
   type SuspectedCause,
   type TimelineWindow,
   type WorkflowReadinessSignals,
@@ -56,6 +57,7 @@ export interface CanvasWorkspaceProps {
   suspectedCauses?: readonly SuspectedCause[];
   causalLinks?: readonly CausalLink[];
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
+  priorStepStats?: ReadonlyMap<string, StepCapabilityStamp>;
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -160,6 +162,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   suspectedCauses = [],
   causalLinks = [],
   onOpenInvestigationFocus,
+  priorStepStats,
 }) => {
   const { t } = useTranslation();
   const fallbackMap = React.useMemo(() => createEmptyMap(), []);
@@ -281,6 +284,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     measureSpecs,
     capabilityNodes: data.capabilityNodes,
     errorSteps: data.errorSteps,
+    priorStepStats,
   });
 
   const { overlays: investigationOverlays } = useCanvasInvestigationOverlays({

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WorkflowReadinessSignals } from '@variscout/core';
 
@@ -39,6 +39,8 @@ const investigationStateRef: { current: Record<string, unknown> } = {
 
 const hoisted = vi.hoisted(() => ({
   canvasWorkspaceMock: vi.fn(),
+  listByHubMock: vi.fn(),
+  sessionStateRef: { current: { hub: { id: 'hub-1' } as { id: string } | null } },
 }));
 
 vi.mock('@variscout/stores', () => ({
@@ -60,6 +62,7 @@ vi.mock('@variscout/ui', async () => {
       onCharter?: () => void;
       onSustainment?: () => void;
       onHandoff?: () => void;
+      priorStepStats?: ReadonlyMap<string, unknown>;
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -138,6 +141,18 @@ vi.mock('../../../features/investigation/investigationStore', () => ({
   }),
 }));
 
+vi.mock('../../../persistence', () => ({
+  pwaHubRepository: {
+    evidenceSnapshots: {
+      listByHub: hoisted.listByHubMock,
+    },
+  },
+}));
+
+vi.mock('../../../store/sessionStore', () => ({
+  useSession: () => hoisted.sessionStateRef.current,
+}));
+
 import FrameView from '../FrameView';
 
 describe('FrameView (PWA shell)', () => {
@@ -150,6 +165,9 @@ describe('FrameView (PWA shell)', () => {
     showSustainmentMock.mockClear();
     showHandoffMock.mockClear();
     expandToQuestionMock.mockClear();
+    hoisted.listByHubMock.mockReset();
+    hoisted.listByHubMock.mockResolvedValue([]);
+    hoisted.sessionStateRef.current = { hub: { id: 'hub-1' } };
     storeStateRef.current = {
       rawData: [{ Fill_Weight: 12 }],
       outcome: 'Fill_Weight',
@@ -191,6 +209,58 @@ describe('FrameView (PWA shell)', () => {
         signals: { hasIntervention: false, sustainmentConfirmed: false },
       })
     );
+  });
+
+  it('passes most-recent snapshot stepCapabilities to CanvasWorkspace as priorStepStats', async () => {
+    hoisted.listByHubMock.mockResolvedValue([
+      {
+        id: 'snap-old',
+        hubId: 'hub-1',
+        sourceId: 'src-1',
+        capturedAt: '2026-05-05T00:00:00.000Z',
+        rowCount: 30,
+        origin: 'paste',
+        importedAt: 1746576000000,
+        createdAt: 1746576000000,
+        deletedAt: null,
+        stepCapabilities: [{ stepId: 'step-1', n: 30, mean: 29, cpk: 1.4 }],
+      },
+      {
+        id: 'snap-new',
+        hubId: 'hub-1',
+        sourceId: 'src-1',
+        capturedAt: '2026-05-07T00:00:00.000Z',
+        rowCount: 30,
+        origin: 'paste',
+        importedAt: 1746576000000,
+        createdAt: 1746576000000,
+        deletedAt: null,
+        stepCapabilities: [{ stepId: 'step-1', n: 30, mean: 30, cpk: 0.8 }],
+      },
+    ]);
+
+    render(<FrameView />);
+
+    await waitFor(() => expect(hoisted.listByHubMock).toHaveBeenCalledWith('hub-1'));
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.priorStepStats?.get('step-1')).toEqual({
+        stepId: 'step-1',
+        n: 30,
+        mean: 30,
+        cpk: 0.8,
+      });
+    });
+  });
+
+  it('does not read snapshots when there is no active session hub', () => {
+    hoisted.sessionStateRef.current = { hub: null };
+
+    render(<FrameView />);
+
+    expect(hoisted.listByHubMock).not.toHaveBeenCalled();
+    const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+    expect(props?.priorStepStats?.size).toBe(0);
   });
 
   it('wires See Data to the PWA Analysis panel action', () => {
