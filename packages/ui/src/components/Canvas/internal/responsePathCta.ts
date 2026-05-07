@@ -1,8 +1,8 @@
 /**
  * Maps `(path, signals, hasHandler)` to a `ResponsePathCtaState` for each of
- * the five response-path CTAs in the canvas drill-down. Charter, Sustainment,
- * and Handoff are prerequisite-gated (intervention exists / sustainment
- * confirmed); Quick action and Focused investigation are never gated.
+ * the five response-path CTAs in the canvas drill-down. Sustainment and Handoff
+ * are prerequisite-gated (intervention exists / sustainment confirmed);
+ * Quick action, Focused investigation, and Charter are always available.
  * `'hidden'` is reserved for the case where a path's handler is not wired —
  * we hide rather than tease unfinished features.
  *
@@ -10,7 +10,7 @@
  */
 
 import type { WorkflowReadinessSignals } from '@variscout/core';
-import { isCharterReady, isSustainmentReady, isHandoffReady } from '@variscout/core';
+import { isSustainmentReady, isHandoffReady } from '@variscout/core';
 
 export type ResponsePathKind =
   | 'quick-action'
@@ -44,10 +44,8 @@ export function computeCtaState({
   switch (path) {
     case 'quick-action':
     case 'focused-investigation':
-      return hasHandler ? { kind: 'active' } : { kind: 'hidden' };
     case 'charter':
-      // Charter has no workflow prerequisite (DMAIC Define-phase artifact).
-      return hasHandler && isCharterReady(signals) ? { kind: 'active' } : { kind: 'hidden' };
+      return hasHandler ? { kind: 'active' } : { kind: 'hidden' };
     case 'sustainment':
       if (!isSustainmentReady(signals)) {
         return { kind: 'prerequisite-locked', reason: 'no-intervention' };
