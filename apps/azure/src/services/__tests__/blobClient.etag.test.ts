@@ -18,12 +18,12 @@ const MOCK_SNAPSHOT = {
   id: 'snap-1',
   hubId: HUB_ID,
   sourceId: SOURCE_ID,
-  name: 'Test',
-  columnNames: ['x'],
-  rows: [],
+  capturedAt: '2024-01-15T00:00:00.000Z',
+  rowCount: 0,
+  origin: 'paste',
+  importedAt: 1700000000000,
   createdAt: 1700000000000,
-  updatedAt: 1700000000000,
-  status: 'active' as const,
+  deletedAt: null,
 };
 
 /** A sleep mock that resolves immediately — no real delays in tests. */
@@ -76,16 +76,14 @@ describe('updateBlobEvidenceSnapshotsConditional', () => {
     expect(result).toEqual<UpdateBlobConditionalResult>({ ok: true, etag: '"first-etag"' });
 
     // PUT must NOT have sent an If-Match header (no prior ETag)
-    const putCall = fetchSpy.mock.calls.find(
-      ([url, opts]) =>
-        typeof url === 'string' &&
-        url === EXPECTED_BLOB_URL &&
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (opts as any)?.method === 'PUT'
-    );
+    type FetchInit = Parameters<typeof fetch>[1];
+    const putCall = fetchSpy.mock.calls.find((call: unknown[]) => {
+      const [url, opts] = call as [string, FetchInit];
+      return url === EXPECTED_BLOB_URL && (opts as FetchInit)?.method === 'PUT';
+    });
     expect(putCall).toBeDefined();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const putHeaders = (putCall![1] as any).headers as Record<string, string>;
+    const putInit = putCall![1] as FetchInit;
+    const putHeaders = putInit?.headers as Record<string, string>;
     expect(putHeaders['If-Match']).toBeUndefined();
   });
 
@@ -109,16 +107,14 @@ describe('updateBlobEvidenceSnapshotsConditional', () => {
 
     expect(result).toEqual<UpdateBlobConditionalResult>({ ok: true, etag: '"etag-v2"' });
 
-    const putCall = fetchSpy.mock.calls.find(
-      ([url, opts]) =>
-        typeof url === 'string' &&
-        url === EXPECTED_BLOB_URL &&
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (opts as any)?.method === 'PUT'
-    );
+    type FetchInit = Parameters<typeof fetch>[1];
+    const putCall = fetchSpy.mock.calls.find((call: unknown[]) => {
+      const [url, opts] = call as [string, FetchInit];
+      return url === EXPECTED_BLOB_URL && (opts as FetchInit)?.method === 'PUT';
+    });
     expect(putCall).toBeDefined();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const putHeaders = (putCall![1] as any).headers as Record<string, string>;
+    const putInit = putCall![1] as FetchInit;
+    const putHeaders = putInit?.headers as Record<string, string>;
     expect(putHeaders['If-Match']).toBe('"etag-v1"');
   });
 

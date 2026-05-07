@@ -82,12 +82,12 @@ function makeSnapshot(): EvidenceSnapshot {
     id: SNAP_ID,
     hubId: HUB_ID,
     sourceId: SOURCE_ID,
-    name: 'Test snapshot',
-    columnNames: ['x', 'y'],
-    rows: [],
+    capturedAt: '2024-01-15T00:00:00.000Z',
+    rowCount: 0,
+    origin: 'paste',
+    importedAt: 1700000000000,
     createdAt: 1700000000000,
-    updatedAt: 1700000000001,
-    status: 'active',
+    deletedAt: null,
   };
 }
 
