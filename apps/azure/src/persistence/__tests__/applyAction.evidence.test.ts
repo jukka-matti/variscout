@@ -1,7 +1,7 @@
 // apps/azure/src/persistence/__tests__/applyAction.evidence.test.ts
 //
-// F3.5 P2.3 — tests for EVIDENCE_ADD_SNAPSHOT + EVIDENCE_ARCHIVE_SNAPSHOT handlers
-// in the Azure applyAction dispatcher.
+// F3.5 P2.3 / F3.6-β P2.2 — tests for EVIDENCE_ADD_SNAPSHOT + EVIDENCE_ARCHIVE_SNAPSHOT
+// handlers in the Azure applyAction dispatcher.
 //
 // Coverage:
 //   1. EVIDENCE_ADD_SNAPSHOT inserts snapshot
@@ -11,6 +11,8 @@
 //      (D3 asymmetry: no rowProvenance table in Azure — D3 intentional)
 //   4. EVIDENCE_ARCHIVE_SNAPSHOT marks snapshot deletedAt
 //   5. EVIDENCE_ARCHIVE_SNAPSHOT is idempotent on a missing snapshot — no throw, no row creation
+//   6. EVIDENCE_ARCHIVE_SNAPSHOT preserves provenance envelope on the snapshot record
+//      (regression guard: archive must not clear provenance; soft-delete is deletedAt only)
 //
 // D3 asymmetry note (locked decision in F3.5 plan):
 //   Azure has no `rowProvenance` Dexie table today (PWA does, per F3 normalization).
@@ -260,5 +262,29 @@ describe('applyAction (Azure) — EVIDENCE_ARCHIVE_SNAPSHOT', () => {
     // No row created as a side-effect.
     const count = await db.evidenceSnapshots.count();
     expect(count).toBe(0);
+  });
+
+  it('preserves provenance envelope on archived snapshot (regression guard)', async () => {
+    // If someone erroneously adds `provenance: []` clearing logic to the archive
+    // handler, this test catches it. Soft-delete is deletedAt-only; the envelope
+    // facet must survive unchanged on the same Dexie record.
+    const tag = makeProvenanceTag('prov-tag-1', 'row-key-1', { snapshotId: 'snapshot-prov-arc' });
+    const snapshot = makeEvidenceSnapshot('snapshot-prov-arc', 'hub-4', {
+      provenance: [tag],
+    });
+    await db.evidenceSnapshots.put(snapshot);
+
+    await applyAction({
+      kind: 'EVIDENCE_ARCHIVE_SNAPSHOT',
+      snapshotId: 'snapshot-prov-arc',
+    });
+
+    const archived = await db.evidenceSnapshots.get('snapshot-prov-arc');
+    // deletedAt is set
+    expect(typeof archived?.deletedAt).toBe('number');
+    expect(archived?.deletedAt).toBeGreaterThan(0);
+    // provenance envelope is intact
+    expect(archived?.provenance).toHaveLength(1);
+    expect(archived?.provenance?.[0].id).toBe('prov-tag-1');
   });
 });
