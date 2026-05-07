@@ -112,7 +112,7 @@ Replace hardcoded `disabled` on Charter / Sustainment / Handoff CTAs in `CanvasS
 
 **Brainstorm:** none — straight to plan. Retroactive Spec 3 covers the design intent.
 
-### 8b — Drift indicator + time-series mini-chart (~6 tasks)
+### 8b — Drift indicator + time-series mini-chart (~6 tasks) — plan at [`2026-05-07-canvas-pr8-8b-drift-and-time-series.md`](2026-05-07-canvas-pr8-8b-drift-and-time-series.md)
 
 Two bundled sub-items per the canvas migration spec table (8b absorbs 8c per the "_(reserved — bundled with 8b)_" entry):
 
