@@ -181,8 +181,28 @@ Accepted (2026-05-04). Delivered in slice 3 (PR #123). The `existingRange` wirin
 
 **F3 note**: `RowProvenanceTag.snapshotId` will be populated when the snapshot-creation path is completed in F3. The `rowKey` field enables direct identity without consulting the Map key.
 
+## Amendment — 2026-05-07
+
+**Context**: F3.6-β data-flow foundation slice (plan `docs/superpowers/plans/2026-05-07-data-flow-foundation-f3-6-azure-provenance-parity.md`). Closes the F3.5 D3 PWA-vs-Azure asymmetry and extends provenance to cross-device team-collaboration via Blob Storage cloud-sync.
+
+**Persistence shape change to D6:**
+
+1. **`RowProvenanceTag[]` is now an envelope facet on `EvidenceSnapshot`, not a sibling table.** `EvidenceSnapshot` gains an optional `provenance?: RowProvenanceTag[]` field. The runtime sidecar `Map<rowKey, RowProvenanceTag>` is retired (was a slice 3 transitional shape); persistence + in-memory access converge on `snapshot.provenance` directly. The F1+F2 P1.3 amendment's `RowProvenanceTag.snapshotId = ''` placeholder is closed by F3.5 (PWA atomic transaction populates the id at write time) and F3.6-β (Azure envelope carries the id inline at construction time).
+
+   **Why envelope (not sibling/separate table):** Azure Blob Storage has no native atomic multi-object transactions ([Microsoft Learn: Manage concurrency in Blob Storage](https://learn.microsoft.com/en-us/azure/storage/blobs/concurrency-manage)). Envelope is the only way to guarantee snapshot+provenance reach cloud atomically per paste, without ETag-coordinated multi-blob writes. Industry precedent: OpenLineage's facet pattern, METS metadata bundling, image-file headers. At VariScout's scale (single snapshot per paste, paste-time-bound metadata, no graph-traversal lineage queries), envelope is the right shape; sibling-keyed-by-snapshot becomes warranted only at orders-of-magnitude higher volume.
+
+2. **PWA persists envelope locally (Dexie); Azure persists envelope locally (Dexie) AND cloud-syncs (Blob Storage).** PWA tier is opt-in single-Hub-of-one IndexedDB only (Q8-revised); no cloud-sync. Azure tier requires cloud-sync for paid-tier team-collaboration per ADR-058 — without it, Teammate B sees merged data without merge metadata, which is a correctness gap (not just UX polish). Tier-asymmetric persistence; tier-symmetric envelope shape (ADR-078 D2 honored).
+
+3. **Cross-device fidelity:** `.vrs` round-trip carries provenance automatically (envelope means the `.vrs` exporter reads the snapshot's `provenance` field for free). Multi-device Azure round-trip carries provenance via Blob Storage envelope. MatchSummaryCard pill survives reload + cross-device sign-in.
+
+4. **Concurrent-paste conflict** (newly possible in Azure team-collaboration setting): see new **ADR-079** for the ETag optimistic concurrency pattern that resolves it. ADR-077 itself doesn't change for this concern; the conflict is at the hub-blob level, not the snapshot-blob level.
+
+**Call-site impact**: PWA `apps/pwa/src/persistence/applyAction.ts:EVIDENCE_ADD_SNAPSHOT` (F3.5) writes the envelope inside a Dexie transaction. Azure `apps/azure/src/persistence/applyAction.ts:EVIDENCE_ADD_SNAPSHOT` (F3.6-β) writes the envelope to local Dexie + cloud envelope payload includes the field. Both apps' paste-flow refactors drop the `setRowProvenance?` prop pass-through (F3.5 D4 / F3.6-β P5.2); pill renderers read `snapshot.provenance ?? []` directly from the repo.
+
+**Deferred:** audit-trail compliance regimes (GxP, 21 CFR Part 11) are explicitly NOT this — `rowProvenance` is paste-time multi-source-merge metadata. Audit trails (who-edited-what journal) are a separate future concern.
+
 ## Supersedes / superseded by
 
 - Supersedes: none (new decision).
 - Superseded by: none (active).
-- Related: ADR-073 (locality rule honored by per-source sidecar design), ADR-074 (level-spanning boundary policy — provenance lives at the store layer, not on any surface).
+- Related: ADR-073 (locality rule honored by per-source envelope design), ADR-074 (level-spanning boundary policy — provenance lives at the store layer, not on any surface), ADR-079 (ETag optimistic concurrency for paid-tier hub-blob writes; complementary pattern for the new cross-device collaboration surface).

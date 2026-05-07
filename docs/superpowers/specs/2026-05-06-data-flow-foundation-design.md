@@ -419,3 +419,39 @@ Spec is ready for plan-writing when:
 - [x] References to ADRs + companion specs + workflow rules
 
 Plan-writing proceeds with F1+F2 as the first plan file. Subsequent F slices each get their own plan file as we approach them.
+
+---
+
+## Amendment — 2026-05-07 (F3.6-β envelope facet + cross-device fidelity + ETag concurrency)
+
+**Context:** F3.6-β slice (plan `docs/superpowers/plans/2026-05-07-data-flow-foundation-f3-6-azure-provenance-parity.md`) closes the F3.5 D3 PWA-vs-Azure asymmetry by extending Azure provenance persistence beyond local Dexie to **cross-device cloud-sync via Blob Storage**. Driven by the paid-tier team-collaboration use case (ADR-058): when Teammate A pastes new data with a multi-source merge, Teammate B sees the same provenance metadata after their next sync — without it, teammates see merged data without the merge metadata, which is a correctness gap, not just UX polish.
+
+**Changes to §5 ingestion:**
+
+1. **`RowProvenanceTag[]` is now an envelope facet on `EvidenceSnapshot`.** `EvidenceSnapshot.provenance?: RowProvenanceTag[]`. Original §5 sketched separate per-row writes inside the `EVIDENCE_ADD_SNAPSHOT` action handler; envelope is the right shape because Azure Blob Storage has no atomic multi-object transactions ([research: Microsoft Learn](https://learn.microsoft.com/en-us/azure/storage/blobs/concurrency-manage)). Per ADR-077 amendment 2026-05-07. Industry precedent: OpenLineage facet pattern.
+2. **PWA persists envelope locally; Azure persists envelope locally + cloud-syncs.** Tier-asymmetric persistence (PWA tier has no cloud-sync per Q8-revised); tier-symmetric envelope shape (D2 honored).
+3. **MatchSummaryCard pill survives reload + cross-device.** Pre-F3.6-β: pill disappeared on reload in Azure (provenance was session-only). Post-F3.6-β: pill reads `snapshot.provenance ?? []` from the repository; survives both reload and cross-device sign-in.
+
+**Addition to §3 D7 (CRDT-readiness via action log):**
+
+Cross-device team-collaboration introduces a new write-coordination concern not previously in scope: concurrent paste edits to the same hub-blob. Resolved via **ETag optimistic concurrency** per new **ADR-079**. The pattern is complementary to (not a replacement for) the action-log foundation — actions still dispatch through `HubRepository.dispatch`; the new concurrency layer sits inside `saveProcessHubToCloud` to ensure each individual write to the hub blob composes cleanly with concurrent teammate writes. CRDT semantics remain a future option for finer-grained collaboration when paste-time cadence is no longer enough.
+
+**Addition to §7 `.vrs` format implications:**
+
+`.vrs` round-trip carries provenance automatically post-F3.6-β. The `.vrs` exporter reads each `snapshot.provenance` directly from the repository (no special export-time transform needed). Recipients of a shared `.vrs` see the merge metadata exactly as it was at export time. Earlier `.vrs` v1.1 bump speculation in §7 is moot — the in-memory `ProcessHub` shape didn't change for F3.5 or F3.6-β; the envelope facet is an additive optional field. No format version bump needed.
+
+**Changes to §6 sequencing:**
+
+F-series sequence after F3.6-β: F4 (three-layer state codification) → F5 (action coverage extension; sustainment + handoff kinds) → F6 (multi-investigation lifecycle, named-future). F3.6 and F3.5 are both delivered; the asymmetry from F3.5 D3 is fully closed.
+
+**Out-of-scope reaffirmed:**
+
+- **Audit-trail compliance** (GxP, 21 CFR Part 11): explicitly NOT this. `rowProvenance` is paste-time multi-source-merge metadata, not a who-edited-what journal. Audit trails are a separate future concern.
+- **Real-time co-editing semantics** (OT/CRDT): paste-time cadence (seconds apart at most) doesn't justify the complexity. ETag optimistic concurrency is the right shape for our actual cadence; revisit only if streaming ingestion or true real-time collab becomes a felt need.
+
+**References (research-validated 2026-05-07):**
+
+- [Manage concurrency in Blob Storage — Microsoft Learn](https://learn.microsoft.com/en-us/azure/storage/blobs/concurrency-manage)
+- [OpenLineage column-level lineage docs](https://openlineage.io/docs/integrations/spark/spark_column_lineage/) — facet pattern precedent
+- [Data Lineage Best Practices — Atlan](https://atlan.com/know/data-lineage-best-practices/)
+- [Provenance Metadata — EDI Repository](https://edirepository.org/resources/provenance-metadata)

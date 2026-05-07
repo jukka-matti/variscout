@@ -18,6 +18,7 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 - Numeric safety has three boundaries (ADR-069): B1 parser rejects NaN via `toNumericValue`; B2 stats functions return `undefined`; B3 display uses `formatStatistic`.
 - Registering locale loaders (`registerLocaleLoaders`) is an app responsibility — core no longer calls `import.meta.glob` directly.
 - The `ai/prompts/coScout/` directory is the canonical CoScout prompt architecture. Entry point is `assembleCoScoutPrompt()` — `buildCoScoutSystemPrompt()` in legacy.ts is deprecated.
+- `EvidenceSnapshot.provenance?: RowProvenanceTag[]` (envelope facet) is the canonical home for row-source metadata per ADR-077 amendment 2026-05-07. The runtime sidecar `Map<rowKey, RowProvenanceTag>` from slice 3 is retired; persistence + in-memory access converge on `snapshot.provenance` directly.
 
 ## Test command
 
