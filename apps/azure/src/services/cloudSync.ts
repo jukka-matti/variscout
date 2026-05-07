@@ -247,6 +247,15 @@ export async function listEvidenceSnapshotsFromCloud(
   return wrapBlobCall(() => listBlobEvidenceSnapshots(hubId, sourceId));
 }
 
+/**
+ * Upload an EvidenceSnapshot envelope (including `provenance?: RowProvenanceTag[]`) to
+ * Blob Storage via a single atomic PUT (F3.6-β D1 / ADR-077 amendment 2026-05-07).
+ *
+ * Serialization path: `saveBlobEvidenceSnapshot` → `putJsonBlob` → `JSON.stringify(snapshot)`.
+ * No replacer is applied, so every field present on the snapshot — including `provenance` —
+ * is preserved verbatim in the uploaded blob. Snapshot id is the path key, making the PUT
+ * idempotent: transient-failure retries re-upload the same object.
+ */
 export async function saveEvidenceSnapshotToCloud(
   _token: string,
   snapshot: EvidenceSnapshot,
