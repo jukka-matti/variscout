@@ -184,6 +184,49 @@ describe('applyAction (Azure) — EVIDENCE_ADD_SNAPSHOT', () => {
     // update this test and the D3 deferral entry in docs/investigations.md.
     expect('rowProvenance' in db).toBe(false);
   });
+
+  it('persists provenance tags as envelope facet on the snapshot record (F3.6-β P2.1)', async () => {
+    // F3.6-β envelope: provenance rides on the snapshot; no separate Dexie table.
+    // The stored snapshot.provenance must equal the dispatched provenance array.
+    const snapshot = makeEvidenceSnapshot('snapshot-env', 'hub-env');
+    const tags: RowProvenanceTag[] = [
+      makeProvenanceTag('tag-x', 'row-0'),
+      makeProvenanceTag('tag-y', 'row-1'),
+    ];
+
+    await applyAction({
+      kind: 'EVIDENCE_ADD_SNAPSHOT',
+      hubId: 'hub-env',
+      snapshot,
+      provenance: tags,
+    });
+
+    const stored = await db.evidenceSnapshots.get('snapshot-env');
+    expect(stored).toBeDefined();
+    // Envelope round-trip: provenance array must be stored intact.
+    expect(stored?.provenance).toHaveLength(2);
+    expect(stored?.provenance?.[0].id).toBe('tag-x');
+    expect(stored?.provenance?.[0].rowKey).toBe('row-0');
+    expect(stored?.provenance?.[1].id).toBe('tag-y');
+    expect(stored?.provenance?.[1].rowKey).toBe('row-1');
+  });
+
+  it('stores snapshot with empty provenance array when provenance is empty', async () => {
+    // When no join occurred, provenance: [] must not be coerced to undefined.
+    // The facet is present but empty — consistent envelope shape.
+    const snapshot = makeEvidenceSnapshot('snapshot-empty-prov', 'hub-ep');
+
+    await applyAction({
+      kind: 'EVIDENCE_ADD_SNAPSHOT',
+      hubId: 'hub-ep',
+      snapshot,
+      provenance: [],
+    });
+
+    const stored = await db.evidenceSnapshots.get('snapshot-empty-prov');
+    expect(stored).toBeDefined();
+    expect(stored?.provenance).toEqual([]);
+  });
 });
 
 // ---------------------------------------------------------------------------
