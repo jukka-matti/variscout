@@ -73,13 +73,18 @@ describe('layer boundary', () => {
     });
   });
 
-  it('view stores do NOT import persist from zustand/middleware', () => {
+  it('view stores do NOT import any middleware from zustand/middleware', () => {
+    // Stronger invariant for the View layer: a view store has zero reason to
+    // touch zustand/middleware at all (no persist, no devtools, no immer). The
+    // broad regex catches all of these — including a future aliased import like
+    // `import { persist as p } from 'zustand/middleware'` which would slip past
+    // a name-specific pattern. Document and annotation stores legitimately use
+    // devtools / immer for canvasStore-style histories, so this strict form
+    // applies ONLY to view stores.
     files
       .filter(f => f.layer === 'view')
       .forEach(f => {
-        expect(f.source).not.toMatch(
-          /import\s+\{[^}]*\bpersist\b[^}]*\}\s+from\s+['"]zustand\/middleware['"]/
-        );
+        expect(f.source).not.toMatch(/from\s+['"]zustand\/middleware['"]/);
       });
   });
 
