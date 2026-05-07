@@ -229,7 +229,9 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
-### Azure `rowProvenance` Dexie table — deferred
+### Azure `rowProvenance` Dexie table — deferred [RESOLVED 2026-05-07 — see decision-log F3.6-β SHIPPED entry]
+
+**Status:** RESOLVED via F3.6-β (PR #135). Provenance now persists on Azure as an envelope facet on `EvidenceSnapshot` (D1; no separate `rowProvenance` table — `RowProvenanceTag[]` rides the snapshot record). Cloud-sync round-trips the facet through Blob Storage; ETag optimistic concurrency on `_snapshots.json` catalog handles concurrent-paste races. F3.5 D3 asymmetry closed.
 
 **Surfaced by:** Data-Flow Foundation F3.5 plan + P2 implementation, 2026-05-06.
 
