@@ -1,13 +1,10 @@
 /**
- * Per-path workflow-readiness helpers used by the canvas drill-down's
- * response-path CTAs. Per the 2026-05-07 amendment to the 8a plan
- * (DMAIC charter correction + tier reframe), these are *prerequisite*
- * checks, not tier or cadence checks. The five response paths are
- * tier-active in PWA + Azure; tier gating that DOES apply (signoff,
- * audit, alerts, RACI) lives inside each surface, not at this layer.
+ * Per-path workflow-readiness helpers for the canvas drill-down's response-path
+ * CTAs. These are prerequisite checks, not tier or cadence checks: the five
+ * response paths are tier-active in PWA + Azure, and the tier gating that
+ * applies (signoff, audit, alerts, RACI) lives inside each surface, not here.
  *
  * Vision spec: docs/superpowers/specs/2026-05-03-variscout-vision-design.md §5.3
- * Plan: docs/superpowers/plans/2026-05-07-canvas-pr8-8a-mode-aware-ctas.md (amendment §1)
  */
 
 export interface WorkflowReadinessSignals {
