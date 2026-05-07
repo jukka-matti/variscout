@@ -2,7 +2,7 @@
 title: F4 audit — touch surface verified pre-implementation
 audience: [engineer]
 category: implementation-plan
-status: draft
+status: active
 last-reviewed: 2026-05-07
 related:
   - docs/superpowers/plans/2026-05-07-data-flow-foundation-f4-three-layer-state.md
