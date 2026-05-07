@@ -233,6 +233,8 @@ Generalizes Canvas Migration spec Decision 2 to all state.
 
 **How to apply:** F4 codifies the boundary in store contracts. Existing state gets categorized per the table above. View state moves out of persisted stores (today some lives there transitionally). Annotation tables get explicit homes; today most ride on `investigation.metadata` and that pattern continues for investigation-scoped annotation.
 
+**Amendment — 2026-05-07 (F4 codification).** F4 codifies D5 by giving each layer a physical Zustand-store home. View state lives in `useViewStore` (no persistence). Per-user Annotation lives in `usePreferencesStore` (idb-keyval persistence, `'variscout-preferences'` key). Document state continues in `projectStore`/`investigationStore`/`canvasStore` (each marked `STORE_LAYER = 'document'`). `useSessionStore` and `useImprovementStore` are deleted. Boundary enforced by `packages/stores/src/__tests__/layerBoundary.test.ts`. See F4 spec at `docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md`.
+
 ### D6. Soft-delete + cascade rules at the repository layer
 
 Every `delete` is `update({ deletedAt: Date.now() })`. Reads filter `deletedAt === null` by default. Cascade rules are declared in the repository:
