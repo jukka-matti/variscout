@@ -105,6 +105,7 @@ import { HubCreationFlow } from '../features/hubCreation';
 import { InvestigationWorkspace } from '../components/editor/InvestigationWorkspace';
 import FrameView from '../components/editor/FrameView';
 import { EditorModals } from '../components/editor/EditorModals';
+import { PasteConflictToast } from '../components/PasteConflictToast';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
 import { useAIStore } from '../features/ai/aiStore';
@@ -1834,6 +1835,9 @@ export const Editor: React.FC<EditorProps> = ({
           />
         )}
       </div>
+
+      {/* Paste conflict toast — subscribes globally; handles ETag 412 concurrency-exhausted */}
+      <PasteConflictToast />
 
       {/* Detection modals */}
       <EditorModals

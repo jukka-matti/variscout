@@ -4,6 +4,7 @@ import {
   AGENT_REVIEW_LOG_PROFILE,
   DATA_PROFILE_REGISTRY,
   detectDataProfiles,
+  generateDeterministicId,
   parseText,
   type DataProfileDefinition,
   type DataProfileDetection,
@@ -330,7 +331,7 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
       const capturedAt = nowIso(); // capturedAt is data-time (string)
       const application = profile.apply(rows, mapping);
       const snapshot: EvidenceSnapshot = {
-        id: `snapshot-${Date.now()}`,
+        id: generateDeterministicId(),
         hubId,
         sourceId,
         capturedAt,
