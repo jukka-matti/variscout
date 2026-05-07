@@ -1,7 +1,11 @@
 // @variscout/stores — Zustand domain stores
 // Stores will be exported as they are implemented
 export { idbStorage } from './persistence/idbAdapter';
-export { useProjectStore, getProjectInitialState } from './projectStore';
+export {
+  useProjectStore,
+  getProjectInitialState,
+  STORE_LAYER as PROJECT_STORE_LAYER,
+} from './projectStore';
 export type {
   ProjectState,
   ProjectActions,
@@ -24,6 +28,7 @@ export {
   getInvestigationInitialState,
   MAX_QUESTION_DEPTH,
   MAX_CHILDREN_PER_PARENT,
+  STORE_LAYER as INVESTIGATION_STORE_LAYER,
 } from './investigationStore';
 export type { InvestigationState, InvestigationActions } from './investigationStore';
 export { useSessionStore, getSessionInitialState } from './sessionStore';
@@ -35,7 +40,12 @@ export type {
   PITab,
   PersistedViewState,
 } from './sessionStore';
-export { useWallLayoutStore, persistWallLayout, rehydrateWallLayout } from './wallLayoutStore';
+export {
+  useWallLayoutStore,
+  persistWallLayout,
+  rehydrateWallLayout,
+  STORE_LAYER as WALL_LAYOUT_STORE_LAYER,
+} from './wallLayoutStore';
 export type {
   WallLayoutState,
   WallLayoutActions,
@@ -47,7 +57,11 @@ export type {
   GateNodePath,
   UndoEntry,
 } from './wallLayoutStore';
-export { useCanvasStore, getCanvasInitialState } from './canvasStore';
+export {
+  useCanvasStore,
+  getCanvasInitialState,
+  STORE_LAYER as CANVAS_STORE_LAYER,
+} from './canvasStore';
 export type {
   CanvasStoreState,
   CanvasStoreActions,

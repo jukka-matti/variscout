@@ -46,6 +46,8 @@ import {
   type GatePath,
 } from '@variscout/core';
 
+export const STORE_LAYER = 'document' as const;
+
 type SuspectedCauseUpdate = Partial<
   Pick<
     SuspectedCause,

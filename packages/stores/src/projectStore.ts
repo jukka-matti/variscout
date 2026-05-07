@@ -52,6 +52,8 @@ export type {
 export type { ParetoRow };
 export type { DataQualityReport };
 
+export const STORE_LAYER = 'document' as const;
+
 // ============================================================================
 // Serialized project shape (for loadProject)
 // ============================================================================
