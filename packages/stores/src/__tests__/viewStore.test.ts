@@ -94,3 +94,16 @@ describe('useViewStore — rich selection actions (spec D1 relocation from proje
     expect(useViewStore.getState().selectedPoints.has(5)).toBe(false);
   });
 });
+
+describe('useViewStore.focusedQuestionId (relocated from investigationStore in F4)', () => {
+  it('starts as null', () => {
+    expect(useViewStore.getState().focusedQuestionId).toBeNull();
+  });
+
+  it('setFocusedQuestionId updates focused id', () => {
+    useViewStore.getState().setFocusedQuestionId('q-1');
+    expect(useViewStore.getState().focusedQuestionId).toBe('q-1');
+    useViewStore.getState().setFocusedQuestionId(null);
+    expect(useViewStore.getState().focusedQuestionId).toBeNull();
+  });
+});

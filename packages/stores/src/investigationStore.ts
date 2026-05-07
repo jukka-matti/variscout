@@ -79,7 +79,6 @@ export interface InvestigationState {
   suspectedCauses: SuspectedCause[];
   causalLinks: CausalLink[];
   categories: InvestigationCategory[];
-  focusedQuestionId: string | null;
   problemContributionTree?: GateNode;
 }
 
@@ -176,7 +175,6 @@ export interface InvestigationActions {
   deleteIdea: (questionId: string, ideaId: string) => void;
   selectIdea: (questionId: string, ideaId: string, selected: boolean) => void;
   updateIdeaProjection: (questionId: string, ideaId: string, projection: FindingProjection) => void;
-  setFocusedQuestion: (id: string | null) => void;
 
   // --- Hub actions ---
   createHub: (name: string, synthesis: string) => SuspectedCause;
@@ -311,7 +309,6 @@ const initialState: InvestigationState = {
   suspectedCauses: [],
   causalLinks: [],
   categories: [],
-  focusedQuestionId: null,
   problemContributionTree: undefined,
 };
 
@@ -838,10 +835,6 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             : q
         ),
       }));
-    },
-
-    setFocusedQuestion: id => {
-      set({ focusedQuestionId: id });
     },
 
     // ========================================================================
