@@ -317,7 +317,7 @@ Each sub-task is "rename selector + import" — should be one commit each, atomi
 - [x] Layer table cross-checked against current store source (audit 2026-05-07).
 - [x] Boundary rule passes the portability test on every existing field (no field reclassifies under the refined rule vs. D5's reload-only rule).
 - [x] No store mixes layers after F4 (verified by D1 table).
-- [x] `useSessionStore` consumer count cross-checked: 48 files (audit 2026-05-07; `grep` count separately reported 56 — discrepancy is test-file inclusion; both bracket the same magnitude).
+- [x] `useSessionStore` consumer count cross-checked: **31 files** total from canonical grep (`grep -rn "useSessionStore" apps packages --include="*.ts" --include="*.tsx" -l`), of which 2 are internal to the store package (`sessionStore.ts` + `index.ts`). External consumers: 29 files (14 apps + 15 packages, matching the Task 4 file list with `apps/azure/src/App.tsx` confirmed absent). Prior audit figures of 48/56 included different scope; T1 audit 2026-05-07 produces the authoritative count.
 - [x] Pre-production status confirmed: ADR-078 + `feedback_no_backcompat_clean_architecture` permit dropping legacy `'variscout-session'` IDB blob.
 - [x] Out-of-scope items have homes: D6 (canvas migration "save view" spec), D7 + D8 (`docs/investigations.md`).
 - [x] No new ADR required — F4 amends data-flow foundation spec §3 D5 in place per ADR amendment convention.

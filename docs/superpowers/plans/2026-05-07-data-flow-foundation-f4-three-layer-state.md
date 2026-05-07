@@ -76,7 +76,7 @@ These tables drive every relocation task below. They are the single source of tr
 
 **Touch-surface counts (verified 2026-05-07):**
 
-- `useSessionStore` consumers: 31 files (apps + packages, excluding the store + index.ts itself).
+- `useSessionStore` consumers: 31 files total from canonical grep; 29 external consumers (14 apps + 15 packages, excluding `sessionStore.ts` + `index.ts`). `apps/azure/src/App.tsx` confirmed absent from consumer list (T1 audit 2026-05-07).
 - `useImprovementStore`: 0 production consumers; only `packages/stores/src/improvementStore.ts` + `__tests__/improvementStore.test.ts` + `index.ts` re-export.
 - `useProjectStore.selectedPoints` real consumers: 4 production files (`apps/azure/src/components/{Dashboard.tsx, charts/IChart.tsx}`, `apps/pwa/src/components/{Dashboard.tsx, charts/IChart.tsx}`) + `projectStore.test.ts`.
 - `useInvestigationStore.focusedQuestionId` real consumers: 0 outside the store itself + its test.
@@ -712,9 +712,9 @@ git commit -m "feat(F4): add usePreferencesStore — layer=annotation-per-user, 
 | `handleRowClick(idx)`                                                                                         | `useViewStore.getState().handleRowClick(idx)`                                                                    | direct                                                                                                                                                                                                                                        |
 | `initFromViewState`, `toViewState`                                                                            | DELETED — no replacement                                                                                         | These were used only by Editor's project-load path to restore tab + isFindingsOpen + isWhatIfOpen. After F4, those fields persist via `usePreferencesStore`'s `persist` middleware automatically — no consumer code needed. Delete the calls. |
 
-**Files to modify (31 total):**
+**Files to modify (29 external consumers):**
 
-Apps (14):
+Apps (14 — `apps/azure/src/App.tsx` confirmed absent in T1 audit):
 
 - `apps/azure/src/App.tsx` (if present — verify in Step 1)
 - `apps/azure/src/components/ProjectDashboard.tsx`
