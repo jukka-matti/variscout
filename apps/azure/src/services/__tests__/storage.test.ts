@@ -21,7 +21,7 @@ const {
   mockUpdateBlobProcessHubs,
   mockListBlobEvidenceSnapshots,
   mockSaveBlobEvidenceSnapshot,
-  mockUpdateBlobEvidenceSnapshots,
+  mockUpdateBlobEvidenceSnapshotsConditional,
   mockListBlobEvidenceSources,
   mockSaveBlobEvidenceSource,
   mockUpdateBlobEvidenceSources,
@@ -51,7 +51,10 @@ const {
   mockUpdateBlobProcessHubs: vi.fn().mockResolvedValue(undefined),
   mockListBlobEvidenceSnapshots: vi.fn().mockResolvedValue([]),
   mockSaveBlobEvidenceSnapshot: vi.fn().mockResolvedValue(undefined),
-  mockUpdateBlobEvidenceSnapshots: vi.fn().mockResolvedValue(undefined),
+  // P4.2: conditional uploader replaces the unconditional variant
+  mockUpdateBlobEvidenceSnapshotsConditional: vi
+    .fn()
+    .mockResolvedValue({ ok: true, etag: '"mock-etag"' }),
   mockListBlobEvidenceSources: vi.fn().mockResolvedValue([]),
   mockSaveBlobEvidenceSource: vi.fn().mockResolvedValue(undefined),
   mockUpdateBlobEvidenceSources: vi.fn().mockResolvedValue(undefined),
@@ -128,10 +131,16 @@ vi.mock('../blobClient', () => ({
   updateBlobProcessHubs: mockUpdateBlobProcessHubs,
   listBlobEvidenceSnapshots: mockListBlobEvidenceSnapshots,
   saveBlobEvidenceSnapshot: mockSaveBlobEvidenceSnapshot,
-  updateBlobEvidenceSnapshots: mockUpdateBlobEvidenceSnapshots,
+  // P4.2: conditional uploader replaces the unconditional variant in cloudSync.ts
+  updateBlobEvidenceSnapshotsConditional: mockUpdateBlobEvidenceSnapshotsConditional,
   listBlobEvidenceSources: mockListBlobEvidenceSources,
   saveBlobEvidenceSource: mockSaveBlobEvidenceSource,
   updateBlobEvidenceSources: mockUpdateBlobEvidenceSources,
+  saveBlobSustainmentRecord: vi.fn().mockResolvedValue(undefined),
+  listBlobSustainmentRecords: vi.fn().mockResolvedValue([]),
+  updateBlobSustainmentCatalog: vi.fn().mockResolvedValue(undefined),
+  saveBlobSustainmentReview: vi.fn().mockResolvedValue(undefined),
+  saveBlobControlHandoff: vi.fn().mockResolvedValue(undefined),
 }));
 
 // ---------------------------------------------------------------------------
@@ -672,7 +681,8 @@ describe('storage service', () => {
         provenance: [],
       });
       expect(mockSaveBlobEvidenceSnapshot).toHaveBeenCalled();
-      expect(mockUpdateBlobEvidenceSnapshots).toHaveBeenCalled();
+      // P4.2: catalog update now uses ETag-conditional variant
+      expect(mockUpdateBlobEvidenceSnapshotsConditional).toHaveBeenCalled();
     });
   });
 
