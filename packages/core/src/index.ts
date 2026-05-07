@@ -202,6 +202,10 @@ export {
   isTeamPlan,
 } from './tier';
 
+// Response-path readiness helpers (prerequisite checks for canvas CTAs)
+export { isCharterReady, isSustainmentReady, isHandoffReady } from './responsePathReadiness';
+export type { WorkflowReadinessSignals } from './responsePathReadiness';
+
 // Process Hub review signals
 export { buildHubReviewSignal } from './processReviewSignal';
 export type {

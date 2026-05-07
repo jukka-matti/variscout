@@ -29,6 +29,8 @@ import {
 } from './sustainment';
 
 export { buildReviewItem } from './processHubReview';
+export { isCharterReady, isSustainmentReady, isHandoffReady } from './responsePathReadiness';
+export type { WorkflowReadinessSignals } from './responsePathReadiness';
 
 export const DEFAULT_PROCESS_HUB_ID = 'general-unassigned';
 export const DEFAULT_PROCESS_HUB_NAME = 'General / Unassigned';
