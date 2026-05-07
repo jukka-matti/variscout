@@ -1,14 +1,10 @@
 import React from 'react';
-import { useProjectStore } from '@variscout/stores';
 
 interface CharterPanelProps {
   onBack: () => void;
 }
 
 const CharterPanel: React.FC<CharterPanelProps> = ({ onBack }) => {
-  const processContext = useProjectStore(s => s.processContext);
-  const charters = (processContext as { charters?: unknown[] } | null)?.charters ?? [];
-
   return (
     <div
       data-testid="charter-panel"
@@ -19,7 +15,6 @@ const CharterPanel: React.FC<CharterPanelProps> = ({ onBack }) => {
         A Charter formalizes a process improvement project: problem statement, goals, scope, team,
         and timeline. The full authoring surface ships in a future release.
       </p>
-      {charters.length === 0 && <p className="text-content-secondary text-sm">No charter yet.</p>}
       <p className="text-content-secondary text-sm italic">Available in a future release.</p>
       <button
         type="button"
