@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { WorkflowReadinessSignals } from '@variscout/core';
 
 const setProcessContextMock = vi.fn();
 const setMeasureSpecMock = vi.fn();
@@ -8,6 +9,9 @@ const setFactorsMock = vi.fn();
 const showAnalysisMock = vi.fn();
 const showImprovementMock = vi.fn();
 const showInvestigationMock = vi.fn();
+const showCharterMock = vi.fn();
+const showSustainmentMock = vi.fn();
+const showHandoffMock = vi.fn();
 const expandToQuestionMock = vi.fn();
 
 const storeStateRef: { current: Record<string, unknown> } = {
@@ -48,10 +52,14 @@ vi.mock('@variscout/ui', async () => {
   const React = await import('react');
   return {
     CanvasWorkspace: (props: {
+      signals: WorkflowReadinessSignals;
       onSeeData: () => void;
       onQuickAction?: (stepId: string) => void;
       onFocusedInvestigation?: (stepId: string) => void;
       onOpenInvestigationFocus?: (focus: { questionId?: string }) => void;
+      onCharter?: () => void;
+      onSustainment?: () => void;
+      onHandoff?: () => void;
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -88,6 +96,21 @@ vi.mock('@variscout/ui', async () => {
             onClick: () => props.onOpenInvestigationFocus?.({ questionId: 'q-1' }),
           },
           'Overlay question'
+        ),
+        React.createElement(
+          'button',
+          { type: 'button', 'data-testid': 'cta-charter', onClick: props.onCharter },
+          'Charter'
+        ),
+        React.createElement(
+          'button',
+          { type: 'button', 'data-testid': 'cta-sustainment', onClick: props.onSustainment },
+          'Sustainment'
+        ),
+        React.createElement(
+          'button',
+          { type: 'button', 'data-testid': 'cta-handoff', onClick: props.onHandoff },
+          'Handoff'
         )
       );
     },
@@ -100,6 +123,9 @@ vi.mock('../../../features/panels/panelsStore', () => ({
       showAnalysis: showAnalysisMock,
       showImprovement: showImprovementMock,
       showInvestigation: showInvestigationMock,
+      showCharter: showCharterMock,
+      showSustainment: showSustainmentMock,
+      showHandoff: showHandoffMock,
     }),
   }),
 }));
@@ -120,6 +146,9 @@ describe('FrameView (PWA shell)', () => {
     showAnalysisMock.mockClear();
     showImprovementMock.mockClear();
     showInvestigationMock.mockClear();
+    showCharterMock.mockClear();
+    showSustainmentMock.mockClear();
+    showHandoffMock.mockClear();
     expandToQuestionMock.mockClear();
     storeStateRef.current = {
       rawData: [{ Fill_Weight: 12 }],
@@ -159,6 +188,7 @@ describe('FrameView (PWA shell)', () => {
         questions: [{ id: 'q-1' }],
         suspectedCauses: [{ id: 'hub-1' }],
         causalLinks: [{ id: 'link-1' }],
+        signals: { hasIntervention: false, sustainmentConfirmed: false },
       })
     );
   });
@@ -188,5 +218,17 @@ describe('FrameView (PWA shell)', () => {
 
     expect(expandToQuestionMock).toHaveBeenCalledWith('q-1');
     expect(showInvestigationMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('wires Canvas charter/sustainment/handoff CTAs to the panels-store show actions', () => {
+    render(<FrameView />);
+
+    fireEvent.click(screen.getByTestId('cta-charter'));
+    fireEvent.click(screen.getByTestId('cta-sustainment'));
+    fireEvent.click(screen.getByTestId('cta-handoff'));
+
+    expect(showCharterMock).toHaveBeenCalledTimes(1);
+    expect(showSustainmentMock).toHaveBeenCalledTimes(1);
+    expect(showHandoffMock).toHaveBeenCalledTimes(1);
   });
 });

@@ -978,6 +978,10 @@ export const fi: MessageCatalog = {
   'frame.b0.aria.yCandidates': 'Y-ehdokassirut',
   'frame.b0.aria.selectedXs': 'Valitut X-sirut',
   'frame.b0.aria.availableXs': 'Saatavilla olevat X-sirut',
+  'frame.canvasOverlay.cta.sustainment.notReady':
+    "Available after you've implemented a process change to monitor",
+  'frame.canvasOverlay.cta.handoff.notReady':
+    'Available after sustainment monitoring confirms gains',
   'frame.b1.heading': 'Kehystä tutkimus',
   'frame.b1.description':
     'Rakenna prosessikartta, jotta analyysillä on konteksti. Kartta ohjaa moodivalintaa ja mittaus­puute­raporttia; menetelmä haluaa CTS:n valtamerellä, CTQ:n per vaihe ja vähintään yhden rational-subgroup-akselin.',

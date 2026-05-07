@@ -14,7 +14,15 @@ export interface UseAppPanelsOptions {
 }
 
 export interface UseAppPanelsReturn {
-  activeView: 'frame' | 'analysis' | 'investigation' | 'improvement' | 'report';
+  activeView:
+    | 'frame'
+    | 'analysis'
+    | 'investigation'
+    | 'improvement'
+    | 'report'
+    | 'charter'
+    | 'sustainment'
+    | 'handoff';
   showFrame: () => void;
   showAnalysis: () => void;
   showInvestigation: () => void;
