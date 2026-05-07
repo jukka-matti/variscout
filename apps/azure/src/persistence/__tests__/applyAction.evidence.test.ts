@@ -25,7 +25,7 @@
 // polyfill before db.ts runs its module-load side effects.
 
 import 'fake-indexeddb/auto';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { EvidenceSnapshot, RowProvenanceTag } from '@variscout/core';
 import { applyAction } from '../applyAction';
 import { db } from '../../db/schema';
@@ -92,7 +92,6 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await db.evidenceSnapshots.clear();
-  vi.restoreAllMocks();
 });
 
 // ---------------------------------------------------------------------------
@@ -155,11 +154,12 @@ describe('applyAction (Azure) — EVIDENCE_ADD_SNAPSHOT', () => {
   });
 
   it('accepts a non-empty provenance array without error — D3 asymmetry: no rowProvenance table', async () => {
-    // D3: Azure has no rowProvenance Dexie table. Dispatching EVIDENCE_ADD_SNAPSHOT
-    // with a non-empty provenance array must not throw. The handler ignores the
-    // provenance payload for persistence (session-only provenance via setRowProvenance
-    // prop callback is the in-memory tracking surface). No rowProvenance table to
-    // assert against — D3 asymmetry is intentional per the F3.5 plan and ADR-078 D2.
+    // D3: Azure has no separate `rowProvenance` Dexie table. Provenance is persisted as
+    // an envelope facet on the snapshot record itself (F3.6-β P2.1). This test confirms
+    // that a non-empty provenance array round-trips through the handler without throwing
+    // and that the snapshot is stored. The absence of a separate `rowProvenance` table is
+    // intentional per ADR-078 D2 (tier-agnostic state shapes; tier-gated persistence
+    // implementations).
     const snapshot = makeEvidenceSnapshot('snapshot-prov', 'hub-2');
     const tags: RowProvenanceTag[] = [
       makeProvenanceTag('tag-a', '0'),
@@ -176,12 +176,15 @@ describe('applyAction (Azure) — EVIDENCE_ADD_SNAPSHOT', () => {
       })
     ).resolves.toBeUndefined();
 
-    // Snapshot still persisted correctly despite non-empty provenance payload.
+    // Snapshot persisted correctly and provenance round-trips as envelope facet.
     const stored = await db.evidenceSnapshots.get('snapshot-prov');
     expect(stored?.id).toBe('snapshot-prov');
     expect(stored?.deletedAt).toBeNull();
+    expect(stored?.provenance).toHaveLength(3);
+    expect(stored?.provenance?.[0].id).toBe('tag-a');
+    expect(stored?.provenance?.[2].id).toBe('tag-c');
 
-    // Verify: the Azure db instance has no rowProvenance table.
+    // Verify: the Azure db instance has no separate rowProvenance table.
     // If this assertion fails, Azure schema has been modified to add the table —
     // update this test and the D3 deferral entry in docs/investigations.md.
     expect('rowProvenance' in db).toBe(false);

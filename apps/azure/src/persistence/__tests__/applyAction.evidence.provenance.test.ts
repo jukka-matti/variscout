@@ -88,10 +88,10 @@ afterEach(async () => {
 });
 
 // ---------------------------------------------------------------------------
-// Test 1 — EVIDENCE_ADD_SNAPSHOT writes provenance facet inline with snapshot
+// EVIDENCE_ADD_SNAPSHOT
 // ---------------------------------------------------------------------------
 
-describe('EVIDENCE_ADD_SNAPSHOT writes provenance facet inline with snapshot', () => {
+describe('EVIDENCE_ADD_SNAPSHOT', () => {
   it('stores snapshot.provenance equal to the dispatched provenance array', async () => {
     const snapshot = makeSnapshot('snap-prov-1', 'hub-prov-1');
     const tags: RowProvenanceTag[] = [
@@ -121,14 +121,7 @@ describe('EVIDENCE_ADD_SNAPSHOT writes provenance facet inline with snapshot', (
     expect(stored?.provenance?.[0].joinKey).toBe('batch_id');
     expect(stored?.provenance?.[0].source).toBe('src-fixture');
   });
-});
 
-// ---------------------------------------------------------------------------
-// Test 2 — EVIDENCE_ADD_SNAPSHOT with replacedSnapshotId marks old snapshot
-//           deletedAt; provenance facet on new snapshot intact
-// ---------------------------------------------------------------------------
-
-describe('EVIDENCE_ADD_SNAPSHOT with replacedSnapshotId — replace path preserves provenance on new snapshot', () => {
   it('marks old snapshot deletedAt and stores new snapshot with provenance intact', async () => {
     // Pre-seed the old snapshot.
     const oldSnapshot = makeSnapshot('snap-old-2', 'hub-replace-2', {
@@ -168,44 +161,7 @@ describe('EVIDENCE_ADD_SNAPSHOT with replacedSnapshotId — replace path preserv
     expect(stored?.provenance?.[0].id).toBe('tag-new-a');
     expect(stored?.provenance?.[1].id).toBe('tag-new-b');
   });
-});
 
-// ---------------------------------------------------------------------------
-// Test 3 — EVIDENCE_ARCHIVE_SNAPSHOT cascades deletedAt to the snapshot
-//           (provenance archives implicitly via envelope)
-// ---------------------------------------------------------------------------
-
-describe('EVIDENCE_ARCHIVE_SNAPSHOT cascades deletedAt (provenance archives implicitly via envelope)', () => {
-  it('sets deletedAt on archived snapshot while leaving provenance field unchanged', async () => {
-    const tag = makeTag('prov-tag-3', 'row-key-3', 'snap-arc-3');
-    const snapshot = makeSnapshot('snap-arc-3', 'hub-arc-3', {
-      provenance: [tag],
-    });
-    await db.evidenceSnapshots.put(snapshot);
-
-    await applyAction({
-      kind: 'EVIDENCE_ARCHIVE_SNAPSHOT',
-      snapshotId: 'snap-arc-3',
-    });
-
-    const archived = await db.evidenceSnapshots.get('snap-arc-3');
-    // Archive writes deletedAt only — provenance must be untouched.
-    expect(typeof archived?.deletedAt).toBe('number');
-    expect(archived?.deletedAt).toBeGreaterThan(0);
-    // Provenance archives implicitly because it lives on the same envelope record.
-    // The field value is unchanged; callers access provenance from the soft-deleted
-    // record the same way they would before archive (e.g. for audit rendering).
-    expect(archived?.provenance).toHaveLength(1);
-    expect(archived?.provenance?.[0].id).toBe('prov-tag-3');
-    expect(archived?.provenance?.[0].rowKey).toBe('row-key-3');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Test 4 — empty provenance array round-trips cleanly
-// ---------------------------------------------------------------------------
-
-describe('empty provenance array round-trips cleanly', () => {
   it('stores provenance as an empty array (not undefined) when provenance is []', async () => {
     const snapshot = makeSnapshot('snap-empty-4', 'hub-empty-4');
 
@@ -223,13 +179,7 @@ describe('empty provenance array round-trips cleanly', () => {
     expect(stored?.provenance).toEqual([]);
     expect(Array.isArray(stored?.provenance)).toBe(true);
   });
-});
 
-// ---------------------------------------------------------------------------
-// Test 5 — missing provenance field round-trips cleanly
-// ---------------------------------------------------------------------------
-
-describe('missing provenance field round-trips cleanly', () => {
   it('stores snapshot without crashing when provenance is undefined on the snapshot', async () => {
     // Some callers may construct an EvidenceSnapshot without the optional provenance
     // field (pre-F3.6 code paths, or callers that haven't added provenance yet).
@@ -253,13 +203,7 @@ describe('missing provenance field round-trips cleanly', () => {
     // missing field because the handler composes: { ...action.snapshot, provenance: action.provenance }.
     expect(stored?.provenance).toEqual([]);
   });
-});
 
-// ---------------------------------------------------------------------------
-// Test 6 — facade path (StorageProvider) round-trips empty provenance cleanly (PD5)
-// ---------------------------------------------------------------------------
-
-describe('facade path (StorageProvider) round-trips empty provenance cleanly', () => {
   it('action shape produced by StorageProvider.saveEvidenceSnapshot round-trips provenance: []', async () => {
     // PD5 coverage: StorageProvider.saveEvidenceSnapshot (storage.ts:660-688) always dispatches:
     //   azureHubRepository.dispatch({ kind: 'EVIDENCE_ADD_SNAPSHOT', hubId, snapshot, provenance: [] })
@@ -297,5 +241,35 @@ describe('facade path (StorageProvider) round-trips empty provenance cleanly', (
     expect(stored?.id).toBe('snap-facade-6');
     expect(stored?.hubId).toBe('hub-facade-6');
     expect(stored?.deletedAt).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// EVIDENCE_ARCHIVE_SNAPSHOT
+// ---------------------------------------------------------------------------
+
+describe('EVIDENCE_ARCHIVE_SNAPSHOT', () => {
+  it('sets deletedAt on archived snapshot while leaving provenance field unchanged', async () => {
+    const tag = makeTag('prov-tag-3', 'row-key-3', 'snap-arc-3');
+    const snapshot = makeSnapshot('snap-arc-3', 'hub-arc-3', {
+      provenance: [tag],
+    });
+    await db.evidenceSnapshots.put(snapshot);
+
+    await applyAction({
+      kind: 'EVIDENCE_ARCHIVE_SNAPSHOT',
+      snapshotId: 'snap-arc-3',
+    });
+
+    const archived = await db.evidenceSnapshots.get('snap-arc-3');
+    // Archive writes deletedAt only — provenance must be untouched.
+    expect(typeof archived?.deletedAt).toBe('number');
+    expect(archived?.deletedAt).toBeGreaterThan(0);
+    // Provenance archives implicitly because it lives on the same envelope record.
+    // The field value is unchanged; callers access provenance from the soft-deleted
+    // record the same way they would before archive (e.g. for audit rendering).
+    expect(archived?.provenance).toHaveLength(1);
+    expect(archived?.provenance?.[0].id).toBe('prov-tag-3');
+    expect(archived?.provenance?.[0].rowKey).toBe('row-key-3');
   });
 });
