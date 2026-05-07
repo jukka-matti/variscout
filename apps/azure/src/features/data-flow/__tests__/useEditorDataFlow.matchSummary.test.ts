@@ -10,6 +10,9 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 vi.mock('../../../persistence', () => ({
   azureHubRepository: {
     dispatch: vi.fn(),
+    evidenceSnapshots: {
+      listByHub: vi.fn().mockResolvedValue([]),
+    },
   },
 }));
 

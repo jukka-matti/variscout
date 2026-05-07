@@ -11,6 +11,9 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 vi.mock('../../../persistence', () => ({
   azureHubRepository: {
     dispatch: vi.fn(),
+    evidenceSnapshots: {
+      listByHub: vi.fn().mockResolvedValue([]),
+    },
   },
 }));
 
@@ -50,6 +53,7 @@ import { azureHubRepository } from '../../../persistence';
 import { useEditorDataFlow, type UseEditorDataFlowOptions } from '../useEditorDataFlow';
 
 const mockedDispatch = vi.mocked(azureHubRepository.dispatch);
+const mockedListByHub = vi.mocked(azureHubRepository.evidenceSnapshots.listByHub);
 
 // ─── Stubs ────────────────────────────────────────────────────────────────────
 
@@ -277,9 +281,11 @@ describe('useEditorDataFlow — overlap-replace provenance (Issue 1)', () => {
     });
   });
 
-  it('threads replacedSnapshotId from evidenceSnapshots?.at(-1)?.id on overlap-replace', async () => {
+  it('threads replacedSnapshotId from repository listByHub on overlap-replace (P5.2)', async () => {
     const setRawData = vi.fn();
-    // Provide a prior snapshot so replacedSnapshotId is threaded.
+    // Provide a prior snapshot via the repository mock so replacedSnapshotId is threaded.
+    // P5.2: evidenceSnapshots prop dropped — hook now queries azureHubRepository.evidenceSnapshots
+    // .listByHub() at handlePasteAnalyze time and stores priorSnapshotId on MatchSummaryPending.
     const priorSnapshot: EvidenceSnapshot = {
       id: 'snap-prior-1',
       hubId: 'hub-1',
@@ -296,12 +302,13 @@ describe('useEditorDataFlow — overlap-replace provenance (Issue 1)', () => {
       },
     };
 
+    mockedListByHub.mockResolvedValueOnce([priorSnapshot] as EvidenceSnapshot[]);
+
     const { result } = renderHook(() =>
       useEditorDataFlow(
         makeOptions({
           activeHub: COMPLETE_HUB,
           setRawData,
-          evidenceSnapshots: [priorSnapshot],
         })
       )
     );
@@ -325,11 +332,11 @@ describe('useEditorDataFlow — overlap-replace provenance (Issue 1)', () => {
 });
 
 // ─── existingRange call-site wiring tests ─────────────────────────────────────
-// These cases test the `evidenceSnapshots` hook option (not `ProcessHub.evidenceSnapshots`,
-// which does not exist). The caller (Editor.tsx) loads snapshots from IndexedDB separately
-// and passes them via this option. ProcessHub stays a pure data-only type.
+// P5.2: evidenceSnapshots prop dropped. The hook now queries
+// azureHubRepository.evidenceSnapshots.listByHub() inside handlePasteAnalyze
+// and reads existingRange from the most-recent live snapshot (mirroring PWA D4 + S4 Option A).
 
-describe('useEditorDataFlow — existingRange wiring (ADR-077 follow-up)', () => {
+describe('useEditorDataFlow — existingRange wiring (P5.2 / ADR-077 follow-up)', () => {
   const TIME_RANGE = { startISO: '2026-05-01T00:00:00.000Z', endISO: '2026-05-04T23:59:59.999Z' };
 
   // Minimal non-blocking classification so handlePasteAnalyze proceeds to setMatchSummary.
@@ -343,24 +350,24 @@ describe('useEditorDataFlow — existingRange wiring (ADR-077 follow-up)', () =>
     vi.mocked(classifyPaste).mockReturnValue(PASSTHROUGH_CLASSIFICATION);
   });
 
-  it('Case A: forwards existingRange when evidenceSnapshots option has a snapshot with rowTimestampRange', async () => {
-    const evidenceSnapshots = [
-      {
-        id: 'snap-1',
-        hubId: 'hub-1',
-        sourceId: 'src-1',
-        capturedAt: '2026-05-01T00:00:00Z',
-        importedAt: 1746057600000,
-        createdAt: 1746057600000,
-        deletedAt: null,
-        origin: 'paste-abc',
-        rowCount: 4,
-        rowTimestampRange: TIME_RANGE,
-      },
-    ];
+  it('Case A: forwards existingRange when repository returns snapshot with rowTimestampRange', async () => {
+    const snapshot: EvidenceSnapshot = {
+      id: 'snap-1',
+      hubId: 'hub-1',
+      sourceId: 'src-1',
+      capturedAt: '2026-05-01T00:00:00Z',
+      importedAt: 1746057600000,
+      createdAt: 1746057600000,
+      deletedAt: null,
+      origin: 'paste-abc',
+      rowCount: 4,
+      rowTimestampRange: TIME_RANGE,
+    };
+
+    mockedListByHub.mockResolvedValueOnce([snapshot]);
 
     const { result } = renderHook(() =>
-      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB, evidenceSnapshots }))
+      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB }))
     );
 
     await act(async () => {
@@ -372,9 +379,10 @@ describe('useEditorDataFlow — existingRange wiring (ADR-077 follow-up)', () =>
     expect(ctx.existingRange).toEqual(TIME_RANGE);
   });
 
-  it('Case B: forwards existingRange as undefined when evidenceSnapshots option is empty', async () => {
+  it('Case B: forwards existingRange as undefined when repository returns no snapshots', async () => {
+    // listByHub default mock returns [] — no override needed.
     const { result } = renderHook(() =>
-      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB, evidenceSnapshots: [] }))
+      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB }))
     );
 
     await act(async () => {
@@ -387,23 +395,23 @@ describe('useEditorDataFlow — existingRange wiring (ADR-077 follow-up)', () =>
   });
 
   it('Case C: forwards existingRange as undefined when latest snapshot has no rowTimestampRange', async () => {
-    const evidenceSnapshots = [
-      {
-        id: 'snap-1',
-        hubId: 'hub-1',
-        sourceId: 'src-1',
-        capturedAt: '2026-05-01T00:00:00Z',
-        importedAt: 1746057600000,
-        createdAt: 1746057600000,
-        deletedAt: null,
-        origin: 'paste-abc',
-        rowCount: 4,
-        // rowTimestampRange intentionally absent
-      },
-    ];
+    const snapshot: EvidenceSnapshot = {
+      id: 'snap-1',
+      hubId: 'hub-1',
+      sourceId: 'src-1',
+      capturedAt: '2026-05-01T00:00:00Z',
+      importedAt: 1746057600000,
+      createdAt: 1746057600000,
+      deletedAt: null,
+      origin: 'paste-abc',
+      rowCount: 4,
+      // rowTimestampRange intentionally absent
+    };
+
+    mockedListByHub.mockResolvedValueOnce([snapshot]);
 
     const { result } = renderHook(() =>
-      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB, evidenceSnapshots }))
+      useEditorDataFlow(makeOptions({ activeHub: COMPLETE_HUB }))
     );
 
     await act(async () => {
