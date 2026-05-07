@@ -65,3 +65,5 @@ export {
   selectQuestionsForHub,
 } from './wallSelectors';
 export type { HubCommentEntry } from './wallSelectors';
+export { useViewStore, getViewInitialState, STORE_LAYER as VIEW_STORE_LAYER } from './viewStore';
+export type { ViewState as ViewStoreState, ViewActions, ViewStore } from './viewStore';
