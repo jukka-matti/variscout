@@ -1,11 +1,18 @@
 import React from 'react';
 import FocusTrap from 'focus-trap-react';
 import { formatStatistic } from '@variscout/core/i18n';
+import type { WorkflowReadinessSignals } from '@variscout/core';
 import type {
   CanvasInvestigationFocus,
   CanvasStepCardModel,
   CanvasStepInvestigationOverlay,
 } from '@variscout/hooks';
+import { useTranslation } from '@variscout/hooks';
+import {
+  computeCtaState,
+  type ResponsePathKind,
+  type PrerequisiteLockedReason,
+} from './responsePathCta';
 
 export interface CanvasOverlayAnchorRect {
   top: number;
@@ -20,8 +27,12 @@ interface CanvasStepOverlayProps {
   card: CanvasStepCardModel;
   anchorRect?: CanvasOverlayAnchorRect | null;
   onClose: () => void;
+  signals: WorkflowReadinessSignals;
   onQuickAction?: (stepId: string) => void;
   onFocusedInvestigation?: (stepId: string) => void;
+  onCharter?: (stepId: string) => void;
+  onSustainment?: (stepId: string) => void;
+  onHandoff?: (stepId: string) => void;
   investigationOverlay?: CanvasStepInvestigationOverlay;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
 }
@@ -81,17 +92,86 @@ function capabilitySummary(card: CanvasStepCardModel): string {
   return `Unavailable, n=${c.n}`;
 }
 
+const CTA_LABELS: Record<ResponsePathKind, string> = {
+  'quick-action': 'Quick action',
+  'focused-investigation': 'Focused investigation',
+  charter: 'Charter',
+  sustainment: 'Sustainment',
+  handoff: 'Handoff',
+};
+
+const PREREQUISITE_TOOLTIP_KEY: Record<
+  PrerequisiteLockedReason,
+  keyof import('@variscout/core').MessageCatalog
+> = {
+  'no-intervention': 'frame.canvasOverlay.cta.sustainment.notReady',
+  'no-sustainment-confirmed': 'frame.canvasOverlay.cta.handoff.notReady',
+};
+
 export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
   card,
   anchorRect,
   onClose,
+  signals,
   onQuickAction,
   onFocusedInvestigation,
+  onCharter,
+  onSustainment,
+  onHandoff,
   investigationOverlay,
   onOpenInvestigationFocus,
 }) => {
+  const { t } = useTranslation();
   const touchStartY = React.useRef<number | null>(null);
   const mobile = isMobileViewport();
+
+  const handlerMap: Record<ResponsePathKind, ((stepId: string) => void) | undefined> = {
+    'quick-action': onQuickAction,
+    'focused-investigation': onFocusedInvestigation,
+    charter: onCharter,
+    sustainment: onSustainment,
+    handoff: onHandoff,
+  };
+
+  const renderCta = (path: ResponsePathKind, extraClass?: string): React.ReactNode => {
+    const handler = handlerMap[path];
+    const state = computeCtaState({ path, signals, hasHandler: handler !== undefined });
+    const baseClass =
+      'rounded-md border border-edge bg-surface-secondary px-3 py-2 text-sm font-medium';
+    const cls = extraClass ? `${baseClass} ${extraClass}` : baseClass;
+
+    if (state.kind === 'hidden') return null;
+
+    if (state.kind === 'active') {
+      return (
+        <button
+          key={path}
+          type="button"
+          data-testid={`canvas-cta-${path}`}
+          data-cta-state="active"
+          className={`${cls} text-content hover:bg-surface-tertiary`}
+          onClick={() => handler!(card.stepId)}
+        >
+          {CTA_LABELS[path]}
+        </button>
+      );
+    }
+
+    return (
+      <button
+        key={path}
+        type="button"
+        disabled
+        data-testid={`canvas-cta-${path}`}
+        data-cta-state="prerequisite-locked"
+        data-cta-reason={state.reason}
+        title={t(PREREQUISITE_TOOLTIP_KEY[state.reason])}
+        className={`${cls} text-content-muted opacity-60`}
+      >
+        {CTA_LABELS[path]}
+      </button>
+    );
+  };
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -257,41 +337,11 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => onQuickAction?.(card.stepId)}
-              className="rounded-md border border-edge bg-surface-secondary px-3 py-2 text-sm font-medium text-content hover:bg-surface-tertiary"
-            >
-              Quick action
-            </button>
-            <button
-              type="button"
-              onClick={() => onFocusedInvestigation?.(card.stepId)}
-              className="rounded-md border border-edge bg-surface-secondary px-3 py-2 text-sm font-medium text-content hover:bg-surface-tertiary"
-            >
-              Focused investigation
-            </button>
-            <button
-              type="button"
-              disabled
-              className="rounded-md border border-edge bg-surface-secondary px-3 py-2 text-sm font-medium text-content-muted opacity-60"
-            >
-              Charter
-            </button>
-            <button
-              type="button"
-              disabled
-              className="rounded-md border border-edge bg-surface-secondary px-3 py-2 text-sm font-medium text-content-muted opacity-60"
-            >
-              Sustainment
-            </button>
-            <button
-              type="button"
-              disabled
-              className="rounded-md border border-edge bg-surface-secondary px-3 py-2 text-sm font-medium text-content-muted opacity-60 sm:col-span-2"
-            >
-              Handoff
-            </button>
+            {renderCta('quick-action')}
+            {renderCta('focused-investigation')}
+            {renderCta('charter')}
+            {renderCta('sustainment')}
+            {renderCta('handoff', 'sm:col-span-2')}
           </div>
         </section>
       </FocusTrap>
