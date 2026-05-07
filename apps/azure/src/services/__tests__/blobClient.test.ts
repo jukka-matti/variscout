@@ -228,6 +228,116 @@ describe('blobClient', () => {
       );
     });
 
+    // ── Provenance-envelope round-trip (F3.6-β P3.3) ─────────────────────
+    //
+    // These three tests assert that `saveBlobEvidenceSnapshot` serialises the
+    // complete `EvidenceSnapshot` envelope via `putJsonBlob → JSON.stringify`
+    // with no replacer that would strip the `provenance` field.
+
+    it('PUT body includes provenance tags when snapshot.provenance is populated (F3.6-β P3.3)', async () => {
+      fetchSpy
+        // getSasToken
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
+        // putJsonBlob (snapshot.json)
+        .mockResolvedValueOnce(new Response('', { status: 201 }));
+
+      const snapshotWithProvenance = {
+        id: 'snap-prov-1',
+        hubId: 'hub-prov',
+        sourceId: 'src-prov',
+        capturedAt: '2026-05-07T00:00:00.000Z',
+        rowCount: 2,
+        origin: 'evidence-source:src-prov',
+        importedAt: 1746576000000,
+        createdAt: 1746576000000,
+        deletedAt: null as null,
+        provenance: [
+          {
+            id: 'tag-001',
+            snapshotId: 'snap-prov-1',
+            rowKey: 'row-0',
+            source: 'telemetry',
+            joinKey: 'batch_id',
+            createdAt: 1746576000000,
+            deletedAt: null as null,
+          },
+          {
+            id: 'tag-002',
+            snapshotId: 'snap-prov-1',
+            rowKey: 'row-1',
+            source: 'qc-inspection',
+            joinKey: 'batch_id',
+            createdAt: 1746576000000,
+            deletedAt: null as null,
+          },
+        ],
+      };
+
+      await saveBlobEvidenceSnapshot(snapshotWithProvenance);
+
+      const [, putCall] = fetchSpy.mock.calls;
+      const body = JSON.parse(putCall[1]?.body as string) as typeof snapshotWithProvenance;
+
+      expect(body.provenance).toBeDefined();
+      expect(body.provenance).toHaveLength(2);
+      expect(body.provenance).toEqual(snapshotWithProvenance.provenance);
+    });
+
+    it('PUT body includes provenance:[] when snapshot.provenance is an empty array (F3.6-β P3.3)', async () => {
+      fetchSpy
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
+        .mockResolvedValueOnce(new Response('', { status: 201 }));
+
+      const snapshotEmptyProvenance = {
+        id: 'snap-prov-2',
+        hubId: 'hub-prov',
+        sourceId: 'src-prov',
+        capturedAt: '2026-05-07T00:00:00.000Z',
+        rowCount: 1,
+        origin: 'evidence-source:src-prov',
+        importedAt: 1746576000000,
+        createdAt: 1746576000000,
+        deletedAt: null as null,
+        provenance: [] as never[],
+      };
+
+      await saveBlobEvidenceSnapshot(snapshotEmptyProvenance);
+
+      const [, putCall] = fetchSpy.mock.calls;
+      const body = JSON.parse(putCall[1]?.body as string) as typeof snapshotEmptyProvenance;
+
+      expect(body.provenance).toBeDefined();
+      expect(body.provenance).toEqual([]);
+    });
+
+    it('PUT body omits provenance key when snapshot.provenance is undefined (F3.6-β P3.3)', async () => {
+      // JSON.stringify({..., provenance: undefined}) omits the key entirely.
+      // This is the expected behaviour for snapshots that predate the F3.6-β envelope facet.
+      fetchSpy
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
+        .mockResolvedValueOnce(new Response('', { status: 201 }));
+
+      const snapshotNoProvenance = {
+        id: 'snap-prov-3',
+        hubId: 'hub-prov',
+        sourceId: 'src-prov',
+        capturedAt: '2026-05-07T00:00:00.000Z',
+        rowCount: 0,
+        origin: 'evidence-source:src-prov',
+        importedAt: 1746576000000,
+        createdAt: 1746576000000,
+        deletedAt: null as null,
+        // provenance intentionally omitted (undefined)
+      };
+
+      await saveBlobEvidenceSnapshot(snapshotNoProvenance);
+
+      const [, putCall] = fetchSpy.mock.calls;
+      const body = JSON.parse(putCall[1]?.body as string) as Record<string, unknown>;
+
+      expect('provenance' in body).toBe(false);
+    });
+
     it('lists Evidence Sources and Snapshot metadata from catalog blobs', async () => {
       fetchSpy
         .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
