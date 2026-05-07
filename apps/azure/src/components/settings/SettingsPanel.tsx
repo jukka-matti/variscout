@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FolderOpen, ExternalLink, LogOut, Shield } from 'lucide-react';
 import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge, useTheme } from '@variscout/ui';
 import { hasTeamFeatures, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
-import { useProjectStore, useSessionStore } from '@variscout/stores';
+import { useProjectStore, usePreferencesStore } from '@variscout/stores';
 import ThemeToggle from './ThemeToggle';
 import { isAIAvailable } from '../../services/aiService';
 
@@ -36,12 +36,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
   const processContext = useProjectStore(s => s.processContext) ?? {};
   const setProcessContext = useProjectStore(s => s.setProcessContext);
-  const aiEnabled = useSessionStore(s => s.aiEnabled);
-  const setAIEnabled = useSessionStore(s => s.setAIEnabled);
-  const aiPreferences = useSessionStore(s => s.aiPreferences);
-  const setAIPreferences = useSessionStore(s => s.setAIPreferences);
-  const knowledgeSearchFolder = useSessionStore(s => s.knowledgeSearchFolder);
-  const setKnowledgeSearchFolder = useSessionStore(s => s.setKnowledgeSearchFolder);
+  const aiEnabled = usePreferencesStore(s => s.aiEnabled);
+  const setAIEnabled = usePreferencesStore(s => s.setAIEnabled);
+  const aiPreferences = usePreferencesStore(s => s.aiPreferences);
+  const setAIPreferences = usePreferencesStore(s => s.setAIPreferences);
+  const knowledgeSearchFolder = usePreferencesStore(s => s.knowledgeSearchFolder);
+  const setKnowledgeSearchFolder = usePreferencesStore(s => s.setKnowledgeSearchFolder);
 
   return (
     <SettingsPanelBase

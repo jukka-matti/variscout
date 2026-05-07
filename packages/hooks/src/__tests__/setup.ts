@@ -1,10 +1,10 @@
 /**
  * Hooks test setup — supplements the root test/setup.ts.
  *
- * Provides a minimal in-memory IndexedDB stub so that the sessionStore's
+ * Provides a minimal in-memory IndexedDB stub so that the preferencesStore's
  * Zustand persist middleware (which uses idb-keyval internally) does not
  * throw "indexedDB is not defined" or "Cannot set properties of undefined"
- * when tests call useSessionStore.setState() in a jsdom environment.
+ * when tests call usePreferencesStore.setState() in a jsdom environment.
  *
  * The stub implements only the subset of the IndexedDB API that idb-keyval
  * actually exercises:

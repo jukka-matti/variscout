@@ -50,7 +50,7 @@ import type { FindingsActionMessage } from '@variscout/hooks';
 import {
   useProjectStore,
   useInvestigationStore,
-  useSessionStore,
+  usePreferencesStore,
   useWallLayoutStore,
 } from '@variscout/stores';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
@@ -199,9 +199,9 @@ function AppMain() {
   const questions = useInvestigationStore(s => s.questions);
   const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
 
-  // Session store — question-link prompt opt-out flag
-  const skipQuestionLinkPrompt = useSessionStore(s => s.skipQuestionLinkPrompt);
-  const setSkipQuestionLinkPrompt = useSessionStore(s => s.setSkipQuestionLinkPrompt);
+  // Preferences store — question-link prompt opt-out flag
+  const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
+  const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
@@ -613,7 +613,7 @@ function AppMain() {
       if (!finding) return;
       // Restore time lens first so chart data is scoped correctly when filters apply.
       if (finding.source?.timeLens) {
-        useSessionStore.getState().setTimeLens(finding.source.timeLens);
+        usePreferencesStore.getState().setTimeLens(finding.source.timeLens);
       }
       setFilters(finding.context.activeFilters);
     },

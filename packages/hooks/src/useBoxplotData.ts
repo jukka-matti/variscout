@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { group, quantile, ascending, mean, deviation } from 'd3-array';
 import { calculateKDE, applyTimeLens } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/core';
-import { useSessionStore } from '@variscout/stores';
+import { usePreferencesStore } from '@variscout/stores';
 
 /** Pre-computed KDE density data keyed by category */
 export type ViolinDataMap = Map<string, Array<{ value: number; count: number }>>;
@@ -61,7 +61,7 @@ function computeBoxplotGroup(key: string, values: number[]): BoxplotGroupData | 
  * When stageColumn is provided, creates composite keys like "Station 2 · Before"
  * with interleaved ordering per category.
  *
- * Reads `timeLens` from `useSessionStore` and applies `applyTimeLens` to
+ * Reads `timeLens` from `usePreferencesStore` and applies `applyTimeLens` to
  * `filteredData` before grouping.
  */
 export function useBoxplotData(
@@ -72,7 +72,7 @@ export function useBoxplotData(
   stageColumn?: string,
   stageOrder?: string[]
 ): UseBoxplotDataResult {
-  const timeLens = useSessionStore(s => s.timeLens);
+  const timeLens = usePreferencesStore(s => s.timeLens);
 
   const lensedData = useMemo(
     // timeColumn unused in current applyTimeLens (rows pre-sorted upstream); see Task 2 docstring.

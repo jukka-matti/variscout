@@ -15,7 +15,7 @@ import { FilterChipDropdown } from '../FilterChipDropdown';
 import { gradeCpk, sourceLabelFor } from '@variscout/core/capability';
 import { assertNever } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
-import { useSessionStore } from '@variscout/stores';
+import { usePreferencesStore } from '@variscout/stores';
 import type { TimeLens } from '@variscout/core/stats';
 
 /**
@@ -98,8 +98,8 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   const { t, formatStat } = useTranslation();
 
   // Time lens state from session store
-  const timeLens = useSessionStore(s => s.timeLens);
-  const setTimeLens = useSessionStore(s => s.setTimeLens);
+  const timeLens = usePreferencesStore(s => s.timeLens);
+  const setTimeLens = usePreferencesStore(s => s.setTimeLens);
 
   // Time lens popover state
   const [timeLensOpen, setTimeLensOpen] = useState(false);

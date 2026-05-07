@@ -25,7 +25,7 @@ let storeState = makeStoreState();
 
 vi.mock('@variscout/stores', () => {
   return {
-    useSessionStore: (
+    usePreferencesStore: (
       selector: (s: { timeLens: TimeLens; setTimeLens: (l: TimeLens) => void }) => unknown
     ) =>
       selector({

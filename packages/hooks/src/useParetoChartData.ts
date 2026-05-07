@@ -16,7 +16,7 @@ import type { ParetoDataPoint } from '@variscout/core';
 import type { DataRow, DataCellValue, ParetoRow } from '@variscout/core';
 import type { ParetoYMetricId, ComputeParetoYContext } from '@variscout/core/pareto';
 import { computeParetoY, PARETO_Y_METRICS } from '@variscout/core/pareto';
-import { useSessionStore } from '@variscout/stores';
+import { usePreferencesStore } from '@variscout/stores';
 
 /** Maximum categories before aggregating remaining into "Others" */
 export const PARETO_MAX_CATEGORIES = 20;
@@ -112,7 +112,7 @@ export function useParetoChartData({
   yMetric,
   yMetricContext,
 }: UseParetoChartDataOptions): UseParetoChartDataResult {
-  const timeLens = useSessionStore(s => s.timeLens);
+  const timeLens = usePreferencesStore(s => s.timeLens);
 
   // Apply lens to filteredData only — rawData stays as the full comparison baseline.
   const lensedFilteredData = useMemo(

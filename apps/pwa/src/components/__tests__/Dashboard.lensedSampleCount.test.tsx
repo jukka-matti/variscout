@@ -28,14 +28,14 @@ import { render, screen, act, renderHook } from '@testing-library/react';
 // bodies even though vi.mock is hoisted before module-level let/const init.
 
 // Store reference populated inside the factory; accessed from tests via this var.
-var _testSessionStore:
+var _testPreferencesStore:
   | {
       (selector: (s: { timeLens: import('@variscout/core').TimeLens }) => unknown): unknown;
       setState: (partial: Partial<{ timeLens: import('@variscout/core').TimeLens }>) => void;
     }
   | undefined;
 
-// Replace the persist-backed useSessionStore with a plain in-memory store so that
+// Replace the persist-backed usePreferencesStore with a plain in-memory store so that
 // setState calls in jsdom don't trigger the idb-keyval middleware (indexedDB is
 // not available in that environment). All other @variscout/stores exports pass
 // through from the actual module.
@@ -46,12 +46,13 @@ vi.mock('@variscout/stores', async () => {
     timeLens: { mode: 'cumulative' },
   }));
   // Bind into the var so beforeEach / tests can call store.setState.
-  _testSessionStore = store as typeof _testSessionStore;
+  _testPreferencesStore = store as typeof _testPreferencesStore;
   return {
     ...actual,
-    useSessionStore: (selector: (s: { timeLens: import('@variscout/core').TimeLens }) => unknown) =>
-      store(selector),
-    getSessionInitialState: () => ({ timeLens: { mode: 'cumulative' } }),
+    usePreferencesStore: (
+      selector: (s: { timeLens: import('@variscout/core').TimeLens }) => unknown
+    ) => store(selector),
+    getPreferencesInitialState: () => ({ timeLens: { mode: 'cumulative' } }),
   };
 });
 
@@ -96,13 +97,13 @@ describe('Dashboard — lensedSampleCount vs filteredData.length', () => {
     // Reset projectStore (no persist middleware — safe in jsdom).
     useProjectStore.setState(getProjectInitialState());
     // Reset the in-memory test session store to cumulative (no idb writes).
-    _testSessionStore!.setState({ timeLens: { mode: 'cumulative' } });
+    _testPreferencesStore!.setState({ timeLens: { mode: 'cumulative' } });
   });
 
   it('cumulative lens: lensedSampleCount equals filteredData.length (baseline)', () => {
     act(() => {
       useProjectStore.setState({ rawData: buildRows(100), filters: {} });
-      _testSessionStore!.setState({ timeLens: { mode: 'cumulative' } });
+      _testPreferencesStore!.setState({ timeLens: { mode: 'cumulative' } });
     });
 
     render(<SampleCountHarness />);
@@ -116,7 +117,7 @@ describe('Dashboard — lensedSampleCount vs filteredData.length', () => {
     // filteredData.length (100) instead of lensedSampleCount (50).
     act(() => {
       useProjectStore.setState({ rawData: buildRows(100), filters: {} });
-      _testSessionStore!.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
+      _testPreferencesStore!.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
     });
 
     render(<SampleCountHarness />);
@@ -134,14 +135,14 @@ describe('Dashboard — lensedSampleCount vs filteredData.length', () => {
   it('rolling → cumulative transition: lensedSampleCount tracks lens changes reactively', () => {
     act(() => {
       useProjectStore.setState({ rawData: buildRows(100), filters: {} });
-      _testSessionStore!.setState({ timeLens: { mode: 'rolling', windowSize: 30 } });
+      _testPreferencesStore!.setState({ timeLens: { mode: 'rolling', windowSize: 30 } });
     });
 
     const { result, rerender } = renderHook(() => useLensedSampleCount());
     expect(result.current).toBe(30);
 
     act(() => {
-      _testSessionStore!.setState({ timeLens: { mode: 'cumulative' } });
+      _testPreferencesStore!.setState({ timeLens: { mode: 'cumulative' } });
     });
     rerender();
     expect(result.current).toBe(100);

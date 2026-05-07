@@ -2,7 +2,7 @@
  * PWA finding restore — timeLens + filter replay path.
  *
  * Verifies the actual code path used by App.tsx's handleRestoreFinding:
- *   1. useSessionStore.getState().setTimeLens is called with the stored lens.
+ *   1. usePreferencesStore.getState().setTimeLens is called with the stored lens.
  *   2. setFilters (projectStore) is called AFTER setTimeLens.
  *   3. The lens deep-equals the one embedded in the finding source.
  *
@@ -25,7 +25,7 @@ vi.mock('@variscout/stores', () => {
   });
 
   return {
-    useSessionStore: Object.assign(
+    usePreferencesStore: Object.assign(
       vi.fn((selector: (s: { timeLens: import('@variscout/core').TimeLens }) => unknown) =>
         selector({ timeLens: _timeLens })
       ),
@@ -52,7 +52,7 @@ vi.mock('@variscout/stores', () => {
 // ---------------------------------------------------------------------------
 // Imports after mocks
 // ---------------------------------------------------------------------------
-import { useSessionStore, useProjectStore } from '@variscout/stores';
+import { usePreferencesStore, useProjectStore } from '@variscout/stores';
 import type { Finding, TimeLens } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
@@ -63,7 +63,7 @@ type SetTimeLensFn = (lens: TimeLens) => void;
 type SetFiltersFn = (f: Record<string, (string | number)[]>) => void;
 
 function getSetTimeLens(): ReturnType<typeof vi.fn> & SetTimeLensFn {
-  return useSessionStore.getState().setTimeLens as ReturnType<typeof vi.fn> & SetTimeLensFn;
+  return usePreferencesStore.getState().setTimeLens as ReturnType<typeof vi.fn> & SetTimeLensFn;
 }
 
 function getSetFilters(): ReturnType<typeof vi.fn> & SetFiltersFn {
@@ -108,7 +108,7 @@ function invokeRestoreHandler(
   if (!finding) return;
   // Restore time lens first so chart data is scoped correctly when filters apply.
   if (finding.source?.timeLens) {
-    useSessionStore.getState().setTimeLens(finding.source.timeLens);
+    usePreferencesStore.getState().setTimeLens(finding.source.timeLens);
   }
   setFilters(finding.context.activeFilters);
 }
@@ -121,7 +121,7 @@ describe('App.tsx findingRestore — timeLens + filter replay', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset store state to cumulative baseline
-    useSessionStore.getState().setTimeLens({ mode: 'cumulative' });
+    usePreferencesStore.getState().setTimeLens({ mode: 'cumulative' });
     vi.clearAllMocks(); // clear reset call from spy history
   });
 
@@ -131,7 +131,7 @@ describe('App.tsx findingRestore — timeLens + filter replay', () => {
 
     invokeRestoreHandler(finding, setFilters);
 
-    expect(useSessionStore.getState().timeLens).toEqual({
+    expect(usePreferencesStore.getState().timeLens).toEqual({
       mode: 'fixed',
       anchor: 100,
       windowSize: 50,
@@ -143,7 +143,7 @@ describe('App.tsx findingRestore — timeLens + filter replay', () => {
 
     const orderedSetTimeLens = vi.fn((lens: TimeLens) => {
       callOrder.push('setTimeLens');
-      useSessionStore.getState().setTimeLens(lens);
+      usePreferencesStore.getState().setTimeLens(lens);
     });
     const orderedSetFilters = vi.fn((f: Record<string, (string | number)[]>) => {
       callOrder.push('setFilters');
@@ -178,7 +178,7 @@ describe('App.tsx findingRestore — timeLens + filter replay', () => {
 
     invokeRestoreHandler(finding, setFilters);
 
-    expect(useSessionStore.getState().timeLens).toEqual(lens);
+    expect(usePreferencesStore.getState().timeLens).toEqual(lens);
     expect(getSetTimeLens()).toHaveBeenCalledWith(lens);
   });
 

@@ -1,4 +1,4 @@
-import { useSessionStore } from '@variscout/stores';
+import { usePreferencesStore } from '@variscout/stores';
 import { timeLensIndices } from '@variscout/core';
 import { useFilteredData } from './useFilteredData';
 
@@ -11,7 +11,7 @@ import { useFilteredData } from './useFilteredData';
  */
 export function useLensedSampleCount(): number {
   const { filteredData } = useFilteredData();
-  const lens = useSessionStore(s => s.timeLens);
+  const lens = usePreferencesStore(s => s.timeLens);
   const { start, end } = timeLensIndices(filteredData.length, lens);
   return end - start;
 }

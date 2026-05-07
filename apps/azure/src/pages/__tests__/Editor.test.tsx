@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 
-// ── Provide IndexedDB polyfill for Zustand persist middleware (sessionStore) ──
+// ── Provide IndexedDB polyfill for Zustand persist middleware (preferencesStore) ──
 import 'fake-indexeddb/auto';
 
 import { Editor } from '../Editor';
 import * as StorageModule from '../../services/storage';
 import { usePanelsStore } from '../../features/panels/panelsStore';
-import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
+import { useProjectStore, useInvestigationStore, usePreferencesStore } from '@variscout/stores';
 
 // ── Mock child components ──
 
@@ -360,10 +360,10 @@ function seedStores(
     categories: [],
   } as Partial<ReturnType<typeof useInvestigationStore.getState>>);
 
-  useSessionStore.setState({
+  usePreferencesStore.setState({
     aiEnabled: false,
     knowledgeSearchFolder: null,
-  } as Partial<ReturnType<typeof useSessionStore.getState>>);
+  } as Partial<ReturnType<typeof usePreferencesStore.getState>>);
 }
 
 function renderEditor(stateOverrides: Parameters<typeof seedStores>[0] = {}) {

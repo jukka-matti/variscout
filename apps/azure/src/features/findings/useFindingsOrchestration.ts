@@ -14,7 +14,7 @@ import {
   buildFindingContext,
   buildFindingSource,
 } from '@variscout/hooks';
-import { useSessionStore } from '@variscout/stores';
+import { usePreferencesStore } from '@variscout/stores';
 import { useFindingsStore, groupFindingsByChart } from './findingsStore';
 import { usePanelsStore } from '../panels/panelsStore';
 import { usePopoutSync } from './usePopoutSync';
@@ -194,7 +194,7 @@ export function useFindingsOrchestration({
       // correct window on the very next render cycle.
       const finding = findingsState.findings.find(f => f.id === id);
       if (finding?.source?.timeLens) {
-        useSessionStore.getState().setTimeLens(finding.source.timeLens);
+        usePreferencesStore.getState().setTimeLens(finding.source.timeLens);
       }
       setFilters(ctx.activeFilters);
     },

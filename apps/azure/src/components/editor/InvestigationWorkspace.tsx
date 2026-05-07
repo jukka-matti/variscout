@@ -42,7 +42,7 @@ import { GripVertical } from 'lucide-react';
 import {
   useProjectStore,
   useInvestigationStore,
-  useSessionStore,
+  usePreferencesStore,
   useWallLayoutStore,
 } from '@variscout/stores';
 import {
@@ -203,8 +203,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   });
 
   // Question-link prompt for map context menu findings
-  const skipQuestionLinkPrompt = useSessionStore(s => s.skipQuestionLinkPrompt);
-  const setSkipQuestionLinkPrompt = useSessionStore(s => s.setSkipQuestionLinkPrompt);
+  const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
+  const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
   const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
   const mapQuestions = useInvestigationStore(s => s.questions);
   const [mapPromptOpen, setMapPromptOpen] = useState(false);
@@ -562,7 +562,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       const newFinding = findingsState.addFinding(
         `Observation about ${factor}`,
         { activeFilters: filters, cumulativeScope: null },
-        { chart: 'boxplot', category: factor, timeLens: useSessionStore.getState().timeLens }
+        { chart: 'boxplot', category: factor, timeLens: usePreferencesStore.getState().timeLens }
       );
       if (!skipQuestionLinkPrompt) {
         setMapPromptFindingId(newFinding.id);
