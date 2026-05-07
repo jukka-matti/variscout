@@ -369,6 +369,135 @@ export async function updateBlobEvidenceSnapshots(
   await putJsonBlob(processHubEvidenceSnapshotsCatalogPath(hubId, sourceId), snapshots);
 }
 
+// ── ETag-conditional snapshot catalog uploader ─────────────────────────────
+
+/**
+ * Typed result for `updateBlobEvidenceSnapshotsConditional`.
+ *
+ * - `{ ok: true; etag }` — write succeeded; `etag` is the new blob ETag.
+ * - `{ ok: false; reason: 'concurrency-exhausted' }` — 3× 412 Precondition Failed;
+ *   a concurrent writer kept winning. Caller should surface a toast/modal.
+ * - `{ ok: false; reason: 'network' }` — fetch threw (no connectivity).
+ * - `{ ok: false; reason: 'auth' }` — 401 or 403 from Blob Storage.
+ */
+export type UpdateBlobConditionalResult =
+  | { ok: true; etag: string }
+  | { ok: false; reason: 'concurrency-exhausted' | 'network' | 'auth' };
+
+/** Tiny sleep helper — injectable so tests can mock it to be instant. */
+function defaultSleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Write the per-source `_snapshots.json` catalog blob with ETag optimistic
+ * concurrency control.
+ *
+ * Algorithm:
+ * 1. HEAD the blob path → read current ETag (null if 404).
+ * 2. PUT with `If-Match: <etag>` (omit header on first-time write).
+ * 3. On 412 Precondition Failed — another writer raced us. Increment attempt
+ *    counter, sleep `backoffMs * 2^attempt` ms, repeat from step 1.
+ * 4. After `maxRetries` failed attempts → return `{ ok: false, reason: 'concurrency-exhausted' }`.
+ * 5. Auth errors (401/403) → `{ ok: false, reason: 'auth' }`.
+ * 6. Network errors (fetch throws) → `{ ok: false, reason: 'network' }`.
+ *
+ * @param hubId    Hub owning the evidence source.
+ * @param sourceId Evidence source whose snapshot catalog is being written.
+ * @param catalog  Full updated `EvidenceSnapshot[]` to write.
+ * @param options  `maxRetries` (default 3), `backoffMs` (default 100),
+ *                 `sleep` (injectable — defaults to `setTimeout`-based).
+ */
+export async function updateBlobEvidenceSnapshotsConditional(
+  hubId: string,
+  sourceId: string,
+  catalog: EvidenceSnapshot[],
+  options?: {
+    maxRetries?: number;
+    backoffMs?: number;
+    sleep?: (ms: number) => Promise<void>;
+  }
+): Promise<UpdateBlobConditionalResult> {
+  const maxRetries = options?.maxRetries ?? 3;
+  const backoffMs = options?.backoffMs ?? 100;
+  const sleep = options?.sleep ?? defaultSleep;
+
+  const path = processHubEvidenceSnapshotsCatalogPath(hubId, sourceId);
+
+  let attempt = 0;
+
+  while (attempt < maxRetries) {
+    let sasUrl: string;
+    try {
+      sasUrl = await getSasToken();
+    } catch {
+      return { ok: false, reason: 'network' };
+    }
+
+    const url = blobUrl(sasUrl, path);
+
+    // ── Step 1: HEAD → read current ETag ──────────────────────────────────
+    let currentEtag: string | null = null;
+    try {
+      const headRes = await fetch(url, { method: 'HEAD' });
+      if (headRes.status === 401 || headRes.status === 403) {
+        return { ok: false, reason: 'auth' };
+      }
+      if (headRes.status !== 404) {
+        if (!headRes.ok) {
+          return { ok: false, reason: 'network' };
+        }
+        currentEtag = headRes.headers.get('ETag');
+      }
+      // 404 → first-time write; currentEtag stays null
+    } catch {
+      return { ok: false, reason: 'network' };
+    }
+
+    // ── Step 2: PUT (with If-Match if we have an ETag) ────────────────────
+    const putHeaders: Record<string, string> = {
+      'x-ms-blob-type': 'BlockBlob',
+      'Content-Type': 'application/json',
+    };
+    if (currentEtag !== null) {
+      putHeaders['If-Match'] = currentEtag;
+    }
+
+    let putRes: Response;
+    try {
+      putRes = await fetch(url, {
+        method: 'PUT',
+        headers: putHeaders,
+        body: JSON.stringify(catalog),
+      });
+    } catch {
+      return { ok: false, reason: 'network' };
+    }
+
+    if (putRes.status === 200 || putRes.status === 201 || putRes.status === 204) {
+      const newEtag = putRes.headers.get('ETag') ?? '';
+      return { ok: true, etag: newEtag };
+    }
+
+    if (putRes.status === 401 || putRes.status === 403) {
+      return { ok: false, reason: 'auth' };
+    }
+
+    if (putRes.status === 412) {
+      attempt += 1;
+      if (attempt < maxRetries) {
+        await sleep(backoffMs * Math.pow(2, attempt - 1));
+      }
+      continue;
+    }
+
+    // Unexpected status — treat as network-level failure
+    return { ok: false, reason: 'network' };
+  }
+
+  return { ok: false, reason: 'concurrency-exhausted' };
+}
+
 /**
  * Save a photo blob for a finding comment.
  */
