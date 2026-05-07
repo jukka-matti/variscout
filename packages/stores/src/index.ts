@@ -67,3 +67,18 @@ export {
 export type { HubCommentEntry } from './wallSelectors';
 export { useViewStore, getViewInitialState, STORE_LAYER as VIEW_STORE_LAYER } from './viewStore';
 export type { ViewState as ViewStoreState, ViewActions, ViewStore } from './viewStore';
+export {
+  usePreferencesStore,
+  getPreferencesInitialState,
+  STORE_LAYER as PREFERENCES_STORE_LAYER,
+} from './preferencesStore';
+export type {
+  PreferencesState,
+  PreferencesActions,
+  PreferencesStore,
+  // WorkspaceView and PITab are also exported from sessionStore during the F4 migration window.
+  // Use aliased names here to avoid duplicate-export collision; Task 9 collapses these when
+  // sessionStore is deleted and the canonical names are promoted.
+  WorkspaceView as PreferencesWorkspaceView,
+  PITab as PreferencesPITab,
+} from './preferencesStore';
