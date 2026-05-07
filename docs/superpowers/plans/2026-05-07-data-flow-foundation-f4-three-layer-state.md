@@ -790,6 +790,7 @@ Output: a per-file rewrite plan. Most files are 1-3 line changes.
 For each consumer file, replace per the cheat-sheet:
 
 - `import { useSessionStore } from '@variscout/stores'` → `import { useViewStore, usePreferencesStore } from '@variscout/stores'` (drop one if unused).
+- **Type-import note (Task 2 deviation):** the View-layer state type is exported from `@variscout/stores` as `ViewStoreState` (NOT `ViewState`). This is because `ViewState` is already taken by the legacy chart-UI type re-exported from `@variscout/core`. Internal to `viewStore.ts` the interface is named `ViewState` (per plan code), but consumers import the alias: `import { useViewStore, type ViewStoreState } from '@variscout/stores'`. This rarely matters in practice — most consumers use the hook only, not the type — but if a consumer references the type, use the aliased name.
 - Each `useSessionStore(s => s.<field>)` → either `useViewStore(s => s.<field>)` or `usePreferencesStore(s => s.<field>)` per the cheat-sheet.
 - `useSessionStore.getState().<action>()` → corresponding `getState()` on the new store.
 - For `handlePointClick`: replace
