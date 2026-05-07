@@ -40,7 +40,7 @@ import {
   useDefectSummary,
   useTranslation,
 } from '@variscout/hooks';
-import { useProjectStore } from '@variscout/stores';
+import { useProjectStore, useViewStore } from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
@@ -139,8 +139,8 @@ const Dashboard = ({
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const cpkTarget = useProjectStore(s => s.cpkTarget);
-  const selectedPoints = useProjectStore(s => s.selectedPoints);
-  const clearSelection = useProjectStore(s => s.clearSelection);
+  const selectedPoints = useViewStore(s => s.selectedPoints);
+  const clearSelection = useViewStore(s => s.clearTransientSelections);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
   const { filteredData } = useFilteredData();

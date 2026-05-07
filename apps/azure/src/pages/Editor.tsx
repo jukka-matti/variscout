@@ -8,7 +8,7 @@ import { useProjectOverview } from '../hooks/useProjectOverview';
 import {
   useProjectStore,
   useInvestigationStore,
-  useSessionStore,
+  usePreferencesStore,
   useWallLayoutStore,
 } from '@variscout/stores';
 import {
@@ -346,11 +346,11 @@ export const Editor: React.FC<EditorProps> = ({
   const categories = useInvestigationStore(s => s.categories);
   const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
 
-  // Session store
-  const aiEnabled = useSessionStore(s => s.aiEnabled);
-  const knowledgeSearchFolder = useSessionStore(s => s.knowledgeSearchFolder) ?? undefined;
-  const skipQuestionLinkPrompt = useSessionStore(s => s.skipQuestionLinkPrompt);
-  const setSkipQuestionLinkPrompt = useSessionStore(s => s.setSkipQuestionLinkPrompt);
+  // Preferences store (annotation-per-user)
+  const aiEnabled = usePreferencesStore(s => s.aiEnabled);
+  const knowledgeSearchFolder = usePreferencesStore(s => s.knowledgeSearchFolder) ?? undefined;
+  const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
+  const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();

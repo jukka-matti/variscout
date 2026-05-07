@@ -17,7 +17,7 @@ import type {
   FindingComment,
 } from '@variscout/core';
 import type { UseQuestionsReturn } from '@variscout/hooks';
-import { useSessionStore } from '@variscout/stores';
+import { usePreferencesStore } from '@variscout/stores';
 
 // ── Interfaces ────────────────────────────────────────────────────────────
 
@@ -219,7 +219,7 @@ export function useActionProposals({
             const source: FindingSource = {
               chart: 'coscout',
               messageId: `tool-${proposal.id}`,
-              timeLens: useSessionStore.getState().timeLens,
+              timeLens: usePreferencesStore.getState().timeLens,
             };
             const newFinding = findingsState.addFinding(text, findingContext, source);
             // Link to question if suggested

@@ -28,7 +28,7 @@ import {
 } from '@variscout/hooks';
 import type { DefectQuestionInput } from '@variscout/core/defect';
 import { isAIAvailable } from '../../services/aiService';
-import { useProjectStore, useSessionStore } from '@variscout/stores';
+import { useProjectStore, usePreferencesStore } from '@variscout/stores';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
@@ -113,7 +113,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const outcome = useProjectStore(s => s.outcome);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
-  const aiEnabled = useSessionStore(s => s.aiEnabled);
+  const aiEnabled = usePreferencesStore(s => s.aiEnabled);
   const { filteredData } = useFilteredData();
 
   // Defect mode transform for question generation

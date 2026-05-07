@@ -21,7 +21,7 @@ import { X } from 'lucide-react';
 import { CoScoutPanelBase, SessionClosePrompt } from '@variscout/ui';
 import type { SessionClosePromptItem } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
-import { useSessionStore } from '@variscout/stores';
+import { usePreferencesStore } from '@variscout/stores';
 import { useVisualGrounding } from '@variscout/hooks';
 import { useCoScoutProps } from '@variscout/hooks';
 import type { UseFindingsReturn, UseQuestionsReturn } from '@variscout/hooks';
@@ -85,7 +85,7 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
-  const aiEnabled = useSessionStore(s => s.aiEnabled);
+  const aiEnabled = usePreferencesStore(s => s.aiEnabled);
   const filters = useProjectStore(s => s.filters);
   const { filteredData } = useFilteredData();
   const { stats } = useAnalysisStats();

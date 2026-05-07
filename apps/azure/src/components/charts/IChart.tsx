@@ -2,7 +2,7 @@
  * Azure IChart - Thin wrapper that connects stores to shared IChartWrapperBase
  */
 import { withParentSize } from '@visx/responsive';
-import { useProjectStore } from '@variscout/stores';
+import { useProjectStore, useViewStore } from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
@@ -50,8 +50,8 @@ const IChart = ({
   const setAxisSettings = useProjectStore(s => s.setAxisSettings);
   const columnAliases = useProjectStore(s => s.columnAliases);
   const displayOptions = useProjectStore(s => s.displayOptions);
-  const selectedPoints = useProjectStore(s => s.selectedPoints);
-  const setSelectedPoints = useProjectStore(s => s.setSelectedPoints);
+  const selectedPoints = useViewStore(s => s.selectedPoints);
+  const setSelectedPoints = useViewStore(s => s.setSelectedPoints);
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);

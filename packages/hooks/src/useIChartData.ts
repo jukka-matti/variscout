@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import type { IChartDataPoint, StatsResult } from '@variscout/core';
 import { formatTimeValue, lttb, type DataCellValue, applyTimeLens } from '@variscout/core';
-import { useSessionStore } from '@variscout/stores';
+import { usePreferencesStore } from '@variscout/stores';
 
 /**
  * Shared hook to transform source data into IChartDataPoint[].
  * Applies LTTB decimation for large datasets when chartWidth is provided.
  *
- * Reads `timeLens` from `useSessionStore` and filters `sourceData` through
+ * Reads `timeLens` from `usePreferencesStore` and filters `sourceData` through
  * `applyTimeLens` before computing chart points.
  */
 export function useIChartData(
@@ -22,7 +22,7 @@ export function useIChartData(
   /** Factor column names — values included in tooltip display */
   factors?: string[]
 ): IChartDataPoint[] {
-  const timeLens = useSessionStore(s => s.timeLens);
+  const timeLens = usePreferencesStore(s => s.timeLens);
 
   const lensedData = useMemo(
     // timeColumn unused in current applyTimeLens (rows pre-sorted upstream); see applyTimeLens docstring.

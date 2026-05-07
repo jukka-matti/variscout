@@ -5,6 +5,8 @@ import { assertNever, type ProcessHub } from '@variscout/core';
 import type { CanvasAction } from '@variscout/core/actions';
 import { createEmptyMap, type ProcessMap, type ProcessMapNode } from '@variscout/core/frame';
 
+export const STORE_LAYER = 'document' as const;
+
 const HISTORY_CAP = 50;
 type OutcomeSpec = NonNullable<ProcessHub['outcomes']>[number];
 

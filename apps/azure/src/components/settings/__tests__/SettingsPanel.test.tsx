@@ -73,7 +73,7 @@ describe('SettingsPanel', () => {
       setDisplayOptions: mockSetDisplayOptions,
       processContext: {},
     } as unknown as Partial<ReturnType<typeof useProjectStore.getState>>);
-    // Note: useSessionStore uses persist middleware with IDB — defaults are fine for these tests
+    // Note: usePreferencesStore uses persist middleware with IDB — defaults are fine for these tests
 
     // HTMLDialogElement and matchMedia stubs provided by shared test/setup.ts
   });

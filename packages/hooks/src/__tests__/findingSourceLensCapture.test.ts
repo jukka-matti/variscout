@@ -18,7 +18,7 @@ vi.mock('@variscout/stores', () => {
     _timeLens = lens;
   });
   return {
-    useSessionStore: Object.assign(
+    usePreferencesStore: Object.assign(
       vi.fn((selector: (s: { timeLens: import('@variscout/core').TimeLens }) => unknown) =>
         selector({ timeLens: _timeLens })
       ),
@@ -30,14 +30,14 @@ vi.mock('@variscout/stores', () => {
 });
 
 import { buildFindingSource } from '../findingCreation';
-import { useSessionStore } from '@variscout/stores';
+import { usePreferencesStore } from '@variscout/stores';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function getSetTimeLens() {
-  return useSessionStore.getState().setTimeLens as ReturnType<typeof vi.fn>;
+  return usePreferencesStore.getState().setTimeLens as ReturnType<typeof vi.fn>;
 }
 
 // ---------------------------------------------------------------------------
@@ -48,7 +48,7 @@ describe('buildFindingSource — timeLens capture', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset lens to cumulative for each test
-    useSessionStore.getState().setTimeLens({ mode: 'cumulative' });
+    usePreferencesStore.getState().setTimeLens({ mode: 'cumulative' });
     vi.clearAllMocks(); // clear setTimeLens calls from the reset itself
   });
 
@@ -64,7 +64,7 @@ describe('buildFindingSource — timeLens capture', () => {
 
   it('captures rolling lens on ichart source when session lens is rolling', () => {
     // Set rolling lens in the store
-    useSessionStore.getState().setTimeLens({ mode: 'rolling', windowSize: 50 });
+    usePreferencesStore.getState().setTimeLens({ mode: 'rolling', windowSize: 50 });
 
     const source = buildFindingSource('ichart', undefined, 5, 2.3);
     expect(source.timeLens).toEqual({ mode: 'rolling', windowSize: 50 });
@@ -72,7 +72,7 @@ describe('buildFindingSource — timeLens capture', () => {
   });
 
   it('captures fixed lens on pareto source', () => {
-    useSessionStore.getState().setTimeLens({ mode: 'fixed', anchor: 100, windowSize: 50 });
+    usePreferencesStore.getState().setTimeLens({ mode: 'fixed', anchor: 100, windowSize: 50 });
 
     const source = buildFindingSource('pareto', 'Defect X');
     expect(source.timeLens).toEqual({ mode: 'fixed', anchor: 100, windowSize: 50 });
@@ -81,7 +81,7 @@ describe('buildFindingSource — timeLens capture', () => {
 
   it('deep-equals the exact lens from getState() at recording time', () => {
     const lens = { mode: 'rolling' as const, windowSize: 75 };
-    useSessionStore.getState().setTimeLens(lens);
+    usePreferencesStore.getState().setTimeLens(lens);
 
     const source = buildFindingSource('boxplot', 'Zone B');
     // The captured lens must structurally match the lens that was set
@@ -97,7 +97,7 @@ describe('buildFindingSource — timeLens capture', () => {
 describe('finding replay — setTimeLens restored from source.timeLens', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useSessionStore.getState().setTimeLens({ mode: 'cumulative' });
+    usePreferencesStore.getState().setTimeLens({ mode: 'cumulative' });
     vi.clearAllMocks();
   });
 
@@ -105,9 +105,9 @@ describe('finding replay — setTimeLens restored from source.timeLens', () => {
     const fixedLens = { mode: 'fixed' as const, anchor: 100, windowSize: 50 };
 
     // Simulate what handleRestoreFinding does: call setTimeLens before restoring filters
-    useSessionStore.getState().setTimeLens(fixedLens);
+    usePreferencesStore.getState().setTimeLens(fixedLens);
 
-    expect(useSessionStore.getState().timeLens).toEqual(fixedLens);
+    expect(usePreferencesStore.getState().timeLens).toEqual(fixedLens);
     expect(getSetTimeLens()).toHaveBeenCalledWith(fixedLens);
   });
 
@@ -117,7 +117,7 @@ describe('finding replay — setTimeLens restored from source.timeLens', () => {
 
     const mockSetTimeLens = vi.fn((lens: import('@variscout/core').TimeLens) => {
       callOrder.push('setTimeLens');
-      useSessionStore.getState().setTimeLens(lens);
+      usePreferencesStore.getState().setTimeLens(lens);
     });
     const mockSetFilters = vi.fn(() => {
       callOrder.push('setFilters');
@@ -139,6 +139,6 @@ describe('finding replay — setTimeLens restored from source.timeLens', () => {
     mockSetFilters(finding.context.activeFilters);
 
     expect(callOrder).toEqual(['setTimeLens', 'setFilters']);
-    expect(useSessionStore.getState().timeLens).toEqual(rollingLens);
+    expect(usePreferencesStore.getState().timeLens).toEqual(rollingLens);
   });
 });

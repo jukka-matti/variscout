@@ -3,7 +3,7 @@
  *
  * Verifies that useIChartData, useBoxplotData, useProbabilityPlotData,
  * useParetoChartData, and useAnalysisStats all consume the global `timeLens`
- * from useSessionStore and pass their output through applyTimeLens before
+ * from usePreferencesStore and pass their output through applyTimeLens before
  * computing stats / chart prep.
  *
  * Pattern:
@@ -15,7 +15,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useSessionStore, getSessionInitialState } from '@variscout/stores';
+import { usePreferencesStore, getPreferencesInitialState } from '@variscout/stores';
 import { useProjectStore, getProjectInitialState } from '@variscout/stores';
 import { useIChartData } from '../useIChartData';
 import { useBoxplotData } from '../useBoxplotData';
@@ -53,7 +53,7 @@ const NO_FILTERS: Record<string, (string | number)[]> = {};
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
-  useSessionStore.setState(getSessionInitialState());
+  usePreferencesStore.setState(getPreferencesInitialState());
   useProjectStore.setState(getProjectInitialState());
 });
 
@@ -69,7 +69,7 @@ describe('useIChartData — timeLens wiring', () => {
 
   it('rolling windowSize=50: returns only the last 50 data points', () => {
     act(() => {
-      useSessionStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
+      usePreferencesStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
     });
     const { result } = renderHook(() => useIChartData(ROWS_100, 'value', null, null));
     expect(result.current).toHaveLength(50);
@@ -81,7 +81,7 @@ describe('useIChartData — timeLens wiring', () => {
 
   it('fixed anchor=0 windowSize=30: returns first 30 data points', () => {
     act(() => {
-      useSessionStore.setState({ timeLens: { mode: 'fixed', anchor: 0, windowSize: 30 } });
+      usePreferencesStore.setState({ timeLens: { mode: 'fixed', anchor: 0, windowSize: 30 } });
     });
     const { result } = renderHook(() => useIChartData(ROWS_100, 'value', null, null));
     expect(result.current).toHaveLength(30);
@@ -91,7 +91,7 @@ describe('useIChartData — timeLens wiring', () => {
 
   it('openEnded anchor=80: returns rows 80..99', () => {
     act(() => {
-      useSessionStore.setState({ timeLens: { mode: 'openEnded', anchor: 80 } });
+      usePreferencesStore.setState({ timeLens: { mode: 'openEnded', anchor: 80 } });
     });
     const { result } = renderHook(() => useIChartData(ROWS_100, 'value', null, null));
     expect(result.current).toHaveLength(20);
@@ -112,7 +112,7 @@ describe('useBoxplotData — timeLens wiring', () => {
 
   it('rolling windowSize=50: group value totals sum to 50', () => {
     act(() => {
-      useSessionStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
+      usePreferencesStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
     });
     const { result } = renderHook(() => useBoxplotData(ROWS_100, 'factor', 'value'));
     const totalValues = result.current.data.reduce((sum, g) => sum + g.values.length, 0);
@@ -134,7 +134,7 @@ describe('useProbabilityPlotData — timeLens wiring', () => {
 
   it('rolling windowSize=50: single series has n=50', () => {
     act(() => {
-      useSessionStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
+      usePreferencesStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
     });
     const values = ROWS_100_PROB.map(r => r.v as number);
     const { result } = renderHook(() => useProbabilityPlotData({ values }));
@@ -144,7 +144,7 @@ describe('useProbabilityPlotData — timeLens wiring', () => {
 
   it('rolling windowSize=50 with rows: factor grouping operates on 50 rows', () => {
     act(() => {
-      useSessionStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
+      usePreferencesStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
     });
     const rows = ROWS_100_PROB as import('@variscout/core').DataRow[];
     const values = ROWS_100_PROB.map(r => r.v as number);
@@ -158,7 +158,7 @@ describe('useProbabilityPlotData — timeLens wiring', () => {
   it('fixed anchor beyond length returns zero series (empty-sliced path)', () => {
     // lens anchor=99 on a 5-row fixture — window is entirely out-of-bounds
     act(() => {
-      useSessionStore.setState({ timeLens: { mode: 'fixed', anchor: 99, windowSize: 5 } });
+      usePreferencesStore.setState({ timeLens: { mode: 'fixed', anchor: 99, windowSize: 5 } });
     });
     const smallRows = buildRows(5, 'v') as import('@variscout/core').DataRow[];
     const values = smallRows.map(r => r.v as number);
@@ -180,7 +180,7 @@ describe('useProbabilityPlotData — timeLens wiring', () => {
     const parallelValues = Array.from({ length: n }, (_, i) => (i + 1) * 1.5);
 
     act(() => {
-      useSessionStore.setState({ timeLens: { mode: 'rolling', windowSize: 10 } });
+      usePreferencesStore.setState({ timeLens: { mode: 'rolling', windowSize: 10 } });
     });
     const { result } = renderHook(() =>
       useProbabilityPlotData({ values: parallelValues, factorColumn: 'factor', rows: parallelRows })
@@ -218,7 +218,7 @@ describe('useParetoChartData — timeLens wiring', () => {
 
   it('rolling windowSize=50: totalCount reflects only last 50 filtered rows', () => {
     act(() => {
-      useSessionStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
+      usePreferencesStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
     });
     const { result } = renderHook(() =>
       useParetoChartData({
@@ -265,7 +265,7 @@ describe('useAnalysisStats — timeLens wiring', () => {
     const rawData = buildRows(100) as import('@variscout/core').DataRow[];
     act(() => {
       useProjectStore.setState({ rawData, outcome: 'value', filters: {} });
-      useSessionStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
+      usePreferencesStore.setState({ timeLens: { mode: 'rolling', windowSize: 50 } });
     });
 
     const { result } = renderHook(() => useAnalysisStats());

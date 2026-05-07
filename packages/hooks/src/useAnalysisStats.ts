@@ -8,7 +8,7 @@
 import { useMemo } from 'react';
 import type { StatsResult, StatsWorkerAPI } from '@variscout/core';
 import { applyTimeLens } from '@variscout/core';
-import { useProjectStore, useSessionStore } from '@variscout/stores';
+import { useProjectStore, usePreferencesStore } from '@variscout/stores';
 import { useFilteredData } from './useFilteredData';
 import { useAsyncStats } from './useAsyncStats';
 
@@ -22,7 +22,7 @@ export function useAnalysisStats(workerApi?: StatsWorkerAPI | null): AnalysisSta
   const { filteredData } = useFilteredData();
   const outcome = useProjectStore(s => s.outcome);
   const specs = useProjectStore(s => s.specs);
-  const timeLens = useSessionStore(s => s.timeLens);
+  const timeLens = usePreferencesStore(s => s.timeLens);
 
   // Apply time lens before extracting values.
   const lensedData = useMemo(

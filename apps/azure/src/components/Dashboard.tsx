@@ -10,7 +10,7 @@ import PerformanceDashboard from './PerformanceDashboard';
 import YamazumiDashboard from './YamazumiDashboard';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
-import { useProjectStore } from '@variscout/stores';
+import { useProjectStore, useViewStore } from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
@@ -200,8 +200,8 @@ const Dashboard = ({
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const cpkTarget = useProjectStore(s => s.cpkTarget);
-  const selectedPoints = useProjectStore(s => s.selectedPoints);
-  const clearSelection = useProjectStore(s => s.clearSelection);
+  const selectedPoints = useViewStore(s => s.selectedPoints);
+  const clearSelection = useViewStore(s => s.clearTransientSelections);
   const defectMapping = useProjectStore(s => s.defectMapping);
   const { filteredData } = useFilteredData();
   const lensedSampleCount = useLensedSampleCount();

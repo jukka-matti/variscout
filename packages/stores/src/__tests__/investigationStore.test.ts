@@ -474,15 +474,6 @@ describe('investigationStore — question ideas', () => {
     useInvestigationStore.getState().updateIdeaProjection(q.id, idea!.id, projection);
     expect(useInvestigationStore.getState().questions[0].ideas![0].projection).toEqual(projection);
   });
-
-  it('sets focused question', () => {
-    const q = useInvestigationStore.getState().addQuestion('Test');
-    useInvestigationStore.getState().setFocusedQuestion(q.id);
-    expect(useInvestigationStore.getState().focusedQuestionId).toBe(q.id);
-
-    useInvestigationStore.getState().setFocusedQuestion(null);
-    expect(useInvestigationStore.getState().focusedQuestionId).toBeNull();
-  });
 });
 
 // ============================================================================
@@ -810,7 +801,6 @@ describe('investigationStore — bulk operations', () => {
     useInvestigationStore.getState().addFinding('note', makeContext());
     useInvestigationStore.getState().addQuestion('question');
     useInvestigationStore.getState().createHub('hub', 'synth');
-    useInvestigationStore.getState().setFocusedQuestion('q-1');
 
     useInvestigationStore.getState().resetAll();
     const state = useInvestigationStore.getState();
@@ -818,7 +808,6 @@ describe('investigationStore — bulk operations', () => {
     expect(state.questions).toEqual([]);
     expect(state.suspectedCauses).toEqual([]);
     expect(state.categories).toEqual([]);
-    expect(state.focusedQuestionId).toBeNull();
   });
 
   it('setCategories replaces categories', () => {
@@ -1132,5 +1121,17 @@ describe('composeGate', () => {
     useInvestigationStore.getState().setProblemContributionTree(tree);
     useInvestigationStore.getState().composeGate([99], 'h2');
     expect(useInvestigationStore.getState().problemContributionTree).toBe(tree);
+  });
+});
+
+// ============================================================================
+// Relocation assertion (F4)
+// ============================================================================
+
+describe('investigationStore — relocation assertions (F4)', () => {
+  it('does not own focusedQuestionId (relocated to useViewStore in F4)', () => {
+    const state = useInvestigationStore.getState() as Record<string, unknown>;
+    expect('focusedQuestionId' in state).toBe(false);
+    expect('setFocusedQuestion' in state).toBe(false);
   });
 });

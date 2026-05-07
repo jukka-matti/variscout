@@ -4,7 +4,7 @@ import { andersonDarlingTest } from '@variscout/core/stats';
 import { timeLensIndices } from '@variscout/core';
 import type { ProbabilityPlotSeries, DataRow } from '@variscout/core';
 import * as d3 from 'd3-array';
-import { useSessionStore } from '@variscout/stores';
+import { usePreferencesStore } from '@variscout/stores';
 
 const AD_MIN_SAMPLE = 7;
 
@@ -28,7 +28,7 @@ interface UseProbabilityPlotDataOptions {
  * - Anderson-Darling normality test per group (null when n < 7)
  * - Original row indices for cross-chart brush highlighting
  *
- * Reads `timeLens` from `useSessionStore` and applies integer-index math
+ * Reads `timeLens` from `usePreferencesStore` and applies integer-index math
  * via `timeLensIndices` to both `rows` and the aligned `values` slice before
  * computing series. This avoids object-reference equality bugs (indexOf) and
  * correctly handles defect-mode-style calls where rows and values are parallel
@@ -39,7 +39,7 @@ export function useProbabilityPlotData({
   factorColumn,
   rows,
 }: UseProbabilityPlotDataOptions): ProbabilityPlotSeries[] {
-  const timeLens = useSessionStore(s => s.timeLens);
+  const timeLens = usePreferencesStore(s => s.timeLens);
 
   /**
    * When rows are present, derive [start, end) from the lens against rows.length

@@ -22,7 +22,7 @@ vi.mock('@variscout/stores', () => ({
     })
   ),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useSessionStore: vi.fn((selector: (s: any) => unknown) =>
+  usePreferencesStore: vi.fn((selector: (s: any) => unknown) =>
     selector({
       aiEnabled: false,
     })
@@ -71,7 +71,7 @@ vi.mock('../../services/storage', () => ({
 import ProjectDashboard from '../ProjectDashboard';
 import ProjectStatusCard from '../ProjectStatusCard';
 import DashboardSummaryCard from '../DashboardSummaryCard';
-import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
+import { useProjectStore, useInvestigationStore, usePreferencesStore } from '@variscout/stores';
 import { useAIStore } from '../../features/ai/aiStore';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -144,7 +144,7 @@ function setStoreState(
     ((selector: (s: any) => unknown) => selector(investigationState)) as any // eslint-disable-line @typescript-eslint/no-explicit-any
   );
 
-  vi.mocked(useSessionStore).mockImplementation(
+  vi.mocked(usePreferencesStore).mockImplementation(
     ((selector: (s: any) => unknown) => selector(sessionState)) as any // eslint-disable-line @typescript-eslint/no-explicit-any
   );
 }

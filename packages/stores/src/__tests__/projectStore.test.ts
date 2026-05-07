@@ -285,47 +285,22 @@ describe('projectStore — additional setters', () => {
     expect(useProjectStore.getState().hasUnsavedChanges).toBe(true);
   });
 
-  // --- Selection (ephemeral) ---
+  // --- Selection (relocated to useViewStore in F4) ---
 
-  it('setSelectedPoints replaces the selection set', () => {
-    useProjectStore.getState().setSelectedPoints(new Set([1, 2, 3]));
-    expect(useProjectStore.getState().selectedPoints).toEqual(new Set([1, 2, 3]));
-    // Selection is ephemeral — should NOT mark unsaved
-    expect(useProjectStore.getState().hasUnsavedChanges).toBe(false);
+  it('does not own selectedPoints (relocated to useViewStore in F4)', () => {
+    const state = useProjectStore.getState() as Record<string, unknown>;
+    expect('selectedPoints' in state).toBe(false);
+    expect('selectionIndexMap' in state).toBe(false);
   });
 
-  it('addToSelection adds indices to existing set', () => {
-    useProjectStore.getState().setSelectedPoints(new Set([1]));
-    useProjectStore.getState().addToSelection([2, 3]);
-    expect(useProjectStore.getState().selectedPoints).toEqual(new Set([1, 2, 3]));
-  });
-
-  it('removeFromSelection removes indices from set', () => {
-    useProjectStore.getState().setSelectedPoints(new Set([1, 2, 3]));
-    useProjectStore.getState().removeFromSelection([2]);
-    expect(useProjectStore.getState().selectedPoints).toEqual(new Set([1, 3]));
-  });
-
-  it('clearSelection empties the set', () => {
-    useProjectStore.getState().setSelectedPoints(new Set([1, 2, 3]));
-    useProjectStore.getState().clearSelection();
-    expect(useProjectStore.getState().selectedPoints.size).toBe(0);
-  });
-
-  it('togglePointSelection adds if absent, removes if present', () => {
-    useProjectStore.getState().togglePointSelection(5);
-    expect(useProjectStore.getState().selectedPoints.has(5)).toBe(true);
-    useProjectStore.getState().togglePointSelection(5);
-    expect(useProjectStore.getState().selectedPoints.has(5)).toBe(false);
-  });
-
-  it('setSelectionIndexMap updates the map', () => {
-    const map = new Map([
-      [0, 5],
-      [1, 10],
-    ]);
-    useProjectStore.getState().setSelectionIndexMap(map);
-    expect(useProjectStore.getState().selectionIndexMap).toEqual(map);
+  it('does not expose selection actions (relocated to useViewStore in F4)', () => {
+    const state = useProjectStore.getState() as Record<string, unknown>;
+    expect('setSelectedPoints' in state).toBe(false);
+    expect('addToSelection' in state).toBe(false);
+    expect('removeFromSelection' in state).toBe(false);
+    expect('clearSelection' in state).toBe(false);
+    expect('togglePointSelection' in state).toBe(false);
+    expect('setSelectionIndexMap' in state).toBe(false);
   });
 
   // --- View state ---
@@ -339,8 +314,7 @@ describe('projectStore — additional setters', () => {
     expect(useProjectStore.getState().hasUnsavedChanges).toBe(true);
   });
 
-  it('loadProject restores viewState and resets selection', () => {
-    useProjectStore.getState().setSelectedPoints(new Set([1, 2]));
+  it('loadProject restores viewState', () => {
     useProjectStore.getState().loadProject({
       projectId: 'p1',
       projectName: 'Test',
@@ -352,8 +326,6 @@ describe('projectStore — additional setters', () => {
       viewState: { activeView: 'report' },
     });
     expect(useProjectStore.getState().viewState).toEqual({ activeView: 'report' });
-    expect(useProjectStore.getState().selectedPoints.size).toBe(0);
-    expect(useProjectStore.getState().selectionIndexMap.size).toBe(0);
   });
 });
 

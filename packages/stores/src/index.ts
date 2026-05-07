@@ -1,7 +1,11 @@
 // @variscout/stores — Zustand domain stores
 // Stores will be exported as they are implemented
 export { idbStorage } from './persistence/idbAdapter';
-export { useProjectStore, getProjectInitialState } from './projectStore';
+export {
+  useProjectStore,
+  getProjectInitialState,
+  STORE_LAYER as PROJECT_STORE_LAYER,
+} from './projectStore';
 export type {
   ProjectState,
   ProjectActions,
@@ -24,20 +28,15 @@ export {
   getInvestigationInitialState,
   MAX_QUESTION_DEPTH,
   MAX_CHILDREN_PER_PARENT,
+  STORE_LAYER as INVESTIGATION_STORE_LAYER,
 } from './investigationStore';
 export type { InvestigationState, InvestigationActions } from './investigationStore';
-export { useImprovementStore, getImprovementInitialState } from './improvementStore';
-export type { ImprovementState, ImprovementActions, ImprovementStore } from './improvementStore';
-export { useSessionStore, getSessionInitialState } from './sessionStore';
-export type {
-  SessionState,
-  SessionActions,
-  SessionStore,
-  WorkspaceView,
-  PITab,
-  PersistedViewState,
-} from './sessionStore';
-export { useWallLayoutStore, persistWallLayout, rehydrateWallLayout } from './wallLayoutStore';
+export {
+  useWallLayoutStore,
+  persistWallLayout,
+  rehydrateWallLayout,
+  STORE_LAYER as WALL_LAYOUT_STORE_LAYER,
+} from './wallLayoutStore';
 export type {
   WallLayoutState,
   WallLayoutActions,
@@ -49,7 +48,11 @@ export type {
   GateNodePath,
   UndoEntry,
 } from './wallLayoutStore';
-export { useCanvasStore, getCanvasInitialState } from './canvasStore';
+export {
+  useCanvasStore,
+  getCanvasInitialState,
+  STORE_LAYER as CANVAS_STORE_LAYER,
+} from './canvasStore';
 export type {
   CanvasStoreState,
   CanvasStoreActions,
@@ -65,3 +68,18 @@ export {
   selectQuestionsForHub,
 } from './wallSelectors';
 export type { HubCommentEntry } from './wallSelectors';
+export { useViewStore, getViewInitialState, STORE_LAYER as VIEW_STORE_LAYER } from './viewStore';
+export type { ViewState as ViewStoreState, ViewActions, ViewStore } from './viewStore';
+export {
+  usePreferencesStore,
+  getPreferencesInitialState,
+  STORE_LAYER as PREFERENCES_STORE_LAYER,
+} from './preferencesStore';
+export type {
+  PreferencesState,
+  PreferencesActions,
+  PreferencesStore,
+  WorkspaceView,
+  PITab,
+} from './preferencesStore';
+export type { DocumentSnapshot } from './documentSnapshot';
