@@ -102,7 +102,9 @@ Per `feedback_subagent_driven_default`. Each sub-PR's plan dispatches via `super
 
 (Full scope details belong in the per-sub-PR plans, not here. This is a one-paragraph summary per sub-PR for orientation.)
 
-### 8a — Mode-aware response-path CTAs (~5 tasks)
+### 8a — Mode-aware response-path CTAs (~5 tasks) — plan at [`2026-05-07-canvas-pr8-8a-mode-aware-ctas.md`](2026-05-07-canvas-pr8-8a-mode-aware-ctas.md)
+
+**Status (2026-05-07):** plan written + amended. Read the AMENDMENT block at the top of the linked plan before implementation — it supersedes the original tier model + charter gating per the DMAIC charter correction (Charter is Define-phase first, no workflow gate) + tier reframe (all 5 paths free-tier-active).
 
 Replace hardcoded `disabled` on Charter / Sustainment / Handoff CTAs in `CanvasStepOverlay` (lines 276–294) with mode-aware tier-gated affordances. Thread `mode: 'cadence' | 'first-time' | 'demo'` through `CanvasWorkspace` → `Canvas` → `CanvasStepOverlay`; compute hub-maturity from `assignmentsComplete && stepsAuthored && hasPriorSnapshot`. Tier-gate Charter/Sustainment/Handoff via `isPaidTier()` per ADR-078 D5; render with a tier-upgrade hint instead of `disabled` when free tier. Separate "mode" (drill-down content) from "tier" (paid feature gating) — they're conflated in current code.
 
