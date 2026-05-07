@@ -282,6 +282,7 @@ export type {
   ProfileApplication,
   RowProvenanceTag,
   SnapshotProvenance,
+  StepCapabilityStamp,
 } from './evidenceSources';
 
 // Preview feature registry
@@ -803,6 +804,13 @@ export type {
   ProcessMapHunch,
   TributaryRole,
 } from './frame';
+export {
+  computeStepDrift,
+  NUMERIC_TIME_SERIES_DISTINCT_THRESHOLD,
+  SPARKLINE_LTTB_THRESHOLD,
+  STEP_DRIFT_DEFAULT_THRESHOLD,
+} from './canvas';
+export type { ComputeStepDriftArgs, DriftResult } from './canvas';
 export {
   DEFAULT_RISK_AXIS_CONFIG,
   computeRiskLevel,

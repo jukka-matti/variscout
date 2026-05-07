@@ -1,6 +1,9 @@
 import type { DataRow } from './types';
 import type { EntityBase } from './identity';
 import type { ProcessHub } from './processHub';
+import type { StepCapabilityStamp } from './canvas/stepDrift';
+
+export type { StepCapabilityStamp } from './canvas/stepDrift';
 
 export type EvidenceCadence = 'manual' | 'hourly' | 'shiftly' | 'daily' | 'weekly';
 export type DataProfileConfidence = 'high' | 'medium' | 'low';
@@ -89,6 +92,14 @@ export interface EvidenceSnapshot extends EntityBase {
    * One field on EvidenceSnapshot → one Blob Storage object → atomicity for free.
    */
   provenance?: RowProvenanceTag[];
+  /**
+   * Per-step capability stamps for canvas drift comparison.
+   *
+   * Optional consumer surface only. Producer-side stamping is deferred; until
+   * snapshots carry this field, canvas drift rendering receives an empty prior
+   * stats map and stays inert.
+   */
+  stepCapabilities?: ReadonlyArray<StepCapabilityStamp>;
 }
 
 export interface DataProfileDetection {

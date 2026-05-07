@@ -1,8 +1,23 @@
 import { useMemo } from 'react';
-import { calculateStats, type DataRow, type SpecLimits, type StatsResult } from '@variscout/core';
+import {
+  calculateStats,
+  inferCharacteristicType,
+  type DataRow,
+  type SpecLimits,
+  type StatsResult,
+} from '@variscout/core';
 import { gradeCpk, type CpkGrade } from '@variscout/core/capability';
-import { sampleConfidenceFor } from '@variscout/core/stats';
+import { lttb, sampleConfidenceFor } from '@variscout/core/stats';
+import {
+  computeStepDrift,
+  NUMERIC_TIME_SERIES_DISTINCT_THRESHOLD,
+  SPARKLINE_LTTB_THRESHOLD,
+  type DriftResult,
+  type StepCapabilityStamp,
+} from '@variscout/core/canvas';
 import type { ProcessMap } from '@variscout/core/frame';
+import { detectColumns } from '@variscout/core/parser';
+import { parseTimeValue } from '@variscout/core/time';
 
 export type CanvasLensId = 'default' | 'capability' | 'defect' | 'performance' | 'yamazumi';
 
@@ -94,6 +109,9 @@ export interface CanvasStepCardModel {
   capability: CanvasStepCapability;
   capabilityNode?: CanvasCapabilityNodeProjection;
   defectCount?: number;
+  drift?: DriftResult;
+  numericRenderHint?: 'histogram' | 'time-series';
+  timeSeriesPoints?: ReadonlyArray<{ x: number; y: number }>;
 }
 
 export interface CanvasCapabilityNodeProjection {
@@ -115,6 +133,7 @@ export interface BuildCanvasStepCardsArgs {
   measureSpecs: Record<string, SpecLimits>;
   capabilityNodes?: readonly CanvasCapabilityNodeProjection[];
   errorSteps?: readonly CanvasStepErrorProjection[];
+  priorStepStats?: ReadonlyMap<string, StepCapabilityStamp>;
 }
 
 export type UseCanvasStepCardsArgs = BuildCanvasStepCardsArgs;
@@ -131,6 +150,59 @@ function valuesForColumn(rows: readonly DataRow[], column: string): number[] {
     if (value !== null) values.push(value);
   }
   return values;
+}
+
+function distinctNumericValueCount(rows: readonly DataRow[], column: string): number {
+  const values = new Set<number>();
+  for (const row of rows) {
+    const value = finiteNumberFromCell(row[column]);
+    if (value !== null) values.add(value);
+  }
+  return values.size;
+}
+
+function numericMetricRows(
+  rows: readonly DataRow[],
+  metricColumn: string
+): Array<{ row: DataRow; index: number; y: number }> {
+  const out: Array<{ row: DataRow; index: number; y: number }> = [];
+  rows.forEach((row, index) => {
+    const y = finiteNumberFromCell(row[metricColumn]);
+    if (y !== null) out.push({ row, index, y });
+  });
+  return out;
+}
+
+function buildTimeSeriesPoints({
+  rows,
+  metricColumn,
+  timeColumn,
+}: {
+  rows: readonly DataRow[];
+  metricColumn: string;
+  timeColumn: string | null;
+}): ReadonlyArray<{ x: number; y: number }> {
+  const numericRows = numericMetricRows(rows, metricColumn);
+  const parsedTimePoints =
+    timeColumn === null
+      ? null
+      : numericRows.map(({ row, index, y }) => {
+          const parsed = parseTimeValue(row[timeColumn]);
+          return parsed ? { x: parsed.getTime(), y, originalIndex: index } : null;
+        });
+  const allTimesParsed =
+    parsedTimePoints !== null &&
+    parsedTimePoints.every((point): point is NonNullable<typeof point> => point !== null);
+
+  const raw = allTimesParsed
+    ? [...parsedTimePoints].sort((a, b) => a.x - b.x)
+    : numericRows.map(({ index, y }) => ({ x: index, y, originalIndex: index }));
+
+  if (raw.length <= SPARKLINE_LTTB_THRESHOLD) {
+    return raw.map(({ x, y }) => ({ x, y }));
+  }
+
+  return lttb(raw, SPARKLINE_LTTB_THRESHOLD).map(({ x, y }) => ({ x, y }));
 }
 
 function distributionForColumn(rows: readonly DataRow[], column: string): CanvasStepCategory[] {
@@ -219,8 +291,10 @@ export function buildCanvasStepCards({
   measureSpecs,
   capabilityNodes = [],
   errorSteps = [],
+  priorStepStats,
 }: BuildCanvasStepCardsArgs): CanvasStepCardModel[] {
   const assignedByStep = columnsByStep(map);
+  const timeColumn = rows.length > 0 ? detectColumns([...rows]).timeColumn : null;
 
   return [...map.nodes]
     .sort((a, b) => a.order - b.order)
@@ -239,6 +313,33 @@ export function buildCanvasStepCards({
           : [];
       const capabilityNode = capabilityNodes.find(entry => entry.nodeId === node.id);
       const defectCount = errorSteps.find(entry => entry.nodeId === node.id)?.errorCount;
+      const prior = priorStepStats?.get(node.id);
+      const drift =
+        prior && stats
+          ? (computeStepDrift({
+              current: {
+                stepId: node.id,
+                n: values.length,
+                mean: stats.mean,
+                sigma: stats.stdDev,
+                cpk: stats.cpk,
+              },
+              prior,
+              characteristicType: inferCharacteristicType(specs ?? {}),
+              target: specs?.target,
+            }) ?? undefined)
+          : undefined;
+      let numericRenderHint: CanvasStepCardModel['numericRenderHint'];
+      let timeSeriesPoints: CanvasStepCardModel['timeSeriesPoints'];
+      if (metricKind === 'numeric' && metricColumn) {
+        const distinctCount = distinctNumericValueCount(rows, metricColumn);
+        if (distinctCount > NUMERIC_TIME_SERIES_DISTINCT_THRESHOLD) {
+          numericRenderHint = 'time-series';
+          timeSeriesPoints = buildTimeSeriesPoints({ rows, metricColumn, timeColumn });
+        } else {
+          numericRenderHint = 'histogram';
+        }
+      }
 
       return {
         stepId: node.id,
@@ -254,6 +355,9 @@ export function buildCanvasStepCards({
         capability: capabilityFor({ values, stats, specs }),
         capabilityNode,
         defectCount,
+        drift,
+        numericRenderHint,
+        timeSeriesPoints,
       };
     });
 }
@@ -265,7 +369,14 @@ export interface UseCanvasStepCardsResult {
 export function useCanvasStepCards(args: UseCanvasStepCardsArgs): UseCanvasStepCardsResult {
   const cards = useMemo(
     () => buildCanvasStepCards(args),
-    [args.map, args.rows, args.measureSpecs, args.capabilityNodes, args.errorSteps]
+    [
+      args.map,
+      args.rows,
+      args.measureSpecs,
+      args.capabilityNodes,
+      args.errorSteps,
+      args.priorStepStats,
+    ]
   );
 
   return { cards };

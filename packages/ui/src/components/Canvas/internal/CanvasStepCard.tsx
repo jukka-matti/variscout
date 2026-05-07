@@ -7,6 +7,7 @@ import type {
   CanvasStepInvestigationOverlay,
 } from '@variscout/hooks';
 import { StepDefectIndicator } from '../../StepDefectIndicator';
+import { CanvasStepDriftIndicator } from './CanvasStepDriftIndicator';
 import { CanvasStepMiniChart } from './CanvasStepMiniChart';
 
 interface CanvasStepCardProps {
@@ -129,6 +130,13 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
           >
             {capabilityText(card)}
           </span>
+        ) : null}
+        {showCapability ? (
+          <CanvasStepDriftIndicator
+            drift={card.drift}
+            stepId={card.stepId}
+            stepLabel={card.stepName}
+          />
         ) : null}
         {card.assignedColumns.slice(0, 3).map(column => (
           <span

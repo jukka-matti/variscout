@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { DataRow, SpecLimits } from '@variscout/core';
+import type { DataRow, SpecLimits, StepCapabilityStamp } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
+import {
+  NUMERIC_TIME_SERIES_DISTINCT_THRESHOLD,
+  SPARKLINE_LTTB_THRESHOLD,
+} from '@variscout/core/canvas';
 import {
   CANVAS_LENS_REGISTRY,
   buildCanvasStepCards,
@@ -44,6 +48,184 @@ describe('canvas lens registry', () => {
     expect(coerceCanvasLens('capability')).toBe('capability');
     expect(coerceCanvasLens('performance')).toBe('default');
     expect(coerceCanvasLens('unknown')).toBe('default');
+  });
+});
+
+describe('buildCanvasStepCards drift integration', () => {
+  const measureSpecs: Record<string, SpecLimits> = {
+    Temperature: { lsl: 95, usl: 105, target: 100, characteristicType: 'nominal' },
+  };
+
+  it('leaves drift undefined when priorStepStats is absent', () => {
+    const cards = buildCanvasStepCards({
+      map: baseMap(),
+      rows,
+      measureSpecs,
+    });
+
+    expect(cards[0].drift).toBeUndefined();
+  });
+
+  it('leaves drift undefined when priorStepStats has no matching step', () => {
+    const cards = buildCanvasStepCards({
+      map: baseMap(),
+      rows,
+      measureSpecs,
+      priorStepStats: new Map(),
+    });
+
+    expect(cards[0].drift).toBeUndefined();
+  });
+
+  it('stamps drift when priorStepStats contains a comparable prior stat', () => {
+    const tightRows: DataRow[] = Array.from({ length: 30 }, (_, i) => ({
+      Temperature: 100 + (i % 2 === 0 ? 0.5 : -0.5),
+      Pressure: 50,
+      Machine: 'A',
+      Operator: 'Jill',
+    }));
+    const priorStepStats = new Map<string, StepCapabilityStamp>([
+      ['mix', { stepId: 'mix', n: 30, mean: 110, cpk: 0.3 }],
+    ]);
+
+    const cards = buildCanvasStepCards({
+      map: baseMap(),
+      rows: tightRows,
+      measureSpecs,
+      priorStepStats,
+    });
+
+    expect(cards[0].drift).toBeDefined();
+    expect(cards[0].drift?.metric).toBe('cpk');
+  });
+});
+
+describe('buildCanvasStepCards numeric render hint + time-series points', () => {
+  it('exports the numeric time-series distinct-count threshold', () => {
+    expect(NUMERIC_TIME_SERIES_DISTINCT_THRESHOLD).toBe(30);
+  });
+
+  it('exports the sparkline LTTB threshold', () => {
+    expect(SPARKLINE_LTTB_THRESHOLD).toBe(100);
+  });
+
+  it('marks numeric cards with 30 or fewer distinct values as histogram', () => {
+    const cards = buildCanvasStepCards({
+      map: baseMap(),
+      rows,
+      measureSpecs: {},
+    });
+
+    expect(cards[0].metricKind).toBe('numeric');
+    expect(cards[0].numericRenderHint).toBe('histogram');
+    expect(cards[0].timeSeriesPoints).toBeUndefined();
+  });
+
+  it('marks numeric cards with more than 30 distinct values as time-series', () => {
+    const wideRows: DataRow[] = Array.from({ length: 40 }, (_, i) => ({
+      Temperature: 100 + i * 0.1,
+      Pressure: 50,
+      Machine: 'A',
+      Operator: 'Jill',
+    }));
+
+    const cards = buildCanvasStepCards({
+      map: baseMap(),
+      rows: wideRows,
+      measureSpecs: {},
+    });
+
+    expect(cards[0].numericRenderHint).toBe('time-series');
+    expect(cards[0].timeSeriesPoints).toHaveLength(40);
+  });
+
+  it('orders time-series points by parser-detected time when all metric rows parse', () => {
+    const wideRows: DataRow[] = [
+      { Timestamp: '2026-01-03T00:00:00Z', Temperature: 102.3 },
+      { Timestamp: '2026-01-01T00:00:00Z', Temperature: 100.1 },
+      { Timestamp: '2026-01-02T00:00:00Z', Temperature: 101.2 },
+      ...Array.from({ length: 35 }, (_, i) => ({
+        Timestamp: new Date(Date.UTC(2026, 1, i + 1)).toISOString(),
+        Temperature: 103 + i * 0.1,
+      })),
+    ];
+
+    const cards = buildCanvasStepCards({
+      map: baseMap(),
+      rows: wideRows,
+      measureSpecs: {},
+    });
+
+    expect(cards[0].timeSeriesPoints?.[0]?.y).toBeCloseTo(100.1, 5);
+    expect(cards[0].timeSeriesPoints?.[1]?.y).toBeCloseTo(101.2, 5);
+    expect(cards[0].timeSeriesPoints?.[2]?.y).toBeCloseTo(102.3, 5);
+  });
+
+  it('falls back to row-index x values when no time column is detected', () => {
+    const wideRows: DataRow[] = Array.from({ length: 40 }, (_, i) => ({
+      Temperature: 100 + i * 0.1,
+      Pressure: 50,
+      Machine: 'A',
+      Operator: 'Jill',
+    }));
+
+    const cards = buildCanvasStepCards({
+      map: baseMap(),
+      rows: wideRows,
+      measureSpecs: {},
+    });
+
+    expect(cards[0].timeSeriesPoints?.[0]).toEqual({ x: 0, y: 100 });
+    expect(cards[0].timeSeriesPoints?.[39]).toEqual({ x: 39, y: 103.9 });
+  });
+
+  it('falls back to row-index x values when any metric row has an unparseable time', () => {
+    const wideRows: DataRow[] = Array.from({ length: 40 }, (_, i) => ({
+      Timestamp: i === 0 ? 'not-a-date' : `2026-01-${String(i).padStart(2, '0')}T00:00:00Z`,
+      Temperature: 100 + i * 0.1,
+    }));
+
+    const cards = buildCanvasStepCards({
+      map: baseMap(),
+      rows: wideRows,
+      measureSpecs: {},
+    });
+
+    expect(cards[0].timeSeriesPoints?.[0]).toEqual({ x: 0, y: 100 });
+    expect(cards[0].timeSeriesPoints?.[1]).toEqual({ x: 1, y: 100.1 });
+  });
+
+  it('downs samples above 100 points via LTTB', () => {
+    const wideRows: DataRow[] = Array.from({ length: 250 }, (_, i) => ({
+      Temperature: 100 + Math.sin(i / 5) * 5 + i / 1000,
+      Pressure: 50,
+      Machine: 'A',
+      Operator: 'Jill',
+    }));
+
+    const cards = buildCanvasStepCards({
+      map: baseMap(),
+      rows: wideRows,
+      measureSpecs: {},
+    });
+
+    expect(cards[0].timeSeriesPoints!.length).toBeLessThanOrEqual(SPARKLINE_LTTB_THRESHOLD);
+    expect(cards[0].timeSeriesPoints!.length).toBeGreaterThanOrEqual(98);
+  });
+
+  it('does not assign a numeric render hint for non-numeric cards', () => {
+    const cards = buildCanvasStepCards({
+      map: {
+        ...baseMap(),
+        assignments: { Operator: 'pack' },
+      },
+      rows,
+      measureSpecs: {},
+    });
+    const packCard = cards.find(card => card.stepId === 'pack')!;
+
+    expect(packCard.metricKind).toBe('categorical');
+    expect(packCard.numericRenderHint).toBeUndefined();
   });
 });
 

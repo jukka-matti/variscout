@@ -113,7 +113,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
-### Canvas mini-chart: time-series for high-cardinality columns missing (vision §5.2)
+### Canvas mini-chart: time-series for high-cardinality columns missing (vision §5.2) [RESOLVED 2026-05-07]
 
 **Surfaced by:** Canvas PR5 retrospective design review, 2026-05-06 (commits `2c010f29` / `36727ad0` / `2820afb1`).
 
@@ -128,9 +128,11 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Promotion path:** PR8b of the canvas migration sequence (Vision Alignment phase). Bundles into a small `CanvasStepMiniChart` extension PR.
 
+**Resolution:** PR8-8b — `useCanvasStepCards` adds `numericRenderHint` (`'histogram' | 'time-series'`) based on `NUMERIC_TIME_SERIES_DISTINCT_THRESHOLD = 30`. New sparkline branch in `CanvasStepMiniChart`; LTTB-downsampled to at most 100 points via existing `@variscout/core/stats#lttb`; ordered by parser-detected `timeColumn` only when all metric rows parse, otherwise row-index fallback. Sturges/Scott histogram improvement deferred to its own follow-up entry below.
+
 ---
 
-### Canvas drift indicator missing (vision §5.2)
+### Canvas drift indicator missing (vision §5.2) [RESOLVED 2026-05-07]
 
 **Surfaced by:** Canvas PR5 retrospective design review, 2026-05-06.
 
@@ -144,6 +146,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - Threshold: ±5% default (rule TBD); user-configurable later.
 
 **Promotion path:** PR8b of the canvas migration sequence. Requires `EvidenceSnapshot` history reader (mostly shipped); UI + model extension lands in one ~6-task PR.
+
+**Resolution:** PR8-8b — `computeStepDrift` engine in `@variscout/core/canvas`, direction-of-improvement-aware (Cpk first, then mean per `MeasureSpec.characteristicType`), default 5% threshold. `CanvasStepCardModel.drift?` populates when a `priorStepStats` Map is supplied. PWA + Azure FrameView read `evidenceSnapshots.listByHub`, pick the most-recent live snapshot's `stepCapabilities`, and pass through. Producer-side stamping of `EvidenceSnapshot.stepCapabilities` at snapshot-create time is deferred to a separate slice; until that lands, the indicator stays inert.
 
 ---
 
@@ -348,5 +352,37 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - Status quo: Accept asymmetric persistence indefinitely until cross-app provenance reconciliation becomes a feature need.
 
 **Promotion path:** Recommendation is F3.6 if cloud-tier provenance becomes a paid-tier requirement (e.g., audit trail compliance for Six Sigma sessions); otherwise defer to F4 absorption. Logged 2026-05-06.
+
+---
+
+### Producer-side stamping of EvidenceSnapshot.stepCapabilities
+
+**Surfaced by:** Canvas PR8-8b plan, 2026-05-07 — partial-integration policy.
+
+**Description:** PR8-8b shipped the consumer surface for canvas drift (engine + hook + UI + app read path). The producer side — stamping `EvidenceSnapshot.stepCapabilities` at snapshot-create time so prior values are available for drift comparison — is deferred. Today snapshots can still land with `stepCapabilities === undefined`, so `priorStepStats` can be an empty Map and the drift indicator stays inert.
+
+**Possible directions:**
+
+- Identify the right call site: snapshot creation lives in `apps/pwa/src/hooks/usePasteImportFlow.ts` and the Azure equivalent, but the canvas process map + `measureSpecs` are not necessarily complete at paste time.
+- Add a pure helper: `stampStepCapabilities({ map, rows, measureSpecs }) -> StepCapabilityStamp[]` in `@variscout/core/canvas`.
+- Trigger a domain action after canvas authoring reaches a complete map for a snapshot, e.g. `EVIDENCE_STAMP_STEP_CAPABILITIES`.
+
+**Promotion path:** small follow-up PR after PR8-8b merges. About 3 tasks.
+
+---
+
+### CanvasStepMiniChart histogram still uses first-12-raw-values pseudo-binning (vision §5.2)
+
+**Surfaced by:** Canvas PR5 retrospective design review, 2026-05-06; carried forward to PR8-8b.
+
+**Description:** The histogram branch in `CanvasStepMiniChart.tsx` plots the first 12 raw values normalized to the local min/max, not a true histogram. PR8-8b intentionally left this as-is to keep the slice scoped to drift + time-series.
+
+**Possible directions:**
+
+- Sturges' rule: `bins = ceil(log2(n) + 1)`. Cheap and well-known.
+- Scott's rule: `binWidth = 3.49 * sigma * n^(-1/3)`. More statistically grounded.
+- Add a small helper in `@variscout/core/stats`, e.g. `computeHistogramBins(values, rule)`, returning `{ x0, x1, count }[]`; bind `CanvasStepMiniChart` to bin counts.
+
+**Promotion path:** small follow-up PR. About 2 tasks: helper + UI swap.
 
 ---

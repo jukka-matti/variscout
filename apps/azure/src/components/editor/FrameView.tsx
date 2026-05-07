@@ -8,9 +8,28 @@ import React from 'react';
 import { CanvasWorkspace } from '@variscout/ui';
 import { useInvestigationStore, useProjectStore } from '@variscout/stores';
 import type { CanvasInvestigationFocus } from '@variscout/hooks';
-import type { WorkflowReadinessSignals } from '@variscout/core';
+import type {
+  EvidenceSnapshot,
+  StepCapabilityStamp,
+  WorkflowReadinessSignals,
+} from '@variscout/core';
+import { azureHubRepository } from '../../persistence';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
+
+const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
+
+function priorStepStatsFromSnapshots(
+  snapshots: readonly EvidenceSnapshot[]
+): ReadonlyMap<string, StepCapabilityStamp> {
+  const mostRecent = snapshots
+    .filter(snapshot => snapshot.deletedAt === null)
+    .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))[0];
+  const stamps = mostRecent?.stepCapabilities;
+  if (!stamps || stamps.length === 0) return EMPTY_PRIOR_STEP_STATS;
+
+  return new Map(stamps.map(stamp => [stamp.stepId, stamp]));
+}
 
 const FrameView: React.FC = () => {
   const rawData = useProjectStore(s => s.rawData);
@@ -26,6 +45,30 @@ const FrameView: React.FC = () => {
   const questions = useInvestigationStore(s => s.questions);
   const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
+  const activeHubId = useProjectStore(s => s.processContext?.processHubId ?? null);
+  const [priorStepStats, setPriorStepStats] =
+    React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
+
+  React.useEffect(() => {
+    if (!activeHubId) {
+      setPriorStepStats(EMPTY_PRIOR_STEP_STATS);
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const snapshots = await azureHubRepository.evidenceSnapshots.listByHub(activeHubId);
+        if (!cancelled) setPriorStepStats(priorStepStatsFromSnapshots(snapshots));
+      } catch {
+        if (!cancelled) setPriorStepStats(EMPTY_PRIOR_STEP_STATS);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeHubId]);
 
   const signals: WorkflowReadinessSignals = React.useMemo(
     () => ({ hasIntervention: false, sustainmentConfirmed: false }),
@@ -85,6 +128,7 @@ const FrameView: React.FC = () => {
       onCharter={handleCharter}
       onSustainment={handleSustainment}
       onHandoff={handleHandoff}
+      priorStepStats={priorStepStats}
     />
   );
 };

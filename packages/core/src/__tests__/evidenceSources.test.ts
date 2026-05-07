@@ -8,6 +8,7 @@ import {
   validateEvidenceSourceSnapshot,
   type EvidenceSnapshot,
   type EvidenceSource,
+  type StepCapabilityStamp,
 } from '../index';
 import type { SnapshotProvenance, RowProvenanceTag } from '../evidenceSources';
 import type { DataRow } from '../types';
@@ -348,5 +349,48 @@ describe('EvidenceSnapshot.provenance envelope facet (F3.6-β P1.1)', () => {
 
     const restored = JSON.parse(JSON.stringify(snap)) as EvidenceSnapshot;
     expect(restored.provenance).toBeUndefined();
+  });
+});
+
+describe('EvidenceSnapshot.stepCapabilities', () => {
+  it('round-trips through JSON.stringify when populated', () => {
+    const stamps: StepCapabilityStamp[] = [
+      { stepId: 'mix', n: 32, mean: 100.4, sigma: 1.2, cpk: 1.45 },
+      { stepId: 'fill', n: 28, mean: 50.1, sigma: 0.8 },
+    ];
+    const snap: EvidenceSnapshot = {
+      id: 'snap-capability-1',
+      hubId: 'hub-1',
+      sourceId: 'src-1',
+      capturedAt: '2026-05-07T00:00:00.000Z',
+      rowCount: 60,
+      origin: 'paste:hub-1',
+      importedAt: 1746576000000,
+      createdAt: 1746576000000,
+      deletedAt: null,
+      stepCapabilities: stamps,
+    };
+
+    const restored = JSON.parse(JSON.stringify(snap)) as EvidenceSnapshot;
+
+    expect(restored.stepCapabilities).toEqual(stamps);
+  });
+
+  it('round-trips when omitted for backwards compatibility', () => {
+    const snap: EvidenceSnapshot = {
+      id: 'snap-capability-2',
+      hubId: 'hub-1',
+      sourceId: 'src-1',
+      capturedAt: '2026-05-07T00:00:00.000Z',
+      rowCount: 0,
+      origin: 'paste:hub-1',
+      importedAt: 1746576000000,
+      createdAt: 1746576000000,
+      deletedAt: null,
+    };
+
+    const restored = JSON.parse(JSON.stringify(snap)) as EvidenceSnapshot;
+
+    expect(restored.stepCapabilities).toBeUndefined();
   });
 });
