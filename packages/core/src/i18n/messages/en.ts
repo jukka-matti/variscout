@@ -985,6 +985,10 @@ export const en: MessageCatalog = {
   'frame.b0.aria.yCandidates': 'Y candidate chips',
   'frame.b0.aria.selectedXs': 'Selected X chips',
   'frame.b0.aria.availableXs': 'Available X chips',
+  'frame.canvasOverlay.cta.sustainment.notReady':
+    "Available after you've implemented a process change to monitor",
+  'frame.canvasOverlay.cta.handoff.notReady':
+    'Available after sustainment monitoring confirms gains',
   'frame.b1.heading': 'Frame the investigation',
   'frame.b1.description':
     'Build your process map so the analysis has context. The map drives mode selection and a measurement-gap report; the methodology wants CTS at the ocean, a CTQ per step, and at least one rational-subgroup axis.',

@@ -1069,6 +1069,8 @@ export interface MessageCatalog {
   'frame.b0.aria.yCandidates': string;
   'frame.b0.aria.selectedXs': string;
   'frame.b0.aria.availableXs': string;
+  'frame.canvasOverlay.cta.sustainment.notReady': string;
+  'frame.canvasOverlay.cta.handoff.notReady': string;
   'frame.b1.heading': string;
   'frame.b1.description': string;
   'frame.spec.notSet': string;
