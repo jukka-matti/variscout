@@ -147,7 +147,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
-### Canvas response-path CTAs hardcoded as disabled instead of mode-aware (vision §5.3 + §2.4)
+### Canvas response-path CTAs hardcoded as disabled instead of mode-aware (vision §5.3 + §2.4) [RESOLVED 2026-05-07]
 
 **Surfaced by:** Canvas PR5 retrospective design review, 2026-05-06 (`packages/ui/src/components/Canvas/internal/CanvasStepOverlay.tsx:276-294`).
 
@@ -161,6 +161,73 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - Mode boundary: separate "mode" (drill-down content) from "tier" (paid feature gating); they are conflated in the current code.
 
 **Promotion path:** PR8a of the canvas migration sequence. ~5 tasks: thread mode signal, compute hub-maturity, replace `disabled` with tier-aware affordances + copy.
+
+**Resolution:** PR8-8a — `computeCtaState` helper + 2-state CTA rendering (`active` / `prerequisite-locked`). All five paths free-tier-active per Q2 (tier reframe). Charter has no workflow prerequisite per DMAIC Define-phase research. Stub destinations ship for Charter / Sustainment / Handoff; full surfaces deferred to per-path slices listed below.
+
+---
+
+### Charter authoring V1
+
+**Surfaced by:** PR8-8a amendment review, 2026-05-07.
+
+**Description:** PR8-8a ships a Charter stub destination only. The full surface — hub-level `Charter` entity (multiple per Hub per Q1), problem statement / goals / scope / team / timeline form, `.vrs` round-trip — is deferred. Free-tier-active per Q2 (PWA can author + export `.vrs`); team signoff / audit features paid-only inside the surface.
+
+**Possible directions:**
+
+- Data model: add `Charter` type to `@variscout/core/processHub` + `ProcessHub.charters: Charter[]`; new normalized Dexie table per F-series envelope conventions.
+- Form UI: per-charter authoring component in `@variscout/ui` (PWA + Azure consume same surface).
+- `.vrs` envelope: include charters in serialization roundtrip so trainers package model charters in `.vrs` scenarios.
+- Team-collaboration tier-gate inside the surface (signoff button, comments, audit trail) — paid-tier only; reads `useTier()` directly.
+
+**Promotion path:** Standalone slice when prioritized. Likely belongs to PR8e or a successor hub-domain slice.
+
+---
+
+### Sustainment workflow V1
+
+**Surfaced by:** PR8-8a amendment review, 2026-05-07.
+
+**Description:** PR8-8a ships a Sustainment stub destination only. The CTA's prerequisite signal (`hasIntervention`) is hardcoded `false` in FrameView until the data model lands. The full surface — continuous monitoring of a confirmed process change to verify the gain holds — is deferred.
+
+**Possible directions:**
+
+- "Intervention exists" signal: needs concrete definition. Likely tied to a future `Intervention` entity OR derived from existing `ImprovementIdea` + `ActionItem` data with status `implemented`.
+- Monitoring infrastructure: schedule, alerts, control charts post-change; review-marked / auto-verified states.
+- Free-tier vs paid-tier split: free can record sustainment manually; paid gets continuous monitoring + alerts.
+
+**Promotion path:** Standalone slice when prioritized. Sequence after Charter authoring (charter formalizes the change being monitored).
+
+---
+
+### Handoff workflow V1
+
+**Surfaced by:** PR8-8a amendment review, 2026-05-07.
+
+**Description:** PR8-8a ships a Handoff stub destination only. The CTA's prerequisite signal (`sustainmentConfirmed`) is hardcoded `false` in FrameView until the data model lands. The full surface — transferring ownership of a confirmed-sustained improvement to the process owner with a control plan — is deferred.
+
+**Possible directions:**
+
+- "Sustainment confirmed" signal: needs concrete definition. Likely `SustainmentRecord.latestReviewId` populated AND review marked `confirmed-sustained`.
+- Control plan: who owns the process post-handoff; what triggers escalation; reaction plan if metrics drift.
+- Free-tier vs paid-tier split: free can document the handoff; paid gets RACI / signoff / change-notification flow.
+
+**Promotion path:** Standalone slice when prioritized. Sequence after Sustainment workflow (handoff requires confirmed sustainment).
+
+---
+
+### Team-collaboration features inside Charter / Sustainment / Handoff surfaces
+
+**Surfaced by:** PR8-8a amendment review, 2026-05-07.
+
+**Description:** Per Q2 (tier reframe), the five response-path CTAs are tier-active in PWA + Azure. The team-collaboration tier-gate that DOES apply lives **inside** each surface: signoff buttons, audit trail, alerts setup, RACI, change notifications. PR8-8a defers wiring this layer until the surface forms ship.
+
+**Possible directions:**
+
+- Each surface component reads `useTier()` directly and renders team-features as paid-only controls (button-level gating, not surface-level).
+- Shared pattern: a `<TeamFeatureGate feature="signoff">` wrapper component in `@variscout/ui` so the gating contract is uniform across surfaces.
+- Telemetry: track tier-feature impressions to inform pricing.
+
+**Promotion path:** Per-surface, ride along with each response-path's V1 form slice.
 
 ---
 
