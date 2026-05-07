@@ -17,7 +17,7 @@ import {
   type CanvasStepCardModel,
 } from '@variscout/hooks';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
-import type { SpecLimits } from '@variscout/core';
+import type { SpecLimits, WorkflowReadinessSignals } from '@variscout/core';
 import {
   type ProductionLineGlanceFilterStripProps,
   ProductionLineGlanceFilterStrip,
@@ -126,9 +126,13 @@ export interface CanvasProps {
   activeOverlays?: CanvasOverlayId[];
   onOverlayToggle?: (overlay: CanvasOverlayId) => void;
   investigationOverlays?: CanvasInvestigationOverlayModel;
+  signals: WorkflowReadinessSignals;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
   onQuickAction?: (stepId: string) => void;
   onFocusedInvestigation?: (stepId: string) => void;
+  onCharter?: (stepId: string) => void;
+  onSustainment?: (stepId: string) => void;
+  onHandoff?: (stepId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
 }
 
@@ -168,9 +172,13 @@ export const Canvas: React.FC<CanvasProps> = ({
   activeOverlays = [],
   onOverlayToggle,
   investigationOverlays,
+  signals,
   onStepSpecsRequest,
   onQuickAction,
   onFocusedInvestigation,
+  onCharter,
+  onSustainment,
+  onHandoff,
   onOpenInvestigationFocus,
 }) => {
   const isAuthorMode = authoringMode === 'author';
@@ -441,8 +449,12 @@ export const Canvas: React.FC<CanvasProps> = ({
           card={activeStepCard}
           anchorRect={stepOverlayAnchor}
           onClose={handleCloseStepOverlay}
+          signals={signals}
           onQuickAction={onQuickAction}
           onFocusedInvestigation={onFocusedInvestigation}
+          onCharter={onCharter}
+          onSustainment={onSustainment}
+          onHandoff={onHandoff}
           investigationOverlay={activeStepInvestigationOverlay}
           onOpenInvestigationFocus={onOpenInvestigationFocus}
         />

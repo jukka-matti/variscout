@@ -20,6 +20,8 @@ import type { ProcessMap } from '@variscout/core/frame';
 import type { CanvasInvestigationOverlayModel, CanvasStepCardModel } from '@variscout/hooks';
 import { Canvas } from '../index';
 
+const SIGNALS = { hasIntervention: false, sustainmentConfirmed: false };
+
 const map: ProcessMap = {
   version: 1,
   nodes: [],
@@ -181,6 +183,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -200,6 +203,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         mode="author"
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
       />
@@ -221,6 +225,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         mode="read"
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
       />
@@ -241,6 +246,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         mode="author"
       />
     );
@@ -260,6 +266,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         mode="author"
         disabled
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
@@ -281,6 +288,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         mode="read"
         onModeChange={vi.fn()}
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
@@ -304,6 +312,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         mode="author"
         onModeChange={vi.fn()}
         onAddStep={onAddStep}
@@ -331,6 +340,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         mode="author"
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
         onPlaceChip={onPlaceChip}
@@ -353,6 +363,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         onUngroupSubStep={onUngroupSubStep}
       />
     );
@@ -377,6 +388,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
         activeLens="default"
         onLensChange={onLensChange}
@@ -406,6 +418,7 @@ describe('Canvas', () => {
         onChange={onChange}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
         activeOverlays={[]}
         onOverlayToggle={onOverlayToggle}
@@ -427,6 +440,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
         investigationOverlays={investigationOverlays}
         activeOverlays={[]}
@@ -446,6 +460,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
         investigationOverlays={investigationOverlays}
         activeOverlays={['investigations', 'findings', 'suspected-causes']}
@@ -469,6 +484,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
         investigationOverlays={investigationOverlays}
         activeOverlays={['hypotheses']}
@@ -486,6 +502,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -507,6 +524,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -540,6 +558,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -575,6 +594,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -600,6 +620,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -620,6 +641,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
         investigationOverlays={investigationOverlays}
         onOpenInvestigationFocus={onOpenInvestigationFocus}
@@ -652,6 +674,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
         onStepSpecsRequest={onStepSpecsRequest}
       />
@@ -696,6 +719,7 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
         onQuickAction={onQuickAction}
         onFocusedInvestigation={onFocusedInvestigation}
@@ -708,6 +732,6 @@ describe('Canvas', () => {
 
     expect(onQuickAction).toHaveBeenCalledWith('step-1');
     expect(onFocusedInvestigation).toHaveBeenCalledWith('step-1');
-    expect(screen.getByRole('button', { name: /charter/i })).toBeDisabled();
+    expect(screen.queryByTestId('canvas-cta-charter')).not.toBeInTheDocument();
   });
 });

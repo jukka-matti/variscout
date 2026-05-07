@@ -339,6 +339,8 @@ vi.mock('@variscout/hooks', () => ({
 
 import { CanvasWorkspace } from '../CanvasWorkspace';
 
+const SIGNALS = { hasIntervention: false, sustainmentConfirmed: false };
+
 const rawData = [
   { Fill_Weight: 12, Bake_Time: 30, Machine: 'A' },
   { Fill_Weight: 13, Bake_Time: 31, Machine: 'B' },
@@ -378,6 +380,7 @@ function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWo
     factors: [],
     measureSpecs: {},
     processContext: null,
+    signals: SIGNALS,
     setOutcome: vi.fn(),
     setFactors: vi.fn(),
     setMeasureSpec: vi.fn(),
@@ -611,6 +614,7 @@ describe('CanvasWorkspace', () => {
           factors={[]}
           measureSpecs={{}}
           processContext={processContext}
+          signals={SIGNALS}
           setOutcome={vi.fn()}
           setFactors={vi.fn()}
           setMeasureSpec={vi.fn()}
@@ -658,6 +662,7 @@ describe('CanvasWorkspace', () => {
             factors={[]}
             measureSpecs={{}}
             processContext={processContext}
+            signals={SIGNALS}
             setOutcome={vi.fn()}
             setFactors={vi.fn()}
             setMeasureSpec={vi.fn()}
@@ -718,6 +723,7 @@ describe('CanvasWorkspace', () => {
             factors={[]}
             measureSpecs={{}}
             processContext={processContext}
+            signals={SIGNALS}
             setOutcome={vi.fn()}
             setFactors={vi.fn()}
             setMeasureSpec={vi.fn()}
@@ -751,6 +757,7 @@ describe('CanvasWorkspace', () => {
           factors={[]}
           measureSpecs={{}}
           processContext={processContext}
+          signals={SIGNALS}
           setOutcome={vi.fn()}
           setFactors={vi.fn()}
           setMeasureSpec={vi.fn()}

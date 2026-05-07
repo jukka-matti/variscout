@@ -22,6 +22,7 @@ import {
   type SpecLimits,
   type SuspectedCause,
   type TimelineWindow,
+  type WorkflowReadinessSignals,
 } from '@variscout/core';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
 import { useCanvasStore } from '@variscout/stores';
@@ -44,8 +45,12 @@ export interface CanvasWorkspaceProps {
   setMeasureSpec: (column: string, partial: Partial<SpecLimits>) => void;
   setProcessContext: (context: ProcessContext | null) => void;
   onSeeData: () => void;
+  signals: WorkflowReadinessSignals;
   onQuickAction?: (stepId: string) => void;
   onFocusedInvestigation?: (stepId: string) => void;
+  onCharter?: (stepId: string) => void;
+  onSustainment?: (stepId: string) => void;
+  onHandoff?: (stepId: string) => void;
   questions?: readonly Question[];
   findings?: readonly Finding[];
   suspectedCauses?: readonly SuspectedCause[];
@@ -143,9 +148,13 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   setFactors,
   setMeasureSpec,
   setProcessContext,
+  signals,
   onSeeData,
   onQuickAction,
   onFocusedInvestigation,
+  onCharter,
+  onSustainment,
+  onHandoff,
   questions = [],
   findings = [],
   suspectedCauses = [],
@@ -445,8 +454,12 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       activeOverlays={activeCanvasOverlays}
       onOverlayToggle={toggleCanvasOverlay}
       investigationOverlays={investigationOverlays}
+      signals={signals}
       onQuickAction={onQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}
+      onCharter={onCharter}
+      onSustainment={onSustainment}
+      onHandoff={onHandoff}
       onOpenInvestigationFocus={onOpenInvestigationFocus}
       mode={authoringMode}
       onModeChange={setAuthoringMode}

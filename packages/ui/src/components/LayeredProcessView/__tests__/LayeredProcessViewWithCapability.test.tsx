@@ -20,6 +20,8 @@ import { LayeredProcessViewWithCapability } from '../LayeredProcessViewWithCapab
 import type { ProcessMap } from '@variscout/core/frame';
 import type { CanvasStepCardModel } from '@variscout/hooks';
 
+const SIGNALS = { hasIntervention: false, sustainmentConfirmed: false };
+
 const map: ProcessMap = {
   version: 1,
   nodes: [{ id: 'step-1', name: 'Bake', order: 0, ctqColumn: 'Bake_Time' }],
@@ -65,6 +67,7 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -81,6 +84,7 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -99,6 +103,7 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
         onLensChange={onLensChange}
       />
@@ -115,6 +120,7 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         stepCards={stepCards}
         canvasFilterChips={<span data-testid="passthrough-chips">CHIPS</span>}
       />
@@ -135,6 +141,7 @@ describe('LayeredProcessViewWithCapability', () => {
           availableContext: { hubColumns: ['product'] },
           contextValueOptions: { product: ['A'] },
         }}
+        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -149,6 +156,7 @@ describe('LayeredProcessViewWithCapability', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
+        signals={SIGNALS}
         mode="read"
         activeLens="defect"
         stepCards={stepCards}

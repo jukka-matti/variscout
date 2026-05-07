@@ -11,10 +11,20 @@ const baseCard: CanvasStepCardModel = {
   metricKind: 'numeric',
   metricColumn: 'Bake_Time',
   assignedColumns: ['Bake_Time'],
-  capability: { state: 'no-specs', n: 12 },
+  values: [],
+  capability: { state: 'no-specs', n: 12, canAddSpecs: true },
   distribution: [],
   defectCount: undefined,
-  stats: { mean: 1.0, stdDev: 0.1 },
+  stats: {
+    mean: 1.0,
+    median: 1.0,
+    stdDev: 0.1,
+    sigmaWithin: 0.1,
+    mrBar: 0.1,
+    ucl: 1.3,
+    lcl: 0.7,
+    outOfSpecPercentage: 0,
+  },
 };
 
 const emptySignals: WorkflowReadinessSignals = {
