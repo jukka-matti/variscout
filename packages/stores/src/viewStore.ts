@@ -101,3 +101,10 @@ export const useViewStore = create<ViewStore>(set => ({
   setSelectionIndexMap: map => set({ selectionIndexMap: map }),
   clearTransientSelections: () => set({ selectedPoints: new Set(), selectionIndexMap: new Map() }),
 }));
+
+// Expose getInitialState on the store instance for the canonical test reset
+// pattern: `useViewStore.setState(useViewStore.getInitialState())` — matches
+// `packages/stores/CLAUDE.md` Invariants and the canvasStore / wallLayoutStore /
+// projectStore precedent.
+(useViewStore as unknown as { getInitialState: () => ViewState }).getInitialState =
+  getViewInitialState;

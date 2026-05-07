@@ -1,3 +1,19 @@
+/**
+ * useSessionStore — DEPRECATED, deletion pending in F4 Task 9.
+ *
+ * Mixes per-user durable Annotation state (workspace tab, panel toggles, AI
+ * preferences, time lens) with transient View state (highlights, expanded ids,
+ * pending chart focus). F4 splits these into `useViewStore` (transient) +
+ * `usePreferencesStore` (per-user durable). Both replacements live in this
+ * package — see `viewStore.ts` and `preferencesStore.ts`. Consumer migration
+ * happens in F4 Task 4; this file is deleted in F4 Task 9.
+ *
+ * During the migration window (Tasks 2-9), some fields here are duplicated
+ * by `useViewStore` (e.g. `piOverflowView`, `isDataTableOpen`). Writers should
+ * NOT bridge between the two — pick one and migrate atomically.
+ *
+ * Spec: docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
+ */
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { DEFAULT_TIME_LENS, type TimeLens } from '@variscout/core';

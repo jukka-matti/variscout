@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { useViewStore, getViewInitialState } from '../viewStore';
+import { useViewStore } from '../viewStore';
 
 beforeEach(() => {
-  useViewStore.setState(getViewInitialState());
+  useViewStore.setState(useViewStore.getInitialState());
 });
 
 describe('useViewStore', () => {
