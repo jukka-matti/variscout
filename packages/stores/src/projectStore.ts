@@ -7,6 +7,7 @@
  */
 
 import { create } from 'zustand';
+import { useViewStore } from './viewStore';
 import type {
   DataRow,
   SpecLimits,
@@ -159,10 +160,6 @@ export interface ProjectState {
   processContext: ProcessContext | null;
   entryScenario: EntryScenario | null;
 
-  // Multi-point selection (ephemeral, not persisted — Minitab-style brushing)
-  selectedPoints: Set<number>;
-  selectionIndexMap: Map<number, number>;
-
   // View state (for restoring analyst's working context on project load)
   viewState: ViewState | null;
 
@@ -232,7 +229,7 @@ export interface ProjectActions {
   setProcessContext: (context: ProcessContext | null) => void;
   setEntryScenario: (scenario: EntryScenario | null) => void;
 
-  // Selection (ephemeral)
+  // Selection (delegated to useViewStore — convenience bridge for existing consumers)
   setSelectedPoints: (points: Set<number>) => void;
   addToSelection: (indices: number[]) => void;
   removeFromSelection: (indices: number[]) => void;
@@ -300,8 +297,6 @@ const initialState: ProjectState = {
   separateParetoFilename: null,
   processContext: null,
   entryScenario: null,
-  selectedPoints: new Set(),
-  selectionIndexMap: new Map(),
   viewState: null,
   findings: [],
   questions: [],
@@ -333,9 +328,12 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
   markSaved: () => set(() => ({ hasUnsavedChanges: false })),
   markUnsaved: () => set(() => ({ hasUnsavedChanges: true })),
 
-  newProject: () => set(() => ({ ...initialState })),
+  newProject: () => {
+    set(() => ({ ...initialState }));
+    useViewStore.getState().clearTransientSelections();
+  },
 
-  loadProject: serialized =>
+  loadProject: serialized => {
     set(() => ({
       ...initialState,
       projectId: serialized.projectId,
@@ -373,13 +371,13 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
       processContext: serialized.processContext ?? null,
       entryScenario: serialized.entryScenario ?? null,
       viewState: serialized.viewState ?? null,
-      selectedPoints: new Set(),
-      selectionIndexMap: new Map(),
       findings: serialized.findings ?? [],
       questions: serialized.questions ?? [],
       categories: serialized.categories ?? [],
       hasUnsavedChanges: false,
-    })),
+    }));
+    useViewStore.getState().clearTransientSelections();
+  },
 
   // --- Dataset setters ---
 
@@ -447,33 +445,33 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
   setProcessContext: setAndMark(set, 'processContext'),
   setEntryScenario: setAndMark(set, 'entryScenario'),
 
-  // --- Selection (ephemeral — not marked as unsaved) ---
+  // --- Selection (delegated to useViewStore — state lives there after F4) ---
 
-  setSelectedPoints: points => set(() => ({ selectedPoints: points })),
-  addToSelection: indices =>
-    set(s => {
-      const newSet = new Set(s.selectedPoints);
-      indices.forEach(i => newSet.add(i));
-      return { selectedPoints: newSet };
-    }),
-  removeFromSelection: indices =>
-    set(s => {
-      const newSet = new Set(s.selectedPoints);
-      indices.forEach(i => newSet.delete(i));
-      return { selectedPoints: newSet };
-    }),
-  clearSelection: () => set(() => ({ selectedPoints: new Set() })),
-  togglePointSelection: index =>
-    set(s => {
-      const newSet = new Set(s.selectedPoints);
-      if (newSet.has(index)) {
-        newSet.delete(index);
-      } else {
-        newSet.add(index);
-      }
-      return { selectedPoints: newSet };
-    }),
-  setSelectionIndexMap: map => set(() => ({ selectionIndexMap: map })),
+  setSelectedPoints: points => useViewStore.getState().setSelectedPoints(points),
+  addToSelection: indices => {
+    const view = useViewStore.getState();
+    const newSet = new Set(view.selectedPoints);
+    indices.forEach(i => newSet.add(i));
+    view.setSelectedPoints(newSet);
+  },
+  removeFromSelection: indices => {
+    const view = useViewStore.getState();
+    const newSet = new Set(view.selectedPoints);
+    indices.forEach(i => newSet.delete(i));
+    view.setSelectedPoints(newSet);
+  },
+  clearSelection: () => useViewStore.getState().clearTransientSelections(),
+  togglePointSelection: index => {
+    const view = useViewStore.getState();
+    const newSet = new Set(view.selectedPoints);
+    if (newSet.has(index)) {
+      newSet.delete(index);
+    } else {
+      newSet.add(index);
+    }
+    view.setSelectedPoints(newSet);
+  },
+  setSelectionIndexMap: map => useViewStore.getState().setSelectionIndexMap(map),
 
   // --- View state ---
 

@@ -48,3 +48,10 @@ describe('useViewStore', () => {
     expect(useViewStore.getState().isDataTableOpen).toBe(true);
   });
 });
+
+describe('useViewStore.selectedPoints (relocated from projectStore in F4)', () => {
+  it('setSelectedPoints stores the set', () => {
+    useViewStore.getState().setSelectedPoints(new Set([1, 2, 3]));
+    expect(useViewStore.getState().selectedPoints).toEqual(new Set([1, 2, 3]));
+  });
+});
