@@ -64,6 +64,11 @@ function pickMetricColumn(input: {
 }): string | undefined {
   const { ctqColumn, assignedColumns, rows } = input;
   if (ctqColumn && parseNumericValues(rows, ctqColumn).length > 0) return ctqColumn;
+  // Last-resort `assignedColumns[0]` fallback returns the first assigned column
+  // even when none parse numerically. Caller's `parseNumericValues` then yields
+  // `[]`, short-circuiting to `{ stepId, n: 0 }` — same outcome as no metric
+  // column, reached via the assignment path so the helper's branch behaviour
+  // stays uniform.
   return (
     assignedColumns.find(column => parseNumericValues(rows, column).length > 0) ??
     assignedColumns[0]
