@@ -1,13 +1,30 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, expectTypeOf } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import {
   getInvestigationInitialState,
   useInvestigationStore,
   useWallLayoutStore,
 } from '@variscout/stores';
-import { useSharedWallProps } from '../useSharedWallProps';
+import {
+  useSharedWallProps,
+  type UseSharedWallPropsArgs,
+  type UseSharedWallPropsReturn,
+} from '../useSharedWallProps';
 import type { Finding, Question, SuspectedCause } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
+
+interface MutableWallCanvasDataProps {
+  hubs: SuspectedCause[];
+  findings: Finding[];
+  questions: Question[];
+  processMap?: ProcessMap;
+  problemCpk: number;
+  eventsPerWeek: number;
+  activeColumns?: ReadonlyArray<string>;
+  zoom?: number;
+  pan?: { x: number; y: number };
+  groupByTributary?: boolean;
+}
 
 function makeHub(overrides: Partial<SuspectedCause> & { id: string }): SuspectedCause {
   return {
@@ -72,6 +89,11 @@ beforeEach(() => {
 });
 
 describe('useSharedWallProps', () => {
+  it('returns data props assignable to the mutable WallCanvas data prop shape', () => {
+    expectTypeOf<UseSharedWallPropsArgs['findings']>().toEqualTypeOf<Finding[]>();
+    expectTypeOf<UseSharedWallPropsReturn>().toMatchTypeOf<MutableWallCanvasDataProps>();
+  });
+
   it('exposes hubs and questions from investigation store and findings from args', () => {
     const hub = makeHub({ id: 'hub-1' });
     const question = makeQuestion({ id: 'q-1' });

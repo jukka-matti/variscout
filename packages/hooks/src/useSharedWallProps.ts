@@ -4,7 +4,7 @@ import type { Finding, Question, SuspectedCause } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
 export interface UseSharedWallPropsArgs {
-  findings: readonly Finding[];
+  findings: Finding[];
   processMap: ProcessMap | undefined;
   problemCpk: number;
   eventsPerWeek: number;
@@ -13,7 +13,7 @@ export interface UseSharedWallPropsArgs {
 
 export interface UseSharedWallPropsReturn {
   hubs: SuspectedCause[];
-  findings: readonly Finding[];
+  findings: Finding[];
   questions: Question[];
   processMap: ProcessMap | undefined;
   problemCpk: number;
