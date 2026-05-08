@@ -61,6 +61,12 @@ export {
   type UseHypothesisDrawToolResult,
 } from './useHypothesisDrawTool';
 
+export {
+  useSharedWallProps,
+  type UseSharedWallPropsArgs,
+  type UseSharedWallPropsReturn,
+} from './useSharedWallProps';
+
 // Canvas step cards and lens registry
 export {
   CANVAS_LENS_REGISTRY,
