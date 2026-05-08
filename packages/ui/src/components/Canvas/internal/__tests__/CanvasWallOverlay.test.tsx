@@ -132,6 +132,8 @@ describe('CanvasWallOverlay', () => {
 
     const wrapper = screen.getByTestId('canvas-wall-overlay');
     expect(wrapper).toHaveClass('pointer-events-auto');
+    expect(wrapper).toHaveClass('z-[15]');
+    expect(wrapper).not.toHaveClass('z-30');
     expect(wrapper).not.toHaveAttribute('aria-hidden');
     expect(wrapper).not.toHaveAttribute('inert');
     expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-mode', 'overlay');

@@ -52,7 +52,7 @@ export function CanvasWallOverlay({
     <div
       data-testid="canvas-wall-overlay"
       className={[
-        'absolute inset-0 z-30 h-full w-full overflow-hidden',
+        'absolute inset-0 z-[15] h-full w-full overflow-hidden',
         isDrawingHypothesis ? 'pointer-events-none' : 'pointer-events-auto',
       ].join(' ')}
       aria-hidden={isDrawingHypothesis ? true : undefined}
