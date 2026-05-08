@@ -1,14 +1,19 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WallShortcutButton } from '../WallShortcutButton';
 
 describe('WallShortcutButton', () => {
+  beforeEach(() => {
+    document.documentElement.setAttribute('data-locale', 'en');
+  });
+
   it('renders a button with accessible name Open Wall and a visible label', () => {
     render(<WallShortcutButton onClick={() => undefined} />);
 
     const button = screen.getByRole('button', { name: 'Open Wall' });
 
     expect(button).toHaveTextContent('Open Wall');
+    expect(button).toHaveAttribute('title', 'Open Wall');
   });
 
   it('renders an external-link icon', () => {
