@@ -254,7 +254,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
-### Canvas Wall overlay is badge projection, not "same data, two views" mirror (vision §5.6)
+### Canvas Wall overlay is badge projection, not "same data, two views" mirror (vision §5.6) [RESOLVED 2026-05-08 — sub-PR 8e]
 
 **Surfaced by:** Canvas PR6 retrospective design review, 2026-05-06.
 
@@ -267,6 +267,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - Status quo + spec amendment: accept badge-projection as V1 dual-home; amend §5.6 to say "destination = full graph; overlay = projected badges."
 
 **Promotion path:** PR8e of the canvas migration sequence. Requires Spec 4 brainstorm extension to pick between embedded-wall vs badge-projection-as-canonical. ~6 tasks if embedded-wall is chosen; ~2 (just the spec amendment) if status quo.
+
+**Resolution:** Sub-PR 8e embeds `WallCanvas` as the canvas Wall overlay with shared Wall viewport state and click-to-drill to the Investigation Wall destination; see `docs/superpowers/specs/2026-05-08-canvas-wall-overlay-design.md`.
 
 ---
 
