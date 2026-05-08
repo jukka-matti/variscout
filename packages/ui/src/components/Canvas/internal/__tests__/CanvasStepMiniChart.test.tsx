@@ -49,4 +49,21 @@ describe('CanvasStepMiniChart', () => {
 
     expect(screen.getByTestId('canvas-step-mini-chart-mix')).toHaveTextContent(/no.*points/i);
   });
+
+  it('renders one bar per histogram bin computed from card.values', () => {
+    // 16 values → Sturges bins = ceil(log2(16) + 1) = 5
+    const values = Array.from({ length: 16 }, (_, i) => i + 1);
+    render(<CanvasStepMiniChart card={numericCard({ numericRenderHint: 'histogram', values })} />);
+    const bars = screen.getAllByTestId(/canvas-step-mini-chart-.+-bar-/);
+    expect(bars).toHaveLength(5);
+  });
+
+  it('renders zero-height bar (visible min) for empty bins so the bin axis is preserved', () => {
+    // Skewed input — at least one bin will be 0 visually but the axis still has 4 bars
+    const values = [1, 1, 1, 1, 1, 10];
+    render(<CanvasStepMiniChart card={numericCard({ numericRenderHint: 'histogram', values })} />);
+    const bars = screen.getAllByTestId(/canvas-step-mini-chart-.+-bar-/);
+    // Sturges of n=6 → ceil(log2(6) + 1) = 4 bins
+    expect(bars).toHaveLength(4);
+  });
 });
