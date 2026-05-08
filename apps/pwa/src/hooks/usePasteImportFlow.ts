@@ -25,7 +25,9 @@ import {
 import { isProcessHubComplete } from '@variscout/core/processHub';
 import type { EvidenceSnapshot, RowProvenanceTag } from '@variscout/core/evidenceSources';
 import { generateDeterministicId } from '@variscout/core/identity';
+import { stampStepCapabilities } from '@variscout/core/canvas';
 import type { MatchSummaryActionChoice } from '@variscout/ui';
+import { useCanvasStore, useProjectStore } from '@variscout/stores';
 import { pwaHubRepository } from '../persistence';
 
 // ── Reducer types ──────────────────────────────────────────────────────────
@@ -475,10 +477,17 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
             joinKey: choice.candidate.hubColumn,
           }));
 
+          const stamps = stampStepCapabilities({
+            map: useCanvasStore.getState().canonicalMap,
+            rows: ms.newRows,
+            measureSpecs: useProjectStore.getState().measureSpecs,
+          });
+          const snapshotWithStamps: EvidenceSnapshot = { ...snapshot, stepCapabilities: stamps };
+
           void pwaHubRepository.dispatch({
             kind: 'EVIDENCE_ADD_SNAPSHOT',
             hubId: activeHub.id,
-            snapshot,
+            snapshot: snapshotWithStamps,
             provenance: tags,
           });
 
@@ -543,10 +552,20 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
             // at classification time (priorSnapshotId on the matchSummary state).
             // This activates the P1 handler's atomic-cascade path (D2): the handler
             // will soft-delete the prior snapshot in the same Dexie transaction.
+            const stampsReplace = stampStepCapabilities({
+              map: useCanvasStore.getState().canonicalMap,
+              rows: merged,
+              measureSpecs: useProjectStore.getState().measureSpecs,
+            });
+            const snapshotWithStampsReplace: EvidenceSnapshot = {
+              ...snapshot,
+              stepCapabilities: stampsReplace,
+            };
+
             void pwaHubRepository.dispatch({
               kind: 'EVIDENCE_ADD_SNAPSHOT',
               hubId: activeHub.id,
-              snapshot,
+              snapshot: snapshotWithStampsReplace,
               provenance: [],
               replacedSnapshotId: ms.priorSnapshotId,
             });
@@ -572,10 +591,20 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
               deletedAt: null,
             };
 
+            const stampsFallback = stampStepCapabilities({
+              map: useCanvasStore.getState().canonicalMap,
+              rows: ms.newRows,
+              measureSpecs: useProjectStore.getState().measureSpecs,
+            });
+            const snapshotWithStampsFallback: EvidenceSnapshot = {
+              ...snapshot,
+              stepCapabilities: stampsFallback,
+            };
+
             void pwaHubRepository.dispatch({
               kind: 'EVIDENCE_ADD_SNAPSHOT',
               hubId: activeHub.id,
-              snapshot,
+              snapshot: snapshotWithStampsFallback,
               provenance: [],
               replacedSnapshotId: ms.priorSnapshotId,
             });
