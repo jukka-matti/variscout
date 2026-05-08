@@ -7,18 +7,22 @@ import {
 
 interface CanvasOverlayPickerProps {
   activeOverlays: CanvasOverlayId[];
+  availableOverlays?: CanvasOverlayId[];
   onToggle?: (overlay: CanvasOverlayId) => void;
 }
 
 export const CanvasOverlayPicker: React.FC<CanvasOverlayPickerProps> = ({
   activeOverlays,
+  availableOverlays,
   onToggle,
 }) => {
   const active = coerceCanvasOverlays(activeOverlays);
+  const allowed = availableOverlays ? new Set(availableOverlays) : undefined;
+  const overlays = enabledCanvasOverlays().filter(overlay => !allowed || allowed.has(overlay.id));
 
   return (
     <div className="flex flex-wrap items-center gap-1" data-testid="canvas-overlay-picker">
-      {enabledCanvasOverlays().map(overlay => {
+      {overlays.map(overlay => {
         const pressed = active.includes(overlay.id);
         return (
           <button
