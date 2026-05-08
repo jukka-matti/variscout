@@ -3,8 +3,7 @@
  *
  * Small collapsible section that lets the b0 user opt into authoring a
  * process map. Collapsed by default; clicking the header reveals the
- * children inline (typically the full <LayeredProcessView /> /
- * <ProcessMapBase /> canvas).
+ * children inline (typically the full <Canvas /> canvas).
  *
  * Adding the first process step is what flips scope b0→b1 in the data
  * layer — this widget itself is purely presentational and just renders

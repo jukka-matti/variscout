@@ -149,7 +149,7 @@ export interface InvestigationNodeMapping {
 /**
  * Canvas-wide scope filter applied to the active investigation. Populated when
  * the user clicks a Pareto bar (or adds a chip explicitly). Drives downstream
- * chart filtering across the LayeredProcessView. Absent → no scope filter.
+ * chart filtering across the canvas surface. Absent → no scope filter.
  *
  * Per spec §10 (three composable canvas filter states) and ADR-073 (no
  * statistical roll-up across heterogeneous units — scope filter creates

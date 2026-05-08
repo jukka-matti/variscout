@@ -43,7 +43,7 @@ export interface ProductionLineGlanceDashboardProps {
   /** Optional title shown above the dashboard. */
   title?: string;
 
-  /** Reveal mode. Default 'full'. LayeredProcessView passes 'spatial'. */
+  /** Reveal mode. Default 'full'. The canvas's spatial-reveal callsites pass 'spatial'. */
   mode?: 'spatial' | 'full';
   /** Click handler when the user toggles between spatial and full. */
   onModeChange?: (next: 'spatial' | 'full') => void;
