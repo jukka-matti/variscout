@@ -132,10 +132,13 @@ function makeOptions(
 // Canvas map with one node whose ctqColumn is 'weight_g' so stampStepCapabilities
 // can find numeric values in the new rows.
 const CANVAS_MAP_WITH_WEIGHT_NODE = {
-  id: 'map-1',
+  version: 1 as const,
   nodes: [{ id: 'step-fill-1', name: 'Fill', order: 0, ctqColumn: 'weight_g' }],
+  tributaries: [],
   arrows: [],
   assignments: {},
+  createdAt: '2026-05-08T00:00:00.000Z',
+  updatedAt: '2026-05-08T00:00:00.000Z',
 };
 
 beforeEach(() => {
@@ -249,7 +252,7 @@ describe('usePasteImportFlow — stepCapabilities stamping (T2)', () => {
     // Overlap-replace fallback fires when overlapRange is absent.
     const overlapClassification = {
       source: 'same-source' as const,
-      temporal: 'overlap-replace' as const,
+      temporal: 'overlap' as const,
       blockReasons: [],
       overlapRange: undefined, // no range → triggers fallback branch
     };

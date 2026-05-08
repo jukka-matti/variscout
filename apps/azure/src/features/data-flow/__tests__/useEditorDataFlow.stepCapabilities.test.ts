@@ -139,10 +139,13 @@ function makeOptions(overrides: Partial<UseEditorDataFlowOptions> = {}): UseEdit
 
 // Canvas map with one node whose ctqColumn is 'diameter_mm'.
 const CANVAS_MAP_WITH_DIAMETER_NODE = {
-  id: 'map-1',
+  version: 1 as const,
   nodes: [{ id: 'step-bore-1', name: 'Boring', order: 0, ctqColumn: 'diameter_mm' }],
+  tributaries: [],
   arrows: [],
   assignments: {},
+  createdAt: '2026-05-08T00:00:00.000Z',
+  updatedAt: '2026-05-08T00:00:00.000Z',
 };
 
 beforeEach(() => {
@@ -262,7 +265,7 @@ describe('useEditorDataFlow — stepCapabilities stamping (T2)', () => {
     // Overlap-replace fallback fires when overlapRange is absent.
     const overlapClassification = {
       source: 'same-source' as const,
-      temporal: 'overlap-replace' as const,
+      temporal: 'overlap' as const,
       blockReasons: [],
       overlapRange: undefined, // no range → triggers fallback branch
     };
