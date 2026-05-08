@@ -2,8 +2,8 @@
 title: Canvas Migration PR8 — Vision Alignment Master Plan (sequencing 8a / 8b / 8d / 8e + 8f deferral)
 audience: [engineer, product]
 category: implementation-plan-master
-status: active
-last-reviewed: 2026-05-07
+status: delivered
+last-reviewed: 2026-05-08
 related:
   - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
@@ -104,6 +104,8 @@ Per `feedback_subagent_driven_default`. Each sub-PR's plan dispatches via `super
 
 ### 8a — Mode-aware response-path CTAs (~5 tasks) — plan at [`2026-05-07-canvas-pr8-8a-mode-aware-ctas.md`](2026-05-07-canvas-pr8-8a-mode-aware-ctas.md)
 
+> **SHIPPED 2026-05-07** — [PR #137](https://github.com/jukka-matti/variscout/pull/137) merged as `0dc9b102`. 2-state CTA machine (active / prerequisite-locked) + per-path WorkflowReadinessSignals (no tier/cadence enum) + stub destinations. Charter entity locked at hub-level.
+
 **Status (2026-05-07):** plan written + amended. Read the AMENDMENT block at the top of the linked plan before implementation — it supersedes the original tier model + charter gating per the DMAIC charter correction (Charter is Define-phase first, no workflow gate) + tier reframe (all 5 paths free-tier-active).
 
 Replace hardcoded `disabled` on Charter / Sustainment / Handoff CTAs in `CanvasStepOverlay` (lines 276–294) with mode-aware tier-gated affordances. Thread `mode: 'cadence' | 'first-time' | 'demo'` through `CanvasWorkspace` → `Canvas` → `CanvasStepOverlay`; compute hub-maturity from `assignmentsComplete && stepsAuthored && hasPriorSnapshot`. Tier-gate Charter/Sustainment/Handoff via `isPaidTier()` per ADR-078 D5; render with a tier-upgrade hint instead of `disabled` when free tier. Separate "mode" (drill-down content) from "tier" (paid feature gating) — they're conflated in current code.
@@ -113,6 +115,8 @@ Replace hardcoded `disabled` on Charter / Sustainment / Handoff CTAs in `CanvasS
 **Brainstorm:** none — straight to plan. Retroactive Spec 3 covers the design intent.
 
 ### 8b — Drift indicator + time-series mini-chart (~6 tasks) — plan at [`2026-05-07-canvas-pr8-8b-drift-and-time-series.md`](2026-05-07-canvas-pr8-8b-drift-and-time-series.md)
+
+> **SHIPPED 2026-05-07** — [PR #138](https://github.com/jukka-matti/variscout/pull/138) merged. Drift indicator (↑/↓/→ + magnitude vs. prior snapshot capability) + `CanvasStepMiniChart` time-series third branch (numeric + distinct >30, parser `timeColumn` with row-index fallback, LTTB downsampling).
 
 Two bundled sub-items per the canvas migration spec table (8b absorbs 8c per the "_(reserved — bundled with 8b)_" entry):
 
@@ -147,7 +151,7 @@ F4 dependency: real. The drag-gesture View state goes in `useViewStore` (F4 D2);
 
 ### 8e — Wall mirror in canvas overlay (~12 tasks) — plan at [`2026-05-08-canvas-pr8-8e-wall-overlay.md`](2026-05-08-canvas-pr8-8e-wall-overlay.md)
 
-> **Status (2026-05-08):** Brainstorm locked + plan written. Fork 1 chosen (embed `WallCanvas` viewport per §5.6 verbatim — vision honored, not hedged). Spec at [`docs/superpowers/specs/2026-05-08-canvas-wall-overlay-design.md`](../specs/2026-05-08-canvas-wall-overlay-design.md). 12-task TDD plan covers: `'wall'` overlay union value + registry, `useHasInvestigationContent` + `useSharedWallProps` hooks, `mode='overlay'` prop on WallCanvas (subtractive), new `CanvasWallOverlay` + `WallShortcutButton` internal components, viewport-adaptive picker/shortcut swap in Canvas, per-app `onOpenWall` wiring in PWA + Azure FrameViews, i18n keys, chrome walk + final code-reviewer + PR open.
+> **SHIPPED 2026-05-08** — [PR #141](https://github.com/jukka-matti/variscout/pull/141) merged as `d2915bbc`. Fork 1 honored verbatim: `WallCanvas` embedded as canvas overlay layer with shared `useWallLayoutStore` viewport, click-to-drill into Investigation tab → Wall destination, viewport-adaptive `WallShortcutButton` re-skin <768px, hidden until ≥1 hub/question/finding (`useHasInvestigationContent`), pointer-transparent under 8d's draw-hypothesis tool. Spec [`2026-05-08-canvas-wall-overlay-design.md`](../specs/2026-05-08-canvas-wall-overlay-design.md) promoted to `delivered`.
 
 Vision §5.6 + §5.4: Wall is dual-home — destination in Investigation tab AND a canvas overlay; "with overlays on, the canvas IS the Wall view." Codex shipped a lighter projection (per-step badge counts + linked item lists in step overlays) — defensible V1 but unmet spec commitment.
 
@@ -219,6 +223,8 @@ Each fresh session opens with a focused prompt. Suggested shapes:
 > Start canvas viewport architecture design spec. **Brainstorm first.** Vision §5.4 commits to levels-as-pan/zoom (System / Process Flow / Local Mechanism orthogonal to mode lenses). Read PR8 master plan D2 for the deferral rationale. Pick: react-flow-style library vs hand-rolled SVG/CSS transform. Output: design spec + ADR-080 locking the choice.
 
 ## 7. Closure
+
+> **CLOSED 2026-05-08.** All four sub-PRs merged: 8a #137 (`0dc9b102`, 2026-05-07), 8b #138 (2026-05-07), 8d #140 (`dfcab3c4`, 2026-05-08), 8e #141 (`d2915bbc`, 2026-05-08). Each sub-PR's investigations.md entry marked `[RESOLVED]`; spec promotions follow each merge. PR9 cleanup (delete legacy `LayeredProcessView` / `ProcessMapBase` / `FrameView`) is now unblocked. 8f remains in its own workstream under canvas viewport architecture spec.
 
 PR8 master plan closes when:
 
