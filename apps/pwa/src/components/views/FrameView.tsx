@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { CanvasWorkspace } from '@variscout/ui';
-import { useInvestigationStore, useProjectStore } from '@variscout/stores';
+import { useInvestigationStore, useProjectStore, useWallLayoutStore } from '@variscout/stores';
 import type { CanvasInvestigationFocus } from '@variscout/hooks';
 import type {
   EvidenceSnapshot,
@@ -88,6 +88,11 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showInvestigation();
   }, []);
 
+  const handleOpenWall = React.useCallback(() => {
+    useWallLayoutStore.getState().setViewMode('wall');
+    usePanelsStore.getState().showInvestigation();
+  }, []);
+
   const handleOpenInvestigationFocus = React.useCallback((focus: CanvasInvestigationFocus) => {
     if (focus.questionId)
       useInvestigationFeatureStore.getState().expandToQuestion(focus.questionId);
@@ -148,6 +153,7 @@ const FrameView: React.FC = () => {
       questions={questions}
       suspectedCauses={suspectedCauses}
       causalLinks={causalLinks}
+      onOpenWall={handleOpenWall}
       onOpenInvestigationFocus={handleOpenInvestigationFocus}
       onAddCausalLink={handleAddCausalLink}
       onRemoveCausalLink={handleRemoveCausalLink}

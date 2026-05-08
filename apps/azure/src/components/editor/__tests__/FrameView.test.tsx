@@ -13,6 +13,8 @@ const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
 const showHandoffMock = vi.fn();
 const expandToQuestionMock = vi.fn();
+const setWallViewModeMock = vi.fn();
+const setInvestigationViewModeMock = vi.fn();
 const addCausalLinkMock = vi.fn();
 const linkQuestionToCausalLinkMock = vi.fn();
 const removeCausalLinkMock = vi.fn();
@@ -56,6 +58,11 @@ vi.mock('@variscout/stores', () => ({
       getState: () => investigationStateRef.current,
     }
   ),
+  useWallLayoutStore: Object.assign(vi.fn(), {
+    getState: () => ({
+      setViewMode: setWallViewModeMock,
+    }),
+  }),
 }));
 
 vi.mock('@variscout/ui', async () => {
@@ -66,6 +73,7 @@ vi.mock('@variscout/ui', async () => {
       onSeeData: () => void;
       onQuickAction?: (stepId: string) => void;
       onFocusedInvestigation?: (stepId: string) => void;
+      onOpenWall?: () => void;
       onOpenInvestigationFocus?: (focus: { questionId?: string }) => void;
       onAddCausalLink?: (
         fromFactor: string,
@@ -117,6 +125,15 @@ vi.mock('@variscout/ui', async () => {
         ),
         React.createElement(
           'button',
+          {
+            type: 'button',
+            'data-testid': 'open-wall',
+            onClick: () => props.onOpenWall?.(),
+          },
+          'Open wall'
+        ),
+        React.createElement(
+          'button',
           { type: 'button', 'data-testid': 'cta-charter', onClick: props.onCharter },
           'Charter'
         ),
@@ -144,6 +161,7 @@ vi.mock('../../../features/panels/panelsStore', () => ({
       showCharter: showCharterMock,
       showSustainment: showSustainmentMock,
       showHandoff: showHandoffMock,
+      setInvestigationViewMode: setInvestigationViewModeMock,
     }),
   }),
 }));
@@ -176,6 +194,8 @@ describe('FrameView (Azure shell)', () => {
     showSustainmentMock.mockClear();
     showHandoffMock.mockClear();
     expandToQuestionMock.mockClear();
+    setWallViewModeMock.mockClear();
+    setInvestigationViewModeMock.mockClear();
     addCausalLinkMock.mockReset();
     linkQuestionToCausalLinkMock.mockReset();
     removeCausalLinkMock.mockReset();
@@ -307,6 +327,16 @@ describe('FrameView (Azure shell)', () => {
     fireEvent.click(screen.getByTestId('overlay-question'));
 
     expect(expandToQuestionMock).toHaveBeenCalledWith('q-1');
+    expect(showInvestigationMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens Investigation map in Wall mode from the Canvas wall drill action', () => {
+    render(<FrameView />);
+
+    fireEvent.click(screen.getByTestId('open-wall'));
+
+    expect(setWallViewModeMock).toHaveBeenCalledWith('wall');
+    expect(setInvestigationViewModeMock).toHaveBeenCalledWith('map');
     expect(showInvestigationMock).toHaveBeenCalledTimes(1);
   });
 
