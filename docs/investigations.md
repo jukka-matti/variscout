@@ -170,20 +170,19 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
-### Charter authoring V1
+### Charter authoring V1 → Improvement Project V1 [PROMOTED 2026-05-08]
 
 **Surfaced by:** PR8-8a amendment review, 2026-05-07.
 
-**Description:** PR8-8a ships a Charter stub destination only. The full surface — hub-level `Charter` entity (multiple per Hub per Q1), problem statement / goals / scope / team / timeline form, `.vrs` round-trip — is deferred. Free-tier-active per Q2 (PWA can author + export `.vrs`); team signoff / audit features paid-only inside the surface.
+**Description:** PR8-8a ships a Charter stub destination only. The full surface — hub-level entity (multiple per Hub per Q1), problem statement / goals / scope / team / timeline form, `.vrs` round-trip — is deferred. Free-tier-active per Q2 (PWA can author + export `.vrs`); team signoff features paid-only inside the surface.
 
-**Possible directions:**
+**Resolution (2026-05-08):** Promoted to design spec [`docs/superpowers/specs/2026-05-08-improvement-project-v1-design.md`](superpowers/specs/2026-05-08-improvement-project-v1-design.md). Brainstorm resulted in two key reframings beyond the original Q1/Q2 scope:
 
-- Data model: add `Charter` type to `@variscout/core/processHub` + `ProcessHub.charters: Charter[]`; new normalized Dexie table per F-series envelope conventions.
-- Form UI: per-charter authoring component in `@variscout/ui` (PWA + Azure consume same surface).
-- `.vrs` envelope: include charters in serialization roundtrip so trainers package model charters in `.vrs` scenarios.
-- Team-collaboration tier-gate inside the surface (signoff button, comments, audit trail) — paid-tier only; reads `useTier()` directly.
+- **Methodology pivot — DMAIC dropped for QC Story / Toyota TBP.** VariScout's existing investigation spine (Issue Statement, SuspectedCause, Findings, ImprovementIdea, Sustainment) maps 1:1 to QC Story's 8-section narrative. The artifact reuses VariScout primitives via FK rather than duplicating in DMAIC vocabulary; methodology lineage is acknowledged in design docs but absent from UI copy.
+- **Rename "Charter" → "Improvement Project."** Avoids DMAIC-coding the vocabulary, communicates living-document semantics, avoids `useProjectStore` collision while staying qualified. Vision §2.4 + §5.3 amended.
+- **Audit trail dropped from V1 paid-tier scope.** Azure tenant logging (App Insights, Activity Log) handles compliance audit at platform level; V1 paid ships _only_ signoff workflow.
 
-**Promotion path:** Standalone slice when prioritized. Likely belongs to PR8e or a successor hub-domain slice.
+**Promotion path:** Implementation plan to follow per `superpowers:writing-plans` flow. Likely sequence: spec → plan → 6–8 tasks across `@variscout/core` (types + actions + .vrs serialization) + `@variscout/ui` (form + sections) + per-app shells (PWA + Azure) + persistence handlers.
 
 ---
 
