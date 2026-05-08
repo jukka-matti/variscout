@@ -386,6 +386,25 @@ Vision slides 3 + 4 explicitly show inline Survey ("MISSING EVIDENCE · THE DETE
 
 Inline + Inbox together mean **Survey unifies the four Wall vision UX gaps** (D12 below) — they're not separate features, they're four ways Survey renders inline on the Wall.
 
+### The 6 Survey rule categories
+
+Survey rules in V1 fall into six categories. Each rule is `(context: SurveyContext) => SurveyHint[]`. The rule registry (per §15 OQ1, locked) lives in `packages/core/src/survey/{wall,improvementProject,sustainment,handoff,inbox}.ts`.
+
+| #   | Category                         | Examples                                                                                                                                          | Renders at                                                                                                                |
+| --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Status derivation**            | `needs-disconfirmation` (≥2 evidence types but no falsification attempt); auto-promote `evidenced` → `confirmed` when triangulation passes        | Hypothesis status badge on Wall + IP Section 4 lineage                                                                    |
+| 2   | **Data-collection prompts**      | _"H1 has data only — needs gemba walk to triangulate"_; _"H2 has data + gemba — try disconfirmation"_; _"OPERATOR.ID unused — brush it for H3"_   | Wall missing-evidence panel (vision slide 3 "THE DETECTIVE MOVE NOBODY SHIPS") + per-hypothesis card hints + IP Section 4 |
+| 3   | **Triangulation readiness**      | _"1 STEP AWAY — adding one expert observation OR closing the disconfirmation task would promote H1 from evidenced to confirmed"_ (vision slide 4) | Per-hypothesis card "1 step away" badge + IP Section 4 lineage hints                                                      |
+| 4   | **Power / sample-size warnings** | _"H2 boxplot has n=4 in category B — ANOVA may be unstable, collect more samples"_; _"Cpk computed on n=12 — wide confidence interval"_           | Inline on Wall mini-charts + IP Section 2 Background snapshot                                                             |
+| 5   | **Drift detection**              | _"Sustainment Mix-temp control: tick 3 of 4 below target — drift detected"_; _"IP closed 30 days; capability dropped from 1.41 → 1.32 — review"_  | Inbox digest + Sustainment form + IP Section 6 outcome reference                                                          |
+| 6   | **Lifecycle gaps**               | _"IP active but no ImprovementIdea selected"_; _"Goal Y-target met but no X-control linked"_; _"Handoff pending owner acknowledgment 7 days"_     | Inbox digest + IP Section 6 outcome reference + Handoff form                                                              |
+
+**Category 2 (data-collection prompts)** explicitly addresses the _"hypothesis needs additional data"_ concern — Survey notices when an evidenced Hypothesis has only one evidence type AND prompts the analyst to collect the missing types. The prompt is contextual (what specifically to brush, what gemba walk to take, what expert to consult) — derivable from the Hypothesis's `condition` predicate (which columns are referenced) + the existing FindingSource shapes (which columns each evidence type can target).
+
+**Category 3 (triangulation readiness)** is the "1 step away" badge from vision slide 4 — Survey detects when one more action (one disconfirmation, or one expert observation) would promote a Hypothesis from `evidenced` to `confirmed`, and renders that as a prominent prompt on the hypothesis card.
+
+These six categories define V1's Survey scope. Cross-card pattern detection ("5 quick actions on this card → promote?") is V2 named-future per D14. Multi-hypothesis cluster analysis (the Fishbone view) is V2 per D16.
+
 ---
 
 ## 6. Wall vision V1 scope — Detective-pack (D12)
@@ -484,6 +503,66 @@ V2 may add multi-level breadcrumb if depth-3+ navigation patterns emerge.
 Add `themeTags?: string[]` field to `Hypothesis`. Users tag with free-form themes (`#nozzle`, `#material`, `#operator`). Wall renders tag chips on hypothesis cards + "Group by theme" toggle (off by default).
 
 **V2 named-future:** Promote tags to first-class `HypothesisGroup` entity + Fishbone view (Ishikawa 6 M's preset + free-form themes). V2 design answers: hierarchical tags? Group state? AND-gate at group level vs hypothesis level? V1 captures usage signal via tags so V2 design is data-informed.
+
+### Hypothesis structure — name + condition + evidence + status
+
+The renamed `Hypothesis` entity preserves the _suspected-cause-with-specific-condition_ semantics that the prior `SuspectedCause` name implied. Each Hypothesis carries:
+
+| Field                                        | Role                                                                                         | Example                                                                                                                                     |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name: string`                               | Analyst-chosen mechanism name                                                                | _"Nozzle runs hot on night shift, line 2"_                                                                                                  |
+| `synthesis: string`                          | Analyst's narrative — how the evidence connects                                              | _"On line 2 night shifts, nozzle thermostat drifts beyond 95°C; observed thermal cycling in I-Chart and physical drips at 23:14 walkdown."_ |
+| `condition: HypothesisCondition`             | **Precise predicate tree describing the specific contextual scope where the problem occurs** | _(see below)_                                                                                                                               |
+| `questionIds[]`, `findingIds[]`              | FK lists to evidence                                                                         | data + gemba + expert evidence threads                                                                                                      |
+| `status: HypothesisStatus`                   | Current state (5-state lifecycle)                                                            | `proposed / evidenced / confirmed / refuted / needs-disconfirmation`                                                                        |
+| `tributaryIds?: ProcessMapTributary['id'][]` | Links back to Process Map step(s)                                                            | drives the "tributaries" footer band on the Wall                                                                                            |
+| `themeTags?: string[]` (D16)                 | Lightweight grouping                                                                         | `['nozzle', 'thermal']`                                                                                                                     |
+
+**`HypothesisCondition`** (defined in `packages/core/src/findings/hypothesisCondition.ts`) is a predicate tree of column-level comparisons composed by AND/OR/NOT:
+
+```ts
+type HypothesisCondition = ConditionLeaf | ConditionBranch;
+
+interface ConditionLeaf {
+  kind: 'leaf';
+  column: string; // e.g., 'SHIFT', 'MACHINE_ID', 'SUPPLIER', 'NOZZLE.TEMP'
+  op: 'eq' | 'neq' | 'lt' | 'lte' | 'gt' | 'gte' | 'between' | 'in';
+  value: string | number | [number, number] | string[] | number[];
+}
+
+type ConditionAndOr = { kind: 'and' | 'or'; children: HypothesisCondition[] };
+type ConditionNot = { kind: 'not'; child: HypothesisCondition };
+```
+
+**Example** — _"Nozzle runs hot on night shift, line 2, supplier B"_ renders as:
+
+```ts
+{
+  kind: 'and',
+  children: [
+    { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+    { kind: 'leaf', column: 'LINE', op: 'eq', value: 2 },
+    { kind: 'leaf', column: 'SUPPLIER', op: 'in', value: ['B'] },
+    { kind: 'leaf', column: 'NOZZLE.TEMP', op: 'gt', value: 95 },
+  ]
+}
+```
+
+The condition is **what makes a hypothesis disconfirmable** — `runAndCheck()` (`packages/core/src/findings/hypothesisConditionEvaluator.ts`) evaluates the predicate against the dataset and returns `{ holds: 38, total: 42, matchingRowIndices }`. Vision slide 2's "AND-gate HOLDS 38/42" label is exactly this evaluation rendered in the Wall.
+
+**Top-level `GateNode`** composes multiple Hypotheses via AND/OR/NOT to form the Problem Condition's overall causal claim:
+
+```
+Problem Condition (e.g., "Fill < LSL on night shift · Cpk 0.78")
+        │
+   GateNode (kind: 'and', holds: 38/42)
+        │
+        ├── Hypothesis "Nozzle runs hot on night shift" → its condition
+        ├── Hypothesis "Low-viscosity lots from Supplier B" → its condition
+        └── Hypothesis "New operators during ramp" → its condition
+```
+
+So the user-facing concept _"a hypothesis with a specific condition (night shift + machine + part + supplier) describing where the problem occurs"_ IS the canonical data model — preserved entirely through the rename `SuspectedCause` → `Hypothesis`.
 
 ### Methodological grounding
 
@@ -726,17 +805,92 @@ The earlier IP V1 plan (`docs/superpowers/plans/2026-05-08-improvement-project-v
 
 ---
 
-## 15. Open questions for the implementation plan
+## 15. Resolved during spec review (2026-05-09)
 
-These don't block the design but want concrete answers in the V1 plan:
+All 7 architectural questions answered during user spec review. Each had reasonable architectural confidence; none required external research. Locked answers below feed directly into the V1 implementation plan.
 
-1. **Survey rule registry location.** Survey rules (e.g., `needs-disconfirmation` derivation, "1 step away" computation, missing-evidence detection) — single module or per-domain? Likely `packages/core/src/survey/` with sub-modules per domain.
-2. **Inbox digest computation cadence.** Real-time on every state change OR computed once per cadence tick OR computed on Hub-overview render? Performance vs freshness tradeoff.
-3. **Cross-surface badge data source.** Computed live OR cached on the entity's metadata? Affects performance of the canvas-card overlay.
-4. **Wall mini-chart data scope.** Each `HypothesisCard` renders a mini-chart of WHAT exactly? Brushed regions? Top-significance findings? Configurable?
-5. **Sustainment cadence-tick evaluator.** Where does the `consecutiveOnTargetTicks` increment? Background worker on each cadence tick, or computed on render?
-6. **Handoff sponsor sign-off mechanism.** SSE-based real-time or async email-based for V1?
-7. **Migration script.** No backward-compat per D15, but dev-fixture data in branches needs reset/refresh — document the dev-onboarding step.
+### OQ1 — Survey rule registry location
+
+**Resolved: per-domain files + shared engine.**
+
+```
+packages/core/src/survey/
+  ├── index.ts                  # Engine: collect rules, evaluate, return SurveyHint[]
+  ├── types.ts                  # SurveyHint, SurveyRule, SurveyContext
+  ├── wall.ts                   # Wall-domain rules (needs-disconfirmation, 1-step-away, etc.)
+  ├── improvementProject.ts     # IP-domain rules (Goal not set, lineage gaps)
+  ├── sustainment.ts            # Sustainment-domain rules (drift detected)
+  ├── handoff.ts                # Handoff-domain rules (owner not acknowledged)
+  └── inbox.ts                  # Hub-overview Inbox aggregator (chain transitions)
+```
+
+Each rule is `(context: SurveyContext) => SurveyHint[]`. Engine in `index.ts` collates results across rules per surface. Domain rules co-locate with their domain.
+
+### OQ2 — Inbox digest computation cadence
+
+**Resolved: compute on render + reactive via store subscription.**
+
+Hub-overview is opened weekly/monthly by process owners. Computing on render is fast for typical hub sizes (≤100 entities → sub-millisecond rule eval). When user is actively in a session, store-subscriptions auto-refresh visible Inbox items. **No background pre-computation; no scheduled job.**
+
+### OQ3 — Cross-surface badge data source
+
+**Resolved: computed live via store subscriptions; memoize per render (`React.useMemo`).**
+
+Badges are simple counts. Live computation is fast at typical hub sizes; memoization prevents re-computation on unrelated re-renders. If perf becomes an issue at very large hubs (V2+), specific high-traffic counts denormalize to entity metadata. V1 ships live everywhere.
+
+### OQ4 — Wall mini-chart data scope
+
+**Resolved: factor + outcome columns from `Hypothesis.condition`; chart type derived from factor data type; linked findings highlighted.**
+
+```ts
+function deriveMiniChartConfig(h: Hypothesis): MiniChartConfig {
+  const factor = h.condition.kind === 'leaf' ? h.condition.column : firstLeafColumn(h.condition);
+  const outcome = h.outcomeColumn; // resolved from linked Question/Finding
+  const factorDataType = parseColumn(factor).type;
+
+  if (factorDataType === 'numeric') return { type: 'i-chart', factor, outcome };
+  if (factorDataType === 'categorical') return { type: 'boxplot', factor, outcome };
+  if (factorDataType === 'continuous-x') return { type: 'scatter', factor, outcome };
+  return { type: 'placeholder', factor };
+}
+```
+
+Findings linked to the hypothesis render as highlighted brushed regions / categories on the mini-chart (matches vision slide 2's H1 brushed-9-pts I-Chart + H2 highlighted-Supplier-B Boxplot).
+
+### OQ5 — Sustainment cadence-tick evaluator
+
+**Resolved: stored counter on `SustainmentRecord`; incremented via HubAction dispatch when a new EvidenceSnapshot arrives.**
+
+```ts
+// New HubAction kind
+| { kind: 'SUSTAINMENT_TICK_EVALUATED';
+    sustainmentRecordId: SustainmentRecord['id'];
+    snapshotId: EvidenceSnapshot['id'];
+    onTarget: boolean }
+```
+
+Auto-triggered when `EVIDENCE_ADD_SNAPSHOT` lands on a Hub with active SustainmentRecords. Handler increments `consecutiveOnTargetTicks` if `onTarget=true`; resets to 0 if `false`. Auto-fire `confirmed-sustained` when counter hits N=4 (per D10).
+
+Cleanly integrates with existing F-series HubAction-dispatched persistence.
+
+### OQ6 — Handoff sponsor sign-off mechanism
+
+**Resolved: in-app signoff request → state change. No email/SSE in V1.**
+
+Flow:
+
+1. Process owner clicks "Request approval" on Handoff form → creates `pending` SignoffRequest event
+2. Sponsor opens VariScout (their normal weekly cadence); Inbox shows _"1 Handoff awaiting your approval"_
+3. Click → opens Handoff form scrolled to signoff section
+4. Click "Approve" → state transitions `pending` → `acknowledged` → `operational`
+
+No email integration. No real-time SSE notifications. Sponsor discovery via existing Inbox at next visit. V2 may add email + SSE when paid-tier customer demand materializes.
+
+### OQ7 — Dev-fixture migration
+
+**Resolved: `pnpm dev:reset` clears local IndexedDB; new schema auto-creates on next dev run.**
+
+Per D15 (no backward compat in design phase): no migration logic. Documented as a dev-onboarding step in `apps/pwa/CLAUDE.md` + `apps/azure/CLAUDE.md`. The reset script clears `variscout-pwa-normalized` + `variscout-azure-app` Dexie databases; downstream apps re-bootstrap on next `pnpm dev`.
 
 ---
 
