@@ -1,9 +1,10 @@
 ---
-title: Improvement Project V1 — Design
+title: Improvement Project V1 — Design (SUPERSEDED 2026-05-09)
 audience: [product, engineer, designer]
 category: design
-status: draft
-last-reviewed: 2026-05-08
+status: superseded
+superseded-by: docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md
+last-reviewed: 2026-05-09
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/superpowers/plans/2026-05-07-canvas-pr8-8a-mode-aware-ctas.md

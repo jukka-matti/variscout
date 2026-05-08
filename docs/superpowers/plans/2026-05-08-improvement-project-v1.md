@@ -1,9 +1,10 @@
 ---
-title: Improvement Project V1 — Implementation Plan
+title: Improvement Project V1 — Implementation Plan (SUPERSEDED 2026-05-09)
 audience: [engineer]
 category: implementation-plan
-status: active
-last-reviewed: 2026-05-08
+status: superseded
+superseded-by: docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md
+last-reviewed: 2026-05-09
 related:
   - docs/superpowers/specs/2026-05-08-improvement-project-v1-design.md
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
