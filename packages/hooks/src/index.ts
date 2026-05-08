@@ -405,6 +405,10 @@ export {
   type UseAsyncStatsResult,
 } from './useAsyncStats';
 
+// Investigation content predicate (Wall overlay availability)
+export { useHasInvestigationContent } from './useHasInvestigationContent';
+export type { UseHasInvestigationContentArgs } from './useHasInvestigationContent';
+
 // Hub Computations (shared evidence + projection memos)
 export { useHubComputations, type UseHubComputationsReturn } from './useHubComputations';
 
