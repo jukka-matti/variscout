@@ -4,15 +4,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-// Mock @variscout/core
-vi.mock('@variscout/core', () => ({
-  parseText: vi.fn(),
-  detectColumns: vi.fn(),
-  validateData: vi.fn(),
-  detectWideFormat: vi.fn(),
-  detectYamazumiFormat: vi.fn(),
-  detectDefectFormat: vi.fn(),
-}));
+// Mock @variscout/core (partial — `useEditorDataFlow` now transitively pulls in
+// `usePreferencesStore`, which reads `DEFAULT_TIME_LENS` + `DEFAULT_RISK_AXIS_CONFIG`
+// at module init. Use `importOriginal` so unrelated exports continue to resolve.)
+vi.mock('@variscout/core', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/core')>();
+  return {
+    ...actual,
+    parseText: vi.fn(),
+    detectColumns: vi.fn(),
+    validateData: vi.fn(),
+    detectWideFormat: vi.fn(),
+    detectYamazumiFormat: vi.fn(),
+    detectDefectFormat: vi.fn(),
+  };
+});
 
 // Mock useDataMerge helpers (direct function exports)
 vi.mock('../useDataMerge', () => ({
