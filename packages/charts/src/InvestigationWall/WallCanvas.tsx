@@ -187,6 +187,21 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   const isMobile = useWallIsMobile();
 
+  if (mode === 'overlay' && hubs.length === 0) {
+    // Overlay mode: render an SVG with header chrome only. The overlay
+    // wrapper (CanvasWallOverlay) is expected to gate this branch via
+    // useHasInvestigationContent — but we render defensively just in case.
+    return (
+      <svg
+        viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="bg-background text-content w-full h-full"
+        role="img"
+        aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
+      />
+    );
+  }
+
   // Mobile (<768px): swap the 2000×1400 SVG for a vertical card stack.
   // MissingEvidenceDigest still renders below the list on mobile so gap
   // coaching stays visible. MobileCardList handles its own empty state,
@@ -212,25 +227,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   }
 
   if (hubs.length === 0) {
-    if (mode === 'destination') {
-      return (
-        <EmptyState
-          onWriteHypothesis={onWriteHypothesis}
-          onPromoteFromQuestion={onPromoteFromQuestion}
-          onSeedFromFactorIntel={onSeedFromFactorIntel}
-        />
-      );
-    }
-    // Overlay mode: render an SVG with header chrome only. The overlay
-    // wrapper (CanvasWallOverlay) is expected to gate this branch via
-    // useHasInvestigationContent — but we render defensively just in case.
     return (
-      <svg
-        viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
-        preserveAspectRatio="xMidYMid meet"
-        className="bg-background text-content w-full h-full"
-        role="img"
-        aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
+      <EmptyState
+        onWriteHypothesis={onWriteHypothesis}
+        onPromoteFromQuestion={onPromoteFromQuestion}
+        onSeedFromFactorIntel={onSeedFromFactorIntel}
       />
     );
   }

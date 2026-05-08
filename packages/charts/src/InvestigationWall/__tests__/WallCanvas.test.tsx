@@ -418,5 +418,23 @@ describe('WallCanvas', () => {
       // confirm the panel mounted alongside the mobile card list.
       expect(screen.getByLabelText(/Missing evidence digest/i)).toBeInTheDocument();
     });
+
+    it('mode=overlay with empty hubs renders defensive SVG instead of mobile EmptyState', () => {
+      restoreMatchMedia = installMobileMatchMedia();
+      const { container } = render(
+        <WallCanvas
+          hubs={[]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0}
+          eventsPerWeek={0}
+          mode="overlay"
+        />
+      );
+      expect(screen.queryByTestId('wall-mobile-card-list')).not.toBeInTheDocument();
+      expect(screen.queryByText(/write a hypothesis/i)).not.toBeInTheDocument();
+      expect(container.querySelector('svg')).toBeInTheDocument();
+    });
   });
 });
