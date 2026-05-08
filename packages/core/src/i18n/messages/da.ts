@@ -870,6 +870,12 @@ export const da: MessageCatalog = {
   'upgrade.freeTierLimitation': 'Free tier limitation',
   'upgrade.fromPrice': 'From \u20ac79/month',
 
+  // Canvas Wall overlay
+  'canvas.wall.overlayLabel': 'Wall',
+  'canvas.wall.overlayDescription':
+    'Investigation Wall projected onto the canvas. Click any hub to open the Wall destination view.',
+  'canvas.wall.shortcutLabel': 'Open Wall',
+
   // Investigation Wall
   'wall.status.proposed': 'Proposed',
   'wall.status.evidenced': 'Evidenced',

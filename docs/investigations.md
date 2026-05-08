@@ -254,7 +254,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
-### Canvas Wall overlay is badge projection, not "same data, two views" mirror (vision §5.6)
+### Canvas Wall overlay is badge projection, not "same data, two views" mirror (vision §5.6) [RESOLVED 2026-05-08 — sub-PR 8e]
 
 **Surfaced by:** Canvas PR6 retrospective design review, 2026-05-06.
 
@@ -267,6 +267,24 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - Status quo + spec amendment: accept badge-projection as V1 dual-home; amend §5.6 to say "destination = full graph; overlay = projected badges."
 
 **Promotion path:** PR8e of the canvas migration sequence. Requires Spec 4 brainstorm extension to pick between embedded-wall vs badge-projection-as-canonical. ~6 tasks if embedded-wall is chosen; ~2 (just the spec amendment) if status quo.
+
+**Resolution:** Sub-PR 8e embeds `WallCanvas` as the canvas Wall overlay with shared Wall viewport state and click-to-drill to the Investigation Wall destination; see `docs/superpowers/specs/2026-05-08-canvas-wall-overlay-design.md`.
+
+---
+
+### Canvas hypothesis-arrows visually obscured under Wall overlay when both active
+
+**Surfaced by:** PR #141 (sub-PR 8e) final code review, 2026-05-08.
+
+**Description:** Spec 4 ext §6 z-stack puts the Wall overlay (`z-[15]`) above per-step badge overlays (`z-10`). When a user activates both the `'hypotheses'` overlay and the `'wall'` overlay simultaneously, the persistent `<HypothesisArrowsLayer>` connector arrows render below the Wall SVG and are visually hidden. Behavior is correct per spec — the Wall is a richer view of the same causal data — but the side effect is undocumented in the spec and may surprise users who expect both overlays' visuals to compose.
+
+**Possible directions:**
+
+- Status quo: accept that Wall-on supersedes per-step arrows; rely on Wall's own arrow rendering for causal context. Document in the spec.
+- Auto-toggle: when `'wall'` activates, suppress the `'hypotheses'` toggle in `CanvasOverlayPicker` (mutual exclusion in the picker) since Wall already encodes that data.
+- Z-axis re-stack: hoist the per-step arrow layer above the Wall (`z-20`+) so arrows draw on top — but Wall pointer-events would still gate clicks, and the resulting visual is busy.
+
+**Promotion path:** Spec 4 retroactive consolidation (Tier 3 followup) is the natural home for documenting the z-stack semantics. Promote to a decision-log Open Question only if user research surfaces confusion about the dual-overlay state.
 
 ---
 

@@ -84,6 +84,16 @@ export interface WallCanvasProps {
    * `wallLayoutStore.groupByTributary`.
    */
   groupByTributary?: boolean;
+  /**
+   * Render mode.
+   * - `'destination'` (default): full destination-view chrome including
+   *   `MissingEvidenceDigest` panel below the SVG and the dedicated
+   *   `EmptyState` for zero-hub graphs.
+   * - `'overlay'` (8e canvas overlay): SVG-only render; no
+   *   `MissingEvidenceDigest`; empty hubs render the SVG header/footer
+   *   without the EmptyState CTA panel (the overlay wrapper gates mount).
+   */
+  mode?: 'destination' | 'overlay';
 }
 
 /**
@@ -124,6 +134,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   zoom = 1,
   pan = { x: 0, y: 0 },
   groupByTributary = false,
+  mode = 'destination',
 }) => {
   const locale = useWallLocale();
   const columnSet = useMemo(
@@ -172,15 +183,31 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     return [...buckets, unassigned].filter(b => b.hubs.length > 0);
   }, [groupByTributary, hubs, processMap]);
 
-  const dndEnabled = Boolean(onComposeGate);
+  const dndEnabled = mode === 'destination' && Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   const isMobile = useWallIsMobile();
+  const openQuestions = questions.filter(
+    q => q.status === 'open' && !hubs.some(h => h.questionIds.includes(q.id))
+  );
+
+  if (mode === 'overlay' && hubs.length === 0 && openQuestions.length === 0) {
+    // Overlay mode: render a blank SVG so the wrapper owns empty-state semantics.
+    return (
+      <svg
+        viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="bg-background text-content w-full h-full"
+        role="img"
+        aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
+      />
+    );
+  }
 
   // Mobile (<768px): swap the 2000×1400 SVG for a vertical card stack.
   // MissingEvidenceDigest still renders below the list on mobile so gap
   // coaching stays visible. MobileCardList handles its own empty state,
   // so this branch supersedes the hubs-empty short-circuit below.
-  if (isMobile) {
+  if (mode === 'destination' && isMobile) {
     return (
       <div className="w-full h-full flex flex-col">
         <MobileCardList
@@ -193,12 +220,14 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onPromoteFromQuestion={onPromoteFromQuestion}
           onSeedFromFactorIntel={onSeedFromFactorIntel}
         />
-        <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+        {mode === 'destination' ? (
+          <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+        ) : null}
       </div>
     );
   }
 
-  if (hubs.length === 0) {
+  if (mode === 'destination' && hubs.length === 0) {
     return (
       <EmptyState
         onWriteHypothesis={onWriteHypothesis}
@@ -211,10 +240,6 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const problemLabel = processMap?.ctsColumn ?? 'CTS';
   const hubY = 400;
   const hubSpacing = CANVAS_W / (hubs.length + 1);
-
-  const openQuestions = questions.filter(
-    q => q.status === 'open' && !hubs.some(h => h.questionIds.includes(q.id))
-  );
 
   const renderHubAt = (hub: SuspectedCause, x: number) => {
     const hubProps = {
@@ -330,7 +355,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         </g>
       </svg>
 
-      <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+      {mode === 'destination' ? (
+        <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+      ) : null}
     </div>
   );
 

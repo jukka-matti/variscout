@@ -3,7 +3,12 @@ import type { CausalLink, Finding, Question, SuspectedCause } from '@variscout/c
 import type { ProcessMap } from '@variscout/core/frame';
 import { selectHypothesisTributaries } from '@variscout/stores';
 
-export type CanvasOverlayId = 'investigations' | 'hypotheses' | 'suspected-causes' | 'findings';
+export type CanvasOverlayId =
+  | 'investigations'
+  | 'hypotheses'
+  | 'suspected-causes'
+  | 'findings'
+  | 'wall';
 
 export interface CanvasOverlayDefinition {
   id: CanvasOverlayId;
@@ -36,6 +41,13 @@ export const CANVAS_OVERLAY_REGISTRY: Record<CanvasOverlayId, CanvasOverlayDefin
     label: 'Findings',
     enabled: true,
     description: 'Recent finding pins anchored to process steps.',
+  },
+  wall: {
+    id: 'wall',
+    label: 'Wall',
+    enabled: true,
+    description:
+      'Investigation Wall projected onto the canvas. Click any hub to open the Wall destination view.',
   },
 };
 

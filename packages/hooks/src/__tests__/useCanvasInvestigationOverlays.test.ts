@@ -6,6 +6,7 @@ import {
   buildCanvasInvestigationOverlays,
   coerceCanvasOverlays,
   enabledCanvasOverlays,
+  type CanvasOverlayId,
 } from '../useCanvasInvestigationOverlays';
 
 const map: ProcessMap = {
@@ -96,9 +97,33 @@ describe('canvas overlay registry', () => {
       'hypotheses',
       'suspected-causes',
       'findings',
+      'wall',
     ]);
     expect(CANVAS_OVERLAY_REGISTRY.findings.enabled).toBe(true);
     expect(coerceCanvasOverlays(['findings', 'unknown', 'findings'])).toEqual(['findings']);
+  });
+});
+
+describe('CanvasOverlayId — wall overlay', () => {
+  it('registry includes a wall entry with overlay-appropriate label/description', () => {
+    expect(CANVAS_OVERLAY_REGISTRY.wall).toBeDefined();
+    expect(CANVAS_OVERLAY_REGISTRY.wall.id).toBe('wall');
+    expect(CANVAS_OVERLAY_REGISTRY.wall.enabled).toBe(true);
+    expect(CANVAS_OVERLAY_REGISTRY.wall.label.length).toBeGreaterThan(0);
+  });
+
+  it('enabledCanvasOverlays exposes wall', () => {
+    const ids = enabledCanvasOverlays().map(o => o.id);
+    expect(ids).toContain('wall');
+  });
+
+  it('coerceCanvasOverlays preserves wall through a round-trip', () => {
+    const input: unknown[] = ['wall', 'hypotheses'];
+    expect(coerceCanvasOverlays(input)).toEqual<CanvasOverlayId[]>(['wall', 'hypotheses']);
+  });
+
+  it('coerceCanvasOverlays deduplicates wall', () => {
+    expect(coerceCanvasOverlays(['wall', 'wall'])).toEqual<CanvasOverlayId[]>(['wall']);
   });
 });
 

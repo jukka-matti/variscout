@@ -61,6 +61,12 @@ export {
   type UseHypothesisDrawToolResult,
 } from './useHypothesisDrawTool';
 
+export {
+  useSharedWallProps,
+  type UseSharedWallPropsArgs,
+  type UseSharedWallPropsReturn,
+} from './useSharedWallProps';
+
 // Canvas step cards and lens registry
 export {
   CANVAS_LENS_REGISTRY,
@@ -404,6 +410,10 @@ export {
   type UseAsyncStatsOptions,
   type UseAsyncStatsResult,
 } from './useAsyncStats';
+
+// Investigation content predicate (Wall overlay availability)
+export { useHasInvestigationContent } from './useHasInvestigationContent';
+export type { UseHasInvestigationContentArgs } from './useHasInvestigationContent';
 
 // Hub Computations (shared evidence + projection memos)
 export { useHubComputations, type UseHubComputationsReturn } from './useHubComputations';

@@ -998,6 +998,11 @@ export interface MessageCatalog {
   'upgrade.freeTierLimitation': string;
   'upgrade.fromPrice': string;
 
+  // Canvas Wall overlay
+  'canvas.wall.overlayLabel': string;
+  'canvas.wall.overlayDescription': string;
+  'canvas.wall.shortcutLabel': string;
+
   // Investigation Wall
   'wall.status.proposed': string;
   'wall.status.evidenced': string;

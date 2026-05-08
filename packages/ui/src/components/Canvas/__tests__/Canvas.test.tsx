@@ -1,4 +1,7 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
+import type { ComponentProps } from 'react';
+
+const wallIsMobileRef = vi.hoisted(() => ({ current: false }));
 
 vi.mock('@variscout/charts', async () => {
   const React = await import('react');
@@ -12,12 +15,33 @@ vi.mock('@variscout/charts', async () => {
     CapabilityBoxplot: () =>
       React.createElement('div', { 'data-testid': 'mock-capability-boxplot' }),
     StepErrorPareto: () => React.createElement('div', { 'data-testid': 'mock-step-pareto' }),
+    useWallIsMobile: () => wallIsMobileRef.current,
+    WallCanvas: ({
+      findings,
+      problemCpk,
+      eventsPerWeek,
+      activeColumns,
+    }: {
+      findings?: unknown[];
+      problemCpk?: unknown;
+      eventsPerWeek?: unknown;
+      activeColumns?: ReadonlyArray<string>;
+    }) =>
+      React.createElement('div', {
+        'data-testid': 'wall-canvas',
+        'data-findings-count': String(findings?.length ?? 0),
+        'data-problem-cpk': String(problemCpk),
+        'data-events-per-week': String(eventsPerWeek),
+        'data-active-columns': (activeColumns ?? []).join(','),
+      }),
   };
 });
 
 import { fireEvent, render, screen } from '@testing-library/react';
+import type { Finding } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { CanvasInvestigationOverlayModel, CanvasStepCardModel } from '@variscout/hooks';
+import { getInvestigationInitialState, useInvestigationStore } from '@variscout/stores';
 import { Canvas } from '../index';
 
 const SIGNALS = { hasIntervention: false, sustainmentConfirmed: false };
@@ -175,9 +199,38 @@ function setViewport(width: number, height: number) {
   Object.defineProperty(window, 'innerHeight', { configurable: true, value: height });
 }
 
+const wallFinding = {
+  id: 'finding-wall-1',
+  text: 'Nozzle defects cluster after changeover',
+  context: { activeFilters: {}, cumulativeScope: null },
+  status: 'observed',
+  comments: [],
+  statusChangedAt: 0,
+  investigationId: 'inv-1',
+  createdAt: 0,
+  deletedAt: null,
+} satisfies Finding;
+
+function renderCanvas(overrides: Partial<ComponentProps<typeof Canvas>> = {}) {
+  const props: ComponentProps<typeof Canvas> = {
+    map: mapWithSteps,
+    availableColumns: ['Pressure', 'Defect'],
+    onChange: vi.fn(),
+    data,
+    filter,
+    signals: SIGNALS,
+    stepCards,
+    ...overrides,
+  };
+  render(<Canvas {...props} />);
+  return props;
+}
+
 describe('Canvas', () => {
   beforeEach(() => {
     setViewport(1024, 768);
+    wallIsMobileRef.current = false;
+    useInvestigationStore.setState(getInvestigationInitialState());
   });
 
   it('renders the PR5 card surface instead of the dedicated operations band', () => {
@@ -435,6 +488,64 @@ describe('Canvas', () => {
 
     expect(onOverlayToggle).toHaveBeenCalledWith('findings');
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('hides the Wall overlay toggle when investigation content is empty', () => {
+    renderCanvas();
+
+    expect(screen.getByTestId('canvas-overlay-picker')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /wall overlay/i })).not.toBeInTheDocument();
+  });
+
+  it('shows the Wall overlay toggle when investigation content exists on desktop', () => {
+    useInvestigationStore.getState().addQuestion('Does pressure explain defect clusters?');
+
+    renderCanvas();
+
+    expect(screen.getByRole('button', { name: /wall overlay/i })).toBeInTheDocument();
+  });
+
+  it('mounts the CanvasWallOverlay when the Wall overlay is active and content exists', () => {
+    useInvestigationStore.getState().addQuestion('Does pressure explain defect clusters?');
+
+    renderCanvas({
+      activeOverlays: ['wall'],
+      findings: [wallFinding],
+      problemCpk: 0.82,
+      eventsPerWeek: 14,
+      activeColumns: ['Machine', 'Defect'],
+    });
+
+    expect(screen.getByTestId('canvas-wall-overlay')).toBeInTheDocument();
+    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-findings-count', '1');
+    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-problem-cpk', '0.82');
+    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-events-per-week', '14');
+    expect(screen.getByTestId('wall-canvas')).toHaveAttribute(
+      'data-active-columns',
+      'Machine,Defect'
+    );
+  });
+
+  it('hides the Wall overlay toggle on mobile and shows the Wall shortcut when content exists', () => {
+    wallIsMobileRef.current = true;
+    useInvestigationStore.getState().addQuestion('Does pressure explain defect clusters?');
+
+    renderCanvas({ onOpenWall: vi.fn() });
+
+    expect(screen.queryByRole('button', { name: /wall overlay/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId('canvas-wall-shortcut-button')).toBeInTheDocument();
+  });
+
+  it('calls onOpenWall once from the mobile Wall shortcut', () => {
+    const onOpenWall = vi.fn();
+    wallIsMobileRef.current = true;
+    useInvestigationStore.getState().addQuestion('Does pressure explain defect clusters?');
+
+    renderCanvas({ onOpenWall });
+
+    fireEvent.click(screen.getByTestId('canvas-wall-shortcut-button'));
+
+    expect(onOpenWall).toHaveBeenCalledTimes(1);
   });
 
   it('renders the hypothesis draw tool button and forwards tool changes', () => {
