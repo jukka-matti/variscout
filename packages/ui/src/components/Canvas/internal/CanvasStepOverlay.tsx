@@ -35,6 +35,7 @@ interface CanvasStepOverlayProps {
   onHandoff?: (stepId: string) => void;
   investigationOverlay?: CanvasStepInvestigationOverlay;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
+  onRemoveCausalLink?: (linkId: string) => void;
 }
 
 const DESKTOP_WIDTH = 440;
@@ -120,6 +121,7 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
   onHandoff,
   investigationOverlay,
   onOpenInvestigationFocus,
+  onRemoveCausalLink,
 }) => {
   const { t } = useTranslation();
   const touchStartY = React.useRef<number | null>(null);
@@ -320,14 +322,29 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
                     </button>
                   ))}
                   {investigationOverlay.causalLinks.map(link => (
-                    <button
-                      key={`link-${link.id}`}
-                      type="button"
-                      className="rounded border border-edge bg-surface-primary px-2 py-1 text-left text-content-secondary hover:bg-surface-tertiary hover:text-content"
-                      onClick={() => onOpenInvestigationFocus?.(link.focus)}
-                    >
-                      Link: {link.label}
-                    </button>
+                    <div key={`link-${link.id}`} className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        className="flex-1 rounded border border-edge bg-surface-primary px-2 py-1 text-left text-content-secondary hover:bg-surface-tertiary hover:text-content"
+                        onClick={() => onOpenInvestigationFocus?.(link.focus)}
+                      >
+                        Link: {link.label}
+                      </button>
+                      {onRemoveCausalLink ? (
+                        <button
+                          type="button"
+                          aria-label={`Remove hypothesis ${link.label}`}
+                          title="Remove hypothesis"
+                          className="rounded border border-edge bg-surface-primary px-2 py-1 text-content-secondary hover:bg-status-fail-soft hover:text-status-fail"
+                          onClick={event => {
+                            event.stopPropagation();
+                            onRemoveCausalLink(link.id);
+                          }}
+                        >
+                          x
+                        </button>
+                      ) : null}
+                    </div>
                   ))}
                 </div>
               ) : (

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import type { CanvasStepCardModel } from '@variscout/hooks';
 import type { WorkflowReadinessSignals } from '@variscout/core';
@@ -128,5 +128,53 @@ describe('CanvasStepOverlay — response-path CTA rendering', () => {
     const cta = screen.getByTestId('canvas-cta-charter');
     cta.click();
     expect(onCharter).toHaveBeenCalledWith('step-1');
+  });
+});
+
+describe('CanvasStepOverlay causal link removal', () => {
+  const overlay = {
+    stepId: 'step-1',
+    questions: [],
+    findings: [],
+    suspectedCauses: [],
+    causalLinks: [
+      {
+        id: 'link-1',
+        fromStepId: 'step-1',
+        toStepId: 'step-2',
+        label: 'A drives B',
+        questionId: undefined,
+        focus: { kind: 'causal-link' as const, id: 'link-1' },
+      },
+    ],
+    investigationCounts: { open: 0, supported: 0, refuted: 0 },
+  };
+
+  it('renders a Remove button per causal link', () => {
+    renderOverlay({ investigationOverlay: overlay, onRemoveCausalLink: vi.fn() });
+
+    expect(
+      screen.getByRole('button', { name: /remove hypothesis A drives B/i })
+    ).toBeInTheDocument();
+  });
+
+  it('clicking Remove calls onRemoveCausalLink with the link id', () => {
+    const onRemoveCausalLink = vi.fn();
+    renderOverlay({ investigationOverlay: overlay, onRemoveCausalLink });
+
+    fireEvent.click(screen.getByRole('button', { name: /remove hypothesis/i }));
+
+    expect(onRemoveCausalLink).toHaveBeenCalledWith('link-1');
+  });
+
+  it('clicking Remove does not open the investigation focus', () => {
+    const onOpenInvestigationFocus = vi.fn();
+    const onRemoveCausalLink = vi.fn();
+    renderOverlay({ investigationOverlay: overlay, onOpenInvestigationFocus, onRemoveCausalLink });
+
+    fireEvent.click(screen.getByRole('button', { name: /remove hypothesis/i }));
+
+    expect(onRemoveCausalLink).toHaveBeenCalledOnce();
+    expect(onOpenInvestigationFocus).not.toHaveBeenCalled();
   });
 });

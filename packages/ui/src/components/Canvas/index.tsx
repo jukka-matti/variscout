@@ -8,13 +8,17 @@ import { chartColors } from '@variscout/charts';
 import {
   coerceCanvasLens,
   coerceCanvasOverlays,
+  resolveEndpointToFactor,
   useCanvasKeyboard,
   useChipDragAndDrop,
+  useHypothesisDrawTool,
+  type ArrowEndpoint,
   type CanvasInvestigationFocus,
   type CanvasInvestigationOverlayModel,
   type CanvasLensId,
   type CanvasOverlayId,
   type CanvasStepCardModel,
+  type CanvasToolId,
 } from '@variscout/hooks';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
 import type { SpecLimits, WorkflowReadinessSignals } from '@variscout/core';
@@ -30,6 +34,11 @@ import { CanvasModeToggle } from '../CanvasModeToggle';
 import { StructuralToolbar } from '../StructuralToolbar';
 import { CanvasLensPicker } from './internal/CanvasLensPicker';
 import { CanvasOverlayPicker } from './internal/CanvasOverlayPicker';
+import { HypothesisDrawToolButton } from './internal/HypothesisDrawToolButton';
+import {
+  HypothesisDraftPopover,
+  type HypothesisDraftPayload,
+} from './internal/HypothesisDraftPopover';
 import { CanvasStepCard } from './internal/CanvasStepCard';
 import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
 
@@ -55,6 +64,8 @@ type ArrowSegment = {
   x2: number;
   y2: number;
 };
+
+type CanvasQuestionOption = { id: string; text: string };
 
 function areArrowSegmentsEqual(left: ArrowSegment[], right: ArrowSegment[]) {
   if (left.length !== right.length) return false;
@@ -125,6 +136,15 @@ export interface CanvasProps {
   onLensChange?: (next: CanvasLensId) => void;
   activeOverlays?: CanvasOverlayId[];
   onOverlayToggle?: (overlay: CanvasOverlayId) => void;
+  activeCanvasTool?: CanvasToolId;
+  onCanvasToolChange?: (next: CanvasToolId) => void;
+  questions?: ReadonlyArray<CanvasQuestionOption>;
+  onAddCausalLink?: (
+    fromFactor: string,
+    toFactor: string,
+    whyStatement: string,
+    options?: { questionIds?: string[] }
+  ) => void;
   investigationOverlays?: CanvasInvestigationOverlayModel;
   signals: WorkflowReadinessSignals;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
@@ -134,6 +154,7 @@ export interface CanvasProps {
   onSustainment?: (stepId: string) => void;
   onHandoff?: (stepId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
+  onRemoveCausalLink?: (linkId: string) => void;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
@@ -171,6 +192,10 @@ export const Canvas: React.FC<CanvasProps> = ({
   onLensChange,
   activeOverlays = [],
   onOverlayToggle,
+  activeCanvasTool = 'select',
+  onCanvasToolChange,
+  questions = [],
+  onAddCausalLink,
   investigationOverlays,
   signals,
   onStepSpecsRequest,
@@ -180,6 +205,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onSustainment,
   onHandoff,
   onOpenInvestigationFocus,
+  onRemoveCausalLink,
 }) => {
   const isAuthorMode = authoringMode === 'author';
   const resolvedLens = coerceCanvasLens(activeLens);
@@ -198,6 +224,11 @@ export const Canvas: React.FC<CanvasProps> = ({
   );
   const cardElements = React.useRef(new Map<string, HTMLElement>());
   const [arrowSegments, setArrowSegments] = React.useState<ArrowSegment[]>([]);
+  const [arrowMeasureVersion, setArrowMeasureVersion] = React.useState(0);
+  const drawTool = useHypothesisDrawTool({
+    active: activeCanvasTool === 'draw-hypothesis' && !disabled,
+  });
+  const resetDrawTool = drawTool.reset;
   const pendingStepChip = pendingStepChipId
     ? chips.find(chip => chip.chipId === pendingStepChipId)
     : undefined;
@@ -275,10 +306,38 @@ export const Canvas: React.FC<CanvasProps> = ({
     : undefined;
   const cardSurfaceRef = React.useRef<HTMLDivElement | null>(null);
 
+  const stepMetricColumns = React.useMemo(() => {
+    const out: Record<string, string | undefined> = {};
+    for (const card of stepCards) out[card.stepId] = card.metricColumn;
+    return out;
+  }, [stepCards]);
+
   const registerCardElement = React.useCallback((stepId: string, element: HTMLElement | null) => {
     if (element) cardElements.current.set(stepId, element);
     else cardElements.current.delete(stepId);
   }, []);
+
+  React.useLayoutEffect(() => {
+    if (
+      !resolvedOverlays.includes('hypotheses') ||
+      !investigationOverlays ||
+      !cardSurfaceRef.current
+    ) {
+      return;
+    }
+
+    const refresh = () => setArrowMeasureVersion(version => version + 1);
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(refresh);
+    resizeObserver?.observe(cardSurfaceRef.current);
+    for (const element of cardElements.current.values()) resizeObserver?.observe(element);
+    window.addEventListener('resize', refresh);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', refresh);
+    };
+  }, [investigationOverlays, resolvedLens, resolvedOverlays, stepCards]);
 
   React.useLayoutEffect(() => {
     if (
@@ -307,7 +366,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       ];
     });
     setArrowSegments(current => (areArrowSegmentsEqual(current, next) ? current : next));
-  }, [investigationOverlays, resolvedOverlays, stepCards]);
+  }, [arrowMeasureVersion, investigationOverlays, resolvedLens, resolvedOverlays, stepCards]);
 
   const handleOpenStepCard = React.useCallback((stepId: string, element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
@@ -327,6 +386,185 @@ export const Canvas: React.FC<CanvasProps> = ({
     setStepOverlayAnchor(null);
   }, []);
 
+  const surfacePoint = React.useCallback(
+    (clientX: number, clientY: number): { x: number; y: number } => {
+      const rect = cardSurfaceRef.current?.getBoundingClientRect();
+      return rect ? { x: clientX - rect.left, y: clientY - rect.top } : { x: clientX, y: clientY };
+    },
+    []
+  );
+
+  const endpointElementFromTarget = React.useCallback(
+    (target: EventTarget | null): Element | null => {
+      return target instanceof Element ? target.closest('[data-arrow-endpoint]') : null;
+    },
+    []
+  );
+
+  const parseEndpointElement = React.useCallback(
+    (element: Element | null): ArrowEndpoint | null => {
+      let node: Element | null = element;
+      while (node) {
+        const attr = node.getAttribute('data-arrow-endpoint');
+        if (attr) {
+          const separator = attr.indexOf(':');
+          if (separator < 0) return null;
+          const kind = attr.slice(0, separator);
+          const id = attr.slice(separator + 1);
+          if (kind === 'step') return { kind: 'step', id };
+          if (kind === 'column') {
+            const directHostStepId = node.getAttribute('data-arrow-host-step-id');
+            if (directHostStepId) return { kind: 'column', name: id, hostStepId: directHostStepId };
+            let stepNode = node.parentElement;
+            while (stepNode) {
+              const hostStepId = stepNode.getAttribute('data-arrow-host-step-id');
+              if (hostStepId) return { kind: 'column', name: id, hostStepId };
+              const stepAttr = stepNode.getAttribute('data-arrow-endpoint');
+              if (stepAttr?.startsWith('step:')) {
+                return { kind: 'column', name: id, hostStepId: stepAttr.slice(5) };
+              }
+              stepNode = stepNode.parentElement;
+            }
+          }
+        }
+        node = node.parentElement;
+      }
+      return null;
+    },
+    []
+  );
+
+  const endpointFromPointerEvent = React.useCallback(
+    (event: React.PointerEvent<HTMLElement>): ArrowEndpoint | null => {
+      const targetElement = endpointElementFromTarget(event.target);
+      const fallbackElement =
+        typeof document === 'undefined' || typeof document.elementFromPoint !== 'function'
+          ? null
+          : document.elementFromPoint(event.clientX, event.clientY);
+      return parseEndpointElement(targetElement) ?? parseEndpointElement(fallbackElement);
+    },
+    [endpointElementFromTarget, parseEndpointElement]
+  );
+
+  const endpointFromKeyboardEvent = React.useCallback(
+    (
+      event: React.KeyboardEvent<HTMLElement>
+    ): { endpoint: ArrowEndpoint; at: { x: number; y: number } } | null => {
+      const element = endpointElementFromTarget(event.target);
+      const endpoint = parseEndpointElement(element);
+      if (!endpoint) return null;
+      const elementRect = element?.getBoundingClientRect();
+      const surfaceRect = cardSurfaceRef.current?.getBoundingClientRect();
+      if (elementRect && surfaceRect) {
+        return {
+          endpoint,
+          at: {
+            x: elementRect.left + elementRect.width / 2 - surfaceRect.left,
+            y: elementRect.top + elementRect.height / 2 - surfaceRect.top,
+          },
+        };
+      }
+      return { endpoint, at: { x: 0, y: 0 } };
+    },
+    [endpointElementFromTarget, parseEndpointElement]
+  );
+
+  const handleDrawPointerDown = React.useCallback(
+    (event: React.PointerEvent<HTMLElement>): void => {
+      if (activeCanvasTool !== 'draw-hypothesis' || disabled) return;
+      const endpoint = endpointFromPointerEvent(event);
+      if (!endpoint) return;
+      const sourceElement = endpointElementFromTarget(event.target);
+      const sourceRect = sourceElement?.getBoundingClientRect();
+      const surfaceRect = cardSurfaceRef.current?.getBoundingClientRect();
+      const anchor =
+        sourceRect && surfaceRect
+          ? {
+              x: sourceRect.left + sourceRect.width / 2 - surfaceRect.left,
+              y: sourceRect.top + sourceRect.height / 2 - surfaceRect.top,
+            }
+          : surfacePoint(event.clientX, event.clientY);
+      event.preventDefault();
+      drawTool.onPointerDown(endpoint, anchor);
+    },
+    [
+      activeCanvasTool,
+      disabled,
+      drawTool,
+      endpointElementFromTarget,
+      endpointFromPointerEvent,
+      surfacePoint,
+    ]
+  );
+
+  const handleDrawPointerMove = React.useCallback(
+    (event: React.PointerEvent<HTMLElement>): void => {
+      if (drawTool.state.phase !== 'drawing') return;
+      drawTool.onPointerMove(
+        surfacePoint(event.clientX, event.clientY),
+        endpointFromPointerEvent(event)
+      );
+    },
+    [drawTool, endpointFromPointerEvent, surfacePoint]
+  );
+
+  const handleDrawPointerUp = React.useCallback(
+    (event: React.PointerEvent<HTMLElement>): void => {
+      if (drawTool.state.phase !== 'drawing') return;
+      drawTool.onPointerUp(
+        endpointFromPointerEvent(event),
+        surfacePoint(event.clientX, event.clientY)
+      );
+    },
+    [drawTool, endpointFromPointerEvent, surfacePoint]
+  );
+
+  const handleDrawKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLElement>): void => {
+      if (activeCanvasTool !== 'draw-hypothesis' || disabled) return;
+      if (event.key === 'Escape') {
+        drawTool.cancel();
+        onCanvasToolChange?.('select');
+        return;
+      }
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const resolved = endpointFromKeyboardEvent(event);
+      if (!resolved) return;
+      event.preventDefault();
+      if (drawTool.state.phase === 'drawing') {
+        drawTool.onPointerUp(resolved.endpoint, resolved.at);
+      } else {
+        drawTool.onPointerDown(resolved.endpoint, resolved.at);
+      }
+    },
+    [activeCanvasTool, disabled, drawTool, endpointFromKeyboardEvent, onCanvasToolChange]
+  );
+
+  const endpointLabel = React.useCallback(
+    (endpoint: ArrowEndpoint): string =>
+      endpoint.kind === 'column' ? endpoint.name : (stepMetricColumns[endpoint.id] ?? endpoint.id),
+    [stepMetricColumns]
+  );
+
+  const handleHypothesisSave = React.useCallback(
+    (payload: HypothesisDraftPayload): void => {
+      if (drawTool.state.phase !== 'awaitingForm') return;
+      const fromFactor = resolveEndpointToFactor(drawTool.state.source, stepMetricColumns);
+      const toFactor = resolveEndpointToFactor(drawTool.state.target, stepMetricColumns);
+      drawTool.reset();
+      if (!fromFactor || !toFactor) return;
+      onAddCausalLink?.(fromFactor, toFactor, payload.whyStatement, {
+        questionIds: payload.questionId ? [payload.questionId] : [],
+      });
+      onCanvasToolChange?.('select');
+    },
+    [drawTool, onAddCausalLink, onCanvasToolChange, stepMetricColumns]
+  );
+
+  React.useEffect(() => {
+    if (activeCanvasTool !== 'draw-hypothesis') resetDrawTool();
+  }, [activeCanvasTool, resetDrawTool]);
+
   const canvasContent = (
     <div data-testid="layered-process-view" className="flex flex-col bg-surface-background">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-edge px-4 py-2">
@@ -345,6 +583,11 @@ export const Canvas: React.FC<CanvasProps> = ({
           ) : null}
           <CanvasLensPicker activeLens={resolvedLens} onChange={onLensChange} />
           <CanvasOverlayPicker activeOverlays={resolvedOverlays} onToggle={onOverlayToggle} />
+          <HypothesisDrawToolButton
+            activeTool={activeCanvasTool}
+            onChange={next => onCanvasToolChange?.(next)}
+            disabled={disabled}
+          />
         </div>
         <div className="flex items-center gap-2">
           {onModeChange ? (
@@ -362,8 +605,17 @@ export const Canvas: React.FC<CanvasProps> = ({
 
       <section
         ref={cardSurfaceRef}
-        className="relative px-4 py-4"
+        className={[
+          'relative px-4 py-4',
+          activeCanvasTool === 'draw-hypothesis' && !disabled ? 'cursor-crosshair' : '',
+        ].join(' ')}
         data-testid="canvas-card-surface"
+        onPointerDown={handleDrawPointerDown}
+        onPointerMove={handleDrawPointerMove}
+        onPointerUp={handleDrawPointerUp}
+        onPointerCancel={() => drawTool.onPointerCancel()}
+        onKeyDown={handleDrawKeyDown}
+        style={{ touchAction: activeCanvasTool === 'draw-hypothesis' ? 'none' : undefined }}
       >
         {resolvedOverlays.includes('hypotheses') && arrowSegments.length > 0 ? (
           <svg
@@ -388,6 +640,25 @@ export const Canvas: React.FC<CanvasProps> = ({
             ))}
           </svg>
         ) : null}
+        {drawTool.state.phase === 'drawing' ? (
+          <svg
+            className="pointer-events-none absolute inset-0 z-20 h-full w-full"
+            data-testid="canvas-rubber-band"
+            aria-hidden="true"
+          >
+            <line
+              x1={drawTool.state.anchorAt.x}
+              y1={drawTool.state.anchorAt.y}
+              x2={drawTool.state.cursorAt.x}
+              y2={drawTool.state.cursorAt.y}
+              stroke="currentColor"
+              strokeDasharray="4 3"
+              strokeWidth="2"
+              opacity={0.7}
+              style={{ color: chartColors.warning }}
+            />
+          </svg>
+        ) : null}
         {stepCards.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {stepCards.map(card => (
@@ -397,6 +668,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                 activeLens={resolvedLens}
                 activeOverlays={resolvedOverlays}
                 investigationOverlay={investigationOverlays?.byStep[card.stepId]}
+                activeCanvasTool={activeCanvasTool}
                 onOpen={handleOpenStepCard}
                 onStepSpecsRequest={onStepSpecsRequest}
                 registerCardElement={registerCardElement}
@@ -408,6 +680,16 @@ export const Canvas: React.FC<CanvasProps> = ({
             Add process steps to create live canvas cards.
           </div>
         )}
+        {drawTool.state.phase === 'awaitingForm' ? (
+          <HypothesisDraftPopover
+            sourceLabel={endpointLabel(drawTool.state.source)}
+            targetLabel={endpointLabel(drawTool.state.target)}
+            releaseAt={drawTool.state.releaseAt}
+            questions={questions}
+            onSave={handleHypothesisSave}
+            onCancel={drawTool.reset}
+          />
+        ) : null}
       </section>
 
       <section className="border-t border-edge px-4 py-3" data-testid="canvas-authoring-map">
@@ -457,6 +739,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           onHandoff={onHandoff}
           investigationOverlay={activeStepInvestigationOverlay}
           onOpenInvestigationFocus={onOpenInvestigationFocus}
+          onRemoveCausalLink={onRemoveCausalLink}
         />
       ) : null}
     </div>
