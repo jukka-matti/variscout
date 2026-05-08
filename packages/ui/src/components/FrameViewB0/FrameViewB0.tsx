@@ -13,7 +13,7 @@
  *   ├─────────────────────────────────────────────┤
  *   │  ProcessStepsExpander                       │
  *   │    └─ children: existing canvas             │
- *   │       (LayeredProcessViewWithCapability     │
+ *   │       (CanvasWorkspace                      │
  *   │        with showGaps={false})               │
  *   ├─────────────────────────────────────────────┤
  *   │  SeeTheDataCta                              │
@@ -68,8 +68,8 @@ export interface FrameViewB0Props {
   onConfirmYSpec: (values: SpecValues) => void;
 
   /**
-   * Children = the existing canvas component (LayeredProcessViewWithCapability
-   * or ProcessMapBase wrapped). Rendered inside the ProcessStepsExpander.
+   * Children = the existing canvas component (CanvasWorkspace). Rendered
+   * inside the ProcessStepsExpander.
    */
   children: ReactNode;
 

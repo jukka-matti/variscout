@@ -29,7 +29,7 @@ export interface UseProductionLineGlanceOpsToggleResult {
 }
 
 /**
- * URL ?ops state for the LayeredProcessView Operations band's
+ * URL ?ops state for the canvas's Operations band's
  * progressive-reveal mode. Default 'spatial'; 'full' reveals the
  * temporal row above the spatial row.
  */
