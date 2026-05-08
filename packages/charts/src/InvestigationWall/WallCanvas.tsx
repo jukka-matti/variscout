@@ -84,6 +84,16 @@ export interface WallCanvasProps {
    * `wallLayoutStore.groupByTributary`.
    */
   groupByTributary?: boolean;
+  /**
+   * Render mode.
+   * - `'destination'` (default): full destination-view chrome including
+   *   `MissingEvidenceDigest` panel below the SVG and the dedicated
+   *   `EmptyState` for zero-hub graphs.
+   * - `'overlay'` (8e canvas overlay): SVG-only render; no
+   *   `MissingEvidenceDigest`; empty hubs render the SVG header/footer
+   *   without the EmptyState CTA panel (the overlay wrapper gates mount).
+   */
+  mode?: 'destination' | 'overlay';
 }
 
 /**
@@ -124,6 +134,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   zoom = 1,
   pan = { x: 0, y: 0 },
   groupByTributary = false,
+  mode = 'destination',
 }) => {
   const locale = useWallLocale();
   const columnSet = useMemo(
@@ -172,7 +183,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     return [...buckets, unassigned].filter(b => b.hubs.length > 0);
   }, [groupByTributary, hubs, processMap]);
 
-  const dndEnabled = Boolean(onComposeGate);
+  const dndEnabled = mode === 'destination' && Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   const isMobile = useWallIsMobile();
 
@@ -193,17 +204,33 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onPromoteFromQuestion={onPromoteFromQuestion}
           onSeedFromFactorIntel={onSeedFromFactorIntel}
         />
-        <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+        {mode === 'destination' ? (
+          <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+        ) : null}
       </div>
     );
   }
 
   if (hubs.length === 0) {
+    if (mode === 'destination') {
+      return (
+        <EmptyState
+          onWriteHypothesis={onWriteHypothesis}
+          onPromoteFromQuestion={onPromoteFromQuestion}
+          onSeedFromFactorIntel={onSeedFromFactorIntel}
+        />
+      );
+    }
+    // Overlay mode: render an SVG with header chrome only. The overlay
+    // wrapper (CanvasWallOverlay) is expected to gate this branch via
+    // useHasInvestigationContent — but we render defensively just in case.
     return (
-      <EmptyState
-        onWriteHypothesis={onWriteHypothesis}
-        onPromoteFromQuestion={onPromoteFromQuestion}
-        onSeedFromFactorIntel={onSeedFromFactorIntel}
+      <svg
+        viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="bg-background text-content w-full h-full"
+        role="img"
+        aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
       />
     );
   }
@@ -330,7 +357,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         </g>
       </svg>
 
-      <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+      {mode === 'destination' ? (
+        <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+      ) : null}
     </div>
   );
 

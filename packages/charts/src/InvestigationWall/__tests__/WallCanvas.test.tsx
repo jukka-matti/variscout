@@ -219,6 +219,75 @@ describe('WallCanvas', () => {
     expect(container.querySelector('[data-draggable-hub]')).toBeNull();
   });
 
+  describe('mode prop', () => {
+    it('default mode is destination — renders MissingEvidenceDigest panel', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0}
+          eventsPerWeek={0}
+          gaps={[{ id: 'g1', message: 'Gap message' }]}
+        />
+      );
+      expect(screen.getByLabelText(/Missing evidence digest/i)).toBeInTheDocument();
+    });
+
+    it('mode=overlay omits MissingEvidenceDigest panel', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0}
+          eventsPerWeek={0}
+          gaps={[{ id: 'g1', message: 'Gap message' }]}
+          mode="overlay"
+        />
+      );
+      expect(screen.queryByLabelText(/Missing evidence digest/i)).not.toBeInTheDocument();
+    });
+
+    it('mode=overlay with empty hubs renders an empty-marker SVG (no EmptyState component)', () => {
+      const { container } = render(
+        <WallCanvas
+          hubs={[]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0}
+          eventsPerWeek={0}
+          mode="overlay"
+        />
+      );
+      // EmptyState contains the "Write a hypothesis" CTA text in destination mode.
+      // Overlay mode renders an empty SVG canvas instead so the wrapper can
+      // decide whether to mount at all.
+      expect(screen.queryByText(/write a hypothesis/i)).not.toBeInTheDocument();
+      expect(container.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('mode=overlay renders static hubs even when onComposeGate is provided', () => {
+      const onComposeGate = vi.fn();
+      const { container } = render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          onComposeGate={onComposeGate}
+          mode="overlay"
+        />
+      );
+      expect(container.querySelector('[data-draggable-hub]')).toBeNull();
+    });
+  });
+
   it('applies identity transform (zoom=1, pan=0,0) by default', () => {
     const { container } = render(
       <WallCanvas
