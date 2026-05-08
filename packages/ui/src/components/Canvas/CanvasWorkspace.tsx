@@ -56,6 +56,10 @@ export interface CanvasWorkspaceProps {
   findings?: readonly Finding[];
   suspectedCauses?: readonly SuspectedCause[];
   causalLinks?: readonly CausalLink[];
+  problemCpk?: number;
+  eventsPerWeek?: number;
+  activeColumns?: ReadonlyArray<string>;
+  onOpenWall?: () => void;
   onAddCausalLink?: (
     fromFactor: string,
     toFactor: string,
@@ -168,6 +172,10 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   findings = [],
   suspectedCauses = [],
   causalLinks = [],
+  problemCpk,
+  eventsPerWeek,
+  activeColumns,
+  onOpenWall,
   onAddCausalLink,
   onRemoveCausalLink,
   onOpenInvestigationFocus,
@@ -472,6 +480,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onCanvasToolChange={setActiveCanvasTool}
       investigationOverlays={investigationOverlays}
       questions={questions}
+      findings={findings}
+      problemCpk={problemCpk}
+      eventsPerWeek={eventsPerWeek}
+      activeColumns={activeColumns ?? availableColumns}
+      onOpenWall={onOpenWall}
       onAddCausalLink={onAddCausalLink}
       onRemoveCausalLink={onRemoveCausalLink}
       signals={signals}

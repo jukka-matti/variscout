@@ -1,7 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
-import type { ScopeFilter, SpecLimits, StepCapabilityStamp, TimelineWindow } from '@variscout/core';
+import type {
+  Finding,
+  ScopeFilter,
+  SpecLimits,
+  StepCapabilityStamp,
+  TimelineWindow,
+} from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import type {
   CanvasInvestigationOverlayModel,
@@ -11,6 +17,8 @@ import type {
 } from '@variscout/hooks';
 import { useCanvasInvestigationOverlays, useCanvasStepCards } from '@variscout/hooks';
 import { useCanvasStore } from '@variscout/stores';
+
+const wallIsMobileRef = vi.hoisted(() => ({ current: false }));
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -22,6 +30,25 @@ vi.mock('@variscout/charts', async importOriginal => {
     CapabilityBoxplot: () =>
       React.createElement('div', { 'data-testid': 'mock-capability-boxplot' }),
     StepErrorPareto: () => React.createElement('div', { 'data-testid': 'mock-step-pareto' }),
+    useWallIsMobile: () => wallIsMobileRef.current,
+    WallCanvas: ({
+      findings,
+      problemCpk,
+      eventsPerWeek,
+      activeColumns,
+    }: {
+      findings?: unknown[];
+      problemCpk?: unknown;
+      eventsPerWeek?: unknown;
+      activeColumns?: ReadonlyArray<string>;
+    }) =>
+      React.createElement('div', {
+        'data-testid': 'wall-canvas',
+        'data-findings-count': String(findings?.length ?? 0),
+        'data-problem-cpk': String(problemCpk),
+        'data-events-per-week': String(eventsPerWeek),
+        'data-active-columns': (activeColumns ?? []).join(','),
+      }),
   };
 });
 
@@ -249,10 +276,18 @@ vi.mock('@variscout/hooks', () => ({
       enabled: true,
       description: 'Recent finding pins anchored to process steps.',
     },
+    wall: {
+      id: 'wall',
+      label: 'Wall',
+      enabled: true,
+      description: 'Investigation Wall overlay.',
+    },
   },
   coerceCanvasOverlays: vi.fn((values: unknown[]) =>
     values.filter(value =>
-      ['investigations', 'hypotheses', 'suspected-causes', 'findings'].includes(String(value))
+      ['investigations', 'hypotheses', 'suspected-causes', 'findings', 'wall'].includes(
+        String(value)
+      )
     )
   ),
   enabledCanvasOverlays: vi.fn(() => [
@@ -279,6 +314,12 @@ vi.mock('@variscout/hooks', () => ({
       label: 'Findings',
       enabled: true,
       description: 'Recent finding pins anchored to process steps.',
+    },
+    {
+      id: 'wall',
+      label: 'Wall',
+      enabled: true,
+      description: 'Investigation Wall overlay.',
     },
   ]),
   CANVAS_EMPTY_DROP_ID: 'canvas:empty',
@@ -399,6 +440,33 @@ vi.mock('@variscout/hooks', () => ({
   })),
   useCanvasStepCards: vi.fn(() => ({ cards: mockStepCards })),
   useCanvasInvestigationOverlays: vi.fn(() => ({ overlays: mockInvestigationOverlays })),
+  useHasInvestigationContent: vi.fn(
+    ({ findingsCount }: { findingsCount: number }) => findingsCount > 0
+  ),
+  useSharedWallProps: vi.fn(
+    ({
+      findings,
+      processMap,
+      problemCpk,
+      eventsPerWeek,
+      activeColumns,
+    }: {
+      findings: unknown[];
+      processMap: unknown;
+      problemCpk: number;
+      eventsPerWeek: number;
+      activeColumns: ReadonlyArray<string> | undefined;
+    }) => ({
+      findings,
+      processMap,
+      problemCpk,
+      eventsPerWeek,
+      activeColumns,
+      hubs: [],
+      questions: [],
+      problemContributionTree: undefined,
+    })
+  ),
   useSessionCanvasFilters: vi.fn(() => canvasFiltersStateRef.current),
 }));
 
@@ -411,6 +479,18 @@ const rawData = [
   { Fill_Weight: 13, Bake_Time: 31, Machine: 'B' },
   { Fill_Weight: 11, Bake_Time: 29, Machine: 'A' },
 ];
+
+const wallFinding = {
+  id: 'finding-wall-1',
+  text: 'Bake defects cluster after changeover',
+  context: { activeFilters: {}, cumulativeScope: null },
+  status: 'observed',
+  comments: [],
+  statusChangedAt: 0,
+  investigationId: 'inv-1',
+  createdAt: 0,
+  deletedAt: null,
+} satisfies Finding;
 
 const emptyMap = (): ProcessMap => ({
   version: 1,
@@ -459,6 +539,7 @@ function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWo
 
 describe('CanvasWorkspace', () => {
   beforeEach(() => {
+    wallIsMobileRef.current = false;
     useCanvasStore.setState(useCanvasStore.getInitialState());
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
@@ -537,6 +618,31 @@ describe('CanvasWorkspace', () => {
 
     expect(canvasFiltersStateRef.current.toggleCanvasOverlay).toHaveBeenCalledWith(
       'investigations'
+    );
+  });
+
+  it('threads Wall overlay data props into Canvas', () => {
+    canvasFiltersStateRef.current = {
+      ...canvasFiltersStateRef.current,
+      activeCanvasOverlays: ['wall'],
+    };
+
+    renderWorkspace({
+      processContext: { processMap: mapWithStep() },
+      findings: [wallFinding],
+      problemCpk: 0.74,
+      eventsPerWeek: 12,
+      activeColumns: ['Bake_Time', 'Machine'],
+      onOpenWall: vi.fn(),
+    });
+
+    expect(screen.getByTestId('canvas-wall-overlay')).toBeInTheDocument();
+    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-findings-count', '1');
+    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-problem-cpk', '0.74');
+    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-events-per-week', '12');
+    expect(screen.getByTestId('wall-canvas')).toHaveAttribute(
+      'data-active-columns',
+      'Bake_Time,Machine'
     );
   });
 

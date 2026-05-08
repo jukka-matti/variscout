@@ -4,12 +4,13 @@
  */
 import React from 'react';
 import { DndContext } from '@dnd-kit/core';
-import { chartColors } from '@variscout/charts';
+import { chartColors, useWallIsMobile } from '@variscout/charts';
 import {
   coerceCanvasLens,
   coerceCanvasOverlays,
   resolveEndpointToFactor,
   useCanvasKeyboard,
+  useHasInvestigationContent,
   useChipDragAndDrop,
   useHypothesisDrawTool,
   type ArrowEndpoint,
@@ -21,7 +22,7 @@ import {
   type CanvasToolId,
 } from '@variscout/hooks';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
-import type { SpecLimits, WorkflowReadinessSignals } from '@variscout/core';
+import type { Finding, SpecLimits, WorkflowReadinessSignals } from '@variscout/core';
 import {
   type ProductionLineGlanceFilterStripProps,
   ProductionLineGlanceFilterStrip,
@@ -41,6 +42,8 @@ import {
 } from './internal/HypothesisDraftPopover';
 import { CanvasStepCard } from './internal/CanvasStepCard';
 import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
+import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
+import { WallShortcutButton } from './internal/WallShortcutButton';
 
 /**
  * Canonical FRAME canvas surface.
@@ -155,6 +158,11 @@ export interface CanvasProps {
   onHandoff?: (stepId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
+  findings?: ReadonlyArray<Finding>;
+  problemCpk?: number;
+  eventsPerWeek?: number;
+  activeColumns?: ReadonlyArray<string>;
+  onOpenWall?: () => void;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
@@ -206,12 +214,34 @@ export const Canvas: React.FC<CanvasProps> = ({
   onHandoff,
   onOpenInvestigationFocus,
   onRemoveCausalLink,
+  findings = [],
+  problemCpk,
+  eventsPerWeek,
+  activeColumns,
+  onOpenWall,
 }) => {
   const isAuthorMode = authoringMode === 'author';
   const resolvedLens = coerceCanvasLens(activeLens);
   const resolvedOverlays = React.useMemo(
     () => coerceCanvasOverlays(activeOverlays),
     [activeOverlays]
+  );
+  const wallFindings = React.useMemo(() => [...findings], [findings]);
+  const hasInvestigationContent = useHasInvestigationContent({ findingsCount: findings.length });
+  const wallIsMobile = useWallIsMobile();
+  const availableOverlays = React.useMemo<CanvasOverlayId[]>(() => {
+    const base: CanvasOverlayId[] = [
+      'investigations',
+      'hypotheses',
+      'suspected-causes',
+      'findings',
+    ];
+    return hasInvestigationContent ? [...base, 'wall'] : base;
+  }, [hasInvestigationContent]);
+  const pickerAvailableOverlays = React.useMemo(
+    () =>
+      wallIsMobile ? availableOverlays.filter(overlay => overlay !== 'wall') : availableOverlays,
+    [availableOverlays, wallIsMobile]
   );
   const canPlaceChips = isAuthorMode && !disabled && chips.length > 0;
   const showChipRail = canPlaceChips;
@@ -582,7 +612,14 @@ export const Canvas: React.FC<CanvasProps> = ({
             />
           ) : null}
           <CanvasLensPicker activeLens={resolvedLens} onChange={onLensChange} />
-          <CanvasOverlayPicker activeOverlays={resolvedOverlays} onToggle={onOverlayToggle} />
+          <CanvasOverlayPicker
+            activeOverlays={resolvedOverlays}
+            availableOverlays={pickerAvailableOverlays}
+            onToggle={onOverlayToggle}
+          />
+          {wallIsMobile && hasInvestigationContent && onOpenWall ? (
+            <WallShortcutButton onClick={onOpenWall} disabled={disabled} />
+          ) : null}
           <HypothesisDrawToolButton
             activeTool={activeCanvasTool}
             onChange={next => onCanvasToolChange?.(next)}
@@ -680,6 +717,16 @@ export const Canvas: React.FC<CanvasProps> = ({
             Add process steps to create live canvas cards.
           </div>
         )}
+        <CanvasWallOverlay
+          activeOverlays={resolvedOverlays}
+          activeCanvasTool={activeCanvasTool}
+          findings={wallFindings}
+          processMap={map}
+          problemCpk={problemCpk ?? 0}
+          eventsPerWeek={eventsPerWeek ?? 0}
+          activeColumns={activeColumns ?? availableColumns}
+          onOpenWall={onOpenWall}
+        />
         {drawTool.state.phase === 'awaitingForm' ? (
           <HypothesisDraftPopover
             sourceLabel={endpointLabel(drawTool.state.source)}
