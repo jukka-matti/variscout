@@ -176,7 +176,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Description:** PR8-8a ships a Charter stub destination only. The full surface — hub-level entity (multiple per Hub per Q1), problem statement / goals / scope / team / timeline form, `.vrs` round-trip — is deferred. Free-tier-active per Q2 (PWA can author + export `.vrs`); team signoff features paid-only inside the surface.
 
-**Resolution (2026-05-08):** Promoted to design spec [`docs/superpowers/specs/2026-05-08-improvement-project-v1-design.md`](superpowers/specs/2026-05-08-improvement-project-v1-design.md). Brainstorm resulted in two key reframings beyond the original Q1/Q2 scope:
+**Resolution (2026-05-08):** Promoted to design spec [`docs/superpowers/specs/2026-05-08-improvement-project-v1-design.md`](superpowers/specs/2026-05-08-improvement-project-v1-design.md) + implementation plan [`docs/superpowers/plans/2026-05-08-improvement-project-v1.md`](superpowers/plans/2026-05-08-improvement-project-v1.md) (3 slices / 19 tasks across 3 PRs off branch `improvement-project-v1`). Brainstorm resulted in two key reframings beyond the original Q1/Q2 scope:
 
 - **Methodology pivot — DMAIC dropped for QC Story / Toyota TBP.** VariScout's existing investigation spine (Issue Statement, SuspectedCause, Findings, ImprovementIdea, Sustainment) maps 1:1 to QC Story's 8-section narrative. The artifact reuses VariScout primitives via FK rather than duplicating in DMAIC vocabulary; methodology lineage is acknowledged in design docs but absent from UI copy.
 - **Rename "Charter" → "Improvement Project."** Avoids DMAIC-coding the vocabulary, communicates living-document semantics, avoids `useProjectStore` collision while staying qualified. Vision §2.4 + §5.3 amended.
