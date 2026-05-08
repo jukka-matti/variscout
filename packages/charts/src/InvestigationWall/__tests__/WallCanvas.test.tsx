@@ -436,5 +436,23 @@ describe('WallCanvas', () => {
       expect(screen.queryByText(/write a hypothesis/i)).not.toBeInTheDocument();
       expect(container.querySelector('svg')).toBeInTheDocument();
     });
+
+    it('mode=overlay with hubs renders SVG projection instead of mobile card list', () => {
+      restoreMatchMedia = installMobileMatchMedia();
+      const { container } = render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          mode="overlay"
+        />
+      );
+      expect(screen.queryByTestId('wall-mobile-card-list')).not.toBeInTheDocument();
+      expect(container.querySelector('[data-wall-viewport]')).toBeInTheDocument();
+      expect(screen.getByText(/Nozzle runs hot/i)).toBeInTheDocument();
+    });
   });
 });

@@ -188,9 +188,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const isMobile = useWallIsMobile();
 
   if (mode === 'overlay' && hubs.length === 0) {
-    // Overlay mode: render an SVG with header chrome only. The overlay
-    // wrapper (CanvasWallOverlay) is expected to gate this branch via
-    // useHasInvestigationContent — but we render defensively just in case.
+    // Overlay mode: render a blank SVG so the wrapper owns empty-state semantics.
     return (
       <svg
         viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
@@ -206,7 +204,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   // MissingEvidenceDigest still renders below the list on mobile so gap
   // coaching stays visible. MobileCardList handles its own empty state,
   // so this branch supersedes the hubs-empty short-circuit below.
-  if (isMobile) {
+  if (mode === 'destination' && isMobile) {
     return (
       <div className="w-full h-full flex flex-col">
         <MobileCardList
