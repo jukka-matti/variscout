@@ -281,121 +281,33 @@ describe('wallLayoutStore — undo/redo', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// Undo / redo (Phase 7.3)
+// Selection persistence boundary (Task 5 pin)
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('wallLayoutStore — undo/redo', () => {
+describe('wallLayoutStore — selection persistence boundary', () => {
   beforeEach(() => {
     useWallLayoutStore.setState(useWallLayoutStore.getInitialState());
   });
 
-  it('records setNodePosition on the undo stack', () => {
-    useWallLayoutStore.getState().setNodePosition('hub-1', { x: 10, y: 20 });
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(1);
-    expect(useWallLayoutStore.getState().redoStack.length).toBe(0);
-  });
+  it('does NOT persist selection — Set/JSON round-trip would silently empty it', async () => {
+    const projectId = 'p-test-selection-boundary';
 
-  it('round-trip: move → undo → revert → redo → restore', () => {
-    useWallLayoutStore.getState().setNodePosition('hub-1', { x: 10, y: 20 });
-    expect(useWallLayoutStore.getState().nodePositions['hub-1']).toEqual({ x: 10, y: 20 });
+    useWallLayoutStore.getState().setSelection(['hub-1', 'hub-2']);
+    expect([...useWallLayoutStore.getState().selection]).toEqual(['hub-1', 'hub-2']);
 
-    useWallLayoutStore.getState().undo();
-    expect(useWallLayoutStore.getState().nodePositions['hub-1']).toBeUndefined();
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(0);
-    expect(useWallLayoutStore.getState().redoStack.length).toBe(1);
+    await persistWallLayout(projectId);
 
-    useWallLayoutStore.getState().redo();
-    expect(useWallLayoutStore.getState().nodePositions['hub-1']).toEqual({ x: 10, y: 20 });
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(1);
-    expect(useWallLayoutStore.getState().redoStack.length).toBe(0);
-  });
+    // Reset the in-memory store and rehydrate from Dexie.
+    useWallLayoutStore.setState(useWallLayoutStore.getInitialState());
+    expect([...useWallLayoutStore.getState().selection]).toEqual([]);
 
-  it('undo of sequential moves reverts the latest first', () => {
-    useWallLayoutStore.getState().setNodePosition('hub-1', { x: 10, y: 10 });
-    useWallLayoutStore.getState().setNodePosition('hub-1', { x: 50, y: 50 });
-    useWallLayoutStore.getState().setNodePosition('hub-1', { x: 99, y: 99 });
+    await rehydrateWallLayout(projectId);
 
-    useWallLayoutStore.getState().undo();
-    expect(useWallLayoutStore.getState().nodePositions['hub-1']).toEqual({ x: 50, y: 50 });
-
-    useWallLayoutStore.getState().undo();
-    expect(useWallLayoutStore.getState().nodePositions['hub-1']).toEqual({ x: 10, y: 10 });
-
-    useWallLayoutStore.getState().undo();
-    expect(useWallLayoutStore.getState().nodePositions['hub-1']).toBeUndefined();
-  });
-
-  it('caps undoStack at 50 entries (60 sequential changes keep ≤ 50)', () => {
-    for (let i = 0; i < 60; i++) {
-      useWallLayoutStore.getState().setNodePosition('hub-1', { x: i, y: i });
-    }
-    expect(useWallLayoutStore.getState().undoStack.length).toBeLessThanOrEqual(50);
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(50);
-  });
-
-  it('new mutation after undo clears the redo stack', () => {
-    useWallLayoutStore.getState().setNodePosition('hub-1', { x: 10, y: 20 });
-    useWallLayoutStore.getState().undo();
-    expect(useWallLayoutStore.getState().redoStack.length).toBe(1);
-
-    useWallLayoutStore.getState().setNodePosition('hub-2', { x: 99, y: 99 });
-    expect(useWallLayoutStore.getState().redoStack.length).toBe(0);
-  });
-
-  it('zoom changes do NOT populate undoStack', () => {
-    useWallLayoutStore.getState().setZoom(2.5);
-    useWallLayoutStore.getState().setZoom(0.8);
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(0);
-  });
-
-  it('pan changes do NOT populate undoStack', () => {
-    useWallLayoutStore.getState().setPan({ x: 100, y: 100 });
-    useWallLayoutStore.getState().setPan({ x: -50, y: -50 });
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(0);
-  });
-
-  it('selection changes do NOT populate undoStack', () => {
-    useWallLayoutStore.getState().setSelection(['a', 'b']);
-    useWallLayoutStore.getState().addToSelection('c');
-    useWallLayoutStore.getState().clearSelection();
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(0);
-  });
-
-  it('rail toggle does NOT populate undoStack', () => {
-    useWallLayoutStore.getState().toggleRail();
-    useWallLayoutStore.getState().setRailOpen(true);
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(0);
-  });
-
-  it('undo on empty stack is a no-op (does not throw)', () => {
-    expect(() => useWallLayoutStore.getState().undo()).not.toThrow();
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(0);
-    expect(useWallLayoutStore.getState().redoStack.length).toBe(0);
-  });
-
-  it('redo on empty stack is a no-op (does not throw)', () => {
-    expect(() => useWallLayoutStore.getState().redo()).not.toThrow();
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(0);
-    expect(useWallLayoutStore.getState().redoStack.length).toBe(0);
-  });
-
-  it('applyWithUndo that changes nothing does not pollute stacks', () => {
-    useWallLayoutStore.getState().applyWithUndo(() => {
-      // no-op mutator
-    });
-    expect(useWallLayoutStore.getState().undoStack.length).toBe(0);
-  });
-
-  it('applyWithUndo round-trips an arbitrary mutation', () => {
-    useWallLayoutStore.getState().applyWithUndo(draft => {
-      draft.nodePositions['x'] = { x: 1, y: 1 };
-      draft.nodePositions['y'] = { x: 2, y: 2 };
-    });
-    expect(useWallLayoutStore.getState().nodePositions).toEqual({
-      x: { x: 1, y: 1 },
-      y: { x: 2, y: 2 },
-    });
-    useWallLayoutStore.getState().undo();
-    expect(useWallLayoutStore.getState().nodePositions).toEqual({});
+    // selection MUST remain empty after rehydration — it is intentionally
+    // excluded from WallLayoutSnapshot. If a future change adds selection to
+    // the persisted shape, this test fails and the author must use Set→string[]
+    // conversion at the partialize / rehydrate boundary (see comment in
+    // wallLayoutStore.ts near WallLayoutSnapshot).
+    expect([...useWallLayoutStore.getState().selection]).toEqual([]);
   });
 });

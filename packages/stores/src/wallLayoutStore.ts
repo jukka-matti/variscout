@@ -239,6 +239,19 @@ export const useWallLayoutStore = create<WallLayoutState & WallLayoutActions>()(
 
 // ── Dexie persistence ────────────────────────────────────────────────────────
 
+/**
+ * Persisted shape — Dexie + JSON-safe by construction.
+ *
+ * NOTE: `selection: Set<NodeId>` is intentionally OMITTED.
+ * Dexie serializes via structured-clone but the named Set type round-trips as
+ * an empty object on rehydrate in some IDB implementations, so persisting it
+ * verbatim would silently lose data on reload. Selection is also conceptually
+ * transient (a per-session highlight, not a per-project annotation), so the
+ * cleanest fix is exclusion. If a future spec needs persistent multi-select
+ * recall, convert at the boundary (`partialize: { ...s, selection: [...s.selection] }`
+ * + rehydrate `new Set(raw.selection)`) — and update the regression test in
+ * `__tests__/wallLayoutStore.test.ts` (selection persistence boundary block).
+ */
 interface WallLayoutSnapshot {
   projectId: string;
   viewMode: 'map' | 'wall';
