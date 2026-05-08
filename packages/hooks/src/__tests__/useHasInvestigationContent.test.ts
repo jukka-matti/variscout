@@ -50,8 +50,8 @@ describe('useHasInvestigationContent', () => {
     expect(result.current).toBe(true);
   });
 
-  it('returns true when only findings count is > 0', () => {
+  it('returns false when only findings count is > 0 because overlay has no standalone finding visual', () => {
     const { result } = renderHook(() => useHasInvestigationContent({ findingsCount: 3 }));
-    expect(result.current).toBe(true);
+    expect(result.current).toBe(false);
   });
 });

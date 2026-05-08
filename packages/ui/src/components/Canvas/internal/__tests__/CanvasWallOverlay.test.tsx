@@ -198,10 +198,18 @@ describe('CanvasWallOverlay', () => {
     expect(onOpenWall).toHaveBeenCalledWith();
   });
 
-  it('mounts for finding-only content even when there are no hubs', () => {
+  it('does not mount for finding-only content because findings have no standalone Wall visual', () => {
     renderOverlay({ findings: [sampleFinding] });
 
+    expect(screen.queryByTestId('wall-canvas')).toBeNull();
+  });
+
+  it('mounts for open question-only content even when there are no hubs', () => {
+    useInvestigationStore.getState().addQuestion('Does shift handoff explain the change?');
+
+    renderOverlay();
+
     expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-hubs-count', '0');
-    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-findings-count', '1');
+    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-findings-count', '0');
   });
 });

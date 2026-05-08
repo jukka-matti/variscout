@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
-import type { SuspectedCause, ProcessMap } from '@variscout/core';
+import type { SuspectedCause, ProcessMap, Question } from '@variscout/core';
 
 /**
  * Override `window.matchMedia` for a single test to force the mobile branch
@@ -49,6 +49,15 @@ const hub: SuspectedCause = {
   questionIds: [],
   findingIds: ['f1', 'f2', 'f3'],
   status: 'confirmed',
+  createdAt: '',
+  updatedAt: '',
+};
+
+const openQuestion: Question = {
+  id: 'q1',
+  text: 'Does fill temperature drive this?',
+  status: 'open',
+  linkedFindingIds: [],
   createdAt: '',
   updatedAt: '',
 };
@@ -268,6 +277,23 @@ describe('WallCanvas', () => {
       // decide whether to mount at all.
       expect(screen.queryByText(/write a hypothesis/i)).not.toBeInTheDocument();
       expect(container.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('mode=overlay renders open question-only Wall content instead of a blank SVG', () => {
+      render(
+        <WallCanvas
+          hubs={[]}
+          findings={[]}
+          questions={[openQuestion]}
+          processMap={processMap}
+          problemCpk={0}
+          eventsPerWeek={0}
+          mode="overlay"
+        />
+      );
+
+      expect(screen.queryByText(/write a hypothesis/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/Does fill temperature drive this/i)).toBeInTheDocument();
     });
 
     it('mode=overlay renders static hubs even when onComposeGate is provided', () => {

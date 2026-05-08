@@ -506,6 +506,8 @@ describe('Canvas', () => {
   });
 
   it('mounts the CanvasWallOverlay when the Wall overlay is active and content exists', () => {
+    useInvestigationStore.getState().addQuestion('Does pressure explain defect clusters?');
+
     renderCanvas({
       activeOverlays: ['wall'],
       findings: [wallFinding],

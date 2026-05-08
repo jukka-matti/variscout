@@ -186,8 +186,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const dndEnabled = mode === 'destination' && Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   const isMobile = useWallIsMobile();
+  const openQuestions = questions.filter(
+    q => q.status === 'open' && !hubs.some(h => h.questionIds.includes(q.id))
+  );
 
-  if (mode === 'overlay' && hubs.length === 0) {
+  if (mode === 'overlay' && hubs.length === 0 && openQuestions.length === 0) {
     // Overlay mode: render a blank SVG so the wrapper owns empty-state semantics.
     return (
       <svg
@@ -224,7 +227,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     );
   }
 
-  if (hubs.length === 0) {
+  if (mode === 'destination' && hubs.length === 0) {
     return (
       <EmptyState
         onWriteHypothesis={onWriteHypothesis}
@@ -237,10 +240,6 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const problemLabel = processMap?.ctsColumn ?? 'CTS';
   const hubY = 400;
   const hubSpacing = CANVAS_W / (hubs.length + 1);
-
-  const openQuestions = questions.filter(
-    q => q.status === 'open' && !hubs.some(h => h.questionIds.includes(q.id))
-  );
 
   const renderHubAt = (hub: SuspectedCause, x: number) => {
     const hubProps = {
