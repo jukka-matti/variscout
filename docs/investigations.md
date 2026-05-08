@@ -286,6 +286,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Promotion path:** Spec 4 retroactive consolidation (Tier 3 followup) is the natural home for documenting the z-stack semantics. Promote to a decision-log Open Question only if user research surfaces confusion about the dual-overlay state.
 
+**Resolution [2026-05-08]:** Status-quo + doc per the listed promotion path. Spec 4 ext (`2026-05-08-canvas-wall-overlay-design.md`) §6 now carries a §6.1 "Rendering z-stack" subsection documenting that Wall (`z-[15]`) supersedes per-step arrows (`z-10`) by design — the Wall is a richer projection of the same causal data. No code change; auto-mutual-exclusion in `CanvasOverlayPicker` was rejected (would imply the dual-active state is illegal — it isn't, just superseded). Promote to a decision-log Open Question only if user research surfaces confusion about the dual-overlay state.
+
 ---
 
 ### Canvas levels-as-pan/zoom architecture deferred without note (vision §5.4)
@@ -350,6 +352,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Promotion path:** low urgency (wallLayoutStore `STORE_LAYER = 'view'` per F4, so no persist middleware is expected). Becomes blocking if a future slice adds persist middleware to wallLayoutStore or reads selection from a persisted snapshot. Check before adding any persist to wallLayoutStore.
 
+**Resolution [2026-05-08]:** Audit confirmed — `selection` was never in `WallLayoutSnapshot`; `persistWallLayout` and `rehydrateWallLayout` skip it intentionally. Locked with a regression test in `packages/stores/src/__tests__/wallLayoutStore.test.ts` (`selection persistence boundary` describe) and a clarifying docstring on `WallLayoutSnapshot` in `packages/stores/src/wallLayoutStore.ts` documenting the boundary + the Set→string[] conversion pattern any future author should use if persistent multi-select recall ever becomes a spec requirement. Note the original entry's "STORE_LAYER = 'view'" claim is slightly off — `wallLayoutStore` is `STORE_LAYER = 'annotation-per-project'` per F4; selection is the per-session view-state field within that store, and the persist boundary excludes it correctly.
+
 ---
 
 ### Azure `rowProvenance` Dexie table — deferred [RESOLVED 2026-05-07 — see decision-log F3.6-β SHIPPED entry]
@@ -389,6 +393,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Promotion path:** small follow-up PR after PR8-8b merges. About 3 tasks.
 
+**Resolution [2026-05-08]:** `stampStepCapabilities({ map, rows, measureSpecs })` helper added in `@variscout/core/canvas`; called inside the existing `EVIDENCE_ADD_SNAPSHOT` snapshot-construction sites in `apps/pwa/src/hooks/usePasteImportFlow.ts` and `apps/azure/src/features/data-flow/useEditorDataFlow.ts` so each new snapshot ships with `stepCapabilities` populated. No new action kind, no handler change. Empty maps at paste-time emit `[]` per the partial-integration policy in `docs/superpowers/plans/2026-05-08-canvas-polish-v1.md` — the drift indicator self-heals on the snapshot-after-canvas-authoring without further producer changes. Stamping uses the same rows variable that feeds `_proceedWithParsedData` (mirrors the existing `rowCount` source-of-truth per site).
+
 ---
 
 ### CanvasStepMiniChart histogram still uses first-12-raw-values pseudo-binning (vision §5.2)
@@ -404,5 +410,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - Add a small helper in `@variscout/core/stats`, e.g. `computeHistogramBins(values, rule)`, returning `{ x0, x1, count }[]`; bind `CanvasStepMiniChart` to bin counts.
 
 **Promotion path:** small follow-up PR. About 2 tasks: helper + UI swap.
+
+**Resolution [2026-05-08]:** `computeHistogramBins(values, rule?)` helper added in `@variscout/core/stats` (Sturges default, Scott option). `CanvasStepMiniChart` histogram branch now renders one bar per bin with bin counts as heights, replacing the first-12-raw-values normalization. Empty bins floor at 8% height so the bin axis stays legible.
 
 ---
