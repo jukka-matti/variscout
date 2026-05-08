@@ -284,16 +284,18 @@ Each sub-PR followed brainstorm-or-straight-plan → branch → PR → `pr-ready
 
 ### PR9 — Cleanup: delete legacy components (renumbered from PR8)
 
-**Branch:** `canvas-migration-phase-9-cleanup`
-**~4 tasks**
+**SHIPPED 2026-05-08** — branch `canvas-pr9-legacy-cleanup`, [PR #142](https://github.com/jukka-matti/variscout/pull/142) merged as `fd2e9966`.
 
-- Delete `packages/ui/src/components/LayeredProcessView/` (LayeredProcessView + LayeredProcessViewWithCapability)
-- Delete `packages/ui/src/components/ProcessMap/ProcessMapBase.tsx` and related
-- Delete `apps/azure/src/components/editor/FrameView.tsx`, `apps/pwa/src/components/views/FrameView.tsx` (replaced by Canvas-centric route shells in PR3)
-- Update spec index + decision log
-- Final sweep for any straggler imports
+Deletions delivered:
 
-**Acceptance:** legacy components fully removed; vision §6 promise honored; canvas is the only canvas-shaped surface in the codebase.
+- `packages/ui/src/components/LayeredProcessView/` — directory (5 files: 2 components + 2 tests + index) + the @variscout/ui re-exports removed (`packages/ui/src/index.ts` 682-687).
+- `packages/ui/src/components/ProcessMap/ProcessMapBase.tsx` — orphaned deprecation re-export stub deleted (real `ProcessMapBase` lives at `Canvas/internal/ProcessMapBase`; both pre-existing importers already used the canonical path).
+- 5 stale JSDoc references swept (`FrameViewB0` / `ProcessStepsExpander` / `ProductionLineGlanceDashboard/types` / `processHub.ts` / `useProductionLineGlanceOpsToggle`).
+- `docs/08-products/feature-parity.md` Operations-band row removed; `ProductionLineGlanceDashboard` row's surfaces list updated to "Hub Capability tab + Canvas capability lens."
+
+**Deviation from original spec text:** `apps/pwa/src/components/views/FrameView.tsx` and `apps/azure/src/components/editor/FrameView.tsx` were originally listed for deletion. Post-PR8 both files are ~170-line **thin route shells** mounting `<CanvasWorkspace/>` (sub-PR 8e wired `onOpenWall` through them). Deleting them would inline ~30 LOC of store-wiring into already-large `App.tsx` + `Editor.tsx` host files. **Decision: PRESERVE the FrameView shells** as part of the strangler pattern's lasting facade per `feedback_check_shipped_patterns_first`. Vision §6's "delete legacy canvas-rendering FrameView in same PR as Canvas ships" commitment is honored by canvas-rendering having moved to `<CanvasWorkspace/>`; the route-shell layer the FrameViews now occupy is structurally different from the legacy `FrameView` component.
+
+**Acceptance:** legacy `LayeredProcessView` + `ProcessMapBase` removed; zero `LayeredProcessView` references in product code; thin-shell FrameViews preserved as documented; strangler pattern complete.
 
 ### Branching note
 
