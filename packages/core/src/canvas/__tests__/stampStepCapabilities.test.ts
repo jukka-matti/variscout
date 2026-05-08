@@ -86,4 +86,17 @@ describe('stampStepCapabilities', () => {
       if (stamp.cpk !== undefined) expect(Number.isFinite(stamp.cpk)).toBe(true);
     }
   });
+
+  it('falls through to assigned columns when ctqColumn has no parseable values', () => {
+    const map: ProcessMap = {
+      nodes: [{ id: 'step-A', name: 'A', order: 0, parentStepId: null, ctqColumn: 'missing_col' }],
+      arrows: [],
+      assignments: { col_x: 'step-A' },
+    };
+    const rows: DataRow[] = [{ col_x: '5' }, { col_x: '7' }];
+    const stamps = stampStepCapabilities({ map, rows, measureSpecs: {} });
+    // ctqColumn 'missing_col' has zero parseable values → fall through to col_x
+    expect(stamps[0]?.n).toBe(2);
+    expect(stamps[0]?.mean).toBeCloseTo(6, 4);
+  });
 });

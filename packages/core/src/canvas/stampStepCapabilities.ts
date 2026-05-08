@@ -64,7 +64,6 @@ function pickMetricColumn(input: {
 }): string | undefined {
   const { ctqColumn, assignedColumns, rows } = input;
   if (ctqColumn && parseNumericValues(rows, ctqColumn).length > 0) return ctqColumn;
-  if (ctqColumn) return ctqColumn;
   return (
     assignedColumns.find(column => parseNumericValues(rows, column).length > 0) ??
     assignedColumns[0]
