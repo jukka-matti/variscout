@@ -56,6 +56,7 @@ export function CanvasWallOverlay({
         isDrawingHypothesis ? 'pointer-events-none' : 'pointer-events-auto',
       ].join(' ')}
       aria-hidden={isDrawingHypothesis ? true : undefined}
+      inert={isDrawingHypothesis ? true : undefined}
     >
       <WallCanvas
         {...wallProps}

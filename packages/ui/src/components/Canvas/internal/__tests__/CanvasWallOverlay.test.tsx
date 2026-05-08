@@ -133,11 +133,12 @@ describe('CanvasWallOverlay', () => {
     const wrapper = screen.getByTestId('canvas-wall-overlay');
     expect(wrapper).toHaveClass('pointer-events-auto');
     expect(wrapper).not.toHaveAttribute('aria-hidden');
+    expect(wrapper).not.toHaveAttribute('inert');
     expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-mode', 'overlay');
     expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-compose-gate', 'absent');
   });
 
-  it('makes the wrapper pointer-events-none and aria-hidden while drawing hypotheses', () => {
+  it('makes the wrapper inert, pointer-events-none, and aria-hidden while drawing hypotheses', () => {
     useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
 
     renderOverlay({ activeCanvasTool: 'draw-hypothesis' });
@@ -145,15 +146,23 @@ describe('CanvasWallOverlay', () => {
     const wrapper = screen.getByTestId('canvas-wall-overlay');
     expect(wrapper).toHaveClass('pointer-events-none');
     expect(wrapper).toHaveAttribute('aria-hidden', 'true');
+    expect(wrapper).toHaveAttribute('inert');
   });
 
-  it('funnels hub clicks into onOpenWall exactly once', () => {
+  it.each([
+    'open hub',
+    'promote question',
+    'write hypothesis',
+    'promote from question',
+    'seed factor intel',
+    'focus gap',
+  ])('funnels the "%s" WallCanvas callback into onOpenWall exactly once', buttonName => {
     const onOpenWall = vi.fn();
     useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
 
     renderOverlay({ onOpenWall });
 
-    fireEvent.click(screen.getByRole('button', { name: 'open hub' }));
+    fireEvent.click(screen.getByRole('button', { name: buttonName }));
 
     expect(onOpenWall).toHaveBeenCalledTimes(1);
     expect(onOpenWall).toHaveBeenCalledWith();
