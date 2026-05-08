@@ -250,7 +250,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Promotion path:** PR8d of the canvas migration sequence. Requires Spec 4 brainstorm extension covering the drawing-mode gesture (overlap with structural-arrow drawing — same primitive, different semantic), promoted-vs-draft visual, and column-vs-step source/target. ~8 tasks.
 
-**Resolution:** PR8-8d ([PR #139](https://github.com/jukka-matti/variscout/pull/139)) — Canvas gains a dedicated draw-hypothesis tool, step/column endpoints, drag and keyboard authoring flows, a focused draft popover with optional question linking, causal-link store wiring in PWA/Azure shells, remove affordances on hypothesis links, and promoted suspected-cause node markers.
+**Resolution:** PR8-8d ([PR #140](https://github.com/jukka-matti/variscout/pull/140)) — Canvas gains a dedicated draw-hypothesis tool, step/column endpoints, drag and keyboard authoring flows, a focused draft popover with optional question linking, causal-link store wiring in PWA/Azure shells, remove affordances on hypothesis links, and promoted suspected-cause node markers.
 
 ---
 
