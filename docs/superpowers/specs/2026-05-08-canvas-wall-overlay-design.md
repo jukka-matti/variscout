@@ -61,7 +61,7 @@ The 8e implementation includes:
 - A new `<CanvasWallOverlay/>` internal component in `packages/ui/src/components/Canvas/internal/` that renders the overlay layer.
 - A new `mode?: 'destination' | 'overlay'` prop on `WallCanvas` (default `'destination'`) that gates the read-only behavior set inside the existing component.
 - A predicate (selector or hook) `useHasInvestigationContent()` returning `true` iff hubs ∪ questions ∪ findings ≠ ∅; `CanvasOverlayPicker` filters out `'wall'` when `false`.
-- A mobile re-skin of the `'wall'` toolbar slot to a `WallShortcutButton` that calls a new `onOpenWall` prop (PWA + Azure wire to `setInvestigationViewMode('wall')` + `setWallViewMode('wall')`).
+- A mobile re-skin of the `'wall'` toolbar slot to a `WallShortcutButton` that calls the same `onOpenWall` prop the overlay's click-to-drill uses (Azure: `panelsStore.setInvestigationViewMode('map')` + `wallLayoutStore.setViewMode('wall')`; PWA: route to Investigation view + `wallLayoutStore.setViewMode('wall')`).
 - Tests for overlay rendering, click-to-drill, layer-boundary, 8d compatibility, and resize behavior.
 
 The 8e implementation does NOT include:
@@ -81,10 +81,10 @@ V1 overlay renders `WallCanvas` with `mode='overlay'`, which:
 - Skips ⌘K command palette subscription (the overlay is not a navigation root).
 - Renders `HypothesisCard` in place of `DraggableHypothesisCard`.
 - Suppresses the `MissingEvidenceDigest` HTML panel (overlay shows SVG only — keeps the layered footprint clean).
-- Keeps click handlers (`onSelectHub`, `onPromoteQuestion`, `onPromoteFromQuestion`, `onSeedFromFactorIntel`, `onFocusHubFromGap`) live, but the app wires them to a single `onDrillToHub(id)` / `onDrillToQuestion(id)` / `onDrillToFinding(id)` family that:
-  1. Sets `panelsStore.investigationViewMode = 'wall'`.
-  2. Sets `wallLayoutStore.viewMode = 'wall'`.
-  3. Calls the destination-view's existing pan-to-node helper for the entity's anchor.
+- Keeps click handlers live, but the app wires them via a single `onOpenWall` callback prop on `<Canvas/>` that the overlay forwards every entity click into. The app's `onOpenWall` implementation:
+  1. Navigates the user to the Investigation surface (Azure: `panelsStore.setInvestigationViewMode('map')`; PWA: `setView('investigation')` or equivalent route change).
+  2. Sets `wallLayoutStore.setViewMode('wall')`.
+  3. **No explicit pan-to-node call needed in V1** — Q3's shared viewport already mirrors the overlay's `wallLayoutStore` zoom/pan into destination, so the clicked entity is already in view when the destination mounts. (Pan-to-node and entity selection are V2 surface area; the existing `handleWallPanToNode` helpers stay internal to destination-view command-palette flows.)
 
 ### Why
 
@@ -174,7 +174,7 @@ The mutual-exclusion option (one-or-the-other) was rejected because the cadence-
 
 ### F4 D4 boundary test impact
 
-No new stores. No changes to `STORE_LAYER` constants in `@variscout/core`. `layerBoundary.test.ts` adds an assertion that `'wall'` ∈ `useSessionCanvasFilters.activeCanvasOverlays` is View-layer (parallel to the existing four-overlay assertion).
+No new stores. No changes to `STORE_LAYER` constants in `@variscout/stores`. `packages/stores/src/__tests__/layerBoundary.test.ts` requires no changes — that test scans store files for `STORE_LAYER` markers, but `useSessionCanvasFilters` lives in `@variscout/hooks` as component-local React state (bare `useState`), not a Zustand store. The View-layer commitment for `'wall'` is enforced by the absence of `persist`/`devtools`/`immer` middleware in `useSessionCanvasFilters` (the canonical pattern for component-local View state, identical to the four existing overlays).
 
 ### Why View, not Annotation per-user
 
@@ -204,7 +204,7 @@ The "hide toggle on mobile" alternative was rejected: it silently denies mobile 
 - `useWallIsMobile()` already exists in `packages/charts/src/InvestigationWall/hooks/useWallBreakpoint.ts` and exports `WALL_MOBILE_BREAKPOINT = 768` — the canvas toolbar re-skin uses the same hook (or the equivalent `useIsMobile` from `@variscout/ui`, which shares the `BREAKPOINTS.mobile = 768` constant).
 - `WallShortcutButton` is a new `packages/ui/src/components/Canvas/internal/` component, ~30 LOC. External-link icon (existing icon set), label, click handler. Follows existing toolbar button styling.
 - The `onOpenWall` prop is a new top-level `<Canvas/>` prop (per `packages/ui/src/components/Canvas/index.tsx`); PWA `MapView` and Azure `WorkspaceView` wire it as a sibling to the existing `onLensChange` / `onOverlayToggle` props.
-- The drill destination on mobile is the same as the desktop drill: Investigation tab → Wall sub-tab → entity selected if applicable. On `WallShortcutButton`, no entity is in scope yet, so the navigation lands on the Wall view at its current viewport.
+- The drill destination on mobile is the same as the desktop drill: Investigation tab → Wall sub-tab. On `WallShortcutButton`, no entity is in scope yet, so the navigation lands on the Wall view at its current viewport (which on mobile is the `MobileCardList` flat stack, not the SVG canvas — `wallLayoutStore.zoom`/`pan` are no-ops below 768px).
 
 ## 9. Architecture summary
 
@@ -248,7 +248,6 @@ The "hide toggle on mobile" alternative was rejected: it silently denies mobile 
 - `packages/ui/src/components/Canvas/index.tsx` — add `onOpenWall` prop, wire `availableOverlays` derivation, mount `<CanvasWallOverlay/>` and `WallShortcutButton`.
 - `packages/ui/src/components/Canvas/internal/CanvasOverlayPicker.tsx` — accept and respect `availableOverlays`.
 - `apps/pwa/src/components/views/FrameView.tsx` and `apps/azure/src/components/editor/FrameView.tsx` — wire `onOpenWall` on the `<Canvas/>` mount, hoist `wallProps` so the same memoized assembly feeds the overlay layer here and the destination view in `InvestigationView` / `InvestigationWorkspace`.
-- `packages/core/__tests__/layerBoundary.test.ts` — assert `'wall'` overlay is View-layer.
 
 **New tests**:
 
@@ -275,7 +274,7 @@ The "hide toggle on mobile" alternative was rejected: it silently denies mobile 
 - [ ] After deactivating the draw tool, click on a hub card inside the overlay drills as before.
 - [ ] On a hub with content but viewport <768px, the canvas toolbar contains a `WallShortcutButton` with external-link glyph; click navigates to Investigation tab → Wall sub-tab.
 - [ ] Resize from desktop with overlay active to <768px un-mounts the overlay and re-skins the toolbar slot; resize back to ≥768px re-mounts the overlay.
-- [ ] `layerBoundary.test.ts` passes with the new `'wall'` overlay assertion.
+- [ ] `packages/stores/src/__tests__/layerBoundary.test.ts` continues to pass unchanged (no new STORE_LAYER additions; toggle state stays component-local in `@variscout/hooks`).
 - [ ] No regressions in PR6's per-step badge overlays (the four pre-existing overlays render unchanged when `'wall'` is also active).
 - [ ] No regressions in 8d's hypothesis-arrow drawing tool with overlay off, on, or active alongside.
 

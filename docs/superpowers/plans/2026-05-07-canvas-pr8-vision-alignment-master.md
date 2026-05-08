@@ -145,7 +145,9 @@ F4 dependency: real. The drag-gesture View state goes in `useViewStore` (F4 D2);
 - Inline form placement: floating popover vs side panel vs Stage 5 modal reuse?
 - Undo: does drawing an arrow then changing your mind go through the canvasStore undo stack, or commit-on-release?
 
-### 8e — Wall mirror in canvas overlay (~2–6 tasks depending on choice)
+### 8e — Wall mirror in canvas overlay (~12 tasks) — plan at [`2026-05-08-canvas-pr8-8e-wall-overlay.md`](2026-05-08-canvas-pr8-8e-wall-overlay.md)
+
+> **Status (2026-05-08):** Brainstorm locked + plan written. Fork 1 chosen (embed `WallCanvas` viewport per §5.6 verbatim — vision honored, not hedged). Spec at [`docs/superpowers/specs/2026-05-08-canvas-wall-overlay-design.md`](../specs/2026-05-08-canvas-wall-overlay-design.md). 12-task TDD plan covers: `'wall'` overlay union value + registry, `useHasInvestigationContent` + `useSharedWallProps` hooks, `mode='overlay'` prop on WallCanvas (subtractive), new `CanvasWallOverlay` + `WallShortcutButton` internal components, viewport-adaptive picker/shortcut swap in Canvas, per-app `onOpenWall` wiring in PWA + Azure FrameViews, i18n keys, chrome walk + final code-reviewer + PR open.
 
 Vision §5.6 + §5.4: Wall is dual-home — destination in Investigation tab AND a canvas overlay; "with overlays on, the canvas IS the Wall view." Codex shipped a lighter projection (per-step badge counts + linked item lists in step overlays) — defensible V1 but unmet spec commitment.
 
