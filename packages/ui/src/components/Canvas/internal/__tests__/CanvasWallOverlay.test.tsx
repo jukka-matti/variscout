@@ -151,6 +151,34 @@ describe('CanvasWallOverlay', () => {
     expect(wrapper).toHaveAttribute('inert');
   });
 
+  it('updates wall pan by the pointer drag delta when dragging the overlay background', () => {
+    useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
+    useWallLayoutStore.getState().setPan({ x: 12, y: -8 });
+
+    renderOverlay();
+
+    const wrapper = screen.getByTestId('canvas-wall-overlay');
+    fireEvent.pointerDown(wrapper, { pointerId: 1, clientX: 100, clientY: 200 });
+    fireEvent.pointerMove(wrapper, { pointerId: 1, clientX: 130, clientY: 180 });
+    fireEvent.pointerUp(wrapper, { pointerId: 1, clientX: 130, clientY: 180 });
+
+    expect(useWallLayoutStore.getState().pan).toEqual({ x: 42, y: -28 });
+  });
+
+  it('does not pan while drawing hypotheses', () => {
+    useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
+    useWallLayoutStore.getState().setPan({ x: 12, y: -8 });
+
+    renderOverlay({ activeCanvasTool: 'draw-hypothesis' });
+
+    const wrapper = screen.getByTestId('canvas-wall-overlay');
+    fireEvent.pointerDown(wrapper, { pointerId: 1, clientX: 100, clientY: 200 });
+    fireEvent.pointerMove(wrapper, { pointerId: 1, clientX: 130, clientY: 180 });
+    fireEvent.pointerUp(wrapper, { pointerId: 1, clientX: 130, clientY: 180 });
+
+    expect(useWallLayoutStore.getState().pan).toEqual({ x: 12, y: -8 });
+  });
+
   it.each([
     'open hub',
     'promote question',
