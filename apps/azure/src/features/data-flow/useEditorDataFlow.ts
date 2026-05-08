@@ -28,6 +28,8 @@ import {
 import { isProcessHubComplete } from '@variscout/core/processHub';
 import type { EvidenceSnapshot, RowProvenanceTag } from '@variscout/core/evidenceSources';
 import { generateDeterministicId } from '@variscout/core/identity';
+import { stampStepCapabilities } from '@variscout/core/canvas';
+import { useCanvasStore, useProjectStore } from '@variscout/stores';
 import { azureHubRepository } from '../../persistence';
 import type { MatchSummaryActionChoice } from '@variscout/ui';
 import type { SampleDataset } from '@variscout/data';
@@ -633,10 +635,20 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           }));
 
           // Provenance rides the envelope; Azure handler writes snapshot + provenance atomically.
+          const stampsJoin = stampStepCapabilities({
+            map: useCanvasStore.getState().canonicalMap,
+            rows: ms.newRows,
+            measureSpecs: useProjectStore.getState().measureSpecs,
+          });
+          const snapshotWithStampsJoin: EvidenceSnapshot = {
+            ...snapshot,
+            stepCapabilities: stampsJoin,
+          };
+
           void azureHubRepository.dispatch({
             kind: 'EVIDENCE_ADD_SNAPSHOT',
             hubId: activeHub.id,
-            snapshot,
+            snapshot: snapshotWithStampsJoin,
             provenance: tags,
           });
 
@@ -697,10 +709,20 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
               // replacedSnapshotId activates the handler's cascade
               // (sets deletedAt on the prior snapshot before inserting the new one).
+              const stampsOverlap = stampStepCapabilities({
+                map: useCanvasStore.getState().canonicalMap,
+                rows: merged,
+                measureSpecs: useProjectStore.getState().measureSpecs,
+              });
+              const snapshotWithStampsOverlap: EvidenceSnapshot = {
+                ...snapshot,
+                stepCapabilities: stampsOverlap,
+              };
+
               void azureHubRepository.dispatch({
                 kind: 'EVIDENCE_ADD_SNAPSHOT',
                 hubId: activeHub.id,
-                snapshot,
+                snapshot: snapshotWithStampsOverlap,
                 provenance: [],
                 replacedSnapshotId,
               });
@@ -728,10 +750,20 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
                 deletedAt: null,
               };
 
+              const stampsFallback = stampStepCapabilities({
+                map: useCanvasStore.getState().canonicalMap,
+                rows: ms.newRows,
+                measureSpecs: useProjectStore.getState().measureSpecs,
+              });
+              const snapshotWithStampsFallback: EvidenceSnapshot = {
+                ...snapshot,
+                stepCapabilities: stampsFallback,
+              };
+
               void azureHubRepository.dispatch({
                 kind: 'EVIDENCE_ADD_SNAPSHOT',
                 hubId: activeHub.id,
-                snapshot,
+                snapshot: snapshotWithStampsFallback,
                 provenance: [],
                 replacedSnapshotId,
               });

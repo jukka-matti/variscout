@@ -1,5 +1,6 @@
 import React from 'react';
 import { chartColors } from '@variscout/charts';
+import { computeHistogramBins } from '@variscout/core/stats';
 import type { CanvasStepCardModel } from '@variscout/hooks';
 
 interface CanvasStepMiniChartProps {
@@ -9,12 +10,11 @@ interface CanvasStepMiniChartProps {
 const SPARK_WIDTH = 100;
 const SPARK_HEIGHT = 32;
 
-function numericBars(values: readonly number[]): number[] {
-  if (values.length === 0) return [];
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  if (min === max) return values.slice(0, 12).map(() => 0.5);
-  return values.slice(0, 12).map(value => (value - min) / (max - min));
+function histogramBars(values: readonly number[]): { height: number }[] {
+  const bins = computeHistogramBins(values);
+  if (bins.length === 0) return [];
+  const max = Math.max(1, ...bins.map(bin => bin.count));
+  return bins.map(bin => ({ height: bin.count / max }));
 }
 
 function sparklinePoints(points: ReadonlyArray<{ x: number; y: number }>): string {
@@ -80,7 +80,7 @@ export const CanvasStepMiniChart: React.FC<CanvasStepMiniChartProps> = ({ card }
   }
 
   if (card.metricKind === 'numeric') {
-    const bars = numericBars(card.values);
+    const bars = histogramBars(card.values);
     return (
       <div
         className="flex h-10 items-end gap-0.5"
@@ -88,13 +88,14 @@ export const CanvasStepMiniChart: React.FC<CanvasStepMiniChartProps> = ({ card }
         data-testid={`canvas-step-mini-chart-${card.stepId}`}
       >
         {bars.length > 0 ? (
-          bars.map((height, index) => (
+          bars.map((bar, index) => (
             <span
               key={`${card.stepId}-bar-${index}`}
+              data-testid={`canvas-step-mini-chart-${card.stepId}-bar-${index}`}
               className="w-full rounded-sm"
               style={{
                 backgroundColor: `${chartColors.mean}99`,
-                height: `${Math.max(15, height * 100)}%`,
+                height: `${Math.max(8, bar.height * 100)}%`,
               }}
             />
           ))

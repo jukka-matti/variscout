@@ -163,6 +163,35 @@ The mutual-exclusion option (one-or-the-other) was rejected because the cadence-
 - 8d's `useHypothesisDrawTool` already establishes the top-layer pattern — the Wall overlay just respects the same `activeCanvasTool` selector.
 - Click-to-drill handlers on hub cards inside the overlay receive pointer events normally when the tool is in `'select'` mode, since the wrapper is interactive.
 
+### 6.1 Rendering z-stack with hypothesis-arrows overlay
+
+Per-step badge overlays (the persistent `'hypotheses'` connector arrows in
+`packages/ui/src/components/Canvas/index.tsx`) render at `z-10`. The Wall
+overlay layer (`CanvasWallOverlay`'s outer wrapper) renders at `z-[15]`. The
+draw-hypothesis rubber-band layer renders at `z-20` (only mounted when
+`activeCanvasTool === 'draw-hypothesis'`).
+
+When both `'hypotheses'` and `'wall'` overlays are active simultaneously, the
+persistent `<HypothesisArrowsLayer>` SVG draws **below** the Wall SVG and is
+visually hidden. This is by design:
+
+- The Wall is a richer projection of the same causal data — every connector
+  the per-step layer encodes is also drawn (and authored, and counted) on the
+  Wall. Letting the Wall supersede those arrows when both are visible avoids
+  doubling the same edges in two visual languages.
+- The picker still shows both toggles. Either overlay can be turned off
+  independently. The picker does NOT auto-mutual-exclude in
+  `CanvasOverlayPicker` because that would imply the dual-active state is
+  illegal — it isn't, it's just superseded.
+- When the user activates the draw-hypothesis tool with the Wall overlay on,
+  the rubber-band layer (`z-20`) draws on top of the Wall SVG so the gesture
+  remains visible. This stays consistent with §6's input-layering decision —
+  pointer events pass through the Wall layer to the canvas step cards
+  underneath.
+
+The rendering ordering is the natural extension of the input-layering
+ordering documented above.
+
 ## 7. Decision Q5 — F4 layer assignments
 
 | State surface                            | F4 layer   | Concrete home                                                                                               |
