@@ -6,6 +6,33 @@ import type { CanvasOverlayId } from './useCanvasInvestigationOverlays';
 import type { CanvasToolId } from './useHypothesisDrawTool';
 
 const DEFAULT_CUMULATIVE: TimelineWindow = { kind: 'cumulative' };
+const HYPOTHESES_OVERLAY: CanvasOverlayId = 'hypotheses';
+
+type SessionCanvasFiltersState = {
+  timelineWindow: TimelineWindow;
+  scopeFilter: ScopeFilter | undefined;
+  paretoGroupBy: string | undefined;
+  activeCanvasLens: CanvasLensId;
+  activeCanvasOverlays: CanvasOverlayId[];
+  activeCanvasTool: CanvasToolId;
+};
+
+function createDefaultSessionCanvasFiltersState(): SessionCanvasFiltersState {
+  return {
+    timelineWindow: DEFAULT_CUMULATIVE,
+    scopeFilter: undefined,
+    paretoGroupBy: undefined,
+    activeCanvasLens: 'default',
+    activeCanvasOverlays: [],
+    activeCanvasTool: 'select',
+  };
+}
+
+let sessionCanvasFiltersState = createDefaultSessionCanvasFiltersState();
+
+export function __resetSessionCanvasFiltersForTests(): void {
+  sessionCanvasFiltersState = createDefaultSessionCanvasFiltersState();
+}
 
 export type UseSessionCanvasFiltersResult = UseCanvasFiltersResult & {
   activeCanvasLens: CanvasLensId;
@@ -18,25 +45,74 @@ export type UseSessionCanvasFiltersResult = UseCanvasFiltersResult & {
 };
 
 export function useSessionCanvasFilters(): UseSessionCanvasFiltersResult {
-  const [timelineWindow, setTimelineWindow] = useState<TimelineWindow>(DEFAULT_CUMULATIVE);
-  const [scopeFilter, setScopeFilter] = useState<ScopeFilter | undefined>(undefined);
-  const [paretoGroupBy, setParetoGroupBy] = useState<string | undefined>(undefined);
-  const [activeCanvasLens, setActiveCanvasLens] = useState<CanvasLensId>('default');
-  const [activeCanvasOverlays, setActiveCanvasOverlays] = useState<CanvasOverlayId[]>([]);
-  const [activeCanvasTool, setActiveCanvasToolState] = useState<CanvasToolId>('select');
+  const [timelineWindow, setTimelineWindowState] = useState<TimelineWindow>(
+    sessionCanvasFiltersState.timelineWindow
+  );
+  const [scopeFilter, setScopeFilterState] = useState<ScopeFilter | undefined>(
+    sessionCanvasFiltersState.scopeFilter
+  );
+  const [paretoGroupBy, setParetoGroupByState] = useState<string | undefined>(
+    sessionCanvasFiltersState.paretoGroupBy
+  );
+  const [activeCanvasLens, setActiveCanvasLensState] = useState<CanvasLensId>(
+    sessionCanvasFiltersState.activeCanvasLens
+  );
+  const [activeCanvasOverlays, setActiveCanvasOverlaysState] = useState<CanvasOverlayId[]>(
+    sessionCanvasFiltersState.activeCanvasOverlays
+  );
+  const [activeCanvasTool, setActiveCanvasToolState] = useState<CanvasToolId>(
+    sessionCanvasFiltersState.activeCanvasTool
+  );
+
+  const setTimelineWindow = useCallback((next: TimelineWindow): void => {
+    sessionCanvasFiltersState = { ...sessionCanvasFiltersState, timelineWindow: next };
+    setTimelineWindowState(next);
+  }, []);
+
+  const setScopeFilter = useCallback((next: ScopeFilter | undefined): void => {
+    sessionCanvasFiltersState = { ...sessionCanvasFiltersState, scopeFilter: next };
+    setScopeFilterState(next);
+  }, []);
+
+  const setParetoGroupBy = useCallback((next: string | undefined): void => {
+    sessionCanvasFiltersState = { ...sessionCanvasFiltersState, paretoGroupBy: next };
+    setParetoGroupByState(next);
+  }, []);
+
+  const setActiveCanvasLens = useCallback((next: CanvasLensId): void => {
+    sessionCanvasFiltersState = { ...sessionCanvasFiltersState, activeCanvasLens: next };
+    setActiveCanvasLensState(next);
+  }, []);
+
+  const setActiveCanvasOverlays = useCallback((next: CanvasOverlayId[]): void => {
+    sessionCanvasFiltersState = { ...sessionCanvasFiltersState, activeCanvasOverlays: next };
+    setActiveCanvasOverlaysState(next);
+  }, []);
 
   const toggleCanvasOverlay = useCallback((overlay: CanvasOverlayId): void => {
-    setActiveCanvasOverlays(current =>
-      current.includes(overlay) ? current.filter(id => id !== overlay) : [...current, overlay]
-    );
+    setActiveCanvasOverlaysState(current => {
+      const next = current.includes(overlay)
+        ? current.filter(id => id !== overlay)
+        : [...current, overlay];
+      sessionCanvasFiltersState = { ...sessionCanvasFiltersState, activeCanvasOverlays: next };
+      return next;
+    });
   }, []);
 
   const setActiveCanvasTool = useCallback((next: CanvasToolId): void => {
+    sessionCanvasFiltersState = { ...sessionCanvasFiltersState, activeCanvasTool: next };
     setActiveCanvasToolState(next);
     if (next === 'draw-hypothesis') {
-      setActiveCanvasOverlays(current =>
-        current.includes('hypotheses') ? current : [...current, 'hypotheses']
-      );
+      setActiveCanvasOverlaysState(current => {
+        const nextOverlays = current.includes(HYPOTHESES_OVERLAY)
+          ? current
+          : [...current, HYPOTHESES_OVERLAY];
+        sessionCanvasFiltersState = {
+          ...sessionCanvasFiltersState,
+          activeCanvasOverlays: nextOverlays,
+        };
+        return nextOverlays;
+      });
     }
   }, []);
 

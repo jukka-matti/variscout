@@ -1,8 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
-import { useSessionCanvasFilters } from '../useSessionCanvasFilters';
+import {
+  __resetSessionCanvasFiltersForTests,
+  useSessionCanvasFilters,
+} from '../useSessionCanvasFilters';
 
 describe('useSessionCanvasFilters', () => {
+  beforeEach(() => {
+    __resetSessionCanvasFiltersForTests();
+  });
+
   it('starts with cumulative timeline and no scope or Pareto filter', () => {
     const { result } = renderHook(() => useSessionCanvasFilters());
 
@@ -69,6 +76,17 @@ describe('useSessionCanvasFilters', () => {
 
     expect(result.current.activeCanvasTool).toBe('select');
     expect(result.current.activeCanvasOverlays).toEqual([]);
+  });
+
+  it('keeps the wall overlay active after unmount and remount in the same session', () => {
+    const { result, unmount } = renderHook(() => useSessionCanvasFilters());
+
+    act(() => result.current.toggleCanvasOverlay('wall'));
+    unmount();
+
+    const remounted = renderHook(() => useSessionCanvasFilters());
+
+    expect(remounted.result.current.activeCanvasOverlays).toContain('wall');
   });
 
   it('activating draw-hypothesis auto-enables the hypotheses overlay', () => {
