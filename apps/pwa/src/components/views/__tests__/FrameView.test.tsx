@@ -13,6 +13,9 @@ const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
 const showHandoffMock = vi.fn();
 const expandToQuestionMock = vi.fn();
+const addCausalLinkMock = vi.fn();
+const linkQuestionToCausalLinkMock = vi.fn();
+const removeCausalLinkMock = vi.fn();
 
 const storeStateRef: { current: Record<string, unknown> } = {
   current: {
@@ -34,6 +37,9 @@ const investigationStateRef: { current: Record<string, unknown> } = {
     questions: [],
     suspectedCauses: [],
     causalLinks: [],
+    addCausalLink: addCausalLinkMock,
+    linkQuestionToCausalLink: linkQuestionToCausalLinkMock,
+    removeCausalLink: removeCausalLinkMock,
   },
 };
 
@@ -45,8 +51,11 @@ const hoisted = vi.hoisted(() => ({
 
 vi.mock('@variscout/stores', () => ({
   useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
-  useInvestigationStore: vi.fn((selector: (s: unknown) => unknown) =>
-    selector(investigationStateRef.current)
+  useInvestigationStore: Object.assign(
+    vi.fn((selector: (s: unknown) => unknown) => selector(investigationStateRef.current)),
+    {
+      getState: () => investigationStateRef.current,
+    }
   ),
 }));
 
@@ -59,6 +68,13 @@ vi.mock('@variscout/ui', async () => {
       onQuickAction?: (stepId: string) => void;
       onFocusedInvestigation?: (stepId: string) => void;
       onOpenInvestigationFocus?: (focus: { questionId?: string }) => void;
+      onAddCausalLink?: (
+        fromFactor: string,
+        toFactor: string,
+        whyStatement: string,
+        options?: { questionIds?: string[] }
+      ) => void;
+      onRemoveCausalLink?: (linkId: string) => void;
       onCharter?: () => void;
       onSustainment?: () => void;
       onHandoff?: () => void;
@@ -165,6 +181,10 @@ describe('FrameView (PWA shell)', () => {
     showSustainmentMock.mockClear();
     showHandoffMock.mockClear();
     expandToQuestionMock.mockClear();
+    addCausalLinkMock.mockReset();
+    linkQuestionToCausalLinkMock.mockReset();
+    removeCausalLinkMock.mockReset();
+    addCausalLinkMock.mockReturnValue({ id: 'link-created' });
     hoisted.listByHubMock.mockReset();
     hoisted.listByHubMock.mockResolvedValue([]);
     hoisted.sessionStateRef.current = { hub: { id: 'hub-1' } };
@@ -184,6 +204,9 @@ describe('FrameView (PWA shell)', () => {
       questions: [{ id: 'q-1' }],
       suspectedCauses: [{ id: 'hub-1' }],
       causalLinks: [{ id: 'link-1' }],
+      addCausalLink: addCausalLinkMock,
+      linkQuestionToCausalLink: linkQuestionToCausalLinkMock,
+      removeCausalLink: removeCausalLinkMock,
     };
   });
 
@@ -288,6 +311,28 @@ describe('FrameView (PWA shell)', () => {
 
     expect(expandToQuestionMock).toHaveBeenCalledWith('q-1');
     expect(showInvestigationMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('wires causal-link mutation callbacks to the investigation store', () => {
+    render(<FrameView />);
+
+    const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+    expect(props?.onAddCausalLink).toEqual(expect.any(Function));
+    expect(props?.onRemoveCausalLink).toEqual(expect.any(Function));
+
+    props.onAddCausalLink('Machine', 'Fill_Weight', 'Machine drift changes fill weight', {
+      questionIds: ['q-1', 'q-2'],
+    });
+    props.onRemoveCausalLink('link-created');
+
+    expect(addCausalLinkMock).toHaveBeenCalledWith(
+      'Machine',
+      'Fill_Weight',
+      'Machine drift changes fill weight'
+    );
+    expect(linkQuestionToCausalLinkMock).toHaveBeenCalledWith('link-created', 'q-1');
+    expect(linkQuestionToCausalLinkMock).toHaveBeenCalledWith('link-created', 'q-2');
+    expect(removeCausalLinkMock).toHaveBeenCalledWith('link-created');
   });
 
   it('wires Canvas charter/sustainment/handoff CTAs to the panels-store show actions', () => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { formatStatistic } from '@variscout/core/i18n';
 import type {
+  CanvasToolId,
   CanvasLensId,
   CanvasOverlayId,
   CanvasStepCardModel,
@@ -9,12 +10,14 @@ import type {
 import { StepDefectIndicator } from '../../StepDefectIndicator';
 import { CanvasStepDriftIndicator } from './CanvasStepDriftIndicator';
 import { CanvasStepMiniChart } from './CanvasStepMiniChart';
+import { StepNodeMarker } from './StepNodeMarker';
 
 interface CanvasStepCardProps {
   card: CanvasStepCardModel;
   activeLens: CanvasLensId;
   activeOverlays?: CanvasOverlayId[];
   investigationOverlay?: CanvasStepInvestigationOverlay;
+  activeCanvasTool: CanvasToolId;
   onOpen: (stepId: string, element: HTMLElement) => void;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
   registerCardElement?: (stepId: string, element: HTMLElement | null) => void;
@@ -46,10 +49,12 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
   activeLens,
   activeOverlays = [],
   investigationOverlay,
+  activeCanvasTool,
   onOpen,
   onStepSpecsRequest,
   registerCardElement,
 }) => {
+  const rootRef = React.useRef<HTMLDivElement | null>(null);
   const showDefects = activeLens === 'defect' && card.defectCount !== undefined;
   const showCapability = activeLens === 'capability' || activeLens === 'default';
   const showInvestigations = activeOverlays.includes('investigations') && investigationOverlay;
@@ -68,15 +73,23 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
 
   return (
     <div
-      ref={element => registerCardElement?.(card.stepId, element)}
+      ref={element => {
+        rootRef.current = element;
+        registerCardElement?.(card.stepId, element);
+      }}
       role="button"
       tabIndex={0}
       className="flex min-h-44 flex-col gap-3 rounded-md border border-edge bg-surface-primary p-3 text-left shadow-sm transition-colors hover:border-edge-strong"
       data-testid={`canvas-step-card-${card.stepId}`}
-      onClick={event => onOpen(card.stepId, event.currentTarget)}
+      data-arrow-endpoint={card.metricColumn ? `step:${card.stepId}` : undefined}
+      onClick={event => {
+        if (activeCanvasTool === 'draw-hypothesis') return;
+        onOpen(card.stepId, event.currentTarget);
+      }}
       onKeyDown={event => {
         if (event.target !== event.currentTarget) return;
         if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (activeCanvasTool === 'draw-hypothesis') return;
         event.preventDefault();
         onOpen(card.stepId, event.currentTarget);
       }}
@@ -116,12 +129,17 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
           </span>
         ) : null}
         {showSuspectedCauses ? (
-          <span
-            className="rounded-full bg-status-warning-soft px-2 py-0.5 text-[11px] font-medium text-status-warning"
-            data-testid={`canvas-step-suspected-cause-marker-${card.stepId}`}
-          >
-            {investigationOverlay?.suspectedCauses.length} cause
-          </span>
+          <StepNodeMarker
+            hubs={(investigationOverlay?.suspectedCauses ?? []).map(cause => ({
+              id: cause.id,
+              name: cause.name,
+              status: cause.status,
+            }))}
+            onClick={() => {
+              if (activeCanvasTool === 'draw-hypothesis') return;
+              if (rootRef.current) onOpen(card.stepId, rootRef.current);
+            }}
+          />
         ) : null}
         {showCapability ? (
           <span
@@ -141,6 +159,11 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
         {card.assignedColumns.slice(0, 3).map(column => (
           <span
             key={column}
+            data-arrow-endpoint={`column:${column}`}
+            data-arrow-host-step-id={card.stepId}
+            role={activeCanvasTool === 'draw-hypothesis' ? 'button' : undefined}
+            tabIndex={activeCanvasTool === 'draw-hypothesis' ? 0 : undefined}
+            aria-label={`Hypothesis endpoint ${column}`}
             className="rounded-full bg-surface-secondary px-2 py-0.5 text-[11px] text-content-secondary"
           >
             {column}
@@ -153,8 +176,10 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
           type="button"
           className="mt-auto self-start rounded border border-edge bg-surface-secondary px-2 py-1 text-xs font-medium text-content-secondary hover:bg-surface-tertiary hover:text-content"
           aria-label={specButtonLabel}
+          disabled={activeCanvasTool === 'draw-hypothesis'}
           onClick={event => {
             event.stopPropagation();
+            if (activeCanvasTool === 'draw-hypothesis') return;
             onStepSpecsRequest?.(card.metricColumn!, card.stepId);
           }}
         >

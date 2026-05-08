@@ -100,6 +100,11 @@ const stepCards: CanvasStepCardModel[] = [
   },
 ];
 
+const metriclessStepCards: CanvasStepCardModel[] = [
+  { ...stepCards[0], metricColumn: undefined },
+  stepCards[1],
+];
+
 const investigationOverlays: CanvasInvestigationOverlayModel = {
   byStep: {
     'step-1': {
@@ -432,6 +437,222 @@ describe('Canvas', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it('renders the hypothesis draw tool button and forwards tool changes', () => {
+    const onCanvasToolChange = vi.fn();
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        signals={SIGNALS}
+        stepCards={stepCards}
+        activeCanvasTool="select"
+        onCanvasToolChange={onCanvasToolChange}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('hypothesis-draw-tool-button'));
+
+    expect(onCanvasToolChange).toHaveBeenCalledWith('draw-hypothesis');
+  });
+
+  it('draws a hypothesis arrow, opens the form, and saves a causal link', () => {
+    const onAddCausalLink = vi.fn();
+    const onCanvasToolChange = vi.fn();
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        signals={SIGNALS}
+        stepCards={stepCards}
+        activeCanvasTool="draw-hypothesis"
+        onCanvasToolChange={onCanvasToolChange}
+        onAddCausalLink={onAddCausalLink}
+        questions={[{ id: 'q-1', text: 'Does pressure drive fill?' }]}
+      />
+    );
+
+    const surface = screen.getByTestId('canvas-card-surface');
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 800,
+      bottom: 400,
+      width: 800,
+      height: 400,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.pointerDown(screen.getByTestId('canvas-step-card-step-1'), {
+      clientX: 10,
+      clientY: 20,
+    });
+    fireEvent.pointerMove(screen.getByTestId('canvas-step-card-step-2'), {
+      clientX: 100,
+      clientY: 50,
+    });
+    expect(screen.getByTestId('canvas-rubber-band')).toBeInTheDocument();
+    fireEvent.pointerUp(screen.getByTestId('canvas-step-card-step-2'), {
+      clientX: 100,
+      clientY: 50,
+    });
+
+    expect(screen.getByTestId('hypothesis-draft-popover')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/because/i), {
+      target: { value: 'thermal coupling between chambers' },
+    });
+    fireEvent.change(screen.getByLabelText(/link to question/i), { target: { value: 'q-1' } });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    expect(onAddCausalLink).toHaveBeenCalledWith(
+      'Pressure',
+      'Defect',
+      'thermal coupling between chambers',
+      {
+        questionIds: ['q-1'],
+      }
+    );
+    expect(onCanvasToolChange).toHaveBeenCalledWith('select');
+  });
+
+  it('cancels an awaiting hypothesis without committing', () => {
+    const onAddCausalLink = vi.fn();
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        signals={SIGNALS}
+        stepCards={stepCards}
+        activeCanvasTool="draw-hypothesis"
+        onAddCausalLink={onAddCausalLink}
+      />
+    );
+
+    fireEvent.pointerDown(screen.getByTestId('canvas-step-card-step-1'), {
+      clientX: 10,
+      clientY: 20,
+    });
+    fireEvent.pointerUp(screen.getByTestId('canvas-step-card-step-2'), {
+      clientX: 100,
+      clientY: 50,
+    });
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+
+    expect(screen.queryByTestId('hypothesis-draft-popover')).not.toBeInTheDocument();
+    expect(onAddCausalLink).not.toHaveBeenCalled();
+  });
+
+  it('does not start draw-flow hypotheses from metric-less step endpoints', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        signals={SIGNALS}
+        stepCards={metriclessStepCards}
+        activeCanvasTool="draw-hypothesis"
+      />
+    );
+
+    fireEvent.pointerDown(screen.getByTestId('canvas-step-card-step-1'), {
+      clientX: 10,
+      clientY: 20,
+    });
+    fireEvent.pointerUp(screen.getByTestId('canvas-step-card-step-2'), {
+      clientX: 100,
+      clientY: 50,
+    });
+
+    expect(screen.queryByTestId('hypothesis-draft-popover')).not.toBeInTheDocument();
+  });
+
+  it('supports keyboard source and target selection while draw tool is active', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        signals={SIGNALS}
+        stepCards={stepCards}
+        activeCanvasTool="draw-hypothesis"
+      />
+    );
+
+    const step1 = screen.getByTestId('canvas-step-card-step-1');
+    const step2 = screen.getByTestId('canvas-step-card-step-2');
+    step1.focus();
+    fireEvent.keyDown(step1, { key: 'Enter' });
+    step2.focus();
+    fireEvent.keyDown(step2, { key: 'Enter' });
+
+    expect(screen.getByTestId('hypothesis-draft-popover')).toBeInTheDocument();
+  });
+
+  it('supports keyboard source and target selection for column endpoints', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        signals={SIGNALS}
+        stepCards={stepCards}
+        activeCanvasTool="draw-hypothesis"
+      />
+    );
+
+    const sourceColumn = screen.getByLabelText('Hypothesis endpoint Pressure');
+    const targetColumn = screen.getByLabelText('Hypothesis endpoint Defect');
+    sourceColumn.focus();
+    fireEvent.keyDown(sourceColumn, { key: 'Enter' });
+    targetColumn.focus();
+    fireEvent.keyDown(targetColumn, { key: 'Enter' });
+
+    expect(screen.getByTestId('hypothesis-draft-popover')).toBeInTheDocument();
+  });
+
+  it('supports keyboard column endpoints on metric-less source cards', () => {
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        signals={SIGNALS}
+        stepCards={metriclessStepCards}
+        activeCanvasTool="draw-hypothesis"
+      />
+    );
+
+    const sourceColumn = screen.getByLabelText('Hypothesis endpoint Pressure');
+    const targetColumn = screen.getByLabelText('Hypothesis endpoint Defect');
+    sourceColumn.focus();
+    fireEvent.keyDown(sourceColumn, { key: 'Enter' });
+    targetColumn.focus();
+    fireEvent.keyDown(targetColumn, { key: 'Enter' });
+
+    expect(screen.getByTestId('hypothesis-draft-popover')).toBeInTheDocument();
+  });
+
   it('projects investigation, finding, and suspected-cause markers only when overlays are active', () => {
     const { rerender } = render(
       <Canvas
@@ -449,9 +670,7 @@ describe('Canvas', () => {
 
     expect(screen.queryByTestId('canvas-step-investigation-badge-step-1')).not.toBeInTheDocument();
     expect(screen.queryByTestId('canvas-step-finding-pin-step-1')).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId('canvas-step-suspected-cause-marker-step-1')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('step-node-marker')).not.toBeInTheDocument();
 
     rerender(
       <Canvas
@@ -471,9 +690,7 @@ describe('Canvas', () => {
       '2 investigation'
     );
     expect(screen.getByTestId('canvas-step-finding-pin-step-1')).toHaveTextContent('1 finding');
-    expect(screen.getByTestId('canvas-step-suspected-cause-marker-step-1')).toHaveTextContent(
-      '1 cause'
-    );
+    expect(screen.getByTestId('step-node-marker')).toHaveTextContent('1');
   });
 
   it('renders hypothesis arrows when the hypotheses overlay is active', () => {
@@ -492,6 +709,60 @@ describe('Canvas', () => {
     );
 
     expect(screen.getByTestId('canvas-hypothesis-arrow-link-1')).toBeInTheDocument();
+  });
+
+  it('remeasures hypothesis arrows after viewport resize', () => {
+    let cardOffset = 0;
+    const rectFor = (left: number, top: number, width: number, height: number): DOMRect =>
+      ({
+        x: left,
+        y: top,
+        top,
+        left,
+        right: left + width,
+        bottom: top + height,
+        width,
+        height,
+        toJSON: () => ({}),
+      }) as DOMRect;
+    const rectSpy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.dataset.testid === 'canvas-card-surface') return rectFor(0, 0, 800, 400);
+        if (this.dataset.testid === 'canvas-step-card-step-1')
+          return rectFor(cardOffset, 10, 100, 80);
+        if (this.dataset.testid === 'canvas-step-card-step-2')
+          return rectFor(200 + cardOffset, 10, 100, 80);
+        return rectFor(0, 0, 0, 0);
+      });
+
+    try {
+      render(
+        <Canvas
+          map={mapWithSteps}
+          availableColumns={[]}
+          onChange={() => {}}
+          data={data}
+          filter={filter}
+          signals={SIGNALS}
+          stepCards={stepCards}
+          investigationOverlays={investigationOverlays}
+          activeOverlays={['hypotheses']}
+        />
+      );
+
+      const arrow = screen.getByTestId('canvas-hypothesis-arrow-link-1');
+      expect(arrow).toHaveAttribute('x1', '50');
+      expect(arrow).toHaveAttribute('x2', '250');
+
+      cardOffset = 20;
+      fireEvent.resize(window);
+
+      expect(arrow).toHaveAttribute('x1', '70');
+      expect(arrow).toHaveAttribute('x2', '270');
+    } finally {
+      rectSpy.mockRestore();
+    }
   });
 
   it('opens and dismisses the step overlay from a card click', () => {
@@ -662,6 +933,31 @@ describe('Canvas', () => {
       id: 'q-1',
       questionId: 'q-1',
     });
+  });
+
+  it('forwards causal link removal from the step overlay', () => {
+    const onRemoveCausalLink = vi.fn();
+
+    render(
+      <Canvas
+        map={mapWithSteps}
+        availableColumns={[]}
+        onChange={() => {}}
+        data={data}
+        filter={filter}
+        signals={SIGNALS}
+        stepCards={stepCards}
+        investigationOverlays={investigationOverlays}
+        onRemoveCausalLink={onRemoveCausalLink}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
+    fireEvent.click(
+      screen.getByRole('button', { name: /remove hypothesis pressure drives fill/i })
+    );
+
+    expect(onRemoveCausalLink).toHaveBeenCalledWith('link-1');
   });
 
   it('keeps spec edit affordances separate from card drill-down', () => {

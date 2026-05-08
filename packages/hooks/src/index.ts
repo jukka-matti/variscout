@@ -50,6 +50,17 @@ export {
 
 export { useCanvasKeyboard, type UseCanvasKeyboardArgs } from './useCanvasKeyboard';
 
+export {
+  useHypothesisDrawTool,
+  resolveEndpointToFactor,
+  type ArrowEndpoint,
+  type CanvasToolId,
+  type DrawToolState,
+  type Point,
+  type UseHypothesisDrawToolArgs,
+  type UseHypothesisDrawToolResult,
+} from './useHypothesisDrawTool';
+
 // Canvas step cards and lens registry
 export {
   CANVAS_LENS_REGISTRY,

@@ -9,7 +9,7 @@ import type {
   CanvasOverlayId,
   CanvasStepCardModel,
 } from '@variscout/hooks';
-import { useCanvasStepCards } from '@variscout/hooks';
+import { useCanvasInvestigationOverlays, useCanvasStepCards } from '@variscout/hooks';
 import { useCanvasStore } from '@variscout/stores';
 
 vi.mock('@variscout/charts', async importOriginal => {
@@ -81,6 +81,8 @@ const canvasFiltersStateRef: {
     setActiveCanvasLens: ReturnType<typeof vi.fn>;
     setActiveCanvasOverlays: ReturnType<typeof vi.fn>;
     toggleCanvasOverlay: ReturnType<typeof vi.fn>;
+    activeCanvasTool: 'select' | 'draw-hypothesis';
+    setActiveCanvasTool: ReturnType<typeof vi.fn>;
   };
 } = {
   current: {
@@ -95,6 +97,8 @@ const canvasFiltersStateRef: {
     setActiveCanvasLens: vi.fn(),
     setActiveCanvasOverlays: vi.fn(),
     toggleCanvasOverlay: vi.fn(),
+    activeCanvasTool: 'select',
+    setActiveCanvasTool: vi.fn(),
   },
 };
 
@@ -140,6 +144,25 @@ const mockStepCards: CanvasStepCardModel[] = [
       confidence: 'insufficient',
       target: 1.33,
       canAddSpecs: false,
+    },
+    defectCount: 2,
+  },
+];
+
+const mockTwoStepCards: CanvasStepCardModel[] = [
+  mockStepCards[0],
+  {
+    stepId: 'step-2',
+    stepName: 'Fill',
+    assignedColumns: ['Fill_Defect'],
+    metricColumn: 'Fill_Defect',
+    metricKind: 'categorical',
+    values: [],
+    distribution: [{ label: 'Scratch', count: 2 }],
+    capability: {
+      state: 'no-specs',
+      n: 0,
+      canAddSpecs: true,
     },
     defectCount: 2,
   },
@@ -282,6 +305,47 @@ vi.mock('@variscout/hooks', () => ({
       onPlace(chipId, String(overId).replace(/^step:/, ''));
     },
   }),
+  useHypothesisDrawTool: vi.fn(({ active }: { active: boolean }) => {
+    const [state, setState] = React.useState<{ phase: string; [key: string]: unknown }>({
+      phase: 'idle',
+    });
+    const reset = React.useCallback(() => setState({ phase: 'idle' }), []);
+    return {
+      state,
+      onPointerDown: vi.fn((endpoint: unknown, at: unknown) => {
+        if (!active) return;
+        setState({ phase: 'drawing', source: endpoint, anchorAt: at, cursorAt: at, hover: null });
+      }),
+      onPointerMove: vi.fn((at: unknown, hover: unknown) => {
+        if (!active) return;
+        setState(current =>
+          current.phase === 'drawing' ? { ...current, cursorAt: at, hover } : current
+        );
+      }),
+      onPointerUp: vi.fn((endpoint: unknown, at: unknown) => {
+        if (!active) return;
+        setState(current =>
+          current.phase === 'drawing' && endpoint
+            ? {
+                phase: 'awaitingForm',
+                source: current.source,
+                target: endpoint,
+                releaseAt: at,
+              }
+            : current
+        );
+      }),
+      onPointerCancel: reset,
+      cancel: reset,
+      reset,
+    };
+  }),
+  resolveEndpointToFactor: vi.fn(
+    (
+      endpoint: { kind: 'step'; id: string } | { kind: 'column'; name: string },
+      stepMetricColumns: Record<string, string | undefined>
+    ) => (endpoint.kind === 'column' ? endpoint.name : stepMetricColumns[endpoint.id])
+  ),
   useCanvasKeyboard: ({
     onUndo,
     onRedo,
@@ -408,13 +472,18 @@ describe('CanvasWorkspace', () => {
       setActiveCanvasLens: vi.fn(),
       setActiveCanvasOverlays: vi.fn(),
       toggleCanvasOverlay: vi.fn(),
+      activeCanvasTool: 'select',
+      setActiveCanvasTool: vi.fn(),
     };
     opsToggleStateRef.current = {
       mode: 'spatial',
       setMode: vi.fn(),
       toggle: vi.fn(),
     };
-    vi.mocked(useCanvasStepCards).mockClear();
+    vi.mocked(useCanvasStepCards).mockImplementation(() => ({ cards: mockStepCards }));
+    vi.mocked(useCanvasInvestigationOverlays).mockImplementation(() => ({
+      overlays: mockInvestigationOverlays,
+    }));
   });
 
   it('renders b0 with the lightweight picker and collapsed canvas expander', () => {
@@ -469,6 +538,104 @@ describe('CanvasWorkspace', () => {
     expect(canvasFiltersStateRef.current.toggleCanvasOverlay).toHaveBeenCalledWith(
       'investigations'
     );
+  });
+
+  it('wires hypothesis draw tool changes through session canvas filters', () => {
+    renderWorkspace({ processContext: { processMap: mapWithStep() } });
+
+    fireEvent.click(screen.getByTestId('hypothesis-draw-tool-button'));
+
+    expect(canvasFiltersStateRef.current.setActiveCanvasTool).toHaveBeenCalledWith(
+      'draw-hypothesis'
+    );
+  });
+
+  it('forwards saved draw-flow hypotheses to the app shell callback with the selected question id', () => {
+    const onAddCausalLink = vi.fn();
+    vi.mocked(useCanvasStepCards).mockReturnValue({ cards: mockTwoStepCards });
+    canvasFiltersStateRef.current = {
+      ...canvasFiltersStateRef.current,
+      activeCanvasTool: 'draw-hypothesis',
+    };
+
+    renderWorkspace({
+      processContext: { processMap: mapWithSecondStep() },
+      questions: [
+        {
+          id: 'q-1',
+          text: 'Does bake time drive fill defects?',
+          status: 'open',
+          linkedFindingIds: [],
+          createdAt: 0,
+          updatedAt: 0,
+          deletedAt: null,
+          investigationId: 'inv-1',
+        },
+      ],
+      onAddCausalLink,
+    });
+
+    fireEvent.pointerDown(screen.getByTestId('canvas-step-card-step-1'), {
+      clientX: 10,
+      clientY: 20,
+    });
+    fireEvent.pointerMove(screen.getByTestId('canvas-step-card-step-2'), {
+      clientX: 100,
+      clientY: 50,
+    });
+    fireEvent.pointerUp(screen.getByTestId('canvas-step-card-step-2'), {
+      clientX: 100,
+      clientY: 50,
+    });
+    fireEvent.change(screen.getByLabelText(/because/i), {
+      target: { value: 'bake time variation creates fill defects' },
+    });
+    fireEvent.change(screen.getByLabelText(/link to question/i), { target: { value: 'q-1' } });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    expect(onAddCausalLink).toHaveBeenCalledWith(
+      'Bake_Time',
+      'Fill_Defect',
+      'bake time variation creates fill defects',
+      { questionIds: ['q-1'] }
+    );
+  });
+
+  it('forwards causal link removal from the step overlay to the app shell callback', () => {
+    const onRemoveCausalLink = vi.fn();
+    vi.mocked(useCanvasInvestigationOverlays).mockReturnValue({
+      overlays: {
+        ...mockInvestigationOverlays,
+        byStep: {
+          ...mockInvestigationOverlays.byStep,
+          'step-1': {
+            ...mockInvestigationOverlays.byStep['step-1'],
+            causalLinks: [
+              {
+                id: 'link-1',
+                fromStepId: 'step-1',
+                toStepId: 'step-2',
+                label: 'Bake time drives fill defects',
+                questionId: 'q-1',
+                focus: { kind: 'causal-link', id: 'link-1', questionId: 'q-1' },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    renderWorkspace({
+      processContext: { processMap: mapWithSecondStep() },
+      onRemoveCausalLink,
+    });
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
+    fireEvent.click(
+      screen.getByRole('button', { name: /remove hypothesis bake time drives fill defects/i })
+    );
+
+    expect(onRemoveCausalLink).toHaveBeenCalledWith('link-1');
   });
 
   it('forwards step overlay response paths to app shell callbacks', () => {

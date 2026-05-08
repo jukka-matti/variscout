@@ -56,6 +56,13 @@ export interface CanvasWorkspaceProps {
   findings?: readonly Finding[];
   suspectedCauses?: readonly SuspectedCause[];
   causalLinks?: readonly CausalLink[];
+  onAddCausalLink?: (
+    fromFactor: string,
+    toFactor: string,
+    whyStatement: string,
+    options?: { questionIds?: string[] }
+  ) => void;
+  onRemoveCausalLink?: (linkId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
   priorStepStats?: ReadonlyMap<string, StepCapabilityStamp>;
 }
@@ -161,6 +168,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   findings = [],
   suspectedCauses = [],
   causalLinks = [],
+  onAddCausalLink,
+  onRemoveCausalLink,
   onOpenInvestigationFocus,
   priorStepStats,
 }) => {
@@ -244,6 +253,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     setActiveCanvasLens,
     activeCanvasOverlays,
     toggleCanvasOverlay,
+    activeCanvasTool,
+    setActiveCanvasTool,
   } = useSessionCanvasFilters();
 
   const canvasFilterChipsNode = (
@@ -457,7 +468,12 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onLensChange={setActiveCanvasLens}
       activeOverlays={activeCanvasOverlays}
       onOverlayToggle={toggleCanvasOverlay}
+      activeCanvasTool={activeCanvasTool}
+      onCanvasToolChange={setActiveCanvasTool}
       investigationOverlays={investigationOverlays}
+      questions={questions}
+      onAddCausalLink={onAddCausalLink}
+      onRemoveCausalLink={onRemoveCausalLink}
       signals={signals}
       onQuickAction={onQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}

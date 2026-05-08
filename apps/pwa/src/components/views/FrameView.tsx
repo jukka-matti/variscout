@@ -94,6 +94,30 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showInvestigation();
   }, []);
 
+  const handleAddCausalLink = React.useCallback(
+    (
+      fromFactor: string,
+      toFactor: string,
+      whyStatement: string,
+      options?: { questionIds?: string[] }
+    ) => {
+      const link = useInvestigationStore
+        .getState()
+        .addCausalLink(fromFactor, toFactor, whyStatement);
+
+      if (!link || !options?.questionIds) return;
+
+      for (const questionId of options.questionIds) {
+        useInvestigationStore.getState().linkQuestionToCausalLink(link.id, questionId);
+      }
+    },
+    []
+  );
+
+  const handleRemoveCausalLink = React.useCallback((linkId: string) => {
+    useInvestigationStore.getState().removeCausalLink(linkId);
+  }, []);
+
   const handleCharter = React.useCallback(() => {
     usePanelsStore.getState().showCharter();
   }, []);
@@ -125,6 +149,8 @@ const FrameView: React.FC = () => {
       suspectedCauses={suspectedCauses}
       causalLinks={causalLinks}
       onOpenInvestigationFocus={handleOpenInvestigationFocus}
+      onAddCausalLink={handleAddCausalLink}
+      onRemoveCausalLink={handleRemoveCausalLink}
       signals={signals}
       onCharter={handleCharter}
       onSustainment={handleSustainment}

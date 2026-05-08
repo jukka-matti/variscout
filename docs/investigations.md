@@ -235,7 +235,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
-### Canvas hypothesis-arrow drawing affordance absent (vision §3.4)
+### Canvas hypothesis-arrow drawing affordance absent (vision §3.4) [RESOLVED 2026-05-08]
 
 **Surfaced by:** Canvas PR6 retrospective design review, 2026-05-06.
 
@@ -249,6 +249,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - Storage: new draft hypotheses → `CausalLink` entities in `useInvestigationStore` (existing graph).
 
 **Promotion path:** PR8d of the canvas migration sequence. Requires Spec 4 brainstorm extension covering the drawing-mode gesture (overlap with structural-arrow drawing — same primitive, different semantic), promoted-vs-draft visual, and column-vs-step source/target. ~8 tasks.
+
+**Resolution:** PR8-8d (PR TBD) — Canvas gains a dedicated draw-hypothesis tool, step/column endpoints, drag and keyboard authoring flows, a focused draft popover with optional question linking, causal-link store wiring in PWA/Azure shells, remove affordances on hypothesis links, and promoted suspected-cause node markers.
 
 ---
 

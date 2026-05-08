@@ -63,4 +63,50 @@ describe('useSessionCanvasFilters', () => {
     expect(result.current.setActiveCanvasLens).toBe(setActiveCanvasLens);
     expect(persistenceSpy).not.toHaveBeenCalled();
   });
+
+  it('starts with select tool and no active overlays', () => {
+    const { result } = renderHook(() => useSessionCanvasFilters());
+
+    expect(result.current.activeCanvasTool).toBe('select');
+    expect(result.current.activeCanvasOverlays).toEqual([]);
+  });
+
+  it('activating draw-hypothesis auto-enables the hypotheses overlay', () => {
+    const { result } = renderHook(() => useSessionCanvasFilters());
+
+    act(() => result.current.setActiveCanvasTool('draw-hypothesis'));
+
+    expect(result.current.activeCanvasTool).toBe('draw-hypothesis');
+    expect(result.current.activeCanvasOverlays).toContain('hypotheses');
+  });
+
+  it('activating draw-hypothesis does not duplicate an existing hypotheses overlay', () => {
+    const { result } = renderHook(() => useSessionCanvasFilters());
+
+    act(() => result.current.toggleCanvasOverlay('hypotheses'));
+    act(() => result.current.setActiveCanvasTool('draw-hypothesis'));
+
+    expect(result.current.activeCanvasOverlays).toEqual(['hypotheses']);
+  });
+
+  it('returning to select keeps the hypotheses overlay enabled', () => {
+    const { result } = renderHook(() => useSessionCanvasFilters());
+
+    act(() => result.current.setActiveCanvasTool('draw-hypothesis'));
+    act(() => result.current.setActiveCanvasTool('select'));
+
+    expect(result.current.activeCanvasTool).toBe('select');
+    expect(result.current.activeCanvasOverlays).toContain('hypotheses');
+  });
+
+  it('preserves other overlays when activating draw-hypothesis', () => {
+    const { result } = renderHook(() => useSessionCanvasFilters());
+
+    act(() => result.current.toggleCanvasOverlay('investigations'));
+    act(() => result.current.setActiveCanvasTool('draw-hypothesis'));
+
+    expect(result.current.activeCanvasOverlays).toEqual(
+      expect.arrayContaining(['investigations', 'hypotheses'])
+    );
+  });
 });
