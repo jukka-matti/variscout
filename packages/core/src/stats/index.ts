@@ -86,6 +86,13 @@ export {
 } from './boxplot';
 export type { BoxplotPriorityCriterion } from './boxplot';
 
+// Histogram binning (Sturges / Scott)
+export {
+  computeHistogramBins,
+  type HistogramBin,
+  type HistogramBinningRule,
+} from './histogramBins';
+
 // Anderson-Darling normality test
 export { andersonDarlingTest, normalCDF } from './andersonDarling';
 export type { AndersonDarlingResult } from './andersonDarling';
