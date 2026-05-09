@@ -20,9 +20,10 @@ export function evidenceTypesForHypothesis(
 }
 
 /**
- * `true` when at least one disconfirmation attempt is recorded with a
- * `pending` verdict — i.e. a falsification test has been opened but not yet
- * resolved. Survey rules surface this as a "1 step away" hint on the Wall.
+ * `true` when at least one disconfirmation attempt exists with a `pending` verdict
+ * (falsification test opened but not yet resolved). Covers the "attempt in progress"
+ * half of the `needs-disconfirmation` trigger; the "no attempts at all" half is checked
+ * by `deriveHypothesisStatus` in `survey/wall.ts` (Task 8).
  */
 export function hasUnresolvedDisconfirmation(h: Hypothesis): boolean {
   return (h.disconfirmationAttempts ?? []).some(a => a.verdict === 'pending');

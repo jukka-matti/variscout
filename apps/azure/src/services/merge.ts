@@ -205,6 +205,10 @@ function mergeSingleFinding(
   const evidenceType =
     local.statusChangedAt >= remote.statusChangedAt ? local.evidenceType : remote.evidenceType;
 
+  // Refutes: follow status winner — refutation flag is a classification decision made at
+  // the same time as status; deferring to the more-recent status change preserves intent.
+  const refutes = local.statusChangedAt >= remote.statusChangedAt ? local.refutes : remote.refutes;
+
   // Comments: union by ID
   const mergedComments = mergeComments(base.comments, local.comments, remote.comments);
 
@@ -216,6 +220,7 @@ function mergeSingleFinding(
     investigationId: base.investigationId,
     context,
     evidenceType,
+    refutes,
     status,
     tag,
     comments: mergedComments,
