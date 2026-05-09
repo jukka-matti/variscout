@@ -41,6 +41,8 @@ import {
   computeInteractionEffects,
 } from '@variscout/core';
 import { detectEvidenceClusters } from '@variscout/core/findings';
+import type { ColumnTypeMap } from '@variscout/core/findings';
+import { detectColumns } from '@variscout/core/parser';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -179,6 +181,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     () => (rawData.length > 0 ? Object.keys(rawData[0]) : undefined),
     [rawData]
   );
+  const columnTypes = useMemo<ColumnTypeMap>(() => {
+    if (rawData.length === 0) return {};
+    const det = detectColumns(rawData);
+    const map: ColumnTypeMap = {};
+    for (const c of det.columnAnalysis) map[c.name] = c.type;
+    return map;
+  }, [rawData]);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
 
@@ -812,6 +821,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 problemCpk={0}
                 eventsPerWeek={0}
                 activeColumns={wallActiveColumns}
+                rows={rawData}
+                columnTypes={columnTypes}
+                outcomeColumn={outcome}
                 zoom={wallZoom}
                 pan={wallPan}
                 groupByTributary={Boolean(processMap && wallGroupByTributary)}

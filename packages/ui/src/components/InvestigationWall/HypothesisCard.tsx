@@ -16,11 +16,15 @@ import type {
   Hypothesis,
   HypothesisStatus,
 } from '@variscout/core';
+import type { ColumnTypeMap } from '@variscout/core/findings';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
+import { useMiniChartData } from '@variscout/hooks';
 import { useWallLocale } from './hooks/useWallLocale';
 import { TagChip } from './TagChip';
 import { OneStepAwayBadge } from './OneStepAwayBadge';
+import { MiniIChart } from './MiniIChart';
+import { MiniBoxplot } from './MiniBoxplot';
 
 export interface HypothesisCardProps {
   hub: Hypothesis;
@@ -44,25 +48,36 @@ export interface HypothesisCardProps {
    * Left `undefined` → full card always (backward compatibility).
    */
   zoomScale?: number;
+  /** Dataset rows used to populate the mini-chart slot (full LOD only). */
+  rows?: ReadonlyArray<Record<string, unknown>>;
+  /** Column-type map from the active dataset parser output. */
+  columnTypes?: ColumnTypeMap;
+  /** Outcome column name for boxplot charts; omit when no outcome is set. */
+  outcomeColumn?: string | null;
   onSelect?: (hubId: string) => void;
   onContextMenu?: (hubId: string, event: React.MouseEvent) => void;
 }
 
 const CARD_W = 280;
-const CARD_H = 228;
+const CARD_H = 288;
 const BODY_TOP = 64;
-const TAG_ROW_Y = 94;
+const CHART_SLOT_X = 16;
+const CHART_SLOT_Y = BODY_TOP; // 64
+const CHART_SLOT_W = CARD_W - 32; // 248
+const CHART_SLOT_H = 80;
+const POST_CHART_Y = CHART_SLOT_Y + CHART_SLOT_H + 8; // 152 — top of remaining body content
+const TAG_ROW_Y = POST_CHART_Y;
 const TAG_ROW_H = 24;
-const TAGGED_READINESS_Y = 126;
-const TAGGED_CLUE_COUNT_Y = 146;
-const DEFAULT_READINESS_Y = 108;
-const DEFAULT_CLUE_COUNT_Y = 130;
+const TAGGED_READINESS_Y = TAG_ROW_Y + TAG_ROW_H + 8; // 184
+const TAGGED_CLUE_COUNT_Y = TAGGED_READINESS_Y + 18; // 202
+const DEFAULT_READINESS_Y = POST_CHART_Y + 4; // 156 (no tags)
+const DEFAULT_CLUE_COUNT_Y = DEFAULT_READINESS_Y + 18; // 174
 /**
  * Y position of the OneStepAwayBadge when it replaces the openChecksLabel row.
- * Badge spans y=168–188; nextMove glyphs at y=192–204 → 4px clearance.
- * CARD_H - 60 = 228 - 60 = 168.
+ * Badge spans y=228–248; nextMove glyphs at y=252–264 → 4px clearance.
+ * CARD_H - 60 = 288 - 60 = 228.
  */
-const ONE_STEP_AWAY_Y = CARD_H - 60; // 168
+const ONE_STEP_AWAY_Y = CARD_H - 60; // 228
 
 const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
   proposed: 'wall.status.proposed',
@@ -81,6 +96,40 @@ const STATUS_STROKE: Record<HypothesisStatus, string> = {
   'needs-disconfirmation': chartColors.warning, // amber — needs disconfirmation check
 };
 
+interface ChartSlotProps {
+  hub: Hypothesis;
+  rows: ReadonlyArray<Record<string, unknown>>;
+  columnTypes: ColumnTypeMap;
+  outcomeColumn: string | null;
+}
+
+function ChartSlot({ hub, rows, columnTypes, outcomeColumn }: ChartSlotProps) {
+  const chart = useMiniChartData(hub, rows, columnTypes, outcomeColumn);
+
+  return (
+    <foreignObject x={CHART_SLOT_X} y={CHART_SLOT_Y} width={CHART_SLOT_W} height={CHART_SLOT_H}>
+      {chart.kind === 'i-chart' && chart.values && chart.values.length > 0 ? (
+        <MiniIChart values={chart.values} width={CHART_SLOT_W} height={CHART_SLOT_H} />
+      ) : chart.kind === 'boxplot' && chart.groups && chart.groups.length > 0 ? (
+        <MiniBoxplot groups={chart.groups} width={CHART_SLOT_W} height={CHART_SLOT_H} />
+      ) : (
+        <div
+          data-testid="mini-chart-placeholder"
+          className="flex h-full w-full items-center justify-center text-[10px] text-content-muted italic"
+        >
+          {chart.reason === 'no-outcome'
+            ? 'Set outcome to enable chart'
+            : chart.reason === 'unknown-column'
+              ? `Column "${chart.factor}" not found`
+              : chart.reason === 'unsupported-type'
+                ? 'Chart unavailable for this factor'
+                : '+ Add condition'}
+        </div>
+      )}
+    </foreignObject>
+  );
+}
+
 export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   hub,
   branch,
@@ -90,6 +139,9 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   hasGap,
   missingColumn,
   zoomScale,
+  rows,
+  columnTypes,
+  outcomeColumn,
   onSelect,
   onContextMenu,
 }) => {
@@ -197,13 +249,18 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
             x={16}
             y={BODY_TOP}
             width={CARD_W - 32}
-            height={96}
+            height={CARD_H - BODY_TOP - 16}
             rx={4}
             className="fill-surface"
           />
-          <text x={24} y={84} className="fill-content-subtle text-[10px] uppercase tracking-wide">
-            Suspected mechanism
-          </text>
+          {rows && columnTypes ? (
+            <ChartSlot
+              hub={hub}
+              rows={rows}
+              columnTypes={columnTypes}
+              outcomeColumn={outcomeColumn ?? null}
+            />
+          ) : null}
           {themeTags.length > 0 && (
             <foreignObject x={24} y={TAG_ROW_Y} width={CARD_W - 48} height={TAG_ROW_H}>
               <div
@@ -232,7 +289,7 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
           </text>
           {isOneStepAway ? (
             /* Badge replaces openChecksLabel for needs-disconfirmation.
-               y=168, height=20 → spans 168–188; nextMove glyphs at 192–204 → 4px clear. */
+               y=228, height=20 → spans 228–248; nextMove glyphs at 252–264 → 4px clear. */
             <OneStepAwayBadge
               message={oneStepAwayText}
               x={16}

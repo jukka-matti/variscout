@@ -31,6 +31,8 @@ import type { FindingStatus, Question } from '@variscout/core';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { getStrategy } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
+import { detectColumns } from '@variscout/core/parser';
+import type { ColumnTypeMap } from '@variscout/core/findings';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
 import { useWallLayoutStore, useProjectStore, useInvestigationStore } from '@variscout/stores';
@@ -95,12 +97,20 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   const setWallGroupByTributary = useWallLayoutStore(s => s.setGroupByTributary);
   const processMap = useProjectStore(s => s.processContext?.processMap);
   const rawData = useProjectStore(s => s.rawData);
+  const outcome = useProjectStore(s => s.outcome);
   // Undefined when no rows are loaded so WallCanvas keeps the missing-column
   // badge suppressed (rather than flagging every hub against an empty set).
   const wallActiveColumns = useMemo<string[] | undefined>(
     () => (rawData.length > 0 ? Object.keys(rawData[0]) : undefined),
     [rawData]
   );
+  const columnTypes = useMemo<ColumnTypeMap>(() => {
+    if (rawData.length === 0) return {};
+    const det = detectColumns(rawData);
+    const map: ColumnTypeMap = {};
+    for (const c of det.columnAnalysis) map[c.name] = c.type;
+    return map;
+  }, [rawData]);
   const hubs = useInvestigationStore(s => s.hypotheses);
   const wallFindings = useInvestigationStore(s => s.findings);
   const wallQuestions = useInvestigationStore(s => s.questions);
@@ -314,6 +324,9 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
               problemCpk={0}
               eventsPerWeek={0}
               activeColumns={wallActiveColumns}
+              rows={rawData}
+              columnTypes={columnTypes}
+              outcomeColumn={outcome}
               zoom={wallZoom}
               pan={wallPan}
               groupByTributary={Boolean(processMap && wallGroupByTributary)}

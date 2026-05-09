@@ -19,6 +19,7 @@ import type {
   GateNode,
   GatePath,
 } from '@variscout/core';
+import type { ColumnTypeMap } from '@variscout/core/findings';
 import { conditionHasMissingColumn, projectMechanismBranch } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { ProblemConditionCard } from './ProblemConditionCard';
@@ -84,6 +85,12 @@ export interface WallCanvasProps {
    * `wallLayoutStore.groupByTributary`.
    */
   groupByTributary?: boolean;
+  /** Dataset rows forwarded to each HypothesisCard to populate the mini-chart slot. */
+  rows?: ReadonlyArray<Record<string, unknown>>;
+  /** Column type map (from `detectColumns`) forwarded to each HypothesisCard. */
+  columnTypes?: ColumnTypeMap;
+  /** Investigation-level outcome column forwarded to each HypothesisCard for boxplot Y-axis. */
+  outcomeColumn?: string | null;
   /**
    * Render mode.
    * - `'destination'` (default): full destination-view chrome including
@@ -142,6 +149,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   pan = { x: 0, y: 0 },
   groupByTributary = false,
   mode = 'destination',
+  rows,
+  columnTypes,
+  outcomeColumn,
 }) => {
   const locale = useWallLocale();
   const columnSet = useMemo(
@@ -259,6 +269,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       missingColumn: columnSet ? conditionHasMissingColumn(hub.condition, columnSet) : false,
       zoomScale: zoom !== 1 ? zoom : undefined,
       onSelect: onSelectHub,
+      rows,
+      columnTypes,
+      outcomeColumn,
     };
     return dndEnabled ? (
       <DraggableHypothesisCard key={hub.id} {...hubProps} />
@@ -318,7 +331,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
                             x={bandX0 + GROUP_PAD_X / 2}
                             y={hubY - 40}
                             width={bandWidth - GROUP_PAD_X}
-                            height={260}
+                            height={348}
                             rx={12}
                             className="fill-transparent stroke-edge"
                             strokeDasharray="4 4"
