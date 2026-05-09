@@ -59,14 +59,14 @@ export interface HypothesisCardProps {
 }
 
 const CARD_W = 280;
-const CARD_H = 288; // was 228; +60px to host chart slot at top of body
+const CARD_H = 288;
 const BODY_TOP = 64;
 const CHART_SLOT_X = 16;
 const CHART_SLOT_Y = BODY_TOP; // 64
 const CHART_SLOT_W = CARD_W - 32; // 248
 const CHART_SLOT_H = 80;
 const POST_CHART_Y = CHART_SLOT_Y + CHART_SLOT_H + 8; // 152 — top of remaining body content
-const TAG_ROW_Y = POST_CHART_Y; // was 94 → 152
+const TAG_ROW_Y = POST_CHART_Y;
 const TAG_ROW_H = 24;
 const TAGGED_READINESS_Y = TAG_ROW_Y + TAG_ROW_H + 8; // 184
 const TAGGED_CLUE_COUNT_Y = TAGGED_READINESS_Y + 18; // 202
