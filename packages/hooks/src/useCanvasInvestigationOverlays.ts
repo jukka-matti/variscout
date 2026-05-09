@@ -234,7 +234,7 @@ function isPromotedHub(hub: Hypothesis): boolean {
 }
 
 function hubOwnsLink(hub: Hypothesis, link: CausalLink): boolean {
-  if (link.suspectedCauseId && link.suspectedCauseId === hub.id) return true;
+  if (link.hypothesisId && link.hypothesisId === hub.id) return true;
   return (
     link.questionIds.some(id => hub.questionIds.includes(id)) ||
     link.findingIds.some(id => hub.findingIds.includes(id))

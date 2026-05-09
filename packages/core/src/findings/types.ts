@@ -118,7 +118,7 @@ export interface FindingComment extends EntityBase {
    */
   parentId: Finding['id'] | Hypothesis['id'];
   /** Discriminator for parentId — which entity type owns this comment. */
-  parentKind: 'finding' | 'suspectedCause';
+  parentKind: 'finding' | 'hypothesis';
   /** Photo attachments (Team plan only) */
   photos?: PhotoAttachment[];
   /** Non-image file attachments (PDF, XLSX, CSV, TXT). Team plan: OneDrive upload. Standard: local reference. */
@@ -725,12 +725,8 @@ export interface CausalLink extends EntityBase {
   evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
   questionIds: Question['id'][]; // Questions supporting this link
   findingIds: Finding['id'][]; // Findings supporting this link
-  /**
-   * The Hypothesis this link belongs to.
-   * Renamed from `hubId` (R5) — the old name was misleading; it references
-   * Hypothesis.id, not ProcessHub.id.
-   */
-  suspectedCauseId?: Hypothesis['id'];
+  /** The Hypothesis this link belongs to. */
+  hypothesisId?: Hypothesis['id'];
   strength?: number; // ΔR² or computed from R²adj comparison
   relationshipType?: 'independent' | 'overlapping' | 'synergistic' | 'interactive' | 'redundant';
   source: 'analyst' | 'coscout' | 'auto';

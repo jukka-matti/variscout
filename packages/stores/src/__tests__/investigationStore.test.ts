@@ -962,22 +962,22 @@ describe('investigationStore — causalLink cascade behavior', () => {
     expect(useInvestigationStore.getState().causalLinks[0].findingIds).not.toContain(f.id);
   });
 
-  it('deleteHub clears hubId from causal links', () => {
+  it('deleteHub clears hypothesisId from causal links', () => {
     const hub = useInvestigationStore.getState().createHub('Test hub', 'Synthesis');
     const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test', {
       source: 'analyst',
     });
-    // Manually set hubId via updateCausalLink — the store doesn't have a direct setHubId action,
+    // Manually set hypothesisId via updateCausalLink — the store doesn't have a direct setter,
     // so we use loadInvestigationState to set it
     useInvestigationStore.setState(state => ({
       causalLinks: state.causalLinks.map(l =>
-        l.id === link!.id ? { ...l, suspectedCauseId: hub.id } : l
+        l.id === link!.id ? { ...l, hypothesisId: hub.id } : l
       ),
     }));
-    expect(useInvestigationStore.getState().causalLinks[0].suspectedCauseId).toBe(hub.id);
+    expect(useInvestigationStore.getState().causalLinks[0].hypothesisId).toBe(hub.id);
 
     useInvestigationStore.getState().deleteHub(hub.id);
-    expect(useInvestigationStore.getState().causalLinks[0].suspectedCauseId).toBeUndefined();
+    expect(useInvestigationStore.getState().causalLinks[0].hypothesisId).toBeUndefined();
   });
 });
 

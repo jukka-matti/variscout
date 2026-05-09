@@ -15,7 +15,7 @@ function fc(id: string, text: string, createdAt: number): FindingComment {
     createdAt,
     deletedAt: null,
     parentId: 'hub-default',
-    parentKind: 'suspectedCause',
+    parentKind: 'hypothesis',
   };
 }
 

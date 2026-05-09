@@ -864,11 +864,9 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     deleteHub: hubId => {
       set(state => ({
         suspectedCauses: state.suspectedCauses.filter(h => h.id !== hubId),
-        // Clear hubId from causal links that reference the deleted hub
+        // Clear hypothesisId from causal links that reference the deleted hub
         causalLinks: state.causalLinks.map(l =>
-          l.suspectedCauseId === hubId
-            ? { ...l, suspectedCauseId: undefined, updatedAt: Date.now() }
-            : l
+          l.hypothesisId === hubId ? { ...l, hypothesisId: undefined, updatedAt: Date.now() } : l
         ),
       }));
     },
@@ -953,7 +951,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       // 1. Build the comment locally so optimistic append + server payload
       //    share the same id — keeps the SSE echo idempotent (server dedupes
       //    by id, so the echo that fans back via the stream is a no-op).
-      const comment = createFindingComment(text, hubId, 'suspectedCause', author);
+      const comment = createFindingComment(text, hubId, 'hypothesis', author);
 
       // 2. Optimistic update: append to the hub's comments array.
       set(state => ({

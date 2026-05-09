@@ -139,7 +139,7 @@ export function createCommentAttachment(
 export function createFindingComment(
   text: string,
   parentId: string,
-  parentKind: 'finding' | 'suspectedCause',
+  parentKind: 'finding' | 'hypothesis',
   author?: string
 ): FindingComment {
   const comment: FindingComment = {

@@ -139,6 +139,12 @@ describe('createFindingComment', () => {
     expect(c.parentKind).toBe('finding');
   });
 
+  it('creates a hypothesis comment with parent metadata', () => {
+    const c = createFindingComment('Checked mechanism notes', 'h-1', 'hypothesis');
+    expect(c.parentId).toBe('h-1');
+    expect(c.parentKind).toBe('hypothesis');
+  });
+
   it('generates unique ids', () => {
     const c1 = createFindingComment('a', 'f-1', 'finding');
     const c2 = createFindingComment('b', 'f-2', 'finding');
