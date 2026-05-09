@@ -1,4 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+vi.mock('@variscout/stores', () => ({
+  useInvestigationStore: Object.assign(vi.fn(), {
+    getState: () => ({ addFinding: vi.fn(() => ({ id: 'f-test' })), connectFindingToHub: vi.fn() }),
+  }),
+  usePreferencesStore: Object.assign(vi.fn(), {
+    getState: () => ({ timeLens: { mode: 'rolling', windowSize: 50 } }),
+  }),
+}));
+
 import { render, screen } from '@testing-library/react';
 import { HypothesisCard } from '../HypothesisCard';
 import type { Hypothesis } from '@variscout/core';

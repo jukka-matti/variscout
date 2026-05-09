@@ -1,6 +1,15 @@
 import React from 'react';
 import { vi, describe, it, expect } from 'vitest';
 
+vi.mock('@variscout/stores', () => ({
+  useInvestigationStore: Object.assign(vi.fn(), {
+    getState: () => ({ addFinding: vi.fn(() => ({ id: 'f-test' })), connectFindingToHub: vi.fn() }),
+  }),
+  usePreferencesStore: Object.assign(vi.fn(), {
+    getState: () => ({ timeLens: { mode: 'rolling', windowSize: 50 } }),
+  }),
+}));
+
 vi.mock('@variscout/charts', async () => {
   const actual = await vi.importActual<typeof import('@variscout/charts')>('@variscout/charts');
   return {

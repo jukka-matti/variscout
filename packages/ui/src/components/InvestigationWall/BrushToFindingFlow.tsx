@@ -10,7 +10,7 @@
  * FINDING_ADD here.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import type { Hypothesis } from '@variscout/core';
 import type { ChartSelection } from '@variscout/core/findings';
 import type { FindingSource, FindingContext } from '@variscout/core/findings';
@@ -66,6 +66,13 @@ export function BrushToFindingFlow({
 }: BrushToFindingFlowProps): React.ReactElement {
   const locale = useWallLocale();
   const [pendingSelection, setPendingSelection] = useState<ChartSelection | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (pendingSelection) {
+      dialogRef.current?.focus();
+    }
+  }, [pendingSelection]);
 
   const onBrushEnd = useCallback((range: { startIdx: number; endIdx: number }) => {
     setPendingSelection({
@@ -157,7 +164,10 @@ export function BrushToFindingFlow({
       {pendingSelection && (
         <foreignObject x={CHART_SLOT_X} y={CHART_SLOT_Y} width={CHART_SLOT_W} height={CHART_SLOT_H}>
           <div
+            ref={dialogRef}
             role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
             aria-label={dialogAriaLabel}
             className="flex h-full w-full flex-col items-center justify-center gap-1 rounded bg-surface-secondary px-3 py-1 shadow-sm ring-1 ring-edge text-xs"
             onKeyDown={(e: React.KeyboardEvent) => {
