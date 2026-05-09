@@ -123,3 +123,9 @@ IS one step's deep-dive) and the `nodeMappings` table (B1 shape —
 investigation covers multiple steps). Neither replaces SuspectedCause;
 they augment the per-step capability surface that feeds Current Process
 State and the production-line-glance dashboard.
+
+## Amendment — 2026-05-09: SuspectedCause renamed to Hypothesis
+
+Response Path System V1 renames the `SuspectedCause` entity to `Hypothesis`.
+
+The word "hub" in this ADR's title was descriptive: the entity hubs together evidence threads for one mechanism. It did not introduce a separate parent level above the entity. After the rename, `Hypothesis` is the entity that hubs findings and questions for one mechanism. No structural model change is introduced by the rename.

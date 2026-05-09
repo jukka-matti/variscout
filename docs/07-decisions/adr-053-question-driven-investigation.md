@@ -144,6 +144,12 @@ See: [Investigation Workspace Reframing Design](../superpowers/specs/2026-04-03-
 
 Since **ADR-062** (Apr 2026), the label "Contribution %" has been replaced by the standard statistical term **η²** (eta-squared) throughout the UI and documentation. Findings, filter chips, and the question checklist evidence badge all use η² and n=X notation. The VariationBar component was removed. The underlying metric (eta-squared) is unchanged; only the display label was standardized.
 
+## Amendment — 2026-05-09: Hypothesis as downstream candidate explanation
+
+Response Path System V1 reuses the word `Hypothesis` for the downstream candidate-explanation entity formerly named `SuspectedCause`.
+
+This does not reopen ADR-053's core decision. Questions remain the primary investigation artifact: they express open inquiry, drive evidence collection, and structure the investigation tree. A `Hypothesis` is downstream of that question-driven work: a testable candidate mechanism that connects findings and questions after evidence starts to converge.
+
 ## References
 
 - Turtiainen, J-M. (2019). _Mental Model for Exploratory Data Analysis Applications for Structured Problem-Solving._ LUT University.
