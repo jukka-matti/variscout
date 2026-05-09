@@ -473,7 +473,7 @@ describe('deserializeInvestigationState', () => {
     });
   });
 
-  it('migrates legacy hypothesis status values on load', () => {
+  it('throws on unknown hypothesis status values (no silent migration per RPS V1 D15)', () => {
     const raw = {
       findings: [],
       questions: [],
@@ -482,21 +482,14 @@ describe('deserializeInvestigationState', () => {
           ...makeHypothesis({ id: 'legacy-suspected' }),
           status: 'suspected',
         },
-        {
-          ...makeHypothesis({ id: 'legacy-not-confirmed' }),
-          status: 'not-confirmed',
-        },
       ],
     };
 
-    const result = deserializeInvestigationState(
-      raw as unknown as import('../investigationSerializer').SerializedInvestigationState
-    );
-
-    expect(result.hypotheses.map(hub => [hub.id, hub.status])).toEqual([
-      ['legacy-suspected', 'proposed'],
-      ['legacy-not-confirmed', 'refuted'],
-    ]);
+    expect(() =>
+      deserializeInvestigationState(
+        raw as unknown as import('../investigationSerializer').SerializedInvestigationState
+      )
+    ).toThrow(/Invalid HypothesisStatus/);
   });
 
   it('does not overwrite existing evidence when both totalContribution and evidence are present', () => {

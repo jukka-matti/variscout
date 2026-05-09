@@ -26,16 +26,34 @@ export interface SerializedInvestigationState {
  * Shape of a hypothesis as it may appear in legacy stored data,
  * before the `totalContribution` → `evidence` migration.
  */
-interface LegacyStoredHub extends Omit<Hypothesis, 'evidence' | 'status'> {
+interface LegacyStoredHub extends Omit<Hypothesis, 'evidence'> {
   // Old numeric field, present before HypothesisEvidence was introduced
   totalContribution?: number;
   evidence?: HypothesisEvidence;
-  status: HypothesisStatus | 'suspected' | 'not-confirmed';
 }
 
-function normalizeHypothesisStatus(status: LegacyStoredHub['status']): HypothesisStatus {
-  if (status === 'suspected') return 'proposed';
-  if (status === 'not-confirmed') return 'refuted';
+const VALID_HYPOTHESIS_STATUSES: ReadonlySet<HypothesisStatus> = new Set([
+  'proposed',
+  'evidenced',
+  'confirmed',
+  'refuted',
+  'needs-disconfirmation',
+]);
+
+/**
+ * Strict status validator — fails loud on unknown values.
+ *
+ * Per RPS V1 spec D15 (no backward compatibility, design-phase clean breaks),
+ * we do not silently translate legacy status values like 'suspected' or
+ * 'not-confirmed'. Dev fixtures reset via `pnpm dev:reset` (OQ7).
+ */
+function assertHypothesisStatus(status: HypothesisStatus): HypothesisStatus {
+  if (!VALID_HYPOTHESIS_STATUSES.has(status)) {
+    throw new Error(
+      `Invalid HypothesisStatus encountered during deserialization: ${JSON.stringify(status)}. ` +
+        `Valid values: ${Array.from(VALID_HYPOTHESIS_STATUSES).join(', ')}.`
+    );
+  }
   return status;
 }
 
@@ -64,6 +82,10 @@ export function serializeInvestigationState(
  * 2. If a hub has `totalContribution` (legacy numeric field) but no `evidence`,
  *    a basic `HypothesisEvidence` is synthesised from it.
  * 3. `selectedForImprovement` defaults to `undefined` when absent.
+ *
+ * Status values are asserted strictly: per RPS V1 spec D15 (no backward
+ * compatibility), unknown status values throw rather than being silently
+ * translated.
  */
 export function deserializeInvestigationState(raw: SerializedInvestigationState): {
   findings: Finding[];
@@ -79,7 +101,7 @@ export function deserializeInvestigationState(raw: SerializedInvestigationState)
       const { totalContribution: _legacy, ...clean } = stored;
       const hub: Hypothesis = {
         ...clean,
-        status: normalizeHypothesisStatus(stored.status),
+        status: assertHypothesisStatus(stored.status),
         evidence: stored.evidence,
         selectedForImprovement: stored.selectedForImprovement,
       };
