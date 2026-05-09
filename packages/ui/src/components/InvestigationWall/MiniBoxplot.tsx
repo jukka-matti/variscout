@@ -1,4 +1,5 @@
-import { useChartTheme } from '@variscout/charts';
+import { useChartTheme, chartColors } from '@variscout/charts';
+import { useBoxplotSelect } from '@variscout/hooks';
 
 const MIN_BOXPLOT_VALUES = 7;
 
@@ -11,6 +12,7 @@ export interface MiniBoxplotProps {
   groups: MiniBoxplotGroup[];
   width: number;
   height: number;
+  onCategorySelect?: (category: string) => void;
 }
 
 // Inline seeded PRNG — deterministic jitter for dots fallback.
@@ -45,8 +47,12 @@ function quantile(sorted: number[], q: number): number {
   return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
 }
 
-export function MiniBoxplot({ groups, width, height }: MiniBoxplotProps) {
+export function MiniBoxplot({ groups, width, height, onCategorySelect }: MiniBoxplotProps) {
   const theme = useChartTheme();
+  const { getCategoryHandlers, selectedCategory } = useBoxplotSelect({
+    onCommit: onCategorySelect,
+  });
+
   if (groups.length === 0) return null;
 
   const allValues = groups.flatMap(g => g.values).filter(v => Number.isFinite(v));
@@ -75,11 +81,22 @@ export function MiniBoxplot({ groups, width, height }: MiniBoxplotProps) {
           .slice()
           .sort((a, b) => a - b);
 
+        const isSelected = g.category === selectedCategory;
+        const categoryHandlers = onCategorySelect ? getCategoryHandlers(g.category) : undefined;
+
         if (finite.length < MIN_BOXPLOT_VALUES) {
           // Deterministic jitter: PRNG seeded by category hash — never Math.random
           const rng = mulberry32(hashStr(g.category));
+          // Dots span: all rendered dots fall within cx ± boxW/2
+          const dotsTop =
+            finite.length > 0 ? Math.round(yFor(finite[finite.length - 1]) * 10) / 10 : 0;
+          const dotsBottom = finite.length > 0 ? Math.round(yFor(finite[0]) * 10) / 10 : height;
           return (
-            <g key={g.category} data-testid={`mini-boxplot-dots-${g.category}`}>
+            <g
+              key={g.category}
+              data-testid={`mini-boxplot-dots-${g.category}`}
+              {...categoryHandlers}
+            >
               {finite.map((v, j) => {
                 const jitter = (rng() - 0.5) * boxW * 0.5;
                 return (
@@ -93,6 +110,19 @@ export function MiniBoxplot({ groups, width, height }: MiniBoxplotProps) {
                   />
                 );
               })}
+              {isSelected && (
+                <rect
+                  data-testid={`mini-boxplot-accent-${g.category}`}
+                  x={Math.round((cx - boxW / 2) * 10) / 10}
+                  y={dotsTop}
+                  width={Math.round(boxW * 10) / 10}
+                  height={Math.max(dotsBottom - dotsTop, 1)}
+                  fill="none"
+                  stroke={chartColors.warning}
+                  strokeWidth={1.5}
+                  strokeDasharray="3 2"
+                />
+              )}
             </g>
           );
         }
@@ -104,7 +134,7 @@ export function MiniBoxplot({ groups, width, height }: MiniBoxplotProps) {
         const hi = finite[finite.length - 1];
 
         return (
-          <g key={g.category} data-testid={`mini-boxplot-box-${g.category}`}>
+          <g key={g.category} data-testid={`mini-boxplot-box-${g.category}`} {...categoryHandlers}>
             {/* whisker */}
             <line
               x1={cx}
@@ -134,6 +164,20 @@ export function MiniBoxplot({ groups, width, height }: MiniBoxplotProps) {
               stroke={theme.colors.control}
               strokeWidth={1.25}
             />
+            {/* selection accent border */}
+            {isSelected && (
+              <rect
+                data-testid={`mini-boxplot-accent-${g.category}`}
+                x={Math.round((cx - boxW / 2) * 10) / 10}
+                y={Math.round(yFor(hi) * 10) / 10}
+                width={Math.round(boxW * 10) / 10}
+                height={Math.max(Math.round((yFor(lo) - yFor(hi)) * 10) / 10, 1)}
+                fill="none"
+                stroke={chartColors.warning}
+                strokeWidth={1.5}
+                strokeDasharray="3 2"
+              />
+            )}
           </g>
         );
       })}
