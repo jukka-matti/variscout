@@ -20,7 +20,7 @@ export interface UseIChartBrushReturn {
 }
 
 function pixelToIdx(pixelX: number, width: number, valuesLength: number): number {
-  if (valuesLength <= 1) return 0;
+  if (valuesLength <= 1 || width <= 0) return 0;
   const raw = Math.round((pixelX / width) * (valuesLength - 1));
   return Math.max(0, Math.min(valuesLength - 1, raw));
 }

@@ -10,7 +10,7 @@ export interface MiniIChartProps {
 
 export function MiniIChart({ values, width, height, onBrushEnd }: MiniIChartProps) {
   const theme = useChartTheme();
-  const finiteValues = (values.length > 0 ? values : []).filter(v => Number.isFinite(v));
+  const finiteValues = values.filter(v => Number.isFinite(v));
 
   const { handlers, currentBrush } = useIChartBrush({
     valuesLength: finiteValues.length,
