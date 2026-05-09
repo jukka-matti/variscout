@@ -8,6 +8,8 @@ export { QuestionPill } from './QuestionPill';
 export type { QuestionPillProps } from './QuestionPill';
 export { FindingChip } from './FindingChip';
 export type { FindingChipProps } from './FindingChip';
+export { TagChip } from './TagChip';
+export type { TagChipProps } from './TagChip';
 export { GateBadge } from './GateBadge';
 export type { GateBadgeProps } from './GateBadge';
 export { NarratorRail } from './NarratorRail';

@@ -19,6 +19,7 @@ import type {
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
 import { useWallLocale } from './hooks/useWallLocale';
+import { TagChip } from './TagChip';
 
 export interface HypothesisCardProps {
   hub: Hypothesis;
@@ -48,6 +49,13 @@ export interface HypothesisCardProps {
 
 const CARD_W = 280;
 const CARD_H = 228;
+const BODY_TOP = 64;
+const TAG_ROW_Y = 94;
+const TAG_ROW_H = 24;
+const TAGGED_READINESS_Y = 126;
+const TAGGED_CLUE_COUNT_Y = 146;
+const DEFAULT_READINESS_Y = 108;
+const DEFAULT_CLUE_COUNT_Y = 130;
 
 const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
   proposed: 'wall.status.proposed',
@@ -87,6 +95,7 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   const mechanismName = branch?.suspectedMechanism ?? hub.name;
   const readinessLabel = branch?.readiness.label;
   const nextMove = branch?.nextMove ?? hub.nextMove;
+  const themeTags = (hub.themeTags ?? []).map(tag => tag.trim()).filter(Boolean);
   const supportingLabel = `${supportingCount} supporting clue${supportingCount === 1 ? '' : 's'}`;
   const counterLabel = `${counterCount} counter-clue${counterCount === 1 ? '' : 's'}`;
   const openChecksLabel = `${openCheckCount} open check${openCheckCount === 1 ? '' : 's'}`;
@@ -173,14 +182,41 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
       </text>
       {!isMedium && (
         <>
-          <rect x={16} y={64} width={CARD_W - 32} height={72} rx={4} className="fill-surface" />
+          <rect
+            x={16}
+            y={BODY_TOP}
+            width={CARD_W - 32}
+            height={96}
+            rx={4}
+            className="fill-surface"
+          />
           <text x={24} y={84} className="fill-content-subtle text-[10px] uppercase tracking-wide">
             Suspected mechanism
           </text>
-          <text x={24} y={108} className="fill-content-muted text-xs">
+          {themeTags.length > 0 && (
+            <foreignObject x={24} y={TAG_ROW_Y} width={CARD_W - 48} height={TAG_ROW_H}>
+              <div
+                data-testid="hypothesis-theme-tags"
+                className="flex h-6 min-w-0 items-center gap-1 overflow-hidden"
+              >
+                {themeTags.map(tag => (
+                  <TagChip key={tag} tag={tag} />
+                ))}
+              </div>
+            </foreignObject>
+          )}
+          <text
+            x={24}
+            y={themeTags.length > 0 ? TAGGED_READINESS_Y : DEFAULT_READINESS_Y}
+            className="fill-content-muted text-xs"
+          >
             {readinessLabel ?? statusLabel}
           </text>
-          <text x={24} y={130} className="fill-content-muted text-xs font-mono">
+          <text
+            x={24}
+            y={themeTags.length > 0 ? TAGGED_CLUE_COUNT_Y : DEFAULT_CLUE_COUNT_Y}
+            className="fill-content-muted text-xs font-mono"
+          >
             {supportingLabel} · {counterLabel}
           </text>
           <text x={16} y={CARD_H - 48} className="fill-content-muted text-xs font-mono">

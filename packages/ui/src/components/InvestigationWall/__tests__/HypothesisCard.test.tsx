@@ -41,6 +41,82 @@ describe('HypothesisCard', () => {
     expect(screen.getByText(/3 supporting clues/)).toBeInTheDocument();
   });
 
+  it('renders theme tags in the full-card body when present', () => {
+    const { container } = render(
+      <svg>
+        <HypothesisCard
+          hub={{ ...hub, themeTags: ['Night Shift', 'Nozzle Temp'] }}
+          displayStatus="confirmed"
+          x={0}
+          y={0}
+        />
+      </svg>
+    );
+
+    expect(container.querySelector('foreignObject')).toBeTruthy();
+    expect(screen.getByText('#Night Shift')).toBeInTheDocument();
+    expect(screen.getByText('#Nozzle Temp')).toBeInTheDocument();
+  });
+
+  it('keeps tagged layout rows vertically separated', () => {
+    const { container } = render(
+      <svg>
+        <HypothesisCard
+          hub={{ ...hub, themeTags: ['Night Shift'] }}
+          displayStatus="confirmed"
+          x={0}
+          y={0}
+        />
+      </svg>
+    );
+
+    const tagRow = container.querySelector('foreignObject');
+    const readinessText = Array.from(container.querySelectorAll('text')).find(
+      text => text.textContent === 'Confirmed' && text.getAttribute('y') !== '24'
+    );
+    const clueText = screen.getByText(/3 supporting clues/);
+
+    expect(tagRow).toBeTruthy();
+    expect(readinessText).toBeTruthy();
+    const tagBottom =
+      Number(tagRow?.getAttribute('y') ?? 0) + Number(tagRow?.getAttribute('height') ?? 0);
+    const readinessY = Number(readinessText?.getAttribute('y') ?? 0);
+    const clueY = Number(clueText.getAttribute('y') ?? 0);
+
+    expect(readinessY - tagBottom).toBeGreaterThanOrEqual(8);
+    expect(clueY - readinessY).toBeGreaterThanOrEqual(18);
+  });
+
+  it('does not render a theme tag container when no tags are present', () => {
+    const { container } = render(
+      <svg>
+        <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} />
+      </svg>
+    );
+
+    expect(container.querySelector('[data-testid="hypothesis-theme-tags"]')).toBeNull();
+    expect(container.querySelector('foreignObject')).toBeNull();
+  });
+
+  it('keeps theme tags hidden at medium and glyph LOD', () => {
+    const taggedHub = { ...hub, themeTags: ['Night Shift'] };
+    const { rerender } = render(
+      <svg>
+        <HypothesisCard hub={taggedHub} displayStatus="confirmed" x={0} y={0} zoomScale={0.5} />
+      </svg>
+    );
+
+    expect(screen.queryByText('#Night Shift')).toBeNull();
+
+    rerender(
+      <svg>
+        <HypothesisCard hub={taggedHub} displayStatus="confirmed" x={0} y={0} zoomScale={0.2} />
+      </svg>
+    );
+
+    expect(screen.queryByText('#Night Shift')).toBeNull();
+  });
+
   it('fires onSelect on click', () => {
     const onSelect = vi.fn();
     render(
