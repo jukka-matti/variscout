@@ -10,16 +10,20 @@
  */
 
 import React from 'react';
-import type { MechanismBranchViewModel, MessageCatalog, Hypothesis } from '@variscout/core';
+import type {
+  MechanismBranchViewModel,
+  MessageCatalog,
+  Hypothesis,
+  HypothesisStatus,
+} from '@variscout/core';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
-import type { WallStatus } from './types';
 import { useWallLocale } from './hooks/useWallLocale';
 
 export interface HypothesisCardProps {
   hub: Hypothesis;
   branch?: MechanismBranchViewModel;
-  displayStatus: WallStatus;
+  displayStatus: HypothesisStatus;
   x: number;
   y: number;
   hasGap?: boolean;
@@ -45,19 +49,21 @@ export interface HypothesisCardProps {
 const CARD_W = 280;
 const CARD_H = 228;
 
-const STATUS_KEY: Record<WallStatus, keyof MessageCatalog> = {
+const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
   proposed: 'wall.status.proposed',
   evidenced: 'wall.status.evidenced',
   confirmed: 'wall.status.confirmed',
   refuted: 'wall.status.refuted',
+  'needs-disconfirmation': 'wall.status.needsDisconfirmation',
 };
 
 /** Status-specific border colors sourced from chartColors — no hardcoded hex. */
-const STATUS_STROKE: Record<WallStatus, string> = {
+const STATUS_STROKE: Record<HypothesisStatus, string> = {
   proposed: chartColors.mean, // blue-500 — neutral/open
   evidenced: chartColors.control, // cyan-500 — data linked
   confirmed: chartColors.pass, // green-500 — outcome verified
   refuted: chartColors.fail, // red-500 — mechanism rejected
+  'needs-disconfirmation': chartColors.warning, // amber — needs disconfirmation check
 };
 
 export const HypothesisCard: React.FC<HypothesisCardProps> = ({

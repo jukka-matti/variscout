@@ -18,7 +18,7 @@ export { MissingEvidenceDigest } from './MissingEvidenceDigest';
 export type { MissingEvidenceDigestProps, MissingEvidenceGap } from './MissingEvidenceDigest';
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
-export type { WallStatus, Point } from './types';
+export type { Point } from './types';
 export { useWallKeyboard } from './hooks/useWallKeyboard';
 export type { UseWallKeyboardOptions } from './hooks/useWallKeyboard';
 export {

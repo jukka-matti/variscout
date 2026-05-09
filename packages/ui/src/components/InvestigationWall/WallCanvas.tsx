@@ -13,6 +13,7 @@ import { DndContext } from '@dnd-kit/core';
 import type {
   Hypothesis,
   Finding,
+  HypothesisStatus,
   Question,
   ProcessMap,
   GateNode,
@@ -28,7 +29,6 @@ import { TributaryFooter } from './TributaryFooter';
 import { EmptyState } from './EmptyState';
 import { MissingEvidenceDigest } from './MissingEvidenceDigest';
 import { MobileCardList } from './MobileCardList';
-import type { WallStatus } from './types';
 import { useWallLocale } from './hooks/useWallLocale';
 import { useWallDragDrop } from './hooks/useWallDragDrop';
 import { useWallIsMobile } from './hooks/useWallBreakpoint';
@@ -103,9 +103,16 @@ export interface WallCanvasProps {
 export const CANVAS_W = 2000;
 export const CANVAS_H = 1400;
 
-function deriveDisplayStatus(hub: Hypothesis, findings: Finding[]): WallStatus {
-  if (hub.status === 'confirmed') return 'confirmed';
-  if (hub.status === 'refuted') return 'refuted';
+const CANONICAL_HYPOTHESIS_STATUSES = new Set<HypothesisStatus>([
+  'proposed',
+  'evidenced',
+  'confirmed',
+  'refuted',
+  'needs-disconfirmation',
+]);
+
+function deriveDisplayStatus(hub: Hypothesis, findings: Finding[]): HypothesisStatus {
+  if (CANONICAL_HYPOTHESIS_STATUSES.has(hub.status)) return hub.status;
   const supporting = hub.findingIds
     .map(id => findings.find(f => f.id === id))
     .filter((f): f is Finding => !!f);

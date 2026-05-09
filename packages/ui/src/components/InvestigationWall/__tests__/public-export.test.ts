@@ -8,13 +8,19 @@ import {
   WALL_MOBILE_BREAKPOINT,
   useWallIsMobile,
 } from '../../../index';
-import type { WallStatus } from '../../../index';
+import type { HypothesisStatus } from '@variscout/core';
+import type * as UiPublicApi from '../../../index';
+
+type RemovedExportName = `Wall${'Status'}`;
+type RemovedStatusIsNotExported = RemovedExportName extends keyof typeof UiPublicApi ? false : true;
 
 describe('InvestigationWall public exports', () => {
   it('exposes wall components, hooks, constants, and types from @variscout/ui', () => {
-    const status: WallStatus = 'proposed';
+    const status: HypothesisStatus = 'needs-disconfirmation';
+    const removedStatusIsNotExported: RemovedStatusIsNotExported = true;
 
-    expect(status).toBe('proposed');
+    expect(status).toBe('needs-disconfirmation');
+    expect(removedStatusIsNotExported).toBe(true);
     expect(WallCanvas).toBeTypeOf('function');
     expect(HypothesisCard).toBeTypeOf('function');
     expect(useWallIsMobile).toBeTypeOf('function');

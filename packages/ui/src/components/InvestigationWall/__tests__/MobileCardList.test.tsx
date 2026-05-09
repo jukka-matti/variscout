@@ -47,7 +47,20 @@ describe('MobileCardList', () => {
     expect(card.textContent).toMatch(/Confirmed/);
   });
 
-  it('derives "evidenced" when supporting findings are present without contradictors', () => {
+  it('preserves canonical needs-disconfirmation status from hub.status', () => {
+    const hub = makeHub({
+      id: 'h-needs-disconfirmation',
+      status: 'needs-disconfirmation',
+    });
+
+    render(<MobileCardList hubs={[hub]} findings={[]} questions={[]} />);
+
+    const card = screen.getByTestId('wall-mobile-hub-h-needs-disconfirmation');
+    expect(card).toHaveAttribute('data-status', 'needs-disconfirmation');
+    expect(card.textContent).toMatch(/Needs disconfirmation/);
+  });
+
+  it('preserves canonical evidenced status from hub.status', () => {
     const findings: Finding[] = [
       {
         id: 'f1',
@@ -57,7 +70,7 @@ describe('MobileCardList', () => {
         validationStatus: 'supports',
       } as unknown as Finding,
     ];
-    const hub = makeHub({ id: 'h-ev', findingIds: ['f1'], status: 'proposed' });
+    const hub = makeHub({ id: 'h-ev', findingIds: ['f1'], status: 'evidenced' });
     render(<MobileCardList hubs={[hub]} findings={findings} questions={[]} />);
     expect(screen.getByTestId('wall-mobile-hub-h-ev')).toHaveAttribute('data-status', 'evidenced');
   });

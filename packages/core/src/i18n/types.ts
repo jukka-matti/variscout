@@ -1008,6 +1008,7 @@ export interface MessageCatalog {
   'wall.status.evidenced': string;
   'wall.status.confirmed': string;
   'wall.status.refuted': string;
+  'wall.status.needsDisconfirmation': string;
   'wall.card.hypothesisLabel': string;
   'wall.card.findings': string;
   'wall.card.evidenceGap': string;

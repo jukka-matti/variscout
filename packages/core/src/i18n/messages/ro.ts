@@ -868,6 +868,7 @@ export const ro: MessageCatalog = {
   'wall.status.evidenced': 'Evidenced',
   'wall.status.confirmed': 'Confirmed',
   'wall.status.refuted': 'Refuted',
+  'wall.status.needsDisconfirmation': 'Needs disconfirmation',
   'wall.card.hypothesisLabel': 'Mechanism Branch',
   'wall.card.findings': '{count} findings',
   'wall.card.questions': '{count} questions',

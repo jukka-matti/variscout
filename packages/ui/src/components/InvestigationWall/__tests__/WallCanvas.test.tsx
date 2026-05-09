@@ -96,6 +96,27 @@ describe('WallCanvas', () => {
     expect(screen.getByText(/Nozzle runs hot/i)).toBeInTheDocument();
   });
 
+  it('renders canonical needs-disconfirmation status stored on a hub', () => {
+    const needsDisconfirmationHub: Hypothesis = {
+      ...hub,
+      id: 'h-needs-disconfirmation',
+      status: 'needs-disconfirmation',
+    };
+    const { container } = render(
+      <WallCanvas
+        hubs={[needsDisconfirmationHub]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+
+    expect(screen.getByText(/Needs disconfirmation/i)).toBeInTheDocument();
+    expect(container.querySelector('[data-status="needs-disconfirmation"]')).toBeTruthy();
+  });
+
   it('renders branch cards without a process map', () => {
     render(
       <WallCanvas
