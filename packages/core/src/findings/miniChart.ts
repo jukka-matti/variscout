@@ -3,8 +3,7 @@
  * to a discriminated union describing which mini-chart to render inside a
  * HypothesisCard on the Investigation Wall.
  *
- * Called by `useMiniChartData` (hooks) and `HypothesisCard` (ui) — this module
- * has no UI imports and must stay pure TypeScript.
+ * This module has no UI imports and must stay pure TypeScript.
  */
 
 import type { Hypothesis } from './types';
@@ -101,7 +100,7 @@ export function deriveMiniChartConfig(
   }
 
   if (colType === 'categorical') {
-    if (!outcome) {
+    if (outcome == null) {
       return { kind: 'placeholder', factor, reason: 'no-outcome' };
     }
     return { kind: 'boxplot', factor, outcome };

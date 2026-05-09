@@ -33,7 +33,7 @@ describe('deriveMiniChartConfig', () => {
       { shift_start: 'date' },
       'thickness'
     );
-    expect(cfg.kind).toBe('i-chart');
+    expect(cfg).toEqual({ kind: 'i-chart', factor: 'shift_start', outcome: 'thickness' });
   });
 
   it('returns boxplot for categorical leaf factor when outcome present', () => {
@@ -66,6 +66,11 @@ describe('deriveMiniChartConfig', () => {
   it('returns placeholder when condition is undefined', () => {
     const cfg = deriveMiniChartConfig(hub(undefined), {}, 'thickness');
     expect(cfg).toEqual({ kind: 'placeholder', reason: 'no-condition' });
+  });
+
+  it('returns placeholder reason no-factor for empty AND children', () => {
+    const cfg = deriveMiniChartConfig(hub({ kind: 'and', children: [] }), {}, 'thickness');
+    expect(cfg).toEqual({ kind: 'placeholder', reason: 'no-factor' });
   });
 
   it('descends into AND branch and uses first leaf column', () => {
