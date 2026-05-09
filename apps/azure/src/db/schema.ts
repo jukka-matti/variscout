@@ -35,6 +35,8 @@ export type { EvidenceSourceCursor };
 export type ProcessHubRecord = import('@variscout/core').ProcessHub;
 export type EvidenceSourceRecord = import('@variscout/core').EvidenceSource;
 export type EvidenceSnapshotRecord = import('@variscout/core').EvidenceSnapshot;
+export type ImprovementProjectRecord =
+  import('@variscout/core/improvementProject').ImprovementProject;
 
 export class VariScoutDatabase extends Dexie {
   projects!: Dexie.Table<ProjectRecord, string>;
@@ -47,6 +49,7 @@ export class VariScoutDatabase extends Dexie {
   sustainmentReviews!: Dexie.Table<import('@variscout/core').SustainmentReview, string>;
   controlHandoffs!: Dexie.Table<import('@variscout/core').ControlHandoff, string>;
   evidenceSourceCursors!: Dexie.Table<EvidenceSourceCursor, [string, string]>;
+  improvementProjects!: Dexie.Table<ImprovementProjectRecord, string>;
 
   constructor() {
     super('VaRiScoutAzure');
@@ -133,6 +136,13 @@ export class VariScoutDatabase extends Dexie {
     // All timestamps (createdAt, updatedAt, deletedAt) are now Unix ms numbers.
     this.version(9).stores({
       sustainmentRecords: 'id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
+    });
+
+    // Version 10: PR-RPS-5 — ImprovementProject dedicated table.
+    // Mirrors the sustainmentRecords pattern (dedicated table per entity, hubId-indexed).
+    // No upgrade callback needed — new empty table; existing data unaffected.
+    this.version(10).stores({
+      improvementProjects: 'id, hubId, deletedAt, status, updatedAt',
     });
   }
 }

@@ -38,12 +38,26 @@ vi.mock('../applyAction', () => ({
 
 // db/schema is not used in dispatch tests — db access is blocked by the mock.
 // We mock the db module as well to prevent Dexie from attempting to open IndexedDB.
+// improvementProjects and transaction are included because HUB_PERSIST_SNAPSHOT now
+// decomposes improvementProjects within a Dexie transaction.
 vi.mock('../../db/schema', () => ({
   db: {
     processHubs: { get: vi.fn(), toArray: vi.fn(), put: vi.fn(), clear: vi.fn() },
     evidenceSources: { get: vi.fn(), where: vi.fn(), toArray: vi.fn(), clear: vi.fn() },
     evidenceSnapshots: { get: vi.fn(), where: vi.fn(), toArray: vi.fn(), clear: vi.fn() },
     evidenceSourceCursors: { get: vi.fn(), clear: vi.fn() },
+    improvementProjects: {
+      get: vi.fn(),
+      where: vi.fn(() => ({
+        equals: vi.fn(() => ({ filter: vi.fn(() => ({ delete: vi.fn().mockResolvedValue(0) })) })),
+      })),
+      bulkPut: vi.fn().mockResolvedValue([]),
+      clear: vi.fn(),
+    },
+    // transaction executes the callback immediately (no real transaction scope needed in mocks).
+    transaction: vi.fn((_mode: string, _tables: unknown[], callback: () => Promise<void>) =>
+      callback()
+    ),
   },
 }));
 

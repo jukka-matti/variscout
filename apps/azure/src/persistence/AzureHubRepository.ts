@@ -35,7 +35,24 @@ export class AzureHubRepository implements HubRepository {
     // full hub blob, so no existing hub needs to be loaded first. This matches
     // the PWA pattern and supports the null-hub bootstrap case (first hub save).
     if (action.kind === 'HUB_PERSIST_SNAPSHOT') {
-      await saveProcessHubToIndexedDB(action.hub);
+      // improvementProjects live in their own table; decompose them out of the
+      // hub blob before saving. Mirrors the PWA HUB_PERSIST_SNAPSHOT decomposition.
+      const { improvementProjects, ...hubWithoutIP } = action.hub;
+      await db.transaction('rw', [db.processHubs, db.improvementProjects], async () => {
+        await saveProcessHubToIndexedDB(hubWithoutIP);
+        // Drop stale rows for this hub, then bulk-put incoming snapshot rows.
+        const incomingProjectIds = new Set((improvementProjects ?? []).map(p => p.id));
+        await db.improvementProjects
+          .where('hubId')
+          .equals(action.hub.id)
+          .filter(p => !incomingProjectIds.has(p.id))
+          .delete();
+        if (improvementProjects && improvementProjects.length > 0) {
+          await db.improvementProjects.bulkPut(
+            improvementProjects.map(p => ({ ...p, hubId: action.hub.id }))
+          );
+        }
+      });
       return;
     }
 
@@ -49,13 +66,26 @@ export class AzureHubRepository implements HubRepository {
   // ---------------------------------------------------------------------------
 
   hubs: HubReadAPI = {
-    // hubs.get is unscoped — direct id lookup; hubs.list filters tombstones
+    // hubs.get is unscoped — direct id lookup; hydrates improvementProjects from dedicated table.
     async get(id) {
-      return db.processHubs.get(id);
+      const hub = await db.processHubs.get(id);
+      if (!hub) return undefined;
+      const ips = await db.improvementProjects.where('hubId').equals(id).toArray();
+      const liveIps = ips.filter(p => p.deletedAt === null);
+      if (liveIps.length === 0) return hub;
+      return { ...hub, improvementProjects: liveIps };
     },
     async list() {
       const all = await db.processHubs.toArray();
-      return all.filter(h => h.deletedAt === null);
+      const live = all.filter(h => h.deletedAt === null);
+      return Promise.all(
+        live.map(async hub => {
+          const ips = await db.improvementProjects.where('hubId').equals(hub.id).toArray();
+          const liveIps = ips.filter(p => p.deletedAt === null);
+          if (liveIps.length === 0) return hub;
+          return { ...hub, improvementProjects: liveIps };
+        })
+      );
     },
   };
 
