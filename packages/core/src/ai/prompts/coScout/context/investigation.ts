@@ -3,7 +3,7 @@
  *
  * Formats investigation state into human-readable text blocks.
  * CRITICAL: Uses ONLY hypothesisHubs — ignores legacy causeRole-based
- * suspectedCauses from question fields (contradiction resolution #1).
+ * hypotheses from question fields (contradiction resolution #1).
  */
 
 import type { AIContext } from '../../../types';

@@ -24,7 +24,7 @@ export interface MechanismBranchClueView {
   validationStatus?: Finding['validationStatus'];
 }
 
-export interface MechanismBranchReadinessView {
+export interface MechanismBranchActionStateView {
   value: 'not-tested' | 'needs-check' | 'evidence-backed' | 'ready-to-act' | 'closed';
   label: string;
 }
@@ -36,7 +36,7 @@ export interface MechanismBranchViewModel {
   synthesis: string;
   status: HypothesisStatus;
   branchStatus: HypothesisStatus;
-  readiness: MechanismBranchReadinessView;
+  readiness: MechanismBranchActionStateView;
   nextMove?: string;
   supportingClues: MechanismBranchClueView[];
   counterClues: MechanismBranchClueView[];
@@ -56,7 +56,7 @@ export interface MechanismBranchProjectionOptions {
   signalCards?: SignalCard[];
 }
 
-const READINESS_LABELS: Record<MechanismBranchReadinessView['value'], string> = {
+const READINESS_LABELS: Record<MechanismBranchActionStateView['value'], string> = {
   'not-tested': 'Not tested',
   'needs-check': 'Needs check',
   'evidence-backed': 'Evidence backed',
@@ -92,7 +92,7 @@ function deriveReadiness(
   supportingClues: MechanismBranchClueView[],
   counterClues: MechanismBranchClueView[],
   openChecks: MechanismBranchQuestionView[]
-): MechanismBranchReadinessView {
+): MechanismBranchActionStateView {
   if (hub.status === 'refuted') return { value: 'closed', label: READINESS_LABELS.closed };
   if (hub.status === 'confirmed') {
     return { value: 'ready-to-act', label: READINESS_LABELS['ready-to-act'] };

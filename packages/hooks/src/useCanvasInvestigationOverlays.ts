@@ -6,7 +6,7 @@ import { selectHypothesisTributaries } from '@variscout/stores';
 export type CanvasOverlayId =
   | 'investigations'
   | 'hypotheses'
-  | 'suspected-causes'
+  | 'hypothesis-hubs'
   | 'findings'
   | 'wall';
 
@@ -30,9 +30,9 @@ export const CANVAS_OVERLAY_REGISTRY: Record<CanvasOverlayId, CanvasOverlayDefin
     enabled: true,
     description: 'Draft causal links rendered as faint step-to-step arrows.',
   },
-  'suspected-causes': {
-    id: 'suspected-causes',
-    label: 'Suspected causes',
+  'hypothesis-hubs': {
+    id: 'hypothesis-hubs',
+    label: 'Hypothesis hubs',
     enabled: true,
     description: 'Promoted mechanism branches rendered as step markers.',
   },
@@ -87,7 +87,7 @@ export interface CanvasOverlayFindingItem {
   focus: CanvasInvestigationFocus;
 }
 
-export interface CanvasOverlaySuspectedCauseItem {
+export interface CanvasOverlayHypothesisItem {
   id: string;
   name: string;
   status: Hypothesis['status'];
@@ -108,7 +108,7 @@ export interface CanvasStepInvestigationOverlay {
   stepId: string;
   questions: CanvasOverlayQuestionItem[];
   findings: CanvasOverlayFindingItem[];
-  suspectedCauses: CanvasOverlaySuspectedCauseItem[];
+  hypotheses: CanvasOverlayHypothesisItem[];
   causalLinks: CanvasOverlayCausalLinkItem[];
   investigationCounts: {
     open: number;
@@ -123,7 +123,7 @@ export interface CanvasInvestigationOverlayModel {
   unresolved: {
     questions: string[];
     findings: string[];
-    suspectedCauses: string[];
+    hypotheses: string[];
     causalLinks: string[];
   };
 }
@@ -132,7 +132,7 @@ export interface BuildCanvasInvestigationOverlaysArgs {
   map: ProcessMap;
   questions?: readonly Question[];
   findings?: readonly Finding[];
-  suspectedCauses?: readonly Hypothesis[];
+  hypotheses?: readonly Hypothesis[];
   causalLinks?: readonly CausalLink[];
 }
 
@@ -143,7 +143,7 @@ function emptyStepOverlay(stepId: string): CanvasStepInvestigationOverlay {
     stepId,
     questions: [],
     findings: [],
-    suspectedCauses: [],
+    hypotheses: [],
     causalLinks: [],
     investigationCounts: { open: 0, supported: 0, refuted: 0 },
   };
@@ -245,7 +245,7 @@ export function buildCanvasInvestigationOverlays({
   map,
   questions = [],
   findings = [],
-  suspectedCauses = [],
+  hypotheses = [],
   causalLinks = [],
 }: BuildCanvasInvestigationOverlaysArgs): CanvasInvestigationOverlayModel {
   const columnMap = stepColumnMap(map);
@@ -255,15 +255,15 @@ export function buildCanvasInvestigationOverlays({
   const unresolved = {
     questions: [] as string[],
     findings: [] as string[],
-    suspectedCauses: [] as string[],
+    hypotheses: [] as string[],
     causalLinks: [] as string[],
   };
 
   const hubSteps = new Map<string, string[]>();
-  for (const hub of suspectedCauses) {
+  for (const hub of hypotheses) {
     const steps = validStepIds(hubStepIds({ hub, findings, questions, map, columnMap }), byStep);
     hubSteps.set(hub.id, steps);
-    if (steps.length === 0) unresolved.suspectedCauses.push(hub.id);
+    if (steps.length === 0) unresolved.hypotheses.push(hub.id);
   }
 
   for (const question of questions) {
@@ -303,7 +303,7 @@ export function buildCanvasInvestigationOverlays({
       steps = validStepIds(stepsForColumns([linkedQuestion.factor], columnMap), byStep);
     }
     if (steps.length === 0) {
-      const linkedHubSteps = suspectedCauses
+      const linkedHubSteps = hypotheses
         .filter(hub => hub.findingIds.includes(finding.id))
         .flatMap(hub => hubSteps.get(hub.id) ?? []);
       steps = validStepIds(uniqueStepIds(linkedHubSteps), byStep);
@@ -326,10 +326,10 @@ export function buildCanvasInvestigationOverlays({
     }
   }
 
-  for (const hub of suspectedCauses) {
+  for (const hub of hypotheses) {
     const steps = validStepIds(hubSteps.get(hub.id) ?? [], byStep);
     if (steps.length === 0) continue;
-    const item: CanvasOverlaySuspectedCauseItem = {
+    const item: CanvasOverlayHypothesisItem = {
       id: hub.id,
       name: hub.name,
       status: hub.status,
@@ -343,14 +343,14 @@ export function buildCanvasInvestigationOverlays({
     for (const stepId of steps) {
       const step = byStep[stepId];
       if (!step) continue;
-      if (isPromotedHub(hub)) addUnique(step.suspectedCauses, item);
+      if (isPromotedHub(hub)) addUnique(step.hypotheses, item);
       if (hub.status === 'refuted') step.investigationCounts.refuted += 1;
       else if (hub.status === 'confirmed') step.investigationCounts.supported += 1;
       else step.investigationCounts.open += 1;
     }
   }
 
-  const promotedHubs = suspectedCauses.filter(isPromotedHub);
+  const promotedHubs = hypotheses.filter(isPromotedHub);
   const arrows: CanvasOverlayCausalLinkItem[] = [];
   for (const link of causalLinks) {
     if (promotedHubs.some(hub => hubOwnsLink(hub, link))) continue;
@@ -387,7 +387,7 @@ export function useCanvasInvestigationOverlays(
 ): UseCanvasInvestigationOverlaysResult {
   const overlays = useMemo(
     () => buildCanvasInvestigationOverlays(args),
-    [args.map, args.questions, args.findings, args.suspectedCauses, args.causalLinks]
+    [args.map, args.questions, args.findings, args.hypotheses, args.causalLinks]
   );
   return { overlays };
 }

@@ -245,17 +245,15 @@ describe('QuestionsTabView — observations section', () => {
 // ---------------------------------------------------------------------------
 
 describe('QuestionsTabView — conclusion card', () => {
-  it('renders conclusion card when suspected causes exist', () => {
+  it('renders conclusion card when hypotheses exist', () => {
     const causes: Hypothesis[] = [{ factor: 'Operator', projectedCpk: 1.5 }];
-    render(
-      <QuestionsTabView questions={[]} findings={[]} suspectedCauses={causes} currentCpk={1.1} />
-    );
+    render(<QuestionsTabView questions={[]} findings={[]} hypotheses={causes} currentCpk={1.1} />);
     expect(screen.getByTestId('conclusion-card')).toBeDefined();
     expect(screen.getByTestId('cause-chip-Operator')).toBeDefined();
   });
 
-  it('does not render conclusion card when no suspected causes', () => {
-    render(<QuestionsTabView questions={[]} findings={[]} suspectedCauses={[]} />);
+  it('does not render conclusion card when no hypotheses', () => {
+    render(<QuestionsTabView questions={[]} findings={[]} hypotheses={[]} />);
     expect(screen.queryByTestId('conclusion-card')).toBeNull();
   });
 
@@ -265,7 +263,7 @@ describe('QuestionsTabView — conclusion card', () => {
       <QuestionsTabView
         questions={[]}
         findings={[]}
-        suspectedCauses={causes}
+        hypotheses={causes}
         currentCpk={1.0}
         combinedProjectedCpk={1.45}
         targetCpk={1.33}

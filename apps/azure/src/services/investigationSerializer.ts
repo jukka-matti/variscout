@@ -13,17 +13,17 @@ import { migrateCauseRolesToHubs } from '@variscout/core';
 
 /**
  * Structured representation of the investigation state saved as JSON.
- * The `suspectedCauses` field is optional so old project files (without hubs)
+ * The `hypotheses` field is optional so old project files (without hubs)
  * remain valid and are migrated on deserialize.
  */
 export interface SerializedInvestigationState {
   findings: Finding[];
   questions: Question[];
-  suspectedCauses?: Hypothesis[];
+  hypotheses?: Hypothesis[];
 }
 
 /**
- * Shape of a suspected cause as it may appear in legacy stored data,
+ * Shape of a hypothesis as it may appear in legacy stored data,
  * before the `totalContribution` → `evidence` migration.
  */
 interface LegacyStoredHub extends Omit<Hypothesis, 'evidence' | 'status'> {
@@ -41,16 +41,16 @@ function normalizeHypothesisStatus(status: LegacyStoredHub['status']): Hypothesi
 
 /**
  * Serialize the investigation state to a plain object suitable for JSON storage.
- * `suspectedCauses` is omitted when the array is empty (compact serialization).
+ * `hypotheses` is omitted when the array is empty (compact serialization).
  */
 export function serializeInvestigationState(
   findings: Finding[],
   questions: Question[],
-  suspectedCauses: Hypothesis[]
+  hypotheses: Hypothesis[]
 ): SerializedInvestigationState {
   const state: SerializedInvestigationState = { findings, questions };
-  if (suspectedCauses.length > 0) {
-    state.suspectedCauses = suspectedCauses;
+  if (hypotheses.length > 0) {
+    state.hypotheses = hypotheses;
   }
   return state;
 }
@@ -59,7 +59,7 @@ export function serializeInvestigationState(
  * Deserialize investigation state from a stored object.
  *
  * Migrations applied on load:
- * 1. If `suspectedCauses` is absent but questions have `causeRole === 'suspected-cause'`,
+ * 1. If `hypotheses` is absent but questions have `causeRole === 'suspected-cause'`,
  *    those questions are migrated into individual Hypothesis hubs.
  * 2. If a hub has `totalContribution` (legacy numeric field) but no `evidence`,
  *    a basic `HypothesisEvidence` is synthesised from it.
@@ -68,14 +68,14 @@ export function serializeInvestigationState(
 export function deserializeInvestigationState(raw: SerializedInvestigationState): {
   findings: Finding[];
   questions: Question[];
-  suspectedCauses: Hypothesis[];
+  hypotheses: Hypothesis[];
 } {
   const findings = raw.findings ?? [];
   const questions = raw.questions ?? [];
 
-  if (raw.suspectedCauses !== undefined) {
+  if (raw.hypotheses !== undefined) {
     // Data already has hubs — apply field-level migration then return
-    const migratedHubs = (raw.suspectedCauses as LegacyStoredHub[]).map((stored): Hypothesis => {
+    const migratedHubs = (raw.hypotheses as LegacyStoredHub[]).map((stored): Hypothesis => {
       const { totalContribution: _legacy, ...clean } = stored;
       const hub: Hypothesis = {
         ...clean,
@@ -98,12 +98,12 @@ export function deserializeInvestigationState(raw: SerializedInvestigationState)
 
       return hub;
     });
-    return { findings, questions, suspectedCauses: migratedHubs };
+    return { findings, questions, hypotheses: migratedHubs };
   }
 
   // No hubs in stored data — attempt migration from legacy causeRole questions
   const migratedHubs = migrateCauseRolesToHubs(questions);
-  return { findings, questions, suspectedCauses: migratedHubs };
+  return { findings, questions, hypotheses: migratedHubs };
 }
 
 // ---------------------------------------------------------------------------

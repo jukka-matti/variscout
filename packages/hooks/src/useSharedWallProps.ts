@@ -25,7 +25,7 @@ export interface UseSharedWallPropsReturn {
 }
 
 export function useSharedWallProps(args: UseSharedWallPropsArgs): UseSharedWallPropsReturn {
-  const hubs = useInvestigationStore(s => s.suspectedCauses);
+  const hubs = useInvestigationStore(s => s.hypotheses);
   const questions = useInvestigationStore(s => s.questions);
   const zoom = useWallLayoutStore(s => s.zoom);
   const pan = useWallLayoutStore(s => s.pan);

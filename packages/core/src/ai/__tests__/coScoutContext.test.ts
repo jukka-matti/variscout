@@ -74,10 +74,10 @@ describe('formatInvestigationContext', () => {
     expect(result).toContain('1 ruled-out');
   });
 
-  it('uses ONLY hypothesisHubs, not legacy suspectedCauses', () => {
+  it('uses ONLY hypothesisHubs, not legacy hypotheses', () => {
     const result = formatInvestigationContext({
       // Legacy causeRole-based hypotheses — should be IGNORED
-      suspectedCauses: [
+      hypotheses: [
         {
           id: 'sc1',
           text: 'Temperature drift',
@@ -512,7 +512,7 @@ describe('formatKnowledgeContext', () => {
         etaSquared: 0.35,
         cpkBefore: 0.8,
         cpkAfter: 1.5,
-        suspectedCause: 'Dark roast moisture retention',
+        hypothesis: 'Dark roast moisture retention',
         actionsText: 'Reduced roast time by 15%',
         outcomeEffective: true,
       },
@@ -553,7 +553,7 @@ describe('formatKnowledgeContext', () => {
         etaSquared: null,
         cpkBefore: null,
         cpkAfter: null,
-        suspectedCause: 'test',
+        hypothesis: 'test',
         actionsText: '',
         outcomeEffective: null,
       },

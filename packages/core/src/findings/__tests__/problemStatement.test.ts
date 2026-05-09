@@ -8,7 +8,7 @@ describe('buildProblemStatement', () => {
       targetValue: 1.33,
       currentCpk: 0.62,
       targetDirection: 'reduce-variation',
-      suspectedCauses: [
+      hypotheses: [
         { factor: 'Shift', level: 'Night', evidence: 0.34 },
         { factor: 'Head', level: '5-8', evidence: 0.22 },
       ],
@@ -27,7 +27,7 @@ describe('buildProblemStatement', () => {
     const result = buildProblemStatement({
       outcome: 'Yield',
       targetDirection: 'increase',
-      suspectedCauses: [{ factor: 'Temperature' }],
+      hypotheses: [{ factor: 'Temperature' }],
     });
     expect(result).toContain('Increase Yield');
   });
@@ -36,7 +36,7 @@ describe('buildProblemStatement', () => {
     const result = buildProblemStatement({
       outcome: 'Defect Rate',
       targetDirection: 'decrease',
-      suspectedCauses: [{ factor: 'Speed' }],
+      hypotheses: [{ factor: 'Speed' }],
     });
     expect(result).toContain('Decrease Defect Rate');
   });
@@ -44,7 +44,7 @@ describe('buildProblemStatement', () => {
   it('handles no target value', () => {
     const result = buildProblemStatement({
       outcome: 'Cycle Time',
-      suspectedCauses: [{ factor: 'Machine', evidence: 0.15 }],
+      hypotheses: [{ factor: 'Machine', evidence: 0.15 }],
     });
     expect(result).toContain('Cycle Time');
     expect(result).toContain('Machine');
@@ -56,7 +56,7 @@ describe('buildProblemStatement', () => {
     const result = buildProblemStatement({
       outcome: 'Diameter',
       targetValue: 1.5,
-      suspectedCauses: [],
+      hypotheses: [],
     });
     expect(result).toContain('to target 1.50');
     expect(result).not.toContain('Cpk');
@@ -65,7 +65,7 @@ describe('buildProblemStatement', () => {
   it('handles no hypotheses', () => {
     const result = buildProblemStatement({
       outcome: 'Weight',
-      suspectedCauses: [],
+      hypotheses: [],
     });
     expect(result).toContain('Weight');
     expect(result).not.toContain('driven by');
@@ -74,7 +74,7 @@ describe('buildProblemStatement', () => {
   it('includes evidence percentages', () => {
     const result = buildProblemStatement({
       outcome: 'Diameter',
-      suspectedCauses: [{ factor: 'Tool', evidence: 0.28 }],
+      hypotheses: [{ factor: 'Tool', evidence: 0.28 }],
     });
     expect(result).toContain('28%');
   });
@@ -82,7 +82,7 @@ describe('buildProblemStatement', () => {
   it('includes factor level in parentheses', () => {
     const result = buildProblemStatement({
       outcome: 'Weight',
-      suspectedCauses: [{ factor: 'Operator', level: 'B', evidence: 0.4 }],
+      hypotheses: [{ factor: 'Operator', level: 'B', evidence: 0.4 }],
     });
     expect(result).toContain('Operator (B)');
     expect(result).toContain('[40%]');
@@ -91,7 +91,7 @@ describe('buildProblemStatement', () => {
   it('handles factor without level or evidence', () => {
     const result = buildProblemStatement({
       outcome: 'Pressure',
-      suspectedCauses: [{ factor: 'Valve' }],
+      hypotheses: [{ factor: 'Valve' }],
     });
     expect(result).toContain('driven by Valve');
     expect(result).not.toContain('(');
@@ -101,7 +101,7 @@ describe('buildProblemStatement', () => {
   it('defaults to reduce-variation when no direction specified', () => {
     const result = buildProblemStatement({
       outcome: 'Length',
-      suspectedCauses: [],
+      hypotheses: [],
     });
     expect(result).toContain('Reduce variation in Length');
   });
@@ -111,7 +111,7 @@ describe('buildProblemStatement', () => {
       const result = buildProblemStatement({
         outcome: 'Fill Weight',
         characteristicType: 'nominal',
-        suspectedCauses: [],
+        hypotheses: [],
       });
       expect(result).toContain('Reduce variation in Fill Weight');
     });
@@ -120,7 +120,7 @@ describe('buildProblemStatement', () => {
       const result = buildProblemStatement({
         outcome: 'Defect Rate',
         characteristicType: 'smaller',
-        suspectedCauses: [],
+        hypotheses: [],
       });
       expect(result).toContain('Decrease Defect Rate');
     });
@@ -129,7 +129,7 @@ describe('buildProblemStatement', () => {
       const result = buildProblemStatement({
         outcome: 'Yield',
         characteristicType: 'larger',
-        suspectedCauses: [],
+        hypotheses: [],
       });
       expect(result).toContain('Increase Yield');
     });
@@ -139,7 +139,7 @@ describe('buildProblemStatement', () => {
         outcome: 'Cycle Time',
         targetDirection: 'decrease',
         characteristicType: 'nominal',
-        suspectedCauses: [],
+        hypotheses: [],
       });
       expect(result).toContain('Decrease Cycle Time');
       expect(result).not.toContain('Reduce variation in');
@@ -148,7 +148,7 @@ describe('buildProblemStatement', () => {
     it('defaults to reduce-variation when neither targetDirection nor characteristicType is provided', () => {
       const result = buildProblemStatement({
         outcome: 'Pressure',
-        suspectedCauses: [],
+        hypotheses: [],
       });
       expect(result).toContain('Reduce variation in Pressure');
     });

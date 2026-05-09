@@ -136,7 +136,7 @@ describe('CanvasStepOverlay causal link removal', () => {
     stepId: 'step-1',
     questions: [],
     findings: [],
-    suspectedCauses: [],
+    hypotheses: [],
     causalLinks: [
       {
         id: 'link-1',

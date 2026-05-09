@@ -119,8 +119,8 @@ export interface ProcessContext {
   currentUnderstanding?: CurrentUnderstanding;
   /** Measurable problem condition derived from the target metric and current/target values */
   problemCondition?: ProblemCondition;
-  /** Suspected causes from question-driven investigation, ranked by evidence */
-  suspectedCauses?: Array<{
+  /** Hypotheses from question-driven investigation, ranked by evidence */
+  hypotheses?: Array<{
     factor: string;
     level?: string;
     evidence: number;
@@ -308,8 +308,8 @@ export interface AIContext {
     transitionReason?: string;
     /** Investigation categories for completeness prompting */
     categories?: Array<{ name: string; factorNames: string[] }>;
-    /** Suspected causes from questions with causeRole (supports multiple) */
-    suspectedCauses?: Array<{
+    /** Hypotheses from questions with causeRole (supports multiple) */
+    hypotheses?: Array<{
       id: string;
       text: string;
       causeRole: 'suspected-cause' | 'contributing' | 'ruled-out';
@@ -328,7 +328,7 @@ export interface AIContext {
     focusedQuestionId?: string;
     /** Text of the question currently in focus in the PI panel */
     focusedQuestionText?: string;
-    /** Hypothesis hubs (Phase 6 — distinct from legacy causeRole-based suspectedCauses) */
+    /** Hypothesis hubs (Phase 6 — distinct from legacy causeRole-based hypotheses) */
     hypothesisHubs?: Array<{
       id: string;
       name: string;
@@ -440,7 +440,7 @@ export interface AIContext {
     etaSquared: number | null;
     cpkBefore: number | null;
     cpkAfter: number | null;
-    suspectedCause: string;
+    hypothesis: string;
     actionsText: string;
     outcomeEffective: boolean | null;
   }>;

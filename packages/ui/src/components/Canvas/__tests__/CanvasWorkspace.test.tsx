@@ -215,13 +215,13 @@ const mockInvestigationOverlays: CanvasInvestigationOverlayModel = {
         },
       ],
       findings: [],
-      suspectedCauses: [],
+      hypotheses: [],
       causalLinks: [],
       investigationCounts: { open: 1, supported: 0, refuted: 0 },
     },
   },
   arrows: [],
-  unresolved: { questions: [], findings: [], suspectedCauses: [], causalLinks: [] },
+  unresolved: { questions: [], findings: [], hypotheses: [], causalLinks: [] },
 };
 
 vi.mock('@variscout/hooks', () => ({
@@ -270,9 +270,9 @@ vi.mock('@variscout/hooks', () => ({
       enabled: true,
       description: 'Draft causal links rendered as faint step-to-step arrows.',
     },
-    'suspected-causes': {
-      id: 'suspected-causes',
-      label: 'Suspected causes',
+    'hypothesis-hubs': {
+      id: 'hypothesis-hubs',
+      label: 'Hypothesis hubs',
       enabled: true,
       description: 'Promoted mechanism branches rendered as step markers.',
     },
@@ -291,7 +291,7 @@ vi.mock('@variscout/hooks', () => ({
   },
   coerceCanvasOverlays: vi.fn((values: unknown[]) =>
     values.filter(value =>
-      ['investigations', 'hypotheses', 'suspected-causes', 'findings', 'wall'].includes(
+      ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings', 'wall'].includes(
         String(value)
       )
     )
@@ -310,8 +310,8 @@ vi.mock('@variscout/hooks', () => ({
       description: 'Draft causal links rendered as faint step-to-step arrows.',
     },
     {
-      id: 'suspected-causes',
-      label: 'Suspected causes',
+      id: 'hypothesis-hubs',
+      label: 'Hypothesis hubs',
       enabled: true,
       description: 'Promoted mechanism branches rendered as step markers.',
     },

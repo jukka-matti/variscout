@@ -1,7 +1,7 @@
 /**
- * investigationStore — Zustand store for findings, questions, and suspected cause hubs
+ * investigationStore — Zustand store for findings, questions, and hypothesis hubs
  *
- * Consolidates CRUD from useFindings, useQuestions, and useSuspectedCauses hooks
+ * Consolidates CRUD from useFindings, useQuestions, and useHypotheses hooks
  * into a single store. No callbacks — persistence will be via store.subscribe().
  * No React imports — pure Zustand, framework-agnostic.
  */
@@ -72,7 +72,7 @@ export const MAX_CHILDREN_PER_PARENT = 8;
 export interface InvestigationState {
   findings: Finding[];
   questions: Question[];
-  suspectedCauses: Hypothesis[];
+  hypotheses: Hypothesis[];
   causalLinks: CausalLink[];
   categories: InvestigationCategory[];
   problemContributionTree?: GateNode;
@@ -302,7 +302,7 @@ function collectDescendants(id: string, questions: Question[]): Set<string> {
 const initialState: InvestigationState = {
   findings: [],
   questions: [],
-  suspectedCauses: [],
+  hypotheses: [],
   causalLinks: [],
   categories: [],
   problemContributionTree: undefined,
@@ -839,7 +839,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     createHub: (name, synthesis) => {
       const hub = createHypothesis(name, synthesis);
-      set(state => ({ suspectedCauses: [...state.suspectedCauses, hub] }));
+      set(state => ({ hypotheses: [...state.hypotheses, hub] }));
       return hub;
     },
 
@@ -849,13 +849,13 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       const excerpt = finding.text.trim().slice(0, 80);
       const name = excerpt.length > 0 ? `Suspected mechanism: ${excerpt}` : 'New mechanism branch';
       const hub = createHypothesis(name, '', [], [findingId]);
-      set(state => ({ suspectedCauses: [...state.suspectedCauses, hub] }));
+      set(state => ({ hypotheses: [...state.hypotheses, hub] }));
       return hub;
     },
 
     updateHub: (hubId, updates) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id === hubId ? { ...h, ...updates, updatedAt: Date.now() } : h
         ),
       }));
@@ -863,7 +863,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     deleteHub: hubId => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.filter(h => h.id !== hubId),
+        hypotheses: state.hypotheses.filter(h => h.id !== hubId),
         // Clear hypothesisId from causal links that reference the deleted hub
         causalLinks: state.causalLinks.map(l =>
           l.hypothesisId === hubId ? { ...l, hypothesisId: undefined, updatedAt: Date.now() } : l
@@ -873,7 +873,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     connectQuestionToHub: (hubId, questionId) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h => {
+        hypotheses: state.hypotheses.map(h => {
           if (h.id !== hubId) return h;
           if (h.questionIds.includes(questionId)) return h;
           return {
@@ -887,7 +887,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     disconnectQuestionFromHub: (hubId, questionId) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id !== hubId
             ? h
             : {
@@ -901,7 +901,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     connectFindingToHub: (hubId, findingId) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h => {
+        hypotheses: state.hypotheses.map(h => {
           if (h.id !== hubId) return h;
           if (h.findingIds.includes(findingId)) return h;
           return {
@@ -915,7 +915,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     disconnectFindingFromHub: (hubId, findingId) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id !== hubId
             ? h
             : {
@@ -929,7 +929,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     setHubStatus: (hubId, status) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id !== hubId ? h : { ...h, status, updatedAt: Date.now() }
         ),
       }));
@@ -937,14 +937,14 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     setHubEvidence: (hubId, evidence) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id !== hubId ? h : { ...h, evidence, updatedAt: Date.now() }
         ),
       }));
     },
 
     resetHubs: hubs => {
-      set({ suspectedCauses: hubs });
+      set({ hypotheses: hubs });
     },
 
     addHubComment: async (hubId, text, author) => {
@@ -955,7 +955,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
       // 2. Optimistic update: append to the hub's comments array.
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id === hubId
             ? {
                 ...h,
@@ -1104,7 +1104,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       set(state => ({
         findings: partial.findings ?? state.findings,
         questions: partial.questions ?? state.questions,
-        suspectedCauses: partial.suspectedCauses ?? state.suspectedCauses,
+        hypotheses: partial.hypotheses ?? state.hypotheses,
         causalLinks: partial.causalLinks ?? state.causalLinks,
         categories: partial.categories ?? state.categories,
         problemContributionTree: partial.problemContributionTree ?? state.problemContributionTree,

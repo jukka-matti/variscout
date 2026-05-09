@@ -178,9 +178,9 @@ export interface AnalysisState {
   /** User-defined categories grouping factor columns */
   categories?: InvestigationCategory[];
 
-  // --- Suspected causes (investigation synthesis) ---
+  // --- Hypotheses (investigation synthesis) ---
   /** Hypothesis hubs connecting evidence threads */
-  suspectedCauses?: Hypothesis[];
+  hypotheses?: Hypothesis[];
 
   // --- Causal links (investigation DAG) ---
   /** Causal links between factors (investigation DAG) */

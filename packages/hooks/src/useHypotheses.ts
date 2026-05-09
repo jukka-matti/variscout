@@ -6,7 +6,7 @@ import type { Hypothesis } from '@variscout/core';
 // Types
 // ============================================================================
 
-export interface UseSuspectedCausesOptions {
+export interface UseHypothesesOptions {
   /** Initial hubs (for restoring persisted state) */
   initialHubs: Hypothesis[];
   /** Callback when hubs change (for external persistence) */
@@ -20,7 +20,7 @@ export type HypothesisUpdate = Partial<
   >
 >;
 
-export interface UseSuspectedCausesReturn {
+export interface UseHypothesesReturn {
   /** Current list of hypothesis hubs */
   hubs: Hypothesis[];
   /** Create a new hub and return it */
@@ -64,7 +64,7 @@ export interface UseSuspectedCausesReturn {
  *
  * Follows the same pattern as `useQuestions` and `useFindings`.
  */
-export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspectedCausesReturn {
+export function useHypotheses(options: UseHypothesesOptions): UseHypothesesReturn {
   const { initialHubs, onHubsChange } = options;
   const [hubs, setHubs] = useState<Hypothesis[]>(initialHubs);
 

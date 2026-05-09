@@ -40,7 +40,7 @@ export type {
   MechanismBranchProcessContext,
   MechanismBranchProjectionOptions,
   MechanismBranchQuestionView,
-  MechanismBranchReadinessView,
+  MechanismBranchActionStateView,
   MechanismBranchViewModel,
   BranchSignalWarning,
 } from './mechanismBranch';

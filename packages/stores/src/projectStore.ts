@@ -97,7 +97,7 @@ export interface SerializedProject {
   findings?: Finding[];
   questions?: Question[];
   categories?: InvestigationCategory[];
-  suspectedCauses?: Hypothesis[];
+  hypotheses?: Hypothesis[];
   causalLinks?: CausalLink[];
 }
 

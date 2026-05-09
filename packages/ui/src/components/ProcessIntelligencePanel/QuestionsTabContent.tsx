@@ -49,7 +49,7 @@ export interface QuestionsTabContentProps {
  * QuestionsTabContent — store-aware content for the "Questions" tab in the PI Panel.
  *
  * Reads from stores:
- * - questions, findings, suspectedCauses from useInvestigationStore
+ * - questions, findings, hypotheses from useInvestigationStore
  * - processContext (issueStatement/currentUnderstanding), cpkTarget from useProjectStore
  * - currentCpk via useAnalysisStats()
  *
@@ -77,7 +77,7 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
   // Store reads
   const questions = useInvestigationStore(s => s.questions);
   const findings = useInvestigationStore(s => s.findings);
-  const hubs = useInvestigationStore(s => s.suspectedCauses);
+  const hubs = useInvestigationStore(s => s.hypotheses);
   const processContext = useProjectStore(s => s.processContext);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const outcome = useProjectStore(s => s.outcome);
@@ -99,7 +99,7 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
   const { hubEvidences, hubProjections } = useHubComputations(bestSubsets, questions);
 
   // Improvement projections (shared hook, Task 3)
-  const { suspectedCauses, combinedProjectedCpk } = useImprovementProjections(
+  const { hypotheses, combinedProjectedCpk } = useImprovementProjections(
     questions,
     projectedCpkMap
   );
@@ -118,7 +118,7 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
       currentCpk={currentCpk}
       targetCpk={cpkTarget}
       phaseBadge={phaseBadge}
-      suspectedCauses={suspectedCauses}
+      hypotheses={hypotheses}
       combinedProjectedCpk={combinedProjectedCpk}
       projectedCpkMap={projectedCpkMap}
       hubs={hubs.length > 0 ? hubs : undefined}

@@ -15,7 +15,7 @@ export interface UseHasInvestigationContentArgs {
  * findings-only graph should not advertise the Wall overlay yet.
  */
 export function useHasInvestigationContent(args: UseHasInvestigationContentArgs): boolean {
-  const hubsCount = useInvestigationStore(state => state.suspectedCauses.length);
+  const hubsCount = useInvestigationStore(state => state.hypotheses.length);
   const openQuestionsCount = useInvestigationStore(
     state => state.questions.filter(question => question.status === 'open').length
   );

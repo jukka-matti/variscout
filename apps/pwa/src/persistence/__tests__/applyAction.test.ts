@@ -476,7 +476,7 @@ describe('applyAction — no-op action kinds', () => {
       hypothesis: { id: 'sc-x' },
     } as unknown as HubAction);
 
-    expect(await db.suspectedCauses.count()).toBe(0);
+    expect(await db.hypotheses.count()).toBe(0);
   });
 
   it('canvas action (ADD_STEP) does not mutate any table', async () => {

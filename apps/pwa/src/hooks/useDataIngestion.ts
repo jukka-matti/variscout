@@ -39,7 +39,7 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setFindings: useProjectStore(s => s.setFindings),
     setQuestions: useProjectStore(s => s.setQuestions),
     setCategories: useProjectStore(s => s.setCategories),
-    setSuspectedCauses: (hubs: Hypothesis[]) => useInvestigationStore.getState().resetHubs(hubs),
+    setHypotheses: (hubs: Hypothesis[]) => useInvestigationStore.getState().resetHubs(hubs),
     setCausalLinks: (links: CausalLink[]) =>
       useInvestigationStore.getState().loadInvestigationState({ causalLinks: links }),
     setProcessContext: useProjectStore(s => s.setProcessContext),

@@ -5,8 +5,8 @@ import type { Question } from '@variscout/core/findings';
 // Types
 // ============================================================================
 
-export interface SuspectedCauseProjection {
-  /** Factor column name for this suspected cause */
+export interface HypothesisProjection {
+  /** Factor column name for this hypothesis */
   factor: string;
   /** Projected Cpk after removing this factor's variation, if available */
   projectedCpk: number | undefined;
@@ -18,7 +18,7 @@ export interface UseImprovementProjectionsReturn {
    * Derived from questions with `causeRole === 'suspected-cause'` that have
    * a linked factor column.
    */
-  suspectedCauses: SuspectedCauseProjection[];
+  hypotheses: HypothesisProjection[];
   /**
    * Combined projected Cpk — the maximum of all per-factor projections.
    * Returns `undefined` when no projections are available.
@@ -39,13 +39,13 @@ export interface UseImprovementProjectionsReturn {
  *
  * @param questions - All questions from `useQuestionGeneration`
  * @param projectedCpkMap - Per-factor projected Cpk map from `useQuestionGeneration`
- * @returns `{ suspectedCauses, combinedProjectedCpk }`
+ * @returns `{ hypotheses, combinedProjectedCpk }`
  */
 export function useImprovementProjections(
   questions: Question[],
   projectedCpkMap: Record<string, number>
 ): UseImprovementProjectionsReturn {
-  const suspectedCauses = useMemo<SuspectedCauseProjection[]>(() => {
+  const hypotheses = useMemo<HypothesisProjection[]>(() => {
     return questions
       .filter(q => q.causeRole === 'suspected-cause' && q.factor)
       .map(q => ({
@@ -59,5 +59,5 @@ export function useImprovementProjections(
     return values.length > 0 ? Math.max(...values) : undefined;
   }, [projectedCpkMap]);
 
-  return { suspectedCauses, combinedProjectedCpk };
+  return { hypotheses, combinedProjectedCpk };
 }

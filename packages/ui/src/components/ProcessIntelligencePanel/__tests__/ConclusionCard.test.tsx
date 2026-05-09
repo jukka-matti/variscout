@@ -40,7 +40,7 @@ function makeProjection(delta: number, rSquaredAdj: number): HubProjection {
 
 describe('ConclusionCard', () => {
   it('renders nothing when no causes and no hubs', () => {
-    const { container } = render(<ConclusionCard suspectedCauses={[]} />);
+    const { container } = render(<ConclusionCard hypotheses={[]} />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -56,7 +56,7 @@ describe('ConclusionCard', () => {
       ],
     ]);
 
-    render(<ConclusionCard suspectedCauses={[]} hubs={hubs} hubEvidences={evidence} />);
+    render(<ConclusionCard hypotheses={[]} hubs={hubs} hubEvidences={evidence} />);
 
     expect(screen.getByText('Night shift effect')).toBeInTheDocument();
     expect(screen.getByText('R²adj 38%')).toBeInTheDocument();
@@ -66,7 +66,7 @@ describe('ConclusionCard', () => {
     const hubs = [makeHub('h1', 'Night shift effect')];
     const projections = new Map([['h1', makeProjection(-1.8, 0.38)]]);
 
-    render(<ConclusionCard suspectedCauses={[]} hubs={hubs} hubProjections={projections} />);
+    render(<ConclusionCard hypotheses={[]} hubs={hubs} hubProjections={projections} />);
 
     const projectionEl = screen.getByTestId('conclusion-hub-projection-h1');
     expect(projectionEl).toBeInTheDocument();
@@ -79,7 +79,7 @@ describe('ConclusionCard', () => {
     const hubs = [makeHub('h1', 'Head alignment')];
     const projections = new Map([['h1', makeProjection(0.5, 0.22)]]);
 
-    render(<ConclusionCard suspectedCauses={[]} hubs={hubs} hubProjections={projections} />);
+    render(<ConclusionCard hypotheses={[]} hubs={hubs} hubProjections={projections} />);
 
     const projectionEl = screen.getByTestId('conclusion-hub-projection-h1');
     expect(projectionEl.textContent).toContain('+0.5');
@@ -89,17 +89,14 @@ describe('ConclusionCard', () => {
     const hubs = [makeHub('h1', 'Unmapped hub')];
     const projections = new Map<string, HubProjection>(); // empty map
 
-    render(<ConclusionCard suspectedCauses={[]} hubs={hubs} hubProjections={projections} />);
+    render(<ConclusionCard hypotheses={[]} hubs={hubs} hubProjections={projections} />);
 
     expect(screen.queryByTestId('conclusion-hub-projection-h1')).not.toBeInTheDocument();
   });
 
   it('renders legacy chip model when no hubs provided', () => {
     render(
-      <ConclusionCard
-        suspectedCauses={[{ factor: 'Machine', projectedCpk: 1.2 }]}
-        currentCpk={0.9}
-      />
+      <ConclusionCard hypotheses={[{ factor: 'Machine', projectedCpk: 1.2 }]} currentCpk={0.9} />
     );
 
     expect(screen.getByText('Machine')).toBeInTheDocument();

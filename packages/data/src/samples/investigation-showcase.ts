@@ -411,7 +411,7 @@ function buildFindings(): Finding[] {
   ];
 }
 
-function buildSuspectedCauses(): Hypothesis[] {
+function buildHypotheses(): Hypothesis[] {
   return [
     {
       id: IDS.HUB_NOZZLE,
@@ -470,7 +470,7 @@ function buildCategories(): InvestigationCategory[] {
 export const investigationShowcase: SampleDataset = {
   name: 'Showcase: Fill Weight Investigation',
   description:
-    'Packaging line fill weight with pre-populated questions, findings, and suspected cause hub. Demonstrates the full investigation workflow.',
+    'Packaging line fill weight with pre-populated questions, findings, and hypothesis hub. Demonstrates the full investigation workflow.',
   icon: 'microscope',
   urlKey: 'investigation-showcase',
   category: 'journeys',
@@ -484,7 +484,7 @@ export const investigationShowcase: SampleDataset = {
     investigation: {
       findings: buildFindings(),
       questions: buildQuestions(),
-      suspectedCauses: buildSuspectedCauses(),
+      hypotheses: buildHypotheses(),
       categories: buildCategories(),
     },
     processMap: {

@@ -774,7 +774,7 @@ export type {
   MechanismBranchProcessContext,
   MechanismBranchProjectionOptions,
   MechanismBranchQuestionView,
-  MechanismBranchReadinessView,
+  MechanismBranchActionStateView,
   MechanismBranchViewModel,
   // Causal link types (investigation DAG)
   CausalLink,

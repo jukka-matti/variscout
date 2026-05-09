@@ -999,8 +999,8 @@ Never invent data or statistics. If the context does not contain enough informat
 
       // Override converging/improving with hypothesis context when available
       // Supports multiple hypotheses from question-driven investigation
-      if (investigation.suspectedCauses && investigation.suspectedCauses.length > 0) {
-        const causes = investigation.suspectedCauses;
+      if (investigation.hypotheses && investigation.hypotheses.length > 0) {
+        const causes = investigation.hypotheses;
 
         // Group by causeRole
         const suspected = causes.filter(c => c.causeRole === 'suspected-cause');
@@ -1009,7 +1009,7 @@ Never invent data or statistics. If the context does not contain enough informat
 
         const parts: string[] = [];
         if (suspected.length > 0) {
-          parts.push(`Suspected causes: ${suspected.map(c => `"${c.text}"`).join(', ')}`);
+          parts.push(`Hypotheses: ${suspected.map(c => `"${c.text}"`).join(', ')}`);
         }
         if (contributing.length > 0) {
           parts.push(`Contributing: ${contributing.map(c => `"${c.text}"`).join(', ')}`);
@@ -1439,7 +1439,7 @@ export function formatKnowledgeContext(
   if (results.length > 0) {
     const lines = results.map((r, i) => {
       const parts = [
-        `${i + 1}. [From: findings] "${r.suspectedCause || 'Unknown cause'}" — ${r.projectName}`,
+        `${i + 1}. [From: findings] "${r.hypothesis || 'Unknown cause'}" — ${r.projectName}`,
       ];
       parts.push(`   Factor: ${r.factor}, Status: ${r.status}`);
       if (r.etaSquared !== null)

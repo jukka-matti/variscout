@@ -19,7 +19,7 @@ describe('InvestigationConclusion', () => {
   it('returns null when hasConclusions is false', () => {
     const { container } = render(
       <InvestigationConclusion
-        suspectedCauses={[makeQuestion()]}
+        hypotheses={[makeQuestion()]}
         ruledOut={[]}
         contributing={[]}
         hasConclusions={false}
@@ -28,7 +28,7 @@ describe('InvestigationConclusion', () => {
     expect(container.innerHTML).toBe('');
   });
 
-  it('renders suspected causes section', () => {
+  it('renders hypotheses section', () => {
     const causes = [
       makeQuestion({
         id: 'h1',
@@ -38,14 +38,9 @@ describe('InvestigationConclusion', () => {
       }),
     ];
     render(
-      <InvestigationConclusion
-        suspectedCauses={causes}
-        ruledOut={[]}
-        contributing={[]}
-        hasConclusions
-      />
+      <InvestigationConclusion hypotheses={causes} ruledOut={[]} contributing={[]} hasConclusions />
     );
-    expect(screen.getByTestId('suspected-causes')).toBeDefined();
+    expect(screen.getByTestId('hypothesis-hubs')).toBeDefined();
     expect(screen.getByText('Shift changeover procedure')).toBeDefined();
   });
 
@@ -60,7 +55,7 @@ describe('InvestigationConclusion', () => {
     ];
     render(
       <InvestigationConclusion
-        suspectedCauses={[]}
+        hypotheses={[]}
         ruledOut={ruledOut}
         contributing={[]}
         hasConclusions
@@ -78,7 +73,7 @@ describe('InvestigationConclusion', () => {
   it('shows problem statement when provided', () => {
     render(
       <InvestigationConclusion
-        suspectedCauses={[]}
+        hypotheses={[]}
         ruledOut={[]}
         contributing={[]}
         problemStatement="Mean fill weight increased 3g since January"
@@ -101,7 +96,7 @@ describe('InvestigationConclusion', () => {
     ];
     render(
       <InvestigationConclusion
-        suspectedCauses={[]}
+        hypotheses={[]}
         ruledOut={[]}
         contributing={contributing}
         hasConclusions

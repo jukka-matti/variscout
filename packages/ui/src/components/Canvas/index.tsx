@@ -231,12 +231,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   const hasInvestigationContent = useHasInvestigationContent({ findingsCount: findings.length });
   const wallIsMobile = useWallIsMobile();
   const availableOverlays = React.useMemo<CanvasOverlayId[]>(() => {
-    const base: CanvasOverlayId[] = [
-      'investigations',
-      'hypotheses',
-      'suspected-causes',
-      'findings',
-    ];
+    const base: CanvasOverlayId[] = ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings'];
     return hasInvestigationContent ? [...base, 'wall'] : base;
   }, [hasInvestigationContent]);
   const pickerAvailableOverlays = React.useMemo(

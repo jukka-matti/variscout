@@ -37,7 +37,7 @@ const investigationStateRef: { current: Record<string, unknown> } = {
   current: {
     findings: [],
     questions: [],
-    suspectedCauses: [],
+    hypotheses: [],
     causalLinks: [],
     addCausalLink: addCausalLinkMock,
     linkQuestionToCausalLink: linkQuestionToCausalLinkMock,
@@ -216,7 +216,7 @@ describe('FrameView (Azure shell)', () => {
     investigationStateRef.current = {
       findings: [{ id: 'f-1' }],
       questions: [{ id: 'q-1' }],
-      suspectedCauses: [{ id: 'hub-1' }],
+      hypotheses: [{ id: 'hub-1' }],
       causalLinks: [{ id: 'link-1' }],
       addCausalLink: addCausalLinkMock,
       linkQuestionToCausalLink: linkQuestionToCausalLinkMock,
@@ -241,7 +241,7 @@ describe('FrameView (Azure shell)', () => {
         setProcessContext: setProcessContextMock,
         findings: [{ id: 'f-1' }],
         questions: [{ id: 'q-1' }],
-        suspectedCauses: [{ id: 'hub-1' }],
+        hypotheses: [{ id: 'hub-1' }],
         causalLinks: [{ id: 'link-1' }],
         signals: { hasIntervention: false, sustainmentConfirmed: false },
       })

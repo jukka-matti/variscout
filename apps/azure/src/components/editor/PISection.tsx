@@ -105,7 +105,7 @@ export const PISection: React.FC<PISectionProps> = ({
   const defectMapping = useProjectStore(s => s.defectMapping);
   const processContext = useProjectStore(s => s.processContext);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
-  const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
+  const hypotheses = useInvestigationStore(s => s.hypotheses);
 
   // Panel visibility and tab state from panelsStore
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
@@ -170,7 +170,7 @@ export const PISection: React.FC<PISectionProps> = ({
         processContext: processContext ?? undefined,
         questions: questionsState.questions,
         findings: findingsState.findings,
-        branches: suspectedCauses,
+        branches: hypotheses,
       }),
     [
       rawData,
@@ -183,7 +183,7 @@ export const PISection: React.FC<PISectionProps> = ({
       processContext,
       questionsState.questions,
       findingsState.findings,
-      suspectedCauses,
+      hypotheses,
     ]
   );
 

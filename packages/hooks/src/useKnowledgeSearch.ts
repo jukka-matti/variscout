@@ -13,7 +13,7 @@ export interface KnowledgeResult {
   etaSquared: number | null;
   cpkBefore: number | null;
   cpkAfter: number | null;
-  suspectedCause: string;
+  hypothesis: string;
   actionsText: string;
   outcomeEffective: boolean | null;
   score: number;

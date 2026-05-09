@@ -4,7 +4,7 @@
 // Unlike the PWA hub-blob, Azure stores hubs, evidence sources, evidence snapshots,
 // and evidence source cursors in dedicated Dexie tables (see src/db/schema.ts).
 // Entities that Azure does not have dedicated tables for today (investigations, findings,
-// questions, causalLinks, suspectedCauses, canvas state) are stubbed — F3 normalizes
+// questions, causalLinks, hypotheses, canvas state) are stubbed — F3 normalizes
 // them into Dexie tables.
 
 import type {
@@ -174,7 +174,7 @@ export class AzureHubRepository implements HubRepository {
   };
 
   hypotheses: HypothesisReadAPI = {
-    // Azure has no dedicated suspectedCauses table today; F3 normalizes this.
+    // Azure has no dedicated hypotheses table today; F3 normalizes this.
     async get(_id) {
       return undefined;
     },

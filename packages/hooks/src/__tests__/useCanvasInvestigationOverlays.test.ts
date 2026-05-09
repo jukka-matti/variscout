@@ -95,7 +95,7 @@ describe('canvas overlay registry', () => {
     expect(enabledCanvasOverlays().map(overlay => overlay.id)).toEqual([
       'investigations',
       'hypotheses',
-      'suspected-causes',
+      'hypothesis-hubs',
       'findings',
       'wall',
     ]);
@@ -156,10 +156,10 @@ describe('buildCanvasInvestigationOverlays', () => {
     expect(overlays.byStep.fill.findings.map(item => item.id)).toEqual(['f-linked']);
   });
 
-  it('projects suspected causes from explicit tributary ids before fallback derivation', () => {
+  it('projects hypotheses from explicit tributary ids before fallback derivation', () => {
     const overlays = buildCanvasInvestigationOverlays({
       map,
-      suspectedCauses: [
+      hypotheses: [
         hub({
           id: 'hub-explicit',
           status: 'confirmed',
@@ -169,7 +169,7 @@ describe('buildCanvasInvestigationOverlays', () => {
       ],
     });
 
-    expect(overlays.byStep.fill.suspectedCauses).toEqual([
+    expect(overlays.byStep.fill.hypotheses).toEqual([
       expect.objectContaining({ id: 'hub-explicit', status: 'confirmed', questionId: 'q-fill' }),
     ]);
     expect(overlays.byStep.fill.investigationCounts.supported).toBe(1);
@@ -184,10 +184,10 @@ describe('buildCanvasInvestigationOverlays', () => {
           context: { activeFilters: { Machine: ['A'] }, cumulativeScope: 20 },
         }),
       ],
-      suspectedCauses: [hub({ id: 'hub-derived', findingIds: ['f-machine'] })],
+      hypotheses: [hub({ id: 'hub-derived', findingIds: ['f-machine'] })],
     });
 
-    expect(overlays.byStep.mix.suspectedCauses.map(item => item.id)).toEqual(['hub-derived']);
+    expect(overlays.byStep.mix.hypotheses.map(item => item.id)).toEqual(['hub-derived']);
   });
 
   it('renders draft causal links as arrows unless a promoted hub owns the link', () => {
@@ -197,7 +197,7 @@ describe('buildCanvasInvestigationOverlays', () => {
     });
     const promoted = buildCanvasInvestigationOverlays({
       map,
-      suspectedCauses: [hub({ id: 'hub-promoted', questionIds: ['q-1'] })],
+      hypotheses: [hub({ id: 'hub-promoted', questionIds: ['q-1'] })],
       causalLinks: [link({ id: 'link-promoted', questionIds: ['q-1'] })],
     });
 
@@ -217,19 +217,19 @@ describe('buildCanvasInvestigationOverlays', () => {
           context: { activeFilters: { Unknown: ['x'] }, cumulativeScope: null },
         }),
       ],
-      suspectedCauses: [hub({ id: 'hub-missing', tributaryIds: ['missing-tributary'] })],
+      hypotheses: [hub({ id: 'hub-missing', tributaryIds: ['missing-tributary'] })],
       causalLinks: [link({ id: 'link-missing', toFactor: 'Unknown' })],
     });
 
     expect(overlays.unresolved).toEqual({
       questions: ['q-missing'],
       findings: ['f-missing'],
-      suspectedCauses: ['hub-missing'],
+      hypotheses: ['hub-missing'],
       causalLinks: ['link-missing'],
     });
     expect(overlays.byStep.mix.questions).toEqual([]);
     expect(overlays.byStep.mix.findings).toEqual([]);
-    expect(overlays.byStep.mix.suspectedCauses).toEqual([]);
+    expect(overlays.byStep.mix.hypotheses).toEqual([]);
     expect(overlays.arrows).toEqual([]);
   });
 });

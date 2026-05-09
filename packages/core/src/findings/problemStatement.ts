@@ -28,8 +28,8 @@ export interface ProblemStatementInput {
   characteristicType?: CharacteristicType;
   /** Current Cpk (shown alongside target for context) */
   currentCpk?: number;
-  /** Suspected causes identified during investigation */
-  suspectedCauses: Array<{
+  /** Hypotheses identified during investigation */
+  hypotheses: Array<{
     factor: string;
     level?: string;
     /** eta-squared or R²adj percentage (0-1 scale) */
@@ -96,8 +96,8 @@ export function buildProblemStatement(input: ProblemStatementInput): string {
   parts.push(measurePart);
 
   // Q3: Scope (hypotheses)
-  if (input.suspectedCauses.length > 0) {
-    const causeDescriptions = input.suspectedCauses.map(c => {
+  if (input.hypotheses.length > 0) {
+    const causeDescriptions = input.hypotheses.map(c => {
       let desc = c.factor;
       if (c.level) desc += ` (${c.level})`;
       if (c.evidence != null) desc += ` [${formatStatistic(c.evidence * 100, 'en', 0)}%]`;

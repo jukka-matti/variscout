@@ -54,7 +54,7 @@ const RECONNECT_BACKOFF_MS = 1000;
  */
 function mergeIncomingComment(hubId: string, incoming: FindingComment): void {
   useInvestigationStore.setState(state => ({
-    suspectedCauses: state.suspectedCauses.map(h => {
+    hypotheses: state.hypotheses.map(h => {
       if (h.id !== hubId) return h;
       const existing = h.comments ?? [];
       if (existing.some(c => c.id === incoming.id)) return h;

@@ -165,7 +165,7 @@ export function useAIOrchestration({
 
   // Read domain store for CoScout context (ADR-066)
   const causalLinks = useInvestigationStore(s => s.causalLinks);
-  const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
+  const hypotheses = useInvestigationStore(s => s.hypotheses);
 
   // Per-component preferences (default all on)
   const prefs = aiPreferences ?? { narration: true, insights: true, coscout: true };
@@ -223,7 +223,7 @@ export function useAIOrchestration({
       };
     });
 
-    const convergencePoints = (suspectedCauses ?? []).map(hub => ({
+    const convergencePoints = (hypotheses ?? []).map(hub => ({
       factor: hub.name,
       incomingCount: hub.questionIds.length + hub.findingIds.length,
       hubName: hub.name,
@@ -240,14 +240,7 @@ export function useAIOrchestration({
       }>,
       convergencePoints,
     };
-  }, [
-    evidenceMapTopology,
-    factors,
-    questions,
-    findings,
-    aiVariationContributions,
-    suspectedCauses,
-  ]);
+  }, [evidenceMapTopology, factors, questions, findings, aiVariationContributions, hypotheses]);
 
   // Responses API config (resolved async)
   const [responsesConfig, setResponsesConfig] = useState<ResponsesApiConfig | undefined>(undefined);
@@ -304,7 +297,7 @@ export function useAIOrchestration({
     analysisMode,
     focusedQuestionId,
     evidenceMapTopology: effectiveTopology,
-    suspectedCauses,
+    hypotheses,
     bestSubsetsResult,
   });
 

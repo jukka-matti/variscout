@@ -39,7 +39,7 @@ describe('useHasInvestigationContent', () => {
   });
 
   it('returns true when at least one hub exists', () => {
-    useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
+    useInvestigationStore.setState({ hypotheses: [sampleHub] });
     const { result } = renderHook(() => useHasInvestigationContent({ findingsCount: 0 }));
     expect(result.current).toBe(true);
   });

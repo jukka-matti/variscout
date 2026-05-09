@@ -39,7 +39,7 @@ export function useHubComputations(
   bestSubsets: BestSubsetsResult | null,
   questions: Question[]
 ): UseHubComputationsReturn {
-  const hubs = useInvestigationStore(s => s.suspectedCauses);
+  const hubs = useInvestigationStore(s => s.hypotheses);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const specs = useProjectStore(s => s.specs);
 

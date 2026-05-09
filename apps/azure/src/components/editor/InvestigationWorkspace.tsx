@@ -98,7 +98,7 @@ interface InvestigationWorkspaceProps {
   // Column aliases
   columnAliases: Record<string, string>;
   // Hub model (Hypothesis CRUD from useInvestigationOrchestration)
-  suspectedCausesState: UseInvestigationOrchestrationReturn['suspectedCausesState'];
+  hypothesesState: UseInvestigationOrchestrationReturn['hypothesesState'];
   // Derived investigation data (from orchestration hook)
   questionsMap: Record<string, QuestionDisplayData>;
   ideaImpacts: Record<string, import('@variscout/core').IdeaImpact | undefined>;
@@ -132,7 +132,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   actionProposalsState,
   handleSearchKnowledge,
   columnAliases,
-  suspectedCausesState,
+  hypothesesState,
   questionsMap,
   ideaImpacts,
   viewMode: externalViewMode,
@@ -344,7 +344,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   }, [factorIntelQuestions]);
 
   // ── Hub model computations (Hypothesis hubs) ───────────────────────
-  const hubs = suspectedCausesState.hubs;
+  const hubs = hypothesesState.hubs;
 
   // Phase 13 — pan-to-node: replicate WallCanvas's deterministic layout so the
   // command palette can center the viewport on a hub/question by id.
@@ -390,7 +390,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const handleViewMode = onViewModeChange ?? setInternalViewMode;
 
   // Categorize questions for InvestigationConclusion
-  const { suspectedCauses, contributing, ruledOut } = useMemo(() => {
+  const { hypotheses, contributing, ruledOut } = useMemo(() => {
     const suspected: Question[] = [];
     const contrib: Question[] = [];
     const ruled: Question[] = [];
@@ -399,7 +399,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       else if (h.causeRole === 'contributing') contrib.push(h);
       else if (h.causeRole === 'ruled-out') ruled.push(h);
     }
-    return { suspectedCauses: suspected, contributing: contrib, ruledOut: ruled };
+    return { hypotheses: suspected, contributing: contrib, ruledOut: ruled };
   }, [questionsState.questions]);
 
   const drillFactors = useMemo(() => drillPath.map(d => d.factor), [drillPath]);
@@ -479,12 +479,12 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       findingIds: string[],
       branchFields: HubComposerBranchFields
     ) => {
-      const hub = suspectedCausesState.createHub(name, synthesis);
-      for (const qId of questionIds) suspectedCausesState.connectQuestion(hub.id, qId);
-      for (const fId of findingIds) suspectedCausesState.connectFinding(hub.id, fId);
-      if (branchFields.nextMove) suspectedCausesState.updateHub(hub.id, branchFields);
+      const hub = hypothesesState.createHub(name, synthesis);
+      for (const qId of questionIds) hypothesesState.connectQuestion(hub.id, qId);
+      for (const fId of findingIds) hypothesesState.connectFinding(hub.id, fId);
+      if (branchFields.nextMove) hypothesesState.updateHub(hub.id, branchFields);
     },
-    [suspectedCausesState]
+    [hypothesesState]
   );
 
   const handleUpdateHub = useCallback(
@@ -496,48 +496,48 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       findingIds: string[],
       branchFields: HubComposerBranchFields
     ) => {
-      suspectedCausesState.updateHub(hubId, { name, synthesis, ...branchFields });
+      hypothesesState.updateHub(hubId, { name, synthesis, ...branchFields });
       // Sync connections: disconnect removed, connect added
       const existing = hubs.find(h => h.id === hubId);
       if (existing) {
         for (const qId of existing.questionIds) {
-          if (!questionIds.includes(qId)) suspectedCausesState.disconnectQuestion(hubId, qId);
+          if (!questionIds.includes(qId)) hypothesesState.disconnectQuestion(hubId, qId);
         }
         for (const qId of questionIds) {
-          if (!existing.questionIds.includes(qId)) suspectedCausesState.connectQuestion(hubId, qId);
+          if (!existing.questionIds.includes(qId)) hypothesesState.connectQuestion(hubId, qId);
         }
         for (const fId of existing.findingIds) {
-          if (!findingIds.includes(fId)) suspectedCausesState.disconnectFinding(hubId, fId);
+          if (!findingIds.includes(fId)) hypothesesState.disconnectFinding(hubId, fId);
         }
         for (const fId of findingIds) {
-          if (!existing.findingIds.includes(fId)) suspectedCausesState.connectFinding(hubId, fId);
+          if (!existing.findingIds.includes(fId)) hypothesesState.connectFinding(hubId, fId);
         }
       }
     },
-    [suspectedCausesState, hubs]
+    [hypothesesState, hubs]
   );
 
   const handleDeleteHub = useCallback(
-    (hubId: string) => suspectedCausesState.deleteHub(hubId),
-    [suspectedCausesState]
+    (hubId: string) => hypothesesState.deleteHub(hubId),
+    [hypothesesState]
   );
 
   const handleToggleHubSelect = useCallback(
     (hubId: string) => {
       const hub = hubs.find(h => h.id === hubId);
       if (hub) {
-        suspectedCausesState.updateHub(hubId, {});
+        hypothesesState.updateHub(hubId, {});
         // Toggle selectedForImprovement via setHubStatus or direct update
-        // The useSuspectedCauses hook manages the selectedForImprovement toggle
+        // The useHypotheses hook manages the selectedForImprovement toggle
         // through the hub's status — but for selection we toggle the flag directly.
         // Since updateHub only accepts name/synthesis, use the store sync approach:
         const updated = hubs.map(h =>
           h.id === hubId ? { ...h, selectedForImprovement: !h.selectedForImprovement } : h
         );
-        suspectedCausesState.resetHubs(updated);
+        hypothesesState.resetHubs(updated);
       }
     },
-    [suspectedCausesState, hubs]
+    [hypothesesState, hubs]
   );
 
   const handleBrainstormHub = useCallback((_hubId: string) => {
@@ -672,14 +672,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         </div>
 
         {/* Investigation conclusion */}
-        {(suspectedCauses.length > 0 || ruledOut.length > 0 || hubs.length > 0) && (
+        {(hypotheses.length > 0 || ruledOut.length > 0 || hubs.length > 0) && (
           <div className="border-t border-edge px-3 py-2 flex-shrink-0">
             <InvestigationConclusion
-              suspectedCauses={suspectedCauses}
+              hypotheses={hypotheses}
               ruledOut={ruledOut}
               contributing={contributing}
               problemStatement={processContext?.problemStatement}
-              hasConclusions={suspectedCauses.length > 0 || hubs.length > 0}
+              hasConclusions={hypotheses.length > 0 || hubs.length > 0}
               problemStatementDraft={problemStatement.draft}
               isProblemStatementReady={problemStatement.isReady}
               onGenerateProblemStatement={problemStatement.generate}
@@ -851,7 +851,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 causalLinks,
                 questions: questionsState.questions,
                 findings: findingsState.findings,
-                suspectedCauses: hubs,
+                hypotheses: hubs,
               }}
               onAskQuestion={handleMapAskQuestion}
               onCreateFinding={handleMapCreateFinding}

@@ -73,7 +73,7 @@ function makeQuestion(overrides?: Partial<Question>): Question {
   } as Question;
 }
 
-function makeSuspectedCause(overrides?: Partial<Hypothesis>): Hypothesis {
+function makeHypothesis(overrides?: Partial<Hypothesis>): Hypothesis {
   return {
     id: 'hub-1',
     name: 'Temperature hypothesis',
@@ -165,7 +165,7 @@ describe('useEvidenceMapTimeline', () => {
           causalLinks: [],
           questions: [],
           findings: [],
-          suspectedCauses: [],
+          hypotheses: [],
         })
       );
       expect(result.current.frames).toEqual([]);
@@ -296,8 +296,8 @@ describe('useEvidenceMapTimeline', () => {
 
   describe('frame content with mixed artifacts', () => {
     it('includes hub ID in visibleHubs when Hypothesis is provided', () => {
-      const hub = makeSuspectedCause({ id: 'hub-xyz' });
-      const { result } = renderHook(() => useEvidenceMapTimeline({ suspectedCauses: [hub] }));
+      const hub = makeHypothesis({ id: 'hub-xyz' });
+      const { result } = renderHook(() => useEvidenceMapTimeline({ hypotheses: [hub] }));
 
       expect(result.current.frames.length).toBeGreaterThan(0);
       expect(result.current.frames[result.current.frames.length - 1].visibleHubs).toContain(

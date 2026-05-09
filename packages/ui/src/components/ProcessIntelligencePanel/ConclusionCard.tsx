@@ -1,7 +1,7 @@
 import React from 'react';
 import { Check, ArrowRight } from 'lucide-react';
 import type {
-  Hypothesis as SuspectedCauseHub,
+  Hypothesis as HypothesisHub,
   HypothesisEvidence,
   HubProjection,
 } from '@variscout/core';
@@ -12,19 +12,19 @@ export interface Hypothesis {
 }
 
 export interface ConclusionCardProps {
-  suspectedCauses: Hypothesis[];
+  hypotheses: Hypothesis[];
   currentCpk?: number;
   combinedProjectedCpk?: number;
   targetCpk?: number;
   /** Hub-based display (new model) */
-  hubs?: SuspectedCauseHub[];
+  hubs?: HypothesisHub[];
   hubEvidences?: Map<string, HypothesisEvidence>;
   /** Model-based projections per hub (from computeHubProjection) */
   hubProjections?: Map<string, HubProjection>;
   onNavigateToInvestigation?: () => void;
 }
 
-const HUB_STATUS_DOT: Record<SuspectedCauseHub['status'], string> = {
+const HUB_STATUS_DOT: Record<HypothesisHub['status'], string> = {
   proposed: 'bg-slate-400',
   evidenced: 'bg-amber-500',
   confirmed: 'bg-green-500',
@@ -33,15 +33,15 @@ const HUB_STATUS_DOT: Record<SuspectedCauseHub['status'], string> = {
 };
 
 /**
- * ConclusionCard — shows suspected causes with Cpk projections when the
- * investigation is converging. Returns null when no suspected causes exist.
+ * ConclusionCard — shows hypotheses with Cpk projections when the
+ * investigation is converging. Returns null when no hypotheses exist.
  *
  * Supports two display modes:
- * - Legacy chip model (suspectedCauses prop)
+ * - Legacy chip model (hypotheses prop)
  * - Hub model (hubs prop) — takes precedence when provided
  */
 const ConclusionCard: React.FC<ConclusionCardProps> = ({
-  suspectedCauses,
+  hypotheses,
   currentCpk,
   combinedProjectedCpk,
   targetCpk,
@@ -52,7 +52,7 @@ const ConclusionCard: React.FC<ConclusionCardProps> = ({
 }) => {
   const useHubModel = hubs !== undefined && hubs.length > 0;
 
-  if (!useHubModel && suspectedCauses.length === 0) {
+  if (!useHubModel && hypotheses.length === 0) {
     return null;
   }
 
@@ -68,7 +68,7 @@ const ConclusionCard: React.FC<ConclusionCardProps> = ({
     >
       {/* Header */}
       <div className="text-[0.625rem] font-semibold text-purple-300 uppercase tracking-wide">
-        Suspected causes
+        Hypotheses
       </div>
 
       {/* Hub-based display */}
@@ -129,7 +129,7 @@ const ConclusionCard: React.FC<ConclusionCardProps> = ({
       ) : (
         /* Legacy chip display */
         <div className="flex flex-wrap gap-1">
-          {suspectedCauses.map(cause => {
+          {hypotheses.map(cause => {
             const delta =
               cause.projectedCpk !== undefined && currentCpk !== undefined
                 ? cause.projectedCpk - currentCpk

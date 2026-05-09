@@ -2,7 +2,7 @@
  * useEvidenceMapTimeline — timeline animation hook for report view replay.
  *
  * Builds a chronological sequence of frames from investigation artifacts
- * (causal links, suspected causes, questions, findings) and provides
+ * (causal links, hypotheses, questions, findings) and provides
  * play/pause/seek controls for animated replay in the report view.
  *
  * Each frame represents a point in time showing which factors, links,
@@ -38,7 +38,7 @@ export interface UseEvidenceMapTimelineOptions {
   /** Findings with createdAt timestamps (numeric, converted to ISO) */
   findings?: Finding[];
   /** Suspected cause hubs with createdAt timestamps */
-  suspectedCauses?: Hypothesis[];
+  hypotheses?: Hypothesis[];
   /** Playback interval in milliseconds (default: 1500) */
   intervalMs?: number;
   /** Maximum number of frames before grouping by day (default: 30) */
@@ -78,7 +78,7 @@ function collectArtifacts(
   causalLinks: CausalLink[],
   questions: Question[],
   findings: Finding[],
-  suspectedCauses: Hypothesis[]
+  hypotheses: Hypothesis[]
 ): TimestampedArtifact[] {
   const artifacts: TimestampedArtifact[] = [];
 
@@ -111,7 +111,7 @@ function collectArtifacts(
     });
   }
 
-  for (const sc of suspectedCauses) {
+  for (const sc of hypotheses) {
     artifacts.push({
       timestamp: new Date(sc.createdAt).toISOString(),
       type: 'hub',
@@ -217,7 +217,7 @@ export function useEvidenceMapTimeline(
     causalLinks = [],
     questions = [],
     findings = [],
-    suspectedCauses = [],
+    hypotheses = [],
     intervalMs = 1500,
     maxFrames = 30,
   } = options;
@@ -228,9 +228,9 @@ export function useEvidenceMapTimeline(
 
   // Compute frames from all investigation artifacts
   const frames = useMemo(() => {
-    const artifacts = collectArtifacts(causalLinks, questions, findings, suspectedCauses);
+    const artifacts = collectArtifacts(causalLinks, questions, findings, hypotheses);
     return buildFrames(artifacts, maxFrames);
-  }, [causalLinks, questions, findings, suspectedCauses, maxFrames]);
+  }, [causalLinks, questions, findings, hypotheses, maxFrames]);
 
   // Clear interval on unmount
   useEffect(() => {

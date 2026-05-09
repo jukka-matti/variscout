@@ -21,7 +21,7 @@ vi.mock('@variscout/hooks', async importOriginal => {
 const enabledOverlayIds: CanvasOverlayId[] = [
   'investigations',
   'hypotheses',
-  'suspected-causes',
+  'hypothesis-hubs',
   'findings',
   'wall',
 ];
@@ -52,9 +52,7 @@ describe('CanvasOverlayPicker', () => {
       screen.queryByRole('button', { name: 'Localized Wall overlay' })
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Hypotheses overlay' })).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Suspected causes overlay' })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Hypotheses overlay' })).not.toBeInTheDocument();
   });
 
   it('calls onToggle with the rendered overlay id', () => {
@@ -94,8 +92,8 @@ function overlayIdLabel(id: CanvasOverlayId): string {
       return 'Investigations';
     case 'hypotheses':
       return 'Hypotheses';
-    case 'suspected-causes':
-      return 'Suspected causes';
+    case 'hypothesis-hubs':
+      return 'Hypothesis hubs';
     case 'findings':
       return 'Findings';
     case 'wall':

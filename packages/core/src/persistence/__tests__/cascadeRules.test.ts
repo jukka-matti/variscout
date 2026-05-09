@@ -17,7 +17,7 @@ const ALL_KINDS: EntityKind[] = [
   'finding',
   'question',
   'causalLink',
-  'suspectedCause',
+  'hypothesis',
   'canvasState',
 ];
 
@@ -59,7 +59,7 @@ describe('transitiveCascade', () => {
       'finding',
       'question',
       'causalLink',
-      'suspectedCause',
+      'hypothesis',
     ];
     for (const kind of expected) {
       expect(resultSet.has(kind)).toBe(true);
@@ -78,7 +78,7 @@ describe('transitiveCascade', () => {
     expect(resultSet.has('finding')).toBe(true);
     expect(resultSet.has('question')).toBe(true);
     expect(resultSet.has('causalLink')).toBe(true);
-    expect(resultSet.has('suspectedCause')).toBe(true);
+    expect(resultSet.has('hypothesis')).toBe(true);
     expect(result).toHaveLength(4);
   });
 
@@ -100,7 +100,7 @@ describe('transitiveCascade', () => {
       'finding',
       'question',
       'causalLink',
-      'suspectedCause',
+      'hypothesis',
       'canvasState',
     ];
     for (const leaf of leaves) {

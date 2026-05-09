@@ -32,7 +32,7 @@ import FindingTagBadge from './FindingTagBadge';
 import FindingComments from './FindingComments';
 import ActionItemsSection from './FindingCardActions';
 import ProjectionSection from './FindingCardProjection';
-import { QuestionSection, SuspectedCauseSection, OutcomeSection } from './FindingCardExpanded';
+import { QuestionSection, HypothesisSection, OutcomeSection } from './FindingCardExpanded';
 import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingCardProps {
@@ -419,7 +419,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
         {questionsMap &&
           ['analyzed', 'improving', 'resolved'].includes(status) &&
           Object.values(questionsMap).some(h => h.causeRole) && (
-            <SuspectedCauseSection questionsMap={questionsMap} />
+            <HypothesisSection questionsMap={questionsMap} />
           )}
 
         {/* Projection display (visible when projection exists) */}

@@ -43,7 +43,7 @@ const FrameView: React.FC = () => {
   const setProcessContext = useProjectStore(s => s.setProcessContext);
   const findings = useInvestigationStore(s => s.findings);
   const questions = useInvestigationStore(s => s.questions);
-  const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
+  const hypotheses = useInvestigationStore(s => s.hypotheses);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
   const activeHubId = useProjectStore(s => s.processContext?.processHubId ?? null);
   const [priorStepStats, setPriorStepStats] =
@@ -152,7 +152,7 @@ const FrameView: React.FC = () => {
       onFocusedInvestigation={handleFocusedInvestigation}
       findings={findings}
       questions={questions}
-      suspectedCauses={suspectedCauses}
+      hypotheses={hypotheses}
       causalLinks={causalLinks}
       onOpenWall={handleOpenWall}
       onOpenInvestigationFocus={handleOpenInvestigationFocus}

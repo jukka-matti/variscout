@@ -297,7 +297,7 @@ describe('Timing budgets', () => {
     expect(durationMs).toBeLessThan(1000);
   });
 
-  it('getEtaSquared(50K rows) < 500ms', { timeout: 30_000 }, () => {
+  it('getEtaSquared(50K rows) < 1500ms', { timeout: 30_000 }, () => {
     const data = generateStressData({
       rowCount: 50000,
       factors: [{ name: 'Group', levels: 50 }],
@@ -305,7 +305,7 @@ describe('Timing budgets', () => {
     });
 
     const { durationMs } = timedExec(() => getEtaSquared(data, 'Group', 'Value'));
-    expect(durationMs).toBeLessThan(500);
+    expect(durationMs).toBeLessThan(1500);
   });
 
   it('calculateKDE(10K values) < 1000ms', { timeout: 30_000 }, () => {

@@ -95,7 +95,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   }, [factorRoles, treeQuestions]);
 
   // Compute conclusion data from questions (must be before early return)
-  const suspectedCauses = React.useMemo(
+  const hypotheses = React.useMemo(
     () => (questions ?? []).filter(q => q.causeRole === 'suspected-cause'),
     [questions]
   );
@@ -112,7 +112,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
     () => (questions ?? []).filter(q => q.causeRole === 'contributing'),
     [questions]
   );
-  const hasConclusionData = suspectedCauses.length > 0 || ruledOut.length > 0;
+  const hasConclusionData = hypotheses.length > 0 || ruledOut.length > 0;
   const hasQuestions = questions && questions.length > 0;
 
   // Toggle button (always visible)
@@ -225,10 +225,10 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
           />
         )}
 
-        {/* Investigation conclusions (suspected causes, ruled out) */}
+        {/* Investigation conclusions (hypotheses, ruled out) */}
         {hasConclusionData && (
           <InvestigationConclusion
-            suspectedCauses={suspectedCauses}
+            hypotheses={hypotheses}
             ruledOut={ruledOut}
             contributing={contributing}
             problemStatement={problemStatement}

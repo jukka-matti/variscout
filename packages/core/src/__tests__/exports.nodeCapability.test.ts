@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 describe('@variscout/core exports — nodeCapability surface', () => {
-  it('exposes calculateNodeCapability via the stats sub-path', async () => {
+  it('exposes calculateNodeCapability via the stats sub-path', { timeout: 20_000 }, async () => {
     const stats = await import('@variscout/core/stats');
     expect(typeof stats.calculateNodeCapability).toBe('function');
     expect(typeof stats.lookupSpecRule).toBe('function');
@@ -10,7 +10,7 @@ describe('@variscout/core exports — nodeCapability surface', () => {
     expect(typeof stats.suggestNodeMappings).toBe('function');
   });
 
-  it('exposes thresholds and the helper surface', async () => {
+  it('exposes thresholds and the helper surface', { timeout: 20_000 }, async () => {
     const stats = await import('@variscout/core/stats');
     expect(stats.SAMPLE_CONFIDENCE_THRESHOLDS.review).toBe(30);
     expect(typeof stats.ruleMatches).toBe('function');

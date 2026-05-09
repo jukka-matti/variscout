@@ -15,8 +15,8 @@ interface ComposerState {
 }
 
 export interface InvestigationConclusionProps {
-  /** Questions marked as suspected causes */
-  suspectedCauses: Question[];
+  /** Questions marked as hypotheses */
+  hypotheses: Question[];
   /** Questions marked as ruled out (negative learnings) */
   ruledOut: Question[];
   /** Questions marked as contributing */
@@ -27,7 +27,7 @@ export interface InvestigationConclusionProps {
   hasConclusions: boolean;
   /** Auto-generated problem statement draft (editable before accepting) */
   problemStatementDraft?: string | null;
-  /** Whether there are enough suspected causes to generate a statement */
+  /** Whether there are enough hypotheses to generate a statement */
   isProblemStatementReady?: boolean;
   /** Trigger draft generation */
   onGenerateProblemStatement?: () => void;
@@ -80,7 +80,7 @@ function sortByEvidenceDesc(a: Question, b: Question): number {
 }
 
 const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
-  suspectedCauses,
+  hypotheses,
   ruledOut,
   contributing,
   problemStatement,
@@ -119,7 +119,7 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
 
   if (!hasConclusions) return null;
 
-  const sortedCauses = [...suspectedCauses].sort(sortByEvidenceDesc);
+  const sortedCauses = [...hypotheses].sort(sortByEvidenceDesc);
   const sortedContributing = [...contributing].sort(sortByEvidenceDesc);
   const sortedRuledOut = [...ruledOut].sort(sortByEvidenceDesc);
 
@@ -186,7 +186,7 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
 
       {/* Suspected Causes — hub model or legacy chip model */}
       {useHubModel ? (
-        <div data-testid="suspected-causes">
+        <div data-testid="hypothesis-hubs">
           <div className="flex items-center gap-1.5 mb-1.5">
             <span className="text-[0.625rem] font-medium text-content-secondary">
               Suspected Causes
@@ -203,7 +203,7 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
                 data-testid="add-hub-button"
               >
                 <Plus size={10} />
-                Name a suspected cause
+                Name a hypothesis
               </button>
             )}
           </div>
@@ -243,7 +243,7 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
           )}
         </div>
       ) : sortedCauses.length > 0 ? (
-        <div data-testid="suspected-causes">
+        <div data-testid="hypothesis-hubs">
           <div className="flex items-center gap-1.5 mb-1.5">
             <span className="text-[0.625rem] font-medium text-content-secondary">
               Suspected Causes

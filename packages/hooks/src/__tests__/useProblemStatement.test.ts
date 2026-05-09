@@ -23,7 +23,7 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
 }
 
 describe('useProblemStatement', () => {
-  it('returns isReady=true when outcome and suspected causes exist', () => {
+  it('returns isReady=true when outcome and hypotheses exist', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Fill Weight',
@@ -45,7 +45,7 @@ describe('useProblemStatement', () => {
     expect(result.current.generatedDraft).toBeNull();
   });
 
-  it('returns isReady=false when no suspected causes', () => {
+  it('returns isReady=false when no hypotheses', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Weight',
@@ -136,7 +136,7 @@ describe('useProblemStatement', () => {
     expect(result.current.generatedDraft).toContain('50%');
   });
 
-  // Early formation tests — Watson Q1+Q2+Q3 without suspected causes
+  // Early formation tests — Watson Q1+Q2+Q3 without hypotheses
   describe('early formation (isFormable)', () => {
     const locationFactor: LocationFactor = { factor: 'Shift', level: 'Night', evidence: 0.42 };
 
@@ -227,14 +227,14 @@ describe('useProblemStatement', () => {
       expect(result.current.hasScope).toBe(true);
     });
 
-    it('hasScope is false when locationFactor is absent and no suspected causes', () => {
+    it('hasScope is false when locationFactor is absent and no hypotheses', () => {
       const { result } = renderHook(() =>
         useProblemStatement({ outcome: 'Fill Weight', questions: [] })
       );
       expect(result.current.hasScope).toBe(false);
     });
 
-    it('hasScope is true when there are suspected causes (backward compat)', () => {
+    it('hasScope is true when there are hypotheses (backward compat)', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
@@ -292,7 +292,7 @@ describe('useProblemStatement', () => {
       expect(result.current.liveStatement).toContain('Decrease');
     });
 
-    it('liveStatement includes suspected causes after locationFactor', () => {
+    it('liveStatement includes hypotheses after locationFactor', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
@@ -305,7 +305,7 @@ describe('useProblemStatement', () => {
       expect(result.current.liveStatement).toContain('Operator');
     });
 
-    it('liveStatement skips suspected causes that duplicate locationFactor factor name', () => {
+    it('liveStatement skips hypotheses that duplicate locationFactor factor name', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
@@ -320,7 +320,7 @@ describe('useProblemStatement', () => {
       expect(shiftCount).toBe(1);
     });
 
-    it('legacy isReady still requires suspected causes (backward compat)', () => {
+    it('legacy isReady still requires hypotheses (backward compat)', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
@@ -329,7 +329,7 @@ describe('useProblemStatement', () => {
           questions: [],
         })
       );
-      // isFormable is true (Q1+Q2+Q3), but isReady is false (no question suspected causes)
+      // isFormable is true (Q1+Q2+Q3), but isReady is false (no question hypotheses)
       expect(result.current.isFormable).toBe(true);
       expect(result.current.isReady).toBe(false);
     });
@@ -351,7 +351,7 @@ describe('useProblemStatement', () => {
       expect(result.current.canGenerateDraft).toBe(true);
     });
 
-    it('canGenerateDraft should be true from legacy path (suspected cause questions)', () => {
+    it('canGenerateDraft should be true from legacy path (hypothesis questions)', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
@@ -375,7 +375,7 @@ describe('useProblemStatement', () => {
       expect(result.current.canGenerateDraft).toBe(false);
     });
 
-    it('canGenerateDraft should be false without scope (no locationFactor, no suspected causes)', () => {
+    it('canGenerateDraft should be false without scope (no locationFactor, no hypotheses)', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',

@@ -99,7 +99,7 @@ describe('useSharedWallProps', () => {
     const question = makeQuestion({ id: 'q-1' });
     const findings = [makeFinding({ id: 'finding-1' })];
     useInvestigationStore.setState({
-      suspectedCauses: [hub],
+      hypotheses: [hub],
       questions: [question],
     });
 
@@ -113,7 +113,7 @@ describe('useSharedWallProps', () => {
       })
     );
 
-    expect(result.current.hubs).toBe(useInvestigationStore.getState().suspectedCauses);
+    expect(result.current.hubs).toBe(useInvestigationStore.getState().hypotheses);
     expect(result.current.questions).toBe(useInvestigationStore.getState().questions);
     expect(result.current.findings).toBe(findings);
   });

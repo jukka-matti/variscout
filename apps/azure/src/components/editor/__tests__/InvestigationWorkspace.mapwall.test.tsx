@@ -228,7 +228,7 @@ function makeMinimalProps(): React.ComponentProps<typeof InvestigationWorkspace>
     actionProposalsState: {} as never,
     handleSearchKnowledge: noOp,
     columnAliases: {},
-    suspectedCausesState: {
+    hypothesesState: {
       hubs: [],
       createHub: vi.fn(() => ({ id: 'hub-1' }) as never),
       updateHub: noOp,
@@ -292,7 +292,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
   it('renders the WallCanvas for a chart-first investigation without a process map', () => {
     useWallLayoutStore.getState().setViewMode('wall');
     const props = makeMinimalProps();
-    props.suspectedCausesState.hubs = [
+    props.hypothesesState.hubs = [
       {
         id: 'hub-1',
         name: 'Nozzle heat drift',

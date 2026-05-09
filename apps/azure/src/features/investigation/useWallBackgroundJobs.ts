@@ -1,7 +1,7 @@
 /**
  * useWallBackgroundJobs — background best-subsets pipeline + CoScout emit
  *
- * Subscribes to `projectStore.rawData`/`outcome` and `investigationStore.suspectedCauses`
+ * Subscribes to `projectStore.rawData`/`outcome` and `investigationStore.hypotheses`
  * and, after a 2000ms debounce, runs `detectBestSubsetsCandidates(rows, outcome,
  * allColumns, citedColumns)`. Results are emitted into `aiStore.wallSuggestions`
  * via `upsertWallSuggestion` under a stable id (`'best-subsets'`) so repeated
@@ -49,10 +49,10 @@ function deriveAllColumns(rows: Record<string, unknown>[], outcome: string): str
 }
 
 function computeCitedColumns(
-  suspectedCauses: ReturnType<typeof useInvestigationStore.getState>['suspectedCauses']
+  hypotheses: ReturnType<typeof useInvestigationStore.getState>['hypotheses']
 ): string[] {
   const cited = new Set<string>();
-  for (const hub of suspectedCauses) {
+  for (const hub of hypotheses) {
     const condition = hub.condition;
     if (!condition) continue;
     for (const col of collectReferencedColumns(condition)) {
@@ -89,7 +89,7 @@ export function useWallBackgroundJobs(): void {
         const allColumns = deriveAllColumns(rows, outcome);
         if (allColumns.length === 0) return;
 
-        const citedColumns = computeCitedColumns(investigationState.suspectedCauses);
+        const citedColumns = computeCitedColumns(investigationState.hypotheses);
 
         const candidates = detectBestSubsetsCandidates(rows, outcome, allColumns, citedColumns);
 
@@ -115,9 +115,9 @@ export function useWallBackgroundJobs(): void {
       }
     });
 
-    // Investigation store — fires on any change; filter to suspectedCauses.
+    // Investigation store — fires on any change; filter to hypotheses.
     const unsubscribeInvestigation = useInvestigationStore.subscribe((state, prev) => {
-      if (state.suspectedCauses !== prev.suspectedCauses) {
+      if (state.hypotheses !== prev.hypotheses) {
         scheduleRun();
       }
     });

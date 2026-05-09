@@ -1,25 +1,25 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useSuspectedCauses } from '../useSuspectedCauses';
+import { useHypotheses } from '../useHypotheses';
 import { createHypothesis } from '@variscout/core/findings';
 import type { Hypothesis } from '@variscout/core';
 
-describe('useSuspectedCauses', () => {
+describe('useHypotheses', () => {
   it('starts with empty hubs when no initialHubs provided', () => {
-    const { result } = renderHook(() => useSuspectedCauses({ initialHubs: [] }));
+    const { result } = renderHook(() => useHypotheses({ initialHubs: [] }));
     expect(result.current.hubs).toEqual([]);
   });
 
   it('starts with provided initialHubs', () => {
     const initial: Hypothesis[] = [createHypothesis('Nozzle wear', 'High vibration at night')];
-    const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+    const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
     expect(result.current.hubs).toHaveLength(1);
     expect(result.current.hubs[0].name).toBe('Nozzle wear');
   });
 
   describe('createHub', () => {
     it('adds a hub and returns it', () => {
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: [] }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: [] }));
       let created: Hypothesis;
       act(() => {
         created = result.current.createHub('Shift effect', 'Night shift runs hotter');
@@ -33,7 +33,7 @@ describe('useSuspectedCauses', () => {
     it('calls onHubsChange after creation', () => {
       const onChange = vi.fn();
       const { result } = renderHook(() =>
-        useSuspectedCauses({ initialHubs: [], onHubsChange: onChange })
+        useHypotheses({ initialHubs: [], onHubsChange: onChange })
       );
       act(() => {
         result.current.createHub('Wear', '');
@@ -43,7 +43,7 @@ describe('useSuspectedCauses', () => {
     });
 
     it('new hub has status proposed and empty connections', () => {
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: [] }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: [] }));
       act(() => {
         result.current.createHub('Test hub', '');
       });
@@ -57,7 +57,7 @@ describe('useSuspectedCauses', () => {
   describe('resetHubs', () => {
     it('replaces all hubs with the provided list', () => {
       const initial = [createHypothesis('Old hub', '')];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       const replacement = [
         createHypothesis('New hub A', 'synthesis A'),
         createHypothesis('New hub B', 'synthesis B'),
@@ -73,7 +73,7 @@ describe('useSuspectedCauses', () => {
     it('calls onHubsChange with the new hubs', () => {
       const onChange = vi.fn();
       const { result } = renderHook(() =>
-        useSuspectedCauses({ initialHubs: [], onHubsChange: onChange })
+        useHypotheses({ initialHubs: [], onHubsChange: onChange })
       );
       const newHubs = [createHypothesis('Migrated hub', 'from legacy causeRole')];
       act(() => {
@@ -85,7 +85,7 @@ describe('useSuspectedCauses', () => {
 
     it('replaces existing hubs with an empty list', () => {
       const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.resetHubs([]);
       });
@@ -96,7 +96,7 @@ describe('useSuspectedCauses', () => {
   describe('updateHub', () => {
     it('updates name and synthesis', () => {
       const initial = [createHypothesis('Old name', 'Old synthesis')];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       const hubId = initial[0].id;
       act(() => {
         result.current.updateHub(hubId, { name: 'New name', synthesis: 'New synthesis' });
@@ -108,7 +108,7 @@ describe('useSuspectedCauses', () => {
 
     it('updates branch nextMove without changing linked evidence', () => {
       const initial = [createHypothesis('Hub', '', ['q-001'], ['f-001'])];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.updateHub(initial[0].id, {
           nextMove: 'Run a late-shift temperature check.',
@@ -122,7 +122,7 @@ describe('useSuspectedCauses', () => {
 
     it('updates updatedAt to a valid ISO timestamp', () => {
       const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.updateHub(initial[0].id, { name: 'Updated' });
       });
@@ -134,7 +134,7 @@ describe('useSuspectedCauses', () => {
       const onChange = vi.fn();
       const initial = [createHypothesis('Hub', '')];
       const { result } = renderHook(() =>
-        useSuspectedCauses({ initialHubs: initial, onHubsChange: onChange })
+        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
       );
       act(() => {
         result.current.updateHub(initial[0].id, { name: 'Updated' });
@@ -144,7 +144,7 @@ describe('useSuspectedCauses', () => {
 
     it('does nothing for unknown hubId', () => {
       const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.updateHub('nonexistent-id', { name: 'Ghost' });
       });
@@ -155,7 +155,7 @@ describe('useSuspectedCauses', () => {
   describe('deleteHub', () => {
     it('removes the hub by id', () => {
       const initial = [createHypothesis('Hub A', ''), createHypothesis('Hub B', '')];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.deleteHub(initial[0].id);
       });
@@ -167,7 +167,7 @@ describe('useSuspectedCauses', () => {
       const onChange = vi.fn();
       const initial = [createHypothesis('Hub', '')];
       const { result } = renderHook(() =>
-        useSuspectedCauses({ initialHubs: initial, onHubsChange: onChange })
+        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
       );
       act(() => {
         result.current.deleteHub(initial[0].id);
@@ -179,7 +179,7 @@ describe('useSuspectedCauses', () => {
   describe('connectQuestion', () => {
     it('adds a questionId to the hub', () => {
       const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.connectQuestion(initial[0].id, 'q-001');
       });
@@ -188,7 +188,7 @@ describe('useSuspectedCauses', () => {
 
     it('does not add duplicate question connections', () => {
       const initial = [createHypothesis('Hub', '', ['q-001'])];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.connectQuestion(initial[0].id, 'q-001');
       });
@@ -199,7 +199,7 @@ describe('useSuspectedCauses', () => {
       const onChange = vi.fn();
       const initial = [createHypothesis('Hub', '')];
       const { result } = renderHook(() =>
-        useSuspectedCauses({ initialHubs: initial, onHubsChange: onChange })
+        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
       );
       act(() => {
         result.current.connectQuestion(initial[0].id, 'q-001');
@@ -213,7 +213,7 @@ describe('useSuspectedCauses', () => {
   describe('disconnectQuestion', () => {
     it('removes a questionId from the hub', () => {
       const initial = [createHypothesis('Hub', '', ['q-001', 'q-002'])];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.disconnectQuestion(initial[0].id, 'q-001');
       });
@@ -225,7 +225,7 @@ describe('useSuspectedCauses', () => {
       const onChange = vi.fn();
       const initial = [createHypothesis('Hub', '', ['q-001'])];
       const { result } = renderHook(() =>
-        useSuspectedCauses({ initialHubs: initial, onHubsChange: onChange })
+        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
       );
       act(() => {
         result.current.disconnectQuestion(initial[0].id, 'q-001');
@@ -237,7 +237,7 @@ describe('useSuspectedCauses', () => {
   describe('connectFinding', () => {
     it('adds a findingId to the hub', () => {
       const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.connectFinding(initial[0].id, 'f-001');
       });
@@ -246,7 +246,7 @@ describe('useSuspectedCauses', () => {
 
     it('does not add duplicate finding connections', () => {
       const initial = [createHypothesis('Hub', '', [], ['f-001'])];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.connectFinding(initial[0].id, 'f-001');
       });
@@ -257,7 +257,7 @@ describe('useSuspectedCauses', () => {
       const onChange = vi.fn();
       const initial = [createHypothesis('Hub', '')];
       const { result } = renderHook(() =>
-        useSuspectedCauses({ initialHubs: initial, onHubsChange: onChange })
+        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
       );
       act(() => {
         result.current.connectFinding(initial[0].id, 'f-001');
@@ -269,7 +269,7 @@ describe('useSuspectedCauses', () => {
   describe('disconnectFinding', () => {
     it('removes a findingId from the hub', () => {
       const initial = [createHypothesis('Hub', '', [], ['f-001', 'f-002'])];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.disconnectFinding(initial[0].id, 'f-001');
       });
@@ -281,7 +281,7 @@ describe('useSuspectedCauses', () => {
       const onChange = vi.fn();
       const initial = [createHypothesis('Hub', '', [], ['f-001'])];
       const { result } = renderHook(() =>
-        useSuspectedCauses({ initialHubs: initial, onHubsChange: onChange })
+        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
       );
       act(() => {
         result.current.disconnectFinding(initial[0].id, 'f-001');
@@ -293,7 +293,7 @@ describe('useSuspectedCauses', () => {
   describe('setHubStatus', () => {
     it('updates status to confirmed', () => {
       const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.setHubStatus(initial[0].id, 'confirmed');
       });
@@ -302,7 +302,7 @@ describe('useSuspectedCauses', () => {
 
     it('updates status to refuted', () => {
       const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.setHubStatus(initial[0].id, 'refuted');
       });
@@ -313,7 +313,7 @@ describe('useSuspectedCauses', () => {
       const onChange = vi.fn();
       const initial = [createHypothesis('Hub', '')];
       const { result } = renderHook(() =>
-        useSuspectedCauses({ initialHubs: initial, onHubsChange: onChange })
+        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
       );
       act(() => {
         result.current.setHubStatus(initial[0].id, 'confirmed');
@@ -330,19 +330,19 @@ describe('useSuspectedCauses', () => {
         createHypothesis('Hub A', '', ['q-001']),
         createHypothesis('Hub B', '', ['q-002']),
       ];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       expect(result.current.getHubForQuestion('q-001')?.name).toBe('Hub A');
       expect(result.current.getHubForQuestion('q-002')?.name).toBe('Hub B');
     });
 
     it('returns undefined when no hub contains the questionId', () => {
       const initial = [createHypothesis('Hub', '', ['q-001'])];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       expect(result.current.getHubForQuestion('q-999')).toBeUndefined();
     });
 
     it('returns undefined when hubs list is empty', () => {
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: [] }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: [] }));
       expect(result.current.getHubForQuestion('q-001')).toBeUndefined();
     });
   });
@@ -353,14 +353,14 @@ describe('useSuspectedCauses', () => {
         createHypothesis('Hub A', '', [], ['f-001']),
         createHypothesis('Hub B', '', [], ['f-002']),
       ];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       expect(result.current.getHubForFinding('f-001')?.name).toBe('Hub A');
       expect(result.current.getHubForFinding('f-002')?.name).toBe('Hub B');
     });
 
     it('returns undefined when no hub contains the findingId', () => {
       const initial = [createHypothesis('Hub', '', [], ['f-001'])];
-      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       expect(result.current.getHubForFinding('f-999')).toBeUndefined();
     });
   });

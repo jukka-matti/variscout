@@ -345,7 +345,7 @@ export const Editor: React.FC<EditorProps> = ({
   // Investigation store (domain — findings/questions/categories)
   const persistedFindings = useInvestigationStore(s => s.findings);
   const persistedQuestions = useInvestigationStore(s => s.questions);
-  const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
+  const hypotheses = useInvestigationStore(s => s.hypotheses);
   const categories = useInvestigationStore(s => s.categories);
   const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
 
@@ -623,7 +623,7 @@ export const Editor: React.FC<EditorProps> = ({
         processContext,
         questions: persistedQuestions,
         findings: persistedFindings,
-        branches: suspectedCauses,
+        branches: hypotheses,
       }),
     [
       rawData,
@@ -636,7 +636,7 @@ export const Editor: React.FC<EditorProps> = ({
       processContext,
       persistedQuestions,
       persistedFindings,
-      suspectedCauses,
+      hypotheses,
     ]
   );
 
@@ -654,7 +654,7 @@ export const Editor: React.FC<EditorProps> = ({
   const dataFlowRef = React.useRef(dataFlow);
   dataFlowRef.current = dataFlow;
 
-  // Load sample passed from portfolio "Try a Sample" (effect below, after suspectedCausesState)
+  // Load sample passed from portfolio "Try a Sample" (effect below, after hypothesesState)
   const initialSampleConsumedRef = useRef(false);
 
   // Manual data analyze with append-mode merge
@@ -1007,7 +1007,7 @@ export const Editor: React.FC<EditorProps> = ({
     handleSaveIdeaProjection,
     clearProjectionTarget,
     handleSetFindingStatus,
-    suspectedCausesState,
+    hypothesesState,
     questionsMap,
     ideaImpacts,
   } = useInvestigationOrchestration({
@@ -1023,10 +1023,10 @@ export const Editor: React.FC<EditorProps> = ({
     if (initialSample && !initialSampleConsumedRef.current) {
       initialSampleConsumedRef.current = true;
       dataFlowRef.current.handleLoadSample(initialSample);
-      // Inject suspected causes for showcase/demo datasets (not in DataContext)
-      const hubs = initialSample.config.investigation?.suspectedCauses;
+      // Inject hypotheses for showcase/demo datasets (not in DataContext)
+      const hubs = initialSample.config.investigation?.hypotheses;
       if (hubs && hubs.length > 0) {
-        suspectedCausesState.resetHubs(hubs);
+        hypothesesState.resetHubs(hubs);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on mount
@@ -1630,7 +1630,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onViewModeChange={(mode: 'list' | 'board' | 'tree') =>
                   handleViewStateChange({ findingsViewMode: mode })
                 }
-                suspectedCausesState={suspectedCausesState}
+                hypothesesState={hypothesesState}
                 questionsMap={questionsMap}
                 ideaImpacts={ideaImpacts}
               />

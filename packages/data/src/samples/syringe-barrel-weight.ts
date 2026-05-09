@@ -573,7 +573,7 @@ function buildFindings(): Finding[] {
   ];
 }
 
-function buildSuspectedCauses(): Hypothesis[] {
+function buildHypotheses(): Hypothesis[] {
   return [
     {
       id: IDS.HUB_LOT3_PRESSURE,
@@ -753,7 +753,7 @@ export const syringeBarrelWeight: SampleDataset = {
     investigation: {
       findings: buildFindings(),
       questions: buildQuestions(),
-      suspectedCauses: buildSuspectedCauses(),
+      hypotheses: buildHypotheses(),
       causalLinks: buildCausalLinks(),
       categories: buildCategories(),
     },

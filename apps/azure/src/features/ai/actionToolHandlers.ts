@@ -34,8 +34,8 @@ export interface ActionToolDeps {
   questions: Question[];
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
-  /** Existing suspected cause hubs — used by connect_hub_evidence handler */
-  suspectedCauses?: Hypothesis[];
+  /** Existing hypothesis hubs — used by connect_hub_evidence handler */
+  hypotheses?: Hypothesis[];
   /** Existing causal links — used by suggest_causal_link handler */
   causalLinks?: CausalLink[];
   /** Available factor column names — used for validation */
@@ -52,7 +52,7 @@ export function buildActionToolHandlers({
   questions,
   filters,
   filterStack,
-  suspectedCauses,
+  hypotheses,
   causalLinks,
   factors,
 }: ActionToolDeps): Partial<ToolHandlerMap> {
@@ -388,7 +388,7 @@ export function buildActionToolHandlers({
 
       if (!hubId) return JSON.stringify({ error: 'Missing hubId' });
 
-      const hub = suspectedCauses?.find(h => h.id === hubId);
+      const hub = hypotheses?.find(h => h.id === hubId);
       if (!hub) return JSON.stringify({ error: `Suspected cause hub not found: ${hubId}` });
 
       const totalNew = questionIds.length + findingIds.length;

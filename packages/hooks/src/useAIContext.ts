@@ -85,7 +85,7 @@ export interface UseAIContextOptions {
   /** Evidence Map topology for graph-aware CoScout reasoning (ADR-066) */
   evidenceMapTopology?: BuildAIContextOptions['evidenceMapTopology'];
   /** Suspected cause hubs from investigation (ADR-064) */
-  suspectedCauses?: Hypothesis[];
+  hypotheses?: Hypothesis[];
   /** Best subsets result for model equation and interaction effects context */
   bestSubsetsResult?: BuildAIContextOptions['bestSubsetsResult'];
 }
@@ -126,7 +126,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     capabilityData,
     focusedQuestionId,
     evidenceMapTopology,
-    suspectedCauses,
+    hypotheses,
     bestSubsetsResult,
   } = options;
 
@@ -155,7 +155,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       drillPathEnriched,
       capabilityData,
       evidenceMapTopology,
-      suspectedCauses,
+      hypotheses,
       bestSubsetsResult,
     };
 
@@ -202,7 +202,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     capabilityData,
     focusedQuestionId,
     evidenceMapTopology,
-    suspectedCauses,
+    hypotheses,
     bestSubsetsResult,
   ]);
 
