@@ -573,9 +573,9 @@ describe('applyAction — session-only no-ops', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('SUSPECTED_CAUSE_ARCHIVE resolves cleanly', async () => {
+  it('HYPOTHESIS_ARCHIVE resolves cleanly', async () => {
     await expect(
-      applyAction({ kind: 'SUSPECTED_CAUSE_ARCHIVE', causeId: 'cause-1' })
+      applyAction({ kind: 'HYPOTHESIS_ARCHIVE', hypothesisId: 'cause-1' })
     ).resolves.toBeUndefined();
   });
 });
@@ -715,12 +715,12 @@ describe('exhaustiveness — every HubAction kind has a handler', () => {
     { kind: 'CAUSAL_LINK_UPDATE', linkId: 'link-1', patch: {} } as HubAction,
     { kind: 'CAUSAL_LINK_ARCHIVE', linkId: 'link-1' },
     {
-      kind: 'SUSPECTED_CAUSE_ADD',
+      kind: 'HYPOTHESIS_ADD',
       investigationId: 'inv-x',
-      cause: { id: 'cause-1' },
+      hypothesis: { id: 'cause-1' },
     } as HubAction,
-    { kind: 'SUSPECTED_CAUSE_UPDATE', causeId: 'cause-1', patch: {} } as HubAction,
-    { kind: 'SUSPECTED_CAUSE_ARCHIVE', causeId: 'cause-1' },
+    { kind: 'HYPOTHESIS_UPDATE', hypothesisId: 'cause-1', patch: {} } as HubAction,
+    { kind: 'HYPOTHESIS_ARCHIVE', hypothesisId: 'cause-1' },
     // Canvas no-ops.
     { kind: 'PLACE_CHIP_ON_STEP', chipId: 'chip-1', stepId: 'step-1' },
     { kind: 'UNASSIGN_CHIP', chipId: 'chip-1' },

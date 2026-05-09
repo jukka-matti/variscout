@@ -25,7 +25,7 @@
 // Out of scope (no-op with comments):
 //   - EVIDENCE_SOURCE_ADD / EVIDENCE_SOURCE_REMOVE — pending future use.
 //   - INVESTIGATION_* / FINDING_* / QUESTION_* / CAUSAL_LINK_* /
-//     SUSPECTED_CAUSE_* — F5 wires this when investigation entity action
+//     HYPOTHESIS_* — F5 wires this when investigation entity action
 //     coverage lands.
 //   - CANVAS_* — canvasStore remains the canonical mutation surface;
 //     canonicalProcessMap reaches the canvasState table only via
@@ -172,7 +172,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
 
     // -----------------------------------------------------------------------
     // Investigation entity actions (investigation / finding / question /
-    // causalLink / suspectedCause) — F5 wires these when the investigation
+    // causalLink / hypothesis) — F5 wires these when the investigation
     // entity action coverage lands. The corresponding tables already exist
     // (declared by F3 P1) but writes are not yet routed here.
     // -----------------------------------------------------------------------
@@ -189,9 +189,9 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     case 'CAUSAL_LINK_ADD':
     case 'CAUSAL_LINK_UPDATE':
     case 'CAUSAL_LINK_ARCHIVE':
-    case 'SUSPECTED_CAUSE_ADD':
-    case 'SUSPECTED_CAUSE_UPDATE':
-    case 'SUSPECTED_CAUSE_ARCHIVE': {
+    case 'HYPOTHESIS_ADD':
+    case 'HYPOTHESIS_UPDATE':
+    case 'HYPOTHESIS_ARCHIVE': {
       return;
     }
 

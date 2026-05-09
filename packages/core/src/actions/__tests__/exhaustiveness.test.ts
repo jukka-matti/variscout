@@ -56,12 +56,12 @@ function _exhaustive(action: HubAction): void {
       return;
     case 'CAUSAL_LINK_ARCHIVE':
       return;
-    // Suspected cause
-    case 'SUSPECTED_CAUSE_ADD':
+    // Hypothesis
+    case 'HYPOTHESIS_ADD':
       return;
-    case 'SUSPECTED_CAUSE_UPDATE':
+    case 'HYPOTHESIS_UPDATE':
       return;
-    case 'SUSPECTED_CAUSE_ARCHIVE':
+    case 'HYPOTHESIS_ARCHIVE':
       return;
     // Hub meta
     case 'HUB_UPDATE_GOAL':

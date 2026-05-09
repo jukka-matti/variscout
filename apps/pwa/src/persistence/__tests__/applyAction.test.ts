@@ -469,11 +469,11 @@ describe('applyAction — no-op action kinds', () => {
     expect(await db.causalLinks.count()).toBe(0);
   });
 
-  it('SUSPECTED_CAUSE_ADD does not mutate any table', async () => {
+  it('HYPOTHESIS_ADD does not mutate any table', async () => {
     await applyAction(db, {
-      kind: 'SUSPECTED_CAUSE_ADD',
+      kind: 'HYPOTHESIS_ADD',
       investigationId: 'inv-x',
-      cause: { id: 'sc-x' },
+      hypothesis: { id: 'sc-x' },
     } as unknown as HubAction);
 
     expect(await db.suspectedCauses.count()).toBe(0);
@@ -501,8 +501,8 @@ describe('applyAction — no-op action kinds', () => {
     'QUESTION_ARCHIVE',
     'CAUSAL_LINK_UPDATE',
     'CAUSAL_LINK_ARCHIVE',
-    'SUSPECTED_CAUSE_UPDATE',
-    'SUSPECTED_CAUSE_ARCHIVE',
+    'HYPOTHESIS_UPDATE',
+    'HYPOTHESIS_ARCHIVE',
     'PLACE_CHIP_ON_STEP',
     'UNASSIGN_CHIP',
     'REORDER_CHIP_IN_STEP',

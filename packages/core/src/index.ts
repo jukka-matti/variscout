@@ -974,7 +974,7 @@ export type {
   FindingAction,
   QuestionAction,
   CausalLinkAction,
-  SuspectedCauseAction,
+  HypothesisAction,
   HubMetaAction,
   CanvasAction,
 } from './actions';

@@ -5,7 +5,7 @@ import type { InvestigationAction } from './investigationActions';
 import type { FindingAction } from './findingActions';
 import type { QuestionAction } from './questionActions';
 import type { CausalLinkAction } from './causalLinkActions';
-import type { SuspectedCauseAction } from './suspectedCauseActions';
+import type { HypothesisAction } from './hypothesisActions';
 import type { HubMetaAction } from './hubMetaActions';
 import type { CanvasAction } from './canvasActions';
 
@@ -22,6 +22,6 @@ export type HubAction =
   | FindingAction
   | QuestionAction
   | CausalLinkAction
-  | SuspectedCauseAction
+  | HypothesisAction
   | HubMetaAction
   | CanvasAction;
