@@ -79,32 +79,51 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     // -----------------------------------------------------------------------
 
     case 'HUB_PERSIST_SNAPSHOT': {
-      const { canonicalProcessMap, outcomes, ...hubMeta } = action.hub;
-      await db.transaction('rw', [db.hubs, db.outcomes, db.canvasState], async () => {
-        await db.hubs.put(hubMeta);
-        // HUB_PERSIST_SNAPSHOT carries the hub's authoritative full state; rows
-        // that exist for this hub but are absent from the incoming snapshot are
-        // stale and must be removed inside the same transaction (preserves the
-        // F2 blob-replacement invariant in the normalized world). bulkPut/put
-        // alone are upserts and would leave dropped outcomes / a removed
-        // canonicalProcessMap visible on the next joinHub.
-        const incomingOutcomeIds = new Set((outcomes ?? []).map(o => o.id));
-        await db.outcomes
-          .where('hubId')
-          .equals(hubMeta.id)
-          .filter(o => !incomingOutcomeIds.has(o.id))
-          .delete();
-        if (outcomes && outcomes.length > 0) {
-          await db.outcomes.bulkPut(outcomes.map(outcome => ({ ...outcome, hubId: hubMeta.id })));
+      // improvementProjects live in their own table; drop the embedded copy from the hub row.
+      const { canonicalProcessMap, outcomes, improvementProjects, ...hubMeta } = action.hub;
+      await db.transaction(
+        'rw',
+        [db.hubs, db.outcomes, db.canvasState, db.improvementProjects],
+        async () => {
+          await db.hubs.put(hubMeta);
+          // HUB_PERSIST_SNAPSHOT carries the hub's authoritative full state; rows
+          // that exist for this hub but are absent from the incoming snapshot are
+          // stale and must be removed inside the same transaction (preserves the
+          // F2 blob-replacement invariant in the normalized world). bulkPut/put
+          // alone are upserts and would leave dropped outcomes / a removed
+          // canonicalProcessMap visible on the next joinHub.
+          const incomingOutcomeIds = new Set((outcomes ?? []).map(o => o.id));
+          await db.outcomes
+            .where('hubId')
+            .equals(hubMeta.id)
+            .filter(o => !incomingOutcomeIds.has(o.id))
+            .delete();
+          if (outcomes && outcomes.length > 0) {
+            await db.outcomes.bulkPut(outcomes.map(outcome => ({ ...outcome, hubId: hubMeta.id })));
+          }
+          // improvementProjects: drop stale rows for this hub, then bulk-put the
+          // incoming snapshot. bulkPut alone is upsert; we delete first to remove
+          // rows that are absent from the incoming snapshot (same invariant as outcomes).
+          const incomingProjectIds = new Set((improvementProjects ?? []).map(p => p.id));
+          await db.improvementProjects
+            .where('hubId')
+            .equals(hubMeta.id)
+            .filter(p => !incomingProjectIds.has(p.id))
+            .delete();
+          if (improvementProjects && improvementProjects.length > 0) {
+            await db.improvementProjects.bulkPut(
+              improvementProjects.map(p => ({ ...p, hubId: hubMeta.id }))
+            );
+          }
+          if (canonicalProcessMap) {
+            await db.canvasState.put({ hubId: hubMeta.id, ...canonicalProcessMap });
+          } else {
+            // Snapshot lacks a canonical process map — clear any stale row so
+            // joinHub won't resurrect it.
+            await db.canvasState.delete(hubMeta.id);
+          }
         }
-        if (canonicalProcessMap) {
-          await db.canvasState.put({ hubId: hubMeta.id, ...canonicalProcessMap });
-        } else {
-          // Snapshot lacks a canonical process map — clear any stale row so
-          // joinHub won't resurrect it.
-          await db.canvasState.delete(hubMeta.id);
-        }
-      });
+      );
       return;
     }
 
@@ -315,9 +334,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
               ...(patch.metadata.financialImpact
                 ? {
                     financialImpact: {
-                      ...(existing.metadata.financialImpact ?? {
-                        currency: patch.metadata.financialImpact.currency,
-                      }),
+                      ...(existing.metadata.financialImpact ?? {}),
                       ...patch.metadata.financialImpact,
                     },
                   }

@@ -224,6 +224,39 @@ describe('applyAction — IMPROVEMENT_PROJECT_UPDATE', () => {
 
     expect(await db.improvementProjects.get('ghost-proj')).toBeUndefined();
   });
+
+  it('financialImpact patch deep-merges: amount update preserves existing currency', async () => {
+    // Note: ImprovementProjectMetadata.financialImpact types currency as required
+    // on every supply ({ amount?: number; currency: string }), so a patch must
+    // always include currency when it includes financialImpact.
+    // This test verifies that the deep-merge spreads existing before patch —
+    // i.e., supplying { amount: 20, currency: 'EUR' } when existing is
+    // { amount: 10, currency: 'EUR' } correctly yields { amount: 20, currency: 'EUR' },
+    // and that other metadata keys (businessCase) are not clobbered.
+    await applyAction(db, { kind: 'HUB_PERSIST_SNAPSHOT', hub: makeHub('hub-7') });
+    const project = makeProject('proj-7', 'hub-7', {
+      metadata: {
+        title: 'FI Test',
+        businessCase: 'Cost reduction',
+        financialImpact: { amount: 10, currency: 'EUR' },
+      },
+    });
+    await applyAction(db, { kind: 'IMPROVEMENT_PROJECT_CREATE', hubId: 'hub-7', project });
+
+    // Patch: update amount only (currency required by the type — must be supplied).
+    await applyAction(db, {
+      kind: 'IMPROVEMENT_PROJECT_UPDATE',
+      projectId: 'proj-7',
+      patch: { metadata: { title: 'FI Test', financialImpact: { amount: 20, currency: 'EUR' } } },
+    });
+
+    const row = await db.improvementProjects.get('proj-7');
+    // financialImpact deep-merges: amount updated, currency preserved.
+    expect(row?.metadata.financialImpact).toEqual({ amount: 20, currency: 'EUR' });
+    // businessCase must be preserved (metadata shallow-merge; financialImpact is the only
+    // nested-deep-merge key — the outer metadata spread preserves keys not in the patch).
+    expect(row?.metadata.businessCase).toBe('Cost reduction');
+  });
 });
 
 // ---------------------------------------------------------------------------
