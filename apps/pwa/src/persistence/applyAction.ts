@@ -279,6 +279,93 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     }
 
     // -----------------------------------------------------------------------
+    // Improvement Project — single-row inserts / patches with deep-merge.
+    //
+    // UPDATE applies the deep-merge contract documented on
+    // `improvementProjectActions.ts`:
+    //   - objects shallow-merge one level (metadata, goal, signoff)
+    //   - nested metadata.financialImpact + goal.outcomeGoal also shallow-merge
+    //   - sections shallow-merge per sub-section key (missing keys preserved)
+    //   - all arrays REPLACE wholesale
+    //   - id, createdAt, hubId, deletedAt, updatedAt are not caller-controllable
+    //   - updatedAt is set by THIS handler to Date.now()
+    // -----------------------------------------------------------------------
+
+    case 'IMPROVEMENT_PROJECT_CREATE': {
+      const hub = await db.hubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(`IMPROVEMENT_PROJECT_CREATE: parent hub ${action.hubId} does not exist`);
+      }
+      await db.improvementProjects.add(action.project);
+      return;
+    }
+
+    case 'IMPROVEMENT_PROJECT_UPDATE': {
+      // Idempotent on missing.
+      const existing = await db.improvementProjects.get(action.projectId);
+      if (!existing) return;
+      const { patch } = action;
+      const merged = {
+        ...existing,
+        ...patch,
+        metadata: patch.metadata
+          ? {
+              ...existing.metadata,
+              ...patch.metadata,
+              ...(patch.metadata.financialImpact
+                ? {
+                    financialImpact: {
+                      ...(existing.metadata.financialImpact ?? {
+                        currency: patch.metadata.financialImpact.currency,
+                      }),
+                      ...patch.metadata.financialImpact,
+                    },
+                  }
+                : {}),
+            }
+          : existing.metadata,
+        goal: patch.goal
+          ? {
+              ...existing.goal,
+              ...patch.goal,
+              ...(patch.goal.outcomeGoal
+                ? { outcomeGoal: { ...existing.goal.outcomeGoal, ...patch.goal.outcomeGoal } }
+                : {}),
+            }
+          : existing.goal,
+        sections: patch.sections
+          ? {
+              background: { ...existing.sections.background, ...(patch.sections.background ?? {}) },
+              investigationLineage: {
+                ...existing.sections.investigationLineage,
+                ...(patch.sections.investigationLineage ?? {}),
+              },
+              approach: { ...existing.sections.approach, ...(patch.sections.approach ?? {}) },
+              outcomeReference: {
+                ...existing.sections.outcomeReference,
+                ...(patch.sections.outcomeReference ?? {}),
+              },
+            }
+          : existing.sections,
+        signoff: patch.signoff
+          ? { ...(existing.signoff ?? {}), ...patch.signoff }
+          : existing.signoff,
+        updatedAt: Date.now(),
+      };
+      await db.improvementProjects.put(merged);
+      return;
+    }
+
+    case 'IMPROVEMENT_PROJECT_ARCHIVE': {
+      // Idempotent soft-delete.
+      await db.improvementProjects.update(action.projectId, {
+        deletedAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    // -----------------------------------------------------------------------
     // Canvas — canvasStore remains the canonical mutation surface for
     // canvas state. canvasState reaches the IDB table only via
     // HUB_PERSIST_SNAPSHOT (which decomposes hub.canonicalProcessMap into a

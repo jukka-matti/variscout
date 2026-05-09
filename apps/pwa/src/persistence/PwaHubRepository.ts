@@ -80,16 +80,19 @@ export class PwaHubRepository implements HubRepository {
   // ---------------------------------------------------------------------------
 
   private async joinHub(hubMeta: HubRow): Promise<ProcessHub> {
-    const [outcomes, canvasRow] = await Promise.all([
+    const [outcomes, canvasRow, improvementProjects] = await Promise.all([
       db.outcomes.where('hubId').equals(hubMeta.id).toArray(),
       db.canvasState.get(hubMeta.id),
+      db.improvementProjects.where('hubId').equals(hubMeta.id).toArray(),
     ]);
     const liveOutcomes = outcomes.filter(o => o.deletedAt === null);
+    const liveProjects = improvementProjects.filter(p => p.deletedAt === null);
     const canonicalProcessMap = canvasRow ? stripHubId(canvasRow) : undefined;
     return {
       ...hubMeta,
       ...(liveOutcomes.length > 0 ? { outcomes: liveOutcomes } : {}),
       ...(canonicalProcessMap ? { canonicalProcessMap } : {}),
+      ...(liveProjects.length > 0 ? { improvementProjects: liveProjects } : {}),
     } as ProcessHub;
   }
 
@@ -104,19 +107,27 @@ export class PwaHubRepository implements HubRepository {
     // reenter; joinHub stays a private helper that only touches the three
     // tables already declared in the transaction scope.
     get: async id => {
-      return db.transaction('r', [db.hubs, db.outcomes, db.canvasState], async () => {
-        const hubMeta = await db.hubs.get(id);
-        if (!hubMeta) return undefined;
-        if (hubMeta.deletedAt !== null) return undefined;
-        return this.joinHub(hubMeta);
-      });
+      return db.transaction(
+        'r',
+        [db.hubs, db.outcomes, db.canvasState, db.improvementProjects],
+        async () => {
+          const hubMeta = await db.hubs.get(id);
+          if (!hubMeta) return undefined;
+          if (hubMeta.deletedAt !== null) return undefined;
+          return this.joinHub(hubMeta);
+        }
+      );
     },
     list: async () => {
-      return db.transaction('r', [db.hubs, db.outcomes, db.canvasState], async () => {
-        const allHubs = await db.hubs.toArray();
-        const liveHubs = allHubs.filter(h => h.deletedAt === null);
-        return Promise.all(liveHubs.map(h => this.joinHub(h)));
-      });
+      return db.transaction(
+        'r',
+        [db.hubs, db.outcomes, db.canvasState, db.improvementProjects],
+        async () => {
+          const allHubs = await db.hubs.toArray();
+          const liveHubs = allHubs.filter(h => h.deletedAt === null);
+          return Promise.all(liveHubs.map(h => this.joinHub(h)));
+        }
+      );
     },
   };
 
