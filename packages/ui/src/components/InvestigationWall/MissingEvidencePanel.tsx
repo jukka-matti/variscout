@@ -9,7 +9,7 @@
  * render as focusable buttons so the analyst can jump to the relevant hub.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { SurveyHint } from '@variscout/core/survey';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { useWallLocale } from './hooks/useWallLocale';
@@ -37,8 +37,9 @@ export const MissingEvidencePanel: React.FC<MissingEvidencePanelProps> = ({
   const [expanded, setExpanded] = useState(false);
   const locale = useWallLocale();
 
-  const filtered = hints.filter(
-    h => h.kind === 'data-collection' || h.kind === 'triangulation-readiness'
+  const filtered = useMemo(
+    () => hints.filter(h => h.kind === 'data-collection' || h.kind === 'triangulation-readiness'),
+    [hints]
   );
 
   if (filtered.length === 0) return null;
@@ -89,7 +90,8 @@ export const MissingEvidencePanel: React.FC<MissingEvidencePanelProps> = ({
                   // Action button is informative-only in V1; handler wiring lands with V2 guided-action UI.
                   <button
                     type="button"
-                    className="shrink-0 text-xs font-mono text-warning hover:underline"
+                    disabled
+                    className="shrink-0 text-xs font-mono text-warning opacity-50 cursor-default"
                   >
                     {h.action.label}
                   </button>
