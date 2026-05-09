@@ -270,7 +270,7 @@ export const ro: MessageCatalog = {
   'ai.tool.suggestSaveFinding': 'Save insight',
   'ai.tool.navigateTo': 'Navigate to',
   'ai.tool.answerQuestion': 'Answer question',
-  'ai.tool.suggestSuspectedCause': 'Suggest suspected cause',
+  'ai.tool.suggestHypothesis': 'Suggest hypothesis',
   'ai.tool.connectHubEvidence': 'Connect hub evidence',
   'ai.tool.suggestCausalLink': 'Suggest causal link',
   'ai.tool.highlightMapPattern': 'Highlight map pattern',

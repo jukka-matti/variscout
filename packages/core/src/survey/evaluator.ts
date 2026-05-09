@@ -666,11 +666,12 @@ function addBranchRecommendations(
 
   projected.forEach((branchView, index) => {
     const priority = 200 + index * 2;
-    if (
-      branchView.branchStatus === 'active' &&
+    const needsCounterCheck =
+      branchView.branchStatus !== 'confirmed' &&
+      branchView.branchStatus !== 'refuted' &&
       branchView.supportingClues.length > 0 &&
-      branchView.counterClues.length === 0
-    ) {
+      branchView.counterClues.length === 0;
+    if (needsCounterCheck) {
       store.add({
         id: `branch:${branchView.id}:add-counter-check`,
         kind: 'add-counter-check',
@@ -684,7 +685,11 @@ function addBranchRecommendations(
       });
     }
 
-    if (branchView.openChecks.length > 0) {
+    if (
+      branchView.branchStatus !== 'confirmed' &&
+      branchView.branchStatus !== 'refuted' &&
+      branchView.openChecks.length > 0
+    ) {
       store.add({
         id: `branch:${branchView.id}:complete-open-checks`,
         kind: 'add-counter-check',

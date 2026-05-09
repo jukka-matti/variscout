@@ -33,7 +33,7 @@ export interface SampleDataset {
 export interface SampleInvestigationState {
   findings?: import('@variscout/core').Finding[];
   questions?: import('@variscout/core').Question[];
-  suspectedCauses?: import('@variscout/core').SuspectedCause[];
+  suspectedCauses?: import('@variscout/core').Hypothesis[];
   causalLinks?: import('@variscout/core').CausalLink[];
   categories?: import('@variscout/core').InvestigationCategory[];
 }

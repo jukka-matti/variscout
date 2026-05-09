@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import QuestionsTabView from '../QuestionsTabView';
 import type { Question, Finding } from '@variscout/core/findings';
-import type { SuspectedCause } from '../ConclusionCard';
+import type { Hypothesis } from '../ConclusionCard';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -246,7 +246,7 @@ describe('QuestionsTabView — observations section', () => {
 
 describe('QuestionsTabView — conclusion card', () => {
   it('renders conclusion card when suspected causes exist', () => {
-    const causes: SuspectedCause[] = [{ factor: 'Operator', projectedCpk: 1.5 }];
+    const causes: Hypothesis[] = [{ factor: 'Operator', projectedCpk: 1.5 }];
     render(
       <QuestionsTabView questions={[]} findings={[]} suspectedCauses={causes} currentCpk={1.1} />
     );
@@ -260,7 +260,7 @@ describe('QuestionsTabView — conclusion card', () => {
   });
 
   it('shows combined projection footer when combinedProjectedCpk is provided', () => {
-    const causes: SuspectedCause[] = [{ factor: 'Material' }];
+    const causes: Hypothesis[] = [{ factor: 'Material' }];
     render(
       <QuestionsTabView
         questions={[]}

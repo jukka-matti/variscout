@@ -165,7 +165,7 @@ describe('buildSuggestedQuestions', () => {
         },
       };
       const result = buildSuggestedQuestions(context);
-      expect(result).toContain('Are the corrective actions addressing the suspected cause?');
+      expect(result).toContain('Are the corrective actions addressing the hypothesis?');
       // Also check for Capability chart question
       expect(
         result.some(q => q.includes('Capability chart') || q.includes('corrective actions'))

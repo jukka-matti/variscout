@@ -21,7 +21,7 @@ import { computeEvidenceMapLayout } from '@variscout/core/stats';
 import type { EvidenceMapLayout, FactorNodeLayout } from '@variscout/core/stats';
 import { findConvergencePoints } from '@variscout/core/stats';
 import type { ResolvedMode } from '@variscout/core/strategy';
-import type { CausalLink, Question, Finding, SuspectedCause } from '@variscout/core/findings';
+import type { CausalLink, Question, Finding, Hypothesis } from '@variscout/core/findings';
 import type {
   FactorNodeData,
   RelationshipEdgeData,
@@ -63,7 +63,7 @@ export interface UseEvidenceMapDataOptions {
   /** Findings (Layer 2 evidence counts) */
   findings?: Finding[];
   /** Suspected cause hubs (Layer 3 convergence enrichment) */
-  suspectedCauses?: SuspectedCause[];
+  suspectedCauses?: Hypothesis[];
 }
 
 export interface UseEvidenceMapDataReturn {
@@ -184,7 +184,7 @@ function mapCausalEdge(
 function mapConvergencePoint(
   cp: { factor: string; incomingLinks: CausalLink[] },
   nodePositions: Map<string, { x: number; y: number }>,
-  suspectedCauses: SuspectedCause[]
+  suspectedCauses: Hypothesis[]
 ): ConvergencePointData | null {
   const pos = nodePositions.get(cp.factor);
   if (!pos) return null;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { proposeDisconfirmationMove } from '../proposeDisconfirmationMove';
-import type { SuspectedCause, Finding } from '@variscout/core';
+import type { Hypothesis, Finding } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 function finding(
@@ -23,14 +23,14 @@ function finding(
   };
 }
 
-function hub(id: string, findingIds: string[]): SuspectedCause {
+function hub(id: string, findingIds: string[]): Hypothesis {
   return {
     id,
     name: id,
     synthesis: '',
     questionIds: [],
     findingIds,
-    status: 'suspected',
+    status: 'proposed',
     createdAt: 1745625600000,
     updatedAt: 1745625600000,
     investigationId: 'inv-test-001',

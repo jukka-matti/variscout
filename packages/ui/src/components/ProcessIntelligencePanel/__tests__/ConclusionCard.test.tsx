@@ -1,17 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ConclusionCard from '../ConclusionCard';
-import type { SuspectedCause, HubProjection } from '@variscout/core';
+import type { Hypothesis, HubProjection } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeHub(
-  id: string,
-  name: string,
-  status: SuspectedCause['status'] = 'suspected'
-): SuspectedCause {
+function makeHub(id: string, name: string, status: Hypothesis['status'] = 'proposed'): Hypothesis {
   return {
     id,
     name,

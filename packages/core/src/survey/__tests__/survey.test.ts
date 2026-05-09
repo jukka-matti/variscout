@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateSurvey } from '../index';
-import type { DataRow, Finding, ProcessMap, Question, SuspectedCause } from '../../index';
+import type { DataRow, Finding, ProcessMap, Question, Hypothesis } from '../../index';
 
 const data: DataRow[] = [
   { SampleTime: '2026-04-01T08:00:00Z', Fill_Weight: 10.1, Machine: 'M1', Shift: 'Day' },
@@ -48,13 +48,13 @@ const finding = (overrides: Partial<Finding> = {}): Finding => ({
   ...overrides,
 });
 
-const branch = (overrides: Partial<SuspectedCause> = {}): SuspectedCause => ({
+const branch = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   id: 'hub-1',
   name: 'Nozzle wear on M2',
   synthesis: 'M2 behaves differently after warmup.',
   questionIds: ['q-1'],
   findingIds: ['f-1'],
-  status: 'suspected',
+  status: 'proposed',
   createdAt: 1745625600000,
   updatedAt: 1745625600000,
   investigationId: 'inv-test-001',
@@ -157,6 +157,57 @@ describe('evaluateSurvey', () => {
     expect(survey.recommendations.map(rec => rec.id)).toContain(
       'branch:hub-1:complete-open-checks'
     );
+  });
+
+  it('keeps counter-check recommendations for evidenced and disconfirmation-ready hypotheses', () => {
+    const baseInput = {
+      data,
+      outcomeColumn: 'Fill_Weight',
+      factorColumns: ['Machine'],
+      questions: [question()],
+      findings: [finding()],
+    };
+
+    for (const status of ['evidenced', 'needs-disconfirmation'] as const) {
+      const survey = evaluateSurvey({
+        ...baseInput,
+        branches: [branch({ status })],
+      });
+
+      expect(survey.recommendations.map(rec => rec.id)).toContain('branch:hub-1:add-counter-check');
+    }
+  });
+
+  it('does not recommend branch checks for terminal hypotheses', () => {
+    const baseInput = {
+      data,
+      outcomeColumn: 'Fill_Weight',
+      factorColumns: ['Machine'],
+      questions: [
+        question(),
+        question({
+          id: 'q-counter',
+          text: 'Does M2 still separate during Day shift only?',
+          status: 'open',
+          linkedFindingIds: [],
+        }),
+      ],
+      findings: [finding()],
+    };
+
+    for (const status of ['confirmed', 'refuted'] as const) {
+      const survey = evaluateSurvey({
+        ...baseInput,
+        branches: [branch({ status, checkQuestionIds: ['q-counter'] })],
+      });
+
+      expect(survey.recommendations.map(rec => rec.id)).not.toContain(
+        'branch:hub-1:add-counter-check'
+      );
+      expect(survey.recommendations.map(rec => rec.id)).not.toContain(
+        'branch:hub-1:complete-open-checks'
+      );
+    }
   });
 
   it('returns recommendations in deterministic order', () => {

@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import type { CausalLink, Question, Finding, SuspectedCause } from '@variscout/core/findings';
+import type { CausalLink, Question, Finding, Hypothesis } from '@variscout/core/findings';
 
 // ============================================================================
 // Types
@@ -26,7 +26,7 @@ export interface TimelineFrame {
   visibleFactors: string[];
   /** CausalLink IDs visible up to this frame */
   visibleLinks: string[];
-  /** SuspectedCause IDs visible up to this frame */
+  /** Hypothesis IDs visible up to this frame */
   visibleHubs: string[];
 }
 
@@ -38,7 +38,7 @@ export interface UseEvidenceMapTimelineOptions {
   /** Findings with createdAt timestamps (numeric, converted to ISO) */
   findings?: Finding[];
   /** Suspected cause hubs with createdAt timestamps */
-  suspectedCauses?: SuspectedCause[];
+  suspectedCauses?: Hypothesis[];
   /** Playback interval in milliseconds (default: 1500) */
   intervalMs?: number;
   /** Maximum number of frames before grouping by day (default: 30) */
@@ -78,7 +78,7 @@ function collectArtifacts(
   causalLinks: CausalLink[],
   questions: Question[],
   findings: Finding[],
-  suspectedCauses: SuspectedCause[]
+  suspectedCauses: Hypothesis[]
 ): TimestampedArtifact[] {
   const artifacts: TimestampedArtifact[] = [];
 

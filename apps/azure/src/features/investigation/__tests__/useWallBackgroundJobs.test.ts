@@ -179,7 +179,7 @@ describe('useWallBackgroundJobs (azure)', () => {
             synthesis: '',
             questionIds: [],
             findingIds: [],
-            status: 'suspected',
+            status: 'proposed',
             createdAt: Date.parse('2026-04-19T00:00:00Z'),
             updatedAt: Date.parse('2026-04-19T00:00:00Z'),
             deletedAt: null,

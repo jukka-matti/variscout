@@ -23,7 +23,7 @@ const RICH_CONTEXT: AIContext = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     questionTree: [{ id: 'q1', text: 'Test question?', status: 'answered', children: [] }] as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    suspectedCauseHubs: [{ name: 'Nozzle Wear', status: 'suspected' }] as any,
+    hypothesisHubs: [{ name: 'Nozzle Wear', status: 'proposed' }] as any,
   },
 };
 

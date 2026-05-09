@@ -1,7 +1,7 @@
 /**
  * Predicate tree that can be evaluated against a data row.
  *
- * Used by Investigation Wall hub `SuspectedCause.condition` to turn a hypothesis
+ * Used by Investigation Wall hub `Hypothesis.condition` to turn a hypothesis
  * into a disconfirmable claim — auto-derived from a finding's source on first
  * hub creation; editable afterwards.
  *

@@ -1,21 +1,21 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { HubCard } from '../HubCard';
-import type { SuspectedCause, SuspectedCauseEvidence } from '@variscout/core/findings';
+import type { Hypothesis, HypothesisEvidence } from '@variscout/core/findings';
 import type { HubProjection } from '@variscout/core/findings';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeHub(overrides: Partial<SuspectedCause> = {}): SuspectedCause {
+function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
     id: 'hub-1',
     name: 'Nozzle wear on night shift',
     synthesis: 'Night shift thermal stress causes wear',
     questionIds: ['q1', 'q2'],
     findingIds: ['f1'],
-    status: 'suspected',
+    status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
@@ -45,7 +45,7 @@ describe('HubCard', () => {
   });
 
   it('shows evidence badge when evidence provided', () => {
-    const evidence: SuspectedCauseEvidence = {
+    const evidence: HypothesisEvidence = {
       mode: 'standard',
       contribution: {
         value: 0.52,

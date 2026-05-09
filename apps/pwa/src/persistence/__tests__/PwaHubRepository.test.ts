@@ -464,7 +464,7 @@ describe('PwaHubRepository — stub read APIs (empty tables until F3.5/F5)', () 
 
   it('suspectedCauses.listByInvestigation returns []', async () => {
     const repo = new PwaHubRepository();
-    expect(await repo.suspectedCauses.listByInvestigation('inv-x')).toEqual([]);
+    expect(await repo.hypotheses.listByInvestigation('inv-x')).toEqual([]);
   });
 });
 

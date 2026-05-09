@@ -9,7 +9,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useEvidenceMapTimeline } from '@variscout/hooks';
-import type { CausalLink, Finding, Question, SuspectedCause } from '@variscout/core/findings';
+import type { CausalLink, Finding, Question, Hypothesis } from '@variscout/core/findings';
 
 // ============================================================================
 // Test helpers
@@ -73,12 +73,12 @@ function makeQuestion(overrides?: Partial<Question>): Question {
   } as Question;
 }
 
-function makeSuspectedCause(overrides?: Partial<SuspectedCause>): SuspectedCause {
+function makeSuspectedCause(overrides?: Partial<Hypothesis>): Hypothesis {
   return {
     id: 'hub-1',
     name: 'Temperature hypothesis',
     synthesis: '',
-    status: 'suspected',
+    status: 'proposed',
     questionIds: [],
     findingIds: [],
     createdAt: Date.parse('2026-03-17T12:00:00.000Z'),
@@ -295,7 +295,7 @@ describe('useEvidenceMapTimeline', () => {
   });
 
   describe('frame content with mixed artifacts', () => {
-    it('includes hub ID in visibleHubs when SuspectedCause is provided', () => {
+    it('includes hub ID in visibleHubs when Hypothesis is provided', () => {
       const hub = makeSuspectedCause({ id: 'hub-xyz' });
       const { result } = renderHook(() => useEvidenceMapTimeline({ suspectedCauses: [hub] }));
 

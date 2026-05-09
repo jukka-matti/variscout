@@ -198,16 +198,16 @@ describe('evaluateCondition', () => {
 });
 
 import { runAndCheck } from '../hypothesisConditionEvaluator';
-import type { SuspectedCause, GateNode } from '@variscout/core';
+import type { Hypothesis, GateNode } from '@variscout/core';
 
-function hub(id: string, cond: HypothesisCondition | undefined): SuspectedCause {
+function hub(id: string, cond: HypothesisCondition | undefined): Hypothesis {
   return {
     id,
     name: id,
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
+    status: 'proposed',
     condition: cond,
     createdAt: 1745625600000,
     updatedAt: 1745625600000,
@@ -217,7 +217,7 @@ function hub(id: string, cond: HypothesisCondition | undefined): SuspectedCause 
 }
 
 describe('runAndCheck', () => {
-  const hubs: SuspectedCause[] = [
+  const hubs: Hypothesis[] = [
     hub('h1', { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' }),
     hub('h2', { kind: 'leaf', column: 'SUPPLIER', op: 'eq', value: 'B' }),
     hub('h3', undefined),

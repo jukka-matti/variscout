@@ -14,7 +14,7 @@ import {
 } from './investigationStore';
 import type { QuestionDisplayData } from './investigationStore';
 import { usePanelsStore } from '../panels/panelsStore';
-import { useSuspectedCauses, type SuspectedCauseUpdate } from '@variscout/hooks';
+import { useSuspectedCauses, type HypothesisUpdate } from '@variscout/hooks';
 import { useInvestigationStore } from '@variscout/stores';
 import type {
   Finding,
@@ -23,7 +23,7 @@ import type {
   IdeaImpact,
   ProcessContext,
   StatsResult,
-  SuspectedCause,
+  Hypothesis,
 } from '@variscout/core';
 import type { UseQuestionsReturn } from '@variscout/hooks';
 
@@ -56,18 +56,18 @@ export interface UseInvestigationOrchestrationReturn {
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
   /** Full suspected causes hook state — hub CRUD operations for the Investigation workspace */
   suspectedCausesState: {
-    hubs: SuspectedCause[];
-    createHub: (name: string, synthesis: string) => SuspectedCause;
-    updateHub: (hubId: string, updates: SuspectedCauseUpdate) => void;
+    hubs: Hypothesis[];
+    createHub: (name: string, synthesis: string) => Hypothesis;
+    updateHub: (hubId: string, updates: HypothesisUpdate) => void;
     deleteHub: (hubId: string) => void;
-    resetHubs: (newHubs: SuspectedCause[]) => void;
+    resetHubs: (newHubs: Hypothesis[]) => void;
     connectQuestion: (hubId: string, questionId: string) => void;
     disconnectQuestion: (hubId: string, questionId: string) => void;
     connectFinding: (hubId: string, findingId: string) => void;
     disconnectFinding: (hubId: string, findingId: string) => void;
-    setHubStatus: (hubId: string, status: SuspectedCause['status']) => void;
-    getHubForQuestion: (questionId: string) => SuspectedCause | undefined;
-    getHubForFinding: (findingId: string) => SuspectedCause | undefined;
+    setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
+    getHubForQuestion: (questionId: string) => Hypothesis | undefined;
+    getHubForFinding: (findingId: string) => Hypothesis | undefined;
   };
   /** Map of question ID to display data for FindingCard */
   questionsMap: Record<string, QuestionDisplayData>;

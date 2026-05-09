@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Finding, Question, SuspectedCause } from '../types';
+import type { Finding, Hypothesis, Question } from '../types';
 import type { ProcessMap } from '../../frame/types';
 import { projectMechanismBranch, projectMechanismBranches } from '../mechanismBranch';
 
@@ -34,14 +34,14 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   };
 }
 
-function makeHub(overrides: Partial<SuspectedCause> = {}): SuspectedCause {
+function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
     id: 'hub-1',
     name: 'Nozzle heat drift on night shift',
     synthesis: 'Heat accumulates during long overnight runs.',
     questionIds: ['q-support', 'q-open'],
     findingIds: ['f-support', 'f-counter'],
-    status: 'suspected',
+    status: 'proposed',
     createdAt: 1745625600000,
     updatedAt: 1745625600000,
     investigationId: 'inv-test-001',
@@ -60,7 +60,7 @@ const processMap: ProcessMap = {
 };
 
 describe('projectMechanismBranch', () => {
-  it('projects a SuspectedCause hub into a branch with linked clues, checks, next move, and process context', () => {
+  it('projects a Hypothesis hub into a branch with linked clues, checks, next move, and process context', () => {
     const branch = projectMechanismBranch(
       makeHub({
         tributaryIds: ['trib-shift'],
@@ -165,7 +165,7 @@ describe('projectMechanismBranch', () => {
     ).toEqual({ value: 'ready-to-act', label: 'Ready to act' });
 
     expect(
-      projectMechanismBranch(makeHub({ status: 'not-confirmed' }), {
+      projectMechanismBranch(makeHub({ status: 'refuted' }), {
         questions: [],
         findings: [],
       }).readiness

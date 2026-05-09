@@ -8,10 +8,10 @@ import type {
   FindingSource,
   InvestigationCategory,
   Question,
-  SuspectedCause,
-  SuspectedCauseEvidence,
+  Hypothesis,
+  HypothesisEvidence,
 } from './types';
-import { createSuspectedCause } from './factories';
+import { createHypothesis } from './factories';
 import type { BestSubsetsResult, BestSubsetResult, LevelChange } from '../stats/bestSubsets';
 import { predictFromModel, predictFromUnifiedModel } from '../stats/bestSubsets';
 
@@ -143,24 +143,24 @@ export function getScopedFindings(findings: Finding[]): Finding[] {
 }
 
 // ============================================================================
-// SuspectedCause hub helpers
+// Hypothesis hub helpers
 // ============================================================================
 
 /**
- * Compute the aggregate evidence contribution for a SuspectedCause hub.
+ * Compute the aggregate evidence contribution for a Hypothesis hub.
  *
  * Sums η² (etaSquared) from each connected question. Falls back to rSquaredAdj
  * when etaSquared is absent. Questions not present in the provided list are
  * silently skipped (e.g. questions from a different investigation scope).
  *
- * @param hub - The SuspectedCause hub to compute contribution for
+ * @param hub - The Hypothesis hub to compute contribution for
  * @param questions - All questions in scope (e.g. from the investigation store)
  * @returns Aggregate contribution as a decimal (e.g. 0.56 = 56%)
  *
  * @deprecated Use `computeHubEvidence` instead, which uses Best Subsets R²adj
  * for correlated factors and always returns a value ≤ 1.0.
  */
-export function computeHubContribution(hub: SuspectedCause, questions: Question[]): number {
+export function computeHubContribution(hub: Hypothesis, questions: Question[]): number {
   const hubQuestionIds = new Set(hub.questionIds);
   let total = 0;
   for (const q of questions) {
@@ -235,7 +235,7 @@ function computeChannelEvidence(questions: Question[], questionIds: string[]): n
 
 /** Mode-specific evidence computation — follows analysisStrategy.ts pattern */
 const evidenceComputers: Record<
-  SuspectedCauseEvidence['mode'],
+  HypothesisEvidence['mode'],
   (
     hubFactors: string[],
     questions: Question[],
@@ -249,7 +249,7 @@ const evidenceComputers: Record<
   performance: (_hf, q, qIds) => computeChannelEvidence(q, qIds),
 };
 
-const EVIDENCE_LABELS: Record<SuspectedCauseEvidence['mode'], string> = {
+const EVIDENCE_LABELS: Record<HypothesisEvidence['mode'], string> = {
   standard: 'R²adj',
   capability: 'Cpk impact',
   yamazumi: 'Waste %',
@@ -257,7 +257,7 @@ const EVIDENCE_LABELS: Record<SuspectedCauseEvidence['mode'], string> = {
 };
 
 /**
- * Compute mode-aware evidence for a SuspectedCause hub.
+ * Compute mode-aware evidence for a Hypothesis hub.
  *
  * Uses a mode-dispatched function map following the analysisStrategy.ts pattern.
  * Standard and capability modes use Best Subsets R²adj for correlated factors,
@@ -267,18 +267,18 @@ const EVIDENCE_LABELS: Record<SuspectedCauseEvidence['mode'], string> = {
  * Duplicate factors across connected questions are deduplicated before lookup
  * to prevent match failures when multiple questions share the same factor.
  *
- * @param hub - The SuspectedCause hub to compute evidence for
+ * @param hub - The Hypothesis hub to compute evidence for
  * @param questions - All questions in scope (e.g. from the investigation store)
  * @param bestSubsetsResult - Best Subsets analysis result, or null for fallback
  * @param mode - Analysis mode (default: 'standard')
- * @returns Structured SuspectedCauseEvidence object
+ * @returns Structured HypothesisEvidence object
  */
 export function computeHubEvidence(
-  hub: SuspectedCause,
+  hub: Hypothesis,
   questions: Question[],
   bestSubsetsResult: BestSubsetsResult | null,
-  mode: SuspectedCauseEvidence['mode'] = 'standard'
-): SuspectedCauseEvidence {
+  mode: HypothesisEvidence['mode'] = 'standard'
+): HypothesisEvidence {
   // Collect unique factors linked to hub questions (dedup prevents match failures)
   const hubFactors = [
     ...new Set(
@@ -302,10 +302,10 @@ export function computeHubEvidence(
 }
 
 // ============================================================================
-// Hub projection (model-based prediction for SuspectedCause)
+// Hub projection (model-based prediction for Hypothesis)
 // ============================================================================
 
-/** Projection result for a SuspectedCause hub based on level-effects model */
+/** Projection result for a Hypothesis hub based on level-effects model */
 export interface HubProjection {
   /** Change in predicted mean (target - current) */
   predictedMeanDelta: number;
@@ -322,7 +322,7 @@ export interface HubProjection {
 }
 
 /**
- * Compute a model-based projection for a SuspectedCause hub.
+ * Compute a model-based projection for a Hypothesis hub.
  *
  * Finds the best matching factor subset from the Best Subsets result,
  * uses level effects to predict the mean change when switching from
@@ -336,7 +336,7 @@ export interface HubProjection {
  * Falls back to the categorical path for any factor not present in the
  * numeric values map.
  *
- * @param hub - The SuspectedCause hub
+ * @param hub - The Hypothesis hub
  * @param questions - All questions in scope
  * @param bestSubsetsResult - Best Subsets analysis result (null → return null)
  * @param currentWorstLevels - Current worst factor levels (factor → level string).
@@ -344,7 +344,7 @@ export interface HubProjection {
  * @param options - Optional spec target, characteristic type, and continuous values
  */
 export function computeHubProjection(
-  hub: SuspectedCause,
+  hub: Hypothesis,
   questions: Question[],
   bestSubsetsResult: BestSubsetsResult | null,
   currentWorstLevels: Record<string, string>,
@@ -548,7 +548,7 @@ export function computeHubProjection(
 // Evidence clustering (factor overlap detection)
 // ============================================================================
 
-/** A cluster of questions sharing factors that could form a SuspectedCause hub */
+/** A cluster of questions sharing factors that could form a Hypothesis hub */
 export interface EvidenceCluster {
   /** Factors shared by the clustered questions */
   factors: string[];
@@ -562,7 +562,7 @@ export interface EvidenceCluster {
 
 /**
  * Detect clusters of answered questions that share factors and could
- * form new SuspectedCause hubs.
+ * form new Hypothesis hubs.
  *
  * Groups answered questions by their factor, excludes factors already
  * covered by existing hubs, and returns clusters with 2+ questions
@@ -570,12 +570,12 @@ export interface EvidenceCluster {
  *
  * @param questions - All questions in scope
  * @param findings - All findings in scope
- * @param existingHubs - Existing SuspectedCause hubs (factors excluded)
+ * @param existingHubs - Existing Hypothesis hubs (factors excluded)
  */
 export function detectEvidenceClusters(
   questions: Question[],
   findings: Finding[],
-  existingHubs: SuspectedCause[]
+  existingHubs: Hypothesis[]
 ): EvidenceCluster[] {
   // Collect factors already covered by existing hubs
   const coveredFactors = new Set<string>();
@@ -622,24 +622,24 @@ export function detectEvidenceClusters(
 
 /**
  * Migrate legacy `causeRole: 'suspected-cause'` tags on questions into individual
- * SuspectedCause hub instances.
+ * Hypothesis hub instances.
  *
  * One hub is created per question that has `causeRole === 'suspected-cause'` and
  * a non-empty `factor` name. Questions with `ruled-out` or `contributing` roles,
  * or questions without a factor, are skipped.
  *
  * This is a one-time migration helper — new investigations should use the
- * SuspectedCause hub model directly.
+ * Hypothesis hub model directly.
  *
  * @param questions - All questions in the investigation tree
- * @returns New SuspectedCause hubs (one per migrated question)
+ * @returns New Hypothesis hubs (one per migrated question)
  */
-export function migrateCauseRolesToHubs(questions: Question[]): SuspectedCause[] {
-  const hubs: SuspectedCause[] = [];
+export function migrateCauseRolesToHubs(questions: Question[]): Hypothesis[] {
+  const hubs: Hypothesis[] = [];
   for (const q of questions) {
     if (q.causeRole !== 'suspected-cause') continue;
     if (!q.factor) continue;
-    hubs.push(createSuspectedCause(q.factor, '', [q.id], q.linkedFindingIds ?? []));
+    hubs.push(createHypothesis(q.factor, '', [q.id], q.linkedFindingIds ?? []));
   }
   return hubs;
 }

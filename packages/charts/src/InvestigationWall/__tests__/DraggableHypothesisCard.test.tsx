@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { DndContext } from '@dnd-kit/core';
 import { DraggableHypothesisCard } from '../DraggableHypothesisCard';
-import type { SuspectedCause } from '@variscout/core';
+import type { Hypothesis } from '@variscout/core';
 
-const hub: SuspectedCause = {
+const hub: Hypothesis = {
   id: 'h1',
   name: 'Nozzle runs hot',
   synthesis: '',

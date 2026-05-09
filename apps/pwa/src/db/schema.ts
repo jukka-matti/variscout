@@ -35,7 +35,7 @@ import type {
   EvidenceSourceCursor,
   RowProvenanceTag,
 } from '@variscout/core';
-import type { Finding, Question, CausalLink, SuspectedCause } from '@variscout/core/findings';
+import type { Finding, Question, CausalLink, Hypothesis } from '@variscout/core/findings';
 import type { ProcessMap } from '@variscout/core/frame';
 
 // ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ export type InvestigationRow = ProcessHubInvestigation;
 export type FindingRow = Finding;
 export type QuestionRow = Question;
 export type CausalLinkRow = CausalLink;
-export type SuspectedCauseRow = SuspectedCause;
+export type SuspectedCauseRow = Hypothesis;
 
 // ---------------------------------------------------------------------------
 // Database

@@ -62,7 +62,7 @@ describe('buildProblemStatement', () => {
     expect(result).not.toContain('Cpk');
   });
 
-  it('handles no suspected causes', () => {
+  it('handles no hypotheses', () => {
     const result = buildProblemStatement({
       outcome: 'Weight',
       suspectedCauses: [],

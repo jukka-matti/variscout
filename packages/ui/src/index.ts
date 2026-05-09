@@ -151,7 +151,7 @@ export {
   type JournalTabContentProps,
   type QuestionRowProps,
   type ConclusionCardProps,
-  type SuspectedCause,
+  type Hypothesis,
   QuestionInputModal,
   type QuestionInputModalProps,
   QuestionLinkModal,

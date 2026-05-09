@@ -155,7 +155,7 @@ const investigationOverlays: CanvasInvestigationOverlayModel = {
         {
           id: 'hub-1',
           name: 'Pressure setup drift',
-          status: 'suspected',
+          status: 'proposed',
           questionId: 'q-1',
           focus: { kind: 'suspected-cause', id: 'hub-1', questionId: 'q-1' },
         },

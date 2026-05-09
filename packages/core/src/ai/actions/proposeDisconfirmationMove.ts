@@ -1,13 +1,13 @@
 /**
  * Pure heuristic that proposes a complementary brush region analysts should try
- * in order to disconfirm a suspected cause. Emits a `SuggestedBrush` the Wall UI
+ * in order to disconfirm a hypothesis. Emits a `SuggestedBrush` the Wall UI
  * can hand to CoScout's `critique_investigation_state` tool output.
  *
  * Gate: hub has ≥3 supporting findings AND no existing finding with
  * validationStatus === 'contradicts'. Returns undefined otherwise.
  */
 
-import type { SuspectedCause, Finding, FindingSource, DataRow } from '../..';
+import type { Hypothesis, Finding, FindingSource, DataRow } from '../..';
 
 export interface SuggestedBrush {
   chart: FindingSource['chart'];
@@ -21,7 +21,7 @@ export interface SuggestedBrush {
 const SUPPORT_THRESHOLD = 3;
 
 export function proposeDisconfirmationMove(
-  hub: SuspectedCause,
+  hub: Hypothesis,
   findings: Finding[],
   data: DataRow[]
 ): SuggestedBrush | undefined {

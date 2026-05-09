@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { CausalLink, Finding, Question, SuspectedCause } from '@variscout/core';
+import type { CausalLink, Finding, Question, Hypothesis } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import { selectHypothesisTributaries } from '@variscout/stores';
 
@@ -90,7 +90,7 @@ export interface CanvasOverlayFindingItem {
 export interface CanvasOverlaySuspectedCauseItem {
   id: string;
   name: string;
-  status: SuspectedCause['status'];
+  status: Hypothesis['status'];
   questionId?: string;
   focus: CanvasInvestigationFocus;
 }
@@ -132,7 +132,7 @@ export interface BuildCanvasInvestigationOverlaysArgs {
   map: ProcessMap;
   questions?: readonly Question[];
   findings?: readonly Finding[];
-  suspectedCauses?: readonly SuspectedCause[];
+  suspectedCauses?: readonly Hypothesis[];
   causalLinks?: readonly CausalLink[];
 }
 
@@ -200,7 +200,7 @@ function hubStepIds({
   map,
   columnMap,
 }: {
-  hub: SuspectedCause;
+  hub: Hypothesis;
   findings: readonly Finding[];
   questions: readonly Question[];
   map: ProcessMap;
@@ -229,11 +229,11 @@ function hubStepIds({
   return stepsForColumns(columns, columnMap);
 }
 
-function isPromotedHub(hub: SuspectedCause): boolean {
-  return hub.status === 'suspected' || hub.status === 'confirmed';
+function isPromotedHub(hub: Hypothesis): boolean {
+  return hub.status !== 'refuted';
 }
 
-function hubOwnsLink(hub: SuspectedCause, link: CausalLink): boolean {
+function hubOwnsLink(hub: Hypothesis, link: CausalLink): boolean {
   if (link.suspectedCauseId && link.suspectedCauseId === hub.id) return true;
   return (
     link.questionIds.some(id => hub.questionIds.includes(id)) ||
@@ -344,7 +344,7 @@ export function buildCanvasInvestigationOverlays({
       const step = byStep[stepId];
       if (!step) continue;
       if (isPromotedHub(hub)) addUnique(step.suspectedCauses, item);
-      if (hub.status === 'not-confirmed') step.investigationCounts.refuted += 1;
+      if (hub.status === 'refuted') step.investigationCounts.refuted += 1;
       else if (hub.status === 'confirmed') step.investigationCounts.supported += 1;
       else step.investigationCounts.open += 1;
     }

@@ -99,7 +99,7 @@ interface InvestigationWorkspaceProps {
   handleSearchKnowledge: () => void;
   // Column aliases
   columnAliases: Record<string, string>;
-  // Hub model (SuspectedCause CRUD from useInvestigationOrchestration)
+  // Hub model (Hypothesis CRUD from useInvestigationOrchestration)
   suspectedCausesState: UseInvestigationOrchestrationReturn['suspectedCausesState'];
   // Derived investigation data (from orchestration hook)
   questionsMap: Record<string, QuestionDisplayData>;
@@ -345,7 +345,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     };
   }, [factorIntelQuestions]);
 
-  // ── Hub model computations (SuspectedCause hubs) ───────────────────────
+  // ── Hub model computations (Hypothesis hubs) ───────────────────────
   const hubs = suspectedCausesState.hubs;
 
   // Phase 13 — pan-to-node: replicate WallCanvas's deterministic layout so the
@@ -457,7 +457,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     },
     problemStatement,
     questions: questionsState.questions,
-    suspectedCauseHubs: hubs,
+    hypothesisHubs: hubs,
     onCurrentUnderstandingChange: handleCurrentUnderstandingChange,
   });
 

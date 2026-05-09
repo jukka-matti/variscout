@@ -14,7 +14,7 @@ import type {
   StagedComparison,
   Locale,
   EntryScenario,
-  SuspectedCause,
+  Hypothesis,
 } from '@variscout/core';
 import type {
   StatsResult,
@@ -85,7 +85,7 @@ export interface UseAIContextOptions {
   /** Evidence Map topology for graph-aware CoScout reasoning (ADR-066) */
   evidenceMapTopology?: BuildAIContextOptions['evidenceMapTopology'];
   /** Suspected cause hubs from investigation (ADR-064) */
-  suspectedCauses?: SuspectedCause[];
+  suspectedCauses?: Hypothesis[];
   /** Best subsets result for model equation and interaction effects context */
   bestSubsetsResult?: BuildAIContextOptions['bestSubsetsResult'];
 }

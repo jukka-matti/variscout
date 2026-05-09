@@ -18,7 +18,7 @@ const mockOnSuspectedCausesChange = vi.fn();
 const mockSerializerInstance = {
   onFindingsChange: mockOnFindingsChange,
   onQuestionsChange: mockOnQuestionsChange,
-  onSuspectedCausesChange: mockOnSuspectedCausesChange,
+  onHypothesesChange: mockOnSuspectedCausesChange,
   dispose: mockDispose,
 };
 

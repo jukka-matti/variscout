@@ -298,7 +298,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
         synthesis: '',
         questionIds: [],
         findingIds: [],
-        status: 'suspected',
+        status: 'proposed',
         createdAt: '',
         updatedAt: '',
       },

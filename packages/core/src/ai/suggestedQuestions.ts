@@ -52,7 +52,7 @@ const PHASE_QUESTIONS: Record<string, string[]> = {
     "What's the simplest change to improve process capability?",
   ],
   improving: [
-    'Are the corrective actions addressing the suspected cause?',
+    'Are the corrective actions addressing the hypothesis?',
     'What does the Capability chart show — is Cpk improving?',
   ],
 };

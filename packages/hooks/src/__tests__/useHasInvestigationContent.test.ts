@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { getInvestigationInitialState, useInvestigationStore } from '@variscout/stores';
-import type { Question, SuspectedCause } from '@variscout/core';
+import type { Question, Hypothesis } from '@variscout/core';
 import { useHasInvestigationContent } from '../useHasInvestigationContent';
 
-const sampleHub: SuspectedCause = {
+const sampleHub: Hypothesis = {
   id: 'hub-1',
   name: 'Test hub',
   synthesis: '',
-  status: 'suspected',
+  status: 'proposed',
   questionIds: [],
   findingIds: [],
   createdAt: 1714000000000,

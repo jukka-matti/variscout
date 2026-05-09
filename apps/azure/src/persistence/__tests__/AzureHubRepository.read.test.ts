@@ -395,11 +395,11 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
     });
 
     it('suspectedCauses.get returns undefined', async () => {
-      expect(await repo.suspectedCauses.get('any')).toBeUndefined();
+      expect(await repo.hypotheses.get('any')).toBeUndefined();
     });
 
     it('suspectedCauses.listByInvestigation returns []', async () => {
-      expect(await repo.suspectedCauses.listByInvestigation('inv-1')).toEqual([]);
+      expect(await repo.hypotheses.listByInvestigation('inv-1')).toEqual([]);
     });
   });
 });

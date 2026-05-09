@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CausalLink, Finding, Question, SuspectedCause } from '@variscout/core';
+import type { CausalLink, Finding, Question, Hypothesis } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import {
   CANVAS_OVERLAY_REGISTRY,
@@ -57,14 +57,14 @@ function finding(overrides: Partial<Finding> & { id: string }): Finding {
   };
 }
 
-function hub(overrides: Partial<SuspectedCause> & { id: string }): SuspectedCause {
+function hub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
   const { id } = overrides;
   return {
     name: `Hub ${id}`,
     synthesis: 'Evidence connects here.',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
+    status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,

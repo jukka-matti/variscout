@@ -15,7 +15,7 @@ import type {
   StageOrderMode,
   Finding,
   Question,
-  SuspectedCause,
+  Hypothesis,
   CausalLink,
   ProcessContext,
   InvestigationCategory,
@@ -179,8 +179,8 @@ export interface AnalysisState {
   categories?: InvestigationCategory[];
 
   // --- Suspected causes (investigation synthesis) ---
-  /** SuspectedCause hubs connecting evidence threads */
-  suspectedCauses?: SuspectedCause[];
+  /** Hypothesis hubs connecting evidence threads */
+  suspectedCauses?: Hypothesis[];
 
   // --- Causal links (investigation DAG) ---
   /** Causal links between factors (investigation DAG) */

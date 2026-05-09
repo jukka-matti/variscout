@@ -41,7 +41,7 @@ import type {
   FindingReadAPI,
   QuestionReadAPI,
   CausalLinkReadAPI,
-  SuspectedCauseReadAPI,
+  HypothesisReadAPI,
   CanvasStateReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
@@ -239,7 +239,7 @@ export class PwaHubRepository implements HubRepository {
     },
   };
 
-  suspectedCauses: SuspectedCauseReadAPI = {
+  hypotheses: HypothesisReadAPI = {
     get: async id => {
       const row = await db.suspectedCauses.get(id);
       if (!row || row.deletedAt !== null) return undefined;

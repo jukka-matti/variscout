@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TributaryFooter } from '../TributaryFooter';
-import type { ProcessMapTributary, SuspectedCause } from '@variscout/core';
+import type { ProcessMapTributary, Hypothesis } from '@variscout/core';
 
 const tributaries: ProcessMapTributary[] = [
   { id: 't1', stepId: 'n1', column: 'SHIFT' },
@@ -29,13 +29,13 @@ describe('TributaryFooter', () => {
   });
 
   it('does NOT dim tributaries referenced by a hub', () => {
-    const hub: SuspectedCause = {
+    const hub: Hypothesis = {
       id: 'h1',
       name: '',
       synthesis: '',
       questionIds: [],
       findingIds: [],
-      status: 'suspected',
+      status: 'proposed',
       tributaryIds: ['t1'],
       createdAt: '',
       updatedAt: '',

@@ -17,7 +17,7 @@ import type {
   FindingReadAPI,
   QuestionReadAPI,
   CausalLinkReadAPI,
-  SuspectedCauseReadAPI,
+  HypothesisReadAPI,
   CanvasStateReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
@@ -173,7 +173,7 @@ export class AzureHubRepository implements HubRepository {
     },
   };
 
-  suspectedCauses: SuspectedCauseReadAPI = {
+  hypotheses: HypothesisReadAPI = {
     // Azure has no dedicated suspectedCauses table today; F3 normalizes this.
     async get(_id) {
       return undefined;

@@ -12,7 +12,7 @@ import type {
   Question,
   FilterAction,
   ActionProposal,
-  SuspectedCause,
+  Hypothesis,
   CausalLink,
 } from '@variscout/core';
 import {
@@ -35,7 +35,7 @@ export interface ActionToolDeps {
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
   /** Existing suspected cause hubs — used by connect_hub_evidence handler */
-  suspectedCauses?: SuspectedCause[];
+  suspectedCauses?: Hypothesis[];
   /** Existing causal links — used by suggest_causal_link handler */
   causalLinks?: CausalLink[];
   /** Available factor column names — used for validation */
@@ -338,7 +338,7 @@ export function buildActionToolHandlers({
       return JSON.stringify({ proposal: true, ...proposal });
     },
 
-    suggest_suspected_cause: async (args: Record<string, unknown>) => {
+    suggest_hypothesis: async (args: Record<string, unknown>) => {
       const name = args.name as string;
       const synthesis = args.synthesis as string;
       const questionIds = args.questionIds as string[];
@@ -363,14 +363,14 @@ export function buildActionToolHandlers({
 
       const proposal: ActionProposal = {
         id: generateProposalId(),
-        tool: 'suggest_suspected_cause',
+        tool: 'suggest_hypothesis',
         params: { name, synthesis, questionIds, findingIds },
         preview: {
           name,
           synthesis,
           questionCount: questionIds.length,
           findingCount: findingIds.length,
-          previewText: `Create suspected cause: "${name}"\nConnecting ${questionIds.length} question${questionIds.length !== 1 ? 's' : ''} + ${findingIds.length} finding${findingIds.length !== 1 ? 's' : ''}`,
+          previewText: `Create hypothesis: "${name}"\nConnecting ${questionIds.length} question${questionIds.length !== 1 ? 's' : ''} + ${findingIds.length} finding${findingIds.length !== 1 ? 's' : ''}`,
         },
         status: 'pending',
         filterStackHash: hashFilterStack(filterStack),

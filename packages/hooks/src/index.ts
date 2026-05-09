@@ -489,10 +489,10 @@ export {
   type UseCanvasInvestigationOverlaysResult,
 } from './useCanvasInvestigationOverlays';
 
-// Suspected Cause Hubs (named mechanism groupings for investigation synthesis)
+// Hypothesis Hubs (named mechanism groupings for investigation synthesis)
 export {
   useSuspectedCauses,
-  type SuspectedCauseUpdate,
+  type HypothesisUpdate,
   type UseSuspectedCausesOptions,
   type UseSuspectedCausesReturn,
 } from './useSuspectedCauses';

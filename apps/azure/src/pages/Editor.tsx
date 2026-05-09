@@ -875,7 +875,7 @@ export const Editor: React.FC<EditorProps> = ({
     setQuestionLinkPromptOpen(false);
   }, []);
 
-  // Wall-variant propose-hypothesis CTA — creates a new SuspectedCause hub seeded
+  // Wall-variant propose-hypothesis CTA — creates a new Hypothesis hub seeded
   // from the finding and links the finding as the first piece of evidence.
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const createHubFromFinding = useInvestigationStore(s => s.createHubFromFinding);

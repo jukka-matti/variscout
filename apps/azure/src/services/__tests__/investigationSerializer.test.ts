@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   serializeFindings,
   serializeQuestions,
-  serializeSuspectedCauses,
+  serializeHypotheses,
   serializeInvestigationState,
   deserializeInvestigationState,
   createInvestigationSerializer,
 } from '../investigationSerializer';
-import type { Finding, Question, SuspectedCause } from '@variscout/core';
+import type { Finding, Question, Hypothesis } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -41,7 +41,7 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
   };
 }
 
-function makeSuspectedCause(overrides: Partial<SuspectedCause> = {}): SuspectedCause {
+function makeSuspectedCause(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
     id: 'sc-1',
     name: 'Nozzle wear on night shift',
@@ -56,7 +56,7 @@ function makeSuspectedCause(overrides: Partial<SuspectedCause> = {}): SuspectedC
         description: 'Explains 62% of variation',
       },
     },
-    status: 'suspected',
+    status: 'proposed',
     createdAt: 1704067200000, // 2024-01-01T00:00:00.000Z
     updatedAt: 1704153600000, // 2024-01-02T00:00:00.000Z
     deletedAt: null,
@@ -270,13 +270,13 @@ describe('serializeQuestions', () => {
 });
 
 // ---------------------------------------------------------------------------
-// serializeSuspectedCauses
+// serializeHypotheses
 // ---------------------------------------------------------------------------
 
-describe('serializeSuspectedCauses', () => {
+describe('serializeHypotheses', () => {
   it('produces valid JSONL — one JSON object per line', () => {
     const hubs = [makeSuspectedCause({ id: 'sc-1' }), makeSuspectedCause({ id: 'sc-2' })];
-    const jsonl = serializeSuspectedCauses(hubs);
+    const jsonl = serializeHypotheses(hubs);
     const lines = jsonl.split('\n');
     expect(lines).toHaveLength(2);
     lines.forEach(line => {
@@ -284,10 +284,10 @@ describe('serializeSuspectedCauses', () => {
     });
   });
 
-  it('sets type to "suspected-cause"', () => {
-    const jsonl = serializeSuspectedCauses([makeSuspectedCause()]);
+  it('sets type to "hypothesis"', () => {
+    const jsonl = serializeHypotheses([makeSuspectedCause()]);
     const parsed = JSON.parse(jsonl);
-    expect(parsed.type).toBe('suspected-cause');
+    expect(parsed.type).toBe('hypothesis');
   });
 
   it('includes all key hub fields', () => {
@@ -303,7 +303,7 @@ describe('serializeSuspectedCauses', () => {
       evidence,
       status: 'confirmed',
     });
-    const parsed = JSON.parse(serializeSuspectedCauses([hub]));
+    const parsed = JSON.parse(serializeHypotheses([hub]));
     expect(parsed.name).toBe('Nozzle wear on night shift');
     expect(parsed.synthesis).toBe('Both factors confirm the pattern.');
     expect(parsed.questionIds).toEqual(['q-1', 'q-2']);
@@ -314,23 +314,23 @@ describe('serializeSuspectedCauses', () => {
 
   it('includes selectedForImprovement when set', () => {
     const hub = makeSuspectedCause({ status: 'confirmed', selectedForImprovement: true });
-    const parsed = JSON.parse(serializeSuspectedCauses([hub]));
+    const parsed = JSON.parse(serializeHypotheses([hub]));
     expect(parsed.selectedForImprovement).toBe(true);
   });
 
   it('omits selectedForImprovement when undefined', () => {
     const hub = makeSuspectedCause({ status: 'confirmed', selectedForImprovement: undefined });
-    const parsed = JSON.parse(serializeSuspectedCauses([hub]));
+    const parsed = JSON.parse(serializeHypotheses([hub]));
     expect(parsed.selectedForImprovement).toBeUndefined();
   });
 
-  it('excludes not-confirmed hubs from Foundry IQ output', () => {
+  it('excludes refuted hubs from Foundry IQ output', () => {
     const hubs = [
-      makeSuspectedCause({ id: 'sc-1', status: 'suspected' }),
+      makeSuspectedCause({ id: 'sc-1', status: 'proposed' }),
       makeSuspectedCause({ id: 'sc-2', status: 'confirmed' }),
-      makeSuspectedCause({ id: 'sc-3', status: 'not-confirmed' }),
+      makeSuspectedCause({ id: 'sc-3', status: 'refuted' }),
     ];
-    const jsonl = serializeSuspectedCauses(hubs);
+    const jsonl = serializeHypotheses(hubs);
     const lines = jsonl.split('\n');
     expect(lines).toHaveLength(2);
     const ids = lines.map(l => JSON.parse(l).id);
@@ -340,15 +340,15 @@ describe('serializeSuspectedCauses', () => {
   });
 
   it('returns empty string for empty hubs array', () => {
-    expect(serializeSuspectedCauses([])).toBe('');
+    expect(serializeHypotheses([])).toBe('');
   });
 
-  it('returns empty string when all hubs are not-confirmed', () => {
+  it('returns empty string when all hubs are refuted', () => {
     const hubs = [
-      makeSuspectedCause({ status: 'not-confirmed' }),
-      makeSuspectedCause({ id: 'sc-2', status: 'not-confirmed' }),
+      makeSuspectedCause({ status: 'refuted' }),
+      makeSuspectedCause({ id: 'sc-2', status: 'refuted' }),
     ];
-    expect(serializeSuspectedCauses(hubs)).toBe('');
+    expect(serializeHypotheses(hubs)).toBe('');
   });
 });
 
@@ -439,7 +439,7 @@ describe('deserializeInvestigationState', () => {
     expect(result.suspectedCauses).toEqual([]);
   });
 
-  it('migrates legacy totalContribution (number) to SuspectedCauseEvidence on load', () => {
+  it('migrates legacy totalContribution (number) to HypothesisEvidence on load', () => {
     const raw = {
       findings: [],
       questions: [],
@@ -451,7 +451,7 @@ describe('deserializeInvestigationState', () => {
           questionIds: [],
           findingIds: [],
           totalContribution: 0.52,
-          status: 'suspected',
+          status: 'proposed',
           createdAt: '2024-01-01T00:00:00.000Z',
           updatedAt: '2024-01-01T00:00:00.000Z',
         },
@@ -473,6 +473,32 @@ describe('deserializeInvestigationState', () => {
     });
   });
 
+  it('migrates legacy hypothesis status values on load', () => {
+    const raw = {
+      findings: [],
+      questions: [],
+      suspectedCauses: [
+        {
+          ...makeSuspectedCause({ id: 'legacy-suspected' }),
+          status: 'suspected',
+        },
+        {
+          ...makeSuspectedCause({ id: 'legacy-not-confirmed' }),
+          status: 'not-confirmed',
+        },
+      ],
+    };
+
+    const result = deserializeInvestigationState(
+      raw as unknown as import('../investigationSerializer').SerializedInvestigationState
+    );
+
+    expect(result.suspectedCauses.map(hub => [hub.id, hub.status])).toEqual([
+      ['legacy-suspected', 'proposed'],
+      ['legacy-not-confirmed', 'refuted'],
+    ]);
+  });
+
   it('does not overwrite existing evidence when both totalContribution and evidence are present', () => {
     const existingEvidence = {
       mode: 'capability' as const,
@@ -490,7 +516,7 @@ describe('deserializeInvestigationState', () => {
           findingIds: [],
           totalContribution: 0.52,
           evidence: existingEvidence,
-          status: 'suspected',
+          status: 'proposed',
           createdAt: '2024-01-01T00:00:00.000Z',
           updatedAt: '2024-01-01T00:00:00.000Z',
         },
@@ -626,9 +652,9 @@ describe('createInvestigationSerializer', () => {
     const serializer = createInvestigationSerializer({ projectId: 'proj-sc', uploadBlob });
 
     const hubs = [makeSuspectedCause()];
-    serializer.onSuspectedCausesChange(hubs);
-    serializer.onSuspectedCausesChange(hubs);
-    serializer.onSuspectedCausesChange(hubs);
+    serializer.onHypothesesChange(hubs);
+    serializer.onHypothesesChange(hubs);
+    serializer.onHypothesesChange(hubs);
 
     expect(uploadBlob).not.toHaveBeenCalled();
 
@@ -636,7 +662,7 @@ describe('createInvestigationSerializer', () => {
 
     expect(uploadBlob).toHaveBeenCalledTimes(1);
     expect(uploadBlob).toHaveBeenCalledWith(
-      'proj-sc/investigation/suspected-causes.jsonl',
+      'proj-sc/investigation/hypotheses.jsonl',
       expect.any(String)
     );
     serializer.dispose();
@@ -675,13 +701,10 @@ describe('createInvestigationSerializer', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const serializer = createInvestigationSerializer({ projectId: 'proj-sc-err', uploadBlob });
 
-    serializer.onSuspectedCausesChange([makeSuspectedCause()]);
+    serializer.onHypothesesChange([makeSuspectedCause()]);
 
     await expect(vi.runAllTimersAsync()).resolves.not.toThrow();
-    expect(warnSpy).toHaveBeenCalledWith(
-      '[KB] Failed to serialize suspected causes:',
-      expect.any(Error)
-    );
+    expect(warnSpy).toHaveBeenCalledWith('[KB] Failed to serialize hypotheses:', expect.any(Error));
 
     warnSpy.mockRestore();
     serializer.dispose();
@@ -715,7 +738,7 @@ describe('createInvestigationSerializer', () => {
     const uploadBlob = vi.fn().mockResolvedValue(undefined);
     const serializer = createInvestigationSerializer({ projectId: 'proj-sc-dispose', uploadBlob });
 
-    serializer.onSuspectedCausesChange([makeSuspectedCause()]);
+    serializer.onHypothesesChange([makeSuspectedCause()]);
     serializer.dispose();
 
     await vi.runAllTimersAsync();
@@ -745,7 +768,7 @@ describe('createInvestigationSerializer', () => {
 
     serializer.onFindingsChange([makeFinding()]);
     serializer.onQuestionsChange([makeQuestion()]);
-    serializer.onSuspectedCausesChange([makeSuspectedCause()]);
+    serializer.onHypothesesChange([makeSuspectedCause()]);
 
     await vi.runAllTimersAsync();
 
@@ -753,7 +776,7 @@ describe('createInvestigationSerializer', () => {
     const paths = uploadBlob.mock.calls.map(([p]) => p);
     expect(paths).toContain('proj-8/investigation/findings.jsonl');
     expect(paths).toContain('proj-8/investigation/questions.jsonl');
-    expect(paths).toContain('proj-8/investigation/suspected-causes.jsonl');
+    expect(paths).toContain('proj-8/investigation/hypotheses.jsonl');
     serializer.dispose();
   });
 });

@@ -11,7 +11,7 @@
 import React, { useMemo } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import type {
-  SuspectedCause,
+  Hypothesis,
   Finding,
   Question,
   ProcessMap,
@@ -34,7 +34,7 @@ import { useWallDragDrop } from './hooks/useWallDragDrop';
 import { useWallIsMobile } from './hooks/useWallBreakpoint';
 
 export interface WallCanvasProps {
-  hubs: SuspectedCause[];
+  hubs: Hypothesis[];
   findings: Finding[];
   questions: Question[];
   processMap?: ProcessMap;
@@ -103,9 +103,9 @@ export interface WallCanvasProps {
 export const CANVAS_W = 2000;
 export const CANVAS_H = 1400;
 
-function deriveDisplayStatus(hub: SuspectedCause, findings: Finding[]): WallStatus {
+function deriveDisplayStatus(hub: Hypothesis, findings: Finding[]): WallStatus {
   if (hub.status === 'confirmed') return 'confirmed';
-  if (hub.status === 'not-confirmed') return 'refuted';
+  if (hub.status === 'refuted') return 'refuted';
   const supporting = hub.findingIds
     .map(id => findings.find(f => f.id === id))
     .filter((f): f is Finding => !!f);
@@ -167,7 +167,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     const tributaryById = new Map(tributaries.map(t => [t.id, t]));
     type Bucket = {
       tributary: (typeof tributaries)[number] | null;
-      hubs: SuspectedCause[];
+      hubs: Hypothesis[];
     };
     const buckets: Bucket[] = tributaries.map(t => ({ tributary: t, hubs: [] }));
     const unassigned: Bucket = { tributary: null, hubs: [] };
@@ -241,7 +241,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const hubY = 400;
   const hubSpacing = CANVAS_W / (hubs.length + 1);
 
-  const renderHubAt = (hub: SuspectedCause, x: number) => {
+  const renderHubAt = (hub: Hypothesis, x: number) => {
     const hubProps = {
       hub,
       branch: branchByHubId.get(hub.id),

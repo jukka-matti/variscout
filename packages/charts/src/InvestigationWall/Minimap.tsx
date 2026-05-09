@@ -14,7 +14,7 @@
  */
 
 import React from 'react';
-import type { SuspectedCause, Question } from '@variscout/core';
+import type { Hypothesis, Question } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { chartColors } from '../colors';
 import { CANVAS_W, CANVAS_H } from './WallCanvas';
@@ -29,7 +29,7 @@ const HUB_Y = 400;
 const QUESTION_Y = 900;
 
 export interface MinimapProps {
-  hubs: SuspectedCause[];
+  hubs: Hypothesis[];
   questions: Question[];
   /** Current viewport zoom. */
   zoom: number;

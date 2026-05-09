@@ -22,7 +22,7 @@ export type { JournalEntryRowProps } from './JournalEntryRow';
 export { default as QuestionRow } from './QuestionRow';
 export type { QuestionRowProps } from './QuestionRow';
 export { default as ConclusionCard } from './ConclusionCard';
-export type { ConclusionCardProps, SuspectedCause } from './ConclusionCard';
+export type { ConclusionCardProps, Hypothesis } from './ConclusionCard';
 export { default as QuestionsTabView } from './QuestionsTabView';
 export type { QuestionsTabViewProps } from './QuestionsTabView';
 export { QuestionInputModal } from './QuestionInputModal';

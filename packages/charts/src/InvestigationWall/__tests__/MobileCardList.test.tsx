@@ -1,21 +1,21 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MobileCardList } from '../MobileCardList';
-import type { SuspectedCause, Finding, Question } from '@variscout/core';
+import type { Hypothesis, Finding, Question } from '@variscout/core';
 
-const makeHub = (overrides: Partial<SuspectedCause> = {}): SuspectedCause => ({
+const makeHub = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   id: 'h1',
   name: 'Nozzle runs hot',
   synthesis: '',
   questionIds: [],
   findingIds: [],
-  status: 'suspected',
+  status: 'proposed',
   createdAt: '',
   updatedAt: '',
   ...overrides,
 });
 
-const hubA: SuspectedCause = makeHub({
+const hubA: Hypothesis = makeHub({
   id: 'hA',
   name: 'Nozzle runs hot',
   findingIds: ['f1', 'f2', 'f3'],
@@ -23,12 +23,12 @@ const hubA: SuspectedCause = makeHub({
   status: 'confirmed',
 });
 
-const hubB: SuspectedCause = makeHub({
+const hubB: Hypothesis = makeHub({
   id: 'hB',
   name: 'Operator variance',
   findingIds: [],
   questionIds: [],
-  status: 'suspected',
+  status: 'proposed',
 });
 
 describe('MobileCardList', () => {
@@ -55,7 +55,7 @@ describe('MobileCardList', () => {
         validationStatus: 'supports',
       } as unknown as Finding,
     ];
-    const hub = makeHub({ id: 'h-ev', findingIds: ['f1'], status: 'suspected' });
+    const hub = makeHub({ id: 'h-ev', findingIds: ['f1'], status: 'proposed' });
     render(<MobileCardList hubs={[hub]} findings={findings} questions={[]} />);
     expect(screen.getByTestId('wall-mobile-hub-h-ev')).toHaveAttribute('data-status', 'evidenced');
   });

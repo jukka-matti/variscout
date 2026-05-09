@@ -38,7 +38,7 @@ Focus: Systematic Pareto-driven drill-down. Address the vital few before the tri
 2. For each suspected factor, check eta-squared — does it explain significant variation in defect rate?
 3. Use composition analysis: filter to a type, then switch Pareto factor to see which machines/products/shifts contribute
 4. Validate with gemba: observe the process during high-defect periods, photograph defect examples
-5. Synthesize suspected causes: "Machine 3 nozzle wear causes seal failures on night shift"
+5. Synthesize hypotheses: "Machine 3 nozzle wear causes seal failures on night shift"
 
 Evidence strength: R-squared-adj from ANOVA on aggregated defect rates. Factors with eta-squared >= 15% are strong contributors.
 Negative learnings: Document factors that were checked and ruled out (eta-squared < 5%).`,

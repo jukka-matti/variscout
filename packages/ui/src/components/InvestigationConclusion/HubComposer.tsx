@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, ChevronDown, ChevronRight } from 'lucide-react';
-import type { Question, Finding, SuspectedCause, SuspectedCauseEvidence } from '@variscout/core';
+import type { Question, Finding, Hypothesis, HypothesisEvidence } from '@variscout/core';
 import type { HubProjection } from '@variscout/core/findings';
 
 export interface HubComposerBranchFields {
@@ -17,9 +17,9 @@ export interface HubComposerProps {
   /** All available findings for connection */
   findings: Finding[];
   /** Existing hub to edit (undefined = creating new) */
-  editingHub?: SuspectedCause;
+  editingHub?: Hypothesis;
   /** Evidence from computeHubEvidence */
-  evidence?: SuspectedCauseEvidence;
+  evidence?: HypothesisEvidence;
   /** Projection from computeHubProjection */
   projection?: HubProjection;
   /** Called when hub is created/saved */

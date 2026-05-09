@@ -2,7 +2,7 @@
  * SynthesisLayer — Layer 3 of the Evidence Map
  *
  * Renders convergence zones where multiple causal chains meet,
- * SuspectedCause hub labels, status indicators, and projected improvements.
+ * Hypothesis hub labels, status indicators, and projected improvements.
  * Azure only — not rendered in PWA.
  */
 
@@ -21,11 +21,15 @@ function getStatusColor(status?: string): string {
   switch (status) {
     case 'confirmed':
       return chartColors.pass;
-    case 'not-confirmed':
+    case 'refuted':
       return getChromeColors(true).labelMuted; // slate-500
-    case 'suspected':
-    default:
+    case 'needs-disconfirmation':
+      return chartColors.warning;
+    case 'evidenced':
       return chartColors.cpPotential;
+    case 'proposed':
+    default:
+      return chartColors.selected;
   }
 }
 
@@ -81,7 +85,7 @@ const SynthesisLayer: React.FC<SynthesisLayerProps> = ({
                   x={0}
                   y={zoneRadius + 18}
                   textAnchor="middle"
-                  fill={isDark ? '#c4b5fd' : '#6d28d9'}
+                  fill={isDark ? chartColors.quadratic : chartColors.cpPotential}
                   fontSize={9}
                   fontWeight="bold"
                 >
@@ -90,9 +94,13 @@ const SynthesisLayer: React.FC<SynthesisLayerProps> = ({
                 <text x={0} y={zoneRadius + 30} textAnchor="middle" fill={statusColor} fontSize={7}>
                   {point.hubStatus === 'confirmed'
                     ? 'CONFIRMED'
-                    : point.hubStatus === 'not-confirmed'
+                    : point.hubStatus === 'refuted'
                       ? 'NOT CONFIRMED'
-                      : 'SUSPECTED ROOT CAUSE'}
+                      : point.hubStatus === 'needs-disconfirmation'
+                        ? 'NEEDS DISCONFIRMATION'
+                        : point.hubStatus === 'evidenced'
+                          ? 'EVIDENCED HYPOTHESIS'
+                          : 'PROPOSED HYPOTHESIS'}
                 </text>
               </>
             )}
@@ -103,7 +111,7 @@ const SynthesisLayer: React.FC<SynthesisLayerProps> = ({
                 x={0}
                 y={-(zoneRadius + 8)}
                 textAnchor="middle"
-                fill={isDark ? '#86efac' : '#15803d'}
+                fill={chartColors.pass}
                 fontSize={8}
                 fontWeight="bold"
               >

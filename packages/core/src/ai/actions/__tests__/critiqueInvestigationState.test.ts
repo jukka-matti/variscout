@@ -1,17 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { critiqueInvestigationState } from '../critiqueInvestigationState';
-import type { SuspectedCause, Question, Finding } from '@variscout/core';
+import type { Hypothesis, Question, Finding } from '@variscout/core';
 
 const FIXED_NOW = Date.parse('2026-04-19T00:00:00Z');
 
-function hub(id: string, findingIds: string[], questionIds: string[] = []): SuspectedCause {
+function hub(id: string, findingIds: string[], questionIds: string[] = []): Hypothesis {
   return {
     id,
     name: id,
     synthesis: '',
     questionIds,
     findingIds,
-    status: 'suspected',
+    status: 'proposed',
     createdAt: FIXED_NOW,
     updatedAt: FIXED_NOW,
     deletedAt: null,
@@ -78,7 +78,7 @@ describe('critiqueInvestigationState', () => {
   });
 
   it('flags orphan open questions not linked to any hub', () => {
-    const hubs: SuspectedCause[] = [];
+    const hubs: Hypothesis[] = [];
     const questions = [question('q1'), question('q2', 'answered')];
     const result = critiqueInvestigationState({ hubs, questions, findings: [] });
     // q1 is open and orphan; q2 is answered (not orphan-flaggable).

@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { ProcessContext, Question, SuspectedCause } from '@variscout/core';
+import type { ProcessContext, Question, Hypothesis } from '@variscout/core';
 import { useCurrentUnderstanding } from '../useCurrentUnderstanding';
 
 function makeQuestion(overrides: Partial<Question> = {}): Question {
@@ -21,7 +21,7 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
   };
 }
 
-function makeHub(overrides: Partial<SuspectedCause> = {}): SuspectedCause {
+function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
     id: 'hub-1',
     name: 'Changeover setup',
@@ -29,7 +29,7 @@ function makeHub(overrides: Partial<SuspectedCause> = {}): SuspectedCause {
     questionIds: ['q-1'],
     findingIds: [],
     selectedForImprovement: false,
-    status: 'suspected',
+    status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
@@ -57,7 +57,7 @@ describe('useCurrentUnderstanding', () => {
           generatedDraft: null,
         },
         questions: [makeQuestion()],
-        suspectedCauseHubs: [makeHub()],
+        hypothesisHubs: [makeHub()],
       })
     );
 

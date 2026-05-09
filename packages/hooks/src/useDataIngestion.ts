@@ -38,7 +38,7 @@ import {
   type Finding,
   type Question,
   type InvestigationCategory,
-  type SuspectedCause,
+  type Hypothesis,
   type CausalLink,
   type SubgroupConfig,
   type DisplayOptions,
@@ -76,8 +76,8 @@ export interface DataIngestionActions {
   setQuestions?: (questions: Question[]) => void;
   /** Set pre-populated investigation categories (for showcase/demo datasets) */
   setCategories?: (categories: InvestigationCategory[]) => void;
-  /** Replace SuspectedCause hubs with a seeded set (showcase/demo datasets) */
-  setSuspectedCauses?: (hubs: SuspectedCause[]) => void;
+  /** Replace Hypothesis hubs with a seeded set (showcase/demo datasets) */
+  setSuspectedCauses?: (hubs: Hypothesis[]) => void;
   /** Replace CausalLinks with a seeded set (showcase/demo datasets) */
   setCausalLinks?: (links: CausalLink[]) => void;
   /** Set the process context (used to seed FRAME Process Map on showcases) */

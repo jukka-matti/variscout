@@ -31,18 +31,18 @@ Focus: Systematic factor-by-factor stratification. Evidence strength = R-squared
   investigate: `Workflow steps:
 1. Create questions for top factors — each question targets a specific factor or level
 2. Validate with three evidence types: data (auto eta-squared), gemba (go-see), expert knowledge
-3. Synthesize answered questions into suspected causes — name the mechanism, not just the factor
+3. Synthesize answered questions into hypotheses — name the mechanism, not just the factor
 4. Use the Evidence Map to visualize factor relationships and causal links
 
 Focus: Question-driven investigation. Each question narrows the search space.`,
 
   improve: `Workflow steps:
-1. HMW brainstorm per suspected cause — How Might We prevent, detect, simplify, or eliminate?
+1. HMW brainstorm per hypothesis — How Might We prevent, detect, simplify, or eliminate?
 2. Prioritize by impact x effort — use the Prioritization Matrix to rank ideas
 3. PDCA execution — Plan actions, Do the work, Check with staged analysis, Act on results
 4. Verify with Before/After comparison — staged analysis confirms improvement
 
-Focus: Lean improvement targeting the root cause. Simplest fix that addresses the mechanism.`,
+Focus: Lean improvement targeting the contribution. Simplest fix that addresses the mechanism.`,
 };
 
 /**

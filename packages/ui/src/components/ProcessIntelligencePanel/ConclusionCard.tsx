@@ -1,33 +1,35 @@
 import React from 'react';
 import { Check, ArrowRight } from 'lucide-react';
 import type {
-  SuspectedCause as SuspectedCauseHub,
-  SuspectedCauseEvidence,
+  Hypothesis as SuspectedCauseHub,
+  HypothesisEvidence,
   HubProjection,
 } from '@variscout/core';
 
-export interface SuspectedCause {
+export interface Hypothesis {
   factor: string;
   projectedCpk?: number;
 }
 
 export interface ConclusionCardProps {
-  suspectedCauses: SuspectedCause[];
+  suspectedCauses: Hypothesis[];
   currentCpk?: number;
   combinedProjectedCpk?: number;
   targetCpk?: number;
   /** Hub-based display (new model) */
   hubs?: SuspectedCauseHub[];
-  hubEvidences?: Map<string, SuspectedCauseEvidence>;
+  hubEvidences?: Map<string, HypothesisEvidence>;
   /** Model-based projections per hub (from computeHubProjection) */
   hubProjections?: Map<string, HubProjection>;
   onNavigateToInvestigation?: () => void;
 }
 
 const HUB_STATUS_DOT: Record<SuspectedCauseHub['status'], string> = {
-  suspected: 'bg-amber-500',
+  proposed: 'bg-slate-400',
+  evidenced: 'bg-amber-500',
   confirmed: 'bg-green-500',
-  'not-confirmed': 'bg-content-muted/40',
+  refuted: 'bg-content-muted/40',
+  'needs-disconfirmation': 'bg-orange-500',
 };
 
 /**

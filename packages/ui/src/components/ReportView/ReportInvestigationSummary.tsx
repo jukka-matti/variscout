@@ -18,7 +18,7 @@ import type { CurrentUnderstanding } from '@variscout/core';
 // Types
 // ============================================================================
 
-interface SuspectedCause {
+interface Hypothesis {
   text: string;
   factor?: string;
   level?: string;
@@ -39,7 +39,7 @@ export interface ReportInvestigationSummaryProps {
   /** Approved problem statement */
   problemStatement?: string;
   /** Suspected causes from investigation */
-  suspectedCauses?: SuspectedCause[];
+  suspectedCauses?: Hypothesis[];
   /** Ruled-out factors (negative learnings) */
   ruledOut?: RuledOutFactor[];
 }

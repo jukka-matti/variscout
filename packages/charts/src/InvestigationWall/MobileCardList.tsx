@@ -7,7 +7,7 @@
  * status-colored left border.
  *
  * Status derivation mirrors `deriveDisplayStatus` in WallCanvas: confirmed
- * and not-confirmed map directly; otherwise "evidenced" when at least one
+ * and refuted map directly; otherwise "evidenced" when at least one
  * supporting finding exists without a contradictor, else "proposed".
  */
 
@@ -16,7 +16,7 @@ import {
   projectMechanismBranch,
   type MessageCatalog,
   type ProcessMap,
-  type SuspectedCause,
+  type Hypothesis,
   type Finding,
   type Question,
 } from '@variscout/core';
@@ -27,7 +27,7 @@ import type { WallStatus } from './types';
 import { useWallLocale } from './hooks/useWallLocale';
 
 export interface MobileCardListProps {
-  hubs: SuspectedCause[];
+  hubs: Hypothesis[];
   findings: Finding[];
   /**
    * Question list. Currently only `hub.questionIds.length` (linked questions)
@@ -67,9 +67,9 @@ const STATUS_ACCENT: Record<WallStatus, string> = {
  * WallCanvas) to avoid introducing a shared-helpers file mid-phase — the
  * computation is tiny and the two call sites share nothing else.
  */
-function deriveDisplayStatus(hub: SuspectedCause, findings: Finding[]): WallStatus {
+function deriveDisplayStatus(hub: Hypothesis, findings: Finding[]): WallStatus {
   if (hub.status === 'confirmed') return 'confirmed';
-  if (hub.status === 'not-confirmed') return 'refuted';
+  if (hub.status === 'refuted') return 'refuted';
   const supporting = hub.findingIds
     .map(id => findings.find(f => f.id === id))
     .filter((f): f is Finding => !!f);

@@ -7,7 +7,7 @@
  */
 
 import type { HypothesisCondition } from './hypothesisCondition';
-import type { SuspectedCause, GateNode } from './types';
+import type { GateNode, Hypothesis } from './types';
 
 export type DataRow = Record<string, unknown>;
 
@@ -42,11 +42,7 @@ export interface AndCheckResult {
  * Hubs without a condition evaluate to false (cannot be disconfirmed without a rule).
  * Unknown hub IDs evaluate to false.
  */
-export function runAndCheck(
-  tree: GateNode,
-  hubs: SuspectedCause[],
-  rows: DataRow[]
-): AndCheckResult {
+export function runAndCheck(tree: GateNode, hubs: Hypothesis[], rows: DataRow[]): AndCheckResult {
   const hubById = new Map(hubs.map(h => [h.id, h]));
   const matching: number[] = [];
 
@@ -56,7 +52,7 @@ export function runAndCheck(
   return { total: rows.length, holds: matching.length, matchingRowIndices: matching };
 }
 
-function evaluateGate(node: GateNode, hubById: Map<string, SuspectedCause>, row: DataRow): boolean {
+function evaluateGate(node: GateNode, hubById: Map<string, Hypothesis>, row: DataRow): boolean {
   switch (node.kind) {
     case 'hub': {
       const hub = hubById.get(node.hubId);

@@ -35,7 +35,7 @@ import { buildModeWorkflow } from './modes';
 import { formatInvestigationContext, formatDataContext, formatKnowledgeContext } from './context';
 import { getToolsForPhase } from './tools';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from '../shared';
-import type { SuspectedCause } from '../../../findings/types';
+import type { Hypothesis } from '../../../findings/types';
 import { investigationDisciplinePrompt } from './tier2';
 
 /**
@@ -124,7 +124,7 @@ export function assembleCoScoutPrompt(
   const tools = getToolsForPhase(phase, mode, {
     isTeamPlan,
     investigationPhase,
-    existingHubs: context?.investigation?.suspectedCauseHubs as SuspectedCause[] | undefined,
+    existingHubs: context?.investigation?.hypothesisHubs as Hypothesis[] | undefined,
   });
 
   return {

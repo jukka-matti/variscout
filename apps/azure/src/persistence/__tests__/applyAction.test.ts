@@ -43,7 +43,7 @@ import type { HubAction } from '@variscout/core/actions';
 // Exhaustiveness test: build a minimal stub for each no-op session-only action kind.
 // These are passed to handlers that do nothing with the payload; shape validity is
 // enforced at the type level but the exhaustiveness suite uses `as HubAction` casts
-// to avoid duplicating complex Finding/Question/CausalLink/SuspectedCause fixtures.
+// to avoid duplicating complex Finding/Question/CausalLink/Hypothesis fixtures.
 // Real round-trip tests (OUTCOME_*, EVIDENCE_*) use fully typed fixtures below.
 
 // ---------------------------------------------------------------------------
@@ -524,7 +524,7 @@ describe('applyAction — EVIDENCE_SOURCE_REMOVE', () => {
 
 describe('applyAction — session-only no-ops', () => {
   // Session-only no-op tests use `as HubAction` casts for complex payloads
-  // (Finding, Question, CausalLink, SuspectedCause) because the handlers consume
+  // (Finding, Question, CausalLink, Hypothesis) because the handlers consume
   // nothing from the payload — they are structural no-ops. Full type-safety is
   // enforced at real call sites; cast only in tests for session-only no-ops.
 

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronRight, ClipboardCheck, Sparkles, Check, X, Plus } from 'lucide-react';
-import type { Question, Finding, SuspectedCause, SuspectedCauseEvidence } from '@variscout/core';
+import type { Question, Finding, Hypothesis, HypothesisEvidence } from '@variscout/core';
 import type { HubProjection, EvidenceCluster } from '@variscout/core/findings';
 import { HubComposer, type HubComposerBranchFields } from '../InvestigationConclusion/HubComposer';
 import { HubCard } from '../InvestigationConclusion/HubCard';
@@ -35,9 +35,9 @@ export interface InvestigationConclusionProps {
   onAcceptProblemStatement?: (text: string) => void;
   /** Dismiss the draft */
   onDismissProblemStatement?: () => void;
-  /** SuspectedCause hub management */
-  hubs?: SuspectedCause[];
-  hubEvidences?: Map<string, SuspectedCauseEvidence>;
+  /** Hypothesis hub management */
+  hubs?: Hypothesis[];
+  hubEvidences?: Map<string, HypothesisEvidence>;
   hubProjections?: Map<string, HubProjection>;
   onCreateHub?: (
     name: string,

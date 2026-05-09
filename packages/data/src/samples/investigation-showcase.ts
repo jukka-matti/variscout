@@ -1,6 +1,6 @@
 import type { SampleDataset } from '../types';
 import { seedRandom, generateNormal, round } from '../utils';
-import type { Finding, Question, SuspectedCause, InvestigationCategory } from '@variscout/core';
+import type { Finding, Question, Hypothesis, InvestigationCategory } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 // ============================================================================
@@ -411,7 +411,7 @@ function buildFindings(): Finding[] {
   ];
 }
 
-function buildSuspectedCauses(): SuspectedCause[] {
+function buildSuspectedCauses(): Hypothesis[] {
   return [
     {
       id: IDS.HUB_NOZZLE,
@@ -433,7 +433,7 @@ function buildSuspectedCauses(): SuspectedCause[] {
         },
       },
       selectedForImprovement: true,
-      status: 'suspected',
+      status: 'proposed',
       createdAt: epoch(28),
       updatedAt: epoch(48),
     },

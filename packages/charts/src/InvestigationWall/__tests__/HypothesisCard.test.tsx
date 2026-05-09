@@ -5,10 +5,10 @@ import {
   projectMechanismBranch,
   type Finding,
   type Question,
-  type SuspectedCause,
+  type Hypothesis,
 } from '@variscout/core';
 
-const hub: SuspectedCause = {
+const hub: Hypothesis = {
   id: 'h1',
   name: 'Nozzle runs hot on night shift',
   synthesis: '',
@@ -96,7 +96,7 @@ describe('HypothesisCard', () => {
     const branch = projectMechanismBranch(
       {
         ...hub,
-        status: 'suspected',
+        status: 'proposed',
         nextMove: 'Run a late-shift temperature check.',
         questionIds: ['q1'],
       },
@@ -106,7 +106,7 @@ describe('HypothesisCard', () => {
     render(
       <svg>
         <HypothesisCard
-          hub={{ ...hub, status: 'suspected' }}
+          hub={{ ...hub, status: 'proposed' }}
           branch={branch}
           displayStatus="evidenced"
           x={0}

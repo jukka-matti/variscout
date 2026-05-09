@@ -1,10 +1,4 @@
-import type {
-  Finding,
-  MechanismBranchReadiness,
-  MechanismBranchStatus,
-  Question,
-  SuspectedCause,
-} from './types';
+import type { Finding, Hypothesis, HypothesisStatus, Question } from './types';
 import type { ProcessMap, ProcessMapTributary } from '../frame/types';
 import { buildBranchSignalWarnings } from '../signalCards';
 import type { BranchSignalWarning, SignalCard } from '../signalCards';
@@ -31,7 +25,7 @@ export interface MechanismBranchClueView {
 }
 
 export interface MechanismBranchReadinessView {
-  value: MechanismBranchReadiness;
+  value: 'not-tested' | 'needs-check' | 'evidence-backed' | 'ready-to-act' | 'closed';
   label: string;
 }
 
@@ -40,8 +34,8 @@ export interface MechanismBranchViewModel {
   hubId: string;
   suspectedMechanism: string;
   synthesis: string;
-  status: SuspectedCause['status'];
-  branchStatus: MechanismBranchStatus;
+  status: HypothesisStatus;
+  branchStatus: HypothesisStatus;
   readiness: MechanismBranchReadinessView;
   nextMove?: string;
   supportingClues: MechanismBranchClueView[];
@@ -62,7 +56,7 @@ export interface MechanismBranchProjectionOptions {
   signalCards?: SignalCard[];
 }
 
-const READINESS_LABELS: Record<MechanismBranchReadiness, string> = {
+const READINESS_LABELS: Record<MechanismBranchReadinessView['value'], string> = {
   'not-tested': 'Not tested',
   'needs-check': 'Needs check',
   'evidence-backed': 'Evidence backed',
@@ -89,23 +83,17 @@ function toClueView(finding: Finding): MechanismBranchClueView {
   };
 }
 
-function deriveBranchStatus(hub: SuspectedCause): MechanismBranchStatus {
-  if (hub.branchStatus) return hub.branchStatus;
-  if (hub.status === 'confirmed') return 'confirmed';
-  if (hub.status === 'not-confirmed') return 'not-confirmed';
-  return 'active';
+function deriveBranchStatus(hub: Hypothesis): HypothesisStatus {
+  return hub.status;
 }
 
 function deriveReadiness(
-  hub: SuspectedCause,
+  hub: Hypothesis,
   supportingClues: MechanismBranchClueView[],
   counterClues: MechanismBranchClueView[],
   openChecks: MechanismBranchQuestionView[]
 ): MechanismBranchReadinessView {
-  if (hub.branchReadiness) {
-    return { value: hub.branchReadiness, label: READINESS_LABELS[hub.branchReadiness] };
-  }
-  if (hub.status === 'not-confirmed') return { value: 'closed', label: READINESS_LABELS.closed };
+  if (hub.status === 'refuted') return { value: 'closed', label: READINESS_LABELS.closed };
   if (hub.status === 'confirmed') {
     return { value: 'ready-to-act', label: READINESS_LABELS['ready-to-act'] };
   }
@@ -119,7 +107,7 @@ function deriveReadiness(
 }
 
 function projectProcessContext(
-  hub: SuspectedCause,
+  hub: Hypothesis,
   linkedQuestions: Question[],
   processMap: ProcessMap | undefined
 ): MechanismBranchProcessContext | undefined {
@@ -141,7 +129,7 @@ function projectProcessContext(
 }
 
 export function projectMechanismBranch(
-  hub: SuspectedCause,
+  hub: Hypothesis,
   options: MechanismBranchProjectionOptions
 ): MechanismBranchViewModel {
   const questionById = new Map(options.questions.map(question => [question.id, question]));
@@ -207,7 +195,7 @@ export function projectMechanismBranch(
 }
 
 export function projectMechanismBranches(
-  hubs: SuspectedCause[],
+  hubs: Hypothesis[],
   options: MechanismBranchProjectionOptions
 ): MechanismBranchViewModel[] {
   return hubs.map(hub => projectMechanismBranch(hub, options));

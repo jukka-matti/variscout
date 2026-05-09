@@ -17,7 +17,7 @@ import { mulberry32 } from '../utils';
 import type {
   Finding,
   Question,
-  SuspectedCause,
+  Hypothesis,
   CausalLink,
   InvestigationCategory,
 } from '@variscout/core';
@@ -573,7 +573,7 @@ function buildFindings(): Finding[] {
   ];
 }
 
-function buildSuspectedCauses(): SuspectedCause[] {
+function buildSuspectedCauses(): Hypothesis[] {
   return [
     {
       id: IDS.HUB_LOT3_PRESSURE,
@@ -599,7 +599,7 @@ function buildSuspectedCauses(): SuspectedCause[] {
         },
       },
       selectedForImprovement: true,
-      status: 'suspected',
+      status: 'proposed',
       createdAt: epochAt(20),
       updatedAt: epochAt(26),
     },

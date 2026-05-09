@@ -2,7 +2,7 @@
  * useHubCommentStream — live SSE subscription to per-hub comment streams.
  *
  * Mirrors the brainstorm session SSE pattern in `useBrainstormSession.ts`.
- * The Investigation Wall renders hypothesis hubs (SuspectedCause), each with
+ * The Investigation Wall renders hypothesis hubs (Hypothesis), each with
  * an optional live team discussion. This hook opens one EventSource per
  * visible hub and dispatches incoming `comment` events to the
  * `investigationStore` via `addHubComment`'s server-idempotent id path, or

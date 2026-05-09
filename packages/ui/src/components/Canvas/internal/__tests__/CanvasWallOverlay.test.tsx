@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Finding, SuspectedCause } from '@variscout/core';
+import type { Finding, Hypothesis } from '@variscout/core';
 import {
   getInvestigationInitialState,
   useInvestigationStore,
@@ -14,7 +14,7 @@ vi.mock('@variscout/charts', () => ({
   useWallIsMobile: vi.fn(),
   WallCanvas: (props: {
     mode?: string;
-    hubs: SuspectedCause[];
+    hubs: Hypothesis[];
     findings: Finding[];
     onSelectHub?: (id: string) => void;
     onPromoteQuestion?: (id: string) => void;
@@ -55,11 +55,11 @@ vi.mock('@variscout/charts', () => ({
 
 const useWallIsMobileMock = vi.mocked(useWallIsMobile);
 
-const sampleHub: SuspectedCause = {
+const sampleHub: Hypothesis = {
   id: 'hub-1',
   name: 'Thermal drift',
   synthesis: '',
-  status: 'suspected',
+  status: 'proposed',
   questionIds: [],
   findingIds: [],
   createdAt: 1714000000000,

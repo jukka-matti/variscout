@@ -8,16 +8,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CommandPalette } from '../CommandPalette';
-import type { SuspectedCause, Question, Finding } from '@variscout/core';
+import type { Hypothesis, Question, Finding } from '@variscout/core';
 
-const hubs: SuspectedCause[] = [
+const hubs: Hypothesis[] = [
   {
     id: 'h-night',
     name: 'Night shift thermal drift',
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
+    status: 'proposed',
     createdAt: '',
     updatedAt: '',
   },
@@ -27,7 +27,7 @@ const hubs: SuspectedCause[] = [
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
+    status: 'proposed',
     createdAt: '',
     updatedAt: '',
   },
@@ -37,7 +37,7 @@ const hubs: SuspectedCause[] = [
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
+    status: 'proposed',
     createdAt: '',
     updatedAt: '',
   },

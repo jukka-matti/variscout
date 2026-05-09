@@ -1,15 +1,15 @@
-import type { SuspectedCause } from '../findings/types';
+import type { Hypothesis } from '../findings/types';
 import type { ProcessHubInvestigation } from '../processHub';
 
 export type SuspectedCauseAction =
   | {
       kind: 'SUSPECTED_CAUSE_ADD';
       investigationId: ProcessHubInvestigation['id'];
-      cause: SuspectedCause;
+      cause: Hypothesis;
     }
   | {
       kind: 'SUSPECTED_CAUSE_UPDATE';
-      causeId: SuspectedCause['id'];
-      patch: Partial<SuspectedCause>;
+      causeId: Hypothesis['id'];
+      patch: Partial<Hypothesis>;
     }
-  | { kind: 'SUSPECTED_CAUSE_ARCHIVE'; causeId: SuspectedCause['id'] };
+  | { kind: 'SUSPECTED_CAUSE_ARCHIVE'; causeId: Hypothesis['id'] };

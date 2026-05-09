@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useInvestigationStore, useWallLayoutStore } from '@variscout/stores';
-import type { Finding, Question, SuspectedCause } from '@variscout/core';
+import type { Finding, Question, Hypothesis } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
 export interface UseSharedWallPropsArgs {
@@ -12,7 +12,7 @@ export interface UseSharedWallPropsArgs {
 }
 
 export interface UseSharedWallPropsReturn {
-  hubs: SuspectedCause[];
+  hubs: Hypothesis[];
   findings: Finding[];
   questions: Question[];
   processMap: ProcessMap | undefined;

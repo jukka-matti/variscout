@@ -5,7 +5,7 @@ import { useWallLayoutStore, getWallLayoutInitialState } from '../wallLayoutStor
 import type {
   FindingContext,
   FindingOutcome,
-  SuspectedCause,
+  Hypothesis,
   InvestigationCategory,
   GateNode,
 } from '@variscout/core';
@@ -489,7 +489,7 @@ describe('investigationStore — suspected cause hubs', () => {
     expect(state.suspectedCauses).toHaveLength(1);
     expect(state.suspectedCauses[0].name).toBe('Nozzle wear');
     expect(state.suspectedCauses[0].synthesis).toBe('Night shift causes wear');
-    expect(state.suspectedCauses[0].status).toBe('suspected');
+    expect(state.suspectedCauses[0].status).toBe('proposed');
     expect(hub.id).toBe(state.suspectedCauses[0].id);
   });
 
@@ -518,7 +518,7 @@ describe('investigationStore — suspected cause hubs', () => {
     const persisted = state.suspectedCauses[0];
     expect(persisted.findingIds).toEqual([finding.id]);
     expect(persisted.name.startsWith('Suspected mechanism:')).toBe(true);
-    expect(persisted.status).toBe('suspected');
+    expect(persisted.status).toBe('proposed');
   });
 
   it('createHubFromFinding uses fallback name when finding text is empty', () => {
@@ -598,14 +598,14 @@ describe('investigationStore — suspected cause hubs', () => {
     useInvestigationStore.getState().createHub('B', 'b');
     expect(useInvestigationStore.getState().suspectedCauses).toHaveLength(2);
 
-    const newHubs: SuspectedCause[] = [
+    const newHubs: Hypothesis[] = [
       {
         id: 'h-new',
         name: 'New',
         synthesis: 'Fresh',
         questionIds: [],
         findingIds: [],
-        status: 'suspected',
+        status: 'proposed',
         createdAt: 1714000000000,
         updatedAt: 1714000000000,
         deletedAt: null,
@@ -755,13 +755,13 @@ describe('investigationStore — bulk operations', () => {
       deletedAt: null as null,
       investigationId: 'inv-test-001',
     };
-    const hub: SuspectedCause = {
+    const hub: Hypothesis = {
       id: 'h-1',
       name: 'Hub',
       synthesis: 'Synth',
       questionIds: ['q-1'],
       findingIds: ['f-1'],
-      status: 'suspected',
+      status: 'proposed',
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,

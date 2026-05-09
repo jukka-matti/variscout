@@ -12,7 +12,7 @@
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { Finding, MessageCatalog, Question, SuspectedCause } from '@variscout/core';
+import type { Finding, MessageCatalog, Question, Hypothesis } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { useWallLocale } from './hooks/useWallLocale';
 
@@ -21,7 +21,7 @@ export interface CommandPaletteProps {
   onClose: () => void;
   /** Called with the id of the selected result when Enter is pressed. */
   onPanTo: (nodeId: string) => void;
-  hubs: SuspectedCause[];
+  hubs: Hypothesis[];
   questions: Question[];
   findings: Finding[];
 }
@@ -39,11 +39,7 @@ const RESULT_KIND_KEY: Record<ResultKind, keyof MessageCatalog> = {
   finding: 'wall.palette.kind.finding',
 };
 
-function buildResults(
-  hubs: SuspectedCause[],
-  questions: Question[],
-  findings: Finding[]
-): Result[] {
+function buildResults(hubs: Hypothesis[], questions: Question[], findings: Finding[]): Result[] {
   return [
     ...hubs.map<Result>(h => ({ id: h.id, kind: 'hub', label: h.name })),
     ...questions.map<Result>(q => ({ id: q.id, kind: 'question', label: q.text })),

@@ -6,7 +6,7 @@
  * See: docs/superpowers/plans/2026-04-19-investigation-wall.md, Task 4.4
  */
 
-import type { SuspectedCause, Finding, FindingComment, Question } from '@variscout/core';
+import type { Hypothesis, Finding, FindingComment, Question } from '@variscout/core';
 import type { ProcessMap, ProcessMapTributary } from '@variscout/core/frame';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ export interface HubCommentEntry extends FindingComment {
  */
 export function selectHubCommentStream(
   hubId: string,
-  hubs: SuspectedCause[],
+  hubs: Hypothesis[],
   findings: Finding[]
 ): HubCommentEntry[] {
   const hub = hubs.find(h => h.id === hubId);
@@ -65,7 +65,7 @@ export function selectHubCommentStream(
  * Returns [] when processMap is undefined (mapless projects remain valid).
  */
 export function selectHypothesisTributaries(
-  hub: SuspectedCause,
+  hub: Hypothesis,
   findings: Finding[],
   processMap: ProcessMap | undefined
 ): ProcessMapTributary[] {
@@ -108,7 +108,7 @@ export function selectHypothesisTributaries(
  */
 export function selectOpenQuestionsWithoutHub(
   questions: Question[],
-  hubs: SuspectedCause[]
+  hubs: Hypothesis[]
 ): Question[] {
   const inHub = new Set(hubs.flatMap(h => h.questionIds));
   return questions.filter(q => q.status === 'open' && !inHub.has(q.id));
@@ -124,7 +124,7 @@ export function selectOpenQuestionsWithoutHub(
  */
 export function selectQuestionsForHub(
   hubId: string,
-  hubs: SuspectedCause[],
+  hubs: Hypothesis[],
   questions: Question[]
 ): Question[] {
   const hub = hubs.find(h => h.id === hubId);

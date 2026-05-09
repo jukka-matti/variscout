@@ -386,7 +386,7 @@ export interface MessageCatalog {
   'ai.tool.suggestSaveFinding': string;
   'ai.tool.navigateTo': string;
   'ai.tool.answerQuestion': string;
-  'ai.tool.suggestSuspectedCause': string;
+  'ai.tool.suggestHypothesis': string;
   'ai.tool.connectHubEvidence': string;
   'ai.tool.suggestCausalLink': string;
   'ai.tool.highlightMapPattern': string;

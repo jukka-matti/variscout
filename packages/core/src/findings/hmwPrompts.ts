@@ -1,7 +1,7 @@
 import type { IdeaDirection } from './types';
 
 /**
- * Generate 4 "How Might We" prompts for a suspected cause.
+ * Generate 4 "How Might We" prompts for a hypothesis.
  * Used in the Brainstorm Modal to frame ideation across all 4 directions.
  */
 export function generateHMWPrompts(

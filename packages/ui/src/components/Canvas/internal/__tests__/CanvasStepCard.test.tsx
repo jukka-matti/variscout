@@ -32,7 +32,7 @@ const overlayWithPromoted: CanvasStepInvestigationOverlay = {
     {
       id: 'hub-1',
       name: 'Thermal drift',
-      status: 'suspected',
+      status: 'proposed',
       questionId: undefined,
       focus: { kind: 'suspected-cause', id: 'hub-1' },
     },

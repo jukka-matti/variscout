@@ -1,7 +1,7 @@
 import type { HubAction } from '../actions/HubAction';
 import type { ProcessHub, OutcomeSpec, ProcessHubInvestigation } from '../processHub';
 import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '../evidenceSources';
-import type { Finding, Question, CausalLink, SuspectedCause } from '../findings/types';
+import type { Finding, Question, CausalLink, Hypothesis } from '../findings/types';
 import type { ProcessMap } from '../frame/types';
 
 export interface HubReadAPI {
@@ -48,9 +48,9 @@ export interface CausalLinkReadAPI {
   listByInvestigation(investigationId: ProcessHubInvestigation['id']): Promise<CausalLink[]>;
 }
 
-export interface SuspectedCauseReadAPI {
-  get(id: SuspectedCause['id']): Promise<SuspectedCause | undefined>;
-  listByInvestigation(investigationId: ProcessHubInvestigation['id']): Promise<SuspectedCause[]>;
+export interface HypothesisReadAPI {
+  get(id: Hypothesis['id']): Promise<Hypothesis | undefined>;
+  listByInvestigation(investigationId: ProcessHubInvestigation['id']): Promise<Hypothesis[]>;
 }
 
 export interface CanvasStateReadAPI {
@@ -76,6 +76,6 @@ export interface HubRepository {
   findings: FindingReadAPI;
   questions: QuestionReadAPI;
   causalLinks: CausalLinkReadAPI;
-  suspectedCauses: SuspectedCauseReadAPI;
+  hypotheses: HypothesisReadAPI;
   canvasState: CanvasStateReadAPI;
 }

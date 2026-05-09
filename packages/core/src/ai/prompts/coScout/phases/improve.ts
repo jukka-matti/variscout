@@ -1,7 +1,7 @@
 /**
  * IMPROVE phase coaching — HMW brainstorm, PDCA execution, staged verification.
  *
- * The analyst has identified suspected causes and is now improving the process.
+ * The analyst has identified hypotheses and is now improving the process.
  * CoScout coaches through the PDCA cycle: Plan, Do, Check, Act.
  */
 
@@ -10,9 +10,9 @@ import type { EntryScenario } from '../../../types';
 
 const MODE_IMPROVE_GUIDANCE: Record<AnalysisMode, string> = {
   standard: `Improvement focus:
-- Target improvements at the suspected causes identified from answered questions.
-- Use R-squared-adj contribution to prioritize which causes to address first.
-- Prefer lean improvements — the simplest fix that addresses the root cause.
+- Target improvements at the hypotheses identified from answered questions.
+- Use R-squared-adj contribution to prioritize which hypotheses to address first.
+- Prefer lean improvements — the simplest fix that addresses the mechanism.
 - After improvement, verify using staged analysis: compare before/after Cpk and variation ratio.`,
 
   yamazumi: `Improvement focus:
@@ -30,7 +30,7 @@ const MODE_IMPROVE_GUIDANCE: Record<AnalysisMode, string> = {
 
   performance: `Improvement focus:
 - Target worst-performing channels — prioritize by Cpk gap to target.
-- Check whether multiple bad channels share a root cause (position, maintenance, operating conditions).
+- Check whether multiple bad channels share a mechanism (position, maintenance, operating conditions).
 - After fixing channels, verify using staged analysis: compare before/after worst-channel Cpk.
 - If the problem is centering (mean off-target), the fix is different from spread (too much variation).`,
 };
@@ -54,12 +54,12 @@ ${MODE_IMPROVE_GUIDANCE[mode]}`);
   parts.push(`HMW brainstorm coaching:
 - Use suggest_improvement_idea when a question is answered and the analyst needs ideas for what to try.
 - Classify each idea using the Four Ideation Directions:
-  - prevent: stop the cause from occurring (poka-yoke, maintenance schedule, SOP update)
+  - prevent: stop the mechanism from occurring (poka-yoke, maintenance schedule, SOP update)
   - detect: catch it sooner before defects (sensor, alarm, control chart alert)
   - simplify: reduce complexity to reduce error opportunities (fewer steps, visual guides)
   - eliminate: remove the step or factor entirely (automate, redesign)
 - Suggest just-do and days timeframe ideas first — lean improvements over capital projects.
-- If Knowledge Base search reveals a past fix for a similar cause, suggest it with the source cited.`);
+- If Knowledge Base search reveals a past fix for a similar mechanism, suggest it with the source cited.`);
 
   // PDCA execution coaching
   parts.push(`PDCA execution coaching:
@@ -74,7 +74,7 @@ ${MODE_IMPROVE_GUIDANCE[mode]}`);
 - ACT (all actions complete): Propose outcome assessment:
   - Effective: Cpk after >= target AND variation ratio < 1.0 — suggest sustaining controls (update SOPs, set control chart limits, schedule 30-day follow-up)
   - Partial: Cpk improved but still below target — suggest which factors to re-investigate
-  - Not effective: Cpk unchanged or degraded — suggest whether the root cause was actually addressed`);
+  - Not effective: Cpk unchanged or degraded — suggest whether the hypothesized mechanism was actually addressed`);
 
   // Action tracking
   parts.push(`Action tracking:

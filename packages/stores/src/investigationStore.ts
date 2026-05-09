@@ -29,8 +29,8 @@ import type {
   QuestionValidationType,
   ImprovementIdea,
   InvestigationCategory,
-  SuspectedCause,
-  SuspectedCauseEvidence,
+  Hypothesis,
+  HypothesisEvidence,
   CausalLink,
   GateNode,
 } from '@variscout/core';
@@ -40,7 +40,7 @@ import {
   createActionItem,
   createQuestion,
   createImprovementIdea,
-  createSuspectedCause,
+  createHypothesis,
   createCausalLink,
   insertHubAsAndChild,
   type GatePath,
@@ -48,16 +48,10 @@ import {
 
 export const STORE_LAYER = 'document' as const;
 
-type SuspectedCauseUpdate = Partial<
+type HypothesisUpdate = Partial<
   Pick<
-    SuspectedCause,
-    | 'name'
-    | 'synthesis'
-    | 'nextMove'
-    | 'branchStatus'
-    | 'branchReadiness'
-    | 'counterFindingIds'
-    | 'checkQuestionIds'
+    Hypothesis,
+    'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds' | 'checkQuestionIds'
   >
 >;
 
@@ -78,7 +72,7 @@ export const MAX_CHILDREN_PER_PARENT = 8;
 export interface InvestigationState {
   findings: Finding[];
   questions: Question[];
-  suspectedCauses: SuspectedCause[];
+  suspectedCauses: Hypothesis[];
   causalLinks: CausalLink[];
   categories: InvestigationCategory[];
   problemContributionTree?: GateNode;
@@ -179,22 +173,22 @@ export interface InvestigationActions {
   updateIdeaProjection: (questionId: string, ideaId: string, projection: FindingProjection) => void;
 
   // --- Hub actions ---
-  createHub: (name: string, synthesis: string) => SuspectedCause;
+  createHub: (name: string, synthesis: string) => Hypothesis;
   /**
-   * Create a new SuspectedCause hub from a finding. The hub is seeded with a
+   * Create a new Hypothesis hub from a finding. The hub is seeded with a
    * default name derived from the finding's text (truncated), linked to the
    * finding, and returned. Returns null if the finding doesn't exist.
    */
-  createHubFromFinding: (findingId: string) => SuspectedCause | null;
-  updateHub: (hubId: string, updates: SuspectedCauseUpdate) => void;
+  createHubFromFinding: (findingId: string) => Hypothesis | null;
+  updateHub: (hubId: string, updates: HypothesisUpdate) => void;
   deleteHub: (hubId: string) => void;
   connectQuestionToHub: (hubId: string, questionId: string) => void;
   disconnectQuestionFromHub: (hubId: string, questionId: string) => void;
   connectFindingToHub: (hubId: string, findingId: string) => void;
   disconnectFindingFromHub: (hubId: string, findingId: string) => void;
-  setHubStatus: (hubId: string, status: SuspectedCause['status']) => void;
-  setHubEvidence: (hubId: string, evidence: SuspectedCauseEvidence) => void;
-  resetHubs: (hubs: SuspectedCause[]) => void;
+  setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
+  setHubEvidence: (hubId: string, evidence: HypothesisEvidence) => void;
+  resetHubs: (hubs: Hypothesis[]) => void;
   /**
    * Append a comment to a hub (Investigation Wall team discussion).
    * Optimistically updates the hub's `comments` array, then POSTs to
@@ -844,7 +838,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     // ========================================================================
 
     createHub: (name, synthesis) => {
-      const hub = createSuspectedCause(name, synthesis);
+      const hub = createHypothesis(name, synthesis);
       set(state => ({ suspectedCauses: [...state.suspectedCauses, hub] }));
       return hub;
     },
@@ -854,7 +848,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       if (!finding) return null;
       const excerpt = finding.text.trim().slice(0, 80);
       const name = excerpt.length > 0 ? `Suspected mechanism: ${excerpt}` : 'New mechanism branch';
-      const hub = createSuspectedCause(name, '', [], [findingId]);
+      const hub = createHypothesis(name, '', [], [findingId]);
       set(state => ({ suspectedCauses: [...state.suspectedCauses, hub] }));
       return hub;
     },

@@ -4,7 +4,7 @@
 
 import type { AIContext, ProcessContext, TargetMetric, InvestigationPhase } from './types';
 import type { InsightChartType } from './chartInsights';
-import type { Finding, Question, InvestigationCategory, SuspectedCause } from '../findings';
+import type { Finding, Question, InvestigationCategory, Hypothesis } from '../findings';
 import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { computeOptimum } from '../stats/safeMath';
@@ -99,7 +99,7 @@ export interface BuildAIContextOptions {
   /** Current analysis mode */
   analysisMode?: AnalysisMode;
   /** Suspected cause hubs from investigation */
-  suspectedCauses?: SuspectedCause[];
+  suspectedCauses?: Hypothesis[];
   /** R²adj-weighted coverage percentage (0-100) */
   coveragePercent?: number;
   /** Number of questions that have been checked (answered or ruled-out) */
@@ -508,9 +508,9 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       context.investigation.focusedQuestionId = focusedQuestionId;
     }
 
-    // Suspected cause hubs (Phase 6 — CoScout as Investigation Partner)
+    // Hypothesis hubs (Phase 6 — CoScout as Investigation Partner)
     if (options.suspectedCauses && options.suspectedCauses.length > 0) {
-      context.investigation.suspectedCauseHubs = options.suspectedCauses.map(hub => ({
+      context.investigation.hypothesisHubs = options.suspectedCauses.map(hub => ({
         id: hub.id,
         name: hub.name,
         synthesis: hub.synthesis,

@@ -8,7 +8,7 @@ import {
 } from '@variscout/stores';
 import { useHubComputations } from '../useHubComputations';
 import type { BestSubsetsResult } from '@variscout/core/stats';
-import type { SuspectedCause, Question } from '@variscout/core/findings';
+import type { Hypothesis, Question } from '@variscout/core/findings';
 
 // ============================================================================
 // Helpers
@@ -27,13 +27,13 @@ function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
   };
 }
 
-function makeHub(overrides: Partial<SuspectedCause> & { id: string }): SuspectedCause {
+function makeHub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
   return {
     name: 'Test hub',
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
+    status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,

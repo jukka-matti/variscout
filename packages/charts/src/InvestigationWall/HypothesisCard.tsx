@@ -1,5 +1,5 @@
 /**
- * HypothesisCard — status-bordered Mechanism Branch card for a SuspectedCause hub.
+ * HypothesisCard — status-bordered Mechanism Branch card for a Hypothesis hub.
  *
  * Displays the suspected mechanism, branch status, clue/check counts, and an
  * optional evidence-gap warning badge. Positioned by its center-top point (x, y).
@@ -10,14 +10,14 @@
  */
 
 import React from 'react';
-import type { MechanismBranchViewModel, MessageCatalog, SuspectedCause } from '@variscout/core';
+import type { MechanismBranchViewModel, MessageCatalog, Hypothesis } from '@variscout/core';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '../colors';
 import type { WallStatus } from './types';
 import { useWallLocale } from './hooks/useWallLocale';
 
 export interface HypothesisCardProps {
-  hub: SuspectedCause;
+  hub: Hypothesis;
   branch?: MechanismBranchViewModel;
   displayStatus: WallStatus;
   x: number;

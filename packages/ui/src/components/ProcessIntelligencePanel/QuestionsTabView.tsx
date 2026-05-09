@@ -5,19 +5,19 @@ import type { CurrentUnderstanding } from '@variscout/core';
 import type { QuestionStatus } from '@variscout/core/findings';
 import type { BestSubsetResult } from '@variscout/core/stats';
 import type {
-  SuspectedCause as SuspectedCauseHub,
-  SuspectedCauseEvidence,
+  Hypothesis as SuspectedCauseHub,
+  HypothesisEvidence,
   HubProjection,
 } from '@variscout/core';
 import QuestionRow from './QuestionRow';
 import ConclusionCard from './ConclusionCard';
-import type { SuspectedCause } from './ConclusionCard';
+import type { Hypothesis } from './ConclusionCard';
 import EquationDisplay from './EquationDisplay';
 import { QuestionInputModal } from './QuestionInputModal';
 import { QuestionLinkModal } from './QuestionLinkModal';
 
-// Re-export SuspectedCause so consumers can import it from this module
-export type { SuspectedCause };
+// Re-export Hypothesis so consumers can import it from this module
+export type { Hypothesis };
 
 export interface QuestionsTabViewProps {
   questions: Question[];
@@ -28,7 +28,7 @@ export interface QuestionsTabViewProps {
   targetCpk?: number;
   phaseBadge?: string;
   activeQuestionId?: string | null;
-  suspectedCauses?: SuspectedCause[];
+  suspectedCauses?: Hypothesis[];
   combinedProjectedCpk?: number;
   /** Record of question id → projected Cpk value (for expanded QuestionRow detail) */
   projectedCpkMap?: Record<string, number>;
@@ -57,7 +57,7 @@ export interface QuestionsTabViewProps {
   /** Hub-based suspected causes (new model) — passed to ConclusionCard */
   hubs?: SuspectedCauseHub[];
   /** Hub evidence map — passed to ConclusionCard */
-  hubEvidences?: Map<string, SuspectedCauseEvidence>;
+  hubEvidences?: Map<string, HypothesisEvidence>;
   /** Hub model projections — passed to ConclusionCard */
   hubProjections?: Map<string, HubProjection>;
   /** Navigate to the Investigation workspace (passed to ConclusionCard) */

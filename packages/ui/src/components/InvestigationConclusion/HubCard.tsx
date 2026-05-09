@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Pencil, Lightbulb, CheckSquare } from 'lucide-react';
-import type { SuspectedCause, SuspectedCauseEvidence } from '@variscout/core';
+import type { Hypothesis, HypothesisEvidence } from '@variscout/core';
 import type { HubProjection } from '@variscout/core/findings';
 
 export interface HubCardProps {
-  hub: SuspectedCause;
-  evidence?: SuspectedCauseEvidence;
+  hub: Hypothesis;
+  evidence?: HypothesisEvidence;
   projection?: HubProjection;
   questionsCount: number;
   findingsCount: number;
@@ -14,10 +14,12 @@ export interface HubCardProps {
   onBrainstorm: () => void;
 }
 
-const STATUS_STYLES: Record<SuspectedCause['status'], { dot: string; label: string }> = {
-  suspected: { dot: 'bg-amber-500', label: 'Suspected' },
+const STATUS_STYLES: Record<Hypothesis['status'], { dot: string; label: string }> = {
+  proposed: { dot: 'bg-slate-400', label: 'Proposed' },
+  evidenced: { dot: 'bg-amber-500', label: 'Evidenced' },
   confirmed: { dot: 'bg-green-500', label: 'Confirmed' },
-  'not-confirmed': { dot: 'bg-content-muted/40', label: 'Not confirmed' },
+  refuted: { dot: 'bg-content-muted/40', label: 'Refuted' },
+  'needs-disconfirmation': { dot: 'bg-orange-500', label: 'Needs disconfirmation' },
 };
 
 const HubCard: React.FC<HubCardProps> = ({

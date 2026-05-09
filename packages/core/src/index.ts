@@ -767,9 +767,9 @@ export type {
   IdeaCategory,
   FindingRole,
   BenchmarkStats,
-  SuspectedCause,
-  MechanismBranchReadiness,
-  MechanismBranchStatus,
+  Hypothesis,
+  HypothesisEvidence,
+  HypothesisStatus,
   MechanismBranchClueView,
   MechanismBranchProcessContext,
   MechanismBranchProjectionOptions,
@@ -781,14 +781,13 @@ export type {
   CausalDirection,
   CausalEvidenceType,
   CausalSource,
-  // Projection types (SuspectedCause evidence model)
+  // Projection types (Hypothesis evidence model)
   ProjectionSource,
   ProjectionMethod,
   StatisticalProjectionResult,
   LeanProjectionResult,
   ProjectionResult,
   ProjectionScenario,
-  SuspectedCauseEvidence,
   // Investigation Wall — contribution tree
   GateNode,
   // HypothesisCondition evaluator (DataRow is re-exported via line 7 from './types')
@@ -834,7 +833,7 @@ export {
   createImprovementIdea,
   createFactorFinding,
   createInvestigationCategory,
-  createSuspectedCause,
+  createHypothesis,
   createCausalLink,
   // HypothesisCondition evaluator
   evaluateCondition,
