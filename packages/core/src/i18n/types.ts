@@ -1057,6 +1057,14 @@ export interface MessageCatalog {
   'wall.palette.kind.finding': string;
   'wall.card.questions': string;
   'wall.minimap.ariaLabel': string;
+  // Brush-to-finding confirmation flow (RPS V1 PR4 Task 17)
+  'wall.brush.confirmIChart': string;
+  'wall.brush.confirmIChartNoFactor': string;
+  'wall.brush.confirmBoxplot': string;
+  'wall.brush.confirmBoxplotNoFactor': string;
+  'wall.brush.pin': string;
+  'wall.brush.cancel': string;
+  'wall.brush.dialogAriaLabel': string;
 
   // FRAME b0 lightweight render
   'frame.b0.q1.headline': string;

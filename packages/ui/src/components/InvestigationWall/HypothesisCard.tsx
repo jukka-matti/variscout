@@ -25,6 +25,13 @@ import { TagChip } from './TagChip';
 import { OneStepAwayBadge } from './OneStepAwayBadge';
 import { MiniIChart } from './MiniIChart';
 import { MiniBoxplot } from './MiniBoxplot';
+import {
+  BrushToFindingFlow,
+  CHART_SLOT_X,
+  CHART_SLOT_Y,
+  CHART_SLOT_W,
+  CHART_SLOT_H,
+} from './BrushToFindingFlow';
 
 export interface HypothesisCardProps {
   hub: Hypothesis;
@@ -61,10 +68,7 @@ export interface HypothesisCardProps {
 const CARD_W = 280;
 const CARD_H = 288;
 const BODY_TOP = 64;
-const CHART_SLOT_X = 16;
-const CHART_SLOT_Y = BODY_TOP; // 64
-const CHART_SLOT_W = CARD_W - 32; // 248
-const CHART_SLOT_H = 80;
+// CHART_SLOT_X/Y/W/H imported from BrushToFindingFlow (single source of truth)
 const POST_CHART_Y = CHART_SLOT_Y + CHART_SLOT_H + 8; // 152 — top of remaining body content
 const TAG_ROW_Y = POST_CHART_Y;
 const TAG_ROW_H = 24;
@@ -105,27 +109,66 @@ interface ChartSlotProps {
 
 function ChartSlot({ hub, rows, columnTypes, outcomeColumn }: ChartSlotProps) {
   const chart = useMiniChartData(hub, rows, columnTypes, outcomeColumn);
+  const factor = chart.factor;
+
+  if (chart.kind === 'i-chart' && chart.values && chart.values.length > 0) {
+    return (
+      <BrushToFindingFlow hub={hub} factor={factor} outcomeColumn={outcomeColumn} rows={rows}>
+        {({ onBrushEnd }) => (
+          <foreignObject
+            x={CHART_SLOT_X}
+            y={CHART_SLOT_Y}
+            width={CHART_SLOT_W}
+            height={CHART_SLOT_H}
+          >
+            <MiniIChart
+              values={chart.values!}
+              width={CHART_SLOT_W}
+              height={CHART_SLOT_H}
+              onBrushEnd={onBrushEnd}
+            />
+          </foreignObject>
+        )}
+      </BrushToFindingFlow>
+    );
+  }
+
+  if (chart.kind === 'boxplot' && chart.groups && chart.groups.length > 0) {
+    return (
+      <BrushToFindingFlow hub={hub} factor={factor} outcomeColumn={outcomeColumn} rows={rows}>
+        {({ onCategorySelect }) => (
+          <foreignObject
+            x={CHART_SLOT_X}
+            y={CHART_SLOT_Y}
+            width={CHART_SLOT_W}
+            height={CHART_SLOT_H}
+          >
+            <MiniBoxplot
+              groups={chart.groups!}
+              width={CHART_SLOT_W}
+              height={CHART_SLOT_H}
+              onCategorySelect={onCategorySelect}
+            />
+          </foreignObject>
+        )}
+      </BrushToFindingFlow>
+    );
+  }
 
   return (
     <foreignObject x={CHART_SLOT_X} y={CHART_SLOT_Y} width={CHART_SLOT_W} height={CHART_SLOT_H}>
-      {chart.kind === 'i-chart' && chart.values && chart.values.length > 0 ? (
-        <MiniIChart values={chart.values} width={CHART_SLOT_W} height={CHART_SLOT_H} />
-      ) : chart.kind === 'boxplot' && chart.groups && chart.groups.length > 0 ? (
-        <MiniBoxplot groups={chart.groups} width={CHART_SLOT_W} height={CHART_SLOT_H} />
-      ) : (
-        <div
-          data-testid="mini-chart-placeholder"
-          className="flex h-full w-full items-center justify-center text-[10px] text-content-muted italic"
-        >
-          {chart.reason === 'no-outcome'
-            ? 'Set outcome to enable chart'
-            : chart.reason === 'unknown-column'
-              ? `Column "${chart.factor}" not found`
-              : chart.reason === 'unsupported-type'
-                ? 'Chart unavailable for this factor'
-                : '+ Add condition'}
-        </div>
-      )}
+      <div
+        data-testid="mini-chart-placeholder"
+        className="flex h-full w-full items-center justify-center text-[10px] text-content-muted italic"
+      >
+        {chart.reason === 'no-outcome'
+          ? 'Set outcome to enable chart'
+          : chart.reason === 'unknown-column'
+            ? `Column "${chart.factor}" not found`
+            : chart.reason === 'unsupported-type'
+              ? 'Chart unavailable for this factor'
+              : '+ Add condition'}
+      </div>
     </foreignObject>
   );
 }
