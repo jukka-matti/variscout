@@ -1,16 +1,24 @@
-import { useChartTheme } from '@variscout/charts';
+import { useChartTheme, chartColors } from '@variscout/charts';
+import { useIChartBrush } from '@variscout/hooks';
 
 export interface MiniIChartProps {
   values: number[];
   width: number;
   height: number;
+  onBrushEnd?: (range: { startIdx: number; endIdx: number }) => void;
 }
 
-export function MiniIChart({ values, width, height }: MiniIChartProps) {
+export function MiniIChart({ values, width, height, onBrushEnd }: MiniIChartProps) {
   const theme = useChartTheme();
-  if (values.length === 0) return null;
-
   const finiteValues = values.filter(v => Number.isFinite(v));
+
+  const { handlers, currentBrush } = useIChartBrush({
+    valuesLength: finiteValues.length,
+    width,
+    onCommit: onBrushEnd,
+  });
+
+  if (values.length === 0) return null;
   if (finiteValues.length === 0) return null;
 
   const min = Math.min(...finiteValues);
@@ -30,6 +38,11 @@ export function MiniIChart({ values, width, height }: MiniIChartProps) {
 
   const meanY = yFor(mean);
 
+  // Brush overlay x positions (only when interactive and in-flight)
+  const n = finiteValues.length;
+  const brushX1 = currentBrush !== null && n > 1 ? (currentBrush.startIdx / (n - 1)) * width : null;
+  const brushX2 = currentBrush !== null && n > 1 ? (currentBrush.endIdx / (n - 1)) * width : null;
+
   return (
     <svg
       width={width}
@@ -37,6 +50,8 @@ export function MiniIChart({ values, width, height }: MiniIChartProps) {
       className="overflow-visible"
       role="img"
       aria-label="mini i-chart"
+      style={{ touchAction: onBrushEnd ? 'none' : undefined }}
+      {...(onBrushEnd ? handlers : {})}
     >
       <line
         data-testid="mini-i-chart-mean"
@@ -57,6 +72,21 @@ export function MiniIChart({ values, width, height }: MiniIChartProps) {
         strokeWidth={1.25}
         strokeLinejoin="round"
       />
+      {currentBrush !== null && brushX1 !== null && brushX2 !== null && (
+        <rect
+          data-testid="mini-i-chart-brush"
+          x={brushX1}
+          y={0}
+          width={Math.max(brushX2 - brushX1, 1)}
+          height={height}
+          fill={chartColors.warning}
+          fillOpacity={0.18}
+          stroke={chartColors.warning}
+          strokeOpacity={0.5}
+          strokeWidth={1}
+          style={{ pointerEvents: 'none' }}
+        />
+      )}
     </svg>
   );
 }

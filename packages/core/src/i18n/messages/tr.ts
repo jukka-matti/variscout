@@ -924,6 +924,8 @@ export const tr: MessageCatalog = {
   'wall.missing.title': 'Missing evidence',
   'wall.missing.tagline': 'Missing evidence · the detective move nobody ships ({count})',
   'wall.missing.processMap': 'Process Map grouping is available after FRAME mapping.',
+  'wall.missing.collapsed': 'Show details',
+  'wall.missing.expanded': 'Hide details',
   'wall.canvas.ariaLabel': 'Mechanism Branch workspace',
   'wall.cta.proposeHypothesis': 'Propose suspected mechanism from this finding',
   'wall.toolbar.groupByTributary': 'Group by tributary',
@@ -936,6 +938,14 @@ export const tr: MessageCatalog = {
   'wall.palette.kind.question': 'QUESTION',
   'wall.palette.kind.finding': 'FINDING',
   'wall.minimap.ariaLabel': 'Investigation Wall minimap',
+  // Brush-to-finding confirmation flow (RPS V1 PR4 Task 17) — TODO(i18n): translate
+  'wall.brush.confirmIChart': 'Pin indices {start}-{end} on {factor} as finding?',
+  'wall.brush.confirmIChartNoFactor': 'Pin range as finding?',
+  'wall.brush.confirmBoxplot': 'Pin category "{category}" on {factor} as finding?',
+  'wall.brush.confirmBoxplotNoFactor': 'Pin category "{category}" as finding?',
+  'wall.brush.pin': 'Pin',
+  'wall.brush.cancel': 'Cancel',
+  'wall.brush.dialogAriaLabel': 'Pin selection as finding',
 
   // FRAME b0 lightweight render — TODO(i18n): translate
   'frame.b0.q1.headline': 'What do you want to investigate?',

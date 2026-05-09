@@ -193,7 +193,7 @@ export interface SurveyHint {
  * the IP types.
  */
 export interface SurveyContext {
-  hub: import('../processHub').ProcessHub;
+  hub?: import('../processHub').ProcessHub;
   hypotheses?: Hypothesis[];
   findings?: Finding[];
 }

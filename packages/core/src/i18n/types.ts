@@ -1043,6 +1043,9 @@ export interface MessageCatalog {
   'wall.missing.title': string;
   'wall.missing.tagline': string;
   'wall.missing.processMap': string;
+  // Collapsible toggle labels (screen-reader-friendly; RPS V1 PR4 Task 19)
+  'wall.missing.collapsed': string;
+  'wall.missing.expanded': string;
   'wall.canvas.ariaLabel': string;
   'wall.cta.proposeHypothesis': string;
   // Scale features (Phase 13)
@@ -1057,6 +1060,14 @@ export interface MessageCatalog {
   'wall.palette.kind.finding': string;
   'wall.card.questions': string;
   'wall.minimap.ariaLabel': string;
+  // Brush-to-finding confirmation flow (RPS V1 PR4 Task 17)
+  'wall.brush.confirmIChart': string;
+  'wall.brush.confirmIChartNoFactor': string;
+  'wall.brush.confirmBoxplot': string;
+  'wall.brush.confirmBoxplotNoFactor': string;
+  'wall.brush.pin': string;
+  'wall.brush.cancel': string;
+  'wall.brush.dialogAriaLabel': string;
 
   // FRAME b0 lightweight render
   'frame.b0.q1.headline': string;

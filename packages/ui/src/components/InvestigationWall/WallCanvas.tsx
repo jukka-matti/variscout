@@ -3,7 +3,7 @@
  *
  * Assembles ProblemConditionCard (top), Mechanism Branch cards (middle row),
  * open QuestionPills (lower row), TributaryFooter (bottom), and
- * MissingEvidenceDigest (HTML panel below the SVG canvas).
+ * MissingEvidencePanel (rule-driven HTML panel below the SVG canvas).
  *
  * Renders EmptyState when no hubs exist.
  */
@@ -22,13 +22,14 @@ import type {
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import { conditionHasMissingColumn, projectMechanismBranch } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
+import { surveyWallRules } from '@variscout/core/survey';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { HypothesisCard } from './HypothesisCard';
 import { DraggableHypothesisCard } from './DraggableHypothesisCard';
 import { QuestionPill } from './QuestionPill';
 import { TributaryFooter } from './TributaryFooter';
 import { EmptyState } from './EmptyState';
-import { MissingEvidenceDigest } from './MissingEvidenceDigest';
+import { MissingEvidencePanel } from './MissingEvidencePanel';
 import { MobileCardList } from './MobileCardList';
 import { useWallLocale } from './hooks/useWallLocale';
 import { useWallDragDrop } from './hooks/useWallDragDrop';
@@ -42,8 +43,6 @@ export interface WallCanvasProps {
   problemCpk: number;
   eventsPerWeek: number;
   problemContributionTree?: GateNode;
-  gapsByHubId?: Record<string, boolean>;
-  gaps?: Array<{ id: string; message: string; hubId?: string }>;
   /**
    * Column keys present in the active dataset. When provided, each hub whose
    * `condition` references a column absent from this set renders a
@@ -94,10 +93,10 @@ export interface WallCanvasProps {
   /**
    * Render mode.
    * - `'destination'` (default): full destination-view chrome including
-   *   `MissingEvidenceDigest` panel below the SVG and the dedicated
+   *   `MissingEvidencePanel` (rule-driven) below the SVG and the dedicated
    *   `EmptyState` for zero-hub graphs.
    * - `'overlay'` (8e canvas overlay): SVG-only render; no
-   *   `MissingEvidenceDigest`; empty hubs render the SVG header/footer
+   *   `MissingEvidencePanel`; empty hubs render the SVG header/footer
    *   without the EmptyState CTA panel (the overlay wrapper gates mount).
    */
   mode?: 'destination' | 'overlay';
@@ -135,8 +134,6 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   processMap,
   problemCpk,
   eventsPerWeek,
-  gapsByHubId = {},
-  gaps = [],
   activeColumns,
   onSelectHub,
   onPromoteQuestion,
@@ -154,6 +151,19 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   outcomeColumn,
 }) => {
   const locale = useWallLocale();
+  const surveyHints = useMemo(
+    () => surveyWallRules({ hypotheses: hubs, findings }),
+    [hubs, findings]
+  );
+  // Hub gets the warning badge when it has a data-collection hint —
+  // i.e., it's evidenced but lacks triangulation evidence.
+  const hubsWithGap = useMemo(() => {
+    const set = new Set<string>();
+    for (const h of surveyHints) {
+      if (h.kind === 'data-collection') set.add(h.targetEntityId);
+    }
+    return set;
+  }, [surveyHints]);
   const columnSet = useMemo(
     () => (activeColumns ? new Set(activeColumns) : undefined),
     [activeColumns]
@@ -221,7 +231,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   }
 
   // Mobile (<768px): swap the 2000×1400 SVG for a vertical card stack.
-  // MissingEvidenceDigest still renders below the list on mobile so gap
+  // MissingEvidencePanel still renders below the list on mobile so gap
   // coaching stays visible. MobileCardList handles its own empty state,
   // so this branch supersedes the hubs-empty short-circuit below.
   if (mode === 'destination' && isMobile) {
@@ -238,7 +248,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onSeedFromFactorIntel={onSeedFromFactorIntel}
         />
         {mode === 'destination' ? (
-          <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+          <MissingEvidencePanel hints={surveyHints} onFocusHub={onFocusHubFromGap} />
         ) : null}
       </div>
     );
@@ -265,7 +275,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       displayStatus: deriveDisplayStatus(hub, findings),
       x,
       y: hubY,
-      hasGap: gapsByHubId[hub.id],
+      hasGap: hubsWithGap.has(hub.id),
       missingColumn: columnSet ? conditionHasMissingColumn(hub.condition, columnSet) : false,
       zoomScale: zoom !== 1 ? zoom : undefined,
       onSelect: onSelectHub,
@@ -376,7 +386,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       </svg>
 
       {mode === 'destination' ? (
-        <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+        <MissingEvidencePanel hints={surveyHints} onFocusHub={onFocusHubFromGap} />
       ) : null}
     </div>
   );

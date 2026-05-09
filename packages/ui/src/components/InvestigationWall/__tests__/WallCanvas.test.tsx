@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
-import type { Hypothesis, ProcessMap, Question } from '@variscout/core';
+import type { Hypothesis, ProcessMap, Question, Finding } from '@variscout/core';
 
 /**
  * Override `window.matchMedia` for a single test to force the mobile branch
@@ -65,6 +65,30 @@ const openQuestion: Question = {
   deletedAt: null,
   investigationId: 'inv-test',
 };
+
+/**
+ * A hub with status='evidenced' (1 finding, evidenceType='data') triggers
+ * the data-collection survey rule, causing MissingEvidencePanel to render.
+ */
+const hubWithEvidenced: Hypothesis = {
+  ...hub,
+  id: 'h-evidenced',
+  status: 'evidenced',
+  findingIds: ['f-data-1'],
+};
+
+const evidencedFindings: Finding[] = [
+  {
+    id: 'f-data-1',
+    text: 'Data finding',
+    evidenceType: 'data',
+    refutes: false,
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
+  } as unknown as Finding,
+];
 
 describe('WallCanvas', () => {
   it('renders empty state when no hubs', () => {
@@ -254,31 +278,29 @@ describe('WallCanvas', () => {
   });
 
   describe('mode prop', () => {
-    it('default mode is destination — renders MissingEvidenceDigest panel', () => {
+    it('default mode is destination — renders MissingEvidencePanel', () => {
       render(
         <WallCanvas
-          hubs={[hub]}
-          findings={[]}
+          hubs={[hubWithEvidenced]}
+          findings={evidencedFindings}
           questions={[]}
           processMap={processMap}
           problemCpk={0}
           eventsPerWeek={0}
-          gaps={[{ id: 'g1', message: 'Gap message' }]}
         />
       );
       expect(screen.getByLabelText(/Missing evidence digest/i)).toBeInTheDocument();
     });
 
-    it('mode=overlay omits MissingEvidenceDigest panel', () => {
+    it('mode=overlay omits MissingEvidencePanel', () => {
       render(
         <WallCanvas
-          hubs={[hub]}
-          findings={[]}
+          hubs={[hubWithEvidenced]}
+          findings={evidencedFindings}
           questions={[]}
           processMap={processMap}
           problemCpk={0}
           eventsPerWeek={0}
-          gaps={[{ id: 'g1', message: 'Gap message' }]}
           mode="overlay"
         />
       );
@@ -452,20 +474,19 @@ describe('WallCanvas', () => {
       expect(container.querySelector('[data-wall-viewport]')).toBeNull();
     });
 
-    it('still renders MissingEvidenceDigest below the card list on mobile', () => {
+    it('still renders MissingEvidencePanel below the card list on mobile', () => {
       restoreMatchMedia = installMobileMatchMedia();
       render(
         <WallCanvas
-          hubs={[hub]}
-          findings={[]}
+          hubs={[hubWithEvidenced]}
+          findings={evidencedFindings}
           questions={[]}
           processMap={processMap}
           problemCpk={0.78}
           eventsPerWeek={42}
-          gaps={[{ id: 'g1', message: 'No SHIFT coverage', hubId: 'h1' }]}
         />
       );
-      // Digest renders as a collapsed section — the aria-label is enough to
+      // Panel renders as a collapsed section — the aria-label is enough to
       // confirm the panel mounted alongside the mobile card list.
       expect(screen.getByLabelText(/Missing evidence digest/i)).toBeInTheDocument();
     });

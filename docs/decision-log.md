@@ -26,6 +26,36 @@ When in doubt: capture, don't invent. Record the decision; link to its source ar
 
 Decisions we keep relitigating. Each entry: short statement, rationale, closing artifact, date pinned.
 
+- **2026-05-09 — PR-RPS-4 Wall brush-to-pin: automated Playwright E2E deferred**
+  Master-plan Task 20 called for `apps/azure/e2e/wall-brush-to-pin.spec.ts` exercising the full
+  drag→confirm→Finding-count flow. Investigation state (`useInvestigationStore`) is session-only
+  with no IndexedDB persistence and no `window` test hook. A UI-drive variant would require a
+  30+-step CSV-upload→parse→frame→hypothesize→brush flow, brittle and slow. Unit + integration
+  test coverage is comprehensive (6 cases on BrushToFindingFlow + MiniIChart/MiniBoxplot gesture
+  tests + WallCanvas panel tests); manual `--chrome` walk covers UX. Re-evaluate when investigation
+  state lands a HubRepository.dispatch path or a test-hook becomes available.
+  A `test.skip` future-anchor lives at `apps/azure/e2e/wall-brush-to-pin.spec.ts`. _Logged 2026-05-09._
+
+- **2026-05-09 — `FindingSource.ichart.brushedRange` added for brush-to-pin findings**
+  Optional field on the `ichart` FindingSource variant (`packages/core/src/findings/types.ts`)
+  preserves the brushed `{ startIdx, endIdx }` index range when an analyst pins a Finding from
+  a mini-chart drag gesture. Migration (`packages/core/src/findings/migration.ts`) preserves
+  the field across schema migrations when present and well-formed. Existing `ichart` consumers
+  (`anchorX`/`anchorY`/`timeLens`) ignore the optional field and continue to function unchanged.
+  _Logged in PR-RPS-4 (Wall Detective-pack: brush-to-pin gesture + missing-evidence panel)._
+
+- **2026-05-09 — `MissingEvidenceDigest` superseded by SurveyHint-driven `MissingEvidencePanel` on Wall**
+  Per spec §5 D11 + vision slide 3 ("MISSING EVIDENCE — THE DETECTIVE MOVE NOBODY SHIPS"),
+  the Wall hosts a single rule-driven panel surfacing data-collection (cat 2) +
+  triangulation-readiness (cat 3) Survey hints. The previous `MissingEvidenceDigest`
+  consumed a generic `gaps`/`gapsByHubId` prop pair that was empty in production; both props
+  are removed from `WallCanvasProps`. `gapDetector` (FRAME-scope, different surface) is
+  untouched. `WallCanvas` computes `surveyHints` internally via `surveyWallRules`; `hasGap` on
+  hypothesis cards now derives from the data-collection hint set. Refactored consumers in PWA
+  `InvestigationView` + Azure `InvestigationWorkspace` in the same PR per
+  `feedback_no_backcompat_clean_architecture`.
+  _Logged in PR-RPS-4._
+
 - **2026-05-08 — `wallLayoutStore` is `STORE_LAYER = 'annotation-per-project'`, not `'view'`. `selection: Set<NodeId>` is a per-session view-state field within that annotation store; it is intentionally OMITTED from `WallLayoutSnapshot` to dodge the Set/JSON Dexie round-trip hazard.** Correcting an earlier `docs/investigations.md` claim that the store itself was view-layer. The annotation classification is correct (zoom / pan / nodePositions are durable per-project annotations); selection is the lone exception inside the store and stays transient by exclusion at the persist boundary. Locked with the regression test in `packages/stores/src/__tests__/wallLayoutStore.test.ts` (selection persistence boundary block) + the docstring above `interface WallLayoutSnapshot` in `packages/stores/src/wallLayoutStore.ts`. If a future spec needs persistent multi-select recall, convert at the boundary (`partialize: { ...s, selection: [...s.selection] }` + rehydrate `new Set(raw.selection)`) — do NOT add `selection: Set<NodeId>` to `WallLayoutSnapshot` directly. _Pinned 2026-05-08._ Source: PR #143 + `docs/investigations.md` "wallLayoutStore.selection Set/JSON Dexie round-trip" resolution.
 
 - **ADR-073 — No statistical roll-up across heterogeneous units.** Capability indices computed against different `SpecRule`s cannot be combined arithmetically (Watson's locality rule). Enforced by **structural absence**, not by permission predicate: the engine does not expose `meanCapabilityAcrossHubs` or any named variant; CI guard tests in `packages/core/src/__tests__/architecture.noCrossInvestigationAggregation.test.ts` enforce the absence. Distributions, not aggregates. _Closed 2026-04-29._ Source: [`docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md`](07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md). Generalizes to any heterogeneity dimension (different specs, contexts, products, suppliers, shifts) — not just process families. See `feedback_aggregation_heterogeneous_specs.md`.

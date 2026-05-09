@@ -445,7 +445,14 @@ export interface FindingProjectionModelContext {
  */
 export type FindingSource =
   | { chart: 'boxplot' | 'pareto'; category: string; timeLens: TimeLens }
-  | { chart: 'ichart'; anchorX: number; anchorY: number; timeLens: TimeLens }
+  | {
+      chart: 'ichart';
+      anchorX: number;
+      anchorY: number;
+      timeLens: TimeLens;
+      /** Index range when this finding came from a brush gesture on a mini-chart. */
+      brushedRange?: { startIdx: number; endIdx: number };
+    }
   | {
       chart: 'probability';
       anchorX: number;

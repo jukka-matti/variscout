@@ -35,12 +35,21 @@ function migrateSource(source: FindingSource | undefined): FindingSource | undef
   const timeLens = (s.timeLens as FindingSource['timeLens']) ?? DEFAULT_TIME_LENS;
 
   if (source.chart === 'ichart') {
-    return {
+    const out: Extract<FindingSource, { chart: 'ichart' }> = {
       chart: 'ichart',
       anchorX: (s.anchorX as number) ?? 0,
       anchorY: (s.anchorY as number) ?? 0,
       timeLens,
     };
+    // Preserve brushedRange added in PR-RPS-4 if present and well-formed
+    const br = s.brushedRange as { startIdx?: unknown; endIdx?: unknown } | undefined;
+    if (br && Number.isFinite(br.startIdx) && Number.isFinite(br.endIdx)) {
+      out.brushedRange = {
+        startIdx: br.startIdx as number,
+        endIdx: br.endIdx as number,
+      };
+    }
+    return out;
   }
   // Yamazumi: category-based with optional activityType
   if (source.chart === 'yamazumi') {
