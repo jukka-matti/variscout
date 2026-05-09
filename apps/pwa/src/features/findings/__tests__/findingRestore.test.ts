@@ -89,6 +89,7 @@ function makeFindingWithFixedLens(id: string): Finding {
       activeFilters: { Machine: ['Line-1'] },
       cumulativeScope: 42,
     },
+    evidenceType: 'data',
     source: {
       chart: 'boxplot',
       category: 'Machine',
@@ -197,6 +198,7 @@ describe('App.tsx findingRestore — timeLens + filter replay', () => {
         activeFilters: { Region: ['North'] },
         cumulativeScope: null,
       },
+      evidenceType: 'data',
       // source intentionally omitted — some findings have no chart source
     };
 

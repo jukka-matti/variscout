@@ -27,6 +27,7 @@ const makeFinding = (
   createdAt: 1000,
   deletedAt: null,
   investigationId: 'inv-test-001',
+  evidenceType: 'data',
   status: 'observed',
   comments: [],
   statusChangedAt: 1000,

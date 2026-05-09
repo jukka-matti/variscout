@@ -209,6 +209,7 @@ const wallFinding = {
   id: 'finding-wall-1',
   text: 'Nozzle defects cluster after changeover',
   context: { activeFilters: {}, cumulativeScope: null },
+  evidenceType: 'data',
   status: 'observed',
   comments: [],
   statusChangedAt: 0,

@@ -267,6 +267,7 @@ function buildFindings(): Finding[] {
         cumulativeScope: null,
         stats: { mean: 502.1, cpk: 0.49, samples: 72 },
       },
+      evidenceType: 'data',
       status: 'analyzed',
       tag: 'key-driver',
       comments: [
@@ -323,6 +324,7 @@ function buildFindings(): Finding[] {
         cumulativeScope: null,
         stats: { mean: 500.5, cpk: 0.72, samples: 72 },
       },
+      evidenceType: 'data',
       status: 'investigating',
       comments: [
         {
@@ -351,6 +353,7 @@ function buildFindings(): Finding[] {
         cumulativeScope: null,
         stats: { mean: 499.5, cpk: 1.1, samples: 54 },
       },
+      evidenceType: 'data',
       status: 'observed',
       comments: [],
       statusChangedAt: epoch(8),
@@ -370,6 +373,7 @@ function buildFindings(): Finding[] {
         cumulativeScope: null,
         stats: { mean: 502.3, cpk: 0.35, samples: 24 },
       },
+      evidenceType: 'data',
       status: 'investigating',
       comments: [
         {
@@ -397,6 +401,7 @@ function buildFindings(): Finding[] {
         cumulativeScope: null,
         stats: { mean: 500.0, cpk: 1.65, samples: 24 },
       },
+      evidenceType: 'data',
       status: 'analyzed',
       comments: [],
       statusChangedAt: epoch(20),

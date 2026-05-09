@@ -40,6 +40,7 @@ const finding = (overrides: Partial<Finding> = {}): Finding => ({
   deletedAt: null,
   investigationId: 'inv-test-001',
   context: { activeFilters: {}, cumulativeScope: null },
+  evidenceType: 'data',
   status: 'analyzed',
   comments: [],
   statusChangedAt: 1760000000000,

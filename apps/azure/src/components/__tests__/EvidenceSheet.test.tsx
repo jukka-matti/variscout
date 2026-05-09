@@ -21,6 +21,7 @@ const buildFinding = (id: string, status: Finding['status'], text = 'A finding')
     deletedAt: null,
     investigationId: 'general-unassigned',
     context: {} as Finding['context'],
+    evidenceType: 'data',
     status,
     comments: [],
     statusChangedAt: 1714000000000,

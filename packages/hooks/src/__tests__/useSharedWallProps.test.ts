@@ -61,6 +61,7 @@ function makeFinding(overrides: Partial<Finding> & { id: string }): Finding {
       activeFilters: {},
       cumulativeScope: null,
     },
+    evidenceType: 'data',
     status: 'observed',
     comments: [],
     statusChangedAt: 1714000000000,

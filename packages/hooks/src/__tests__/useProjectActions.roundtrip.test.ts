@@ -107,6 +107,7 @@ function makeFinding(id: string, text: string): Finding {
     deletedAt: null,
     investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: 0, stats: { mean: 15, samples: 4 } },
+    evidenceType: 'data',
     status: 'observed',
     comments: [],
     statusChangedAt: 1714000000000,

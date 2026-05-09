@@ -11,6 +11,7 @@ const finding: Finding = {
   deletedAt: null,
   investigationId: 'inv-test',
   context: { activeFilters: {}, cumulativeScope: null },
+  evidenceType: 'data',
   status: 'observed',
   comments: [],
   statusChangedAt: 0,

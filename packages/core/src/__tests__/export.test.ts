@@ -235,6 +235,7 @@ describe('findings export', () => {
       cumulativeScope: 45.2,
       stats: { mean: 10.5, cpk: 0.85, samples: 100 },
     },
+    evidenceType: 'data',
     status: 'analyzed',
     tag: 'key-driver',
     comments: [],

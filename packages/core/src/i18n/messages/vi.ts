@@ -875,6 +875,8 @@ export const vi: MessageCatalog = {
   'wall.card.missingColumn': '⚠ Condition references missing column',
   'wall.card.missingColumnAria': 'Condition references missing column',
   'wall.card.ariaLabel': 'Mechanism Branch {name}, {status}, {count} supporting clues',
+  'wall.card.oneStepAway':
+    '1 step away — running a disconfirmation test would promote this from evidenced to confirmed',
   'wall.problem.title': 'Problem condition',
   'wall.problem.eventsPerWeek': '{count} events/wk',
   'wall.problem.ariaLabel': 'Problem condition: {column}, Cpk {cpk}, {count} events per week',

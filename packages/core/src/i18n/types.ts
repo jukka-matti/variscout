@@ -1015,6 +1015,7 @@ export interface MessageCatalog {
   'wall.card.missingColumn': string;
   'wall.card.missingColumnAria': string;
   'wall.card.ariaLabel': string;
+  'wall.card.oneStepAway': string;
   'wall.problem.title': string;
   'wall.problem.eventsPerWeek': string;
   'wall.problem.ariaLabel': string;

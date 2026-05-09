@@ -19,6 +19,7 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
       cumulativeScope: 35,
       stats: { mean: 10.2, samples: 50 },
     },
+    evidenceType: 'data',
     status: 'observed',
     comments: [],
     statusChangedAt: Date.now(),
@@ -60,6 +61,7 @@ describe('FindingsLog', () => {
           cumulativeScope: 55,
           stats: { mean: 10.2, samples: 50 },
         },
+        evidenceType: 'data',
       }),
     ];
 
@@ -78,6 +80,7 @@ describe('FindingsLog', () => {
           activeFilters: { col_a: ['X'] },
           cumulativeScope: 20,
         },
+        evidenceType: 'data',
       }),
     ];
 

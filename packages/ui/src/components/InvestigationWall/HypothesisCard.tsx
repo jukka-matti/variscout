@@ -20,6 +20,7 @@ import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
 import { useWallLocale } from './hooks/useWallLocale';
 import { TagChip } from './TagChip';
+import { OneStepAwayBadge } from './OneStepAwayBadge';
 
 export interface HypothesisCardProps {
   hub: Hypothesis;
@@ -56,6 +57,12 @@ const TAGGED_READINESS_Y = 126;
 const TAGGED_CLUE_COUNT_Y = 146;
 const DEFAULT_READINESS_Y = 108;
 const DEFAULT_CLUE_COUNT_Y = 130;
+/**
+ * Y position of the OneStepAwayBadge when it replaces the openChecksLabel row.
+ * Badge spans y=168–188; nextMove glyphs at y=192–204 → 4px clearance.
+ * CARD_H - 60 = 228 - 60 = 168.
+ */
+const ONE_STEP_AWAY_Y = CARD_H - 60; // 168
 
 const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
   proposed: 'wall.status.proposed',
@@ -107,6 +114,10 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   const missingColumnText = getMessage(locale, 'wall.card.missingColumn');
   const missingColumnAria = getMessage(locale, 'wall.card.missingColumnAria');
   const evidenceGapAria = getMessage(locale, 'wall.card.evidenceGap');
+  const oneStepAwayText = getMessage(locale, 'wall.card.oneStepAway');
+
+  // When true, the badge occupies the openChecksLabel slot — don't render both.
+  const isOneStepAway = displayStatus === 'needs-disconfirmation';
 
   // LOD thresholds: glyph < 0.3 ≤ medium < 0.6 ≤ full. An undefined zoomScale
   // bypasses LOD entirely (full card — backward compatibility).
@@ -219,9 +230,21 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
           >
             {supportingLabel} · {counterLabel}
           </text>
-          <text x={16} y={CARD_H - 48} className="fill-content-muted text-xs font-mono">
-            {openChecksLabel}
-          </text>
+          {isOneStepAway ? (
+            /* Badge replaces openChecksLabel for needs-disconfirmation.
+               y=168, height=20 → spans 168–188; nextMove glyphs at 192–204 → 4px clear. */
+            <OneStepAwayBadge
+              message={oneStepAwayText}
+              x={16}
+              y={ONE_STEP_AWAY_Y}
+              width={CARD_W - 32}
+              height={20}
+            />
+          ) : (
+            <text x={16} y={CARD_H - 48} className="fill-content-muted text-xs font-mono">
+              {openChecksLabel}
+            </text>
+          )}
           <text x={16} y={CARD_H - 24} className="fill-content-muted text-xs">
             {nextMove ? `Next: ${nextMove}` : 'Next: choose the next check'}
           </text>

@@ -201,6 +201,14 @@ function mergeSingleFinding(
   // Context: follow status winner (context is captured at status change time)
   const context = local.statusChangedAt >= remote.statusChangedAt ? local.context : remote.context;
 
+  // EvidenceType: follow status winner (re-classification typically happens with status changes)
+  const evidenceType =
+    local.statusChangedAt >= remote.statusChangedAt ? local.evidenceType : remote.evidenceType;
+
+  // Refutes: follow status winner — refutation flag is a classification decision made at
+  // the same time as status; deferring to the more-recent status change preserves intent.
+  const refutes = local.statusChangedAt >= remote.statusChangedAt ? local.refutes : remote.refutes;
+
   // Comments: union by ID
   const mergedComments = mergeComments(base.comments, local.comments, remote.comments);
 
@@ -211,6 +219,8 @@ function mergeSingleFinding(
     deletedAt: base.deletedAt ?? null,
     investigationId: base.investigationId,
     context,
+    evidenceType,
+    refutes,
     status,
     tag,
     comments: mergedComments,
