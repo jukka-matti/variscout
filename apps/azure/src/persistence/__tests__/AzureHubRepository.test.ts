@@ -16,8 +16,9 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 // vi.hoisted + vi.mock must appear before the subject imports so that vitest
 // can hoist them above the import block at transform time.
 const mocks = vi.hoisted(() => ({
-  saveProcessHubToIndexedDB: vi.fn<() => Promise<void>>(),
-  applyAction: vi.fn<() => Promise<void>>(),
+  saveProcessHubToIndexedDB:
+    vi.fn<(hub: import('@variscout/core/processHub').ProcessHub) => Promise<void>>(),
+  applyAction: vi.fn<(action: import('@variscout/core/actions').HubAction) => Promise<void>>(),
 }));
 
 vi.mock('../../services/localDb', () => ({

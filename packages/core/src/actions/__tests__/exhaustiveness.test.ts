@@ -138,4 +138,13 @@ describe('IMPROVEMENT_PROJECT actions', () => {
     expect(update.kind).toBe('IMPROVEMENT_PROJECT_UPDATE');
     expect(archive.kind).toBe('IMPROVEMENT_PROJECT_ARCHIVE');
   });
+
+  it('partial-sections patch is a valid UPDATE action (documented contract)', () => {
+    const partialSections: HubAction = {
+      kind: 'IMPROVEMENT_PROJECT_UPDATE',
+      projectId: 'ip-1',
+      patch: { sections: { background: { snapshotText: 'x' } } },
+    };
+    expect(partialSections.kind).toBe('IMPROVEMENT_PROJECT_UPDATE');
+  });
 });

@@ -32,8 +32,13 @@ export type ImprovementProjectAction =
       kind: 'IMPROVEMENT_PROJECT_UPDATE';
       projectId: ImprovementProject['id'];
       patch: Partial<
-        Omit<ImprovementProject, 'id' | 'createdAt' | 'hubId' | 'updatedAt' | 'deletedAt'>
-      >;
+        Omit<
+          ImprovementProject,
+          'id' | 'createdAt' | 'hubId' | 'updatedAt' | 'deletedAt' | 'sections'
+        >
+      > & {
+        sections?: Partial<ImprovementProject['sections']>;
+      };
     }
   | {
       kind: 'IMPROVEMENT_PROJECT_ARCHIVE';
