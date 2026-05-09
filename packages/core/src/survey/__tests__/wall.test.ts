@@ -3,23 +3,23 @@ import { describe, it, expect } from 'vitest';
 import { deriveHypothesisStatus, surveyWallRules } from '../wall';
 import type { Hypothesis, Finding } from '../../findings/types';
 
-describe('deriveHypothesisStatus', () => {
-  const baseH = (overrides: Partial<Hypothesis>): Hypothesis =>
-    ({
-      id: 'h',
-      hubId: 'hub',
-      investigationId: 'inv',
-      name: '',
-      synthesis: '',
-      questionIds: [],
-      findingIds: [],
-      status: 'proposed',
-      createdAt: 0,
-      deletedAt: null,
-      updatedAt: 0,
-      ...overrides,
-    }) as Hypothesis;
+const baseH = (overrides: Partial<Hypothesis>): Hypothesis =>
+  ({
+    id: 'h',
+    hubId: 'hub',
+    investigationId: 'inv',
+    name: '',
+    synthesis: '',
+    questionIds: [],
+    findingIds: [],
+    status: 'proposed',
+    createdAt: 0,
+    deletedAt: null,
+    updatedAt: 0,
+    ...overrides,
+  }) as Hypothesis;
 
+describe('deriveHypothesisStatus', () => {
   it('proposed when no findings', () => {
     expect(deriveHypothesisStatus(baseH({ findingIds: [] }), [])).toBe('proposed');
   });
@@ -118,6 +118,77 @@ describe('surveyWallRules', () => {
       { id: 'f2', evidenceType: 'gemba' } as Finding,
     ];
     const hints = surveyWallRules({ hub: {} as never, hypotheses, findings });
+    expect(hints).toHaveLength(0);
+  });
+});
+
+describe('surveyWallRules — data-collection (category 2)', () => {
+  it('emits data-collection hint for evidenced hypothesis with only data', () => {
+    const h = baseH({ id: 'h1', name: 'Nozzle temp drift', findingIds: ['f1'] });
+    const findings = [
+      { id: 'f1', evidenceType: 'data' as const, refutes: false } as unknown as Finding,
+    ];
+    const hints = surveyWallRules({ hypotheses: [h], findings });
+    const dataCollection = hints.filter(x => x.kind === 'data-collection');
+    expect(dataCollection).toHaveLength(1);
+    expect(dataCollection[0]).toMatchObject({
+      kind: 'data-collection',
+      surface: 'wall',
+      targetEntityId: 'h1',
+      severity: 'info',
+    });
+    expect(dataCollection[0].message).toContain('Nozzle temp drift');
+    expect(dataCollection[0].message).toContain('data only');
+    expect(dataCollection[0].message).toContain('gemba');
+    expect(dataCollection[0].message).toContain('expert');
+    expect(dataCollection[0].action?.label).toContain('gemba');
+  });
+
+  it('emits hint with gemba+expert missing for data-only', () => {
+    const h = baseH({ id: 'h2', findingIds: ['f1'] });
+    const findings = [
+      { id: 'f1', evidenceType: 'data' as const, refutes: false } as unknown as Finding,
+    ];
+    const hints = surveyWallRules({ hypotheses: [h], findings });
+    const msg = hints.find(x => x.kind === 'data-collection')?.message ?? '';
+    expect(msg).toMatch(/needs gemba or expert to triangulate/);
+  });
+
+  it('emits hint with data+expert missing for gemba-only', () => {
+    const h = baseH({ id: 'h3', findingIds: ['f1'] });
+    const findings = [
+      { id: 'f1', evidenceType: 'gemba' as const, refutes: false } as unknown as Finding,
+    ];
+    const hints = surveyWallRules({ hypotheses: [h], findings });
+    const msg = hints.find(x => x.kind === 'data-collection')?.message ?? '';
+    expect(msg).toMatch(/needs data or expert to triangulate/);
+  });
+
+  it('does NOT emit data-collection for proposed hypothesis (no findings)', () => {
+    const h = baseH({ id: 'h4', findingIds: [] });
+    const hints = surveyWallRules({ hypotheses: [h], findings: [] });
+    expect(hints.filter(x => x.kind === 'data-collection')).toHaveLength(0);
+  });
+
+  it('does NOT emit data-collection for needs-disconfirmation hypothesis', () => {
+    // Hypothesis with 2+ evidence types should get the triangulation-readiness
+    // hint (category 3), not data-collection (category 2).
+    const h = baseH({ id: 'h5', findingIds: ['f1', 'f2'] });
+    const findings = [
+      { id: 'f1', evidenceType: 'data' as const, refutes: false } as unknown as Finding,
+      { id: 'f2', evidenceType: 'gemba' as const, refutes: false } as unknown as Finding,
+    ];
+    const hints = surveyWallRules({ hypotheses: [h], findings });
+    expect(hints.filter(x => x.kind === 'data-collection')).toHaveLength(0);
+    expect(hints.filter(x => x.kind === 'triangulation-readiness')).toHaveLength(1);
+  });
+
+  it('does NOT emit data-collection for refuted hypothesis', () => {
+    const h = baseH({ id: 'h6', findingIds: ['f1'] });
+    const findings = [
+      { id: 'f1', evidenceType: 'data' as const, refutes: true } as unknown as Finding,
+    ];
+    const hints = surveyWallRules({ hypotheses: [h], findings });
     expect(hints).toHaveLength(0);
   });
 });

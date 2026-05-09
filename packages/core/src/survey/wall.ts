@@ -1,10 +1,11 @@
 /**
  * Survey rules for the Investigation Wall surface.
  *
- * Implements spec §5 Survey rule categories 1 (status-derivation) and 3
- * (triangulation-readiness / "1 step away" hints).
+ * Implements spec §5 Survey rule categories 1 (status-derivation), 2
+ * (data-collection prompts), and 3 (triangulation-readiness / "1 step away"
+ * hints).
  */
-import type { Hypothesis, HypothesisStatus, Finding } from '../findings/types';
+import type { Hypothesis, HypothesisStatus, Finding, FindingEvidenceType } from '../findings/types';
 import { evidenceTypesForHypothesis } from '../findings';
 import type { SurveyHint, SurveyRule } from './types';
 
@@ -59,6 +60,23 @@ export const surveyWallRules: SurveyRule = ctx => {
 
   for (const h of hypotheses) {
     const derivedStatus = deriveHypothesisStatus(h, findings);
+
+    if (derivedStatus === 'evidenced') {
+      // Category 2 (data-collection): hypothesis has exactly 1 evidence type;
+      // surface the missing types so analyst can triangulate.
+      const types = evidenceTypesForHypothesis(h, findings);
+      const present = [...types][0]; // status='evidenced' guarantees types.size === 1
+      const allTypes: FindingEvidenceType[] = ['data', 'gemba', 'expert'];
+      const missing = allTypes.filter(t => !types.has(t));
+      hints.push({
+        kind: 'data-collection',
+        surface: 'wall',
+        targetEntityId: h.id,
+        message: `${h.name} has ${present} only — needs ${missing.join(' or ')} to triangulate`,
+        severity: 'info',
+        action: { label: `Try ${missing[0]} evidence` },
+      });
+    }
 
     if (derivedStatus === 'needs-disconfirmation') {
       hints.push({
