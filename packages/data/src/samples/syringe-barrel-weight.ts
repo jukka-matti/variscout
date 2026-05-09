@@ -17,7 +17,7 @@ import { mulberry32 } from '../utils';
 import type {
   Finding,
   Question,
-  SuspectedCause,
+  Hypothesis,
   CausalLink,
   InvestigationCategory,
 } from '@variscout/core';
@@ -573,7 +573,7 @@ function buildFindings(): Finding[] {
   ];
 }
 
-function buildSuspectedCauses(): SuspectedCause[] {
+function buildHypotheses(): Hypothesis[] {
   return [
     {
       id: IDS.HUB_LOT3_PRESSURE,
@@ -599,7 +599,7 @@ function buildSuspectedCauses(): SuspectedCause[] {
         },
       },
       selectedForImprovement: true,
-      status: 'suspected',
+      status: 'proposed',
       createdAt: epochAt(20),
       updatedAt: epochAt(26),
     },
@@ -619,7 +619,7 @@ function buildCausalLinks(): CausalLink[] {
       evidenceType: 'data',
       questionIds: [IDS.Q_PRESSURE],
       findingIds: [IDS.F_PRESSURE_SLOPE],
-      suspectedCauseId: IDS.HUB_LOT3_PRESSURE,
+      hypothesisId: IDS.HUB_LOT3_PRESSURE,
       strength: 0.31,
       source: 'analyst',
       createdAt: epochAt(20),
@@ -636,7 +636,7 @@ function buildCausalLinks(): CausalLink[] {
       evidenceType: 'data',
       questionIds: [IDS.Q_LOT],
       findingIds: [IDS.F_LOT3_LIGHT],
-      suspectedCauseId: IDS.HUB_LOT3_PRESSURE,
+      hypothesisId: IDS.HUB_LOT3_PRESSURE,
       strength: 0.18,
       source: 'analyst',
       createdAt: epochAt(20),
@@ -653,7 +653,7 @@ function buildCausalLinks(): CausalLink[] {
       evidenceType: 'data',
       questionIds: [IDS.Q_INTERACTION],
       findingIds: [IDS.F_INTERACTION],
-      suspectedCauseId: IDS.HUB_LOT3_PRESSURE,
+      hypothesisId: IDS.HUB_LOT3_PRESSURE,
       source: 'analyst',
       relationshipType: 'interactive',
       createdAt: epochAt(20),
@@ -753,7 +753,7 @@ export const syringeBarrelWeight: SampleDataset = {
     investigation: {
       findings: buildFindings(),
       questions: buildQuestions(),
-      suspectedCauses: buildSuspectedCauses(),
+      hypotheses: buildHypotheses(),
       causalLinks: buildCausalLinks(),
       categories: buildCategories(),
     },

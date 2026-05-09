@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { WallCanvas, useWallIsMobile } from '@variscout/charts';
 import {
   useHasInvestigationContent,
   useSharedWallProps,
@@ -8,6 +7,7 @@ import {
 } from '@variscout/hooks';
 import { useWallLayoutStore } from '@variscout/stores';
 import type { Finding, ProcessMap } from '@variscout/core';
+import { WallCanvas, useWallIsMobile } from '../../InvestigationWall';
 
 export interface CanvasWallOverlayProps {
   activeOverlays: CanvasOverlayId[];

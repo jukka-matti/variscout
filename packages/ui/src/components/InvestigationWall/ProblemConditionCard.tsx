@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { formatStatistic, formatMessage, getMessage } from '@variscout/core/i18n';
-import { chartColors } from '../colors';
+import { chartColors } from '@variscout/charts';
 import { useWallLocale } from './hooks/useWallLocale';
 
 export interface ProblemConditionCardProps {

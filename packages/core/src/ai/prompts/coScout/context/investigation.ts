@@ -2,13 +2,13 @@
  * Investigation context formatter for CoScout Tier 2 (semi-static context).
  *
  * Formats investigation state into human-readable text blocks.
- * CRITICAL: Uses ONLY suspectedCauseHubs — ignores legacy causeRole-based
- * suspectedCauses from question fields (contradiction resolution #1).
+ * CRITICAL: Uses ONLY hypothesisHubs — ignores legacy causeRole-based
+ * hypotheses from question fields (contradiction resolution #1).
  */
 
 import type { AIContext } from '../../../types';
 
-/** Minimum R²adj coverage for a suspected cause hub to be considered sufficiently evidenced */
+/** Minimum R²adj coverage for a hypothesis hub to be considered sufficiently evidenced */
 export const EVIDENCE_SUFFICIENCY_THRESHOLD = 0.25;
 
 /**
@@ -18,7 +18,7 @@ export const EVIDENCE_SUFFICIENCY_THRESHOLD = 0.25;
  * - Current understanding / problem condition
  * - Problem statement with stage
  * - Question tree summary (counts by status, top 3 by priority)
- * - Suspected cause hubs (ONLY hub entities, not legacy causeRole)
+ * - Hypothesis hubs (ONLY hub entities, not legacy causeRole)
  * - Evidence Map topology summary
  * - Causal links
  *
@@ -93,9 +93,9 @@ export function formatInvestigationContext(
     }
   }
 
-  // Suspected cause hubs (ONLY hub entities — not legacy causeRole)
-  if (investigation.suspectedCauseHubs && investigation.suspectedCauseHubs.length > 0) {
-    const hubLines = investigation.suspectedCauseHubs.map(hub => {
+  // Hypothesis hubs (ONLY hub entities — not legacy causeRole)
+  if (investigation.hypothesisHubs && investigation.hypothesisHubs.length > 0) {
+    const hubLines = investigation.hypothesisHubs.map(hub => {
       const parts = [`  - "${hub.name}" [${hub.status}]`];
       if (hub.questionCount > 0 || hub.findingCount > 0) {
         parts.push(`(${hub.questionCount}Q, ${hub.findingCount}F)`);
@@ -108,7 +108,7 @@ export function formatInvestigationContext(
       }
       return parts.join(' ');
     });
-    lines.push(`Suspected cause hubs:\n${hubLines.join('\n')}`);
+    lines.push(`Hypotheses:\n${hubLines.join('\n')}`);
 
     // Evidence sufficiency warning: check coveragePercent or per-hub rSquaredAdj
     const coverage = investigation.coveragePercent;
@@ -122,11 +122,11 @@ export function formatInvestigationContext(
           ? ` Consider investigating the ${openCount} remaining open question${openCount === 1 ? '' : 's'}.`
           : '';
       lines.push(
-        `⚠ Evidence note: Combined suspected causes explain ~${Math.round(coverage)}% of variation — significant sources may remain unexplored.${openSuffix}`
+        `⚠ Evidence note: Combined hypotheses explain ~${Math.round(coverage)}% of variation — significant sources may remain unexplored.${openSuffix}`
       );
     } else if (coverage === undefined) {
       // Fall back to per-hub rSquaredAdj when coveragePercent is not set
-      for (const hub of investigation.suspectedCauseHubs) {
+      for (const hub of investigation.hypothesisHubs) {
         const hubR2 = hub.evidence?.value;
         if (hubR2 !== undefined && hubR2 < EVIDENCE_SUFFICIENCY_THRESHOLD) {
           const pct = Math.round(hubR2 * 100);

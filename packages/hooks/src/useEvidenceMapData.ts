@@ -21,7 +21,7 @@ import { computeEvidenceMapLayout } from '@variscout/core/stats';
 import type { EvidenceMapLayout, FactorNodeLayout } from '@variscout/core/stats';
 import { findConvergencePoints } from '@variscout/core/stats';
 import type { ResolvedMode } from '@variscout/core/strategy';
-import type { CausalLink, Question, Finding, SuspectedCause } from '@variscout/core/findings';
+import type { CausalLink, Question, Finding, Hypothesis } from '@variscout/core/findings';
 import type {
   FactorNodeData,
   RelationshipEdgeData,
@@ -63,7 +63,7 @@ export interface UseEvidenceMapDataOptions {
   /** Findings (Layer 2 evidence counts) */
   findings?: Finding[];
   /** Suspected cause hubs (Layer 3 convergence enrichment) */
-  suspectedCauses?: SuspectedCause[];
+  hypotheses?: Hypothesis[];
 }
 
 export interface UseEvidenceMapDataReturn {
@@ -179,26 +179,26 @@ function mapCausalEdge(
 
 /**
  * Map convergence points (from the causal graph) to ConvergencePointData,
- * enriched with suspected cause hub data.
+ * enriched with hypothesis hub data.
  */
 function mapConvergencePoint(
   cp: { factor: string; incomingLinks: CausalLink[] },
   nodePositions: Map<string, { x: number; y: number }>,
-  suspectedCauses: SuspectedCause[]
+  hypotheses: Hypothesis[]
 ): ConvergencePointData | null {
   const pos = nodePositions.get(cp.factor);
   if (!pos) return null;
 
-  // Find a suspected cause hub that references this factor
+  // Find a hypothesis hub that references this factor
   // A hub is linked if any of its connected question/finding IDs
   // appear in the incoming links' question/finding IDs
   const incomingQuestionIds = new Set(cp.incomingLinks.flatMap(l => l.questionIds));
   const incomingFindingIds = new Set(cp.incomingLinks.flatMap(l => l.findingIds));
   const incomingHubIds = new Set(
-    cp.incomingLinks.map(l => l.suspectedCauseId).filter((id): id is string => id !== undefined)
+    cp.incomingLinks.map(l => l.hypothesisId).filter((id): id is string => id !== undefined)
   );
 
-  const matchingHub = suspectedCauses.find(
+  const matchingHub = hypotheses.find(
     sc =>
       incomingHubIds.has(sc.id) ||
       sc.questionIds.some(qId => incomingQuestionIds.has(qId)) ||
@@ -232,7 +232,7 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
     causalLinks = [],
     questions = [],
     findings = [],
-    suspectedCauses = [],
+    hypotheses = [],
   } = options;
 
   return useMemo(() => {
@@ -308,7 +308,7 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
     // ---- Layer 3: Convergence points ----
     const convergenceRaw = findConvergencePoints(causalLinks);
     const convergencePoints: ConvergencePointData[] = convergenceRaw
-      .map(cp => mapConvergencePoint(cp, nodePositions, suspectedCauses))
+      .map(cp => mapConvergencePoint(cp, nodePositions, hypotheses))
       .filter((cp): cp is ConvergencePointData => cp !== null);
 
     // Determine active layer
@@ -335,6 +335,6 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
     causalLinks,
     questions,
     findings,
-    suspectedCauses,
+    hypotheses,
   ]);
 }

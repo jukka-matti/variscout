@@ -5,7 +5,7 @@ import {
   selectOpenQuestionsWithoutHub,
   selectQuestionsForHub,
 } from '../wallSelectors';
-import type { SuspectedCause, Finding, Question, FindingComment } from '@variscout/core';
+import type { Hypothesis, Finding, Question, FindingComment } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
 function fc(id: string, text: string, createdAt: number): FindingComment {
@@ -15,7 +15,7 @@ function fc(id: string, text: string, createdAt: number): FindingComment {
     createdAt,
     deletedAt: null,
     parentId: 'hub-default',
-    parentKind: 'suspectedCause',
+    parentKind: 'hypothesis',
   };
 }
 
@@ -25,13 +25,13 @@ describe('selectHubCommentStream', () => {
     const fComment1 = fc('fc1', 'chart note A', 1000);
     const fComment2 = fc('fc2', 'chart note B', 3000);
 
-    const hub: SuspectedCause = {
+    const hub: Hypothesis = {
       id: 'h1',
       name: 'H1',
       synthesis: '',
       questionIds: [],
       findingIds: ['f1'],
-      status: 'suspected',
+      status: 'proposed',
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
@@ -77,13 +77,13 @@ describe('selectHypothesisTributaries', () => {
   };
 
   it('prefers explicit tributaryIds when set', () => {
-    const hub: SuspectedCause = {
+    const hub: Hypothesis = {
       id: 'h1',
       name: 'h',
       synthesis: '',
       questionIds: [],
       findingIds: [],
-      status: 'suspected',
+      status: 'proposed',
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
@@ -95,13 +95,13 @@ describe('selectHypothesisTributaries', () => {
   });
 
   it('returns empty when neither tributaryIds nor finding columns provided', () => {
-    const hub: SuspectedCause = {
+    const hub: Hypothesis = {
       id: 'h1',
       name: 'h',
       synthesis: '',
       questionIds: [],
       findingIds: [],
-      status: 'suspected',
+      status: 'proposed',
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
@@ -112,13 +112,13 @@ describe('selectHypothesisTributaries', () => {
   });
 
   it('derives tributaries from findings context filters', () => {
-    const hub: SuspectedCause = {
+    const hub: Hypothesis = {
       id: 'h1',
       name: 'h',
       synthesis: '',
       questionIds: [],
       findingIds: ['f1'],
-      status: 'suspected',
+      status: 'proposed',
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
@@ -143,13 +143,13 @@ describe('selectHypothesisTributaries', () => {
   });
 
   it('returns empty when processMap is undefined', () => {
-    const hub: SuspectedCause = {
+    const hub: Hypothesis = {
       id: 'h1',
       name: 'h',
       synthesis: '',
       questionIds: [],
       findingIds: [],
-      status: 'suspected',
+      status: 'proposed',
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
@@ -163,14 +163,14 @@ describe('selectHypothesisTributaries', () => {
 
 describe('selectOpenQuestionsWithoutHub', () => {
   it('returns open questions not linked to any hub', () => {
-    const hubs: SuspectedCause[] = [
+    const hubs: Hypothesis[] = [
       {
         id: 'h1',
         name: '',
         synthesis: '',
         questionIds: ['q1'],
         findingIds: [],
-        status: 'suspected',
+        status: 'proposed',
         createdAt: 1714000000000,
         updatedAt: 1714000000000,
         deletedAt: null,
@@ -216,14 +216,14 @@ describe('selectOpenQuestionsWithoutHub', () => {
 
 describe('selectQuestionsForHub', () => {
   it('returns questions referenced by hub.questionIds', () => {
-    const hubs: SuspectedCause[] = [
+    const hubs: Hypothesis[] = [
       {
         id: 'h1',
         name: '',
         synthesis: '',
         questionIds: ['q1', 'q2'],
         findingIds: [],
-        status: 'suspected',
+        status: 'proposed',
         createdAt: 1714000000000,
         updatedAt: 1714000000000,
         deletedAt: null,

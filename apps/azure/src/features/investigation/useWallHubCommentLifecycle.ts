@@ -12,7 +12,7 @@
  * and racy against Phase 13's LOD / clustering work.
  *
  * The hook is side-effect-only (returns void). Incoming comments flow into
- * investigationStore.suspectedCauses[*].comments via the shared hook.
+ * investigationStore.hypotheses[*].comments via the shared hook.
  */
 
 import { useMemo } from 'react';

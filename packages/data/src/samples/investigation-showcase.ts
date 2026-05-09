@@ -1,6 +1,6 @@
 import type { SampleDataset } from '../types';
 import { seedRandom, generateNormal, round } from '../utils';
-import type { Finding, Question, SuspectedCause, InvestigationCategory } from '@variscout/core';
+import type { Finding, Question, Hypothesis, InvestigationCategory } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 // ============================================================================
@@ -411,7 +411,7 @@ function buildFindings(): Finding[] {
   ];
 }
 
-function buildSuspectedCauses(): SuspectedCause[] {
+function buildHypotheses(): Hypothesis[] {
   return [
     {
       id: IDS.HUB_NOZZLE,
@@ -433,7 +433,7 @@ function buildSuspectedCauses(): SuspectedCause[] {
         },
       },
       selectedForImprovement: true,
-      status: 'suspected',
+      status: 'proposed',
       createdAt: epoch(28),
       updatedAt: epoch(48),
     },
@@ -470,7 +470,7 @@ function buildCategories(): InvestigationCategory[] {
 export const investigationShowcase: SampleDataset = {
   name: 'Showcase: Fill Weight Investigation',
   description:
-    'Packaging line fill weight with pre-populated questions, findings, and suspected cause hub. Demonstrates the full investigation workflow.',
+    'Packaging line fill weight with pre-populated questions, findings, and hypothesis hub. Demonstrates the full investigation workflow.',
   icon: 'microscope',
   urlKey: 'investigation-showcase',
   category: 'journeys',
@@ -484,7 +484,7 @@ export const investigationShowcase: SampleDataset = {
     investigation: {
       findings: buildFindings(),
       questions: buildQuestions(),
-      suspectedCauses: buildSuspectedCauses(),
+      hypotheses: buildHypotheses(),
       categories: buildCategories(),
     },
     processMap: {

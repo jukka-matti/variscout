@@ -2,18 +2,18 @@
  * TributaryFooter — horizontal chip row below the Investigation Wall canvas.
  *
  * Shows all tributaries from the Process Map. Chips for tributaries that are
- * referenced by at least one SuspectedCause hub are fully opaque; orphan
+ * referenced by at least one Hypothesis hub are fully opaque; orphan
  * tributaries (no hub reference) are dimmed to signal measurement gaps.
  */
 
 import React from 'react';
-import type { ProcessMapTributary, SuspectedCause } from '@variscout/core';
+import type { ProcessMapTributary, Hypothesis } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { useWallLocale } from './hooks/useWallLocale';
 
 export interface TributaryFooterProps {
   tributaries: ProcessMapTributary[];
-  hubs: SuspectedCause[];
+  hubs: Hypothesis[];
   y: number;
   canvasWidth: number;
 }

@@ -14,6 +14,13 @@ import {
   InvestigationPhaseBadge,
   InvestigationConclusion,
   FindingsLog,
+  WallCanvas,
+  CommandPalette,
+  Minimap,
+  CANVAS_W,
+  CANVAS_H,
+  useWallKeyboard,
+  useWallIsMobile,
 } from '@variscout/ui';
 import {
   useResizablePanel,
@@ -27,15 +34,6 @@ import type { ResolvedMode } from '@variscout/core/strategy';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
 import { useWallLayoutStore, useProjectStore, useInvestigationStore } from '@variscout/stores';
-import {
-  WallCanvas,
-  CommandPalette,
-  Minimap,
-  CANVAS_W,
-  CANVAS_H,
-  useWallKeyboard,
-  useWallIsMobile,
-} from '@variscout/charts';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
   useInvestigationFeatureStore,
@@ -103,7 +101,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
     () => (rawData.length > 0 ? Object.keys(rawData[0]) : undefined),
     [rawData]
   );
-  const hubs = useInvestigationStore(s => s.suspectedCauses);
+  const hubs = useInvestigationStore(s => s.hypotheses);
   const wallFindings = useInvestigationStore(s => s.findings);
   const wallQuestions = useInvestigationStore(s => s.questions);
 
@@ -166,7 +164,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   );
 
   // Categorize questions for InvestigationConclusion
-  const { suspectedCauses, contributing, ruledOut } = useMemo(() => {
+  const { hypotheses, contributing, ruledOut } = useMemo(() => {
     const suspected: Question[] = [];
     const contrib: Question[] = [];
     const ruled: Question[] = [];
@@ -175,7 +173,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
       else if (q.causeRole === 'contributing') contrib.push(q);
       else if (q.causeRole === 'ruled-out') ruled.push(q);
     }
-    return { suspectedCauses: suspected, contributing: contrib, ruledOut: ruled };
+    return { hypotheses: suspected, contributing: contrib, ruledOut: ruled };
   }, [questionsState.questions]);
 
   const drillFactors = useMemo(() => drillPath.map(d => d.factor), [drillPath]);
@@ -210,13 +208,13 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
         </div>
 
         {/* Investigation conclusion */}
-        {(suspectedCauses.length > 0 || ruledOut.length > 0) && (
+        {(hypotheses.length > 0 || ruledOut.length > 0) && (
           <div className="border-t border-edge px-3 py-2 flex-shrink-0">
             <InvestigationConclusion
-              suspectedCauses={suspectedCauses}
+              hypotheses={hypotheses}
               ruledOut={ruledOut}
               contributing={contributing}
-              hasConclusions={suspectedCauses.length > 0}
+              hasConclusions={hypotheses.length > 0}
             />
           </div>
         )}

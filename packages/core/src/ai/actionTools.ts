@@ -32,7 +32,7 @@ export type ActionToolName =
   | 'publish_report'
   | 'notify_action_owners'
   | 'navigate_to' // Project dashboard navigation
-  | 'suggest_suspected_cause'
+  | 'suggest_hypothesis'
   | 'connect_hub_evidence'
   | 'suggest_causal_link'
   | 'highlight_map_pattern';

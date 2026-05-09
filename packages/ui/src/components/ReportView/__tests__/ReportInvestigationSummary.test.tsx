@@ -15,10 +15,10 @@ describe('ReportInvestigationSummary', () => {
     expect(screen.getByText('Issue / Concern')).toBeDefined();
   });
 
-  it('renders suspected causes with evidence', () => {
+  it('renders hypotheses with evidence', () => {
     render(
       <ReportInvestigationSummary
-        suspectedCauses={[
+        hypotheses={[
           {
             text: 'Shift changeover procedure',
             factor: 'Shift',

@@ -416,6 +416,6 @@ describe('useProjectActions persistence roundtrip', () => {
     expect(is.findings).toEqual([]);
     expect(is.questions).toEqual([]);
     expect(is.categories).toEqual([]);
-    expect(is.suspectedCauses).toEqual([]);
+    expect(is.hypotheses).toEqual([]);
   });
 });

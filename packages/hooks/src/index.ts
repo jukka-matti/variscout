@@ -422,7 +422,7 @@ export { useHubComputations, type UseHubComputationsReturn } from './useHubCompu
 export {
   useImprovementProjections,
   type UseImprovementProjectionsReturn,
-  type SuspectedCauseProjection,
+  type HypothesisProjection,
 } from './useImprovementProjections';
 
 // Scoped Models (model scoping for What-If Explorer)
@@ -483,19 +483,19 @@ export {
   type CanvasOverlayFindingItem,
   type CanvasOverlayId,
   type CanvasOverlayQuestionItem,
-  type CanvasOverlaySuspectedCauseItem,
+  type CanvasOverlayHypothesisItem,
   type CanvasStepInvestigationOverlay,
   type UseCanvasInvestigationOverlaysArgs,
   type UseCanvasInvestigationOverlaysResult,
 } from './useCanvasInvestigationOverlays';
 
-// Suspected Cause Hubs (named mechanism groupings for investigation synthesis)
+// Hypothesis Hubs (named mechanism groupings for investigation synthesis)
 export {
-  useSuspectedCauses,
-  type SuspectedCauseUpdate,
-  type UseSuspectedCausesOptions,
-  type UseSuspectedCausesReturn,
-} from './useSuspectedCauses';
+  useHypotheses,
+  type HypothesisUpdate,
+  type UseHypothesesOptions,
+  type UseHypothesesReturn,
+} from './useHypotheses';
 
 // Question Reactivity (drill-down factor → active question lookup)
 export { useQuestionReactivity } from './useQuestionReactivity';

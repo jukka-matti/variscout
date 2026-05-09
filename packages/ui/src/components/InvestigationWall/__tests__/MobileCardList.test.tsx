@@ -1,21 +1,23 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MobileCardList } from '../MobileCardList';
-import type { SuspectedCause, Finding, Question } from '@variscout/core';
+import type { Hypothesis, Finding, Question } from '@variscout/core';
 
-const makeHub = (overrides: Partial<SuspectedCause> = {}): SuspectedCause => ({
+const makeHub = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   id: 'h1',
   name: 'Nozzle runs hot',
   synthesis: '',
   questionIds: [],
   findingIds: [],
-  status: 'suspected',
-  createdAt: '',
-  updatedAt: '',
+  status: 'proposed',
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  investigationId: 'inv-test',
   ...overrides,
 });
 
-const hubA: SuspectedCause = makeHub({
+const hubA: Hypothesis = makeHub({
   id: 'hA',
   name: 'Nozzle runs hot',
   findingIds: ['f1', 'f2', 'f3'],
@@ -23,12 +25,12 @@ const hubA: SuspectedCause = makeHub({
   status: 'confirmed',
 });
 
-const hubB: SuspectedCause = makeHub({
+const hubB: Hypothesis = makeHub({
   id: 'hB',
   name: 'Operator variance',
   findingIds: [],
   questionIds: [],
-  status: 'suspected',
+  status: 'proposed',
 });
 
 describe('MobileCardList', () => {
@@ -45,7 +47,20 @@ describe('MobileCardList', () => {
     expect(card.textContent).toMatch(/Confirmed/);
   });
 
-  it('derives "evidenced" when supporting findings are present without contradictors', () => {
+  it('preserves canonical needs-disconfirmation status from hub.status', () => {
+    const hub = makeHub({
+      id: 'h-needs-disconfirmation',
+      status: 'needs-disconfirmation',
+    });
+
+    render(<MobileCardList hubs={[hub]} findings={[]} questions={[]} />);
+
+    const card = screen.getByTestId('wall-mobile-hub-h-needs-disconfirmation');
+    expect(card).toHaveAttribute('data-status', 'needs-disconfirmation');
+    expect(card.textContent).toMatch(/Needs disconfirmation/);
+  });
+
+  it('preserves canonical evidenced status from hub.status', () => {
     const findings: Finding[] = [
       {
         id: 'f1',
@@ -55,7 +70,7 @@ describe('MobileCardList', () => {
         validationStatus: 'supports',
       } as unknown as Finding,
     ];
-    const hub = makeHub({ id: 'h-ev', findingIds: ['f1'], status: 'suspected' });
+    const hub = makeHub({ id: 'h-ev', findingIds: ['f1'], status: 'evidenced' });
     render(<MobileCardList hubs={[hub]} findings={findings} questions={[]} />);
     expect(screen.getByTestId('wall-mobile-hub-h-ev')).toHaveAttribute('data-status', 'evidenced');
   });
@@ -77,6 +92,8 @@ describe('MobileCardList', () => {
         id: 'f1',
         text: 'Night shift has wider spread',
         createdAt: 1,
+        deletedAt: null,
+        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -87,6 +104,8 @@ describe('MobileCardList', () => {
         id: 'f2',
         text: 'Day shift has one similar event',
         createdAt: 2,
+        deletedAt: null,
+        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -100,8 +119,10 @@ describe('MobileCardList', () => {
         text: 'Check nozzle temperature after four hours',
         status: 'open',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+        investigationId: 'inv-test',
       },
     ];
 

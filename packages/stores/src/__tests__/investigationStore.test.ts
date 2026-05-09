@@ -5,7 +5,7 @@ import { useWallLayoutStore, getWallLayoutInitialState } from '../wallLayoutStor
 import type {
   FindingContext,
   FindingOutcome,
-  SuspectedCause,
+  Hypothesis,
   InvestigationCategory,
   GateNode,
 } from '@variscout/core';
@@ -480,30 +480,30 @@ describe('investigationStore — question ideas', () => {
 // Hub tests
 // ============================================================================
 
-describe('investigationStore — suspected cause hubs', () => {
+describe('investigationStore — hypothesis hubs', () => {
   it('creates a hub', () => {
     const hub = useInvestigationStore
       .getState()
       .createHub('Nozzle wear', 'Night shift causes wear');
     const state = useInvestigationStore.getState();
-    expect(state.suspectedCauses).toHaveLength(1);
-    expect(state.suspectedCauses[0].name).toBe('Nozzle wear');
-    expect(state.suspectedCauses[0].synthesis).toBe('Night shift causes wear');
-    expect(state.suspectedCauses[0].status).toBe('suspected');
-    expect(hub.id).toBe(state.suspectedCauses[0].id);
+    expect(state.hypotheses).toHaveLength(1);
+    expect(state.hypotheses[0].name).toBe('Nozzle wear');
+    expect(state.hypotheses[0].synthesis).toBe('Night shift causes wear');
+    expect(state.hypotheses[0].status).toBe('proposed');
+    expect(hub.id).toBe(state.hypotheses[0].id);
   });
 
   it('updates a hub', () => {
     const hub = useInvestigationStore.getState().createHub('Old name', 'Old synthesis');
     useInvestigationStore.getState().updateHub(hub.id, { name: 'New name' });
-    expect(useInvestigationStore.getState().suspectedCauses[0].name).toBe('New name');
-    expect(useInvestigationStore.getState().suspectedCauses[0].synthesis).toBe('Old synthesis');
+    expect(useInvestigationStore.getState().hypotheses[0].name).toBe('New name');
+    expect(useInvestigationStore.getState().hypotheses[0].synthesis).toBe('Old synthesis');
   });
 
   it('createHubFromFinding returns null when the finding does not exist', () => {
     const result = useInvestigationStore.getState().createHubFromFinding('missing-id');
     expect(result).toBeNull();
-    expect(useInvestigationStore.getState().suspectedCauses).toHaveLength(0);
+    expect(useInvestigationStore.getState().hypotheses).toHaveLength(0);
   });
 
   it('createHubFromFinding creates a hub seeded from the finding text and links it', () => {
@@ -514,18 +514,18 @@ describe('investigationStore — suspected cause hubs', () => {
     const hub = useInvestigationStore.getState().createHubFromFinding(finding.id);
     expect(hub).not.toBeNull();
     const state = useInvestigationStore.getState();
-    expect(state.suspectedCauses).toHaveLength(1);
-    const persisted = state.suspectedCauses[0];
+    expect(state.hypotheses).toHaveLength(1);
+    const persisted = state.hypotheses[0];
     expect(persisted.findingIds).toEqual([finding.id]);
     expect(persisted.name.startsWith('Suspected mechanism:')).toBe(true);
-    expect(persisted.status).toBe('suspected');
+    expect(persisted.status).toBe('proposed');
   });
 
   it('createHubFromFinding uses fallback name when finding text is empty', () => {
     const ctx = makeContext();
     const finding = useInvestigationStore.getState().addFinding('   ', ctx);
     useInvestigationStore.getState().createHubFromFinding(finding.id);
-    expect(useInvestigationStore.getState().suspectedCauses[0].name).toBe('New mechanism branch');
+    expect(useInvestigationStore.getState().hypotheses[0].name).toBe('New mechanism branch');
   });
 
   it('connects question and finding to hub', () => {
@@ -533,7 +533,7 @@ describe('investigationStore — suspected cause hubs', () => {
     useInvestigationStore.getState().connectQuestionToHub(hub.id, 'q-1');
     useInvestigationStore.getState().connectFindingToHub(hub.id, 'f-1');
 
-    const updated = useInvestigationStore.getState().suspectedCauses[0];
+    const updated = useInvestigationStore.getState().hypotheses[0];
     expect(updated.questionIds).toEqual(['q-1']);
     expect(updated.findingIds).toEqual(['f-1']);
   });
@@ -542,14 +542,14 @@ describe('investigationStore — suspected cause hubs', () => {
     const hub = useInvestigationStore.getState().createHub('Test', 'Synth');
     useInvestigationStore.getState().connectQuestionToHub(hub.id, 'q-1');
     useInvestigationStore.getState().connectQuestionToHub(hub.id, 'q-1');
-    expect(useInvestigationStore.getState().suspectedCauses[0].questionIds).toEqual(['q-1']);
+    expect(useInvestigationStore.getState().hypotheses[0].questionIds).toEqual(['q-1']);
   });
 
   it('no-op when connecting already-connected finding', () => {
     const hub = useInvestigationStore.getState().createHub('Test', 'Synth');
     useInvestigationStore.getState().connectFindingToHub(hub.id, 'f-1');
     useInvestigationStore.getState().connectFindingToHub(hub.id, 'f-1');
-    expect(useInvestigationStore.getState().suspectedCauses[0].findingIds).toEqual(['f-1']);
+    expect(useInvestigationStore.getState().hypotheses[0].findingIds).toEqual(['f-1']);
   });
 
   it('disconnects question from hub', () => {
@@ -557,26 +557,26 @@ describe('investigationStore — suspected cause hubs', () => {
     useInvestigationStore.getState().connectQuestionToHub(hub.id, 'q-1');
     useInvestigationStore.getState().connectQuestionToHub(hub.id, 'q-2');
     useInvestigationStore.getState().disconnectQuestionFromHub(hub.id, 'q-1');
-    expect(useInvestigationStore.getState().suspectedCauses[0].questionIds).toEqual(['q-2']);
+    expect(useInvestigationStore.getState().hypotheses[0].questionIds).toEqual(['q-2']);
   });
 
   it('disconnects finding from hub', () => {
     const hub = useInvestigationStore.getState().createHub('Test', 'Synth');
     useInvestigationStore.getState().connectFindingToHub(hub.id, 'f-1');
     useInvestigationStore.getState().disconnectFindingFromHub(hub.id, 'f-1');
-    expect(useInvestigationStore.getState().suspectedCauses[0].findingIds).toEqual([]);
+    expect(useInvestigationStore.getState().hypotheses[0].findingIds).toEqual([]);
   });
 
   it('deletes a hub', () => {
     const hub = useInvestigationStore.getState().createHub('Test', 'Synth');
     useInvestigationStore.getState().deleteHub(hub.id);
-    expect(useInvestigationStore.getState().suspectedCauses).toHaveLength(0);
+    expect(useInvestigationStore.getState().hypotheses).toHaveLength(0);
   });
 
   it('sets hub status', () => {
     const hub = useInvestigationStore.getState().createHub('Test', 'Synth');
     useInvestigationStore.getState().setHubStatus(hub.id, 'confirmed');
-    expect(useInvestigationStore.getState().suspectedCauses[0].status).toBe('confirmed');
+    expect(useInvestigationStore.getState().hypotheses[0].status).toBe('confirmed');
   });
 
   it('sets hub evidence', () => {
@@ -590,22 +590,22 @@ describe('investigationStore — suspected cause hubs', () => {
       },
     };
     useInvestigationStore.getState().setHubEvidence(hub.id, evidence);
-    expect(useInvestigationStore.getState().suspectedCauses[0].evidence).toEqual(evidence);
+    expect(useInvestigationStore.getState().hypotheses[0].evidence).toEqual(evidence);
   });
 
   it('resets hubs atomically', () => {
     useInvestigationStore.getState().createHub('A', 'a');
     useInvestigationStore.getState().createHub('B', 'b');
-    expect(useInvestigationStore.getState().suspectedCauses).toHaveLength(2);
+    expect(useInvestigationStore.getState().hypotheses).toHaveLength(2);
 
-    const newHubs: SuspectedCause[] = [
+    const newHubs: Hypothesis[] = [
       {
         id: 'h-new',
         name: 'New',
         synthesis: 'Fresh',
         questionIds: [],
         findingIds: [],
-        status: 'suspected',
+        status: 'proposed',
         createdAt: 1714000000000,
         updatedAt: 1714000000000,
         deletedAt: null,
@@ -613,7 +613,7 @@ describe('investigationStore — suspected cause hubs', () => {
       },
     ];
     useInvestigationStore.getState().resetHubs(newHubs);
-    expect(useInvestigationStore.getState().suspectedCauses).toEqual(newHubs);
+    expect(useInvestigationStore.getState().hypotheses).toEqual(newHubs);
   });
 });
 
@@ -645,7 +645,7 @@ describe('investigationStore — addHubComment', () => {
 
     // Comment is visible synchronously on the hub — optimistic update landed
     // before the promise resolves.
-    const liveHub = useInvestigationStore.getState().suspectedCauses[0];
+    const liveHub = useInvestigationStore.getState().hypotheses[0];
     expect(liveHub.comments).toHaveLength(1);
     expect(liveHub.comments?.[0]?.text).toBe('First thought');
     expect(liveHub.comments?.[0]?.author).toBe('Jane');
@@ -705,7 +705,7 @@ describe('investigationStore — addHubComment', () => {
 
     expect(mockFetch).not.toHaveBeenCalled();
     // Still optimistically appended locally.
-    const liveHub = useInvestigationStore.getState().suspectedCauses[0];
+    const liveHub = useInvestigationStore.getState().hypotheses[0];
     expect(liveHub.comments).toHaveLength(1);
   });
 
@@ -755,13 +755,13 @@ describe('investigationStore — bulk operations', () => {
       deletedAt: null as null,
       investigationId: 'inv-test-001',
     };
-    const hub: SuspectedCause = {
+    const hub: Hypothesis = {
       id: 'h-1',
       name: 'Hub',
       synthesis: 'Synth',
       questionIds: ['q-1'],
       findingIds: ['f-1'],
-      status: 'suspected',
+      status: 'proposed',
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
@@ -778,14 +778,14 @@ describe('investigationStore — bulk operations', () => {
     useInvestigationStore.getState().loadInvestigationState({
       findings: [finding],
       questions: [question],
-      suspectedCauses: [hub],
+      hypotheses: [hub],
       categories: [category],
     });
 
     const state = useInvestigationStore.getState();
     expect(state.findings).toEqual([finding]);
     expect(state.questions).toEqual([question]);
-    expect(state.suspectedCauses).toEqual([hub]);
+    expect(state.hypotheses).toEqual([hub]);
     expect(state.categories).toEqual([category]);
   });
 
@@ -806,7 +806,7 @@ describe('investigationStore — bulk operations', () => {
     const state = useInvestigationStore.getState();
     expect(state.findings).toEqual([]);
     expect(state.questions).toEqual([]);
-    expect(state.suspectedCauses).toEqual([]);
+    expect(state.hypotheses).toEqual([]);
     expect(state.categories).toEqual([]);
   });
 
@@ -962,22 +962,22 @@ describe('investigationStore — causalLink cascade behavior', () => {
     expect(useInvestigationStore.getState().causalLinks[0].findingIds).not.toContain(f.id);
   });
 
-  it('deleteHub clears hubId from causal links', () => {
+  it('deleteHub clears hypothesisId from causal links', () => {
     const hub = useInvestigationStore.getState().createHub('Test hub', 'Synthesis');
     const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test', {
       source: 'analyst',
     });
-    // Manually set hubId via updateCausalLink — the store doesn't have a direct setHubId action,
+    // Manually set hypothesisId via updateCausalLink — the store doesn't have a direct setter,
     // so we use loadInvestigationState to set it
     useInvestigationStore.setState(state => ({
       causalLinks: state.causalLinks.map(l =>
-        l.id === link!.id ? { ...l, suspectedCauseId: hub.id } : l
+        l.id === link!.id ? { ...l, hypothesisId: hub.id } : l
       ),
     }));
-    expect(useInvestigationStore.getState().causalLinks[0].suspectedCauseId).toBe(hub.id);
+    expect(useInvestigationStore.getState().causalLinks[0].hypothesisId).toBe(hub.id);
 
     useInvestigationStore.getState().deleteHub(hub.id);
-    expect(useInvestigationStore.getState().causalLinks[0].suspectedCauseId).toBeUndefined();
+    expect(useInvestigationStore.getState().causalLinks[0].hypothesisId).toBeUndefined();
   });
 });
 

@@ -17,7 +17,7 @@
 //     EVIDENCE_SOURCE_ADD, EVIDENCE_SOURCE_UPDATE_CURSOR, EVIDENCE_SOURCE_REMOVE
 //
 //   Session-only / no Azure Dexie table today (F3 normalizes):
-//     INVESTIGATION_*, FINDING_*, QUESTION_*, CAUSAL_LINK_*, SUSPECTED_CAUSE_*
+//     INVESTIGATION_*, FINDING_*, QUESTION_*, CAUSAL_LINK_*, HYPOTHESIS_*
 //
 //   Canvas mutations (flow through canvasStore → HUB_PERSIST_SNAPSHOT):
 //     PLACE_CHIP_ON_STEP, UNASSIGN_CHIP, REORDER_CHIP_IN_STEP, ADD_STEP,
@@ -275,16 +275,16 @@ export async function applyAction(action: HubAction): Promise<void> {
       // Azure has no 'causalLink' table today; F3 normalizes — no-op.
       return;
 
-    case 'SUSPECTED_CAUSE_ADD':
-      // Azure has no 'suspectedCause' table today; F3 normalizes — no-op.
+    case 'HYPOTHESIS_ADD':
+      // Azure has no 'hypothesis' table today; F3 normalizes — no-op.
       return;
 
-    case 'SUSPECTED_CAUSE_UPDATE':
-      // Azure has no 'suspectedCause' table today; F3 normalizes — no-op.
+    case 'HYPOTHESIS_UPDATE':
+      // Azure has no 'hypothesis' table today; F3 normalizes — no-op.
       return;
 
-    case 'SUSPECTED_CAUSE_ARCHIVE':
-      // Azure has no 'suspectedCause' table today; F3 normalizes — no-op.
+    case 'HYPOTHESIS_ARCHIVE':
+      // Azure has no 'hypothesis' table today; F3 normalizes — no-op.
       return;
 
     // -------------------------------------------------------------------------

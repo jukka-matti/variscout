@@ -22,7 +22,7 @@ import type {
   InvestigationCategory,
   Finding,
   Question,
-  SuspectedCause,
+  Hypothesis,
   CausalLink,
   ParetoRow,
   DataQualityReport,
@@ -97,7 +97,7 @@ export interface SerializedProject {
   findings?: Finding[];
   questions?: Question[];
   categories?: InvestigationCategory[];
-  suspectedCauses?: SuspectedCause[];
+  hypotheses?: Hypothesis[];
   causalLinks?: CausalLink[];
 }
 

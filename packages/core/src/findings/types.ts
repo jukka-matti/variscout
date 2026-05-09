@@ -114,11 +114,11 @@ export interface FindingComment extends EntityBase {
   author?: string;
   /**
    * Explicit parent entity this comment belongs to. Required for normalized storage.
-   * Polymorphic: a comment can belong to a Finding or a SuspectedCause.
+   * Polymorphic: a comment can belong to a Finding or a Hypothesis.
    */
-  parentId: Finding['id'] | SuspectedCause['id'];
+  parentId: Finding['id'] | Hypothesis['id'];
   /** Discriminator for parentId — which entity type owns this comment. */
-  parentKind: 'finding' | 'suspectedCause';
+  parentKind: 'finding' | 'hypothesis';
   /** Photo attachments (Team plan only) */
   photos?: PhotoAttachment[];
   /** Non-image file attachments (PDF, XLSX, CSV, TXT). Team plan: OneDrive upload. Standard: local reference. */
@@ -167,7 +167,7 @@ export interface FindingOutcome {
 }
 
 // ============================================================================
-// Improvement Idea Types (creative bridge between suspected cause and actions)
+// Improvement Idea Types (creative bridge between hypothesis and actions)
 // ============================================================================
 
 /** Implementation timeframe for an improvement idea (replaces IdeaEffort) */
@@ -248,7 +248,7 @@ export function computeRiskLevel(axis1: RiskLevel, axis2: RiskLevel): ComputedRi
 
 /**
  * An improvement idea attached to an answered/investigating question.
- * Bridges validated suspected cause and corrective actions.
+ * Bridges validated hypothesis and corrective actions.
  */
 export interface ImprovementIdea extends EntityBase {
   /** Idea description (e.g., "Simplify setup with visual guides") */
@@ -347,8 +347,8 @@ export interface Question extends EntityBase {
   ideas?: ImprovementIdea[];
   /**
    * Role in investigation conclusion — multiple 'suspected-cause' allowed per tree.
-   * @deprecated Use SuspectedCause hub membership instead. Retained for backward
-   * compatibility and migration. New investigations should create SuspectedCause
+   * @deprecated Use Hypothesis membership instead. Retained for backward
+   * compatibility and migration. New investigations should create Hypothesis
    * hubs and connect questions via questionIds.
    */
   causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
@@ -523,7 +523,7 @@ export interface Finding extends EntityBase {
   source?: FindingSource;
   /** Optional assignee for Team plan @mention workflow */
   assignee?: FindingAssignee;
-  /** Link to a question (replaces deprecated suspectedCause) */
+  /** Link to a question (replaces deprecated hypothesis linkage) */
   questionId?: Question['id'];
   /** How this finding relates to its linked question */
   validationStatus?: 'supports' | 'contradicts' | 'inconclusive';
@@ -572,7 +572,7 @@ export interface InvestigationCategory extends EntityBase {
 /** Source of a projection scenario — what mechanism is being addressed */
 export type ProjectionSource =
   | { type: 'drill'; factors: string[]; levels: string[] }
-  | { type: 'suspected-cause'; causeId: string; factors: string[] }
+  | { type: 'hypothesis'; hypothesisId: string; factors: string[] }
   | { type: 'centering' }
   | { type: 'idea'; ideaId: string }
   | { type: 'measured'; stageIndex: number };
@@ -630,11 +630,11 @@ export interface ProjectionScenario {
 }
 
 // ============================================================================
-// Suspected Cause Evidence
+// Hypothesis Evidence
 // ============================================================================
 
-/** Mode-aware evidence on a suspected cause */
-export interface SuspectedCauseEvidence {
+/** Mode-aware evidence on a hypothesis */
+export interface HypothesisEvidence {
   /** Mode active when evidence was computed */
   mode: 'standard' | 'capability' | 'performance' | 'yamazumi';
   /** How much of the problem this mechanism explains */
@@ -649,30 +649,27 @@ export interface SuspectedCauseEvidence {
 }
 
 // ============================================================================
-// Suspected Cause Hub (Investigation Reframing)
+// Hypothesis (Investigation Reframing)
 // ============================================================================
 
-/** User-facing Mechanism Branch lifecycle status. */
-export type MechanismBranchStatus = 'active' | 'confirmed' | 'not-confirmed' | 'parked';
-
-/** Deterministic readiness bucket shown on Mechanism Branch cards. */
-export type MechanismBranchReadiness =
-  | 'not-tested'
-  | 'needs-check'
-  | 'evidence-backed'
-  | 'ready-to-act'
-  | 'closed';
+/** Canonical hypothesis lifecycle status. */
+export type HypothesisStatus =
+  | 'proposed'
+  | 'evidenced'
+  | 'confirmed'
+  | 'refuted'
+  | 'needs-disconfirmation';
 
 /**
- * A suspected cause hub — a named mechanism that connects multiple evidence
+ * A hypothesis — a named mechanism that connects multiple evidence
  * threads (questions, findings) into one coherent story.
  *
- * This is the primary output of the Investigation Diamond. Each hub drives
+ * This is the primary output of the Investigation Diamond. Each hypothesis drives
  * one HMW brainstorm session in the IMPROVE phase.
  *
  * See: docs/superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md
  */
-export interface SuspectedCause extends EntityBase {
+export interface Hypothesis extends EntityBase {
   /** Analyst-chosen name: "Nozzle wear on night shift" */
   name: string;
   /** Analyst's synthesis: how the evidence connects */
@@ -686,15 +683,13 @@ export interface SuspectedCause extends EntityBase {
   /** FK to the owning investigation. Required for normalized storage. */
   investigationId: ProcessHubInvestigation['id'];
   /** Mode-aware evidence — contribution stored, projection computed live */
-  evidence?: SuspectedCauseEvidence;
-  /** Whether this cause is selected for the current improvement round */
+  evidence?: HypothesisEvidence;
+  /** Whether this hypothesis is selected for the current improvement round */
   selectedForImprovement?: boolean;
-  /** Status: suspected → confirmed (outcome-based) */
-  status: 'suspected' | 'confirmed' | 'not-confirmed';
-  /** Optional user-facing branch lifecycle status. Defaults are derived from `status`. */
-  branchStatus?: MechanismBranchStatus;
-  /** Optional user-facing branch readiness override. Usually derived from evidence/checks. */
-  branchReadiness?: MechanismBranchReadiness;
+  /** Canonical hypothesis status. */
+  status: HypothesisStatus;
+  /** Theme tags for grouping related hypotheses. */
+  themeTags?: string[];
   /** Branch-level next move. Investigation-level `ProcessContext.nextMove` remains separate. */
   nextMove?: string;
   /** Explicit finding IDs that should render as counter-clues for this branch. */
@@ -730,12 +725,8 @@ export interface CausalLink extends EntityBase {
   evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
   questionIds: Question['id'][]; // Questions supporting this link
   findingIds: Finding['id'][]; // Findings supporting this link
-  /**
-   * The SuspectedCause this link belongs to.
-   * Renamed from `hubId` (R5) — the old name was misleading; it references
-   * SuspectedCause.id, not ProcessHub.id.
-   */
-  suspectedCauseId?: SuspectedCause['id'];
+  /** The Hypothesis this link belongs to. */
+  hypothesisId?: Hypothesis['id'];
   strength?: number; // ΔR² or computed from R²adj comparison
   relationshipType?: 'independent' | 'overlapping' | 'synergistic' | 'interactive' | 'redundant';
   source: 'analyst' | 'coscout' | 'auto';
@@ -767,7 +758,7 @@ export const CATEGORY_COLORS = [
 // ============================================================================
 
 /**
- * Composition tree for the Investigation Wall. Leaves reference `SuspectedCause`
+ * Composition tree for the Investigation Wall. Leaves reference `Hypothesis`
  * hubs; branches compose them with boolean gates (AND / OR / NOT). Persisted on
  * `investigationStore.problemContributionTree` so team-authored contribution stories
  * survive reload. Terminology: "contribution tree", never "root cause" (P5 amended).

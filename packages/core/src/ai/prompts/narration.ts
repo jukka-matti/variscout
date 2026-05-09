@@ -170,7 +170,7 @@ export function buildSummaryPrompt(context: AIContext): string {
 
   // Convergence synthesis
   if (context.process?.synthesis) {
-    parts.push(`Synthesis (suspected cause): ${context.process.synthesis}`);
+    parts.push(`Synthesis (hypothesis): ${context.process.synthesis}`);
   }
 
   // Staged comparison (Before/After verification)

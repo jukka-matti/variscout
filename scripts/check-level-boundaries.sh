@@ -39,7 +39,7 @@ check "outcomeStats|outcomeBoxplot|outcomeIChart" \
 check "stratifyByFactor|factorEdge|factorRelationship" \
   "packages/ui/src/components/DashboardBase" \
   "SCOUT does not reimplement Evidence Map's factor-network rendering"
-check "hypothesisCanvas|suspectedCauseHub|gateNode" \
+check "hypothesisCanvas|hypothesisHub|gateNode" \
   "packages/ui/src/components/Frame" \
   "FRAME does not embed hypothesis canvas surfaces"
 check "LayeredProcessView|OperationsBand" \

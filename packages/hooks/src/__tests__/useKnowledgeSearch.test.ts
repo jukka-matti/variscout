@@ -14,7 +14,7 @@ const mockResult: KnowledgeResult = {
   etaSquared: 0.42,
   cpkBefore: 0.85,
   cpkAfter: 1.45,
-  suspectedCause: 'Nozzle blockage',
+  hypothesis: 'Nozzle blockage',
   actionsText: 'Replaced nozzle weekly',
   outcomeEffective: true,
   score: 0.95,

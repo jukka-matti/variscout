@@ -21,9 +21,9 @@
 //
 // All other tables (evidenceSnapshots, evidenceSources, evidenceSourceCursors,
 // rowProvenance, investigations, findings, questions, causalLinks,
-// suspectedCauses) start empty in F3 — the dispatch boundary will be wired by
+// hypotheses) start empty in F3 — the dispatch boundary will be wired by
 // F3.5 (evidence) and F5 (investigation/finding/question/causalLink/
-// suspectedCause + canvas action coverage).
+// hypothesis + canvas action coverage).
 //
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
@@ -35,7 +35,7 @@ import type {
   EvidenceSourceCursor,
   RowProvenanceTag,
 } from '@variscout/core';
-import type { Finding, Question, CausalLink, SuspectedCause } from '@variscout/core/findings';
+import type { Finding, Question, CausalLink, Hypothesis } from '@variscout/core/findings';
 import type { ProcessMap } from '@variscout/core/frame';
 
 // ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ export type InvestigationRow = ProcessHubInvestigation;
 export type FindingRow = Finding;
 export type QuestionRow = Question;
 export type CausalLinkRow = CausalLink;
-export type SuspectedCauseRow = SuspectedCause;
+export type HypothesisRow = Hypothesis;
 
 // ---------------------------------------------------------------------------
 // Database
@@ -94,7 +94,7 @@ export class PwaDatabase extends Dexie {
   findings!: Table<FindingRow, string>;
   questions!: Table<QuestionRow, string>;
   causalLinks!: Table<CausalLinkRow, string>;
-  suspectedCauses!: Table<SuspectedCauseRow, string>;
+  hypotheses!: Table<HypothesisRow, string>;
   canvasState!: Table<CanvasStateRow, string>;
   meta!: Table<MetaRow, string>;
 
@@ -111,7 +111,7 @@ export class PwaDatabase extends Dexie {
       findings: '&id, investigationId, deletedAt',
       questions: '&id, investigationId, deletedAt',
       causalLinks: '&id, investigationId, deletedAt',
-      suspectedCauses: '&id, investigationId, deletedAt',
+      hypotheses: '&id, investigationId, deletedAt',
       canvasState: '&hubId',
       meta: '&key',
     });

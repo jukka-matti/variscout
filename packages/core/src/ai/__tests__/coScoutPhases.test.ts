@@ -86,7 +86,7 @@ describe('Phase coaching modules', () => {
 
     it('includes hub synthesis coaching for validating', () => {
       const result = buildInvestigateCoaching('standard', 'validating');
-      expect(result.toLowerCase()).toContain('suggest_suspected_cause');
+      expect(result.toLowerCase()).toContain('suggest_hypothesis');
     });
 
     it('includes hub synthesis coaching for converging', () => {
@@ -157,7 +157,7 @@ describe('Phase coaching modules', () => {
         mode: 'standard',
         investigationPhase: 'validating',
       });
-      expect(result).toContain('suggest_suspected_cause');
+      expect(result).toContain('suggest_hypothesis');
     });
 
     it('passes entryScenario to scout coaching', () => {

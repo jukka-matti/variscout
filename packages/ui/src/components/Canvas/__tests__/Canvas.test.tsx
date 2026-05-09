@@ -15,6 +15,12 @@ vi.mock('@variscout/charts', async () => {
     CapabilityBoxplot: () =>
       React.createElement('div', { 'data-testid': 'mock-capability-boxplot' }),
     StepErrorPareto: () => React.createElement('div', { 'data-testid': 'mock-step-pareto' }),
+  };
+});
+
+vi.mock('../../InvestigationWall', async () => {
+  const React = await import('react');
+  return {
     useWallIsMobile: () => wallIsMobileRef.current,
     WallCanvas: ({
       findings,
@@ -151,11 +157,11 @@ const investigationOverlays: CanvasInvestigationOverlayModel = {
           focus: { kind: 'finding', id: 'f-1', questionId: 'q-1' },
         },
       ],
-      suspectedCauses: [
+      hypotheses: [
         {
           id: 'hub-1',
           name: 'Pressure setup drift',
-          status: 'suspected',
+          status: 'proposed',
           questionId: 'q-1',
           focus: { kind: 'suspected-cause', id: 'hub-1', questionId: 'q-1' },
         },
@@ -176,7 +182,7 @@ const investigationOverlays: CanvasInvestigationOverlayModel = {
       stepId: 'step-2',
       questions: [],
       findings: [],
-      suspectedCauses: [],
+      hypotheses: [],
       causalLinks: [],
       investigationCounts: { open: 0, supported: 0, refuted: 0 },
     },
@@ -191,7 +197,7 @@ const investigationOverlays: CanvasInvestigationOverlayModel = {
       focus: { kind: 'causal-link', id: 'link-1', questionId: 'q-1' },
     },
   ],
-  unresolved: { questions: [], findings: [], suspectedCauses: [], causalLinks: [] },
+  unresolved: { questions: [], findings: [], hypotheses: [], causalLinks: [] },
 };
 
 function setViewport(width: number, height: number) {
@@ -793,7 +799,7 @@ describe('Canvas', () => {
         signals={SIGNALS}
         stepCards={stepCards}
         investigationOverlays={investigationOverlays}
-        activeOverlays={['investigations', 'findings', 'suspected-causes']}
+        activeOverlays={['investigations', 'findings', 'hypothesis-hubs']}
       />
     );
 

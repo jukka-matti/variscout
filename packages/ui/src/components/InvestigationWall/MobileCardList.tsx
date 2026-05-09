@@ -5,10 +5,6 @@
  * is unreadable. Each hub renders as a structured Mechanism Branch card with
  * suspected mechanism, clue/check counts, readiness, next move, and a subtle
  * status-colored left border.
- *
- * Status derivation mirrors `deriveDisplayStatus` in WallCanvas: confirmed
- * and not-confirmed map directly; otherwise "evidenced" when at least one
- * supporting finding exists without a contradictor, else "proposed".
  */
 
 import React from 'react';
@@ -16,18 +12,18 @@ import {
   projectMechanismBranch,
   type MessageCatalog,
   type ProcessMap,
-  type SuspectedCause,
+  type Hypothesis,
+  type HypothesisStatus,
   type Finding,
   type Question,
 } from '@variscout/core';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
-import { chartColors } from '../colors';
+import { chartColors } from '@variscout/charts';
 import { EmptyState } from './EmptyState';
-import type { WallStatus } from './types';
 import { useWallLocale } from './hooks/useWallLocale';
 
 export interface MobileCardListProps {
-  hubs: SuspectedCause[];
+  hubs: Hypothesis[];
   findings: Finding[];
   /**
    * Question list. Currently only `hub.questionIds.length` (linked questions)
@@ -43,11 +39,12 @@ export interface MobileCardListProps {
   onSeedFromFactorIntel?: () => void;
 }
 
-const STATUS_KEY: Record<WallStatus, keyof MessageCatalog> = {
+const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
   proposed: 'wall.status.proposed',
   evidenced: 'wall.status.evidenced',
   confirmed: 'wall.status.confirmed',
   refuted: 'wall.status.refuted',
+  'needs-disconfirmation': 'wall.status.needsDisconfirmation',
 };
 
 /**
@@ -55,21 +52,29 @@ const STATUS_KEY: Record<WallStatus, keyof MessageCatalog> = {
  * `HypothesisCard` so the card list reads as a compact version of the SVG
  * rendering. Sourced from `chartColors` — no hardcoded hex.
  */
-const STATUS_ACCENT: Record<WallStatus, string> = {
+const STATUS_ACCENT: Record<HypothesisStatus, string> = {
   proposed: chartColors.mean,
   evidenced: chartColors.control,
   confirmed: chartColors.pass,
   refuted: chartColors.fail,
+  'needs-disconfirmation': chartColors.warning,
 };
+
+const CANONICAL_HYPOTHESIS_STATUSES = new Set<HypothesisStatus>([
+  'proposed',
+  'evidenced',
+  'confirmed',
+  'refuted',
+  'needs-disconfirmation',
+]);
 
 /**
  * Derive the displayed status. Kept local (instead of imported from
  * WallCanvas) to avoid introducing a shared-helpers file mid-phase — the
  * computation is tiny and the two call sites share nothing else.
  */
-function deriveDisplayStatus(hub: SuspectedCause, findings: Finding[]): WallStatus {
-  if (hub.status === 'confirmed') return 'confirmed';
-  if (hub.status === 'not-confirmed') return 'refuted';
+function deriveDisplayStatus(hub: Hypothesis, findings: Finding[]): HypothesisStatus {
+  if (CANONICAL_HYPOTHESIS_STATUSES.has(hub.status)) return hub.status;
   const supporting = hub.findingIds
     .map(id => findings.find(f => f.id === id))
     .filter((f): f is Finding => !!f);

@@ -288,10 +288,10 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
               {investigationOverlay &&
               (investigationOverlay.questions.length > 0 ||
                 investigationOverlay.findings.length > 0 ||
-                investigationOverlay.suspectedCauses.length > 0 ||
+                investigationOverlay.hypotheses.length > 0 ||
                 investigationOverlay.causalLinks.length > 0) ? (
                 <div className="mt-2 grid gap-2">
-                  {investigationOverlay.suspectedCauses.map(cause => (
+                  {investigationOverlay.hypotheses.map(cause => (
                     <button
                       key={`cause-${cause.id}`}
                       type="button"

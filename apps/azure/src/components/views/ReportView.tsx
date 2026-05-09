@@ -162,7 +162,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   const findings = useInvestigationStore(s => s.findings);
   const questions = useInvestigationStore(s => s.questions);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
-  const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
+  const hypotheses = useInvestigationStore(s => s.hypotheses);
 
   // ---------------------------------------------------------------------------
   // Evidence Map computation for Report timeline
@@ -203,14 +203,14 @@ const ReportView: React.FC<ReportViewProps> = ({
     causalLinks,
     questions,
     findings,
-    suspectedCauses: suspectedCauses ?? [],
+    hypotheses: hypotheses ?? [],
   });
 
   const timeline = useEvidenceMapTimeline({
     causalLinks,
     questions,
     findings,
-    suspectedCauses: suspectedCauses ?? [],
+    hypotheses: hypotheses ?? [],
   });
 
   // ---------------------------------------------------------------------------

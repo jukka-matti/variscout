@@ -105,7 +105,7 @@ function buildSerializedProject(
     findings: state.findings ?? [],
     questions: state.questions ?? [],
     categories: state.categories ?? [],
-    suspectedCauses: state.suspectedCauses ?? [],
+    hypotheses: state.hypotheses ?? [],
     causalLinks: state.causalLinks ?? [],
   };
 }
@@ -170,7 +170,7 @@ function getCurrentStateFromStores(): Omit<AnalysisState, 'version'> {
   if (is.findings.length > 0) state.findings = is.findings;
   if (is.questions.length > 0) state.questions = is.questions;
   if (is.categories.length > 0) state.categories = is.categories;
-  if (is.suspectedCauses.length > 0) state.suspectedCauses = is.suspectedCauses;
+  if (is.hypotheses.length > 0) state.hypotheses = is.hypotheses;
   if (is.causalLinks.length > 0) state.causalLinks = is.causalLinks;
 
   return state;
@@ -221,7 +221,7 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
         findings: state.findings ?? [],
         questions: state.questions ?? [],
         categories: state.categories ?? [],
-        suspectedCauses: state.suspectedCauses ?? [],
+        hypotheses: state.hypotheses ?? [],
         causalLinks: state.causalLinks ?? [],
       });
     },
@@ -292,7 +292,7 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
         findings: state.findings ?? [],
         questions: state.questions ?? [],
         categories: state.categories ?? [],
-        suspectedCauses: state.suspectedCauses ?? [],
+        hypotheses: state.hypotheses ?? [],
         causalLinks: state.causalLinks ?? [],
       });
     },

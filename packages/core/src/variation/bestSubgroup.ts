@@ -3,7 +3,7 @@ import type { CategoryStats } from './types';
 
 /**
  * Find the best-performing subgroup based on characteristic type.
- * Extracted from WhatIfPageBase for reuse in suspected cause evidence.
+ * Extracted from WhatIfPageBase for reuse in hypothesis evidence.
  *
  * - smaller-is-better → lowest mean
  * - larger-is-better → highest mean

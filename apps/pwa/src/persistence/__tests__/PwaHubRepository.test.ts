@@ -118,7 +118,7 @@ beforeEach(async () => {
     db.findings.clear(),
     db.questions.clear(),
     db.causalLinks.clear(),
-    db.suspectedCauses.clear(),
+    db.hypotheses.clear(),
   ]);
 });
 
@@ -462,9 +462,9 @@ describe('PwaHubRepository — stub read APIs (empty tables until F3.5/F5)', () 
     expect(await repo.causalLinks.listByInvestigation('inv-x')).toEqual([]);
   });
 
-  it('suspectedCauses.listByInvestigation returns []', async () => {
+  it('hypotheses.listByInvestigation returns []', async () => {
     const repo = new PwaHubRepository();
-    expect(await repo.suspectedCauses.listByInvestigation('inv-x')).toEqual([]);
+    expect(await repo.hypotheses.listByInvestigation('inv-x')).toEqual([]);
   });
 });
 

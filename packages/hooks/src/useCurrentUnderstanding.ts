@@ -6,7 +6,7 @@ import {
   type ProblemCondition,
   type ProcessContext,
   type Question,
-  type SuspectedCause,
+  type Hypothesis,
 } from '@variscout/core';
 
 export interface CurrentUnderstandingStats {
@@ -29,7 +29,7 @@ export interface UseCurrentUnderstandingOptions {
   stats?: CurrentUnderstandingStats | null;
   problemStatement?: CurrentUnderstandingProblemStatementState;
   questions?: Question[];
-  suspectedCauseHubs?: SuspectedCause[];
+  hypothesisHubs?: Hypothesis[];
   scopedPattern?: string | null;
   onCurrentUnderstandingChange?: (
     currentUnderstanding: CurrentUnderstanding | undefined,
@@ -97,9 +97,9 @@ function activeMechanismsFromQuestions(questions: Question[]) {
     .filter((mechanism): mechanism is NonNullable<typeof mechanism> => mechanism !== null);
 }
 
-function activeMechanismsFromHubs(hubs: SuspectedCause[]) {
+function activeMechanismsFromHubs(hubs: Hypothesis[]) {
   return hubs
-    .filter(hub => hub.status !== 'not-confirmed')
+    .filter(hub => hub.status !== 'refuted')
     .map(hub => {
       const evidenceLabel = hub.evidence?.contribution.description;
 
@@ -138,7 +138,7 @@ export function useCurrentUnderstanding({
   stats,
   problemStatement,
   questions = [],
-  suspectedCauseHubs = [],
+  hypothesisHubs = [],
   scopedPattern,
   onCurrentUnderstandingChange,
 }: UseCurrentUnderstandingOptions): UseCurrentUnderstandingReturn {
@@ -160,8 +160,8 @@ export function useCurrentUnderstanding({
 
   const currentUnderstanding = useMemo(() => {
     const mechanisms =
-      suspectedCauseHubs.length > 0
-        ? activeMechanismsFromHubs(suspectedCauseHubs)
+      hypothesisHubs.length > 0
+        ? activeMechanismsFromHubs(hypothesisHubs)
         : activeMechanismsFromQuestions(questions);
     const liveStatement =
       problemStatement?.draft ??
@@ -185,7 +185,7 @@ export function useCurrentUnderstanding({
     problemStatement?.liveStatement,
     questions,
     scopedPattern,
-    suspectedCauseHubs,
+    hypothesisHubs,
   ]);
 
   const derivedSignature = signature(currentUnderstanding, problemCondition);

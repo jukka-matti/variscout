@@ -10,18 +10,20 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import { Minimap } from '../Minimap';
 import { CANVAS_W, CANVAS_H } from '../WallCanvas';
-import type { SuspectedCause, Question } from '@variscout/core';
+import type { Hypothesis, Question } from '@variscout/core';
 
-const hubs: SuspectedCause[] = [
+const hubs: Hypothesis[] = [
   {
     id: 'h-1',
     name: 'Night shift',
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
-    createdAt: '',
-    updatedAt: '',
+    status: 'proposed',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
   {
     id: 'h-2',
@@ -29,9 +31,11 @@ const hubs: SuspectedCause[] = [
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
-    createdAt: '',
-    updatedAt: '',
+    status: 'proposed',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
 ];
 
@@ -41,8 +45,10 @@ const questions: Question[] = [
     text: 'What about downtime?',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
 ];
 

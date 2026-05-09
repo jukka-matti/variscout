@@ -43,7 +43,7 @@ import type { HubAction } from '@variscout/core/actions';
 // Exhaustiveness test: build a minimal stub for each no-op session-only action kind.
 // These are passed to handlers that do nothing with the payload; shape validity is
 // enforced at the type level but the exhaustiveness suite uses `as HubAction` casts
-// to avoid duplicating complex Finding/Question/CausalLink/SuspectedCause fixtures.
+// to avoid duplicating complex Finding/Question/CausalLink/Hypothesis fixtures.
 // Real round-trip tests (OUTCOME_*, EVIDENCE_*) use fully typed fixtures below.
 
 // ---------------------------------------------------------------------------
@@ -524,7 +524,7 @@ describe('applyAction — EVIDENCE_SOURCE_REMOVE', () => {
 
 describe('applyAction — session-only no-ops', () => {
   // Session-only no-op tests use `as HubAction` casts for complex payloads
-  // (Finding, Question, CausalLink, SuspectedCause) because the handlers consume
+  // (Finding, Question, CausalLink, Hypothesis) because the handlers consume
   // nothing from the payload — they are structural no-ops. Full type-safety is
   // enforced at real call sites; cast only in tests for session-only no-ops.
 
@@ -573,9 +573,9 @@ describe('applyAction — session-only no-ops', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('SUSPECTED_CAUSE_ARCHIVE resolves cleanly', async () => {
+  it('HYPOTHESIS_ARCHIVE resolves cleanly', async () => {
     await expect(
-      applyAction({ kind: 'SUSPECTED_CAUSE_ARCHIVE', causeId: 'cause-1' })
+      applyAction({ kind: 'HYPOTHESIS_ARCHIVE', hypothesisId: 'cause-1' })
     ).resolves.toBeUndefined();
   });
 });
@@ -715,12 +715,12 @@ describe('exhaustiveness — every HubAction kind has a handler', () => {
     { kind: 'CAUSAL_LINK_UPDATE', linkId: 'link-1', patch: {} } as HubAction,
     { kind: 'CAUSAL_LINK_ARCHIVE', linkId: 'link-1' },
     {
-      kind: 'SUSPECTED_CAUSE_ADD',
+      kind: 'HYPOTHESIS_ADD',
       investigationId: 'inv-x',
-      cause: { id: 'cause-1' },
+      hypothesis: { id: 'cause-1' },
     } as HubAction,
-    { kind: 'SUSPECTED_CAUSE_UPDATE', causeId: 'cause-1', patch: {} } as HubAction,
-    { kind: 'SUSPECTED_CAUSE_ARCHIVE', causeId: 'cause-1' },
+    { kind: 'HYPOTHESIS_UPDATE', hypothesisId: 'cause-1', patch: {} } as HubAction,
+    { kind: 'HYPOTHESIS_ARCHIVE', hypothesisId: 'cause-1' },
     // Canvas no-ops.
     { kind: 'PLACE_CHIP_ON_STEP', chipId: 'chip-1', stepId: 'step-1' },
     { kind: 'UNASSIGN_CHIP', chipId: 'chip-1' },

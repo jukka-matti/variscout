@@ -8,7 +8,7 @@ export type {
   FindingReadAPI,
   QuestionReadAPI,
   CausalLinkReadAPI,
-  SuspectedCauseReadAPI,
+  HypothesisReadAPI,
   CanvasStateReadAPI,
 } from './HubRepository';
 export type { EntityKind, CascadeRule, CascadeRuleset } from './cascadeRules';

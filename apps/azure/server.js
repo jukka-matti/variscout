@@ -655,7 +655,7 @@ app.get('/api/brainstorm/active', (req, res) => {
 
 // ─── Hub Comments (Investigation Wall — per-hub SSE collaboration) ───────────
 //
-// Mirrors the brainstorm SSE pattern above. Each hypothesis hub (SuspectedCause)
+// Mirrors the brainstorm SSE pattern above. Each hypothesis hub (Hypothesis)
 // on the Investigation Wall can host a live comment thread. Clients subscribe
 // per `${projectId}:${hubId}` and receive `init` + `comment` events. Storage is
 // in-memory (ephemeral, per-pod) with a 24h TTL — customer-owned persistence

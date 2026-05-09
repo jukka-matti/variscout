@@ -1,4 +1,10 @@
-import type { Finding, Question, SuspectedCause, SuspectedCauseEvidence } from '@variscout/core';
+import type {
+  Finding,
+  Question,
+  Hypothesis,
+  HypothesisEvidence,
+  HypothesisStatus,
+} from '@variscout/core';
 import { migrateCauseRolesToHubs } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
@@ -7,37 +13,62 @@ import { migrateCauseRolesToHubs } from '@variscout/core';
 
 /**
  * Structured representation of the investigation state saved as JSON.
- * The `suspectedCauses` field is optional so old project files (without hubs)
+ * The `hypotheses` field is optional so old project files (without hubs)
  * remain valid and are migrated on deserialize.
  */
 export interface SerializedInvestigationState {
   findings: Finding[];
   questions: Question[];
-  suspectedCauses?: SuspectedCause[];
+  hypotheses?: Hypothesis[];
 }
 
 /**
- * Shape of a suspected cause as it may appear in legacy stored data,
+ * Shape of a hypothesis as it may appear in legacy stored data,
  * before the `totalContribution` → `evidence` migration.
  */
-interface LegacyStoredHub extends Omit<SuspectedCause, 'evidence'> {
-  // Old numeric field, present before SuspectedCauseEvidence was introduced
+interface LegacyStoredHub extends Omit<Hypothesis, 'evidence'> {
+  // Old numeric field, present before HypothesisEvidence was introduced
   totalContribution?: number;
-  evidence?: SuspectedCauseEvidence;
+  evidence?: HypothesisEvidence;
+}
+
+const VALID_HYPOTHESIS_STATUSES: ReadonlySet<HypothesisStatus> = new Set([
+  'proposed',
+  'evidenced',
+  'confirmed',
+  'refuted',
+  'needs-disconfirmation',
+]);
+
+/**
+ * Strict status validator — fails loud on unknown values.
+ *
+ * Per RPS V1 spec D15 (no backward compatibility, design-phase clean breaks),
+ * we do not silently translate legacy status values like 'suspected' or
+ * 'not-confirmed'. Dev fixtures reset via `pnpm dev:reset` (OQ7).
+ */
+function assertHypothesisStatus(status: HypothesisStatus): HypothesisStatus {
+  if (!VALID_HYPOTHESIS_STATUSES.has(status)) {
+    throw new Error(
+      `Invalid HypothesisStatus encountered during deserialization: ${JSON.stringify(status)}. ` +
+        `Valid values: ${Array.from(VALID_HYPOTHESIS_STATUSES).join(', ')}.`
+    );
+  }
+  return status;
 }
 
 /**
  * Serialize the investigation state to a plain object suitable for JSON storage.
- * `suspectedCauses` is omitted when the array is empty (compact serialization).
+ * `hypotheses` is omitted when the array is empty (compact serialization).
  */
 export function serializeInvestigationState(
   findings: Finding[],
   questions: Question[],
-  suspectedCauses: SuspectedCause[]
+  hypotheses: Hypothesis[]
 ): SerializedInvestigationState {
   const state: SerializedInvestigationState = { findings, questions };
-  if (suspectedCauses.length > 0) {
-    state.suspectedCauses = suspectedCauses;
+  if (hypotheses.length > 0) {
+    state.hypotheses = hypotheses;
   }
   return state;
 }
@@ -46,52 +77,55 @@ export function serializeInvestigationState(
  * Deserialize investigation state from a stored object.
  *
  * Migrations applied on load:
- * 1. If `suspectedCauses` is absent but questions have `causeRole === 'suspected-cause'`,
- *    those questions are migrated into individual SuspectedCause hubs.
+ * 1. If `hypotheses` is absent but questions have `causeRole === 'suspected-cause'`,
+ *    those questions are migrated into individual Hypothesis hubs.
  * 2. If a hub has `totalContribution` (legacy numeric field) but no `evidence`,
- *    a basic `SuspectedCauseEvidence` is synthesised from it.
+ *    a basic `HypothesisEvidence` is synthesised from it.
  * 3. `selectedForImprovement` defaults to `undefined` when absent.
+ *
+ * Status values are asserted strictly: per RPS V1 spec D15 (no backward
+ * compatibility), unknown status values throw rather than being silently
+ * translated.
  */
 export function deserializeInvestigationState(raw: SerializedInvestigationState): {
   findings: Finding[];
   questions: Question[];
-  suspectedCauses: SuspectedCause[];
+  hypotheses: Hypothesis[];
 } {
   const findings = raw.findings ?? [];
   const questions = raw.questions ?? [];
 
-  if (raw.suspectedCauses !== undefined) {
+  if (raw.hypotheses !== undefined) {
     // Data already has hubs — apply field-level migration then return
-    const migratedHubs = (raw.suspectedCauses as LegacyStoredHub[]).map(
-      (stored): SuspectedCause => {
-        const { totalContribution: _legacy, ...clean } = stored;
-        const hub: SuspectedCause = {
-          ...clean,
-          evidence: stored.evidence,
-          selectedForImprovement: stored.selectedForImprovement,
+    const migratedHubs = (raw.hypotheses as LegacyStoredHub[]).map((stored): Hypothesis => {
+      const { totalContribution: _legacy, ...clean } = stored;
+      const hub: Hypothesis = {
+        ...clean,
+        status: assertHypothesisStatus(stored.status),
+        evidence: stored.evidence,
+        selectedForImprovement: stored.selectedForImprovement,
+      };
+
+      // Migrate legacy totalContribution (number) → HypothesisEvidence
+      if (stored.totalContribution != null && !stored.evidence) {
+        hub.evidence = {
+          mode: 'standard',
+          contribution: {
+            value: stored.totalContribution,
+            label: 'R²adj',
+            description: `Explains ${Math.round(stored.totalContribution * 100)}% of variation`,
+          },
         };
-
-        // Migrate legacy totalContribution (number) → SuspectedCauseEvidence
-        if (stored.totalContribution != null && !stored.evidence) {
-          hub.evidence = {
-            mode: 'standard',
-            contribution: {
-              value: stored.totalContribution,
-              label: 'R²adj',
-              description: `Explains ${Math.round(stored.totalContribution * 100)}% of variation`,
-            },
-          };
-        }
-
-        return hub;
       }
-    );
-    return { findings, questions, suspectedCauses: migratedHubs };
+
+      return hub;
+    });
+    return { findings, questions, hypotheses: migratedHubs };
   }
 
   // No hubs in stored data — attempt migration from legacy causeRole questions
   const migratedHubs = migrateCauseRolesToHubs(questions);
-  return { findings, questions, suspectedCauses: migratedHubs };
+  return { findings, questions, hypotheses: migratedHubs };
 }
 
 // ---------------------------------------------------------------------------
@@ -156,16 +190,16 @@ export function serializeQuestions(questions: Question[]): string {
 }
 
 /**
- * Serialize suspected cause hubs to JSONL for Foundry IQ indexing.
- * Only confirmed and suspected hubs are included; not-confirmed hubs are skipped.
+ * serialize hypothesis hubs to JSONL for Foundry IQ indexing.
+ * Only non-refuted hypotheses are included; refuted hypotheses are skipped.
  */
-export function serializeSuspectedCauses(hubs: SuspectedCause[]): string {
+export function serializeHypotheses(hubs: Hypothesis[]): string {
   return hubs
-    .filter(h => h.status !== 'not-confirmed')
+    .filter(h => h.status !== 'refuted')
     .map(h =>
       JSON.stringify({
         id: h.id,
-        type: 'suspected-cause',
+        type: 'hypothesis',
         name: h.name,
         synthesis: h.synthesis,
         status: h.status,
@@ -192,7 +226,7 @@ interface SerializerOptions {
 export function createInvestigationSerializer(options: SerializerOptions) {
   let findingsTimer: ReturnType<typeof setTimeout> | null = null;
   let questionsTimer: ReturnType<typeof setTimeout> | null = null;
-  let suspectedCausesTimer: ReturnType<typeof setTimeout> | null = null;
+  let hypothesesTimer: ReturnType<typeof setTimeout> | null = null;
   const DEBOUNCE_MS = 5000;
 
   return {
@@ -220,17 +254,14 @@ export function createInvestigationSerializer(options: SerializerOptions) {
       }, DEBOUNCE_MS);
     },
 
-    onSuspectedCausesChange(hubs: SuspectedCause[]) {
-      if (suspectedCausesTimer) clearTimeout(suspectedCausesTimer);
-      suspectedCausesTimer = setTimeout(async () => {
+    onHypothesesChange(hubs: Hypothesis[]) {
+      if (hypothesesTimer) clearTimeout(hypothesesTimer);
+      hypothesesTimer = setTimeout(async () => {
         try {
-          const jsonl = serializeSuspectedCauses(hubs);
-          await options.uploadBlob(
-            `${options.projectId}/investigation/suspected-causes.jsonl`,
-            jsonl
-          );
+          const jsonl = serializeHypotheses(hubs);
+          await options.uploadBlob(`${options.projectId}/investigation/hypotheses.jsonl`, jsonl);
         } catch (err) {
-          console.warn('[KB] Failed to serialize suspected causes:', err);
+          console.warn('[KB] Failed to serialize hypotheses:', err);
         }
       }, DEBOUNCE_MS);
     },
@@ -238,7 +269,7 @@ export function createInvestigationSerializer(options: SerializerOptions) {
     dispose() {
       if (findingsTimer) clearTimeout(findingsTimer);
       if (questionsTimer) clearTimeout(questionsTimer);
-      if (suspectedCausesTimer) clearTimeout(suspectedCausesTimer);
+      if (hypothesesTimer) clearTimeout(hypothesesTimer);
     },
   };
 }

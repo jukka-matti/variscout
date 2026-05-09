@@ -1,10 +1,10 @@
 import { Flag } from 'lucide-react';
-import type { SuspectedCause } from '@variscout/core';
+import type { Hypothesis } from '@variscout/core';
 
 export interface StepNodeMarkerHub {
   id: string;
   name: string;
-  status: SuspectedCause['status'];
+  status: Hypothesis['status'];
 }
 
 export interface StepNodeMarkerProps {
@@ -15,8 +15,8 @@ export interface StepNodeMarkerProps {
 export function StepNodeMarker({ hubs, onClick }: StepNodeMarkerProps) {
   if (hubs.length === 0) return null;
 
-  const anySuspected = hubs.some(hub => hub.status === 'suspected');
-  const colorClasses = anySuspected
+  const anyOpen = hubs.some(hub => hub.status !== 'confirmed' && hub.status !== 'refuted');
+  const colorClasses = anyOpen
     ? 'border-status-warning bg-status-warning-soft text-status-warning'
     : 'border-status-info bg-status-info-soft text-status-info';
   const names = hubs.map(hub => hub.name).join(', ');

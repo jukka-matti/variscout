@@ -20,15 +20,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
-  return {
-    ...actual,
-    WallCanvas: (props: { hubs: unknown[] }) =>
-      props.hubs.length > 0 ? (
-        <div data-testid="wall-canvas" />
-      ) : (
-        <div data-testid="wall-canvas-empty" />
-      ),
-  };
+  return actual;
 });
 
 vi.mock('@variscout/hooks', async importOriginal => {
@@ -50,6 +42,13 @@ vi.mock('@variscout/ui', async importOriginal => {
     InvestigationPhaseBadge: () => null,
     InvestigationConclusion: () => null,
     FindingsLog: () => <div data-testid="findings-log" />,
+    useWallIsMobile: () => false,
+    WallCanvas: (props: { hubs: unknown[] }) =>
+      props.hubs.length > 0 ? (
+        <div data-testid="wall-canvas" />
+      ) : (
+        <div data-testid="wall-canvas-empty" />
+      ),
   };
 });
 

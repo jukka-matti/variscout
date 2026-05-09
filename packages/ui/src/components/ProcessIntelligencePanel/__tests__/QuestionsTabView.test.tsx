@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import QuestionsTabView from '../QuestionsTabView';
 import type { Question, Finding } from '@variscout/core/findings';
-import type { SuspectedCause } from '../ConclusionCard';
+import type { Hypothesis } from '../ConclusionCard';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -245,27 +245,25 @@ describe('QuestionsTabView — observations section', () => {
 // ---------------------------------------------------------------------------
 
 describe('QuestionsTabView — conclusion card', () => {
-  it('renders conclusion card when suspected causes exist', () => {
-    const causes: SuspectedCause[] = [{ factor: 'Operator', projectedCpk: 1.5 }];
-    render(
-      <QuestionsTabView questions={[]} findings={[]} suspectedCauses={causes} currentCpk={1.1} />
-    );
+  it('renders conclusion card when hypotheses exist', () => {
+    const causes: Hypothesis[] = [{ factor: 'Operator', projectedCpk: 1.5 }];
+    render(<QuestionsTabView questions={[]} findings={[]} hypotheses={causes} currentCpk={1.1} />);
     expect(screen.getByTestId('conclusion-card')).toBeDefined();
     expect(screen.getByTestId('cause-chip-Operator')).toBeDefined();
   });
 
-  it('does not render conclusion card when no suspected causes', () => {
-    render(<QuestionsTabView questions={[]} findings={[]} suspectedCauses={[]} />);
+  it('does not render conclusion card when no hypotheses', () => {
+    render(<QuestionsTabView questions={[]} findings={[]} hypotheses={[]} />);
     expect(screen.queryByTestId('conclusion-card')).toBeNull();
   });
 
   it('shows combined projection footer when combinedProjectedCpk is provided', () => {
-    const causes: SuspectedCause[] = [{ factor: 'Material' }];
+    const causes: Hypothesis[] = [{ factor: 'Material' }];
     render(
       <QuestionsTabView
         questions={[]}
         findings={[]}
-        suspectedCauses={causes}
+        hypotheses={causes}
         currentCpk={1.0}
         combinedProjectedCpk={1.45}
         targetCpk={1.33}

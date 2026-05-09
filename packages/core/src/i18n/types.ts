@@ -386,7 +386,7 @@ export interface MessageCatalog {
   'ai.tool.suggestSaveFinding': string;
   'ai.tool.navigateTo': string;
   'ai.tool.answerQuestion': string;
-  'ai.tool.suggestSuspectedCause': string;
+  'ai.tool.suggestHypothesis': string;
   'ai.tool.connectHubEvidence': string;
   'ai.tool.suggestCausalLink': string;
   'ai.tool.highlightMapPattern': string;
@@ -1008,6 +1008,7 @@ export interface MessageCatalog {
   'wall.status.evidenced': string;
   'wall.status.confirmed': string;
   'wall.status.refuted': string;
+  'wall.status.needsDisconfirmation': string;
   'wall.card.hypothesisLabel': string;
   'wall.card.findings': string;
   'wall.card.evidenceGap': string;

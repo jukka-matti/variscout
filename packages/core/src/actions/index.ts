@@ -5,7 +5,7 @@ export type { InvestigationAction } from './investigationActions';
 export type { FindingAction } from './findingActions';
 export type { QuestionAction } from './questionActions';
 export type { CausalLinkAction } from './causalLinkActions';
-export type { SuspectedCauseAction } from './suspectedCauseActions';
+export type { HypothesisAction } from './hypothesisActions';
 export type { HubMetaAction } from './hubMetaActions';
 export type { CanvasAction } from './canvasActions';
 export type { HubAction } from './HubAction';

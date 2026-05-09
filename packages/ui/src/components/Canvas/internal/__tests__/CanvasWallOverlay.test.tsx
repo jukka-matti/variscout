@@ -1,20 +1,20 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Finding, SuspectedCause } from '@variscout/core';
+import type { Finding, Hypothesis } from '@variscout/core';
 import {
   getInvestigationInitialState,
   useInvestigationStore,
   useWallLayoutStore,
 } from '@variscout/stores';
-import { useWallIsMobile } from '@variscout/charts';
+import { useWallIsMobile } from '../../../InvestigationWall';
 import { CanvasWallOverlay } from '../CanvasWallOverlay';
 
-vi.mock('@variscout/charts', () => ({
+vi.mock('../../../InvestigationWall', () => ({
   useWallIsMobile: vi.fn(),
   WallCanvas: (props: {
     mode?: string;
-    hubs: SuspectedCause[];
+    hubs: Hypothesis[];
     findings: Finding[];
     onSelectHub?: (id: string) => void;
     onPromoteQuestion?: (id: string) => void;
@@ -55,11 +55,11 @@ vi.mock('@variscout/charts', () => ({
 
 const useWallIsMobileMock = vi.mocked(useWallIsMobile);
 
-const sampleHub: SuspectedCause = {
+const sampleHub: Hypothesis = {
   id: 'hub-1',
   name: 'Thermal drift',
   synthesis: '',
-  status: 'suspected',
+  status: 'proposed',
   questionIds: [],
   findingIds: [],
   createdAt: 1714000000000,
@@ -103,7 +103,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('returns null when wall overlay is not active', () => {
-    useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
+    useInvestigationStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay({ activeOverlays: ['hypotheses'] });
 
@@ -118,7 +118,7 @@ describe('CanvasWallOverlay', () => {
 
   it('returns null on mobile', () => {
     useWallIsMobileMock.mockReturnValue(true);
-    useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
+    useInvestigationStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay();
 
@@ -126,7 +126,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('renders the wrapper and WallCanvas in overlay mode when desktop, wall active, and content exists', () => {
-    useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
+    useInvestigationStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay();
 
@@ -141,7 +141,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('makes the wrapper inert, pointer-events-none, and aria-hidden while drawing hypotheses', () => {
-    useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
+    useInvestigationStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay({ activeCanvasTool: 'draw-hypothesis' });
 
@@ -152,7 +152,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('updates wall pan by the pointer drag delta when dragging the overlay background', () => {
-    useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
+    useInvestigationStore.setState({ hypotheses: [sampleHub] });
     useWallLayoutStore.getState().setPan({ x: 12, y: -8 });
 
     renderOverlay();
@@ -166,7 +166,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('does not pan while drawing hypotheses', () => {
-    useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
+    useInvestigationStore.setState({ hypotheses: [sampleHub] });
     useWallLayoutStore.getState().setPan({ x: 12, y: -8 });
 
     renderOverlay({ activeCanvasTool: 'draw-hypothesis' });
@@ -188,7 +188,7 @@ describe('CanvasWallOverlay', () => {
     'focus gap',
   ])('funnels the "%s" WallCanvas callback into onOpenWall exactly once', buttonName => {
     const onOpenWall = vi.fn();
-    useInvestigationStore.setState({ suspectedCauses: [sampleHub] });
+    useInvestigationStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay({ onOpenWall });
 

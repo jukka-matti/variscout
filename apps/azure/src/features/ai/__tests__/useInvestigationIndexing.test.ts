@@ -13,12 +13,12 @@ const mockOnFindingsChange = vi.fn();
 const mockOnQuestionsChange = vi.fn();
 const mockDispose = vi.fn();
 
-const mockOnSuspectedCausesChange = vi.fn();
+const mockOnHypothesesChange = vi.fn();
 
 const mockSerializerInstance = {
   onFindingsChange: mockOnFindingsChange,
   onQuestionsChange: mockOnQuestionsChange,
-  onSuspectedCausesChange: mockOnSuspectedCausesChange,
+  onHypothesesChange: mockOnHypothesesChange,
   dispose: mockDispose,
 };
 

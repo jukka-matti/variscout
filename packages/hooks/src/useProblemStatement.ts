@@ -44,7 +44,7 @@ export interface UseProblemStatementOptions {
 }
 
 export interface UseProblemStatementReturn {
-  /** Whether there are enough suspected causes to generate (legacy — checks question suspected causes) */
+  /** Whether there are enough hypotheses to generate (legacy — checks question hypotheses) */
   isReady: boolean;
   /**
    * Whether the Problem Statement can form early from Watson Q1+Q2+Q3:
@@ -85,7 +85,7 @@ export interface UseProblemStatementReturn {
  * Supports two formation modes:
  * 1. **Early formation** (`isFormable`): Q1 (outcome) + Q2 (characteristicType) + Q3 (locationFactor)
  *    known at FRAME/SCOUT Loop 1 — produces `liveStatement` automatically.
- * 2. **Legacy formation** (`isReady`): Requires question-based suspected causes — produces
+ * 2. **Legacy formation** (`isReady`): Requires question-based hypotheses — produces
  *    `generatedDraft` via manual `generate()` call.
  *
  * Both modes are backward compatible: existing callers passing only `outcome` and `questions`
@@ -112,8 +112,8 @@ export function useProblemStatement({
   // Early formation: all three Watson questions answered
   const isFormable = q1Ready && q2Ready && hasScope && locationFactor != null;
 
-  // Legacy suspected causes from question tree
-  const suspectedCauses = useMemo(
+  // Legacy hypotheses from question tree
+  const hypotheses = useMemo(
     () =>
       questions
         .filter(q => q.causeRole === 'suspected-cause' && q.factor)
@@ -125,8 +125,8 @@ export function useProblemStatement({
     [questions]
   );
 
-  // Legacy readiness: requires at least one question-based suspected cause
-  const isReady = suspectedCauses.length > 0 && q1Ready;
+  // Legacy readiness: requires at least one question-based hypothesis
+  const isReady = hypotheses.length > 0 && q1Ready;
 
   // canGenerateDraft: true when either early or legacy formation path is viable
   const canGenerateDraft = q1Ready && hasScope;
@@ -141,24 +141,16 @@ export function useProblemStatement({
       level: locationFactor.level,
       evidence: locationFactor.evidence,
     };
-    const additionalCauses = suspectedCauses.filter(c => c.factor !== locationFactor.factor);
+    const additionalCauses = hypotheses.filter(c => c.factor !== locationFactor.factor);
 
     return buildProblemStatement({
       outcome,
       targetValue: targetCpk,
       characteristicType,
       currentCpk,
-      suspectedCauses: [locationCause, ...additionalCauses],
+      hypotheses: [locationCause, ...additionalCauses],
     });
-  }, [
-    isFormable,
-    outcome,
-    locationFactor,
-    characteristicType,
-    targetCpk,
-    currentCpk,
-    suspectedCauses,
-  ]);
+  }, [isFormable, outcome, locationFactor, characteristicType, targetCpk, currentCpk, hypotheses]);
 
   // Legacy generatedDraft (for the manual generate() flow)
   // Pass characteristicType so direction is derived consistently with liveStatement.
@@ -171,9 +163,9 @@ export function useProblemStatement({
       targetValue: targetCpk,
       characteristicType,
       currentCpk,
-      suspectedCauses,
+      hypotheses,
     });
-  }, [isReady, outcome, targetCpk, characteristicType, currentCpk, suspectedCauses]);
+  }, [isReady, outcome, targetCpk, characteristicType, currentCpk, hypotheses]);
 
   const generate = useCallback(() => {
     if (generatedDraft) setDraft(generatedDraft);

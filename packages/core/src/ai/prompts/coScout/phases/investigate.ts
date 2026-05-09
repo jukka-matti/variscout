@@ -2,7 +2,7 @@
  * INVESTIGATE phase coaching — question-driven EDA, Evidence Map, hub synthesis.
  *
  * The analyst is building an investigation tree, validating evidence, and
- * synthesizing suspected causes. This is the longest phase with three sub-phases:
+ * synthesizing hypotheses. This is the longest phase with three sub-phases:
  * diverging (explore), validating (assess evidence), converging (synthesize).
  */
 
@@ -33,7 +33,7 @@ const MODE_QUESTION_GUIDANCE: Record<AnalysisMode, string> = {
 - Frame questions around channel health: "Why does channel [X] have lower Cpk than its neighbors?"
 - Evidence strength = Cpk deviation from the fleet average.
 - Suggest checking whether bad channels share maintenance history, position, or operating conditions.
-- Cross-channel questions: "Is the same root cause affecting multiple channels?"`,
+- Cross-channel questions: "Is the same contribution affecting multiple channels?"`,
 };
 
 const SUB_PHASE_COACHING: Record<InvestigationPhase, string> = {
@@ -51,11 +51,11 @@ const SUB_PHASE_COACHING: Record<InvestigationPhase, string> = {
   validating: `Sub-phase: Validating — Evidence is building. Some questions are answered, some ruled out. Help the analyst:
 - Focus on evidence quality — suggest gemba validation for statistical findings.
 - Suggest expert input where data is inconclusive.
-- When you see 2+ answered questions pointing to the same mechanism, use suggest_suspected_cause to help them name it.
+- When you see 2+ answered questions pointing to the same mechanism, use suggest_hypothesis to help them name it.
 - Validate each evidence type: data (auto eta-squared), gemba (go-see observation), expert (domain knowledge).`,
 
-  converging: `Sub-phase: Converging — The investigation is narrowing down to suspected causes. Help the analyst:
-- Name suspected causes — use suggest_suspected_cause when you see evidence clustering.
+  converging: `Sub-phase: Converging — The investigation is narrowing down to hypotheses. Help the analyst:
+- Name hypotheses — use suggest_hypothesis when you see evidence clustering.
 - Connect new evidence to existing hubs with connect_hub_evidence.
 - Highlight coverage progress — which areas have been thoroughly investigated vs gaps.
 - Begin transitioning to improvement thinking: "What would it take to address this cause?"`,
@@ -99,7 +99,7 @@ ${MODE_QUESTION_GUIDANCE[mode]}`);
   // Evidence Map coaching
   parts.push(`Evidence Map coaching:
 - When you see interaction terms with delta-R-squared > 2%, consider suggesting a causal link using suggest_causal_link.
-- When you see a convergence point (factor with 2+ incoming causal links) without a SuspectedCause hub, suggest creating one.
+- When you see a convergence point (factor with 2+ incoming causal links) without a Hypothesis hub, suggest creating one.
 - When you see a causal link with evidenceType "unvalidated", suggest what evidence would validate it (gemba observation, expert consultation, or additional data).
 - Use [REF:evidence-node:FACTOR_NAME]factor text[/REF] to create clickable highlights on the Evidence Map.
 - Use [REF:evidence-edge:LINK_ID]link description[/REF] to highlight a specific causal link on the map.`);
@@ -107,10 +107,10 @@ ${MODE_QUESTION_GUIDANCE[mode]}`);
   // Hub synthesis coaching (validating + converging)
   if (investigationPhase === 'validating' || investigationPhase === 'converging') {
     parts.push(`Hub synthesis coaching:
-- When 2+ answered questions point to the same root cause, use suggest_suspected_cause to name the mechanism.
-- Each suspected cause hub connects related questions and findings into a named mechanism.
+- When 2+ answered questions point to the same contribution, use suggest_hypothesis to name the mechanism.
+- Each Hypothesis hub connects related questions and findings into a named mechanism.
 - Evidence validation types: data (auto eta-squared), gemba (go-see + photos), expert (domain knowledge).
-- Multiple suspected causes are normal — real investigations often identify several contributing factors.
+- Multiple hypotheses are normal — real investigations often identify several contributing factors.
 - Use causeRole classification: "suspected-cause" for strong evidence, "contributing" for moderate, "ruled-out" for eliminated.
 - Ruled-out factors are valuable negative learnings — always acknowledge what was checked and eliminated.`);
   }

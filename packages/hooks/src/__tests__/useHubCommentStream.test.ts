@@ -34,7 +34,7 @@ vi.stubGlobal('EventSource', MockEventSourceClass);
 
 const stateRef = {
   current: {
-    suspectedCauses: [] as Array<{
+    hypotheses: [] as Array<{
       id: string;
       comments?: Array<{ id: string; text: string; createdAt: number }>;
     }>,
@@ -90,7 +90,7 @@ describe('useHubCommentStream', () => {
     drainPendingCommentsMock.mockClear();
     wallStateRef.pendingComments = [];
     stateRef.current = {
-      suspectedCauses: [
+      hypotheses: [
         { id: 'hub-1', comments: [] },
         { id: 'hub-2', comments: [] },
       ],
@@ -158,7 +158,7 @@ describe('useHubCommentStream', () => {
       } as MessageEvent);
     });
 
-    const hub = stateRef.current.suspectedCauses.find(h => h.id === 'hub-1')!;
+    const hub = stateRef.current.hypotheses.find(h => h.id === 'hub-1')!;
     expect(hub.comments).toHaveLength(2);
     expect(hub.comments?.[0]?.text).toBe('hello');
   });
@@ -175,15 +175,13 @@ describe('useHubCommentStream', () => {
       } as MessageEvent);
     });
 
-    const hub = stateRef.current.suspectedCauses.find(h => h.id === 'hub-1')!;
+    const hub = stateRef.current.hypotheses.find(h => h.id === 'hub-1')!;
     expect(hub.comments?.find(c => c.id === 'c-live')).toBeDefined();
   });
 
   it('dedups by id when a comment is re-received (self-echo)', () => {
     // Seed the hub with an existing optimistic comment.
-    stateRef.current.suspectedCauses[0].comments = [
-      { id: 'c-local', text: 'my own', createdAt: 1 },
-    ];
+    stateRef.current.hypotheses[0].comments = [{ id: 'c-local', text: 'my own', createdAt: 1 }];
 
     renderHook(() => useHubCommentStream({ projectId: 'proj-1', visibleHubIds: ['hub-1'] }));
 
@@ -196,7 +194,7 @@ describe('useHubCommentStream', () => {
       } as MessageEvent);
     });
 
-    const hub = stateRef.current.suspectedCauses.find(h => h.id === 'hub-1')!;
+    const hub = stateRef.current.hypotheses.find(h => h.id === 'hub-1')!;
     expect(hub.comments).toHaveLength(1);
   });
 
@@ -209,7 +207,7 @@ describe('useHubCommentStream', () => {
       });
     }).not.toThrow();
 
-    const hub = stateRef.current.suspectedCauses.find(h => h.id === 'hub-1')!;
+    const hub = stateRef.current.hypotheses.find(h => h.id === 'hub-1')!;
     expect(hub.comments).toHaveLength(0);
   });
 

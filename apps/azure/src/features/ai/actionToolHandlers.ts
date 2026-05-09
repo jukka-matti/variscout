@@ -12,7 +12,7 @@ import type {
   Question,
   FilterAction,
   ActionProposal,
-  SuspectedCause,
+  Hypothesis,
   CausalLink,
 } from '@variscout/core';
 import {
@@ -34,8 +34,8 @@ export interface ActionToolDeps {
   questions: Question[];
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
-  /** Existing suspected cause hubs — used by connect_hub_evidence handler */
-  suspectedCauses?: SuspectedCause[];
+  /** Existing hypothesis hubs — used by connect_hub_evidence handler */
+  hypotheses?: Hypothesis[];
   /** Existing causal links — used by suggest_causal_link handler */
   causalLinks?: CausalLink[];
   /** Available factor column names — used for validation */
@@ -52,7 +52,7 @@ export function buildActionToolHandlers({
   questions,
   filters,
   filterStack,
-  suspectedCauses,
+  hypotheses,
   causalLinks,
   factors,
 }: ActionToolDeps): Partial<ToolHandlerMap> {
@@ -338,7 +338,7 @@ export function buildActionToolHandlers({
       return JSON.stringify({ proposal: true, ...proposal });
     },
 
-    suggest_suspected_cause: async (args: Record<string, unknown>) => {
+    suggest_hypothesis: async (args: Record<string, unknown>) => {
       const name = args.name as string;
       const synthesis = args.synthesis as string;
       const questionIds = args.questionIds as string[];
@@ -363,14 +363,14 @@ export function buildActionToolHandlers({
 
       const proposal: ActionProposal = {
         id: generateProposalId(),
-        tool: 'suggest_suspected_cause',
+        tool: 'suggest_hypothesis',
         params: { name, synthesis, questionIds, findingIds },
         preview: {
           name,
           synthesis,
           questionCount: questionIds.length,
           findingCount: findingIds.length,
-          previewText: `Create suspected cause: "${name}"\nConnecting ${questionIds.length} question${questionIds.length !== 1 ? 's' : ''} + ${findingIds.length} finding${findingIds.length !== 1 ? 's' : ''}`,
+          previewText: `Create hypothesis: "${name}"\nConnecting ${questionIds.length} question${questionIds.length !== 1 ? 's' : ''} + ${findingIds.length} finding${findingIds.length !== 1 ? 's' : ''}`,
         },
         status: 'pending',
         filterStackHash: hashFilterStack(filterStack),
@@ -388,7 +388,7 @@ export function buildActionToolHandlers({
 
       if (!hubId) return JSON.stringify({ error: 'Missing hubId' });
 
-      const hub = suspectedCauses?.find(h => h.id === hubId);
+      const hub = hypotheses?.find(h => h.id === hubId);
       if (!hub) return JSON.stringify({ error: `Suspected cause hub not found: ${hubId}` });
 
       const totalNew = questionIds.length + findingIds.length;

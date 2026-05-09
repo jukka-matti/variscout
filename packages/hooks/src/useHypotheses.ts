@@ -1,45 +1,39 @@
 import { useState, useCallback } from 'react';
-import { createSuspectedCause } from '@variscout/core/findings';
-import type { SuspectedCause } from '@variscout/core';
+import { createHypothesis } from '@variscout/core/findings';
+import type { Hypothesis } from '@variscout/core';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export interface UseSuspectedCausesOptions {
+export interface UseHypothesesOptions {
   /** Initial hubs (for restoring persisted state) */
-  initialHubs: SuspectedCause[];
+  initialHubs: Hypothesis[];
   /** Callback when hubs change (for external persistence) */
-  onHubsChange?: (hubs: SuspectedCause[]) => void;
+  onHubsChange?: (hubs: Hypothesis[]) => void;
 }
 
-export type SuspectedCauseUpdate = Partial<
+export type HypothesisUpdate = Partial<
   Pick<
-    SuspectedCause,
-    | 'name'
-    | 'synthesis'
-    | 'nextMove'
-    | 'branchStatus'
-    | 'branchReadiness'
-    | 'counterFindingIds'
-    | 'checkQuestionIds'
+    Hypothesis,
+    'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds' | 'checkQuestionIds'
   >
 >;
 
-export interface UseSuspectedCausesReturn {
-  /** Current list of suspected cause hubs */
-  hubs: SuspectedCause[];
+export interface UseHypothesesReturn {
+  /** Current list of hypothesis hubs */
+  hubs: Hypothesis[];
   /** Create a new hub and return it */
-  createHub: (name: string, synthesis: string) => SuspectedCause;
+  createHub: (name: string, synthesis: string) => Hypothesis;
   /** Update name and/or synthesis of an existing hub */
-  updateHub: (hubId: string, updates: SuspectedCauseUpdate) => void;
+  updateHub: (hubId: string, updates: HypothesisUpdate) => void;
   /** Delete a hub by id */
   deleteHub: (hubId: string) => void;
   /**
    * Replace the entire hub list atomically (e.g. after migration).
    * Updates hook state and fires onHubsChange so the store stays in sync.
    */
-  resetHubs: (newHubs: SuspectedCause[]) => void;
+  resetHubs: (newHubs: Hypothesis[]) => void;
   /** Connect a question to a hub (no-op if already connected) */
   connectQuestion: (hubId: string, questionId: string) => void;
   /** Disconnect a question from a hub */
@@ -49,11 +43,11 @@ export interface UseSuspectedCausesReturn {
   /** Disconnect a finding from a hub */
   disconnectFinding: (hubId: string, findingId: string) => void;
   /** Update the status of a hub */
-  setHubStatus: (hubId: string, status: SuspectedCause['status']) => void;
+  setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
   /** Find the hub that contains a given questionId */
-  getHubForQuestion: (questionId: string) => SuspectedCause | undefined;
+  getHubForQuestion: (questionId: string) => Hypothesis | undefined;
   /** Find the hub that contains a given findingId */
-  getHubForFinding: (findingId: string) => SuspectedCause | undefined;
+  getHubForFinding: (findingId: string) => Hypothesis | undefined;
 }
 
 // ============================================================================
@@ -61,7 +55,7 @@ export interface UseSuspectedCausesReturn {
 // ============================================================================
 
 /**
- * Manages suspected cause hubs — named groupings of questions and findings
+ * Manages hypothesis hubs — named groupings of questions and findings
  * that represent a single mechanism the analyst believes is driving variation.
  *
  * Each hub connects multiple evidence threads (questions + findings) under a
@@ -70,13 +64,13 @@ export interface UseSuspectedCausesReturn {
  *
  * Follows the same pattern as `useQuestions` and `useFindings`.
  */
-export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspectedCausesReturn {
+export function useHypotheses(options: UseHypothesesOptions): UseHypothesesReturn {
   const { initialHubs, onHubsChange } = options;
-  const [hubs, setHubs] = useState<SuspectedCause[]>(initialHubs);
+  const [hubs, setHubs] = useState<Hypothesis[]>(initialHubs);
 
   /** Update state and notify external listener via functional updater pattern */
   const update = useCallback(
-    (updater: (prev: SuspectedCause[]) => SuspectedCause[]) => {
+    (updater: (prev: Hypothesis[]) => Hypothesis[]) => {
       setHubs(prev => {
         const next = updater(prev);
         onHubsChange?.(next);
@@ -87,8 +81,8 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
   );
 
   const createHub = useCallback(
-    (name: string, synthesis: string): SuspectedCause => {
-      const hub = createSuspectedCause(name, synthesis);
+    (name: string, synthesis: string): Hypothesis => {
+      const hub = createHypothesis(name, synthesis);
       update(prev => [...prev, hub]);
       return hub;
     },
@@ -96,7 +90,7 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
   );
 
   const updateHub = useCallback(
-    (hubId: string, updates: SuspectedCauseUpdate): void => {
+    (hubId: string, updates: HypothesisUpdate): void => {
       update(prev =>
         prev.map(h => (h.id === hubId ? { ...h, ...updates, updatedAt: Date.now() } : h))
       );
@@ -180,7 +174,7 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
   );
 
   const resetHubs = useCallback(
-    (newHubs: SuspectedCause[]): void => {
+    (newHubs: Hypothesis[]): void => {
       setHubs(newHubs);
       onHubsChange?.(newHubs);
     },
@@ -188,21 +182,20 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
   );
 
   const setHubStatus = useCallback(
-    (hubId: string, status: SuspectedCause['status']): void => {
+    (hubId: string, status: Hypothesis['status']): void => {
       update(prev => prev.map(h => (h.id !== hubId ? h : { ...h, status, updatedAt: Date.now() })));
     },
     [update]
   );
 
   const getHubForQuestion = useCallback(
-    (questionId: string): SuspectedCause | undefined =>
+    (questionId: string): Hypothesis | undefined =>
       hubs.find(h => h.questionIds.includes(questionId)),
     [hubs]
   );
 
   const getHubForFinding = useCallback(
-    (findingId: string): SuspectedCause | undefined =>
-      hubs.find(h => h.findingIds.includes(findingId)),
+    (findingId: string): Hypothesis | undefined => hubs.find(h => h.findingIds.includes(findingId)),
     [hubs]
   );
 

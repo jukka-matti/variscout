@@ -10,7 +10,7 @@
  * - stale-question: open question older than STALE_DAYS
  */
 
-import type { SuspectedCause, Question, Finding } from '../..';
+import type { Hypothesis, Question, Finding } from '../..';
 
 const MIN_SUPPORTERS_FOR_DISCONFIRMATION_GAP = 3;
 const STALE_DAYS = 7;
@@ -23,7 +23,7 @@ export type InvestigationGap =
   | { kind: 'stale-question'; questionId: string; questionText: string; daysOpen: number };
 
 export interface CritiqueInput {
-  hubs: SuspectedCause[];
+  hubs: Hypothesis[];
   questions: Question[];
   findings: Finding[];
 }

@@ -455,7 +455,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
             <p className="text-xs font-medium text-content-secondary mb-3">I can help you:</p>
             <ul className="text-[0.6875rem] text-content-muted space-y-1.5 text-left max-w-[240px] mx-auto">
               <li>Understand patterns in your process data</li>
-              <li>Investigate suspected causes using progressive stratification</li>
+              <li>Investigate hypotheses using progressive stratification</li>
               <li>Interpret capability metrics and η² (effect size)</li>
               <li>Suggest next steps in your investigation</li>
             </ul>

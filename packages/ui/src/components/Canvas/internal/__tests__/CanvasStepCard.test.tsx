@@ -28,11 +28,11 @@ const overlayWithPromoted: CanvasStepInvestigationOverlay = {
   stepId: 'step-1',
   questions: [],
   findings: [],
-  suspectedCauses: [
+  hypotheses: [
     {
       id: 'hub-1',
       name: 'Thermal drift',
-      status: 'suspected',
+      status: 'proposed',
       questionId: undefined,
       focus: { kind: 'suspected-cause', id: 'hub-1' },
     },
@@ -47,7 +47,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
       <CanvasStepCard
         card={baseCard}
         activeLens="default"
-        activeOverlays={['suspected-causes']}
+        activeOverlays={['hypothesis-hubs']}
         investigationOverlay={overlayWithPromoted}
         activeCanvasTool="select"
         onOpen={() => undefined}
@@ -173,7 +173,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
       <CanvasStepCard
         card={baseCard}
         activeLens="default"
-        activeOverlays={['suspected-causes']}
+        activeOverlays={['hypothesis-hubs']}
         investigationOverlay={overlayWithPromoted}
         activeCanvasTool="select"
         onOpen={onOpen}
@@ -191,7 +191,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
       <CanvasStepCard
         card={baseCard}
         activeLens="default"
-        activeOverlays={['suspected-causes']}
+        activeOverlays={['hypothesis-hubs']}
         investigationOverlay={overlayWithPromoted}
         activeCanvasTool="draw-hypothesis"
         onOpen={onOpen}

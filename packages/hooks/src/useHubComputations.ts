@@ -6,7 +6,7 @@
  * shared hook.
  *
  * Computes:
- * - hubEvidences: Map of hub id → SuspectedCauseEvidence (R²adj-based)
+ * - hubEvidences: Map of hub id → HypothesisEvidence (R²adj-based)
  * - worstLevels: Record of factor → worst level string (for projection)
  * - hubProjections: Map of hub id → HubProjection (predicted improvement)
  */
@@ -14,14 +14,14 @@ import { useMemo } from 'react';
 
 import { computeHubEvidence, computeHubProjection } from '@variscout/core/findings';
 import type { BestSubsetsResult } from '@variscout/core/stats';
-import type { HubProjection, SuspectedCauseEvidence } from '@variscout/core/findings';
+import type { HubProjection, HypothesisEvidence } from '@variscout/core/findings';
 import type { Question } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import { useInvestigationStore, useProjectStore } from '@variscout/stores';
 
 export interface UseHubComputationsReturn {
   /** Evidence summary per hub (undefined when no hubs exist) */
-  hubEvidences: Map<string, SuspectedCauseEvidence> | undefined;
+  hubEvidences: Map<string, HypothesisEvidence> | undefined;
   /** Worst factor levels derived from best-subsets level effects */
   worstLevels: Record<string, string>;
   /** Projection per hub (undefined when no hubs or no best-subsets result) */
@@ -39,7 +39,7 @@ export function useHubComputations(
   bestSubsets: BestSubsetsResult | null,
   questions: Question[]
 ): UseHubComputationsReturn {
-  const hubs = useInvestigationStore(s => s.suspectedCauses);
+  const hubs = useInvestigationStore(s => s.hypotheses);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const specs = useProjectStore(s => s.specs);
 
@@ -48,7 +48,7 @@ export function useHubComputations(
   const hubEvidences = useMemo(() => {
     if (hubs.length === 0) return undefined;
 
-    const evidenceMode: SuspectedCauseEvidence['mode'] =
+    const evidenceMode: HypothesisEvidence['mode'] =
       resolved === 'capability'
         ? 'capability'
         : resolved === 'performance'
@@ -57,7 +57,7 @@ export function useHubComputations(
             ? 'yamazumi'
             : 'standard';
 
-    const map = new Map<string, SuspectedCauseEvidence>();
+    const map = new Map<string, HypothesisEvidence>();
     for (const hub of hubs) {
       map.set(hub.id, computeHubEvidence(hub, questions, bestSubsets, evidenceMode));
     }

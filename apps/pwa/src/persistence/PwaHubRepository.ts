@@ -19,7 +19,7 @@
 //   - `outcomes.get` / `outcomes.listByHub` filter by `deletedAt === null`.
 //   - `canvasState.getByHub` returns the row, stripped of the `hubId` FK.
 //   - `evidenceSnapshots` / `evidenceSources` / `investigations` /
-//     `findings` / `questions` / `causalLinks` / `suspectedCauses` query the
+//     `findings` / `questions` / `causalLinks` / `hypotheses` query the
 //     real (empty) tables. Until F3.5 (evidence) and F5 (investigation
 //     entities) wire writes, these consistently return empty rows.
 //
@@ -41,7 +41,7 @@ import type {
   FindingReadAPI,
   QuestionReadAPI,
   CausalLinkReadAPI,
-  SuspectedCauseReadAPI,
+  HypothesisReadAPI,
   CanvasStateReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
@@ -239,17 +239,14 @@ export class PwaHubRepository implements HubRepository {
     },
   };
 
-  suspectedCauses: SuspectedCauseReadAPI = {
+  hypotheses: HypothesisReadAPI = {
     get: async id => {
-      const row = await db.suspectedCauses.get(id);
+      const row = await db.hypotheses.get(id);
       if (!row || row.deletedAt !== null) return undefined;
       return row;
     },
     listByInvestigation: async investigationId => {
-      const rows = await db.suspectedCauses
-        .where('investigationId')
-        .equals(investigationId)
-        .toArray();
+      const rows = await db.hypotheses.where('investigationId').equals(investigationId).toArray();
       return rows.filter(r => r.deletedAt === null);
     },
   };

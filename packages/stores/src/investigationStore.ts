@@ -1,7 +1,7 @@
 /**
- * investigationStore — Zustand store for findings, questions, and suspected cause hubs
+ * investigationStore — Zustand store for findings, questions, and hypothesis hubs
  *
- * Consolidates CRUD from useFindings, useQuestions, and useSuspectedCauses hooks
+ * Consolidates CRUD from useFindings, useQuestions, and useHypotheses hooks
  * into a single store. No callbacks — persistence will be via store.subscribe().
  * No React imports — pure Zustand, framework-agnostic.
  */
@@ -29,8 +29,8 @@ import type {
   QuestionValidationType,
   ImprovementIdea,
   InvestigationCategory,
-  SuspectedCause,
-  SuspectedCauseEvidence,
+  Hypothesis,
+  HypothesisEvidence,
   CausalLink,
   GateNode,
 } from '@variscout/core';
@@ -40,7 +40,7 @@ import {
   createActionItem,
   createQuestion,
   createImprovementIdea,
-  createSuspectedCause,
+  createHypothesis,
   createCausalLink,
   insertHubAsAndChild,
   type GatePath,
@@ -48,16 +48,10 @@ import {
 
 export const STORE_LAYER = 'document' as const;
 
-type SuspectedCauseUpdate = Partial<
+type HypothesisUpdate = Partial<
   Pick<
-    SuspectedCause,
-    | 'name'
-    | 'synthesis'
-    | 'nextMove'
-    | 'branchStatus'
-    | 'branchReadiness'
-    | 'counterFindingIds'
-    | 'checkQuestionIds'
+    Hypothesis,
+    'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds' | 'checkQuestionIds'
   >
 >;
 
@@ -78,7 +72,7 @@ export const MAX_CHILDREN_PER_PARENT = 8;
 export interface InvestigationState {
   findings: Finding[];
   questions: Question[];
-  suspectedCauses: SuspectedCause[];
+  hypotheses: Hypothesis[];
   causalLinks: CausalLink[];
   categories: InvestigationCategory[];
   problemContributionTree?: GateNode;
@@ -179,22 +173,22 @@ export interface InvestigationActions {
   updateIdeaProjection: (questionId: string, ideaId: string, projection: FindingProjection) => void;
 
   // --- Hub actions ---
-  createHub: (name: string, synthesis: string) => SuspectedCause;
+  createHub: (name: string, synthesis: string) => Hypothesis;
   /**
-   * Create a new SuspectedCause hub from a finding. The hub is seeded with a
+   * Create a new Hypothesis hub from a finding. The hub is seeded with a
    * default name derived from the finding's text (truncated), linked to the
    * finding, and returned. Returns null if the finding doesn't exist.
    */
-  createHubFromFinding: (findingId: string) => SuspectedCause | null;
-  updateHub: (hubId: string, updates: SuspectedCauseUpdate) => void;
+  createHubFromFinding: (findingId: string) => Hypothesis | null;
+  updateHub: (hubId: string, updates: HypothesisUpdate) => void;
   deleteHub: (hubId: string) => void;
   connectQuestionToHub: (hubId: string, questionId: string) => void;
   disconnectQuestionFromHub: (hubId: string, questionId: string) => void;
   connectFindingToHub: (hubId: string, findingId: string) => void;
   disconnectFindingFromHub: (hubId: string, findingId: string) => void;
-  setHubStatus: (hubId: string, status: SuspectedCause['status']) => void;
-  setHubEvidence: (hubId: string, evidence: SuspectedCauseEvidence) => void;
-  resetHubs: (hubs: SuspectedCause[]) => void;
+  setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
+  setHubEvidence: (hubId: string, evidence: HypothesisEvidence) => void;
+  resetHubs: (hubs: Hypothesis[]) => void;
   /**
    * Append a comment to a hub (Investigation Wall team discussion).
    * Optimistically updates the hub's `comments` array, then POSTs to
@@ -308,7 +302,7 @@ function collectDescendants(id: string, questions: Question[]): Set<string> {
 const initialState: InvestigationState = {
   findings: [],
   questions: [],
-  suspectedCauses: [],
+  hypotheses: [],
   causalLinks: [],
   categories: [],
   problemContributionTree: undefined,
@@ -844,8 +838,8 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     // ========================================================================
 
     createHub: (name, synthesis) => {
-      const hub = createSuspectedCause(name, synthesis);
-      set(state => ({ suspectedCauses: [...state.suspectedCauses, hub] }));
+      const hub = createHypothesis(name, synthesis);
+      set(state => ({ hypotheses: [...state.hypotheses, hub] }));
       return hub;
     },
 
@@ -854,14 +848,14 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       if (!finding) return null;
       const excerpt = finding.text.trim().slice(0, 80);
       const name = excerpt.length > 0 ? `Suspected mechanism: ${excerpt}` : 'New mechanism branch';
-      const hub = createSuspectedCause(name, '', [], [findingId]);
-      set(state => ({ suspectedCauses: [...state.suspectedCauses, hub] }));
+      const hub = createHypothesis(name, '', [], [findingId]);
+      set(state => ({ hypotheses: [...state.hypotheses, hub] }));
       return hub;
     },
 
     updateHub: (hubId, updates) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id === hubId ? { ...h, ...updates, updatedAt: Date.now() } : h
         ),
       }));
@@ -869,19 +863,17 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     deleteHub: hubId => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.filter(h => h.id !== hubId),
-        // Clear hubId from causal links that reference the deleted hub
+        hypotheses: state.hypotheses.filter(h => h.id !== hubId),
+        // Clear hypothesisId from causal links that reference the deleted hub
         causalLinks: state.causalLinks.map(l =>
-          l.suspectedCauseId === hubId
-            ? { ...l, suspectedCauseId: undefined, updatedAt: Date.now() }
-            : l
+          l.hypothesisId === hubId ? { ...l, hypothesisId: undefined, updatedAt: Date.now() } : l
         ),
       }));
     },
 
     connectQuestionToHub: (hubId, questionId) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h => {
+        hypotheses: state.hypotheses.map(h => {
           if (h.id !== hubId) return h;
           if (h.questionIds.includes(questionId)) return h;
           return {
@@ -895,7 +887,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     disconnectQuestionFromHub: (hubId, questionId) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id !== hubId
             ? h
             : {
@@ -909,7 +901,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     connectFindingToHub: (hubId, findingId) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h => {
+        hypotheses: state.hypotheses.map(h => {
           if (h.id !== hubId) return h;
           if (h.findingIds.includes(findingId)) return h;
           return {
@@ -923,7 +915,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     disconnectFindingFromHub: (hubId, findingId) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id !== hubId
             ? h
             : {
@@ -937,7 +929,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     setHubStatus: (hubId, status) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id !== hubId ? h : { ...h, status, updatedAt: Date.now() }
         ),
       }));
@@ -945,25 +937,25 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     setHubEvidence: (hubId, evidence) => {
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id !== hubId ? h : { ...h, evidence, updatedAt: Date.now() }
         ),
       }));
     },
 
     resetHubs: hubs => {
-      set({ suspectedCauses: hubs });
+      set({ hypotheses: hubs });
     },
 
     addHubComment: async (hubId, text, author) => {
       // 1. Build the comment locally so optimistic append + server payload
       //    share the same id — keeps the SSE echo idempotent (server dedupes
       //    by id, so the echo that fans back via the stream is a no-op).
-      const comment = createFindingComment(text, hubId, 'suspectedCause', author);
+      const comment = createFindingComment(text, hubId, 'hypothesis', author);
 
       // 2. Optimistic update: append to the hub's comments array.
       set(state => ({
-        suspectedCauses: state.suspectedCauses.map(h =>
+        hypotheses: state.hypotheses.map(h =>
           h.id === hubId
             ? {
                 ...h,
@@ -1112,7 +1104,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       set(state => ({
         findings: partial.findings ?? state.findings,
         questions: partial.questions ?? state.questions,
-        suspectedCauses: partial.suspectedCauses ?? state.suspectedCauses,
+        hypotheses: partial.hypotheses ?? state.hypotheses,
         causalLinks: partial.causalLinks ?? state.causalLinks,
         categories: partial.categories ?? state.categories,
         problemContributionTree: partial.problemContributionTree ?? state.problemContributionTree,

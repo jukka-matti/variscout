@@ -8,6 +8,8 @@ export { QuestionPill } from './QuestionPill';
 export type { QuestionPillProps } from './QuestionPill';
 export { FindingChip } from './FindingChip';
 export type { FindingChipProps } from './FindingChip';
+export { TagChip } from './TagChip';
+export type { TagChipProps } from './TagChip';
 export { GateBadge } from './GateBadge';
 export type { GateBadgeProps } from './GateBadge';
 export { NarratorRail } from './NarratorRail';
@@ -18,7 +20,7 @@ export { MissingEvidenceDigest } from './MissingEvidenceDigest';
 export type { MissingEvidenceDigestProps, MissingEvidenceGap } from './MissingEvidenceDigest';
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
-export type { WallStatus, Point } from './types';
+export type { Point } from './types';
 export { useWallKeyboard } from './hooks/useWallKeyboard';
 export type { UseWallKeyboardOptions } from './hooks/useWallKeyboard';
 export {

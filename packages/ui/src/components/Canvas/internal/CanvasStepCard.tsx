@@ -59,8 +59,8 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
   const showCapability = activeLens === 'capability' || activeLens === 'default';
   const showInvestigations = activeOverlays.includes('investigations') && investigationOverlay;
   const showFindings = activeOverlays.includes('findings') && investigationOverlay?.findings.length;
-  const showSuspectedCauses =
-    activeOverlays.includes('suspected-causes') && investigationOverlay?.suspectedCauses.length;
+  const showHypotheses =
+    activeOverlays.includes('hypothesis-hubs') && investigationOverlay?.hypotheses.length;
   const activityCount = investigationOverlay
     ? investigationOverlay.investigationCounts.open +
       investigationOverlay.investigationCounts.supported +
@@ -128,9 +128,9 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
             {investigationOverlay?.findings.length} finding
           </span>
         ) : null}
-        {showSuspectedCauses ? (
+        {showHypotheses ? (
           <StepNodeMarker
-            hubs={(investigationOverlay?.suspectedCauses ?? []).map(cause => ({
+            hubs={(investigationOverlay?.hypotheses ?? []).map(cause => ({
               id: cause.id,
               name: cause.name,
               status: cause.status,

@@ -5,7 +5,7 @@ import { StepNodeMarker } from '../StepNodeMarker';
 const suspectedHub = {
   id: 'hub-1',
   name: 'Chamber 3 thermal drift',
-  status: 'suspected' as const,
+  status: 'proposed' as const,
 };
 
 const confirmedHub = {

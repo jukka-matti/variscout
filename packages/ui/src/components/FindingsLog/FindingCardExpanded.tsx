@@ -113,7 +113,7 @@ export const QuestionSection: React.FC<QuestionSectionProps> = ({
 // Suspected Cause Section (primary + contributing questions)
 // ============================================================================
 
-export interface SuspectedCauseSectionProps {
+export interface HypothesisSectionProps {
   questionsMap: Record<
     string,
     {
@@ -125,7 +125,7 @@ export interface SuspectedCauseSectionProps {
   >;
 }
 
-export const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({ questionsMap }) => {
+export const HypothesisSection: React.FC<HypothesisSectionProps> = ({ questionsMap }) => {
   const entries = Object.entries(questionsMap);
   const primary = entries.find(([, h]) => h.causeRole === 'suspected-cause');
   const contributing = entries.filter(([, h]) => h.causeRole === 'contributing');

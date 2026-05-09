@@ -79,7 +79,7 @@ export interface ProcessMapTributary {
   contextColumns?: string[];
 }
 
-/** A pre-data hunch pinned to a step or tributary, lifted later to a SuspectedCause. */
+/** A pre-data hunch pinned to a step or tributary, lifted later to a Hypothesis. */
 export interface ProcessMapHunch {
   id: string;
   /** Human-readable hunch (e.g. "Nozzle wear on night shift"). */
@@ -124,7 +124,7 @@ export interface ProcessMap {
    * Consumers (e.g. SubgroupConfigPopover) resolve these to column names via `tributaries`.
    */
   subgroupAxes?: string[];
-  /** Pre-data hunches. Drafted here; promoted to SuspectedCause hubs in Investigation. */
+  /** Pre-data hunches. Drafted here; promoted to Hypothesis hubs in Investigation. */
   hunches?: ProcessMapHunch[];
   /** Optional layout hints. */
   layout?: ProcessMapLayout;

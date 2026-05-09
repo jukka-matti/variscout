@@ -17,7 +17,7 @@ import type {
 import type { ToolDefinition, MessageContent, InputContentPart } from '../../responsesApi';
 import type { Locale } from '../../../i18n/types';
 import type { AnalysisMode } from '../../../types';
-import type { SuspectedCause } from '../../../findings/types';
+import type { Hypothesis } from '../../../findings/types';
 import { formatStatistic } from '../../../i18n/format';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from '../shared';
 import { buildSummaryPrompt } from '../narration';
@@ -31,8 +31,8 @@ export interface BuildCoScoutToolsOptions {
   investigationPhase?: InvestigationPhase;
   /** Whether user is on Team plan (enables sharing tools) */
   isTeamPlan?: boolean;
-  /** Existing suspected cause hubs — enables connect_hub_evidence when non-empty */
-  existingHubs?: SuspectedCause[];
+  /** Existing Hypothesis hubs — enables connect_hub_evidence when non-empty */
+  existingHubs?: Hypothesis[];
 }
 
 /**
@@ -310,7 +310,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
           properties: {
             text: {
               type: 'string',
-              description: 'Question text describing the suspected cause to investigate',
+              description: 'Question text describing the hypothesis to investigate',
             },
             factor: {
               type: ['string', 'null'],
@@ -375,7 +375,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         type: 'function',
         name: 'suggest_improvement_idea',
         description:
-          'Propose an improvement idea for an answered question. Ideas bridge root cause analysis and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Use the Four Ideation Directions to classify the approach. Prefer lean improvements — simplest fix that addresses the root cause.',
+          'Propose an improvement idea for an answered question. Ideas bridge mechanism analysis and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Use the Four Ideation Directions to classify the approach. Prefer lean improvements — simplest fix that addresses the key contribution.',
         parameters: {
           type: 'object',
           properties: {
@@ -442,11 +442,11 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
           properties: {
             question_id: {
               type: 'string',
-              description: 'ID of the question (suspected cause) being brainstormed',
+              description: 'ID of the question (hypothesis) being brainstormed',
             },
             cause_name: {
               type: 'string',
-              description: 'Name of the suspected cause for context',
+              description: 'Name of the hypothesis for context',
             },
             ideas: {
               type: 'array',
@@ -489,7 +489,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
               type: 'string',
               description:
                 'Concise insight text, e.g., "Nozzle 3 shows 2x variation of other nozzles — ' +
-                'cleaning frequency is the likely root cause (eta-squared 0.42)"',
+                'cleaning frequency is the likely key contribution (eta-squared 0.42)"',
             },
             reasoning: {
               type: 'string',
@@ -614,9 +614,9 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
     if (investigationPhase === 'validating' || investigationPhase === 'converging') {
       tools.push({
         type: 'function',
-        name: 'suggest_suspected_cause',
+        name: 'suggest_hypothesis',
         description:
-          'Suggest a suspected cause hub that connects related questions and findings into a named mechanism. Use when you notice 2+ answered questions pointing to the same root cause during validating or converging phase.',
+          'Suggest a Hypothesis hub that connects related questions and findings into a named mechanism. Use when you notice 2+ answered questions pointing to the same contribution during validating or converging phase.',
         parameters: {
           type: 'object',
           properties: {
@@ -653,11 +653,11 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         type: 'function',
         name: 'connect_hub_evidence',
         description:
-          'Connect newly answered questions or findings to an existing suspected cause hub. Use when new evidence supports an already-named mechanism.',
+          'Connect newly answered questions or findings to an existing Hypothesis hub. Use when new evidence supports an already-named mechanism.',
         parameters: {
           type: 'object',
           properties: {
-            hubId: { type: 'string', description: 'ID of the existing suspected cause hub' },
+            hubId: { type: 'string', description: 'ID of the existing Hypothesis hub' },
             questionIds: {
               type: 'array',
               items: { type: 'string' },
@@ -919,10 +919,10 @@ Never invent data or statistics. If the context does not contain enough informat
       invParts.push(`**Currently investigating:** ${investigation.focusedQuestionText}`);
     }
 
-    // Convergence synthesis — the analyst's suspected cause narrative
+    // Convergence synthesis — the analyst's hypothesis narrative
     if (options.synthesis) {
       invParts.push(
-        `Synthesis (suspected cause narrative): "${options.synthesis}". Use this to ground improvement suggestions. Do not say "confirmed" — use "the evidence suggests" or "the evidence points to".`
+        `Synthesis (hypothesis narrative): "${options.synthesis}". Use this to ground improvement suggestions. Do not say "confirmed" — use "the evidence suggests" or "the evidence points to".`
       );
     }
 
@@ -978,10 +978,10 @@ Never invent data or statistics. If the context does not contain enough informat
         diverging:
           'The investigation is exploring questions — some have been answered, new follow-up questions are emerging. Tell the user: "You\'re exploring questions — let\'s check the open questions systematically, starting with the highest-ranked ones."',
         validating:
-          'Evidence is building — some questions are answered, some ruled out. Tell the user: "Evidence is building — let\'s see which suspected causes the answered questions point to."',
+          'Evidence is building — some questions are answered, some ruled out. Tell the user: "Evidence is building — let\'s see which hypotheses the answered questions point to."',
         converging: hasAnsweredQuestions
-          ? 'The investigation is narrowing down. Tell the user: "You\'re identifying suspected causes — answered questions found. Let\'s brainstorm improvement ideas."'
-          : 'The investigation is narrowing down. Tell the user: "You\'re identifying suspected causes — let\'s synthesize findings into a coherent story."',
+          ? 'The investigation is narrowing down. Tell the user: "You\'re identifying hypotheses — answered questions found. Let\'s brainstorm improvement ideas."'
+          : 'The investigation is narrowing down. Tell the user: "You\'re identifying hypotheses — let\'s synthesize findings into a coherent story."',
         improving: (() => {
           const sf = investigation?.selectedFinding;
           const hasActions = sf?.actions && sf.actions.length > 0;
@@ -992,15 +992,15 @@ Never invent data or statistics. If the context does not contain enough informat
           } else if (hasActions) {
             return 'PDCA: Do — Corrective actions are in progress. Track progress, flag overdue items, and keep the team focused on execution. Do not suggest new actions unless asked.';
           } else {
-            return 'PDCA: Plan — No corrective actions yet. Help the analyst brainstorm improvement ideas targeting the suspected causes identified from answered questions, search the Knowledge Base for similar past fixes, and convert selected ideas into executable action items.';
+            return 'PDCA: Plan — No corrective actions yet. Help the analyst brainstorm improvement ideas targeting the hypotheses identified from answered questions, search the Knowledge Base for similar past fixes, and convert selected ideas into executable action items.';
           }
         })(),
       };
 
-      // Override converging/improving with suspected cause context when available
-      // Supports multiple suspected causes from question-driven investigation
-      if (investigation.suspectedCauses && investigation.suspectedCauses.length > 0) {
-        const causes = investigation.suspectedCauses;
+      // Override converging/improving with hypothesis context when available
+      // Supports multiple hypotheses from question-driven investigation
+      if (investigation.hypotheses && investigation.hypotheses.length > 0) {
+        const causes = investigation.hypotheses;
 
         // Group by causeRole
         const suspected = causes.filter(c => c.causeRole === 'suspected-cause');
@@ -1009,7 +1009,7 @@ Never invent data or statistics. If the context does not contain enough informat
 
         const parts: string[] = [];
         if (suspected.length > 0) {
-          parts.push(`Suspected causes: ${suspected.map(c => `"${c.text}"`).join(', ')}`);
+          parts.push(`Hypotheses: ${suspected.map(c => `"${c.text}"`).join(', ')}`);
         }
         if (contributing.length > 0) {
           parts.push(`Contributing: ${contributing.map(c => `"${c.text}"`).join(', ')}`);
@@ -1020,7 +1020,7 @@ Never invent data or statistics. If the context does not contain enough informat
         const causesSummary = parts.join('. ') + '.';
 
         if (investigation.phase === 'converging') {
-          phaseInstructions.converging = `The investigation is narrowing down. ${causesSummary} Let's brainstorm improvement ideas targeting each suspected cause.`;
+          phaseInstructions.converging = `The investigation is narrowing down. ${causesSummary} Let's brainstorm improvement ideas targeting each hypothesis.`;
         }
         if (investigation.phase === 'improving') {
           const basePdca = phaseInstructions.improving;
@@ -1109,7 +1109,7 @@ Never invent data or statistics. If the context does not contain enough informat
         if (f.outcome) {
           line += ` outcome: ${f.outcome.effective}`;
           if (f.outcome.cpkDelta !== undefined) {
-            line += ` cpkDelta: ${f.outcome.cpkDelta > 0 ? '+' : ''}${f.outcome.cpkDelta.toFixed(2)}`;
+            line += ` cpkDelta: ${f.outcome.cpkDelta > 0 ? '+' : ''}${formatStatistic(f.outcome.cpkDelta, 'en', 2)}`;
           }
         }
         return line;
@@ -1131,9 +1131,7 @@ Never invent data or statistics. If the context does not contain enough informat
       const significantInteractions = investigation.interactionEffects
         .filter(r => r.deltaRSquaredAdj > 0.02)
         .map(r => {
-          const deltaStr = Number.isFinite(r.deltaRSquaredAdj)
-            ? (r.deltaRSquaredAdj * 100).toFixed(1)
-            : '?';
+          const deltaStr = formatStatistic(r.deltaRSquaredAdj * 100, 'en', 1);
           return `${r.factors[0]} \u00d7 ${r.factors[1]}: \u0394R\u00b2adj=${deltaStr}%`;
         });
       if (significantInteractions.length > 0) {
@@ -1182,15 +1180,15 @@ Never invent data or statistics. If the context does not contain enough informat
 The analyst is viewing Cp/Cpk per subgroup on the I-Chart. This reveals whether process capability itself is stable over time.
 
 Current state: ${cs.subgroupCount} subgroups (${subgroupDesc})
-Mean Cpk: ${cs.meanCpk.toFixed(2)}, range: ${cs.minCpk.toFixed(2)}–${cs.maxCpk.toFixed(2)}
+Mean Cpk: ${formatStatistic(cs.meanCpk, 'en', 2)}, range: ${formatStatistic(cs.minCpk, 'en', 2)}–${formatStatistic(cs.maxCpk, 'en', 2)}
 In-control: ${cs.cpkInControl}/${cs.subgroupCount} subgroups`;
 
     if (cs.cpkTarget !== undefined && cs.subgroupsMeetingTarget !== undefined) {
-      capSection += `\nCpk target: ${cs.cpkTarget.toFixed(2)} — ${cs.subgroupsMeetingTarget}/${cs.subgroupCount} subgroups meet target`;
+      capSection += `\nCpk target: ${formatStatistic(cs.cpkTarget, 'en', 2)} — ${cs.subgroupsMeetingTarget}/${cs.subgroupCount} subgroups meet target`;
     }
 
     if (cs.centeringLoss !== undefined) {
-      capSection += `\nCentering loss: ${cs.centeringLoss.toFixed(3)} (gap between mean Cp and mean Cpk)`;
+      capSection += `\nCentering loss: ${formatStatistic(cs.centeringLoss, 'en', 3)} (gap between mean Cp and mean Cpk)`;
     }
 
     capSection += `
@@ -1270,7 +1268,7 @@ Coaching workflow:
 1. "Which channels need attention?" → Read the Pareto. Count critical/warning channels.
 2. "Why is this channel worst?" → Compare its boxplot to peers. Centering issue or spread issue?
 3. "Is the problem systematic?" → Check the I-Chart. Are bad channels clustered or scattered?
-4. "What should I do?" → Click the worst channel to switch to standard analysis. Add factors (Shift, Operator) to investigate root cause.
+4. "What should I do?" → Click the worst channel to switch to standard analysis. Add factors (Shift, Operator) to investigate key contribution.
 
 Never use standard SPC terminology (control limits, Nelson rules) for the channel comparison view. Those apply after drilling into a single channel.`
     );
@@ -1295,9 +1293,9 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
         diverging:
           "The analyst is exploring broadly. Encourage checking unexplored factors — mention coverage progress if available. Suggest gemba walks or expert input for factors that data alone can't explain.",
         validating:
-          'The analyst is gathering evidence. Focus on evidence quality — suggest gemba validation for statistical findings, expert input where data is inconclusive. When you see 2+ answered questions pointing to the same mechanism, use suggest_suspected_cause to help them name it.',
+          'The analyst is gathering evidence. Focus on evidence quality — suggest gemba validation for statistical findings, expert input where data is inconclusive. When you see 2+ answered questions pointing to the same mechanism, use suggest_hypothesis to help them name it.',
         converging:
-          'The analyst is synthesizing findings into mechanisms. Help them name suspected causes — use suggest_suspected_cause when you see evidence clustering. Connect new evidence to existing hubs with connect_hub_evidence. Highlight coverage progress.',
+          'The analyst is synthesizing findings into mechanisms. Help them name hypotheses — use suggest_hypothesis when you see evidence clustering. Connect new evidence to existing hubs with connect_hub_evidence. Highlight coverage progress.',
         improving:
           'The analyst is in the improvement phase. Focus on PDCA execution — track actions, verify outcomes, suggest sustaining controls.',
       };
@@ -1316,7 +1314,7 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
       yamazumi:
         'Focus on waste elimination. Which activities contribute most waste? Think lean: eliminate, simplify, combine, reduce.',
       performance:
-        'Focus on channel health. Which channels are worst performers? Same root cause across channels?',
+        'Focus on channel health. Which channels are worst performers? Same contribution across channels?',
     };
 
     const currentMode = options.analysisMode ?? 'standard';
@@ -1328,7 +1326,7 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
     parts.push(
       `Evidence Map coaching:
 - When you see interaction terms with \u0394R\u00b2 > 2%, consider suggesting a causal link using suggest_causal_link.
-- When you see a convergence point (factor with 2+ incoming causal links) without a SuspectedCause hub, suggest creating one.
+- When you see a convergence point (factor with 2+ incoming causal links) without a Hypothesis hub, suggest creating one.
 - When you see a causal link with evidenceType "unvalidated", suggest what evidence would validate it (gemba observation, expert consultation, or additional data collection).
 - Use [REF:evidence-node:FACTOR_NAME]factor text[/REF] to create clickable highlights on the Evidence Map.
 - Use [REF:evidence-edge:LINK_ID]link description[/REF] to highlight a specific causal link on the map.`
@@ -1374,7 +1372,7 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
   - A validated question conclusion (answered or ruled out)
   - A quantitative process insight (specific eta-squared, Cpk shift, or defect rate)
   - A negative learning (approach tried and found ineffective — equally valuable)
-  - A root cause identification with supporting evidence
+  - A key contribution identification with supporting evidence
   - A cross-factor interaction discovered during drill-down
 - Include negative learnings: "Adjusting temperature had no effect on variation (eta-squared < 0.01)" is as valuable as positive findings.
 - Do NOT suggest saving generic observations or restating what's already in findings.
@@ -1441,7 +1439,7 @@ export function formatKnowledgeContext(
   if (results.length > 0) {
     const lines = results.map((r, i) => {
       const parts = [
-        `${i + 1}. [From: findings] "${r.suspectedCause || 'Unknown cause'}" — ${r.projectName}`,
+        `${i + 1}. [From: findings] "${r.hypothesis || 'Unknown cause'}" — ${r.projectName}`,
       ];
       parts.push(`   Factor: ${r.factor}, Status: ${r.status}`);
       if (r.etaSquared !== null)
@@ -1592,7 +1590,7 @@ PDCA coaching (when investigation phase is 'improving'):
   - If ideas have What-If projections, compare projected impact. Suggest prioritizing the idea with highest Cpk improvement.
   - Suggest classifying ideas by direction: prevent (stop the cause), detect (catch it sooner), simplify (reduce complexity), eliminate (remove the step).
   - Use suggest_action to convert selected ideas into executable tasks with clear owners and deadlines.
-  - Use suggest_improvement_idea to propose ideas for answered questions based on the suspected cause and KB results.
+  - Use suggest_improvement_idea to propose ideas for answered questions based on the hypothesis and KB results.
 
 - DO (finding at 'improving' status, actions in progress):
   - Acknowledge action progress: "N of M actions complete."
@@ -1616,7 +1614,7 @@ PDCA coaching (when investigation phase is 'improving'):
     - Cpk improved but still below target: suggest "partial"
     - Cpk unchanged or degraded: suggest "not effective"
   - For effective: suggest sustaining controls — update SOPs, set control chart limits, schedule 30-day follow-up.
-  - For partial/not effective: suggest which factors to re-investigate, whether the root cause was actually addressed.
+  - For partial/not effective: suggest which factors to re-investigate, whether the key contribution was actually addressed.
 
 Improvement idea guidance (converging/IMPROVE):
 - Use suggest_improvement_idea when a question is answered and the analyst needs ideas for what to try.
@@ -1629,8 +1627,8 @@ Improvement idea guidance (converging/IMPROVE):
 - Always estimate timeframe: just-do (existing resources, no approval), days (minor coordination), weeks (planning, moderate resources), months (investment, cross-team).
 - Always estimate cost: none (no cost), low (team budget), medium (needs approval), high (capital investment).
 - If you can assess the risk, provide risk_axis1 (process impact 1-3) and risk_axis2 (safety impact 1-3). Set null if uncertain.
-- Prefer lean improvements — the simplest fix that addresses the root cause. Suggest just-do and days timeframe ideas first.
-- Assess feasibility: Does it remove the root cause? Can the team do it themselves? Can they try small first? Can they measure the result?
+- Prefer lean improvements — the simplest fix that addresses the key contribution. Suggest just-do and days timeframe ideas first.
+- Assess feasibility: Does it remove the key contribution? Can the team do it themselves? Can they try small first? Can they measure the result?
 - If Knowledge Base search revealed a past fix for a similar cause, suggest it as an improvement idea with the source cited.
 - suggest_improvement_idea only works on questions with 'answered' or 'investigating' status.
 
@@ -1646,13 +1644,13 @@ Issue statement sharpening:
 - The issue statement should get more specific with each answered question.
 - Do NOT suggest sharpening after every minor observation — only after key insights.
 
-Multiple suspected causes:
-- Real investigations often identify multiple contributing factors, not a single root cause.
+Multiple hypotheses:
+- Real investigations often identify multiple contributing factors, not a single key contribution.
 - When setting causeRole, use 'suspected-cause' for factors with strong evidence (eta-squared > 15% or R²adj contribution), 'contributing' for moderate, 'ruled-out' for tested and eliminated.
 - Multiple 'suspected-cause' entries are valid — each becomes an improvement target.
 - Ruled-out factors are valuable negative learnings. Always acknowledge what was checked and eliminated.
 - When the user asks about a factor that appears in the question tree as ruled-out, reference its evidence so the analyst can cite it to stakeholders.
-- When synthesizing results, list suspected causes ranked by evidence strength.
+- When synthesizing results, list hypotheses ranked by evidence strength.
 
 The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.
 
@@ -1676,13 +1674,13 @@ function buildEntryScenarioGuidance(scenario: EntryScenario): string {
       return `Entry scenario: Problem to solve — The analyst has a specific problem (e.g., Cpk below target). Factor Intelligence has ranked the most likely factor combinations.
 - SCOUT: Start by reviewing the top-ranked questions from Factor Intelligence. Use compare_categories to verify the top contributors. Suggest apply_filter to drill into the highest-ranked factor. Propose create_finding for key observations.
 - INVESTIGATE: Guide the analyst to check open questions systematically, starting with the highest-ranked ones. Create follow-up questions as answers emerge.
-- IMPROVE: Check whether Cpk has reached the original target. In PLAN sub-state, suggest ideas targeting the suspected causes from answered questions. In CHECK, compare before/after Cpk against the stated problem threshold. In ACT, assess whether the original problem is resolved.`;
+- IMPROVE: Check whether Cpk has reached the original target. In PLAN sub-state, suggest ideas targeting the hypotheses from answered questions. In CHECK, compare before/after Cpk against the stated problem threshold. In ACT, assess whether the original problem is resolved.`;
 
     case 'exploration':
       return `Entry scenario: Exploration — The analyst entered with an upfront theory to check. The upfront theory becomes the first question to check.
 - SCOUT: Immediately use compare_categories on the factor named in the theory to verify it. Report η² and per-category stats. If answered (>=15%), suggest apply_filter and create_finding.
 - INVESTIGATE: Propose create_question with the upfront theory as the root question. Then suggest follow-up questions based on answers.
-- IMPROVE: After addressing the suspected causes, compare before/after on the metric linked to the original theory. In PLAN, search KB for fixes to the confirmed factor. In ACT, verify whether the theory-specific metric improved.`;
+- IMPROVE: After addressing the hypotheses, compare before/after on the metric linked to the original theory. In PLAN, search KB for fixes to the confirmed factor. In ACT, verify whether the theory-specific metric improved.`;
 
     case 'routine':
       return `Entry scenario: Routine check — No specific problem or theory. Scanning for signals. Factor Intelligence questions are available for proactive scanning.

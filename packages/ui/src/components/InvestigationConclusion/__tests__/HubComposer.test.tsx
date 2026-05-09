@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { HubComposer } from '../HubComposer';
-import type { Question, Finding, SuspectedCause } from '@variscout/core/findings';
+import type { Question, Finding, Hypothesis } from '@variscout/core/findings';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -123,13 +123,13 @@ describe('HubComposer', () => {
   });
 
   it('pre-populates name and synthesis when editingHub provided', () => {
-    const editingHub: SuspectedCause = {
+    const editingHub: Hypothesis = {
       id: 'hub-1',
       name: 'Existing cause',
       synthesis: 'Evidence connects via thermal stress',
       questionIds: ['q1'],
       findingIds: [],
-      status: 'suspected',
+      status: 'proposed',
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
@@ -145,13 +145,13 @@ describe('HubComposer', () => {
   });
 
   it('pre-populates branch nextMove when editingHub provided', () => {
-    const editingHub: SuspectedCause = {
+    const editingHub: Hypothesis = {
       id: 'hub-1',
       name: 'Existing cause',
       synthesis: '',
       questionIds: [],
       findingIds: [],
-      status: 'suspected',
+      status: 'proposed',
       nextMove: 'Check nozzle temperature after the night run.',
       createdAt: 1714000000000,
       updatedAt: 1714000000000,

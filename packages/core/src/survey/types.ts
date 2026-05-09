@@ -1,7 +1,7 @@
 import type { DetectedColumns } from '../parser';
 import type { DefectDetection, DefectMapping } from '../defect';
 import type { ProcessContext } from '../ai';
-import type { Finding, Question, SuspectedCause } from '../findings';
+import type { Finding, Question, Hypothesis } from '../findings';
 import type { DataRow, SpecLimits, WideFormatDetection } from '../types';
 import type { YamazumiColumnMapping, YamazumiDetection } from '../yamazumi';
 import type { Gap, InferredMode, ModeInferenceResult, ProcessMap } from '../frame';
@@ -139,5 +139,5 @@ export interface SurveyEvaluationInput {
   >;
   questions?: Question[];
   findings?: Finding[];
-  branches?: SuspectedCause[];
+  branches?: Hypothesis[];
 }

@@ -14,6 +14,8 @@
  * in @variscout/charts where they belong.
  */
 
+import type { HypothesisStatus } from '../findings/types';
+
 import type { RelationshipType } from '../stats/causalGraph';
 export type { RelationshipType };
 
@@ -105,6 +107,6 @@ export interface ConvergencePointData {
   y: number;
   incomingCount: number;
   hubName?: string;
-  hubStatus?: 'suspected' | 'confirmed' | 'not-confirmed';
+  hubStatus?: HypothesisStatus;
   projectedImprovement?: string;
 }

@@ -6,7 +6,7 @@ import {
   projectMechanismBranch,
   type SignalCard,
 } from '../index';
-import type { Finding, Question, SuspectedCause } from '../findings';
+import type { Finding, Question, Hypothesis } from '../findings';
 
 const card = (overrides: Partial<SignalCard> = {}): SignalCard => ({
   id: 'sig-weight',
@@ -48,13 +48,13 @@ const finding = (): Finding => ({
   validationStatus: 'supports',
 });
 
-const branch = (overrides: Partial<SuspectedCause> = {}): SuspectedCause => ({
+const branch = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   id: 'hub-1',
   name: 'Nozzle wear',
   synthesis: 'Machine B separates from the rest.',
   questionIds: ['q-1'],
   findingIds: ['f-1'],
-  status: 'suspected',
+  status: 'proposed',
   investigationId: 'inv-test-001',
   createdAt: 1745625600000,
   updatedAt: 1745625600000,

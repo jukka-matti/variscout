@@ -74,10 +74,10 @@ describe('formatInvestigationContext', () => {
     expect(result).toContain('1 ruled-out');
   });
 
-  it('uses ONLY suspectedCauseHubs, not legacy suspectedCauses', () => {
+  it('uses ONLY hypothesisHubs, not legacy hypotheses', () => {
     const result = formatInvestigationContext({
-      // Legacy causeRole-based suspected causes — should be IGNORED
-      suspectedCauses: [
+      // Legacy causeRole-based hypotheses — should be IGNORED
+      hypotheses: [
         {
           id: 'sc1',
           text: 'Temperature drift',
@@ -85,13 +85,13 @@ describe('formatInvestigationContext', () => {
           status: 'investigating',
         },
       ],
-      // Hub-based suspected causes — should be INCLUDED
-      suspectedCauseHubs: [
+      // Hub-based hypotheses — should be INCLUDED
+      hypothesisHubs: [
         {
           id: 'hub1',
           name: 'Raw material moisture',
           synthesis: 'Incoming moisture varies by supplier',
-          status: 'active',
+          status: 'evidenced',
           questionCount: 3,
           findingCount: 2,
           evidence: { value: 0.45, label: 'Strong (R²adj=45%)', description: 'test' },
@@ -101,9 +101,9 @@ describe('formatInvestigationContext', () => {
     });
 
     // Hub content should be present
-    expect(result).toContain('Suspected cause hubs:');
+    expect(result).toContain('Hypotheses:');
     expect(result).toContain('Raw material moisture');
-    expect(result).toContain('[active]');
+    expect(result).toContain('[evidenced]');
     expect(result).toContain('3Q, 2F');
     expect(result).toContain('Strong (R²adj=45%)');
     expect(result).toContain('[selected for improvement]');
@@ -216,12 +216,12 @@ describe('formatInvestigationContext', () => {
       coveragePercent: 12,
       questionsChecked: 2,
       questionsTotal: 5,
-      suspectedCauseHubs: [
+      hypothesisHubs: [
         {
           id: 'hub1',
           name: 'Nozzle Wear',
           synthesis: 'Nozzle degradation varies by shift',
-          status: 'active',
+          status: 'evidenced',
           questionCount: 2,
           findingCount: 1,
         },
@@ -237,12 +237,12 @@ describe('formatInvestigationContext', () => {
   it('omits evidence warning when coveragePercent >= 25', () => {
     const result = formatInvestigationContext({
       coveragePercent: 45,
-      suspectedCauseHubs: [
+      hypothesisHubs: [
         {
           id: 'hub1',
           name: 'Machine Setup',
           synthesis: 'Setup variation across shifts',
-          status: 'active',
+          status: 'evidenced',
           questionCount: 3,
           findingCount: 2,
         },
@@ -253,12 +253,12 @@ describe('formatInvestigationContext', () => {
 
   it('uses per-hub evidence.value when coveragePercent is absent and value < 0.25', () => {
     const result = formatInvestigationContext({
-      suspectedCauseHubs: [
+      hypothesisHubs: [
         {
           id: 'hub1',
           name: 'Nozzle Wear',
           synthesis: 'Nozzle degradation',
-          status: 'active',
+          status: 'evidenced',
           questionCount: 1,
           findingCount: 0,
           evidence: { value: 0.12, label: 'Weak (R²adj=12%)', description: 'test' },
@@ -272,12 +272,12 @@ describe('formatInvestigationContext', () => {
 
   it('omits evidence warning when per-hub evidence.value >= 0.25 and coveragePercent absent', () => {
     const result = formatInvestigationContext({
-      suspectedCauseHubs: [
+      hypothesisHubs: [
         {
           id: 'hub1',
           name: 'Machine Setup',
           synthesis: 'Setup variation',
-          status: 'active',
+          status: 'evidenced',
           questionCount: 3,
           findingCount: 2,
           evidence: { value: 0.38, label: 'Strong (R²adj=38%)', description: 'test' },
@@ -290,12 +290,12 @@ describe('formatInvestigationContext', () => {
   it('omits open question count suffix when questionsTotal and questionsChecked are absent', () => {
     const result = formatInvestigationContext({
       coveragePercent: 8,
-      suspectedCauseHubs: [
+      hypothesisHubs: [
         {
           id: 'hub1',
           name: 'Raw Material',
           synthesis: 'Incoming moisture varies',
-          status: 'active',
+          status: 'evidenced',
           questionCount: 0,
           findingCount: 0,
         },
@@ -512,7 +512,7 @@ describe('formatKnowledgeContext', () => {
         etaSquared: 0.35,
         cpkBefore: 0.8,
         cpkAfter: 1.5,
-        suspectedCause: 'Dark roast moisture retention',
+        hypothesis: 'Dark roast moisture retention',
         actionsText: 'Reduced roast time by 15%',
         outcomeEffective: true,
       },
@@ -553,7 +553,7 @@ describe('formatKnowledgeContext', () => {
         etaSquared: null,
         cpkBefore: null,
         cpkAfter: null,
-        suspectedCause: 'test',
+        hypothesis: 'test',
         actionsText: '',
         outcomeEffective: null,
       },

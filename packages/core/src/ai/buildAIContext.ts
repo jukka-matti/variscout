@@ -4,7 +4,7 @@
 
 import type { AIContext, ProcessContext, TargetMetric, InvestigationPhase } from './types';
 import type { InsightChartType } from './chartInsights';
-import type { Finding, Question, InvestigationCategory, SuspectedCause } from '../findings';
+import type { Finding, Question, InvestigationCategory, Hypothesis } from '../findings';
 import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { computeOptimum } from '../stats/safeMath';
@@ -99,7 +99,7 @@ export interface BuildAIContextOptions {
   /** Current analysis mode */
   analysisMode?: AnalysisMode;
   /** Suspected cause hubs from investigation */
-  suspectedCauses?: SuspectedCause[];
+  hypotheses?: Hypothesis[];
   /** R²adj-weighted coverage percentage (0-100) */
   coveragePercent?: number;
   /** Number of questions that have been checked (answered or ruled-out) */
@@ -481,7 +481,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       context.investigation.phase = detectInvestigationPhase(questions, findings);
 
       // Collect ALL questions with a causeRole (suspected-cause, contributing, ruled-out)
-      const suspectedCauses = questions
+      const hypotheses = questions
         .filter(q => q.causeRole)
         .map(q => ({
           id: q.id,
@@ -491,8 +491,8 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
           status: q.status,
           evidence: q.evidence,
         }));
-      if (suspectedCauses.length > 0) {
-        context.investigation.suspectedCauses = suspectedCauses;
+      if (hypotheses.length > 0) {
+        context.investigation.hypotheses = hypotheses;
       }
 
       // Wire focused question from PI panel
@@ -508,9 +508,9 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       context.investigation.focusedQuestionId = focusedQuestionId;
     }
 
-    // Suspected cause hubs (Phase 6 — CoScout as Investigation Partner)
-    if (options.suspectedCauses && options.suspectedCauses.length > 0) {
-      context.investigation.suspectedCauseHubs = options.suspectedCauses.map(hub => ({
+    // Hypothesis hubs (Phase 6 — CoScout as Investigation Partner)
+    if (options.hypotheses && options.hypotheses.length > 0) {
+      context.investigation.hypothesisHubs = options.hypotheses.map(hub => ({
         id: hub.id,
         name: hub.name,
         synthesis: hub.synthesis,

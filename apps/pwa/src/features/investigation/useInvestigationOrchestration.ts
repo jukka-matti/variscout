@@ -14,7 +14,7 @@ import {
 } from './investigationStore';
 import type { QuestionDisplayData } from './investigationStore';
 import { usePanelsStore } from '../panels/panelsStore';
-import { useSuspectedCauses, type SuspectedCauseUpdate } from '@variscout/hooks';
+import { useHypotheses, type HypothesisUpdate } from '@variscout/hooks';
 import type {
   Finding,
   FindingProjection,
@@ -22,7 +22,7 @@ import type {
   IdeaImpact,
   ProcessContext,
   StatsResult,
-  SuspectedCause,
+  Hypothesis,
 } from '@variscout/core';
 import type { UseQuestionsReturn } from '@variscout/hooks';
 
@@ -53,20 +53,20 @@ export interface UseInvestigationOrchestrationReturn {
   clearProjectionTarget: () => void;
   /** Set finding status with automatic idea-to-action conversion */
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
-  /** Full suspected causes hook state — hub CRUD operations for the Investigation workspace */
-  suspectedCausesState: {
-    hubs: SuspectedCause[];
-    createHub: (name: string, synthesis: string) => SuspectedCause;
-    updateHub: (hubId: string, updates: SuspectedCauseUpdate) => void;
+  /** Full hypotheses hook state — hub CRUD operations for the Investigation workspace */
+  hypothesesState: {
+    hubs: Hypothesis[];
+    createHub: (name: string, synthesis: string) => Hypothesis;
+    updateHub: (hubId: string, updates: HypothesisUpdate) => void;
     deleteHub: (hubId: string) => void;
-    resetHubs: (newHubs: SuspectedCause[]) => void;
+    resetHubs: (newHubs: Hypothesis[]) => void;
     connectQuestion: (hubId: string, questionId: string) => void;
     disconnectQuestion: (hubId: string, questionId: string) => void;
     connectFinding: (hubId: string, findingId: string) => void;
     disconnectFinding: (hubId: string, findingId: string) => void;
-    setHubStatus: (hubId: string, status: SuspectedCause['status']) => void;
-    getHubForQuestion: (questionId: string) => SuspectedCause | undefined;
-    getHubForFinding: (findingId: string) => SuspectedCause | undefined;
+    setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
+    getHubForQuestion: (questionId: string) => Hypothesis | undefined;
+    getHubForFinding: (findingId: string) => Hypothesis | undefined;
   };
   /** Map of question ID to display data for FindingCard */
   questionsMap: Record<string, QuestionDisplayData>;
@@ -83,7 +83,7 @@ export function useInvestigationOrchestration({
   stats,
 }: UseInvestigationOrchestrationOptions): UseInvestigationOrchestrationReturn {
   // ── Suspected cause hubs ──────────────────────────────────────────────
-  const suspectedCausesState = useSuspectedCauses({
+  const hypothesesState = useHypotheses({
     initialHubs: [],
   });
 
@@ -95,7 +95,7 @@ export function useInvestigationOrchestration({
   const migrationDoneRef = useRef(false);
   useEffect(() => {
     if (migrationDoneRef.current) return;
-    if (suspectedCausesState.hubs.length > 0) {
+    if (hypothesesState.hubs.length > 0) {
       migrationDoneRef.current = true;
       return;
     }
@@ -105,7 +105,7 @@ export function useInvestigationOrchestration({
     if (questionsWithCauseRole.length > 0) {
       const migratedHubs = migrateCauseRolesToHubs(questionsWithCauseRole);
       if (migratedHubs.length > 0) {
-        suspectedCausesState.resetHubs(migratedHubs);
+        hypothesesState.resetHubs(migratedHubs);
       }
     }
     migrationDoneRef.current = true;
@@ -200,7 +200,7 @@ export function useInvestigationOrchestration({
     handleSaveIdeaProjection,
     clearProjectionTarget,
     handleSetFindingStatus,
-    suspectedCausesState,
+    hypothesesState,
     questionsMap,
     ideaImpacts,
   };

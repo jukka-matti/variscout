@@ -26,7 +26,7 @@ export function formatKnowledgeContext(
   if (results.length > 0) {
     const lines = results.map((r, i) => {
       const parts = [
-        `${i + 1}. [From: findings] "${r.suspectedCause || 'Unknown cause'}" — ${r.projectName}`,
+        `${i + 1}. [From: findings] "${r.hypothesis || 'Unknown cause'}" — ${r.projectName}`,
       ];
       parts.push(`   Factor: ${r.factor}, Status: ${r.status}`);
       if (r.etaSquared !== null)

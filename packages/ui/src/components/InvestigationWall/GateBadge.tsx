@@ -11,7 +11,7 @@
 import React from 'react';
 import type { MessageCatalog } from '@variscout/core';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
-import { chartColors } from '../colors';
+import { chartColors } from '@variscout/charts';
 import { useWallLocale } from './hooks/useWallLocale';
 
 export interface GateBadgeProps {

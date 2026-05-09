@@ -10,11 +10,11 @@ import {
   type UseSharedWallPropsArgs,
   type UseSharedWallPropsReturn,
 } from '../useSharedWallProps';
-import type { Finding, Question, SuspectedCause } from '@variscout/core';
+import type { Finding, Question, Hypothesis } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
 interface MutableWallCanvasDataProps {
-  hubs: SuspectedCause[];
+  hubs: Hypothesis[];
   findings: Finding[];
   questions: Question[];
   processMap?: ProcessMap;
@@ -26,13 +26,13 @@ interface MutableWallCanvasDataProps {
   groupByTributary?: boolean;
 }
 
-function makeHub(overrides: Partial<SuspectedCause> & { id: string }): SuspectedCause {
+function makeHub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
   return {
     name: 'Night shift setup',
     synthesis: 'Setup variation likely drives defects.',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
+    status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
@@ -99,7 +99,7 @@ describe('useSharedWallProps', () => {
     const question = makeQuestion({ id: 'q-1' });
     const findings = [makeFinding({ id: 'finding-1' })];
     useInvestigationStore.setState({
-      suspectedCauses: [hub],
+      hypotheses: [hub],
       questions: [question],
     });
 
@@ -113,7 +113,7 @@ describe('useSharedWallProps', () => {
       })
     );
 
-    expect(result.current.hubs).toBe(useInvestigationStore.getState().suspectedCauses);
+    expect(result.current.hubs).toBe(useInvestigationStore.getState().hypotheses);
     expect(result.current.questions).toBe(useInvestigationStore.getState().questions);
     expect(result.current.findings).toBe(findings);
   });

@@ -5,7 +5,7 @@
 // AZURE PERSISTENCE MODEL:
 //   Azure stores processHubs, evidenceSources, evidenceSnapshots, and
 //   evidenceSourceCursors in dedicated Dexie tables. Investigations, findings,
-//   questions, causalLinks, suspectedCauses, rowProvenance, and canvasState
+//   questions, causalLinks, hypotheses, rowProvenance, and canvasState
 //   have no Azure Dexie tables today — their cascade steps are documented no-ops.
 //
 // CASCADE STRATEGY:
@@ -29,7 +29,7 @@
 //
 // F3 NOTE:
 //   Per audit R10/PWA pattern: investigation/finding/question/causalLink/
-//   suspectedCause/rowProvenance/canvasState have no Azure Dexie tables today —
+//   hypothesis/rowProvenance/canvasState have no Azure Dexie tables today —
 //   cascade is a no-op for those kinds. F3 normalization will add the Dexie
 //   tables; updating this helper is part of F3.
 
@@ -187,10 +187,10 @@ async function archiveKindRows(
       return;
 
     // -----------------------------------------------------------------------
-    // suspectedCause — no Azure Dexie table today; F3 normalizes.
+    // hypothesis — no Azure Dexie table today; F3 normalizes.
     // -----------------------------------------------------------------------
-    case 'suspectedCause':
-      // Azure has no 'suspectedCause' table today; F3 normalization will add
+    case 'hypothesis':
+      // Azure has no 'hypothesis' table today; F3 normalization will add
       // the table; updating this helper is part of F3.
       return;
 

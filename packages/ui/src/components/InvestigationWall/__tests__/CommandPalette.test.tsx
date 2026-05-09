@@ -8,18 +8,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CommandPalette } from '../CommandPalette';
-import type { SuspectedCause, Question, Finding } from '@variscout/core';
+import type { Hypothesis, Question, Finding } from '@variscout/core';
 
-const hubs: SuspectedCause[] = [
+const hubs: Hypothesis[] = [
   {
     id: 'h-night',
     name: 'Night shift thermal drift',
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
-    createdAt: '',
-    updatedAt: '',
+    status: 'proposed',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
   {
     id: 'h-nozzle',
@@ -27,9 +29,11 @@ const hubs: SuspectedCause[] = [
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
-    createdAt: '',
-    updatedAt: '',
+    status: 'proposed',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
   {
     id: 'h-cal',
@@ -37,9 +41,11 @@ const hubs: SuspectedCause[] = [
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
-    createdAt: '',
-    updatedAt: '',
+    status: 'proposed',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
 ];
 
@@ -49,28 +55,32 @@ const questions: Question[] = [
     text: 'What does the night shift do differently?',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
   {
     id: 'q-2',
     text: 'Is Cpk trending?',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
 ];
 
 const findings: Finding[] = [];
 
 describe('CommandPalette', () => {
-  let onClose: ReturnType<typeof vi.fn>;
-  let onPanTo: ReturnType<typeof vi.fn>;
+  let onClose: ReturnType<typeof vi.fn<() => void>>;
+  let onPanTo: ReturnType<typeof vi.fn<(nodeId: string) => void>>;
 
   beforeEach(() => {
-    onClose = vi.fn();
-    onPanTo = vi.fn();
+    onClose = vi.fn<() => void>();
+    onPanTo = vi.fn<(nodeId: string) => void>();
   });
 
   it('renders nothing when open=false', () => {

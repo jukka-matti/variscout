@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
-import type { SuspectedCause, ProcessMap, Question } from '@variscout/core';
+import type { Hypothesis, ProcessMap, Question } from '@variscout/core';
 
 /**
  * Override `window.matchMedia` for a single test to force the mobile branch
@@ -38,19 +38,21 @@ const processMap: ProcessMap = {
   nodes: [{ id: 'n1', name: 'Fill', order: 0 }],
   tributaries: [{ id: 't1', stepId: 'n1', column: 'SHIFT' }],
   ctsColumn: 'FILL',
-  createdAt: '',
-  updatedAt: '',
+  createdAt: '2026-05-09T00:00:00.000Z',
+  updatedAt: '2026-05-09T00:00:00.000Z',
 };
 
-const hub: SuspectedCause = {
+const hub: Hypothesis = {
   id: 'h1',
   name: 'Nozzle runs hot',
   synthesis: '',
   questionIds: [],
   findingIds: ['f1', 'f2', 'f3'],
   status: 'confirmed',
-  createdAt: '',
-  updatedAt: '',
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  investigationId: 'inv-test',
 };
 
 const openQuestion: Question = {
@@ -58,8 +60,10 @@ const openQuestion: Question = {
   text: 'Does fill temperature drive this?',
   status: 'open',
   linkedFindingIds: [],
-  createdAt: '',
-  updatedAt: '',
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  investigationId: 'inv-test',
 };
 
 describe('WallCanvas', () => {
@@ -90,6 +94,27 @@ describe('WallCanvas', () => {
     );
     expect(screen.getByText(/Problem condition/i)).toBeInTheDocument();
     expect(screen.getByText(/Nozzle runs hot/i)).toBeInTheDocument();
+  });
+
+  it('renders canonical needs-disconfirmation status stored on a hub', () => {
+    const needsDisconfirmationHub: Hypothesis = {
+      ...hub,
+      id: 'h-needs-disconfirmation',
+      status: 'needs-disconfirmation',
+    };
+    const { container } = render(
+      <WallCanvas
+        hubs={[needsDisconfirmationHub]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+
+    expect(screen.getByText(/Needs disconfirmation/i)).toBeInTheDocument();
+    expect(container.querySelector('[data-status="needs-disconfirmation"]')).toBeTruthy();
   });
 
   it('renders branch cards without a process map', () => {
@@ -123,7 +148,7 @@ describe('WallCanvas', () => {
   });
 
   it('flags missing-column when hub condition references a column not in activeColumns', () => {
-    const hubWithCondition: SuspectedCause = {
+    const hubWithCondition: Hypothesis = {
       ...hub,
       id: 'h-missing',
       condition: {
@@ -148,7 +173,7 @@ describe('WallCanvas', () => {
   });
 
   it('does not flag missing-column when all referenced columns are present', () => {
-    const hubWithCondition: SuspectedCause = {
+    const hubWithCondition: Hypothesis = {
       ...hub,
       id: 'h-ok',
       condition: {
@@ -173,7 +198,7 @@ describe('WallCanvas', () => {
   });
 
   it('does not flag missing-column when activeColumns is not provided', () => {
-    const hubWithCondition: SuspectedCause = {
+    const hubWithCondition: Hypothesis = {
       ...hub,
       id: 'h-unknown',
       condition: {
@@ -332,8 +357,8 @@ describe('WallCanvas', () => {
   });
 
   it('wraps hubs in a tributary-group frame when groupByTributary is on', () => {
-    const hubA: SuspectedCause = { ...hub, id: 'hA', tributaryIds: ['t1'] };
-    const hubB: SuspectedCause = { ...hub, id: 'hB', tributaryIds: ['t1'] };
+    const hubA: Hypothesis = { ...hub, id: 'hA', tributaryIds: ['t1'] };
+    const hubB: Hypothesis = { ...hub, id: 'hB', tributaryIds: ['t1'] };
     const { container } = render(
       <WallCanvas
         hubs={[hubA, hubB]}
@@ -352,7 +377,7 @@ describe('WallCanvas', () => {
   });
 
   it('does not render tributary-group frame when groupByTributary is off', () => {
-    const hubA: SuspectedCause = { ...hub, id: 'hA', tributaryIds: ['t1'] };
+    const hubA: Hypothesis = { ...hub, id: 'hA', tributaryIds: ['t1'] };
     const { container } = render(
       <WallCanvas
         hubs={[hubA]}
@@ -367,7 +392,7 @@ describe('WallCanvas', () => {
   });
 
   it('buckets hubs without matching tributary into an unassigned group', () => {
-    const hubA: SuspectedCause = { ...hub, id: 'hA' }; // no tributaryIds
+    const hubA: Hypothesis = { ...hub, id: 'hA' }; // no tributaryIds
     const { container } = render(
       <WallCanvas
         hubs={[hubA]}

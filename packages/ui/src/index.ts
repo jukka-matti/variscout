@@ -151,7 +151,7 @@ export {
   type JournalTabContentProps,
   type QuestionRowProps,
   type ConclusionCardProps,
-  type SuspectedCause,
+  type Hypothesis,
   QuestionInputModal,
   type QuestionInputModalProps,
   QuestionLinkModal,
@@ -195,6 +195,8 @@ export {
   ProbabilityPlotTooltip,
   type ProbabilityPlotTooltipProps,
 } from './components/ProbabilityPlotTooltip';
+
+export * from './components/InvestigationWall';
 
 export {
   VerificationCard,

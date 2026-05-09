@@ -21,7 +21,7 @@ import {
   type Question,
   type SpecLimits,
   type StepCapabilityStamp,
-  type SuspectedCause,
+  type Hypothesis,
   type TimelineWindow,
   type WorkflowReadinessSignals,
 } from '@variscout/core';
@@ -54,7 +54,7 @@ export interface CanvasWorkspaceProps {
   onHandoff?: (stepId: string) => void;
   questions?: readonly Question[];
   findings?: readonly Finding[];
-  suspectedCauses?: readonly SuspectedCause[];
+  hypotheses?: readonly Hypothesis[];
   causalLinks?: readonly CausalLink[];
   problemCpk?: number;
   eventsPerWeek?: number;
@@ -170,7 +170,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onHandoff,
   questions = [],
   findings = [],
-  suspectedCauses = [],
+  hypotheses = [],
   causalLinks = [],
   problemCpk,
   eventsPerWeek,
@@ -310,7 +310,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     map,
     questions,
     findings,
-    suspectedCauses,
+    hypotheses,
     causalLinks,
   });
 

@@ -11,6 +11,7 @@ import type { EvidenceSource, EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessMomentDefinition } from '../processMoments';
 import type { SignalCard } from '../signalCards';
 import type { ProcessStateNote } from '../processStateNote';
+import type { HypothesisStatus } from '../findings/types';
 
 /** AI model tier — maps to ARM deployment names ('fast' or 'reasoning') */
 export type AITier = 'fast' | 'reasoning';
@@ -118,8 +119,8 @@ export interface ProcessContext {
   currentUnderstanding?: CurrentUnderstanding;
   /** Measurable problem condition derived from the target metric and current/target values */
   problemCondition?: ProblemCondition;
-  /** Suspected causes from question-driven investigation, ranked by evidence */
-  suspectedCauses?: Array<{
+  /** Hypotheses from question-driven investigation, ranked by evidence */
+  hypotheses?: Array<{
     factor: string;
     level?: string;
     evidence: number;
@@ -133,7 +134,7 @@ export interface ProcessContext {
   targetDirection?: 'minimize' | 'maximize' | 'target';
   /** Factor role classifications derived from investigation categories */
   factorRoles?: Record<string, string>;
-  /** Convergence synthesis — suspected cause narrative (max 500 chars) */
+  /** Convergence synthesis — hypothesis narrative (max 500 chars) */
   synthesis?: string;
   /**
    * User-built visual Process Map (FRAME workspace).
@@ -307,8 +308,8 @@ export interface AIContext {
     transitionReason?: string;
     /** Investigation categories for completeness prompting */
     categories?: Array<{ name: string; factorNames: string[] }>;
-    /** Suspected causes from questions with causeRole (supports multiple) */
-    suspectedCauses?: Array<{
+    /** Hypotheses from questions with causeRole (supports multiple) */
+    hypotheses?: Array<{
       id: string;
       text: string;
       causeRole: 'suspected-cause' | 'contributing' | 'ruled-out';
@@ -327,12 +328,12 @@ export interface AIContext {
     focusedQuestionId?: string;
     /** Text of the question currently in focus in the PI panel */
     focusedQuestionText?: string;
-    /** Suspected cause hubs (Phase 6 — distinct from legacy causeRole-based suspectedCauses) */
-    suspectedCauseHubs?: Array<{
+    /** Hypothesis hubs (Phase 6 — distinct from legacy causeRole-based hypotheses) */
+    hypothesisHubs?: Array<{
       id: string;
       name: string;
       synthesis: string;
-      status: string;
+      status: HypothesisStatus;
       questionCount: number;
       findingCount: number;
       evidence?: {
@@ -439,7 +440,7 @@ export interface AIContext {
     etaSquared: number | null;
     cpkBefore: number | null;
     cpkAfter: number | null;
-    suspectedCause: string;
+    hypothesis: string;
     actionsText: string;
     outcomeEffective: boolean | null;
   }>;

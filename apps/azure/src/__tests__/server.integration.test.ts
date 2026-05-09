@@ -100,6 +100,8 @@ beforeAll(async () => {
   // Use connection string path so we avoid DefaultAzureCredential flow
   process.env.AZURE_STORAGE_CONNECTION_STRING =
     'DefaultEndpointsProtocol=https;AccountName=teststorage;AccountKey=dGVzdGtleQ==;EndpointSuffix=core.windows.net';
+  process.env.VOICE_INPUT_ENABLED = 'true';
+  process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT = 'gpt-4o-mini-transcribe';
 
   // Dynamically import so mocks are active before server.js runs
   const { app } = (await import('../../server.js')) as { app: Express };
@@ -152,18 +154,12 @@ describe('GET /config', () => {
   });
 
   it('enables microphone permissions and runtime fields when voice input is configured', async () => {
-    process.env.VOICE_INPUT_ENABLED = 'true';
-    process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT = 'gpt-4o-mini-transcribe';
-
     const res = await request.get('/config');
     const body = JSON.parse(res.text);
 
     expect(body.voiceInputEnabled).toBe(true);
     expect(body.speechToTextDeployment).toBe('gpt-4o-mini-transcribe');
     expect(res.headers['permissions-policy']).toContain('microphone=(self)');
-
-    delete process.env.VOICE_INPUT_ENABLED;
-    delete process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT;
   });
 });
 

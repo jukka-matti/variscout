@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { DndContext } from '@dnd-kit/core';
-import { chartColors, useWallIsMobile } from '@variscout/charts';
+import { chartColors } from '@variscout/charts';
 import {
   coerceCanvasLens,
   coerceCanvasOverlays,
@@ -44,6 +44,7 @@ import { CanvasStepCard } from './internal/CanvasStepCard';
 import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
 import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
+import { useWallIsMobile } from '../InvestigationWall';
 
 /**
  * Canonical FRAME canvas surface.
@@ -230,12 +231,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   const hasInvestigationContent = useHasInvestigationContent({ findingsCount: findings.length });
   const wallIsMobile = useWallIsMobile();
   const availableOverlays = React.useMemo<CanvasOverlayId[]>(() => {
-    const base: CanvasOverlayId[] = [
-      'investigations',
-      'hypotheses',
-      'suspected-causes',
-      'findings',
-    ];
+    const base: CanvasOverlayId[] = ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings'];
     return hasInvestigationContent ? [...base, 'wall'] : base;
   }, [hasInvestigationContent]);
   const pickerAvailableOverlays = React.useMemo(

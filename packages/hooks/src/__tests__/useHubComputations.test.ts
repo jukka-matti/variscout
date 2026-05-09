@@ -8,7 +8,7 @@ import {
 } from '@variscout/stores';
 import { useHubComputations } from '../useHubComputations';
 import type { BestSubsetsResult } from '@variscout/core/stats';
-import type { SuspectedCause, Question } from '@variscout/core/findings';
+import type { Hypothesis, Question } from '@variscout/core/findings';
 
 // ============================================================================
 // Helpers
@@ -27,13 +27,13 @@ function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
   };
 }
 
-function makeHub(overrides: Partial<SuspectedCause> & { id: string }): SuspectedCause {
+function makeHub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
   return {
     name: 'Test hub',
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
+    status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
@@ -103,14 +103,14 @@ describe('useHubComputations', () => {
     });
 
     it('returns undefined when hubs list is empty even with bestSubsets', () => {
-      useInvestigationStore.setState({ suspectedCauses: [] });
+      useInvestigationStore.setState({ hypotheses: [] });
       const { result } = renderHook(() => useHubComputations(makeBestSubsets(), []));
       expect(result.current.hubEvidences).toBeUndefined();
     });
 
     it('returns a map with one entry per hub when hubs exist', () => {
       const hub = makeHub({ id: 'hub-1', questionIds: [] });
-      useInvestigationStore.setState({ suspectedCauses: [hub] });
+      useInvestigationStore.setState({ hypotheses: [hub] });
 
       const { result } = renderHook(() => useHubComputations(makeBestSubsets(), []));
 
@@ -122,7 +122,7 @@ describe('useHubComputations', () => {
     it('computes evidence for multiple hubs', () => {
       const hub1 = makeHub({ id: 'hub-1', questionIds: [] });
       const hub2 = makeHub({ id: 'hub-2', questionIds: [] });
-      useInvestigationStore.setState({ suspectedCauses: [hub1, hub2] });
+      useInvestigationStore.setState({ hypotheses: [hub1, hub2] });
 
       const { result } = renderHook(() => useHubComputations(makeBestSubsets(), []));
 
@@ -133,7 +133,7 @@ describe('useHubComputations', () => {
 
     it('uses performance mode when analysisMode is performance', () => {
       const hub = makeHub({ id: 'hub-1', questionIds: [] });
-      useInvestigationStore.setState({ suspectedCauses: [hub] });
+      useInvestigationStore.setState({ hypotheses: [hub] });
       useProjectStore.setState({ analysisMode: 'performance' });
 
       const { result } = renderHook(() => useHubComputations(null, []));
@@ -144,7 +144,7 @@ describe('useHubComputations', () => {
 
     it('uses yamazumi mode when analysisMode is yamazumi', () => {
       const hub = makeHub({ id: 'hub-1', questionIds: [] });
-      useInvestigationStore.setState({ suspectedCauses: [hub] });
+      useInvestigationStore.setState({ hypotheses: [hub] });
       useProjectStore.setState({ analysisMode: 'yamazumi' });
 
       const { result } = renderHook(() => useHubComputations(null, []));
@@ -155,7 +155,7 @@ describe('useHubComputations', () => {
 
     it('uses standard mode for standard analysisMode', () => {
       const hub = makeHub({ id: 'hub-1', questionIds: [] });
-      useInvestigationStore.setState({ suspectedCauses: [hub] });
+      useInvestigationStore.setState({ hypotheses: [hub] });
       useProjectStore.setState({ analysisMode: 'standard' });
 
       const { result } = renderHook(() => useHubComputations(null, []));
@@ -167,7 +167,7 @@ describe('useHubComputations', () => {
     it('factors from linked questions are picked up in evidence', () => {
       const questions = [makeQuestion({ id: 'q1', factor: 'Machine', status: 'investigating' })];
       const hub = makeHub({ id: 'hub-1', questionIds: ['q1'] });
-      useInvestigationStore.setState({ suspectedCauses: [hub] });
+      useInvestigationStore.setState({ hypotheses: [hub] });
 
       const { result } = renderHook(() => useHubComputations(makeBestSubsets(), questions));
 
@@ -282,7 +282,7 @@ describe('useHubComputations', () => {
 
     it('returns undefined when bestSubsets is null even with hubs', () => {
       const hub = makeHub({ id: 'hub-1', questionIds: [] });
-      useInvestigationStore.setState({ suspectedCauses: [hub] });
+      useInvestigationStore.setState({ hypotheses: [hub] });
 
       const { result } = renderHook(() => useHubComputations(null, []));
       expect(result.current.hubProjections).toBeUndefined();
@@ -291,7 +291,7 @@ describe('useHubComputations', () => {
     it('returns a map keyed by hub id when hubs and bestSubsets are provided', () => {
       const questions = [makeQuestion({ id: 'q1', factor: 'Machine', status: 'investigating' })];
       const hub = makeHub({ id: 'hub-1', questionIds: ['q1'] });
-      useInvestigationStore.setState({ suspectedCauses: [hub] });
+      useInvestigationStore.setState({ hypotheses: [hub] });
 
       const { result } = renderHook(() => useHubComputations(makeBestSubsets(), questions));
 
@@ -303,7 +303,7 @@ describe('useHubComputations', () => {
     it('excludes hubs where computeHubProjection returns null', () => {
       // Hub with no linked questions will find no factors in subsets
       const hub = makeHub({ id: 'hub-1', questionIds: [] });
-      useInvestigationStore.setState({ suspectedCauses: [hub] });
+      useInvestigationStore.setState({ hypotheses: [hub] });
 
       const { result } = renderHook(() => useHubComputations(makeBestSubsets(), []));
 
@@ -319,7 +319,7 @@ describe('useHubComputations', () => {
       expect(result.current.hubEvidences).toBeUndefined();
 
       useInvestigationStore.setState({
-        suspectedCauses: [makeHub({ id: 'hub-1', questionIds: [] })],
+        hypotheses: [makeHub({ id: 'hub-1', questionIds: [] })],
       });
       rerender();
 

@@ -16,7 +16,7 @@ import {
   type ImprovementIdea,
   type PhotoAttachment,
   type InvestigationCategory,
-  type SuspectedCause,
+  type Hypothesis,
   type CausalLink,
 } from './types';
 
@@ -132,14 +132,14 @@ export function createCommentAttachment(
  * Create a timestamped comment with a unique ID.
  *
  * @param text - Comment text
- * @param parentId - ID of the owning entity (Finding or SuspectedCause)
+ * @param parentId - ID of the owning entity (Finding or Hypothesis)
  * @param parentKind - Which entity type owns this comment
  * @param author - Optional author display name
  */
 export function createFindingComment(
   text: string,
   parentId: string,
-  parentKind: 'finding' | 'suspectedCause',
+  parentKind: 'finding' | 'hypothesis',
   author?: string
 ): FindingComment {
   const comment: FindingComment = {
@@ -285,10 +285,10 @@ export function createFactorFinding(
 }
 
 /**
- * Create a new SuspectedCause hub with a unique ID.
+ * Create a new Hypothesis with a unique ID.
  *
- * A hub groups one or more questions (and their findings) under a named suspected
- * cause, enabling the analyst to synthesize multiple evidence streams into a
+ * A hypothesis groups one or more questions (and their findings) under a named
+ * mechanism, enabling the analyst to synthesize multiple evidence streams into a
  * coherent explanation. The aggregate evidence contribution is computed separately
  * via `computeHubContribution` in helpers.
  *
@@ -297,13 +297,13 @@ export function createFactorFinding(
  * @param questionIds - IDs of questions linked to this hub
  * @param findingIds - IDs of findings linked to this hub
  */
-export function createSuspectedCause(
+export function createHypothesis(
   name: string,
   synthesis: string,
   questionIds: string[] = [],
   findingIds: string[] = [],
   investigationId = 'general-unassigned' // callers must pass explicitly; sentinel until F6 first-class investigations
-): SuspectedCause {
+): Hypothesis {
   const now = Date.now();
   return {
     id: generateDeterministicId(),
@@ -312,7 +312,7 @@ export function createSuspectedCause(
     questionIds,
     findingIds,
     investigationId,
-    status: 'suspected',
+    status: 'proposed',
     createdAt: now,
     updatedAt: now,
     deletedAt: null,

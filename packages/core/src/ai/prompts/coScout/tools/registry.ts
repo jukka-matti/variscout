@@ -14,7 +14,7 @@
 import type { ToolDefinition } from '../../../responsesApi';
 import type { JourneyPhase, InvestigationPhase } from '../../../types';
 import type { AnalysisMode } from '../../../../types';
-import type { SuspectedCause } from '../../../../findings/types';
+import type { Hypothesis } from '../../../../findings/types';
 
 // ── Registry entry type ────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ export interface ToolRegistryEntry {
   /** Optional: dynamic availability condition */
   condition?: (ctx: {
     investigationPhase?: InvestigationPhase;
-    existingHubs?: SuspectedCause[];
+    existingHubs?: Hypothesis[];
   }) => boolean;
 }
 
@@ -368,7 +368,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
         properties: {
           text: {
             type: 'string',
-            description: 'Question text describing the suspected cause to investigate',
+            description: 'Question text describing the hypothesis to investigate',
           },
           factor: {
             type: ['string', 'null'],
@@ -446,7 +446,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'propose_hypothesis_from_finding',
       description:
-        "Create a new suspected-cause hub seeded with an existing finding as first evidence. Condition auto-derives from the finding's source. Requires analyst confirmation before the hub is committed.",
+        "Create a new Hypothesis hub seeded with an existing finding as first evidence. Condition auto-derives from the finding's source. Requires analyst confirmation before the hub is committed.",
       parameters: {
         type: 'object',
         properties: {
@@ -468,12 +468,12 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     phases: ['investigate'],
   },
 
-  suggest_suspected_cause: {
+  suggest_hypothesis: {
     definition: {
       type: 'function',
-      name: 'suggest_suspected_cause',
+      name: 'suggest_hypothesis',
       description:
-        'Suggest a suspected cause hub that connects related questions and findings into a named mechanism. Use when you notice 2+ answered questions pointing to the same contributing factor during validating or converging phase.',
+        'Suggest a Hypothesis hub that connects related questions and findings into a named mechanism. Use when you notice 2+ answered questions pointing to the same contributing factor during validating or converging phase.',
       parameters: {
         type: 'object',
         properties: {
@@ -513,11 +513,11 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'connect_hub_evidence',
       description:
-        'Connect newly answered questions or findings to an existing suspected cause hub. Use when new evidence supports an already-named mechanism.',
+        'Connect newly answered questions or findings to an existing Hypothesis hub. Use when new evidence supports an already-named mechanism.',
       parameters: {
         type: 'object',
         properties: {
-          hubId: { type: 'string', description: 'ID of the existing suspected cause hub' },
+          hubId: { type: 'string', description: 'ID of the existing Hypothesis hub' },
           questionIds: {
             type: 'array',
             items: { type: 'string' },
@@ -653,11 +653,11 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
         properties: {
           question_id: {
             type: 'string',
-            description: 'ID of the question (suspected cause) being brainstormed',
+            description: 'ID of the question (hypothesis) being brainstormed',
           },
           cause_name: {
             type: 'string',
-            description: 'Name of the suspected cause for context',
+            description: 'Name of the hypothesis for context',
           },
           ideas: {
             type: 'array',
@@ -895,7 +895,7 @@ export function getToolsForPhase(
   options?: {
     isTeamPlan?: boolean;
     investigationPhase?: InvestigationPhase;
-    existingHubs?: SuspectedCause[];
+    existingHubs?: Hypothesis[];
   }
 ): ToolDefinition[] {
   return Object.values(TOOL_REGISTRY)

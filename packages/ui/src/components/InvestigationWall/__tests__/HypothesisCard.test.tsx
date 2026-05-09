@@ -5,18 +5,20 @@ import {
   projectMechanismBranch,
   type Finding,
   type Question,
-  type SuspectedCause,
+  type Hypothesis,
 } from '@variscout/core';
 
-const hub: SuspectedCause = {
+const hub: Hypothesis = {
   id: 'h1',
   name: 'Nozzle runs hot on night shift',
   synthesis: '',
   questionIds: [],
   findingIds: ['f1', 'f2', 'f3'],
   status: 'confirmed',
-  createdAt: '',
-  updatedAt: '',
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  investigationId: 'inv-test',
 };
 
 describe('HypothesisCard', () => {
@@ -39,6 +41,82 @@ describe('HypothesisCard', () => {
     expect(screen.getByText(/3 supporting clues/)).toBeInTheDocument();
   });
 
+  it('renders theme tags in the full-card body when present', () => {
+    const { container } = render(
+      <svg>
+        <HypothesisCard
+          hub={{ ...hub, themeTags: ['Night Shift', 'Nozzle Temp'] }}
+          displayStatus="confirmed"
+          x={0}
+          y={0}
+        />
+      </svg>
+    );
+
+    expect(container.querySelector('foreignObject')).toBeTruthy();
+    expect(screen.getByText('#Night Shift')).toBeInTheDocument();
+    expect(screen.getByText('#Nozzle Temp')).toBeInTheDocument();
+  });
+
+  it('keeps tagged layout rows vertically separated', () => {
+    const { container } = render(
+      <svg>
+        <HypothesisCard
+          hub={{ ...hub, themeTags: ['Night Shift'] }}
+          displayStatus="confirmed"
+          x={0}
+          y={0}
+        />
+      </svg>
+    );
+
+    const tagRow = container.querySelector('foreignObject');
+    const readinessText = Array.from(container.querySelectorAll('text')).find(
+      text => text.textContent === 'Confirmed' && text.getAttribute('y') !== '24'
+    );
+    const clueText = screen.getByText(/3 supporting clues/);
+
+    expect(tagRow).toBeTruthy();
+    expect(readinessText).toBeTruthy();
+    const tagBottom =
+      Number(tagRow?.getAttribute('y') ?? 0) + Number(tagRow?.getAttribute('height') ?? 0);
+    const readinessY = Number(readinessText?.getAttribute('y') ?? 0);
+    const clueY = Number(clueText.getAttribute('y') ?? 0);
+
+    expect(readinessY - tagBottom).toBeGreaterThanOrEqual(8);
+    expect(clueY - readinessY).toBeGreaterThanOrEqual(18);
+  });
+
+  it('does not render a theme tag container when no tags are present', () => {
+    const { container } = render(
+      <svg>
+        <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} />
+      </svg>
+    );
+
+    expect(container.querySelector('[data-testid="hypothesis-theme-tags"]')).toBeNull();
+    expect(container.querySelector('foreignObject')).toBeNull();
+  });
+
+  it('keeps theme tags hidden at medium and glyph LOD', () => {
+    const taggedHub = { ...hub, themeTags: ['Night Shift'] };
+    const { rerender } = render(
+      <svg>
+        <HypothesisCard hub={taggedHub} displayStatus="confirmed" x={0} y={0} zoomScale={0.5} />
+      </svg>
+    );
+
+    expect(screen.queryByText('#Night Shift')).toBeNull();
+
+    rerender(
+      <svg>
+        <HypothesisCard hub={taggedHub} displayStatus="confirmed" x={0} y={0} zoomScale={0.2} />
+      </svg>
+    );
+
+    expect(screen.queryByText('#Night Shift')).toBeNull();
+  });
+
   it('fires onSelect on click', () => {
     const onSelect = vi.fn();
     render(
@@ -56,6 +134,8 @@ describe('HypothesisCard', () => {
         id: 'f1',
         text: 'Night shift has wider spread',
         createdAt: 1,
+        deletedAt: null,
+        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -66,6 +146,8 @@ describe('HypothesisCard', () => {
         id: 'f2',
         text: 'Nozzle temperature rises late in the run',
         createdAt: 2,
+        deletedAt: null,
+        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -76,6 +158,8 @@ describe('HypothesisCard', () => {
         id: 'f3',
         text: 'Day shift has one similar spread event',
         createdAt: 3,
+        deletedAt: null,
+        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -89,14 +173,16 @@ describe('HypothesisCard', () => {
         text: 'Check nozzle temperature after four hours',
         status: 'open',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+        investigationId: 'inv-test',
       },
     ];
     const branch = projectMechanismBranch(
       {
         ...hub,
-        status: 'suspected',
+        status: 'proposed',
         nextMove: 'Run a late-shift temperature check.',
         questionIds: ['q1'],
       },
@@ -106,7 +192,7 @@ describe('HypothesisCard', () => {
     render(
       <svg>
         <HypothesisCard
-          hub={{ ...hub, status: 'suspected' }}
+          hub={{ ...hub, status: 'proposed' }}
           branch={branch}
           displayStatus="evidenced"
           x={0}

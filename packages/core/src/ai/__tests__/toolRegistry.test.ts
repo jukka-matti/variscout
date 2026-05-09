@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { TOOL_REGISTRY, getToolsForPhase } from '../prompts/coScout/tools';
-import type { SuspectedCause } from '../../findings/types';
+import type { Hypothesis } from '../../findings/types';
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -25,7 +25,7 @@ const SCOUT_ACTION_TOOLS = [
 const INVESTIGATE_ACTION_TOOLS = [
   'create_question',
   'answer_question',
-  'suggest_suspected_cause',
+  'suggest_hypothesis',
   'connect_hub_evidence',
   'suggest_improvement_idea',
   'suggest_action',
@@ -163,28 +163,28 @@ describe('getToolsForPhase', () => {
     expect(toolNames(improveTools)).toContain('notify_action_owners');
   });
 
-  it('suggest_suspected_cause requires validating or converging phase', () => {
+  it('suggest_hypothesis requires validating or converging phase', () => {
     // Without investigation phase — excluded
     const tools1 = getToolsForPhase('investigate', 'standard');
-    expect(toolNames(tools1)).not.toContain('suggest_suspected_cause');
+    expect(toolNames(tools1)).not.toContain('suggest_hypothesis');
 
     // With diverging phase — excluded
     const tools2 = getToolsForPhase('investigate', 'standard', {
       investigationPhase: 'diverging',
     });
-    expect(toolNames(tools2)).not.toContain('suggest_suspected_cause');
+    expect(toolNames(tools2)).not.toContain('suggest_hypothesis');
 
     // With validating phase — included
     const tools3 = getToolsForPhase('investigate', 'standard', {
       investigationPhase: 'validating',
     });
-    expect(toolNames(tools3)).toContain('suggest_suspected_cause');
+    expect(toolNames(tools3)).toContain('suggest_hypothesis');
 
     // With converging phase — included
     const tools4 = getToolsForPhase('investigate', 'standard', {
       investigationPhase: 'converging',
     });
-    expect(toolNames(tools4)).toContain('suggest_suspected_cause');
+    expect(toolNames(tools4)).toContain('suggest_hypothesis');
   });
 
   it('connect_hub_evidence requires existing hubs', () => {
@@ -205,7 +205,7 @@ describe('getToolsForPhase', () => {
           synthesis: '',
           questionIds: [],
           findingIds: [],
-        } as unknown as SuspectedCause,
+        } as unknown as Hypothesis,
       ],
     });
     expect(toolNames(tools3)).toContain('connect_hub_evidence');

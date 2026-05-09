@@ -5,7 +5,7 @@
  * - Issue / Concern (original concern)
  * - Current Understanding (refined live synthesis)
  * - Approved Problem Statement (accepted formulation)
- * - Suspected causes with evidence
+ * - Hypotheses with evidence
  * - Negative learnings (ruled-out factors)
  *
  * Print-friendly, no interactive elements.
@@ -18,7 +18,7 @@ import type { CurrentUnderstanding } from '@variscout/core';
 // Types
 // ============================================================================
 
-interface SuspectedCause {
+interface Hypothesis {
   text: string;
   factor?: string;
   level?: string;
@@ -38,8 +38,8 @@ export interface ReportInvestigationSummaryProps {
   currentUnderstanding?: CurrentUnderstanding | string;
   /** Approved problem statement */
   problemStatement?: string;
-  /** Suspected causes from investigation */
-  suspectedCauses?: SuspectedCause[];
+  /** Hypotheses from investigation */
+  hypotheses?: Hypothesis[];
   /** Ruled-out factors (negative learnings) */
   ruledOut?: RuledOutFactor[];
 }
@@ -76,7 +76,7 @@ export const ReportInvestigationSummary: React.FC<ReportInvestigationSummaryProp
   issueStatement,
   currentUnderstanding,
   problemStatement,
-  suspectedCauses,
+  hypotheses,
   ruledOut,
 }) => {
   const currentUnderstandingText =
@@ -85,7 +85,7 @@ export const ReportInvestigationSummary: React.FC<ReportInvestigationSummaryProp
     issueStatement ||
     currentUnderstandingText ||
     problemStatement ||
-    (suspectedCauses && suspectedCauses.length > 0) ||
+    (hypotheses && hypotheses.length > 0) ||
     (ruledOut && ruledOut.length > 0);
 
   if (!hasContent) return null;
@@ -125,13 +125,13 @@ export const ReportInvestigationSummary: React.FC<ReportInvestigationSummaryProp
       )}
 
       {/* Suspected Causes */}
-      {suspectedCauses && suspectedCauses.length > 0 && (
+      {hypotheses && hypotheses.length > 0 && (
         <div className="rounded-lg border border-edge bg-surface-elevated p-4">
           <p className="text-xs font-medium text-content-muted uppercase tracking-wider mb-2">
             Suspected Causes
           </p>
           <ol className="space-y-1.5 list-decimal list-inside">
-            {suspectedCauses.map((cause, index) => (
+            {hypotheses.map((cause, index) => (
               <li key={index} className="text-sm text-content">
                 <span>{cause.text}</span>
                 {cause.factor && (

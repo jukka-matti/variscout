@@ -3,7 +3,7 @@ import { generateHMWPrompts } from '@variscout/core/findings';
 import type { IdeaDirection } from '@variscout/core';
 
 /**
- * Generate 4 HMW prompts for a suspected cause.
+ * Generate 4 HMW prompts for a hypothesis.
  * Memoized — stable reference when inputs unchanged.
  */
 export function useHMWPrompts(

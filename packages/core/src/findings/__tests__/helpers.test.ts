@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { computeHubProjection, detectEvidenceClusters } from '../helpers';
-import type { SuspectedCause, Question } from '../types';
+import {
+  computeHubContribution,
+  computeHubEvidence,
+  computeHubProjection,
+  detectEvidenceClusters,
+  migrateCauseRolesToHubs,
+} from '../helpers';
+import type { Hypothesis, Question } from '../types';
 import type { BestSubsetsResult, BestSubsetResult } from '../../stats/bestSubsets';
 
 // ---------------------------------------------------------------------------
@@ -20,13 +26,13 @@ function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
   };
 }
 
-function makeHub(overrides: Partial<SuspectedCause> & { id: string }): SuspectedCause {
+function makeHub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
   return {
     name: 'Test hub',
     synthesis: '',
     questionIds: [],
     findingIds: [],
-    status: 'suspected',
+    status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     investigationId: 'inv-test-001',
@@ -65,6 +71,113 @@ function makeSubset(
     cellMeans: cellMeans ?? new Map(),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Tests: contribution + evidence helpers
+// ---------------------------------------------------------------------------
+
+describe('computeHubContribution', () => {
+  it('sums etaSquared and falls back to rSquaredAdj for linked questions only', () => {
+    const questions = [
+      makeQuestion({ id: 'q1', evidence: { etaSquared: 0.34 } }),
+      makeQuestion({ id: 'q2', evidence: { rSquaredAdj: 0.22 } }),
+      makeQuestion({ id: 'q3', evidence: { etaSquared: 0.5 } }),
+    ];
+    const hub = makeHub({ id: 'h1', questionIds: ['q1', 'q2'] });
+
+    expect(computeHubContribution(hub, questions)).toBeCloseTo(0.56);
+  });
+
+  it('returns zero for a hypothesis with no connected questions', () => {
+    expect(computeHubContribution(makeHub({ id: 'h1', questionIds: [] }), [])).toBe(0);
+  });
+});
+
+describe('migrateCauseRolesToHubs', () => {
+  it('creates one proposed hypothesis for each legacy suspected-cause question with a factor', () => {
+    const questions = [
+      makeQuestion({
+        id: 'q1',
+        factor: 'Shift',
+        causeRole: 'suspected-cause',
+        linkedFindingIds: ['f1'],
+      }),
+      makeQuestion({ id: 'q2', factor: 'Head', causeRole: 'suspected-cause' }),
+      makeQuestion({ id: 'q3', factor: 'Batch', causeRole: 'ruled-out' }),
+      makeQuestion({ id: 'q4', causeRole: 'suspected-cause' }),
+    ];
+
+    const hubs = migrateCauseRolesToHubs(questions);
+
+    expect(hubs).toHaveLength(2);
+    expect(hubs[0]).toMatchObject({
+      name: 'Shift',
+      questionIds: ['q1'],
+      findingIds: ['f1'],
+      status: 'proposed',
+    });
+    expect(hubs[1]).toMatchObject({ name: 'Head', questionIds: ['q2'], status: 'proposed' });
+  });
+});
+
+describe('computeHubEvidence', () => {
+  const bestSubsets = makeBestSubsetsResult(
+    [
+      makeSubset(['Shift'], 0.34, new Map()),
+      makeSubset(['Head'], 0.28, new Map()),
+      makeSubset(['Head', 'Shift'], 0.52, new Map()),
+    ],
+    50
+  );
+
+  it('uses Best Subsets R-squared-adj for combined factors instead of naive sum', () => {
+    const questions = [
+      makeQuestion({ id: 'q1', factor: 'Shift', evidence: { etaSquared: 0.34 } }),
+      makeQuestion({ id: 'q2', factor: 'Head', evidence: { etaSquared: 0.28 } }),
+    ];
+    const hub = makeHub({ id: 'h1', questionIds: ['q1', 'q2'] });
+
+    const evidence = computeHubEvidence(hub, questions, bestSubsets);
+
+    expect(evidence.contribution.value).toBeCloseTo(0.52);
+    expect(evidence.contribution.label).toBe('R²adj');
+    expect(evidence.contribution.description).toContain('52%');
+  });
+
+  it('falls back to capped evidence sums and partial factor matches', () => {
+    const questions = [
+      makeQuestion({ id: 'q1', factor: 'Shift', evidence: { etaSquared: 0.34 } }),
+      makeQuestion({ id: 'q2', factor: 'Head', evidence: { etaSquared: 0.28 } }),
+      makeQuestion({ id: 'q3', factor: 'Batch' }),
+    ];
+    const hub = makeHub({ id: 'h1', questionIds: ['q1', 'q2', 'q3'] });
+
+    expect(computeHubEvidence(hub, questions, null).contribution.value).toBeCloseTo(0.62);
+    expect(computeHubEvidence(hub, questions, bestSubsets).contribution.value).toBeCloseTo(0.52);
+  });
+
+  it('deduplicates duplicate factors and skips Best Subsets for yamazumi mode', () => {
+    const duplicateFactorQuestions = [
+      makeQuestion({ id: 'q1', factor: 'Shift', evidence: { etaSquared: 0.34 } }),
+      makeQuestion({ id: 'q2', factor: 'Shift', evidence: { etaSquared: 0.28 } }),
+    ];
+    const duplicateHub = makeHub({ id: 'h1', questionIds: ['q1', 'q2'] });
+
+    expect(
+      computeHubEvidence(duplicateHub, duplicateFactorQuestions, bestSubsets).contribution.value
+    ).toBeCloseTo(0.34);
+
+    const yamazumiEvidence = computeHubEvidence(
+      duplicateHub,
+      duplicateFactorQuestions,
+      bestSubsets,
+      'yamazumi'
+    );
+    expect(yamazumiEvidence.mode).toBe('yamazumi');
+    expect(yamazumiEvidence.contribution.label).toBe('Waste %');
+    expect(yamazumiEvidence.contribution.value).toBeCloseTo(0.62);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Tests: computeHubProjection
