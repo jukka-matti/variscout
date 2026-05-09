@@ -25,7 +25,6 @@ function makeFinding(overrides: Partial<Finding> & { id: string }): Finding {
     statusChangedAt: 1,
     investigationId: 'inv-test',
     createdAt: 1,
-    updatedAt: 1,
     deletedAt: null,
     ...overrides,
   };
