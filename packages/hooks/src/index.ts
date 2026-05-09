@@ -640,3 +640,15 @@ export {
 
 // Mini-chart data derivation (Wall Detective-pack)
 export { useMiniChartData, type MiniChartData } from './useMiniChartData';
+
+// Mini-chart interaction gestures (Wall Detective-pack — RPS V1 PR4)
+export {
+  useIChartBrush,
+  type UseIChartBrushArgs,
+  type UseIChartBrushReturn,
+} from './useIChartBrush';
+export {
+  useBoxplotSelect,
+  type UseBoxplotSelectArgs,
+  type UseBoxplotSelectReturn,
+} from './useBoxplotSelect';
