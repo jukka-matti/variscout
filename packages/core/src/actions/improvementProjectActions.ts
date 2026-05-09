@@ -14,6 +14,11 @@ import type { ImprovementProject } from '../improvementProject';
  *     all FK arrays inside `sections.*`.
  *   - `id`, `createdAt`, `hubId` are immutable (excluded from patch typing).
  *   - `updatedAt` is set to `Date.now()` by the persistence handler, not by the caller.
+ *   - `deletedAt` is managed exclusively by `IMPROVEMENT_PROJECT_ARCHIVE`; supplying it
+ *     via UPDATE would create an unsupervised soft-delete path.
+ *   - for `sections`: the four section keys shallow-merge independently when supplied
+ *     (if patch.sections is present, missing sub-section keys are preserved from existing;
+ *     only supplied sub-section keys are shallow-merged).
  *
  * Persistence handlers (apps/pwa, apps/azure) implement this contract identically.
  */
@@ -26,7 +31,9 @@ export type ImprovementProjectAction =
   | {
       kind: 'IMPROVEMENT_PROJECT_UPDATE';
       projectId: ImprovementProject['id'];
-      patch: Partial<Omit<ImprovementProject, 'id' | 'createdAt' | 'hubId'>>;
+      patch: Partial<
+        Omit<ImprovementProject, 'id' | 'createdAt' | 'hubId' | 'updatedAt' | 'deletedAt'>
+      >;
     }
   | {
       kind: 'IMPROVEMENT_PROJECT_ARCHIVE';
