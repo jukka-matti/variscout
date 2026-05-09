@@ -20,6 +20,7 @@ import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
 import { useWallLocale } from './hooks/useWallLocale';
 import { TagChip } from './TagChip';
+import { OneStepAwayBadge } from './OneStepAwayBadge';
 
 export interface HypothesisCardProps {
   hub: Hypothesis;
@@ -56,6 +57,12 @@ const TAGGED_READINESS_Y = 126;
 const TAGGED_CLUE_COUNT_Y = 146;
 const DEFAULT_READINESS_Y = 108;
 const DEFAULT_CLUE_COUNT_Y = 130;
+/**
+ * Y position of the OneStepAwayBadge foreignObject.
+ * Sits in the 20px gap between the body rect bottom (BODY_TOP + 96 = 160)
+ * and the openChecksLabel text baseline (CARD_H - 48 = 180).
+ */
+const ONE_STEP_AWAY_Y = BODY_TOP + 96; // 160
 
 const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
   proposed: 'wall.status.proposed',
@@ -107,6 +114,7 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   const missingColumnText = getMessage(locale, 'wall.card.missingColumn');
   const missingColumnAria = getMessage(locale, 'wall.card.missingColumnAria');
   const evidenceGapAria = getMessage(locale, 'wall.card.evidenceGap');
+  const oneStepAwayText = getMessage(locale, 'wall.card.oneStepAway');
 
   // LOD thresholds: glyph < 0.3 ≤ medium < 0.6 ≤ full. An undefined zoomScale
   // bypasses LOD entirely (full card — backward compatibility).
@@ -239,6 +247,15 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
             !
           </text>
         </g>
+      )}
+      {lod === 'full' && displayStatus === 'needs-disconfirmation' && (
+        <OneStepAwayBadge
+          message={oneStepAwayText}
+          x={16}
+          y={ONE_STEP_AWAY_Y}
+          width={CARD_W - 32}
+          height={20}
+        />
       )}
       {missingColumn && !isMedium && (
         <g aria-label={missingColumnAria}>
