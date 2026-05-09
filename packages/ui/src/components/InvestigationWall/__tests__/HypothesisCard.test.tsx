@@ -205,7 +205,7 @@ describe('HypothesisCard', () => {
     );
 
     expect(screen.getByText(/Mechanism Branch/i)).toBeInTheDocument();
-    expect(screen.getByText(/Suspected mechanism/i)).toBeInTheDocument();
+    // "Suspected mechanism" decorative caption was removed in Task 4 (chart slot replaced it)
     expect(screen.getByText(/2 supporting clues/i)).toBeInTheDocument();
     expect(screen.getByText(/1 counter-clue/i)).toBeInTheDocument();
     expect(screen.getByText(/1 open check/i)).toBeInTheDocument();

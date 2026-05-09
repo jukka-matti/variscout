@@ -637,3 +637,6 @@ export {
   useSessionCanvasFilters,
   type UseSessionCanvasFiltersResult,
 } from './useSessionCanvasFilters';
+
+// Mini-chart data derivation (Wall Detective-pack)
+export { useMiniChartData, type MiniChartData } from './useMiniChartData';
