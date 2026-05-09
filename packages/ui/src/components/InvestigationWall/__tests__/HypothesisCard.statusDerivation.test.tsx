@@ -65,4 +65,24 @@ describe('HypothesisCard renders derived status', () => {
     );
     expect(screen.queryByText(/1 step away/i)).toBeNull();
   });
+
+  it('suppresses openChecksLabel when displayStatus is needs-disconfirmation at full LOD', () => {
+    render(
+      <svg>
+        <HypothesisCard hub={hub} displayStatus="needs-disconfirmation" x={0} y={0} />
+      </svg>
+    );
+    // Badge replaces the open-checks row — both cannot appear simultaneously.
+    expect(screen.queryByText(/open check/i)).toBeNull();
+  });
+
+  it('shows openChecksLabel when displayStatus is evidenced at full LOD', () => {
+    const hubWithChecks = { ...hub, questionIds: ['q1', 'q2'] };
+    render(
+      <svg>
+        <HypothesisCard hub={hubWithChecks} displayStatus="evidenced" x={0} y={0} />
+      </svg>
+    );
+    expect(screen.getByText(/open check/i)).toBeInTheDocument();
+  });
 });
