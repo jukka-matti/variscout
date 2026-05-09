@@ -652,3 +652,6 @@ export {
   type UseBoxplotSelectArgs,
   type UseBoxplotSelectReturn,
 } from './useBoxplotSelect';
+
+// Live-document primitives (RPS V1 PR5 — spec §11 D18)
+export { useLiveProjection } from './useLiveProjection';

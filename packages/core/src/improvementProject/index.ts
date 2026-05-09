@@ -12,3 +12,6 @@ export type {
   ImprovementProjectOutcomeReferenceSection,
   ImprovementProjectSignoff,
 } from './types';
+
+export { computeSourceHash, shouldShowDrift } from './snapshot';
+export type { DriftableSnapshot, DriftableCurrent } from './snapshot';
