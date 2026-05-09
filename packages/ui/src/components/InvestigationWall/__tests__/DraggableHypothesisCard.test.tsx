@@ -11,8 +11,10 @@ const hub: Hypothesis = {
   questionIds: [],
   findingIds: [],
   status: 'proposed',
-  createdAt: '',
-  updatedAt: '',
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  investigationId: 'inv-test',
 };
 
 describe('DraggableHypothesisCard', () => {

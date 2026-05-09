@@ -2,10 +2,9 @@
  * useWallBreakpoint — Local media-query hook for the Investigation Wall.
  *
  * Detects the 768px mobile breakpoint so WallCanvas can swap its 2000×1400
- * SVG for a vertical card list at narrow viewports. Lives here (rather than
- * importing from `@variscout/ui`) because `@variscout/charts` must not
- * depend on `@variscout/ui` — the monorepo dependency flow is
- * core → hooks → ui → apps, and charts stays at the core/hooks tier.
+ * SVG for a vertical card list at narrow viewports. The wall now lives in
+ * `@variscout/ui`, so the hook stays beside the wall components and remains
+ * shared by PWA and Azure through the UI package.
  *
  * Shares the `BREAKPOINTS.mobile = 768` value with `useIsMobile` in
  * `@variscout/ui`, so PWA and Azure apps switch at the same width.
@@ -14,8 +13,7 @@ import { useEffect, useState } from 'react';
 
 /**
  * Mobile breakpoint in px. Matches `BREAKPOINTS.mobile` in
- * `@variscout/ui/hooks/useMediaQuery.ts`. Kept in sync manually — no
- * cross-package import is permitted from this file.
+ * `@variscout/ui/hooks/useMediaQuery.ts`. Kept in sync manually.
  */
 export const WALL_MOBILE_BREAKPOINT = 768;
 

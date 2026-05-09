@@ -10,8 +10,10 @@ const makeHub = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   questionIds: [],
   findingIds: [],
   status: 'proposed',
-  createdAt: '',
-  updatedAt: '',
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  investigationId: 'inv-test',
   ...overrides,
 });
 
@@ -77,6 +79,8 @@ describe('MobileCardList', () => {
         id: 'f1',
         text: 'Night shift has wider spread',
         createdAt: 1,
+        deletedAt: null,
+        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -87,6 +91,8 @@ describe('MobileCardList', () => {
         id: 'f2',
         text: 'Day shift has one similar event',
         createdAt: 2,
+        deletedAt: null,
+        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -100,8 +106,10 @@ describe('MobileCardList', () => {
         text: 'Check nozzle temperature after four hours',
         status: 'open',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+        investigationId: 'inv-test',
       },
     ];
 

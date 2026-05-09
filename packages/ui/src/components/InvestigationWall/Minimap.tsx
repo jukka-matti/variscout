@@ -16,7 +16,7 @@
 import React from 'react';
 import type { Hypothesis, Question } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
-import { chartColors } from '../colors';
+import { chartColors } from '@variscout/charts';
 import { CANVAS_W, CANVAS_H } from './WallCanvas';
 import { useWallLocale } from './hooks/useWallLocale';
 

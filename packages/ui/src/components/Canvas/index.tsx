@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { DndContext } from '@dnd-kit/core';
-import { chartColors, useWallIsMobile } from '@variscout/charts';
+import { chartColors } from '@variscout/charts';
 import {
   coerceCanvasLens,
   coerceCanvasOverlays,
@@ -44,6 +44,7 @@ import { CanvasStepCard } from './internal/CanvasStepCard';
 import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
 import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
+import { useWallIsMobile } from '../InvestigationWall';
 
 /**
  * Canonical FRAME canvas surface.

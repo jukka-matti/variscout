@@ -196,6 +196,8 @@ export {
   type ProbabilityPlotTooltipProps,
 } from './components/ProbabilityPlotTooltip';
 
+export * from './components/InvestigationWall';
+
 export {
   VerificationCard,
   type VerificationCardProps,

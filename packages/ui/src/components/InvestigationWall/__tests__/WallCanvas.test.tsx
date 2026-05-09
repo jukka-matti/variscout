@@ -38,8 +38,8 @@ const processMap: ProcessMap = {
   nodes: [{ id: 'n1', name: 'Fill', order: 0 }],
   tributaries: [{ id: 't1', stepId: 'n1', column: 'SHIFT' }],
   ctsColumn: 'FILL',
-  createdAt: '',
-  updatedAt: '',
+  createdAt: '2026-05-09T00:00:00.000Z',
+  updatedAt: '2026-05-09T00:00:00.000Z',
 };
 
 const hub: Hypothesis = {
@@ -49,8 +49,10 @@ const hub: Hypothesis = {
   questionIds: [],
   findingIds: ['f1', 'f2', 'f3'],
   status: 'confirmed',
-  createdAt: '',
-  updatedAt: '',
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  investigationId: 'inv-test',
 };
 
 const openQuestion: Question = {
@@ -58,8 +60,10 @@ const openQuestion: Question = {
   text: 'Does fill temperature drive this?',
   status: 'open',
   linkedFindingIds: [],
-  createdAt: '',
-  updatedAt: '',
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  investigationId: 'inv-test',
 };
 
 describe('WallCanvas', () => {

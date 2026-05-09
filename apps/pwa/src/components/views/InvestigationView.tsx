@@ -14,6 +14,13 @@ import {
   InvestigationPhaseBadge,
   InvestigationConclusion,
   FindingsLog,
+  WallCanvas,
+  CommandPalette,
+  Minimap,
+  CANVAS_W,
+  CANVAS_H,
+  useWallKeyboard,
+  useWallIsMobile,
 } from '@variscout/ui';
 import {
   useResizablePanel,
@@ -27,15 +34,6 @@ import type { ResolvedMode } from '@variscout/core/strategy';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
 import { useWallLayoutStore, useProjectStore, useInvestigationStore } from '@variscout/stores';
-import {
-  WallCanvas,
-  CommandPalette,
-  Minimap,
-  CANVAS_W,
-  CANVAS_H,
-  useWallKeyboard,
-  useWallIsMobile,
-} from '@variscout/charts';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
   useInvestigationFeatureStore,

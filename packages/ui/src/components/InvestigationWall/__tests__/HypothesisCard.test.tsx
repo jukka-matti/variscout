@@ -15,8 +15,10 @@ const hub: Hypothesis = {
   questionIds: [],
   findingIds: ['f1', 'f2', 'f3'],
   status: 'confirmed',
-  createdAt: '',
-  updatedAt: '',
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  investigationId: 'inv-test',
 };
 
 describe('HypothesisCard', () => {
@@ -56,6 +58,8 @@ describe('HypothesisCard', () => {
         id: 'f1',
         text: 'Night shift has wider spread',
         createdAt: 1,
+        deletedAt: null,
+        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -66,6 +70,8 @@ describe('HypothesisCard', () => {
         id: 'f2',
         text: 'Nozzle temperature rises late in the run',
         createdAt: 2,
+        deletedAt: null,
+        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -76,6 +82,8 @@ describe('HypothesisCard', () => {
         id: 'f3',
         text: 'Day shift has one similar spread event',
         createdAt: 3,
+        deletedAt: null,
+        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         status: 'analyzed',
         comments: [],
@@ -89,8 +97,10 @@ describe('HypothesisCard', () => {
         text: 'Check nozzle temperature after four hours',
         status: 'open',
         linkedFindingIds: [],
-        createdAt: '',
-        updatedAt: '',
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+        investigationId: 'inv-test',
       },
     ];
     const branch = projectMechanismBranch(

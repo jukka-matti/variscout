@@ -130,9 +130,6 @@ export type {
   RelationshipType,
 } from './EvidenceMap';
 
-// Investigation Wall components
-export * from './InvestigationWall';
-
 // ScatterFit chart component
 export { default as ScatterFit, ScatterFitBase } from './ScatterFit';
 

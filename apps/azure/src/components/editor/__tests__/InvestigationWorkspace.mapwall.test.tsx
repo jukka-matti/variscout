@@ -23,12 +23,6 @@ vi.mock('@variscout/charts', async importOriginal => {
   return {
     ...actual,
     EvidenceMapBase: () => <div data-testid="evidence-map-base" />,
-    WallCanvas: (props: { hubs: unknown[] }) =>
-      props.hubs.length > 0 ? (
-        <div data-testid="wall-canvas" data-has-process-map={String('processMap' in props)} />
-      ) : (
-        <div data-testid="wall-canvas-empty" data-has-process-map={String('processMap' in props)} />
-      ),
   };
 });
 
@@ -82,6 +76,13 @@ vi.mock('@variscout/ui', async importOriginal => {
     InvestigationConclusion: () => null,
     FindingsLog: () => <div data-testid="findings-log" />,
     QuestionLinkPrompt: () => null,
+    useWallIsMobile: () => false,
+    WallCanvas: (props: { hubs: unknown[] }) =>
+      props.hubs.length > 0 ? (
+        <div data-testid="wall-canvas" data-has-process-map={String('processMap' in props)} />
+      ) : (
+        <div data-testid="wall-canvas-empty" data-has-process-map={String('processMap' in props)} />
+      ),
   };
 });
 

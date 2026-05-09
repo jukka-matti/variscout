@@ -7,10 +7,10 @@ import {
   useInvestigationStore,
   useWallLayoutStore,
 } from '@variscout/stores';
-import { useWallIsMobile } from '@variscout/charts';
+import { useWallIsMobile } from '../../../InvestigationWall';
 import { CanvasWallOverlay } from '../CanvasWallOverlay';
 
-vi.mock('@variscout/charts', () => ({
+vi.mock('../../../InvestigationWall', () => ({
   useWallIsMobile: vi.fn(),
   WallCanvas: (props: {
     mode?: string;

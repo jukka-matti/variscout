@@ -37,8 +37,10 @@ describe('TributaryFooter', () => {
       findingIds: [],
       status: 'proposed',
       tributaryIds: ['t1'],
-      createdAt: '',
-      updatedAt: '',
+      createdAt: 1,
+      updatedAt: 1,
+      deletedAt: null,
+      investigationId: 'inv-test',
     };
     const { container } = render(
       <svg>

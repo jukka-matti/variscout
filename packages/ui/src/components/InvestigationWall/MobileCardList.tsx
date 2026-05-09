@@ -21,7 +21,7 @@ import {
   type Question,
 } from '@variscout/core';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
-import { chartColors } from '../colors';
+import { chartColors } from '@variscout/charts';
 import { EmptyState } from './EmptyState';
 import type { WallStatus } from './types';
 import { useWallLocale } from './hooks/useWallLocale';

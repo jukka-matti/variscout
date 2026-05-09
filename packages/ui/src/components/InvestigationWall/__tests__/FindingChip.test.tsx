@@ -8,6 +8,8 @@ const finding: Finding = {
   id: 'f1',
   text: 'Night-shift spike',
   createdAt: 0,
+  deletedAt: null,
+  investigationId: 'inv-test',
   context: { activeFilters: {}, cumulativeScope: null },
   status: 'observed',
   comments: [],

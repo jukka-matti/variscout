@@ -18,8 +18,10 @@ const hubs: Hypothesis[] = [
     questionIds: [],
     findingIds: [],
     status: 'proposed',
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
   {
     id: 'h-nozzle',
@@ -28,8 +30,10 @@ const hubs: Hypothesis[] = [
     questionIds: [],
     findingIds: [],
     status: 'proposed',
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
   {
     id: 'h-cal',
@@ -38,8 +42,10 @@ const hubs: Hypothesis[] = [
     questionIds: [],
     findingIds: [],
     status: 'proposed',
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
 ];
 
@@ -49,28 +55,32 @@ const questions: Question[] = [
     text: 'What does the night shift do differently?',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
   {
     id: 'q-2',
     text: 'Is Cpk trending?',
     status: 'open',
     linkedFindingIds: [],
-    createdAt: '',
-    updatedAt: '',
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+    investigationId: 'inv-test',
   },
 ];
 
 const findings: Finding[] = [];
 
 describe('CommandPalette', () => {
-  let onClose: ReturnType<typeof vi.fn>;
-  let onPanTo: ReturnType<typeof vi.fn>;
+  let onClose: ReturnType<typeof vi.fn<() => void>>;
+  let onPanTo: ReturnType<typeof vi.fn<(nodeId: string) => void>>;
 
   beforeEach(() => {
-    onClose = vi.fn();
-    onPanTo = vi.fn();
+    onClose = vi.fn<() => void>();
+    onPanTo = vi.fn<(nodeId: string) => void>();
   });
 
   it('renders nothing when open=false', () => {

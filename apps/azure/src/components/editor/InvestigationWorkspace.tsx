@@ -5,6 +5,13 @@ import {
   InvestigationConclusion,
   FindingsLog,
   QuestionLinkPrompt,
+  WallCanvas,
+  CommandPalette,
+  Minimap,
+  CANVAS_W,
+  CANVAS_H,
+  useWallKeyboard,
+  useWallIsMobile,
   type HubComposerBranchFields,
 } from '@variscout/ui';
 import {
@@ -45,15 +52,6 @@ import {
   usePreferencesStore,
   useWallLayoutStore,
 } from '@variscout/stores';
-import {
-  WallCanvas,
-  CommandPalette,
-  Minimap,
-  CANVAS_W,
-  CANVAS_H,
-  useWallKeyboard,
-  useWallIsMobile,
-} from '@variscout/charts';
 import { InvestigationMapView } from './InvestigationMapView';
 import { CoScoutSection } from './CoScoutSection';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';

@@ -30,6 +30,12 @@ vi.mock('@variscout/charts', async importOriginal => {
     CapabilityBoxplot: () =>
       React.createElement('div', { 'data-testid': 'mock-capability-boxplot' }),
     StepErrorPareto: () => React.createElement('div', { 'data-testid': 'mock-step-pareto' }),
+  };
+});
+
+vi.mock('../../InvestigationWall', async () => {
+  const React = await import('react');
+  return {
     useWallIsMobile: () => wallIsMobileRef.current,
     WallCanvas: ({
       findings,
