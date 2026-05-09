@@ -60,3 +60,4 @@ export {
   type MiniChartPlaceholderReason,
   type ColumnTypeMap,
 } from './miniChart';
+export type { ChartSelection } from './chartSelection';
