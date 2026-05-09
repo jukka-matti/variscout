@@ -866,6 +866,8 @@ export const nb: MessageCatalog = {
   'wall.missing.title': 'Missing evidence',
   'wall.missing.tagline': 'Missing evidence · the detective move nobody ships ({count})',
   'wall.missing.processMap': 'Process Map grouping is available after FRAME mapping.',
+  'wall.missing.collapsed': 'Show details',
+  'wall.missing.expanded': 'Hide details',
   'wall.canvas.ariaLabel': 'Mechanism Branch workspace',
   'wall.cta.proposeHypothesis': 'Propose suspected mechanism from this finding',
   'wall.toolbar.groupByTributary': 'Group by tributary',

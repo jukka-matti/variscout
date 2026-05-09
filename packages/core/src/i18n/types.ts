@@ -1043,6 +1043,9 @@ export interface MessageCatalog {
   'wall.missing.title': string;
   'wall.missing.tagline': string;
   'wall.missing.processMap': string;
+  // Collapsible toggle labels (screen-reader-friendly; RPS V1 PR4 Task 19)
+  'wall.missing.collapsed': string;
+  'wall.missing.expanded': string;
   'wall.canvas.ariaLabel': string;
   'wall.cta.proposeHypothesis': string;
   // Scale features (Phase 13)
