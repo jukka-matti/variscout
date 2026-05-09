@@ -8,6 +8,7 @@ import type { CausalLinkAction } from './causalLinkActions';
 import type { HypothesisAction } from './hypothesisActions';
 import type { HubMetaAction } from './hubMetaActions';
 import type { CanvasAction } from './canvasActions';
+import type { ImprovementProjectAction } from './improvementProjectActions';
 
 /**
  * Top-level discriminated union for all hub write operations.
@@ -24,4 +25,5 @@ export type HubAction =
   | CausalLinkAction
   | HypothesisAction
   | HubMetaAction
-  | CanvasAction;
+  | CanvasAction
+  | ImprovementProjectAction;

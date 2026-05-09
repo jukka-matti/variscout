@@ -116,6 +116,15 @@ export interface ProcessHub extends EntityBase {
    * See `docs/05-technical/architecture/capability-target-cascade.md`.
    */
   reviewSignal?: HubReviewSignal;
+  /**
+   * Improvement Project entities owned by this hub. In-memory hydrated list,
+   * loaded by the HubRepository on read. Mutations flow through
+   * `IMPROVEMENT_PROJECT_*` HubAction kinds (PR-RPS-5).
+   *
+   * Inline `import()` type avoids a top-level cycle (improvementProject/types.ts
+   * imports ProcessHub).
+   */
+  improvementProjects?: import('./improvementProject').ImprovementProject[];
 }
 
 export const DEFAULT_PROCESS_HUB: ProcessHub = {
