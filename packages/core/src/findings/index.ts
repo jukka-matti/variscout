@@ -53,3 +53,10 @@ export { computeFindingWindowDrift } from './drift';
 export type { DriftResult } from './drift';
 // WindowContext is already re-exported via `export * from './types'` above.
 export { evidenceTypesForHypothesis, hasUnresolvedDisconfirmation } from './hypothesisEvidence';
+export {
+  deriveMiniChartConfig,
+  type MiniChartConfig,
+  type MiniChartKind,
+  type MiniChartPlaceholderReason,
+  type ColumnTypeMap,
+} from './miniChart';
