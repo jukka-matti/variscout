@@ -25,6 +25,7 @@ const ICHART_FINDING: Finding = {
   text: 'Test note',
   status: 'observed',
   context: { activeFilters: {}, cumulativeScope: null },
+  evidenceType: 'data',
   createdAt: 1714000000000,
   deletedAt: null,
   investigationId: 'inv-test-001',

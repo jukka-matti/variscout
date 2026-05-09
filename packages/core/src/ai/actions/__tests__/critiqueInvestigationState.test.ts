@@ -44,6 +44,7 @@ function finding(id: string, validationStatus?: Finding['validationStatus']): Fi
     deletedAt: null,
     investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
+    evidenceType: 'data',
     status: 'observed',
     comments: [],
     statusChangedAt: FIXED_NOW,

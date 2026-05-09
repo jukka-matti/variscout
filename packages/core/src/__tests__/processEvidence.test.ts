@@ -23,6 +23,7 @@ const baseFinding = (overrides: Partial<Finding> = {}): Finding => ({
   deletedAt: null,
   investigationId: 'inv-test-001',
   context: {} as Finding['context'],
+  evidenceType: 'data',
   status: 'analyzed',
   comments: [],
   statusChangedAt: 1714000000000,

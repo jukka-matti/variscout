@@ -69,6 +69,7 @@ const makeFinding = (id: string, text: string): Finding => ({
   deletedAt: null,
   investigationId: 'inv-test-001',
   context: { activeFilters: {}, cumulativeScope: 0, stats: { mean: 10, samples: 100 } },
+  evidenceType: 'data',
   status: 'observed',
   comments: [],
   statusChangedAt: 1714000000000,

@@ -7,7 +7,7 @@ import type { HypothesisCondition } from './hypothesisCondition';
 import type { TimelineWindow } from '../timeline';
 import type { TimeLens } from '../stats/timeLens';
 import type { EntityBase } from '../identity';
-import type { ProcessHubInvestigation } from '../processHub';
+import type { ProcessHubInvestigation, ProcessParticipantRef } from '../processHub';
 import type { ProcessMapTributary } from '../frame/types';
 
 // ============================================================================
@@ -493,6 +493,14 @@ export interface FindingContext {
 /** Finding role: observation (default) or benchmark (best-of-best target) */
 export type FindingRole = 'observation' | 'benchmark';
 
+/**
+ * Evidence-type tag on a Finding. Mirrors `CausalLink.evidenceType` minus
+ * `'unvalidated'` — by the time something is captured as a Finding it has been
+ * categorised as one of three observable kinds. Used by Survey rules to detect
+ * triangulation across multiple evidence types (spec §5 category 2 + §6 row 3).
+ */
+export type FindingEvidenceType = 'data' | 'gemba' | 'expert';
+
 /** Stats snapshot for benchmark findings */
 export interface BenchmarkStats {
   mean: number;
@@ -509,6 +517,19 @@ export interface Finding extends EntityBase {
   text: string;
   /** Dashboard state snapshot */
   context: FindingContext;
+  /**
+   * Evidence-type tag — required so Survey rules can triangulate across
+   * `'data' | 'gemba' | 'expert'` without re-classifying each finding.
+   * Defaults to `'data'` at the factory (existing chart-sourced findings).
+   */
+  evidenceType: FindingEvidenceType;
+  /**
+   * Explicit refutation flag used by Survey rules. Distinct from
+   * `validationStatus` (which is a 3-way analyst note); this is an intent-explicit
+   * boolean so the deriveHypothesisStatus rule can short-circuit on `refutes=true`.
+   * Absence/`false` means supports or inconclusive.
+   */
+  refutes?: boolean;
   /** Investigation status */
   status: FindingStatus;
   /** Optional classification tag (only meaningful when status is 'analyzed') */
@@ -661,6 +682,31 @@ export type HypothesisStatus =
   | 'needs-disconfirmation';
 
 /**
+ * A recorded falsification attempt against a hypothesis. Used by the Survey
+ * confirm-gate rule (spec §5 category 1) to distinguish hypotheses that have
+ * accumulated evidence but never been challenged from those that have survived
+ * deliberate disconfirmation.
+ */
+export interface DisconfirmationAttempt {
+  id: string;
+  /** ISO 8601 timestamp the attempt was recorded. */
+  attemptedAt: string;
+  attemptedBy: ProcessParticipantRef;
+  /** What falsification test was run (gemba check, alternative-cause analysis, etc.). */
+  description: string;
+  /**
+   * `pending` — attempt scheduled / in flight; rule treats hypothesis as
+   *   "needs-disconfirmation" still.
+   * `survived` — attempt failed to refute; the hypothesis is strengthened
+   *   (Survey rule promotes status to `confirmed` when triangulated).
+   * `refuted` — attempt overturned the hypothesis.
+   */
+  verdict: 'pending' | 'survived' | 'refuted';
+  /** Findings that the attempt produced (positive or negative evidence). */
+  linkedFindingIds: Finding['id'][];
+}
+
+/**
  * A hypothesis — a named mechanism that connects multiple evidence
  * threads (questions, findings) into one coherent story.
  *
@@ -708,6 +754,12 @@ export interface Hypothesis extends EntityBase {
   signalCardIds?: string[];
   /** Timestamped hypothesis-level team discussion. Same shape as FindingComment. */
   comments?: FindingComment[];
+  /**
+   * Recorded falsification attempts. Empty/absent + ≥2 evidence types triggers
+   * the Survey confirm-gate rule (status auto-derives to `needs-disconfirmation`).
+   * See `hypothesisEvidence.hasUnresolvedDisconfirmation`.
+   */
+  disconfirmationAttempts?: DisconfirmationAttempt[];
 }
 
 // ============================================================================

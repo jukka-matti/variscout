@@ -19,6 +19,7 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
       cumulativeScope: 42,
       stats: { mean: 250.1, samples: 30, cpk: 0.8 },
     },
+    evidenceType: 'data',
     ...overrides,
   };
 }
@@ -67,6 +68,7 @@ describe('shareContent', () => {
     it('omits Cpk when stats have no cpk', () => {
       const finding = makeFinding({
         context: { activeFilters: {}, cumulativeScope: null, stats: { mean: 10, samples: 5 } },
+        evidenceType: 'data',
       });
       const payload = buildFindingSharePayload(finding, 'P', BASE_URL);
       expect(payload.previewText).not.toContain('Cpk');

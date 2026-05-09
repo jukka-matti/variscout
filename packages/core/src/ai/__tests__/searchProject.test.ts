@@ -13,6 +13,7 @@ function makeFinding(overrides: Partial<Finding> & { id: string; text: string })
       activeFilters: {},
       cumulativeScope: null,
     },
+    evidenceType: 'data',
     status: 'observed',
     comments: [],
     statusChangedAt: 1714000000000,
@@ -498,6 +499,7 @@ describe('searchProjectArtifacts — filterContext', () => {
       id: 'fec',
       text: 'Empty context finding',
       context: { activeFilters: {}, cumulativeScope: null },
+      evidenceType: 'data',
     });
     const results = searchProjectArtifacts({
       query: 'empty context',

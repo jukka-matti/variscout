@@ -17,6 +17,7 @@ const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
   investigationId: 'inv-test-001',
   statusChangedAt: new Date('2026-04-01T10:45:00Z').getTime(),
   context: makeContext(),
+  evidenceType: 'data',
   comments: [],
   ...overrides,
 });

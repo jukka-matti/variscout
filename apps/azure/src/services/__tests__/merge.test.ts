@@ -26,6 +26,7 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
     deletedAt: null,
     investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
+    evidenceType: 'data',
     status: 'observed',
     comments: [],
     statusChangedAt: 1000,

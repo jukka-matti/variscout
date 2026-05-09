@@ -15,6 +15,7 @@ function finding(
     deletedAt: null,
     investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
+    evidenceType: 'data',
     status: 'observed',
     comments: [],
     statusChangedAt: 1714000000000,

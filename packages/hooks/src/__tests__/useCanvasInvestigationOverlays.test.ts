@@ -50,6 +50,7 @@ function finding(overrides: Partial<Finding> & { id: string }): Finding {
     deletedAt: null,
     investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
+    evidenceType: 'data',
     status: 'observed',
     comments: [],
     statusChangedAt: 1,
@@ -136,6 +137,7 @@ describe('buildCanvasInvestigationOverlays', () => {
         finding({
           id: 'f-defect',
           context: { activeFilters: { Defect: ['Scratch'] }, cumulativeScope: 10 },
+          evidenceType: 'data',
         }),
       ],
     });
@@ -182,6 +184,7 @@ describe('buildCanvasInvestigationOverlays', () => {
         finding({
           id: 'f-machine',
           context: { activeFilters: { Machine: ['A'] }, cumulativeScope: 20 },
+          evidenceType: 'data',
         }),
       ],
       hypotheses: [hub({ id: 'hub-derived', findingIds: ['f-machine'] })],
@@ -215,6 +218,7 @@ describe('buildCanvasInvestigationOverlays', () => {
         finding({
           id: 'f-missing',
           context: { activeFilters: { Unknown: ['x'] }, cumulativeScope: null },
+          evidenceType: 'data',
         }),
       ],
       hypotheses: [hub({ id: 'hub-missing', tributaryIds: ['missing-tributary'] })],

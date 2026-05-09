@@ -15,6 +15,7 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
       cumulativeScope: 35,
       stats: { mean: 10.2, samples: 50 },
     },
+    evidenceType: 'data',
     status: 'observed',
     comments: [],
     statusChangedAt: Date.now(),

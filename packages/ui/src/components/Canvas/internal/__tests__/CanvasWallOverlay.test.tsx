@@ -72,6 +72,7 @@ const sampleFinding: Finding = {
   id: 'finding-1',
   text: 'Variation changed after shift handoff',
   context: { activeFilters: {}, cumulativeScope: null },
+  evidenceType: 'data',
   status: 'observed',
   comments: [],
   statusChangedAt: 1714000000000,

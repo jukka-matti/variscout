@@ -17,6 +17,7 @@ const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
     activeFilters: {},
     cumulativeScope: null,
   },
+  evidenceType: 'data',
   status: 'observed',
   comments: [],
   statusChangedAt: 1000,

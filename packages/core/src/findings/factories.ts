@@ -84,6 +84,10 @@ export function createFinding(
       cumulativeScope,
       stats,
     },
+    // Findings created via this factory originate from chart observations, so
+    // they default to `'data'` evidence. Gemba/expert findings should set this
+    // explicitly at their creation site.
+    evidenceType: 'data',
     status: status ?? 'observed',
     comments: [],
     statusChangedAt: now,

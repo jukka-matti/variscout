@@ -87,6 +87,7 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
       activeFilters: { Shift: ['Night'] },
       cumulativeScope: null,
     },
+    evidenceType: 'data',
     status: 'observed',
     comments: [],
     statusChangedAt: 1714000000000,
