@@ -5,7 +5,7 @@
  * (triangulation-readiness / "1 step away" hints).
  */
 import type { Hypothesis, HypothesisStatus, Finding } from '../findings/types';
-import { evidenceTypesForHypothesis } from '../findings/hypothesisEvidence';
+import { evidenceTypesForHypothesis } from '../findings';
 import type { SurveyHint, SurveyRule } from './types';
 
 /**
@@ -29,11 +29,9 @@ export function deriveHypothesisStatus(h: Hypothesis, findings: Finding[]): Hypo
   // 2. Proposed: no linked findings
   if (h.findingIds.length === 0) return 'proposed';
 
-  // 3. Count distinct non-refuting evidence types
-  const types = evidenceTypesForHypothesis(h, findings);
-  const distinctTypes = new Set(
-    [...types].filter(t => t === 'data' || t === 'gemba' || t === 'expert')
-  );
+  // 3. Count distinct evidence types (FindingEvidenceType is already constrained
+  // to 'data' | 'gemba' | 'expert' — no further filter needed).
+  const distinctTypes = evidenceTypesForHypothesis(h, findings);
 
   if (distinctTypes.size < 2) return 'evidenced';
 
