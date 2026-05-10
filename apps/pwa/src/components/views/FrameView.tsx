@@ -5,8 +5,13 @@
  * reads app/store state and wires the app-specific Analysis navigation.
  */
 import React from 'react';
-import { CanvasWorkspace } from '@variscout/ui';
-import { useInvestigationStore, useProjectStore, useWallLayoutStore } from '@variscout/stores';
+import { CanvasWorkspace, type ContextLinkGroup, type ContextLinkItem } from '@variscout/ui';
+import {
+  useImprovementProjectStore,
+  useInvestigationStore,
+  useProjectStore,
+  useWallLayoutStore,
+} from '@variscout/stores';
 import type { CanvasInvestigationFocus } from '@variscout/hooks';
 import type {
   EvidenceSnapshot,
@@ -46,7 +51,9 @@ const FrameView: React.FC = () => {
   const questions = useInvestigationStore(s => s.questions);
   const hypotheses = useInvestigationStore(s => s.hypotheses);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
-  const activeHubId = useSession().hub?.id ?? null;
+  const activeHub = useSession().hub;
+  const activeHubId = activeHub?.id ?? null;
+  const projectsByHub = useImprovementProjectStore(s => s.projectsByHub);
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
 
@@ -75,6 +82,34 @@ const FrameView: React.FC = () => {
     () => ({ hasIntervention: false, sustainmentConfirmed: false }),
     []
   );
+
+  const contextLinkGroups: readonly ContextLinkGroup[] = React.useMemo(() => {
+    const improvementProjects = (
+      activeHubId ? (projectsByHub[activeHubId] ?? activeHub?.improvementProjects ?? []) : []
+    ).filter(project => project.deletedAt === null);
+
+    return [
+      {
+        surfaceType: 'improvement-projects',
+        items: improvementProjects.map(project => ({
+          id: project.id,
+          label: project.metadata.title,
+          description: project.status,
+        })),
+      },
+      {
+        surfaceType: 'wall-threads',
+        items: hypotheses.map(hypothesis => ({
+          id: hypothesis.id,
+          label: hypothesis.name,
+          description: hypothesis.status,
+        })),
+      },
+      { surfaceType: 'quick-actions', items: [] },
+      { surfaceType: 'sustainment', items: [] },
+      { surfaceType: 'handoff', items: [] },
+    ];
+  }, [activeHub?.improvementProjects, activeHubId, hypotheses, projectsByHub]);
 
   const handleSeeData = React.useCallback(() => {
     usePanelsStore.getState().showAnalysis();
@@ -135,6 +170,22 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showHandoff();
   }, []);
 
+  const handleNavigateContextLink = React.useCallback(
+    (item: ContextLinkItem) => {
+      if (
+        useImprovementProjectStore
+          .getState()
+          .getProjectsForHub(activeHubId ?? '')
+          .some(project => project.id === item.id)
+      ) {
+        usePanelsStore.getState().showCharter();
+        return;
+      }
+      usePanelsStore.getState().showInvestigation();
+    },
+    [activeHubId]
+  );
+
   return (
     <CanvasWorkspace
       rawData={rawData}
@@ -161,6 +212,8 @@ const FrameView: React.FC = () => {
       onCharter={handleCharter}
       onSustainment={handleSustainment}
       onHandoff={handleHandoff}
+      contextLinkGroups={contextLinkGroups}
+      onNavigateContextLink={handleNavigateContextLink}
       priorStepStats={priorStepStats}
     />
   );

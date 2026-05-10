@@ -32,6 +32,7 @@ import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
 import type { XCandidate } from '../XPickerSection';
 import type { ChipRailEntry } from '../ChipRail';
+import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 
 const DEFAULT_CPK_TARGET = 1.33;
 
@@ -68,6 +69,8 @@ export interface CanvasWorkspaceProps {
   ) => void;
   onRemoveCausalLink?: (linkId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
+  contextLinkGroups?: readonly ContextLinkGroup[];
+  onNavigateContextLink?: (item: ContextLinkItem) => void;
   priorStepStats?: ReadonlyMap<string, StepCapabilityStamp>;
 }
 
@@ -179,6 +182,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onAddCausalLink,
   onRemoveCausalLink,
   onOpenInvestigationFocus,
+  contextLinkGroups,
+  onNavigateContextLink,
   priorStepStats,
 }) => {
   const { t } = useTranslation();
@@ -494,6 +499,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onSustainment={onSustainment}
       onHandoff={onHandoff}
       onOpenInvestigationFocus={onOpenInvestigationFocus}
+      contextLinkGroups={contextLinkGroups}
+      onNavigateContextLink={onNavigateContextLink}
       mode={authoringMode}
       onModeChange={setAuthoringMode}
       chips={chips}

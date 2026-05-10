@@ -629,6 +629,20 @@ export {
 } from './useTimelineWindow';
 
 export {
+  RETURN_NAVIGATION_STORAGE_KEY,
+  useReturnNavigation,
+  type CaptureReturnTargetArgs,
+  type ReturnNavigationParams,
+  type ReturnNavigationPrimitive,
+  type ReturnNavigationJson,
+  type ReturnNavigationScrollPosition,
+  type ReturnNavigationTarget,
+  type ReturnNavigationUiState,
+  type ReturnToSavedTargetOptions,
+  type UseReturnNavigationReturn,
+} from './useReturnNavigation';
+
+export {
   useCanvasFilters,
   type UseCanvasFiltersArgs,
   type UseCanvasFiltersResult,

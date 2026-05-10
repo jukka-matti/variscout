@@ -2,7 +2,7 @@
  * Maps `(path, signals, hasHandler)` to a `ResponsePathCtaState` for each of
  * the five response-path CTAs in the canvas drill-down. Sustainment and Handoff
  * are prerequisite-gated (intervention exists / sustainment confirmed);
- * Quick action, Focused investigation, and Charter are always available.
+ * Quick action, Focused investigation, and Improvement Project are always available.
  * `'hidden'` is reserved for the case where a path's handler is not wired —
  * we hide rather than tease unfinished features.
  *

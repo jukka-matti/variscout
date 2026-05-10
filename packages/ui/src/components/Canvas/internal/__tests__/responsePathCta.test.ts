@@ -10,6 +10,12 @@ const empty: WorkflowReadinessSignals = {
 const ALWAYS_AVAILABLE: ResponsePathKind[] = ['quick-action', 'focused-investigation', 'charter'];
 
 describe('computeCtaState — paths with no prerequisite', () => {
+  it('keeps the charter route key available for the Improvement Project response path', () => {
+    expect(computeCtaState({ path: 'charter', signals: empty, hasHandler: true })).toEqual({
+      kind: 'active',
+    });
+  });
+
   for (const path of ALWAYS_AVAILABLE) {
     it(`${path} is active when handler wired (regardless of signals)`, () => {
       expect(computeCtaState({ path, signals: empty, hasHandler: true })).toEqual({

@@ -104,7 +104,7 @@ import { HubCreationFlow } from '../features/hubCreation';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { InvestigationWorkspace } from '../components/editor/InvestigationWorkspace';
 import FrameView from '../components/editor/FrameView';
-import CharterPanel from '../components/charter/CharterPanel';
+import ImprovementProjectPanel from '../components/charter/ImprovementProjectPanel';
 import SustainmentPanel from '../components/sustainment/SustainmentPanel';
 import HandoffPanel from '../components/handoff/HandoffPanel';
 import { EditorModals } from '../components/editor/EditorModals';
@@ -1600,7 +1600,14 @@ export const Editor: React.FC<EditorProps> = ({
             ) : activeView === 'frame' ? (
               <FrameView />
             ) : activeView === 'charter' ? (
-              <CharterPanel onBack={() => usePanelsStore.getState().showFrame()} />
+              <ImprovementProjectPanel
+                activeHub={activeHub}
+                onBack={() => usePanelsStore.getState().showFrame()}
+                onOpenWall={() => {
+                  useWallLayoutStore.getState().setViewMode('wall');
+                  usePanelsStore.getState().showInvestigation();
+                }}
+              />
             ) : activeView === 'sustainment' ? (
               <SustainmentPanel onBack={() => usePanelsStore.getState().showFrame()} />
             ) : activeView === 'handoff' ? (
