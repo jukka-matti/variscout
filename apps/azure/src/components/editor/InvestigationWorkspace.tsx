@@ -22,6 +22,7 @@ import {
   useHubComputations,
   useDefectTransform,
   useDefectEvidenceMap,
+  useReturnNavigation,
   type DefectMapView,
   type UseFindingsReturn,
   type UseQuestionsReturn,
@@ -172,6 +173,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const setWallPan = useWallLayoutStore(s => s.setPan);
   const wallGroupByTributary = useWallLayoutStore(s => s.groupByTributary);
   const setWallGroupByTributary = useWallLayoutStore(s => s.setGroupByTributary);
+  const returnNavigation = useReturnNavigation();
+  const returnTarget = returnNavigation.peekReturnTarget();
+  const canReturnToImprovementProject = returnTarget?.sourceSurface === 'improvement-project';
   // Columns present in the active dataset — powers WallCanvas missing-column
   // badge for hubs whose condition references a renamed or dropped column.
   // Undefined when no rows are loaded so the badge stays suppressed (rather
@@ -378,6 +382,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     },
     [hubs, questionsState.questions, setWallPan]
   );
+
+  const handleReturnToImprovementProject = useCallback(() => {
+    const target = returnNavigation.consumeReturnTarget();
+    if (target?.sourceSurface === 'improvement-project') {
+      usePanelsStore.getState().showCharter();
+    }
+  }, [returnNavigation]);
 
   const { hubEvidences, hubProjections } = useHubComputations(
     bestSubsets,
@@ -781,6 +792,16 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 </button>
               )}
             </>
+          )}
+
+          {canReturnToImprovementProject && (
+            <button
+              type="button"
+              onClick={handleReturnToImprovementProject}
+              className="ml-1 rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              Back to Improvement Project
+            </button>
           )}
 
           {/* Sub-toggle: list/board/tree (only when Findings is active) */}

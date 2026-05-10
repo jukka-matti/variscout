@@ -13,6 +13,7 @@ import {
   type ResponsePathKind,
   type PrerequisiteLockedReason,
 } from './responsePathCta';
+import { ContextBadgesRow, type ContextLinkGroup, type ContextLinkItem } from '../../CrossSurface';
 
 export interface CanvasOverlayAnchorRect {
   top: number;
@@ -36,6 +37,8 @@ interface CanvasStepOverlayProps {
   investigationOverlay?: CanvasStepInvestigationOverlay;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
+  contextLinkGroups?: readonly ContextLinkGroup[];
+  onNavigateContextLink?: (item: ContextLinkItem) => void;
 }
 
 const DESKTOP_WIDTH = 440;
@@ -96,7 +99,7 @@ function capabilitySummary(card: CanvasStepCardModel): string {
 const CTA_LABELS: Record<ResponsePathKind, string> = {
   'quick-action': 'Quick action',
   'focused-investigation': 'Focused investigation',
-  charter: 'Charter',
+  charter: 'Improvement Project',
   sustainment: 'Sustainment',
   handoff: 'Handoff',
 };
@@ -122,6 +125,8 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
   investigationOverlay,
   onOpenInvestigationFocus,
   onRemoveCausalLink,
+  contextLinkGroups = [],
+  onNavigateContextLink,
 }) => {
   const { t } = useTranslation();
   const touchStartY = React.useRef<number | null>(null);
@@ -352,6 +357,14 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
               )}
             </div>
           </div>
+
+          {contextLinkGroups.length > 0 && onNavigateContextLink ? (
+            <ContextBadgesRow
+              groups={contextLinkGroups}
+              onNavigate={onNavigateContextLink}
+              className="mt-4"
+            />
+          ) : null}
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {renderCta('quick-action')}

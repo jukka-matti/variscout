@@ -44,6 +44,13 @@ const investigationStateRef: { current: Record<string, unknown> } = {
   },
 };
 
+const improvementProjectStateRef: { current: Record<string, unknown> } = {
+  current: {
+    projectsByHub: {},
+    getProjectsForHub: () => [],
+  },
+};
+
 const hoisted = vi.hoisted(() => ({
   canvasWorkspaceMock: vi.fn(),
   listByHubMock: vi.fn(),
@@ -56,6 +63,12 @@ vi.mock('@variscout/stores', () => ({
     vi.fn((selector: (s: unknown) => unknown) => selector(investigationStateRef.current)),
     {
       getState: () => investigationStateRef.current,
+    }
+  ),
+  useImprovementProjectStore: Object.assign(
+    vi.fn((selector: (s: unknown) => unknown) => selector(improvementProjectStateRef.current)),
+    {
+      getState: () => improvementProjectStateRef.current,
     }
   ),
   useWallLayoutStore: Object.assign(vi.fn(), {
@@ -205,6 +218,10 @@ describe('FrameView (PWA shell)', () => {
     hoisted.listByHubMock.mockReset();
     hoisted.listByHubMock.mockResolvedValue([]);
     hoisted.sessionStateRef.current = { hub: { id: 'hub-1' } };
+    improvementProjectStateRef.current = {
+      projectsByHub: {},
+      getProjectsForHub: () => [],
+    };
     storeStateRef.current = {
       rawData: [{ Fill_Weight: 12 }],
       outcome: 'Fill_Weight',

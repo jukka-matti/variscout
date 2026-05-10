@@ -24,6 +24,7 @@ import {
 } from '@variscout/ui';
 import {
   useResizablePanel,
+  useReturnNavigation,
   type UseFindingsReturn,
   type UseQuestionsReturn,
 } from '@variscout/hooks';
@@ -95,6 +96,9 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   const setWallPan = useWallLayoutStore(s => s.setPan);
   const wallGroupByTributary = useWallLayoutStore(s => s.groupByTributary);
   const setWallGroupByTributary = useWallLayoutStore(s => s.setGroupByTributary);
+  const returnNavigation = useReturnNavigation();
+  const returnTarget = returnNavigation.peekReturnTarget();
+  const canReturnToImprovementProject = returnTarget?.sourceSurface === 'improvement-project';
   const processMap = useProjectStore(s => s.processContext?.processMap);
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
@@ -172,6 +176,13 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
     },
     [hubs, wallQuestions, setWallPan]
   );
+
+  const handleReturnToImprovementProject = useCallback(() => {
+    const target = returnNavigation.consumeReturnTarget();
+    if (target?.sourceSurface === 'improvement-project') {
+      usePanelsStore.getState().showCharter();
+    }
+  }, [returnNavigation]);
 
   // Categorize questions for InvestigationConclusion
   const { hypotheses, contributing, ruledOut } = useMemo(() => {
@@ -305,6 +316,16 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
                 Group by tributary
               </button>
             </>
+          )}
+
+          {canReturnToImprovementProject && (
+            <button
+              type="button"
+              onClick={handleReturnToImprovementProject}
+              className="ml-1 rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              Back to Improvement Project
+            </button>
           )}
 
           <span className="ml-auto text-xs text-content-tertiary">

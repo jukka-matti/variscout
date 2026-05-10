@@ -45,6 +45,7 @@ import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/Canv
 import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
 import { useWallIsMobile } from '../InvestigationWall';
+import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 
 /**
  * Canonical FRAME canvas surface.
@@ -159,6 +160,8 @@ export interface CanvasProps {
   onHandoff?: (stepId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
+  contextLinkGroups?: readonly ContextLinkGroup[];
+  onNavigateContextLink?: (item: ContextLinkItem) => void;
   findings?: ReadonlyArray<Finding>;
   problemCpk?: number;
   eventsPerWeek?: number;
@@ -215,6 +218,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   onHandoff,
   onOpenInvestigationFocus,
   onRemoveCausalLink,
+  contextLinkGroups,
+  onNavigateContextLink,
   findings = [],
   problemCpk,
   eventsPerWeek,
@@ -783,6 +788,8 @@ export const Canvas: React.FC<CanvasProps> = ({
           investigationOverlay={activeStepInvestigationOverlay}
           onOpenInvestigationFocus={onOpenInvestigationFocus}
           onRemoveCausalLink={onRemoveCausalLink}
+          contextLinkGroups={contextLinkGroups}
+          onNavigateContextLink={onNavigateContextLink}
         />
       ) : null}
     </div>

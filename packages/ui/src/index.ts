@@ -485,6 +485,16 @@ export {
   type FocusedChartType,
 } from './components/FocusedChartViewBase';
 
+export {
+  ContextBadgesRow,
+  MultiLinkPicker,
+  type ContextBadgesRowProps,
+  type ContextLinkGroup,
+  type ContextLinkItem,
+  type ContextSurfaceType,
+  type MultiLinkPickerProps,
+} from './components/CrossSurface';
+
 // Report View
 export {
   ReportViewBase,

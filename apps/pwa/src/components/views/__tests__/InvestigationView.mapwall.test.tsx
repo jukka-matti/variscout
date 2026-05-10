@@ -18,6 +18,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 // ── 1. Mocks BEFORE component imports ──────────────────────────────────────
 
+const showCharterMock = vi.hoisted(() => vi.fn());
+
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
   return actual;
@@ -76,13 +78,14 @@ vi.mock('../../../features/investigation/investigationStore', () => ({
 
 vi.mock('../../../features/panels/panelsStore', () => ({
   usePanelsStore: {
-    getState: () => ({ showAnalysis: vi.fn() }),
+    getState: () => ({ showAnalysis: vi.fn(), showCharter: showCharterMock }),
   },
 }));
 
 // ── 2. Component + store imports AFTER mocks ───────────────────────────────
 
 import { useWallLayoutStore, useProjectStore, getProjectInitialState } from '@variscout/stores';
+import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import InvestigationView from '../InvestigationView';
 
 // ── 3. Minimal props factory ───────────────────────────────────────────────
@@ -144,6 +147,8 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
     );
     // Reset project store (no processMap by default)
     useProjectStore.setState(getProjectInitialState());
+    window.sessionStorage.clear();
+    showCharterMock.mockClear();
   });
 
   it('defaults to Map view — Map button has aria-pressed="true"', () => {
@@ -227,5 +232,24 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
     expect(screen.queryByRole('button', { name: /^list$/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /^board$/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /^tree$/i })).toBeNull();
+  });
+
+  it('returns from Wall to the saved Improvement Project target once', () => {
+    window.sessionStorage.setItem(
+      RETURN_NAVIGATION_STORAGE_KEY,
+      JSON.stringify({
+        sourceSurface: 'improvement-project',
+        params: { projectId: 'ip-1' },
+        scrollPosition: { x: 0, y: 0 },
+        uiState: { section: 'lineage' },
+      })
+    );
+
+    render(<InvestigationView {...makeMinimalProps()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Improvement Project' }));
+
+    expect(showCharterMock).toHaveBeenCalledTimes(1);
+    expect(window.sessionStorage.getItem(RETURN_NAVIGATION_STORAGE_KEY)).toBeNull();
   });
 });

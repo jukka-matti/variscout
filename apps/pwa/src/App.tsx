@@ -106,7 +106,7 @@ const ProcessIntelligencePanel = lazyWithRetry(
   () => import('./components/ProcessIntelligencePanel')
 );
 const FrameView = lazyWithRetry(() => import('./components/views/FrameView'));
-const CharterPanel = lazyWithRetry(() => import('./components/CharterPanel'));
+const ImprovementProjectPanel = lazyWithRetry(() => import('./components/ImprovementProjectPanel'));
 const SustainmentPanel = lazyWithRetry(() => import('./components/SustainmentPanel'));
 const HandoffPanel = lazyWithRetry(() => import('./components/HandoffPanel'));
 const InvestigationView = lazyWithRetry(() => import('./components/views/InvestigationView'));
@@ -1048,7 +1048,14 @@ function AppMain() {
             ) : panels.activeView === 'frame' ? (
               <FrameView />
             ) : panels.activeView === 'charter' ? (
-              <CharterPanel onBack={panels.showFrame} />
+              <ImprovementProjectPanel
+                activeHub={sessionHub ?? undefined}
+                onBack={panels.showFrame}
+                onOpenWall={() => {
+                  useWallLayoutStore.getState().setViewMode('wall');
+                  panels.showInvestigation();
+                }}
+              />
             ) : panels.activeView === 'sustainment' ? (
               <SustainmentPanel onBack={panels.showFrame} />
             ) : panels.activeView === 'handoff' ? (

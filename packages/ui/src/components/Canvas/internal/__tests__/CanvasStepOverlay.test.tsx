@@ -75,9 +75,10 @@ describe('CanvasStepOverlay — response-path CTA rendering', () => {
     }
   });
 
-  it('renders Charter as active regardless of signals (DMAIC Define-phase, no prerequisite)', () => {
+  it('renders Improvement Project as active regardless of signals (DMAIC Define-phase, no prerequisite)', () => {
     renderOverlay(); // emptySignals
     const cta = screen.getByTestId('canvas-cta-charter');
+    expect(cta).toHaveTextContent('Improvement Project');
     expect(cta).toHaveAttribute('data-cta-state', 'active');
     expect(cta).not.toBeDisabled();
   });
@@ -128,6 +129,52 @@ describe('CanvasStepOverlay — response-path CTA rendering', () => {
     const cta = screen.getByTestId('canvas-cta-charter');
     cta.click();
     expect(onCharter).toHaveBeenCalledWith('step-1');
+  });
+
+  it('renders linked context badge counts above the response-path CTAs', () => {
+    const { container } = renderOverlay({
+      contextLinkGroups: [
+        {
+          surfaceType: 'improvement-projects',
+          items: [{ id: 'improve-1', label: 'Reduce rework' }],
+        },
+        {
+          surfaceType: 'wall-threads',
+          items: [
+            { id: 'thread-1', label: 'Containment thread' },
+            { id: 'thread-2', label: 'Root cause thread' },
+          ],
+        },
+      ],
+      onNavigateContextLink: vi.fn(),
+    });
+
+    const improvementBadge = screen.getByRole('button', {
+      name: 'Improvement projects: 1 linked item',
+    });
+    expect(screen.getByRole('button', { name: 'Wall threads: 2 linked items' })).toBeTruthy();
+
+    const quickActionCta = screen.getByTestId('canvas-cta-quick-action');
+    expect(
+      improvementBadge.compareDocumentPosition(quickActionCta) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(container.querySelector('[data-testid="canvas-step-overlay"]')).toContainElement(
+      improvementBadge
+    );
+  });
+
+  it('navigates when clicking a single linked context badge', () => {
+    const onNavigateContextLink = vi.fn();
+    const linkedItem = { id: 'improve-1', label: 'Reduce rework', href: '/improve/1' };
+    renderOverlay({
+      contextLinkGroups: [{ surfaceType: 'improvement-projects', items: [linkedItem] }],
+      onNavigateContextLink,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Improvement projects: 1 linked item' }));
+
+    expect(onNavigateContextLink).toHaveBeenCalledTimes(1);
+    expect(onNavigateContextLink).toHaveBeenCalledWith(linkedItem);
   });
 });
 

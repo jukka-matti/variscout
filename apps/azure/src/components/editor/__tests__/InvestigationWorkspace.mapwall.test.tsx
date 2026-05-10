@@ -18,6 +18,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 // ── 1. Mocks BEFORE component imports ──────────────────────────────────────
 
+const showCharterMock = vi.hoisted(() => vi.fn());
+
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
   return {
@@ -123,6 +125,7 @@ vi.mock('../../../features/panels/panelsStore', () => {
       _investigationViewMode = m;
     },
     showAnalysis: vi.fn(),
+    showCharter: showCharterMock,
     showImprovement: vi.fn(),
     setHighlightedFactor: vi.fn(),
   });
@@ -179,6 +182,7 @@ vi.mock('@variscout/core/stats', () => ({
 // ── 2. Component + store imports AFTER mocks ───────────────────────────────
 
 import { useWallLayoutStore } from '@variscout/stores';
+import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import { InvestigationWorkspace } from '../InvestigationWorkspace';
 
 // ── 3. Minimal props factory ───────────────────────────────────────────────
@@ -254,6 +258,8 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
         useWallLayoutStore as typeof useWallLayoutStore & { getInitialState: () => unknown }
       ).getInitialState()
     );
+    window.sessionStorage.clear();
+    showCharterMock.mockClear();
   });
 
   it('defaults to Map view — Map button has aria-pressed="true"', () => {
@@ -308,5 +314,24 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
     render(<InvestigationWorkspace {...props} />);
 
     expect(screen.getByTestId('wall-canvas')).toBeInTheDocument();
+  });
+
+  it('returns from Wall to the saved Improvement Project target once', () => {
+    window.sessionStorage.setItem(
+      RETURN_NAVIGATION_STORAGE_KEY,
+      JSON.stringify({
+        sourceSurface: 'improvement-project',
+        params: { projectId: 'ip-1' },
+        scrollPosition: { x: 0, y: 0 },
+        uiState: { section: 'lineage' },
+      })
+    );
+
+    render(<InvestigationWorkspace {...makeMinimalProps()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Improvement Project' }));
+
+    expect(showCharterMock).toHaveBeenCalledTimes(1);
+    expect(window.sessionStorage.getItem(RETURN_NAVIGATION_STORAGE_KEY)).toBeNull();
   });
 });
