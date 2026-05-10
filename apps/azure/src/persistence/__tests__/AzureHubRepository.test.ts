@@ -16,8 +16,9 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 // vi.hoisted + vi.mock must appear before the subject imports so that vitest
 // can hoist them above the import block at transform time.
 const mocks = vi.hoisted(() => ({
-  saveProcessHubToIndexedDB: vi.fn<() => Promise<void>>(),
-  applyAction: vi.fn<() => Promise<void>>(),
+  saveProcessHubToIndexedDB:
+    vi.fn<(hub: import('@variscout/core/processHub').ProcessHub) => Promise<void>>(),
+  applyAction: vi.fn<(action: import('@variscout/core/actions').HubAction) => Promise<void>>(),
 }));
 
 vi.mock('../../services/localDb', () => ({
@@ -38,18 +39,33 @@ vi.mock('../applyAction', () => ({
 
 // db/schema is not used in dispatch tests — db access is blocked by the mock.
 // We mock the db module as well to prevent Dexie from attempting to open IndexedDB.
+// improvementProjects and transaction are included because HUB_PERSIST_SNAPSHOT now
+// decomposes improvementProjects within a Dexie transaction.
 vi.mock('../../db/schema', () => ({
   db: {
     processHubs: { get: vi.fn(), toArray: vi.fn(), put: vi.fn(), clear: vi.fn() },
     evidenceSources: { get: vi.fn(), where: vi.fn(), toArray: vi.fn(), clear: vi.fn() },
     evidenceSnapshots: { get: vi.fn(), where: vi.fn(), toArray: vi.fn(), clear: vi.fn() },
     evidenceSourceCursors: { get: vi.fn(), clear: vi.fn() },
+    improvementProjects: {
+      get: vi.fn(),
+      where: vi.fn(() => ({
+        equals: vi.fn(() => ({ filter: vi.fn(() => ({ delete: vi.fn().mockResolvedValue(0) })) })),
+      })),
+      bulkPut: vi.fn().mockResolvedValue([]),
+      clear: vi.fn(),
+    },
+    // transaction executes the callback immediately (no real transaction scope needed in mocks).
+    transaction: vi.fn((_mode: string, _tables: unknown[], callback: () => Promise<void>) =>
+      callback()
+    ),
   },
 }));
 
 import { AzureHubRepository } from '../AzureHubRepository';
 import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
 import type { HubAction } from '@variscout/core/actions';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 
 // ---------------------------------------------------------------------------
 // Fixture helpers
@@ -78,6 +94,25 @@ function makeOutcome(id: string, deletedAt: number | null = null): OutcomeSpec {
   };
 }
 
+function makeIP(id: string, hubId: string): ImprovementProject {
+  return {
+    id,
+    hubId,
+    status: 'draft',
+    createdAt: NOW,
+    deletedAt: null,
+    updatedAt: NOW,
+    metadata: { title: id },
+    goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 } },
+    sections: {
+      background: {},
+      investigationLineage: {},
+      approach: {},
+      outcomeReference: {},
+    },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Dispatch tests
 // ---------------------------------------------------------------------------
@@ -93,12 +128,26 @@ describe('AzureHubRepository dispatch', () => {
     mocks.applyAction.mockResolvedValue(undefined);
   });
 
-  it('HUB_PERSIST_SNAPSHOT calls saveProcessHubToIndexedDB with the action hub', async () => {
-    const hub = makeHub({ id: 'hub-azure-1', name: 'Bootstrap Hub' });
-    await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub });
+  it('HUB_PERSIST_SNAPSHOT calls saveProcessHubToIndexedDB with improvementProjects stripped', async () => {
+    // Fixture includes improvementProjects so the test actually exercises the
+    // decomposition path (without IPs the assertion would pass vacuously because
+    // hubWithoutIP === hub structurally when no IPs are present).
+    const hubWithIPs = makeHub({
+      id: 'hub-azure-1',
+      name: 'Bootstrap Hub',
+      improvementProjects: [makeIP('ip-1', 'hub-azure-1')],
+    });
+    await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: hubWithIPs });
 
     expect(mocks.saveProcessHubToIndexedDB).toHaveBeenCalledOnce();
-    expect(mocks.saveProcessHubToIndexedDB).toHaveBeenCalledWith(hub);
+    // saveProcessHubToIndexedDB must receive a hub WITHOUT improvementProjects
+    expect(mocks.saveProcessHubToIndexedDB).toHaveBeenCalledWith(
+      expect.not.objectContaining({ improvementProjects: expect.anything() })
+    );
+    // The other hub fields must be preserved
+    const callArg = mocks.saveProcessHubToIndexedDB.mock.calls[0][0] as ProcessHub;
+    expect(callArg.id).toBe(hubWithIPs.id);
+    expect(callArg.name).toBe(hubWithIPs.name);
   });
 
   it('HUB_PERSIST_SNAPSHOT returns undefined (bootstrap path)', async () => {
@@ -107,10 +156,14 @@ describe('AzureHubRepository dispatch', () => {
   });
 
   it('HUB_PERSIST_SNAPSHOT does not throw even when called multiple times', async () => {
-    const hub = makeHub();
+    const hub = makeHub({ improvementProjects: [makeIP('ip-x', 'hub-azure-1')] });
     await expect(repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub })).resolves.toBeUndefined();
     await expect(repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub })).resolves.toBeUndefined();
     expect(mocks.saveProcessHubToIndexedDB).toHaveBeenCalledTimes(2);
+    // Both calls must have received a hub without improvementProjects
+    for (const [callArg] of mocks.saveProcessHubToIndexedDB.mock.calls) {
+      expect(callArg).not.toHaveProperty('improvementProjects');
+    }
   });
 
   it('propagates errors from saveProcessHubToIndexedDB', async () => {

@@ -49,6 +49,7 @@ function loadStoreFiles(): StoreFile[] {
     'wallLayoutStore.ts',
     'preferencesStore.ts',
     'viewStore.ts',
+    'improvementProjectStore.ts',
   ];
   return filenames.map(filename => {
     const path = resolve(SRC, filename);

@@ -36,6 +36,7 @@ import type {
   RowProvenanceTag,
 } from '@variscout/core';
 import type { Finding, Question, CausalLink, Hypothesis } from '@variscout/core/findings';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessMap } from '@variscout/core/frame';
 
 // ---------------------------------------------------------------------------
@@ -78,6 +79,7 @@ export type FindingRow = Finding;
 export type QuestionRow = Question;
 export type CausalLinkRow = CausalLink;
 export type HypothesisRow = Hypothesis;
+export type ImprovementProjectRow = ImprovementProject;
 
 // ---------------------------------------------------------------------------
 // Database
@@ -95,6 +97,7 @@ export class PwaDatabase extends Dexie {
   questions!: Table<QuestionRow, string>;
   causalLinks!: Table<CausalLinkRow, string>;
   hypotheses!: Table<HypothesisRow, string>;
+  improvementProjects!: Table<ImprovementProjectRow, string>;
   canvasState!: Table<CanvasStateRow, string>;
   meta!: Table<MetaRow, string>;
 
@@ -112,6 +115,7 @@ export class PwaDatabase extends Dexie {
       questions: '&id, investigationId, deletedAt',
       causalLinks: '&id, investigationId, deletedAt',
       hypotheses: '&id, investigationId, deletedAt',
+      improvementProjects: '&id, hubId, deletedAt, status, updatedAt',
       canvasState: '&hubId',
       meta: '&key',
     });

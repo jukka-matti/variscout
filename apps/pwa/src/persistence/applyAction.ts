@@ -79,32 +79,51 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     // -----------------------------------------------------------------------
 
     case 'HUB_PERSIST_SNAPSHOT': {
-      const { canonicalProcessMap, outcomes, ...hubMeta } = action.hub;
-      await db.transaction('rw', [db.hubs, db.outcomes, db.canvasState], async () => {
-        await db.hubs.put(hubMeta);
-        // HUB_PERSIST_SNAPSHOT carries the hub's authoritative full state; rows
-        // that exist for this hub but are absent from the incoming snapshot are
-        // stale and must be removed inside the same transaction (preserves the
-        // F2 blob-replacement invariant in the normalized world). bulkPut/put
-        // alone are upserts and would leave dropped outcomes / a removed
-        // canonicalProcessMap visible on the next joinHub.
-        const incomingOutcomeIds = new Set((outcomes ?? []).map(o => o.id));
-        await db.outcomes
-          .where('hubId')
-          .equals(hubMeta.id)
-          .filter(o => !incomingOutcomeIds.has(o.id))
-          .delete();
-        if (outcomes && outcomes.length > 0) {
-          await db.outcomes.bulkPut(outcomes.map(outcome => ({ ...outcome, hubId: hubMeta.id })));
+      // improvementProjects live in their own table; drop the embedded copy from the hub row.
+      const { canonicalProcessMap, outcomes, improvementProjects, ...hubMeta } = action.hub;
+      await db.transaction(
+        'rw',
+        [db.hubs, db.outcomes, db.canvasState, db.improvementProjects],
+        async () => {
+          await db.hubs.put(hubMeta);
+          // HUB_PERSIST_SNAPSHOT carries the hub's authoritative full state; rows
+          // that exist for this hub but are absent from the incoming snapshot are
+          // stale and must be removed inside the same transaction (preserves the
+          // F2 blob-replacement invariant in the normalized world). bulkPut/put
+          // alone are upserts and would leave dropped outcomes / a removed
+          // canonicalProcessMap visible on the next joinHub.
+          const incomingOutcomeIds = new Set((outcomes ?? []).map(o => o.id));
+          await db.outcomes
+            .where('hubId')
+            .equals(hubMeta.id)
+            .filter(o => !incomingOutcomeIds.has(o.id))
+            .delete();
+          if (outcomes && outcomes.length > 0) {
+            await db.outcomes.bulkPut(outcomes.map(outcome => ({ ...outcome, hubId: hubMeta.id })));
+          }
+          // improvementProjects: drop stale rows for this hub, then bulk-put the
+          // incoming snapshot. bulkPut alone is upsert; we delete first to remove
+          // rows that are absent from the incoming snapshot (same invariant as outcomes).
+          const incomingProjectIds = new Set((improvementProjects ?? []).map(p => p.id));
+          await db.improvementProjects
+            .where('hubId')
+            .equals(hubMeta.id)
+            .filter(p => !incomingProjectIds.has(p.id))
+            .delete();
+          if (improvementProjects && improvementProjects.length > 0) {
+            await db.improvementProjects.bulkPut(
+              improvementProjects.map(p => ({ ...p, hubId: hubMeta.id }))
+            );
+          }
+          if (canonicalProcessMap) {
+            await db.canvasState.put({ hubId: hubMeta.id, ...canonicalProcessMap });
+          } else {
+            // Snapshot lacks a canonical process map — clear any stale row so
+            // joinHub won't resurrect it.
+            await db.canvasState.delete(hubMeta.id);
+          }
         }
-        if (canonicalProcessMap) {
-          await db.canvasState.put({ hubId: hubMeta.id, ...canonicalProcessMap });
-        } else {
-          // Snapshot lacks a canonical process map — clear any stale row so
-          // joinHub won't resurrect it.
-          await db.canvasState.delete(hubMeta.id);
-        }
-      });
+      );
       return;
     }
 
@@ -275,6 +294,91 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     // EVIDENCE_SOURCE_ADD + EVIDENCE_SOURCE_REMOVE stay no-op pending future use.
     case 'EVIDENCE_SOURCE_ADD':
     case 'EVIDENCE_SOURCE_REMOVE': {
+      return;
+    }
+
+    // -----------------------------------------------------------------------
+    // Improvement Project — single-row inserts / patches with deep-merge.
+    //
+    // UPDATE applies the deep-merge contract documented on
+    // `improvementProjectActions.ts`:
+    //   - objects shallow-merge one level (metadata, goal, signoff)
+    //   - nested metadata.financialImpact + goal.outcomeGoal also shallow-merge
+    //   - sections shallow-merge per sub-section key (missing keys preserved)
+    //   - all arrays REPLACE wholesale
+    //   - id, createdAt, hubId, deletedAt, updatedAt are not caller-controllable
+    //   - updatedAt is set by THIS handler to Date.now()
+    // -----------------------------------------------------------------------
+
+    case 'IMPROVEMENT_PROJECT_CREATE': {
+      const hub = await db.hubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(`IMPROVEMENT_PROJECT_CREATE: parent hub ${action.hubId} does not exist`);
+      }
+      await db.improvementProjects.add(action.project);
+      return;
+    }
+
+    case 'IMPROVEMENT_PROJECT_UPDATE': {
+      // Idempotent on missing.
+      const existing = await db.improvementProjects.get(action.projectId);
+      if (!existing) return;
+      const { patch } = action;
+      const merged = {
+        ...existing,
+        ...patch,
+        metadata: patch.metadata
+          ? {
+              ...existing.metadata,
+              ...patch.metadata,
+              ...(patch.metadata.financialImpact
+                ? {
+                    financialImpact: {
+                      ...(existing.metadata.financialImpact ?? {}),
+                      ...patch.metadata.financialImpact,
+                    },
+                  }
+                : {}),
+            }
+          : existing.metadata,
+        goal: patch.goal
+          ? {
+              ...existing.goal,
+              ...patch.goal,
+              ...(patch.goal.outcomeGoal
+                ? { outcomeGoal: { ...existing.goal.outcomeGoal, ...patch.goal.outcomeGoal } }
+                : {}),
+            }
+          : existing.goal,
+        sections: patch.sections
+          ? {
+              background: { ...existing.sections.background, ...(patch.sections.background ?? {}) },
+              investigationLineage: {
+                ...existing.sections.investigationLineage,
+                ...(patch.sections.investigationLineage ?? {}),
+              },
+              approach: { ...existing.sections.approach, ...(patch.sections.approach ?? {}) },
+              outcomeReference: {
+                ...existing.sections.outcomeReference,
+                ...(patch.sections.outcomeReference ?? {}),
+              },
+            }
+          : existing.sections,
+        signoff: patch.signoff
+          ? { ...(existing.signoff ?? {}), ...patch.signoff }
+          : existing.signoff,
+        updatedAt: Date.now(),
+      };
+      await db.improvementProjects.put(merged);
+      return;
+    }
+
+    case 'IMPROVEMENT_PROJECT_ARCHIVE': {
+      // Idempotent soft-delete.
+      await db.improvementProjects.update(action.projectId, {
+        deletedAt: Date.now(),
+        updatedAt: Date.now(),
+      });
       return;
     }
 

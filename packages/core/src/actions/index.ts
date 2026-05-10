@@ -8,4 +8,5 @@ export type { CausalLinkAction } from './causalLinkActions';
 export type { HypothesisAction } from './hypothesisActions';
 export type { HubMetaAction } from './hubMetaActions';
 export type { CanvasAction } from './canvasActions';
+export type { ImprovementProjectAction } from './improvementProjectActions';
 export type { HubAction } from './HubAction';

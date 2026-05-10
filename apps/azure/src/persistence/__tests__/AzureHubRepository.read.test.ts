@@ -104,6 +104,7 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
     await db.evidenceSources.clear();
     await db.evidenceSnapshots.clear();
     await db.evidenceSourceCursors.clear();
+    await db.improvementProjects.clear();
   });
 
   afterEach(async () => {
@@ -111,6 +112,7 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
     await db.evidenceSources.clear();
     await db.evidenceSnapshots.clear();
     await db.evidenceSourceCursors.clear();
+    await db.improvementProjects.clear();
   });
 
   // ---- hubs.get ----

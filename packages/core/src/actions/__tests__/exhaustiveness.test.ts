@@ -91,6 +91,13 @@ function _exhaustive(action: HubAction): void {
       return;
     case 'UNGROUP_SUB_STEP':
       return;
+    // Improvement Project
+    case 'IMPROVEMENT_PROJECT_CREATE':
+      return;
+    case 'IMPROVEMENT_PROJECT_UPDATE':
+      return;
+    case 'IMPROVEMENT_PROJECT_ARCHIVE':
+      return;
     default:
       return assertNever(action);
   }
@@ -101,5 +108,43 @@ describe('HubAction exhaustiveness', () => {
     // The fact that _exhaustive compiles is the test. If a new action kind is added without
     // a case branch, the assertNever() call's `action: never` type errors at compile time.
     expect(typeof _exhaustive).toBe('function');
+  });
+});
+
+describe('IMPROVEMENT_PROJECT actions', () => {
+  it('compile under the HubAction discriminated union', () => {
+    const create: HubAction = {
+      kind: 'IMPROVEMENT_PROJECT_CREATE',
+      hubId: 'hub-1',
+      project: {
+        id: 'ip-1',
+        hubId: 'hub-1',
+        createdAt: 0,
+        deletedAt: null,
+        status: 'draft',
+        metadata: { title: 't' },
+        goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1 } },
+        sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
+        updatedAt: 0,
+      },
+    };
+    const update: HubAction = {
+      kind: 'IMPROVEMENT_PROJECT_UPDATE',
+      projectId: 'ip-1',
+      patch: { metadata: { title: 't2' } },
+    };
+    const archive: HubAction = { kind: 'IMPROVEMENT_PROJECT_ARCHIVE', projectId: 'ip-1' };
+    expect(create.kind).toBe('IMPROVEMENT_PROJECT_CREATE');
+    expect(update.kind).toBe('IMPROVEMENT_PROJECT_UPDATE');
+    expect(archive.kind).toBe('IMPROVEMENT_PROJECT_ARCHIVE');
+  });
+
+  it('partial-sections patch is a valid UPDATE action (documented contract)', () => {
+    const partialSections: HubAction = {
+      kind: 'IMPROVEMENT_PROJECT_UPDATE',
+      projectId: 'ip-1',
+      patch: { sections: { background: { snapshotText: 'x' } } },
+    };
+    expect(partialSections.kind).toBe('IMPROVEMENT_PROJECT_UPDATE');
   });
 });

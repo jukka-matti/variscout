@@ -4,6 +4,7 @@ import { vrsExport } from '../vrsExport';
 import { vrsImport } from '../vrsImport';
 import { VRS_VERSION } from '../vrsFormat';
 import { DEFAULT_PROCESS_HUB } from '../../processHub';
+import type { ImprovementProject } from '../../improvementProject';
 
 describe('vrs roundtrip', () => {
   const hub = {
@@ -54,5 +55,86 @@ describe('vrs roundtrip', () => {
     const imported = vrsImport(json);
     expect(imported.hub).toEqual(hub);
     expect(imported.rawData).toBeUndefined();
+  });
+});
+
+describe('vrs roundtrip — improvementProjects', () => {
+  const richIP: ImprovementProject = {
+    id: 'ip-1',
+    hubId: DEFAULT_PROCESS_HUB.id,
+    createdAt: 1_714_000_000_000,
+    deletedAt: null,
+    status: 'active',
+    metadata: {
+      title: 'Heads 5-8 lift',
+      businessCase: 'Expected $80k/yr',
+      financialImpact: { amount: 80000, currency: 'USD' },
+      team: [{ role: 'projectLead', person: { displayName: 'A. Lead' } }],
+    },
+    goal: {
+      outcomeGoal: {
+        outcomeSpecId: 'outcome-1',
+        baseline: 0.91,
+        target: 1.33,
+        deadline: '2026-09-01',
+      },
+      factorControls: [
+        { factor: 'NOZZLE.TEMP', targetCondition: 'in control 95±2°C', linkedHypothesisId: 'h-1' },
+      ],
+    },
+    sections: {
+      background: { snapshotText: 'Cpk 0.91 over 12wk', snapshottedAt: '2026-05-01T00:00:00Z' },
+      investigationLineage: { hypothesisIds: ['h-1', 'h-2'], findingIds: ['f-1'] },
+      approach: {
+        improvementIdeaIds: ['idea-1'],
+        actionItemIds: ['ai-1'],
+        narrative: 'Replace thermostat',
+      },
+      outcomeReference: {},
+    },
+    updatedAt: 1_714_500_000_000,
+    signoff: { requestedAt: 1_714_400_000_000 },
+  };
+
+  const minimalIP: ImprovementProject = {
+    id: 'ip-2',
+    hubId: DEFAULT_PROCESS_HUB.id,
+    createdAt: 1_714_000_000_000,
+    deletedAt: null,
+    status: 'draft',
+    metadata: { title: 'Operator training' },
+    goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', target: 1.33 } },
+    sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
+    updatedAt: 1_714_000_000_000,
+  };
+
+  it('round-trips hub carrying a populated improvementProjects array', () => {
+    const hub = {
+      ...DEFAULT_PROCESS_HUB,
+      improvementProjects: [richIP, minimalIP],
+    };
+    const exported = vrsExport(hub);
+    const imported = vrsImport(exported);
+    expect(imported.hub.improvementProjects).toEqual([richIP, minimalIP]);
+  });
+
+  it('legacy .vrs without improvementProjects imports cleanly with field undefined', () => {
+    const legacyJson = JSON.stringify({
+      version: VRS_VERSION,
+      exportedAt: new Date().toISOString(),
+      hub: { ...DEFAULT_PROCESS_HUB },
+    });
+    const imported = vrsImport(legacyJson);
+    expect(imported.hub.improvementProjects).toBeUndefined();
+  });
+
+  it('empty improvementProjects array round-trips as [] (not undefined)', () => {
+    const hub = {
+      ...DEFAULT_PROCESS_HUB,
+      improvementProjects: [] as ImprovementProject[],
+    };
+    const exported = vrsExport(hub);
+    const imported = vrsImport(exported);
+    expect(imported.hub.improvementProjects).toEqual([]);
   });
 });

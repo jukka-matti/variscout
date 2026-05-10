@@ -83,3 +83,13 @@ export type {
   PITab,
 } from './preferencesStore';
 export type { DocumentSnapshot } from './documentSnapshot';
+export {
+  useImprovementProjectStore,
+  getImprovementProjectInitialState,
+  STORE_LAYER as IMPROVEMENT_PROJECT_STORE_LAYER,
+} from './improvementProjectStore';
+export type {
+  ImprovementProjectStoreState,
+  ImprovementProjectStoreActions,
+  ImprovementProjectStore,
+} from './improvementProjectStore';
