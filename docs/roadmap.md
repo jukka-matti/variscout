@@ -3,7 +3,7 @@ title: VariScout — Roadmap (lightweight, post-canvas-migration)
 audience: [product, engineer, designer]
 category: living-index
 status: living
-last-reviewed: 2026-05-09
+last-reviewed: 2026-05-10
 related:
   - docs/decision-log.md
   - docs/investigations.md
@@ -21,35 +21,40 @@ related:
 
 **Canvas migration: COMPLETE 2026-05-08.** PR1–PR9 + Polish v1 sequence merged over ~3 weeks (PRs #119–#143). Strangler facade fully replaced legacy `LayeredProcessView` / `ProcessMapBase` / `FrameView`; Canvas is the only canvas-shaped surface in the codebase.
 
-**Data-Flow Foundation F-series: 6 of 7 SHIPPED 2026-05-06/07** (PRs #130–#136). F1+F2+F3+F3.5+F3.6-β+F4 land the entire foundation: type-level normalization, repository pattern, normalized PWA persistence, ingestion action layer, Azure provenance parity with cross-device fidelity (envelope facet + ETag concurrency), three-layer state codification (Document / Annotation / View). F5 + F6 named-future. _(F5 work — `SUSTAINMENT\__`/`CONTROL*HANDOFF*_` HubAction kinds — is now subsumed into RPS V1 PR-RPS-9 + PR-RPS-10.)_
+**Data-Flow Foundation F-series: 6 of 7 SHIPPED 2026-05-06/07** (PRs #130–#136). F1+F2+F3+F3.5+F3.6-β+F4 land the entire foundation: type-level normalization, repository pattern, normalized PWA persistence, ingestion action layer, Azure provenance parity with cross-device fidelity (envelope facet + ETag concurrency), three-layer state codification (Document / Annotation / View). F5 + F6 named-future. \_(F5 work — `SUSTAINMENT\__`/`CONTROL*HANDOFF*_` HubAction kinds — is now subsumed into RPS V1 PR-RPS-9 + PR-RPS-10.)\_
 
 **PR8 Vision Alignment SHIPPED 2026-05-08** (PRs #137/#138/#140/#141). 5 of 6 unmet vision-spec commitments closed: response-path CTAs (8a), drift indicator + time-series mini-chart (8b), hypothesis-arrow drawing (8d), Wall mirror in canvas overlay (8e). 6th commitment (vision §5.4 levels-as-pan/zoom) tracked separately as 8f.
 
 **Canvas Polish v1 SHIPPED 2026-05-08** (PR #143). Drift producer-side stamping + histogram binning + z-stack docs + selection audit; closed 4 `investigations.md` entries.
 
-**RPS V1 PR-RPS-1 SHIPPED 2026-05-09** (PR #144). Naming reconciliation (`SuspectedCause` → `Hypothesis` with 5-state `HypothesisStatus` + `themeTags?: string[]`) + Wall package re-home (`packages/charts/src/InvestigationWall/` → `packages/ui/src/components/InvestigationWall/`) + `TagChip` component + ADR-053/064 amendments + strict-assert pattern (no silent migration of legacy stored values per RPS V1 D15). 248 files / +2131 / -1954 / 8 commits + 2 follow-up fixes (`HYPOTHESIS_UPDATE.patch` type tightened; legacy-value migration shim removed). All ~7027 tests green at merge.
+**RPS V1 PR-RPS-1 SHIPPED 2026-05-09** (PR #144, squash `2a6e3114`). Naming reconciliation (`SuspectedCause` → `Hypothesis` with 5-state `HypothesisStatus` + `themeTags?: string[]`) + Wall package re-home (`packages/charts/src/InvestigationWall/` → `packages/ui/src/components/InvestigationWall/`) + `TagChip` component + ADR-053/064 amendments + strict-assert pattern (no silent migration of legacy stored values per RPS V1 D15).
+
+**RPS V1 PR-RPS-2 SHIPPED 2026-05-09** (PR #147, squash `45e25c9e`). Wall Detective-pack: 5th status `needs-disconfirmation` + confirm-gate Survey rule. Plan-grounding gap closed (added `Finding.evidenceType` + `Finding.refutes`); Survey module dual-API surface preserved (`evaluateSurvey` coexists with new `surveyWallRules`); `OneStepAwayBadge` UI replaces `openChecksLabel` text slot when needs-disconfirmation.
+
+**RPS V1 PR-RPS-3 SHIPPED 2026-05-09** (PR #148, squash `d0ad3d48`). Wall Detective-pack: mini-charts inside HypothesisCard. 4 plan-vs-code reconciliations done in plan-mode (CARD_H grow 228→288, drop MiniScatter from V1, outcome via WallCanvas prop, theme color names). MiniIChart + MiniBoxplot rendered in `<ChartSlot>` at full LOD; deterministic dots fallback (n<7) via mulberry32+FNV-1a.
+
+**RPS V1 PR-RPS-4 SHIPPED 2026-05-09** (PR #149, squash `f2d42fee`). Wall Detective-pack: brush-to-pin gesture + missing-evidence panel. 3 architectural refinements vs master plan (polymorphic gesture pattern: `useIChartBrush` + `useBoxplotSelect` unified by `ChartSelection` discriminated union; store-direct `addFinding` over FINDING_ADD HubAction; `MissingEvidencePanel` rule-driven supersedes empty `MissingEvidenceDigest`). E2E deferred via documented `test.skip` until investigation persistence lands.
+
+**RPS V1 PR-RPS-5 SHIPPED 2026-05-10** (PR #150, squash `29ff5a87`). IP V1 engine: types (`@variscout/core/improvementProject`) + 3 HubAction kinds (CREATE/UPDATE/ARCHIVE) + PWA/Azure persistence (Azure Dexie v9→v10 clean break) + Document-layer `useImprovementProjectStore` + `.vrs` round-trip + D18 primitives (`useLiveProjection`, `computeSourceHash`, `shouldShowDrift`). Deep-merge contract locked in JSDoc; `HUB_PERSIST_SNAPSHOT` decomposes IP from hub blob within single Dexie transaction.
+
+**RPS V1 PR-RPS-6 + PR-RPS-7 SHIPPED 2026-05-10** (PR #152, squash `bec29c78`, bundled). IP V1: 6-section UI + multi-level Goal + CollapsibleSection + per-app shells + canvas-card pickers + cross-surface badges. Stacking sub-PR #151 (`codex/pr-rps-6 → response-path-system-v1`, internal commit `94625cdc`) rolled into #152's `response-path-system-v1 → main` squash. PR-RPS-6 + PR-RPS-7 effectively shipped together.
+
+**RPS V1 PR-RPS-8 SHIPPED 2026-05-10** (PR #153, squash `8234c757`). Quick Action surface (`LogActionModal` + `RecentActivityPanel`) + canvas-card "Quick Action" CTA wiring. Path 1 of 5 per spec D14 — orphan ActionItem (no new entity); dual flavor "Done now" / "Assign to" + due date.
 
 ## 2. In flight
 
-(none currently — pick **PR-RPS-2** from §3 below for the next session)
+(none currently — pick **PR-RPS-9** from §3 below for the next session)
 
 ## 3. Next workstreams (sequenced)
 
-The recommended sequence; each item is a separate fresh-session implementation cycle per `feedback_subagent_driven_default`. **PR-RPS-2 through PR-RPS-10 are the active RPS V1 sequence**, sliced per `docs/superpowers/plans/2026-05-09-response-path-system-v1.md`.
+**Only PR-RPS-9 + PR-RPS-10 remain in the RPS V1 sequence.** 8 of 10 PRs SHIPPED 2026-05-09/10. Sliced per `docs/superpowers/plans/2026-05-09-response-path-system-v1.md`.
 
-### RPS V1 sequence (active branch: `response-path-system-v1` re-cut from main per PR)
+### RPS V1 sequence (remaining; branch: `response-path-system-v1` re-cut from main per PR)
 
-| #   | PR                                                                                    | Tasks | Size          | Pull                                                  | Depends on |
-| --- | ------------------------------------------------------------------------------------- | ----- | ------------- | ----------------------------------------------------- | ---------- |
-| 1   | **PR-RPS-2** — Wall Detective-pack: 5th status + confirm-gate Survey rule             | 3     | S (~2 days)   | Closes Wall vision gap; foundation for derived status | PR-RPS-1 ✓ |
-| 2   | **PR-RPS-3** — Wall Detective-pack: mini-charts inside HypothesisCard                 | 6     | M (~4-6 days) | High user-visible value (vision slide 2 H1+H2 charts) | PR-RPS-2   |
-| 3   | **PR-RPS-4** — Wall Detective-pack: brush-to-pin gesture + missing-evidence panel     | 5     | M (~3-5 days) | The "process detective" signature gesture             | PR-RPS-3   |
-| 4   | **PR-RPS-5** — IP V1 engine: types + persistence + store + .vrs + live-doc primitives | 7     | M (~4-5 days) | Engine layer; can ship parallel to PR-RPS-2/3/4       | PR-RPS-1 ✓ |
-| 5   | **PR-RPS-6** — IP V1: 6-section UI + multi-level Goal + CollapsibleSection            | 7     | M (~4-6 days) | UI primitives                                         | PR-RPS-5   |
-| 6   | **PR-RPS-7** — IP V1: per-app shells + canvas-card pickers + cross-surface badges     | 5     | M (~3-4 days) | User-visible IP feature                               | PR-RPS-6   |
-| 7   | **PR-RPS-8** — Quick Action surface + Recent activity panel                           | 4     | S (~2-3 days) | Path 1 of 5; parallel-track                           | PR-RPS-1 ✓ |
-| 8   | **PR-RPS-9** — Sustainment V1 + Inbox digest + drift detection rules                  | 6     | M (~4-5 days) | Path 4 of 5; subsumes F5 work                         | PR-RPS-7   |
-| 9   | **PR-RPS-10** — Handoff V1 + sponsor signoff (paid) + full-lifecycle E2E              | 5     | M (~3-4 days) | Path 5 of 5; closes RPS V1                            | PR-RPS-9   |
+| #   | PR                                                                       | Tasks | Size          | Pull                                                    | Depends on |
+| --- | ------------------------------------------------------------------------ | ----- | ------------- | ------------------------------------------------------- | ---------- |
+| 1   | **PR-RPS-9** — Sustainment V1 + Inbox digest + drift detection rules     | 6     | M (~4-5 days) | Path 4 of 5; subsumes F5 work; Inbox surface lands here | PR-RPS-7 ✓ |
+| 2   | **PR-RPS-10** — Handoff V1 + sponsor signoff (paid) + full-lifecycle E2E | 5     | M (~3-4 days) | Path 5 of 5; closes RPS V1                              | PR-RPS-9   |
 
 ### Other workstreams (after RPS V1, or parallel)
 
