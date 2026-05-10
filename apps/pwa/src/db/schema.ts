@@ -35,7 +35,13 @@ import type {
   EvidenceSourceCursor,
   RowProvenanceTag,
 } from '@variscout/core';
-import type { Finding, Question, CausalLink, Hypothesis } from '@variscout/core/findings';
+import type {
+  Finding,
+  Question,
+  CausalLink,
+  Hypothesis,
+  ActionItem,
+} from '@variscout/core/findings';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessMap } from '@variscout/core/frame';
 
@@ -80,6 +86,7 @@ export type QuestionRow = Question;
 export type CausalLinkRow = CausalLink;
 export type HypothesisRow = Hypothesis;
 export type ImprovementProjectRow = ImprovementProject;
+export type ActionItemRow = ActionItem & { hubId: ProcessHub['id'] };
 
 // ---------------------------------------------------------------------------
 // Database
@@ -98,6 +105,7 @@ export class PwaDatabase extends Dexie {
   causalLinks!: Table<CausalLinkRow, string>;
   hypotheses!: Table<HypothesisRow, string>;
   improvementProjects!: Table<ImprovementProjectRow, string>;
+  actionItems!: Table<ActionItemRow, string>;
   canvasState!: Table<CanvasStateRow, string>;
   meta!: Table<MetaRow, string>;
 
@@ -118,6 +126,10 @@ export class PwaDatabase extends Dexie {
       improvementProjects: '&id, hubId, deletedAt, status, updatedAt',
       canvasState: '&hubId',
       meta: '&key',
+    });
+    this.version(2).stores({
+      actionItems:
+        '&id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
     });
   }
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import FocusTrap from 'focus-trap-react';
 import { formatStatistic } from '@variscout/core/i18n';
 import type { WorkflowReadinessSignals } from '@variscout/core';
+import type { ActionItem } from '@variscout/core/findings';
 import type {
   CanvasInvestigationFocus,
   CanvasStepCardModel,
@@ -14,6 +15,7 @@ import {
   type PrerequisiteLockedReason,
 } from './responsePathCta';
 import { ContextBadgesRow, type ContextLinkGroup, type ContextLinkItem } from '../../CrossSurface';
+import { LogActionModal, RecentActivityPanel, type LogActionPayload } from '../../QuickAction';
 
 export interface CanvasOverlayAnchorRect {
   top: number;
@@ -30,6 +32,7 @@ interface CanvasStepOverlayProps {
   onClose: () => void;
   signals: WorkflowReadinessSignals;
   onQuickAction?: (stepId: string) => void;
+  onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
   onSustainment?: (stepId: string) => void;
@@ -39,6 +42,7 @@ interface CanvasStepOverlayProps {
   onRemoveCausalLink?: (linkId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
   onNavigateContextLink?: (item: ContextLinkItem) => void;
+  actionItems?: ActionItem[];
 }
 
 const DESKTOP_WIDTH = 440;
@@ -118,6 +122,7 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
   onClose,
   signals,
   onQuickAction,
+  onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
   onSustainment,
@@ -127,13 +132,15 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
   onRemoveCausalLink,
   contextLinkGroups = [],
   onNavigateContextLink,
+  actionItems = [],
 }) => {
   const { t } = useTranslation();
+  const [showLogAction, setShowLogAction] = React.useState(false);
   const touchStartY = React.useRef<number | null>(null);
   const mobile = isMobileViewport();
 
   const handlerMap: Record<ResponsePathKind, ((stepId: string) => void) | undefined> = {
-    'quick-action': onQuickAction,
+    'quick-action': onLogQuickAction ? () => setShowLogAction(true) : onQuickAction,
     'focused-investigation': onFocusedInvestigation,
     charter: onCharter,
     sustainment: onSustainment,
@@ -219,7 +226,7 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
         focusTrapOptions={{
           allowOutsideClick: true,
           escapeDeactivates: true,
-          fallbackFocus: '[data-testid="canvas-step-overlay"]',
+          fallbackFocus: () => document.body,
         }}
       >
         <section
@@ -366,6 +373,10 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
             />
           ) : null}
 
+          <div className="mt-4">
+            <RecentActivityPanel stepId={card.stepId} actionItems={actionItems} />
+          </div>
+
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {renderCta('quick-action')}
             {renderCta('focused-investigation')}
@@ -375,6 +386,16 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
           </div>
         </section>
       </FocusTrap>
+      {showLogAction ? (
+        <LogActionModal
+          cardTitle={card.stepName}
+          onCancel={() => setShowLogAction(false)}
+          onLog={payload => {
+            onLogQuickAction?.(card.stepId, payload);
+            setShowLogAction(false);
+          }}
+        />
+      ) : null}
     </div>
   );
 };

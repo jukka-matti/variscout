@@ -481,6 +481,38 @@ describe('createActionItem', () => {
     const a2 = createActionItem('b');
     expect(a1.id).not.toBe(a2.id);
   });
+
+  it('creates a quick-action item with step and orphan parent FKs', () => {
+    const action = createActionItem('Refill buffer tank', {
+      stepId: 'step-1',
+      parentImprovementProjectId: null,
+      parentImprovementIdeaId: null,
+      status: 'done',
+      assignedTo: null,
+      dueAt: null,
+      doneAt: '2026-05-10T10:00:00.000Z',
+      doneBy: null,
+      createdBy: { displayName: 'Local browser' },
+    });
+
+    expect(action).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        text: 'Refill buffer tank',
+        stepId: 'step-1',
+        parentImprovementProjectId: null,
+        parentImprovementIdeaId: null,
+        assignedTo: null,
+        dueAt: null,
+        status: 'done',
+        doneAt: '2026-05-10T10:00:00.000Z',
+        doneBy: null,
+        createdBy: { displayName: 'Local browser' },
+        createdAt: expect.any(Number),
+        deletedAt: null,
+      })
+    );
+  });
 });
 
 // ============================================================================

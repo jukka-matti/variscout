@@ -144,6 +144,20 @@ export interface FindingAssignee {
 // ============================================================================
 
 /** A corrective/preventive action task within a finding */
+export type ActionItemStatus = 'open' | 'in-progress' | 'done';
+
+export interface ActionItemQuickActionFields {
+  stepId: string;
+  parentImprovementIdeaId: null | ImprovementIdea['id'];
+  parentImprovementProjectId: null | string;
+  assignedTo: null | ProcessParticipantRef;
+  dueAt: null | string;
+  status: ActionItemStatus;
+  doneAt: null | string;
+  doneBy: null | ProcessParticipantRef;
+  createdBy: ProcessParticipantRef;
+}
+
 export interface ActionItem extends EntityBase {
   text: string;
   assignee?: FindingAssignee;
@@ -151,6 +165,16 @@ export interface ActionItem extends EntityBase {
   completedAt?: number; // Date.now() timestamp — soft-completion; distinct from deletedAt
   /** Link to the ImprovementIdea that spawned this action (for traceability) */
   ideaId?: ImprovementIdea['id'];
+  /** Canvas step FK for Quick Action / response-path actions. */
+  stepId?: string;
+  parentImprovementIdeaId?: null | ImprovementIdea['id'];
+  parentImprovementProjectId?: null | string;
+  assignedTo?: null | ProcessParticipantRef;
+  dueAt?: null | string;
+  status?: ActionItemStatus;
+  doneAt?: null | string;
+  doneBy?: null | ProcessParticipantRef;
+  createdBy?: ProcessParticipantRef;
 }
 
 // ============================================================================

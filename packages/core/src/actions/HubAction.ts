@@ -9,6 +9,7 @@ import type { HypothesisAction } from './hypothesisActions';
 import type { HubMetaAction } from './hubMetaActions';
 import type { CanvasAction } from './canvasActions';
 import type { ImprovementProjectAction } from './improvementProjectActions';
+import type { ActionItemAction } from './actionItemActions';
 
 /**
  * Top-level discriminated union for all hub write operations.
@@ -26,4 +27,5 @@ export type HubAction =
   | HypothesisAction
   | HubMetaAction
   | CanvasAction
-  | ImprovementProjectAction;
+  | ImprovementProjectAction
+  | ActionItemAction;

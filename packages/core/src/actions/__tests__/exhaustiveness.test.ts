@@ -98,6 +98,9 @@ function _exhaustive(action: HubAction): void {
       return;
     case 'IMPROVEMENT_PROJECT_ARCHIVE':
       return;
+    // Action Item
+    case 'ACTION_ITEM_ADD':
+      return;
     default:
       return assertNever(action);
   }
@@ -108,6 +111,34 @@ describe('HubAction exhaustiveness', () => {
     // The fact that _exhaustive compiles is the test. If a new action kind is added without
     // a case branch, the assertNever() call's `action: never` type errors at compile time.
     expect(typeof _exhaustive).toBe('function');
+  });
+});
+
+describe('ACTION_ITEM_ADD action', () => {
+  it('compiles under the HubAction discriminated union', () => {
+    const action: HubAction = {
+      kind: 'ACTION_ITEM_ADD',
+      hubId: 'hub-1',
+      actionItem: {
+        id: 'action-1',
+        text: 'Refill buffer tank',
+        stepId: 'step-1',
+        parentImprovementProjectId: null,
+        parentImprovementIdeaId: null,
+        assignedTo: null,
+        dueAt: null,
+        status: 'done',
+        doneAt: '2026-05-10T10:00:00.000Z',
+        doneBy: null,
+        createdBy: { displayName: 'Local browser' },
+        createdAt: 1_746_352_800_000,
+        deletedAt: null,
+      },
+    };
+
+    expect(action.kind).toBe('ACTION_ITEM_ADD');
+    expect(action.hubId).toBe('hub-1');
+    expect(action.actionItem.stepId).toBe('step-1');
   });
 });
 

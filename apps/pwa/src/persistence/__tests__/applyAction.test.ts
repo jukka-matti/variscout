@@ -64,12 +64,14 @@ beforeEach(async () => {
   await db.hubs.clear();
   await db.outcomes.clear();
   await db.canvasState.clear();
+  await db.actionItems.clear();
 });
 
 afterEach(async () => {
   await db.hubs.clear();
   await db.outcomes.clear();
   await db.canvasState.clear();
+  await db.actionItems.clear();
   vi.restoreAllMocks();
 });
 
@@ -269,6 +271,44 @@ describe('applyAction — HUB_UPDATE_GOAL', () => {
         processGoal: 'whatever',
       })
     ).rejects.toThrow(/ghost-hub/);
+  });
+});
+
+describe('applyAction — ACTION_ITEM_ADD', () => {
+  it('writes an orphan action item row tagged with hubId and stepId', async () => {
+    await applyAction(db, { kind: 'HUB_PERSIST_SNAPSHOT', hub: makeHub('hub-action') });
+
+    await applyAction(db, {
+      kind: 'ACTION_ITEM_ADD',
+      hubId: 'hub-action',
+      actionItem: {
+        id: 'action-1',
+        text: 'Refill buffer tank',
+        stepId: 'step-fill',
+        parentImprovementProjectId: null,
+        parentImprovementIdeaId: null,
+        assignedTo: null,
+        dueAt: null,
+        status: 'done',
+        doneAt: '2026-05-10T10:00:00.000Z',
+        doneBy: null,
+        createdBy: { displayName: 'Local browser' },
+        createdAt: NOW,
+        deletedAt: null,
+      },
+    });
+
+    const rows = await db.actionItems.where('hubId').equals('hub-action').toArray();
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: 'action-1',
+      hubId: 'hub-action',
+      stepId: 'step-fill',
+      parentImprovementProjectId: null,
+      parentImprovementIdeaId: null,
+      status: 'done',
+      deletedAt: null,
+    });
   });
 });
 

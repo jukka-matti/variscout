@@ -1,7 +1,7 @@
 import type { HubAction } from '../actions/HubAction';
 import type { ProcessHub, OutcomeSpec, ProcessHubInvestigation } from '../processHub';
 import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '../evidenceSources';
-import type { Finding, Question, CausalLink, Hypothesis } from '../findings/types';
+import type { Finding, Question, CausalLink, Hypothesis, ActionItem } from '../findings/types';
 import type { ProcessMap } from '../frame/types';
 
 export interface HubReadAPI {
@@ -57,6 +57,12 @@ export interface CanvasStateReadAPI {
   getByHub(hubId: ProcessHub['id']): Promise<ProcessMap | undefined>;
 }
 
+export interface ActionItemReadAPI {
+  get(id: ActionItem['id']): Promise<ActionItem | undefined>;
+  listByHub(hubId: ProcessHub['id']): Promise<ActionItem[]>;
+  listByStep(hubId: ProcessHub['id'], stepId: string): Promise<ActionItem[]>;
+}
+
 /**
  * Single-interface repository for all hub domain writes + grouped reads.
  * Write path: one `dispatch(action)` entry point — all mutations flow through it.
@@ -78,4 +84,5 @@ export interface HubRepository {
   causalLinks: CausalLinkReadAPI;
   hypotheses: HypothesisReadAPI;
   canvasState: CanvasStateReadAPI;
+  actionItems: ActionItemReadAPI;
 }

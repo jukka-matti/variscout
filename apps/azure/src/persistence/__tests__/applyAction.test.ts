@@ -119,6 +119,7 @@ beforeEach(async () => {
   await db.evidenceSources.clear();
   await db.evidenceSnapshots.clear();
   await db.evidenceSourceCursors.clear();
+  await db.actionItems.clear();
 });
 
 afterEach(async () => {
@@ -126,6 +127,7 @@ afterEach(async () => {
   await db.evidenceSources.clear();
   await db.evidenceSnapshots.clear();
   await db.evidenceSourceCursors.clear();
+  await db.actionItems.clear();
   vi.restoreAllMocks();
 });
 
@@ -211,6 +213,44 @@ describe('applyAction — OUTCOME_ADD', () => {
     await expect(applyAction({ kind: 'OUTCOME_ADD', hubId: 'ghost-hub', outcome })).rejects.toThrow(
       'OUTCOME_ADD: hub ghost-hub not found'
     );
+  });
+});
+
+describe('applyAction — ACTION_ITEM_ADD', () => {
+  it('writes an orphan action item row tagged with hubId and stepId', async () => {
+    await db.processHubs.put(makeHub('hub-action'));
+
+    await applyAction({
+      kind: 'ACTION_ITEM_ADD',
+      hubId: 'hub-action',
+      actionItem: {
+        id: 'action-1',
+        text: 'Refill buffer tank',
+        stepId: 'step-fill',
+        parentImprovementProjectId: null,
+        parentImprovementIdeaId: null,
+        assignedTo: null,
+        dueAt: null,
+        status: 'done',
+        doneAt: '2026-05-10T10:00:00.000Z',
+        doneBy: null,
+        createdBy: { displayName: 'Local browser' },
+        createdAt: NOW,
+        deletedAt: null,
+      },
+    });
+
+    const rows = await db.actionItems.where('hubId').equals('hub-action').toArray();
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: 'action-1',
+      hubId: 'hub-action',
+      stepId: 'step-fill',
+      parentImprovementProjectId: null,
+      parentImprovementIdeaId: null,
+      status: 'done',
+      deletedAt: null,
+    });
   });
 });
 
@@ -691,6 +731,25 @@ describe('exhaustiveness — every HubAction kind has a handler', () => {
     { kind: 'OUTCOME_ADD', hubId, outcome: makeOutcome('o-new', hubId) },
     { kind: 'OUTCOME_UPDATE', outcomeId: 'o-exhaust', patch: { columnName: 'x' } },
     { kind: 'OUTCOME_ARCHIVE', outcomeId: 'o-exhaust' },
+    {
+      kind: 'ACTION_ITEM_ADD',
+      hubId,
+      actionItem: {
+        id: 'action-exhaust',
+        text: 'Refill buffer tank',
+        stepId: 'step-1',
+        parentImprovementProjectId: null,
+        parentImprovementIdeaId: null,
+        assignedTo: null,
+        dueAt: null,
+        status: 'done',
+        doneAt: '2026-05-10T10:00:00.000Z',
+        doneBy: null,
+        createdBy: { displayName: 'Local browser' },
+        createdAt: NOW,
+        deletedAt: null,
+      },
+    },
     {
       kind: 'EVIDENCE_ADD_SNAPSHOT',
       hubId,
