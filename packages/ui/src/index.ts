@@ -637,6 +637,9 @@ export {
   type BrainstormModalProps,
 } from './components/ImprovementPlan';
 
+// Improvement Project workspace
+export * from './components/ImprovementProject';
+
 // Yamazumi Components
 export {
   YamazumiDetectedModal,

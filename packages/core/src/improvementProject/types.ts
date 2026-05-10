@@ -49,6 +49,7 @@ export interface ImprovementProjectGoal {
 export interface ImprovementProjectBackgroundSection {
   /** Snapshot copy of capability summary at IP open. Drift indicator triggers refresh. */
   snapshotText?: string;
+  snapshotSourceHash?: string;
   snapshottedAt?: string;
   manualNarrative?: string;
 }
