@@ -741,6 +741,8 @@ export type {
   FindingComment,
   FindingTag,
   FindingSource,
+  ActionItemStatus,
+  ActionItemQuickActionFields,
   FindingProjection,
   FindingProjectionModelContext,
   PhotoAttachment,

@@ -5,7 +5,12 @@
  * reads app/store state and wires the app-specific Analysis navigation.
  */
 import React from 'react';
-import { CanvasWorkspace, type ContextLinkGroup, type ContextLinkItem } from '@variscout/ui';
+import {
+  CanvasWorkspace,
+  type ContextLinkGroup,
+  type ContextLinkItem,
+  type LogActionPayload,
+} from '@variscout/ui';
 import {
   useImprovementProjectStore,
   useInvestigationStore,
@@ -18,12 +23,24 @@ import type {
   StepCapabilityStamp,
   WorkflowReadinessSignals,
 } from '@variscout/core';
+import { createActionItem, type ActionItem } from '@variscout/core/findings';
 import { pwaHubRepository } from '../../persistence';
 import { useSession } from '../../store/sessionStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
 
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
+const EMPTY_ACTION_ITEMS: ActionItem[] = [];
+
+function mergeActionItems(
+  current: readonly ActionItem[],
+  next: readonly ActionItem[]
+): ActionItem[] {
+  const byId = new Map<string, ActionItem>();
+  for (const item of current) byId.set(item.id, item);
+  for (const item of next) byId.set(item.id, item);
+  return Array.from(byId.values());
+}
 
 function priorStepStatsFromSnapshots(
   snapshots: readonly EvidenceSnapshot[]
@@ -56,6 +73,12 @@ const FrameView: React.FC = () => {
   const projectsByHub = useImprovementProjectStore(s => s.projectsByHub);
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
+  const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
+  const activeHubIdRef = React.useRef<string | null>(activeHubId);
+
+  React.useEffect(() => {
+    activeHubIdRef.current = activeHubId;
+  }, [activeHubId]);
 
   React.useEffect(() => {
     if (!activeHubId) {
@@ -70,6 +93,28 @@ const FrameView: React.FC = () => {
         if (!cancelled) setPriorStepStats(priorStepStatsFromSnapshots(snapshots));
       } catch {
         if (!cancelled) setPriorStepStats(EMPTY_PRIOR_STEP_STATS);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeHubId]);
+
+  React.useEffect(() => {
+    setActionItems(EMPTY_ACTION_ITEMS);
+
+    if (!activeHubId) {
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const items = await pwaHubRepository.actionItems.listByHub(activeHubId);
+        if (!cancelled) setActionItems(items);
+      } catch {
+        // Session-only hubs may not exist in IndexedDB; keep any in-memory quick actions.
       }
     })();
 
@@ -115,9 +160,37 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showAnalysis();
   }, []);
 
-  const handleQuickAction = React.useCallback(() => {
-    usePanelsStore.getState().showImprovement();
-  }, []);
+  const handleLogQuickAction = React.useCallback(
+    (stepId: string, payload: LogActionPayload) => {
+      if (!activeHubId) return;
+      const actionItem = createActionItem(payload.text, {
+        stepId,
+        parentImprovementProjectId: null,
+        parentImprovementIdeaId: null,
+        assignedTo: payload.status === 'open' ? payload.assignedTo : null,
+        dueAt: payload.status === 'open' ? (payload.dueAt ?? null) : null,
+        status: payload.status,
+        doneAt: payload.status === 'done' ? new Date().toISOString() : null,
+        doneBy: null,
+        createdBy: { displayName: 'Local browser' },
+      });
+      setActionItems(current => mergeActionItems(current, [actionItem]));
+      void (async () => {
+        try {
+          await pwaHubRepository.dispatch({
+            kind: 'ACTION_ITEM_ADD',
+            hubId: activeHubId,
+            actionItem,
+          });
+          const items = await pwaHubRepository.actionItems.listByHub(activeHubId);
+          if (activeHubIdRef.current === activeHubId) setActionItems(items);
+        } catch {
+          // Session-only quick actions remain visible even when persistence is unavailable.
+        }
+      })();
+    },
+    [activeHubId]
+  );
 
   const handleFocusedInvestigation = React.useCallback(() => {
     usePanelsStore.getState().showInvestigation();
@@ -198,7 +271,7 @@ const FrameView: React.FC = () => {
       processContext={processContext}
       setProcessContext={setProcessContext}
       onSeeData={handleSeeData}
-      onQuickAction={handleQuickAction}
+      onLogQuickAction={handleLogQuickAction}
       onFocusedInvestigation={handleFocusedInvestigation}
       findings={findings}
       questions={questions}
@@ -215,6 +288,7 @@ const FrameView: React.FC = () => {
       contextLinkGroups={contextLinkGroups}
       onNavigateContextLink={handleNavigateContextLink}
       priorStepStats={priorStepStats}
+      actionItems={actionItems}
     />
   );
 };

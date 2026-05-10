@@ -23,6 +23,7 @@ import {
 } from '@variscout/hooks';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
 import type { Finding, SpecLimits, WorkflowReadinessSignals } from '@variscout/core';
+import type { ActionItem } from '@variscout/core/findings';
 import {
   type ProductionLineGlanceFilterStripProps,
   ProductionLineGlanceFilterStrip,
@@ -46,6 +47,7 @@ import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
 import { useWallIsMobile } from '../InvestigationWall';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
+import type { LogActionPayload } from '../QuickAction';
 
 /**
  * Canonical FRAME canvas surface.
@@ -154,6 +156,7 @@ export interface CanvasProps {
   signals: WorkflowReadinessSignals;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
   onQuickAction?: (stepId: string) => void;
+  onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
   onSustainment?: (stepId: string) => void;
@@ -162,6 +165,7 @@ export interface CanvasProps {
   onRemoveCausalLink?: (linkId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
   onNavigateContextLink?: (item: ContextLinkItem) => void;
+  actionItems?: ActionItem[];
   findings?: ReadonlyArray<Finding>;
   problemCpk?: number;
   eventsPerWeek?: number;
@@ -212,6 +216,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   signals,
   onStepSpecsRequest,
   onQuickAction,
+  onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
   onSustainment,
@@ -220,6 +225,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onRemoveCausalLink,
   contextLinkGroups,
   onNavigateContextLink,
+  actionItems = [],
   findings = [],
   problemCpk,
   eventsPerWeek,
@@ -781,6 +787,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           onClose={handleCloseStepOverlay}
           signals={signals}
           onQuickAction={onQuickAction}
+          onLogQuickAction={onLogQuickAction}
           onFocusedInvestigation={onFocusedInvestigation}
           onCharter={onCharter}
           onSustainment={onSustainment}
@@ -790,6 +797,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           onRemoveCausalLink={onRemoveCausalLink}
           contextLinkGroups={contextLinkGroups}
           onNavigateContextLink={onNavigateContextLink}
+          actionItems={actionItems}
         />
       ) : null}
     </div>

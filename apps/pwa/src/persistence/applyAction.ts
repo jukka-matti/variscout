@@ -189,6 +189,15 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
       return;
     }
 
+    case 'ACTION_ITEM_ADD': {
+      const hub = await db.hubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(`ACTION_ITEM_ADD: parent hub ${action.hubId} does not exist`);
+      }
+      await db.actionItems.add({ ...action.actionItem, hubId: action.hubId });
+      return;
+    }
+
     // -----------------------------------------------------------------------
     // Investigation entity actions (investigation / finding / question /
     // causalLink / hypothesis) — F5 wires these when the investigation

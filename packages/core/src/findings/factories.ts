@@ -11,6 +11,7 @@ import {
   type FindingOutcome,
   type FindingAssignee,
   type ActionItem,
+  type ActionItemQuickActionFields,
   type Question,
   type QuestionValidationType,
   type ImprovementIdea,
@@ -163,14 +164,32 @@ export function createFindingComment(
  */
 export function createActionItem(
   text: string,
-  assignee?: FindingAssignee,
+  assigneeOrFields?: FindingAssignee | ActionItemQuickActionFields,
   dueDate?: string,
   ideaId?: string
 ): ActionItem {
+  if (assigneeOrFields && 'stepId' in assigneeOrFields) {
+    return {
+      id: generateDeterministicId(),
+      text,
+      stepId: assigneeOrFields.stepId,
+      parentImprovementProjectId: assigneeOrFields.parentImprovementProjectId,
+      parentImprovementIdeaId: assigneeOrFields.parentImprovementIdeaId,
+      assignedTo: assigneeOrFields.assignedTo,
+      dueAt: assigneeOrFields.dueAt,
+      status: assigneeOrFields.status,
+      doneAt: assigneeOrFields.doneAt,
+      doneBy: assigneeOrFields.doneBy,
+      createdBy: assigneeOrFields.createdBy,
+      createdAt: Date.now(),
+      deletedAt: null,
+    };
+  }
+
   const action: ActionItem = {
     id: generateDeterministicId(),
     text,
-    assignee,
+    assignee: assigneeOrFields,
     dueDate,
     createdAt: Date.now(),
     deletedAt: null,

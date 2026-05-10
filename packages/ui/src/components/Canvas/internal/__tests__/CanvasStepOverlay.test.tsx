@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import type { CanvasStepCardModel } from '@variscout/hooks';
-import type { WorkflowReadinessSignals } from '@variscout/core';
+import type { ActionItem, WorkflowReadinessSignals } from '@variscout/core';
 import { CanvasStepOverlay } from '../CanvasStepOverlay';
 
 const baseCard: CanvasStepCardModel = {
@@ -32,12 +32,32 @@ const emptySignals: WorkflowReadinessSignals = {
   sustainmentConfirmed: false,
 };
 
+function makeAction(overrides: Partial<ActionItem> = {}): ActionItem {
+  return {
+    id: overrides.id ?? 'action-1',
+    text: overrides.text ?? 'Check oven gasket seating',
+    stepId: overrides.stepId ?? 'step-1',
+    parentImprovementProjectId: null,
+    parentImprovementIdeaId: null,
+    assignedTo: null,
+    dueAt: null,
+    status: 'open',
+    doneAt: null,
+    doneBy: null,
+    createdBy: { displayName: 'Local browser' },
+    createdAt: 1,
+    deletedAt: null,
+    ...overrides,
+  };
+}
+
 function renderOverlay(overrides: Partial<React.ComponentProps<typeof CanvasStepOverlay>> = {}) {
   return render(
     <CanvasStepOverlay
       card={baseCard}
       onClose={() => undefined}
       signals={emptySignals}
+      actionItems={[]}
       onQuickAction={() => undefined}
       onFocusedInvestigation={() => undefined}
       onCharter={() => undefined}
@@ -129,6 +149,48 @@ describe('CanvasStepOverlay — response-path CTA rendering', () => {
     const cta = screen.getByTestId('canvas-cta-charter');
     cta.click();
     expect(onCharter).toHaveBeenCalledWith('step-1');
+  });
+
+  it('opens LogActionModal from Quick action and submits payload with the step id', () => {
+    const onLogQuickAction = vi.fn();
+    renderOverlay({ onQuickAction: undefined, onLogQuickAction });
+
+    fireEvent.click(screen.getByTestId('canvas-cta-quick-action'));
+    expect(screen.getByRole('dialog', { name: 'Log action — Bake step' })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('What'), {
+      target: { value: 'Refill buffer tank' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Log action' }));
+
+    expect(onLogQuickAction).toHaveBeenCalledWith('step-1', {
+      text: 'Refill buffer tank',
+      status: 'done',
+    });
+  });
+
+  it('renders selected-step orphan quick actions in Recent activity after expanding', () => {
+    renderOverlay({
+      actionItems: [
+        makeAction({ id: 'action-1', text: 'Check oven gasket seating' }),
+        makeAction({ id: 'action-other-step', stepId: 'step-2', text: 'Wrong step action' }),
+        makeAction({
+          id: 'action-linked',
+          text: 'Linked project action',
+          parentImprovementProjectId: 'project-1',
+        }),
+      ],
+    });
+
+    const summary = screen.getByText('Recent activity');
+    const details = summary.closest('details');
+    expect(details).not.toHaveAttribute('open');
+
+    fireEvent.click(summary);
+
+    expect(screen.getByRole('button', { name: /check oven gasket seating\s*open/i })).toBeVisible();
+    expect(screen.queryByText('Wrong step action')).toBeNull();
+    expect(screen.queryByText('Linked project action')).toBeNull();
   });
 
   it('renders linked context badge counts above the response-path CTAs', () => {

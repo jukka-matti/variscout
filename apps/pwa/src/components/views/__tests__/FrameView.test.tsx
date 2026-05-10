@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WorkflowReadinessSignals } from '@variscout/core';
 
@@ -54,8 +54,32 @@ const improvementProjectStateRef: { current: Record<string, unknown> } = {
 const hoisted = vi.hoisted(() => ({
   canvasWorkspaceMock: vi.fn(),
   listByHubMock: vi.fn(),
+  actionItemsListByHubMock: vi.fn(),
+  dispatchMock: vi.fn(),
   sessionStateRef: { current: { hub: { id: 'hub-1' } as { id: string } | null } },
 }));
+
+function actionItem(id: string, text: string, stepId = 'step-1') {
+  return {
+    id,
+    text,
+    stepId,
+    parentImprovementProjectId: null,
+    parentImprovementIdeaId: null,
+    createdAt: 1,
+    deletedAt: null,
+  };
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
 
 vi.mock('@variscout/stores', () => ({
   useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
@@ -85,6 +109,10 @@ vi.mock('@variscout/ui', async () => {
       signals: WorkflowReadinessSignals;
       onSeeData: () => void;
       onQuickAction?: (stepId: string) => void;
+      onLogQuickAction?: (
+        stepId: string,
+        payload: { text: string; status: 'open' | 'done'; assignedTo?: unknown; dueAt?: string }
+      ) => void;
       onFocusedInvestigation?: (stepId: string) => void;
       onOpenWall?: () => void;
       onOpenInvestigationFocus?: (focus: { questionId?: string }) => void;
@@ -99,6 +127,7 @@ vi.mock('@variscout/ui', async () => {
       onSustainment?: () => void;
       onHandoff?: () => void;
       priorStepStats?: ReadonlyMap<string, unknown>;
+      actionItems?: unknown[];
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -114,7 +143,11 @@ vi.mock('@variscout/ui', async () => {
           {
             type: 'button',
             'data-testid': 'quick-action',
-            onClick: () => props.onQuickAction?.('step-1'),
+            onClick: () =>
+              props.onLogQuickAction?.('step-1', {
+                text: 'Refill buffer tank',
+                status: 'done',
+              }),
           },
           'Quick action'
         ),
@@ -188,8 +221,12 @@ vi.mock('../../../features/investigation/investigationStore', () => ({
 
 vi.mock('../../../persistence', () => ({
   pwaHubRepository: {
+    dispatch: hoisted.dispatchMock,
     evidenceSnapshots: {
       listByHub: hoisted.listByHubMock,
+    },
+    actionItems: {
+      listByHub: hoisted.actionItemsListByHubMock,
     },
   },
 }));
@@ -217,6 +254,10 @@ describe('FrameView (PWA shell)', () => {
     addCausalLinkMock.mockReturnValue({ id: 'link-created' });
     hoisted.listByHubMock.mockReset();
     hoisted.listByHubMock.mockResolvedValue([]);
+    hoisted.actionItemsListByHubMock.mockReset();
+    hoisted.actionItemsListByHubMock.mockResolvedValue([]);
+    hoisted.dispatchMock.mockReset();
+    hoisted.dispatchMock.mockResolvedValue(undefined);
     hoisted.sessionStateRef.current = { hub: { id: 'hub-1' } };
     improvementProjectStateRef.current = {
       projectsByHub: {},
@@ -310,12 +351,70 @@ describe('FrameView (PWA shell)', () => {
     });
   });
 
+  it('passes action items read for the active session hub to CanvasWorkspace', async () => {
+    const actionItems = [actionItem('action-1', 'Check oven gasket seating')];
+    hoisted.actionItemsListByHubMock.mockResolvedValue(actionItems);
+
+    render(<FrameView />);
+
+    await waitFor(() => expect(hoisted.actionItemsListByHubMock).toHaveBeenCalledWith('hub-1'));
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.actionItems).toEqual(actionItems);
+    });
+  });
+
+  it('replaces previous hub action items when switching hubs and the next read is empty', async () => {
+    hoisted.actionItemsListByHubMock
+      .mockResolvedValueOnce([actionItem('hub-1-action', 'Hub 1 action')])
+      .mockResolvedValueOnce([]);
+
+    const { rerender } = render(<FrameView />);
+
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.actionItems).toEqual([expect.objectContaining({ text: 'Hub 1 action' })]);
+    });
+
+    hoisted.sessionStateRef.current = { hub: { id: 'hub-2' } };
+    rerender(<FrameView />);
+
+    await waitFor(() => expect(hoisted.actionItemsListByHubMock).toHaveBeenCalledWith('hub-2'));
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.actionItems).toEqual([]);
+    });
+  });
+
+  it('clears previous hub action items when switching hubs and the next read fails', async () => {
+    hoisted.actionItemsListByHubMock
+      .mockResolvedValueOnce([actionItem('hub-1-action', 'Hub 1 action')])
+      .mockRejectedValueOnce(new Error('hub 2 unavailable'));
+
+    const { rerender } = render(<FrameView />);
+
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.actionItems).toEqual([expect.objectContaining({ text: 'Hub 1 action' })]);
+    });
+
+    hoisted.sessionStateRef.current = { hub: { id: 'hub-2' } };
+    rerender(<FrameView />);
+
+    await waitFor(() => expect(hoisted.actionItemsListByHubMock).toHaveBeenCalledWith('hub-2'));
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.actionItems).toEqual([]);
+    });
+  });
+
   it('does not read snapshots when there is no active session hub', () => {
     hoisted.sessionStateRef.current = { hub: null };
 
     render(<FrameView />);
 
     expect(hoisted.listByHubMock).not.toHaveBeenCalled();
+    expect(hoisted.actionItemsListByHubMock).not.toHaveBeenCalled();
     const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
     expect(props?.priorStepStats?.size).toBe(0);
   });
@@ -328,13 +427,106 @@ describe('FrameView (PWA shell)', () => {
     expect(showAnalysisMock).toHaveBeenCalledTimes(1);
   });
 
-  it('wires Canvas response paths to the PWA workflow panels', () => {
+  it('dispatches ACTION_ITEM_ADD when Canvas logs a quick action', async () => {
     render(<FrameView />);
 
     fireEvent.click(screen.getByTestId('quick-action'));
+
+    await waitFor(() => expect(hoisted.dispatchMock).toHaveBeenCalledTimes(1));
+    expect(hoisted.dispatchMock).toHaveBeenCalledWith({
+      kind: 'ACTION_ITEM_ADD',
+      hubId: 'hub-1',
+      actionItem: expect.objectContaining({
+        id: expect.any(String),
+        text: 'Refill buffer tank',
+        stepId: 'step-1',
+        parentImprovementProjectId: null,
+        parentImprovementIdeaId: null,
+        status: 'done',
+        assignedTo: null,
+        dueAt: null,
+        doneAt: expect.any(String),
+        doneBy: null,
+        createdBy: { displayName: 'Local browser' },
+        createdAt: expect.any(Number),
+        deletedAt: null,
+      }),
+    });
+    expect(showImprovementMock).not.toHaveBeenCalled();
+  });
+
+  it('shows session-only quick actions immediately when repository persistence is unavailable', async () => {
+    hoisted.actionItemsListByHubMock.mockRejectedValue(new Error('hub not persisted'));
+    hoisted.dispatchMock.mockRejectedValue(new Error('hub not persisted'));
+
+    render(<FrameView />);
+
+    fireEvent.click(screen.getByTestId('quick-action'));
+
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.actionItems).toEqual([
+        expect.objectContaining({
+          text: 'Refill buffer tank',
+          stepId: 'step-1',
+          status: 'done',
+          parentImprovementProjectId: null,
+          parentImprovementIdeaId: null,
+        }),
+      ]);
+    });
+    expect(hoisted.dispatchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not apply a post-dispatch refresh after switching to another hub', async () => {
+    const refresh = deferred<unknown[]>();
+    let hubOneReadCount = 0;
+    hoisted.actionItemsListByHubMock.mockImplementation((hubId: string) => {
+      if (hubId === 'hub-1') {
+        hubOneReadCount += 1;
+        return hubOneReadCount === 1 ? Promise.resolve([]) : refresh.promise;
+      }
+      return Promise.resolve([]);
+    });
+
+    const { rerender } = render(<FrameView />);
+
+    await waitFor(() => expect(hoisted.actionItemsListByHubMock).toHaveBeenCalledWith('hub-1'));
+
+    fireEvent.click(screen.getByTestId('quick-action'));
+
+    await waitFor(() => expect(hubOneReadCount).toBe(2));
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.actionItems).toEqual([
+        expect.objectContaining({
+          text: 'Refill buffer tank',
+          stepId: 'step-1',
+        }),
+      ]);
+    });
+
+    hoisted.sessionStateRef.current = { hub: { id: 'hub-2' } };
+    rerender(<FrameView />);
+
+    await waitFor(() => expect(hoisted.actionItemsListByHubMock).toHaveBeenCalledWith('hub-2'));
+    await act(async () => {
+      refresh.resolve([actionItem('hub-1-refresh', 'Hub 1 refresh action')]);
+      await refresh.promise;
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.actionItems).toEqual([]);
+    });
+  });
+
+  it('wires Canvas focused investigation response path to the PWA Investigation panel', () => {
+    render(<FrameView />);
+
     fireEvent.click(screen.getByTestId('focused-investigation'));
 
-    expect(showImprovementMock).toHaveBeenCalledTimes(1);
     expect(showInvestigationMock).toHaveBeenCalledTimes(1);
   });
 

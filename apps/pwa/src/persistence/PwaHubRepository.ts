@@ -43,10 +43,12 @@ import type {
   CausalLinkReadAPI,
   HypothesisReadAPI,
   CanvasStateReadAPI,
+  ActionItemReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
 import type { ProcessHub } from '@variscout/core/processHub';
 import type { ProcessMap } from '@variscout/core/frame';
+import type { ActionItem } from '@variscout/core/findings';
 import { db, type HubRow } from '../db/schema';
 import { applyAction } from './applyAction';
 
@@ -261,6 +263,24 @@ export class PwaHubRepository implements HubRepository {
       return rows.filter(r => r.deletedAt === null);
     },
   };
+
+  actionItems: ActionItemReadAPI = {
+    get: async id => {
+      const row = await db.actionItems.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return stripActionItemHubId(row);
+    },
+    listByHub: async hubId => {
+      const rows = await db.actionItems.where('hubId').equals(hubId).toArray();
+      return rows.filter(row => row.deletedAt === null).map(stripActionItemHubId);
+    },
+    listByStep: async (hubId, stepId) => {
+      const rows = await db.actionItems.where('hubId').equals(hubId).toArray();
+      return rows
+        .filter(row => row.deletedAt === null && row.stepId === stepId)
+        .map(stripActionItemHubId);
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -274,6 +294,12 @@ function stripHubId(row: { hubId: string } & ProcessMap): ProcessMap {
   const { hubId: _hubId, ...processMap } = row;
   void _hubId;
   return processMap;
+}
+
+function stripActionItemHubId(row: { hubId: string } & ActionItem): ActionItem {
+  const { hubId: _hubId, ...actionItem } = row;
+  void _hubId;
+  return actionItem;
 }
 
 // Module-scoped singleton. Composition root + dispatch boundary documented in apps/pwa/CLAUDE.md.

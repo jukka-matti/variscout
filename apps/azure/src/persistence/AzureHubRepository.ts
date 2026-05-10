@@ -19,8 +19,10 @@ import type {
   CausalLinkReadAPI,
   HypothesisReadAPI,
   CanvasStateReadAPI,
+  ActionItemReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
+import type { ActionItem } from '@variscout/core/findings';
 import { db } from '../db/schema';
 import { saveProcessHubToIndexedDB } from '../services/localDb';
 import { applyAction } from './applyAction';
@@ -212,6 +214,30 @@ export class AzureHubRepository implements HubRepository {
       return [];
     },
   };
+
+  actionItems: ActionItemReadAPI = {
+    async get(id) {
+      const row = await db.actionItems.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return stripActionItemHubId(row);
+    },
+    async listByHub(hubId) {
+      const rows = await db.actionItems.where('hubId').equals(hubId).toArray();
+      return rows.filter(row => row.deletedAt === null).map(stripActionItemHubId);
+    },
+    async listByStep(hubId, stepId) {
+      const rows = await db.actionItems.where('hubId').equals(hubId).toArray();
+      return rows
+        .filter(row => row.deletedAt === null && row.stepId === stepId)
+        .map(stripActionItemHubId);
+    },
+  };
+}
+
+function stripActionItemHubId(row: { hubId: string } & ActionItem): ActionItem {
+  const { hubId: _hubId, ...actionItem } = row;
+  void _hubId;
+  return actionItem;
 }
 
 // Module-scoped singleton. Composition root + dispatch boundary documented in apps/azure/CLAUDE.md.

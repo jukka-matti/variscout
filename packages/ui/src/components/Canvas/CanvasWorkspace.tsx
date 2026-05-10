@@ -25,6 +25,7 @@ import {
   type TimelineWindow,
   type WorkflowReadinessSignals,
 } from '@variscout/core';
+import type { ActionItem } from '@variscout/core/findings';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
 import { useCanvasStore } from '@variscout/stores';
 import { Canvas, type CanvasAuthoringMode } from './index';
@@ -33,6 +34,7 @@ import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
 import type { XCandidate } from '../XPickerSection';
 import type { ChipRailEntry } from '../ChipRail';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
+import type { LogActionPayload } from '../QuickAction';
 
 const DEFAULT_CPK_TARGET = 1.33;
 
@@ -49,6 +51,7 @@ export interface CanvasWorkspaceProps {
   onSeeData: () => void;
   signals: WorkflowReadinessSignals;
   onQuickAction?: (stepId: string) => void;
+  onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
   onSustainment?: (stepId: string) => void;
@@ -72,6 +75,7 @@ export interface CanvasWorkspaceProps {
   contextLinkGroups?: readonly ContextLinkGroup[];
   onNavigateContextLink?: (item: ContextLinkItem) => void;
   priorStepStats?: ReadonlyMap<string, StepCapabilityStamp>;
+  actionItems?: ActionItem[];
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -167,6 +171,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   signals,
   onSeeData,
   onQuickAction,
+  onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
   onSustainment,
@@ -185,6 +190,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   contextLinkGroups,
   onNavigateContextLink,
   priorStepStats,
+  actionItems = [],
 }) => {
   const { t } = useTranslation();
   const fallbackMap = React.useMemo(() => createEmptyMap(), []);
@@ -494,6 +500,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onRemoveCausalLink={onRemoveCausalLink}
       signals={signals}
       onQuickAction={onQuickAction}
+      onLogQuickAction={onLogQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}
       onCharter={onCharter}
       onSustainment={onSustainment}
@@ -501,6 +508,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onOpenInvestigationFocus={onOpenInvestigationFocus}
       contextLinkGroups={contextLinkGroups}
       onNavigateContextLink={onNavigateContextLink}
+      actionItems={actionItems}
       mode={authoringMode}
       onModeChange={setAuthoringMode}
       chips={chips}

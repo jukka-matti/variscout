@@ -37,6 +37,9 @@ export type EvidenceSourceRecord = import('@variscout/core').EvidenceSource;
 export type EvidenceSnapshotRecord = import('@variscout/core').EvidenceSnapshot;
 export type ImprovementProjectRecord =
   import('@variscout/core/improvementProject').ImprovementProject;
+export type ActionItemRecord = import('@variscout/core/findings').ActionItem & {
+  hubId: import('@variscout/core').ProcessHub['id'];
+};
 
 export class VariScoutDatabase extends Dexie {
   projects!: Dexie.Table<ProjectRecord, string>;
@@ -50,6 +53,7 @@ export class VariScoutDatabase extends Dexie {
   controlHandoffs!: Dexie.Table<import('@variscout/core').ControlHandoff, string>;
   evidenceSourceCursors!: Dexie.Table<EvidenceSourceCursor, [string, string]>;
   improvementProjects!: Dexie.Table<ImprovementProjectRecord, string>;
+  actionItems!: Dexie.Table<ActionItemRecord, string>;
 
   constructor() {
     super('VaRiScoutAzure');
@@ -143,6 +147,12 @@ export class VariScoutDatabase extends Dexie {
     // No upgrade callback needed — new empty table; existing data unaffected.
     this.version(10).stores({
       improvementProjects: 'id, hubId, deletedAt, status, updatedAt',
+    });
+
+    // Version 11: PR-RPS-8 — ActionItem dedicated table for Quick Action audit trail.
+    this.version(11).stores({
+      actionItems:
+        'id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
     });
   }
 }

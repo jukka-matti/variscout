@@ -309,6 +309,15 @@ export async function applyAction(action: HubAction): Promise<void> {
       return;
     }
 
+    case 'ACTION_ITEM_ADD': {
+      const hub = await db.processHubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(`ACTION_ITEM_ADD: parent hub ${action.hubId} does not exist`);
+      }
+      await db.actionItems.add({ ...action.actionItem, hubId: action.hubId });
+      return;
+    }
+
     // -------------------------------------------------------------------------
     // Session-only — Azure has no dedicated Dexie table today; F3 normalizes.
     // -------------------------------------------------------------------------
