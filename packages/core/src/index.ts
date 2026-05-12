@@ -553,6 +553,7 @@ export type {
   SustainmentBucketOptions,
 } from './sustainment';
 export {
+  applySustainmentTick,
   nextDueFromCadence,
   isSustainmentDue,
   isSustainmentOverdue,

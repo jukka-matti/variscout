@@ -38,6 +38,7 @@
 
 import type { HubAction } from '@variscout/core/actions';
 import { generateDeterministicId } from '@variscout/core/identity';
+import { applySustainmentTick, type EvidenceSnapshot } from '@variscout/core';
 import type { PwaDatabase } from '../db/schema';
 
 // ---------------------------------------------------------------------------
@@ -80,10 +81,24 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
 
     case 'HUB_PERSIST_SNAPSHOT': {
       // improvementProjects live in their own table; drop the embedded copy from the hub row.
-      const { canonicalProcessMap, outcomes, improvementProjects, ...hubMeta } = action.hub;
+      const {
+        canonicalProcessMap,
+        outcomes,
+        improvementProjects,
+        sustainmentRecords,
+        sustainmentReviews,
+        ...hubMeta
+      } = action.hub;
       await db.transaction(
         'rw',
-        [db.hubs, db.outcomes, db.canvasState, db.improvementProjects],
+        [
+          db.hubs,
+          db.outcomes,
+          db.canvasState,
+          db.improvementProjects,
+          db.sustainmentRecords,
+          db.sustainmentReviews,
+        ],
         async () => {
           await db.hubs.put(hubMeta);
           // HUB_PERSIST_SNAPSHOT carries the hub's authoritative full state; rows
@@ -121,6 +136,27 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
             // Snapshot lacks a canonical process map — clear any stale row so
             // joinHub won't resurrect it.
             await db.canvasState.delete(hubMeta.id);
+          }
+          const incomingSustainmentRecords = sustainmentRecords ?? [];
+          const incomingRecordIds = new Set(incomingSustainmentRecords.map(record => record.id));
+          await db.sustainmentRecords
+            .where('hubId')
+            .equals(hubMeta.id)
+            .filter(record => !incomingRecordIds.has(record.id))
+            .delete();
+          if (incomingSustainmentRecords.length > 0) {
+            await db.sustainmentRecords.bulkPut(incomingSustainmentRecords);
+          }
+
+          const incomingSustainmentReviews = sustainmentReviews ?? [];
+          const incomingReviewIds = new Set(incomingSustainmentReviews.map(review => review.id));
+          await db.sustainmentReviews
+            .where('hubId')
+            .equals(hubMeta.id)
+            .filter(review => !incomingReviewIds.has(review.id))
+            .delete();
+          if (incomingSustainmentReviews.length > 0) {
+            await db.sustainmentReviews.bulkPut(incomingSustainmentReviews);
           }
         }
       );
@@ -198,6 +234,64 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
       return;
     }
 
+    case 'SUSTAINMENT_RECORD_CREATE': {
+      const hub = await db.hubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(`SUSTAINMENT_RECORD_CREATE: parent hub ${action.hubId} does not exist`);
+      }
+      if (action.record.hubId !== action.hubId) {
+        throw new Error(
+          `SUSTAINMENT_RECORD_CREATE hubId mismatch: action hub '${action.hubId}' does not match record hub '${action.record.hubId}'`
+        );
+      }
+      await db.sustainmentRecords.add(action.record);
+      return;
+    }
+
+    case 'SUSTAINMENT_RECORD_UPDATE': {
+      const existing = await db.sustainmentRecords.get(action.recordId);
+      if (!existing) return;
+      await db.sustainmentRecords.update(action.recordId, {
+        ...action.patch,
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'SUSTAINMENT_RECORD_ARCHIVE': {
+      await db.sustainmentRecords.update(action.recordId, {
+        deletedAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'SUSTAINMENT_CONFIRM': {
+      await db.sustainmentRecords.update(action.recordId, {
+        status: 'confirmed-sustained',
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'SUSTAINMENT_MARK_DRIFTED': {
+      await db.sustainmentRecords.update(action.recordId, {
+        status: 'drifted',
+        consecutiveOnTargetTicks: 0,
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'SUSTAINMENT_TICK_EVALUATED': {
+      await db.transaction('rw', [db.sustainmentRecords, db.sustainmentReviews], async () => {
+        const existing = await db.sustainmentRecords.get(action.record.id);
+        await db.sustainmentRecords.put({ ...existing, ...action.record });
+        await db.sustainmentReviews.put(action.review);
+      });
+      return;
+    }
+
     // -----------------------------------------------------------------------
     // Investigation entity actions (investigation / finding / question /
     // causalLink / hypothesis) — F5 wires these when the investigation
@@ -235,35 +329,40 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     // are soft-deleted inside the same transaction before the new rows are
     // written, ensuring no partial state is observable.
     case 'EVIDENCE_ADD_SNAPSHOT': {
-      await db.transaction('rw', [db.evidenceSnapshots, db.rowProvenance], async () => {
-        const now = Date.now();
+      await db.transaction(
+        'rw',
+        [db.evidenceSnapshots, db.rowProvenance, db.sustainmentRecords, db.sustainmentReviews],
+        async () => {
+          const now = Date.now();
 
-        // Cascade: if replacing, mark replaced snapshot + its provenance rows.
-        if (action.replacedSnapshotId) {
-          await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: now });
-          const replacedTags = await db.rowProvenance
-            .where('snapshotId')
-            .equals(action.replacedSnapshotId)
-            .toArray();
-          if (replacedTags.length > 0) {
-            await db.rowProvenance.bulkUpdate(
-              replacedTags.map(t => ({ key: t.id, changes: { deletedAt: now } }))
-            );
+          // Cascade: if replacing, mark replaced snapshot + its provenance rows.
+          if (action.replacedSnapshotId) {
+            await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: now });
+            const replacedTags = await db.rowProvenance
+              .where('snapshotId')
+              .equals(action.replacedSnapshotId)
+              .toArray();
+            if (replacedTags.length > 0) {
+              await db.rowProvenance.bulkUpdate(
+                replacedTags.map(t => ({ key: t.id, changes: { deletedAt: now } }))
+              );
+            }
           }
-        }
 
-        // Insert the new snapshot.
-        await db.evidenceSnapshots.put(action.snapshot);
+          // Insert the new snapshot.
+          await db.evidenceSnapshots.put(action.snapshot);
 
-        // Insert provenance tags with snapshotId now populated (closes F3.5 wiring gap).
-        if (action.provenance.length > 0) {
-          const tagsWithSnapshotId = action.provenance.map(t => ({
-            ...t,
-            snapshotId: action.snapshot.id,
-          }));
-          await db.rowProvenance.bulkPut(tagsWithSnapshotId);
+          // Insert provenance tags with snapshotId now populated (closes F3.5 wiring gap).
+          if (action.provenance.length > 0) {
+            const tagsWithSnapshotId = action.provenance.map(t => ({
+              ...t,
+              snapshotId: action.snapshot.id,
+            }));
+            await db.rowProvenance.bulkPut(tagsWithSnapshotId);
+          }
+          await evaluateSustainmentRecordsForSnapshot(db, action.hubId, action.snapshot);
         }
-      });
+      );
       return;
     }
 
@@ -417,4 +516,25 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     default:
       assertNever(action);
   }
+}
+
+async function evaluateSustainmentRecordsForSnapshot(
+  db: PwaDatabase,
+  hubId: string,
+  snapshot: EvidenceSnapshot
+): Promise<void> {
+  await db.transaction('rw', [db.sustainmentRecords, db.sustainmentReviews], async () => {
+    const liveRecords = await db.sustainmentRecords
+      .where('hubId')
+      .equals(hubId)
+      .filter(record => record.deletedAt === null && record.lastEvaluatedSnapshotId !== snapshot.id)
+      .toArray();
+
+    if (liveRecords.length === 0) return;
+
+    const now = Date.now();
+    const evaluations = liveRecords.map(record => applySustainmentTick(record, snapshot, now));
+    await db.sustainmentRecords.bulkPut(evaluations.map(evaluation => evaluation.record));
+    await db.sustainmentReviews.bulkPut(evaluations.map(evaluation => evaluation.review));
+  });
 }

@@ -11,6 +11,8 @@ import type {
   SignalSourceArchetype,
   SignalTrustGrade,
 } from '../signalCards';
+import type { ImprovementProject } from '../improvementProject';
+import type { SustainmentRecord, SustainmentReview } from '../sustainment';
 
 export type SurveyStatus = 'can-do-now' | 'can-do-with-caution' | 'cannot-do-yet' | 'ask-for-next';
 
@@ -187,15 +189,15 @@ export interface SurveyHint {
  * rules that only need a subset of context to be called without providing
  * irrelevant data.
  *
- * Note: `improvementProjects` is intentionally absent from V1 — the
- * `ImprovementProject` type is added in PR-RPS-5. The Wall rule (Task 8)
- * does not consume it. PR-RPS-5 will extend this interface when it adds
- * the IP types.
  */
 export interface SurveyContext {
   hub?: import('../processHub').ProcessHub;
   hypotheses?: Hypothesis[];
   findings?: Finding[];
+  improvementProjects?: ImprovementProject[];
+  sustainmentRecords?: SustainmentRecord[];
+  sustainmentReviews?: SustainmentReview[];
+  now?: Date | number;
 }
 
 /**

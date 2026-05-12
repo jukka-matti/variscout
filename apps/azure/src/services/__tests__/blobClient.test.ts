@@ -385,8 +385,13 @@ describe('blobClient', () => {
 
       await saveBlobSustainmentRecord({
         id: 'rec-1',
+        title: 'Sustainment cadence',
         hubId: 'hub-1',
         investigationId: 'inv-1',
+        status: 'pending',
+        consecutiveOnTargetTicks: 0,
+        hasOverride: false,
+        lastEvaluatedSnapshotId: undefined,
         cadence: 'monthly',
         createdAt: 1745712000000, // 2026-04-27T00:00:00.000Z
         updatedAt: 1745712000000,

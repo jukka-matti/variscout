@@ -125,6 +125,14 @@ export interface ProcessHub extends EntityBase {
    * imports ProcessHub).
    */
   improvementProjects?: import('./improvementProject').ImprovementProject[];
+  /**
+   * Sustainment entities owned by this hub. In-memory hydrated lists, loaded
+   * by HubRepository reads from normalized tables. Mutations flow through
+   * `SUSTAINMENT_*` HubAction kinds; persistence must decompose these out of
+   * hub rows before writing.
+   */
+  sustainmentRecords?: SustainmentRecord[];
+  sustainmentReviews?: import('./sustainment').SustainmentReview[];
 }
 
 export const DEFAULT_PROCESS_HUB: ProcessHub = {

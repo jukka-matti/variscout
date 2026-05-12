@@ -11,6 +11,7 @@
 
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { SustainmentRecord, SustainmentReview } from '@variscout/core';
 import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { HubAction } from '@variscout/core/actions';
@@ -56,6 +57,37 @@ function makeProcessMap(overrides: Partial<ProcessMap> = {}): ProcessMap {
   };
 }
 
+function makeSustainmentRecord(id: string, hubId: string): SustainmentRecord {
+  return {
+    id,
+    hubId,
+    investigationId: `inv-${id}`,
+    status: 'pending',
+    title: `Record ${id}`,
+    consecutiveOnTargetTicks: 0,
+    hasOverride: false,
+    lastEvaluatedSnapshotId: undefined,
+    cadence: 'monthly',
+    updatedAt: NOW,
+    createdAt: NOW,
+    deletedAt: null,
+  };
+}
+
+function makeSustainmentReview(id: string, recordId: string, hubId: string): SustainmentReview {
+  return {
+    id,
+    recordId,
+    hubId,
+    investigationId: `inv-${recordId}`,
+    reviewedAt: NOW,
+    reviewer: { displayName: 'Reviewer' },
+    verdict: 'holding',
+    createdAt: NOW,
+    deletedAt: null,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Setup / teardown — clear all tables touched by F3 dispatch handlers.
 // ---------------------------------------------------------------------------
@@ -65,6 +97,8 @@ beforeEach(async () => {
   await db.outcomes.clear();
   await db.canvasState.clear();
   await db.actionItems.clear();
+  await db.sustainmentRecords.clear();
+  await db.sustainmentReviews.clear();
 });
 
 afterEach(async () => {
@@ -72,6 +106,8 @@ afterEach(async () => {
   await db.outcomes.clear();
   await db.canvasState.clear();
   await db.actionItems.clear();
+  await db.sustainmentRecords.clear();
+  await db.sustainmentReviews.clear();
   vi.restoreAllMocks();
 });
 
@@ -106,6 +142,60 @@ describe('applyAction — HUB_PERSIST_SNAPSHOT', () => {
     const canvasRow = await db.canvasState.get('hub-1');
     expect(canvasRow?.hubId).toBe('hub-1');
     expect(canvasRow?.version).toBe(1);
+  });
+
+  it('strips sustainment arrays from the hub row and persists them in normalized tables', async () => {
+    const record = makeSustainmentRecord('sr-1', 'hub-s');
+    const review = makeSustainmentReview('rev-1', 'sr-1', 'hub-s');
+    const hub = makeHub('hub-s', {
+      sustainmentRecords: [record],
+      sustainmentReviews: [review],
+    } as Partial<ProcessHub>);
+
+    await applyAction(db, { kind: 'HUB_PERSIST_SNAPSHOT', hub });
+
+    const hubRow = await db.hubs.get('hub-s');
+    expect((hubRow as Partial<ProcessHub> | undefined)?.sustainmentRecords).toBeUndefined();
+    expect((hubRow as Partial<ProcessHub> | undefined)?.sustainmentReviews).toBeUndefined();
+    expect(
+      (await db.sustainmentRecords.where('hubId').equals('hub-s').toArray()).map(r => r.id)
+    ).toEqual(['sr-1']);
+    expect(
+      (await db.sustainmentReviews.where('hubId').equals('hub-s').toArray()).map(r => r.id)
+    ).toEqual(['rev-1']);
+  });
+
+  it('removes stale sustainment rows when re-persisting with a smaller snapshot', async () => {
+    await db.sustainmentRecords.put(makeSustainmentRecord('sr-stale', 'hub-stale'));
+    await db.sustainmentReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-stale'));
+
+    await applyAction(db, {
+      kind: 'HUB_PERSIST_SNAPSHOT',
+      hub: makeHub('hub-stale', {
+        sustainmentRecords: [makeSustainmentRecord('sr-keep', 'hub-stale')],
+        sustainmentReviews: [makeSustainmentReview('rev-keep', 'sr-keep', 'hub-stale')],
+      } as Partial<ProcessHub>),
+    });
+
+    expect(
+      (await db.sustainmentRecords.where('hubId').equals('hub-stale').toArray()).map(r => r.id)
+    ).toEqual(['sr-keep']);
+    expect(
+      (await db.sustainmentReviews.where('hubId').equals('hub-stale').toArray()).map(r => r.id)
+    ).toEqual(['rev-keep']);
+  });
+
+  it('removes stale sustainment rows when a snapshot omits sustainment arrays', async () => {
+    await db.sustainmentRecords.put(makeSustainmentRecord('sr-stale', 'hub-empty'));
+    await db.sustainmentReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-empty'));
+
+    await applyAction(db, {
+      kind: 'HUB_PERSIST_SNAPSHOT',
+      hub: makeHub('hub-empty'),
+    });
+
+    expect(await db.sustainmentRecords.where('hubId').equals('hub-empty').count()).toBe(0);
+    expect(await db.sustainmentReviews.where('hubId').equals('hub-empty').count()).toBe(0);
   });
 
   it('persists a hub with no outcomes — outcomes table stays empty', async () => {

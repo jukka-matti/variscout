@@ -37,6 +37,7 @@
 //   reaching this function — do not handle it here.
 
 import type { EvidenceSnapshot } from '@variscout/core';
+import { applySustainmentTick } from '@variscout/core';
 import type { HubAction } from '@variscout/core/actions';
 import { db } from '../db/schema';
 import { saveProcessHubToIndexedDB } from '../services/localDb';
@@ -158,14 +159,21 @@ export async function applyAction(action: HubAction): Promise<void> {
       // close could leave the replaced snapshot soft-deleted without the new
       // one inserted), but this is acceptable for Azure's single-table model
       // pre-F3.6. Future Azure normalization will revisit.
-      if (action.replacedSnapshotId) {
-        await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: Date.now() });
-      }
-      const envelope: EvidenceSnapshot = {
-        ...action.snapshot,
-        provenance: action.provenance,
-      };
-      await db.evidenceSnapshots.put(envelope);
+      await db.transaction(
+        'rw',
+        [db.evidenceSnapshots, db.sustainmentRecords, db.sustainmentReviews],
+        async () => {
+          if (action.replacedSnapshotId) {
+            await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: Date.now() });
+          }
+          const envelope: EvidenceSnapshot = {
+            ...action.snapshot,
+            provenance: action.provenance,
+          };
+          await db.evidenceSnapshots.put(envelope);
+          await evaluateSustainmentRecordsForSnapshot(action.hubId, envelope);
+        }
+      );
       return;
     }
 
@@ -318,6 +326,64 @@ export async function applyAction(action: HubAction): Promise<void> {
       return;
     }
 
+    case 'SUSTAINMENT_RECORD_CREATE': {
+      const hub = await db.processHubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(`SUSTAINMENT_RECORD_CREATE: parent hub ${action.hubId} does not exist`);
+      }
+      if (action.record.hubId !== action.hubId) {
+        throw new Error(
+          `SUSTAINMENT_RECORD_CREATE hubId mismatch: action hub '${action.hubId}' does not match record hub '${action.record.hubId}'`
+        );
+      }
+      await db.sustainmentRecords.add(action.record);
+      return;
+    }
+
+    case 'SUSTAINMENT_RECORD_UPDATE': {
+      const existing = await db.sustainmentRecords.get(action.recordId);
+      if (!existing) return;
+      await db.sustainmentRecords.update(action.recordId, {
+        ...action.patch,
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'SUSTAINMENT_RECORD_ARCHIVE': {
+      await db.sustainmentRecords.update(action.recordId, {
+        deletedAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'SUSTAINMENT_CONFIRM': {
+      await db.sustainmentRecords.update(action.recordId, {
+        status: 'confirmed-sustained',
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'SUSTAINMENT_MARK_DRIFTED': {
+      await db.sustainmentRecords.update(action.recordId, {
+        status: 'drifted',
+        consecutiveOnTargetTicks: 0,
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'SUSTAINMENT_TICK_EVALUATED': {
+      await db.transaction('rw', [db.sustainmentRecords, db.sustainmentReviews], async () => {
+        const existing = await db.sustainmentRecords.get(action.record.id);
+        await db.sustainmentRecords.put({ ...existing, ...action.record });
+        await db.sustainmentReviews.put(action.review);
+      });
+      return;
+    }
+
     // -------------------------------------------------------------------------
     // Session-only — Azure has no dedicated Dexie table today; F3 normalizes.
     // -------------------------------------------------------------------------
@@ -430,4 +496,24 @@ export async function applyAction(action: HubAction): Promise<void> {
     default:
       assertNever(action);
   }
+}
+
+async function evaluateSustainmentRecordsForSnapshot(
+  hubId: string,
+  snapshot: EvidenceSnapshot
+): Promise<void> {
+  await db.transaction('rw', [db.sustainmentRecords, db.sustainmentReviews], async () => {
+    const liveRecords = await db.sustainmentRecords
+      .where('hubId')
+      .equals(hubId)
+      .filter(record => record.deletedAt === null && record.lastEvaluatedSnapshotId !== snapshot.id)
+      .toArray();
+
+    if (liveRecords.length === 0) return;
+
+    const now = Date.now();
+    const evaluations = liveRecords.map(record => applySustainmentTick(record, snapshot, now));
+    await db.sustainmentRecords.bulkPut(evaluations.map(evaluation => evaluation.record));
+    await db.sustainmentReviews.bulkPut(evaluations.map(evaluation => evaluation.review));
+  });
 }

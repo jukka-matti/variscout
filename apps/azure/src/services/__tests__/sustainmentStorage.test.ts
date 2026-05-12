@@ -21,8 +21,13 @@ import type {
 
 const makeRecord = (overrides: Partial<SustainmentRecord> = {}): SustainmentRecord => ({
   id: 'rec-1',
+  title: 'Sustainment cadence',
   investigationId: 'inv-1',
   hubId: 'hub-1',
+  status: 'pending',
+  consecutiveOnTargetTicks: 0,
+  hasOverride: false,
+  lastEvaluatedSnapshotId: undefined,
   cadence: 'monthly',
   nextReviewDue: '2026-05-26T00:00:00.000Z',
   createdAt: 1745625600000, // 2026-04-26T00:00:00.000Z

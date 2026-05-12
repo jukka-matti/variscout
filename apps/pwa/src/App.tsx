@@ -1057,7 +1057,11 @@ function AppMain() {
                 }}
               />
             ) : panels.activeView === 'sustainment' ? (
-              <SustainmentPanel onBack={panels.showFrame} />
+              <SustainmentPanel
+                activeHub={sessionHub ?? undefined}
+                targetId={panels.sustainmentTargetId ?? undefined}
+                onBack={panels.showFrame}
+              />
             ) : panels.activeView === 'handoff' ? (
               <HandoffPanel onBack={panels.showFrame} />
             ) : panels.activeView === 'investigation' ? (

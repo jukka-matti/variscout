@@ -101,6 +101,19 @@ function _exhaustive(action: HubAction): void {
     // Action Item
     case 'ACTION_ITEM_ADD':
       return;
+    // Sustainment
+    case 'SUSTAINMENT_RECORD_CREATE':
+      return;
+    case 'SUSTAINMENT_RECORD_UPDATE':
+      return;
+    case 'SUSTAINMENT_RECORD_ARCHIVE':
+      return;
+    case 'SUSTAINMENT_CONFIRM':
+      return;
+    case 'SUSTAINMENT_MARK_DRIFTED':
+      return;
+    case 'SUSTAINMENT_TICK_EVALUATED':
+      return;
     default:
       return assertNever(action);
   }
@@ -177,5 +190,59 @@ describe('IMPROVEMENT_PROJECT actions', () => {
       patch: { sections: { background: { snapshotText: 'x' } } },
     };
     expect(partialSections.kind).toBe('IMPROVEMENT_PROJECT_UPDATE');
+  });
+});
+
+describe('SUSTAINMENT actions', () => {
+  it('compile under the HubAction discriminated union', () => {
+    const create: HubAction = {
+      kind: 'SUSTAINMENT_RECORD_CREATE',
+      hubId: 'hub-1',
+      record: {
+        id: 'sus-1',
+        title: 'Hold improved fill weight',
+        investigationId: 'inv-1',
+        hubId: 'hub-1',
+        cadence: 'weekly',
+        status: 'pending',
+        consecutiveOnTargetTicks: 0,
+        hasOverride: false,
+        lastEvaluatedSnapshotId: undefined,
+        createdAt: 1_746_352_800_000,
+        updatedAt: 1_746_352_800_000,
+        deletedAt: null,
+      },
+    };
+    const update: HubAction = {
+      kind: 'SUSTAINMENT_RECORD_UPDATE',
+      recordId: 'sus-1',
+      patch: { targetSummary: 'Cpk >= 1.33' },
+    };
+    const archive: HubAction = { kind: 'SUSTAINMENT_RECORD_ARCHIVE', recordId: 'sus-1' };
+    const confirm: HubAction = { kind: 'SUSTAINMENT_CONFIRM', recordId: 'sus-1' };
+    const drifted: HubAction = { kind: 'SUSTAINMENT_MARK_DRIFTED', recordId: 'sus-1' };
+    const tick: HubAction = {
+      kind: 'SUSTAINMENT_TICK_EVALUATED',
+      record: create.record,
+      review: {
+        id: 'review-1',
+        recordId: 'sus-1',
+        investigationId: 'inv-1',
+        hubId: 'hub-1',
+        reviewedAt: 1_746_352_800_000,
+        reviewer: { displayName: 'System' },
+        verdict: 'holding',
+        snapshotId: 'snapshot-1',
+        createdAt: 1_746_352_800_000,
+        deletedAt: null,
+      },
+    };
+
+    expect(create.kind).toBe('SUSTAINMENT_RECORD_CREATE');
+    expect(update.kind).toBe('SUSTAINMENT_RECORD_UPDATE');
+    expect(archive.kind).toBe('SUSTAINMENT_RECORD_ARCHIVE');
+    expect(confirm.kind).toBe('SUSTAINMENT_CONFIRM');
+    expect(drifted.kind).toBe('SUSTAINMENT_MARK_DRIFTED');
+    expect(tick.kind).toBe('SUSTAINMENT_TICK_EVALUATED');
   });
 });

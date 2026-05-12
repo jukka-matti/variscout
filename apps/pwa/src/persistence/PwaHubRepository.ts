@@ -44,6 +44,8 @@ import type {
   HypothesisReadAPI,
   CanvasStateReadAPI,
   ActionItemReadAPI,
+  SustainmentRecordReadAPI,
+  SustainmentReviewReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
 import type { ProcessHub } from '@variscout/core/processHub';
@@ -87,6 +89,10 @@ export class PwaHubRepository implements HubRepository {
       db.canvasState.get(hubMeta.id),
       db.improvementProjects.where('hubId').equals(hubMeta.id).toArray(),
     ]);
+    const [sustainmentRecords, sustainmentReviews] = await Promise.all([
+      this.sustainmentRecords.listByHub(hubMeta.id),
+      this.sustainmentReviews.listByHub(hubMeta.id),
+    ]);
     const liveOutcomes = outcomes.filter(o => o.deletedAt === null);
     const liveProjects = improvementProjects.filter(p => p.deletedAt === null);
     const canonicalProcessMap = canvasRow ? stripHubId(canvasRow) : undefined;
@@ -95,6 +101,8 @@ export class PwaHubRepository implements HubRepository {
       ...(liveOutcomes.length > 0 ? { outcomes: liveOutcomes } : {}),
       ...(canonicalProcessMap ? { canonicalProcessMap } : {}),
       ...(liveProjects.length > 0 ? { improvementProjects: liveProjects } : {}),
+      ...(sustainmentRecords.length > 0 ? { sustainmentRecords } : {}),
+      ...(sustainmentReviews.length > 0 ? { sustainmentReviews } : {}),
     } as ProcessHub;
   }
 
@@ -111,7 +119,14 @@ export class PwaHubRepository implements HubRepository {
     get: async id => {
       return db.transaction(
         'r',
-        [db.hubs, db.outcomes, db.canvasState, db.improvementProjects],
+        [
+          db.hubs,
+          db.outcomes,
+          db.canvasState,
+          db.improvementProjects,
+          db.sustainmentRecords,
+          db.sustainmentReviews,
+        ],
         async () => {
           const hubMeta = await db.hubs.get(id);
           if (!hubMeta) return undefined;
@@ -123,7 +138,14 @@ export class PwaHubRepository implements HubRepository {
     list: async () => {
       return db.transaction(
         'r',
-        [db.hubs, db.outcomes, db.canvasState, db.improvementProjects],
+        [
+          db.hubs,
+          db.outcomes,
+          db.canvasState,
+          db.improvementProjects,
+          db.sustainmentRecords,
+          db.sustainmentReviews,
+        ],
         async () => {
           const allHubs = await db.hubs.toArray();
           const liveHubs = allHubs.filter(h => h.deletedAt === null);
@@ -281,6 +303,36 @@ export class PwaHubRepository implements HubRepository {
         .map(stripActionItemHubId);
     },
   };
+
+  sustainmentRecords: SustainmentRecordReadAPI = {
+    get: async id => {
+      const row = await db.sustainmentRecords.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
+    },
+    listByHub: async hubId => {
+      const rows = await db.sustainmentRecords.where('hubId').equals(hubId).toArray();
+      return rows.filter(row => row.deletedAt === null);
+    },
+  };
+
+  sustainmentReviews: SustainmentReviewReadAPI = {
+    get: async id => {
+      const row = await db.sustainmentReviews.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
+    },
+    listByHub: async hubId => {
+      const rows = await db.sustainmentReviews.where('hubId').equals(hubId).toArray();
+      return sortReviewsDescending(rows.filter(row => row.deletedAt === null));
+    },
+    listByRecord: async (hubId, recordId) => {
+      const rows = await db.sustainmentReviews.where('recordId').equals(recordId).toArray();
+      return sortReviewsDescending(
+        rows.filter(row => row.hubId === hubId && row.deletedAt === null)
+      );
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -300,6 +352,10 @@ function stripActionItemHubId(row: { hubId: string } & ActionItem): ActionItem {
   const { hubId: _hubId, ...actionItem } = row;
   void _hubId;
   return actionItem;
+}
+
+function sortReviewsDescending<T extends { reviewedAt: number }>(rows: T[]): T[] {
+  return rows.sort((a, b) => b.reviewedAt - a.reviewedAt);
 }
 
 // Module-scoped singleton. Composition root + dispatch boundary documented in apps/pwa/CLAUDE.md.

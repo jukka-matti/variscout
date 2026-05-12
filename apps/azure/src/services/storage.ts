@@ -134,6 +134,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
   const [notifications, setNotifications] = useState<SyncNotification[]>([]);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const processRetryQueueRef = useRef<() => Promise<void>>(async () => {});
 
   // ── Notification helpers ────────────────────────────────────────────
 
@@ -177,6 +178,12 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const isSyncingRef = useRef(false);
 
+  const scheduleRetry = useCallback((delay: number) => {
+    retryTimerRef.current = setTimeout(() => {
+      void processRetryQueueRef.current();
+    }, delay);
+  }, []);
+
   const processRetryQueue = useCallback(async () => {
     if (retryQueue.current.length === 0) return;
     if (!navigator.onLine) return;
@@ -201,7 +208,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       } else {
         // Process next item
         const delay = Math.min(RETRY_DELAYS[0], MAX_RETRY_DELAY);
-        retryTimerRef.current = setTimeout(processRetryQueue, delay);
+        scheduleRetry(delay);
       }
     } catch (error) {
       if (error instanceof CloudSyncUnavailableErrorClass) {
@@ -235,12 +242,16 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           error instanceof GraphErrorClass && error.retryAfterMs ? error.retryAfterMs : undefined;
         const delayIdx = Math.min(item.attempt - 1, RETRY_DELAYS.length - 1);
         const delay = Math.min(serverDelay ?? RETRY_DELAYS[delayIdx], MAX_RETRY_DELAY);
-        retryTimerRef.current = setTimeout(processRetryQueue, delay);
+        scheduleRetry(delay);
       }
     } finally {
       isSyncingRef.current = false;
     }
-  }, [addNotification]);
+  }, [addNotification, scheduleRetry]);
+
+  useEffect(() => {
+    processRetryQueueRef.current = processRetryQueue;
+  }, [processRetryQueue]);
 
   // Cleanup timers on unmount
   useEffect(() => {
@@ -406,7 +417,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           // Queue for retry with backoff
           retryQueue.current.push({ project, name, location, attempt: 1 });
           const delay = RETRY_DELAYS[0];
-          retryTimerRef.current = setTimeout(processRetryQueue, delay);
+          scheduleRetry(delay);
           addNotification({ type: 'warning', message: classified.message, dismissAfter: 5000 });
         } else {
           setSyncStatus({
@@ -416,7 +427,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
     },
-    [addNotification, processRetryQueue]
+    [addNotification, scheduleRetry]
   );
 
   // ── Load project (cloud first if online, with conflict detection) ───

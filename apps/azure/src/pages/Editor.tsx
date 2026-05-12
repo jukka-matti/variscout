@@ -1609,7 +1609,11 @@ export const Editor: React.FC<EditorProps> = ({
                 }}
               />
             ) : activeView === 'sustainment' ? (
-              <SustainmentPanel onBack={() => usePanelsStore.getState().showFrame()} />
+              <SustainmentPanel
+                activeHub={activeHub}
+                targetId={usePanelsStore.getState().sustainmentTargetId ?? undefined}
+                onBack={() => usePanelsStore.getState().showFrame()}
+              />
             ) : activeView === 'handoff' ? (
               <HandoffPanel onBack={() => usePanelsStore.getState().showFrame()} />
             ) : activeView === 'investigation' ? (

@@ -34,6 +34,8 @@ import type {
   EvidenceSource,
   EvidenceSourceCursor,
   RowProvenanceTag,
+  SustainmentRecord,
+  SustainmentReview,
 } from '@variscout/core';
 import type {
   Finding,
@@ -59,7 +61,10 @@ export interface MetaRow {
  * `outcomes` array and `canonicalProcessMap` blob, which are decomposed into
  * the `outcomes` and `canvasState` tables respectively on `HUB_PERSIST_SNAPSHOT`.
  */
-export type HubRow = Omit<ProcessHub, 'outcomes' | 'canonicalProcessMap'>;
+export type HubRow = Omit<
+  ProcessHub,
+  'outcomes' | 'canonicalProcessMap' | 'sustainmentRecords' | 'sustainmentReviews'
+>;
 
 /**
  * Outcome row — the public `OutcomeSpec` entity. `OutcomeSpec` already carries
@@ -87,6 +92,8 @@ export type CausalLinkRow = CausalLink;
 export type HypothesisRow = Hypothesis;
 export type ImprovementProjectRow = ImprovementProject;
 export type ActionItemRow = ActionItem & { hubId: ProcessHub['id'] };
+export type SustainmentRecordRow = SustainmentRecord;
+export type SustainmentReviewRow = SustainmentReview;
 
 // ---------------------------------------------------------------------------
 // Database
@@ -106,6 +113,8 @@ export class PwaDatabase extends Dexie {
   hypotheses!: Table<HypothesisRow, string>;
   improvementProjects!: Table<ImprovementProjectRow, string>;
   actionItems!: Table<ActionItemRow, string>;
+  sustainmentRecords!: Table<SustainmentRecordRow, string>;
+  sustainmentReviews!: Table<SustainmentReviewRow, string>;
   canvasState!: Table<CanvasStateRow, string>;
   meta!: Table<MetaRow, string>;
 
@@ -130,6 +139,10 @@ export class PwaDatabase extends Dexie {
     this.version(2).stores({
       actionItems:
         '&id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
+    });
+    this.version(3).stores({
+      sustainmentRecords: '&id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
+      sustainmentReviews: '&id, recordId, investigationId, hubId, reviewedAt',
     });
   }
 }

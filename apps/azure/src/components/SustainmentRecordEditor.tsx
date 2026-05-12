@@ -73,8 +73,13 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
     const nowMs = Date.now();
     const record: SustainmentRecord = {
       id: existingRecord?.id ?? crypto.randomUUID(),
+      title: existingRecord?.title ?? 'Sustainment cadence',
       investigationId,
       hubId,
+      status: existingRecord?.status ?? 'pending',
+      consecutiveOnTargetTicks: existingRecord?.consecutiveOnTargetTicks ?? 0,
+      hasOverride: existingRecord?.hasOverride ?? false,
+      lastEvaluatedSnapshotId: existingRecord?.lastEvaluatedSnapshotId,
       cadence,
       nextReviewDue: nextReviewDue
         ? new Date(nextReviewDue + 'T00:00:00.000Z').toISOString()
