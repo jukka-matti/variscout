@@ -56,6 +56,7 @@ const hoisted = vi.hoisted(() => ({
   canvasWorkspaceMock: vi.fn(),
   listByHubMock: vi.fn(),
   actionItemsListByHubMock: vi.fn(),
+  sustainmentRecordsListByHubMock: vi.fn(),
   dispatchMock: vi.fn(),
 }));
 
@@ -105,6 +106,21 @@ vi.mock('@variscout/stores', () => ({
 vi.mock('@variscout/ui', async () => {
   const React = await import('react');
   return {
+    InboxDigest: (props: { prompts: unknown[]; onNavigate: (prompt: unknown) => void }) =>
+      React.createElement(
+        'div',
+        { 'data-testid': 'inbox-digest', 'data-count': props.prompts.length },
+        props.prompts.length > 0
+          ? React.createElement(
+              'button',
+              {
+                type: 'button',
+                onClick: () => props.onNavigate(props.prompts[0]),
+              },
+              'Open inbox prompt'
+            )
+          : null
+      ),
     CanvasWorkspace: (props: {
       signals: WorkflowReadinessSignals;
       onSeeData: () => void;
@@ -128,6 +144,7 @@ vi.mock('@variscout/ui', async () => {
       onHandoff?: () => void;
       priorStepStats?: ReadonlyMap<string, unknown>;
       actionItems?: unknown[];
+      contextLinkGroups?: { surfaceType: string; items: { id: string }[] }[];
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -229,6 +246,9 @@ vi.mock('../../../persistence', () => ({
     actionItems: {
       listByHub: hoisted.actionItemsListByHubMock,
     },
+    sustainmentRecords: {
+      listByHub: hoisted.sustainmentRecordsListByHubMock,
+    },
   },
 }));
 
@@ -254,6 +274,8 @@ describe('FrameView (Azure shell)', () => {
     hoisted.listByHubMock.mockResolvedValue([]);
     hoisted.actionItemsListByHubMock.mockReset();
     hoisted.actionItemsListByHubMock.mockResolvedValue([]);
+    hoisted.sustainmentRecordsListByHubMock.mockReset();
+    hoisted.sustainmentRecordsListByHubMock.mockResolvedValue([]);
     hoisted.dispatchMock.mockReset();
     hoisted.dispatchMock.mockResolvedValue(undefined);
     improvementProjectStateRef.current = {
@@ -590,5 +612,108 @@ describe('FrameView (Azure shell)', () => {
     expect(showCharterMock).toHaveBeenCalledTimes(1);
     expect(showSustainmentMock).toHaveBeenCalledTimes(1);
     expect(showHandoffMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks Sustainment ready only when a closed project has completed intervention evidence and keeps Handoff gated until sustainment is confirmed', async () => {
+    improvementProjectStateRef.current = {
+      projectsByHub: {
+        'hub-1': [
+          {
+            id: 'ip-1',
+            hubId: 'hub-1',
+            status: 'closed',
+            metadata: { title: 'Reduce rework' },
+            goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', target: 98 } },
+            sections: {
+              background: {},
+              investigationLineage: {},
+              approach: { actionItemIds: ['action-1'] },
+              outcomeReference: {},
+            },
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+          },
+        ],
+      },
+      getProjectsForHub: () => [],
+    };
+    hoisted.actionItemsListByHubMock.mockResolvedValue([
+      { ...actionItem('action-1', 'Change nozzle'), completedAt: 1714000000000 },
+    ]);
+
+    render(<FrameView />);
+
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.signals).toEqual({ hasIntervention: true, sustainmentConfirmed: false });
+    });
+  });
+
+  it('marks Handoff ready and includes sustainment context links when a live record is confirmed', async () => {
+    hoisted.sustainmentRecordsListByHubMock.mockResolvedValue([
+      {
+        id: 'sr-1',
+        hubId: 'hub-1',
+        investigationId: 'inv-1',
+        status: 'confirmed-sustained',
+        title: 'Sustain Reduce rework',
+        consecutiveOnTargetTicks: 4,
+        hasOverride: false,
+        lastEvaluatedSnapshotId: undefined,
+        cadence: 'monthly',
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+      },
+    ]);
+
+    render(<FrameView />);
+
+    await waitFor(() => {
+      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(props?.signals.sustainmentConfirmed).toBe(true);
+      expect(
+        props?.contextLinkGroups?.find(
+          (group: { surfaceType: string }) => group.surfaceType === 'sustainment'
+        )?.items
+      ).toEqual([expect.objectContaining({ id: 'sr-1' })]);
+    });
+  });
+
+  it('passes the Inbox sustainment target id when opening a lifecycle prompt', async () => {
+    improvementProjectStateRef.current = {
+      projectsByHub: {
+        'hub-1': [
+          {
+            id: 'ip-1',
+            hubId: 'hub-1',
+            status: 'closed',
+            metadata: { title: 'Reduce rework' },
+            goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', target: 98 } },
+            sections: {
+              background: {},
+              investigationLineage: {},
+              approach: {},
+              outcomeReference: {},
+            },
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+          },
+        ],
+      },
+      getProjectsForHub: () => [],
+    };
+    storeStateRef.current = {
+      ...storeStateRef.current,
+      processContext: { processHubId: 'hub-1' },
+    };
+
+    render(<FrameView />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Open inbox prompt' }));
+
+    expect(showSustainmentMock).toHaveBeenCalledWith('ip-1');
   });
 });

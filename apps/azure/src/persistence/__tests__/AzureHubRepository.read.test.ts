@@ -20,7 +20,13 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { AzureHubRepository } from '../AzureHubRepository';
 import { db } from '../../db/schema';
 import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
-import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '@variscout/core';
+import type {
+  EvidenceSource,
+  EvidenceSnapshot,
+  EvidenceSourceCursor,
+  SustainmentRecord,
+  SustainmentReview,
+} from '@variscout/core';
 
 // ---------------------------------------------------------------------------
 // Fixture helpers
@@ -91,6 +97,48 @@ function makeCursor(
   };
 }
 
+function makeSustainmentRecord(
+  id: string,
+  hubId = 'hub-azure-1',
+  overrides: Partial<SustainmentRecord> = {}
+): SustainmentRecord {
+  return {
+    id,
+    hubId,
+    investigationId: `inv-${id}`,
+    status: 'pending',
+    title: `Record ${id}`,
+    consecutiveOnTargetTicks: 0,
+    hasOverride: false,
+    lastEvaluatedSnapshotId: undefined,
+    cadence: 'monthly',
+    updatedAt: NOW,
+    createdAt: NOW,
+    deletedAt: null,
+    ...overrides,
+  };
+}
+
+function makeSustainmentReview(
+  id: string,
+  recordId: string,
+  hubId = 'hub-azure-1',
+  overrides: Partial<SustainmentReview> = {}
+): SustainmentReview {
+  return {
+    id,
+    recordId,
+    hubId,
+    investigationId: `inv-${recordId}`,
+    reviewedAt: NOW,
+    reviewer: { displayName: 'Reviewer' },
+    verdict: 'holding',
+    createdAt: NOW,
+    deletedAt: null,
+    ...overrides,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Read API tests
 // ---------------------------------------------------------------------------
@@ -105,6 +153,8 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
     await db.evidenceSnapshots.clear();
     await db.evidenceSourceCursors.clear();
     await db.improvementProjects.clear();
+    await db.sustainmentRecords.clear();
+    await db.sustainmentReviews.clear();
   });
 
   afterEach(async () => {
@@ -113,6 +163,8 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
     await db.evidenceSnapshots.clear();
     await db.evidenceSourceCursors.clear();
     await db.improvementProjects.clear();
+    await db.sustainmentRecords.clear();
+    await db.sustainmentReviews.clear();
   });
 
   // ---- hubs.get ----
@@ -133,6 +185,23 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
     it('returns undefined when table is empty', async () => {
       const result = await repo.hubs.get('hub-azure-1');
       expect(result).toBeUndefined();
+    });
+
+    it('hydrates live sustainment records and reviews from dedicated tables', async () => {
+      await db.processHubs.put(makeHub({ id: 'hub-azure-1' }));
+      await db.sustainmentRecords.bulkPut([
+        makeSustainmentRecord('sr-live'),
+        makeSustainmentRecord('sr-dead', 'hub-azure-1', { deletedAt: NOW }),
+      ]);
+      await db.sustainmentReviews.bulkPut([
+        makeSustainmentReview('rev-live', 'sr-live'),
+        makeSustainmentReview('rev-dead', 'sr-live', 'hub-azure-1', { deletedAt: NOW }),
+      ]);
+
+      const result = await repo.hubs.get('hub-azure-1');
+
+      expect(result?.sustainmentRecords?.map(record => record.id)).toEqual(['sr-live']);
+      expect(result?.sustainmentReviews?.map(review => review.id)).toEqual(['rev-live']);
     });
   });
 
@@ -162,6 +231,63 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
       await db.processHubs.bulkPut([live, archived]);
       const result = await repo.hubs.list();
       expect(result.map(h => h.id)).toEqual(['hub-live']);
+    });
+
+    it('hydrates live sustainment records and reviews for each listed hub', async () => {
+      await db.processHubs.bulkPut([
+        makeHub({ id: 'hub-1', name: 'Hub One' }),
+        makeHub({ id: 'hub-2', name: 'Hub Two' }),
+      ]);
+      await db.sustainmentRecords.bulkPut([
+        makeSustainmentRecord('sr-1', 'hub-1'),
+        makeSustainmentRecord('sr-2', 'hub-2'),
+      ]);
+      await db.sustainmentReviews.bulkPut([
+        makeSustainmentReview('rev-1', 'sr-1', 'hub-1'),
+        makeSustainmentReview('rev-2', 'sr-2', 'hub-2'),
+      ]);
+
+      const result = await repo.hubs.list();
+      const byId = new Map(result.map(hub => [hub.id, hub]));
+
+      expect(byId.get('hub-1')?.sustainmentRecords?.map(record => record.id)).toEqual(['sr-1']);
+      expect(byId.get('hub-1')?.sustainmentReviews?.map(review => review.id)).toEqual(['rev-1']);
+      expect(byId.get('hub-2')?.sustainmentRecords?.map(record => record.id)).toEqual(['sr-2']);
+      expect(byId.get('hub-2')?.sustainmentReviews?.map(review => review.id)).toEqual(['rev-2']);
+    });
+  });
+
+  // ---- sustainmentRecords / sustainmentReviews ----
+
+  describe('sustainment read APIs', () => {
+    it('sustainmentRecords list/get return only live records for the requested hub', async () => {
+      await db.sustainmentRecords.bulkPut([
+        makeSustainmentRecord('sr-live', 'hub-azure-1'),
+        makeSustainmentRecord('sr-dead', 'hub-azure-1', { deletedAt: NOW }),
+        makeSustainmentRecord('sr-other', 'hub-other'),
+      ]);
+
+      const rows = await repo.sustainmentRecords.listByHub('hub-azure-1');
+
+      expect(rows.map(row => row.id)).toEqual(['sr-live']);
+      expect((await repo.sustainmentRecords.get('sr-live'))?.id).toBe('sr-live');
+      expect(await repo.sustainmentRecords.get('sr-dead')).toBeUndefined();
+    });
+
+    it('sustainmentReviews list/get return only live reviews for the requested record and hub', async () => {
+      await db.sustainmentReviews.bulkPut([
+        makeSustainmentReview('rev-live', 'sr-live', 'hub-azure-1', { reviewedAt: NOW + 1 }),
+        makeSustainmentReview('rev-old', 'sr-live', 'hub-azure-1', { reviewedAt: NOW - 1 }),
+        makeSustainmentReview('rev-dead', 'sr-live', 'hub-azure-1', { deletedAt: NOW }),
+        makeSustainmentReview('rev-other-record', 'sr-other', 'hub-azure-1'),
+        makeSustainmentReview('rev-other-hub', 'sr-live', 'hub-other'),
+      ]);
+
+      const rows = await repo.sustainmentReviews.listByRecord('hub-azure-1', 'sr-live');
+
+      expect(rows.map(row => row.id)).toEqual(['rev-live', 'rev-old']);
+      expect((await repo.sustainmentReviews.get('rev-live'))?.id).toBe('rev-live');
+      expect(await repo.sustainmentReviews.get('rev-dead')).toBeUndefined();
     });
   });
 

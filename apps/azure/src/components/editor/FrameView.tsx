@@ -7,6 +7,8 @@
 import React from 'react';
 import {
   CanvasWorkspace,
+  InboxDigest,
+  type InboxDigestPrompt,
   type ContextLinkGroup,
   type ContextLinkItem,
   type LogActionPayload,
@@ -21,15 +23,19 @@ import type { CanvasInvestigationFocus } from '@variscout/hooks';
 import type {
   EvidenceSnapshot,
   StepCapabilityStamp,
+  SustainmentRecord,
   WorkflowReadinessSignals,
 } from '@variscout/core';
 import { createActionItem, type ActionItem } from '@variscout/core/findings';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
+import { surveyInboxRules } from '@variscout/core/survey';
 import { azureHubRepository } from '../../persistence';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
 
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
+const EMPTY_SUSTAINMENT_RECORDS: SustainmentRecord[] = [];
 
 function mergeActionItems(
   current: readonly ActionItem[],
@@ -53,6 +59,26 @@ function priorStepStatsFromSnapshots(
   return new Map(stamps.map(stamp => [stamp.stepId, stamp]));
 }
 
+function hasCompletedInterventionEvidence(
+  projects: readonly ImprovementProject[],
+  items: readonly ActionItem[]
+): boolean {
+  const completedActionIds = new Set(
+    items
+      .filter(
+        item =>
+          item.deletedAt === null &&
+          (item.completedAt !== undefined || item.status === 'done' || item.doneAt != null)
+      )
+      .map(item => item.id)
+  );
+  return projects.some(project => {
+    if (project.deletedAt !== null || project.status !== 'closed') return false;
+    const actionItemIds = project.sections.approach.actionItemIds ?? [];
+    return actionItemIds.some(id => completedActionIds.has(id));
+  });
+}
+
 const FrameView: React.FC = () => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
@@ -72,6 +98,8 @@ const FrameView: React.FC = () => {
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
   const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
+  const [sustainmentRecords, setSustainmentRecords] =
+    React.useState<SustainmentRecord[]>(EMPTY_SUSTAINMENT_RECORDS);
   const activeHubIdRef = React.useRef<string | null>(activeHubId);
 
   React.useEffect(() => {
@@ -101,6 +129,7 @@ const FrameView: React.FC = () => {
 
   React.useEffect(() => {
     setActionItems(EMPTY_ACTION_ITEMS);
+    setSustainmentRecords(EMPTY_SUSTAINMENT_RECORDS);
 
     if (!activeHubId) {
       return;
@@ -109,8 +138,16 @@ const FrameView: React.FC = () => {
     let cancelled = false;
     void (async () => {
       try {
-        const items = await azureHubRepository.actionItems.listByHub(activeHubId);
-        if (!cancelled) setActionItems(items);
+        const [items, records] = await Promise.all([
+          azureHubRepository.actionItems.listByHub(activeHubId),
+          azureHubRepository.sustainmentRecords.listByHub(activeHubId),
+        ]);
+        if (!cancelled) {
+          setActionItems(items);
+          setSustainmentRecords(
+            records.filter((record: SustainmentRecord) => record.deletedAt === null)
+          );
+        }
       } catch {
         // Keep any in-memory quick actions if the local repository is unavailable.
       }
@@ -121,15 +158,11 @@ const FrameView: React.FC = () => {
     };
   }, [activeHubId]);
 
-  const signals: WorkflowReadinessSignals = React.useMemo(
-    () => ({ hasIntervention: false, sustainmentConfirmed: false }),
-    []
-  );
-
   const contextLinkGroups: readonly ContextLinkGroup[] = React.useMemo(() => {
     const improvementProjects = (activeHubId ? (projectsByHub[activeHubId] ?? []) : []).filter(
       project => project.deletedAt === null
     );
+    const liveSustainmentRecords = sustainmentRecords.filter(record => record.deletedAt === null);
 
     return [
       {
@@ -149,10 +182,42 @@ const FrameView: React.FC = () => {
         })),
       },
       { surfaceType: 'quick-actions', items: [] },
-      { surfaceType: 'sustainment', items: [] },
+      {
+        surfaceType: 'sustainment',
+        items: liveSustainmentRecords.map(record => ({
+          id: record.id,
+          label: record.title,
+          description: record.status,
+        })),
+      },
       { surfaceType: 'handoff', items: [] },
     ];
-  }, [activeHubId, hypotheses, projectsByHub]);
+  }, [activeHubId, hypotheses, projectsByHub, sustainmentRecords]);
+
+  const signals: WorkflowReadinessSignals = React.useMemo(() => {
+    const improvementProjects = (activeHubId ? (projectsByHub[activeHubId] ?? []) : []).filter(
+      project => project.deletedAt === null
+    );
+
+    return {
+      hasIntervention: hasCompletedInterventionEvidence(improvementProjects, actionItems),
+      sustainmentConfirmed: sustainmentRecords.some(
+        record => record.deletedAt === null && record.status === 'confirmed-sustained'
+      ),
+    };
+  }, [activeHubId, actionItems, projectsByHub, sustainmentRecords]);
+
+  const inboxPrompts = React.useMemo(() => {
+    const improvementProjects = (activeHubId ? (projectsByHub[activeHubId] ?? []) : []).filter(
+      project => project.deletedAt === null
+    );
+
+    return surveyInboxRules({
+      improvementProjects,
+      sustainmentRecords,
+      now: Date.now(),
+    });
+  }, [activeHubId, projectsByHub, sustainmentRecords]);
 
   const handleSeeData = React.useCallback(() => {
     usePanelsStore.getState().showAnalysis();
@@ -243,6 +308,19 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showHandoff();
   }, []);
 
+  const handleInboxNavigate = React.useCallback((prompt: InboxDigestPrompt) => {
+    const surface = prompt.action?.opensSurface;
+    if (surface === 'sustainment') {
+      usePanelsStore.getState().showSustainment(prompt.action?.opensId);
+      return;
+    }
+    if (surface === 'improvement-projects') {
+      usePanelsStore.getState().showCharter();
+      return;
+    }
+    usePanelsStore.getState().showInvestigation();
+  }, []);
+
   const handleNavigateContextLink = React.useCallback(
     (item: ContextLinkItem) => {
       const isImprovementProject =
@@ -255,42 +333,51 @@ const FrameView: React.FC = () => {
         usePanelsStore.getState().showCharter();
         return;
       }
+      if (sustainmentRecords.some(record => record.id === item.id)) {
+        usePanelsStore.getState().showSustainment(item.id);
+        return;
+      }
       usePanelsStore.getState().showInvestigation();
     },
-    [activeHubId]
+    [activeHubId, sustainmentRecords]
   );
 
   return (
-    <CanvasWorkspace
-      rawData={rawData}
-      outcome={outcome}
-      factors={factors}
-      setOutcome={setOutcome}
-      setFactors={setFactors}
-      measureSpecs={measureSpecs}
-      setMeasureSpec={setMeasureSpec}
-      processContext={processContext}
-      setProcessContext={setProcessContext}
-      onSeeData={handleSeeData}
-      onLogQuickAction={handleLogQuickAction}
-      onFocusedInvestigation={handleFocusedInvestigation}
-      findings={findings}
-      questions={questions}
-      hypotheses={hypotheses}
-      causalLinks={causalLinks}
-      onOpenWall={handleOpenWall}
-      onOpenInvestigationFocus={handleOpenInvestigationFocus}
-      onAddCausalLink={handleAddCausalLink}
-      onRemoveCausalLink={handleRemoveCausalLink}
-      signals={signals}
-      onCharter={handleCharter}
-      onSustainment={handleSustainment}
-      onHandoff={handleHandoff}
-      contextLinkGroups={contextLinkGroups}
-      onNavigateContextLink={handleNavigateContextLink}
-      priorStepStats={priorStepStats}
-      actionItems={actionItems}
-    />
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="px-4 pt-4">
+        <InboxDigest prompts={inboxPrompts} onNavigate={handleInboxNavigate} />
+      </div>
+      <CanvasWorkspace
+        rawData={rawData}
+        outcome={outcome}
+        factors={factors}
+        setOutcome={setOutcome}
+        setFactors={setFactors}
+        measureSpecs={measureSpecs}
+        setMeasureSpec={setMeasureSpec}
+        processContext={processContext}
+        setProcessContext={setProcessContext}
+        onSeeData={handleSeeData}
+        onLogQuickAction={handleLogQuickAction}
+        onFocusedInvestigation={handleFocusedInvestigation}
+        findings={findings}
+        questions={questions}
+        hypotheses={hypotheses}
+        causalLinks={causalLinks}
+        onOpenWall={handleOpenWall}
+        onOpenInvestigationFocus={handleOpenInvestigationFocus}
+        onAddCausalLink={handleAddCausalLink}
+        onRemoveCausalLink={handleRemoveCausalLink}
+        signals={signals}
+        onCharter={handleCharter}
+        onSustainment={handleSustainment}
+        onHandoff={handleHandoff}
+        contextLinkGroups={contextLinkGroups}
+        onNavigateContextLink={handleNavigateContextLink}
+        priorStepStats={priorStepStats}
+        actionItems={actionItems}
+      />
+    </div>
   );
 };
 

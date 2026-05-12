@@ -13,7 +13,8 @@ import type {
   ProcessStateNote,
   ResponsePathAction,
 } from '@variscout/core';
-import { ProcessHubCurrentStatePanel } from '@variscout/ui';
+import { InboxDigest, ProcessHubCurrentStatePanel, type InboxDigestPrompt } from '@variscout/ui';
+import { surveyInboxRules } from '@variscout/core/survey';
 import ProcessHubCadenceQuestions from './ProcessHubCadenceQuestions';
 import ProcessHubCadenceQueues from './ProcessHubCadenceQueues';
 import { formatLatestActivity } from './ProcessHubFormat';
@@ -75,6 +76,22 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
 }) => {
   const cadence = buildProcessHubCadence(rollup);
   const currentState = buildCurrentProcessState(rollup, cadence);
+  const inboxPrompts = React.useMemo(
+    () =>
+      surveyInboxRules({
+        hub: rollup.hub,
+        improvementProjects: rollup.hub.improvementProjects ?? [],
+        sustainmentRecords: rollup.sustainmentRecords,
+        sustainmentReviews: rollup.hub.sustainmentReviews ?? [],
+        now: Date.now(),
+      }),
+    [
+      rollup.hub.id,
+      rollup.hub.improvementProjects,
+      rollup.hub.sustainmentReviews,
+      rollup.sustainmentRecords,
+    ]
+  );
 
   // Pick the most-recently-modified investigation in this hub as the
   // default navigation target for hub-aggregate state items (capability-gap,
@@ -93,6 +110,40 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   const actionFor = React.useCallback(
     (item: ProcessStateItem) => deriveResponsePathAction(item, defaultInvestigationId),
     [defaultInvestigationId]
+  );
+
+  const handleInboxNavigate = React.useCallback(
+    (prompt: InboxDigestPrompt) => {
+      const surface = prompt.action?.opensSurface;
+      const targetId = prompt.action?.opensId;
+      const targetProject = rollup.hub.improvementProjects?.find(
+        project => project.id === targetId
+      );
+      if (surface === 'sustainment' && targetId) {
+        if (rollup.sustainmentRecords.some(record => record.id === targetId)) {
+          onLogReview(targetId);
+          return;
+        }
+        if (targetProject?.metadata.investigationId) {
+          onSetupSustainment(targetProject.metadata.investigationId);
+          return;
+        }
+        onOpenInvestigation(targetId);
+        return;
+      }
+      if (surface === 'improvement-projects' && targetId) {
+        onOpenInvestigation(targetProject?.metadata.investigationId ?? targetId);
+        return;
+      }
+      if (targetId) onOpenInvestigation(targetId);
+    },
+    [
+      onLogReview,
+      onOpenInvestigation,
+      onSetupSustainment,
+      rollup.hub.improvementProjects,
+      rollup.sustainmentRecords,
+    ]
   );
 
   // Resolver: given a state item, return the investigation IDs whose findings
@@ -178,6 +229,10 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           <Plus size={16} />
           New Investigation
         </button>
+      </div>
+
+      <div className="mt-4">
+        <InboxDigest prompts={inboxPrompts} onNavigate={handleInboxNavigate} />
       </div>
 
       <ProcessHubCurrentStatePanel

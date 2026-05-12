@@ -166,8 +166,13 @@ describe('SustainmentRecordEditor', () => {
   it("preserves an existing record's next-review-due when cadence changes (treated as user-set)", () => {
     const existingRecord: SustainmentRecord = {
       id: 'rec-existing',
+      title: 'Sustainment cadence',
       investigationId: 'inv-abc',
       hubId: 'hub-1',
+      status: 'pending',
+      consecutiveOnTargetTicks: 0,
+      hasOverride: false,
+      lastEvaluatedSnapshotId: undefined,
       cadence: 'monthly',
       nextReviewDue: '2026-12-01T00:00:00.000Z',
       createdAt: 1743465600000, // 2026-04-01T00:00:00.000Z
@@ -242,8 +247,13 @@ describe('SustainmentRecordEditor', () => {
 describe('SustainmentReviewLogger', () => {
   const baseRecord: SustainmentRecord = {
     id: 'rec-1',
+    title: 'Sustainment cadence',
     investigationId: 'inv-abc',
     hubId: 'hub-1',
+    status: 'pending',
+    consecutiveOnTargetTicks: 0,
+    hasOverride: false,
+    lastEvaluatedSnapshotId: undefined,
     cadence: 'monthly',
     nextReviewDue: '2026-04-27T00:00:00.000Z',
     createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z
@@ -382,8 +392,13 @@ describe('ControlHandoffEditor', () => {
   it('updates relatedRecord.controlHandoffId after saving the handoff', async () => {
     const relatedRecord: SustainmentRecord = {
       id: 'rec-1',
+      title: 'Sustainment cadence',
       investigationId: 'inv-abc',
       hubId: 'hub-1',
+      status: 'pending',
+      consecutiveOnTargetTicks: 0,
+      hasOverride: false,
+      lastEvaluatedSnapshotId: undefined,
       cadence: 'monthly',
       createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z
       updatedAt: 1740787200000,

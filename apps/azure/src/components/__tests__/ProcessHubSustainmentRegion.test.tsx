@@ -82,8 +82,13 @@ function makeRecord(
 ): SustainmentRecord {
   return {
     id: `rec-${investigationId}`,
+    title: 'Sustainment cadence',
     investigationId,
     hubId: 'hub-1',
+    status: 'pending',
+    consecutiveOnTargetTicks: 0,
+    hasOverride: false,
+    lastEvaluatedSnapshotId: undefined,
     cadence: 'monthly',
     createdAt: 1735689600000, // 2026-01-01T00:00:00.000Z
     updatedAt: 1735689600000, // 2026-01-01T00:00:00.000Z

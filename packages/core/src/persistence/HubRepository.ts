@@ -3,6 +3,7 @@ import type { ProcessHub, OutcomeSpec, ProcessHubInvestigation } from '../proces
 import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '../evidenceSources';
 import type { Finding, Question, CausalLink, Hypothesis, ActionItem } from '../findings/types';
 import type { ProcessMap } from '../frame/types';
+import type { SustainmentRecord, SustainmentReview } from '../sustainment';
 
 export interface HubReadAPI {
   get(id: ProcessHub['id']): Promise<ProcessHub | undefined>;
@@ -63,6 +64,20 @@ export interface ActionItemReadAPI {
   listByStep(hubId: ProcessHub['id'], stepId: string): Promise<ActionItem[]>;
 }
 
+export interface SustainmentRecordReadAPI {
+  get(id: SustainmentRecord['id']): Promise<SustainmentRecord | undefined>;
+  listByHub(hubId: ProcessHub['id']): Promise<SustainmentRecord[]>;
+}
+
+export interface SustainmentReviewReadAPI {
+  get(id: SustainmentReview['id']): Promise<SustainmentReview | undefined>;
+  listByHub(hubId: ProcessHub['id']): Promise<SustainmentReview[]>;
+  listByRecord(
+    hubId: ProcessHub['id'],
+    recordId: SustainmentRecord['id']
+  ): Promise<SustainmentReview[]>;
+}
+
 /**
  * Single-interface repository for all hub domain writes + grouped reads.
  * Write path: one `dispatch(action)` entry point — all mutations flow through it.
@@ -85,4 +100,6 @@ export interface HubRepository {
   hypotheses: HypothesisReadAPI;
   canvasState: CanvasStateReadAPI;
   actionItems: ActionItemReadAPI;
+  sustainmentRecords: SustainmentRecordReadAPI;
+  sustainmentReviews: SustainmentReviewReadAPI;
 }

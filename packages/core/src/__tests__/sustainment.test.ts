@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applySustainmentTick,
+  evaluateSustainmentSnapshot,
   isSustainmentDue,
   isSustainmentOverdue,
   nextDueFromCadence,
@@ -12,6 +14,7 @@ import {
   type SustainmentRecord,
   type SustainmentVerdict,
 } from '../sustainment';
+import type { EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessHubInvestigation } from '../processHub';
 
 describe('nextDueFromCadence', () => {
@@ -59,15 +62,188 @@ describe('nextDueFromCadence', () => {
 function makeRecord(nextReviewDue?: string): SustainmentRecord {
   return {
     id: 'rec-1',
+    title: 'Sustain fill-weight gains',
     investigationId: 'inv-1',
     hubId: 'hub-1',
     cadence: 'monthly',
+    status: 'pending',
+    consecutiveOnTargetTicks: 0,
+    hasOverride: false,
+    lastEvaluatedSnapshotId: undefined,
     nextReviewDue,
     createdAt: 1743465600000,
     updatedAt: 1743465600000,
     deletedAt: null,
   };
 }
+
+function makeSnapshot(overrides: Partial<EvidenceSnapshot> = {}): EvidenceSnapshot {
+  return {
+    id: 'snapshot-1',
+    hubId: 'hub-1',
+    sourceId: 'source-1',
+    capturedAt: '2026-05-12T00:00:00.000Z',
+    rowCount: 5,
+    origin: 'paste',
+    importedAt: 1_746_352_800_000,
+    createdAt: 1_746_352_800_000,
+    deletedAt: null,
+    ...overrides,
+  };
+}
+
+describe('evaluateSustainmentSnapshot', () => {
+  it('returns inconclusive when the snapshot has no actionable latestSignals', () => {
+    expect(evaluateSustainmentSnapshot(makeRecord(), makeSnapshot()).verdict).toBe('inconclusive');
+    expect(
+      evaluateSustainmentSnapshot(
+        makeRecord(),
+        makeSnapshot({
+          latestSignals: [
+            {
+              id: 'signal-neutral',
+              label: 'No target configured',
+              value: 0,
+              severity: 'neutral',
+              capturedAt: '2026-05-12T00:00:00.000Z',
+            },
+          ],
+        })
+      ).verdict
+    ).toBe('inconclusive');
+  });
+
+  it('returns drifting when any actionable signal is amber or red', () => {
+    const result = evaluateSustainmentSnapshot(
+      makeRecord(),
+      makeSnapshot({
+        latestSignals: [
+          {
+            id: 'signal-green',
+            label: 'Cpk',
+            value: 1.41,
+            severity: 'green',
+            capturedAt: '2026-05-12T00:00:00.000Z',
+          },
+          {
+            id: 'signal-amber',
+            label: 'Scrap',
+            value: 0.08,
+            severity: 'amber',
+            capturedAt: '2026-05-12T00:00:00.000Z',
+          },
+        ],
+      })
+    );
+
+    expect(result.verdict).toBe('drifting');
+    expect(result.actionableSignalCount).toBe(2);
+  });
+
+  it('returns holding when all actionable signals are green', () => {
+    const result = evaluateSustainmentSnapshot(
+      makeRecord(),
+      makeSnapshot({
+        latestSignals: [
+          {
+            id: 'signal-green',
+            label: 'Cpk',
+            value: 1.41,
+            severity: 'green',
+            capturedAt: '2026-05-12T00:00:00.000Z',
+          },
+        ],
+      })
+    );
+
+    expect(result.verdict).toBe('holding');
+    expect(result.actionableSignalCount).toBe(1);
+  });
+});
+
+describe('applySustainmentTick', () => {
+  it('increments consecutiveOnTargetTicks and auto-confirms after four holding ticks', () => {
+    const record = { ...makeRecord(), consecutiveOnTargetTicks: 3 };
+    const snapshot = makeSnapshot({
+      latestSignals: [
+        {
+          id: 'signal-green',
+          label: 'Cpk',
+          value: 1.41,
+          severity: 'green',
+          capturedAt: '2026-05-12T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const result = applySustainmentTick(record, snapshot, 1_746_352_800_000);
+
+    expect(result.record.consecutiveOnTargetTicks).toBe(4);
+    expect(result.record.status).toBe('confirmed-sustained');
+    expect(result.record.lastEvaluatedSnapshotId).toBe('snapshot-1');
+    expect(result.review.verdict).toBe('holding');
+    expect(result.review.snapshotId).toBe('snapshot-1');
+  });
+
+  it('does not auto-confirm when hasOverride is true', () => {
+    const result = applySustainmentTick(
+      { ...makeRecord(), consecutiveOnTargetTicks: 3, hasOverride: true },
+      makeSnapshot({
+        latestSignals: [
+          {
+            id: 'signal-green',
+            label: 'Cpk',
+            value: 1.41,
+            severity: 'green',
+            capturedAt: '2026-05-12T00:00:00.000Z',
+          },
+        ],
+      }),
+      1_746_352_800_000
+    );
+
+    expect(result.record.consecutiveOnTargetTicks).toBe(4);
+    expect(result.record.status).toBe('pending');
+  });
+
+  it('resets the counter and marks confirmed records drifted on amber or red signals', () => {
+    const result = applySustainmentTick(
+      {
+        ...makeRecord(),
+        status: 'confirmed-sustained',
+        consecutiveOnTargetTicks: 4,
+      },
+      makeSnapshot({
+        latestSignals: [
+          {
+            id: 'signal-red',
+            label: 'Defects',
+            value: 3,
+            severity: 'red',
+            capturedAt: '2026-05-12T00:00:00.000Z',
+          },
+        ],
+      }),
+      1_746_352_800_000
+    );
+
+    expect(result.record.consecutiveOnTargetTicks).toBe(0);
+    expect(result.record.status).toBe('drifted');
+    expect(result.review.verdict).toBe('drifting');
+  });
+
+  it('leaves counter and status unchanged for inconclusive snapshots', () => {
+    const result = applySustainmentTick(
+      { ...makeRecord(), consecutiveOnTargetTicks: 2 },
+      makeSnapshot({ latestSignals: [] }),
+      1_746_352_800_000
+    );
+
+    expect(result.record.consecutiveOnTargetTicks).toBe(2);
+    expect(result.record.status).toBe('pending');
+    expect(result.review.verdict).toBe('inconclusive');
+  });
+});
 
 describe('isSustainmentDue', () => {
   it('returns false when nextReviewDue is undefined', () => {

@@ -8,6 +8,7 @@ import type {
   ProcessParticipantRef,
 } from './processHub';
 import type { EvidenceSnapshot } from './evidenceSources';
+import type { ImprovementProjectGoal } from './improvementProject';
 
 export type SustainmentCadence =
   | 'weekly'
@@ -19,6 +20,7 @@ export type SustainmentCadence =
   | 'on-demand';
 
 export type SustainmentVerdict = 'holding' | 'drifting' | 'broken' | 'inconclusive';
+export type SustainmentStatus = 'pending' | 'confirmed-sustained' | 'drifted';
 
 export type ControlHandoffSurface =
   | 'mes-recipe'
@@ -38,6 +40,14 @@ export interface SustainmentRecord extends EntityBase {
   // record is archived but readable.
   investigationId: ProcessHubInvestigation['id'];
   hubId: ProcessHub['id'];
+  status: SustainmentStatus;
+  title: string;
+  improvementProjectId?: string;
+  goal?: ImprovementProjectGoal;
+  targetSummary?: string;
+  consecutiveOnTargetTicks: number;
+  hasOverride: boolean;
+  lastEvaluatedSnapshotId: EvidenceSnapshot['id'] | undefined;
   cadence: SustainmentCadence;
   nextReviewDue?: string;
   latestVerdict?: SustainmentVerdict;
@@ -47,6 +57,15 @@ export interface SustainmentRecord extends EntityBase {
   openConcerns?: string;
   controlHandoffId?: ControlHandoff['id'];
   updatedAt: number;
+}
+
+export interface SustainmentSnapshotEvaluation {
+  verdict: SustainmentVerdict;
+  onTarget: boolean | null;
+  actionableSignalCount: number;
+  nextConsecutiveOnTargetTicks: number;
+  nextStatus: SustainmentStatus;
+  observation: string;
 }
 
 export interface SustainmentReview extends EntityBase {
@@ -88,6 +107,104 @@ export interface SustainmentMetadataProjection {
   nextReviewDue?: string;
   latestVerdict?: SustainmentVerdict;
   handoffSurface?: ControlHandoffSurface;
+}
+
+function normalizedSustainmentStatus(record: SustainmentRecord): SustainmentStatus {
+  return record.status ?? 'pending';
+}
+
+function normalizedConsecutiveOnTargetTicks(record: SustainmentRecord): number {
+  const ticks = record.consecutiveOnTargetTicks ?? 0;
+  return Number.isFinite(ticks) && ticks > 0 ? Math.floor(ticks) : 0;
+}
+
+function normalizedHasOverride(record: SustainmentRecord): boolean {
+  return record.hasOverride === true;
+}
+
+export function evaluateSustainmentSnapshot(
+  record: SustainmentRecord,
+  snapshot: EvidenceSnapshot
+): SustainmentSnapshotEvaluation {
+  const currentTicks = normalizedConsecutiveOnTargetTicks(record);
+  const currentStatus = normalizedSustainmentStatus(record);
+  const actionableSignals = (snapshot.latestSignals ?? []).filter(
+    signal => signal.severity !== 'neutral'
+  );
+
+  if (actionableSignals.length === 0) {
+    return {
+      verdict: 'inconclusive',
+      onTarget: null,
+      actionableSignalCount: 0,
+      nextConsecutiveOnTargetTicks: currentTicks,
+      nextStatus: currentStatus,
+      observation: 'No actionable sustainment signals were available for this snapshot.',
+    };
+  }
+
+  const hasAmber = actionableSignals.some(signal => signal.severity === 'amber');
+  const hasRed = actionableSignals.some(signal => signal.severity === 'red');
+  if (hasAmber || hasRed) {
+    return {
+      verdict: 'drifting',
+      onTarget: false,
+      actionableSignalCount: actionableSignals.length,
+      nextConsecutiveOnTargetTicks: 0,
+      nextStatus: currentStatus === 'confirmed-sustained' ? 'drifted' : currentStatus,
+      observation: 'An amber or red sustainment signal indicates the gain is drifting.',
+    };
+  }
+
+  const nextTicks = currentTicks + 1;
+  const nextStatus =
+    nextTicks >= 4 && !normalizedHasOverride(record) ? 'confirmed-sustained' : currentStatus;
+
+  return {
+    verdict: 'holding',
+    onTarget: true,
+    actionableSignalCount: actionableSignals.length,
+    nextConsecutiveOnTargetTicks: nextTicks,
+    nextStatus,
+    observation:
+      nextStatus === 'confirmed-sustained'
+        ? 'Sustainment target held for four consecutive ticks.'
+        : 'All actionable sustainment signals are on target.',
+  };
+}
+
+export function applySustainmentTick(
+  record: SustainmentRecord,
+  snapshot: EvidenceSnapshot,
+  now: number = Date.now()
+): { record: SustainmentRecord; review: SustainmentReview } {
+  const evaluation = evaluateSustainmentSnapshot(record, snapshot);
+  const nextRecord: SustainmentRecord = {
+    ...record,
+    status: evaluation.nextStatus,
+    consecutiveOnTargetTicks: evaluation.nextConsecutiveOnTargetTicks,
+    hasOverride: normalizedHasOverride(record),
+    lastEvaluatedSnapshotId: snapshot.id,
+    latestVerdict: evaluation.verdict,
+    latestReviewAt: new Date(now).toISOString(),
+    updatedAt: now,
+  };
+
+  const review: SustainmentReview = {
+    id: `${record.id}:${snapshot.id}:review`,
+    recordId: record.id,
+    investigationId: record.investigationId,
+    hubId: record.hubId,
+    reviewedAt: now,
+    reviewer: { displayName: 'System' },
+    verdict: evaluation.verdict,
+    snapshotId: snapshot.id,
+    observation: evaluation.observation,
+    createdAt: now,
+    deletedAt: null,
+  };
+
+  return { record: nextRecord, review };
 }
 
 /**

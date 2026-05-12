@@ -20,9 +20,12 @@ import type {
   HypothesisReadAPI,
   CanvasStateReadAPI,
   ActionItemReadAPI,
+  SustainmentRecordReadAPI,
+  SustainmentReviewReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
 import type { ActionItem } from '@variscout/core/findings';
+import type { ProcessHub } from '@variscout/core/processHub';
 import { db } from '../db/schema';
 import { saveProcessHubToIndexedDB } from '../services/localDb';
 import { applyAction } from './applyAction';
@@ -39,22 +42,47 @@ export class AzureHubRepository implements HubRepository {
     if (action.kind === 'HUB_PERSIST_SNAPSHOT') {
       // improvementProjects live in their own table; decompose them out of the
       // hub blob before saving. Mirrors the PWA HUB_PERSIST_SNAPSHOT decomposition.
-      const { improvementProjects, ...hubWithoutIP } = action.hub;
-      await db.transaction('rw', [db.processHubs, db.improvementProjects], async () => {
-        await saveProcessHubToIndexedDB(hubWithoutIP);
-        // Drop stale rows for this hub, then bulk-put incoming snapshot rows.
-        const incomingProjectIds = new Set((improvementProjects ?? []).map(p => p.id));
-        await db.improvementProjects
-          .where('hubId')
-          .equals(action.hub.id)
-          .filter(p => !incomingProjectIds.has(p.id))
-          .delete();
-        if (improvementProjects && improvementProjects.length > 0) {
-          await db.improvementProjects.bulkPut(
-            improvementProjects.map(p => ({ ...p, hubId: action.hub.id }))
-          );
+      const { improvementProjects, sustainmentRecords, sustainmentReviews, ...hubRow } = action.hub;
+      await db.transaction(
+        'rw',
+        [db.processHubs, db.improvementProjects, db.sustainmentRecords, db.sustainmentReviews],
+        async () => {
+          await saveProcessHubToIndexedDB(hubRow);
+          // Drop stale rows for this hub, then bulk-put incoming snapshot rows.
+          const incomingProjectIds = new Set((improvementProjects ?? []).map(p => p.id));
+          await db.improvementProjects
+            .where('hubId')
+            .equals(action.hub.id)
+            .filter(p => !incomingProjectIds.has(p.id))
+            .delete();
+          if (improvementProjects && improvementProjects.length > 0) {
+            await db.improvementProjects.bulkPut(
+              improvementProjects.map(p => ({ ...p, hubId: action.hub.id }))
+            );
+          }
+          const incomingSustainmentRecords = sustainmentRecords ?? [];
+          const incomingRecordIds = new Set(incomingSustainmentRecords.map(record => record.id));
+          await db.sustainmentRecords
+            .where('hubId')
+            .equals(action.hub.id)
+            .filter(record => !incomingRecordIds.has(record.id))
+            .delete();
+          if (incomingSustainmentRecords.length > 0) {
+            await db.sustainmentRecords.bulkPut(incomingSustainmentRecords);
+          }
+
+          const incomingSustainmentReviews = sustainmentReviews ?? [];
+          const incomingReviewIds = new Set(incomingSustainmentReviews.map(review => review.id));
+          await db.sustainmentReviews
+            .where('hubId')
+            .equals(action.hub.id)
+            .filter(review => !incomingReviewIds.has(review.id))
+            .delete();
+          if (incomingSustainmentReviews.length > 0) {
+            await db.sustainmentReviews.bulkPut(incomingSustainmentReviews);
+          }
         }
-      });
+      );
       return;
     }
 
@@ -70,23 +98,26 @@ export class AzureHubRepository implements HubRepository {
   hubs: HubReadAPI = {
     // hubs.get is unscoped — direct id lookup; hydrates improvementProjects from dedicated table.
     async get(id) {
-      const hub = await db.processHubs.get(id);
-      if (!hub) return undefined;
-      const ips = await db.improvementProjects.where('hubId').equals(id).toArray();
-      const liveIps = ips.filter(p => p.deletedAt === null);
-      if (liveIps.length === 0) return hub;
-      return { ...hub, improvementProjects: liveIps };
+      return db.transaction(
+        'r',
+        [db.processHubs, db.improvementProjects, db.sustainmentRecords, db.sustainmentReviews],
+        async () => {
+          const hub = await db.processHubs.get(id);
+          if (!hub) return undefined;
+          if (hub.deletedAt !== null) return undefined;
+          return hydrateHub(hub);
+        }
+      );
     },
     async list() {
-      const all = await db.processHubs.toArray();
-      const live = all.filter(h => h.deletedAt === null);
-      return Promise.all(
-        live.map(async hub => {
-          const ips = await db.improvementProjects.where('hubId').equals(hub.id).toArray();
-          const liveIps = ips.filter(p => p.deletedAt === null);
-          if (liveIps.length === 0) return hub;
-          return { ...hub, improvementProjects: liveIps };
-        })
+      return db.transaction(
+        'r',
+        [db.processHubs, db.improvementProjects, db.sustainmentRecords, db.sustainmentReviews],
+        async () => {
+          const all = await db.processHubs.toArray();
+          const live = all.filter(h => h.deletedAt === null);
+          return Promise.all(live.map(hydrateHub));
+        }
       );
     },
   };
@@ -232,12 +263,65 @@ export class AzureHubRepository implements HubRepository {
         .map(stripActionItemHubId);
     },
   };
+
+  sustainmentRecords: SustainmentRecordReadAPI = {
+    async get(id) {
+      const row = await db.sustainmentRecords.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
+    },
+    async listByHub(hubId) {
+      const rows = await db.sustainmentRecords.where('hubId').equals(hubId).toArray();
+      return rows.filter(row => row.deletedAt === null);
+    },
+  };
+
+  sustainmentReviews: SustainmentReviewReadAPI = {
+    async get(id) {
+      const row = await db.sustainmentReviews.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
+    },
+    async listByHub(hubId) {
+      const rows = await db.sustainmentReviews.where('hubId').equals(hubId).toArray();
+      return sortReviewsDescending(rows.filter(row => row.deletedAt === null));
+    },
+    async listByRecord(hubId, recordId) {
+      const rows = await db.sustainmentReviews.where('recordId').equals(recordId).toArray();
+      return sortReviewsDescending(
+        rows.filter(row => row.hubId === hubId && row.deletedAt === null)
+      );
+    },
+  };
+}
+
+async function hydrateHub(hub: ProcessHub): Promise<ProcessHub> {
+  const [ips, sustainmentRecords, sustainmentReviews] = await Promise.all([
+    db.improvementProjects.where('hubId').equals(hub.id).toArray(),
+    db.sustainmentRecords.where('hubId').equals(hub.id).toArray(),
+    db.sustainmentReviews.where('hubId').equals(hub.id).toArray(),
+  ]);
+  const liveIps = ips.filter(p => p.deletedAt === null);
+  const liveSustainmentRecords = sustainmentRecords.filter(record => record.deletedAt === null);
+  const liveSustainmentReviews = sortReviewsDescending(
+    sustainmentReviews.filter(review => review.deletedAt === null)
+  );
+  return {
+    ...hub,
+    ...(liveIps.length > 0 ? { improvementProjects: liveIps } : {}),
+    ...(liveSustainmentRecords.length > 0 ? { sustainmentRecords: liveSustainmentRecords } : {}),
+    ...(liveSustainmentReviews.length > 0 ? { sustainmentReviews: liveSustainmentReviews } : {}),
+  };
 }
 
 function stripActionItemHubId(row: { hubId: string } & ActionItem): ActionItem {
   const { hubId: _hubId, ...actionItem } = row;
   void _hubId;
   return actionItem;
+}
+
+function sortReviewsDescending<T extends { reviewedAt: number }>(rows: T[]): T[] {
+  return rows.sort((a, b) => b.reviewedAt - a.reviewedAt);
 }
 
 // Module-scoped singleton. Composition root + dispatch boundary documented in apps/azure/CLAUDE.md.

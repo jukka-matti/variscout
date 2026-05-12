@@ -46,6 +46,7 @@ export interface UseAppPanelsReturn {
   setHighlightedChartPoint: (v: number | null) => void;
   isDesktop: boolean;
   openSpecEditorRequested: boolean;
+  sustainmentTargetId: string | null;
   setOpenSpecEditorRequested: (v: boolean) => void;
   openDataTableAtRow: (index: number) => void;
   handleToggleFindingsPanel: () => void;
@@ -151,6 +152,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     highlightedChartPoint: store.highlightedChartPoint,
     isDesktop,
     openSpecEditorRequested: store.openSpecEditorRequested,
+    sustainmentTargetId: store.sustainmentTargetId,
     isPISidebarOpen: store.isPISidebarOpen,
 
     // Setters (delegate to store)

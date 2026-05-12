@@ -55,6 +55,22 @@ vi.mock('../../db/schema', () => ({
       bulkPut: vi.fn().mockResolvedValue([]),
       clear: vi.fn(),
     },
+    sustainmentRecords: {
+      get: vi.fn(),
+      where: vi.fn(() => ({
+        equals: vi.fn(() => ({ filter: vi.fn(() => ({ delete: vi.fn().mockResolvedValue(0) })) })),
+      })),
+      bulkPut: vi.fn().mockResolvedValue([]),
+      clear: vi.fn(),
+    },
+    sustainmentReviews: {
+      get: vi.fn(),
+      where: vi.fn(() => ({
+        equals: vi.fn(() => ({ filter: vi.fn(() => ({ delete: vi.fn().mockResolvedValue(0) })) })),
+      })),
+      bulkPut: vi.fn().mockResolvedValue([]),
+      clear: vi.fn(),
+    },
     // transaction executes the callback immediately (no real transaction scope needed in mocks).
     transaction: vi.fn((_mode: string, _tables: unknown[], callback: () => Promise<void>) =>
       callback()

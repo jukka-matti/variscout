@@ -37,6 +37,7 @@ interface PanelsState {
   activeImprovementView: 'plan' | 'track';
   /** ID of idea highlighted via matrix<->card bidirectional navigation */
   highlightedIdeaId: string | null;
+  sustainmentTargetId: string | null;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -49,7 +50,7 @@ interface PanelsActions {
   showImprovement: () => void;
   showReport: () => void;
   showCharter: () => void;
-  showSustainment: () => void;
+  showSustainment: (targetId?: string) => void;
   showHandoff: () => void;
   openDataTable: () => void;
   closeDataTable: () => void;
@@ -114,6 +115,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   factorPreviewDismissed: false,
   activeImprovementView: 'plan',
   highlightedIdeaId: null,
+  sustainmentTargetId: null,
 
   // Workspace navigation (ADR-055 + header-redesign spec, extended with 'frame' per ADR-070)
   showDashboard: () => set(() => ({ activeView: 'dashboard' })),
@@ -135,7 +137,12 @@ export const usePanelsStore = create<PanelsStore>(set => ({
     })),
   showReport: () => set(() => ({ activeView: 'report' })),
   showCharter: () => set(() => ({ activeView: 'charter', isFindingsOpen: false })),
-  showSustainment: () => set(() => ({ activeView: 'sustainment', isFindingsOpen: false })),
+  showSustainment: targetId =>
+    set(() => ({
+      activeView: 'sustainment',
+      isFindingsOpen: false,
+      sustainmentTargetId: targetId ?? null,
+    })),
   showHandoff: () => set(() => ({ activeView: 'handoff', isFindingsOpen: false })),
 
   // Data table
