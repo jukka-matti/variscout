@@ -32,8 +32,8 @@ Decisions we keep relitigating. Each entry: short statement, rationale, closing 
   [`scripts/check-diagram-health.sh`](../scripts/check-diagram-health.sh) lines 137–198 is O(N²)
   over `docs/`. Industry baseline (husky/lint-staged 2026, Thoughtworks trunk-based dev guidance):
   pre-commit should be seconds — reserve graph walks for pre-push / CI. **Decision:** pre-commit
-  reserved for fast checks (<5 s typical); slow doc-graph checks moved to [`.husky/pre-push`](.husky/pre-push).
-  A docs-touched short-circuit in [`.husky/pre-commit`](.husky/pre-commit) re-runs the slow checks
+  reserved for fast checks (<5 s typical); slow doc-graph checks moved to [`.husky/pre-push`](../.husky/pre-push).
+  A docs-touched short-circuit in [`.husky/pre-commit`](../.husky/pre-commit) re-runs the slow checks
   at commit time when staged paths match `docs/**/*.md`, `CLAUDE.md`, `**/CLAUDE.md`, or
   `packages/*/src/index.ts` — so orphan/broken-link detection still fires on every commit that
   touches doc inputs, and unconditionally on every push. **Not in scope this round:** GitHub Actions
