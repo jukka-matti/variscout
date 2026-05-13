@@ -8,7 +8,7 @@ import type {
   ProcessParticipantRef,
 } from './processHub';
 import type { EvidenceSnapshot } from './evidenceSources';
-import type { ImprovementProjectGoal } from './improvementProject';
+import type { ImprovementProjectGoal, ImprovementProjectSignoff } from './improvementProject';
 
 export type SustainmentCadence =
   | 'weekly'
@@ -21,6 +21,7 @@ export type SustainmentCadence =
 
 export type SustainmentVerdict = 'holding' | 'drifting' | 'broken' | 'inconclusive';
 export type SustainmentStatus = 'pending' | 'confirmed-sustained' | 'drifted';
+export type ControlHandoffStatus = 'pending' | 'acknowledged' | 'operational';
 
 export type ControlHandoffSurface =
   | 'mes-recipe'
@@ -90,6 +91,7 @@ export interface ControlHandoff extends EntityBase {
   // (the system timestamp when this handoff entity was created).
   investigationId: ProcessHubInvestigation['id'];
   hubId: ProcessHub['id'];
+  status: ControlHandoffStatus;
   surface: ControlHandoffSurface;
   systemName: string;
   operationalOwner: ProcessParticipantRef;
@@ -99,6 +101,15 @@ export interface ControlHandoff extends EntityBase {
   referenceUri?: string;
   retainSustainmentReview: boolean;
   recordedBy: ProcessParticipantRef;
+  acknowledgedAt?: number;
+  operationalAt?: number;
+  ownerAcknowledgement?: {
+    acknowledgedBy: ProcessParticipantRef;
+    notes?: string;
+  };
+  escalationPath?: string;
+  reactionPlan?: string;
+  signoff?: ImprovementProjectSignoff;
 }
 
 export interface SustainmentMetadataProjection {

@@ -545,6 +545,7 @@ export type {
   SustainmentRecord,
   SustainmentReview,
   ControlHandoff,
+  ControlHandoffStatus,
   SustainmentCadence,
   SustainmentVerdict,
   ControlHandoffSurface,

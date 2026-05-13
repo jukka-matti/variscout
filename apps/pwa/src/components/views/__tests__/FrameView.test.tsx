@@ -56,6 +56,7 @@ const hoisted = vi.hoisted(() => ({
   listByHubMock: vi.fn(),
   actionItemsListByHubMock: vi.fn(),
   sustainmentRecordsListByHubMock: vi.fn(),
+  controlHandoffsListByHubMock: vi.fn(),
   dispatchMock: vi.fn(),
   sessionStateRef: { current: { hub: { id: 'hub-1' } as { id: string } | null } },
 }));
@@ -248,6 +249,9 @@ vi.mock('../../../persistence', () => ({
     sustainmentRecords: {
       listByHub: hoisted.sustainmentRecordsListByHubMock,
     },
+    controlHandoffs: {
+      listByHub: hoisted.controlHandoffsListByHubMock,
+    },
   },
 }));
 
@@ -278,6 +282,8 @@ describe('FrameView (PWA shell)', () => {
     hoisted.actionItemsListByHubMock.mockResolvedValue([]);
     hoisted.sustainmentRecordsListByHubMock.mockReset();
     hoisted.sustainmentRecordsListByHubMock.mockResolvedValue([]);
+    hoisted.controlHandoffsListByHubMock.mockReset();
+    hoisted.controlHandoffsListByHubMock.mockResolvedValue([]);
     hoisted.dispatchMock.mockReset();
     hoisted.dispatchMock.mockResolvedValue(undefined);
     hoisted.sessionStateRef.current = { hub: { id: 'hub-1' } };

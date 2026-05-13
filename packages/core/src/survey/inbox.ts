@@ -1,3 +1,4 @@
+import { surveyHandoffRules } from './handoff';
 import { surveySustainmentRules } from './sustainment';
 import type { SurveyContext, SurveyHint } from './types';
 
@@ -27,7 +28,7 @@ function toInboxPrompt(hint: SurveyHint): SurveyInboxPrompt {
 }
 
 export function surveyInboxRules(ctx: SurveyContext): SurveyInboxPrompt[] {
-  return surveySustainmentRules(ctx)
+  return [...surveySustainmentRules(ctx), ...surveyHandoffRules(ctx)]
     .map(toInboxPrompt)
     .sort((a, b) => {
       const severity = SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity];

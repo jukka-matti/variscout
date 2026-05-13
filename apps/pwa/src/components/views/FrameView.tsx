@@ -23,6 +23,7 @@ import type { CanvasInvestigationFocus } from '@variscout/hooks';
 import type {
   EvidenceSnapshot,
   StepCapabilityStamp,
+  ControlHandoff,
   SustainmentRecord,
   WorkflowReadinessSignals,
 } from '@variscout/core';
@@ -37,6 +38,7 @@ import { useInvestigationFeatureStore } from '../../features/investigation/inves
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
 const EMPTY_SUSTAINMENT_RECORDS: SustainmentRecord[] = [];
+const EMPTY_CONTROL_HANDOFFS: ControlHandoff[] = [];
 
 function mergeActionItems(
   current: readonly ActionItem[],
@@ -102,6 +104,8 @@ const FrameView: React.FC = () => {
   const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
   const [sustainmentRecords, setSustainmentRecords] =
     React.useState<SustainmentRecord[]>(EMPTY_SUSTAINMENT_RECORDS);
+  const [controlHandoffs, setControlHandoffs] =
+    React.useState<ControlHandoff[]>(EMPTY_CONTROL_HANDOFFS);
   const activeHubIdRef = React.useRef<string | null>(activeHubId);
 
   React.useEffect(() => {
@@ -132,6 +136,7 @@ const FrameView: React.FC = () => {
   React.useEffect(() => {
     setActionItems(EMPTY_ACTION_ITEMS);
     setSustainmentRecords(EMPTY_SUSTAINMENT_RECORDS);
+    setControlHandoffs(EMPTY_CONTROL_HANDOFFS);
 
     if (!activeHubId) {
       return;
@@ -140,26 +145,31 @@ const FrameView: React.FC = () => {
     let cancelled = false;
     void (async () => {
       try {
-        const [items, records] = await Promise.all([
+        const [items, records, handoffs] = await Promise.all([
           pwaHubRepository.actionItems.listByHub(activeHubId),
           pwaHubRepository.sustainmentRecords.listByHub(activeHubId),
+          pwaHubRepository.controlHandoffs.listByHub(activeHubId),
         ]);
         if (!cancelled) {
           setActionItems(items);
           setSustainmentRecords(
             records.filter((record: SustainmentRecord) => record.deletedAt === null)
           );
+          setControlHandoffs(handoffs.filter(handoff => handoff.deletedAt === null));
         }
       } catch {
         // Session-only hubs may not exist in IndexedDB; keep any in-memory quick actions.
-        if (!cancelled) setSustainmentRecords(activeHub?.sustainmentRecords ?? []);
+        if (!cancelled) {
+          setSustainmentRecords(activeHub?.sustainmentRecords ?? []);
+          setControlHandoffs(activeHub?.controlHandoffs ?? []);
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [activeHub?.sustainmentRecords, activeHubId]);
+  }, [activeHub?.controlHandoffs, activeHub?.sustainmentRecords, activeHubId]);
 
   const contextLinkGroups: readonly ContextLinkGroup[] = React.useMemo(() => {
     const improvementProjects = (
@@ -193,9 +203,23 @@ const FrameView: React.FC = () => {
           description: record.status,
         })),
       },
-      { surfaceType: 'handoff', items: [] },
+      {
+        surfaceType: 'handoff',
+        items: controlHandoffs.map(handoff => ({
+          id: handoff.id,
+          label: handoff.systemName || handoff.operationalOwner.displayName || 'Handoff',
+          description: handoff.status,
+        })),
+      },
     ];
-  }, [activeHub?.improvementProjects, activeHubId, hypotheses, projectsByHub, sustainmentRecords]);
+  }, [
+    activeHub?.improvementProjects,
+    activeHubId,
+    controlHandoffs,
+    hypotheses,
+    projectsByHub,
+    sustainmentRecords,
+  ]);
 
   const signals: WorkflowReadinessSignals = React.useMemo(() => {
     const improvementProjects = (
@@ -220,12 +244,14 @@ const FrameView: React.FC = () => {
       improvementProjects,
       sustainmentRecords,
       sustainmentReviews: activeHub?.sustainmentReviews ?? [],
+      controlHandoffs,
       now: Date.now(),
     });
   }, [
     activeHub?.improvementProjects,
     activeHub?.sustainmentReviews,
     activeHubId,
+    controlHandoffs,
     projectsByHub,
     sustainmentRecords,
   ]);
@@ -323,6 +349,10 @@ const FrameView: React.FC = () => {
       usePanelsStore.getState().showSustainment(prompt.action?.opensId);
       return;
     }
+    if (surface === 'handoff') {
+      usePanelsStore.getState().showHandoff(prompt.action?.opensId);
+      return;
+    }
     if (surface === 'improvement-projects') {
       usePanelsStore.getState().showCharter();
       return;
@@ -345,9 +375,13 @@ const FrameView: React.FC = () => {
         usePanelsStore.getState().showSustainment(item.id);
         return;
       }
+      if (controlHandoffs.some(handoff => handoff.id === item.id)) {
+        usePanelsStore.getState().showHandoff(item.id);
+        return;
+      }
       usePanelsStore.getState().showInvestigation();
     },
-    [activeHubId, sustainmentRecords]
+    [activeHubId, controlHandoffs, sustainmentRecords]
   );
 
   return (

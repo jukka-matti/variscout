@@ -13,6 +13,7 @@ export type {
   ActionItemReadAPI,
   SustainmentRecordReadAPI,
   SustainmentReviewReadAPI,
+  ControlHandoffReadAPI,
 } from './HubRepository';
 export type { EntityKind, CascadeRule, CascadeRuleset } from './cascadeRules';
 export { cascadeRules, transitiveCascade } from './cascadeRules';

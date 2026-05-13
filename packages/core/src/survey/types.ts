@@ -12,7 +12,7 @@ import type {
   SignalTrustGrade,
 } from '../signalCards';
 import type { ImprovementProject } from '../improvementProject';
-import type { SustainmentRecord, SustainmentReview } from '../sustainment';
+import type { ControlHandoff, SustainmentRecord, SustainmentReview } from '../sustainment';
 
 export type SurveyStatus = 'can-do-now' | 'can-do-with-caution' | 'cannot-do-yet' | 'ask-for-next';
 
@@ -197,6 +197,7 @@ export interface SurveyContext {
   improvementProjects?: ImprovementProject[];
   sustainmentRecords?: SustainmentRecord[];
   sustainmentReviews?: SustainmentReview[];
+  controlHandoffs?: ControlHandoff[];
   now?: Date | number;
 }
 

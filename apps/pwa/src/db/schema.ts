@@ -36,6 +36,7 @@ import type {
   RowProvenanceTag,
   SustainmentRecord,
   SustainmentReview,
+  ControlHandoff,
 } from '@variscout/core';
 import type {
   Finding,
@@ -63,7 +64,11 @@ export interface MetaRow {
  */
 export type HubRow = Omit<
   ProcessHub,
-  'outcomes' | 'canonicalProcessMap' | 'sustainmentRecords' | 'sustainmentReviews'
+  | 'outcomes'
+  | 'canonicalProcessMap'
+  | 'sustainmentRecords'
+  | 'sustainmentReviews'
+  | 'controlHandoffs'
 >;
 
 /**
@@ -94,6 +99,7 @@ export type ImprovementProjectRow = ImprovementProject;
 export type ActionItemRow = ActionItem & { hubId: ProcessHub['id'] };
 export type SustainmentRecordRow = SustainmentRecord;
 export type SustainmentReviewRow = SustainmentReview;
+export type ControlHandoffRow = ControlHandoff;
 
 // ---------------------------------------------------------------------------
 // Database
@@ -115,6 +121,7 @@ export class PwaDatabase extends Dexie {
   actionItems!: Table<ActionItemRow, string>;
   sustainmentRecords!: Table<SustainmentRecordRow, string>;
   sustainmentReviews!: Table<SustainmentReviewRow, string>;
+  controlHandoffs!: Table<ControlHandoffRow, string>;
   canvasState!: Table<CanvasStateRow, string>;
   meta!: Table<MetaRow, string>;
 
@@ -143,6 +150,9 @@ export class PwaDatabase extends Dexie {
     this.version(3).stores({
       sustainmentRecords: '&id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
       sustainmentReviews: '&id, recordId, investigationId, hubId, reviewedAt',
+    });
+    this.version(4).stores({
+      controlHandoffs: '&id, investigationId, hubId, status, handoffDate, deletedAt',
     });
   }
 }

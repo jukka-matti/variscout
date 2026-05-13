@@ -57,6 +57,7 @@ const hoisted = vi.hoisted(() => ({
   listByHubMock: vi.fn(),
   actionItemsListByHubMock: vi.fn(),
   sustainmentRecordsListByHubMock: vi.fn(),
+  controlHandoffsListByHubMock: vi.fn(),
   dispatchMock: vi.fn(),
 }));
 
@@ -249,6 +250,9 @@ vi.mock('../../../persistence', () => ({
     sustainmentRecords: {
       listByHub: hoisted.sustainmentRecordsListByHubMock,
     },
+    controlHandoffs: {
+      listByHub: hoisted.controlHandoffsListByHubMock,
+    },
   },
 }));
 
@@ -276,6 +280,8 @@ describe('FrameView (Azure shell)', () => {
     hoisted.actionItemsListByHubMock.mockResolvedValue([]);
     hoisted.sustainmentRecordsListByHubMock.mockReset();
     hoisted.sustainmentRecordsListByHubMock.mockResolvedValue([]);
+    hoisted.controlHandoffsListByHubMock.mockReset();
+    hoisted.controlHandoffsListByHubMock.mockResolvedValue([]);
     hoisted.dispatchMock.mockReset();
     hoisted.dispatchMock.mockResolvedValue(undefined);
     improvementProjectStateRef.current = {

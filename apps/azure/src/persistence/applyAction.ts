@@ -384,6 +384,65 @@ export async function applyAction(action: HubAction): Promise<void> {
       return;
     }
 
+    case 'CONTROL_HANDOFF_CREATE': {
+      const hub = await db.processHubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(`CONTROL_HANDOFF_CREATE: parent hub ${action.hubId} does not exist`);
+      }
+      if (action.handoff.hubId !== action.hubId) {
+        throw new Error(
+          `CONTROL_HANDOFF_CREATE hubId mismatch: action hub '${action.hubId}' does not match handoff hub '${action.handoff.hubId}'`
+        );
+      }
+      await db.controlHandoffs.add(action.handoff);
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_UPDATE': {
+      const existing = await db.controlHandoffs.get(action.handoffId);
+      if (!existing) return;
+      await db.controlHandoffs.update(action.handoffId, action.patch);
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_ARCHIVE': {
+      await db.controlHandoffs.update(action.handoffId, { deletedAt: Date.now() });
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_ACKNOWLEDGE': {
+      const acknowledgedAt = action.acknowledgedAt ?? Date.now();
+      await db.controlHandoffs.update(action.handoffId, {
+        status: 'acknowledged',
+        acknowledgedAt,
+        ownerAcknowledgement: {
+          acknowledgedBy: action.acknowledgedBy,
+          notes: action.notes,
+        },
+      });
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_MARK_OPERATIONAL': {
+      await db.controlHandoffs.update(action.handoffId, {
+        status: 'operational',
+        operationalAt: action.operationalAt ?? Date.now(),
+      });
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_SIGNOFF': {
+      const existing = await db.controlHandoffs.get(action.handoffId);
+      if (!existing) return;
+      const operationalAt = existing.operationalAt ?? action.signoff.approvedAt ?? Date.now();
+      await db.controlHandoffs.update(action.handoffId, {
+        status: 'operational',
+        operationalAt,
+        signoff: { ...(existing.signoff ?? {}), ...action.signoff },
+      });
+      return;
+    }
+
     // -------------------------------------------------------------------------
     // Session-only — Azure has no dedicated Dexie table today; F3 normalizes.
     // -------------------------------------------------------------------------

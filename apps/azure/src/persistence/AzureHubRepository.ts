@@ -22,6 +22,7 @@ import type {
   ActionItemReadAPI,
   SustainmentRecordReadAPI,
   SustainmentReviewReadAPI,
+  ControlHandoffReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
 import type { ActionItem } from '@variscout/core/findings';
@@ -42,10 +43,22 @@ export class AzureHubRepository implements HubRepository {
     if (action.kind === 'HUB_PERSIST_SNAPSHOT') {
       // improvementProjects live in their own table; decompose them out of the
       // hub blob before saving. Mirrors the PWA HUB_PERSIST_SNAPSHOT decomposition.
-      const { improvementProjects, sustainmentRecords, sustainmentReviews, ...hubRow } = action.hub;
+      const {
+        improvementProjects,
+        sustainmentRecords,
+        sustainmentReviews,
+        controlHandoffs,
+        ...hubRow
+      } = action.hub;
       await db.transaction(
         'rw',
-        [db.processHubs, db.improvementProjects, db.sustainmentRecords, db.sustainmentReviews],
+        [
+          db.processHubs,
+          db.improvementProjects,
+          db.sustainmentRecords,
+          db.sustainmentReviews,
+          db.controlHandoffs,
+        ],
         async () => {
           await saveProcessHubToIndexedDB(hubRow);
           // Drop stale rows for this hub, then bulk-put incoming snapshot rows.
@@ -81,6 +94,17 @@ export class AzureHubRepository implements HubRepository {
           if (incomingSustainmentReviews.length > 0) {
             await db.sustainmentReviews.bulkPut(incomingSustainmentReviews);
           }
+
+          const incomingControlHandoffs = controlHandoffs ?? [];
+          const incomingHandoffIds = new Set(incomingControlHandoffs.map(handoff => handoff.id));
+          await db.controlHandoffs
+            .where('hubId')
+            .equals(action.hub.id)
+            .filter(handoff => !incomingHandoffIds.has(handoff.id))
+            .delete();
+          if (incomingControlHandoffs.length > 0) {
+            await db.controlHandoffs.bulkPut(incomingControlHandoffs);
+          }
         }
       );
       return;
@@ -100,7 +124,13 @@ export class AzureHubRepository implements HubRepository {
     async get(id) {
       return db.transaction(
         'r',
-        [db.processHubs, db.improvementProjects, db.sustainmentRecords, db.sustainmentReviews],
+        [
+          db.processHubs,
+          db.improvementProjects,
+          db.sustainmentRecords,
+          db.sustainmentReviews,
+          db.controlHandoffs,
+        ],
         async () => {
           const hub = await db.processHubs.get(id);
           if (!hub) return undefined;
@@ -112,7 +142,13 @@ export class AzureHubRepository implements HubRepository {
     async list() {
       return db.transaction(
         'r',
-        [db.processHubs, db.improvementProjects, db.sustainmentRecords, db.sustainmentReviews],
+        [
+          db.processHubs,
+          db.improvementProjects,
+          db.sustainmentRecords,
+          db.sustainmentReviews,
+          db.controlHandoffs,
+        ],
         async () => {
           const all = await db.processHubs.toArray();
           const live = all.filter(h => h.deletedAt === null);
@@ -293,24 +329,39 @@ export class AzureHubRepository implements HubRepository {
       );
     },
   };
+
+  controlHandoffs: ControlHandoffReadAPI = {
+    async get(id) {
+      const row = await db.controlHandoffs.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
+    },
+    async listByHub(hubId) {
+      const rows = await db.controlHandoffs.where('hubId').equals(hubId).toArray();
+      return rows.filter(row => row.deletedAt === null);
+    },
+  };
 }
 
 async function hydrateHub(hub: ProcessHub): Promise<ProcessHub> {
-  const [ips, sustainmentRecords, sustainmentReviews] = await Promise.all([
+  const [ips, sustainmentRecords, sustainmentReviews, controlHandoffs] = await Promise.all([
     db.improvementProjects.where('hubId').equals(hub.id).toArray(),
     db.sustainmentRecords.where('hubId').equals(hub.id).toArray(),
     db.sustainmentReviews.where('hubId').equals(hub.id).toArray(),
+    db.controlHandoffs.where('hubId').equals(hub.id).toArray(),
   ]);
   const liveIps = ips.filter(p => p.deletedAt === null);
   const liveSustainmentRecords = sustainmentRecords.filter(record => record.deletedAt === null);
   const liveSustainmentReviews = sortReviewsDescending(
     sustainmentReviews.filter(review => review.deletedAt === null)
   );
+  const liveControlHandoffs = controlHandoffs.filter(handoff => handoff.deletedAt === null);
   return {
     ...hub,
     ...(liveIps.length > 0 ? { improvementProjects: liveIps } : {}),
     ...(liveSustainmentRecords.length > 0 ? { sustainmentRecords: liveSustainmentRecords } : {}),
     ...(liveSustainmentReviews.length > 0 ? { sustainmentReviews: liveSustainmentReviews } : {}),
+    ...(liveControlHandoffs.length > 0 ? { controlHandoffs: liveControlHandoffs } : {}),
   };
 }
 

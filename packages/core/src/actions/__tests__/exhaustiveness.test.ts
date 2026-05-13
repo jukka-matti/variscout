@@ -114,6 +114,19 @@ function _exhaustive(action: HubAction): void {
       return;
     case 'SUSTAINMENT_TICK_EVALUATED':
       return;
+    // Control Handoff
+    case 'CONTROL_HANDOFF_CREATE':
+      return;
+    case 'CONTROL_HANDOFF_UPDATE':
+      return;
+    case 'CONTROL_HANDOFF_ARCHIVE':
+      return;
+    case 'CONTROL_HANDOFF_ACKNOWLEDGE':
+      return;
+    case 'CONTROL_HANDOFF_MARK_OPERATIONAL':
+      return;
+    case 'CONTROL_HANDOFF_SIGNOFF':
+      return;
     default:
       return assertNever(action);
   }

@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { EvidenceSnapshot, SustainmentRecord } from '@variscout/core';
+import type { ControlHandoff, EvidenceSnapshot, SustainmentRecord } from '@variscout/core';
 import type { ProcessHub } from '@variscout/core/processHub';
 import { applyAction } from '../applyAction';
 import { db } from '../../db/schema';
@@ -62,6 +62,7 @@ beforeEach(async () => {
     db.processHubs.clear(),
     db.sustainmentRecords.clear(),
     db.sustainmentReviews.clear(),
+    db.controlHandoffs.clear(),
     db.evidenceSnapshots.clear(),
   ]);
 });
@@ -71,6 +72,7 @@ afterEach(async () => {
     db.processHubs.clear(),
     db.sustainmentRecords.clear(),
     db.sustainmentReviews.clear(),
+    db.controlHandoffs.clear(),
     db.evidenceSnapshots.clear(),
   ]);
 });
@@ -160,5 +162,92 @@ describe('applyAction (Azure) — sustainment records', () => {
     const reviews = await db.sustainmentReviews.where('recordId').equals('record-2').toArray();
     expect(reviews).toHaveLength(1);
     expect(reviews[0]).toMatchObject({ snapshotId: 'snapshot-green', verdict: 'holding' });
+  });
+});
+
+function makeHandoff(
+  id: string,
+  hubId: string,
+  overrides: Partial<ControlHandoff> = {}
+): ControlHandoff {
+  return {
+    id,
+    investigationId: 'inv-1',
+    hubId,
+    status: 'pending',
+    surface: 'qms-procedure',
+    systemName: 'QMS-42',
+    operationalOwner: { displayName: 'Process owner' },
+    handoffDate: NOW,
+    description: 'Control handoff',
+    retainSustainmentReview: true,
+    recordedBy: { displayName: 'Analyst' },
+    createdAt: NOW,
+    deletedAt: null,
+    ...overrides,
+  };
+}
+
+describe('applyAction (Azure) — control handoffs', () => {
+  it('creates, updates, acknowledges, signs off, marks operational, and archives handoffs', async () => {
+    await db.processHubs.put(makeHub('hub-handoff'));
+
+    await applyAction({
+      kind: 'CONTROL_HANDOFF_CREATE',
+      hubId: 'hub-handoff',
+      handoff: makeHandoff('handoff-1', 'hub-handoff'),
+    });
+    await applyAction({
+      kind: 'CONTROL_HANDOFF_UPDATE',
+      handoffId: 'handoff-1',
+      patch: { escalationPath: 'Escalate to manager', reactionPlan: 'Return to standard work' },
+    });
+    await applyAction({
+      kind: 'CONTROL_HANDOFF_ACKNOWLEDGE',
+      handoffId: 'handoff-1',
+      acknowledgedAt: NOW + 1,
+      acknowledgedBy: { displayName: 'Process owner' },
+      notes: 'Accepted',
+    });
+    await applyAction({
+      kind: 'CONTROL_HANDOFF_SIGNOFF',
+      handoffId: 'handoff-1',
+      signoff: { approvedAt: NOW + 2, approvedBy: { displayName: 'Sponsor' } },
+    });
+    await applyAction({
+      kind: 'CONTROL_HANDOFF_MARK_OPERATIONAL',
+      handoffId: 'handoff-1',
+      operationalAt: NOW + 3,
+    });
+    await applyAction({ kind: 'CONTROL_HANDOFF_ARCHIVE', handoffId: 'handoff-1' });
+
+    const stored = await db.controlHandoffs.get('handoff-1');
+    expect(stored).toMatchObject({
+      status: 'operational',
+      escalationPath: 'Escalate to manager',
+      reactionPlan: 'Return to standard work',
+      acknowledgedAt: NOW + 1,
+      operationalAt: NOW + 3,
+      ownerAcknowledgement: {
+        acknowledgedBy: { displayName: 'Process owner' },
+        notes: 'Accepted',
+      },
+      signoff: { approvedAt: NOW + 2, approvedBy: { displayName: 'Sponsor' } },
+    });
+    expect(stored?.deletedAt).toEqual(expect.any(Number));
+  });
+
+  it('rejects create payloads whose handoff hubId does not match the action hubId', async () => {
+    await db.processHubs.put(makeHub('hub-guard'));
+
+    await expect(
+      applyAction({
+        kind: 'CONTROL_HANDOFF_CREATE',
+        hubId: 'hub-guard',
+        handoff: makeHandoff('handoff-mismatch', 'other-hub'),
+      })
+    ).rejects.toThrow(/hubId mismatch/);
+
+    expect(await db.controlHandoffs.get('handoff-mismatch')).toBeUndefined();
   });
 });

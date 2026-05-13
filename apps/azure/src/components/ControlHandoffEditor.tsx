@@ -67,6 +67,7 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
       id: existingHandoff?.id ?? crypto.randomUUID(),
       investigationId,
       hubId,
+      status: existingHandoff?.status ?? 'pending',
       surface,
       systemName,
       // operationalOwner is the person operating the control, NOT the submitter.
