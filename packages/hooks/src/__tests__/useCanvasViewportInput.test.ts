@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, beforeEach } from 'vitest';
 import { useRef, type RefObject } from 'react';
 import {
@@ -41,6 +41,12 @@ function renderCanvasViewportInput(element: HTMLElement = makeCanvasElement()) {
   return { element: element as D3ZoomElement, ...rendered };
 }
 
+function renderDisabledCanvasViewportInput(element: HTMLElement = makeCanvasElement()) {
+  const ref: RefObject<HTMLElement | SVGSVGElement | null> = { current: element };
+  const rendered = renderHook(() => useCanvasViewportInput({ hubId: HUB_ID, ref, disabled: true }));
+  return { element: element as D3ZoomElement, ...rendered };
+}
+
 beforeEach(() => {
   useCanvasViewportStore.setState(getCanvasViewportInitialState());
   document.body.innerHTML = '';
@@ -77,6 +83,17 @@ describe('useCanvasViewportInput', () => {
     expect(element.__zoom).toMatchObject({ k: 2.5, x: 42, y: -17 });
   });
 
+  it('syncs external hub viewport writes into d3 internal zoom state', () => {
+    const { element } = renderCanvasViewportInput();
+
+    act(() => {
+      useCanvasViewportStore.getState().setZoom(HUB_ID, 2);
+      useCanvasViewportStore.getState().setPan(HUB_ID, { x: 34, y: -12 });
+    });
+
+    expect(element.__zoom).toMatchObject({ k: 2, x: 34, y: -12 });
+  });
+
   it('writes d3 zoom events back to the hub viewport store', () => {
     const { element } = renderCanvasViewportInput();
 
@@ -102,5 +119,27 @@ describe('useCanvasViewportInput', () => {
     unmount();
 
     expect(element.__on?.some(listener => listener.name === 'zoom')).not.toBe(true);
+  });
+
+  it('does not attach listeners or update the store when disabled', () => {
+    const { element } = renderDisabledCanvasViewportInput();
+
+    expect(element.__zoom).toBeUndefined();
+    expect(element.__on?.some(listener => listener.name === 'zoom')).not.toBe(true);
+
+    element.dispatchEvent(
+      new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -180,
+        clientX: 100,
+        clientY: 50,
+      })
+    );
+
+    expect(useCanvasViewportStore.getState().getViewport(HUB_ID)).toMatchObject({
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    });
   });
 });
