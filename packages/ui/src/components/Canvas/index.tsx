@@ -10,6 +10,7 @@ import {
   coerceCanvasOverlays,
   resolveEndpointToFactor,
   useCanvasViewportInput,
+  useCanvasViewportShortcuts,
   useCanvasKeyboard,
   useHasInvestigationContent,
   useChipDragAndDrop,
@@ -30,7 +31,7 @@ import {
   type WorkflowReadinessSignals,
 } from '@variscout/core';
 import type { ActionItem } from '@variscout/core/findings';
-import { useCanvasViewportStore } from '@variscout/stores';
+import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
 import {
   type ProductionLineGlanceFilterStripProps,
   ProductionLineGlanceFilterStrip,
@@ -38,6 +39,8 @@ import {
 import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlanceDashboard/types';
 import { ProcessMapBase } from './internal/ProcessMapBase';
 import { CanvasViewport } from './internal/CanvasViewport';
+import { LODSwitcher } from './internal/LODSwitcher';
+import { MobileLevelPicker } from './internal/MobileLevelPicker';
 import { ChipRail, type ChipRailEntry } from '../ChipRail';
 import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
 import { CanvasModeToggle } from '../CanvasModeToggle';
@@ -88,7 +91,13 @@ const EMPTY_OVERLAYS: CanvasOverlayId[] = [];
 const EMPTY_QUESTIONS: CanvasQuestionOption[] = [];
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
 const EMPTY_FINDINGS: Finding[] = [];
-const DEFAULT_CANVAS_VIEWPORT = { zoom: 1, pan: { x: 0, y: 0 } };
+const DEFAULT_CANVAS_VIEWPORT: CanvasViewportSnapshot = {
+  zoom: 1,
+  pan: { x: 0, y: 0 },
+  currentLevel: 'l2',
+  nodePositions: {},
+  groupByTributary: false,
+};
 const CANVAS_VIEWPORT_IGNORED_TARGET = '[data-canvas-wall-overlay]';
 
 function shouldHandleCanvasViewportInput(event: Event): boolean {
@@ -277,7 +286,7 @@ export const Canvas: React.FC<CanvasProps> = ({
     [availableOverlays, wallIsMobile]
   );
   const canPlaceChips = isAuthorMode && !disabled && chips.length > 0;
-  const showChipRail = canPlaceChips;
+  const showChipRail = canPlaceChips && viewport.currentLevel === 'l2';
   const [pendingStepChipId, setPendingStepChipId] = React.useState<string | null>(null);
   const [keyboardChipId, setKeyboardChipId] = React.useState<string | null>(null);
   const [selectedStepIds, setSelectedStepIds] = React.useState<string[]>([]);
@@ -363,17 +372,20 @@ export const Canvas: React.FC<CanvasProps> = ({
     },
     onCreateStep: handleCreateStepRequest,
   });
-  const activeStepCard = stepCards.find(card => card.stepId === activeStepCardId);
-  const activeStepInvestigationOverlay = activeStepCardId
-    ? investigationOverlays?.byStep[activeStepCardId]
+  const visibleActiveStepCardId = viewport.currentLevel === 'l2' ? activeStepCardId : null;
+  const activeStepCard = stepCards.find(card => card.stepId === visibleActiveStepCardId);
+  const activeStepInvestigationOverlay = visibleActiveStepCardId
+    ? investigationOverlays?.byStep[visibleActiveStepCardId]
     : undefined;
   const cardSurfaceRef = React.useRef<HTMLDivElement | null>(null);
+  const lodInputSurfaceRef = React.useRef<HTMLDivElement | null>(null);
   useCanvasViewportInput({
     hubId,
-    ref: cardSurfaceRef,
-    disabled: disabled || activeCanvasTool === 'draw-hypothesis',
+    ref: lodInputSurfaceRef,
+    disabled: wallIsMobile || disabled || activeCanvasTool === 'draw-hypothesis',
     filter: shouldHandleCanvasViewportInput,
   });
+  useCanvasViewportShortcuts({ hubId, disabled });
 
   const stepMetricColumns = React.useMemo(() => {
     const out: Record<string, string | undefined> = {};
@@ -463,6 +475,12 @@ export const Canvas: React.FC<CanvasProps> = ({
     setActiveStepCardId(null);
     setStepOverlayAnchor(null);
   }, []);
+
+  React.useEffect(() => {
+    if (viewport.currentLevel === 'l2') return undefined;
+    const frame = requestAnimationFrame(handleCloseStepOverlay);
+    return () => cancelAnimationFrame(frame);
+  }, [handleCloseStepOverlay, viewport.currentLevel]);
 
   const surfacePoint = React.useCallback(
     (clientX: number, clientY: number): { x: number; y: number } => {
@@ -643,6 +661,30 @@ export const Canvas: React.FC<CanvasProps> = ({
     if (activeCanvasTool !== 'draw-hypothesis') resetDrawTool();
   }, [activeCanvasTool, resetDrawTool]);
 
+  const stepCardGrid =
+    stepCards.length > 0 ? (
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {stepCards.map(card => (
+          <CanvasStepCard
+            key={card.stepId}
+            card={card}
+            zoom={viewport.zoom}
+            activeLens={resolvedLens}
+            activeOverlays={resolvedOverlays}
+            investigationOverlay={investigationOverlays?.byStep[card.stepId]}
+            activeCanvasTool={activeCanvasTool}
+            onOpen={handleOpenStepCard}
+            onStepSpecsRequest={onStepSpecsRequest}
+            registerCardElement={registerCardElement}
+          />
+        ))}
+      </div>
+    ) : (
+      <div className="rounded-md border border-dashed border-edge bg-surface-primary p-4 text-sm text-content-secondary">
+        Add process steps to create live canvas cards.
+      </div>
+    );
+
   const canvasContent = (
     <div data-testid="layered-process-view" className="flex flex-col bg-surface-background">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-edge px-4 py-2">
@@ -744,29 +786,13 @@ export const Canvas: React.FC<CanvasProps> = ({
             />
           </svg>
         ) : null}
-        <CanvasViewport zoom={viewport.zoom} pan={viewport.pan}>
-          {stepCards.length > 0 ? (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {stepCards.map(card => (
-                <CanvasStepCard
-                  key={card.stepId}
-                  card={card}
-                  activeLens={resolvedLens}
-                  activeOverlays={resolvedOverlays}
-                  investigationOverlay={investigationOverlays?.byStep[card.stepId]}
-                  activeCanvasTool={activeCanvasTool}
-                  onOpen={handleOpenStepCard}
-                  onStepSpecsRequest={onStepSpecsRequest}
-                  registerCardElement={registerCardElement}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-md border border-dashed border-edge bg-surface-primary p-4 text-sm text-content-secondary">
-              Add process steps to create live canvas cards.
-            </div>
-          )}
-        </CanvasViewport>
+        {wallIsMobile ? (
+          stepCardGrid
+        ) : (
+          <CanvasViewport zoom={viewport.zoom} pan={viewport.pan}>
+            {stepCardGrid}
+          </CanvasViewport>
+        )}
         <CanvasWallOverlay
           hubId={hubId}
           activeOverlays={resolvedOverlays}
@@ -824,26 +850,30 @@ export const Canvas: React.FC<CanvasProps> = ({
           />
         </div>
       </section>
-      {activeStepCard ? (
-        <CanvasStepOverlay
-          card={activeStepCard}
-          anchorRect={stepOverlayAnchor}
-          onClose={handleCloseStepOverlay}
-          signals={signals}
-          onQuickAction={onQuickAction}
-          onLogQuickAction={onLogQuickAction}
-          onFocusedInvestigation={onFocusedInvestigation}
-          onCharter={onCharter}
-          onSustainment={onSustainment}
-          onHandoff={onHandoff}
-          investigationOverlay={activeStepInvestigationOverlay}
-          onOpenInvestigationFocus={onOpenInvestigationFocus}
-          onRemoveCausalLink={onRemoveCausalLink}
-          contextLinkGroups={contextLinkGroups}
-          onNavigateContextLink={onNavigateContextLink}
-          actionItems={actionItems}
-        />
-      ) : null}
+    </div>
+  );
+
+  const l1Placeholder = (
+    <div className="bg-surface-background p-6 text-sm font-medium text-content-secondary">
+      System level coming next
+    </div>
+  );
+  const l3Placeholder = (
+    <div className="bg-surface-background p-6 text-sm font-medium text-content-secondary">
+      {viewport.focalStepId ? 'Local mechanism coming next' : 'Need focal step for L3'}
+    </div>
+  );
+  const levelContent = (
+    <LODSwitcher
+      currentLevel={viewport.currentLevel}
+      l1={l1Placeholder}
+      l2={canvasContent}
+      l3={l3Placeholder}
+    />
+  );
+  const desktopLevelContent = (
+    <div ref={lodInputSurfaceRef} data-testid="canvas-lod-input-surface" className="min-h-0">
+      {levelContent}
     </div>
   );
 
@@ -853,13 +883,47 @@ export const Canvas: React.FC<CanvasProps> = ({
         {showChipRail ? (
           <ChipRail chips={chips} className="w-64 shrink-0" onKeyboardPickUp={setKeyboardChipId} />
         ) : null}
-        <div className="min-w-0 flex-1">{canvasContent}</div>
+        <div className="min-w-0 flex-1">
+          {wallIsMobile ? (
+            <>
+              <MobileLevelPicker
+                hubId={hubId}
+                currentLevel={viewport.currentLevel}
+                focalStepId={viewport.focalStepId}
+                disabled={disabled}
+              />
+              {levelContent}
+            </>
+          ) : (
+            desktopLevelContent
+          )}
+        </div>
         {activePendingStepChip ? (
           <AutoStepCreatePrompt
             chipLabel={activePendingStepChip.label}
             position={{ x: 16, y: 16 }}
             onConfirm={handleConfirmCreateStep}
             onCancel={handleCancelCreateStep}
+          />
+        ) : null}
+        {activeStepCard ? (
+          <CanvasStepOverlay
+            card={activeStepCard}
+            anchorRect={stepOverlayAnchor}
+            onClose={handleCloseStepOverlay}
+            signals={signals}
+            onQuickAction={onQuickAction}
+            onLogQuickAction={onLogQuickAction}
+            onFocusedInvestigation={onFocusedInvestigation}
+            onCharter={onCharter}
+            onSustainment={onSustainment}
+            onHandoff={onHandoff}
+            investigationOverlay={activeStepInvestigationOverlay}
+            onOpenInvestigationFocus={onOpenInvestigationFocus}
+            onRemoveCausalLink={onRemoveCausalLink}
+            contextLinkGroups={contextLinkGroups}
+            onNavigateContextLink={onNavigateContextLink}
+            actionItems={actionItems}
           />
         ) : null}
       </div>

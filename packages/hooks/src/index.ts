@@ -55,6 +55,7 @@ export {
   useCanvasViewportInput,
   type UseCanvasViewportInputOptions,
 } from './useCanvasViewportInput';
+export { useCanvasViewportShortcuts } from './useCanvasViewportShortcuts';
 
 export {
   useHypothesisDrawTool,

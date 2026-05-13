@@ -426,6 +426,7 @@ vi.mock('@variscout/hooks', () => ({
       return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onUndo, onRedo, onToggleMode, onExitAuthorMode]);
   },
+  useCanvasViewportShortcuts: vi.fn(),
   useTranslation: () => ({
     t: (key: string) => key,
     tf: (key: string, values?: Record<string, unknown>) =>

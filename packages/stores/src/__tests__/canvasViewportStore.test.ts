@@ -45,6 +45,39 @@ describe('canvasViewportStore', () => {
     expect(useCanvasViewportStore.getState().getViewport('hub-B').zoom).toBe(1);
   });
 
+  it('setZoom syncs currentLevel from zoom and permits placeholder l3 without focalStepId', () => {
+    useCanvasViewportStore.getState().setZoom('hub-A', 0.2);
+    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+      zoom: 0.2,
+      currentLevel: 'l1',
+    });
+
+    useCanvasViewportStore.getState().setZoom('hub-A', 1);
+    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+      zoom: 1,
+      currentLevel: 'l2',
+    });
+
+    useCanvasViewportStore.getState().setZoom('hub-A', 2.5);
+    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+      zoom: 2.5,
+      currentLevel: 'l3',
+    });
+    expect(useCanvasViewportStore.getState().getViewport('hub-A').focalStepId).toBeUndefined();
+  });
+
+  it('setZoom clears focalStepId when zoom leaves l3', () => {
+    useCanvasViewportStore.getState().setLevel('hub-A', 'l3', 'step-1');
+
+    useCanvasViewportStore.getState().setZoom('hub-A', 1);
+
+    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+      zoom: 1,
+      currentLevel: 'l2',
+    });
+    expect(useCanvasViewportStore.getState().getViewport('hub-A').focalStepId).toBeUndefined();
+  });
+
   it('rail is open by default', () => {
     expect(useCanvasViewportStore.getState().railOpen).toBe(true);
   });
@@ -108,11 +141,71 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
     expect(useCanvasViewportStore.getState().getViewport('hub-A').focalStepId).toBeUndefined();
   });
 
-  it('fitToContent ensures a viewport exists and optionally updates level', () => {
+  it('fitToContent applies placeholder zoom, resets pan, and preserves layout flags', () => {
+    useCanvasViewportStore.getState().setPan('hub-A', { x: 100, y: -50 });
+    useCanvasViewportStore.getState().setZoom('hub-A', 1.5);
+    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 10, y: 20 });
+    useCanvasViewportStore.getState().setGroupByTributary('hub-A', true);
+
     useCanvasViewportStore.getState().fitToContent('hub-A', 'l1');
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').currentLevel).toBe('l1');
+    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toEqual({
+      zoom: 0.2,
+      pan: { x: 0, y: 0 },
+      currentLevel: 'l1',
+      nodePositions: { 'node-1': { x: 10, y: 20 } },
+      groupByTributary: true,
+    });
+
     useCanvasViewportStore.getState().fitToContent('hub-B');
-    expect(useCanvasViewportStore.getState().getViewport('hub-B').currentLevel).toBe('l2');
+    expect(useCanvasViewportStore.getState().getViewport('hub-B')).toEqual({
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+      currentLevel: 'l2',
+      nodePositions: {},
+      groupByTributary: false,
+    });
+  });
+
+  it('fitToContent uses current level when no explicit level is provided', () => {
+    useCanvasViewportStore.getState().setLevel('hub-A', 'l1');
+    useCanvasViewportStore.getState().setPan('hub-A', { x: 9, y: 8 });
+
+    useCanvasViewportStore.getState().fitToContent('hub-A');
+
+    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+      zoom: 0.2,
+      pan: { x: 0, y: 0 },
+      currentLevel: 'l1',
+    });
+  });
+
+  it('fitToContent falls back to l2 for bare fit from placeholder l3 without focalStepId', () => {
+    useCanvasViewportStore.getState().setZoom('hub-A', 2.5);
+
+    expect(() => useCanvasViewportStore.getState().fitToContent('hub-A')).not.toThrow();
+    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+      currentLevel: 'l2',
+    });
+    expect(useCanvasViewportStore.getState().getViewport('hub-A').focalStepId).toBeUndefined();
+  });
+
+  it('fitToContent l3 requires and preserves an existing focalStepId', () => {
+    useCanvasViewportStore.getState().setLevel('hub-A', 'l3', 'step-1');
+    useCanvasViewportStore.getState().setPan('hub-A', { x: 9, y: 8 });
+
+    useCanvasViewportStore.getState().fitToContent('hub-A', 'l3');
+
+    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+      zoom: 2.5,
+      pan: { x: 0, y: 0 },
+      currentLevel: 'l3',
+      focalStepId: 'step-1',
+    });
+    expect(() => useCanvasViewportStore.getState().fitToContent('hub-B', 'l3')).toThrow(
+      /focalStepId required when currentLevel === 'l3'/
+    );
   });
 
   it('keeps multiple hubs independent', () => {

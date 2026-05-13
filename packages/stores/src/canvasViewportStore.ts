@@ -8,7 +8,7 @@
 
 // R12 exception: separate Dexie DB for cross-app canvas viewport UI state.
 import type { ProcessHub } from '@variscout/core';
-import type { CanvasLevel } from '@variscout/core/canvas';
+import { inferLevel, type CanvasLevel } from '@variscout/core/canvas';
 import Dexie, { type Table } from 'dexie';
 import { applyPatches, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { create } from 'zustand';
@@ -18,6 +18,12 @@ export const STORE_LAYER = 'annotation-per-project' as const;
 enablePatches();
 
 const UNDO_STACK_CAP = 50;
+
+const FIT_TO_CONTENT_ZOOM_BY_LEVEL: Record<CanvasLevel, number> = {
+  l1: 0.2,
+  l2: 1,
+  l3: 2.5,
+};
 
 export type ProcessHubId = ProcessHub['id'];
 export type NodeId = string;
@@ -159,7 +165,15 @@ export const useCanvasViewportStore = create<CanvasViewportState & CanvasViewpor
     clearSelection: () => set({ selection: new Set() }),
     setZoom: (hubId, zoom) =>
       set(s => ({
-        viewports: withViewport(s.viewports, hubId, viewport => ({ ...viewport, zoom })),
+        viewports: withViewport(s.viewports, hubId, viewport => {
+          const currentLevel = inferLevel(zoom);
+          if (currentLevel === 'l3') {
+            return { ...viewport, zoom, currentLevel };
+          }
+
+          const { focalStepId: _staleFocalStepId, ...withoutFocalStepId } = viewport;
+          return { ...withoutFocalStepId, zoom, currentLevel };
+        }),
       })),
     setPan: (hubId, pan) =>
       set(s => ({
@@ -173,9 +187,19 @@ export const useCanvasViewportStore = create<CanvasViewportState & CanvasViewpor
       })),
     fitToContent: (hubId, level) =>
       set(s => ({
-        viewports: withViewport(s.viewports, hubId, viewport =>
-          level ? setViewportLevel(viewport, level) : viewport
-        ),
+        viewports: withViewport(s.viewports, hubId, viewport => {
+          const targetLevel =
+            level ??
+            (viewport.currentLevel === 'l3' && !viewport.focalStepId
+              ? 'l2'
+              : viewport.currentLevel);
+          const nextViewport = setViewportLevel(viewport, targetLevel, viewport.focalStepId);
+          return {
+            ...nextViewport,
+            zoom: FIT_TO_CONTENT_ZOOM_BY_LEVEL[targetLevel],
+            pan: { x: 0, y: 0 },
+          };
+        }),
       })),
     toggleRail: () => set(s => ({ railOpen: !s.railOpen })),
     setRailOpen: railOpen => set({ railOpen }),
