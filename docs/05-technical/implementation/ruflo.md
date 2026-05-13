@@ -13,11 +13,11 @@ ruflo is an MCP-integrated AI development tooling layer for VariScout. It provid
 
 **Version**: Expected `ruflo@3.5.80`, pinned in `scripts/check-codex-ruflo.sh` and mirrored by Claude hook automation in `.claude/settings.json`. Local `.mcp.json` and Codex MCP registration should match it, but they are verified rather than trusted. Update monthly.
 
-In-session, **MCP is the default path** for Ruflo memory, search, store, and pretrain. Direct `npx ruflo@3.5.80 ...` CLI commands are kept as a fallback for environments without MCP (Codex without MCP registration, scripts, CI). The CLI can also be degraded by sandbox, npm cache, or PATH permissions, and long-content writes have hung in practice while the MCP server held a connection — see `feedback_ruflo_cli_lock.md` in auto-memory.
+In-session, **MCP is the only path** for ruflo memory, search, store, pretrain, and lifecycle hooks. The Claude Code lifecycle hooks in `.claude/settings.json` invoke ruflo via Anthropic's native `type: "mcp_tool"` hook, so there is no shell wrapper between Claude Code and the MCP server. The single remaining shell-fired CLI call is the `SessionStart → pnpm exec ruflo daemon start` bootstrap, which has to run before MCP is connected.
 
-This split mirrors ruflo's official guidance: hook commands run via CLI from `.claude/settings.json`; user-facing in-session work goes through `mcp__ruflo__*` tools.
+**Codex asymmetry**: Codex hooks (`developers.openai.com/codex/hooks`) only support `type: "command"`. If a Codex `hooks.json` or `.codex/config.toml` is ever wired, those entries must shell out — that limitation is on the Codex side, not ruflo's. From a Codex session you still call ruflo via `mcp__ruflo__*` tools, just like Claude.
 
-## Quick Commands (in-session — prefer MCP)
+## Quick Commands (MCP only)
 
 ```
 # Semantic search
@@ -36,38 +36,6 @@ mcp__ruflo__hooks_worker-dispatch({ trigger: "audit", priority: "high" })
 mcp__ruflo__analyze_diff({ ref: "main..HEAD" })
 ```
 
-## CLI Fallback (no-MCP environments)
-
-```bash
-# System status
-npx ruflo@3.5.80 daemon status
-npx ruflo@3.5.80 hooks metrics              # Hook intelligence stats
-
-# Semantic search (CLI fallback)
-npx ruflo@3.5.80 memory search --query "Cpk calculation"
-
-# Memory operations
-npx ruflo@3.5.80 memory stats
-npx ruflo@3.5.80 memory list --namespace domain
-npx ruflo@3.5.80 memory store -k "key" --namespace ns --value "data"
-
-# Security scanning
-npx ruflo@3.5.80 security scan --depth full  # OWASP Top 10
-npx ruflo@3.5.80 security cve --check         # CVE database
-
-# Daemon control
-npx ruflo@3.5.80 daemon start
-npx ruflo@3.5.80 daemon stop
-
-# Reindex codebase (CLI fallback)
-npx ruflo@3.5.80 hooks pretrain
-
-# Neural / pattern learning
-npx ruflo@3.5.80 neural status
-```
-
-Do NOT dispatch CLI memory writes in parallel from a session shell while the MCP server is running — they contend on the same SQLite store and hang at 0% CPU.
-
 ## Architecture
 
 ```
@@ -75,8 +43,8 @@ Claude Code or Codex ──MCP──▶ ruflo MCP Server (npx, port 3000)
                                   │
                                   ├── Memory (sql.js + HNSW vector index)
                                   ├── Embeddings (all-MiniLM-L6-v2, 384-dim)
-                                  ├── Hooks (Claude-specific local automation)
-                                  └── Daemon (background workers)
+                                  ├── Hooks (Claude lifecycle hooks call MCP directly via type: "mcp_tool")
+                                  └── Daemon (background workers, bootstrapped by SessionStart shell hook)
 ```
 
 ### Config Files
@@ -133,9 +101,7 @@ The expected Codex health path is MCP-first:
 5. `mcp__ruflo__hooks_worker_list` confirms available worker triggers.
 6. `mcp__ruflo__analyze_diff` is useful when available; if it returns a runtime error, fall back to Git diff review and `bash scripts/pr-ready-check.sh`.
 
-`pnpm codex:ruflo-check` also runs best-effort direct CLI diagnostics. CLI warnings do not block Codex work when MCP registration and MCP tools are healthy. Run `RUFLO_DEEP_CLI_PROBES=1 pnpm codex:ruflo-check` only when you need bounded memory CLI diagnostics.
-
-After changing Codex MCP registration, restart the Codex session before judging MCP runtime behavior. The current session may keep using the already-started MCP server process.
+`pnpm codex:ruflo-check` now verifies MCP registration only — CLI smoke probes were removed 2026-05-13. If MCP registration looks correct but tools still misbehave, restart the Codex session so the new MCP server process is used.
 
 ### Background Workers
 
@@ -159,11 +125,9 @@ Hooks automatically learn from development patterns:
 
 - **Pattern learning**: Tracks which files are edited together, command sequences, success/failure rates
 - **Routing**: Classifies prompts and routes to appropriate agent types (87% accuracy, 42 routes)
-- **Metrics**: `npx ruflo@3.5.80 hooks metrics` shows 24h dashboard
+- **Metrics**: `mcp__ruflo__hooks_metrics` shows 24h dashboard
 
-As of Mar 2026: 128 commands tracked, 15 patterns at 85% confidence, 94% success rate.
-
-Hook capture is strongest in Claude because `.claude/settings.json` is wired there. Codex still benefits from shared memory, workers, diff analysis, and CLI tooling through the same ruflo backend.
+Hook capture is strongest in Claude because `.claude/settings.json` is wired there with `type: "mcp_tool"` lifecycle hooks. Codex still benefits from shared memory, workers, and diff analysis through the same ruflo MCP backend.
 
 ### Neural Learning (SONA)
 
@@ -172,7 +136,7 @@ SONA (Self-Optimizing Neural Architecture) provides deeper pattern recognition:
 - Q-learning + neural reinforcement from task execution
 - Mixture of Experts (8 networks) for routing decisions
 - Elastic Weight Consolidation prevents forgetting older patterns
-- Bootstrapped via `npx ruflo@3.5.80 hooks pretrain`
+- Bootstrapped via `mcp__ruflo__hooks_pretrain({ path: "<repo-root>", depth: "medium" })`
 
 Neural learning accumulates passively — runs automatically when daemon is active.
 
@@ -180,38 +144,15 @@ Neural learning accumulates passively — runs automatically when daemon is acti
 
 ### Stale daemon PID
 
-```bash
-rm .ruflo/daemon.pid
-npx ruflo@3.5.80 daemon start
-```
+Delete `.ruflo/daemon.pid`, then start a new Claude Code session — the SessionStart hook will re-bootstrap the daemon. (If you must do it inline outside a session, run `pnpm exec ruflo daemon start` once.)
 
 ### Worker stuck in "running" state
 
-Edit `.ruflo/daemon-state.json` and set `"isRunning": false` for the stuck worker, then restart the daemon.
+Edit `.ruflo/daemon-state.json` and set `"isRunning": false` for the stuck worker, then restart the daemon (new session, as above).
 
 ### Memory empty after session
 
-Check MCP memory stats/search first. If the memory DB still appears empty, run `npx ruflo@3.5.80 hooks pretrain`.
-
-Then re-seed memory entries with MCP `memory_store` / `agentdb_hierarchical_store`, or import current-project Claude memories with MCP `memory_import_claude`. Avoid `memory init --force` or other reset commands unless you intentionally want to discard the local memory database.
-
-### CLI diagnostics from Codex
-
-If `pnpm codex:ruflo-check` reports a CLI timeout but the MCP registration is correct, first check MCP memory/status/search. Retry direct CLI outside the Codex sandbox only when you specifically need CLI diagnostics:
-
-```bash
-npx ruflo@3.5.80 --version
-npx ruflo@3.5.80 daemon status
-npx ruflo@3.5.80 hooks pretrain
-```
-
-For memory CLI probes, use the bounded opt-in health check:
-
-```bash
-RUFLO_DEEP_CLI_PROBES=1 pnpm codex:ruflo-check
-```
-
-If direct CLI commands are still slow or unavailable, use the Codex MCP tool surface for `hooks_intelligence`, `memory_store`, `memory_retrieve`, `memory_list`, and namespace-scoped `memory_search_unified`. The separate `embeddings_search` endpoint may require its own initialization even when stored memories already have embeddings. Treat the CLI path as degraded only after MCP memory has also been checked.
+Check MCP memory stats/search first via `mcp__ruflo__memory_stats` / `mcp__ruflo__memory_search`. If the memory DB still appears empty, run `mcp__ruflo__hooks_pretrain({ path: "<repo-root>", depth: "medium" })`. Then re-seed memory entries with `mcp__ruflo__memory_store` / `mcp__ruflo__agentdb_hierarchical-store`, or import current-project Claude memories with `mcp__ruflo__memory_import_claude`. Avoid `memory init --force` or other reset operations unless you intentionally want to discard the local memory database.
 
 ### Audit worker scanning .venv
 

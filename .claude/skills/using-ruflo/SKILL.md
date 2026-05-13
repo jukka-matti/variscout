@@ -1,6 +1,6 @@
 ---
 name: using-ruflo
-description: Use when running ruflo tools or accessing ruflo memory for VariScout. Default to mcp__ruflo__* tools for in-session search/store/pretrain (CLI hangs while the MCP server is running on long writes). When to use ruflo memory vs MEMORY.md (routing vs semantic), worker dispatch via mcp__ruflo__hooks_worker-dispatch, hook error logs at /tmp/ruflo-hooks.log, version expected by scripts/check-codex-ruflo.sh.
+description: Use when running ruflo tools or accessing ruflo memory for VariScout. Always call mcp__ruflo__* tools; never run npx ruflo from a session shell. When to use ruflo memory vs MEMORY.md (routing vs semantic), worker dispatch via mcp__ruflo__hooks_worker-dispatch, hook error logs at /tmp/ruflo-hooks.log, version expected by scripts/check-codex-ruflo.sh.
 ---
 
 # Using Ruflo
@@ -9,15 +9,13 @@ description: Use when running ruflo tools or accessing ruflo memory for VariScou
 
 Use this skill when running ruflo tools or accessing ruflo semantic memory for VariScout domain knowledge, architecture details, and prior decisions.
 
-## In-session: use MCP, not the CLI
+## Use MCP for everything in-session
 
-The ruflo MCP server is the read/write path during a Claude Code session. The CLI (`npx ruflo@3.5.80 ...`) is a fallback for environments without MCP (Codex without MCP, scripts, CI). **Long-content writes via the CLI hang while the MCP server holds a connection** — see `feedback_ruflo_cli_lock.md` in auto-memory for the full failure mode.
+All ruflo work from a Claude Code or Codex session goes through the `mcp__ruflo__*` tool surface. Do not run `npx ruflo …` or `pnpm exec ruflo …` from a session shell — it has historically hung at 0% CPU when MCP holds the SQLite connection (see `feedback_ruflo_cli_lock.md`), and there is no reason to reach for it now that hooks have been migrated off CLI.
 
-This is also ruflo's documented split (ruflo's own `CLAUDE.md`):
+Lifecycle hooks in `.claude/settings.json` invoke ruflo via `type: "mcp_tool"` (Anthropic-native MCP hook), so the harness talks to the same MCP server you query manually. The only remaining shell entry is `SessionStart → pnpm exec ruflo daemon start`, which bootstraps the background-worker daemon before MCP is connected — that one is irreducible.
 
-> "Keep MCP for coordination strategy only — Hook Commands run via npx CLI, not MCP tools."
-
-So: in-session user ops (search, store, pretrain) → MCP. Per-event hooks in `.claude/settings.json` → CLI. Don't mix the two.
+**Codex asymmetry**: OpenAI Codex hooks (`developers.openai.com/codex/hooks`) only support `type: "command"`, not `type: "mcp_tool"`. If we ever wire a Codex `hooks.json` or `.codex/config.toml`, those entries must shell out to `pnpm exec ruflo hooks …`. That is a Codex limitation, not ours — do not try to "fix" it by reintroducing CLI use in Claude Code.
 
 ## Core patterns
 
@@ -52,7 +50,7 @@ Non-overlapping responsibilities: MEMORY.md is ephemeral session state; Ruflo is
 
 **Before creating PR**: Run `mcp__ruflo__analyze_diff` for risk assessment when available, then dispatch `testgaps` and `audit` workers to catch gaps. If diff analysis fails through MCP, fall back to Git diff review plus `bash scripts/pr-ready-check.sh`.
 
-**After major refactoring**: Run `mcp__ruflo__hooks_pretrain({ path, depth: "medium" })` to reindex the codebase and rebuild semantic search (~200ms via MCP; the CLI equivalent hung in the 2026-04-26 session). Then add or update specific memory entries:
+**After major refactoring**: Run `mcp__ruflo__hooks_pretrain({ path, depth: "medium" })` to reindex the codebase and rebuild semantic search (~200ms). Then add or update specific memory entries:
 
 ```
 mcp__ruflo__memory_store({ namespace: "architecture", key: "change-name", value: "description" })
@@ -90,18 +88,6 @@ mcp__ruflo__memory_store({
 
 Example namespaces: `architecture`, `testing`, `domain`, `performance`.
 
-### CLI fallback
-
-Use the CLI only when the MCP server is not available (Codex without MCP registered, scripts, CI):
-
-```bash
-npx ruflo@3.5.80 memory search --query "..."
-npx ruflo@3.5.80 memory store --namespace <ns> --key <k> --value "..."
-npx ruflo@3.5.80 hooks pretrain
-```
-
-Do NOT dispatch CLI memory writes in parallel from a session shell — they contend with the MCP server's connection and hang at 0% CPU.
-
 ## Hygiene rule
 
 Same shape as memory hygiene (see CLAUDE.md "Ruflo hygiene"). Ruflo entries hold *durable* architectural facts: patterns, conventions, design decisions, supersession rationales. They should NOT hold ephemeral state — PR status, test counts, in-flight phase, sprint focus all belong elsewhere (MEMORY.md for session state; `git`/`gh` for delivery state). Entries that cite specific file paths, function names, or commit hashes are claims valid *at write time*; verify before recommending. When a referenced entity is renamed or removed, update or delete the entry.
@@ -109,14 +95,14 @@ Same shape as memory hygiene (see CLAUDE.md "Ruflo hygiene"). Ruflo entries hold
 ## Gotchas
 
 - **Don't use ruflo for ephemeral task state** — use `TaskCreate` instead. Ruflo memory is for durable knowledge; TaskCreate is for session-scoped work tracking.
-- **Re-index after major refactors** — semantic search becomes stale as the codebase evolves. Use `mcp__ruflo__hooks_pretrain({ path: "<repo>", depth: "medium" })` after large changes to rebuild the index. (CLI fallback: `npx ruflo@3.5.80 hooks pretrain` — only when no MCP.)
+- **Re-index after major refactors** — semantic search becomes stale as the codebase evolves. Use `mcp__ruflo__hooks_pretrain({ path: "<repo>", depth: "medium" })` after large changes to rebuild the index.
 - **Version pinning** — Ruflo is expected by `scripts/check-codex-ruflo.sh`; local `.mcp.json` and Codex MCP registration should match it. Don't upgrade without coordination; MCP tool signatures may change between versions.
-- **Hook error logs** — Check `/tmp/ruflo-hooks.log` if hooks fail silently. This file is not persisted across reboots and not tracked in git.
+- **Hook error logs** — Check `/tmp/ruflo-hooks.log` if the SessionStart daemon bootstrap fails silently. MCP-typed hooks surface errors through Claude Code's normal hook diagnostics, not the log file. The file is not persisted across reboots and not tracked in git.
 - **Config file confusion** — `.claude/settings.json` contains hooks and statusline configuration only. Ruflo runtime config lives in `.ruflo/config.yaml`. Don't confuse the two.
 
 ## Reference
 
-- `scripts/check-codex-ruflo.sh` — Codex version expectation, health check, and repair commands
+- `scripts/check-codex-ruflo.sh` — Codex MCP registration check (CLI probes removed 2026-05-13)
 - `.ruflo/config.yaml` — Local worker scheduling and intelligence configuration
 - `docs/05-technical/implementation/ruflo-workflow.md` — Full workflow guide and best practices
 - `.mcp.json` — Local MCP server configuration

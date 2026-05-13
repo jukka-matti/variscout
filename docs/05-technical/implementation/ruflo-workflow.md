@@ -14,12 +14,12 @@ How and when to use ruflo during VariScout development. For tool reference, see 
 Ruflo is a **pull-based knowledge system**. Hooks passively learn from your operations (edits, commands, prompts), but ruflo does not push insights back unprompted. You must explicitly query memory, dispatch workers, or run analysis to get value.
 
 ```
-Claude Code ──hooks──▶ ruflo (learns passively)
-Claude Code ──MCP────▶ ruflo (query on demand) ──results──▶ Claude Code
-Codex      ──MCP────▶ ruflo (query on demand) ──results──▶ Codex
+Claude Code ──MCP hooks──▶ ruflo (learns passively via mcp_tool hooks)
+Claude Code ──MCP tools──▶ ruflo (query on demand) ──results──▶ Claude Code
+Codex      ──MCP tools──▶ ruflo (query on demand) ──results──▶ Codex
 ```
 
-Claude has extra local automation via `.claude/settings.json`. Codex shares the same MCP-backed memory and analysis workflow, but should not assume Claude hooks or statusline behavior.
+Claude has extra local automation via `.claude/settings.json` lifecycle hooks (Anthropic-native `type: "mcp_tool"`, no shell wrapper). Codex shares the same MCP-backed memory and analysis workflow, but should not assume Claude hooks or statusline behavior. Codex's own hook system supports `type: "command"` only — if Codex parity hooks are ever wired, they must shell out to `pnpm exec ruflo hooks …`.
 
 ## Development Lifecycle
 
@@ -29,9 +29,7 @@ Claude sessions start daemon and restore state via hooks.
 
 Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the active Codex MCP registration and expected version. If Ruflo is missing, disabled, or stale, follow the remove/add repair commands printed by the check.
 
-No additional setup is needed once the MCP server is available.
-
-Direct `npx ruflo@3.5.80 ...` CLI probes are best-effort diagnostics for Codex, not the normal in-session workflow. They can be affected by sandbox, npm cache, PATH permissions, or MCP/SQLite contention, so CLI warnings are non-blocking when MCP registration and MCP tools work. Use `mcp__ruflo__*` tools for memory, status, workers, and diff analysis.
+No additional setup is needed once the MCP server is available. In-session: use `mcp__ruflo__*` tools only. The single remaining shell-fired CLI call is the SessionStart `ruflo daemon start` bootstrap in `.claude/settings.json`; all other lifecycle hooks use Anthropic's `type: "mcp_tool"` and call the MCP server directly.
 
 ### 2. Before Starting a Feature
 
@@ -55,7 +53,7 @@ Hooks automatically track:
 - Command success/failure rates
 - Prompt classification and routing
 
-In Claude, hooks capture this passively. In Codex, use the shared MCP tools directly; intelligence still accumulates in `.ruflo/` metrics once ruflo is running.
+In Claude, lifecycle hooks call ruflo MCP tools (`hooks_pre-edit`, `hooks_post-edit`, `hooks_pre-command`, `hooks_post-command`, `hooks_pre-task`, `hooks_post-task`, `hooks_route`, `hooks_session-end`) directly via `type: "mcp_tool"` — no shell wrapper. In Codex, use the shared MCP tools directly; intelligence still accumulates in `.ruflo/` metrics once ruflo is running.
 
 For Codex, the helpful startup summary should come from visible repo guidance and `pnpm codex:ruflo-check`, not from hidden client-specific hook behavior.
 
@@ -78,21 +76,14 @@ Use the ref format accepted by the current MCP tool. Some versions accept only s
 
 ### 5. After Major Changes
 
-When you've completed a significant refactor or feature, prefer the MCP tools — `npx` CLI memory writes have hung in practice while the MCP server holds a connection (see `feedback_ruflo_cli_lock.md`):
+When you've completed a significant refactor or feature, use MCP tools:
 
 ```
-# Reindex codebase structure (~200ms via MCP; fast)
+# Reindex codebase structure (~200ms)
 mcp__ruflo__hooks_pretrain({ path: "<repo-root>", depth: "medium" })
 
 # Update stale memory entries
 mcp__ruflo__memory_store({ namespace: "architecture", key: "change-name", value: "...", upsert: true })
-```
-
-CLI fallback (only when MCP is not available — e.g. Codex without MCP, scripts, CI):
-
-```bash
-npx ruflo@3.5.80 hooks pretrain
-npx ruflo@3.5.80 memory store --namespace architecture --key "change-name" --value "..."
 ```
 
 ### 6. Periodic Maintenance (automated)
@@ -129,9 +120,9 @@ Ruflo memory is only as good as its last update. After significant work:
 
 1. Check if relevant entries are stale: `mcp__ruflo__memory_retrieve(key: "testing/counts")`
 2. Update with current data: `mcp__ruflo__memory_store(namespace: "testing", key: "counts", value: "...")`
-3. Reindex if structure changed: `mcp__ruflo__hooks_pretrain({ path: "<repo-root>", depth: "medium" })` (CLI fallback: `npx ruflo@3.5.80 hooks pretrain`)
+3. Reindex if structure changed: `mcp__ruflo__hooks_pretrain({ path: "<repo-root>", depth: "medium" })`
 
-If memory appears empty, prefer a non-destructive reseed first: check MCP memory stats/search, run `hooks pretrain`, import current-project Claude memories if available, and store a small set of curated project invariants. Do not run reset or `memory init --force` unless you explicitly intend to discard the existing local database. For CLI-only diagnostics, run `RUFLO_DEEP_CLI_PROBES=1 pnpm codex:ruflo-check` so memory CLI probes remain bounded and explicit.
+If memory appears empty, prefer a non-destructive reseed first: check MCP memory stats/search, run `hooks pretrain`, import current-project Claude memories if available, and store a small set of curated project invariants. Do not run reset or `memory init --force` unless you explicitly intend to discard the existing local database.
 
 Root-level `agentdb.rvf*` files are local AgentDB state. Keep them out of Git; if they appear in the repo root, copy a backup and move the live files under ignored `.ruflo/data/`.
 

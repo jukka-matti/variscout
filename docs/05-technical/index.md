@@ -143,8 +143,8 @@ pnpm --filter @variscout/azure-app dev  # Azure app dev server
 pnpm build           # Build all packages and apps
 pnpm test            # Run Vitest tests (all packages)
 
-# AI development tooling
-npx ruflo@3.5.80 daemon status              # Check worker state
-npx ruflo@3.5.80 memory search --query "..."  # Semantic search
-npx ruflo@3.5.80 security scan --depth full   # OWASP scan
+# AI development tooling (in-session: MCP only)
+#   mcp__ruflo__memory_stats             — daemon + memory status
+#   mcp__ruflo__memory_search            — semantic search
+#   mcp__ruflo__hooks_worker-dispatch    — dispatch audit / testgaps / etc
 ```
