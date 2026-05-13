@@ -47,7 +47,7 @@ related:
 
 ## 2. In flight
 
-(none currently — RPS V1 closed 2026-05-13. Next workstream selection pending; see §3.)
+**8f — Canvas viewport architecture (levels-as-pan/zoom)** — brainstorm + design spec phase. Spec [`docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md`](superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md) (`status: draft`, pending user review) captures 13 locked decisions from the 2026-05-13 brainstorm session. Closes the last unmet vision §5.4 commitment. Architecture: unified `useCanvasViewportStore` (generalize `wallLayoutStore`) + d3-zoom for input math + `LODSwitcher` + pluggable renderers (Wall SVG, Canvas DOM, new L1/L3 DOM-native). ADR-073-compliant L1 (within-Hub scope; no cross-step rollup); ADR-053-compliant L3 (factor-contribution requires investigation context); ADR-074 amendment (Canvas is viewport surface that embeds owner-surface components, not parallel re-implementations). Next: ADR-081 + implementation plan (Phase 3+4); then ~6-PR slice on branch `canvas-viewport-8f`.
 
 ## 3. Next workstreams (sequenced)
 
@@ -55,13 +55,13 @@ related:
 
 ### Other workstreams (post-RPS-V1)
 
-| #   | Workstream                                                                                                                                                                         | Size                                        | Pull                                                                  | Depends on                        |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------- | --------------------------------- |
-| 10  | **Canvas-filter writers + E2E** (slice 4 P3.6 / P4.2 / P4.3)                                                                                                                       | S (1 session)                               | Closes slice-4 partial integration; small mechanical PR               | None                              |
-| 11  | **Small canvas-UX polish bundle** (Stats-bar specs link, Cpk badge in Measurements I-Chart, parallel spec sources audit, per-app feature-store overlap with `usePreferencesStore`) | S (1 session)                               | Closes 4-5 small `investigations.md` entries                          | None                              |
-| 12  | **8f — canvas viewport architecture spec + ADR (levels-as-pan/zoom)**                                                                                                              | L (multi-session brainstorm; multi-PR impl) | Vision §5.4 commitment; competitive moat for canvas products          | Architectural design conversation |
-| 13  | **Security hardening implementation** (concept doc landed 2026-05-06 at `19e2e5a4`)                                                                                                | L (multi-PR rollout)                        | Paid-tier customer trust; auth + access control + SAS scope reduction | Concept → spec brainstorm         |
-| 14  | **F6 — multi-investigation lifecycle** (named-future)                                                                                                                              | L+ (own brainstorm + design spec)           | Foundation when multi-investigation usage emerges in Azure            | Investigation-loading brainstorm  |
+| #   | Workstream                                                                                                                                                                         | Size                              | Pull                                                                  | Depends on                       |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | --------------------------------------------------------------------- | -------------------------------- |
+| 10  | **Canvas-filter writers + E2E** (slice 4 P3.6 / P4.2 / P4.3)                                                                                                                       | S (1 session)                     | Closes slice-4 partial integration; small mechanical PR               | None                             |
+| 11  | **Small canvas-UX polish bundle** (Stats-bar specs link, Cpk badge in Measurements I-Chart, parallel spec sources audit, per-app feature-store overlap with `usePreferencesStore`) | S (1 session)                     | Closes 4-5 small `investigations.md` entries                          | None                             |
+| 12  | ~~**8f — canvas viewport architecture spec + ADR (levels-as-pan/zoom)**~~                                                                                                          | ~~L~~                             | Now in §2 In flight — spec drafted 2026-05-13                         | —                                |
+| 13  | **Security hardening implementation** (concept doc landed 2026-05-06 at `19e2e5a4`)                                                                                                | L (multi-PR rollout)              | Paid-tier customer trust; auth + access control + SAS scope reduction | Concept → spec brainstorm        |
+| 14  | **F6 — multi-investigation lifecycle** (named-future)                                                                                                                              | L+ (own brainstorm + design spec) | Foundation when multi-investigation usage emerges in Azure            | Investigation-loading brainstorm |
 
 ## 4. Carry-forward backlog
 
