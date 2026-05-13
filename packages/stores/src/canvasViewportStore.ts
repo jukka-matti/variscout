@@ -13,7 +13,7 @@ import Dexie, { type Table } from 'dexie';
 import { applyPatches, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { create } from 'zustand';
 
-export const STORE_LAYER = 'annotation-per-project' as const;
+export const STORE_LAYER = 'annotation-per-hub' as const;
 
 enablePatches();
 
