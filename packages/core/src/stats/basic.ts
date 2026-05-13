@@ -91,6 +91,8 @@ export function calculateStats(data: number[], usl?: number, lsl?: number): Stat
 
   let cp: number | undefined;
   let cpk: number | undefined;
+  let pp: number | undefined;
+  let ppk: number | undefined;
 
   // Cp/Cpk use σ_within (short-term capability, industry standard)
   // Guard: when sigmaWithin=0 (all values identical), Cp/Cpk would be Infinity
@@ -107,6 +109,20 @@ export function calculateStats(data: number[], usl?: number, lsl?: number): Stat
     cpk = (usl - mean) / (3 * sigmaWithin);
   } else if (lsl !== undefined) {
     cpk = (mean - lsl) / (3 * sigmaWithin);
+  }
+
+  // Pp/Ppk use σ_overall (long-term process performance).
+  if (stdDev !== 0) {
+    if (usl !== undefined && lsl !== undefined) {
+      pp = (usl - lsl) / (6 * stdDev);
+      const ppu = (usl - mean) / (3 * stdDev);
+      const ppl = (mean - lsl) / (3 * stdDev);
+      ppk = Math.min(ppu, ppl);
+    } else if (usl !== undefined) {
+      ppk = (usl - mean) / (3 * stdDev);
+    } else if (lsl !== undefined) {
+      ppk = (mean - lsl) / (3 * stdDev);
+    }
   }
 
   const outOfSpec = data.filter(d => {
@@ -127,6 +143,8 @@ export function calculateStats(data: number[], usl?: number, lsl?: number): Stat
     lcl,
     cp,
     cpk,
+    pp,
+    ppk,
     outOfSpecPercentage,
   };
 }

@@ -335,13 +335,106 @@ describe('Canvas', () => {
     expect(within(card).queryByText('Pressure')).not.toBeInTheDocument();
   });
 
-  it('renders the L1 placeholder when the hub viewport is at system level', () => {
+  it('renders the L1 system outcome panel when the hub viewport is at system level', () => {
     useCanvasViewportStore.getState().setLevel('hub-l1-canvas', 'l1');
 
-    renderCanvas({ hubId: 'hub-l1-canvas' });
+    renderCanvas({
+      hubId: 'hub-l1-canvas',
+      map: { ...mapWithSteps, ctsColumn: 'Fill Weight' },
+      rows: [{ 'Fill Weight': 100 }, { 'Fill Weight': 101 }],
+      usl: 102,
+      lsl: 98,
+      target: 100,
+      cpkTarget: 1.33,
+    });
 
-    expect(screen.getByText('System level coming next')).toBeInTheDocument();
+    expect(screen.getByTestId('outcome-distribution')).toHaveTextContent('n=2');
+    expect(screen.getByTestId('drift-indicator')).toBeInTheDocument();
+    expect(screen.getByTestId('outcome-time-series')).toBeInTheDocument();
+    expect(screen.getByTestId('outcome-capability')).toHaveTextContent('Cpk');
+    expect(screen.getByTestId('inbox-digest')).toBeInTheDocument();
+    expect(screen.getByTestId('active-investigations-summary')).toBeInTheDocument();
+    expect(screen.getByText('Fill Weight')).toBeInTheDocument();
     expect(screen.queryByTestId('canvas-card-surface')).not.toBeInTheDocument();
+  });
+
+  it('renders an empty state for invalid lens and level cells', () => {
+    useCanvasViewportStore.getState().setLevel('hub-l1-yamazumi', 'l1');
+
+    renderCanvas({
+      hubId: 'hub-l1-yamazumi',
+      activeLens: 'yamazumi',
+      map: { ...mapWithSteps, ctsColumn: 'Fill Weight' },
+      rows: [{ 'Fill Weight': 100 }, { 'Fill Weight': 101 }],
+    });
+
+    expect(screen.getByTestId('canvas-lens-level-empty-state')).toHaveTextContent(
+      "Yamazumi isn't available at System"
+    );
+    expect(screen.getByTestId('canvas-lens-level-empty-state')).toHaveTextContent('try Process');
+    expect(screen.queryByTestId('outcome-distribution')).not.toBeInTheDocument();
+  });
+
+  it('renders an empty state for process-flow at L3 before mounting the level renderer', () => {
+    useCanvasViewportStore.getState().setLevel('hub-l3-flow', 'l3', 'step-1');
+
+    renderCanvas({
+      hubId: 'hub-l3-flow',
+      activeLens: 'process-flow',
+    });
+
+    expect(screen.getByTestId('canvas-lens-level-empty-state')).toHaveTextContent(
+      "Process flow isn't available at Step"
+    );
+    expect(screen.queryByTestId('local-mechanism-view')).not.toBeInTheDocument();
+  });
+
+  it('uses mounted level measurements for Cmd+1 fit-to-content', async () => {
+    const originalBounds = HTMLElement.prototype.getBoundingClientRect;
+    HTMLElement.prototype.getBoundingClientRect = function getBounds() {
+      if (this.hasAttribute('data-canvas-viewport-wrapper')) {
+        return {
+          x: 0,
+          y: 0,
+          top: 0,
+          left: 0,
+          right: 1000,
+          bottom: 500,
+          width: 1000,
+          height: 500,
+          toJSON: () => ({}),
+        } as DOMRect;
+      }
+      if (this.getAttribute('data-canvas-level') === 'l1') {
+        return {
+          x: 0,
+          y: 0,
+          top: 0,
+          left: 0,
+          right: 500,
+          bottom: 250,
+          width: 500,
+          height: 250,
+          toJSON: () => ({}),
+        } as DOMRect;
+      }
+      return originalBounds.call(this);
+    };
+
+    try {
+      renderCanvas({ hubId: 'hub-measured-fit' });
+
+      fireEvent.keyDown(window, { key: '1', metaKey: true });
+      await act(() => new Promise(resolve => window.requestAnimationFrame(resolve)));
+
+      expect(useCanvasViewportStore.getState().getViewport('hub-measured-fit')).toMatchObject({
+        currentLevel: 'l1',
+        zoom: 1.9,
+        pan: { x: 25, y: 12.5 },
+      });
+    } finally {
+      HTMLElement.prototype.getBoundingClientRect = originalBounds;
+    }
   });
 
   it('keeps the desktop LOD input surface mounted on L1 and can wheel back to L2', () => {
@@ -1234,7 +1327,7 @@ describe('Canvas', () => {
       useCanvasViewportStore.getState().fitToContent(hubId, 'l1');
     });
 
-    expect(screen.getByText('System level coming next')).toBeInTheDocument();
+    expect(screen.getByTestId('outcome-distribution')).toBeInTheDocument();
     expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
   });
 

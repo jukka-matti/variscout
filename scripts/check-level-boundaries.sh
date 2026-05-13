@@ -45,6 +45,9 @@ check "hypothesisCanvas|hypothesisHub|gateNode" \
 check "LayeredProcessView|OperationsBand" \
   "packages/ui/src/components/EvidenceMap" \
   "Evidence Map does not reimplement L2 flow rendering"
+check "outcomeStats|outcomeBoxplot|outcomeIChart|stratifyByFactor|factorEdge|factorRelationship" \
+  "packages/ui/src/components/Canvas/internal" \
+  "Canvas viewport imports owner surfaces without reimplementing L1/L3 primitives"
 
 if [ "$FAILED" -gt 0 ]; then
   echo "" >&2

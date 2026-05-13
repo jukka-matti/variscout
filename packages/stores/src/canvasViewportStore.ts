@@ -29,6 +29,7 @@ export type ProcessHubId = ProcessHub['id'];
 export type NodeId = string;
 export type TributaryId = string;
 export type GateNodePath = string;
+export type CanvasViewportFit = { zoom: number; pan: { x: number; y: number } };
 
 export interface CanvasViewportSnapshot {
   zoom: number;
@@ -88,7 +89,7 @@ export interface CanvasViewportActions {
   setZoom: (hubId: ProcessHubId, zoom: number) => void;
   setPan: (hubId: ProcessHubId, pan: { x: number; y: number }) => void;
   setLevel: (hubId: ProcessHubId, level: CanvasLevel, focalStepId?: string) => void;
-  fitToContent: (hubId: ProcessHubId, level?: CanvasLevel) => void;
+  fitToContent: (hubId: ProcessHubId, level?: CanvasLevel, fit?: CanvasViewportFit) => void;
   toggleRail: () => void;
   setRailOpen: (open: boolean) => void;
   setGroupByTributary: (hubId: ProcessHubId, on: boolean) => void;
@@ -185,7 +186,7 @@ export const useCanvasViewportStore = create<CanvasViewportState & CanvasViewpor
           setViewportLevel(viewport, level, focalStepId)
         ),
       })),
-    fitToContent: (hubId, level) =>
+    fitToContent: (hubId, level, fit) =>
       set(s => ({
         viewports: withViewport(s.viewports, hubId, viewport => {
           const targetLevel =
@@ -196,8 +197,8 @@ export const useCanvasViewportStore = create<CanvasViewportState & CanvasViewpor
           const nextViewport = setViewportLevel(viewport, targetLevel, viewport.focalStepId);
           return {
             ...nextViewport,
-            zoom: FIT_TO_CONTENT_ZOOM_BY_LEVEL[targetLevel],
-            pan: { x: 0, y: 0 },
+            zoom: fit?.zoom ?? FIT_TO_CONTENT_ZOOM_BY_LEVEL[targetLevel],
+            pan: fit?.pan ?? { x: 0, y: 0 },
           };
         }),
       })),

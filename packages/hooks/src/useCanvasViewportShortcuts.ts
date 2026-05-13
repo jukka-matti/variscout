@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useCanvasViewportStore, type ProcessHubId } from '@variscout/stores';
+import type { CanvasLevel } from '@variscout/core/canvas';
 
 function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -14,14 +15,31 @@ function isEditableTarget(target: EventTarget | null): boolean {
   );
 }
 
+function fitNowAndAfterRender(
+  fitToContent: (hubId: ProcessHubId, targetLevel?: CanvasLevel) => void,
+  hubId: ProcessHubId,
+  targetLevel?: CanvasLevel
+): void {
+  fitToContent(hubId, targetLevel);
+  if (typeof window.requestAnimationFrame !== 'function') return;
+  window.requestAnimationFrame(() => {
+    const viewport = useCanvasViewportStore.getState().getViewport(hubId);
+    if (targetLevel === 'l3' && !viewport.focalStepId) return;
+    fitToContent(hubId, targetLevel);
+  });
+}
+
 export function useCanvasViewportShortcuts({
   hubId,
   disabled = false,
+  fitToContent: fitToContentOverride,
 }: {
   hubId: ProcessHubId;
   disabled?: boolean;
+  fitToContent?: (hubId: ProcessHubId, targetLevel?: CanvasLevel) => void;
 }): void {
-  const fitToContent = useCanvasViewportStore(s => s.fitToContent);
+  const storeFitToContent = useCanvasViewportStore(s => s.fitToContent);
+  const fitToContent = fitToContentOverride ?? storeFitToContent;
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -31,13 +49,13 @@ export function useCanvasViewportShortcuts({
 
       if (event.key === '1') {
         event.preventDefault();
-        fitToContent(hubId, 'l1');
+        fitNowAndAfterRender(fitToContent, hubId, 'l1');
         return;
       }
 
       if (event.key === '2') {
         event.preventDefault();
-        fitToContent(hubId, 'l2');
+        fitNowAndAfterRender(fitToContent, hubId, 'l2');
         return;
       }
 
@@ -46,13 +64,13 @@ export function useCanvasViewportShortcuts({
         if (!viewport.focalStepId) return;
 
         event.preventDefault();
-        fitToContent(hubId, 'l3');
+        fitNowAndAfterRender(fitToContent, hubId, 'l3');
         return;
       }
 
       if (event.key === '0') {
         event.preventDefault();
-        fitToContent(hubId);
+        fitNowAndAfterRender(fitToContent, hubId);
       }
     };
 

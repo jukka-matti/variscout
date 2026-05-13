@@ -14,6 +14,7 @@ const orderedLenses: CanvasLensDefinition[] = [
   CANVAS_LENS_REGISTRY.default,
   CANVAS_LENS_REGISTRY.capability,
   CANVAS_LENS_REGISTRY.defect,
+  CANVAS_LENS_REGISTRY['process-flow'],
   CANVAS_LENS_REGISTRY.performance,
   CANVAS_LENS_REGISTRY.yamazumi,
 ];

@@ -8,6 +8,9 @@ import { chartColors } from '@variscout/charts';
 import {
   coerceCanvasLens,
   coerceCanvasOverlays,
+  CANVAS_LENS_REGISTRY,
+  isCanvasLensValidAtLevel,
+  suggestCanvasLevelForLens,
   resolveEndpointToFactor,
   useCanvasViewportInput,
   useCanvasViewportShortcuts,
@@ -29,11 +32,18 @@ import {
   detectColumns,
   type DataRow,
   type Finding,
+  type Hypothesis,
   type SpecLimits,
+  type Question,
   type WorkflowReadinessSignals,
 } from '@variscout/core';
 import type { ActionItem, ColumnTypeMap } from '@variscout/core/findings';
-import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
+import type { CanvasLevel } from '@variscout/core/canvas';
+import {
+  useCanvasViewportStore,
+  type CanvasViewportFit,
+  type CanvasViewportSnapshot,
+} from '@variscout/stores';
 import {
   type ProductionLineGlanceFilterStripProps,
   ProductionLineGlanceFilterStrip,
@@ -59,6 +69,7 @@ import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/Canv
 import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
 import { LocalMechanismView } from './internal/LocalMechanismView';
+import { SystemLevelView } from './internal/SystemLevelView';
 import { AuthorL3View } from './internal/AuthorL3View';
 import { NoFocalStepPrompt, sortedProcessSteps } from './internal/NoFocalStepPrompt';
 import { useWallIsMobile } from '../InvestigationWall';
@@ -106,8 +117,53 @@ const DEFAULT_CANVAS_VIEWPORT: CanvasViewportSnapshot = {
 };
 const CANVAS_VIEWPORT_IGNORED_TARGET = '[data-canvas-wall-overlay]';
 
+const CANVAS_LEVEL_LABELS = {
+  l1: 'System',
+  l2: 'Process',
+  l3: 'Step',
+} as const;
+const CANVAS_FIT_REQUEST_EVENT = 'variscout:canvas-fit-request';
+const FIT_TO_CONTENT_MARGIN = 0.95;
+
+interface CanvasFitRequestDetail {
+  hubId: string;
+  level?: CanvasLevel;
+}
+
 function shouldHandleCanvasViewportInput(event: Event): boolean {
   return !(event.target instanceof Element && event.target.closest(CANVAS_VIEWPORT_IGNORED_TARGET));
+}
+
+function measureCanvasFit(
+  wrapper: HTMLElement | null,
+  level: CanvasLevel
+): CanvasViewportFit | undefined {
+  const contentElement = wrapper?.querySelector<HTMLElement>(`[data-canvas-level="${level}"]`);
+  if (!wrapper || !contentElement) return undefined;
+
+  const viewportBounds = wrapper.getBoundingClientRect();
+  const contentBounds = contentElement.getBoundingClientRect();
+  if (
+    viewportBounds.width <= 0 ||
+    viewportBounds.height <= 0 ||
+    contentBounds.width <= 0 ||
+    contentBounds.height <= 0
+  ) {
+    return undefined;
+  }
+
+  const zoom =
+    Math.min(
+      viewportBounds.width / contentBounds.width,
+      viewportBounds.height / contentBounds.height
+    ) * FIT_TO_CONTENT_MARGIN;
+  return {
+    zoom,
+    pan: {
+      x: viewportBounds.width / 2 - (contentBounds.width / 2) * zoom,
+      y: viewportBounds.height / 2 - (contentBounds.height / 2) * zoom,
+    },
+  };
 }
 
 function areArrowSegmentsEqual(left: ArrowSegment[], right: ArrowSegment[]) {
@@ -185,6 +241,8 @@ export interface CanvasProps {
   activeCanvasTool?: CanvasToolId;
   onCanvasToolChange?: (next: CanvasToolId) => void;
   questions?: ReadonlyArray<CanvasQuestionOption>;
+  systemQuestions?: ReadonlyArray<Question>;
+  hypotheses?: ReadonlyArray<Hypothesis>;
   onAddCausalLink?: (
     fromFactor: string,
     toFactor: string,
@@ -209,6 +267,7 @@ export interface CanvasProps {
   problemCpk?: number;
   eventsPerWeek?: number;
   activeColumns?: ReadonlyArray<string>;
+  onOpenScout?: (hubId: string) => void;
   onOpenWall?: () => void;
   onSelectWallHub?: (hubId: string) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;
@@ -254,6 +313,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   activeCanvasTool = 'select',
   onCanvasToolChange,
   questions = EMPTY_QUESTIONS,
+  systemQuestions = [],
+  hypotheses = [],
   onAddCausalLink,
   investigationOverlays,
   signals,
@@ -273,6 +334,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   problemCpk,
   eventsPerWeek,
   activeColumns,
+  onOpenScout,
   onOpenWall,
   onSelectWallHub,
   onOpenColumnDetail,
@@ -282,6 +344,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   const viewport = useCanvasViewportStore(s =>
     s.viewports[hubId] ? s.getViewport(hubId) : DEFAULT_CANVAS_VIEWPORT
   );
+  const rawLens = activeLens;
   const resolvedLens = coerceCanvasLens(activeLens);
   const resolvedOverlays = React.useMemo(
     () => coerceCanvasOverlays(activeOverlays),
@@ -402,13 +465,35 @@ export const Canvas: React.FC<CanvasProps> = ({
     : undefined;
   const cardSurfaceRef = React.useRef<HTMLDivElement | null>(null);
   const lodInputSurfaceRef = React.useRef<HTMLDivElement | null>(null);
+  const fitToContentMeasured = React.useCallback(
+    (targetLevel?: CanvasLevel) => {
+      const level = targetLevel ?? viewport.currentLevel;
+      const fit = measureCanvasFit(lodInputSurfaceRef.current, level);
+      useCanvasViewportStore.getState().fitToContent(hubId, level, fit);
+    },
+    [hubId, viewport.currentLevel]
+  );
   useCanvasViewportInput({
     hubId,
     ref: lodInputSurfaceRef,
     disabled: wallIsMobile || disabled || activeCanvasTool === 'draw-hypothesis',
     filter: shouldHandleCanvasViewportInput,
   });
-  useCanvasViewportShortcuts({ hubId, disabled });
+  useCanvasViewportShortcuts({
+    hubId,
+    disabled,
+    fitToContent: (_hubId, targetLevel) => fitToContentMeasured(targetLevel),
+  });
+
+  React.useEffect(() => {
+    const handleFitRequest = (event: Event) => {
+      const detail = (event as CustomEvent<CanvasFitRequestDetail>).detail;
+      if (detail?.hubId !== hubId) return;
+      fitToContentMeasured(detail.level);
+    };
+    window.addEventListener(CANVAS_FIT_REQUEST_EVENT, handleFitRequest);
+    return () => window.removeEventListener(CANVAS_FIT_REQUEST_EVENT, handleFitRequest);
+  }, [fitToContentMeasured, hubId]);
 
   React.useEffect(() => {
     if (viewport.currentLevel !== 'l3' || viewport.focalStepId || !firstStepId) return;
@@ -714,7 +799,11 @@ export const Canvas: React.FC<CanvasProps> = ({
     );
 
   const canvasContent = (
-    <div data-testid="layered-process-view" className="flex flex-col bg-surface-background">
+    <div
+      data-testid="layered-process-view"
+      data-canvas-level="l2"
+      className="flex flex-col bg-surface-background"
+    >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-edge px-4 py-2">
         <div className="flex flex-wrap items-center gap-2">
           {isAuthorMode ? (
@@ -881,9 +970,20 @@ export const Canvas: React.FC<CanvasProps> = ({
     </div>
   );
 
-  const l1Placeholder = (
-    <div className="bg-surface-background p-6 text-sm font-medium text-content-secondary">
-      System level coming next
+  const l1Content = (
+    <div data-canvas-level="l1">
+      <SystemLevelView
+        hubId={hubId}
+        map={map}
+        rows={rows ?? []}
+        stepCards={stepCards}
+        questions={systemQuestions}
+        hypotheses={hypotheses}
+        findings={findings}
+        activeLens={resolvedLens}
+        specLimits={{ usl, lsl, target, cpkTarget }}
+        onOpenScout={onOpenScout}
+      />
     </div>
   );
   const authorL3Content = viewport.focalStepId ? (
@@ -923,7 +1023,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   );
   const l3ContentBody = resolvedL3Archetype === 'b1' ? authorL3Content : readL3Content;
   const l3Content = (
-    <div className="bg-surface-background">
+    <div className="bg-surface-background" data-canvas-level="l3">
       {onModeChange ? (
         <div className="flex items-center justify-end border-b border-edge px-4 py-3">
           <CanvasModeToggle mode={authoringMode} onChange={onModeChange} disabled={disabled} />
@@ -932,16 +1032,34 @@ export const Canvas: React.FC<CanvasProps> = ({
       {l3ContentBody}
     </div>
   );
-  const levelContent = (
+  const lensValidAtCurrentLevel = isCanvasLensValidAtLevel(rawLens, viewport.currentLevel);
+  const suggestedLevel = suggestCanvasLevelForLens(rawLens, viewport.currentLevel);
+  const invalidLensLevelContent = (
+    <div
+      className="bg-surface-background p-6 text-sm font-medium text-content-secondary"
+      data-testid="canvas-lens-level-empty-state"
+    >
+      {CANVAS_LENS_REGISTRY[rawLens].label} isn't available at{' '}
+      {CANVAS_LEVEL_LABELS[viewport.currentLevel]} — try {CANVAS_LEVEL_LABELS[suggestedLevel]}.
+    </div>
+  );
+  const levelContent = lensValidAtCurrentLevel ? (
     <LODSwitcher
       currentLevel={viewport.currentLevel}
-      l1={l1Placeholder}
+      l1={l1Content}
       l2={canvasContent}
       l3={l3Content}
     />
+  ) : (
+    invalidLensLevelContent
   );
   const desktopLevelContent = (
-    <div ref={lodInputSurfaceRef} data-testid="canvas-lod-input-surface" className="min-h-0">
+    <div
+      ref={lodInputSurfaceRef}
+      data-testid="canvas-lod-input-surface"
+      data-canvas-viewport-wrapper
+      className="min-h-0"
+    >
       {levelContent}
     </div>
   );

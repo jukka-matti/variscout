@@ -80,6 +80,8 @@ export {
   buildCanvasStepCards,
   coerceCanvasLens,
   enabledCanvasLenses,
+  isCanvasLensValidAtLevel,
+  suggestCanvasLevelForLens,
   useCanvasStepCards,
   type BuildCanvasStepCardsArgs,
   type CanvasLensDefinition,
