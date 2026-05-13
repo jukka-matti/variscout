@@ -59,6 +59,7 @@ import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/Canv
 import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
 import { LocalMechanismView } from './internal/LocalMechanismView';
+import { AuthorL3View } from './internal/AuthorL3View';
 import { NoFocalStepPrompt, sortedProcessSteps } from './internal/NoFocalStepPrompt';
 import { useWallIsMobile } from '../InvestigationWall';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
@@ -78,6 +79,7 @@ import type { LogActionPayload } from '../QuickAction';
  */
 export type ProductionLineGlanceOpsMode = 'spatial' | 'full';
 export type CanvasAuthoringMode = 'author' | 'read';
+export type CanvasL3Archetype = 'b0' | 'b1';
 
 type ArrowSegment = {
   id: string;
@@ -158,6 +160,7 @@ export interface CanvasProps {
   rows?: readonly DataRow[];
   filter: ProductionLineGlanceFilterStripProps;
   mode?: CanvasAuthoringMode;
+  l3Archetype?: CanvasL3Archetype;
   onModeChange?: (next: CanvasAuthoringMode) => void;
   onUndo?: () => void;
   onRedo?: () => void;
@@ -229,6 +232,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   showGaps = true,
   filter,
   mode: authoringMode = 'author',
+  l3Archetype,
   onModeChange,
   onUndo,
   onRedo,
@@ -304,6 +308,7 @@ export const Canvas: React.FC<CanvasProps> = ({
     );
   }, [rows]);
   const canPlaceChips = isAuthorMode && !disabled && chips.length > 0;
+  const resolvedL3Archetype: CanvasL3Archetype = l3Archetype ?? (isAuthorMode ? 'b1' : 'b0');
   const showChipRail = canPlaceChips && viewport.currentLevel === 'l2';
   const [pendingStepChipId, setPendingStepChipId] = React.useState<string | null>(null);
   const [keyboardChipId, setKeyboardChipId] = React.useState<string | null>(null);
@@ -881,7 +886,21 @@ export const Canvas: React.FC<CanvasProps> = ({
       System level coming next
     </div>
   );
-  const l3Content = viewport.focalStepId ? (
+  const authorL3Content = viewport.focalStepId ? (
+    <AuthorL3View
+      hubId={hubId}
+      focalStepId={viewport.focalStepId}
+      map={map}
+      chips={chips}
+      disabled={!canPlaceChips}
+      onPlaceChip={onPlaceChip}
+      onKeyboardChipPickUp={setKeyboardChipId}
+      onKeyboardChipDrop={handleKeyboardChipDrop}
+    />
+  ) : (
+    <NoFocalStepPrompt hubId={hubId} map={map} />
+  );
+  const readL3Content = viewport.focalStepId ? (
     <LocalMechanismView
       hubId={hubId}
       focalStepId={viewport.focalStepId}
@@ -901,6 +920,17 @@ export const Canvas: React.FC<CanvasProps> = ({
     />
   ) : (
     <NoFocalStepPrompt hubId={hubId} map={map} />
+  );
+  const l3ContentBody = resolvedL3Archetype === 'b1' ? authorL3Content : readL3Content;
+  const l3Content = (
+    <div className="bg-surface-background">
+      {onModeChange ? (
+        <div className="flex items-center justify-end border-b border-edge px-4 py-3">
+          <CanvasModeToggle mode={authoringMode} onChange={onModeChange} disabled={disabled} />
+        </div>
+      ) : null}
+      {l3ContentBody}
+    </div>
   );
   const levelContent = (
     <LODSwitcher

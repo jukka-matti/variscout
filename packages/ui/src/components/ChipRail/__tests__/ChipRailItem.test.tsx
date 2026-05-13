@@ -27,7 +27,10 @@ describe('ChipRailItem', () => {
 
     render(<ChipRailItem chipId="cycle-time" label="Cycle time" role="factor" />);
 
-    expect(draggableSpy).toHaveBeenCalledWith({ id: encodeChipDragId('cycle-time') });
+    expect(draggableSpy).toHaveBeenCalledWith({
+      id: encodeChipDragId('cycle-time'),
+      disabled: false,
+    });
     const item = screen.getByTestId('chip-rail-item-cycle-time');
     expect(item.tagName).toBe('BUTTON');
     expect(setNodeRef).toHaveBeenCalled();
@@ -50,5 +53,32 @@ describe('ChipRailItem', () => {
     const item = screen.getByTestId('chip-rail-item-operator');
     expect(item).toHaveAttribute('data-dragging', 'true');
     expect(item).toHaveStyle({ transform: 'translate3d(4px, 8px, 0)' });
+  });
+
+  it('disables dragging and keyboard pickup when disabled', () => {
+    const onKeyboardPickUp = vi.fn();
+    draggableSpy.mockReturnValue({
+      attributes: {},
+      listeners: {},
+      setNodeRef: vi.fn(),
+      transform: null,
+      isDragging: false,
+    });
+
+    render(
+      <ChipRailItem
+        chipId="operator"
+        label="Operator"
+        role="metadata"
+        disabled
+        onKeyboardPickUp={onKeyboardPickUp}
+      />
+    );
+
+    expect(draggableSpy).toHaveBeenCalledWith({
+      id: encodeChipDragId('operator'),
+      disabled: true,
+    });
+    expect(screen.getByTestId('chip-rail-item-operator')).toBeDisabled();
   });
 });
