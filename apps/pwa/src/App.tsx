@@ -1063,7 +1063,11 @@ function AppMain() {
                 onBack={panels.showFrame}
               />
             ) : panels.activeView === 'handoff' ? (
-              <HandoffPanel onBack={panels.showFrame} />
+              <HandoffPanel
+                activeHub={sessionHub ?? undefined}
+                targetId={panels.handoffTargetId ?? undefined}
+                onBack={panels.showFrame}
+              />
             ) : panels.activeView === 'investigation' ? (
               <InvestigationView
                 filteredData={filteredData ?? []}

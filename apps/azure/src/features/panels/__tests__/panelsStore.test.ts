@@ -451,8 +451,9 @@ describe('panelsStore', () => {
     });
 
     it('showHandoff sets activeView to handoff', () => {
-      usePanelsStore.getState().showHandoff();
+      usePanelsStore.getState().showHandoff('sr-1');
       expect(usePanelsStore.getState().activeView).toBe('handoff');
+      expect(usePanelsStore.getState().handoffTargetId).toBe('sr-1');
     });
   });
 });

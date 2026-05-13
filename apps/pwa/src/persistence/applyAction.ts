@@ -87,6 +87,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
         improvementProjects,
         sustainmentRecords,
         sustainmentReviews,
+        controlHandoffs,
         ...hubMeta
       } = action.hub;
       await db.transaction(
@@ -98,6 +99,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
           db.improvementProjects,
           db.sustainmentRecords,
           db.sustainmentReviews,
+          db.controlHandoffs,
         ],
         async () => {
           await db.hubs.put(hubMeta);
@@ -157,6 +159,17 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
             .delete();
           if (incomingSustainmentReviews.length > 0) {
             await db.sustainmentReviews.bulkPut(incomingSustainmentReviews);
+          }
+
+          const incomingControlHandoffs = controlHandoffs ?? [];
+          const incomingHandoffIds = new Set(incomingControlHandoffs.map(handoff => handoff.id));
+          await db.controlHandoffs
+            .where('hubId')
+            .equals(hubMeta.id)
+            .filter(handoff => !incomingHandoffIds.has(handoff.id))
+            .delete();
+          if (incomingControlHandoffs.length > 0) {
+            await db.controlHandoffs.bulkPut(incomingControlHandoffs);
           }
         }
       );
@@ -288,6 +301,65 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
         const existing = await db.sustainmentRecords.get(action.record.id);
         await db.sustainmentRecords.put({ ...existing, ...action.record });
         await db.sustainmentReviews.put(action.review);
+      });
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_CREATE': {
+      const hub = await db.hubs.get(action.hubId);
+      if (!hub) {
+        throw new Error(`CONTROL_HANDOFF_CREATE: parent hub ${action.hubId} does not exist`);
+      }
+      if (action.handoff.hubId !== action.hubId) {
+        throw new Error(
+          `CONTROL_HANDOFF_CREATE hubId mismatch: action hub '${action.hubId}' does not match handoff hub '${action.handoff.hubId}'`
+        );
+      }
+      await db.controlHandoffs.add(action.handoff);
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_UPDATE': {
+      const existing = await db.controlHandoffs.get(action.handoffId);
+      if (!existing) return;
+      await db.controlHandoffs.update(action.handoffId, action.patch);
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_ARCHIVE': {
+      await db.controlHandoffs.update(action.handoffId, { deletedAt: Date.now() });
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_ACKNOWLEDGE': {
+      const acknowledgedAt = action.acknowledgedAt ?? Date.now();
+      await db.controlHandoffs.update(action.handoffId, {
+        status: 'acknowledged',
+        acknowledgedAt,
+        ownerAcknowledgement: {
+          acknowledgedBy: action.acknowledgedBy,
+          notes: action.notes,
+        },
+      });
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_MARK_OPERATIONAL': {
+      await db.controlHandoffs.update(action.handoffId, {
+        status: 'operational',
+        operationalAt: action.operationalAt ?? Date.now(),
+      });
+      return;
+    }
+
+    case 'CONTROL_HANDOFF_SIGNOFF': {
+      const existing = await db.controlHandoffs.get(action.handoffId);
+      if (!existing) return;
+      const operationalAt = existing.operationalAt ?? action.signoff.approvedAt ?? Date.now();
+      await db.controlHandoffs.update(action.handoffId, {
+        status: 'operational',
+        operationalAt,
+        signoff: { ...(existing.signoff ?? {}), ...action.signoff },
       });
       return;
     }

@@ -116,6 +116,7 @@ const WhatIfPage = lazyWithRetry(() => import('../components/WhatIfPage'));
 const ReportView = lazyWithRetry(() => import('../components/views/ReportView'));
 
 const INVESTIGATION_DEPTHS: InvestigationDepth[] = ['quick', 'focused', 'chartered'];
+const PENDING_HANDOFF_TARGET_KEY = 'variscout.pendingHandoffTargetId';
 const INVESTIGATION_STATUSES: InvestigationStatus[] = [
   'issue-captured',
   'framing',
@@ -286,6 +287,8 @@ interface EditorProps {
   initialSample?: SampleDataset | null;
   /** Process Hub to assign when starting a new investigation from the hub home */
   initialProcessHubId?: string;
+  /** Open Handoff after cross-view navigation from Survey Inbox. */
+  initialHandoffTargetId?: string;
   /**
    * When true, open PasteScreen immediately on mount (used by "Add framing" CTA
    * to route directly to the paste flow rather than stopping at EditorEmptyState).
@@ -303,6 +306,7 @@ export const Editor: React.FC<EditorProps> = ({
   initialMode,
   initialSample,
   initialProcessHubId,
+  initialHandoffTargetId,
   startPasteOnMount,
 }) => {
   const {
@@ -477,6 +481,11 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Panel visibility and chart/table sync (Zustand store)
   const activeView = usePanelsStore(s => s.activeView);
+  const handoffTargetId = usePanelsStore(s => s.handoffTargetId);
+  const sustainmentTargetId = usePanelsStore(s => s.sustainmentTargetId);
+  const [navigationHandoffTargetId, setNavigationHandoffTargetId] = useState<string | null>(
+    initialHandoffTargetId ?? null
+  );
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
@@ -488,6 +497,22 @@ export const Editor: React.FC<EditorProps> = ({
     viewStateInitRef.current = true;
     usePanelsStore.getState().initFromViewState(viewState);
   }, [viewState]);
+
+  useEffect(() => {
+    const pendingHandoffTargetId =
+      initialHandoffTargetId ?? window.sessionStorage.getItem(PENDING_HANDOFF_TARGET_KEY);
+    if (pendingHandoffTargetId) {
+      window.sessionStorage.removeItem(PENDING_HANDOFF_TARGET_KEY);
+      setNavigationHandoffTargetId(pendingHandoffTargetId);
+      usePanelsStore.getState().showHandoff(pendingHandoffTargetId);
+    }
+  }, [initialHandoffTargetId]);
+
+  useEffect(() => {
+    if (handoffTargetId && activeView !== 'handoff') {
+      usePanelsStore.getState().showHandoff(handoffTargetId);
+    }
+  }, [activeView, handoffTargetId]);
 
   // Bridge hook: persists Zustand panel state to DataContext (IndexedDB/OneDrive)
   usePanelsPersistence(handleViewStateChange);
@@ -1556,7 +1581,22 @@ export const Editor: React.FC<EditorProps> = ({
         }}
         className="flex-1 flex flex-col min-h-0 bg-surface rounded-xl border border-edge overflow-hidden"
       >
-        {rawData.length === 0 ? (
+        {activeView === 'handoff' || navigationHandoffTargetId ? (
+          <HandoffPanel
+            activeHub={activeHub}
+            targetId={handoffTargetId ?? navigationHandoffTargetId ?? undefined}
+            onBack={() => {
+              setNavigationHandoffTargetId(null);
+              usePanelsStore.getState().showFrame();
+            }}
+          />
+        ) : activeView === 'sustainment' ? (
+          <SustainmentPanel
+            activeHub={activeHub}
+            targetId={sustainmentTargetId ?? undefined}
+            onBack={() => usePanelsStore.getState().showFrame()}
+          />
+        ) : rawData.length === 0 ? (
           <EditorEmptyState
             dataFlow={dataFlow}
             loadError={loadError}
@@ -1608,14 +1648,6 @@ export const Editor: React.FC<EditorProps> = ({
                   usePanelsStore.getState().showInvestigation();
                 }}
               />
-            ) : activeView === 'sustainment' ? (
-              <SustainmentPanel
-                activeHub={activeHub}
-                targetId={usePanelsStore.getState().sustainmentTargetId ?? undefined}
-                onBack={() => usePanelsStore.getState().showFrame()}
-              />
-            ) : activeView === 'handoff' ? (
-              <HandoffPanel onBack={() => usePanelsStore.getState().showFrame()} />
             ) : activeView === 'investigation' ? (
               <InvestigationWorkspace
                 findingsState={findingsState}

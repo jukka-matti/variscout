@@ -21,6 +21,7 @@ import {
 } from '@variscout/stores';
 import type { CanvasInvestigationFocus } from '@variscout/hooks';
 import type {
+  ControlHandoff,
   EvidenceSnapshot,
   StepCapabilityStamp,
   SustainmentRecord,
@@ -36,6 +37,7 @@ import { useInvestigationFeatureStore } from '../../features/investigation/inves
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
 const EMPTY_SUSTAINMENT_RECORDS: SustainmentRecord[] = [];
+const EMPTY_CONTROL_HANDOFFS: ControlHandoff[] = [];
 
 function mergeActionItems(
   current: readonly ActionItem[],
@@ -100,6 +102,8 @@ const FrameView: React.FC = () => {
   const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
   const [sustainmentRecords, setSustainmentRecords] =
     React.useState<SustainmentRecord[]>(EMPTY_SUSTAINMENT_RECORDS);
+  const [controlHandoffs, setControlHandoffs] =
+    React.useState<ControlHandoff[]>(EMPTY_CONTROL_HANDOFFS);
   const activeHubIdRef = React.useRef<string | null>(activeHubId);
 
   React.useEffect(() => {
@@ -130,6 +134,7 @@ const FrameView: React.FC = () => {
   React.useEffect(() => {
     setActionItems(EMPTY_ACTION_ITEMS);
     setSustainmentRecords(EMPTY_SUSTAINMENT_RECORDS);
+    setControlHandoffs(EMPTY_CONTROL_HANDOFFS);
 
     if (!activeHubId) {
       return;
@@ -138,15 +143,17 @@ const FrameView: React.FC = () => {
     let cancelled = false;
     void (async () => {
       try {
-        const [items, records] = await Promise.all([
+        const [items, records, handoffs] = await Promise.all([
           azureHubRepository.actionItems.listByHub(activeHubId),
           azureHubRepository.sustainmentRecords.listByHub(activeHubId),
+          azureHubRepository.controlHandoffs.listByHub(activeHubId),
         ]);
         if (!cancelled) {
           setActionItems(items);
           setSustainmentRecords(
             records.filter((record: SustainmentRecord) => record.deletedAt === null)
           );
+          setControlHandoffs(handoffs.filter(handoff => handoff.deletedAt === null));
         }
       } catch {
         // Keep any in-memory quick actions if the local repository is unavailable.
@@ -190,9 +197,16 @@ const FrameView: React.FC = () => {
           description: record.status,
         })),
       },
-      { surfaceType: 'handoff', items: [] },
+      {
+        surfaceType: 'handoff',
+        items: controlHandoffs.map(handoff => ({
+          id: handoff.id,
+          label: handoff.systemName || handoff.operationalOwner.displayName || 'Handoff',
+          description: handoff.status,
+        })),
+      },
     ];
-  }, [activeHubId, hypotheses, projectsByHub, sustainmentRecords]);
+  }, [activeHubId, controlHandoffs, hypotheses, projectsByHub, sustainmentRecords]);
 
   const signals: WorkflowReadinessSignals = React.useMemo(() => {
     const improvementProjects = (activeHubId ? (projectsByHub[activeHubId] ?? []) : []).filter(
@@ -215,9 +229,10 @@ const FrameView: React.FC = () => {
     return surveyInboxRules({
       improvementProjects,
       sustainmentRecords,
+      controlHandoffs,
       now: Date.now(),
     });
-  }, [activeHubId, projectsByHub, sustainmentRecords]);
+  }, [activeHubId, controlHandoffs, projectsByHub, sustainmentRecords]);
 
   const handleSeeData = React.useCallback(() => {
     usePanelsStore.getState().showAnalysis();
@@ -314,6 +329,10 @@ const FrameView: React.FC = () => {
       usePanelsStore.getState().showSustainment(prompt.action?.opensId);
       return;
     }
+    if (surface === 'handoff') {
+      usePanelsStore.getState().showHandoff(prompt.action?.opensId);
+      return;
+    }
     if (surface === 'improvement-projects') {
       usePanelsStore.getState().showCharter();
       return;
@@ -337,9 +356,13 @@ const FrameView: React.FC = () => {
         usePanelsStore.getState().showSustainment(item.id);
         return;
       }
+      if (controlHandoffs.some(handoff => handoff.id === item.id)) {
+        usePanelsStore.getState().showHandoff(item.id);
+        return;
+      }
       usePanelsStore.getState().showInvestigation();
     },
-    [activeHubId, sustainmentRecords]
+    [activeHubId, controlHandoffs, sustainmentRecords]
   );
 
   return (

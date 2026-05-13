@@ -83,12 +83,14 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         improvementProjects: rollup.hub.improvementProjects ?? [],
         sustainmentRecords: rollup.sustainmentRecords,
         sustainmentReviews: rollup.hub.sustainmentReviews ?? [],
+        controlHandoffs: rollup.controlHandoffs,
         now: Date.now(),
       }),
     [
       rollup.hub.id,
       rollup.hub.improvementProjects,
       rollup.hub.sustainmentReviews,
+      rollup.controlHandoffs,
       rollup.sustainmentRecords,
     ]
   );
@@ -129,6 +131,10 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           return;
         }
         onOpenInvestigation(targetId);
+        return;
+      }
+      if (surface === 'handoff' && targetId) {
+        onRecordHandoff(targetId);
         return;
       }
       if (surface === 'improvement-projects' && targetId) {

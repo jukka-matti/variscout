@@ -31,6 +31,7 @@ interface PanelsState {
   showResetConfirm: boolean;
   openSpecEditorRequested: boolean;
   sustainmentTargetId: string | null;
+  handoffTargetId: string | null;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ interface PanelsActions {
   showReport: () => void;
   showCharter: () => void;
   showSustainment: (targetId?: string) => void;
-  showHandoff: () => void;
+  showHandoff: (targetId?: string) => void;
 
   // Simple toggles
   setSettingsOpen: (open: boolean) => void;
@@ -89,6 +90,7 @@ export const initialPanelsState: PanelsState = {
   showResetConfirm: false,
   openSpecEditorRequested: false,
   sustainmentTargetId: null,
+  handoffTargetId: null,
 };
 
 // ── Store ────────────────────────────────────────────────────────────────────
@@ -109,7 +111,8 @@ export const usePanelsStore = create<PanelsStore>(set => ({
       isFindingsOpen: false,
       sustainmentTargetId: targetId ?? null,
     }),
-  showHandoff: () => set({ activeView: 'handoff', isFindingsOpen: false }),
+  showHandoff: targetId =>
+    set({ activeView: 'handoff', isFindingsOpen: false, handoffTargetId: targetId ?? null }),
 
   // Simple toggles
   setSettingsOpen: open => set({ isSettingsOpen: open }),

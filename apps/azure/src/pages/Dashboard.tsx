@@ -44,9 +44,17 @@ import EvidenceSheet from '../components/EvidenceSheet';
 import ProcessHubView from '../components/ProcessHubView';
 import SampleDataPicker from '../components/SampleDataPicker';
 import StateItemNotesDrawer from '../components/StateItemNotesDrawer';
+import { usePanelsStore } from '../features/panels/panelsStore';
+
+const PENDING_HANDOFF_TARGET_KEY = 'variscout.pendingHandoffTargetId';
 
 interface DashboardProps {
-  onOpenProject: (id?: string, processHubId?: string, startPaste?: boolean) => void;
+  onOpenProject: (
+    id?: string,
+    processHubId?: string,
+    startPaste?: boolean,
+    handoffTargetId?: string
+  ) => void;
   /** Load a .vrs project file (from SharePoint download) */
   onLoadProjectFile?: (file: File) => void;
   /** Load a sample dataset directly into a new analysis */
@@ -253,10 +261,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   const handleRecordHandoff = useCallback(
-    (investigationId: string) => {
-      onOpenProject(investigationId);
+    (targetId: string) => {
+      const record = sustainmentRecords.find(
+        r => r.id === targetId || r.controlHandoffId === targetId || r.investigationId === targetId
+      );
+      const handoffTargetId = record?.id ?? targetId;
+      window.sessionStorage.setItem(PENDING_HANDOFF_TARGET_KEY, handoffTargetId);
+      usePanelsStore.getState().showHandoff(handoffTargetId);
+      onOpenProject(undefined, record?.hubId, false, handoffTargetId);
     },
-    [onOpenProject]
+    [sustainmentRecords, onOpenProject]
   );
 
   const handleResponsePathAction = useCallback(

@@ -46,6 +46,7 @@ import type {
   ActionItemReadAPI,
   SustainmentRecordReadAPI,
   SustainmentReviewReadAPI,
+  ControlHandoffReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
 import type { ProcessHub } from '@variscout/core/processHub';
@@ -89,9 +90,10 @@ export class PwaHubRepository implements HubRepository {
       db.canvasState.get(hubMeta.id),
       db.improvementProjects.where('hubId').equals(hubMeta.id).toArray(),
     ]);
-    const [sustainmentRecords, sustainmentReviews] = await Promise.all([
+    const [sustainmentRecords, sustainmentReviews, controlHandoffs] = await Promise.all([
       this.sustainmentRecords.listByHub(hubMeta.id),
       this.sustainmentReviews.listByHub(hubMeta.id),
+      this.controlHandoffs.listByHub(hubMeta.id),
     ]);
     const liveOutcomes = outcomes.filter(o => o.deletedAt === null);
     const liveProjects = improvementProjects.filter(p => p.deletedAt === null);
@@ -103,6 +105,7 @@ export class PwaHubRepository implements HubRepository {
       ...(liveProjects.length > 0 ? { improvementProjects: liveProjects } : {}),
       ...(sustainmentRecords.length > 0 ? { sustainmentRecords } : {}),
       ...(sustainmentReviews.length > 0 ? { sustainmentReviews } : {}),
+      ...(controlHandoffs.length > 0 ? { controlHandoffs } : {}),
     } as ProcessHub;
   }
 
@@ -126,6 +129,7 @@ export class PwaHubRepository implements HubRepository {
           db.improvementProjects,
           db.sustainmentRecords,
           db.sustainmentReviews,
+          db.controlHandoffs,
         ],
         async () => {
           const hubMeta = await db.hubs.get(id);
@@ -145,6 +149,7 @@ export class PwaHubRepository implements HubRepository {
           db.improvementProjects,
           db.sustainmentRecords,
           db.sustainmentReviews,
+          db.controlHandoffs,
         ],
         async () => {
           const allHubs = await db.hubs.toArray();
@@ -331,6 +336,18 @@ export class PwaHubRepository implements HubRepository {
       return sortReviewsDescending(
         rows.filter(row => row.hubId === hubId && row.deletedAt === null)
       );
+    },
+  };
+
+  controlHandoffs: ControlHandoffReadAPI = {
+    get: async id => {
+      const row = await db.controlHandoffs.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
+    },
+    listByHub: async hubId => {
+      const rows = await db.controlHandoffs.where('hubId').equals(hubId).toArray();
+      return rows.filter(row => row.deletedAt === null);
     },
   };
 }

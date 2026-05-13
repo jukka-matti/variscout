@@ -10,6 +10,7 @@ import {
   selectSustainmentReviews,
   type ControlHandoff,
   type ControlHandoffSurface,
+  type ControlHandoffStatus,
   type SustainmentCadence,
   type SustainmentRecord,
   type SustainmentVerdict,
@@ -56,6 +57,43 @@ describe('nextDueFromCadence', () => {
   it('handles semiannual cadence (6 months)', () => {
     const result = nextDueFromCadence('semiannual', new Date('2026-04-26T00:00:00.000Z'));
     expect(result).toBe('2026-10-26T00:00:00.000Z');
+  });
+});
+
+describe('ControlHandoff V1 lifecycle shape', () => {
+  it('supports pending, acknowledged, and operational lifecycle state plus signoff metadata', () => {
+    const states: ControlHandoffStatus[] = ['pending', 'acknowledged', 'operational'];
+    const handoff: ControlHandoff = {
+      id: 'handoff-1',
+      investigationId: 'inv-1',
+      hubId: 'hub-1',
+      status: 'acknowledged',
+      surface: 'qms-procedure',
+      systemName: 'QMS-42',
+      operationalOwner: { displayName: 'Process owner' },
+      handoffDate: 1_746_352_800_000,
+      description: 'Control transferred to operations.',
+      retainSustainmentReview: true,
+      recordedBy: { displayName: 'Analyst' },
+      acknowledgedAt: 1_746_352_900_000,
+      ownerAcknowledgement: {
+        acknowledgedBy: { displayName: 'Process owner' },
+        notes: 'Accepted into daily control.',
+      },
+      escalationPath: 'Escalate misses to the production manager.',
+      reactionPlan: 'Restore standard work and open a focused investigation if drift repeats.',
+      signoff: {
+        requestedAt: 1_746_353_000_000,
+        approvedAt: 1_746_353_100_000,
+        approvedBy: { displayName: 'Sponsor' },
+      },
+      createdAt: 1_746_352_800_000,
+      deletedAt: null,
+    };
+
+    expect(states).toHaveLength(3);
+    expect(handoff.status).toBe('acknowledged');
+    expect(handoff.signoff?.approvedBy?.displayName).toBe('Sponsor');
   });
 });
 
@@ -348,6 +386,7 @@ function makeHandoff(
     id: `h-${investigationId}`,
     investigationId,
     hubId: 'hub-1',
+    status: 'operational',
     surface,
     systemName: 'System',
     operationalOwner: { userId: 'u-1', displayName: 'Op' },

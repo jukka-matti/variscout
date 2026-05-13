@@ -36,6 +36,7 @@ export { SURVEY_RECOMMENDATION_KIND_LABELS, SURVEY_STATUS_LABELS } from './types
 // --- Surface 2: cross-phase rule registry ---
 export { surveyWallRules, deriveHypothesisStatus } from './wall';
 export { surveySustainmentRules } from './sustainment';
+export { surveyHandoffRules } from './handoff';
 export { surveyInboxRules } from './inbox';
 export type { SurveyInboxPrompt } from './inbox';
 export type { SurveyHint, SurveyRule, SurveyContext, SurveyHintKind } from './types';

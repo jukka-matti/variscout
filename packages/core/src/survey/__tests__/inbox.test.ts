@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { surveyInboxRules } from '../inbox';
 import type { ImprovementProject } from '../../improvementProject';
-import type { SustainmentRecord } from '../../sustainment';
+import type { ControlHandoff, SustainmentRecord } from '../../sustainment';
 
 const NOW = Date.UTC(2026, 4, 12);
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -42,6 +42,24 @@ const improvementProject = (overrides: Partial<ImprovementProject>): Improvement
     ...overrides,
   }) as ImprovementProject;
 
+const controlHandoff = (overrides: Partial<ControlHandoff>): ControlHandoff =>
+  ({
+    id: 'handoff-1',
+    investigationId: 'inv-1',
+    hubId: 'hub-1',
+    status: 'pending',
+    surface: 'qms-procedure',
+    systemName: 'QMS',
+    operationalOwner: { displayName: 'Ops owner' },
+    handoffDate: NOW - 8 * DAY_MS,
+    description: 'Update procedure controls',
+    retainSustainmentReview: true,
+    recordedBy: { displayName: 'Investigator' },
+    createdAt: NOW - 8 * DAY_MS,
+    deletedAt: null,
+    ...overrides,
+  }) as ControlHandoff;
+
 describe('surveyInboxRules', () => {
   it('aggregates sustainment hints into inbox prompts sorted by severity then message and id', () => {
     const prompts = surveyInboxRules({
@@ -74,5 +92,29 @@ describe('surveyInboxRules', () => {
         targetEntityId: 'sr-critical',
       },
     });
+  });
+
+  it('aggregates handoff lifecycle gaps into inbox prompts', () => {
+    const prompts = surveyInboxRules({
+      controlHandoffs: [controlHandoff({ id: 'handoff-stale' })],
+      now: NOW,
+    });
+
+    expect(prompts).toEqual([
+      expect.objectContaining({
+        id: 'inbox:lifecycle-gap:handoff-stale',
+        severity: 'warning',
+        action: {
+          label: 'Open handoff',
+          opensSurface: 'handoff',
+          opensId: 'handoff-stale',
+        },
+        sourceHint: expect.objectContaining({
+          kind: 'lifecycle-gap',
+          surface: 'inbox',
+          targetEntityId: 'handoff-stale',
+        }),
+      }),
+    ]);
   });
 });

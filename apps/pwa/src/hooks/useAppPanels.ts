@@ -47,6 +47,7 @@ export interface UseAppPanelsReturn {
   isDesktop: boolean;
   openSpecEditorRequested: boolean;
   sustainmentTargetId: string | null;
+  handoffTargetId: string | null;
   setOpenSpecEditorRequested: (v: boolean) => void;
   openDataTableAtRow: (index: number) => void;
   handleToggleFindingsPanel: () => void;
@@ -153,6 +154,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     isDesktop,
     openSpecEditorRequested: store.openSpecEditorRequested,
     sustainmentTargetId: store.sustainmentTargetId,
+    handoffTargetId: store.handoffTargetId,
     isPISidebarOpen: store.isPISidebarOpen,
 
     // Setters (delegate to store)

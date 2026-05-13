@@ -467,6 +467,7 @@ describe('blobClient', () => {
         id: 'hoff-1',
         investigationId: 'inv-1',
         hubId: 'hub-1',
+        status: 'operational',
         surface: 'qms-procedure',
         systemName: 'QMS-101',
         operationalOwner: { userId: 'u2', displayName: 'Bob' },

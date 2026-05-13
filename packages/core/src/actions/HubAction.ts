@@ -11,6 +11,7 @@ import type { CanvasAction } from './canvasActions';
 import type { ImprovementProjectAction } from './improvementProjectActions';
 import type { ActionItemAction } from './actionItemActions';
 import type { SustainmentAction } from './sustainmentActions';
+import type { ControlHandoffAction } from './controlHandoffActions';
 
 /**
  * Top-level discriminated union for all hub write operations.
@@ -30,4 +31,5 @@ export type HubAction =
   | CanvasAction
   | ImprovementProjectAction
   | ActionItemAction
-  | SustainmentAction;
+  | SustainmentAction
+  | ControlHandoffAction;

@@ -3,7 +3,7 @@ import type { ProcessHub, OutcomeSpec, ProcessHubInvestigation } from '../proces
 import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '../evidenceSources';
 import type { Finding, Question, CausalLink, Hypothesis, ActionItem } from '../findings/types';
 import type { ProcessMap } from '../frame/types';
-import type { SustainmentRecord, SustainmentReview } from '../sustainment';
+import type { ControlHandoff, SustainmentRecord, SustainmentReview } from '../sustainment';
 
 export interface HubReadAPI {
   get(id: ProcessHub['id']): Promise<ProcessHub | undefined>;
@@ -78,6 +78,11 @@ export interface SustainmentReviewReadAPI {
   ): Promise<SustainmentReview[]>;
 }
 
+export interface ControlHandoffReadAPI {
+  get(id: ControlHandoff['id']): Promise<ControlHandoff | undefined>;
+  listByHub(hubId: ProcessHub['id']): Promise<ControlHandoff[]>;
+}
+
 /**
  * Single-interface repository for all hub domain writes + grouped reads.
  * Write path: one `dispatch(action)` entry point — all mutations flow through it.
@@ -102,4 +107,5 @@ export interface HubRepository {
   actionItems: ActionItemReadAPI;
   sustainmentRecords: SustainmentRecordReadAPI;
   sustainmentReviews: SustainmentReviewReadAPI;
+  controlHandoffs: ControlHandoffReadAPI;
 }
