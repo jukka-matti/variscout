@@ -3,9 +3,10 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Finding, Hypothesis } from '@variscout/core';
 import {
+  getCanvasViewportInitialState,
   getInvestigationInitialState,
+  useCanvasViewportStore,
   useInvestigationStore,
-  useWallLayoutStore,
 } from '@variscout/stores';
 import { useWallIsMobile } from '../../../InvestigationWall';
 import { CanvasWallOverlay } from '../CanvasWallOverlay';
@@ -80,10 +81,13 @@ const sampleFinding: Finding = {
   deletedAt: null,
   investigationId: 'inv-test-001',
 };
+const HUB_ID = 'hub-overlay-test';
+const OTHER_HUB_ID = 'hub-overlay-other';
 
 function renderOverlay(overrides: Partial<React.ComponentProps<typeof CanvasWallOverlay>> = {}) {
   return render(
     <CanvasWallOverlay
+      hubId={HUB_ID}
       activeOverlays={['wall']}
       activeCanvasTool="select"
       findings={[]}
@@ -100,7 +104,7 @@ describe('CanvasWallOverlay', () => {
   beforeEach(() => {
     useWallIsMobileMock.mockReturnValue(false);
     useInvestigationStore.setState(getInvestigationInitialState());
-    useWallLayoutStore.setState(useWallLayoutStore.getInitialState());
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
   });
 
   it('returns null when wall overlay is not active', () => {
@@ -154,7 +158,8 @@ describe('CanvasWallOverlay', () => {
 
   it('updates wall pan by the pointer drag delta when dragging the overlay background', () => {
     useInvestigationStore.setState({ hypotheses: [sampleHub] });
-    useWallLayoutStore.getState().setPan({ x: 12, y: -8 });
+    useCanvasViewportStore.getState().setPan(HUB_ID, { x: 12, y: -8 });
+    useCanvasViewportStore.getState().setPan(OTHER_HUB_ID, { x: -50, y: -50 });
 
     renderOverlay();
 
@@ -163,12 +168,16 @@ describe('CanvasWallOverlay', () => {
     fireEvent.pointerMove(wrapper, { pointerId: 1, clientX: 130, clientY: 180 });
     fireEvent.pointerUp(wrapper, { pointerId: 1, clientX: 130, clientY: 180 });
 
-    expect(useWallLayoutStore.getState().pan).toEqual({ x: 42, y: -28 });
+    expect(useCanvasViewportStore.getState().getViewport(HUB_ID).pan).toEqual({ x: 42, y: -28 });
+    expect(useCanvasViewportStore.getState().getViewport(OTHER_HUB_ID).pan).toEqual({
+      x: -50,
+      y: -50,
+    });
   });
 
   it('does not pan while drawing hypotheses', () => {
     useInvestigationStore.setState({ hypotheses: [sampleHub] });
-    useWallLayoutStore.getState().setPan({ x: 12, y: -8 });
+    useCanvasViewportStore.getState().setPan(HUB_ID, { x: 12, y: -8 });
 
     renderOverlay({ activeCanvasTool: 'draw-hypothesis' });
 
@@ -177,7 +186,7 @@ describe('CanvasWallOverlay', () => {
     fireEvent.pointerMove(wrapper, { pointerId: 1, clientX: 130, clientY: 180 });
     fireEvent.pointerUp(wrapper, { pointerId: 1, clientX: 130, clientY: 180 });
 
-    expect(useWallLayoutStore.getState().pan).toEqual({ x: 12, y: -8 });
+    expect(useCanvasViewportStore.getState().getViewport(HUB_ID).pan).toEqual({ x: 12, y: -8 });
   });
 
   it.each([

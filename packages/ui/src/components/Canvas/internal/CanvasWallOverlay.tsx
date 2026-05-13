@@ -5,11 +5,12 @@ import {
   type CanvasOverlayId,
   type CanvasToolId,
 } from '@variscout/hooks';
-import { useWallLayoutStore } from '@variscout/stores';
+import { useCanvasViewportStore } from '@variscout/stores';
 import type { Finding, ProcessMap } from '@variscout/core';
 import { WallCanvas, useWallIsMobile } from '../../InvestigationWall';
 
 export interface CanvasWallOverlayProps {
+  hubId: string;
   activeOverlays: CanvasOverlayId[];
   activeCanvasTool: CanvasToolId;
   findings: Finding[];
@@ -23,6 +24,7 @@ export interface CanvasWallOverlayProps {
 const PAN_IGNORED_TARGET = 'button,a,input,select,textarea,[role="button"],[data-no-overlay-pan]';
 
 export function CanvasWallOverlay({
+  hubId,
   activeOverlays,
   activeCanvasTool,
   findings,
@@ -33,10 +35,11 @@ export function CanvasWallOverlay({
   onOpenWall,
 }: CanvasWallOverlayProps) {
   const isMobile = useWallIsMobile();
-  const setPan = useWallLayoutStore(s => s.setPan);
+  const setPan = useCanvasViewportStore(s => s.setPan);
   const panDragRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
   const hasContent = useHasInvestigationContent({ findingsCount: findings.length });
   const wallProps = useSharedWallProps({
+    hubId,
     findings,
     processMap,
     problemCpk,
@@ -79,11 +82,11 @@ export function CanvasWallOverlay({
         return;
       }
 
-      const pan = useWallLayoutStore.getState().pan;
-      setPan({ x: pan.x + dx, y: pan.y + dy });
+      const pan = useCanvasViewportStore.getState().getViewport(hubId).pan;
+      setPan(hubId, { x: pan.x + dx, y: pan.y + dy });
       panDragRef.current = { ...drag, x: event.clientX, y: event.clientY };
     },
-    [isDrawingHypothesis, setPan]
+    [hubId, isDrawingHypothesis, setPan]
   );
   const handlePointerEnd = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     if (panDragRef.current?.pointerId !== event.pointerId) {

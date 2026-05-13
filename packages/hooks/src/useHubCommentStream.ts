@@ -26,7 +26,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { useInvestigationStore, useWallLayoutStore } from '@variscout/stores';
+import { useCanvasViewportStore, useInvestigationStore } from '@variscout/stores';
 import type { PendingComment } from '@variscout/stores';
 import type { FindingComment } from '@variscout/core/findings';
 
@@ -67,7 +67,7 @@ function mergeIncomingComment(hubId: string, incoming: FindingComment): void {
  * Replay any queued-from-offline hub comments through the append endpoint.
  *
  * Invoked after an SSE `init` event — which signals the server is reachable
- * again — to drain `wallLayoutStore.pendingComments`. Each pending comment
+ * again — to drain `canvasViewportStore.pendingComments`. Each pending comment
  * is POSTed with its original id; the server dedupes by id so retries (or
  * echoes from our own stream) are idempotent. POST failures re-enqueue the
  * comment so the next reconnect's `init` can try again.
@@ -78,7 +78,7 @@ function mergeIncomingComment(hubId: string, incoming: FindingComment): void {
  * comment stream owns them).
  */
 function replayPendingHubComments(projectId: string): void {
-  const wallStore = useWallLayoutStore.getState();
+  const wallStore = useCanvasViewportStore.getState();
   const pending = wallStore.drainPendingComments();
   if (pending.length === 0) return;
 
@@ -107,10 +107,10 @@ async function postHubComment(projectId: string, p: PendingComment): Promise<voi
       }),
     });
     if (!res.ok) {
-      useWallLayoutStore.getState().enqueuePendingComment(p);
+      useCanvasViewportStore.getState().enqueuePendingComment(p);
     }
   } catch {
-    useWallLayoutStore.getState().enqueuePendingComment(p);
+    useCanvasViewportStore.getState().enqueuePendingComment(p);
   }
 }
 

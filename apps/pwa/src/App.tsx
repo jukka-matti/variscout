@@ -51,7 +51,7 @@ import {
   useProjectStore,
   useInvestigationStore,
   usePreferencesStore,
-  useWallLayoutStore,
+  useCanvasViewportStore,
   useViewStore,
 } from '@variscout/stores';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
@@ -735,7 +735,7 @@ function AppMain() {
   );
 
   // Wall-variant propose-hypothesis CTA
-  const wallViewMode = useWallLayoutStore(s => s.viewMode);
+  const wallViewMode = useCanvasViewportStore(s => s.viewMode);
   const createHubFromFinding = useInvestigationStore(s => s.createHubFromFinding);
   const handleProposeHypothesisFromFinding = useCallback(
     (findingId: string) => {
@@ -1052,7 +1052,7 @@ function AppMain() {
                 activeHub={sessionHub ?? undefined}
                 onBack={panels.showFrame}
                 onOpenWall={() => {
-                  useWallLayoutStore.getState().setViewMode('wall');
+                  useCanvasViewportStore.getState().setViewMode('wall');
                   panels.showInvestigation();
                 }}
               />

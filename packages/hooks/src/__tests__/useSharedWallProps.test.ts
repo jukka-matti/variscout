@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, expectTypeOf } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import {
+  getCanvasViewportInitialState,
   getInvestigationInitialState,
+  useCanvasViewportStore,
   useInvestigationStore,
-  useWallLayoutStore,
 } from '@variscout/stores';
 import {
   useSharedWallProps,
@@ -14,6 +15,7 @@ import type { Finding, Question, Hypothesis } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
 interface MutableWallCanvasDataProps {
+  hubId?: string;
   hubs: Hypothesis[];
   findings: Finding[];
   questions: Question[];
@@ -79,14 +81,12 @@ const processMap: ProcessMap = {
   createdAt: '2026-05-08T00:00:00.000Z',
   updatedAt: '2026-05-08T00:00:00.000Z',
 };
+const HUB_ID = 'hub-shared-wall-props';
+const OTHER_HUB_ID = 'hub-other-wall-props';
 
 beforeEach(() => {
   useInvestigationStore.setState(getInvestigationInitialState());
-  useWallLayoutStore.setState({
-    zoom: 1,
-    pan: { x: 0, y: 0 },
-    groupByTributary: false,
-  });
+  useCanvasViewportStore.setState(getCanvasViewportInitialState());
 });
 
 describe('useSharedWallProps', () => {
@@ -106,6 +106,7 @@ describe('useSharedWallProps', () => {
 
     const { result } = renderHook(() =>
       useSharedWallProps({
+        hubId: HUB_ID,
         findings,
         processMap: undefined,
         problemCpk: 0.82,
@@ -119,16 +120,18 @@ describe('useSharedWallProps', () => {
     expect(result.current.findings).toBe(findings);
   });
 
-  it('exposes viewport state from wall layout store', () => {
+  it('exposes viewport state from the requested hub viewport', () => {
     const pan = { x: 120, y: -45 };
-    useWallLayoutStore.setState({
-      zoom: 1.75,
-      pan,
-      groupByTributary: true,
-    });
+    useCanvasViewportStore.getState().setZoom(HUB_ID, 1.75);
+    useCanvasViewportStore.getState().setPan(HUB_ID, pan);
+    useCanvasViewportStore.getState().setGroupByTributary(HUB_ID, true);
+    useCanvasViewportStore.getState().setZoom(OTHER_HUB_ID, 2.5);
+    useCanvasViewportStore.getState().setPan(OTHER_HUB_ID, { x: -1, y: -2 });
+    useCanvasViewportStore.getState().setGroupByTributary(OTHER_HUB_ID, false);
 
     const { result } = renderHook(() =>
       useSharedWallProps({
+        hubId: HUB_ID,
         findings: [],
         processMap: undefined,
         problemCpk: 0.9,
@@ -147,6 +150,7 @@ describe('useSharedWallProps', () => {
 
     const { result } = renderHook(() =>
       useSharedWallProps({
+        hubId: HUB_ID,
         findings: [],
         processMap,
         problemCpk: 1.23,
@@ -166,6 +170,7 @@ describe('useSharedWallProps', () => {
     const activeColumns = ['Shift'];
     const args = {
       findings,
+      hubId: HUB_ID,
       processMap,
       problemCpk: 0.74,
       eventsPerWeek: 11,

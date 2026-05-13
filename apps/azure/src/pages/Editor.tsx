@@ -9,7 +9,7 @@ import {
   useProjectStore,
   useInvestigationStore,
   usePreferencesStore,
-  useWallLayoutStore,
+  useCanvasViewportStore,
 } from '@variscout/stores';
 import {
   useFilteredData,
@@ -902,7 +902,7 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Wall-variant propose-hypothesis CTA — creates a new Hypothesis hub seeded
   // from the finding and links the finding as the first piece of evidence.
-  const wallViewMode = useWallLayoutStore(s => s.viewMode);
+  const wallViewMode = useCanvasViewportStore(s => s.viewMode);
   const createHubFromFinding = useInvestigationStore(s => s.createHubFromFinding);
   const handleProposeHypothesisFromFinding = useCallback(
     (findingId: string) => {
@@ -1644,7 +1644,7 @@ export const Editor: React.FC<EditorProps> = ({
                 activeHub={activeHub}
                 onBack={() => usePanelsStore.getState().showFrame()}
                 onOpenWall={() => {
-                  useWallLayoutStore.getState().setViewMode('wall');
+                  useCanvasViewportStore.getState().setViewMode('wall');
                   usePanelsStore.getState().showInvestigation();
                 }}
               />

@@ -97,7 +97,7 @@ vi.mock('@variscout/stores', () => ({
       getState: () => improvementProjectStateRef.current,
     }
   ),
-  useWallLayoutStore: Object.assign(vi.fn(), {
+  useCanvasViewportStore: Object.assign(vi.fn(), {
     getState: () => ({
       setViewMode: setWallViewModeMock,
     }),

@@ -17,7 +17,7 @@ import {
   useImprovementProjectStore,
   useInvestigationStore,
   useProjectStore,
-  useWallLayoutStore,
+  useCanvasViewportStore,
 } from '@variscout/stores';
 import type { CanvasInvestigationFocus } from '@variscout/hooks';
 import type {
@@ -276,7 +276,7 @@ const FrameView: React.FC = () => {
 
   const handleOpenWall = React.useCallback(() => {
     const panelsStore = usePanelsStore.getState();
-    useWallLayoutStore.getState().setViewMode('wall');
+    useCanvasViewportStore.getState().setViewMode('wall');
     panelsStore.setInvestigationViewMode('map');
     panelsStore.showInvestigation();
   }, []);
