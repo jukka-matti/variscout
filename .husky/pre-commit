@@ -1,5 +1,6 @@
-# Fast checks only (<5s). Slow doc-graph checks (docs:check, check-dead-links.sh)
-# were moved to pre-push so they still gate remote pushes without blocking every commit.
+# Fast checks only on code-only commits (<5s). When docs/CLAUDE.md/packages/*/src/index.ts
+# are staged, the slow doc-graph checks (docs:check, check-dead-links.sh) also run here so
+# orphans/broken links are caught at commit time. They also run unconditionally on pre-push.
 
 npx lint-staged --concurrent false
 
@@ -21,6 +22,6 @@ bash scripts/decision-log-reminder.sh
 DOCS_PATTERN='^(docs/.*\.md$|CLAUDE\.md$|.*/CLAUDE\.md$|packages/[^/]+/src/index\.ts$)'
 if git diff --cached --name-only | grep -qE "$DOCS_PATTERN"; then
   echo "docs touched — running full doc-graph checks (~4 min)" >&2
-  pnpm docs:check
-  bash scripts/check-dead-links.sh
+  pnpm docs:check || exit 1
+  bash scripts/check-dead-links.sh || exit 1
 fi
