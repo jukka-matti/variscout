@@ -478,6 +478,7 @@ vi.mock('@variscout/hooks', () => ({
     })
   ),
   useSessionCanvasFilters: vi.fn(() => canvasFiltersStateRef.current),
+  useCanvasViewportInput: vi.fn(),
 }));
 
 import { CanvasWorkspace } from '../CanvasWorkspace';
