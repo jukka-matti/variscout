@@ -18,7 +18,3 @@ export function worldToCanvasDom(p: Point, viewport: CanvasViewportSnapshot): Po
     y: p.y * viewport.zoom + viewport.pan.y,
   };
 }
-
-export function worldToWallSvg(p: Point, _viewport: CanvasViewportSnapshot): Point {
-  return p;
-}
