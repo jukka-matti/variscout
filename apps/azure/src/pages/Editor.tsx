@@ -9,7 +9,7 @@ import {
   useProjectStore,
   useInvestigationStore,
   usePreferencesStore,
-  useWallLayoutStore,
+  useCanvasViewportStore,
 } from '@variscout/stores';
 import {
   useFilteredData,
@@ -81,7 +81,7 @@ import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
 import { useAIOrchestration, useActionProposals, useInvestigationIndexing } from '../features/ai';
 import { useInvestigationOrchestration } from '../features/investigation';
-import { useWallLayoutLifecycle } from '../features/investigation/useWallLayoutLifecycle';
+import { useCanvasViewportLifecycle } from '../features/investigation/useCanvasViewportLifecycle';
 import { useInvestigationFeatureStore } from '../features/investigation/investigationStore';
 import { useImprovementOrchestration } from '../features/improvement';
 import { useLocale } from '../context/LocaleContext';
@@ -902,7 +902,7 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Wall-variant propose-hypothesis CTA — creates a new Hypothesis hub seeded
   // from the finding and links the finding as the first piece of evidence.
-  const wallViewMode = useWallLayoutStore(s => s.viewMode);
+  const wallViewMode = useCanvasViewportStore(s => s.viewMode);
   const createHubFromFinding = useInvestigationStore(s => s.createHubFromFinding);
   const handleProposeHypothesisFromFinding = useCallback(
     (findingId: string) => {
@@ -1065,8 +1065,9 @@ export const Editor: React.FC<EditorProps> = ({
       enabled: isKnowledgeBaseAvailable(),
     });
 
-  // Wall layout persistence — rehydrate on project open, debounce-persist on change.
-  useWallLayoutLifecycle(projectId);
+  const canvasViewportHubId =
+    processContext?.processHubId ?? activeHub?.id ?? DEFAULT_PROCESS_HUB_ID;
+  useCanvasViewportLifecycle(canvasViewportHubId);
 
   // Trigger indexing side-effects whenever findings or questions change
   useEffect(() => {
@@ -1644,7 +1645,7 @@ export const Editor: React.FC<EditorProps> = ({
                 activeHub={activeHub}
                 onBack={() => usePanelsStore.getState().showFrame()}
                 onOpenWall={() => {
-                  useWallLayoutStore.getState().setViewMode('wall');
+                  useCanvasViewportStore.getState().setViewMode('wall');
                   usePanelsStore.getState().showInvestigation();
                 }}
               />

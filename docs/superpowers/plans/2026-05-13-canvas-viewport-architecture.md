@@ -59,9 +59,9 @@ Expected: all packages green. Save the test counts (`@variscout/core`, `@varisco
 
 ---
 
-# PR1 — Foundation: rename `wallLayoutStore` → `useCanvasViewportStore`
+# PR1 — Foundation: shape-change `wallLayoutStore` → hub-keyed `useCanvasViewportStore`
 
-**Scope:** Clean rename per `feedback_no_backcompat_clean_architecture` (no legacy alias). Add new fields (`currentLevel`, `focalStepId`). Dexie migration in one PR. Wall consumers refactored same-PR. Wall + everything else continues to work unchanged — viewport state is just where it lives now.
+**Scope:** Clean shape change per `feedback_no_backcompat_clean_architecture` (no legacy alias). Promote the pre-8f project-keyed singleton into `viewports: Record<ProcessHubId, CanvasViewport>`, add new fields (`currentLevel`, `focalStepId`), change the persistence key from `projectId` to `hubId`, and perform a clean-break Dexie drop/recreate rather than attempting an impossible flat-to-keyed migration. Wall consumers refactored same-PR; every consumer must provide `hubId` and read via `useCanvasViewportStore(s => s.getViewport(hubId).zoom)`. Wall continues to work at runtime by creating a default viewport per Hub when no persisted Hub viewport exists.
 
 **Size:** M. **Tasks:** 7. **Tests added:** ~12.
 
@@ -244,12 +244,12 @@ git commit -m "feat(8f): add CanvasLevel type + LOD threshold model"
 
 ---
 
-### Task 3: Rename `wallLayoutStore` → `canvasViewportStore` (file move + add fields)
+### Task 3: Shape-change `wallLayoutStore` → hub-keyed `canvasViewportStore` (file move + add fields)
 
 **Files:**
 
 - Move: `packages/stores/src/wallLayoutStore.ts` → `packages/stores/src/canvasViewportStore.ts`
-- Modify: store contents — add `currentLevel`, `focalStepId` fields + methods
+- Modify: store contents — add `viewports: Record<ProcessHubId, CanvasViewport>`, `currentLevel`, `focalStepId` fields + methods
 - Modify: `packages/stores/src/index.ts` (barrel)
 - Test: `packages/stores/src/__tests__/canvasViewportStore.test.ts` (move from `wallLayoutStore.test.ts`)
 
@@ -260,15 +260,15 @@ git mv packages/stores/src/wallLayoutStore.ts packages/stores/src/canvasViewport
 git mv packages/stores/src/__tests__/wallLayoutStore.test.ts packages/stores/src/__tests__/canvasViewportStore.test.ts
 ```
 
-- [ ] **Step 2: Update store contents.**
+- [ ] **Step 2: Update store contents and promote the key to `hubId`.**
 
-Read the existing `canvasViewportStore.ts` (just moved). Rename:
+Read the existing `canvasViewportStore.ts` (just moved). First apply the mechanical name change:
 
 - All `WallLayout` → `CanvasViewport`
 - All `wallLayout` → `canvasViewport`
 - Hook export `useWallLayoutStore` → `useCanvasViewportStore`
 
-Add new fields to the snapshot type + state interface:
+Then reshape the state so the persisted snapshot is Hub-keyed, not project-flat:
 
 ```ts
 import type { CanvasLevel } from '@variscout/core/canvas';
@@ -297,6 +297,15 @@ const DEFAULT_VIEWPORT: CanvasViewportSnapshot = {
 };
 ```
 
+State interface requirement:
+
+```ts
+viewports: Record<ProcessHubId, CanvasViewportSnapshot>;
+getViewport(hubId: ProcessHubId): CanvasViewportSnapshot;
+```
+
+Do not copy a pre-8f flat project snapshot into the first Hub. The old shape was one project row; the new shape is N Hub rows, and the mapping cannot be inferred.
+
 Add corresponding setters:
 
 ```ts
@@ -323,6 +332,7 @@ In `__tests__/canvasViewportStore.test.ts`:
 - Update all references in `describe` / `it` titles
 - Add new tests for `setLevel` (success + throw-without-focalStepId at L3)
 - Add tests for the new default `currentLevel: 'l2'`
+- Add a multi-Hub independence test proving `hub-A` and `hub-B` can have different zoom/pan/level/node positions without overwriting each other
 
 Example new test block:
 
@@ -351,6 +361,18 @@ describe('setLevel', () => {
       /focalStepId required when currentLevel === 'l3'/
     );
   });
+
+  it('keeps viewport state independent per hub', () => {
+    useCanvasViewportStore.getState().setZoom('hub-A', 0.5);
+    useCanvasViewportStore.getState().setZoom('hub-B', 2.5);
+    useCanvasViewportStore.getState().setLevel('hub-A', 'l1');
+    useCanvasViewportStore.getState().setLevel('hub-B', 'l3', 'step-7');
+
+    expect(useCanvasViewportStore.getState().getViewport('hub-A').zoom).toBe(0.5);
+    expect(useCanvasViewportStore.getState().getViewport('hub-A').currentLevel).toBe('l1');
+    expect(useCanvasViewportStore.getState().getViewport('hub-B').zoom).toBe(2.5);
+    expect(useCanvasViewportStore.getState().getViewport('hub-B').currentLevel).toBe('l3');
+  });
 });
 ```
 
@@ -360,7 +382,7 @@ describe('setLevel', () => {
 cd packages/stores && pnpm test -- --run canvasViewportStore.test.ts
 ```
 
-Expected: all PASS (existing tests after rename + 3 new tests).
+Expected: all PASS (existing tests after shape change + 4 new tests).
 
 - [ ] **Step 6: Confirm no other file still imports the old name.**
 
@@ -374,12 +396,12 @@ Expected: no matches (consumers are refactored in next task).
 
 ```bash
 git add packages/stores
-git commit -m "feat(8f): rename wallLayoutStore → useCanvasViewportStore + add currentLevel/focalStepId"
+git commit -m "feat(8f): shape-change wallLayoutStore to hub-keyed canvas viewport"
 ```
 
 ---
 
-### Task 4: Refactor existing Wall consumers to use the renamed store
+### Task 4: Refactor existing Wall consumers to use the hub-keyed store
 
 **Files:**
 
@@ -387,13 +409,13 @@ git commit -m "feat(8f): rename wallLayoutStore → useCanvasViewportStore + add
 - Modify: `packages/ui/src/components/Canvas/internal/CanvasWallOverlay.tsx`
 - Modify: any other file flagged by Task 3 Step 6 (run again here)
 
-- [ ] **Step 1: Audit consumers.**
+- [ ] **Step 1: Audit consumers and their Hub identity source.**
 
 ```bash
 grep -rn "useWallLayoutStore\|wallLayoutStore\|WallLayoutSnapshot" packages apps --include="*.ts" --include="*.tsx"
 ```
 
-For each match, plan the substitution: `useWallLayoutStore` → `useCanvasViewportStore`, etc. The semantic shape is identical; only the name changes.
+For each match, plan the substitution: `useWallLayoutStore` → `useCanvasViewportStore`, etc. Also identify the `hubId` available at that boundary. Every consumer must address a specific Hub and read through `getViewport(hubId)` or a setter that takes `hubId`.
 
 - [ ] **Step 2: Apply substitutions.**
 
@@ -406,6 +428,16 @@ wallLayoutStore          → canvasViewportStore
 ```
 
 The new fields (`currentLevel`, `focalStepId`) are not yet consumed by anything in this PR — they exist in the store but are not read by Wall. That's expected; PR3 wires them in.
+
+Where old code selected flat store fields directly, replace that with Hub-scoped selectors:
+
+```ts
+const viewport = useCanvasViewportStore(s => s.getViewport(hubId));
+const setPan = useCanvasViewportStore(s => s.setPan);
+const setZoom = useCanvasViewportStore(s => s.setZoom);
+```
+
+If a consumer does not currently receive `hubId`, thread it from its owner component in the same PR. Do not fall back to project ID or a singleton default.
 
 - [ ] **Step 3: Run UI typecheck + tests.**
 
@@ -437,31 +469,29 @@ git commit -m "refactor(8f): switch Wall consumers to useCanvasViewportStore"
 
 ---
 
-### Task 5: Add Dexie schema entries for the new store fields (PWA + Azure)
+### Task 5: Add Dexie clean-break schema for Hub-keyed viewport state (PWA + Azure)
 
 **Files:**
 
 - Modify: `apps/pwa/src/db/schema.ts`
 - Modify: `apps/azure/src/db/schema.ts`
-- Modify: PWA + Azure HubRepository or store-persistence files that round-trip viewport snapshots
+- Modify: PWA + Azure HubRepository or store-persistence files that round-trip Hub-keyed viewport snapshots
 
-- [ ] **Step 1: Inspect the existing wall-layout persistence path.**
+- [ ] **Step 1: Inspect the existing wall-layout persistence path and confirm it is pre-8f flat.**
 
 ```bash
 grep -rn "WallLayoutSnapshot\|wallLayout" apps/pwa/src apps/azure/src --include="*.ts"
 ```
 
-Identify where wallLayout is read/written. The new fields (`currentLevel`, `focalStepId`) need to round-trip the same way.
+Identify where wallLayout is read/written. The new state is keyed by `hubId`; `currentLevel` and `focalStepId` must round-trip inside each Hub snapshot.
 
-- [ ] **Step 2: PWA schema bump.**
+- [ ] **Step 2: PWA schema bump / clean break.**
 
-In `apps/pwa/src/db/schema.ts`, if there's a Dexie version block referencing wall-layout, the existing table stays — we are extending the snapshot shape, not creating a new table. Confirm the schema string covers our needs (zoom/pan are already free-form blob fields; `currentLevel`/`focalStepId` are new top-level fields in the blob).
+PWA drops the pre-8f `variscout-wall-layout` Dexie database/table on first init post-deploy and recreates snapshots as `hubId,updatedAt` (Dexie v2). Do not write an upgrade callback that reads old rows and guesses a Hub. Data loss is limited to Wall node positions, persisted zoom/pan, and `groupByTributary`; no domain data is lost.
 
-No version bump needed if existing fields are stored as a JSON blob (most likely the case). If they're flat columns, bump the version and add the two new optional fields.
+- [ ] **Step 3: Azure schema bump / clean break.**
 
-- [ ] **Step 3: Azure schema bump (if needed).**
-
-Same analysis for `apps/azure/src/db/schema.ts`. If flat columns, this is an Azure Dexie version bump (next version after v10 used by IP V1 per PR-RPS-5 precedent). Use a clean break — no upgrade callback — per `feedback_no_backcompat_clean_architecture`.
+Same analysis for `apps/azure/src/db/schema.ts`. If Azure HubRepository syncs wall-layout fields to per-Hub blobs, those keep working because the keys are already aligned. If Azure has a flat per-project wall-layout table, drop and recreate it keyed by `hubId`. This is an Azure Dexie version bump after the v9→v10 clean-break precedent from PR-RPS-5. Use a clean break — no upgrade callback — per `feedback_no_backcompat_clean_architecture`, and keep Blob sync aligned to one per-Hub viewport blob/record.
 
 - [ ] **Step 4: Add a round-trip test.**
 
@@ -492,6 +522,8 @@ For PWA, add (or extend) `apps/pwa/src/__tests__/db.test.ts` (or wherever existi
 1. Write a snapshot with `currentLevel: 'l3'` + `focalStepId: 'step-X'`
 2. Read it back
 3. Assert both fields preserved
+4. Write a second Hub snapshot with different zoom/pan/level
+5. Assert both Hubs remain independent after reload
 
 Mirror the test for Azure.
 
@@ -509,7 +541,7 @@ Expected: all green.
 
 ```bash
 git add apps/pwa apps/azure packages/stores
-git commit -m "feat(8f): Dexie persistence for currentLevel + focalStepId fields"
+git commit -m "feat(8f): Dexie clean-break for hub-keyed canvas viewport"
 ```
 
 ---
@@ -575,18 +607,18 @@ git push -u origin canvas-viewport-8f
 - [ ] **Step 5: Open PR.**
 
 ```bash
-gh pr create --title "feat(8f): PR1 Foundation — rename wallLayoutStore → useCanvasViewportStore + level fields" --body "$(cat <<'EOF'
+gh pr create --title "feat(8f): PR1 Foundation — shape-change wallLayoutStore to hub-keyed canvas viewport" --body "$(cat <<'EOF'
 ## Summary
-- Rename `useWallLayoutStore` → `useCanvasViewportStore` per ADR-081 Decision 2 + spec §8.2
-- Add `currentLevel` + `focalStepId` fields to viewport snapshot
+- Shape-change `useWallLayoutStore` → Hub-keyed `useCanvasViewportStore` per ADR-081 Decision 2 + spec §8.2
+- Add `currentLevel` + `focalStepId` fields to each Hub viewport snapshot
 - Add `setLevel(hubId, level, focalStepId?)` setter with L3 focalStepId validation
 - Stub `fitToContent` (real impl in PR3)
-- Dexie persistence round-trips both new fields (PWA + Azure)
+- Dexie persistence clean-breaks to Hub-keyed viewport records and round-trips both new fields (PWA + Azure)
 - All Wall consumers refactored in-place (no legacy alias per feedback_no_backcompat_clean_architecture)
 
 ## Test plan
 - [x] `packages/core` new viewport.ts type tests pass
-- [x] `packages/stores` rename + setLevel tests pass + persistence round-trip
+- [x] `packages/stores` shape-change + setLevel tests pass + multi-Hub independence + persistence round-trip
 - [x] Layer-boundary test confirms annotation-per-project
 - [x] `bash scripts/pr-ready-check.sh` green
 - [x] `pnpm --filter @variscout/ui build` green
@@ -2569,7 +2601,7 @@ git fetch --prune
 
 **6 PRs, ~40 tasks, single branch `canvas-viewport-8f`.**
 
-- **PR1 Foundation** (Tasks 1–7): rename store, add fields, Dexie persistence
+- **PR1 Foundation** (Tasks 1–7): shape-change store, add fields, Hub-keyed Dexie persistence
 - **PR2 Input layer** (Tasks 8–13): d3-zoom, CanvasViewport primitive, coord-space utility, Wall wheel-zoom
 - **PR3 LOD switcher + L2 gradient + mobile picker** (Tasks 14–20)
 - **PR4 L3 investigator-mode** (Tasks 21–27): factor network embed, Wall mirror filtered, column mini-charts, response-path CTAs

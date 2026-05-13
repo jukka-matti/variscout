@@ -30,7 +30,7 @@ class MockEventSourceClass {
 
 vi.stubGlobal('EventSource', MockEventSourceClass);
 
-// ─── Mock investigationStore + wallLayoutStore ────────────────────────────────
+// ─── Mock investigationStore + canvasViewportStore ────────────────────────────
 
 const stateRef = {
   current: {
@@ -72,7 +72,7 @@ vi.mock('@variscout/stores', () => ({
     setState: (u: (s: typeof stateRef.current) => typeof stateRef.current) => setStateMock(u),
     getState: () => stateRef.current,
   },
-  useWallLayoutStore: {
+  useCanvasViewportStore: {
     getState: () => ({
       enqueuePendingComment: enqueuePendingCommentMock,
       drainPendingComments: drainPendingCommentsMock,

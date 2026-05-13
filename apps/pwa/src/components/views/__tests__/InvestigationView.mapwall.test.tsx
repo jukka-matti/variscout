@@ -5,7 +5,7 @@
  * - Heavy dependencies (charts, hooks, feature stores) are mocked so we can
  *   render InvestigationView in isolation without providing the full
  *   orchestration props tree.
- * - useWallLayoutStore is NOT mocked — we use the real store and reset it in
+ * - useCanvasViewportStore is NOT mocked — we use the real store and reset it in
  *   beforeEach per the Zustand testing pattern in .claude/rules/testing.md.
  * - useProjectStore / useInvestigationStore are NOT mocked for the toggle
  *   path — we seed processMap via useProjectStore.setState.
@@ -84,15 +84,24 @@ vi.mock('../../../features/panels/panelsStore', () => ({
 
 // ── 2. Component + store imports AFTER mocks ───────────────────────────────
 
-import { useWallLayoutStore, useProjectStore, getProjectInitialState } from '@variscout/stores';
+import {
+  getCanvasViewportInitialState,
+  getProjectInitialState,
+  useCanvasViewportStore,
+  useProjectStore,
+} from '@variscout/stores';
+import { DEFAULT_PROCESS_HUB_ID } from '@variscout/core';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import InvestigationView from '../InvestigationView';
 
 // ── 3. Minimal props factory ───────────────────────────────────────────────
 
-function makeMinimalProps(): React.ComponentProps<typeof InvestigationView> {
+function makeMinimalProps(
+  overrides: Partial<React.ComponentProps<typeof InvestigationView>> = {}
+): React.ComponentProps<typeof InvestigationView> {
   const noOp = vi.fn();
   return {
+    canvasViewportHubId: 'hub-test',
     filteredData: [],
     outcome: null,
     factors: [],
@@ -132,6 +141,7 @@ function makeMinimalProps(): React.ComponentProps<typeof InvestigationView> {
     resolvedMode: 'standard' as never,
     questionsMap: {},
     ideaImpacts: {},
+    ...overrides,
   };
 }
 
@@ -139,12 +149,8 @@ function makeMinimalProps(): React.ComponentProps<typeof InvestigationView> {
 
 describe('PWA InvestigationView Map/Wall toggle', () => {
   beforeEach(() => {
-    // Reset wallLayoutStore to initial state (viewMode = 'map')
-    useWallLayoutStore.setState(
-      (
-        useWallLayoutStore as typeof useWallLayoutStore & { getInitialState: () => unknown }
-      ).getInitialState()
-    );
+    // Reset canvasViewportStore to initial state (viewMode = 'map')
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
     // Reset project store (no processMap by default)
     useProjectStore.setState(getProjectInitialState());
     window.sessionStorage.clear();
@@ -171,12 +177,35 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^wall$/i }));
 
-    expect(useWallLayoutStore.getState().viewMode).toBe('wall');
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
+  });
+
+  it('writes Wall viewport state under the provided canvas viewport hub id', () => {
+    useCanvasViewportStore.getState().setViewMode('wall');
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      processContext: {
+        processMap: {
+          id: 'pm-1',
+          steps: [],
+          sipoc: { suppliers: [], inputs: [], process: [], outputs: [], customers: [] },
+        } as never,
+      },
+    });
+
+    render(<InvestigationView {...makeMinimalProps({ canvasViewportHubId: 'session-hub-1' })} />);
+
+    const groupByTributary = screen.getByRole('button', { name: /group by tributary/i });
+    fireEvent.click(groupByTributary);
+
+    const state = useCanvasViewportStore.getState();
+    expect(state.viewports['session-hub-1']?.groupByTributary).toBe(true);
+    expect(state.viewports[DEFAULT_PROCESS_HUB_ID]).toBeUndefined();
   });
 
   it('Wall button shows aria-pressed="true" after click', () => {
     // Pre-set the store to 'wall' to simulate persisted state
-    useWallLayoutStore.getState().setViewMode('wall');
+    useCanvasViewportStore.getState().setViewMode('wall');
 
     render(<InvestigationView {...makeMinimalProps()} />);
 
@@ -185,7 +214,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
   });
 
   it('shows WallCanvas when wall mode is active and processMap is set', () => {
-    useWallLayoutStore.getState().setViewMode('wall');
+    useCanvasViewportStore.getState().setViewMode('wall');
     useProjectStore.setState({
       ...getProjectInitialState(),
       processContext: {
@@ -206,7 +235,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
   });
 
   it('shows WallCanvas when wall mode is active but no processMap', () => {
-    useWallLayoutStore.getState().setViewMode('wall');
+    useCanvasViewportStore.getState().setViewMode('wall');
     // processMap is null by default after reset
 
     render(<InvestigationView {...makeMinimalProps()} />);
@@ -225,7 +254,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
   });
 
   it('list/board/tree sub-toggle is hidden in Wall mode', () => {
-    useWallLayoutStore.getState().setViewMode('wall');
+    useCanvasViewportStore.getState().setViewMode('wall');
 
     render(<InvestigationView {...makeMinimalProps()} />);
 

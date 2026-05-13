@@ -17,7 +17,7 @@ import {
   useImprovementProjectStore,
   useInvestigationStore,
   useProjectStore,
-  useWallLayoutStore,
+  useCanvasViewportStore,
 } from '@variscout/stores';
 import type { CanvasInvestigationFocus } from '@variscout/hooks';
 import type {
@@ -98,6 +98,7 @@ const FrameView: React.FC = () => {
   const causalLinks = useInvestigationStore(s => s.causalLinks);
   const activeHub = useSession().hub;
   const activeHubId = activeHub?.id ?? null;
+  const canvasViewportHubId = processContext?.processHubId ?? activeHubId;
   const projectsByHub = useImprovementProjectStore(s => s.projectsByHub);
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
@@ -297,7 +298,7 @@ const FrameView: React.FC = () => {
   }, []);
 
   const handleOpenWall = React.useCallback(() => {
-    useWallLayoutStore.getState().setViewMode('wall');
+    useCanvasViewportStore.getState().setViewMode('wall');
     usePanelsStore.getState().showInvestigation();
   }, []);
 
@@ -390,6 +391,7 @@ const FrameView: React.FC = () => {
         <InboxDigest prompts={inboxPrompts} onNavigate={handleInboxNavigate} />
       </div>
       <CanvasWorkspace
+        canvasViewportHubId={canvasViewportHubId}
         rawData={rawData}
         outcome={outcome}
         factors={factors}

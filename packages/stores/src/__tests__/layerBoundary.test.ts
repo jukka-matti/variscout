@@ -8,7 +8,7 @@
  *
  * STORE_LAYER enum has 6 values; today 4 are realised in code:
  *   - 'document' (projectStore, investigationStore, canvasStore)
- *   - 'annotation-per-project' (wallLayoutStore)
+ *   - 'annotation-per-project' (canvasViewportStore)
  *   - 'annotation-per-user' (preferencesStore)
  *   - 'view' (viewStore)
  * Reserved for future use (no test coverage today, intentional):
@@ -46,7 +46,7 @@ function loadStoreFiles(): StoreFile[] {
     'projectStore.ts',
     'investigationStore.ts',
     'canvasStore.ts',
-    'wallLayoutStore.ts',
+    'canvasViewportStore.ts',
     'preferencesStore.ts',
     'viewStore.ts',
     'improvementProjectStore.ts',
@@ -109,10 +109,10 @@ describe('layer boundary', () => {
       });
   });
 
-  it('wallLayoutStore is the only annotation-per-project store and uses Dexie', () => {
+  it('canvasViewportStore is the only annotation-per-project store and uses Dexie', () => {
     const annotationPerProject = files.filter(f => f.layer === 'annotation-per-project');
     expect(annotationPerProject).toHaveLength(1);
-    expect(annotationPerProject[0].filename).toBe('wallLayoutStore.ts');
+    expect(annotationPerProject[0].filename).toBe('canvasViewportStore.ts');
     expect(annotationPerProject[0].source).toMatch(/from\s+['"]dexie['"]/);
   });
 });

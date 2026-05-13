@@ -36,6 +36,7 @@ import type {
   Question,
 } from '@variscout/core';
 import {
+  DEFAULT_PROCESS_HUB_ID,
   hasTeamFeatures,
   inferCharacteristicType,
   computeMainEffects,
@@ -53,7 +54,7 @@ import {
   useProjectStore,
   useInvestigationStore,
   usePreferencesStore,
-  useWallLayoutStore,
+  useCanvasViewportStore,
 } from '@variscout/stores';
 import { InvestigationMapView } from './InvestigationMapView';
 import { CoScoutSection } from './CoScoutSection';
@@ -70,6 +71,8 @@ import { useAIStore } from '../../features/ai/aiStore';
 import type { UseAIOrchestrationReturn, UseActionProposalsReturn } from '../../features/ai';
 import type { UseInvestigationOrchestrationReturn } from '../../features/investigation/useInvestigationOrchestration';
 import { useWallHubCommentLifecycle } from '../../features/investigation/useWallHubCommentLifecycle';
+
+const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 
 // Resize panel config (individual args for useResizablePanel)
 
@@ -164,15 +167,18 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const setInvestigationViewMode = usePanelsStore(s => s.setInvestigationViewMode);
 
   // Map/Wall sub-toggle (within the Evidence Map view)
-  const wallViewMode = useWallLayoutStore(s => s.viewMode);
-  const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
+  const wallViewMode = useCanvasViewportStore(s => s.viewMode);
+  const setWallViewMode = useCanvasViewportStore(s => s.setViewMode);
   // Phase 13 scale features — threaded into WallCanvas so zoom, pan, and
   // tributary clustering route through the existing store + persistence.
-  const wallZoom = useWallLayoutStore(s => s.zoom);
-  const wallPan = useWallLayoutStore(s => s.pan);
-  const setWallPan = useWallLayoutStore(s => s.setPan);
-  const wallGroupByTributary = useWallLayoutStore(s => s.groupByTributary);
-  const setWallGroupByTributary = useWallLayoutStore(s => s.setGroupByTributary);
+  const wallHubId = processContext?.processHubId ?? DEFAULT_PROCESS_HUB_ID;
+  const wallZoom = useCanvasViewportStore(s => s.viewports[wallHubId]?.zoom ?? 1);
+  const wallPan = useCanvasViewportStore(s => s.viewports[wallHubId]?.pan ?? DEFAULT_WALL_PAN);
+  const setWallPan = useCanvasViewportStore(s => s.setPan);
+  const wallGroupByTributary = useCanvasViewportStore(
+    s => s.viewports[wallHubId]?.groupByTributary ?? false
+  );
+  const setWallGroupByTributary = useCanvasViewportStore(s => s.setGroupByTributary);
   const returnNavigation = useReturnNavigation();
   const returnTarget = returnNavigation.peekReturnTarget();
   const canReturnToImprovementProject = returnTarget?.sourceSurface === 'improvement-project';
@@ -366,7 +372,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       const hubIndex = hubs.findIndex(h => h.id === nodeId);
       if (hubIndex >= 0) {
         const hubSpacing = CANVAS_W / (hubs.length + 1);
-        setWallPan({
+        setWallPan(wallHubId, {
           x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
           y: CANVAS_H / 2 - 400,
         });
@@ -374,13 +380,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       }
       const questionIndex = questionsState.questions.findIndex(q => q.id === nodeId);
       if (questionIndex >= 0) {
-        setWallPan({
+        setWallPan(wallHubId, {
           x: CANVAS_W / 2 - (200 + questionIndex * 240),
           y: CANVAS_H / 2 - 900,
         });
       }
     },
-    [hubs, questionsState.questions, setWallPan]
+    [hubs, questionsState.questions, wallHubId, setWallPan]
   );
 
   const handleReturnToImprovementProject = useCallback(() => {
@@ -781,7 +787,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 <button
                   type="button"
                   aria-pressed={wallGroupByTributary}
-                  onClick={() => setWallGroupByTributary(!wallGroupByTributary)}
+                  onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
                   className={`ml-1 px-2 py-0.5 text-xs font-medium rounded transition-colors ${
                     wallGroupByTributary
                       ? 'bg-surface-secondary text-content'
@@ -860,7 +866,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       questions={questionsState.questions}
                       zoom={wallZoom}
                       pan={wallPan}
-                      onPanTo={(x, y) => setWallPan({ x, y })}
+                      onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
                     />
                   </div>
                   <CommandPalette

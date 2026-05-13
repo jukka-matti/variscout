@@ -593,6 +593,9 @@ importers:
       '@variscout/stores':
         specifier: workspace:*
         version: link:../stores
+      d3-zoom:
+        specifier: ^3.0.0
+        version: 3.0.0
       focus-trap-react:
         specifier: ^12.0.1
         version: 12.0.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -618,6 +621,9 @@ importers:
       '@testing-library/react':
         specifier: ^16.3.2
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@types/d3-zoom':
+        specifier: ^3.0.8
+        version: 3.0.8
       '@types/node':
         specifier: ^25.6.0
         version: 25.6.0

@@ -22,7 +22,12 @@ import {
   type CanvasToolId,
 } from '@variscout/hooks';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
-import type { Finding, SpecLimits, WorkflowReadinessSignals } from '@variscout/core';
+import {
+  DEFAULT_PROCESS_HUB_ID,
+  type Finding,
+  type SpecLimits,
+  type WorkflowReadinessSignals,
+} from '@variscout/core';
 import type { ActionItem } from '@variscout/core/findings';
 import {
   type ProductionLineGlanceFilterStripProps,
@@ -97,6 +102,7 @@ function areArrowSegmentsEqual(left: ArrowSegment[], right: ArrowSegment[]) {
  * or persistence directly.
  */
 export interface CanvasProps {
+  hubId?: string;
   map: ProcessMap;
   availableColumns: string[];
   onChange: (next: ProcessMap) => void;
@@ -174,6 +180,7 @@ export interface CanvasProps {
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
+  hubId = DEFAULT_PROCESS_HUB_ID,
   map,
   availableColumns,
   onChange,
@@ -725,6 +732,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           </div>
         )}
         <CanvasWallOverlay
+          hubId={hubId}
           activeOverlays={resolvedOverlays}
           activeCanvasTool={activeCanvasTool}
           findings={wallFindings}

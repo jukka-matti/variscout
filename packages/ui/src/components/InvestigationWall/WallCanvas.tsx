@@ -65,13 +65,13 @@ export interface WallCanvasProps {
   onComposeGate?: (payload: { hubId: string; gatePath: GatePath }) => void;
   /**
    * View-level zoom factor applied as `scale(zoom)` on the content group.
-   * Defaults to 1.0 (identity). Apps thread this from `wallLayoutStore.zoom`.
+   * Defaults to 1.0 (identity). Apps thread this from the active Hub's canvas viewport.
    * Values typically in [0.2, 3.0]; consumers should clamp before setting.
    */
   zoom?: number;
   /**
    * View-level pan offset applied as `translate(pan.x, pan.y)` on the content
-   * group. Defaults to origin. Apps thread this from `wallLayoutStore.pan`.
+   * group. Defaults to origin. Apps thread this from the active Hub's canvas viewport.
    */
   pan?: { x: number; y: number };
   /**
@@ -81,7 +81,7 @@ export interface WallCanvasProps {
    * group renders inside a dashed-outline `<g data-tributary-group>` frame
    * labeled at top-left. Hubs without a matching tributary fall into an
    * "unassigned" group rendered without a frame. Apps thread this from
-   * `wallLayoutStore.groupByTributary`.
+   * the active Hub's canvas viewport.
    */
   groupByTributary?: boolean;
   /** Dataset rows forwarded to each HypothesisCard to populate the mini-chart slot. */

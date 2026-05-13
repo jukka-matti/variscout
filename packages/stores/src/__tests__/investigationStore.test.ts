@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useInvestigationStore, getInvestigationInitialState } from '../investigationStore';
 import { useProjectStore, getProjectInitialState } from '../projectStore';
-import { useWallLayoutStore, getWallLayoutInitialState } from '../wallLayoutStore';
+import { useCanvasViewportStore, getCanvasViewportInitialState } from '../canvasViewportStore';
 import type {
   FindingContext,
   FindingOutcome,
@@ -626,7 +626,7 @@ describe('investigationStore — addHubComment', () => {
 
   beforeEach(() => {
     useProjectStore.setState(getProjectInitialState());
-    useWallLayoutStore.setState(getWallLayoutInitialState());
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
     mockFetch.mockReset();
     vi.stubGlobal('fetch', mockFetch);
   });
@@ -670,14 +670,14 @@ describe('investigationStore — addHubComment', () => {
     expect(body.text).toBe('hi');
   });
 
-  it('queues to wallLayoutStore.pendingComments when the server returns !ok', async () => {
+  it('queues to canvasViewportStore.pendingComments when the server returns !ok', async () => {
     useProjectStore.setState({ projectId: 'proj-fail' });
     mockFetch.mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({}) });
 
     const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
     await useInvestigationStore.getState().addHubComment(hub.id, 'queued text', 'Alex');
 
-    const pending = useWallLayoutStore.getState().pendingComments;
+    const pending = useCanvasViewportStore.getState().pendingComments;
     expect(pending).toHaveLength(1);
     expect(pending[0].scope).toBe('hub');
     expect(pending[0].targetId).toBe(hub.id);
@@ -692,7 +692,7 @@ describe('investigationStore — addHubComment', () => {
     const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
     await useInvestigationStore.getState().addHubComment(hub.id, 'offline text');
 
-    const pending = useWallLayoutStore.getState().pendingComments;
+    const pending = useCanvasViewportStore.getState().pendingComments;
     expect(pending).toHaveLength(1);
     expect(pending[0].text).toBe('offline text');
   });
@@ -720,10 +720,10 @@ describe('investigationStore — addHubComment', () => {
     await useInvestigationStore.getState().addHubComment(hub.id, 'first');
     await useInvestigationStore.getState().addHubComment(hub.id, 'second');
 
-    expect(useWallLayoutStore.getState().pendingComments).toHaveLength(2);
-    const drained = useWallLayoutStore.getState().drainPendingComments();
+    expect(useCanvasViewportStore.getState().pendingComments).toHaveLength(2);
+    const drained = useCanvasViewportStore.getState().drainPendingComments();
     expect(drained).toHaveLength(2);
-    expect(useWallLayoutStore.getState().pendingComments).toHaveLength(0);
+    expect(useCanvasViewportStore.getState().pendingComments).toHaveLength(0);
   });
 });
 

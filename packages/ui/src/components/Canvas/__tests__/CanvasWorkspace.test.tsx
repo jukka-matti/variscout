@@ -15,7 +15,11 @@ import type {
   CanvasOverlayId,
   CanvasStepCardModel,
 } from '@variscout/hooks';
-import { useCanvasInvestigationOverlays, useCanvasStepCards } from '@variscout/hooks';
+import {
+  useCanvasInvestigationOverlays,
+  useCanvasStepCards,
+  useSharedWallProps,
+} from '@variscout/hooks';
 import { useCanvasStore } from '@variscout/stores';
 
 const wallIsMobileRef = vi.hoisted(() => ({ current: false }));
@@ -548,6 +552,7 @@ describe('CanvasWorkspace', () => {
   beforeEach(() => {
     wallIsMobileRef.current = false;
     useCanvasStore.setState(useCanvasStore.getInitialState());
+    vi.mocked(useSharedWallProps).mockClear();
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
       scopeFilter: undefined,
@@ -650,6 +655,45 @@ describe('CanvasWorkspace', () => {
     expect(screen.getByTestId('wall-canvas')).toHaveAttribute(
       'data-active-columns',
       'Bake_Time,Machine'
+    );
+  });
+
+  it('threads process hub id into Canvas Wall props', () => {
+    canvasFiltersStateRef.current = {
+      ...canvasFiltersStateRef.current,
+      activeCanvasOverlays: ['wall'],
+    };
+
+    renderWorkspace({
+      processContext: { processHubId: 'hub-frame-2', processMap: mapWithStep() },
+      findings: [wallFinding],
+      onOpenWall: vi.fn(),
+    });
+
+    expect(useSharedWallProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hubId: 'hub-frame-2',
+      })
+    );
+  });
+
+  it('uses explicit canvas viewport hub id when process context has no hub id', () => {
+    canvasFiltersStateRef.current = {
+      ...canvasFiltersStateRef.current,
+      activeCanvasOverlays: ['wall'],
+    };
+
+    renderWorkspace({
+      canvasViewportHubId: 'session-hub-1',
+      processContext: { processMap: mapWithStep() },
+      findings: [wallFinding],
+      onOpenWall: vi.fn(),
+    });
+
+    expect(useSharedWallProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hubId: 'session-hub-1',
+      })
     );
   });
 

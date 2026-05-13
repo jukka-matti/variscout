@@ -209,15 +209,15 @@ export default [
   // Persistence boundary guard (F1+F2 P7.2, audit R12+R13):
   // Domain stores and non-persistence app code must not import `dexie` directly.
   // Persistence access is via @variscout/core HubRepository (pwaHubRepository /
-  // azureHubRepository .dispatch). Exceptions: documented R12 (wallLayoutStore
+  // azureHubRepository .dispatch). Exceptions: documented R12 (canvasViewportStore
   // separate DB) and R13 (azure services/storage, services/localDb, services/cloudSync,
   // lib/persistence — cloud-sync + project-overlay writes pre-dating HubAction dispatch).
   // Also blocks direct `db` imports from app db/schema modules (R12+R13 same policy).
   {
     files: ['packages/stores/**/*.ts', 'apps/*/src/**/*.{ts,tsx}'],
     ignores: [
-      // R12: wallLayoutStore operates a separate Dexie DB for cross-app UI state
-      'packages/stores/src/wallLayoutStore.ts',
+      // R12: canvasViewportStore operates a separate Dexie DB for cross-app UI state
+      'packages/stores/src/canvasViewportStore.ts',
       // R13 / persistence layer: all files under persistence/ and db/ are the designated home
       'apps/*/src/persistence/**',
       'apps/*/src/db/**',

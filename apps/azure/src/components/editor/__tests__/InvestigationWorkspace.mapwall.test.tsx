@@ -5,7 +5,7 @@
  * - Heavy dependencies (charts, hooks, feature stores) are mocked so we can
  *   render InvestigationWorkspace in isolation without providing the full
  *   orchestration props tree.
- * - useWallLayoutStore is NOT mocked — we use the real store and reset it in
+ * - useCanvasViewportStore is NOT mocked — we use the real store and reset it in
  *   beforeEach per the Zustand testing pattern in .claude/rules/testing.md.
  * - panelsStore is NOT mocked — we toggle investigationViewMode to 'map' in
  *   beforeEach so the Evidence Map tab is the active view.
@@ -181,7 +181,7 @@ vi.mock('@variscout/core/stats', () => ({
 
 // ── 2. Component + store imports AFTER mocks ───────────────────────────────
 
-import { useWallLayoutStore } from '@variscout/stores';
+import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import { InvestigationWorkspace } from '../InvestigationWorkspace';
 
@@ -252,12 +252,8 @@ function makeMinimalProps(): React.ComponentProps<typeof InvestigationWorkspace>
 
 describe('InvestigationWorkspace Map/Wall toggle', () => {
   beforeEach(() => {
-    // Reset wallLayoutStore to initial state (viewMode = 'map')
-    useWallLayoutStore.setState(
-      (
-        useWallLayoutStore as typeof useWallLayoutStore & { getInitialState: () => unknown }
-      ).getInitialState()
-    );
+    // Reset canvasViewportStore to initial state (viewMode = 'map')
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
     window.sessionStorage.clear();
     showCharterMock.mockClear();
   });
@@ -282,12 +278,12 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^wall$/i }));
 
-    expect(useWallLayoutStore.getState().viewMode).toBe('wall');
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
   });
 
   it('Wall button shows aria-pressed="true" after click', () => {
     // Pre-set the store to 'wall' to simulate a persisted state
-    useWallLayoutStore.getState().setViewMode('wall');
+    useCanvasViewportStore.getState().setViewMode('wall');
 
     render(<InvestigationWorkspace {...makeMinimalProps()} />);
 
@@ -296,7 +292,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
   });
 
   it('renders the WallCanvas for a chart-first investigation without a process map', () => {
-    useWallLayoutStore.getState().setViewMode('wall');
+    useCanvasViewportStore.getState().setViewMode('wall');
     const props = makeMinimalProps();
     props.hypothesesState.hubs = [
       {

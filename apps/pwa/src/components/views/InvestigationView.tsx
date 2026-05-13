@@ -28,7 +28,7 @@ import {
   type UseFindingsReturn,
   type UseQuestionsReturn,
 } from '@variscout/hooks';
-import type { FindingStatus, Question } from '@variscout/core';
+import { type FindingStatus, type Question } from '@variscout/core';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { getStrategy } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
@@ -36,7 +36,7 @@ import { detectColumns } from '@variscout/core/parser';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
-import { useWallLayoutStore, useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useCanvasViewportStore, useProjectStore, useInvestigationStore } from '@variscout/stores';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
   useInvestigationFeatureStore,
@@ -44,7 +44,10 @@ import {
 } from '../../features/investigation/investigationStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 
+const DEFAULT_WALL_PAN = { x: 0, y: 0 };
+
 interface InvestigationViewProps {
+  canvasViewportHubId: string;
   // Data context
   filteredData: Record<string, unknown>[];
   outcome: string | null;
@@ -70,6 +73,7 @@ interface InvestigationViewProps {
 }
 
 const InvestigationView: React.FC<InvestigationViewProps> = ({
+  canvasViewportHubId,
   findingsState,
   handleRestoreFinding,
   handleSetFindingStatus,
@@ -86,16 +90,19 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
 
   // Map/Wall sub-toggle (mirrors Azure InvestigationWorkspace)
-  const wallViewMode = useWallLayoutStore(s => s.viewMode);
-  const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
+  const wallViewMode = useCanvasViewportStore(s => s.viewMode);
+  const setWallViewMode = useCanvasViewportStore(s => s.setViewMode);
   // Phase 13 scale features — thread store values into WallCanvas so zoom,
   // pan, and tributary clustering survive re-renders and route through the
   // existing undo/persist infrastructure.
-  const wallZoom = useWallLayoutStore(s => s.zoom);
-  const wallPan = useWallLayoutStore(s => s.pan);
-  const setWallPan = useWallLayoutStore(s => s.setPan);
-  const wallGroupByTributary = useWallLayoutStore(s => s.groupByTributary);
-  const setWallGroupByTributary = useWallLayoutStore(s => s.setGroupByTributary);
+  const wallHubId = canvasViewportHubId;
+  const wallZoom = useCanvasViewportStore(s => s.viewports[wallHubId]?.zoom ?? 1);
+  const wallPan = useCanvasViewportStore(s => s.viewports[wallHubId]?.pan ?? DEFAULT_WALL_PAN);
+  const setWallPan = useCanvasViewportStore(s => s.setPan);
+  const wallGroupByTributary = useCanvasViewportStore(
+    s => s.viewports[wallHubId]?.groupByTributary ?? false
+  );
+  const setWallGroupByTributary = useCanvasViewportStore(s => s.setGroupByTributary);
   const returnNavigation = useReturnNavigation();
   const returnTarget = returnNavigation.peekReturnTarget();
   const canReturnToImprovementProject = returnTarget?.sourceSurface === 'improvement-project';
@@ -160,7 +167,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
       const hubIndex = hubs.findIndex(h => h.id === nodeId);
       if (hubIndex >= 0) {
         const hubSpacing = CANVAS_W / (hubs.length + 1);
-        setWallPan({
+        setWallPan(wallHubId, {
           x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
           y: CANVAS_H / 2 - 400,
         });
@@ -168,13 +175,13 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
       }
       const questionIndex = wallQuestions.findIndex(q => q.id === nodeId);
       if (questionIndex >= 0) {
-        setWallPan({
+        setWallPan(wallHubId, {
           x: CANVAS_W / 2 - (200 + questionIndex * 240),
           y: CANVAS_H / 2 - 900,
         });
       }
     },
-    [hubs, wallQuestions, setWallPan]
+    [hubs, wallHubId, wallQuestions, setWallPan]
   );
 
   const handleReturnToImprovementProject = useCallback(() => {
@@ -306,7 +313,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
               <button
                 type="button"
                 aria-pressed={wallGroupByTributary}
-                onClick={() => setWallGroupByTributary(!wallGroupByTributary)}
+                onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
                 className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
                   wallGroupByTributary
                     ? 'bg-surface-secondary text-content'
@@ -362,7 +369,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
                     questions={wallQuestions}
                     zoom={wallZoom}
                     pan={wallPan}
-                    onPanTo={(x, y) => setWallPan({ x, y })}
+                    onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
                   />
                 </div>
                 <CommandPalette

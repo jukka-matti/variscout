@@ -1,7 +1,7 @@
 /**
  * useWallHubCommentLifecycle — Azure integration for per-hub SSE comments.
  *
- * Thin adapter that reads the currently selected hubs from wallLayoutStore
+ * Thin adapter that reads the currently selected hubs from canvasViewportStore
  * and opens an SSE stream (via useHubCommentStream) for each one. Only runs
  * when the Wall view is active; otherwise no streams open.
  *
@@ -16,13 +16,13 @@
  */
 
 import { useMemo } from 'react';
-import { useProjectStore, useWallLayoutStore } from '@variscout/stores';
+import { useCanvasViewportStore, useProjectStore } from '@variscout/stores';
 import { useHubCommentStream } from '@variscout/hooks';
 
 export function useWallHubCommentLifecycle(): void {
   const projectId = useProjectStore(s => s.projectId);
-  const viewMode = useWallLayoutStore(s => s.viewMode);
-  const selection = useWallLayoutStore(s => s.selection);
+  const viewMode = useCanvasViewportStore(s => s.viewMode);
+  const selection = useCanvasViewportStore(s => s.selection);
 
   // Stable reference — the Set identity changes on every mutation, so
   // memoize on its size + sorted-contents string so unrelated store

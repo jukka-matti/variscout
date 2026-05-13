@@ -11,6 +11,7 @@ import {
 import {
   detectColumns,
   detectScopeFromMap,
+  normalizeProcessHubId,
   rankYCandidates,
   type CausalLink,
   type ColumnAnalysis,
@@ -39,6 +40,7 @@ import type { LogActionPayload } from '../QuickAction';
 const DEFAULT_CPK_TARGET = 1.33;
 
 export interface CanvasWorkspaceProps {
+  canvasViewportHubId?: string | null;
   rawData: readonly DataRow[];
   outcome: string | null;
   factors: readonly string[];
@@ -159,6 +161,7 @@ function deriveUnassignedChips({
 }
 
 export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
+  canvasViewportHubId,
   rawData,
   outcome,
   factors,
@@ -200,6 +203,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   );
 
   const map: ProcessMap = processContext?.processMap ?? fallbackMap;
+  const hubId = normalizeProcessHubId(canvasViewportHubId ?? processContext?.processHubId);
   const scope = detectScopeFromMap(map);
   const ctsColumn = map.ctsColumn;
   const ctsSpecs = ctsColumn ? measureSpecs[ctsColumn] : undefined;
@@ -462,6 +466,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
 
   const canvasNode = (
     <Canvas
+      hubId={hubId}
       map={map}
       availableColumns={availableColumns}
       onChange={handleChange}
