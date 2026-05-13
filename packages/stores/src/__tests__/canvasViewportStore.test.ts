@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import Dexie from 'dexie';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   useCanvasViewportStore,
   persistCanvasViewport,
@@ -122,6 +122,8 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
   });
 
   it('sets level with l3 focalStepId validation and clears stale focalStepId on l1/l2', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
     useCanvasViewportStore.getState().setLevel('hub-A', 'l1');
     expect(useCanvasViewportStore.getState().getViewport('hub-A').currentLevel).toBe('l1');
 
@@ -131,9 +133,15 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
       focalStepId: 'step-1',
     });
 
-    expect(() => useCanvasViewportStore.getState().setLevel('hub-B', 'l3')).toThrow(
-      /focalStepId required when currentLevel === 'l3'/
+    // l3 without focalStepId: warns and leaves state unchanged (no-op, no throw).
+    const levelBefore = useCanvasViewportStore.getState().getViewport('hub-B').currentLevel;
+    useCanvasViewportStore.getState().setLevel('hub-B', 'l3');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('l3 requested without focalStepId')
     );
+    expect(useCanvasViewportStore.getState().getViewport('hub-B').currentLevel).toBe(levelBefore);
+
+    warnSpy.mockRestore();
 
     useCanvasViewportStore.getState().setLevel('hub-A', 'l2');
     expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
@@ -204,9 +212,16 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
       currentLevel: 'l3',
       focalStepId: 'step-1',
     });
-    expect(() => useCanvasViewportStore.getState().fitToContent('hub-B', 'l3')).toThrow(
-      /focalStepId required when currentLevel === 'l3'/
+
+    // fitToContent with explicit l3 on a hub with no focalStepId: warns, leaves viewport unchanged.
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const snapshotBefore = useCanvasViewportStore.getState().getViewport('hub-B');
+    useCanvasViewportStore.getState().fitToContent('hub-B', 'l3');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('l3 requested without focalStepId')
     );
+    expect(useCanvasViewportStore.getState().getViewport('hub-B')).toEqual(snapshotBefore);
+    warnSpy.mockRestore();
   });
 
   it('keeps multiple hubs independent', () => {

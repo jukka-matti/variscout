@@ -117,7 +117,10 @@ function setViewportLevel(
   focalStepId?: string
 ): CanvasViewportSnapshot {
   if (level === 'l3' && !focalStepId) {
-    throw new Error("focalStepId required when currentLevel === 'l3'");
+    console.warn(
+      'setViewportLevel: l3 requested without focalStepId; ignoring. Set focalStepId via setFocalStepId first.'
+    );
+    return viewport; // no-op
   }
 
   if (level === 'l3') {
@@ -194,6 +197,10 @@ export const useCanvasViewportStore = create<CanvasViewportState & CanvasViewpor
             (viewport.currentLevel === 'l3' && !viewport.focalStepId
               ? 'l2'
               : viewport.currentLevel);
+          // Guard: l3 without a focalStepId is a no-op (setViewportLevel will warn).
+          if (targetLevel === 'l3' && !viewport.focalStepId) {
+            return setViewportLevel(viewport, targetLevel, viewport.focalStepId);
+          }
           const nextViewport = setViewportLevel(viewport, targetLevel, viewport.focalStepId);
           return {
             ...nextViewport,
