@@ -189,14 +189,19 @@ fi
 echo ""
 echo "=== Orphaned File Checks ==="
 
-# Build a single inbound-link index once for both orphan + cross-ref passes.
-# Captures every link target referenced from any .md file in docs/, CLAUDE.md,
-# and .claude/skills/. Normalized: strip anchors + query strings, skip http URLs.
+# Build a single reference index once for the orphan pass.
+# We approximate the OLD `grep -rl "$basename"` behavior by capturing EVERY
+# .md substring referenced anywhere in any file under docs/, CLAUDE.md, and
+# .claude/skills/ — not just markdown-link targets. Prose mentions count
+# (e.g. "see foo.md" inline). That matches what shipped on main pre-PR2 and
+# keeps the orphan baseline stable; without it, the rewrite is stricter than
+# the original and flags ~12 prose-referenced docs as new orphans.
+# The cross-ref pass below uses its own per-file outgoing-link extraction
+# and does not consume this index.
 INDEX_FILE=$(mktemp)
 trap 'rm -f "$INDEX_FILE"' EXIT
-grep -rEoh '\]\([^)]+\.md[^)]*\)' "$ROOT/docs" "$ROOT/CLAUDE.md" "$ROOT/.claude/skills" 2>/dev/null \
-  | sed -E 's|^\]\(||; s|\)$||; s|#[^)]*$||; s|\?[^)]*$||' \
-  | grep -v '^https\?://' \
+grep -rEoh '[A-Za-z0-9._/@+-]+\.md' "$ROOT/docs" "$ROOT/CLAUDE.md" "$ROOT/.claude/skills" 2>/dev/null \
+  | sed -E 's|#.*$||; s|\?.*$||' \
   | sort -u > "$INDEX_FILE"
 
 if (( INCREMENTAL )); then
