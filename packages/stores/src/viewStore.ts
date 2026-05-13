@@ -137,7 +137,7 @@ export const useViewStore = create<ViewStore>(set => ({
 
 // Expose getInitialState on the store instance for the canonical test reset
 // pattern: `useViewStore.setState(useViewStore.getInitialState())` — matches
-// `packages/stores/CLAUDE.md` Invariants and the canvasStore /
-// canvasViewportStore / projectStore precedent.
+// `packages/stores/CLAUDE.md` Invariants and the canvasStore / wallLayoutStore /
+// projectStore precedent.
 (useViewStore as unknown as { getInitialState: () => ViewState }).getInitialState =
   getViewInitialState;

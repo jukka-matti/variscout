@@ -33,6 +33,7 @@ export {
 export type { InvestigationState, InvestigationActions } from './investigationStore';
 export {
   useCanvasViewportStore,
+  getCanvasViewportInitialState,
   persistCanvasViewport,
   rehydrateCanvasViewport,
   STORE_LAYER as CANVAS_VIEWPORT_STORE_LAYER,
