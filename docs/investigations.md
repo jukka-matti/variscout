@@ -26,6 +26,40 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Orphan detection: duplicate-basename pairs may hide true orphans
+
+**Surfaced by:** PR2 (`chore/hooks-perf`) final review, 2026-05-13.
+
+**Description:** `scripts/check-diagram-health.sh` decides a doc is orphaned iff neither its basename nor its `docs/`-relative path appears as a substring of any indexed link target. The basename check is intentionally loose — a `capability.md` link target clears any file of that name anywhere in the tree. The repo currently has ~10 duplicate-basename pairs (`capability.md`, `pareto.md`, `storage.md`, `glossary.md`, etc.). If the same basename is linked once in the tree, both siblings pass orphan detection even if one has no inbound links.
+
+This is **not a regression** from PR2's rewrite — the old `grep -rl "$basename"` had the same ambiguity. Current orphan count (12) matches the baseline.
+
+**Possible directions:**
+
+- Require relpath-match for files whose basename is non-unique; fall back to basename only when unique.
+- Force fully-qualified links throughout `docs/` (`grep`-based lint that flags bare-basename links).
+- Live with the limit (12 orphans flagged today is enough signal for the current scale).
+
+**Promotion path:** if a true orphan ships to `main` and is missed, escalate to a script tightening. Otherwise leave as-is.
+
+---
+
+### Advisory ADR/spec frontmatter checks no longer fire mid-edit
+
+**Surfaced by:** PR2 T6 (`chore/hooks-perf`), 2026-05-13.
+
+**Description:** PR2 dropped `scripts/advisory-adr-frontmatter.sh` and `scripts/advisory-spec-frontmatter.sh` from `.claude/settings.json` PreToolUse (they imposed ~1.5 s × every Edit call without blocking). Both scripts have been deleted. The structural checks they encoded — `last-reviewed:` frontmatter presence on ADRs and lowercase `status:` enum on ADRs/specs — are still caught at push time by `scripts/check-doc-frontmatter.mjs` (invoked from `check-doc-health.sh` → `pnpm docs:check`). The DX regression is: a developer authoring a new ADR with `status: Accepted` no longer sees a mid-edit nudge; the issue surfaces on `git push`.
+
+**Possible directions:**
+
+- Fold the two checks into `check-diagram-health.sh`'s frontmatter section (already O(N) over `docs/`, marginal cost).
+- Re-introduce them as periodic `SessionStart` sweep rather than per-Edit.
+- Live with the push-time catch.
+
+**Promotion path:** if push-time catches start producing painful rework, fold into `check-diagram-health.sh`. Otherwise leave as-is.
+
+---
+
 ### Stats-bar "Set specs →" link reads project-wide specs only
 
 **Surfaced by:** FRAME b0 spec wiring fixes, 2026-05-03 (branch `feature/full-vision-frame-b0`).
