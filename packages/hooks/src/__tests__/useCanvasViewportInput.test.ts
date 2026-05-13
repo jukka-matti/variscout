@@ -6,7 +6,7 @@ import {
   useCanvasViewportStore,
   type ProcessHubId,
 } from '@variscout/stores';
-import { useCanvasViewportInput } from '../useCanvasViewportInput';
+import { useCanvasViewportInput, snapTarget } from '../useCanvasViewportInput';
 
 interface D3ZoomElement extends HTMLDivElement {
   __zoom?: { k: number; x: number; y: number };
@@ -162,6 +162,12 @@ describe('useCanvasViewportInput', () => {
     expect(element.__on?.some(listener => listener.name === 'zoom')).not.toBe(true);
   });
 
+  it('mounts cleanly with snap-to-LOD end handler (no throw)', () => {
+    // Verifies that attaching the 'end' listener on d3-zoom does not throw.
+    // The snap decision logic is unit-tested separately in the snapTarget describe block.
+    expect(() => renderCanvasViewportInput()).not.toThrow();
+  });
+
   it('does not attach listeners or update the store when disabled', () => {
     const { element } = renderDisabledCanvasViewportInput();
 
@@ -182,5 +188,32 @@ describe('useCanvasViewportInput', () => {
       zoom: 1,
       pan: { x: 0, y: 0 },
     });
+  });
+});
+
+describe('snapTarget — LOD boundary snap logic', () => {
+  it('returns 0.5 for zoom in [0.3, 0.5) — stranded at low end of l2', () => {
+    expect(snapTarget(0.3)).toBe(0.5);
+    expect(snapTarget(0.35)).toBe(0.5);
+    expect(snapTarget(0.499)).toBe(0.5);
+  });
+
+  it('returns 1.8 for zoom in [1.8, 2.0) — stranded at high end of l2', () => {
+    expect(snapTarget(1.8)).toBe(1.8);
+    expect(snapTarget(1.9)).toBe(1.8);
+    expect(snapTarget(1.999)).toBe(1.8);
+  });
+
+  it('returns undefined outside snap ranges', () => {
+    // Well within l1
+    expect(snapTarget(0.1)).toBeUndefined();
+    expect(snapTarget(0.29)).toBeUndefined();
+    // L2 stable zone
+    expect(snapTarget(0.5)).toBeUndefined();
+    expect(snapTarget(1.0)).toBeUndefined();
+    expect(snapTarget(1.799)).toBeUndefined();
+    // l3 and above
+    expect(snapTarget(2.0)).toBeUndefined();
+    expect(snapTarget(4.0)).toBeUndefined();
   });
 });
