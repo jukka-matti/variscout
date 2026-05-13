@@ -5,6 +5,7 @@ import {
   useCanvasViewportStore,
   persistCanvasViewport,
   rehydrateCanvasViewport,
+  deleteLegacyWallLayoutDb,
 } from '../canvasViewportStore';
 
 describe('canvasViewportStore', () => {
@@ -295,6 +296,7 @@ describe('canvasViewportStore persistence', () => {
   });
 
   it('clean-breaks an existing v1 project-keyed Dexie database before hub-keyed persistence', async () => {
+    // Seed the legacy DB so it exists in IndexedDB.
     await Dexie.delete('variscout-wall-layout');
     const legacyDb = new Dexie('variscout-wall-layout');
     legacyDb.version(1).stores({ snapshots: 'projectId,updatedAt' });
@@ -309,6 +311,16 @@ describe('canvasViewportStore persistence', () => {
     });
     legacyDb.close();
 
+    // Confirm legacy DB is present before cleanup.
+    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(true);
+
+    // Trigger cleanup explicitly (mirrors the module-load side effect).
+    await deleteLegacyWallLayoutDb();
+
+    // Legacy DB must be gone.
+    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(false);
+
+    // Hub-keyed persistence must still work correctly.
     useCanvasViewportStore.getState().setViewMode('wall');
     useCanvasViewportStore.getState().setZoom('hub-legacy-clean-break', 1.75);
     useCanvasViewportStore
@@ -324,6 +336,18 @@ describe('canvasViewportStore persistence', () => {
       zoom: 1.75,
       nodePositions: { 'node-1': { x: 10, y: 20 } },
     });
+  });
+
+  it('is a no-op when no legacy variscout-wall-layout DB exists', async () => {
+    // Ensure legacy DB is absent before test.
+    await Dexie.delete('variscout-wall-layout');
+    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(false);
+
+    // Must not throw when the DB doesn't exist.
+    await expect(deleteLegacyWallLayoutDb()).resolves.toBeUndefined();
+
+    // DB is still absent — cleanup was a true no-op.
+    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(false);
   });
 
   it('persists and rehydrates one hub viewport with viewMode and railOpen', async () => {
