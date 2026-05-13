@@ -519,6 +519,12 @@ importers:
       d3-array:
         specifier: ^3.2.4
         version: 3.2.4
+      d3-selection:
+        specifier: ^3.0.0
+        version: 3.0.0
+      d3-zoom:
+        specifier: ^3.0.0
+        version: 3.0.0
       html-to-image:
         specifier: ^1.11.13
         version: 1.11.13
@@ -535,6 +541,12 @@ importers:
       '@types/d3-array':
         specifier: ^3.2.1
         version: 3.2.2
+      '@types/d3-selection':
+        specifier: ^3.0.11
+        version: 3.0.11
+      '@types/d3-zoom':
+        specifier: ^3.0.8
+        version: 3.0.8
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14

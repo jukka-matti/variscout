@@ -345,6 +345,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
         {wallViewMode === 'wall' ? (
           <div className="relative flex-1 flex flex-col min-h-0">
             <WallCanvas
+              hubId={wallHubId}
               hubs={hubs}
               findings={wallFindings}
               questions={wallQuestions}

@@ -1,7 +1,13 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
 import type { Hypothesis, ProcessMap, Question, Finding } from '@variscout/core';
+import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
+
+interface D3ZoomSvgElement extends SVGSVGElement {
+  __zoom?: { k: number; x: number; y: number };
+  __on?: Array<{ type: string; name: string; value: (event: Event) => void }>;
+}
 
 /**
  * Override `window.matchMedia` for a single test to force the mobile branch
@@ -31,6 +37,23 @@ function installMobileMatchMedia() {
       value: original,
     });
   };
+}
+
+function sizeSvgForD3Zoom(element: SVGSVGElement) {
+  Object.defineProperty(element, 'clientWidth', { configurable: true, value: 400 });
+  Object.defineProperty(element, 'clientHeight', { configurable: true, value: 300 });
+  element.getBoundingClientRect = () =>
+    ({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 400,
+      bottom: 300,
+      width: 400,
+      height: 300,
+      toJSON: () => ({}),
+    }) as DOMRect;
 }
 
 const processMap: ProcessMap = {
@@ -91,6 +114,10 @@ const evidencedFindings: Finding[] = [
 ];
 
 describe('WallCanvas', () => {
+  beforeEach(() => {
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+  });
+
   it('renders empty state when no hubs', () => {
     render(
       <WallCanvas
@@ -447,6 +474,98 @@ describe('WallCanvas', () => {
     expect(transformGroup?.getAttribute('transform')).toContain('scale(0.5)');
   });
 
+  it('binds d3 zoom input to the destination SVG when hubId is provided', () => {
+    const hubId = 'wall-destination-hub';
+    const { container } = render(
+      <WallCanvas
+        hubId={hubId}
+        hubs={[hub]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+    const svg = container.querySelector('svg[role="img"]') as D3ZoomSvgElement;
+    sizeSvgForD3Zoom(svg);
+
+    expect(svg.__zoom).toMatchObject({ k: 1, x: 0, y: 0 });
+    expect(svg.__on?.some(listener => listener.name === 'zoom')).toBe(true);
+
+    fireEvent.wheel(svg, {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -180,
+      clientX: 200,
+      clientY: 150,
+    });
+
+    const viewport = useCanvasViewportStore.getState().getViewport(hubId);
+    expect(viewport.zoom).toBeGreaterThan(1);
+    expect(viewport.pan.x).toBeLessThan(0);
+    expect(viewport.pan.y).toBeLessThan(0);
+  });
+
+  it('keeps descendant role-button wheel from updating the hub viewport while background wheel still works', () => {
+    const hubId = 'wall-role-button-guard';
+    const { container } = render(
+      <WallCanvas
+        hubId={hubId}
+        hubs={[hub]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+    const svg = container.querySelector('svg[role="img"]') as D3ZoomSvgElement;
+    sizeSvgForD3Zoom(svg);
+
+    fireEvent.wheel(screen.getByRole('button', { name: /problem condition/i }), {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -180,
+      clientX: 200,
+      clientY: 150,
+    });
+
+    expect(useCanvasViewportStore.getState().getViewport(hubId)).toMatchObject({
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    });
+
+    fireEvent.wheel(svg, {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -180,
+      clientX: 200,
+      clientY: 150,
+    });
+
+    expect(useCanvasViewportStore.getState().getViewport(hubId).zoom).toBeGreaterThan(1);
+  });
+
+  it('does not bind d3 zoom input for overlay SVG even when hubId is provided defensively', () => {
+    const { container } = render(
+      <WallCanvas
+        hubId="wall-overlay-hub"
+        hubs={[hub]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+        mode="overlay"
+      />
+    );
+    const svg = container.querySelector('svg[role="img"]') as D3ZoomSvgElement;
+
+    expect(svg.__zoom).toBeUndefined();
+    expect(svg.__on?.some(listener => listener.name === 'zoom')).not.toBe(true);
+  });
+
   describe('mobile breakpoint', () => {
     let restoreMatchMedia: (() => void) | undefined;
 
@@ -459,6 +578,7 @@ describe('WallCanvas', () => {
       restoreMatchMedia = installMobileMatchMedia();
       const { container } = render(
         <WallCanvas
+          hubId="wall-mobile-hub"
           hubs={[hub]}
           findings={[]}
           questions={[]}
@@ -472,6 +592,7 @@ describe('WallCanvas', () => {
       expect(screen.getByTestId('wall-mobile-hub-h1')).toBeInTheDocument();
       // ...and the desktop SVG viewport group is not.
       expect(container.querySelector('[data-wall-viewport]')).toBeNull();
+      expect(container.querySelector('svg')).toBeNull();
     });
 
     it('still renders MissingEvidencePanel below the card list on mobile', () => {

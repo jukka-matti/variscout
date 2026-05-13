@@ -33,21 +33,30 @@ vi.mock('../../InvestigationWall', async () => {
       eventsPerWeek?: unknown;
       activeColumns?: ReadonlyArray<string>;
     }) =>
-      React.createElement('div', {
-        'data-testid': 'wall-canvas',
-        'data-findings-count': String(findings?.length ?? 0),
-        'data-problem-cpk': String(problemCpk),
-        'data-events-per-week': String(eventsPerWeek),
-        'data-active-columns': (activeColumns ?? []).join(','),
-      }),
+      React.createElement(
+        'div',
+        {
+          'data-testid': 'wall-canvas',
+          'data-findings-count': String(findings?.length ?? 0),
+          'data-problem-cpk': String(problemCpk),
+          'data-events-per-week': String(eventsPerWeek),
+          'data-active-columns': (activeColumns ?? []).join(','),
+        },
+        React.createElement('button', { type: 'button' }, 'role button target')
+      ),
   };
 });
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { Finding } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { CanvasInvestigationOverlayModel, CanvasStepCardModel } from '@variscout/hooks';
-import { getInvestigationInitialState, useInvestigationStore } from '@variscout/stores';
+import {
+  getCanvasViewportInitialState,
+  getInvestigationInitialState,
+  useCanvasViewportStore,
+  useInvestigationStore,
+} from '@variscout/stores';
 import { Canvas } from '../index';
 
 const SIGNALS = { hasIntervention: false, sustainmentConfirmed: false };
@@ -233,10 +242,28 @@ function renderCanvas(overrides: Partial<ComponentProps<typeof Canvas>> = {}) {
   return props;
 }
 
+function sizeElementForD3Zoom(element: HTMLElement) {
+  Object.defineProperty(element, 'clientWidth', { configurable: true, value: 400 });
+  Object.defineProperty(element, 'clientHeight', { configurable: true, value: 300 });
+  element.getBoundingClientRect = () =>
+    ({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 400,
+      bottom: 300,
+      width: 400,
+      height: 300,
+      toJSON: () => ({}),
+    }) as DOMRect;
+}
+
 describe('Canvas', () => {
   beforeEach(() => {
     setViewport(1024, 768);
     wallIsMobileRef.current = false;
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
     useInvestigationStore.setState(getInvestigationInitialState());
   });
 
@@ -258,6 +285,22 @@ describe('Canvas', () => {
     expect(screen.getByTestId('canvas-step-card-step-1')).toHaveTextContent('Mix');
     expect(screen.getByTestId('canvas-step-card-step-1')).toHaveTextContent('11.50 +/- 1.29 · n=4');
     expect(screen.queryByTestId('ops-band-dashboard')).not.toBeInTheDocument();
+  });
+
+  it('wraps the L2 card surface content in the current hub viewport transform', () => {
+    useCanvasViewportStore.getState().setPan('hub-l2-canvas', { x: 48, y: -24 });
+    useCanvasViewportStore.getState().setZoom('hub-l2-canvas', 1.75);
+
+    renderCanvas({ hubId: 'hub-l2-canvas' });
+
+    expect(
+      screen.getByTestId('canvas-card-surface').querySelector('[data-canvas-viewport-wrapper]')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('canvas-card-surface').querySelector('[data-canvas-viewport-inner]')
+    ).toHaveStyle({
+      transform: 'translate(48px, -24px) scale(1.75)',
+    });
   });
 
   it('renders the chip rail in author mode when chips are available', () => {
@@ -531,6 +574,44 @@ describe('Canvas', () => {
       'data-active-columns',
       'Machine,Defect'
     );
+  });
+
+  it('does not let Wall overlay controls bubble into the L2 viewport input', () => {
+    const hubId = 'hub-wall-overlay-nested-input';
+    useInvestigationStore.getState().addQuestion('Does pressure explain defect clusters?');
+
+    renderCanvas({
+      hubId,
+      activeOverlays: ['wall'],
+      findings: [wallFinding],
+    });
+
+    sizeElementForD3Zoom(screen.getByTestId('canvas-card-surface'));
+    const overlay = screen.getByTestId('canvas-wall-overlay');
+    sizeElementForD3Zoom(overlay);
+
+    fireEvent.wheel(screen.getByRole('button', { name: /role button target/i }), {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -180,
+      clientX: 200,
+      clientY: 150,
+    });
+
+    expect(useCanvasViewportStore.getState().getViewport(hubId)).toMatchObject({
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    });
+
+    fireEvent.wheel(overlay, {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -180,
+      clientX: 200,
+      clientY: 150,
+    });
+
+    expect(useCanvasViewportStore.getState().getViewport(hubId).zoom).toBeGreaterThan(1);
   });
 
   it('hides the Wall overlay toggle on mobile and shows the Wall shortcut when content exists', () => {
@@ -878,6 +959,68 @@ describe('Canvas', () => {
 
       expect(arrow).toHaveAttribute('x1', '70');
       expect(arrow).toHaveAttribute('x2', '270');
+    } finally {
+      rectSpy.mockRestore();
+    }
+  });
+
+  it('remeasures hypothesis arrows after the hub viewport transform changes', () => {
+    const hubId = 'hub-arrow-viewport';
+    const rectFor = (left: number, top: number, width: number, height: number): DOMRect =>
+      ({
+        x: left,
+        y: top,
+        top,
+        left,
+        right: left + width,
+        bottom: top + height,
+        width,
+        height,
+        toJSON: () => ({}),
+      }) as DOMRect;
+    const transformedRectFor = (
+      baseLeft: number,
+      baseTop: number,
+      width: number,
+      height: number
+    ) => {
+      const viewport = useCanvasViewportStore.getState().getViewport(hubId);
+      return rectFor(
+        viewport.pan.x + baseLeft * viewport.zoom,
+        viewport.pan.y + baseTop * viewport.zoom,
+        width * viewport.zoom,
+        height * viewport.zoom
+      );
+    };
+    const rectSpy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.dataset.testid === 'canvas-card-surface') return rectFor(0, 0, 800, 400);
+        if (this.dataset.testid === 'canvas-step-card-step-1')
+          return transformedRectFor(0, 10, 100, 80);
+        if (this.dataset.testid === 'canvas-step-card-step-2')
+          return transformedRectFor(200, 10, 100, 80);
+        return rectFor(0, 0, 0, 0);
+      });
+
+    try {
+      renderCanvas({
+        hubId,
+        investigationOverlays,
+        activeOverlays: ['hypotheses'],
+      });
+
+      const arrow = screen.getByTestId('canvas-hypothesis-arrow-link-1');
+      expect(arrow).toHaveAttribute('x1', '50');
+      expect(arrow).toHaveAttribute('x2', '250');
+
+      act(() => {
+        useCanvasViewportStore.getState().setZoom(hubId, 2);
+        useCanvasViewportStore.getState().setPan(hubId, { x: 30, y: -10 });
+      });
+
+      expect(arrow).toHaveAttribute('x1', '130');
+      expect(arrow).toHaveAttribute('x2', '530');
     } finally {
       rectSpy.mockRestore();
     }

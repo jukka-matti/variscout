@@ -8,8 +8,10 @@
  * Renders EmptyState when no hubs exist.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { DndContext } from '@dnd-kit/core';
+import { useCanvasViewportInput } from '@variscout/hooks';
+import type { ProcessHubId } from '@variscout/stores';
 import type {
   Hypothesis,
   Finding,
@@ -36,6 +38,7 @@ import { useWallDragDrop } from './hooks/useWallDragDrop';
 import { useWallIsMobile } from './hooks/useWallBreakpoint';
 
 export interface WallCanvasProps {
+  hubId?: ProcessHubId;
   hubs: Hypothesis[];
   findings: Finding[];
   questions: Question[];
@@ -109,6 +112,13 @@ export interface WallCanvasProps {
 export const CANVAS_W = 2000;
 export const CANVAS_H = 1400;
 
+const WALL_PAN_IGNORED_TARGET =
+  'button,a,input,select,textarea,[role="button"],[data-no-overlay-pan],[data-no-wall-pan]';
+
+function shouldHandleWallPanInput(event: Event): boolean {
+  return !(event.target instanceof Element && event.target.closest(WALL_PAN_IGNORED_TARGET));
+}
+
 const CANONICAL_HYPOTHESIS_STATUSES = new Set<HypothesisStatus>([
   'proposed',
   'evidenced',
@@ -128,6 +138,7 @@ function deriveDisplayStatus(hub: Hypothesis, findings: Finding[]): HypothesisSt
 }
 
 export const WallCanvas: React.FC<WallCanvasProps> = ({
+  hubId,
   hubs,
   findings,
   questions,
@@ -150,6 +161,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   columnTypes,
   outcomeColumn,
 }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
   const locale = useWallLocale();
   const surveyHints = useMemo(
     () => surveyWallRules({ hypotheses: hubs, findings }),
@@ -213,6 +225,12 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const dndEnabled = mode === 'destination' && Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   const isMobile = useWallIsMobile();
+  useCanvasViewportInput({
+    hubId: hubId ?? '__wall-canvas-unbound__',
+    ref: svgRef,
+    disabled: mode !== 'destination' || !hubId || isMobile || hubs.length === 0,
+    filter: shouldHandleWallPanInput,
+  });
   const openQuestions = questions.filter(
     q => q.status === 'open' && !hubs.some(h => h.questionIds.includes(q.id))
   );
@@ -221,6 +239,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     // Overlay mode: render a blank SVG so the wrapper owns empty-state semantics.
     return (
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
         preserveAspectRatio="xMidYMid meet"
         className="bg-background text-content w-full h-full"
@@ -293,6 +312,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const body = (
     <div className="w-full h-full flex flex-col">
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
         preserveAspectRatio="xMidYMid meet"
         className="bg-background text-content flex-1"

@@ -9,6 +9,7 @@ import {
   coerceCanvasLens,
   coerceCanvasOverlays,
   resolveEndpointToFactor,
+  useCanvasViewportInput,
   useCanvasKeyboard,
   useHasInvestigationContent,
   useChipDragAndDrop,
@@ -29,12 +30,14 @@ import {
   type WorkflowReadinessSignals,
 } from '@variscout/core';
 import type { ActionItem } from '@variscout/core/findings';
+import { useCanvasViewportStore } from '@variscout/stores';
 import {
   type ProductionLineGlanceFilterStripProps,
   ProductionLineGlanceFilterStrip,
 } from '../ProductionLineGlanceDashboard';
 import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlanceDashboard/types';
 import { ProcessMapBase } from './internal/ProcessMapBase';
+import { CanvasViewport } from './internal/CanvasViewport';
 import { ChipRail, type ChipRailEntry } from '../ChipRail';
 import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
 import { CanvasModeToggle } from '../CanvasModeToggle';
@@ -78,6 +81,19 @@ type ArrowSegment = {
 };
 
 type CanvasQuestionOption = { id: string; text: string };
+
+const EMPTY_CHIPS: ChipRailEntry[] = [];
+const EMPTY_STEP_CARDS: CanvasStepCardModel[] = [];
+const EMPTY_OVERLAYS: CanvasOverlayId[] = [];
+const EMPTY_QUESTIONS: CanvasQuestionOption[] = [];
+const EMPTY_ACTION_ITEMS: ActionItem[] = [];
+const EMPTY_FINDINGS: Finding[] = [];
+const DEFAULT_CANVAS_VIEWPORT = { zoom: 1, pan: { x: 0, y: 0 } };
+const CANVAS_VIEWPORT_IGNORED_TARGET = '[data-canvas-wall-overlay]';
+
+function shouldHandleCanvasViewportInput(event: Event): boolean {
+  return !(event.target instanceof Element && event.target.closest(CANVAS_VIEWPORT_IGNORED_TARGET));
+}
 
 function areArrowSegmentsEqual(left: ArrowSegment[], right: ArrowSegment[]) {
   if (left.length !== right.length) return false;
@@ -207,17 +223,17 @@ export const Canvas: React.FC<CanvasProps> = ({
   onDisconnectSteps,
   onGroupIntoSubStep,
   onUngroupSubStep,
-  chips = [],
+  chips = EMPTY_CHIPS,
   onPlaceChip,
   onCreateStepFromChip,
-  stepCards = [],
+  stepCards = EMPTY_STEP_CARDS,
   activeLens = 'default',
   onLensChange,
-  activeOverlays = [],
+  activeOverlays = EMPTY_OVERLAYS,
   onOverlayToggle,
   activeCanvasTool = 'select',
   onCanvasToolChange,
-  questions = [],
+  questions = EMPTY_QUESTIONS,
   onAddCausalLink,
   investigationOverlays,
   signals,
@@ -232,14 +248,17 @@ export const Canvas: React.FC<CanvasProps> = ({
   onRemoveCausalLink,
   contextLinkGroups,
   onNavigateContextLink,
-  actionItems = [],
-  findings = [],
+  actionItems = EMPTY_ACTION_ITEMS,
+  findings = EMPTY_FINDINGS,
   problemCpk,
   eventsPerWeek,
   activeColumns,
   onOpenWall,
 }) => {
   const isAuthorMode = authoringMode === 'author';
+  const viewport = useCanvasViewportStore(s =>
+    s.viewports[hubId] ? s.getViewport(hubId) : DEFAULT_CANVAS_VIEWPORT
+  );
   const resolvedLens = coerceCanvasLens(activeLens);
   const resolvedOverlays = React.useMemo(
     () => coerceCanvasOverlays(activeOverlays),
@@ -349,6 +368,12 @@ export const Canvas: React.FC<CanvasProps> = ({
     ? investigationOverlays?.byStep[activeStepCardId]
     : undefined;
   const cardSurfaceRef = React.useRef<HTMLDivElement | null>(null);
+  useCanvasViewportInput({
+    hubId,
+    ref: cardSurfaceRef,
+    disabled: disabled || activeCanvasTool === 'draw-hypothesis',
+    filter: shouldHandleCanvasViewportInput,
+  });
 
   const stepMetricColumns = React.useMemo(() => {
     const out: Record<string, string | undefined> = {};
@@ -410,7 +435,16 @@ export const Canvas: React.FC<CanvasProps> = ({
       ];
     });
     setArrowSegments(current => (areArrowSegmentsEqual(current, next) ? current : next));
-  }, [arrowMeasureVersion, investigationOverlays, resolvedLens, resolvedOverlays, stepCards]);
+  }, [
+    arrowMeasureVersion,
+    investigationOverlays,
+    resolvedLens,
+    resolvedOverlays,
+    stepCards,
+    viewport.pan.x,
+    viewport.pan.y,
+    viewport.zoom,
+  ]);
 
   const handleOpenStepCard = React.useCallback((stepId: string, element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
@@ -710,27 +744,29 @@ export const Canvas: React.FC<CanvasProps> = ({
             />
           </svg>
         ) : null}
-        {stepCards.length > 0 ? (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {stepCards.map(card => (
-              <CanvasStepCard
-                key={card.stepId}
-                card={card}
-                activeLens={resolvedLens}
-                activeOverlays={resolvedOverlays}
-                investigationOverlay={investigationOverlays?.byStep[card.stepId]}
-                activeCanvasTool={activeCanvasTool}
-                onOpen={handleOpenStepCard}
-                onStepSpecsRequest={onStepSpecsRequest}
-                registerCardElement={registerCardElement}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-md border border-dashed border-edge bg-surface-primary p-4 text-sm text-content-secondary">
-            Add process steps to create live canvas cards.
-          </div>
-        )}
+        <CanvasViewport zoom={viewport.zoom} pan={viewport.pan}>
+          {stepCards.length > 0 ? (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {stepCards.map(card => (
+                <CanvasStepCard
+                  key={card.stepId}
+                  card={card}
+                  activeLens={resolvedLens}
+                  activeOverlays={resolvedOverlays}
+                  investigationOverlay={investigationOverlays?.byStep[card.stepId]}
+                  activeCanvasTool={activeCanvasTool}
+                  onOpen={handleOpenStepCard}
+                  onStepSpecsRequest={onStepSpecsRequest}
+                  registerCardElement={registerCardElement}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-md border border-dashed border-edge bg-surface-primary p-4 text-sm text-content-secondary">
+              Add process steps to create live canvas cards.
+            </div>
+          )}
+        </CanvasViewport>
         <CanvasWallOverlay
           hubId={hubId}
           activeOverlays={resolvedOverlays}
