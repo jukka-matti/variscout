@@ -26,22 +26,6 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
-### Advisory ADR/spec frontmatter checks no longer fire mid-edit
-
-**Surfaced by:** PR2 T6 (`chore/hooks-perf`), 2026-05-13.
-
-**Description:** PR2 dropped `scripts/advisory-adr-frontmatter.sh` and `scripts/advisory-spec-frontmatter.sh` from `.claude/settings.json` PreToolUse (they imposed ~1.5 s × every Edit call without blocking). Both scripts have been deleted. The structural checks they encoded — `last-reviewed:` frontmatter presence on ADRs and lowercase `status:` enum on ADRs/specs — are still caught at push time by `scripts/check-doc-frontmatter.mjs` (invoked from `check-doc-health.sh` → `pnpm docs:check`). The DX regression is: a developer authoring a new ADR with `status: Accepted` no longer sees a mid-edit nudge; the issue surfaces on `git push`.
-
-**Possible directions:**
-
-- Fold the two checks into `check-diagram-health.sh`'s frontmatter section (already O(N) over `docs/`, marginal cost).
-- Re-introduce them as periodic `SessionStart` sweep rather than per-Edit.
-- Live with the push-time catch.
-
-**Promotion path:** if push-time catches start producing painful rework, fold into `check-diagram-health.sh`. Otherwise leave as-is.
-
----
-
 ### Stats-bar "Set specs →" link reads project-wide specs only
 
 **Surfaced by:** FRAME b0 spec wiring fixes, 2026-05-03 (branch `feature/full-vision-frame-b0`).
