@@ -51,6 +51,12 @@ export {
 export { useCanvasKeyboard, type UseCanvasKeyboardArgs } from './useCanvasKeyboard';
 
 export {
+  DEFAULT_SCALE_EXTENT,
+  useCanvasViewportInput,
+  type UseCanvasViewportInputOptions,
+} from './useCanvasViewportInput';
+
+export {
   useHypothesisDrawTool,
   resolveEndpointToFactor,
   type ArrowEndpoint,
