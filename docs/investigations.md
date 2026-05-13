@@ -32,6 +32,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Description:** 20 findings total — 5 HIGH that qualify the "shipped" claim, 8 MEDIUM spec-vs-shipped drift, 7 LOW cleanups. Followup workstream plan at [`docs/superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md`](superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md). Decision-log "8f canvas viewport SHIPPED" entry has been amended to reference these gaps. Roadmap continues to mark 8f shipped; the followups are a separate cleanup sequence.
 
+**STATUS 2026-05-14:** 19 of 20 findings RESOLVED on branch `canvas-viewport-8f-followups` (22 commits, single PR pending). HIGH #4 resolved via spec AMEND (intentional V2 placeholders); HIGH #1/#2/#3/#5 resolved via implementation; all 8 MEDIUM resolved (including the spec §10 amend); 6 of 7 LOW resolved. Deferred: T1.1 brand `ProcessHubId` (LOW #19) — 18-file refactor, low value vs risk, moved to its own future micro-PR. This entry stays open until the followup PR merges; close on merge.
+
 **HIGH (5):**
 
 - **Azure Blob sync gap** — `apps/azure/src/features/investigation/useCanvasViewportLifecycle.ts:15-30` is byte-identical PWA/Azure; both call only `persistCanvasViewport` / `rehydrateCanvasViewport` against local Dexie. ADR-081 §2 locked "Azure = IndexedDB + Blob sync with ETag per ADR-079." Team-shared per-Hub viewport does not round-trip across devices on Azure.
