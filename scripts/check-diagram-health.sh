@@ -199,10 +199,21 @@ echo "=== Orphaned File Checks ==="
 # The cross-ref pass below uses its own per-file outgoing-link extraction
 # and does not consume this index.
 INDEX_FILE=$(mktemp)
-trap 'rm -f "$INDEX_FILE"' EXIT
+DUP_BASENAMES_FILE=$(mktemp)
+trap 'rm -f "$INDEX_FILE" "$DUP_BASENAMES_FILE"' EXIT
 grep -rEoh '[A-Za-z0-9._/@+-]+\.md' "$ROOT/docs" "$ROOT/CLAUDE.md" "$ROOT/.claude/skills" 2>/dev/null \
   | sed -E 's|#.*$||; s|\?.*$||' \
   | sort -u > "$INDEX_FILE"
+
+# Identify basenames that occur in 2+ docs under docs/ (excluding archive +
+# node_modules). For these, a bare-basename mention in the index can't tell
+# us WHICH sibling is referenced, so the basename fallback is unsafe — we
+# require the docs/-relative path to appear in the index instead. Files with
+# unique basenames keep the loose fallback (handles bare-basename prose links).
+find "$ROOT/docs" -name '*.md' -not -path '*/archive/*' -not -path '*/node_modules/*' 2>/dev/null \
+  | xargs -n1 basename \
+  | sort \
+  | uniq -d > "$DUP_BASENAMES_FILE"
 
 if (( INCREMENTAL )); then
   # Incremental orphan check: only evaluate staged docs paths.
@@ -223,7 +234,21 @@ if (( INCREMENTAL )); then
 
     relpath="${file#$ROOT/docs/}"
 
-    if ! grep -qF "$basename" "$INDEX_FILE" && ! grep -qF "$relpath" "$INDEX_FILE"; then
+    if grep -Fxq "$basename" "$DUP_BASENAMES_FILE"; then
+      # Duplicate basename — clear ONLY when we can prove the reference points
+      # at THIS sibling. Two paths qualify: (a) the full docs/-relative path
+      # appears anywhere; (b) a same-directory file links by bare basename
+      # (which resolves to us, not a sibling elsewhere).
+      file_dir=$(dirname "$file")
+      if grep -qF "$relpath" "$INDEX_FILE"; then
+        : # disambiguated by full relpath
+      elif grep -qF "]($basename" "$file_dir"/*.md 2>/dev/null; then
+        : # same-dir bare-basename link unambiguously targets us
+      else
+        ORPHAN_COUNT=$((ORPHAN_COUNT + 1))
+        red "ORPHAN: $relpath — not referenced from any other doc"
+      fi
+    elif ! grep -qF "$basename" "$INDEX_FILE" && ! grep -qF "$relpath" "$INDEX_FILE"; then
       ORPHAN_COUNT=$((ORPHAN_COUNT + 1))
       red "ORPHAN: $relpath — not referenced from any other doc"
     fi
@@ -248,8 +273,24 @@ else
     # Get relative path from docs/
     relpath="${file#$ROOT/docs/}"
 
-    # Check if any line in the index references this file (by basename or relpath)
-    if ! grep -qF "$basename" "$INDEX_FILE" && ! grep -qF "$relpath" "$INDEX_FILE"; then
+    # Check if any line in the index references this file. For non-unique
+    # basenames, a bare-basename mention is ambiguous — clear only when we
+    # have either the full relpath OR a same-directory bare-basename link
+    # (which unambiguously resolves to this sibling). Unique basenames keep
+    # the looser fallback so prose mentions still count.
+    if grep -Fxq "$basename" "$DUP_BASENAMES_FILE"; then
+      file_dir=$(dirname "$file")
+      if grep -qF "$relpath" "$INDEX_FILE"; then
+        : # disambiguated by full relpath
+      elif grep -qF "]($basename" "$file_dir"/*.md 2>/dev/null; then
+        : # same-dir bare-basename link unambiguously targets us
+      else
+        ORPHAN_COUNT=$((ORPHAN_COUNT + 1))
+        if (( ORPHAN_COUNT <= 10 )); then
+          red "ORPHAN: $relpath — not referenced from any other doc"
+        fi
+      fi
+    elif ! grep -qF "$basename" "$INDEX_FILE" && ! grep -qF "$relpath" "$INDEX_FILE"; then
       ORPHAN_COUNT=$((ORPHAN_COUNT + 1))
       if (( ORPHAN_COUNT <= 10 )); then
         red "ORPHAN: $relpath — not referenced from any other doc"
