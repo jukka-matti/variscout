@@ -46,6 +46,8 @@ Future viewport work that pressures this decision (e.g., need for advanced minim
 
 The Canvas viewport state lives in **one store**, `useCanvasViewportStore` (generalized from today's `wallLayoutStore`). The state holds `zoom`, `pan`, `currentLevel`, `focalStepId`, plus the wall-layout fields (`nodePositions`, `groupByTributary`). State layer: annotation-per-project, persisted via the same Dexie + Blob path that PR8 8e established for `wallLayoutStore` (PWA = IndexedDB; Azure = IndexedDB + Blob sync with ETag per ADR-079).
 
+The store shape is locked as Hub-keyed state: `viewports: Record<ProcessHubId, CanvasViewport>`. It is not a flat per-project singleton. A Hub is the L2 artifact, and the viewport belongs to that Hub. Persistence follows the same boundary: Azure persists one per-Hub blob or equivalent per-Hub record; PWA persists one per-Hub Dexie record/blob. The pre-8f flat per-project viewport snapshot is dropped on 8f deploy because it cannot be reshaped into N Hub viewports without inventing missing mapping data. LOD thresholds and transition details remain tunable, but the `ProcessHubId`-keyed state shape is locked by this ADR.
+
 **Renderers are pluggable per level:**
 
 - L1 (System) renders DOM-native — a slim outcome panel.
@@ -94,7 +96,7 @@ This scope boundary is locked at the ADR level because reopening it would invali
 
 - Two render mechanisms (SVG for Wall, DOM-CSS-transform for Canvas) require a small coordinate-space translation utility for cross-surface features. Figma solves the same problem for Canvas ↔ DOM overlay interop; tractable but called out in the spec §4.7.
 - LOD transition between L1/L2/L3 requires a brief opacity cross-fade to avoid jarring mount/unmount snaps. Cheap implementation, but called out so future contributors don't remove it as "unnecessary animation."
-- The clean rename `wallLayoutStore → useCanvasViewportStore` (per `feedback_no_backcompat_clean_architecture`) is a one-PR refactor touching every Wall consumer. No legacy alias.
+- The clean shape change `wallLayoutStore → useCanvasViewportStore` (per `feedback_no_backcompat_clean_architecture`) is a one-PR refactor touching every Wall consumer and the persisted state key. No legacy alias.
 
 **Out of scope for this ADR (lives in spec):**
 
