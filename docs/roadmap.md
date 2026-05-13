@@ -49,7 +49,7 @@ related:
 
 ## 2. In flight
 
-_No active workstream is currently promoted here._
+**8f canvas viewport — followup workstream** (started 2026-05-13). A 3-agent retrospective on `main` after the 6-PR 8f workstream merged surfaced 20 findings — 5 HIGH (Azure Blob sync gap unmet vs ADR-081 §2; AuthorL3 parallel-implements FRAME, violating the ADR-074 amendment; legacy `variscout-wall-layout` Dexie never deleted in prod; lens × level matrix 6 cells narrower than spec §10; ~30+ hardcoded English UI strings), 8 MEDIUM, 7 LOW. Plan at [`docs/superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md`](superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md). 6 PRs (PR0 docs sync direct-to-main; PR1–PR6 implementation) executed via `superpowers:subagent-driven-development`. Closes when all 20 findings resolved + decision-log Amendment block retired. Decision-log entry "8f canvas viewport SHIPPED" now carries an Amendment 2026-05-13 block referencing these gaps; [`docs/investigations.md`](investigations.md) entry "8f followups" tracks the full enumeration.
 
 ## 3. Next workstreams (sequenced)
 

@@ -26,6 +26,47 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### 8f canvas viewport — followup findings from 3-agent retrospective
+
+**Surfaced by:** retrospective architecture / design / code-quality review on `main` 2026-05-13, after 8f's 6 PRs (#160–#165) shipped. Per-PR Opus reviews had passed; cross-PR drift was the gap.
+
+**Description:** 20 findings total — 5 HIGH that qualify the "shipped" claim, 8 MEDIUM spec-vs-shipped drift, 7 LOW cleanups. Followup workstream plan at [`docs/superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md`](superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md). Decision-log "8f canvas viewport SHIPPED" entry has been amended to reference these gaps. Roadmap continues to mark 8f shipped; the followups are a separate cleanup sequence.
+
+**HIGH (5):**
+
+- **Azure Blob sync gap** — `apps/azure/src/features/investigation/useCanvasViewportLifecycle.ts:15-30` is byte-identical PWA/Azure; both call only `persistCanvasViewport` / `rehydrateCanvasViewport` against local Dexie. ADR-081 §2 locked "Azure = IndexedDB + Blob sync with ETag per ADR-079." Team-shared per-Hub viewport does not round-trip across devices on Azure.
+- **AuthorL3View parallel-implements FRAME column-assignment** — `packages/ui/src/components/Canvas/internal/AuthorL3View.tsx` is a hand-rolled droppable + ChipRail wrapper re-deriving `assigned/ctqColumn/tributaryColumns`. Spec §5.3.b + ADR-074 amendment require embedding `packages/ui/src/components/Frame/`. The cleanest ADR-074-amendment violation in the shipped surface.
+- **Legacy `variscout-wall-layout` IndexedDB never deleted in prod** — `packages/stores/src/canvasViewportStore.ts` has no `Dexie.delete('variscout-wall-layout')` call. The test at `canvasViewportStore.test.ts:297` titled "clean-breaks an existing v1 project-keyed Dexie database" creates the legacy DB but never asserts deletion. Silent storage leak for any user who touched the prior store.
+- **Lens × level matrix narrower than spec §10** — `packages/hooks/src/useCanvasStepCards.ts:38-75` sets `performance.enabled:false` and `yamazumi.enabled:false`; `CanvasLensPicker.tsx:36` disables their buttons. Spec §10 only disables 3 cells (yamazumi-L1 + process-flow-L1 + process-flow-L3). Net: 6 of 13 enabled cells are unreachable because the lens is unselectable.
+- **~30+ hardcoded English UI strings** in `SystemLevelView.tsx` (~16 instances: outcome labels, capability metrics, Inbox, prompts), `useCanvasStepCards.ts:38-75` (lens labels + descriptions in `CANVAS_LENS_REGISTRY`), `CanvasLensPicker.tsx:26,37,51`, `NoFocalStepPrompt.tsx:24`, `MobileLevelPicker.tsx:55`, `AuthorL3View.tsx:31`, `LocalMechanismView.tsx` (~4 strings). None in `packages/core/src/i18n/messages/`.
+
+**MEDIUM (8):**
+
+- LOD cross-fade is cosmetic-only — `LODSwitcher.tsx:14-26` sets `opacity: 1` constant with a 150ms transition; nothing to interpolate. Spec §4.6 promised real cross-fade.
+- Snap-to-LOD on wheel-stop missing — spec §4.6 commits to easing from 0.3–0.5 → 0.5 and 1.8–2.0 → 1.8.
+- L1 `specLimits` not contractually tied to outcome's own spec — `SystemLevelView.tsx:89-100` trusts caller; latent ADR-073 risk if a step-level spec leaks in.
+- L3 response-path CTAs collapsed to Quick Action only — `LocalMechanismView.tsx:207-214` renders one "Action" button per column. Spec §5.3.a lists 5 CTAs (Quick Action / Focused Investigation / IP / Sustainment / Handoff).
+- Mobile L3 without focalStep redirects to L2 + `setZoom(2.5)` instead of step-list — `MobileLevelPicker.tsx:71-75`. Spec §7 promised "Pick a step to view" list.
+- d3-zoom subscribes store-wide — `useCanvasViewportInput.ts:81` calls `useCanvasViewportStore.subscribe(...)` with no selector. Every store mutation fires `syncElementToStoreViewport()`. Diff-check makes it cheap, but should be selector-scoped via `subscribeWithSelector`.
+- `setViewportLevel` throws on L3 without focalStepId — `canvasViewportStore.ts:114`. Zustand `set` inconsistency risk; prefer warn + no-op.
+- Click-vs-drag deadband not explicitly set to 6px — `useCanvasViewportInput.ts` uses d3-zoom defaults; spec §6.3 contract not enforced.
+
+**LOW (7):**
+
+- `STORE_LAYER === 'annotation-per-project'` but state is per-Hub keyed — `'annotation-per-hub'` would be more honest (the test enum already allows it).
+- `Canvas/index.tsx` now 1122 lines — refactor target before next viewport feature.
+- `CanvasViewport.tsx` primitive appears unused — `Canvas/index.tsx` inlines the CSS transform via `lodInputSurfaceRef`. Verify and either adopt or delete.
+- `worldToWallSvg(p, _viewport)` in `coordSpace.ts:22` is identity — delete or document.
+- Stale `wallLayoutStore` references in `viewStore.ts:140` + `preferencesStore.ts:178` doc strings.
+- Sentinel hubId `'__wall-canvas-unbound__'` in `WallCanvas.tsx:248` — brand `ProcessHubId` to prevent leak into the store's `viewports` Record.
+- Missing test — `CanvasLensPicker.tsx` (the lens × level enabled predicate is load-bearing).
+
+**Possible directions:** Execute the 6-PR followup plan via `superpowers:subagent-driven-development`. PR0 (docs sync) direct to main; PR1 (i18n + Dexie cleanup + branded hubId), PR2 (ADR-074 cleanup), PR3 (lens matrix — brainstorm first to decide expand-vs-amend), PR4 (LOD polish + dead-code), PR5 (Azure Blob sync — the ADR-081 §2 commitment), PR6 (L3 CTAs + mobile step-list + selector scope + STORE_LAYER rename).
+
+**Promotion path:** entry closes when the 6 followup PRs ship; decision-log amendment block updates to note "followups complete"; `MEMORY.md` line 4 flips from "8f SHIPPED with followups in flight" to "8f SHIPPED + followups complete"; `project_canvas_viewport_8f.md` caveat block removed.
+
+---
+
 ### Stats-bar "Set specs →" link reads project-wide specs only
 
 **Surfaced by:** FRAME b0 spec wiring fixes, 2026-05-03 (branch `feature/full-vision-frame-b0`).
