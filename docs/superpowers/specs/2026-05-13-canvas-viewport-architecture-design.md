@@ -360,20 +360,22 @@ The segmented control reads/writes `currentLevel` in the same `useCanvasViewport
 
 ### 8.1. State layer (Decision #11)
 
-- **`useCanvasViewportStore`** — annotation-per-project. Generalizes today's `useWallLayoutStore`. Per-Hub team-shared. Persists via the same Dexie + Blob Storage path that PR8 8e established for wallLayoutStore (PWA = IndexedDB only; Azure = IndexedDB + Blob sync with ETag per ADR-079).
+- **`useCanvasViewportStore`** — annotation-per-project layer, with viewport records keyed by `ProcessHubId` (`viewports: Record<ProcessHubId, CanvasViewport>`). Generalizes today's `useWallLayoutStore` into Hub-scoped viewport records. Per-Hub team-shared. Persists via the same Dexie + Blob Storage path that PR8 8e established for wallLayoutStore (PWA = IndexedDB only; Azure = IndexedDB + Blob sync with ETag per ADR-079).
+- Pre-8f was a project-keyed singleton; 8f promotes the key to Hub. This is a shape change, not a rename: pre-8f snapshots are not forward-migratable because one project row cannot be reshaped into N Hub rows without inventing the missing 1:N mapping.
 - **`lensId`** stays in `usePreferencesStore` (annotation-per-user). Switching lens does not affect the viewport state; switching level does not affect the lens.
 - **Selection state** (which card is "focused" for tab/keyboard) stays transient inside the viewport store but **is intentionally OMITTED from the persisted snapshot** — same precedent as wallLayoutStore's selection field per the 2026-05-08 decision-log entry.
 
-### 8.2. Migration: wallLayoutStore → canvasViewportStore (Decision #11)
+### 8.2. Migration: wallLayoutStore → hub-keyed canvasViewportStore (Decision #11)
 
-Per `feedback_no_backcompat_clean_architecture`: clean rename in one PR. No legacy alias. All call sites refactored same-PR.
+Per `feedback_no_backcompat_clean_architecture`: clean shape change in one PR. No legacy alias. All call sites refactored same-PR.
 
 - Move `packages/stores/src/wallLayoutStore.ts` → `packages/stores/src/canvasViewportStore.ts`
 - Rename store name `useWallLayoutStore` → `useCanvasViewportStore`
+- Promote persisted state from a project-keyed singleton to `viewports[hubId]`
 - Add new fields: `currentLevel`, `focalStepId`
 - Keep existing fields: `zoom`, `pan`, `nodePositions`, `groupByTributary` (all still serve the Wall renderer)
 - Update all consumers: `WallCanvas.tsx`, `CanvasWallOverlay.tsx`, any tests
-- Dexie migration: existing wallLayout rows are read + re-written under the new store name in one transaction at first read post-deploy; same single-clean-break pattern as Azure Dexie v9→v10 (PR-RPS-5 precedent)
+- Dexie migration: clean-break drop of the pre-8f `variscout-wall-layout` table on first read post-deploy, then recreate snapshots keyed by `hubId` instead of `projectId`; do not attempt to reshape pre-8f project-singleton snapshots. Data loss is limited to Wall node positions, persisted zoom/pan, and `groupByTributary` for existing Walls only; no domain data is lost because domain state lives in `investigationStore` / `processHubs`. This follows the Azure Dexie v9→v10 clean-break precedent from PR-RPS-5.
 
 ### 8.3. Deep-link (Decision #12)
 
@@ -451,7 +453,7 @@ Brainstorm session 2026-05-13. Each decision links to a § above where applicabl
 8. **L2 continuous-detail gradient (overview ↔ detail) is in scope.** Justified by 30+ step Hubs + Google Maps precedent. (§4.6, §5.2)
 9. **Gesture model: Map convention.** Drag-empty=pan; wheel/pinch=zoom; Cmd+1/2/3=level; Cmd+0=fit; click-on-card=drill-down. (§6.1)
 10. **Mobile (<768px): sequential level views with segmented `[System | Process | Step]` picker.** Per 8e Q6 precedent. (§7)
-11. **State layer: annotation-per-project** (generalize `wallLayoutStore` → `useCanvasViewportStore` with a clean rename, no legacy alias). Lens stays in `usePreferencesStore`. (§8.1–8.2)
+11. **State layer: annotation-per-project, keyed by Hub** (clean shape change from flat per-project singleton to per-Hub keyed map; pre-8f Dexie rows dropped; no legacy alias). Lens stays in `usePreferencesStore`. (§8.1–8.2)
 12. **Deep-link: `?level=l1|l2|l3` only.** Zoom + pan resolve to fit-to-content. (§8.3)
 13. **Initial mount: last-saved state if exists, else L2 fit-to-content.** URL `?level=` overrides. (§8.4)
 
@@ -490,7 +492,7 @@ The implementation plan (`docs/superpowers/plans/2026-05-XX-canvas-viewport-arch
 
 | #   | PR                                                                                                                                                                                                                                                  | Tasks | Size |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ---- |
-| 1   | **Foundation:** rename `wallLayoutStore` → `useCanvasViewportStore`, add `currentLevel + focalStepId` fields, Dexie migration. Wall continues to work unchanged.                                                                                    | 6–8   | M    |
+| 1   | **Foundation:** shape-change `wallLayoutStore` → Hub-keyed `useCanvasViewportStore`, add `currentLevel + focalStepId` fields, clean-break Dexie persistence. Wall continues to work with Hub-scoped viewport state.                                 | 6–8   | M    |
 | 2   | **Input layer:** wire d3-zoom into a `CanvasViewport` primitive in `packages/ui/src/components/Canvas/internal/`. Wall gets wheel-zoom for free (currently missing). Canvas-L2 gets pan/zoom on its DOM grid wrapper. Coord-space utility lands.    | 6–8   | M    |
 | 3   | **LOD switcher + L2 continuous-detail gradient:** `LODSwitcher` primitive; L1 + L3 are placeholder "Coming next" panels; L2 continuous-detail rendering inside `CanvasStepCard`; Cmd+1/2/3 + Cmd+0 keyboard shortcuts; mobile sequential-picker UI. | 6–8   | M    |
 | 4   | **L3 investigator-mode:** embed Evidence Map per-step factor network + Wall mirror filtered by step; column mini-charts; ADR-053-anchored factor-contribution gating; response-path CTAs at column-mechanism granularity.                           | 6–8   | M-L  |
