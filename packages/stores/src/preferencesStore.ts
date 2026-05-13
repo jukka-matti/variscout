@@ -175,6 +175,6 @@ export const usePreferencesStore = create<PreferencesStore>()(
 // Expose getInitialState on the store instance for the canonical test reset
 // pattern: `usePreferencesStore.setState(usePreferencesStore.getInitialState())`
 // — matches `packages/stores/CLAUDE.md` Invariants and the canvasStore /
-// wallLayoutStore / projectStore / viewStore precedent.
+// canvasViewportStore / projectStore / viewStore precedent.
 (usePreferencesStore as unknown as { getInitialState: () => PreferencesState }).getInitialState =
   getPreferencesInitialState;

@@ -32,22 +32,24 @@ export {
 } from './investigationStore';
 export type { InvestigationState, InvestigationActions } from './investigationStore';
 export {
-  useWallLayoutStore,
-  persistWallLayout,
-  rehydrateWallLayout,
-  STORE_LAYER as WALL_LAYOUT_STORE_LAYER,
-} from './wallLayoutStore';
+  useCanvasViewportStore,
+  persistCanvasViewport,
+  rehydrateCanvasViewport,
+  STORE_LAYER as CANVAS_VIEWPORT_STORE_LAYER,
+} from './canvasViewportStore';
 export type {
-  WallLayoutState,
-  WallLayoutActions,
+  CanvasViewportState,
+  CanvasViewportActions,
+  CanvasViewportSnapshot,
   ChartClusterState,
   AndCheckSnapshot,
   PendingComment,
+  ProcessHubId,
   NodeId,
   TributaryId,
   GateNodePath,
   UndoEntry,
-} from './wallLayoutStore';
+} from './canvasViewportStore';
 export {
   useCanvasStore,
   getCanvasInitialState,

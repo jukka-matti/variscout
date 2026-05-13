@@ -8,7 +8,7 @@
 
 import { create } from 'zustand';
 import { useProjectStore } from './projectStore';
-import { useWallLayoutStore } from './wallLayoutStore';
+import { useCanvasViewportStore } from './canvasViewportStore';
 import type {
   Finding,
   FindingContext,
@@ -193,7 +193,7 @@ export interface InvestigationActions {
    * Append a comment to a hub (Investigation Wall team discussion).
    * Optimistically updates the hub's `comments` array, then POSTs to
    * /api/hub-comments/append. On HTTP failure, enqueues the comment to
-   * wallLayoutStore.pendingComments for retry by the SSE reconnect flow.
+   * canvasViewportStore.pendingComments for retry by the SSE reconnect flow.
    *
    * Returns the locally generated FindingComment so callers can render
    * immediately without waiting for the network round-trip.
@@ -987,7 +987,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
           }),
         });
         if (!res.ok) {
-          useWallLayoutStore.getState().enqueuePendingComment({
+          useCanvasViewportStore.getState().enqueuePendingComment({
             scope: 'hub',
             targetId: hubId,
             text: comment.text,
@@ -997,7 +997,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
           });
         }
       } catch {
-        useWallLayoutStore.getState().enqueuePendingComment({
+        useCanvasViewportStore.getState().enqueuePendingComment({
           scope: 'hub',
           targetId: hubId,
           text: comment.text,
