@@ -36,6 +36,7 @@ export {
   getCanvasViewportInitialState,
   persistCanvasViewport,
   rehydrateCanvasViewport,
+  getLocalViewportUpdatedAt,
   STORE_LAYER as CANVAS_VIEWPORT_STORE_LAYER,
 } from './canvasViewportStore';
 export type {

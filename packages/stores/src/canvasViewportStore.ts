@@ -353,3 +353,13 @@ export async function rehydrateCanvasViewport(
     railOpen: snapshot.railOpen,
   }));
 }
+
+/**
+ * Read the `updatedAt` timestamp from the local Dexie row for a hub's
+ * canvas viewport snapshot. Returns 0 if no local row exists.
+ * Used by the Azure lifecycle hook to decide whether the remote Blob is newer.
+ */
+export async function getLocalViewportUpdatedAt(hubId: ProcessHubId): Promise<number> {
+  const row = await db.snapshots.get(hubId);
+  return row?.updatedAt ?? 0;
+}
