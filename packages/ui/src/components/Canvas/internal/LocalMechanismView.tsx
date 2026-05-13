@@ -1,5 +1,6 @@
 import React from 'react';
 import type { DataRow, Finding, Hypothesis, ProcessMap } from '@variscout/core';
+import { getStepColumnAssignments } from '@variscout/core/frame';
 import {
   calculateAnova,
   computeBestSubsets,
@@ -38,21 +39,15 @@ export interface LocalMechanismViewProps {
 
 const EMPTY_ROWS: ReadonlyArray<DataRow> = [];
 
+/**
+ * Flat union of every column associated with a focal step — assignments,
+ * ctqColumn, and tributaries. Wraps `getStepColumnAssignments` for the
+ * column-list view this component renders. Per ADR-074 amendment + ADR-081:
+ * Canvas embeds owner-surface computation rather than re-deriving.
+ */
 function focalStepColumns(map: ProcessMap, focalStepId: string): string[] {
-  const columns = new Set<string>();
-
-  for (const [column, stepId] of Object.entries(map.assignments ?? {})) {
-    if (stepId === focalStepId) columns.add(column);
-  }
-
-  const node = map.nodes.find(n => n.id === focalStepId);
-  if (node?.ctqColumn) columns.add(node.ctqColumn);
-
-  for (const tributary of map.tributaries) {
-    if (tributary.stepId === focalStepId) columns.add(tributary.column);
-  }
-
-  return [...columns];
+  const { assigned, ctqColumn, tributaryColumns } = getStepColumnAssignments(map, focalStepId);
+  return [...assigned, ...(ctqColumn ? [ctqColumn] : []), ...tributaryColumns];
 }
 
 function numericValues(rows: ReadonlyArray<DataRow>, column: string): number[] {
