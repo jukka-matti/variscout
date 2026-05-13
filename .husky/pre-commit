@@ -1,8 +1,8 @@
-npx lint-staged --concurrent false
+# Fast checks only on code-only commits (<5s). When docs/CLAUDE.md/packages/*/src/index.ts
+# are staged, the slow doc-graph checks (docs:check, check-dead-links.sh) also run here so
+# orphans/broken links are caught at commit time. They also run unconditionally on pre-push.
 
-# Documentation health — blocks commit if drift is found.
-# Run `pnpm docs:sync` to auto-fix count drift, or fix manually.
-pnpm docs:check
+npx lint-staged --concurrent false
 
 # SSOT check — warn if CLAUDE.md sections duplicate content across files
 bash scripts/check-ssot.sh
@@ -13,8 +13,15 @@ bash scripts/check-level-boundaries.sh
 # CLAUDE.md size check — fail if >120% of per-file budget
 bash scripts/check-claude-md-size.sh
 
-# Dead-link check — warn until 2026-05-01, then fail
-bash scripts/check-dead-links.sh
-
 # Decision-log reminder — warning-only, never blocks
 bash scripts/decision-log-reminder.sh
+
+# Docs-touched short-circuit: run full doc-graph checks only when a staged
+# path is a doc-graph input (docs/**/*.md, CLAUDE.md, **/CLAUDE.md,
+# packages/*/src/index.ts).  Code-only commits skip this block entirely.
+DOCS_PATTERN='^(docs/.*\.md$|CLAUDE\.md$|.*/CLAUDE\.md$|packages/[^/]+/src/index\.ts$)'
+if git diff --cached --name-only | grep -qE "$DOCS_PATTERN"; then
+  echo "docs touched — running full doc-graph checks (~4 min)" >&2
+  pnpm docs:check || exit 1
+  bash scripts/check-dead-links.sh || exit 1
+fi
