@@ -10,6 +10,8 @@ import {
   buildCanvasStepCards,
   coerceCanvasLens,
   enabledCanvasLenses,
+  isCanvasLensValidAtLevel,
+  suggestCanvasLevelForLens,
 } from '../useCanvasStepCards';
 
 const baseMap = (overrides: Partial<ProcessMap> = {}): ProcessMap => ({
@@ -39,7 +41,12 @@ const rows: DataRow[] = Array.from({ length: 40 }, (_, i) => ({
 
 describe('canvas lens registry', () => {
   it('enables default, capability, and defect while leaving future lenses registered', () => {
-    expect(enabledCanvasLenses().map(lens => lens.id)).toEqual(['default', 'capability', 'defect']);
+    expect(enabledCanvasLenses().map(lens => lens.id)).toEqual([
+      'default',
+      'capability',
+      'defect',
+      'process-flow',
+    ]);
     expect(CANVAS_LENS_REGISTRY.performance.enabled).toBe(false);
     expect(CANVAS_LENS_REGISTRY.yamazumi.enabled).toBe(false);
   });
@@ -48,6 +55,32 @@ describe('canvas lens registry', () => {
     expect(coerceCanvasLens('capability')).toBe('capability');
     expect(coerceCanvasLens('performance')).toBe('default');
     expect(coerceCanvasLens('unknown')).toBe('default');
+  });
+
+  it('declares the supported lens x level matrix for current canvas lenses', () => {
+    const matrix = {
+      default: { l1: true, l2: true, l3: true },
+      capability: { l1: true, l2: true, l3: true },
+      defect: { l1: true, l2: true, l3: true },
+      performance: { l1: true, l2: true, l3: true },
+      yamazumi: { l1: false, l2: true, l3: true },
+      'process-flow': { l1: false, l2: true, l3: false },
+    } as const;
+
+    for (const [lens, levels] of Object.entries(matrix)) {
+      for (const [level, expected] of Object.entries(levels)) {
+        expect(
+          isCanvasLensValidAtLevel(lens as keyof typeof matrix, level as 'l1' | 'l2' | 'l3')
+        ).toBe(expected);
+      }
+    }
+  });
+
+  it('suggests the nearest valid level for disabled lens x level cells', () => {
+    expect(suggestCanvasLevelForLens('yamazumi', 'l1')).toBe('l2');
+    expect(suggestCanvasLevelForLens('process-flow', 'l1')).toBe('l2');
+    expect(suggestCanvasLevelForLens('process-flow', 'l3')).toBe('l2');
+    expect(suggestCanvasLevelForLens('default', 'l1')).toBe('l1');
   });
 });
 

@@ -265,6 +265,12 @@ vi.mock('@variscout/hooks', () => ({
       enabled: true,
       description: 'Defect counts projected onto process steps.',
     },
+    'process-flow': {
+      id: 'process-flow',
+      label: 'Process flow',
+      enabled: true,
+      description: 'Plain process structure without per-card analytics.',
+    },
     performance: {
       id: 'performance',
       label: 'Performance',
@@ -351,7 +357,20 @@ vi.mock('@variscout/hooks', () => ({
   ]),
   CANVAS_EMPTY_DROP_ID: 'canvas:empty',
   coerceCanvasLens: vi.fn((value: unknown) =>
-    value === 'capability' || value === 'defect' ? value : 'default'
+    value === 'capability' || value === 'defect' || value === 'process-flow' ? value : 'default'
+  ),
+  isCanvasLensValidAtLevel: vi.fn(
+    (lens: string, level: string) =>
+      !(
+        (lens === 'yamazumi' && level === 'l1') ||
+        (lens === 'process-flow' && (level === 'l1' || level === 'l3'))
+      )
+  ),
+  suggestCanvasLevelForLens: vi.fn((lens: string, level: string) =>
+    (lens === 'yamazumi' && level === 'l1') ||
+    (lens === 'process-flow' && (level === 'l1' || level === 'l3'))
+      ? 'l2'
+      : level
   ),
   encodeChipDragId: (chipId: string) => `chip:${chipId}`,
   encodeStepDropId: (stepId: string) => `step:${stepId}`,
@@ -579,6 +598,7 @@ function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWo
 
 describe('CanvasWorkspace', () => {
   beforeEach(() => {
+    window.history.replaceState(null, '', '/');
     wallIsMobileRef.current = false;
     localMechanismPropsRef.current = null;
     useCanvasStore.setState(useCanvasStore.getInitialState());
@@ -627,6 +647,97 @@ describe('CanvasWorkspace', () => {
     expect(screen.getByTestId('canvas-step-card-step-1')).toBeInTheDocument();
     expect(screen.queryByTestId('band-operations')).not.toBeInTheDocument();
     expect(screen.queryByTestId('ops-band-dashboard')).not.toBeInTheDocument();
+  });
+
+  it('opens at the URL level when ?level is present', () => {
+    window.history.replaceState(null, '', '/?level=l1');
+
+    renderWorkspace({
+      canvasViewportHubId: 'hub-url-level',
+      processContext: { processMap: mapWithStep() },
+    });
+
+    expect(useCanvasViewportStore.getState().getViewport('hub-url-level').currentLevel).toBe('l1');
+    expect(screen.getByTestId('outcome-distribution')).toBeInTheDocument();
+  });
+
+  it('redirects a bare L3 URL level back to L2 when no focal step exists', () => {
+    window.history.replaceState(null, '', '/?level=l3');
+
+    renderWorkspace({
+      canvasViewportHubId: 'hub-url-l3-bare',
+      processContext: { processMap: mapWithStep() },
+    });
+
+    expect(useCanvasViewportStore.getState().getViewport('hub-url-l3-bare').currentLevel).toBe(
+      'l2'
+    );
+    expect(window.location.search).toBe('?level=l2');
+  });
+
+  it('opens an L3 URL level when a focalStep query points to a process step', () => {
+    window.history.replaceState(null, '', '/?level=l3&focalStep=step-1');
+
+    renderWorkspace({
+      canvasViewportHubId: 'hub-url-l3-focal',
+      processContext: { processMap: mapWithStep() },
+    });
+
+    expect(useCanvasViewportStore.getState().getViewport('hub-url-l3-focal')).toMatchObject({
+      currentLevel: 'l3',
+      focalStepId: 'step-1',
+    });
+    expect(window.location.search).toBe('?level=l3&focalStep=step-1');
+  });
+
+  it('waits for a loaded process map before resolving an L3 focalStep URL', () => {
+    window.history.replaceState(null, '', '/?level=l3&focalStep=step-1');
+
+    const Harness = () => {
+      const [processContext, setProcessContext] =
+        React.useState<React.ComponentProps<typeof CanvasWorkspace>['processContext']>(null);
+
+      return (
+        <>
+          <button
+            type="button"
+            data-testid="load-process-map"
+            onClick={() => setProcessContext({ processMap: mapWithStep() })}
+          >
+            load process map
+          </button>
+          <CanvasWorkspace
+            canvasViewportHubId="hub-url-l3-async-focal"
+            rawData={rawData}
+            outcome="Fill_Weight"
+            factors={[]}
+            measureSpecs={{}}
+            processContext={processContext}
+            signals={SIGNALS}
+            setOutcome={vi.fn()}
+            setFactors={vi.fn()}
+            setMeasureSpec={vi.fn()}
+            setProcessContext={next => setProcessContext(next)}
+            onSeeData={vi.fn()}
+          />
+        </>
+      );
+    };
+
+    render(<Harness />);
+
+    expect(useCanvasViewportStore.getState().getViewport('hub-url-l3-async-focal')).toMatchObject({
+      currentLevel: 'l2',
+    });
+    expect(window.location.search).toBe('?level=l3&focalStep=step-1');
+
+    fireEvent.click(screen.getByTestId('load-process-map'));
+
+    expect(useCanvasViewportStore.getState().getViewport('hub-url-l3-async-focal')).toMatchObject({
+      currentLevel: 'l3',
+      focalStepId: 'step-1',
+    });
+    expect(window.location.search).toBe('?level=l3&focalStep=step-1');
   });
 
   it('passes priorStepStats into useCanvasStepCards', () => {

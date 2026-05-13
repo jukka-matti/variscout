@@ -42,6 +42,7 @@ export type {
   CanvasViewportState,
   CanvasViewportActions,
   CanvasViewportSnapshot,
+  CanvasViewportFit,
   ChartClusterState,
   AndCheckSnapshot,
   PendingComment,

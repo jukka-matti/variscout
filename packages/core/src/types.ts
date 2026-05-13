@@ -108,6 +108,10 @@ export interface StatsResult {
   cp?: number;
   /** Process Capability index accounting for centering (uses σ_within) */
   cpk?: number;
+  /** Process Performance index (uses σ_overall) - requires both USL and LSL */
+  pp?: number;
+  /** Process Performance index accounting for centering (uses σ_overall) */
+  ppk?: number;
   /** Percentage of values outside specification limits */
   outOfSpecPercentage: number;
 }

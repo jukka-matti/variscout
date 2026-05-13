@@ -58,8 +58,10 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
 }) => {
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const showFullDetail = zoom >= 1;
+  const showPlainFlow = activeLens === 'process-flow';
   const showDefects = showFullDetail && activeLens === 'defect' && card.defectCount !== undefined;
-  const showCapability = !showFullDetail || activeLens === 'capability' || activeLens === 'default';
+  const showCapability =
+    !showPlainFlow && (!showFullDetail || activeLens === 'capability' || activeLens === 'default');
   const showInvestigations =
     showFullDetail && activeOverlays.includes('investigations') && investigationOverlay;
   const showFindings =
@@ -117,7 +119,7 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
         ) : null}
       </div>
 
-      {showFullDetail ? <CanvasStepMiniChart card={card} /> : null}
+      {showFullDetail && !showPlainFlow ? <CanvasStepMiniChart card={card} /> : null}
 
       <div className="flex flex-wrap items-center gap-1">
         {showInvestigations && activityCount > 0 ? (
@@ -165,7 +167,7 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
             stepLabel={card.stepName}
           />
         ) : null}
-        {showFullDetail
+        {showFullDetail && !showPlainFlow
           ? card.assignedColumns.slice(0, 3).map(column => (
               <span
                 key={column}
@@ -182,7 +184,7 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
           : null}
       </div>
 
-      {showFullDetail && card.metricColumn ? (
+      {showFullDetail && !showPlainFlow && card.metricColumn ? (
         <button
           type="button"
           className="mt-auto self-start rounded border border-edge bg-surface-secondary px-2 py-1 text-xs font-medium text-content-secondary hover:bg-surface-tertiary hover:text-content"

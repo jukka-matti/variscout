@@ -78,6 +78,25 @@ describe('useCanvasViewportShortcuts', () => {
     });
   });
 
+  it('uses the caller-provided fit implementation when fitting with shortcuts', () => {
+    const fitToContent = (hubId: ProcessHubId, targetLevel?: 'l1' | 'l2' | 'l3') => {
+      useCanvasViewportStore.getState().fitToContent(hubId, targetLevel, {
+        zoom: 1.9,
+        pan: { x: 25, y: 12.5 },
+      });
+    };
+    renderHook(() => useCanvasViewportShortcuts({ hubId: HUB_ID, fitToContent }));
+
+    const event = keydown('1', { metaKey: true });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(viewport()).toMatchObject({
+      currentLevel: 'l1',
+      zoom: 1.9,
+      pan: { x: 25, y: 12.5 },
+    });
+  });
+
   it('maps Cmd/Ctrl+3 to l3 only when the current viewport has a focal step', () => {
     renderHook(() => useCanvasViewportShortcuts({ hubId: HUB_ID }));
 

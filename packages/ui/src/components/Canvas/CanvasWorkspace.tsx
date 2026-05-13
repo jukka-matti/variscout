@@ -26,9 +26,11 @@ import {
   type TimelineWindow,
   type WorkflowReadinessSignals,
 } from '@variscout/core';
+import { isValidLevel, type CanvasLevel } from '@variscout/core/canvas';
 import type { ActionItem } from '@variscout/core/findings';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
 import { useCanvasStore } from '@variscout/stores';
+import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
 import { Canvas, type CanvasAuthoringMode, type CanvasL3Archetype } from './index';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
@@ -38,6 +40,14 @@ import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 import type { LogActionPayload } from '../QuickAction';
 
 const DEFAULT_CPK_TARGET = 1.33;
+const DEFAULT_WORKSPACE_VIEWPORT: CanvasViewportSnapshot = {
+  zoom: 1,
+  pan: { x: 0, y: 0 },
+  currentLevel: 'l2',
+  nodePositions: {},
+  groupByTributary: false,
+};
+const CANVAS_FIT_REQUEST_EVENT = 'variscout:canvas-fit-request';
 
 export interface CanvasWorkspaceProps {
   canvasViewportHubId?: string | null;
@@ -66,6 +76,7 @@ export interface CanvasWorkspaceProps {
   eventsPerWeek?: number;
   activeColumns?: ReadonlyArray<string>;
   onOpenWall?: () => void;
+  onOpenScout?: (hubId: string) => void;
   onAddCausalLink?: (
     fromFactor: string,
     toFactor: string,
@@ -91,6 +102,22 @@ function formatTimelineWindow(w: TimelineWindow): string {
 
 function toggleArray<T>(arr: readonly T[], item: T): T[] {
   return arr.includes(item) ? arr.filter(x => x !== item) : [...arr, item];
+}
+
+function fitViewportNowAndAfterRender(
+  fitToContent: (hubId: string, targetLevel?: CanvasLevel) => void,
+  hubId: string,
+  targetLevel: CanvasLevel
+): void {
+  fitToContent(hubId, targetLevel);
+  if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') return;
+  window.requestAnimationFrame(() => {
+    const viewport = useCanvasViewportStore.getState().getViewport(hubId);
+    if (targetLevel === 'l3' && !viewport.focalStepId) return;
+    window.dispatchEvent(
+      new CustomEvent(CANVAS_FIT_REQUEST_EVENT, { detail: { hubId, level: targetLevel } })
+    );
+  });
 }
 
 function numericValuesFor(column: string, rows: readonly DataRow[]): number[] {
@@ -188,6 +215,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   eventsPerWeek,
   activeColumns,
   onOpenWall,
+  onOpenScout,
   onAddCausalLink,
   onRemoveCausalLink,
   onOpenInvestigationFocus,
@@ -206,6 +234,10 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
 
   const map: ProcessMap = processContext?.processMap ?? fallbackMap;
   const hubId = normalizeProcessHubId(canvasViewportHubId ?? processContext?.processHubId);
+  const viewport =
+    useCanvasViewportStore(state => state.viewports[hubId]) ?? DEFAULT_WORKSPACE_VIEWPORT;
+  const setViewportLevel = useCanvasViewportStore(state => state.setLevel);
+  const fitViewportToContent = useCanvasViewportStore(state => state.fitToContent);
   const scope = detectScopeFromMap(map);
   const ctsColumn = map.ctsColumn;
   const ctsSpecs = ctsColumn ? measureSpecs[ctsColumn] : undefined;
@@ -228,6 +260,67 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [currentCanonicalMap]
   );
   const lastHydratedMapSignature = React.useRef<string | null>(null);
+  const appliedUrlLevelRef = React.useRef<string | null>(null);
+  const pendingUrlLevelRef = React.useRef<CanvasLevel | null>(null);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const signature = `${hubId}:${window.location.search}`;
+    if (appliedUrlLevelRef.current === signature) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const rawLevel = params.get('level');
+    if (!isValidLevel(rawLevel)) return;
+
+    const urlLevel = rawLevel as CanvasLevel;
+    const focalStepFromUrl = params.get('focalStep');
+    const hasMapNodes = map.nodes.length > 0;
+    const focalStepFromUrlExists =
+      focalStepFromUrl !== null && map.nodes.some(node => node.id === focalStepFromUrl);
+
+    if (urlLevel === 'l3' && focalStepFromUrl && !focalStepFromUrlExists && !hasMapNodes) {
+      pendingUrlLevelRef.current = 'l3';
+      return;
+    }
+
+    appliedUrlLevelRef.current = signature;
+
+    const focalStepId = focalStepFromUrlExists ? focalStepFromUrl : undefined;
+    const nextLevel = urlLevel === 'l3' && !focalStepId ? 'l2' : urlLevel;
+    pendingUrlLevelRef.current = nextLevel;
+    if (nextLevel === 'l3') {
+      setViewportLevel(hubId, 'l3', focalStepId);
+    } else {
+      setViewportLevel(hubId, nextLevel);
+    }
+    fitViewportNowAndAfterRender(fitViewportToContent, hubId, nextLevel);
+  }, [fitViewportToContent, hubId, map.nodes, setViewportLevel]);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (pendingUrlLevelRef.current && viewport.currentLevel !== pendingUrlLevelRef.current) return;
+    pendingUrlLevelRef.current = null;
+    const params = new URLSearchParams(window.location.search);
+    const currentFocalStep = params.get('focalStep');
+    if (
+      params.get('level') === viewport.currentLevel &&
+      (viewport.currentLevel !== 'l3' || currentFocalStep === viewport.focalStepId)
+    ) {
+      return;
+    }
+    params.set('level', viewport.currentLevel);
+    if (viewport.currentLevel === 'l3' && viewport.focalStepId) {
+      params.set('focalStep', viewport.focalStepId);
+    } else {
+      params.delete('focalStep');
+    }
+    const nextSearch = params.toString();
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}?${nextSearch}${window.location.hash}`
+    );
+  }, [viewport.currentLevel, viewport.focalStepId]);
 
   React.useEffect(() => {
     if (lastHydratedMapSignature.current === mapHydrationSignature) return;
@@ -498,12 +591,15 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onOverlayToggle={toggleCanvasOverlay}
       activeCanvasTool={activeCanvasTool}
       onCanvasToolChange={setActiveCanvasTool}
+      systemQuestions={questions}
+      hypotheses={hypotheses}
       investigationOverlays={investigationOverlays}
       questions={questions}
       findings={findings}
       problemCpk={problemCpk}
       eventsPerWeek={eventsPerWeek}
       activeColumns={activeColumns ?? availableColumns}
+      onOpenScout={onOpenScout}
       onOpenWall={onOpenWall}
       onAddCausalLink={onAddCausalLink}
       onRemoveCausalLink={onRemoveCausalLink}

@@ -53,6 +53,7 @@ fi
 
 run_step "tests (turbo)"       pnpm test
 run_step "lint (turbo)"        pnpm lint
+run_step "level boundaries"    bash scripts/check-level-boundaries.sh
 run_step "docs:check"          pnpm docs:check
 
 # PWA build + dist integrity. Catches the stale-chunk-hash regression class
