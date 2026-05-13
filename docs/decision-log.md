@@ -26,6 +26,22 @@ When in doubt: capture, don't invent. Record the decision; link to its source ar
 
 Decisions we keep relitigating. Each entry: short statement, rationale, closing artifact, date pinned.
 
+- **2026-05-13 — Pre-commit / pre-push hook tiering locked.** Measured pre-commit wall time was
+  ~4 minutes (3:35 from `pnpm docs:check` + 24 s from `bash scripts/check-dead-links.sh`). Both
+  are full-repo doc-graph walks; the orphan-detection loop in
+  [`scripts/check-diagram-health.sh`](../scripts/check-diagram-health.sh) lines 137–198 is O(N²)
+  over `docs/`. Industry baseline (husky/lint-staged 2026, Thoughtworks trunk-based dev guidance):
+  pre-commit should be seconds — reserve graph walks for pre-push / CI. **Decision:** pre-commit
+  reserved for fast checks (<5 s typical); slow doc-graph checks moved to [`.husky/pre-push`](.husky/pre-push).
+  A docs-touched short-circuit in [`.husky/pre-commit`](.husky/pre-commit) re-runs the slow checks
+  at commit time when staged paths match `docs/**/*.md`, `CLAUDE.md`, `**/CLAUDE.md`, or
+  `packages/*/src/index.ts` — so orphan/broken-link detection still fires on every commit that
+  touches doc inputs, and unconditionally on every push. **Not in scope this round:** GitHub Actions
+  CI gate (backstop is local pre-push + `bash scripts/pr-ready-check.sh` before merge); Phase B
+  (incremental doc-graph mode) and Phase C (Claude Code hook trim) queued for a follow-up PR.
+  Full measurement log and rationale in plan file
+  `~/.claude/plans/i-would-like-us-eventual-sloth.md`. _Logged 2026-05-13._
+
 - **2026-05-13 — RPS V1 SHIPPED — full lifecycle live.** All 10 PRs of the Response Path System V1 spec ([`docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md`](superpowers/specs/2026-05-09-response-path-system-v1-design.md), promoted `draft → delivered`) merged on `main` across 2026-05-09 → 2026-05-13: PR-RPS-1 #144 / PR-RPS-2 #147 / PR-RPS-3 #148 / PR-RPS-4 #149 / PR-RPS-5 #150 / PR-RPS-6+7 #151+#152 / PR-RPS-8 #153 / **PR-RPS-9 #154 (`5f95e6fd`, Sustainment V1 + Inbox digest + drift-detection survey rules) / PR-RPS-10 #155 (`12e1257b`, Handoff V1 + sponsor signoff + 8-station `apps/azure/e2e/full-lifecycle.spec.ts`)**. All 5 response paths now live: Quick Action / Wall Detective-pack / Improvement Project (Charter) / Sustainment / Handoff. F5's `SUSTAINMENT_*` + `CONTROL_HANDOFF_*` HubAction work absorbed into PR-RPS-9/10 (no separate F5 PR needed). [`ADR-080`](07-decisions/adr-080-sustainment-auto-fire-pattern.md) authored as the named-future pattern reference for response-path lifecycles (auto-fire + Inbox prompt + signoff-gated finalize, tier-gated). Plan ([`docs/superpowers/plans/2026-05-09-response-path-system-v1.md`](superpowers/plans/2026-05-09-response-path-system-v1.md)) promoted `active → delivered`. Roadmap §1 + §3 updated. _Pinned 2026-05-13._
 
 - **2026-05-09 — PR-RPS-4 Wall brush-to-pin: automated Playwright E2E deferred**
