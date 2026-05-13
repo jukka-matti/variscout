@@ -133,6 +133,16 @@ fi
 echo ""
 echo "=== Orphaned File Checks ==="
 
+# Build a single inbound-link index once for both orphan + cross-ref passes.
+# Captures every link target referenced from any .md file in docs/, CLAUDE.md,
+# and .claude/skills/. Normalized: strip anchors + query strings, skip http URLs.
+INDEX_FILE=$(mktemp)
+trap 'rm -f "$INDEX_FILE"' EXIT
+grep -rEoh '\]\([^)]+\.md[^)]*\)' "$ROOT/docs" "$ROOT/CLAUDE.md" "$ROOT/.claude/skills" 2>/dev/null \
+  | sed -E 's|^\]\(||; s|\)$||; s|#[^)]*$||; s|\?[^)]*$||' \
+  | grep -v '^https\?://' \
+  | sort -u > "$INDEX_FILE"
+
 ORPHAN_COUNT=0
 while IFS= read -r file; do
   basename=$(basename "$file")
@@ -144,9 +154,8 @@ while IFS= read -r file; do
   # Get relative path from docs/
   relpath="${file#$ROOT/docs/}"
 
-  # Check if any other .md file references this file (by filename or relative path)
-  refs=$(grep -rl "$basename\|$relpath" "$ROOT/docs/" "$ROOT/CLAUDE.md" "$ROOT/.claude/skills/" 2>/dev/null | grep -v "$file" | head -1 || true)
-  if [ -z "$refs" ]; then
+  # Check if any line in the index references this file (by basename or relpath)
+  if ! grep -qF "$basename" "$INDEX_FILE" && ! grep -qF "$relpath" "$INDEX_FILE"; then
     ORPHAN_COUNT=$((ORPHAN_COUNT + 1))
     if (( ORPHAN_COUNT <= 10 )); then
       red "ORPHAN: $relpath — not referenced from any other doc"
@@ -185,9 +194,8 @@ while IFS= read -r file; do
     target="${link%%#*}"
     [[ -z "$target" ]] && continue
 
-    # Resolve relative path
-    resolved=$(cd "$dir" && realpath -q "$target" 2>/dev/null || echo "")
-    if [ -z "$resolved" ] || [ ! -f "$resolved" ]; then
+    # Resolve relative path (pure shell — avoids per-link realpath subprocess)
+    if [ ! -f "$dir/$target" ]; then
       BROKEN_COUNT=$((BROKEN_COUNT + 1))
       if (( BROKEN_COUNT <= 10 )); then
         relpath="${file#$ROOT/}"
