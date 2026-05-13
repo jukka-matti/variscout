@@ -2,7 +2,7 @@
 title: Canvas Viewport Architecture — Design (8f)
 audience: [product, engineer, designer]
 category: design
-status: draft
+status: accepted
 last-reviewed: 2026-05-13
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
