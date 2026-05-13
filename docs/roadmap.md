@@ -3,7 +3,7 @@ title: VariScout — Roadmap (lightweight, post-canvas-migration)
 audience: [product, engineer, designer]
 category: living-index
 status: living
-last-reviewed: 2026-05-10
+last-reviewed: 2026-05-13
 related:
   - docs/decision-log.md
   - docs/investigations.md
@@ -41,28 +41,25 @@ related:
 
 **RPS V1 PR-RPS-8 SHIPPED 2026-05-10** (PR #153, squash `8234c757`). Quick Action surface (`LogActionModal` + `RecentActivityPanel`) + canvas-card "Quick Action" CTA wiring. Path 1 of 5 per spec D14 — orphan ActionItem (no new entity); dual flavor "Done now" / "Assign to" + due date.
 
+**RPS V1 PR-RPS-9 SHIPPED 2026-05-13** (PR #154, squash `5f95e6fd`). Sustainment V1: `SUSTAINMENT_*` HubAction kinds + auto-fire on Improvement Project transition to Sustain + drift-detection survey rules + Inbox digest surface. Path 4 of 5 per spec D14; absorbs F5 sustainment work. ADR-080 (Sustainment auto-fire pattern reference) authored as named-future hook for downstream lifecycles.
+
+**RPS V1 PR-RPS-10 SHIPPED 2026-05-13** (PR #155, squash `12e1257b`). Handoff V1: `CONTROL_HANDOFF_*` HubAction kinds + `HandoffForm` + per-app `HandoffPanel` + sponsor signoff (visible-with-lock for free; active for paid per D9) + full 8-station lifecycle E2E (`apps/azure/e2e/full-lifecycle.spec.ts`). Path 5 of 5 — **RPS V1 COMPLETE**.
+
 ## 2. In flight
 
-(none currently — pick **PR-RPS-9** from §3 below for the next session)
+(none currently — RPS V1 closed 2026-05-13. Next workstream selection pending; see §3.)
 
 ## 3. Next workstreams (sequenced)
 
-**Only PR-RPS-9 + PR-RPS-10 remain in the RPS V1 sequence.** 8 of 10 PRs SHIPPED 2026-05-09/10. Sliced per `docs/superpowers/plans/2026-05-09-response-path-system-v1.md`.
+**RPS V1 sequence: 10 of 10 SHIPPED 2026-05-09 → 2026-05-13.** Spec + plan promoted to `delivered` 2026-05-13. Subsumed F5 + IP V1 + Detective-pack tracks. Closing artifact: PRs #144 / #147 / #148 / #149 / #150 / #151 / #152 / #153 / #154 / #155 plus decision-log entry "RPS V1 SHIPPED — full lifecycle live 2026-05-13".
 
-### RPS V1 sequence (remaining; branch: `response-path-system-v1` re-cut from main per PR)
-
-| #   | PR                                                                       | Tasks | Size          | Pull                                                    | Depends on |
-| --- | ------------------------------------------------------------------------ | ----- | ------------- | ------------------------------------------------------- | ---------- |
-| 1   | **PR-RPS-9** — Sustainment V1 + Inbox digest + drift detection rules     | 6     | M (~4-5 days) | Path 4 of 5; subsumes F5 work; Inbox surface lands here | PR-RPS-7 ✓ |
-| 2   | **PR-RPS-10** — Handoff V1 + sponsor signoff (paid) + full-lifecycle E2E | 5     | M (~3-4 days) | Path 5 of 5; closes RPS V1                              | PR-RPS-9   |
-
-### Other workstreams (after RPS V1, or parallel)
+### Other workstreams (post-RPS-V1)
 
 | #   | Workstream                                                                                                                                                                         | Size                                        | Pull                                                                  | Depends on                        |
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------- | --------------------------------- |
 | 10  | **Canvas-filter writers + E2E** (slice 4 P3.6 / P4.2 / P4.3)                                                                                                                       | S (1 session)                               | Closes slice-4 partial integration; small mechanical PR               | None                              |
 | 11  | **Small canvas-UX polish bundle** (Stats-bar specs link, Cpk badge in Measurements I-Chart, parallel spec sources audit, per-app feature-store overlap with `usePreferencesStore`) | S (1 session)                               | Closes 4-5 small `investigations.md` entries                          | None                              |
-| 12  | **8f — canvas viewport architecture spec + ADR-080 (levels-as-pan/zoom)**                                                                                                          | L (multi-session brainstorm; multi-PR impl) | Vision §5.4 commitment; competitive moat for canvas products          | Architectural design conversation |
+| 12  | **8f — canvas viewport architecture spec + ADR (levels-as-pan/zoom)**                                                                                                              | L (multi-session brainstorm; multi-PR impl) | Vision §5.4 commitment; competitive moat for canvas products          | Architectural design conversation |
 | 13  | **Security hardening implementation** (concept doc landed 2026-05-06 at `19e2e5a4`)                                                                                                | L (multi-PR rollout)                        | Paid-tier customer trust; auth + access control + SAS scope reduction | Concept → spec brainstorm         |
 | 14  | **F6 — multi-investigation lifecycle** (named-future)                                                                                                                              | L+ (own brainstorm + design spec)           | Foundation when multi-investigation usage emerges in Azure            | Investigation-loading brainstorm  |
 
@@ -87,7 +84,7 @@ Items not in §3 above; promoted when their pull strengthens or their dependenci
 
 These are NOT blockers for the next-9 but want explicit time at the right moment:
 
-- **8f canvas viewport architecture (#12)** — `react-flow`-style transform vs hand-rolled SVG/CSS. Needs brainstorm + design spec + ADR-080. Cheap to defer until canvas pan/zoom friction is felt; expensive to wedge in mid-implementation. Reassess in 2-3 weeks based on actual canvas usage.
+- **8f canvas viewport architecture (#12)** — `react-flow`-style transform vs hand-rolled SVG/CSS. Needs brainstorm + design spec + new ADR (next free number after ADR-080 which is taken by Sustainment auto-fire). Cheap to defer until canvas pan/zoom friction is felt; expensive to wedge in mid-implementation. Reassess in 2-3 weeks based on actual canvas usage.
 - **Security hardening (#13)** — concept doc at `docs/superpowers/specs/2026-05-07-security-hardening-design.md` (`status: draft`); needs spec brainstorm + ADR. Defers to "after F-series wraps" per its own commit message; F1-F4 closes the foundational track.
 - **Audit-trail / GxP compliance** — explicitly parked per F3.6-β decision + RPS V1 D9 (Azure tenant logging handles compliance audit at platform level; in-product audit-trail deferred). Re-opens only when a regulated-industry customer ask materializes.
 
@@ -124,7 +121,7 @@ When the §3 sequence becomes ambiguous, pick by:
 - Vision spec: [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](superpowers/specs/2026-05-03-variscout-vision-design.md) (status: accepted)
 - Data-Flow Foundation spec: [`docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`](superpowers/specs/2026-05-06-data-flow-foundation-design.md) (status: delivered for F1-F4; F5 subsumed by RPS V1)
 - Canvas Migration spec: [`docs/superpowers/specs/2026-05-04-canvas-migration-design.md`](superpowers/specs/2026-05-04-canvas-migration-design.md) (PR1-PR9 SHIPPED)
-- **RPS V1 spec: [`docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md`](superpowers/specs/2026-05-09-response-path-system-v1-design.md)** (status: draft; PR-RPS-1 shipped)
-- **RPS V1 plan: [`docs/superpowers/plans/2026-05-09-response-path-system-v1.md`](superpowers/plans/2026-05-09-response-path-system-v1.md)** (status: active; 1 of 10 PRs shipped)
+- **RPS V1 spec: [`docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md`](superpowers/specs/2026-05-09-response-path-system-v1-design.md)** (status: delivered; 10 of 10 PRs shipped 2026-05-13)
+- **RPS V1 plan: [`docs/superpowers/plans/2026-05-09-response-path-system-v1.md`](superpowers/plans/2026-05-09-response-path-system-v1.md)** (status: delivered; 10 of 10 PRs shipped 2026-05-13)
 - PR8 master plan: [`docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md`](superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md) (CLOSED)
 - Workflow rules: `feedback_full_vision_spec`, `feedback_honor_vision_commitments`, `feedback_step_back_for_system_design`, `feedback_drop_methodology_bridges`, `feedback_process_owner_reality_chain`, `feedback_survey_cross_phase_layer`, `feedback_verify_methodology_before_gating`, `feedback_tier_gate_inside_surface`, `feedback_slice_size_cap`, `feedback_subagent_driven_default`, `feedback_pwa_philosophy`

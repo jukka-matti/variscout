@@ -91,6 +91,9 @@ This section captures key architectural decisions made during VariScout developm
 | [075](adr-075-pwa-atomic-deploy-and-update-policy.md)              | PWA atomic deploy + update policy                                                                                        | Accepted   | 2026-05-02                                                                                 |
 | [076](adr-076-frame-b0-lightweight-render.md)                      | FRAME b0 lightweight render — investigator vs author archetypes                                                          | Accepted   | 2026-05-02                                                                                 |
 | [077](adr-077-snapshot-provenance-and-match-summary-wedge.md)      | Snapshot-level provenance + match-summary wedge for paste-into-existing-Hub                                              | Accepted   | 2026-05-04                                                                                 |
+| [078](adr-078-pwa-azure-architecture-alignment.md)                 | PWA + Azure architecture alignment — same product, persistence is the tier gate                                          | Accepted   | 2026-05-06                                                                                 |
+| [079](adr-079-etag-optimistic-concurrency-paid-tier-hub-writes.md) | ETag optimistic concurrency for paid-tier hub-blob writes                                                                | Accepted   | 2026-05-07                                                                                 |
+| [080](adr-080-sustainment-auto-fire-pattern.md)                    | Sustainment auto-fire + Inbox prompt + signoff-gated lifecycle pattern                                                   | Accepted   | 2026-05-13                                                                                 |
 
 ---
 
