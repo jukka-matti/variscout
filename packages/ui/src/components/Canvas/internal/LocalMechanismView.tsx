@@ -6,7 +6,8 @@ import {
   computeMainEffects,
   conditionReferencesStep,
 } from '@variscout/core';
-import { formatStatistic } from '@variscout/core/i18n';
+import { formatMessage, formatStatistic, getMessage } from '@variscout/core/i18n';
+import type { Locale } from '@variscout/core';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import { EvidenceMapBase } from '@variscout/charts';
 import { useEvidenceMapData } from '@variscout/hooks';
@@ -14,6 +15,7 @@ import { useInvestigationStore } from '@variscout/stores';
 import { WallCanvas } from '../../InvestigationWall/WallCanvas';
 import { MiniBoxplot } from '../../InvestigationWall/MiniBoxplot';
 import { MiniIChart } from '../../InvestigationWall/MiniIChart';
+import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
 import { LogActionModal, type LogActionPayload } from '../../QuickAction';
 
 export interface LocalMechanismViewProps {
@@ -177,6 +179,7 @@ function ColumnMiniChart({
   kind,
   rows,
   outcomeColumn,
+  locale,
   onOpenColumnDetail,
   onOpenQuickAction,
 }: {
@@ -184,6 +187,7 @@ function ColumnMiniChart({
   kind: string | undefined;
   rows: ReadonlyArray<DataRow>;
   outcomeColumn: string | null | undefined;
+  locale: Locale;
   onOpenColumnDetail?: (column: string) => void;
   onOpenQuickAction: (column: string) => void;
 }) {
@@ -199,7 +203,7 @@ function ColumnMiniChart({
         <button
           type="button"
           className="min-w-0 truncate text-left text-sm font-medium text-content hover:underline"
-          aria-label={`Open ${column} details`}
+          aria-label={formatMessage(locale, 'canvas.localMechanism.openColumnAria', { column })}
           onClick={() => onOpenColumnDetail?.(column)}
         >
           {column}
@@ -207,24 +211,26 @@ function ColumnMiniChart({
         <button
           type="button"
           className="shrink-0 rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
-          aria-label={`Log action for ${column}`}
+          aria-label={formatMessage(locale, 'canvas.localMechanism.logActionAria', { column })}
           onClick={() => onOpenQuickAction(column)}
         >
-          Action
+          {getMessage(locale, 'canvas.localMechanism.actionButton')}
         </button>
       </div>
       <button
         type="button"
         data-testid="column-mini-chart"
         className="block h-14 w-full rounded bg-surface-secondary p-2 text-left"
-        aria-label={`Open ${column} details mini chart`}
+        aria-label={formatMessage(locale, 'canvas.localMechanism.openChartAria', { column })}
         onClick={() => onOpenColumnDetail?.(column)}
       >
         {numeric ? (
           values.length > 0 ? (
             <MiniIChart values={values} width={160} height={40} />
           ) : (
-            <span className="text-xs text-content-muted">No numeric values</span>
+            <span className="text-xs text-content-muted">
+              {getMessage(locale, 'canvas.localMechanism.noNumericValues')}
+            </span>
           )
         ) : groups.length > 0 ? (
           <MiniBoxplot groups={groups} width={160} height={40} />
@@ -267,6 +273,7 @@ export function LocalMechanismView({
   onOpenColumnDetail,
   onLogQuickAction,
 }: LocalMechanismViewProps) {
+  const locale = useWallLocale();
   const questions = useInvestigationStore(state => state.questions);
   const hypotheses = useInvestigationStore(state => state.hypotheses);
   const causalLinks = useInvestigationStore(state => state.causalLinks);
@@ -366,6 +373,7 @@ export function LocalMechanismView({
             kind={columnTypes[column]}
             rows={safeRows}
             outcomeColumn={outcomeColumn}
+            locale={locale}
             onOpenColumnDetail={columnName => onOpenColumnDetail?.(columnName, focalStepId)}
             onOpenQuickAction={setQuickActionColumn}
           />
@@ -377,7 +385,9 @@ export function LocalMechanismView({
         data-testid="evidence-map-base"
         data-step-columns={stepColumns.join('|')}
       >
-        <h3 className="mb-2 text-sm font-semibold text-content">Local evidence map</h3>
+        <h3 className="mb-2 text-sm font-semibold text-content">
+          {getMessage(locale, 'canvas.localMechanism.evidenceMap')}
+        </h3>
         <EvidenceMapBase
           parentWidth={680}
           parentHeight={360}
@@ -394,7 +404,9 @@ export function LocalMechanismView({
       </section>
 
       <section className="rounded-md border border-edge bg-surface p-3" data-testid="wall-canvas">
-        <h3 className="mb-2 text-sm font-semibold text-content">Investigation wall</h3>
+        <h3 className="mb-2 text-sm font-semibold text-content">
+          {getMessage(locale, 'canvas.localMechanism.investigationWall')}
+        </h3>
         <WallCanvas
           hubId={hubId}
           hubs={hypotheses}
@@ -418,13 +430,17 @@ export function LocalMechanismView({
           className="rounded-md border border-edge bg-surface p-3"
           data-testid="factor-contribution-rankings"
         >
-          <h3 className="text-sm font-semibold text-content">Factor contribution evidence</h3>
+          <h3 className="text-sm font-semibold text-content">
+            {getMessage(locale, 'canvas.localMechanism.factorContribution')}
+          </h3>
           <ol className="mt-2 space-y-1">
             {rankings.map(item => (
               <li key={item.column} className="flex justify-between gap-3 text-sm">
                 <span className="text-content">{item.column}</span>
                 <span className="text-content-secondary">
-                  eta^2 {formatStatistic(item.etaSquared, 'en', 2)}
+                  {formatMessage(locale, 'canvas.localMechanism.etaSquaredLabel', {
+                    value: formatStatistic(item.etaSquared, locale, 2),
+                  })}
                 </span>
               </li>
             ))}
@@ -434,7 +450,9 @@ export function LocalMechanismView({
 
       {quickActionColumn ? (
         <LogActionModal
-          cardTitle={`${quickActionColumn} quick action`}
+          cardTitle={formatMessage(locale, 'canvas.localMechanism.quickActionTitle', {
+            column: quickActionColumn,
+          })}
           onCancel={() => setQuickActionColumn(null)}
           onLog={handleLogQuickAction}
         />

@@ -1,6 +1,9 @@
 import React from 'react';
+import type { MessageCatalog } from '@variscout/core';
+import { getMessage } from '@variscout/core/i18n';
 import type { CanvasLevel } from '@variscout/core/canvas';
 import { useCanvasViewportStore, type ProcessHubId } from '@variscout/stores';
+import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
 
 export interface MobileLevelPickerProps {
   hubId: ProcessHubId;
@@ -10,10 +13,10 @@ export interface MobileLevelPickerProps {
   disabled?: boolean;
 }
 
-const LEVELS: ReadonlyArray<{ level: CanvasLevel; label: string }> = [
-  { level: 'l1', label: 'System' },
-  { level: 'l2', label: 'Process' },
-  { level: 'l3', label: 'Step' },
+const LEVELS: ReadonlyArray<{ level: CanvasLevel; labelKey: keyof MessageCatalog }> = [
+  { level: 'l1', labelKey: 'canvas.mobile.system' },
+  { level: 'l2', labelKey: 'canvas.mobile.process' },
+  { level: 'l3', labelKey: 'canvas.mobile.step' },
 ];
 
 export const MobileLevelPicker: React.FC<MobileLevelPickerProps> = ({
@@ -23,6 +26,7 @@ export const MobileLevelPicker: React.FC<MobileLevelPickerProps> = ({
   availableStepIds,
   disabled = false,
 }) => {
+  const locale = useWallLocale();
   const fitToContent = useCanvasViewportStore(s => s.fitToContent);
   const setLevel = useCanvasViewportStore(s => s.setLevel);
   const setZoom = useCanvasViewportStore(s => s.setZoom);
@@ -52,11 +56,12 @@ export const MobileLevelPicker: React.FC<MobileLevelPickerProps> = ({
   return (
     <div
       role="toolbar"
-      aria-label="Canvas levels"
+      aria-label={getMessage(locale, 'canvas.mobile.ariaLabel')}
       className="flex items-center gap-1 border-b border-edge bg-surface-secondary px-3 py-2"
       data-testid="mobile-level-picker"
     >
-      {LEVELS.map(({ level, label }) => {
+      {LEVELS.map(({ level, labelKey }) => {
+        const label = getMessage(locale, labelKey);
         const isDisabled = disabled;
         return (
           <button

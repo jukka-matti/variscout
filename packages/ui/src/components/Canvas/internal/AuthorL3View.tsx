@@ -1,8 +1,10 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
+import { formatMessage, getMessage } from '@variscout/core/i18n';
 import type { ProcessMap } from '@variscout/core/frame';
 import { encodeStepDropId } from '@variscout/hooks';
 import { ChipRail, type ChipRailEntry } from '../../ChipRail';
+import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
 
 export interface AuthorL3ViewProps {
   hubId: string;
@@ -21,6 +23,7 @@ function focalStepColumns(map: ProcessMap, focalStepId: string) {
     .map(([column]) => column);
   const assignedSet = new Set(assigned);
   const step = map.nodes.find(node => node.id === focalStepId);
+  // stepName fallback is resolved to locale-aware string at render time; 'Selected step' sentinel used here
   const ctqColumn = step?.ctqColumn && !assignedSet.has(step.ctqColumn) ? step.ctqColumn : null;
   const tributaryColumns = map.tributaries
     .filter(tributary => tributary.stepId === focalStepId && !assignedSet.has(tributary.column))
@@ -28,7 +31,7 @@ function focalStepColumns(map: ProcessMap, focalStepId: string) {
 
   return {
     assigned,
-    stepName: step?.name || 'Selected step',
+    stepName: step?.name ?? null,
     ctqColumn,
     tributaryColumns,
   };
@@ -52,16 +55,20 @@ export function AuthorL3View({
   onKeyboardChipPickUp,
   onKeyboardChipDrop,
 }: AuthorL3ViewProps) {
+  const locale = useWallLocale();
   const [keyboardChipId, setKeyboardChipId] = React.useState<string | null>(null);
   const droppableId = encodeStepDropId(focalStepId);
   const { setNodeRef, isOver } = useDroppable({
     id: droppableId,
     disabled,
   });
-  const { assigned, stepName, ctqColumn, tributaryColumns } = React.useMemo(
-    () => focalStepColumns(map, focalStepId),
-    [focalStepId, map]
-  );
+  const {
+    assigned,
+    stepName: rawStepName,
+    ctqColumn,
+    tributaryColumns,
+  } = React.useMemo(() => focalStepColumns(map, focalStepId), [focalStepId, map]);
+  const stepName = rawStepName ?? getMessage(locale, 'canvas.authorL3.selectedStep');
   const keyboardChipLabel = keyboardChipId
     ? chips.find(chip => chip.chipId === keyboardChipId)?.label
     : null;
@@ -97,7 +104,10 @@ export function AuthorL3View({
       data-testid="author-l3-view"
       data-hub-id={hubId}
     >
-      <section data-testid="unassigned-columns" aria-label="Unassigned columns">
+      <section
+        data-testid="unassigned-columns"
+        aria-label={getMessage(locale, 'canvas.authorL3.unassignedColumns')}
+      >
         <ChipRail
           chips={chips}
           className="h-full w-full rounded-md border border-edge"
@@ -116,9 +126,14 @@ export function AuthorL3View({
           role="button"
           tabIndex={disabled ? -1 : 0}
           aria-disabled={disabled}
-          aria-label={`${stepName} assignment target${
-            keyboardChipLabel ? `, press Enter to place ${keyboardChipLabel}` : ''
-          }`}
+          aria-label={
+            keyboardChipLabel
+              ? formatMessage(locale, 'canvas.authorL3.dropTargetAriaWithChip', {
+                  stepName,
+                  chipLabel: keyboardChipLabel,
+                })
+              : formatMessage(locale, 'canvas.authorL3.dropTargetAria', { stepName })
+          }
           onKeyDown={handleDropTargetKeyDown}
           className={[
             'rounded-md border border-dashed border-edge bg-surface-secondary p-4 focus:outline-none focus:ring-2 focus:ring-status-info/50',
@@ -135,13 +150,15 @@ export function AuthorL3View({
               {stepName}
             </h2>
             <p className="text-sm text-content-secondary">
-              Drop columns here to assign them to this process step.
+              {getMessage(locale, 'canvas.authorL3.dropHint')}
             </p>
           </div>
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold text-content">Assigned columns</h3>
+          <h3 className="text-sm font-semibold text-content">
+            {getMessage(locale, 'canvas.authorL3.assignedColumns')}
+          </h3>
           {assigned.length > 0 ? (
             <ul className="mt-2 flex flex-wrap gap-2" data-testid="author-l3-assigned-list">
               {assigned.map(column => (
@@ -150,25 +167,31 @@ export function AuthorL3View({
             </ul>
           ) : (
             <p className="mt-2 rounded-md border border-edge bg-surface-primary px-3 py-2 text-sm text-content-secondary">
-              No assigned columns yet
+              {getMessage(locale, 'canvas.authorL3.noAssignedColumns')}
             </p>
           )}
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
           <div>
-            <h3 className="text-sm font-semibold text-content">CTQ</h3>
+            <h3 className="text-sm font-semibold text-content">
+              {getMessage(locale, 'canvas.authorL3.ctqHeading')}
+            </h3>
             {ctqColumn ? (
               <ul className="mt-2 flex flex-wrap gap-2" data-testid="author-l3-ctq-context">
                 <ColumnPill column={ctqColumn} />
               </ul>
             ) : (
-              <p className="mt-2 text-sm text-content-secondary">No unassigned CTQ context</p>
+              <p className="mt-2 text-sm text-content-secondary">
+                {getMessage(locale, 'canvas.authorL3.noCtqContext')}
+              </p>
             )}
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-content">Tributary columns</h3>
+            <h3 className="text-sm font-semibold text-content">
+              {getMessage(locale, 'canvas.authorL3.tributaryColumns')}
+            </h3>
             {tributaryColumns.length > 0 ? (
               <ul className="mt-2 flex flex-wrap gap-2" data-testid="author-l3-tributary-context">
                 {tributaryColumns.map(column => (
@@ -176,7 +199,9 @@ export function AuthorL3View({
                 ))}
               </ul>
             ) : (
-              <p className="mt-2 text-sm text-content-secondary">No unassigned tributary context</p>
+              <p className="mt-2 text-sm text-content-secondary">
+                {getMessage(locale, 'canvas.authorL3.noTributaryContext')}
+              </p>
             )}
           </div>
         </div>
