@@ -844,7 +844,9 @@ export {
   runAndCheck,
   // HypothesisCondition column inspection
   collectReferencedColumns,
+  collectStepColumns,
   conditionHasMissingColumn,
+  conditionReferencesStep,
   // GateNode path-based tree ops (Investigation Wall contribution tree)
   getAt,
   updateAt,

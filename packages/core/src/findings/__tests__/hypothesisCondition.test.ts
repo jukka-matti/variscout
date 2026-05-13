@@ -1,11 +1,31 @@
 import { describe, it, expect } from 'vitest';
 import type { HypothesisCondition } from '../hypothesisCondition';
+import type { ProcessMap } from '../../frame/types';
 import {
   collectReferencedColumns,
   conditionHasMissingColumn,
+  conditionReferencesStep,
   deriveConditionFromFindingSource,
 } from '../hypothesisCondition';
 import type { FindingSource } from '../types';
+
+const processMap: ProcessMap = {
+  version: 1,
+  nodes: [
+    { id: 'step-fill', name: 'Fill', order: 0 },
+    { id: 'step-pack', name: 'Pack', order: 1 },
+  ],
+  tributaries: [
+    { id: 'trib-shift', stepId: 'step-fill', column: 'SHIFT' },
+    { id: 'trib-machine', stepId: 'step-pack', column: 'MACHINE' },
+  ],
+  assignments: {
+    Operator: 'step-fill',
+    Line: 'step-pack',
+  },
+  createdAt: '2026-05-13T00:00:00.000Z',
+  updatedAt: '2026-05-13T00:00:00.000Z',
+};
 
 describe('HypothesisCondition type', () => {
   it('allows a leaf with eq comparison', () => {
@@ -270,5 +290,98 @@ describe('conditionHasMissingColumn', () => {
       child: { kind: 'leaf', column: 'DROPPED', op: 'eq', value: 1 },
     };
     expect(conditionHasMissingColumn(cond, new Set(['KEPT']))).toBe(true);
+  });
+});
+
+describe('conditionReferencesStep', () => {
+  it('matches a leaf condition through a step assignment', () => {
+    const cond: HypothesisCondition = {
+      kind: 'leaf',
+      column: 'Operator',
+      op: 'eq',
+      value: 'alice',
+    };
+
+    expect(conditionReferencesStep(cond, processMap, 'step-fill')).toBe(true);
+  });
+
+  it('matches a leaf condition through a step tributary column', () => {
+    const cond: HypothesisCondition = {
+      kind: 'leaf',
+      column: 'SHIFT',
+      op: 'eq',
+      value: 'night',
+    };
+
+    expect(conditionReferencesStep(cond, processMap, 'step-fill')).toBe(true);
+  });
+
+  it('matches a leaf condition through the step ctq column', () => {
+    const cond: HypothesisCondition = {
+      kind: 'leaf',
+      column: 'Fill Weight',
+      op: 'gt',
+      value: 100,
+    };
+
+    expect(
+      conditionReferencesStep(
+        cond,
+        {
+          ...processMap,
+          nodes: [{ id: 'step-fill', name: 'Fill', order: 0, ctqColumn: 'Fill Weight' }],
+          assignments: {},
+          tributaries: [],
+        },
+        'step-fill'
+      )
+    ).toBe(true);
+  });
+
+  it('matches referenced columns inside and/or/not branches', () => {
+    const cond: HypothesisCondition = {
+      kind: 'and',
+      children: [
+        { kind: 'leaf', column: 'UNRELATED', op: 'eq', value: 'x' },
+        {
+          kind: 'or',
+          children: [
+            { kind: 'leaf', column: 'OTHER', op: 'eq', value: 'y' },
+            {
+              kind: 'not',
+              child: { kind: 'leaf', column: 'MACHINE', op: 'eq', value: 'm1' },
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(conditionReferencesStep(cond, processMap, 'step-pack')).toBe(true);
+  });
+
+  it('returns false for an undefined condition', () => {
+    expect(conditionReferencesStep(undefined, processMap, 'step-fill')).toBe(false);
+  });
+
+  it('returns false when the process map is missing', () => {
+    const cond: HypothesisCondition = {
+      kind: 'leaf',
+      column: 'SHIFT',
+      op: 'eq',
+      value: 'night',
+    };
+
+    expect(conditionReferencesStep(cond, undefined, 'step-fill')).toBe(false);
+  });
+
+  it('returns false when referenced columns do not map to the step', () => {
+    const cond: HypothesisCondition = {
+      kind: 'leaf',
+      column: 'MACHINE',
+      op: 'eq',
+      value: 'm1',
+    };
+
+    expect(conditionReferencesStep(cond, processMap, 'step-fill')).toBe(false);
   });
 });

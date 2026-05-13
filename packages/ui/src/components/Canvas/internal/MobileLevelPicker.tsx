@@ -6,6 +6,7 @@ export interface MobileLevelPickerProps {
   hubId: ProcessHubId;
   currentLevel: CanvasLevel;
   focalStepId?: string;
+  availableStepIds?: readonly string[];
   disabled?: boolean;
 }
 
@@ -19,18 +20,34 @@ export const MobileLevelPicker: React.FC<MobileLevelPickerProps> = ({
   hubId,
   currentLevel,
   focalStepId,
+  availableStepIds,
   disabled = false,
 }) => {
   const fitToContent = useCanvasViewportStore(s => s.fitToContent);
   const setLevel = useCanvasViewportStore(s => s.setLevel);
+  const setZoom = useCanvasViewportStore(s => s.setZoom);
   const [rememberedFocalStepId, setRememberedFocalStepId] = React.useState(focalStepId);
+  const previousHubIdRef = React.useRef(hubId);
 
   React.useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (focalStepId) setRememberedFocalStepId(focalStepId);
-  }, [focalStepId]);
+    if (focalStepId && (!availableStepIds || availableStepIds.includes(focalStepId))) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRememberedFocalStepId(focalStepId);
+    }
+  }, [availableStepIds, focalStepId]);
 
-  const availableFocalStepId = focalStepId ?? rememberedFocalStepId;
+  React.useEffect(() => {
+    if (previousHubIdRef.current === hubId) return;
+    previousHubIdRef.current = hubId;
+    setRememberedFocalStepId(undefined);
+  }, [hubId]);
+
+  const availableFocalStepId = React.useMemo(() => {
+    const candidate = focalStepId ?? rememberedFocalStepId;
+    if (!candidate) return undefined;
+    if (availableStepIds && !availableStepIds.includes(candidate)) return undefined;
+    return candidate;
+  }, [availableStepIds, focalStepId, rememberedFocalStepId]);
 
   return (
     <div
@@ -40,8 +57,7 @@ export const MobileLevelPicker: React.FC<MobileLevelPickerProps> = ({
       data-testid="mobile-level-picker"
     >
       {LEVELS.map(({ level, label }) => {
-        const isStepWithoutFocus = level === 'l3' && !availableFocalStepId;
-        const isDisabled = disabled || isStepWithoutFocus;
+        const isDisabled = disabled;
         return (
           <button
             key={level}
@@ -52,6 +68,10 @@ export const MobileLevelPicker: React.FC<MobileLevelPickerProps> = ({
               if (isDisabled) return;
               if (level === 'l3' && availableFocalStepId) {
                 setLevel(hubId, level, availableFocalStepId);
+              } else if (level === 'l3') {
+                setLevel(hubId, 'l2');
+                setZoom(hubId, 2.5);
+                return;
               }
               fitToContent(hubId, level);
             }}

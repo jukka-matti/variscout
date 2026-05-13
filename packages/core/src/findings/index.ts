@@ -28,7 +28,9 @@ export type {
 } from './hypothesisCondition';
 export {
   collectReferencedColumns,
+  collectStepColumns,
   conditionHasMissingColumn,
+  conditionReferencesStep,
   deriveConditionFromFindingSource,
 } from './hypothesisCondition';
 export type { AndCheckResult } from './hypothesisConditionEvaluator';

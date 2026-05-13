@@ -9,6 +9,7 @@
  */
 
 import type { FindingSource } from './types';
+import type { ProcessMap } from '../frame/types';
 
 export type ComparisonOp = 'eq' | 'neq' | 'lt' | 'lte' | 'gt' | 'gte' | 'between' | 'in';
 
@@ -124,6 +125,56 @@ export function conditionHasMissingColumn(
   const referenced = collectReferencedColumns(condition);
   for (const col of referenced) {
     if (!availableColumns.has(col)) return true;
+  }
+  return false;
+}
+
+/**
+ * Collect the dataset columns that belong to a process step.
+ *
+ * Includes chip assignments, tributary factor columns, and the step CTQ column
+ * so focal-step filtering uses the same column definition as Canvas L3.
+ */
+export function collectStepColumns(
+  processMap: ProcessMap | undefined,
+  stepId: string
+): Set<string> {
+  const stepColumns = new Set<string>();
+  if (!processMap) return stepColumns;
+
+  for (const [column, assignedStepId] of Object.entries(processMap.assignments ?? {})) {
+    if (assignedStepId === stepId) stepColumns.add(column);
+  }
+  for (const tributary of processMap.tributaries) {
+    if (tributary.stepId === stepId) stepColumns.add(tributary.column);
+  }
+
+  const node = processMap.nodes.find(candidate => candidate.id === stepId);
+  if (node?.ctqColumn) stepColumns.add(node.ctqColumn);
+
+  return stepColumns;
+}
+
+/**
+ * True iff the condition references at least one column mapped to `stepId`.
+ *
+ * ProcessMap is the source of truth: chip assignments map column IDs to steps,
+ * and tributaries carry the step's incoming factor columns. Undefined inputs
+ * produce no match so callers can safely use this as an optional focal filter.
+ */
+export function conditionReferencesStep(
+  condition: HypothesisCondition | undefined,
+  processMap: ProcessMap | undefined,
+  stepId: string
+): boolean {
+  if (!condition || !processMap) return false;
+
+  const stepColumns = collectStepColumns(processMap, stepId);
+  if (stepColumns.size === 0) return false;
+
+  const referenced = collectReferencedColumns(condition);
+  for (const column of referenced) {
+    if (stepColumns.has(column)) return true;
   }
   return false;
 }

@@ -147,6 +147,154 @@ describe('WallCanvas', () => {
     expect(screen.getByText(/Nozzle runs hot/i)).toBeInTheDocument();
   });
 
+  it('preserves unfiltered desktop rendering when filterByStepId is omitted', () => {
+    const fillHub: Hypothesis = {
+      ...hub,
+      id: 'h-fill',
+      name: 'Fill shift effect',
+      condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+    };
+    const packHub: Hypothesis = {
+      ...hub,
+      id: 'h-pack',
+      name: 'Pack operator effect',
+      condition: { kind: 'leaf', column: 'Operator', op: 'eq', value: 'alice' },
+    };
+
+    render(
+      <WallCanvas
+        hubs={[fillHub, packHub]}
+        findings={[]}
+        questions={[]}
+        processMap={{
+          ...processMap,
+          nodes: [...processMap.nodes, { id: 'n2', name: 'Pack', order: 1 }],
+          assignments: { Operator: 'n2' },
+        }}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+
+    expect(screen.getByText(/Fill shift effect/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pack operator effect/i)).toBeInTheDocument();
+  });
+
+  it('filters desktop hubs by focal step referenced through condition columns', () => {
+    const fillHub: Hypothesis = {
+      ...hub,
+      id: 'h-fill',
+      name: 'Fill shift effect',
+      condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+    };
+    const packHub: Hypothesis = {
+      ...hub,
+      id: 'h-pack',
+      name: 'Pack operator effect',
+      condition: { kind: 'leaf', column: 'Operator', op: 'eq', value: 'alice' },
+    };
+
+    render(
+      <WallCanvas
+        hubs={[fillHub, packHub]}
+        findings={[]}
+        questions={[]}
+        processMap={{
+          ...processMap,
+          nodes: [...processMap.nodes, { id: 'n2', name: 'Pack', order: 1 }],
+          assignments: { Operator: 'n2' },
+        }}
+        filterByStepId="n1"
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+
+    expect(screen.getByText(/Fill shift effect/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Pack operator effect/i)).not.toBeInTheDocument();
+  });
+
+  it('matches filterByStepId through a focal step ctq column', () => {
+    render(
+      <WallCanvas
+        hubs={[
+          {
+            ...hub,
+            id: 'h-ctq',
+            name: 'Fill weight excursions',
+            condition: { kind: 'leaf', column: 'Fill Weight', op: 'gt', value: 100 },
+          },
+        ]}
+        findings={[]}
+        questions={[]}
+        processMap={{
+          ...processMap,
+          nodes: [{ id: 'n1', name: 'Fill', order: 0, ctqColumn: 'Fill Weight' }],
+          tributaries: [],
+        }}
+        filterByStepId="n1"
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+
+    expect(screen.getByText(/Fill weight excursions/i)).toBeInTheDocument();
+  });
+
+  it('keeps filtered open questions scoped to focal columns without leaking hidden hub questions', () => {
+    const visibleHub: Hypothesis = {
+      ...hub,
+      id: 'h-fill',
+      name: 'Fill shift effect',
+      condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+    };
+    const hiddenHub: Hypothesis = {
+      ...hub,
+      id: 'h-pack',
+      name: 'Pack operator effect',
+      questionIds: ['q-hidden'],
+      condition: { kind: 'leaf', column: 'Operator', op: 'eq', value: 'alice' },
+    };
+    const focalQuestion: Question = {
+      ...openQuestion,
+      id: 'q-focal',
+      text: 'Does shift explain fill?',
+      factor: 'SHIFT',
+    };
+    const hiddenQuestion: Question = {
+      ...openQuestion,
+      id: 'q-hidden',
+      text: 'Does operator explain pack?',
+      factor: 'Operator',
+    };
+    const unrelatedQuestion: Question = {
+      ...openQuestion,
+      id: 'q-unrelated',
+      text: 'Does supplier explain pack?',
+      factor: 'Supplier',
+    };
+
+    render(
+      <WallCanvas
+        hubs={[visibleHub, hiddenHub]}
+        findings={[]}
+        questions={[focalQuestion, hiddenQuestion, unrelatedQuestion]}
+        processMap={{
+          ...processMap,
+          nodes: [...processMap.nodes, { id: 'n2', name: 'Pack', order: 1 }],
+          assignments: { Operator: 'n2' },
+        }}
+        filterByStepId="n1"
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+
+    expect(screen.getByText(/Does shift explain fill/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Does operator explain pack/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Does supplier explain pack/i)).not.toBeInTheDocument();
+  });
+
   it('renders canonical needs-disconfirmation status stored on a hub', () => {
     const needsDisconfirmationHub: Hypothesis = {
       ...hub,
@@ -593,6 +741,41 @@ describe('WallCanvas', () => {
       // ...and the desktop SVG viewport group is not.
       expect(container.querySelector('[data-wall-viewport]')).toBeNull();
       expect(container.querySelector('svg')).toBeNull();
+    });
+
+    it('filters mobile card list hubs by focal step referenced through condition columns', () => {
+      restoreMatchMedia = installMobileMatchMedia();
+      const fillHub: Hypothesis = {
+        ...hub,
+        id: 'h-fill',
+        name: 'Fill shift effect',
+        condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+      };
+      const packHub: Hypothesis = {
+        ...hub,
+        id: 'h-pack',
+        name: 'Pack operator effect',
+        condition: { kind: 'leaf', column: 'Operator', op: 'eq', value: 'alice' },
+      };
+
+      render(
+        <WallCanvas
+          hubs={[fillHub, packHub]}
+          findings={[]}
+          questions={[]}
+          processMap={{
+            ...processMap,
+            nodes: [...processMap.nodes, { id: 'n2', name: 'Pack', order: 1 }],
+            assignments: { Operator: 'n2' },
+          }}
+          filterByStepId="n1"
+          problemCpk={0.78}
+          eventsPerWeek={42}
+        />
+      );
+
+      expect(screen.getByTestId('wall-mobile-hub-h-fill')).toBeInTheDocument();
+      expect(screen.queryByTestId('wall-mobile-hub-h-pack')).not.toBeInTheDocument();
     });
 
     it('still renders MissingEvidencePanel below the card list on mobile', () => {
