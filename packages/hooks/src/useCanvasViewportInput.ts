@@ -62,6 +62,7 @@ export function useCanvasViewportInput({
     };
     const zoomBehavior = zoom<HTMLElement | SVGSVGElement, unknown>()
       .filter(event => defaultZoomFilter(event) && (filter ? filter(event) : true))
+      .clickDistance(6)
       .scaleExtent(scaleExtent)
       .on('zoom', (event: D3ZoomEvent<HTMLElement | SVGSVGElement, unknown>) => {
         if (syncingFromStoreRef.current) return;
