@@ -60,6 +60,7 @@ import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
 import {
+  DEFAULT_PROCESS_HUB_ID,
   type ExclusionReason,
   type Question,
   toNumericValue,
@@ -75,7 +76,7 @@ import { useAppPanels } from './hooks/useAppPanels';
 import { useFindingsStore, groupFindingsByChart } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
 import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
-import { useWallLayoutLifecycle } from './features/investigation/useWallLayoutLifecycle';
+import { useCanvasViewportLifecycle } from './features/investigation/useCanvasViewportLifecycle';
 import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
 import { useStatsWorker } from './workers/useStatsWorker';
 
@@ -331,10 +332,11 @@ function AppMain() {
     [factorIntelQuestions]
   );
 
-  // Wall layout persistence — rehydrate on project open, debounce-persist on change.
-  // projectId is null in the PWA (session-only), so this is a no-op at runtime.
-  const projectId = useProjectStore(s => s.projectId);
-  useWallLayoutLifecycle(projectId);
+  const canvasViewportHubId =
+    processContext?.processHubId ??
+    sessionHub?.id ??
+    (rawData.length > 0 ? DEFAULT_PROCESS_HUB_ID : null);
+  useCanvasViewportLifecycle(canvasViewportHubId);
 
   const investigation = useInvestigationOrchestration({
     questionsState,
