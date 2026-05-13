@@ -14,6 +14,7 @@ import { StepNodeMarker } from './StepNodeMarker';
 
 interface CanvasStepCardProps {
   card: CanvasStepCardModel;
+  zoom: number;
   activeLens: CanvasLensId;
   activeOverlays?: CanvasOverlayId[];
   investigationOverlay?: CanvasStepInvestigationOverlay;
@@ -46,6 +47,7 @@ function gradeClass(card: CanvasStepCardModel): string {
 
 export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
   card,
+  zoom = 1,
   activeLens,
   activeOverlays = [],
   investigationOverlay,
@@ -55,12 +57,17 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
   registerCardElement,
 }) => {
   const rootRef = React.useRef<HTMLDivElement | null>(null);
-  const showDefects = activeLens === 'defect' && card.defectCount !== undefined;
-  const showCapability = activeLens === 'capability' || activeLens === 'default';
-  const showInvestigations = activeOverlays.includes('investigations') && investigationOverlay;
-  const showFindings = activeOverlays.includes('findings') && investigationOverlay?.findings.length;
+  const showFullDetail = zoom >= 1;
+  const showDefects = showFullDetail && activeLens === 'defect' && card.defectCount !== undefined;
+  const showCapability = !showFullDetail || activeLens === 'capability' || activeLens === 'default';
+  const showInvestigations =
+    showFullDetail && activeOverlays.includes('investigations') && investigationOverlay;
+  const showFindings =
+    showFullDetail && activeOverlays.includes('findings') && investigationOverlay?.findings.length;
   const showHypotheses =
-    activeOverlays.includes('hypothesis-hubs') && investigationOverlay?.hypotheses.length;
+    showFullDetail &&
+    activeOverlays.includes('hypothesis-hubs') &&
+    investigationOverlay?.hypotheses.length;
   const activityCount = investigationOverlay
     ? investigationOverlay.investigationCounts.open +
       investigationOverlay.investigationCounts.supported +
@@ -97,18 +104,20 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
       <div className="flex items-start justify-between gap-2">
         <div>
           <h4 className="text-sm font-semibold text-content">{card.stepName}</h4>
-          {card.metricColumn ? (
-            <p className="text-xs text-content-secondary">{card.metricColumn}</p>
-          ) : (
-            <p className="text-xs text-content-muted">No metric selected</p>
-          )}
+          {showFullDetail ? (
+            card.metricColumn ? (
+              <p className="text-xs text-content-secondary">{card.metricColumn}</p>
+            ) : (
+              <p className="text-xs text-content-muted">No metric selected</p>
+            )
+          ) : null}
         </div>
         {showDefects ? (
           <StepDefectIndicator defectCount={card.defectCount ?? 0} stepLabel={card.stepName} />
         ) : null}
       </div>
 
-      <CanvasStepMiniChart card={card} />
+      {showFullDetail ? <CanvasStepMiniChart card={card} /> : null}
 
       <div className="flex flex-wrap items-center gap-1">
         {showInvestigations && activityCount > 0 ? (
@@ -156,22 +165,24 @@ export const CanvasStepCard: React.FC<CanvasStepCardProps> = ({
             stepLabel={card.stepName}
           />
         ) : null}
-        {card.assignedColumns.slice(0, 3).map(column => (
-          <span
-            key={column}
-            data-arrow-endpoint={`column:${column}`}
-            data-arrow-host-step-id={card.stepId}
-            role={activeCanvasTool === 'draw-hypothesis' ? 'button' : undefined}
-            tabIndex={activeCanvasTool === 'draw-hypothesis' ? 0 : undefined}
-            aria-label={`Hypothesis endpoint ${column}`}
-            className="rounded-full bg-surface-secondary px-2 py-0.5 text-[11px] text-content-secondary"
-          >
-            {column}
-          </span>
-        ))}
+        {showFullDetail
+          ? card.assignedColumns.slice(0, 3).map(column => (
+              <span
+                key={column}
+                data-arrow-endpoint={`column:${column}`}
+                data-arrow-host-step-id={card.stepId}
+                role={activeCanvasTool === 'draw-hypothesis' ? 'button' : undefined}
+                tabIndex={activeCanvasTool === 'draw-hypothesis' ? 0 : undefined}
+                aria-label={`Hypothesis endpoint ${column}`}
+                className="rounded-full bg-surface-secondary px-2 py-0.5 text-[11px] text-content-secondary"
+              >
+                {column}
+              </span>
+            ))
+          : null}
       </div>
 
-      {card.metricColumn ? (
+      {showFullDetail && card.metricColumn ? (
         <button
           type="button"
           className="mt-auto self-start rounded border border-edge bg-surface-secondary px-2 py-1 text-xs font-medium text-content-secondary hover:bg-surface-tertiary hover:text-content"

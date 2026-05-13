@@ -12,6 +12,7 @@ const baseCard: CanvasStepCardModel = {
   values: [10, 11, 12],
   distribution: [],
   capability: { state: 'no-specs', n: 3, canAddSpecs: true },
+  drift: { direction: 'down', magnitude: 0.12, threshold: 0.05, metric: 'mean' },
   stats: {
     mean: 11,
     median: 11,
@@ -22,6 +23,31 @@ const baseCard: CanvasStepCardModel = {
     lcl: 8,
     outOfSpecPercentage: 0,
   },
+};
+
+const detailedOverlay: CanvasStepInvestigationOverlay = {
+  stepId: 'step-1',
+  questions: [],
+  findings: [
+    {
+      id: 'finding-1',
+      text: 'Pressure shift',
+      status: 'observed',
+      questionId: undefined,
+      focus: { kind: 'finding', id: 'finding-1' },
+    },
+  ],
+  hypotheses: [
+    {
+      id: 'hub-1',
+      name: 'Thermal drift',
+      status: 'proposed',
+      questionId: undefined,
+      focus: { kind: 'suspected-cause', id: 'hub-1' },
+    },
+  ],
+  causalLinks: [],
+  investigationCounts: { open: 1, supported: 1, refuted: 0 },
 };
 
 const overlayWithPromoted: CanvasStepInvestigationOverlay = {
@@ -42,10 +68,57 @@ const overlayWithPromoted: CanvasStepInvestigationOverlay = {
 };
 
 describe('CanvasStepCard hypothesis drawing affordances', () => {
+  it('renders only overview-tile fields below full-detail zoom', () => {
+    render(
+      <CanvasStepCard
+        card={baseCard}
+        zoom={0.75}
+        activeLens="default"
+        activeOverlays={['investigations', 'findings', 'hypothesis-hubs']}
+        investigationOverlay={detailedOverlay}
+        activeCanvasTool="select"
+        onOpen={() => undefined}
+      />
+    );
+
+    expect(screen.getByText('Chamber 3')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-step-capability-step-1')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-step-drift-indicator-step-1')).toBeInTheDocument();
+    expect(screen.queryByTestId('canvas-step-mini-chart-step-1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('canvas-step-investigation-badge-step-1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('canvas-step-finding-pin-step-1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('step-node-marker')).not.toBeInTheDocument();
+    expect(screen.queryByText('pressure_psi')).not.toBeInTheDocument();
+    expect(screen.queryByText('temp_c')).not.toBeInTheDocument();
+    expect(screen.queryByText('+ Add specs')).not.toBeInTheDocument();
+  });
+
+  it('preserves full-detail fields at full-detail zoom', () => {
+    render(
+      <CanvasStepCard
+        card={baseCard}
+        zoom={1}
+        activeLens="default"
+        activeOverlays={['investigations', 'findings', 'hypothesis-hubs']}
+        investigationOverlay={detailedOverlay}
+        activeCanvasTool="select"
+        onOpen={() => undefined}
+      />
+    );
+
+    expect(screen.getByTestId('canvas-step-mini-chart-step-1')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-step-investigation-badge-step-1')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-step-finding-pin-step-1')).toBeInTheDocument();
+    expect(screen.getByTestId('step-node-marker')).toBeInTheDocument();
+    expect(screen.getByText('temp_c')).toBeInTheDocument();
+    expect(screen.getByText('+ Add specs')).toBeInTheDocument();
+  });
+
   it('renders StepNodeMarker instead of inline cause count for promoted causes', () => {
     render(
       <CanvasStepCard
         card={baseCard}
+        zoom={1}
         activeLens="default"
         activeOverlays={['hypothesis-hubs']}
         investigationOverlay={overlayWithPromoted}
@@ -62,6 +135,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
     render(
       <CanvasStepCard
         card={baseCard}
+        zoom={1}
         activeLens="default"
         activeCanvasTool="select"
         onOpen={() => undefined}
@@ -78,6 +152,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
     render(
       <CanvasStepCard
         card={{ ...baseCard, metricColumn: undefined }}
+        zoom={1}
         activeLens="default"
         activeCanvasTool="select"
         onOpen={() => undefined}
@@ -93,6 +168,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
     render(
       <CanvasStepCard
         card={baseCard}
+        zoom={1}
         activeLens="default"
         activeCanvasTool="select"
         onOpen={() => undefined}
@@ -110,6 +186,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
     render(
       <CanvasStepCard
         card={baseCard}
+        zoom={1}
         activeLens="default"
         activeCanvasTool="draw-hypothesis"
         onOpen={() => undefined}
@@ -125,6 +202,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
     render(
       <CanvasStepCard
         card={{ ...baseCard, metricColumn: undefined }}
+        zoom={1}
         activeLens="default"
         activeCanvasTool="draw-hypothesis"
         onOpen={() => undefined}
@@ -140,6 +218,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
     render(
       <CanvasStepCard
         card={baseCard}
+        zoom={1}
         activeLens="default"
         activeCanvasTool="select"
         onOpen={onOpen}
@@ -156,6 +235,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
     render(
       <CanvasStepCard
         card={baseCard}
+        zoom={1}
         activeLens="default"
         activeCanvasTool="draw-hypothesis"
         onOpen={onOpen}
@@ -172,6 +252,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
     render(
       <CanvasStepCard
         card={baseCard}
+        zoom={1}
         activeLens="default"
         activeOverlays={['hypothesis-hubs']}
         investigationOverlay={overlayWithPromoted}
@@ -190,6 +271,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
     render(
       <CanvasStepCard
         card={baseCard}
+        zoom={1}
         activeLens="default"
         activeOverlays={['hypothesis-hubs']}
         investigationOverlay={overlayWithPromoted}
@@ -208,6 +290,7 @@ describe('CanvasStepCard hypothesis drawing affordances', () => {
     render(
       <CanvasStepCard
         card={baseCard}
+        zoom={1}
         activeLens="default"
         activeCanvasTool="draw-hypothesis"
         onOpen={() => undefined}

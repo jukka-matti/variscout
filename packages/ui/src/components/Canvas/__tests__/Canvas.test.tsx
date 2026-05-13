@@ -47,7 +47,7 @@ vi.mock('../../InvestigationWall', async () => {
   };
 });
 
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import type { Finding } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { CanvasInvestigationOverlayModel, CanvasStepCardModel } from '@variscout/hooks';
@@ -300,6 +300,93 @@ describe('Canvas', () => {
       screen.getByTestId('canvas-card-surface').querySelector('[data-canvas-viewport-inner]')
     ).toHaveStyle({
       transform: 'translate(48px, -24px) scale(1.75)',
+    });
+  });
+
+  it('passes the current hub zoom to L2 step cards for overview detail', () => {
+    useCanvasViewportStore.getState().setZoom('hub-l2-overview', 0.75);
+
+    renderCanvas({ hubId: 'hub-l2-overview' });
+
+    const card = screen.getByTestId('canvas-step-card-step-1');
+    expect(card).toHaveTextContent('Mix');
+    expect(screen.getByTestId('canvas-step-capability-step-1')).toBeInTheDocument();
+    expect(screen.queryByTestId('canvas-step-mini-chart-step-1')).not.toBeInTheDocument();
+    expect(within(card).queryByText('+ Add specs')).not.toBeInTheDocument();
+    expect(within(card).queryByText('Pressure')).not.toBeInTheDocument();
+  });
+
+  it('renders the L1 placeholder when the hub viewport is at system level', () => {
+    useCanvasViewportStore.getState().setLevel('hub-l1-canvas', 'l1');
+
+    renderCanvas({ hubId: 'hub-l1-canvas' });
+
+    expect(screen.getByText('System level coming next')).toBeInTheDocument();
+    expect(screen.queryByTestId('canvas-card-surface')).not.toBeInTheDocument();
+  });
+
+  it('keeps the desktop LOD input surface mounted on L1 and can wheel back to L2', () => {
+    const hubId = 'hub-l1-wheel-recover';
+    useCanvasViewportStore.getState().fitToContent(hubId, 'l1');
+
+    renderCanvas({ hubId });
+
+    const inputSurface = screen.getByTestId('canvas-lod-input-surface');
+    expect(inputSurface).toBeInTheDocument();
+    sizeElementForD3Zoom(inputSurface);
+
+    fireEvent.wheel(inputSurface, {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -1200,
+      clientX: 200,
+      clientY: 150,
+    });
+
+    expect(useCanvasViewportStore.getState().getViewport(hubId).currentLevel).toBe('l2');
+  });
+
+  it('renders the bare L3 placeholder when no focal step is selected', () => {
+    useCanvasViewportStore.getState().setZoom('hub-l3-placeholder', 2.5);
+
+    renderCanvas({ hubId: 'hub-l3-placeholder' });
+
+    expect(screen.getByText('Need focal step for L3')).toBeInTheDocument();
+    expect(screen.queryByTestId('canvas-card-surface')).not.toBeInTheDocument();
+    expect(screen.getByTestId('canvas-lod-input-surface')).toBeInTheDocument();
+  });
+
+  it('renders the L3 placeholder when a focal step is selected', () => {
+    useCanvasViewportStore.getState().setLevel('hub-l3-canvas', 'l3', 'step-1');
+
+    renderCanvas({ hubId: 'hub-l3-canvas' });
+
+    expect(screen.getByText('Local mechanism coming next')).toBeInTheDocument();
+    expect(screen.queryByTestId('canvas-card-surface')).not.toBeInTheDocument();
+  });
+
+  it('shows the mobile level picker and skips the d3 pan/zoom viewport on mobile', () => {
+    wallIsMobileRef.current = true;
+
+    renderCanvas({ hubId: 'hub-mobile-canvas' });
+
+    expect(screen.getByTestId('mobile-level-picker')).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('layered-process-view')?.querySelector('[data-canvas-viewport-wrapper]')
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not apply viewport shortcuts when Canvas is disabled', () => {
+    const hubId = 'hub-disabled-shortcuts';
+
+    renderCanvas({ hubId, disabled: true });
+
+    fireEvent.keyDown(window, { key: '1', metaKey: true });
+
+    expect(useCanvasViewportStore.getState().getViewport(hubId)).toMatchObject({
+      currentLevel: 'l2',
+      zoom: 1,
+      pan: { x: 0, y: 0 },
     });
   });
 
@@ -1015,12 +1102,12 @@ describe('Canvas', () => {
       expect(arrow).toHaveAttribute('x2', '250');
 
       act(() => {
-        useCanvasViewportStore.getState().setZoom(hubId, 2);
+        useCanvasViewportStore.getState().setZoom(hubId, 1.75);
         useCanvasViewportStore.getState().setPan(hubId, { x: 30, y: -10 });
       });
 
-      expect(arrow).toHaveAttribute('x1', '130');
-      expect(arrow).toHaveAttribute('x2', '530');
+      expect(arrow).toHaveAttribute('x1', '117.5');
+      expect(arrow).toHaveAttribute('x2', '467.5');
     } finally {
       rectSpy.mockRestore();
     }
@@ -1045,6 +1132,21 @@ describe('Canvas', () => {
 
     fireEvent.keyDown(window, { key: 'Escape' });
 
+    expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
+  });
+
+  it('closes the L2 step overlay when leaving the process level', () => {
+    const hubId = 'hub-overlay-level-exit';
+    renderCanvas({ hubId });
+
+    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
+    expect(screen.getByTestId('canvas-step-overlay')).toHaveTextContent('Mix');
+
+    act(() => {
+      useCanvasViewportStore.getState().fitToContent(hubId, 'l1');
+    });
+
+    expect(screen.getByText('System level coming next')).toBeInTheDocument();
     expect(screen.queryByTestId('canvas-step-overlay')).not.toBeInTheDocument();
   });
 
