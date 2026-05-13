@@ -22,7 +22,7 @@ const orderedLenses: CanvasLensDefinition[] = [
   CANVAS_LENS_REGISTRY.yamazumi,
 ];
 
-const LENS_LABEL_KEY: Record<CanvasLensId, keyof MessageCatalog> = {
+export const LENS_LABEL_KEY: Record<CanvasLensId, keyof MessageCatalog> = {
   default: 'canvas.lens.default.label',
   capability: 'canvas.lens.capability.label',
   defect: 'canvas.lens.defect.label',

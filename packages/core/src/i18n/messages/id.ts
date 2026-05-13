@@ -1001,6 +1001,8 @@ export const id: MessageCatalog = {
   // Canvas — CanvasLensPicker
   'canvas.lensPicker.ariaLabel': 'Canvas lenses',
   'canvas.lensPicker.lensAriaLabel': '{label} lens',
+  'canvas.lensPicker.invalidAtLevel':
+    "{lens} isn't available at {currentLevel} \u2014 try {suggestedLevel}.",
 
   // Canvas — lens labels & descriptions
   'canvas.lens.capability.description': 'Capability, Cpk trust, and step health.',

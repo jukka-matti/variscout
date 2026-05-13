@@ -1059,6 +1059,8 @@ export const en: MessageCatalog = {
   // Canvas — CanvasLensPicker (toolbar aria + per-lens aria)
   'canvas.lensPicker.ariaLabel': 'Canvas lenses',
   'canvas.lensPicker.lensAriaLabel': '{label} lens',
+  'canvas.lensPicker.invalidAtLevel':
+    "{lens} isn't available at {currentLevel} \u2014 try {suggestedLevel}.",
 
   // Canvas — lens labels & descriptions (used by CanvasLensPicker)
   'canvas.lens.capability.description': 'Capability, Cpk trust, and step health.',

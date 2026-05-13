@@ -1141,6 +1141,7 @@ export interface MessageCatalog {
   // Canvas — CanvasLensPicker (toolbar aria + per-lens aria)
   'canvas.lensPicker.ariaLabel': string;
   'canvas.lensPicker.lensAriaLabel': string;
+  'canvas.lensPicker.invalidAtLevel': string;
 
   // Canvas — lens labels & descriptions (used by CanvasLensPicker)
   'canvas.lens.capability.description': string;
