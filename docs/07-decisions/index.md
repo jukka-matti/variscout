@@ -94,6 +94,7 @@ This section captures key architectural decisions made during VariScout developm
 | [078](adr-078-pwa-azure-architecture-alignment.md)                 | PWA + Azure architecture alignment — same product, persistence is the tier gate                                          | Accepted   | 2026-05-06                                                                                 |
 | [079](adr-079-etag-optimistic-concurrency-paid-tier-hub-writes.md) | ETag optimistic concurrency for paid-tier hub-blob writes                                                                | Accepted   | 2026-05-07                                                                                 |
 | [080](adr-080-sustainment-auto-fire-pattern.md)                    | Sustainment auto-fire + Inbox prompt + signoff-gated lifecycle pattern                                                   | Accepted   | 2026-05-13                                                                                 |
+| [081](adr-081-canvas-viewport-architecture.md)                     | Canvas viewport architecture — levels-as-pan/zoom (8f); amends ADR-074                                                   | Accepted   | 2026-05-13                                                                                 |
 
 ---
 

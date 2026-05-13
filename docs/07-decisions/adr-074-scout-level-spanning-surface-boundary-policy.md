@@ -116,3 +116,19 @@ Accepted (2026-04-29). Captures a structural decision the Multi-level SCOUT desi
 - Supersedes: none (new policy).
 - Superseded by: none (active).
 - Related: ADR-073 (locality rule, same enforcement mechanism), ADR-049 (Knowledge Catalyst, depends on this), ADR-064 (SuspectedCause hub model, owned at L3), ADR-066 (Evidence Map as investigation center, L3 owner), ADR-070 (FRAME workspace as L2 authoring owner).
+
+## Amendment — 2026-05-13 (Canvas as viewport surface, 8f)
+
+Co-issued with [ADR-081](adr-081-canvas-viewport-architecture.md). The level-spanning policy is unchanged; this amendment recognizes one named exception:
+
+**Canvas is the viewport surface** — the visual home for scan + navigation across all three levels (System / Process Flow / Local Mechanism). It mounts level-specific views by **embedding owner-surface components** (importing the React component + the same computed data), not by re-rendering or recomputing. Owner surfaces — SCOUT (L1), Evidence Map + Wall (L3) — remain analytical engines and deep-work destinations. Clicking inside a Canvas-at-Lx view opens the owner surface full-screen for the same scope.
+
+The "no re-rendering / no recomputing" rule still binds. Concretely:
+
+- Canvas-L1 imports `<DashboardBase/>` (or a leaner slim outcome panel export) and reads the SCOUT-computed outcome stats unchanged.
+- Canvas-L3 imports `<EvidenceMapBase/>` and `<WallCanvas/>` (with a `filterByStepId` prop) and renders them inside a canvas-shaped frame. The factor-network computation lives in `@variscout/charts/EvidenceMap` and is not re-derived.
+- Canvas-L2 is already the L2 owner post-Canvas-migration; no change.
+
+The verification scripts in §Verification above gain a Canvas-aware exception: Canvas may import owner-surface components, but it may not implement parallel ones. The same `rg` patterns continue to enforce no parallel `factorNetwork` / `outcomeBoxplot` / etc. inside `Canvas/`; the difference is that Canvas's directory becomes an allowed import target for those components, not a forbidden one.
+
+Design spec: [`docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md`](../superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md). Companion ADR: [ADR-081](adr-081-canvas-viewport-architecture.md). Amendment status: accepted.
