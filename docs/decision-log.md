@@ -26,6 +26,8 @@ When in doubt: capture, don't invent. Record the decision; link to its source ar
 
 Decisions we keep relitigating. Each entry: short statement, rationale, closing artifact, date pinned.
 
+- **2026-05-13 — 8f canvas viewport SHIPPED — levels-as-pan/zoom live.** Canvas Viewport Architecture 8f shipped across PRs #156, #158, #160, #162, #164, and #165, closing vision §5.4 as the last remaining PR8 vision-alignment commitment. The delivered system includes hub-keyed `useCanvasViewportStore`, d3 input, `LODSwitcher`, responsive level picker, measured fit-to-content shortcuts, URL deep links (`level` + L3 `focalStep`), L2/L3 renderers, L1 ADR-073-safe outcome panel, lens × level validity matrix, and ADR-074 boundary enforcement in `scripts/pr-ready-check.sh`. Spec [`docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md`](superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md) promoted `accepted → delivered`; plan [`docs/superpowers/plans/2026-05-13-canvas-viewport-architecture.md`](superpowers/plans/2026-05-13-canvas-viewport-architecture.md) promoted `active → delivered`. [ADR-081](07-decisions/adr-081-canvas-viewport-architecture.md) remains the architectural record: Canvas is the viewport surface, owner surfaces remain authoritative for analytics, and 8f remains within one Hub with multi-Hub portfolio views explicitly out of scope. _Pinned 2026-05-13._
+
 - **2026-05-13 — Pre-commit / pre-push hook tiering locked.** Measured pre-commit wall time was
   ~4 minutes (3:35 from `pnpm docs:check` + 24 s from `bash scripts/check-dead-links.sh`). Both
   are full-repo doc-graph walks; the orphan-detection loop in

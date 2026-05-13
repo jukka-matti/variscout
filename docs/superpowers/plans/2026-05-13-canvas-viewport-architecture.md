@@ -2,7 +2,7 @@
 title: Canvas Viewport Architecture (8f) — Implementation Plan
 audience: [engineer]
 category: implementation-plan
-status: active
+status: delivered
 last-reviewed: 2026-05-13
 related:
   - docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md
@@ -13,6 +13,8 @@ related:
 # Canvas Viewport Architecture (8f) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Status:** Delivered 2026-05-13 via PRs #156, #158, #160, #162, #164, and #165.
 
 **Goal:** Implement Canvas viewport architecture per [spec 2026-05-13](../specs/2026-05-13-canvas-viewport-architecture-design.md) + [ADR-081](../../07-decisions/adr-081-canvas-viewport-architecture.md). Three methodology levels (System / Process Flow / Local Mechanism) become a pan/zoom canvas — no separate level picker. Closes vision §5.4, the last unmet vision-spec commitment.
 

@@ -2,7 +2,7 @@
 title: Canvas Viewport Architecture — Design (8f)
 audience: [product, engineer, designer]
 category: design
-status: accepted
+status: delivered
 last-reviewed: 2026-05-13
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
@@ -16,7 +16,7 @@ related:
 
 # Canvas Viewport Architecture — Design (8f)
 
-> **Status:** Draft, pending user review. Closes vision §5.4 ("levels-as-pan/zoom") — the last unmet vision-spec commitment after PR8 sub-PRs 8a–8e (decision-log 2026-05-08).
+> **Status:** Delivered 2026-05-13 via PR #165. Closes vision §5.4 ("levels-as-pan/zoom") — the last unmet vision-spec commitment after PR8 sub-PRs 8a–8e (decision-log 2026-05-08).
 
 ## 1. Summary
 
