@@ -1,7 +1,7 @@
 ---
 title: Canvas Viewport 8f — Followup Workstream Implementation Plan
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: active
 last-reviewed: 2026-05-13
 related:
