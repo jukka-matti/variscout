@@ -29,7 +29,7 @@ import {
 import type { ActionItem } from '@variscout/core/findings';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
 import { useCanvasStore } from '@variscout/stores';
-import { Canvas, type CanvasAuthoringMode } from './index';
+import { Canvas, type CanvasAuthoringMode, type CanvasL3Archetype } from './index';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
 import type { XCandidate } from '../XPickerSection';
@@ -371,6 +371,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const [authoringMode, setAuthoringMode] = React.useState<CanvasAuthoringMode>(() =>
     map.nodes.length > 0 && chips.length === 0 ? 'read' : 'author'
   );
+  const l3Archetype: CanvasL3Archetype = authoringMode === 'author' ? 'b1' : 'b0';
 
   const handleConfirmYSpec = React.useCallback(
     (values: Partial<SpecLimits>) => {
@@ -519,6 +520,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onNavigateContextLink={onNavigateContextLink}
       actionItems={actionItems}
       mode={authoringMode}
+      l3Archetype={l3Archetype}
       onModeChange={setAuthoringMode}
       chips={chips}
       onPlaceChip={handlePlaceChip}

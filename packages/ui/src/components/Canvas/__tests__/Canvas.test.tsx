@@ -371,6 +371,7 @@ describe('Canvas', () => {
 
     renderCanvas({
       hubId,
+      mode: 'read',
       map: {
         ...mapWithSteps,
         nodes: [
@@ -389,11 +390,16 @@ describe('Canvas', () => {
     expect(screen.getByTestId('canvas-lod-input-surface')).toBeInTheDocument();
   });
 
-  it('renders the L3 local mechanism view when a focal step is selected', () => {
+  it('renders the L3 local mechanism view when a focal step is selected in read mode', () => {
     useCanvasViewportStore.getState().setLevel('hub-l3-canvas', 'l3', 'step-1');
 
     const rows = [{ Pressure: 10 }, { Pressure: 11 }];
-    renderCanvas({ hubId: 'hub-l3-canvas', rows, map: { ...mapWithSteps, ctsColumn: 'Defect' } });
+    renderCanvas({
+      hubId: 'hub-l3-canvas',
+      mode: 'read',
+      rows,
+      map: { ...mapWithSteps, ctsColumn: 'Defect' },
+    });
 
     expect(screen.getByTestId('local-mechanism-view')).toHaveAttribute(
       'data-focal-step-id',
@@ -404,6 +410,7 @@ describe('Canvas', () => {
       'data-outcome-column',
       'Defect'
     );
+    expect(screen.queryByTestId('author-l3-view')).not.toBeInTheDocument();
     expect(localMechanismPropsRef.current).toMatchObject({
       hubId: 'hub-l3-canvas',
       focalStepId: 'step-1',
@@ -413,6 +420,37 @@ describe('Canvas', () => {
       activeColumns: ['Pressure', 'Defect'],
     });
     expect(screen.queryByTestId('canvas-card-surface')).not.toBeInTheDocument();
+  });
+
+  it('renders the author L3 view for direct Canvas author mode', () => {
+    useCanvasViewportStore.getState().setLevel('hub-l3-author-canvas', 'l3', 'step-1');
+
+    renderCanvas({
+      hubId: 'hub-l3-author-canvas',
+      mode: 'author',
+      chips: [{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }],
+    });
+
+    expect(screen.getByTestId('author-l3-view')).toBeInTheDocument();
+    expect(screen.queryByTestId('local-mechanism-view')).not.toBeInTheDocument();
+  });
+
+  it('supports keyboard chip pickup and drop in direct Canvas author L3', () => {
+    const onPlaceChip = vi.fn();
+    useCanvasViewportStore.getState().setLevel('hub-l3-author-keyboard', 'l3', 'step-1');
+
+    renderCanvas({
+      hubId: 'hub-l3-author-keyboard',
+      mode: 'author',
+      chips: [{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }],
+      onPlaceChip,
+    });
+
+    fireEvent.keyDown(screen.getByTestId('chip-rail-item-Bake_Time'), { key: 'Enter' });
+    fireEvent.keyDown(screen.getByTestId('author-l3-step-drop-target'), { key: 'Enter' });
+
+    expect(onPlaceChip).toHaveBeenCalledTimes(1);
+    expect(onPlaceChip).toHaveBeenCalledWith('Bake_Time', 'step-1');
   });
 
   it('shows the mobile level picker and skips the d3 pan/zoom viewport on mobile', () => {

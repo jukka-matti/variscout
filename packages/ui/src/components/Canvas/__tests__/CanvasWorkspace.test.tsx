@@ -539,6 +539,11 @@ const mapWithStep = (): ProcessMap => ({
   updatedAt: '2026-05-04T00:00:00.000Z',
 });
 
+const readModeMapWithStep = (): ProcessMap => ({
+  ...mapWithStep(),
+  assignments: { Bake_Time: 'step-1', Machine: 'step-1' },
+});
+
 const mapWithSecondStep = (): ProcessMap => ({
   ...mapWithStep(),
   nodes: [
@@ -546,6 +551,11 @@ const mapWithSecondStep = (): ProcessMap => ({
     { id: 'step-2', name: 'Pack', order: 1 },
   ],
   updatedAt: '2026-05-04T00:01:00.000Z',
+});
+
+const readModeMapWithSecondStep = (): ProcessMap => ({
+  ...mapWithSecondStep(),
+  assignments: { Bake_Time: 'step-1', Machine: 'step-2' },
 });
 
 function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWorkspace>> = {}) {
@@ -636,12 +646,12 @@ describe('CanvasWorkspace', () => {
     );
   });
 
-  it('threads raw rows from CanvasWorkspace into the L3 local mechanism view', () => {
+  it('threads raw rows from CanvasWorkspace into the read-mode L3 local mechanism view', () => {
     useCanvasViewportStore.getState().setLevel('hub-workspace-l3', 'l3', 'step-1');
 
     renderWorkspace({
       canvasViewportHubId: 'hub-workspace-l3',
-      processContext: { processMap: mapWithStep() },
+      processContext: { processMap: readModeMapWithStep() },
     });
 
     expect(screen.getByTestId('local-mechanism-view')).toBeInTheDocument();
@@ -649,6 +659,44 @@ describe('CanvasWorkspace', () => {
       rows: rawData,
       outcomeColumn: 'Fill_Weight',
     });
+  });
+
+  it('routes author-mode L3 away from the local mechanism view', () => {
+    useCanvasViewportStore.getState().setLevel('hub-workspace-l3-author', 'l3', 'step-1');
+
+    renderWorkspace({
+      canvasViewportHubId: 'hub-workspace-l3-author',
+      processContext: { processMap: mapWithStep() },
+    });
+
+    expect(screen.queryByTestId('local-mechanism-view')).not.toBeInTheDocument();
+    expect(screen.getByTestId('author-l3-view')).toBeInTheDocument();
+    expect(localMechanismPropsRef.current).toBeNull();
+  });
+
+  it('keeps the same focal step while switching author/read modes in L3', () => {
+    const hubId = 'hub-workspace-l3-mode-switch';
+    useCanvasViewportStore.getState().setLevel(hubId, 'l3', 'step-2');
+
+    renderWorkspace({
+      canvasViewportHubId: hubId,
+      processContext: { processMap: readModeMapWithSecondStep() },
+    });
+
+    expect(localMechanismPropsRef.current).toMatchObject({ focalStepId: 'step-2' });
+    expect(useCanvasViewportStore.getState().getViewport(hubId).focalStepId).toBe('step-2');
+
+    fireEvent.click(screen.getByRole('button', { name: /edit canvas/i }));
+
+    expect(screen.getByTestId('author-l3-view')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Pack' })).toBeInTheDocument();
+    expect(useCanvasViewportStore.getState().getViewport(hubId).focalStepId).toBe('step-2');
+
+    fireEvent.click(screen.getByRole('button', { name: /lock canvas/i }));
+
+    expect(screen.getByTestId('local-mechanism-view')).toBeInTheDocument();
+    expect(localMechanismPropsRef.current).toMatchObject({ focalStepId: 'step-2' });
+    expect(useCanvasViewportStore.getState().getViewport(hubId).focalStepId).toBe('step-2');
   });
 
   it('wires lens changes through session canvas filters', () => {
