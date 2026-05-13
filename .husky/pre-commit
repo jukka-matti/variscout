@@ -14,3 +14,13 @@ bash scripts/check-claude-md-size.sh
 
 # Decision-log reminder — warning-only, never blocks
 bash scripts/decision-log-reminder.sh
+
+# Docs-touched short-circuit: run full doc-graph checks only when a staged
+# path is a doc-graph input (docs/**/*.md, CLAUDE.md, **/CLAUDE.md,
+# packages/*/src/index.ts).  Code-only commits skip this block entirely.
+DOCS_PATTERN='^(docs/.*\.md$|CLAUDE\.md$|.*/CLAUDE\.md$|packages/[^/]+/src/index\.ts$)'
+if git diff --cached --name-only | grep -qE "$DOCS_PATTERN"; then
+  echo "docs touched — running full doc-graph checks (~4 min)" >&2
+  pnpm docs:check
+  bash scripts/check-dead-links.sh
+fi
