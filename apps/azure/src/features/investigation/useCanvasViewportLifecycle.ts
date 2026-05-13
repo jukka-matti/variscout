@@ -9,10 +9,10 @@ export function useCanvasViewportLifecycle(hubId: string | null | undefined): vo
   useEffect(() => {
     if (!hubId) return;
 
-    rehydrateCanvasViewport(hubId).catch(() => undefined);
-
     let timer: ReturnType<typeof setTimeout> | undefined;
     let cancelled = false;
+
+    rehydrateCanvasViewport(hubId, () => !cancelled).catch(() => undefined);
 
     const unsubscribe = useCanvasViewportStore.subscribe((state, prev) => {
       const changed =

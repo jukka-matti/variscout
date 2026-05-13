@@ -260,6 +260,20 @@ describe('canvasViewportStore persistence', () => {
     });
   });
 
+  it('does not apply rehydrate snapshot when guard returns false', async () => {
+    useCanvasViewportStore.getState().setViewMode('wall');
+    useCanvasViewportStore.getState().setRailOpen(false);
+    useCanvasViewportStore.getState().setZoom('hub-A', 2.25);
+    await persistCanvasViewport('hub-A');
+
+    useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
+    await rehydrateCanvasViewport('hub-A', () => false);
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(useCanvasViewportStore.getState().railOpen).toBe(true);
+    expect(useCanvasViewportStore.getState().getViewport('hub-A').zoom).toBe(1);
+  });
+
   it('persists and rehydrates hubs independently', async () => {
     useCanvasViewportStore.getState().setZoom('hub-A', 1.25);
     await persistCanvasViewport('hub-A');

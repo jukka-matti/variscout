@@ -48,7 +48,55 @@ describe('useCanvasViewportLifecycle (PWA)', () => {
   it('rehydrates when a hubId is provided', () => {
     renderHook(() => useCanvasViewportLifecycle('hub-A'));
     expect(mockRehydrate).toHaveBeenCalledOnce();
-    expect(mockRehydrate).toHaveBeenCalledWith('hub-A');
+    expect(mockRehydrate).toHaveBeenCalledWith('hub-A', expect.any(Function));
+  });
+
+  it('ignores stale rehydrate results after switching hubs', async () => {
+    const delayedRehydrates = new Map<string, () => void>();
+    mockRehydrate.mockImplementation(
+      ((hubId: string, shouldApply?: () => boolean) =>
+        new Promise<void>(resolve => {
+          delayedRehydrates.set(hubId, () => {
+            if (shouldApply?.() ?? true) {
+              useCanvasViewportStore.setState(s => ({
+                viewMode: 'wall',
+                railOpen: false,
+                viewports: {
+                  ...s.viewports,
+                  [hubId]: {
+                    ...s.getViewport(hubId),
+                    zoom: 2,
+                  },
+                },
+              }));
+            }
+            resolve();
+          });
+        })) as typeof rehydrateCanvasViewport
+    );
+
+    const { rerender } = renderHook(
+      ({ hubId }: { hubId: string }) => useCanvasViewportLifecycle(hubId),
+      {
+        initialProps: { hubId: 'hub-A' },
+      }
+    );
+
+    rerender({ hubId: 'hub-B' });
+    mockPersist.mockClear();
+
+    await act(async () => {
+      delayedRehydrates.get('hub-A')?.();
+      await Promise.resolve();
+    });
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(useCanvasViewportStore.getState().railOpen).toBe(true);
+    expect(useCanvasViewportStore.getState().getViewport('hub-A').zoom).toBe(1);
+    expect(mockPersist).not.toHaveBeenCalled();
   });
 
   it('debounces persistCanvasViewport after viewport changes for the active hub', () => {

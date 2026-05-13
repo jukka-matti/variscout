@@ -296,9 +296,13 @@ export async function persistCanvasViewport(hubId: ProcessHubId): Promise<void> 
   });
 }
 
-export async function rehydrateCanvasViewport(hubId: ProcessHubId): Promise<void> {
+export async function rehydrateCanvasViewport(
+  hubId: ProcessHubId,
+  shouldApply: () => boolean = () => true
+): Promise<void> {
   const snapshot = await db.snapshots.get(hubId);
   if (!snapshot) return;
+  if (!shouldApply()) return;
 
   useCanvasViewportStore.setState(s => ({
     viewMode: snapshot.viewMode,
