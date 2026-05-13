@@ -2,6 +2,7 @@ import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import type { ProcessMap } from '@variscout/core/frame';
+import { getStepColumnAssignments } from '@variscout/core/frame';
 import { encodeStepDropId } from '@variscout/hooks';
 import { ChipRail, type ChipRailEntry } from '../../ChipRail';
 import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
@@ -15,26 +16,6 @@ export interface AuthorL3ViewProps {
   onPlaceChip?: (chipId: string, stepId: string) => void;
   onKeyboardChipPickUp?: (chipId: string) => void;
   onKeyboardChipDrop?: (stepId: string) => void;
-}
-
-function focalStepColumns(map: ProcessMap, focalStepId: string) {
-  const assigned = Object.entries(map.assignments ?? {})
-    .filter(([, stepId]) => stepId === focalStepId)
-    .map(([column]) => column);
-  const assignedSet = new Set(assigned);
-  const step = map.nodes.find(node => node.id === focalStepId);
-  // stepName fallback is resolved to locale-aware string at render time; 'Selected step' sentinel used here
-  const ctqColumn = step?.ctqColumn && !assignedSet.has(step.ctqColumn) ? step.ctqColumn : null;
-  const tributaryColumns = map.tributaries
-    .filter(tributary => tributary.stepId === focalStepId && !assignedSet.has(tributary.column))
-    .map(tributary => tributary.column);
-
-  return {
-    assigned,
-    stepName: step?.name ?? null,
-    ctqColumn,
-    tributaryColumns,
-  };
 }
 
 function ColumnPill({ column }: { column: string }) {
@@ -67,7 +48,7 @@ export function AuthorL3View({
     stepName: rawStepName,
     ctqColumn,
     tributaryColumns,
-  } = React.useMemo(() => focalStepColumns(map, focalStepId), [focalStepId, map]);
+  } = React.useMemo(() => getStepColumnAssignments(map, focalStepId), [focalStepId, map]);
   const stepName = rawStepName ?? getMessage(locale, 'canvas.authorL3.selectedStep');
   const keyboardChipLabel = keyboardChipId
     ? chips.find(chip => chip.chipId === keyboardChipId)?.label
