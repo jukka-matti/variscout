@@ -984,7 +984,9 @@ export const Canvas: React.FC<CanvasProps> = ({
         hypotheses={hypotheses}
         findings={findings}
         activeLens={resolvedLens}
-        specLimits={{ usl, lsl, target, cpkTarget }}
+        measureSpecs={
+          map.ctsColumn ? { [map.ctsColumn]: { usl, lsl, target, cpkTarget } } : undefined
+        }
         onOpenScout={onOpenScout}
       />
     </div>
