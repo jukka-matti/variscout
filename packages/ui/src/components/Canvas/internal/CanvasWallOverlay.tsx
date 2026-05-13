@@ -1,11 +1,11 @@
 import React, { useCallback, useRef } from 'react';
 import {
   useHasInvestigationContent,
+  useCanvasViewportInput,
   useSharedWallProps,
   type CanvasOverlayId,
   type CanvasToolId,
 } from '@variscout/hooks';
-import { useCanvasViewportStore } from '@variscout/stores';
 import type { Finding, ProcessMap } from '@variscout/core';
 import { WallCanvas, useWallIsMobile } from '../../InvestigationWall';
 
@@ -21,7 +21,12 @@ export interface CanvasWallOverlayProps {
   onOpenWall?: () => void;
 }
 
-const PAN_IGNORED_TARGET = 'button,a,input,select,textarea,[role="button"],[data-no-overlay-pan]';
+const WALL_PAN_IGNORED_TARGET =
+  'button,a,input,select,textarea,[role="button"],[data-no-overlay-pan],[data-no-wall-pan]';
+
+function shouldHandleWallPanInput(event: Event): boolean {
+  return !(event.target instanceof Element && event.target.closest(WALL_PAN_IGNORED_TARGET));
+}
 
 export function CanvasWallOverlay({
   hubId,
@@ -35,8 +40,7 @@ export function CanvasWallOverlay({
   onOpenWall,
 }: CanvasWallOverlayProps) {
   const isMobile = useWallIsMobile();
-  const setPan = useCanvasViewportStore(s => s.setPan);
-  const panDragRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const hasContent = useHasInvestigationContent({ findingsCount: findings.length });
   const wallProps = useSharedWallProps({
     hubId,
@@ -50,59 +54,21 @@ export function CanvasWallOverlay({
     onOpenWall?.();
   }, [onOpenWall]);
   const isDrawingHypothesis = activeCanvasTool === 'draw-hypothesis';
-  const handlePointerDown = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      if (isDrawingHypothesis || event.button !== 0) {
-        return;
-      }
+  const shouldRender = activeOverlays.includes('wall') && !isMobile && hasContent;
+  useCanvasViewportInput({
+    hubId,
+    ref: overlayRef,
+    disabled: !shouldRender || isDrawingHypothesis,
+    filter: shouldHandleWallPanInput,
+  });
 
-      if (event.target instanceof Element && event.target.closest(PAN_IGNORED_TARGET) !== null) {
-        return;
-      }
-
-      panDragRef.current = {
-        pointerId: event.pointerId,
-        x: event.clientX,
-        y: event.clientY,
-      };
-      event.currentTarget.setPointerCapture?.(event.pointerId);
-    },
-    [isDrawingHypothesis]
-  );
-  const handlePointerMove = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      const drag = panDragRef.current;
-      if (!drag || drag.pointerId !== event.pointerId || isDrawingHypothesis) {
-        return;
-      }
-
-      const dx = event.clientX - drag.x;
-      const dy = event.clientY - drag.y;
-      if (dx === 0 && dy === 0) {
-        return;
-      }
-
-      const pan = useCanvasViewportStore.getState().getViewport(hubId).pan;
-      setPan(hubId, { x: pan.x + dx, y: pan.y + dy });
-      panDragRef.current = { ...drag, x: event.clientX, y: event.clientY };
-    },
-    [hubId, isDrawingHypothesis, setPan]
-  );
-  const handlePointerEnd = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (panDragRef.current?.pointerId !== event.pointerId) {
-      return;
-    }
-
-    panDragRef.current = null;
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
-  }, []);
-
-  if (!activeOverlays.includes('wall') || isMobile || !hasContent) {
+  if (!shouldRender) {
     return null;
   }
 
   return (
     <div
+      ref={overlayRef}
       data-testid="canvas-wall-overlay"
       className={[
         'absolute inset-0 z-[15] h-full w-full overflow-hidden',
@@ -110,10 +76,6 @@ export function CanvasWallOverlay({
       ].join(' ')}
       aria-hidden={isDrawingHypothesis ? true : undefined}
       inert={isDrawingHypothesis ? true : undefined}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerEnd}
-      onPointerCancel={handlePointerEnd}
     >
       <WallCanvas
         {...wallProps}

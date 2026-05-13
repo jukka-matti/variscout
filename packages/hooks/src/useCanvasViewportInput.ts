@@ -14,6 +14,12 @@ export interface UseCanvasViewportInputOptions {
   ref: RefObject<HTMLElement | SVGSVGElement | null>;
   scaleExtent?: [number, number];
   disabled?: boolean;
+  filter?: (event: Event) => boolean;
+}
+
+function defaultZoomFilter(event: Event): boolean {
+  const pointerEvent = event as Event & { button?: number; ctrlKey?: boolean };
+  return (!pointerEvent.ctrlKey || event.type === 'wheel') && !pointerEvent.button;
 }
 
 export function useCanvasViewportInput({
@@ -21,6 +27,7 @@ export function useCanvasViewportInput({
   ref,
   scaleExtent = DEFAULT_SCALE_EXTENT,
   disabled = false,
+  filter,
 }: UseCanvasViewportInputOptions): void {
   const setZoom = useCanvasViewportStore(s => s.setZoom);
   const setPan = useCanvasViewportStore(s => s.setPan);
@@ -54,6 +61,7 @@ export function useCanvasViewportInput({
       }
     };
     const zoomBehavior = zoom<HTMLElement | SVGSVGElement, unknown>()
+      .filter(event => defaultZoomFilter(event) && (filter ? filter(event) : true))
       .scaleExtent(scaleExtent)
       .on('zoom', (event: D3ZoomEvent<HTMLElement | SVGSVGElement, unknown>) => {
         if (syncingFromStoreRef.current) return;
@@ -79,5 +87,5 @@ export function useCanvasViewportInput({
       unsubscribe();
       selection.on('.zoom', null);
     };
-  }, [disabled, hubId, ref, scaleExtent, setPan, setZoom]);
+  }, [disabled, filter, hubId, ref, scaleExtent, setPan, setZoom]);
 }

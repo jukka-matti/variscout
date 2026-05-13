@@ -35,9 +35,12 @@ function makeCanvasElement(): D3ZoomElement {
   return element;
 }
 
-function renderCanvasViewportInput(element: HTMLElement = makeCanvasElement()) {
+function renderCanvasViewportInput(
+  element: HTMLElement = makeCanvasElement(),
+  options: Partial<Parameters<typeof useCanvasViewportInput>[0]> = {}
+) {
   const ref: RefObject<HTMLElement | SVGSVGElement | null> = { current: element };
-  const rendered = renderHook(() => useCanvasViewportInput({ hubId: HUB_ID, ref }));
+  const rendered = renderHook(() => useCanvasViewportInput({ hubId: HUB_ID, ref, ...options }));
   return { element: element as D3ZoomElement, ...rendered };
 }
 
@@ -111,6 +114,25 @@ describe('useCanvasViewportInput', () => {
     expect(viewport.zoom).toBeGreaterThan(1);
     expect(viewport.pan.x).toBeLessThan(0);
     expect(viewport.pan.y).toBeLessThan(0);
+  });
+
+  it('does not update the hub viewport when the custom filter rejects the event', () => {
+    const { element } = renderCanvasViewportInput(undefined, { filter: () => false });
+
+    element.dispatchEvent(
+      new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -180,
+        clientX: 100,
+        clientY: 50,
+      })
+    );
+
+    expect(useCanvasViewportStore.getState().getViewport(HUB_ID)).toMatchObject({
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    });
   });
 
   it('removes zoom listeners on cleanup', () => {

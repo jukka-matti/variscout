@@ -841,6 +841,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           wallViewMode === 'wall' ? (
             <div className="relative flex-1 flex flex-col min-h-0">
               <WallCanvas
+                hubId={wallHubId}
                 hubs={hubs}
                 findings={findingsState.findings}
                 questions={questionsState.questions}
