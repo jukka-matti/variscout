@@ -11,6 +11,7 @@ import {
 import {
   detectColumns,
   detectScopeFromMap,
+  normalizeProcessHubId,
   rankYCandidates,
   type CausalLink,
   type ColumnAnalysis,
@@ -200,6 +201,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   );
 
   const map: ProcessMap = processContext?.processMap ?? fallbackMap;
+  const hubId = normalizeProcessHubId(processContext?.processHubId);
   const scope = detectScopeFromMap(map);
   const ctsColumn = map.ctsColumn;
   const ctsSpecs = ctsColumn ? measureSpecs[ctsColumn] : undefined;
@@ -462,6 +464,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
 
   const canvasNode = (
     <Canvas
+      hubId={hubId}
       map={map}
       availableColumns={availableColumns}
       onChange={handleChange}
