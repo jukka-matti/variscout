@@ -28,7 +28,7 @@ import {
   type UseFindingsReturn,
   type UseQuestionsReturn,
 } from '@variscout/hooks';
-import { DEFAULT_PROCESS_HUB_ID, type FindingStatus, type Question } from '@variscout/core';
+import { type FindingStatus, type Question } from '@variscout/core';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { getStrategy } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
@@ -47,6 +47,7 @@ import { usePanelsStore } from '../../features/panels/panelsStore';
 const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 
 interface InvestigationViewProps {
+  canvasViewportHubId: string;
   // Data context
   filteredData: Record<string, unknown>[];
   outcome: string | null;
@@ -72,6 +73,7 @@ interface InvestigationViewProps {
 }
 
 const InvestigationView: React.FC<InvestigationViewProps> = ({
+  canvasViewportHubId,
   findingsState,
   handleRestoreFinding,
   handleSetFindingStatus,
@@ -93,7 +95,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   // Phase 13 scale features — thread store values into WallCanvas so zoom,
   // pan, and tributary clustering survive re-renders and route through the
   // existing undo/persist infrastructure.
-  const wallHubId = useProjectStore(s => s.processContext?.processHubId ?? DEFAULT_PROCESS_HUB_ID);
+  const wallHubId = canvasViewportHubId;
   const wallZoom = useCanvasViewportStore(s => s.viewports[wallHubId]?.zoom ?? 1);
   const wallPan = useCanvasViewportStore(s => s.viewports[wallHubId]?.pan ?? DEFAULT_WALL_PAN);
   const setWallPan = useCanvasViewportStore(s => s.setPan);

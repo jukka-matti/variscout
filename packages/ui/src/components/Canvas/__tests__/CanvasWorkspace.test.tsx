@@ -677,6 +677,26 @@ describe('CanvasWorkspace', () => {
     );
   });
 
+  it('uses explicit canvas viewport hub id when process context has no hub id', () => {
+    canvasFiltersStateRef.current = {
+      ...canvasFiltersStateRef.current,
+      activeCanvasOverlays: ['wall'],
+    };
+
+    renderWorkspace({
+      canvasViewportHubId: 'session-hub-1',
+      processContext: { processMap: mapWithStep() },
+      findings: [wallFinding],
+      onOpenWall: vi.fn(),
+    });
+
+    expect(useSharedWallProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hubId: 'session-hub-1',
+      })
+    );
+  });
+
   it('wires hypothesis draw tool changes through session canvas filters', () => {
     renderWorkspace({ processContext: { processMap: mapWithStep() } });
 

@@ -40,6 +40,7 @@ import type { LogActionPayload } from '../QuickAction';
 const DEFAULT_CPK_TARGET = 1.33;
 
 export interface CanvasWorkspaceProps {
+  canvasViewportHubId?: string | null;
   rawData: readonly DataRow[];
   outcome: string | null;
   factors: readonly string[];
@@ -160,6 +161,7 @@ function deriveUnassignedChips({
 }
 
 export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
+  canvasViewportHubId,
   rawData,
   outcome,
   factors,
@@ -201,7 +203,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   );
 
   const map: ProcessMap = processContext?.processMap ?? fallbackMap;
-  const hubId = normalizeProcessHubId(processContext?.processHubId);
+  const hubId = normalizeProcessHubId(canvasViewportHubId ?? processContext?.processHubId);
   const scope = detectScopeFromMap(map);
   const ctsColumn = map.ctsColumn;
   const ctsSpecs = ctsColumn ? measureSpecs[ctsColumn] : undefined;

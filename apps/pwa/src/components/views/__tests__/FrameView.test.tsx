@@ -123,6 +123,7 @@ vi.mock('@variscout/ui', async () => {
           : null
       ),
     CanvasWorkspace: (props: {
+      canvasViewportHubId?: string | null;
       signals: WorkflowReadinessSignals;
       onSeeData: () => void;
       onQuickAction?: (stepId: string) => void;
@@ -323,6 +324,7 @@ describe('FrameView (PWA shell)', () => {
         outcome: 'Fill_Weight',
         factors: ['Machine'],
         measureSpecs: { Fill_Weight: { target: 12 } },
+        canvasViewportHubId: 'hub-1',
         processContext: { currentUnderstanding: 'fill line' },
         setOutcome: setOutcomeMock,
         setFactors: setFactorsMock,
@@ -333,6 +335,21 @@ describe('FrameView (PWA shell)', () => {
         hypotheses: [{ id: 'hub-1' }],
         causalLinks: [{ id: 'link-1' }],
         signals: { hasIntervention: false, sustainmentConfirmed: false },
+      })
+    );
+  });
+
+  it('passes the active session hub id to CanvasWorkspace when process context has no hub id', () => {
+    storeStateRef.current = {
+      ...storeStateRef.current,
+      processContext: { currentUnderstanding: 'fill line' },
+    };
+
+    render(<FrameView />);
+
+    expect(hoisted.canvasWorkspaceMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        canvasViewportHubId: 'hub-1',
       })
     );
   });

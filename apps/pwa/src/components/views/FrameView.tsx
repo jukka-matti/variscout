@@ -98,6 +98,7 @@ const FrameView: React.FC = () => {
   const causalLinks = useInvestigationStore(s => s.causalLinks);
   const activeHub = useSession().hub;
   const activeHubId = activeHub?.id ?? null;
+  const canvasViewportHubId = processContext?.processHubId ?? activeHubId;
   const projectsByHub = useImprovementProjectStore(s => s.projectsByHub);
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
@@ -390,6 +391,7 @@ const FrameView: React.FC = () => {
         <InboxDigest prompts={inboxPrompts} onNavigate={handleInboxNavigate} />
       </div>
       <CanvasWorkspace
+        canvasViewportHubId={canvasViewportHubId}
         rawData={rawData}
         outcome={outcome}
         factors={factors}

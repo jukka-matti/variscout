@@ -1072,6 +1072,7 @@ function AppMain() {
               />
             ) : panels.activeView === 'investigation' ? (
               <InvestigationView
+                canvasViewportHubId={canvasViewportHubId ?? DEFAULT_PROCESS_HUB_ID}
                 filteredData={filteredData ?? []}
                 outcome={outcome}
                 factors={factors}
