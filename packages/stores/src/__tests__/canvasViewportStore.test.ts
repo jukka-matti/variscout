@@ -1,4 +1,5 @@
 import 'fake-indexeddb/auto';
+import Dexie from 'dexie';
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   useCanvasViewportStore,
@@ -198,6 +199,38 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
 describe('canvasViewportStore persistence', () => {
   beforeEach(() => {
     useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
+  });
+
+  it('clean-breaks an existing v1 project-keyed Dexie database before hub-keyed persistence', async () => {
+    await Dexie.delete('variscout-wall-layout');
+    const legacyDb = new Dexie('variscout-wall-layout');
+    legacyDb.version(1).stores({ snapshots: 'projectId,updatedAt' });
+    await legacyDb.table('snapshots').put({
+      projectId: 'legacy-project',
+      viewMode: 'wall',
+      nodePositions: { stale: { x: 1, y: 2 } },
+      zoom: 3,
+      pan: { x: 4, y: 5 },
+      railOpen: false,
+      updatedAt: 1,
+    });
+    legacyDb.close();
+
+    useCanvasViewportStore.getState().setViewMode('wall');
+    useCanvasViewportStore.getState().setZoom('hub-legacy-clean-break', 1.75);
+    useCanvasViewportStore
+      .getState()
+      .setNodePosition('hub-legacy-clean-break', 'node-1', { x: 10, y: 20 });
+
+    await expect(persistCanvasViewport('hub-legacy-clean-break')).resolves.toBeUndefined();
+
+    useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
+    await expect(rehydrateCanvasViewport('hub-legacy-clean-break')).resolves.toBeUndefined();
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
+    expect(useCanvasViewportStore.getState().getViewport('hub-legacy-clean-break')).toMatchObject({
+      zoom: 1.75,
+      nodePositions: { 'node-1': { x: 10, y: 20 } },
+    });
   });
 
   it('persists and rehydrates one hub viewport with viewMode and railOpen', async () => {

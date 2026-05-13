@@ -9,7 +9,6 @@
 // R12 exception: separate Dexie DB for cross-app canvas viewport UI state.
 import type { ProcessHub } from '@variscout/core';
 import type { CanvasLevel } from '@variscout/core/canvas';
-// eslint-disable-next-line no-restricted-imports -- R12 exception: annotation viewport state owns its Dexie cache.
 import Dexie, { type Table } from 'dexie';
 import { applyPatches, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { create } from 'zustand';
@@ -273,15 +272,14 @@ interface CanvasViewportSnapshotRow {
   updatedAt: number;
 }
 
+const CANVAS_VIEWPORT_DB_NAME = 'variscout-canvas-viewport';
+
 class CanvasViewportDB extends Dexie {
   snapshots!: Table<CanvasViewportSnapshotRow, string>;
 
   constructor() {
-    super('variscout-wall-layout');
-    this.version(1).stores({ snapshots: 'projectId,updatedAt' });
-    this.version(2)
-      .stores({ snapshots: 'hubId,updatedAt' })
-      .upgrade(tx => tx.table('snapshots').clear());
+    super(CANVAS_VIEWPORT_DB_NAME);
+    this.version(2).stores({ snapshots: 'hubId,updatedAt' });
   }
 }
 
