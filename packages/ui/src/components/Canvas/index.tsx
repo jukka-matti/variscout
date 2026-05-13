@@ -1022,6 +1022,10 @@ export const Canvas: React.FC<CanvasProps> = ({
       onOpenInvestigationFocus={onOpenInvestigationFocus}
       onOpenColumnDetail={onOpenColumnDetail}
       onLogQuickAction={onLogQuickAction}
+      onFocusedInvestigation={onFocusedInvestigation}
+      onCharter={onCharter}
+      onSustainment={onSustainment}
+      onHandoff={onHandoff}
     />
   ) : (
     <NoFocalStepPrompt hubId={hubId} map={map} />

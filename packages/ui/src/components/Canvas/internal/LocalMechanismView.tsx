@@ -35,6 +35,10 @@ export interface LocalMechanismViewProps {
   onOpenInvestigationFocus?: (focus: { kind: 'question'; id: string; questionId: string }) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
+  onFocusedInvestigation?: (stepId: string) => void;
+  onCharter?: (stepId: string) => void;
+  onSustainment?: (stepId: string) => void;
+  onHandoff?: (stepId: string) => void;
 }
 
 const EMPTY_ROWS: ReadonlyArray<DataRow> = [];
@@ -177,6 +181,10 @@ function ColumnMiniChart({
   locale,
   onOpenColumnDetail,
   onOpenQuickAction,
+  onFocusedInvestigation,
+  onCharter,
+  onSustainment,
+  onHandoff,
 }: {
   column: string;
   kind: string | undefined;
@@ -185,6 +193,10 @@ function ColumnMiniChart({
   locale: Locale;
   onOpenColumnDetail?: (column: string) => void;
   onOpenQuickAction: (column: string) => void;
+  onFocusedInvestigation?: (column: string) => void;
+  onCharter?: (column: string) => void;
+  onSustainment?: (column: string) => void;
+  onHandoff?: (column: string) => void;
 }) {
   const values = numericValues(rows, column);
   const categories = distribution(rows, column);
@@ -212,6 +224,54 @@ function ColumnMiniChart({
           {getMessage(locale, 'canvas.localMechanism.actionButton')}
         </button>
       </div>
+      {onFocusedInvestigation || onCharter || onSustainment || onHandoff ? (
+        <div className="flex flex-wrap gap-1" data-testid="response-path-ctas">
+          {onFocusedInvestigation ? (
+            <button
+              type="button"
+              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
+              aria-label={formatMessage(locale, 'canvas.localMechanism.focusedInvestigationAria', {
+                column,
+              })}
+              onClick={() => onFocusedInvestigation(column)}
+            >
+              {getMessage(locale, 'canvas.localMechanism.focusedInvestigation')}
+            </button>
+          ) : null}
+          {onCharter ? (
+            <button
+              type="button"
+              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
+              aria-label={formatMessage(locale, 'canvas.localMechanism.charterAria', { column })}
+              onClick={() => onCharter(column)}
+            >
+              {getMessage(locale, 'canvas.localMechanism.charter')}
+            </button>
+          ) : null}
+          {onSustainment ? (
+            <button
+              type="button"
+              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
+              aria-label={formatMessage(locale, 'canvas.localMechanism.sustainmentAria', {
+                column,
+              })}
+              onClick={() => onSustainment(column)}
+            >
+              {getMessage(locale, 'canvas.localMechanism.sustainment')}
+            </button>
+          ) : null}
+          {onHandoff ? (
+            <button
+              type="button"
+              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
+              aria-label={formatMessage(locale, 'canvas.localMechanism.handoffAria', { column })}
+              onClick={() => onHandoff(column)}
+            >
+              {getMessage(locale, 'canvas.localMechanism.handoff')}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
       <button
         type="button"
         data-testid="column-mini-chart"
@@ -267,6 +327,10 @@ export function LocalMechanismView({
   onOpenInvestigationFocus,
   onOpenColumnDetail,
   onLogQuickAction,
+  onFocusedInvestigation,
+  onCharter,
+  onSustainment,
+  onHandoff,
 }: LocalMechanismViewProps) {
   const locale = useWallLocale();
   const questions = useInvestigationStore(state => state.questions);
@@ -371,6 +435,12 @@ export function LocalMechanismView({
             locale={locale}
             onOpenColumnDetail={columnName => onOpenColumnDetail?.(columnName, focalStepId)}
             onOpenQuickAction={setQuickActionColumn}
+            onFocusedInvestigation={
+              onFocusedInvestigation ? () => onFocusedInvestigation(focalStepId) : undefined
+            }
+            onCharter={onCharter ? () => onCharter(focalStepId) : undefined}
+            onSustainment={onSustainment ? () => onSustainment(focalStepId) : undefined}
+            onHandoff={onHandoff ? () => onHandoff(focalStepId) : undefined}
           />
         ))}
       </div>

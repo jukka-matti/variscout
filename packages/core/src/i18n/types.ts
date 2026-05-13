@@ -1194,4 +1194,12 @@ export interface MessageCatalog {
   'canvas.localMechanism.openChartAria': string;
   'canvas.localMechanism.openColumnAria': string;
   'canvas.localMechanism.quickActionTitle': string;
+  'canvas.localMechanism.focusedInvestigation': string;
+  'canvas.localMechanism.charter': string;
+  'canvas.localMechanism.sustainment': string;
+  'canvas.localMechanism.handoff': string;
+  'canvas.localMechanism.focusedInvestigationAria': string;
+  'canvas.localMechanism.charterAria': string;
+  'canvas.localMechanism.sustainmentAria': string;
+  'canvas.localMechanism.handoffAria': string;
 }

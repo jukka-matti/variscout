@@ -1115,4 +1115,12 @@ export const fr: MessageCatalog = {
   'canvas.localMechanism.openChartAria': 'Open {column} details mini chart',
   'canvas.localMechanism.openColumnAria': 'Open {column} details',
   'canvas.localMechanism.quickActionTitle': '{column} quick action',
+  'canvas.localMechanism.focusedInvestigation': 'Investigate',
+  'canvas.localMechanism.charter': 'Charter',
+  'canvas.localMechanism.sustainment': 'Sustain',
+  'canvas.localMechanism.handoff': 'Handoff',
+  'canvas.localMechanism.focusedInvestigationAria': 'Start focused investigation for {column}',
+  'canvas.localMechanism.charterAria': 'Open improvement charter for {column}',
+  'canvas.localMechanism.sustainmentAria': 'Open sustainment for {column}',
+  'canvas.localMechanism.handoffAria': 'Open handoff for {column}',
 };
