@@ -3,7 +3,7 @@
  *
  * In V1 it renders a CoScout suggestion feed. Takes a list of messages and
  * renders them in chronological order. Hideable via the `isOpen` prop;
- * parent controls visibility via `wallLayoutStore.railOpen`.
+ * parent controls visibility via `useCanvasViewportStore().railOpen`.
  *
  * When closed, renders a minimal button so the analyst can reopen.
  * This is an HTML panel (not SVG), rendered alongside the wall canvas.
