@@ -22,7 +22,12 @@ import type {
   GatePath,
 } from '@variscout/core';
 import type { ColumnTypeMap } from '@variscout/core/findings';
-import { conditionHasMissingColumn, projectMechanismBranch } from '@variscout/core';
+import {
+  collectStepColumns,
+  conditionHasMissingColumn,
+  conditionReferencesStep,
+  projectMechanismBranch,
+} from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { surveyWallRules } from '@variscout/core/survey';
 import { ProblemConditionCard } from './ProblemConditionCard';
@@ -87,6 +92,11 @@ export interface WallCanvasProps {
    * the active Hub's canvas viewport.
    */
   groupByTributary?: boolean;
+  /**
+   * Optional focal-step filter. When provided, only hubs whose condition
+   * references a column mapped to this ProcessMap step are rendered.
+   */
+  filterByStepId?: string;
   /** Dataset rows forwarded to each HypothesisCard to populate the mini-chart slot. */
   rows?: ReadonlyArray<Record<string, unknown>>;
   /** Column type map (from `detectColumns`) forwarded to each HypothesisCard. */
@@ -160,12 +170,21 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   rows,
   columnTypes,
   outcomeColumn,
+  filterByStepId,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const locale = useWallLocale();
+  const filteredHubs = useMemo(() => {
+    if (!filterByStepId) return hubs;
+    return hubs.filter(hub => conditionReferencesStep(hub.condition, processMap, filterByStepId));
+  }, [filterByStepId, hubs, processMap]);
+  const focalStepColumns = useMemo(
+    () => (filterByStepId ? collectStepColumns(processMap, filterByStepId) : null),
+    [filterByStepId, processMap]
+  );
   const surveyHints = useMemo(
-    () => surveyWallRules({ hypotheses: hubs, findings }),
-    [hubs, findings]
+    () => surveyWallRules({ hypotheses: filteredHubs, findings }),
+    [filteredHubs, findings]
   );
   // Hub gets the warning badge when it has a data-collection hint —
   // i.e., it's evidenced but lacks triangulation evidence.
@@ -181,7 +200,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     [activeColumns]
   );
   const branchByHubId = useMemo(() => {
-    const entries = hubs.map(
+    const entries = filteredHubs.map(
       hub =>
         [
           hub.id,
@@ -193,7 +212,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         ] as const
     );
     return new Map(entries);
-  }, [findings, hubs, processMap, questions]);
+  }, [filteredHubs, findings, processMap, questions]);
   // Tributary clustering: bucket each hub by its first matching tributary.
   // Unmatched hubs (no tributaryIds, or none intersecting processMap) drop
   // into an "unassigned" bucket rendered without a frame. Order matches
@@ -210,7 +229,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     };
     const buckets: Bucket[] = tributaries.map(t => ({ tributary: t, hubs: [] }));
     const unassigned: Bucket = { tributary: null, hubs: [] };
-    for (const hub of hubs) {
+    for (const hub of filteredHubs) {
       const matchId = hub.tributaryIds?.find(id => tributaryById.has(id));
       if (matchId) {
         const b = buckets.find(bk => bk.tributary?.id === matchId);
@@ -220,7 +239,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       }
     }
     return [...buckets, unassigned].filter(b => b.hubs.length > 0);
-  }, [groupByTributary, hubs, processMap]);
+  }, [filteredHubs, groupByTributary, processMap]);
 
   const dndEnabled = mode === 'destination' && Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
@@ -228,14 +247,17 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   useCanvasViewportInput({
     hubId: hubId ?? '__wall-canvas-unbound__',
     ref: svgRef,
-    disabled: mode !== 'destination' || !hubId || isMobile || hubs.length === 0,
+    disabled: mode !== 'destination' || !hubId || isMobile || filteredHubs.length === 0,
     filter: shouldHandleWallPanInput,
   });
-  const openQuestions = questions.filter(
-    q => q.status === 'open' && !hubs.some(h => h.questionIds.includes(q.id))
-  );
+  const openQuestions = questions.filter(q => {
+    if (q.status !== 'open') return false;
+    if (hubs.some(h => h.questionIds.includes(q.id))) return false;
+    if (focalStepColumns && (!q.factor || !focalStepColumns.has(q.factor))) return false;
+    return true;
+  });
 
-  if (mode === 'overlay' && hubs.length === 0 && openQuestions.length === 0) {
+  if (mode === 'overlay' && filteredHubs.length === 0 && openQuestions.length === 0) {
     // Overlay mode: render a blank SVG so the wrapper owns empty-state semantics.
     return (
       <svg
@@ -257,7 +279,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     return (
       <div className="w-full h-full flex flex-col">
         <MobileCardList
-          hubs={hubs}
+          hubs={filteredHubs}
           findings={findings}
           questions={questions}
           processMap={processMap}
@@ -273,7 +295,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     );
   }
 
-  if (mode === 'destination' && hubs.length === 0) {
+  if (mode === 'destination' && filteredHubs.length === 0) {
     return (
       <EmptyState
         onWriteHypothesis={onWriteHypothesis}
@@ -285,7 +307,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
 
   const problemLabel = processMap?.ctsColumn ?? 'CTS';
   const hubY = 400;
-  const hubSpacing = CANVAS_W / (hubs.length + 1);
+  const hubSpacing = CANVAS_W / (filteredHubs.length + 1);
 
   const renderHubAt = (hub: Hypothesis, x: number) => {
     const hubProps = {
@@ -380,7 +402,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
                   );
                 });
               })()
-            : hubs.map((hub, idx) => renderHubAt(hub, hubSpacing * (idx + 1)))}
+            : filteredHubs.map((hub, idx) => renderHubAt(hub, hubSpacing * (idx + 1)))}
 
           {openQuestions.map((q, idx) => (
             <QuestionPill
@@ -397,7 +419,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           {processMap && (
             <TributaryFooter
               tributaries={processMap.tributaries}
-              hubs={hubs}
+              hubs={filteredHubs}
               y={1300}
               canvasWidth={CANVAS_W}
             />

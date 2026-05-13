@@ -20,9 +20,16 @@ import {
   useCanvasStepCards,
   useSharedWallProps,
 } from '@variscout/hooks';
-import { useCanvasStore } from '@variscout/stores';
+import {
+  getCanvasViewportInitialState,
+  useCanvasStore,
+  useCanvasViewportStore,
+} from '@variscout/stores';
 
 const wallIsMobileRef = vi.hoisted(() => ({ current: false }));
+const localMechanismPropsRef = vi.hoisted(() => ({
+  current: null as Record<string, unknown> | null,
+}));
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -104,6 +111,16 @@ vi.mock('@dnd-kit/core', () => ({
     isOver: false,
   }),
 }));
+
+vi.mock('../internal/LocalMechanismView', async () => {
+  const React = await import('react');
+  return {
+    LocalMechanismView: (props: Record<string, unknown>) => {
+      localMechanismPropsRef.current = props;
+      return React.createElement('div', { 'data-testid': 'local-mechanism-view' });
+    },
+  };
+});
 
 const canvasFiltersStateRef: {
   current: {
@@ -553,7 +570,9 @@ function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWo
 describe('CanvasWorkspace', () => {
   beforeEach(() => {
     wallIsMobileRef.current = false;
+    localMechanismPropsRef.current = null;
     useCanvasStore.setState(useCanvasStore.getInitialState());
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
     vi.mocked(useSharedWallProps).mockClear();
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
@@ -615,6 +634,21 @@ describe('CanvasWorkspace', () => {
         priorStepStats,
       })
     );
+  });
+
+  it('threads raw rows from CanvasWorkspace into the L3 local mechanism view', () => {
+    useCanvasViewportStore.getState().setLevel('hub-workspace-l3', 'l3', 'step-1');
+
+    renderWorkspace({
+      canvasViewportHubId: 'hub-workspace-l3',
+      processContext: { processMap: mapWithStep() },
+    });
+
+    expect(screen.getByTestId('local-mechanism-view')).toBeInTheDocument();
+    expect(localMechanismPropsRef.current).toMatchObject({
+      rows: rawData,
+      outcomeColumn: 'Fill_Weight',
+    });
   });
 
   it('wires lens changes through session canvas filters', () => {

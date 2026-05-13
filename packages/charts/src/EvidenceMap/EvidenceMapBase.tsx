@@ -27,6 +27,7 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
   factorNodes,
   relationshipEdges,
   equation,
+  stepColumns,
   causalEdges = [],
   convergencePoints = [],
   onFactorClick,
@@ -52,8 +53,25 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
   const height = Math.max(parentHeight, MIN_HEIGHT);
 
   const chrome = getChromeColors(isDark);
+  const stepColumnSet = stepColumns ? new Set(stepColumns) : null;
+  const visibleFactorNodes = stepColumnSet
+    ? factorNodes.filter(node => stepColumnSet.has(node.factor))
+    : factorNodes;
+  const visibleRelationshipEdges = stepColumnSet
+    ? relationshipEdges.filter(
+        edge => stepColumnSet.has(edge.factorA) && stepColumnSet.has(edge.factorB)
+      )
+    : relationshipEdges;
+  const visibleCausalEdges = stepColumnSet
+    ? causalEdges.filter(
+        edge => stepColumnSet.has(edge.fromFactor) && stepColumnSet.has(edge.toFactor)
+      )
+    : causalEdges;
+  const visibleConvergencePoints = stepColumnSet
+    ? convergencePoints.filter(point => stepColumnSet.has(point.factor))
+    : convergencePoints;
 
-  if (factorNodes.length === 0) {
+  if (visibleFactorNodes.length === 0) {
     return (
       <svg width={width} height={height} role="img" aria-label="Evidence Map — no data">
         <rect width={width} height={height} fill="transparent" />
@@ -83,7 +101,7 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
     <Group>
       {/* Layer 3: Synthesis (behind everything else for zone rendering) */}
       <SynthesisLayer
-        convergencePoints={convergencePoints}
+        convergencePoints={visibleConvergencePoints}
         isDark={isDark}
         onConvergenceClick={onConvergenceClick}
       />
@@ -91,8 +109,8 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
       {/* Layer 1: Statistical (factor nodes, edges, equation) */}
       <StatisticalLayer
         outcomeNode={outcomeNode}
-        factorNodes={factorNodes}
-        relationshipEdges={relationshipEdges}
+        factorNodes={visibleFactorNodes}
+        relationshipEdges={visibleRelationshipEdges}
         equation={equation}
         highlightedFactor={highlightedFactor}
         highlightedEdge={highlightedEdge ?? null}
@@ -115,7 +133,7 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
 
       {/* Layer 2: Investigation (causal links overlay) */}
       <InvestigationLayer
-        causalEdges={causalEdges}
+        causalEdges={visibleCausalEdges}
         highlightedEdge={highlightedEdge ?? null}
         isDark={isDark}
         onCausalEdgeClick={onCausalEdgeClick}
@@ -123,7 +141,7 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
     </Group>
   );
 
-  const ariaLabel = `Evidence Map: ${factorNodes.length} factors, ${causalEdges.length} causal links`;
+  const ariaLabel = `Evidence Map: ${visibleFactorNodes.length} factors, ${visibleCausalEdges.length} causal links`;
 
   if (enableZoom) {
     return (

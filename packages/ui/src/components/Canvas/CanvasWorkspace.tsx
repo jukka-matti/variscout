@@ -74,6 +74,7 @@ export interface CanvasWorkspaceProps {
   ) => void;
   onRemoveCausalLink?: (linkId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
+  onOpenColumnDetail?: (column: string, stepId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
   onNavigateContextLink?: (item: ContextLinkItem) => void;
   priorStepStats?: ReadonlyMap<string, StepCapabilityStamp>;
@@ -190,6 +191,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onAddCausalLink,
   onRemoveCausalLink,
   onOpenInvestigationFocus,
+  onOpenColumnDetail,
   contextLinkGroups,
   onNavigateContextLink,
   priorStepStats,
@@ -468,6 +470,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     <Canvas
       hubId={hubId}
       map={map}
+      rows={rawData}
       availableColumns={availableColumns}
       onChange={handleChange}
       gaps={gaps}
@@ -511,6 +514,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onSustainment={onSustainment}
       onHandoff={onHandoff}
       onOpenInvestigationFocus={onOpenInvestigationFocus}
+      onOpenColumnDetail={onOpenColumnDetail}
       contextLinkGroups={contextLinkGroups}
       onNavigateContextLink={onNavigateContextLink}
       actionItems={actionItems}

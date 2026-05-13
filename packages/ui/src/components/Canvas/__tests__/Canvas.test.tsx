@@ -2,6 +2,9 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 import type { ComponentProps } from 'react';
 
 const wallIsMobileRef = vi.hoisted(() => ({ current: false }));
+const localMechanismPropsRef = vi.hoisted(() => ({
+  current: null as Record<string, unknown> | null,
+}));
 
 vi.mock('@variscout/charts', async () => {
   const React = await import('react');
@@ -44,6 +47,21 @@ vi.mock('../../InvestigationWall', async () => {
         },
         React.createElement('button', { type: 'button' }, 'role button target')
       ),
+  };
+});
+
+vi.mock('../internal/LocalMechanismView', async () => {
+  const React = await import('react');
+  return {
+    LocalMechanismView: (props: Record<string, unknown>) => {
+      localMechanismPropsRef.current = props;
+      return React.createElement('div', {
+        'data-testid': 'local-mechanism-view',
+        'data-focal-step-id': String(props.focalStepId),
+        'data-row-count': String((props.rows as readonly unknown[] | undefined)?.length ?? 0),
+        'data-outcome-column': String(props.outcomeColumn ?? ''),
+      });
+    },
   };
 });
 
@@ -263,6 +281,7 @@ describe('Canvas', () => {
   beforeEach(() => {
     setViewport(1024, 768);
     wallIsMobileRef.current = false;
+    localMechanismPropsRef.current = null;
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
     useInvestigationStore.setState(getInvestigationInitialState());
   });
@@ -346,22 +365,53 @@ describe('Canvas', () => {
     expect(useCanvasViewportStore.getState().getViewport(hubId).currentLevel).toBe('l2');
   });
 
-  it('renders the bare L3 placeholder when no focal step is selected', () => {
-    useCanvasViewportStore.getState().setZoom('hub-l3-placeholder', 2.5);
+  it('falls back to the first ordered step when L3 has no focal step selected', async () => {
+    const hubId = 'hub-l3-fallback';
+    useCanvasViewportStore.getState().setZoom(hubId, 2.5);
 
-    renderCanvas({ hubId: 'hub-l3-placeholder' });
+    renderCanvas({
+      hubId,
+      map: {
+        ...mapWithSteps,
+        nodes: [
+          { id: 'step-2', name: 'Fill', order: 1 },
+          { id: 'step-1', name: 'Mix', order: 0 },
+        ],
+      },
+    });
 
-    expect(screen.getByText('Need focal step for L3')).toBeInTheDocument();
+    expect(await screen.findByTestId('local-mechanism-view')).toHaveAttribute(
+      'data-focal-step-id',
+      'step-1'
+    );
+    expect(useCanvasViewportStore.getState().getViewport(hubId).focalStepId).toBe('step-1');
     expect(screen.queryByTestId('canvas-card-surface')).not.toBeInTheDocument();
     expect(screen.getByTestId('canvas-lod-input-surface')).toBeInTheDocument();
   });
 
-  it('renders the L3 placeholder when a focal step is selected', () => {
+  it('renders the L3 local mechanism view when a focal step is selected', () => {
     useCanvasViewportStore.getState().setLevel('hub-l3-canvas', 'l3', 'step-1');
 
-    renderCanvas({ hubId: 'hub-l3-canvas' });
+    const rows = [{ Pressure: 10 }, { Pressure: 11 }];
+    renderCanvas({ hubId: 'hub-l3-canvas', rows, map: { ...mapWithSteps, ctsColumn: 'Defect' } });
 
-    expect(screen.getByText('Local mechanism coming next')).toBeInTheDocument();
+    expect(screen.getByTestId('local-mechanism-view')).toHaveAttribute(
+      'data-focal-step-id',
+      'step-1'
+    );
+    expect(screen.getByTestId('local-mechanism-view')).toHaveAttribute('data-row-count', '2');
+    expect(screen.getByTestId('local-mechanism-view')).toHaveAttribute(
+      'data-outcome-column',
+      'Defect'
+    );
+    expect(localMechanismPropsRef.current).toMatchObject({
+      hubId: 'hub-l3-canvas',
+      focalStepId: 'step-1',
+      map: expect.any(Object),
+      rows,
+      findings: [],
+      activeColumns: ['Pressure', 'Defect'],
+    });
     expect(screen.queryByTestId('canvas-card-surface')).not.toBeInTheDocument();
   });
 

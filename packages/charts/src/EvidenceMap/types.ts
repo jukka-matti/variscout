@@ -37,6 +37,8 @@ export interface EvidenceMapBaseProps {
   factorNodes: FactorNodeData[];
   relationshipEdges: RelationshipEdgeData[];
   equation: EquationData | null;
+  /** Optional factor-column allowlist; relationship/causal edges require both endpoints to match. */
+  stepColumns?: readonly string[];
 
   // Layer 2: Investigation (Azure only, optional)
   causalEdges?: CausalEdgeData[];

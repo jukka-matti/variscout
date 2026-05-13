@@ -26,11 +26,13 @@ import {
 import type { ProcessMap, Gap } from '@variscout/core/frame';
 import {
   DEFAULT_PROCESS_HUB_ID,
+  detectColumns,
+  type DataRow,
   type Finding,
   type SpecLimits,
   type WorkflowReadinessSignals,
 } from '@variscout/core';
-import type { ActionItem } from '@variscout/core/findings';
+import type { ActionItem, ColumnTypeMap } from '@variscout/core/findings';
 import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
 import {
   type ProductionLineGlanceFilterStripProps,
@@ -56,6 +58,8 @@ import { CanvasStepCard } from './internal/CanvasStepCard';
 import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
 import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
+import { LocalMechanismView } from './internal/LocalMechanismView';
+import { NoFocalStepPrompt, sortedProcessSteps } from './internal/NoFocalStepPrompt';
 import { useWallIsMobile } from '../InvestigationWall';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 import type { LogActionPayload } from '../QuickAction';
@@ -151,6 +155,7 @@ export interface CanvasProps {
     ProductionLineGlanceDashboardProps,
     'cpkTrend' | 'cpkGapTrend' | 'capabilityNodes' | 'errorSteps'
   >;
+  rows?: readonly DataRow[];
   filter: ProductionLineGlanceFilterStripProps;
   mode?: CanvasAuthoringMode;
   onModeChange?: (next: CanvasAuthoringMode) => void;
@@ -202,6 +207,8 @@ export interface CanvasProps {
   eventsPerWeek?: number;
   activeColumns?: ReadonlyArray<string>;
   onOpenWall?: () => void;
+  onSelectWallHub?: (hubId: string) => void;
+  onOpenColumnDetail?: (column: string, stepId: string) => void;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
@@ -263,6 +270,9 @@ export const Canvas: React.FC<CanvasProps> = ({
   eventsPerWeek,
   activeColumns,
   onOpenWall,
+  onSelectWallHub,
+  onOpenColumnDetail,
+  rows,
 }) => {
   const isAuthorMode = authoringMode === 'author';
   const viewport = useCanvasViewportStore(s =>
@@ -285,6 +295,14 @@ export const Canvas: React.FC<CanvasProps> = ({
       wallIsMobile ? availableOverlays.filter(overlay => overlay !== 'wall') : availableOverlays,
     [availableOverlays, wallIsMobile]
   );
+  const sortedSteps = React.useMemo(() => sortedProcessSteps(map), [map]);
+  const firstStepId = sortedSteps[0]?.id;
+  const columnTypes = React.useMemo<ColumnTypeMap>(() => {
+    if (!rows || rows.length === 0) return {};
+    return Object.fromEntries(
+      detectColumns([...rows]).columnAnalysis.map(column => [column.name, column.type])
+    );
+  }, [rows]);
   const canPlaceChips = isAuthorMode && !disabled && chips.length > 0;
   const showChipRail = canPlaceChips && viewport.currentLevel === 'l2';
   const [pendingStepChipId, setPendingStepChipId] = React.useState<string | null>(null);
@@ -386,6 +404,11 @@ export const Canvas: React.FC<CanvasProps> = ({
     filter: shouldHandleCanvasViewportInput,
   });
   useCanvasViewportShortcuts({ hubId, disabled });
+
+  React.useEffect(() => {
+    if (viewport.currentLevel !== 'l3' || viewport.focalStepId || !firstStepId) return;
+    useCanvasViewportStore.getState().setLevel(hubId, 'l3', firstStepId);
+  }, [firstStepId, hubId, viewport.currentLevel, viewport.focalStepId]);
 
   const stepMetricColumns = React.useMemo(() => {
     const out: Record<string, string | undefined> = {};
@@ -858,17 +881,33 @@ export const Canvas: React.FC<CanvasProps> = ({
       System level coming next
     </div>
   );
-  const l3Placeholder = (
-    <div className="bg-surface-background p-6 text-sm font-medium text-content-secondary">
-      {viewport.focalStepId ? 'Local mechanism coming next' : 'Need focal step for L3'}
-    </div>
+  const l3Content = viewport.focalStepId ? (
+    <LocalMechanismView
+      hubId={hubId}
+      focalStepId={viewport.focalStepId}
+      map={map}
+      rows={rows ?? []}
+      outcomeColumn={map.ctsColumn}
+      columnTypes={columnTypes}
+      findings={[...findings]}
+      problemCpk={problemCpk ?? 0}
+      eventsPerWeek={eventsPerWeek ?? 0}
+      activeColumns={activeColumns ?? availableColumns}
+      onOpenWall={onOpenWall}
+      onSelectWallHub={onSelectWallHub}
+      onOpenInvestigationFocus={onOpenInvestigationFocus}
+      onOpenColumnDetail={onOpenColumnDetail}
+      onLogQuickAction={onLogQuickAction}
+    />
+  ) : (
+    <NoFocalStepPrompt hubId={hubId} map={map} />
   );
   const levelContent = (
     <LODSwitcher
       currentLevel={viewport.currentLevel}
       l1={l1Placeholder}
       l2={canvasContent}
-      l3={l3Placeholder}
+      l3={l3Content}
     />
   );
   const desktopLevelContent = (
@@ -890,6 +929,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                 hubId={hubId}
                 currentLevel={viewport.currentLevel}
                 focalStepId={viewport.focalStepId}
+                availableStepIds={sortedSteps.map(step => step.id)}
                 disabled={disabled}
               />
               {levelContent}
