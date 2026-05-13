@@ -1,5 +1,6 @@
 import { useEffect, useRef, type RefObject } from 'react';
 import { select } from 'd3-selection';
+import 'd3-transition'; // augments Selection with .transition()
 import { zoom, zoomIdentity, type D3ZoomEvent } from 'd3-zoom';
 import { useCanvasViewportStore, type ProcessHubId } from '@variscout/stores';
 import { LOD_SNAP_BOUNDARIES, LOD_THRESHOLDS } from '@variscout/core/canvas';
