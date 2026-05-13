@@ -70,6 +70,7 @@ export function CanvasWallOverlay({
     <div
       ref={overlayRef}
       data-testid="canvas-wall-overlay"
+      data-canvas-wall-overlay=""
       className={[
         'absolute inset-0 z-[15] h-full w-full overflow-hidden',
         isDrawingHypothesis ? 'pointer-events-none' : 'pointer-events-auto',

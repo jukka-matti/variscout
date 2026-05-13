@@ -33,13 +33,17 @@ vi.mock('../../InvestigationWall', async () => {
       eventsPerWeek?: unknown;
       activeColumns?: ReadonlyArray<string>;
     }) =>
-      React.createElement('div', {
-        'data-testid': 'wall-canvas',
-        'data-findings-count': String(findings?.length ?? 0),
-        'data-problem-cpk': String(problemCpk),
-        'data-events-per-week': String(eventsPerWeek),
-        'data-active-columns': (activeColumns ?? []).join(','),
-      }),
+      React.createElement(
+        'div',
+        {
+          'data-testid': 'wall-canvas',
+          'data-findings-count': String(findings?.length ?? 0),
+          'data-problem-cpk': String(problemCpk),
+          'data-events-per-week': String(eventsPerWeek),
+          'data-active-columns': (activeColumns ?? []).join(','),
+        },
+        React.createElement('button', { type: 'button' }, 'role button target')
+      ),
   };
 });
 
@@ -236,6 +240,23 @@ function renderCanvas(overrides: Partial<ComponentProps<typeof Canvas>> = {}) {
   };
   render(<Canvas {...props} />);
   return props;
+}
+
+function sizeElementForD3Zoom(element: HTMLElement) {
+  Object.defineProperty(element, 'clientWidth', { configurable: true, value: 400 });
+  Object.defineProperty(element, 'clientHeight', { configurable: true, value: 300 });
+  element.getBoundingClientRect = () =>
+    ({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 400,
+      bottom: 300,
+      width: 400,
+      height: 300,
+      toJSON: () => ({}),
+    }) as DOMRect;
 }
 
 describe('Canvas', () => {
@@ -553,6 +574,44 @@ describe('Canvas', () => {
       'data-active-columns',
       'Machine,Defect'
     );
+  });
+
+  it('does not let Wall overlay controls bubble into the L2 viewport input', () => {
+    const hubId = 'hub-wall-overlay-nested-input';
+    useInvestigationStore.getState().addQuestion('Does pressure explain defect clusters?');
+
+    renderCanvas({
+      hubId,
+      activeOverlays: ['wall'],
+      findings: [wallFinding],
+    });
+
+    sizeElementForD3Zoom(screen.getByTestId('canvas-card-surface'));
+    const overlay = screen.getByTestId('canvas-wall-overlay');
+    sizeElementForD3Zoom(overlay);
+
+    fireEvent.wheel(screen.getByRole('button', { name: /role button target/i }), {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -180,
+      clientX: 200,
+      clientY: 150,
+    });
+
+    expect(useCanvasViewportStore.getState().getViewport(hubId)).toMatchObject({
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    });
+
+    fireEvent.wheel(overlay, {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -180,
+      clientX: 200,
+      clientY: 150,
+    });
+
+    expect(useCanvasViewportStore.getState().getViewport(hubId).zoom).toBeGreaterThan(1);
   });
 
   it('hides the Wall overlay toggle on mobile and shows the Wall shortcut when content exists', () => {

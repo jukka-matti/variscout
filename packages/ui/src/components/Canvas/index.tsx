@@ -89,6 +89,11 @@ const EMPTY_QUESTIONS: CanvasQuestionOption[] = [];
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
 const EMPTY_FINDINGS: Finding[] = [];
 const DEFAULT_CANVAS_VIEWPORT = { zoom: 1, pan: { x: 0, y: 0 } };
+const CANVAS_VIEWPORT_IGNORED_TARGET = '[data-canvas-wall-overlay]';
+
+function shouldHandleCanvasViewportInput(event: Event): boolean {
+  return !(event.target instanceof Element && event.target.closest(CANVAS_VIEWPORT_IGNORED_TARGET));
+}
 
 function areArrowSegmentsEqual(left: ArrowSegment[], right: ArrowSegment[]) {
   if (left.length !== right.length) return false;
@@ -367,6 +372,7 @@ export const Canvas: React.FC<CanvasProps> = ({
     hubId,
     ref: cardSurfaceRef,
     disabled: disabled || activeCanvasTool === 'draw-hypothesis',
+    filter: shouldHandleCanvasViewportInput,
   });
 
   const stepMetricColumns = React.useMemo(() => {
