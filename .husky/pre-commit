@@ -1,6 +1,7 @@
 # Fast checks only on code-only commits (<5s). When docs/CLAUDE.md/packages/*/src/index.ts
-# are staged, the slow doc-graph checks (docs:check, check-dead-links.sh) also run here so
-# orphans/broken links are caught at commit time. They also run unconditionally on pre-push.
+# are staged, an incremental doc-graph check (check-diagram-health.sh --incremental) plus
+# check-dead-links.sh run here so orphans/broken links are caught at commit time.
+# Pre-push runs the full pnpm docs:check + check-dead-links.sh unconditionally.
 
 npx lint-staged --concurrent false
 
