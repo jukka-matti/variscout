@@ -74,6 +74,10 @@ export const MobileLevelPicker: React.FC<MobileLevelPickerProps> = ({
               if (level === 'l3' && availableFocalStepId) {
                 setLevel(hubId, level, availableFocalStepId);
               } else if (level === 'l3') {
+                // No focal step available — clear focalStepId via setLevel to l2
+                // then immediately zoom to 2.5 (inferLevel → l3) so the final
+                // committed state is l3 with no focalStepId. Canvas then renders
+                // NoFocalStepPrompt (the step-list surface) at l3 per spec §7.
                 setLevel(hubId, 'l2');
                 setZoom(hubId, 2.5);
                 return;
