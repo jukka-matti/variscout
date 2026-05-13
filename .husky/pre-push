@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# pre-push — warn (non-blocking) if pushing product code directly to main.
+# pre-push — two responsibilities:
+#   1. Blocking: run slow doc-graph checks (docs:check, check-dead-links.sh)
+#      demoted from pre-commit. Either failure aborts the push.
+#   2. Non-blocking: warn if pushing product code directly to main.
 #
 # Git supplies ref updates on stdin, one per line:
 #   <local-ref> <local-sha> <remote-ref> <remote-sha>
@@ -10,6 +13,15 @@
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
+# --- Blocking doc-graph checks (demoted from pre-commit) ---
+# Run pnpm docs:check locally to iterate without re-pushing.
+echo "pre-push: running docs:check (may take ~3 min)…"
+pnpm docs:check || { echo "pre-push: docs:check failed — run 'pnpm docs:check' to diagnose." >&2; exit 1; }
+
+echo "pre-push: running check-dead-links.sh…"
+bash "$ROOT/scripts/check-dead-links.sh" || { echo "pre-push: check-dead-links.sh failed — fix broken links and retry." >&2; exit 1; }
+
+# --- Non-blocking direct-to-main warning ---
 while read -r local_ref local_sha remote_ref remote_sha; do
   [ -z "$remote_ref" ] && continue
   [ "$remote_ref" != "refs/heads/main" ] && continue

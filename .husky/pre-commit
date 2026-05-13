@@ -1,8 +1,7 @@
-npx lint-staged --concurrent false
+# Fast checks only (<5s). Slow doc-graph checks (docs:check, check-dead-links.sh)
+# were moved to pre-push so they still gate remote pushes without blocking every commit.
 
-# Documentation health — blocks commit if drift is found.
-# Run `pnpm docs:sync` to auto-fix count drift, or fix manually.
-pnpm docs:check
+npx lint-staged --concurrent false
 
 # SSOT check — warn if CLAUDE.md sections duplicate content across files
 bash scripts/check-ssot.sh
@@ -12,9 +11,6 @@ bash scripts/check-level-boundaries.sh
 
 # CLAUDE.md size check — fail if >120% of per-file budget
 bash scripts/check-claude-md-size.sh
-
-# Dead-link check — warn until 2026-05-01, then fail
-bash scripts/check-dead-links.sh
 
 # Decision-log reminder — warning-only, never blocks
 bash scripts/decision-log-reminder.sh
