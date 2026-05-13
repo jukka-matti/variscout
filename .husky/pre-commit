@@ -16,12 +16,15 @@ bash scripts/check-claude-md-size.sh
 # Decision-log reminder — warning-only, never blocks
 bash scripts/decision-log-reminder.sh
 
-# Docs-touched short-circuit: run full doc-graph checks only when a staged
+# Docs-touched short-circuit: run incremental doc-graph checks only when a staged
 # path is a doc-graph input (docs/**/*.md, CLAUDE.md, **/CLAUDE.md,
 # packages/*/src/index.ts).  Code-only commits skip this block entirely.
+# Pre-push still runs the full check (pnpm docs:check) unconditionally.
 DOCS_PATTERN='^(docs/.*\.md$|CLAUDE\.md$|.*/CLAUDE\.md$|packages/[^/]+/src/index\.ts$)'
-if git diff --cached --name-only | grep -qE "$DOCS_PATTERN"; then
-  echo "docs touched — running full doc-graph checks (~4 min)" >&2
-  pnpm docs:check || exit 1
+STAGED_DOCS=$(git diff --cached --name-only | grep -E "$DOCS_PATTERN" || true)
+if [ -n "$STAGED_DOCS" ]; then
+  echo "docs touched — running incremental doc-graph check (~5s)" >&2
+  # shellcheck disable=SC2086
+  bash scripts/check-diagram-health.sh --incremental $STAGED_DOCS || exit 1
   bash scripts/check-dead-links.sh || exit 1
 fi
