@@ -121,8 +121,15 @@ export function useCanvasViewportInput({
     selection.call(zoomBehavior);
     syncElementToStoreViewport();
 
-    const unsubscribe = useCanvasViewportStore.subscribe(() => {
+    // Subscribe to the full store but short-circuit on reference equality of the
+    // hub's viewport slice — avoids running syncElementToStoreViewport on every
+    // unrelated mutation (e.g. setRailOpen, setViewMode, openChartCluster).
+    let prevViewportRef = useCanvasViewportStore.getState().viewports[hubId];
+    const unsubscribe = useCanvasViewportStore.subscribe(state => {
       if (syncingFromD3Ref.current) return;
+      const nextViewport = state.viewports[hubId];
+      if (nextViewport === prevViewportRef) return;
+      prevViewportRef = nextViewport;
       syncElementToStoreViewport();
     });
 

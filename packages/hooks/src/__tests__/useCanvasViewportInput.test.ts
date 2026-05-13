@@ -162,6 +162,22 @@ describe('useCanvasViewportInput', () => {
     expect(element.__on?.some(listener => listener.name === 'zoom')).not.toBe(true);
   });
 
+  it('does not call syncElementToStoreViewport when an unrelated store mutation fires', () => {
+    // setRailOpen mutates railOpen — the viewports[hubId] reference is unchanged.
+    // The subscribe handler should short-circuit and leave d3 element transform untouched.
+    const { element } = renderCanvasViewportInput();
+
+    // Capture current d3 transform state.
+    const zoomBefore = { ...element.__zoom };
+
+    act(() => {
+      useCanvasViewportStore.getState().setRailOpen(false);
+    });
+
+    // d3 element's __zoom must remain unchanged — no unnecessary sync work fired.
+    expect(element.__zoom).toMatchObject(zoomBefore);
+  });
+
   it('mounts cleanly with snap-to-LOD end handler (no throw)', () => {
     // Verifies that attaching the 'end' listener on d3-zoom does not throw.
     // The snap decision logic is unit-tested separately in the snapTarget describe block.
