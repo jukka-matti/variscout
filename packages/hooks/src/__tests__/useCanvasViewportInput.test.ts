@@ -202,6 +202,30 @@ describe('useCanvasViewportInput', () => {
       pan: { x: 0, y: 0 },
     });
   });
+
+  it('is a no-op when hubId is null — does not attach d3 listeners or update the store', () => {
+    const element = makeCanvasElement();
+    const ref: RefObject<HTMLElement | SVGSVGElement | null> = { current: element };
+    renderHook(() => useCanvasViewportInput({ hubId: null, ref }));
+
+    expect(element.__zoom).toBeUndefined();
+    expect(element.__on?.some(listener => listener.name === 'zoom')).not.toBe(true);
+
+    element.dispatchEvent(
+      new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -180,
+        clientX: 100,
+        clientY: 50,
+      })
+    );
+
+    expect(useCanvasViewportStore.getState().getViewport(HUB_ID)).toMatchObject({
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    });
+  });
 });
 
 describe('snapTarget — LOD boundary snap logic', () => {
