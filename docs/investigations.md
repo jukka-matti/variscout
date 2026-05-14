@@ -115,6 +115,40 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
+### Pre-existing tsc errors deferred from PR #168 (cleanup/setstate-appmain)
+
+**Surfaced by:** PR3 implementer tsc run + controller verification on main, 2026-05-14.
+
+**Description:** 3 categories of pre-existing tsc errors were not fixed in PR #168 because they require
+either new dev-dependency installs or non-trivial test restructuring.
+
+**Deferred items:**
+
+1. **d3 module type resolution** — `packages/hooks/src/useCanvasViewportInput.ts:2-4` (`Cannot find
+module 'd3-selection' / 'd3-transition' / 'd3-zoom'`) + cascading line 72, 73, 86 errors.
+   Requires adding `@types/d3-selection`, `@types/d3-zoom`, `@types/d3-transition` to
+   `packages/hooks/package.json`. (Note: `@types/d3-zoom` and `@types/d3-selection` are already
+   in `devDependencies`; the issue may be a missing hoisting entry for `@types/d3-transition`.)
+   Pickup: add/verify the three `@types/d3-*` entries in a follow-up dep-bump PR.
+
+2. **Tuple-mock typing** — `packages/hooks/src/__tests__/useHubCommentStream.test.ts:274-277`.
+   `vi.fn(() => Promise.resolve(...))` infers call signature as 0-arg, so `fetchMock.mock.calls[0]`
+   is typed as an empty tuple `[]`. Fix requires restructuring the fetch mock to carry explicit args
+   in the factory (`vi.fn<Parameters<typeof fetch>, ReturnType<typeof fetch>>(...)`) or using
+   `as unknown as MockedFunction<typeof fetch>`. Out of scope for a trivial-cast PR.
+   Pickup: next test-quality pass on `useHubCommentStream.test.ts`.
+
+3. **`beforeEach` globals in `core/src/ai/__tests__/responsesApi.test.ts:862`** — vitest globals
+   not declared in core tsconfig. Same structural cause as `hooks/src/__tests__/setup.ts:128`
+   (fixed in PR #168 via `/// <reference types="vitest/globals" />`). `responsesApi.test.ts` is
+   not in the brief's scope list; fix in a separate pass.
+   Pickup: add `/// <reference types="vitest/globals" />` to `responsesApi.test.ts`.
+
+**Not a blocking concern** — tsc runs per-package in isolation; vitest runs under bundler transforms
+that supply vite globals. Runtime behaviour is unaffected.
+
+---
+
 ### Stats-bar "Set specs →" link reads project-wide specs only
 
 **Surfaced by:** FRAME b0 spec wiring fixes, 2026-05-03 (branch `feature/full-vision-frame-b0`).

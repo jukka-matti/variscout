@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useYamazumiChartData } from '../useYamazumiChartData';
-import type { YamazumiColumnMapping } from '@variscout/core';
+import type { YamazumiColumnMapping, DataRow } from '@variscout/core';
 
 const testData = [
   { Step: 'Pick', Activity_Type: 'VA', Cycle_Time: 30, Activity: 'Get tool', Reason: '' },
@@ -22,7 +22,7 @@ const mapping: YamazumiColumnMapping = {
   reasonColumn: 'Reason',
 };
 
-const EMPTY_DATA: Record<string, unknown>[] = [];
+const EMPTY_DATA: DataRow[] = [];
 
 describe('useYamazumiChartData', () => {
   it('returns [] when mapping is null', () => {

@@ -17,6 +17,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePreferencesStore, getPreferencesInitialState } from '@variscout/stores';
 import { useProjectStore, getProjectInitialState } from '@variscout/stores';
+import type { DataRow } from '@variscout/core';
 import { useIChartData } from '../useIChartData';
 import { useBoxplotData } from '../useBoxplotData';
 import { useProbabilityPlotData } from '../useProbabilityPlotData';
@@ -45,7 +46,7 @@ function buildParetoRows(n: number): Record<string, unknown>[] {
     count: 1,
   }));
 }
-const PARETO_100 = buildParetoRows(100);
+const PARETO_100 = buildParetoRows(100) as DataRow[];
 const NO_FILTERS: Record<string, (string | number)[]> = {};
 
 // ---------------------------------------------------------------------------
