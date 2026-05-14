@@ -2,10 +2,11 @@ import React from 'react';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import type { ProcessMap } from '@variscout/core/frame';
 import { useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
 
 export interface NoFocalStepPromptProps {
-  hubId: string;
+  hubId: ProcessHubId;
   map: ProcessMap;
 }
 

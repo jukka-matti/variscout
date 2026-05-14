@@ -1,13 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  getCanvasViewportInitialState,
-  useCanvasViewportStore,
-  type ProcessHubId,
-} from '@variscout/stores';
+import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { useCanvasViewportShortcuts } from '../useCanvasViewportShortcuts';
 
-const HUB_ID: ProcessHubId = 'hub-canvas-shortcuts';
+const HUB_ID = 'hub-canvas-shortcuts' as ProcessHubId;
 
 type ShortcutKeyInit = {
   altKey?: boolean;

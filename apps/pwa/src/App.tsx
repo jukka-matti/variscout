@@ -61,6 +61,7 @@ import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
 import {
   DEFAULT_PROCESS_HUB_ID,
+  normalizeProcessHubId,
   type ExclusionReason,
   type Question,
   toNumericValue,
@@ -1072,7 +1073,7 @@ function AppMain() {
               />
             ) : panels.activeView === 'investigation' ? (
               <InvestigationView
-                canvasViewportHubId={canvasViewportHubId ?? DEFAULT_PROCESS_HUB_ID}
+                canvasViewportHubId={normalizeProcessHubId(canvasViewportHubId)}
                 filteredData={filteredData ?? []}
                 outcome={outcome}
                 factors={factors}

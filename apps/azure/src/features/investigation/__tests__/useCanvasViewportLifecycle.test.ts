@@ -17,7 +17,10 @@ import {
   rehydrateCanvasViewport,
   useCanvasViewportStore,
 } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { useCanvasViewportLifecycle } from '../useCanvasViewportLifecycle';
+
+const h = (id: string) => id as ProcessHubId;
 
 const mockPersist = vi.mocked(persistCanvasViewport);
 const mockRehydrate = vi.mocked(rehydrateCanvasViewport);
@@ -52,7 +55,7 @@ describe('useCanvasViewportLifecycle (Azure)', () => {
                 viewports: {
                   ...s.viewports,
                   [hubId]: {
-                    ...s.getViewport(hubId),
+                    ...s.getViewport(h(hubId)),
                     zoom: 2,
                   },
                 },
@@ -83,7 +86,7 @@ describe('useCanvasViewportLifecycle (Azure)', () => {
 
     expect(useCanvasViewportStore.getState().viewMode).toBe('map');
     expect(useCanvasViewportStore.getState().railOpen).toBe(true);
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').zoom).toBe(1);
+    expect(useCanvasViewportStore.getState().getViewport(h('hub-A')).zoom).toBe(1);
     expect(mockPersist).not.toHaveBeenCalled();
   });
 
@@ -121,9 +124,9 @@ describe('useCanvasViewportLifecycle (Azure)', () => {
     mockPersist.mockClear();
 
     act(() => {
-      useCanvasViewportStore.getState().setZoom('hub-A', 2);
-      useCanvasViewportStore.getState().setPan('hub-A', { x: 10, y: 20 });
-      useCanvasViewportStore.getState().setGroupByTributary('hub-A', true);
+      useCanvasViewportStore.getState().setZoom(h('hub-A'), 2);
+      useCanvasViewportStore.getState().setPan(h('hub-A'), { x: 10, y: 20 });
+      useCanvasViewportStore.getState().setGroupByTributary(h('hub-A'), true);
     });
 
     act(() => {
@@ -139,8 +142,8 @@ describe('useCanvasViewportLifecycle (Azure)', () => {
     mockPersist.mockClear();
 
     act(() => {
-      useCanvasViewportStore.getState().setZoom('hub-B', 3);
-      useCanvasViewportStore.getState().setPan('hub-B', { x: -10, y: -20 });
+      useCanvasViewportStore.getState().setZoom(h('hub-B'), 3);
+      useCanvasViewportStore.getState().setPan(h('hub-B'), { x: -10, y: -20 });
       vi.advanceTimersByTime(500);
     });
 
@@ -152,7 +155,7 @@ describe('useCanvasViewportLifecycle (Azure)', () => {
     mockPersist.mockClear();
 
     act(() => {
-      useCanvasViewportStore.getState().setZoom('hub-A', 5);
+      useCanvasViewportStore.getState().setZoom(h('hub-A'), 5);
     });
 
     unmount();

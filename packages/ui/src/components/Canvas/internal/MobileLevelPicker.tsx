@@ -2,7 +2,8 @@ import React from 'react';
 import type { MessageCatalog } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import type { CanvasLevel } from '@variscout/core/canvas';
-import { useCanvasViewportStore, type ProcessHubId } from '@variscout/stores';
+import { useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
 
 export interface MobileLevelPickerProps {

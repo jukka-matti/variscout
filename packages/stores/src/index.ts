@@ -47,7 +47,6 @@ export type {
   ChartClusterState,
   AndCheckSnapshot,
   PendingComment,
-  ProcessHubId,
   NodeId,
   TributaryId,
   GateNodePath,

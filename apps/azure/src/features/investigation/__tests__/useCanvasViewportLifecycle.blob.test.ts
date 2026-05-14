@@ -27,6 +27,7 @@ import {
   rehydrateCanvasViewport,
   useCanvasViewportStore,
 } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { loadBlobCanvasViewport, saveBlobCanvasViewport } from '../../../services/blobClient';
 import type { LoadedViewport } from '../../../services/blobClient';
 import { safeTrackEvent } from '../../../lib/appInsights';
@@ -39,7 +40,7 @@ const mockLoadBlob = vi.mocked(loadBlobCanvasViewport);
 const mockSaveBlob = vi.mocked(saveBlobCanvasViewport);
 const mockTrackEvent = vi.mocked(safeTrackEvent);
 
-const HUB_ID = 'hub-blob-test';
+const HUB_ID = 'hub-blob-test' as ProcessHubId;
 
 const BLOB_SNAPSHOT: LoadedViewport['snapshot'] = {
   zoom: 2,

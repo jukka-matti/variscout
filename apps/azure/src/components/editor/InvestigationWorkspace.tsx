@@ -36,7 +36,7 @@ import type {
   Question,
 } from '@variscout/core';
 import {
-  DEFAULT_PROCESS_HUB_ID,
+  normalizeProcessHubId,
   hasTeamFeatures,
   inferCharacteristicType,
   computeMainEffects,
@@ -171,7 +171,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const setWallViewMode = useCanvasViewportStore(s => s.setViewMode);
   // Phase 13 scale features — threaded into WallCanvas so zoom, pan, and
   // tributary clustering route through the existing store + persistence.
-  const wallHubId = processContext?.processHubId ?? DEFAULT_PROCESS_HUB_ID;
+  const wallHubId = normalizeProcessHubId(processContext?.processHubId);
   const wallZoom = useCanvasViewportStore(s => s.viewports[wallHubId]?.zoom ?? 1);
   const wallPan = useCanvasViewportStore(s => s.viewports[wallHubId]?.pan ?? DEFAULT_WALL_PAN);
   const setWallPan = useCanvasViewportStore(s => s.setPan);

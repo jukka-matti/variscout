@@ -13,6 +13,7 @@ import type { ColumnTypeMap } from '@variscout/core/findings';
 import { EvidenceMapBase } from '@variscout/charts';
 import { useEvidenceMapData } from '@variscout/hooks';
 import { useInvestigationStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { WallCanvas } from '../../InvestigationWall/WallCanvas';
 import { MiniBoxplot } from '../../InvestigationWall/MiniBoxplot';
 import { MiniIChart } from '../../InvestigationWall/MiniIChart';
@@ -20,7 +21,7 @@ import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
 import { LogActionModal, type LogActionPayload } from '../../QuickAction';
 
 export interface LocalMechanismViewProps {
-  hubId: string;
+  hubId: ProcessHubId;
   focalStepId: string;
   map: ProcessMap;
   rows?: ReadonlyArray<DataRow>;

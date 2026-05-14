@@ -11,7 +11,7 @@
 import React, { useMemo, useRef } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { useCanvasViewportInput } from '@variscout/hooks';
-import type { ProcessHubId } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import type {
   Hypothesis,
   Finding,
@@ -245,7 +245,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   const isMobile = useWallIsMobile();
   useCanvasViewportInput({
-    hubId: hubId ?? '__wall-canvas-unbound__',
+    hubId: hubId ?? null,
     ref: svgRef,
     disabled: mode !== 'destination' || !hubId || isMobile || filteredHubs.length === 0,
     filter: shouldHandleWallPanInput,

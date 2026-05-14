@@ -3,6 +3,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
 import type { Hypothesis, ProcessMap, Question, Finding } from '@variscout/core';
 import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
+
+// Cast helper: acceptable inside test files per project convention
+const h = (id: string) => id as ProcessHubId;
 
 interface D3ZoomSvgElement extends SVGSVGElement {
   __zoom?: { k: number; x: number; y: number };
@@ -623,7 +627,7 @@ describe('WallCanvas', () => {
   });
 
   it('binds d3 zoom input to the destination SVG when hubId is provided', () => {
-    const hubId = 'wall-destination-hub';
+    const hubId = h('wall-destination-hub');
     const { container } = render(
       <WallCanvas
         hubId={hubId}
@@ -656,7 +660,7 @@ describe('WallCanvas', () => {
   });
 
   it('keeps descendant role-button wheel from updating the hub viewport while background wheel still works', () => {
-    const hubId = 'wall-role-button-guard';
+    const hubId = h('wall-role-button-guard');
     const { container } = render(
       <WallCanvas
         hubId={hubId}
@@ -698,7 +702,7 @@ describe('WallCanvas', () => {
   it('does not bind d3 zoom input for overlay SVG even when hubId is provided defensively', () => {
     const { container } = render(
       <WallCanvas
-        hubId="wall-overlay-hub"
+        hubId={h('wall-overlay-hub')}
         hubs={[hub]}
         findings={[]}
         questions={[]}
@@ -726,7 +730,7 @@ describe('WallCanvas', () => {
       restoreMatchMedia = installMobileMatchMedia();
       const { container } = render(
         <WallCanvas
-          hubId="wall-mobile-hub"
+          hubId={h('wall-mobile-hub')}
           hubs={[hub]}
           findings={[]}
           questions={[]}

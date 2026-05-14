@@ -5,6 +5,7 @@ import {
   rehydrateCanvasViewport,
   useCanvasViewportStore,
 } from '@variscout/stores';
+import { normalizeProcessHubId } from '@variscout/core';
 import { safeTrackEvent } from '../../lib/appInsights';
 import { loadBlobCanvasViewport, saveBlobCanvasViewport } from '../../services/blobClient';
 import type { ViewportBlobShape } from '../../services/blobClient';
@@ -30,21 +31,22 @@ export function useCanvasViewportLifecycle(hubId: string | null | undefined): vo
 
   useEffect(() => {
     if (!hubId) return;
+    const boundHubId = normalizeProcessHubId(hubId);
 
     let timer: ReturnType<typeof setTimeout> | undefined;
     let cancelled = false;
 
     // ── Mount: Dexie cache (instant) then Blob reconcile ──────────────────
-    rehydrateCanvasViewport(hubId, () => !cancelled).catch(() => undefined);
+    rehydrateCanvasViewport(boundHubId, () => !cancelled).catch(() => undefined);
 
     void (async () => {
       // Read local updatedAt before the async Blob fetch so we compare
       // against the version already loaded by rehydrateCanvasViewport.
-      const localUpdatedAt = await getLocalViewportUpdatedAt(hubId);
+      const localUpdatedAt = await getLocalViewportUpdatedAt(boundHubId);
 
       if (cancelled) return;
 
-      const loaded = await loadBlobCanvasViewport(hubId);
+      const loaded = await loadBlobCanvasViewport(boundHubId);
       if (cancelled) return;
       if (!loaded) return;
 
@@ -56,11 +58,11 @@ export function useCanvasViewportLifecycle(hubId: string | null | undefined): vo
         useCanvasViewportStore.setState(s => ({
           viewports: {
             ...s.viewports,
-            [hubId]: { zoom, pan, currentLevel, focalStepId, nodePositions, groupByTributary },
+            [boundHubId]: { zoom, pan, currentLevel, focalStepId, nodePositions, groupByTributary },
           },
         }));
         // Write back to Dexie so the next offline session gets this state.
-        await persistCanvasViewport(hubId).catch(() => undefined);
+        await persistCanvasViewport(boundHubId).catch(() => undefined);
       }
     })();
 
@@ -69,7 +71,7 @@ export function useCanvasViewportLifecycle(hubId: string | null | undefined): vo
       const changed =
         state.viewMode !== prev.viewMode ||
         state.railOpen !== prev.railOpen ||
-        state.viewports[hubId] !== prev.viewports[hubId];
+        state.viewports[boundHubId] !== prev.viewports[boundHubId];
       if (!changed) return;
 
       if (timer !== undefined) clearTimeout(timer);
@@ -77,11 +79,11 @@ export function useCanvasViewportLifecycle(hubId: string | null | undefined): vo
         if (cancelled) return;
 
         // Dexie persist (existing).
-        persistCanvasViewport(hubId).catch(() => undefined);
+        persistCanvasViewport(boundHubId).catch(() => undefined);
 
         // Build Blob snapshot from current store state.
         const current = useCanvasViewportStore.getState();
-        const vp = current.viewports[hubId];
+        const vp = current.viewports[boundHubId];
         if (!vp) return; // hub not in store yet; skip blob write
 
         const snapshot: ViewportBlobShape = {
@@ -94,7 +96,7 @@ export function useCanvasViewportLifecycle(hubId: string | null | undefined): vo
           updatedAt: Date.now(),
         };
 
-        void saveBlobCanvasViewport(hubId, snapshot, etagRef.current).then(result => {
+        void saveBlobCanvasViewport(boundHubId, snapshot, etagRef.current).then(result => {
           if (cancelled) return;
 
           if (result.ok) {
@@ -109,11 +111,11 @@ export function useCanvasViewportLifecycle(hubId: string | null | undefined): vo
             });
 
             // Re-fetch Blob; apply if newer than our last write.
-            void loadBlobCanvasViewport(hubId).then(loaded => {
+            void loadBlobCanvasViewport(boundHubId).then(loaded => {
               if (cancelled || !loaded) return;
               etagRef.current = loaded.etag;
 
-              const currentVp = useCanvasViewportStore.getState().viewports[hubId];
+              const currentVp = useCanvasViewportStore.getState().viewports[boundHubId];
               if (!currentVp) return;
 
               // last-write-wins: blob wins the conflict; apply to store.
@@ -122,7 +124,7 @@ export function useCanvasViewportLifecycle(hubId: string | null | undefined): vo
               useCanvasViewportStore.setState(s => ({
                 viewports: {
                   ...s.viewports,
-                  [hubId]: {
+                  [boundHubId]: {
                     zoom,
                     pan,
                     currentLevel,

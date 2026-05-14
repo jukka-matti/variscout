@@ -37,6 +37,7 @@ import type { ColumnTypeMap } from '@variscout/core/findings';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
 import { useCanvasViewportStore, useProjectStore, useInvestigationStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
   useInvestigationFeatureStore,
@@ -47,7 +48,7 @@ import { usePanelsStore } from '../../features/panels/panelsStore';
 const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 
 interface InvestigationViewProps {
-  canvasViewportHubId: string;
+  canvasViewportHubId: ProcessHubId;
   // Data context
   filteredData: Record<string, unknown>[];
   outcome: string | null;

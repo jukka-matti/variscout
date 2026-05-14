@@ -32,7 +32,35 @@ export { buildReviewItem } from './processHubReview';
 export { isCharterReady, isSustainmentReady, isHandoffReady } from './responsePathReadiness';
 export type { WorkflowReadinessSignals } from './responsePathReadiness';
 
-export const DEFAULT_PROCESS_HUB_ID = 'general-unassigned';
+/**
+ * Opaque brand type for ProcessHub identifiers.
+ * Use `asProcessHubId()` to construct from a plain string, or
+ * `normalizeProcessHubId()` which returns a validated `ProcessHubId`.
+ */
+export type ProcessHubId = string & { readonly __brand: 'ProcessHubId' };
+
+/**
+ * Construct a `ProcessHubId` from a plain string.
+ * Throws on empty/blank input (loud failure per feedback_strict_assert_over_silent_migration)
+ * rather than silently falling back — callers that want the fallback behaviour
+ * should use `normalizeProcessHubId()` instead.
+ */
+export function asProcessHubId(value: string): ProcessHubId {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error(
+      `asProcessHubId: value must be a non-empty string, got: ${JSON.stringify(value)}`
+    );
+  }
+  return trimmed as ProcessHubId;
+}
+
+/** Type-guard: true if `value` is a non-empty string (runtime brand check). */
+export function isProcessHubId(value: unknown): value is ProcessHubId {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+export const DEFAULT_PROCESS_HUB_ID: ProcessHubId = 'general-unassigned' as ProcessHubId;
 export const DEFAULT_PROCESS_HUB_NAME = 'General / Unassigned';
 
 export type InvestigationDepth = 'quick' | 'focused' | 'chartered';
@@ -477,9 +505,9 @@ const CADENCE_QUEUE_LIMIT = 4;
 
 const SUSTAINMENT_STATUSES = new Set<InvestigationStatus>(['resolved', 'controlled']);
 
-export function normalizeProcessHubId(processHubId?: string | null): string {
+export function normalizeProcessHubId(processHubId?: string | null): ProcessHubId {
   const trimmed = processHubId?.trim();
-  return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_PROCESS_HUB_ID;
+  return trimmed && trimmed.length > 0 ? asProcessHubId(trimmed) : DEFAULT_PROCESS_HUB_ID;
 }
 
 /**

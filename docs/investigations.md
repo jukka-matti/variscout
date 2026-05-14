@@ -32,7 +32,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Description:** 20 findings total — 5 HIGH that qualify the "shipped" claim, 8 MEDIUM spec-vs-shipped drift, 7 LOW cleanups. Followup workstream plan at [`docs/superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md`](superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md). Decision-log "8f canvas viewport SHIPPED" entry has been amended to reference these gaps. Roadmap continues to mark 8f shipped; the followups are a separate cleanup sequence.
 
-**STATUS 2026-05-14 — RESOLVED:** 19 of 20 findings closed by PR #166 (squash-merged as `cd936915` after `--chrome` walk verification). HIGH #4 resolved via spec AMEND (intentional V2 placeholders); HIGH #1/#2/#3/#5 resolved via implementation; all 8 MEDIUM resolved (including the spec §10 amend); 6 of 7 LOW resolved. **Carried forward as separate followups:** LOW #19 (brand `ProcessHubId` — 18-file refactor, low value/risk ratio) + LOW #16 (`Canvas/index.tsx` 1122-line refactor, defer to next viewport feature). Entry retained as historical record; the diff is in `cd936915`.
+**STATUS 2026-05-14 — RESOLVED:** 19 of 20 findings closed by PR #166 (squash-merged as `cd936915` after `--chrome` walk verification). HIGH #4 resolved via spec AMEND (intentional V2 placeholders); HIGH #1/#2/#3/#5 resolved via implementation; all 8 MEDIUM resolved (including the spec §10 amend); 6 of 7 LOW resolved. LOW #19 (brand `ProcessHubId`) closed by PR #168 (cleanup/setstate-appmain) — opaque type defined in `packages/core/src/processHub.ts`, sentinel `'__wall-canvas-unbound__'` replaced with `null` short-circuit, 25-file sweep across packages + apps + tests. **Remaining:** LOW #16 (`Canvas/index.tsx` 1122-line refactor, defer to next viewport feature). Entry retained as historical record; the diff is in `cd936915` + PR #168.
 
 **HIGH (5):**
 
@@ -60,7 +60,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - `CanvasViewport.tsx` primitive appears unused — `Canvas/index.tsx` inlines the CSS transform via `lodInputSurfaceRef`. Verify and either adopt or delete.
 - `worldToWallSvg(p, _viewport)` in `coordSpace.ts:22` is identity — delete or document.
 - Stale `wallLayoutStore` references in `viewStore.ts:140` + `preferencesStore.ts:178` doc strings.
-- Sentinel hubId `'__wall-canvas-unbound__'` in `WallCanvas.tsx:248` — brand `ProcessHubId` to prevent leak into the store's `viewports` Record.
+- ~~Sentinel hubId `'__wall-canvas-unbound__'` in `WallCanvas.tsx:248` — brand `ProcessHubId` to prevent leak into the store's `viewports` Record.~~ **CLOSED** — PR #168: `ProcessHubId` opaque type in core, `hubId ?? null` sentinel removed, full 25-file sweep.
 - Missing test — `CanvasLensPicker.tsx` (the lens × level enabled predicate is load-bearing).
 
 **Possible directions:** Execute the 6-PR followup plan via `superpowers:subagent-driven-development`. PR0 (docs sync) direct to main; PR1 (i18n + Dexie cleanup + branded hubId), PR2 (ADR-074 cleanup), PR3 (lens matrix — brainstorm first to decide expand-vs-amend), PR4 (LOD polish + dead-code), PR5 (Azure Blob sync — the ADR-081 §2 commitment), PR6 (L3 CTAs + mobile step-list + selector scope + STORE_LAYER rename).
@@ -69,7 +69,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
-### React `setState-in-render` warning fires from `AppMain` across canvas transitions
+### [RESOLVED 2026-05-14] React `setState-in-render` warning fires from `AppMain` across canvas transitions
 
 **Surfaced by:** `--chrome` walk of PR #166 (canvas-viewport-8f-followups) on 2026-05-14.
 
@@ -80,6 +80,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 **Why it matters:** noisy console drowns out real errors; possible silent state desync; potential infinite-loop risk if a future change adds another store-driven derivation. Not user-visible today but a real React-correctness violation.
 
 **Possible directions:** Open in React DevTools profiler during a canvas transition; identify which component logs the violation; replace render-time setState with a `useEffect`, or memoize the selector return reference.
+
+**Resolution (2026-05-14, PR cleanup/setstate-appmain, commit `6c5bc1a7`):** Static analysis of all five named suspects (`useFilteredData`, `useStatsWorker`, `useAnalysisStats`, `useDefectTransform`, `useDefectSummary`) confirmed they are clean (pure `useMemo` or `useEffect`-gated). The actual violation was a bare `const store = usePanelsStore()` whole-store subscription in `apps/pwa/src/hooks/useAppPanels.ts` — directly violating the `packages/stores/CLAUDE.md:18` rule "Never bare `useStore()`" (cites ADR-041). In React 19 Strict Mode + Zustand 5 (`useSyncExternalStore`), a whole-store subscription causes tearing detection to re-invoke the snapshot function, which in turn re-processes the store reference, triggering the warning on every `panelsStore` update (including panel-state transitions co-incident with LOD switches and frame-tab activation). Fix: rewrote `useAppPanels.ts` to use 24 individual `usePanelsStore(s => s.field)` selectors — one per state field and action. `useEffect` dependency arrays cleaned accordingly. Regression test added in `apps/pwa/src/__tests__/App.test.tsx`.
 
 ---
 
@@ -110,6 +112,52 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 **Why it matters:** PR #166 successfully ships the 19 of 20 followup fixes; the journey-around-them remains uneven. Each item above is a small-to-medium change; together they shift the canvas from "shipped, functional" to "explainable in 60 seconds to a first-time user."
 
 **Possible directions:** Surface to brainstorming when the next canvas slice opens. Items 1, 2, 3 are small renames + a toolbar; 4 is an empty-state copy add; 5 is a sort + visual-weight change; 6 is a glossary-driven simplification; 7 is breadcrumb wiring; 8, 9 are caption/tooltip polish. Don't bundle into PR #166.
+
+---
+
+### Pre-existing tsc errors deferred from PR #168 (cleanup/setstate-appmain)
+
+**Surfaced by:** PR3 implementer tsc run + controller verification on main, 2026-05-14.
+
+**Description:** 3 categories of pre-existing tsc errors were not fixed in PR #168 because they require
+either new dev-dependency installs or non-trivial test restructuring.
+
+**Deferred items:**
+
+1. **d3 module type resolution** — `packages/hooks/src/useCanvasViewportInput.ts:2-4` (`Cannot find
+module 'd3-selection' / 'd3-transition' / 'd3-zoom'`) + cascading line 72, 73, 86 errors.
+   Requires adding `@types/d3-selection`, `@types/d3-zoom`, `@types/d3-transition` to
+   `packages/hooks/package.json`. (Note: `@types/d3-zoom` and `@types/d3-selection` are already
+   in `devDependencies`; the issue may be a missing hoisting entry for `@types/d3-transition`.)
+   Pickup: add/verify the three `@types/d3-*` entries in a follow-up dep-bump PR.
+
+2. **Tuple-mock typing** — `packages/hooks/src/__tests__/useHubCommentStream.test.ts:274-277`.
+   `vi.fn(() => Promise.resolve(...))` infers call signature as 0-arg, so `fetchMock.mock.calls[0]`
+   is typed as an empty tuple `[]`. Fix requires restructuring the fetch mock to carry explicit args
+   in the factory (`vi.fn<Parameters<typeof fetch>, ReturnType<typeof fetch>>(...)`) or using
+   `as unknown as MockedFunction<typeof fetch>`. Out of scope for a trivial-cast PR.
+   Pickup: next test-quality pass on `useHubCommentStream.test.ts`.
+
+3. **`beforeEach` globals in `core/src/ai/__tests__/responsesApi.test.ts:862`** — ~~vitest globals
+   not declared in core tsconfig~~ **CLOSED in PR #168 commit `e73fca64`** by adding `beforeEach` to
+   the explicit `import { ... } from 'vitest'` on line 1 (more targeted than the `///` reference
+   directive used in `setup.ts`).
+
+4. **Entity fixture-shape mismatches in core tests (newly surfaced post-fix)** — once `responsesApi.test.ts`
+   was unblocked, core tsc reveals 9 more pre-existing errors:
+   - `packages/core/src/__tests__/processHub.test.ts:722, 732, 1164` + `processState.test.ts:180` +
+     `sustainment.test.ts:546` — `SustainmentRecord` fixtures are missing required fields added since
+     they were written: `status`, `title`, `consecutiveOnTargetTicks`, `hasOverride`, `lastEvaluatedSnapshotId`
+     (the entity grew during RPS V1 work without test-fixture catch-up).
+   - `packages/core/src/canvas/__tests__/stampStepCapabilities.test.ts:9, 64, 70, 91` — `ProcessMap`
+     fixtures missing `version`, `tributaries`, `createdAt`, `updatedAt`; plus two `null` vs `string | undefined`
+     assignment errors.
+     Pickup: a focused "fixture catch-up" PR that adds the missing required fields to each fixture (preferred
+     over blanket `as` casts — the casts mask real schema-vs-fixture drift). Touches 4 files in `packages/core/src/__tests__/`
+     and `packages/core/src/canvas/__tests__/`.
+
+**Not a blocking concern** — tsc runs per-package in isolation; vitest runs under bundler transforms
+that supply vite globals. Runtime behaviour is unaffected.
 
 ---
 

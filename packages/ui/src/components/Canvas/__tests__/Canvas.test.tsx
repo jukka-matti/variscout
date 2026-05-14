@@ -75,7 +75,11 @@ import {
   useCanvasViewportStore,
   useInvestigationStore,
 } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { Canvas } from '../index';
+
+// Cast helper: acceptable inside test files per project convention
+const h = (id: string) => id as ProcessHubId;
 
 const SIGNALS = { hasIntervention: false, sustainmentConfirmed: false };
 
@@ -186,11 +190,11 @@ const investigationOverlays: CanvasInvestigationOverlayModel = {
       ],
       hypotheses: [
         {
-          id: 'hub-1',
+          id: h('hub-1'),
           name: 'Pressure setup drift',
           status: 'proposed',
           questionId: 'q-1',
-          focus: { kind: 'suspected-cause', id: 'hub-1', questionId: 'q-1' },
+          focus: { kind: 'suspected-cause', id: h('hub-1'), questionId: 'q-1' },
         },
       ],
       causalLinks: [
@@ -307,10 +311,10 @@ describe('Canvas', () => {
   });
 
   it('wraps the L2 card surface content in the current hub viewport transform', () => {
-    useCanvasViewportStore.getState().setPan('hub-l2-canvas', { x: 48, y: -24 });
-    useCanvasViewportStore.getState().setZoom('hub-l2-canvas', 1.75);
+    useCanvasViewportStore.getState().setPan(h('hub-l2-canvas'), { x: 48, y: -24 });
+    useCanvasViewportStore.getState().setZoom(h('hub-l2-canvas'), 1.75);
 
-    renderCanvas({ hubId: 'hub-l2-canvas' });
+    renderCanvas({ hubId: h('hub-l2-canvas') });
 
     expect(
       screen.getByTestId('canvas-card-surface').querySelector('[data-canvas-viewport-wrapper]')
@@ -323,9 +327,9 @@ describe('Canvas', () => {
   });
 
   it('passes the current hub zoom to L2 step cards for overview detail', () => {
-    useCanvasViewportStore.getState().setZoom('hub-l2-overview', 0.75);
+    useCanvasViewportStore.getState().setZoom(h('hub-l2-overview'), 0.75);
 
-    renderCanvas({ hubId: 'hub-l2-overview' });
+    renderCanvas({ hubId: h('hub-l2-overview') });
 
     const card = screen.getByTestId('canvas-step-card-step-1');
     expect(card).toHaveTextContent('Mix');
@@ -336,10 +340,10 @@ describe('Canvas', () => {
   });
 
   it('renders the L1 system outcome panel when the hub viewport is at system level', () => {
-    useCanvasViewportStore.getState().setLevel('hub-l1-canvas', 'l1');
+    useCanvasViewportStore.getState().setLevel(h('hub-l1-canvas'), 'l1');
 
     renderCanvas({
-      hubId: 'hub-l1-canvas',
+      hubId: h('hub-l1-canvas'),
       map: { ...mapWithSteps, ctsColumn: 'Fill Weight' },
       rows: [{ 'Fill Weight': 100 }, { 'Fill Weight': 101 }],
       usl: 102,
@@ -359,10 +363,10 @@ describe('Canvas', () => {
   });
 
   it('renders an empty state for invalid lens and level cells', () => {
-    useCanvasViewportStore.getState().setLevel('hub-l1-yamazumi', 'l1');
+    useCanvasViewportStore.getState().setLevel(h('hub-l1-yamazumi'), 'l1');
 
     renderCanvas({
-      hubId: 'hub-l1-yamazumi',
+      hubId: h('hub-l1-yamazumi'),
       activeLens: 'yamazumi',
       map: { ...mapWithSteps, ctsColumn: 'Fill Weight' },
       rows: [{ 'Fill Weight': 100 }, { 'Fill Weight': 101 }],
@@ -376,10 +380,10 @@ describe('Canvas', () => {
   });
 
   it('renders an empty state for process-flow at L3 before mounting the level renderer', () => {
-    useCanvasViewportStore.getState().setLevel('hub-l3-flow', 'l3', 'step-1');
+    useCanvasViewportStore.getState().setLevel(h('hub-l3-flow'), 'l3', 'step-1');
 
     renderCanvas({
-      hubId: 'hub-l3-flow',
+      hubId: h('hub-l3-flow'),
       activeLens: 'process-flow',
     });
 
@@ -422,12 +426,12 @@ describe('Canvas', () => {
     };
 
     try {
-      renderCanvas({ hubId: 'hub-measured-fit' });
+      renderCanvas({ hubId: h('hub-measured-fit') });
 
       fireEvent.keyDown(window, { key: '1', metaKey: true });
       await act(() => new Promise(resolve => window.requestAnimationFrame(resolve)));
 
-      expect(useCanvasViewportStore.getState().getViewport('hub-measured-fit')).toMatchObject({
+      expect(useCanvasViewportStore.getState().getViewport(h('hub-measured-fit'))).toMatchObject({
         currentLevel: 'l1',
         zoom: 1.9,
         pan: { x: 25, y: 12.5 },
@@ -438,7 +442,7 @@ describe('Canvas', () => {
   });
 
   it('keeps the desktop LOD input surface mounted on L1 and can wheel back to L2', () => {
-    const hubId = 'hub-l1-wheel-recover';
+    const hubId = h('hub-l1-wheel-recover');
     useCanvasViewportStore.getState().fitToContent(hubId, 'l1');
 
     renderCanvas({ hubId });
@@ -459,7 +463,7 @@ describe('Canvas', () => {
   });
 
   it('falls back to the first ordered step when L3 has no focal step selected', async () => {
-    const hubId = 'hub-l3-fallback';
+    const hubId = h('hub-l3-fallback');
     useCanvasViewportStore.getState().setZoom(hubId, 2.5);
 
     renderCanvas({
@@ -484,11 +488,11 @@ describe('Canvas', () => {
   });
 
   it('renders the L3 local mechanism view when a focal step is selected in read mode', () => {
-    useCanvasViewportStore.getState().setLevel('hub-l3-canvas', 'l3', 'step-1');
+    useCanvasViewportStore.getState().setLevel(h('hub-l3-canvas'), 'l3', 'step-1');
 
     const rows = [{ Pressure: 10 }, { Pressure: 11 }];
     renderCanvas({
-      hubId: 'hub-l3-canvas',
+      hubId: h('hub-l3-canvas'),
       mode: 'read',
       rows,
       map: { ...mapWithSteps, ctsColumn: 'Defect' },
@@ -505,7 +509,7 @@ describe('Canvas', () => {
     );
     expect(screen.queryByTestId('author-l3-view')).not.toBeInTheDocument();
     expect(localMechanismPropsRef.current).toMatchObject({
-      hubId: 'hub-l3-canvas',
+      hubId: h('hub-l3-canvas'),
       focalStepId: 'step-1',
       map: expect.any(Object),
       rows,
@@ -516,10 +520,10 @@ describe('Canvas', () => {
   });
 
   it('renders the author L3 view for direct Canvas author mode', () => {
-    useCanvasViewportStore.getState().setLevel('hub-l3-author-canvas', 'l3', 'step-1');
+    useCanvasViewportStore.getState().setLevel(h('hub-l3-author-canvas'), 'l3', 'step-1');
 
     renderCanvas({
-      hubId: 'hub-l3-author-canvas',
+      hubId: h('hub-l3-author-canvas'),
       mode: 'author',
       chips: [{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }],
     });
@@ -530,10 +534,10 @@ describe('Canvas', () => {
 
   it('supports keyboard chip pickup and drop in direct Canvas author L3', () => {
     const onPlaceChip = vi.fn();
-    useCanvasViewportStore.getState().setLevel('hub-l3-author-keyboard', 'l3', 'step-1');
+    useCanvasViewportStore.getState().setLevel(h('hub-l3-author-keyboard'), 'l3', 'step-1');
 
     renderCanvas({
-      hubId: 'hub-l3-author-keyboard',
+      hubId: h('hub-l3-author-keyboard'),
       mode: 'author',
       chips: [{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }],
       onPlaceChip,
@@ -549,7 +553,7 @@ describe('Canvas', () => {
   it('shows the mobile level picker and skips the d3 pan/zoom viewport on mobile', () => {
     wallIsMobileRef.current = true;
 
-    renderCanvas({ hubId: 'hub-mobile-canvas' });
+    renderCanvas({ hubId: h('hub-mobile-canvas') });
 
     expect(screen.getByTestId('mobile-level-picker')).toBeInTheDocument();
     expect(
@@ -558,7 +562,7 @@ describe('Canvas', () => {
   });
 
   it('does not apply viewport shortcuts when Canvas is disabled', () => {
-    const hubId = 'hub-disabled-shortcuts';
+    const hubId = h('hub-disabled-shortcuts');
 
     renderCanvas({ hubId, disabled: true });
 
@@ -845,7 +849,7 @@ describe('Canvas', () => {
   });
 
   it('does not let Wall overlay controls bubble into the L2 viewport input', () => {
-    const hubId = 'hub-wall-overlay-nested-input';
+    const hubId = h('hub-wall-overlay-nested-input');
     useInvestigationStore.getState().addQuestion('Does pressure explain defect clusters?');
 
     renderCanvas({
@@ -1233,7 +1237,7 @@ describe('Canvas', () => {
   });
 
   it('remeasures hypothesis arrows after the hub viewport transform changes', () => {
-    const hubId = 'hub-arrow-viewport';
+    const hubId = h('hub-arrow-viewport');
     const rectFor = (left: number, top: number, width: number, height: number): DOMRect =>
       ({
         x: left,
@@ -1317,7 +1321,7 @@ describe('Canvas', () => {
   });
 
   it('closes the L2 step overlay when leaving the process level', () => {
-    const hubId = 'hub-overlay-level-exit';
+    const hubId = h('hub-overlay-level-exit');
     renderCanvas({ hubId });
 
     fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));

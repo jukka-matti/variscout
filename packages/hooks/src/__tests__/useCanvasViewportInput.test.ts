@@ -1,11 +1,8 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, beforeEach } from 'vitest';
 import { useRef, type RefObject } from 'react';
-import {
-  getCanvasViewportInitialState,
-  useCanvasViewportStore,
-  type ProcessHubId,
-} from '@variscout/stores';
+import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { useCanvasViewportInput, snapTarget } from '../useCanvasViewportInput';
 
 interface D3ZoomElement extends HTMLDivElement {
@@ -13,7 +10,7 @@ interface D3ZoomElement extends HTMLDivElement {
   __on?: Array<{ type: string; name: string; value: (event: Event) => void }>;
 }
 
-const HUB_ID: ProcessHubId = 'hub-canvas-input';
+const HUB_ID = 'hub-canvas-input' as ProcessHubId;
 
 function makeCanvasElement(): D3ZoomElement {
   const element = document.createElement('div') as D3ZoomElement;
@@ -186,6 +183,30 @@ describe('useCanvasViewportInput', () => {
 
   it('does not attach listeners or update the store when disabled', () => {
     const { element } = renderDisabledCanvasViewportInput();
+
+    expect(element.__zoom).toBeUndefined();
+    expect(element.__on?.some(listener => listener.name === 'zoom')).not.toBe(true);
+
+    element.dispatchEvent(
+      new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -180,
+        clientX: 100,
+        clientY: 50,
+      })
+    );
+
+    expect(useCanvasViewportStore.getState().getViewport(HUB_ID)).toMatchObject({
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    });
+  });
+
+  it('is a no-op when hubId is null — does not attach d3 listeners or update the store', () => {
+    const element = makeCanvasElement();
+    const ref: RefObject<HTMLElement | SVGSVGElement | null> = { current: element };
+    renderHook(() => useCanvasViewportInput({ hubId: null, ref }));
 
     expect(element.__zoom).toBeUndefined();
     expect(element.__on?.some(listener => listener.name === 'zoom')).not.toBe(true);

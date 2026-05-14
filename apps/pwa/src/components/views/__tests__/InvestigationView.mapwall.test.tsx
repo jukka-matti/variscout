@@ -91,8 +91,11 @@ import {
   useProjectStore,
 } from '@variscout/stores';
 import { DEFAULT_PROCESS_HUB_ID } from '@variscout/core';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import InvestigationView from '../InvestigationView';
+
+const h = (id: string) => id as ProcessHubId;
 
 // ── 3. Minimal props factory ───────────────────────────────────────────────
 
@@ -101,7 +104,7 @@ function makeMinimalProps(
 ): React.ComponentProps<typeof InvestigationView> {
   const noOp = vi.fn();
   return {
-    canvasViewportHubId: 'hub-test',
+    canvasViewportHubId: h('hub-test'),
     filteredData: [],
     outcome: null,
     factors: [],
@@ -193,13 +196,15 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
       },
     });
 
-    render(<InvestigationView {...makeMinimalProps({ canvasViewportHubId: 'session-hub-1' })} />);
+    render(
+      <InvestigationView {...makeMinimalProps({ canvasViewportHubId: h('session-hub-1') })} />
+    );
 
     const groupByTributary = screen.getByRole('button', { name: /group by tributary/i });
     fireEvent.click(groupByTributary);
 
     const state = useCanvasViewportStore.getState();
-    expect(state.viewports['session-hub-1']?.groupByTributary).toBe(true);
+    expect(state.viewports[h('session-hub-1')]?.groupByTributary).toBe(true);
     expect(state.viewports[DEFAULT_PROCESS_HUB_ID]).toBeUndefined();
   });
 

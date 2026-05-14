@@ -2,7 +2,11 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { ProcessMap } from '@variscout/core/frame';
 import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { NoFocalStepPrompt } from '../NoFocalStepPrompt';
+
+// Cast helper: acceptable inside test files per project convention
+const h = (id: string) => id as ProcessHubId;
 
 const map: ProcessMap = {
   version: 1,
@@ -21,7 +25,7 @@ describe('NoFocalStepPrompt', () => {
   });
 
   it('lists steps in process order and sets L3 focal step from a button click', () => {
-    render(<NoFocalStepPrompt hubId="hub-prompt" map={map} />);
+    render(<NoFocalStepPrompt hubId={h('hub-prompt')} map={map} />);
 
     const prompt = screen.getByTestId('no-focal-step-prompt');
     expect(prompt).toHaveAccessibleName(/choose a process step/i);
@@ -32,7 +36,7 @@ describe('NoFocalStepPrompt', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /open mix local mechanism/i }));
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-prompt')).toMatchObject({
+    expect(useCanvasViewportStore.getState().getViewport(h('hub-prompt'))).toMatchObject({
       currentLevel: 'l3',
       focalStepId: 'step-1',
     });

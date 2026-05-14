@@ -65,6 +65,7 @@ interface PanelsActions {
   closeDataTable: () => void;
   openDataTableExcluded: () => void;
   openDataTableAll: () => void;
+  openDataTableAtRow: (index: number, isDesktop: boolean) => void;
 
   // PWA-specific
   setShowExcludedOnly: (v: boolean) => void;
@@ -145,6 +146,12 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // Compound: open all rows view
   openDataTableAll: () =>
     set({ showExcludedOnly: false, highlightRowIndex: null, isDataTableOpen: true }),
+
+  // Compound: open data table at specific row — desktop uses PI sidebar, mobile uses modal
+  openDataTableAtRow: (index, isDesktop) =>
+    isDesktop
+      ? set({ highlightRowIndex: index, isPISidebarOpen: true })
+      : set({ highlightRowIndex: index, isDataTableOpen: true }),
 
   // PWA-specific
   setShowExcludedOnly: v => set({ showExcludedOnly: v }),

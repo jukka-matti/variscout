@@ -1,8 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ProcessMap } from '@variscout/core/frame';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import type { DataRow, Finding, Hypothesis, Question } from '@variscout/core';
 import { SystemLevelView } from '../SystemLevelView';
+
+// Cast helper: acceptable inside test files per project convention
+const h = (id: string) => id as ProcessHubId;
 
 const map: ProcessMap = {
   version: 1,
@@ -90,7 +94,7 @@ describe('SystemLevelView', () => {
   it('renders the hub outcome panel from the hub outcome series without response-path CTAs', () => {
     render(
       <SystemLevelView
-        hubId="hub-fill"
+        hubId={h('hub-fill')}
         map={map}
         rows={rows}
         measureSpecs={{ 'Fill Weight': { lsl: 99, usl: 101, target: 100, cpkTarget: 1.33 } }}
@@ -100,7 +104,7 @@ describe('SystemLevelView', () => {
       />
     );
 
-    expect(screen.getByText('hub-fill')).toBeInTheDocument();
+    expect(screen.getByText(h('hub-fill'))).toBeInTheDocument();
     expect(screen.getByText('Fill Weight')).toBeInTheDocument();
     expect(screen.getByTestId('outcome-distribution')).toHaveTextContent('n=5');
     expect(screen.getByTestId('drift-indicator')).toBeInTheDocument();
@@ -129,7 +133,7 @@ describe('SystemLevelView', () => {
     const onOpenScout = vi.fn();
     render(
       <SystemLevelView
-        hubId="hub-unframed"
+        hubId={h('hub-unframed')}
         map={{ ...map, ctsColumn: undefined }}
         rows={rows}
         questions={[]}
@@ -158,7 +162,7 @@ describe('SystemLevelView', () => {
       // Wide spec → all 5 rows in-spec → outOfSpec = 0 → inbox has no prompts
       render(
         <SystemLevelView
-          hubId="hub-spec"
+          hubId={h('hub-spec')}
           map={map}
           rows={rows}
           measureSpecs={{ 'Fill Weight': { lsl: 98, usl: 102, cpkTarget: 1.33 } }}
@@ -182,7 +186,7 @@ describe('SystemLevelView', () => {
       // production. The test asserts the behavior is deterministic (no silent NaN).
       const { rerender } = render(
         <SystemLevelView
-          hubId="hub-leak"
+          hubId={h('hub-leak')}
           map={map}
           rows={rows}
           measureSpecs={{ 'Fill Weight': { lsl: 98, usl: 102, cpkTarget: 1.33 } }}
@@ -197,7 +201,7 @@ describe('SystemLevelView', () => {
       // — simulates a caller that forgets to key by the outcome column
       rerender(
         <SystemLevelView
-          hubId="hub-leak"
+          hubId={h('hub-leak')}
           map={map}
           rows={rows}
           measureSpecs={{ 'Step Mix Diameter': { lsl: 0, usl: 1, cpkTarget: 1.67 } }}
