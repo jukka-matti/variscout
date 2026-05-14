@@ -138,11 +138,23 @@ module 'd3-selection' / 'd3-transition' / 'd3-zoom'`) + cascading line 72, 73, 8
    `as unknown as MockedFunction<typeof fetch>`. Out of scope for a trivial-cast PR.
    Pickup: next test-quality pass on `useHubCommentStream.test.ts`.
 
-3. **`beforeEach` globals in `core/src/ai/__tests__/responsesApi.test.ts:862`** — vitest globals
-   not declared in core tsconfig. Same structural cause as `hooks/src/__tests__/setup.ts:128`
-   (fixed in PR #168 via `/// <reference types="vitest/globals" />`). `responsesApi.test.ts` is
-   not in the brief's scope list; fix in a separate pass.
-   Pickup: add `/// <reference types="vitest/globals" />` to `responsesApi.test.ts`.
+3. **`beforeEach` globals in `core/src/ai/__tests__/responsesApi.test.ts:862`** — ~~vitest globals
+   not declared in core tsconfig~~ **CLOSED in PR #168 commit `e73fca64`** by adding `beforeEach` to
+   the explicit `import { ... } from 'vitest'` on line 1 (more targeted than the `///` reference
+   directive used in `setup.ts`).
+
+4. **Entity fixture-shape mismatches in core tests (newly surfaced post-fix)** — once `responsesApi.test.ts`
+   was unblocked, core tsc reveals 9 more pre-existing errors:
+   - `packages/core/src/__tests__/processHub.test.ts:722, 732, 1164` + `processState.test.ts:180` +
+     `sustainment.test.ts:546` — `SustainmentRecord` fixtures are missing required fields added since
+     they were written: `status`, `title`, `consecutiveOnTargetTicks`, `hasOverride`, `lastEvaluatedSnapshotId`
+     (the entity grew during RPS V1 work without test-fixture catch-up).
+   - `packages/core/src/canvas/__tests__/stampStepCapabilities.test.ts:9, 64, 70, 91` — `ProcessMap`
+     fixtures missing `version`, `tributaries`, `createdAt`, `updatedAt`; plus two `null` vs `string | undefined`
+     assignment errors.
+     Pickup: a focused "fixture catch-up" PR that adds the missing required fields to each fixture (preferred
+     over blanket `as` casts — the casts mask real schema-vs-fixture drift). Touches 4 files in `packages/core/src/__tests__/`
+     and `packages/core/src/canvas/__tests__/`.
 
 **Not a blocking concern** — tsc runs per-package in isolation; vitest runs under bundler transforms
 that supply vite globals. Runtime behaviour is unaffected.
