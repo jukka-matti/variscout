@@ -35,4 +35,28 @@ describe('ImprovementProject', () => {
     const statuses: ImprovementProjectStatus[] = ['draft', 'active', 'closed'];
     expect(statuses).toHaveLength(3);
   });
+
+  it('accepts optional reflection narrative field', () => {
+    const ip: ImprovementProject = {
+      id: 'ip-1',
+      hubId: 'hub-1',
+      createdAt: 0,
+      deletedAt: null,
+      status: 'closed',
+      metadata: { title: 'Heads 5-8 lift' },
+      goal: {
+        outcomeGoal: { outcomeSpecId: 'outcome-1', target: 1.33 },
+      },
+      sections: {
+        background: {},
+        investigationLineage: {},
+        approach: {},
+        outcomeReference: {},
+      },
+      updatedAt: 0,
+      reflection:
+        'The mid-shift thermal cycle drift was invisible until the SCOUT subgroup analysis. Future cadence will include a routine subgroup-by-hour check.',
+    };
+    expect(ip.reflection).toContain('SCOUT subgroup analysis');
+  });
 });

@@ -89,4 +89,8 @@ export interface ImprovementProject extends EntityBase {
   };
   updatedAt: number;
   signoff?: ImprovementProjectSignoff;
+  /** Optional analyst-authored lessons-learned narrative. Authored in
+   *  Sections mode (Sustainment or Handoff stages typically); surfaces in
+   *  the Report Overview "What we standardized + learned" section. */
+  reflection?: string;
 }
