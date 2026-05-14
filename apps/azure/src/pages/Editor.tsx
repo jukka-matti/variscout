@@ -1695,6 +1695,17 @@ export const Editor: React.FC<EditorProps> = ({
                   else if (target === 'improve-workbench') p.showImprovement();
                   else if (target === 'report') p.showReport();
                 }}
+                approachInputs={{
+                  hypotheses,
+                  ideas: persistedQuestions.flatMap(q => q.ideas ?? []),
+                  actions: persistedFindings.flatMap(f => f.actions ?? []),
+                }}
+                onOpenCauseWorkbench={_cause => {
+                  // V1: jump to Improve tab (legacy PDCA workbench).
+                  // Plan 2 will add IP-context scoping so the workbench filters
+                  // to this cause's hypothesis automatically.
+                  usePanelsStore.getState().showImprovement();
+                }}
               />
             ) : activeView === 'improvement' ? (
               <ImprovementWorkspaceBase

@@ -2,6 +2,7 @@ import React from 'react';
 import type { ProcessHub } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { IPDetailPage } from '@variscout/ui/ipDetail';
+import type { CauseProjectionInputs, CauseRow } from '@variscout/ui/ipDetail';
 
 interface ProjectsTabViewProps {
   activeHub?: ProcessHub;
@@ -10,6 +11,8 @@ interface ProjectsTabViewProps {
   onJumpOut?: (
     target: 'investigation' | 'analyze' | 'process' | 'improve-workbench' | 'report'
   ) => void;
+  approachInputs?: CauseProjectionInputs;
+  onOpenCauseWorkbench?: (cause: CauseRow) => void;
 }
 
 function liveProjects(hub: ProcessHub | undefined): ImprovementProject[] {
@@ -21,6 +24,8 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   selectedProjectId,
   onSelectProject,
   onJumpOut,
+  approachInputs,
+  onOpenCauseWorkbench,
 }) => {
   const projects = liveProjects(activeHub);
 
@@ -48,6 +53,8 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         onBackToList={() => onSelectProject('')}
         dayCounter={dayCounter}
         onJumpOut={onJumpOut}
+        approachInputs={approachInputs}
+        onOpenCauseWorkbench={onOpenCauseWorkbench}
       />
     );
   }

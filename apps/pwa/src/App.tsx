@@ -202,8 +202,9 @@ function AppMain() {
   const processContext = useProjectStore(s => s.processContext);
   const defectMapping = useProjectStore(s => s.defectMapping);
 
-  // Investigation store (domain — questions)
+  // Investigation store (domain — questions, hypotheses)
   const questions = useInvestigationStore(s => s.questions);
+  const hypotheses = useInvestigationStore(s => s.hypotheses);
   const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
 
   // Preferences store — question-link prompt opt-out flag
@@ -1102,6 +1103,17 @@ function AppMain() {
                   else if (target === 'process') panels.showFrame();
                   else if (target === 'improve-workbench') panels.showImprovement();
                   else if (target === 'report') panels.showReport();
+                }}
+                approachInputs={{
+                  hypotheses,
+                  ideas: questions.flatMap(q => q.ideas ?? []),
+                  actions: findingsState.findings.flatMap(f => f.actions ?? []),
+                }}
+                onOpenCauseWorkbench={_cause => {
+                  // V1: jump to Improve tab (legacy PDCA workbench).
+                  // Plan 2 will add IP-context scoping so the workbench filters
+                  // to this cause's hypothesis automatically.
+                  panels.showImprovement();
                 }}
               />
             ) : panels.activeView === 'improvement' ? (
