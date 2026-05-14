@@ -130,6 +130,13 @@ module 'd3-selection' / 'd3-transition' / 'd3-zoom'`) + cascading line 72, 73, 8
    `packages/hooks/package.json`. (Note: `@types/d3-zoom` and `@types/d3-selection` are already
    in `devDependencies`; the issue may be a missing hoisting entry for `@types/d3-transition`.)
    Pickup: add/verify the three `@types/d3-*` entries in a follow-up dep-bump PR.
+   **CLOSED in PR A (post-168-tsc-hygiene), commit `e2c584ec`** — NOTE: the original hypothesis
+   (missing hoisting entry) was partially wrong. The actual contribution was `@types/d3-transition`
+   mis-placed in `dependencies` rather than `devDependencies` in `packages/hooks/package.json`
+   (introduced by commit `07add8a4`). Moving it to `devDependencies` resolved all 3 d3 type errors.
+   Empirical `--prod`-install reproduction was NOT run; fix accepted on semantic grounds (type
+   packages belong in `devDependencies`, never `dependencies`). `@types/d3-zoom` and
+   `@types/d3-selection` were already correctly placed and required no change.
 
 2. **Tuple-mock typing** — `packages/hooks/src/__tests__/useHubCommentStream.test.ts:274-277`.
    `vi.fn(() => Promise.resolve(...))` infers call signature as 0-arg, so `fetchMock.mock.calls[0]`
@@ -137,24 +144,32 @@ module 'd3-selection' / 'd3-transition' / 'd3-zoom'`) + cascading line 72, 73, 8
    in the factory (`vi.fn<Parameters<typeof fetch>, ReturnType<typeof fetch>>(...)`) or using
    `as unknown as MockedFunction<typeof fetch>`. Out of scope for a trivial-cast PR.
    Pickup: next test-quality pass on `useHubCommentStream.test.ts`.
+   **CLOSED in PR A (post-168-tsc-hygiene), commit `35c34d83`** — used `vi.fn<typeof fetch>(...)`
+   (vitest 4.x single-type-param form), updated 3 call sites in the test file. `@variscout/hooks`
+   tsc now exits 0 with no tuple-inference errors.
 
 3. **`beforeEach` globals in `core/src/ai/__tests__/responsesApi.test.ts:862`** — ~~vitest globals
    not declared in core tsconfig~~ **CLOSED in PR #168 commit `e73fca64`** by adding `beforeEach` to
    the explicit `import { ... } from 'vitest'` on line 1 (more targeted than the `///` reference
    directive used in `setup.ts`).
 
-4. **Entity fixture-shape mismatches in core tests (newly surfaced post-fix)** — once `responsesApi.test.ts`
-   was unblocked, core tsc reveals 9 more pre-existing errors:
+4. **Entity fixture-shape mismatches in core tests (surfaced post-fix; both sub-items now closed)** — once `responsesApi.test.ts`
+   was unblocked, core tsc revealed 9 more pre-existing errors:
    - `packages/core/src/__tests__/processHub.test.ts:722, 732, 1164` + `processState.test.ts:180` +
      `sustainment.test.ts:546` — `SustainmentRecord` fixtures are missing required fields added since
      they were written: `status`, `title`, `consecutiveOnTargetTicks`, `hasOverride`, `lastEvaluatedSnapshotId`
      (the entity grew during RPS V1 work without test-fixture catch-up).
+     **CLOSED in PR A (post-168-tsc-hygiene), commit `7685734d`** — added all 5 missing required fields
+     to fixtures across 4 test files; `recordFor` builder improved in-place; no `as` casts.
    - `packages/core/src/canvas/__tests__/stampStepCapabilities.test.ts:9, 64, 70, 91` — `ProcessMap`
      fixtures missing `version`, `tributaries`, `createdAt`, `updatedAt`; plus two `null` vs `string | undefined`
      assignment errors.
      Pickup: a focused "fixture catch-up" PR that adds the missing required fields to each fixture (preferred
      over blanket `as` casts — the casts mask real schema-vs-fixture drift). Touches 4 files in `packages/core/src/__tests__/`
      and `packages/core/src/canvas/__tests__/`.
+     **CLOSED in PR A (post-168-tsc-hygiene), commit `27027162`** — extracted local `makeMap` builder;
+     added all 4 missing required fields; changed `null` → omit on `ctqColumn` to match `string | undefined`
+     type. `@variscout/core` tsc now exits 0.
 
 **Not a blocking concern** — tsc runs per-package in isolation; vitest runs under bundler transforms
 that supply vite globals. Runtime behaviour is unaffected.
