@@ -32,8 +32,8 @@
     "@types/d3-transition": "^3.0.9",
     "@types/d3-zoom": "^3.0.8",
     "@types/react": "^19.2.14",
-    "jsdom": "^29.1.0",
+    "jsdom": "^29.1.1",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.6"
   }
 }
