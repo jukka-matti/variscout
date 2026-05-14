@@ -257,7 +257,7 @@ describe('useHubCommentStream', () => {
       },
     ];
 
-    const fetchMock = vi.fn(() => Promise.resolve({ ok: true } as Response));
+    const fetchMock = vi.fn<typeof fetch>(() => Promise.resolve({ ok: true } as Response));
     vi.stubGlobal('fetch', fetchMock);
 
     renderHook(() => useHubCommentStream({ projectId: 'proj-1', visibleHubIds: ['hub-1'] }));
@@ -301,7 +301,9 @@ describe('useHubCommentStream', () => {
       },
     ];
 
-    const fetchMock = vi.fn(() => Promise.resolve({ ok: false, status: 500 } as Response));
+    const fetchMock = vi.fn<typeof fetch>(() =>
+      Promise.resolve({ ok: false, status: 500 } as Response)
+    );
     vi.stubGlobal('fetch', fetchMock);
 
     renderHook(() => useHubCommentStream({ projectId: 'proj-1', visibleHubIds: ['hub-1'] }));
@@ -332,7 +334,7 @@ describe('useHubCommentStream', () => {
       },
     ];
 
-    const fetchMock = vi.fn(() => Promise.resolve({ ok: true } as Response));
+    const fetchMock = vi.fn<typeof fetch>(() => Promise.resolve({ ok: true } as Response));
     vi.stubGlobal('fetch', fetchMock);
 
     renderHook(() => useHubCommentStream({ projectId: 'proj-1', visibleHubIds: ['hub-1'] }));
