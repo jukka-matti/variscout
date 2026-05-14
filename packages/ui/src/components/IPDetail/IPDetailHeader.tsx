@@ -81,7 +81,7 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
           <div className="flex">
             {visible.map((member, idx) => (
               <div
-                key={member.person.displayName}
+                key={`${idx}-${member.person.displayName ?? 'anon'}`}
                 className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface text-xs font-semibold text-content ${avatarColor(member.person.displayName)} ${idx > 0 ? '-ml-2' : ''}`}
                 title={member.person.displayName}
               >
