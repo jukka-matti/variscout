@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ApproachCauseCard from '../ApproachCauseCard';
 import type { CauseRow } from '../causeProjection';
-import type { ImprovementIdea, ActionItem } from '@variscout/core/findings/types';
+import type { ImprovementIdea, ActionItem } from '@variscout/core/findings';
 
 const baseEntity = { createdAt: 0, deletedAt: null };
 

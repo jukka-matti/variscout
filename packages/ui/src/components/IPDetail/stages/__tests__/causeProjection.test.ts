@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { projectCauses } from '../causeProjection';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import type { Hypothesis, ImprovementIdea, ActionItem } from '@variscout/core/findings/types';
+import type { Hypothesis, ImprovementIdea, ActionItem } from '@variscout/core/findings';
 
 // ---------------------------------------------------------------------------
 // Fixtures

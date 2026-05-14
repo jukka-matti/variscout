@@ -2,7 +2,7 @@ import type {
   ImprovementProject,
   ImprovementProjectFactorControl,
 } from '@variscout/core/improvementProject';
-import type { Hypothesis, ImprovementIdea, ActionItem } from '@variscout/core/findings/types';
+import type { Hypothesis, ImprovementIdea, ActionItem } from '@variscout/core/findings';
 
 // ---------------------------------------------------------------------------
 // Types
