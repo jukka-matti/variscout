@@ -92,10 +92,10 @@ import {
   type ProcessHubId,
 } from '@variscout/stores';
 import { DEFAULT_PROCESS_HUB_ID } from '@variscout/core';
-
-const h = (id: string) => id as ProcessHubId;
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import InvestigationView from '../InvestigationView';
+
+const h = (id: string) => id as ProcessHubId;
 
 // ── 3. Minimal props factory ───────────────────────────────────────────────
 
