@@ -87,13 +87,12 @@ function listTypeScriptFiles(dir: string): string[] {
   return out;
 }
 
-// Read-once cache: all ~190 source files are read into memory once in
+// Read-once cache: all ~310 source files are read into memory once in
 // beforeAll. Each it() block scans the cached strings, not the disk.
-// This reduces ~3040 synchronous readFileSync calls (16 names × ~190 files)
-// to ~190 reads total, eliminating the IO-induced timeout flake under
+// This reduces ~5000 synchronous readFileSync calls (16 names × ~310 files)
+// to ~310 reads total, eliminating the IO-induced timeout flake under
 // turbo concurrent load (see docs/investigations.md
-// "Pre-existing tsc errors deferred from PR #168", vitest worker-timeout
-// sub-item, and feedback_pr_ready_check_retry_on_grep_test).
+// "Branded Cpk type as durable replacement" for the durable reference).
 type CachedFile = { path: string; text: string };
 
 describe('Architecture — no cross-investigation Cp/Cpk aggregation primitive', () => {

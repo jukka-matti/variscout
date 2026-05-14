@@ -1010,9 +1010,9 @@ function listTypeScriptFiles(dir: string): string[] {
   return out;
 }
 
-// Read-once cache: ~190 files read into memory in beforeAll.
+// Read-once cache: ~310 files read into memory in beforeAll.
 // Each it() block scans cached strings, not disk.
-// Avoids ~3040 sync readFileSync calls (16 names × ~190 files) that
+// Avoids ~5000 sync readFileSync calls (16 names × ~310 files) that
 // cause IO-induced timeout flakes under turbo concurrent load.
 type CachedFile = { path: string; text: string };
 
@@ -1043,7 +1043,7 @@ Key decisions in this pattern:
 - **One `it()` per forbidden name.** Keeps failures readable: a violation reports exactly which name leaked and in which files.
 - **Whole-word regex** (`/(^|\W)NAME(?=\W|$)/`) reduces false positives from longer names that happen to contain a forbidden substring.
 
-**Anti-pattern:** Re-reading files inside each `it()` block. With 16 forbidden names and ~190 source files, that is ~3040 synchronous `readFileSync` calls per test run. Under turbo's concurrent worker load this exceeds the 5 s per-test timeout intermittently. The read-once cache eliminates the flake (see `feedback_pr_ready_check_retry_on_grep_test`).
+**Anti-pattern:** Re-reading files inside each `it()` block. With 16 forbidden names and ~310 source files, that is ~5000 synchronous `readFileSync` calls per test run. Under turbo's concurrent worker load this exceeds the 5 s per-test timeout intermittently. The read-once + per-name regex pattern (commit `06d2638a`) eliminates the flake; no retry workaround is needed.
 
 ### Bash variant (cross-package, pre-commit)
 
