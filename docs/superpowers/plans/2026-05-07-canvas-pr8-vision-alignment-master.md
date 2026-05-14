@@ -1,7 +1,7 @@
 ---
 title: Canvas Migration PR8 — Vision Alignment Master Plan (sequencing 8a / 8b / 8d / 8e + 8f deferral)
 audience: [engineer, product]
-category: implementation-plan-master
+category: implementation
 status: delivered
 last-reviewed: 2026-05-08
 related:

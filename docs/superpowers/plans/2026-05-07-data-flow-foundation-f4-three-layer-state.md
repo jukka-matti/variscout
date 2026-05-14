@@ -1,7 +1,7 @@
 ---
 title: F4 implementation plan — three-layer state codification
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: draft
 last-reviewed: 2026-05-07
 related:
@@ -139,7 +139,7 @@ cat > docs/superpowers/plans/2026-05-07-data-flow-foundation-f4-audit.md <<'EOF'
 ---
 title: F4 audit — touch surface verified pre-implementation
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: draft
 last-reviewed: 2026-05-07
 ---

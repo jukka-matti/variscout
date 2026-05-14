@@ -1,7 +1,7 @@
 ---
 title: Canvas PR8 sub-PR 8b — Drift indicator + time-series mini-chart
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: active
 last-reviewed: 2026-05-07
 related:

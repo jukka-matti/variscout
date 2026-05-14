@@ -1,7 +1,7 @@
 ---
 title: F4 audit — touch surface verified pre-implementation
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: active
 last-reviewed: 2026-05-07
 related:

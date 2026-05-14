@@ -1,7 +1,7 @@
 ---
 title: Canvas Migration PR9 — Legacy component cleanup
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: delivered
 last-reviewed: 2026-05-08
 related:

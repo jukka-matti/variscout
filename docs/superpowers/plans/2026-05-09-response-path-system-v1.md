@@ -1,7 +1,7 @@
 ---
 title: Response Path System V1 — Implementation Plan
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: delivered
 last-reviewed: 2026-05-13
 related:

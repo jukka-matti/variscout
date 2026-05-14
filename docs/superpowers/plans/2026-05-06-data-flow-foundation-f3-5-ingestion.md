@@ -1,7 +1,7 @@
 ---
 title: Data-Flow Foundation F3.5 — Ingestion Action Layer (paste / upload unified onto EVIDENCE_ADD_SNAPSHOT dispatch)
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: delivered
 last-reviewed: 2026-05-07
 related:
