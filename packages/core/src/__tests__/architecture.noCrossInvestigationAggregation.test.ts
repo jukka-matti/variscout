@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -19,6 +19,22 @@ import * as path from 'node:path';
  * which the spec permits. Forbidding it would collide with legitimate
  * within-investigation aggregation. The cross-investigation hazard the
  * spec targets is captured by the explicit cross/portfolio/global variants.
+ *
+ * ## This is a tripwire, not a wall.
+ *
+ * Architecture tests catch the obvious case (a contributor — human or
+ * LLM-assisted — reaches for `aggregateCpk` or `sumCpk`) and force
+ * intentional renaming OR a design rethink. They do NOT enforce
+ * semantic correctness: a function named `unifiedQualityIndex()` doing
+ * exactly the forbidden aggregation would pass this test. And the scope
+ * is narrow — this guard scans only `@variscout/core`; cross-package
+ * aggregations introduced in `packages/charts`, `packages/ui`, or apps
+ * would not be caught.
+ *
+ * The durable answer for any rule that earns full enforcement is
+ * type-level (branded types, ADR-074-style policy types). See
+ * `docs/investigations.md` "Branded Cpk type as durable replacement"
+ * for the proposed follow-up.
  */
 const FORBIDDEN_NAMES = [
   // Spec's own verification command names
@@ -71,25 +87,30 @@ function listTypeScriptFiles(dir: string): string[] {
   return out;
 }
 
-function findHits(name: string, files: readonly string[]): string[] {
-  // Whole-word match: name preceded by non-word char (or start of file) and
-  // followed by non-word char (or end of file). Avoids false positives on
-  // longer names that happen to contain a forbidden substring.
-  const pattern = new RegExp(`(^|\\W)${name}(?=\\W|$)`);
-  const hits: string[] = [];
-  for (const file of files) {
-    const text = fs.readFileSync(file, 'utf8');
-    if (pattern.test(text)) hits.push(file);
-  }
-  return hits;
-}
+// Read-once cache: all ~190 source files are read into memory once in
+// beforeAll. Each it() block scans the cached strings, not the disk.
+// This reduces ~3040 synchronous readFileSync calls (16 names × ~190 files)
+// to ~190 reads total, eliminating the IO-induced timeout flake under
+// turbo concurrent load (see docs/investigations.md
+// "Pre-existing tsc errors deferred from PR #168", vitest worker-timeout
+// sub-item, and feedback_pr_ready_check_retry_on_grep_test).
+type CachedFile = { path: string; text: string };
 
 describe('Architecture — no cross-investigation Cp/Cpk aggregation primitive', () => {
-  const files = listTypeScriptFiles(CORE_SRC);
+  let cache: CachedFile[];
+
+  beforeAll(() => {
+    const paths = listTypeScriptFiles(CORE_SRC);
+    cache = paths.map(p => ({ path: p, text: fs.readFileSync(p, 'utf8') }));
+  });
 
   for (const name of FORBIDDEN_NAMES) {
     it(`does not declare or reference "${name}" anywhere in @variscout/core (excluding tests)`, () => {
-      const hits = findHits(name, files);
+      // Whole-word match: name preceded by non-word char (or start of file)
+      // and followed by non-word char (or end of file). Avoids false positives
+      // on longer names that happen to contain a forbidden substring.
+      const pattern = new RegExp(`(^|\\W)${name}(?=\\W|$)`);
+      const hits = cache.filter(f => pattern.test(f.text)).map(f => f.path);
       expect(hits, `Forbidden name "${name}" appears in:\n  ${hits.join('\n  ')}`).toEqual([]);
     });
   }
