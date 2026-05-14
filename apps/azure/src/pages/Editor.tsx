@@ -562,6 +562,30 @@ export const Editor: React.FC<EditorProps> = ({
   // Data flow hook
   const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
 
+  // Sustainment + Handoff inputs for ProjectsTabView → IPDetailPage
+  const _azureLiveSustainmentRecords = (activeHub?.sustainmentRecords ?? []).filter(
+    r => r.deletedAt === null
+  );
+  const _azureLiveControlHandoffs = (activeHub?.controlHandoffs ?? []).filter(
+    h => h.deletedAt === null
+  );
+  const projectsSustainmentRecord = _azureLiveSustainmentRecords.find(
+    r => r.improvementProjectId === selectedProjectId
+  );
+  const projectsControlHandoff = _azureLiveControlHandoffs.find(
+    h => h.investigationId === (projectsSustainmentRecord?.investigationId ?? '')
+  );
+  const projectsHandoffInputs = projectsControlHandoff
+    ? {
+        controlPlanDocumented: false,
+        trainingDelivered: Boolean(projectsControlHandoff.signoff?.approvedBy),
+        cadenceAssigned: Boolean(projectsSustainmentRecord?.cadence),
+        processOwnerAcknowledged: projectsControlHandoff.status !== 'pending',
+        trainingRef: projectsControlHandoff.referenceUri,
+        cadenceOwner: projectsSustainmentRecord?.owner?.displayName,
+      }
+    : undefined;
+
   const dataFlow = useEditorDataFlow({
     rawData,
     outcome,
@@ -1705,6 +1729,23 @@ export const Editor: React.FC<EditorProps> = ({
                   // Plan 2 will add IP-context scoping so the workbench filters
                   // to this cause's hypothesis automatically.
                   usePanelsStore.getState().showImprovement();
+                }}
+                sustainmentRecord={projectsSustainmentRecord}
+                controlHandoff={projectsControlHandoff}
+                handoffInputs={projectsHandoffInputs}
+                onOpenLegacySustainment={() =>
+                  usePanelsStore
+                    .getState()
+                    .showSustainment(projectsSustainmentRecord?.investigationId ?? undefined)
+                }
+                onOpenLegacyHandoff={() =>
+                  usePanelsStore
+                    .getState()
+                    .showHandoff(projectsControlHandoff?.investigationId ?? undefined)
+                }
+                onNudgeProcessOwner={() => {
+                  // Plan 3 will emit EngagementEvent webhook here.
+                  console.info('[handoff] Nudge process owner — Plan 3 will wire EngagementEvent');
                 }}
               />
             ) : activeView === 'improvement' ? (

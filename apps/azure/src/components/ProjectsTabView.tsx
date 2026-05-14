@@ -1,8 +1,12 @@
 import React from 'react';
-import type { ProcessHub } from '@variscout/core';
+import type { ProcessHub, SustainmentRecord, ControlHandoff } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { IPDetailPage } from '@variscout/ui/ipDetail';
-import type { CauseProjectionInputs, CauseRow } from '@variscout/ui/ipDetail';
+import type {
+  CauseProjectionInputs,
+  CauseRow,
+  HandoffChecklistInputs,
+} from '@variscout/ui/ipDetail';
 
 interface ProjectsTabViewProps {
   activeHub?: ProcessHub;
@@ -13,6 +17,12 @@ interface ProjectsTabViewProps {
   ) => void;
   approachInputs?: CauseProjectionInputs;
   onOpenCauseWorkbench?: (cause: CauseRow) => void;
+  sustainmentRecord?: SustainmentRecord;
+  controlHandoff?: ControlHandoff;
+  handoffInputs?: HandoffChecklistInputs;
+  onOpenLegacySustainment?: () => void;
+  onOpenLegacyHandoff?: () => void;
+  onNudgeProcessOwner?: () => void;
 }
 
 function liveProjects(hub: ProcessHub | undefined): ImprovementProject[] {
@@ -26,6 +36,12 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onJumpOut,
   approachInputs,
   onOpenCauseWorkbench,
+  sustainmentRecord,
+  controlHandoff,
+  handoffInputs,
+  onOpenLegacySustainment,
+  onOpenLegacyHandoff,
+  onNudgeProcessOwner,
 }) => {
   const projects = liveProjects(activeHub);
 
@@ -55,6 +71,12 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         onJumpOut={onJumpOut}
         approachInputs={approachInputs}
         onOpenCauseWorkbench={onOpenCauseWorkbench}
+        sustainmentRecord={sustainmentRecord}
+        controlHandoff={controlHandoff}
+        handoffInputs={handoffInputs}
+        onOpenLegacySustainment={onOpenLegacySustainment}
+        onOpenLegacyHandoff={onOpenLegacyHandoff}
+        onNudgeProcessOwner={onNudgeProcessOwner}
       />
     );
   }
