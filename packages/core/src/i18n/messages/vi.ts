@@ -550,6 +550,8 @@ export const vi: MessageCatalog = {
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
+  'workspace.improve': 'Improve',
+  'workspace.projects': 'Projects',
   'workspace.report': 'Report',
 
   // Synthesis card
