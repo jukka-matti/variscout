@@ -119,7 +119,7 @@ describe('finding replay — setTimeLens restored from source.timeLens', () => {
       callOrder.push('setTimeLens');
       usePreferencesStore.getState().setTimeLens(lens);
     });
-    const mockSetFilters = vi.fn(() => {
+    const mockSetFilters = vi.fn((_filters: unknown) => {
       callOrder.push('setFilters');
     });
 

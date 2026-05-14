@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 /**
  * Hooks test setup — supplements the root test/setup.ts.
  *
@@ -103,7 +104,7 @@ if (typeof window !== 'undefined') {
 
   const db = makeDb();
 
-  (window as Record<string, unknown>)['indexedDB'] = {
+  (window as unknown as Record<string, unknown>)['indexedDB'] = {
     open: (_dbName: string, _version?: number) => {
       const openReq = {
         result: db,
