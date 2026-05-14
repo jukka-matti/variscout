@@ -49,7 +49,7 @@ vi.mock('../workers/useStatsWorker', () => ({
 }));
 
 import { render, act } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi as _vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import App from '../App';
 import { LocaleProvider } from '../context/LocaleContext';
 import { registerLocaleLoaders, type MessageCatalog } from '@variscout/core';

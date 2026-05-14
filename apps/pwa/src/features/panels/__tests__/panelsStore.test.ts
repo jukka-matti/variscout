@@ -63,6 +63,22 @@ describe('panelsStore', () => {
       expect(s.isDataTableOpen).toBe(true);
       expect(s.showExcludedOnly).toBe(true);
     });
+
+    it('openDataTableAtRow(5, true) sets highlightRowIndex and opens PI sidebar (desktop)', () => {
+      usePanelsStore.getState().openDataTableAtRow(5, true);
+      const s = usePanelsStore.getState();
+      expect(s.highlightRowIndex).toBe(5);
+      expect(s.isPISidebarOpen).toBe(true);
+      expect(s.isDataTableOpen).toBe(false);
+    });
+
+    it('openDataTableAtRow(5, false) sets highlightRowIndex and opens data table modal (mobile)', () => {
+      usePanelsStore.getState().openDataTableAtRow(5, false);
+      const s = usePanelsStore.getState();
+      expect(s.highlightRowIndex).toBe(5);
+      expect(s.isDataTableOpen).toBe(true);
+      expect(s.isPISidebarOpen).toBe(false);
+    });
   });
 
   describe('workspace navigation', () => {

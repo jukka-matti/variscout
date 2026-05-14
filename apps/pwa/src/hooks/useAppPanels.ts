@@ -112,6 +112,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   const closeDataTable = usePanelsStore(s => s.closeDataTable);
   const openDataTableExcluded = usePanelsStore(s => s.openDataTableExcluded);
   const openDataTableAll = usePanelsStore(s => s.openDataTableAll);
+  const openDataTableAtRowAction = usePanelsStore(s => s.openDataTableAtRow);
 
   const [isDesktop, setIsDesktop] = useState(
     typeof window !== 'undefined' && window.innerWidth >= DESKTOP_BREAKPOINT
@@ -159,13 +160,9 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   // Compound actions that need isDesktop
   const openDataTableAtRow = useCallback(
     (index: number) => {
-      if (isDesktop) {
-        usePanelsStore.setState({ highlightRowIndex: index, isPISidebarOpen: true });
-      } else {
-        usePanelsStore.setState({ highlightRowIndex: index, isDataTableOpen: true });
-      }
+      openDataTableAtRowAction(index, isDesktop);
     },
-    [isDesktop]
+    [openDataTableAtRowAction, isDesktop]
   );
 
   const handleResetConfirm = useCallback(() => {
