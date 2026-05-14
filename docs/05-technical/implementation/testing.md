@@ -952,4 +952,140 @@ Expected behavior:
 
 Reference implementation: `packages/core/src/stats/__tests__/safeMath.test.ts`
 
+---
+
+## Architecture Tests (Structural-Absence Guards)
+
+An architecture test enforces an architectural invariant by asserting that certain function names, identifiers, or import paths do **not** appear in production code. The test file lives alongside ordinary unit tests; CI catches violations at merge time. The rule is enforced at-write time, not at design-doc-review time.
+
+This is a tripwire, not a wall. The pattern is cheap to add when an ADR needs enforcement but type-level investment isn't yet justified.
+
+### When to use it
+
+- An ADR says "the engine MUST NOT expose function X" or "package A MUST NOT import package B."
+- The cost of enforcement is high enough that a doc-only ADR gets violated in practice. LLM-assisted development is a particular driver — language models reach for plausible function names (`aggregateCpk`, `rollupCapability`) that the ADR explicitly forbids.
+- Type-level enforcement isn't justified yet: the rule isn't ubiquitous enough, or the engineering investment for branded types is too high for this moment.
+
+### When NOT to use it
+
+- **The rule is about semantic correctness, not naming.** A grep for `aggregateCpk` doesn't catch `unifiedQualityIndex()` doing the same forbidden math under a different name.
+- **The rule deserves type-level enforcement and you have the budget.** Prefer branded types (like `ProcessHubId`) when the engineering cost is justified. The denylist is the interim measure, not the destination.
+- **The rule needs cross-package enforcement.** A per-package vitest guard has narrow scope. Cross-package rules require either coordinating multiple test files or writing a repo-wide bash script (see `scripts/check-level-boundaries.sh` below).
+
+### Implementation pattern
+
+The canonical example is `packages/core/src/__tests__/architecture.noCrossInvestigationAggregation.test.ts` (ADR-073). The critical discipline: **read source files once, scan many times**.
+
+```typescript
+import { describe, it, expect, beforeAll } from 'vitest';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+const FORBIDDEN_NAMES = [
+  'aggregateCpk',
+  'aggregateCapability',
+  'meanCapability',
+  'sumCpk',
+  'portfolioCpk',
+  // ...16 names total
+];
+
+const CORE_SRC = path.resolve(import.meta.dirname, '..');
+
+function listTypeScriptFiles(dir: string): string[] {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const out: string[] = [];
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === '__tests__') continue; // skip test dirs
+      out.push(...listTypeScriptFiles(full));
+      continue;
+    }
+    if (!entry.isFile()) continue;
+    if (!entry.name.endsWith('.ts') && !entry.name.endsWith('.tsx')) continue;
+    if (entry.name.endsWith('.test.ts') || entry.name.endsWith('.test.tsx')) continue;
+    out.push(full);
+  }
+  return out;
+}
+
+// Read-once cache: ~190 files read into memory in beforeAll.
+// Each it() block scans cached strings, not disk.
+// Avoids ~3040 sync readFileSync calls (16 names × ~190 files) that
+// cause IO-induced timeout flakes under turbo concurrent load.
+type CachedFile = { path: string; text: string };
+
+describe('Architecture — no cross-investigation Cp/Cpk aggregation primitive', () => {
+  let cache: CachedFile[];
+
+  beforeAll(() => {
+    const paths = listTypeScriptFiles(CORE_SRC);
+    cache = paths.map(p => ({ path: p, text: fs.readFileSync(p, 'utf8') }));
+  });
+
+  for (const name of FORBIDDEN_NAMES) {
+    it(`does not declare or reference "${name}" in @variscout/core (excluding tests)`, () => {
+      // Whole-word regex: avoids false positives on longer names that
+      // contain a forbidden substring.
+      const pattern = new RegExp(`(^|\\W)${name}(?=\\W|$)`);
+      const hits = cache.filter(f => pattern.test(f.text)).map(f => f.path);
+      expect(hits, `"${name}" appears in:\n  ${hits.join('\n  ')}`).toEqual([]);
+    });
+  }
+});
+```
+
+Key decisions in this pattern:
+
+- **List source files once** via `fs.readdirSync` with type-filter (`.ts` / `.tsx`, skip tests, skip `__tests__/` directories).
+- **Read each file once** into a `CachedFile[]` in `beforeAll`. Do not re-read inside `it()` blocks.
+- **One `it()` per forbidden name.** Keeps failures readable: a violation reports exactly which name leaked and in which files.
+- **Whole-word regex** (`/(^|\W)NAME(?=\W|$)/`) reduces false positives from longer names that happen to contain a forbidden substring.
+
+**Anti-pattern:** Re-reading files inside each `it()` block. With 16 forbidden names and ~190 source files, that is ~3040 synchronous `readFileSync` calls per test run. Under turbo's concurrent worker load this exceeds the 5 s per-test timeout intermittently. The read-once cache eliminates the flake (see `feedback_pr_ready_check_retry_on_grep_test`).
+
+### Bash variant (cross-package, pre-commit)
+
+For cross-package boundary rules, a bash script is often simpler than coordinating multiple vitest files. Example: `scripts/check-level-boundaries.sh` (ADR-074). It uses `grep -rEq` against specific component directories and runs in the pre-commit hook:
+
+```bash
+check() {
+  local pattern="$1"
+  local target="$2"
+  local message="$3"
+  if [ -d "$target" ]; then
+    if grep -rEq "$pattern" "$target" 2>/dev/null; then
+      echo "  ✗ $message" >&2
+      FAILED=$((FAILED + 1))
+    fi
+  fi
+}
+
+check "outcomeStats|outcomeBoxplot|outcomeIChart" \
+  "packages/ui/src/components/InvestigationWall" \
+  "Investigation Wall does not reimplement L1 chart rendering"
+```
+
+The bash approach has the same semantic limits as the vitest approach (substring pattern, not AST), but covers multiple packages in one pass.
+
+### Explicit limits of this pattern
+
+- **Denylist, not allowlist.** Anyone can rename around the forbidden list. The guard catches the obvious case and forces intentional naming; it does not prevent a creative renaming that avoids every listed identifier.
+- **Substring grep, not AST.** The whole-word regex reduces false positives, but cannot understand semantics. A function named `unifiedQualityIndex()` doing forbidden cross-investigation aggregation would pass cleanly.
+- **Narrow scope.** The vitest guard scans only the package it lives in. Cross-package aggregation introduced in `packages/charts`, `packages/ui`, or apps is invisible to it. The bash script addresses this for the ADR-074 boundaries specifically.
+- **Maintenance burden.** Every synonym is one more line. The list can never be complete; reality has more names than you will think of at design time.
+- **Comments match too.** A code comment `// don't use aggregateCpk` would trigger the pattern. In practice this is harmless (the comment is an acknowledgment, not an introduction), but it is worth knowing.
+
+### Existing instances in this codebase
+
+| File                                                                               | Mechanism          | Enforces                                                                                                          | Runs in         |
+| :--------------------------------------------------------------------------------- | :----------------- | :---------------------------------------------------------------------------------------------------------------- | :-------------- |
+| `packages/core/src/__tests__/architecture.noCrossInvestigationAggregation.test.ts` | vitest             | ADR-073 (Watson's locality rule — no cross-investigation Cp/Cpk aggregation); 16 forbidden names                  | `pnpm test`     |
+| `scripts/check-level-boundaries.sh`                                                | bash + `grep -rEq` | ADR-074 (multi-level boundary policy — SCOUT / Evidence-Map / Hub-Capability layer separation); 5 boundary checks | pre-commit hook |
+
+### The durable answer
+
+Architecture tests are interim enforcement. When a rule earns full enforcement — because violations are expensive and the rule is stable — prefer type-level primitives: branded types, policy types, or package-boundary ESLint rules. `ProcessHubId` is the existing example of this upgrade path. See `docs/investigations.md` "Branded `Cpk` type as durable replacement for forbidden-name guard" for the proposed follow-up targeting the ADR-073 guard specifically.
+
 - [Technical Overview](../index.md) - Technical section index
