@@ -6,12 +6,11 @@ paths:
   - "apps/azure/server.js"
 ---
 
-# Azure storage + auth — editing invariants
+# Azure storage + auth — non-negotiables
 
-- **EasyAuth is the auth model**; no MSAL code in the client. `/.auth/me` (built-in) returns identity; no `/api/me` endpoint.
-- **IndexedDB via Dexie** (`db/schema.ts`); `services/localDb.ts` is the facade.
-- **Blob Storage sync**: client never sees storage keys. `/api/storage-token` mints short-lived SAS scoped to the user's container. Data stays in the customer's tenant (customer-owned data, ADR-059).
-- **App Insights telemetry**: strict no-PII rule. Log structural events only (mode changes, feature usage, durations). Never log data rows, user identifiers beyond tenant ID, or free-text prompts.
-- **CoScout API calls** go to Azure OpenAI endpoint in the customer's subscription. Prompts may include investigation state (findings, hubs, edges) but never raw data rows beyond what's exposed in charts.
+- **EasyAuth only.** No MSAL in client code. `/.auth/me` returns identity.
+- **Customer-owned data (ADR-059).** Never log PII to App Insights — log structural events only (counts, types, durations). Send error *type*, not message text.
+- **SAS tokens minted server-side** via `/api/storage-token`. Client never sees storage keys. Container-scoped, 1h expiry.
+- **ETag concurrency on hub-blob writes (ADR-079).** Callers MUST handle the `{ ok: false; reason }` branch — the typed result is the compile-time guard against silent overwrites.
 
-Reference: `apps/azure/CLAUDE.md`, `.claude/skills/editing-azure-storage-auth/SKILL.md`, `docs/07-decisions/adr-059-web-first-deployment-architecture.md`.
+Detailed patterns + persistence boundary + sustainment deferral: `apps/azure/CLAUDE.md`.

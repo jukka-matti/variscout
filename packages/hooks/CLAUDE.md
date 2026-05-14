@@ -23,11 +23,9 @@
 pnpm --filter @variscout/hooks test
 ```
 
-## Skills to consult
+## Scope boundary
 
-- `editing-charts` — useChartTheme, useChartCopy, chart data hooks
-- `editing-investigation-workflow` — useFindings, useQuestions, useProblemStatement, useHubComputations
-- `writing-tests` — i18n loader setup, RTL patterns
+- Hooks consume stores; never define new stores here. New domain stores belong in `packages/stores/` (3-layer model). New app-local UI state belongs in feature stores under `apps/*/src/features/`.
 
 ## Related
 

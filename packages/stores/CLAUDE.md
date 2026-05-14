@@ -15,21 +15,20 @@
 
 ## Hard rules
 
-- Selectors required: `useProjectStore(s => s.field)`. Never bare `useStore()`.
-- `investigationStore` owns `CausalLink` + `problemContributionTree`. Highlights → `useViewStore`.
-- Cross-app UI state lives here (`canvasViewportStore` pattern). App-local state → `apps/*/src/features/`.
-- No DataContext (ADR-041).
-- Cross-store **imperative action calls** allowed; **reactive subscriptions** forbidden.
-- Layer boundary enforcement covers `packages/stores/src/` only (per F4 spec D7).
+- Selectors required: `useProjectStore(s => s.field)`. Never bare `useStore()`. No DataContext (ADR-041).
+- `investigationStore` owns `CausalLink` + `problemContributionTree`; highlights live in `useViewStore`.
+- Cross-app UI state lives here (`canvasViewportStore` pattern); app-local state → `apps/*/src/features/`.
+- Cross-store imperative action calls allowed; reactive subscriptions forbidden.
+- Document stores never import `dexie` directly (ESLint P7.2). `canvasViewportStore` is R12 exception — call `rehydrateCanvasViewport(hubId)` on hub open, debounced `persistCanvasViewport(hubId)` on mutation.
+- `useViewStore` has no persist middleware; cleared by `projectStore.loadProject`/`newProject`. Tests: `beforeEach(() => useStore.setState(useStore.getInitialState()))`.
 
-## Invariants
+## Investigation domain
 
-- Document stores never import `dexie` directly — ESLint P7.2 enforces.
-- `canvasStore` exposes `dispatch(action: CanvasAction)`.
-- `canvasViewportStore`: R12 ESLint exception; call `rehydrateCanvasViewport(hubId)` on hub open, `persistCanvasViewport(hubId)` debounced on mutation.
-- `usePreferencesStore` persists to `'variscout-preferences'`; legacy `'variscout-session'` key dropped on F4 deploy.
-- `useViewStore`: no persist middleware; cleared by `projectStore.loadProject`/`newProject`.
-- Tests: `beforeEach(() => useStore.setState(useStore.getInitialState()))`.
+- `SuspectedCause` is a first-class entity (ADR-064), not a question tag. Multiple hubs coexist; each `selectedForImprovement: true` hub triggers one HMW brainstorm in IMPROVE. Legacy `causeRole: 'primary' | 'contributing'` is deprecated.
+- `CausalLink` belongs to `investigationStore`, never `improvementStore`. Cycle prevention is mandatory: `wouldCreateCycle()` from `@variscout/core/stats` (`causalGraph.ts`); `addCausalLink` calls it internally — don't bypass the store.
+- `FindingSource` (`@variscout/core/findings`) is a discriminated union (`chart` discriminant, 6 variants). Always narrow before accessing variant fields. Breadcrumb-pinned findings have no `source` — guard before access.
+- Persistence: `suspectedCauses` + `causalLinks` serialize via `useProjectActions` into `.vrs` (Apr 2026 fix). New investigation entities also need `apps/azure/src/db/schema.ts` + `useEditorDataFlow.ts` updates.
+- Sustainment (RPS V1, ADR-080) auto-fires once a `SuspectedCause` is `confirmed` AND the matching improvement is "implemented". `sustainmentRecords`, `sustainmentReviews`, `controlHandoffs` are NOT yet HubAction-dispatched — direct `apps/azure/src/services/localDb.ts` writes (R13 allow-listed). F5 may unify.
 
 ## Test command
 
@@ -37,8 +36,7 @@
 pnpm --filter @variscout/stores test
 ```
 
-## Skills / Related
+## Related
 
-- `editing-investigation-workflow` — investigationStore / CausalLinks
-- `writing-tests` — Zustand store test pattern
-- ADR-041, ADR-078, docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
+- ADR-041, ADR-064, ADR-065, ADR-078, ADR-080
+- `docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md`

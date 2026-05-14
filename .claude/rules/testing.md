@@ -6,14 +6,13 @@ paths:
   - "e2e/**"
 ---
 
-# Test code — editing invariants
+# Test code — non-negotiables
 
-- **`vi.mock()` BEFORE component imports.** If mocks are below imports, tests hang in an infinite loop. This is the most common test failure mode.
-- **Float comparisons**: `toBeCloseTo(value, decimals)` — never `toBe()` on floats.
-- **Zustand store tests**: reset state in `beforeEach` via `setState`. Don't rely on test-order isolation.
-- **i18n in tests**: each test file that renders components must register its own locale loader via `import.meta.glob`. Don't assume global registration.
-- **Stats tests**: deterministic PRNG only. Never `Math.random()`. Use seeded helpers from `__tests__/` utilities.
-- **E2E selectors**: `data-testid` attributes, not DOM class / role / text (text changes with i18n).
-- **Known flaky**: `packages/hooks/src/__tests__/index.test.ts` under concurrent Turbo load. Runs clean in isolation.
-
-Reference: `.claude/skills/writing-tests/SKILL.md`.
+- **`vi.mock()` BEFORE component imports.** If mocks come after imports, tests hang in an infinite loop. Most common test failure mode.
+- **`vi.mock()` factories that reference `@variscout/core` exports** must use `importOriginal` partial-pattern, not flat factories — flat factories crash on transitive `DEFAULT_TIME_LENS` reads at preferencesStore init.
+- **Floats: `toBeCloseTo(value, decimals)`** — never `toBe()`.
+- **Zustand stores: reset state in `beforeEach`** via `useStore.setState(useStore.getInitialState())`.
+- **i18n in tests: register your own loader** via `import.meta.glob` before `beforeAll` — never assume global registration.
+- **Never `Math.random()`** in stats tests — use seeded PRNG helpers.
+- **E2E selectors: `data-testid`** only — text/role/class change with i18n + theme.
+- Known flaky: `packages/hooks/src/__tests__/index.test.ts` under concurrent Turbo load — passes in isolation; retry once before treating as failure.

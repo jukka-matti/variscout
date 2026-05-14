@@ -164,4 +164,4 @@ I-Chart uses Largest-Triangle-Three-Buckets downsampling for datasets exceeding 
 
 - [CSS Height Chain Pattern](../patterns/css-height-chain.md) — the sizing constraint pattern
 - [Dashboard Layout Architecture](../../05-technical/architecture/dashboard-layout.md) — how charts are arranged in the grid
-- [Charts Package Rules](../../../.claude/skills/editing-charts/SKILL.md) — implementation conventions
+- [packages/charts/CLAUDE.md](../../../packages/charts/CLAUDE.md) — implementation conventions

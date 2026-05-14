@@ -83,10 +83,11 @@ Add a new sub-path when:
 
 1. Create `src/{domain}/index.ts` (or `src/{domain}.ts` for single-file modules)
 2. Add to `exports` in `packages/core/package.json`
-3. Add to the Sub-Path Exports table in `.claude/skills/editing-monorepo-structure/SKILL.md`
+3. Update `tsconfig.json#paths` to match (sub-path exports require both)
 4. Verify: `pnpm --filter @variscout/core build` (if applicable)
 
 ## Related
 
-- [Monorepo Rules](../../../.claude/skills/editing-monorepo-structure/SKILL.md) — Sub-path table maintained here
+- Root `CLAUDE.md` — sub-path export invariant + Tailwind v4 `@source` requirement
+- `packages/core/CLAUDE.md` — current sub-path inventory
 - [ADR-045: Modular Architecture](../../07-decisions/adr-045-modular-architecture.md) — DDD-lite philosophy

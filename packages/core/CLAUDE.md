@@ -20,24 +20,49 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 - The `ai/prompts/coScout/` directory is the canonical CoScout prompt architecture. Entry point is `assembleCoScoutPrompt()` — `buildCoScoutSystemPrompt()` in legacy.ts is deprecated.
 - `EvidenceSnapshot.provenance?: RowProvenanceTag[]` (envelope facet) is the canonical home for row-source metadata per ADR-077 amendment 2026-05-07. The runtime sidecar `Map<rowKey, RowProvenanceTag>` from slice 3 is retired; persistence + in-memory access converge on `snapshot.provenance` directly.
 
+## Domain modeling invariants
+
+- **`FindingSource` is a discriminated union** (`src/findings/types.ts`) with 5 variants — discriminant is `chart`. Always narrow with `'category' in src` or an exhaustive `switch` before accessing variant fields. A new variant requires updating every exhaustive switch (TypeScript will surface them via `never` exhaustiveness errors).
+- **`wouldCreateCycle()` lives in `src/stats/causalGraph.ts`** (not in `findings/`). It is a graph utility, not a domain operation. Import: `import { wouldCreateCycle } from '@variscout/core/stats'`.
+- **Interaction patterns are geometric, not role-based.** `classifyInteractionPattern()` returns `'ordinal'` or `'disordinal'`. Never call interactions "moderator" or "primary" — ESLint rule `no-interaction-moderator` enforces.
+- **Never write "root cause"** in code, prompts, tests, or doc comments — say "contribution" / "suspected cause" / "mechanism" (constitution P5 amended). ESLint rule `no-root-cause-language` enforces in `ai/prompts/`.
+
+## Strategy + analysis modes
+
+- **Always exactly 4 chart slots** per mode strategy. Never add a 5th — if a mode needs alternate views, add a switcher within a slot (yamazumi Pareto 5-mode, defect Pareto factor-selector). Changing slot count breaks the dashboard layout contract.
+- **`AnalysisMode` (persisted)** = `'standard' | 'performance' | 'yamazumi' | 'defect'`. **`ResolvedMode` (rendering)** adds `'capability'`. Capability is produced by `resolveMode()` from `standardIChartMetric === 'capability'`; never persist it as an `AnalysisMode` value.
+- **Mode transforms run BEFORE stats**, not after. `computeYamazumiData()`, `computeDefectRates()` produce the working dataset; never call the stats engine on raw event-log data in defect mode.
+- **`isPerformanceMode` is removed** (~67 references deleted). Never re-introduce. Use `analysisMode === 'performance'` if you must branch, or prefer `getStrategy()`.
+- ADR-074 boundary policy applies: SCOUT (investigation-time) and Hub Capability (hub-time, rolling default) link as peers via the strategy's `dataRouter`.
+
+## CoScout prompt invariants
+
+- Entry point is `assembleCoScoutPrompt()`; `buildCoScoutSystemPrompt()` in `ai/prompts/coScout/legacy.ts` is deprecated (test backward-compat only).
+- Tier 1 (role + glossary) must stay session-invariant — it is the prompt-cacheable prefix (Azure AI Foundry, ≥1024 tokens). Moving content tier1 ↔ tier3 breaks cache hit rate or embeds ephemeral state.
+- Every tool in `ai/prompts/coScout/tools/registry.ts` MUST declare `phases`; team-only tools also set `tier: 'team'`. Ungated tools leak across phases/tiers (e.g., team tool appearing in PWA free).
+- CoScout references chart elements via REF markers (`REF:boxplot:productLine`), never raw data values — upholds customer-owned-data + contribution-not-causation framing.
+
+## i18n loading invariants
+
+- Apps call `registerLocaleLoaders()` once at startup before any `preloadLocale()`. Tests must register their own loader via `import.meta.glob` before `beforeAll` / `beforeEach` — without it, all locales silently fall back to English.
+- Chinese locales: `zh-Hans` → `zhHans.ts`, `zh-Hant` → `zhHant.ts` via the `LOCALE_TO_FILENAME` map in `i18n/index.ts`. Don't rename — the camelCase ↔ BCP-47 mismatch is intentional.
+- Stat values in UI go through `formatStatistic()` (handles `Number.isFinite()` + locale formatting). `.toFixed()` is ESLint-forbidden on stat outputs.
+
 ## Test command
 
 ```bash
 pnpm --filter @variscout/core test
 ```
 
-Float assertions use `toBeCloseTo(expected, precision)`. NIST regression tests in `src/stats/__tests__/nistLongley.test.ts` validate against Minitab/JMP reference outputs.
-
-## Skills to consult
-
-- `editing-statistics` — when touching stats/
-- `editing-coscout-prompts` — when touching ai/prompts/
-- `editing-analysis-modes` — when touching strategy or mode transforms
-- `adding-i18n-messages` — when touching i18n/messages/
+Float assertions use `toBeCloseTo(expected, precision)`. NIST regression tests in `src/stats/__tests__/nistLongley.test.ts` validate the OLS QR solver against Minitab/JMP reference outputs to 9 significant digits — never weaken the threshold. Two-pass best-subsets only screens interactions among Pass-1 winners (hierarchical constraint per ADR-067) — never enumerate all factor pairs.
 
 ## Related
 
 - ADR-045 Modular architecture (DDD-lite)
 - ADR-047 Analysis mode strategy pattern
+- ADR-057 Visual grounding (REF markers)
 - ADR-067 Unified GLM regression (two-pass best subsets)
+- ADR-068 CoScout cognitive redesign (modular tiers)
 - ADR-069 Three-boundary numeric safety
+- ADR-074 Multi-level boundary policy (SCOUT × Hub Capability)
+- ADR-077 Provenance envelope facet

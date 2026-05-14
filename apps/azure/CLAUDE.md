@@ -11,11 +11,11 @@ Azure Team App — Feature-Sliced Design with Zustand feature stores, IndexedDB 
 
 ## Invariants
 
-- 6 feature modules in `src/features/`, each with a co-located Zustand feature store suffixed `*FeatureStore` where ambiguity needed: `panels/panelsStore`, `findings/findingsStore`, `investigation/useInvestigationFeatureStore`, `ai/aiStore`, `data-flow/`, `improvement/` (the improvement UI-state store was deleted April 2026; its state moved to `panelsStore`).
+- Feature modules in `src/features/`, each with a co-located Zustand feature store: `panels/panelsStore`, `findings/findingsStore`, `investigation/useInvestigationFeatureStore`, `ai/aiStore`, `data-flow/`. Feature stores hold UI-only state. Domain stores from `@variscout/stores` (3-layer model — see `packages/stores/CLAUDE.md`) are the source of truth for project / investigation / canvas / viewport / preferences / view data. `useSessionStore` + `useImprovementStore` were deleted in F4 (2026-05-07) — never re-introduce; preferences live in `usePreferencesStore`, transient view state in `useViewStore`, app-local UI state in feature stores.
 - **Persistence boundary** (F1+F2 PR3): hub-domain writes flow through `azureHubRepository` (`apps/azure/src/persistence/`, module-scoped singleton implementing `@variscout/core/persistence#HubRepository`). Domain stores **never import `dexie` directly** — access is via `azureHubRepository.dispatch(action)`. An ESLint `no-restricted-imports` rule (P7.2) enforces this boundary. Documented exceptions: **R12** — `packages/stores/src/canvasViewportStore.ts` (separate `variscout-canvas-viewport` DB for cross-app canvas viewport UI state); **R13** — `apps/azure/src/services/{storage,localDb,cloudSync}.ts` and `apps/azure/src/lib/persistence.ts` (project-overlay + cloud-sync writes that pre-date HubAction dispatch; F3 may unify).
 - Persistence: IndexedDB via Dexie (`src/db/schema.ts`, `services/localDb.ts`). Blob Storage sync for Team tier (`services/cloudSync.ts`). SAS tokens minted by `/api/storage-token` endpoint in `server.js`.
 - App Insights wired at `src/lib/appInsights.ts`. `services/storage.ts` is the facade for both local + cloud.
-- Domain stores from `@variscout/stores` are the source of truth for project/investigation/improvement/session data. Feature stores hold UI-only state.
+- Tier-gating: paid features are guarded by `isPaidTier()` from `@variscout/core/tier`. Tier-gate INSIDE the surface (signoff, audit, alerts, RACI), not at surface entry — document authoring + structured workflow surfaces serve free-tier pedagogy.
 - File Picker: local files only (`components/FileBrowseButton.tsx`). SharePoint picker removed per ADR-059.
 - Multi-level surfaces: SCOUT dashboard (investigation-time picker) and Hub Capability tab (hub-time, rolling default matched to cadence) link as peers; ADR-074 boundary policy applies.
 - Hub Capability tab exposes the hub-level Cpk target editor (`CpkTargetInput`) next to `TimelineWindowPicker`. Commits write `processHub.reviewSignal.capability.cpkTarget` via `Dashboard.handleHubCpkTargetCommit` → `saveProcessHub`. This is the cascade-level "hub" writer; the per-column writer is `setMeasureSpec`.
@@ -30,12 +30,6 @@ pnpm --filter @variscout/azure-app test
 ```
 
 E2E tests via Playwright: `pnpm --filter @variscout/azure-app test:e2e`.
-
-## Skills to consult
-
-- `editing-azure-storage-auth` — for any auth, storage, or cloud sync changes
-- `editing-investigation-workflow` — for editor/InvestigationMapView, HubComposer, etc.
-- `writing-tests` — E2E data-testid conventions
 
 ## Related
 

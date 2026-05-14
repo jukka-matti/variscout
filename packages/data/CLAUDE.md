@@ -16,6 +16,7 @@ Sample datasets with pre-computed chart data. No logic.
 
 No tests required for this package (pure data).
 
-## Skills to consult
+## Related
 
-- `editing-monorepo-structure` — when adding a new sample dataset
+- For new domain types (not just new sample data), see `packages/core/CLAUDE.md`.
+- For monorepo structure (sub-path exports, Tailwind v4 `@source`), see root `CLAUDE.md`.

@@ -5,13 +5,12 @@ paths:
   - "apps/*/src/**/*Chart*.{ts,tsx}"
 ---
 
-# Chart code — editing invariants
+# Chart code — non-negotiables
 
-- **Colors only via `chartColors` / `chromeColors`** from `@variscout/charts/colors`. No hex literals. ESLint rule `no-hardcoded-chart-colors` is enforced and errors.
-- **Theme-aware colors via `useChartTheme()`**; do not read CSS vars directly in chart components.
-- **Pattern**: Base (Visx / SVG primitives) + responsive wrapper. Don't ship a raw Base without the wrapper.
-- **Export dimensions**: use `EXPORT_SIZES` keys from `useChartCopy.ts` (including `scatter` 1200×800 and `slide` 1920×1080). Don't inline new sizes.
-- **Large N**: LTTB decimation before plotting continuous series; fallback to dot plot when N < threshold (see editing-charts skill).
-- **Pareto / Boxplot overflow**: handled by the Base; don't re-implement inside apps.
+- **Colors only via `chartColors` / `chromeColors`** from `@variscout/charts/colors`. No hex literals. ESLint `no-hardcoded-chart-colors` enforces.
+- **Theme via `useChartTheme()`**; never read `data-theme` directly.
+- **Pair `text-{color}-400` with `text-{color}-700`** for label contrast (red/amber/green-400 fail light-mode contrast alone).
+- **No manual `React.memo()`** on new chart components — React Compiler handles memoization.
+- **LTTB must force-include UCL/LCL violations** — silent dropping is a correctness bug.
 
-Reference: `.claude/skills/editing-charts/SKILL.md`, `COLORS.md`, `EXPORTS.md`.
+Detailed patterns: `packages/charts/CLAUDE.md`.

@@ -28,7 +28,7 @@ This v2 archive is different:
 
 ## When to archive
 
-Per the updated `maintaining-documentation` skill (2026-04-17):
+Per the documentation methodology (`docs/05-technical/documentation-methodology.md`, updated 2026-04-17):
 
 - **ADR**: archive when `status: superseded` and the superseding ADR fully absorbs the constraints.
 - **Spec**: archive when `status: delivered` and an ADR + code are the ground truth (the former "living spec" default was reversed in Phase 5).
