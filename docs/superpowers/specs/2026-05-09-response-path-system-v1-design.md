@@ -1,7 +1,7 @@
 ---
 title: Response Path System V1 — Design
 audience: [product, engineer, designer]
-category: design
+category: design-spec
 status: delivered
 last-reviewed: 2026-05-13
 supersedes:

@@ -1,7 +1,7 @@
 ---
 title: VariScout Coherence — Persona + Surface + Vocabulary Design
 audience: [product, designer, engineer, analyst]
-category: design
+category: design-spec
 status: draft
 last-reviewed: 2026-05-14
 related:

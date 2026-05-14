@@ -1,7 +1,7 @@
 ---
 title: Projects tab + IP Detail (Lifecycle) page + Home active-IP launchpad
 audience: [product, engineer, designer]
-category: design
+category: design-spec
 status: draft
 last-reviewed: 2026-05-14
 related:
