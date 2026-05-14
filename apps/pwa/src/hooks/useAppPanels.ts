@@ -62,17 +62,56 @@ export interface UseAppPanelsReturn {
 }
 
 /**
- * Panel orchestration hook — now backed by Zustand store.
+ * Panel orchestration hook — backed by Zustand store.
  *
  * Maintains the same return interface as the original useReducer version
  * so App.tsx doesn't need to change. Side effects (keyboard, auto-clear,
  * resize) stay here since Zustand stores are pure state.
+ *
+ * Uses individual field selectors (never bare usePanelsStore()) to prevent
+ * whole-store subscriptions from causing unnecessary re-renders and to
+ * avoid React 19 "setState-in-render" warnings triggered by store-snapshot
+ * tearing detection in concurrent / Strict Mode.
  */
 export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   const { clearData, wideFormatDetection, dismissWideFormat } = options;
 
-  // Read from Zustand store
-  const store = usePanelsStore();
+  // ── State fields (individual selectors — never bare usePanelsStore()) ──
+  const activeView = usePanelsStore(s => s.activeView);
+  const isSettingsOpen = usePanelsStore(s => s.isSettingsOpen);
+  const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
+  const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
+  const highlightRowIndex = usePanelsStore(s => s.highlightRowIndex);
+  const showExcludedOnly = usePanelsStore(s => s.showExcludedOnly);
+  const showResetConfirm = usePanelsStore(s => s.showResetConfirm);
+  const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
+  const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
+  const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
+  const openSpecEditorRequested = usePanelsStore(s => s.openSpecEditorRequested);
+  const sustainmentTargetId = usePanelsStore(s => s.sustainmentTargetId);
+  const handoffTargetId = usePanelsStore(s => s.handoffTargetId);
+
+  // ── Action selectors (stable function references from the store) ──────
+  const showFrame = usePanelsStore(s => s.showFrame);
+  const showAnalysis = usePanelsStore(s => s.showAnalysis);
+  const showInvestigation = usePanelsStore(s => s.showInvestigation);
+  const showImprovement = usePanelsStore(s => s.showImprovement);
+  const showReport = usePanelsStore(s => s.showReport);
+  const setSettingsOpen = usePanelsStore(s => s.setSettingsOpen);
+  const setDataTableOpen = usePanelsStore(s => s.setDataTableOpen);
+  const setFindingsOpen = usePanelsStore(s => s.setFindingsOpen);
+  const toggleFindings = usePanelsStore(s => s.toggleFindings);
+  const setWhatIfOpen = usePanelsStore(s => s.setWhatIfOpen);
+  const togglePISidebar = usePanelsStore(s => s.togglePISidebar);
+  const setHighlightRow = usePanelsStore(s => s.setHighlightRow);
+  const setHighlightPoint = usePanelsStore(s => s.setHighlightPoint);
+  const setShowExcludedOnly = usePanelsStore(s => s.setShowExcludedOnly);
+  const setShowResetConfirm = usePanelsStore(s => s.setShowResetConfirm);
+  const setOpenSpecEditorRequested = usePanelsStore(s => s.setOpenSpecEditorRequested);
+  const confirmReset = usePanelsStore(s => s.confirmReset);
+  const closeDataTable = usePanelsStore(s => s.closeDataTable);
+  const openDataTableExcluded = usePanelsStore(s => s.openDataTableExcluded);
+  const openDataTableAll = usePanelsStore(s => s.openDataTableAll);
 
   const [isDesktop, setIsDesktop] = useState(
     typeof window !== 'undefined' && window.innerWidth >= DESKTOP_BREAKPOINT
@@ -91,9 +130,9 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (wideFormatDetection) dismissWideFormat();
-        else if (store.showResetConfirm) store.setShowResetConfirm(false);
-        else if (store.isSettingsOpen) store.setSettingsOpen(false);
-        else if (store.isDataTableOpen) store.setDataTableOpen(false);
+        else if (showResetConfirm) setShowResetConfirm(false);
+        else if (isSettingsOpen) setSettingsOpen(false);
+        else if (isDataTableOpen) setDataTableOpen(false);
       }
     };
 
@@ -101,19 +140,21 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     wideFormatDetection,
-    store.showResetConfirm,
-    store.isSettingsOpen,
-    store.isDataTableOpen,
+    showResetConfirm,
+    isSettingsOpen,
+    isDataTableOpen,
     dismissWideFormat,
-    store,
+    setShowResetConfirm,
+    setSettingsOpen,
+    setDataTableOpen,
   ]);
 
   // Auto-clear highlighted chart point after 2 seconds
   useEffect(() => {
-    if (store.highlightedChartPoint === null) return;
-    const timer = setTimeout(() => store.setHighlightPoint(null), 2000);
+    if (highlightedChartPoint === null) return;
+    const timer = setTimeout(() => setHighlightPoint(null), 2000);
     return () => clearTimeout(timer);
-  }, [store.highlightedChartPoint, store]);
+  }, [highlightedChartPoint, setHighlightPoint]);
 
   // Compound actions that need isDesktop
   const openDataTableAtRow = useCallback(
@@ -129,54 +170,54 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
 
   const handleResetConfirm = useCallback(() => {
     clearData();
-    store.confirmReset();
-  }, [clearData, store]);
+    confirmReset();
+  }, [clearData, confirmReset]);
 
   // Map store fields to legacy interface
   return {
     // Workspace navigation
-    activeView: store.activeView,
-    showFrame: store.showFrame,
-    showAnalysis: store.showAnalysis,
-    showInvestigation: store.showInvestigation,
-    showImprovement: store.showImprovement,
-    showReport: store.showReport,
+    activeView,
+    showFrame,
+    showAnalysis,
+    showInvestigation,
+    showImprovement,
+    showReport,
 
     // State (from store)
-    isSettingsOpen: store.isSettingsOpen,
-    isDataTableOpen: store.isDataTableOpen,
-    isFindingsPanelOpen: store.isFindingsOpen,
-    highlightRowIndex: store.highlightRowIndex,
-    showExcludedOnly: store.showExcludedOnly,
-    showResetConfirm: store.showResetConfirm,
-    isWhatIfPageOpen: store.isWhatIfOpen,
-    highlightedChartPoint: store.highlightedChartPoint,
+    isSettingsOpen,
+    isDataTableOpen,
+    isFindingsPanelOpen: isFindingsOpen,
+    highlightRowIndex,
+    showExcludedOnly,
+    showResetConfirm,
+    isWhatIfPageOpen: isWhatIfOpen,
+    highlightedChartPoint,
     isDesktop,
-    openSpecEditorRequested: store.openSpecEditorRequested,
-    sustainmentTargetId: store.sustainmentTargetId,
-    handoffTargetId: store.handoffTargetId,
-    isPISidebarOpen: store.isPISidebarOpen,
+    openSpecEditorRequested,
+    sustainmentTargetId,
+    handoffTargetId,
+    isPISidebarOpen,
 
     // Setters (delegate to store)
-    setIsSettingsOpen: store.setSettingsOpen,
-    setIsDataTableOpen: store.setDataTableOpen,
-    setIsFindingsPanelOpen: store.setFindingsOpen,
-    setHighlightRowIndex: store.setHighlightRow,
-    setShowExcludedOnly: store.setShowExcludedOnly,
-    setShowResetConfirm: store.setShowResetConfirm,
-    setIsWhatIfPageOpen: store.setWhatIfOpen,
-    setHighlightedChartPoint: store.setHighlightPoint,
-    setOpenSpecEditorRequested: store.setOpenSpecEditorRequested,
+    setIsSettingsOpen: setSettingsOpen,
+    setIsDataTableOpen: setDataTableOpen,
+    setIsFindingsPanelOpen: setFindingsOpen,
+    setHighlightRowIndex: setHighlightRow,
+    setShowExcludedOnly,
+    setShowResetConfirm,
+    setIsWhatIfPageOpen: setWhatIfOpen,
+    setHighlightedChartPoint: setHighlightPoint,
+    setOpenSpecEditorRequested,
 
     // Compound actions
     openDataTableAtRow,
-    handleToggleFindingsPanel: store.toggleFindings,
-    handleCloseFindingsPanel: () => store.setFindingsOpen(false),
-    handleCloseDataTable: store.closeDataTable,
-    openDataTableExcluded: store.openDataTableExcluded,
-    openDataTableAll: store.openDataTableAll,
-    handleResetRequest: () => store.setShowResetConfirm(true),
+    handleToggleFindingsPanel: toggleFindings,
+    handleCloseFindingsPanel: () => setFindingsOpen(false),
+    handleCloseDataTable: closeDataTable,
+    openDataTableExcluded,
+    openDataTableAll,
+    handleResetRequest: () => setShowResetConfirm(true),
     handleResetConfirm,
-    handleTogglePISidebar: store.togglePISidebar,
+    handleTogglePISidebar: togglePISidebar,
   };
 }
