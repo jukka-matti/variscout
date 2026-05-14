@@ -9,8 +9,13 @@ import CharterOverview from './stages/CharterOverview';
 import CharterSections from './stages/CharterSections';
 import ApproachOverview from './stages/ApproachOverview';
 import ApproachSections from './stages/ApproachSections';
+import SustainmentOverview from './stages/SustainmentOverview';
+import SustainmentSections from './stages/SustainmentSections';
+import HandoffOverview, { type HandoffChecklistInputs } from './stages/HandoffOverview';
+import HandoffSections from './stages/HandoffSections';
 import type { CauseProjectionInputs, CauseRow } from './stages/causeProjection';
 import type { ImprovementProjectFormProps } from '../ImprovementProject/ImprovementProjectForm';
+import type { SustainmentRecord, ControlHandoff } from '@variscout/core';
 
 export interface IPDetailPageProps {
   ip: ImprovementProject;
@@ -31,6 +36,20 @@ export interface IPDetailPageProps {
   approachInputs?: CauseProjectionInputs;
   /** Called when user clicks "Open in Improve workbench" on a cause. */
   onOpenCauseWorkbench?: (cause: CauseRow) => void;
+  /** Linked SustainmentRecord. Present when status === 'closed' or beyond. */
+  sustainmentRecord?: SustainmentRecord;
+  /** Linked ControlHandoff. Present when handoff stage is active or beyond. */
+  controlHandoff?: ControlHandoff;
+  /** Inputs for Handoff checklist (derived from controlHandoff by caller). */
+  handoffInputs?: HandoffChecklistInputs;
+  /** Per-cause in-control rows for Sustainment Overview. */
+  sustainmentPerCauseRows?: Array<{ factor: string; inControl: boolean; observation?: string }>;
+  /** "Open legacy Sustainment panel" handler. */
+  onOpenLegacySustainment?: () => void;
+  /** "Open legacy Handoff panel" handler. */
+  onOpenLegacyHandoff?: () => void;
+  /** "Nudge owner" handler (Plan 3 wires actual notification). */
+  onNudgeProcessOwner?: () => void;
 }
 
 function defaultActiveStage(stages: ReturnType<typeof deriveStageState>): StageName {
@@ -50,6 +69,13 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   charterFormProps,
   approachInputs,
   onOpenCauseWorkbench,
+  sustainmentRecord,
+  controlHandoff,
+  handoffInputs,
+  sustainmentPerCauseRows,
+  onOpenLegacySustainment,
+  onOpenLegacyHandoff,
+  onNudgeProcessOwner,
 }) => {
   const stages = useMemo(() => deriveStageState(ip, stageStateInputs), [ip, stageStateInputs]);
   const [activeStage, setActiveStage] = useState<StageName>(() => defaultActiveStage(stages));
@@ -103,10 +129,48 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               Approach stage needs hypothesis + idea + action inputs (wired in PR-PT-4.4).
             </p>
           )}
-          {(activeStage === 'sustainment' || activeStage === 'handoff') && (
+          {activeStage === 'sustainment' && mode === 'overview' && sustainmentRecord && (
+            <SustainmentOverview
+              record={sustainmentRecord}
+              onStartHandoff={() => setActiveStage('handoff')}
+              onOpenProcess={() => onJumpOut?.('process')}
+              onOpenAnalyze={() => onJumpOut?.('analyze')}
+              perCauseRows={sustainmentPerCauseRows}
+            />
+          )}
+          {activeStage === 'sustainment' && mode === 'sections' && sustainmentRecord && (
+            <SustainmentSections
+              record={sustainmentRecord}
+              onOpenLegacy={() => onOpenLegacySustainment?.()}
+            />
+          )}
+          {activeStage === 'sustainment' && !sustainmentRecord && (
             <p className="text-sm text-content-secondary">
-              {mode === 'overview' ? 'Overview' : 'Sections'} content for{' '}
-              <strong>{activeStage}</strong> ships in PR-PT-5.
+              No Sustainment record linked yet. Close the IP (Approach stage) to auto-create one per
+              ADR-080.
+            </p>
+          )}
+
+          {activeStage === 'handoff' && mode === 'overview' && handoffInputs && (
+            <HandoffOverview
+              inputs={handoffInputs}
+              onOpenReport={() => onJumpOut?.('report')}
+              onExportPdf={() => {
+                /* Plan 4 wires PDF export */
+              }}
+              onNudgeOwner={() => onNudgeProcessOwner?.()}
+            />
+          )}
+          {activeStage === 'handoff' && mode === 'sections' && controlHandoff && (
+            <HandoffSections
+              handoff={controlHandoff}
+              onOpenLegacy={() => onOpenLegacyHandoff?.()}
+            />
+          )}
+          {activeStage === 'handoff' && (!handoffInputs || !controlHandoff) && (
+            <p className="text-sm text-content-secondary">
+              No Handoff record linked yet. Confirm Sustainment (4 consecutive on-target ticks) to
+              start Handoff.
             </p>
           )}
         </main>
