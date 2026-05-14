@@ -47,12 +47,12 @@ export type {
   ChartClusterState,
   AndCheckSnapshot,
   PendingComment,
-  ProcessHubId,
   NodeId,
   TributaryId,
   GateNodePath,
   UndoEntry,
 } from './canvasViewportStore';
+export type { ProcessHubId } from '@variscout/core/processHub';
 export {
   useCanvasStore,
   getCanvasInitialState,

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { useCanvasViewportStore, type ProcessHubId } from '@variscout/stores';
+import { useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import type { CanvasLevel } from '@variscout/core/canvas';
 
 function isEditableTarget(target: EventTarget | null): boolean {

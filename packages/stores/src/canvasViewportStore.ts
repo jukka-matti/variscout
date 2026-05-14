@@ -13,8 +13,6 @@ import Dexie, { type Table } from 'dexie';
 import { applyPatches, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { create } from 'zustand';
 
-export type { ProcessHubId } from '@variscout/core/processHub';
-
 export const STORE_LAYER = 'annotation-per-hub' as const;
 
 enablePatches();

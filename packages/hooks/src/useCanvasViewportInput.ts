@@ -2,7 +2,8 @@ import { useEffect, useRef, type RefObject } from 'react';
 import { select } from 'd3-selection';
 import 'd3-transition'; // augments Selection with .transition()
 import { zoom, zoomIdentity, type D3ZoomEvent } from 'd3-zoom';
-import { useCanvasViewportStore, type ProcessHubId } from '@variscout/stores';
+import { useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { LOD_SNAP_BOUNDARIES, LOD_THRESHOLDS } from '@variscout/core/canvas';
 
 export const SNAP_EASE_DURATION_MS = 150;

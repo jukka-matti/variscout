@@ -11,7 +11,7 @@
 import React, { useMemo, useRef } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { useCanvasViewportInput } from '@variscout/hooks';
-import type { ProcessHubId } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import type {
   Hypothesis,
   Finding,

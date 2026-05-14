@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ProcessMap } from '@variscout/core/frame';
-import type { ProcessHubId } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import type { DataRow, Finding, Hypothesis, Question } from '@variscout/core';
 import { SystemLevelView } from '../SystemLevelView';
 
