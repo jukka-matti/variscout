@@ -1687,6 +1687,14 @@ export const Editor: React.FC<EditorProps> = ({
                 onSelectProject={id =>
                   usePanelsStore.getState().showProjects(id === '' ? undefined : id)
                 }
+                onJumpOut={target => {
+                  const p = usePanelsStore.getState();
+                  if (target === 'investigation') p.showInvestigation();
+                  else if (target === 'analyze') p.showAnalysis();
+                  else if (target === 'process') p.showFrame();
+                  else if (target === 'improve-workbench') p.showImprovement();
+                  else if (target === 'report') p.showReport();
+                }}
               />
             ) : activeView === 'improvement' ? (
               <ImprovementWorkspaceBase
