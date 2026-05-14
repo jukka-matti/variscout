@@ -5,6 +5,7 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./ipDetail": "./src/components/IPDetail/index.ts",
     "./styles/theme.css": "./src/styles/theme.css",
     "./styles/components.css": "./src/styles/components.css",
     "./styles/report-print.css": "./src/styles/report-print.css"

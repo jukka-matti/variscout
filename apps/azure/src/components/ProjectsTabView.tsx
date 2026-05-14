@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ProcessHub } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import { IPDetailPage } from '@variscout/ui/ipDetail';
 
 interface ProjectsTabViewProps {
   activeHub?: ProcessHub;
@@ -28,12 +29,21 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   }
 
   if (selectedProjectId) {
+    const selected = projects.find(p => p.id === selectedProjectId);
+    if (!selected) {
+      return (
+        <div className="p-4 text-sm text-content-secondary" role="alert">
+          Improvement Project {selectedProjectId} not found on this hub.
+        </div>
+      );
+    }
+    const dayCounter = Math.floor((Date.now() - selected.createdAt) / (24 * 60 * 60 * 1000));
     return (
-      <div data-testid="ip-detail-placeholder" className="p-4">
-        <p className="text-content-secondary">
-          IP detail page for {selectedProjectId} (wired in PR-PT-2)
-        </p>
-      </div>
+      <IPDetailPage
+        ip={selected}
+        onBackToList={() => onSelectProject('')}
+        dayCounter={dayCounter}
+      />
     );
   }
 

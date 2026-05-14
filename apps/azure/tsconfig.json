@@ -11,6 +11,7 @@
       "@variscout/hooks": ["../../packages/hooks/src"],
       "@variscout/hooks/*": ["../../packages/hooks/src/*"],
       "@variscout/ui": ["../../packages/ui/src"],
+      "@variscout/ui/ipDetail": ["../../packages/ui/src/components/IPDetail/index.ts"],
       "@variscout/ui/*": ["../../packages/ui/src/*"],
       "@variscout/charts": ["../../packages/charts/src"],
       "@variscout/charts/*": ["../../packages/charts/src/*"],

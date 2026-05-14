@@ -828,3 +828,6 @@ export type {
   LogActionPayload,
   RecentActivityPanelProps,
 } from './components/QuickAction';
+
+// IP Detail workspace (Plan 2 — composition; Plans 3-5 fill content)
+export * from './components/IPDetail';
