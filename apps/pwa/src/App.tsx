@@ -1096,6 +1096,13 @@ function AppMain() {
                 activeHub={sessionHub ?? undefined}
                 selectedProjectId={panels.selectedProjectId}
                 onSelectProject={id => panels.showProjects(id === '' ? undefined : id)}
+                onJumpOut={target => {
+                  if (target === 'investigation') panels.showInvestigation();
+                  else if (target === 'analyze') panels.showAnalysis();
+                  else if (target === 'process') panels.showFrame();
+                  else if (target === 'improve-workbench') panels.showImprovement();
+                  else if (target === 'report') panels.showReport();
+                }}
               />
             ) : panels.activeView === 'improvement' ? (
               <ImprovementView

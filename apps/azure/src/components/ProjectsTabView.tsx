@@ -7,6 +7,9 @@ interface ProjectsTabViewProps {
   activeHub?: ProcessHub;
   selectedProjectId: string | null;
   onSelectProject: (projectId: string) => void;
+  onJumpOut?: (
+    target: 'investigation' | 'analyze' | 'process' | 'improve-workbench' | 'report'
+  ) => void;
 }
 
 function liveProjects(hub: ProcessHub | undefined): ImprovementProject[] {
@@ -17,6 +20,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   activeHub,
   selectedProjectId,
   onSelectProject,
+  onJumpOut,
 }) => {
   const projects = liveProjects(activeHub);
 
@@ -43,6 +47,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         ip={selected}
         onBackToList={() => onSelectProject('')}
         dayCounter={dayCounter}
+        onJumpOut={onJumpOut}
       />
     );
   }

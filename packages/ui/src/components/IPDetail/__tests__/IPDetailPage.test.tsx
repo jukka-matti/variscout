@@ -33,4 +33,11 @@ describe('IPDetailPage', () => {
     render(<IPDetailPage ip={ip} onBackToList={() => {}} />);
     expect(screen.getByTestId('stage-body-approach')).toBeInTheDocument();
   });
+
+  it('renders CharterOverview when activeStage = charter and mode = overview', () => {
+    const charterIP: ImprovementProject = { ...ip, status: 'draft' };
+    render(<IPDetailPage ip={charterIP} onBackToList={() => {}} />);
+    expect(screen.getByTestId('kpi-issue')).toBeInTheDocument();
+    expect(screen.getByTestId('kpi-goal')).toBeInTheDocument();
+  });
 });

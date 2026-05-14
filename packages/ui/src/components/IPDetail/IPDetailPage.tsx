@@ -5,6 +5,9 @@ import IPDetailStageTabs, { type StageName } from './IPDetailStageTabs';
 import IPDetailModeToggle, { type IPDetailMode } from './IPDetailModeToggle';
 import IPDetailTeamRail from './IPDetailTeamRail';
 import { deriveStageState, type StageStateInputs } from './stageState';
+import CharterOverview from './stages/CharterOverview';
+import CharterSections from './stages/CharterSections';
+import type { ImprovementProjectFormProps } from '../ImprovementProject/ImprovementProjectForm';
 
 export interface IPDetailPageProps {
   ip: ImprovementProject;
@@ -15,6 +18,12 @@ export interface IPDetailPageProps {
   onInviteClick?: () => void;
   /** Optional day counter passed to header. */
   dayCounter?: number;
+  /** Jump-out handler — called from per-stage "Continue in" buttons. */
+  onJumpOut?: (
+    target: 'investigation' | 'analyze' | 'process' | 'improve-workbench' | 'report'
+  ) => void;
+  /** Props for Charter Sections (Sections-mode form). */
+  charterFormProps?: ImprovementProjectFormProps;
 }
 
 function defaultActiveStage(stages: ReturnType<typeof deriveStageState>): StageName {
@@ -30,6 +39,8 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   stageStateInputs,
   onInviteClick,
   dayCounter,
+  onJumpOut,
+  charterFormProps,
 }) => {
   const stages = useMemo(() => deriveStageState(ip, stageStateInputs), [ip, stageStateInputs]);
   const [activeStage, setActiveStage] = useState<StageName>(() => defaultActiveStage(stages));
@@ -51,11 +62,23 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
 
       <div className="flex flex-1 min-h-0 overflow-auto">
         <main className="flex-1 p-6" data-testid={`stage-body-${activeStage}`}>
-          <p className="text-sm text-content-secondary">
-            {mode === 'overview' ? 'Overview' : 'Sections'} content for the{' '}
-            <strong>{activeStage}</strong> stage ships in PR-PT-
-            {activeStage === 'charter' ? '3' : activeStage === 'approach' ? '4' : '5'}.
-          </p>
+          {activeStage === 'charter' && mode === 'overview' && (
+            <CharterOverview
+              ip={ip}
+              onOpenInvestigation={() => onJumpOut?.('investigation')}
+              onOpenAnalyze={() => onJumpOut?.('analyze')}
+            />
+          )}
+          {activeStage === 'charter' && mode === 'sections' && (
+            <CharterSections {...(charterFormProps ?? {})} />
+          )}
+          {activeStage !== 'charter' && (
+            <p className="text-sm text-content-secondary">
+              {mode === 'overview' ? 'Overview' : 'Sections'} content for{' '}
+              <strong>{activeStage}</strong> ships in PR-PT-
+              {activeStage === 'approach' ? '4' : '5'}.
+            </p>
+          )}
         </main>
         <IPDetailTeamRail ip={ip} />
       </div>
