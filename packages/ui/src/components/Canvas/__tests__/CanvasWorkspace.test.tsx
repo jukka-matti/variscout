@@ -24,8 +24,8 @@ import {
   getCanvasViewportInitialState,
   useCanvasStore,
   useCanvasViewportStore,
-  type ProcessHubId,
 } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 
 const wallIsMobileRef = vi.hoisted(() => ({ current: false }));
 const localMechanismPropsRef = vi.hoisted(() => ({

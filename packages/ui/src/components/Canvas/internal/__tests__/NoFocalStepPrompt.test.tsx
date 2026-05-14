@@ -1,11 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { ProcessMap } from '@variscout/core/frame';
-import {
-  getCanvasViewportInitialState,
-  useCanvasViewportStore,
-  type ProcessHubId,
-} from '@variscout/stores';
+import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { NoFocalStepPrompt } from '../NoFocalStepPrompt';
 
 // Cast helper: acceptable inside test files per project convention

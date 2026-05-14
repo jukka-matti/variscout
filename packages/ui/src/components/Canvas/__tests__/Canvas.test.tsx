@@ -74,8 +74,8 @@ import {
   getInvestigationInitialState,
   useCanvasViewportStore,
   useInvestigationStore,
-  type ProcessHubId,
 } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { Canvas } from '../index';
 
 // Cast helper: acceptable inside test files per project convention

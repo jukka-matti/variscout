@@ -16,8 +16,8 @@ import {
   persistCanvasViewport,
   rehydrateCanvasViewport,
   useCanvasViewportStore,
-  type ProcessHubId,
 } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { useCanvasViewportLifecycle } from '../useCanvasViewportLifecycle';
 
 const h = (id: string) => id as ProcessHubId;

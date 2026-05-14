@@ -89,9 +89,9 @@ import {
   getProjectInitialState,
   useCanvasViewportStore,
   useProjectStore,
-  type ProcessHubId,
 } from '@variscout/stores';
 import { DEFAULT_PROCESS_HUB_ID } from '@variscout/core';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import InvestigationView from '../InvestigationView';
 

@@ -2,11 +2,8 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
 import type { Hypothesis, ProcessMap, Question, Finding } from '@variscout/core';
-import {
-  getCanvasViewportInitialState,
-  useCanvasViewportStore,
-  type ProcessHubId,
-} from '@variscout/stores';
+import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 
 // Cast helper: acceptable inside test files per project convention
 const h = (id: string) => id as ProcessHubId;

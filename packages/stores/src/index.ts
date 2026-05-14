@@ -52,7 +52,6 @@ export type {
   GateNodePath,
   UndoEntry,
 } from './canvasViewportStore';
-export type { ProcessHubId } from '@variscout/core/processHub';
 export {
   useCanvasStore,
   getCanvasInitialState,

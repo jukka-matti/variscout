@@ -3,11 +3,8 @@ import React from 'react';
 import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Finding, Hypothesis, ProcessMap, Question } from '@variscout/core';
-import {
-  getInvestigationInitialState,
-  useInvestigationStore,
-  type ProcessHubId,
-} from '@variscout/stores';
+import { getInvestigationInitialState, useInvestigationStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { LocalMechanismView } from '../LocalMechanismView';
 
 // Cast helper: acceptable inside test files per project convention

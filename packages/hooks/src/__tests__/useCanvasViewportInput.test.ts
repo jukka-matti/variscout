@@ -1,11 +1,8 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, beforeEach } from 'vitest';
 import { useRef, type RefObject } from 'react';
-import {
-  getCanvasViewportInitialState,
-  useCanvasViewportStore,
-  type ProcessHubId,
-} from '@variscout/stores';
+import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { useCanvasViewportInput, snapTarget } from '../useCanvasViewportInput';
 
 interface D3ZoomElement extends HTMLDivElement {

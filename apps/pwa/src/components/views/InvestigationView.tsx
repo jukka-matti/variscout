@@ -36,12 +36,8 @@ import { detectColumns } from '@variscout/core/parser';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
-import {
-  useCanvasViewportStore,
-  useProjectStore,
-  useInvestigationStore,
-  type ProcessHubId,
-} from '@variscout/stores';
+import { useCanvasViewportStore, useProjectStore, useInvestigationStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
   useInvestigationFeatureStore,

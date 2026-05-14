@@ -42,8 +42,8 @@ import {
   useCanvasViewportStore,
   type CanvasViewportFit,
   type CanvasViewportSnapshot,
-  type ProcessHubId,
 } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import {
   type ProductionLineGlanceFilterStripProps,
   ProductionLineGlanceFilterStrip,

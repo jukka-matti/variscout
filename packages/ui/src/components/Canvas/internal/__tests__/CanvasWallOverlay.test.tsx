@@ -7,8 +7,8 @@ import {
   getInvestigationInitialState,
   useCanvasViewportStore,
   useInvestigationStore,
-  type ProcessHubId,
 } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { useWallIsMobile } from '../../../InvestigationWall';
 import { CanvasWallOverlay } from '../CanvasWallOverlay';
 

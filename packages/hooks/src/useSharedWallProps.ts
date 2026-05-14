@@ -1,10 +1,7 @@
 import { useMemo } from 'react';
-import {
-  useCanvasViewportStore,
-  useInvestigationStore,
-  type ProcessHubId,
-} from '@variscout/stores';
+import { useCanvasViewportStore, useInvestigationStore } from '@variscout/stores';
 import type { Finding, Question, Hypothesis } from '@variscout/core';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import type { ProcessMap } from '@variscout/core/frame';
 
 const DEFAULT_WALL_PAN = { x: 0, y: 0 };

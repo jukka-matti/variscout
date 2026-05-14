@@ -26,8 +26,8 @@ import {
   persistCanvasViewport,
   rehydrateCanvasViewport,
   useCanvasViewportStore,
-  type ProcessHubId,
 } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import { loadBlobCanvasViewport, saveBlobCanvasViewport } from '../../../services/blobClient';
 import type { LoadedViewport } from '../../../services/blobClient';
 import { safeTrackEvent } from '../../../lib/appInsights';
