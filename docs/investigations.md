@@ -176,6 +176,65 @@ that supply vite globals. Runtime behaviour is unaffected.
 
 ---
 
+### Branded Cpk type as durable replacement for forbidden-name guard
+
+**Surfaced by:** post-#168 architecture-test refactor workstream (branch `post-168-architecture-test-refactor`), 2026-05-14. Related to T2 refactor commit `06d2638a`.
+
+**Description:** The architecture test at
+`packages/core/src/__tests__/architecture.noCrossInvestigationAggregation.test.ts` (enforcing
+ADR-073, "no cross-investigation Cp/Cpk aggregation") is a tripwire: a denylist substring grep for
+16 forbidden function names (`aggregateCpk`, `aggregateCapability`, `rollupCpk`, etc.). It catches
+the obvious case where a contributor reaches for `aggregateCpk`, but it has real limits:
+
+- A creative renaming (`unifiedQualityIndex()`, `combinedProcessMetric()`) passes cleanly — the rule
+  degrades to a naming convention, not an architectural boundary.
+- It is a substring grep, not AST analysis; semantics are invisible to it.
+- Scope is narrow: the vitest guard scans only `@variscout/core`. Cross-investigation aggregation
+  introduced in `packages/charts`, `packages/ui`, or apps is not caught.
+- The denylist can never be complete; reality has more names than any human (or language model) will
+  enumerate at design time.
+
+The same architectural rule could be enforced TYPE-LEVEL by making `Cpk` an opaque branded type —
+analogous to `ProcessHubId` in `packages/core/src/processHub.ts` (introduced in PR #168). That type
+is defined as `type ProcessHubId = string & { readonly __brand: 'ProcessHubId' }` with a single
+typed constructor `asProcessHubId()` that throws on empty input. With the same pattern applied to
+`Cpk`, multi-spec arithmetic becomes a compile error, not a runtime denylist match.
+
+**Possible directions:**
+
+- **Branded `Cpk` type in `@variscout/core`.** Define `Cpk` as an opaque type (`type Cpk = number &
+{ readonly __brand: 'Cpk' }`) whose only constructor takes a single-`SpecRule` context — i.e., one
+  spec, one investigation, one step. Forbid helpers that return `Cpk[]` from mixed-investigation
+  inputs; allow only `Map<ProcessHubId, Cpk>` or `Map<StepKey, Cpk>` where the map keys preserve
+  the locality dimension and prevent arithmetic across keys. Apply the same pattern to `Cp`, `Pp`,
+  and `Ppk` if they share the ADR-073 constraint.
+
+- **Migrate consumers.** All ~30+ call sites that read or produce `Cpk` values become typed. The
+  display layer already goes through `formatStatistic()` (in `@variscout/core/i18n`) — that boundary
+  is already clean. The engine layer is the migration target: replace bare `number` returns with
+  typed-constructor calls.
+
+- **Delete the architecture-grep test** once the type-level enforcement is in place. The substring
+  guard becomes redundant when the type system prevents the violation. Update ADR-073 with an
+  amendment note: "enforced by branded `Cpk` type; the historical forbidden-name guard at
+  `architecture.noCrossInvestigationAggregation.test.ts` is removed."
+
+**Why it matters:** LLM-assisted development is especially good at "obvious" naming — and especially
+good at picking novel-but-semantically-equivalent names when the obvious ones are blocked. A denylist
+that a language model can route around in one creative step is a thin safety layer. Type-level
+enforcement removes the routing option entirely.
+
+**Estimated scope:** Real engineering effort, not hygiene. Probably 4–8 tasks across:
+`@variscout/core` (type definition + typed constructor + engine-layer consumer migration),
+`@variscout/ui` + apps (display-layer migration via the existing `formatStatistic` pathway),
+and tests (fixture + assertion updates). Not a single-PR cleanup.
+
+**Promotion path:** When the engineering budget appears — likely as part of a broader stats-engine
+type-cleanup pass — this becomes an ADR-073 amendment + a small design spec + a multi-PR migration.
+Until then: stays as a logged investigation. The current tripwire remains the enforcement mechanism.
+
+---
+
 ### Stats-bar "Set specs →" link reads project-wide specs only
 
 **Surfaced by:** FRAME b0 spec wiring fixes, 2026-05-03 (branch `feature/full-vision-frame-b0`).

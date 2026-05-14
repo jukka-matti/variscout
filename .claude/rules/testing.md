@@ -16,3 +16,4 @@ paths:
 - **Never `Math.random()`** in stats tests — use seeded PRNG helpers.
 - **E2E selectors: `data-testid`** only — text/role/class change with i18n + theme.
 - Known flaky: `packages/hooks/src/__tests__/index.test.ts` under concurrent Turbo load — passes in isolation; retry once before treating as failure.
+- **Architecture tests** (structural-absence guards): see `docs/05-technical/implementation/testing.md` "Architecture Tests (Structural-Absence Guards)" — read-once + per-name regex pattern, denylist limits, branded-type follow-up.
