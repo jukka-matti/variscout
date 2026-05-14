@@ -28,6 +28,7 @@ export interface UseAppPanelsReturn {
   showAnalysis: () => void;
   showInvestigation: () => void;
   showImprovement: () => void;
+  showProjects: (projectId?: string) => void;
   showReport: () => void;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (v: boolean) => void;
@@ -49,6 +50,7 @@ export interface UseAppPanelsReturn {
   openSpecEditorRequested: boolean;
   sustainmentTargetId: string | null;
   handoffTargetId: string | null;
+  selectedProjectId: string | null;
   setOpenSpecEditorRequested: (v: boolean) => void;
   openDataTableAtRow: (index: number) => void;
   handleToggleFindingsPanel: () => void;
@@ -91,12 +93,14 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   const openSpecEditorRequested = usePanelsStore(s => s.openSpecEditorRequested);
   const sustainmentTargetId = usePanelsStore(s => s.sustainmentTargetId);
   const handoffTargetId = usePanelsStore(s => s.handoffTargetId);
+  const selectedProjectId = usePanelsStore(s => s.selectedProjectId);
 
   // ── Action selectors (stable function references from the store) ──────
   const showFrame = usePanelsStore(s => s.showFrame);
   const showAnalysis = usePanelsStore(s => s.showAnalysis);
   const showInvestigation = usePanelsStore(s => s.showInvestigation);
   const showImprovement = usePanelsStore(s => s.showImprovement);
+  const showProjects = usePanelsStore(s => s.showProjects);
   const showReport = usePanelsStore(s => s.showReport);
   const setSettingsOpen = usePanelsStore(s => s.setSettingsOpen);
   const setDataTableOpen = usePanelsStore(s => s.setDataTableOpen);
@@ -179,6 +183,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     showAnalysis,
     showInvestigation,
     showImprovement,
+    showProjects,
     showReport,
 
     // State (from store)
@@ -194,6 +199,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     openSpecEditorRequested,
     sustainmentTargetId,
     handoffTargetId,
+    selectedProjectId,
     isPISidebarOpen,
 
     // Setters (delegate to store)
