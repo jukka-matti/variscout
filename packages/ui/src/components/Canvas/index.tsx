@@ -8,8 +8,6 @@ import { chartColors } from '@variscout/charts';
 import {
   coerceCanvasLens,
   coerceCanvasOverlays,
-  isCanvasLensValidAtLevel,
-  suggestCanvasLevelForLens,
   resolveEndpointToFactor,
   useCanvasViewportInput,
   useCanvasViewportShortcuts,
@@ -17,7 +15,8 @@ import {
   useHasInvestigationContent,
   useChipDragAndDrop,
   useHypothesisDrawTool,
-  type ArrowEndpoint,
+  useCanvasHypothesisDrawing,
+  useCanvasHypothesisArrows,
   type CanvasInvestigationFocus,
   type CanvasInvestigationOverlayModel,
   type CanvasLensId,
@@ -51,16 +50,18 @@ import {
 import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlanceDashboard/types';
 import { ProcessMapBase } from './internal/ProcessMapBase';
 import { CanvasViewport } from './internal/CanvasViewport';
-import { LODSwitcher } from './internal/LODSwitcher';
 import { MobileLevelPicker } from './internal/MobileLevelPicker';
+import {
+  CanvasLevelRouter,
+  type CanvasAuthoringMode,
+  type CanvasL3Archetype,
+} from './internal/CanvasLevelRouter';
 import { ChipRail, type ChipRailEntry } from '../ChipRail';
 import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
 import { CanvasModeToggle } from '../CanvasModeToggle';
 import { StructuralToolbar } from '../StructuralToolbar';
-import { CanvasLensPicker, LENS_LABEL_KEY } from './internal/CanvasLensPicker';
+import { CanvasLensPicker } from './internal/CanvasLensPicker';
 import { useWallLocale } from '../InvestigationWall/hooks/useWallLocale';
-import { formatMessage, getMessage } from '@variscout/core/i18n';
-import type { MessageCatalog } from '@variscout/core';
 import { CanvasOverlayPicker } from './internal/CanvasOverlayPicker';
 import { HypothesisDrawToolButton } from './internal/HypothesisDrawToolButton';
 import {
@@ -71,10 +72,7 @@ import { CanvasStepCard } from './internal/CanvasStepCard';
 import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
 import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
-import { LocalMechanismView } from './internal/LocalMechanismView';
-import { SystemLevelView } from './internal/SystemLevelView';
-import { AuthorL3View } from './internal/AuthorL3View';
-import { NoFocalStepPrompt, sortedProcessSteps } from './internal/NoFocalStepPrompt';
+import { sortedProcessSteps } from './internal/NoFocalStepPrompt';
 import { useWallIsMobile } from '../InvestigationWall';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 import type { LogActionPayload } from '../QuickAction';
@@ -92,16 +90,8 @@ import type { LogActionPayload } from '../QuickAction';
  * component stays focused on the rendered canvas bands.
  */
 export type ProductionLineGlanceOpsMode = 'spatial' | 'full';
-export type CanvasAuthoringMode = 'author' | 'read';
-export type CanvasL3Archetype = 'b0' | 'b1';
-
-type ArrowSegment = {
-  id: string;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-};
+// Re-exported from CanvasLevelRouter to avoid circular imports
+export type { CanvasAuthoringMode, CanvasL3Archetype } from './internal/CanvasLevelRouter';
 
 type CanvasQuestionOption = { id: string; text: string };
 
@@ -120,11 +110,6 @@ const DEFAULT_CANVAS_VIEWPORT: CanvasViewportSnapshot = {
 };
 const CANVAS_VIEWPORT_IGNORED_TARGET = '[data-canvas-wall-overlay]';
 
-const CANVAS_LEVEL_LABEL_KEY: Record<CanvasLevel, keyof MessageCatalog> = {
-  l1: 'canvas.mobile.system',
-  l2: 'canvas.mobile.process',
-  l3: 'canvas.mobile.step',
-};
 const CANVAS_FIT_REQUEST_EVENT = 'variscout:canvas-fit-request';
 const FIT_TO_CONTENT_MARGIN = 0.95;
 
@@ -167,20 +152,6 @@ function measureCanvasFit(
       y: viewportBounds.height / 2 - (contentBounds.height / 2) * zoom,
     },
   };
-}
-
-function areArrowSegmentsEqual(left: ArrowSegment[], right: ArrowSegment[]) {
-  if (left.length !== right.length) return false;
-  return left.every((segment, index) => {
-    const next = right[index];
-    return (
-      segment.id === next.id &&
-      segment.x1 === next.x1 &&
-      segment.y1 === next.y1 &&
-      segment.x2 === next.x2 &&
-      segment.y2 === next.y2
-    );
-  });
 }
 
 /**
@@ -384,13 +355,14 @@ export const Canvas: React.FC<CanvasProps> = ({
   const [stepOverlayAnchor, setStepOverlayAnchor] = React.useState<CanvasOverlayAnchorRect | null>(
     null
   );
-  const cardElements = React.useRef(new Map<string, HTMLElement>());
-  const [arrowSegments, setArrowSegments] = React.useState<ArrowSegment[]>([]);
-  const [arrowMeasureVersion, setArrowMeasureVersion] = React.useState(0);
   const drawTool = useHypothesisDrawTool({
     active: activeCanvasTool === 'draw-hypothesis' && !disabled,
   });
-  const resetDrawTool = drawTool.reset;
+  const stepMetricColumns = React.useMemo(() => {
+    const out: Record<string, string | undefined> = {};
+    for (const card of stepCards) out[card.stepId] = card.metricColumn;
+    return out;
+  }, [stepCards]);
   const pendingStepChip = pendingStepChipId
     ? chips.find(chip => chip.chipId === pendingStepChipId)
     : undefined;
@@ -504,76 +476,16 @@ export const Canvas: React.FC<CanvasProps> = ({
     useCanvasViewportStore.getState().setLevel(hubId, 'l3', firstStepId);
   }, [firstStepId, hubId, viewport.currentLevel, viewport.focalStepId]);
 
-  const stepMetricColumns = React.useMemo(() => {
-    const out: Record<string, string | undefined> = {};
-    for (const card of stepCards) out[card.stepId] = card.metricColumn;
-    return out;
-  }, [stepCards]);
-
-  const registerCardElement = React.useCallback((stepId: string, element: HTMLElement | null) => {
-    if (element) cardElements.current.set(stepId, element);
-    else cardElements.current.delete(stepId);
-  }, []);
-
-  React.useLayoutEffect(() => {
-    if (
-      !resolvedOverlays.includes('hypotheses') ||
-      !investigationOverlays ||
-      !cardSurfaceRef.current
-    ) {
-      return;
-    }
-
-    const refresh = () => setArrowMeasureVersion(version => version + 1);
-    const resizeObserver =
-      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(refresh);
-    resizeObserver?.observe(cardSurfaceRef.current);
-    for (const element of cardElements.current.values()) resizeObserver?.observe(element);
-    window.addEventListener('resize', refresh);
-
-    return () => {
-      resizeObserver?.disconnect();
-      window.removeEventListener('resize', refresh);
-    };
-  }, [investigationOverlays, resolvedLens, resolvedOverlays, stepCards]);
-
-  React.useLayoutEffect(() => {
-    if (
-      !resolvedOverlays.includes('hypotheses') ||
-      !investigationOverlays ||
-      !cardSurfaceRef.current
-    ) {
-      setArrowSegments(current => (current.length === 0 ? current : []));
-      return;
-    }
-    const surfaceRect = cardSurfaceRef.current.getBoundingClientRect();
-    const next = investigationOverlays.arrows.flatMap(arrow => {
-      const from = cardElements.current.get(arrow.fromStepId);
-      const to = cardElements.current.get(arrow.toStepId);
-      if (!from || !to) return [];
-      const fromRect = from.getBoundingClientRect();
-      const toRect = to.getBoundingClientRect();
-      return [
-        {
-          id: arrow.id,
-          x1: fromRect.left + fromRect.width / 2 - surfaceRect.left,
-          y1: fromRect.top + fromRect.height / 2 - surfaceRect.top,
-          x2: toRect.left + toRect.width / 2 - surfaceRect.left,
-          y2: toRect.top + toRect.height / 2 - surfaceRect.top,
-        },
-      ];
-    });
-    setArrowSegments(current => (areArrowSegmentsEqual(current, next) ? current : next));
-  }, [
-    arrowMeasureVersion,
-    investigationOverlays,
-    resolvedLens,
+  const { arrowSegments, registerCardElement } = useCanvasHypothesisArrows({
     resolvedOverlays,
+    investigationOverlays,
+    cardSurfaceRef,
+    resolvedLens,
     stepCards,
-    viewport.pan.x,
-    viewport.pan.y,
-    viewport.zoom,
-  ]);
+    viewportPanX: viewport.pan.x,
+    viewportPanY: viewport.pan.y,
+    viewportZoom: viewport.zoom,
+  });
 
   const handleOpenStepCard = React.useCallback((stepId: string, element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
@@ -599,165 +511,14 @@ export const Canvas: React.FC<CanvasProps> = ({
     return () => cancelAnimationFrame(frame);
   }, [handleCloseStepOverlay, viewport.currentLevel]);
 
-  const surfacePoint = React.useCallback(
-    (clientX: number, clientY: number): { x: number; y: number } => {
-      const rect = cardSurfaceRef.current?.getBoundingClientRect();
-      return rect ? { x: clientX - rect.left, y: clientY - rect.top } : { x: clientX, y: clientY };
-    },
-    []
-  );
-
-  const endpointElementFromTarget = React.useCallback(
-    (target: EventTarget | null): Element | null => {
-      return target instanceof Element ? target.closest('[data-arrow-endpoint]') : null;
-    },
-    []
-  );
-
-  const parseEndpointElement = React.useCallback(
-    (element: Element | null): ArrowEndpoint | null => {
-      let node: Element | null = element;
-      while (node) {
-        const attr = node.getAttribute('data-arrow-endpoint');
-        if (attr) {
-          const separator = attr.indexOf(':');
-          if (separator < 0) return null;
-          const kind = attr.slice(0, separator);
-          const id = attr.slice(separator + 1);
-          if (kind === 'step') return { kind: 'step', id };
-          if (kind === 'column') {
-            const directHostStepId = node.getAttribute('data-arrow-host-step-id');
-            if (directHostStepId) return { kind: 'column', name: id, hostStepId: directHostStepId };
-            let stepNode = node.parentElement;
-            while (stepNode) {
-              const hostStepId = stepNode.getAttribute('data-arrow-host-step-id');
-              if (hostStepId) return { kind: 'column', name: id, hostStepId };
-              const stepAttr = stepNode.getAttribute('data-arrow-endpoint');
-              if (stepAttr?.startsWith('step:')) {
-                return { kind: 'column', name: id, hostStepId: stepAttr.slice(5) };
-              }
-              stepNode = stepNode.parentElement;
-            }
-          }
-        }
-        node = node.parentElement;
-      }
-      return null;
-    },
-    []
-  );
-
-  const endpointFromPointerEvent = React.useCallback(
-    (event: React.PointerEvent<HTMLElement>): ArrowEndpoint | null => {
-      const targetElement = endpointElementFromTarget(event.target);
-      const fallbackElement =
-        typeof document === 'undefined' || typeof document.elementFromPoint !== 'function'
-          ? null
-          : document.elementFromPoint(event.clientX, event.clientY);
-      return parseEndpointElement(targetElement) ?? parseEndpointElement(fallbackElement);
-    },
-    [endpointElementFromTarget, parseEndpointElement]
-  );
-
-  const endpointFromKeyboardEvent = React.useCallback(
-    (
-      event: React.KeyboardEvent<HTMLElement>
-    ): { endpoint: ArrowEndpoint; at: { x: number; y: number } } | null => {
-      const element = endpointElementFromTarget(event.target);
-      const endpoint = parseEndpointElement(element);
-      if (!endpoint) return null;
-      const elementRect = element?.getBoundingClientRect();
-      const surfaceRect = cardSurfaceRef.current?.getBoundingClientRect();
-      if (elementRect && surfaceRect) {
-        return {
-          endpoint,
-          at: {
-            x: elementRect.left + elementRect.width / 2 - surfaceRect.left,
-            y: elementRect.top + elementRect.height / 2 - surfaceRect.top,
-          },
-        };
-      }
-      return { endpoint, at: { x: 0, y: 0 } };
-    },
-    [endpointElementFromTarget, parseEndpointElement]
-  );
-
-  const handleDrawPointerDown = React.useCallback(
-    (event: React.PointerEvent<HTMLElement>): void => {
-      if (activeCanvasTool !== 'draw-hypothesis' || disabled) return;
-      const endpoint = endpointFromPointerEvent(event);
-      if (!endpoint) return;
-      const sourceElement = endpointElementFromTarget(event.target);
-      const sourceRect = sourceElement?.getBoundingClientRect();
-      const surfaceRect = cardSurfaceRef.current?.getBoundingClientRect();
-      const anchor =
-        sourceRect && surfaceRect
-          ? {
-              x: sourceRect.left + sourceRect.width / 2 - surfaceRect.left,
-              y: sourceRect.top + sourceRect.height / 2 - surfaceRect.top,
-            }
-          : surfacePoint(event.clientX, event.clientY);
-      event.preventDefault();
-      drawTool.onPointerDown(endpoint, anchor);
-    },
-    [
-      activeCanvasTool,
-      disabled,
-      drawTool,
-      endpointElementFromTarget,
-      endpointFromPointerEvent,
-      surfacePoint,
-    ]
-  );
-
-  const handleDrawPointerMove = React.useCallback(
-    (event: React.PointerEvent<HTMLElement>): void => {
-      if (drawTool.state.phase !== 'drawing') return;
-      drawTool.onPointerMove(
-        surfacePoint(event.clientX, event.clientY),
-        endpointFromPointerEvent(event)
-      );
-    },
-    [drawTool, endpointFromPointerEvent, surfacePoint]
-  );
-
-  const handleDrawPointerUp = React.useCallback(
-    (event: React.PointerEvent<HTMLElement>): void => {
-      if (drawTool.state.phase !== 'drawing') return;
-      drawTool.onPointerUp(
-        endpointFromPointerEvent(event),
-        surfacePoint(event.clientX, event.clientY)
-      );
-    },
-    [drawTool, endpointFromPointerEvent, surfacePoint]
-  );
-
-  const handleDrawKeyDown = React.useCallback(
-    (event: React.KeyboardEvent<HTMLElement>): void => {
-      if (activeCanvasTool !== 'draw-hypothesis' || disabled) return;
-      if (event.key === 'Escape') {
-        drawTool.cancel();
-        onCanvasToolChange?.('select');
-        return;
-      }
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      const resolved = endpointFromKeyboardEvent(event);
-      if (!resolved) return;
-      event.preventDefault();
-      if (drawTool.state.phase === 'drawing') {
-        drawTool.onPointerUp(resolved.endpoint, resolved.at);
-      } else {
-        drawTool.onPointerDown(resolved.endpoint, resolved.at);
-      }
-    },
-    [activeCanvasTool, disabled, drawTool, endpointFromKeyboardEvent, onCanvasToolChange]
-  );
-
-  const endpointLabel = React.useCallback(
-    (endpoint: ArrowEndpoint): string =>
-      endpoint.kind === 'column' ? endpoint.name : (stepMetricColumns[endpoint.id] ?? endpoint.id),
-    [stepMetricColumns]
-  );
+  const { handlers: drawHandlers, endpointLabel } = useCanvasHypothesisDrawing({
+    activeCanvasTool,
+    disabled,
+    drawTool,
+    cardSurfaceRef,
+    onCanvasToolChange,
+    stepMetricColumns,
+  });
 
   const handleHypothesisSave = React.useCallback(
     (payload: HypothesisDraftPayload): void => {
@@ -773,10 +534,6 @@ export const Canvas: React.FC<CanvasProps> = ({
     },
     [drawTool, onAddCausalLink, onCanvasToolChange, stepMetricColumns]
   );
-
-  React.useEffect(() => {
-    if (activeCanvasTool !== 'draw-hypothesis') resetDrawTool();
-  }, [activeCanvasTool, resetDrawTool]);
 
   const stepCardGrid =
     stepCards.length > 0 ? (
@@ -858,11 +615,11 @@ export const Canvas: React.FC<CanvasProps> = ({
           activeCanvasTool === 'draw-hypothesis' && !disabled ? 'cursor-crosshair' : '',
         ].join(' ')}
         data-testid="canvas-card-surface"
-        onPointerDown={handleDrawPointerDown}
-        onPointerMove={handleDrawPointerMove}
-        onPointerUp={handleDrawPointerUp}
+        onPointerDown={drawHandlers.onPointerDown}
+        onPointerMove={drawHandlers.onPointerMove}
+        onPointerUp={drawHandlers.onPointerUp}
         onPointerCancel={() => drawTool.onPointerCancel()}
-        onKeyDown={handleDrawKeyDown}
+        onKeyDown={drawHandlers.onKeyDown}
         style={{ touchAction: activeCanvasTool === 'draw-hypothesis' ? 'none' : undefined }}
       >
         {resolvedOverlays.includes('hypotheses') && arrowSegments.length > 0 ? (
@@ -974,50 +731,36 @@ export const Canvas: React.FC<CanvasProps> = ({
     </div>
   );
 
-  const l1Content = (
-    <div data-canvas-level="l1">
-      <SystemLevelView
-        hubId={hubId}
-        map={map}
-        rows={rows ?? []}
-        stepCards={stepCards}
-        questions={systemQuestions}
-        hypotheses={hypotheses}
-        findings={findings}
-        activeLens={resolvedLens}
-        measureSpecs={
-          map.ctsColumn ? { [map.ctsColumn]: { usl, lsl, target, cpkTarget } } : undefined
-        }
-        onOpenScout={onOpenScout}
-      />
-    </div>
-  );
-  const authorL3Content = viewport.focalStepId ? (
-    <AuthorL3View
+  const levelContent = (
+    <CanvasLevelRouter
       hubId={hubId}
-      focalStepId={viewport.focalStepId}
       map={map}
+      currentLevel={viewport.currentLevel}
+      focalStepId={viewport.focalStepId}
+      rawLens={rawLens}
+      resolvedLens={resolvedLens}
+      locale={locale}
+      l2Content={canvasContent}
+      rows={rows ?? []}
+      stepCards={stepCards}
+      systemQuestions={systemQuestions}
+      hypotheses={hypotheses}
+      findings={findings}
+      usl={usl}
+      lsl={lsl}
+      target={target}
+      cpkTarget={cpkTarget}
+      onOpenScout={onOpenScout}
       chips={chips}
-      disabled={!canPlaceChips}
+      canPlaceChips={canPlaceChips}
       onPlaceChip={onPlaceChip}
       onKeyboardChipPickUp={setKeyboardChipId}
       onKeyboardChipDrop={handleKeyboardChipDrop}
-    />
-  ) : (
-    <NoFocalStepPrompt hubId={hubId} map={map} />
-  );
-  const readL3Content = viewport.focalStepId ? (
-    <LocalMechanismView
-      hubId={hubId}
-      focalStepId={viewport.focalStepId}
-      map={map}
-      rows={rows ?? []}
-      outcomeColumn={map.ctsColumn}
       columnTypes={columnTypes}
-      findings={[...findings]}
-      problemCpk={problemCpk ?? 0}
-      eventsPerWeek={eventsPerWeek ?? 0}
-      activeColumns={activeColumns ?? availableColumns}
+      problemCpk={problemCpk}
+      eventsPerWeek={eventsPerWeek}
+      availableColumns={availableColumns}
+      activeColumns={activeColumns}
       onOpenWall={onOpenWall}
       onSelectWallHub={onSelectWallHub}
       onOpenInvestigationFocus={onOpenInvestigationFocus}
@@ -1027,44 +770,11 @@ export const Canvas: React.FC<CanvasProps> = ({
       onCharter={onCharter}
       onSustainment={onSustainment}
       onHandoff={onHandoff}
+      resolvedL3Archetype={resolvedL3Archetype}
+      authoringMode={authoringMode}
+      disabled={disabled}
+      onModeChange={onModeChange}
     />
-  ) : (
-    <NoFocalStepPrompt hubId={hubId} map={map} />
-  );
-  const l3ContentBody = resolvedL3Archetype === 'b1' ? authorL3Content : readL3Content;
-  const l3Content = (
-    <div className="bg-surface-background" data-canvas-level="l3">
-      {onModeChange ? (
-        <div className="flex items-center justify-end border-b border-edge px-4 py-3">
-          <CanvasModeToggle mode={authoringMode} onChange={onModeChange} disabled={disabled} />
-        </div>
-      ) : null}
-      {l3ContentBody}
-    </div>
-  );
-  const lensValidAtCurrentLevel = isCanvasLensValidAtLevel(rawLens, viewport.currentLevel);
-  const suggestedLevel = suggestCanvasLevelForLens(rawLens, viewport.currentLevel);
-  const invalidLensLevelContent = (
-    <div
-      className="bg-surface-background p-6 text-sm font-medium text-content-secondary"
-      data-testid="canvas-lens-level-empty-state"
-    >
-      {formatMessage(locale, 'canvas.lensPicker.invalidAtLevel', {
-        lens: getMessage(locale, LENS_LABEL_KEY[rawLens]),
-        currentLevel: getMessage(locale, CANVAS_LEVEL_LABEL_KEY[viewport.currentLevel]),
-        suggestedLevel: getMessage(locale, CANVAS_LEVEL_LABEL_KEY[suggestedLevel]),
-      })}
-    </div>
-  );
-  const levelContent = lensValidAtCurrentLevel ? (
-    <LODSwitcher
-      currentLevel={viewport.currentLevel}
-      l1={l1Content}
-      l2={canvasContent}
-      l3={l3Content}
-    />
-  ) : (
-    invalidLensLevelContent
   );
   const desktopLevelContent = (
     <div

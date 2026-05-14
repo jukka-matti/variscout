@@ -58,6 +58,19 @@ export {
 export { useCanvasViewportShortcuts } from './useCanvasViewportShortcuts';
 
 export {
+  useCanvasHypothesisDrawing,
+  type UseCanvasHypothesisDrawingArgs,
+  type UseCanvasHypothesisDrawingResult,
+} from './useCanvasHypothesisDrawing';
+
+export {
+  useCanvasHypothesisArrows,
+  type ArrowSegment,
+  type UseCanvasHypothesisArrowsArgs,
+  type UseCanvasHypothesisArrowsResult,
+} from './useCanvasHypothesisArrows';
+
+export {
   useHypothesisDrawTool,
   resolveEndpointToFactor,
   type ArrowEndpoint,
