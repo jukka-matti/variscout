@@ -8,6 +8,7 @@ interface PanelsState {
     | 'frame'
     | 'analysis'
     | 'investigation'
+    | 'projects'
     | 'improvement'
     | 'report'
     | 'charter'
@@ -39,6 +40,7 @@ interface PanelsState {
   highlightedIdeaId: string | null;
   sustainmentTargetId: string | null;
   handoffTargetId: string | null;
+  selectedProjectId: string | null;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -49,6 +51,7 @@ interface PanelsActions {
   showAnalysis: () => void;
   showInvestigation: () => void;
   showImprovement: () => void;
+  showProjects: (projectId?: string) => void;
   showReport: () => void;
   showCharter: () => void;
   showSustainment: (targetId?: string) => void;
@@ -83,6 +86,7 @@ interface PanelsActions {
         | 'frame'
         | 'analysis'
         | 'investigation'
+        | 'projects'
         | 'improvement'
         | 'report'
         | 'charter'
@@ -118,6 +122,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   highlightedIdeaId: null,
   sustainmentTargetId: null,
   handoffTargetId: null,
+  selectedProjectId: null,
 
   // Workspace navigation (ADR-055 + header-redesign spec, extended with 'frame' per ADR-070)
   showDashboard: () => set(() => ({ activeView: 'dashboard' })),
@@ -137,6 +142,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
       activeView: 'improvement',
       isWhatIfOpen: false,
     })),
+  showProjects: projectId => set({ activeView: 'projects', selectedProjectId: projectId ?? null }),
   showReport: () => set(() => ({ activeView: 'report' })),
   showCharter: () => set(() => ({ activeView: 'charter', isFindingsOpen: false })),
   showSustainment: targetId =>

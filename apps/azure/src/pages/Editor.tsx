@@ -110,6 +110,7 @@ import HandoffPanel from '../components/handoff/HandoffPanel';
 import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
+import ProjectsTabView from '../components/ProjectsTabView';
 import { useAIStore } from '../features/ai/aiStore';
 
 const WhatIfPage = lazyWithRetry(() => import('../components/WhatIfPage'));
@@ -483,6 +484,7 @@ export const Editor: React.FC<EditorProps> = ({
   const activeView = usePanelsStore(s => s.activeView);
   const handoffTargetId = usePanelsStore(s => s.handoffTargetId);
   const sustainmentTargetId = usePanelsStore(s => s.sustainmentTargetId);
+  const selectedProjectId = usePanelsStore(s => s.selectedProjectId);
   const [navigationHandoffTargetId, setNavigationHandoffTargetId] = useState<string | null>(
     initialHandoffTargetId ?? null
   );
@@ -1677,6 +1679,14 @@ export const Editor: React.FC<EditorProps> = ({
                 hypothesesState={hypothesesState}
                 questionsMap={questionsMap}
                 ideaImpacts={ideaImpacts}
+              />
+            ) : activeView === 'projects' ? (
+              <ProjectsTabView
+                activeHub={activeHub ?? undefined}
+                selectedProjectId={selectedProjectId}
+                onSelectProject={id =>
+                  usePanelsStore.getState().showProjects(id === '' ? undefined : id)
+                }
               />
             ) : activeView === 'improvement' ? (
               <ImprovementWorkspaceBase
