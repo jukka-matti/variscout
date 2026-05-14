@@ -48,7 +48,13 @@ const HeaderIconButton: React.FC<HeaderIconButtonProps> = ({
   </button>
 );
 
-export type PhaseId = 'frame' | 'analysis' | 'investigation' | 'improvement' | 'report';
+export type PhaseId =
+  | 'frame'
+  | 'analysis'
+  | 'investigation'
+  | 'improvement'
+  | 'projects'
+  | 'report';
 
 interface AppHeaderProps {
   hasData: boolean;
@@ -86,7 +92,8 @@ const PHASE_TABS: { id: PhaseId; labelKey: keyof MessageCatalog }[] = [
   { id: 'frame', labelKey: 'workspace.frame' },
   { id: 'analysis', labelKey: 'workspace.analysis' },
   { id: 'investigation', labelKey: 'workspace.investigation' },
-  { id: 'improvement', labelKey: 'workspace.improvement' },
+  { id: 'improvement', labelKey: 'workspace.improve' },
+  { id: 'projects', labelKey: 'workspace.projects' },
   { id: 'report', labelKey: 'workspace.report' },
 ];
 

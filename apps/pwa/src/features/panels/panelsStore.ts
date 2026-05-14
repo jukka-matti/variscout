@@ -10,6 +10,7 @@ interface PanelsState {
     | 'analysis'
     | 'investigation'
     | 'improvement'
+    | 'projects'
     | 'report'
     | 'charter'
     | 'sustainment'
@@ -32,6 +33,7 @@ interface PanelsState {
   openSpecEditorRequested: boolean;
   sustainmentTargetId: string | null;
   handoffTargetId: string | null;
+  selectedProjectId: string | null;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -42,6 +44,7 @@ interface PanelsActions {
   showAnalysis: () => void;
   showInvestigation: () => void;
   showImprovement: () => void;
+  showProjects: (projectId?: string) => void;
   showReport: () => void;
   showCharter: () => void;
   showSustainment: (targetId?: string) => void;
@@ -92,6 +95,7 @@ export const initialPanelsState: PanelsState = {
   openSpecEditorRequested: false,
   sustainmentTargetId: null,
   handoffTargetId: null,
+  selectedProjectId: null,
 };
 
 // ── Store ────────────────────────────────────────────────────────────────────
@@ -104,6 +108,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   showAnalysis: () => set({ activeView: 'analysis' }),
   showInvestigation: () => set({ activeView: 'investigation', isFindingsOpen: false }),
   showImprovement: () => set({ activeView: 'improvement' }),
+  showProjects: projectId => set({ activeView: 'projects', selectedProjectId: projectId ?? null }),
   showReport: () => set({ activeView: 'report' }),
   showCharter: () => set({ activeView: 'charter', isFindingsOpen: false }),
   showSustainment: targetId =>

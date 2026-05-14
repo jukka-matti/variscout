@@ -24,6 +24,7 @@ type WorkspaceView =
   | 'frame'
   | 'analysis'
   | 'investigation'
+  | 'projects'
   | 'improvement'
   | 'report';
 
@@ -433,12 +434,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             onClick={() => usePanelsStore.getState().showImprovement()}
             data-testid="view-toggle-improvement"
           >
-            Improvement
+            Improve
             {selectedIdeaCount != null && selectedIdeaCount > 0 && (
               <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
                 {selectedIdeaCount}
               </span>
             )}
+          </button>
+          <button
+            className={tabClass(activeView === 'projects')}
+            onClick={() => usePanelsStore.getState().showProjects()}
+            data-testid="view-toggle-projects"
+          >
+            Projects
           </button>
           <button
             className={tabClass(activeView === 'report')}

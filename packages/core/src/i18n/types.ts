@@ -695,6 +695,8 @@ export interface MessageCatalog {
   'workspace.analysis': string;
   'workspace.investigation': string;
   'workspace.improvement': string;
+  'workspace.improve': string;
+  'workspace.projects': string;
   'workspace.report': string;
   'workspace.findings': string;
 

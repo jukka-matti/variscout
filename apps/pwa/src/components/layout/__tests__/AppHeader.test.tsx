@@ -19,7 +19,8 @@ vi.mock('@variscout/hooks', async () => {
           'workspace.frame': 'Frame',
           'workspace.analysis': 'Analysis',
           'workspace.investigation': 'Investigation',
-          'workspace.improvement': 'Improvement',
+          'workspace.improve': 'Improve',
+          'workspace.projects': 'Projects',
           'workspace.report': 'Report',
         };
         return msgs[key] ?? key;
@@ -74,14 +75,21 @@ describe('AppHeader', () => {
       rowCount: 100,
     };
 
-    it('renders all five phase tab buttons inside the app bar', () => {
+    it('renders all six phase tab buttons inside the app bar', () => {
       const onPhaseChange = vi.fn();
       render(<AppHeader {...withDataProps} activePhase="analysis" onPhaseChange={onPhaseChange} />);
 
       const nav = screen.getByTestId('phase-tabs-inline');
       expect(nav).toBeTruthy();
 
-      const phases: PhaseId[] = ['frame', 'analysis', 'investigation', 'improvement', 'report'];
+      const phases: PhaseId[] = [
+        'frame',
+        'analysis',
+        'investigation',
+        'improvement',
+        'projects',
+        'report',
+      ];
       for (const phase of phases) {
         expect(screen.getByTestId(`phase-tab-${phase}`)).toBeTruthy();
       }
@@ -121,6 +129,9 @@ describe('AppHeader', () => {
 
       fireEvent.click(screen.getByTestId('phase-tab-improvement'));
       expect(onPhaseChange).toHaveBeenCalledWith('improvement');
+
+      fireEvent.click(screen.getByTestId('phase-tab-projects'));
+      expect(onPhaseChange).toHaveBeenCalledWith('projects');
 
       fireEvent.click(screen.getByTestId('phase-tab-report'));
       expect(onPhaseChange).toHaveBeenCalledWith('report');

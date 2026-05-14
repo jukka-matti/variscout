@@ -113,6 +113,7 @@ const SustainmentPanel = lazyWithRetry(() => import('./components/SustainmentPan
 const HandoffPanel = lazyWithRetry(() => import('./components/HandoffPanel'));
 const InvestigationView = lazyWithRetry(() => import('./components/views/InvestigationView'));
 const ImprovementView = lazyWithRetry(() => import('./components/views/ImprovementView'));
+const ProjectsTabView = lazyWithRetry(() => import('./components/ProjectsTabView'));
 const ReportView = lazyWithRetry(() => import('./components/views/ReportView'));
 
 const LazyFallback = () => (
@@ -1089,6 +1090,12 @@ function AppMain() {
                 resolvedMode={resolved}
                 questionsMap={investigation.questionsMap}
                 ideaImpacts={investigation.ideaImpacts}
+              />
+            ) : panels.activeView === 'projects' ? (
+              <ProjectsTabView
+                activeHub={sessionHub ?? undefined}
+                selectedProjectId={panels.selectedProjectId}
+                onSelectProject={id => panels.showProjects(id === '' ? undefined : id)}
               />
             ) : panels.activeView === 'improvement' ? (
               <ImprovementView
