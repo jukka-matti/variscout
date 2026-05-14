@@ -32,7 +32,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Description:** 20 findings total — 5 HIGH that qualify the "shipped" claim, 8 MEDIUM spec-vs-shipped drift, 7 LOW cleanups. Followup workstream plan at [`docs/superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md`](superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md). Decision-log "8f canvas viewport SHIPPED" entry has been amended to reference these gaps. Roadmap continues to mark 8f shipped; the followups are a separate cleanup sequence.
 
-**STATUS 2026-05-14:** 19 of 20 findings RESOLVED on branch `canvas-viewport-8f-followups` (22 commits, single PR pending). HIGH #4 resolved via spec AMEND (intentional V2 placeholders); HIGH #1/#2/#3/#5 resolved via implementation; all 8 MEDIUM resolved (including the spec §10 amend); 6 of 7 LOW resolved. Deferred: T1.1 brand `ProcessHubId` (LOW #19) — 18-file refactor, low value vs risk, moved to its own future micro-PR. This entry stays open until the followup PR merges; close on merge.
+**STATUS 2026-05-14 — RESOLVED:** 19 of 20 findings closed by PR #166 (squash-merged as `cd936915` after `--chrome` walk verification). HIGH #4 resolved via spec AMEND (intentional V2 placeholders); HIGH #1/#2/#3/#5 resolved via implementation; all 8 MEDIUM resolved (including the spec §10 amend); 6 of 7 LOW resolved. **Carried forward as separate followups:** LOW #19 (brand `ProcessHubId` — 18-file refactor, low value/risk ratio) + LOW #16 (`Canvas/index.tsx` 1122-line refactor, defer to next viewport feature). Entry retained as historical record; the diff is in `cd936915`.
 
 **HIGH (5):**
 
@@ -66,6 +66,50 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 **Possible directions:** Execute the 6-PR followup plan via `superpowers:subagent-driven-development`. PR0 (docs sync) direct to main; PR1 (i18n + Dexie cleanup + branded hubId), PR2 (ADR-074 cleanup), PR3 (lens matrix — brainstorm first to decide expand-vs-amend), PR4 (LOD polish + dead-code), PR5 (Azure Blob sync — the ADR-081 §2 commitment), PR6 (L3 CTAs + mobile step-list + selector scope + STORE_LAYER rename).
 
 **Promotion path:** entry closes when the 6 followup PRs ship; decision-log amendment block updates to note "followups complete"; `MEMORY.md` line 4 flips from "8f SHIPPED with followups in flight" to "8f SHIPPED + followups complete"; `project_canvas_viewport_8f.md` caveat block removed.
+
+---
+
+### React `setState-in-render` warning fires from `AppMain` across canvas transitions
+
+**Surfaced by:** `--chrome` walk of PR #166 (canvas-viewport-8f-followups) on 2026-05-14.
+
+**Description:** Console error repeats on every Frame-tab activation, LOD transition (L1↔L2↔L3 via wheel-zoom), and `Lock canvas` mode toggle: `Cannot update a component (AppMain) while rendering a different component (AppMain). To locate the bad setState() call inside AppMain, follow the stack trace as described in https://react.dev/link/setstate-in-render`. Fires multiple times per interaction (8+ instances captured during a 9-minute walk). `apps/pwa/src/App.tsx` is NOT touched on the `canvas-viewport-8f-followups` branch (`git log origin/main..HEAD -- apps/pwa/src/App.tsx` empty), so this is pre-existing — likely predates 8f or was introduced by `feat(8f): PR1 Foundation` (commit `57c48a26`). `AppMain` has 70+ Zustand selectors and several derived-data hooks (`useFilteredData`, `useStatsWorker`, `useAnalysisStats`, `useDefectTransform`, `useDefectSummary`); one of them is calling `setState` during render of another.
+
+**Suspected mechanism:** A derived-data hook (likely `useStatsWorker` or `useAnalysisStats`) computes a result during render and writes it back to a store, triggering a re-render mid-render. Or a `useCanvasViewportStore` selector returns a new reference each render. Strict-mode escalates the warning to an error in dev.
+
+**Why it matters:** noisy console drowns out real errors; possible silent state desync; potential infinite-loop risk if a future change adds another store-driven derivation. Not user-visible today but a real React-correctness violation.
+
+**Possible directions:** Open in React DevTools profiler during a canvas transition; identify which component logs the violation; replace render-time setState with a `useEffect`, or memoize the selector return reference.
+
+---
+
+### Canvas journey clarity — designer-lens UX observations from PR #166 walk
+
+**Surfaced by:** `--chrome` walk of PR #166 on 2026-05-14, requested as "designer classes on, think how logical and easy to use and understand is the whole analysis journey."
+
+**Description:** PR #166 itself ships the followup fixes correctly; the broader Canvas journey has discoverability and labeling friction worth tracking separately from #166 scope:
+
+1. **"Frame" tab label hides that this IS the canvas.** Top nav reads `Frame | Analysis | Investigation | Improvement | Report`. The vision spec (`project_canvas_replaces_tabs.md`, Q0 2026-05-03) commits to `[Hubs] [Canvas] [Investigation] [Improvement] [Report]`. A new user clicks "Frame" expecting "set up framing" and gets the L1/L2/L3 canvas surface with no breadcrumb signaling it. Nav rename to `Canvas` is the cheapest journey-clarity win.
+
+2. **Desktop has no visible LODSwitcher.** Mobile has `MobileLevelPicker` pills (`System | Process | Step`); desktop users discover level changes only via wheel-zoom (no level chip, no breadcrumb, no "you are here" indicator). Desktop parity would be a small toolbar component.
+
+3. **Mode toggle is mislabeled "Lock canvas."** The `CanvasModeToggle` button uses the lock/unlock icon + label "Lock canvas" / "Edit canvas" to flip between `author` mode (AuthorL3View column-assignment) and `read` mode (LocalMechanismView with 4 response-path CTAs). A user reading "Lock" thinks "prevent edits," not "switch to analysis view that exposes Investigate / Charter / Sustain / Handoff." The 4 column-granularity CTAs that PR #166 ships are gated behind a button no one will click to find them.
+
+4. **L1 capability metrics row shows `--` despite specs detected on load.** Showcase opening modal said "Cpk 0.81 — Below target"; L1 SystemLevelView shows `Cp -- Cpk -- Pp -- Ppk -- Conformance 100.0%`. The gap is `outcome.ctsColumn` unbound until FRAME flow completes — but the L1 view doesn't tell the user this. No "Bind a CTS column to see capability" hint; just blank.
+
+5. **L3 read mode renders 5 column cards × 4 CTAs = 20 flat-leveled actions.** No primary action signaled, no visual lead toward the suspected-contribution column. Every column reads as equally important. Designer instinct: rank-order cards by signal strength, demote weak contributors.
+
+6. **L2 sub-tab vocabulary overlaps.** `Investigations | Hypotheses | Hypothesis hubs | Findings | Wall` reads as five near-synonyms to a learner. Expert-fluent, novice-hostile.
+
+7. **L3 Investigate CTA whisks user to Investigation tab with no scope memory.** Clicking Investigate on `Fill_Weight_g` column lands on the hub composer showing 6 questions about `Does Line + Shift + Material_Batch together explain...` — none obviously scoped to the `Fill_Weight_g` selection that triggered the navigation.
+
+8. **"Authoring model" caption (bottom-right of L2/L3)** is cryptic — neither label nor button; reads as orphan text.
+
+9. **"Open SCOUT" button at L1** with no hover/tooltip; first-timer has no model for what SCOUT does.
+
+**Why it matters:** PR #166 successfully ships the 19 of 20 followup fixes; the journey-around-them remains uneven. Each item above is a small-to-medium change; together they shift the canvas from "shipped, functional" to "explainable in 60 seconds to a first-time user."
+
+**Possible directions:** Surface to brainstorming when the next canvas slice opens. Items 1, 2, 3 are small renames + a toolbar; 4 is an empty-state copy add; 5 is a sort + visual-weight change; 6 is a glossary-driven simplification; 7 is breadcrumb wiring; 8, 9 are caption/tooltip polish. Don't bundle into PR #166.
 
 ---
 
