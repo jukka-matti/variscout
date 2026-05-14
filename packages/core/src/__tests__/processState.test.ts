@@ -179,9 +179,14 @@ describe('buildCurrentProcessState', () => {
     const sustainmentRecords: SustainmentRecord[] = [
       {
         id: 'rec-1',
+        title: 'Sustain resolved-1 gains',
         investigationId: 'resolved-1',
         hubId: 'line-4',
         cadence: 'monthly',
+        status: 'pending',
+        consecutiveOnTargetTicks: 0,
+        hasOverride: false,
+        lastEvaluatedSnapshotId: undefined,
         nextReviewDue: '2026-04-25T00:00:00.000Z',
         createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z
         updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z

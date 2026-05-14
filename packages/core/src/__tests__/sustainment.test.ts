@@ -545,9 +545,14 @@ describe('selectSustainmentBuckets', () => {
   ): SustainmentRecord {
     return {
       id: `rec-${investigationId}`,
+      title: `Sustainment record for ${investigationId}`,
       investigationId,
       hubId: 'hub-1',
       cadence: 'monthly',
+      status: 'pending',
+      consecutiveOnTargetTicks: 0,
+      hasOverride: false,
+      lastEvaluatedSnapshotId: undefined,
       nextReviewDue,
       createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z
       updatedAt: 1743465600000, // 2026-04-01T00:00:00.000Z
