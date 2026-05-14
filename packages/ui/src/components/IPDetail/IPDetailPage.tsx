@@ -7,6 +7,9 @@ import IPDetailTeamRail from './IPDetailTeamRail';
 import { deriveStageState, type StageStateInputs } from './stageState';
 import CharterOverview from './stages/CharterOverview';
 import CharterSections from './stages/CharterSections';
+import ApproachOverview from './stages/ApproachOverview';
+import ApproachSections from './stages/ApproachSections';
+import type { CauseProjectionInputs, CauseRow } from './stages/causeProjection';
 import type { ImprovementProjectFormProps } from '../ImprovementProject/ImprovementProjectForm';
 
 export interface IPDetailPageProps {
@@ -24,6 +27,10 @@ export interface IPDetailPageProps {
   ) => void;
   /** Props for Charter Sections (Sections-mode form). */
   charterFormProps?: ImprovementProjectFormProps;
+  /** Cause projection inputs for the Approach stage. */
+  approachInputs?: CauseProjectionInputs;
+  /** Called when user clicks "Open in Improve workbench" on a cause. */
+  onOpenCauseWorkbench?: (cause: CauseRow) => void;
 }
 
 function defaultActiveStage(stages: ReturnType<typeof deriveStageState>): StageName {
@@ -41,6 +48,8 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   dayCounter,
   onJumpOut,
   charterFormProps,
+  approachInputs,
+  onOpenCauseWorkbench,
 }) => {
   const stages = useMemo(() => deriveStageState(ip, stageStateInputs), [ip, stageStateInputs]);
   const [activeStage, setActiveStage] = useState<StageName>(() => defaultActiveStage(stages));
@@ -72,11 +81,32 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
           {activeStage === 'charter' && mode === 'sections' && (
             <CharterSections {...(charterFormProps ?? {})} />
           )}
-          {activeStage !== 'charter' && (
+          {activeStage === 'approach' && mode === 'overview' && approachInputs && (
+            <ApproachOverview
+              ip={ip}
+              causeInputs={approachInputs}
+              onOpenWorkbench={cause => onOpenCauseWorkbench?.(cause)}
+              onOpenWall={() => onJumpOut?.('investigation')}
+              onOpenAnalyze={() => onJumpOut?.('analyze')}
+              onOpenProcess={() => onJumpOut?.('process')}
+            />
+          )}
+          {activeStage === 'approach' && mode === 'sections' && approachInputs && (
+            <ApproachSections
+              ip={ip}
+              causeInputs={approachInputs}
+              onOpenWorkbench={cause => onOpenCauseWorkbench?.(cause)}
+            />
+          )}
+          {activeStage === 'approach' && !approachInputs && (
+            <p className="text-sm text-content-secondary">
+              Approach stage needs hypothesis + idea + action inputs (wired in PR-PT-4.4).
+            </p>
+          )}
+          {(activeStage === 'sustainment' || activeStage === 'handoff') && (
             <p className="text-sm text-content-secondary">
               {mode === 'overview' ? 'Overview' : 'Sections'} content for{' '}
-              <strong>{activeStage}</strong> ships in PR-PT-
-              {activeStage === 'approach' ? '4' : '5'}.
+              <strong>{activeStage}</strong> ships in PR-PT-5.
             </p>
           )}
         </main>
