@@ -1086,6 +1086,6 @@ The bash approach has the same semantic limits as the vitest approach (substring
 
 ### The durable answer
 
-Architecture tests are interim enforcement. When a rule earns full enforcement — because violations are expensive and the rule is stable — prefer type-level primitives: branded types, policy types, or package-boundary ESLint rules. `ProcessHubId` is the existing example of this upgrade path. See `docs/investigations.md` "Branded `Cpk` type as durable replacement for forbidden-name guard" for the proposed follow-up targeting the ADR-073 guard specifically.
+Architecture tests are interim enforcement. When a rule earns full enforcement — because violations are expensive and the rule is stable — prefer type-level primitives: branded types, policy types, or package-boundary ESLint rules. `ProcessHubId` is the existing example of this upgrade path. See `docs/investigations.md` "Branded Cpk type as durable replacement for forbidden-name guard" for the proposed follow-up targeting the ADR-073 guard specifically.
 
 - [Technical Overview](../index.md) - Technical section index
