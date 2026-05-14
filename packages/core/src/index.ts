@@ -515,6 +515,8 @@ export {
   DEFAULT_PROCESS_HUB,
   DEFAULT_PROCESS_HUB_ID,
   DEFAULT_PROCESS_HUB_NAME,
+  asProcessHubId,
+  isProcessHubId,
   buildProcessHubCadence,
   buildProcessHubContext,
   buildProcessHubReview,
@@ -523,6 +525,7 @@ export {
   isProcessHubComplete,
   normalizeProcessHubId,
 } from './processHub';
+export type { ProcessHubId } from './processHub';
 export { buildCurrentProcessState } from './processState';
 export type {
   CurrentProcessState,

@@ -18,6 +18,7 @@ import {
   type DataRow,
   type Finding,
   type ProcessContext,
+  type ProcessHubId,
   type ProcessHubInvestigation,
   type Question,
   type SpecLimits,
@@ -76,7 +77,7 @@ export interface CanvasWorkspaceProps {
   eventsPerWeek?: number;
   activeColumns?: ReadonlyArray<string>;
   onOpenWall?: () => void;
-  onOpenScout?: (hubId: string) => void;
+  onOpenScout?: (hubId: ProcessHubId) => void;
   onAddCausalLink?: (
     fromFactor: string,
     toFactor: string,
@@ -105,8 +106,8 @@ function toggleArray<T>(arr: readonly T[], item: T): T[] {
 }
 
 function fitViewportNowAndAfterRender(
-  fitToContent: (hubId: string, targetLevel?: CanvasLevel) => void,
-  hubId: string,
+  fitToContent: (hubId: ProcessHubId, targetLevel?: CanvasLevel) => void,
+  hubId: ProcessHubId,
   targetLevel: CanvasLevel
 ): void {
   fitToContent(hubId, targetLevel);

@@ -4,27 +4,29 @@ import {
   rehydrateCanvasViewport,
   useCanvasViewportStore,
 } from '@variscout/stores';
+import { normalizeProcessHubId } from '@variscout/core';
 
 export function useCanvasViewportLifecycle(hubId: string | null | undefined): void {
   useEffect(() => {
     if (!hubId) return;
+    const boundHubId = normalizeProcessHubId(hubId);
 
     let timer: ReturnType<typeof setTimeout> | undefined;
     let cancelled = false;
 
-    rehydrateCanvasViewport(hubId, () => !cancelled).catch(() => undefined);
+    rehydrateCanvasViewport(boundHubId, () => !cancelled).catch(() => undefined);
 
     const unsubscribe = useCanvasViewportStore.subscribe((state, prev) => {
       const changed =
         state.viewMode !== prev.viewMode ||
         state.railOpen !== prev.railOpen ||
-        state.viewports[hubId] !== prev.viewports[hubId];
+        state.viewports[boundHubId] !== prev.viewports[boundHubId];
       if (!changed) return;
 
       if (timer !== undefined) clearTimeout(timer);
       timer = setTimeout(() => {
         if (!cancelled) {
-          persistCanvasViewport(hubId).catch(() => undefined);
+          persistCanvasViewport(boundHubId).catch(() => undefined);
         }
       }, 500);
     });

@@ -32,7 +32,8 @@ type D3ZoomManagedElement = (HTMLElement | SVGSVGElement) & {
 };
 
 export interface UseCanvasViewportInputOptions {
-  hubId: ProcessHubId;
+  /** Hub to bind zoom/pan input to. When null, the hook is a no-op (equivalent to disabled=true). */
+  hubId: ProcessHubId | null;
   ref: RefObject<HTMLElement | SVGSVGElement | null>;
   scaleExtent?: [number, number];
   disabled?: boolean;
@@ -58,11 +59,13 @@ export function useCanvasViewportInput({
 
   useEffect(() => {
     const element = ref.current;
-    if (!element || disabled) return undefined;
+    // hubId null short-circuits: no hub to track, equivalent to disabled
+    if (!element || disabled || !hubId) return undefined;
+    const boundHubId: ProcessHubId = hubId;
 
     const selection = select<HTMLElement | SVGSVGElement, unknown>(element);
     const syncElementToStoreViewport = () => {
-      const viewport = useCanvasViewportStore.getState().getViewport(hubId);
+      const viewport = useCanvasViewportStore.getState().getViewport(boundHubId);
       const desiredTransform = zoomIdentity
         .translate(viewport.pan.x, viewport.pan.y)
         .scale(viewport.zoom);
@@ -91,8 +94,8 @@ export function useCanvasViewportInput({
 
         syncingFromD3Ref.current = true;
         try {
-          setZoom(hubId, event.transform.k);
-          setPan(hubId, { x: event.transform.x, y: event.transform.y });
+          setZoom(boundHubId, event.transform.k);
+          setPan(boundHubId, { x: event.transform.x, y: event.transform.y });
         } finally {
           syncingFromD3Ref.current = false;
         }
@@ -124,10 +127,10 @@ export function useCanvasViewportInput({
     // Subscribe to the full store but short-circuit on reference equality of the
     // hub's viewport slice — avoids running syncElementToStoreViewport on every
     // unrelated mutation (e.g. setRailOpen, setViewMode, openChartCluster).
-    let prevViewportRef = useCanvasViewportStore.getState().viewports[hubId];
+    let prevViewportRef = useCanvasViewportStore.getState().viewports[boundHubId];
     const unsubscribe = useCanvasViewportStore.subscribe(state => {
       if (syncingFromD3Ref.current) return;
-      const nextViewport = state.viewports[hubId];
+      const nextViewport = state.viewports[boundHubId];
       if (nextViewport === prevViewportRef) return;
       prevViewportRef = nextViewport;
       syncElementToStoreViewport();

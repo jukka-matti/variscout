@@ -7,19 +7,19 @@
  */
 
 // R12 exception: separate Dexie DB for cross-app canvas viewport UI state.
-import type { ProcessHub } from '@variscout/core';
 import { inferLevel, FIT_TO_CONTENT_ZOOM_BY_LEVEL, type CanvasLevel } from '@variscout/core/canvas';
+import type { ProcessHubId } from '@variscout/core/processHub';
 import Dexie, { type Table } from 'dexie';
 import { applyPatches, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { create } from 'zustand';
+
+export type { ProcessHubId } from '@variscout/core/processHub';
 
 export const STORE_LAYER = 'annotation-per-hub' as const;
 
 enablePatches();
 
 const UNDO_STACK_CAP = 50;
-
-export type ProcessHubId = ProcessHub['id'];
 export type NodeId = string;
 export type TributaryId = string;
 export type GateNodePath = string;

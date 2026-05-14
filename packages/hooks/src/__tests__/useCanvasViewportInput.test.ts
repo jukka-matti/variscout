@@ -13,7 +13,7 @@ interface D3ZoomElement extends HTMLDivElement {
   __on?: Array<{ type: string; name: string; value: (event: Event) => void }>;
 }
 
-const HUB_ID: ProcessHubId = 'hub-canvas-input';
+const HUB_ID = 'hub-canvas-input' as ProcessHubId;
 
 function makeCanvasElement(): D3ZoomElement {
   const element = document.createElement('div') as D3ZoomElement;

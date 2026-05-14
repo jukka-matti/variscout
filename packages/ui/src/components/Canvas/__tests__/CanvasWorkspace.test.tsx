@@ -24,6 +24,7 @@ import {
   getCanvasViewportInitialState,
   useCanvasStore,
   useCanvasViewportStore,
+  type ProcessHubId,
 } from '@variscout/stores';
 
 const wallIsMobileRef = vi.hoisted(() => ({ current: false }));
@@ -520,6 +521,9 @@ vi.mock('@variscout/hooks', () => ({
 
 import { CanvasWorkspace } from '../CanvasWorkspace';
 
+// Cast helper: acceptable inside test files per project convention
+const h = (id: string) => id as ProcessHubId;
+
 const SIGNALS = { hasIntervention: false, sustainmentConfirmed: false };
 
 const rawData = [
@@ -653,11 +657,13 @@ describe('CanvasWorkspace', () => {
     window.history.replaceState(null, '', '/?level=l1');
 
     renderWorkspace({
-      canvasViewportHubId: 'hub-url-level',
+      canvasViewportHubId: h('hub-url-level'),
       processContext: { processMap: mapWithStep() },
     });
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-url-level').currentLevel).toBe('l1');
+    expect(useCanvasViewportStore.getState().getViewport(h('hub-url-level')).currentLevel).toBe(
+      'l1'
+    );
     expect(screen.getByTestId('outcome-distribution')).toBeInTheDocument();
   });
 
@@ -665,11 +671,11 @@ describe('CanvasWorkspace', () => {
     window.history.replaceState(null, '', '/?level=l3');
 
     renderWorkspace({
-      canvasViewportHubId: 'hub-url-l3-bare',
+      canvasViewportHubId: h('hub-url-l3-bare'),
       processContext: { processMap: mapWithStep() },
     });
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-url-l3-bare').currentLevel).toBe(
+    expect(useCanvasViewportStore.getState().getViewport(h('hub-url-l3-bare')).currentLevel).toBe(
       'l2'
     );
     expect(window.location.search).toBe('?level=l2');
@@ -679,11 +685,11 @@ describe('CanvasWorkspace', () => {
     window.history.replaceState(null, '', '/?level=l3&focalStep=step-1');
 
     renderWorkspace({
-      canvasViewportHubId: 'hub-url-l3-focal',
+      canvasViewportHubId: h('hub-url-l3-focal'),
       processContext: { processMap: mapWithStep() },
     });
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-url-l3-focal')).toMatchObject({
+    expect(useCanvasViewportStore.getState().getViewport(h('hub-url-l3-focal'))).toMatchObject({
       currentLevel: 'l3',
       focalStepId: 'step-1',
     });
@@ -726,14 +732,18 @@ describe('CanvasWorkspace', () => {
 
     render(<Harness />);
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-url-l3-async-focal')).toMatchObject({
+    expect(
+      useCanvasViewportStore.getState().getViewport(h('hub-url-l3-async-focal'))
+    ).toMatchObject({
       currentLevel: 'l2',
     });
     expect(window.location.search).toBe('?level=l3&focalStep=step-1');
 
     fireEvent.click(screen.getByTestId('load-process-map'));
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-url-l3-async-focal')).toMatchObject({
+    expect(
+      useCanvasViewportStore.getState().getViewport(h('hub-url-l3-async-focal'))
+    ).toMatchObject({
       currentLevel: 'l3',
       focalStepId: 'step-1',
     });
@@ -758,10 +768,10 @@ describe('CanvasWorkspace', () => {
   });
 
   it('threads raw rows from CanvasWorkspace into the read-mode L3 local mechanism view', () => {
-    useCanvasViewportStore.getState().setLevel('hub-workspace-l3', 'l3', 'step-1');
+    useCanvasViewportStore.getState().setLevel(h('hub-workspace-l3'), 'l3', 'step-1');
 
     renderWorkspace({
-      canvasViewportHubId: 'hub-workspace-l3',
+      canvasViewportHubId: h('hub-workspace-l3'),
       processContext: { processMap: readModeMapWithStep() },
     });
 
@@ -773,10 +783,10 @@ describe('CanvasWorkspace', () => {
   });
 
   it('routes author-mode L3 away from the local mechanism view', () => {
-    useCanvasViewportStore.getState().setLevel('hub-workspace-l3-author', 'l3', 'step-1');
+    useCanvasViewportStore.getState().setLevel(h('hub-workspace-l3-author'), 'l3', 'step-1');
 
     renderWorkspace({
-      canvasViewportHubId: 'hub-workspace-l3-author',
+      canvasViewportHubId: h('hub-workspace-l3-author'),
       processContext: { processMap: mapWithStep() },
     });
 
@@ -786,7 +796,7 @@ describe('CanvasWorkspace', () => {
   });
 
   it('keeps the same focal step while switching author/read modes in L3', () => {
-    const hubId = 'hub-workspace-l3-mode-switch';
+    const hubId = h('hub-workspace-l3-mode-switch');
     useCanvasViewportStore.getState().setLevel(hubId, 'l3', 'step-2');
 
     renderWorkspace({
@@ -860,14 +870,14 @@ describe('CanvasWorkspace', () => {
     };
 
     renderWorkspace({
-      processContext: { processHubId: 'hub-frame-2', processMap: mapWithStep() },
+      processContext: { processHubId: h('hub-frame-2'), processMap: mapWithStep() },
       findings: [wallFinding],
       onOpenWall: vi.fn(),
     });
 
     expect(useSharedWallProps).toHaveBeenCalledWith(
       expect.objectContaining({
-        hubId: 'hub-frame-2',
+        hubId: h('hub-frame-2'),
       })
     );
   });

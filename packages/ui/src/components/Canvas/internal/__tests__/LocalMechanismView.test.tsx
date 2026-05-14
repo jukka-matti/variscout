@@ -3,8 +3,15 @@ import React from 'react';
 import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Finding, Hypothesis, ProcessMap, Question } from '@variscout/core';
-import { getInvestigationInitialState, useInvestigationStore } from '@variscout/stores';
+import {
+  getInvestigationInitialState,
+  useInvestigationStore,
+  type ProcessHubId,
+} from '@variscout/stores';
 import { LocalMechanismView } from '../LocalMechanismView';
+
+// Cast helper: acceptable inside test files per project convention
+const h = (id: string) => id as ProcessHubId;
 
 vi.mock('@variscout/charts', async () => {
   const actual = await vi.importActual<typeof import('@variscout/charts')>('@variscout/charts');
@@ -50,7 +57,7 @@ vi.mock('../../../InvestigationWall/WallCanvas', () => ({
       data-rows-count={props.rows?.length ?? 0}
       data-outcome-column={props.outcomeColumn ?? ''}
     >
-      <button type="button" onClick={() => props.onSelectHub?.('hub-1')}>
+      <button type="button" onClick={() => props.onSelectHub?.(h('hub-1'))}>
         select wall hub
       </button>
     </div>
@@ -110,7 +117,7 @@ function question(overrides: Partial<Question> = {}): Question {
 
 function hub(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
-    id: overrides.id ?? 'hub-1',
+    id: overrides.id ?? h('hub-1'),
     name: overrides.name ?? 'Machine setup drift',
     synthesis: overrides.synthesis ?? '',
     questionIds: overrides.questionIds ?? [],
@@ -127,7 +134,7 @@ function hub(overrides: Partial<Hypothesis> = {}): Hypothesis {
 function renderView(overrides: Partial<React.ComponentProps<typeof LocalMechanismView>> = {}) {
   return render(
     <LocalMechanismView
-      hubId="hub-main"
+      hubId={h('hub-main')}
       focalStepId="mix"
       map={map}
       rows={rows}

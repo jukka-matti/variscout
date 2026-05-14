@@ -6,7 +6,16 @@ import {
   persistCanvasViewport,
   rehydrateCanvasViewport,
   deleteLegacyWallLayoutDb,
+  type ProcessHubId,
 } from '../canvasViewportStore';
+
+// Typed hub ID constants for test fixtures (cast acceptable inside test files per project convention)
+const HUB_A = 'hub-A' as ProcessHubId;
+const HUB_B = 'hub-B' as ProcessHubId;
+const HUB_1 = 'hub-1' as ProcessHubId;
+const HUB_2 = 'hub-2' as ProcessHubId;
+const HUB_LEGACY = 'hub-legacy-clean-break' as ProcessHubId;
+const HUB_SELECTION = 'hub-selection-boundary' as ProcessHubId;
 
 describe('canvasViewportStore', () => {
   beforeEach(() => {
@@ -25,7 +34,7 @@ describe('canvasViewportStore', () => {
   });
 
   it('returns a default viewport for an unknown hub', () => {
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toEqual({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toEqual({
       zoom: 1,
       pan: { x: 0, y: 0 },
       currentLevel: 'l2',
@@ -35,48 +44,48 @@ describe('canvasViewportStore', () => {
   });
 
   it('updates pan and zoom per hub', () => {
-    useCanvasViewportStore.getState().setPan('hub-A', { x: 100, y: -50 });
-    useCanvasViewportStore.getState().setZoom('hub-A', 2);
+    useCanvasViewportStore.getState().setPan(HUB_A, { x: 100, y: -50 });
+    useCanvasViewportStore.getState().setZoom(HUB_A, 2);
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').pan).toEqual({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).pan).toEqual({
       x: 100,
       y: -50,
     });
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').zoom).toBe(2);
-    expect(useCanvasViewportStore.getState().getViewport('hub-B').zoom).toBe(1);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).zoom).toBe(2);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_B).zoom).toBe(1);
   });
 
   it('setZoom syncs currentLevel from zoom and permits placeholder l3 without focalStepId', () => {
-    useCanvasViewportStore.getState().setZoom('hub-A', 0.2);
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+    useCanvasViewportStore.getState().setZoom(HUB_A, 0.2);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toMatchObject({
       zoom: 0.2,
       currentLevel: 'l1',
     });
 
-    useCanvasViewportStore.getState().setZoom('hub-A', 1);
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+    useCanvasViewportStore.getState().setZoom(HUB_A, 1);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toMatchObject({
       zoom: 1,
       currentLevel: 'l2',
     });
 
-    useCanvasViewportStore.getState().setZoom('hub-A', 2.5);
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+    useCanvasViewportStore.getState().setZoom(HUB_A, 2.5);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toMatchObject({
       zoom: 2.5,
       currentLevel: 'l3',
     });
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').focalStepId).toBeUndefined();
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).focalStepId).toBeUndefined();
   });
 
   it('setZoom clears focalStepId when zoom leaves l3', () => {
-    useCanvasViewportStore.getState().setLevel('hub-A', 'l3', 'step-1');
+    useCanvasViewportStore.getState().setLevel(HUB_A, 'l3', 'step-1');
 
-    useCanvasViewportStore.getState().setZoom('hub-A', 1);
+    useCanvasViewportStore.getState().setZoom(HUB_A, 1);
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toMatchObject({
       zoom: 1,
       currentLevel: 'l2',
     });
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').focalStepId).toBeUndefined();
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).focalStepId).toBeUndefined();
   });
 
   it('rail is open by default', () => {
@@ -91,16 +100,16 @@ describe('canvasViewportStore', () => {
   });
 
   it('setGroupByTributary toggles the per-hub flag', () => {
-    useCanvasViewportStore.getState().setGroupByTributary('hub-A', true);
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').groupByTributary).toBe(true);
-    expect(useCanvasViewportStore.getState().getViewport('hub-B').groupByTributary).toBe(false);
-    useCanvasViewportStore.getState().setGroupByTributary('hub-A', false);
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').groupByTributary).toBe(false);
+    useCanvasViewportStore.getState().setGroupByTributary(HUB_A, true);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).groupByTributary).toBe(true);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_B).groupByTributary).toBe(false);
+    useCanvasViewportStore.getState().setGroupByTributary(HUB_A, false);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).groupByTributary).toBe(false);
   });
 
   it('groupByTributary changes do NOT populate undoStack (UI-only)', () => {
-    useCanvasViewportStore.getState().setGroupByTributary('hub-A', true);
-    useCanvasViewportStore.getState().setGroupByTributary('hub-A', false);
+    useCanvasViewportStore.getState().setGroupByTributary(HUB_A, true);
+    useCanvasViewportStore.getState().setGroupByTributary(HUB_A, false);
     expect(useCanvasViewportStore.getState().undoStack.length).toBe(0);
   });
 });
@@ -111,53 +120,53 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
   });
 
   it('sets node position per hub', () => {
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 500, y: 400 });
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').nodePositions['node-1']).toEqual({
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: 500, y: 400 });
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).nodePositions['node-1']).toEqual({
       x: 500,
       y: 400,
     });
     expect(
-      useCanvasViewportStore.getState().getViewport('hub-B').nodePositions['node-1']
+      useCanvasViewportStore.getState().getViewport(HUB_B).nodePositions['node-1']
     ).toBeUndefined();
   });
 
   it('sets level with l3 focalStepId validation and clears stale focalStepId on l1/l2', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    useCanvasViewportStore.getState().setLevel('hub-A', 'l1');
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').currentLevel).toBe('l1');
+    useCanvasViewportStore.getState().setLevel(HUB_A, 'l1');
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).currentLevel).toBe('l1');
 
-    useCanvasViewportStore.getState().setLevel('hub-A', 'l3', 'step-1');
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+    useCanvasViewportStore.getState().setLevel(HUB_A, 'l3', 'step-1');
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toMatchObject({
       currentLevel: 'l3',
       focalStepId: 'step-1',
     });
 
     // l3 without focalStepId: warns and leaves state unchanged (no-op, no throw).
-    const levelBefore = useCanvasViewportStore.getState().getViewport('hub-B').currentLevel;
-    useCanvasViewportStore.getState().setLevel('hub-B', 'l3');
+    const levelBefore = useCanvasViewportStore.getState().getViewport(HUB_B).currentLevel;
+    useCanvasViewportStore.getState().setLevel(HUB_B, 'l3');
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('l3 requested without focalStepId')
     );
-    expect(useCanvasViewportStore.getState().getViewport('hub-B').currentLevel).toBe(levelBefore);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_B).currentLevel).toBe(levelBefore);
 
     warnSpy.mockRestore();
 
-    useCanvasViewportStore.getState().setLevel('hub-A', 'l2');
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+    useCanvasViewportStore.getState().setLevel(HUB_A, 'l2');
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toMatchObject({
       currentLevel: 'l2',
     });
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').focalStepId).toBeUndefined();
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).focalStepId).toBeUndefined();
   });
 
   it('fitToContent applies placeholder zoom, resets pan, and preserves layout flags', () => {
-    useCanvasViewportStore.getState().setPan('hub-A', { x: 100, y: -50 });
-    useCanvasViewportStore.getState().setZoom('hub-A', 1.5);
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 10, y: 20 });
-    useCanvasViewportStore.getState().setGroupByTributary('hub-A', true);
+    useCanvasViewportStore.getState().setPan(HUB_A, { x: 100, y: -50 });
+    useCanvasViewportStore.getState().setZoom(HUB_A, 1.5);
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: 10, y: 20 });
+    useCanvasViewportStore.getState().setGroupByTributary(HUB_A, true);
 
-    useCanvasViewportStore.getState().fitToContent('hub-A', 'l1');
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toEqual({
+    useCanvasViewportStore.getState().fitToContent(HUB_A, 'l1');
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toEqual({
       zoom: 0.2,
       pan: { x: 0, y: 0 },
       currentLevel: 'l1',
@@ -165,8 +174,8 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
       groupByTributary: true,
     });
 
-    useCanvasViewportStore.getState().fitToContent('hub-B');
-    expect(useCanvasViewportStore.getState().getViewport('hub-B')).toEqual({
+    useCanvasViewportStore.getState().fitToContent(HUB_B);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_B)).toEqual({
       zoom: 1,
       pan: { x: 0, y: 0 },
       currentLevel: 'l2',
@@ -176,12 +185,12 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
   });
 
   it('fitToContent uses current level when no explicit level is provided', () => {
-    useCanvasViewportStore.getState().setLevel('hub-A', 'l1');
-    useCanvasViewportStore.getState().setPan('hub-A', { x: 9, y: 8 });
+    useCanvasViewportStore.getState().setLevel(HUB_A, 'l1');
+    useCanvasViewportStore.getState().setPan(HUB_A, { x: 9, y: 8 });
 
-    useCanvasViewportStore.getState().fitToContent('hub-A');
+    useCanvasViewportStore.getState().fitToContent(HUB_A);
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toMatchObject({
       zoom: 0.2,
       pan: { x: 0, y: 0 },
       currentLevel: 'l1',
@@ -189,24 +198,24 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
   });
 
   it('fitToContent falls back to l2 for bare fit from placeholder l3 without focalStepId', () => {
-    useCanvasViewportStore.getState().setZoom('hub-A', 2.5);
+    useCanvasViewportStore.getState().setZoom(HUB_A, 2.5);
 
-    expect(() => useCanvasViewportStore.getState().fitToContent('hub-A')).not.toThrow();
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+    expect(() => useCanvasViewportStore.getState().fitToContent(HUB_A)).not.toThrow();
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toMatchObject({
       zoom: 1,
       pan: { x: 0, y: 0 },
       currentLevel: 'l2',
     });
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').focalStepId).toBeUndefined();
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).focalStepId).toBeUndefined();
   });
 
   it('fitToContent l3 requires and preserves an existing focalStepId', () => {
-    useCanvasViewportStore.getState().setLevel('hub-A', 'l3', 'step-1');
-    useCanvasViewportStore.getState().setPan('hub-A', { x: 9, y: 8 });
+    useCanvasViewportStore.getState().setLevel(HUB_A, 'l3', 'step-1');
+    useCanvasViewportStore.getState().setPan(HUB_A, { x: 9, y: 8 });
 
-    useCanvasViewportStore.getState().fitToContent('hub-A', 'l3');
+    useCanvasViewportStore.getState().fitToContent(HUB_A, 'l3');
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toMatchObject({
       zoom: 2.5,
       pan: { x: 0, y: 0 },
       currentLevel: 'l3',
@@ -215,36 +224,36 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
 
     // fitToContent with explicit l3 on a hub with no focalStepId: warns, leaves viewport unchanged.
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const snapshotBefore = useCanvasViewportStore.getState().getViewport('hub-B');
-    useCanvasViewportStore.getState().fitToContent('hub-B', 'l3');
+    const snapshotBefore = useCanvasViewportStore.getState().getViewport(HUB_B);
+    useCanvasViewportStore.getState().fitToContent(HUB_B, 'l3');
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('l3 requested without focalStepId')
     );
-    expect(useCanvasViewportStore.getState().getViewport('hub-B')).toEqual(snapshotBefore);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_B)).toEqual(snapshotBefore);
     warnSpy.mockRestore();
   });
 
   it('keeps multiple hubs independent', () => {
-    useCanvasViewportStore.getState().setZoom('hub-A', 1.5);
-    useCanvasViewportStore.getState().setPan('hub-A', { x: 10, y: 20 });
-    useCanvasViewportStore.getState().setLevel('hub-A', 'l1');
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 1, y: 2 });
-    useCanvasViewportStore.getState().setGroupByTributary('hub-A', true);
+    useCanvasViewportStore.getState().setZoom(HUB_A, 1.5);
+    useCanvasViewportStore.getState().setPan(HUB_A, { x: 10, y: 20 });
+    useCanvasViewportStore.getState().setLevel(HUB_A, 'l1');
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: 1, y: 2 });
+    useCanvasViewportStore.getState().setGroupByTributary(HUB_A, true);
 
-    useCanvasViewportStore.getState().setZoom('hub-B', 2.5);
-    useCanvasViewportStore.getState().setPan('hub-B', { x: -10, y: -20 });
-    useCanvasViewportStore.getState().setLevel('hub-B', 'l3', 'step-9');
-    useCanvasViewportStore.getState().setNodePosition('hub-B', 'node-1', { x: 9, y: 8 });
-    useCanvasViewportStore.getState().setGroupByTributary('hub-B', false);
+    useCanvasViewportStore.getState().setZoom(HUB_B, 2.5);
+    useCanvasViewportStore.getState().setPan(HUB_B, { x: -10, y: -20 });
+    useCanvasViewportStore.getState().setLevel(HUB_B, 'l3', 'step-9');
+    useCanvasViewportStore.getState().setNodePosition(HUB_B, 'node-1', { x: 9, y: 8 });
+    useCanvasViewportStore.getState().setGroupByTributary(HUB_B, false);
 
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toEqual({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toEqual({
       zoom: 1.5,
       pan: { x: 10, y: 20 },
       currentLevel: 'l1',
       nodePositions: { 'node-1': { x: 1, y: 2 } },
       groupByTributary: true,
     });
-    expect(useCanvasViewportStore.getState().getViewport('hub-B')).toEqual({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_B)).toEqual({
       zoom: 2.5,
       pan: { x: -10, y: -20 },
       currentLevel: 'l3',
@@ -337,17 +346,15 @@ describe('canvasViewportStore persistence', () => {
 
     // Hub-keyed persistence must still work correctly.
     useCanvasViewportStore.getState().setViewMode('wall');
-    useCanvasViewportStore.getState().setZoom('hub-legacy-clean-break', 1.75);
-    useCanvasViewportStore
-      .getState()
-      .setNodePosition('hub-legacy-clean-break', 'node-1', { x: 10, y: 20 });
+    useCanvasViewportStore.getState().setZoom(HUB_LEGACY, 1.75);
+    useCanvasViewportStore.getState().setNodePosition(HUB_LEGACY, 'node-1', { x: 10, y: 20 });
 
-    await expect(persistCanvasViewport('hub-legacy-clean-break')).resolves.toBeUndefined();
+    await expect(persistCanvasViewport(HUB_LEGACY)).resolves.toBeUndefined();
 
     useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
-    await expect(rehydrateCanvasViewport('hub-legacy-clean-break')).resolves.toBeUndefined();
+    await expect(rehydrateCanvasViewport(HUB_LEGACY)).resolves.toBeUndefined();
     expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
-    expect(useCanvasViewportStore.getState().getViewport('hub-legacy-clean-break')).toMatchObject({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_LEGACY)).toMatchObject({
       zoom: 1.75,
       nodePositions: { 'node-1': { x: 10, y: 20 } },
     });
@@ -368,21 +375,21 @@ describe('canvasViewportStore persistence', () => {
   it('persists and rehydrates one hub viewport with viewMode and railOpen', async () => {
     useCanvasViewportStore.getState().setViewMode('wall');
     useCanvasViewportStore.getState().setRailOpen(false);
-    useCanvasViewportStore.getState().setZoom('hub-A', 2.25);
-    useCanvasViewportStore.getState().setPan('hub-A', { x: 123, y: 456 });
-    useCanvasViewportStore.getState().setLevel('hub-A', 'l3', 'step-7');
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 10, y: 20 });
-    useCanvasViewportStore.getState().setGroupByTributary('hub-A', true);
-    await persistCanvasViewport('hub-A');
+    useCanvasViewportStore.getState().setZoom(HUB_A, 2.25);
+    useCanvasViewportStore.getState().setPan(HUB_A, { x: 123, y: 456 });
+    useCanvasViewportStore.getState().setLevel(HUB_A, 'l3', 'step-7');
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: 10, y: 20 });
+    useCanvasViewportStore.getState().setGroupByTributary(HUB_A, true);
+    await persistCanvasViewport(HUB_A);
 
     useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
     expect(useCanvasViewportStore.getState().viewMode).toBe('map');
     expect(useCanvasViewportStore.getState().railOpen).toBe(true);
 
-    await rehydrateCanvasViewport('hub-A');
+    await rehydrateCanvasViewport(HUB_A);
     expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
     expect(useCanvasViewportStore.getState().railOpen).toBe(false);
-    expect(useCanvasViewportStore.getState().getViewport('hub-A')).toEqual({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A)).toEqual({
       zoom: 2.25,
       pan: { x: 123, y: 456 },
       currentLevel: 'l3',
@@ -395,43 +402,44 @@ describe('canvasViewportStore persistence', () => {
   it('does not apply rehydrate snapshot when guard returns false', async () => {
     useCanvasViewportStore.getState().setViewMode('wall');
     useCanvasViewportStore.getState().setRailOpen(false);
-    useCanvasViewportStore.getState().setZoom('hub-A', 2.25);
-    await persistCanvasViewport('hub-A');
+    useCanvasViewportStore.getState().setZoom(HUB_A, 2.25);
+    await persistCanvasViewport(HUB_A);
 
     useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
-    await rehydrateCanvasViewport('hub-A', () => false);
+    await rehydrateCanvasViewport(HUB_A, () => false);
 
     expect(useCanvasViewportStore.getState().viewMode).toBe('map');
     expect(useCanvasViewportStore.getState().railOpen).toBe(true);
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').zoom).toBe(1);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).zoom).toBe(1);
   });
 
   it('persists and rehydrates hubs independently', async () => {
-    useCanvasViewportStore.getState().setZoom('hub-A', 1.25);
-    await persistCanvasViewport('hub-A');
+    useCanvasViewportStore.getState().setZoom(HUB_A, 1.25);
+    await persistCanvasViewport(HUB_A);
 
-    useCanvasViewportStore.getState().setZoom('hub-B', 3);
-    useCanvasViewportStore.getState().setPan('hub-B', { x: 30, y: 40 });
-    await persistCanvasViewport('hub-B');
-
-    useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
-    await rehydrateCanvasViewport('hub-A');
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').zoom).toBe(1.25);
-    expect(useCanvasViewportStore.getState().getViewport('hub-B').zoom).toBe(1);
+    useCanvasViewportStore.getState().setZoom(HUB_B, 3);
+    useCanvasViewportStore.getState().setPan(HUB_B, { x: 30, y: 40 });
+    await persistCanvasViewport(HUB_B);
 
     useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
-    await rehydrateCanvasViewport('hub-B');
-    expect(useCanvasViewportStore.getState().getViewport('hub-B')).toMatchObject({
+    await rehydrateCanvasViewport(HUB_A);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).zoom).toBe(1.25);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_B).zoom).toBe(1);
+
+    useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
+    await rehydrateCanvasViewport(HUB_B);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_B)).toMatchObject({
       zoom: 3,
       pan: { x: 30, y: 40 },
     });
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').zoom).toBe(1);
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).zoom).toBe(1);
   });
 
   it('rehydrate with unknown hub leaves defaults', async () => {
-    await rehydrateCanvasViewport('unknown-hub');
+    const unknownHub = 'unknown-hub' as ProcessHubId;
+    await rehydrateCanvasViewport(unknownHub);
     expect(useCanvasViewportStore.getState().viewMode).toBe('map');
-    expect(useCanvasViewportStore.getState().getViewport('unknown-hub')).toEqual({
+    expect(useCanvasViewportStore.getState().getViewport(unknownHub)).toEqual({
       zoom: 1,
       pan: { x: 0, y: 0 },
       currentLevel: 'l2',
@@ -447,27 +455,27 @@ describe('canvasViewportStore — undo/redo', () => {
   });
 
   it('records setNodePosition on the undo stack', () => {
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 10, y: 20 });
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: 10, y: 20 });
     expect(useCanvasViewportStore.getState().undoStack.length).toBe(1);
     expect(useCanvasViewportStore.getState().redoStack.length).toBe(0);
   });
 
   it('round-trip: move -> undo -> revert -> redo -> restore', () => {
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 10, y: 20 });
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').nodePositions['node-1']).toEqual({
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: 10, y: 20 });
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).nodePositions['node-1']).toEqual({
       x: 10,
       y: 20,
     });
 
     useCanvasViewportStore.getState().undo();
     expect(
-      useCanvasViewportStore.getState().getViewport('hub-A').nodePositions['node-1']
+      useCanvasViewportStore.getState().getViewport(HUB_A).nodePositions['node-1']
     ).toBeUndefined();
     expect(useCanvasViewportStore.getState().undoStack.length).toBe(0);
     expect(useCanvasViewportStore.getState().redoStack.length).toBe(1);
 
     useCanvasViewportStore.getState().redo();
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').nodePositions['node-1']).toEqual({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).nodePositions['node-1']).toEqual({
       x: 10,
       y: 20,
     });
@@ -476,54 +484,54 @@ describe('canvasViewportStore — undo/redo', () => {
   });
 
   it('undo of sequential moves reverts the latest first', () => {
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 10, y: 10 });
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 50, y: 50 });
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 99, y: 99 });
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: 10, y: 10 });
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: 50, y: 50 });
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: 99, y: 99 });
 
     useCanvasViewportStore.getState().undo();
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').nodePositions['node-1']).toEqual({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).nodePositions['node-1']).toEqual({
       x: 50,
       y: 50,
     });
 
     useCanvasViewportStore.getState().undo();
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').nodePositions['node-1']).toEqual({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).nodePositions['node-1']).toEqual({
       x: 10,
       y: 10,
     });
 
     useCanvasViewportStore.getState().undo();
     expect(
-      useCanvasViewportStore.getState().getViewport('hub-A').nodePositions['node-1']
+      useCanvasViewportStore.getState().getViewport(HUB_A).nodePositions['node-1']
     ).toBeUndefined();
   });
 
   it('caps undoStack at 50 entries (60 sequential changes keep <= 50)', () => {
     for (let i = 0; i < 60; i++) {
-      useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: i, y: i });
+      useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: i, y: i });
     }
     expect(useCanvasViewportStore.getState().undoStack.length).toBeLessThanOrEqual(50);
     expect(useCanvasViewportStore.getState().undoStack.length).toBe(50);
   });
 
   it('new mutation after undo clears the redo stack', () => {
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-1', { x: 10, y: 20 });
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-1', { x: 10, y: 20 });
     useCanvasViewportStore.getState().undo();
     expect(useCanvasViewportStore.getState().redoStack.length).toBe(1);
 
-    useCanvasViewportStore.getState().setNodePosition('hub-A', 'node-2', { x: 99, y: 99 });
+    useCanvasViewportStore.getState().setNodePosition(HUB_A, 'node-2', { x: 99, y: 99 });
     expect(useCanvasViewportStore.getState().redoStack.length).toBe(0);
   });
 
   it('zoom changes do NOT populate undoStack', () => {
-    useCanvasViewportStore.getState().setZoom('hub-A', 2.5);
-    useCanvasViewportStore.getState().setZoom('hub-A', 0.8);
+    useCanvasViewportStore.getState().setZoom(HUB_A, 2.5);
+    useCanvasViewportStore.getState().setZoom(HUB_A, 0.8);
     expect(useCanvasViewportStore.getState().undoStack.length).toBe(0);
   });
 
   it('pan changes do NOT populate undoStack', () => {
-    useCanvasViewportStore.getState().setPan('hub-A', { x: 100, y: 100 });
-    useCanvasViewportStore.getState().setPan('hub-A', { x: -50, y: -50 });
+    useCanvasViewportStore.getState().setPan(HUB_A, { x: 100, y: 100 });
+    useCanvasViewportStore.getState().setPan(HUB_A, { x: -50, y: -50 });
     expect(useCanvasViewportStore.getState().undoStack.length).toBe(0);
   });
 
@@ -561,7 +569,7 @@ describe('canvasViewportStore — undo/redo', () => {
 
   it('applyWithUndo round-trips an arbitrary mutation', () => {
     useCanvasViewportStore.getState().applyWithUndo(draft => {
-      draft.viewports['hub-A'] = {
+      draft.viewports[HUB_A] = {
         zoom: 1,
         pan: { x: 0, y: 0 },
         currentLevel: 'l2',
@@ -572,12 +580,12 @@ describe('canvasViewportStore — undo/redo', () => {
         groupByTributary: false,
       };
     });
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').nodePositions).toEqual({
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).nodePositions).toEqual({
       x: { x: 1, y: 1 },
       y: { x: 2, y: 2 },
     });
     useCanvasViewportStore.getState().undo();
-    expect(useCanvasViewportStore.getState().getViewport('hub-A').nodePositions).toEqual({});
+    expect(useCanvasViewportStore.getState().getViewport(HUB_A).nodePositions).toEqual({});
   });
 });
 
@@ -587,10 +595,10 @@ describe('canvasViewportStore — selection persistence boundary', () => {
   });
 
   it('does NOT persist selection', async () => {
-    const hubId = 'hub-selection-boundary';
+    const hubId = HUB_SELECTION;
 
-    useCanvasViewportStore.getState().setSelection(['hub-1', 'hub-2']);
-    expect([...useCanvasViewportStore.getState().selection]).toEqual(['hub-1', 'hub-2']);
+    useCanvasViewportStore.getState().setSelection([HUB_1, HUB_2]);
+    expect([...useCanvasViewportStore.getState().selection]).toEqual([HUB_1, HUB_2]);
 
     await persistCanvasViewport(hubId);
 

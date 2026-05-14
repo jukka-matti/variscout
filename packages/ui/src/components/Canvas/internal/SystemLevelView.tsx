@@ -6,6 +6,7 @@ import {
   type Hypothesis,
   type Question,
   type SpecLimits,
+  type ProcessHubId,
 } from '@variscout/core';
 import { formatMessage, formatStatistic, getMessage } from '@variscout/core/i18n';
 import type { Locale } from '@variscout/core';
@@ -16,7 +17,7 @@ import { InboxDigest, type InboxDigestPrompt } from '../../Inbox';
 import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
 
 export interface SystemLevelViewProps {
-  hubId: string;
+  hubId: ProcessHubId;
   map: ProcessMap;
   rows: readonly DataRow[];
   stepCards?: readonly CanvasStepCardModel[];
@@ -41,7 +42,7 @@ export interface SystemLevelViewProps {
    * @deprecated Thread `measureSpecs` from the canonical store instead.
    */
   specLimitsOverride?: SpecLimits;
-  onOpenScout?: (hubId: string) => void;
+  onOpenScout?: (hubId: ProcessHubId) => void;
 }
 
 const SPARK_WIDTH = 220;

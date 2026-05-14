@@ -1,12 +1,16 @@
 import { useMemo } from 'react';
-import { useCanvasViewportStore, useInvestigationStore } from '@variscout/stores';
+import {
+  useCanvasViewportStore,
+  useInvestigationStore,
+  type ProcessHubId,
+} from '@variscout/stores';
 import type { Finding, Question, Hypothesis } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
 const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 
 export interface UseSharedWallPropsArgs {
-  hubId: string;
+  hubId: ProcessHubId;
   findings: Finding[];
   processMap: ProcessMap | undefined;
   problemCpk: number;

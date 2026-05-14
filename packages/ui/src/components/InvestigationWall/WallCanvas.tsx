@@ -245,7 +245,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   const isMobile = useWallIsMobile();
   useCanvasViewportInput({
-    hubId: hubId ?? '__wall-canvas-unbound__',
+    hubId: hubId ?? null,
     ref: svgRef,
     disabled: mode !== 'destination' || !hubId || isMobile || filteredHubs.length === 0,
     filter: shouldHandleWallPanInput,

@@ -7,7 +7,7 @@ import {
 } from '@variscout/stores';
 import { useCanvasViewportShortcuts } from '../useCanvasViewportShortcuts';
 
-const HUB_ID: ProcessHubId = 'hub-canvas-shortcuts';
+const HUB_ID = 'hub-canvas-shortcuts' as ProcessHubId;
 
 type ShortcutKeyInit = {
   altKey?: boolean;

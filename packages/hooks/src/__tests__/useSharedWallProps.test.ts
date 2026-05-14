@@ -5,6 +5,7 @@ import {
   getInvestigationInitialState,
   useCanvasViewportStore,
   useInvestigationStore,
+  type ProcessHubId,
 } from '@variscout/stores';
 import {
   useSharedWallProps,
@@ -81,8 +82,8 @@ const processMap: ProcessMap = {
   createdAt: '2026-05-08T00:00:00.000Z',
   updatedAt: '2026-05-08T00:00:00.000Z',
 };
-const HUB_ID = 'hub-shared-wall-props';
-const OTHER_HUB_ID = 'hub-other-wall-props';
+const HUB_ID = 'hub-shared-wall-props' as ProcessHubId;
+const OTHER_HUB_ID = 'hub-other-wall-props' as ProcessHubId;
 
 beforeEach(() => {
   useInvestigationStore.setState(getInvestigationInitialState());

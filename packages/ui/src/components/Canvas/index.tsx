@@ -42,6 +42,7 @@ import {
   useCanvasViewportStore,
   type CanvasViewportFit,
   type CanvasViewportSnapshot,
+  type ProcessHubId,
 } from '@variscout/stores';
 import {
   type ProductionLineGlanceFilterStripProps,
@@ -128,7 +129,7 @@ const CANVAS_FIT_REQUEST_EVENT = 'variscout:canvas-fit-request';
 const FIT_TO_CONTENT_MARGIN = 0.95;
 
 interface CanvasFitRequestDetail {
-  hubId: string;
+  hubId: ProcessHubId;
   level?: CanvasLevel;
 }
 
@@ -191,7 +192,7 @@ function areArrowSegmentsEqual(left: ArrowSegment[], right: ArrowSegment[]) {
  * or persistence directly.
  */
 export interface CanvasProps {
-  hubId?: string;
+  hubId?: ProcessHubId;
   map: ProcessMap;
   availableColumns: string[];
   onChange: (next: ProcessMap) => void;
@@ -269,7 +270,7 @@ export interface CanvasProps {
   problemCpk?: number;
   eventsPerWeek?: number;
   activeColumns?: ReadonlyArray<string>;
-  onOpenScout?: (hubId: string) => void;
+  onOpenScout?: (hubId: ProcessHubId) => void;
   onOpenWall?: () => void;
   onSelectWallHub?: (hubId: string) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;

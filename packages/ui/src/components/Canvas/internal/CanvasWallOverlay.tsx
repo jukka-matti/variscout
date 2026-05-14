@@ -6,11 +6,11 @@ import {
   type CanvasOverlayId,
   type CanvasToolId,
 } from '@variscout/hooks';
-import type { Finding, ProcessMap } from '@variscout/core';
+import type { Finding, ProcessMap, ProcessHubId } from '@variscout/core';
 import { WallCanvas, useWallIsMobile } from '../../InvestigationWall';
 
 export interface CanvasWallOverlayProps {
-  hubId: string;
+  hubId: ProcessHubId;
   activeOverlays: CanvasOverlayId[];
   activeCanvasTool: CanvasToolId;
   findings: Finding[];

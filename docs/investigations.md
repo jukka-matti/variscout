@@ -32,7 +32,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Description:** 20 findings total — 5 HIGH that qualify the "shipped" claim, 8 MEDIUM spec-vs-shipped drift, 7 LOW cleanups. Followup workstream plan at [`docs/superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md`](superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md). Decision-log "8f canvas viewport SHIPPED" entry has been amended to reference these gaps. Roadmap continues to mark 8f shipped; the followups are a separate cleanup sequence.
 
-**STATUS 2026-05-14 — RESOLVED:** 19 of 20 findings closed by PR #166 (squash-merged as `cd936915` after `--chrome` walk verification). HIGH #4 resolved via spec AMEND (intentional V2 placeholders); HIGH #1/#2/#3/#5 resolved via implementation; all 8 MEDIUM resolved (including the spec §10 amend); 6 of 7 LOW resolved. **Carried forward as separate followups:** LOW #19 (brand `ProcessHubId` — 18-file refactor, low value/risk ratio) + LOW #16 (`Canvas/index.tsx` 1122-line refactor, defer to next viewport feature). Entry retained as historical record; the diff is in `cd936915`.
+**STATUS 2026-05-14 — RESOLVED:** 19 of 20 findings closed by PR #166 (squash-merged as `cd936915` after `--chrome` walk verification). HIGH #4 resolved via spec AMEND (intentional V2 placeholders); HIGH #1/#2/#3/#5 resolved via implementation; all 8 MEDIUM resolved (including the spec §10 amend); 6 of 7 LOW resolved. LOW #19 (brand `ProcessHubId`) closed by PR #168 (cleanup/setstate-appmain) — opaque type defined in `packages/core/src/processHub.ts`, sentinel `'__wall-canvas-unbound__'` replaced with `null` short-circuit, 25-file sweep across packages + apps + tests. **Remaining:** LOW #16 (`Canvas/index.tsx` 1122-line refactor, defer to next viewport feature). Entry retained as historical record; the diff is in `cd936915` + PR #168.
 
 **HIGH (5):**
 
@@ -60,7 +60,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - `CanvasViewport.tsx` primitive appears unused — `Canvas/index.tsx` inlines the CSS transform via `lodInputSurfaceRef`. Verify and either adopt or delete.
 - `worldToWallSvg(p, _viewport)` in `coordSpace.ts:22` is identity — delete or document.
 - Stale `wallLayoutStore` references in `viewStore.ts:140` + `preferencesStore.ts:178` doc strings.
-- Sentinel hubId `'__wall-canvas-unbound__'` in `WallCanvas.tsx:248` — brand `ProcessHubId` to prevent leak into the store's `viewports` Record.
+- ~~Sentinel hubId `'__wall-canvas-unbound__'` in `WallCanvas.tsx:248` — brand `ProcessHubId` to prevent leak into the store's `viewports` Record.~~ **CLOSED** — PR #168: `ProcessHubId` opaque type in core, `hubId ?? null` sentinel removed, full 25-file sweep.
 - Missing test — `CanvasLensPicker.tsx` (the lens × level enabled predicate is load-bearing).
 
 **Possible directions:** Execute the 6-PR followup plan via `superpowers:subagent-driven-development`. PR0 (docs sync) direct to main; PR1 (i18n + Dexie cleanup + branded hubId), PR2 (ADR-074 cleanup), PR3 (lens matrix — brainstorm first to decide expand-vs-amend), PR4 (LOD polish + dead-code), PR5 (Azure Blob sync — the ADR-081 §2 commitment), PR6 (L3 CTAs + mobile step-list + selector scope + STORE_LAYER rename).

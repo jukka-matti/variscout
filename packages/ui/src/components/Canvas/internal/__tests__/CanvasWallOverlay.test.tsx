@@ -7,9 +7,13 @@ import {
   getInvestigationInitialState,
   useCanvasViewportStore,
   useInvestigationStore,
+  type ProcessHubId,
 } from '@variscout/stores';
 import { useWallIsMobile } from '../../../InvestigationWall';
 import { CanvasWallOverlay } from '../CanvasWallOverlay';
+
+// Cast helper: acceptable inside test files per project convention
+const h = (id: string) => id as ProcessHubId;
 
 interface D3ZoomElement extends HTMLDivElement {
   __zoom?: { k: number; x: number; y: number };
@@ -42,7 +46,7 @@ vi.mock('../../../InvestigationWall', () => ({
       <div role="button" tabIndex={0}>
         role button target
       </div>
-      <button type="button" onClick={() => props.onSelectHub?.('hub-1')}>
+      <button type="button" onClick={() => props.onSelectHub?.(h('hub-1'))}>
         open hub
       </button>
       <button type="button" onClick={() => props.onPromoteQuestion?.('q-1')}>
@@ -57,7 +61,7 @@ vi.mock('../../../InvestigationWall', () => ({
       <button type="button" onClick={() => props.onSeedFromFactorIntel?.()}>
         seed factor intel
       </button>
-      <button type="button" onClick={() => props.onFocusHubFromGap?.('hub-1')}>
+      <button type="button" onClick={() => props.onFocusHubFromGap?.(h('hub-1'))}>
         focus gap
       </button>
     </div>
@@ -67,7 +71,7 @@ vi.mock('../../../InvestigationWall', () => ({
 const useWallIsMobileMock = vi.mocked(useWallIsMobile);
 
 const sampleHub: Hypothesis = {
-  id: 'hub-1',
+  id: h('hub-1'),
   name: 'Thermal drift',
   synthesis: '',
   status: 'proposed',
@@ -91,8 +95,8 @@ const sampleFinding: Finding = {
   deletedAt: null,
   investigationId: 'inv-test-001',
 };
-const HUB_ID = 'hub-overlay-test';
-const OTHER_HUB_ID = 'hub-overlay-other';
+const HUB_ID = h('hub-overlay-test');
+const OTHER_HUB_ID = h('hub-overlay-other');
 
 function renderOverlay(overrides: Partial<React.ComponentProps<typeof CanvasWallOverlay>> = {}) {
   return render(
