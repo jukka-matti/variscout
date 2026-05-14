@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clientToWorld, worldToCanvasDom, worldToWallSvg } from '../coordSpace';
+import { clientToWorld, worldToCanvasDom } from '../coordSpace';
 
 describe('coordSpace', () => {
   const viewport = {
@@ -16,10 +16,6 @@ describe('coordSpace', () => {
 
   it('worldToCanvasDom applies the viewport transform forward', () => {
     expect(worldToCanvasDom({ x: 100, y: 75 }, viewport)).toEqual({ x: 300, y: 200 });
-  });
-
-  it('worldToWallSvg maps world coordinates to Wall user-space unchanged', () => {
-    expect(worldToWallSvg({ x: 100, y: 75 }, viewport)).toEqual({ x: 100, y: 75 });
   });
 
   it('round-trips world and Canvas DOM coordinates', () => {

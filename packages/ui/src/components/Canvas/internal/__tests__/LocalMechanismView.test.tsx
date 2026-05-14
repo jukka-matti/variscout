@@ -268,6 +268,38 @@ describe('LocalMechanismView', () => {
     expect(onOpenColumnDetail).toHaveBeenCalledWith('Machine', 'mix');
   });
 
+  it('renders 4 additional response-path CTA buttons per column when callbacks provided', () => {
+    const onFocusedInvestigation = vi.fn();
+    const onCharter = vi.fn();
+    const onSustainment = vi.fn();
+    const onHandoff = vi.fn();
+    renderView({ onFocusedInvestigation, onCharter, onSustainment, onHandoff });
+
+    const ctaGroups = screen.getAllByTestId('response-path-ctas');
+    // 4 columns for the 'mix' step — each column card gets the CTA row
+    expect(ctaGroups).toHaveLength(4);
+
+    // Use within first CTA group to target a single column's buttons.
+    const firstGroup = ctaGroups[0];
+
+    fireEvent.click(within(firstGroup).getByText('Investigate'));
+    expect(onFocusedInvestigation).toHaveBeenCalledWith('mix');
+
+    fireEvent.click(within(firstGroup).getByText('Charter'));
+    expect(onCharter).toHaveBeenCalledWith('mix');
+
+    fireEvent.click(within(firstGroup).getByText('Sustain'));
+    expect(onSustainment).toHaveBeenCalledWith('mix');
+
+    fireEvent.click(within(firstGroup).getByText('Handoff'));
+    expect(onHandoff).toHaveBeenCalledWith('mix');
+  });
+
+  it('does not render the response-path CTA row when no callbacks are provided', () => {
+    renderView();
+    expect(screen.queryAllByTestId('response-path-ctas')).toHaveLength(0);
+  });
+
   it('submits quick action payload with focal step and column context', () => {
     const onLogQuickAction = vi.fn();
     renderView({ onLogQuickAction });

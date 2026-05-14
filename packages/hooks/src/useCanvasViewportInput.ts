@@ -1,7 +1,29 @@
 import { useEffect, useRef, type RefObject } from 'react';
 import { select } from 'd3-selection';
+import 'd3-transition'; // augments Selection with .transition()
 import { zoom, zoomIdentity, type D3ZoomEvent } from 'd3-zoom';
 import { useCanvasViewportStore, type ProcessHubId } from '@variscout/stores';
+import { LOD_SNAP_BOUNDARIES, LOD_THRESHOLDS } from '@variscout/core/canvas';
+
+export const SNAP_EASE_DURATION_MS = 150;
+
+/**
+ * Given a zoom level k, returns the snap target zoom if k is stranded in a
+ * half-open LOD boundary range, or undefined if no snap is required.
+ *
+ * Ranges per spec §4.6:
+ *   [l1ToL2, L2_OVERVIEW_LOW) = [0.3, 0.5) → snap to 0.5 (low end of l2)
+ *   [L2_DETAIL_HIGH, l2ToL3)  = [1.8, 2.0) → snap to 1.8 (high end of l2)
+ */
+export function snapTarget(k: number): number | undefined {
+  if (k >= LOD_THRESHOLDS.l1ToL2 && k < LOD_SNAP_BOUNDARIES.L2_OVERVIEW_LOW) {
+    return LOD_SNAP_BOUNDARIES.L2_OVERVIEW_LOW;
+  }
+  if (k >= LOD_SNAP_BOUNDARIES.L2_DETAIL_HIGH && k < LOD_THRESHOLDS.l2ToL3) {
+    return LOD_SNAP_BOUNDARIES.L2_DETAIL_HIGH;
+  }
+  return undefined;
+}
 
 export const DEFAULT_SCALE_EXTENT: [number, number] = [0.1, 8];
 
@@ -62,6 +84,7 @@ export function useCanvasViewportInput({
     };
     const zoomBehavior = zoom<HTMLElement | SVGSVGElement, unknown>()
       .filter(event => defaultZoomFilter(event) && (filter ? filter(event) : true))
+      .clickDistance(6)
       .scaleExtent(scaleExtent)
       .on('zoom', (event: D3ZoomEvent<HTMLElement | SVGSVGElement, unknown>) => {
         if (syncingFromStoreRef.current) return;
@@ -73,13 +96,40 @@ export function useCanvasViewportInput({
         } finally {
           syncingFromD3Ref.current = false;
         }
+      })
+      .on('end', (event: D3ZoomEvent<HTMLElement | SVGSVGElement, unknown>) => {
+        if (syncingFromStoreRef.current) return;
+
+        const target = snapTarget(event.transform.k);
+        if (target === undefined) return;
+
+        const snapTransform = zoomIdentity
+          .translate(event.transform.x, event.transform.y)
+          .scale(target);
+
+        syncingFromStoreRef.current = true;
+        try {
+          selection
+            .transition()
+            .duration(SNAP_EASE_DURATION_MS)
+            .call(zoomBehavior.transform, snapTransform);
+        } finally {
+          syncingFromStoreRef.current = false;
+        }
       });
 
     selection.call(zoomBehavior);
     syncElementToStoreViewport();
 
-    const unsubscribe = useCanvasViewportStore.subscribe(() => {
+    // Subscribe to the full store but short-circuit on reference equality of the
+    // hub's viewport slice — avoids running syncElementToStoreViewport on every
+    // unrelated mutation (e.g. setRailOpen, setViewMode, openChartCluster).
+    let prevViewportRef = useCanvasViewportStore.getState().viewports[hubId];
+    const unsubscribe = useCanvasViewportStore.subscribe(state => {
       if (syncingFromD3Ref.current) return;
+      const nextViewport = state.viewports[hubId];
+      if (nextViewport === prevViewportRef) return;
+      prevViewportRef = nextViewport;
       syncElementToStoreViewport();
     });
 

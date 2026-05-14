@@ -8,22 +8,16 @@
 
 // R12 exception: separate Dexie DB for cross-app canvas viewport UI state.
 import type { ProcessHub } from '@variscout/core';
-import { inferLevel, type CanvasLevel } from '@variscout/core/canvas';
+import { inferLevel, FIT_TO_CONTENT_ZOOM_BY_LEVEL, type CanvasLevel } from '@variscout/core/canvas';
 import Dexie, { type Table } from 'dexie';
 import { applyPatches, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { create } from 'zustand';
 
-export const STORE_LAYER = 'annotation-per-project' as const;
+export const STORE_LAYER = 'annotation-per-hub' as const;
 
 enablePatches();
 
 const UNDO_STACK_CAP = 50;
-
-const FIT_TO_CONTENT_ZOOM_BY_LEVEL: Record<CanvasLevel, number> = {
-  l1: 0.2,
-  l2: 1,
-  l3: 2.5,
-};
 
 export type ProcessHubId = ProcessHub['id'];
 export type NodeId = string;
@@ -117,7 +111,10 @@ function setViewportLevel(
   focalStepId?: string
 ): CanvasViewportSnapshot {
   if (level === 'l3' && !focalStepId) {
-    throw new Error("focalStepId required when currentLevel === 'l3'");
+    console.warn(
+      'setViewportLevel: l3 requested without focalStepId; ignoring. Set focalStepId via setFocalStepId first.'
+    );
+    return viewport; // no-op
   }
 
   if (level === 'l3') {
@@ -194,6 +191,10 @@ export const useCanvasViewportStore = create<CanvasViewportState & CanvasViewpor
             (viewport.currentLevel === 'l3' && !viewport.focalStepId
               ? 'l2'
               : viewport.currentLevel);
+          // Guard: l3 without a focalStepId is a no-op (setViewportLevel will warn).
+          if (targetLevel === 'l3' && !viewport.focalStepId) {
+            return setViewportLevel(viewport, targetLevel, viewport.focalStepId);
+          }
           const nextViewport = setViewportLevel(viewport, targetLevel, viewport.focalStepId);
           return {
             ...nextViewport,
@@ -310,6 +311,23 @@ class CanvasViewportDB extends Dexie {
 
 const db = new CanvasViewportDB();
 
+const LEGACY_WALL_LAYOUT_DB_NAME = 'variscout-wall-layout';
+
+/**
+ * Best-effort cleanup of the pre-8f Dexie database `variscout-wall-layout`.
+ * Pre-8f users had a project-keyed store under that name; the 8f workstream
+ * renamed and restructured it to `variscout-canvas-viewport` (hub-keyed).
+ * Exported for testability; also called once at module load below.
+ */
+export function deleteLegacyWallLayoutDb(): Promise<void> {
+  return Dexie.delete(LEGACY_WALL_LAYOUT_DB_NAME).catch(() => {
+    /* legacy DB cleanup is best-effort; ignore errors */
+  });
+}
+
+// Fire-and-forget at module load. Does not block module initialisation.
+void deleteLegacyWallLayoutDb();
+
 export async function persistCanvasViewport(hubId: ProcessHubId): Promise<void> {
   const s = useCanvasViewportStore.getState();
   await db.snapshots.put({
@@ -334,4 +352,14 @@ export async function rehydrateCanvasViewport(
     viewports: { ...s.viewports, [hubId]: snapshot.viewport },
     railOpen: snapshot.railOpen,
   }));
+}
+
+/**
+ * Read the `updatedAt` timestamp from the local Dexie row for a hub's
+ * canvas viewport snapshot. Returns 0 if no local row exists.
+ * Used by the Azure lifecycle hook to decide whether the remote Blob is newer.
+ */
+export async function getLocalViewportUpdatedAt(hubId: ProcessHubId): Promise<number> {
+  const row = await db.snapshots.get(hubId);
+  return row?.updatedAt ?? 0;
 }

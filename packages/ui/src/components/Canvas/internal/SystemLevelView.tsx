@@ -7,11 +7,13 @@ import {
   type Question,
   type SpecLimits,
 } from '@variscout/core';
-import { formatStatistic } from '@variscout/core/i18n';
+import { formatMessage, formatStatistic, getMessage } from '@variscout/core/i18n';
+import type { Locale } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { CanvasLensId, CanvasStepCardModel } from '@variscout/hooks';
 import { buildSystemOutcomeModel } from '../../DashboardBase/internal/systemOutcomeModel';
 import { InboxDigest, type InboxDigestPrompt } from '../../Inbox';
+import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
 
 export interface SystemLevelViewProps {
   hubId: string;
@@ -22,7 +24,23 @@ export interface SystemLevelViewProps {
   hypotheses?: ReadonlyArray<Hypothesis>;
   findings?: ReadonlyArray<Finding>;
   activeLens?: CanvasLensId;
-  specLimits?: SpecLimits;
+  /**
+   * Per-column spec registry keyed by column name.
+   * `SystemLevelView` derives its L1 spec from `measureSpecs[map.ctsColumn]`.
+   *
+   * This is the ADR-073-anchored source of truth for the outcome's spec: the
+   * view MUST NOT accept a step-level spec here and compute L1 Cpk against it.
+   */
+  measureSpecs?: Record<string, SpecLimits>;
+  /**
+   * Advisory / debug-only override. When provided, takes precedence over
+   * `measureSpecs[map.ctsColumn]`. Intended for tests and temporary wiring
+   * where `measureSpecs` is not yet threaded through. Do NOT use in production
+   * paths to pass step-level specs — that would violate ADR-073.
+   *
+   * @deprecated Thread `measureSpecs` from the canonical store instead.
+   */
+  specLimitsOverride?: SpecLimits;
   onOpenScout?: (hubId: string) => void;
 }
 
@@ -58,21 +76,25 @@ function inboxPrompts(args: {
   outcomeLabel: string;
   outOfSpecPercentage: number;
   drift: string;
+  locale: Locale;
 }): InboxDigestPrompt[] {
   const prompts: InboxDigestPrompt[] = [];
   if (args.outOfSpecPercentage > 0) {
     prompts.push({
       id: `outcome-spec-${args.hubId}`,
       severity: 'warning',
-      message: `${args.outcomeLabel} has ${formatPercentage(args.outOfSpecPercentage)} readings outside spec.`,
-      action: { label: 'Review' },
+      message: formatMessage(args.locale, 'canvas.system.outOfSpecMessage', {
+        outcome: args.outcomeLabel,
+        pct: formatPercentage(args.outOfSpecPercentage),
+      }),
+      action: { label: getMessage(args.locale, 'canvas.system.reviewAction') },
     });
   } else if (args.drift.includes('trending')) {
     prompts.push({
       id: `outcome-drift-${args.hubId}`,
       severity: 'info',
       message: args.drift,
-      action: { label: 'Review' },
+      action: { label: getMessage(args.locale, 'canvas.system.reviewAction') },
     });
   }
   return prompts;
@@ -86,14 +108,21 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
   hypotheses = [],
   findings = [],
   activeLens,
-  specLimits,
+  measureSpecs,
+  specLimitsOverride,
   onOpenScout,
 }) => {
+  const locale = useWallLocale();
   const outcomeLabel = map.ctsColumn ?? 'Outcome not selected';
+  // ADR-073: derive from the outcome's own spec entry in measureSpecs.
+  // specLimitsOverride is advisory only (tests/debug); it must not be used to
+  // pass step-level specs — that would compute L1 Cpk against the wrong spec.
+  const resolvedSpecLimits =
+    specLimitsOverride ?? (map.ctsColumn ? measureSpecs?.[map.ctsColumn] : undefined);
   const model = buildSystemOutcomeModel({
     rows,
     outcomeColumn: map.ctsColumn,
-    specLimits,
+    specLimits: resolvedSpecLimits,
     questions,
     hypotheses,
     findings,
@@ -106,6 +135,7 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
     outcomeLabel,
     outOfSpecPercentage: model.outOfSpecPercentage,
     drift: model.drift.label,
+    locale,
   });
 
   return (
@@ -116,7 +146,11 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
             <div>
               <p className="text-xs font-semibold uppercase text-content-muted">{hubId}</p>
               <h2 className="text-lg font-semibold text-content">{outcomeLabel}</h2>
-              {activeLens ? <p className="text-xs text-content-muted">Lens: {activeLens}</p> : null}
+              {activeLens ? (
+                <p className="text-xs text-content-muted">
+                  {formatMessage(locale, 'canvas.system.lensLabel', { lens: activeLens })}
+                </p>
+              ) : null}
             </div>
             <button
               type="button"
@@ -124,7 +158,7 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
               disabled={!onOpenScout}
               onClick={() => onOpenScout?.(hubId)}
             >
-              Open SCOUT
+              {getMessage(locale, 'canvas.system.openScout')}
             </button>
           </header>
 
@@ -134,7 +168,9 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
               data-testid="outcome-distribution"
             >
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h3 className="text-sm font-semibold text-content">Outcome distribution</h3>
+                <h3 className="text-sm font-semibold text-content">
+                  {getMessage(locale, 'canvas.system.outcomeDistribution')}
+                </h3>
                 <span className="text-xs font-medium text-content-muted">n={values.length}</span>
               </div>
               {bins.length > 0 ? (
@@ -151,13 +187,17 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-content-muted">No numeric outcome</p>
+                <p className="text-sm text-content-muted">
+                  {getMessage(locale, 'canvas.system.noNumericOutcome')}
+                </p>
               )}
             </section>
 
             <section className="rounded-lg border border-edge bg-surface p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h3 className="text-sm font-semibold text-content">Outcome drift</h3>
+                <h3 className="text-sm font-semibold text-content">
+                  {getMessage(locale, 'canvas.system.outcomeDrift')}
+                </h3>
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-medium ${model.drift.tone}`}
                   data-testid="drift-indicator"
@@ -187,7 +227,9 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
                     />
                   </svg>
                 ) : (
-                  <p className="text-sm text-content-muted">No outcome trend</p>
+                  <p className="text-sm text-content-muted">
+                    {getMessage(locale, 'canvas.system.noOutcomeTrend')}
+                  </p>
                 )}
               </div>
             </section>
@@ -214,15 +256,17 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
               <div className="text-lg font-semibold text-content">{formatMetric(model.ppk)}</div>
             </div>
             <div>
-              <div className="text-xs text-content-muted">Conformance</div>
+              <div className="text-xs text-content-muted">
+                {getMessage(locale, 'canvas.system.conformance')}
+              </div>
               <div className="text-lg font-semibold text-content">
                 {formatPercentage(model.conformancePercentage)}
               </div>
             </div>
             <div>
-              <div className="text-xs text-content-muted">Target</div>
+              <div className="text-xs text-content-muted">{getMessage(locale, 'stats.target')}</div>
               <div className="text-lg font-semibold text-content">
-                {formatMetric(specLimits?.cpkTarget)}
+                {formatMetric(resolvedSpecLimits?.cpkTarget)}
               </div>
             </div>
           </section>
@@ -234,8 +278,12 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
               <InboxDigest prompts={prompts} onNavigate={() => undefined} />
             ) : (
               <section className="rounded-lg border border-edge bg-surface p-4">
-                <h3 className="text-sm font-semibold text-content">Inbox</h3>
-                <p className="mt-2 text-sm text-content-muted">No outcome prompts</p>
+                <h3 className="text-sm font-semibold text-content">
+                  {getMessage(locale, 'canvas.system.inbox')}
+                </h3>
+                <p className="mt-2 text-sm text-content-muted">
+                  {getMessage(locale, 'canvas.system.noOutcomePrompts')}
+                </p>
               </section>
             )}
           </div>
@@ -244,7 +292,9 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
             className="rounded-lg border border-edge bg-surface p-4"
             data-testid="active-investigations-summary"
           >
-            <h3 className="text-sm font-semibold text-content">Active investigations</h3>
+            <h3 className="text-sm font-semibold text-content">
+              {getMessage(locale, 'canvas.system.activeInvestigations')}
+            </h3>
             <p className="mt-2 text-sm text-content-muted">{model.activeSummary}</p>
           </section>
         </aside>

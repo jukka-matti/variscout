@@ -1,3 +1,9 @@
+/**
+ * CanvasViewport — CSS-transform wrapper for the canvas inner layer.
+ * Applies pan + zoom as a single `translate(x,y) scale(k)` transform on the inner div.
+ * Used by Canvas/index.tsx to host the LOD content tree.
+ * Keep separate from LODSwitcher so zoom/pan state and LOD state remain independent concerns.
+ */
 import type { ReactNode } from 'react';
 
 export interface CanvasViewportProps {

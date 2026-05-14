@@ -8,11 +8,11 @@
  *
  * STORE_LAYER enum has 6 values; today 4 are realised in code:
  *   - 'document' (projectStore, investigationStore, canvasStore)
- *   - 'annotation-per-project' (canvasViewportStore)
+ *   - 'annotation-per-hub' (canvasViewportStore)
  *   - 'annotation-per-user' (preferencesStore)
  *   - 'view' (viewStore)
  * Reserved for future use (no test coverage today, intentional):
- *   - 'annotation-per-hub'
+ *   - 'annotation-per-project'
  *   - 'annotation-per-investigation'
  */
 import { describe, it, expect } from 'vitest';
@@ -109,10 +109,10 @@ describe('layer boundary', () => {
       });
   });
 
-  it('canvasViewportStore is the only annotation-per-project store and uses Dexie', () => {
-    const annotationPerProject = files.filter(f => f.layer === 'annotation-per-project');
-    expect(annotationPerProject).toHaveLength(1);
-    expect(annotationPerProject[0].filename).toBe('canvasViewportStore.ts');
-    expect(annotationPerProject[0].source).toMatch(/from\s+['"]dexie['"]/);
+  it('canvasViewportStore is the only annotation-per-hub store and uses Dexie', () => {
+    const annotationPerHub = files.filter(f => f.layer === 'annotation-per-hub');
+    expect(annotationPerHub).toHaveLength(1);
+    expect(annotationPerHub[0].filename).toBe('canvasViewportStore.ts');
+    expect(annotationPerHub[0].source).toMatch(/from\s+['"]dexie['"]/);
   });
 });

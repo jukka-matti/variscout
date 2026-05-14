@@ -34,7 +34,7 @@ describe('MobileLevelPicker', () => {
     });
   });
 
-  it('enters placeholder l3 without a focal step so Canvas can choose the first step', () => {
+  it('navigates directly to l3 without focal step so canvas renders step-list (spec §7)', () => {
     render(<MobileLevelPicker hubId="hub-mobile" currentLevel="l2" />);
 
     const stepButton = screen.getByRole('button', { name: 'Step' });
@@ -45,6 +45,7 @@ describe('MobileLevelPicker', () => {
       currentLevel: 'l3',
       zoom: 2.5,
     });
+    // No focalStepId — canvas NoFocalStepPrompt step-list will render at l3.
     expect(useCanvasViewportStore.getState().getViewport('hub-mobile').focalStepId).toBeUndefined();
   });
 

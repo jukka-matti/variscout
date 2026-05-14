@@ -1,10 +1,11 @@
 import 'fake-indexeddb/auto';
 import Dexie from 'dexie';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   useCanvasViewportStore,
   persistCanvasViewport,
   rehydrateCanvasViewport,
+  deleteLegacyWallLayoutDb,
 } from '../canvasViewportStore';
 
 describe('canvasViewportStore', () => {
@@ -121,6 +122,8 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
   });
 
   it('sets level with l3 focalStepId validation and clears stale focalStepId on l1/l2', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
     useCanvasViewportStore.getState().setLevel('hub-A', 'l1');
     expect(useCanvasViewportStore.getState().getViewport('hub-A').currentLevel).toBe('l1');
 
@@ -130,9 +133,15 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
       focalStepId: 'step-1',
     });
 
-    expect(() => useCanvasViewportStore.getState().setLevel('hub-B', 'l3')).toThrow(
-      /focalStepId required when currentLevel === 'l3'/
+    // l3 without focalStepId: warns and leaves state unchanged (no-op, no throw).
+    const levelBefore = useCanvasViewportStore.getState().getViewport('hub-B').currentLevel;
+    useCanvasViewportStore.getState().setLevel('hub-B', 'l3');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('l3 requested without focalStepId')
     );
+    expect(useCanvasViewportStore.getState().getViewport('hub-B').currentLevel).toBe(levelBefore);
+
+    warnSpy.mockRestore();
 
     useCanvasViewportStore.getState().setLevel('hub-A', 'l2');
     expect(useCanvasViewportStore.getState().getViewport('hub-A')).toMatchObject({
@@ -203,9 +212,16 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
       currentLevel: 'l3',
       focalStepId: 'step-1',
     });
-    expect(() => useCanvasViewportStore.getState().fitToContent('hub-B', 'l3')).toThrow(
-      /focalStepId required when currentLevel === 'l3'/
+
+    // fitToContent with explicit l3 on a hub with no focalStepId: warns, leaves viewport unchanged.
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const snapshotBefore = useCanvasViewportStore.getState().getViewport('hub-B');
+    useCanvasViewportStore.getState().fitToContent('hub-B', 'l3');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('l3 requested without focalStepId')
     );
+    expect(useCanvasViewportStore.getState().getViewport('hub-B')).toEqual(snapshotBefore);
+    warnSpy.mockRestore();
   });
 
   it('keeps multiple hubs independent', () => {
@@ -295,6 +311,7 @@ describe('canvasViewportStore persistence', () => {
   });
 
   it('clean-breaks an existing v1 project-keyed Dexie database before hub-keyed persistence', async () => {
+    // Seed the legacy DB so it exists in IndexedDB.
     await Dexie.delete('variscout-wall-layout');
     const legacyDb = new Dexie('variscout-wall-layout');
     legacyDb.version(1).stores({ snapshots: 'projectId,updatedAt' });
@@ -309,6 +326,16 @@ describe('canvasViewportStore persistence', () => {
     });
     legacyDb.close();
 
+    // Confirm legacy DB is present before cleanup.
+    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(true);
+
+    // Trigger cleanup explicitly (mirrors the module-load side effect).
+    await deleteLegacyWallLayoutDb();
+
+    // Legacy DB must be gone.
+    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(false);
+
+    // Hub-keyed persistence must still work correctly.
     useCanvasViewportStore.getState().setViewMode('wall');
     useCanvasViewportStore.getState().setZoom('hub-legacy-clean-break', 1.75);
     useCanvasViewportStore
@@ -324,6 +351,18 @@ describe('canvasViewportStore persistence', () => {
       zoom: 1.75,
       nodePositions: { 'node-1': { x: 10, y: 20 } },
     });
+  });
+
+  it('is a no-op when no legacy variscout-wall-layout DB exists', async () => {
+    // Ensure legacy DB is absent before test.
+    await Dexie.delete('variscout-wall-layout');
+    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(false);
+
+    // Must not throw when the DB doesn't exist.
+    await expect(deleteLegacyWallLayoutDb()).resolves.toBeUndefined();
+
+    // DB is still absent — cleanup was a true no-op.
+    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(false);
   });
 
   it('persists and rehydrates one hub viewport with viewMode and railOpen', async () => {

@@ -8,7 +8,6 @@ import { chartColors } from '@variscout/charts';
 import {
   coerceCanvasLens,
   coerceCanvasOverlays,
-  CANVAS_LENS_REGISTRY,
   isCanvasLensValidAtLevel,
   suggestCanvasLevelForLens,
   resolveEndpointToFactor,
@@ -57,7 +56,10 @@ import { ChipRail, type ChipRailEntry } from '../ChipRail';
 import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
 import { CanvasModeToggle } from '../CanvasModeToggle';
 import { StructuralToolbar } from '../StructuralToolbar';
-import { CanvasLensPicker } from './internal/CanvasLensPicker';
+import { CanvasLensPicker, LENS_LABEL_KEY } from './internal/CanvasLensPicker';
+import { useWallLocale } from '../InvestigationWall/hooks/useWallLocale';
+import { formatMessage, getMessage } from '@variscout/core/i18n';
+import type { MessageCatalog } from '@variscout/core';
 import { CanvasOverlayPicker } from './internal/CanvasOverlayPicker';
 import { HypothesisDrawToolButton } from './internal/HypothesisDrawToolButton';
 import {
@@ -117,11 +119,11 @@ const DEFAULT_CANVAS_VIEWPORT: CanvasViewportSnapshot = {
 };
 const CANVAS_VIEWPORT_IGNORED_TARGET = '[data-canvas-wall-overlay]';
 
-const CANVAS_LEVEL_LABELS = {
-  l1: 'System',
-  l2: 'Process',
-  l3: 'Step',
-} as const;
+const CANVAS_LEVEL_LABEL_KEY: Record<CanvasLevel, keyof MessageCatalog> = {
+  l1: 'canvas.mobile.system',
+  l2: 'canvas.mobile.process',
+  l3: 'canvas.mobile.step',
+};
 const CANVAS_FIT_REQUEST_EVENT = 'variscout:canvas-fit-request';
 const FIT_TO_CONTENT_MARGIN = 0.95;
 
@@ -341,6 +343,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   rows,
 }) => {
   const isAuthorMode = authoringMode === 'author';
+  const locale = useWallLocale();
   const viewport = useCanvasViewportStore(s =>
     s.viewports[hubId] ? s.getViewport(hubId) : DEFAULT_CANVAS_VIEWPORT
   );
@@ -981,7 +984,9 @@ export const Canvas: React.FC<CanvasProps> = ({
         hypotheses={hypotheses}
         findings={findings}
         activeLens={resolvedLens}
-        specLimits={{ usl, lsl, target, cpkTarget }}
+        measureSpecs={
+          map.ctsColumn ? { [map.ctsColumn]: { usl, lsl, target, cpkTarget } } : undefined
+        }
         onOpenScout={onOpenScout}
       />
     </div>
@@ -1017,6 +1022,10 @@ export const Canvas: React.FC<CanvasProps> = ({
       onOpenInvestigationFocus={onOpenInvestigationFocus}
       onOpenColumnDetail={onOpenColumnDetail}
       onLogQuickAction={onLogQuickAction}
+      onFocusedInvestigation={onFocusedInvestigation}
+      onCharter={onCharter}
+      onSustainment={onSustainment}
+      onHandoff={onHandoff}
     />
   ) : (
     <NoFocalStepPrompt hubId={hubId} map={map} />
@@ -1039,8 +1048,11 @@ export const Canvas: React.FC<CanvasProps> = ({
       className="bg-surface-background p-6 text-sm font-medium text-content-secondary"
       data-testid="canvas-lens-level-empty-state"
     >
-      {CANVAS_LENS_REGISTRY[rawLens].label} isn't available at{' '}
-      {CANVAS_LEVEL_LABELS[viewport.currentLevel]} — try {CANVAS_LEVEL_LABELS[suggestedLevel]}.
+      {formatMessage(locale, 'canvas.lensPicker.invalidAtLevel', {
+        lens: getMessage(locale, LENS_LABEL_KEY[rawLens]),
+        currentLevel: getMessage(locale, CANVAS_LEVEL_LABEL_KEY[viewport.currentLevel]),
+        suggestedLevel: getMessage(locale, CANVAS_LEVEL_LABEL_KEY[suggestedLevel]),
+      })}
     </div>
   );
   const levelContent = lensValidAtCurrentLevel ? (

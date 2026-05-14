@@ -1,12 +1,14 @@
 import React from 'react';
 import type { DataRow, Finding, Hypothesis, ProcessMap } from '@variscout/core';
+import { getStepColumnAssignments } from '@variscout/core/frame';
 import {
   calculateAnova,
   computeBestSubsets,
   computeMainEffects,
   conditionReferencesStep,
 } from '@variscout/core';
-import { formatStatistic } from '@variscout/core/i18n';
+import { formatMessage, formatStatistic, getMessage } from '@variscout/core/i18n';
+import type { Locale } from '@variscout/core';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import { EvidenceMapBase } from '@variscout/charts';
 import { useEvidenceMapData } from '@variscout/hooks';
@@ -14,6 +16,7 @@ import { useInvestigationStore } from '@variscout/stores';
 import { WallCanvas } from '../../InvestigationWall/WallCanvas';
 import { MiniBoxplot } from '../../InvestigationWall/MiniBoxplot';
 import { MiniIChart } from '../../InvestigationWall/MiniIChart';
+import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
 import { LogActionModal, type LogActionPayload } from '../../QuickAction';
 
 export interface LocalMechanismViewProps {
@@ -32,25 +35,23 @@ export interface LocalMechanismViewProps {
   onOpenInvestigationFocus?: (focus: { kind: 'question'; id: string; questionId: string }) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
+  onFocusedInvestigation?: (stepId: string) => void;
+  onCharter?: (stepId: string) => void;
+  onSustainment?: (stepId: string) => void;
+  onHandoff?: (stepId: string) => void;
 }
 
 const EMPTY_ROWS: ReadonlyArray<DataRow> = [];
 
+/**
+ * Flat union of every column associated with a focal step — assignments,
+ * ctqColumn, and tributaries. Wraps `getStepColumnAssignments` for the
+ * column-list view this component renders. Per ADR-074 amendment + ADR-081:
+ * Canvas embeds owner-surface computation rather than re-deriving.
+ */
 function focalStepColumns(map: ProcessMap, focalStepId: string): string[] {
-  const columns = new Set<string>();
-
-  for (const [column, stepId] of Object.entries(map.assignments ?? {})) {
-    if (stepId === focalStepId) columns.add(column);
-  }
-
-  const node = map.nodes.find(n => n.id === focalStepId);
-  if (node?.ctqColumn) columns.add(node.ctqColumn);
-
-  for (const tributary of map.tributaries) {
-    if (tributary.stepId === focalStepId) columns.add(tributary.column);
-  }
-
-  return [...columns];
+  const { assigned, ctqColumn, tributaryColumns } = getStepColumnAssignments(map, focalStepId);
+  return [...assigned, ...(ctqColumn ? [ctqColumn] : []), ...tributaryColumns];
 }
 
 function numericValues(rows: ReadonlyArray<DataRow>, column: string): number[] {
@@ -177,15 +178,25 @@ function ColumnMiniChart({
   kind,
   rows,
   outcomeColumn,
+  locale,
   onOpenColumnDetail,
   onOpenQuickAction,
+  onFocusedInvestigation,
+  onCharter,
+  onSustainment,
+  onHandoff,
 }: {
   column: string;
   kind: string | undefined;
   rows: ReadonlyArray<DataRow>;
   outcomeColumn: string | null | undefined;
+  locale: Locale;
   onOpenColumnDetail?: (column: string) => void;
   onOpenQuickAction: (column: string) => void;
+  onFocusedInvestigation?: (column: string) => void;
+  onCharter?: (column: string) => void;
+  onSustainment?: (column: string) => void;
+  onHandoff?: (column: string) => void;
 }) {
   const values = numericValues(rows, column);
   const categories = distribution(rows, column);
@@ -199,7 +210,7 @@ function ColumnMiniChart({
         <button
           type="button"
           className="min-w-0 truncate text-left text-sm font-medium text-content hover:underline"
-          aria-label={`Open ${column} details`}
+          aria-label={formatMessage(locale, 'canvas.localMechanism.openColumnAria', { column })}
           onClick={() => onOpenColumnDetail?.(column)}
         >
           {column}
@@ -207,24 +218,74 @@ function ColumnMiniChart({
         <button
           type="button"
           className="shrink-0 rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
-          aria-label={`Log action for ${column}`}
+          aria-label={formatMessage(locale, 'canvas.localMechanism.logActionAria', { column })}
           onClick={() => onOpenQuickAction(column)}
         >
-          Action
+          {getMessage(locale, 'canvas.localMechanism.actionButton')}
         </button>
       </div>
+      {onFocusedInvestigation || onCharter || onSustainment || onHandoff ? (
+        <div className="flex flex-wrap gap-1" data-testid="response-path-ctas">
+          {onFocusedInvestigation ? (
+            <button
+              type="button"
+              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
+              aria-label={formatMessage(locale, 'canvas.localMechanism.focusedInvestigationAria', {
+                column,
+              })}
+              onClick={() => onFocusedInvestigation(column)}
+            >
+              {getMessage(locale, 'canvas.localMechanism.focusedInvestigation')}
+            </button>
+          ) : null}
+          {onCharter ? (
+            <button
+              type="button"
+              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
+              aria-label={formatMessage(locale, 'canvas.localMechanism.charterAria', { column })}
+              onClick={() => onCharter(column)}
+            >
+              {getMessage(locale, 'canvas.localMechanism.charter')}
+            </button>
+          ) : null}
+          {onSustainment ? (
+            <button
+              type="button"
+              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
+              aria-label={formatMessage(locale, 'canvas.localMechanism.sustainmentAria', {
+                column,
+              })}
+              onClick={() => onSustainment(column)}
+            >
+              {getMessage(locale, 'canvas.localMechanism.sustainment')}
+            </button>
+          ) : null}
+          {onHandoff ? (
+            <button
+              type="button"
+              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
+              aria-label={formatMessage(locale, 'canvas.localMechanism.handoffAria', { column })}
+              onClick={() => onHandoff(column)}
+            >
+              {getMessage(locale, 'canvas.localMechanism.handoff')}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
       <button
         type="button"
         data-testid="column-mini-chart"
         className="block h-14 w-full rounded bg-surface-secondary p-2 text-left"
-        aria-label={`Open ${column} details mini chart`}
+        aria-label={formatMessage(locale, 'canvas.localMechanism.openChartAria', { column })}
         onClick={() => onOpenColumnDetail?.(column)}
       >
         {numeric ? (
           values.length > 0 ? (
             <MiniIChart values={values} width={160} height={40} />
           ) : (
-            <span className="text-xs text-content-muted">No numeric values</span>
+            <span className="text-xs text-content-muted">
+              {getMessage(locale, 'canvas.localMechanism.noNumericValues')}
+            </span>
           )
         ) : groups.length > 0 ? (
           <MiniBoxplot groups={groups} width={160} height={40} />
@@ -266,7 +327,12 @@ export function LocalMechanismView({
   onOpenInvestigationFocus,
   onOpenColumnDetail,
   onLogQuickAction,
+  onFocusedInvestigation,
+  onCharter,
+  onSustainment,
+  onHandoff,
 }: LocalMechanismViewProps) {
+  const locale = useWallLocale();
   const questions = useInvestigationStore(state => state.questions);
   const hypotheses = useInvestigationStore(state => state.hypotheses);
   const causalLinks = useInvestigationStore(state => state.causalLinks);
@@ -366,8 +432,15 @@ export function LocalMechanismView({
             kind={columnTypes[column]}
             rows={safeRows}
             outcomeColumn={outcomeColumn}
+            locale={locale}
             onOpenColumnDetail={columnName => onOpenColumnDetail?.(columnName, focalStepId)}
             onOpenQuickAction={setQuickActionColumn}
+            onFocusedInvestigation={
+              onFocusedInvestigation ? () => onFocusedInvestigation(focalStepId) : undefined
+            }
+            onCharter={onCharter ? () => onCharter(focalStepId) : undefined}
+            onSustainment={onSustainment ? () => onSustainment(focalStepId) : undefined}
+            onHandoff={onHandoff ? () => onHandoff(focalStepId) : undefined}
           />
         ))}
       </div>
@@ -377,7 +450,9 @@ export function LocalMechanismView({
         data-testid="evidence-map-base"
         data-step-columns={stepColumns.join('|')}
       >
-        <h3 className="mb-2 text-sm font-semibold text-content">Local evidence map</h3>
+        <h3 className="mb-2 text-sm font-semibold text-content">
+          {getMessage(locale, 'canvas.localMechanism.evidenceMap')}
+        </h3>
         <EvidenceMapBase
           parentWidth={680}
           parentHeight={360}
@@ -394,7 +469,9 @@ export function LocalMechanismView({
       </section>
 
       <section className="rounded-md border border-edge bg-surface p-3" data-testid="wall-canvas">
-        <h3 className="mb-2 text-sm font-semibold text-content">Investigation wall</h3>
+        <h3 className="mb-2 text-sm font-semibold text-content">
+          {getMessage(locale, 'canvas.localMechanism.investigationWall')}
+        </h3>
         <WallCanvas
           hubId={hubId}
           hubs={hypotheses}
@@ -418,13 +495,17 @@ export function LocalMechanismView({
           className="rounded-md border border-edge bg-surface p-3"
           data-testid="factor-contribution-rankings"
         >
-          <h3 className="text-sm font-semibold text-content">Factor contribution evidence</h3>
+          <h3 className="text-sm font-semibold text-content">
+            {getMessage(locale, 'canvas.localMechanism.factorContribution')}
+          </h3>
           <ol className="mt-2 space-y-1">
             {rankings.map(item => (
               <li key={item.column} className="flex justify-between gap-3 text-sm">
                 <span className="text-content">{item.column}</span>
                 <span className="text-content-secondary">
-                  eta^2 {formatStatistic(item.etaSquared, 'en', 2)}
+                  {formatMessage(locale, 'canvas.localMechanism.etaSquaredLabel', {
+                    value: formatStatistic(item.etaSquared, locale, 2),
+                  })}
                 </span>
               </li>
             ))}
@@ -434,7 +515,9 @@ export function LocalMechanismView({
 
       {quickActionColumn ? (
         <LogActionModal
-          cardTitle={`${quickActionColumn} quick action`}
+          cardTitle={formatMessage(locale, 'canvas.localMechanism.quickActionTitle', {
+            column: quickActionColumn,
+          })}
           onCancel={() => setQuickActionColumn(null)}
           onLog={handleLogQuickAction}
         />

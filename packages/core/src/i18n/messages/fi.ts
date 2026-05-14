@@ -1035,4 +1035,86 @@ export const fi: MessageCatalog = {
   'timeLens.mode.openEnded': 'Open-ended',
   'timeLens.input.windowSize': 'Window size',
   'timeLens.input.anchor': 'Anchor',
+
+  // TODO(i18n): translate canvas.* keys
+  // Canvas — SystemLevelView
+  'canvas.system.activeInvestigations': 'Active investigations',
+  'canvas.system.conformance': 'Conformance',
+  'canvas.system.inbox': 'Inbox',
+  'canvas.system.lensLabel': 'Lens: {lens}',
+  'canvas.system.noNumericOutcome': 'No numeric outcome',
+  'canvas.system.noOutcomePrompts': 'No outcome prompts',
+  'canvas.system.noOutcomeTrend': 'No outcome trend',
+  'canvas.system.openScout': 'Open SCOUT',
+  'canvas.system.outcomeDistribution': 'Outcome distribution',
+  'canvas.system.outcomeDrift': 'Outcome drift',
+  'canvas.system.outOfSpecMessage': '{outcome} has {pct} readings outside spec.',
+  'canvas.system.reviewAction': 'Review',
+
+  // Canvas — CanvasLensPicker
+  'canvas.lensPicker.ariaLabel': 'Canvas lenses',
+  'canvas.lensPicker.lensAriaLabel': '{label} lens',
+  'canvas.lensPicker.invalidAtLevel':
+    "{lens} isn't available at {currentLevel} \u2014 try {suggestedLevel}.",
+
+  // Canvas — lens labels & descriptions
+  'canvas.lens.capability.description': 'Capability, Cpk trust, and step health.',
+  'canvas.lens.capability.label': 'Capability',
+  'canvas.lens.default.description': 'Step metrics, specs, and current card state.',
+  'canvas.lens.default.label': 'Default',
+  'canvas.lens.defect.description': 'Defect counts projected onto process steps.',
+  'canvas.lens.defect.label': 'Defect',
+  'canvas.lens.performance.description': 'Future within-step channel lens.',
+  'canvas.lens.performance.label': 'Performance',
+  'canvas.lens.processFlow.description': 'Plain process structure without per-card analytics.',
+  'canvas.lens.processFlow.label': 'Process flow',
+  'canvas.lens.yamazumi.description': 'Future time-study lens.',
+  'canvas.lens.yamazumi.label': 'Yamazumi',
+
+  // Canvas — NoFocalStepPrompt
+  'canvas.noFocalStep.ariaLabel': 'Choose a process step',
+  'canvas.noFocalStep.description': 'Local mechanism view needs a focal process step.',
+  'canvas.noFocalStep.heading': 'Choose a step for L3',
+  'canvas.noFocalStep.noStepsHint': 'Add a process step before opening the local mechanism view.',
+  'canvas.noFocalStep.openStepAria': 'Open {stepName} local mechanism',
+
+  // Canvas — MobileLevelPicker
+  'canvas.mobile.ariaLabel': 'Canvas levels',
+  'canvas.mobile.process': 'Process',
+  'canvas.mobile.step': 'Step',
+  'canvas.mobile.system': 'System',
+
+  // Canvas — AuthorL3View
+  'canvas.authorL3.assignedColumns': 'Assigned columns',
+  'canvas.authorL3.ctqHeading': 'CTQ',
+  'canvas.authorL3.dropHint': 'Drop columns here to assign them to this process step.',
+  'canvas.authorL3.dropTargetAria': '{stepName} assignment target',
+  'canvas.authorL3.dropTargetAriaWithChip':
+    '{stepName} assignment target, press Enter to place {chipLabel}',
+  'canvas.authorL3.noAssignedColumns': 'No assigned columns yet',
+  'canvas.authorL3.noCtqContext': 'No unassigned CTQ context',
+  'canvas.authorL3.noTributaryContext': 'No unassigned tributary context',
+  'canvas.authorL3.selectedStep': 'Selected step',
+  'canvas.authorL3.tributaryColumns': 'Tributary columns',
+  'canvas.authorL3.unassignedColumns': 'Unassigned columns',
+
+  // Canvas — LocalMechanismView
+  'canvas.localMechanism.actionButton': 'Action',
+  'canvas.localMechanism.etaSquaredLabel': 'eta² {value}',
+  'canvas.localMechanism.evidenceMap': 'Local evidence map',
+  'canvas.localMechanism.factorContribution': 'Factor contribution evidence',
+  'canvas.localMechanism.investigationWall': 'Investigation wall',
+  'canvas.localMechanism.logActionAria': 'Log action for {column}',
+  'canvas.localMechanism.noNumericValues': 'No numeric values',
+  'canvas.localMechanism.openChartAria': 'Open {column} details mini chart',
+  'canvas.localMechanism.openColumnAria': 'Open {column} details',
+  'canvas.localMechanism.quickActionTitle': '{column} quick action',
+  'canvas.localMechanism.focusedInvestigation': 'Investigate',
+  'canvas.localMechanism.charter': 'Charter',
+  'canvas.localMechanism.sustainment': 'Sustain',
+  'canvas.localMechanism.handoff': 'Handoff',
+  'canvas.localMechanism.focusedInvestigationAria': 'Start focused investigation for {column}',
+  'canvas.localMechanism.charterAria': 'Open improvement charter for {column}',
+  'canvas.localMechanism.sustainmentAria': 'Open sustainment for {column}',
+  'canvas.localMechanism.handoffAria': 'Open handoff for {column}',
 };

@@ -414,18 +414,24 @@ ADR-081 (separate file) codifies this amendment alongside the 8f architecture. A
 
 ## 10. Mode-lens × level matrix
 
-5 modes × 3 levels = 15 cells. ~13 are sensible; 2 are intentionally disabled.
+6 modes × 3 levels = 18 cells. **As shipped (V1):** 4 lenses active (default / capability / defect / process-flow at L2 + L3 where structurally meaningful); 2 lenses (`performance`, `yamazumi`) intentionally deferred V2 across all levels per the lens registry's `enabled: false` flags. The matrix below shows the eventual target shape; cells marked `(V2 — deferred)` are not reachable in V1 because the lens itself is registry-disabled.
 
-| Mode \ Level     | L1 — System / Outcome                                              | L2 — Process Flow                            | L3 — Local Mechanism                                                                  |
-| ---------------- | ------------------------------------------------------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------- |
-| **default**      | Outcome distribution + drift + capability + spec                   | Today's canvas (mini-chart per step)         | Column-level mini-charts (boxplot / I-chart per input column)                         |
-| **capability**   | Outcome Cp/Cpk/Pp/Ppk against outcome spec                         | Step Cpk badge (today's behavior)            | Factor contribution (η², ranked) — **requires investigation context** per Decision #6 |
-| **defect**       | Total defect rate over time + drift                                | Per-step defect Pareto (today's PR8 8b)      | Column-category defect Pareto                                                         |
-| **performance**  | Outcome-level throughput / cycle time aggregate                    | Per-step cycle time                          | Cycle-time breakdown by column-category (e.g., by operator, by shift)                 |
-| **yamazumi**     | (disabled — yamazumi is cross-step balance, not an outcome metric) | Today's yamazumi balance bars                | Per-step balance by column-category                                                   |
-| **process-flow** | (disabled — flow is a structural read, not an outcome at L1)       | Plain flow rendering (no per-card analytics) | (disabled — flow doesn't decompose into column-network)                               |
+| Mode \ Level     | L1 — System / Outcome                                        | L2 — Process Flow                            | L3 — Local Mechanism                                                                  |
+| ---------------- | ------------------------------------------------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **default**      | Outcome distribution + drift + capability + spec             | Today's canvas (mini-chart per step)         | Column-level mini-charts (boxplot / I-chart per input column)                         |
+| **capability**   | Outcome Cp/Cpk/Pp/Ppk against outcome spec                   | Step Cpk badge (today's behavior)            | Factor contribution (η², ranked) — **requires investigation context** per Decision #6 |
+| **defect**       | Total defect rate over time + drift                          | Per-step defect Pareto (today's PR8 8b)      | Column-category defect Pareto                                                         |
+| **performance**  | (V2 — deferred; lens not enabled in V1)                      | (V2 — deferred; lens not enabled in V1)      | (V2 — deferred; lens not enabled in V1)                                               |
+| **yamazumi**     | (V2 — deferred; lens not enabled in V1)                      | (V2 — deferred; lens not enabled in V1)      | (V2 — deferred; lens not enabled in V1)                                               |
+| **process-flow** | (disabled — flow is a structural read, not an outcome at L1) | Plain flow rendering (no per-card analytics) | (disabled — flow doesn't decompose into column-network)                               |
 
-Disabled cells render an inline empty-state with copy: `"<lens> isn't available at <level> — try <suggested level>."` Existing `@variscout/core/strategy` pattern extends with a `level` parameter to its `isLensValidAt(lens, level)` predicate.
+**V2 expansion path** (`performance`, `yamazumi` lenses): the registry's `enabled: false` flags in `packages/hooks/src/useCanvasStepCards.ts` were intentional placeholders at original ship — descriptions read "Future within-step channel lens" / "Future time-study lens." When V2 work picks these up, flip `enabled: true` AND update this matrix's cell content to describe what each lens renders at each level. Until then, both lenses are unreachable in the picker (correctly — surfacing buttons that lead only to empty-state copy would be poor UX).
+
+**V1 active cells (8 total): default × {L1, L2, L3} + capability × {L1, L2, L3} + defect × {L1, L2, L3} + process-flow × {L2} = 10 cells.** Deferred-V2: 6 (`performance` × 3 + `yamazumi` × 3). Spec-disabled: 3 (`process-flow` × L1, L3 + the L1 yamazumi narrative cell that the registry-deferral already covers).
+
+**Amended 2026-05-13** — original §10 promised all four "future" lenses active and counted only 2 structurally-disabled cells. Retrospective surfaced the divergence; this §10 honestly reflects the lens registry's `enabled` state. The `performance` and `yamazumi` lenses are V2 named-future per their registry descriptions, not bugs.
+
+Disabled cells (the 3 spec-disabled + the 6 V2-deferred-via-registry) render an inline empty-state with copy from `canvas.lensPicker.invalidAtLevel`: `"<lens> isn't available at <level> — try <suggested level>."` `isCanvasLensValidAtLevel(lens, level)` in `packages/hooks/src/useCanvasStepCards.ts` is the predicate of truth; the registry's `enabled` flag is checked first.
 
 ## 11. Out of scope for V1
 

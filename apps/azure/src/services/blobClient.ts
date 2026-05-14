@@ -550,6 +550,142 @@ export async function uploadTextBlob(path: string, content: string): Promise<voi
   }
 }
 
+// ── Per-Hub canvas viewport snapshot (8f followup PR5) ─────────────────────
+
+/**
+ * Per-Hub canvas viewport blob path. State here is annotation-per-hub —
+ * pan/zoom/level/focalStepId/nodePositions/groupByTributary. Small (~200 B).
+ * Last-write-wins; ETag preserved across reads.
+ */
+function viewportBlobPath(hubId: string): string {
+  return `hubs/${hubId}/viewport.json`;
+}
+
+export type ViewportBlobShape = {
+  zoom: number;
+  pan: { x: number; y: number };
+  currentLevel: 'l1' | 'l2' | 'l3';
+  focalStepId?: string;
+  nodePositions: Record<string, { x: number; y: number }>;
+  groupByTributary: boolean;
+  updatedAt: number;
+};
+
+export interface LoadedViewport {
+  snapshot: ViewportBlobShape;
+  etag: string | null;
+}
+
+/** GET the per-Hub viewport blob, returning null if 404. */
+export async function loadBlobCanvasViewport(hubId: string): Promise<LoadedViewport | null> {
+  let sasUrl: string;
+  try {
+    sasUrl = await getSasToken();
+  } catch {
+    return null;
+  }
+
+  const url = blobUrl(sasUrl, viewportBlobPath(hubId));
+
+  let res: Response;
+  try {
+    res = await fetch(url);
+  } catch {
+    return null;
+  }
+
+  if (res.status === 404) return null;
+  if (!res.ok) return null;
+
+  const etag = res.headers.get('ETag');
+  let snapshot: ViewportBlobShape;
+  try {
+    snapshot = (await res.json()) as ViewportBlobShape;
+  } catch {
+    return null;
+  }
+
+  return { snapshot, etag };
+}
+
+/**
+ * Write the per-Hub viewport blob. Conditional on `priorEtag` (null = first
+ * write). Returns the new ETag, or 'precondition-failed' on conflict.
+ * Last-write-wins per spec; on precondition fail, caller decides whether to
+ * re-read and retry (we don't auto-retry).
+ */
+export async function saveBlobCanvasViewport(
+  hubId: string,
+  snapshot: ViewportBlobShape,
+  priorEtag: string | null
+): Promise<
+  | { ok: true; etag: string }
+  | {
+      ok: false;
+      reason: 'precondition-failed' | 'network' | 'auth' | 'unknown';
+      status?: number;
+      message: string;
+    }
+> {
+  let sasUrl: string;
+  try {
+    sasUrl = await getSasToken();
+  } catch (err) {
+    return { ok: false, reason: 'network', message: String(err) };
+  }
+
+  const url = blobUrl(sasUrl, viewportBlobPath(hubId));
+
+  const putHeaders: Record<string, string> = {
+    'x-ms-blob-type': 'BlockBlob',
+    'Content-Type': 'application/json',
+  };
+  if (priorEtag !== null) {
+    putHeaders['If-Match'] = priorEtag;
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: 'PUT',
+      headers: putHeaders,
+      body: JSON.stringify(snapshot),
+    });
+  } catch (err) {
+    return { ok: false, reason: 'network', message: String(err) };
+  }
+
+  if (res.status === 200 || res.status === 201 || res.status === 204) {
+    const newEtag = res.headers.get('ETag') ?? '';
+    return { ok: true, etag: newEtag };
+  }
+
+  if (res.status === 412) {
+    return {
+      ok: false,
+      reason: 'precondition-failed',
+      status: res.status,
+      message: 'Precondition Failed — concurrent write detected',
+    };
+  }
+
+  if (res.status === 401 || res.status === 403) {
+    return {
+      ok: false,
+      reason: 'auth',
+      status: res.status,
+      message: `${res.status} Auth error writing viewport blob`,
+    };
+  }
+
+  return {
+    ok: false,
+    reason: 'unknown',
+    status: res.status,
+    message: `${res.status} Unexpected status writing viewport blob`,
+  };
+}
+
 /**
  * Get the ETag for a project's metadata blob.
  * Returns null if the blob doesn't exist (404).

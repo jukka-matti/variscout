@@ -1123,4 +1123,83 @@ export interface MessageCatalog {
   'timeLens.mode.openEnded': string;
   'timeLens.input.windowSize': string;
   'timeLens.input.anchor': string;
+
+  // Canvas — SystemLevelView
+  'canvas.system.activeInvestigations': string;
+  'canvas.system.conformance': string;
+  'canvas.system.inbox': string;
+  'canvas.system.lensLabel': string;
+  'canvas.system.noNumericOutcome': string;
+  'canvas.system.noOutcomePrompts': string;
+  'canvas.system.noOutcomeTrend': string;
+  'canvas.system.openScout': string;
+  'canvas.system.outcomeDistribution': string;
+  'canvas.system.outcomeDrift': string;
+  'canvas.system.outOfSpecMessage': string;
+  'canvas.system.reviewAction': string;
+
+  // Canvas — CanvasLensPicker (toolbar aria + per-lens aria)
+  'canvas.lensPicker.ariaLabel': string;
+  'canvas.lensPicker.lensAriaLabel': string;
+  'canvas.lensPicker.invalidAtLevel': string;
+
+  // Canvas — lens labels & descriptions (used by CanvasLensPicker)
+  'canvas.lens.capability.description': string;
+  'canvas.lens.capability.label': string;
+  'canvas.lens.default.description': string;
+  'canvas.lens.default.label': string;
+  'canvas.lens.defect.description': string;
+  'canvas.lens.defect.label': string;
+  'canvas.lens.performance.description': string;
+  'canvas.lens.performance.label': string;
+  'canvas.lens.processFlow.description': string;
+  'canvas.lens.processFlow.label': string;
+  'canvas.lens.yamazumi.description': string;
+  'canvas.lens.yamazumi.label': string;
+
+  // Canvas — NoFocalStepPrompt
+  'canvas.noFocalStep.ariaLabel': string;
+  'canvas.noFocalStep.description': string;
+  'canvas.noFocalStep.heading': string;
+  'canvas.noFocalStep.noStepsHint': string;
+  'canvas.noFocalStep.openStepAria': string;
+
+  // Canvas — MobileLevelPicker
+  'canvas.mobile.ariaLabel': string;
+  'canvas.mobile.process': string;
+  'canvas.mobile.step': string;
+  'canvas.mobile.system': string;
+
+  // Canvas — AuthorL3View
+  'canvas.authorL3.assignedColumns': string;
+  'canvas.authorL3.ctqHeading': string;
+  'canvas.authorL3.dropHint': string;
+  'canvas.authorL3.dropTargetAria': string;
+  'canvas.authorL3.dropTargetAriaWithChip': string;
+  'canvas.authorL3.noAssignedColumns': string;
+  'canvas.authorL3.noCtqContext': string;
+  'canvas.authorL3.noTributaryContext': string;
+  'canvas.authorL3.selectedStep': string;
+  'canvas.authorL3.tributaryColumns': string;
+  'canvas.authorL3.unassignedColumns': string;
+
+  // Canvas — LocalMechanismView
+  'canvas.localMechanism.actionButton': string;
+  'canvas.localMechanism.etaSquaredLabel': string;
+  'canvas.localMechanism.evidenceMap': string;
+  'canvas.localMechanism.factorContribution': string;
+  'canvas.localMechanism.investigationWall': string;
+  'canvas.localMechanism.logActionAria': string;
+  'canvas.localMechanism.noNumericValues': string;
+  'canvas.localMechanism.openChartAria': string;
+  'canvas.localMechanism.openColumnAria': string;
+  'canvas.localMechanism.quickActionTitle': string;
+  'canvas.localMechanism.focusedInvestigation': string;
+  'canvas.localMechanism.charter': string;
+  'canvas.localMechanism.sustainment': string;
+  'canvas.localMechanism.handoff': string;
+  'canvas.localMechanism.focusedInvestigationAria': string;
+  'canvas.localMechanism.charterAria': string;
+  'canvas.localMechanism.sustainmentAria': string;
+  'canvas.localMechanism.handoffAria': string;
 }

@@ -807,6 +807,8 @@ export type {
   ProcessMapHunch,
   TributaryRole,
 } from './frame';
+export { getStepColumnAssignments } from './frame';
+export type { StepColumnAssignments } from './frame';
 export {
   computeStepDrift,
   NUMERIC_TIME_SERIES_DISTINCT_THRESHOLD,
