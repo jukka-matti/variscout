@@ -74,6 +74,7 @@ import { useQuestionGeneration } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { EvidenceMapPopout } from './components/EvidenceMapPopout';
 import { useAppPanels } from './hooks/useAppPanels';
+import { usePanelsStore } from './features/panels/panelsStore';
 import { useFindingsStore, groupFindingsByChart } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
 import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
@@ -791,6 +792,30 @@ function AppMain() {
 
   const isOnline = useOnlineStatus();
 
+  // Sustainment + Handoff inputs for ProjectsTabView → IPDetailPage
+  const _liveSustainmentRecords = (sessionHub?.sustainmentRecords ?? []).filter(
+    r => r.deletedAt === null
+  );
+  const _liveControlHandoffs = (sessionHub?.controlHandoffs ?? []).filter(
+    h => h.deletedAt === null
+  );
+  const projectsSustainmentRecord = _liveSustainmentRecords.find(
+    r => r.improvementProjectId === panels.selectedProjectId
+  );
+  const projectsControlHandoff = _liveControlHandoffs.find(
+    h => h.investigationId === (projectsSustainmentRecord?.investigationId ?? '')
+  );
+  const projectsHandoffInputs = projectsControlHandoff
+    ? {
+        controlPlanDocumented: false,
+        trainingDelivered: Boolean(projectsControlHandoff.signoff?.approvedBy),
+        cadenceAssigned: Boolean(projectsSustainmentRecord?.cadence),
+        processOwnerAcknowledged: projectsControlHandoff.status !== 'pending',
+        trainingRef: projectsControlHandoff.referenceUri,
+        cadenceOwner: projectsSustainmentRecord?.owner?.displayName,
+      }
+    : undefined;
+
   // Full-page What-If Simulator
   if (panels.isWhatIfPageOpen) {
     return (
@@ -1114,6 +1139,23 @@ function AppMain() {
                   // Plan 2 will add IP-context scoping so the workbench filters
                   // to this cause's hypothesis automatically.
                   panels.showImprovement();
+                }}
+                sustainmentRecord={projectsSustainmentRecord}
+                controlHandoff={projectsControlHandoff}
+                handoffInputs={projectsHandoffInputs}
+                onOpenLegacySustainment={() =>
+                  usePanelsStore
+                    .getState()
+                    .showSustainment(projectsSustainmentRecord?.investigationId ?? undefined)
+                }
+                onOpenLegacyHandoff={() =>
+                  usePanelsStore
+                    .getState()
+                    .showHandoff(projectsControlHandoff?.investigationId ?? undefined)
+                }
+                onNudgeProcessOwner={() => {
+                  // Plan 3 will emit EngagementEvent webhook here.
+                  console.info('[handoff] Nudge process owner — Plan 3 will wire EngagementEvent');
                 }}
               />
             ) : panels.activeView === 'improvement' ? (
