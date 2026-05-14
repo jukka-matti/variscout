@@ -46,7 +46,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         </p>
         <button
           type="button"
-          className="mt-4 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="mt-4 rounded-md bg-[var(--vs-accent)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--vs-accent-hover)]"
         >
           + Start your first Improvement Project
         </button>
@@ -58,7 +58,10 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-content">Improvement Projects</h2>
-        <button type="button" className="text-sm text-indigo-600 hover:text-indigo-700">
+        <button
+          type="button"
+          className="text-sm text-[var(--vs-accent)] hover:text-[var(--vs-accent-hover)]"
+        >
           + New Improvement Project
         </button>
       </div>
