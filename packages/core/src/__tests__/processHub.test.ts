@@ -493,9 +493,14 @@ describe('buildProcessHubCadence', () => {
     const sustainmentRecords: SustainmentRecord[] = [
       {
         id: 'rec-sustain-1',
+        title: 'Sustain fill-weight gains',
         investigationId: 'sustain-1',
         hubId: 'line-4',
         cadence: 'monthly',
+        status: 'pending',
+        consecutiveOnTargetTicks: 0,
+        hasOverride: false,
+        lastEvaluatedSnapshotId: undefined,
         nextReviewDue: '2026-04-25T00:00:00.000Z',
         createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z
         updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
@@ -721,9 +726,14 @@ describe('buildProcessHubCadence — sustainment lane', () => {
     const sustainmentRecords: SustainmentRecord[] = [
       {
         id: 'rec-due',
+        title: 'Sustain fill-weight gains (due)',
         investigationId: 'inv-due',
         hubId: 'hub-1',
         cadence: 'monthly',
+        status: 'pending',
+        consecutiveOnTargetTicks: 0,
+        hasOverride: false,
+        lastEvaluatedSnapshotId: undefined,
         nextReviewDue: '2026-04-25T00:00:00.000Z',
         createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z
         updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
@@ -731,9 +741,14 @@ describe('buildProcessHubCadence — sustainment lane', () => {
       },
       {
         id: 'rec-future',
+        title: 'Sustain fill-weight gains (future)',
         investigationId: 'inv-future',
         hubId: 'hub-1',
         cadence: 'monthly',
+        status: 'pending',
+        consecutiveOnTargetTicks: 0,
+        hasOverride: false,
+        lastEvaluatedSnapshotId: undefined,
         nextReviewDue: '2026-05-25T00:00:00.000Z',
         createdAt: 1745539200000, // 2026-04-25T00:00:00.000Z
         updatedAt: 1745539200000, // 2026-04-25T00:00:00.000Z
@@ -1163,9 +1178,14 @@ describe('buildProcessHubContext — sustainment', () => {
     const sustainmentRecords: SustainmentRecord[] = [
       {
         id: 'rec-1',
+        title: 'Sustain fill-weight gains',
         investigationId: 'inv-1',
         hubId: 'hub-1',
         cadence: 'monthly',
+        status: 'pending',
+        consecutiveOnTargetTicks: 0,
+        hasOverride: false,
+        lastEvaluatedSnapshotId: undefined,
         nextReviewDue: '2026-04-25T00:00:00.000Z',
         latestVerdict: 'holding',
         createdAt: 1742860800000, // 2026-03-25T00:00:00.000Z

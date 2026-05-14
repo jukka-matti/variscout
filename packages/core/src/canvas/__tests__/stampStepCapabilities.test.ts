@@ -3,14 +3,25 @@ import type { ProcessMap } from '../../frame';
 import type { DataRow, SpecLimits } from '../..';
 import { stampStepCapabilities } from '../stampStepCapabilities';
 
-const baseMap: ProcessMap = {
+const ISO = '2026-05-14T00:00:00.000Z';
+
+const makeMap = (overrides: Partial<ProcessMap> = {}): ProcessMap => ({
+  version: 1,
+  nodes: [],
+  tributaries: [],
+  createdAt: ISO,
+  updatedAt: ISO,
+  ...overrides,
+});
+
+const baseMap: ProcessMap = makeMap({
   nodes: [
     { id: 'step-1', name: 'Cure', order: 0, parentStepId: null, ctqColumn: 'cure_temp_c' },
-    { id: 'step-2', name: 'Pack', order: 1, parentStepId: null, ctqColumn: null },
+    { id: 'step-2', name: 'Pack', order: 1, parentStepId: null },
   ],
   arrows: [],
   assignments: {},
-};
+});
 
 describe('stampStepCapabilities', () => {
   it('returns one stamp per map node, ordered by node order', () => {
@@ -61,16 +72,16 @@ describe('stampStepCapabilities', () => {
   });
 
   it('returns [] when the map has no nodes', () => {
-    const empty: ProcessMap = { nodes: [], arrows: [], assignments: {} };
+    const empty: ProcessMap = makeMap({ nodes: [], arrows: [], assignments: {} });
     expect(stampStepCapabilities({ map: empty, rows: [], measureSpecs: {} })).toEqual([]);
   });
 
   it('uses an assignment column when ctqColumn is null', () => {
-    const map: ProcessMap = {
-      nodes: [{ id: 'step-A', name: 'A', order: 0, parentStepId: null, ctqColumn: null }],
+    const map: ProcessMap = makeMap({
+      nodes: [{ id: 'step-A', name: 'A', order: 0, parentStepId: null }],
       arrows: [],
       assignments: { col_x: 'step-A' },
-    };
+    });
     const rows: DataRow[] = [{ col_x: '5' }, { col_x: '7' }];
     const stamps = stampStepCapabilities({ map, rows, measureSpecs: {} });
     expect(stamps[0]?.n).toBe(2);
@@ -88,11 +99,11 @@ describe('stampStepCapabilities', () => {
   });
 
   it('falls through to assigned columns when ctqColumn has no parseable values', () => {
-    const map: ProcessMap = {
+    const map: ProcessMap = makeMap({
       nodes: [{ id: 'step-A', name: 'A', order: 0, parentStepId: null, ctqColumn: 'missing_col' }],
       arrows: [],
       assignments: { col_x: 'step-A' },
-    };
+    });
     const rows: DataRow[] = [{ col_x: '5' }, { col_x: '7' }];
     const stamps = stampStepCapabilities({ map, rows, measureSpecs: {} });
     // ctqColumn 'missing_col' has zero parseable values → fall through to col_x
