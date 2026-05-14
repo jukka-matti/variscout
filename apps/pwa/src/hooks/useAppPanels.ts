@@ -19,6 +19,7 @@ export interface UseAppPanelsReturn {
     | 'analysis'
     | 'investigation'
     | 'improvement'
+    | 'projects'
     | 'report'
     | 'charter'
     | 'sustainment'

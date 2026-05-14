@@ -168,4 +168,24 @@ describe('panelsStore', () => {
       expect(usePanelsStore.getState().handoffTargetId).toBe('sr-1');
     });
   });
+
+  describe('Projects tab', () => {
+    it('showProjects sets activeView to projects with no selectedProjectId', () => {
+      usePanelsStore.getState().showProjects();
+      const s = usePanelsStore.getState();
+      expect(s.activeView).toBe('projects');
+      expect(s.selectedProjectId).toBeNull();
+    });
+
+    it('showProjects(projectId) sets activeView to projects with selected id', () => {
+      usePanelsStore.getState().showProjects('ip-42');
+      const s = usePanelsStore.getState();
+      expect(s.activeView).toBe('projects');
+      expect(s.selectedProjectId).toBe('ip-42');
+    });
+
+    it('initial state has selectedProjectId null', () => {
+      expect(usePanelsStore.getState().selectedProjectId).toBeNull();
+    });
+  });
 });
