@@ -1,7 +1,7 @@
 ---
 title: Canvas PR8 sub-PR 8a — Mode-aware response-path CTAs
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: active
 last-reviewed: 2026-05-07
 related:

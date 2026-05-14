@@ -1,7 +1,7 @@
 ---
 title: Improvement Project V1 — Design (SUPERSEDED 2026-05-09)
 audience: [product, engineer, designer]
-category: design
+category: design-spec
 status: superseded
 superseded-by: docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md
 last-reviewed: 2026-05-09

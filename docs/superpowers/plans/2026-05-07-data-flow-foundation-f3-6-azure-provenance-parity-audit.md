@@ -1,7 +1,7 @@
 ---
 title: Data-Flow Foundation F3.6-β Audit — Azure persistence + cloud-sync surface
 audience: [engineer]
-category: implementation-audit
+category: implementation
 status: active
 last-reviewed: 2026-05-07
 related:

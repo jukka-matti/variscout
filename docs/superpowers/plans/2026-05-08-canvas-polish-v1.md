@@ -1,7 +1,7 @@
 ---
 title: Canvas Polish v1 — bundled PR1–PR9 follow-ups
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: delivered
 related:
   - docs/investigations.md

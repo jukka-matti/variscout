@@ -1,7 +1,7 @@
 ---
 title: Projects Tab + IP Detail Page Foundation — Implementation Plan
 audience: [engineer]
-category: plan
+category: implementation
 status: active
 last-reviewed: 2026-05-14
 spec: docs/superpowers/specs/2026-05-14-projects-tab-design.md

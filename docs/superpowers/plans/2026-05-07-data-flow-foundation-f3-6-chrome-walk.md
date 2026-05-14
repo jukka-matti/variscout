@@ -1,7 +1,7 @@
 ---
 title: F3.6-β — Chrome walk script (Azure persistence + cloud sync + ETag concurrency)
 audience: [engineer]
-category: chrome-walk
+category: implementation
 status: active
 last-reviewed: 2026-05-07
 related:

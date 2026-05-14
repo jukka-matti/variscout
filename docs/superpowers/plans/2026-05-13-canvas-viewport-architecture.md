@@ -1,7 +1,7 @@
 ---
 title: Canvas Viewport Architecture (8f) — Implementation Plan
 audience: [engineer]
-category: implementation-plan
+category: implementation
 status: delivered
 last-reviewed: 2026-05-13
 related:
