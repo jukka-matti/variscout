@@ -45,6 +45,7 @@ const twoProjectHub: ProcessHub = {
 describe('useActiveIPContext', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     useActiveIPStore.setState(getActiveIPInitialState());
   });
 
@@ -81,7 +82,7 @@ describe('useActiveIPContext', () => {
   });
 
   it('auto-activates the only live IP once per session scope', async () => {
-    const { result } = renderHook(() => useActiveIPContext(baseHub, 'mira@example.com'));
+    const { result, unmount } = renderHook(() => useActiveIPContext(baseHub, 'mira@example.com'));
 
     await waitFor(() => expect(result.current.activeIP?.id).toBe('ip-1'));
     expect(
@@ -91,6 +92,11 @@ describe('useActiveIPContext', () => {
     act(() => result.current.clearActiveIP());
     expect(result.current.activeIP).toBeNull();
     expect(result.current.isIPScoped).toBe(false);
+
+    unmount();
+    const { result: remounted } = renderHook(() => useActiveIPContext(baseHub, 'mira@example.com'));
+    await waitFor(() => expect(remounted.current.activeIP).toBeNull());
+    expect(remounted.current.isIPScoped).toBe(false);
   });
 
   it('sets and clears active IP through returned actions', () => {

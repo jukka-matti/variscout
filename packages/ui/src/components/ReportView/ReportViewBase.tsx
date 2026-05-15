@@ -43,6 +43,8 @@ export const reportViewBaseDefaultColorScheme: ReportViewBaseColorScheme = {
 type ReportType = 'analysis-snapshot' | 'investigation-report' | 'improvement-story';
 type ReportWorkspace = 'analysis' | 'findings' | 'improvement';
 type AudienceMode = 'technical' | 'summary';
+export type ReportAudienceMode = 'overview' | 'technical';
+export type ShareLinkGate = 'available' | 'locked';
 
 interface SectionDescriptor {
   id: string;
@@ -60,11 +62,15 @@ export interface ReportViewBaseProps {
   activeSectionId: string | null;
   audienceMode?: AudienceMode;
   onAudienceModeChange?: (mode: AudienceMode) => void;
+  reportingOnLabel?: string;
+  reportAudienceMode?: ReportAudienceMode;
+  onReportAudienceModeChange?: (mode: ReportAudienceMode) => void;
   onScrollToSection: (id: string) => void;
   renderSection: (section: SectionDescriptor) => React.ReactNode;
   onCopyAllCharts?: () => void;
   onPrintReport?: () => void;
   onShareReport?: () => void;
+  shareLinkGate?: ShareLinkGate;
   onPublishToSharePoint?: () => void;
   onPublishReplace?: () => void;
   publishStatus?: 'idle' | 'rendering' | 'uploading' | 'success' | 'error' | 'exists';
@@ -142,11 +148,15 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   activeSectionId,
   audienceMode = 'technical',
   onAudienceModeChange,
+  reportingOnLabel,
+  reportAudienceMode,
+  onReportAudienceModeChange,
   onScrollToSection,
   renderSection,
   onCopyAllCharts,
   onPrintReport,
   onShareReport,
+  shareLinkGate,
   onPublishToSharePoint,
   onPublishReplace,
   publishStatus,
@@ -166,6 +176,36 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   };
 
   const workspaceGroups = groupByWorkspace(sections);
+  const reportAudience = reportAudienceMode ?? 'overview';
+
+  const renderReportAudienceToggle = () =>
+    onReportAudienceModeChange ? (
+      <div
+        className="flex items-center rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden"
+        data-export-hide
+      >
+        <button
+          className={`px-3 py-1 text-xs font-medium transition-colors ${
+            reportAudience === 'overview'
+              ? 'bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900'
+              : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+          }`}
+          onClick={() => onReportAudienceModeChange('overview')}
+        >
+          Overview
+        </button>
+        <button
+          className={`px-3 py-1 text-xs font-medium transition-colors ${
+            reportAudience === 'technical'
+              ? 'bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900'
+              : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+          }`}
+          onClick={() => onReportAudienceModeChange('technical')}
+        >
+          Technical
+        </button>
+      </div>
+    ) : null;
 
   return (
     <div className={scheme.container}>
@@ -249,6 +289,26 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
             >
               <Share2 size={14} />
               {t('report.action.shareReport')}
+            </button>
+          )}
+          {shareLinkGate && onShareReport && (
+            <button
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
+                shareLinkGate === 'available'
+                  ? 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  : 'text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 cursor-not-allowed'
+              }`}
+              onClick={shareLinkGate === 'available' ? onShareReport : undefined}
+              disabled={shareLinkGate === 'locked'}
+              title={shareLinkGate === 'locked' ? 'Azure paid' : undefined}
+            >
+              <Share2 size={14} />
+              <span>Share link</span>
+              {shareLinkGate === 'locked' ? (
+                <span className="ml-auto text-[0.625rem] font-medium uppercase tracking-wide">
+                  Azure paid
+                </span>
+              ) : null}
             </button>
           )}
           {onPublishToSharePoint && (
@@ -342,15 +402,24 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
 
           <FileText size={18} className="text-slate-400 dark:text-slate-500 flex-shrink-0" />
 
-          <h1 className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate flex-1">
-            {processName}
-          </h1>
+          <div className="min-w-0 flex-1">
+            {reportingOnLabel ? (
+              <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">
+                Reporting on: {reportingOnLabel}
+              </p>
+            ) : null}
+            <h1 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
+              {processName}
+            </h1>
+          </div>
 
           {activeIPContextChip}
 
           <span className={`${scheme.badge} ${BADGE_COLORS[reportType]}`}>
             {t(BADGE_I18N_KEYS[reportType])}
           </span>
+
+          {renderReportAudienceToggle()}
 
           {/* Audience toggle */}
           {onAudienceModeChange && (
@@ -447,6 +516,22 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
                 {t('report.action.shareReport')}
               </button>
             )}
+            {shareLinkGate && onShareReport && (
+              <button
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg transition-colors whitespace-nowrap ${
+                  shareLinkGate === 'available'
+                    ? 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800'
+                }`}
+                onClick={shareLinkGate === 'available' ? onShareReport : undefined}
+                disabled={shareLinkGate === 'locked'}
+                style={{ minHeight: 44 }}
+              >
+                <Share2 size={14} />
+                Share link
+                {shareLinkGate === 'locked' ? <span>Azure paid</span> : null}
+              </button>
+            )}
             {onPublishToSharePoint && (!publishStatus || publishStatus === 'idle') && (
               <button
                 className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
@@ -501,6 +586,36 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               onClick={() => onAudienceModeChange('summary')}
             >
               {t('report.audience.summary')}
+            </button>
+          </div>
+        )}
+
+        {onReportAudienceModeChange && (
+          <div
+            className="lg:hidden flex gap-1 px-4 pb-2 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+            data-export-hide
+          >
+            <button
+              className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                reportAudience === 'overview'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+              style={{ minHeight: 36 }}
+              onClick={() => onReportAudienceModeChange('overview')}
+            >
+              Overview
+            </button>
+            <button
+              className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                reportAudience === 'technical'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+              style={{ minHeight: 36 }}
+              onClick={() => onReportAudienceModeChange('technical')}
+            >
+              Technical
             </button>
           </div>
         )}

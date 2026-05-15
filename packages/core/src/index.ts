@@ -844,6 +844,7 @@ export {
   createInvestigationCategory,
   createHypothesis,
   createCausalLink,
+  deriveIPReportMiniChartType,
   // HypothesisCondition evaluator
   evaluateCondition,
   runAndCheck,
@@ -858,7 +859,7 @@ export {
   insertHubAsAndChild,
   removeAt,
 } from './findings';
-export type { GatePath } from './findings';
+export type { GatePath, IPReportMiniChartType } from './findings';
 export type { FactorFindingInput, FactorFindingBundle } from './findings';
 export {
   getCategoryForFactor,
@@ -882,6 +883,25 @@ export {
   migrateCauseRolesToHubs,
 } from './findings';
 export type { HubProjection, EvidenceCluster } from './findings';
+
+// Report domain helpers
+export {
+  D13_OVERVIEW_SECTION_TITLES,
+  deriveHubPortfolioReport,
+  deriveIPCauseRows,
+  deriveIPReportNarrative,
+  selectIPReportScope,
+} from './report';
+export type {
+  HubCapabilitySummary,
+  HubPortfolioReport,
+  HubPortfolioRow,
+  IPCauseRow,
+  IPReportOverviewSection,
+  IPReportOverviewSectionTitle,
+  IPReportScope,
+  IPReportScopeInput,
+} from './report';
 
 // Yamazumi Analysis Mode
 export type {

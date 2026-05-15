@@ -16,6 +16,34 @@ function liveProjects(hub: ProcessHub | undefined | null): ImprovementProject[] 
   return (hub?.improvementProjects ?? []).filter(project => project.deletedAt === null);
 }
 
+function clearedScopeKey(scopeKey: string): string {
+  return `variscout:activeIP:cleared:${scopeKey}`;
+}
+
+function wasUserCleared(scopeKey: string): boolean {
+  try {
+    return sessionStorage.getItem(clearedScopeKey(scopeKey)) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function markUserCleared(scopeKey: string): void {
+  try {
+    sessionStorage.setItem(clearedScopeKey(scopeKey), 'true');
+  } catch {
+    // Ignore storage failures; clearing still works for the current hook instance.
+  }
+}
+
+function clearUserCleared(scopeKey: string): void {
+  try {
+    sessionStorage.removeItem(clearedScopeKey(scopeKey));
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
 export function useActiveIPContext(
   hub: ProcessHub | undefined | null,
   userId: string | null | undefined
@@ -51,6 +79,7 @@ export function useActiveIPContext(
 
   useEffect(() => {
     if (!scope || !scopeKey || activeState || projects.length !== 1) return;
+    if (wasUserCleared(scopeKey)) return;
     if (autoActivatedScopeRef.current === scopeKey) return;
     autoActivatedScopeRef.current = scopeKey;
     storeSetActiveIP(scope, projects[0].id);
@@ -58,14 +87,20 @@ export function useActiveIPContext(
 
   const setActiveIP = useCallback(
     (ipId: ImprovementProject['id'], setAt?: number) => {
-      if (scope) storeSetActiveIP(scope, ipId, setAt);
+      if (scope && scopeKey) {
+        clearUserCleared(scopeKey);
+        storeSetActiveIP(scope, ipId, setAt);
+      }
     },
-    [scope, storeSetActiveIP]
+    [scope, scopeKey, storeSetActiveIP]
   );
 
   const clearActiveIP = useCallback(() => {
-    if (scope) storeClearActiveIP(scope);
-  }, [scope, storeClearActiveIP]);
+    if (scope && scopeKey) {
+      markUserCleared(scopeKey);
+      storeClearActiveIP(scope);
+    }
+  }, [scope, scopeKey, storeClearActiveIP]);
 
   void activeIPs;
 
