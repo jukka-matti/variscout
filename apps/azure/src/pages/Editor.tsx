@@ -40,6 +40,10 @@ import {
   StageFiveModal,
   MatchSummaryCard,
   ActiveIPLaunchpadCard,
+  ActiveIPScopeRibbon,
+  deriveActiveIPCanvasFocus,
+  deriveActiveIPLineageIds,
+  deriveActiveIPScopeLabels,
   type ColumnShape,
 } from '@variscout/ui';
 import { useStageFiveOpener } from '../features/hubCreation/useStageFiveOpener';
@@ -59,6 +63,7 @@ import {
   computeBestSubsets,
   evaluateSurvey,
   getColumnNames,
+  normalizeProcessHubId,
 } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
@@ -571,6 +576,36 @@ export const Editor: React.FC<EditorProps> = ({
   const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
   const activeIPContext = useActiveIPContext(activeHub, currentUser?.email);
   const selectedOrActiveProjectId = activeIPContext.activeIP?.id ?? selectedProjectId;
+  const activeIPScopeLabels = useMemo(
+    () =>
+      activeIPContext.activeIP
+        ? deriveActiveIPScopeLabels(
+            activeIPContext.activeIP,
+            activeHub,
+            activeIPContext.activeState?.setAt
+          )
+        : null,
+    [activeHub, activeIPContext.activeIP, activeIPContext.activeState?.setAt]
+  );
+  const activeIPScope =
+    activeIPContext.activeIP && activeIPScopeLabels
+      ? {
+          title: activeIPContext.activeIP.metadata.title,
+          labels: activeIPScopeLabels,
+        }
+      : null;
+  const activeIPLineage = useMemo(
+    () => (activeIPContext.activeIP ? deriveActiveIPLineageIds(activeIPContext.activeIP) : null),
+    [activeIPContext.activeIP]
+  );
+  const activeIPLineageFindingIds = useMemo(
+    () => new Set(activeIPLineage?.findingIds ?? []),
+    [activeIPLineage]
+  );
+  const activeIPLineageHypothesisIds = useMemo(
+    () => new Set(activeIPLineage?.hypothesisIds ?? []),
+    [activeIPLineage]
+  );
 
   // Sustainment + Handoff inputs for ProjectsTabView → IPDetailPage
   const _azureLiveSustainmentRecords = (activeHub?.sustainmentRecords ?? []).filter(
@@ -1144,6 +1179,77 @@ export const Editor: React.FC<EditorProps> = ({
   });
   const activeImprovementView = usePanelsStore(s => s.activeImprovementView);
   const highlightedIdeaId = usePanelsStore(s => s.highlightedIdeaId);
+  const scopedFindings = useMemo(
+    () =>
+      activeIPContext.isIPScoped
+        ? findingsState.findings.filter(finding => activeIPLineageFindingIds.has(finding.id))
+        : findingsState.findings,
+    [activeIPContext.isIPScoped, activeIPLineageFindingIds, findingsState.findings]
+  );
+  const scopedHypotheses = useMemo(
+    () =>
+      activeIPContext.isIPScoped
+        ? hypotheses.filter(hypothesis => activeIPLineageHypothesisIds.has(hypothesis.id))
+        : hypotheses,
+    [activeIPContext.isIPScoped, activeIPLineageHypothesisIds, hypotheses]
+  );
+  const scopedQuestionIds = useMemo(() => {
+    if (!activeIPContext.isIPScoped) return null;
+    const ids = new Set<string>();
+    for (const hypothesis of scopedHypotheses) {
+      for (const id of hypothesis.questionIds) ids.add(id);
+    }
+    for (const finding of scopedFindings) {
+      if (finding.questionId) ids.add(finding.questionId);
+    }
+    return ids;
+  }, [activeIPContext.isIPScoped, scopedFindings, scopedHypotheses]);
+  const scopedQuestions = useMemo(
+    () =>
+      scopedQuestionIds
+        ? questionsState.questions.filter(question => scopedQuestionIds.has(question.id))
+        : questionsState.questions,
+    [questionsState.questions, scopedQuestionIds]
+  );
+  const scopedImprovementQuestions = useMemo(
+    () =>
+      scopedQuestionIds
+        ? improvementQuestions.filter(question => scopedQuestionIds.has(question.id))
+        : improvementQuestions,
+    [improvementQuestions, scopedQuestionIds]
+  );
+  const scopedQuestionsState = useMemo(
+    () => (scopedQuestionIds ? { ...questionsState, questions: scopedQuestions } : questionsState),
+    [questionsState, scopedQuestionIds, scopedQuestions]
+  );
+  const scopedFindingsState = useMemo(
+    () =>
+      activeIPContext.isIPScoped ? { ...findingsState, findings: scopedFindings } : findingsState,
+    [activeIPContext.isIPScoped, findingsState, scopedFindings]
+  );
+  const activeIPAnalyzeFactorRequest = useMemo(
+    () =>
+      activeIPContext.isIPScoped && activeIPScopeLabels?.factorLabels[0]
+        ? {
+            factor: activeIPScopeLabels.factorLabels[0],
+            seq: activeIPContext.activeState?.setAt ?? 0,
+          }
+        : null,
+    [
+      activeIPContext.activeState?.setAt,
+      activeIPContext.isIPScoped,
+      activeIPScopeLabels?.factorLabels,
+    ]
+  );
+
+  useEffect(() => {
+    if (activeView !== 'frame' || !activeHub) return;
+    if (activeIPContext.activeIP) {
+      const hubId = normalizeProcessHubId(activeHub.id);
+      const focus = deriveActiveIPCanvasFocus(activeIPContext.activeIP, activeHub);
+      useCanvasViewportStore.getState().setLevel(hubId, focus.level, focus.focalStepId);
+    }
+  }, [activeHub, activeIPContext.activeIP, activeView]);
 
   // Verification prompt: show when new data is uploaded while findings are improving
   const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
@@ -1695,7 +1801,16 @@ export const Editor: React.FC<EditorProps> = ({
                 />
               </div>
             ) : activeView === 'frame' ? (
-              <FrameView />
+              <div className="flex min-h-0 flex-1 flex-col">
+                {activeIPScope ? (
+                  <ActiveIPScopeRibbon
+                    title={activeIPScope.title}
+                    labels={activeIPScope.labels}
+                    surface="Process"
+                  />
+                ) : null}
+                <FrameView />
+              </div>
             ) : activeView === 'charter' ? (
               <ImprovementProjectPanel
                 activeHub={activeHub}
@@ -1707,13 +1822,15 @@ export const Editor: React.FC<EditorProps> = ({
               />
             ) : activeView === 'investigation' ? (
               <InvestigationWorkspace
-                findingsState={findingsState}
+                activeIPScope={activeIPScope}
+                activeIPLineage={activeIPLineage}
+                findingsState={scopedFindingsState}
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={handleSetFindingStatus}
                 handleNavigateToChart={handleNavigateToChart}
                 handleShareFinding={handleShareFinding}
                 drillPath={drillPath}
-                questionsState={questionsState}
+                questionsState={scopedQuestionsState}
                 handleCreateQuestion={handleCreateQuestion}
                 handleProjectIdea={handleProjectIdea}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
@@ -1786,158 +1903,182 @@ export const Editor: React.FC<EditorProps> = ({
                 onStartNewProject={() => usePanelsStore.getState().showCharter()}
               />
             ) : activeView === 'improvement' ? (
-              <ImprovementWorkspaceBase
-                synthesis={processContext?.synthesis}
-                onSynthesisChange={handleSynthesisChange}
-                questions={improvementQuestions}
-                linkedFindings={improvementLinkedFindings}
-                onToggleSelect={(hId, iId, sel) => questionsState.selectIdea(hId, iId, sel)}
-                onUpdateTimeframe={(hId, iId, timeframe) =>
-                  questionsState.updateIdea(hId, iId, { timeframe })
-                }
-                onUpdateDirection={(hId, iId, dir) =>
-                  questionsState.updateIdea(hId, iId, { direction: dir })
-                }
-                onUpdateCost={(hId, iId, cost) => questionsState.updateIdea(hId, iId, { cost })}
-                onOpenRisk={() => {}}
-                onRemoveIdea={questionsState.removeIdea}
-                onOpenWhatIf={(questionId, ideaId) => handleProjectIdea(questionId, ideaId, true)}
-                onAddIdea={(hId, text) => questionsState.addIdea(hId, text)}
-                onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
-                onConvertToActions={() => {
-                  handleConvertIdeasToActions();
-                  usePanelsStore.getState().setActiveImprovementView('track');
-                }}
-                onBack={() => usePanelsStore.getState().showAnalysis()}
-                onPopout={handleOpenImprovementPopout}
-                selectedIdeaIds={selectedIdeaIds}
-                convertedIdeaIds={convertedIdeaIds}
-                targetCpk={processContext?.targetValue}
-                activeView={activeImprovementView}
-                showLeftPanel={true}
-                renderLeftPanel={() => {
-                  if (projectionTarget) {
+              <div className="flex min-h-0 flex-1 flex-col">
+                {activeIPScope ? (
+                  <ActiveIPScopeRibbon
+                    title={activeIPScope.title}
+                    labels={activeIPScope.labels}
+                    surface="Improve"
+                  />
+                ) : null}
+                <ImprovementWorkspaceBase
+                  synthesis={processContext?.synthesis}
+                  onSynthesisChange={handleSynthesisChange}
+                  questions={scopedImprovementQuestions}
+                  linkedFindings={
+                    activeIPContext.isIPScoped ? scopedFindings : improvementLinkedFindings
+                  }
+                  onToggleSelect={(hId, iId, sel) => questionsState.selectIdea(hId, iId, sel)}
+                  onUpdateTimeframe={(hId, iId, timeframe) =>
+                    questionsState.updateIdea(hId, iId, { timeframe })
+                  }
+                  onUpdateDirection={(hId, iId, dir) =>
+                    questionsState.updateIdea(hId, iId, { direction: dir })
+                  }
+                  onUpdateCost={(hId, iId, cost) => questionsState.updateIdea(hId, iId, { cost })}
+                  onOpenRisk={() => {}}
+                  onRemoveIdea={questionsState.removeIdea}
+                  onOpenWhatIf={(questionId, ideaId) => handleProjectIdea(questionId, ideaId, true)}
+                  onAddIdea={(hId, text) => questionsState.addIdea(hId, text)}
+                  onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
+                  onConvertToActions={() => {
+                    handleConvertIdeasToActions();
+                    usePanelsStore.getState().setActiveImprovementView('track');
+                  }}
+                  onBack={() => usePanelsStore.getState().showAnalysis()}
+                  onPopout={handleOpenImprovementPopout}
+                  selectedIdeaIds={selectedIdeaIds}
+                  convertedIdeaIds={convertedIdeaIds}
+                  targetCpk={processContext?.targetValue}
+                  activeView={activeImprovementView}
+                  showLeftPanel={true}
+                  renderLeftPanel={() => {
+                    if (projectionTarget) {
+                      return (
+                        <WhatIfExplorerPage
+                          filteredData={filteredData}
+                          rawData={rawData}
+                          outcome={outcome}
+                          specs={specs}
+                          filterCount={0}
+                          onBack={() => clearProjectionTarget()}
+                          cpkTarget={cpkTarget}
+                          activeFactor={viewState?.boxplotFactor}
+                          mode={analysisMode ?? 'standard'}
+                          projectionContext={{
+                            ideaText: projectionTarget.ideaText,
+                            questionText: projectionTarget.questionText,
+                          }}
+                          onSaveProjection={handleSaveIdeaProjection}
+                          referenceContext={projectionReferenceContext}
+                        />
+                      );
+                    }
                     return (
-                      <WhatIfExplorerPage
-                        filteredData={filteredData}
-                        rawData={rawData}
-                        outcome={outcome}
-                        specs={specs}
-                        filterCount={0}
-                        onBack={() => clearProjectionTarget()}
-                        cpkTarget={cpkTarget}
-                        activeFactor={viewState?.boxplotFactor}
-                        mode={analysisMode ?? 'standard'}
-                        projectionContext={{
-                          ideaText: projectionTarget.ideaText,
-                          questionText: projectionTarget.questionText,
-                        }}
-                        onSaveProjection={handleSaveIdeaProjection}
-                        referenceContext={projectionReferenceContext}
+                      <ImprovementContextPanel
+                        problemStatement={processContext?.problemStatement}
+                        currentUnderstanding={processContext?.currentUnderstanding}
+                        targetCpk={processContext?.targetValue}
+                        currentCpk={stats?.cpk}
+                        causes={causeSummaries}
+                        synthesis={processContext?.synthesis}
                       />
                     );
-                  }
-                  return (
-                    <ImprovementContextPanel
-                      problemStatement={processContext?.problemStatement}
-                      currentUnderstanding={processContext?.currentUnderstanding}
-                      targetCpk={processContext?.targetValue}
-                      currentCpk={stats?.cpk}
-                      causes={causeSummaries}
-                      synthesis={processContext?.synthesis}
-                    />
-                  );
-                }}
-                renderMatrix={() => (
-                  <div className="p-4">
-                    <PrioritizationMatrix
-                      ideas={matrixIdeas}
-                      xAxis={matrixXAxis}
-                      yAxis={matrixYAxis}
-                      colorBy={matrixColorBy}
-                      causeColors={causeColors}
-                      causeLabels={causeLabels}
-                      presets={DEFAULT_PRESETS}
-                      activePreset={matrixPreset}
-                      onPresetChange={setMatrixPreset}
-                      onAxisChange={(axis, value) => {
-                        if (axis === 'x') setMatrixXAxis(value);
-                        else if (axis === 'y') setMatrixYAxis(value);
-                        else setMatrixColorBy(value);
-                      }}
-                      onToggleSelect={ideaId => {
-                        const question = improvementQuestions.find(q =>
-                          q.ideas?.some((i: { id: string }) => i.id === ideaId)
-                        );
-                        if (question) {
-                          questionsState.selectIdea(
-                            question.id,
-                            ideaId,
-                            !selectedIdeaIds.has(ideaId)
+                  }}
+                  renderMatrix={() => (
+                    <div className="p-4">
+                      <PrioritizationMatrix
+                        ideas={matrixIdeas}
+                        xAxis={matrixXAxis}
+                        yAxis={matrixYAxis}
+                        colorBy={matrixColorBy}
+                        causeColors={causeColors}
+                        causeLabels={causeLabels}
+                        presets={DEFAULT_PRESETS}
+                        activePreset={matrixPreset}
+                        onPresetChange={setMatrixPreset}
+                        onAxisChange={(axis, value) => {
+                          if (axis === 'x') setMatrixXAxis(value);
+                          else if (axis === 'y') setMatrixYAxis(value);
+                          else setMatrixColorBy(value);
+                        }}
+                        onToggleSelect={ideaId => {
+                          const question = improvementQuestions.find(q =>
+                            q.ideas?.some((i: { id: string }) => i.id === ideaId)
                           );
-                        }
+                          if (question) {
+                            questionsState.selectIdea(
+                              question.id,
+                              ideaId,
+                              !selectedIdeaIds.has(ideaId)
+                            );
+                          }
+                        }}
+                        highlightedIdeaId={highlightedIdeaId ?? undefined}
+                        onIdeaClick={ideaId => {
+                          const card = document.querySelector(`[data-testid="idea-row-${ideaId}"]`);
+                          card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          usePanelsStore.getState().setHighlightedIdeaId(ideaId);
+                          setTimeout(
+                            () => usePanelsStore.getState().setHighlightedIdeaId(null),
+                            2000
+                          );
+                        }}
+                        onGhostDotClick={ideaId => {
+                          const question = improvementQuestions.find(q =>
+                            q.ideas?.some((i: { id: string }) => i.id === ideaId)
+                          );
+                          if (question) {
+                            handleProjectIdea(question.id, ideaId, true);
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                  onIdeaHover={ideaId => usePanelsStore.getState().setHighlightedIdeaId(ideaId)}
+                  highlightedIdeaId={highlightedIdeaId}
+                  onOpenBrainstorm={questionId => {
+                    setBrainstormQuestionId(questionId);
+                    setBrainstormIdeas([]);
+                  }}
+                  renderTrackView={() => (
+                    <TrackView
+                      selectedIdeas={selectedIdeasForRecap}
+                      onEditSelection={() =>
+                        usePanelsStore.getState().setActiveImprovementView('plan')
+                      }
+                      onBackToPlan={() =>
+                        usePanelsStore.getState().setActiveImprovementView('plan')
+                      }
+                      actions={aggregatedActions}
+                      onToggleComplete={(actionId, findingId) => {
+                        findingsState.toggleActionComplete(findingId, actionId);
                       }}
-                      highlightedIdeaId={highlightedIdeaId ?? undefined}
-                      onIdeaClick={ideaId => {
-                        const card = document.querySelector(`[data-testid="idea-row-${ideaId}"]`);
-                        card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        usePanelsStore.getState().setHighlightedIdeaId(ideaId);
-                        setTimeout(
-                          () => usePanelsStore.getState().setHighlightedIdeaId(null),
-                          2000
-                        );
-                      }}
-                      onGhostDotClick={ideaId => {
-                        const question = improvementQuestions.find(q =>
-                          q.ideas?.some((i: { id: string }) => i.id === ideaId)
-                        );
-                        if (question) {
-                          handleProjectIdea(question.id, ideaId, true);
-                        }
-                      }}
+                      verification={improvVerificationData}
+                      hasVerification={improvHasVerification}
+                      selectedOutcome={
+                        improvCurrentOutcome
+                          ? improvCurrentOutcome.effective === 'yes'
+                            ? 'effective'
+                            : improvCurrentOutcome.effective === 'partial'
+                              ? 'partial'
+                              : 'not-effective'
+                          : undefined
+                      }
+                      outcomeNotes={improvOutcomeNotes}
+                      onOutcomeChange={improvHandleOutcomeChange}
+                      onOutcomeNotesChange={improvHandleOutcomeNotesChange}
                     />
-                  </div>
-                )}
-                onIdeaHover={ideaId => usePanelsStore.getState().setHighlightedIdeaId(ideaId)}
-                highlightedIdeaId={highlightedIdeaId}
-                onOpenBrainstorm={questionId => {
-                  setBrainstormQuestionId(questionId);
-                  setBrainstormIdeas([]);
-                }}
-                renderTrackView={() => (
-                  <TrackView
-                    selectedIdeas={selectedIdeasForRecap}
-                    onEditSelection={() =>
-                      usePanelsStore.getState().setActiveImprovementView('plan')
-                    }
-                    onBackToPlan={() => usePanelsStore.getState().setActiveImprovementView('plan')}
-                    actions={aggregatedActions}
-                    onToggleComplete={(actionId, findingId) => {
-                      findingsState.toggleActionComplete(findingId, actionId);
-                    }}
-                    verification={improvVerificationData}
-                    hasVerification={improvHasVerification}
-                    selectedOutcome={
-                      improvCurrentOutcome
-                        ? improvCurrentOutcome.effective === 'yes'
-                          ? 'effective'
-                          : improvCurrentOutcome.effective === 'partial'
-                            ? 'partial'
-                            : 'not-effective'
-                        : undefined
-                    }
-                    outcomeNotes={improvOutcomeNotes}
-                    onOutcomeChange={improvHandleOutcomeChange}
-                    onOutcomeNotesChange={improvHandleOutcomeNotesChange}
-                  />
-                )}
-              />
+                  )}
+                />
+              </div>
             ) : activeView === 'report' ? (
               <Suspense fallback={null}>
                 <ReportView
                   onClose={() => usePanelsStore.getState().showAnalysis()}
                   aiEnabled={aiEnabled && isAIAvailable()}
                   narrative={aiOrch.narration.narrative}
+                  activeIPScope={activeIPScope}
+                  activeIPLineage={activeIPLineage}
+                  activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
+                  onOpenActiveIP={
+                    activeIPContext.activeIP
+                      ? () => usePanelsStore.getState().showProjects(activeIPContext.activeIP!.id)
+                      : undefined
+                  }
+                  onExitActiveIP={() => {
+                    activeIPContext.clearActiveIP();
+                  }}
                 />
               </Suspense>
             ) : (
@@ -1961,6 +2102,8 @@ export const Editor: React.FC<EditorProps> = ({
                 excludedRowIndices={excludedRowIndices}
                 excludedReasons={excludedReasons}
                 projectedCpkMap={improvementProjectedCpkMap}
+                activeIPFactorRequest={activeIPAnalyzeFactorRequest}
+                activeIPScope={activeIPScope}
               />
             )}
           </>

@@ -25,6 +25,10 @@ import {
   StageFiveModal,
   MatchSummaryCard,
   ActiveIPLaunchpadCard,
+  ActiveIPScopeRibbon,
+  deriveActiveIPCanvasFocus,
+  deriveActiveIPLineageIds,
+  deriveActiveIPScopeLabels,
   type ColumnShape,
 } from '@variscout/ui';
 import { useStageFiveOpener } from './hooks/useStageFiveOpener';
@@ -797,6 +801,110 @@ function AppMain() {
 
   const isOnline = useOnlineStatus();
   const selectedOrActiveProjectId = activeIPContext.activeIP?.id ?? panels.selectedProjectId;
+  const activeIPScopeLabels = useMemo(
+    () =>
+      activeIPContext.activeIP
+        ? deriveActiveIPScopeLabels(
+            activeIPContext.activeIP,
+            sessionHub,
+            activeIPContext.activeState?.setAt
+          )
+        : null,
+    [activeIPContext.activeIP, activeIPContext.activeState?.setAt, sessionHub]
+  );
+  const activeIPScope =
+    activeIPContext.activeIP && activeIPScopeLabels
+      ? {
+          title: activeIPContext.activeIP.metadata.title,
+          labels: activeIPScopeLabels,
+        }
+      : null;
+  const activeIPLineage = useMemo(
+    () => (activeIPContext.activeIP ? deriveActiveIPLineageIds(activeIPContext.activeIP) : null),
+    [activeIPContext.activeIP]
+  );
+  const activeIPLineageFindingIds = useMemo(
+    () => new Set(activeIPLineage?.findingIds ?? []),
+    [activeIPLineage]
+  );
+  const activeIPLineageHypothesisIds = useMemo(
+    () => new Set(activeIPLineage?.hypothesisIds ?? []),
+    [activeIPLineage]
+  );
+  const scopedFindings = useMemo(
+    () =>
+      activeIPContext.isIPScoped
+        ? findingsState.findings.filter(finding => activeIPLineageFindingIds.has(finding.id))
+        : findingsState.findings,
+    [activeIPContext.isIPScoped, activeIPLineageFindingIds, findingsState.findings]
+  );
+  const scopedHypotheses = useMemo(
+    () =>
+      activeIPContext.isIPScoped
+        ? hypotheses.filter(hypothesis => activeIPLineageHypothesisIds.has(hypothesis.id))
+        : hypotheses,
+    [activeIPContext.isIPScoped, activeIPLineageHypothesisIds, hypotheses]
+  );
+  const scopedQuestionIds = useMemo(() => {
+    if (!activeIPContext.isIPScoped) return null;
+    const ids = new Set<string>();
+    for (const hypothesis of scopedHypotheses) {
+      for (const id of hypothesis.questionIds) ids.add(id);
+    }
+    for (const finding of scopedFindings) {
+      if (finding.questionId) ids.add(finding.questionId);
+    }
+    return ids;
+  }, [activeIPContext.isIPScoped, scopedFindings, scopedHypotheses]);
+  const scopedQuestions = useMemo(
+    () =>
+      scopedQuestionIds
+        ? questions.filter(question => scopedQuestionIds.has(question.id))
+        : questions,
+    [questions, scopedQuestionIds]
+  );
+  const scopedImprovementQuestions = useMemo(
+    () =>
+      scopedQuestionIds
+        ? improvementOrch.improvementQuestions.filter(question =>
+            scopedQuestionIds.has(question.id)
+          )
+        : improvementOrch.improvementQuestions,
+    [improvementOrch.improvementQuestions, scopedQuestionIds]
+  );
+  const scopedQuestionsState = useMemo(
+    () => (scopedQuestionIds ? { ...questionsState, questions: scopedQuestions } : questionsState),
+    [questionsState, scopedQuestionIds, scopedQuestions]
+  );
+  const scopedFindingsState = useMemo(
+    () =>
+      activeIPContext.isIPScoped ? { ...findingsState, findings: scopedFindings } : findingsState,
+    [activeIPContext.isIPScoped, findingsState, scopedFindings]
+  );
+  const activeIPAnalyzeFactorRequest = useMemo(
+    () =>
+      activeIPContext.isIPScoped && activeIPScopeLabels?.factorLabels[0]
+        ? {
+            factor: activeIPScopeLabels.factorLabels[0],
+            seq: activeIPContext.activeState?.setAt ?? 0,
+          }
+        : factorRequest,
+    [
+      activeIPContext.activeState?.setAt,
+      activeIPContext.isIPScoped,
+      activeIPScopeLabels?.factorLabels,
+      factorRequest,
+    ]
+  );
+
+  useEffect(() => {
+    if (panels.activeView !== 'frame' || !sessionHub) return;
+    if (activeIPContext.activeIP) {
+      const hubId = normalizeProcessHubId(sessionHub.id);
+      const focus = deriveActiveIPCanvasFocus(activeIPContext.activeIP, sessionHub);
+      useCanvasViewportStore.getState().setLevel(hubId, focus.level, focus.focalStepId);
+    }
+  }, [activeIPContext.activeIP, panels.activeView, sessionHub]);
 
   // Sustainment + Handoff inputs for ProjectsTabView → IPDetailPage
   const _liveSustainmentRecords = (sessionHub?.sustainmentRecords ?? []).filter(
@@ -1107,7 +1215,16 @@ function AppMain() {
                 hideSpecs={analysisMode === 'defect'}
               />
             ) : panels.activeView === 'frame' ? (
-              <FrameView />
+              <div className="flex min-h-0 flex-1 flex-col">
+                {activeIPScope ? (
+                  <ActiveIPScopeRibbon
+                    title={activeIPScope.title}
+                    labels={activeIPScope.labels}
+                    surface="Process"
+                  />
+                ) : null}
+                <FrameView />
+              </div>
             ) : panels.activeView === 'charter' ? (
               <ImprovementProjectPanel
                 activeHub={sessionHub ?? undefined}
@@ -1131,15 +1248,17 @@ function AppMain() {
               />
             ) : panels.activeView === 'investigation' ? (
               <InvestigationView
+                activeIPScope={activeIPScope}
+                activeIPLineage={activeIPLineage}
                 canvasViewportHubId={normalizeProcessHubId(canvasViewportHubId)}
                 filteredData={filteredData ?? []}
                 outcome={outcome}
                 factors={factors}
-                findingsState={findingsState}
+                findingsState={scopedFindingsState}
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={investigation.handleSetFindingStatus}
                 drillPath={drillPath}
-                questionsState={questionsState}
+                questionsState={scopedQuestionsState}
                 handleCreateQuestion={investigation.handleCreateQuestion}
                 factorIntelQuestions={factorIntelQuestions}
                 handleQuestionClick={handleQuestionClick}
@@ -1200,11 +1319,16 @@ function AppMain() {
               />
             ) : panels.activeView === 'improvement' ? (
               <ImprovementView
-                questionsState={questionsState}
+                activeIPScope={activeIPScope}
+                questionsState={scopedQuestionsState}
                 onBack={panels.showAnalysis}
                 handleConvertIdeasToActions={improvementOrch.handleConvertIdeasToActions}
-                improvementQuestions={improvementOrch.improvementQuestions}
-                improvementLinkedFindings={improvementOrch.improvementLinkedFindings}
+                improvementQuestions={scopedImprovementQuestions}
+                improvementLinkedFindings={
+                  activeIPContext.isIPScoped
+                    ? scopedFindings
+                    : improvementOrch.improvementLinkedFindings
+                }
                 selectedIdeaIds={improvementOrch.selectedIdeaIds}
                 convertedIdeaIds={improvementOrch.convertedIdeaIds}
               />
@@ -1213,12 +1337,22 @@ function AppMain() {
                 onClose={panels.showAnalysis}
                 stats={stats}
                 specs={specs}
-                findings={findingsState.findings}
-                questions={questionsState.questions}
+                findings={scopedFindings}
+                questions={scopedQuestions}
                 columnAliases={columnAliases}
                 dataFilename={dataFilename}
                 sampleCount={lensedSampleCount}
                 analysisMode={analysisMode}
+                activeIPScope={activeIPScope}
+                activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
+                onOpenActiveIP={
+                  activeIPContext.activeIP
+                    ? () => panels.showProjects(activeIPContext.activeIP!.id)
+                    : undefined
+                }
+                onExitActiveIP={() => {
+                  activeIPContext.clearActiveIP();
+                }}
                 defectSummary={
                   defectSummaryProps
                     ? {
@@ -1262,7 +1396,8 @@ function AppMain() {
                 highlightedPointIndex={panels.highlightedChartPoint}
                 filterNav={filterNav}
                 onPinFinding={handlePinFinding}
-                requestedFactor={factorRequest}
+                requestedFactor={activeIPAnalyzeFactorRequest}
+                activeIPScope={activeIPScope}
                 findingsCallbacks={{
                   onAddChartObservation: handleAddChartObservation,
                   chartFindings,

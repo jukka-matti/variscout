@@ -39,9 +39,11 @@ import {
   CapabilityMetricToggle,
   SubgroupConfigPopover,
   DefectSummary,
+  ActiveIPScopeRibbon,
   useIsMobile,
   useGlossary,
   BREAKPOINTS,
+  type ActiveIPScopeLabels,
 } from '@variscout/ui';
 import { getColumnNames, getEtaSquared } from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
@@ -138,6 +140,10 @@ interface DashboardProps {
   ai?: DashboardAIProps;
   /** Projected Cpk map from improvement workspace (finding ID -> projected Cpk) */
   projectedCpkMap?: Record<string, number>;
+  activeIPScope?: {
+    title: string;
+    labels: ActiveIPScopeLabels;
+  } | null;
 }
 
 const Dashboard = ({
@@ -156,6 +162,7 @@ const Dashboard = ({
   performance = {},
   ai = {},
   projectedCpkMap: externalProjectedCpkMap,
+  activeIPScope,
 }: DashboardProps) => {
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -565,6 +572,13 @@ const Dashboard = ({
     >
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
+        {activeIPScope ? (
+          <ActiveIPScopeRibbon
+            title={activeIPScope.title}
+            labels={activeIPScope.labels}
+            surface="Analyze"
+          />
+        ) : null}
         {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}
         {!isPhone && (
           <ProcessHealthBar

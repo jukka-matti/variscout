@@ -1,0 +1,71 @@
+import type { ProcessHub } from '@variscout/core';
+import type { CanvasLevel } from '@variscout/core/canvas';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
+
+export interface ActiveIPScopeLabels {
+  outcomeLabel: string | null;
+  factorLabels: string[];
+  timelineLabel: string;
+}
+
+export interface ActiveIPCanvasFocus {
+  level: CanvasLevel;
+  focalStepId?: string;
+}
+
+export interface ActiveIPLineageIds {
+  hypothesisIds: string[];
+  findingIds: string[];
+}
+
+function formatDate(value: number): string {
+  return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function resolveOutcomeLabel(ip: ImprovementProject, hub?: ProcessHub | null): string | null {
+  const outcomeSpecId = ip.goal.outcomeGoal.outcomeSpecId;
+  const outcome = hub?.outcomes?.find(candidate => candidate.id === outcomeSpecId);
+  return outcome?.columnName ?? outcomeSpecId ?? null;
+}
+
+export function deriveActiveIPScopeLabels(
+  ip: ImprovementProject,
+  hub?: ProcessHub | null,
+  setAt?: number | null
+): ActiveIPScopeLabels {
+  const factorLabels = (ip.goal.factorControls ?? []).map(control => control.factor);
+  const since = setAt ?? ip.createdAt;
+  return {
+    outcomeLabel: resolveOutcomeLabel(ip, hub),
+    factorLabels,
+    timelineLabel: `Since ${formatDate(since)}`,
+  };
+}
+
+export function deriveActiveIPCanvasFocus(
+  ip: ImprovementProject,
+  hub?: ProcessHub | null
+): ActiveIPCanvasFocus {
+  const processMap = hub?.canonicalProcessMap;
+  const outcomeLabel = resolveOutcomeLabel(ip, hub);
+  const outcomeStep = processMap?.nodes.find(node => node.ctqColumn === outcomeLabel);
+  const firstStep = processMap?.nodes.slice().sort((a, b) => a.order - b.order)[0];
+
+  if ((ip.goal.mechanismGoals?.length ?? 0) > 0) {
+    const focalStepId = outcomeStep?.id ?? firstStep?.id;
+    return focalStepId ? { level: 'l3', focalStepId } : { level: 'l2' };
+  }
+
+  if ((ip.goal.factorControls?.length ?? 0) > 0) {
+    return { level: 'l2' };
+  }
+
+  return { level: 'l1' };
+}
+
+export function deriveActiveIPLineageIds(ip: ImprovementProject): ActiveIPLineageIds {
+  return {
+    hypothesisIds: ip.sections.investigationLineage.hypothesisIds ?? [],
+    findingIds: ip.sections.investigationLineage.findingIds ?? [],
+  };
+}

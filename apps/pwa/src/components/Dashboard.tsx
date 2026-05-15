@@ -23,9 +23,11 @@ import {
   CapabilityMetricToggle,
   SubgroupConfigPopover,
   DefectSummary,
+  ActiveIPScopeRibbon,
   useIsMobile,
   BREAKPOINTS,
   type ChartId,
+  type ActiveIPScopeLabels,
 } from '@variscout/ui';
 import {
   useKeyboardNavigation,
@@ -88,6 +90,10 @@ interface DashboardProps {
   onExportImage?: () => void;
   /** External factor switch request (from question click) — sets boxplot + pareto factor */
   requestedFactor?: { factor: string; seq: number } | null;
+  activeIPScope?: {
+    title: string;
+    labels: ActiveIPScopeLabels;
+  } | null;
 }
 
 const Dashboard = ({
@@ -109,6 +115,7 @@ const Dashboard = ({
   onExportCSV,
   onExportImage: _onExportImage,
   requestedFactor,
+  activeIPScope,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
     findingsCallbacks ?? {};
@@ -626,6 +633,13 @@ const Dashboard = ({
 
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
+        {activeIPScope ? (
+          <ActiveIPScopeRibbon
+            title={activeIPScope.title}
+            labels={activeIPScope.labels}
+            surface="Analyze"
+          />
+        ) : null}
         {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}
         <ProcessHealthBar
           stats={stats}
