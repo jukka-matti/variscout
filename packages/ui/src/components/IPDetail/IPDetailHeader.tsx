@@ -1,11 +1,13 @@
 import React from 'react';
+import { Users } from 'lucide-react';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import type { ProcessParticipantRef } from '@variscout/core/processHub';
+import IPDetailAvatar from './IPDetailAvatar';
 
 interface IPDetailHeaderProps {
   ip: ImprovementProject;
   onBackToList: () => void;
   onInviteClick?: () => void;
+  onOpenTeamWorkspace?: () => void;
   /** Day counter — computed by caller (typically Math.floor((now - createdAt) / DAY_MS)). */
   dayCounter?: number;
 }
@@ -16,22 +18,11 @@ const STATUS_COLORS: Record<ImprovementProject['status'], string> = {
   closed: 'bg-indigo-100 text-indigo-700',
 };
 
-function avatarColor(name: string): string {
-  // deterministic, no random
-  const palette = ['bg-amber-200', 'bg-green-200', 'bg-blue-200', 'bg-rose-200', 'bg-purple-200'];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
-  return palette[hash % palette.length] ?? palette[0]!;
-}
-
-function initial(person: ProcessParticipantRef): string {
-  return person.displayName.slice(0, 1).toUpperCase();
-}
-
 const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
   ip,
   onBackToList,
   onInviteClick,
+  onOpenTeamWorkspace,
   dayCounter,
 }) => {
   const team = ip.metadata.team ?? [];
@@ -80,13 +71,11 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
         <div className="flex items-center gap-2">
           <div className="flex">
             {visible.map((member, idx) => (
-              <div
+              <IPDetailAvatar
                 key={`${idx}-${member.person.displayName ?? 'anon'}`}
-                className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface text-xs font-semibold text-content ${avatarColor(member.person.displayName)} ${idx > 0 ? '-ml-2' : ''}`}
-                title={member.person.displayName}
-              >
-                {initial(member.person)}
-              </div>
+                person={member.person}
+                className={idx > 0 ? '-ml-2' : ''}
+              />
             ))}
             {overflow > 0 ? (
               <div className="-ml-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-slate-200 text-xs font-semibold text-content">
@@ -101,6 +90,14 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
             data-testid="ip-detail-invite"
           >
             + Invite
+          </button>
+          <button
+            type="button"
+            onClick={onOpenTeamWorkspace}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-edge text-content-secondary hover:text-content md:hidden"
+            aria-label="Open team workspace"
+          >
+            <Users size={16} aria-hidden="true" />
           </button>
         </div>
       </div>

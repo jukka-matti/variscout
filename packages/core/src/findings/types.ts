@@ -175,6 +175,8 @@ export interface ActionItem extends EntityBase {
   doneAt?: null | string;
   doneBy?: null | ProcessParticipantRef;
   createdBy?: ProcessParticipantRef;
+  /** Optional last-edit timestamp used by synthesized V1 activity feed events. */
+  updatedAt?: number;
 }
 
 // ============================================================================
@@ -297,6 +299,8 @@ export interface ImprovementIdea extends EntityBase {
   aiGenerated?: boolean;
   /** Anonymous vote count from brainstorm session */
   voteCount?: number;
+  /** Optional last-edit timestamp used by synthesized V1 activity feed events. */
+  updatedAt?: number;
   /** @deprecated Use `direction` instead. Alias kept for migration. */
   category?: IdeaDirection;
 }

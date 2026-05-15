@@ -1,6 +1,8 @@
 import React from 'react';
 import type { ProcessHub, SustainmentRecord, ControlHandoff } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import type { HubAction } from '@variscout/core/actions';
+import { useImprovementProjectStore } from '@variscout/stores';
 import { IPDetailPage } from '@variscout/ui/ipDetail';
 import type {
   CauseProjectionInputs,
@@ -23,11 +25,53 @@ interface ProjectsTabViewProps {
   onOpenLegacySustainment?: () => void;
   onOpenLegacyHandoff?: () => void;
   onNudgeProcessOwner?: () => void;
+  onProjectPatch?: (
+    projectId: ImprovementProject['id'],
+    patch: Extract<HubAction, { kind: 'IMPROVEMENT_PROJECT_UPDATE' }>['patch']
+  ) => void;
+  onNudgeSignoff?: (projectId: ImprovementProject['id']) => void;
   onStartNewProject?: () => void;
 }
 
 function liveProjects(hub: ProcessHub | undefined): ImprovementProject[] {
   return (hub?.improvementProjects ?? []).filter(p => p.deletedAt === null);
+}
+
+function mergeProjectPatch(
+  project: ImprovementProject,
+  patch: Extract<HubAction, { kind: 'IMPROVEMENT_PROJECT_UPDATE' }>['patch'],
+  updatedAt: number
+): ImprovementProject {
+  return {
+    ...project,
+    ...patch,
+    metadata: patch.metadata ? { ...project.metadata, ...patch.metadata } : project.metadata,
+    goal: patch.goal
+      ? {
+          ...project.goal,
+          ...patch.goal,
+          ...(patch.goal.outcomeGoal
+            ? { outcomeGoal: { ...project.goal.outcomeGoal, ...patch.goal.outcomeGoal } }
+            : {}),
+        }
+      : project.goal,
+    signoff: patch.signoff ? { ...(project.signoff ?? {}), ...patch.signoff } : project.signoff,
+    sections: patch.sections
+      ? {
+          background: { ...project.sections.background, ...(patch.sections.background ?? {}) },
+          investigationLineage: {
+            ...project.sections.investigationLineage,
+            ...(patch.sections.investigationLineage ?? {}),
+          },
+          approach: { ...project.sections.approach, ...(patch.sections.approach ?? {}) },
+          outcomeReference: {
+            ...project.sections.outcomeReference,
+            ...(patch.sections.outcomeReference ?? {}),
+          },
+        }
+      : project.sections,
+    updatedAt,
+  };
 }
 
 const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
@@ -43,10 +87,35 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onOpenLegacySustainment,
   onOpenLegacyHandoff,
   onNudgeProcessOwner,
+  onProjectPatch,
+  onNudgeSignoff,
   onStartNewProject,
 }) => {
   const [now] = React.useState(() => Date.now());
-  const projects = liveProjects(activeHub);
+  const storedProjects = useImprovementProjectStore(s =>
+    activeHub ? s.projectsByHub[activeHub.id] : undefined
+  );
+  const setProjectsForHub = useImprovementProjectStore(s => s.setProjectsForHub);
+  const upsertProject = useImprovementProjectStore(s => s.upsertProject);
+
+  React.useEffect(() => {
+    if (!activeHub) return;
+    setProjectsForHub(activeHub.id, activeHub.improvementProjects ?? []);
+  }, [activeHub, setProjectsForHub]);
+
+  const projects = (storedProjects ?? liveProjects(activeHub)).filter(p => p.deletedAt === null);
+
+  const applyProjectPatch = React.useCallback(
+    (
+      project: ImprovementProject,
+      patch: Extract<HubAction, { kind: 'IMPROVEMENT_PROJECT_UPDATE' }>['patch']
+    ) => {
+      const updatedAt = Date.now();
+      upsertProject(mergeProjectPatch(project, patch, updatedAt));
+      onProjectPatch?.(project.id, patch);
+    },
+    [onProjectPatch, upsertProject]
+  );
 
   if (!activeHub) {
     return (
@@ -80,6 +149,34 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         onOpenLegacySustainment={onOpenLegacySustainment}
         onOpenLegacyHandoff={onOpenLegacyHandoff}
         onNudgeProcessOwner={onNudgeProcessOwner}
+        activeHub={activeHub}
+        ideas={approachInputs?.ideas}
+        actions={approachInputs?.actions}
+        now={now}
+        onTeamChange={team =>
+          applyProjectPatch(selected, { metadata: { ...selected.metadata, team } })
+        }
+        onRequestSignoff={() =>
+          applyProjectPatch(selected, {
+            signoff: {
+              ...(selected.signoff ?? {}),
+              requestedAt: Date.now(),
+              approvedAt: undefined,
+              approvedBy: undefined,
+            },
+          })
+        }
+        onNudgeSignoff={() => onNudgeSignoff?.(selected.id)}
+        onApproveSignoff={() =>
+          applyProjectPatch(selected, {
+            signoff: {
+              ...(selected.signoff ?? {}),
+              requestedAt: selected.signoff?.requestedAt ?? Date.now(),
+              approvedAt: Date.now(),
+              approvedBy: activeHub.processOwner ?? { displayName: 'Process owner' },
+            },
+          })
+        }
       />
     );
   }

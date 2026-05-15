@@ -4,6 +4,8 @@ import path from 'node:path';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
+test.describe.configure({ mode: 'serial' });
+
 test('Home pick IP, chip persists across tabs, Exit IP clears chip', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByTestId('home-paste-button')).toBeVisible({ timeout: 10000 });
@@ -49,4 +51,42 @@ test('Home pick IP, chip persists across tabs, Exit IP clears chip', async ({ pa
   await reportChip.getByRole('button', { name: 'Exit IP' }).click();
   await expect(chip).toHaveCount(0);
   await expect(page.getByTestId('active-ip-scope-ribbon')).toHaveCount(0);
+});
+
+test('Projects detail shows team rail and supports invite happy path', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByTestId('home-paste-button')).toBeVisible({ timeout: 10000 });
+
+  const fixturePath = path.join(dirname, 'fixtures', 'active-ip-hub.vrs');
+  const [fileChooser] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    page.getByTestId('vrs-import-button').click(),
+  ]);
+  await fileChooser.setFiles(fixturePath);
+
+  await expect(page.getByTestId('goal-banner')).toBeVisible({ timeout: 10000 });
+  await page.getByTestId('phase-tab-home').click();
+  await page.getByRole('button', { name: /switch ip/i }).click();
+  await page.getByRole('button', { name: /fill cpk lift/i }).click();
+
+  await page.getByTestId('phase-tab-projects').click();
+  await expect(page.getByRole('heading', { name: /fill cpk lift/i })).toBeVisible();
+
+  const rail = page.getByRole('complementary', { name: 'Team workspace' }).first();
+  await expect(rail).toBeVisible();
+  await expect(rail.getByText(/team ·/i)).toBeVisible();
+  await expect(rail.getByTestId('ip-activity-feed')).toBeVisible();
+  await expect(rail.getByText('SIGNOFF')).toBeVisible();
+
+  await page.getByRole('button', { name: /\+ invite/i }).click();
+  const dialog = page.getByRole('dialog', { name: 'Invite team member' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel('Name').fill('Riley Reviewer');
+  await dialog.getByLabel('Email').fill('riley@example.com');
+  await dialog.getByLabel('Role').selectOption('processOwner');
+  await dialog.getByLabel('RACI assignment').selectOption('A');
+  await dialog.getByRole('button', { name: 'Save invite' }).click();
+
+  await expect(rail.getByText('Riley Reviewer')).toBeVisible();
+  await expect(rail.getByText('Process owner')).toBeVisible();
 });
