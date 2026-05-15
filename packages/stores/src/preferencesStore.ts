@@ -54,6 +54,9 @@ export interface PreferencesState {
   // Improvement (relocated from improvementStore — see Task 6)
   riskAxisConfig: RiskAxisConfig;
   budgetConfig: BudgetConfig;
+
+  // Projects
+  isIPTeamRailExpanded: boolean;
 }
 
 export interface PreferencesActions {
@@ -85,6 +88,9 @@ export interface PreferencesActions {
   // Improvement
   setRiskAxisConfig: (config: RiskAxisConfig) => void;
   setBudgetConfig: (config: BudgetConfig) => void;
+
+  // Projects
+  setIPTeamRailExpanded: (expanded: boolean) => void;
 }
 
 export type PreferencesStore = PreferencesState & PreferencesActions;
@@ -103,6 +109,7 @@ export const getPreferencesInitialState = (): PreferencesState => ({
   timeLens: DEFAULT_TIME_LENS,
   riskAxisConfig: DEFAULT_RISK_AXIS_CONFIG,
   budgetConfig: {},
+  isIPTeamRailExpanded: false,
 });
 
 export const usePreferencesStore = create<PreferencesStore>()(
@@ -147,6 +154,9 @@ export const usePreferencesStore = create<PreferencesStore>()(
       // Improvement
       setRiskAxisConfig: (config: RiskAxisConfig) => set({ riskAxisConfig: config }),
       setBudgetConfig: (config: BudgetConfig) => set({ budgetConfig: config }),
+
+      // Projects
+      setIPTeamRailExpanded: (expanded: boolean) => set({ isIPTeamRailExpanded: expanded }),
     }),
     {
       name: 'variscout-preferences',
@@ -167,6 +177,7 @@ export const usePreferencesStore = create<PreferencesStore>()(
         timeLens: state.timeLens,
         riskAxisConfig: state.riskAxisConfig,
         budgetConfig: state.budgetConfig,
+        isIPTeamRailExpanded: state.isIPTeamRailExpanded,
       }),
     }
   )

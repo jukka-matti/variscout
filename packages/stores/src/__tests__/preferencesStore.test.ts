@@ -27,6 +27,7 @@ describe('usePreferencesStore', () => {
     expect(s.timeLens).toEqual(DEFAULT_TIME_LENS);
     expect(s.riskAxisConfig).toEqual(DEFAULT_RISK_AXIS_CONFIG);
     expect(s.budgetConfig).toEqual({});
+    expect(s.isIPTeamRailExpanded).toBe(false);
   });
 
   it('togglePISidebar flips isPISidebarOpen', () => {
@@ -47,5 +48,13 @@ describe('usePreferencesStore', () => {
   it('setRiskAxisConfig updates riskAxisConfig', () => {
     usePreferencesStore.getState().setRiskAxisConfig({ x: 'cost', y: 'effort' });
     expect(usePreferencesStore.getState().riskAxisConfig).toEqual({ x: 'cost', y: 'effort' });
+  });
+
+  it('remembers the tablet IP team rail expansion preference', () => {
+    usePreferencesStore.getState().setIPTeamRailExpanded(true);
+    expect(usePreferencesStore.getState().isIPTeamRailExpanded).toBe(true);
+
+    usePreferencesStore.getState().setIPTeamRailExpanded(false);
+    expect(usePreferencesStore.getState().isIPTeamRailExpanded).toBe(false);
   });
 });

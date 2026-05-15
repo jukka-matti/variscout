@@ -1315,6 +1315,21 @@ function AppMain() {
                   // Plan 3 will emit EngagementEvent webhook here.
                   console.info('[handoff] Nudge process owner — Plan 3 will wire EngagementEvent');
                 }}
+                onProjectPatch={(projectId, patch) => {
+                  void pwaHubRepository
+                    .dispatch({ kind: 'IMPROVEMENT_PROJECT_UPDATE', projectId, patch })
+                    .catch(error => {
+                      console.error(
+                        '[projects] Failed to persist Improvement Project patch',
+                        error
+                      );
+                    });
+                }}
+                onNudgeSignoff={projectId => {
+                  console.info(
+                    `[projects] Nudge signoff for ${projectId} — EngagementEvent webhook boundary`
+                  );
+                }}
                 onStartNewProject={panels.showCharter}
               />
             ) : panels.activeView === 'improvement' ? (

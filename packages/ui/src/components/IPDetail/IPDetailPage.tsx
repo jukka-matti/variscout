@@ -1,9 +1,12 @@
 import React, { useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { usePreferencesStore } from '@variscout/stores';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import IPDetailHeader from './IPDetailHeader';
 import IPDetailStageTabs, { type StageName } from './IPDetailStageTabs';
 import IPDetailModeToggle, { type IPDetailMode } from './IPDetailModeToggle';
-import IPDetailTeamRail from './IPDetailTeamRail';
+import IPDetailTeamRail, { teamMemberKey, type RaciAssignment } from './IPDetailTeamRail';
+import IPDetailInviteModal from './IPDetailInviteModal';
 import { deriveStageState, type StageStateInputs } from './stageState';
 import CharterOverview from './stages/CharterOverview';
 import CharterSections from './stages/CharterSections';
@@ -15,7 +18,8 @@ import HandoffOverview, { type HandoffChecklistInputs } from './stages/HandoffOv
 import HandoffSections from './stages/HandoffSections';
 import type { CauseProjectionInputs, CauseRow } from './stages/causeProjection';
 import type { ImprovementProjectFormProps } from '../ImprovementProject/ImprovementProjectForm';
-import type { SustainmentRecord, ControlHandoff } from '@variscout/core';
+import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
+import type { SustainmentRecord, ControlHandoff, ProcessHub } from '@variscout/core';
 
 export interface IPDetailPageProps {
   ip: ImprovementProject;
@@ -24,6 +28,10 @@ export interface IPDetailPageProps {
   stageStateInputs?: StageStateInputs;
   /** Optional invite handler (Plan 3 wires this). */
   onInviteClick?: () => void;
+  /** Emits the full updated team roster when shared UI appends an invite. */
+  onTeamChange?: (team: NonNullable<ImprovementProject['metadata']['team']>) => void;
+  /** Active hub gives the rail access to Process Owner signoff context. */
+  activeHub?: ProcessHub;
   /** Optional day counter passed to header. */
   dayCounter?: number;
   /** Jump-out handler — called from per-stage "Continue in" buttons. */
@@ -50,6 +58,13 @@ export interface IPDetailPageProps {
   onOpenLegacyHandoff?: () => void;
   /** "Nudge owner" handler (Plan 3 wires actual notification). */
   onNudgeProcessOwner?: () => void;
+  /** Activity/signoff inputs for the team rail. */
+  ideas?: readonly ImprovementIdea[];
+  actions?: readonly ActionItem[];
+  now?: number;
+  onRequestSignoff?: () => void;
+  onNudgeSignoff?: () => void;
+  onApproveSignoff?: () => void;
 }
 
 function defaultActiveStage(stages: ReturnType<typeof deriveStageState>): StageName {
@@ -64,6 +79,8 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   onBackToList,
   stageStateInputs,
   onInviteClick,
+  onTeamChange,
+  activeHub,
   dayCounter,
   onJumpOut,
   charterFormProps,
@@ -76,17 +93,49 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   onOpenLegacySustainment,
   onOpenLegacyHandoff,
   onNudgeProcessOwner,
+  ideas,
+  actions,
+  now,
+  onRequestSignoff,
+  onNudgeSignoff,
+  onApproveSignoff,
 }) => {
   const stages = useMemo(() => deriveStageState(ip, stageStateInputs), [ip, stageStateInputs]);
   const [activeStage, setActiveStage] = useState<StageName>(() => defaultActiveStage(stages));
   const [mode, setMode] = useState<IPDetailMode>('overview');
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [mobileTeamOpen, setMobileTeamOpen] = useState(false);
+  const [raciOverrides, setRaciOverrides] = useState<Record<string, RaciAssignment>>({});
+  const isTabletRailExpanded = usePreferencesStore(s => s.isIPTeamRailExpanded);
+  const setTabletRailExpanded = usePreferencesStore(s => s.setIPTeamRailExpanded);
+  const team = ip.metadata.team ?? [];
+
+  const handleInviteClick = () => {
+    onInviteClick?.();
+    if (onTeamChange) setInviteOpen(true);
+  };
+
+  const railProps = {
+    ip,
+    raciOverrides,
+    activeHub,
+    ideas,
+    actions,
+    sustainmentRecord,
+    controlHandoff,
+    now,
+    onRequestSignoff,
+    onNudgeSignoff,
+    onApproveSignoff,
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <IPDetailHeader
         ip={ip}
         onBackToList={onBackToList}
-        onInviteClick={onInviteClick}
+        onInviteClick={handleInviteClick}
+        onOpenTeamWorkspace={() => setMobileTeamOpen(true)}
         dayCounter={dayCounter}
       />
 
@@ -174,8 +223,67 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
             </p>
           )}
         </main>
-        <IPDetailTeamRail ip={ip} />
+        <div
+          className="hidden border-l border-edge bg-slate-50 md:block lg:hidden"
+          data-testid="ip-detail-team-rail-tablet"
+        >
+          <button
+            type="button"
+            className="flex h-full w-8 items-start justify-center border-r border-edge py-3 text-content-secondary hover:text-content"
+            aria-label={isTabletRailExpanded ? 'Collapse team rail' : 'Expand team rail'}
+            aria-expanded={isTabletRailExpanded}
+            onClick={() => setTabletRailExpanded(!isTabletRailExpanded)}
+          >
+            {isTabletRailExpanded ? (
+              <ChevronRight size={16} aria-hidden="true" />
+            ) : (
+              <ChevronLeft size={16} aria-hidden="true" />
+            )}
+          </button>
+          {isTabletRailExpanded ? (
+            <div aria-hidden="false">
+              <IPDetailTeamRail
+                {...railProps}
+                className="w-[280px] flex-shrink-0 bg-slate-50 p-4 text-xs"
+              />
+            </div>
+          ) : null}
+        </div>
+        <IPDetailTeamRail {...railProps} />
       </div>
+      {mobileTeamOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-black/30 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Team workspace"
+        >
+          <div className="max-h-[85vh] w-full overflow-auto rounded-t-lg bg-slate-50 shadow-xl">
+            <div className="flex items-center justify-between border-b border-edge bg-surface px-4 py-3">
+              <h2 className="text-sm font-semibold text-content">Team workspace</h2>
+              <button
+                type="button"
+                className="text-xs text-content-secondary hover:text-content"
+                onClick={() => setMobileTeamOpen(false)}
+              >
+                Close team workspace
+              </button>
+            </div>
+            <IPDetailTeamRail {...railProps} className="block w-full bg-slate-50 p-4 text-xs" />
+          </div>
+        </div>
+      ) : null}
+      {inviteOpen && onTeamChange ? (
+        <IPDetailInviteModal
+          onClose={() => setInviteOpen(false)}
+          onSubmit={member => {
+            const { raci } = member;
+            if (raci) setRaciOverrides(current => ({ ...current, [teamMemberKey(member)]: raci }));
+            onTeamChange([...team, member]);
+            setInviteOpen(false);
+          }}
+        />
+      ) : null}
     </div>
   );
 };
