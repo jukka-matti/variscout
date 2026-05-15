@@ -16,6 +16,8 @@ export interface ImprovementProjectMetadata {
   financialImpact?: { amount?: number; currency: string };
   team?: Array<{
     role: 'champion' | 'sponsor' | 'projectLead' | 'teamMember' | 'processOwner';
+    /** RACI assignment for the project roster entry. */
+    raci?: 'R' | 'A' | 'C' | 'I';
     person: ProcessParticipantRef;
   }>;
   investigationId?: ProcessHubInvestigation['id'];
@@ -44,6 +46,8 @@ export interface ImprovementProjectGoal {
   factorControls?: ImprovementProjectFactorControl[]; // X-level
   mechanismGoals?: ImprovementProjectMechanismGoal[]; // x-level
   freeText?: string; // fallback when no OutcomeSpec available
+  /** Optional last-edit timestamp used by synthesized V1 activity feed events. */
+  updatedAt?: number;
 }
 
 export interface ImprovementProjectBackgroundSection {
@@ -52,22 +56,30 @@ export interface ImprovementProjectBackgroundSection {
   snapshotSourceHash?: string;
   snapshottedAt?: string;
   manualNarrative?: string;
+  /** Optional last-edit timestamp used by synthesized V1 activity feed events. */
+  updatedAt?: number;
 }
 
 export interface ImprovementProjectInvestigationLineageSection {
   hypothesisIds?: Hypothesis['id'][];
   findingIds?: Finding['id'][];
+  /** Optional last-edit timestamp used by synthesized V1 activity feed events. */
+  updatedAt?: number;
 }
 
 export interface ImprovementProjectApproachSection {
   improvementIdeaIds?: ImprovementIdea['id'][];
   actionItemIds?: ActionItem['id'][];
   narrative?: string;
+  /** Optional last-edit timestamp used by synthesized V1 activity feed events. */
+  updatedAt?: number;
 }
 
 export interface ImprovementProjectOutcomeReferenceSection {
   sustainmentRecordId?: SustainmentRecord['id'];
   controlHandoffId?: ControlHandoff['id'];
+  /** Optional last-edit timestamp used by synthesized V1 activity feed events. */
+  updatedAt?: number;
 }
 
 export interface ImprovementProjectSignoff {

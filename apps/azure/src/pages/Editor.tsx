@@ -103,6 +103,7 @@ import { useFindingsStore } from '../features/findings/findingsStore';
 import { buildChartSharePayload } from '../services/shareContent';
 import { isKnowledgeBaseAvailable } from '../services/searchService';
 import { buildSubPageId } from '../services/deepLinks';
+import { azureHubRepository } from '../persistence';
 import { useToast } from '../context/ToastContext';
 import { SustainmentEntryRow } from './Editor.sustainment';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
@@ -1899,6 +1900,21 @@ export const Editor: React.FC<EditorProps> = ({
                 onNudgeProcessOwner={() => {
                   // Plan 3 will emit EngagementEvent webhook here.
                   console.info('[handoff] Nudge process owner — Plan 3 will wire EngagementEvent');
+                }}
+                onProjectPatch={(projectId, patch) => {
+                  void azureHubRepository
+                    .dispatch({ kind: 'IMPROVEMENT_PROJECT_UPDATE', projectId, patch })
+                    .catch(error => {
+                      console.error(
+                        '[projects] Failed to persist Improvement Project patch',
+                        error
+                      );
+                    });
+                }}
+                onNudgeSignoff={projectId => {
+                  console.info(
+                    `[projects] Nudge signoff for ${projectId} — EngagementEvent webhook boundary`
+                  );
                 }}
                 onStartNewProject={() => usePanelsStore.getState().showCharter()}
               />
