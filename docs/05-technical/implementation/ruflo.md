@@ -11,7 +11,7 @@ status: stable
 
 ruflo is a Codex-only MCP-integrated AI development tooling layer for VariScout. It provides semantic codebase search, persistent cross-session memory, hooks intelligence (pattern learning), neural learning (SONA), automated security scanning, and background workers. It is **not** a runtime dependency -- it only runs during Codex development sessions.
 
-**Version**: Expected `ruflo@3.5.80`, pinned in `scripts/check-codex-ruflo.sh`. Codex MCP registration should match it, but it is verified rather than trusted. Update monthly.
+**Version**: Expected `ruflo@3.7.0-alpha.38`, pinned in `scripts/check-codex-ruflo.sh`. Codex MCP registration should match it, but it is verified rather than trusted. Update monthly.
 
 In-session, **MCP is the only path** for ruflo memory, search, store, pretrain, and lifecycle hooks. Claude Code must not use Ruflo through project `.mcp.json`, `.claude/settings.json`, permissions, attribution, or project skills.
 

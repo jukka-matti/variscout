@@ -9,7 +9,10 @@ import { execFileSync } from 'node:child_process';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pinFile = resolve(root, 'scripts/check-codex-ruflo.sh');
 const pinSource = readFileSync(pinFile, 'utf8');
-const pinMatch = pinSource.match(/^RUFLO_VERSION="(?<version>\d+\.\d+\.\d+)"$/m);
+const rufloVersionPattern = String.raw`\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?`;
+const pinMatch = pinSource.match(
+  new RegExp(`^RUFLO_VERSION="(?<version>${rufloVersionPattern})"$`, 'm'),
+);
 
 if (!pinMatch?.groups?.version) {
   console.error('Could not find RUFLO_VERSION in scripts/check-codex-ruflo.sh');
@@ -36,7 +39,7 @@ const files = execFileSync('git', [
   .filter((file) => file !== 'scripts/check-ruflo-drift.mjs');
 
 const mismatches = [];
-const versionPattern = /ruflo@(?<version>\d+\.\d+\.\d+)/g;
+const versionPattern = new RegExp(`ruflo@(?<version>${rufloVersionPattern})`, 'g');
 
 for (const file of files) {
   const absolutePath = resolve(root, file);

@@ -12,7 +12,7 @@ set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 2
 
-RUFLO_VERSION="3.5.80"
+RUFLO_VERSION="3.7.0-alpha.38"
 ADD_COMMAND="codex mcp add ruflo -- npx ruflo@${RUFLO_VERSION} mcp start"
 REMOVE_COMMAND="codex mcp remove ruflo"
 FAILURES=0
