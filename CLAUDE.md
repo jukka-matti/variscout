@@ -17,7 +17,7 @@ Shared agent map: `docs/llms.txt`
 - `pnpm --filter @variscout/azure-app dev` — Azure app
 - `pnpm test` — all packages (turbo)
 - `pnpm build` — all packages + apps
-- `claude --chrome` — enable the **official [Claude for Chrome extension](https://claude.com/claude-for-chrome)** for browser-assisted E2E (drives your real Chrome with your login state). NOT the ruflo browser MCP.
+- `claude --chrome` — enable the **official [Claude for Chrome extension](https://claude.com/claude-for-chrome)** for browser-assisted E2E (drives your real Chrome with your login state).
 
 ## Where to look
 
@@ -28,7 +28,6 @@ Shared agent map: `docs/llms.txt`
 - **Agent manifest**: `docs/llms.txt` — map of priority entry points.
 - **Decisions (why)**: `docs/07-decisions/` (live) + `docs/archive/adrs/` (superseded).
 - **Designs (what)**: `docs/superpowers/specs/` (active) + `docs/archive/specs/` (delivered/historical).
-- **Ruflo workflow**: `docs/05-technical/implementation/ruflo-workflow.md` + `docs/05-technical/implementation/ruflo.md`
 - **Claude-only rules + skills**: `.claude/rules/` = short cross-cutting non-negotiables (currently load globally). `.claude/skills/` = workflows only — VariScout editing patterns live in nested `CLAUDE.md`. Doc workflow: spec frontmatter SSOT in `scripts/docs-frontmatter-schema.mjs`; new docs need ≥1 inbound link.
 
 ## Workflow
@@ -46,13 +45,13 @@ Before re-opening any topic, check `docs/decision-log.md` first. When you defer,
 
 For code-level smells, UX follow-ups, or architectural questions surfaced during work that aren't yet decisions, log them in `docs/investigations.md`. Lighter than an Open Question (no decision pending); heavier than a TODO comment (deserves to outlive the PR). Entries graduate to `decision-log.md`, a spec, or an ADR when ready.
 
-## Memory & ruflo hygiene
+## Memory Hygiene
 
-MEMORY.md and ruflo hold _durable_ facts (architecture, decisions, terminology, feedback). Ephemeral state (PR status, in-flight phase, test counts, sprint focus) belongs in `git`/`gh`, not memory — say "see PR #N for delivery state" instead of encoding status. Entries citing file paths, function names, or commit hashes are claims valid _at write time_; verify before recommending, and update/delete when referenced entities move. See `.claude/skills/using-ruflo/SKILL.md` for ruflo workflow.
+MEMORY.md holds _durable_ facts for Claude Code (architecture, decisions, terminology, feedback). Ephemeral state (PR status, in-flight phase, test counts, sprint focus) belongs in `git`/`gh`, not memory — say "see PR #N for delivery state" instead of encoding status. Entries citing file paths, function names, or commit hashes are claims valid _at write time_; verify before recommending, and update/delete when referenced entities move.
 
 ## Claude-Specific Notes
 
 - `.claude/settings.json` provides Claude hooks, statusline, permissions, and attribution.
 - **Browser E2E**: install [Claude for Chrome](https://claude.com/claude-for-chrome) and start with `claude --chrome` (or `/chrome` → Enabled by default). This is the canonical browser path — gives Claude `chrome_*` tools that drive your real Chrome with login state, bookmarks, and devtools console access. Docs: https://code.claude.com/docs/en/chrome.
-- **Do NOT use `mcp__ruflo__browser_*` MCP tools for E2E** — those are a separate headless-Chromium agent stack (different UX, no real browser state, slower iteration). Reserve ruflo MCP for `mcp__ruflo__memory_*`, `mcp__ruflo__agentdb_*`, `mcp__ruflo__hooks_*` (per `.claude/skills/using-ruflo/SKILL.md`).
+- Claude Code does not use Ruflo or Claude Flow in this repo: no project MCP server, no Ruflo hooks, no Ruflo attribution, and no Ruflo skills.
 - `AGENTS.md` is the Codex entrypoint; keep shared repo guidance consistent across both wrappers.

@@ -27,13 +27,14 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 
 ## Agent-specific context
 
-- `../AGENTS.md`: Codex entrypoint for root project instructions and Codex-specific ruflo usage.
+- `../AGENTS.md`: Codex entrypoint for root project instructions and Codex-only ruflo usage.
 - `../CLAUDE.md`: Claude entrypoint for root project instructions and Claude-only automation.
 - `../packages/*/CLAUDE.md` and `../apps/*/CLAUDE.md`: per-package context, loaded on demand.
 - `../.claude/rules/`: path-scoped rules that load automatically when editing specific code areas (stats, charts, CoScout prompts, Azure storage, tests, i18n).
 - `../.claude/skills/`: task-triggered workflow skills.
-- `05-technical/implementation/ruflo-workflow.md`: shared ruflo workflow across agent clients.
+- `05-technical/implementation/ruflo-workflow.md`: Codex-only ruflo workflow.
 - `05-technical/implementation/codex-ruflo-workflow.md`: Codex-specific MCP and workflow notes.
+- `05-technical/implementation/codex-only-ruflo-migration.md`: checklist for moving other projects to Codex-only Ruflo ownership.
 
 ## Reference
 
@@ -60,7 +61,7 @@ Priority entry points for the b0 (investigator archetype) FRAME surface — past
 
 ## Tooling
 
-- `pnpm docs:check`: runs diagram health, orphan detection, dead-link scan, Ruflo version drift, frontmatter schema validation.
+- `pnpm docs:check`: runs diagram health, orphan detection, dead-link scan, Codex Ruflo version drift, frontmatter schema validation.
 - `pnpm codex:ruflo-check`: verifies active Codex Ruflo registration/version and prints repair commands if missing, disabled, or stale.
 - `scripts/audit-doc-references.mjs`: reference-map tool for load-bearing audits (see `docs/09-baseline/2026-04-17-doc-audit.md`).
 - Frontmatter schema: `scripts/docs-frontmatter-schema.mjs` (warn mode until 2026-05-15).

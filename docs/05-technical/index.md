@@ -84,7 +84,7 @@ Build, deploy, test, and operate:
 | [Data Input](implementation/data-input.md)               | Parser, paste flow, column detection       |
 | [System Limits](implementation/system-limits.md)         | Row limits, factor limits, performance     |
 | [Security Scanning](implementation/security-scanning.md) | OWASP scanning, CVE checks                 |
-| [AI Tooling (ruflo)](implementation/ruflo.md)            | AI development workflow tooling            |
+| [Codex AI Tooling (ruflo)](implementation/ruflo.md)      | Codex-only AI development workflow tooling |
 | [Statistics Reference](statistics-reference.md)          | Exact formulas, algorithms, implementation |
 
 ### Integrations
@@ -143,7 +143,7 @@ pnpm --filter @variscout/azure-app dev  # Azure app dev server
 pnpm build           # Build all packages and apps
 pnpm test            # Run Vitest tests (all packages)
 
-# AI development tooling (in-session: MCP only)
+# Codex AI development tooling (in-session: MCP only)
 #   mcp__ruflo__memory_stats             — daemon + memory status
 #   mcp__ruflo__memory_search            — semantic search
 #   mcp__ruflo__hooks_worker-dispatch    — dispatch audit / testgaps / etc

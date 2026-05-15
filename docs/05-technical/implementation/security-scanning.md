@@ -9,35 +9,33 @@ status: stable
 
 ## Overview
 
-VariScout uses ruflo for automated OWASP security audits. As an offline-first application with no backend, the attack surface is limited, but security scanning ensures dependency safety and code quality.
+VariScout can use Codex Ruflo workers for automated OWASP security audits. As an offline-first application with no backend, the attack surface is limited, but security scanning ensures dependency safety and code quality.
 
 ## Prerequisites
 
 - Node.js 18+
-- ruflo installed (runs via npx)
+- Codex Ruflo MCP registration verified with `pnpm codex:ruflo-check`
 
 ## Running a Security Scan
 
 ### Quick CVE Check
 
-```bash
-npx ruflo@3.5.80 security cve --check
+```text
+mcp__ruflo__hooks_worker-dispatch(trigger: "audit", context: "CVE check", priority: "high")
 ```
 
 ### Full OWASP Scan
 
-```bash
-npx ruflo@3.5.80 security scan --depth full
+```text
+mcp__ruflo__hooks_worker-dispatch(trigger: "audit", context: "Full OWASP scan", priority: "critical")
 ```
 
 ### Auto-Fix with Agent Swarm
 
 Use MCP tools to dispatch a targeted security audit worker:
 
-```bash
-# Via MCP: mcp__ruflo__hooks_worker-dispatch with trigger: "audit"
-# Or manually:
-npx ruflo@3.5.80 security scan --depth full --fix
+```text
+mcp__ruflo__hooks_worker-dispatch(trigger: "audit", context: "Security audit before fix planning", priority: "critical")
 ```
 
 ## OWASP Top 10 Coverage
@@ -67,7 +65,7 @@ VariScout is offline-first with no backend. Key security areas:
 ### npm Dependencies
 
 - Regular `pnpm audit` for vulnerability scanning
-- ruflo CVE checks for additional coverage
+- Codex Ruflo audit workers for additional coverage
 
 ### Azure EasyAuth (Azure App Only)
 
@@ -182,15 +180,10 @@ Transitive dependencies sometimes lag behind security patches. pnpm's `overrides
 
 After fixes, re-run the scan to confirm remediation:
 
-```bash
-npx ruflo@3.5.80 security scan --depth full
+```text
+mcp__ruflo__hooks_worker-dispatch(trigger: "audit", context: "Post-fix verification", priority: "critical")
 ```
 
 ## Integration with CI/CD
 
-Add to your CI pipeline:
-
-```yaml
-- name: Security Scan
-  run: npx ruflo@3.5.80 security scan --depth full
-```
+Do not add Ruflo to CI. It is local Codex development tooling; CI should use deterministic commands such as `pnpm audit`, `pnpm test`, and `pnpm build`.

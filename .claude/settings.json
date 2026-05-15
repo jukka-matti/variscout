@@ -1,99 +1,8 @@
 {
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "^(Write|Edit|MultiEdit)$",
-        "hooks": [
-          {
-            "type": "mcp_tool",
-            "server": "ruflo",
-            "tool": "hooks_pre-edit",
-            "input": { "filePath": "${tool_input.file_path}" }
-          }
-        ]
-      },
-      {
-        "matcher": "^Bash$",
-        "hooks": [
-          {
-            "type": "mcp_tool",
-            "server": "ruflo",
-            "tool": "hooks_pre-command",
-            "input": { "command": "${tool_input.command}" }
-          }
-        ]
-      },
-      {
-        "matcher": "^Task$",
-        "hooks": [
-          {
-            "type": "mcp_tool",
-            "server": "ruflo",
-            "tool": "hooks_pre-task",
-            "input": {
-              "taskId": "${session_id}",
-              "description": "${tool_input.prompt}"
-            }
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "^(Write|Edit|MultiEdit)$",
-        "hooks": [
-          {
-            "type": "mcp_tool",
-            "server": "ruflo",
-            "tool": "hooks_post-edit",
-            "input": { "filePath": "${tool_input.file_path}" }
-          }
-        ]
-      },
-      {
-        "matcher": "^Bash$",
-        "hooks": [
-          {
-            "type": "mcp_tool",
-            "server": "ruflo",
-            "tool": "hooks_post-command",
-            "input": { "command": "${tool_input.command}" }
-          }
-        ]
-      },
-      {
-        "matcher": "^Task$",
-        "hooks": [
-          {
-            "type": "mcp_tool",
-            "server": "ruflo",
-            "tool": "hooks_post-task",
-            "input": { "taskId": "${session_id}" }
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "mcp_tool",
-            "server": "ruflo",
-            "tool": "hooks_route",
-            "input": { "task": "${prompt}" }
-          }
-        ]
-      }
-    ],
     "SessionStart": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "pnpm exec ruflo daemon start --quiet 2>>/tmp/ruflo-hooks.log || true",
-            "timeout": 5000,
-            "continueOnError": true
-          },
           {
             "type": "command",
             "command": "bash scripts/check-git-hygiene.sh || true",
@@ -108,18 +17,6 @@
           }
         ]
       }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "mcp_tool",
-            "server": "ruflo",
-            "tool": "hooks_session-end",
-            "input": { "sessionId": "${session_id}" }
-          }
-        ]
-      }
     ]
   },
   "statusLine": {
@@ -129,15 +26,7 @@
     "enabled": true
   },
   "permissions": {
-    "allow": [
-      "Bash(pnpm exec ruflo daemon:*)",
-      "mcp__claude-flow__:*",
-      "mcp__ruflo__:*"
-    ],
+    "allow": [],
     "deny": []
-  },
-  "attribution": {
-    "commit": "Co-Authored-By: ruflo <ruv@ruv.net>",
-    "pr": "🤖 Generated with [ruflo](https://github.com/ruvnet/ruflo)"
   }
 }

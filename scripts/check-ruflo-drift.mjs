@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Verifies that current Ruflo docs/scripts use the version pinned by the Codex check.
+// Verifies that current Codex Ruflo docs/scripts use the version pinned by the Codex check.
 
 import { readFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
@@ -19,8 +19,6 @@ if (!pinMatch?.groups?.version) {
 const expectedVersion = pinMatch.groups.version;
 const searchRoots = [
   'AGENTS.md',
-  '.claude/settings.json',
-  '.claude/skills/using-ruflo/SKILL.md',
   'scripts',
   'docs/05-technical',
   'docs/07-decisions',

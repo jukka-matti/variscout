@@ -152,10 +152,10 @@ if [ "$MISSING_PATHS" -eq 0 ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 6. Ruflo version drift
+# 6. Codex Ruflo version drift
 # ---------------------------------------------------------------------------
 echo ""
-echo "--- Ruflo version drift ---"
+echo "--- Codex Ruflo version drift ---"
 if ! node "$ROOT/scripts/check-ruflo-drift.mjs"; then
   WARNINGS=$((WARNINGS + 1))
 fi

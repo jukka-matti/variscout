@@ -9,13 +9,11 @@ status: stable
 
 ## What It Is
 
-ruflo is an MCP-integrated AI development tooling layer for VariScout. It provides semantic codebase search, persistent cross-session memory, hooks intelligence (pattern learning), neural learning (SONA), automated security scanning, and background workers. It is **not** a runtime dependency -- it only runs during development sessions.
+ruflo is a Codex-only MCP-integrated AI development tooling layer for VariScout. It provides semantic codebase search, persistent cross-session memory, hooks intelligence (pattern learning), neural learning (SONA), automated security scanning, and background workers. It is **not** a runtime dependency -- it only runs during Codex development sessions.
 
-**Version**: Expected `ruflo@3.5.80`, pinned in `scripts/check-codex-ruflo.sh` and mirrored by Claude hook automation in `.claude/settings.json`. Local `.mcp.json` and Codex MCP registration should match it, but they are verified rather than trusted. Update monthly.
+**Version**: Expected `ruflo@3.5.80`, pinned in `scripts/check-codex-ruflo.sh`. Codex MCP registration should match it, but it is verified rather than trusted. Update monthly.
 
-In-session, **MCP is the only path** for ruflo memory, search, store, pretrain, and lifecycle hooks. The Claude Code lifecycle hooks in `.claude/settings.json` invoke ruflo via Anthropic's native `type: "mcp_tool"` hook, so there is no shell wrapper between Claude Code and the MCP server. The single remaining shell-fired CLI call is the `SessionStart → pnpm exec ruflo daemon start` bootstrap, which has to run before MCP is connected.
-
-**Codex asymmetry**: Codex hooks (`developers.openai.com/codex/hooks`) only support `type: "command"`. If a Codex `hooks.json` or `.codex/config.toml` is ever wired, those entries must shell out — that limitation is on the Codex side, not ruflo's. From a Codex session you still call ruflo via `mcp__ruflo__*` tools, just like Claude.
+In-session, **MCP is the only path** for ruflo memory, search, store, pretrain, and lifecycle hooks. Claude Code must not use Ruflo through project `.mcp.json`, `.claude/settings.json`, permissions, attribution, or project skills.
 
 ## Quick Commands (MCP only)
 
@@ -39,12 +37,12 @@ mcp__ruflo__analyze_diff({ ref: "main..HEAD" })
 ## Architecture
 
 ```
-Claude Code or Codex ──MCP──▶ ruflo MCP Server (npx, port 3000)
+Codex ──MCP──▶ ruflo MCP Server (npx)
                                   │
                                   ├── Memory (sql.js + HNSW vector index)
                                   ├── Embeddings (all-MiniLM-L6-v2, 384-dim)
-                                  ├── Hooks (Claude lifecycle hooks call MCP directly via type: "mcp_tool")
-                                  └── Daemon (background workers, bootstrapped by SessionStart shell hook)
+                                  ├── Hooks intelligence
+                                  └── Background workers
 ```
 
 ### Config Files
@@ -52,11 +50,10 @@ Claude Code or Codex ──MCP──▶ ruflo MCP Server (npx, port 3000)
 | File                           | Purpose                                                  |
 | ------------------------------ | -------------------------------------------------------- |
 | `scripts/check-codex-ruflo.sh` | Tracked Codex version pin, health check, repair output   |
-| `.mcp.json`                    | Local MCP server definition (gitignored)                 |
 | `.ruflo/config.yaml`           | Local runtime config (topology, memory backend, workers) |
 | `.ruflo/daemon-state.json`     | Local worker state and schedules                         |
 | `.ruflo/data/`                 | Ignored local AgentDB/Ruflo data path                    |
-| `.claude/settings.json`        | Claude hooks, statusline, permissions, attribution       |
+| `.claude/settings.json`        | Claude-only hooks/statusline; must not reference Ruflo   |
 | `AGENTS.md`                    | Codex entrypoint for repo workflow                       |
 
 ### Local State Files
@@ -127,7 +124,7 @@ Hooks automatically learn from development patterns:
 - **Routing**: Classifies prompts and routes to appropriate agent types (87% accuracy, 42 routes)
 - **Metrics**: `mcp__ruflo__hooks_metrics` shows 24h dashboard
 
-Hook capture is strongest in Claude because `.claude/settings.json` is wired there with `type: "mcp_tool"` lifecycle hooks. Codex still benefits from shared memory, workers, and diff analysis through the same ruflo MCP backend.
+Codex benefits from memory, workers, and diff analysis through the Ruflo MCP backend. Do not wire this into Claude Code.
 
 ### Neural Learning (SONA)
 
@@ -144,7 +141,7 @@ Neural learning accumulates passively — runs automatically when daemon is acti
 
 ### Stale daemon PID
 
-Delete `.ruflo/daemon.pid`, then start a new Claude Code session — the SessionStart hook will re-bootstrap the daemon. (If you must do it inline outside a session, run `pnpm exec ruflo daemon start` once.)
+Delete `.ruflo/daemon.pid`, then restart the Codex session so Codex reconnects to the MCP server. If MCP registration is wrong, run `pnpm codex:ruflo-check` and follow its repair output.
 
 ### Worker stuck in "running" state
 
@@ -152,7 +149,7 @@ Edit `.ruflo/daemon-state.json` and set `"isRunning": false` for the stuck worke
 
 ### Memory empty after session
 
-Check MCP memory stats/search first via `mcp__ruflo__memory_stats` / `mcp__ruflo__memory_search`. If the memory DB still appears empty, run `mcp__ruflo__hooks_pretrain({ path: "<repo-root>", depth: "medium" })`. Then re-seed memory entries with `mcp__ruflo__memory_store` / `mcp__ruflo__agentdb_hierarchical-store`, or import current-project Claude memories with `mcp__ruflo__memory_import_claude`. Avoid `memory init --force` or other reset operations unless you intentionally want to discard the local memory database.
+Check MCP memory stats/search first via `mcp__ruflo__memory_stats` / `mcp__ruflo__memory_search`. If the memory DB still appears empty, run `mcp__ruflo__hooks_pretrain({ path: "<repo-root>", depth: "medium" })`. Then re-seed memory entries with `mcp__ruflo__memory_store` / `mcp__ruflo__agentdb_hierarchical-store` if available. Avoid `memory init --force` or other reset operations unless you intentionally want to discard the local memory database.
 
 ### Audit worker scanning .venv
 
@@ -160,8 +157,8 @@ Ensure `.venv/` is in `.gitignore` and `workers.excludePaths` in `.ruflo/config.
 
 ## What NOT To Do
 
-- **Don't add ruflo to package.json** -- It's dev tooling only, runs via npx
-- **Don't treat local `.mcp.json` as authoritative** -- Codex registration is checked with `pnpm codex:ruflo-check`
+- **Don't add ruflo to package.json** -- It's Codex-only dev tooling and runs through versioned Codex MCP registration
+- **Don't add project `.mcp.json` for Ruflo** -- Claude Code loads project MCP files; Codex registration is checked with `pnpm codex:ruflo-check`
 - **Don't commit local memory data** -- `.ruflo/`, `.swarm/`, `.claude/memory.db*`, `ruvector.db`, and `agentdb.rvf*` are local state
 - **Don't rely on daemon for CI/CD** -- Workers are for local dev intelligence only
 - **Don't store secrets in memory** -- Memory DB is unencrypted local SQLite

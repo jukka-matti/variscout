@@ -45,7 +45,7 @@ Three swarm patterns have practical value as **development workflows**, not as a
 2. **Security scanning** — Targeted OWASP scans on Azure auth (`easyAuth.ts`) and storage (`storage.ts`) modules using ruflo security tools.
 3. **Read-only code review** — Multi-agent review of cross-package changes (e.g., a new shared hook touching `core`, `hooks`, and both apps) without modifying code.
 
-These workflows use existing ruflo capabilities and Claude Code Task agents. No new configuration files or runtime dependencies are added.
+These workflows use existing ruflo capabilities from Codex and normal agent review patterns. No new application configuration files or runtime dependencies are added.
 
 ## Consequences
 
