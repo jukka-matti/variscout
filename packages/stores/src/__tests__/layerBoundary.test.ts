@@ -9,7 +9,7 @@
  * STORE_LAYER enum has 6 values; today 4 are realised in code:
  *   - 'document' (projectStore, investigationStore, canvasStore)
  *   - 'annotation-per-hub' (canvasViewportStore)
- *   - 'annotation-per-user' (preferencesStore)
+ *   - 'annotation-per-user' (preferencesStore, activeIPStore)
  *   - 'view' (viewStore)
  * Reserved for future use (no test coverage today, intentional):
  *   - 'annotation-per-project'
@@ -48,6 +48,7 @@ function loadStoreFiles(): StoreFile[] {
     'canvasStore.ts',
     'canvasViewportStore.ts',
     'preferencesStore.ts',
+    'activeIPStore.ts',
     'viewStore.ts',
     'improvementProjectStore.ts',
   ];
@@ -89,14 +90,23 @@ describe('layer boundary', () => {
       });
   });
 
-  it('annotation-per-user stores DO import persist from zustand/middleware', () => {
+  it('persist-backed annotation-per-user stores DO import persist from zustand/middleware', () => {
     files
-      .filter(f => f.layer === 'annotation-per-user')
+      .filter(f => f.layer === 'annotation-per-user' && f.filename !== 'activeIPStore.ts')
       .forEach(f => {
         expect(f.source).toMatch(
           /import\s+\{[^}]*\bpersist\b[^}]*\}\s+from\s+['"]zustand\/middleware['"]/
         );
       });
+  });
+
+  it('activeIPStore is annotation-per-user localStorage state without Document-layer persistence', () => {
+    const activeIPStore = files.find(f => f.filename === 'activeIPStore.ts');
+    expect(activeIPStore).toBeDefined();
+    expect(activeIPStore?.layer).toBe('annotation-per-user');
+    expect(activeIPStore?.source).toMatch(/\blocalStorage\b/);
+    expect(activeIPStore?.source).not.toMatch(/from\s+['"]dexie['"]/);
+    expect(activeIPStore?.source).not.toMatch(/HubAction|dispatch\(/);
   });
 
   it('document stores do NOT import persist from zustand/middleware', () => {

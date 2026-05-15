@@ -39,6 +39,7 @@ import {
   type MatrixDimension,
   StageFiveModal,
   MatchSummaryCard,
+  ActiveIPLaunchpadCard,
   type ColumnShape,
 } from '@variscout/ui';
 import { useStageFiveOpener } from '../features/hubCreation/useStageFiveOpener';
@@ -88,6 +89,7 @@ import { useLocale } from '../context/LocaleContext';
 import { usePanelsStore } from '../features/panels/panelsStore';
 import { usePanelsPersistence } from '../features/panels/usePanelsPersistence';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
+import { useActiveIPContext } from '../hooks/useActiveIPContext';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { useTeamsShare } from '../hooks/useTeamsShare';
 import { useShareFinding } from '../hooks/useShareFinding';
@@ -559,8 +561,16 @@ export const Editor: React.FC<EditorProps> = ({
     [isPhone]
   );
 
+  // Current user (for comment author attribution and per-user active-IP scope)
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  useEffect(() => {
+    getCurrentUser().then(setCurrentUser);
+  }, []);
+
   // Data flow hook
   const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
+  const activeIPContext = useActiveIPContext(activeHub, currentUser?.email);
+  const selectedOrActiveProjectId = activeIPContext.activeIP?.id ?? selectedProjectId;
 
   // Sustainment + Handoff inputs for ProjectsTabView → IPDetailPage
   const _azureLiveSustainmentRecords = (activeHub?.sustainmentRecords ?? []).filter(
@@ -570,7 +580,7 @@ export const Editor: React.FC<EditorProps> = ({
     h => h.deletedAt === null
   );
   const projectsSustainmentRecord = _azureLiveSustainmentRecords.find(
-    r => r.improvementProjectId === selectedProjectId
+    r => r.improvementProjectId === selectedOrActiveProjectId
   );
   const projectsControlHandoff = _azureLiveControlHandoffs.find(
     h => h.investigationId === (projectsSustainmentRecord?.investigationId ?? '')
@@ -1018,12 +1028,6 @@ export const Editor: React.FC<EditorProps> = ({
   );
 
   // TODO: Phase 3 — deepLinkUrl and handleShareTeams move to ProjectNameMenu
-
-  // Current user (for comment author attribution)
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  useEffect(() => {
-    getCurrentUser().then(setCurrentUser);
-  }, []);
 
   // Overview dashboard data: userId + other projects list
   const { overviewProjects, lastViewedAt, handleUpdateLastViewed } = useProjectOverview({
@@ -1570,6 +1574,16 @@ export const Editor: React.FC<EditorProps> = ({
         canNavigateBack={overviewProjects.length > 0}
         onRenameProject={currentProjectName ? handleRenameProject : undefined}
         onExportCSV={rawData.length > 0 ? handleExportCSV : undefined}
+        activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
+        onOpenActiveIP={
+          activeIPContext.activeIP
+            ? () => usePanelsStore.getState().showProjects(activeIPContext.activeIP!.id)
+            : undefined
+        }
+        onExitActiveIP={() => {
+          activeIPContext.clearActiveIP();
+          if (activeView === 'projects') usePanelsStore.getState().showProjects();
+        }}
       />
 
       {/* Hidden file input for append-mode file upload */}
@@ -1651,7 +1665,23 @@ export const Editor: React.FC<EditorProps> = ({
 
             {/* Workspace content (ADR-055) — tabs are in AppHeader */}
             {activeView === 'dashboard' ? (
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto space-y-4">
+                {activeHub ? (
+                  <div className="p-4 sm:p-6">
+                    <ActiveIPLaunchpadCard
+                      projects={(activeHub.improvementProjects ?? []).filter(
+                        project => project.deletedAt === null
+                      )}
+                      activeProjectId={activeIPContext.activeIP?.id ?? null}
+                      onSelectIP={projectId => {
+                        activeIPContext.setActiveIP(projectId);
+                        usePanelsStore.getState().showProjects(projectId);
+                      }}
+                      onExitIP={() => activeIPContext.clearActiveIP()}
+                      onStartNewIP={() => usePanelsStore.getState().showCharter()}
+                    />
+                  </div>
+                ) : null}
                 <ProjectDashboard
                   projectName={currentProjectName ?? 'Untitled'}
                   onNavigate={handleDashboardNavigate}
@@ -1707,10 +1737,16 @@ export const Editor: React.FC<EditorProps> = ({
             ) : activeView === 'projects' ? (
               <ProjectsTabView
                 activeHub={activeHub ?? undefined}
-                selectedProjectId={selectedProjectId}
-                onSelectProject={id =>
-                  usePanelsStore.getState().showProjects(id === '' ? undefined : id)
-                }
+                selectedProjectId={selectedOrActiveProjectId}
+                onSelectProject={id => {
+                  if (id === '') {
+                    activeIPContext.clearActiveIP();
+                    usePanelsStore.getState().showProjects();
+                    return;
+                  }
+                  activeIPContext.setActiveIP(id);
+                  usePanelsStore.getState().showProjects(id);
+                }}
                 onJumpOut={target => {
                   const p = usePanelsStore.getState();
                   if (target === 'investigation') p.showInvestigation();
@@ -1747,6 +1783,7 @@ export const Editor: React.FC<EditorProps> = ({
                   // Plan 3 will emit EngagementEvent webhook here.
                   console.info('[handoff] Nudge process owner — Plan 3 will wire EngagementEvent');
                 }}
+                onStartNewProject={() => usePanelsStore.getState().showCharter()}
               />
             ) : activeView === 'improvement' ? (
               <ImprovementWorkspaceBase

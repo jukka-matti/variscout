@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { hasTeamFeatures } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
-import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
+import { IPContextChip, useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import {
   Activity,
   Cloud,
@@ -61,6 +61,9 @@ export interface AppHeaderProps {
   onExportCSV?: () => void;
   /** Save As to a different location (Team only) */
   onSaveAs?: () => void;
+  activeIPTitle?: string | null;
+  onOpenActiveIP?: () => void;
+  onExitActiveIP?: () => void;
 }
 
 /** Save status dot color */
@@ -118,6 +121,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onRenameProject,
   onExportCSV,
   onSaveAs,
+  activeIPTitle,
+  onOpenActiveIP,
+  onExitActiveIP,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
@@ -270,6 +276,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             >
               <Settings size={16} />
             </button>
+          )}
+          {hasData && activeIPTitle && onOpenActiveIP && onExitActiveIP && (
+            <IPContextChip
+              title={activeIPTitle}
+              onTitleClick={onOpenActiveIP}
+              onExitIP={onExitActiveIP}
+            />
           )}
         </div>
       </div>
@@ -463,6 +476,17 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
       {/* ── Separator ── */}
       <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
+
+      {hasData && activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
+        <>
+          <IPContextChip
+            title={activeIPTitle}
+            onTitleClick={onOpenActiveIP}
+            onExitIP={onExitActiveIP}
+          />
+          <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
+        </>
+      ) : null}
 
       {/* ── Right zone: panel toggles + primary action + settings ── */}
       <div className="flex items-center gap-1.5 flex-shrink-0">

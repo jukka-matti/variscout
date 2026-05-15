@@ -652,6 +652,7 @@ export {
 } from './components/ImprovementPlan';
 
 // Improvement Project workspace
+export * from './components/ActiveIP';
 export * from './components/ImprovementProject';
 export * from './components/Sustainment';
 export * from './components/Inbox';

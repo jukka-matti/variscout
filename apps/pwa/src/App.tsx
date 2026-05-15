@@ -24,6 +24,7 @@ import {
   OutcomePin,
   StageFiveModal,
   MatchSummaryCard,
+  ActiveIPLaunchpadCard,
   type ColumnShape,
 } from '@variscout/ui';
 import { useStageFiveOpener } from './hooks/useStageFiveOpener';
@@ -81,6 +82,7 @@ import { useInvestigationOrchestration } from './features/investigation/useInves
 import { useCanvasViewportLifecycle } from './features/investigation/useCanvasViewportLifecycle';
 import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
 import { useStatsWorker } from './workers/useStatsWorker';
+import { useActiveIPContext } from './hooks/useActiveIPContext';
 
 // Lazy-loaded heavy components for code splitting
 const dashboardImport = () => import('./components/Dashboard');
@@ -165,6 +167,7 @@ function AppMain() {
   // the saved Hub-of-one from IndexedDB and seed the session. Otherwise the
   // app stays session-only (default PWA invariant).
   const { hub: sessionHub, setHub: setSessionHub, goalNarrative, setGoalNarrative } = useSession();
+  const activeIPContext = useActiveIPContext(sessionHub);
   useEffect(() => {
     let cancelled = false;
     void getOptInFlag().then(async opted => {
@@ -731,10 +734,12 @@ function AppMain() {
   // Phase tab navigation handler (used by AppHeader inline tabs)
   const handlePhaseChange = useCallback(
     (phase: PhaseId) => {
-      if (phase === 'frame') panels.showFrame();
+      if (phase === 'home') panels.showHome();
+      else if (phase === 'frame') panels.showFrame();
       else if (phase === 'analysis') panels.showAnalysis();
       else if (phase === 'investigation') panels.showInvestigation();
       else if (phase === 'improvement') panels.showImprovement();
+      else if (phase === 'projects') panels.showProjects();
       else panels.showReport();
     },
     [panels]
@@ -791,6 +796,7 @@ function AppMain() {
   }, [findingsPopoutMessage, findingsState]);
 
   const isOnline = useOnlineStatus();
+  const selectedOrActiveProjectId = activeIPContext.activeIP?.id ?? panels.selectedProjectId;
 
   // Sustainment + Handoff inputs for ProjectsTabView → IPDetailPage
   const _liveSustainmentRecords = (sessionHub?.sustainmentRecords ?? []).filter(
@@ -800,7 +806,7 @@ function AppMain() {
     h => h.deletedAt === null
   );
   const projectsSustainmentRecord = _liveSustainmentRecords.find(
-    r => r.improvementProjectId === panels.selectedProjectId
+    r => r.improvementProjectId === selectedOrActiveProjectId
   );
   const projectsControlHandoff = _liveControlHandoffs.find(
     h => h.investigationId === (projectsSustainmentRecord?.investigationId ?? '')
@@ -870,6 +876,16 @@ function AppMain() {
           isWhatIfOpen={panels.isWhatIfPageOpen}
           isPISidebarOpen={panels.isPISidebarOpen}
           onTogglePISidebar={rawData.length > 0 ? panels.handleTogglePISidebar : undefined}
+          activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
+          onOpenActiveIP={
+            activeIPContext.activeIP
+              ? () => panels.showProjects(activeIPContext.activeIP!.id)
+              : undefined
+          }
+          onExitActiveIP={() => {
+            activeIPContext.clearActiveIP();
+            if (panels.activeView === 'projects') panels.showProjects();
+          }}
           hideFindings={panels.activeView === 'investigation'}
           activePhase={
             rawData.length > 0 &&
@@ -1027,6 +1043,21 @@ function AppMain() {
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
                 onImportVrs={handleImportVrs}
               />
+            ) : panels.activeView === 'home' ? (
+              <div className="h-full overflow-auto p-4 sm:p-6">
+                <ActiveIPLaunchpadCard
+                  projects={(sessionHub?.improvementProjects ?? []).filter(
+                    project => project.deletedAt === null
+                  )}
+                  activeProjectId={activeIPContext.activeIP?.id ?? null}
+                  onSelectIP={projectId => {
+                    activeIPContext.setActiveIP(projectId);
+                    panels.showProjects(projectId);
+                  }}
+                  onExitIP={() => activeIPContext.clearActiveIP()}
+                  onStartNewIP={panels.showCharter}
+                />
+              </div>
             ) : importFlow.isMapping && goalNarrative === null ? (
               // Mode B Stage 1: ask for the process goal narrative before
               // showing ColumnMapping. The sentinel pattern (null = unasked,
@@ -1120,8 +1151,16 @@ function AppMain() {
             ) : panels.activeView === 'projects' ? (
               <ProjectsTabView
                 activeHub={sessionHub ?? undefined}
-                selectedProjectId={panels.selectedProjectId}
-                onSelectProject={id => panels.showProjects(id === '' ? undefined : id)}
+                selectedProjectId={selectedOrActiveProjectId}
+                onSelectProject={id => {
+                  if (id === '') {
+                    activeIPContext.clearActiveIP();
+                    panels.showProjects();
+                    return;
+                  }
+                  activeIPContext.setActiveIP(id);
+                  panels.showProjects(id);
+                }}
                 onJumpOut={target => {
                   if (target === 'investigation') panels.showInvestigation();
                   else if (target === 'analyze') panels.showAnalysis();
@@ -1157,6 +1196,7 @@ function AppMain() {
                   // Plan 3 will emit EngagementEvent webhook here.
                   console.info('[handoff] Nudge process owner — Plan 3 will wire EngagementEvent');
                 }}
+                onStartNewProject={panels.showCharter}
               />
             ) : panels.activeView === 'improvement' ? (
               <ImprovementView

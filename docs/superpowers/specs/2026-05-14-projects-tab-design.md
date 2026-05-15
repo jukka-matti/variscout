@@ -15,6 +15,7 @@ related:
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
   - docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md
   - docs/superpowers/plans/2026-05-14-projects-tab-foundation.md
+  - docs/superpowers/plans/2026-05-14-projects-tab-launchpad-cascade.md
 ---
 
 # Projects tab + IP Detail (Lifecycle) page + Home active-IP launchpad
