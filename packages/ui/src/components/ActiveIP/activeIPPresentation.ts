@@ -1,0 +1,80 @@
+import type { ImprovementProject } from '@variscout/core/improvementProject';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export type ActiveIPStageLabel = 'Charter' | 'Approach' | 'Sustainment' | 'Handoff';
+
+export interface ActiveIPPresentation {
+  id: ImprovementProject['id'];
+  title: string;
+  statusLabel: string;
+  stageLabel: ActiveIPStageLabel;
+  dayCounter: number;
+  urgentLine: string;
+  recentActivity: string[];
+}
+
+export function getIPDayCounter(ip: ImprovementProject, now = Date.now()): number {
+  return Math.max(1, Math.floor((now - ip.createdAt) / DAY_MS) + 1);
+}
+
+export function getIPStageLabel(ip: ImprovementProject): ActiveIPStageLabel {
+  if (ip.status === 'draft') return 'Charter';
+
+  const hasOutcomeReference =
+    Boolean(ip.sections.outcomeReference.sustainmentRecordId) ||
+    Boolean(ip.sections.outcomeReference.controlHandoffId);
+  if (ip.status === 'closed' || hasOutcomeReference) return 'Handoff';
+
+  const hasApproachWork =
+    Boolean(ip.sections.approach.narrative?.trim()) ||
+    (ip.sections.approach.improvementIdeaIds?.length ?? 0) > 0 ||
+    (ip.sections.approach.actionItemIds?.length ?? 0) > 0;
+
+  return hasApproachWork ? 'Sustainment' : 'Approach';
+}
+
+export function getIPUrgentLine(ip: ImprovementProject): string {
+  const stage = getIPStageLabel(ip);
+
+  if (stage === 'Charter') {
+    return ip.goal.outcomeGoal.target === undefined
+      ? 'Goal not yet set'
+      : 'Pat awaiting Charter signoff';
+  }
+
+  if (stage === 'Approach') return 'Pat awaiting your Approach signoff';
+  if (stage === 'Sustainment') return 'Cadence tick due after sustainment setup';
+  return "Control plan pending Pat's acknowledgment";
+}
+
+function formatRelativeUpdatedAt(ip: ImprovementProject, now: number): string {
+  const elapsedDays = Math.max(0, Math.floor((now - ip.updatedAt) / DAY_MS));
+  if (elapsedDays === 0) return 'today';
+  if (elapsedDays === 1) return '1d ago';
+  return `${elapsedDays}d ago`;
+}
+
+export function getIPRecentActivityFallback(ip: ImprovementProject, now = Date.now()): string[] {
+  const stage = getIPStageLabel(ip);
+  return [
+    `${ip.metadata.title} opened · Day ${getIPDayCounter(ip, now)}`,
+    `${stage} stage active · ${formatRelativeUpdatedAt(ip, now)}`,
+    `Target set to ${ip.goal.outcomeGoal.target} · current goal`,
+  ];
+}
+
+export function deriveActiveIPPresentation(
+  ip: ImprovementProject,
+  now = Date.now()
+): ActiveIPPresentation {
+  return {
+    id: ip.id,
+    title: ip.metadata.title,
+    statusLabel: ip.status.toUpperCase(),
+    stageLabel: getIPStageLabel(ip),
+    dayCounter: getIPDayCounter(ip, now),
+    urgentLine: getIPUrgentLine(ip),
+    recentActivity: getIPRecentActivityFallback(ip, now),
+  };
+}

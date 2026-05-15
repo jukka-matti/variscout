@@ -15,6 +15,7 @@ export interface UseAppPanelsOptions {
 
 export interface UseAppPanelsReturn {
   activeView:
+    | 'home'
     | 'frame'
     | 'analysis'
     | 'investigation'
@@ -25,11 +26,13 @@ export interface UseAppPanelsReturn {
     | 'sustainment'
     | 'handoff';
   showFrame: () => void;
+  showHome: () => void;
   showAnalysis: () => void;
   showInvestigation: () => void;
   showImprovement: () => void;
   showProjects: (projectId?: string) => void;
   showReport: () => void;
+  showCharter: () => void;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (v: boolean) => void;
   isDataTableOpen: boolean;
@@ -97,11 +100,13 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
 
   // ── Action selectors (stable function references from the store) ──────
   const showFrame = usePanelsStore(s => s.showFrame);
+  const showHome = usePanelsStore(s => s.showHome);
   const showAnalysis = usePanelsStore(s => s.showAnalysis);
   const showInvestigation = usePanelsStore(s => s.showInvestigation);
   const showImprovement = usePanelsStore(s => s.showImprovement);
   const showProjects = usePanelsStore(s => s.showProjects);
   const showReport = usePanelsStore(s => s.showReport);
+  const showCharter = usePanelsStore(s => s.showCharter);
   const setSettingsOpen = usePanelsStore(s => s.setSettingsOpen);
   const setDataTableOpen = usePanelsStore(s => s.setDataTableOpen);
   const setFindingsOpen = usePanelsStore(s => s.setFindingsOpen);
@@ -179,12 +184,14 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   return {
     // Workspace navigation
     activeView,
+    showHome,
     showFrame,
     showAnalysis,
     showInvestigation,
     showImprovement,
     showProjects,
     showReport,
+    showCharter,
 
     // State (from store)
     isSettingsOpen,

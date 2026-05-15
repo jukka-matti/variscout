@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import type { MessageCatalog } from '@variscout/core';
+import { IPContextChip } from '@variscout/ui';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
@@ -49,6 +50,7 @@ const HeaderIconButton: React.FC<HeaderIconButtonProps> = ({
 );
 
 export type PhaseId =
+  | 'home'
   | 'frame'
   | 'analysis'
   | 'investigation'
@@ -78,6 +80,9 @@ interface AppHeaderProps {
   /** Phase tabs rendered inside the app bar between filename and toolbar */
   activePhase?: PhaseId;
   onPhaseChange?: (phase: PhaseId) => void;
+  activeIPTitle?: string | null;
+  onOpenActiveIP?: () => void;
+  onExitActiveIP?: () => void;
 }
 
 /**
@@ -88,7 +93,8 @@ interface AppHeaderProps {
  * - Logo clickable → new analysis (home screen)
  * - Data panel toggle persists
  */
-const PHASE_TABS: { id: PhaseId; labelKey: keyof MessageCatalog }[] = [
+const PHASE_TABS: { id: PhaseId; label?: string; labelKey?: keyof MessageCatalog }[] = [
+  { id: 'home', label: 'Home' },
   { id: 'frame', labelKey: 'workspace.frame' },
   { id: 'analysis', labelKey: 'workspace.analysis' },
   { id: 'investigation', labelKey: 'workspace.investigation' },
@@ -117,6 +123,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   hideFindings = false,
   activePhase,
   onPhaseChange,
+  activeIPTitle,
+  onOpenActiveIP,
+  onExitActiveIP,
 }) => {
   const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -175,7 +184,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 }`}
                 onClick={() => onPhaseChange(tab.id)}
               >
-                {t(tab.labelKey)}
+                {tab.labelKey ? t(tab.labelKey) : tab.label}
               </button>
             ))}
           </div>
@@ -183,6 +192,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       )}
 
       <div className="flex-1" />
+
+      {hasData && activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
+        <IPContextChip
+          title={activeIPTitle}
+          onTitleClick={onOpenActiveIP}
+          onExitIP={onExitActiveIP}
+        />
+      ) : null}
 
       {/* Toolbar */}
       <div className="flex items-center gap-1">

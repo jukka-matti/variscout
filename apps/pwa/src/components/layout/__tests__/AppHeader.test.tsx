@@ -75,7 +75,7 @@ describe('AppHeader', () => {
       rowCount: 100,
     };
 
-    it('renders all six phase tab buttons inside the app bar', () => {
+    it('renders all phase tab buttons inside the app bar', () => {
       const onPhaseChange = vi.fn();
       render(<AppHeader {...withDataProps} activePhase="analysis" onPhaseChange={onPhaseChange} />);
 
@@ -83,6 +83,7 @@ describe('AppHeader', () => {
       expect(nav).toBeTruthy();
 
       const phases: PhaseId[] = [
+        'home',
         'frame',
         'analysis',
         'investigation',
@@ -124,6 +125,9 @@ describe('AppHeader', () => {
       fireEvent.click(screen.getByTestId('phase-tab-frame'));
       expect(onPhaseChange).toHaveBeenCalledWith('frame');
 
+      fireEvent.click(screen.getByTestId('phase-tab-home'));
+      expect(onPhaseChange).toHaveBeenCalledWith('home');
+
       fireEvent.click(screen.getByTestId('phase-tab-investigation'));
       expect(onPhaseChange).toHaveBeenCalledWith('investigation');
 
@@ -156,6 +160,31 @@ describe('AppHeader', () => {
     it('renders Settings button when hasData', () => {
       render(<AppHeader {...baseProps} hasData={true} dataFilename="test.csv" rowCount={10} />);
       expect(screen.getByRole('button', { name: 'Settings' })).toBeTruthy();
+    });
+
+    it('renders active IP chip and wires title/exit actions', () => {
+      const onOpenActiveIP = vi.fn();
+      const onExitActiveIP = vi.fn();
+
+      render(
+        <AppHeader
+          {...baseProps}
+          hasData={true}
+          dataFilename="test.csv"
+          rowCount={10}
+          activeIPTitle="Heads 5-8 Cpk shortfall"
+          onOpenActiveIP={onOpenActiveIP}
+          onExitActiveIP={onExitActiveIP}
+        />
+      );
+
+      expect(screen.getByTestId('ip-context-chip')).toHaveTextContent(
+        '◆ Working in IP: Heads 5-8 Cpk shortfall · Exit IP'
+      );
+      fireEvent.click(screen.getByRole('button', { name: /Open IP Heads 5-8 Cpk shortfall/i }));
+      expect(onOpenActiveIP).toHaveBeenCalledOnce();
+      fireEvent.click(screen.getByRole('button', { name: 'Exit IP' }));
+      expect(onExitActiveIP).toHaveBeenCalledOnce();
     });
   });
 });

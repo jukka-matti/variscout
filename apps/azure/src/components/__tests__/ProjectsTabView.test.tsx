@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import ProjectsTabView from '../ProjectsTabView';
 import type { ProcessHub } from '@variscout/core';
+import ProjectsTabView from '../ProjectsTabView';
 
 const baseHub: ProcessHub = {
   id: 'hub-1',
@@ -14,8 +14,9 @@ const baseHub: ProcessHub = {
 };
 
 describe('ProjectsTabView', () => {
-  it('renders an empty-state CTA when the hub has no IPs', () => {
+  it('routes the empty-state CTA to new IP creation', () => {
     const onStartNewProject = vi.fn();
+
     render(
       <ProjectsTabView
         activeHub={baseHub}
@@ -24,11 +25,12 @@ describe('ProjectsTabView', () => {
         onStartNewProject={onStartNewProject}
       />
     );
+
     fireEvent.click(screen.getByText(/start your first improvement project/i));
     expect(onStartNewProject).toHaveBeenCalledTimes(1);
   });
 
-  it('renders a list of IP cards when projects exist', () => {
+  it('routes the list CTA to new IP creation', () => {
     const onStartNewProject = vi.fn();
     const hub: ProcessHub = {
       ...baseHub,
@@ -51,6 +53,7 @@ describe('ProjectsTabView', () => {
         },
       ],
     };
+
     render(
       <ProjectsTabView
         activeHub={hub}
@@ -59,6 +62,7 @@ describe('ProjectsTabView', () => {
         onStartNewProject={onStartNewProject}
       />
     );
+
     expect(screen.getByText('Heads 5-8 Cpk shortfall')).toBeInTheDocument();
     fireEvent.click(screen.getByText(/new improvement project/i));
     expect(onStartNewProject).toHaveBeenCalledTimes(1);

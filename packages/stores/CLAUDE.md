@@ -1,6 +1,6 @@
 # @variscout/stores
 
-6 Zustand stores across 3 layers (ADR-078 + F4, 2026-05-07):
+7 Zustand stores across 3 layers (ADR-078 + F4, 2026-05-07):
 
 | Layer           | Store                    | Persistence                                                                                   |
 | --------------- | ------------------------ | --------------------------------------------------------------------------------------------- |
@@ -9,6 +9,7 @@
 | Document        | `useCanvasStore`         | `dispatch(CanvasAction)` + hub repository                                                     |
 | Annotation hub  | `useCanvasViewportStore` | Dexie DB `variscout-canvas-viewport` (R12 ESLint exception, STORE_LAYER='annotation-per-hub') |
 | Annotation user | `usePreferencesStore`    | idb-keyval, key `'variscout-preferences'`                                                     |
+| Annotation user | `useActiveIPStore`       | localStorage, key `variscout:activeIP:{hubId}:{userId}` with encoded scope parts              |
 | View            | `useViewStore`           | NONE — transient                                                                              |
 
 **Boundary rule (portability test):** another analyst importing this hub needs it? Yes → Document. Survives reload but not portable → Annotation. Doesn't survive reload → View. `__tests__/layerBoundary.test.ts` enforces middleware presence/absence.

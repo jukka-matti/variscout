@@ -8,8 +8,18 @@ vi.mock('@variscout/stores', async importOriginal => {
     ...actual,
     persistCanvasViewport: vi.fn().mockResolvedValue(undefined),
     rehydrateCanvasViewport: vi.fn().mockResolvedValue(undefined),
+    getLocalViewportUpdatedAt: vi.fn().mockResolvedValue(0),
   };
 });
+
+vi.mock('../../../services/blobClient', () => ({
+  loadBlobCanvasViewport: vi.fn().mockResolvedValue(null),
+  saveBlobCanvasViewport: vi.fn().mockResolvedValue({ ok: true, etag: '"etag-v1"' }),
+}));
+
+vi.mock('../../../lib/appInsights', () => ({
+  safeTrackEvent: vi.fn(),
+}));
 
 import {
   getCanvasViewportInitialState,

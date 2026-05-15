@@ -23,6 +23,7 @@ interface ProjectsTabViewProps {
   onOpenLegacySustainment?: () => void;
   onOpenLegacyHandoff?: () => void;
   onNudgeProcessOwner?: () => void;
+  onStartNewProject?: () => void;
 }
 
 function liveProjects(hub: ProcessHub | undefined): ImprovementProject[] {
@@ -42,7 +43,9 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onOpenLegacySustainment,
   onOpenLegacyHandoff,
   onNudgeProcessOwner,
+  onStartNewProject,
 }) => {
+  const [now] = React.useState(() => Date.now());
   const projects = liveProjects(activeHub);
 
   if (!activeHub) {
@@ -62,7 +65,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         </div>
       );
     }
-    const dayCounter = Math.floor((Date.now() - selected.createdAt) / (24 * 60 * 60 * 1000));
+    const dayCounter = Math.floor((now - selected.createdAt) / (24 * 60 * 60 * 1000));
     return (
       <IPDetailPage
         ip={selected}
@@ -90,6 +93,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         </p>
         <button
           type="button"
+          onClick={onStartNewProject}
           className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           + Start your first Improvement Project
@@ -102,7 +106,11 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-content">Improvement Projects</h2>
-        <button type="button" className="text-sm text-blue-600 hover:text-blue-700">
+        <button
+          type="button"
+          onClick={onStartNewProject}
+          className="text-sm text-blue-600 hover:text-blue-700"
+        >
           + New Improvement Project
         </button>
       </div>

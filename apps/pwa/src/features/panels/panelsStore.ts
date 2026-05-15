@@ -6,6 +6,7 @@ interface PanelsState {
   // Workspace navigation (aligned with Azure's activeView naming per ADR-055
   // and extended with 'frame' per ADR-070).
   activeView:
+    | 'home'
     | 'frame'
     | 'analysis'
     | 'investigation'
@@ -40,6 +41,7 @@ interface PanelsState {
 
 interface PanelsActions {
   // Workspace navigation
+  showHome: () => void;
   showFrame: () => void;
   showAnalysis: () => void;
   showInvestigation: () => void;
@@ -104,6 +106,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   ...initialPanelsState,
 
   // Workspace navigation
+  showHome: () => set({ activeView: 'home', isFindingsOpen: false, selectedProjectId: null }),
   showFrame: () => set({ activeView: 'frame', isFindingsOpen: false }),
   showAnalysis: () => set({ activeView: 'analysis' }),
   showInvestigation: () => set({ activeView: 'investigation', isFindingsOpen: false }),
