@@ -15,7 +15,7 @@ import {
   useEvidenceMapData,
   useEvidenceMapTimeline,
 } from '@variscout/hooks';
-import { hasTeamFeatures } from '@variscout/core';
+import { hasTeamFeatures, isPaidTier } from '@variscout/core';
 import {
   ReportViewBase,
   ReportSection,
@@ -37,6 +37,8 @@ import {
   ReportEvidenceMap,
   ActiveIPScopeRibbon,
   IPContextChip,
+  HubPortfolioReport,
+  IPTechnicalReport,
 } from '@variscout/ui';
 import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
 import {
@@ -55,7 +57,7 @@ import {
   copySectionAsHTML,
 } from '@variscout/hooks';
 import type { ReportSectionDescriptor, VerificationChartId, AudienceMode } from '@variscout/hooks';
-import type { Finding, SpecLimits } from '@variscout/core';
+import type { Finding, ProcessHub, SpecLimits } from '@variscout/core';
 import {
   formatFindingFilters,
   calculateStagedComparison,
@@ -63,7 +65,12 @@ import {
   computeBestSubsets,
   computeMainEffects,
   computeInteractionEffects,
+  deriveHubPortfolioReport,
+  deriveIPCauseRows,
+  deriveIPReportNarrative,
+  selectIPReportScope,
 } from '@variscout/core';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import type { ResolvedMode } from '@variscout/core/strategy';
@@ -89,6 +96,8 @@ interface ReportViewProps {
   activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
   activeIPLineage?: ActiveIPLineageIds | null;
   activeIPTitle?: string | null;
+  activeHub?: ProcessHub | null;
+  activeIP?: ImprovementProject | null;
   onOpenActiveIP?: () => void;
   onExitActiveIP?: () => void;
 }
@@ -148,6 +157,8 @@ const ReportView: React.FC<ReportViewProps> = ({
   activeIPScope,
   activeIPLineage,
   activeIPTitle,
+  activeHub,
+  activeIP: providedActiveIP,
   onOpenActiveIP,
   onExitActiveIP,
 }) => {
@@ -212,6 +223,55 @@ const ReportView: React.FC<ReportViewProps> = ({
         ? questions.filter(question => reportQuestionIds.has(question.id))
         : questions,
     [questions, reportQuestionIds]
+  );
+  const activeIP = activeIPScope ? (providedActiveIP ?? null) : null;
+  const ipReportScope = useMemo(
+    () =>
+      activeIP
+        ? selectIPReportScope({
+            ip: activeIP,
+            hypotheses,
+            findings,
+            questions,
+            sustainmentRecords: activeHub?.sustainmentRecords,
+            controlHandoffs: activeHub?.controlHandoffs,
+          })
+        : null,
+    [
+      activeHub?.controlHandoffs,
+      activeHub?.sustainmentRecords,
+      activeIP,
+      findings,
+      hypotheses,
+      questions,
+    ]
+  );
+  const ipNarrative = useMemo(
+    () =>
+      activeIP && ipReportScope
+        ? deriveIPReportNarrative({
+            ip: activeIP,
+            hypotheses: ipReportScope.hypotheses,
+            findings: ipReportScope.findings,
+            questions: ipReportScope.questions,
+            sustainmentRecord: ipReportScope.sustainmentRecord,
+            controlHandoff: ipReportScope.controlHandoff,
+          })
+        : [],
+    [activeIP, ipReportScope]
+  );
+  const ipCauseRows = useMemo(
+    () =>
+      activeIP && ipReportScope
+        ? deriveIPCauseRows({
+            ip: activeIP,
+            hypotheses: ipReportScope.hypotheses,
+            findings: ipReportScope.findings,
+            questions: ipReportScope.questions,
+            sustainmentRecord: ipReportScope.sustainmentRecord,
+          })
+        : [],
+    [activeIP, ipReportScope]
   );
 
   // ---------------------------------------------------------------------------
@@ -318,8 +378,15 @@ const ReportView: React.FC<ReportViewProps> = ({
   // ---------------------------------------------------------------------------
   // Audience mode state
   // ---------------------------------------------------------------------------
-  const [audienceMode, setAudienceMode] = useState<AudienceMode>('technical');
-  const isSummary = audienceMode === 'summary';
+  const [reportAudienceMode, setReportAudienceMode] = useState<'overview' | 'technical'>(
+    'overview'
+  );
+  const audienceMode: AudienceMode = reportAudienceMode === 'overview' ? 'summary' : 'technical';
+  const isSummary = reportAudienceMode === 'overview';
+  const hubPortfolioReport = useMemo(
+    () => (!activeIPScope && activeHub ? deriveHubPortfolioReport({ hub: activeHub }) : null),
+    [activeHub, activeIPScope]
+  );
 
   // ---------------------------------------------------------------------------
   // Responsive chart width — clamp to container width on small screens
@@ -395,6 +462,51 @@ const ReportView: React.FC<ReportViewProps> = ({
       histogramMean: lastStageStats?.mean ?? 0,
     };
   }, [stagedStats, outcome, stageColumn, stageOrder, filteredData]);
+  const { beforeHistogramValues, beforeHistogramMean } = useMemo(() => {
+    if (!stagedStats || !outcome || !stageColumn || stageOrder.length === 0) {
+      return { beforeHistogramValues: [], beforeHistogramMean: undefined };
+    }
+    const firstStageKey = stageOrder[0];
+    const firstStageRows = filteredData.filter(r => String(r[stageColumn]) === firstStageKey);
+    const values = firstStageRows.map(r => Number(r[outcome])).filter(Number.isFinite);
+    const firstStageStats = stagedStats.stages.get(firstStageKey);
+    return {
+      beforeHistogramValues: values,
+      beforeHistogramMean: firstStageStats?.mean,
+    };
+  }, [filteredData, outcome, stageColumn, stageOrder, stagedStats]);
+  const technicalChannels = useMemo(() => {
+    if (histogramValues.length === 0 || !stats) return [];
+    return [
+      {
+        id: outcome ?? 'outcome',
+        label: outcome ?? 'Outcome',
+        n: histogramValues.length,
+        mean: histogramMean,
+        stdDev: stats.stdDev,
+        cp: stats.cp,
+        cpk: stats.cpk,
+        min: Math.min(...histogramValues),
+        max: Math.max(...histogramValues),
+        health:
+          stats.cpk != null && stats.cpk >= 1.67
+            ? 'excellent'
+            : stats.cpk != null && stats.cpk >= 1.33
+              ? 'capable'
+              : stats.cpk != null && stats.cpk >= 1
+                ? 'warning'
+                : 'critical',
+        outOfSpecPercentage: stats.outOfSpecPercentage,
+        values: histogramValues,
+      },
+    ] as const;
+  }, [histogramMean, histogramValues, outcome, stats]);
+  const scatterData = useMemo(() => {
+    if (!firstFactor || !outcome) return [];
+    return filteredData
+      .map(row => ({ x: Number(row[firstFactor]), y: Number(row[outcome]) }))
+      .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y));
+  }, [filteredData, firstFactor, outcome]);
 
   // Cpk before/after from staged comparison
   const cpkBefore = stagedComparison?.stages?.[0]?.stats?.cpk;
@@ -489,7 +601,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   });
 
   // Derive report sections from analysis state
-  const { reportType, sections } = useReportSections({
+  const { reportType, sections: derivedSections } = useReportSections({
     findings: reportFindings,
     questions: reportQuestions,
     stagedComparison: hasStagedComparison,
@@ -498,6 +610,37 @@ const ReportView: React.FC<ReportViewProps> = ({
     analysisMode: analysisMode ?? 'standard',
     isCapabilityMode,
   });
+  const sections =
+    activeIP && reportAudienceMode === 'overview'
+      ? ipNarrative.map((section, index) => ({
+          id: `ip-overview-${index}`,
+          stepNumber: index + 1,
+          title: section.title,
+          status: 'done' as const,
+          workspace:
+            index <= 2
+              ? ('analysis' as const)
+              : index <= 4
+                ? ('findings' as const)
+                : ('improvement' as const),
+          findings: [],
+          questions: [],
+          hasAIContent: false,
+        }))
+      : hubPortfolioReport
+        ? [
+            {
+              id: 'hub-portfolio' as const,
+              stepNumber: 1,
+              title: 'Hub portfolio',
+              status: 'active' as const,
+              workspace: 'analysis' as const,
+              findings: [],
+              questions: [],
+              hasAIContent: false,
+            },
+          ]
+        : derivedSections;
 
   // Scroll spy for sidebar highlighting
   const { activeId: activeSectionId, refs: sectionRefs } = useScrollSpy({
@@ -538,6 +681,7 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   // Publish to SharePoint (ADR-026)
   const canPublish = hasTeamFeatures();
+  const canShareLink = isPaidTier();
   const {
     publish,
     publishReplace,
@@ -549,7 +693,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     projectName: processName,
     processName: processContext?.description,
     reportType,
-    sections,
+    sections: derivedSections,
     questions: reportQuestions,
     processContext: processContext ?? undefined,
     stats: stats ?? undefined,
@@ -563,6 +707,17 @@ const ReportView: React.FC<ReportViewProps> = ({
   const [isPrinting, setIsPrinting] = useState(false);
 
   const handlePrint = useCallback(() => {
+    const previousTitle = document.title;
+    const date = new Date().toISOString().slice(0, 10);
+    const hubName = activeHub?.name ?? 'Hub';
+    const subject = activeIP?.metadata.title ?? 'Hub portfolio';
+    const layer = activeIP
+      ? reportAudienceMode === 'overview'
+        ? 'Overview'
+        : 'Technical'
+      : 'Overview';
+    document.title = `${hubName}-${subject}-${layer}-${date}.pdf`;
+
     // Force-expand all sections
     setIsPrinting(true);
 
@@ -584,11 +739,12 @@ const ReportView: React.FC<ReportViewProps> = ({
       } else {
         document.documentElement.removeAttribute('data-theme');
       }
+      document.title = previousTitle;
       setIsPrinting(false);
       window.removeEventListener('afterprint', restore);
     };
     window.addEventListener('afterprint', restore);
-  }, []);
+  }, [activeHub?.name, activeIP, reportAudienceMode]);
 
   // Cleanup afterprint listener on unmount
   useEffect(() => {
@@ -600,9 +756,9 @@ const ReportView: React.FC<ReportViewProps> = ({
   // Build a lookup map for extended section data
   const sectionMap = useMemo(() => {
     const map = new Map<string, ReportSectionDescriptor>();
-    for (const s of sections) map.set(s.id, s);
+    for (const s of derivedSections) map.set(s.id, s);
     return map;
-  }, [sections]);
+  }, [derivedSections]);
 
   // Render a staged verification chart by ID
   const renderVerificationChart = (id: VerificationChartId): React.ReactNode | null => {
@@ -705,6 +861,43 @@ const ReportView: React.FC<ReportViewProps> = ({
         defaultOpen={section.status !== 'future'}
         forceOpen={isPrinting}
       >
+        {activeIP && reportAudienceMode === 'overview' && section.id.startsWith('ip-overview-') && (
+          <>
+            <ul className="space-y-2">
+              {(ipNarrative[section.stepNumber - 1]?.items ?? []).map(item => (
+                <li key={item} className="text-sm text-slate-600 dark:text-slate-400">
+                  {item}
+                </li>
+              ))}
+            </ul>
+            {section.title === 'What we found + what we did' && ipCauseRows.length > 0 ? (
+              <div className="mt-4 grid gap-3">
+                {ipCauseRows.map(row => (
+                  <article
+                    key={row.hypothesisId}
+                    className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800"
+                  >
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      {row.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                      {row.synthesis}
+                    </p>
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">
+                      {row.selectedIdea ?? 'No selected idea yet'} · {row.actionProgressLabel} ·{' '}
+                      {row.verificationLabel} · {row.miniChartType}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </>
+        )}
+
+        {section.id === 'hub-portfolio' && hubPortfolioReport && (
+          <HubPortfolioReport report={hubPortfolioReport} />
+        )}
+
         {/* Step 1: Current Condition / Time Composition */}
         {section.id === 'current-condition' && outcome && (
           <div className="space-y-4">
@@ -840,6 +1033,22 @@ const ReportView: React.FC<ReportViewProps> = ({
                 </p>
               </div>
             )}
+            {activeIP && reportAudienceMode === 'technical' ? (
+              <IPTechnicalReport
+                outcomeSeries={ichartData}
+                stats={stats}
+                specs={specs}
+                beforeValues={beforeHistogramValues}
+                beforeMean={beforeHistogramMean}
+                afterValues={histogramValues}
+                afterMean={histogramMean}
+                paretoData={paretoData}
+                paretoTotalCount={paretoTotalCount}
+                scatterData={scatterData}
+                boxplotGroups={boxplotData}
+                channels={technicalChannels}
+              />
+            ) : null}
           </div>
         )}
 
@@ -1204,7 +1413,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     );
   };
 
-  if (!outcome) return null;
+  if (!outcome && !hubPortfolioReport) return null;
 
   return (
     <ErrorBoundary componentName="Report View">
@@ -1222,12 +1431,14 @@ const ReportView: React.FC<ReportViewProps> = ({
           reportType={reportType}
           sections={sections}
           activeSectionId={activeSectionId}
-          audienceMode={audienceMode}
-          onAudienceModeChange={setAudienceMode}
+          reportingOnLabel={activeIPScope?.title ?? 'Hub portfolio'}
+          reportAudienceMode={activeIPScope ? reportAudienceMode : 'overview'}
+          onReportAudienceModeChange={activeIPScope ? setReportAudienceMode : undefined}
           onScrollToSection={handleScrollToSection}
           renderSection={renderSection}
           onPrintReport={handlePrint}
-          onShareReport={onShareReport}
+          onShareReport={onShareReport ?? (() => undefined)}
+          shareLinkGate={canShareLink ? 'available' : 'locked'}
           onPublishToSharePoint={canPublish ? publish : undefined}
           onPublishReplace={publishReplace}
           publishStatus={publishStatus}

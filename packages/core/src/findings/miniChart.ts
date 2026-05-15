@@ -7,7 +7,10 @@
  */
 
 import type { Hypothesis } from './types';
+import type { Finding } from './types';
 import type { HypothesisCondition } from './hypothesisCondition';
+import { collectReferencedColumns } from './hypothesisCondition';
+import type { ImprovementProject } from '../improvementProject';
 import type { ColumnAnalysis } from '../parser/types';
 
 // ---------------------------------------------------------------------------
@@ -30,6 +33,12 @@ export type MiniChartConfig =
 
 /** Lookup table from column name → parser-detected column type. */
 export type ColumnTypeMap = Record<string, ColumnAnalysis['type']>;
+
+export type IPReportMiniChartType =
+  | 'ichart-factor-target-band'
+  | 'boxplot-by-subgroup'
+  | 'capability-histogram'
+  | 'ichart-outcome-target-band';
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -108,4 +117,33 @@ export function deriveMiniChartConfig(
 
   // Covers 'text' and any future ColumnAnalysis types.
   return { kind: 'placeholder', factor, reason: 'unsupported-type' };
+}
+
+export function deriveIPReportMiniChartType(input: {
+  ip: ImprovementProject;
+  hypothesis: Hypothesis;
+  linkedFindings: readonly Finding[];
+  outcome: string | undefined | null;
+}): IPReportMiniChartType {
+  const conditionColumns = input.hypothesis.condition
+    ? collectReferencedColumns(input.hypothesis.condition)
+    : new Set<string>();
+  const hasLinkedFactorControl = (input.ip.goal.factorControls ?? []).some(
+    control =>
+      control.linkedHypothesisId === input.hypothesis.id ||
+      (control.linkedHypothesisId == null && conditionColumns.has(control.factor))
+  );
+  if (hasLinkedFactorControl) return 'ichart-factor-target-band';
+
+  const mechanismFindingIds = new Set(
+    (input.ip.goal.mechanismGoals ?? []).flatMap(goal => goal.linkedFindingIds ?? [])
+  );
+  const hasLinkedMechanismFinding = input.linkedFindings.some(finding =>
+    mechanismFindingIds.has(finding.id)
+  );
+  if (hasLinkedMechanismFinding) return 'capability-histogram';
+
+  if (input.hypothesis.condition) return 'boxplot-by-subgroup';
+
+  return 'ichart-outcome-target-band';
 }

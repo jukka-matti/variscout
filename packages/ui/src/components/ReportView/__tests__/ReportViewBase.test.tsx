@@ -141,6 +141,49 @@ describe('ReportViewBase', () => {
     });
   });
 
+  describe('Plan 4 report shell', () => {
+    it('renders the reporting-on label when provided', () => {
+      render(<ReportViewBase {...defaultProps({ reportingOnLabel: 'Fill Cpk lift' })} />);
+      expect(screen.getAllByText('Reporting on: Fill Cpk lift').length).toBeGreaterThan(0);
+    });
+
+    it('renders Overview and Technical report audience controls', () => {
+      const onReportAudienceModeChange = vi.fn();
+      render(
+        <ReportViewBase
+          {...defaultProps({
+            reportAudienceMode: 'overview',
+            onReportAudienceModeChange,
+          })}
+        />
+      );
+
+      expect(screen.getAllByText('Overview').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Technical').length).toBeGreaterThan(0);
+      fireEvent.click(screen.getAllByText('Technical')[0]);
+      expect(onReportAudienceModeChange).toHaveBeenCalledWith('technical');
+    });
+
+    it('always exposes the PDF action when onPrintReport is provided', () => {
+      render(<ReportViewBase {...defaultProps({ onPrintReport: vi.fn() })} />);
+      expect(screen.getAllByText('Save as PDF').length).toBeGreaterThan(0);
+    });
+
+    it('renders paid-gated Share link inside the Report surface', () => {
+      render(
+        <ReportViewBase
+          {...defaultProps({
+            onShareReport: vi.fn(),
+            shareLinkGate: 'locked',
+          })}
+        />
+      );
+
+      expect(screen.getAllByText('Share link').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Azure paid').length).toBeGreaterThan(0);
+    });
+  });
+
   describe('Share button', () => {
     it('does not render Share button when canShareViaTeams is false', () => {
       render(
