@@ -38,8 +38,9 @@ Structured investigation for process improvement. Browser-based, customer-owned 
 ## Using Ruflo From Codex
 
 - The tracked Ruflo expectation lives in `scripts/check-codex-ruflo.sh`; active Codex MCP config can drift and must be verified. Do not add project `.mcp.json` for Ruflo, because Claude Code loads project MCP files.
-- At session start, run `pnpm codex:ruflo-check` for the Codex-side registration/version health summary and recovery command. Treat any direct Ruflo CLI probe in that check as diagnostic only.
-- Use the Ruflo MCP tools for in-session work. Query memory/status/diff/workers through `mcp__ruflo__*` (lazy-load with tool search if needed), not by running `npx ruflo ...` from the shell.
+- At session start, run `pnpm codex:ruflo-check` for the Codex-side registration/version health summary and recovery command. This verifies registration only; it does not prove the current Codex session has loaded the live Ruflo tool surface.
+- Use the Ruflo MCP tools for in-session work. Query memory/status/diff/workers through `mcp__ruflo__*` (lazy-load with tool search if needed), not by running `npx ruflo ...` from the shell. Use the exact Ruflo tool names exposed in the current session.
+- If Ruflo tools are missing: run `pnpm codex:ruflo-check`, search the tool registry for Ruflo, restart Codex or start a fresh session, then re-register with the remove/add repair commands only if the tools are still missing. After any `codex mcp remove/add`, restart Codex before judging runtime behavior.
 - Before complex work, query Ruflo MCP memory for architecture, domain, or prior patterns.
 - Before PR prep, run MCP diff analysis and dispatch MCP audit or test-gap workers when relevant.
 - Codex does not use Claude-only hooks from `.claude/settings.json`; treat those as client-specific automation.
@@ -48,5 +49,5 @@ Structured investigation for process improvement. Browser-based, customer-owned 
 
 1. Read `AGENTS.md` and `docs/llms.txt`.
 2. Run `pnpm codex:ruflo-check`.
-3. If Ruflo is missing or registered with the wrong version, follow the remove/add repair commands printed by the check.
+3. If Ruflo is missing or registered with the wrong version, follow the remove/add repair commands printed by the check, then restart Codex or start a fresh session.
 4. **Create or attach to a dedicated worktree** for any code work: `git worktree add .worktrees/<feature-branch> -b <feature-branch> origin/main && cd .worktrees/<feature-branch> && pnpm install`. Do NOT operate from the repo root if you will write — that's reserved for the main session.
