@@ -19,9 +19,11 @@ import {
   Minimap,
   CANVAS_W,
   CANVAS_H,
+  ActiveIPScopeRibbon,
   useWallKeyboard,
   useWallIsMobile,
 } from '@variscout/ui';
+import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
 import {
   useResizablePanel,
   useReturnNavigation,
@@ -48,6 +50,8 @@ import { usePanelsStore } from '../../features/panels/panelsStore';
 const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 
 interface InvestigationViewProps {
+  activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
+  activeIPLineage?: ActiveIPLineageIds | null;
   canvasViewportHubId: ProcessHubId;
   // Data context
   filteredData: Record<string, unknown>[];
@@ -74,6 +78,8 @@ interface InvestigationViewProps {
 }
 
 const InvestigationView: React.FC<InvestigationViewProps> = ({
+  activeIPScope,
+  activeIPLineage,
   canvasViewportHubId,
   findingsState,
   handleRestoreFinding,
@@ -126,6 +132,40 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   const hubs = useInvestigationStore(s => s.hypotheses);
   const wallFindings = useInvestigationStore(s => s.findings);
   const wallQuestions = useInvestigationStore(s => s.questions);
+  const scopedHubIds = useMemo(
+    () => new Set(activeIPLineage?.hypothesisIds ?? []),
+    [activeIPLineage]
+  );
+  const scopedFindingIds = useMemo(
+    () => new Set(activeIPLineage?.findingIds ?? []),
+    [activeIPLineage]
+  );
+  const scopedWallHubs = useMemo(
+    () => (activeIPScope ? hubs.filter(h => scopedHubIds.has(h.id)) : hubs),
+    [activeIPScope, hubs, scopedHubIds]
+  );
+  const scopedWallFindings = useMemo(
+    () => (activeIPScope ? wallFindings.filter(f => scopedFindingIds.has(f.id)) : wallFindings),
+    [activeIPScope, scopedFindingIds, wallFindings]
+  );
+  const scopedWallQuestionIds = useMemo(() => {
+    if (!activeIPScope) return null;
+    const ids = new Set<string>();
+    for (const hub of scopedWallHubs) {
+      for (const id of hub.questionIds) ids.add(id);
+    }
+    for (const finding of scopedWallFindings) {
+      if (finding.questionId) ids.add(finding.questionId);
+    }
+    return ids;
+  }, [activeIPScope, scopedWallFindings, scopedWallHubs]);
+  const scopedWallQuestions = useMemo(
+    () =>
+      scopedWallQuestionIds
+        ? wallQuestions.filter(q => scopedWallQuestionIds.has(q.id))
+        : wallQuestions,
+    [scopedWallQuestionIds, wallQuestions]
+  );
 
   // Investigation phase detection (deterministic)
   const investigationPhase = useMemo(
@@ -165,16 +205,16 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   // becomes dynamic.
   const handlePanToNode = useCallback(
     (nodeId: string) => {
-      const hubIndex = hubs.findIndex(h => h.id === nodeId);
+      const hubIndex = scopedWallHubs.findIndex(h => h.id === nodeId);
       if (hubIndex >= 0) {
-        const hubSpacing = CANVAS_W / (hubs.length + 1);
+        const hubSpacing = CANVAS_W / (scopedWallHubs.length + 1);
         setWallPan(wallHubId, {
           x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
           y: CANVAS_H / 2 - 400,
         });
         return;
       }
-      const questionIndex = wallQuestions.findIndex(q => q.id === nodeId);
+      const questionIndex = scopedWallQuestions.findIndex(q => q.id === nodeId);
       if (questionIndex >= 0) {
         setWallPan(wallHubId, {
           x: CANVAS_W / 2 - (200 + questionIndex * 240),
@@ -182,7 +222,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
         });
       }
     },
-    [hubs, wallHubId, wallQuestions, setWallPan]
+    [scopedWallHubs, wallHubId, scopedWallQuestions, setWallPan]
   );
 
   const handleReturnToImprovementProject = useCallback(() => {
@@ -214,215 +254,226 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   };
 
   return (
-    <div className="flex flex-1 min-h-0 relative">
-      {/* Left panel: Question checklist + phase + conclusions */}
-      <div
-        className="relative hidden md:flex flex-col border-r border-edge overflow-hidden bg-surface flex-shrink-0"
-        style={{ width: leftPanel.width }}
-      >
-        {/* Phase badge */}
-        {investigationPhase && (
-          <div className="px-3 pt-3 pb-1 flex-shrink-0">
-            <InvestigationPhaseBadge phase={investigationPhase} />
-          </div>
-        )}
+    <div className="flex flex-1 min-h-0 flex-col">
+      {activeIPScope ? (
+        <ActiveIPScopeRibbon
+          title={activeIPScope.title}
+          labels={activeIPScope.labels}
+          surface="Investigation"
+        />
+      ) : null}
+      <div className="flex flex-1 min-h-0 relative">
+        {/* Left panel: Question checklist + phase + conclusions */}
+        <div
+          className="relative hidden md:flex flex-col border-r border-edge overflow-hidden bg-surface flex-shrink-0"
+          style={{ width: leftPanel.width }}
+        >
+          {/* Phase badge */}
+          {investigationPhase && (
+            <div className="px-3 pt-3 pb-1 flex-shrink-0">
+              <InvestigationPhaseBadge phase={investigationPhase} />
+            </div>
+          )}
 
-        {/* Question checklist */}
-        <div className="flex-1 overflow-y-auto px-3 py-2">
-          <QuestionChecklist
-            questions={factorIntelQuestions}
-            onQuestionClick={handleQuestionClickWithSwitch}
-            evidenceLabel={strategy.questionStrategy.evidenceLabel}
-          />
-        </div>
-
-        {/* Investigation conclusion */}
-        {(hypotheses.length > 0 || ruledOut.length > 0) && (
-          <div className="border-t border-edge px-3 py-2 flex-shrink-0">
-            <InvestigationConclusion
-              hypotheses={hypotheses}
-              ruledOut={ruledOut}
-              contributing={contributing}
-              hasConclusions={hypotheses.length > 0}
+          {/* Question checklist */}
+          <div className="flex-1 overflow-y-auto px-3 py-2">
+            <QuestionChecklist
+              questions={factorIntelQuestions}
+              onQuestionClick={handleQuestionClickWithSwitch}
+              evidenceLabel={strategy.questionStrategy.evidenceLabel}
             />
           </div>
-        )}
 
-        {/* Resize handle */}
-        <div
-          className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/30 transition-colors z-10"
-          onMouseDown={leftPanel.handleMouseDown}
-        >
-          <GripVertical
-            size={12}
-            className="absolute top-1/2 -translate-y-1/2 -right-1.5 text-content-tertiary"
-          />
-        </div>
-      </div>
+          {/* Investigation conclusion */}
+          {(hypotheses.length > 0 || ruledOut.length > 0) && (
+            <div className="border-t border-edge px-3 py-2 flex-shrink-0">
+              <InvestigationConclusion
+                hypotheses={hypotheses}
+                ruledOut={ruledOut}
+                contributing={contributing}
+                hasConclusions={hypotheses.length > 0}
+              />
+            </div>
+          )}
 
-      {/* Center: Map/Wall toggle + content */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        {/* Header toolbar */}
-        <div className="flex items-center gap-1 px-3 py-2 border-b border-edge bg-surface flex-shrink-0">
-          {/* Map/Wall primary toggle */}
+          {/* Resize handle */}
           <div
-            role="group"
-            aria-label="Investigation view mode"
-            className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
+            className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/30 transition-colors z-10"
+            onMouseDown={leftPanel.handleMouseDown}
           >
-            {(['map', 'wall'] as const).map(mode => (
-              <button
-                key={mode}
-                type="button"
-                aria-pressed={wallViewMode === mode}
-                onClick={() => setWallViewMode(mode)}
-                className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                  wallViewMode === mode
-                    ? 'bg-surface-secondary text-content'
-                    : 'text-content-secondary hover:text-content'
-                }`}
-              >
-                {mode.charAt(0).toUpperCase() + mode.slice(1)}
-              </button>
-            ))}
+            <GripVertical
+              size={12}
+              className="absolute top-1/2 -translate-y-1/2 -right-1.5 text-content-tertiary"
+            />
           </div>
+        </div>
 
-          {/* List/board/tree sub-toggle (only in Map/Findings view) */}
-          {wallViewMode === 'map' && (
-            <>
-              <div className="w-px h-4 bg-edge mx-1" />
-              {(['list', 'board', 'tree'] as const).map(mode => (
+        {/* Center: Map/Wall toggle + content */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+          {/* Header toolbar */}
+          <div className="flex items-center gap-1 px-3 py-2 border-b border-edge bg-surface flex-shrink-0">
+            {/* Map/Wall primary toggle */}
+            <div
+              role="group"
+              aria-label="Investigation view mode"
+              className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
+            >
+              {(['map', 'wall'] as const).map(mode => (
                 <button
                   key={mode}
-                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                    viewMode === mode
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
-                      : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
+                  type="button"
+                  aria-pressed={wallViewMode === mode}
+                  onClick={() => setWallViewMode(mode)}
+                  className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                    wallViewMode === mode
+                      ? 'bg-surface-secondary text-content'
+                      : 'text-content-secondary hover:text-content'
                   }`}
-                  onClick={() => setViewMode(mode)}
                 >
                   {mode.charAt(0).toUpperCase() + mode.slice(1)}
                 </button>
               ))}
-            </>
-          )}
+            </div>
 
-          {/* Wall-only: group-by-tributary toggle */}
-          {wallViewMode === 'wall' && processMap && (
-            <>
-              <div className="w-px h-4 bg-edge mx-1" />
-              <button
-                type="button"
-                aria-pressed={wallGroupByTributary}
-                onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
-                className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                  wallGroupByTributary
-                    ? 'bg-surface-secondary text-content'
-                    : 'text-content-secondary hover:text-content'
-                }`}
-              >
-                Group by tributary
-              </button>
-            </>
-          )}
-
-          {canReturnToImprovementProject && (
-            <button
-              type="button"
-              onClick={handleReturnToImprovementProject}
-              className="ml-1 rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              Back to Improvement Project
-            </button>
-          )}
-
-          <span className="ml-auto text-xs text-content-tertiary">
-            {findingsState.findings.length} finding
-            {findingsState.findings.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-
-        {/* Content */}
-        {wallViewMode === 'wall' ? (
-          <div className="relative flex-1 flex flex-col min-h-0">
-            <WallCanvas
-              hubId={wallHubId}
-              hubs={hubs}
-              findings={wallFindings}
-              questions={wallQuestions}
-              processMap={processMap}
-              problemCpk={0}
-              eventsPerWeek={0}
-              activeColumns={wallActiveColumns}
-              rows={rawData}
-              columnTypes={columnTypes}
-              outcomeColumn={outcome}
-              zoom={wallZoom}
-              pan={wallPan}
-              groupByTributary={Boolean(processMap && wallGroupByTributary)}
-            />
-            {/* Minimap + CommandPalette are desktop-only. WallCanvas
-                self-gates to MobileCardList below 768px. */}
-            {!wallIsMobile && (
+            {/* List/board/tree sub-toggle (only in Map/Findings view) */}
+            {wallViewMode === 'map' && (
               <>
-                <div className="absolute bottom-4 right-4 pointer-events-auto">
-                  <Minimap
-                    hubs={hubs}
-                    questions={wallQuestions}
-                    zoom={wallZoom}
-                    pan={wallPan}
-                    onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
-                  />
-                </div>
-                <CommandPalette
-                  open={paletteOpen}
-                  onClose={() => setPaletteOpen(false)}
-                  onPanTo={handlePanToNode}
-                  hubs={hubs}
-                  questions={wallQuestions}
-                  findings={wallFindings}
-                />
+                <div className="w-px h-4 bg-edge mx-1" />
+                {(['list', 'board', 'tree'] as const).map(mode => (
+                  <button
+                    key={mode}
+                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                      viewMode === mode
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                        : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
+                    }`}
+                    onClick={() => setViewMode(mode)}
+                  >
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </button>
+                ))}
               </>
             )}
+
+            {/* Wall-only: group-by-tributary toggle */}
+            {wallViewMode === 'wall' && processMap && (
+              <>
+                <div className="w-px h-4 bg-edge mx-1" />
+                <button
+                  type="button"
+                  aria-pressed={wallGroupByTributary}
+                  onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
+                  className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                    wallGroupByTributary
+                      ? 'bg-surface-secondary text-content'
+                      : 'text-content-secondary hover:text-content'
+                  }`}
+                >
+                  Group by tributary
+                </button>
+              </>
+            )}
+
+            {canReturnToImprovementProject && (
+              <button
+                type="button"
+                onClick={handleReturnToImprovementProject}
+                className="ml-1 rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                Back to Improvement Project
+              </button>
+            )}
+
+            <span className="ml-auto text-xs text-content-tertiary">
+              {scopedWallFindings.length} finding
+              {scopedWallFindings.length !== 1 ? 's' : ''}
+            </span>
           </div>
-        ) : (
-          <div className="flex-1 overflow-y-auto px-3 py-2">
-            <FindingsLog
-              findings={findingsState.findings}
-              onEditFinding={findingsState.editFinding}
-              onDeleteFinding={findingsState.deleteFinding}
-              onRestoreFinding={handleRestoreFinding}
-              viewMode={viewMode}
-              questions={questionsState.questions}
-              onSelectQuestion={(q: Question) =>
-                useInvestigationFeatureStore.getState().expandToQuestion(q.id)
-              }
-              onAddSubQuestion={questionsState.addSubQuestion}
-              factors={drillFactors}
-              getChildrenSummary={questionsState.getChildrenSummary}
-              onSetFindingStatus={handleSetFindingStatus}
-              onSetFindingTag={findingsState.setFindingTag}
-              onAddComment={(id: string, text: string) => findingsState.addFindingComment(id, text)}
-              columnAliases={columnAliases}
-              activeFindingId={highlightedFindingId}
-              onCreateQuestion={handleCreateQuestion}
-              questionsMap={questionsMap}
-              onSetValidationTask={questionsState.setValidationTask}
-              onCompleteTask={questionsState.completeTask}
-              onSetManualStatus={questionsState.setManualStatus}
-              onAddAction={findingsState.addAction}
-              onCompleteAction={findingsState.completeAction}
-              onDeleteAction={findingsState.deleteAction}
-              onSetOutcome={findingsState.setOutcome}
-              ideaImpacts={ideaImpacts}
-              onAddIdea={questionsState.addIdea}
-              onUpdateIdea={questionsState.updateIdea}
-              onRemoveIdea={questionsState.removeIdea}
-              onSelectIdea={questionsState.selectIdea}
-              onSetCauseRole={questionsState.setCauseRole}
-            />
-          </div>
-        )}
+
+          {/* Content */}
+          {wallViewMode === 'wall' ? (
+            <div className="relative flex-1 flex flex-col min-h-0">
+              <WallCanvas
+                hubId={wallHubId}
+                hubs={scopedWallHubs}
+                findings={scopedWallFindings}
+                questions={scopedWallQuestions}
+                processMap={processMap}
+                problemCpk={0}
+                eventsPerWeek={0}
+                activeColumns={wallActiveColumns}
+                rows={rawData}
+                columnTypes={columnTypes}
+                outcomeColumn={outcome}
+                zoom={wallZoom}
+                pan={wallPan}
+                groupByTributary={Boolean(processMap && wallGroupByTributary)}
+              />
+              {/* Minimap + CommandPalette are desktop-only. WallCanvas
+                self-gates to MobileCardList below 768px. */}
+              {!wallIsMobile && (
+                <>
+                  <div className="absolute bottom-4 right-4 pointer-events-auto">
+                    <Minimap
+                      hubs={scopedWallHubs}
+                      questions={scopedWallQuestions}
+                      zoom={wallZoom}
+                      pan={wallPan}
+                      onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
+                    />
+                  </div>
+                  <CommandPalette
+                    open={paletteOpen}
+                    onClose={() => setPaletteOpen(false)}
+                    onPanTo={handlePanToNode}
+                    hubs={scopedWallHubs}
+                    questions={scopedWallQuestions}
+                    findings={scopedWallFindings}
+                  />
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto px-3 py-2">
+              <FindingsLog
+                findings={scopedWallFindings}
+                onEditFinding={findingsState.editFinding}
+                onDeleteFinding={findingsState.deleteFinding}
+                onRestoreFinding={handleRestoreFinding}
+                viewMode={viewMode}
+                questions={scopedWallQuestions}
+                onSelectQuestion={(q: Question) =>
+                  useInvestigationFeatureStore.getState().expandToQuestion(q.id)
+                }
+                onAddSubQuestion={questionsState.addSubQuestion}
+                factors={drillFactors}
+                getChildrenSummary={questionsState.getChildrenSummary}
+                onSetFindingStatus={handleSetFindingStatus}
+                onSetFindingTag={findingsState.setFindingTag}
+                onAddComment={(id: string, text: string) =>
+                  findingsState.addFindingComment(id, text)
+                }
+                columnAliases={columnAliases}
+                activeFindingId={highlightedFindingId}
+                onCreateQuestion={handleCreateQuestion}
+                questionsMap={questionsMap}
+                onSetValidationTask={questionsState.setValidationTask}
+                onCompleteTask={questionsState.completeTask}
+                onSetManualStatus={questionsState.setManualStatus}
+                onAddAction={findingsState.addAction}
+                onCompleteAction={findingsState.completeAction}
+                onDeleteAction={findingsState.deleteAction}
+                onSetOutcome={findingsState.setOutcome}
+                ideaImpacts={ideaImpacts}
+                onAddIdea={questionsState.addIdea}
+                onUpdateIdea={questionsState.updateIdea}
+                onRemoveIdea={questionsState.removeIdea}
+                onSelectIdea={questionsState.selectIdea}
+                onSetCauseRole={questionsState.setCauseRole}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

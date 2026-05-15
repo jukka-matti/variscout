@@ -14,7 +14,10 @@ import {
   ReportQuestionSummary,
   ReportImprovementSummary,
   ReportCpkLearningLoop,
+  ActiveIPScopeRibbon,
+  IPContextChip,
 } from '@variscout/ui';
+import type { ActiveIPScopeLabels } from '@variscout/ui';
 import type { ReportDefectKPIGridProps } from '@variscout/ui';
 import { useReportSections, useScrollSpy, copySectionAsHTML } from '@variscout/hooks';
 import type { AudienceMode } from '@variscout/hooks';
@@ -35,6 +38,10 @@ interface ReportViewProps {
   analysisMode: AnalysisMode | null;
   /** Defect mode KPI data — when provided, renders defect-specific KPIs */
   defectSummary?: ReportDefectKPIGridProps | null;
+  activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
+  activeIPTitle?: string | null;
+  onOpenActiveIP?: () => void;
+  onExitActiveIP?: () => void;
 }
 
 const ReportView: React.FC<ReportViewProps> = ({
@@ -48,6 +55,10 @@ const ReportView: React.FC<ReportViewProps> = ({
   sampleCount,
   analysisMode,
   defectSummary,
+  activeIPScope,
+  activeIPTitle,
+  onOpenActiveIP,
+  onExitActiveIP,
 }) => {
   const resolved = resolveMode(analysisMode ?? 'standard');
   const strategy = getStrategy(resolved);
@@ -262,20 +273,40 @@ const ReportView: React.FC<ReportViewProps> = ({
   );
 
   return (
-    <ReportViewBase
-      processName={dataFilename || 'Analysis Report'}
-      reportType={reportType}
-      sections={sections}
-      activeSectionId={activeId}
-      audienceMode={audienceMode}
-      onAudienceModeChange={setAudienceMode}
-      onScrollToSection={handleScrollToSection}
-      renderSection={renderSection}
-      onCopyAllCharts={handleCopyAllCharts}
-      onPrintReport={handlePrintReport}
-      onClose={onClose}
-      contentRef={contentRef}
-    />
+    <div className="flex min-h-0 flex-1 flex-col">
+      {activeIPScope ? (
+        <ActiveIPScopeRibbon
+          title={activeIPScope.title}
+          labels={activeIPScope.labels}
+          surface="Report"
+        />
+      ) : null}
+      <ReportViewBase
+        processName={
+          activeIPScope ? `IP Report: ${activeIPScope.title}` : dataFilename || 'Analysis Report'
+        }
+        reportType={reportType}
+        sections={sections}
+        activeSectionId={activeId}
+        audienceMode={audienceMode}
+        onAudienceModeChange={setAudienceMode}
+        onScrollToSection={handleScrollToSection}
+        renderSection={renderSection}
+        onCopyAllCharts={handleCopyAllCharts}
+        onPrintReport={handlePrintReport}
+        onClose={onClose}
+        activeIPContextChip={
+          activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
+            <IPContextChip
+              title={activeIPTitle}
+              onTitleClick={onOpenActiveIP}
+              onExitIP={onExitActiveIP}
+            />
+          ) : null
+        }
+        contentRef={contentRef}
+      />
+    </div>
   );
 };
 

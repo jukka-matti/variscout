@@ -18,7 +18,7 @@ import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
 import type { UseQuestionsReturn, UseFindingsReturn } from '@variscout/hooks';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
-import type { AzureFindingsCallbacks } from '@variscout/ui';
+import type { AzureFindingsCallbacks, ActiveIPScopeLabels } from '@variscout/ui';
 import type { ViewState } from '@variscout/hooks';
 import type { FactorMainEffect } from '@variscout/core/stats';
 
@@ -56,6 +56,10 @@ export interface DashboardSectionProps {
   projectedCpkMap?: Record<string, number>;
   /** Whether AI is available and enabled */
   aiAvailable?: boolean;
+  activeIPScope?: {
+    title: string;
+    labels: ActiveIPScopeLabels;
+  } | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -77,6 +81,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   onInvestigateFactor,
   projectedCpkMap,
   aiAvailable = false,
+  activeIPScope,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
@@ -93,6 +98,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
       onViewStateChange={onViewStateChange}
       onManageFactors={dataFlow.openFactorManager}
       requestedFactor={factorRequest}
+      activeIPScope={activeIPScope}
       onPinFinding={onPinFinding}
       onShareChart={onShareChart}
       findingsCallbacks={findingsCallbacks}

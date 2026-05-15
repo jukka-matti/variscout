@@ -35,7 +35,10 @@ import {
   ReportDefectKPIGrid,
   ReportActivityBreakdown,
   ReportEvidenceMap,
+  ActiveIPScopeRibbon,
+  IPContextChip,
 } from '@variscout/ui';
+import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
 import {
   useReportSections,
   useScrollSpy,
@@ -83,6 +86,11 @@ interface ReportViewProps {
   // AI enhancement
   aiEnabled?: boolean;
   narrative?: string | null;
+  activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
+  activeIPLineage?: ActiveIPLineageIds | null;
+  activeIPTitle?: string | null;
+  onOpenActiveIP?: () => void;
+  onExitActiveIP?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -137,6 +145,11 @@ const ReportView: React.FC<ReportViewProps> = ({
   canShareViaTeams,
   aiEnabled,
   narrative,
+  activeIPScope,
+  activeIPLineage,
+  activeIPTitle,
+  onOpenActiveIP,
+  onExitActiveIP,
 }) => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
@@ -163,6 +176,43 @@ const ReportView: React.FC<ReportViewProps> = ({
   const questions = useInvestigationStore(s => s.questions);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
   const hypotheses = useInvestigationStore(s => s.hypotheses);
+  const scopedFindingIds = useMemo(
+    () => new Set(activeIPLineage?.findingIds ?? []),
+    [activeIPLineage]
+  );
+  const scopedHypothesisIds = useMemo(
+    () => new Set(activeIPLineage?.hypothesisIds ?? []),
+    [activeIPLineage]
+  );
+  const reportFindings = useMemo(
+    () => (activeIPScope ? findings.filter(finding => scopedFindingIds.has(finding.id)) : findings),
+    [activeIPScope, findings, scopedFindingIds]
+  );
+  const reportHypotheses = useMemo(
+    () =>
+      activeIPScope
+        ? hypotheses.filter(hypothesis => scopedHypothesisIds.has(hypothesis.id))
+        : hypotheses,
+    [activeIPScope, hypotheses, scopedHypothesisIds]
+  );
+  const reportQuestionIds = useMemo(() => {
+    if (!activeIPScope) return null;
+    const ids = new Set<string>();
+    for (const hypothesis of reportHypotheses) {
+      for (const id of hypothesis.questionIds) ids.add(id);
+    }
+    for (const finding of reportFindings) {
+      if (finding.questionId) ids.add(finding.questionId);
+    }
+    return ids;
+  }, [activeIPScope, reportFindings, reportHypotheses]);
+  const reportQuestions = useMemo(
+    () =>
+      reportQuestionIds
+        ? questions.filter(question => reportQuestionIds.has(question.id))
+        : questions,
+    [questions, reportQuestionIds]
+  );
 
   // ---------------------------------------------------------------------------
   // Evidence Map computation for Report timeline
@@ -201,16 +251,16 @@ const ReportView: React.FC<ReportViewProps> = ({
     containerSize: REPORT_MAP_SIZE,
     mode: resolved,
     causalLinks,
-    questions,
-    findings,
-    hypotheses: hypotheses ?? [],
+    questions: reportQuestions,
+    findings: reportFindings,
+    hypotheses: reportHypotheses ?? [],
   });
 
   const timeline = useEvidenceMapTimeline({
     causalLinks,
-    questions,
-    findings,
-    hypotheses: hypotheses ?? [],
+    questions: reportQuestions,
+    findings: reportFindings,
+    hypotheses: reportHypotheses ?? [],
   });
 
   // ---------------------------------------------------------------------------
@@ -401,7 +451,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   // ---------------------------------------------------------------------------
   const bestProjectedCpk = useMemo(() => {
     const projections: number[] = [];
-    for (const h of questions) {
+    for (const h of reportQuestions) {
       if (h.ideas) {
         for (const idea of h.ideas) {
           if (idea.selected && idea.projection?.projectedCpk != null) {
@@ -411,15 +461,15 @@ const ReportView: React.FC<ReportViewProps> = ({
       }
     }
     return projections.length > 0 ? Math.max(...projections) : undefined;
-  }, [questions]);
+  }, [reportQuestions]);
 
   // ---------------------------------------------------------------------------
   // First finding with outcome (for learning loop verdict)
   // ---------------------------------------------------------------------------
   const primaryOutcome = useMemo(() => {
-    const f = findings.find(f => f.outcome != null);
+    const f = reportFindings.find(f => f.outcome != null);
     return f?.outcome ?? null;
-  }, [findings]);
+  }, [reportFindings]);
 
   // ---------------------------------------------------------------------------
   // Verification chart toggle state
@@ -440,8 +490,8 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   // Derive report sections from analysis state
   const { reportType, sections } = useReportSections({
-    findings,
-    questions,
+    findings: reportFindings,
+    questions: reportQuestions,
     stagedComparison: hasStagedComparison,
     aiEnabled: aiEnabled ?? false,
     audienceMode,
@@ -482,7 +532,9 @@ const ReportView: React.FC<ReportViewProps> = ({
   );
 
   // Process name for the report header
-  const processName = processContext?.issueStatement || outcome || 'Analysis';
+  const processName = activeIPScope
+    ? `IP Report: ${activeIPScope.title}`
+    : processContext?.issueStatement || outcome || 'Analysis';
 
   // Publish to SharePoint (ADR-026)
   const canPublish = hasTeamFeatures();
@@ -498,7 +550,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     processName: processContext?.description,
     reportType,
     sections,
-    questions,
+    questions: reportQuestions,
     processContext: processContext ?? undefined,
     stats: stats ?? undefined,
     sampleCount: filteredData.length,
@@ -1156,27 +1208,45 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   return (
     <ErrorBoundary componentName="Report View">
-      <ReportViewBase
-        contentRef={contentRef}
-        processName={processName}
-        reportType={reportType}
-        sections={sections}
-        activeSectionId={activeSectionId}
-        audienceMode={audienceMode}
-        onAudienceModeChange={setAudienceMode}
-        onScrollToSection={handleScrollToSection}
-        renderSection={renderSection}
-        onPrintReport={handlePrint}
-        onShareReport={onShareReport}
-        onPublishToSharePoint={canPublish ? publish : undefined}
-        onPublishReplace={publishReplace}
-        publishStatus={publishStatus}
-        publishError={publishError}
-        onPublishReset={publishReset}
-        publishedUrl={publishedUrl}
-        onClose={onClose}
-        canShareViaTeams={canShareViaTeams}
-      />
+      <div className="flex min-h-0 flex-1 flex-col">
+        {activeIPScope ? (
+          <ActiveIPScopeRibbon
+            title={activeIPScope.title}
+            labels={activeIPScope.labels}
+            surface="Report"
+          />
+        ) : null}
+        <ReportViewBase
+          contentRef={contentRef}
+          processName={processName}
+          reportType={reportType}
+          sections={sections}
+          activeSectionId={activeSectionId}
+          audienceMode={audienceMode}
+          onAudienceModeChange={setAudienceMode}
+          onScrollToSection={handleScrollToSection}
+          renderSection={renderSection}
+          onPrintReport={handlePrint}
+          onShareReport={onShareReport}
+          onPublishToSharePoint={canPublish ? publish : undefined}
+          onPublishReplace={publishReplace}
+          publishStatus={publishStatus}
+          publishError={publishError}
+          onPublishReset={publishReset}
+          publishedUrl={publishedUrl}
+          onClose={onClose}
+          activeIPContextChip={
+            activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
+              <IPContextChip
+                title={activeIPTitle}
+                onTitleClick={onOpenActiveIP}
+                onExitIP={onExitActiveIP}
+              />
+            ) : null
+          }
+          canShareViaTeams={canShareViaTeams}
+        />
+      </div>
     </ErrorBoundary>
   );
 };

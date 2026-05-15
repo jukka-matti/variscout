@@ -73,6 +73,7 @@ export interface ReportViewBaseProps {
   /** SharePoint web URL of the published report (shown as clickable link on success) */
   publishedUrl?: string | null;
   onClose: () => void;
+  activeIPContextChip?: React.ReactNode;
   canShareViaTeams?: boolean;
   colorScheme?: Partial<ReportViewBaseColorScheme>;
   /** Ref to attach to the scrollable content area (for measuring width) */
@@ -153,6 +154,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   onPublishReset,
   publishedUrl,
   onClose,
+  activeIPContextChip,
   canShareViaTeams,
   colorScheme,
   contentRef,
@@ -343,6 +345,8 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
           <h1 className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate flex-1">
             {processName}
           </h1>
+
+          {activeIPContextChip}
 
           <span className={`${scheme.badge} ${BADGE_COLORS[reportType]}`}>
             {t(BADGE_I18N_KEYS[reportType])}

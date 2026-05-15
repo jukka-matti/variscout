@@ -33,7 +33,7 @@ import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
-import type { AzureFindingsCallbacks } from '@variscout/ui';
+import type { AzureFindingsCallbacks, ActiveIPScopeLabels } from '@variscout/ui';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
 import type { UseActionProposalsReturn } from '../../features/ai';
@@ -80,6 +80,11 @@ interface EditorDashboardViewProps {
   excludedReasons: Map<number, ExclusionReason[]> | undefined;
   // Improvement projection
   projectedCpkMap: Record<string, number>;
+  activeIPFactorRequest?: { factor: string; seq: number } | null;
+  activeIPScope?: {
+    title: string;
+    labels: ActiveIPScopeLabels;
+  } | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -106,6 +111,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   excludedRowIndices,
   excludedReasons,
   projectedCpkMap,
+  activeIPFactorRequest,
+  activeIPScope,
 }) => {
   // ── Store selectors ──────────────────────────────────────────────────────
   const factors = useProjectStore(s => s.factors);
@@ -141,6 +148,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     mode: resolved,
     defectData,
   });
+  const effectiveFactorRequest = activeIPFactorRequest ?? factorRequest;
 
   // ── Journey phase badge ─────────────────────────────────────────────────
   const journeyPhase = useJourneyPhase(!!rawData?.length, findingsState.findings);
@@ -210,7 +218,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           questionsState={questionsState}
           findingsState={findingsState}
           aiOrch={aiOrch}
-          factorRequest={factorRequest}
+          factorRequest={effectiveFactorRequest}
           viewState={viewState ?? undefined}
           onViewStateChange={onViewStateChange}
           findingsCallbacks={findingsCallbacks}
@@ -218,6 +226,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           onShareChart={handleShareChart}
           onInvestigateFactor={handleInvestigateFactor}
           projectedCpkMap={projectedCpkMap}
+          activeIPScope={activeIPScope}
           aiAvailable={aiAvailable}
         />
 
