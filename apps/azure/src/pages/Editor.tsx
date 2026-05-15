@@ -2087,6 +2087,8 @@ export const Editor: React.FC<EditorProps> = ({
                   activeIPScope={activeIPScope}
                   activeIPLineage={activeIPLineage}
                   activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
+                  activeHub={activeHub}
+                  activeIP={activeIPContext.activeIP}
                   onOpenActiveIP={
                     activeIPContext.activeIP
                       ? () => usePanelsStore.getState().showProjects(activeIPContext.activeIP!.id)

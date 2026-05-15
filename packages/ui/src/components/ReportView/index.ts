@@ -55,3 +55,10 @@ export {
   type ReportInvestigationSummaryProps,
 } from './ReportInvestigationSummary';
 export { ReportDefectKPIGrid, type ReportDefectKPIGridProps } from './ReportDefectKPIGrid';
+export { IPOverviewReport, type IPOverviewReportProps } from './IPOverviewReport';
+export {
+  IPTechnicalReport,
+  REPORT_METHODOLOGY_FOOTNOTE,
+  type IPTechnicalReportProps,
+} from './IPTechnicalReport';
+export { HubPortfolioReport, type HubPortfolioReportProps } from './HubPortfolioReport';

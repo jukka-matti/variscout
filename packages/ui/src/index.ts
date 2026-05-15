@@ -541,6 +541,13 @@ export {
   type ReportInvestigationSummaryProps,
   ReportDefectKPIGrid,
   type ReportDefectKPIGridProps,
+  IPOverviewReport,
+  type IPOverviewReportProps,
+  IPTechnicalReport,
+  REPORT_METHODOLOGY_FOOTNOTE,
+  type IPTechnicalReportProps,
+  HubPortfolioReport,
+  type HubPortfolioReportProps,
 } from './components/ReportView';
 
 // Report Evidence Map

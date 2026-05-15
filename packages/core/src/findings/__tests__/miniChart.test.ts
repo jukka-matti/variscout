@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { deriveMiniChartConfig } from '../miniChart';
+import { deriveIPReportMiniChartType, deriveMiniChartConfig } from '../miniChart';
 import type { Hypothesis } from '../types';
+import type { ImprovementProject } from '../../improvementProject';
 
 const hub = (condition: Hypothesis['condition']): Hypothesis =>
   ({
@@ -96,5 +97,127 @@ describe('deriveMiniChartConfig', () => {
       'thickness'
     );
     expect(cfg).toEqual({ kind: 'placeholder', factor: 'GHOST', reason: 'unknown-column' });
+  });
+});
+
+const ip = (overrides: Partial<ImprovementProject> = {}): ImprovementProject =>
+  ({
+    id: 'ip-1',
+    hubId: 'hub-1',
+    status: 'active',
+    metadata: { title: 'Fill Cpk lift', investigationId: 'inv-1' },
+    goal: {
+      outcomeGoal: { outcomeSpecId: 'fill', target: 1.33 },
+      factorControls: [],
+    },
+    sections: {
+      background: {},
+      investigationLineage: { hypothesisIds: ['h1'], findingIds: [] },
+      approach: {},
+      outcomeReference: {},
+    },
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
+    ...overrides,
+  }) as ImprovementProject;
+
+describe('deriveIPReportMiniChartType', () => {
+  it('maps linked factor controls to a factor I-chart with target band', () => {
+    const chartType = deriveIPReportMiniChartType({
+      ip: ip({
+        goal: {
+          outcomeGoal: { outcomeSpecId: 'fill', target: 1.33 },
+          factorControls: [
+            { factor: 'nozzle.temp', targetCondition: '95±2°C', linkedHypothesisId: 'h1' },
+          ],
+        },
+      }),
+      hypothesis: hub({ kind: 'leaf', column: 'supplier', op: 'eq', value: 'A' }),
+      linkedFindings: [],
+      outcome: 'fill',
+    });
+
+    expect(chartType).toBe('ichart-factor-target-band');
+  });
+
+  it('maps subgroup classification hypotheses to a subgroup boxplot', () => {
+    const chartType = deriveIPReportMiniChartType({
+      ip: ip(),
+      hypothesis: hub({ kind: 'leaf', column: 'supplier', op: 'eq', value: 'A' }),
+      linkedFindings: [],
+      outcome: 'fill',
+    });
+
+    expect(chartType).toBe('boxplot-by-subgroup');
+  });
+
+  it('maps linked mechanism findings to a capability histogram', () => {
+    const chartType = deriveIPReportMiniChartType({
+      ip: ip({
+        goal: {
+          outcomeGoal: { outcomeSpecId: 'fill', target: 1.33 },
+          mechanismGoals: [{ description: 'Nozzle wear', linkedFindingIds: ['f1'] }],
+        },
+      }),
+      hypothesis: hub(undefined),
+      linkedFindings: [
+        {
+          id: 'f1',
+          text: 'Nozzle wear narrows capability.',
+          context: { activeFilters: {}, cumulativeScope: null },
+          evidenceType: 'data',
+          status: 'analyzed',
+          comments: [],
+          statusChangedAt: 0,
+          investigationId: 'inv-1',
+          createdAt: 0,
+          deletedAt: null,
+        },
+      ],
+      outcome: 'fill',
+    });
+
+    expect(chartType).toBe('capability-histogram');
+  });
+
+  it('prioritizes linked mechanism findings over generic subgroup conditions', () => {
+    const chartType = deriveIPReportMiniChartType({
+      ip: ip({
+        goal: {
+          outcomeGoal: { outcomeSpecId: 'fill', target: 1.33 },
+          mechanismGoals: [{ description: 'Nozzle wear', linkedFindingIds: ['f1'] }],
+        },
+      }),
+      hypothesis: hub({ kind: 'leaf', column: 'supplier', op: 'eq', value: 'A' }),
+      linkedFindings: [
+        {
+          id: 'f1',
+          text: 'Nozzle wear narrows capability.',
+          context: { activeFilters: {}, cumulativeScope: null },
+          evidenceType: 'data',
+          status: 'analyzed',
+          comments: [],
+          statusChangedAt: 0,
+          investigationId: 'inv-1',
+          createdAt: 0,
+          deletedAt: null,
+        },
+      ],
+      outcome: 'fill',
+    });
+
+    expect(chartType).toBe('capability-histogram');
+  });
+
+  it('falls back to an outcome I-chart with target band', () => {
+    const chartType = deriveIPReportMiniChartType({
+      ip: ip(),
+      hypothesis: hub(undefined),
+      linkedFindings: [],
+      outcome: 'fill',
+    });
+
+    expect(chartType).toBe('ichart-outcome-target-band');
   });
 });

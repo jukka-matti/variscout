@@ -47,10 +47,23 @@ test('Home pick IP, chip persists across tabs, Exit IP clears chip', async ({ pa
   await expect(page.getByTestId('active-ip-scope-ribbon')).toContainText(
     'Report scoped to Fill Cpk lift'
   );
+  await expect(page.getByText('Reporting on: Fill Cpk lift')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Overview' }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Executive summary' }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: "What's next" }).first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'Technical' }).first().click();
+  await expect(
+    page.getByText(
+      'Turtiainen 2019 / Watson lineage, NIST-validated OLS QR solver (ADR-067), three-boundary numeric safety (ADR-069), customer-owned data (ADR-059, ADR-078).'
+    )
+  ).toBeVisible();
 
   await reportChip.getByRole('button', { name: 'Exit IP' }).click();
   await expect(chip).toHaveCount(0);
   await expect(page.getByTestId('active-ip-scope-ribbon')).toHaveCount(0);
+  await expect(page.getByText('Reporting on: Hub portfolio')).toBeVisible();
+  await expect(page.getByText('Hub portfolio').first()).toBeVisible();
 });
 
 test('Projects detail shows team rail and supports invite happy path', async ({ page }) => {
