@@ -40,6 +40,19 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 - **Sponsor placeholder copy in `IPDetailPage`** — `data-testid="sponsor-report-panel"` placeholder points the Sponsor to "the top navigation Report tab." The wording "top navigation" is generic; if the V1 6-tab nav lands a localized label, the placeholder should reference the actual tab label. Promotion: PR-WV1-5 (nav reorder + tier-gating retirement sweep) — pick up when nav labels are finalized.
 
+### Durable cross-device invitation persistence
+
+**Surfaced by:** PR-WV1-3a Implementation 2026-05-16.
+
+**Description:** Invitations live transiently in `useProjectMembershipStore.pendingInvites[]` + localStorage. The inviter sees the invite locally; the invitee on a different browser does not. The wedge spec §4.2 "in-app + email notification" relies on the email half for cross-device delivery. For durable in-app multi-device delivery, invitations must persist somewhere tenant-scoped (`ImprovementProjectMetadata.invitations?: Invitation[]` field OR a tenant-wide invitation table).
+
+**Possible directions:**
+
+- Add `invitations?: Invitation[]` to `ImprovementProjectMetadata` (parallel to `members?`). Banner reads from a derived selector iterating all IPs for the current user. Cost: schema migration, .vrs round-trip, Dexie scheme bump.
+- Tenant-wide invitation table in `azureHubRepository`. Cost: new repo path; PWA has no parallel.
+
+**Promotion path:** Decision required if customer demand surfaces for multi-device invite UX. Track until PR-WV1-5 (tier-gating retirement + nav reorder, where auth-wiring refinement lands) — that PR is the natural place to revisit since per-user persistence keys (`useProjectMembershipStore`'s deferred item (c)) are also being addressed there.
+
 ### 8f canvas viewport — followup findings from 3-agent retrospective
 
 **Surfaced by:** retrospective architecture / design / code-quality review on `main` 2026-05-13, after 8f's 6 PRs (#160–#165) shipped. Per-PR Opus reviews had passed; cross-PR drift was the gap.
