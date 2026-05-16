@@ -171,4 +171,182 @@ describe('IPDetailPage', () => {
     fireEvent.click(within(drawer).getByRole('button', { name: 'Close team workspace' }));
     expect(screen.queryByRole('dialog', { name: 'Team workspace' })).not.toBeInTheDocument();
   });
+
+  describe('ACL guard', () => {
+    const aclMembers: import('@variscout/core/projectMembership').ProjectMember[] = [
+      {
+        id: 'pm-1',
+        createdAt: 1,
+        deletedAt: null,
+        userId: 'lead@org',
+        displayName: 'Lead',
+        role: 'lead',
+        invitedAt: 1,
+      },
+      {
+        id: 'pm-2',
+        createdAt: 1,
+        deletedAt: null,
+        userId: 'member@org',
+        displayName: 'Member',
+        role: 'member',
+        invitedAt: 1,
+      },
+      {
+        id: 'pm-3',
+        createdAt: 1,
+        deletedAt: null,
+        userId: 'sponsor@org',
+        displayName: 'Sponsor',
+        role: 'sponsor',
+        invitedAt: 1,
+      },
+    ];
+    // Use draft so charter is the default active stage (easier to assert visibility)
+    const aclIP: ImprovementProject = {
+      ...ip,
+      status: 'draft',
+      metadata: { ...ip.metadata, members: aclMembers, title: 'ACL Test Project' },
+    };
+
+    it('shows "no access" message when currentUserId is not a member', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="stranger@org" />);
+      expect(screen.getByText(/don.t have access/i)).toBeInTheDocument();
+      expect(screen.getByText(/ACL Test Project/i)).toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /charter/i })).not.toBeInTheDocument();
+    });
+
+    it('renders full tab list for Lead', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="lead@org" />);
+      expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /approach/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /sustainment/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /handoff/i })).toBeInTheDocument();
+    });
+
+    it('renders full tab list for Member', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="member@org" />);
+      expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /approach/i })).toBeInTheDocument();
+    });
+
+    it('renders only Report panel for Sponsor (no stage tabs)', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="sponsor@org" />);
+      expect(screen.queryByRole('tab', { name: /charter/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /approach/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /sustainment/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /handoff/i })).not.toBeInTheDocument();
+      expect(screen.getByTestId('sponsor-report-panel')).toBeInTheDocument();
+    });
+
+    it('renders normal page when currentUserId is absent (no ACL data)', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} />);
+      expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
+    });
+
+    it('renders normal page when ip has no members[] (legacy data)', () => {
+      const legacyIP: ImprovementProject = {
+        ...ip,
+        status: 'draft',
+        metadata: { ...ip.metadata, members: undefined },
+      };
+      render(<IPDetailPage ip={legacyIP} onBackToList={() => {}} currentUserId="anybody@org" />);
+      expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
+    });
+  });
+
+  describe('Charter team section (wedge members[])', () => {
+    const charterIP: ImprovementProject = { ...ip, status: 'draft' };
+
+    it('shows the Charter team section when onMembersChange is provided', () => {
+      render(
+        <IPDetailPage
+          ip={charterIP}
+          onBackToList={() => {}}
+          currentUserId="lead@org"
+          onMembersChange={() => {}}
+        />
+      );
+      expect(screen.getByTestId('charter-team-section')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /invite team/i })).toBeInTheDocument();
+    });
+
+    it('does not show the Charter team section when onMembersChange is absent', () => {
+      render(<IPDetailPage ip={charterIP} onBackToList={() => {}} currentUserId="lead@org" />);
+      expect(screen.queryByTestId('charter-team-section')).not.toBeInTheDocument();
+    });
+
+    it('calls onMembersChange with a new ProjectMember when invite is submitted', () => {
+      const onMembersChange = vi.fn();
+      render(
+        <IPDetailPage
+          ip={charterIP}
+          onBackToList={() => {}}
+          currentUserId="lead@org"
+          onMembersChange={onMembersChange}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: /invite team/i }));
+      fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'pat@org.com' } });
+      fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'member' } });
+      fireEvent.click(screen.getByRole('button', { name: /^invite$/i }));
+
+      expect(onMembersChange).toHaveBeenCalledOnce();
+      const [newMembers] = onMembersChange.mock.calls[0] as [
+        import('@variscout/core/projectMembership').ProjectMember[],
+      ];
+      expect(newMembers).toHaveLength(1);
+      expect(newMembers[0].userId).toBe('pat@org.com');
+      expect(newMembers[0].displayName).toBe('pat');
+      expect(newMembers[0].role).toBe('member');
+    });
+
+    it('renders existing members[] in Charter and calls onMembersChange on remove', () => {
+      const onMembersChange = vi.fn();
+      const withMembers: ImprovementProject = {
+        ...charterIP,
+        metadata: {
+          ...charterIP.metadata,
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 1,
+              deletedAt: null,
+              userId: 'lead@org',
+              displayName: 'Lead Pat',
+              role: 'lead',
+              invitedAt: 1,
+            },
+            {
+              id: 'pm-member',
+              createdAt: 1,
+              deletedAt: null,
+              userId: 'member@org',
+              displayName: 'Member Mira',
+              role: 'member',
+              invitedAt: 1,
+            },
+          ],
+        },
+      };
+      render(
+        <IPDetailPage
+          ip={withMembers}
+          onBackToList={() => {}}
+          currentUserId="lead@org"
+          onMembersChange={onMembersChange}
+        />
+      );
+      expect(screen.getByText('Lead Pat')).toBeInTheDocument();
+      expect(screen.getByText('Member Mira')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Member Mira' }));
+
+      expect(onMembersChange).toHaveBeenCalledOnce();
+      const [remaining] = onMembersChange.mock.calls[0] as [
+        import('@variscout/core/projectMembership').ProjectMember[],
+      ];
+      expect(remaining).toHaveLength(1);
+      expect(remaining[0].id).toBe('pm-lead');
+    });
+  });
 });

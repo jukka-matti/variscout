@@ -2,6 +2,7 @@ import React from 'react';
 import type { ProcessHub, SustainmentRecord, ControlHandoff } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { HubAction } from '@variscout/core/actions';
+import type { ProjectMember } from '@variscout/core/projectMembership';
 import { useImprovementProjectStore } from '@variscout/stores';
 import { IPDetailPage } from '@variscout/ui/ipDetail';
 import type {
@@ -9,6 +10,10 @@ import type {
   CauseRow,
   HandoffChecklistInputs,
 } from '@variscout/ui/ipDetail';
+
+// PWA is single-user (no auth). Use a stable session-local identity so
+// wedge ACL guards treat the current user as a member of any project they created.
+const PWA_USER_ID = 'analyst@local';
 
 interface ProjectsTabViewProps {
   activeHub?: ProcessHub;
@@ -153,6 +158,10 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         ideas={approachInputs?.ideas}
         actions={approachInputs?.actions}
         now={now}
+        currentUserId={PWA_USER_ID}
+        onMembersChange={(members: ProjectMember[]) =>
+          applyProjectPatch(selected, { metadata: { ...selected.metadata, members } })
+        }
         onTeamChange={team =>
           applyProjectPatch(selected, { metadata: { ...selected.metadata, team } })
         }

@@ -26,6 +26,20 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### PR-WV1-1 — architecture-review follow-ups (project membership foundation)
+
+**Surfaced by:** system-architect (Opus) review on `feat/wedge-pr-wv1-1-project-membership` 2026-05-16, after the 10-task implementation sub-plan completed. CRITICAL (app-side wiring gap) was fixed in commit `695091e3` before merge; 3 IMPORTANT items deferred to PR-WV1-2 via `decision-log.md` 2026-05-16 wedge-amendment; 2 items below are smaller follow-ups outside the wedge implementation sequence.
+
+**Open items (post-merge):**
+
+- **Admin view of pending invites per project (V2 deferral)** — `useProjectMembershipStore` is per-user only: each user sees their own `pendingInvites[]`, no surface today for a Lead to see "who else have I invited to project X who hasn't accepted yet?". Wedge spec §4 doesn't require this; track for V2 collaboration features. Promotion: spec amendment + new UI when collaboration tier work lands.
+
+- **`useInvitationSync` Graph API wiring** — V1 ships a stub at `apps/azure/src/features/projectMembership/useInvitationSync.ts` that echoes the email as `{ userId, displayName: email.split('@')[0] }`. Real Microsoft Graph user-lookup wiring (with proper `displayName` resolution from AD, photo fetch optional) is post-V1 Azure-only follow-up. Today no caller invokes the stub — Task 8's Charter integration builds `displayName` inline. Promotion: separate Azure-only PR; trigger is the first call site that needs real AD lookup.
+
+- **`displayName = email.split('@')[0]` truncation for dotted email locals** — Task 8's `IPDetailPage.handleMemberInvite` derives `displayName` from the email (e.g., `first.last@org` → `first.last`). V1-acceptable since the modal has no Name field, but produces awkward strings for users with dotted email locals. Promotion: gated on either (a) Name field added to `InviteModal`, or (b) `useInvitationSync` returning real Graph displayName.
+
+- **Sponsor placeholder copy in `IPDetailPage`** — `data-testid="sponsor-report-panel"` placeholder points the Sponsor to "the top navigation Report tab." The wording "top navigation" is generic; if the V1 6-tab nav lands a localized label, the placeholder should reference the actual tab label. Promotion: PR-WV1-5 (nav reorder + tier-gating retirement sweep) — pick up when nav labels are finalized.
+
 ### 8f canvas viewport — followup findings from 3-agent retrospective
 
 **Surfaced by:** retrospective architecture / design / code-quality review on `main` 2026-05-13, after 8f's 6 PRs (#160–#165) shipped. Per-PR Opus reviews had passed; cross-PR drift was the gap.

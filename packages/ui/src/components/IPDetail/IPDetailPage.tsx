@@ -2,8 +2,12 @@ import React, { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePreferencesStore } from '@variscout/stores';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import type { ProjectMember, ProjectRole } from '@variscout/core/projectMembership';
+import { generateDeterministicId } from '@variscout/core';
+import { reduceProjectMembers, type MembershipAction } from '@variscout/core/actions';
 import IPDetailHeader from './IPDetailHeader';
 import IPDetailStageTabs, { type StageName } from './IPDetailStageTabs';
+import NoAccessRedirect from './NoAccessRedirect';
 import IPDetailModeToggle, { type IPDetailMode } from './IPDetailModeToggle';
 import IPDetailTeamRail, { teamMemberKey, type RaciAssignment } from './IPDetailTeamRail';
 import IPDetailInviteModal from './IPDetailInviteModal';
@@ -30,6 +34,10 @@ export interface IPDetailPageProps {
   onInviteClick?: () => void;
   /** Emits the full updated team roster when shared UI appends an invite. */
   onTeamChange?: (team: NonNullable<ImprovementProject['metadata']['team']>) => void;
+  /** Current user's id — used by Charter team section for remove-button gating. */
+  currentUserId?: string;
+  /** Emits the updated wedge members[] roster after add/remove. Caller dispatches IMPROVEMENT_PROJECT_UPDATE. */
+  onMembersChange?: (members: ProjectMember[]) => void;
   /** Active hub gives the rail access to Process Owner signoff context. */
   activeHub?: ProcessHub;
   /** Optional day counter passed to header. */
@@ -80,6 +88,8 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   stageStateInputs,
   onInviteClick,
   onTeamChange,
+  currentUserId,
+  onMembersChange,
   activeHub,
   dayCounter,
   onJumpOut,
@@ -109,10 +119,53 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   const isTabletRailExpanded = usePreferencesStore(s => s.isIPTeamRailExpanded);
   const setTabletRailExpanded = usePreferencesStore(s => s.setIPTeamRailExpanded);
   const team = ip.metadata.team ?? [];
+  const members = ip.metadata.members ?? [];
+
+  // ACL guard: only apply when we have an identified user AND an explicit members list.
+  // If currentUserId is absent OR members[] is empty/absent → backward-compatible open access.
+  const userRole =
+    currentUserId !== undefined && members.length > 0
+      ? members.find(m => m.userId === currentUserId)?.role
+      : undefined;
+
+  const isExplicitlyExcluded =
+    currentUserId !== undefined && members.length > 0 && userRole === undefined;
+
+  const isSponsor = userRole === 'sponsor';
 
   const handleInviteClick = () => {
     onInviteClick?.();
     if (onTeamChange) setInviteOpen(true);
+  };
+
+  const handleMemberInvite = (data: { email: string; role: ProjectRole }) => {
+    if (!onMembersChange) return;
+    const inviteTime = Date.now();
+    const newMember: ProjectMember = {
+      id: generateDeterministicId(),
+      createdAt: inviteTime,
+      deletedAt: null,
+      userId: data.email,
+      displayName: data.email.split('@')[0],
+      role: data.role,
+      invitedAt: inviteTime,
+    };
+    const action: MembershipAction = {
+      kind: 'PROJECT_MEMBER_ADD',
+      projectId: ip.id,
+      member: newMember,
+    };
+    onMembersChange(reduceProjectMembers(members, action));
+  };
+
+  const handleMemberRemove = (memberId: string) => {
+    if (!onMembersChange) return;
+    const action: MembershipAction = {
+      kind: 'PROJECT_MEMBER_REMOVE',
+      projectId: ip.id,
+      memberId,
+    };
+    onMembersChange(reduceProjectMembers(members, action));
   };
 
   const railProps = {
@@ -128,6 +181,38 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
     onNudgeSignoff,
     onApproveSignoff,
   };
+
+  // Non-member: show access denial instead of the project detail.
+  if (isExplicitlyExcluded) {
+    return <NoAccessRedirect projectTitle={ip.metadata.title ?? '(untitled)'} />;
+  }
+
+  // Sponsor: render the header only + a Report placeholder. Stage tabs are hidden per spec §4.
+  if (isSponsor) {
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        <IPDetailHeader
+          ip={ip}
+          onBackToList={onBackToList}
+          onInviteClick={handleInviteClick}
+          onOpenTeamWorkspace={() => setMobileTeamOpen(true)}
+          dayCounter={dayCounter}
+        />
+        <div
+          className="flex-1 p-8 text-content"
+          data-testid="sponsor-report-panel"
+          role="region"
+          aria-label="Report"
+        >
+          <h2 className="text-xl font-semibold mb-2">Report</h2>
+          <p className="text-sm text-content-secondary">
+            As a Sponsor, you have read-only access to this project&apos;s Report. The full Report
+            tab is available in the top navigation.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -151,6 +236,9 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               ip={ip}
               onOpenInvestigation={() => onJumpOut?.('investigation')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
+              currentUserId={currentUserId}
+              onInvite={onMembersChange ? handleMemberInvite : undefined}
+              onMemberRemove={onMembersChange ? handleMemberRemove : undefined}
             />
           )}
           {activeStage === 'charter' && mode === 'sections' && (

@@ -38,7 +38,8 @@
     "./improvementProject": "./src/improvementProject/index.ts",
     "./identity": "./src/identity.ts",
     "./actions": "./src/actions/index.ts",
-    "./persistence": "./src/persistence/index.ts"
+    "./persistence": "./src/persistence/index.ts",
+    "./projectMembership": "./src/projectMembership/index.ts"
   },
   "scripts": {
     "test": "vitest",

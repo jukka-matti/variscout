@@ -13,3 +13,5 @@ export type { ActionItemAction } from './actionItemActions';
 export type { SustainmentAction } from './sustainmentActions';
 export type { ControlHandoffAction } from './controlHandoffActions';
 export type { HubAction } from './HubAction';
+export type { MembershipAction, ProjectMemberPatch } from '../projectMembership/actions';
+export { reduceProjectMembers } from '../projectMembership/actions';

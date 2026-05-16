@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import type { ProjectRole } from '@variscout/core/projectMembership';
+import { InviteModal } from '../../projects/InviteModal';
+import { MemberList } from '../../projects/MemberList';
 
 interface CharterOverviewProps {
   ip: ImprovementProject;
@@ -7,6 +10,12 @@ interface CharterOverviewProps {
   onOpenAnalyze: () => void;
   surveyHint?: string;
   onSetGoal?: () => void;
+  /** Current user's id — required to show the Team section. */
+  currentUserId?: string;
+  /** Called when the InviteModal is submitted. Caller builds the ProjectMember + dispatches IP UPDATE. */
+  onInvite?: (data: { email: string; role: ProjectRole }) => void;
+  /** Called when a lead removes a member. Caller dispatches IP UPDATE. */
+  onMemberRemove?: (memberId: string) => void;
 }
 
 function isGoalSet(ip: ImprovementProject): boolean {
@@ -19,7 +28,12 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
   onOpenAnalyze,
   surveyHint,
   onSetGoal,
+  currentUserId,
+  onInvite,
+  onMemberRemove,
 }) => {
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const members = ip.metadata.members ?? [];
   const issueSnapshot = ip.sections.background.snapshotText ?? '—';
   const goalSet = isGoalSet(ip);
   const hypoCount = ip.sections.investigationLineage.hypothesisIds?.length ?? 0;
@@ -110,6 +124,45 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Team section — wedge V1 members[] (additive; legacy team[] lives in IPDetailTeamRail) */}
+      {onInvite ? (
+        <div data-testid="charter-team-section">
+          <div className="flex items-center justify-between">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-content-tertiary">
+              Team
+            </div>
+            <button
+              type="button"
+              onClick={() => setInviteOpen(true)}
+              className="rounded-md border border-edge px-2 py-1 text-xs text-content-secondary hover:text-content"
+            >
+              Invite team
+            </button>
+          </div>
+          {members.length > 0 && currentUserId !== undefined ? (
+            <div className="mt-2">
+              <MemberList
+                members={members}
+                currentUserId={currentUserId}
+                onRemove={id => onMemberRemove?.(id)}
+              />
+            </div>
+          ) : members.length === 0 ? (
+            <p className="mt-2 text-xs text-content-secondary">
+              No members yet — invite your team.
+            </p>
+          ) : null}
+          <InviteModal
+            isOpen={inviteOpen}
+            onClose={() => setInviteOpen(false)}
+            onInvite={data => {
+              onInvite(data);
+              setInviteOpen(false);
+            }}
+          />
+        </div>
+      ) : null}
     </div>
   );
 };

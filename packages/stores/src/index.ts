@@ -101,6 +101,16 @@ export type {
 } from './activeIPStore';
 export type { DocumentSnapshot } from './documentSnapshot';
 export {
+  useProjectMembershipStore,
+  getProjectMembershipInitialState,
+  STORE_LAYER as PROJECT_MEMBERSHIP_STORE_LAYER,
+} from './useProjectMembershipStore';
+export type {
+  ProjectMembershipState,
+  ProjectMembershipActions,
+  ProjectMembershipStore,
+} from './useProjectMembershipStore';
+export {
   useImprovementProjectStore,
   getImprovementProjectInitialState,
   STORE_LAYER as IMPROVEMENT_PROJECT_STORE_LAYER,

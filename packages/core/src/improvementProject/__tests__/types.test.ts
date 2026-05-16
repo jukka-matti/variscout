@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import type { ImprovementProject, ImprovementProjectStatus } from '../types';
+import type {
+  ImprovementProject,
+  ImprovementProjectMetadata,
+  ImprovementProjectStatus,
+} from '../types';
+import type { ProjectMember } from '../../projectMembership/types';
 
 describe('ImprovementProject', () => {
   it('compiles with required title + multi-level Goal', () => {
@@ -34,6 +39,24 @@ describe('ImprovementProject', () => {
   it('status union covers draft | active | closed', () => {
     const statuses: ImprovementProjectStatus[] = ['draft', 'active', 'closed'];
     expect(statuses).toHaveLength(3);
+  });
+
+  it('accepts members[] field on metadata (type-level compile check)', () => {
+    const member: ProjectMember = {
+      id: 'pm-1',
+      createdAt: 2000,
+      deletedAt: null,
+      userId: 'u@org',
+      displayName: 'Alice',
+      role: 'lead',
+      invitedAt: 2000,
+    };
+    const meta: ImprovementProjectMetadata = {
+      title: 'Test',
+      members: [member],
+    };
+    expect(meta.members).toHaveLength(1);
+    expect(meta.members![0].role).toBe('lead');
   });
 
   it('accepts optional reflection narrative field', () => {
