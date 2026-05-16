@@ -29,7 +29,7 @@ Shared agent map: `docs/llms.txt`
 - **Agent manifest**: `docs/llms.txt` — map of priority entry points.
 - **Decisions (why)**: `docs/07-decisions/` (live) + `docs/archive/adrs/` (superseded).
 - **Designs (what)**: `docs/superpowers/specs/` (active) + `docs/archive/specs/` (delivered/historical).
-- **Claude-only rules + skills**: `.claude/rules/` = short cross-cutting non-negotiables (currently load globally). `.claude/skills/` = workflows only — VariScout editing patterns live in nested `CLAUDE.md`. Doc workflow: spec frontmatter SSOT in `scripts/docs-frontmatter-schema.mjs`; new docs need ≥1 inbound link.
+- **Invariants + skills**: `.claude/invariants/` = short cross-cutting non-negotiables (currently load globally). See `.claude/INVARIANTS.md` for the synthesizing index. `.claude/skills/` = workflows only — VariScout editing patterns live in nested `CLAUDE.md`. Doc workflow: spec frontmatter SSOT in `scripts/docs-frontmatter-schema.mjs`; new docs need ≥1 inbound link.
 
 ## Workflow
 
