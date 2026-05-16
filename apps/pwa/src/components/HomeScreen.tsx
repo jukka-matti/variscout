@@ -14,6 +14,7 @@ interface HomeScreenProps {
   onOpenManualEntry: () => void;
   onOpenSettings?: () => void;
   onImportVrs?: (imported: VrsFile) => void;
+  resolveProjectName?: (projectId: string) => string | undefined;
 }
 
 /**
@@ -26,6 +27,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenPaste,
   onOpenManualEntry,
   onImportVrs,
+  resolveProjectName,
 }) => {
   const { t } = useTranslation();
   const pendingInvites = useProjectMembershipStore(s => s.pendingInvites);
@@ -39,6 +41,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           invites={pendingInvites}
           onAccept={acceptInvite}
           onDecline={revokeInvite}
+          resolveProjectName={resolveProjectName}
         />
         {/* Header */}
         <div className="text-center space-y-3">

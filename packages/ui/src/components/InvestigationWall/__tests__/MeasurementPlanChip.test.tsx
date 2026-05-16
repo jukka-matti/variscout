@@ -122,4 +122,33 @@ describe('<MeasurementPlanChip />', () => {
     expect(onLinkFinding).toHaveBeenCalledWith('mp-1');
     expect(onEdit).not.toHaveBeenCalled();
   });
+
+  it('has role="button" and aria-label when canEdit=true', () => {
+    render(
+      <MeasurementPlanChip
+        plan={basePlan}
+        ownerName="Alice"
+        canEdit
+        onEdit={vi.fn()}
+        onLinkFinding={vi.fn()}
+      />
+    );
+    const body = screen.getByTestId('chip-body');
+    expect(body.getAttribute('role')).toBe('button');
+    expect(body.getAttribute('aria-label')).toMatch(/spindle vibration/i);
+  });
+
+  it('drops role="button" when canEdit=false', () => {
+    render(
+      <MeasurementPlanChip
+        plan={basePlan}
+        ownerName="Alice"
+        canEdit={false}
+        onEdit={vi.fn()}
+        onLinkFinding={vi.fn()}
+      />
+    );
+    const body = screen.getByTestId('chip-body');
+    expect(body.hasAttribute('role')).toBe(false);
+  });
 });

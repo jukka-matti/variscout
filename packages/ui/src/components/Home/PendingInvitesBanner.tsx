@@ -5,6 +5,8 @@ export interface PendingInvitesBannerProps {
   invites: Invitation[];
   onAccept: (id: Invitation['id']) => void;
   onDecline: (id: Invitation['id']) => void;
+  /** Optional resolver to display a human-readable project name instead of the projectId UUID. */
+  resolveProjectName?: (projectId: string) => string | undefined;
 }
 
 const ROLE_LABEL: Record<string, string> = {
@@ -13,7 +15,12 @@ const ROLE_LABEL: Record<string, string> = {
   sponsor: 'Sponsor',
 };
 
-export function PendingInvitesBanner({ invites, onAccept, onDecline }: PendingInvitesBannerProps) {
+export function PendingInvitesBanner({
+  invites,
+  onAccept,
+  onDecline,
+  resolveProjectName,
+}: PendingInvitesBannerProps) {
   const [expanded, setExpanded] = useState(false);
 
   if (invites.length === 0) return null;
@@ -41,7 +48,9 @@ export function PendingInvitesBanner({ invites, onAccept, onDecline }: PendingIn
           {invites.map(inv => (
             <li key={inv.id} className="py-2 flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-content truncate">{inv.projectId}</div>
+                <div className="text-sm text-content truncate">
+                  {resolveProjectName?.(inv.projectId) ?? inv.projectId}
+                </div>
                 <div className="text-xs text-content-muted">{ROLE_LABEL[inv.role] ?? inv.role}</div>
               </div>
               <div className="flex gap-2 shrink-0">

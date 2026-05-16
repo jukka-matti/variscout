@@ -82,4 +82,31 @@ describe('PendingInvitesBanner', () => {
     expect(screen.getByText(/member/i)).toBeInTheDocument();
     expect(screen.getByText(/sponsor/i)).toBeInTheDocument();
   });
+
+  it('renders the resolved project name instead of UUID when resolveProjectName is provided', () => {
+    render(
+      <PendingInvitesBanner
+        invites={[inviteA]}
+        onAccept={() => {}}
+        onDecline={() => {}}
+        resolveProjectName={id => (id === 'ip-1' ? 'Nozzle Defect Reduction' : undefined)}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /show invitations/i }));
+    expect(screen.getByText(/nozzle defect reduction/i)).toBeInTheDocument();
+    expect(screen.queryByText(/ip-1/i)).not.toBeInTheDocument();
+  });
+
+  it('falls back to UUID when resolveProjectName returns undefined', () => {
+    render(
+      <PendingInvitesBanner
+        invites={[inviteA]}
+        onAccept={() => {}}
+        onDecline={() => {}}
+        resolveProjectName={() => undefined}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /show invitations/i }));
+    expect(screen.getByText('ip-1')).toBeInTheDocument();
+  });
 });

@@ -1205,6 +1205,9 @@ function AppMain() {
                 onOpenPaste={importFlow.handleOpenPaste}
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
                 onImportVrs={handleImportVrs}
+                resolveProjectName={id =>
+                  (sessionHub?.improvementProjects ?? []).find(p => p.id === id)?.metadata.title
+                }
               />
             ) : panels.activeView === 'home' ? (
               <div className="h-full overflow-auto p-4 sm:p-6">
@@ -1212,6 +1215,9 @@ function AppMain() {
                   invites={pendingInvites}
                   onAccept={acceptInvite}
                   onDecline={revokeInvite}
+                  resolveProjectName={id =>
+                    (sessionHub?.improvementProjects ?? []).find(p => p.id === id)?.metadata.title
+                  }
                 />
                 <ActiveIPLaunchpadCard
                   projects={(sessionHub?.improvementProjects ?? []).filter(

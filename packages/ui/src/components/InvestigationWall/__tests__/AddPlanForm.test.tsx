@@ -103,4 +103,30 @@ describe('<AddPlanForm />', () => {
     expect((screen.getByLabelText(/sample size/i) as HTMLInputElement).value).toBe('30');
     expect((screen.getByLabelText(/method/i) as HTMLSelectElement).value).toBe('sensor');
   });
+
+  it('omits soft-deleted members from the owner picker', () => {
+    const membersWithSoftDeleted: ProjectMember[] = [
+      ...members,
+      {
+        id: 'pm-deleted',
+        userId: 'u-4',
+        displayName: 'Removed',
+        role: 'member',
+        invitedAt: 4,
+        createdAt: 4,
+        deletedAt: 100,
+      },
+    ];
+    render(
+      <AddPlanForm
+        hypothesisId="h-1"
+        members={membersWithSoftDeleted}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+    const ownerSelect = screen.getByLabelText(/owner/i) as HTMLSelectElement;
+    const optionValues = Array.from(ownerSelect.options).map(o => o.value);
+    expect(optionValues).not.toContain('pm-deleted');
+  });
 });

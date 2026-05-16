@@ -26,7 +26,7 @@ const METHODS: ReadonlyArray<MeasurementMethod> = [
 ];
 
 export function AddPlanForm({ hypothesisId, members, onSave, onCancel }: AddPlanFormProps) {
-  const eligibleOwners = members.filter(m => m.role !== 'sponsor');
+  const eligibleOwners = members.filter(m => m.role !== 'sponsor' && m.deletedAt === null);
   const [factor, setFactor] = useState('');
   const [method, setMethod] = useState<MeasurementMethod>('sensor');
   const [sampleSize, setSampleSize] = useState(30);

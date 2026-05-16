@@ -35,6 +35,8 @@ export function MeasurementPlanChip({
   return (
     <div
       data-testid="chip-body"
+      role={canEdit ? 'button' : undefined}
+      aria-label={canEdit ? `Edit plan for ${plan.factor}, ${plan.method}` : undefined}
       className={`flex items-center gap-2 px-2 py-1 text-sm border-b border-gray-200 ${
         canEdit ? 'cursor-pointer hover:bg-gray-50' : ''
       }`}

@@ -1767,6 +1767,9 @@ export const Editor: React.FC<EditorProps> = ({
         invites={pendingInvites}
         onAccept={acceptInvite}
         onDecline={revokeInvite}
+        resolveProjectName={id =>
+          (activeHub?.improvementProjects ?? []).find(p => p.id === id)?.metadata.title
+        }
       />
 
       {/* Main Content -- inert when phone overlay is open (F-18 focus trap) */}
