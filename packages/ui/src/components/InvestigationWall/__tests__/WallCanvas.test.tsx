@@ -4,6 +4,7 @@ import { WallCanvas } from '../WallCanvas';
 import type { Hypothesis, ProcessMap, Question, Finding } from '@variscout/core';
 import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
+import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 
 // Cast helper: acceptable inside test files per project convention
 const h = (id: string) => id as ProcessHubId;
@@ -833,6 +834,127 @@ describe('WallCanvas', () => {
       expect(screen.queryByTestId('wall-mobile-card-list')).not.toBeInTheDocument();
       expect(container.querySelector('[data-wall-viewport]')).toBeInTheDocument();
       expect(screen.getByText(/Nozzle runs hot/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('planningProps — HypothesisCardWithPlans wiring', () => {
+    const basePlan: MeasurementPlan = {
+      id: 'plan-1',
+      hypothesisId: 'h1',
+      factor: 'Nozzle Temp',
+      method: 'sensor',
+      sampleSize: 30,
+      owner: 'user-1',
+      status: 'planned',
+      createdAt: 1,
+      updatedAt: 1,
+      deletedAt: null,
+    };
+
+    it('renders plans-section foreignObject when planningProps with matching plan are supplied', () => {
+      const onAddPlan = vi.fn();
+      const onLinkFinding = vi.fn();
+      const onEditPlan = vi.fn();
+      const { container } = render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          planningProps={{
+            plans: [basePlan],
+            members: [],
+            currentUserId: 'test-user',
+            onAddPlan,
+            onLinkFinding,
+            onEditPlan,
+          }}
+        />
+      );
+      // plans-section foreignObject should be present (plan chip rendered)
+      expect(container.querySelector('[data-testid="plans-section"]')).toBeTruthy();
+    });
+
+    it('does not render plans-section when planningProps is not supplied', () => {
+      const { container } = render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+        />
+      );
+      expect(container.querySelector('[data-testid="plans-section"]')).toBeNull();
+    });
+
+    it('filters plans per hypothesis: plan chip appears under h1 but not under h2', () => {
+      const hub2: Hypothesis = { ...hub, id: 'h2', name: 'Other hub' };
+      const planForH1: MeasurementPlan = {
+        ...basePlan,
+        factor: 'Nozzle Temp',
+        hypothesisId: 'h1',
+      };
+      const onAddPlan = vi.fn();
+      const onLinkFinding = vi.fn();
+      const onEditPlan = vi.fn();
+      render(
+        <WallCanvas
+          hubs={[hub, hub2]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          planningProps={{
+            plans: [planForH1],
+            members: [],
+            currentUserId: 'test-user',
+            onAddPlan,
+            onLinkFinding,
+            onEditPlan,
+          }}
+        />
+      );
+      // The plan chip for 'Nozzle Temp' should appear exactly once (on h1 only)
+      expect(screen.getAllByText(/Nozzle Temp/i).length).toBe(1);
+    });
+
+    it('filters out soft-deleted plans (deletedAt !== null) — deleted plan chip absent', () => {
+      const activePlan: MeasurementPlan = { ...basePlan, factor: 'ActiveFactor' };
+      const deletedPlan: MeasurementPlan = {
+        ...basePlan,
+        id: 'plan-deleted',
+        factor: 'DeletedFactor',
+        deletedAt: Date.now(),
+      };
+      const onAddPlan = vi.fn();
+      const onLinkFinding = vi.fn();
+      const onEditPlan = vi.fn();
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          planningProps={{
+            plans: [activePlan, deletedPlan],
+            members: [],
+            currentUserId: 'test-user',
+            onAddPlan,
+            onLinkFinding,
+            onEditPlan,
+          }}
+        />
+      );
+      // Active plan chip visible; deleted plan chip not visible
+      expect(screen.getByText(/ActiveFactor/i)).toBeInTheDocument();
+      expect(screen.queryByText(/DeletedFactor/i)).not.toBeInTheDocument();
     });
   });
 });

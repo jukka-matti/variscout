@@ -30,6 +30,7 @@ import {
   type UseFindingsReturn,
   type UseQuestionsReturn,
 } from '@variscout/hooks';
+import type { WallCanvasPlanningProps } from '@variscout/ui';
 import { type FindingStatus, type Question } from '@variscout/core';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { getStrategy } from '@variscout/core/strategy';
@@ -75,6 +76,12 @@ interface InvestigationViewProps {
   // Derived investigation data (from orchestration hook)
   questionsMap: Record<string, QuestionDisplayData>;
   ideaImpacts: Record<string, import('@variscout/core').IdeaImpact | undefined>;
+  /**
+   * Optional measurement-plan affordances threaded into WallCanvas.
+   * When provided, hub cards render HypothesisCardWithPlans.
+   * When omitted (default), hub cards render bare HypothesisCard.
+   */
+  planningProps?: WallCanvasPlanningProps;
 }
 
 const InvestigationView: React.FC<InvestigationViewProps> = ({
@@ -93,6 +100,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   resolvedMode,
   questionsMap,
   ideaImpacts,
+  planningProps,
 }) => {
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
 
@@ -408,6 +416,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
                 zoom={wallZoom}
                 pan={wallPan}
                 groupByTributary={Boolean(processMap && wallGroupByTributary)}
+                planningProps={planningProps}
               />
               {/* Minimap + CommandPalette are desktop-only. WallCanvas
                 self-gates to MobileCardList below 768px. */}

@@ -22,6 +22,8 @@ import type {
   GatePath,
 } from '@variscout/core';
 import type { ColumnTypeMap } from '@variscout/core/findings';
+import type { MeasurementPlan } from '@variscout/core/measurementPlan';
+import type { ProjectMember } from '@variscout/core/projectMembership';
 import {
   collectStepColumns,
   conditionHasMissingColumn,
@@ -32,6 +34,7 @@ import { getMessage } from '@variscout/core/i18n';
 import { surveyWallRules } from '@variscout/core/survey';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { HypothesisCard } from './HypothesisCard';
+import { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
 import { DraggableHypothesisCard } from './DraggableHypothesisCard';
 import { QuestionPill } from './QuestionPill';
 import { TributaryFooter } from './TributaryFooter';
@@ -41,6 +44,38 @@ import { MobileCardList } from './MobileCardList';
 import { useWallLocale } from './hooks/useWallLocale';
 import { useWallDragDrop } from './hooks/useWallDragDrop';
 import { useWallIsMobile } from './hooks/useWallBreakpoint';
+
+/**
+ * Measurement-plan affordances threaded into WallCanvas as a single bag.
+ * Using a bag rather than individual props keeps WallCanvasProps under
+ * the 20-prop threshold at which the interface becomes unwieldy.
+ */
+export interface WallCanvasPlanningProps {
+  /** All measurement plans for the active investigation (across all hypotheses). */
+  plans: MeasurementPlan[];
+  /** Project members for ACL checks and owner name resolution. */
+  members: ReadonlyArray<ProjectMember>;
+  /**
+   * Current user's userId. Matches ProjectMember.userId.
+   * Pass null when unauthenticated.
+   */
+  currentUserId: string | null;
+  /**
+   * Called when the user saves a new plan.
+   * Caller stamps id (generateDeterministicId) + timestamps + dispatches MEASUREMENT_PLAN_ADD.
+   */
+  onAddPlan: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => void;
+  /**
+   * Called once per finding the user chose to link.
+   * Caller dispatches MEASUREMENT_PLAN_LINK_FINDING per call.
+   */
+  onLinkFinding: (planId: string, findingId: string) => void;
+  /**
+   * Called when user clicks the edit affordance on a chip.
+   * V1 pass-through — caller decides behaviour.
+   */
+  onEditPlan: (planId: string) => void;
+}
 
 export interface WallCanvasProps {
   hubId?: ProcessHubId;
@@ -113,6 +148,12 @@ export interface WallCanvasProps {
    *   without the EmptyState CTA panel (the overlay wrapper gates mount).
    */
   mode?: 'destination' | 'overlay';
+  /**
+   * Optional measurement-plan affordances. When provided, hub cards render
+   * as `<HypothesisCardWithPlans>` (with inline plan chips + add-plan form).
+   * When omitted, hub cards render as bare `<HypothesisCard>` (legacy path).
+   */
+  planningProps?: WallCanvasPlanningProps;
 }
 
 /**
@@ -171,6 +212,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   columnTypes,
   outcomeColumn,
   filterByStepId,
+  planningProps,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const locale = useWallLocale();
@@ -324,11 +366,29 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       columnTypes,
       outcomeColumn,
     };
-    return dndEnabled ? (
-      <DraggableHypothesisCard key={hub.id} {...hubProps} />
-    ) : (
-      <HypothesisCard key={hub.id} {...hubProps} />
-    );
+
+    // Derive per-hypothesis plans (non-deleted only) when planningProps are provided.
+    const hubPlanningProps = planningProps
+      ? {
+          plans: planningProps.plans.filter(p => p.hypothesisId === hub.id && p.deletedAt === null),
+          members: planningProps.members,
+          currentUserId: planningProps.currentUserId,
+          findings,
+          onAddPlan: planningProps.onAddPlan,
+          onLinkFinding: planningProps.onLinkFinding,
+          onEditPlan: planningProps.onEditPlan,
+        }
+      : undefined;
+
+    if (dndEnabled) {
+      return (
+        <DraggableHypothesisCard key={hub.id} {...hubProps} planningProps={hubPlanningProps} />
+      );
+    }
+    if (hubPlanningProps) {
+      return <HypothesisCardWithPlans key={hub.id} {...hubProps} {...hubPlanningProps} />;
+    }
+    return <HypothesisCard key={hub.id} {...hubProps} />;
   };
 
   const body = (

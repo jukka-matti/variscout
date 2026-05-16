@@ -37,6 +37,8 @@ import { SaveToBrowserButton } from './components/SaveToBrowserButton';
 import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
 import { getOptInFlag, pwaHubRepository } from './persistence';
+import { generateDeterministicId } from '@variscout/core/identity';
+import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
   useFindings,
@@ -215,6 +217,27 @@ function AppMain() {
   const questions = useInvestigationStore(s => s.questions);
   const hypotheses = useInvestigationStore(s => s.hypotheses);
   const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
+
+  // Measurement plans — loaded from IndexedDB for all current hypotheses.
+  // Re-loads whenever the hypothesis list changes (new hub added or removed).
+  // Passed into WallCanvas planningProps so plan chips stay in sync with
+  // the underlying store without requiring a separate Zustand layer.
+  const [wallMeasurementPlans, setWallMeasurementPlans] = useState<MeasurementPlan[]>([]);
+  const hypothesisIds = useMemo(() => hypotheses.map(h => h.id), [hypotheses]);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const allPlans: MeasurementPlan[] = [];
+      for (const hypothesisId of hypothesisIds) {
+        const plans = await pwaHubRepository.measurementPlans.listByHypothesis(hypothesisId);
+        allPlans.push(...plans);
+      }
+      if (!cancelled) setWallMeasurementPlans(allPlans);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hypothesisIds]);
 
   // Preferences store — question-link prompt opt-out flag
   const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
@@ -870,6 +893,49 @@ function AppMain() {
       activeIPContext.isIPScoped ? { ...findingsState, findings: scopedFindings } : findingsState,
     [activeIPContext.isIPScoped, findingsState, scopedFindings]
   );
+  // ── Measurement plan callbacks for WallCanvas planningProps ─────────────
+  // PWA uses 'analyst@local' as the single-user identity (no auth).
+  const PWA_WALL_USER_ID = 'analyst@local';
+  const wallActiveIPMembers = activeIPContext.activeIP?.metadata.members ?? [];
+  const wallPlanningProps = useMemo(
+    () => ({
+      plans: wallMeasurementPlans,
+      members: wallActiveIPMembers,
+      currentUserId: PWA_WALL_USER_ID,
+      onAddPlan: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => {
+        const stamped: MeasurementPlan = {
+          ...plan,
+          id: generateDeterministicId(),
+          createdAt: Date.now(),
+          deletedAt: null,
+        };
+        void pwaHubRepository.dispatch({ kind: 'MEASUREMENT_PLAN_ADD', plan: stamped });
+        // Optimistically update local state so the chip appears without a full reload
+        setWallMeasurementPlans(prev => [...prev, stamped]);
+      },
+      onLinkFinding: (planId: string, findingId: string) => {
+        void pwaHubRepository.dispatch({
+          kind: 'MEASUREMENT_PLAN_LINK_FINDING',
+          planId,
+          findingId,
+        });
+        // Update local state optimistically
+        setWallMeasurementPlans(prev =>
+          prev.map(p =>
+            p.id === planId
+              ? { ...p, linkedFindingIds: [...(p.linkedFindingIds ?? []), findingId] }
+              : p
+          )
+        );
+      },
+      onEditPlan: (planId: string) => {
+        console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);
+      },
+    }),
+
+    [wallMeasurementPlans, wallActiveIPMembers]
+  );
+
   const activeIPAnalyzeFactorRequest = useMemo(
     () =>
       activeIPContext.isIPScoped && activeIPScopeLabels?.factorLabels[0]
@@ -1260,6 +1326,7 @@ function AppMain() {
                 resolvedMode={resolved}
                 questionsMap={investigation.questionsMap}
                 ideaImpacts={investigation.ideaImpacts}
+                planningProps={wallPlanningProps}
               />
             ) : panels.activeView === 'projects' ? (
               <ProjectsTabView

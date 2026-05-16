@@ -103,6 +103,7 @@ import { buildChartSharePayload } from '../services/shareContent';
 import { isKnowledgeBaseAvailable } from '../services/searchService';
 import { buildSubPageId } from '../services/deepLinks';
 import { azureHubRepository } from '../persistence';
+import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import { useToast } from '../context/ToastContext';
 import { SustainmentEntryRow } from './Editor.sustainment';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
@@ -361,6 +362,25 @@ export const Editor: React.FC<EditorProps> = ({
   const categories = useInvestigationStore(s => s.categories);
   const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
 
+  // Measurement plans — loaded from IndexedDB for all hypotheses in the active investigation.
+  // Re-loads when the hypothesis list changes. Passed into WallCanvas planningProps.
+  const [wallMeasurementPlans, setWallMeasurementPlans] = useState<MeasurementPlan[]>([]);
+  const hypothesisIds = useMemo(() => hypotheses.map(h => h.id), [hypotheses]);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const allPlans: MeasurementPlan[] = [];
+      for (const hypothesisId of hypothesisIds) {
+        const plans = await azureHubRepository.measurementPlans.listByHypothesis(hypothesisId);
+        allPlans.push(...plans);
+      }
+      if (!cancelled) setWallMeasurementPlans(allPlans);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hypothesisIds]);
+
   // Preferences store (annotation-per-user)
   const aiEnabled = usePreferencesStore(s => s.aiEnabled);
   const knowledgeSearchFolder = usePreferencesStore(s => s.knowledgeSearchFolder) ?? undefined;
@@ -610,6 +630,47 @@ export const Editor: React.FC<EditorProps> = ({
   const activeIPLineageHypothesisIds = useMemo(
     () => new Set(activeIPLineage?.hypothesisIds ?? []),
     [activeIPLineage]
+  );
+
+  // Wall measurement-plan callbacks — mirrors PWA App.tsx wallPlanningProps pattern
+  const wallActiveIPMembers = useMemo(
+    () => activeIPContext.activeIP?.metadata.members ?? [],
+    [activeIPContext.activeIP]
+  );
+  const wallPlanningProps = useMemo(
+    () => ({
+      plans: wallMeasurementPlans,
+      members: wallActiveIPMembers,
+      currentUserId: currentUser?.email ?? null,
+      onAddPlan: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => {
+        const stamped: MeasurementPlan = {
+          ...plan,
+          id: generateDeterministicId(),
+          createdAt: Date.now(),
+          deletedAt: null,
+        };
+        void azureHubRepository.dispatch({ kind: 'MEASUREMENT_PLAN_ADD', plan: stamped });
+        setWallMeasurementPlans(prev => [...prev, stamped]);
+      },
+      onLinkFinding: (planId: string, findingId: string) => {
+        void azureHubRepository.dispatch({
+          kind: 'MEASUREMENT_PLAN_LINK_FINDING',
+          planId,
+          findingId,
+        });
+        setWallMeasurementPlans(prev =>
+          prev.map(p =>
+            p.id === planId
+              ? { ...p, linkedFindingIds: [...(p.linkedFindingIds ?? []), findingId] }
+              : p
+          )
+        );
+      },
+      onEditPlan: (planId: string) => {
+        console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);
+      },
+    }),
+    [wallMeasurementPlans, wallActiveIPMembers, currentUser?.email]
   );
 
   // Action item dispatch — wired to useImprovementProjectStore via upsertProject
@@ -1842,6 +1903,7 @@ export const Editor: React.FC<EditorProps> = ({
                 hypothesesState={hypothesesState}
                 questionsMap={questionsMap}
                 ideaImpacts={ideaImpacts}
+                planningProps={wallPlanningProps}
               />
             ) : activeView === 'projects' ? (
               <ProjectsTabView

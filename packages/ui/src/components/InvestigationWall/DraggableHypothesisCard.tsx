@@ -1,5 +1,6 @@
 /**
- * DraggableHypothesisCard — dnd-kit draggable wrapper around HypothesisCard.
+ * DraggableHypothesisCard — dnd-kit draggable wrapper around HypothesisCard
+ * (or HypothesisCardWithPlans when planningProps are supplied).
  *
  * Uses `useDraggable` to expose the hub as a drag source for gate composition.
  * Must be rendered inside a `<DndContext>` provided by WallCanvas (or a
@@ -13,11 +14,27 @@
 import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { HypothesisCard, type HypothesisCardProps } from './HypothesisCard';
+import {
+  HypothesisCardWithPlans,
+  type HypothesisCardWithPlansProps,
+} from './HypothesisCardWithPlans';
 import { encodeHubDraggableId } from './hooks/useWallDragDrop';
 
-export type DraggableHypothesisCardProps = HypothesisCardProps;
+/** Plan-related props forwarded to HypothesisCardWithPlans when provided. */
+export type DraggableHypothesisCardPlanningProps = Omit<
+  HypothesisCardWithPlansProps,
+  keyof HypothesisCardProps
+>;
 
-export const DraggableHypothesisCard: React.FC<DraggableHypothesisCardProps> = props => {
+export interface DraggableHypothesisCardProps extends HypothesisCardProps {
+  /** When provided, renders HypothesisCardWithPlans instead of HypothesisCard. */
+  planningProps?: DraggableHypothesisCardPlanningProps;
+}
+
+export const DraggableHypothesisCard: React.FC<DraggableHypothesisCardProps> = ({
+  planningProps,
+  ...props
+}) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: encodeHubDraggableId(props.hub.id),
   });
@@ -50,7 +67,11 @@ export const DraggableHypothesisCard: React.FC<DraggableHypothesisCardProps> = p
       {...dndAttributes}
       {...listeners}
     >
-      <HypothesisCard {...props} />
+      {planningProps ? (
+        <HypothesisCardWithPlans {...props} {...planningProps} />
+      ) : (
+        <HypothesisCard {...props} />
+      )}
     </g>
   );
 };
