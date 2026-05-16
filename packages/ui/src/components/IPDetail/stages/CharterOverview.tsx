@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProjectRole } from '@variscout/core/projectMembership';
+import { canAccess } from '@variscout/core/projectMembership';
 import { InviteModal } from '../../projects/InviteModal';
 import { MemberList } from '../../projects/MemberList';
 
@@ -34,6 +35,9 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
 }) => {
   const [inviteOpen, setInviteOpen] = useState(false);
   const members = ip.metadata.members ?? [];
+  const canManageMembership =
+    currentUserId !== undefined &&
+    (members.length === 0 || canAccess(currentUserId, members, 'manage-membership'));
   const issueSnapshot = ip.sections.background.snapshotText ?? '—';
   const goalSet = isGoalSet(ip);
   const hypoCount = ip.sections.investigationLineage.hypothesisIds?.length ?? 0;
@@ -132,13 +136,15 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
             <div className="text-[10px] font-semibold uppercase tracking-wide text-content-tertiary">
               Team
             </div>
-            <button
-              type="button"
-              onClick={() => setInviteOpen(true)}
-              className="rounded-md border border-edge px-2 py-1 text-xs text-content-secondary hover:text-content"
-            >
-              Invite team
-            </button>
+            {canManageMembership && (
+              <button
+                type="button"
+                onClick={() => setInviteOpen(true)}
+                className="rounded-md border border-edge px-2 py-1 text-xs text-content-secondary hover:text-content"
+              >
+                Invite team
+              </button>
+            )}
           </div>
           {members.length > 0 && currentUserId !== undefined ? (
             <div className="mt-2">

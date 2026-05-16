@@ -155,5 +155,23 @@ describe('CharterOverview', () => {
       );
       expect(screen.queryByRole('button', { name: /invite team/i })).not.toBeInTheDocument();
     });
+
+    it('hides the Invite button for non-Lead viewers even when onInvite is provided', () => {
+      const charterIPWithMembers: ImprovementProject = {
+        ...baseIP,
+        metadata: { ...baseIP.metadata, members: twoMembers },
+      };
+      render(
+        <CharterOverview
+          ip={charterIPWithMembers}
+          onOpenInvestigation={() => {}}
+          onOpenAnalyze={() => {}}
+          currentUserId="member@org"
+          onInvite={() => {}}
+          onMemberRemove={() => {}}
+        />
+      );
+      expect(screen.queryByRole('button', { name: /invite team/i })).not.toBeInTheDocument();
+    });
   });
 });

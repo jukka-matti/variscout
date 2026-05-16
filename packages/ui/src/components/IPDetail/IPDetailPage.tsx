@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePreferencesStore } from '@variscout/stores';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProjectMember, ProjectRole } from '@variscout/core/projectMembership';
+import { canAccess } from '@variscout/core/projectMembership';
 import { generateDeterministicId } from '@variscout/core';
 import { reduceProjectMembers, type MembershipAction } from '@variscout/core/actions';
 import IPDetailHeader from './IPDetailHeader';
@@ -123,15 +124,12 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
 
   // ACL guard: only apply when we have an identified user AND an explicit members list.
   // If currentUserId is absent OR members[] is empty/absent → backward-compatible open access.
-  const userRole =
-    currentUserId !== undefined && members.length > 0
-      ? members.find(m => m.userId === currentUserId)?.role
-      : undefined;
-
-  const isExplicitlyExcluded =
-    currentUserId !== undefined && members.length > 0 && userRole === undefined;
-
-  const isSponsor = userRole === 'sponsor';
+  const hasIdentity = currentUserId !== undefined && members.length > 0;
+  const isExplicitlyExcluded = hasIdentity && !canAccess(currentUserId, members, 'view-report');
+  const isSponsor =
+    hasIdentity &&
+    canAccess(currentUserId, members, 'view-report') &&
+    !canAccess(currentUserId, members, 'edit-charter');
 
   const handleInviteClick = () => {
     onInviteClick?.();

@@ -253,6 +253,12 @@ describe('IPDetailPage', () => {
       render(<IPDetailPage ip={legacyIP} onBackToList={() => {}} currentUserId="anybody@org" />);
       expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
     });
+
+    it('uses canAccess view-report for Sponsor placeholder gating', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="sponsor@org" />);
+      expect(screen.getByTestId('sponsor-report-panel')).toBeInTheDocument();
+      expect(screen.queryByTestId('stage-tab-charter')).not.toBeInTheDocument();
+    });
   });
 
   describe('Charter team section (wedge members[])', () => {
