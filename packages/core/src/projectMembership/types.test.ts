@@ -12,6 +12,8 @@ describe('ProjectMember', () => {
   it('has required fields', () => {
     const m: ProjectMember = {
       id: 'pm-1',
+      createdAt: 1234567890,
+      deletedAt: null,
       userId: 'user@org.com',
       displayName: 'Pat Lee',
       role: 'lead',
@@ -26,6 +28,8 @@ describe('Invitation', () => {
   it('has required fields with pending state', () => {
     const inv: Invitation = {
       id: 'inv-1',
+      createdAt: 1234567890,
+      deletedAt: null,
       projectId: 'ip-1',
       userId: 'user@org.com',
       displayName: 'Pat Lee',
