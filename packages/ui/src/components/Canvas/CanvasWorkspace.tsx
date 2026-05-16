@@ -67,8 +67,6 @@ export interface CanvasWorkspaceProps {
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
-  onSustainment?: (stepId: string) => void;
-  onHandoff?: (stepId: string) => void;
   questions?: readonly Question[];
   findings?: readonly Finding[];
   hypotheses?: readonly Hypothesis[];
@@ -206,8 +204,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
-  onSustainment,
-  onHandoff,
   questions = [],
   findings = [],
   hypotheses = [],
@@ -609,8 +605,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onLogQuickAction={onLogQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}
       onCharter={onCharter}
-      onSustainment={onSustainment}
-      onHandoff={onHandoff}
       onOpenInvestigationFocus={onOpenInvestigationFocus}
       onOpenColumnDetail={onOpenColumnDetail}
       contextLinkGroups={contextLinkGroups}

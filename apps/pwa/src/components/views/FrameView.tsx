@@ -336,14 +336,6 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showCharter();
   }, []);
 
-  const handleSustainment = React.useCallback(() => {
-    usePanelsStore.getState().showSustainment();
-  }, []);
-
-  const handleHandoff = React.useCallback(() => {
-    usePanelsStore.getState().showHandoff();
-  }, []);
-
   const handleInboxNavigate = React.useCallback((prompt: InboxDigestPrompt) => {
     const surface = prompt.action?.opensSurface;
     if (surface === 'sustainment') {
@@ -414,8 +406,6 @@ const FrameView: React.FC = () => {
         onRemoveCausalLink={handleRemoveCausalLink}
         signals={signals}
         onCharter={handleCharter}
-        onSustainment={handleSustainment}
-        onHandoff={handleHandoff}
         contextLinkGroups={contextLinkGroups}
         onNavigateContextLink={handleNavigateContextLink}
         priorStepStats={priorStepStats}

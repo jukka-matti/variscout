@@ -230,8 +230,6 @@ export interface CanvasProps {
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
-  onSustainment?: (stepId: string) => void;
-  onHandoff?: (stepId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
@@ -297,8 +295,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
-  onSustainment,
-  onHandoff,
   onOpenInvestigationFocus,
   onRemoveCausalLink,
   contextLinkGroups,
@@ -768,8 +764,6 @@ export const Canvas: React.FC<CanvasProps> = ({
       onLogQuickAction={onLogQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}
       onCharter={onCharter}
-      onSustainment={onSustainment}
-      onHandoff={onHandoff}
       resolvedL3Archetype={resolvedL3Archetype}
       authoringMode={authoringMode}
       disabled={disabled}
@@ -827,8 +821,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             onLogQuickAction={onLogQuickAction}
             onFocusedInvestigation={onFocusedInvestigation}
             onCharter={onCharter}
-            onSustainment={onSustainment}
-            onHandoff={onHandoff}
             investigationOverlay={activeStepInvestigationOverlay}
             onOpenInvestigationFocus={onOpenInvestigationFocus}
             onRemoveCausalLink={onRemoveCausalLink}

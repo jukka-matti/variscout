@@ -38,8 +38,6 @@ export interface LocalMechanismViewProps {
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
-  onSustainment?: (stepId: string) => void;
-  onHandoff?: (stepId: string) => void;
 }
 
 const EMPTY_ROWS: ReadonlyArray<DataRow> = [];
@@ -184,8 +182,6 @@ function ColumnMiniChart({
   onOpenQuickAction,
   onFocusedInvestigation,
   onCharter,
-  onSustainment,
-  onHandoff,
 }: {
   column: string;
   kind: string | undefined;
@@ -196,8 +192,6 @@ function ColumnMiniChart({
   onOpenQuickAction: (column: string) => void;
   onFocusedInvestigation?: (column: string) => void;
   onCharter?: (column: string) => void;
-  onSustainment?: (column: string) => void;
-  onHandoff?: (column: string) => void;
 }) {
   const values = numericValues(rows, column);
   const categories = distribution(rows, column);
@@ -225,7 +219,7 @@ function ColumnMiniChart({
           {getMessage(locale, 'canvas.localMechanism.actionButton')}
         </button>
       </div>
-      {onFocusedInvestigation || onCharter || onSustainment || onHandoff ? (
+      {onFocusedInvestigation || onCharter ? (
         <div className="flex flex-wrap gap-1" data-testid="response-path-ctas">
           {onFocusedInvestigation ? (
             <button
@@ -247,28 +241,6 @@ function ColumnMiniChart({
               onClick={() => onCharter(column)}
             >
               {getMessage(locale, 'canvas.localMechanism.charter')}
-            </button>
-          ) : null}
-          {onSustainment ? (
-            <button
-              type="button"
-              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
-              aria-label={formatMessage(locale, 'canvas.localMechanism.sustainmentAria', {
-                column,
-              })}
-              onClick={() => onSustainment(column)}
-            >
-              {getMessage(locale, 'canvas.localMechanism.sustainment')}
-            </button>
-          ) : null}
-          {onHandoff ? (
-            <button
-              type="button"
-              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
-              aria-label={formatMessage(locale, 'canvas.localMechanism.handoffAria', { column })}
-              onClick={() => onHandoff(column)}
-            >
-              {getMessage(locale, 'canvas.localMechanism.handoff')}
             </button>
           ) : null}
         </div>
@@ -330,8 +302,6 @@ export function LocalMechanismView({
   onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
-  onSustainment,
-  onHandoff,
 }: LocalMechanismViewProps) {
   const locale = useWallLocale();
   const questions = useInvestigationStore(state => state.questions);
@@ -440,8 +410,6 @@ export function LocalMechanismView({
               onFocusedInvestigation ? () => onFocusedInvestigation(focalStepId) : undefined
             }
             onCharter={onCharter ? () => onCharter(focalStepId) : undefined}
-            onSustainment={onSustainment ? () => onSustainment(focalStepId) : undefined}
-            onHandoff={onHandoff ? () => onHandoff(focalStepId) : undefined}
           />
         ))}
       </div>
