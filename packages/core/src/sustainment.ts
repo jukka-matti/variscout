@@ -416,21 +416,16 @@ export function selectSustainmentBuckets<TInv extends ProcessHubInvestigation>(
 }
 
 /**
- * Returns investigations whose effective status is `controlled` but which lack
- * a ControlHandoff record. These should surface in the cadence board as a
- * prompt to either record the handoff or revert the status.
+ * Wedge V1 (ADR-082): Handoff is folded into Sustainment-closure. Control-handoff
+ * cadence items are retired — 'control-handoff-missing' is no longer a valid
+ * SustainmentReviewReason. Returns an empty array; preserved for call-site
+ * compatibility until consumers are cleaned up.
  */
 export function selectControlHandoffCandidates<TInv extends ProcessHubInvestigation>(
-  investigations: TInv[],
-  handoffs: ControlHandoff[]
+  _investigations: TInv[],
+  _handoffs: ControlHandoff[]
 ): ProcessHubReviewItem<TInv>[] {
-  const handoffByInvestigation = new Set(handoffs.map(h => h.investigationId));
-  return investigations
-    .filter(
-      inv =>
-        inv.metadata?.investigationStatus === 'controlled' && !handoffByInvestigation.has(inv.id)
-    )
-    .map(inv => buildSustainmentReviewItem(inv, ['control-handoff-missing']));
+  return [];
 }
 
 // ── Blob path helpers ─────────────────────────────────────────────────────

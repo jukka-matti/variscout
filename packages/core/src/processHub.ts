@@ -310,8 +310,7 @@ export type ProcessHubAttentionReason =
   | 'overdue-actions'
   | 'next-move'
   | 'sustainment'
-  | 'sustainment-due'
-  | 'control-handoff-missing';
+  | 'sustainment-due';
 
 export type ProcessHubReadinessReason =
   | 'missing-metadata'

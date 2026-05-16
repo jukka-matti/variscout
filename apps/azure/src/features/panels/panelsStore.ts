@@ -12,8 +12,7 @@ interface PanelsState {
     | 'improvement'
     | 'report'
     | 'charter'
-    | 'sustainment'
-    | 'handoff';
+    | 'sustainment';
   isDataTableOpen: boolean;
   /** @deprecated Findings are moving to the Investigation workspace. Kept for backward compat; always false. Task 10 will remove consumers. */
   isFindingsOpen: boolean;
@@ -39,7 +38,6 @@ interface PanelsState {
   /** ID of idea highlighted via matrix<->card bidirectional navigation */
   highlightedIdeaId: string | null;
   sustainmentTargetId: string | null;
-  handoffTargetId: string | null;
   selectedProjectId: string | null;
 }
 
@@ -90,8 +88,7 @@ interface PanelsActions {
         | 'improvement'
         | 'report'
         | 'charter'
-        | 'sustainment'
-        | 'handoff';
+        | 'sustainment';
       isFindingsOpen?: boolean;
       isWhatIfOpen?: boolean;
     } | null
@@ -121,7 +118,6 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   activeImprovementView: 'plan',
   highlightedIdeaId: null,
   sustainmentTargetId: null,
-  handoffTargetId: null,
   selectedProjectId: null,
 
   // Workspace navigation (ADR-055 + header-redesign spec, extended with 'frame' per ADR-070)

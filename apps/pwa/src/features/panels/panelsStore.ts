@@ -14,8 +14,7 @@ interface PanelsState {
     | 'projects'
     | 'report'
     | 'charter'
-    | 'sustainment'
-    | 'handoff';
+    | 'sustainment';
 
   // Panel visibility
   isSettingsOpen: boolean;
@@ -33,7 +32,6 @@ interface PanelsState {
   showResetConfirm: boolean;
   openSpecEditorRequested: boolean;
   sustainmentTargetId: string | null;
-  handoffTargetId: string | null;
   selectedProjectId: string | null;
 }
 
@@ -96,7 +94,6 @@ export const initialPanelsState: PanelsState = {
   showResetConfirm: false,
   openSpecEditorRequested: false,
   sustainmentTargetId: null,
-  handoffTargetId: null,
   selectedProjectId: null,
 };
 
