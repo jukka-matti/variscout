@@ -29,6 +29,7 @@ import {
   deriveActiveIPCanvasFocus,
   deriveActiveIPLineageIds,
   deriveActiveIPScopeLabels,
+  PendingInvitesBanner,
   type ColumnShape,
 } from '@variscout/ui';
 import { useStageFiveOpener } from './hooks/useStageFiveOpener';
@@ -58,6 +59,7 @@ import {
   usePreferencesStore,
   useCanvasViewportStore,
   useViewStore,
+  useProjectMembershipStore,
 } from '@variscout/stores';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
@@ -217,6 +219,11 @@ function AppMain() {
   // Preferences store — question-link prompt opt-out flag
   const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
   const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
+
+  // Project membership store — pending invitations for the Home view banner
+  const pendingInvites = useProjectMembershipStore(s => s.pendingInvites);
+  const acceptInvite = useProjectMembershipStore(s => s.acceptInvite);
+  const revokeInvite = useProjectMembershipStore(s => s.revokeInvite);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
@@ -1135,6 +1142,11 @@ function AppMain() {
               />
             ) : panels.activeView === 'home' ? (
               <div className="h-full overflow-auto p-4 sm:p-6">
+                <PendingInvitesBanner
+                  invites={pendingInvites}
+                  onAccept={acceptInvite}
+                  onDecline={revokeInvite}
+                />
                 <ActiveIPLaunchpadCard
                   projects={(sessionHub?.improvementProjects ?? []).filter(
                     project => project.deletedAt === null
