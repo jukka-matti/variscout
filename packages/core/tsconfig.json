@@ -4,7 +4,10 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "paths": {
+      "@variscout/core/projectMembership": ["./src/projectMembership/index.ts"]
+    }
   },
   "include": ["src"]
 }
