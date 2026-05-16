@@ -29,7 +29,7 @@ import {
 } from './sustainment';
 
 export { buildReviewItem } from './processHubReview';
-export { isCharterReady, isSustainmentReady, isHandoffReady } from './responsePathReadiness';
+export { isCharterReady, isSustainmentReady } from './responsePathReadiness';
 export type { WorkflowReadinessSignals } from './responsePathReadiness';
 
 /**

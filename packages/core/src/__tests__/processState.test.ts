@@ -213,7 +213,6 @@ describe('buildCurrentProcessState', () => {
     expect(state.responsePathCounts['focused-investigation']).toBeGreaterThan(0);
     expect(state.responsePathCounts['measurement-system-work']).toBeGreaterThan(0);
     expect(state.responsePathCounts['sustainment-review']).toBe(1);
-    expect(state.responsePathCounts['control-handoff']).toBe(1);
     expect(state.responsePathCounts['quick-action']).toBeGreaterThan(0);
     expect(state.responsePathCounts['chartered-project']).toBe(1);
     expect(state.items).toEqual(
@@ -247,11 +246,6 @@ describe('buildCurrentProcessState', () => {
           id: 'sustainment',
           lens: 'sustainment',
           responsePath: 'sustainment-review',
-        }),
-        expect.objectContaining({
-          id: 'control-handoff',
-          lens: 'sustainment',
-          responsePath: 'control-handoff',
         }),
         expect.objectContaining({
           id: 'active:quick',

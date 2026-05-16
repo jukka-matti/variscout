@@ -27,7 +27,3 @@ export function isCharterReady(_signals: WorkflowReadinessSignals): boolean {
 export function isSustainmentReady(signals: WorkflowReadinessSignals): boolean {
   return signals.isDemo === true || signals.hasIntervention;
 }
-
-export function isHandoffReady(signals: WorkflowReadinessSignals): boolean {
-  return signals.isDemo === true || signals.sustainmentConfirmed;
-}

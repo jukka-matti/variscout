@@ -203,7 +203,7 @@ export {
 } from './tier';
 
 // Response-path readiness helpers (prerequisite checks for canvas CTAs)
-export { isCharterReady, isSustainmentReady, isHandoffReady } from './responsePathReadiness';
+export { isCharterReady, isSustainmentReady } from './responsePathReadiness';
 export type { WorkflowReadinessSignals } from './responsePathReadiness';
 
 // Process Hub review signals

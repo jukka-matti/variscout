@@ -266,26 +266,7 @@ export function buildCurrentProcessState<TInvestigation extends ProcessHubInvest
     });
   }
 
-  if (cadence.sustainment.items.some(item => item.reasons.includes('control-handoff-missing'))) {
-    items.push({
-      id: 'control-handoff',
-      lens: 'sustainment',
-      severity: 'amber',
-      responsePath: 'control-handoff',
-      source: 'sustainment',
-      label: 'Control handoff needed',
-      count: cadence.sustainment.items.filter(item =>
-        item.reasons.includes('control-handoff-missing')
-      ).length,
-      investigationIds: cadence.sustainment.items
-        .filter(item => item.reasons.includes('control-handoff-missing'))
-        .map(item => item.investigation.id),
-    });
-  }
-
-  const sustainmentReviewItems = cadence.sustainment.items.filter(
-    item => !item.reasons.includes('control-handoff-missing')
-  );
+  const sustainmentReviewItems = cadence.sustainment.items;
   if (sustainmentReviewItems.length > 0) {
     items.push({
       id: 'sustainment',
