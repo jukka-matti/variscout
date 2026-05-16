@@ -3,130 +3,140 @@ title: 'VariScout: Product Overview'
 audience: [business, analyst]
 category: methodology
 status: stable
+last-reviewed: 2026-05-16
+related: [wedge, adr-082, philosophy, positioning, specifications, feature-parity, journey]
 ---
 
 # VariScout: Product Overview
 
 ## Philosophy
 
-**Methodology is the product.** VariScout is structured investigation for process improvement — question-driven, evidence-based, AI-assisted.
+**Methodology is the product.** VariScout is structured investigation for process improvement — question-driven, evidence-based, AI-assisted. The deterministic stats engine is the authority on numbers; CoScout (AI) adds context and methodology coaching.
 
-We deliberately chose investigation depth over statistical breadth. Instead of competing with Minitab on test coverage, we built the investigation methodology (Turtiainen 2019) into the product: FRAME → SCOUT → INVESTIGATE → IMPROVE → REPORT as workspace tabs, question-driven EDA as the core workflow, and three evidence types (data, gemba, expert) as the investigation backbone.
+We deliberately chose investigation depth over statistical breadth. Instead of competing with Minitab on test coverage, we built the investigation methodology (Turtiainen 2019) into the product: FRAME → SCOUT → INVESTIGATE → IMPROVE as the journey spine, question-driven EDA as the core workflow, and three evidence types (data, gemba, expert) as the investigation backbone.
 
-The near-term strategic direction adds **Process Hub** as the organizational context around that methodology. A Process Hub represents the production line, service queue, value stream, or business process being improved. Investigations inside the hub can be Quick, Focused, or Chartered, but they still use the same VariScout spine. This makes VariScout a structured improvement layer for teams working inside existing ERP, MES, QMS, CRM, or business-process systems, not a replacement for those systems.
-
----
-
-## What We Built
-
-### Core Analysis Dashboard
-
-- **I-Chart**: Time series with auto-calculated control limits (UCL/LCL)
-- **Boxplot**: Factor comparison (e.g., Farm A vs Farm B)
-- **Pareto**: Frequency analysis for categorical data
-- **Linked Filtering**: Click any chart element to filter all others instantly
-- **Interactive Labels**: Rename axes and categories directly on the chart
-- **Focus Mode**: Maximize any chart for presentation or detailed analysis (Carousel navigation)
-
-### Data Input
-
-- **File Import**: Drag-and-drop CSV and Excel (.xlsx)
-- **Manual Entry**: Direct data entry with two modes:
-  - **Standard Mode**: Factor-outcome analysis with running statistics
-  - **Performance Mode**: Multi-channel entry with per-channel Cpk indicators
-  - Keyboard navigation, spec compliance feedback (56px touch targets for tablets)
-- **Paste from Excel**: Tab-separated data supported
-
-### Export Options
-
-- **PNG Export**: Save charts as images for reports
-- **CSV Export**: Excel-compatible data export with row numbers and spec status
-- **Project Files**: Save/load as .vrs files for sharing (Azure App only)
-
-### Display Modes
-
-- **Presentation Mode**: Fullscreen view with all charts optimized for stakeholder presentations (Escape to exit)
-- **Focus Mode**: Maximize any chart for detailed analysis with carousel navigation
-- **Scrollable Layout**: Charts have comfortable minimum heights with sticky navigation
-
-### Capability Analysis
-
-- **Cp/Cpk Metrics**: Configurable process capability indices (toggle in Stats Panel)
-- **Capability Histogram**: Visual distribution analysis with spec limits overlay (tab in Stats Panel)
-- **Spec Editor**: Contextual editing of USL/LSL/Target directly in the analysis view
-
-### Data Table
-
-- **View Data**: Excel-like table view of all imported data
-- **Inline Editing**: Click any cell to edit values
-- **Keyboard Navigation**: Tab/Enter to move between cells
-- **Spec Status**: Color-coded pass/fail indicators per row
-- **Row Operations**: Add and delete rows
-
-### Persistence
-
-- **Azure App**: Named analyses saved to IndexedDB + synced to OneDrive. Download .vrs files for portability.
-- **PWA (Free)**: Session-only — data lives in React state, cleared on refresh. No save, no .vrs files.
+Canonical V1 design lives in the [wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md).
 
 ---
 
-## What We Chose NOT to Build
+## Two products on a roadmap
 
-Based on UX research, we considered a complex 4-mode architecture with:
+VariScout ships as **two products on a roadmap**: the wedge first, the platform later.
 
-- Field Mode (touch-optimized data entry)
-- Analysis Mode (command palette, templates)
-- Presentation Mode (annotations, insight cards)
-- Certification Mode (audit trails, compliance packages)
+| Product                        | Audience                                                                                  | Status                                                                                                                    |
+| ------------------------------ | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **VariScout (V1, this doc)**   | Improvement specialists running projects with their team                                  | **Ship-target.** One persona, one €99 SKU, project-scoped membership, Azure-tenant-wide.                                  |
+| **VariScout Process** (future) | Enterprises with ongoing process ownership, multi-project portfolios, 4-persona workflows | Internal roadmap commitment only. Not announced in V1 marketing; mentioned when customers ask about enterprise use cases. |
 
-**We rejected this approach** because:
-
-1. It added complexity without proportional value
-2. The core tool already serves the main use cases
-3. Simple enhancements (Focus Mode, Presentation Mode, Manual Entry) addressed the key needs
-4. Maintaining 4 separate UIs would slow future development
-
-The exploratory design is archived in `docs/archive/PRODUCT_CONCEPTS_v1_abandoned.md` for reference.
+The breadth-first features (Hub portfolios, automated data pipelines, Process Owner cadence, 4-persona routing) are not lost — they migrate to VariScout Process as a separate product. V1 is the focused, coherent thing: **the project tool an improvement specialist invites their team to.**
 
 ---
 
-## Target Users
+## What VariScout V1 does
 
-Based on UX research with quality professionals in developing countries:
+The Specialist works in two modes, both first-class:
 
-| Persona    | Role                             | Key Need                              |
-| ---------- | -------------------------------- | ------------------------------------- |
-| **Grace**  | QA Manager (Kenya)               | Reduce 4-hour Excel work to 1 hour    |
-| **Raj**    | Quality Engineer (India)         | Real-time variation monitoring        |
-| **Carlos** | Training Coordinator (Guatemala) | Explain quality data to farmer groups |
+- **Quick analysis.** Paste data, explore in charts, save findings. No project ceremony required. Free PWA supports session-only use; Azure tier adds persistence and CoScout.
+- **Project-anchored investigation.** Create a Project (Charter ceremony), invite teammates (Lead / Member / Sponsor roles), run the formal lifecycle Charter → Approach → Improve → Sustainment. Each project produces a Report a Sponsor can sign off.
 
-See [UX Research](../02-journeys/ux-research.md) for detailed personas, JTBD, and use cases.
+Internally, paste data lands in a **data container** (called a Hub in code) that is tenant-wide — anyone in the buyer's Azure tenant can analyze without creating a Project. The Project is the optional formal wrapper that adds membership ACLs and lifecycle ceremony. The UI does not surface "Hub" as a noun; users see only Project and Process.
+
+### The journey spine
+
+Both modes follow the same methodological spine:
+
+**FRAME → SCOUT → INVESTIGATE → IMPROVE**
+
+- **FRAME.** State the problem (data-first or hypothesis-first entry). Process map gets sketched in the Process tab Edit mode.
+- **SCOUT.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
+- **INVESTIGATE.** Specialist picks suspected causes — data-derived, gemba-observed, or expert-supplied — and examines each with Evidence Map, statistics, and targeted Questions. The Investigation Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection (hypothesis-first path).
+- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the Improve stage (action tracker), then Sustainment ("did it work? + close").
+
+Mode-specific tooling varies inside each phase; the spine never changes.
+
+---
+
+## V1 navigation
+
+Six tabs, in workflow order:
+
+```
+[Home] [Projects] [Process] [Analyze] [Investigation] [Report]
+```
+
+1. **Home** — pick what you're working on (project queue + active-IP launchpad)
+2. **Projects** — current project's status overview (Improve is a stage inside Projects detail)
+3. **Process** — canvas / process map (spatial substrate, State + Edit modes)
+4. **Analyze** — EDA / charts / Factor Intelligence
+5. **Investigation** — Wall + Evidence Map → suspected causes
+6. **Report** — narrative output for Sponsor signoff
+
+The Improve stage lives **inside Projects detail**, not as a top-level tab. Projects detail runs four stages: Charter → Approach → Improve → Sustainment. Handoff is folded into Sustainment closure.
+
+---
+
+## The six analysis modes
+
+1. **Standard** (default). Continuous measurement data. I-Chart, Boxplot, Pareto, Stats panel.
+2. **Capability.** Cp/Cpk against specifications. Histogram, probability plot. Optional subgroup capability (ADR-038).
+3. **Yamazumi** (lean). Activity-level cycle time analysis. Stacked bars by VA/NVA/Waste/Wait, takt line.
+4. **Performance** (multi-channel). Fill heads, cavities, nozzles. Per-channel Cpk scatter, cross-channel Boxplot, worst-first Pareto.
+5. **Defect** (events → rates). Event logs transformed into defect rates per time unit. Pareto + Evidence Map.
+6. **Process Flow** (process-level bottleneck analysis and flow diagnostics).
+
+Mode resolution lives in `packages/core/src/analysisStrategy.ts`. CoScout's methodology coaching adapts per mode.
+
+---
+
+## Pricing (V1)
+
+Single SKU. No tier-gating inside Azure; team-collaboration features are project-membership-role-gated within the €99 plan.
+
+| Tier      | Distribution                          | Price         | What you get                                                                                                                                                                   |
+| --------- | ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **PWA**   | Public URL                            | Free          | Full analysis, session-only, no persistence. Training, education, evaluation.                                                                                                  |
+| **Azure** | Azure Marketplace Managed Application | **€99/month** | Full product, Azure tenant-wide, unlimited org users, unlimited projects. Persistence (IndexedDB + Blob), CoScout AI, project membership ACLs, Report sharing. Voice optional. |
+
+This supersedes the legacy €79 Standard + €199 Team split (see [feature-parity.md](../08-products/feature-parity.md) for the consolidated matrix).
+
+---
+
+## CoScout — the AI assistant
+
+CoScout is an assistant, not an oracle. It coaches methodology, asks targeted questions, surfaces references, and proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override. CoScout is modular (tier1/2/3 prompt layering), mode-aware (methodology coaching varies by analysis mode), and tool-calling (27-tool registry gated by phase/mode). On Azure, CoScout accepts voice input transcript-first: speak, text lands in the draft box, review/edit, send. Replies remain text in V1.
+
+---
+
+## Customer-owned data
+
+Processing happens in the browser. When data moves (Blob Storage sync, AI calls, optional Azure voice transcription), it stays in the customer's Azure tenant — no VariScout-operated cloud. This is a core product principle (ADR-059), not a feature. Voice input does not create a durable audio layer; the saved artifact is the transcript inside the normal investigation model.
 
 ---
 
 ## Design Principles
 
-1. **Offline by default** - Works without internet after first visit
-2. **Data stays local** - Zero external data transmission
-3. **Transparent math** - Show formulas, explain metrics
-4. **CSV exportable** - All data can be opened in Excel
-5. **Linked exploration** - Charts talk to each other through filtering
-6. **Fast to first insight** - Under 30 seconds from upload
-7. **Export-ready outputs** - Professional charts for reports
-8. **Simple over complete** - Do fewer things, do them well
+1. **Offline by default** — Works without internet after first visit.
+2. **Data stays local** — Zero VariScout-operated cloud; everything lives in the customer's tenant.
+3. **Transparent math** — Show formulas, explain metrics. Deterministic engine is the authority.
+4. **CSV exportable** — All data can be opened in Excel.
+5. **Linked exploration** — Charts talk to each other through filtering.
+6. **Fast to first insight** — Under 30 seconds from paste.
+7. **Export-ready outputs** — Professional charts and signoff-ready Report.
+8. **Simple over complete** — Do fewer things, do them well. Progressive disclosure for power features (e.g., PDCA workbench behind an "Advanced" toggle in the Improve stage).
 
 ---
 
 ## Technical Highlights
 
-| Aspect    | Implementation            |
-| --------- | ------------------------- |
-| Runtime   | PWA with Service Worker   |
-| Framework | React + TypeScript + Vite |
-| Styling   | Tailwind CSS              |
-| Charts    | Visx (D3 primitives)      |
-| Storage   | IndexedDB + localStorage  |
-| Bundle    | ~700KB gzipped            |
+| Aspect    | Implementation                                                |
+| --------- | ------------------------------------------------------------- |
+| Runtime   | PWA with Service Worker                                       |
+| Framework | React + TypeScript + Vite                                     |
+| Styling   | Tailwind v4                                                   |
+| Charts    | Visx (D3 primitives)                                          |
+| State     | Zustand (3-layer: Document / Annotation / View, ADR-078 + F4) |
+| Storage   | IndexedDB (Dexie) + Azure Blob Storage                        |
+| Bundle    | ~700KB gzipped                                                |
 
 ---
 
@@ -137,49 +147,44 @@ VariScout is a pnpm monorepo with shared packages and multiple apps:
 ```
 variscout-lite/
 ├── packages/
-│   ├── core/              # @variscout/core - Stats, parser, tier, glossary (pure TypeScript)
+│   ├── core/              # @variscout/core - Stats, parser, glossary (pure TypeScript)
 │   ├── charts/            # @variscout/charts - Visx chart components
 │   ├── data/              # @variscout/data - Sample datasets with pre-computed chart data
 │   ├── hooks/             # @variscout/hooks - Shared React hooks
+│   ├── stores/            # @variscout/stores - 6 Zustand stores across 3 layers (ADR-078)
 │   └── ui/                # @variscout/ui - Shared UI components
 ├── apps/
-│   ├── pwa/               # PWA website (React + Vite) — free training tool
-│   ├── azure/             # Azure Team App (EasyAuth + OneDrive sync)
+│   ├── pwa/               # PWA (React + Vite) — free training tool, session-only
+│   ├── azure/             # Azure Managed Application (EasyAuth + Blob)
 │   └── website/           # Marketing website (Astro + React Islands)
-└── docs/                  # Documentation (vision, journeys, features, technical, decisions)
+└── docs/                  # Documentation
 ```
 
 ---
 
-## Strategic Direction: LSS Training Market
+## VariScout Process — explicit deferrals (out of V1)
 
-### The Opportunity
+The following migrate to VariScout Process as a future, separate product. Not "coming soon" inside V1:
 
-VariScout occupies a distinct category from Minitab: structured investigation for process improvement. Rather than competing on statistical test coverage, we differentiate through the investigation methodology itself — question-driven EDA (Turtiainen 2019), three evidence types (data, gemba, expert), and workspace navigation that mirrors the investigation journey. LSS trainers adopt VariScout because it teaches the methodology, not just the statistics.
+- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to single Specialist + project-membership roles
+- Process Hub as a user-visible primary container — V1 keeps Hub internal-only
+- Automated data pipelines (sensor / SCADA / MES / ERP feeds)
+- Multi-Hub portfolio scans + cross-Hub orchestration
+- Process Measurement System as a separate surface
+- Tier-gating philosophy as a public-facing concept
+- Cross-Azure-AD-tenant invitations (Azure AD guest accounts handle the edge case)
 
-### Trainer Pain Points We Solve
-
-| Minitab Pain                            | VaRiScout Solution            |
-| --------------------------------------- | ----------------------------- |
-| Expensive per-seat licensing            | Free/cheap for classroom use  |
-| Students fight the UI                   | Clean, obvious interface      |
-| "Which menu is that test under?"        | Guided workflows              |
-| Output requires interpretation training | Plain-language insights       |
-| Installation headaches                  | Browser-based, works anywhere |
-
-### Feature Status
-
-| Feature             | Status                                                                          | Purpose                                       |
-| ------------------- | ------------------------------------------------------------------------------- | --------------------------------------------- |
-| ANOVA integration   | **Delivered**                                                                   | Statistical confirmation of group differences |
-| Regression analysis | Deferred to Phase 2 ([ADR-014](../07-decisions/adr-014-regression-deferral.md)) | Multi-factor comparison with auto-fit         |
+See [wedge spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for the canonical out-of-V1 list.
 
 ---
 
 _See also:_
 
-- `README.md` - Quick start and installation
-- [Architecture](../05-technical/architecture.md) - Technical architecture details
-- [UX Research](../02-journeys/ux-research.md) - User research, personas, JTBD
-- [Specifications](../03-features/specifications.md) - Detailed functional specifications
-- [Product Specs](../08-products/) - Product specs (PWA, Website, Azure)
+- [Wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
+- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — Wedge architecture decision
+- [USER-JOURNEYS](../USER-JOURNEYS.md) — V1 single-persona spine + project-membership roles
+- [OVERVIEW](../OVERVIEW.md) — What VariScout does in practice
+- [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€99) capability matrix
+- [Architecture](../05-technical/architecture.md) — Technical architecture details
+- [Specifications](../03-features/specifications.md) — Detailed functional specifications
+- [Constitution](constitution.md) — 10 principles, terminology enforcement

@@ -15,10 +15,12 @@ ruflo is a Codex-only MCP-integrated AI development tooling layer for VariScout.
 
 In-session, **MCP is the only path** for ruflo memory, search, store, pretrain, and lifecycle hooks. Claude Code must not use Ruflo through project `.mcp.json`, `.claude/settings.json`, permissions, attribution, or project skills.
 
+Codex MCP config is managed through `codex mcp add/list`, user-level Codex config, or trusted-project `.codex/config.toml`. VariScout scopes Ruflo to this repo through `scripts/codex-ruflo-mcp.sh` so Codex is not connected to an unbounded global Ruflo memory endpoint. CLI and IDE sessions share config, but an already-running session may not load changed MCP servers until Codex is restarted. Treat Ruflo as trusted local tooling: MCP servers can access data passed through their tool calls.
+
 ## Quick Commands (MCP only)
 
 ```
-# Semantic search
+# Semantic search (use memory_search or memory_search_unified, whichever this session exposes)
 mcp__ruflo__memory_search({ query: "Cpk calculation", namespace: "architecture", limit: 5 })
 
 # Store / update
@@ -50,6 +52,7 @@ Codex ──MCP──▶ ruflo MCP Server (npx)
 | File                           | Purpose                                                  |
 | ------------------------------ | -------------------------------------------------------- |
 | `scripts/check-codex-ruflo.sh` | Tracked Codex version pin, health check, repair output   |
+| `scripts/codex-ruflo-mcp.sh`   | Repo-scoped MCP launcher for Codex Ruflo                 |
 | `.ruflo/config.yaml`           | Local runtime config (topology, memory backend, workers) |
 | `.ruflo/daemon-state.json`     | Local worker state and schedules                         |
 | `.ruflo/data/`                 | Ignored local AgentDB/Ruflo data path                    |
@@ -68,7 +71,9 @@ Ruflo and AgentDB can create local memory files in more than one place, dependin
 | `ruvector.db`        | Local RuVector/vector index fallback         | Ignored    |
 | `agentdb.rvf*`       | Root-level AgentDB files, if recreated there | Ignored    |
 
-If root-level `agentdb.rvf` or `agentdb.rvf.lock` appears, move it under `.ruflo/data/` after copying a backup there. The root ignore rule is a fallback for tools that recreate those files outside `.ruflo/data/`; do not commit the database files.
+If root-level `agentdb.rvf` or `agentdb.rvf.lock` appears, inspect and back up `.swarm/memory.db*`, `.ruflo/data/*`, `.claude/memory.db*`, `ruvector.db`, and root `agentdb.rvf*` under `.ruflo/data/backups/` before moving anything. Then quarantine the root `agentdb.rvf*` files outside the repo root lookup path. The root ignore rule is a fallback for tools that recreate those files outside `.ruflo/data/`; do not commit the database files.
+
+Split-memory symptoms are possible: `.swarm/memory.db` may be the populated shared memory while `.ruflo/data/agentdb.rvf` is only a small AgentDB shell. Check memory counts before reseeding or moving data.
 
 ### Memory Namespaces
 
@@ -92,13 +97,15 @@ Use MEMORY.md for "what should I always know." Use ruflo memory for "find me som
 The expected Codex health path is MCP-first:
 
 1. `pnpm codex:ruflo-check` verifies Codex MCP registration and the expected Ruflo version.
-2. `mcp__ruflo__mcp_status` confirms an MCP server is running.
+2. `mcp__ruflo__mcp_status` confirms an MCP server is running in the current session.
 3. `mcp__ruflo__memory_stats` confirms local memory is initialized.
 4. `mcp__ruflo__memory_search` returns domain or architecture context. If it is not initially visible in Codex, search the tool registry for Ruflo memory tools.
 5. `mcp__ruflo__hooks_worker_list` confirms available worker triggers.
 6. `mcp__ruflo__analyze_diff` is useful when available; if it returns a runtime error, fall back to Git diff review and `bash scripts/pr-ready-check.sh`.
 
-`pnpm codex:ruflo-check` now verifies MCP registration only — CLI smoke probes were removed 2026-05-13. If MCP registration looks correct but tools still misbehave, restart the Codex session so the new MCP server process is used.
+`pnpm codex:ruflo-check` now verifies MCP registration only — CLI smoke probes were removed 2026-05-13. If MCP registration looks correct but tools are missing or misbehave, search the Codex tool registry for Ruflo, then restart the Codex session so the new MCP server process is used before re-registering.
+
+Ruflo is optional project intelligence. If it is unavailable after the recovery path, continue with `rg`, visible docs, ADRs, and standard repo checks instead of blocking development.
 
 ### Background Workers
 
@@ -112,7 +119,7 @@ The expected Codex health path is MCP-first:
 | `deepdive`    | 30min    | normal   | Deep analysis of recently changed files    |
 | `refactor`    | 30min    | normal   | Code quality suggestions across packages   |
 
-5 additional workers (`predict`, `preload`, `ultralearn`, `document`, `benchmark`) are disabled by default but available for manual dispatch via `mcp__ruflo__hooks_worker-dispatch`.
+4 additional workers (`predict`, `preload`, `ultralearn`, `benchmark`) are disabled by default but available for manual dispatch via `mcp__ruflo__hooks_worker-dispatch`.
 
 Workers are resource-throttled: max 2 concurrent, CPU load < 2, free memory > 20%.
 
@@ -151,6 +158,8 @@ Edit `.ruflo/daemon-state.json` and set `"isRunning": false` for the stuck worke
 
 Check MCP memory stats/search first via `mcp__ruflo__memory_stats` / `mcp__ruflo__memory_search`. If the memory DB still appears empty, run `mcp__ruflo__hooks_pretrain({ path: "<repo-root>", depth: "medium" })`. Then re-seed memory entries with `mcp__ruflo__memory_store` / `mcp__ruflo__agentdb_hierarchical-store` if available. Avoid `memory init --force` or other reset operations unless you intentionally want to discard the local memory database.
 
+If memory appears split, inspect `.swarm/memory.db` counts before reseeding. A populated `.swarm/memory.db` with a tiny `.ruflo/data/agentdb.rvf` means the memory is probably present but the active backend/path needs attention.
+
 ### Audit worker scanning .venv
 
 Ensure `.venv/` is in `.gitignore` and `workers.excludePaths` in `.ruflo/config.yaml` includes `.venv/**`.
@@ -159,6 +168,7 @@ Ensure `.venv/` is in `.gitignore` and `workers.excludePaths` in `.ruflo/config.
 
 - **Don't add ruflo to package.json** -- It's Codex-only dev tooling and runs through versioned Codex MCP registration
 - **Don't add project `.mcp.json` for Ruflo** -- Claude Code loads project MCP files; Codex registration is checked with `pnpm codex:ruflo-check`
+- **Don't register bare global Ruflo** -- Codex should launch Ruflo through the repo-scoped wrapper or an equivalent scoped cwd
 - **Don't commit local memory data** -- `.ruflo/`, `.swarm/`, `.claude/memory.db*`, `ruvector.db`, and `agentdb.rvf*` are local state
 - **Don't rely on daemon for CI/CD** -- Workers are for local dev intelligence only
 - **Don't store secrets in memory** -- Memory DB is unencrypted local SQLite

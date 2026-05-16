@@ -53,4 +53,4 @@ The tab never displays a single hub-level Cpk number. Per-step Cpks come from he
 - [Production-Line-Glance design](../../superpowers/specs/2026-04-28-production-line-glance-design.md) — the dashboard primitive.
 - [Investigation Scope and Drill Semantics](../../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) — B0/B1/B2 scope, Drill A/B/C.
 - [ADR-073](../../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md) — no statistical roll-up across heterogeneous units.
-- [Process Hub design](../../superpowers/specs/2026-04-25-process-hub-design.md) — the operating spine the tab plugs into.
+- [Process Hub design](../../archive/specs/2026-04-25-process-hub-design.md) — the operating spine the tab plugs into.

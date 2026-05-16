@@ -17,6 +17,10 @@ related:
   ]
 ---
 
+> **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Two product profiles (Engagement vs Operations) + identity/engagement layers defer to **VariScout Process**. V1 has single Specialist persona + project-membership roles (Lead / Member / Reviewer) per wedge spec §4.
+
+---
+
 # Engagement-profile RACI — Design (Brainstorm)
 
 > **Status: brainstorm.** This document captures a paused 2026-04-25 brainstorm with the user (Six Sigma MBB). The full thinking history lives at `~/.claude/plans/i-realized-how-can-federated-breeze.md`. To advance to an approved design: validate the framework hasn't shifted, then promote `status` to `draft` and land the new ADR-071 alongside.

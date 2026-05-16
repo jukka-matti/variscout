@@ -46,7 +46,7 @@ Both misses share one cause: **the UX starts from data mechanics, not from proce
 - Constitution (10 principles, 3+4+3 structure; [constitution.md](../../01-vision/constitution.md)): journey-driven · same analysis everywhere · customer-owned data · four lenses simultaneously · questions drive investigation · evidence-based drilling · three evidence types · deterministic first AI enhances · shared packages · strategy pattern for modes.
 - Watson's EDA foundation (Turtiainen 2019; [methodology.md](../../01-vision/methodology.md)): Four Lenses (I-Chart · Boxplot · Pareto · Capability) · Two Voices (Process vs Customer) · Diamond pattern (Initial → Diverging → Validating → Converging) · Three evidence types (Data · Gemba · Expert).
 - VariScout contributions: Parallel Views · Progressive Stratification · Question-Driven Investigation (hubs, not root causes).
-- Investigation Spine delivered ([ADR-066](../../07-decisions/adr-066-evidence-map-investigation-center.md), [investigation-spine spec](./2026-04-04-investigation-spine-design.md)): three threads, five progressive sentences (Concern → Direction → Scope → Mechanisms → Confirmed), Evidence Map as workspace center (3-layer SVG), SuspectedCause hubs ([ADR-064](../../07-decisions/adr-064-suspected-cause-hub-model.md)).
+- Investigation Spine delivered ([ADR-066](../../07-decisions/adr-066-evidence-map-investigation-center.md), [investigation-spine spec](./2026-04-04-investigation-spine-design.md)): three threads, five progressive sentences (Concern → Direction → Scope → Mechanisms → Confirmed), Evidence Map as workspace center (3-layer SVG), SuspectedCause hubs ([ADR-064](../../archive/adrs/adr-064-suspected-cause-hub-model.md)).
 
 ### CoScout — delivered
 

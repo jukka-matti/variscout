@@ -53,25 +53,11 @@ try {
   wsCount = 9;
 }
 
-// Ruflo intelligence score from trend cache (if available)
-let intel = '';
-try {
-  const cache = JSON.parse(
-    fs.readFileSync(path.join(root, '.ruflo', '.trend-cache.json'), 'utf8')
-  );
-  if (cache.intelligence != null) {
-    intel = `${c.dim}intel:${cache.intelligence}${c.reset}`;
-  }
-} catch {
-  // No ruflo cache — skip
-}
-
 // Compose single line
 const parts = [
   `${c.cyan}\u258a${c.reset} VariScout`,
   `${c.dim}${branch}${c.reset}${dirty}`,
   `${c.dim}${wsCount} ws${c.reset}`,
 ];
-if (intel) parts.push(intel);
 
 process.stdout.write(parts.join('  ') + '\n');

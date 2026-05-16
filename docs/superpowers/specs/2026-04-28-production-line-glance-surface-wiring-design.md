@@ -17,6 +17,10 @@ related:
 date: 2026-04-28
 ---
 
+> **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). Under the wedge, this surface wiring reframes from Hub rollup to **project-scoped Capability view**. Per-step capability wiring is unchanged; the data router scopes to the active project's process. Multi-Hub portfolio integration defers to **VariScout Process**.
+
+---
+
 # Production-Line-Glance Surface Wiring (Plan C)
 
 ## Scope

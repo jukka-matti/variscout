@@ -8,6 +8,28 @@ related: [pricing, tiers, feature-gating, value-ladder]
 
 # Tier Philosophy
 
+> **⚠️ MATERIALLY SUPERSEDED 2026-05-16 by the [wedge pivot](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md).**
+>
+> The wedge pivot collapses VariScout's three paid tiers (PWA / Standard €79 / Team €199) into a **single paid SKU at €99/month, Azure tenant-wide**, with feature-gating replaced by **project-membership ACLs**. The "capability maturity model" (Standard for individual analysis, Team for collaboration) retires — V1 is a single product where everyone gets the full feature set, but data access is scoped per project.
+>
+> What survives from this doc:
+>
+> - The PWA free tier as a try-before-buy funnel
+> - The principle "PWA teaches, paid produces" (now: "PWA teaches, the €99 product produces")
+> - The general philosophy of "tier-gate inside surfaces, not at entry CTAs" — repurposed as "membership-gate inside surfaces"
+>
+> What retires:
+>
+> - Standard vs Team distinction
+> - "Capability maturity model" as a public-facing concept (collapses to single SKU)
+> - Specific feature-gating rules between Standard and Team (most retire; collaboration features become membership-role-gated, not tier-gated)
+>
+> Future product **VariScout Process** (enterprise platform, ~separate roadmap) may reintroduce a tier above €99 — but that's a different product, not a tier on V1.
+>
+> Full Phase C audit will determine what survives verbatim vs. amend vs. archive. Treat this doc as historical context until then.
+
+---
+
 Why features are gated where they are — the reasoning behind VariScout's product tiers.
 
 ---

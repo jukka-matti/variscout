@@ -88,5 +88,6 @@ export function classify(relPath) {
   // required-fields rule (title + status) — they aren't published docs.
   if (relPath.startsWith('docs/superpowers/')) return 'spec';
   if (relPath.startsWith('docs/archive/specs/')) return 'spec';
+  if (relPath.startsWith('docs/archive/plans/')) return 'spec';
   return 'general';
 }

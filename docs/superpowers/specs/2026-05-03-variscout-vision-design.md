@@ -14,6 +14,10 @@ related:
   - docs/07-decisions/adr-070-frame-workspace.md
 ---
 
+> **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). Under the wedge, §2.4 response paths reduce from 5 to 3 at V1 (Investigate, Quick Action, Charter). Sustainment auto-fires per [ADR-080](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md); Handoff is deleted everywhere and folds into Sustainment closure per wedge spec §3.2. Multi-Hub portfolio scope retires for V1; Hub stays as the internal data container only. The vision's core (canvas-as-product, three-level methodology, response paths as routing pattern) is preserved.
+
+---
+
 # VariScout — Product Vision
 
 > **Canonical product vision.** This document supersedes the 2026-04-27 operating-model + product-method-roadmap specs. It is the single source describing what VariScout is, what it does, and what's in/out of scope. Implementation plans should cite which section of this vision they advance.

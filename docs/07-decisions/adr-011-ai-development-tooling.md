@@ -75,6 +75,10 @@ Use ruflo (formerly claude-flow) as a Codex-only MCP-integrated development tool
 
 Ruflo is now scoped to Codex only. Claude Code no longer uses Ruflo or Claude Flow through project `.mcp.json`, `.claude/settings.json` hooks, MCP permissions, attribution, or project skills. Codex remains the owner of Ruflo through `AGENTS.md`, `scripts/check-codex-ruflo.sh`, and active Codex MCP registration.
 
+## Amendment: Project-Scoped Codex Ruflo (2026-05-16)
+
+Ruflo remains Codex-only, but it must not be registered as a bare global `npx ruflo@... mcp start` server. VariScout's Codex registration should launch the repo-scoped wrapper (`scripts/codex-ruflo-mcp.sh`) or an equivalent scoped cwd so Ruflo memory and local state remain tied to this project. Ruflo is optional project intelligence: if unavailable, Codex falls back to repo docs, ADRs, `rg`, and normal validation rather than blocking development.
+
 ## See Also
 
 - [ruflo Technical Reference](../05-technical/implementation/ruflo.md)

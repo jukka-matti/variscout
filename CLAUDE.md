@@ -1,6 +1,6 @@
 # VariScout
 
-Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable.
+Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. **V1 strategic direction (wedge pivot 2026-05-16):** single-product tool for improvement specialists; €99/mo Azure tenant-wide; 6-tab workflow nav (`Home · Projects · Process · Analyze · Investigation · Report`); Improve is a stage inside Projects detail; project-membership ACLs (no cross-AD-tenant invites). Canonical: [wedge spec](docs/superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](docs/07-decisions/adr-082-wedge-architecture.md). VariScout Process (enterprise) is named-future. Many docs pre-date this pivot — treat as historical until Phase C audit.
 
 Shared agent map: `docs/llms.txt`
 

@@ -21,6 +21,20 @@ related:
 
 # Projects tab + IP Detail (Lifecycle) page + Home active-IP launchpad
 
+> **⚠️ AMENDED 2026-05-16 by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md).**
+>
+> The wedge pivot amends three foundational decisions in this spec:
+>
+> 1. **D1 (7-tab top nav) → 6 tabs in workflow order**: `[Home] [Projects] [Process] [Analyze] [Investigation] [Report]`. Improve tab is removed (becomes a stage inside Projects detail).
+> 2. **Stage list `Charter / Approach / Sustainment / Handoff` → `Charter / Approach / Improve / Sustainment`**: Improve is added as a new stage (action tracker + Advanced PDCA disclosure); Handoff stage UI is deleted and its close-project logic folds into the Sustainment screen.
+> 3. **Persona routing references (§5.2 cascade table, Home active-IP launchpad persona variants)**: removed. V1 has one persona — Specialist. Member-roles within projects (Lead / Member / Reviewer) replace persona routing.
+>
+> The shipped Projects-tab work (PRs #172–#181) is mostly wedge-aligned because it's already project-centric. The persona-routing hooks need de-personalization in the wedge implementation — small refactor, not a rewrite.
+>
+> See [wedge spec §9.4](./2026-05-16-wedge-architecture-design.md#§94-projects-tab-design-spec-2026-05-14--amended) for the full amendment list.
+
+---
+
 ## §1 What this spec covers
 
 Resolves the "IP detail page details — Overview / Sections toggle + team workspace pattern need detailed visual design" item carried forward in the [VariScout Coherence design spec](./2026-05-14-variscout-coherence-design.md) §15.

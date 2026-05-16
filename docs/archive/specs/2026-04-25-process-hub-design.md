@@ -19,6 +19,10 @@ related:
 date: 2026-04-25
 ---
 
+> **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Process Hub as a foundational user-visible container retires for V1. Project is the V1 foundational unit. Hub portfolios + process ownership migrate to **VariScout Process**, the future enterprise product.
+
+---
+
 # Process Hub
 
 ## Summary

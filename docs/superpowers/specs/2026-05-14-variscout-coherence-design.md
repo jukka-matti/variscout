@@ -25,7 +25,17 @@ related:
 
 # VariScout Coherence — Persona + Surface + Vocabulary Design
 
-> **Status:** Sessions A (Persona model) + B (Surface + Vocabulary) + partial C (radical simplification, IP-as-context, persona-name finalization, "+ New analysis" simplification, upstream spec reconciliation) locked. Session C still pending: pedagogy + first 60 seconds + visual identity + Inbox visual hierarchy + accessibility. This spec is partial-but-load-bearing — downstream implementation plans drive from the locks below. See §16 for upstream spec reconciliation (Framing Layer, Process Hub, RACI, Multi-level SCOUT, Operating Model, Process Hub Use Cases).
+> **⚠️ PARTIALLY SUPERSEDED 2026-05-16 by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md).**
+>
+> The wedge pivot retires Session A's 4-persona model for V1 (migrates to VariScout Process, a future product), amends Session B's nav structure (6 tabs in workflow order, not 7), and refocuses Session C's pedagogy on a single-persona narrative. The Coherence spec sections still in force are: Session B vocabulary (verb/noun separation where it survives), Session C visual identity + a11y. Sessions A nav layout assignments, persona-adaptive Home shell, persona-routing assumptions are **NOT in force** for V1.
+>
+> Treat this spec as historical context for the brainstorming that _led to_ the wedge pivot, not as the canonical V1 design. The wedge spec is canonical.
+>
+> See [wedge spec §9.3](./2026-05-16-wedge-architecture-design.md#§93-coherence-audit-2026-05-14--partial-supersession-coherence-v2) for the full supersession matrix.
+
+---
+
+> **Status (pre-wedge):** Sessions A (Persona model) + B (Surface + Vocabulary) + partial C (radical simplification, IP-as-context, persona-name finalization, "+ New analysis" simplification, upstream spec reconciliation) locked. Session C still pending: pedagogy + first 60 seconds + visual identity + Inbox visual hierarchy + accessibility. This spec was partial-but-load-bearing — downstream implementation plans drove from the locks below. See §16 for upstream spec reconciliation (Framing Layer, Process Hub, RACI, Multi-level SCOUT, Operating Model, Process Hub Use Cases).
 
 ---
 

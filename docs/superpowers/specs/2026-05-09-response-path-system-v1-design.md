@@ -18,6 +18,10 @@ related:
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
 ---
 
+> **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). RPS V1 shipped 5 response paths off a Process Hub. Under the wedge, **3 paths** surface at V1 from canvas drill (Investigate, Quick Action, Charter). Sustainment auto-fires per [ADR-080](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md); **Handoff is deleted everywhere** and its close-project logic folds into Sustainment closure per wedge spec §3.2 + §3.3.4. All shipped RPS V1 code stays — the wedge gates the canvas drill-down menu to 3 paths rather than deleting infrastructure.
+
+---
+
 # Response Path System V1 — Design
 
 > **What this spec covers.** The unified architectural design for VariScout's **5 response paths** from the canvas-card drill-down (per vision §2.4) — Quick Action, Focused Investigation, Improvement Project, Sustainment, Handoff — and the system-level design that holds them together (cross-surface navigation, naming reconciliation, Wall package re-home, Survey UI surface, live-document state machine).

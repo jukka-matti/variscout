@@ -16,6 +16,10 @@ related:
   - knowledge-catalyst
 ---
 
+> **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). Under the wedge, multi-level SCOUT operates **per project** (not per Hub) for V1. L2 = the project's process; portfolio-spanning / multi-Hub SCOUT defers to **VariScout Process**, the future enterprise product. The level-spanning architecture (L1 outcome / L2 flow / L3 mechanism) and AnalysisModeStrategy data router pattern are unchanged. The `useCanvasViewportStore` keying changes from `ProcessHubId` to `ProjectId` (when project-scoped) per wedge spec §6.
+
+---
+
 # Multi-level SCOUT — design
 
 ## §1 Context

@@ -13,7 +13,7 @@ status: delivered
 
 **Tech Stack:** TypeScript, React (functional components), Tailwind v4 with semantic tokens, Vitest + React Testing Library. No new dependencies.
 
-**Spec:** [`docs/superpowers/specs/2026-04-27-layered-process-view-design.md`](../specs/2026-04-27-layered-process-view-design.md). V1 corresponds to the spec's "V1 — Layer existing FRAME map into three visual bands" phase.
+**Spec:** [`docs/superpowers/specs/2026-04-27-layered-process-view-design.md`](../../archive/specs/2026-04-27-layered-process-view-design.md). V1 corresponds to the spec's "V1 — Layer existing FRAME map into three visual bands" phase.
 
 **Out of scope for V1 (deferred to later phases per the spec):**
 
@@ -976,7 +976,7 @@ Recommended: PR path, since this touches `apps/*/src/`. Do not use `gh pr merge 
 
 ## References
 
-- Spec: [`docs/superpowers/specs/2026-04-27-layered-process-view-design.md`](../specs/2026-04-27-layered-process-view-design.md)
+- Spec: [`docs/superpowers/specs/2026-04-27-layered-process-view-design.md`](../../archive/specs/2026-04-27-layered-process-view-design.md)
 - Predecessor: [`docs/07-decisions/adr-070-frame-workspace.md`](../../07-decisions/adr-070-frame-workspace.md)
 - Predecessor design: [`docs/superpowers/specs/2026-04-18-frame-process-map-design.md`](../specs/2026-04-18-frame-process-map-design.md)
 - Brainstorm critique input: `~/.claude/plans/i-would-need-to-drifting-hummingbird.md`

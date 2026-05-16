@@ -2,7 +2,8 @@
 # check-codex-ruflo.sh — verify Codex-side Ruflo MCP registration for this repo.
 #
 # CLI smoke probes were removed 2026-05-13 — in-session ruflo runs via MCP only.
-# This script now only checks that Codex has ruflo registered at the expected version.
+# This script checks that Codex has ruflo registered at the expected version
+# and that the registration is scoped to this repository.
 #
 # Usage:
 #   bash scripts/check-codex-ruflo.sh
@@ -13,7 +14,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 2
 
 RUFLO_VERSION="3.7.0-alpha.38"
-ADD_COMMAND="codex mcp add ruflo -- npx ruflo@${RUFLO_VERSION} mcp start"
+WRAPPER="scripts/codex-ruflo-mcp.sh"
+ADD_COMMAND="codex mcp add ruflo -- bash -lc 'ROOT=\$(git rev-parse --show-toplevel) && cd \"\$ROOT\" && exec ${WRAPPER}'"
 REMOVE_COMMAND="codex mcp remove ruflo"
 FAILURES=0
 WARNINGS=0
@@ -65,10 +67,18 @@ if printf '%s\n' "$MCP_OUTPUT" | grep -Eq 'enabled:[[:space:]]+false'; then
   exit 1
 fi
 
-if printf '%s\n' "$MCP_OUTPUT" | grep -Fq "args: ruflo@${RUFLO_VERSION} mcp start"; then
-  pass "Codex registration uses ruflo@${RUFLO_VERSION}"
+if printf '%s\n' "$MCP_OUTPUT" | grep -Fq "args: ruflo@${RUFLO_VERSION} mcp start" &&
+  printf '%s\n' "$MCP_OUTPUT" | grep -Eq '^  cwd:[[:space:]]+-$'; then
+  fail "Codex registration is unscoped global Ruflo; use the repo-scoped registration."
+  echo ""
+  print_repair
+elif printf '%s\n' "$MCP_OUTPUT" | grep -Fq "$WRAPPER"; then
+  pass "Codex registration uses repo-scoped Ruflo wrapper"
+elif printf '%s\n' "$MCP_OUTPUT" | grep -Fq "ruflo@${RUFLO_VERSION}" &&
+  ! printf '%s\n' "$MCP_OUTPUT" | grep -Eq '^  cwd:[[:space:]]+-$'; then
+  pass "Codex registration uses ruflo@${RUFLO_VERSION} with scoped cwd"
 else
-  fail "Codex registration does not use ruflo@${RUFLO_VERSION}."
+  fail "Codex registration does not use repo-scoped ruflo@${RUFLO_VERSION}."
   echo ""
   print_repair
 fi

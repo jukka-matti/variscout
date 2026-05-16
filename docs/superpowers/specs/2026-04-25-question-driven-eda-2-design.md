@@ -99,7 +99,7 @@ Process Hub product code**. Otherwise the hub would be built around the older
 project/finding/problem-statement vocabulary and would need to be reworked when
 Current Understanding and Problem Condition become first-class concepts.
 
-See [Process Hub](2026-04-25-process-hub-design.md) for the organizational
+See [Process Hub](../../archive/specs/2026-04-25-process-hub-design.md) for the organizational
 container design.
 
 ## Relationship To Process Flow + Yamazumi

@@ -1,232 +1,125 @@
 ---
-title: VariScout User Journeys — Personas & Flows
+title: VariScout User Journeys — V1 Single-Persona Spine
 audience: [engineer, analyst]
 category: reference
 status: stable
-last-reviewed: 2026-04-24
-related: [personas, flows, journey, modes]
+last-reviewed: 2026-05-16
+related: [personas, flows, journey, modes, wedge]
 ---
 
-# VariScout User Journeys — Personas & Flows
+# VariScout User Journeys — V1 Single-Persona Spine
 
-Ten personas drive VariScout's design decisions. Each follows the same journey spine (FRAME → SCOUT → INVESTIGATE → IMPROVE); the tools they use inside each phase vary by process question and evidence shape.
+Under the wedge pivot ([wedge spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md)), VariScout V1 serves **one persona** — the **Improvement Specialist** — with project-membership roles applied inside individual projects. The legacy 10-persona spine retires for V1 and migrates to **VariScout Process**, the future enterprise product.
 
-## The ten personas
+This doc captures: how the Specialist enters, how they work, how they bring teammates in, and which mode-specific docs to read next.
 
-1. **Analyst Alex** — data analyst, uses Standard mode, lives in statistics and charts.
-2. **Engineer Eeva** — process engineer, uses Capability + Performance modes, specs-driven.
-3. **Green-Belt Gary** — Six Sigma green-belt, formal DMAIC, may work across multiple Process Hubs.
-4. **OpEx Olivia** — operational excellence lead, hub-first operating view, uses Process Hub rollups.
-5. **Trainer Tina** — facilitator, uses PWA tier for workshops and classroom exercises.
-6. **Student Sara** — first-time learner, uses PWA, embedded or standalone.
-7. **Curious Carlos** — discovery mode, exploratory, comes in via content or SEO.
-8. **Evaluator Erik** — prospective buyer, evaluating the product for a team.
-9. **Admin Aino** — Azure admin, provisions tenants, manages access, reviews telemetry.
-10. **Field Fiona** — gemba observer, captures photos, voice notes, and comments on the floor (mobile flows).
+## The one persona — Improvement Specialist
 
-Full persona details: `docs/02-journeys/personas/`.
+A quality engineer, Lean practitioner, Six Sigma belt (Green / Black / MBB), CI engineer, or process analyst whose job is to _find and reduce variation in process data, then verify the fix worked_.
 
-## Process Hub contexts
+The Specialist may work:
 
-Process Hub adds an Azure organizational layer around the investigation spine.
-A process owner may mostly live in one hub for a production line, queue, or
-workflow. A quality engineer, GB/BB, OpEx lead, or development-org engineer may
-work across multiple hubs to compare leverage, blocked work, verification gaps,
-and charter candidates. The PWA remains investigation-first for training.
+- **Solo** — quick analysis on their own, no project, no team. Often the first session with VariScout.
+- **As project Lead** — running a formal investigation with invited teammates and an executive Sponsor expecting a Report.
+- **As project Member** — invited by another Lead to contribute SME knowledge, gemba observation, or analytical work to someone else's project.
 
-Evidence Sources are the recurring hub inputs that let those users ask whether
-the process is meeting the requirement, what changed, and where to focus. The
-Process Measurement System combines those sources, stable measure definitions,
-targets, subgroup logic, trust checks, known x-control measures, and cadence
-rules into Current Process State. Data Profiles sit behind recognized Evidence
-Sources as deterministic adapters, not as a separate user-facing journey.
+Code ground truth for the canonical journeys lives in:
 
-Today, the [Process Hub Capability tab](03-features/analysis/process-hub-capability.md)
-is the cadence-review surface inside the Hub: it embeds the
-production-line-glance dashboard (per-step Cpk vs target, gap trend, per-step
-boxplot, per-step error Pareto) so a process owner can read the hub's current
-state at a glance without leaving Hub IA.
+- `apps/azure/e2e/full-lifecycle.spec.ts` — end-to-end Project lifecycle (Charter → Sustainment)
+- `packages/data/src/samples/journey.ts` — seeded journey-shaped dataset
+- `apps/azure/src/lib/journeyPhaseConfig.ts` — phase configuration
 
-## Usage levels
+When docs and code disagree, trust the code.
 
-VariScout serves one nested methodology at several levels of use:
+## Project membership roles
 
-| Level                       | Typical user                      | Primary need                                                                                                                                      |
-| --------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PWA / training              | Tina, Sara, Carlos                | Learn the investigation method without organizational persistence                                                                                 |
-| Quick analyst dataset       | Alex, Eeva, Gary                  | Analyze one dataset and attach the learning to process context                                                                                    |
-| Process-owner cadence       | Olivia, process owner, team lead  | Review Current Process State and choose the right response path (today: see [Hub Capability tab](03-features/analysis/process-hub-capability.md)) |
-| GB/BB multi-hub scan        | Gary, Olivia, sponsor             | Compare hubs for leverage, charter candidates, and blocked work                                                                                   |
-| Evidence-source enablement  | Admin Aino, data team, consultant | Fit recurring exports to VariScout contracts without custom integrations                                                                          |
-| Sustainment/control handoff | Owner, quality, operations        | Decide what stays in VariScout and what moves to live monitoring                                                                                  |
+Within a Project, the Specialist takes one of three roles:
 
-### Investigator vs author archetypes (FRAME entry shape)
+| Role        | Typical real-world counterpart                        | Capabilities                           | Manages membership? |
+| ----------- | ----------------------------------------------------- | -------------------------------------- | ------------------- |
+| **Lead**    | Black Belt / project lead                             | Full edit; sets lifecycle stage        | Yes                 |
+| **Member**  | SME, analyst, frontline contributor, quality engineer | Full edit within project surfaces      | No                  |
+| **Sponsor** | Executive sponsor / Champion                          | Report-only at V1; signoff out-of-band | No                  |
 
-Two archetypes share the FRAME workspace and dispatch on whether the user
-already has a process model:
+Project members must share the same Azure AD tenant. Cross-org collaboration is out of V1 (a deliberate privacy boundary).
 
-- **Investigator (b0).** Has a CSV and a question; has not modeled the
-  process. Typical: Sara on the PWA, Carlos exploring, Alex with a one-shot
-  dataset, Fiona arriving from a gemba observation. FRAME b0 renders a
-  **lightweight Y/X picker** — the user picks "what do you want to
-  investigate?" (Y), optionally adds a spec inline, picks "what might be
-  affecting it?" (Xs), and clicks "See the data →" to advance to the
-  Analysis tab. No SIPOC ceremony before they see their data.
-- **Author (b1/b2).** Has (or is building) a process model. Typical: Eeva
-  encoding a production line, Olivia authoring a hub canonical map, Gary
-  spec'ing CTQs across steps. FRAME b1/b2 renders the **river-styled SIPOC
-  authoring canvas** (ADR-070) with step cards, tributaries, per-step CTQs,
-  and the gap detector. Unchanged from prior shape.
+## Two entry shapes — both first-class
 
-The transition is structural, not modal. Adding the first process step in
-the b0 disclosure expander auto-promotes scope to b2; the canvas takes over
-on the next render. No "leave investigator mode" toggle exists or is
-needed. See [ADR-076](07-decisions/adr-076-frame-b0-lightweight-render.md)
-for the dispatch rationale; ADR-070 stays canonical for the canvas itself.
+**Quick analysis (exploratory).** Specialist pastes data → explores in Analyze → optionally creates Findings → optionally groups them into Hypotheses on the Investigation Wall. No project created. Free PWA supports session-only; Azure (€99/mo) adds persistence and CoScout.
 
-The same investigation journey sits inside each level. Survey acts as the
-readiness evaluator: it asks what the current data, signals, branches, and
-verification evidence can support next.
+**Project-anchored investigation.** Specialist creates a Project (or promotes a quick analysis to a Project via "+ Promote to Project"). The Charter ceremony adds problem statement, member invites, and optional refined goal. Project lifecycle runs Charter → Approach → Improve → Sustainment, producing a Report a Sponsor can sign off.
 
-## Current Process State and response paths
+The two entry shapes share the same methodology and the same canvas — the difference is whether the work is wrapped in formal lifecycle.
 
-Process-owner cadence centers on Current Process State: the latest read of
-outcome, flow, known x-control, capability structure, and trust measures. This
-state is produced by the Process Measurement System, not by a generic dashboard.
+## The journey spine — unchanged
 
-Current Process State can trigger five response paths:
+Every investigation, whether quick or project-anchored, follows:
 
-| Response path                 | Typical use                                                        |
-| ----------------------------- | ------------------------------------------------------------------ |
-| Quick team action             | Cause is obvious enough, low-risk, reversible, and locally owned.  |
-| Focused investigation         | Pattern is real, but mechanism, subgroup, trust, or scope is open. |
-| Chartered improvement project | High impact, cross-functional, expensive, regulatory, or unclear.  |
-| Sustainment review            | Improvement is verified and should stay checked in VariScout.      |
-| Control handoff               | Live control belongs in another operational system.                |
+**FRAME → SCOUT → INVESTIGATE → IMPROVE**
 
-CoScout is grounded in the same shared process context. It can explain, draft,
-and guide investigation work, but deterministic statistics, Survey, Signal
-Cards, and user-confirmed evidence remain the authority.
+- **FRAME.** State the problem (data-first or hypothesis-first). The process map gets sketched. CoScout helps articulate.
+- **SCOUT.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
+- **INVESTIGATE.** Specialist picks suspected causes — data-derived, gemba-observed, or expert-supplied — and examines each with Evidence Map, statistics, and targeted Questions. The Investigation Wall accumulates Findings linked to Hypotheses. Measurement Plans capture what evidence still needs collection.
+- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the Improve stage (action tracker), then Sustainment ("did it work? + close").
 
-## Process learning levels
+Mode-specific tooling varies inside each phase; the spine never changes.
 
-The journey should be evaluated through three levels of process understanding,
-not only through analysis modes:
+## Process learning levels — methodology, not personas
 
-| Level                      | Main user question                                                  | Common users                         |
-| -------------------------- | ------------------------------------------------------------------- | ------------------------------------ |
-| System / outcome           | Are we meeting the customer or business requirement?                | process owner, sponsor, OpEx, GB/BB  |
-| Flow / process model       | Where does time, rate, throughput, wait, or bottleneck loss live?   | engineer, lean practitioner, analyst |
-| Local mechanism / evidence | Which physics, recipe, condition, or measurement issue explains it? | local owner, expert, gemba observer  |
+The same dataset can start at any of three levels of process understanding. This generalizes the Y / X / x EDA language.
 
-The same dataset can start at any level. A customer complaint or Cpk gap starts
-at outcome level. Timestamped station data starts at flow level. A scoped
-Yamazumi study, maintenance record, or gemba check starts at local-mechanism
-level. VariScout's job is to connect those levels into durable process
-understanding.
+| Level                               | Main user question                                                  |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| **System / outcome (L1)**           | Are we meeting the customer or business requirement?                |
+| **Flow / process model (L2)**       | Where does time, rate, throughput, wait, or bottleneck loss live?   |
+| **Local mechanism / evidence (L3)** | Which physics, recipe, condition, or measurement issue explains it? |
 
-These levels generalize the existing investigation language: `Y` maps to
-system/outcome, `X` maps to flow/concentration, and local `x` maps to mechanism
-or evidence. Process Flow uses the same idea as line, station, and activity
-levels.
+A customer complaint or Cpk gap starts at L1. Timestamped station data starts at L2. A scoped Yamazumi study, maintenance record, or gemba check starts at L3.
 
-## The unified journey spine
+VariScout's job is to connect those levels into durable process understanding within a project — and across the team's portfolio of projects over time.
 
-Every investigation - Standard, Yamazumi, Performance, Defect, Capability, or Process Flow - follows this spine:
+## Hypothesis-first vs data-first investigation
 
-1. **FRAME.** User names the concern and maps the evidence to the right
-   process-understanding level: outcome, flow, or local mechanism. Three entry
-   points per P5 (amended constitution): upfront hypothesis, evidence-ranked
-   from data (Factor Intelligence), or observation-triggered (from a Four Lenses
-   finding). Problem Statement captures Watson's 3 Qs. **FRAME branches on
-   scope** ([ADR-076](07-decisions/adr-076-frame-b0-lightweight-render.md)):
-   the **b0 path** (no process model — investigator archetype) renders a
-   lightweight Y/X picker — paste data → ColumnMapping → FRAME b0 → "See the
-   data →" advances to the Analysis tab. Adding the first process step in
-   the b0 disclosure expander auto-promotes scope to b2 and the
-   canvas takes over. The **b1/b2 path** (one or more steps — author
-   archetype) renders the river-styled SIPOC canvas: the Ocean spec editor
-   writes per-column (USL / LSL / target / cpkTarget) to the CTS column's
-   `measureSpecs` entry, and each `StepCard` carries the same per-column
-   editor over its CTQ column, so the per-characteristic capability bar is
-   set at every authored quality requirement (CTS at the ocean and a CTQ per
-   process step) — the methodology's primary control-plan authoring surface —
-   and the cascade (`resolveCpkTarget`) sees it everywhere downstream.
+Both starting points converge on the **Investigation Wall** (per [wedge spec §3.6](superpowers/specs/2026-05-16-wedge-architecture-design.md#§36-investigation-wall--measurement-plans)).
 
-2. **SCOUT.** Data is parsed (wide-form, stack columns, defect events all
-   supported). Characteristic types are inferred. Analysis modes surface
-   variation, capability, flow, defect, or work-content patterns. First clues
-   and questions emerge. The dashboard chrome carries a [timeline-window picker](03-features/analysis/timeline-window-investigations.md)
-   (fixed / rolling / open-ended / cumulative) so every chart, every Finding,
-   and every drift comparison agrees on the same temporal scope. Investigation-time
-   defaults to `open-ended`. Per-column Cpk targets are editable inline in
-   `ProcessHealthBar` or in the detailed `SpecEditor`; banding surfaces resolve
-   the active target via the per-column → hub → investigation cascade
-   (`resolveCpkTarget`).
+| Start                            | Path                                                                                                                                                                                                                     |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Data-first (exploratory)**     | Paste → explore in Analyze → notice patterns → create Findings → group into Hypotheses on the Wall                                                                                                                       |
+| **Hypothesis-first (deductive)** | Open Wall → create Hypothesis (no Findings yet) → add Measurement Plans (what evidence is needed) → coordinate collection out-of-product → re-paste new data → new Findings link to Plans → Hypothesis status progresses |
 
-3. **INVESTIGATE.** User builds one or more Mechanism Branches or
-   SuspectedCause hubs. Each hub accumulates evidence: data (Evidence Map edges
-   with R2adj from best-subsets regression), gemba (photos, notes), and expert
-   knowledge. The investigation may discover a new x, check which known x
-   changed, validate a suspected mechanism, scope the problem, resolve a trust
-   gap, or verify an action. The investigation spine has three threads
-   (ADR-066): regression discovery, hub UX, and EDA heartbeat. The investigation
-   graph admits multiple projections — _Evidence Map_ shows it factor-centric
-   (which factors matter?), [_Investigation Wall_](03-features/workflows/investigation-wall.md)
-   shows it hypothesis-centric (which hypotheses are we betting on, what evidence
-   holds them, what's missing?), and the _Question framework_ shows it
-   question-centric (what are we trying to answer?).
+The Measurement Plan sub-entity supports recurring data collection without forcing a separate "Measure" stage.
 
-4. **IMPROVE.** Hubs with strong evidence become HMW ("How Might We")
-   brainstorming starters. Ideas are prioritized by timeframe, cost, risk, and
-   impact (ADR-035). Selected ideas become action items; implementation is
-   captured; outcome is compared to prediction via What-If Explorer.
+## Mode-specific journeys
 
-## Mode experience
+Each analysis mode has its own user-journey doc capturing the canvas chart suite, the questions it answers, and the typical Specialist flow inside it:
 
-### Standard mode
+- [Standard](USER-JOURNEYS.md) — continuous measurement data; this doc's spine
+- [Capability](USER-JOURNEYS-CAPABILITY.md) — Cp/Cpk against specifications
+- [Yamazumi](USER-JOURNEYS-YAMAZUMI.md) — lean cycle-time analysis
+- [Performance](USER-JOURNEYS-PERFORMANCE.md) — multi-channel monitoring
+- [Defect](USER-JOURNEYS-DEFECT.md) — events → rates
+- [Process Flow](USER-JOURNEYS-PROCESS-FLOW.md) — bottleneck + flow diagnostics
 
-The default for Alex, Gary, and most Azure Standard tier users. Entry: paste or upload data, map columns. Dashboard: I-Chart for time order, Boxplot for factor comparison, Pareto for category pile-up, Stats panel with Cp/Cpk/mean/sigma. Investigation proceeds by picking factors from Pareto ranks or Boxplot outliers, drilling into Evidence Map edges. Covered in this document; no separate mode journey doc.
+Each mode doc strips personas to the single Specialist and references code ground truth.
 
-### Yamazumi mode
+## What's out of V1 scope (defers to VariScout Process)
 
-Lean practitioners (industrial engineers, continuous improvement leads). Timing activities at each step, classifying each minute as Value-Adding, Necessary NVA, Waste, or Wait. Stacked yamazumi bars reveal which steps exceed takt. Rebalancing and waste elimination targets emerge from gaps to takt. **Deep journey:** `USER-JOURNEYS-YAMAZUMI.md`.
+The legacy multi-persona / Hub-centric framing migrates to **VariScout Process**, a future enterprise product:
 
-### Performance mode
+- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to single Specialist + project-membership roles
+- Process Hub as a user-visible primary container — V1 keeps Hub internal-only
+- Process-owner cadence + Current Process State surfaces — defers
+- Multi-Hub portfolio scans + cross-Hub orchestration — defers
+- Process Measurement System as a separate surface — defers
+- Five response paths surfaced from canvas drill — V1 reduces to 3 (Investigate, Quick Action, Charter); Sustainment auto-fires; Handoff folds into Sustainment closure
+- Trainer / Student / Curious / Evaluator / Admin / Field separate persona variants — V1 single-persona, addressed via PWA vs Azure tier choice + project-membership role
 
-Multi-channel analysts (injection molding cavities, filling heads, nozzles). Per-channel Cpk plotted; worst channels surface in Pareto. Cross-channel Boxplot shows distribution drift. Drill into a single channel for capability deep-dive. **Deep journey:** `USER-JOURNEYS-PERFORMANCE.md`.
+These aren't lost — they're moved to a separate roadmap item. V1 marketing doesn't reference VariScout Process; it's mentioned only when customers ask about enterprise / process-ownership use cases.
 
-### Defect mode
+## Where to go next
 
-Quality engineers tracking PPM. Raw defect event logs are transformed into rates per time unit (mode transform runs during import; DefectDetectedModal confirms). Pareto of defect types, cross-type Evidence Map revealing patterns across multiple defect categories. **Deep journey:** `USER-JOURNEYS-DEFECT.md`.
-
-### Capability mode
-
-Quality engineers computing Cp/Cpk against specifications. Histogram + probability plot + capability statistics. Subgroup capability (ADR-038) when a subgroup column is mapped — Cp/Cpk/Pp/Ppk split by common-cause vs total variation. **Deep journey:** `USER-JOURNEYS-CAPABILITY.md`.
-
-### Process Flow mode
-
-Designed but not coded. Intended for bottleneck analysis across process steps. **Design reference:** `USER-JOURNEYS-PROCESS-FLOW.md`.
-
-## Canonical flows
-
-- **First-time user (any tier):** `docs/02-journeys/flows/first-time.md`
-- **Returning user (Azure):** `docs/02-journeys/flows/return-visitor.md` + `project-reopen.md`
-- **Azure daily use:** `docs/02-journeys/flows/azure-daily-use.md`
-- **PWA education/workshop:** `docs/02-journeys/flows/pwa-education.md`
-- **Factor Intelligence discovery:** `docs/02-journeys/flows/factor-intelligence.md`
-
-Thirteen additional flows (distribution-specific: SEO, content, social, enterprise, mobile) in `docs/02-journeys/flows/`. These are reference, not orientation.
-
-## Voice-assisted Azure flow
-
-Azure Standard and Azure Team add an optional **transcript-first voice path** for two personas in particular:
-
-- **Field Fiona** can hold to speak on mobile while documenting a finding or comment beside the process.
-- **Analyst Alex** can tap to record on desktop when working through an investigation with CoScout.
-
-The interaction is intentionally constrained:
-
-- Voice fills the existing text draft; it does not auto-send.
-- CoScout replies remain text in v1 so citations, proposals, and saved findings stay visible.
-- Raw audio is discarded after transcription; the durable artifact is the transcript in the normal thread or comment.
+- **Canonical V1 design**: [wedge architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md)
+- Overview: [OVERVIEW.md](OVERVIEW.md)
+- Data lifecycle: [DATA-FLOW.md](DATA-FLOW.md)
+- Glossary: [glossary.md](glossary.md)
+- Mode docs: linked above

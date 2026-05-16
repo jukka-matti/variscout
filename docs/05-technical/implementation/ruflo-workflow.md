@@ -23,13 +23,13 @@ Ruflo is Codex-only in this repo as of 2026-05-15. Claude Code must not use Rufl
 
 ### 1. Session Start
 
-Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the active Codex MCP registration and expected version. If Ruflo is missing, disabled, or stale, follow the remove/add repair commands printed by the check.
+Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the active Codex MCP registration and expected version; it does not prove the current Codex session has loaded the live Ruflo tool surface. If Ruflo is missing, disabled, or stale, follow the remove/add repair commands printed by the check, then restart Codex or start a fresh session.
 
-No additional setup is needed once the Codex MCP server is available. In-session: use `mcp__ruflo__*` tools only.
+No additional setup is needed once the Codex MCP server is available and the current session exposes Ruflo tools. In-session: use `mcp__ruflo__*` tools only.
 
 ### 2. Before Starting a Feature
 
-Search ruflo memory for domain context before writing code:
+Search ruflo memory for domain context before writing code. Use the memory search tool name exposed in the current Codex session (`memory_search` or `memory_search_unified`):
 
 ```
 mcp__ruflo__memory_search_unified(query: "Azure authentication", namespace: "domain", limit: 5)
@@ -41,6 +41,8 @@ This surfaces prior decisions, architectural patterns, and domain knowledge that
 
 Codex may lazy-load Ruflo tools. If the Ruflo MCP memory/status tools are not initially visible, search the tool registry for Ruflo before assuming the capability is missing.
 
+If registration is correct but no Ruflo tools appear after tool search, restart Codex or start a fresh session before re-registering. Codex MCP config is managed through `codex mcp add/list`, user-level Codex config, or trusted-project `.codex/config.toml`; VariScout uses a project-scoped wrapper so Ruflo state stays tied to this repo. Already-running sessions may not load changed MCP config.
+
 ### 3. During Coding (passive)
 
 Codex Ruflo can track:
@@ -50,6 +52,8 @@ Codex Ruflo can track:
 - Prompt classification and routing
 
 Use MCP tools directly from Codex; intelligence accumulates in `.ruflo/` metrics once Ruflo is running. Helpful startup context should come from visible repo guidance and `pnpm codex:ruflo-check`, not from hidden client-specific hook behavior.
+
+Ruflo is optional project intelligence. If it is unavailable after the documented recovery path, continue with `rg`, visible docs, ADRs, and normal validation rather than blocking development.
 
 ### 4. Before Creating a PR
 
@@ -82,7 +86,7 @@ mcp__ruflo__memory_store({ namespace: "architecture", key: "change-name", value:
 
 ### 6. Periodic Maintenance (automated)
 
-7 daemon workers run on intervals when local `.ruflo/config.yaml` is present:
+8 daemon workers run on intervals when local `.ruflo/config.yaml` is present:
 
 | Worker      | Interval | What it does                   |
 | ----------- | -------- | ------------------------------ |
@@ -93,8 +97,9 @@ mcp__ruflo__memory_store({ namespace: "architecture", key: "change-name", value:
 | consolidate | 30min    | Memory dedup and cleanup       |
 | deepdive    | 30min    | Deep analysis of changed files |
 | refactor    | 30min    | Code quality suggestions       |
+| document    | 60min    | Documentation drift checks     |
 
-5 more workers available for manual dispatch: `predict`, `preload`, `ultralearn`, `document`, `benchmark`.
+4 more workers available for manual dispatch: `predict`, `preload`, `ultralearn`, `benchmark`.
 
 ## When to Use Ruflo vs Other Tools
 
@@ -118,7 +123,7 @@ Ruflo memory is only as good as its last update. After significant work:
 
 If memory appears empty, prefer a non-destructive reseed first: check MCP memory stats/search, run `hooks pretrain`, and store a small set of curated project invariants. Do not run reset or `memory init --force` unless you explicitly intend to discard the existing local database.
 
-Root-level `agentdb.rvf*` files are local AgentDB state. Keep them out of Git; if they appear in the repo root, copy a backup and move the live files under ignored `.ruflo/data/`.
+Root-level `agentdb.rvf*` files are local AgentDB state. Keep them out of Git; if they appear in the repo root, first inspect and back up `.swarm/memory.db*`, `.ruflo/data/*`, `.claude/memory.db*`, `ruvector.db`, and root `agentdb.rvf*` under `.ruflo/data/backups/`. Then quarantine the root `agentdb.rvf*` files outside the repo root lookup path. `.swarm/memory.db` may be populated while `.ruflo/data/agentdb.rvf` is only a small shell, so check counts before reseeding or moving data.
 
 When updating docs that mention Ruflo versions, run `pnpm docs:check`; it includes a drift guard against `scripts/check-codex-ruflo.sh`.
 

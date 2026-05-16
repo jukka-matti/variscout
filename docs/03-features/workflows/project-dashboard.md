@@ -12,7 +12,7 @@ The Project Dashboard is a persistent overview screen shown when a user reopens 
 
 > Azure-only feature. PWA has no project persistence and no dashboard.
 
-> Process Hub is the higher-level Azure home above individual project dashboards. Selecting a hub opens a cadence review board that rolls up multiple investigations, latest signals, readiness gaps, actions, verification, and sustainment candidates for one process or work system. This is improvement-cadence review, not 24/7 live monitoring. See [Process Hub](../../superpowers/specs/2026-04-25-process-hub-design.md).
+> Process Hub is the higher-level Azure home above individual project dashboards. Selecting a hub opens a cadence review board that rolls up multiple investigations, latest signals, readiness gaps, actions, verification, and sustainment candidates for one process or work system. This is improvement-cadence review, not 24/7 live monitoring. See [Process Hub](../../archive/specs/2026-04-25-process-hub-design.md).
 
 ---
 

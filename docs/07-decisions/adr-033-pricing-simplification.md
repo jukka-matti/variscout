@@ -4,9 +4,10 @@ title: 'ADR-033: Pricing Simplification'
 
 # ADR-033: Pricing Simplification — 3 Tiers to 2 Tiers
 
-**Status:** Accepted  
-**Date:** 2026-03-19  
+**Status:** Superseded in part (2026-05-16, by [ADR-082](adr-082-wedge-architecture.md))
+**Date:** 2026-03-19
 **Amends:** ADR-007 (pricing section)
+**Superseded by:** [ADR-082](adr-082-wedge-architecture.md) — €79/€199 tier split retired; single €99/month SKU + project membership ACLs. Strategic hypothesis H6 ("per-deployment beats per-seat") preserved.
 
 ## Context
 

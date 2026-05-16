@@ -3,79 +3,82 @@ title: VariScout — What It Does In Practice
 audience: [engineer, analyst]
 category: reference
 status: stable
-last-reviewed: 2026-04-24
-related: [product-overview, modes, tiers, coscout, journey]
+last-reviewed: 2026-05-16
+related: [product-overview, modes, tiers, coscout, journey, wedge]
 ---
 
 # VariScout — What It Does In Practice
 
-VariScout is **structured investigation for process improvement**, evolving into a **Process Learning System** with the Process Hub as the operating spine. A browser-based, customer-owned data tool for quality engineers, lean practitioners, and analysts to explore variation in process data, identify suspected causes, drive improvement actions, and accumulate process learning over time. Azure tiers are local-cache capable; data stays in the customer's environment throughout.
+VariScout is **structured investigation for process improvement**. A browser-based tool for improvement specialists — quality engineers, Lean practitioners, Six Sigma belts (Green/Black/MBB), CI engineers — to explore variation in process data, identify suspected causes, drive improvement actions, and verify whether changes worked. Data stays in the customer's environment throughout.
 
-The near-term product direction is **Process Hub first**: every investigation belongs to a real process, production line, queue, cell, value stream, development flow, or business workflow. The Process Hub gives the process owner and improvement team one place to see whether the process is meeting requirements, what changed, what is being investigated, what is being changed, who owns the work, what is waiting for verification, and which learnings need to be sustained. A GB/BB, OpEx lead, or development-org engineer may work across multiple Process Hubs; a line owner may mostly live in one.
+Two ways to use it, both first-class:
 
-The 2026-04-27 operating model adds a three-level lens (outcome / flow / local mechanism — faithful to VariScout's existing Y / X / x EDA spine) and five response paths (quick team action / focused investigation / chartered project / sustainment review / control handoff) layered onto the journey below. See `docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md` and the H0→H4 maturity horizons in `docs/superpowers/specs/2026-04-27-product-method-roadmap-design.md`.
+- **Quick analysis.** Paste data, explore in charts, save findings. No project ceremony required. Free PWA supports session-only use; Azure tier adds persistence.
+- **Project-anchored investigation.** Create a Project (Charter ceremony), invite your team (Lead / Member / Sponsor roles), run the formal lifecycle: **Charter → Approach → Improve → Sustainment**. Each project produces a report a Sponsor can sign off.
+
+Canonical V1 design lives in the [wedge architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md).
 
 ## The journey model
 
-Every investigation follows one spine: **FRAME → SCOUT → INVESTIGATE → IMPROVE**.
+Every investigation — whether quick or project-anchored — follows one methodological spine:
 
-- **FRAME.** User states the problem (data-first or hypothesis-first entry). CoScout helps articulate.
+**FRAME → SCOUT → INVESTIGATE → IMPROVE**
+
+- **FRAME.** State the problem (data-first or hypothesis-first entry). CoScout helps articulate.
 - **SCOUT.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
-- **INVESTIGATE.** User picks suspected causes — data-derived, gemba-observed, or expert-supplied — and examines each with Evidence Map, statistics, and targeted questions. Journal accumulates findings.
-- **IMPROVE.** Hubs of evidence converge on improvement ideas. Prioritization by impact × feasibility. Action items captured.
+- **INVESTIGATE.** Pick suspected causes — data-derived, gemba-observed, or expert-supplied — and examine each with the Evidence Map, statistics, and targeted questions. The Investigation Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection (hypothesis-first path).
+- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the Improve stage (action tracker), then Sustainment ("did it work? + close").
 
 The spine never changes. Analysis modes vary the tools used inside each phase.
 
-## The organizational context
+## Project — the optional formal wrapper
 
-Process Hub is the organizational context around the journey model. It does not replace the investigation spine; it contains investigations at different depths. A formal improvement project is optional and secondary: it may live inside one hub or span multiple hubs later.
+A **Project** wraps a body of analysis with formal lifecycle and team membership. Use it when the work needs to be tracked, when a Sponsor wants a signoff-able report, or when collaborators need scoped access. Skip it when you're exploring or producing a quick analysis for personal use.
 
-| Depth         | Use                                                            |
-| ------------- | -------------------------------------------------------------- |
-| **Quick**     | Local team issue, one or two clues, action and verify quickly  |
-| **Focused**   | Several checks or one mechanism branch                         |
-| **Chartered** | Formal LSSGB/DMAIC-style work with sponsor, target, and report |
+| Stage           | Function                                                                                                                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Charter**     | Wrap an existing analysis with project ceremony — problem statement, member invites, optional refined goal. Inherits the Hub's framing (outcome, factors, process map) rather than re-doing it. |
+| **Approach**    | Investigation strategy → produces suspected causes. Anchor surface is the Investigation Wall (Hypotheses + Findings + Measurement Plans).                                                       |
+| **Improve**     | Action tracker — improvement actions + quick actions, owner/due/status. Simple list by default; PDCA workbench available behind an "Advanced" toggle.                                           |
+| **Sustainment** | "Did it work?" closure — Cpk delta + action completion + drift check. Absorbs the legacy Handoff stage.                                                                                         |
 
-EDA 2.0 supplies the language inside each investigation: Issue / Concern, Current Understanding, Problem Condition, Mechanism Branches, Next Move, Verification, and Control handoff. See `docs/superpowers/specs/2026-04-25-process-hub-design.md`.
+The data underneath a Project (the Hub) is tenant-wide — anyone in your Azure tenant can paste data and analyze without creating a Project. The Project's formal artifacts (Charter, Approach, Improve, Sustainment, Report) are membership-gated.
 
-Evidence Sources are the user-facing way a Process Hub receives recurring
-process evidence. Each Snapshot from an Evidence Source can feed cadence
-signals, Survey readiness, investigations, verification, and sustainment.
-Data Profiles are the deterministic adapters behind recognized source-data
-shapes; the first concrete example is the Agent Review Log profile for safe
-green throughput.
+## Project membership roles
 
-Survey sits horizontally across that journey. It asks whether the current data,
-signals, branches, and verification evidence are good enough for the next
-methodological move. It is not a fifth phase or workspace; it is the readiness
-check that supports both analyst investigations and Process Hub cadence reviews.
+| Role        | Who                                                                    | Access                                         |
+| ----------- | ---------------------------------------------------------------------- | ---------------------------------------------- |
+| **Lead**    | The analyst running the project (typically a belt or project director) | Full edit + manages membership                 |
+| **Member**  | SME, analyst, frontline contributor, quality engineer                  | Full edit within project surfaces              |
+| **Sponsor** | Executive sponsor / Champion                                           | Report-only at V1; signoff handled out-of-band |
+
+Project members must be in the same Azure AD tenant as the buyer. Cross-org collaboration is out of V1 scope (this becomes a deliberate privacy boundary).
 
 ## The six analysis modes
 
-1. **Standard** (default). Continuous measurement data. I-Chart, Boxplot, Pareto, Stats panel. Most common entry point — quality engineers, analysts, students.
+1. **Standard** (default). Continuous measurement data. I-Chart, Boxplot, Pareto, Stats panel. Most common entry point.
 2. **Capability.** Cp/Cpk against specifications. Histogram, probability plot. Optional subgroup capability (ADR-038). Used for process qualification and SPC.
-3. **Yamazumi** (lean). Activity-level cycle time analysis. Stacked bars by VA/NVA/Waste/Wait (fixed colors), takt line, rebalancing targets. Used by industrial engineers and continuous improvement leads.
+3. **Yamazumi** (lean). Activity-level cycle time analysis. Stacked bars by VA/NVA/Waste/Wait (fixed colors), takt line, rebalancing targets. Used by industrial engineers and CI leads.
 4. **Performance** (multi-channel). Fill heads, cavities, nozzles. Per-channel Cpk scatter, cross-channel Boxplot comparison, worst-first Pareto. Used by process engineers monitoring multi-stream equipment.
-5. **Defect** (events → rates). Event logs transformed into defect rates per time unit. Pareto of defect types, cross-type evidence map. Used by quality engineers tracking PPM.
-6. **Process Flow** (design-only, not yet coded). Intended for process-level bottleneck analysis and flow diagnostics.
+5. **Defect** (events → rates). Event logs transformed into defect rates per time unit. Pareto of defect types, cross-type Evidence Map. Used by quality engineers tracking PPM.
+6. **Process Flow** (process-level bottleneck analysis and flow diagnostics).
 
 Mode resolution lives in `packages/core/src/analysisStrategy.ts`. CoScout's methodology coaching adapts per mode.
 
-## The three tiers
+## The two paid tiers (V1)
 
-| Tier           | Distribution      | Price   | Capability                                                                       |
-| -------------- | ----------------- | ------- | -------------------------------------------------------------------------------- |
-| PWA            | Public URL        | Free    | Full analysis, session-only, no persistence. Training and education.             |
-| Azure Standard | Azure Marketplace | €79/mo  | Full analysis + CoScout AI, local (IndexedDB) persistence, optional voice input. |
-| Azure Team     | Azure Marketplace | €199/mo | + Blob Storage sync, Knowledge Base, optional voice input.                       |
+| Tier      | Distribution                          | Price         | What you get                                                                                                                                                                                            |
+| --------- | ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **PWA**   | Public URL                            | Free          | Full analysis, session-only, no persistence. Training, education, evaluation.                                                                                                                           |
+| **Azure** | Azure Marketplace Managed Application | **€99/month** | Full product: Azure tenant-wide, unlimited org users, unlimited projects. Persistence (IndexedDB + Blob), CoScout AI, project membership ACLs, Report sharing, signoff workflows. Optional voice input. |
 
-Same analytical capability everywhere. Tier changes collaboration, persistence, and AI. A future Process tier may add governed Process Hub storage, snapshots, cadence records, and audit controls, but it is not implemented as a current SKU.
+Same analytical capability everywhere — the wedge's promise is **one product**, not feature-gating. Team-capability features (photo evidence, Knowledge Catalyst, project membership) are membership-role-gated inside the €99 SKU rather than tier-gated.
+
+A future **VariScout Process** product (enterprise platform with Hub portfolios, process ownership, automated data pipelines, 4-persona model) is named-future on the roadmap; not announced in V1 marketing.
 
 ## CoScout — the AI assistant
 
-CoScout is an assistant, not an oracle. It coaches methodology, asks targeted questions, surfaces references, and proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override. CoScout is modular (tier1/2/3 prompt layering), mode-aware (methodology coaching varies by analysis mode), and tool-calling (27-tool registry gated by phase/mode/tier). On Azure tiers, CoScout can also accept **voice input** in a transcript-first way: the user speaks, the text lands in the normal draft box, the user reviews/edits, then sends. v1 replies remain text.
-
-Process Hub context is the durable process memory. CoScout can later read that customer-owned context, but it does not own a separate hidden memory layer.
+CoScout is an assistant, not an oracle. It coaches methodology, asks targeted questions, surfaces references, and proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override. CoScout is modular (tier1/2/3 prompt layering), mode-aware (methodology coaching varies by analysis mode), and tool-calling (27-tool registry gated by phase/mode). On Azure, CoScout accepts **voice input** in a transcript-first way: speak, text lands in the draft box, review/edit, send. v1 replies remain text.
 
 ## Customer-owned data
 
@@ -83,13 +86,13 @@ Processing happens in the browser. When data moves (Blob Storage sync, AI calls,
 
 ## Where to go next
 
-- User flows and personas: `USER-JOURNEYS.md`
-- Data lifecycle (parse → stats → persist → sync): `DATA-FLOW.md`
-- Process Hub direction: `docs/superpowers/specs/2026-04-25-process-hub-design.md`
-- Process Hub use cases: `docs/superpowers/specs/2026-04-25-process-hub-use-cases.md`
-- Evidence Sources and Data Profiles: `docs/superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md`
-- Unified methodology roadmap: `docs/superpowers/specs/2026-04-26-unified-process-hub-methodology-roadmap.md`
-- EDA 2.0 direction: `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
+- **Canonical V1 design**: [wedge architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md)
+- **Architectural record**: [ADR-082](07-decisions/adr-082-wedge-architecture.md)
+- User flows: [USER-JOURNEYS.md](USER-JOURNEYS.md)
+- Data lifecycle (parse → stats → persist → sync): [DATA-FLOW.md](DATA-FLOW.md)
+- Investigation Wall + Measurement Plans: [wedge spec §3.6](superpowers/specs/2026-05-16-wedge-architecture-design.md#§36-investigation-wall--measurement-plans)
+- Process tab + Canvas: [wedge spec §3.3](superpowers/specs/2026-05-16-wedge-architecture-design.md#§33-process-tab--canvas-substrate--stateedit-modes--specialist-content)
 - Mode-specific journeys: `USER-JOURNEYS-{YAMAZUMI,PERFORMANCE,DEFECT,CAPABILITY,PROCESS-FLOW}.md`
-- Feature parity table: `docs/08-products/feature-parity.md`
-- Constitution (10 principles): `docs/01-vision/constitution.md`
+- Feature parity: [docs/08-products/feature-parity.md](08-products/feature-parity.md)
+- Constitution (10 principles): [docs/01-vision/constitution.md](01-vision/constitution.md)
+- Glossary: [glossary.md](glossary.md)

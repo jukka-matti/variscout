@@ -8,6 +8,16 @@ related: [strategy, hypotheses, value-levers, flywheel, personas, pricing]
 
 # Business Bible
 
+> **⚠️ AMENDED 2026-05-16 by the [wedge pivot](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md).**
+>
+> Strategic update: VariScout splits into **two products on a roadmap**. V1 (this doc's primary product going forward) is the wedge — a single-tier project tool for improvement specialists, €99/month Azure tenant-wide, with project-membership ACLs. VariScout Process is named-future for enterprise process ownership.
+>
+> Strategic hypothesis **H6** ("per-deployment beats per-seat") is **honored, not contradicted** — €99 is still per-deployment. The €79/€199 Standard/Team tier split retires; H6 now manifests as a single €99 per-tenant SKU.
+>
+> Three preconditions need to clear before engineering commits (financial sensitivity analysis on €79→€99 and €199→€99 migration; Azure AD invitation constraint accepted as ICP boundary; one customer validation conversation). The H-series hypotheses below will get an amendment block where the wedge changes status — Phase C audit will resolve which.
+
+---
+
 Strategic hypotheses, value levers, and growth flywheel for VariScout.
 
 ---

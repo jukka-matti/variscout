@@ -10,6 +10,8 @@ related: [navigation, workspaces, investigation, panels, question-driven-eda]
 
 **Status:** Accepted
 **Date:** 2026-04-01
+
+**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). The wedge collapses the workspace-tab model from 5 tabs (Overview / Analysis / Investigation / Improvement / Report) → 6 tabs in workflow order: `Home · Projects · Process · Analyze · Investigation · Report`. The Improvement tab is removed as a top-level surface and becomes a _stage_ inside Projects detail. Workspace-based navigation as an architectural pattern survives; the tab list changes. See [wedge spec §3.1](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§31-nav-6-tabs-in-workflow-order).
 **Decision Makers:** Development team
 **Tags:** navigation, workspaces, panels, investigation, improvement, question-driven-eda
 

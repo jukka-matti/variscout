@@ -12,6 +12,8 @@ related:
 
 # Multi-level SCOUT V1 — Load-Bearing Decisions
 
+> **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Under the wedge, multi-level SCOUT operates **per project**, not per Hub. The locked decisions in this doc (level-spanning architecture, time-window primitive, AnalysisModeStrategy data router) all stay valid; only the data scope changes from Hub-level to project-level. Multi-project / portfolio-spanning SCOUT defers to **VariScout Process**.
+
 This document locks three load-bearing architectural decisions flagged in the design spec's "Open in spec" section (§8 ambiguities #1, #4, #6). The other three ambiguities (#2, #3, #5) are deferred to their implementing tasks with specific lock points noted.
 
 ---

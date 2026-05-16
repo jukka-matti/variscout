@@ -15,6 +15,8 @@ related:
 
 **Status**: Accepted
 
+**Amendment — 2026-05-16:** Extended by [ADR-082](adr-082-wedge-architecture.md). The Phase 6 / Sustainment-Control-Handoff design (formerly `docs/superpowers/specs/2026-04-26-phase-6-sustainment-control-handoff-design.md`, now archived) is **subsumed by this ADR's auto-fire pattern + the wedge spec §3.2 Sustainment stage**. Under the wedge: (a) Handoff is folded into Sustainment closure (no separate stage); (b) Sustainment auto-fires when Improve-stage actions complete or sustainment cadence triggers fire; (c) the closure screen is the single end-of-project decision moment ("did it work? + close"). The Phase 6 spec's lifecycle semantics (implicit start, asynchronous nudges, signoff-gated close) are preserved here; only its Hub-anchored multi-phase framing retires. Signoff is no longer tier-gated (single SKU); it is gated by **project-membership role** (Reviewer / Lead per wedge spec §4) — visible to all members; actively writable by Lead, signable by Reviewer.
+
 ## Context
 
 RPS V1 (`docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md`) ships five response paths off a single Process Hub: Quick Action, Wall Detective-pack, Improvement Project (Charter), Sustainment, Handoff. The last three share a lifecycle shape — the response is not a single user action but a multi-step process that:

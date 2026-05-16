@@ -24,6 +24,8 @@ related:
 
 **Date:** 2026-04-18
 
+**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). Under the wedge, FRAME applies to a **Project** (not a Hub) for V1. The Frame step lives in Process tab Edit mode (per [wedge spec §3.3.1](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§331-two-modes-within-one-tab--state-default-and-edit)) and authoring scope is project-bound. Hub-level process-learning + cadence framing defers to **VariScout Process**, the future enterprise product. The FRAME workspace mechanics (visual process map, deterministic mode inference, gap detection, SIPOC) are unchanged; only the foundational unit changes (Project, not Hub).
+
 ## Context
 
 The five-phase investigation spine FRAME → SCOUT → INVESTIGATE → IMPROVE → REPORT ([ADR-055](./adr-055-workspace-navigation.md)) surfaces four of five phases as workspaces — Overview, Analysis, Investigation, Improvement, Report — but **FRAME has no dedicated surface**. FRAME happens silently during data upload: column detection heuristically labels the outcome, factors, and time column, and analysis mode is guessed from column-name keywords (`packages/core/src/parser/detection.ts`, Yamazumi/Defect/Performance detectors). A prospect walkthrough with Greg on 2026-04-18 exposed the consequence — VariScout is positioned as _structured investigation for process improvement_ but the UX never asks about the user's process.
@@ -94,13 +96,13 @@ FRAME must work end-to-end without any AI call (Constitution P8 _Deterministic f
 
 ### Neutral
 
-- Existing investigation workflow is unchanged: pre-data hunches created in FRAME flow into `investigationStore` as draft `SuspectedCause` hubs, reusing the hub model ([ADR-064](./adr-064-suspected-cause-hub-model.md)). Analysis, Investigation, Improvement, and Report workspaces are untouched.
+- Existing investigation workflow is unchanged: pre-data hunches created in FRAME flow into `investigationStore` as draft `SuspectedCause` hubs, reusing the hub model ([ADR-064](../archive/adrs/adr-064-suspected-cause-hub-model.md)). Analysis, Investigation, Improvement, and Report workspaces are untouched.
 
 ## Update — 2026-04-27 (Layered Process View V1)
 
 The river-styled SIPOC `ProcessMapBase` is now wrapped by `LayeredProcessView` (`@variscout/ui`), which adds an Outcome band above and an Operations band below. ADR-070 stays canonical for the river/SIPOC design itself; the layered extension adds visual structure around it without changing the data model.
 
-See the [Layered Process View design spec](../superpowers/specs/2026-04-27-layered-process-view-design.md) for band semantics, surface variations, and phasing.
+See the [Layered Process View design spec](../archive/specs/2026-04-27-layered-process-view-design.md) for band semantics, surface variations, and phasing.
 
 V1 is structural only: the bands wrap the existing component. V2+ phases add Operations band content (snapshot-backed actuals, capability sparklines), Process Hub current-state rendering, and multi-hub aggregation.
 
@@ -193,7 +195,7 @@ The 2026-04-28 amendment ("FRAME as one flow lens within a layered process
 view") is now subsumed: the layered-view bands + the FRAME flow lens are all
 expressed on the Canvas (vision §5.4 mode lenses + §5.2 cards). The Layered
 Process View design spec at
-[`docs/superpowers/specs/2026-04-27-layered-process-view-design.md`](../superpowers/specs/2026-04-27-layered-process-view-design.md)
+[`docs/superpowers/specs/2026-04-27-layered-process-view-design.md`](../archive/specs/2026-04-27-layered-process-view-design.md)
 should be re-tagged or archived as a follow-up.
 
 The 2026-05-02 amendment below ("FRAME b0 lightweight render") describes a
