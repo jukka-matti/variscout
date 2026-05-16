@@ -9,7 +9,7 @@
  * STORE_LAYER enum has 6 values; today 4 are realised in code:
  *   - 'document' (projectStore, investigationStore, canvasStore)
  *   - 'annotation-per-hub' (canvasViewportStore)
- *   - 'annotation-per-user' (preferencesStore, activeIPStore)
+ *   - 'annotation-per-user' (preferencesStore, activeIPStore, useProjectMembershipStore)
  *   - 'view' (viewStore)
  * Reserved for future use (no test coverage today, intentional):
  *   - 'annotation-per-project'
@@ -51,6 +51,7 @@ function loadStoreFiles(): StoreFile[] {
     'activeIPStore.ts',
     'viewStore.ts',
     'improvementProjectStore.ts',
+    'useProjectMembershipStore.ts',
   ];
   return filenames.map(filename => {
     const path = resolve(SRC, filename);
