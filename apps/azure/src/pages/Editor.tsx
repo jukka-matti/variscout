@@ -10,6 +10,7 @@ import {
   useInvestigationStore,
   usePreferencesStore,
   useCanvasViewportStore,
+  useProjectMembershipStore,
 } from '@variscout/stores';
 import {
   useFilteredData,
@@ -35,6 +36,7 @@ import {
   ActiveIPLaunchpadCard,
   ActiveIPScopeRibbon,
   ImproveTabRoot,
+  PendingInvitesBanner,
   deriveActiveIPCanvasFocus,
   deriveActiveIPLineageIds,
   deriveActiveIPScopeLabels,
@@ -361,6 +363,11 @@ export const Editor: React.FC<EditorProps> = ({
   const knowledgeSearchFolder = usePreferencesStore(s => s.knowledgeSearchFolder) ?? undefined;
   const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
   const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
+
+  // Project membership store (annotation-per-user — pending invitations)
+  const pendingInvites = useProjectMembershipStore(s => s.pendingInvites);
+  const acceptInvite = useProjectMembershipStore(s => s.acceptInvite);
+  const revokeInvite = useProjectMembershipStore(s => s.revokeInvite);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
@@ -1679,6 +1686,13 @@ export const Editor: React.FC<EditorProps> = ({
         processContext={processContext}
         processHubs={processHubs}
         onChange={setProcessContext}
+      />
+
+      {/* Pending invitations banner — layout chrome above tab content */}
+      <PendingInvitesBanner
+        invites={pendingInvites}
+        onAccept={acceptInvite}
+        onDecline={revokeInvite}
       />
 
       {/* Main Content -- inert when phone overlay is open (F-18 focus trap) */}

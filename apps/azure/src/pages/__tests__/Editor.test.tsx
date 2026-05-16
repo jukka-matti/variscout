@@ -7,7 +7,14 @@ import 'fake-indexeddb/auto';
 import { Editor } from '../Editor';
 import * as StorageModule from '../../services/storage';
 import { usePanelsStore } from '../../features/panels/panelsStore';
-import { useProjectStore, useInvestigationStore, usePreferencesStore } from '@variscout/stores';
+import {
+  useProjectStore,
+  useInvestigationStore,
+  usePreferencesStore,
+  useProjectMembershipStore,
+  getProjectMembershipInitialState,
+} from '@variscout/stores';
+import type { Invitation } from '@variscout/core/projectMembership';
 
 // ── Mock child components ──
 
@@ -151,55 +158,59 @@ vi.mock('../../context/LocaleContext', () => ({
 
 // ── Mock @variscout/ui ──
 
-vi.mock('@variscout/ui', () => ({
-  ColumnMapping: ({
-    onConfirm,
-    onCancel,
-  }: {
-    onConfirm: (payload: {
-      outcomes: Array<{ columnName: string; characteristicType: string }>;
-      primaryScopeDimensions: string[];
-      outcome: string;
-      factors: string[];
-    }) => void;
-    onCancel: () => void;
-  }) => (
-    <div data-testid="column-mapping">
-      <button
-        onClick={() =>
-          onConfirm({
-            outcomes: [{ columnName: 'Weight', characteristicType: 'nominalIsBest' }],
-            primaryScopeDimensions: ['Machine'],
-            outcome: 'Weight',
-            factors: ['Machine'],
-          })
-        }
-      >
-        Confirm
-      </button>
-      <button onClick={onCancel}>Cancel</button>
-    </div>
-  ),
-  DataTableModalBase: () => null,
-  InvestigationPrompt: () => null,
-  CoScoutPanelBase: () => null,
-  AIOnboardingTooltip: () => null,
-  SessionClosePrompt: () => null,
-  BrainstormModal: () => null,
-  QuestionLinkPrompt: () => null,
-  FactorPreviewOverlay: () => null,
-  PIPanelBase: () => null,
-  StatsTabContent: () => null,
-  QuestionsTabContent: () => null,
-  JournalTabContent: () => null,
-  DocumentShelfBase: () => null,
-  WhatIfExplorerPage: () => null,
-  StageFiveModal: () => null,
-  computePresets: vi.fn(() => undefined),
-  useIsMobile: () => false,
-  useGlossary: () => ({ getTerm: (key: string) => key }),
-  BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
-}));
+vi.mock('@variscout/ui', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/ui')>();
+  return {
+    ...actual,
+    ColumnMapping: ({
+      onConfirm,
+      onCancel,
+    }: {
+      onConfirm: (payload: {
+        outcomes: Array<{ columnName: string; characteristicType: string }>;
+        primaryScopeDimensions: string[];
+        outcome: string;
+        factors: string[];
+      }) => void;
+      onCancel: () => void;
+    }) => (
+      <div data-testid="column-mapping">
+        <button
+          onClick={() =>
+            onConfirm({
+              outcomes: [{ columnName: 'Weight', characteristicType: 'nominalIsBest' }],
+              primaryScopeDimensions: ['Machine'],
+              outcome: 'Weight',
+              factors: ['Machine'],
+            })
+          }
+        >
+          Confirm
+        </button>
+        <button onClick={onCancel}>Cancel</button>
+      </div>
+    ),
+    DataTableModalBase: () => null,
+    InvestigationPrompt: () => null,
+    CoScoutPanelBase: () => null,
+    AIOnboardingTooltip: () => null,
+    SessionClosePrompt: () => null,
+    BrainstormModal: () => null,
+    QuestionLinkPrompt: () => null,
+    FactorPreviewOverlay: () => null,
+    PIPanelBase: () => null,
+    StatsTabContent: () => null,
+    QuestionsTabContent: () => null,
+    JournalTabContent: () => null,
+    DocumentShelfBase: () => null,
+    WhatIfExplorerPage: () => null,
+    StageFiveModal: () => null,
+    computePresets: vi.fn(() => undefined),
+    useIsMobile: () => false,
+    useGlossary: () => ({ getTerm: (key: string) => key }),
+    BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
+  };
+});
 
 // ── Mock @variscout/data ──
 
@@ -397,6 +408,7 @@ describe('Editor', () => {
 
     // Reset stores to clean state
     seedStores();
+    useProjectMembershipStore.setState(getProjectMembershipInitialState());
   });
 
   it('renders empty state when rawData is empty', () => {
@@ -524,5 +536,30 @@ describe('Editor', () => {
 
     // Pre-configured samples (with outcome + factors) skip ColumnMapping
     expect(screen.queryByTestId('column-mapping')).not.toBeInTheDocument();
+  });
+
+  // ── PendingInvitesBanner integration ──
+
+  const inviteA: Invitation = {
+    id: 'inv-1',
+    projectId: 'ip-1',
+    createdAt: 1,
+    deletedAt: null,
+    userId: 'mira@org',
+    displayName: 'Mira',
+    role: 'member',
+    invitedAt: 1,
+    status: 'pending',
+  };
+
+  it('does not render the invitations banner when there are no pending invites', () => {
+    renderEditor();
+    expect(screen.queryByRole('region', { name: /pending invitations/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the invitations banner when pending invites exist', () => {
+    useProjectMembershipStore.setState({ pendingInvites: [inviteA] });
+    renderEditor();
+    expect(screen.getByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });
 });
