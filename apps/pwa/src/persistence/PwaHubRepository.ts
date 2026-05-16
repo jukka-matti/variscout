@@ -47,6 +47,7 @@ import type {
   SustainmentRecordReadAPI,
   SustainmentReviewReadAPI,
   ControlHandoffReadAPI,
+  MeasurementPlanReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
 import type { ProcessHub } from '@variscout/core/processHub';
@@ -351,6 +352,18 @@ export class PwaHubRepository implements HubRepository {
     },
     listByHub: async hubId => {
       const rows = await db.controlHandoffs.where('hubId').equals(hubId).toArray();
+      return rows.filter(row => row.deletedAt === null);
+    },
+  };
+
+  measurementPlans: MeasurementPlanReadAPI = {
+    get: async id => {
+      const row = await db.measurementPlans.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
+    },
+    listByHypothesis: async hypothesisId => {
+      const rows = await db.measurementPlans.where('hypothesisId').equals(hypothesisId).toArray();
       return rows.filter(row => row.deletedAt === null);
     },
   };

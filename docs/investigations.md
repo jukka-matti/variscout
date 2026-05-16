@@ -40,6 +40,19 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 - **Sponsor placeholder copy in `IPDetailPage`** — `data-testid="sponsor-report-panel"` placeholder points the Sponsor to "the top navigation Report tab." The wording "top navigation" is generic; if the V1 6-tab nav lands a localized label, the placeholder should reference the actual tab label. Promotion: PR-WV1-5 (nav reorder + tier-gating retirement sweep) — pick up when nav labels are finalized.
 
+### Durable cross-device invitation persistence
+
+**Surfaced by:** PR-WV1-3a Implementation 2026-05-16.
+
+**Description:** Invitations live transiently in `useProjectMembershipStore.pendingInvites[]` + localStorage. The inviter sees the invite locally; the invitee on a different browser does not. The wedge spec §4.2 "in-app + email notification" relies on the email half for cross-device delivery. For durable in-app multi-device delivery, invitations must persist somewhere tenant-scoped (`ImprovementProjectMetadata.invitations?: Invitation[]` field OR a tenant-wide invitation table).
+
+**Possible directions:**
+
+- Add `invitations?: Invitation[]` to `ImprovementProjectMetadata` (parallel to `members?`). Banner reads from a derived selector iterating all IPs for the current user. Cost: schema migration, .vrs round-trip, Dexie scheme bump.
+- Tenant-wide invitation table in `azureHubRepository`. Cost: new repo path; PWA has no parallel.
+
+**Promotion path:** Decision required if customer demand surfaces for multi-device invite UX. Track until PR-WV1-5 (tier-gating retirement + nav reorder, where auth-wiring refinement lands) — that PR is the natural place to revisit since per-user persistence keys (`useProjectMembershipStore`'s deferred item (c)) are also being addressed there.
+
 ### 8f canvas viewport — followup findings from 3-agent retrospective
 
 **Surfaced by:** retrospective architecture / design / code-quality review on `main` 2026-05-13, after 8f's 6 PRs (#160–#165) shipped. Per-PR Opus reviews had passed; cross-PR drift was the gap.
@@ -634,5 +647,87 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 **Promotion path:** small follow-up PR. About 2 tasks: helper + UI swap.
 
 **Resolution [2026-05-08]:** `computeHistogramBins(values, rule?)` helper added in `@variscout/core/stats` (Sturges default, Scott option). `CanvasStepMiniChart` histogram branch now renders one bar per bin with bin counts as heights, replacing the first-12-raw-values normalization. Empty bins floor at 8% height so the bin axis stays legible — this replaces the prior 15% floor (which was tuned for 12 raw-value pseudo-bars; 8% reads more honestly when bin counts can legitimately be zero).
+
+---
+
+### Wall: MeasurementPlan DOM detail surface mount point [RESOLVED 2026-05-16]
+
+**Surfaced by:** PR-WV1-3b Task 5 discovery, 2026-05-16.
+
+**Context:** PR-WV1-3b needs a DOM surface for `<MeasurementPlanChip>` rows, `<AddPlanForm>` (multi-field inline expansion), and `<LinkFindingPicker>` (modal-ish finding picker). Initial concern: SVG canvas `<HypothesisCard>` (280x288 user-space units) seemed unsuitable for multi-input forms. Discovery checked whether an existing `<HypothesisDetailPanel>` or side panel / modal primitive already exists that could be reused.
+
+**Discovery findings:**
+
+1. **No pre-existing `<HypothesisDetailPanel>` or sidebar primitive.** `packages/ui/src/components/InvestigationWall/` contains: `WallCanvas`, `HypothesisCard`, `DraggableHypothesisCard`, `FindingChip`, `NarratorRail` (CoScout right-rail), `BrushToFindingFlow`, mini-charts, badges, and utilities. No detail panel, selected-hypothesis drawer, or modal scaffold exists in this family.
+2. **`FindingChip` is a tethered SVG-only chip** (`<g role="button">` with SVG `rect`/`text`). It does not render inside `HypothesisCard` — it floats as a separate SVG element on the canvas. It is not the DOM primitive the spec's `<MeasurementPlanChip>` should mirror at the implementation level.
+3. **`HypothesisCard` already uses `foreignObject` for DOM-in-SVG content.** The card body embeds `foreignObject` blocks for the mini-chart slot (`MiniIChart`/`MiniBoxplot` via `BrushToFindingFlow`), `TagChip` rows, and `OneStepAwayBadge`. This is the established pattern for DOM-rendered content inside the SVG card. `BrushToFindingFlow` itself uses a `foreignObject` inline-confirmation panel within the chart slot.
+4. **No hypothesis selection state exists in any store or component.** `WallCanvas.onSelectHub` fires an opaque `(id: string) => void` prop that app-level consumers handle (e.g., navigation to detail). No `selectedHypothesisId` slice exists in `useCanvasViewportStore`, `wallLayoutStore`, or any other store.
+5. **The spec (design decision §3) explicitly rules out a separate panel.** The spec states: "No separate modal, sidebar, or panel. Visual continuation of the existing `<FindingChip>` metaphor." The `<HypothesisCard>` extension section shows a two-half layout (EVIDENCE + MEASUREMENT PLAN) rendered directly inside the card body with `<MeasurementPlanChip>` rows and a `[+ Add Plan]` affordance.
+6. **`AddPlanForm` inline expansion is feasible via `foreignObject`.** The card is currently 280x288 user-space units. The form (factor text input, method select, sample size number input, owner picker, MSA checkbox, Cancel/Save) can be rendered in a `foreignObject` expansion that grows the card's `height` prop while the form is open — the same mechanism used by `BrushToFindingFlow`'s inline-confirmation panel.
+
+**Decision:** No new `<HypothesisDetailPanel>` component. No modal, side panel, or accordion. MeasurementPlan UI mounts **inline inside `<HypothesisCard>`** via `foreignObject`, extending the card body downward. Specifically:
+
+- `<MeasurementPlanChip>` renders as DOM rows in a `foreignObject` block in the lower half of the card (below the existing findings/readiness section), mirroring how `TagChip` rows and `OneStepAwayBadge` already use `foreignObject` inside the card.
+- `<AddPlanForm>` renders as an inline `foreignObject` expansion within the same card — card `height` prop increases when the form is open, identical to how `BrushToFindingFlow` shows a confirmation panel by swapping content inside the chart-slot `foreignObject`.
+- `<LinkFindingPicker>` is the only truly modal-ish surface; it renders as a `foreignObject` overlay positioned over the card (or a fixed-position DOM portal — implementation detail for Task 7).
+
+**Selection state:** No new `selectedHypothesisId` Zustand slice needed. `AddPlanForm` open state and `LinkFindingPicker` open state are local React `useState` within `HypothesisCard` or a new `<HypothesisCardWithPlans>` wrapper component. This matches the `BrushToFindingFlow` pattern where selection state (`pendingSelection`) is managed inside the render-prop component, not in any store.
+
+**Rationale:** The spec is explicit ("no separate modal, sidebar, or panel") and the Wall architecture already validates this: `HypothesisCard` uses `foreignObject` for DOM content today, `BrushToFindingFlow` sets the precedent for inline confirmation panels within the card, and `MissingEvidencePanel` is the only DOM panel below the SVG (survey hints — a distinct concern). Growing the card vertically for inline forms respects the canvas-as-substrate principle (ADR-078 View layer owns canvas viewport; no new panel layer). The `NarratorRail` right-side rail is owned by CoScout messaging, not hypothesis-detail — reusing it would be a concern-mixing violation.
+
+**Resolution:** PR-WV1-3b Tasks 6-7 build `<MeasurementPlanChip>`, `<AddPlanForm>`, and `<LinkFindingPicker>` as DOM components rendered via `foreignObject` inside `<HypothesisCard>`. Task 8 wires them into `HypothesisCard` (or a thin `<HypothesisCardWithPlans>` wrapper) using local `useState` for form-open and picker-open booleans — no store changes needed for selection state.
+
+---
+
+### Dispatch pattern: HubAction vs Project-metadata patch [RESOLVED 2026-05-16]
+
+**Surfaced by:** PR-WV1-3 architecture review (Opus).
+
+**Question:** Why does `MeasurementPlanAction` dispatch through `HubRepository.dispatch()` → `applyAction.ts` → Dexie table, while `ActionItemAction` dispatches through `useImprovementProjectStore.upsertProject()` → store state → Dexie sync?
+
+**Rule:** Hub-domain sub-entities with their own Dexie table dispatch through `HubRepository.dispatch(HubAction)`. Project-metadata bag fields (anything under `ImprovementProjectMetadata.actions[]` or similar arrays-on-metadata) use `useImprovementProjectStore.upsertProject()`.
+
+- MeasurementPlan: own Dexie table → HubAction dispatch ✓
+- ProjectMember: own Dexie table → HubAction dispatch ✓
+- ActionItem: stored as `ImprovementProjectMetadata.actions[]` → upsertProject patch ✓
+- Invitation: localStorage-only V1 → Annotation store direct write ✓
+
+**Side note:** The `ACTION_ITEM_UPDATE/REMOVE` cases in both apps' `applyAction.ts` are currently dead-code (the consumers use the upsertProject path). They are kept for symmetry + future-proofing if ActionItem migrates to its own table. Not load-bearing for V1.
+
+**Resolution:** No code change needed. This entry establishes the rule for future Hub-domain extensions.
+
+---
+
+### V2 ACL gap: pendingInvites recipientUserId [LOGGED 2026-05-16]
+
+**Surfaced by:** PR-WV1-3 code review.
+
+`useProjectMembershipStore.acceptInvite` doesn't filter pendingInvites by current-user recipient. localStorage is per-browser in V1 single-user PWA, so the gap is dormant. PR-WV1-5 (Azure AD auth wiring + per-user store key) closes this when Azure adds real auth-aware invite delivery.
+
+**Promotion path:** Revisit in PR-WV1-5 when per-user persistence keys are addressed.
+
+---
+
+### Test gaps for PR-WV1-3 [LOGGED 2026-05-16]
+
+**Surfaced by:** PR-WV1-3 code review.
+
+Three gaps to close in PR-WV1-4 or PR-WV1-5:
+
+1. `MEASUREMENT_PLAN_REMOVE` E2E — assert chip disappears from SVG after remove dispatch.
+2. Dexie v11→v12 (Azure) + v4→v5 (PWA) upgrade-path integration smoke — confirm upgrade callback fires cleanly against pre-existing data.
+3. `acceptInvite` when target project doesn't exist — guard at store level filters from pendingInvites regardless.
+
+**Promotion path:** Pick up in PR-WV1-4 or the first PR that touches MeasurementPlan remove / Dexie version bump.
+
+---
+
+### PWA_SINGLE_USER_ID consolidation [LOGGED 2026-05-16]
+
+**Surfaced by:** PR-WV1-3 architecture review.
+
+`'analyst@local'` hardcoded in 3 files: `apps/pwa/src/App.tsx` (`PWA_WALL_USER_ID`), `apps/pwa/src/components/views/ImprovementView.tsx` (`PWA_USER_ID`), and PR-WV1-1 `ProjectsTabView` wiring. Consolidate into `packages/core/src/identity/pwaSingleUser.ts` as `export const PWA_SINGLE_USER_ID = 'analyst@local'`. PR-WV1-5 (auth wiring) is the natural place — single deletion site when real auth lands.
+
+**Promotion path:** PR-WV1-5 (auth wiring sweep). Single-string change across 3 files; no design decision needed.
 
 ---

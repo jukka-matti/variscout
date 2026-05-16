@@ -24,6 +24,8 @@ export interface ImprovementProjectMetadata {
   /** Wedge V1 membership roster. Replaces legacy team[] after migration window. */
   members?: ProjectMember[];
   investigationId?: ProcessHubInvestigation['id'];
+  /** Improvement actions tracked at the project level. Read-write via reduceActionItems. */
+  actions?: ActionItem[];
 }
 
 export interface ImprovementProjectOutcomeGoal {

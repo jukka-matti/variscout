@@ -10,6 +10,8 @@ import {
   useInvestigationStore,
   usePreferencesStore,
   useCanvasViewportStore,
+  useProjectMembershipStore,
+  useImprovementProjectStore,
 } from '@variscout/stores';
 import {
   useFilteredData,
@@ -35,6 +37,7 @@ import {
   ActiveIPLaunchpadCard,
   ActiveIPScopeRibbon,
   ImproveTabRoot,
+  PendingInvitesBanner,
   deriveActiveIPCanvasFocus,
   deriveActiveIPLineageIds,
   deriveActiveIPScopeLabels,
@@ -76,6 +79,8 @@ import type {
 import type { SurveyRecommendation } from '@variscout/core/survey';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import type { BrainstormIdea } from '@variscout/core/findings';
+import { generateDeterministicId } from '@variscout/core/identity';
+import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { Check, X } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
@@ -98,6 +103,7 @@ import { buildChartSharePayload } from '../services/shareContent';
 import { isKnowledgeBaseAvailable } from '../services/searchService';
 import { buildSubPageId } from '../services/deepLinks';
 import { azureHubRepository } from '../persistence';
+import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import { useToast } from '../context/ToastContext';
 import { SustainmentEntryRow } from './Editor.sustainment';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
@@ -356,11 +362,36 @@ export const Editor: React.FC<EditorProps> = ({
   const categories = useInvestigationStore(s => s.categories);
   const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
 
+  // Measurement plans — loaded from IndexedDB for all hypotheses in the active investigation.
+  // Re-loads when the hypothesis list changes. Passed into WallCanvas planningProps.
+  const [wallMeasurementPlans, setWallMeasurementPlans] = useState<MeasurementPlan[]>([]);
+  const hypothesisIds = useMemo(() => hypotheses.map(h => h.id), [hypotheses]);
+  // Key on joined string to avoid re-firing on array reference changes (Fix 5 — plan-load deps)
+  const hypothesisIdsKey = hypothesisIds.join('|');
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const all = await Promise.all(
+        hypothesisIds.map(id => azureHubRepository.measurementPlans.listByHypothesis(id))
+      );
+      if (!cancelled) setWallMeasurementPlans(all.flat());
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hypothesisIdsKey]);
+
   // Preferences store (annotation-per-user)
   const aiEnabled = usePreferencesStore(s => s.aiEnabled);
   const knowledgeSearchFolder = usePreferencesStore(s => s.knowledgeSearchFolder) ?? undefined;
   const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
   const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
+
+  // Project membership store (annotation-per-user — pending invitations)
+  const pendingInvites = useProjectMembershipStore(s => s.pendingInvites);
+  const acceptInvite = useProjectMembershipStore(s => s.acceptInvite);
+  const revokeInvite = useProjectMembershipStore(s => s.revokeInvite);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
@@ -601,6 +632,69 @@ export const Editor: React.FC<EditorProps> = ({
     () => new Set(activeIPLineage?.hypothesisIds ?? []),
     [activeIPLineage]
   );
+
+  // Wall measurement-plan callbacks — mirrors PWA App.tsx wallPlanningProps pattern
+  const wallActiveIPMembers = useMemo(
+    () => activeIPContext.activeIP?.metadata.members ?? [],
+    [activeIPContext.activeIP]
+  );
+  const wallPlanningProps = useMemo(
+    () => ({
+      plans: wallMeasurementPlans,
+      members: wallActiveIPMembers,
+      currentUserId: currentUser?.email ?? null,
+      onAddPlan: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => {
+        const stamped: MeasurementPlan = {
+          ...plan,
+          id: generateDeterministicId(),
+          createdAt: Date.now(),
+          deletedAt: null,
+        };
+        // Optimistic add — roll back on dispatch failure (Fix 6)
+        setWallMeasurementPlans(prev => [...prev, stamped]);
+        azureHubRepository
+          .dispatch({ kind: 'MEASUREMENT_PLAN_ADD', plan: stamped })
+          .catch((err: unknown) => {
+            setWallMeasurementPlans(prev => prev.filter(p => p.id !== stamped.id));
+            console.error('[wall] Failed to add measurement plan:', err);
+          });
+      },
+      onLinkFinding: (planId: string, findingId: string) => {
+        // Capture state before optimistic update so we can roll back on failure (Fix 6)
+        setWallMeasurementPlans(prev => {
+          const snapshot = prev;
+          const next = prev.map(p => {
+            if (p.id !== planId) return p;
+            const existing = p.linkedFindingIds ?? [];
+            // Dedup — prevents fast double-tap phantom rows (Fix 4)
+            const updated = existing.includes(findingId) ? existing : [...existing, findingId];
+            return { ...p, linkedFindingIds: updated };
+          });
+          azureHubRepository
+            .dispatch({ kind: 'MEASUREMENT_PLAN_LINK_FINDING', planId, findingId })
+            .catch((err: unknown) => {
+              setWallMeasurementPlans(snapshot);
+              console.error('[wall] Failed to link finding to plan:', err);
+            });
+          return next;
+        });
+      },
+      onEditPlan: (planId: string) => {
+        console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);
+      },
+    }),
+    [wallMeasurementPlans, wallActiveIPMembers, currentUser?.email]
+  );
+
+  // Action item dispatch — wired to useImprovementProjectStore via upsertProject
+  const upsertProject = useImprovementProjectStore(s => s.upsertProject);
+  const activeIP = activeIPContext.activeIP ?? null;
+  const applyAction = (action: ActionItemAction) => {
+    if (!activeIP) return;
+    const currentActions = activeIP.metadata.actions ?? [];
+    const nextActions = reduceActionItems(currentActions, action);
+    upsertProject({ ...activeIP, metadata: { ...activeIP.metadata, actions: nextActions } });
+  };
 
   // Sustainment + Handoff inputs for ProjectsTabView → IPDetailPage
   const _azureLiveSustainmentRecords = (activeHub?.sustainmentRecords ?? []).filter(
@@ -1681,6 +1775,16 @@ export const Editor: React.FC<EditorProps> = ({
         onChange={setProcessContext}
       />
 
+      {/* Pending invitations banner — layout chrome above tab content */}
+      <PendingInvitesBanner
+        invites={pendingInvites}
+        onAccept={acceptInvite}
+        onDecline={revokeInvite}
+        resolveProjectName={id =>
+          (activeHub?.improvementProjects ?? []).find(p => p.id === id)?.metadata.title
+        }
+      />
+
       {/* Main Content -- inert when phone overlay is open (F-18 focus trap) */}
       <div
         ref={el => {
@@ -1815,6 +1919,7 @@ export const Editor: React.FC<EditorProps> = ({
                 hypothesesState={hypothesesState}
                 questionsMap={questionsMap}
                 ideaImpacts={ideaImpacts}
+                planningProps={wallPlanningProps}
               />
             ) : activeView === 'projects' ? (
               <ProjectsTabView
@@ -1880,22 +1985,28 @@ export const Editor: React.FC<EditorProps> = ({
               />
             ) : activeView === 'improvement' ? (
               <ImproveTabRoot
-                activeIP={activeIPContext.activeIP ?? null}
-                actions={[]}
+                activeIP={activeIP}
+                actions={activeIP?.metadata.actions ?? []}
                 currentUserId={currentUser?.email}
                 onGoHome={() => usePanelsStore.getState().showDashboard()}
-                onActionAdd={action =>
-                  console.warn('[wedge V1] ACTION_ITEM_ADD not yet wired (PR-WV1-3 work):', action)
+                onActionAdd={({ text, parentImprovementProjectId }) =>
+                  applyAction({
+                    kind: 'ACTION_ITEM_ADD',
+                    hubId: activeIP?.hubId ?? '',
+                    actionItem: {
+                      id: generateDeterministicId(),
+                      createdAt: Date.now(),
+                      deletedAt: null,
+                      text,
+                      parentImprovementProjectId,
+                    },
+                  })
                 }
-                onActionUpdate={(id, patch) =>
-                  console.warn(
-                    '[wedge V1] ACTION_ITEM_UPDATE not yet wired (PR-WV1-3 work):',
-                    id,
-                    patch
-                  )
+                onActionUpdate={(actionItemId, patch) =>
+                  applyAction({ kind: 'ACTION_ITEM_UPDATE', actionItemId, patch })
                 }
-                onActionRemove={id =>
-                  console.warn('[wedge V1] ACTION_ITEM_REMOVE not yet wired (PR-WV1-3 work):', id)
+                onActionRemove={actionItemId =>
+                  applyAction({ kind: 'ACTION_ITEM_REMOVE', actionItemId, removedAt: Date.now() })
                 }
               />
             ) : activeView === 'report' ? (

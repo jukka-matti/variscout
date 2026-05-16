@@ -58,6 +58,7 @@ import {
   usePreferencesStore,
   useCanvasViewportStore,
 } from '@variscout/stores';
+import type { WallCanvasPlanningProps } from '@variscout/ui';
 import { InvestigationMapView } from './InvestigationMapView';
 import { CoScoutSection } from './CoScoutSection';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
@@ -115,6 +116,12 @@ interface InvestigationWorkspaceProps {
   // View state
   viewMode?: 'list' | 'board' | 'tree';
   onViewModeChange?: (mode: 'list' | 'board' | 'tree') => void;
+  /**
+   * Optional measurement-plan affordances threaded into WallCanvas.
+   * When provided, hub cards render HypothesisCardWithPlans.
+   * When omitted (default), hub cards render bare HypothesisCard.
+   */
+  planningProps?: WallCanvasPlanningProps;
 }
 
 /**
@@ -149,6 +156,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   ideaImpacts,
   viewMode: externalViewMode,
   onViewModeChange,
+  planningProps,
 }) => {
   const voiceInput = isSpeechToTextAvailable() ? { isAvailable: true, transcribeAudio } : undefined;
   const outcome = useProjectStore(s => s.outcome);
@@ -888,6 +896,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   zoom={wallZoom}
                   pan={wallPan}
                   groupByTributary={Boolean(processMap && wallGroupByTributary)}
+                  planningProps={planningProps}
                 />
                 {/* Minimap + CommandPalette are desktop-only. WallCanvas
                   self-gates to MobileCardList below 768px, so these

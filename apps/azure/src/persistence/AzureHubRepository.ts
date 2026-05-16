@@ -23,6 +23,7 @@ import type {
   SustainmentRecordReadAPI,
   SustainmentReviewReadAPI,
   ControlHandoffReadAPI,
+  MeasurementPlanReadAPI,
 } from '@variscout/core/persistence';
 import type { HubAction } from '@variscout/core/actions';
 import type { ActionItem } from '@variscout/core/findings';
@@ -339,6 +340,18 @@ export class AzureHubRepository implements HubRepository {
     },
     async listByHub(hubId) {
       const rows = await db.controlHandoffs.where('hubId').equals(hubId).toArray();
+      return rows.filter(row => row.deletedAt === null);
+    },
+  };
+
+  measurementPlans: MeasurementPlanReadAPI = {
+    async get(id) {
+      const row = await db.measurementPlans.get(id);
+      if (!row || row.deletedAt !== null) return undefined;
+      return row;
+    },
+    async listByHypothesis(hypothesisId) {
+      const rows = await db.measurementPlans.where('hypothesisId').equals(hypothesisId).toArray();
       return rows.filter(row => row.deletedAt === null);
     },
   };

@@ -48,12 +48,13 @@ vi.mock('../workers/useStatsWorker', () => ({
   useStatsWorker: () => null,
 }));
 
-import { render, act } from '@testing-library/react';
+import { render, act, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import App from '../App';
 import { LocaleProvider } from '../context/LocaleContext';
 import { registerLocaleLoaders, type MessageCatalog } from '@variscout/core';
 import { usePanelsStore, initialPanelsState } from '../features/panels/panelsStore';
+import { useProjectStore, useProjectMembershipStore } from '@variscout/stores';
 
 // Register locale loaders (mirrors main.tsx) so useTranslation works.
 registerLocaleLoaders(
@@ -116,5 +117,49 @@ describe('setState-in-render regression — useAppPanels individual selectors', 
     );
 
     expect(warningCalls).toHaveLength(0);
+  });
+});
+
+// Minimal invite fixture — only the fields PendingInvitesBanner reads.
+const testInvite = {
+  id: 'inv-test-1',
+  projectId: 'proj-test-1',
+  userId: 'user-test-1',
+  displayName: 'Test User',
+  role: 'member' as const,
+  invitedAt: 1_700_000_000_000,
+  status: 'pending' as const,
+  createdAt: 1_700_000_000_000,
+  deletedAt: null,
+};
+
+describe('PendingInvitesBanner — mounted in App.tsx Home view (active-IP launchpad path)', () => {
+  beforeEach(() => {
+    // Non-empty rawData so the HomeScreen empty-state branch is skipped and the
+    // panels.activeView branch is reached.
+    useProjectStore.setState({ rawData: [{ x: 1 }] as never });
+    // Put the app on the Home view so panels.activeView === 'home' triggers.
+    usePanelsStore.setState({ ...initialPanelsState, activeView: 'home' });
+    // Seed one pending invitation so the banner renders (non-null).
+    useProjectMembershipStore.setState({ pendingInvites: [testInvite] });
+  });
+
+  afterEach(() => {
+    // Restore stores to their initial state after each test.
+    useProjectStore.setState({ rawData: [], outcome: null, factors: [] });
+    usePanelsStore.setState(initialPanelsState);
+    useProjectMembershipStore.setState(useProjectMembershipStore.getInitialState());
+  });
+
+  it('renders PendingInvitesBanner above the launchpad when on the Home view with pending invites', async () => {
+    await act(async () => {
+      render(
+        <LocaleProvider>
+          <App />
+        </LocaleProvider>
+      );
+    });
+
+    expect(screen.getByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });
 });

@@ -39,6 +39,7 @@
 import type { HubAction } from '@variscout/core/actions';
 import { generateDeterministicId } from '@variscout/core/identity';
 import { applySustainmentTick, type EvidenceSnapshot } from '@variscout/core';
+import { reduceMeasurementPlans } from '@variscout/core/measurementPlan';
 import type { PwaDatabase } from '../db/schema';
 
 // ---------------------------------------------------------------------------
@@ -244,6 +245,24 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
         throw new Error(`ACTION_ITEM_ADD: parent hub ${action.hubId} does not exist`);
       }
       await db.actionItems.add({ ...action.actionItem, hubId: action.hubId });
+      return;
+    }
+
+    case 'ACTION_ITEM_UPDATE': {
+      const existing = await db.actionItems.get(action.actionItemId);
+      if (!existing) return;
+      await db.actionItems.update(action.actionItemId, {
+        ...action.patch,
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'ACTION_ITEM_REMOVE': {
+      await db.actionItems.update(action.actionItemId, {
+        deletedAt: action.removedAt,
+        updatedAt: action.removedAt,
+      });
       return;
     }
 
@@ -569,6 +588,38 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     // canvasState row). F5 introduces direct canvas action coverage if/when
     // canvas mutations move out of the session-only Zustand store.
     // -----------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------
+    // MeasurementPlan actions — dedicated measurementPlans Dexie table.
+    // -----------------------------------------------------------------------
+
+    case 'MEASUREMENT_PLAN_ADD':
+      await db.measurementPlans.put(action.plan);
+      return;
+
+    case 'MEASUREMENT_PLAN_UPDATE': {
+      const existing = await db.measurementPlans.get(action.planId);
+      if (!existing) return;
+      const next = reduceMeasurementPlans([existing], action);
+      if (next[0]) await db.measurementPlans.put(next[0]);
+      return;
+    }
+
+    case 'MEASUREMENT_PLAN_REMOVE': {
+      const existing = await db.measurementPlans.get(action.planId);
+      if (!existing) return;
+      const next = reduceMeasurementPlans([existing], action);
+      if (next[0]) await db.measurementPlans.put(next[0]);
+      return;
+    }
+
+    case 'MEASUREMENT_PLAN_LINK_FINDING': {
+      const existing = await db.measurementPlans.get(action.planId);
+      if (!existing) return;
+      const next = reduceMeasurementPlans([existing], action);
+      if (next[0]) await db.measurementPlans.put(next[0]);
+      return;
+    }
 
     case 'PLACE_CHIP_ON_STEP':
     case 'UNASSIGN_CHIP':

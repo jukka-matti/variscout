@@ -15,6 +15,7 @@ import type { SustainmentRecord, SustainmentReview } from '@variscout/core';
 import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { HubAction } from '@variscout/core/actions';
+import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import { applyAction } from '../applyAction';
 import { db } from '../../db/schema';
 
@@ -99,6 +100,7 @@ beforeEach(async () => {
   await db.actionItems.clear();
   await db.sustainmentRecords.clear();
   await db.sustainmentReviews.clear();
+  await db.measurementPlans.clear();
 });
 
 afterEach(async () => {
@@ -108,6 +110,7 @@ afterEach(async () => {
   await db.actionItems.clear();
   await db.sustainmentRecords.clear();
   await db.sustainmentReviews.clear();
+  await db.measurementPlans.clear();
   vi.restoreAllMocks();
 });
 
@@ -617,7 +620,75 @@ describe('applyAction — no-op action kinds', () => {
 
     expect(await db.canvasState.count()).toBe(0);
   });
+});
 
+// ---------------------------------------------------------------------------
+// MEASUREMENT_PLAN_* — dedicated measurementPlans Dexie table (PWA v5)
+// ---------------------------------------------------------------------------
+
+function makeMeasurementPlan(id: string, hypothesisId: string): MeasurementPlan {
+  return {
+    id,
+    createdAt: NOW,
+    deletedAt: null,
+    hypothesisId,
+    factor: 'X',
+    method: 'sensor',
+    sampleSize: 10,
+    owner: 'pm-1',
+    status: 'planned',
+  };
+}
+
+describe('applyAction — MEASUREMENT_PLAN_ADD (PWA)', () => {
+  it('persists a new MeasurementPlan to the measurementPlans table', async () => {
+    const plan = makeMeasurementPlan('mp-1', 'h-1');
+    await applyAction(db, { kind: 'MEASUREMENT_PLAN_ADD', plan });
+    const persisted = await db.measurementPlans.toArray();
+    expect(persisted).toEqual([plan]);
+  });
+});
+
+describe('applyAction — MEASUREMENT_PLAN_UPDATE (PWA)', () => {
+  it('merges patch onto an existing plan', async () => {
+    const plan = makeMeasurementPlan('mp-2', 'h-1');
+    await db.measurementPlans.put(plan);
+    await applyAction(db, {
+      kind: 'MEASUREMENT_PLAN_UPDATE',
+      planId: 'mp-2',
+      patch: { status: 'in-progress', sampleSize: 50 },
+    });
+    const persisted = await db.measurementPlans.get('mp-2');
+    expect(persisted?.status).toBe('in-progress');
+    expect(persisted?.sampleSize).toBe(50);
+  });
+});
+
+describe('applyAction — MEASUREMENT_PLAN_REMOVE (PWA)', () => {
+  it('soft-deletes via deletedAt', async () => {
+    const plan = makeMeasurementPlan('mp-3', 'h-1');
+    await db.measurementPlans.put(plan);
+    await applyAction(db, { kind: 'MEASUREMENT_PLAN_REMOVE', planId: 'mp-3', removedAt: 200 });
+    const persisted = await db.measurementPlans.get('mp-3');
+    expect(persisted?.deletedAt).toBe(200);
+  });
+});
+
+describe('applyAction — MEASUREMENT_PLAN_LINK_FINDING (PWA)', () => {
+  it('appends findingId to linkedFindingIds', async () => {
+    const plan = makeMeasurementPlan('mp-4', 'h-1');
+    await db.measurementPlans.put(plan);
+    await applyAction(db, {
+      kind: 'MEASUREMENT_PLAN_LINK_FINDING',
+      planId: 'mp-4',
+      findingId: 'f-1',
+    });
+    const persisted = await db.measurementPlans.get('mp-4');
+    expect(persisted?.linkedFindingIds).toEqual(['f-1']);
+  });
+});
+
+describe('applyAction — no-op and session-only kinds', () => {
   it.each([
     'EVIDENCE_SOURCE_ADD',
     // EVIDENCE_SOURCE_UPDATE_CURSOR is no longer a no-op (F3.5 P5.1 wired it).

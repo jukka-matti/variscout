@@ -19,6 +19,9 @@ import { render, screen, fireEvent } from '@testing-library/react';
 // ── 1. Mocks BEFORE component imports ──────────────────────────────────────
 
 const showCharterMock = vi.hoisted(() => vi.fn());
+const capturedWallCanvasProps = vi.hoisted(() => ({
+  current: null as Record<string, unknown> | null,
+}));
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -79,12 +82,14 @@ vi.mock('@variscout/ui', async importOriginal => {
     FindingsLog: () => <div data-testid="findings-log" />,
     QuestionLinkPrompt: () => null,
     useWallIsMobile: () => false,
-    WallCanvas: (props: { hubs: unknown[] }) =>
-      props.hubs.length > 0 ? (
+    WallCanvas: (props: { hubs: unknown[]; planningProps?: Record<string, unknown> }) => {
+      capturedWallCanvasProps.current = props as Record<string, unknown>;
+      return props.hubs.length > 0 ? (
         <div data-testid="wall-canvas" data-has-process-map={String('processMap' in props)} />
       ) : (
         <div data-testid="wall-canvas-empty" data-has-process-map={String('processMap' in props)} />
-      ),
+      );
+    },
   };
 });
 
@@ -329,5 +334,44 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
 
     expect(showCharterMock).toHaveBeenCalledTimes(1);
     expect(window.sessionStorage.getItem(RETURN_NAVIGATION_STORAGE_KEY)).toBeNull();
+  });
+
+  describe('planningProps pass-through', () => {
+    beforeEach(() => {
+      capturedWallCanvasProps.current = null;
+      useCanvasViewportStore.getState().setViewMode('wall');
+    });
+
+    it('threads planningProps through to WallCanvas when provided', () => {
+      const onAddPlan = vi.fn();
+      const onLinkFinding = vi.fn();
+      const onEditPlan = vi.fn();
+
+      render(
+        <InvestigationWorkspace
+          {...makeMinimalProps()}
+          planningProps={{
+            plans: [],
+            members: [],
+            currentUserId: 'user@contoso.com',
+            onAddPlan,
+            onLinkFinding,
+            onEditPlan,
+          }}
+        />
+      );
+
+      expect(capturedWallCanvasProps.current?.planningProps).toBeDefined();
+      const pp = capturedWallCanvasProps.current?.planningProps as Record<string, unknown>;
+      expect(pp.currentUserId).toBe('user@contoso.com');
+      expect(pp.onAddPlan).toBe(onAddPlan);
+      expect(pp.onLinkFinding).toBe(onLinkFinding);
+      expect(pp.onEditPlan).toBe(onEditPlan);
+    });
+
+    it('does not pass planningProps to WallCanvas when omitted', () => {
+      render(<InvestigationWorkspace {...makeMinimalProps()} />);
+      expect(capturedWallCanvasProps.current?.planningProps).toBeUndefined();
+    });
   });
 });

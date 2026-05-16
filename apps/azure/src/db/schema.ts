@@ -1,6 +1,7 @@
 // src/db/schema.ts
 
 import Dexie from 'dexie';
+import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 
 export interface ProjectRecord {
   name: string;
@@ -54,6 +55,7 @@ export class VariScoutDatabase extends Dexie {
   evidenceSourceCursors!: Dexie.Table<EvidenceSourceCursor, [string, string]>;
   improvementProjects!: Dexie.Table<ImprovementProjectRecord, string>;
   actionItems!: Dexie.Table<ActionItemRecord, string>;
+  measurementPlans!: Dexie.Table<MeasurementPlan, string>;
 
   constructor() {
     super('VaRiScoutAzure');
@@ -153,6 +155,11 @@ export class VariScoutDatabase extends Dexie {
     this.version(11).stores({
       actionItems:
         'id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
+    });
+
+    // Version 12: PR-WV1-3 — MeasurementPlan dedicated table for Investigation Wall plans.
+    this.version(12).stores({
+      measurementPlans: 'id, hypothesisId, status, deletedAt',
     });
   }
 }

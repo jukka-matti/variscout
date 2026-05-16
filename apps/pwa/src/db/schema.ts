@@ -47,6 +47,7 @@ import type {
 } from '@variscout/core/findings';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessMap } from '@variscout/core/frame';
+import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 
 // ---------------------------------------------------------------------------
 // Row types
@@ -100,6 +101,7 @@ export type ActionItemRow = ActionItem & { hubId: ProcessHub['id'] };
 export type SustainmentRecordRow = SustainmentRecord;
 export type SustainmentReviewRow = SustainmentReview;
 export type ControlHandoffRow = ControlHandoff;
+export type MeasurementPlanRow = MeasurementPlan;
 
 // ---------------------------------------------------------------------------
 // Database
@@ -124,6 +126,7 @@ export class PwaDatabase extends Dexie {
   controlHandoffs!: Table<ControlHandoffRow, string>;
   canvasState!: Table<CanvasStateRow, string>;
   meta!: Table<MetaRow, string>;
+  measurementPlans!: Table<MeasurementPlanRow, string>;
 
   constructor() {
     super('variscout-pwa-normalized');
@@ -153,6 +156,10 @@ export class PwaDatabase extends Dexie {
     });
     this.version(4).stores({
       controlHandoffs: '&id, investigationId, hubId, status, handoffDate, deletedAt',
+    });
+    // Version 5: PR-WV1-3 — MeasurementPlan dedicated table for Investigation Wall plans.
+    this.version(5).stores({
+      measurementPlans: '&id, hypothesisId, status, deletedAt',
     });
   }
 }

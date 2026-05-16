@@ -120,6 +120,7 @@ beforeEach(async () => {
   await db.evidenceSnapshots.clear();
   await db.evidenceSourceCursors.clear();
   await db.actionItems.clear();
+  await db.measurementPlans.clear();
 });
 
 afterEach(async () => {
@@ -128,6 +129,7 @@ afterEach(async () => {
   await db.evidenceSnapshots.clear();
   await db.evidenceSourceCursors.clear();
   await db.actionItems.clear();
+  await db.measurementPlans.clear();
   vi.restoreAllMocks();
 });
 
@@ -666,6 +668,70 @@ describe('applyAction — canvas action no-ops', () => {
 });
 
 // ---------------------------------------------------------------------------
+// MEASUREMENT_PLAN_* — dedicated measurementPlans Dexie table
+// ---------------------------------------------------------------------------
+
+import type { MeasurementPlan } from '@variscout/core/measurementPlan';
+
+function makeMeasurementPlan(id: string, hypothesisId: string): MeasurementPlan {
+  return {
+    id,
+    createdAt: NOW,
+    deletedAt: null,
+    hypothesisId,
+    factor: 'X',
+    method: 'sensor',
+    sampleSize: 10,
+    owner: 'pm-1',
+    status: 'planned',
+  };
+}
+
+describe('applyAction — MEASUREMENT_PLAN_ADD', () => {
+  it('persists a new MeasurementPlan to the measurementPlans table', async () => {
+    const plan = makeMeasurementPlan('mp-1', 'h-1');
+    await applyAction({ kind: 'MEASUREMENT_PLAN_ADD', plan });
+    const persisted = await db.measurementPlans.toArray();
+    expect(persisted).toEqual([plan]);
+  });
+});
+
+describe('applyAction — MEASUREMENT_PLAN_UPDATE', () => {
+  it('merges patch onto an existing plan', async () => {
+    const plan = makeMeasurementPlan('mp-2', 'h-1');
+    await db.measurementPlans.put(plan);
+    await applyAction({
+      kind: 'MEASUREMENT_PLAN_UPDATE',
+      planId: 'mp-2',
+      patch: { status: 'in-progress', sampleSize: 50 },
+    });
+    const persisted = await db.measurementPlans.get('mp-2');
+    expect(persisted?.status).toBe('in-progress');
+    expect(persisted?.sampleSize).toBe(50);
+  });
+});
+
+describe('applyAction — MEASUREMENT_PLAN_REMOVE', () => {
+  it('soft-deletes via deletedAt', async () => {
+    const plan = makeMeasurementPlan('mp-3', 'h-1');
+    await db.measurementPlans.put(plan);
+    await applyAction({ kind: 'MEASUREMENT_PLAN_REMOVE', planId: 'mp-3', removedAt: 200 });
+    const persisted = await db.measurementPlans.get('mp-3');
+    expect(persisted?.deletedAt).toBe(200);
+  });
+});
+
+describe('applyAction — MEASUREMENT_PLAN_LINK_FINDING', () => {
+  it('appends findingId to linkedFindingIds', async () => {
+    const plan = makeMeasurementPlan('mp-4', 'h-1');
+    await db.measurementPlans.put(plan);
+    await applyAction({ kind: 'MEASUREMENT_PLAN_LINK_FINDING', planId: 'mp-4', findingId: 'f-1' });
+    const persisted = await db.measurementPlans.get('mp-4');
+    expect(persisted?.linkedFindingIds).toEqual(['f-1']);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // AzureHubRepository integration — dispatch delegates to applyAction
 // ---------------------------------------------------------------------------
 
@@ -791,6 +857,15 @@ describe('exhaustiveness — every HubAction kind has a handler', () => {
     { kind: 'DISCONNECT_STEPS', fromStepId: 's1', toStepId: 's2' },
     { kind: 'GROUP_INTO_SUB_STEP', stepIds: ['s1', 's2'], parentStepId: 'parent' },
     { kind: 'UNGROUP_SUB_STEP', stepId: 'step-1' },
+    // MeasurementPlan kinds.
+    { kind: 'MEASUREMENT_PLAN_ADD', plan: makeMeasurementPlan('mp-exhaust', 'h-exhaust') },
+    {
+      kind: 'MEASUREMENT_PLAN_UPDATE',
+      planId: 'mp-exhaust',
+      patch: { status: 'in-progress' },
+    },
+    { kind: 'MEASUREMENT_PLAN_REMOVE', planId: 'mp-exhaust', removedAt: NOW },
+    { kind: 'MEASUREMENT_PLAN_LINK_FINDING', planId: 'mp-exhaust', findingId: 'f-exhaust' },
   ];
 
   // Run each action sequentially so state mutations don't interfere.

@@ -39,7 +39,8 @@
     "./identity": "./src/identity.ts",
     "./actions": "./src/actions/index.ts",
     "./persistence": "./src/persistence/index.ts",
-    "./projectMembership": "./src/projectMembership/index.ts"
+    "./projectMembership": "./src/projectMembership/index.ts",
+    "./measurementPlan": "./src/measurementPlan/index.ts"
   },
   "scripts": {
     "test": "vitest",

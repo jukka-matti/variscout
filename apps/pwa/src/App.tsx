@@ -29,6 +29,7 @@ import {
   deriveActiveIPCanvasFocus,
   deriveActiveIPLineageIds,
   deriveActiveIPScopeLabels,
+  PendingInvitesBanner,
   type ColumnShape,
 } from '@variscout/ui';
 import { useStageFiveOpener } from './hooks/useStageFiveOpener';
@@ -36,6 +37,8 @@ import { SaveToBrowserButton } from './components/SaveToBrowserButton';
 import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
 import { getOptInFlag, pwaHubRepository } from './persistence';
+import { generateDeterministicId } from '@variscout/core/identity';
+import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
   useFindings,
@@ -58,6 +61,7 @@ import {
   usePreferencesStore,
   useCanvasViewportStore,
   useViewStore,
+  useProjectMembershipStore,
 } from '@variscout/stores';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
@@ -214,9 +218,36 @@ function AppMain() {
   const hypotheses = useInvestigationStore(s => s.hypotheses);
   const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
 
+  // Measurement plans — loaded from IndexedDB for all current hypotheses.
+  // Re-loads whenever the hypothesis list changes (new hub added or removed).
+  // Passed into WallCanvas planningProps so plan chips stay in sync with
+  // the underlying store without requiring a separate Zustand layer.
+  const [wallMeasurementPlans, setWallMeasurementPlans] = useState<MeasurementPlan[]>([]);
+  const hypothesisIds = useMemo(() => hypotheses.map(h => h.id), [hypotheses]);
+  // Key on joined string to avoid re-firing on array reference changes (Fix 5 — plan-load deps)
+  const hypothesisIdsKey = hypothesisIds.join('|');
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const all = await Promise.all(
+        hypothesisIds.map(id => pwaHubRepository.measurementPlans.listByHypothesis(id))
+      );
+      if (!cancelled) setWallMeasurementPlans(all.flat());
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hypothesisIdsKey]);
+
   // Preferences store — question-link prompt opt-out flag
   const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
   const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
+
+  // Project membership store — pending invitations for the Home view banner
+  const pendingInvites = useProjectMembershipStore(s => s.pendingInvites);
+  const acceptInvite = useProjectMembershipStore(s => s.acceptInvite);
+  const revokeInvite = useProjectMembershipStore(s => s.revokeInvite);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
@@ -863,6 +894,62 @@ function AppMain() {
       activeIPContext.isIPScoped ? { ...findingsState, findings: scopedFindings } : findingsState,
     [activeIPContext.isIPScoped, findingsState, scopedFindings]
   );
+  // ── Measurement plan callbacks for WallCanvas planningProps ─────────────
+  // PWA uses 'analyst@local' as the single-user identity (no auth).
+  const PWA_WALL_USER_ID = 'analyst@local';
+  const wallActiveIPMembers = useMemo(
+    () => activeIPContext.activeIP?.metadata.members ?? [],
+    [activeIPContext.activeIP]
+  );
+  const wallPlanningProps = useMemo(
+    () => ({
+      plans: wallMeasurementPlans,
+      members: wallActiveIPMembers,
+      currentUserId: PWA_WALL_USER_ID,
+      onAddPlan: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => {
+        const stamped: MeasurementPlan = {
+          ...plan,
+          id: generateDeterministicId(),
+          createdAt: Date.now(),
+          deletedAt: null,
+        };
+        // Optimistic add — roll back on dispatch failure (Fix 6)
+        setWallMeasurementPlans(prev => [...prev, stamped]);
+        pwaHubRepository
+          .dispatch({ kind: 'MEASUREMENT_PLAN_ADD', plan: stamped })
+          .catch((err: unknown) => {
+            setWallMeasurementPlans(prev => prev.filter(p => p.id !== stamped.id));
+            console.error('[wall] Failed to add measurement plan:', err);
+          });
+      },
+      onLinkFinding: (planId: string, findingId: string) => {
+        // Capture state before optimistic update so we can roll back on failure (Fix 6)
+        setWallMeasurementPlans(prev => {
+          const snapshot = prev;
+          const next = prev.map(p => {
+            if (p.id !== planId) return p;
+            const existing = p.linkedFindingIds ?? [];
+            // Dedup — prevents fast double-tap phantom rows (Fix 4)
+            const updated = existing.includes(findingId) ? existing : [...existing, findingId];
+            return { ...p, linkedFindingIds: updated };
+          });
+          pwaHubRepository
+            .dispatch({ kind: 'MEASUREMENT_PLAN_LINK_FINDING', planId, findingId })
+            .catch((err: unknown) => {
+              setWallMeasurementPlans(snapshot);
+              console.error('[wall] Failed to link finding to plan:', err);
+            });
+          return next;
+        });
+      },
+      onEditPlan: (planId: string) => {
+        console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);
+      },
+    }),
+
+    [wallMeasurementPlans, wallActiveIPMembers]
+  );
+
   const activeIPAnalyzeFactorRequest = useMemo(
     () =>
       activeIPContext.isIPScoped && activeIPScopeLabels?.factorLabels[0]
@@ -1132,9 +1219,20 @@ function AppMain() {
                 onOpenPaste={importFlow.handleOpenPaste}
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
                 onImportVrs={handleImportVrs}
+                resolveProjectName={id =>
+                  (sessionHub?.improvementProjects ?? []).find(p => p.id === id)?.metadata.title
+                }
               />
             ) : panels.activeView === 'home' ? (
               <div className="h-full overflow-auto p-4 sm:p-6">
+                <PendingInvitesBanner
+                  invites={pendingInvites}
+                  onAccept={acceptInvite}
+                  onDecline={revokeInvite}
+                  resolveProjectName={id =>
+                    (sessionHub?.improvementProjects ?? []).find(p => p.id === id)?.metadata.title
+                  }
+                />
                 <ActiveIPLaunchpadCard
                   projects={(sessionHub?.improvementProjects ?? []).filter(
                     project => project.deletedAt === null
@@ -1248,6 +1346,7 @@ function AppMain() {
                 resolvedMode={resolved}
                 questionsMap={investigation.questionsMap}
                 ideaImpacts={investigation.ideaImpacts}
+                planningProps={wallPlanningProps}
               />
             ) : panels.activeView === 'projects' ? (
               <ProjectsTabView
@@ -1313,7 +1412,6 @@ function AppMain() {
               <ImprovementView
                 activeIPScope={activeIPScope}
                 activeIP={activeIPContext.activeIP ?? null}
-                actions={[]}
                 onGoHome={panels.showHome}
               />
             ) : panels.activeView === 'report' ? (

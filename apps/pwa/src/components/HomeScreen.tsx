@@ -3,6 +3,8 @@ import { BarChart2, ClipboardPaste, PenLine, ArrowUpRight } from 'lucide-react';
 import type { SampleDataset } from '@variscout/data';
 import { useTranslation } from '@variscout/hooks';
 import type { VrsFile } from '@variscout/core';
+import { PendingInvitesBanner } from '@variscout/ui';
+import { useProjectMembershipStore } from '@variscout/stores';
 import { VrsImportButton } from './VrsImportButton';
 import SampleSection from './data/SampleSection';
 
@@ -12,6 +14,7 @@ interface HomeScreenProps {
   onOpenManualEntry: () => void;
   onOpenSettings?: () => void;
   onImportVrs?: (imported: VrsFile) => void;
+  resolveProjectName?: (projectId: string) => string | undefined;
 }
 
 /**
@@ -24,12 +27,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenPaste,
   onOpenManualEntry,
   onImportVrs,
+  resolveProjectName,
 }) => {
   const { t } = useTranslation();
+  const pendingInvites = useProjectMembershipStore(s => s.pendingInvites);
+  const acceptInvite = useProjectMembershipStore(s => s.acceptInvite);
+  const revokeInvite = useProjectMembershipStore(s => s.revokeInvite);
 
   return (
     <div className="h-full flex flex-col items-center justify-start p-4 sm:p-8 overflow-auto animate-in fade-in duration-500">
       <div className="max-w-xl w-full space-y-6 sm:space-y-8 py-4">
+        <PendingInvitesBanner
+          invites={pendingInvites}
+          onAccept={acceptInvite}
+          onDecline={revokeInvite}
+          resolveProjectName={resolveProjectName}
+        />
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex p-4 bg-surface-secondary/50 rounded-full border border-edge">
