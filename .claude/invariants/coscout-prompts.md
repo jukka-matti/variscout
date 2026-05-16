@@ -3,6 +3,7 @@ paths:
   - "packages/core/src/ai/prompts/**"
   - "packages/core/src/ai/actionTools.ts"
   - "packages/core/src/ai/**"
+related: [coscout-ax-design]
 ---
 
 # CoScout prompts — non-negotiables
@@ -14,3 +15,5 @@ paths:
 - **Tier 1 stays session-invariant** — moving content tier1 ↔ tier3 breaks prompt-cache hit rate.
 
 Detailed architecture + tier model + mode coaching: `packages/core/CLAUDE.md`.
+
+See also: [coscout-ax-design](../../docs/01-vision/coscout-ax-design.md) — canonical AX-design surface (persona, tier-gating, knowledge architecture, safety, eval discipline).

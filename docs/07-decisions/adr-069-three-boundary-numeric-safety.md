@@ -5,10 +5,12 @@ title: 'ADR-069: Three-Boundary Numeric Safety'
 audience: human
 category: architecture
 status: active
-related: [stats-engine, numerical-safety, nan-defense, safe-math]
+related: [stats-engine, numerical-safety, nan-defense, safe-math, coscout-ax-design]
 ---
 
 # ADR-069: Three-Boundary Numeric Safety
+
+> See canonical AX design at [coscout-ax-design](../01-vision/coscout-ax-design.md) for the consolidated CoScout safety overview including REF marker constraints. This ADR is the decision provenance for the B1/B2/B3 numeric safety architecture and `safeMath.ts`.
 
 **Status:** Accepted
 **Date:** 2026-04-06
