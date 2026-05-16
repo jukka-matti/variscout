@@ -13,6 +13,8 @@ related:
 
 # Multi-level SCOUT V1 (first slice) — Implementation Plan
 
+> **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Under the wedge, multi-level SCOUT operates **per project** (not per Hub). L2 = the project's process; portfolio-spanning SCOUT defers to **VariScout Process**, the future enterprise product. Implementation tasks below stay valid; data scope is project-bound. The `useCanvasViewportStore` keying changes from `ProcessHubId` to `ProjectId` (per wedge spec §6).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Land the first delivery slice of the Multi-level SCOUT design (`docs/superpowers/specs/2026-04-29-multi-level-scout-design.md` §8) — the architecture (strategy + `dataRouter`), the timeline window primitive, scope detection, the new throughput module (`computeOutputRate` + `computeBottleneck`), the drift detector, append-mode for re-upload, and the `ProductionLineGlanceDashboard` refactor onto the strategy pattern. Findings record their window context as a passive footer. ADR-074 gets a structural-absence boundary check script.

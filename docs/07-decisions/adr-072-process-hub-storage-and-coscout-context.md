@@ -12,6 +12,8 @@ date: 2026-04-26
 
 **Amends**: [ADR-004](adr-004-offline-first.md), [ADR-059](adr-059-web-first-deployment-architecture.md), [ADR-060](adr-060-coscout-intelligence-architecture.md)
 
+**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). Under the wedge, **Project** (not Hub) is the V1 durable persistence unit. IndexedDB + Blob sync patterns described in this ADR are preserved as architecture; only the keying changes (`ProjectId` replaces `ProcessHubId`). Hub-level governance, cadence records, and process-owner-anchored context bundling defer to **VariScout Process**, the future enterprise product.
+
 **Supersedes as active guidance**:
 [ADR-021](../archive/adrs/adr-021-security-evaluation.md),
 [ADR-030](../archive/adrs/adr-030-unified-file-picker.md),

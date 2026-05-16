@@ -15,6 +15,8 @@ related:
 
 **Status**: Accepted
 
+**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). Under the wedge, the framing shifts from "paid-tier Hub blob writes" to "**shared project writes**" — single SKU means no tier-gating; **project-membership ACLs** (Lead / Member / Reviewer per wedge spec §4) gate who can write. The ETag optimistic-concurrency pattern (HTTP If-Match preconditions, parse-modify-rewrite on 412 conflicts, 1 retry then surface) is unchanged; it now protects concurrent project edits within a tenant.
+
 ## Context
 
 Paid-tier (Azure app, ADR-058) supports team collaboration on a shared hub via Blob Storage sync. Multiple teammates can paste new data into the same hub concurrently; their edits must compose, not silently overwrite each other.

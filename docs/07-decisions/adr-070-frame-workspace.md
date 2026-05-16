@@ -24,6 +24,8 @@ related:
 
 **Date:** 2026-04-18
 
+**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). Under the wedge, FRAME applies to a **Project** (not a Hub) for V1. The Frame step lives in Process tab Edit mode (per [wedge spec §3.3.1](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§331-two-modes-within-one-tab--state-default-and-edit)) and authoring scope is project-bound. Hub-level process-learning + cadence framing defers to **VariScout Process**, the future enterprise product. The FRAME workspace mechanics (visual process map, deterministic mode inference, gap detection, SIPOC) are unchanged; only the foundational unit changes (Project, not Hub).
+
 ## Context
 
 The five-phase investigation spine FRAME → SCOUT → INVESTIGATE → IMPROVE → REPORT ([ADR-055](./adr-055-workspace-navigation.md)) surfaces four of five phases as workspaces — Overview, Analysis, Investigation, Improvement, Report — but **FRAME has no dedicated surface**. FRAME happens silently during data upload: column detection heuristically labels the outcome, factors, and time column, and analysis mode is guessed from column-name keywords (`packages/core/src/parser/detection.ts`, Yamazumi/Defect/Performance detectors). A prospect walkthrough with Greg on 2026-04-18 exposed the consequence — VariScout is positioned as _structured investigation for process improvement_ but the UX never asks about the user's process.

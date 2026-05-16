@@ -7,6 +7,8 @@ title: 'ADR-035: Improvement Prioritization Model'
 **Status:** Accepted
 **Date:** 2026-03-20
 
+**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). Under the wedge, the Improve workspace is now a _stage_ inside Projects detail (not a top-level tab). This ADR's prioritization model applies within that Improve stage. UI affordances referenced in this doc may move from a tab to a stage panel; the underlying prioritization heuristics are unchanged.
+
 ## Context
 
 The IMPROVE phase workspace evaluated improvement ideas using a simple effort dimension (low/medium/high). Real-world improvement decisions require richer evaluation:

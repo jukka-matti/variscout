@@ -21,6 +21,8 @@ related:
 
 **Supersedes**: None
 
+**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). Under the wedge, L2 is the **Process** artifact (project-scoped), not a Hub-level rollup. The boundary policy (Investigation tab owns L3 mechanism work; Process tab handles L1+L2; SCOUT spans the surface without reimplementing L1/L3 primitives) is unchanged. Multi-project / portfolio-spanning L2 (Hub portfolio) defers to **VariScout Process**, the future enterprise product.
+
 **Related**:
 [ADR-073](adr-073-no-statistical-rollup-across-heterogeneous-units.md) (locality rule, same enforcement mechanism),
 [ADR-049](adr-049-coscout-context-and-memory.md) (Knowledge Catalyst — investigation as memory, depends on this policy),

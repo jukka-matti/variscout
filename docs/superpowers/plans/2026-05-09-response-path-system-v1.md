@@ -14,6 +14,8 @@ related:
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). RPS V1 shipped 5 response paths off a Process Hub. Under the wedge, **3 paths** surface at V1 from canvas drill (Investigate, Quick Action, Charter); Sustainment auto-fires per ADR-080 (no canvas-launch); **Handoff path is deleted everywhere** and its close-project logic folds into the Sustainment stage closure (per wedge spec §3.2 + §3.3.4). All shipped code stays — the wedge gates the canvas drill-down menu to 3 paths rather than deleting RPS V1 infrastructure.
+
 **Goal:** Implement RPS V1 — naming reconciliation + Wall re-home + Wall Detective-pack + Improvement Project + Quick Action + Sustainment + Handoff — as 10 sequenced PRs off branch `response-path-system-v1`, per `docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md`.
 
 **Architecture:** Five-entity canonical investigation graph (Question / Hypothesis / GateNode / Finding / CausalLink) with two status enums. Five response paths (Quick Action / Focused Investigation / Improvement Project / Sustainment / Handoff) sharing Survey-driven cross-surface UX patterns. Three-altitude framing: macro Hub cadence loop, Survey cross-phase layer, per-response micro lifecycles. No backward compatibility — clean breaks per design phase.
