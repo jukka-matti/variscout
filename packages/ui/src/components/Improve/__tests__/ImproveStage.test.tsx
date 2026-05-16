@@ -1,4 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// vi.mock BEFORE component imports per testing.md rule.
+// ImprovementWorkspaceBase uses useTranslation (i18n) and lucide icons that need mocking
+// to keep this test hermetic. Runtime integration verified via --chrome browser walk.
+vi.mock('../../../components/ImprovementPlan/ImprovementWorkspaceBase', () => ({
+  ImprovementWorkspaceBase: () => (
+    <div data-testid="improvement-workspace-base">ImprovementWorkspaceBase</div>
+  ),
+}));
+
 import { fireEvent, render, screen, cleanup } from '@testing-library/react';
 import { ImproveStage } from '../ImproveStage';
 import type { ActionItem } from '@variscout/core/findings';
@@ -166,10 +176,10 @@ describe('ImproveStage advanced toggle', () => {
       />
     );
     expect(screen.getByRole('heading', { name: /actions/i })).toBeInTheDocument();
-    expect(screen.queryByLabelText(/context/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId('improvement-workspace-base')).not.toBeInTheDocument();
   });
 
-  it('switches to Advanced workbench when toggle clicked', () => {
+  it('switches to Advanced workbench (ImprovementWorkspaceBase) when toggle clicked', () => {
     render(
       <ImproveStage
         projectId="ip-1"
@@ -182,6 +192,6 @@ describe('ImproveStage advanced toggle', () => {
       />
     );
     fireEvent.click(screen.getByRole('button', { name: /advanced/i }));
-    expect(screen.getByLabelText(/context/i)).toBeInTheDocument();
+    expect(screen.getByTestId('improvement-workspace-base')).toBeInTheDocument();
   });
 });

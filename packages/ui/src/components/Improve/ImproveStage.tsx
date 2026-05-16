@@ -1,7 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ComponentProps } from 'react';
 import type { ActionItem } from '@variscout/core/findings';
 import { canAccess, type ProjectMember } from '@variscout/core/projectMembership';
-import { ImproveStageAdvanced, type ImproveStageAdvancedProps } from './ImproveStageAdvanced';
+import { ImprovementWorkspaceBase } from '../ImprovementPlan/ImprovementWorkspaceBase';
 
 export interface ImproveStageProps {
   projectId: string;
@@ -15,11 +15,9 @@ export interface ImproveStageProps {
   ) => void;
   onActionRemove: (actionId: string) => void;
   /** Optional pass-throughs for the Advanced PDCA workbench.
-   *  Defaults to empty/no-op values when not provided. */
-  advancedProps?: Partial<Omit<ImproveStageAdvancedProps, 'projectId'>>;
+   *  Forwarded verbatim to ImprovementWorkspaceBase. */
+  advancedProps?: Partial<ComponentProps<typeof ImprovementWorkspaceBase>>;
 }
-
-const DEFAULT_WHAT_IF_STATS = { mean: 0, stdDev: 1 };
 
 export function ImproveStage({
   projectId,
@@ -75,34 +73,7 @@ export function ImproveStage({
       </header>
 
       {showAdvanced ? (
-        <ImproveStageAdvanced
-          projectId={projectId}
-          causes={advancedProps?.causes ?? []}
-          problemStatement={advancedProps?.problemStatement}
-          synthesis={advancedProps?.synthesis}
-          targetCpk={advancedProps?.targetCpk}
-          currentCpk={advancedProps?.currentCpk}
-          ideaGroups={advancedProps?.ideaGroups ?? []}
-          onIdeaGroupCardToggleSelect={advancedProps?.onIdeaGroupCardToggleSelect}
-          onIdeaGroupCardAddIdea={advancedProps?.onIdeaGroupCardAddIdea}
-          onIdeaGroupCardOpenWhatIf={advancedProps?.onIdeaGroupCardOpenWhatIf}
-          onOpenBrainstorm={advancedProps?.onOpenBrainstorm}
-          onBrainstormAddIdea={advancedProps?.onBrainstormAddIdea}
-          onBrainstormEditIdea={advancedProps?.onBrainstormEditIdea}
-          onBrainstormRemoveIdea={advancedProps?.onBrainstormRemoveIdea}
-          onBrainstormDone={advancedProps?.onBrainstormDone}
-          matrixIdeas={advancedProps?.matrixIdeas ?? []}
-          matrixXAxis={advancedProps?.matrixXAxis ?? 'benefit'}
-          matrixYAxis={advancedProps?.matrixYAxis ?? 'timeframe'}
-          matrixColorBy={advancedProps?.matrixColorBy ?? 'risk'}
-          onMatrixToggleSelect={advancedProps?.onMatrixToggleSelect ?? (() => {})}
-          onMatrixAxisChange={advancedProps?.onMatrixAxisChange ?? (() => {})}
-          matrixPresets={advancedProps?.matrixPresets}
-          matrixActivePreset={advancedProps?.matrixActivePreset}
-          onMatrixPresetChange={advancedProps?.onMatrixPresetChange}
-          whatIfMode={advancedProps?.whatIfMode ?? 'standard'}
-          whatIfCurrentStats={advancedProps?.whatIfCurrentStats ?? DEFAULT_WHAT_IF_STATS}
-        />
+        <ImprovementWorkspaceBase questions={advancedProps?.questions ?? []} {...advancedProps} />
       ) : (
         <>
           {addOpen && canEdit && (
