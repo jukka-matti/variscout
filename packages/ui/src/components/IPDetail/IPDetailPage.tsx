@@ -77,8 +77,8 @@ export interface IPDetailPageProps {
 }
 
 function defaultActiveStage(stages: ReturnType<typeof deriveStageState>): StageName {
-  if (stages.handoff === 'current') return 'handoff';
   if (stages.sustainment === 'current') return 'sustainment';
+  if (stages.improve === 'current') return 'improve';
   if (stages.approach === 'current') return 'approach';
   return 'charter';
 }
@@ -264,10 +264,32 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               Approach stage needs hypothesis + idea + action inputs (wired in PR-PT-4.4).
             </p>
           )}
+          {activeStage === 'improve' && mode === 'overview' && handoffInputs && (
+            <HandoffOverview
+              inputs={handoffInputs}
+              onOpenReport={() => onJumpOut?.('report')}
+              onExportPdf={() => {
+                /* Plan 4 wires PDF export */
+              }}
+              onNudgeOwner={() => onNudgeProcessOwner?.()}
+            />
+          )}
+          {activeStage === 'improve' && mode === 'sections' && controlHandoff && (
+            <HandoffSections
+              handoff={controlHandoff}
+              onOpenLegacy={() => onOpenLegacyHandoff?.()}
+            />
+          )}
+          {activeStage === 'improve' && (!handoffInputs || !controlHandoff) && (
+            <p className="text-sm text-content-secondary">
+              Improve stage content is wired in PR-WV1-2 Tasks 2–4 (ImproveStage tracker + advanced
+              toggle). Handoff checklist moves to Sustainment closure in Task 5.
+            </p>
+          )}
           {activeStage === 'sustainment' && mode === 'overview' && sustainmentRecord && (
             <SustainmentOverview
               record={sustainmentRecord}
-              onStartHandoff={() => setActiveStage('handoff')}
+              onStartHandoff={() => setActiveStage('sustainment')}
               onOpenProcess={() => onJumpOut?.('process')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               perCauseRows={sustainmentPerCauseRows}
@@ -283,29 +305,6 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
             <p className="text-sm text-content-secondary">
               No Sustainment record linked yet. Close the IP (Approach stage) to auto-create one per
               ADR-080.
-            </p>
-          )}
-
-          {activeStage === 'handoff' && mode === 'overview' && handoffInputs && (
-            <HandoffOverview
-              inputs={handoffInputs}
-              onOpenReport={() => onJumpOut?.('report')}
-              onExportPdf={() => {
-                /* Plan 4 wires PDF export */
-              }}
-              onNudgeOwner={() => onNudgeProcessOwner?.()}
-            />
-          )}
-          {activeStage === 'handoff' && mode === 'sections' && controlHandoff && (
-            <HandoffSections
-              handoff={controlHandoff}
-              onOpenLegacy={() => onOpenLegacyHandoff?.()}
-            />
-          )}
-          {activeStage === 'handoff' && (!handoffInputs || !controlHandoff) && (
-            <p className="text-sm text-content-secondary">
-              No Handoff record linked yet. Confirm Sustainment (4 consecutive on-target ticks) to
-              start Handoff.
             </p>
           )}
         </main>

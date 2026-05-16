@@ -6,8 +6,8 @@ import type { StageStateMap } from '../stageState';
 const stages: StageStateMap = {
   charter: 'done',
   approach: 'current',
+  improve: 'locked',
   sustainment: 'locked',
-  handoff: 'locked',
 };
 
 describe('IPDetailStageTabs', () => {
@@ -15,13 +15,13 @@ describe('IPDetailStageTabs', () => {
     render(<IPDetailStageTabs stages={stages} active="approach" onStageChange={() => {}} />);
     expect(screen.getByTestId('stage-tab-charter')).toHaveTextContent('Charter');
     expect(screen.getByTestId('stage-tab-charter')).toHaveTextContent('✓');
-    expect(screen.getByTestId('stage-tab-sustainment')).toHaveTextContent('⏸');
+    expect(screen.getByTestId('stage-tab-improve')).toHaveTextContent('⏸');
   });
 
   it('does not call onStageChange when locked stage clicked', () => {
     const onChange = vi.fn();
     render(<IPDetailStageTabs stages={stages} active="approach" onStageChange={onChange} />);
-    fireEvent.click(screen.getByTestId('stage-tab-sustainment'));
+    fireEvent.click(screen.getByTestId('stage-tab-improve'));
     expect(onChange).not.toHaveBeenCalled();
   });
 
