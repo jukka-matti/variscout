@@ -17,8 +17,7 @@ export type ProcessStateResponsePath =
   | 'focused-investigation'
   | 'chartered-project'
   | 'measurement-system-work'
-  | 'sustainment-review'
-  | 'control-handoff';
+  | 'sustainment-review';
 
 export type ProcessStateSource =
   | 'review-signal'

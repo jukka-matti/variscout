@@ -61,7 +61,7 @@ describe('deriveResponsePathAction', () => {
     });
   });
 
-  it('maps sustainment-review to open-sustainment/review', () => {
+  it('maps sustainment-review to open-sustainment', () => {
     const action = deriveResponsePathAction(
       baseItem({ responsePath: 'sustainment-review' }),
       DEFAULT_ID
@@ -69,19 +69,6 @@ describe('deriveResponsePathAction', () => {
     expect(action).toEqual({
       kind: 'open-sustainment',
       investigationId: DEFAULT_ID,
-      surface: 'review',
-    });
-  });
-
-  it('maps control-handoff to open-sustainment/handoff', () => {
-    const action = deriveResponsePathAction(
-      baseItem({ responsePath: 'control-handoff' }),
-      DEFAULT_ID
-    );
-    expect(action).toEqual({
-      kind: 'open-sustainment',
-      investigationId: DEFAULT_ID,
-      surface: 'handoff',
     });
   });
 
