@@ -6,6 +6,8 @@ Shared agent map: `docs/llms.txt`
 
 ## Invariants
 
+Full index with canonical homes + enforcement mechanisms: `.claude/INVARIANTS.md`.
+
 - Browser-only processing; data stays in customer's tenant (ADR-059). Deterministic stats engine is authority; CoScout (AI) adds context. No statistical roll-up across heterogeneous units — distributions, not aggregates (ADR-073).
 - 6 Zustand stores split across 3 layers per ADR-078 + F4 (3 Document, 2 Annotation, 1 View); no DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
 - Package dependencies flow downward: core → hooks → ui → apps. Sub-path exports need **both** `package.json#exports` AND `tsconfig.json#paths` updated together. Tailwind v4: every app's `src/index.css` needs `@source` for shared packages — missing it silently breaks responsive utils.
