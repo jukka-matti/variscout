@@ -56,3 +56,5 @@ export { AddPlanForm } from './AddPlanForm';
 export type { AddPlanFormProps } from './AddPlanForm';
 export { LinkFindingPicker } from './LinkFindingPicker';
 export type { LinkFindingPickerProps } from './LinkFindingPicker';
+export { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
+export type { HypothesisCardWithPlansProps } from './HypothesisCardWithPlans';
