@@ -32,6 +32,11 @@
 pnpm --filter @variscout/ui test
 ```
 
+## Test fixtures
+
+- **Use factories, not literals, for domain types in tests.** `const x: Finding = { ... }` literals drift silently against the type — vitest accepts them, but `pnpm --filter @variscout/ui build` (tsc) catches them. Use `createFinding()` from `@variscout/core` (existing factory); similar: `createHypothesis()`, `createQuestion()`. Add `createTestProjectMember()` / `createTestMeasurementPlan()` helpers in `packages/ui/src/test-utils/` if needed — don't write bare literals.
+- **Caught by:** `pnpm --filter @variscout/ui build`. Per `feedback_ui_build_before_merge` — the build catches what vitest misses.
+
 ## Related
 
 - ADR-045 Modular architecture

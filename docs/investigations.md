@@ -678,3 +678,56 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 **Resolution:** PR-WV1-3b Tasks 6-7 build `<MeasurementPlanChip>`, `<AddPlanForm>`, and `<LinkFindingPicker>` as DOM components rendered via `foreignObject` inside `<HypothesisCard>`. Task 8 wires them into `HypothesisCard` (or a thin `<HypothesisCardWithPlans>` wrapper) using local `useState` for form-open and picker-open booleans — no store changes needed for selection state.
 
 ---
+
+### Dispatch pattern: HubAction vs Project-metadata patch [RESOLVED 2026-05-16]
+
+**Surfaced by:** PR-WV1-3 architecture review (Opus).
+
+**Question:** Why does `MeasurementPlanAction` dispatch through `HubRepository.dispatch()` → `applyAction.ts` → Dexie table, while `ActionItemAction` dispatches through `useImprovementProjectStore.upsertProject()` → store state → Dexie sync?
+
+**Rule:** Hub-domain sub-entities with their own Dexie table dispatch through `HubRepository.dispatch(HubAction)`. Project-metadata bag fields (anything under `ImprovementProjectMetadata.actions[]` or similar arrays-on-metadata) use `useImprovementProjectStore.upsertProject()`.
+
+- MeasurementPlan: own Dexie table → HubAction dispatch ✓
+- ProjectMember: own Dexie table → HubAction dispatch ✓
+- ActionItem: stored as `ImprovementProjectMetadata.actions[]` → upsertProject patch ✓
+- Invitation: localStorage-only V1 → Annotation store direct write ✓
+
+**Side note:** The `ACTION_ITEM_UPDATE/REMOVE` cases in both apps' `applyAction.ts` are currently dead-code (the consumers use the upsertProject path). They are kept for symmetry + future-proofing if ActionItem migrates to its own table. Not load-bearing for V1.
+
+**Resolution:** No code change needed. This entry establishes the rule for future Hub-domain extensions.
+
+---
+
+### V2 ACL gap: pendingInvites recipientUserId [LOGGED 2026-05-16]
+
+**Surfaced by:** PR-WV1-3 code review.
+
+`useProjectMembershipStore.acceptInvite` doesn't filter pendingInvites by current-user recipient. localStorage is per-browser in V1 single-user PWA, so the gap is dormant. PR-WV1-5 (Azure AD auth wiring + per-user store key) closes this when Azure adds real auth-aware invite delivery.
+
+**Promotion path:** Revisit in PR-WV1-5 when per-user persistence keys are addressed.
+
+---
+
+### Test gaps for PR-WV1-3 [LOGGED 2026-05-16]
+
+**Surfaced by:** PR-WV1-3 code review.
+
+Three gaps to close in PR-WV1-4 or PR-WV1-5:
+
+1. `MEASUREMENT_PLAN_REMOVE` E2E — assert chip disappears from SVG after remove dispatch.
+2. Dexie v11→v12 (Azure) + v4→v5 (PWA) upgrade-path integration smoke — confirm upgrade callback fires cleanly against pre-existing data.
+3. `acceptInvite` when target project doesn't exist — guard at store level filters from pendingInvites regardless.
+
+**Promotion path:** Pick up in PR-WV1-4 or the first PR that touches MeasurementPlan remove / Dexie version bump.
+
+---
+
+### PWA_SINGLE_USER_ID consolidation [LOGGED 2026-05-16]
+
+**Surfaced by:** PR-WV1-3 architecture review.
+
+`'analyst@local'` hardcoded in 3 files: `apps/pwa/src/App.tsx` (`PWA_WALL_USER_ID`), `apps/pwa/src/components/views/ImprovementView.tsx` (`PWA_USER_ID`), and PR-WV1-1 `ProjectsTabView` wiring. Consolidate into `packages/core/src/identity/pwaSingleUser.ts` as `export const PWA_SINGLE_USER_ID = 'analyst@local'`. PR-WV1-5 (auth wiring) is the natural place — single deletion site when real auth lands.
+
+**Promotion path:** PR-WV1-5 (auth wiring sweep). Single-string change across 3 files; no design decision needed.
+
+---
