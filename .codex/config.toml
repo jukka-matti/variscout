@@ -1,0 +1,6 @@
+[mcp_servers.ruflo]
+command = "bash"
+args = [
+  "-lc",
+  "ROOT=$(git rev-parse --show-toplevel) && cd \"$ROOT\" && exec scripts/codex-ruflo-mcp.sh",
+]

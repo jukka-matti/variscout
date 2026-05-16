@@ -41,7 +41,7 @@ This surfaces prior decisions, architectural patterns, and domain knowledge that
 
 Codex may lazy-load Ruflo tools. If the Ruflo MCP memory/status tools are not initially visible, search the tool registry for Ruflo before assuming the capability is missing.
 
-If registration is correct but no Ruflo tools appear after tool search, restart Codex or start a fresh session before re-registering. Codex MCP config is managed through `codex mcp add/list` or the user-level Codex config, and already-running sessions may not load changed MCP config.
+If registration is correct but no Ruflo tools appear after tool search, restart Codex or start a fresh session before re-registering. Codex MCP config is managed through `codex mcp add/list`, user-level Codex config, or trusted-project `.codex/config.toml`; VariScout uses a project-scoped wrapper so Ruflo state stays tied to this repo. Already-running sessions may not load changed MCP config.
 
 ### 3. During Coding (passive)
 
@@ -52,6 +52,8 @@ Codex Ruflo can track:
 - Prompt classification and routing
 
 Use MCP tools directly from Codex; intelligence accumulates in `.ruflo/` metrics once Ruflo is running. Helpful startup context should come from visible repo guidance and `pnpm codex:ruflo-check`, not from hidden client-specific hook behavior.
+
+Ruflo is optional project intelligence. If it is unavailable after the documented recovery path, continue with `rg`, visible docs, ADRs, and normal validation rather than blocking development.
 
 ### 4. Before Creating a PR
 

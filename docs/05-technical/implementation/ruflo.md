@@ -15,7 +15,7 @@ ruflo is a Codex-only MCP-integrated AI development tooling layer for VariScout.
 
 In-session, **MCP is the only path** for ruflo memory, search, store, pretrain, and lifecycle hooks. Claude Code must not use Ruflo through project `.mcp.json`, `.claude/settings.json`, permissions, attribution, or project skills.
 
-Codex MCP config is managed through `codex mcp add/list` or the user-level Codex config. CLI and IDE sessions share that config, but an already-running session may not load changed MCP servers until Codex is restarted. Treat Ruflo as trusted local tooling: MCP servers can access data passed through their tool calls.
+Codex MCP config is managed through `codex mcp add/list`, user-level Codex config, or trusted-project `.codex/config.toml`. VariScout scopes Ruflo to this repo through `scripts/codex-ruflo-mcp.sh` so Codex is not connected to an unbounded global Ruflo memory endpoint. CLI and IDE sessions share config, but an already-running session may not load changed MCP servers until Codex is restarted. Treat Ruflo as trusted local tooling: MCP servers can access data passed through their tool calls.
 
 ## Quick Commands (MCP only)
 
@@ -52,6 +52,7 @@ Codex ──MCP──▶ ruflo MCP Server (npx)
 | File                           | Purpose                                                  |
 | ------------------------------ | -------------------------------------------------------- |
 | `scripts/check-codex-ruflo.sh` | Tracked Codex version pin, health check, repair output   |
+| `scripts/codex-ruflo-mcp.sh`   | Repo-scoped MCP launcher for Codex Ruflo                 |
 | `.ruflo/config.yaml`           | Local runtime config (topology, memory backend, workers) |
 | `.ruflo/daemon-state.json`     | Local worker state and schedules                         |
 | `.ruflo/data/`                 | Ignored local AgentDB/Ruflo data path                    |
@@ -103,6 +104,8 @@ The expected Codex health path is MCP-first:
 6. `mcp__ruflo__analyze_diff` is useful when available; if it returns a runtime error, fall back to Git diff review and `bash scripts/pr-ready-check.sh`.
 
 `pnpm codex:ruflo-check` now verifies MCP registration only — CLI smoke probes were removed 2026-05-13. If MCP registration looks correct but tools are missing or misbehave, search the Codex tool registry for Ruflo, then restart the Codex session so the new MCP server process is used before re-registering.
+
+Ruflo is optional project intelligence. If it is unavailable after the recovery path, continue with `rg`, visible docs, ADRs, and standard repo checks instead of blocking development.
 
 ### Background Workers
 
@@ -165,6 +168,7 @@ Ensure `.venv/` is in `.gitignore` and `workers.excludePaths` in `.ruflo/config.
 
 - **Don't add ruflo to package.json** -- It's Codex-only dev tooling and runs through versioned Codex MCP registration
 - **Don't add project `.mcp.json` for Ruflo** -- Claude Code loads project MCP files; Codex registration is checked with `pnpm codex:ruflo-check`
+- **Don't register bare global Ruflo** -- Codex should launch Ruflo through the repo-scoped wrapper or an equivalent scoped cwd
 - **Don't commit local memory data** -- `.ruflo/`, `.swarm/`, `.claude/memory.db*`, `ruvector.db`, and `agentdb.rvf*` are local state
 - **Don't rely on daemon for CI/CD** -- Workers are for local dev intelligence only
 - **Don't store secrets in memory** -- Memory DB is unencrypted local SQLite

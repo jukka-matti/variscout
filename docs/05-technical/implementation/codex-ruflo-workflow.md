@@ -12,7 +12,7 @@ How to use Codex with the repo's Ruflo tooling. Ruflo is Codex-only in this proj
 ## What Is Shared vs Client-Specific
 
 - Tracked: `scripts/check-codex-ruflo.sh` pins the expected `ruflo` version and repair command.
-- Local: Codex MCP registration is managed outside the repo through `codex mcp`; it may drift and must be verified.
+- Local/project: Codex MCP registration is managed by Codex config. VariScout uses a project-scoped Ruflo entry that launches `scripts/codex-ruflo-mcp.sh`; user-level registration may drift and must be verified.
 - Codex-only: ruflo memory, workers, diff analysis, and status through the `mcp__ruflo__*` tool surface.
 - Claude-only: `.claude/settings.json` hooks, statusline, path-scoped rule loading, and project skills. These files must not register or authorize Ruflo.
 - Codex-specific: `AGENTS.md` is the repo entrypoint, and active MCP registration is managed through Codex config plus `codex mcp`.
@@ -23,11 +23,11 @@ How to use Codex with the repo's Ruflo tooling. Ruflo is Codex-only in this proj
 2. Run `pnpm codex:ruflo-check` to verify Codex MCP registration and expected version.
 3. If `ruflo` is missing, disabled, or stale, run the remove/add repair commands printed by the check.
 
-The practical Codex source of truth is `codex mcp get ruflo`, which reads the active Codex MCP configuration on your machine. The tracked repo source of truth for the expected version is `scripts/check-codex-ruflo.sh`; `pnpm docs:check` includes a drift guard so current docs and scripts reference the same version.
+The practical Codex source of truth is `codex mcp get ruflo`, which reads the active Codex MCP configuration on your machine. The tracked repo source of truth for the expected version and scope is `scripts/check-codex-ruflo.sh`; `pnpm docs:check` includes a drift guard so current docs and scripts reference the same version.
 
 `pnpm codex:ruflo-check` verifies Codex MCP registration only. It does not prove the current Codex session has loaded Ruflo tools. In-session Ruflo use goes through Codex MCP tools; do not add a project `.mcp.json` to make Ruflo available to Claude Code.
 
-Codex MCP config is managed by `codex mcp add/list` or the user-level Codex config. Treat third-party MCP servers as trusted local tooling: they can see the data you send through tool calls.
+Codex MCP config is managed by `codex mcp add/list`, user-level Codex config, or trusted-project `.codex/config.toml`. VariScout keeps Ruflo project-scoped so the global Codex config is not a generic Ruflo memory endpoint. Treat third-party MCP servers as trusted local tooling: they can see the data you send through tool calls.
 
 ## Recommended Codex Workflow
 
@@ -83,9 +83,9 @@ Separate config health from runtime health:
 2. Run `codex mcp get ruflo` or `codex mcp list` if you need to inspect config directly.
 3. Search the Codex tool registry for Ruflo. If the tools appear, use MCP and do not repair registration.
 4. If registration is correct but no `mcp__ruflo__*` tools appear, restart Codex or start a fresh session. Already-running sessions may not load newly changed MCP config.
-5. Only after a fresh session still lacks Ruflo tools, run the remove/add repair commands printed by `pnpm codex:ruflo-check`, then restart Codex again.
+5. Only after a fresh session still lacks Ruflo tools, run the remove/add repair commands printed by `pnpm codex:ruflo-check`, then restart Codex again. The repair must point at `scripts/codex-ruflo-mcp.sh` or another repo-scoped command, not bare global `npx ruflo@... mcp start`.
 
-`codex mcp get ruflo` is config truth. `mcp__ruflo__mcp_status` is runtime truth. Do not treat a passing registration check as proof that the current session can call Ruflo.
+`codex mcp get ruflo` is config truth. `mcp__ruflo__mcp_status` is runtime truth. Do not treat a passing registration check as proof that the current session can call Ruflo. If Ruflo remains unavailable, continue with repo docs, ADRs, `rg`, and normal validation; Ruflo should not block development.
 
 ## Failure Modes
 

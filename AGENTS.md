@@ -37,12 +37,13 @@ Structured investigation for process improvement. Browser-based, customer-owned 
 
 ## Using Ruflo From Codex
 
-- The tracked Ruflo expectation lives in `scripts/check-codex-ruflo.sh`; active Codex MCP config can drift and must be verified. Do not add project `.mcp.json` for Ruflo, because Claude Code loads project MCP files.
+- The tracked Ruflo expectation lives in `scripts/check-codex-ruflo.sh`; active Codex MCP config can drift and must be verified. Ruflo is project-scoped to VariScout through Codex config / `scripts/codex-ruflo-mcp.sh`; do not add project `.mcp.json` for Ruflo, because Claude Code loads project MCP files.
 - At session start, run `pnpm codex:ruflo-check` for the Codex-side registration/version health summary and recovery command. This verifies registration only; it does not prove the current Codex session has loaded the live Ruflo tool surface.
 - Use the Ruflo MCP tools for in-session work. Query memory/status/diff/workers through `mcp__ruflo__*` (lazy-load with tool search if needed), not by running `npx ruflo ...` from the shell. Use the exact Ruflo tool names exposed in the current session.
 - If Ruflo tools are missing: run `pnpm codex:ruflo-check`, search the tool registry for Ruflo, restart Codex or start a fresh session, then re-register with the remove/add repair commands only if the tools are still missing. After any `codex mcp remove/add`, restart Codex before judging runtime behavior.
 - Before complex work, query Ruflo MCP memory for architecture, domain, or prior patterns.
 - Before PR prep, run MCP diff analysis and dispatch MCP audit or test-gap workers when relevant.
+- Ruflo is helpful but optional. If MCP tools are unavailable after the documented recovery path, continue with repo docs, `rg`, ADRs, and normal validation rather than blocking development.
 - Codex does not use Claude-only hooks from `.claude/settings.json`; treat those as client-specific automation.
 
 ## Codex Session Start
