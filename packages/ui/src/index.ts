@@ -841,5 +841,8 @@ export type {
 // IP Detail workspace (Plan 2 — composition; Plans 3-5 fill content)
 export * from './components/IPDetail';
 
+// Home tab components (wedge V1 — pending invitations banner)
+export * from './components/Home';
+
 // Improve tab orchestration (wedge V1 top-level Improve tab)
 export * from './components/Improve';
