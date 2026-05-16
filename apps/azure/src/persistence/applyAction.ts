@@ -326,6 +326,24 @@ export async function applyAction(action: HubAction): Promise<void> {
       return;
     }
 
+    case 'ACTION_ITEM_UPDATE': {
+      const existing = await db.actionItems.get(action.actionItemId);
+      if (!existing) return;
+      await db.actionItems.update(action.actionItemId, {
+        ...action.patch,
+        updatedAt: Date.now(),
+      });
+      return;
+    }
+
+    case 'ACTION_ITEM_REMOVE': {
+      await db.actionItems.update(action.actionItemId, {
+        deletedAt: action.removedAt,
+        updatedAt: action.removedAt,
+      });
+      return;
+    }
+
     case 'SUSTAINMENT_RECORD_CREATE': {
       const hub = await db.processHubs.get(action.hubId);
       if (!hub) {

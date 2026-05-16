@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { buildApplyAction } from '../ImprovementView';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ActionItem } from '@variscout/core/findings';
@@ -52,10 +52,10 @@ describe('buildApplyAction — null activeIP guard', () => {
 });
 
 describe('buildApplyAction — ACTION_ITEM_ADD', () => {
-  let upsertProject: ReturnType<typeof vi.fn>;
+  let upsertProject: Mock<(project: ImprovementProject) => void>;
 
   beforeEach(() => {
-    upsertProject = vi.fn();
+    upsertProject = vi.fn() as Mock<(project: ImprovementProject) => void>;
   });
 
   it('appends action to empty metadata.actions', () => {
