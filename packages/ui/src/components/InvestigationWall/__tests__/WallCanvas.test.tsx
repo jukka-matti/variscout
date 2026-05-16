@@ -847,7 +847,6 @@ describe('WallCanvas', () => {
       owner: 'user-1',
       status: 'planned',
       createdAt: 1,
-      updatedAt: 1,
       deletedAt: null,
     };
 

@@ -40,27 +40,27 @@ const hub: Hypothesis = {
 const finding1: Finding = {
   id: 'f1',
   text: 'Temperature spike at 02:00',
-  type: 'observation',
-  hypothesisId: 'h1',
-  validationStatus: 'supports',
-  tags: [],
-  createdAt: 1,
-  updatedAt: 1,
-  deletedAt: null,
+  context: { activeFilters: {}, cumulativeScope: null },
+  evidenceType: 'data',
+  status: 'observed',
+  comments: [],
+  statusChangedAt: 1,
   investigationId: 'inv-1',
+  createdAt: 1,
+  deletedAt: null,
 };
 
 const finding2: Finding = {
   id: 'f2',
   text: 'Night crew uses manual settings',
-  type: 'observation',
-  hypothesisId: 'h1',
-  validationStatus: 'supports',
-  tags: [],
-  createdAt: 2,
-  updatedAt: 2,
-  deletedAt: null,
+  context: { activeFilters: {}, cumulativeScope: null },
+  evidenceType: 'data',
+  status: 'observed',
+  comments: [],
+  statusChangedAt: 2,
   investigationId: 'inv-1',
+  createdAt: 2,
+  deletedAt: null,
 };
 
 const leadMember: ProjectMember = {
@@ -70,7 +70,6 @@ const leadMember: ProjectMember = {
   role: 'lead',
   invitedAt: 1,
   createdAt: 1,
-  updatedAt: 1,
   deletedAt: null,
 };
 
@@ -81,7 +80,6 @@ const sponsorMember: ProjectMember = {
   role: 'sponsor',
   invitedAt: 1,
   createdAt: 1,
-  updatedAt: 1,
   deletedAt: null,
 };
 
@@ -95,7 +93,6 @@ const plan1: MeasurementPlan = {
   status: 'planned',
   linkedFindingIds: [],
   createdAt: 1,
-  updatedAt: 1,
   deletedAt: null,
 };
 
@@ -109,7 +106,6 @@ const plan2: MeasurementPlan = {
   status: 'complete',
   linkedFindingIds: ['f1'],
   createdAt: 2,
-  updatedAt: 2,
   deletedAt: null,
 };
 
