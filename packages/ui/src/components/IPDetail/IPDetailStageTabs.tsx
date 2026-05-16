@@ -1,7 +1,7 @@
 import React from 'react';
 import type { StageStateMap, StageState } from './stageState';
 
-export type StageName = 'charter' | 'approach' | 'improve' | 'sustainment';
+export type StageName = 'charter' | 'approach' | 'sustainment';
 
 interface IPDetailStageTabsProps {
   stages: StageStateMap;
@@ -13,17 +13,17 @@ const ICON: Record<StageState, string> = {
   done: '✓',
   current: '',
   'not-started': '○',
+  upcoming: '○',
   locked: '⏸',
 };
 
 const LABEL: Record<StageName, string> = {
   charter: 'Charter',
   approach: 'Approach',
-  improve: 'Improve',
   sustainment: 'Sustainment',
 };
 
-const STAGE_ORDER: StageName[] = ['charter', 'approach', 'improve', 'sustainment'];
+const STAGE_ORDER: StageName[] = ['charter', 'approach', 'sustainment'];
 
 function stageClass(state: StageState, isActive: boolean): string {
   if (isActive) return 'border-b-2 border-[var(--vs-accent)] text-[var(--vs-accent)] font-semibold';
