@@ -95,18 +95,76 @@ Handoff stage is **folded into Sustainment closure**. Single end-of-project deci
 | **Improve**     | Action tracker                                                          | Single-list UI (default): improvement actions + quick actions, owner/due/status, linked to suspected causes. **PDCA workbench + What-If accessible via an "Advanced" toggle** (progressive disclosure, not a parallel mode) |
 | **Sustainment** | "Did it work?" + close project                                          | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up                                                                                                                                  |
 
-### §3.3 Process tab + Canvas: unchanged, stays foundational
+### §3.3 Process tab — canvas substrate + State/Edit modes + Specialist content
 
-Locked by Coherence §4.304 + §4.324 — canvas IS the Process tab's architectural substrate, not a removable surface. 8f viewport architecture (PRs #160–#168) intact.
+Canvas IS the Process tab's architectural substrate, not a removable surface (locked by Coherence §4.304 + §4.324). 8f viewport architecture (PRs #160–#168) is intact. The §3.3 subsections below port Coherence §4's Process tab design forward into the wedge, with persona references de-personalized (single Specialist replaces the Process Owner / Project Lead split).
 
-**3 response paths from canvas drill at V1:**
+#### §3.3.1 Two modes within one tab — State (default) and Edit
+
+The Process tab does one job: _"this process — its current state and structure."_ That includes viewing state AND editing structure (framing). Implemented as two modes within one tab, not two tabs:
+
+| Mode                | Content                                                                                                                                                               | Default when                                                             |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| **State** (default) | Read-only: outcome panel, process map with state badges, decisions queue, reference links to active IPs / actions / investigations                                    | Specialist is monitoring or navigating                                   |
+| **Edit**            | Editable: structure authoring (add/rearrange steps, assign columns, set CTQ specs, define outcome specs, multi-source joins). This is where the **Frame step** lives. | Specialist is framing or refining the process structure in Charter stage |
+
+Mode toggle via "Edit map" affordance in Process tab header. Visual chrome changes in Edit mode (editing toolbar appears, ChipRail of unassigned columns visible, hover states active, "Done" exits to State mode).
+
+#### §3.3.2 State-mode content — four sections, layered top-to-bottom
+
+1. **Needs your decision** (primary attention; indigo-accent cards) — items requiring the Specialist's input across their active projects:
+   - IP signoffs awaiting (when project membership role assigns the Specialist as Lead or Reviewer)
+   - Drift escalations (Cpk degradation, control-chart out-of-control signals, breach of spec)
+   - Sustainment cadence prompts (project ready for "did it work?" verification per ADR-080 auto-fire)
+   - Member-action assignments (Lead assigned the Specialist to a finding or action)
+2. **Current state** — outcome chart + Cpk + drift indicators (L1 outcome panel). Scoped to active IP when IP-context is active; whole-process when free-roaming.
+3. **Process map** — compact step badges color-coded by state (L2 process flow). Click a step → drill to L3 focal-step detail; canvas drill surfaces the 3 V1 response paths (see §3.3.4 below).
+4. **In-flight references** — IPs in progress, recent actions, open investigations (read-only links to Projects tab / Improve stage / Investigation tab respectively).
+
+#### §3.3.3 Canvas as substrate — L1/L2/L3 via pan/zoom
+
+"Canvas" is the design-doc term for the Process tab's architectural pattern. "Process tab" is the UI label. The pattern:
+
+- **L1 — Outcome view**: outcome distribution + Cpk vs spec + drift + time series. Scoped to active IP's outcome when IP-context is active.
+- **L2 — Process flow view**: full process map with step cards, mini-charts on steps, state badges, editable tributaries in Edit mode.
+- **L3 — Focal step (Local Mechanism) view**: focal step detail + Evidence Map / Wall mirror for that step's investigation lineage.
+
+Pan/zoom navigation between levels per 8f Canvas Viewport Architecture (`useCanvasViewportStore`, key changes from `ProcessHubId` to `ProjectId` under the wedge per §6).
+
+#### §3.3.4 Response paths from canvas drill — 3 at V1
+
+Click a step card on Canvas L2 → drill to L3 focal-step detail → 3 response-path CTAs surface:
 
 - **Investigate** → opens Wall + Evidence Map scoped to step
-- **Quick Action** → creates tracked item in active IP's Improve stage
-- **Charter** → creates new IP from canvas context
+- **Quick Action** → creates tracked item in active IP's Improve stage (or prompts to select / create an IP if none active)
+- **Charter** → creates a new IP with this step / focal data as initial Charter-stage context
 
-Sustainment auto-fires per ADR-080 (no canvas-launch needed).
-Handoff path **deleted everywhere** (folded into Sustainment closure).
+Sustainment auto-fires per ADR-080 (no canvas-launch needed — fires when the project's Improve stage actions complete or when sustainment cadence triggers fire).
+Handoff path **deleted everywhere** (folded into Sustainment closure per §3.2).
+
+#### §3.3.5 Level × View × Focus model — Process tab owns Level + View
+
+Three orthogonal navigation axes (per Coherence §5):
+
+| Axis      | What it controls                                                      | Tab that owns it              |
+| --------- | --------------------------------------------------------------------- | ----------------------------- |
+| **Level** | Navigational scope (L1 outcome / L2 flow / L3 mechanism)              | Process tab (Canvas viewport) |
+| **View**  | Spatial rendering at this Level (Map / Flow / Yamazumi / Performance) | Process tab                   |
+| **Focus** | Statistical lens (factor selection, time window, sub-group)           | Analyze tab                   |
+
+No single tab carries all three pickers. Process tab handles Level + View; Analyze tab handles Focus. Investigation tab owns L3 mechanism work entirely (per ADR-074 boundary policy).
+
+#### §3.3.6 IP-context routing
+
+When the Specialist activates an IP (Home launchpad or Projects tab selection), the IP's `focusLevel` (`outcome` / `flow` / `mechanism`) routes Process tab and Analyze tab to sensible defaults:
+
+| IP focusLevel | Process tab default (Level + View) | Analyze tab default (Focus)                       |
+| ------------- | ---------------------------------- | ------------------------------------------------- |
+| `outcome`     | L1 outcome view                    | Capability latest                                 |
+| `flow`        | L2 + Flow View                     | Step-by-step EDA                                  |
+| `mechanism`   | L3 + focal step from IP            | Factor Intelligence on the suspected-cause factor |
+
+Process tab shows the structural slice; Analyze tab shows the statistical slice. The IP's `focusLevel` determines both. When no IP is active (free-roaming), Process tab defaults to L1 of the whole process.
 
 ### §3.4 Improve mode default + "Advanced" disclosure
 
