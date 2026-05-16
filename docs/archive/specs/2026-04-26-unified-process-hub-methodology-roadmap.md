@@ -19,6 +19,10 @@ related:
 date: 2026-04-26
 ---
 
+> **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Six-phase Hub methodology roadmap defers to **VariScout Process**. V1 collapses methodology to a single project lifecycle (Charter → Approach → Improve → Sustainment per wedge spec §3.2).
+
+---
+
 # Unified Process Hub Methodology Roadmap
 
 ## Summary

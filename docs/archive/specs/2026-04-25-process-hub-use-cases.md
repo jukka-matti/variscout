@@ -7,6 +7,10 @@ related: [process-hub, evidence-sources, data-profiles, azure, portfolio, user-j
 date: 2026-04-25
 ---
 
+> **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). All six Hub use cases presume Hub-as-foundational. Migrate to **VariScout Process** when that product ships.
+
+---
+
 # Process Hub Use Cases
 
 ## Summary

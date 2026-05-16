@@ -96,13 +96,13 @@ FRAME must work end-to-end without any AI call (Constitution P8 _Deterministic f
 
 ### Neutral
 
-- Existing investigation workflow is unchanged: pre-data hunches created in FRAME flow into `investigationStore` as draft `SuspectedCause` hubs, reusing the hub model ([ADR-064](./adr-064-suspected-cause-hub-model.md)). Analysis, Investigation, Improvement, and Report workspaces are untouched.
+- Existing investigation workflow is unchanged: pre-data hunches created in FRAME flow into `investigationStore` as draft `SuspectedCause` hubs, reusing the hub model ([ADR-064](../archive/adrs/adr-064-suspected-cause-hub-model.md)). Analysis, Investigation, Improvement, and Report workspaces are untouched.
 
 ## Update — 2026-04-27 (Layered Process View V1)
 
 The river-styled SIPOC `ProcessMapBase` is now wrapped by `LayeredProcessView` (`@variscout/ui`), which adds an Outcome band above and an Operations band below. ADR-070 stays canonical for the river/SIPOC design itself; the layered extension adds visual structure around it without changing the data model.
 
-See the [Layered Process View design spec](../superpowers/specs/2026-04-27-layered-process-view-design.md) for band semantics, surface variations, and phasing.
+See the [Layered Process View design spec](../archive/specs/2026-04-27-layered-process-view-design.md) for band semantics, surface variations, and phasing.
 
 V1 is structural only: the bands wrap the existing component. V2+ phases add Operations band content (snapshot-backed actuals, capability sparklines), Process Hub current-state rendering, and multi-hub aggregation.
 
@@ -195,7 +195,7 @@ The 2026-04-28 amendment ("FRAME as one flow lens within a layered process
 view") is now subsumed: the layered-view bands + the FRAME flow lens are all
 expressed on the Canvas (vision §5.4 mode lenses + §5.2 cards). The Layered
 Process View design spec at
-[`docs/superpowers/specs/2026-04-27-layered-process-view-design.md`](../superpowers/specs/2026-04-27-layered-process-view-design.md)
+[`docs/superpowers/specs/2026-04-27-layered-process-view-design.md`](../archive/specs/2026-04-27-layered-process-view-design.md)
 should be re-tagged or archived as a follow-up.
 
 The 2026-05-02 amendment below ("FRAME b0 lightweight render") describes a

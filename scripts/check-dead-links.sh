@@ -15,6 +15,14 @@ while IFS= read -r line; do
   link=$(echo "$line" | cut -d: -f2- | grep -oE '\]\([^)]+\.md[^)]*\)' | sed 's/^](//;s/)$//' | head -1)
   [ -z "$link" ] && continue
 
+  # Skip docs/archive/ as a link source — archived docs are frozen historical
+  # references; their internal cross-refs may use paths that were valid at the
+  # time of authoring but break after the file was moved into archive/.
+  # Links INTO docs/archive/ from live docs are still checked.
+  case "$src" in
+    */docs/archive/*) continue ;;
+  esac
+
   # Strip anchor
   path_only="${link%%#*}"
 

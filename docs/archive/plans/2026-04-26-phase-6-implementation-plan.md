@@ -3,6 +3,10 @@ title: Phase 6 — Sustainment & Control Handoff Implementation Plan
 status: deferred
 ---
 
+> **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Sustainment + Handoff + Control Plan implementation replaced by [ADR-080](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md) auto-fire pattern + wedge spec §3.2 Sustainment stage. Handoff folded into Sustainment closure.
+
+---
+
 # Phase 6 — Sustainment & Control Handoff Implementation Plan
 
 > ## Session Resumption Status (paused 2026-04-27)

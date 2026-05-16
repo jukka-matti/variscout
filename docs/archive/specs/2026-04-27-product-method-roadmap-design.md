@@ -357,9 +357,9 @@ VariScout is:
 ## Related Docs
 
 - [Process Learning Operating Model](2026-04-27-process-learning-operating-model-design.md) (sibling in archive)
-- [Unified Process Hub Methodology Roadmap](../../superpowers/specs/2026-04-26-unified-process-hub-methodology-roadmap.md)
+- [Unified Process Hub Methodology Roadmap](./2026-04-26-unified-process-hub-methodology-roadmap.md)
 - [Evidence Sources And Data Profiles](../../superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md)
-- [Customer-Tenant Ingestion And Rollups Concept](../../superpowers/specs/2026-04-29-customer-tenant-ingestion-rollups-concept.md) — Future automated/hourly Evidence Sources should use raw Blob evidence plus manifest-first rollups, with TypeScript-first VariScout product logic and Python allowed at the customer data edge.
-- [Process Hub Design](../../superpowers/specs/2026-04-25-process-hub-design.md)
+- [Customer-Tenant Ingestion And Rollups Concept](./2026-04-29-customer-tenant-ingestion-rollups-concept.md) — Future automated/hourly Evidence Sources should use raw Blob evidence plus manifest-first rollups, with TypeScript-first VariScout product logic and Python allowed at the customer data edge.
+- [Process Hub Design](./2026-04-25-process-hub-design.md)
 - [Question-Driven EDA 2.0](../../superpowers/specs/2026-04-25-question-driven-eda-2-design.md)
 - [Investigation Scope and Drill Semantics](../../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) — Hub-of-Hubs design constraints (no statistical roll-up; visual side-by-side; cross-hub context filter) are specified here.
