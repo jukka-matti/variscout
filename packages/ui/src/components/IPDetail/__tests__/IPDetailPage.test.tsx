@@ -261,6 +261,21 @@ describe('IPDetailPage', () => {
     });
   });
 
+  describe('Improve stage routing', () => {
+    it('renders ImproveStage when activeStage = improve', () => {
+      // status: 'closed' → stages.improve === 'current' → defaultActiveStage picks 'improve'
+      render(
+        <IPDetailPage
+          ip={{ ...ip, status: 'closed', metadata: { ...ip.metadata, members: [] } }}
+          onBackToList={() => {}}
+          currentUserId="anybody@org"
+        />
+      );
+      fireEvent.click(screen.getByTestId('stage-tab-improve'));
+      expect(screen.getByRole('heading', { name: /actions/i })).toBeInTheDocument();
+    });
+  });
+
   describe('Charter team section (wedge members[])', () => {
     const charterIP: ImprovementProject = { ...ip, status: 'draft' };
 

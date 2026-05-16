@@ -19,8 +19,8 @@ import ApproachOverview from './stages/ApproachOverview';
 import ApproachSections from './stages/ApproachSections';
 import SustainmentOverview from './stages/SustainmentOverview';
 import SustainmentSections from './stages/SustainmentSections';
-import HandoffOverview, { type HandoffChecklistInputs } from './stages/HandoffOverview';
-import HandoffSections from './stages/HandoffSections';
+import { type HandoffChecklistInputs } from './stages/HandoffOverview';
+import { ImproveStage } from './stages/ImproveStage';
 import type { CauseProjectionInputs, CauseRow } from './stages/causeProjection';
 import type { ImprovementProjectFormProps } from '../ImprovementProject/ImprovementProjectForm';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
@@ -70,6 +70,15 @@ export interface IPDetailPageProps {
   /** Activity/signoff inputs for the team rail. */
   ideas?: readonly ImprovementIdea[];
   actions?: readonly ActionItem[];
+  /** Called when user adds a new ActionItem in the Improve stage. */
+  onActionAdd?: (action: Pick<ActionItem, 'text' | 'parentImprovementProjectId'>) => void;
+  /** Called when user updates an ActionItem in the Improve stage. */
+  onActionUpdate?: (
+    actionId: string,
+    patch: Partial<Omit<ActionItem, 'id' | 'createdAt' | 'deletedAt'>>
+  ) => void;
+  /** Called when user removes an ActionItem in the Improve stage. */
+  onActionRemove?: (actionId: string) => void;
   now?: number;
   onRequestSignoff?: () => void;
   onNudgeSignoff?: () => void;
@@ -99,17 +108,20 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   onOpenCauseWorkbench,
   sustainmentRecord,
   controlHandoff,
-  handoffInputs,
+  handoffInputs: _handoffInputs,
   sustainmentPerCauseRows,
   onOpenLegacySustainment,
-  onOpenLegacyHandoff,
-  onNudgeProcessOwner,
+  onOpenLegacyHandoff: _onOpenLegacyHandoff,
+  onNudgeProcessOwner: _onNudgeProcessOwner,
   ideas,
   actions,
   now,
   onRequestSignoff,
   onNudgeSignoff,
   onApproveSignoff,
+  onActionAdd,
+  onActionUpdate,
+  onActionRemove,
 }) => {
   const stages = useMemo(() => deriveStageState(ip, stageStateInputs), [ip, stageStateInputs]);
   const [activeStage, setActiveStage] = useState<StageName>(() => defaultActiveStage(stages));
@@ -264,27 +276,16 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               Approach stage needs hypothesis + idea + action inputs (wired in PR-PT-4.4).
             </p>
           )}
-          {activeStage === 'improve' && mode === 'overview' && handoffInputs && (
-            <HandoffOverview
-              inputs={handoffInputs}
-              onOpenReport={() => onJumpOut?.('report')}
-              onExportPdf={() => {
-                /* Plan 4 wires PDF export */
-              }}
-              onNudgeOwner={() => onNudgeProcessOwner?.()}
+          {activeStage === 'improve' && (
+            <ImproveStage
+              projectId={ip.id}
+              actions={(actions ?? []) as ActionItem[]}
+              members={members}
+              currentUserId={currentUserId}
+              onActionAdd={onActionAdd ?? (() => {})}
+              onActionUpdate={onActionUpdate ?? (() => {})}
+              onActionRemove={onActionRemove ?? (() => {})}
             />
-          )}
-          {activeStage === 'improve' && mode === 'sections' && controlHandoff && (
-            <HandoffSections
-              handoff={controlHandoff}
-              onOpenLegacy={() => onOpenLegacyHandoff?.()}
-            />
-          )}
-          {activeStage === 'improve' && (!handoffInputs || !controlHandoff) && (
-            <p className="text-sm text-content-secondary">
-              Improve stage content is wired in PR-WV1-2 Tasks 2–4 (ImproveStage tracker + advanced
-              toggle). Handoff checklist moves to Sustainment closure in Task 5.
-            </p>
           )}
           {activeStage === 'sustainment' && mode === 'overview' && sustainmentRecord && (
             <SustainmentOverview
