@@ -172,6 +172,89 @@ describe('IPDetailPage', () => {
     expect(screen.queryByRole('dialog', { name: 'Team workspace' })).not.toBeInTheDocument();
   });
 
+  describe('ACL guard', () => {
+    const aclMembers: import('@variscout/core/projectMembership').ProjectMember[] = [
+      {
+        id: 'pm-1',
+        createdAt: 1,
+        deletedAt: null,
+        userId: 'lead@org',
+        displayName: 'Lead',
+        role: 'lead',
+        invitedAt: 1,
+      },
+      {
+        id: 'pm-2',
+        createdAt: 1,
+        deletedAt: null,
+        userId: 'member@org',
+        displayName: 'Member',
+        role: 'member',
+        invitedAt: 1,
+      },
+      {
+        id: 'pm-3',
+        createdAt: 1,
+        deletedAt: null,
+        userId: 'sponsor@org',
+        displayName: 'Sponsor',
+        role: 'sponsor',
+        invitedAt: 1,
+      },
+    ];
+    // Use draft so charter is the default active stage (easier to assert visibility)
+    const aclIP: ImprovementProject = {
+      ...ip,
+      status: 'draft',
+      metadata: { ...ip.metadata, members: aclMembers, title: 'ACL Test Project' },
+    };
+
+    it('shows "no access" message when currentUserId is not a member', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="stranger@org" />);
+      expect(screen.getByText(/don.t have access/i)).toBeInTheDocument();
+      expect(screen.getByText(/ACL Test Project/i)).toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /charter/i })).not.toBeInTheDocument();
+    });
+
+    it('renders full tab list for Lead', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="lead@org" />);
+      expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /approach/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /sustainment/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /handoff/i })).toBeInTheDocument();
+    });
+
+    it('renders full tab list for Member', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="member@org" />);
+      expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /approach/i })).toBeInTheDocument();
+    });
+
+    it('renders only Report panel for Sponsor (no stage tabs)', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="sponsor@org" />);
+      expect(screen.queryByRole('tab', { name: /charter/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /approach/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /sustainment/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /handoff/i })).not.toBeInTheDocument();
+      expect(screen.getByTestId('sponsor-report-panel')).toBeInTheDocument();
+    });
+
+    it('renders normal page when currentUserId is absent (no ACL data)', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} />);
+      expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
+    });
+
+    it('renders normal page when ip has no members[] (legacy data)', () => {
+      const legacyIP: ImprovementProject = {
+        ...ip,
+        status: 'draft',
+        metadata: { ...ip.metadata, members: undefined },
+      };
+      render(<IPDetailPage ip={legacyIP} onBackToList={() => {}} currentUserId="anybody@org" />);
+      expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
+    });
+  });
+
   describe('Charter team section (wedge members[])', () => {
     const charterIP: ImprovementProject = { ...ip, status: 'draft' };
 
