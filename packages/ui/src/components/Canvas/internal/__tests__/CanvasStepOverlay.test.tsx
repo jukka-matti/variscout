@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import type { CanvasStepCardModel } from '@variscout/hooks';
-import type { ActionItem, WorkflowReadinessSignals } from '@variscout/core';
+import type { ActionItem } from '@variscout/core';
 import { CanvasStepOverlay } from '../CanvasStepOverlay';
 
 const baseCard: CanvasStepCardModel = {
@@ -25,11 +25,6 @@ const baseCard: CanvasStepCardModel = {
     lcl: 0.7,
     outOfSpecPercentage: 0,
   },
-};
-
-const emptySignals: WorkflowReadinessSignals = {
-  hasIntervention: false,
-  sustainmentConfirmed: false,
 };
 
 function makeAction(overrides: Partial<ActionItem> = {}): ActionItem {
@@ -56,91 +51,62 @@ function renderOverlay(overrides: Partial<React.ComponentProps<typeof CanvasStep
     <CanvasStepOverlay
       card={baseCard}
       onClose={() => undefined}
-      signals={emptySignals}
       actionItems={[]}
       onQuickAction={() => undefined}
       onFocusedInvestigation={() => undefined}
       onCharter={() => undefined}
-      onSustainment={() => undefined}
-      onHandoff={() => undefined}
       {...overrides}
     />
   );
 }
 
 describe('CanvasStepOverlay — response-path CTA rendering', () => {
-  it('renders all five CTAs when handlers wired and prerequisites met', () => {
-    renderOverlay({
-      signals: { hasIntervention: true, sustainmentConfirmed: true },
-    });
-    for (const path of [
-      'quick-action',
-      'focused-investigation',
-      'charter',
-      'sustainment',
-      'handoff',
-    ]) {
+  it('renders exactly 3 CTAs when all handlers wired', () => {
+    renderOverlay();
+    for (const path of ['quick-action', 'focused-investigation', 'charter']) {
       const cta = screen.getByTestId(`canvas-cta-${path}`);
       expect(cta).toHaveAttribute('data-cta-state', 'active');
       expect(cta).not.toBeDisabled();
     }
+    expect(screen.queryByTestId('canvas-cta-sustainment')).toBeNull();
+    expect(screen.queryByTestId('canvas-cta-handoff')).toBeNull();
   });
 
-  it('renders quick-action and focused-investigation as active even when other paths have unmet prerequisites', () => {
-    renderOverlay(); // emptySignals
-    for (const path of ['quick-action', 'focused-investigation']) {
-      const cta = screen.getByTestId(`canvas-cta-${path}`);
-      expect(cta).toHaveAttribute('data-cta-state', 'active');
-      expect(cta).not.toBeDisabled();
-    }
+  it('renders quick-action as active', () => {
+    renderOverlay();
+    const cta = screen.getByTestId('canvas-cta-quick-action');
+    expect(cta).toHaveAttribute('data-cta-state', 'active');
+    expect(cta).not.toBeDisabled();
   });
 
-  it('renders Improvement Project as active regardless of signals (DMAIC Define-phase, no prerequisite)', () => {
-    renderOverlay(); // emptySignals
+  it('renders focused-investigation as active', () => {
+    renderOverlay();
+    const cta = screen.getByTestId('canvas-cta-focused-investigation');
+    expect(cta).toHaveAttribute('data-cta-state', 'active');
+    expect(cta).not.toBeDisabled();
+  });
+
+  it('renders Improvement Project as active (DMAIC Define-phase, no prerequisite)', () => {
+    renderOverlay();
     const cta = screen.getByTestId('canvas-cta-charter');
     expect(cta).toHaveTextContent('Improvement Project');
     expect(cta).toHaveAttribute('data-cta-state', 'active');
     expect(cta).not.toBeDisabled();
   });
 
-  it('renders Sustainment as prerequisite-locked when no intervention exists', () => {
+  it('sustainment and handoff CTAs are never rendered', () => {
     renderOverlay();
-    const cta = screen.getByTestId('canvas-cta-sustainment');
-    expect(cta).toHaveAttribute('data-cta-state', 'prerequisite-locked');
-    expect(cta).toHaveAttribute('data-cta-reason', 'no-intervention');
-    expect(cta).toBeDisabled();
-    expect(cta.getAttribute('title')).toMatch(/process change to monitor/i);
-  });
-
-  it('renders Handoff as prerequisite-locked when sustainment not confirmed', () => {
-    renderOverlay({ signals: { hasIntervention: true, sustainmentConfirmed: false } });
-    const cta = screen.getByTestId('canvas-cta-handoff');
-    expect(cta).toHaveAttribute('data-cta-state', 'prerequisite-locked');
-    expect(cta).toHaveAttribute('data-cta-reason', 'no-sustainment-confirmed');
-    expect(cta).toBeDisabled();
-    expect(cta.getAttribute('title')).toMatch(/sustainment monitoring confirms gains/i);
-  });
-
-  it('hides any CTA whose handler is not wired', () => {
-    renderOverlay({
-      signals: { hasIntervention: true, sustainmentConfirmed: true },
-      onCharter: undefined,
-      onSustainment: undefined,
-      onHandoff: undefined,
-    });
-    expect(screen.queryByTestId('canvas-cta-charter')).toBeNull();
     expect(screen.queryByTestId('canvas-cta-sustainment')).toBeNull();
     expect(screen.queryByTestId('canvas-cta-handoff')).toBeNull();
-    expect(screen.queryByTestId('canvas-cta-quick-action')).not.toBeNull();
-    expect(screen.queryByTestId('canvas-cta-focused-investigation')).not.toBeNull();
   });
 
-  it('isDemo bypasses sustainment + handoff prerequisites', () => {
-    renderOverlay({ signals: { ...emptySignals, isDemo: true } });
-    for (const path of ['sustainment', 'handoff']) {
-      const cta = screen.getByTestId(`canvas-cta-${path}`);
-      expect(cta).toHaveAttribute('data-cta-state', 'active');
-    }
+  it('hides a CTA whose handler is not wired', () => {
+    renderOverlay({
+      onCharter: undefined,
+    });
+    expect(screen.queryByTestId('canvas-cta-charter')).toBeNull();
+    expect(screen.queryByTestId('canvas-cta-quick-action')).not.toBeNull();
+    expect(screen.queryByTestId('canvas-cta-focused-investigation')).not.toBeNull();
   });
 
   it('clicking an active CTA invokes its handler with the step id', () => {
