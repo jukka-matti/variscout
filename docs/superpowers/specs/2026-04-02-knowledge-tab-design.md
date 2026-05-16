@@ -7,6 +7,10 @@ category: architecture
 related: [adr-060, adr-049, adr-057, knowledge-base, coscout, pi-panel]
 ---
 
+> **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). Under the wedge, the Knowledge Tab scopes to **project** (not Hub) for V1. Knowledge Catalyst at Hub scale (cross-project federation, org-wide pattern memory) defers to **VariScout Process**, the future enterprise product. Tier-gating retires under single €99 SKU; visibility is determined by project-membership ACLs (Lead / Member / Sponsor per wedge spec §4). The doc management + citation preview mechanics are unchanged; only the scope changes.
+
+---
+
 # Knowledge Tab & CoScout Inline Citation Preview
 
 ## Problem Statement

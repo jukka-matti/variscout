@@ -7,6 +7,13 @@ status: stable
 
 # Glossary
 
+> **⚠️ Updated 2026-05-16 for the wedge pivot** ([wedge spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md)). Vocabulary changes:
+>
+> - **New section: Project & membership terms** — Lead, Member, Sponsor, Measurement Plan, Promote to Project, canvas response paths.
+> - **Process Hub** amended — stays as internal data container, not surfaced as a user-visible noun in V1 UI.
+> - **Stage 5 modal** marked wedge-changed — Mode B Stage 5 ceremony retires under the wedge; investigation entry happens via Wall + Promote-to-Project CTA.
+> - **Retired terms table expanded** — Reviewer role, Team tier, Improve tab (top-level), Handoff stage, Handoff response path, Process Owner / SME / Frontline personas.
+
 Statistical, quality, and methodology terms used across VariScout. **This is the canonical home for VariScout terminology.** Process narrative lives in [`docs/01-vision/methodology.md`](01-vision/methodology.md) and the [product vision spec](superpowers/specs/2026-05-03-variscout-vision-design.md); both cross-reference this glossary rather than re-defining terms.
 
 ---
@@ -59,9 +66,87 @@ A step can branch (one → many downstream paths) and join (many → one). Real 
 
 ### Process Hub
 
-The persistent home of one process line. Hub IS its logic map — there is no separate Hub model and map model. Holds: map structure, specs per column / per step, named contexts, cadence definition, snapshot history, finding history, investigation history.
+**Wedge V1 status:** internal data container only — not surfaced as a user-visible noun. The Hub backs the Process tab + paste data + outcome spec + factors + process map. Tenant-wide access (anyone in the Azure tenant can paste data and analyze without creating a Project). Projects wrap a Hub with formal lifecycle + project-membership ACLs; quick analysis works without any Project.
 
-**Related:** [Outcome](#outcome), [Step](#step)
+Hub IS its logic map — there is no separate Hub model and map model. Holds: map structure, specs per column / per step, named contexts, cadence definition, snapshot history, finding history, investigation history.
+
+**Related:** [Outcome](#outcome), [Step](#step), [Project](#project)
+
+---
+
+## Project & membership terms
+
+Vocabulary introduced by the wedge pivot (`docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`). Projects are the user-visible formal wrapper around a Hub; quick analysis works without a Project (per wedge §3.0).
+
+### Project
+
+A formal investigation initiated by an analyst to drive process improvement. Wraps an existing Hub (the data container) with formal lifecycle — Charter → Approach → Improve → Sustainment — and project-membership ACLs (Lead / Member / Sponsor). Optional: tenant users can paste data and analyze without creating a Project; promotion via "+ Promote to Project" inherits all prior Hub state.
+
+**Related:** [Process Hub](#process-hub), [Promote to Project](#promote-to-project), [Lead](#lead), [Member](#member), [Sponsor](#sponsor)
+
+### Lead
+
+Project membership role. Project Lead is typically the analyst running the investigation — equivalent to Black Belt or project director. Full edit access to all project stages and surfaces; manages project membership (inviting Members and Sponsors).
+
+**Related:** [Member](#member), [Sponsor](#sponsor), [Project](#project)
+
+### Member
+
+Project membership role. Member is an analyst, SME, frontline contributor, or quality engineer invited to the project by the Lead. Full edit access to all project working surfaces (Canvas, Investigation Wall, Improve actions, Approach stage) but cannot manage other members. Replaces the legacy SME / Frontline persona distinction.
+
+**Related:** [Lead](#lead), [Sponsor](#sponsor), [Project](#project)
+
+### Sponsor
+
+Project membership role. Typically an executive sponsor or Champion of the project. **At V1, Sponsor has Report-only access** to projects they sponsor — they see the Report tab, no other project surfaces. Signoff at gates (Charter approval, Sustainment closure) is handled out-of-band in V1 (Lead presents the report in a meeting or by email; Sponsor approves verbally; Lead records the signoff in the relevant stage's notes). In-app Sponsor signoff workflow defers to V2 if customer demand surfaces.
+
+**Vocabulary note:** "Sponsor" is canonical Six Sigma / Lean / CI terminology. "Champion" (GE-school Six Sigma) is equivalent; V1 uses Sponsor for unambiguity.
+
+**Related:** [Lead](#lead), [Member](#member), [Project](#project)
+
+### Promote to Project
+
+Action that converts a quick-analysis session (data paste + canvas framing + any Findings) into a formal Project. The newly-created Project's Charter inherits the current Hub state — data, outcome spec, factors, framing narrative, any Findings, any Hypotheses, current canvas viewport — and asks only for project-formal metadata (problem statement, member invites, optional refined goal). Nothing already done gets lost.
+
+Available from Home, Analyze, Investigation tabs, and from canvas drill (the "Charter" response path).
+
+**Related:** [Project](#project), [Process Hub](#process-hub)
+
+### Measurement Plan
+
+Sub-entity linked to a Hypothesis on the Investigation Wall (per wedge spec §3.6). Describes a measurement that needs to be collected to test the Hypothesis: factor, method (sensor / manual count / gemba walk / expert assessment), sample size (manual entry; no statistical calculator in V1), owner, status (Planned / In progress / Complete / Skipped).
+
+Supports the **hypothesis-first investigation cycle**: analyst plans what evidence is needed, coordinates collection out-of-product, re-ingests new data via the paste flow, new Findings auto-suggest links to matching Plans. Plan status → `Complete` when its data lands as Findings.
+
+V1 deliberately excludes formal MSA / Gage R&R workflow (`msaRequired?` is an informational flag only) and statistical sample-size calculators — defer to V2 or VariScout Process.
+
+**Related:** [Hypothesis (Investigation Wall)](#hypothesis-investigation-wall), [Project](#project)
+
+### Hypothesis (Investigation Wall)
+
+A named mechanism connecting evidence threads on the Investigation Wall — e.g., "Nozzle wear on Night shift drives drift." Status: `proposed` → `evidenced` → `confirmed` / `refuted` / `needs-disconfirmation`. Holds linked Findings (evidence collected) and (under the wedge) linked Measurement Plans (evidence still needed). Both data-first and hypothesis-first investigation paths converge on this entity.
+
+Renamed from `SuspectedCause` via RPS V1 PR-RPS-1 (May 9, 2026).
+
+**Related:** [Measurement Plan](#measurement-plan), [Finding](#finding-investigation-wall)
+
+### Finding (Investigation Wall)
+
+A bookmarked chart observation + analyst note. Status: `observed` → `analyzed` → `improving` → `resolved`. Created by right-clicking a chart and entering text; captures the chart configuration, source factor, time window, and any focused Question. Links to a Hypothesis (optional but typical) and to a Measurement Plan (auto-suggested when factor + window match).
+
+**Related:** [Hypothesis (Investigation Wall)](#hypothesis-investigation-wall), [Measurement Plan](#measurement-plan)
+
+### Canvas response paths (Investigate / Quick Action / Charter)
+
+The 3 V1 response paths surfaced from a canvas step-card drill in the Process tab:
+
+- **Investigate** — opens the Investigation Wall + Evidence Map scoped to the focal step.
+- **Quick Action** — creates a tracked action item in the active project's Improve stage (or prompts to select / create a Project if none active).
+- **Charter** — creates a new Project with this step / focal data as initial Charter-stage context (same as "Promote to Project" but launched from canvas).
+
+The Sustainment path auto-fires per [ADR-080](07-decisions/adr-080-sustainment-auto-fire-pattern.md); the Handoff path is deleted everywhere (folded into Sustainment closure).
+
+**Related:** [Project](#project), [Promote to Project](#promote-to-project), [Measurement Plan](#measurement-plan)
 
 ---
 
@@ -95,9 +180,14 @@ Sidecar metadata `{ source: string; joinKey: string }` attached via a `Map<rowIn
 
 ### Stage 5 modal
 
-The floating modal that opens at the end of Mode B Stage 3 (and on demand via "+ New investigation" in Mode A.1 canvas chrome) to collect investigation-level context before canvas work begins. The user fills in an issue description, a question, and an optional hypothesis draft; the modal creates an `Investigation` entity and a linked `Question` entity when the user clicks "Open investigation →", or returns to the canvas with no active investigation context when the user clicks "Skip — explore canvas instead." The same modal form factor reuses the Q1 floating-overlay decision (vision §8 anchor Q1). Both paths are valid starting points; the skip path supports observation-triggered EDA without forcing a pre-formed question.
+**Wedge V1 status:** retired. Mode B Stage 5 ceremony was tied to the framing-layer's persona-rich onboarding flow which retires under the wedge (4-persona model migrates to VariScout Process). Under V1:
 
-**See:** framing-layer spec §5.5; `docs/archive/specs/2026-05-03-framing-layer-design.md`
+- **Investigation entry** happens via the Investigation Wall directly (create a Hypothesis on the Wall, optionally from a quick-analysis Finding).
+- **Project entry** happens via "+ New Project" / [Promote to Project](#promote-to-project), which inherits the analyst's current Hub state.
+
+The original Stage 5 modal collected issue description + question + hypothesis draft and created Investigation + Question entities. That ceremony is replaced by the more granular Wall-based Hypothesis + Finding creation under the wedge. Historical reference: framing-layer spec §5.5 (`docs/archive/specs/2026-05-03-framing-layer-design.md`).
+
+**See:** [Promote to Project](#promote-to-project), [Hypothesis (Investigation Wall)](#hypothesis-investigation-wall)
 
 ---
 
@@ -105,16 +195,26 @@ The floating modal that opens at the end of Mode B Stage 3 (and on demand via "+
 
 Terms removed from user-facing surfaces in the 2026-05-03 vision pivot. Listed here so future contributors recognize them in legacy code, comments, or external context. Do not reintroduce.
 
-| Retired term             | Replacement                                                                | Why retired                                                                                                                      |
-| ------------------------ | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Tributary**            | _factor_, _input_, _input arrow_, or simply removed                        | River metaphor was load-bearing in ADR-070's FRAME workspace; canvas drops the river framing.                                    |
-| **CTS**                  | "outcome at the customer," "system outcome," or simply [Outcome](#outcome) | Acronym opaque to users; the CTS-vs-CTQ methodological distinction survives as concept.                                          |
-| **Critical-to-X**        | Plain language describing the relationship being asserted                  | Acronym family same as CTS — concept survives, label does not.                                                                   |
-| **River-SIPOC**          | _Canvas_                                                                   | The visual metaphor (left→right SIPOC; tributaries entering from banks) retired; the canvas uses spatial DAG with branch + join. |
-| **FRAME workspace**      | _Canvas_ (top-level surface)                                               | FRAME tab retires per Q0 in the §8 resolution. ADR-070 amended 2026-05-03 with supersession note.                                |
-| **Analysis tab**         | _Canvas_ + mode lenses (per vision §5.4)                                   | Same job as Frame — looking at the live map and its current state. Consolidated into Canvas.                                     |
-| **Layered Process View** | _Canvas_ with mode lenses                                                  | Three-band visual (Outcome / Process Flow / Operations) absorbed; semantic preserved as overlays.                                |
-| **Hub of Hubs**          | _Plant-hub layout_ (named-future, see decision-log)                        | Implementation term that surfaced in product-method roadmap; named-future in delivery-sequence reference.                        |
+| Retired term                 | Replacement                                                                | Why retired                                                                                                                                                                                                    |
+| ---------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tributary**                | _factor_, _input_, _input arrow_, or simply removed                        | River metaphor was load-bearing in ADR-070's FRAME workspace; canvas drops the river framing.                                                                                                                  |
+| **CTS**                      | "outcome at the customer," "system outcome," or simply [Outcome](#outcome) | Acronym opaque to users; the CTS-vs-CTQ methodological distinction survives as concept.                                                                                                                        |
+| **Critical-to-X**            | Plain language describing the relationship being asserted                  | Acronym family same as CTS — concept survives, label does not.                                                                                                                                                 |
+| **River-SIPOC**              | _Canvas_                                                                   | The visual metaphor (left→right SIPOC; tributaries entering from banks) retired; the canvas uses spatial DAG with branch + join.                                                                               |
+| **FRAME workspace**          | _Canvas_ (top-level surface)                                               | FRAME tab retires per Q0 in the §8 resolution. ADR-070 amended 2026-05-03 with supersession note.                                                                                                              |
+| **Analysis tab**             | _Canvas_ + mode lenses (per vision §5.4)                                   | Same job as Frame — looking at the live map and its current state. Consolidated into Canvas.                                                                                                                   |
+| **Layered Process View**     | _Canvas_ with mode lenses                                                  | Three-band visual (Outcome / Process Flow / Operations) absorbed; semantic preserved as overlays.                                                                                                              |
+| **Hub of Hubs**              | _Plant-hub layout_ (named-future, see decision-log)                        | Implementation term that surfaced in product-method roadmap; named-future in delivery-sequence reference.                                                                                                      |
+| **Reviewer (project role)**  | [Sponsor](#sponsor)                                                        | Wedge collapses 4-persona model; V1 uses Lead / Member / Sponsor membership roles. "Reviewer" was a generic placeholder; Sponsor is the canonical Six Sigma / Lean term.                                       |
+| **Team tier / €199 tier**    | €99 single SKU                                                             | Single-tier pricing model (ADR-082). No tier-gating in V1 UX; team-capability features are membership-gated instead.                                                                                           |
+| **Standard tier / €79 tier** | €99 single SKU                                                             | Same as above — €79 / €199 split retires; single SKU replaces both.                                                                                                                                            |
+| **Improve tab** (top-level)  | Improve _stage_ (inside Projects detail)                                   | Improve becomes a stage within the Project lifecycle (Charter → Approach → Improve → Sustainment) rather than a parallel top-level tab. PDCA workbench available behind an "Advanced" toggle inside the stage. |
+| **Handoff stage**            | Folded into [Sustainment](#)closure                                        | Single end-of-project decision moment ("did it work? + close"). Handoff actions captured in Sustainment notes.                                                                                                 |
+| **Handoff response path**    | Sustainment auto-fire (ADR-080)                                            | Canvas no longer exposes a Handoff path. Sustainment auto-fires when Improve actions complete or cadence triggers fire.                                                                                        |
+| **Process Owner (persona)**  | Deferred to VariScout Process                                              | Wedge retires 4-persona model for V1. Process Owner re-emerges as a primary persona in VariScout Process (the future enterprise product).                                                                      |
+| **SME (persona)**            | [Member](#member) (project role)                                           | Wedge collapses personas; SME reframes as a Member in project membership.                                                                                                                                      |
+| **Frontline (persona)**      | [Member](#member) (project role)                                           | Wedge collapses personas; Frontline reframes as a Member in project membership.                                                                                                                                |
+| **Project Lead (persona)**   | [Lead](#lead) (project role) + Specialist (V1 persona)                     | Wedge merges the Project Lead persona into the single Specialist persona; Lead becomes a project-membership role rather than a global persona.                                                                 |
 
 ---
 
