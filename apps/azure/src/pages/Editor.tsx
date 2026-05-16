@@ -621,7 +621,7 @@ export const Editor: React.FC<EditorProps> = ({
   const projectsControlHandoff = _azureLiveControlHandoffs.find(
     h => h.investigationId === (projectsSustainmentRecord?.investigationId ?? '')
   );
-  const projectsHandoffInputs = projectsControlHandoff
+  const projectsClosureInputs = projectsControlHandoff
     ? {
         controlPlanDocumented: false,
         trainingDelivered: Boolean(projectsControlHandoff.signoff?.approvedBy),
@@ -1886,16 +1886,11 @@ export const Editor: React.FC<EditorProps> = ({
                 }}
                 sustainmentRecord={projectsSustainmentRecord}
                 controlHandoff={projectsControlHandoff}
-                handoffInputs={projectsHandoffInputs}
+                closureInputs={projectsClosureInputs}
                 onOpenLegacySustainment={() =>
                   usePanelsStore
                     .getState()
                     .showSustainment(projectsSustainmentRecord?.investigationId ?? undefined)
-                }
-                onOpenLegacyHandoff={() =>
-                  usePanelsStore
-                    .getState()
-                    .showHandoff(projectsControlHandoff?.investigationId ?? undefined)
                 }
                 onNudgeProcessOwner={() => {
                   // Plan 3 will emit EngagementEvent webhook here.

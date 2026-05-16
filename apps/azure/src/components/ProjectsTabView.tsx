@@ -8,7 +8,7 @@ import { IPDetailPage } from '@variscout/ui/ipDetail';
 import type {
   CauseProjectionInputs,
   CauseRow,
-  HandoffChecklistInputs,
+  SustainmentClosureInputs,
 } from '@variscout/ui/ipDetail';
 
 interface ProjectsTabViewProps {
@@ -22,9 +22,9 @@ interface ProjectsTabViewProps {
   onOpenCauseWorkbench?: (cause: CauseRow) => void;
   sustainmentRecord?: SustainmentRecord;
   controlHandoff?: ControlHandoff;
-  handoffInputs?: HandoffChecklistInputs;
+  /** Closure checklist derived from controlHandoff (folded in from former Handoff stage). */
+  closureInputs?: SustainmentClosureInputs;
   onOpenLegacySustainment?: () => void;
-  onOpenLegacyHandoff?: () => void;
   onNudgeProcessOwner?: () => void;
   onProjectPatch?: (
     projectId: ImprovementProject['id'],
@@ -86,9 +86,8 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onOpenCauseWorkbench,
   sustainmentRecord,
   controlHandoff,
-  handoffInputs,
+  closureInputs,
   onOpenLegacySustainment,
-  onOpenLegacyHandoff,
   onNudgeProcessOwner,
   onProjectPatch,
   onNudgeSignoff,
@@ -149,9 +148,8 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         onOpenCauseWorkbench={onOpenCauseWorkbench}
         sustainmentRecord={sustainmentRecord}
         controlHandoff={controlHandoff}
-        handoffInputs={handoffInputs}
+        closureInputs={closureInputs}
         onOpenLegacySustainment={onOpenLegacySustainment}
-        onOpenLegacyHandoff={onOpenLegacyHandoff}
         onNudgeProcessOwner={onNudgeProcessOwner}
         activeHub={activeHub}
         ideas={approachInputs?.ideas}

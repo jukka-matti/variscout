@@ -1,6 +1,50 @@
 import React from 'react';
 import type { SustainmentRecord } from '@variscout/core';
 
+/** Closure checklist inputs derived from a ControlHandoff or caller state. */
+export interface SustainmentClosureInputs {
+  controlPlanDocumented: boolean;
+  trainingDelivered: boolean;
+  cadenceAssigned: boolean;
+  processOwnerAcknowledged: boolean;
+  controlPlanRef?: string;
+  trainingRef?: string;
+  cadenceOwner?: string;
+  acknowledgmentReminder?: string;
+}
+
+interface ClosureChecklistItem {
+  key: keyof Pick<
+    SustainmentClosureInputs,
+    'controlPlanDocumented' | 'trainingDelivered' | 'cadenceAssigned' | 'processOwnerAcknowledged'
+  >;
+  label: string;
+  description: (i: SustainmentClosureInputs) => string;
+}
+
+const CLOSURE_ITEMS: ClosureChecklistItem[] = [
+  {
+    key: 'controlPlanDocumented',
+    label: 'Control plan documented',
+    description: i => i.controlPlanRef ?? 'No control plan linked',
+  },
+  {
+    key: 'trainingDelivered',
+    label: 'Training materials delivered',
+    description: i => i.trainingRef ?? 'No training acknowledgments on file',
+  },
+  {
+    key: 'cadenceAssigned',
+    label: 'Monitoring cadence assigned',
+    description: i => i.cadenceOwner ?? 'No owner assigned',
+  },
+  {
+    key: 'processOwnerAcknowledged',
+    label: 'Process Owner acknowledgment',
+    description: i => i.acknowledgmentReminder ?? 'Pending — not yet acknowledged',
+  },
+];
+
 interface SustainmentOverviewProps {
   record: SustainmentRecord;
   onStartHandoff: () => void;
@@ -8,6 +52,14 @@ interface SustainmentOverviewProps {
   onOpenAnalyze: () => void;
   /** Optional: per-cause in-control rows from caller (Plan 4 wires real data). */
   perCauseRows?: Array<{ factor: string; inControl: boolean; observation?: string }>;
+  /** Optional closure checklist inputs (folded in from former Handoff stage). */
+  closureInputs?: SustainmentClosureInputs;
+  /** Called when user clicks "Nudge" on pending process-owner acknowledgment. */
+  onNudgeOwner?: () => void;
+  /** Called when user clicks "Report · final summary". */
+  onOpenReport?: () => void;
+  /** Called when user clicks "Export PDF for audit". */
+  onExportPdf?: () => void;
 }
 
 const SUSTAINMENT_THRESHOLD = 4;
@@ -18,6 +70,10 @@ const SustainmentOverview: React.FC<SustainmentOverviewProps> = ({
   onOpenProcess,
   onOpenAnalyze,
   perCauseRows = [],
+  closureInputs,
+  onNudgeOwner,
+  onOpenReport,
+  onExportPdf,
 }) => {
   const ticks = Math.max(0, record.consecutiveOnTargetTicks);
   const visibleTicks = Math.min(ticks, 8);
@@ -69,6 +125,80 @@ const SustainmentOverview: React.FC<SustainmentOverviewProps> = ({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {closureInputs && (
+        <div className="space-y-3">
+          <div className="rounded-r-md border-l-4 border-[var(--vs-accent)] bg-slate-50 px-4 py-3">
+            <div className="text-xs font-semibold uppercase tracking-wide text-[var(--vs-accent)]">
+              Sustainment closure ·{' '}
+              {CLOSURE_ITEMS.filter(it => closureInputs[it.key] === true).length} of{' '}
+              {CLOSURE_ITEMS.length} items complete
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {CLOSURE_ITEMS.map(item => {
+              const done = closureInputs[item.key] === true;
+              return (
+                <div
+                  key={String(item.key)}
+                  className={`rounded-md border p-3 ${done ? 'border-edge bg-white' : 'border-amber-300 bg-amber-50'}`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span className={done ? 'text-green-600' : 'text-amber-600'}>
+                      {done ? '✓' : '⏳'}
+                    </span>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-content">{item.label}</div>
+                      <div className="mt-0.5 text-xs text-content-secondary">
+                        {item.description(closureInputs)}
+                      </div>
+                    </div>
+                    {!done && item.key === 'processOwnerAcknowledged' && (
+                      <button
+                        type="button"
+                        onClick={onNudgeOwner}
+                        className="rounded-md bg-indigo-600 px-2 py-1 text-[10px] font-medium text-white hover:bg-indigo-700"
+                        data-testid="sustainment-closure-nudge-owner"
+                      >
+                        Nudge
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {(onOpenReport || onExportPdf) && (
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-content-tertiary">
+                Continue in
+              </div>
+              <div className="mt-2 flex gap-2">
+                {onOpenReport && (
+                  <button
+                    type="button"
+                    onClick={onOpenReport}
+                    className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-100"
+                  >
+                    Report · final summary
+                  </button>
+                )}
+                {onExportPdf && (
+                  <button
+                    type="button"
+                    onClick={onExportPdf}
+                    className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-100"
+                  >
+                    Export PDF for audit
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

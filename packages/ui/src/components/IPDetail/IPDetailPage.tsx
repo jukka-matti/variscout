@@ -17,9 +17,8 @@ import CharterOverview from './stages/CharterOverview';
 import CharterSections from './stages/CharterSections';
 import ApproachOverview from './stages/ApproachOverview';
 import ApproachSections from './stages/ApproachSections';
-import SustainmentOverview from './stages/SustainmentOverview';
+import SustainmentOverview, { type SustainmentClosureInputs } from './stages/SustainmentOverview';
 import SustainmentSections from './stages/SustainmentSections';
-import { type HandoffChecklistInputs } from './stages/HandoffOverview';
 import { ImproveStage } from './stages/ImproveStage';
 import type { CauseProjectionInputs, CauseRow } from './stages/causeProjection';
 import type { ImprovementProjectFormProps } from '../ImprovementProject/ImprovementProjectForm';
@@ -57,14 +56,12 @@ export interface IPDetailPageProps {
   sustainmentRecord?: SustainmentRecord;
   /** Linked ControlHandoff. Present when handoff stage is active or beyond. */
   controlHandoff?: ControlHandoff;
-  /** Inputs for Handoff checklist (derived from controlHandoff by caller). */
-  handoffInputs?: HandoffChecklistInputs;
+  /** Closure checklist inputs for SustainmentOverview (folded in from former Handoff stage). */
+  closureInputs?: SustainmentClosureInputs;
   /** Per-cause in-control rows for Sustainment Overview. */
   sustainmentPerCauseRows?: Array<{ factor: string; inControl: boolean; observation?: string }>;
   /** "Open legacy Sustainment panel" handler. */
   onOpenLegacySustainment?: () => void;
-  /** "Open legacy Handoff panel" handler. */
-  onOpenLegacyHandoff?: () => void;
   /** "Nudge owner" handler (Plan 3 wires actual notification). */
   onNudgeProcessOwner?: () => void;
   /** Activity/signoff inputs for the team rail. */
@@ -108,10 +105,9 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   onOpenCauseWorkbench,
   sustainmentRecord,
   controlHandoff,
-  handoffInputs: _handoffInputs,
+  closureInputs,
   sustainmentPerCauseRows,
   onOpenLegacySustainment,
-  onOpenLegacyHandoff: _onOpenLegacyHandoff,
   onNudgeProcessOwner: _onNudgeProcessOwner,
   ideas,
   actions,
@@ -294,12 +290,16 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               onOpenProcess={() => onJumpOut?.('process')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               perCauseRows={sustainmentPerCauseRows}
+              closureInputs={closureInputs}
+              onNudgeOwner={_onNudgeProcessOwner}
+              onOpenReport={() => onJumpOut?.('report')}
             />
           )}
           {activeStage === 'sustainment' && mode === 'sections' && sustainmentRecord && (
             <SustainmentSections
               record={sustainmentRecord}
               onOpenLegacy={() => onOpenLegacySustainment?.()}
+              controlHandoff={controlHandoff}
             />
           )}
           {activeStage === 'sustainment' && !sustainmentRecord && (

@@ -100,7 +100,7 @@ export function ImproveStage({
           matrixPresets={advancedProps?.matrixPresets}
           matrixActivePreset={advancedProps?.matrixActivePreset}
           onMatrixPresetChange={advancedProps?.onMatrixPresetChange}
-          whatIfMode={advancedProps?.whatIfMode ?? 'basic'}
+          whatIfMode={advancedProps?.whatIfMode ?? 'standard'}
           whatIfCurrentStats={advancedProps?.whatIfCurrentStats ?? DEFAULT_WHAT_IF_STATS}
         />
       ) : (
