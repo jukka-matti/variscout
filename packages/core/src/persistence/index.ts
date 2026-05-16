@@ -14,6 +14,7 @@ export type {
   SustainmentRecordReadAPI,
   SustainmentReviewReadAPI,
   ControlHandoffReadAPI,
+  MeasurementPlanReadAPI,
 } from './HubRepository';
 export type { EntityKind, CascadeRule, CascadeRuleset } from './cascadeRules';
 export { cascadeRules, transitiveCascade } from './cascadeRules';

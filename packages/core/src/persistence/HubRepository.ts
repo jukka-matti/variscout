@@ -4,6 +4,7 @@ import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '../
 import type { Finding, Question, CausalLink, Hypothesis, ActionItem } from '../findings/types';
 import type { ProcessMap } from '../frame/types';
 import type { ControlHandoff, SustainmentRecord, SustainmentReview } from '../sustainment';
+import type { MeasurementPlan } from '../measurementPlan/types';
 
 export interface HubReadAPI {
   get(id: ProcessHub['id']): Promise<ProcessHub | undefined>;
@@ -83,6 +84,11 @@ export interface ControlHandoffReadAPI {
   listByHub(hubId: ProcessHub['id']): Promise<ControlHandoff[]>;
 }
 
+export interface MeasurementPlanReadAPI {
+  get(id: MeasurementPlan['id']): Promise<MeasurementPlan | undefined>;
+  listByHypothesis(hypothesisId: Hypothesis['id']): Promise<MeasurementPlan[]>;
+}
+
 /**
  * Single-interface repository for all hub domain writes + grouped reads.
  * Write path: one `dispatch(action)` entry point — all mutations flow through it.
@@ -108,4 +114,5 @@ export interface HubRepository {
   sustainmentRecords: SustainmentRecordReadAPI;
   sustainmentReviews: SustainmentReviewReadAPI;
   controlHandoffs: ControlHandoffReadAPI;
+  measurementPlans: MeasurementPlanReadAPI;
 }

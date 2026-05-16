@@ -12,6 +12,7 @@ import type { ImprovementProjectAction } from './improvementProjectActions';
 import type { ActionItemAction } from './actionItemActions';
 import type { SustainmentAction } from './sustainmentActions';
 import type { ControlHandoffAction } from './controlHandoffActions';
+import type { MeasurementPlanAction } from '../measurementPlan/actions';
 
 /**
  * Top-level discriminated union for all hub write operations.
@@ -32,4 +33,5 @@ export type HubAction =
   | ImprovementProjectAction
   | ActionItemAction
   | SustainmentAction
-  | ControlHandoffAction;
+  | ControlHandoffAction
+  | MeasurementPlanAction;
