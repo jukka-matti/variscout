@@ -171,4 +171,100 @@ describe('IPDetailPage', () => {
     fireEvent.click(within(drawer).getByRole('button', { name: 'Close team workspace' }));
     expect(screen.queryByRole('dialog', { name: 'Team workspace' })).not.toBeInTheDocument();
   });
+
+  // Task 8 — wedge members[] wiring via Charter team section
+  describe('Charter team section (wedge members[])', () => {
+    const charterIP: ImprovementProject = { ...ip, status: 'draft' };
+
+    it('shows the Charter team section when onMembersChange is provided', () => {
+      render(
+        <IPDetailPage
+          ip={charterIP}
+          onBackToList={() => {}}
+          currentUserId="lead@org"
+          onMembersChange={() => {}}
+        />
+      );
+      expect(screen.getByTestId('charter-team-section')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /invite team/i })).toBeInTheDocument();
+    });
+
+    it('does not show the Charter team section when onMembersChange is absent', () => {
+      render(<IPDetailPage ip={charterIP} onBackToList={() => {}} currentUserId="lead@org" />);
+      expect(screen.queryByTestId('charter-team-section')).not.toBeInTheDocument();
+    });
+
+    it('calls onMembersChange with a new ProjectMember when invite is submitted', () => {
+      const onMembersChange = vi.fn();
+      render(
+        <IPDetailPage
+          ip={charterIP}
+          onBackToList={() => {}}
+          currentUserId="lead@org"
+          onMembersChange={onMembersChange}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: /invite team/i }));
+      fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'pat@org.com' } });
+      fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'member' } });
+      fireEvent.click(screen.getByRole('button', { name: /^invite$/i }));
+
+      expect(onMembersChange).toHaveBeenCalledOnce();
+      const [newMembers] = onMembersChange.mock.calls[0] as [
+        import('@variscout/core/projectMembership').ProjectMember[],
+      ];
+      expect(newMembers).toHaveLength(1);
+      expect(newMembers[0].userId).toBe('pat@org.com');
+      expect(newMembers[0].displayName).toBe('pat');
+      expect(newMembers[0].role).toBe('member');
+    });
+
+    it('renders existing members[] in Charter and calls onMembersChange on remove', () => {
+      const onMembersChange = vi.fn();
+      const withMembers: ImprovementProject = {
+        ...charterIP,
+        metadata: {
+          ...charterIP.metadata,
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 1,
+              deletedAt: null,
+              userId: 'lead@org',
+              displayName: 'Lead Pat',
+              role: 'lead',
+              invitedAt: 1,
+            },
+            {
+              id: 'pm-member',
+              createdAt: 1,
+              deletedAt: null,
+              userId: 'member@org',
+              displayName: 'Member Mira',
+              role: 'member',
+              invitedAt: 1,
+            },
+          ],
+        },
+      };
+      render(
+        <IPDetailPage
+          ip={withMembers}
+          onBackToList={() => {}}
+          currentUserId="lead@org"
+          onMembersChange={onMembersChange}
+        />
+      );
+      expect(screen.getByText('Lead Pat')).toBeInTheDocument();
+      expect(screen.getByText('Member Mira')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Member Mira' }));
+
+      expect(onMembersChange).toHaveBeenCalledOnce();
+      const [remaining] = onMembersChange.mock.calls[0] as [
+        import('@variscout/core/projectMembership').ProjectMember[],
+      ];
+      expect(remaining).toHaveLength(1);
+      expect(remaining[0].id).toBe('pm-lead');
+    });
+  });
 });
