@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'OpEx Olivia'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # OpEx Olivia

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Variation Decomposition
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [eta-squared, r-squared-adj, anova, factor-intelligence]
 ---
 

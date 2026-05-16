@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'ISO 9001:2026 Alignment Guide'
-audience: [quality-manager, auditor]
+audience: human
 category: compliance
-status: stable
+status: active
 date: 2026-04-03
 ---
 

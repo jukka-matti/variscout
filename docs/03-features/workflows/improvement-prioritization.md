@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Improvement Prioritization
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [improve, prioritization, risk, timeframe, cost, matrix, ideas, actions]
 ---
 

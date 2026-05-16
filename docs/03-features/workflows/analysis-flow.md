@@ -1,9 +1,11 @@
 ---
+tier: living
+purpose: design
 title: Analysis Flow
 description: Complete two-thread analysis flow — variation analysis and capability analysis — through FRAME, SCOUT, INVESTIGATE, and IMPROVE phases
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [capability, subgroup-capability, progressive-stratification, investigation-diamond]
 journey-phase: [all]
 ---

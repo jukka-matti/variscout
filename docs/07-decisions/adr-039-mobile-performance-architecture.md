@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-039: Mobile Performance & Async Computation Architecture'
 ---
 

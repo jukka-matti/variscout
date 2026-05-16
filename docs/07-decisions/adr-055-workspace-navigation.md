@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-055: Workspace-Based Navigation'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [navigation, workspaces, investigation, panels, question-driven-eda]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Zustand Direct Store Access — Full DataContext Replacement'
-status: delivered
+status: active
 date: 2026-04-04
-audience: [developer, architect]
+audience: human
 category: architecture
 related: [state-management, zustand, DDD, CQRS, persistence]
 ---

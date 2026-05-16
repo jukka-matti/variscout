@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Use Cases'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Use Cases

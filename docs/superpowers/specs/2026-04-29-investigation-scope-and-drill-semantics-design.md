@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Investigation Scope and Drill Semantics
-audience: [product, designer, engineer, analyst]
+audience: human
 category: design-spec
-status: stable
+status: active
 related:
   [
     process-hub,

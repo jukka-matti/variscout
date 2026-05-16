@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'PWA Embed Messaging Protocol'
-audience: [developer, architect]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # PWA Embed Messaging Protocol

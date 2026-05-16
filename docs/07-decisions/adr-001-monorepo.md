@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-001: Monorepo with pnpm Workspaces'
 ---
 

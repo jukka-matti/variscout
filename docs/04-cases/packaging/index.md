@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Packaging Line Case'
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: reference
+status: active
 ---
 
 # Packaging Line Case

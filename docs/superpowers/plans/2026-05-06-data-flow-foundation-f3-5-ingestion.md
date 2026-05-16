@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: Data-Flow Foundation F3.5 — Ingestion Action Layer (paste / upload unified onto EVIDENCE_ADD_SNAPSHOT dispatch)
-audience: [engineer]
+audience: human
 category: implementation
-status: delivered
+status: active
 last-reviewed: 2026-05-07
 related:
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md

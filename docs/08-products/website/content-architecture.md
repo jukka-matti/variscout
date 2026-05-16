@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Website Content Architecture'
-audience: [business, designer]
+audience: human
 category: strategy
-status: stable
+status: active
 ---
 
 # Website Content Architecture

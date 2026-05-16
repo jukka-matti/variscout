@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Deployment Lifecycle & Self-Service Update System
-audience: [developer, architect]
+audience: human
 category: architecture
 status: draft
 related: [deployment, ci-cd, azure-marketplace, managed-application, update-mechanism]

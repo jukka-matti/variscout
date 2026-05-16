@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Architecture Documentation
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [monorepo, offline-first, data-flow, ai-architecture]
 ---
 

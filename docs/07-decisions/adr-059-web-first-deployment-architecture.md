@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-059: Web-First Deployment Architecture'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # ADR-059: Web-First Deployment Architecture

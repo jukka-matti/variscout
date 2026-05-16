@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Framing Layer V1 Slice 1 — Foundation (Mode B + Mode A.1 + PWA opt-in persistence)
-audience: [engineer]
+audience: human
 category: implementation
 status: draft
 date: 2026-05-03

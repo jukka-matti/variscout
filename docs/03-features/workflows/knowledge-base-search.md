@@ -1,9 +1,11 @@
 ---
+tier: living
+purpose: design
 title: 'Knowledge Base Search'
 journey-phase: [scout, investigate, improve]
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Knowledge Base Search

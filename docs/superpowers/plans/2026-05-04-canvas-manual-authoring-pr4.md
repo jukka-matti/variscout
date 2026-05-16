@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Manual Canvas Authoring (PR4) Implementation Plan
-audience: [engineer]
+audience: human
 category: implementation
 status: draft
 date: 2026-05-04

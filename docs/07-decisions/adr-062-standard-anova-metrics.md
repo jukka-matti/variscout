@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-062: Standard ANOVA Metrics & Category Total SS Removal'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 related:
   [anova, factor-intelligence, question-driven-investigation, variation-decomposition, eta-squared]
 ---

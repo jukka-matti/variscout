@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: Response Path System V1 — Implementation Plan
-audience: [engineer]
+audience: human
 category: implementation
-status: delivered
+status: active
 last-reviewed: 2026-05-13
 related:
   - docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md

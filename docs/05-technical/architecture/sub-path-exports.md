@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Sub-Path Exports
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [core-package, tree-shaking, bounded-contexts]
 ---
 

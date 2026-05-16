@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: Tier Philosophy
-audience: [analyst, engineer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [pricing, tiers, feature-gating, value-ladder]
 ---
 

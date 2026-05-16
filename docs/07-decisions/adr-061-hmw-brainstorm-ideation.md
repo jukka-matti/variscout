@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-061: HMW Brainstorm & Collaborative Ideation'
 ---
 

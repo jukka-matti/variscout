@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Investigation Workspace Reframing — Problem Statement, Suspected Causes, and the EDA Spine'
-audience: [analyst, engineer]
+audience: human
 category: architecture
-status: in-progress
+status: active
 related:
   [
     investigation,

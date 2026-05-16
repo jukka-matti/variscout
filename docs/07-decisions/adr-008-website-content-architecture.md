@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-008: Website Content Architecture'
 ---
 

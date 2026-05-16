@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Unified What-If Explorer
-status: delivered
+status: active
 date: 2026-04-07
 related:
   [

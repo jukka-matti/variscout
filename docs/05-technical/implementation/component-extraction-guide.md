@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Component Extraction Guide
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 related: [shared-packages, ui-package, colorScheme]
 ---
 

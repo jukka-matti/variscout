@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-028: Responses API Migration'
 ---
 

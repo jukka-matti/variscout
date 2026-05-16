@@ -1,9 +1,11 @@
 ---
+tier: stable
+purpose: orient
 title: VariScout Documentation
 description: Structured investigation for process improvement — question-driven, evidence-based, AI-assisted
-audience: [developer, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # VariScout Documentation

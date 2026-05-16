@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'CHANGE Lens: I-Chart'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # CHANGE Lens: I-Chart

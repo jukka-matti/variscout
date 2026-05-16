@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Offline-First Architecture
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [service-worker, indexeddb, cache-api]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Pareto Chart
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [vital-few, contribution-percentage, drill-down]
 ---
 

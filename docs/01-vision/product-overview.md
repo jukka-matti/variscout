@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'VariScout: Product Overview'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 last-reviewed: 2026-05-16
 related: [wedge, adr-082, philosophy, positioning, specifications, feature-parity, journey]
 ---

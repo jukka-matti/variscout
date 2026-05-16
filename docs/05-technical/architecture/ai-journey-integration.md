@@ -1,9 +1,11 @@
 ---
+tier: living
+purpose: system
 title: AI Journey Integration
 scope: Entry point — AI × Phase × Mode overview, collaborator capabilities, user-facing behavior
-audience: [analyst, engineer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [ai-architecture, ai-context-engineering, aix-design-system, journey]
 points_to:
   - ai-architecture.md (system architecture, packages, auth, data flow, cost controls)

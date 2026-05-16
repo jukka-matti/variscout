@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Azure Mobile Flow'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Azure Mobile Flow

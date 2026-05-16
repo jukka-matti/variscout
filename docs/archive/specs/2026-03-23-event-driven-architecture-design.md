@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Event-Driven Architecture Transition
-audience: [engineer]
+audience: human
 category: architecture
 status: superseded
 related: [domain-events, strategy-pattern, eslint-boundaries, zustand, mitt]

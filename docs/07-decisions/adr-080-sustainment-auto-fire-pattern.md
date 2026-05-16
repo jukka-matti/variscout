@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-080: Sustainment auto-fire + Inbox prompt + signoff-gated lifecycle pattern'
-audience: [product, designer, engineer]
+audience: human
 category: architecture
-status: accepted
+status: active
 date: 2026-05-13
 related:
   - adr-064-suspected-cause-hub-model

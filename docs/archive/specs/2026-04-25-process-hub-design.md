@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Process Hub - Work-System Context for Team Improvement
-audience: [product, designer, engineer]
+audience: human
 category: design-spec
-status: in-progress
+status: active
 related:
   [
     process-hub,

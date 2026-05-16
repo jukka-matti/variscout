@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Interaction Patterns'
-audience: [designer, developer]
+audience: human
 category: patterns
-status: stable
+status: active
 ---
 
 # Interaction Patterns

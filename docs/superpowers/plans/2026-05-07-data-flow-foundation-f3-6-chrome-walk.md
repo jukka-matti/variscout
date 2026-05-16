@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: F3.6-β — Chrome walk script (Azure persistence + cloud sync + ETag concurrency)
-audience: [engineer]
+audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-07

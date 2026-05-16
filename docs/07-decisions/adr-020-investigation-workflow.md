@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-020: Investigation Workflow Enhancement'
 ---
 

@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Production-Line-Glance Surface Wiring (Plan C) — One Dashboard, Three Surfaces
-audience: [product, designer, engineer, analyst, manager]
+audience: human
 category: design-spec
 status: draft
 related:

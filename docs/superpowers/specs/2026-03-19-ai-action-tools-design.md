@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: AI Action Tools Design Spec
-audience: [developer, analyst]
+audience: human
 category: architecture
 status: active
 related: [ai-tools, coscout, function-calling, action-proposal]

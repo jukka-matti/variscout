@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Azure Marketplace Certification Guide'
-audience: [admin, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Azure Marketplace Certification Guide

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Build System & CI/CD
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 related: [turbo, vite, github-actions, deployment]
 ---
 

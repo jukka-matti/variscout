@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: VariScout — Product Vision
-audience: [product, engineer, designer, analyst, business]
+audience: human
 category: strategy
-status: accepted
+status: active
 last-reviewed: 2026-05-03
 supersedes:
   - docs/archive/specs/2026-04-27-process-learning-operating-model-design.md

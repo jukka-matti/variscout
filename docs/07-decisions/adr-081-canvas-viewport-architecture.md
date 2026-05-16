@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-081: Canvas viewport architecture — levels-as-pan/zoom (8f)'
-audience: [product, designer, engineer, analyst]
+audience: human
 category: architecture
-status: accepted
+status: active
 date: 2026-05-13
 related:
   - adr-068-coscout-cognitive-redesign

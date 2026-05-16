@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Two Types of Variation, Two Types of Action'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # Two Types of Variation, Two Types of Action

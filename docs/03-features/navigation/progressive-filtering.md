@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Progressive Filtering
-audience: [analyst, engineer]
+audience: human
 category: navigation
-status: stable
+status: active
 related: [filter-chips, progressive-stratification, eta-squared, chart-interaction]
 ---
 

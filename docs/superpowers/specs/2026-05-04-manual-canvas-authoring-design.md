@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Manual Canvas Authoring — Spec 2 of 5 canvas-detail specs
-audience: [product, engineer, designer]
+audience: human
 category: design-spec
 status: active
 last-reviewed: 2026-05-04

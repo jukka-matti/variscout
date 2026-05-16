@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Data-Flow Foundation F4 — Document / Annotation / View state codification
-audience: [product, engineer]
+audience: human
 category: design-spec
-status: delivered
+status: active
 last-reviewed: 2026-05-07
 related:
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md

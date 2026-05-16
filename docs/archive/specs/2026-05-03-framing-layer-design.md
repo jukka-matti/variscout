@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: VariScout Framing Layer — Hub Creation, Data Ingestion, and Investigation Entry
-audience: [product, engineer, designer]
+audience: human
 category: design-spec
-status: delivered
+status: active
 last-reviewed: 2026-05-04
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md

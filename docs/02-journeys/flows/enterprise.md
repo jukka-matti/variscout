@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Flow 4: Enterprise Evaluator'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Flow 4: Enterprise Evaluator

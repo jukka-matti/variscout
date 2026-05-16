@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-005: Props-Based Charts (vs Context)'
 ---
 

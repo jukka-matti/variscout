@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-034: Yamazumi Analysis Mode'
 ---
 

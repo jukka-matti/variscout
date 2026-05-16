@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Analysis Features
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 ---
 
 # Analysis Features

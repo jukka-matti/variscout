@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Feature Parity Matrix'
-audience: [business, product]
+audience: human
 category: strategy
-status: stable
+status: active
 last-reviewed: 2026-05-16
 related: [tiers, wedge, pricing, modes]
 ---

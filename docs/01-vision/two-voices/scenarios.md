@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: "Four Scenarios: When the Voices Align (or Don't)"
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # Four Scenarios: When the Voices Align (or Don't)

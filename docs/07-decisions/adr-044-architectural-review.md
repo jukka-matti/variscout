@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-044: Architectural Review (March 2026)'
-status: accepted
+status: active
 date: 2026-03-23
 ---
 

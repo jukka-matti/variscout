@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Wedge architecture — single-product VariScout for improvement specialists
-audience: [product, engineer, designer, business]
+audience: human
 category: design-spec
 status: draft
 last-reviewed: 2026-05-16

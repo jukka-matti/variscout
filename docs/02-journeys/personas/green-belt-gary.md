@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Green Belt Gary'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Green Belt Gary

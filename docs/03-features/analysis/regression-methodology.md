@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Regression Methodology
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [best-subsets, factor-intelligence, evidence-map, what-if]
 ---
 

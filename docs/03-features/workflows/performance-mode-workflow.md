@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Performance Mode Workflow
-audience: [analyst]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [performance-mode, multi-channel, cpk]
 journey-phase: scout
 ---

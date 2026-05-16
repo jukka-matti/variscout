@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-069: Three-Boundary Numeric Safety'
-audience: [engineer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [stats-engine, numerical-safety, nan-defense, safe-math]
 ---
 

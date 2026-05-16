@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-078: PWA + Azure architecture alignment — same product, gated tiers'
-audience: [product, designer, engineer]
+audience: human
 category: architecture
-status: accepted
+status: active
 date: 2026-05-05
 related:
   - adr-012-pwa-browser-only

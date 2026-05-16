@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-060: CoScout Intelligence Architecture'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # ADR-060: CoScout Intelligence Architecture

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: VariScout — Consolidated Method And Surface Overview
-audience: [product, designer, engineer, analyst]
+audience: human
 category: design-spec
-status: review
+status: draft
 related:
   [
     overview,

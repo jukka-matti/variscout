@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Data Input System'
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # Data Input System

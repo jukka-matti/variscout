@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: Canvas Migration PR9 — Legacy component cleanup
-audience: [engineer]
+audience: human
 category: implementation
-status: delivered
+status: active
 last-reviewed: 2026-05-08
 related:
   - docs/superpowers/specs/2026-05-04-canvas-migration-design.md

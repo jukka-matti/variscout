@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Market Analysis & TAM Estimate'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 last-reviewed: 2026-05-16
 related: [wedge, adr-082, product-overview, positioning, pricing, feature-parity]
 ---

@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: build
 title: 'Factor Intelligence Design Discussion'
-audience: [developer, product]
+audience: human
 category: reference
 status: draft
 ---

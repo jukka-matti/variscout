@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-056: Process Intelligence Panel Redesign'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [pi-panel, questions, journal, investigation, findings, stats-panel]
 ---
 

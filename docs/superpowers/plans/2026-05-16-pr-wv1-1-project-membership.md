@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'PR-WV1-1 — Project Membership Foundation (bite-sized plan)'
 status: draft
 last-reviewed: 2026-05-16

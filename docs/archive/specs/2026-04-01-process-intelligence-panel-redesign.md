@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Process Intelligence Panel Redesign
 date: 2026-04-01
-status: delivered
-audience: [developer, designer]
+status: active
+audience: human
 category: design-spec
 related: [stats-panel, questions, journal, findings, investigation, pi-panel, adr-056]
 ---

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Probability Plot'
-audience: [designer, developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Probability Plot

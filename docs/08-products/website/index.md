@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Marketing Website'
-audience: [business, designer]
+audience: human
 category: strategy
-status: stable
+status: active
 ---
 
 # Marketing Website

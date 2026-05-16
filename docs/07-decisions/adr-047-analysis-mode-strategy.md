@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-047: Analysis Mode Strategy Pattern'
 ---
 

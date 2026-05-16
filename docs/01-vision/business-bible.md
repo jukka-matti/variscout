@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: Business Bible
-audience: [analyst, engineer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [strategy, hypotheses, value-levers, flywheel, personas, pricing]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'AI Components'
-audience: [designer, developer]
+audience: human
 category: components
-status: stable
+status: active
 ---
 
 # AI Components

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Avocado Coating Case'
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: reference
+status: active
 ---
 
 # Avocado Coating Case

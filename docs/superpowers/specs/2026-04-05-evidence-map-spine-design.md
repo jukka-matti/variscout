@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Evidence Map as Analysis Spine
-status: delivered
+status: active
 date: 2026-04-05
-audience: [developer, analyst]
+audience: human
 category: architecture
 related:
   [evidence-map, factor-intelligence, investigation-spine, pi-panel, coscout, probability-plot]

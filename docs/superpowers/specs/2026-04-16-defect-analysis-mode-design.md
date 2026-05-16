@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Defect Analysis Mode
-audience: [engineer, analyst]
+audience: human
 category: analysis
-status: delivered
+status: active
 related: [defect, pareto, aggregation, mode, strategy-pattern, copq]
 ---
 

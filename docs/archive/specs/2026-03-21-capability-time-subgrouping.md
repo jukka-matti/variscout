@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: 'Capability Mode: Time-Based Subgrouping + Journey Integration'
 status: draft
 ---

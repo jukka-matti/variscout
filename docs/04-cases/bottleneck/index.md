@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Bottleneck Case - ESTIEM'
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: reference
+status: active
 ---
 
 # Bottleneck Case - ESTIEM

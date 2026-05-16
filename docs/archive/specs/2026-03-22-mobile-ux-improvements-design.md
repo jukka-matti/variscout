@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: 'Mobile UX Improvements — Design Spec'
 status: draft
 ---

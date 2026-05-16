@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Two Voices: Control Limits vs Specification Limits'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # Two Voices: Control Limits vs Specification Limits

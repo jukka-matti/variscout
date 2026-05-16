@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Actionable Current Process State Panel — Implementation Plan
-status: delivered
+status: active
 ---
 
 # Actionable Current Process State Panel — Implementation Plan

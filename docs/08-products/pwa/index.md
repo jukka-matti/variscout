@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'PWA (Free Training Tool)'
-audience: [analyst, engineer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # PWA (Free Training Tool)

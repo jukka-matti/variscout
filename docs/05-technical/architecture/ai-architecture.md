@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: AI Architecture
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 scope: System architecture, packages, auth, ARM, data flow, hook composition, cost controls, testing
 related: [ai-journey-integration, ai-context-engineering, aix-design-system, knowledge-model]
 ---

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Lead Time Variation Analysis'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Lead Time Variation Analysis

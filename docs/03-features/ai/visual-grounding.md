@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: CoScout Visual Grounding
-audience: [analyst, engineer]
+audience: human
 category: ai
-status: stable
+status: active
 related: [coscout, visual-grounding, ref-markers]
 ---
 

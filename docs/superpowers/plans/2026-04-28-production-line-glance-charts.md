@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: Production-Line-Glance — Chart Components Layer (Plan B)
-audience: [engineer, architect]
+audience: human
 category: implementation
-status: delivered
+status: active
 related: [production-line-glance-design, production-line-glance-engine]
 date: 2026-04-28
 ---

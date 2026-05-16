@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Mobile Screen Budget'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # Mobile Screen Budget

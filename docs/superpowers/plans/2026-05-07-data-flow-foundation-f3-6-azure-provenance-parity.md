@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: Data-Flow Foundation F3.6-β — Azure rowProvenance parity (envelope facet + cloud-sync via Blob Storage + ETag concurrency)
-audience: [engineer]
+audience: human
 category: implementation
-status: delivered
+status: active
 last-reviewed: 2026-05-07
 related:
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md

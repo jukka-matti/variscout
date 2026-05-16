@@ -1,9 +1,11 @@
 ---
+tier: living
+purpose: design
 title: 'Flow: Factor Intelligence'
 journey-phase: [scout, investigate]
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Flow: Factor Intelligence

@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Yamazumi Lens: Composition'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # Yamazumi Lens: Composition

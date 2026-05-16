@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Blob Storage Sync'
-audience: [admin, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Blob Storage Sync

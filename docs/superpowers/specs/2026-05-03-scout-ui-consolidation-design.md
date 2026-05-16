@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Scout UI consolidation — design
-audience: [designer, engineer, product]
+audience: human
 category: design-spec
 status: draft
 date: 2026-05-03

@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Positioning Bible'
-audience: [analyst, engineer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [strategy, positioning, methodology, category, messaging]
 ---
 

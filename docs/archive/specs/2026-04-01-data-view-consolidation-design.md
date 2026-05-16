@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Data View Consolidation
-status: delivered
+status: active
 related: [data-table, process-intelligence-panel, dashboard-layout, performance]
 ---
 

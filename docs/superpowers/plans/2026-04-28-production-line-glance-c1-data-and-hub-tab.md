@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: Production-Line-Glance — C1 Data Layer + Hub Capability Tab Implementation Plan
-audience: [engineer, architect]
+audience: human
 category: implementation
-status: delivered
+status: active
 related:
   [
     production-line-glance-surface-wiring-design,

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Responsible AI Policy
-audience: [engineer, compliance]
+audience: human
 category: architecture
-status: stable
+status: active
 date: 2026-03-19
 related: [ai, safety, compliance, eu-ai-act, guardrails]
 ---

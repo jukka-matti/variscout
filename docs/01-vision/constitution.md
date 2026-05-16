@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'VariScout Constitution'
-audience: [developer, analyst]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [philosophy, methodology, architecture, journey]
 ---
 

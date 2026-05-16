@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Design Brief: Guided Investigation'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # Design Brief: Guided Investigation

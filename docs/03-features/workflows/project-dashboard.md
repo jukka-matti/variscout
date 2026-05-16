@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Project Dashboard'
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [investigation, findings, hypotheses, coscout, azure, navigation]
 ---
 

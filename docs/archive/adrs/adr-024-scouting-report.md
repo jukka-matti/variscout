@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: 'ADR-024: Scouting Report — Dynamic Analysis Report View'
-audience: [analyst, engineer]
+audience: human
 category: architecture
 status: superseded
 superseded-by: adr-037

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-070: FRAME Workspace, Visual Process Map & Deterministic Mode Inference'
-audience: [engineer]
+audience: human
 category: architecture
-status: stable
+status: active
 related:
   [
     frame-workspace,

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Response Path System V1 — Design
-audience: [product, engineer, designer]
+audience: human
 category: design-spec
-status: delivered
+status: active
 last-reviewed: 2026-05-13
 supersedes:
   - docs/superpowers/specs/2026-05-08-improvement-project-v1-design.md

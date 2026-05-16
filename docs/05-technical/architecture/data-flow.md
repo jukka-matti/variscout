@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Data Flow Architecture
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [context-api, filter-stack, stats-pipeline]
 ---
 

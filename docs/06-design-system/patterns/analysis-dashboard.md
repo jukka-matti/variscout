@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Analysis Dashboard Pattern
-audience: [analyst, engineer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [dashboard, boxplot, pareto, probability-plot, capability]
 ---
 

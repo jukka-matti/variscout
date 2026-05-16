@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: decide
 title: VariScout — Things to Investigate
-audience: [engineer, designer, analyst]
+audience: human
 category: living-index
-status: living
+status: active
 last-reviewed: 2026-05-03
 ---
 

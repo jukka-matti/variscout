@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Data-Flow Foundation — repository pattern + normalized persistence + uniform action layer
-audience: [product, engineer, designer]
+audience: human
 category: design-spec
-status: delivered
+status: active
 last-reviewed: 2026-05-06
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md

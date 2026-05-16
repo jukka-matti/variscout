@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: VariScout Coherence — Persona + Surface + Vocabulary Design
-audience: [product, designer, engineer, analyst]
+audience: human
 category: design-spec
 status: draft
 last-reviewed: 2026-05-14

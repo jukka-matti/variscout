@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Customer Complaint Investigation'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Customer Complaint Investigation

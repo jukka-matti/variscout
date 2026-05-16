@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'Agent Docs Architecture — Phase 3: Enforcement'
-status: delivered
+status: active
 date: 2026-04-17
 ---
 

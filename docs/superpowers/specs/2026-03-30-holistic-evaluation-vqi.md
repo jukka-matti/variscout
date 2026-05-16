@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: 'Holistic Evaluation: VariScout Quality Index (VQI)'
-audience: [analyst, engineer]
+audience: human
 category: reference
 status: active
 related: [evaluation, ai-experience, maturity-model, competitive-analysis, architecture]

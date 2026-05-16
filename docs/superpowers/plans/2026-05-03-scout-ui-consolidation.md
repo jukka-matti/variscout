@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Scout UI / Navigation consolidation
-status: delivered
+status: active
 ---
 
 # Scout UI / Navigation consolidation

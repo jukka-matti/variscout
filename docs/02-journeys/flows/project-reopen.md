@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Project Reopen Flow
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [return-visitor, azure-daily-use, project-dashboard, adr-042, adr-043]
 ---
 

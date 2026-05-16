@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: 'ADR-030: Unified File Picker (OneDrive v8)'
 status: superseded
 date: 2026-03-19

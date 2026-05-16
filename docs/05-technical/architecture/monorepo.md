@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Monorepo Architecture'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # Monorepo Architecture

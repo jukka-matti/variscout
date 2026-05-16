@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Component Patterns
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [hooks, context-injection, color-scheme]
 ---
 

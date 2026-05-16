@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'EDA Mental Model — Question-Driven Analysis'
-audience: [analyst, engineer]
+audience: human
 category: methodology
-status: stable
+status: active
 related: [methodology, four-lenses, progressive-stratification, factor-intelligence, investigation]
 ---
 

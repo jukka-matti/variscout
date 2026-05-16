@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Canvas Hypothesis-Arrow Drawing — PR8 sub-PR 8d design (Spec 4 extension)
-audience: [engineer, product, designer]
+audience: human
 category: design-spec
 status: active
 last-reviewed: 2026-05-07

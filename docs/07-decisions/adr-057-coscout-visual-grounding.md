@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-057: CoScout Visual Grounding'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # ADR-057: CoScout Visual Grounding

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: CoScout Prompt Architecture
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [ai-context-engineering, ai-architecture, adr-060, adr-049]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Adaptive Boxplot Category Limits
-audience: [developer, analyst]
+audience: human
 category: architecture
-status: delivered
+status: active
 related: [boxplot, charts, wide-form, responsive]
 ---
 

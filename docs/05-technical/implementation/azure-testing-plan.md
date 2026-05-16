@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Azure App Testing Plan — rdmaic Organization'
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # Azure App Testing Plan — rdmaic Organization

@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'Wedge V1 Implementation Plan — Master Sequencer'
 status: draft
 last-reviewed: 2026-05-16

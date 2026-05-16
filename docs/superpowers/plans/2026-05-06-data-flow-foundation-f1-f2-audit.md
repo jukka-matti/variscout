@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: F1+F2 Audit — entity / factory / persistence / store / canvas-action inventories
-audience: [engineer]
+audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-06

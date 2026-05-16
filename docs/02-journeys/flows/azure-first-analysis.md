@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Flow 6: Azure App — First Analysis'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Flow 6: Azure App — First Analysis

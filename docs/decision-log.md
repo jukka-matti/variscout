@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: VariScout — Decision Log
-audience: [product, designer, engineer, analyst]
+audience: human
 category: living-index
-status: living
+status: active
 last-reviewed: 2026-05-07
 ---
 

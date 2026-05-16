@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Evidence Map Edge Interactions — Statistical Edge → Investigation Bridge
-audience: [developer]
+audience: human
 category: architecture
-status: delivered
+status: active
 related: [evidence-map, evidence-map-spine, investigation, coscout, causal-link]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Yamazumi Mode — User Journey
-audience: [engineer, analyst]
+audience: human
 category: reference
-status: stable
+status: active
 last-reviewed: 2026-05-16
 related: [yamazumi, journey, lean, cycle-time, takt, wedge]
 ---

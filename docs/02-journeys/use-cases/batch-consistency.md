@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Batch Process Consistency'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Batch Process Consistency

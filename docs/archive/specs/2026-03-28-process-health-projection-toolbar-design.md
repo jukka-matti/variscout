@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Process Health & Projection Toolbar
 date: 2026-03-28
-status: delivered
-audience: [developer, designer]
+status: active
+audience: human
 category: design-spec
 related: [dashboard, toolbar, stats, variation, what-if, findings, improvement, projection]
 ---

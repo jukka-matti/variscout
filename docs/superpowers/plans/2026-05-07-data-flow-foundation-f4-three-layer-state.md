@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: F4 implementation plan — three-layer state codification
-audience: [engineer]
+audience: human
 category: implementation
 status: draft
 last-reviewed: 2026-05-07

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Chart Design
-audience: [analyst, developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Chart Design

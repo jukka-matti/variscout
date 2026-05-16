@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Dashboard Design Principles
-audience: [analyst, engineer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [analysis-dashboard, layout, dashboard, presentation-mode]
 ---
 

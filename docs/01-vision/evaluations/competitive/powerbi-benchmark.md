@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Power BI Competitive Benchmark'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # Power BI Competitive Benchmark

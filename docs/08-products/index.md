@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Products'
-audience: [business, product]
+audience: human
 category: strategy
-status: stable
+status: active
 ---
 
 > **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. tier/product summary collapses to PWA + €99 single SKU; VariScout Process noted as future product. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).

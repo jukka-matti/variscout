@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Characteristic Type Awareness
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [continuous, attribute, measurement-type]
 ---
 

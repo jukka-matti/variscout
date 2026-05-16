@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Findings'
-audience: [designer, developer]
+audience: human
 category: components
-status: stable
+status: active
 ---
 
 # Findings

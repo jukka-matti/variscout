@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Agent Review Log Profile - Safe Green Throughput in Process Hub
-audience: [product, engineer, quality-manager]
+audience: human
 category: design-spec
 status: draft
 related:

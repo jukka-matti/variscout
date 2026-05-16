@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Components
-audience: [developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Components

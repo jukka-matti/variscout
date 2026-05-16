@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Improvement Prioritization Design
-audience: [engineer, analyst]
+audience: human
 category: workflow
-status: delivered
+status: active
 related: [improve, prioritization, risk, timeframe, cost, matrix, ideas, actions, adr-035]
 ---
 

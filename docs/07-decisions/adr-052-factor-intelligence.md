@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-052: Factor Intelligence — Progressive Factor Analysis'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [statistics, factor-analysis, best-subsets, strategy-pattern]
 ---
 

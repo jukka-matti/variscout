@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Customer-Tenant Ingestion And Rollups Concept
-audience: [product, architect, engineer, admin]
+audience: human
 category: design-spec
 status: draft
 related:

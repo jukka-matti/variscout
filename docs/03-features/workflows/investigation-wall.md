@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Investigation Wall'
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 last-reviewed: 2026-04-29
 related: [investigation-spine, evidence-map, suspected-cause, question-driven-eda, hmw-brainstorm]
 ---

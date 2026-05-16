@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-079: ETag optimistic concurrency for paid-tier hub-blob writes'
-audience: [product, designer, engineer]
+audience: human
 category: architecture
-status: accepted
+status: active
 date: 2026-05-07
 related:
   - adr-058-deployment-lifecycle

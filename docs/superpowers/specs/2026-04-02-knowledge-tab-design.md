@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Knowledge Tab & CoScout Inline Citation Preview'
 date: 2026-04-02
 status: draft
-audience: [developer, designer]
+audience: human
 category: architecture
 related: [adr-060, adr-049, adr-057, knowledge-base, coscout, pi-panel]
 ---

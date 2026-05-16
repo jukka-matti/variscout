@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Wide-Form Data Support — Stack Columns
-audience: [developer, analyst]
+audience: human
 category: architecture
-status: delivered
+status: active
 related: [column-mapping, parser, data-ingestion, performance-mode]
 ---
 

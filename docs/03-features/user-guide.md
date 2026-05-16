@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'VariScout Lite: User Guide'
-audience: [analyst]
+audience: human
 category: reference
-status: stable
+status: active
 related: [chart-customization, specifications, axis-editing]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: Projects Tab Plan 3 — Team Workspace Right Rail V1
-audience: [engineer]
+audience: human
 category: implementation
-status: review
+status: draft
 last-reviewed: 2026-05-15
 related:
   - docs/superpowers/specs/2026-05-14-projects-tab-design.md

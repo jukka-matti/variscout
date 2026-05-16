@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Glossary'
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: stable
+status: active
 ---
 
 # Glossary

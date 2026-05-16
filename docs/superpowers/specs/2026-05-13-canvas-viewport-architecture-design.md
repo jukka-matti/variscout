@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Canvas Viewport Architecture — Design (8f)
-audience: [product, engineer, designer]
+audience: human
 category: design-spec
-status: delivered
+status: active
 last-reviewed: 2026-05-13
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md

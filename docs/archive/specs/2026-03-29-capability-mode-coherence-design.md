@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Capability Mode Coherence
-audience: [engineer]
+audience: human
 category: analysis
-status: delivered
+status: active
 related: [capability, cpk, boxplot, i-chart, process-health-bar]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Factor Ordering'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # Factor Ordering

@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'FAILURE Lens: Pareto'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # FAILURE Lens: Pareto

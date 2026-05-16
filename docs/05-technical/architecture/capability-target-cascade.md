@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Capability Target Cascade
-audience: [developer]
+audience: human
 category: architecture
-status: delivered
+status: active
 related: [analysis-strategy, dashboard-layout, capability]
 last-reviewed: 2026-04-30
 ---

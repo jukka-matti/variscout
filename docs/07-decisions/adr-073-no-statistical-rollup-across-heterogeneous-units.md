@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-073: No Statistical Roll-Up Across Heterogeneous Units'
-status: accepted
+status: active
 date: 2026-04-29
 ---
 

@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Canvas Migration Strategy — strangler-pattern phased delivery + three-layer state separation
-audience: [product, engineer, designer]
+audience: human
 category: design-spec
 status: active
 last-reviewed: 2026-05-05

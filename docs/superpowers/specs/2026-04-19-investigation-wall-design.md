@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Investigation Wall — River-Roots Design'
-status: delivered
+status: active
 date: 2026-04-19
-audience: [developer, designer, analyst]
+audience: human
 category: architecture
 related:
   [

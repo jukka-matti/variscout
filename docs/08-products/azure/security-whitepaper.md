@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Security Whitepaper'
-audience: [procurement, infosec]
+audience: human
 category: compliance
-status: stable
+status: active
 date: 2026-04-03
 ---
 

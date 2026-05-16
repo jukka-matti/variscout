@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: VariScout — Roadmap (lightweight, post-canvas-migration)
-audience: [product, engineer, designer]
+audience: human
 category: living-index
-status: living
+status: active
 last-reviewed: 2026-05-16
 related:
   - docs/decision-log.md

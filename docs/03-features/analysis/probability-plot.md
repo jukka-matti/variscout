@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Probability Plot
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [normal-distribution, anderson-darling, qq-plot]
 ---
 

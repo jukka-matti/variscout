@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'JMP Competitive Benchmark'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # JMP Competitive Benchmark
