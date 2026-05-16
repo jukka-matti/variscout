@@ -220,7 +220,6 @@ describe('IPDetailPage', () => {
       render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="lead@org" />);
       expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /approach/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /improve/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /sustainment/i })).toBeInTheDocument();
     });
 
@@ -258,21 +257,6 @@ describe('IPDetailPage', () => {
       render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="sponsor@org" />);
       expect(screen.getByTestId('sponsor-report-panel')).toBeInTheDocument();
       expect(screen.queryByTestId('stage-tab-charter')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Improve stage routing', () => {
-    it('renders ImproveStage when activeStage = improve', () => {
-      // status: 'closed' → stages.improve === 'current' → defaultActiveStage picks 'improve'
-      render(
-        <IPDetailPage
-          ip={{ ...ip, status: 'closed', metadata: { ...ip.metadata, members: [] } }}
-          onBackToList={() => {}}
-          currentUserId="anybody@org"
-        />
-      );
-      fireEvent.click(screen.getByTestId('stage-tab-improve'));
-      expect(screen.getByRole('heading', { name: /actions/i })).toBeInTheDocument();
     });
   });
 

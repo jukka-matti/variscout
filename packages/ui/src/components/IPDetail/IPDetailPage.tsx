@@ -19,7 +19,6 @@ import ApproachOverview from './stages/ApproachOverview';
 import ApproachSections from './stages/ApproachSections';
 import SustainmentOverview, { type SustainmentClosureInputs } from './stages/SustainmentOverview';
 import SustainmentSections from './stages/SustainmentSections';
-import { ImproveStage } from './stages/ImproveStage';
 import type { CauseProjectionInputs, CauseRow } from './stages/causeProjection';
 import type { ImprovementProjectFormProps } from '../ImprovementProject/ImprovementProjectForm';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
@@ -67,15 +66,6 @@ export interface IPDetailPageProps {
   /** Activity/signoff inputs for the team rail. */
   ideas?: readonly ImprovementIdea[];
   actions?: readonly ActionItem[];
-  /** Called when user adds a new ActionItem in the Improve stage. */
-  onActionAdd?: (action: Pick<ActionItem, 'text' | 'parentImprovementProjectId'>) => void;
-  /** Called when user updates an ActionItem in the Improve stage. */
-  onActionUpdate?: (
-    actionId: string,
-    patch: Partial<Omit<ActionItem, 'id' | 'createdAt' | 'deletedAt'>>
-  ) => void;
-  /** Called when user removes an ActionItem in the Improve stage. */
-  onActionRemove?: (actionId: string) => void;
   now?: number;
   onRequestSignoff?: () => void;
   onNudgeSignoff?: () => void;
@@ -84,7 +74,6 @@ export interface IPDetailPageProps {
 
 function defaultActiveStage(stages: ReturnType<typeof deriveStageState>): StageName {
   if (stages.sustainment === 'current') return 'sustainment';
-  if (stages.improve === 'current') return 'improve';
   if (stages.approach === 'current') return 'approach';
   return 'charter';
 }
@@ -115,9 +104,6 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   onRequestSignoff,
   onNudgeSignoff,
   onApproveSignoff,
-  onActionAdd,
-  onActionUpdate,
-  onActionRemove,
 }) => {
   const stages = useMemo(() => deriveStageState(ip, stageStateInputs), [ip, stageStateInputs]);
   const [activeStage, setActiveStage] = useState<StageName>(() => defaultActiveStage(stages));
@@ -271,17 +257,6 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
             <p className="text-sm text-content-secondary">
               Approach stage needs hypothesis + idea + action inputs (wired in PR-PT-4.4).
             </p>
-          )}
-          {activeStage === 'improve' && (
-            <ImproveStage
-              projectId={ip.id}
-              actions={(actions ?? []) as ActionItem[]}
-              members={members}
-              currentUserId={currentUserId}
-              onActionAdd={onActionAdd ?? (() => {})}
-              onActionUpdate={onActionUpdate ?? (() => {})}
-              onActionRemove={onActionRemove ?? (() => {})}
-            />
           )}
           {activeStage === 'sustainment' && mode === 'overview' && sustainmentRecord && (
             <SustainmentOverview
