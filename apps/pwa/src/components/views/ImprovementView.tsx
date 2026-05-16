@@ -1,18 +1,26 @@
 /**
  * ImprovementView - Improvement workspace for PWA
  *
- * Wraps ImprovementWorkspaceBase from @variscout/ui with PWA-specific wiring.
- * Receives improvement data as props from the orchestration hook (no store reads).
+ * Wraps ImproveTabRoot (wedge V1 action tracker) + ImprovementWorkspaceBase (ideas workspace)
+ * with PWA-specific wiring.
  * No AI (no onAskCoScout), no popout (no onPopout), no Teams.
  */
 import React from 'react';
-import { ActiveIPScopeRibbon, ImprovementWorkspaceBase } from '@variscout/ui';
+import { ActiveIPScopeRibbon, ImprovementWorkspaceBase, ImproveTabRoot } from '@variscout/ui';
 import type { ActiveIPScopeLabels } from '@variscout/ui';
 import type { UseQuestionsReturn } from '@variscout/hooks';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
+import type { ActionItem } from '@variscout/core/findings';
 import type { UseImprovementOrchestrationReturn } from '../../features/improvement/useImprovementOrchestration';
 
 interface ImprovementViewProps {
   activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
+  /** Active IP for the wedge V1 action tracker. Null = no active project. */
+  activeIP?: ImprovementProject | null;
+  /** Action items scoped to the hub (filtered to activeIP inside ImproveTabRoot). */
+  actions?: ActionItem[];
+  /** Navigate to Home tab (used by NoActiveProjectGuidance). */
+  onGoHome?: () => void;
   questionsState: UseQuestionsReturn;
   onBack: () => void;
   handleConvertIdeasToActions: UseImprovementOrchestrationReturn['handleConvertIdeasToActions'];
@@ -22,8 +30,13 @@ interface ImprovementViewProps {
   convertedIdeaIds: UseImprovementOrchestrationReturn['convertedIdeaIds'];
 }
 
+const PWA_USER_ID = 'analyst@local';
+
 const ImprovementView: React.FC<ImprovementViewProps> = ({
   activeIPScope,
+  activeIP,
+  actions = [],
+  onGoHome,
   questionsState,
   onBack,
   handleConvertIdeasToActions,
@@ -32,6 +45,42 @@ const ImprovementView: React.FC<ImprovementViewProps> = ({
   selectedIdeaIds,
   convertedIdeaIds,
 }) => {
+  // Wedge V1: when activeIP context is available (prop threaded from App.tsx),
+  // render ImproveTabRoot as the primary surface. This shows NoActiveProjectGuidance
+  // when no project is active, or the action tracker when one is set.
+  if (activeIP !== undefined) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        {activeIPScope ? (
+          <ActiveIPScopeRibbon
+            title={activeIPScope.title}
+            labels={activeIPScope.labels}
+            surface="Improve"
+          />
+        ) : null}
+        <ImproveTabRoot
+          activeIP={activeIP}
+          actions={actions}
+          currentUserId={PWA_USER_ID}
+          onGoHome={onGoHome ?? onBack}
+          onActionAdd={action => {
+            // ACTION_ITEM_ADD persistence wired in PR-WV1-3
+            console.warn('[wedge V1] onActionAdd not yet persisted (PR-WV1-3 work):', action);
+          }}
+          onActionUpdate={(id, patch) => {
+            // ACTION_ITEM_UPDATE not yet wired (PR-WV1-3 work)
+            console.warn('[wedge V1] onActionUpdate not yet wired (PR-WV1-3 work):', id, patch);
+          }}
+          onActionRemove={id => {
+            // ACTION_ITEM_REMOVE not yet wired (PR-WV1-3 work)
+            console.warn('[wedge V1] onActionRemove not yet wired (PR-WV1-3 work):', id);
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Fallback: pre-wedge ideas workspace view (when activeIP prop not yet threaded).
   if (improvementQuestions.length === 0) {
     return (
       <div className="flex min-h-0 flex-1 flex-col">

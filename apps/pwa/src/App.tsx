@@ -1330,6 +1330,8 @@ function AppMain() {
             ) : panels.activeView === 'improvement' ? (
               <ImprovementView
                 activeIPScope={activeIPScope}
+                activeIP={activeIPContext.activeIP ?? null}
+                onGoHome={panels.showHome}
                 questionsState={scopedQuestionsState}
                 onBack={panels.showAnalysis}
                 handleConvertIdeasToActions={improvementOrch.handleConvertIdeasToActions}
