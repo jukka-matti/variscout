@@ -35,6 +35,8 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
 }) => {
   const [inviteOpen, setInviteOpen] = useState(false);
   const members = ip.metadata.members ?? [];
+  // Empty members[] is open-access (mirrors IPDetailPage hasIdentity escape): legacy IPs
+  // without wedge membership data fall back to pre-WV1-1 behavior where Invite was visible.
   const canManageMembership =
     currentUserId !== undefined &&
     (members.length === 0 || canAccess(currentUserId, members, 'manage-membership'));
