@@ -366,20 +366,21 @@ export const Editor: React.FC<EditorProps> = ({
   // Re-loads when the hypothesis list changes. Passed into WallCanvas planningProps.
   const [wallMeasurementPlans, setWallMeasurementPlans] = useState<MeasurementPlan[]>([]);
   const hypothesisIds = useMemo(() => hypotheses.map(h => h.id), [hypotheses]);
+  // Key on joined string to avoid re-firing on array reference changes (Fix 5 — plan-load deps)
+  const hypothesisIdsKey = hypothesisIds.join('|');
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const allPlans: MeasurementPlan[] = [];
-      for (const hypothesisId of hypothesisIds) {
-        const plans = await azureHubRepository.measurementPlans.listByHypothesis(hypothesisId);
-        allPlans.push(...plans);
-      }
-      if (!cancelled) setWallMeasurementPlans(allPlans);
+      const all = await Promise.all(
+        hypothesisIds.map(id => azureHubRepository.measurementPlans.listByHypothesis(id))
+      );
+      if (!cancelled) setWallMeasurementPlans(all.flat());
     })();
     return () => {
       cancelled = true;
     };
-  }, [hypothesisIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hypothesisIdsKey]);
 
   // Preferences store (annotation-per-user)
   const aiEnabled = usePreferencesStore(s => s.aiEnabled);
@@ -649,22 +650,34 @@ export const Editor: React.FC<EditorProps> = ({
           createdAt: Date.now(),
           deletedAt: null,
         };
-        void azureHubRepository.dispatch({ kind: 'MEASUREMENT_PLAN_ADD', plan: stamped });
+        // Optimistic add — roll back on dispatch failure (Fix 6)
         setWallMeasurementPlans(prev => [...prev, stamped]);
+        azureHubRepository
+          .dispatch({ kind: 'MEASUREMENT_PLAN_ADD', plan: stamped })
+          .catch((err: unknown) => {
+            setWallMeasurementPlans(prev => prev.filter(p => p.id !== stamped.id));
+            console.error('[wall] Failed to add measurement plan:', err);
+          });
       },
       onLinkFinding: (planId: string, findingId: string) => {
-        void azureHubRepository.dispatch({
-          kind: 'MEASUREMENT_PLAN_LINK_FINDING',
-          planId,
-          findingId,
+        // Capture state before optimistic update so we can roll back on failure (Fix 6)
+        setWallMeasurementPlans(prev => {
+          const snapshot = prev;
+          const next = prev.map(p => {
+            if (p.id !== planId) return p;
+            const existing = p.linkedFindingIds ?? [];
+            // Dedup — prevents fast double-tap phantom rows (Fix 4)
+            const updated = existing.includes(findingId) ? existing : [...existing, findingId];
+            return { ...p, linkedFindingIds: updated };
+          });
+          azureHubRepository
+            .dispatch({ kind: 'MEASUREMENT_PLAN_LINK_FINDING', planId, findingId })
+            .catch((err: unknown) => {
+              setWallMeasurementPlans(snapshot);
+              console.error('[wall] Failed to link finding to plan:', err);
+            });
+          return next;
         });
-        setWallMeasurementPlans(prev =>
-          prev.map(p =>
-            p.id === planId
-              ? { ...p, linkedFindingIds: [...(p.linkedFindingIds ?? []), findingId] }
-              : p
-          )
-        );
       },
       onEditPlan: (planId: string) => {
         console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);

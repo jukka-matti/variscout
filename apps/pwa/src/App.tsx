@@ -224,20 +224,21 @@ function AppMain() {
   // the underlying store without requiring a separate Zustand layer.
   const [wallMeasurementPlans, setWallMeasurementPlans] = useState<MeasurementPlan[]>([]);
   const hypothesisIds = useMemo(() => hypotheses.map(h => h.id), [hypotheses]);
+  // Key on joined string to avoid re-firing on array reference changes (Fix 5 — plan-load deps)
+  const hypothesisIdsKey = hypothesisIds.join('|');
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const allPlans: MeasurementPlan[] = [];
-      for (const hypothesisId of hypothesisIds) {
-        const plans = await pwaHubRepository.measurementPlans.listByHypothesis(hypothesisId);
-        allPlans.push(...plans);
-      }
-      if (!cancelled) setWallMeasurementPlans(allPlans);
+      const all = await Promise.all(
+        hypothesisIds.map(id => pwaHubRepository.measurementPlans.listByHypothesis(id))
+      );
+      if (!cancelled) setWallMeasurementPlans(all.flat());
     })();
     return () => {
       cancelled = true;
     };
-  }, [hypothesisIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hypothesisIdsKey]);
 
   // Preferences store — question-link prompt opt-out flag
   const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
@@ -896,7 +897,10 @@ function AppMain() {
   // ── Measurement plan callbacks for WallCanvas planningProps ─────────────
   // PWA uses 'analyst@local' as the single-user identity (no auth).
   const PWA_WALL_USER_ID = 'analyst@local';
-  const wallActiveIPMembers = activeIPContext.activeIP?.metadata.members ?? [];
+  const wallActiveIPMembers = useMemo(
+    () => activeIPContext.activeIP?.metadata.members ?? [],
+    [activeIPContext.activeIP]
+  );
   const wallPlanningProps = useMemo(
     () => ({
       plans: wallMeasurementPlans,
@@ -909,24 +913,34 @@ function AppMain() {
           createdAt: Date.now(),
           deletedAt: null,
         };
-        void pwaHubRepository.dispatch({ kind: 'MEASUREMENT_PLAN_ADD', plan: stamped });
-        // Optimistically update local state so the chip appears without a full reload
+        // Optimistic add — roll back on dispatch failure (Fix 6)
         setWallMeasurementPlans(prev => [...prev, stamped]);
+        pwaHubRepository
+          .dispatch({ kind: 'MEASUREMENT_PLAN_ADD', plan: stamped })
+          .catch((err: unknown) => {
+            setWallMeasurementPlans(prev => prev.filter(p => p.id !== stamped.id));
+            console.error('[wall] Failed to add measurement plan:', err);
+          });
       },
       onLinkFinding: (planId: string, findingId: string) => {
-        void pwaHubRepository.dispatch({
-          kind: 'MEASUREMENT_PLAN_LINK_FINDING',
-          planId,
-          findingId,
+        // Capture state before optimistic update so we can roll back on failure (Fix 6)
+        setWallMeasurementPlans(prev => {
+          const snapshot = prev;
+          const next = prev.map(p => {
+            if (p.id !== planId) return p;
+            const existing = p.linkedFindingIds ?? [];
+            // Dedup — prevents fast double-tap phantom rows (Fix 4)
+            const updated = existing.includes(findingId) ? existing : [...existing, findingId];
+            return { ...p, linkedFindingIds: updated };
+          });
+          pwaHubRepository
+            .dispatch({ kind: 'MEASUREMENT_PLAN_LINK_FINDING', planId, findingId })
+            .catch((err: unknown) => {
+              setWallMeasurementPlans(snapshot);
+              console.error('[wall] Failed to link finding to plan:', err);
+            });
+          return next;
         });
-        // Update local state optimistically
-        setWallMeasurementPlans(prev =>
-          prev.map(p =>
-            p.id === planId
-              ? { ...p, linkedFindingIds: [...(p.linkedFindingIds ?? []), findingId] }
-              : p
-          )
-        );
       },
       onEditPlan: (planId: string) => {
         console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);
