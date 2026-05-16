@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Azure App (Primary Product)'
-audience: [admin, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Azure App (Primary Product)

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'On-Time Delivery Analysis'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # On-Time Delivery Analysis

@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Azure Marketplace Submission Checklist'
-audience: [admin, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Azure Marketplace Submission Checklist

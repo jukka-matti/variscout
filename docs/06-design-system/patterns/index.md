@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Patterns
-audience: [developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Patterns

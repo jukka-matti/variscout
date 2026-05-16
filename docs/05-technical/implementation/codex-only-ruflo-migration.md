@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Codex-Only Ruflo Migration Guide
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # Codex-Only Ruflo Migration Guide

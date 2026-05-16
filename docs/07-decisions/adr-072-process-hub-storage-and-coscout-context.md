@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-072: Process Hub Storage and CoScout Context Boundary'
-status: accepted
+status: active
 date: 2026-04-26
 ---
 

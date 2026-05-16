@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: build
 title: Feature Backlog
-audience: [developer, product]
+audience: human
 category: reference
 status: draft
 ---

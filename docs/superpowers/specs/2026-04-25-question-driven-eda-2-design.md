@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Question-Driven EDA 2.0 — Current Understanding, Mechanism Branches, and Signal Cards
-audience: [analyst, engineer, product]
+audience: human
 category: design-spec
-status: in-progress
+status: active
 related:
   [
     eda-mental-model,

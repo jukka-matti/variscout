@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: EU AI Act Classification & Mapping
-audience: [compliance, engineer]
+audience: human
 category: architecture
-status: stable
+status: active
 date: 2026-03-19
 related: [ai, compliance, eu-ai-act, regulation]
 ---

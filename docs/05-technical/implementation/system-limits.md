@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'System Limits'
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # System Limits

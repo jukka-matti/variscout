@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Progressive Stratification'
-audience: [analyst, developer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [drill-down, filter-chips, eta-squared, r-squared-adj, factor-intelligence]
 ---
 

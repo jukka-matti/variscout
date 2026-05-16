@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Minitab Competitive Benchmark'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # Minitab Competitive Benchmark

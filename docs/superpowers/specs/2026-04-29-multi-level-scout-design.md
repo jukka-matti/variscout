@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Multi-level SCOUT — design
-audience: [product, designer, engineer, analyst]
+audience: human
 category: design-spec
-status: delivered
+status: active
 date: 2026-04-29
 last-reviewed: 2026-04-30
 related:

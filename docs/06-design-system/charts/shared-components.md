@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Shared Chart Components'
-audience: [designer, developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Shared Chart Components

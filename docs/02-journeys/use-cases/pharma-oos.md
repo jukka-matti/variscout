@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Pharma OOS Investigation'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Pharma OOS Investigation

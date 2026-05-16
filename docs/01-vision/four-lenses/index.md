@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: "Watson's Four Lenses of Process Knowledge"
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # Watson's Four Lenses of Process Knowledge

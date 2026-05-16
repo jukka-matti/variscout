@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Improvement Project V1 — Design (SUPERSEDED 2026-05-09)
-audience: [product, engineer, designer]
+audience: human
 category: design-spec
 status: archived
 superseded-by: docs/archive/specs/2026-05-09-response-path-system-v1-design.md

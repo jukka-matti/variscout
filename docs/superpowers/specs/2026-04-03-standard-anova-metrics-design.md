@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: design
 title: Standard ANOVA Metrics & Category Total SS Removal
 status: draft
 date: 2026-04-03

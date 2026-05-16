@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-051: Chart Handling for Many Categories'
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-063: Trust & Compliance Roadmap'
-audience: [business, architect]
+audience: human
 category: compliance
-status: accepted
+status: active
 ---
 
 # ADR-063: Trust & Compliance Roadmap

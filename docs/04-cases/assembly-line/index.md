@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Assembly Line Case - PCB Assembly'
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: reference
+status: active
 ---
 
 # Assembly Line Case - PCB Assembly

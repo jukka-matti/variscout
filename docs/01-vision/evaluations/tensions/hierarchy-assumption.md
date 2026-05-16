@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Hierarchy Assumption'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # Hierarchy Assumption

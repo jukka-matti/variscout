@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Navigation Architecture + Invisible Phase Intelligence
-audience: [developer, designer]
+audience: human
 category: architecture
 status: draft
 related: [navigation, mobile, teams, accessibility, phase-detection, toolbar]

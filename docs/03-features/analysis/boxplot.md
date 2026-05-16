@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Boxplot
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [anova, eta-squared, violin-mode, factor-comparison]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Glossary & Knowledge Model
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: stable
+status: active
 related: [glossary, terminology, help-tooltips, knowledge-model]
 ---
 

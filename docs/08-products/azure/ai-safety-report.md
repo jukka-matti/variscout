@@ -1,9 +1,11 @@
 ---
+tier: stable
+purpose: orient
 title: AI Safety Report — CoScout
 category: compliance
-status: template
+status: active
 date: 2026-03-17
-audience: [admin, architect]
+audience: human
 ---
 
 # AI Safety Report — CoScout

@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Dashboard Chrome Redesign
 date: 2026-03-28
-status: delivered
-audience: [developer, designer]
+status: active
+audience: human
 category: design-spec
 related: [header, toolbar, stats-panel, navigation, panels, layout, workspaces]
 ---

@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-066: Evidence Map as Investigation Workspace Center'
 ---
 

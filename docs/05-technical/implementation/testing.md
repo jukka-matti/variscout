@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Testing Strategy'
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # Testing Strategy

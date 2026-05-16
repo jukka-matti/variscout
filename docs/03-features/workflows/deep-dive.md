@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Deep Dive Workflow
-audience: [analyst]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [investigation, drill-down, variation-decomposition]
 ---
 

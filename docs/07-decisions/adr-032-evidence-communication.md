@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-032: Evidence-Based Statistical Communication'
-status: accepted
+status: active
 date: 2026-03-19
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Navigation Patterns
-audience: [analyst, engineer]
+audience: human
 category: patterns
-status: stable
+status: active
 related: [navigation, view-management, filter-chips, accessibility, z-index]
 ---
 

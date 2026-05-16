@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: 'ADR-064: SuspectedCause Hub Model & Investigation Reframing'
 ---
 

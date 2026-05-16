@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Engineer Eeva'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Engineer Eeva

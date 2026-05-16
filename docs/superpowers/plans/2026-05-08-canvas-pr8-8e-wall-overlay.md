@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'Canvas Wall Overlay — PR8 sub-PR 8e implementation plan'
-audience: [engineer, product]
+audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-08

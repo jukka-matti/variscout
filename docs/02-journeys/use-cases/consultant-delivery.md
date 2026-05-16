@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'LSS Consultant Client Delivery'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # LSS Consultant Client Delivery

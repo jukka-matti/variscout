@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Question-Driven Investigation Flow
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [question-tree, investigation-phases, investigation-diamond, factor-intelligence]
 ---
 

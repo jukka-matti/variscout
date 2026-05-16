@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Foundational UI Patterns'
-audience: [designer, developer]
+audience: human
 category: components
-status: stable
+status: active
 ---
 
 # Foundational UI Patterns

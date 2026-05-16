@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Case-Based Learning
-audience: [analyst]
+audience: human
 category: learning
-status: stable
+status: active
 related: [case-studies, teaching, three-act-structure]
 ---
 

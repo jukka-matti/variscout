@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Patient Wait Time Variation'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Patient Wait Time Variation

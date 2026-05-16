@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Performance Mode
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [multi-channel, cpk-comparison, wide-format]
 ---
 

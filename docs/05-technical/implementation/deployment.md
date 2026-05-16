@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Deployment Guide'
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # Deployment Guide

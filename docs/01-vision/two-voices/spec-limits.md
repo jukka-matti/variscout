@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Voice of the Customer: Specification Limits'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # Voice of the Customer: Specification Limits

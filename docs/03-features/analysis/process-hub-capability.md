@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Process Hub Capability Tab'
-audience: [analyst, engineer, product]
+audience: human
 category: analysis
-status: stable
+status: active
 last-reviewed: 2026-04-29
 related: [production-line-glance, process-hub, capability, hub-cadence-review]
 ---

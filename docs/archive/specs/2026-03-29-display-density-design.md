@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Display Density — Global UI Scaling
-audience: [developer, designer]
+audience: human
 category: architecture
 status: draft
 related: [accessibility, typography, settings, density]

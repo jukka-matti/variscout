@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Coffee Washing Station Case'
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: reference
+status: active
 ---
 
 # Coffee Washing Station Case

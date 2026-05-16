@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Evidence Map — Data Relationship Visualization
-status: delivered
+status: active
 date: 2026-04-05
-audience: [developer, analyst]
+audience: human
 category: architecture
 related: [best-subsets, factor-intelligence, investigation-spine, causal-graph, pop-out-window]
 ---

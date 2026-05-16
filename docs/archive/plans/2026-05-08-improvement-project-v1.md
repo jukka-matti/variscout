@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Improvement Project V1 — Implementation Plan (SUPERSEDED 2026-05-09)
-audience: [engineer]
+audience: human
 category: implementation
 status: archived
 superseded-by: docs/archive/specs/2026-05-09-response-path-system-v1-design.md

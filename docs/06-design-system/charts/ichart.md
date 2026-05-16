@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Individual Control Charts (I-Chart)'
-audience: [designer, developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Individual Control Charts (I-Chart)

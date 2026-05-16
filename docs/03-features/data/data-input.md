@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Data Input
-audience: [analyst, engineer]
+audience: human
 category: data
-status: stable
+status: active
 related: [parser, csv, excel, paste, file-upload]
 ---
 

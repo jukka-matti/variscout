@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Chart Hooks'
-audience: [designer, developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Chart Hooks

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: CSS Height Chain Pattern
-audience: [developer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [layout, flexbox, css-grid, dashboard]
 ---
 

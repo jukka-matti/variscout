@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Phase 3 — H1 Closure + H2 Launch
-audience: engineer
+audience: human
 category: design-spec
 status: draft
 related:

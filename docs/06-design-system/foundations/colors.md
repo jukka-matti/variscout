@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Color System'
-audience: [designer, developer]
+audience: human
 category: patterns
-status: stable
+status: active
 ---
 
 # Color System

@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-040: Migrate Infrastructure from ARM JSON to Bicep'
 ---
 

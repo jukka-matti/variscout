@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'User Journeys'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # User Journeys

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Tooltip Positioning
-audience: [developer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [tooltip, viewport, positioning, help-tooltip]
 ---
 

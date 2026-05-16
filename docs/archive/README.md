@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: 'Archive'
-audience: [engineer, architect]
+audience: human
 category: reference
-status: reference
+status: active
 related: [doc-prune-audit, agent-docs-architecture]
 last-reviewed: 2026-04-17
 ---

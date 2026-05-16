@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Process Hub Use Cases - Process-First Operating Context
-audience: [product, designer, engineer]
+audience: human
 category: design-spec
-status: in-progress
+status: active
 related: [process-hub, evidence-sources, data-profiles, azure, portfolio, user-journeys]
 date: 2026-04-25
 ---

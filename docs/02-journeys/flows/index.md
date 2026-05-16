@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: User Flows
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # User Flows

@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-046: Event-Driven Architecture — mitt Event Bus'
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Detection Modals
-audience: [developer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [modal, capability, performance, yamazumi, analysis-mode]
 ---
 

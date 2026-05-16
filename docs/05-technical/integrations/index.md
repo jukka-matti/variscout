@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Integrations
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # Integrations

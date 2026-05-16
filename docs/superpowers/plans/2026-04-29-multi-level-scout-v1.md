@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'Multi-level SCOUT V1 (first slice) — implementation plan'
-audience: [engineer, architect]
+audience: human
 category: implementation
-status: in-progress
+status: active
 date: 2026-04-29
 related:
   - multi-level-scout-design

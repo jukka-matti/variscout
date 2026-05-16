@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: 'Design: CoScout Knowledge Catalyst'
 status: draft
 ---

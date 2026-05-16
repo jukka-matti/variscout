@@ -1,10 +1,12 @@
 ---
+tier: living
+purpose: design
 title: Analysis Journey Map
 description: Visual map of the 4-phase investigation journey with Survey readiness checks, CoScout companion, and PDCA loop
 journey-phase: [all]
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Analysis Journey Map

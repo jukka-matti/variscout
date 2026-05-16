@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Teams App Store + Microsoft Patterns Compliance Audit
-audience: [developer]
+audience: human
 category: compliance
 status: archived
 related: [teams, accessibility, azure, navigation]

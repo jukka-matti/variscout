@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-037: Reporting Workspaces'
-audience: [analyst, engineer]
+audience: human
 category: architecture
-status: accepted
+status: active
 date: 2026-03-20
 related: [report-view, workspace, audience-toggle, qc-story]
 ---

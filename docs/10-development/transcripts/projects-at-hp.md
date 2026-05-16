@@ -1,11 +1,13 @@
 ---
+tier: living
+purpose: build
 title: Projects at HP
 type: transcript
 language: en
 date: 2026-04-05
 duration: 1905.8s
-status: raw
-audience: [developer, product]
+status: draft
+audience: human
 category: reference
 ---
 

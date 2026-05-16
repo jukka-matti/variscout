@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'VaRiScout Lite Case Studies'
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: reference
+status: active
 ---
 
 # VaRiScout Lite Case Studies

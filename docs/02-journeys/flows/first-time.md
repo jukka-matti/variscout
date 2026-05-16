@@ -1,7 +1,9 @@
 ---
+tier: living
+purpose: design
 title: 'First-Time Explorer Flow'
 status: draft
-audience: [product, designer]
+audience: human
 category: workflow
 ---
 

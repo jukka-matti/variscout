@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Web-First Deployment Architecture
-audience: [developer, architect, business]
+audience: human
 category: architecture
 status: draft
 related: [deployment, trust, enterprise, marketplace, collaboration, teams, storage, permissions]

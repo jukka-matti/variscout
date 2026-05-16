@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Security Scanning'
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # Security Scanning

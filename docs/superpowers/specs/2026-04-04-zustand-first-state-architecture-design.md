@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Zustand-First State Architecture'
-status: delivered
+status: active
 date: 2026-04-04
-audience: [developer, architect]
+audience: human
 category: architecture
 related: [state-management, zustand, persistence, collaboration, DDD]
 ---

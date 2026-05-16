@@ -1,10 +1,12 @@
 ---
+tier: living
+purpose: build
 title: Probability Plot — Multi-Angle Analysis
 date: 2026-03-29
 sources:
   - 2026-03-29-probability-plot.txt
   - 2026-03-29-probability-plot-and-commenting.txt
-audience: [developer, product]
+audience: human
 category: reference
 status: draft
 ---

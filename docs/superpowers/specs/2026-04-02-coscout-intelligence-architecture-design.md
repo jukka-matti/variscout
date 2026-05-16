@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'CoScout Intelligence Architecture'
 date: 2026-04-02
-status: in-progress
-audience: [developer, architect]
+status: active
+audience: human
 category: architecture
 related:
   [

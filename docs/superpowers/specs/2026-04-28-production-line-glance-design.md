@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Production-Line-Glance Dashboard — Per-Step Capability with Context-Aware Specs
-audience: [product, designer, engineer, analyst, manager]
+audience: human
 category: design-spec
 status: draft
 related:

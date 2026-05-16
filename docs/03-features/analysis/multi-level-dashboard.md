@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Multi-Level Dashboard
-audience: [analyst]
+audience: human
 category: analysis
-status: delivered
+status: active
 related: [timeline-window-investigations, capability, process-hub-capability, stats-panel]
 ---
 

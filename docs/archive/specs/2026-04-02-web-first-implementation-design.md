@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Web-First Implementation Design
-audience: [developer, architect]
+audience: human
 category: architecture
-status: delivered
+status: active
 related: [adr-059, adr-060, adr-026, adr-049, adr-033, web-first, knowledge-base, blob-storage]
 ---
 

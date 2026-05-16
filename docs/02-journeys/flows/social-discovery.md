@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Flow 2: Social Discovery → Case → Product'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Flow 2: Social Discovery → Case → Product

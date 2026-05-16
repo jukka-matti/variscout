@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Canvas PR4c-PR6 Retrospective Followup — fix list + vision-alignment plan
-audience: [engineer]
+audience: human
 category: implementation
 status: archived
 date: 2026-05-06

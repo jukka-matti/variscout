@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Statistics & Investigation Technical Reference'
-audience: [developer, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Statistics & Investigation Technical Reference

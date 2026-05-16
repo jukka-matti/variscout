@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: 'ADR-006: Edition System'
 ---
 

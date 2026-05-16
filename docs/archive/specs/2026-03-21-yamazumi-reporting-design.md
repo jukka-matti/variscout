@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Yamazumi-Aware Reporting View
-audience: [engineer, analyst]
+audience: human
 category: workflow
 status: draft
 related: [yamazumi, reporting, lean, findings]

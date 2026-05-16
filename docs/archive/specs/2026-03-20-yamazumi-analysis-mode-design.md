@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Yamazumi Analysis Mode
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: delivered
+status: active
 related: [yamazumi, lean, time-study, waste, value-stream, takt-time, activity-type]
 ---
 

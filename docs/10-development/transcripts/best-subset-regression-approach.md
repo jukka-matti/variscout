@@ -1,11 +1,13 @@
 ---
+tier: living
+purpose: build
 title: Best Subset Regression Approach
 type: transcript
 language: fi
 date: 2026-04-05
 duration: 199.7s
-status: raw
-audience: [developer, product]
+status: draft
+audience: human
 category: reference
 ---
 

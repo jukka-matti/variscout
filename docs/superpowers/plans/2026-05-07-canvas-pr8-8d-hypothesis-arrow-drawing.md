@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'Canvas Hypothesis-Arrow Drawing — PR8 sub-PR 8d implementation plan'
-audience: [engineer, product]
+audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-07

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: I-Chart (Individuals Chart)
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [control-limits, nelson-rules, stability, time-series]
 ---
 

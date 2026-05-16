@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: QDE 2.0 Survey Foundation Phase Plan
-audience: [engineer, product]
+audience: human
 category: implementation
-status: delivered
+status: active
 date: 2026-04-26
 related: [question-driven-eda-2, survey, mechanism-branches, signal-cards, process-map]
 ---

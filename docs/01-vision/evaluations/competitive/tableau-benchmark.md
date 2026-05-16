@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Tableau Competitive Benchmark'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # Tableau Competitive Benchmark

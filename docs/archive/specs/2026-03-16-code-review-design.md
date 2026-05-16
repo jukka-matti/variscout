@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Systematic Code Review — VariScout Lite
 date: 2026-03-16
 type: code-review
-status: delivered
+status: active
 ---
 
 # Systematic Code Review — VariScout Lite

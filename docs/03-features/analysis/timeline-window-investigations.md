@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Timeline Windows in Investigations
-audience: [analyst]
+audience: human
 category: analysis
-status: delivered
+status: active
 related: [multi-level-dashboard, capability, process-hub-capability, staged-analysis]
 ---
 

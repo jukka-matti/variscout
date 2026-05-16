@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'ARM Template Documentation'
-audience: [admin, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # ARM Template Documentation

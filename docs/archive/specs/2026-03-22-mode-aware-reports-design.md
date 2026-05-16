@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Mode-Aware Reports
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: delivered
+status: active
 related: [report-view, analysis-mode, capability, performance, yamazumi, two-voices]
 ---
 

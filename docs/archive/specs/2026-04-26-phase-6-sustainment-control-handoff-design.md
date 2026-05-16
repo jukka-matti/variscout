@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: 'Phase 6 - Sustainment & Control Handoff'
-audience: [product, designer, engineer]
+audience: human
 category: design-spec
-status: delivered
+status: active
 related:
   - 2026-04-26-unified-process-hub-methodology-roadmap.md
   - 2026-04-25-process-hub-design.md

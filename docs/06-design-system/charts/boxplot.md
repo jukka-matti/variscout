@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Boxplot Charts'
-audience: [designer, developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Boxplot Charts

@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'VALUE Lens: Capability Histogram'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # VALUE Lens: Capability Histogram

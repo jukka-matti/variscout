@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Defect Mode Evidence Map Integration
-audience: [engineer, analyst]
+audience: human
 category: analysis
-status: delivered
+status: active
 related: [defect, evidence-map, regression, cross-type, investigation]
 ---
 

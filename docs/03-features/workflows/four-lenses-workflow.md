@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Four Lenses Analysis Workflow
-audience: [analyst]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [four-lenses, change, failure, flow, value]
 ---
 

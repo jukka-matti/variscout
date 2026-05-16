@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Staged Analysis
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [before-after, stage-column, intervention]
 ---
 

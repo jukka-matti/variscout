@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: VariScout User Journeys — V1 Single-Persona Spine
-audience: [engineer, analyst]
+audience: human
 category: reference
-status: stable
+status: active
 last-reviewed: 2026-05-16
 related: [personas, flows, journey, modes, v1-architecture]
 ---

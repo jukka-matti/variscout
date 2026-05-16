@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Assembly Line Bottleneck Analysis'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Assembly Line Bottleneck Analysis

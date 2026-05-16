@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Azure App Storage'
-audience: [admin, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Azure App Storage

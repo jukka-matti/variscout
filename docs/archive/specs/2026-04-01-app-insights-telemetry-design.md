@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Application Insights Telemetry Design
-status: delivered
+status: active
 related: [app-insights, telemetry, security, observability]
 ---
 

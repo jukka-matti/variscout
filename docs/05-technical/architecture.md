@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'VariScout: Architecture Overview'
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [monorepo, offline-first, pwa, azure]
 ---
 

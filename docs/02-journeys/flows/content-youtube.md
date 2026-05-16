@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Flow 3: YouTube/Content → Website → Product'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Flow 3: YouTube/Content → Website → Product

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-068: CoScout Cognitive Redesign'
-audience: [engineer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [coscout, ai-integration, prompt-caching, tiered-prompts]
 ---
 

@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Layered Process View V1 Implementation Plan
-status: delivered
+status: active
 ---
 
 # Layered Process View V1 Implementation Plan

@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: CoScout Cognitive Redesign
-status: delivered
+status: active
 date: 2026-04-05
 related:
   [

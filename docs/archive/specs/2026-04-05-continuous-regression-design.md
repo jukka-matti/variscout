@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Continuous Regression Design
-status: delivered
+status: active
 date: 2026-04-05
-audience: [engineer]
+audience: human
 category: analysis
 related: [best-subsets, factor-intelligence, evidence-map, what-if, ols, glm]
 ---

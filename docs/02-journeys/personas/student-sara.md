@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Student Sara'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Student Sara

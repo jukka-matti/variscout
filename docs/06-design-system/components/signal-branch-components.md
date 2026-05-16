@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Signal And Branch Components
-audience: [designer, developer]
+audience: human
 category: reference
 status: draft
 related: [signal-cards, mechanism-branches, investigation-workspace, coscout, accessibility]

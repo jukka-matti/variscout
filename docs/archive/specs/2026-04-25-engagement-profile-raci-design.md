@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: 'Engagement-profile RACI — Identity and Engagement Layers (Brainstorm)'
-audience: [engineer, designer]
+audience: human
 category: architecture
 status: draft
 related:

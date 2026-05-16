@@ -1,10 +1,12 @@
 ---
+tier: living
+purpose: system
 title: Data Pipeline Map
 description: End-to-end data flow from CSV upload through statistics, charts, and AI — with TypeScript interfaces at every boundary
 journey-phase: [all]
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # Data Pipeline Map

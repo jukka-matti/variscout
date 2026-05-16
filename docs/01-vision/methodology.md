@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'VariScout Methodology'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # VariScout Methodology

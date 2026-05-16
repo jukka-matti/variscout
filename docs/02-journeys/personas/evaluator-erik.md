@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Evaluator Erik'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Evaluator Erik

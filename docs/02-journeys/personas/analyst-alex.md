@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Analyst Alex'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Analyst Alex

@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-007: Azure Marketplace Distribution Strategy'
 ---
 

@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: 'ADR-043: Teams Entry Experience'
 status: superseded
 date: 2026-03-22

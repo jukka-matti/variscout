@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: Question-Driven EDA 2.0 — Session Handoff
-audience: [engineer, product]
+audience: human
 category: implementation
-status: in-progress
+status: active
 date: 2026-04-25
 related:
   [

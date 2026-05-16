@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Evaluations: Progressive Stratification Tensions & Patterns'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # Evaluations: Progressive Stratification Tensions & Patterns

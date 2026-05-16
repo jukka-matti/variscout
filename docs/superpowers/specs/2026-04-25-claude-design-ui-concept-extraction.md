@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Claude Design UI Concept Extraction
-audience: [designer, engineer, product]
+audience: human
 category: design-spec
 status: draft
 related:

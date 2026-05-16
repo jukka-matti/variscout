@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Project Persistence
-audience: [analyst, engineer]
+audience: human
 category: data
-status: stable
+status: active
 related: [indexeddb, blob-storage, browser-cache, analysis-state]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Visual Process Maps'
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Visual Process Maps

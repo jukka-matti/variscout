@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Yamazumi Analysis
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [yamazumi, lean, time-study, takt-time, waste]
 ---
 

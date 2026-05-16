@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-027: AI Collaborator Evolution'
 ---
 

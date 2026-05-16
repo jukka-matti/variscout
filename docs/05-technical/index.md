@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Technical Documentation'
-audience: [developer, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Technical Documentation

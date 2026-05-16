@@ -1,11 +1,13 @@
 ---
+tier: living
+purpose: build
 title: Dataset Analysis Discussion
 type: transcript
 language: en
 date: 2026-03-29
 duration: 239.9s
-status: raw
-audience: [developer, product]
+status: draft
+audience: human
 category: reference
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Process Intelligence Panel
 date: 2026-03-28
 status: superseded
-audience: [developer, designer]
+audience: human
 category: design-spec
 related: [stats-panel, what-if, target-discovery, sidebar, process-health-bar]
 ---

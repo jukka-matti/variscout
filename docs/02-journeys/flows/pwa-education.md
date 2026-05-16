@@ -1,7 +1,9 @@
 ---
+tier: living
+purpose: design
 title: 'PWA Education Flow'
 status: draft
-audience: [product, designer]
+audience: human
 category: workflow
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: Canvas Polish v1 — bundled PR1–PR9 follow-ups
-audience: [engineer]
+audience: human
 category: implementation
-status: delivered
+status: active
 related:
   - docs/investigations.md
   - docs/superpowers/specs/2026-05-08-canvas-wall-overlay-design.md

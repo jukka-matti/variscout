@@ -1,11 +1,13 @@
 ---
+tier: living
+purpose: build
 title: Probability Plot in Analysis Flow
 type: transcript
 language: en
 date: 2026-04-05
 duration: 359.2s
-status: raw
-audience: [developer, product]
+status: draft
+audience: human
 category: reference
 ---
 

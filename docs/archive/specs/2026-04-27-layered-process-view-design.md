@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Layered Process View — Three-Band Visual Language
-audience: [product, designer, engineer, analyst]
+audience: human
 category: design-spec
 status: draft
 related:

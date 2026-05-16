@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Minor Competitor Profiles'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # Minor Competitor Profiles

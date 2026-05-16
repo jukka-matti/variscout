@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: 'Doc Prune — Load-Bearing Audit Design'
-audience: [engineer, architect]
+audience: human
 category: architecture
 status: draft
 related: [agent-docs-architecture, docs-governance, frontmatter-enforcement]

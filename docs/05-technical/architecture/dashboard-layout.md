@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Dashboard Layout Architecture
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [dashboard, layout, css-grid, responsive, charts]
 ---
 

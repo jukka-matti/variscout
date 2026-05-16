@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Investigation Showcase: Fill Weight'
-audience: [analyst, developer]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [investigation, findings, questions, suspected-cause, regression]
 ---
 
@@ -14,12 +16,12 @@ related: [investigation, findings, questions, suspected-cause, regression]
 
 A food packaging company operates 3 filling lines across 3 shifts. Customer complaints about overfilled packages triggered an investigation.
 
-| Factor | Levels | Story |
-|--------|--------|-------|
-| Line | Line 1, Line 2, Line 3 | Line 2 has worn nozzle → mean shift +2g, 2× variation |
-| Shift | Morning, Afternoon, Night | Night shift has 1.5× variation (fatigue) |
-| Material_Batch | A, B, C, D | Batch C slightly low (ruled out — negligible effect) |
-| Operator | Kim, Lee, Park | No significant effect |
+| Factor         | Levels                    | Story                                                 |
+| -------------- | ------------------------- | ----------------------------------------------------- |
+| Line           | Line 1, Line 2, Line 3    | Line 2 has worn nozzle → mean shift +2g, 2× variation |
+| Shift          | Morning, Afternoon, Night | Night shift has 1.5× variation (fatigue)              |
+| Material_Batch | A, B, C, D                | Batch C slightly low (ruled out — negligible effect)  |
+| Operator       | Kim, Lee, Park            | No significant effect                                 |
 
 **Specs:** LSL = 495g, USL = 505g, Target = 500g
 
@@ -29,24 +31,24 @@ The dataset loads at a **mid-investigation** state:
 
 ### Questions (6)
 
-| Question | Status | Factor | Evidence |
-|----------|--------|--------|----------|
-| Does the filling line affect fill weight? | Answered | Line | η² = 0.25, R²adj = 0.23 |
-| Is Line 2's mean shift caused by nozzle wear? | Investigating | Line (gemba) | Pending inspection |
-| Does shift affect fill weight variation? | Investigating | Shift | η² = 0.08 |
-| Is night shift variation due to fatigue or maintenance? | Open | Shift (gemba) | — |
-| Does material batch affect fill weight? | Ruled out | Material_Batch | η² = 0.02 |
-| Does operator affect fill weight? | Ruled out | Operator | η² = 0.005 |
+| Question                                                | Status        | Factor         | Evidence                |
+| ------------------------------------------------------- | ------------- | -------------- | ----------------------- |
+| Does the filling line affect fill weight?               | Answered      | Line           | η² = 0.25, R²adj = 0.23 |
+| Is Line 2's mean shift caused by nozzle wear?           | Investigating | Line (gemba)   | Pending inspection      |
+| Does shift affect fill weight variation?                | Investigating | Shift          | η² = 0.08               |
+| Is night shift variation due to fatigue or maintenance? | Open          | Shift (gemba)  | —                       |
+| Does material batch affect fill weight?                 | Ruled out     | Material_Batch | η² = 0.02               |
+| Does operator affect fill weight?                       | Ruled out     | Operator       | η² = 0.005              |
 
 ### Findings (5)
 
-| Finding | Status | Key Insight |
-|---------|--------|-------------|
-| Line 2 runs consistently high (~502g) | Analyzed (key-driver) | Has What-If projection |
-| Night shift has wider spread | Investigating | Linked to shift question |
-| Batch C slightly low but within spec | Observed | Inconclusive |
-| Line 2 + Night shift worst Cpk | Investigating | Interaction effect |
-| Line 1 Morning = best-in-class | Analyzed (benchmark) | Cpk ~1.65 |
+| Finding                               | Status                | Key Insight              |
+| ------------------------------------- | --------------------- | ------------------------ |
+| Line 2 runs consistently high (~502g) | Analyzed (key-driver) | Has What-If projection   |
+| Night shift has wider spread          | Investigating         | Linked to shift question |
+| Batch C slightly low but within spec  | Observed              | Inconclusive             |
+| Line 2 + Night shift worst Cpk        | Investigating         | Interaction effect       |
+| Line 1 Morning = best-in-class        | Analyzed (benchmark)  | Cpk ~1.65                |
 
 ### Suspected Cause Hub (1)
 
@@ -79,10 +81,10 @@ Observation, Fill_Weight_g, Line, Shift, Material_Batch, Operator
 
 ## Platform Availability
 
-| Feature | PWA | Azure |
-|---------|-----|-------|
-| Data + charts | ✓ | ✓ |
-| Questions (PI Panel) | ✓ | ✓ |
-| Findings | ✓ | ✓ |
-| Suspected cause hubs | — | ✓ |
-| Improvement ideas | — | ✓ |
+| Feature              | PWA | Azure |
+| -------------------- | --- | ----- |
+| Data + charts        | ✓   | ✓     |
+| Questions (PI Panel) | ✓   | ✓     |
+| Findings             | ✓   | ✓     |
+| Suspected cause hubs | —   | ✓     |
+| Improvement ideas    | —   | ✓     |

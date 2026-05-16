@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: CoScout Voice Input v1
-audience: [engineer, product]
+audience: human
 category: architecture
 status: draft
 related: [coscout, azure, voice-input, findings, shop-floor, customer-owned-data]

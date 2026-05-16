@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: 'Sharing & Continuity UX Design'
 status: draft
 ---

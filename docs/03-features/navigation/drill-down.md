@@ -1,7 +1,9 @@
 ---
+tier: living
+purpose: design
 title: 'Drill-Down Navigation'
 status: draft
-audience: [analyst, engineer]
+audience: human
 category: navigation
 ---
 

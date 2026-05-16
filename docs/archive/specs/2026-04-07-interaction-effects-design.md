@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Interaction Effects — Two-Pass Best Subsets with OLS Interaction Screening
-status: delivered
+status: active
 date: 2026-04-07
 related:
   [

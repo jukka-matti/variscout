@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Projects Tab Plan 2 — Active-IP Launchpad + Context Cascade
-audience: [engineer]
+audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-15

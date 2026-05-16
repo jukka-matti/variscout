@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Projects Tab Plan 4 — Report Tab IP-Scoped V1
-audience: [engineer]
+audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-15

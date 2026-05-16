@@ -1,9 +1,11 @@
 ---
+tier: living
+purpose: system
 title: AIX Design System
 scope: Governance reference — principles, tone, confidence calibration, interaction patterns, gap tracker
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [ai-architecture, ai-context-engineering, ai-journey-integration, knowledge-base]
 points_to:
   - ai-architecture.md (system architecture, data flow, cost controls)

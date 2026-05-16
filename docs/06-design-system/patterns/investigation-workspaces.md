@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Investigation Workspace Pattern
-audience: [designer, developer]
+audience: human
 category: reference
 status: draft
 related: [investigation-wall, question-driven-eda, accessibility, ai-independent-ux, signal-cards]

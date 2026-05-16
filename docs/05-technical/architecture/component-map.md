@@ -1,10 +1,12 @@
 ---
+tier: living
+purpose: system
 title: Component Map
 description: L3 component views per package — internal modules and their responsibilities
 journey-phase: [all]
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # Component Map
