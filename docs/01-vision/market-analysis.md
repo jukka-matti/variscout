@@ -5,6 +5,10 @@ category: methodology
 status: stable
 ---
 
+> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. four-persona market segment analysis collapses to single Specialist ICP; pricing thesis updates from €79/€199 to €99. Historical four-segment material retained as VariScout Process target market. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+
+---
+
 # Market Analysis & TAM Estimate
 
 _Last updated: February 2026_

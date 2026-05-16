@@ -7,6 +7,10 @@ last-reviewed: 2026-04-17
 related: [yamazumi, journey, lean, cycle-time, takt]
 ---
 
+> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. persona variants (engineer + lean lead) strip to single Specialist; Yamazumi methodology unchanged. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+
+---
+
 # Yamazumi Mode — User Journey
 
 ## Who uses this mode

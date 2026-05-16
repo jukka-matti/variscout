@@ -7,6 +7,10 @@ last-reviewed: 2026-04-17
 related: [process-flow, journey, bottleneck, design-only]
 ---
 
+> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. persona variants strip to single Specialist; Process Flow Mode shipping in V1. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+
+---
+
 # Process Flow Mode — User Journey
 
 This mode is designed but not yet coded. The journey described below is the intended experience when implementation ships.

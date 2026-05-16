@@ -5,6 +5,10 @@ category: strategy
 status: stable
 ---
 
+> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. PWA / Standard / Team three-column parity table collapses to PWA + €99 two-column matrix; team-collaboration features become project-membership-role-gated (Member/Sponsor scope) inside the €99 SKU. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+
+---
+
 # Feature Parity Matrix
 
 Complete feature availability across VariScout platforms.

@@ -5,6 +5,10 @@ category: reference
 status: draft
 ---
 
+> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. backlog items referencing Improve tab / tier-gating / persona routing retire under the wedge; archive retro-active items; new items added for Project membership ACLs + MeasurementPlan entity. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+
+---
+
 # Feature Backlog
 
 **How to read:** Items are grouped by status — **Active** has user-validated demand and clear scope; **Candidate** needs validation before investment; **Delivered** is recorded for traceability. Each active/candidate item links to a design spec where one exists.

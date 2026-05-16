@@ -6,6 +6,10 @@ status: stable
 related: [product-overview, features, pricing]
 ---
 
+> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. per-feature tier gates retire (single SKU); collaboration features become project-membership-role-gated; persona-routing references retire; Improve tab references update to Improve stage. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+
+---
+
 # VariScout — Product Spec
 
 **Version:** 2.0

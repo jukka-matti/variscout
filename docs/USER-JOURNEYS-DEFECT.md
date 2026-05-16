@@ -7,6 +7,10 @@ last-reviewed: 2026-04-17
 related: [defect, journey, ppm, event-rates, copq]
 ---
 
+> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. persona variants strip to single Specialist; defect methodology unchanged. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+
+---
+
 # Defect Analysis Mode — User Journey
 
 ## Who uses this mode

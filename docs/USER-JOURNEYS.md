@@ -7,6 +7,10 @@ last-reviewed: 2026-04-24
 related: [personas, flows, journey, modes]
 ---
 
+> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. 10-persona spine collapses to one (Specialist) for V1; project-membership roles (Lead/Member/Sponsor) replace persona routing; usage levels simplify. 4-persona model migrates to VariScout Process when that ships. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+
+---
+
 # VariScout User Journeys — Personas & Flows
 
 Ten personas drive VariScout's design decisions. Each follows the same journey spine (FRAME → SCOUT → INVESTIGATE → IMPROVE); the tools they use inside each phase vary by process question and evidence shape.

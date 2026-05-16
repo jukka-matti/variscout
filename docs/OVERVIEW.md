@@ -7,6 +7,10 @@ last-reviewed: 2026-04-24
 related: [product-overview, modes, tiers, coscout, journey]
 ---
 
+> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. tier table (PWA / Standard €79 / Team €199) collapses to PWA + €99 single SKU; persona spine collapses to single Specialist; Process Hub becomes internal; Improve tab retires (becomes a stage in Projects detail). This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+
+---
+
 # VariScout — What It Does In Practice
 
 VariScout is **structured investigation for process improvement**, evolving into a **Process Learning System** with the Process Hub as the operating spine. A browser-based, customer-owned data tool for quality engineers, lean practitioners, and analysts to explore variation in process data, identify suspected causes, drive improvement actions, and accumulate process learning over time. Azure tiers are local-cache capable; data stays in the customer's environment throughout.
