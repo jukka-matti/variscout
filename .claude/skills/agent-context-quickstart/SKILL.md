@@ -26,8 +26,8 @@ Loads a 5-minute orientation document covering:
 
 1. Read the onboarding doc at `docs/agent-context/onboarding-quick-start.md` (in the repo root).
 2. Note the 6-tab nav (`Home · Projects · Process · Analyze · Investigation · Report`) and that "Improve" is a stage inside Projects, not a tab.
-3. Internalize the 4 hard invariants (browser-only, 6 stores × 3 layers, no cross-unit aggregation, language rules).
-4. Scan the Common Pitfalls section — check each against your planned edits before proceeding.
+3. Read `.claude/INVARIANTS.md` for the full invariant index — canonical homes + enforcement mechanisms for every hard and soft rule. The onboarding doc §Hard Invariants gives the quick summary; INVARIANTS.md gives the authoritative detail.
+4. Scan the Common Pitfalls section in the onboarding doc — check each against your planned edits before proceeding.
 5. If your task involves a specific package, invoke the `package-router` skill next.
 6. If your task reads or writes store state, invoke the `store-state-glossary` skill next.
 

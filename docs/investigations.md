@@ -624,3 +624,33 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 **Resolution [2026-05-08]:** `computeHistogramBins(values, rule?)` helper added in `@variscout/core/stats` (Sturges default, Scott option). `CanvasStepMiniChart` histogram branch now renders one bar per bin with bin counts as heights, replacing the first-12-raw-values normalization. Empty bins floor at 8% height so the bin axis stays legible — this replaces the prior 15% floor (which was tuned for 12 raw-value pseudo-bars; 8% reads more honestly when bin counts can legitimately be zero).
 
 ---
+
+### Enforcement gap: `Math.random()` ban has no ESLint rule
+
+**Surfaced by:** Play 6 invariant consolidation, 2026-05-16.
+
+**Description:** The `Math.random()` ban is listed as a hard invariant in `.claude/INVARIANTS.md` and enforced by convention only. ESLint rules `no-root-cause-language` and `no-interaction-moderator` exist as precedents. A scoped `no-math-random` rule would close the gap mechanically.
+
+**Possible directions:**
+
+- Add `variscout/no-math-random` to `tools/eslint-plugin-variscout/` scoped to `packages/core/src/**` + `**/__tests__/**` + `packages/*/src/**`. Exclude `e2e/` where pseudo-randomness may be intentional.
+- Alt: `no-restricted-globals` with `Math.random` message pointing to the seeded PRNG helper.
+
+**Promotion path:** small PR — plugin rule + ESLint config wiring. Precedent is the existing plugin rules in `tools/eslint-plugin-variscout/`.
+
+---
+
+### Enforcement gap: Tailwind `@source` directive coverage has no automated check
+
+**Surfaced by:** Play 6 invariant consolidation, 2026-05-16.
+
+**Description:** The invariant requiring `@source` directives in every `apps/*/src/index.css` for shared packages is enforced by convention + visual regression only. Missing directives silently break responsive utilities (Tailwind v4 behaviour). A build-time check would surface the gap deterministically.
+
+**Possible directions:**
+
+- As part of Play 7 (`pnpm docs:gen-arch`): extend the script to emit a Tailwind source map check — enumerate `packages/*/` and verify each appears in all `apps/*/src/index.css` `@source` lists.
+- Simpler: a `scripts/check-tailwind-sources.sh` that `grep`s each package name against the app CSS files and fails if any are missing.
+
+**Promotion path:** Play 7 candidate (system auto-generation). Or standalone script in a cleanup PR.
+
+---

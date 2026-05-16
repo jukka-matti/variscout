@@ -57,7 +57,7 @@ Canonical sources: [wedge spec](../superpowers/specs/2026-05-16-wedge-architectu
 
 ## Hard Invariants
 
-Violating any of these is a hard error. ESLint enforces the language ones.
+Violating any of these is a hard error. ESLint enforces the language ones. Full index with canonical homes + enforcement mechanisms: [`.claude/INVARIANTS.md`](../../.claude/INVARIANTS.md).
 
 1. **Browser-only processing** — data never leaves the customer's tenant. No server-side aggregation, no external API calls with row data (ADR-059).
 2. **6 Zustand stores across 3 layers** — Document (×3): `useProjectStore`, `useInvestigationStore`, `useCanvasStore`; Annotation (×2): `useCanvasViewportStore`, `usePreferencesStore`; extra Annotation: `useActiveIPStore`; View (×1): `useViewStore`. No DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
