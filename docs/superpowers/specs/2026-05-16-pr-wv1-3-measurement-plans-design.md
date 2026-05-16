@@ -9,6 +9,8 @@ related:
   - docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md
   - docs/superpowers/specs/2026-04-19-investigation-wall-design.md
   - docs/superpowers/plans/2026-05-16-wedge-implementation.md
+  - docs/superpowers/plans/2026-05-16-pr-wv1-3a-membership-cleanup.md
+  - docs/superpowers/plans/2026-05-16-pr-wv1-3b-measurement-plans-wall.md
   - docs/07-decisions/adr-082-wedge-architecture.md
 ---
 
