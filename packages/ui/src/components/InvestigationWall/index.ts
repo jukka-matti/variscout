@@ -54,3 +54,5 @@ export { MeasurementPlanChip } from './MeasurementPlanChip';
 export type { MeasurementPlanChipProps } from './MeasurementPlanChip';
 export { AddPlanForm } from './AddPlanForm';
 export type { AddPlanFormProps } from './AddPlanForm';
+export { LinkFindingPicker } from './LinkFindingPicker';
+export type { LinkFindingPickerProps } from './LinkFindingPicker';
