@@ -211,7 +211,7 @@ Load these when working in the relevant area — they provide more detail than t
 | Stats engine + math            | [invariants/stats.md](invariants/stats.md)                       | Writing or modifying stats/findings code            |
 | Test code (Vitest + Playwright)| [invariants/testing.md](invariants/testing.md)                   | Writing or modifying any test file                  |
 | Chart components               | [invariants/charts.md](invariants/charts.md)                     | Chart component work                                |
-| CoScout AI prompts             | [invariants/coscout-prompts.md](invariants/coscout-prompts.md)   | Editing CoScout prompts / AI tools / prompt registry|
+| CoScout AI prompts             | [invariants/coscout-prompts.md](invariants/coscout-prompts.md)   | Editing CoScout prompts / AI tools / prompt registry. For CoScout work: load [coscout-ax-design](../docs/01-vision/coscout-ax-design.md) first (canonical AX design: persona, tier-gating, knowledge architecture, safety, eval), then this invariant file for prompt engineering details. |
 | i18n strings + locale          | [invariants/i18n.md](invariants/i18n.md)                         | Adding or modifying localized strings               |
 | Azure storage + auth           | [invariants/azure-storage.md](invariants/azure-storage.md)       | Azure Blob/Dexie sync, auth, SAS token work         |
 
