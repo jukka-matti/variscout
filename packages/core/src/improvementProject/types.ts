@@ -7,6 +7,7 @@ import type {
 } from '../processHub';
 import type { Hypothesis, Finding, ImprovementIdea, ActionItem } from '../findings/types';
 import type { SustainmentRecord, ControlHandoff } from '../sustainment';
+import type { ProjectMember } from '../projectMembership/types';
 
 export type ImprovementProjectStatus = 'draft' | 'active' | 'closed';
 
@@ -20,6 +21,8 @@ export interface ImprovementProjectMetadata {
     raci?: 'R' | 'A' | 'C' | 'I';
     person: ProcessParticipantRef;
   }>;
+  /** Wedge V1 membership roster. Replaces legacy team[] after migration window. */
+  members?: ProjectMember[];
   investigationId?: ProcessHubInvestigation['id'];
 }
 

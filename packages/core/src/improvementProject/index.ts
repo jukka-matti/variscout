@@ -15,3 +15,5 @@ export type {
 
 export { computeSourceHash, shouldShowDrift } from './snapshot';
 export type { DriftableSnapshot, DriftableCurrent } from './snapshot';
+
+export { migrateTeamToMembers } from './migration';
