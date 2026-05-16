@@ -26,7 +26,6 @@ interface ProcessHubCadenceQueuesProps {
   onOpenInvestigation: (id: string) => void;
   onSetupSustainment: (investigationId: string) => void;
   onLogReview: (recordId: string) => void;
-  onRecordHandoff: (investigationId: string) => void;
 }
 
 const DEPTH_SECTIONS: Array<{ depth: InvestigationDepth; label: string }> = [
@@ -121,7 +120,6 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
   onOpenInvestigation,
   onSetupSustainment,
   onLogReview,
-  onRecordHandoff,
 }) => {
   const hasActiveWork = DEPTH_SECTIONS.some(
     ({ depth }) => cadence.activeWork[depth].totalCount > 0
@@ -346,7 +344,6 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
               onOpenInvestigation={onOpenInvestigation}
               onSetupSustainment={onSetupSustainment}
               onLogReview={onLogReview}
-              onRecordHandoff={onRecordHandoff}
             />
           </div>
         ) : hasActiveReviewItems ? null : (

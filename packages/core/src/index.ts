@@ -563,7 +563,6 @@ export {
   isSustainmentOverdue,
   selectSustainmentReviews,
   selectSustainmentBuckets,
-  selectControlHandoffCandidates,
   sustainmentRecordBlobPath,
   sustainmentReviewBlobPath,
   controlHandoffBlobPath,

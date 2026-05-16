@@ -415,19 +415,6 @@ export function selectSustainmentBuckets<TInv extends ProcessHubInvestigation>(
   return { dueNow, overdue, recentlyReviewed };
 }
 
-/**
- * Wedge V1 (ADR-082): Handoff is folded into Sustainment-closure. Control-handoff
- * cadence items are retired — 'control-handoff-missing' is no longer a valid
- * SustainmentReviewReason. Returns an empty array; preserved for call-site
- * compatibility until consumers are cleaned up.
- */
-export function selectControlHandoffCandidates<TInv extends ProcessHubInvestigation>(
-  _investigations: TInv[],
-  _handoffs: ControlHandoff[]
-): ProcessHubReviewItem<TInv>[] {
-  return [];
-}
-
 // ── Blob path helpers ─────────────────────────────────────────────────────
 
 function safePathSegment(value: string): string {

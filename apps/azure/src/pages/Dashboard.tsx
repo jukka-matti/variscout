@@ -44,7 +44,6 @@ import EvidenceSheet from '../components/EvidenceSheet';
 import ProcessHubView from '../components/ProcessHubView';
 import SampleDataPicker from '../components/SampleDataPicker';
 import StateItemNotesDrawer from '../components/StateItemNotesDrawer';
-import { usePanelsStore } from '../features/panels/panelsStore';
 
 interface DashboardProps {
   onOpenProject: (id?: string, processHubId?: string, startPaste?: boolean) => void;
@@ -249,18 +248,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     (recordId: string) => {
       const record = sustainmentRecords.find(r => r.id === recordId);
       if (record) onOpenProject(record.investigationId);
-    },
-    [sustainmentRecords, onOpenProject]
-  );
-
-  const handleRecordHandoff = useCallback(
-    (targetId: string) => {
-      const record = sustainmentRecords.find(
-        r => r.id === targetId || r.controlHandoffId === targetId || r.investigationId === targetId
-      );
-      const sustainmentTargetId = record?.id ?? targetId;
-      usePanelsStore.getState().showHandoff(sustainmentTargetId);
-      onOpenProject(undefined, record?.hubId, false);
     },
     [sustainmentRecords, onOpenProject]
   );
@@ -868,7 +855,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onStartInvestigation={() => onOpenProject(undefined, selectedHubRollup.hub.id)}
                 onSetupSustainment={handleSetupSustainment}
                 onLogReview={handleLogReview}
-                onRecordHandoff={handleRecordHandoff}
                 onResponsePathAction={handleResponsePathAction}
                 onRequestAddNote={handleRequestAddNote}
                 onRequestEditNote={handleRequestEditNote}

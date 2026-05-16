@@ -19,7 +19,6 @@ import type { SpecLimits } from './types';
 import {
   isSustainmentDue,
   isSustainmentOverdue,
-  selectControlHandoffCandidates,
   selectSustainmentBuckets,
   selectSustainmentReviews,
   type ControlHandoff,
@@ -890,11 +889,7 @@ export function buildProcessHubCadence<TInvestigation extends ProcessHubInvestig
     rollup.controlHandoffs,
     now
   );
-  const handoffCandidates = selectControlHandoffCandidates(
-    rollup.investigations,
-    rollup.controlHandoffs
-  );
-  const sustainmentItems = [...sustainmentReviews, ...handoffCandidates];
+  const sustainmentItems = [...sustainmentReviews];
   const sustainmentBuckets = selectSustainmentBuckets(
     rollup.investigations,
     rollup.sustainmentRecords,

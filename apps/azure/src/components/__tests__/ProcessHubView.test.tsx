@@ -27,7 +27,6 @@ const baseProps = {
   onStartInvestigation: noop,
   onSetupSustainment: noop,
   onLogReview: noop,
-  onRecordHandoff: noop,
   onResponsePathAction: noop,
   onRequestAddNote: noop,
   onRequestEditNote: noop,
