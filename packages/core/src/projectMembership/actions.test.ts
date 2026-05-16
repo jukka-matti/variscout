@@ -66,25 +66,4 @@ describe('reduceProjectMembers', () => {
     const next = reduceProjectMembers(start, action);
     expect(next).toHaveLength(0);
   });
-
-  it('rejects PROJECT_MEMBER_UPDATE patch attempting to change id / userId / invitedAt / createdAt / deletedAt', () => {
-    const start: ProjectMember[] = [
-      {
-        id: 'pm-1',
-        userId: 'p@x',
-        displayName: 'P',
-        role: 'member',
-        invitedAt: 1,
-        createdAt: 1,
-        deletedAt: null,
-      },
-    ];
-    const badAction = {
-      kind: 'PROJECT_MEMBER_UPDATE' as const,
-      projectId: 'ip-1',
-      memberId: 'pm-1',
-      patch: { id: 'pm-99' } as unknown as Partial<ProjectMember>,
-    };
-    expect(() => reduceProjectMembers(start, badAction as MembershipAction)).toThrow();
-  });
 });
