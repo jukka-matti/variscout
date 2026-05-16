@@ -11,6 +11,7 @@ import {
   usePreferencesStore,
   useCanvasViewportStore,
   useProjectMembershipStore,
+  useImprovementProjectStore,
 } from '@variscout/stores';
 import {
   useFilteredData,
@@ -78,6 +79,8 @@ import type {
 import type { SurveyRecommendation } from '@variscout/core/survey';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import type { BrainstormIdea } from '@variscout/core/findings';
+import { generateDeterministicId } from '@variscout/core/identity';
+import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { Check, X } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
@@ -608,6 +611,16 @@ export const Editor: React.FC<EditorProps> = ({
     () => new Set(activeIPLineage?.hypothesisIds ?? []),
     [activeIPLineage]
   );
+
+  // Action item dispatch — wired to useImprovementProjectStore via upsertProject
+  const upsertProject = useImprovementProjectStore(s => s.upsertProject);
+  const activeIP = activeIPContext.activeIP ?? null;
+  const applyAction = (action: ActionItemAction) => {
+    if (!activeIP) return;
+    const currentActions = activeIP.metadata.actions ?? [];
+    const nextActions = reduceActionItems(currentActions, action);
+    upsertProject({ ...activeIP, metadata: { ...activeIP.metadata, actions: nextActions } });
+  };
 
   // Sustainment + Handoff inputs for ProjectsTabView → IPDetailPage
   const _azureLiveSustainmentRecords = (activeHub?.sustainmentRecords ?? []).filter(
@@ -1894,22 +1907,28 @@ export const Editor: React.FC<EditorProps> = ({
               />
             ) : activeView === 'improvement' ? (
               <ImproveTabRoot
-                activeIP={activeIPContext.activeIP ?? null}
-                actions={[]}
+                activeIP={activeIP}
+                actions={activeIP?.metadata.actions ?? []}
                 currentUserId={currentUser?.email}
                 onGoHome={() => usePanelsStore.getState().showDashboard()}
-                onActionAdd={action =>
-                  console.warn('[wedge V1] ACTION_ITEM_ADD not yet wired (PR-WV1-3 work):', action)
+                onActionAdd={({ text, parentImprovementProjectId }) =>
+                  applyAction({
+                    kind: 'ACTION_ITEM_ADD',
+                    hubId: activeIP?.hubId ?? '',
+                    actionItem: {
+                      id: generateDeterministicId(),
+                      createdAt: Date.now(),
+                      deletedAt: null,
+                      text,
+                      parentImprovementProjectId,
+                    },
+                  })
                 }
-                onActionUpdate={(id, patch) =>
-                  console.warn(
-                    '[wedge V1] ACTION_ITEM_UPDATE not yet wired (PR-WV1-3 work):',
-                    id,
-                    patch
-                  )
+                onActionUpdate={(actionItemId, patch) =>
+                  applyAction({ kind: 'ACTION_ITEM_UPDATE', actionItemId, patch })
                 }
-                onActionRemove={id =>
-                  console.warn('[wedge V1] ACTION_ITEM_REMOVE not yet wired (PR-WV1-3 work):', id)
+                onActionRemove={actionItemId =>
+                  applyAction({ kind: 'ACTION_ITEM_REMOVE', actionItemId, removedAt: Date.now() })
                 }
               />
             ) : activeView === 'report' ? (

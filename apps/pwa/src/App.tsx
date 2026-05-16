@@ -1325,7 +1325,6 @@ function AppMain() {
               <ImprovementView
                 activeIPScope={activeIPScope}
                 activeIP={activeIPContext.activeIP ?? null}
-                actions={[]}
                 onGoHome={panels.showHome}
               />
             ) : panels.activeView === 'report' ? (
