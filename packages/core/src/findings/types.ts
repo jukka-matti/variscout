@@ -759,6 +759,10 @@ export interface Hypothesis extends EntityBase {
   questionIds: Question['id'][];
   /** Connected finding IDs */
   findingIds: Finding['id'][];
+  /** IDs of MeasurementPlans designed to gather evidence for this hypothesis. Parallel to findingIds.
+   * Uses `string` instead of `MeasurementPlan['id']` to avoid a circular import
+   * (measurementPlan/types.ts already imports Hypothesis from this file). */
+  measurementPlanIds?: string[];
   /** Updated timestamp (Unix ms) */
   updatedAt: number;
   /** FK to the owning investigation. Required for normalized storage. */

@@ -83,3 +83,39 @@ describe('createHypothesis', () => {
     expect(hypothesis.findingIds).toEqual([]);
   });
 });
+
+describe('Hypothesis — measurementPlanIds field', () => {
+  it('accepts optional measurementPlanIds parallel to findingIds', () => {
+    const planId: string = 'mp-1';
+    const hyp: Hypothesis = {
+      id: 'h-1',
+      createdAt: 1,
+      updatedAt: 1,
+      deletedAt: null,
+      name: 'Test',
+      synthesis: '',
+      questionIds: [],
+      findingIds: ['f-1'],
+      measurementPlanIds: [planId],
+      status: 'proposed',
+      investigationId: 'inv-1',
+    };
+    expect(hyp.measurementPlanIds).toEqual(['mp-1']);
+  });
+
+  it('omits measurementPlanIds without TypeScript error', () => {
+    const hyp: Hypothesis = {
+      id: 'h-2',
+      createdAt: 1,
+      updatedAt: 1,
+      deletedAt: null,
+      name: 'Test',
+      synthesis: '',
+      questionIds: [],
+      findingIds: [],
+      status: 'proposed',
+      investigationId: 'inv-1',
+    };
+    expect(hyp.measurementPlanIds).toBeUndefined();
+  });
+});
