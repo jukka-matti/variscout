@@ -594,7 +594,7 @@ export const ar: MessageCatalog = {
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
   'workspace.improve': 'Improve',
-  'workspace.projects': 'Projects',
+  'workspace.project': 'مشروع',
   'workspace.report': 'Report',
 
   // Synthesis card

@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePreferencesStore } from '@variscout/stores';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProjectMember, ProjectRole } from '@variscout/core/projectMembership';
+import { canAccess } from '@variscout/core/projectMembership';
 import { generateDeterministicId } from '@variscout/core';
 import { reduceProjectMembers, type MembershipAction } from '@variscout/core/actions';
 import IPDetailHeader from './IPDetailHeader';
@@ -16,10 +17,8 @@ import CharterOverview from './stages/CharterOverview';
 import CharterSections from './stages/CharterSections';
 import ApproachOverview from './stages/ApproachOverview';
 import ApproachSections from './stages/ApproachSections';
-import SustainmentOverview from './stages/SustainmentOverview';
+import SustainmentOverview, { type SustainmentClosureInputs } from './stages/SustainmentOverview';
 import SustainmentSections from './stages/SustainmentSections';
-import HandoffOverview, { type HandoffChecklistInputs } from './stages/HandoffOverview';
-import HandoffSections from './stages/HandoffSections';
 import type { CauseProjectionInputs, CauseRow } from './stages/causeProjection';
 import type { ImprovementProjectFormProps } from '../ImprovementProject/ImprovementProjectForm';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
@@ -56,14 +55,12 @@ export interface IPDetailPageProps {
   sustainmentRecord?: SustainmentRecord;
   /** Linked ControlHandoff. Present when handoff stage is active or beyond. */
   controlHandoff?: ControlHandoff;
-  /** Inputs for Handoff checklist (derived from controlHandoff by caller). */
-  handoffInputs?: HandoffChecklistInputs;
+  /** Closure checklist inputs for SustainmentOverview (folded in from former Handoff stage). */
+  closureInputs?: SustainmentClosureInputs;
   /** Per-cause in-control rows for Sustainment Overview. */
   sustainmentPerCauseRows?: Array<{ factor: string; inControl: boolean; observation?: string }>;
   /** "Open legacy Sustainment panel" handler. */
   onOpenLegacySustainment?: () => void;
-  /** "Open legacy Handoff panel" handler. */
-  onOpenLegacyHandoff?: () => void;
   /** "Nudge owner" handler (Plan 3 wires actual notification). */
   onNudgeProcessOwner?: () => void;
   /** Activity/signoff inputs for the team rail. */
@@ -76,7 +73,6 @@ export interface IPDetailPageProps {
 }
 
 function defaultActiveStage(stages: ReturnType<typeof deriveStageState>): StageName {
-  if (stages.handoff === 'current') return 'handoff';
   if (stages.sustainment === 'current') return 'sustainment';
   if (stages.approach === 'current') return 'approach';
   return 'charter';
@@ -98,11 +94,10 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   onOpenCauseWorkbench,
   sustainmentRecord,
   controlHandoff,
-  handoffInputs,
+  closureInputs,
   sustainmentPerCauseRows,
   onOpenLegacySustainment,
-  onOpenLegacyHandoff,
-  onNudgeProcessOwner,
+  onNudgeProcessOwner: _onNudgeProcessOwner,
   ideas,
   actions,
   now,
@@ -123,15 +118,12 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
 
   // ACL guard: only apply when we have an identified user AND an explicit members list.
   // If currentUserId is absent OR members[] is empty/absent → backward-compatible open access.
-  const userRole =
-    currentUserId !== undefined && members.length > 0
-      ? members.find(m => m.userId === currentUserId)?.role
-      : undefined;
-
-  const isExplicitlyExcluded =
-    currentUserId !== undefined && members.length > 0 && userRole === undefined;
-
-  const isSponsor = userRole === 'sponsor';
+  const hasIdentity = currentUserId !== undefined && members.length > 0;
+  const isExplicitlyExcluded = hasIdentity && !canAccess(currentUserId, members, 'view-report');
+  const isSponsor =
+    hasIdentity &&
+    canAccess(currentUserId, members, 'view-report') &&
+    !canAccess(currentUserId, members, 'edit-charter');
 
   const handleInviteClick = () => {
     onInviteClick?.();
@@ -269,45 +261,26 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
           {activeStage === 'sustainment' && mode === 'overview' && sustainmentRecord && (
             <SustainmentOverview
               record={sustainmentRecord}
-              onStartHandoff={() => setActiveStage('handoff')}
+              onStartHandoff={() => setActiveStage('sustainment')}
               onOpenProcess={() => onJumpOut?.('process')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               perCauseRows={sustainmentPerCauseRows}
+              closureInputs={closureInputs}
+              onNudgeOwner={_onNudgeProcessOwner}
+              onOpenReport={() => onJumpOut?.('report')}
             />
           )}
           {activeStage === 'sustainment' && mode === 'sections' && sustainmentRecord && (
             <SustainmentSections
               record={sustainmentRecord}
               onOpenLegacy={() => onOpenLegacySustainment?.()}
+              controlHandoff={controlHandoff}
             />
           )}
           {activeStage === 'sustainment' && !sustainmentRecord && (
             <p className="text-sm text-content-secondary">
               No Sustainment record linked yet. Close the IP (Approach stage) to auto-create one per
               ADR-080.
-            </p>
-          )}
-
-          {activeStage === 'handoff' && mode === 'overview' && handoffInputs && (
-            <HandoffOverview
-              inputs={handoffInputs}
-              onOpenReport={() => onJumpOut?.('report')}
-              onExportPdf={() => {
-                /* Plan 4 wires PDF export */
-              }}
-              onNudgeOwner={() => onNudgeProcessOwner?.()}
-            />
-          )}
-          {activeStage === 'handoff' && mode === 'sections' && controlHandoff && (
-            <HandoffSections
-              handoff={controlHandoff}
-              onOpenLegacy={() => onOpenLegacyHandoff?.()}
-            />
-          )}
-          {activeStage === 'handoff' && (!handoffInputs || !controlHandoff) && (
-            <p className="text-sm text-content-secondary">
-              No Handoff record linked yet. Confirm Sustainment (4 consecutive on-target ticks) to
-              start Handoff.
             </p>
           )}
         </main>

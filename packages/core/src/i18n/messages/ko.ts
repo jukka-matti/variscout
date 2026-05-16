@@ -565,7 +565,7 @@ export const ko: MessageCatalog = {
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
   'workspace.improve': 'Improve',
-  'workspace.projects': 'Projects',
+  'workspace.project': '프로젝트',
   'workspace.report': 'Report',
 
   // Synthesis card

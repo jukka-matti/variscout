@@ -543,7 +543,7 @@ export const th: MessageCatalog = {
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
   'workspace.improve': 'Improve',
-  'workspace.projects': 'Projects',
+  'workspace.project': 'โครงการ',
   'workspace.report': 'Report',
 
   // Synthesis card

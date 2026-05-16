@@ -84,7 +84,6 @@ import { useFindingsStore, groupFindingsByChart } from './features/findings/find
 import { useProjectionStore } from './features/projection/projectionStore';
 import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
 import { useCanvasViewportLifecycle } from './features/investigation/useCanvasViewportLifecycle';
-import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
 import { useStatsWorker } from './workers/useStatsWorker';
 import { useActiveIPContext } from './hooks/useActiveIPContext';
 
@@ -359,14 +358,6 @@ function AppMain() {
     },
     processContext: undefined,
     stats,
-  });
-
-  const improvementOrch = useImprovementOrchestration({
-    questionsState,
-    findingsState: {
-      findings: findingsState.findings,
-      addAction: findingsState.addAction,
-    },
   });
 
   // Stage 5 modal — opens after Mode B Stage 3 confirm and via on-demand button.
@@ -863,15 +854,6 @@ function AppMain() {
         : questions,
     [questions, scopedQuestionIds]
   );
-  const scopedImprovementQuestions = useMemo(
-    () =>
-      scopedQuestionIds
-        ? improvementOrch.improvementQuestions.filter(question =>
-            scopedQuestionIds.has(question.id)
-          )
-        : improvementOrch.improvementQuestions,
-    [improvementOrch.improvementQuestions, scopedQuestionIds]
-  );
   const scopedQuestionsState = useMemo(
     () => (scopedQuestionIds ? { ...questionsState, questions: scopedQuestions } : questionsState),
     [questionsState, scopedQuestionIds, scopedQuestions]
@@ -919,7 +901,7 @@ function AppMain() {
   const projectsControlHandoff = _liveControlHandoffs.find(
     h => h.investigationId === (projectsSustainmentRecord?.investigationId ?? '')
   );
-  const projectsHandoffInputs = projectsControlHandoff
+  const projectsClosureInputs = projectsControlHandoff
     ? {
         controlPlanDocumented: false,
         trainingDelivered: Boolean(projectsControlHandoff.signoff?.approvedBy),
@@ -1300,16 +1282,11 @@ function AppMain() {
                 }}
                 sustainmentRecord={projectsSustainmentRecord}
                 controlHandoff={projectsControlHandoff}
-                handoffInputs={projectsHandoffInputs}
+                closureInputs={projectsClosureInputs}
                 onOpenLegacySustainment={() =>
                   usePanelsStore
                     .getState()
                     .showSustainment(projectsSustainmentRecord?.investigationId ?? undefined)
-                }
-                onOpenLegacyHandoff={() =>
-                  usePanelsStore
-                    .getState()
-                    .showHandoff(projectsControlHandoff?.investigationId ?? undefined)
                 }
                 onNudgeProcessOwner={() => {
                   // Plan 3 will emit EngagementEvent webhook here.
@@ -1335,17 +1312,9 @@ function AppMain() {
             ) : panels.activeView === 'improvement' ? (
               <ImprovementView
                 activeIPScope={activeIPScope}
-                questionsState={scopedQuestionsState}
-                onBack={panels.showAnalysis}
-                handleConvertIdeasToActions={improvementOrch.handleConvertIdeasToActions}
-                improvementQuestions={scopedImprovementQuestions}
-                improvementLinkedFindings={
-                  activeIPContext.isIPScoped
-                    ? scopedFindings
-                    : improvementOrch.improvementLinkedFindings
-                }
-                selectedIdeaIds={improvementOrch.selectedIdeaIds}
-                convertedIdeaIds={improvementOrch.convertedIdeaIds}
+                activeIP={activeIPContext.activeIP ?? null}
+                actions={[]}
+                onGoHome={panels.showHome}
               />
             ) : panels.activeView === 'report' ? (
               <ReportView

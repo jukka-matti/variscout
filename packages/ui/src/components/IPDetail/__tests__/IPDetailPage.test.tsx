@@ -221,7 +221,6 @@ describe('IPDetailPage', () => {
       expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /approach/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /sustainment/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /handoff/i })).toBeInTheDocument();
     });
 
     it('renders full tab list for Member', () => {
@@ -235,7 +234,7 @@ describe('IPDetailPage', () => {
       expect(screen.queryByRole('tab', { name: /charter/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('tab', { name: /approach/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('tab', { name: /sustainment/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('tab', { name: /handoff/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /improve/i })).not.toBeInTheDocument();
       expect(screen.getByTestId('sponsor-report-panel')).toBeInTheDocument();
     });
 
@@ -252,6 +251,12 @@ describe('IPDetailPage', () => {
       };
       render(<IPDetailPage ip={legacyIP} onBackToList={() => {}} currentUserId="anybody@org" />);
       expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
+    });
+
+    it('uses canAccess view-report for Sponsor placeholder gating', () => {
+      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="sponsor@org" />);
+      expect(screen.getByTestId('sponsor-report-panel')).toBeInTheDocument();
+      expect(screen.queryByTestId('stage-tab-charter')).not.toBeInTheDocument();
     });
   });
 

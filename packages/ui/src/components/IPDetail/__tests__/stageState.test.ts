@@ -15,12 +15,11 @@ const baseIP: ImprovementProject = {
 };
 
 describe('deriveStageState', () => {
-  it('charter is current when IP is draft with no investigation linked', () => {
+  it('charter is current when IP is draft', () => {
     const state: StageStateMap = deriveStageState(baseIP);
     expect(state.charter).toBe('current');
-    expect(state.approach).toBe('not-started');
-    expect(state.sustainment).toBe('locked');
-    expect(state.handoff).toBe('locked');
+    expect(state.approach).toBe('upcoming');
+    expect(state.sustainment).toBe('upcoming');
   });
 
   it('approach becomes current when IP is active', () => {
@@ -28,28 +27,22 @@ describe('deriveStageState', () => {
     const state = deriveStageState(ip);
     expect(state.charter).toBe('done');
     expect(state.approach).toBe('current');
-    expect(state.sustainment).toBe('locked');
+    expect(state.sustainment).toBe('upcoming');
   });
 
-  it('sustainment unlocks when IP is closed', () => {
+  it('sustainment becomes current when IP is closed', () => {
     const ip: ImprovementProject = { ...baseIP, status: 'closed' };
     const state = deriveStageState(ip);
     expect(state.charter).toBe('done');
     expect(state.approach).toBe('done');
     expect(state.sustainment).toBe('current');
-    expect(state.handoff).toBe('locked');
   });
 
-  it('handoff unlocks when sustainmentConfirmed flag passed', () => {
+  it('all stages done when sustainmentConfirmed', () => {
     const ip: ImprovementProject = { ...baseIP, status: 'closed' };
     const state = deriveStageState(ip, { sustainmentConfirmed: true });
+    expect(state.charter).toBe('done');
+    expect(state.approach).toBe('done');
     expect(state.sustainment).toBe('done');
-    expect(state.handoff).toBe('current');
-  });
-
-  it('all stages done when handoff is operational', () => {
-    const ip: ImprovementProject = { ...baseIP, status: 'closed' };
-    const state = deriveStageState(ip, { sustainmentConfirmed: true, handoffOperational: true });
-    expect(state.handoff).toBe('done');
   });
 });

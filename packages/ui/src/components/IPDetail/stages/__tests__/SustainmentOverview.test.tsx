@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { SustainmentRecord } from '@variscout/core';
-import SustainmentOverview from '../SustainmentOverview';
+import SustainmentOverview, { type SustainmentClosureInputs } from '../SustainmentOverview';
 
 const record: SustainmentRecord = {
   id: 'sr-1',
@@ -18,6 +18,18 @@ const record: SustainmentRecord = {
   consecutiveOnTargetTicks: 4,
   hasOverride: false,
   lastEvaluatedSnapshotId: undefined,
+};
+
+const allDone: SustainmentClosureInputs = {
+  controlPlanDocumented: true,
+  trainingDelivered: true,
+  cadenceAssigned: true,
+  processOwnerAcknowledged: true,
+};
+
+const pendingAck: SustainmentClosureInputs = {
+  ...allDone,
+  processOwnerAcknowledged: false,
 };
 
 describe('SustainmentOverview', () => {
@@ -70,5 +82,65 @@ describe('SustainmentOverview', () => {
     );
     fireEvent.click(screen.getByTestId('sustainment-start-handoff'));
     expect(onStart).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Sustainment closure panel (folded in from former Handoff stage)
+// ---------------------------------------------------------------------------
+
+describe('SustainmentOverview — closure panel', () => {
+  it('shows 4 of 4 items complete when all done', () => {
+    render(
+      <SustainmentOverview
+        record={record}
+        onStartHandoff={() => {}}
+        onOpenProcess={() => {}}
+        onOpenAnalyze={() => {}}
+        closureInputs={allDone}
+      />
+    );
+    expect(screen.getByText(/4 of 4 items complete/i)).toBeInTheDocument();
+  });
+
+  it('shows 3 of 4 items complete when process-owner acknowledgment is pending', () => {
+    render(
+      <SustainmentOverview
+        record={record}
+        onStartHandoff={() => {}}
+        onOpenProcess={() => {}}
+        onOpenAnalyze={() => {}}
+        closureInputs={pendingAck}
+      />
+    );
+    expect(screen.getByText(/3 of 4 items complete/i)).toBeInTheDocument();
+  });
+
+  it('calls onNudgeOwner when Nudge clicked on pending acknowledgment', () => {
+    const onNudge = vi.fn();
+    render(
+      <SustainmentOverview
+        record={record}
+        onStartHandoff={() => {}}
+        onOpenProcess={() => {}}
+        onOpenAnalyze={() => {}}
+        closureInputs={pendingAck}
+        onNudgeOwner={onNudge}
+      />
+    );
+    fireEvent.click(screen.getByTestId('sustainment-closure-nudge-owner'));
+    expect(onNudge).toHaveBeenCalled();
+  });
+
+  it('does not render closure panel when closureInputs is absent', () => {
+    render(
+      <SustainmentOverview
+        record={record}
+        onStartHandoff={() => {}}
+        onOpenProcess={() => {}}
+        onOpenAnalyze={() => {}}
+      />
+    );
+    expect(screen.queryByText(/Sustainment closure/i)).not.toBeInTheDocument();
   });
 });

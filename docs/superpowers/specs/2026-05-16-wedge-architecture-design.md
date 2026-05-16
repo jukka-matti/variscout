@@ -5,6 +5,7 @@ category: design-spec
 status: draft
 last-reviewed: 2026-05-16
 related:
+  - docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md
   - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
   - docs/superpowers/specs/2026-05-14-projects-tab-design.md
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md

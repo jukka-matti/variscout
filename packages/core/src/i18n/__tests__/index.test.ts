@@ -356,3 +356,21 @@ describe('detectLocale', () => {
     expect(detectLocale('FR-ca')).toBe('fr');
   });
 });
+
+describe('workspace.project key (amendment — replaces workspace.projects)', () => {
+  it('is defined in every locale', () => {
+    for (const locale of LOCALES) {
+      const catalog = getMessages(locale);
+      expect(catalog, `${locale} missing workspace.project`).toHaveProperty('workspace.project');
+    }
+  });
+
+  it('workspace.projects is no longer present in any locale', () => {
+    for (const locale of LOCALES) {
+      const catalog = getMessages(locale);
+      expect(catalog, `${locale} still has workspace.projects`).not.toHaveProperty(
+        'workspace.projects'
+      );
+    }
+  });
+});

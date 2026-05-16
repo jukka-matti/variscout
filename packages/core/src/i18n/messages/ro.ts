@@ -552,7 +552,7 @@ export const ro: MessageCatalog = {
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
   'workspace.improve': 'Improve',
-  'workspace.projects': 'Projects',
+  'workspace.project': 'Proiect',
   'workspace.report': 'Report',
 
   // Synthesis card

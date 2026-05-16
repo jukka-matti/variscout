@@ -840,3 +840,6 @@ export type {
 
 // IP Detail workspace (Plan 2 — composition; Plans 3-5 fill content)
 export * from './components/IPDetail';
+
+// Improve tab orchestration (wedge V1 top-level Improve tab)
+export * from './components/Improve';
