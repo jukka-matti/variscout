@@ -2,6 +2,7 @@ import React from 'react';
 import type { ProcessHub, SustainmentRecord, ControlHandoff } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { HubAction } from '@variscout/core/actions';
+import type { ProjectMember } from '@variscout/core/projectMembership';
 import { useImprovementProjectStore } from '@variscout/stores';
 import { IPDetailPage } from '@variscout/ui/ipDetail';
 import type {
@@ -31,6 +32,8 @@ interface ProjectsTabViewProps {
   ) => void;
   onNudgeSignoff?: (projectId: ImprovementProject['id']) => void;
   onStartNewProject?: () => void;
+  /** Current user's identifier (EasyAuth email/UPN). Threads into IPDetailPage for wedge ACL guards. */
+  currentUserId?: string;
 }
 
 function liveProjects(hub: ProcessHub | undefined): ImprovementProject[] {
@@ -90,6 +93,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onProjectPatch,
   onNudgeSignoff,
   onStartNewProject,
+  currentUserId,
 }) => {
   const [now] = React.useState(() => Date.now());
   const storedProjects = useImprovementProjectStore(s =>
@@ -153,6 +157,10 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         ideas={approachInputs?.ideas}
         actions={approachInputs?.actions}
         now={now}
+        currentUserId={currentUserId}
+        onMembersChange={(members: ProjectMember[]) =>
+          applyProjectPatch(selected, { metadata: { ...selected.metadata, members } })
+        }
         onTeamChange={team =>
           applyProjectPatch(selected, { metadata: { ...selected.metadata, team } })
         }

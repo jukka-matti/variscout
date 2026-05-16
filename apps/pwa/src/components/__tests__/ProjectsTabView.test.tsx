@@ -118,4 +118,104 @@ describe('ProjectsTabView', () => {
       expect.objectContaining({ requestedAt: expect.any(Number) })
     );
   });
+
+  it('threads PWA_USER_ID into IPDetailPage — charter team section is visible', () => {
+    configureTier('enterprise');
+    // Use 'draft' status so charter is the default active stage (deriveStageState returns
+    // charter: 'current' for drafts, approach: 'current' for active which shifts the default).
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProjects: [
+        {
+          id: 'ip-1',
+          hubId: 'hub-1',
+          createdAt: 0,
+          updatedAt: 0,
+          deletedAt: null,
+          status: 'draft',
+          metadata: { title: 'PWA project' },
+          goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 } },
+          sections: {
+            background: {},
+            investigationLineage: {},
+            approach: {},
+            outcomeReference: {},
+          },
+        },
+      ],
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={() => {}}
+      />
+    );
+
+    // charter-team-section appears when onInvite is wired (requires onMembersChange to be passed)
+    expect(screen.getByTestId('charter-team-section')).toBeInTheDocument();
+  });
+
+  it('onMembersChange flows through applyProjectPatch for the PWA app', () => {
+    configureTier('enterprise');
+    const onProjectPatch = vi.fn();
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProjects: [
+        {
+          id: 'ip-1',
+          hubId: 'hub-1',
+          createdAt: 0,
+          updatedAt: 0,
+          deletedAt: null,
+          status: 'draft',
+          metadata: { title: 'PWA members test' },
+          goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 } },
+          sections: {
+            background: {},
+            investigationLineage: {},
+            approach: {},
+            outcomeReference: {},
+          },
+        },
+      ],
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+      />
+    );
+
+    // Open invite modal and submit a new member
+    fireEvent.click(screen.getByRole('button', { name: /invite team/i }));
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'lead@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'lead' } });
+    fireEvent.click(screen.getByRole('button', { name: /^invite$/i }));
+
+    expect(onProjectPatch).toHaveBeenCalledWith(
+      'ip-1',
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          members: expect.arrayContaining([
+            expect.objectContaining({ userId: 'lead@example.com', role: 'lead' }),
+          ]),
+        }),
+      })
+    );
+    expect(
+      useImprovementProjectStore.getState().getProjectsForHub('hub-1')[0]?.metadata.members
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ userId: 'lead@example.com', role: 'lead' }),
+      ])
+    );
+  });
 });

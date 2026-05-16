@@ -1917,6 +1917,7 @@ export const Editor: React.FC<EditorProps> = ({
                   );
                 }}
                 onStartNewProject={() => usePanelsStore.getState().showCharter()}
+                currentUserId={currentUser?.email ?? undefined}
               />
             ) : activeView === 'improvement' ? (
               <div className="flex min-h-0 flex-1 flex-col">
