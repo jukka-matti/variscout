@@ -99,7 +99,7 @@ const PHASE_TABS: { id: PhaseId; label?: string; labelKey?: keyof MessageCatalog
   { id: 'analysis', labelKey: 'workspace.analysis' },
   { id: 'investigation', labelKey: 'workspace.investigation' },
   { id: 'improvement', labelKey: 'workspace.improve' },
-  { id: 'projects', labelKey: 'workspace.projects' },
+  { id: 'projects', labelKey: 'workspace.project' },
   { id: 'report', labelKey: 'workspace.report' },
 ];
 

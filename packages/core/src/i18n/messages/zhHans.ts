@@ -555,7 +555,7 @@ export const zhHans: MessageCatalog = {
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
   'workspace.improve': 'Improve',
-  'workspace.projects': 'Projects',
+  'workspace.project': '项目',
   'workspace.report': 'Report',
 
   // Synthesis card

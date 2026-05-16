@@ -555,7 +555,7 @@ export const zhHant: MessageCatalog = {
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
   'workspace.improve': 'Improve',
-  'workspace.projects': 'Projects',
+  'workspace.project': '項目',
   'workspace.report': 'Report',
 
   // Synthesis card

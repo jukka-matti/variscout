@@ -602,7 +602,7 @@ export const sk: MessageCatalog = {
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
   'workspace.improve': 'Improve',
-  'workspace.projects': 'Projects',
+  'workspace.project': 'Projekt',
   'workspace.report': 'Report',
 
   // Synthesis card

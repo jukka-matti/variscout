@@ -20,7 +20,7 @@ vi.mock('@variscout/hooks', async () => {
           'workspace.analysis': 'Analysis',
           'workspace.investigation': 'Investigation',
           'workspace.improve': 'Improve',
-          'workspace.projects': 'Projects',
+          'workspace.project': 'Project',
           'workspace.report': 'Report',
         };
         return msgs[key] ?? key;
