@@ -21,6 +21,19 @@ pnpm docs:check || { echo "pre-push: docs:check failed — run 'pnpm docs:check'
 echo "pre-push: running check-dead-links.sh…"
 bash "$ROOT/scripts/check-dead-links.sh" || { echo "pre-push: check-dead-links.sh failed — fix broken links and retry." >&2; exit 1; }
 
+# --- Auto-generated architecture doc staleness check ---
+# Regenerate, then fail if the committed version differs from fresh output.
+# Developers: run `pnpm docs:gen-arch && git add docs/05-technical/architecture-generated.md` before pushing.
+echo "pre-push: checking docs:gen-arch staleness…"
+pnpm docs:gen-arch > /dev/null 2>&1 && \
+  git diff --exit-code docs/05-technical/architecture-generated.md > /dev/null 2>&1 || {
+    echo "pre-push: docs/05-technical/architecture-generated.md is stale." >&2
+    echo "  Run: pnpm docs:gen-arch && git add docs/05-technical/architecture-generated.md && git commit --amend --no-edit" >&2
+    echo "  Or:  pnpm docs:gen-arch && git add docs/05-technical/architecture-generated.md && git commit -m 'chore: regenerate arch doc'" >&2
+    exit 1
+  }
+echo "pre-push: architecture-generated.md is up to date."
+
 # --- Non-blocking direct-to-main warning ---
 while read -r local_ref local_sha remote_ref remote_sha; do
   [ -z "$remote_ref" ] && continue
