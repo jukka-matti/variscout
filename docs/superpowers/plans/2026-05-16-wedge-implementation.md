@@ -184,6 +184,8 @@ Invoke `superpowers:writing-plans` on this PR's scope.
 
 ## PR-WV1-3 — Investigation Wall + Measurement Plans
 
+**Detailed design:** [`docs/superpowers/specs/2026-05-16-pr-wv1-3-measurement-plans-design.md`](../specs/2026-05-16-pr-wv1-3-measurement-plans-design.md) — also covers Invitation lifecycle + ActionItem CRUD as PR-WV1-3a (cleanup) sequenced before PR-WV1-3b (Wall meat) off one branch.
+
 **Scope:** Extend the Investigation Wall with `MeasurementPlan` sub-entity per Hypothesis. Add a Plans panel to each Hypothesis card. Wire the Plan → Collection (out-of-product) → Finding → auto-suggest-link cycle. Excludes formal MSA / Gage R&R / sample-size calculator per wedge spec §3.6.5.
 
 ### File structure
