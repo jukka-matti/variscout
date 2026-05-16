@@ -661,6 +661,7 @@ export {
 // Improvement Project workspace
 export * from './components/ActiveIP';
 export * from './components/ImprovementProject';
+export * from './components/projects';
 export * from './components/Sustainment';
 export * from './components/Inbox';
 
