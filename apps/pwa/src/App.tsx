@@ -84,7 +84,6 @@ import { useFindingsStore, groupFindingsByChart } from './features/findings/find
 import { useProjectionStore } from './features/projection/projectionStore';
 import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
 import { useCanvasViewportLifecycle } from './features/investigation/useCanvasViewportLifecycle';
-import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
 import { useStatsWorker } from './workers/useStatsWorker';
 import { useActiveIPContext } from './hooks/useActiveIPContext';
 
@@ -359,14 +358,6 @@ function AppMain() {
     },
     processContext: undefined,
     stats,
-  });
-
-  const improvementOrch = useImprovementOrchestration({
-    questionsState,
-    findingsState: {
-      findings: findingsState.findings,
-      addAction: findingsState.addAction,
-    },
   });
 
   // Stage 5 modal — opens after Mode B Stage 3 confirm and via on-demand button.
@@ -863,15 +854,6 @@ function AppMain() {
         : questions,
     [questions, scopedQuestionIds]
   );
-  const scopedImprovementQuestions = useMemo(
-    () =>
-      scopedQuestionIds
-        ? improvementOrch.improvementQuestions.filter(question =>
-            scopedQuestionIds.has(question.id)
-          )
-        : improvementOrch.improvementQuestions,
-    [improvementOrch.improvementQuestions, scopedQuestionIds]
-  );
   const scopedQuestionsState = useMemo(
     () => (scopedQuestionIds ? { ...questionsState, questions: scopedQuestions } : questionsState),
     [questionsState, scopedQuestionIds, scopedQuestions]
@@ -1331,18 +1313,8 @@ function AppMain() {
               <ImprovementView
                 activeIPScope={activeIPScope}
                 activeIP={activeIPContext.activeIP ?? null}
+                actions={[]}
                 onGoHome={panels.showHome}
-                questionsState={scopedQuestionsState}
-                onBack={panels.showAnalysis}
-                handleConvertIdeasToActions={improvementOrch.handleConvertIdeasToActions}
-                improvementQuestions={scopedImprovementQuestions}
-                improvementLinkedFindings={
-                  activeIPContext.isIPScoped
-                    ? scopedFindings
-                    : improvementOrch.improvementLinkedFindings
-                }
-                selectedIdeaIds={improvementOrch.selectedIdeaIds}
-                convertedIdeaIds={improvementOrch.convertedIdeaIds}
               />
             ) : panels.activeView === 'report' ? (
               <ReportView

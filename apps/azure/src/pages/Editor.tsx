@@ -25,18 +25,11 @@ import { AppHeader } from '../components/AppHeader';
 import PasteScreen from '../components/data/PasteScreen';
 import ManualEntry from '../components/data/ManualEntry';
 import {
-  ImprovementWorkspaceBase,
-  ImprovementContextPanel,
-  WhatIfExplorerPage,
-  PrioritizationMatrix,
-  TrackView,
   VerificationPrompt,
   BrainstormModal,
   QuestionLinkPrompt,
   SurveyNotebookBase,
-  DEFAULT_PRESETS,
   type ColumnMappingConfirmPayload,
-  type MatrixDimension,
   StageFiveModal,
   MatchSummaryCard,
   ActiveIPLaunchpadCard,
@@ -1148,26 +1141,11 @@ export const Editor: React.FC<EditorProps> = ({
   // Improvement workspace
   const {
     handleConvertIdeasToActions,
-    handleOpenImprovementPopout,
-    handleSynthesisChange,
-    causeColors,
-    causeLabels,
-    causeSummaries,
-    matrixIdeas,
     aggregatedActions,
-    selectedIdeasForRecap,
-    projectionReferenceContext,
-    verificationData: improvVerificationData,
     hasVerification: improvHasVerification,
-    currentOutcome: improvCurrentOutcome,
-    outcomeNotes: improvOutcomeNotes,
-    handleOutcomeChange: improvHandleOutcomeChange,
-    handleOutcomeNotesChange: improvHandleOutcomeNotesChange,
     improvementQuestions,
-    improvementLinkedFindings,
     selectedIdeaIds,
     projectedCpkMap: improvementProjectedCpkMap,
-    convertedIdeaIds,
   } = useImprovementOrchestration({
     questionsState,
     findingsState,
@@ -1179,8 +1157,6 @@ export const Editor: React.FC<EditorProps> = ({
     specs,
     stagedStats,
   });
-  const activeImprovementView = usePanelsStore(s => s.activeImprovementView);
-  const highlightedIdeaId = usePanelsStore(s => s.highlightedIdeaId);
   const scopedFindings = useMemo(
     () =>
       activeIPContext.isIPScoped
@@ -1212,13 +1188,6 @@ export const Editor: React.FC<EditorProps> = ({
         ? questionsState.questions.filter(question => scopedQuestionIds.has(question.id))
         : questionsState.questions,
     [questionsState.questions, scopedQuestionIds]
-  );
-  const scopedImprovementQuestions = useMemo(
-    () =>
-      scopedQuestionIds
-        ? improvementQuestions.filter(question => scopedQuestionIds.has(question.id))
-        : improvementQuestions,
-    [improvementQuestions, scopedQuestionIds]
   );
   const scopedQuestionsState = useMemo(
     () => (scopedQuestionIds ? { ...questionsState, questions: scopedQuestions } : questionsState),
@@ -1255,12 +1224,6 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Verification prompt: show when new data is uploaded while findings are improving
   const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
-
-  // Matrix axis state (local — not persisted)
-  const [matrixXAxis, setMatrixXAxis] = useState<MatrixDimension>('benefit');
-  const [matrixYAxis, setMatrixYAxis] = useState<MatrixDimension>('timeframe');
-  const [matrixColorBy, setMatrixColorBy] = useState<MatrixDimension>('cost');
-  const [matrixPreset, setMatrixPreset] = useState<string>('benefit-time');
 
   // Brainstorm modal state
   const [brainstormQuestionId, setBrainstormQuestionId] = useState<string | null>(null);
@@ -1916,197 +1879,25 @@ export const Editor: React.FC<EditorProps> = ({
                 currentUserId={currentUser?.email ?? undefined}
               />
             ) : activeView === 'improvement' ? (
-              activeIPContext.activeIP === null ? (
-                <ImproveTabRoot
-                  activeIP={null}
-                  actions={[]}
-                  currentUserId={currentUser?.email ?? undefined}
-                  onGoHome={() => usePanelsStore.getState().showDashboard()}
-                  onActionAdd={action => {
-                    // ACTION_ITEM_ADD persistence wired in PR-WV1-3
-                    console.warn(
-                      '[wedge V1] onActionAdd not yet persisted (PR-WV1-3 work):',
-                      action
-                    );
-                  }}
-                  onActionUpdate={(id, patch) => {
-                    // ACTION_ITEM_UPDATE not yet wired (PR-WV1-3 work)
-                    console.warn(
-                      '[wedge V1] onActionUpdate not yet wired (PR-WV1-3 work):',
-                      id,
-                      patch
-                    );
-                  }}
-                  onActionRemove={id => {
-                    // ACTION_ITEM_REMOVE not yet wired (PR-WV1-3 work)
-                    console.warn('[wedge V1] onActionRemove not yet wired (PR-WV1-3 work):', id);
-                  }}
-                />
-              ) : (
-                <div className="flex min-h-0 flex-1 flex-col">
-                  {activeIPScope ? (
-                    <ActiveIPScopeRibbon
-                      title={activeIPScope.title}
-                      labels={activeIPScope.labels}
-                      surface="Improve"
-                    />
-                  ) : null}
-                  <ImprovementWorkspaceBase
-                    synthesis={processContext?.synthesis}
-                    onSynthesisChange={handleSynthesisChange}
-                    questions={scopedImprovementQuestions}
-                    linkedFindings={
-                      activeIPContext.isIPScoped ? scopedFindings : improvementLinkedFindings
-                    }
-                    onToggleSelect={(hId, iId, sel) => questionsState.selectIdea(hId, iId, sel)}
-                    onUpdateTimeframe={(hId, iId, timeframe) =>
-                      questionsState.updateIdea(hId, iId, { timeframe })
-                    }
-                    onUpdateDirection={(hId, iId, dir) =>
-                      questionsState.updateIdea(hId, iId, { direction: dir })
-                    }
-                    onUpdateCost={(hId, iId, cost) => questionsState.updateIdea(hId, iId, { cost })}
-                    onOpenRisk={() => {}}
-                    onRemoveIdea={questionsState.removeIdea}
-                    onOpenWhatIf={(questionId, ideaId) =>
-                      handleProjectIdea(questionId, ideaId, true)
-                    }
-                    onAddIdea={(hId, text) => questionsState.addIdea(hId, text)}
-                    onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
-                    onConvertToActions={() => {
-                      handleConvertIdeasToActions();
-                      usePanelsStore.getState().setActiveImprovementView('track');
-                    }}
-                    onBack={() => usePanelsStore.getState().showAnalysis()}
-                    onPopout={handleOpenImprovementPopout}
-                    selectedIdeaIds={selectedIdeaIds}
-                    convertedIdeaIds={convertedIdeaIds}
-                    targetCpk={processContext?.targetValue}
-                    activeView={activeImprovementView}
-                    showLeftPanel={true}
-                    renderLeftPanel={() => {
-                      if (projectionTarget) {
-                        return (
-                          <WhatIfExplorerPage
-                            filteredData={filteredData}
-                            rawData={rawData}
-                            outcome={outcome}
-                            specs={specs}
-                            filterCount={0}
-                            onBack={() => clearProjectionTarget()}
-                            cpkTarget={cpkTarget}
-                            activeFactor={viewState?.boxplotFactor}
-                            mode={analysisMode ?? 'standard'}
-                            projectionContext={{
-                              ideaText: projectionTarget.ideaText,
-                              questionText: projectionTarget.questionText,
-                            }}
-                            onSaveProjection={handleSaveIdeaProjection}
-                            referenceContext={projectionReferenceContext}
-                          />
-                        );
-                      }
-                      return (
-                        <ImprovementContextPanel
-                          problemStatement={processContext?.problemStatement}
-                          currentUnderstanding={processContext?.currentUnderstanding}
-                          targetCpk={processContext?.targetValue}
-                          currentCpk={stats?.cpk}
-                          causes={causeSummaries}
-                          synthesis={processContext?.synthesis}
-                        />
-                      );
-                    }}
-                    renderMatrix={() => (
-                      <div className="p-4">
-                        <PrioritizationMatrix
-                          ideas={matrixIdeas}
-                          xAxis={matrixXAxis}
-                          yAxis={matrixYAxis}
-                          colorBy={matrixColorBy}
-                          causeColors={causeColors}
-                          causeLabels={causeLabels}
-                          presets={DEFAULT_PRESETS}
-                          activePreset={matrixPreset}
-                          onPresetChange={setMatrixPreset}
-                          onAxisChange={(axis, value) => {
-                            if (axis === 'x') setMatrixXAxis(value);
-                            else if (axis === 'y') setMatrixYAxis(value);
-                            else setMatrixColorBy(value);
-                          }}
-                          onToggleSelect={ideaId => {
-                            const question = improvementQuestions.find(q =>
-                              q.ideas?.some((i: { id: string }) => i.id === ideaId)
-                            );
-                            if (question) {
-                              questionsState.selectIdea(
-                                question.id,
-                                ideaId,
-                                !selectedIdeaIds.has(ideaId)
-                              );
-                            }
-                          }}
-                          highlightedIdeaId={highlightedIdeaId ?? undefined}
-                          onIdeaClick={ideaId => {
-                            const card = document.querySelector(
-                              `[data-testid="idea-row-${ideaId}"]`
-                            );
-                            card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            usePanelsStore.getState().setHighlightedIdeaId(ideaId);
-                            setTimeout(
-                              () => usePanelsStore.getState().setHighlightedIdeaId(null),
-                              2000
-                            );
-                          }}
-                          onGhostDotClick={ideaId => {
-                            const question = improvementQuestions.find(q =>
-                              q.ideas?.some((i: { id: string }) => i.id === ideaId)
-                            );
-                            if (question) {
-                              handleProjectIdea(question.id, ideaId, true);
-                            }
-                          }}
-                        />
-                      </div>
-                    )}
-                    onIdeaHover={ideaId => usePanelsStore.getState().setHighlightedIdeaId(ideaId)}
-                    highlightedIdeaId={highlightedIdeaId}
-                    onOpenBrainstorm={questionId => {
-                      setBrainstormQuestionId(questionId);
-                      setBrainstormIdeas([]);
-                    }}
-                    renderTrackView={() => (
-                      <TrackView
-                        selectedIdeas={selectedIdeasForRecap}
-                        onEditSelection={() =>
-                          usePanelsStore.getState().setActiveImprovementView('plan')
-                        }
-                        onBackToPlan={() =>
-                          usePanelsStore.getState().setActiveImprovementView('plan')
-                        }
-                        actions={aggregatedActions}
-                        onToggleComplete={(actionId, findingId) => {
-                          findingsState.toggleActionComplete(findingId, actionId);
-                        }}
-                        verification={improvVerificationData}
-                        hasVerification={improvHasVerification}
-                        selectedOutcome={
-                          improvCurrentOutcome
-                            ? improvCurrentOutcome.effective === 'yes'
-                              ? 'effective'
-                              : improvCurrentOutcome.effective === 'partial'
-                                ? 'partial'
-                                : 'not-effective'
-                            : undefined
-                        }
-                        outcomeNotes={improvOutcomeNotes}
-                        onOutcomeChange={improvHandleOutcomeChange}
-                        onOutcomeNotesChange={improvHandleOutcomeNotesChange}
-                      />
-                    )}
-                  />
-                </div>
-              )
+              <ImproveTabRoot
+                activeIP={activeIPContext.activeIP ?? null}
+                actions={[]}
+                currentUserId={currentUser?.email}
+                onGoHome={() => usePanelsStore.getState().showDashboard()}
+                onActionAdd={action =>
+                  console.warn('[wedge V1] ACTION_ITEM_ADD not yet wired (PR-WV1-3 work):', action)
+                }
+                onActionUpdate={(id, patch) =>
+                  console.warn(
+                    '[wedge V1] ACTION_ITEM_UPDATE not yet wired (PR-WV1-3 work):',
+                    id,
+                    patch
+                  )
+                }
+                onActionRemove={id =>
+                  console.warn('[wedge V1] ACTION_ITEM_REMOVE not yet wired (PR-WV1-3 work):', id)
+                }
+              />
             ) : activeView === 'report' ? (
               <Suspense fallback={null}>
                 <ReportView
