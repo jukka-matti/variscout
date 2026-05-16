@@ -43,7 +43,6 @@ describe('CharterOverview', () => {
     expect(screen.getByTestId('kpi-investigation')).toHaveTextContent(/2 hypotheses · 3 findings/);
   });
 
-  // Task 8 — Team section (wedge members[])
   describe('Team section', () => {
     const twoMembers: ProjectMember[] = [
       {

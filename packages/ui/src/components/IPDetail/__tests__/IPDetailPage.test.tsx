@@ -172,7 +172,6 @@ describe('IPDetailPage', () => {
     expect(screen.queryByRole('dialog', { name: 'Team workspace' })).not.toBeInTheDocument();
   });
 
-  // Task 8 — wedge members[] wiring via Charter team section
   describe('Charter team section (wedge members[])', () => {
     const charterIP: ImprovementProject = { ...ip, status: 'draft' };
 
