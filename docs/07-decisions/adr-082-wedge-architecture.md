@@ -29,11 +29,13 @@ Split VariScout into two products on a roadmap. Ship the wedge first.
 ### Product 1 — VariScout (V1, this ADR)
 
 - **Audience**: Improvement specialists running projects with their team.
-- **Foundational unit**: Project (self-contained, invite-scoped).
+- **Two analyst modes**: quick analysis (no project) + project-anchored (formal lifecycle). Both first-class. Promotion path: any quick analysis can become a Project; Charter inherits prior Hub state.
+- **Foundational unit (formal)**: Project (self-contained, invite-scoped). **Hub** stays as the _internal_ data container backing Process tab + paste data; not surfaced as a user-visible noun.
 - **Collaboration**: Project Lead invites org users _per project_ (not tenant-wide).
-- **Persona model**: One — Specialist. Member roles live _within projects_ (Lead / Member / Reviewer), not as global personas.
+- **Persona model**: One — Specialist. Project-membership roles: **Lead** (full edit + manages membership), **Member** (full edit), **Sponsor** (Report-only access; signoff out-of-band at V1).
+- **Investigation model**: Investigation Wall is the canonical Hypothesis-driven surface. Extended with **Measurement Plan** sub-entity per Hypothesis — supports hypothesis-first investigation (plan → collect → finding → confirm/refute) without a separate Measure stage. Both data-first and hypothesis-first starting points converge on the Wall.
 - **Pricing**: **€99/month**, single SKU, Azure tenant-wide, unlimited org users, unlimited projects.
-- **Distribution**: Azure Marketplace Managed Application + in-app project membership ACLs.
+- **Distribution**: Azure Marketplace Managed Application + in-app project membership ACLs (Hub-level data tenant-wide; Project-level data membership-gated).
 - **Privacy boundary**: Project-scoped membership within Azure AD tenant. Cross-AD-tenant invitations explicitly out of scope.
 
 ### Product 2 — VariScout Process (future, separate roadmap item)
@@ -47,17 +49,18 @@ Split VariScout into two products on a roadmap. Ship the wedge first.
 
 ### What V1 builds
 
-| Surface                                                                  | Status                                                                                            |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| 6-tab nav `Home · Projects · Process · Analyze · Investigation · Report` | Refactored from current 7-tab                                                                     |
-| Projects detail: 4 stages `Charter → Approach → Improve → Sustainment`   | Improve becomes a stage (was a top-level tab); Handoff folds into Sustainment                     |
-| Improve UI = simple action tracker by default                            | PDCA workbench retained behind an "Advanced" toggle (progressive disclosure, not a parallel mode) |
-| Process tab + canvas + Frame step                                        | Unchanged (canvas is foundational substrate per ADR-081)                                          |
-| Canvas response paths from step drill                                    | Reduced from 5 to 3 (Investigate, Quick Action, Charter); Handoff path deleted                    |
-| Project membership ACLs                                                  | New data model: `ProjectMember`, `Invitation`, role enum                                          |
-| Tier-gating (`isPaidTier()` / `hasTeamFeatures()`)                       | Mostly retires (single SKU); replaced where useful by project-membership checks                   |
-| Persona routing (`personaRole`)                                          | Deleted from V1 codebase (migrates to VariScout Process)                                          |
-| PWA tier                                                                 | Stays free as try-before-buy funnel                                                               |
+| Surface                                                                  | Status                                                                                                                           |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| 6-tab nav `Home · Projects · Process · Analyze · Investigation · Report` | Refactored from current 7-tab                                                                                                    |
+| Projects detail: 4 stages `Charter → Approach → Improve → Sustainment`   | Improve becomes a stage (was a top-level tab); Handoff folds into Sustainment                                                    |
+| Improve UI = simple action tracker by default                            | PDCA workbench retained behind an "Advanced" toggle (progressive disclosure, not a parallel mode)                                |
+| Process tab + canvas + Frame step                                        | Unchanged (canvas is foundational substrate per ADR-081)                                                                         |
+| Canvas response paths from step drill                                    | Reduced from 5 to 3 (Investigate, Quick Action, Charter); Handoff path deleted                                                   |
+| Project membership ACLs                                                  | New data model: `ProjectMember`, `Invitation`, role enum (Lead/Member/Sponsor)                                                   |
+| Investigation Wall + Measurement Plans                                   | Wall extended with `MeasurementPlan` sub-entity per Hypothesis. Supports hypothesis-first flow without a separate Measure stage. |
+| Tier-gating (`isPaidTier()` / `hasTeamFeatures()`)                       | Mostly retires (single SKU); replaced where useful by project-membership checks                                                  |
+| Persona routing (`personaRole`)                                          | Deleted from V1 codebase (migrates to VariScout Process)                                                                         |
+| PWA tier                                                                 | Stays free as try-before-buy funnel                                                                                              |
 
 ### Pricing rationale
 
