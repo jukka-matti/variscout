@@ -120,8 +120,13 @@ export const usePanelsStore = create<PanelsStore>(set => ({
       isFindingsOpen: false,
       sustainmentTargetId: targetId ?? null,
     }),
+  // Alias for showSustainment — wedge V1 folds Handoff into Sustainment-closure (ADR-082). Inbox prompts + context links still emit surface === 'handoff'; routing through this alias keeps them reachable.
   showHandoff: targetId =>
-    set({ activeView: 'handoff', isFindingsOpen: false, handoffTargetId: targetId ?? null }),
+    set({
+      activeView: 'sustainment',
+      isFindingsOpen: false,
+      sustainmentTargetId: targetId ?? null,
+    }),
 
   // Simple toggles
   setSettingsOpen: open => set({ isSettingsOpen: open }),

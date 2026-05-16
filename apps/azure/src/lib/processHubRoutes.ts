@@ -11,8 +11,7 @@ export function actionToHref(action: ResponsePathAction): string | null {
     case 'open-investigation':
       return `/editor/${action.investigationId}?intent=${action.intent}`;
     case 'open-sustainment': {
-      const base = `/editor/${action.investigationId}/sustainment`;
-      return action.surface === 'handoff' ? `${base}?surface=handoff` : base;
+      return `/editor/${action.investigationId}/sustainment`;
     }
     default:
       return assertNever(action);

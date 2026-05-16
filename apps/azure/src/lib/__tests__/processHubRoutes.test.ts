@@ -40,22 +40,12 @@ describe('actionToHref', () => {
     expect(actionToHref(action)).toBe('/editor/inv-q?intent=quick');
   });
 
-  it('builds /editor/:id/sustainment for open-sustainment/review', () => {
+  it('builds /editor/:id/sustainment for open-sustainment', () => {
     const action: ResponsePathAction = {
       kind: 'open-sustainment',
       investigationId: 'inv-s',
-      surface: 'review',
     };
     expect(actionToHref(action)).toBe('/editor/inv-s/sustainment');
-  });
-
-  it('builds /editor/:id/sustainment?surface=handoff for open-sustainment/handoff', () => {
-    const action: ResponsePathAction = {
-      kind: 'open-sustainment',
-      investigationId: 'inv-h',
-      surface: 'handoff',
-    };
-    expect(actionToHref(action)).toBe('/editor/inv-h/sustainment?surface=handoff');
   });
 
   it('snapshot — URL shapes are stable', () => {
@@ -71,15 +61,9 @@ describe('actionToHref', () => {
         intent: 'chartered',
       }),
       quick: actionToHref({ kind: 'open-investigation', investigationId: 'X', intent: 'quick' }),
-      sustainmentReview: actionToHref({
+      sustainment: actionToHref({
         kind: 'open-sustainment',
         investigationId: 'X',
-        surface: 'review',
-      }),
-      sustainmentHandoff: actionToHref({
-        kind: 'open-sustainment',
-        investigationId: 'X',
-        surface: 'handoff',
       }),
       unsupportedPlanned: actionToHref({ kind: 'unsupported', reason: 'planned' }),
       unsupportedInfo: actionToHref({ kind: 'unsupported', reason: 'informational' }),
