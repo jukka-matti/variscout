@@ -29,6 +29,7 @@ export function MemberList({ members, currentUserId, onRemove }: MemberListProps
             <button
               type="button"
               onClick={() => onRemove(m.id)}
+              aria-label={`Remove ${m.displayName}`}
               className="px-3 py-1 rounded text-sm text-content-secondary hover:bg-surface-secondary transition-colors"
             >
               Remove

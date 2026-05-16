@@ -52,6 +52,12 @@ describe('MemberList', () => {
     expect(screen.queryByRole('button', { name: /remove/i })).not.toBeInTheDocument();
   });
 
+  it('gives each Remove button an aria-label that includes the displayName', () => {
+    render(<MemberList members={members} currentUserId="lead@org" onRemove={() => {}} />);
+    expect(screen.getByRole('button', { name: 'Remove Member Mira' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove Sponsor Chen' })).toBeInTheDocument();
+  });
+
   it('calls onRemove with memberId on click', () => {
     const onRemove = vi.fn();
     render(<MemberList members={members} currentUserId="lead@org" onRemove={onRemove} />);
