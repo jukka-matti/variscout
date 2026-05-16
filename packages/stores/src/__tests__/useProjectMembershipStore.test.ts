@@ -4,6 +4,11 @@ import {
   getProjectMembershipInitialState,
 } from '../useProjectMembershipStore';
 import type { Invitation } from '@variscout/core/projectMembership';
+import {
+  useImprovementProjectStore,
+  getImprovementProjectInitialState,
+} from '../improvementProjectStore';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 
 // Polyfill localStorage for the Node test environment — mirrors activeIPStore.test.ts.
 if (typeof globalThis.localStorage === 'undefined') {
@@ -77,5 +82,97 @@ describe('useProjectMembershipStore', () => {
     const { pendingInvites } = useProjectMembershipStore.getState();
     expect(pendingInvites).toHaveLength(1);
     expect(pendingInvites[0]!.id).toBe('inv-2');
+  });
+});
+
+describe('useProjectMembershipStore — acceptInvite composite', () => {
+  beforeEach(() => {
+    useProjectMembershipStore.setState(getProjectMembershipInitialState());
+    useImprovementProjectStore.setState(getImprovementProjectInitialState());
+    localStorage.clear();
+  });
+
+  it('synthesizes a ProjectMember on the target IP and removes the invite from pendingInvites', () => {
+    const targetProject: ImprovementProject = {
+      id: 'ip-1',
+      hubId: 'hub-1',
+      createdAt: 1,
+      updatedAt: 1,
+      deletedAt: null,
+      status: 'active',
+      metadata: { title: 'Test', members: [] },
+      goal: { outcomeGoal: { outcomeSpecId: 'o-1', baseline: 0.5, target: 1.33 } },
+      sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
+    };
+    useImprovementProjectStore.getState().setProjectsForHub('hub-1', [targetProject]);
+
+    const inv: Invitation = {
+      id: 'inv-1',
+      projectId: 'ip-1',
+      createdAt: 100,
+      deletedAt: null,
+      userId: 'mira@org',
+      displayName: 'Mira',
+      role: 'member',
+      invitedAt: 100,
+      status: 'pending',
+    };
+    useProjectMembershipStore.getState().addPendingInvite(inv);
+
+    useProjectMembershipStore.getState().acceptInvite('inv-1');
+
+    // Pending invite removed
+    expect(useProjectMembershipStore.getState().pendingInvites).toEqual([]);
+    // Member appended to the target project
+    const updated = useImprovementProjectStore.getState().getProjectsForHub('hub-1')[0];
+    expect(updated!.metadata.members).toHaveLength(1);
+    expect(updated!.metadata.members?.[0]!.userId).toBe('mira@org');
+    expect(updated!.metadata.members?.[0]!.role).toBe('member');
+  });
+
+  it('no-ops when the invitation does not exist in pendingInvites', () => {
+    expect(() => useProjectMembershipStore.getState().acceptInvite('missing-id')).not.toThrow();
+    expect(useImprovementProjectStore.getState().getProjectsForHub('hub-1')).toEqual([]);
+  });
+
+  it('still removes the invite when the target project is not in the store', () => {
+    const inv: Invitation = {
+      id: 'inv-1',
+      projectId: 'ip-missing',
+      createdAt: 100,
+      deletedAt: null,
+      userId: 'mira@org',
+      displayName: 'Mira',
+      role: 'member',
+      invitedAt: 100,
+      status: 'pending',
+    };
+    useProjectMembershipStore.getState().addPendingInvite(inv);
+    useProjectMembershipStore.getState().acceptInvite('inv-1');
+    expect(useProjectMembershipStore.getState().pendingInvites).toEqual([]);
+  });
+});
+
+describe('useProjectMembershipStore — revokeInvite', () => {
+  beforeEach(() => {
+    useProjectMembershipStore.setState(getProjectMembershipInitialState());
+    localStorage.clear();
+  });
+
+  it('removes the invite from pendingInvites', () => {
+    const inv: Invitation = {
+      id: 'inv-2',
+      projectId: 'ip-1',
+      createdAt: 100,
+      deletedAt: null,
+      userId: 'pat@org',
+      displayName: 'Pat',
+      role: 'lead',
+      invitedAt: 100,
+      status: 'pending',
+    };
+    useProjectMembershipStore.getState().addPendingInvite(inv);
+    useProjectMembershipStore.getState().revokeInvite('inv-2');
+    expect(useProjectMembershipStore.getState().pendingInvites).toEqual([]);
   });
 });
