@@ -45,6 +45,7 @@ VariScout is built on a philosophy of **EDA for process improvement** — not st
 - [Philosophy](philosophy.md) — The EDA-for-process-improvement philosophy that drives VariScout
 - [Methodology](methodology.md) — Watson's EDA methodology, Four Lenses, Investigation Diamond, Two Voices, Three Contributions
 - [Product Overview](product-overview.md) — High-level product positioning and capabilities
+- [CoScout AX Design](coscout-ax-design.md) — Canonical CoScout design: persona, tier-gating, knowledge architecture, safety, prompt engineering
 
 ---
 
