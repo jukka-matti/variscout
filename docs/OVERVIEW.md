@@ -20,16 +20,7 @@ Canonical V1 design lives in the [wedge architecture spec](superpowers/specs/202
 
 ## The journey model
 
-Every investigation — whether quick or project-anchored — follows one methodological spine:
-
-**FRAME → SCOUT → INVESTIGATE → IMPROVE**
-
-- **FRAME.** State the problem (data-first or hypothesis-first entry). CoScout helps articulate.
-- **SCOUT.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
-- **INVESTIGATE.** Pick suspected causes — data-derived, gemba-observed, or expert-supplied — and examine each with the Evidence Map, statistics, and targeted questions. The Investigation Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection (hypothesis-first path).
-- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the Improve stage (action tracker), then Sustainment ("did it work? + close").
-
-The spine never changes. Analysis modes vary the tools used inside each phase.
+Every investigation — quick or project-anchored — follows one methodological spine: **FRAME → SCOUT → INVESTIGATE → IMPROVE** (state the problem; characterize the data with the Four Lenses; examine suspected causes via the Investigation Wall; converge on actions and verify in Sustainment). The spine never changes; analysis modes vary the tools inside each phase — see [USER-JOURNEYS.md](USER-JOURNEYS.md) for the detailed walk-through per mode and [methodology.md](01-vision/methodology.md) for the pedagogical narrative.
 
 ## Project — the optional formal wrapper
 

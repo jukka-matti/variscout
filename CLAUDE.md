@@ -22,6 +22,7 @@ Shared agent map: `docs/llms.txt`
 ## Where to look
 
 - **Product context**: `docs/OVERVIEW.md`, `docs/USER-JOURNEYS.md`, `docs/DATA-FLOW.md`.
+- **Strategic context**: `docs/01-vision/business-bible.md` §Strategic Hypotheses (H1–H10) — the strategic framing that underpins product decisions; `docs/01-vision/positioning.md` (how we talk about VariScout); `docs/01-vision/methodology.md` (pedagogical narrative, paired companion to vision spec §2).
 - **Operating model**: `docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md` — three-level methodology, Process Measurement System, response paths.
 - **Roadmap**: `docs/superpowers/specs/2026-04-27-product-method-roadmap-design.md` — H0–H4 horizons.
 - **Package-specific**: nested `CLAUDE.md` in each `packages/*/` and `apps/*/`.

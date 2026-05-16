@@ -7,7 +7,7 @@ status: stable
 
 # VariScout Methodology
 
-> **Canonical product vision lives at [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../superpowers/specs/2026-05-03-variscout-vision-design.md).** This methodology document remains as a longer narrative companion; the vision spec's §2 (Methodology spine) is the authoritative summary. Where the two diverge, the vision spec wins. Reconciliation is a follow-up edit (see vision spec §6).
+> **Paired companion to [vision spec §2 (Methodology spine)](../superpowers/specs/2026-05-03-variscout-vision-design.md).** Two complementary canonical sources: the vision spec's §2 is the concise authoritative spine (source-of-truth for **product decisions**); this document is the longer pedagogical narrative (source-of-truth for **teaching and onboarding context**). When the two diverge, vision spec §2 wins for product decisions; this doc wins for teaching context. Reconciliation is continuous via the docs-strategy-2026 Steward loop, not a one-shot edit.
 >
 > **Canonical terminology lives at [`docs/glossary.md`](../glossary.md).** This methodology narrative cross-references the glossary rather than re-defining terms. The glossary is the home for canvas vocabulary (step / sub-step / column / input / output / outcome) and for the retired-terms list (tributary / CTS / FRAME / Analysis tab / etc) per Q10 of the 2026-05-03 vision §8 resolution.
 

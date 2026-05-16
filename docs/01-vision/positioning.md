@@ -18,7 +18,7 @@ related: [strategy, positioning, methodology, category, messaging]
 
 How we talk about VariScout — at every level, to every audience. A living document that captures the strategic inflection of March–April 2026 and guides all future messaging, product decisions, and documentation.
 
-Companion to the [Constitution](constitution.md) (what we believe) and the [Business Bible](business-bible.md) (how we grow).
+Companion to the [Constitution](constitution.md) (what we believe) and the [Business Bible](business-bible.md) (how we grow) — see [§Strategic Hypotheses H1–H10](business-bible.md#strategic-hypotheses) for the strategic framing that underpins this positioning.
 
 ---
 
