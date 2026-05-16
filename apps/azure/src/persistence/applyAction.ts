@@ -39,6 +39,7 @@
 import type { EvidenceSnapshot } from '@variscout/core';
 import { applySustainmentTick } from '@variscout/core';
 import type { HubAction } from '@variscout/core/actions';
+import { reduceMeasurementPlans } from '@variscout/core/measurementPlan';
 import { db } from '../db/schema';
 import { saveProcessHubToIndexedDB } from '../services/localDb';
 import { cascadeArchiveDescendants } from './cascadeArchive';
@@ -524,6 +525,38 @@ export async function applyAction(action: HubAction): Promise<void> {
     case 'HYPOTHESIS_ARCHIVE':
       // Azure has no 'hypothesis' table today; F3 normalizes — no-op.
       return;
+
+    // -------------------------------------------------------------------------
+    // MeasurementPlan actions — dedicated measurementPlans Dexie table.
+    // -------------------------------------------------------------------------
+
+    case 'MEASUREMENT_PLAN_ADD':
+      await db.measurementPlans.put(action.plan);
+      return;
+
+    case 'MEASUREMENT_PLAN_UPDATE': {
+      const existing = await db.measurementPlans.get(action.planId);
+      if (!existing) return;
+      const next = reduceMeasurementPlans([existing], action);
+      if (next[0]) await db.measurementPlans.put(next[0]);
+      return;
+    }
+
+    case 'MEASUREMENT_PLAN_REMOVE': {
+      const existing = await db.measurementPlans.get(action.planId);
+      if (!existing) return;
+      const next = reduceMeasurementPlans([existing], action);
+      if (next[0]) await db.measurementPlans.put(next[0]);
+      return;
+    }
+
+    case 'MEASUREMENT_PLAN_LINK_FINDING': {
+      const existing = await db.measurementPlans.get(action.planId);
+      if (!existing) return;
+      const next = reduceMeasurementPlans([existing], action);
+      if (next[0]) await db.measurementPlans.put(next[0]);
+      return;
+    }
 
     // -------------------------------------------------------------------------
     // Canvas actions — no-ops: canvas mutations flow through canvasStore →
