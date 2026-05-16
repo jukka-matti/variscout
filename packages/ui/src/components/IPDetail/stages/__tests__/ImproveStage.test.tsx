@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { fireEvent, render, screen, cleanup } from '@testing-library/react';
 import { ImproveStage } from '../ImproveStage';
 import type { ActionItem } from '@variscout/core/findings';
 import type { ProjectMember } from '@variscout/core/projectMembership';
@@ -145,5 +145,43 @@ describe('ImproveStage', () => {
       />
     );
     expect(screen.getByText(/no actions yet/i)).toBeInTheDocument();
+  });
+});
+
+describe('ImproveStage advanced toggle', () => {
+  beforeEach(() => {
+    cleanup();
+  });
+
+  it('renders simple tracker by default', () => {
+    render(
+      <ImproveStage
+        projectId="ip-1"
+        actions={[]}
+        members={leadMembers}
+        currentUserId="lead@org"
+        onActionAdd={() => {}}
+        onActionUpdate={() => {}}
+        onActionRemove={() => {}}
+      />
+    );
+    expect(screen.getByRole('heading', { name: /actions/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/context/i)).not.toBeInTheDocument();
+  });
+
+  it('switches to Advanced workbench when toggle clicked', () => {
+    render(
+      <ImproveStage
+        projectId="ip-1"
+        actions={[]}
+        members={leadMembers}
+        currentUserId="lead@org"
+        onActionAdd={() => {}}
+        onActionUpdate={() => {}}
+        onActionRemove={() => {}}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /advanced/i }));
+    expect(screen.getByLabelText(/context/i)).toBeInTheDocument();
   });
 });
