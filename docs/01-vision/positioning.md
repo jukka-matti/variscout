@@ -8,6 +8,14 @@ related: [strategy, positioning, methodology, category, messaging]
 
 # Positioning Bible
 
+> **⚠️ AMENDED 2026-05-16 by the [wedge pivot](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md).**
+>
+> Tagline unchanged: _"Structured investigation for process improvement"_ still holds for V1. What changed: VariScout splits into **two products on a roadmap** — V1 (a single-tier project tool for improvement specialists, €99/mo, project-membership ACLs) ships first; VariScout Process (enterprise process ownership, Hub portfolios, 4-persona model, auto pipelines) defers to a future, separate product. V1 marketing leads with "the project tool an improvement specialist invites their team to" — _not_ the breadth-first platform vision this doc captured in March–April 2026.
+>
+> This doc's strategic framing predates the wedge. Pieces still in force: the category positioning (investigation, not statistical verification), the workspace-tabs-as-published-opinion principle. Pieces under amendment: the 4-persona breadth narrative, the Hub-centric framing, the Standard/Team tier story. Full Phase C audit will resolve which sections survive verbatim vs. amend vs. archive.
+
+---
+
 How we talk about VariScout — at every level, to every audience. A living document that captures the strategic inflection of March–April 2026 and guides all future messaging, product decisions, and documentation.
 
 Companion to the [Constitution](constitution.md) (what we believe) and the [Business Bible](business-bible.md) (how we grow).

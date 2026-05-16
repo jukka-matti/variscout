@@ -1,8 +1,13 @@
 # VariScout
 
-> Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. PWA (public, free) + Azure Marketplace tiers (Standard €79/mo, Team €199/mo).
+> Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. PWA (free) + Azure Marketplace (€99/mo, single tier — wedge pivot 2026-05-16). VariScout Process (enterprise platform) named-future.
 
 Entry points for AI agents working in this repo. Humans should start at `docs/index.md`.
+
+## Strategic direction (read first)
+
+- [superpowers/specs/2026-05-16-wedge-architecture-design.md](superpowers/specs/2026-05-16-wedge-architecture-design.md): **canonical V1 design** — single-product VariScout for improvement specialists; 6-tab workflow nav (`Home · Projects · Process · Analyze · Investigation · Report`); Improve as a stage inside Projects detail; 3 canvas response paths; single persona collapse; project membership ACLs.
+- [07-decisions/adr-082-wedge-architecture.md](07-decisions/adr-082-wedge-architecture.md): **wedge architectural record** — partial supersession of ADR-007 + ADR-033. Two-product roadmap (VariScout V1 + VariScout Process future).
 
 ## Core orientation
 
