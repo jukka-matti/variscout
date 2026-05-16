@@ -3,7 +3,7 @@ title: VariScout — Roadmap (lightweight, post-canvas-migration)
 audience: [product, engineer, designer]
 category: living-index
 status: living
-last-reviewed: 2026-05-13
+last-reviewed: 2026-05-16
 related:
   - docs/decision-log.md
   - docs/investigations.md
@@ -18,6 +18,8 @@ related:
 > **Lightweight working roadmap.** Updated post-merge; revised when sequencing changes. Decision-log captures the _why_ of prioritization decisions; this doc captures the _current sequence_. Heavyweight horizon planning (H0/H1/H2/H3) lives in vision spec §6+; this doc is the operational view.
 
 ## 1. Just shipped (the closed chapter)
+
+**Projects tab V1 redesign: COMPLETE 2026-05-14/15.** Spec [`docs/superpowers/specs/2026-05-14-projects-tab-design.md`](superpowers/specs/2026-05-14-projects-tab-design.md) (now amended by wedge — see §2). 4 plans shipped via 9 PRs (#172–#181, plus the foundation 5 PRs #172–#176): Projects tab + IP detail anatomy (Charter/Approach/Sustainment/Handoff stages, Overview/Sections toggle, 280px team rail), Home as active-IP launchpad, IP-context cascade across all 7 tabs, team workspace right rail, IP-scoped Report (Overview/Technical modes + Hub portfolio). Resolved Coherence §15 carry-forward.
 
 **Canvas migration: COMPLETE 2026-05-08.** PR1–PR9 + Polish v1 sequence merged over ~3 weeks (PRs #119–#143). Strangler facade fully replaced legacy `LayeredProcessView` / `ProcessMapBase` / `FrameView`; Canvas is the only canvas-shaped surface in the codebase.
 
@@ -49,7 +51,9 @@ related:
 
 ## 2. In flight
 
-**Coherence audit + design** (started 2026-05-14). Draft design spec at [`docs/superpowers/specs/2026-05-14-variscout-coherence-design.md`](superpowers/specs/2026-05-14-variscout-coherence-design.md) — Sessions A+B + partial C locked: 4 personas (Process Owner / Project Lead / SME / Frontline), Home-tab persona-adaptive shell, Map/Analyze toggle, Level×View×Focus model, L3 Investigation surface (Wall+EvidenceMap merged), IP Lifecycle page, IP-as-context navigation, Frame→Process rename, lens-picker retirement. Session C remaining: first-60s pedagogy + visual identity + Inbox hierarchy + accessibility. Promotes to a plan once Session C closes.
+**Wedge pivot — single-product VariScout (active strategic workstream, started 2026-05-16).** Canonical spec at [`docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`](superpowers/specs/2026-05-16-wedge-architecture-design.md); architectural record at [`docs/07-decisions/adr-082-wedge-architecture.md`](07-decisions/adr-082-wedge-architecture.md). Splits VariScout into two products on a roadmap — ship the wedge first (V1 = project tool for improvement specialists, single €99/mo SKU, project-membership ACLs, 6-tab nav, Improve as a stage inside Projects), defer the platform (VariScout Process, future) for process ownership / Hub portfolios / 4-persona model / auto data pipelines. Supersedes ADR-007 (in part) + ADR-033 (in part) + Coherence audit (Session A retires; Sessions B+C amend). Three preconditions before engineering commits: migration math, Azure AD constraint accepted, one customer validation conversation. ~6–8 engineering PRs + ~500-doc holistic cleanup (Audit → Triage → Apply pattern). Decision-log entry pinned 2026-05-16.
+
+**~~Coherence audit + design~~ — partially superseded 2026-05-16** by the wedge pivot. Coherence Session A's 4-persona model retires for V1 (migrates to VariScout Process); Sessions B + C refocus on single-persona V1. Spec [`docs/superpowers/specs/2026-05-14-variscout-coherence-design.md`](superpowers/specs/2026-05-14-variscout-coherence-design.md) marked partially superseded; pieces still in force (Session B vocabulary, Session C visual identity + a11y) live in the wedge spec.
 
 **8f canvas viewport — followup workstream** (2026-05-13 → 2026-05-14, complete). PR #166 (`cd936915`) closed 19/20 retro findings; PR #168 (`7c7dfd68`) bundled cleanup cluster closed all three carry-forward items (setState-in-render bug, LOW #19 brand `ProcessHubId`, LOW #16 Canvas 1135→845 partial decomposition) plus 16 pre-existing tsc errors. Workstream plan at [`docs/superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md`](superpowers/plans/2026-05-13-canvas-viewport-8f-followups.md); deferred items logged in [`docs/investigations.md`](investigations.md) with pickup criteria. Decision-log entry "8f canvas viewport SHIPPED" amended with the 2026-05-14 closure block.
 
@@ -121,7 +125,9 @@ When the §3 sequence becomes ambiguous, pick by:
 
 - Decision log: [`docs/decision-log.md`](decision-log.md)
 - Investigations: [`docs/investigations.md`](investigations.md)
-- Vision spec: [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](superpowers/specs/2026-05-03-variscout-vision-design.md) (status: accepted)
+- **Wedge architecture spec (canonical V1 design, 2026-05-16):** [`docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`](superpowers/specs/2026-05-16-wedge-architecture-design.md)
+- **ADR-082 (Wedge architecture, supersedes ADR-007 + ADR-033 in part):** [`docs/07-decisions/adr-082-wedge-architecture.md`](07-decisions/adr-082-wedge-architecture.md)
+- Vision spec: [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](superpowers/specs/2026-05-03-variscout-vision-design.md) (status: accepted — note: Hub-centric framing predates wedge; will be amended in Phase A canonical anchor pass)
 - Data-Flow Foundation spec: [`docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`](superpowers/specs/2026-05-06-data-flow-foundation-design.md) (status: delivered for F1-F4; F5 subsumed by RPS V1)
 - Canvas Migration spec: [`docs/superpowers/specs/2026-05-04-canvas-migration-design.md`](superpowers/specs/2026-05-04-canvas-migration-design.md) (PR1-PR9 SHIPPED)
 - **RPS V1 spec: [`docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md`](superpowers/specs/2026-05-09-response-path-system-v1-design.md)** (status: delivered; 10 of 10 PRs shipped 2026-05-13)
