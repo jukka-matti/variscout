@@ -83,12 +83,9 @@ import {
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
-import { usePublishReport } from '../../hooks/usePublishReport';
 
 interface ReportViewProps {
   onClose: () => void;
-  onShareReport?: () => void;
-  canShareViaTeams?: boolean;
   // AI enhancement
   aiEnabled?: boolean;
   narrative?: string | null;
@@ -149,8 +146,6 @@ const REPORT_MAP_SIZE = { width: REPORT_CHART_MAX_WIDTH, height: 400 } as const;
 
 const ReportView: React.FC<ReportViewProps> = ({
   onClose,
-  onShareReport,
-  canShareViaTeams,
   aiEnabled,
   narrative,
   activeIPScope,
@@ -677,26 +672,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   const processName = activeIPScope
     ? `IP Report: ${activeIPScope.title}`
     : processContext?.issueStatement || outcome || 'Analysis';
-
-  // Publish to SharePoint (ADR-026)
-  const {
-    publish,
-    publishReplace,
-    status: publishStatus,
-    error: publishError,
-    publishedUrl,
-    reset: publishReset,
-  } = usePublishReport({
-    projectName: processName,
-    processName: processContext?.description,
-    reportType,
-    sections: derivedSections,
-    questions: reportQuestions,
-    processContext: processContext ?? undefined,
-    stats: stats ?? undefined,
-    sampleCount: filteredData.length,
-    aiNarrative: narrative ?? undefined,
-  });
 
   // ---------------------------------------------------------------------------
   // Print / Save as PDF
@@ -1434,14 +1409,6 @@ const ReportView: React.FC<ReportViewProps> = ({
           onScrollToSection={handleScrollToSection}
           renderSection={renderSection}
           onPrintReport={handlePrint}
-          onShareReport={onShareReport ?? (() => undefined)}
-          shareLinkGate="available"
-          onPublishToSharePoint={publish}
-          onPublishReplace={publishReplace}
-          publishStatus={publishStatus}
-          publishError={publishError}
-          onPublishReset={publishReset}
-          publishedUrl={publishedUrl}
           onClose={onClose}
           activeIPContextChip={
             activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
@@ -1452,7 +1419,6 @@ const ReportView: React.FC<ReportViewProps> = ({
               />
             ) : null
           }
-          canShareViaTeams={canShareViaTeams}
         />
       </div>
     </ErrorBoundary>

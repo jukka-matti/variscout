@@ -40,29 +40,6 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 - **Sponsor placeholder copy in `IPDetailPage`** — `data-testid="sponsor-report-panel"` placeholder points the Sponsor to "the top navigation Report tab." The wording "top navigation" is generic; if the V1 6-tab nav lands a localized label, the placeholder should reference the actual tab label. Promotion: PR-WV1-5 (nav reorder + tier-gating retirement sweep) — pick up when nav labels are finalized.
 
-### PR-WV1-5 Task 3 — B-class canAccess() rewires deferred (publish + photo handlers)
-
-**Surfaced by:** Opus spec-compliance reviewer on `feat/wedge-pr-wv1-5-tier-gating` 2026-05-17, after the Task 3 sweep landed.
-
-**What deviated from spec:** PR-WV1-5 Task 3's spec mandated rewiring two B-class call sites to `canAccess(userId, members, action)` from PR-WV1-1:
-
-- `apps/azure/src/components/editor/InvestigationWorkspace.tsx:973,980` — photo + Teams-camera handlers → `canAccess(..., 'edit-improve')`
-- `apps/azure/src/components/views/ReportView.tsx:683,684` — `canPublish` → `canAccess(..., 'view-report')`; `canShareLink` deleted + share-link always-rendered
-
-What shipped in commit `cfc6276a`: the implementer (Opus) folded these into the A-class pure-deletion sweep, making both always-on instead of role-gated. Documented in the commit message. No `canAccess` import added at the app layer; `canAccess()` (and `ProjectMember`) remain unused outside `packages/ui` IP-Detail / Improve / InvestigationWall consumers.
-
-**Why this is acceptable for V1 stabilisation but not for V1 launch:**
-
-- No behavioral regression — the deleted gates were _tier_ gates (`hasTeamFeatures`, `isPaidTier`) returning `true` for every paid customer. Sponsors could already publish / add photos before this PR if they reached the page.
-- Wedge V1 is single-user in practice (one improvement specialist at €99/mo). The ACL three-role model (Lead / Member / Sponsor) is forward-looking surface from PR-WV1-1.
-- Plumbing `userId` + `members` into `InvestigationWorkspace` and `ReportView` is a non-trivial prop cascade through `Editor.tsx` and the `ReportView` callers — a real refactor, not a one-line wire-up.
-
-**Why it must close before V1 launch:**
-
-- Wedge spec §3.1 says Sponsor is **read-only**. With always-on publish + edit-photo, a Sponsor invited to an IP can sign off / mutate findings, violating the role model. Single-user reality hides this today; the first multi-user customer surfaces it.
-
-**Promotion path:** Open a follow-up PR `feat/wedge-sponsor-canaccess-wiring` before any Sponsor-facing release. Plumb `userId` (from `useUserRole` or session) + `members` (from active IP context) into both components; wire `canAccess(..., 'edit-improve')` and `canAccess(..., 'view-report')` at the two call sites. Severity: **must-fix-before-V1-launch**.
-
 ### 2026-05-17: Survey-rule layer still emits 'handoff' surface prompts
 
 `packages/core/src/survey/handoff.ts:69` produces `surveyInboxRules` entries with `surface: 'handoff'`, which now route through the `showHandoff → showSustainment` alias in panelsStore. Wedge V1 (PR-WV1-4) retired the canvas-CTA handoff path; the survey rule layer is intentionally out-of-scope per ADR-082. **Follow-up**: in a later wedge cleanup PR, retire the survey rule too (or rename to `surface: 'sustainment'` + reword the prompt text). Source: Opus review of PR #187 (2026-05-17).

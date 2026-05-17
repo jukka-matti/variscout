@@ -168,65 +168,6 @@ describe('ReportViewBase', () => {
       render(<ReportViewBase {...defaultProps({ onPrintReport: vi.fn() })} />);
       expect(screen.getAllByText('Save as PDF').length).toBeGreaterThan(0);
     });
-
-    it('renders paid-gated Share link inside the Report surface', () => {
-      render(
-        <ReportViewBase
-          {...defaultProps({
-            onShareReport: vi.fn(),
-            shareLinkGate: 'locked',
-          })}
-        />
-      );
-
-      expect(screen.getAllByText('Share link').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('VariScout for Azure').length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Share button', () => {
-    it('does not render Share button when canShareViaTeams is false', () => {
-      render(
-        <ReportViewBase
-          {...defaultProps({
-            canShareViaTeams: false,
-            onShareReport: vi.fn(),
-          })}
-        />
-      );
-      expect(screen.queryByText('Share Report')).toBeNull();
-    });
-
-    it('does not render Share button when canShareViaTeams is undefined', () => {
-      render(<ReportViewBase {...defaultProps()} />);
-      expect(screen.queryByText('Share Report')).toBeNull();
-    });
-
-    it('renders Share button when canShareViaTeams is true and onShareReport is provided', () => {
-      render(
-        <ReportViewBase
-          {...defaultProps({
-            canShareViaTeams: true,
-            onShareReport: vi.fn(),
-          })}
-        />
-      );
-      expect(screen.getAllByText('Share Report').length).toBeGreaterThan(0);
-    });
-
-    it('calls onShareReport when Share button is clicked', () => {
-      const onShareReport = vi.fn();
-      render(
-        <ReportViewBase
-          {...defaultProps({
-            canShareViaTeams: true,
-            onShareReport,
-          })}
-        />
-      );
-      fireEvent.click(screen.getAllByText('Share Report')[0]);
-      expect(onShareReport).toHaveBeenCalledTimes(1);
-    });
   });
 
   it('calls onScrollToSection when a sidebar section button is clicked', () => {

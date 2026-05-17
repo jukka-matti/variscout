@@ -534,8 +534,6 @@ const ReportView: React.FC<ReportViewProps> = ({
         renderSection={renderSection}
         onCopyAllCharts={handleCopyAllCharts}
         onPrintReport={handlePrintReport}
-        shareLinkGate="locked"
-        onShareReport={() => undefined}
         onClose={onClose}
         activeIPContextChip={
           activeIPTitle && onOpenActiveIP && onExitActiveIP ? (

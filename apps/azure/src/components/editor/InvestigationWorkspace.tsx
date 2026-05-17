@@ -45,6 +45,8 @@ import {
 } from '@variscout/core';
 import { detectEvidenceClusters } from '@variscout/core/findings';
 import type { ColumnTypeMap } from '@variscout/core/findings';
+import { canAccess } from '@variscout/core/projectMembership';
+import type { ProjectMember } from '@variscout/core/projectMembership';
 import { detectColumns } from '@variscout/core/parser';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
@@ -99,8 +101,10 @@ interface InvestigationWorkspaceProps {
     attachment?: File
   ) => void | Promise<void>;
   handleAddPhoto: ((findingId: string, commentId: string, file: File) => Promise<void>) | undefined;
-  handleCaptureFromTeams: ((findingId: string, commentId: string) => Promise<void>) | undefined;
-  isTeamsCamera: boolean;
+  /** userId of the currently signed-in user — used for canAccess('edit-approach') role check. */
+  userId: string | null;
+  /** Members of the active improvement project — used for canAccess role check. Empty = open-access (quick-analysis flow). */
+  members: ProjectMember[];
   // AI
   aiOrch: UseAIOrchestrationReturn;
   actionProposalsState: UseActionProposalsReturn;
@@ -144,8 +148,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   handleProjectIdea,
   handleAddCommentWithAuthor,
   handleAddPhoto,
-  handleCaptureFromTeams,
-  isTeamsCamera,
+  userId,
+  members,
   aiOrch,
   actionProposalsState,
   handleSearchKnowledge,
@@ -969,16 +973,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 columnAliases={columnAliases}
                 activeFindingId={highlightedFindingId}
                 onAddPhoto={
+                  (members.length === 0 ||
+                    (userId !== null && canAccess(userId, members, 'edit-approach'))) &&
                   handleAddPhoto
                     ? (fId: string, cId: string, file: File) => {
                         handleAddPhoto(fId, cId, file);
-                      }
-                    : undefined
-                }
-                onCaptureFromTeams={
-                  isTeamsCamera && handleCaptureFromTeams
-                    ? (fId: string, cId: string) => {
-                        handleCaptureFromTeams(fId, cId);
                       }
                     : undefined
                 }

@@ -1135,12 +1135,11 @@ export const Editor: React.FC<EditorProps> = ({
   });
 
   // Photo comments
-  const { handleAddPhoto, handleCaptureFromTeams, isTeamsCamera, handleAddCommentWithAuthor } =
-    usePhotoComments({
-      findingsState,
-      analysisId: currentProjectName || 'default',
-      author: currentUser?.name,
-    });
+  const { handleAddPhoto, handleAddCommentWithAuthor } = usePhotoComments({
+    findingsState,
+    analysisId: currentProjectName || 'default',
+    author: currentUser?.name,
+  });
 
   // Question CRUD
   const questionsState = useQuestions({
@@ -1867,8 +1866,8 @@ export const Editor: React.FC<EditorProps> = ({
                 handleProjectIdea={handleProjectIdea}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
                 handleAddPhoto={handleAddPhoto}
-                handleCaptureFromTeams={isTeamsCamera ? handleCaptureFromTeams : undefined}
-                isTeamsCamera={isTeamsCamera}
+                userId={currentUser?.email ?? null}
+                members={wallActiveIPMembers}
                 aiOrch={aiOrch}
                 actionProposalsState={actionProposalsState}
                 handleSearchKnowledge={handleSearchKnowledge}
