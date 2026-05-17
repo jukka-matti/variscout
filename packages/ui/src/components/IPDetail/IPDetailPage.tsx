@@ -198,8 +198,8 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
         >
           <h2 className="text-xl font-semibold mb-2">Report</h2>
           <p className="text-sm text-content-secondary">
-            As a Sponsor, you have read-only access to this project&apos;s Report. The full Report
-            tab is available in the top navigation.
+            As a Sponsor, you have read-only access to this project&apos;s Report. Open the Report
+            tab in the workflow navigation for the full view.
           </p>
         </div>
       </div>

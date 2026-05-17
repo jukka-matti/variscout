@@ -48,7 +48,6 @@ interface PanelsActions {
   showReport: () => void;
   showCharter: () => void;
   showSustainment: (targetId?: string) => void;
-  showHandoff: (targetId?: string) => void;
 
   // Simple toggles
   setSettingsOpen: (open: boolean) => void;
@@ -112,13 +111,6 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   showReport: () => set({ activeView: 'report' }),
   showCharter: () => set({ activeView: 'charter', isFindingsOpen: false }),
   showSustainment: targetId =>
-    set({
-      activeView: 'sustainment',
-      isFindingsOpen: false,
-      sustainmentTargetId: targetId ?? null,
-    }),
-  // Alias for showSustainment — wedge V1 folds Handoff into Sustainment-closure (ADR-082). Inbox prompts + context links still emit surface === 'handoff'; routing through this alias keeps them reachable.
-  showHandoff: targetId =>
     set({
       activeView: 'sustainment',
       isFindingsOpen: false,

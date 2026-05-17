@@ -51,12 +51,12 @@ describe('surveyHandoffRules', () => {
     expect(hints).toEqual([
       expect.objectContaining({
         kind: 'lifecycle-gap',
-        surface: 'handoff',
+        surface: 'sustainment',
         targetEntityId: 'sr-old',
         severity: 'warning',
         action: {
           label: 'Record control handoff',
-          opensSurface: 'handoff',
+          opensSurface: 'sustainment',
           opensId: 'sr-old',
         },
       }),
@@ -97,12 +97,12 @@ describe('surveyHandoffRules', () => {
     expect(hints).toEqual([
       expect.objectContaining({
         kind: 'lifecycle-gap',
-        surface: 'handoff',
+        surface: 'sustainment',
         targetEntityId: 'handoff-stale',
         severity: 'warning',
         action: {
           label: 'Open handoff',
-          opensSurface: 'handoff',
+          opensSurface: 'sustainment',
           opensId: 'handoff-stale',
         },
       }),

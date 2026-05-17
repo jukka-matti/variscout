@@ -28,11 +28,10 @@ const groups: ContextLinkGroup<TestLinkItem>[] = [
   },
   {
     surfaceType: 'sustainment',
-    items: [{ id: 'sustain-1', label: 'Control plan', href: '/sustain/1' }],
-  },
-  {
-    surfaceType: 'handoff',
-    items: [{ id: 'handoff-1', label: 'Shift handoff', href: '/handoff/1' }],
+    items: [
+      { id: 'sustain-1', label: 'Control plan', href: '/sustain/1' },
+      { id: 'handoff-1', label: 'Shift handoff', href: '/handoff/1' },
+    ],
   },
 ];
 
@@ -44,8 +43,7 @@ describe('ContextBadgesRow', () => {
       screen.getByRole('button', { name: 'Improvement projects: 1 linked item' })
     ).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Wall threads: 2 linked items' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Sustainment: 1 linked item' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Handoff: 1 linked item' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Sustainment: 2 linked items' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Quick actions: 0 linked items' })).toBeNull();
   });
 

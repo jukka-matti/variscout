@@ -61,13 +61,13 @@ export const surveyHandoffRules: SurveyRule = ctx => {
 
     hints.push({
       kind: 'lifecycle-gap',
-      surface: 'handoff',
+      surface: 'sustainment',
       targetEntityId: record.id,
       message: `${record.title} confirmed sustained more than 6 weeks ago without live handoff`,
       severity: 'warning',
       action: {
         label: 'Record control handoff',
-        opensSurface: 'handoff',
+        opensSurface: 'sustainment',
         opensId: record.id,
       },
     });
@@ -84,13 +84,13 @@ export const surveyHandoffRules: SurveyRule = ctx => {
 
     hints.push({
       kind: 'lifecycle-gap',
-      surface: 'handoff',
+      surface: 'sustainment',
       targetEntityId: handoff.id,
       message: `${handoff.operationalOwner.displayName} has not acknowledged ${handoff.systemName} handoff`,
       severity: 'warning',
       action: {
         label: 'Open handoff',
-        opensSurface: 'handoff',
+        opensSurface: 'sustainment',
         opensId: handoff.id,
       },
     });
