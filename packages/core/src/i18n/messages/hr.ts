@@ -582,8 +582,8 @@ export const hr: MessageCatalog = {
     'Udaljeni SharePoint izvori znanja koriste dozvole po korisniku. Svaki korisnik mora imati SharePoint pristup dokumentima.\nProvjerite jesu li pogođeni korisnici blokirani politikama uvjetnog pristupa.\nProvjerite je li dano odobrenje administratora za delegiranu dozvolu Sites.Read.All.\nZamolite pogođene korisnike da se odjave i ponovno prijave za osvježavanje tokena.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',

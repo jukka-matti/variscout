@@ -586,8 +586,8 @@ export const hi: MessageCatalog = {
     'Remote SharePoint ज्ञान स्रोत प्रति-उपयोगकर्ता अनुमतियों का उपयोग करते हैं। प्रत्येक उपयोगकर्ता के पास दस्तावेज़ों तक SharePoint पहुँच होनी चाहिए।\nजाँचें कि प्रभावित उपयोगकर्ता सशर्त पहुँच नीतियों द्वारा अवरुद्ध तो नहीं हैं।\nसत्यापित करें कि Sites.Read.All प्रत्यायोजित अनुमति के लिए व्यवस्थापक सहमति दी गई है।\nप्रभावित उपयोगकर्ताओं से अपना टोकन रीफ़्रेश करने के लिए साइन आउट और साइन इन करने को कहें।',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',

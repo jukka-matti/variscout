@@ -547,8 +547,8 @@ export const sv: MessageCatalog = {
     'Remote SharePoint-kunskapskällor använder behörigheter per användare. Varje användare måste ha SharePoint-åtkomst till dokumenten.\nKontrollera om de drabbade användarna blockeras av Villkorsstyrd åtkomst-policyer.\nVerifiera att administratörsmedgivande har beviljats för den delegerade behörigheten Sites.Read.All.\nBe de drabbade användarna att logga ut och logga in igen för att uppdatera sin token.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',

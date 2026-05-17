@@ -575,8 +575,8 @@ export const he: MessageCatalog = {
     'מקורות ידע Remote SharePoint משתמשים בהרשאות לכל משתמש. לכל משתמש חייבת להיות גישת SharePoint למסמכים.\nבדוק אם המשתמשים המושפעים חסומים על ידי מדיניות גישה מותנית.\nוודא שניתנה הסכמת מנהל להרשאה המואצלת Sites.Read.All.\nבקש מהמשתמשים המושפעים להתנתק ולהתחבר מחדש כדי לרענן את האסימון שלהם.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',

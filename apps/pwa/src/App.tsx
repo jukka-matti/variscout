@@ -756,15 +756,16 @@ function AppMain() {
     [setSessionHub, setRawData, setOutcome, setFactors]
   );
 
-  // Phase tab navigation handler (used by AppHeader inline tabs)
+  // Phase tab navigation handler (used by AppHeader inline tabs).
+  // PhaseId values follow wedge V1 naming (process / analyze / project); panelsStore enum stays stable.
   const handlePhaseChange = useCallback(
     (phase: PhaseId) => {
       if (phase === 'home') panels.showHome();
-      else if (phase === 'frame') panels.showFrame();
-      else if (phase === 'analysis') panels.showAnalysis();
+      else if (phase === 'process') panels.showFrame();
+      else if (phase === 'analyze') panels.showAnalysis();
       else if (phase === 'investigation') panels.showInvestigation();
       else if (phase === 'improvement') panels.showImprovement();
-      else if (phase === 'projects') panels.showProjects();
+      else if (phase === 'project') panels.showProjects();
       else panels.showReport();
     },
     [panels]

@@ -592,8 +592,8 @@ export const fr: MessageCatalog = {
     "Les sources de connaissances SharePoint distantes utilisent des permissions par utilisateur. Chaque utilisateur doit avoir un accès SharePoint aux documents.\nVérifiez si les utilisateurs concernés sont bloqués par des politiques d'accès conditionnel.\nVérifiez que le consentement administrateur a été accordé pour la permission déléguée Sites.Read.All.\nDemandez aux utilisateurs concernés de se déconnecter et de se reconnecter pour rafraîchir leur jeton.",
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',

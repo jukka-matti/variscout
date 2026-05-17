@@ -484,7 +484,7 @@ describe('Editor', () => {
     });
 
     // Click "Analysis" tab to switch to editor view
-    fireEvent.click(screen.getByTestId('view-toggle-analysis'));
+    fireEvent.click(screen.getByTestId('view-toggle-analyze'));
 
     expect(screen.getByTestId('dashboard')).toBeInTheDocument();
   });
@@ -497,7 +497,7 @@ describe('Editor', () => {
     });
 
     // Switch to analysis view (may start in dashboard due to deep link logic)
-    fireEvent.click(screen.getByTestId('view-toggle-analysis'));
+    fireEvent.click(screen.getByTestId('view-toggle-analyze'));
 
     expect(screen.getByTestId('btn-add-data')).toBeInTheDocument();
   });

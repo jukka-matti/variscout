@@ -678,9 +678,9 @@ export interface MessageCatalog {
   'admin.issue.kbPartialDesc': string;
   'admin.issue.kbPartialSteps': string;
 
-  // Workspace navigation
-  'workspace.frame': string;
-  'workspace.analysis': string;
+  // Workspace navigation (wedge V1 amendment 2026-05-16: Frame → Process, Analysis → Analyze)
+  'workspace.process': string;
+  'workspace.analyze': string;
   'workspace.investigation': string;
   'workspace.improvement': string;
   'workspace.improve': string;

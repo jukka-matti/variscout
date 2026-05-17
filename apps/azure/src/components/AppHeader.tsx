@@ -403,28 +403,37 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
 
       {/* ── Center zone: Workspace tabs ── */}
+      {/* Tab order per wedge V1 amendment (2026-05-16): Home · Project · Process · Analyze · Investigation · Improve · Report */}
+      {/* Display copy + testids follow the wedge naming; internal `activeView` enum stays stable (panelsStore key). */}
       {hasData && (
         <nav className="flex items-center flex-1 min-w-0 overflow-x-auto" data-testid="view-toggle">
           <button
             className={tabClass(activeView === 'dashboard')}
             onClick={() => usePanelsStore.getState().showDashboard()}
-            data-testid="view-toggle-overview"
+            data-testid="view-toggle-home"
           >
-            Overview
+            Home
+          </button>
+          <button
+            className={tabClass(activeView === 'projects')}
+            onClick={() => usePanelsStore.getState().showProjects()}
+            data-testid="view-toggle-project"
+          >
+            Project
           </button>
           <button
             className={tabClass(activeView === 'frame')}
             onClick={() => usePanelsStore.getState().showFrame()}
-            data-testid="view-toggle-frame"
+            data-testid="view-toggle-process"
           >
-            Frame
+            Process
           </button>
           <button
             className={tabClass(activeView === 'analysis')}
             onClick={() => usePanelsStore.getState().showAnalysis()}
-            data-testid="view-toggle-analysis"
+            data-testid="view-toggle-analyze"
           >
-            Analysis
+            Analyze
           </button>
           <button
             className={tabClass(activeView === 'investigation')}
@@ -449,13 +458,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 {selectedIdeaCount}
               </span>
             )}
-          </button>
-          <button
-            className={tabClass(activeView === 'projects')}
-            onClick={() => usePanelsStore.getState().showProjects()}
-            data-testid="view-toggle-projects"
-          >
-            Projects
           </button>
           <button
             className={tabClass(activeView === 'report')}

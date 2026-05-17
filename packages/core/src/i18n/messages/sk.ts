@@ -584,8 +584,8 @@ export const sk: MessageCatalog = {
     'Vzdialené SharePoint zdroje znalostí používajú oprávnenia pre každého používateľa. Každý používateľ musí mať prístup SharePoint k dokumentom.\nSkontrolujte, či sú postihnutí používatelia blokovaní politikami podmieneného prístupu.\nOverte, že bol udelený súhlas správcu pre delegované oprávnenie Sites.Read.All.\nPožiadajte postihnutých používateľov, aby sa odhlásili a znova prihlásili na obnovenie ich tokenu.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',

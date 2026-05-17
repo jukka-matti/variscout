@@ -589,8 +589,8 @@ export const es: MessageCatalog = {
     'Las fuentes de conocimiento remotas de SharePoint usan permisos por usuario. Cada usuario debe tener acceso SharePoint a los documentos.\nVerifique si los usuarios afectados están bloqueados por políticas de acceso condicional.\nCompruebe que se haya otorgado consentimiento de administrador para el permiso delegado Sites.Read.All.\nPida a los usuarios afectados que cierren sesión y vuelvan a iniciar sesión para actualizar su token.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',

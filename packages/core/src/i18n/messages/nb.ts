@@ -498,8 +498,8 @@ export const nb: MessageCatalog = {
     'Fjern-SharePoint-kunnskapskilder bruker per-bruker-tillatelser. Hver bruker må ha SharePoint-tilgang til dokumentene.\nSjekk om de berørte brukerne er blokkert av Conditional Access-policyer.\nKontroller at administratorsamtykke ble gitt for Sites.Read.All delegert tillatelse.\nBe de berørte brukerne logge ut og logge inn igjen for å oppdatere tokenet sitt.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
