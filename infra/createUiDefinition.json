@@ -19,32 +19,6 @@
     ],
     "steps": [
       {
-        "name": "planStep",
-        "label": "Plan Selection",
-        "elements": [
-          {
-            "name": "planSelector",
-            "type": "Microsoft.Common.DropDown",
-            "label": "VariScout Plan",
-            "toolTip": "Select your VariScout subscription plan",
-            "defaultValue": "Standard (€79/month) - Full analysis with CoScout AI",
-            "constraints": {
-              "required": true,
-              "allowedValues": [
-                {
-                  "label": "Standard (€79/month) - Full analysis with CoScout AI",
-                  "value": "standard"
-                },
-                {
-                  "label": "Team (€199/month) - Teams, OneDrive, SharePoint, Knowledge Base",
-                  "value": "team"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
         "name": "authentication",
         "label": "Authentication",
         "elements": [
@@ -91,8 +65,7 @@
       "appName": "[basics('appName')]",
       "location": "[location()]",
       "clientId": "[steps('authentication').clientId]",
-      "clientSecret": "[steps('authentication').clientSecret]",
-      "variscoutPlan": "[steps('planStep').planSelector]"
+      "clientSecret": "[steps('authentication').clientSecret]"
     }
   }
 }
