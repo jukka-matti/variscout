@@ -47,6 +47,7 @@ export const STATUS_ALIAS_MAP = {
   design: 'draft',
   raw: 'draft',
   deferred: 'superseded',
+  'named-future': 'active',
 };
 
 export const AUDIENCE_ALIAS_MAP = {
