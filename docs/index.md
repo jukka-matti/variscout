@@ -20,7 +20,7 @@ VariScout guides structured investigations that turn process data into measurabl
 # PWA development
 pnpm dev
 
-# Azure Team App development
+# Azure App development
 pnpm --filter @variscout/azure-app dev
 ```
 
@@ -54,11 +54,10 @@ VariScout is EDA (Exploratory Data Analysis) for process improvement - not stati
 
 ## Products & Pricing
 
-| Product                                      | Distribution      | Pricing                                                   | Status      |
-| -------------------------------------------- | ----------------- | --------------------------------------------------------- | ----------- |
-| [Azure Standard](08-products/azure/index.md) | Azure Marketplace | €79/month (full analysis + CoScout AI, local files)       | **PRIMARY** |
-| [Azure Team](08-products/azure/index.md)     | Azure Marketplace | €199/month (+ Teams, OneDrive, mobile, AI Knowledge Base) | **PRIMARY** |
-| [PWA](08-products/pwa/index.md)              | Public URL        | FREE (forever, training & education)                      | Production  |
+| Product                                 | Distribution      | Pricing                                                                                                                 | Status      |
+| --------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------- |
+| [Azure App](08-products/azure/index.md) | Azure Marketplace | €120/month (single SKU — full analysis, CoScout AI, project-membership ACLs, photo evidence, Knowledge Base, Blob sync) | **PRIMARY** |
+| [PWA](08-products/pwa/index.md)         | Public URL        | FREE (forever, training & education)                                                                                    | Production  |
 
 ---
 
@@ -77,7 +76,7 @@ packages/
 
 apps/
 ├── pwa/           # React + Vite PWA
-├── azure/         # Azure Team App
+├── azure/         # Azure App
 ├── website/       # Astro marketing site
 └── docs/          # Starlight documentation site
 ```
