@@ -46,12 +46,13 @@ if (!src.startsWith('---\n') && !src.startsWith('---\r\n')) {
   console.error(`${target}: no frontmatter block.`);
   process.exit(1);
 }
-const end = src.indexOf('\n---', 4);
+const openLen = src.startsWith('---\r\n') ? 5 : 4;
+const end = src.indexOf('\n---', openLen);
 if (end < 0) {
   console.error(`${target}: malformed frontmatter.`);
   process.exit(1);
 }
-const fm = src.slice(4, end);
+const fm = src.slice(openLen, end);
 const body = src.slice(end + 4);
 
 const today = new Date().toISOString().slice(0, 10);
