@@ -9,7 +9,7 @@ related:
   - adr-059-web-first-deployment-architecture
   - adr-075-pwa-atomic-deploy-and-update-policy
   - docs/decision-log.md
-  - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
+  - docs/archive/specs/2026-05-04-canvas-migration-design.md
 ---
 
 # ADR-078: PWA + Azure architecture alignment — same product, gated tiers
@@ -24,7 +24,7 @@ related:
 [ADR-012](adr-012-pwa-browser-only.md) (PWA browser-only processing — preserved),
 [ADR-059](adr-059-web-first-deployment-architecture.md) (web-first; Azure tier with Blob Storage — preserved),
 [ADR-075](adr-075-pwa-atomic-deploy-and-update-policy.md) (PWA atomic deploy + update policy — preserved),
-[Canvas Migration spec](../superpowers/specs/2026-05-04-canvas-migration-design.md) (referenced for Decision 2's three-layer state separation that this ADR builds on)
+[Canvas Migration spec](../archive/specs/2026-05-04-canvas-migration-design.md) (referenced for Decision 2's three-layer state separation that this ADR builds on)
 
 ---
 
@@ -167,8 +167,8 @@ Future tier gates anticipated:
 ## References
 
 - VariScout Constitution P8 (no AI in free tier)
-- VariScout vision spec §5.1, §5.7 (Canvas + CoScout): `docs/superpowers/specs/2026-05-03-variscout-vision-design.md`
-- Canvas Migration spec (Decision 2 — three-layer state): `docs/superpowers/specs/2026-05-04-canvas-migration-design.md`
+- VariScout vision spec §5.1, §5.7 (Canvas + CoScout): `docs/archive/specs/2026-05-03-variscout-vision-design.md`
+- Canvas Migration spec (Decision 2 — three-layer state): `docs/archive/specs/2026-05-04-canvas-migration-design.md`
 - Q8-revised (PWA persistence): `docs/decision-log.md` 2026-05-03 entry
 - ADR-012 (PWA browser-only)
 - ADR-059 (web-first; Azure with Blob Storage)

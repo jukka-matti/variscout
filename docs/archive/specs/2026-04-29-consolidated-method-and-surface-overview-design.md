@@ -2,7 +2,7 @@
 title: VariScout — Consolidated Method And Surface Overview
 audience: [product, designer, engineer, analyst]
 category: design-spec
-status: review
+status: archived
 related:
   [
     overview,
@@ -19,6 +19,10 @@ related:
   ]
 date: 2026-04-29
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). This 2026-04-29 state-of-the-union snapshot predates the wedge pivot; the nav, persona model, and surface overview it describes have been superseded by the 7-tab V1 nav, single Specialist persona, and project-membership ACL model.
+>
+> **Preserved here** for institutional knowledge — the original design intent informs future product decisions, especially for VariScout Process scope (see [docs/01-vision/variscout-process/](../../01-vision/variscout-process/index.md)).
 
 # VariScout — Consolidated Method And Surface Overview
 

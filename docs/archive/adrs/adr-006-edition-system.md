@@ -174,5 +174,5 @@ Azure App tier is determined at deployment time, not build time.
 
 - [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md) (current strategy)
 - [Products Overview](../../08-products/index.md)
-- [Azure Pricing Tiers](../../08-products/azure/pricing-tiers.md)
+- [Azure Pricing Tiers](../../archive/products/pricing-tiers.md) (archived — superseded by single €120 SKU per ADR-082)
 - Excel License Detection (removed — Excel Add-in shelved Feb 2026)

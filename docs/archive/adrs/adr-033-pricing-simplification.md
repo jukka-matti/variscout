@@ -1,13 +1,18 @@
 ---
 title: 'ADR-033: Pricing Simplification'
+status: archived
 ---
+
+> **ARCHIVED 2026-05-17** — This ADR's tier model (€79 Standard / €199 Team) is fully superseded by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md), which collapses to a single €120/month SKU with project-membership ACLs replacing plan-based feature gating. The strategic rationale for simplification (fewer tiers, clear value story) and the H6 hypothesis ("per-deployment beats per-seat") are preserved as design heritage.
+>
+> Preserved here for institutional knowledge; the pricing architecture for VariScout V1 is defined in ADR-082.
 
 # ADR-033: Pricing Simplification — 3 Tiers to 2 Tiers
 
-**Status:** Superseded in part (2026-05-16, by [ADR-082](adr-082-wedge-architecture.md))
+**Status:** Superseded in part (2026-05-16, by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md))
 **Date:** 2026-03-19
 **Amends:** ADR-007 (pricing section)
-**Superseded by:** [ADR-082](adr-082-wedge-architecture.md) — €79/€199 tier split retired; single €99/month SKU + project membership ACLs. Strategic hypothesis H6 ("per-deployment beats per-seat") preserved.
+**Superseded by:** [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) — €79/€199 tier split retired; single €99/month SKU + project membership ACLs. Strategic hypothesis H6 ("per-deployment beats per-seat") preserved.
 
 ## Context
 

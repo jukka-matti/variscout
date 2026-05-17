@@ -5,10 +5,10 @@ category: implementation
 status: delivered
 last-reviewed: 2026-05-08
 related:
-  - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
-  - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
+  - docs/archive/specs/2026-05-04-canvas-migration-design.md
+  - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
-  - docs/superpowers/plans/2026-05-06-canvas-pr4c-pr6-followup.md
+  - docs/archive/plans/2026-05-06-canvas-pr4c-pr6-followup.md
   - docs/decision-log.md
   - docs/investigations.md
 ---
@@ -102,7 +102,7 @@ Per `feedback_subagent_driven_default`. Each sub-PR's plan dispatches via `super
 
 (Full scope details belong in the per-sub-PR plans, not here. This is a one-paragraph summary per sub-PR for orientation.)
 
-### 8a — Mode-aware response-path CTAs (~5 tasks) — plan at [`2026-05-07-canvas-pr8-8a-mode-aware-ctas.md`](2026-05-07-canvas-pr8-8a-mode-aware-ctas.md)
+### 8a — Mode-aware response-path CTAs (~5 tasks) — plan at [`2026-05-07-canvas-pr8-8a-mode-aware-ctas.md`](../../archive/plans/2026-05-07-canvas-pr8-8a-mode-aware-ctas.md)
 
 > **SHIPPED 2026-05-07** — [PR #137](https://github.com/jukka-matti/variscout/pull/137) merged as `0dc9b102`. 2-state CTA machine (active / prerequisite-locked) + per-path WorkflowReadinessSignals (no tier/cadence enum) + stub destinations. Charter entity locked at hub-level.
 
@@ -246,9 +246,9 @@ PR8 master plan closes when:
 
 ## 9. References
 
-- **Canvas migration spec** ([`docs/superpowers/specs/2026-05-04-canvas-migration-design.md`](../specs/2026-05-04-canvas-migration-design.md)) §6 PR8 row defines the original split
-- **Retrospective followup plan** ([`docs/superpowers/plans/2026-05-06-canvas-pr4c-pr6-followup.md`](2026-05-06-canvas-pr4c-pr6-followup.md)) Tier 2 lists the six unmet commitments
-- **Vision spec** ([`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../specs/2026-05-03-variscout-vision-design.md)) §3.4 / §5.2 / §5.3 / §5.4 / §5.6 / §2.4 are the source of the unmet commitments
+- **Canvas migration spec** ([`docs/archive/specs/2026-05-04-canvas-migration-design.md`](../../archive/specs/2026-05-04-canvas-migration-design.md)) §6 PR8 row defines the original split
+- **Retrospective followup plan** ([`docs/archive/plans/2026-05-06-canvas-pr4c-pr6-followup.md`](../../archive/plans/2026-05-06-canvas-pr4c-pr6-followup.md)) Tier 2 lists the six unmet commitments
+- **Vision spec** ([`docs/archive/specs/2026-05-03-variscout-vision-design.md`](../../archive/specs/2026-05-03-variscout-vision-design.md)) §3.4 / §5.2 / §5.3 / §5.4 / §5.6 / §2.4 are the source of the unmet commitments
 - **F4 spec** ([`docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md`](../specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md)) — D2 store-layering rule that 8d/8e depend on
 - **Investigations** ([`docs/investigations.md`](../../investigations.md)) — six entries pinned 2026-05-06; close-out per D5
 - **Workflow rules:**

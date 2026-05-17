@@ -2,13 +2,17 @@
 title: Canvas PR8 sub-PR 8a — Mode-aware response-path CTAs
 audience: [engineer]
 category: implementation
-status: active
+status: archived
 last-reviewed: 2026-05-07
 related:
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
-  - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
+  - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/investigations.md
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The PR8-8a mode-aware CTAs plan implemented a 5-path tier-gating model; the wedge retired tier-gating (single €120 SKU) and reduced canvas-drill to 3 paths. The PR delivered (wedge PR-WV1-4 retired the tier-gate and per-persona-mode logic).
+>
+> **Preserved here** for institutional knowledge — the CTA state machine pattern informs future canvas-drill design decisions.
 
 # Canvas PR8 sub-PR 8a — Mode-aware response-path CTAs Implementation Plan
 

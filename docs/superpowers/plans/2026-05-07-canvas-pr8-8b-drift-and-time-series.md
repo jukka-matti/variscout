@@ -6,8 +6,8 @@ status: active
 last-reviewed: 2026-05-07
 related:
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
-  - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
-  - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
+  - docs/archive/specs/2026-05-03-variscout-vision-design.md
+  - docs/archive/specs/2026-05-04-canvas-migration-design.md
   - docs/investigations.md
 ---
 
@@ -2217,8 +2217,8 @@ After 8b lands, the master plan unblocks 8d brainstorm per §5 sequencing (8a + 
 ## References
 
 - **Master plan:** [`2026-05-07-canvas-pr8-vision-alignment-master.md`](2026-05-07-canvas-pr8-vision-alignment-master.md) §4 (8b summary), §3 D3 (layer-neutral parallel-with-8a)
-- **Vision spec §5.2:** [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../specs/2026-05-03-variscout-vision-design.md) — drift + mini-chart commitments
-- **Canvas migration spec:** [`docs/superpowers/specs/2026-05-04-canvas-migration-design.md`](../specs/2026-05-04-canvas-migration-design.md) §6 PR8 row
+- **Vision spec §5.2:** [`docs/archive/specs/2026-05-03-variscout-vision-design.md`](../../archive/specs/2026-05-03-variscout-vision-design.md) — drift + mini-chart commitments
+- **Canvas migration spec:** [`docs/archive/specs/2026-05-04-canvas-migration-design.md`](../../archive/specs/2026-05-04-canvas-migration-design.md) §6 PR8 row
 - **Investigations:** [`docs/investigations.md`](../../investigations.md) — two pinned 2026-05-06 entries (mini-chart + drift indicator)
 - **Existing engine reference:** [`packages/core/src/findings/drift.ts`](../../../packages/core/src/findings/drift.ts) — `computeFindingWindowDrift` (Finding-window drift; same shape pattern, different scope)
 - **LTTB helper:** [`packages/core/src/stats/lttb.ts`](../../../packages/core/src/stats/lttb.ts) — already public, reused verbatim

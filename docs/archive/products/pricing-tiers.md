@@ -2,12 +2,16 @@
 title: 'Pricing'
 audience: [admin, architect]
 category: reference
-status: stable
+status: archived
 ---
+
+> **ARCHIVED 2026-05-17** — This pricing reference describes the €79 Standard / €199 Team two-plan model, which is superseded by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) (single €120/month SKU, project-membership ACLs replace plan-based feature gating). Tier-gating code (`hasTeamFeatures()`, `hasKnowledgeBase()`) retires under V1; all project members get the same capability set.
+>
+> Preserved here for institutional knowledge; current pricing is defined in ADR-082 and the [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md).
 
 # Pricing
 
-VariScout Azure App pricing structure — two plans differentiated by storage, collaboration, and knowledge capabilities. Per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md), AI is included in all plans. ADR-072 defines the current Process Hub and Blob Storage direction.
+VariScout Azure App pricing structure — two plans differentiated by storage, collaboration, and knowledge capabilities. Per [ADR-033](../../archive/adrs/adr-033-pricing-simplification.md), AI is included in all plans. ADR-072 defines the current Process Hub and Blob Storage direction.
 
 ---
 
@@ -83,7 +87,7 @@ Team adds everything needed for shared quality workflows: customer-tenant Blob S
 
 ### Why Two Plans
 
-Per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md), the original three-plan model was simplified to two plans. AI is included in all plans (removing the Team AI upsell friction), and the knowledge features (Knowledge Base + Knowledge Catalyst) moved to Team where they pair naturally with team collaboration features.
+Per [ADR-033](../../archive/adrs/adr-033-pricing-simplification.md), the original three-plan model was simplified to two plans. AI is included in all plans (removing the Team AI upsell friction), and the knowledge features (Knowledge Base + Knowledge Catalyst) moved to Team where they pair naturally with team collaboration features.
 
 - Standard at €79 removes admin-consent friction and now includes AI
 - Team at €199 captures the collaboration + knowledge value that teams are willing to pay for
@@ -207,7 +211,7 @@ The ARM template uses a `VARISCOUT_PLAN` environment variable (`standard` or `te
 
 ## See Also
 
-- [Azure Marketplace Guide](marketplace.md)
-- [Products Overview](../index.md)
+- [Azure Marketplace Guide](../../08-products/azure/marketplace.md)
+- [Products Overview](../../08-products/index.md)
 - [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [ADR-016: Teams Integration](../../archive/adrs/adr-016-teams-integration.md)

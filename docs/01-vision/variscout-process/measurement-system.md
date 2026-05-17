@@ -7,7 +7,7 @@ last-reviewed: 2026-05-17
 parent: docs/01-vision/variscout-process/index.md
 related:
   - docs/superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md
-  - docs/superpowers/specs/2026-04-29-consolidated-method-and-surface-overview-design.md
+  - docs/archive/specs/2026-04-29-consolidated-method-and-surface-overview-design.md
   - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
 ---
@@ -168,7 +168,7 @@ This is **how PMS makes the methodology continuous**. V1 ships the Improvement P
 ## §9 Cross-references
 
 - The Evidence Source / Snapshot / Profile Application data model is specified in [Evidence Sources and Data Profiles spec](../../superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md). The V1 implementation slice exists; the cadence-review surface that consumes the data is named-future.
-- The PMS → Current Process State framing is articulated in [Consolidated Method and Surface Overview §4](../../superpowers/specs/2026-04-29-consolidated-method-and-surface-overview-design.md).
+- The PMS → Current Process State framing is articulated in [Consolidated Method and Surface Overview §4](../../archive/specs/2026-04-29-consolidated-method-and-surface-overview-design.md).
 - The auto-fire Sustainment pattern that PMS extends is [ADR-080](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md).
 - The three-level methodology that PMS organizes evidence around is in [methodology.md](methodology.md).
 - The monitoring surfaces that render Current Process State live in [monitoring.md](monitoring.md).

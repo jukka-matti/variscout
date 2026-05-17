@@ -7,7 +7,7 @@ last-reviewed: 2026-05-07
 related:
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md
   - docs/superpowers/plans/2026-05-06-data-flow-foundation-f3-5-ingestion.md
-  - docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2.md
+  - docs/archive/plans/2026-05-06-data-flow-foundation-f1-f2.md
   - docs/07-decisions/adr-077-snapshot-provenance-and-match-summary-wedge.md
   - docs/07-decisions/adr-058-deployment-lifecycle.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
@@ -472,7 +472,7 @@ Per `superpowers:subagent-driven-development`. **Sonnet workhorse ≥ 70%.** One
 - **Spec:** [`docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`](../specs/2026-05-06-data-flow-foundation-design.md) §5 + §7
 - **Companion plans:**
   - F3.5 plan ([`docs/superpowers/plans/2026-05-06-data-flow-foundation-f3-5-ingestion.md`](2026-05-06-data-flow-foundation-f3-5-ingestion.md)) — D2/D3 PWA atomic-write pattern + cursor reconciliation precedent
-  - F1+F2 plan ([`docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2.md`](2026-05-06-data-flow-foundation-f1-f2.md)) — Audit pattern + per-task subagent flow precedent
+  - F1+F2 plan ([`docs/archive/plans/2026-05-06-data-flow-foundation-f1-f2.md`](../../archive/plans/2026-05-06-data-flow-foundation-f1-f2.md)) — Audit pattern + per-task subagent flow precedent
 - **Architectural foundations:**
   - ADR-077 (snapshot provenance + match-summary wedge) — `RowProvenanceTag` shape; F3.6 closes the F3.5 D3 asymmetry
   - ADR-058 (deployment lifecycle) — Azure paid-tier team-collaboration via Blob Storage; the basis for F3.6-β cloud-sync requirement

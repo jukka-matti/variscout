@@ -5,8 +5,8 @@ category: design-spec
 status: active
 last-reviewed: 2026-05-07
 related:
-  - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
-  - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
+  - docs/archive/specs/2026-05-03-variscout-vision-design.md
+  - docs/archive/specs/2026-05-04-canvas-migration-design.md
   - docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md
   - docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
@@ -344,8 +344,8 @@ PR8d ships green when:
 
 ## 13. Spec relationships
 
-- **Vision spec** ([`2026-05-03-variscout-vision-design.md`](2026-05-03-variscout-vision-design.md)) §3.4 + §5.4 — source of the commitment + the four-overlay registry
-- **Canvas Migration spec** ([`2026-05-04-canvas-migration-design.md`](2026-05-04-canvas-migration-design.md)) §6.PR6 — describes the read-side overlay projections shipped in PR6 (which this spec extends with the authoring side)
+- **Vision spec** ([`2026-05-03-variscout-vision-design.md`](../../archive/specs/2026-05-03-variscout-vision-design.md)) §3.4 + §5.4 — source of the commitment + the four-overlay registry
+- **Canvas Migration spec** ([`2026-05-04-canvas-migration-design.md`](../../archive/specs/2026-05-04-canvas-migration-design.md)) §6.PR6 — describes the read-side overlay projections shipped in PR6 (which this spec extends with the authoring side)
 - **Manual Canvas Authoring (Spec 2)** ([`2026-05-04-manual-canvas-authoring-design.md`](2026-05-04-manual-canvas-authoring-design.md)) Decision A / B / H — establishes Mode-1 / Mode-2 / a11y baseline; this spec's tool placement deviates from the master plan's Mode-2 framing per Q6 rationale
 - **F4 Three-Layer State** ([`2026-05-07-data-flow-foundation-f4-three-layer-state-design.md`](2026-05-07-data-flow-foundation-f4-three-layer-state-design.md)) D2 / D4 — establishes the View / Annotation / Document layer rules + boundary test that this spec's state assignments honor
 - **PR8 Master Plan** ([`2026-05-07-canvas-pr8-vision-alignment-master.md`](../plans/2026-05-07-canvas-pr8-vision-alignment-master.md)) §4 8d — opened the six questions this spec answers; §10 deferred Spec 4 retro doc as a separate Tier 3 task

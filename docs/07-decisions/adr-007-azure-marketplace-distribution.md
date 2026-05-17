@@ -4,7 +4,7 @@ title: 'ADR-007: Azure Marketplace Distribution Strategy'
 
 # ADR-007: Azure Marketplace Distribution Strategy
 
-**Status**: Accepted (Revised 2026-02-27). **Pricing revised by [ADR-033](adr-033-pricing-simplification.md)** — simplified to 2 plans: Standard (€79/month) and Team (€199/month). Team AI tier removed; AI included in all plans, Knowledge Base moved to Team. **Pricing further superseded 2026-05-16 by [ADR-082](adr-082-wedge-architecture.md)** — single €99/month SKU replaces €79/€199 tier split; Azure Marketplace distribution path preserved; project membership ACLs added in-app.
+**Status**: Accepted (Revised 2026-02-27). **Pricing revised by [ADR-033](../archive/adrs/adr-033-pricing-simplification.md)** — simplified to 2 plans: Standard (€79/month) and Team (€199/month). Team AI tier removed; AI included in all plans, Knowledge Base moved to Team. **Pricing further superseded 2026-05-16 by [ADR-082](adr-082-wedge-architecture.md)** — single €99/month SKU replaces €79/€199 tier split; Azure Marketplace distribution path preserved; project membership ACLs added in-app.
 
 **Date**: 2026-02-05 (Original), 2026-02-13 (Revised), 2026-02-27 (Revised)
 
@@ -27,7 +27,7 @@ This approach had several limitations:
 
 ### Revision Context (2026-02-27)
 
-Teams integration creates a natural product tier split. Quality teams need mobile gemba access (photo evidence, chart sharing, commenting on findings) and shared channel file storage. This justifies a two-plan Marketplace model: Standard (personal, browser) and Team (collaborative, Teams-integrated, AI-enhanced). See [ADR-016](../archive/adrs/adr-016-teams-integration.md) for full technical design. See [ADR-033](adr-033-pricing-simplification.md) for the pricing simplification that consolidated Team AI into Team.
+Teams integration creates a natural product tier split. Quality teams need mobile gemba access (photo evidence, chart sharing, commenting on findings) and shared channel file storage. This justifies a two-plan Marketplace model: Standard (personal, browser) and Team (collaborative, Teams-integrated, AI-enhanced). See [ADR-016](../archive/adrs/adr-016-teams-integration.md) for full technical design. See [ADR-033](../archive/adrs/adr-033-pricing-simplification.md) for the pricing simplification that consolidated Team AI into Team.
 
 ### Revision Context (2026-02-13)
 
@@ -317,5 +317,5 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 ## See Also
 
 - [Azure Marketplace Guide](../08-products/azure/marketplace.md)
-- [Pricing Tiers](../08-products/azure/pricing-tiers.md)
+- [Pricing Tiers](../archive/products/pricing-tiers.md) (archived — superseded by single €120 SKU per ADR-082)
 - [ARM Template](../08-products/azure/arm-template.md)

@@ -210,4 +210,4 @@ VariScout Process is not announced in V1 marketing. The roadmap commitment exist
 - [Philosophy](philosophy.md) — EDA for process improvement
 - [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€120) capability matrix
 - [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md) — Azure Marketplace distribution (superseded in part by ADR-082)
-- [ADR-033](../07-decisions/adr-033-pricing-simplification.md) — Pricing simplification (superseded in part by ADR-082)
+- [ADR-033](../archive/adrs/adr-033-pricing-simplification.md) — Pricing simplification (superseded by ADR-082, archived 2026-05-17)

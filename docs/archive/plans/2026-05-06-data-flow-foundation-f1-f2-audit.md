@@ -2,12 +2,16 @@
 title: F1+F2 Audit — entity / factory / persistence / store / canvas-action inventories
 audience: [engineer]
 category: implementation
-status: active
+status: archived
 last-reviewed: 2026-05-06
 related:
-  - docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2.md
+  - docs/archive/plans/2026-05-06-data-flow-foundation-f1-f2.md
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). This read-only audit document supported the F1+F2 implementation plan; the work is complete. The entity/factory/persistence inventories were valid at 2026-05-06 and are preserved here as a historical snapshot.
+>
+> **Preserved here** for institutional knowledge — the inventory pattern methodology informs future architectural audit work.
 
 # F1+F2 Audit
 

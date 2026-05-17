@@ -259,7 +259,7 @@ The path to Level 4 requires cross-project knowledge compounding. The architectu
 
 ## References
 
-- [Original VQI Evaluation (March 30)](2026-03-30-holistic-evaluation-vqi.md)
+- [Original VQI Evaluation (March 30)](../../archive/specs/2026-03-30-holistic-evaluation-vqi.md)
 - [ADR-053: Question-Driven Investigation](../../07-decisions/adr-053-question-driven-investigation.md)
 - [ADR-054: Mode-Aware Question Strategy](../../07-decisions/adr-054-mode-aware-question-strategy.md)
 - [ProAgentBench: Evaluating LLM Agents for Proactive Assistance](https://arxiv.org/html/2602.04482v1) — timing of AI interruptions research

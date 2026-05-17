@@ -1,11 +1,15 @@
 ---
 title: 'Knowledge Tab & CoScout Inline Citation Preview'
 date: 2026-04-02
-status: draft
+status: archived
 audience: [developer, designer]
 category: architecture
 related: [adr-060, adr-049, adr-057, knowledge-base, coscout, pi-panel]
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The Knowledge Tab's tier-gating (Team tier) retires under the single €99 SKU; scope narrows to project-level for V1 per wedge spec §4. Knowledge Catalyst at Hub/org scale defers to VariScout Process (named-future).
+>
+> **Preserved here** for institutional knowledge — the document shelf + inline citation mechanics are unchanged; the scope and gating decisions inform future VariScout Process product decisions (see [docs/01-vision/variscout-process/](../../01-vision/variscout-process/index.md)).
 
 > **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). Under the wedge, the Knowledge Tab scopes to **project** (not Hub) for V1. Knowledge Catalyst at Hub scale (cross-project federation, org-wide pattern memory) defers to **VariScout Process**, the future enterprise product. Tier-gating retires under single €99 SKU; visibility is determined by project-membership ACLs (Lead / Member / Sponsor per wedge spec §4). The doc management + citation preview mechanics are unchanged; only the scope changes.
 

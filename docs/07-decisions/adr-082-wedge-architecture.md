@@ -153,7 +153,7 @@ Mitigation in all three cases: the three preconditions are exactly the checks th
 - Wedge architecture spec (canonical V1 design): `docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`
 - Decision log entry: `docs/decision-log.md` 2026-05-16
 - ADR-007 (superseded in part — pricing section): `docs/07-decisions/adr-007-azure-marketplace-distribution.md`
-- ADR-033 (superseded in part — tier model): `docs/07-decisions/adr-033-pricing-simplification.md`
+- ADR-033 (superseded — tier model, archived 2026-05-17): `docs/archive/adrs/adr-033-pricing-simplification.md`
 - Coherence audit (partially superseded — Session A retires, Sessions B+C refocus): `docs/superpowers/specs/2026-05-14-variscout-coherence-design.md`
 - Projects tab design (to be amended — stage list change): `docs/superpowers/specs/2026-05-14-projects-tab-design.md`
 - ADR-080 (preserved — Sustainment auto-fire pattern): `docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md`

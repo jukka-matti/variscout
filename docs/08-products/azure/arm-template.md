@@ -437,7 +437,7 @@ The template requests only necessary permissions:
 
 - [How It Works](how-it-works.md) — end-to-end architecture guide
 - [Azure Marketplace Guide](marketplace.md)
-- [Pricing](pricing-tiers.md)
+- [Pricing](../../archive/products/pricing-tiers.md) (archived — superseded by single €120 SKU per ADR-082)
 - [Authentication](authentication.md)
 - [Admin Aino](../../02-journeys/personas/admin-aino.md) — IT Admin persona (deployment + troubleshooting)
 - [Azure ARM Template Reference](https://docs.microsoft.com/azure/azure-resource-manager/templates/)

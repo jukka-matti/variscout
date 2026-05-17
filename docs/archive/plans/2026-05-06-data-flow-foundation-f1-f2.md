@@ -2,13 +2,17 @@
 title: Data-Flow Foundation F1+F2 Implementation Plan — type-level normalization + repository pattern
 audience: [engineer]
 category: implementation
-status: active
+status: archived
 last-reviewed: 2026-05-06
 related:
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
   - docs/decision-log.md
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The F1+F2 data-flow foundation delivered per the plan; this implementation plan's work is complete and folded into main. The pre-wedge type-level normalization + repository pattern remains in force; the wedge supersedes the tier-gating and multi-persona scope assumptions.
+>
+> **Preserved here** for institutional knowledge — the F1+F2 implementation patterns and slice-4 retro learnings inform future engineering decisions.
 
 # Data-Flow Foundation F1+F2 Implementation Plan
 
@@ -916,7 +920,7 @@ Audit landed at commit before R-revisions; output at [`2026-05-06-data-flow-foun
 - **Spec:** [`docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`](../specs/2026-05-06-data-flow-foundation-design.md)
 - **Architectural foundation:** [`docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md`](../../07-decisions/adr-078-pwa-azure-architecture-alignment.md)
 - **Companion patterns:**
-  - Canvas Migration spec ([`docs/superpowers/specs/2026-05-04-canvas-migration-design.md`](../specs/2026-05-04-canvas-migration-design.md)) — discriminated-union action pattern precedent
+  - Canvas Migration spec ([`docs/archive/specs/2026-05-04-canvas-migration-design.md`](../../archive/specs/2026-05-04-canvas-migration-design.md)) — discriminated-union action pattern precedent
   - Manual Canvas Authoring spec ([`docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md`](../specs/2026-05-04-manual-canvas-authoring-design.md)) — canvas action surface that consolidates into `CanvasAction`
 - **Workflow rules:**
   - `feedback_no_backcompat_clean_architecture` — atomic refactors, required props, no optionality pollution

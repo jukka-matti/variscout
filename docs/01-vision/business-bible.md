@@ -645,5 +645,5 @@ architecture is naturally compliant.
   Distribution strategy (superseded in part by ADR-082).
 - [ADR-019](../07-decisions/adr-019-ai-integration.md) — AI integration
   decision.
-- [ADR-033](../07-decisions/adr-033-pricing-simplification.md) — Pricing
-  simplification (superseded in part by ADR-082).
+- [ADR-033](../archive/adrs/adr-033-pricing-simplification.md) — Pricing
+  simplification (superseded by ADR-082, archived 2026-05-17).
