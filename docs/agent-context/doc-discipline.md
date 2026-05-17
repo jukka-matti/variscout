@@ -63,13 +63,15 @@ Each principle maps to mechanical enforcement (Play 2b):
 
 For design specs (`docs/superpowers/specs/` and equivalents), `status:` reflects reality:
 
-| Status       | Meaning                                          | Body update pattern                                                         |
-| ------------ | ------------------------------------------------ | --------------------------------------------------------------------------- |
-| `draft`      | Designing; not yet building                      | Edit freely. `last-verified` discipline starts at `active`.                 |
-| `active`     | Designed; build underway                         | Edit in place when intent changes. Bump `last-verified`.                    |
-| `delivered`  | Shipped; `delivered-by: PR #N` set               | Body describes current state of shipped feature. Edit when feature evolves. |
-| `superseded` | Replaced by another spec via `supersedes:` chain | Frozen. Redirect banner at top pointing to successor.                       |
-| `archived`   | Historical reference only                        | Frozen. Moved to `docs/archive/`. Not cited from canonical surfaces.        |
+| Status         | Meaning                                                                                                                                 | Body update pattern                                                                                                                                                                 |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `draft`        | Designing; not yet building                                                                                                             | Edit freely. `last-verified` discipline starts at `active`.                                                                                                                         |
+| `active`       | Designed; build underway                                                                                                                | Edit in place when intent changes. Bump `last-verified`.                                                                                                                            |
+| `named-future` | Aspirational / conditional commitment (e.g., contingent on customer-validation milestone or future product line). Not in active design. | Edit when the future intent itself changes. Promote to `active` when the conditional trigger fires. Example: VariScout Process docs (named-future contingent on 500+ V1 customers). |
+| `superseded`   | Replaced by another spec via `supersedes:` chain                                                                                        | Frozen. Redirect banner at top pointing to successor.                                                                                                                               |
+| `archived`     | Historical reference only                                                                                                               | Frozen. Moved to `docs/archive/`. Not cited from canonical surfaces.                                                                                                                |
+
+> **Note on `delivered`**: this is a soft state signalled by `delivered-by: PR #N` frontmatter, not a `status:` enum value. A spec stays `status: active` after shipping; the `delivered-by` field marks delivery + the body updates to describe shipped state (current intent).
 
 Transitions are explicit + auditable (frontmatter diff is the signal).
 

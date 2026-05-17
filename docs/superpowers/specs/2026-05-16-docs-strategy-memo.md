@@ -41,7 +41,7 @@ Industry frameworks (Diátaxis, Google's engineering-practices model) are human-
 
 - **Phase A** (~3h) — Quick wins: 4 of Agent 2's 8 consolidation moves (wedge content collapse, OVERVIEW compression, methodology clarification, business-bible cross-links). Zero-infra warm-up before structural moves.
 
-1. **Velocity-tier restructure** (3d) — `git mv` to tier folders + schema collapse (22→4 STATUS, 18→tags, 14→3 AUDIENCE); fossil archive batch
+1. **Velocity-tier restructure** (3d) — `git mv` to tier folders + schema collapse (22→5 STATUS including named-future, 18→tags, 14→3 AUDIENCE); fossil archive batch
 2. **Cards & Discipline** (2w total; split shipped) — Play **2b (SSoT discipline by doc type)** can ship now safe-parallel (validator forbidding `*-amendment-*.md`; `doc-discipline.md` convention; lifecycle state enforcement). Plays **2a + 2c + 2d + 2e** (atomic decomposition + `pnpm docs:*` toolbox + `docs-toolbox` skill + `/docs-steward` loop) blocked on Play 1b substrate.
 3. **Skills inventory build-out** (3d + ongoing) — expand from 2 to **18+** task-typed skills, **with Tier 1 agent-context essentials first** (`agent-context-quickstart`, `package-router`, `store-state-glossary`) to close the 4% gap immediately
 4. **One canonical per concept** (1w) — execute remaining 4 of Agent 2's 8 moves; tier-philosophy archive; USER-JOURNEYS variant `inherits-from:` lineage; mis-housed folder refactors (08-products split, 06-design-system split)

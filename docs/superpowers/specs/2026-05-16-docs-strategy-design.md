@@ -71,7 +71,7 @@ Tier drives **lifecycle and maintenance cadence**.
 purpose: orient | decide | design | build | system | constrain | agent-context | remember
 tier: stable | living | ephemeral | card
 topic: [<kebab-tags>] # ux, ax, coscout, canvas, stats, etc. — free-form
-status: draft | active | superseded | archived
+status: draft | active | named-future | superseded | archived
 audience: human | agent | both
 # operational
 last-verified: YYYY-MM-DD
@@ -82,7 +82,7 @@ related: [<id>]
 
 **Collapse from current schema**:
 
-- 22 STATUS enums → **4** (`draft, active, superseded, archived`). Most of the 22 are aspirational distinctions never used.
+- 22 STATUS enums → **5** (`draft, active, named-future, superseded, archived`). Most of the 22 were aspirational distinctions never used; `named-future` earned its keep — used by VariScout Process docs (aspirational future product line contingent on V1 customer validation).
 - 18 CATEGORY enums → **free-form `topic` tags**. Enums lock you into a 2024 ontology; tags evolve.
 - 14 AUDIENCE enums → **3** (`human, agent, both`). You have one external audience: you + your subagents.
 - 11 numbered folders → **3 velocity-tier folders + cards/** (see §2.5).
@@ -408,7 +408,7 @@ New canonical `docs/living/design/coscout-ax-design.md` with `topic: [ax, coscou
 | Week  | Phase / Plays                                         | Effort     | Status                      | Output                                                                                                               |
 | ----- | ----------------------------------------------------- | ---------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | **0** | **Phase A quick wins**                                | ~3 hours   | ✅ SHIPPED                  | Wedge content consolidated; zero-infra warm-up                                                                       |
-| 1     | Play 1a (foundation artifacts + schema collapse)      | 1 day      | ✅ SHIPPED                  | Memo + spec + ADR-083; 22→4 STATUS; alias maps; frontmatter backfill                                                 |
+| 1     | Play 1a (foundation artifacts + schema collapse)      | 1 day      | ✅ SHIPPED                  | Memo + spec + ADR-083; 22→5 STATUS; alias maps; frontmatter backfill                                                 |
 | 1     | Play 1b (521-doc folder restructure)                  | 2 days     | ⏸ DEFERRED                  | `git mv` to `docs/stable/` + `docs/living/<purpose>/` + `docs/cards/`. Wait for quiet wedge window.                  |
 | 1     | **Play 2b (SSoT discipline by doc type)**             | ~2 days    | 🟡 **NEXT (safe-parallel)** | Validator forbidding `*-amendment-*.md`; `doc-discipline.md` convention; lifecycle state enforcement. **Ship now.**  |
 | 1–3   | Play 2 (2a + 2c + 2d + 2e: cards + toolbox + steward) | ~1.5 weeks | ⏸ DEFERRED                  | Blocked on Play 1b substrate + quiet repo (decomposing decision-log while wedge amends it = constant rework).        |
