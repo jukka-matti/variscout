@@ -115,6 +115,8 @@ All 5 RPS paths live (Quick Action / Wall Detective / IP / Sustainment / Handoff
 
 ## §3 Persona model (Sessions A + C locked)
 
+> **⚠️ SUPERSEDED 2026-05-16 for V1** — Session A's 4-persona model retires for VariScout V1 per [wedge spec §3.5](2026-05-16-wedge-architecture-design.md#35-persona-collapse). V1 ships with a single Specialist persona; the 4-persona design moves to VariScout Process (named-future). The substance of §3 (personas, RACI orthogonality, evidence affinities, persona-aware onboarding, cross-persona handoffs) is preserved as design heritage for the Process product capture at [`docs/01-vision/variscout-process/four-personas.md`](../../01-vision/variscout-process/four-personas.md). **For V1 access model, see [membership-philosophy.md](../../08-products/membership-philosophy.md) (Lead / Member / Sponsor ACL).**
+
 ### Four product-user personas
 
 | #   | Persona           | Primary verb         | Default landing                       | Tier story                                              | Evidence type (Constitution P7) |
