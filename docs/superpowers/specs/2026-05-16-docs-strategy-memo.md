@@ -2,6 +2,7 @@
 title: 'VariScout Docs Strategy 2026 — Memo'
 status: active
 date: 2026-05-16
+last-verified: 2026-05-17
 purpose: orient
 tier: stable
 audience: both
@@ -17,7 +18,7 @@ _CTO summary. Full design: [2026-05-16-docs-strategy-design.md](2026-05-16-docs-
 
 ## What we're changing
 
-VariScout's docs scale-friction problem is **over-discipline at the metadata layer, under-discipline at the lifecycle layer**. We're flipping that: collapse the metadata schema, decompose the actual bloat sources, expose retrieval as a skill, replace batch audits with a steward loop, expand the AX-dev surface (skills) to 2026 conventions.
+VariScout's docs scale-friction problem is **over-discipline at the metadata layer, under-discipline at the lifecycle layer**. We're flipping that: collapse the metadata schema, decompose the actual bloat sources, expose retrieval as a skill, replace batch audits with a steward loop, expand the AX-dev surface (skills) to 2026 conventions, and **codify single-source-of-truth discipline by doc type** (full design §2.7) — design specs edit-in-place, ADRs amendment-block-at-bottom, decision-log append-only — mechanically enforced via validator (no `*-amendment-*.md` orphan files).
 
 ## Diagnosis (from the brainstorm audit)
 
@@ -41,7 +42,7 @@ Industry frameworks (Diátaxis, Google's engineering-practices model) are human-
 - **Phase A** (~3h) — Quick wins: 4 of Agent 2's 8 consolidation moves (wedge content collapse, OVERVIEW compression, methodology clarification, business-bible cross-links). Zero-infra warm-up before structural moves.
 
 1. **Velocity-tier restructure** (3d) — `git mv` to tier folders + schema collapse (22→4 STATUS, 18→tags, 14→3 AUDIENCE); fossil archive batch
-2. **Cards & Threads** (2w) — atomic decomposition of decision-log/MEMORY/investigations; addendum threads on living docs; `pnpm docs:*` toolbox; `docs-toolbox` skill; `/docs-steward` loop
+2. **Cards & Discipline** (2w total; split shipped) — Play **2b (SSoT discipline by doc type)** can ship now safe-parallel (validator forbidding `*-amendment-*.md`; `doc-discipline.md` convention; lifecycle state enforcement). Plays **2a + 2c + 2d + 2e** (atomic decomposition + `pnpm docs:*` toolbox + `docs-toolbox` skill + `/docs-steward` loop) blocked on Play 1b substrate.
 3. **Skills inventory build-out** (3d + ongoing) — expand from 2 to **18+** task-typed skills, **with Tier 1 agent-context essentials first** (`agent-context-quickstart`, `package-router`, `store-state-glossary`) to close the 4% gap immediately
 4. **One canonical per concept** (1w) — execute remaining 4 of Agent 2's 8 moves; tier-philosophy archive; USER-JOURNEYS variant `inherits-from:` lineage; mis-housed folder refactors (08-products split, 06-design-system split)
 5. **Telemetry + 90-day archive cohort** (2d) — toolbox skill logs queries; auto-prune unread cohort
@@ -62,7 +63,8 @@ Industry frameworks (Diátaxis, Google's engineering-practices model) are human-
 - `.claude/rules/` (rename to `.claude/invariants/` for purpose clarity)
 - ~2000 words of decision-log Wedge entry duplication (collapses to cite ADR-082)
 - ~300 words of OVERVIEW.md methodology recap (compresses to 2 sentences + cross-link)
-- "⚠️ PARTIALLY SUPERSEDED" prefixes → dated amendment threads
+- Orphan `*-amendment-design.md` side-spec files → edit canonical in place + decision-log entry (validator HARD-FAILs filename anti-pattern)
+- "⚠️ PARTIALLY SUPERSEDED" prefixes on canonical specs → spec body edited in place + supersession captured in decision-log + frontmatter
 - `llms.txt` as static catalog → routing skill (Play 2d)
 - Phase C audit as future project → Steward as weekly habit
 - Specific fossils: `09-baseline/`, `tier-philosophy.md`, `10-development/project-status-audit-2026-04-16.md`, `03-features/learning/glossary.md`
