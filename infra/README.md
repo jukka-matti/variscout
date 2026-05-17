@@ -1,6 +1,6 @@
 # Azure Infrastructure Deployment
 
-This directory contains the Infrastructure as Code (IaC) for the VariScout Azure Team App, deployed as an Azure Marketplace Managed Application.
+This directory contains the Infrastructure as Code (IaC) for the VariScout Azure App, deployed as an Azure Marketplace Managed Application (single SKU, €120/month).
 
 ## Contents
 
@@ -26,8 +26,8 @@ infra/
 │   ├── app-service.bicep       # App Service Plan + Web App + EasyAuth
 │   ├── ai-services.bicep       # Azure AI Foundry (OpenAI) + model deployments
 │   ├── key-vault.bicep         # Key Vault + RBAC authorization
-│   ├── search.bicep            # Azure AI Search (Team plan)
-│   └── functions.bicep         # Function App for OBO token exchange (Team plan)
+│   ├── search.bicep            # Azure AI Search module
+│   └── functions.bicep         # Function App for OBO token exchange
 ├── mainTemplate.json           # Compiled output (auto-generated, do not edit)
 ├── createUiDefinition.json     # Marketplace deployment wizard
 └── functions/                  # Azure Functions source code
@@ -76,8 +76,7 @@ This produces the `mainTemplate.json` required by Azure Marketplace packaging.
      --parameters \
        appName=variscout \
        clientId=<app-reg-client-id> \
-       clientSecret=<app-reg-secret> \
-       variscoutPlan=standard
+       clientSecret=<app-reg-secret>
    ```
 
    Alternatively, deploy the compiled ARM template:
@@ -95,9 +94,10 @@ This produces the `mainTemplate.json` required by Azure Marketplace packaging.
 - **EasyAuth (Azure AD):** App Service Authentication with Azure AD sign-in.
 - **App Service Plan:** B1 Basic Linux plan.
 - **Key Vault:** Secure storage for client secret and API keys.
-- **Azure AI Services:** AI Foundry (OpenAI) with model deployments (all plans).
-- **Azure AI Search (Team plan only):** Knowledge Base search.
-- **Function App (Team plan only):** OBO token exchange for Teams silent SSO.
+- **Azure AI Services:** AI Foundry (OpenAI) with model deployments.
+- **Azure AI Search:** Knowledge Base search.
+- **Blob Storage:** Project sync.
+- **Function App:** OBO token exchange for Teams silent SSO.
 
 ## Function App
 
@@ -107,7 +107,7 @@ The `functions/` directory contains an Azure Function that exchanges a Teams SSO
 **Security:** Validates the incoming JWT's `aud` claim matches `CLIENT_ID` before exchanging.
 **Dependencies:** `@azure/msal-node` (installed via `npm install` in `functions/`).
 
-The Function App is provisioned by the Bicep template (conditional on Team plan) and deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME` is configured.
+The Function App is provisioned by the Bicep template and deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME` is configured.
 
 ## Fresh Deployment Notes
 

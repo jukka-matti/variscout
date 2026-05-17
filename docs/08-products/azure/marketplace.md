@@ -56,7 +56,7 @@ Azure Application > Managed Application
 ├── Customer has full access to deployed resources
 ├── Publisher management DISABLED (zero access)
 ├── Microsoft handles billing (3% fee)
-└── Two plans: Standard €79/month, Team €199/month
+└── Single plan: VariScout Azure €120/month
 ```
 
 **Why Managed Application (not Solution Template):**
@@ -92,28 +92,26 @@ See [ARM Template Documentation](arm-template.md) for the full template.
 
 ## Pricing Configuration
 
-### Two Plans
+### Single Plan
 
-| Plan ID    | Display Name       | Price (EUR) | Billing |
-| ---------- | ------------------ | ----------- | ------- |
-| `standard` | VariScout Standard | €79         | Monthly |
-| `team`     | VariScout Team     | €199        | Monthly |
+| Plan ID     | Display Name    | Price (EUR) | Billing |
+| ----------- | --------------- | ----------- | ------- |
+| `azure-app` | VariScout Azure | €120        | Monthly |
 
 ### Price Breakdown
 
 ```
-Standard:       €79/month  → Net €76.63/month  (€920/year)
-Team:           €199/month → Net €193.03/month (€2,316/year)
-Microsoft Fee:  3% on each plan
+VariScout Azure:  €120/month → Net €116.40/month (€1,397/year)
+Microsoft Fee:    3%
 ```
 
 ### Regional Pricing
 
 Partner Center supports per-region pricing. Recommended approach:
 
-- **EUR zone**: €79 / €199 per month
-- **USD zone**: $87 / $219 per month
-- **GBP zone**: £68 / £170 per month
+- **EUR zone**: €120 per month
+- **USD zone**: $132 per month
+- **GBP zone**: £102 per month
 
 Microsoft handles currency conversion and VAT.
 
@@ -158,7 +156,7 @@ Analyze hundreds of measurement channels simultaneously:
 **No Backend Required**
 
 - Deploys entirely to your Azure tenant
-- Standard: Data stored locally in browser. Team: Syncs to customer-tenant Blob Storage
+- Data syncs to customer-tenant Blob Storage
 - Zero external API calls
 - Local-cache capable after initial load
 
@@ -171,8 +169,7 @@ Analyze hundreds of measurement channels simultaneously:
 
 ### Pricing
 
-**Standard — €79/month** — Full analysis with AI-assisted CoScout, unlimited users in your tenant.
-**Team — €199/month** — Everything in Standard, plus shared Process Hubs, Blob sync, Knowledge Base & Catalyst, and photo evidence.
+**€120/month** — Full analysis with CoScout AI, Process Hubs + Blob sync, Knowledge Base, photo evidence. Unlimited users per Azure tenant.
 
 ### Integration
 
@@ -188,7 +185,7 @@ before upgrading to the full Azure App for professional team investigations.
 4. Boxplot Comparison - Category comparison
 5. Pareto Chart - Improvement prioritization
 6. Drill-Down Navigation - Filter breadcrumbs
-7. Process Hub / Blob Sync - Analysis saving (Team plan)
+7. Process Hub / Blob Sync - Analysis saving
 
 ### Videos (Optional but Recommended)
 
@@ -202,10 +199,9 @@ before upgrading to the full Azure App for professional team investigations.
 
 ### Plan Visibility
 
-| Plan     | Visibility | Audience            |
-| -------- | ---------- | ------------------- |
-| Standard | Public     | All Azure customers |
-| Team     | Public     | All Azure customers |
+| Plan            | Visibility | Audience            |
+| --------------- | ---------- | ------------------- |
+| VariScout Azure | Public     | All Azure customers |
 
 ---
 
@@ -218,7 +214,7 @@ before upgrading to the full Azure App for professional team investigations.
 - [ ] createUiDefinition.json renders correctly in sandbox
 - [ ] App deploys without errors from marketplace flow
 - [ ] EasyAuth authentication works post-deployment
-- [ ] Blob sync works (save/load analyses) — Team plan only
+- [ ] Blob sync works (save/load analyses)
 - [ ] Privacy policy URL accessible
 - [ ] Terms of service URL accessible
 - [ ] Support contact information complete
@@ -270,7 +266,6 @@ before upgrading to the full Azure App for professional team investigations.
 ## See Also
 
 - [How It Works](how-it-works.md) — end-to-end architecture guide
-- [Pricing Tiers](pricing-tiers.md)
 - [ARM Template](arm-template.md)
 - [Authentication](authentication.md)
 - [Partner Center Documentation](https://docs.microsoft.com/partner-center/)

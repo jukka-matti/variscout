@@ -19,7 +19,7 @@ related:
   - docs/decision-log.md
 supersedes:
   - adr-007-azure-marketplace-distribution.md (in part — single SKU replaces tiered model)
-  - adr-033-pricing-simplification.md (in part — €99 single tier replaces €79/€199 split)
+  - adr-033-pricing-simplification.md (in part — €120 single tier replaces €79/€199 split)
   - 2026-05-14-variscout-coherence-design.md (Session A retires for V1; Session B nav amends; Session C refocuses)
 ---
 
@@ -46,7 +46,7 @@ This spec **partially supersedes** ADR-007 (distribution), ADR-033 (pricing tier
 | Collaboration     | Project Lead invites org users _per project_                | Tenant-wide with persona routing               |
 | Data ingestion    | Manual paste + file upload                                  | Auto pipelines feeding Hub-level storage       |
 | Persona model     | One — Specialist (with member-roles within projects)        | Process Owner / Project Lead / SME / Frontline |
-| Pricing           | **€99/month**, single SKU, Azure-tenant-wide                | TBD — separate product                         |
+| Pricing           | **€120/month**, single SKU, Azure-tenant-wide               | TBD — separate product                         |
 | Distribution      | Azure Marketplace Managed Application + in-app project ACLs | TBD                                            |
 | Privacy boundary  | Project-scoped membership (Azure AD tenant only)            | Tenant-wide with role-based access             |
 
@@ -320,9 +320,11 @@ Single tier means no `isPaidTier()` / `hasTeamFeatures()` branches. The ~28 file
 
 ### §5.1 Single SKU
 
-**€99/month per Azure tenant.** Unlimited org users, unlimited projects.
+**€120/month per Azure tenant.** Unlimited org users, unlimited projects.
 
-Supersedes ADR-033's €79 Standard + €199 Team split. Honors ADR-033's strategic hypothesis H6 ("per-deployment beats per-seat") — €99 is still per-deployment.
+> **[Price amended 2026-05-17: €99 → €120/month]** The original spec said €99; revised upward to €120 before any customer exposure. All downstream surfaces (marketplace.md, README, .env.example) updated in PR-WV1-6.
+
+Supersedes ADR-033's €79 Standard + €199 Team split. Honors ADR-033's strategic hypothesis H6 ("per-deployment beats per-seat") — €120 is still per-deployment.
 
 ### §5.2 Distribution — Azure Marketplace Managed Application
 
@@ -339,8 +341,8 @@ The PWA tier (free, browser-only, session-only storage, no file upload) remains.
 Existing customers on €79 Standard or €199 Team need a migration path. Options to be modeled (see §8.1):
 
 - **Grandfather existing customers** at their current price for N months
-- **Upgrade €79 → €99** (price increase; low churn risk per industry norms but real)
-- **Downgrade €199 → €99** (price decrease; significant revenue impact per affected account — needs financial sensitivity)
+- **Upgrade €79 → €120** (price increase; real churn risk — sensitivity check required)
+- **Downgrade €199 → €120** (price decrease; significant revenue impact per affected account — needs financial sensitivity)
 - **Sunset window** with one-time conversion offer
 
 The migration economics are a precondition (§8) — to be settled before engineering work commits.
@@ -407,9 +409,9 @@ These are strategic checks the business needs to clear _before_ engineering comm
 
 ### §8.1 Migration math (30-minute exercise)
 
-Model: what % of current revenue is €79 Standard accounts vs €199 Team accounts? What's the churn risk on €79 → €99 (price increase, real but small) vs €199 → €99 (price decrease, real revenue hit per account)? Pick a grandfathering window option.
+Model: what % of current revenue is €79 Standard accounts vs €199 Team accounts? What's the churn risk on €79 → €120 (price increase, real) vs €199 → €120 (price decrease, real revenue hit per account)? Pick a grandfathering window option.
 
-If the financial sensitivity is bad enough, the wedge needs adjustment (e.g., €129 single SKU, or grandfather forever, or stage the transition).
+If the financial sensitivity is bad enough, the wedge needs adjustment (e.g., grandfather forever, or stage the transition).
 
 ### §8.2 Azure AD invitation constraint — accepted as feature
 
@@ -432,13 +434,13 @@ This spec partially supersedes three prior specs/ADRs.
 ### §9.1 ADR-007 (Azure Marketplace distribution) — superseded in part
 
 **Stays:** Azure Marketplace Managed Application as the distribution path.
-**Changes:** Tiered SKU model (Standard + Team) → single €99 SKU + project membership ACLs.
+**Changes:** Tiered SKU model (Standard + Team) → single €120 SKU + project membership ACLs.
 **Marker:** Add `## Amendment — 2026-05-16` block referencing this spec.
 
 ### §9.2 ADR-033 (Pricing simplification) — superseded in part
 
 **Stays:** Strategic hypothesis H6 ("per-deployment beats per-seat") is honored.
-**Changes:** €79/€199 tier split → single €99 SKU. PWA stays free.
+**Changes:** €79/€199 tier split → single €120 SKU. PWA stays free.
 **Marker:** Add `## Amendment — 2026-05-16` block referencing this spec.
 
 ### §9.3 Coherence audit (2026-05-14) — partial supersession ("Coherence V2")

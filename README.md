@@ -44,7 +44,7 @@ pnpm build           # Build all packages
 ```
 variscout-lite/
 ├── packages/
-│   ├── core/          # @variscout/core - Stats, parser, tier (pure TypeScript)
+│   ├── core/          # @variscout/core - Stats, parser (pure TypeScript)
 │   ├── charts/        # @variscout/charts - Props-based Visx chart components
 │   ├── data/          # @variscout/data - Sample datasets with pre-computed chart data
 │   ├── hooks/         # @variscout/hooks - Shared React hooks
@@ -52,7 +52,7 @@ variscout-lite/
 ├── apps/
 │   ├── pwa/           # PWA website (mobile + desktop)
 │   ├── website/       # Marketing website (Astro + React Islands)
-│   └── azure/         # Azure Team App (EasyAuth, OneDrive sync)
+│   └── azure/         # Azure App (single SKU, EasyAuth, Blob sync)
 └── docs/              # Documentation (see table above)
 ```
 
@@ -61,16 +61,15 @@ variscout-lite/
 - **Three-Chart Dashboard**: I-Chart, Boxplot, and Pareto with linked filtering
 - **Process Capability**: Cp, Cpk indices and conformance metrics
 - **Offline-First**: Full PWA support, works without internet
-- **Multi-Platform**: PWA, Azure Team App
+- **Multi-Platform**: PWA, Azure App
 - **Privacy-First**: 100% browser-based, no data leaves your device
 
 ## Products & Pricing
 
-| Product            | Distribution      | Price      | Features                                                      |
-| ------------------ | ----------------- | ---------- | ------------------------------------------------------------- |
-| **Web App (PWA)**  | Public URL        | Free       | Training & education, core analysis, paste-only               |
-| **Azure Standard** | Azure Marketplace | €79/month  | Full analysis with CoScout AI, local file storage             |
-| **Azure Team**     | Azure Marketplace | €199/month | + Teams, OneDrive, SharePoint, Knowledge Base, mobile, photos |
+| Product           | Distribution      | Price      | Features                                                                           |
+| ----------------- | ----------------- | ---------- | ---------------------------------------------------------------------------------- |
+| **Web App (PWA)** | Public URL        | Free       | Training & education, core analysis, paste-only                                    |
+| **Azure App**     | Azure Marketplace | €120/month | Full analysis, CoScout AI, Process Hubs, Blob sync, Knowledge Base, photo evidence |
 
 ## Contributing
 
