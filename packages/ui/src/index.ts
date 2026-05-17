@@ -24,7 +24,6 @@ export {
 export { StageFiveModal, type StageFiveModalProps } from './components/StageFiveModal';
 export { SelectionPanel, type SelectionPanelProps } from './components/SelectionPanel';
 export { CreateFactorModal, type CreateFactorModalProps } from './components/CreateFactorModal';
-export { UpgradePrompt, type UpgradePromptProps } from './components/UpgradePrompt';
 export { AnovaResults, type AnovaResultsProps } from './components/AnovaResults';
 export {
   YAxisPopover,
@@ -38,7 +37,7 @@ export {
   performanceSetupPanelPwaColorScheme,
   type PerformanceSetupPanelBaseProps,
   type PerformanceSetupPanelColorScheme,
-  type PerformanceSetupPanelTierProps,
+  type PerformanceSetupPanelChannelLimitProps,
   type ChannelValidation,
 } from './components/PerformanceSetupPanel';
 export type { FilterChipData } from './components/filterTypes';
