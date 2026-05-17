@@ -19,7 +19,6 @@ import { EvidenceMapWindow } from './pages/EvidenceMapWindow';
 import { AppHeader } from './components/AppHeader';
 import { Activity } from 'lucide-react';
 import { parseDeepLink, validateDeepLink, type DeepLinkParams } from './services/deepLinks';
-import { hasTeamFeatures } from '@variscout/core';
 import { trackException } from './lib/appInsights';
 import type { SampleDataset } from '@variscout/data';
 
@@ -217,8 +216,7 @@ function AppContent({
     listProjects()
       .then(projects => {
         const projectExists = (id: string) => projects.some(p => p.id === id || p.name === id);
-        const isStandard = !hasTeamFeatures();
-        const validation = validateDeepLink(deepLink, projectExists, isStandard);
+        const validation = validateDeepLink(deepLink, projectExists);
 
         if (!validation.valid) {
           setDeepLinkError(validation.errorMessage ?? 'Project not found.');

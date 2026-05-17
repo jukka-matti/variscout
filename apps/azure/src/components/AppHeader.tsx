@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { hasTeamFeatures } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { IPContextChip, useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import {
@@ -234,18 +233,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Right: panel toggles + settings */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {/* Sync icon on phone — Team plan only */}
-          {hasTeamFeatures() && (
-            <div
-              className={`flex-shrink-0 ${syncColor}`}
-              title={syncStatus.message || syncStatus.status}
-            >
-              <SyncIcon
-                size={16}
-                className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
-              />
-            </div>
-          )}
+          {/* Sync icon on phone */}
+          <div
+            className={`flex-shrink-0 ${syncColor}`}
+            title={syncStatus.message || syncStatus.status}
+          >
+            <SyncIcon
+              size={16}
+              className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
+            />
+          </div>
           {hasData && onTogglePISidebar && (
             <button
               onClick={onTogglePISidebar}
@@ -375,32 +372,31 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   : syncStatus.message || syncStatus.status
           }
         />
-        {/* Sync status label — Team plan only */}
-        {hasTeamFeatures() &&
-          (syncStatus.status === 'error' ? (
-            <button
-              onClick={() => {
-                window.location.href = '/.auth/login/aad';
-              }}
-              className={`flex items-center gap-1 text-xs ${syncColor} hover:text-red-300 transition-colors`}
-              title={t('error.auth')}
-            >
-              <SyncIcon size={14} />
-              <span className="underline underline-offset-2">
-                {syncStatus.message || t('error.auth')}
-              </span>
-            </button>
-          ) : (
-            <div className={`flex items-center gap-1 text-xs ${syncColor}`}>
-              <SyncIcon
-                size={14}
-                className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
-              />
-              <span className="text-content-secondary">
-                {syncStatus.message || syncStatus.status}
-              </span>
-            </div>
-          ))}
+        {/* Sync status label */}
+        {syncStatus.status === 'error' ? (
+          <button
+            onClick={() => {
+              window.location.href = '/.auth/login/aad';
+            }}
+            className={`flex items-center gap-1 text-xs ${syncColor} hover:text-red-300 transition-colors`}
+            title={t('error.auth')}
+          >
+            <SyncIcon size={14} />
+            <span className="underline underline-offset-2">
+              {syncStatus.message || t('error.auth')}
+            </span>
+          </button>
+        ) : (
+          <div className={`flex items-center gap-1 text-xs ${syncColor}`}>
+            <SyncIcon
+              size={14}
+              className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
+            />
+            <span className="text-content-secondary">
+              {syncStatus.message || syncStatus.status}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ── Separator ── */}

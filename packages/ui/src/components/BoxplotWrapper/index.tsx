@@ -7,7 +7,7 @@
  * - Computes category positions via useBoxplotWrapperData
  * - Manages axis editor state
  * - Renders BoxplotBase + ChartAnnotationLayer + AxisEditor
- * - Tier-aware branding via shouldShowBranding()
+ * - Optional branding via showBranding prop (apps decide; default off)
  *
  * Each app keeps a thin wrapper that calls useData() + useChartScale()
  * and spreads the result as props.
@@ -15,7 +15,7 @@
 import React, { useState } from 'react';
 import { BoxplotBase, getScaledFonts, chartColors } from '@variscout/charts';
 import { useBoxplotData, useBoxplotWrapperData } from '@variscout/hooks';
-import { sortBoxplotData, shouldShowBranding, getBrandingText } from '@variscout/core';
+import { sortBoxplotData } from '@variscout/core';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
 import { AxisEditor } from '../AxisEditor';
 import type { DataRow, SpecLimits, Finding } from '@variscout/core';
@@ -54,8 +54,10 @@ export interface BoxplotWrapperBaseProps {
   yDomainMax: number;
   /** Drill-down callback (overrides filter toggle when provided) */
   onDrillDown?: (factor: string, value: string) => void;
-  /** Override branding display (undefined = auto-detect via tier) */
+  /** Render the VariScout source-bar branding when true. Defaults to false. */
   showBranding?: boolean;
+  /** Branding text (only used when showBranding=true). Defaults to "VariScout Lite". */
+  brandingText?: string;
   /** Annotation highlights */
   highlightedCategories?: Record<string, HighlightColor>;
   /** Context menu callback for annotations */
@@ -92,6 +94,7 @@ export const BoxplotWrapperBase = ({
   yDomainMax,
   onDrillDown,
   showBranding: showBrandingProp,
+  brandingText: brandingTextProp,
   highlightedCategories,
   onContextMenu,
   findings = [],
@@ -147,7 +150,8 @@ export const BoxplotWrapperBase = ({
 
   const alias = columnAliases[factor] || factor;
   const factorLabels = valueLabels[factor] || {};
-  const showBranding = showBrandingProp ?? shouldShowBranding();
+  const showBranding = showBrandingProp ?? false;
+  const brandingText = brandingTextProp ?? 'VariScout Lite';
   const selectedGroups = (filters[factor] || []).map(String);
   const fonts = getScaledFonts(parentWidth);
 
@@ -167,7 +171,7 @@ export const BoxplotWrapperBase = ({
         parentWidth={parentWidth}
         parentHeight={parentHeight}
         showBranding={showBranding}
-        brandingText={showBranding ? getBrandingText() : undefined}
+        brandingText={showBranding ? brandingText : undefined}
         onYAxisClick={() => setIsEditingLabel(true)}
         onXAxisClick={() => setIsEditingLabel(true)}
         xTickFormat={(val: string) => factorLabels[val] || val}

@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/refs -- fileInputRef is passed via dataFlow prop, accessed in event handlers only */
 import React from 'react';
-import { Upload, FileText, PenLine, ClipboardPaste, Database, RefreshCw } from 'lucide-react';
-import { hasTeamFeatures } from '@variscout/core';
+import { FileText, PenLine, ClipboardPaste, Database, RefreshCw } from 'lucide-react';
 import { SAMPLES } from '@variscout/data';
 import { FileBrowseButton, type FilePickerResult } from '../FileBrowseButton';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
@@ -56,28 +55,16 @@ export const EditorEmptyState: React.FC<EditorEmptyStateProps> = ({
         />
 
         <div className="flex flex-col sm:flex-row gap-3 mb-8">
-          {hasTeamFeatures() ? (
-            <>
-              <FileBrowseButton
-                mode="files"
-                filters={['.csv', '.xlsx', '.xls']}
-                onPick={onSharePointFileImport}
-                onLocalFile={file => dataFlow.handleFile(file)}
-                label="Open from SharePoint"
-                localLabel="Browse this device"
-                showLocalFallback={true}
-                size="md"
-              />
-            </>
-          ) : (
-            <button
-              onClick={dataFlow.triggerFileUpload}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              <Upload size={20} />
-              Upload File
-            </button>
-          )}
+          <FileBrowseButton
+            mode="files"
+            filters={['.csv', '.xlsx', '.xls']}
+            onPick={onSharePointFileImport}
+            onLocalFile={file => dataFlow.handleFile(file)}
+            label="Open from SharePoint"
+            localLabel="Browse this device"
+            showLocalFallback={true}
+            size="md"
+          />
 
           <button
             onClick={() => dataFlow.startPaste()}

@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { FindingsPanelBase, type FindingsPanelBaseProps } from '@variscout/ui';
 import type { FindingAssignee, FindingSource } from '@variscout/core';
-import { hasTeamFeatures } from '@variscout/core';
 import { AssigneeInput } from './AssigneeInput';
 import { getEasyAuthUser } from '../auth/easyAuth';
 import { isSpeechToTextAvailable, transcribeAudio } from '../services/speechService';
@@ -92,7 +91,7 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
       onAssignFinding={onSetFindingAssignee ? handleAssignFinding : undefined}
       renderAssignSlot={onSetFindingAssignee ? renderAssignSlot : undefined}
       onNavigateToChart={onNavigateToChart}
-      renderActionAssigneePicker={hasTeamFeatures() ? renderActionAssigneePicker : undefined}
+      renderActionAssigneePicker={renderActionAssigneePicker}
       currentUserUpn={currentUserUpn}
       voiceInput={voiceInput}
     />

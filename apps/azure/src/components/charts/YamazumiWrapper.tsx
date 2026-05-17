@@ -5,7 +5,6 @@ import React from 'react';
 import { YamazumiChartBase } from '@variscout/charts';
 import type { YamazumiBarData } from '@variscout/core';
 import type { HighlightColor } from '@variscout/charts';
-import { isPaidTier } from '@variscout/core';
 
 interface YamazumiWrapperProps {
   data: YamazumiBarData[];
@@ -38,7 +37,7 @@ const YamazumiWrapper: React.FC<YamazumiWrapperProps> = ({
       onBarClick={onBarClick}
       onBarContextMenu={onBarContextMenu}
       highlightedBars={highlightedBars}
-      showBranding={!isPaidTier()}
+      showBranding={false}
     />
   );
 };

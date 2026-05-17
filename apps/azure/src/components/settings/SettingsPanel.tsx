@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FolderOpen, ExternalLink, LogOut, Shield } from 'lucide-react';
 import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge, useTheme } from '@variscout/ui';
-import { hasTeamFeatures, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
+import { isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { useProjectStore, usePreferencesStore } from '@variscout/stores';
 import ThemeToggle from './ThemeToggle';
 import { isAIAvailable } from '../../services/aiService';
@@ -225,119 +225,117 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               )}
             </div>
           )}
-          {hasTeamFeatures() && (
-            <div className="space-y-3 pt-3 border-t border-edge">
-              <h3 className="text-xs font-semibold text-content-secondary uppercase tracking-wider">
-                Preview Features
-              </h3>
-              <label
-                htmlFor="az-setting-preview-kb"
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <input
-                  id="az-setting-preview-kb"
-                  name="az-setting-preview-kb"
-                  type="checkbox"
-                  checked={isPreviewEnabled('knowledge-base')}
-                  onChange={e => {
-                    setPreviewEnabled('knowledge-base', e.target.checked);
-                    setForceUpdate(prev => prev + 1);
-                  }}
-                  className="rounded border-edge"
-                />
-                <span className="text-sm text-content">Knowledge Base</span>
-                <PreviewBadge />
-              </label>
-              <p className="text-xs text-content-muted">
-                Search your team's SharePoint documents from CoScout. Requires Azure AI Search
-                (configured by your admin).
-              </p>
+          <div className="space-y-3 pt-3 border-t border-edge">
+            <h3 className="text-xs font-semibold text-content-secondary uppercase tracking-wider">
+              Preview Features
+            </h3>
+            <label
+              htmlFor="az-setting-preview-kb"
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <input
+                id="az-setting-preview-kb"
+                name="az-setting-preview-kb"
+                type="checkbox"
+                checked={isPreviewEnabled('knowledge-base')}
+                onChange={e => {
+                  setPreviewEnabled('knowledge-base', e.target.checked);
+                  setForceUpdate(prev => prev + 1);
+                }}
+                className="rounded border-edge"
+              />
+              <span className="text-sm text-content">Knowledge Base</span>
+              <PreviewBadge />
+            </label>
+            <p className="text-xs text-content-muted">
+              Search your team's SharePoint documents from CoScout. Requires Azure AI Search
+              (configured by your admin).
+            </p>
 
-              {/* Knowledge Base search scope (ADR-026) */}
-              {isPreviewEnabled('knowledge-base') && (
-                <div className="mt-3 space-y-2">
-                  <h4 className="text-xs font-medium text-content-secondary flex items-center gap-1.5">
-                    <FolderOpen size={12} />
-                    Search scope
-                  </h4>
-                  <div className="space-y-1.5">
-                    <label
-                      htmlFor="az-setting-kb-scope-channel"
-                      className="flex items-center gap-2 text-xs text-content-secondary cursor-pointer"
-                    >
-                      <input
-                        id="az-setting-kb-scope-channel"
-                        name="az-setting-kb-scope"
-                        type="radio"
-                        checked={!knowledgeSearchFolder}
-                        onChange={() => setKnowledgeSearchFolder(null)}
-                        className="border-edge"
-                      />
-                      Channel folder (default)
-                    </label>
-                    <label
-                      htmlFor="az-setting-kb-scope-custom"
-                      className="flex items-center gap-2 text-xs text-content-secondary cursor-pointer"
-                    >
-                      <input
-                        id="az-setting-kb-scope-custom"
-                        name="az-setting-kb-scope"
-                        type="radio"
-                        checked={!!knowledgeSearchFolder}
-                        onChange={() => setKnowledgeSearchFolder('')}
-                        className="border-edge"
-                      />
-                      Custom folder
-                    </label>
-                  </div>
-                  {knowledgeSearchFolder !== null && (
-                    <div className="space-y-2">
-                      {knowledgeSearchFolder && (
-                        <div className="flex items-center gap-1.5 text-xs text-content-secondary bg-surface-tertiary rounded px-2.5 py-1.5">
-                          <FolderOpen size={12} className="flex-shrink-0" />
-                          <span className="truncate" title={knowledgeSearchFolder}>
-                            {knowledgeSearchFolder.split('/').pop() || knowledgeSearchFolder}
-                          </span>
-                        </div>
-                      )}
-                      {/* SharePoint folder picker removed per ADR-059 — use manual URL entry below */}
-                      <details className="text-[0.625rem]">
-                        <summary className="text-content-muted cursor-pointer hover:text-content-secondary">
-                          Enter URL manually
-                        </summary>
-                        <input
-                          id="az-setting-kb-folder-path"
-                          name="az-setting-kb-folder-path"
-                          type="text"
-                          value={knowledgeSearchFolder ?? ''}
-                          onChange={e => setKnowledgeSearchFolder(e.target.value)}
-                          placeholder="https://contoso.sharepoint.com/sites/QualityTeam/..."
-                          className="w-full mt-1 text-xs px-2.5 py-1.5 rounded border border-edge bg-surface-secondary text-content placeholder:text-content-muted focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </details>
-                    </div>
-                  )}
-                  <p className="text-[0.6875rem] text-content-muted">
-                    Only documents you have access to will appear in search results.
-                  </p>
-                  {(() => {
-                    const folderUrl = knowledgeSearchFolder || undefined;
-                    return folderUrl ? (
-                      <a
-                        href={folderUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[0.6875rem] text-blue-400 hover:text-blue-300 mt-1"
-                      >
-                        <ExternalLink size={10} />
-                        Open folder in SharePoint
-                      </a>
-                    ) : null;
-                  })()}
+            {/* Knowledge Base search scope (ADR-026) */}
+            {isPreviewEnabled('knowledge-base') && (
+              <div className="mt-3 space-y-2">
+                <h4 className="text-xs font-medium text-content-secondary flex items-center gap-1.5">
+                  <FolderOpen size={12} />
+                  Search scope
+                </h4>
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="az-setting-kb-scope-channel"
+                    className="flex items-center gap-2 text-xs text-content-secondary cursor-pointer"
+                  >
+                    <input
+                      id="az-setting-kb-scope-channel"
+                      name="az-setting-kb-scope"
+                      type="radio"
+                      checked={!knowledgeSearchFolder}
+                      onChange={() => setKnowledgeSearchFolder(null)}
+                      className="border-edge"
+                    />
+                    Channel folder (default)
+                  </label>
+                  <label
+                    htmlFor="az-setting-kb-scope-custom"
+                    className="flex items-center gap-2 text-xs text-content-secondary cursor-pointer"
+                  >
+                    <input
+                      id="az-setting-kb-scope-custom"
+                      name="az-setting-kb-scope"
+                      type="radio"
+                      checked={!!knowledgeSearchFolder}
+                      onChange={() => setKnowledgeSearchFolder('')}
+                      className="border-edge"
+                    />
+                    Custom folder
+                  </label>
                 </div>
-              )}
-            </div>
-          )}
+                {knowledgeSearchFolder !== null && (
+                  <div className="space-y-2">
+                    {knowledgeSearchFolder && (
+                      <div className="flex items-center gap-1.5 text-xs text-content-secondary bg-surface-tertiary rounded px-2.5 py-1.5">
+                        <FolderOpen size={12} className="flex-shrink-0" />
+                        <span className="truncate" title={knowledgeSearchFolder}>
+                          {knowledgeSearchFolder.split('/').pop() || knowledgeSearchFolder}
+                        </span>
+                      </div>
+                    )}
+                    {/* SharePoint folder picker removed per ADR-059 — use manual URL entry below */}
+                    <details className="text-[0.625rem]">
+                      <summary className="text-content-muted cursor-pointer hover:text-content-secondary">
+                        Enter URL manually
+                      </summary>
+                      <input
+                        id="az-setting-kb-folder-path"
+                        name="az-setting-kb-folder-path"
+                        type="text"
+                        value={knowledgeSearchFolder ?? ''}
+                        onChange={e => setKnowledgeSearchFolder(e.target.value)}
+                        placeholder="https://contoso.sharepoint.com/sites/QualityTeam/..."
+                        className="w-full mt-1 text-xs px-2.5 py-1.5 rounded border border-edge bg-surface-secondary text-content placeholder:text-content-muted focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </details>
+                  </div>
+                )}
+                <p className="text-[0.6875rem] text-content-muted">
+                  Only documents you have access to will appear in search results.
+                </p>
+                {(() => {
+                  const folderUrl = knowledgeSearchFolder || undefined;
+                  return folderUrl ? (
+                    <a
+                      href={folderUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[0.6875rem] text-blue-400 hover:text-blue-300 mt-1"
+                    >
+                      <ExternalLink size={10} />
+                      Open folder in SharePoint
+                    </a>
+                  ) : null;
+                })()}
+              </div>
+            )}
+          </div>
         </>
       }
     />

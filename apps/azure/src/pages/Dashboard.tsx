@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   DEFAULT_PROCESS_HUB_ID,
   buildProcessHubRollups,
-  hasTeamFeatures,
   normalizeProcessHubId,
   linkFindingsToStateItems,
 } from '@variscout/core';
@@ -26,16 +25,7 @@ import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { useNewHubProvision } from '../features/hubCreation/useNewHubProvision';
 import { getEasyAuthUser } from '../auth/easyAuth';
-import {
-  Plus,
-  RefreshCw,
-  Cloud,
-  CloudOff,
-  FolderOpen,
-  Search,
-  FlaskConical,
-  Upload,
-} from 'lucide-react';
+import { Plus, RefreshCw, Cloud, CloudOff, FolderOpen, Search, FlaskConical } from 'lucide-react';
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
 import ProjectCard from '../components/ProjectCard';
 import ProcessHubCard from '../components/ProcessHubCard';
@@ -651,20 +641,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
-  // Native file input for Standard plan "Open from Computer"
-  const handleLocalFileOpen = (): void => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.vrs';
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (file && onLoadProjectFile) {
-        onLoadProjectFile(file);
-      }
-    };
-    input.click();
-  };
-
   /**
    * Mode B entry — create an incomplete Hub via useNewHubProvision (canonical
    * creator with extractHubName). An empty goal narrative produces 'Untitled hub'
@@ -712,7 +688,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             Scan process contexts and the investigations inside them
           </p>
         </div>
-        <div className="flex items-center gap-3">{hasTeamFeatures() && getSyncStatusDisplay()}</div>
+        <div className="flex items-center gap-3">{getSyncStatusDisplay()}</div>
       </div>
 
       {/* Action row */}
@@ -739,7 +715,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <FlaskConical size={16} />
             Try a Sample
           </button>
-          {hasTeamFeatures() && onLoadProjectFile ? (
+          {onLoadProjectFile ? (
             <FileBrowseButton
               mode="files"
               filters={['.vrs']}
@@ -747,14 +723,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
               label="Open from SharePoint"
               size="sm"
             />
-          ) : onLoadProjectFile ? (
-            <button
-              onClick={handleLocalFileOpen}
-              className="flex items-center gap-2 px-4 py-2 border border-edge rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors font-medium"
-            >
-              <Upload size={16} />
-              Open File
-            </button>
           ) : null}
         </div>
       </div>

@@ -8,7 +8,7 @@ import {
   Loader2,
   FolderOpen,
 } from 'lucide-react';
-import { hasTeamFeatures, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
+import { isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { isKnowledgeBaseAvailable, searchDocuments } from '../../services/searchService';
 import { getRuntimeConfig } from '../../lib/runtimeConfig';
 
@@ -38,7 +38,6 @@ function StatusRow({ label, ok, detail }: StatusRowProps) {
  * AdminKnowledgeSetup — ADR-026 SharePoint-first Knowledge Base setup.
  *
  * Prerequisites:
- * - Team plan
  * - AI Search endpoint configured
  * - ≥1 M365 Copilot license in tenant (for Remote SharePoint knowledge sources)
  *
@@ -54,7 +53,6 @@ export function AdminKnowledgeSetup() {
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testError, setTestError] = useState<string | null>(null);
 
-  const teamPlan = useMemo(() => hasTeamFeatures(), []);
   const config = useMemo(() => getRuntimeConfig(), []);
   const searchEndpoint = config?.aiSearchEndpoint || import.meta.env.VITE_AI_SEARCH_ENDPOINT || '';
   const hasSearchEndpoint = !!searchEndpoint;
@@ -81,7 +79,7 @@ export function AdminKnowledgeSetup() {
     }
   }, []);
 
-  const allReady = teamPlan && hasSearchEndpoint && previewEnabled;
+  const allReady = hasSearchEndpoint && previewEnabled;
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
@@ -99,7 +97,6 @@ export function AdminKnowledgeSetup() {
       {/* Status checks */}
       <section className="mb-8 bg-surface-secondary/50 border border-edge rounded-lg p-4">
         <h3 className="text-lg font-semibold text-content mb-3">Status</h3>
-        <StatusRow label="Team plan" ok={teamPlan} detail={teamPlan ? 'Active' : 'Required'} />
         <StatusRow
           label="Search endpoint configured"
           ok={hasSearchEndpoint}
@@ -128,12 +125,11 @@ export function AdminKnowledgeSetup() {
         </p>
         <button
           onClick={handleTogglePreview}
-          disabled={!teamPlan}
           className={`px-5 py-2.5 rounded-lg font-medium transition-colors ${
             previewEnabled
               ? 'bg-purple-600 text-white hover:bg-purple-700'
               : 'bg-surface-tertiary text-content hover:bg-surface-tertiary/80'
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
+          }`}
         >
           {previewEnabled ? 'Disable Preview' : 'Enable Preview'}
         </button>

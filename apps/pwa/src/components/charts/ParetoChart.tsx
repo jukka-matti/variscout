@@ -43,6 +43,7 @@ const ParetoChart = ({
   isComputing = false,
   dataOverride,
   outcomeOverride,
+  showBranding = true,
   ...props
 }: ParetoChartProps) => {
   const rawData = useProjectStore(s => s.rawData);
@@ -71,6 +72,7 @@ const ParetoChart = ({
         onColumnAliasesChange={setColumnAliases}
         paretoMode={paretoMode}
         separateParetoData={separateParetoData}
+        showBranding={showBranding}
         {...props}
       />
       {isComputing && (

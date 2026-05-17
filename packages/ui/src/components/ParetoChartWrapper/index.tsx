@@ -7,14 +7,13 @@
  * - Empty state (configurable: PWA shows action buttons, Azure returns null)
  * - Manages axis editor state
  * - Renders ParetoChartBase + ChartAnnotationLayer + AxisEditor
- * - Tier-aware branding via shouldShowBranding()
+ * - Optional branding via showBranding prop (apps decide; default off)
  *
  * Each app keeps a thin wrapper that calls useData() and spreads the result as props.
  */
 import React, { useState, useRef, useEffect } from 'react';
 import { ParetoChartBase, getScaledFonts } from '@variscout/charts';
 import { useParetoChartData, useTranslation } from '@variscout/hooks';
-import { shouldShowBranding, getBrandingText } from '@variscout/core';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
 import { AxisEditor } from '../AxisEditor';
 import { ParetoMakeScopeButton } from '../ParetoMakeScopeButton';
@@ -67,8 +66,10 @@ export interface ParetoChartWrapperBaseProps {
   aggregation?: 'count' | 'value';
   /** Callback to toggle aggregation mode */
   onToggleAggregation?: () => void;
-  /** Override branding display (undefined = auto-detect via tier) */
+  /** Render the VariScout source-bar branding when true. Defaults to false. */
   showBranding?: boolean;
+  /** Branding text (only used when showBranding=true). Defaults to "VariScout Lite". */
+  brandingText?: string;
   /** Annotation highlights */
   highlightedCategories?: Record<string, HighlightColor>;
   /** Context menu callback for annotations */
@@ -316,6 +317,7 @@ export const ParetoChartWrapperBase = ({
   aggregation = 'count',
   onToggleAggregation,
   showBranding: showBrandingProp,
+  brandingText: brandingTextProp,
   highlightedCategories,
   onContextMenu,
   findings = [],
@@ -426,7 +428,8 @@ export const ParetoChartWrapperBase = ({
     return null;
   }
 
-  const showBranding = showBrandingProp ?? shouldShowBranding();
+  const showBranding = showBrandingProp ?? false;
+  const brandingText = brandingTextProp ?? 'VariScout Lite';
   const yAxisLabel =
     aggregation === 'value' && outcome ? columnAliases[outcome] || outcome : 'Count';
   const xAxisLabel = columnAliases[factor] || factor;
@@ -544,7 +547,7 @@ export const ParetoChartWrapperBase = ({
         parentWidth={parentWidth}
         parentHeight={parentHeight}
         showBranding={showBranding}
-        brandingText={showBranding ? getBrandingText() : undefined}
+        brandingText={showBranding ? brandingText : undefined}
         onYAxisClick={() => setEditingAxis(aggregation === 'value' ? outcome || 'Count' : 'Count')}
         onXAxisClick={() => setEditingAxis(factor)}
         comparisonData={ghostBarData}

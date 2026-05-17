@@ -3,7 +3,6 @@ import {
   ChartSourceBar as ChartSourceBarBase,
   getSourceBarHeight as getSourceBarHeightBase,
 } from '@variscout/charts';
-import { BRANDING_COLORS, shouldShowBranding, getBrandingText } from '@variscout/core';
 
 interface ChartSourceBarProps {
   width: number;
@@ -14,26 +13,11 @@ interface ChartSourceBarProps {
 
 /**
  * Chart source bar component - shows branding and sample size
- * PWA wrapper that handles edition detection and passes props to shared component
+ * PWA wrapper — branding is always shown (free PWA per ADR-082 wedge).
  */
 const ChartSourceBar: React.FC<ChartSourceBarProps> = ({ width, top, n, left = 0 }) => {
-  const showBranding = shouldShowBranding();
-  const brandingText = getBrandingText();
-
-  // Don't render if licensed edition (no branding)
-  if (!showBranding) {
-    return null;
-  }
-
   return (
-    <ChartSourceBarBase
-      width={width}
-      top={top}
-      left={left}
-      n={n}
-      brandingText={brandingText}
-      accentColor={BRANDING_COLORS.variscout}
-    />
+    <ChartSourceBarBase width={width} top={top} left={left} n={n} brandingText="VariScout Lite" />
   );
 };
 
@@ -43,6 +27,5 @@ export default ChartSourceBar;
  * Get the height of the source bar (for margin calculations)
  */
 export function getSourceBarHeight(): number {
-  const showBranding = shouldShowBranding();
-  return getSourceBarHeightBase(showBranding);
+  return getSourceBarHeightBase(true);
 }
