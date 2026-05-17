@@ -10,7 +10,7 @@ related:
 
 # PR 1 — Wedge V1 Phase A Doc Completion Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` to implement this plan. **Single Sonnet implementer dispatch with internal Architect → Migration → Validator phases** (per `feedback_atomic_sweep_one_dispatch`), not per-task dispatches. Per-task commits inside one dispatch. Spec + Quality review at end-of-task (single review pair), Opus final-branch review before squash-merge. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` to implement this plan. **Single Opus implementer dispatch with internal Architect → Migration → Validator phases** (per `feedback_atomic_sweep_one_dispatch`) — upgraded from Sonnet → Opus because the anchor rewrites are HIGH-criticality strategic content (canonical anchors that every downstream artifact inherits from; high judgment density + integration breadth + low reversibility). Per-task commits inside one dispatch. End-of-task two-stage review: **Sonnet spec reviewer** (mechanical pattern-matching) + **Opus quality reviewer** (craft-quality on strategic prose). **Opus final-branch reviewer** before squash-merge. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Close the wedge spec §13 Phase A commitment — rewrite 7 canonical anchor docs to reflect wedge V1 architecture, fix audit-caught drift in OVERVIEW + ADR-082 + CLAUDE.md files, and create the Phase C plan artifact.
 
