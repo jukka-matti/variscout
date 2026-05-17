@@ -710,27 +710,7 @@ bash scripts/pr-ready-check.sh
 
 Expected: GREEN. Do NOT use `--no-verify` to skip hook failures.
 
-- [ ] **Step 2: Browser walk via `claude --chrome`**
-
-```bash
-pnpm dev
-```
-
-In a separate Claude session with the official Chrome extension:
-
-1. Open PWA at `http://localhost:5173`. **Assert**: nav shows 6 tabs in order `Home · Projects · Process · Analyze · Investigation · Report`. No "Improve" tab. No "Overview" / "Frame" / "Analysis" labels.
-2. Click each tab — all routes resolve correctly.
-3. Click into a project → Improve stage → photo handler available (no "team-tier" gate).
-4. Open Report tab → publish + share controls always visible.
-5. Open Admin → Knowledge Base setup always visible (no tier gate).
-6. Open Settings → no upgrade-CTA banner.
-7. Trigger a sustainment auto-fire (project → phase 'sustain') — still works per ADR-080.
-
-Repeat for Azure app (`pnpm --filter @variscout/azure-app dev`).
-
-If anything regresses, fix in-PR.
-
-- [ ] **Step 3: Self-review diff**
+- [ ] **Step 2: Self-review diff**
 
 ```bash
 git log --oneline main..HEAD
@@ -740,7 +720,7 @@ git diff main..HEAD | grep -iE "@ts-ignore|@ts-expect-error|Math\.random|--no-ve
 
 Expect zero matches on the forbidden patterns. ~33 files changed, net ~-500 lines.
 
-- [ ] **Step 4: PR-open**
+- [ ] **Step 3: PR-open**
 
 ```bash
 git push origin feat/wedge-pr-wv1-5-tier-gating
@@ -781,7 +761,8 @@ Master sequencer: `docs/superpowers/plans/2026-05-16-wedge-implementation.md`
 - [x] `pnpm build` (turbo) green
 - [x] `bash scripts/pr-ready-check.sh` green
 - [x] ESLint guard prevents reintroduction
-- [ ] Browser walk: 6 tabs in workflow order; all features always-on; no upgrade CTAs
+
+(No browser walk per `feedback_wedge_v1_no_migration_no_backcompat` — wedge V1 has no users yet; pr-ready-check + Opus review is sufficient.)
 
 ## Wedge progress
 
@@ -795,11 +776,11 @@ EOF
 )"
 ```
 
-- [ ] **Step 5: Dispatch Opus final code review**
+- [ ] **Step 4: Dispatch Opus final code review**
 
 Per the wedge convention. Reviewer must check out the PR branch (per `feedback_code_review_subagent_must_checkout_pr_branch`).
 
-- [ ] **Step 6: Hand back to user for squash-merge**
+- [ ] **Step 5: Hand back to user for squash-merge**
 
 Do NOT auto-merge.
 
