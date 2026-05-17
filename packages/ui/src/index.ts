@@ -215,7 +215,6 @@ export { FilterContextBar, type FilterContextBarProps } from './components/Filte
 export { SurveyNotebookBase, type SurveyNotebookBaseProps } from './components/SurveyNotebookBase';
 
 export { SustainmentForm, type SustainmentFormProps } from './components/Sustainment';
-export { HandoffForm, type HandoffFormProps, type HandoffChangePatch } from './components/Handoff';
 export { InboxDigest, type InboxDigestProps, type InboxDigestPrompt } from './components/Inbox';
 
 export {

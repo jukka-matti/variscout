@@ -120,7 +120,6 @@ const ProcessIntelligencePanel = lazyWithRetry(
 const FrameView = lazyWithRetry(() => import('./components/views/FrameView'));
 const ImprovementProjectPanel = lazyWithRetry(() => import('./components/ImprovementProjectPanel'));
 const SustainmentPanel = lazyWithRetry(() => import('./components/SustainmentPanel'));
-const HandoffPanel = lazyWithRetry(() => import('./components/HandoffPanel'));
 const InvestigationView = lazyWithRetry(() => import('./components/views/InvestigationView'));
 const ImprovementView = lazyWithRetry(() => import('./components/views/ImprovementView'));
 const ProjectsTabView = lazyWithRetry(() => import('./components/ProjectsTabView'));
@@ -1070,8 +1069,7 @@ function AppMain() {
             !importFlow.isManualEntry &&
             !importFlow.isMapping &&
             panels.activeView !== 'charter' &&
-            panels.activeView !== 'sustainment' &&
-            panels.activeView !== 'handoff'
+            panels.activeView !== 'sustainment'
               ? panels.activeView
               : undefined
           }
@@ -1318,12 +1316,6 @@ function AppMain() {
               <SustainmentPanel
                 activeHub={sessionHub ?? undefined}
                 targetId={panels.sustainmentTargetId ?? undefined}
-                onBack={panels.showFrame}
-              />
-            ) : panels.activeView === 'handoff' ? (
-              <HandoffPanel
-                activeHub={sessionHub ?? undefined}
-                targetId={panels.handoffTargetId ?? undefined}
                 onBack={panels.showFrame}
               />
             ) : panels.activeView === 'investigation' ? (

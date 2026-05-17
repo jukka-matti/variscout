@@ -63,7 +63,6 @@ const RESPONSE_LABELS: Record<ProcessStateResponsePath, string> = {
   'chartered-project': 'Chartered project',
   'measurement-system-work': 'Measurement system work',
   'sustainment-review': 'Sustainment review',
-  'control-handoff': 'Control handoff',
 };
 
 const SEVERITY_LABELS: Record<ProcessStateSeverity, string> = {

@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   isCharterReady,
   isSustainmentReady,
-  isHandoffReady,
   type WorkflowReadinessSignals,
 } from '../responsePathReadiness';
 
@@ -35,20 +34,5 @@ describe('isSustainmentReady', () => {
   it('isDemo: false is equivalent to omitting it', () => {
     expect(isSustainmentReady({ ...empty, isDemo: false })).toBe(false);
     expect(isSustainmentReady({ ...empty, hasIntervention: true, isDemo: false })).toBe(true);
-  });
-});
-
-describe('isHandoffReady', () => {
-  it('returns false when sustainment not confirmed and not demo', () => {
-    expect(isHandoffReady(empty)).toBe(false);
-  });
-  it('returns false even with intervention if sustainment not confirmed', () => {
-    expect(isHandoffReady({ ...empty, hasIntervention: true })).toBe(false);
-  });
-  it('returns true when sustainment is confirmed', () => {
-    expect(isHandoffReady({ ...empty, sustainmentConfirmed: true })).toBe(true);
-  });
-  it('returns true in demo mode regardless of sustainment state', () => {
-    expect(isHandoffReady({ ...empty, isDemo: true })).toBe(true);
   });
 });

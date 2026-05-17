@@ -33,7 +33,6 @@ import {
   type Hypothesis,
   type SpecLimits,
   type Question,
-  type WorkflowReadinessSignals,
 } from '@variscout/core';
 import type { ActionItem, ColumnTypeMap } from '@variscout/core/findings';
 import type { CanvasLevel } from '@variscout/core/canvas';
@@ -224,14 +223,11 @@ export interface CanvasProps {
     options?: { questionIds?: string[] }
   ) => void;
   investigationOverlays?: CanvasInvestigationOverlayModel;
-  signals: WorkflowReadinessSignals;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
   onQuickAction?: (stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
-  onSustainment?: (stepId: string) => void;
-  onHandoff?: (stepId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
@@ -291,14 +287,11 @@ export const Canvas: React.FC<CanvasProps> = ({
   hypotheses = [],
   onAddCausalLink,
   investigationOverlays,
-  signals,
   onStepSpecsRequest,
   onQuickAction,
   onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
-  onSustainment,
-  onHandoff,
   onOpenInvestigationFocus,
   onRemoveCausalLink,
   contextLinkGroups,
@@ -768,8 +761,6 @@ export const Canvas: React.FC<CanvasProps> = ({
       onLogQuickAction={onLogQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}
       onCharter={onCharter}
-      onSustainment={onSustainment}
-      onHandoff={onHandoff}
       resolvedL3Archetype={resolvedL3Archetype}
       authoringMode={authoringMode}
       disabled={disabled}
@@ -822,13 +813,10 @@ export const Canvas: React.FC<CanvasProps> = ({
             card={activeStepCard}
             anchorRect={stepOverlayAnchor}
             onClose={handleCloseStepOverlay}
-            signals={signals}
             onQuickAction={onQuickAction}
             onLogQuickAction={onLogQuickAction}
             onFocusedInvestigation={onFocusedInvestigation}
             onCharter={onCharter}
-            onSustainment={onSustainment}
-            onHandoff={onHandoff}
             investigationOverlay={activeStepInvestigationOverlay}
             onOpenInvestigationFocus={onOpenInvestigationFocus}
             onRemoveCausalLink={onRemoveCausalLink}

@@ -25,7 +25,6 @@ import {
   type StepCapabilityStamp,
   type Hypothesis,
   type TimelineWindow,
-  type WorkflowReadinessSignals,
 } from '@variscout/core';
 import { isValidLevel, type CanvasLevel } from '@variscout/core/canvas';
 import type { ActionItem } from '@variscout/core/findings';
@@ -62,13 +61,10 @@ export interface CanvasWorkspaceProps {
   setMeasureSpec: (column: string, partial: Partial<SpecLimits>) => void;
   setProcessContext: (context: ProcessContext | null) => void;
   onSeeData: () => void;
-  signals: WorkflowReadinessSignals;
   onQuickAction?: (stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
-  onSustainment?: (stepId: string) => void;
-  onHandoff?: (stepId: string) => void;
   questions?: readonly Question[];
   findings?: readonly Finding[];
   hypotheses?: readonly Hypothesis[];
@@ -200,14 +196,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   setFactors,
   setMeasureSpec,
   setProcessContext,
-  signals,
   onSeeData,
   onQuickAction,
   onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
-  onSustainment,
-  onHandoff,
   questions = [],
   findings = [],
   hypotheses = [],
@@ -604,13 +597,10 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onOpenWall={onOpenWall}
       onAddCausalLink={onAddCausalLink}
       onRemoveCausalLink={onRemoveCausalLink}
-      signals={signals}
       onQuickAction={onQuickAction}
       onLogQuickAction={onLogQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}
       onCharter={onCharter}
-      onSustainment={onSustainment}
-      onHandoff={onHandoff}
       onOpenInvestigationFocus={onOpenInvestigationFocus}
       onOpenColumnDetail={onOpenColumnDetail}
       contextLinkGroups={contextLinkGroups}

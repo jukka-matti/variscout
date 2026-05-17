@@ -5,7 +5,6 @@ import {
   isSustainmentDue,
   isSustainmentOverdue,
   nextDueFromCadence,
-  selectControlHandoffCandidates,
   selectSustainmentBuckets,
   selectSustainmentReviews,
   type ControlHandoff,
@@ -506,30 +505,6 @@ describe('selectSustainmentReviews', () => {
       [],
       new Date('2026-04-26T00:00:00.000Z')
     );
-
-    expect(result).toEqual([]);
-  });
-});
-
-describe('selectControlHandoffCandidates', () => {
-  it('returns controlled investigations with no handoff record', () => {
-    const investigations = [
-      makeInvestigation('inv-1', 'controlled'),
-      makeInvestigation('inv-2', 'resolved'),
-      makeInvestigation('inv-3', 'controlled'),
-    ];
-    const handoffs: ControlHandoff[] = [makeHandoff('inv-3', true, 'qms-procedure')];
-
-    const result = selectControlHandoffCandidates(investigations, handoffs);
-
-    expect(result.map(r => r.investigation.id)).toEqual(['inv-1']);
-  });
-
-  it('returns empty when all controlled investigations have handoffs', () => {
-    const investigations = [makeInvestigation('inv-1', 'controlled')];
-    const handoffs: ControlHandoff[] = [makeHandoff('inv-1', true)];
-
-    const result = selectControlHandoffCandidates(investigations, handoffs);
 
     expect(result).toEqual([]);
   });

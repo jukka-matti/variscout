@@ -33,7 +33,6 @@ export interface ProcessHubViewProps {
   onStartInvestigation: () => void;
   onSetupSustainment: (investigationId: string) => void;
   onLogReview: (recordId: string) => void;
-  onRecordHandoff: (investigationId: string) => void;
   onResponsePathAction: (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => void;
   onRequestAddNote: (item: ProcessStateItem, hubId: string) => void;
   onRequestEditNote: (item: ProcessStateItem, note: ProcessStateNote, hubId: string) => void;

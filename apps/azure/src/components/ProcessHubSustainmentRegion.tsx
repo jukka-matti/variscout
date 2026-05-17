@@ -1,7 +1,6 @@
 import React from 'react';
-import { ShieldCheck, ShieldAlert, ArrowRight, History } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, History } from 'lucide-react';
 import {
-  selectControlHandoffCandidates,
   selectSustainmentBuckets,
   type ProcessHubCadenceSummary,
   type ProcessHubInvestigation,
@@ -16,7 +15,6 @@ export interface ProcessHubSustainmentRegionProps {
   onOpenInvestigation: (id: string) => void;
   onSetupSustainment: (investigationId: string) => void;
   onLogReview: (recordId: string) => void;
-  onRecordHandoff: (investigationId: string) => void;
 }
 
 interface BucketSectionProps {
@@ -80,7 +78,6 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
   onOpenInvestigation,
   onSetupSustainment,
   onLogReview,
-  onRecordHandoff,
 }) => {
   const renderDate = new Date();
 
@@ -91,17 +88,11 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
     renderDate
   );
 
-  const handoffCandidates = selectControlHandoffCandidates(
-    rollup.investigations,
-    rollup.controlHandoffs
-  );
-
   const dueAndOverdueIds = new Set([
     ...buckets.dueNow.map(item => item.investigation.id),
     ...buckets.overdue.map(item => item.investigation.id),
   ]);
   const reviewedIds = new Set(buckets.recentlyReviewed.map(item => item.investigation.id));
-  const handoffIds = new Set(handoffCandidates.map(item => item.investigation.id));
 
   const setupCandidates = rollup.investigations.filter(inv => {
     const status = inv.metadata?.investigationStatus;
@@ -109,7 +100,6 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
     if (inv.metadata?.sustainment) return false;
     if (dueAndOverdueIds.has(inv.id)) return false;
     if (reviewedIds.has(inv.id)) return false;
-    if (handoffIds.has(inv.id)) return false;
     return true;
   });
 
@@ -134,10 +124,7 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
   };
 
   const totalSustainmentItems =
-    buckets.dueNow.length +
-    buckets.overdue.length +
-    buckets.recentlyReviewed.length +
-    handoffCandidates.length;
+    buckets.dueNow.length + buckets.overdue.length + buckets.recentlyReviewed.length;
 
   return (
     <section className="space-y-3" data-testid="sustainment-region" aria-label="Sustainment region">
@@ -180,20 +167,6 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
           iconForItem={<ShieldCheck size={14} className="text-green-400" />}
           renderSubline={reviewSubline}
           testId="sustainment-recently-reviewed"
-        />
-      )}
-
-      {handoffCandidates.length > 0 && (
-        <BucketSection
-          label="Control handoff"
-          count={handoffCandidates.length}
-          icon={<ArrowRight size={14} className="text-content-secondary" />}
-          items={handoffCandidates}
-          onItemClick={item => onRecordHandoff(item.investigation.id)}
-          itemAriaLabel={item => `Record control handoff for ${item.investigation.name}`}
-          iconForItem={<ArrowRight size={14} className="text-content-secondary" />}
-          renderSubline={() => 'Needs control handoff'}
-          testId="sustainment-handoff"
         />
       )}
 

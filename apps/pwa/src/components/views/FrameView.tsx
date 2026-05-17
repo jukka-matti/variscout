@@ -25,10 +25,8 @@ import type {
   StepCapabilityStamp,
   ControlHandoff,
   SustainmentRecord,
-  WorkflowReadinessSignals,
 } from '@variscout/core';
 import { createActionItem, type ActionItem } from '@variscout/core/findings';
-import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { surveyInboxRules } from '@variscout/core/survey';
 import { pwaHubRepository } from '../../persistence';
 import { useSession } from '../../store/sessionStore';
@@ -60,26 +58,6 @@ function priorStepStatsFromSnapshots(
   if (!stamps || stamps.length === 0) return EMPTY_PRIOR_STEP_STATS;
 
   return new Map(stamps.map(stamp => [stamp.stepId, stamp]));
-}
-
-function hasCompletedInterventionEvidence(
-  projects: readonly ImprovementProject[],
-  items: readonly ActionItem[]
-): boolean {
-  const completedActionIds = new Set(
-    items
-      .filter(
-        item =>
-          item.deletedAt === null &&
-          (item.completedAt !== undefined || item.status === 'done' || item.doneAt != null)
-      )
-      .map(item => item.id)
-  );
-  return projects.some(project => {
-    if (project.deletedAt !== null || project.status !== 'closed') return false;
-    const actionItemIds = project.sections.approach.actionItemIds ?? [];
-    return actionItemIds.some(id => completedActionIds.has(id));
-  });
 }
 
 const FrameView: React.FC = () => {
@@ -222,19 +200,6 @@ const FrameView: React.FC = () => {
     sustainmentRecords,
   ]);
 
-  const signals: WorkflowReadinessSignals = React.useMemo(() => {
-    const improvementProjects = (
-      activeHubId ? (projectsByHub[activeHubId] ?? activeHub?.improvementProjects ?? []) : []
-    ).filter(project => project.deletedAt === null);
-
-    return {
-      hasIntervention: hasCompletedInterventionEvidence(improvementProjects, actionItems),
-      sustainmentConfirmed: sustainmentRecords.some(
-        record => record.deletedAt === null && record.status === 'confirmed-sustained'
-      ),
-    };
-  }, [activeHub?.improvementProjects, activeHubId, actionItems, projectsByHub, sustainmentRecords]);
-
   const inboxPrompts = React.useMemo(() => {
     const improvementProjects = (
       activeHubId ? (projectsByHub[activeHubId] ?? activeHub?.improvementProjects ?? []) : []
@@ -336,14 +301,6 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showCharter();
   }, []);
 
-  const handleSustainment = React.useCallback(() => {
-    usePanelsStore.getState().showSustainment();
-  }, []);
-
-  const handleHandoff = React.useCallback(() => {
-    usePanelsStore.getState().showHandoff();
-  }, []);
-
   const handleInboxNavigate = React.useCallback((prompt: InboxDigestPrompt) => {
     const surface = prompt.action?.opensSurface;
     if (surface === 'sustainment') {
@@ -412,10 +369,7 @@ const FrameView: React.FC = () => {
         onOpenInvestigationFocus={handleOpenInvestigationFocus}
         onAddCausalLink={handleAddCausalLink}
         onRemoveCausalLink={handleRemoveCausalLink}
-        signals={signals}
         onCharter={handleCharter}
-        onSustainment={handleSustainment}
-        onHandoff={handleHandoff}
         contextLinkGroups={contextLinkGroups}
         onNavigateContextLink={handleNavigateContextLink}
         priorStepStats={priorStepStats}

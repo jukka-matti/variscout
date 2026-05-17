@@ -25,7 +25,6 @@ interface ProcessHubReviewPanelProps {
   onStartInvestigation: () => void;
   onSetupSustainment: (investigationId: string) => void;
   onLogReview: (recordId: string) => void;
-  onRecordHandoff: (investigationId: string) => void;
   onResponsePathAction: (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => void;
   /** Notes wiring */
   onRequestAddNote: (item: ProcessStateItem, hubId: string) => void;
@@ -64,7 +63,6 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   onStartInvestigation,
   onSetupSustainment,
   onLogReview,
-  onRecordHandoff,
   onResponsePathAction,
   onRequestAddNote,
   onRequestEditNote,
@@ -131,10 +129,6 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           return;
         }
         onOpenInvestigation(targetId);
-        return;
-      }
-      if (surface === 'handoff' && targetId) {
-        onRecordHandoff(targetId);
         return;
       }
       if (surface === 'improvement-projects' && targetId) {
@@ -299,7 +293,6 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         onOpenInvestigation={onOpenInvestigation}
         onSetupSustainment={onSetupSustainment}
         onLogReview={onLogReview}
-        onRecordHandoff={onRecordHandoff}
       />
     </section>
   );

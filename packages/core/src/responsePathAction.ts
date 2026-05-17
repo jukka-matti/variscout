@@ -7,11 +7,7 @@ export type ResponsePathAction =
       investigationId: string;
       intent: 'focused' | 'chartered' | 'quick';
     }
-  | {
-      kind: 'open-sustainment';
-      investigationId: string;
-      surface: 'review' | 'handoff';
-    }
+  | { kind: 'open-sustainment'; investigationId: string }
   | { kind: 'unsupported'; reason: 'planned' | 'informational' };
 
 /**
@@ -44,9 +40,7 @@ export function deriveResponsePathAction(
     case 'chartered-project':
       return { kind: 'open-investigation', investigationId, intent: 'chartered' };
     case 'sustainment-review':
-      return { kind: 'open-sustainment', investigationId, surface: 'review' };
-    case 'control-handoff':
-      return { kind: 'open-sustainment', investigationId, surface: 'handoff' };
+      return { kind: 'open-sustainment', investigationId };
     default:
       return assertNever(path);
   }

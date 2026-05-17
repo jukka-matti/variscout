@@ -117,7 +117,6 @@ describe('ProcessHubSustainmentRegion', () => {
         onOpenInvestigation={noOp}
         onSetupSustainment={noOp}
         onLogReview={noOp}
-        onRecordHandoff={noOp}
       />
     );
 
@@ -146,7 +145,6 @@ describe('ProcessHubSustainmentRegion', () => {
         onOpenInvestigation={noOp}
         onSetupSustainment={onSetupSustainment}
         onLogReview={noOp}
-        onRecordHandoff={noOp}
       />
     );
 
@@ -209,7 +207,6 @@ describe('ProcessHubSustainmentRegion', () => {
         onOpenInvestigation={noOp}
         onSetupSustainment={noOp}
         onLogReview={onLogReview}
-        onRecordHandoff={noOp}
       />
     );
 
@@ -262,43 +259,11 @@ describe('ProcessHubSustainmentRegion', () => {
         onOpenInvestigation={noOp}
         onSetupSustainment={noOp}
         onLogReview={noOp}
-        onRecordHandoff={noOp}
       />
     );
 
     expect(screen.getByTestId('sustainment-recently-reviewed')).toBeInTheDocument();
     expect(screen.getByText('Pasteurizer Temp')).toBeInTheDocument();
-  });
-
-  it('renders handoff candidates and calls onRecordHandoff on click', () => {
-    const onRecordHandoff = vi.fn();
-    const inv = makeInvestigation({
-      id: 'inv-4',
-      name: 'Torque Study',
-      metadata: { investigationStatus: 'controlled' },
-    });
-
-    const cadence = makeEmptyCadence();
-    const rollup = makeEmptyRollup([inv]);
-
-    render(
-      <ProcessHubSustainmentRegion
-        cadence={cadence}
-        rollup={rollup}
-        onOpenInvestigation={noOp}
-        onSetupSustainment={noOp}
-        onLogReview={noOp}
-        onRecordHandoff={onRecordHandoff}
-      />
-    );
-
-    expect(screen.getByText('Torque Study')).toBeInTheDocument();
-    expect(screen.getByText('Needs control handoff')).toBeInTheDocument();
-
-    fireEvent.click(
-      screen.getByRole('button', { name: /Record control handoff for Torque Study/ })
-    );
-    expect(onRecordHandoff).toHaveBeenCalledWith('inv-4');
   });
 
   it('hides all sustainment buckets when a controlled investigation has retainSustainmentReview=false', () => {
@@ -349,7 +314,6 @@ describe('ProcessHubSustainmentRegion', () => {
         onOpenInvestigation={noOp}
         onSetupSustainment={noOp}
         onLogReview={noOp}
-        onRecordHandoff={noOp}
       />
     );
 

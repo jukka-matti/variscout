@@ -766,36 +766,6 @@ describe('buildProcessHubCadence — sustainment lane', () => {
     expect(cadence.sustainment.totalCount).toBe(1);
     expect(cadence.sustainment.items[0].investigation.id).toBe('inv-due');
   });
-
-  it('includes controlled investigations missing a ControlHandoff in the sustainment lane', () => {
-    const hubs: ProcessHub[] = [
-      { id: 'hub-1', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
-    ];
-    const now = new Date('2026-04-26T00:00:00.000Z');
-    const investigations = [
-      {
-        id: 'inv-controlled',
-        name: 'Needs handoff',
-        updatedAt: 1777161600000,
-        createdAt: 1777161600000,
-        deletedAt: null,
-        metadata: makeMetadata({
-          processHubId: 'hub-1',
-          investigationStatus: 'controlled',
-        }),
-      },
-    ];
-
-    const [rollup] = buildProcessHubRollups(hubs, investigations, {
-      sustainmentRecords: [],
-      controlHandoffs: [],
-    });
-    const cadence = buildProcessHubCadence(rollup, now);
-
-    expect(cadence.sustainment.totalCount).toBe(1);
-    expect(cadence.sustainment.items[0].investigation.id).toBe('inv-controlled');
-    expect(cadence.sustainment.items[0].reasons).toContain('control-handoff-missing');
-  });
 });
 
 describe('buildProcessHubRollups', () => {

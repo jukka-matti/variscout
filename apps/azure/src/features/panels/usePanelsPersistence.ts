@@ -3,7 +3,7 @@ import { usePanelsStore } from './panelsStore';
 import type { ViewState } from '@variscout/hooks';
 
 /** Stub views are transient surfaces; do not persist them to ViewState. */
-const STUB_VIEWS = new Set(['charter', 'sustainment', 'handoff'] as const);
+const STUB_VIEWS = new Set(['charter', 'sustainment'] as const);
 
 type PersistedActiveView = NonNullable<ViewState['activeView']>;
 
@@ -41,7 +41,7 @@ export function usePanelsPersistence(
     }
     prevRef.current = { isFindingsOpen, isWhatIfOpen, activeView };
     // Stub views are not persisted — omit activeView from the payload when on a stub.
-    const persistedView = STUB_VIEWS.has(activeView as 'charter' | 'sustainment' | 'handoff')
+    const persistedView = STUB_VIEWS.has(activeView as 'charter' | 'sustainment')
       ? undefined
       : (activeView as PersistedActiveView | undefined);
     onViewStateChange?.({ isFindingsOpen, isWhatIfOpen, activeView: persistedView });

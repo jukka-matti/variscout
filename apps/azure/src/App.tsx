@@ -190,7 +190,6 @@ function AppContent({
   // When true, Editor mounts directly into PasteScreen (used by "Add framing" CTA).
   // Reset to false once consumed so subsequent navigations don't re-trigger paste.
   const [pendingStartPaste, setPendingStartPaste] = useState(false);
-  const [pendingHandoffTargetId, setPendingHandoffTargetId] = useState<string | null>(null);
 
   // Resolve deep link from URL params
   const deepLink = useMemo<DeepLinkParams>(() => {
@@ -248,23 +247,16 @@ function AppContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const navigateToEditor = (
-    projectId?: string,
-    processHubId?: string,
-    startPaste?: boolean,
-    handoffTargetId?: string
-  ) => {
+  const navigateToEditor = (projectId?: string, processHubId?: string, startPaste?: boolean) => {
     setCurrentProject(projectId || null);
     setPendingProcessHubId(processHubId || null);
     if (startPaste) setPendingStartPaste(true);
-    setPendingHandoffTargetId(handoffTargetId || null);
     setCurrentView('editor');
   };
 
   const navigateToDashboard = () => {
     setCurrentProject(null);
     setPendingStartPaste(false);
-    setPendingHandoffTargetId(null);
     setCurrentView('dashboard');
   };
 
@@ -300,8 +292,8 @@ function AppContent({
         )}
         {currentView === 'dashboard' && !deepLinkError && (
           <ProjectDashboard
-            onOpenProject={(id, processHubId, startPaste, handoffTargetId) =>
-              navigateToEditor(id, processHubId, startPaste, handoffTargetId)
+            onOpenProject={(id, processHubId, startPaste) =>
+              navigateToEditor(id, processHubId, startPaste)
             }
             onLoadSample={handleLoadSample}
           />
@@ -311,7 +303,6 @@ function AppContent({
             projectId={currentProject}
             onBack={navigateToDashboard}
             initialProcessHubId={currentProject ? undefined : (pendingProcessHubId ?? undefined)}
-            initialHandoffTargetId={pendingHandoffTargetId ?? undefined}
             initialSample={pendingSample}
             startPasteOnMount={pendingStartPaste}
             onOpenSettings={() => setIsSettingsOpen(true)}

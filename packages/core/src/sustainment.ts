@@ -415,24 +415,6 @@ export function selectSustainmentBuckets<TInv extends ProcessHubInvestigation>(
   return { dueNow, overdue, recentlyReviewed };
 }
 
-/**
- * Returns investigations whose effective status is `controlled` but which lack
- * a ControlHandoff record. These should surface in the cadence board as a
- * prompt to either record the handoff or revert the status.
- */
-export function selectControlHandoffCandidates<TInv extends ProcessHubInvestigation>(
-  investigations: TInv[],
-  handoffs: ControlHandoff[]
-): ProcessHubReviewItem<TInv>[] {
-  const handoffByInvestigation = new Set(handoffs.map(h => h.investigationId));
-  return investigations
-    .filter(
-      inv =>
-        inv.metadata?.investigationStatus === 'controlled' && !handoffByInvestigation.has(inv.id)
-    )
-    .map(inv => buildSustainmentReviewItem(inv, ['control-handoff-missing']));
-}
-
 // ── Blob path helpers ─────────────────────────────────────────────────────
 
 function safePathSegment(value: string): string {

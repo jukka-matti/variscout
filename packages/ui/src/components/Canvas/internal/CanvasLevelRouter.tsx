@@ -81,8 +81,6 @@ export interface CanvasLevelRouterProps {
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
-  onSustainment?: (stepId: string) => void;
-  onHandoff?: (stepId: string) => void;
   // L3 mode toggle
   resolvedL3Archetype: CanvasL3Archetype;
   authoringMode: CanvasAuthoringMode;
@@ -131,8 +129,6 @@ export function CanvasLevelRouter({
   onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
-  onSustainment,
-  onHandoff,
   resolvedL3Archetype,
   authoringMode,
   disabled,
@@ -209,8 +205,6 @@ export function CanvasLevelRouter({
       onLogQuickAction={onLogQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}
       onCharter={onCharter}
-      onSustainment={onSustainment}
-      onHandoff={onHandoff}
     />
   ) : (
     <NoFocalStepPrompt hubId={hubId} map={map} />

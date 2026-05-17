@@ -19,7 +19,6 @@ import type { SpecLimits } from './types';
 import {
   isSustainmentDue,
   isSustainmentOverdue,
-  selectControlHandoffCandidates,
   selectSustainmentBuckets,
   selectSustainmentReviews,
   type ControlHandoff,
@@ -29,7 +28,7 @@ import {
 } from './sustainment';
 
 export { buildReviewItem } from './processHubReview';
-export { isCharterReady, isSustainmentReady, isHandoffReady } from './responsePathReadiness';
+export { isCharterReady, isSustainmentReady } from './responsePathReadiness';
 export type { WorkflowReadinessSignals } from './responsePathReadiness';
 
 /**
@@ -310,8 +309,7 @@ export type ProcessHubAttentionReason =
   | 'overdue-actions'
   | 'next-move'
   | 'sustainment'
-  | 'sustainment-due'
-  | 'control-handoff-missing';
+  | 'sustainment-due';
 
 export type ProcessHubReadinessReason =
   | 'missing-metadata'
@@ -891,11 +889,7 @@ export function buildProcessHubCadence<TInvestigation extends ProcessHubInvestig
     rollup.controlHandoffs,
     now
   );
-  const handoffCandidates = selectControlHandoffCandidates(
-    rollup.investigations,
-    rollup.controlHandoffs
-  );
-  const sustainmentItems = [...sustainmentReviews, ...handoffCandidates];
+  const sustainmentItems = [...sustainmentReviews];
   const sustainmentBuckets = selectSustainmentBuckets(
     rollup.investigations,
     rollup.sustainmentRecords,

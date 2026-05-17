@@ -1,6 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { WorkflowReadinessSignals } from '@variscout/core';
 
 const setProcessContextMock = vi.fn();
 const setMeasureSpecMock = vi.fn();
@@ -123,7 +122,6 @@ vi.mock('@variscout/ui', async () => {
           : null
       ),
     CanvasWorkspace: (props: {
-      signals: WorkflowReadinessSignals;
       onSeeData: () => void;
       onQuickAction?: (stepId: string) => void;
       onLogQuickAction?: (
@@ -141,8 +139,6 @@ vi.mock('@variscout/ui', async () => {
       ) => void;
       onRemoveCausalLink?: (linkId: string) => void;
       onCharter?: () => void;
-      onSustainment?: () => void;
-      onHandoff?: () => void;
       priorStepStats?: ReadonlyMap<string, unknown>;
       actionItems?: unknown[];
       contextLinkGroups?: { surfaceType: string; items: { id: string }[] }[];
@@ -200,16 +196,6 @@ vi.mock('@variscout/ui', async () => {
           'button',
           { type: 'button', 'data-testid': 'cta-charter', onClick: props.onCharter },
           'Charter'
-        ),
-        React.createElement(
-          'button',
-          { type: 'button', 'data-testid': 'cta-sustainment', onClick: props.onSustainment },
-          'Sustainment'
-        ),
-        React.createElement(
-          'button',
-          { type: 'button', 'data-testid': 'cta-handoff', onClick: props.onHandoff },
-          'Handoff'
         )
       );
     },
@@ -329,7 +315,6 @@ describe('FrameView (Azure shell)', () => {
         questions: [{ id: 'q-1' }],
         hypotheses: [{ id: 'hub-1' }],
         causalLinks: [{ id: 'link-1' }],
-        signals: { hasIntervention: false, sustainmentConfirmed: false },
       })
     );
   });
@@ -608,55 +593,15 @@ describe('FrameView (Azure shell)', () => {
     expect(removeCausalLinkMock).toHaveBeenCalledWith('link-created');
   });
 
-  it('wires Canvas charter/sustainment/handoff CTAs to the panels-store show actions', () => {
+  it('wires Canvas charter CTA to the panels-store show action', () => {
     render(<FrameView />);
 
     fireEvent.click(screen.getByTestId('cta-charter'));
-    fireEvent.click(screen.getByTestId('cta-sustainment'));
-    fireEvent.click(screen.getByTestId('cta-handoff'));
 
     expect(showCharterMock).toHaveBeenCalledTimes(1);
-    expect(showSustainmentMock).toHaveBeenCalledTimes(1);
-    expect(showHandoffMock).toHaveBeenCalledTimes(1);
   });
 
-  it('marks Sustainment ready only when a closed project has completed intervention evidence and keeps Handoff gated until sustainment is confirmed', async () => {
-    improvementProjectStateRef.current = {
-      projectsByHub: {
-        'hub-1': [
-          {
-            id: 'ip-1',
-            hubId: 'hub-1',
-            status: 'closed',
-            metadata: { title: 'Reduce rework' },
-            goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', target: 98 } },
-            sections: {
-              background: {},
-              investigationLineage: {},
-              approach: { actionItemIds: ['action-1'] },
-              outcomeReference: {},
-            },
-            createdAt: 1,
-            updatedAt: 1,
-            deletedAt: null,
-          },
-        ],
-      },
-      getProjectsForHub: () => [],
-    };
-    hoisted.actionItemsListByHubMock.mockResolvedValue([
-      { ...actionItem('action-1', 'Change nozzle'), completedAt: 1714000000000 },
-    ]);
-
-    render(<FrameView />);
-
-    await waitFor(() => {
-      const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
-      expect(props?.signals).toEqual({ hasIntervention: true, sustainmentConfirmed: false });
-    });
-  });
-
-  it('marks Handoff ready and includes sustainment context links when a live record is confirmed', async () => {
+  it('includes sustainment context links when a live record is confirmed', async () => {
     hoisted.sustainmentRecordsListByHubMock.mockResolvedValue([
       {
         id: 'sr-1',
@@ -678,7 +623,6 @@ describe('FrameView (Azure shell)', () => {
 
     await waitFor(() => {
       const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
-      expect(props?.signals.sustainmentConfirmed).toBe(true);
       expect(
         props?.contextLinkGroups?.find(
           (group: { surfaceType: string }) => group.surfaceType === 'sustainment'

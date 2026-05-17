@@ -272,12 +272,10 @@ describe('LocalMechanismView', () => {
     expect(onOpenColumnDetail).toHaveBeenCalledWith('Machine', 'mix');
   });
 
-  it('renders 4 additional response-path CTA buttons per column when callbacks provided', () => {
+  it('renders 2 additional response-path CTA buttons per column when callbacks provided', () => {
     const onFocusedInvestigation = vi.fn();
     const onCharter = vi.fn();
-    const onSustainment = vi.fn();
-    const onHandoff = vi.fn();
-    renderView({ onFocusedInvestigation, onCharter, onSustainment, onHandoff });
+    renderView({ onFocusedInvestigation, onCharter });
 
     const ctaGroups = screen.getAllByTestId('response-path-ctas');
     // 4 columns for the 'mix' step — each column card gets the CTA row
@@ -291,12 +289,6 @@ describe('LocalMechanismView', () => {
 
     fireEvent.click(within(firstGroup).getByText('Charter'));
     expect(onCharter).toHaveBeenCalledWith('mix');
-
-    fireEvent.click(within(firstGroup).getByText('Sustain'));
-    expect(onSustainment).toHaveBeenCalledWith('mix');
-
-    fireEvent.click(within(firstGroup).getByText('Handoff'));
-    expect(onHandoff).toHaveBeenCalledWith('mix');
   });
 
   it('does not render the response-path CTA row when no callbacks are provided', () => {
