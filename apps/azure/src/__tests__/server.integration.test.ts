@@ -93,11 +93,7 @@ let request: ReturnType<typeof supertest>;
 
 beforeAll(async () => {
   // Set env vars so module-level constants in server.js have correct values.
-  // Single-SKU: server.js still reads VITE_VARISCOUT_PLAN internally for KB routing;
-  // set to the full-feature value so KB endpoints are accessible in all tests.
-  // The VITE_VARISCOUT_PLAN concept retires with server.js cleanup in a follow-up PR.
   process.env.NODE_ENV = 'test';
-  process.env.VITE_VARISCOUT_PLAN = 'team';
   process.env.STORAGE_ACCOUNT_NAME = 'teststorage';
   process.env.STORAGE_CONTAINER_NAME = 'test-container';
   // Use connection string path so we avoid DefaultAzureCredential flow
@@ -113,7 +109,6 @@ beforeAll(async () => {
 
 afterAll(() => {
   delete process.env.NODE_ENV;
-  delete process.env.VITE_VARISCOUT_PLAN;
   delete process.env.STORAGE_ACCOUNT_NAME;
   delete process.env.STORAGE_CONTAINER_NAME;
   delete process.env.AZURE_STORAGE_CONNECTION_STRING;

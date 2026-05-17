@@ -13,7 +13,6 @@ import { randomUUID } from 'node:crypto';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const DIST = join(__dirname, 'dist');
 const PORT = parseInt(process.env.PORT || '8080', 10);
-const PLAN = process.env.VITE_VARISCOUT_PLAN || 'standard';
 // LOCAL_DEV bypass is blocked on App Service (WEBSITE_SITE_NAME set by Azure)
 const LOCAL_DEV = process.env.LOCAL_DEV && !process.env.WEBSITE_SITE_NAME;
 
@@ -116,7 +115,7 @@ app.get('/health', (_req, res) => {
 // Required for Marketplace deployments where Vite env vars are baked at build time.
 app.get('/config', (_req, res) => {
   const config = {
-    plan: process.env.VITE_VARISCOUT_PLAN || 'standard',
+    plan: 'enterprise',
     // functionUrl removed — token exchange now proxied through /api/token-exchange (same-origin)
     aiEndpoint: process.env.AI_ENDPOINT || '',
     aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
@@ -216,21 +215,14 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-// Shared middleware: require EasyAuth token + Team plan.
-// Reads VITE_VARISCOUT_PLAN at request time (not module load time) so that
-// integration tests can change the plan via process.env without reloading the module.
-function requireTeamPlan(req, res, next) {
+// Shared middleware: require EasyAuth token.
+// Single SKU — no plan gate; all authenticated users can access KB endpoints.
+function requireAuth(req, res, next) {
   const principal = req.headers['x-ms-client-principal'];
   const isLocalDevReq = process.env.LOCAL_DEV && !process.env.WEBSITE_SITE_NAME;
   if (!principal && !isLocalDevReq) {
     res.setHeader('Content-Type', 'application/json');
     res.status(401).end(JSON.stringify({ error: 'Authentication required' }));
-    return;
-  }
-  const currentPlan = process.env.VITE_VARISCOUT_PLAN || 'standard';
-  if (currentPlan !== 'team') {
-    res.setHeader('Content-Type', 'application/json');
-    res.status(403).end(JSON.stringify({ error: 'Team plan required' }));
     return;
   }
   next();
@@ -259,7 +251,7 @@ async function getBlobContainerClient() {
 }
 
 // POST /api/kb-upload — upload a reference document to Blob Storage
-app.post('/api/kb-upload', requireTeamPlan, upload.single('file'), async (req, res) => {
+app.post('/api/kb-upload', requireAuth, upload.single('file'), async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
 
   if (!req.file) {
@@ -313,7 +305,7 @@ app.post('/api/kb-upload', requireTeamPlan, upload.single('file'), async (req, r
 });
 
 // POST /api/kb-search — full-text search against Foundry IQ knowledge index
-app.post('/api/kb-search', requireTeamPlan, async (req, res) => {
+app.post('/api/kb-search', requireAuth, async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Cache-Control', 'no-store');
 
@@ -369,7 +361,7 @@ app.post('/api/kb-search', requireTeamPlan, async (req, res) => {
 });
 
 // GET /api/kb-list — list uploaded documents for a project
-app.get('/api/kb-list', requireTeamPlan, async (req, res) => {
+app.get('/api/kb-list', requireAuth, async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Cache-Control', 'no-store');
 
@@ -412,7 +404,7 @@ app.get('/api/kb-list', requireTeamPlan, async (req, res) => {
 });
 
 // DELETE /api/kb-delete — remove a document from Blob Storage
-app.delete('/api/kb-delete', requireTeamPlan, async (req, res) => {
+app.delete('/api/kb-delete', requireAuth, async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
 
   const { projectId, documentId, fileName } = req.body;
@@ -439,7 +431,7 @@ app.delete('/api/kb-delete', requireTeamPlan, async (req, res) => {
 });
 
 // GET /api/kb-download — generate a read-only SAS URL for a document download
-app.get('/api/kb-download', requireTeamPlan, async (req, res) => {
+app.get('/api/kb-download', requireAuth, async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Cache-Control', 'no-store');
 
