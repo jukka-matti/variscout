@@ -24,7 +24,10 @@ function parseArgs(argv) {
   const out = { filters: {}, keyword: null, limit: 10 };
   for (const a of argv) {
     if (a.startsWith('--keyword=')) out.keyword = a.slice(10).toLowerCase();
-    else if (a.startsWith('--limit=')) out.limit = Number(a.slice(8));
+    else if (a.startsWith('--limit=')) {
+      const n = Number(a.slice(8));
+      out.limit = Number.isFinite(n) && n > 0 ? n : 10;
+    }
     else if (a.startsWith('--')) {
       const eq = a.indexOf('=');
       if (eq > 2) out.filters[a.slice(2, eq)] = a.slice(eq + 1);
