@@ -511,36 +511,12 @@ export interface BoxplotGroupData {
 }
 
 // ============================================================================
-// Licensing and Tier Types - Multi-tier subscription system
+// Channel-limit types (wedge V1 single SKU — see `tier.ts` for runtime helpers)
 // ============================================================================
 
 /**
- * License tier for VariScout distribution
- * - free: Demo tier (PWA, 5 channels max)
- * - enterprise: Azure Managed Application (all features, 1500 channels)
- */
-export type LicenseTier = 'free' | 'enterprise';
-
-/**
- * Marketplace plan for Azure Managed Application
- * - standard: Full analysis with CoScout AI, local file storage (€79/month)
- * - team: + OneDrive, SharePoint, Teams, Knowledge Base (€199/month)
- *
- * Orthogonal to LicenseTier: both plans are 'enterprise' tier (same analysis features).
- * Plan controls collaboration features; tier controls analysis features.
- */
-export type MarketplacePlan = 'standard' | 'team';
-
-/**
- * Tier-specific limits for feature gating
- */
-export interface TierLimits {
-  /** Maximum number of measurement channels allowed */
-  maxChannels: number;
-}
-
-/**
- * Channel limit validation result
+ * Channel limit validation result. Source of truth lives in
+ * `@variscout/core/tier`; this re-export keeps barrel consumers unchanged.
  */
 export interface ChannelLimitResult {
   /** Whether the current channel count exceeds the limit */
