@@ -34,7 +34,7 @@ The Knowledge Base feature allows CoScout to search a unified knowledge index fo
 
 ## Search Scope
 
-CoScout searches the Foundry IQ unified knowledge index, scoped to the active project via a `projectId` filter computed server-side (`server.js → /api/knowledge-search`). This ensures results are relevant to the current investigation context.
+CoScout searches the Azure AI Search unified knowledge index (Knowledge Catalyst), scoped to the active project via a `projectId` filter computed server-side (`server.js → /api/knowledge-search`). This ensures results are relevant to the current investigation context.
 
 > Results include both project-specific investigation artifacts and shared organizational documents (SOPs, procedures) uploaded by admins.
 
@@ -42,7 +42,7 @@ CoScout searches the Foundry IQ unified knowledge index, scoped to the active pr
 
 ## Data Sources
 
-### Foundry IQ Unified Knowledge Index (ADR-060)
+### Knowledge Catalyst Unified Knowledge Index (ADR-060)
 
 The knowledge index is backed by Blob Storage and organized into three source types:
 
@@ -52,9 +52,9 @@ The knowledge index is backed by Blob Storage and organized into three source ty
 | **Investigation artifacts** | Findings, questions, improvement ideas from active and past investigations | Auto-indexed as investigation progresses |
 | **Answers**                 | Team member contributions and recorded answers                             | Contributed via CoScout conversation     |
 
-**Search flow**: CoScout calls `search_knowledge_base` tool → `server.js` computes `projectId` filter → queries Foundry IQ → returns top-5 results with source type attribution → formatted via `formatKnowledgeContext()` into CoScout prompt.
+**Search flow**: CoScout calls `search_knowledge_base` tool → `server.js` computes `projectId` filter → queries Azure AI Search → returns top-5 results with source type attribution → formatted via `formatKnowledgeContext()` into CoScout prompt.
 
-**No M365 Copilot license required**: Foundry IQ connects to Blob Storage directly — no Remote SharePoint knowledge source needed.
+**No M365 Copilot license required**: Azure AI Search connects to Blob Storage directly — no Remote SharePoint knowledge source needed.
 
 ---
 
@@ -74,10 +74,10 @@ The Knowledge Base search degrades gracefully:
 1. Navigate to **Admin > Knowledge Base** (BookOpen icon in header)
 2. Verify all status checks are green:
    - Azure App active (Phase 2+ feature)
-   - Search endpoint configured (via ARM template — Foundry IQ service)
+   - Search endpoint configured (via ARM template — Azure AI Search service)
    - Beta feature enabled
-3. Upload organizational documents (SOPs, procedures, reference docs) via the document upload UI — Foundry IQ connects to Blob Storage automatically; no Remote SharePoint knowledge source configuration needed
-4. Click **Test Search Connectivity** to verify the Foundry IQ index
+3. Upload organizational documents (SOPs, procedures, reference docs) via the document upload UI — Azure AI Search indexes from Blob Storage automatically; no Remote SharePoint knowledge source needed
+4. Click **Test Search Connectivity** to verify the Azure AI Search index
 5. Toggle the beta feature on/off as needed
 
 ---

@@ -23,7 +23,7 @@ The ARM template (compiled from Bicep) deploys VariScout to a customer's Azure s
 
 The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users via EasyAuth (`User.Read` + `People.Read`, both user-consent). No admin consent Graph API scopes are needed — the Function App and OBO token exchange were removed in ADR-059.
 
-**Single SKU resources** — The Azure App runs entirely in the browser. All deployments include Azure AI Services (model hosting), Key Vault (secure secret storage), App Insights (telemetry), Azure Blob Storage (project sync + Foundry IQ knowledge index), and `text-embedding-3-small` deployment for Foundry IQ (ADR-060). The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault and Blob Storage.
+**Single SKU resources** — The Azure App runs entirely in the browser. All deployments include Azure AI Services (model hosting), Key Vault (secure secret storage), App Insights (telemetry), Azure Blob Storage (project sync), and `text-embedding-3-small` deployment for Knowledge Catalyst (Phase 2+, ADR-060). The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault and Blob Storage.
 
 **Conditional variables** (kept for backward compatibility; the `variscoutPlan` parameter accepts `'team'` or `'standard'` but all features are provisioned):
 
@@ -201,13 +201,13 @@ Key configuration:
 
 ### 4. AI Services (all plans)
 
-| Resource                 | SKU   | Purpose                                                    | Monthly Cost | Provisioning          |
-| ------------------------ | ----- | ---------------------------------------------------------- | ------------ | --------------------- |
-| Azure AI Services        | S0    | Model hosting (gpt-5.4-nano + gpt-5.4-mini)                | ~€15-25      | All Azure App deploys |
-| `text-embedding-3-small` | —     | Foundry IQ knowledge index embeddings (1536 dims, ADR-060) | ~€0-1        | All Azure App deploys |
-| Azure AI Search Basic    | Basic | Reserved for future cross-project search (not used in v1)  | ~€50-60      | Not provisioned in v1 |
+| Resource                 | SKU   | Purpose                                                       | Monthly Cost | Provisioning          |
+| ------------------------ | ----- | ------------------------------------------------------------- | ------------ | --------------------- |
+| Azure AI Services        | S0    | Model hosting (gpt-5.4-nano + gpt-5.4-mini)                   | ~€15-25      | All Azure App deploys |
+| `text-embedding-3-small` | —     | Knowledge Catalyst embeddings — Phase 2+ (1536 dims, ADR-060) | ~€0-1        | All Azure App deploys |
+| Azure AI Search Basic    | Basic | Reserved for future cross-project search (not used in v1)     | ~€50-60      | Not provisioned in v1 |
 
-AI resources (Azure AI Services, Key Vault, App Insights) and Blob Storage are provisioned for all Azure App deployments (single SKU). Foundry IQ v1 uses embeddings in Blob Storage (brute-force cosine) and does not require Azure AI Search.
+AI resources (Azure AI Services, Key Vault, App Insights) and Blob Storage are provisioned for all Azure App deployments (single SKU). Knowledge Catalyst (Phase 2+) will use embeddings in Blob Storage (brute-force cosine) and may optionally use Azure AI Search.
 
 #### AI Deployment Guardrails
 
@@ -228,11 +228,11 @@ See [Responsible AI Policy](../../05-technical/architecture/responsible-ai-polic
 
 The Node.js server (`server.js`) serves a `/config` endpoint that returns runtime settings from environment variables. This allows Marketplace deployments to configure AI endpoints without rebuilding.
 
-| Variable             | Description                                                 |
-| -------------------- | ----------------------------------------------------------- |
-| `AI_ENDPOINT`        | Azure AI Foundry endpoint                                   |
-| `AI_EMBEDDING_MODEL` | Embedding deployment name (text-embedding-3-small, ADR-060) |
-| `STORAGE_ACCOUNT`    | Blob Storage account name for Foundry IQ knowledge index    |
+| Variable             | Description                                                                |
+| -------------------- | -------------------------------------------------------------------------- |
+| `AI_ENDPOINT`        | Azure AI Foundry endpoint                                                  |
+| `AI_EMBEDDING_MODEL` | Embedding deployment name (text-embedding-3-small, ADR-060)                |
+| `STORAGE_ACCOUNT`    | Blob Storage account name for project sync + Knowledge Catalyst (Phase 2+) |
 
 The client fetches `/config` on startup via `runtimeConfig.ts` and uses the returned values to configure AI service clients. Environment variables without the `VITE_` prefix are invisible to the Vite build — the `/config` endpoint is the only way they reach the client.
 

@@ -27,24 +27,24 @@ VariScout's AI integration follows the principles documented in [`aix-design-sys
 
 ### Data that enters AI
 
-| Data type            | Source                         | Example                                |
-| -------------------- | ------------------------------ | -------------------------------------- |
-| Computed statistics  | `buildAIContext()`             | Mean, StdDev, Cpk, pass rate, ANOVA η² |
-| Analyst-written text | Finding descriptions           | "Machine A shows Cpk 0.85"             |
-| Analyst-written text | Hypothesis text                | "Nozzle wear causes drift"             |
-| Analyst-written text | Action items                   | "Replace nozzle tip weekly"            |
-| Analyst-written text | Process descriptions           | "Filling line 3, 500ml bottles"        |
-| Analyst-written text | Problem statements             | "Cpk below 1.33 target"                |
-| Analyst-written text | Outcome notes                  | "Cpk improved to 1.45"                 |
-| CoScout conversation | Last 10 messages               | User questions + AI responses          |
-| KB document snippets | Foundry IQ / Remote SharePoint | 400 chars max per document             |
-| Factor names         | CSV column headers             | "Machine", "Operator", "Shift"         |
-| Category values      | CSV data values                | "Machine A", "Morning", "Line 1"       |
+| Data type            | Source                                          | Example                                |
+| -------------------- | ----------------------------------------------- | -------------------------------------- |
+| Computed statistics  | `buildAIContext()`                              | Mean, StdDev, Cpk, pass rate, ANOVA η² |
+| Analyst-written text | Finding descriptions                            | "Machine A shows Cpk 0.85"             |
+| Analyst-written text | Hypothesis text                                 | "Nozzle wear causes drift"             |
+| Analyst-written text | Action items                                    | "Replace nozzle tip weekly"            |
+| Analyst-written text | Process descriptions                            | "Filling line 3, 500ml bottles"        |
+| Analyst-written text | Problem statements                              | "Cpk below 1.33 target"                |
+| Analyst-written text | Outcome notes                                   | "Cpk improved to 1.45"                 |
+| CoScout conversation | Last 10 messages                                | User questions + AI responses          |
+| KB document snippets | Azure AI Search / Knowledge Catalyst (Phase 2+) | 400 chars max per document             |
+| Factor names         | CSV column headers                              | "Machine", "Operator", "Shift"         |
+| Category values      | CSV data values                                 | "Machine A", "Morning", "Line 1"       |
 
 **Never sent to AI:**
 
 - Raw measurement values (only summary statistics)
-- Photos (stored in OneDrive, never sent to AI)
+- Photos (stored in Azure Blob Storage, never sent to AI)
 - User credentials or tokens
 - Other users' data (tenant-isolated)
 
@@ -59,11 +59,11 @@ VariScout's AI integration follows the principles documented in [`aix-design-sys
 
 ### Content shared externally (Phase 4b — deferred)
 
-| Output                     | Destination               | Status                              |
-| -------------------------- | ------------------------- | ----------------------------------- |
-| Reports to SharePoint      | Customer's SharePoint     | Handler exists, execution not wired |
-| Finding summaries to Teams | Customer's Teams channels | Handler exists, execution not wired |
-| Action owner notifications | Teams @mentions           | Handler exists, execution not wired |
+| Output                     | Destination               | Status                                         |
+| -------------------------- | ------------------------- | ---------------------------------------------- |
+| Reports to SharePoint      | Customer's SharePoint     | Deferred — SharePoint sync retired per ADR-059 |
+| Finding summaries to Teams | Customer's Teams channels | Handler exists, execution not wired            |
+| Action owner notifications | Teams @mentions           | Handler exists, execution not wired            |
 
 ---
 
@@ -105,9 +105,9 @@ Analyst-written text is sent to AI without client-side PII scrubbing.
 - Azure OpenAI content filters apply server-side (DefaultV2 policy)
 - No data leaves the customer's Azure region
 
-### Knowledge Base documents
+### Knowledge Catalyst documents (Phase 2+)
 
-- Customer-controlled SharePoint folder; per-user permissions via delegated token passthrough
+- Customer-controlled Azure AI Search index (SharePoint integration deferred — Phase 2+); per-user permissions via delegated token passthrough
 - Customers choose which folders are searchable (AdminKnowledgeSetup)
 - Document snippets are truncated to 400 characters maximum
 - Source attribution required in AI responses (`[Source: name]` notation)
@@ -133,17 +133,19 @@ If enterprise customers require client-side PII detection:
 
 ---
 
-## §5 — Knowledge Base Guardrails
+## §5 — Knowledge Catalyst Guardrails (Phase 2+)
 
-Foundry IQ retrieval (Remote SharePoint) has these specific controls:
+> **V1 note:** Knowledge Catalyst (Azure AI Search over organizational documents) is deferred to Phase 2+. The guardrails below describe the target design.
 
-| Control              | Implementation                                                              |
-| -------------------- | --------------------------------------------------------------------------- |
-| Per-user permissions | Delegated token passthrough — user can only search docs they have access to |
-| Folder scoping       | KQL filter on SharePoint path — only configured KB folders are searched     |
-| Snippet truncation   | 400 chars max per document — limits context window exposure                 |
-| Source attribution   | `[Source: name]` citation required in CoScout responses                     |
-| Customer control     | Admin selects which folders are KB sources (AdminKnowledgeSetup)            |
+Azure AI Search retrieval has these specific controls:
+
+| Control              | Implementation                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| Per-user permissions | Delegated token passthrough — user can only search docs they have access to          |
+| Index scoping        | Search index configuration — only configured Knowledge Catalyst indices are searched |
+| Snippet truncation   | 400 chars max per document — limits context window exposure                          |
+| Source attribution   | `[Source: name]` citation required in CoScout responses                              |
+| Customer control     | Admin selects which indices are Knowledge Catalyst sources (AdminKnowledgeSetup)     |
 
 ### Recursive knowledge risk
 

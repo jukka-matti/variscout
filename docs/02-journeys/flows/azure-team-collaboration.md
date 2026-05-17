@@ -177,10 +177,10 @@ If the admin enabled AI during deployment, all team members have access to AI-as
 | **ChartInsightChip**   | 2     | Per-chart suggestions (e.g., "Drill Machine A (47%)")                                                |
 | **CoScoutPanel**       | 3     | Conversational AI for deeper questions                                                               |
 | **Knowledge Catalyst** | 2+    | Resolved findings accumulate as searchable organizational knowledge (Blob Storage + Azure AI Search) |
-| **Document retrieval** | 3     | CoScoutPanel references team SOPs, fault trees, past investigations via Azure AI Search (Foundry IQ) |
+| **Document retrieval** | 3     | CoScoutPanel references team SOPs, fault trees, past investigations via Azure AI Search (Phase 2+)   |
 | **Shared AI insights** | 1+    | NarrativeBar and ChartInsightChip visible to all project members viewing the same analysis           |
 
-**Knowledge Catalyst (Phase 2+):** Published investigation reports — with findings, corrective actions, and measured outcomes — are indexed to Azure AI Search (Foundry IQ) in the customer's tenant. CoScoutPanel can answer questions like "Have we seen this pattern before?" by retrieving past investigations on demand. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for the Foundry IQ architecture (supersedes the earlier SharePoint Knowledge Base approach).
+**Knowledge Catalyst (Phase 2+):** Published investigation reports — with findings, corrective actions, and measured outcomes — are indexed to Azure AI Search in the customer's tenant. CoScoutPanel can answer questions like "Have we seen this pattern before?" by retrieving past investigations on demand. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for the architecture (supersedes the earlier SharePoint Knowledge Base approach; Foundry IQ deferred per ADR-059).
 
 **Document retrieval (Phase 3):** CoScoutPanel references quality documents (SOPs, fault trees, control plans) stored in Azure AI Search. Users click "Search Knowledge Base?" in CoScout to trigger on-demand search with per-user Blob Storage permissions.
 
@@ -216,7 +216,7 @@ CUSTOMER TENANT                        VARISCOUT (Publisher)
 │  Azure AD            │               │  No access to:     │
 │  (authenticates)     │               │  - Customer data   │
 │                      │               │  - User identities │
-│  OneDrive            │               │  - App resources   │
+│  Blob Storage        │               │  - App resources   │
 │  (stores analyses)   │               │  - AI prompts/data │
 │                      │               │  - Usage telemetry │
 │  Azure AI Foundry    │               │                    │
@@ -229,7 +229,7 @@ When AI is enabled, Azure AI Foundry resources are deployed in the customer's te
 
 - Publisher management is disabled — zero access to customer deployment
 - No telemetry or outbound calls to publisher systems
-- Data survives subscription cancellation (analyses remain on device or in OneDrive/SharePoint)
+- Data survives subscription cancellation (analyses remain on device or in Blob Storage)
 
 ---
 
@@ -246,14 +246,14 @@ When AI is enabled, Azure AI Foundry resources are deployed in the customer's te
 
 ## Success Metrics
 
-| Metric                                | Target  |
-| ------------------------------------- | ------- |
-| Deployment → first team login         | < 1 day |
-| Team members active (month 1)         | > 50%   |
-| Analyses saved per user (month 1)     | > 3     |
-| Teams tab adoption (if set up)        | Track   |
-| OneDrive sharing between team members | Track   |
-| Return rate (week 2)                  | > 60%   |
+| Metric                            | Target  |
+| --------------------------------- | ------- |
+| Deployment → first team login     | < 1 day |
+| Team members active (month 1)     | > 50%   |
+| Analyses saved per user (month 1) | > 3     |
+| Teams tab adoption (if set up)    | Track   |
+| Blob Storage sync reliability     | Track   |
+| Return rate (week 2)              | > 60%   |
 
 ---
 
@@ -263,7 +263,7 @@ When AI is enabled, Azure AI Foundry resources are deployed in the customer's te
 - [How It Works](../../08-products/azure/how-it-works.md) — end-to-end architecture
 - [ARM Template](../../08-products/azure/arm-template.md) — deployment resources
 - [Authentication](../../08-products/azure/authentication.md) — EasyAuth details
-- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) — sync and offline behavior
+- [Blob Storage Sync](../../08-products/azure/blob-storage-sync.md) — sync and offline behavior
 - [AI Setup](azure-ai-setup.md) — admin flow for enabling AI features
 - [Enterprise Evaluation](enterprise.md) — how Olivia evaluated before deploying
 - [First Analysis](azure-first-analysis.md) — what team members experience on day one

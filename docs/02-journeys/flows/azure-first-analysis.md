@@ -195,7 +195,7 @@ See [Blob Storage Sync](../../08-products/azure/blob-storage-sync.md) for sync d
 | Login → first chart rendered        | < 3 min |
 | First drill-down in first session   | > 60%   |
 | Return within 7 days                | > 50%   |
-| Analysis saved to OneDrive (Team)   | > 80%   |
+| Analysis saved to Blob Storage      | > 80%   |
 | Sample dataset chosen (first visit) | Track   |
 
 ---
@@ -252,7 +252,7 @@ For a first-time user, this brief interaction introduces the investigation workf
 - [Azure App Overview](../../08-products/azure/index.md)
 - [How It Works](../../08-products/azure/how-it-works.md) — end-to-end architecture
 - [Authentication](../../08-products/azure/authentication.md) — EasyAuth details
-- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) — persistence flow
+- [Blob Storage Sync](../../08-products/azure/blob-storage-sync.md) — persistence flow
 - [Enterprise Evaluation](enterprise.md) — how Olivia evaluated before Gary got access
 - [Azure Daily Use](azure-daily-use.md) — Gary's workflow after first analysis
 - [Return Visitor](return-visitor.md) — PWA return experience and upgrade triggers

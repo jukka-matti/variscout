@@ -90,21 +90,19 @@ pnpm --filter @variscout/azure-app test
 
 > **Note**: These variables are NOT prefixed with `VITE_` because they are served at runtime via the `/config` endpoint (see `apps/azure/src/lib/runtimeConfig.ts`), not baked into the Vite build.
 
-#### Knowledge Base Setup
+#### Knowledge Catalyst Setup (Phase 2+)
 
-The Knowledge Base uses a Remote SharePoint knowledge source (ADR-026). Setup steps:
+> **V1 note:** Knowledge Catalyst is not active in V1. SharePoint/Remote SharePoint knowledge source (ADR-026) is deferred per ADR-059. The setup steps below apply to the Phase 2+ Azure AI Search integration.
 
-1. Create a Remote SharePoint knowledge source in the Azure AI Search service (requires at least 1 M365 Copilot license in tenant). See [Microsoft documentation](https://learn.microsoft.com/en-us/azure/search/agentic-knowledge-source-how-to-sharepoint-remote).
-2. In the app, navigate to **Admin > Knowledge Base** (`AdminKnowledgeSetup`) to verify connectivity and toggle the preview feature on/off
-3. Click **Test Search Connectivity** to verify the knowledge source is accessible
+1. Configure an Azure AI Search index in the Azure AI Search service provisioned by the ARM template.
+2. In the app, navigate to **Admin > Knowledge Catalyst** (`AdminKnowledgeSetup`) to verify connectivity and toggle the preview feature on/off.
+3. Click **Test Search Connectivity** to verify the search index is accessible.
 
 #### Azure Functions
 
-| Function         | Purpose                                              | Plan |
-| ---------------- | ---------------------------------------------------- | ---- |
-| `token-exchange` | OBO token exchange for Teams SSO + SharePoint access | Team |
+> **V1 note:** The `token-exchange` function (OBO token exchange for Teams SSO + SharePoint access) is retired per ADR-059. It is no longer required.
 
-Both functions are deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME` is configured as a GitHub Actions variable. The pipeline uses `azure/functions-action@v2` to deploy the `infra/functions/` directory.
+Functions are deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME` is configured as a GitHub Actions variable. The pipeline uses `azure/functions-action@v2` to deploy the `infra/functions/` directory.
 
 ### PWA Environment Variables
 

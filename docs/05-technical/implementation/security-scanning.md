@@ -105,7 +105,7 @@ The security audit worker excludes non-application paths (`.venv/`, `node_module
 
 - [ ] PWA icons — generate `pwa-192x192.png` and `pwa-512x512.png` (requires image generation)
 - [ ] Penetration testing — engage external vendor before Marketplace GA
-- [ ] Threat model — STRIDE model covering EasyAuth, OBO, OneDrive sync, service worker
+- [ ] Threat model — STRIDE model covering EasyAuth, Blob Storage sync, service worker (OBO/OneDrive retired per ADR-059)
 - [ ] Incident response plan — classification, escalation paths, response procedures
 
 ## When to Run

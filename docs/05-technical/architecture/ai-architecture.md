@@ -42,14 +42,14 @@ Technical architecture for optional AI integration in the Azure App.
 ┌──────────────────────▼──────────────────────────────┐
 │  AZURE (customer's tenant — optional)                │
 │                                                      │
-│  Azure AI Foundry          Foundry IQ                 │
-│  (gpt-5.4-nano / mini)    (unified knowledge index — │
-│                            Blob Storage + agentic     │
-│                            retrieval)                 │
+│  Azure AI Foundry          Azure AI Search             │
+│  (gpt-5.4-nano / mini)    (Knowledge Catalyst —       │
+│                            Phase 2+; Foundry IQ       │
+│                            deferred per ADR-059)      │
 │                                                      │
-│  Blob Storage              OneDrive                   │
+│  Blob Storage              Blob Storage               │
 │  (documents, investigation (.vrs projects)            │
-│   artifacts)                                         │
+│   artifacts)               OneDrive retired ADR-059  │
 │                                                      │
 │  ARM Template                                         │
 │  (deploys conditionally)                              │
@@ -151,15 +151,17 @@ CoScout supports image input for visual evidence analysis:
 
 Images are budget-managed as part of the degradation priority pipeline (see [AI Context Engineering](ai-context-engineering.md)).
 
-### Layer 4 -- Team Documents (Foundry IQ, ADR-060)
+### Layer 4 -- Team Documents (Knowledge Catalyst — Phase 2+)
 
-Uploaded SOPs, investigation artifacts (findings, questions, improvement ideas), and team-contributed answers stored in Blob Storage. Accessed on demand via **Foundry IQ** (unified knowledge index — three-layer hot/warm/cold architecture: hot = real-time investigation artifacts, warm = recent findings, cold = historical documents).
+> **V1 note:** Layer 4 is not active in V1. Foundry IQ and SharePoint integration are deferred per ADR-059. The design below describes the target Phase 2+ state using Azure AI Search.
 
-**On-demand, not auto-fire:** Knowledge search is triggered when the user clicks the "Search Knowledge Base?" button in CoScout, not automatically on every message. This reduces latency and cost.
+Uploaded SOPs, investigation artifacts (findings, questions, improvement ideas), and team-contributed answers stored in Blob Storage. Accessed on demand via **Azure AI Search** (Knowledge Catalyst — three-layer hot/warm/cold architecture: hot = real-time investigation artifacts, warm = recent findings, cold = historical documents).
+
+**On-demand, not auto-fire:** Knowledge search is triggered when the user clicks the "Search Knowledge Catalyst?" button in CoScout, not automatically on every message. This reduces latency and cost.
 
 **Investigation artifacts as knowledge:** Findings, questions, and improvement ideas are automatically indexed as investigation artifacts — no manual publishing step required. Documents (SOPs, procedures) are uploaded once and remain searchable.
 
-**SuspectedCause hub serialization:** When hubs are created or updated in the Investigation workspace, they are serialized to the Blob Storage investigation artifacts (alongside findings and questions) as structured JSON. The hub record includes: `{ id, name, synthesis, evidenceMetric, evidenceValue, connectedQuestionIds, connectedFindingIds, status, createdAt, updatedAt }`. Foundry IQ indexes hub records so CoScout can retrieve full hub detail (including linked evidence) via `search_knowledge_base` when context requires more depth than the hot context carries.
+**SuspectedCause hub serialization:** When hubs are created or updated in the Investigation workspace, they are serialized to the Blob Storage investigation artifacts (alongside findings and questions) as structured JSON. The hub record includes: `{ id, name, synthesis, evidenceMetric, evidenceValue, connectedQuestionIds, connectedFindingIds, status, createdAt, updatedAt }`. Azure AI Search indexes hub records so CoScout can retrieve full hub detail (including linked evidence) via `search_knowledge_base` when context requires more depth than the hot context carries.
 
 See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for the architecture decision. (Supersedes ADR-026 SharePoint approach.)
 
@@ -262,11 +264,11 @@ The config is fetched once on app startup and merged with environment variables.
 
 ---
 
-## Knowledge Layer: Foundry IQ + Blob Storage
+## Knowledge Layer: Knowledge Catalyst (Phase 2+)
 
-> **Status:** Beta (ADR-060, April 2026). See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md). Supersedes ADR-026 (SharePoint approach).
+> **V1 status:** Not active. Foundry IQ and SharePoint integration are retired per ADR-059. This section describes the Phase 2+ target using Azure AI Search. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md). Supersedes ADR-026 (SharePoint approach).
 
-Foundry IQ is a unified knowledge index backed by Blob Storage — not a Remote SharePoint pipeline. Investigation artifacts (findings, questions, ideas) are indexed automatically; documents (SOPs, procedures) are uploaded once. No M365 Copilot license required.
+Knowledge Catalyst is a unified knowledge index backed by Blob Storage and Azure AI Search — not a Remote SharePoint pipeline. Investigation artifacts (findings, questions, ideas) are indexed automatically; documents (SOPs, procedures) are uploaded once. No M365 Copilot license required.
 
 ### Architecture (ADR-060)
 
@@ -274,11 +276,11 @@ Foundry IQ is a unified knowledge index backed by Blob Storage — not a Remote 
 Investigation artifacts --> findings, questions, ideas --> Blob Storage (hot layer)
 Document upload         --> SOPs, procedures           --> Blob Storage (cold layer)
                                                               |
-CoScout question --> User clicks "Search KB?" --> searchDocuments()
+CoScout question --> User clicks "Search Knowledge Catalyst?" --> searchDocuments()
                                                               |
                                                     server.js --> projectId filter
                                                               |
-                                                    Foundry IQ (unified index)
+                                                    Azure AI Search (unified index)
                                                     --> Blob Storage agentic retrieval
                                                               |
                                                     top-5 results with source attribution
@@ -300,13 +302,13 @@ CoScout question --> User clicks "Search KB?" --> searchDocuments()
 
 2. **On-demand search (not auto-fire)**: Knowledge search is triggered by user click, not on every CoScout message. Reduces latency, cost, and noise.
 
-3. **Project-scoped search**: `server.js` computes `projectId` filter before querying Foundry IQ, limiting results to the active project's artifact space.
+3. **Project-scoped search**: `server.js` computes `projectId` filter before querying Azure AI Search, limiting results to the active project's artifact space.
 
 4. **Investigation artifacts as knowledge**: Findings, questions, and improvement ideas are indexed automatically — no manual publishing step. The investigation process builds organizational memory as a side effect.
 
 5. **Source attribution**: Results include source type (document / investigation artifact / answer) and metadata for `[Source: name]` citation badges in CoScout responses.
 
-6. **ExtractedData output mode**: Foundry IQ returns raw chunks rather than synthesized answers. CoScout reasons over the raw context.
+6. **ExtractedData output mode**: Azure AI Search returns raw chunks rather than synthesized answers. CoScout reasons over the raw context.
 
 ### Searchable Content
 
@@ -332,12 +334,12 @@ After 50+ investigations, the AI has genuine organizational knowledge — measur
 
 All AI resources are conditional on `parameters('enableAI')`:
 
-| Resource                   | Type                                                           | Purpose                                                  |
-| -------------------------- | -------------------------------------------------------------- | -------------------------------------------------------- |
-| AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: OpenAI, SKU: S0) | Azure AI Foundry host                                    |
-| Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-nano for narration + chips (reasoning: none)     |
-| Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-mini for CoScout + reports (reasoning: low)      |
-| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Foundry IQ unified knowledge index (Azure App, Phase 2+) |
+| Resource                   | Type                                                           | Purpose                                                          |
+| -------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: OpenAI, SKU: S0) | Azure AI Foundry host                                            |
+| Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-nano for narration + chips (reasoning: none)             |
+| Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-mini for CoScout + reports (reasoning: low)              |
+| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Knowledge Catalyst unified knowledge index (Azure App, Phase 2+) |
 
 `createUiDefinition.json` additions:
 
@@ -607,7 +609,7 @@ AIContext
 ├── focusContext         # From "Ask CoScout about this"
 ├── teamContributors     # Teams plan: count + hypothesis areas
 ├── glossaryFragment     # Methodology terms + concepts for grounding
-├── knowledgeDocuments[] # SharePoint documents (populated on-demand)
+├── knowledgeDocuments[] # Knowledge Catalyst documents (Phase 2+, populated on-demand)
 └── locale               # Active locale for AI response language
 ```
 

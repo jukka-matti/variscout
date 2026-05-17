@@ -134,7 +134,7 @@ Each mode is a view configuration, not a separate workflow. The analyst switches
 | Key Code | `useFindings`, `useHypotheses`, `FindingsLog`, `FindingBoardView`, `InvestigationPhaseBadge`, `InvestigationMapView`, `useEvidenceMapData` |
 | Exit     | Multiple suspected causes identified, finding marked `analyzed`                                                                            |
 
-**Knowledge Base (Mode 3):** "Search Knowledge Base?" button in CoScout triggers Foundry IQ (Remote SharePoint via Azure AI Search). Returns folder-scoped documents using the user's own token (per-user security). Results injected as Layer 4 context for CoScout re-synthesis.
+**Knowledge Catalyst (Phase 2+):** "Search Knowledge Catalyst?" button in CoScout will trigger Azure AI Search over organizational documents. Returns folder-scoped documents using the user's own token (per-user security). Results injected as Layer 4 context for CoScout re-synthesis. _Not available in V1; SharePoint/Foundry IQ integration deferred._
 
 ### IMPROVE
 
@@ -269,7 +269,7 @@ The journey behaves differently depending on which AI mode is active. Modes are 
 | --------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **No AI**                   | PWA (always), Azure without AI Foundry, or user toggle OFF | Dashboard shows deterministic insights only. All AI UI hidden with zero layout disruption.                                                                       |
 | **AI Enabled**              | Azure App with AI Foundry deployed                         | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts. Actionable suggestions (drill, pin finding) with analyst confirmation. |
-| **AI + Knowledge Catalyst** | Azure App, Phase 2+ (Foundry IQ configured)                | Adds organizational document search (Foundry IQ) in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries.                                      |
+| **AI + Knowledge Catalyst** | Azure App, Phase 2+ (Azure AI Search configured)           | Adds organizational document search in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries. SharePoint/Foundry IQ deferred.                   |
 
 **Mode ≠ Plan:** AI is a horizontal capability included in the single €120 SKU. Knowledge Catalyst (Mode 3) requires Phase 2 AI deployment.
 
@@ -282,9 +282,9 @@ The journey behaves differently depending on which AI mode is active. Modes are 
 | Layer 1 | Analysis state      | `buildAIContext()` from DataContext                   | Always (Mode 2+)                |
 | Layer 2 | Process context     | User-entered description + auto-inferred factor roles | Optional (Mode 2+)              |
 | Layer 3 | Knowledge grounding | ~47 glossary terms + 11 methodology concepts          | Always (Mode 2+)                |
-| Layer 4 | Team documents      | Remote SharePoint via Foundry IQ                      | On-demand, SCOUT+ (Mode 3 only) |
+| Layer 4 | Team documents      | Azure AI Search (Knowledge Catalyst — Phase 2+)       | On-demand, SCOUT+ (Mode 3 only) |
 
-Layers 1-3 are always in the prompt. Layer 4 is injected only when the user clicks "Search Knowledge Base?" in CoScout.
+Layers 1-3 are always in the prompt. Layer 4 is injected only when the user clicks "Search Knowledge Catalyst?" in CoScout. _V1: Layer 4 not active; SharePoint/Foundry IQ deferred to Phase 2._
 
 ### Entry Paths
 
@@ -341,7 +341,7 @@ The teaching shorthand (CHANGE/FLOW/FAILURE/VALUE) appears in docs and marketing
 
 FRAME captures process context via a 500-character text field (`ProcessDescriptionField`). There is no way to upload, link, or reference structured process documents (SOPs, control plans, FMEA, equipment specs) during setup.
 
-The Knowledge Layer (Foundry IQ) can search SharePoint docs, but only from INVESTIGATE onward — triggered on demand from CoScout. During SCOUT, when initial pattern interpretation would benefit most from process knowledge, the AI has no access to organizational documents.
+The Knowledge Catalyst (Phase 2+) will support Azure AI Search over organizational documents, but only from INVESTIGATE onward — triggered on demand from CoScout. In V1 this is not available; SharePoint/Foundry IQ integration is deferred. During SCOUT, when initial pattern interpretation would benefit most from process knowledge, the AI has no access to organizational documents.
 
 A future enhancement could allow process document references during FRAME, so the AI context includes SOP knowledge from the earliest analysis phases. This was identified in the AI readiness review as a "Level 2 proactive extraction" capability.
 
@@ -358,7 +358,7 @@ For **saved Azure projects**, the journey begins with the **Project Dashboard** 
 ```
 Project List
     ↓ select saved project
-loadProject() [hydrates AnalysisState from IndexedDB/OneDrive]
+loadProject() [hydrates AnalysisState from IndexedDB/Blob Storage]
     ↓ has data?
     ├─ Yes (default) → Project Dashboard (activeView: 'dashboard')
     │                      → user navigates to Editor (any of: tab click, status item click, quick action)

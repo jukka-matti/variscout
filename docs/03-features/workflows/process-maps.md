@@ -137,7 +137,7 @@ _"Is my process stable?"_
       <div class="process-step">
         <div class="process-step__box process-step__box--navigate">
           <div class="process-step__title">Save</div>
-          <div class="process-step__detail">Persists to OneDrive</div>
+          <div class="process-step__detail">Persists to Blob Storage</div>
         </div>
         <div class="process-step__clicks">1 click</div>
       </div>
@@ -147,7 +147,7 @@ _"Is my process stable?"_
       </div>
     </div>
 
-    Azure skips column mapping when auto-detection succeeds, saving 1 action. The Save step persists to OneDrive.
+    Azure skips column mapping when auto-detection succeeds, saving 1 action. The Save step persists to Blob Storage.
 
 ---
 
@@ -267,7 +267,7 @@ _"What's causing variation?"_
       <div class="process-step">
         <div class="process-step__box process-step__box--navigate">
           <div class="process-step__title">Save</div>
-          <div class="process-step__detail">Persists to OneDrive</div>
+          <div class="process-step__detail">Persists to Blob Storage</div>
         </div>
         <div class="process-step__clicks">1 click</div>
       </div>
@@ -413,7 +413,7 @@ _"Do we meet specs?"_
       <div class="process-step">
         <div class="process-step__box process-step__box--navigate">
           <div class="process-step__title">Save</div>
-          <div class="process-step__detail">Persists to OneDrive</div>
+          <div class="process-step__detail">Persists to Blob Storage</div>
         </div>
         <div class="process-step__clicks">1 click</div>
       </div>
@@ -435,7 +435,7 @@ _"Do we meet specs?"_
 | Root Cause       | 8 actions  | 6 actions  | What causes variation? |
 | Capability Check | 13 actions | 12 actions | Do we meet specs?      |
 
-Azure is slightly fewer actions because file upload with auto-detection skips column mapping. The Save step adds 1 action but provides OneDrive persistence.
+Azure is slightly fewer actions because file upload with auto-detection skips column mapping. The Save step adds 1 action but provides Blob Storage persistence.
 
 ---
 

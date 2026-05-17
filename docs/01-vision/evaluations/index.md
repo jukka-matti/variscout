@@ -64,7 +64,7 @@ The Investigation Mindmap consolidates Factor Suggestion, Interaction Heatmap, a
 1. **Phase A: Drilldown Mode** — Replaces the Funnel Panel with a spatial investigation view. Factor nodes sized by η², drill trail, suggested-next pulsing, click-to-filter popovers. Subsumes Factor Suggestion (the suggested-next node provides the same guidance). New infrastructure: `useDrillPath` hook, Mindmap SVG component.
 2. **Phase B: Interaction Mode** — Adds edges between factor nodes showing interaction strength (ΔR²) and significance. Subsumes Interaction Heatmap (visual edges replace the standalone heatmap). New infrastructure: `getInteractionStrength()` helper in `@variscout/core`.
 3. **Phase C: Narrative Mode + WhatIfSimulator separation** — Reorganizes nodes into a timeline for stakeholder communication. Step annotations, interaction cross-connections, conclusion panel, PNG export. WhatIfSimulator moves to standalone `/whatif` route.
-4. **Phase D: Polish + Azure enhancements** — Split-pane option (Azure, viewport > 1280px), annotations (Azure: OneDrive-synced; PWA: session-only), SVG export (Azure), "Model improvements" → WhatIfSimulator link.
+4. **Phase D: Polish + Azure enhancements** — Split-pane option (Azure, viewport > 1280px), annotations (Azure: Blob-Storage-synced; PWA: session-only), SVG export (Azure), "Model improvements" → WhatIfSimulator link.
 
 Each phase builds on the previous: B needs A's nodes, C needs A's drill trail + B's edges, D needs all three modes complete. See Design Spec §12 (archived) for full infrastructure prerequisites and reuse mapping.
 

@@ -131,14 +131,14 @@ Measurement Plan fields (V1): factor, method, sample size, owner, status, hypoth
 
 CoScout is included in the €99 Azure SKU; PWA never has AI. CoScout coaches methodology, asks targeted questions, surfaces references, proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override.
 
-| Feature                   | PWA | Azure (€99) | Description                                                          |
-| ------------------------- | :-: | :---------: | -------------------------------------------------------------------- |
-| NarrativeBar              |  —  |  Optional   | Plain-language analysis summary                                      |
-| ChartInsightChip          |  —  |  Optional   | Per-chart contextual suggestions                                     |
-| CoScoutPanel              |  —  |      ✓      | Conversational AI assistant (mode-aware, tool-calling)               |
-| Voice input               |  —  |  Optional   | Tap/hold to transcribe into CoScout draft; replies remain text in V1 |
-| Knowledge Base            |  —  |    Beta     | Foundry IQ unified knowledge index (ADR-060)                         |
-| Process description field |  —  |  Optional   | Free-text process context for AI grounding                           |
+| Feature                   | PWA |  Azure (€99)  | Description                                                          |
+| ------------------------- | :-: | :-----------: | -------------------------------------------------------------------- |
+| NarrativeBar              |  —  |   Optional    | Plain-language analysis summary                                      |
+| ChartInsightChip          |  —  |   Optional    | Per-chart contextual suggestions                                     |
+| CoScoutPanel              |  —  |       ✓       | Conversational AI assistant (mode-aware, tool-calling)               |
+| Voice input               |  —  |   Optional    | Tap/hold to transcribe into CoScout draft; replies remain text in V1 |
+| Knowledge Catalyst        |  —  | Beta Phase 2+ | Azure AI Search unified knowledge index (ADR-060, Phase 2+)          |
+| Process description field |  —  |   Optional    | Free-text process context for AI grounding                           |
 
 AI is always optional, dismissable, and controlled by a user-visible Settings toggle. No AI endpoint configured = no AI UI shown. See [ADR-019](../07-decisions/adr-019-ai-integration.md).
 

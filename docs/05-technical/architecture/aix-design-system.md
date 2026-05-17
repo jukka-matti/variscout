@@ -139,7 +139,7 @@ Only **Azure OpenAI** is supported. Provider detection (`detectProvider`, `Model
 
 **What user sees:** Collapsible "AI context" card in CoScout panel shows stats summary, active filters, findings count, and investigation phase (`aiContextSummary` prop on `CoScoutPanelBase`).
 
-**Source attribution:** Knowledge Base sources formatted in `formatKnowledgeContext()` with `[Source: name]` markers. In the CoScout UI, these markers are rendered as violet inline badges in assistant messages.
+**Source attribution:** Knowledge Catalyst sources formatted in `formatKnowledgeContext()` with `[Source: name]` markers. In the CoScout UI, these markers are rendered as violet inline badges in assistant messages.
 
 **Visual grounding extends transparency:** When CoScout references a specific chart element, the Visual Grounding Pattern (§2.9) highlights it in the UI, making the AI's frame of reference visible and verifiable by the analyst.
 
@@ -170,24 +170,25 @@ Three tiers of AI interaction — user controls depth:
 
 Each tier is independently dismissable. Global toggle in Settings disables all AI. Per-component toggles in Settings allow users to independently enable/disable NarrativeBar, ChartInsightChip, and CoScout — so an analyst can keep narration on but turn off chart insights, for example.
 
-### 2.6 Knowledge Base Pattern
+### 2.6 Knowledge Catalyst Pattern (Phase 2+)
 
-Azure AI Search + Foundry IQ integration for organizational learning:
+> **V1 note:** Knowledge Catalyst is deferred to Phase 2+. SharePoint/Foundry IQ integration is retired per ADR-059. The design below describes the target state for Azure AI Search integration.
+
+Azure AI Search integration for organizational learning:
 
 **Knowledge sources:**
 
-- Published scouting reports accessible via Remote SharePoint knowledge source (ADR-026)
-- Team documents accessed on demand from SharePoint with per-user permissions
+- Organizational documents indexed in Azure AI Search (ADR-026 historical: SharePoint deferred)
+- Documents accessed on demand with per-user permissions
 - Tenant-isolated queries (JWT `tid` filtering)
 
 **Search types:**
 
-- Hybrid (keyword + semantic) via Remote SharePoint knowledge source
-- Agentic (LLM decomposition) via Foundry IQ orchestration
+- Hybrid (keyword + semantic) via Azure AI Search
 
 **Integration surface:**
 
-- On-demand: user clicks "Search Knowledge Base?" button in CoScout
+- On-demand: user clicks "Search Knowledge Catalyst?" button in CoScout
 - Results displayed as document cards via `formatKnowledgeContext()`
 - Source attribution: `[From: {source}]` markers in context
 
@@ -329,12 +330,12 @@ Improvement ideas injected during converging phase when supported hypotheses exi
 
 ### 3.3 CoScout (Panel + Inline)
 
-- **Patterns:** All patterns — Confidence, Action, Context Transparency, Error, Conversational Engagement, Investigation Coaching, Knowledge Base
+- **Patterns:** All patterns — Confidence, Action, Context Transparency, Error, Conversational Engagement, Investigation Coaching, Knowledge Catalyst
 - **Prompt:** Reasoning tier, 800 tokens, temp 0.4. "2-4 sentences, phase-aware."
 - **Conversation:** Session-only (50 messages max), streaming with abort, narrative-seeded
 - **Suggested questions:** Phase-aware, dynamically generated from investigation state
 - **Accessibility:** `role="log"` + `aria-live="polite"` on message container
-- **Knowledge Base:** Search indicator during loading ("Searching knowledge base...")
+- **Knowledge Catalyst:** Search indicator during loading ("Searching knowledge catalyst...") — Phase 2+
 - **Provider label:** `providerLabel` prop displays the AI provider name (e.g., "Claude", "Azure OpenAI") below the panel title.
 - **Empty state:** When no messages, shows a capability overview: "I can help you: understand patterns, investigate root causes, interpret capability metrics, suggest next steps."
 - **Conversation export:** "Copy conversation" action in overflow menu via `onCopyConversation` prop.

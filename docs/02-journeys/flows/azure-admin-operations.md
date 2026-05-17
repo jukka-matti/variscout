@@ -28,7 +28,7 @@ status: stable
 
 ### What Aino is thinking:
 
-- "Someone reported OneDrive sync is broken — where do I check?"
+- "Someone reported Blob Storage sync is broken — where do I check?"
 - "We want to upgrade to Team — what changes?"
 - "Is the AI endpoint still working after the weekend?"
 - "The new hire can't access the app — what's missing?"

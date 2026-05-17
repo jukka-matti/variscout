@@ -51,7 +51,7 @@ Before selecting a project, the user scans the Portfolio grid.
 | ------------------------------ | ---------------------------------------------------------- |
 | App loads, SSO session active  | `easyAuth.ts`, `getEasyAuthUser()`                         |
 | User selects project from list | Project list UI (Azure only)                               |
-| `loadProject()` hydrates state | `useProjectPersistence`, IndexedDB or OneDrive sync        |
+| `loadProject()` hydrates state | `useProjectPersistence`, IndexedDB or Blob Storage sync    |
 | `panelsStore.activeView` set   | `'dashboard'` (has data) or `'editor'` (new/empty project) |
 
 **Exception — deep link bypass:** If the URL contains `?finding=<id>`, `?chart=<type>`, or a Teams task link with a target, `activeView` is set to `'editor'` before render. The dashboard is skipped and the Editor opens at the linked target.

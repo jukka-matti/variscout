@@ -269,7 +269,7 @@ The Azure app includes an admin page (`AdminTeamsSetup.tsx`) that generates a Te
 | 5   | **Full workflow in Teams** | Load sample → drill by factor → set specs → export chart                                       | Iframe constraints, scrolling behavior, popup/modal rendering                                              |
 | 6   | **Responsive in Teams**    | Resize Teams window → check chart responsiveness → try narrow sidebar mode                     | Layout adaptation, breakpoints, chart readability at small sizes                                           |
 | 7   | **Findings popout**        | Open findings panel → click popout to new window                                               | `window.open` behavior in Teams (may be blocked), fallback behavior                                        |
-| 8   | **OneDrive sync in Teams** | Save project in Teams tab → verify appears in OneDrive                                         | Same Graph API flow as standalone, verify token available                                                  |
+| 8   | **Blob Storage sync**      | Save project → verify persists to Blob Storage (OneDrive/Graph API retired per ADR-059)        | Blob SAS URL flow via EasyAuth token                                                                       |
 
 ---
 
@@ -320,7 +320,7 @@ Fill this form during and after testing. Rate items 1–5 (1=poor, 5=excellent) 
 | Add Data dropdown clarity                        | /5              |
 | Data merge behavior (append vs replace)          | /5              |
 
-### OneDrive Sync
+### Blob Storage Sync
 
 | Criterion                                        | Rating / Answer |
 | ------------------------------------------------ | --------------- |
@@ -329,7 +329,7 @@ Fill this form during and after testing. Rate items 1–5 (1=poor, 5=excellent) 
 | Offline → online sync behavior                   |                 |
 | Error messages clarity                           | /5              |
 | Sync speed                                       |                 |
-| File visible in OneDrive folder?                 | yes / no        |
+| File visible in Blob Storage container?          | yes / no        |
 
 ### Teams Integration
 
@@ -441,7 +441,7 @@ The Azure app has 9 Playwright spec files in `apps/azure/e2e/` plus a shared hel
 **Not covered by automation** (require deployed Azure environment):
 
 - C-1 live auth (EasyAuth redirect — mocked in Playwright)
-- C-14 OneDrive sync (requires Graph API token)
+- C-14 Blob Storage sync (requires Blob SAS token — OneDrive/Graph API retired per ADR-059)
 - C-23 Presentation mode (partial — visual verification needed)
 - All section D (Teams integration — requires Teams Admin Center)
 
@@ -458,7 +458,7 @@ pnpm --filter @variscout/azure-app test:e2e
 
 - [ARM Template Documentation](../../08-products/azure/arm-template.md) — template parameters and App Registration setup
 - [Authentication (EasyAuth)](../../08-products/azure/authentication.md) — auth flow, endpoints, token management
-- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) — sync architecture and storage structure
+- [Blob Storage Sync](../../08-products/azure/blob-storage-sync.md) — sync architecture and storage structure
 - [Marketplace Submission Checklist](../../08-products/azure/submission-checklist.md) — full submission tracker
 - [Deployment Guide](deployment.md) — build commands and deployment workflows
 - [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md) — distribution strategy

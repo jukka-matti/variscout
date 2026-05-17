@@ -103,11 +103,11 @@ After the project starts, the consultant needs to teach the client team to do th
 
 ## Platform Fit
 
-| Stage                | Product              | Why                                                                                      |
-| -------------------- | -------------------- | ---------------------------------------------------------------------------------------- |
-| Client meeting demo  | **PWA** (free)       | Paste client data live, no setup, instant credibility                                    |
-| Client self-service  | **PWA** (free)       | Share link — client can analyze their own data anytime                                   |
-| Client team adoption | **Azure App** (paid) | When the team outgrows individual analysis: shared data, Performance Mode, OneDrive sync |
+| Stage                | Product              | Why                                                                                          |
+| -------------------- | -------------------- | -------------------------------------------------------------------------------------------- |
+| Client meeting demo  | **PWA** (free)       | Paste client data live, no setup, instant credibility                                        |
+| Client self-service  | **PWA** (free)       | Share link — client can analyze their own data anytime                                       |
+| Client team adoption | **Azure App** (paid) | When the team outgrows individual analysis: shared data, Performance Mode, Blob Storage sync |
 
 ### The Multiplier Effect
 

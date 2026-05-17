@@ -98,12 +98,12 @@ The remaining sections fit naturally: `02-journeys/` (personas informing tutoria
 
 The [C4 Model](https://c4model.com/) provides four zoom levels for architecture diagrams. VariScout implements three explicitly and one via tooling:
 
-| C4 Level              | VariScout Implementation                              | File                                                                                                   |
-| --------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **L1 System Context** | VariScout + Azure AD, OneDrive, Teams, AI Search      | [system-map.md](architecture/system-map.md) (Mermaid C4Context)                                        |
-| **L2 Container**      | 5 packages + 3 apps + infra with dependency arrows    | [system-map.md](architecture/system-map.md) (Mermaid flowchart)                                        |
-| **L3 Component**      | Hook dependencies, chart composition, data transforms | [component-patterns.md](architecture/component-patterns.md), [data-flow.md](architecture/data-flow.md) |
-| **L4 Code**           | Auto-generated API reference for @variscout/core      | [api/core/](api/core/) (TypeDoc)                                                                       |
+| C4 Level              | VariScout Implementation                                          | File                                                                                                   |
+| --------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **L1 System Context** | VariScout + Azure AD, Blob Storage, Teams (static tab), AI Search | [system-map.md](architecture/system-map.md) (Mermaid C4Context)                                        |
+| **L2 Container**      | 5 packages + 3 apps + infra with dependency arrows                | [system-map.md](architecture/system-map.md) (Mermaid flowchart)                                        |
+| **L3 Component**      | Hook dependencies, chart composition, data transforms             | [component-patterns.md](architecture/component-patterns.md), [data-flow.md](architecture/data-flow.md) |
+| **L4 Code**           | Auto-generated API reference for @variscout/core                  | [api/core/](api/core/) (TypeDoc)                                                                       |
 
 ### Docs-as-Code
 
@@ -262,14 +262,14 @@ IMPROVE  →  WhatIfSimulator + ActionItems + StagedAnalysis
 
 ### Tier-Progressive UX
 
-The same 4-phase journey applies to all tiers, with features progressively unlocked:
+The same 4-phase journey applies to both products, with features unlocked per product:
 
-| Journey Phase   | PWA (Free)                      | Azure Standard                      | Azure Team                                       |
-| --------------- | ------------------------------- | ----------------------------------- | ------------------------------------------------ |
-| **FRAME**       | Paste only, 3 factors, 50K rows | + File upload, 6 factors, 250K rows | + OneDrive sync                                  |
-| **SCOUT**       | Four Lenses + drill-down        | Same + more factors                 | + NarrativeBar, ChartInsightChips                |
-| **INVESTIGATE** | 3 statuses, no photos           | Same                                | + 5 statuses, photo evidence, CoScout            |
-| **IMPROVE**     | What-If only                    | Same                                | + Action tracking, staged verification, outcomes |
+| Journey Phase   | PWA (Free)                      | Azure App (€120/mo, single SKU)                        |
+| --------------- | ------------------------------- | ------------------------------------------------------ |
+| **FRAME**       | Paste only, 3 factors, 50K rows | + File upload, 6 factors, 250K rows, Blob Storage sync |
+| **SCOUT**       | Four Lenses + drill-down        | Same + more factors + NarrativeBar, ChartInsightChips  |
+| **INVESTIGATE** | 3 statuses, no photos           | + 5 statuses, photo evidence, CoScout                  |
+| **IMPROVE**     | What-If only                    | + Action tracking, staged verification, outcomes       |
 
 This table is the master spec for:
 

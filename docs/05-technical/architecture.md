@@ -24,7 +24,7 @@ variscout-lite/
 │   └── ui/                # @variscout/ui - Shared UI components, colors, and hooks
 ├── apps/
 │   ├── pwa/               # PWA website (React + Vite + PWA)
-│   ├── azure/             # Azure Team App (EasyAuth + OneDrive sync)
+│   ├── azure/             # Azure App (EasyAuth + Blob Storage sync)
 │   └── website/           # Marketing website (Astro + React Islands)
 ├── docs/
 │   ├── 01-vision/         # Product philosophy, Four Lenses, Two Voices
@@ -49,7 +49,7 @@ variscout-lite/
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Utility-first)
 - **Visualization**: [Visx](https://airbnb.io/visx/) (Low-level D3 primitives for React) via `@variscout/charts`
 - **Shared Logic**: `@variscout/core` package (stats, parser, tier, glossary)
-- **Persistence**: IndexedDB + OneDrive sync (Azure App), session-only (PWA)
+- **Persistence**: IndexedDB + Blob Storage sync (Azure App), session-only (PWA)
 - **PWA**: [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) with Workbox
 - **Marketing Website**: [Astro 5](https://astro.build/) with React Islands (chart demos)
 - **Package Manager**: [pnpm](https://pnpm.io/) with workspaces
@@ -64,7 +64,7 @@ variscout-lite/
 │        (apps/pwa/)                 │       (apps/azure/)                    │
 │  ┌──────────┐ ┌──────┐ ┌────────┐  │  ┌──────────┐ ┌────────┐ ┌─────────┐  │
 │  │Components│ │Context│ │Session │  │  │Components│ │EasyAuth│ │Sync(IDB)│  │
-│  │(Mobile)  │ │(Data) │ │ only   │  │  │(Editor)  │ │(SSO)   │ │+OneDrive│  │
+│  │(Mobile)  │ │(Data) │ │ only   │  │  │(Editor)  │ │(SSO)   │ │+BlobSync│  │
 │  └────┬─────┘ └───┬───┘ └───┬────┘  │  └────┬─────┘ └───┬────┘ └────┬────┘  │
 │       └───────────┼─────────┘       │       └───────────┼───────────┘       │
 │                   │                 │                    │                   │
@@ -240,12 +240,12 @@ React application with PWA capabilities:
 
 Cloud-connected team application:
 
-| Module                    | Purpose                                |
-| ------------------------- | -------------------------------------- |
-| `src/auth/easyAuth.ts`    | App Service EasyAuth helper (SSO)      |
-| `src/services/storage.ts` | Offline-first storage + OneDrive sync  |
-| `src/context/DataContext` | Central state management (mirrors PWA) |
-| `src/components/Editor`   | Main editor with data panel + charts   |
+| Module                    | Purpose                                   |
+| ------------------------- | ----------------------------------------- |
+| `src/auth/easyAuth.ts`    | App Service EasyAuth helper (SSO)         |
+| `src/services/storage.ts` | Offline-first storage + Blob Storage sync |
+| `src/context/DataContext` | Central state management (mirrors PWA)    |
+| `src/components/Editor`   | Main editor with data panel + charts      |
 
 ### @variscout/website
 
@@ -309,7 +309,7 @@ Handles all data storage operations in the browser.
 
 ### Azure App
 
-- Named analyses saved to IndexedDB + synced to OneDrive
+- Named analyses saved to IndexedDB + synced to Azure Blob Storage
 - .vrs file export/import for portability across devices/browsers
 - List, load, rename, delete operations
 - App starts on HomeScreen with recent analyses list
@@ -458,7 +458,7 @@ variscout-lite/
 │       ├── src/
 │       │   ├── components/      # UI components (Editor, FilterBreadcrumb, etc.)
 │       │   ├── context/         # DataContext (mirrors PWA)
-│       │   ├── services/        # Offline-first storage + OneDrive sync
+│       │   ├── services/        # Offline-first storage + Blob Storage sync
 │       │   ├── auth/            # EasyAuth configuration
 │       │   └── lib/             # Utilities
 │       ├── vite.config.ts
@@ -662,41 +662,28 @@ app.initialize() → app.getContext()
 | Tab configuration   | `TeamsTabConfig.tsx` — shown when adding channel tab             |
 | Manifest generation | `AdminTeamsSetup.tsx` — generates `.zip` with `configurableTabs` |
 
-**Plan gating**: `VITE_VARISCOUT_PLAN` env var (`'standard'` or `'team'`) controls feature availability. The Teams SDK initializes regardless of plan (the app works as a tab in either), but Team-plan-only features (channel storage, photos) check `isTeamPlan()` from `@variscout/core/tier`.
+**Access**: All Azure App users get full feature access (single €120 SKU — plan gating retired per ADR-082). The Teams static tab works without requiring Teams SDK permissions (`User.Read` + `People.Read` only).
 
 **CSP**: `frame-ancestors` updated in `server.js` to allow Teams iframe embedding (`teams.microsoft.com`, `*.teams.microsoft.com`, `*.skype.com`).
 
-### OBO Token Exchange
+### OBO Token Exchange (Retired — ADR-059)
 
-`apps/azure/src/auth/graphToken.ts` implements a token exchange chain for Graph API access:
+> **Retired in V1.** The OBO exchange chain and `Files.ReadWrite.All` Graph API scope are removed per ADR-059 (web-first architecture). Only `User.Read` + `People.Read` (both user-consent) are required. Storage now uses Azure Blob Storage via Blob SAS URLs, not OneDrive/SharePoint.
 
-```
-Teams SSO token → Azure Function OBO exchange → Graph API token
-                         ↓ (if fails)
-                  EasyAuth redirect fallback
-```
+### Channel Drive Resolution (Retired — ADR-059)
 
-The Azure Function (`infra/functions/token-exchange/index.js`) is a single-purpose token exchange with no stored state. Scopes: `User.Read` + `Files.ReadWrite.All`.
-
-### Channel Drive Resolution
-
-`apps/azure/src/teams/channelDrive.ts` resolves the SharePoint document library for a channel:
-
-- Graph API call: `GET /teams/{teamId}/channels/{channelId}/filesFolder`
-- Returns drive ID + root folder path
-- Result cached in IndexedDB to avoid repeated Graph calls
-- `StorageLocation` type (`'personal' | 'team'`) routes to correct storage
+> **Retired in V1.** `channelDrive.ts` and SharePoint document library resolution via Graph API are removed per ADR-059. The Azure App no longer requires channel-drive or SharePoint integration.
 
 ### Photo Pipeline
 
 Client-side photo processing chain:
 
-| Module                | Purpose                                           |
-| --------------------- | ------------------------------------------------- |
-| `photoProcessing.ts`  | Camera capture and image preprocessing            |
-| `exifStrip.ts`        | Byte-level EXIF/GPS metadata stripping (23 tests) |
-| `photoUpload.ts`      | Upload to OneDrive or SharePoint via Graph API    |
-| `usePhotoComments.ts` | React hook for photo attachment state in findings |
+| Module                | Purpose                                                   |
+| --------------------- | --------------------------------------------------------- |
+| `photoProcessing.ts`  | Camera capture and image preprocessing                    |
+| `exifStrip.ts`        | Byte-level EXIF/GPS metadata stripping (23 tests)         |
+| `photoUpload.ts`      | Upload to Azure Blob Storage (ADR-059: Graph API retired) |
+| `usePhotoComments.ts` | React hook for photo attachment state in findings         |
 
 Photos are immutable once uploaded (no edit/delete). Thumbnails (~50KB base64) embedded in `.vrs` files for cross-user visibility.
 
