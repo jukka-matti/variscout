@@ -14,21 +14,38 @@ related: [adr-083-eight-purpose-doc-taxonomy, 2026-05-16-docs-strategy-design]
 > Loaded by the `agent-context-quickstart` skill. **Read before editing ANY canonical doc.**
 > Full design rationale: [`docs-strategy-design.md §2.7`](../superpowers/specs/2026-05-16-docs-strategy-design.md).
 
-## The core principle
+## Core principles (in priority order)
 
-Different doc types serve different jobs and update differently. **Conflating them creates orphan-amendment drift** — readers can't tell which version is current without mental merging.
+1. **Doc-type discipline.** Different doc types serve different jobs and update differently (see table below). Conflating creates orphan-amendment drift.
+2. **One canonical home per concept.** Every concept has exactly ONE authoritative doc that owns it. Other docs link, never restate. When the canonical changes, all linkers point to the same updated truth.
+3. **Reader-first banners.** Frontmatter is machine-readable; banners are human/agent-readable. When state diverges from "body is current truth" (superseded, materially edited, delivered, ADR with amendments below), say so at the top — first thing the reader sees.
+4. **Decision-log as temporal index.** Every canonical edit produces a decision-log entry in a standard format (see below). Canonical docs are "as of now"; the log is "what changed when and why".
+
+The wedge-amendment incident (2026-05-17) was a violation of principles 1, 2, and 3 simultaneously — a side-amendment spec was created (violated 1: design specs edit in place) that forked canonical state (violated 2: one canonical home) with no banner on the original (violated 3: no reader signal). Convention alone doesn't prevent this; the validator in Play 2b enforces mechanically.
+
+## The mechanism
+
+Each principle maps to mechanical enforcement (Play 2b):
+
+| Principle                   | Enforcement                                                                                                    |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Doc-type discipline         | Validator HARD-FAILs `*-amendment-*.md` etc. filenames; WARNs on design-spec `## Amendment` heading additions  |
+| One canonical home          | Play 4 audit + consolidation; `supersedes:` chain validation                                                   |
+| Reader-first banners        | Validator HARD-FAILs `status: superseded` without banner; WARNs on `status: delivered` without `delivered-by:` |
+| Decision-log temporal index | Validator WARNs on git diff to decision-log lines older than 7 days                                            |
 
 ## Doc types + update patterns
 
-| Doc type           | Where it lives                                                         | Job                                    | Update pattern                                                                                                   |
-| ------------------ | ---------------------------------------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Design spec**    | `docs/superpowers/specs/`, `docs/01-vision/coscout-ax-design.md`, etc. | Always-current intended state          | **Edit in place.** Spec body = the truth at any moment.                                                          |
-| **ADR**            | `docs/07-decisions/adr-*.md`                                           | Point-in-time decision record          | `## Amendment — YYYY-MM-DD` block at bottom. New ADR for fundamental reframings.                                 |
-| **Decision-log**   | `docs/decision-log.md`                                                 | Chronological pinned-decisions index   | Append-only. Never edit prior entries. New entry supersedes old.                                                 |
-| **Generated docs** | `*-generated.md`                                                       | Mechanical projection of source        | Never hand-edit. Update the generator script + regenerate. `.prettierignore` excludes.                           |
-| **Plan files**     | `~/.claude/plans/`                                                     | Ephemeral session transcripts          | Live private. Never become canonical. Optionally promote to `docs/ephemeral/transcripts/` for landmark sessions. |
-| **Investigations** | `docs/investigations.md`                                               | Pre-decision observations              | Open entries editable while open. `[RESOLVED]` entries immutable.                                                |
-| **Memory**         | `~/.claude/projects/.../memory/`                                       | Cross-session durable facts for Claude | Topic files: edit in place. Index in MEMORY.md: one-line entries ≤200 chars.                                     |
+| Doc type            | Where it lives                                                             | Job                                                  | Update pattern                                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Design spec**     | `docs/superpowers/specs/`, `docs/01-vision/coscout-ax-design.md`, etc.     | Always-current intended state                        | **Edit in place.** Spec body = the truth at any moment.                                                                                 |
+| **ADR**             | `docs/07-decisions/adr-*.md`                                               | Point-in-time decision record                        | `## Amendment — YYYY-MM-DD` block at bottom. New ADR for fundamental reframings.                                                        |
+| **Decision-log**    | `docs/decision-log.md`                                                     | Chronological pinned-decisions index                 | Append-only. Never edit prior entries. New entry supersedes old.                                                                        |
+| **Generated docs**  | `*-generated.md`                                                           | Mechanical projection of source                      | Never hand-edit. Update the generator script + regenerate. `.prettierignore` excludes.                                                  |
+| **Plan files**      | `~/.claude/plans/`                                                         | Ephemeral session transcripts                        | Live private. Never become canonical. Optionally promote to `docs/ephemeral/transcripts/` for landmark sessions.                        |
+| **Investigations**  | `docs/investigations.md`                                                   | Pre-decision observations                            | Open entries editable while open. `[RESOLVED]` entries immutable.                                                                       |
+| **Memory**          | `~/.claude/projects/.../memory/`                                           | Cross-session durable facts for Claude               | Topic files: edit in place. Index in MEMORY.md: one-line entries ≤200 chars.                                                            |
+| **Agent manifests** | Root `CLAUDE.md`, `AGENTS.md`, `docs/llms.txt`, nested package `CLAUDE.md` | Agent-loaded "first read" context for every dispatch | Edit in place. CLAUDE.md size budget per file enforced (`scripts/check-claude-md-size.sh`). Keep tight — every agent reads these first. |
 
 ## Anti-patterns (mechanically forbidden)
 
@@ -172,6 +189,32 @@ When Play 2b ships, the validator will (in addition to the filename anti-pattern
 Every change to a canonical doc — spec body edit, ADR amendment, supersession — gets a decision-log entry. The decision-log is the chronological backbone over the canonical doc set: canonical docs themselves are always "as of now"; the log tells you "what changed when and why".
 
 The `[supersedes <doc>#<section>]` marker is machine-readable + greppable for finding what changed.
+
+### Standard entry format
+
+Use this shape for every decision-log entry (Play 2c's `pnpm docs:recent --amendments` parses it):
+
+```
+- YYYY-MM-DD — <short title ≤80 chars>. <Edit type>: <doc>#<section> [supersedes <prior>].
+  Why: <one-sentence rationale>.
+  Commit: <sha-short>. PR: #N. Related: [[<id>], [<id>]].
+```
+
+**Required**: date, title, edit-type (`spec edit` / `ADR amendment` / `new ADR` / `supersession` / `archived` / `new spec`), `[supersedes …]` marker if applicable, Why, Commit.
+**Optional**: PR number, Related wikilinks to other ADRs/specs/entries.
+
+**Edit-type vocabulary** (use these strings exactly so the parser can categorize):
+
+| Edit type       | When to use                                                   |
+| --------------- | ------------------------------------------------------------- |
+| `spec edit`     | Material in-place change to a design spec body                |
+| `ADR amendment` | Appended `## Amendment` block to an existing ADR              |
+| `new ADR`       | Created a new ADR (with `supersedes:` if replacing)           |
+| `supersession`  | Marked an existing doc `status: superseded` + added successor |
+| `archived`      | Moved a superseded doc to `docs/archive/`                     |
+| `new spec`      | Created a new design spec (no supersedes)                     |
+
+**What NOT to put in entries**: full rationale paragraphs (those live in the brainstorm transcript or PR description that Why links to); restated spec content (canonical spec is the SoT); duplicated information across entries (one decision = one entry).
 
 ## Decision tree: "I need to change a canonical doc"
 

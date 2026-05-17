@@ -11,7 +11,7 @@ related: [2026-05-16-docs-strategy-memo, adr-083-eight-purpose-doc-taxonomy]
 
 # VariScout Docs Strategy 2026 — Full Design
 
-> 🟡 **Active build via [`PR #184`](https://github.com/jukka-matti/variscout/pull/184)** | 🔄 **Last material edit 2026-05-17** — §2.7 expanded with "Reader-first banners at the top" (template matrix + Play 2b validator extensions for banner enforcement). Per the principle this spec defines: frontmatter alone is insufficient — this banner signals reader-relevant changes since the spec was first shipped.
+> 🟡 **Active build via [`PR #184`](https://github.com/jukka-matti/variscout/pull/184)** | 🔄 **Last material edits 2026-05-17** — §2.7 expanded with: "Core principles (in priority order)" affirmative list (4 principles); "Reader-first banners at the top" (template matrix + Play 2b validator extensions); "Standard entry format" for decision-log; agent-manifests + investigations + memory added to doc types. Per the principle this spec defines: frontmatter alone is insufficient — this banner signals reader-relevant changes since the spec was first shipped.
 
 _1-page CTO memo: [2026-05-16-docs-strategy-memo.md](2026-05-16-docs-strategy-memo.md). Schema change ADR: [ADR-083](../../07-decisions/adr-083-eight-purpose-doc-taxonomy.md)._
 
@@ -140,7 +140,19 @@ Nested package `CLAUDE.md` files stay in `packages/*/` and `apps/*/` (progressiv
 
 The 8-purpose × 4-tier foundation defines WHERE docs live. This section defines HOW they update — which is just as important for keeping the corpus coherent. **Without this discipline, the metadata gains are erased by amendment-of-amendment drift.**
 
-#### Core principle
+#### Core principles (in priority order)
+
+1. **Doc-type discipline.** Different doc types serve different jobs and update differently. Design specs edit-in-place; ADRs append amendment blocks; decision-log appends; generated docs auto-rebuild; plan files stay ephemeral. (Detail in the doc-types table below.)
+
+2. **One canonical home per concept.** Every concept has exactly ONE authoritative doc that owns it. Other docs link rather than restate. When the canonical changes, all linkers point to the same updated truth — no fork in interpretation. Play 4 enforces operationally: audit the corpus for multi-canonical claimants, consolidate, mark losers `superseded` with redirect banners.
+
+3. **Reader-first banners.** Frontmatter is machine-readable; banners are human/agent-readable. When a doc's state diverges from "body is current truth" — superseded, materially edited recently, delivered, ADR with amendments below — say so in a banner at the top. First thing the reader sees.
+
+4. **Decision-log as temporal index.** Every canonical edit produces a decision-log entry in a standard format (see below). Canonical docs are "as of now"; the log is "what changed when and why" over the canonical set.
+
+Conflating these or treating any one as optional creates the kind of drift the 2026-05-17 wedge-amendment incident surfaced — a side-amendment spec violated principles 1, 2, and 3 simultaneously.
+
+#### Doc types at a glance
 
 Different doc types are NOT updated the same way:
 
@@ -149,6 +161,9 @@ Different doc types are NOT updated the same way:
 - **Decision-log is chronological.** Append-only. Never edit prior entries. New entry supersedes old.
 - **Generated docs are mechanical projections of source.** Auto-rebuilt by scripts. Never hand-edited. `.prettierignore` excludes.
 - **Plan files are ephemeral session transcripts.** Live in `~/.claude/plans/`, not in repo. Selective promotion to `docs/ephemeral/transcripts/` for landmark sessions.
+- **Investigations are pre-decision observations.** Open entries editable while open. `[RESOLVED]` entries immutable. Closed investigations graduate to cards (Play 2a).
+- **Memory holds cross-session durable facts for Claude.** Topic files in `~/.claude/projects/.../memory/` edit in place. Index `MEMORY.md` is one-line entries ≤200 chars (over-budget triggers truncated load).
+- **Agent manifests are agent-loaded context** (root `CLAUDE.md`, `AGENTS.md`, `docs/llms.txt`, nested package `CLAUDE.md`). Edit in place. Per-file CLAUDE.md size budget enforced (`scripts/check-claude-md-size.sh`). These are the "first read" surface for every agent dispatch — keep them tight.
 
 #### Anti-patterns (mechanically forbidden)
 
@@ -171,6 +186,21 @@ Every change to a canonical doc (spec body edit, ADR amendment, supersession) ge
 - **Commit reference** (so future readers can git archaeology)
 
 This makes the decision-log the chronological backbone over the canonical doc set. The canonical docs themselves are always "as of now"; the log tells you "what changed when and why".
+
+**Standard entry format** (Play 2c's `pnpm docs:recent --amendments` parses this shape):
+
+```
+- YYYY-MM-DD — <short title ≤80 chars>. <Edit type>: <doc>#<section> [supersedes <prior>].
+  Why: <one-sentence rationale>.
+  Commit: <sha-short>. PR: #N. Related: [[<id>], [<id>]].
+```
+
+**Required fields**: date, title, edit-type (`spec edit` / `ADR amendment` / `new ADR` / `supersession` / `archived` / etc.), `[supersedes <doc>#<section>]` marker if applicable, Why, Commit.
+**Optional**: PR number, Related links (wikilinks to ADRs / specs / other entries).
+
+**Why this format**: the `[supersedes <doc>#<section>]` marker is greppable + machine-parseable (enables `pnpm docs:recent --supersedes <doc>` queries). The 80-char title cap keeps chronological scan readable. The mandatory Why field prevents "the change is the change" entries with no rationale (a real problem in long-lived logs).
+
+**What NOT to put in decision-log entries**: full rationale paragraphs (those live in the brainstorm transcript or PR description that Why links to); restated spec content (the canonical spec is the SoT — log just notes the edit); duplicated information across entries (one decision = one entry, with future entries citing it via `[supersedes …]`).
 
 #### Edit-in-place mechanics (for design specs)
 
