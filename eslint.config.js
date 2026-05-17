@@ -206,6 +206,26 @@ export default [
       'variscout/no-interaction-moderator': 'error',
     },
   },
+  // Hard rule: never Math.random() in tests — tests must be deterministic.
+  // Use mulberry32(seed) from packages/core/src/__tests__/helpers/stressDataGenerator.ts
+  // (or copy the 9-line helper inline). See .claude/rules/testing.md.
+  {
+    files: [
+      '**/__tests__/**/*.{ts,tsx}',
+      '**/*.test.{ts,tsx}',
+      '**/*.spec.{ts,tsx}',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.object.name='Math'][callee.property.name='random']",
+          message:
+            'Tests must be deterministic — use mulberry32(seed) from packages/core/src/__tests__/helpers/stressDataGenerator.ts instead of Math.random().',
+        },
+      ],
+    },
+  },
   // Persistence boundary guard (F1+F2 P7.2, audit R12+R13):
   // Domain stores and non-persistence app code must not import `dexie` directly.
   // Persistence access is via @variscout/core HubRepository (pwaHubRepository /

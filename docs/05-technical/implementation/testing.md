@@ -56,6 +56,32 @@ pnpm --filter @variscout/core test -- --coverage
 
 # Chrome Browser Testing
 claude --chrome              # Enable Chrome browser access
+```
+
+### Local TDD cheatsheet
+
+Faster iteration than `pnpm test` for tight loops:
+
+```bash
+# One file, one package (substring match on path)
+pnpm --filter @variscout/<pkg> test -- <filename>
+
+# Browser UI for interactive runs at localhost:51204/__vitest__/
+pnpm --filter @variscout/<pkg> test -- --ui
+
+# Only tests affected by uncommitted changes
+pnpm --filter @variscout/<pkg> test -- --changed
+
+# Stop on first failure (pairs well with --changed)
+pnpm --filter @variscout/<pkg> test -- --bail=1
+
+# Per-file runtime — use before reaching for pool tuning
+pnpm --filter @variscout/<pkg> test -- --reporter=verbose
+```
+
+Prefer `claude --chrome` over standalone Playwright for iterative UX-level debugging — devtools console + login state are immediately available.
+
+```bash
 # Then use prompts like: "Run the staged analysis verification protocol"
 
 # Playwright E2E (automated regression)

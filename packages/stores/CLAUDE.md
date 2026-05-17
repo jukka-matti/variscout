@@ -37,6 +37,10 @@
 pnpm --filter @variscout/stores test
 ```
 
+## Testing
+
+Per-package `src/__tests__/setup.ts` (NOT root `test/setup.ts`) — mocks `idb-keyval` with an in-memory Map for Zustand persist + clears it between tests. New Dexie-backed stores: mirror `canvasViewportStore.test.ts:1` and `import 'fake-indexeddb/auto'` at file top.
+
 ## Related
 
 - ADR-041, ADR-064, ADR-065, ADR-078, ADR-080

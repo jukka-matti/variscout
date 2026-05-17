@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { detectColumns } from '../parser';
 import type { DataRow } from '../types';
+import { mulberry32 } from './helpers/stressDataGenerator';
+
+// Per @variscout/core test discipline: never Math.random() — use a seeded PRNG
+// so failures reproduce deterministically. mulberry32 is the canonical helper.
 
 describe('detectColumns stack suggestion', () => {
   it('should suggest stacking for Finland-style tourism data (83 country columns)', () => {
@@ -17,6 +21,7 @@ describe('detectColumns stack suggestion', () => {
       'Estonia',
       'Norway',
     ];
+    const rng = mulberry32(1);
     const data: DataRow[] = Array.from({ length: 12 }, (_, i) => {
       const row: DataRow = {
         Year: 2020,
@@ -26,7 +31,7 @@ describe('detectColumns stack suggestion', () => {
         Total: 300000 + i * 10000,
       };
       for (const c of countries) {
-        row[c] = Math.floor(5000 + Math.random() * 50000);
+        row[c] = Math.floor(5000 + rng() * 50000);
       }
       return row;
     });
@@ -60,11 +65,12 @@ describe('detectColumns stack suggestion', () => {
   });
 
   it('should not suggest stacking when fewer than 5 numeric columns', () => {
+    const rng = mulberry32(2);
     const data: DataRow[] = Array.from({ length: 10 }, () => ({
-      A: Math.random() * 100,
-      B: Math.random() * 100,
-      C: Math.random() * 100,
-      D: Math.random() * 100,
+      A: rng() * 100,
+      B: rng() * 100,
+      C: rng() * 100,
+      D: rng() * 100,
       Label: 'X',
     }));
 
@@ -74,10 +80,11 @@ describe('detectColumns stack suggestion', () => {
   });
 
   it('should assign medium confidence for 5-9 columns', () => {
+    const rng = mulberry32(3);
     const data: DataRow[] = Array.from({ length: 10 }, () => {
       const row: DataRow = { ID: 'X' };
       for (let i = 0; i < 7; i++) {
-        row[`Sensor${i}`] = Math.random() * 100;
+        row[`Sensor${i}`] = rng() * 100;
       }
       return row;
     });
@@ -89,10 +96,11 @@ describe('detectColumns stack suggestion', () => {
   });
 
   it('should exclude year-like numeric columns from stack', () => {
+    const rng = mulberry32(4);
     const data: DataRow[] = Array.from({ length: 10 }, (_, i) => {
       const row: DataRow = { Year: 2015 + i };
       for (let j = 0; j < 6; j++) {
-        row[`Country${j}`] = Math.floor(Math.random() * 10000);
+        row[`Country${j}`] = Math.floor(rng() * 10000);
       }
       return row;
     });
@@ -105,13 +113,14 @@ describe('detectColumns stack suggestion', () => {
 
   it('should separate columns with very different magnitudes into clusters', () => {
     // Mix: 5 columns with values ~100 and 5 columns with values ~1,000,000
+    const rng = mulberry32(5);
     const data: DataRow[] = Array.from({ length: 20 }, () => {
       const row: DataRow = { ID: 'X' };
       for (let i = 0; i < 5; i++) {
-        row[`Small${i}`] = Math.random() * 100;
+        row[`Small${i}`] = rng() * 100;
       }
       for (let i = 0; i < 5; i++) {
-        row[`Large${i}`] = Math.random() * 1000000;
+        row[`Large${i}`] = rng() * 1000000;
       }
       return row;
     });
@@ -123,13 +132,14 @@ describe('detectColumns stack suggestion', () => {
   });
 
   it('should exclude columns matching strong outcome keywords', () => {
+    const rng = mulberry32(6);
     const data: DataRow[] = Array.from({ length: 10 }, () => {
       const row: DataRow = {
-        temperature: Math.random() * 100,
-        pressure: Math.random() * 10,
+        temperature: rng() * 100,
+        pressure: rng() * 10,
       };
       for (let i = 0; i < 6; i++) {
-        row[`Zone${i}`] = Math.random() * 100;
+        row[`Zone${i}`] = rng() * 100;
       }
       return row;
     });
