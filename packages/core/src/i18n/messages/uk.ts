@@ -445,19 +445,9 @@ export const uk: MessageCatalog = {
   'file.open': 'Відкрити файл',
   'admin.title': 'Адмін',
   'admin.status': 'Стан',
-  'admin.plan': 'План і функції',
   'admin.teams': 'Налаштування Teams',
   'admin.knowledge': 'База знань',
   'admin.troubleshooting': 'Усунення несправностей',
-  'admin.currentPlan': 'Поточний',
-  'admin.feature': 'Функція',
-  'admin.manageSubscription': 'Керувати підпискою в Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/міс.',
-  'admin.planTeamPrice': '€199/міс.',
-  'admin.planStandardDesc': 'Повний аналіз з CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, база знань',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Статистика',
   'feature.capability': 'Аналіз придатності (Cp/Cpk)',
   'feature.performance': 'Режим продуктивності (багатоканальний)',
@@ -854,10 +844,6 @@ export const uk: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

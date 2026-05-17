@@ -447,21 +447,9 @@ export const zhHans: MessageCatalog = {
   // Admin hub
   'admin.title': '管理',
   'admin.status': '状态',
-  'admin.plan': '计划与功能',
   'admin.teams': 'Teams设置',
   'admin.knowledge': '知识库',
   'admin.troubleshooting': '故障排除',
-
-  // Admin plan tab
-  'admin.currentPlan': '当前',
-  'admin.feature': '功能',
-  'admin.manageSubscription': '在Azure中管理订阅',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/月',
-  'admin.planTeamPrice': '€199/月',
-  'admin.planStandardDesc': '包含CoScout AI的完整分析',
-  'admin.planTeamDesc': 'Teams、OneDrive、SharePoint、知识库',
 
   // Feature names
   'feature.charts': 'I-Chart、Boxplot、Pareto、统计',
@@ -856,10 +844,6 @@ export const zhHans: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

@@ -485,21 +485,9 @@ export const ms: MessageCatalog = {
   // Admin hub
   'admin.title': 'Admin',
   'admin.status': 'Status',
-  'admin.plan': 'Pelan & Ciri',
   'admin.teams': 'Persediaan Teams',
   'admin.knowledge': 'Pangkalan Pengetahuan',
   'admin.troubleshooting': 'Penyelesaian Masalah',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Semasa',
-  'admin.feature': 'Ciri',
-  'admin.manageSubscription': 'Urus Langganan dalam Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/bln',
-  'admin.planTeamPrice': '€199/bln',
-  'admin.planStandardDesc': 'Analisis penuh dengan CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Pangkalan Pengetahuan',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statistik',
@@ -904,10 +892,6 @@ export const ms: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

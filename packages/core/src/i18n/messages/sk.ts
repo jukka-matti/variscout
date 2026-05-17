@@ -485,21 +485,9 @@ export const sk: MessageCatalog = {
   // Admin hub
   'admin.title': 'Administrácia',
   'admin.status': 'Stav',
-  'admin.plan': 'Plán a funkcie',
   'admin.teams': 'Nastavenie Teams',
   'admin.knowledge': 'Znalostná báza',
   'admin.troubleshooting': 'Riešenie problémov',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Aktuálny',
-  'admin.feature': 'Funkcia',
-  'admin.manageSubscription': 'Spravovať predplatné v Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/mes.',
-  'admin.planTeamPrice': '€199/mes.',
-  'admin.planStandardDesc': 'Úplná analýza s CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, znalostná báza',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Štatistika',
@@ -903,10 +891,6 @@ export const sk: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

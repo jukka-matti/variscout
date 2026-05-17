@@ -485,21 +485,9 @@ export const hi: MessageCatalog = {
   // Admin hub
   'admin.title': 'व्यवस्थापक',
   'admin.status': 'स्थिति',
-  'admin.plan': 'योजना और सुविधाएँ',
   'admin.teams': 'Teams सेटअप',
   'admin.knowledge': 'ज्ञान आधार',
   'admin.troubleshooting': 'समस्या निवारण',
-
-  // Admin plan tab
-  'admin.currentPlan': 'वर्तमान',
-  'admin.feature': 'सुविधा',
-  'admin.manageSubscription': 'Azure में सदस्यता प्रबंधित करें',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/माह',
-  'admin.planTeamPrice': '€199/माह',
-  'admin.planStandardDesc': 'CoScout AI के साथ पूर्ण विश्लेषण',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, ज्ञान आधार',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, सांख्यिकी',
@@ -905,10 +893,6 @@ export const hi: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

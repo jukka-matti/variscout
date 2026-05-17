@@ -456,21 +456,9 @@ export const it: MessageCatalog = {
   // Admin hub
   'admin.title': 'Amministrazione',
   'admin.status': 'Stato',
-  'admin.plan': 'Piano e funzionalità',
   'admin.teams': 'Configurazione Teams',
   'admin.knowledge': 'Knowledge Base',
   'admin.troubleshooting': 'Risoluzione problemi',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Attuale',
-  'admin.feature': 'Funzionalità',
-  'admin.manageSubscription': 'Gestisci abbonamento in Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/mese',
-  'admin.planTeamPrice': '€199/mese',
-  'admin.planStandardDesc': 'Analisi completa con CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Knowledge Base',
 
   // Feature names (plan matrix)
   'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
@@ -876,10 +864,6 @@ export const it: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

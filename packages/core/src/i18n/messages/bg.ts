@@ -485,21 +485,9 @@ export const bg: MessageCatalog = {
   // Admin hub
   'admin.title': 'Администрация',
   'admin.status': 'Статус',
-  'admin.plan': 'План и функции',
   'admin.teams': 'Настройка на Teams',
   'admin.knowledge': 'База знания',
   'admin.troubleshooting': 'Отстраняване на проблеми',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Текущ',
-  'admin.feature': 'Функция',
-  'admin.manageSubscription': 'Управление на абонамент в Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/мес.',
-  'admin.planTeamPrice': '€199/мес.',
-  'admin.planStandardDesc': 'Пълен анализ с CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, база знания',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Статистика',
@@ -903,10 +891,6 @@ export const bg: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

@@ -450,21 +450,9 @@ export const ko: MessageCatalog = {
   // Admin hub
   'admin.title': '관리',
   'admin.status': '상태',
-  'admin.plan': '플랜 및 기능',
   'admin.teams': 'Teams 설정',
   'admin.knowledge': 'Knowledge Base',
   'admin.troubleshooting': '문제 해결',
-
-  // Admin plan tab
-  'admin.currentPlan': '현재',
-  'admin.feature': '기능',
-  'admin.manageSubscription': 'Azure에서 구독 관리',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/월',
-  'admin.planTeamPrice': '€199/월',
-  'admin.planStandardDesc': 'CoScout AI 포함 전체 분석',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Knowledge Base',
 
   // Feature names (plan matrix)
   'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
@@ -865,10 +853,6 @@ export const ko: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

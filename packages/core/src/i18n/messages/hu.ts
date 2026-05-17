@@ -409,19 +409,9 @@ export const hu: MessageCatalog = {
   'file.open': 'Fájl megnyitása',
   'admin.title': 'Admin',
   'admin.status': 'Állapot',
-  'admin.plan': 'Csomag és funkciók',
   'admin.teams': 'Teams beállítás',
   'admin.knowledge': 'Tudásbázis',
   'admin.troubleshooting': 'Hibaelhárítás',
-  'admin.currentPlan': 'Jelenlegi',
-  'admin.feature': 'Funkció',
-  'admin.manageSubscription': 'Előfizetés kezelése az Azure-ban',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/hó',
-  'admin.planTeamPrice': '€199/hó',
-  'admin.planStandardDesc': 'Teljes elemzés CoScout AI-val',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, tudásbázis',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statisztikák',
   'feature.capability': 'Képességelemzés (Cp/Cpk)',
   'feature.performance': 'Teljesítménymód (többcsatornás)',
@@ -818,10 +808,6 @@ export const hu: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

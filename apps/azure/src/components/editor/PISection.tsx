@@ -72,7 +72,7 @@ export interface PISectionProps {
   questionsState: UseQuestionsReturn;
   /** Findings state from useFindings — used for add observation callback */
   findingsState: UseFindingsReturn;
-  /** Project ID for Document Shelf scoping (Team tier) */
+  /** Project ID for Document Shelf scoping */
   projectId?: string;
 }
 

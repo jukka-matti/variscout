@@ -529,7 +529,7 @@ export {
   type HighlightAction,
 } from './useVisualGrounding';
 
-// Document Shelf (KB document management — Team tier + preview gate)
+// Document Shelf (KB document management — preview gate)
 export {
   useDocumentShelf,
   type DocumentInfo,

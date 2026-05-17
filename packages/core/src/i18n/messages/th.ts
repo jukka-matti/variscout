@@ -441,19 +441,9 @@ export const th: MessageCatalog = {
   'file.open': 'เปิดไฟล์',
   'admin.title': 'ผู้ดูแล',
   'admin.status': 'สถานะ',
-  'admin.plan': 'แผนและฟีเจอร์',
   'admin.teams': 'ตั้งค่า Teams',
   'admin.knowledge': 'ฐานความรู้',
   'admin.troubleshooting': 'การแก้ไขปัญหา',
-  'admin.currentPlan': 'ปัจจุบัน',
-  'admin.feature': 'ฟีเจอร์',
-  'admin.manageSubscription': 'จัดการการสมัครใน Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/เดือน',
-  'admin.planTeamPrice': '€199/เดือน',
-  'admin.planStandardDesc': 'วิเคราะห์ครบถ้วนพร้อม CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, ฐานความรู้',
   'feature.charts': 'I-Chart, Boxplot, Pareto, สถิติ',
   'feature.capability': 'การวิเคราะห์ความสามารถ (Cp/Cpk)',
   'feature.performance': 'โหมดประสิทธิภาพ (หลายช่อง)',
@@ -844,10 +834,6 @@ export const th: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

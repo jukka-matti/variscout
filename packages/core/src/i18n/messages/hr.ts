@@ -484,21 +484,9 @@ export const hr: MessageCatalog = {
   // Admin hub
   'admin.title': 'Administracija',
   'admin.status': 'Status',
-  'admin.plan': 'Plan i značajke',
   'admin.teams': 'Postavljanje Teams',
   'admin.knowledge': 'Baza znanja',
   'admin.troubleshooting': 'Rješavanje problema',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Trenutni',
-  'admin.feature': 'Značajka',
-  'admin.manageSubscription': 'Upravljanje pretplatom u Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/mj.',
-  'admin.planTeamPrice': '€199/mj.',
-  'admin.planStandardDesc': 'Potpuna analiza s CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, baza znanja',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statistika',
@@ -900,10 +888,6 @@ export const hr: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

@@ -408,19 +408,9 @@ export const nb: MessageCatalog = {
   'file.open': 'Åpne fil',
   'admin.title': 'Admin',
   'admin.status': 'Status',
-  'admin.plan': 'Plan og funksjoner',
   'admin.teams': 'Teams-oppsett',
   'admin.knowledge': 'Kunnskapsbase',
   'admin.troubleshooting': 'Feilsøking',
-  'admin.currentPlan': 'Gjeldende',
-  'admin.feature': 'Funksjon',
-  'admin.manageSubscription': 'Administrer abonnement i Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/md',
-  'admin.planTeamPrice': '€199/md',
-  'admin.planStandardDesc': 'Full analyse med CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, kunnskapsbase',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statistikk',
   'feature.capability': 'Kapabilitetsanalyse (Cp/Cpk)',
   'feature.performance': 'Ytelsesmodus (flerkanalers)',
@@ -815,10 +805,6 @@ export const nb: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

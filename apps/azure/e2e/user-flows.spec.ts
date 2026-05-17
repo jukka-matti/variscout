@@ -4,7 +4,7 @@ import { loadSampleInEditor, confirmColumnMapping } from './helpers';
 /**
  * E2E Test: Azure User Flows
  *
- * Tests complete user journeys through the Azure paid app:
+ * Tests complete user journeys through the Azure app:
  * 1. Multi-level drill-down with backtrack
  * 2. Manual entry workflow
  * 3. Data panel toggle
@@ -33,7 +33,7 @@ test.describe('Azure: Multi-Level Drill-Down', () => {
 
     // Stats should update
     await page.waitForTimeout(300);
-    const filteredMean = parseFloat((await meanValue.textContent())!);
+    const _filteredMean = parseFloat((await meanValue.textContent())!);
 
     // Remove filter
     const removeButton = page.locator('[data-testid^="filter-chip-remove-"]').first();

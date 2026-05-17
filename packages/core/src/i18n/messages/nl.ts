@@ -454,21 +454,9 @@ export const nl: MessageCatalog = {
   // Admin hub
   'admin.title': 'Beheer',
   'admin.status': 'Status',
-  'admin.plan': 'Plan en functies',
   'admin.teams': 'Teams-configuratie',
   'admin.knowledge': 'Knowledge Base',
   'admin.troubleshooting': 'Probleemoplossing',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Huidig',
-  'admin.feature': 'Functie',
-  'admin.manageSubscription': 'Abonnement beheren in Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/mnd',
-  'admin.planTeamPrice': '€199/mnd',
-  'admin.planStandardDesc': 'Volledige analyse met CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Knowledge Base',
 
   // Feature names (plan matrix)
   'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
@@ -875,10 +863,6 @@ export const nl: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

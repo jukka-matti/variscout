@@ -737,7 +737,7 @@ export {
   type FactorPreviewOverlayProps,
 } from './components/FactorPreviewOverlay';
 
-// Document Shelf (Team tier — PI panel Docs tab)
+// Document Shelf (PI panel Docs tab)
 export {
   DocumentShelfBase,
   DocumentRow,

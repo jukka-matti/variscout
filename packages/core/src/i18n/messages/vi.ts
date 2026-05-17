@@ -444,19 +444,9 @@ export const vi: MessageCatalog = {
   'file.open': 'Mở tệp',
   'admin.title': 'Quản trị',
   'admin.status': 'Trạng thái',
-  'admin.plan': 'Gói và tính năng',
   'admin.teams': 'Thiết lập Teams',
   'admin.knowledge': 'Cơ sở tri thức',
   'admin.troubleshooting': 'Khắc phục sự cố',
-  'admin.currentPlan': 'Hiện tại',
-  'admin.feature': 'Tính năng',
-  'admin.manageSubscription': 'Quản lý đăng ký trong Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/tháng',
-  'admin.planTeamPrice': '€199/tháng',
-  'admin.planStandardDesc': 'Phân tích đầy đủ với CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, cơ sở tri thức',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Thống kê',
   'feature.capability': 'Phân tích khả năng (Cp/Cpk)',
   'feature.performance': 'Chế độ hiệu suất (đa kênh)',
@@ -853,10 +843,6 @@ export const vi: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

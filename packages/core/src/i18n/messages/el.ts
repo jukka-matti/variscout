@@ -484,21 +484,9 @@ export const el: MessageCatalog = {
   // Admin hub
   'admin.title': 'Διαχείριση',
   'admin.status': 'Κατάσταση',
-  'admin.plan': 'Πλάνο & Λειτουργίες',
   'admin.teams': 'Ρύθμιση Teams',
   'admin.knowledge': 'Βάση Γνώσεων',
   'admin.troubleshooting': 'Αντιμετώπιση προβλημάτων',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Τρέχον',
-  'admin.feature': 'Λειτουργία',
-  'admin.manageSubscription': 'Διαχείριση συνδρομής στο Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/μήνα',
-  'admin.planTeamPrice': '€199/μήνα',
-  'admin.planStandardDesc': 'Πλήρης ανάλυση με CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, βάση γνώσεων',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Στατιστικά',
@@ -906,10 +894,6 @@ export const el: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',
