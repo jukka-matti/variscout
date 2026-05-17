@@ -444,19 +444,9 @@ export const vi: MessageCatalog = {
   'file.open': 'Mở tệp',
   'admin.title': 'Quản trị',
   'admin.status': 'Trạng thái',
-  'admin.plan': 'Gói và tính năng',
   'admin.teams': 'Thiết lập Teams',
   'admin.knowledge': 'Cơ sở tri thức',
   'admin.troubleshooting': 'Khắc phục sự cố',
-  'admin.currentPlan': 'Hiện tại',
-  'admin.feature': 'Tính năng',
-  'admin.manageSubscription': 'Quản lý đăng ký trong Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/tháng',
-  'admin.planTeamPrice': '€199/tháng',
-  'admin.planStandardDesc': 'Phân tích đầy đủ với CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, cơ sở tri thức',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Thống kê',
   'feature.capability': 'Phân tích khả năng (Cp/Cpk)',
   'feature.performance': 'Chế độ hiệu suất (đa kênh)',
@@ -545,8 +535,8 @@ export const vi: MessageCatalog = {
     'Nguồn tri thức Remote SharePoint sử dụng quyền theo từng người dùng. Mỗi người dùng phải có quyền truy cập SharePoint vào tài liệu.\nKiểm tra người dùng bị ảnh hưởng có bị chặn bởi chính sách Conditional Access không.\nXác minh đã cấp đồng ý quản trị viên cho quyền ủy quyền Sites.Read.All.\nYêu cầu người dùng bị ảnh hưởng đăng xuất và đăng nhập lại để làm mới token.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -853,10 +843,6 @@ export const vi: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

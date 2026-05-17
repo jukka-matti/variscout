@@ -72,7 +72,6 @@ vi.mock('@variscout/core', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/core')>();
   return {
     ...actual,
-    hasKnowledgeBase: () => false,
     isPreviewEnabled: () => false,
   };
 });

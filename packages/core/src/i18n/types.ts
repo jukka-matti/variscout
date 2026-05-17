@@ -598,21 +598,9 @@ export interface MessageCatalog {
   // Admin hub
   'admin.title': string;
   'admin.status': string;
-  'admin.plan': string;
   'admin.teams': string;
   'admin.knowledge': string;
   'admin.troubleshooting': string;
-
-  // Admin plan tab
-  'admin.currentPlan': string;
-  'admin.feature': string;
-  'admin.manageSubscription': string;
-  'admin.planStandard': string;
-  'admin.planTeam': string;
-  'admin.planStandardPrice': string;
-  'admin.planTeamPrice': string;
-  'admin.planStandardDesc': string;
-  'admin.planTeamDesc': string;
 
   // Feature names (plan matrix)
   'feature.charts': string;
@@ -690,9 +678,9 @@ export interface MessageCatalog {
   'admin.issue.kbPartialDesc': string;
   'admin.issue.kbPartialSteps': string;
 
-  // Workspace navigation
-  'workspace.frame': string;
-  'workspace.analysis': string;
+  // Workspace navigation (wedge V1 amendment 2026-05-16: Frame → Process, Analysis → Analyze)
+  'workspace.process': string;
+  'workspace.analyze': string;
   'workspace.investigation': string;
   'workspace.improvement': string;
   'workspace.improve': string;
@@ -995,10 +983,6 @@ export interface MessageCatalog {
   'action.continue': string;
   'action.drillDown': string;
   'action.viewDetails': string;
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': string;
-  'upgrade.fromPrice': string;
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': string;

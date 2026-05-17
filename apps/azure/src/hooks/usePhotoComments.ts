@@ -7,7 +7,7 @@
  */
 
 import { useCallback } from 'react';
-import { createPhotoAttachment, createCommentAttachment, hasTeamFeatures } from '@variscout/core';
+import { createPhotoAttachment, createCommentAttachment } from '@variscout/core';
 import {
   validateAttachmentFile,
   sanitizeFilename,
@@ -37,8 +37,8 @@ export function usePhotoComments({ findingsState, analysisId, author }: UsePhoto
         // 3. Add to UI
         findingsState.addPhotoToComment(findingId, commentId, photo);
 
-        // 4. Upload to Blob Storage for Team plan (if online)
-        if (hasTeamFeatures() && navigator.onLine && analysisId) {
+        // 4. Upload to Blob Storage (if online)
+        if (navigator.onLine && analysisId) {
           try {
             const remoteUrl = await saveBlobPhoto(
               analysisId,

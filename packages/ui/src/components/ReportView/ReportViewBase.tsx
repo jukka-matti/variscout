@@ -300,13 +300,13 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               }`}
               onClick={shareLinkGate === 'available' ? onShareReport : undefined}
               disabled={shareLinkGate === 'locked'}
-              title={shareLinkGate === 'locked' ? 'Azure paid' : undefined}
+              title={shareLinkGate === 'locked' ? 'Available in VariScout for Azure' : undefined}
             >
               <Share2 size={14} />
               <span>Share link</span>
               {shareLinkGate === 'locked' ? (
                 <span className="ml-auto text-[0.625rem] font-medium uppercase tracking-wide">
-                  Azure paid
+                  VariScout for Azure
                 </span>
               ) : null}
             </button>
@@ -529,7 +529,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               >
                 <Share2 size={14} />
                 Share link
-                {shareLinkGate === 'locked' ? <span>Azure paid</span> : null}
+                {shareLinkGate === 'locked' ? <span>VariScout for Azure</span> : null}
               </button>
             )}
             {onPublishToSharePoint && (!publishStatus || publishStatus === 'idle') && (

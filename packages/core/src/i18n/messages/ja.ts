@@ -449,21 +449,9 @@ export const ja: MessageCatalog = {
   // Admin hub
   'admin.title': '管理',
   'admin.status': 'ステータス',
-  'admin.plan': 'プランと機能',
   'admin.teams': 'Teams設定',
   'admin.knowledge': 'ナレッジベース',
   'admin.troubleshooting': 'トラブルシューティング',
-
-  // Admin plan tab
-  'admin.currentPlan': '現在',
-  'admin.feature': '機能',
-  'admin.manageSubscription': 'Azureでサブスクリプションを管理',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/月',
-  'admin.planTeamPrice': '€199/月',
-  'admin.planStandardDesc': 'CoScout AI付き完全な分析',
-  'admin.planTeamDesc': 'Teams、OneDrive、SharePoint、ナレッジベース',
 
   // Feature names
   'feature.charts': 'I-Chart、Boxplot、Pareto、統計',
@@ -560,8 +548,8 @@ export const ja: MessageCatalog = {
     'リモートSharePointナレッジソースはユーザーごとの権限を使用します。各ユーザーはドキュメントへのSharePointアクセスが必要です。\n影響を受けるユーザーが条件付きアクセスポリシーによってブロックされていないか確認してください。\nSites.Read.All委任アクセス許可に管理者の同意が付与されていることを確認してください。\n影響を受けるユーザーにサインアウトしてサインインし直してトークンを更新するよう依頼してください。',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -865,10 +853,6 @@ export const ja: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

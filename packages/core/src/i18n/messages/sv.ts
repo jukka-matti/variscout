@@ -450,21 +450,9 @@ export const sv: MessageCatalog = {
   // Admin hub
   'admin.title': 'Administration',
   'admin.status': 'Status',
-  'admin.plan': 'Plan och funktioner',
   'admin.teams': 'Teams-konfiguration',
   'admin.knowledge': 'Knowledge Base',
   'admin.troubleshooting': 'Felsökning',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Nuvarande',
-  'admin.feature': 'Funktion',
-  'admin.manageSubscription': 'Hantera prenumeration i Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/mån',
-  'admin.planTeamPrice': '€199/mån',
-  'admin.planStandardDesc': 'Fullständig analys med CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Knowledge Base',
 
   // Feature names (plan matrix)
   'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
@@ -559,8 +547,8 @@ export const sv: MessageCatalog = {
     'Remote SharePoint-kunskapskällor använder behörigheter per användare. Varje användare måste ha SharePoint-åtkomst till dokumenten.\nKontrollera om de drabbade användarna blockeras av Villkorsstyrd åtkomst-policyer.\nVerifiera att administratörsmedgivande har beviljats för den delegerade behörigheten Sites.Read.All.\nBe de drabbade användarna att logga ut och logga in igen för att uppdatera sin token.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -865,10 +853,6 @@ export const sv: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

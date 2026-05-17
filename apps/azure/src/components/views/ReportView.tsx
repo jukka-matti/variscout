@@ -15,7 +15,6 @@ import {
   useEvidenceMapData,
   useEvidenceMapTimeline,
 } from '@variscout/hooks';
-import { hasTeamFeatures, isPaidTier } from '@variscout/core';
 import {
   ReportViewBase,
   ReportSection,
@@ -680,8 +679,6 @@ const ReportView: React.FC<ReportViewProps> = ({
     : processContext?.issueStatement || outcome || 'Analysis';
 
   // Publish to SharePoint (ADR-026)
-  const canPublish = hasTeamFeatures();
-  const canShareLink = isPaidTier();
   const {
     publish,
     publishReplace,
@@ -1438,8 +1435,8 @@ const ReportView: React.FC<ReportViewProps> = ({
           renderSection={renderSection}
           onPrintReport={handlePrint}
           onShareReport={onShareReport ?? (() => undefined)}
-          shareLinkGate={canShareLink ? 'available' : 'locked'}
-          onPublishToSharePoint={canPublish ? publish : undefined}
+          shareLinkGate="available"
+          onPublishToSharePoint={publish}
           onPublishReplace={publishReplace}
           publishStatus={publishStatus}
           publishError={publishError}

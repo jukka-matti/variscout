@@ -1,13 +1,12 @@
 /**
  * ProbabilityPlot - Shared wrapper for ProbabilityPlotBase
  *
- * Adds tier-aware branding, responsive margins/fonts to the multi-series
- * probability plot chart component.
+ * Adds responsive margins/fonts and optional branding (apps decide via the
+ * `showBranding` prop) to the multi-series probability plot chart component.
  */
 import React from 'react';
 import { ProbabilityPlotBase, getSourceBarHeight } from '@variscout/charts';
 import type { ProbabilityPlotSeries } from '@variscout/core';
-import { shouldShowBranding, getBrandingText } from '@variscout/core';
 import { useResponsiveChartMargins, useResponsiveChartFonts } from '@variscout/hooks';
 
 export interface ProbabilityPlotProps {
@@ -21,6 +20,10 @@ export interface ProbabilityPlotProps {
     series: ProbabilityPlotSeries | null,
     position: { x: number; y: number }
   ) => void;
+  /** Render the VariScout source-bar branding when true. Defaults to false. */
+  showBranding?: boolean;
+  /** Branding text (only used when showBranding=true). Defaults to "VariScout Lite". */
+  brandingText?: string;
 }
 
 export const ProbabilityPlot = ({
@@ -31,12 +34,14 @@ export const ProbabilityPlot = ({
   onSelectionChange,
   onChartContextMenu,
   onSeriesHover,
+  showBranding: showBrandingProp,
+  brandingText: brandingTextProp,
 }: ProbabilityPlotProps) => {
-  const showBranding = shouldShowBranding();
+  const showBranding = showBrandingProp ?? false;
+  const brandingText = brandingTextProp ?? 'VariScout Lite';
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = useResponsiveChartMargins(parentWidth, 'probability', sourceBarHeight);
   const fonts = useResponsiveChartFonts(parentWidth);
-  const brandingText = getBrandingText();
 
   return (
     <ProbabilityPlotBase
@@ -44,7 +49,7 @@ export const ProbabilityPlot = ({
       parentWidth={parentWidth}
       parentHeight={parentHeight}
       showBranding={showBranding}
-      brandingText={brandingText}
+      brandingText={showBranding ? brandingText : undefined}
       marginOverride={margin}
       fontsOverride={fonts}
       selectedPoints={selectedPoints}

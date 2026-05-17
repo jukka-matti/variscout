@@ -450,21 +450,9 @@ export const da: MessageCatalog = {
   // Admin hub
   'admin.title': 'Administration',
   'admin.status': 'Status',
-  'admin.plan': 'Plan og funktioner',
   'admin.teams': 'Teams-opsætning',
   'admin.knowledge': 'Knowledge Base',
   'admin.troubleshooting': 'Fejlfinding',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Nuværende',
-  'admin.feature': 'Funktion',
-  'admin.manageSubscription': 'Administrér abonnement i Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/md.',
-  'admin.planTeamPrice': '€199/md.',
-  'admin.planStandardDesc': 'Fuld analyse med CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Knowledge Base',
 
   // Feature names (plan matrix)
   'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
@@ -560,8 +548,8 @@ export const da: MessageCatalog = {
     'Remote SharePoint-videnkilder bruger rettigheder per bruger. Hver bruger skal have SharePoint-adgang til dokumenterne.\nKontrollér om de berørte brugere er blokeret af politikker for betinget adgang.\nBekræft at administratorsamtykke er givet for den delegerede rettighed Sites.Read.All.\nBed de berørte brugere om at logge ud og logge ind igen for at opdatere deres token.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -867,10 +855,6 @@ export const da: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

@@ -158,7 +158,6 @@ vi.mock('@variscout/core', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/core')>();
   return {
     ...actual,
-    hasTeamFeatures: () => false,
     computeMainEffects: () => null,
     computeInteractionEffects: () => null,
     inferCharacteristicType: () => 'continuous',

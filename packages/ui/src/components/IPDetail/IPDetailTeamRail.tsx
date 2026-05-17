@@ -1,6 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { Lock } from 'lucide-react';
-import { isPaidTier } from '@variscout/core/tier';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
 import type { ControlHandoff, ProcessHub, SustainmentRecord } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
@@ -111,7 +109,6 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
     [actions, controlHandoff, effectiveNow, ideas, ip, sustainmentRecord]
   );
   const recentEvents = events.slice(0, 5);
-  const paid = isPaidTier();
   const approver = activeHub?.processOwner;
   const pendingSignoff = Boolean(ip.signoff?.requestedAt && !ip.signoff.approvedAt);
   const canApprove = pendingSignoff && Boolean(approver);
@@ -211,29 +208,14 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
           </div>
         ) : (
           <div className="mt-2">
-            {paid ? (
-              <button
-                type="button"
-                className="rounded-md bg-[var(--vs-accent)] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[var(--vs-accent-hover)]"
-                onClick={onRequestSignoff}
-                disabled={!onRequestSignoff}
-              >
-                Request approval
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="rounded-md border border-edge px-2 py-1 text-[11px] text-content-secondary"
-                disabled
-                title="Approval requests are available on paid VariScout plans."
-                aria-label="Request approval locked"
-              >
-                <span className="inline-flex items-center gap-1">
-                  <Lock size={12} aria-hidden="true" />
-                  Request approval
-                </span>
-              </button>
-            )}
+            <button
+              type="button"
+              className="rounded-md bg-[var(--vs-accent)] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[var(--vs-accent-hover)]"
+              onClick={onRequestSignoff}
+              disabled={!onRequestSignoff}
+            >
+              Request approval
+            </button>
           </div>
         )}
       </section>

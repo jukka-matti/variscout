@@ -450,21 +450,9 @@ export const ko: MessageCatalog = {
   // Admin hub
   'admin.title': '관리',
   'admin.status': '상태',
-  'admin.plan': '플랜 및 기능',
   'admin.teams': 'Teams 설정',
   'admin.knowledge': 'Knowledge Base',
   'admin.troubleshooting': '문제 해결',
-
-  // Admin plan tab
-  'admin.currentPlan': '현재',
-  'admin.feature': '기능',
-  'admin.manageSubscription': 'Azure에서 구독 관리',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/월',
-  'admin.planTeamPrice': '€199/월',
-  'admin.planStandardDesc': 'CoScout AI 포함 전체 분석',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Knowledge Base',
 
   // Feature names (plan matrix)
   'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
@@ -559,8 +547,8 @@ export const ko: MessageCatalog = {
     'Remote SharePoint 지식 소스는 사용자별 권한을 사용합니다. 각 사용자는 문서에 대한 SharePoint 접근 권한이 있어야 합니다.\n영향을 받는 사용자가 조건부 접근 정책에 의해 차단되었는지 확인하세요.\nSites.Read.All 위임 권한에 대한 관리자 동의가 부여되었는지 확인하세요.\n영향을 받는 사용자에게 로그아웃한 후 다시 로그인하여 토큰을 새로 고치도록 요청하세요.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -865,10 +853,6 @@ export const ko: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

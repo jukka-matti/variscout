@@ -487,21 +487,9 @@ export const fi: MessageCatalog = {
   // Admin hub
   'admin.title': 'Hallinta',
   'admin.status': 'Tila',
-  'admin.plan': 'Tilaus ja ominaisuudet',
   'admin.teams': 'Teams-asetukset',
   'admin.knowledge': 'Tietopankki',
   'admin.troubleshooting': 'Vianmääritys',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Nykyinen',
-  'admin.feature': 'Ominaisuus',
-  'admin.manageSubscription': 'Hallitse tilausta Azuressa',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/kk',
-  'admin.planTeamPrice': '€199/kk',
-  'admin.planStandardDesc': 'Täysi analyysi CoScout AI:lla',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, tietopankki',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Tilastot',
@@ -598,8 +586,8 @@ export const fi: MessageCatalog = {
     'Etä-SharePoint-tietolähteet käyttävät käyttäjäkohtaisia käyttöoikeuksia. Jokaisella käyttäjällä täytyy olla SharePoint-pääsy dokumentteihin.\nTarkista, estävätkö ehdolliset käyttöoikeuskäytännöt kyseisiä käyttäjiä.\nVarmista, että järjestelmänvalvojan suostumus on myönnetty delegoidulle Sites.Read.All-käyttöoikeudelle.\nPyydä kyseisiä käyttäjiä kirjautumaan ulos ja takaisin sisään tunnuksen päivittämiseksi.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -904,10 +892,6 @@ export const fi: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

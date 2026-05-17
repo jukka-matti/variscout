@@ -408,19 +408,9 @@ export const cs: MessageCatalog = {
   'file.open': 'Otevřít soubor',
   'admin.title': 'Admin',
   'admin.status': 'Stav',
-  'admin.plan': 'Plán a funkce',
   'admin.teams': 'Nastavení Teams',
   'admin.knowledge': 'Znalostní báze',
   'admin.troubleshooting': 'Řešení problémů',
-  'admin.currentPlan': 'Aktuální',
-  'admin.feature': 'Funkce',
-  'admin.manageSubscription': 'Spravovat předplatné v Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/měs.',
-  'admin.planTeamPrice': '€199/měs.',
-  'admin.planStandardDesc': 'Plná analýza s CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, znalostní báze',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statistiky',
   'feature.capability': 'Analýza způsobilosti (Cp/Cpk)',
   'feature.performance': 'Režim výkonu (vícekanálový)',
@@ -508,8 +498,8 @@ export const cs: MessageCatalog = {
     'Vzdálené SharePoint zdroje znalostí používají oprávnění na úrovni uživatele. Každý uživatel musí mít přístup SharePoint k dokumentům.\nZkontrolujte, zda jsou dotčení uživatelé blokováni zásadami podmíněného přístupu.\nOvěřte, že byl udělen souhlas správce pro delegované oprávnění Sites.Read.All.\nPožádejte dotčené uživatele, aby se odhlásili a znovu přihlásili pro obnovení tokenu.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -814,10 +804,6 @@ export const cs: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

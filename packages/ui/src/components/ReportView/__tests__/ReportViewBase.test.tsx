@@ -180,7 +180,7 @@ describe('ReportViewBase', () => {
       );
 
       expect(screen.getAllByText('Share link').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Azure paid').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('VariScout for Azure').length).toBeGreaterThan(0);
     });
   });
 

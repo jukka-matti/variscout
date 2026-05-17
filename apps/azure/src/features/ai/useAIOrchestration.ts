@@ -38,7 +38,6 @@ import {
   type ProcessContext,
   type StagedStatsResult,
 } from '@variscout/core';
-import { isTeamPlan } from '@variscout/core';
 import { useAIDerivedState } from './useAIDerivedState';
 import { useToolHandlers } from './useToolHandlers';
 import { useInvestigationFeatureStore } from '../investigation/investigationStore';
@@ -336,7 +335,6 @@ export function useAIOrchestration({
   const toolsOptions = useMemo(
     () => ({
       phase: journeyPhase,
-      isTeamPlan: isTeamPlan(),
     }),
     [journeyPhase]
   );

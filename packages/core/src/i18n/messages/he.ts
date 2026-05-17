@@ -482,21 +482,9 @@ export const he: MessageCatalog = {
   // Admin hub
   'admin.title': 'ניהול',
   'admin.status': 'סטטוס',
-  'admin.plan': 'תוכנית ותכונות',
   'admin.teams': 'הגדרת Teams',
   'admin.knowledge': 'בסיס ידע',
   'admin.troubleshooting': 'פתרון בעיות',
-
-  // Admin plan tab
-  'admin.currentPlan': 'נוכחית',
-  'admin.feature': 'תכונה',
-  'admin.manageSubscription': 'נהל מנוי ב-Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/חודש',
-  'admin.planTeamPrice': '€199/חודש',
-  'admin.planStandardDesc': 'ניתוח מלא עם CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, בסיס ידע',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, סטטיסטיקה',
@@ -587,8 +575,8 @@ export const he: MessageCatalog = {
     'מקורות ידע Remote SharePoint משתמשים בהרשאות לכל משתמש. לכל משתמש חייבת להיות גישת SharePoint למסמכים.\nבדוק אם המשתמשים המושפעים חסומים על ידי מדיניות גישה מותנית.\nוודא שניתנה הסכמת מנהל להרשאה המואצלת Sites.Read.All.\nבקש מהמשתמשים המושפעים להתנתק ולהתחבר מחדש כדי לרענן את האסימון שלהם.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -893,10 +881,6 @@ export const he: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

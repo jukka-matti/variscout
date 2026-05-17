@@ -445,19 +445,9 @@ export const uk: MessageCatalog = {
   'file.open': 'Відкрити файл',
   'admin.title': 'Адмін',
   'admin.status': 'Стан',
-  'admin.plan': 'План і функції',
   'admin.teams': 'Налаштування Teams',
   'admin.knowledge': 'База знань',
   'admin.troubleshooting': 'Усунення несправностей',
-  'admin.currentPlan': 'Поточний',
-  'admin.feature': 'Функція',
-  'admin.manageSubscription': 'Керувати підпискою в Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/міс.',
-  'admin.planTeamPrice': '€199/міс.',
-  'admin.planStandardDesc': 'Повний аналіз з CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, база знань',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Статистика',
   'feature.capability': 'Аналіз придатності (Cp/Cpk)',
   'feature.performance': 'Режим продуктивності (багатоканальний)',
@@ -547,8 +537,8 @@ export const uk: MessageCatalog = {
     'Віддалені джерела знань SharePoint використовують дозволи на рівні користувача. Кожен користувач повинен мати доступ SharePoint до документів.\nПеревірте, чи не блокуються відповідні користувачі політиками умовного доступу.\nПеревірте, що надано згоду адміністратора для делегованого дозволу Sites.Read.All.\nПопросіть відповідних користувачів вийти та увійти знову для оновлення їхнього токена.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -854,10 +844,6 @@ export const uk: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

@@ -8,22 +8,25 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
 // Mock @variscout/core
-vi.mock('@variscout/core', () => ({
-  createPhotoAttachment: vi.fn((filename: string) => ({
-    id: `photo-${Date.now()}`,
-    filename,
-    uploadStatus: 'pending' as const,
-    thumbnailDataUrl: undefined,
-  })),
-  createCommentAttachment: vi.fn((filename: string, mimeType: string, size: number) => ({
-    id: `att-${Date.now()}`,
-    filename,
-    mimeType,
-    size,
-    uploadStatus: 'pending' as const,
-  })),
-  hasTeamFeatures: vi.fn(() => false),
-}));
+vi.mock('@variscout/core', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/core')>();
+  return {
+    ...actual,
+    createPhotoAttachment: vi.fn((filename: string) => ({
+      id: `photo-${Date.now()}`,
+      filename,
+      uploadStatus: 'pending' as const,
+      thumbnailDataUrl: undefined,
+    })),
+    createCommentAttachment: vi.fn((filename: string, mimeType: string, size: number) => ({
+      id: `att-${Date.now()}`,
+      filename,
+      mimeType,
+      size,
+      uploadStatus: 'pending' as const,
+    })),
+  };
+});
 
 // Mock photo processing
 vi.mock('../../utils/photoProcessing', () => ({
@@ -36,7 +39,7 @@ vi.mock('../../utils/photoProcessing', () => ({
   ),
 }));
 
-// Mock blobClient (not called when hasTeamFeatures returns false)
+// Mock blobClient
 vi.mock('../../services/blobClient', () => ({
   saveBlobPhoto: vi.fn(() => Promise.resolve('https://blob.example.com/photo.jpg')),
 }));
@@ -118,13 +121,13 @@ describe('usePhotoComments', () => {
       })
     );
 
-    // Should mark as uploaded (local only)
+    // Should mark as uploaded with the remote URL from blob storage
     expect(mockFindings.updatePhotoStatus).toHaveBeenCalledWith(
       'f-1',
       'c-1',
       expect.any(String),
       'uploaded',
-      expect.stringMatching(/^local-/)
+      'https://blob.example.com/photo.jpg'
     );
   });
 

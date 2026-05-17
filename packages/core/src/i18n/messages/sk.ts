@@ -485,21 +485,9 @@ export const sk: MessageCatalog = {
   // Admin hub
   'admin.title': 'Administrácia',
   'admin.status': 'Stav',
-  'admin.plan': 'Plán a funkcie',
   'admin.teams': 'Nastavenie Teams',
   'admin.knowledge': 'Znalostná báza',
   'admin.troubleshooting': 'Riešenie problémov',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Aktuálny',
-  'admin.feature': 'Funkcia',
-  'admin.manageSubscription': 'Spravovať predplatné v Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/mes.',
-  'admin.planTeamPrice': '€199/mes.',
-  'admin.planStandardDesc': 'Úplná analýza s CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, znalostná báza',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Štatistika',
@@ -596,8 +584,8 @@ export const sk: MessageCatalog = {
     'Vzdialené SharePoint zdroje znalostí používajú oprávnenia pre každého používateľa. Každý používateľ musí mať prístup SharePoint k dokumentom.\nSkontrolujte, či sú postihnutí používatelia blokovaní politikami podmieneného prístupu.\nOverte, že bol udelený súhlas správcu pre delegované oprávnenie Sites.Read.All.\nPožiadajte postihnutých používateľov, aby sa odhlásili a znova prihlásili na obnovenie ich tokenu.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -903,10 +891,6 @@ export const sk: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

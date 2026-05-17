@@ -55,7 +55,6 @@ import {
 } from '@variscout/hooks';
 import {
   DEFAULT_PROCESS_HUB_ID,
-  hasTeamFeatures,
   downloadCSV,
   computeBestSubsets,
   evaluateSurvey,
@@ -1867,10 +1866,8 @@ export const Editor: React.FC<EditorProps> = ({
                 handleCreateQuestion={handleCreateQuestion}
                 handleProjectIdea={handleProjectIdea}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
-                handleAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
-                handleCaptureFromTeams={
-                  hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
-                }
+                handleAddPhoto={handleAddPhoto}
+                handleCaptureFromTeams={isTeamsCamera ? handleCaptureFromTeams : undefined}
                 isTeamsCamera={isTeamsCamera}
                 aiOrch={aiOrch}
                 actionProposalsState={actionProposalsState}

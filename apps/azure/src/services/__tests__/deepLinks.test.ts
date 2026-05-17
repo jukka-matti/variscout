@@ -279,14 +279,13 @@ describe('deepLinks', () => {
     it('returns valid when params have no project', () => {
       const result = validateDeepLink(
         { project: null, findingId: null, questionId: null, chart: null, mode: null, tab: null },
-        projectExists,
-        false
+        projectExists
       );
       expect(result.valid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
-    it('returns valid when project exists (Team plan)', () => {
+    it('returns valid when project exists', () => {
       const result = validateDeepLink(
         {
           project: 'proj-001',
@@ -296,30 +295,13 @@ describe('deepLinks', () => {
           mode: null,
           tab: null,
         },
-        projectExists,
-        false
+        projectExists
       );
       expect(result.valid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
-    it('returns valid when project exists (Standard plan)', () => {
-      const result = validateDeepLink(
-        {
-          project: 'proj-002',
-          findingId: null,
-          questionId: null,
-          chart: null,
-          mode: null,
-          tab: null,
-        },
-        projectExists,
-        true
-      );
-      expect(result.valid).toBe(true);
-    });
-
-    it('returns project-not-found with Team plan error message when project missing on Team plan', () => {
+    it('returns project-not-found when project missing', () => {
       const result = validateDeepLink(
         {
           project: 'proj-missing',
@@ -329,32 +311,11 @@ describe('deepLinks', () => {
           mode: null,
           tab: null,
         },
-        projectExists,
-        false
+        projectExists
       );
       expect(result.valid).toBe(false);
       expect(result.error).toBe('project-not-found');
       expect(result.errorMessage).toBe('This project may have been moved or deleted.');
-    });
-
-    it('returns project-not-found with Standard plan error message when project missing on Standard plan', () => {
-      const result = validateDeepLink(
-        {
-          project: 'proj-missing',
-          findingId: null,
-          questionId: null,
-          chart: null,
-          mode: null,
-          tab: null,
-        },
-        projectExists,
-        true
-      );
-      expect(result.valid).toBe(false);
-      expect(result.error).toBe('project-not-found');
-      expect(result.errorMessage).toBe(
-        'This project was not found locally. Standard plan projects are stored on this device only — Team plan enables shared access.'
-      );
     });
   });
 });

@@ -5,7 +5,7 @@
  * - Transforms data via useIChartData / useIChartWrapperData
  * - Manages Y-axis editor state
  * - Renders IChartBase + ChartAnnotationLayer + YAxisPopover
- * - Tier-aware branding via shouldShowBranding()
+ * - Optional branding via showBranding prop (apps decide; default off)
  *
  * Each app keeps a thin wrapper that calls useData() + useChartScale()
  * and spreads the result as props.
@@ -13,7 +13,6 @@
 import React, { useState } from 'react';
 import { IChartBase, getScaledFonts } from '@variscout/charts';
 import { useIChartData, useIChartWrapperData } from '@variscout/hooks';
-import { shouldShowBranding, getBrandingText } from '@variscout/core';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
 import { YAxisPopover } from '../YAxisPopover';
 import type {
@@ -65,8 +64,10 @@ export interface IChartWrapperBaseProps {
   onPointClick?: (index: number) => void;
   /** Callback when a spec label is clicked */
   onSpecClick?: (spec: 'usl' | 'lsl' | 'target') => void;
-  /** Override branding display (undefined = auto-detect via tier) */
+  /** Render the VariScout source-bar branding when true. Defaults to false. */
   showBranding?: boolean;
+  /** Branding text (only used when showBranding=true). Defaults to "VariScout Lite". */
+  brandingText?: string;
   /** Show UCL/LCL/Mean labels on control limits (default: true) */
   showLimitLabels?: boolean;
   /** Highlighted point index from data panel sync (Azure) */
@@ -116,6 +117,7 @@ export const IChartWrapperBase = ({
   onPointClick,
   onSpecClick,
   showBranding: showBrandingProp,
+  brandingText: brandingTextProp,
   showLimitLabels = true,
   highlightedPointIndex,
   ichartFindings = [],
@@ -155,7 +157,8 @@ export const IChartWrapperBase = ({
     );
   }
 
-  const showBranding = showBrandingProp ?? shouldShowBranding();
+  const showBranding = showBrandingProp ?? false;
+  const brandingText = brandingTextProp ?? 'VariScout Lite';
   const fonts = getScaledFonts(parentWidth);
 
   // In capability mode, use capability data instead of raw measurement data
@@ -183,7 +186,7 @@ export const IChartWrapperBase = ({
         parentWidth={parentWidth}
         parentHeight={parentHeight}
         showBranding={showBranding}
-        brandingText={showBranding ? getBrandingText() : undefined}
+        brandingText={showBranding ? brandingText : undefined}
         onPointClick={onPointClick}
         onSpecClick={isCapabilityMode ? undefined : onSpecClick}
         onYAxisClick={isCapabilityMode ? undefined : () => setIsEditingScale(true)}

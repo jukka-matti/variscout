@@ -39,7 +39,6 @@ import type {
 } from '@variscout/core';
 import {
   normalizeProcessHubId,
-  hasTeamFeatures,
   inferCharacteristicType,
   computeMainEffects,
   computeInteractionEffects,
@@ -970,14 +969,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 columnAliases={columnAliases}
                 activeFindingId={highlightedFindingId}
                 onAddPhoto={
-                  hasTeamFeatures() && handleAddPhoto
+                  handleAddPhoto
                     ? (fId: string, cId: string, file: File) => {
                         handleAddPhoto(fId, cId, file);
                       }
                     : undefined
                 }
                 onCaptureFromTeams={
-                  hasTeamFeatures() && isTeamsCamera && handleCaptureFromTeams
+                  isTeamsCamera && handleCaptureFromTeams
                     ? (fId: string, cId: string) => {
                         handleCaptureFromTeams(fId, cId);
                       }

@@ -482,21 +482,9 @@ export const ar: MessageCatalog = {
   // Admin hub
   'admin.title': 'المسؤول',
   'admin.status': 'الحالة',
-  'admin.plan': 'الخطة والميزات',
   'admin.teams': 'إعداد Teams',
   'admin.knowledge': 'قاعدة المعرفة',
   'admin.troubleshooting': 'استكشاف الأخطاء',
-
-  // Admin plan tab
-  'admin.currentPlan': 'الحالية',
-  'admin.feature': 'الميزة',
-  'admin.manageSubscription': 'إدارة الاشتراك في Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/شهر',
-  'admin.planTeamPrice': '€199/شهر',
-  'admin.planStandardDesc': 'تحليل كامل مع CoScout AI',
-  'admin.planTeamDesc': 'Teams، OneDrive، SharePoint، قاعدة المعرفة',
 
   // Feature names
   'feature.charts': 'I-Chart، Boxplot، Pareto، إحصائيات',
@@ -588,8 +576,8 @@ export const ar: MessageCatalog = {
     'مصادر معرفة Remote SharePoint تستخدم أذونات لكل مستخدم. يجب أن يكون لكل مستخدم وصول SharePoint إلى المستندات.\nتحقق مما إذا كان المستخدمون المتأثرون محظورين بسياسات الوصول المشروط.\nتحقق من منح موافقة المسؤول لإذن Sites.Read.All المفوض.\nاطلب من المستخدمين المتأثرين تسجيل الخروج والدخول مرة أخرى لتحديث الرمز المميز.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -894,10 +882,6 @@ export const ar: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

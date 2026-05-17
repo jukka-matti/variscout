@@ -76,10 +76,9 @@ describe('TOOL_REGISTRY', () => {
     }
   });
 
-  it('marks team tools with tier: team', () => {
+  it('registers the share / publish / notify tools', () => {
     for (const name of TEAM_TOOLS) {
       expect(TOOL_REGISTRY[name]).toBeDefined();
-      expect(TOOL_REGISTRY[name].tier).toBe('team');
     }
   });
 
@@ -140,26 +139,18 @@ describe('getToolsForPhase', () => {
     expect(names).toContain('highlight_map_pattern');
   });
 
-  it('excludes team tools when isTeamPlan is false', () => {
-    const tools = getToolsForPhase('investigate', 'standard', { isTeamPlan: false });
-    const names = toolNames(tools);
-    expect(names).not.toContain('share_finding');
-    expect(names).not.toContain('publish_report');
-    expect(names).not.toContain('notify_action_owners');
-  });
-
-  it('includes team tools when isTeamPlan is true', () => {
-    const tools = getToolsForPhase('investigate', 'standard', { isTeamPlan: true });
+  it('includes share_finding + publish_report in INVESTIGATE phase (wedge V1 single SKU)', () => {
+    const tools = getToolsForPhase('investigate', 'standard');
     const names = toolNames(tools);
     expect(names).toContain('share_finding');
     expect(names).toContain('publish_report');
   });
 
-  it('notify_action_owners only in IMPROVE phase with team plan', () => {
-    const investigateTools = getToolsForPhase('investigate', 'standard', { isTeamPlan: true });
+  it('notify_action_owners only in IMPROVE phase', () => {
+    const investigateTools = getToolsForPhase('investigate', 'standard');
     expect(toolNames(investigateTools)).not.toContain('notify_action_owners');
 
-    const improveTools = getToolsForPhase('improve', 'standard', { isTeamPlan: true });
+    const improveTools = getToolsForPhase('improve', 'standard');
     expect(toolNames(improveTools)).toContain('notify_action_owners');
   });
 

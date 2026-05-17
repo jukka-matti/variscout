@@ -17,7 +17,7 @@ import {
   useYamazumiIChartData,
   useYamazumiParetoData,
 } from '@variscout/hooks';
-import { computeYamazumiSummary, calculateStats, isPaidTier } from '@variscout/core';
+import { computeYamazumiSummary, calculateStats } from '@variscout/core';
 import type {
   YamazumiColumnMapping,
   YamazumiIChartMetric,
@@ -40,7 +40,7 @@ const YamazumiDashboard: React.FC<YamazumiDashboardProps> = ({
 }) => {
   const { filteredData } = useFilteredData();
   const specs = useProjectStore(s => s.specs);
-  const showBranding = !isPaidTier();
+  const showBranding = false;
 
   // Yamazumi-specific display state
   const [ichartMetric, setIchartMetric] = useState<YamazumiIChartMetric>('total');

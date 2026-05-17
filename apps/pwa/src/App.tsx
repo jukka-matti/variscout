@@ -756,19 +756,45 @@ function AppMain() {
     [setSessionHub, setRawData, setOutcome, setFactors]
   );
 
-  // Phase tab navigation handler (used by AppHeader inline tabs)
+  // Phase tab navigation handler (used by AppHeader inline tabs).
+  // PhaseId values follow wedge V1 naming (process / analyze / project); panelsStore enum stays stable.
   const handlePhaseChange = useCallback(
     (phase: PhaseId) => {
       if (phase === 'home') panels.showHome();
-      else if (phase === 'frame') panels.showFrame();
-      else if (phase === 'analysis') panels.showAnalysis();
+      else if (phase === 'process') panels.showFrame();
+      else if (phase === 'analyze') panels.showAnalysis();
       else if (phase === 'investigation') panels.showInvestigation();
       else if (phase === 'improvement') panels.showImprovement();
-      else if (phase === 'projects') panels.showProjects();
+      else if (phase === 'project') panels.showProjects();
       else panels.showReport();
     },
     [panels]
   );
+
+  // Reverse of handlePhaseChange — maps panelsStore.activeView to the wedge-V1 PhaseId vocabulary.
+  const activeViewToPhase = useCallback((view: typeof panels.activeView): PhaseId | undefined => {
+    switch (view) {
+      case 'home':
+        return 'home';
+      case 'projects':
+        return 'project';
+      case 'frame':
+        return 'process';
+      case 'analysis':
+        return 'analyze';
+      case 'investigation':
+        return 'investigation';
+      case 'improvement':
+        return 'improvement';
+      case 'report':
+        return 'report';
+      case 'charter':
+      case 'sustainment':
+        return undefined; // out-of-phase views — no tab highlighted
+      default:
+        return undefined;
+    }
+  }, []);
 
   // Wall-variant propose-hypothesis CTA
   const wallViewMode = useCanvasViewportStore(s => s.viewMode);
@@ -1070,7 +1096,7 @@ function AppMain() {
             !importFlow.isMapping &&
             panels.activeView !== 'charter' &&
             panels.activeView !== 'sustainment'
-              ? panels.activeView
+              ? activeViewToPhase(panels.activeView)
               : undefined
           }
           onPhaseChange={handlePhaseChange}

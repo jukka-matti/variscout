@@ -441,19 +441,9 @@ export const th: MessageCatalog = {
   'file.open': 'เปิดไฟล์',
   'admin.title': 'ผู้ดูแล',
   'admin.status': 'สถานะ',
-  'admin.plan': 'แผนและฟีเจอร์',
   'admin.teams': 'ตั้งค่า Teams',
   'admin.knowledge': 'ฐานความรู้',
   'admin.troubleshooting': 'การแก้ไขปัญหา',
-  'admin.currentPlan': 'ปัจจุบัน',
-  'admin.feature': 'ฟีเจอร์',
-  'admin.manageSubscription': 'จัดการการสมัครใน Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/เดือน',
-  'admin.planTeamPrice': '€199/เดือน',
-  'admin.planStandardDesc': 'วิเคราะห์ครบถ้วนพร้อม CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, ฐานความรู้',
   'feature.charts': 'I-Chart, Boxplot, Pareto, สถิติ',
   'feature.capability': 'การวิเคราะห์ความสามารถ (Cp/Cpk)',
   'feature.performance': 'โหมดประสิทธิภาพ (หลายช่อง)',
@@ -537,8 +527,8 @@ export const th: MessageCatalog = {
     'แหล่งความรู้ Remote SharePoint ใช้สิทธิ์ต่อผู้ใช้ ผู้ใช้แต่ละคนต้องมีสิทธิ์เข้าถึง SharePoint ไปยังเอกสาร\nตรวจสอบว่าผู้ใช้ที่ได้รับผลกระทบถูกบล็อกโดยนโยบาย Conditional Access หรือไม่\nตรวจสอบว่าได้ให้ admin consent สำหรับสิทธิ์ delegated Sites.Read.All แล้ว\nขอให้ผู้ใช้ที่ได้รับผลกระทบออกจากระบบและเข้าสู่ระบบอีกครั้งเพื่อรีเฟรช token',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -844,10 +834,6 @@ export const th: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

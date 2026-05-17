@@ -6,7 +6,6 @@
  */
 import { useMemo } from 'react';
 import {
-  hasTeamFeatures,
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
   getEtaSquared,
@@ -122,9 +121,9 @@ export function useAIDerivedState({
     };
   }, [highlightedFindingId, findings, questions]);
 
-  // Team contributors for AI context (Teams plan only)
+  // Team contributors for AI context
   const aiTeamContributors = useMemo(() => {
-    if (!hasTeamFeatures() || !findings) return undefined;
+    if (!findings) return undefined;
     const authors = new Set<string>();
     const areas = new Set<string>();
     for (const f of findings) {

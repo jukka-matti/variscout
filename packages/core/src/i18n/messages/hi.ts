@@ -485,21 +485,9 @@ export const hi: MessageCatalog = {
   // Admin hub
   'admin.title': 'व्यवस्थापक',
   'admin.status': 'स्थिति',
-  'admin.plan': 'योजना और सुविधाएँ',
   'admin.teams': 'Teams सेटअप',
   'admin.knowledge': 'ज्ञान आधार',
   'admin.troubleshooting': 'समस्या निवारण',
-
-  // Admin plan tab
-  'admin.currentPlan': 'वर्तमान',
-  'admin.feature': 'सुविधा',
-  'admin.manageSubscription': 'Azure में सदस्यता प्रबंधित करें',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/माह',
-  'admin.planTeamPrice': '€199/माह',
-  'admin.planStandardDesc': 'CoScout AI के साथ पूर्ण विश्लेषण',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, ज्ञान आधार',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, सांख्यिकी',
@@ -598,8 +586,8 @@ export const hi: MessageCatalog = {
     'Remote SharePoint ज्ञान स्रोत प्रति-उपयोगकर्ता अनुमतियों का उपयोग करते हैं। प्रत्येक उपयोगकर्ता के पास दस्तावेज़ों तक SharePoint पहुँच होनी चाहिए।\nजाँचें कि प्रभावित उपयोगकर्ता सशर्त पहुँच नीतियों द्वारा अवरुद्ध तो नहीं हैं।\nसत्यापित करें कि Sites.Read.All प्रत्यायोजित अनुमति के लिए व्यवस्थापक सहमति दी गई है।\nप्रभावित उपयोगकर्ताओं से अपना टोकन रीफ़्रेश करने के लिए साइन आउट और साइन इन करने को कहें।',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -905,10 +893,6 @@ export const hi: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

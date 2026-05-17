@@ -36,6 +36,7 @@ const Boxplot = ({
   isComputing = false,
   dataOverride,
   outcomeOverride,
+  showBranding = true,
   ...props
 }: BoxplotProps) => {
   const { filteredData: storeData } = useFilteredData();
@@ -90,6 +91,7 @@ const Boxplot = ({
         capabilityData={isCapabilityMode ? capabilityData : undefined}
         isCapabilityMode={isCapabilityMode}
         cpkTarget={cpkTarget}
+        showBranding={showBranding}
         {...props}
       />
       {isComputing && (

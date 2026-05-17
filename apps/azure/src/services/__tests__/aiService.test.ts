@@ -1,5 +1,4 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { configurePlan } from '@variscout/core';
 
 vi.mock('../../lib/runtimeConfig', () => ({
   getRuntimeConfig: vi.fn(() => null),
@@ -98,7 +97,6 @@ describe('classifyError', () => {
 
 describe('isAIAvailable', () => {
   beforeEach(() => {
-    configurePlan(null);
     (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
   });
 
@@ -106,18 +104,13 @@ describe('isAIAvailable', () => {
     expect(isAIAvailable()).toBe(false);
   });
 
-  it('returns true for any plan when endpoint is configured', () => {
+  it('returns true when endpoint is configured', () => {
     mockEndpoint(OPENAI_ENDPOINT);
-    configurePlan('standard');
-    expect(isAIAvailable()).toBe(true);
-
-    configurePlan('team');
     expect(isAIAvailable()).toBe(true);
   });
 
-  it('returns false when endpoint not set regardless of plan', () => {
+  it('returns false when endpoint not set', () => {
     (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
-    configurePlan('team');
     expect(isAIAvailable()).toBe(false);
   });
 });

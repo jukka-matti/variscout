@@ -6,12 +6,12 @@
  * - Folder-scoped search available via KQL filter when folderScope is provided
  */
 
-import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
+import { isPreviewEnabled } from '@variscout/core';
 import { getAccessToken } from '../auth/easyAuth';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
 // Knowledge Base is enabled when the preview toggle is on (controlled by admin UI).
-// The actual availability check (isKnowledgeBaseAvailable) validates Team tier + search endpoint.
+// The actual availability check (isKnowledgeBaseAvailable) validates the search endpoint.
 const KNOWLEDGE_BASE_ENABLED = true;
 
 export interface DocumentResult {
@@ -28,11 +28,11 @@ function getSearchEndpoint(): string | null {
 
 /**
  * Check if the Knowledge Base feature is available.
- * Requires Team plan (with KB access), configured search endpoint, and preview toggle enabled.
+ * Requires a configured search endpoint and the preview toggle enabled.
  */
 export function isKnowledgeBaseAvailable(): boolean {
   if (!KNOWLEDGE_BASE_ENABLED) return false;
-  return hasKnowledgeBase() && getSearchEndpoint() !== null && isPreviewEnabled('knowledge-base');
+  return getSearchEndpoint() !== null && isPreviewEnabled('knowledge-base');
 }
 
 /**
@@ -62,7 +62,7 @@ export async function searchDocuments(
   }
 ): Promise<DocumentResult[]> {
   if (!KNOWLEDGE_BASE_ENABLED) return [];
-  if (!hasKnowledgeBase() || !isPreviewEnabled('knowledge-base')) return [];
+  if (!isPreviewEnabled('knowledge-base')) return [];
 
   const endpoint = getSearchEndpoint();
   if (!endpoint) return [];

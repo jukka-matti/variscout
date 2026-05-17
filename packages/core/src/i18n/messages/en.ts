@@ -492,21 +492,9 @@ export const en: MessageCatalog = {
   // Admin hub
   'admin.title': 'Admin',
   'admin.status': 'Status',
-  'admin.plan': 'Plan & Features',
   'admin.teams': 'Teams Setup',
   'admin.knowledge': 'Knowledge Base',
   'admin.troubleshooting': 'Troubleshooting',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Current',
-  'admin.feature': 'Feature',
-  'admin.manageSubscription': 'Manage Subscription in Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '\u20ac79/mo',
-  'admin.planTeamPrice': '\u20ac199/mo',
-  'admin.planStandardDesc': 'Full analysis with CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Knowledge Base',
 
   // Feature names (plan matrix)
   'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
@@ -601,8 +589,8 @@ export const en: MessageCatalog = {
     'Remote SharePoint knowledge sources use per-user permissions. Each user must have SharePoint access to the documents.\nCheck if the affected users are blocked by Conditional Access policies.\nVerify admin consent was granted for the Sites.Read.All delegated permission.\nAsk the affected users to sign out and sign back in to refresh their token.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -912,10 +900,6 @@ export const en: MessageCatalog = {
   'action.continue': 'Continue',
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From €79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

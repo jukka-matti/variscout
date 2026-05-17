@@ -174,33 +174,9 @@ export type {
 export type { TimeLens, TimeLensMode } from './stats';
 export { DEFAULT_TIME_LENS, applyTimeLens, timeLensIndices } from './stats';
 
-// Tier (Azure Marketplace multi-tier licensing) — primary module
-export type { LicenseTier, TierLimits, ChannelLimitResult, MarketplacePlan } from './tier';
-export {
-  CHANNEL_WARNING_THRESHOLD,
-  configureTier,
-  getTier,
-  isPaidTier,
-  getMaxChannels,
-  getTierLimits,
-  isChannelLimitExceeded,
-  shouldShowChannelWarning,
-  validateChannelCount,
-  getTierDescription,
-  getUpgradeUrl,
-  // Branding helpers (canonical source)
-  BRANDING_COLORS,
-  shouldShowBranding,
-  getBrandingText,
-  getSignatureText,
-  // Marketplace plan helpers
-  DEFAULT_PLAN,
-  configurePlan,
-  getPlan,
-  hasTeamFeatures,
-  hasKnowledgeBase,
-  isTeamPlan,
-} from './tier';
+// Channel-limit helpers (wedge V1 single SKU — ADR-082)
+export { MAX_CHANNELS, CHANNEL_WARNING_THRESHOLD, validateChannelCount } from './tier';
+export type { ChannelLimitResult } from './tier';
 
 // Response-path readiness helpers (prerequisite checks for canvas CTAs)
 export { isCharterReady, isSustainmentReady } from './responsePathReadiness';

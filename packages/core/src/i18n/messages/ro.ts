@@ -445,19 +445,9 @@ export const ro: MessageCatalog = {
   'file.open': 'Deschidere fișier',
   'admin.title': 'Admin',
   'admin.status': 'Stare',
-  'admin.plan': 'Plan și funcționalități',
   'admin.teams': 'Configurare Teams',
   'admin.knowledge': 'Bază de cunoștințe',
   'admin.troubleshooting': 'Depanare',
-  'admin.currentPlan': 'Actual',
-  'admin.feature': 'Funcționalitate',
-  'admin.manageSubscription': 'Gestionare abonament în Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/lună',
-  'admin.planTeamPrice': '€199/lună',
-  'admin.planStandardDesc': 'Analiză completă cu CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, bază de cunoștințe',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statistici',
   'feature.capability': 'Analiză capabilitate (Cp/Cpk)',
   'feature.performance': 'Mod performanță (multicanal)',
@@ -546,8 +536,8 @@ export const ro: MessageCatalog = {
     'Sursele de cunoștințe SharePoint remote folosesc permisiuni per utilizator. Fiecare utilizator trebuie să aibă acces SharePoint la documente.\nVerificați dacă utilizatorii afectați sunt blocați de politicile de acces condiționat.\nVerificați că s-a acordat consimțământul administratorului pentru permisiunea delegată Sites.Read.All.\nCereți utilizatorilor afectați să se deconecteze și să se reconecteze pentru a reîmprospăta token-ul.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -854,10 +844,6 @@ export const ro: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

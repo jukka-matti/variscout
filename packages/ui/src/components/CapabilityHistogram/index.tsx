@@ -1,12 +1,13 @@
 /**
  * CapabilityHistogram - Shared wrapper for CapabilityHistogramBase
  *
- * Adds tier-aware branding to the shared chart component.
+ * Apps choose whether to render the VariScout source-bar branding via
+ * the `showBranding` prop (default off).
  * Both PWA and Azure apps use this via withParentSize in their thin wrappers.
  */
 import React from 'react';
 import { CapabilityHistogramBase } from '@variscout/charts';
-import { shouldShowBranding, getBrandingText, type SpecLimits } from '@variscout/core';
+import type { SpecLimits } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 
 export interface CapabilityHistogramProps {
@@ -19,6 +20,10 @@ export interface CapabilityHistogramProps {
   cpkBefore?: number;
   /** After-stage Cpk value (for staged comparison badge) */
   cpkAfter?: number;
+  /** Render the VariScout source-bar branding when true. Defaults to false. */
+  showBranding?: boolean;
+  /** Branding text (only used when showBranding=true). Defaults to "VariScout Lite". */
+  brandingText?: string;
 }
 
 /** Get color class for Cpk delta */
@@ -36,9 +41,12 @@ export const CapabilityHistogram = ({
   mean,
   cpkBefore,
   cpkAfter,
+  showBranding: showBrandingProp,
+  brandingText: brandingTextProp,
 }: CapabilityHistogramProps) => {
   const { formatStat } = useTranslation();
-  const showBranding = shouldShowBranding();
+  const showBranding = showBrandingProp ?? false;
+  const brandingText = brandingTextProp ?? 'VariScout Lite';
   const showComparisonBadge = cpkBefore !== undefined && cpkAfter !== undefined;
   const delta = showComparisonBadge ? cpkAfter! - cpkBefore! : 0;
 
@@ -69,7 +77,7 @@ export const CapabilityHistogram = ({
         specs={specs}
         mean={mean}
         showBranding={showBranding}
-        brandingText={showBranding ? getBrandingText() : undefined}
+        brandingText={showBranding ? brandingText : undefined}
       />
     </div>
   );

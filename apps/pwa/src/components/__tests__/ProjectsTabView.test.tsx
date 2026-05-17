@@ -2,7 +2,6 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import ProjectsTabView from '../ProjectsTabView';
 import type { ProcessHub } from '@variscout/core';
-import { configureTier } from '@variscout/core/tier';
 import { getImprovementProjectInitialState, useImprovementProjectStore } from '@variscout/stores';
 
 const baseHub: ProcessHub = {
@@ -17,7 +16,6 @@ const baseHub: ProcessHub = {
 
 describe('ProjectsTabView', () => {
   beforeEach(() => {
-    configureTier(null);
     useImprovementProjectStore.setState(getImprovementProjectInitialState());
   });
 
@@ -72,7 +70,6 @@ describe('ProjectsTabView', () => {
   });
 
   it('updates the project store and emits a patch from detail signoff actions', () => {
-    configureTier('enterprise');
     const onProjectPatch = vi.fn();
     const hub: ProcessHub = {
       ...baseHub,
@@ -120,7 +117,6 @@ describe('ProjectsTabView', () => {
   });
 
   it('threads PWA_USER_ID into IPDetailPage — charter team section is visible', () => {
-    configureTier('enterprise');
     // Use 'draft' status so charter is the default active stage (deriveStageState returns
     // charter: 'current' for drafts, approach: 'current' for active which shifts the default).
     const hub: ProcessHub = {
@@ -159,7 +155,6 @@ describe('ProjectsTabView', () => {
   });
 
   it('onMembersChange flows through applyProjectPatch for the PWA app', () => {
-    configureTier('enterprise');
     const onProjectPatch = vi.fn();
     const hub: ProcessHub = {
       ...baseHub,

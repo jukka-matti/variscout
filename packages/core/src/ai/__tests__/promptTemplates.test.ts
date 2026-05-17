@@ -1617,24 +1617,18 @@ describe('buildCoScoutTools', () => {
     expect(tools.find(t => t.name === 'create_question')).toBeUndefined();
   });
 
-  it('adds question and action tools in INVESTIGATE phase', () => {
+  it('adds question, action, and sharing tools in INVESTIGATE phase (wedge V1 single SKU)', () => {
     const tools = buildCoScoutTools({ phase: 'investigate' });
     expect(tools.find(t => t.name === 'create_question')).toBeDefined();
     expect(tools.find(t => t.name === 'suggest_action')).toBeDefined();
-    // Sharing tools should NOT be available without Team plan
-    expect(tools.find(t => t.name === 'share_finding')).toBeUndefined();
-  });
-
-  it('adds sharing tools for Team plan in INVESTIGATE phase', () => {
-    const tools = buildCoScoutTools({ phase: 'investigate', isTeamPlan: true });
     expect(tools.find(t => t.name === 'share_finding')).toBeDefined();
     expect(tools.find(t => t.name === 'publish_report')).toBeDefined();
     // notify_action_owners only in IMPROVE
     expect(tools.find(t => t.name === 'notify_action_owners')).toBeUndefined();
   });
 
-  it('adds notify_action_owners in IMPROVE phase for Team plan', () => {
-    const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
+  it('adds notify_action_owners in IMPROVE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'improve' });
     expect(tools.find(t => t.name === 'notify_action_owners')).toBeDefined();
   });
 
@@ -1648,13 +1642,13 @@ describe('buildCoScoutTools', () => {
   });
 
   it('all tools use strict mode and additionalProperties:false', () => {
-    const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
+    const tools = buildCoScoutTools({ phase: 'improve' });
     expect(tools.every(t => t.parameters.strict === true)).toBe(true);
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
   });
 
-  it('never exceeds 23 tools (IMPROVE + Team plan)', () => {
-    const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
+  it('never exceeds 23 tools (IMPROVE phase)', () => {
+    const tools = buildCoScoutTools({ phase: 'improve' });
     expect(tools.length).toBeLessThanOrEqual(23);
   });
 

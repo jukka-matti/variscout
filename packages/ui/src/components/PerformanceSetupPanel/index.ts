@@ -4,6 +4,6 @@ export {
   pwaColorScheme as performanceSetupPanelPwaColorScheme,
   type PerformanceSetupPanelBaseProps,
   type PerformanceSetupPanelColorScheme,
-  type TierProps as PerformanceSetupPanelTierProps,
+  type ChannelLimitProps as PerformanceSetupPanelChannelLimitProps,
   type ChannelValidation,
 } from './PerformanceSetupPanelBase';

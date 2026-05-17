@@ -32,22 +32,17 @@ vi.mock('@variscout/stores', () => ({
     }),
 }));
 
-vi.mock('@variscout/hooks', () => ({
-  useTier: () => ({
-    tier: 'team',
-    maxChannels: 100,
-    upgradeUrl: 'https://example.com/upgrade',
-    validateChannels: (count: number) => ({ exceeded: false, current: count, max: 100 }),
-  }),
-}));
-
-vi.mock('@variscout/core', () => ({
-  detectChannelColumns: () => [
-    { id: 'Valve_1', label: 'Valve 1', n: 1, matchedPattern: true },
-    { id: 'Valve_2', label: 'Valve 2', n: 1, matchedPattern: true },
-    { id: 'Valve_3', label: 'Valve 3', n: 1, matchedPattern: true },
-  ],
-}));
+vi.mock('@variscout/core', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/core')>();
+  return {
+    ...actual,
+    detectChannelColumns: () => [
+      { id: 'Valve_1', label: 'Valve 1', n: 1, matchedPattern: true },
+      { id: 'Valve_2', label: 'Valve 2', n: 1, matchedPattern: true },
+      { id: 'Valve_3', label: 'Valve 3', n: 1, matchedPattern: true },
+    ],
+  };
+});
 
 // Capture the onEnable prop the wrapper passes into the Base, then drive it from tests.
 let capturedOnEnable:

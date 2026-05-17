@@ -487,21 +487,9 @@ export const pt: MessageCatalog = {
   // Admin hub
   'admin.title': 'Admin',
   'admin.status': 'Status',
-  'admin.plan': 'Plano e recursos',
   'admin.teams': 'Configuração do Teams',
   'admin.knowledge': 'Base de conhecimento',
   'admin.troubleshooting': 'Solução de problemas',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Atual',
-  'admin.feature': 'Recurso',
-  'admin.manageSubscription': 'Gerenciar assinatura no Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/mês',
-  'admin.planTeamPrice': '€199/mês',
-  'admin.planStandardDesc': 'Análise completa com CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, base de conhecimento',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Estatísticas',
@@ -600,8 +588,8 @@ export const pt: MessageCatalog = {
     'Fontes de conhecimento remotas do SharePoint usam permissões por usuário. Cada usuário deve ter acesso SharePoint aos documentos.\nVerifique se os usuários afetados estão bloqueados por políticas de acesso condicional.\nVerifique se o consentimento do administrador foi concedido para a permissão delegada Sites.Read.All.\nPeça aos usuários afetados para fazer logout e login novamente para atualizar seu token.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -908,10 +896,6 @@ export const pt: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

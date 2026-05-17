@@ -444,19 +444,9 @@ export const id: MessageCatalog = {
   'file.open': 'Buka Berkas',
   'admin.title': 'Admin',
   'admin.status': 'Status',
-  'admin.plan': 'Paket & Fitur',
   'admin.teams': 'Pengaturan Teams',
   'admin.knowledge': 'Basis Pengetahuan',
   'admin.troubleshooting': 'Pemecahan Masalah',
-  'admin.currentPlan': 'Saat ini',
-  'admin.feature': 'Fitur',
-  'admin.manageSubscription': 'Kelola Langganan di Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/bln',
-  'admin.planTeamPrice': '€199/bln',
-  'admin.planStandardDesc': 'Analisis lengkap dengan CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Basis Pengetahuan',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statistik',
   'feature.capability': 'Analisis kapabilitas (Cp/Cpk)',
   'feature.performance': 'Mode Performa (multi-kanal)',
@@ -546,8 +536,8 @@ export const id: MessageCatalog = {
     'Sumber pengetahuan Remote SharePoint menggunakan izin per pengguna. Setiap pengguna harus memiliki akses SharePoint ke dokumen.\nPeriksa apakah pengguna yang terpengaruh diblokir oleh kebijakan Conditional Access.\nVerifikasi persetujuan admin telah diberikan untuk izin delegasi Sites.Read.All.\nMinta pengguna yang terpengaruh untuk keluar dan masuk kembali untuk menyegarkan token mereka.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -853,10 +843,6 @@ export const id: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

@@ -56,7 +56,7 @@ import { investigationDisciplinePrompt } from './tier2';
 export function assembleCoScoutPrompt(
   options: AssembleCoScoutPromptOptions = {}
 ): CoScoutPromptTiers {
-  const { phase = 'frame', investigationPhase, mode = 'standard', context, isTeamPlan } = options;
+  const { phase = 'frame', investigationPhase, mode = 'standard', context } = options;
 
   // ── Tier 1: Static (cacheable prefix) ──────────────────────────────
   const tier1Parts: string[] = [];
@@ -122,7 +122,6 @@ export function assembleCoScoutPrompt(
 
   // ── Tools ──────────────────────────────────────────────────────────
   const tools = getToolsForPhase(phase, mode, {
-    isTeamPlan,
     investigationPhase,
     existingHubs: context?.investigation?.hypothesisHubs as Hypothesis[] | undefined,
   });

@@ -453,21 +453,9 @@ export const tr: MessageCatalog = {
   // Admin hub
   'admin.title': 'Yönetim',
   'admin.status': 'Durum',
-  'admin.plan': 'Plan ve Özellikler',
   'admin.teams': 'Teams Kurulumu',
   'admin.knowledge': 'Knowledge Base',
   'admin.troubleshooting': 'Sorun Giderme',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Mevcut',
-  'admin.feature': 'Özellik',
-  'admin.manageSubscription': "Azure'da Aboneliği Yönet",
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/ay',
-  'admin.planTeamPrice': '€199/ay',
-  'admin.planStandardDesc': 'CoScout AI ile tam analiz',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Knowledge Base',
 
   // Feature names (plan matrix)
   'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
@@ -565,8 +553,8 @@ export const tr: MessageCatalog = {
     'Remote SharePoint bilgi kaynakları kullanıcı bazlı izinler kullanır. Her kullanıcının belgelere SharePoint erişimi olmalıdır.\nEtkilenen kullanıcıların Koşullu Erişim ilkeleri tarafından engellenip engellenmediğini kontrol edin.\nSites.Read.All temsilci izni için yönetici onayının verildiğini doğrulayın.\nEtkilenen kullanıcılardan belirteçlerini yenilemek için oturumu kapatıp tekrar açmalarını isteyin.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -873,10 +861,6 @@ export const tr: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

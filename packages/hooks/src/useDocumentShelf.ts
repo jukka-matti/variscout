@@ -1,7 +1,7 @@
 /**
  * useDocumentShelf - Document shelf state management for KB document CRUD.
  * Handles fetch, upload (single and multiple), delete, download, and client-side filtering.
- * Only active when enabled (Team tier + preview gate). ADR-060.
+ * Only active when enabled (preview gate). ADR-060.
  */
 
 import { useState, useCallback, useEffect } from 'react';
@@ -22,7 +22,7 @@ export interface DocumentInfo {
 export interface UseDocumentShelfOptions {
   /** Project ID scoping all operations */
   projectId: string | undefined;
-  /** Whether the Document Shelf is active (Team tier + preview enabled) */
+  /** Whether the Document Shelf is active (preview enabled) */
   enabled: boolean;
   /** API base URL, defaults to '' (same origin) */
   apiBase?: string;

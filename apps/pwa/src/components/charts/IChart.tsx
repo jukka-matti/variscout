@@ -35,6 +35,7 @@ const IChart = ({
   parentHeight,
   dataOverride,
   outcomeOverride,
+  showBranding = true,
   ...props
 }: IChartProps) => {
   const { filteredData: storeData } = useFilteredData();
@@ -105,6 +106,7 @@ const IChart = ({
         capabilityCpkStats={isCapabilityMode ? capData.cpkStats : undefined}
         capabilityCpStats={isCapabilityMode ? capData.cpStats : undefined}
         cpkTarget={cpkTarget}
+        showBranding={showBranding}
         {...props}
       />
       {isComputing && (

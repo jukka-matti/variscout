@@ -484,21 +484,9 @@ export const el: MessageCatalog = {
   // Admin hub
   'admin.title': 'Διαχείριση',
   'admin.status': 'Κατάσταση',
-  'admin.plan': 'Πλάνο & Λειτουργίες',
   'admin.teams': 'Ρύθμιση Teams',
   'admin.knowledge': 'Βάση Γνώσεων',
   'admin.troubleshooting': 'Αντιμετώπιση προβλημάτων',
-
-  // Admin plan tab
-  'admin.currentPlan': 'Τρέχον',
-  'admin.feature': 'Λειτουργία',
-  'admin.manageSubscription': 'Διαχείριση συνδρομής στο Azure',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/μήνα',
-  'admin.planTeamPrice': '€199/μήνα',
-  'admin.planStandardDesc': 'Πλήρης ανάλυση με CoScout AI',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, βάση γνώσεων',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Στατιστικά',
@@ -598,8 +586,8 @@ export const el: MessageCatalog = {
     'Οι απομακρυσμένες πηγές γνώσης SharePoint χρησιμοποιούν δικαιώματα ανά χρήστη. Κάθε χρήστης πρέπει να έχει πρόσβαση SharePoint στα έγγραφα.\nΕλέγξτε αν οι επηρεαζόμενοι χρήστες μπλοκάρονται από πολιτικές υπό όρους πρόσβασης.\nΕπαληθεύστε ότι η συναίνεση διαχειριστή δόθηκε για την εξουσιοδοτημένη άδεια Sites.Read.All.\nΖητήστε από τους επηρεαζόμενους χρήστες να αποσυνδεθούν και να συνδεθούν ξανά για ανανέωση του token τους.',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -906,10 +894,6 @@ export const el: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

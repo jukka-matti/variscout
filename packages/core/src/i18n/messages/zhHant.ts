@@ -447,21 +447,9 @@ export const zhHant: MessageCatalog = {
   // Admin hub
   'admin.title': '管理',
   'admin.status': '狀態',
-  'admin.plan': '方案與功能',
   'admin.teams': 'Teams設定',
   'admin.knowledge': '知識庫',
   'admin.troubleshooting': '疑難排解',
-
-  // Admin plan tab
-  'admin.currentPlan': '目前',
-  'admin.feature': '功能',
-  'admin.manageSubscription': '在Azure中管理訂閱',
-  'admin.planStandard': 'Standard',
-  'admin.planTeam': 'Team',
-  'admin.planStandardPrice': '€79/月',
-  'admin.planTeamPrice': '€199/月',
-  'admin.planStandardDesc': '包含CoScout AI的完整分析',
-  'admin.planTeamDesc': 'Teams、OneDrive、SharePoint、知識庫',
 
   // Feature names
   'feature.charts': 'I-Chart、Boxplot、Pareto、統計',
@@ -549,8 +537,8 @@ export const zhHant: MessageCatalog = {
     '遠端SharePoint知識來源使用每位使用者的權限。每位使用者必須擁有對文件的SharePoint存取權限。\n檢查受影響的使用者是否被條件式存取原則封鎖。\n驗證是否已授予Sites.Read.All委派權限的管理員同意。\n要求受影響的使用者登出並重新登入以重新整理其權杖。',
 
   // Workspace navigation
-  'workspace.frame': 'Frame',
-  'workspace.analysis': 'Analysis',
+  'workspace.process': 'Process',
+  'workspace.analyze': 'Analyze',
   'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
@@ -856,10 +844,6 @@ export const zhHant: MessageCatalog = {
 
   'action.drillDown': 'Drill Down',
   'action.viewDetails': 'View Details',
-
-  // Upgrade (additional)
-  'upgrade.freeTierLimitation': 'Free tier limitation',
-  'upgrade.fromPrice': 'From \u20ac79/month',
 
   // Canvas Wall overlay
   'canvas.wall.overlayLabel': 'Wall',

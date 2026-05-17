@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef } from 'react';
-import { hasTeamFeatures } from '@variscout/core';
 import { isLocalDev } from '../auth/easyAuth';
 import { searchDocuments } from '../services/searchService';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
@@ -12,7 +11,6 @@ export interface HealthCheck {
   description: string;
   status: CheckStatus;
   error?: string;
-  plan: 'all' | 'team';
 }
 
 export interface UseAdminHealthChecks {
@@ -27,33 +25,23 @@ const CHECK_DEFINITIONS: Omit<HealthCheck, 'status' | 'error'>[] = [
     id: 'auth',
     label: 'Authentication (EasyAuth)',
     description: 'Verify Azure AD sign-in is configured and working',
-    plan: 'all',
   },
   {
     id: 'graph-profile',
     label: 'Microsoft Graph — Profile',
     description: 'Read your user profile via Graph API',
-    plan: 'all',
   },
   {
     id: 'ai-endpoint',
     label: 'AI Endpoint',
     description: 'Verify the AI service endpoint is reachable',
-    plan: 'all',
   },
   {
     id: 'ai-search',
     label: 'AI Search (Knowledge Base)',
     description: 'Verify Azure AI Search connectivity for Knowledge Base',
-    plan: 'team',
   },
 ];
-
-function isCheckApplicable(checkPlan: 'all' | 'team'): boolean {
-  if (checkPlan === 'all') return true;
-  if (checkPlan === 'team') return hasTeamFeatures();
-  return false;
-}
 
 async function runCheck(id: string): Promise<{ status: CheckStatus; error?: string }> {
   if (isLocalDev() && id === 'auth') {
@@ -106,7 +94,7 @@ export function useAdminHealthChecks(): UseAdminHealthChecks {
   const [checks, setChecks] = useState<HealthCheck[]>(() =>
     CHECK_DEFINITIONS.map(def => ({
       ...def,
-      status: isCheckApplicable(def.plan) ? 'idle' : 'na',
+      status: 'idle',
     }))
   );
   const [isRunning, setIsRunning] = useState(false);
@@ -119,7 +107,7 @@ export function useAdminHealthChecks(): UseAdminHealthChecks {
   const runOne = useCallback(
     async (id: string) => {
       const check = CHECK_DEFINITIONS.find(c => c.id === id);
-      if (!check || !isCheckApplicable(check.plan)) return;
+      if (!check) return;
 
       updateCheck(id, { status: 'running', error: undefined });
       const result = await runCheck(id);
@@ -132,16 +120,12 @@ export function useAdminHealthChecks(): UseAdminHealthChecks {
     setIsRunning(true);
     abortRef.current = false;
 
-    const applicableChecks = CHECK_DEFINITIONS.filter(c => isCheckApplicable(c.plan));
-
-    // Set all applicable to running
-    setChecks(prev =>
-      prev.map(c => (isCheckApplicable(c.plan) ? { ...c, status: 'running', error: undefined } : c))
-    );
+    // Set all to running
+    setChecks(prev => prev.map(c => ({ ...c, status: 'running', error: undefined })));
 
     // Run all in parallel
     const results = await Promise.allSettled(
-      applicableChecks.map(async c => {
+      CHECK_DEFINITIONS.map(async c => {
         const result = await runCheck(c.id);
         if (!abortRef.current) {
           updateCheck(c.id, result);

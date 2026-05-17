@@ -157,9 +157,6 @@ export { useDrillPath, type DrillStep, type UseDrillPathReturn } from './useDril
 // Finding Creation Utilities
 export { buildFindingContext, buildFindingSource } from './findingCreation';
 
-// Tier (Azure Marketplace licensing)
-export { useTier, type UseTierResult, type ChannelWarningMessage } from './useTier';
-
 // Data Table Utilities
 export {
   useDataTablePagination,
@@ -532,7 +529,7 @@ export {
   type HighlightAction,
 } from './useVisualGrounding';
 
-// Document Shelf (KB document management — Team tier + preview gate)
+// Document Shelf (KB document management — preview gate)
 export {
   useDocumentShelf,
   type DocumentInfo,

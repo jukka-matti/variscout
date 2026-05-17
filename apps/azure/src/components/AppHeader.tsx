@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { hasTeamFeatures } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { IPContextChip, useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import {
@@ -234,18 +233,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Right: panel toggles + settings */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {/* Sync icon on phone — Team plan only */}
-          {hasTeamFeatures() && (
-            <div
-              className={`flex-shrink-0 ${syncColor}`}
-              title={syncStatus.message || syncStatus.status}
-            >
-              <SyncIcon
-                size={16}
-                className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
-              />
-            </div>
-          )}
+          {/* Sync icon on phone */}
+          <div
+            className={`flex-shrink-0 ${syncColor}`}
+            title={syncStatus.message || syncStatus.status}
+          >
+            <SyncIcon
+              size={16}
+              className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
+            />
+          </div>
           {hasData && onTogglePISidebar && (
             <button
               onClick={onTogglePISidebar}
@@ -375,60 +372,68 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   : syncStatus.message || syncStatus.status
           }
         />
-        {/* Sync status label — Team plan only */}
-        {hasTeamFeatures() &&
-          (syncStatus.status === 'error' ? (
-            <button
-              onClick={() => {
-                window.location.href = '/.auth/login/aad';
-              }}
-              className={`flex items-center gap-1 text-xs ${syncColor} hover:text-red-300 transition-colors`}
-              title={t('error.auth')}
-            >
-              <SyncIcon size={14} />
-              <span className="underline underline-offset-2">
-                {syncStatus.message || t('error.auth')}
-              </span>
-            </button>
-          ) : (
-            <div className={`flex items-center gap-1 text-xs ${syncColor}`}>
-              <SyncIcon
-                size={14}
-                className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
-              />
-              <span className="text-content-secondary">
-                {syncStatus.message || syncStatus.status}
-              </span>
-            </div>
-          ))}
+        {/* Sync status label */}
+        {syncStatus.status === 'error' ? (
+          <button
+            onClick={() => {
+              window.location.href = '/.auth/login/aad';
+            }}
+            className={`flex items-center gap-1 text-xs ${syncColor} hover:text-red-300 transition-colors`}
+            title={t('error.auth')}
+          >
+            <SyncIcon size={14} />
+            <span className="underline underline-offset-2">
+              {syncStatus.message || t('error.auth')}
+            </span>
+          </button>
+        ) : (
+          <div className={`flex items-center gap-1 text-xs ${syncColor}`}>
+            <SyncIcon
+              size={14}
+              className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
+            />
+            <span className="text-content-secondary">
+              {syncStatus.message || syncStatus.status}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ── Separator ── */}
       <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
 
       {/* ── Center zone: Workspace tabs ── */}
+      {/* Tab order per wedge V1 amendment (2026-05-16): Home · Project · Process · Analyze · Investigation · Improve · Report */}
+      {/* Display copy + testids follow the wedge naming; internal `activeView` enum stays stable (panelsStore key). */}
       {hasData && (
         <nav className="flex items-center flex-1 min-w-0 overflow-x-auto" data-testid="view-toggle">
           <button
             className={tabClass(activeView === 'dashboard')}
             onClick={() => usePanelsStore.getState().showDashboard()}
-            data-testid="view-toggle-overview"
+            data-testid="view-toggle-home"
           >
-            Overview
+            Home
+          </button>
+          <button
+            className={tabClass(activeView === 'projects')}
+            onClick={() => usePanelsStore.getState().showProjects()}
+            data-testid="view-toggle-project"
+          >
+            Project
           </button>
           <button
             className={tabClass(activeView === 'frame')}
             onClick={() => usePanelsStore.getState().showFrame()}
-            data-testid="view-toggle-frame"
+            data-testid="view-toggle-process"
           >
-            Frame
+            Process
           </button>
           <button
             className={tabClass(activeView === 'analysis')}
             onClick={() => usePanelsStore.getState().showAnalysis()}
-            data-testid="view-toggle-analysis"
+            data-testid="view-toggle-analyze"
           >
-            Analysis
+            Analyze
           </button>
           <button
             className={tabClass(activeView === 'investigation')}
@@ -453,13 +458,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 {selectedIdeaCount}
               </span>
             )}
-          </button>
-          <button
-            className={tabClass(activeView === 'projects')}
-            onClick={() => usePanelsStore.getState().showProjects()}
-            data-testid="view-toggle-projects"
-          >
-            Projects
           </button>
           <button
             className={tabClass(activeView === 'report')}

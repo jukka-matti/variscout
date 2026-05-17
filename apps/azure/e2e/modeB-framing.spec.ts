@@ -184,14 +184,14 @@ test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point',
     await dismissAutoFireModals(page);
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
-    // 2. Navigate to Overview tab to show ProjectDashboard with "New Hub" button
-    const overviewTab = page.getByTestId('view-toggle-overview');
-    const tabVisible = await overviewTab.isVisible({ timeout: 5000 }).catch(() => false);
+    // 2. Navigate to Home tab to show ProjectDashboard with "New Hub" button
+    const homeTab = page.getByTestId('view-toggle-home');
+    const tabVisible = await homeTab.isVisible({ timeout: 5000 }).catch(() => false);
     if (!tabVisible) {
       test.skip();
       return;
     }
-    await overviewTab.click();
+    await homeTab.click();
 
     // 3. Click "New Hub" in the quick-actions area
     const newHubButton = page.getByTestId('action-new-hub');

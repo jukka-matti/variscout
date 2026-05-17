@@ -148,29 +148,20 @@ export function buildCurrentViewLink(
 
 /**
  * Validate a parsed deep link against the current app state.
- *
- * Plan-aware error messages:
- * - Team plan: projects are shared — a missing project was likely moved or deleted.
- * - Standard plan: projects are device-local — a missing project may just not exist on this device.
  */
 export function validateDeepLink(
   params: DeepLinkParams,
-  projectExists: (id: string) => boolean,
-  isStandardPlan: boolean
+  projectExists: (id: string) => boolean
 ): DeepLinkValidation {
   if (!params.project) {
     return { valid: true };
   }
 
   if (!projectExists(params.project)) {
-    const errorMessage = isStandardPlan
-      ? 'This project was not found locally. Standard plan projects are stored on this device only — Team plan enables shared access.'
-      : 'This project may have been moved or deleted.';
-
     return {
       valid: false,
       error: 'project-not-found',
-      errorMessage,
+      errorMessage: 'This project may have been moved or deleted.',
     };
   }
 
