@@ -13,7 +13,7 @@ related: [2026-05-16-docs-strategy-memo, adr-083-eight-purpose-doc-taxonomy]
 
 > 🟡 **Active build via [`PR #184`](https://github.com/jukka-matti/variscout/pull/184)** | 🔄 **Last material edits 2026-05-17** — §2.7 expanded with: "Core principles (in priority order)" affirmative list (4 principles); "Reader-first banners at the top" (template matrix + Play 2b validator extensions); "Standard entry format" for decision-log; agent-manifests + investigations + memory added to doc types. Per the principle this spec defines: frontmatter alone is insufficient — this banner signals reader-relevant changes since the spec was first shipped.
 
-_1-page CTO memo: [2026-05-16-docs-strategy-memo.md](2026-05-16-docs-strategy-memo.md). Schema change ADR: [ADR-083](../../07-decisions/adr-083-eight-purpose-doc-taxonomy.md)._
+_1-page CTO memo: [2026-05-16-docs-strategy-memo.md](2026-05-16-docs-strategy-memo.md). Schema change ADR: [ADR-083](../../07-decisions/adr-083-eight-purpose-doc-taxonomy.md). Brainstorm transcript (full design journey + audit findings): [`docs/ephemeral/transcripts/2026-05-16-docs-strategy-brainstorm.md`](../../ephemeral/transcripts/2026-05-16-docs-strategy-brainstorm.md)._
 
 ---
 
