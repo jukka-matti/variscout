@@ -322,7 +322,6 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
     const action: ResponsePathAction = {
       kind: 'open-sustainment',
       investigationId: 'inv-y',
-      surface: 'review',
     };
     const item = buildItem({ id: 'item-y', responsePath: 'sustainment-review' });
     const actions = makeActions({ actionFor: () => action });
