@@ -33,7 +33,6 @@ import {
   type Hypothesis,
   type SpecLimits,
   type Question,
-  type WorkflowReadinessSignals,
 } from '@variscout/core';
 import type { ActionItem, ColumnTypeMap } from '@variscout/core/findings';
 import type { CanvasLevel } from '@variscout/core/canvas';
@@ -224,7 +223,6 @@ export interface CanvasProps {
     options?: { questionIds?: string[] }
   ) => void;
   investigationOverlays?: CanvasInvestigationOverlayModel;
-  signals: WorkflowReadinessSignals;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
   onQuickAction?: (stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
@@ -289,7 +287,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   hypotheses = [],
   onAddCausalLink,
   investigationOverlays,
-  signals,
   onStepSpecsRequest,
   onQuickAction,
   onLogQuickAction,
@@ -816,7 +813,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             card={activeStepCard}
             anchorRect={stepOverlayAnchor}
             onClose={handleCloseStepOverlay}
-            signals={signals}
             onQuickAction={onQuickAction}
             onLogQuickAction={onLogQuickAction}
             onFocusedInvestigation={onFocusedInvestigation}

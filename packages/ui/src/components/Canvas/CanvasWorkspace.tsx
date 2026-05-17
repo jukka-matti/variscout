@@ -25,7 +25,6 @@ import {
   type StepCapabilityStamp,
   type Hypothesis,
   type TimelineWindow,
-  type WorkflowReadinessSignals,
 } from '@variscout/core';
 import { isValidLevel, type CanvasLevel } from '@variscout/core/canvas';
 import type { ActionItem } from '@variscout/core/findings';
@@ -62,7 +61,6 @@ export interface CanvasWorkspaceProps {
   setMeasureSpec: (column: string, partial: Partial<SpecLimits>) => void;
   setProcessContext: (context: ProcessContext | null) => void;
   onSeeData: () => void;
-  signals: WorkflowReadinessSignals;
   onQuickAction?: (stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
@@ -198,7 +196,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   setFactors,
   setMeasureSpec,
   setProcessContext,
-  signals,
   onSeeData,
   onQuickAction,
   onLogQuickAction,
@@ -600,7 +597,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onOpenWall={onOpenWall}
       onAddCausalLink={onAddCausalLink}
       onRemoveCausalLink={onRemoveCausalLink}
-      signals={signals}
       onQuickAction={onQuickAction}
       onLogQuickAction={onLogQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}

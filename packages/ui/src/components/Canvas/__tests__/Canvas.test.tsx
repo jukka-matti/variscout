@@ -81,8 +81,6 @@ import { Canvas } from '../index';
 // Cast helper: acceptable inside test files per project convention
 const h = (id: string) => id as ProcessHubId;
 
-const SIGNALS = { hasIntervention: false, sustainmentConfirmed: false };
-
 const map: ProcessMap = {
   version: 1,
   nodes: [],
@@ -256,7 +254,6 @@ function renderCanvas(overrides: Partial<ComponentProps<typeof Canvas>> = {}) {
     onChange: vi.fn(),
     data,
     filter,
-    signals: SIGNALS,
     stepCards,
     ...overrides,
   };
@@ -298,7 +295,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -583,7 +579,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         mode="author"
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
       />
@@ -605,7 +600,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         mode="read"
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
       />
@@ -626,7 +620,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         mode="author"
       />
     );
@@ -646,7 +639,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         mode="author"
         disabled
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
@@ -668,7 +660,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         mode="read"
         onModeChange={vi.fn()}
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
@@ -692,7 +683,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         mode="author"
         onModeChange={vi.fn()}
         onAddStep={onAddStep}
@@ -720,7 +710,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         mode="author"
         chips={[{ chipId: 'Bake_Time', label: 'Bake Time', role: 'factor' }]}
         onPlaceChip={onPlaceChip}
@@ -743,7 +732,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         onUngroupSubStep={onUngroupSubStep}
       />
     );
@@ -768,7 +756,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         activeLens="default"
         onLensChange={onLensChange}
@@ -798,7 +785,6 @@ describe('Canvas', () => {
         onChange={onChange}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         activeOverlays={[]}
         onOverlayToggle={onOverlayToggle}
@@ -918,7 +904,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         activeCanvasTool="select"
         onCanvasToolChange={onCanvasToolChange}
@@ -941,7 +926,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         activeCanvasTool="draw-hypothesis"
         onCanvasToolChange={onCanvasToolChange}
@@ -1005,7 +989,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         activeCanvasTool="draw-hypothesis"
         onAddCausalLink={onAddCausalLink}
@@ -1034,7 +1017,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={metriclessStepCards}
         activeCanvasTool="draw-hypothesis"
       />
@@ -1060,7 +1042,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         activeCanvasTool="draw-hypothesis"
       />
@@ -1084,7 +1065,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         activeCanvasTool="draw-hypothesis"
       />
@@ -1108,7 +1088,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={metriclessStepCards}
         activeCanvasTool="draw-hypothesis"
       />
@@ -1132,7 +1111,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         investigationOverlays={investigationOverlays}
         activeOverlays={[]}
@@ -1150,7 +1128,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         investigationOverlays={investigationOverlays}
         activeOverlays={['investigations', 'findings', 'hypothesis-hubs']}
@@ -1172,7 +1149,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         investigationOverlays={investigationOverlays}
         activeOverlays={['hypotheses']}
@@ -1215,7 +1191,6 @@ describe('Canvas', () => {
           onChange={() => {}}
           data={data}
           filter={filter}
-          signals={SIGNALS}
           stepCards={stepCards}
           investigationOverlays={investigationOverlays}
           activeOverlays={['hypotheses']}
@@ -1306,7 +1281,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -1343,7 +1317,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -1377,7 +1350,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -1413,7 +1385,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -1439,7 +1410,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
       />
     );
@@ -1460,7 +1430,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         investigationOverlays={investigationOverlays}
         onOpenInvestigationFocus={onOpenInvestigationFocus}
@@ -1493,7 +1462,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         investigationOverlays={investigationOverlays}
         onRemoveCausalLink={onRemoveCausalLink}
@@ -1518,7 +1486,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         onStepSpecsRequest={onStepSpecsRequest}
       />
@@ -1563,7 +1530,6 @@ describe('Canvas', () => {
         onChange={() => {}}
         data={data}
         filter={filter}
-        signals={SIGNALS}
         stepCards={stepCards}
         onQuickAction={onQuickAction}
         onFocusedInvestigation={onFocusedInvestigation}
