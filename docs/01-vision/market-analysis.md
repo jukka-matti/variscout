@@ -4,7 +4,7 @@ audience: [business, analyst]
 category: methodology
 status: stable
 last-reviewed: 2026-05-16
-related: [wedge, adr-082, product-overview, positioning, pricing, feature-parity]
+related: [adr-082, product-overview, positioning, pricing, feature-parity]
 ---
 
 # Market Analysis & TAM Estimate
@@ -189,7 +189,7 @@ The four-segment market analysis below is **retained as the target market for Va
 
 ### Process Layer D — Multi-Persona Process Ownership
 
-**Who:** Enterprises running the 4-persona model (Process Owner / Project Lead / SME / Frontline) with automated data pipelines and Hub-level cadence monitoring. This is the canonical VariScout Process audience.
+**Who:** Enterprises running the 4-persona model (Process Owner / Project Lead / SME / Frontline) with automated data pipelines and Hub-level cadence monitoring. This is the canonical VariScout Process audience. See [four-personas.md](variscout-process/four-personas.md) for the full design; V1 spec §3.5 documents the persona collapse.
 
 | Aspect       | Value                                                              |
 | ------------ | ------------------------------------------------------------------ |
@@ -204,8 +204,8 @@ VariScout Process is not announced in V1 marketing. The roadmap commitment exist
 
 ## See Also
 
-- [Wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
-- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — Wedge architecture decision (supersedes ADR-007 + ADR-033 in part)
+- [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
+- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — V1 architecture decision (supersedes ADR-007 + ADR-033 in part)
 - [Product Overview](product-overview.md) — What VariScout V1 does
 - [Philosophy](philosophy.md) — EDA for process improvement
 - [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€120) capability matrix

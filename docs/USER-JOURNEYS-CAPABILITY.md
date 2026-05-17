@@ -4,12 +4,12 @@ audience: [engineer, analyst]
 category: reference
 status: stable
 last-reviewed: 2026-05-16
-related: [capability, journey, cpk, spc, subgroup, wedge]
+related: [capability, journey, cpk, spc, subgroup]
 ---
 
 # Capability Mode — User Journey
 
-Under the [wedge pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Capability mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. The methodology below is unchanged; persona variants have collapsed to one. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
+Under the [V1 pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Capability mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. The methodology below is unchanged; persona variants have collapsed to one. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
 
 ## What the Specialist wants
 
@@ -72,7 +72,7 @@ Inside a Project, the same Capability evidence carries forward into the Improve 
 
 ## Design reference
 
-- **Wedge canon:** [wedge architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md)
+- **V1 canon:** [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md)
 - **Spec:** `docs/archive/specs/2026-03-21-capability-time-subgrouping.md`, `docs/archive/specs/2026-03-29-capability-mode-coherence-design.md`
 - **ADR:** [`adr-038-subgroup-capability.md`](07-decisions/adr-038-subgroup-capability.md)
 - **Code:** `packages/core/src/stats/` (calculateStats for Cp/Cpk, subgroupCapability.ts for per-subgroup series), `packages/hooks/src/useCapabilityIChartData.ts`, `packages/hooks/src/useCapabilityBoxplotData.ts`, `packages/ui/src/components/CapabilityMetricToggle/`, `packages/ui/src/components/SubgroupConfig/`

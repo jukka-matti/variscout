@@ -46,7 +46,7 @@ flowchart TB
 
     subgraph Persistence["Storage Layer"]
         E --> H1[(IndexedDB)]
-        E --> H2[("OneDrive (Team plan)")]
+        E --> H2[("Blob Storage (Azure App)")]
         E --> H3[(Excel Doc Props)]
     end
 ```
@@ -240,25 +240,25 @@ flowchart TB
 
 ### Azure App Data Flow
 
-Both Standard and Team plans store data locally in IndexedDB. Team plan additionally syncs to OneDrive.
+The Azure App stores data locally in IndexedDB and syncs to Azure Blob Storage in the customer's resource group (single €120 SKU, no plan split).
 
 ```mermaid
 flowchart TB
     subgraph Browser["User's Browser"]
-        A[React App] --> B[DataContext]
+        A[React App] --> B[Zustand Stores]
         B --> C[(IndexedDB)]
     end
 
-    subgraph Cloud["Microsoft Cloud (Team plan only)"]
-        D[EasyAuth] --> E[Access Token]
-        E --> F[Graph API]
-        F --> G[(OneDrive)]
+    subgraph Cloud["Customer Azure Tenant"]
+        D[EasyAuth] --> E[Session Token]
+        E --> F[/api/storage-token]
+        F --> G[(Blob Storage)]
     end
 
     B <--> D
     C <--> G
 
-    note1[Team plan: Bi-directional sync — local-first, cloud backup<br/>Standard plan: IndexedDB only — no cloud sync]
+    note1[Azure App: Bi-directional sync — local-first, Blob Storage backup (ADR-059)]
 ```
 
 ---
@@ -395,5 +395,5 @@ flowchart LR
 - [Offline-First](offline-first.md) - Persistence strategy
 - [Shared Packages](shared-packages.md) - Package responsibilities
 - [PWA Session Model](../../08-products/pwa/index.md#session-model) - PWA has no persistence
-- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) - Cloud sync details
+- [Blob Storage Sync](../../08-products/azure/blob-storage-sync.md) - Cloud sync details
 - [ADR-023: Verification Experience & Data Lifecycle](../../07-decisions/adr-023-data-lifecycle.md) - Data entry paths, append architecture, staged verification

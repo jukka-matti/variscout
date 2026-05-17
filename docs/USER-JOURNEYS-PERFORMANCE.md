@@ -4,12 +4,12 @@ audience: [engineer, analyst]
 category: reference
 status: stable
 last-reviewed: 2026-05-16
-related: [performance, journey, multi-channel, cpk, drill-down, wedge]
+related: [performance, journey, multi-channel, cpk, drill-down]
 ---
 
 # Performance Mode — User Journey
 
-Under the [wedge pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Performance mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. The multi-channel methodology below is unchanged; persona variants have collapsed to one. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
+Under the [V1 pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Performance mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. The multi-channel methodology below is unchanged; persona variants have collapsed to one. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
 
 ## What the Specialist wants
 
@@ -46,7 +46,7 @@ Inside a Project, channel-level Findings pin to the Investigation Wall and Hypot
 
 ## Design reference
 
-- **Wedge canon:** [wedge architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md)
+- **V1 canon:** [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md)
 - **Spec:** `docs/03-features/analysis/performance-mode.md`, `docs/03-features/workflows/performance-mode-workflow.md`
 - **ADR:** [`adr-034-yamazumi-analysis-mode.md`](07-decisions/adr-034-yamazumi-analysis-mode.md) (AnalysisMode union origin), [`adr-005-props-based-charts.md`](07-decisions/adr-005-props-based-charts.md)
 - **Code:** `packages/core/src/performance.ts` (calculateChannelResults, classifyChannelHealth), `packages/charts/src/PerformanceIChart/`, `packages/charts/src/PerformanceBoxplot/`, `packages/charts/src/PerformancePareto/`, `packages/charts/src/PerformanceCapability/`, `packages/charts/src/colors.ts` (operatorColors)

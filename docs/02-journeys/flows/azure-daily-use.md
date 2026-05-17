@@ -71,7 +71,7 @@ flowchart TD
     P -->|Edit title| S[Custom chart title for report]
     P -->|Report| U[Open Report View — story-driven report]
     U --> U2[Copy sections as slides, save as PDF, or share via Teams]
-    P -->|Done| T[Click Save — local + OneDrive sync on Team plan]
+    P -->|Done| T[Click Save — local + Blob Storage sync]
 ```
 
 ### Daily Use Journey
@@ -114,7 +114,7 @@ journey
 The most common daily task: verify stability of a production process.
 
 1. Open the app — SSO authenticates automatically (EasyAuth session cookie)
-2. Open existing analysis from the saved list (loaded from IndexedDB; Team plan also syncs via OneDrive)
+2. Open existing analysis from the saved list (loaded from IndexedDB; Azure App also syncs via Blob Storage)
 3. Upload or paste today's data batch
 4. Check I-Chart: are points within control limits? Any Nelson rule violations?
 5. Review Stats panel: mean, sigma, Cp/Cpk
@@ -177,7 +177,7 @@ The investigation phase badge updates automatically: Initial → Diverging → V
 11. **Compare ideas** using the What-If Simulator: adjust factor levels to see projected Cpk impact
 12. Select the best idea → create **corrective actions** with description, assignee, and due date
 13. Change Finding status to **Improving** — the action plan is now active
-14. _(Team plan)_ Teams auto-posts the finding with its action plan to the configured channel
+14. _(Azure App, planned Teams Webhook)_ Finding summary can be posted to a Teams channel via configured Incoming Webhook
 
 ### Phase 4 — Verification: Proving the Improvement Worked
 
@@ -221,32 +221,32 @@ If the verification data lives in a separate file or system:
 15. Set outcome: **Effective** / **Partial** / **Not Effective** — with Cpk before and after recorded
 16. Change Finding status to **Resolved**
 17. _(If AI enabled)_ NarrativeBar reflects the improvement in current stats when using Staged Analysis
-18. _(Team plan)_ Teams auto-posts the outcome with Cpk before/after comparison
-19. _(Team plan)_ The resolved finding is **indexed to the Knowledge Base** — future investigations can reference this resolution
+18. _(Azure App, planned Teams Webhook)_ Outcome summary with Cpk before/after can be posted to the configured Teams channel
+19. _(Azure App, Phase 2+)_ The resolved finding is **indexed to Knowledge Catalyst** — future investigations can reference this resolution
 
-### Tier Availability
+### Platform Availability
 
-| Phase            | PWA (Free)                 | Azure Standard                         | Azure Team                 |
-| ---------------- | -------------------------- | -------------------------------------- | -------------------------- |
-| 1. Discovery     | Observed status only       | Full                                   | Full                       |
-| 2. Investigation | 3 statuses, no persistence | Full, IndexedDB persistence            | + Teams posting            |
-| 3. Ideation      | Not available              | Full (actions, What-If)                | + Assignees, Teams posting |
-| 4. Verification  | Not available              | Full (Staged Analysis, manual outcome) | + Knowledge Base indexing  |
+| Phase            | PWA (Free)                 | Azure App (€120/month)                                     |
+| ---------------- | -------------------------- | ---------------------------------------------------------- |
+| 1. Discovery     | Observed status only       | Full                                                       |
+| 2. Investigation | 3 statuses, no persistence | Full, Blob Storage persistence + project membership        |
+| 3. Ideation      | Not available              | Full (actions, What-If, team assignment, planned Webhook)  |
+| 4. Verification  | Not available              | Full (Staged Analysis, manual outcome, Knowledge Catalyst) |
 
 ---
 
 ## Export and Sharing
 
-| Action           | How                                               | Output                           |
-| ---------------- | ------------------------------------------------- | -------------------------------- |
-| CSV export       | Editor header button                              | Filtered data as CSV             |
-| Copy chart       | Chart card menu → "Copy to clipboard"             | PNG image on clipboard           |
-| Edit chart title | Click chart title → type custom text              | Appears in copied image          |
-| Download chart   | Chart card menu → "Download"                      | PNG file                         |
-| Share analysis   | Share the `.vrs` file from OneDrive _(Team plan)_ | Colleague opens in their app     |
-| Report View      | Toolbar button → scrollable story report          | Copy sections as slides          |
-| Save as PDF      | Report View → "Save as PDF" button                | Professional PDF (browser print) |
-| Share report     | Report View → "Share Report" _(Team plan)_        | Teams Adaptive Card + deep link  |
+| Action           | How                                              | Output                           |
+| ---------------- | ------------------------------------------------ | -------------------------------- |
+| CSV export       | Editor header button                             | Filtered data as CSV             |
+| Copy chart       | Chart card menu → "Copy to clipboard"            | PNG image on clipboard           |
+| Edit chart title | Click chart title → type custom text             | Appears in copied image          |
+| Download chart   | Chart card menu → "Download"                     | PNG file                         |
+| Share analysis   | Share the `.vrs` file from Blob Storage          | Colleague opens in their app     |
+| Report View      | Toolbar button → scrollable story report         | Copy sections as slides          |
+| Save as PDF      | Report View → "Save as PDF" button               | Professional PDF (browser print) |
+| Share report     | Report View → "Share Report" _(planned Webhook)_ | Teams channel post + deep link   |
 
 ### Report View — Share the Full Story
 
@@ -265,10 +265,10 @@ Instead of downloading individual charts and assembling them in PowerPoint, Gary
 3. **Copy all charts** — TOC footer → bundles every chart as individual PNGs for custom layout
 4. **Save as PDF** — TOC footer → opens browser print dialog → "Save as PDF" produces a professional, paginated document
 
-**Teams sharing (Team plan):**
+**Teams sharing (planned Teams Incoming Webhook):**
 
 - Click "Share Report" in the TOC footer
-- Posts an Adaptive Card to the Teams channel with process name, key metric (Cpk), and status
+- Posts a message to the configured Teams channel with process name, key metric (Cpk), and status
 - Deep link (`?project=X&mode=report`) opens the Report View directly for colleagues
 
 **Time savings:** Weekly review drops from 5–10 minutes of manual assembly to < 1 minute (Save as PDF for the complete report). Improvement reports drop from 15–20 minutes to 3–5 minutes.
@@ -309,15 +309,15 @@ The "Show AI assistance" toggle only appears when an AI endpoint is configured. 
 
 ## Platform Capabilities (Established User)
 
-| Capability          | Detail                                                                  |
-| ------------------- | ----------------------------------------------------------------------- |
-| Saved analyses      | Listed on open; synced via OneDrive on Team plan (Standard: local-only) |
-| Factor management   | Add/remove/change up to 6 factors during analysis                       |
-| Row capacity        | 250,000 rows                                                            |
-| Performance Mode    | Multi-channel Cpk analysis (hundreds of channels)                       |
-| Offline work        | Full functionality, queues sync for reconnection                        |
-| Chart branding      | No VariScout branding (enterprise tier)                                 |
-| Capability analysis | Histogram + probability plot with Cp/Cpk                                |
+| Capability          | Detail                                                                 |
+| ------------------- | ---------------------------------------------------------------------- |
+| Saved analyses      | Listed on open; synced via Blob Storage (Azure App) or IndexedDB (PWA) |
+| Factor management   | Add/remove/change up to 6 factors during analysis                      |
+| Row capacity        | 250,000 rows                                                           |
+| Performance Mode    | Multi-channel Cpk analysis (hundreds of channels)                      |
+| Offline work        | Full functionality, queues sync for reconnection                       |
+| Chart branding      | No VariScout branding (enterprise tier)                                |
+| Capability analysis | Histogram + probability plot with Cp/Cpk                               |
 
 ---
 

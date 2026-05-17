@@ -38,7 +38,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 - **`displayName = email.split('@')[0]` truncation for dotted email locals** — Task 8's `IPDetailPage.handleMemberInvite` derives `displayName` from the email (e.g., `first.last@org` → `first.last`). V1-acceptable since the modal has no Name field, but produces awkward strings for users with dotted email locals. Promotion: gated on either (a) Name field added to `InviteModal`, or (b) `useInvitationSync` returning real Graph displayName.
 
-- **Sponsor placeholder copy in `IPDetailPage`** — `data-testid="sponsor-report-panel"` placeholder points the Sponsor to "the top navigation Report tab." The wording "top navigation" is generic; if the V1 6-tab nav lands a localized label, the placeholder should reference the actual tab label. Promotion: PR-WV1-5 (nav reorder + tier-gating retirement sweep) — pick up when nav labels are finalized.
+- **Sponsor placeholder copy in `IPDetailPage`** — `data-testid="sponsor-report-panel"` placeholder points the Sponsor to "the top navigation Report tab." V1 nav is 7 tabs (`Home · Project · Process · Analyze · Investigation · Improve · Report`); the "Report" label is already final. Placeholder copy can reference "the Report tab" directly. Promotion: PR-WV1-5 (nav reorder + tier-gating retirement sweep).
 
 ### 2026-05-17: Survey-rule layer still emits 'handoff' surface prompts
 
@@ -404,13 +404,15 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 **Possible directions:**
 
 - Hub-maturity signal: thread `mode: 'cadence' | 'first-time' | 'demo'` through `CanvasWorkspace` → `Canvas` → `CanvasStepOverlay`. Compute from `assignmentsComplete && stepsAuthored && hasPriorSnapshot`.
-- Tier gate: check `isPaidTier()` per ADR-078 D5 for Charter / Sustainment / Handoff. Render with a tier-upgrade hint instead of `disabled` when free tier.
+- Access gate: check `canAccess()` from `@variscout/core/projectMembership` for Charter / Sustainment features. `isPaidTier()` retired in V1 (single SKU) — see ADR-082.
 - First-time-Hub copy: dimmed CTAs with tooltip "Available once your Hub has cadence" (or similar).
 - Mode boundary: separate "mode" (drill-down content) from "tier" (paid feature gating); they are conflated in the current code.
 
 **Promotion path:** PR8a of the canvas migration sequence. ~5 tasks: thread mode signal, compute hub-maturity, replace `disabled` with tier-aware affordances + copy.
 
 **Resolution:** PR8-8a — `computeCtaState` helper + 2-state CTA rendering (`active` / `prerequisite-locked`). All five paths free-tier-active per Q2 (tier reframe). Charter has no workflow prerequisite per DMAIC Define-phase research. Stub destinations ship for Charter / Sustainment / Handoff; full surfaces deferred to per-path slices listed below.
+
+> **Wedge V1 supersession (2026-05-16):** Canvas response paths collapse from 5 → 3 (Investigate / Quick Action / Charter). Sustainment auto-fires (ADR-080); Handoff path is retired (folded into Sustainment). `computeCtaState` and stub destinations for Sustainment / Handoff are now dead code — removal deferred to a dedicated deletion sweep.
 
 ---
 
@@ -446,33 +448,37 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 
 ---
 
-### Handoff workflow V1
+### Handoff workflow V1 [WEDGE SCOPE NOTE — folded into Sustainment]
 
 **Surfaced by:** PR8-8a amendment review, 2026-05-07.
 
-**Description:** PR8-8a ships a Handoff stub destination only. The CTA's prerequisite signal (`sustainmentConfirmed`) is hardcoded `false` in FrameView until the data model lands. The full surface — transferring ownership of a confirmed-sustained improvement to the process owner with a control plan — is deferred.
+> **Wedge V1 (2026-05-16):** The Handoff response path is retired. Canvas exposes 3 paths (Investigate / Quick Action / Charter); Sustainment auto-fires per ADR-080 and absorbs end-of-project close logic. The Handoff stub code + prerequisite signal are dead code; clean-up deferred to a dedicated deletion PR.
 
-**Possible directions:**
+**Description (historical):** PR8-8a shipped a Handoff stub destination only. The CTA's prerequisite signal (`sustainmentConfirmed`) is hardcoded `false` in FrameView until the data model lands. The full surface — transferring ownership of a confirmed-sustained improvement to the process owner with a control plan — is deferred.
+
+**Possible directions (if Handoff is restored in VariScout Process):**
 
 - "Sustainment confirmed" signal: needs concrete definition. Likely `SustainmentRecord.latestReviewId` populated AND review marked `confirmed-sustained`.
 - Control plan: who owns the process post-handoff; what triggers escalation; reaction plan if metrics drift.
-- Free-tier vs paid-tier split: free can document the handoff; paid gets RACI / signoff / change-notification flow.
+- Process-role split: Process Owner receives the handoff; out-of-scope for V1 Specialist-only model.
 
-**Promotion path:** Standalone slice when prioritized. Sequence after Sustainment workflow (handoff requires confirmed sustainment).
+**Promotion path:** VariScout Process (named-future — requires Process Owner persona from [four-personas.md](01-vision/variscout-process/four-personas.md)).
 
 ---
 
-### Team-collaboration features inside Charter / Sustainment / Handoff surfaces
+### Team-collaboration features inside Charter / Sustainment / Handoff surfaces [WEDGE SCOPE NOTE]
 
 **Surfaced by:** PR8-8a amendment review, 2026-05-07.
 
-**Description:** Per Q2 (tier reframe), the five response-path CTAs are tier-active in PWA + Azure. The team-collaboration tier-gate that DOES apply lives **inside** each surface: signoff buttons, audit trail, alerts setup, RACI, change notifications. PR8-8a defers wiring this layer until the surface forms ship.
+> **Wedge V1 (2026-05-16):** Handoff surface is retired (folded into Sustainment). This entry covers Charter + Sustainment only. The five-CTA model reduces to 3 V1 paths; Q2 tier reframe still applies for the remaining surfaces. The pattern (project-role gating via `canAccess()` inside surfaces) remains valid — the `useTier()` references are retired per ADR-082.
+
+**Description:** The team-collaboration role-gate lives **inside** each surface: signoff buttons, audit trail, alerts setup, RACI, change notifications. PR8-8a defers wiring this layer until the surface forms ship.
 
 **Possible directions:**
 
-- Each surface component reads `useTier()` directly and renders team-features as paid-only controls (button-level gating, not surface-level).
-- Shared pattern: a `<TeamFeatureGate feature="signoff">` wrapper component in `@variscout/ui` so the gating contract is uniform across surfaces.
-- Telemetry: track tier-feature impressions to inform pricing.
+- Each surface component uses `canAccess()` from `@variscout/core/projectMembership` and renders project-role-gated controls at button level (not surface-level). `useTier()` is retired in V1 (single SKU, see ADR-082).
+- Shared pattern: a `<MembershipFeatureGate feature="signoff">` wrapper component in `@variscout/ui` so the gating contract is uniform across surfaces.
+- Telemetry: track feature impressions to inform pricing.
 
 **Promotion path:** Per-surface, ride along with each response-path's V1 form slice.
 

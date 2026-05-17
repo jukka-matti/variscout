@@ -17,7 +17,7 @@ VariScout is designed to work without internet access after the initial load.
 1. **No backend required** — All statistical processing in browser
 2. **Service Worker** — Cache app shell and assets
 3. **Local-first data** — All data stays in IndexedDB
-4. **Optional sync** — Azure Team plan can sync to OneDrive when online (Standard plan uses local-only storage)
+4. **Optional sync** — Azure App syncs to Blob Storage when online (PWA uses IndexedDB only)
 
 ---
 
@@ -108,39 +108,19 @@ USER                    SERVICE WORKER              CACHE
 
 ---
 
-## Azure App: Storage by Plan
+## Azure App: Storage Architecture
 
-Both Azure plans store data locally in IndexedDB. The Team plan additionally syncs to OneDrive.
+The Azure App (single €120 SKU) stores data locally in IndexedDB and syncs to Azure Blob Storage in the customer's resource group. No plan split — Blob Storage sync is included for all Azure App users.
 
-**Standard plan (€79/month)** — IndexedDB only, no cloud sync:
-
-```
-┌─────────────────────────────────────────────────────┐
-│               AZURE STANDARD APP                     │
-│                                                     │
-│  ┌─────────────┐                                    │
-│  │  IndexedDB  │                                    │
-│  │  (local)    │                                    │
-│  └─────────────┘                                    │
-│        │                                            │
-│        │ always available                           │
-│        ▼                                            │
-│   ┌───────────────────────────────────────────┐    │
-│   │              Application                   │    │
-│   └───────────────────────────────────────────┘    │
-│                                                     │
-└─────────────────────────────────────────────────────┘
-```
-
-**Team plan (€199/month)** — IndexedDB + OneDrive sync:
+**Azure App (€120/month)** — IndexedDB + Blob Storage sync:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                 AZURE TEAM APP                       │
+│                 AZURE APP                            │
 │                                                     │
 │  ┌─────────────┐         ┌─────────────┐           │
-│  │  IndexedDB  │◄───────▶│  OneDrive   │           │
-│  │  (local)    │  sync   │  (cloud)    │           │
+│  │  IndexedDB  │◄───────▶│ Blob Storage│           │
+│  │  (local)    │  sync   │  (customer) │           │
 │  └─────────────┘         └─────────────┘           │
 │        │                        │                   │
 │        │ always                 │ when online       │
@@ -153,6 +133,8 @@ Both Azure plans store data locally in IndexedDB. The Team plan additionally syn
 │                                                     │
 └─────────────────────────────────────────────────────┘
 ```
+
+See [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md) for the Blob Storage architecture.
 
 ---
 
@@ -172,7 +154,7 @@ Both Azure plans store data locally in IndexedDB. The Team plan additionally syn
 
 | Trade-off                    | Mitigation                            |
 | ---------------------------- | ------------------------------------- |
-| No cross-device sync (PWA)   | Azure Team plan adds OneDrive sync    |
+| No cross-device sync (PWA)   | Azure App adds Blob Storage sync      |
 | Limited by browser resources | Target datasets are typically small   |
 | Update requires refresh      | Clear messaging when update available |
 

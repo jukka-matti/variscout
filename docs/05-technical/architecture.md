@@ -24,7 +24,7 @@ variscout-lite/
 │   └── ui/                # @variscout/ui - Shared UI components, colors, and hooks
 ├── apps/
 │   ├── pwa/               # PWA website (React + Vite + PWA)
-│   ├── azure/             # Azure Team App (EasyAuth + OneDrive sync)
+│   ├── azure/             # Azure App (EasyAuth + Blob Storage sync)
 │   └── website/           # Marketing website (Astro + React Islands)
 ├── docs/
 │   ├── 01-vision/         # Product philosophy, Four Lenses, Two Voices
@@ -49,7 +49,7 @@ variscout-lite/
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Utility-first)
 - **Visualization**: [Visx](https://airbnb.io/visx/) (Low-level D3 primitives for React) via `@variscout/charts`
 - **Shared Logic**: `@variscout/core` package (stats, parser, tier, glossary)
-- **Persistence**: IndexedDB + OneDrive sync (Azure App), session-only (PWA)
+- **Persistence**: IndexedDB + Blob Storage sync (Azure App), session-only (PWA)
 - **PWA**: [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) with Workbox
 - **Marketing Website**: [Astro 5](https://astro.build/) with React Islands (chart demos)
 - **Package Manager**: [pnpm](https://pnpm.io/) with workspaces
@@ -64,7 +64,7 @@ variscout-lite/
 │        (apps/pwa/)                 │       (apps/azure/)                    │
 │  ┌──────────┐ ┌──────┐ ┌────────┐  │  ┌──────────┐ ┌────────┐ ┌─────────┐  │
 │  │Components│ │Context│ │Session │  │  │Components│ │EasyAuth│ │Sync(IDB)│  │
-│  │(Mobile)  │ │(Data) │ │ only   │  │  │(Editor)  │ │(SSO)   │ │+OneDrive│  │
+│  │(Mobile)  │ │(Data) │ │ only   │  │  │(Editor)  │ │(SSO)   │ │+BlobSync│  │
 │  └────┬─────┘ └───┬───┘ └───┬────┘  │  └────┬─────┘ └───┬────┘ └────┬────┘  │
 │       └───────────┼─────────┘       │       └───────────┼───────────┘       │
 │                   │                 │                    │                   │
@@ -84,7 +84,7 @@ variscout-lite/
 │         (packages/hooks/)           │         (packages/data/)              │
 │                                     │                                       │
 │  useChartScale │ useFilterNavigation│  coffee │ journey │ bottleneck       │
-│  useVariationTracking │ useTier     │  sachets │ pre-computed chart data   │
+│  useVariationTracking │             │  sachets │ pre-computed chart data   │
 ├─────────────────────────────────────┼───────────────────────────────────────┤
 │          @variscout/ui                                                      │
 │         (packages/ui/)                                                      │
@@ -105,12 +105,12 @@ Pure TypeScript logic with no React dependencies:
 | `parser/`       | CSV/Excel file parsing, validation, keyword detection                        |
 | `ai/prompts/`   | Modular prompt builders (shared, narration, coScout, chartInsights, reports) |
 | `ai/`           | AI context, tracing, Responses API client, chart insights                    |
-| `tier.ts`       | Tier configuration (Azure Marketplace licensing, channel limits)             |
+| `tier.ts`       | Channel-count limits only (V1: retired tier/plan gating — see ADR-082)       |
 | `navigation.ts` | Navigation types and utilities (FilterAction, BreadcrumbItem)                |
 | `variation/`    | Cumulative variation tracking (η² cascading, drill suggestions)              |
 | `glossary/`     | Glossary terms and type definitions for help tooltips                        |
 | `export.ts`     | CSV export utilities                                                         |
-| `types.ts`      | Shared TypeScript interfaces (StatsResult, LicenseTier, etc.)                |
+| `types.ts`      | Shared TypeScript interfaces (StatsResult, etc.)                             |
 
 ### @variscout/charts
 
@@ -169,30 +169,30 @@ Shared UI component library for PWA and Azure apps.
 
 Shared React hooks for cross-platform functionality:
 
-| Hook                        | Purpose                                                         |
-| --------------------------- | --------------------------------------------------------------- |
-| `useChartScale`             | Calculate Y-axis range from data, specs, and axis settings      |
-| `useFilterNavigation`       | Filter navigation with multi-select and filter chip support     |
-| `useVariationTracking`      | Cumulative η² tracking + filter chip data with n=X sample count |
-| `useKeyboardNavigation`     | Arrow key navigation and focus management                       |
-| `useResponsiveChartMargins` | Dynamic chart margins based on container width                  |
-| `useDataState`              | Shared DataContext state management                             |
-| `useDataIngestion`          | File upload and data parsing                                    |
-| `useTier`                   | License tier state and limits (Azure Marketplace)               |
-| `useColumnClassification`   | Column type classification                                      |
-| `useDrillPath`              | Drill path state and before/after statistics                    |
-| `useFindings`               | Findings CRUD, status transitions, hypothesis linking           |
-| `useHypotheses`             | Hypothesis tree CRUD, auto-validation, ideas                    |
-| `useBoxplotData`            | Shared d3 boxplot computation                                   |
-| `useIChartData`             | Shared I-Chart data transform                                   |
-| `useAnnotations`            | Chart annotation state (highlights, text notes)                 |
-| `useThemeState`             | Theme state (light/dark/system)                                 |
-| `useControlViolations`      | Control/spec violation computation                              |
-| `useFocusedChartNav`        | Keyboard chart focus navigation                                 |
-| `useNarration`              | NarrativeBar state (loading, cached, error, refresh)            |
-| `useChartInsights`          | Per-chart deterministic + AI-enhanced insight orchestration     |
-| `useAICoScout`              | CoScout conversation state, streaming, abort control            |
-| `useKnowledgeSearch`        | Knowledge Base search wrapper                                   |
+| Hook                        | Purpose                                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `useChartScale`             | Calculate Y-axis range from data, specs, and axis settings                                                                      |
+| `useFilterNavigation`       | Filter navigation with multi-select and filter chip support                                                                     |
+| `useVariationTracking`      | Cumulative η² tracking + filter chip data with n=X sample count                                                                 |
+| `useKeyboardNavigation`     | Arrow key navigation and focus management                                                                                       |
+| `useResponsiveChartMargins` | Dynamic chart margins based on container width                                                                                  |
+| `useDataState`              | Shared DataContext state management                                                                                             |
+| `useDataIngestion`          | File upload and data parsing                                                                                                    |
+| `useTier`                   | **Retired in V1** — channel-count validation only; use `canAccess()` from `@variscout/core/projectMembership` for access gating |
+| `useColumnClassification`   | Column type classification                                                                                                      |
+| `useDrillPath`              | Drill path state and before/after statistics                                                                                    |
+| `useFindings`               | Findings CRUD, status transitions, hypothesis linking                                                                           |
+| `useHypotheses`             | Hypothesis tree CRUD, auto-validation, ideas                                                                                    |
+| `useBoxplotData`            | Shared d3 boxplot computation                                                                                                   |
+| `useIChartData`             | Shared I-Chart data transform                                                                                                   |
+| `useAnnotations`            | Chart annotation state (highlights, text notes)                                                                                 |
+| `useThemeState`             | Theme state (light/dark/system)                                                                                                 |
+| `useControlViolations`      | Control/spec violation computation                                                                                              |
+| `useFocusedChartNav`        | Keyboard chart focus navigation                                                                                                 |
+| `useNarration`              | NarrativeBar state (loading, cached, error, refresh)                                                                            |
+| `useChartInsights`          | Per-chart deterministic + AI-enhanced insight orchestration                                                                     |
+| `useAICoScout`              | CoScout conversation state, streaming, abort control                                                                            |
+| `useKnowledgeSearch`        | Knowledge Base search wrapper                                                                                                   |
 
 **Key types:**
 
@@ -210,7 +210,6 @@ import {
   useFilterNavigation,
   useVariationTracking,
   useChartScale,
-  useTier,
   type FilterChipData,
 } from '@variscout/hooks';
 ```
@@ -241,12 +240,12 @@ React application with PWA capabilities:
 
 Cloud-connected team application:
 
-| Module                    | Purpose                                |
-| ------------------------- | -------------------------------------- |
-| `src/auth/easyAuth.ts`    | App Service EasyAuth helper (SSO)      |
-| `src/services/storage.ts` | Offline-first storage + OneDrive sync  |
-| `src/context/DataContext` | Central state management (mirrors PWA) |
-| `src/components/Editor`   | Main editor with data panel + charts   |
+| Module                    | Purpose                                   |
+| ------------------------- | ----------------------------------------- |
+| `src/auth/easyAuth.ts`    | App Service EasyAuth helper (SSO)         |
+| `src/services/storage.ts` | Offline-first storage + Blob Storage sync |
+| `src/context/DataContext` | Central state management (mirrors PWA)    |
+| `src/components/Editor`   | Main editor with data panel + charts      |
 
 ### @variscout/website
 
@@ -310,7 +309,7 @@ Handles all data storage operations in the browser.
 
 ### Azure App
 
-- Named analyses saved to IndexedDB + synced to OneDrive
+- Named analyses saved to IndexedDB + synced to Azure Blob Storage
 - .vrs file export/import for portability across devices/browsers
 - List, load, rename, delete operations
 - App starts on HomeScreen with recent analyses list
@@ -367,7 +366,7 @@ variscout-lite/
 │   │   │   ├── useResponsiveBreakpoints.ts # Responsive breakpoints
 │   │   │   ├── useDataState.ts  # Shared DataContext state
 │   │   │   ├── useDataIngestion.ts # File upload and parsing
-│   │   │   ├── useTier.ts       # Tier state and limits
+│   │   │   ├── useTier.ts       # Retired in V1 (channel-count only)
 │   │   │   ├── useColumnClassification.ts # Column type classification
 │   │   │   ├── useDrillPath.ts  # Drill path state
 │   │   │   ├── useFindings.ts  # Findings state management
@@ -459,7 +458,7 @@ variscout-lite/
 │       ├── src/
 │       │   ├── components/      # UI components (Editor, FilterBreadcrumb, etc.)
 │       │   ├── context/         # DataContext (mirrors PWA)
-│       │   ├── services/        # Offline-first storage + OneDrive sync
+│       │   ├── services/        # Offline-first storage + Blob Storage sync
 │       │   ├── auth/            # EasyAuth configuration
 │       │   └── lib/             # Utilities
 │       ├── vite.config.ts
@@ -521,14 +520,14 @@ Components use `window.innerWidth` with resize listeners to conditionally render
 
 ## 9. Theme System
 
-VariScout supports light/dark theming for paid tiers via a coordinated system:
+VariScout supports light/dark theming for the Azure App via a coordinated system:
 
 ### Theme Detection
 
 Theme is controlled via the `data-theme` attribute on `<html>`:
 
 - `data-theme="dark"` - Dark mode (default for free tier)
-- `data-theme="light"` - Light mode (paid tiers: Individual/Team/Enterprise)
+- `data-theme="light"` - Light mode (Azure App)
 
 ### Chart Theme Hook
 
@@ -546,12 +545,12 @@ const MyChart = () => {
 
 ### Color Architecture
 
-| Layer         | Location                                | Purpose                   |
-| ------------- | --------------------------------------- | ------------------------- |
-| Theme Context | `apps/pwa/src/context/ThemeContext.tsx` | User preference storage   |
-| Tier Gate     | `packages/core/src/tier.ts`             | `isPaidTier()` check      |
-| Chart Colors  | `packages/charts/src/colors.ts`         | `getChromeColors(isDark)` |
-| Theme Hook    | `packages/charts/src/useChartTheme.ts`  | Reactive theme state      |
+| Layer         | Location                                 | Purpose                   |
+| ------------- | ---------------------------------------- | ------------------------- |
+| Theme Context | `apps/pwa/src/context/ThemeContext.tsx`  | User preference storage   |
+| Access Gate   | `packages/core/src/projectMembership.ts` | `canAccess()` check (V1)  |
+| Chart Colors  | `packages/charts/src/colors.ts`          | `getChromeColors(isDark)` |
+| Theme Hook    | `packages/charts/src/useChartTheme.ts`   | Reactive theme state      |
 
 ### Chrome Colors
 
@@ -637,83 +636,65 @@ The `@variscout/charts` `BoxplotBase` component accepts optional `variationPct` 
 - Shows "↓ drill here" indicator when `variationPct ≥ variationThreshold`
 - Red highlighting for high-impact factors
 
-## 12. Teams SDK Integration (Azure App)
+## 12. Teams Static Tab (Azure App)
 
-The Azure app detects whether it's running inside Microsoft Teams and adapts behavior:
+> **V1 note (ADR-059):** The Teams SDK (`@microsoft/teams-js`) is removed in V1. `useTeamsContext()`, `useTeamsShare.ts`, `TeamsTabConfig.tsx`, and `getTeamsSsoToken()` are retired. The Azure App now surfaces as a standard iframe static tab in Teams — no SDK, no SSO token, no special Teams permissions. `AdminTeamsSetup.tsx` remains for generating the Teams manifest `.zip`.
+
+The Azure App can be pinned as a Teams channel tab via a standard manifest. Users authenticate via EasyAuth (browser redirect) inside the Teams iframe.
 
 ```
-app.initialize() → app.getContext()
-├── Success → Teams mode (isTeams: true)
-│   ├── channelTab → show channel name in header
-│   ├── personalTab → personal tab UX
-│   └── SSO token via authentication.getAuthToken()
-└── Failure → Browser mode (existing EasyAuth flow)
+Teams iframe loads App Service URL
+└── EasyAuth handles auth (standard browser redirect inside iframe)
+    └── App loads — no Teams SDK required
 ```
 
-### Context Detection
+### Tab Setup
 
-**Key module**: `apps/azure/src/teams/teamsContext.ts`
+**Key module**: `apps/azure/src/teams/AdminTeamsSetup.tsx`
 
-| Concept             | Implementation                                                   |
-| ------------------- | ---------------------------------------------------------------- |
-| Context detection   | `initTeams()` — called on app startup, caches result             |
-| Channel type        | `channelType` — detects standard, private, or shared channels    |
-| React hook          | `useTeamsContext()` — provides context + loading state           |
-| SSO token           | `getTeamsSsoToken()` — client-side token (not Graph-ready)       |
-| Tab configuration   | `TeamsTabConfig.tsx` — shown when adding channel tab             |
-| Manifest generation | `AdminTeamsSetup.tsx` — generates `.zip` with `configurableTabs` |
+| Concept             | Implementation                                                         |
+| ------------------- | ---------------------------------------------------------------------- |
+| Manifest generation | `AdminTeamsSetup.tsx` — generates `.zip` with static tab configuration |
+| CSP frame-ancestors | `server.js` allows `teams.microsoft.com` + `*.teams.microsoft.com`     |
 
-**Plan gating**: `VITE_VARISCOUT_PLAN` env var (`'standard'` or `'team'`) controls feature availability. The Teams SDK initializes regardless of plan (the app works as a tab in either), but Team-plan-only features (channel storage, photos) check `isTeamPlan()` from `@variscout/core/tier`.
+**Access**: All Azure App users get full feature access (single €120 SKU — plan gating retired per ADR-082). The Teams static tab works without requiring Teams SDK permissions (`User.Read` + `People.Read` only).
 
 **CSP**: `frame-ancestors` updated in `server.js` to allow Teams iframe embedding (`teams.microsoft.com`, `*.teams.microsoft.com`, `*.skype.com`).
 
-### OBO Token Exchange
+### OBO Token Exchange (Retired — ADR-059)
 
-`apps/azure/src/auth/graphToken.ts` implements a token exchange chain for Graph API access:
+> **Retired in V1.** The OBO exchange chain and `Files.ReadWrite.All` Graph API scope are removed per ADR-059 (web-first architecture). Only `User.Read` + `People.Read` (both user-consent) are required. Storage now uses Azure Blob Storage via Blob SAS URLs, not OneDrive/SharePoint.
 
-```
-Teams SSO token → Azure Function OBO exchange → Graph API token
-                         ↓ (if fails)
-                  EasyAuth redirect fallback
-```
+### Channel Drive Resolution (Retired — ADR-059)
 
-The Azure Function (`infra/functions/token-exchange/index.js`) is a single-purpose token exchange with no stored state. Scopes: `User.Read` + `Files.ReadWrite.All`.
-
-### Channel Drive Resolution
-
-`apps/azure/src/teams/channelDrive.ts` resolves the SharePoint document library for a channel:
-
-- Graph API call: `GET /teams/{teamId}/channels/{channelId}/filesFolder`
-- Returns drive ID + root folder path
-- Result cached in IndexedDB to avoid repeated Graph calls
-- `StorageLocation` type (`'personal' | 'team'`) routes to correct storage
+> **Retired in V1.** `channelDrive.ts` and SharePoint document library resolution via Graph API are removed per ADR-059. The Azure App no longer requires channel-drive or SharePoint integration.
 
 ### Photo Pipeline
 
 Client-side photo processing chain:
 
-| Module                | Purpose                                           |
-| --------------------- | ------------------------------------------------- |
-| `photoProcessing.ts`  | Camera capture and image preprocessing            |
-| `exifStrip.ts`        | Byte-level EXIF/GPS metadata stripping (23 tests) |
-| `photoUpload.ts`      | Upload to OneDrive or SharePoint via Graph API    |
-| `usePhotoComments.ts` | React hook for photo attachment state in findings |
+| Module                | Purpose                                                   |
+| --------------------- | --------------------------------------------------------- |
+| `photoProcessing.ts`  | Camera capture and image preprocessing                    |
+| `exifStrip.ts`        | Byte-level EXIF/GPS metadata stripping (23 tests)         |
+| `photoUpload.ts`      | Upload to Azure Blob Storage (ADR-059: Graph API retired) |
+| `usePhotoComments.ts` | React hook for photo attachment state in findings         |
 
 Photos are immutable once uploaded (no edit/delete). Thumbnails (~50KB base64) embedded in `.vrs` files for cross-user visibility.
 
 ### Deep Links and Sharing
 
-| Module             | Purpose                                                 |
-| ------------------ | ------------------------------------------------------- |
-| `deepLinks.ts`     | Build and parse deep link URLs for charts/findings      |
-| `useTeamsShare.ts` | Wraps `sharing.shareWebContent` + `pages.shareDeepLink` |
-| `shareContent.ts`  | Finding/chart payload builders for share dialog         |
+| Module             | Purpose                                                                                                          |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `deepLinks.ts`     | Build and parse deep link URLs for charts/findings                                                               |
+| `useTeamsShare.ts` | **Retired in V1 (ADR-059)** — Teams SDK `sharing` API removed; deep link sharing via standard browser share/copy |
+| `shareContent.ts`  | Finding/chart payload builders for share dialog                                                                  |
 
 ### User Identity
 
-`getCurrentUser.ts` extracts user identity from the Teams JWT (UPN claim) with EasyAuth fallback. Enables author tracking on findings and comments.
+`getCurrentUser.ts` extracts user identity from the EasyAuth JWT (UPN claim). Enables author tracking on findings and comments.
 
-See [ADR-016](../archive/adrs/adr-016-teams-integration.md) for the full Teams integration design.
+See [ADR-059](../07-decisions/adr-059-web-first-deployment-architecture.md) for the V1 web-first architecture. ADR-016 (Teams integration) is archived.
 
 ## 13. Performance Budget
 

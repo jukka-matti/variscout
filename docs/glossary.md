@@ -7,11 +7,11 @@ status: stable
 
 # Glossary
 
-> **⚠️ Updated 2026-05-16 for the wedge pivot** ([wedge spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md)). Vocabulary changes:
+> **⚠️ Updated 2026-05-16 for the V1 pivot** ([V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md)). Vocabulary changes:
 >
 > - **New section: Project & membership terms** — Lead, Member, Sponsor, Measurement Plan, Promote to Project, canvas response paths.
 > - **Process Hub** amended — stays as internal data container, not surfaced as a user-visible noun in V1 UI.
-> - **Stage 5 modal** marked wedge-changed — Mode B Stage 5 ceremony retires under the wedge; investigation entry happens via Wall + Promote-to-Project CTA.
+> - **Stage 5 modal** marked V1-changed — Mode B Stage 5 ceremony retires under V1; investigation entry happens via Wall + Promote-to-Project CTA.
 > - **Retired terms table expanded** — Reviewer role, Team tier, Improve tab (top-level), Handoff stage, Handoff response path, Process Owner / SME / Frontline personas.
 
 Statistical, quality, and methodology terms used across VariScout. **This is the canonical home for VariScout terminology.** Process narrative lives in [`docs/01-vision/methodology.md`](01-vision/methodology.md) and the [product vision spec](archive/specs/2026-05-03-variscout-vision-design.md); both cross-reference this glossary rather than re-defining terms.
@@ -66,7 +66,7 @@ A step can branch (one → many downstream paths) and join (many → one). Real 
 
 ### Process Hub
 
-**Wedge V1 status:** internal data container only — not surfaced as a user-visible noun. The Hub backs the Process tab + paste data + outcome spec + factors + process map. Tenant-wide access (anyone in the Azure tenant can paste data and analyze without creating a Project). Projects wrap a Hub with formal lifecycle + project-membership ACLs; quick analysis works without any Project.
+**V1 status:** internal data container only — not surfaced as a user-visible noun. The Hub backs the Process tab + paste data + outcome spec + factors + process map. Tenant-wide access (anyone in the Azure tenant can paste data and analyze without creating a Project). Projects wrap a Hub with formal lifecycle + project-membership ACLs; quick analysis works without any Project.
 
 Hub IS its logic map — there is no separate Hub model and map model. Holds: map structure, specs per column / per step, named contexts, cadence definition, snapshot history, finding history, investigation history.
 
@@ -76,7 +76,7 @@ Hub IS its logic map — there is no separate Hub model and map model. Holds: ma
 
 ## Project & membership terms
 
-Vocabulary introduced by the wedge pivot (`docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`). Projects are the user-visible formal wrapper around a Hub; quick analysis works without a Project (per wedge §3.0).
+Vocabulary introduced by the V1 pivot (`docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`). Projects are the user-visible formal wrapper around a Hub; quick analysis works without a Project (per V1 spec §3.0).
 
 ### Project
 
@@ -114,7 +114,7 @@ Available from Home, Analyze, Investigation tabs, and from canvas drill (the "Ch
 
 ### Measurement Plan
 
-Sub-entity linked to a Hypothesis on the Investigation Wall (per wedge spec §3.6). Describes a measurement that needs to be collected to test the Hypothesis: factor, method (sensor / manual count / gemba walk / expert assessment), sample size (manual entry; no statistical calculator in V1), owner, status (Planned / In progress / Complete / Skipped).
+Sub-entity linked to a Hypothesis on the Investigation Wall (per V1 spec §3.6). Describes a measurement that needs to be collected to test the Hypothesis: factor, method (sensor / manual count / gemba walk / expert assessment), sample size (manual entry; no statistical calculator in V1), owner, status (Planned / In progress / Complete / Skipped).
 
 Supports the **hypothesis-first investigation cycle**: analyst plans what evidence is needed, coordinates collection out-of-product, re-ingests new data via the paste flow, new Findings auto-suggest links to matching Plans. Plan status → `Complete` when its data lands as Findings.
 
@@ -124,7 +124,7 @@ V1 deliberately excludes formal MSA / Gage R&R workflow (`msaRequired?` is an in
 
 ### Hypothesis (Investigation Wall)
 
-A named mechanism connecting evidence threads on the Investigation Wall — e.g., "Nozzle wear on Night shift drives drift." Status: `proposed` → `evidenced` → `confirmed` / `refuted` / `needs-disconfirmation`. Holds linked Findings (evidence collected) and (under the wedge) linked Measurement Plans (evidence still needed). Both data-first and hypothesis-first investigation paths converge on this entity.
+A named mechanism connecting evidence threads on the Investigation Wall — e.g., "Nozzle wear on Night shift drives drift." Status: `proposed` → `evidenced` → `confirmed` / `refuted` / `needs-disconfirmation`. Holds linked Findings (evidence collected) and (under V1) linked Measurement Plans (evidence still needed). Both data-first and hypothesis-first investigation paths converge on this entity.
 
 Renamed from `SuspectedCause` via RPS V1 PR-RPS-1 (May 9, 2026).
 
@@ -180,12 +180,12 @@ Sidecar metadata `{ source: string; joinKey: string }` attached via a `Map<rowIn
 
 ### Stage 5 modal
 
-**Wedge V1 status:** retired. Mode B Stage 5 ceremony was tied to the framing-layer's persona-rich onboarding flow which retires under the wedge (4-persona model migrates to VariScout Process). Under V1:
+**V1 status:** retired. Mode B Stage 5 ceremony was tied to the framing-layer's persona-rich onboarding flow which retires under V1 (4-persona model migrates to VariScout Process). Under V1:
 
 - **Investigation entry** happens via the Investigation Wall directly (create a Hypothesis on the Wall, optionally from a quick-analysis Finding).
 - **Project entry** happens via "+ New Project" / [Promote to Project](#promote-to-project), which inherits the analyst's current Hub state.
 
-The original Stage 5 modal collected issue description + question + hypothesis draft and created Investigation + Question entities. That ceremony is replaced by the more granular Wall-based Hypothesis + Finding creation under the wedge. Historical reference: framing-layer spec §5.5 (`docs/archive/specs/2026-05-03-framing-layer-design.md`).
+The original Stage 5 modal collected issue description + question + hypothesis draft and created Investigation + Question entities. That ceremony is replaced by the more granular Wall-based Hypothesis + Finding creation under V1. Historical reference: framing-layer spec §5.5 (`docs/archive/specs/2026-05-03-framing-layer-design.md`).
 
 **See:** [Promote to Project](#promote-to-project), [Hypothesis (Investigation Wall)](#hypothesis-investigation-wall)
 

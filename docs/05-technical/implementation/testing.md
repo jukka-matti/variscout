@@ -219,7 +219,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `useResizablePanel`              | ✅     | Panel size state, drag interaction, constraints                |
 | `useResponsiveChartMargins`      | ✅     | Dynamic chart margins based on container width                 |
 | `useThemeState`                  | ✅     | Theme state (light/dark/system), themingEnabled parameter      |
-| `useTier`                        | ✅     | Tier info, channel validation, warning messages                |
+| `useTier`                        | ✅     | Channel validation only (tier-gating retired V1 — see ADR-082) |
 | `useVariationTracking`           | ✅     | Cumulative eta-squared, filter chip data with n=X sample count |
 | `filterStateTransitions`         | ✅     | Filter add/remove/clear state machine transitions              |
 | `stress`                         | ✅     | Performance/stress tests for hooks under load                  |
@@ -516,7 +516,7 @@ packages/hooks/
         ├── useResizablePanel.test.ts        # Resizable panel state
         ├── useResponsiveChartMargins.test.ts # Dynamic chart margins
         ├── useThemeState.test.ts            # Theme state management
-        ├── useTier.test.ts                  # Tier hook
+        ├── useTier.test.ts                  # Channel validation (retired tier-gating)
         ├── useVariationTracking.test.ts     # Cumulative eta-squared
         ├── filterStateTransitions.test.ts   # Filter state machine
         ├── stress.test.ts                   # Performance stress tests

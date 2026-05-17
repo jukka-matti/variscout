@@ -62,9 +62,7 @@ The ARM template does not include `publisherManagement` authorization. After dep
 
 ### No Backend API
 
-The Standard plan serves a static Single Page Application (SPA) via `WEBSITE_RUN_FROM_PACKAGE`. There is no server-side code execution, no API endpoints, and no database connections. All data processing — statistical calculations, chart rendering, data parsing — happens entirely in the user's browser.
-
-The Team plan adds a minimal Express server with a single endpoint (`/api/storage-token`) for generating time-limited SAS tokens for Azure Blob Storage access. This endpoint validates the user's Entra ID session before issuing tokens.
+The Azure App serves a static Single Page Application (SPA) via `WEBSITE_RUN_FROM_PACKAGE`, with a minimal Express server adding a single endpoint (`/api/storage-token`) for generating time-limited SAS tokens for Azure Blob Storage access. This endpoint validates the user's Entra ID session before issuing tokens. All statistical processing — calculations, chart rendering, data parsing — happens entirely in the user's browser.
 
 ---
 
@@ -81,12 +79,12 @@ VariScout uses **App Service Authentication (EasyAuth)** — a platform-level au
 
 ### Permission Scopes
 
-**Both tiers require zero admin consent:**
+**Zero admin consent required:**
 
-| Permission    | Type      | Admin Consent | Purpose                             | Tier |
-| ------------- | --------- | ------------- | ----------------------------------- | ---- |
-| `User.Read`   | Delegated | **No**        | Get user profile (name, email)      | All  |
-| `People.Read` | Delegated | **No**        | People picker for action assignment | Team |
+| Permission    | Type      | Admin Consent | Purpose                             |
+| ------------- | --------- | ------------- | ----------------------------------- |
+| `User.Read`   | Delegated | **No**        | Get user profile (name, email)      |
+| `People.Read` | Delegated | **No**        | People picker for action assignment |
 
 Users grant consent on first login. No IT administrator action is required.
 
@@ -104,13 +102,13 @@ IT administrators can optionally restrict access to the Admin Hub by configuring
 
 ## 3. Data Residency & Storage
 
-### Standard Plan: Browser-Only
+### PWA: Browser-Only
 
-All data is stored in the browser's **IndexedDB**. No data is transmitted to any cloud service, no data leaves the user's machine, and no server-side storage exists. Users can export projects as JSON files for local backup.
+All PWA data is stored in the browser's **IndexedDB**. No data is transmitted to any cloud service, no data leaves the user's machine, and no server-side storage exists. Users can export projects as JSON files for local backup.
 
-### Team Plan: Customer's Blob Storage
+### Azure App: Customer's Blob Storage
 
-Team plan projects are stored in **Azure Blob Storage** within the customer's own resource group:
+Azure App projects are stored in **Azure Blob Storage** within the customer's own resource group:
 
 ```
 Storage Account: variscout{uniquestring}
@@ -158,11 +156,11 @@ All data resides in the **Azure region selected by the customer** during deploym
 
 ### At Rest
 
-| Component                 | Encryption                                       |
-| ------------------------- | ------------------------------------------------ |
-| Blob Storage              | Azure-managed Server-Side Encryption (SSE)       |
-| IndexedDB (Standard plan) | Browser-managed encryption                       |
-| Key Vault                 | Azure-managed encryption with RBAC authorization |
+| Component                       | Encryption                                       |
+| ------------------------------- | ------------------------------------------------ |
+| Blob Storage                    | Azure-managed Server-Side Encryption (SSE)       |
+| IndexedDB (PWA / browser cache) | Browser-managed encryption                       |
+| Key Vault                       | Azure-managed encryption with RBAC authorization |
 
 ### Secret Management
 
@@ -185,15 +183,15 @@ VariScout's core principle is **"deterministic first, AI enhances."** The statis
 
 The `buildAIContext()` function transforms raw measurement data into summary statistics before any AI interaction. **Raw measurement values are never sent to AI services.**
 
-| Data Category             | Sent to AI?     | What Is Sent                                                                                             |
-| ------------------------- | --------------- | -------------------------------------------------------------------------------------------------------- |
-| Raw measurements          | **Never**       | Only summary statistics (mean, stdDev, Cpk, etc.)                                                        |
-| Factor names & categories | Yes             | Column headers (e.g., "Machine", "Shift") and category values (e.g., "Machine A", "Morning")             |
-| Analyst-written text      | Yes             | Finding descriptions, hypotheses, process descriptions — deliberately authored by the authenticated user |
-| Photos                    | **Never**       | Stored in Blob Storage only                                                                              |
-| User credentials          | **Never**       | Authentication handled by EasyAuth platform                                                              |
-| Conversation history      | Session-only    | Last 10 messages; no persistence across sessions                                                         |
-| Knowledge Base snippets   | Yes (Team plan) | Maximum 400 characters per document snippet                                                              |
+| Data Category               | Sent to AI?               | What Is Sent                                                                                             |
+| --------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Raw measurements            | **Never**                 | Only summary statistics (mean, stdDev, Cpk, etc.)                                                        |
+| Factor names & categories   | Yes                       | Column headers (e.g., "Machine", "Shift") and category values (e.g., "Machine A", "Morning")             |
+| Analyst-written text        | Yes                       | Finding descriptions, hypotheses, process descriptions — deliberately authored by the authenticated user |
+| Photos                      | **Never**                 | Stored in Blob Storage only                                                                              |
+| User credentials            | **Never**                 | Authentication handled by EasyAuth platform                                                              |
+| Conversation history        | Session-only              | Last 10 messages; no persistence across sessions                                                         |
+| Knowledge Catalyst snippets | Yes (Azure App, Phase 2+) | Maximum 400 characters per document snippet                                                              |
 
 ### AI Infrastructure
 
@@ -248,11 +246,11 @@ There is no multi-tenant database, no shared API gateway, no shared compute, and
 
 The application makes outbound connections only to:
 
-| Destination        | When                      | Purpose                         |
-| ------------------ | ------------------------- | ------------------------------- |
-| Azure Blob Storage | Team plan, on save/load   | Project data sync               |
-| Azure OpenAI       | When AI features are used | Statistical summary explanation |
-| Azure AI Search    | Team plan, on KB search   | Knowledge Base document search  |
+| Destination        | When                            | Purpose                            |
+| ------------------ | ------------------------------- | ---------------------------------- |
+| Azure Blob Storage | Azure App, on save/load         | Project data sync                  |
+| Azure OpenAI       | When AI features are used       | Statistical summary explanation    |
+| Azure AI Search    | Azure App, Phase 2+ (KB search) | Knowledge Catalyst document search |
 
 No connections are made to publisher-operated servers, third-party analytics, or external tracking services.
 
@@ -284,7 +282,7 @@ Customer IT retains full control over access management via standard Azure mecha
 
 ## 9. Photo Evidence Security
 
-Team plan users can capture photo evidence for findings (gemba observations). Photos undergo client-side security processing before upload:
+Azure App users can capture photo evidence for findings (gemba observations). Photos undergo client-side security processing before upload:
 
 | Processing Step       | Detail                                                                   |
 | --------------------- | ------------------------------------------------------------------------ |
@@ -302,13 +300,13 @@ Photos are never sent to AI services, never processed server-side, and never lea
 
 ### Recovery Targets
 
-| Scenario             | RTO          | RPO                                      |
-| -------------------- | ------------ | ---------------------------------------- |
-| App Service failure  | < 5 minutes  | 0 (stateless)                            |
-| Region outage        | < 2 hours    | 0 (redeploy to new region)               |
-| Key compromise       | < 30 minutes | N/A                                      |
-| Data loss (Standard) | N/A          | N/A (browser-local, user responsibility) |
-| Data loss (Team)     | < 1 hour     | ~15 minutes (last sync)                  |
+| Scenario              | RTO          | RPO                                      |
+| --------------------- | ------------ | ---------------------------------------- |
+| App Service failure   | < 5 minutes  | 0 (stateless)                            |
+| Region outage         | < 2 hours    | 0 (redeploy to new region)               |
+| Key compromise        | < 30 minutes | N/A                                      |
+| Data loss (PWA)       | N/A          | N/A (browser-local, user responsibility) |
+| Data loss (Azure App) | < 1 hour     | ~15 minutes (last sync)                  |
 
 ### Stateless Architecture
 
@@ -320,12 +318,12 @@ The App Service is stateless — it serves a pre-built SPA package with no serve
 
 ### Data Protection
 
-| Component                 | Protection                                                 |
-| ------------------------- | ---------------------------------------------------------- |
-| Standard plan (IndexedDB) | Browser-local; user can export as JSON                     |
-| Team plan (Blob Storage)  | Azure Storage SLA; geo-redundancy configurable by customer |
-| Key Vault secrets         | Soft-delete with 90-day recovery window                    |
-| Application code          | CI/CD history + deployment slots                           |
+| Component                | Protection                                                 |
+| ------------------------ | ---------------------------------------------------------- |
+| PWA (IndexedDB)          | Browser-local; user can export as JSON                     |
+| Azure App (Blob Storage) | Azure Storage SLA; geo-redundancy configurable by customer |
+| Key Vault secrets        | Soft-delete with 90-day recovery window                    |
+| Application code         | CI/CD history + deployment slots                           |
 
 ---
 

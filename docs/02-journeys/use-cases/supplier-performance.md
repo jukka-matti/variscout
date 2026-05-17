@@ -94,8 +94,8 @@ The SQE has an Excel sheet with thousands of incoming inspection rows. They can 
 
 ## Platform Fit
 
-| Stage              | Product                 | Why                                                                                 |
-| ------------------ | ----------------------- | ----------------------------------------------------------------------------------- |
-| Discovery          | **PWA** (free)          | Paste sample data or own data, see supplier comparison instantly                    |
-| Ongoing monitoring | **Excel Add-in** (free) | Connect to incoming inspection spreadsheet, live slicer-based filtering             |
-| Team adoption      | **Azure App** (paid)    | Multiple SQEs sharing analysis, OneDrive sync, Performance Mode for multi-dimension |
+| Stage              | Product                 | Why                                                                                     |
+| ------------------ | ----------------------- | --------------------------------------------------------------------------------------- |
+| Discovery          | **PWA** (free)          | Paste sample data or own data, see supplier comparison instantly                        |
+| Ongoing monitoring | **Excel Add-in** (free) | Connect to incoming inspection spreadsheet, live slicer-based filtering                 |
+| Team adoption      | **Azure App** (paid)    | Multiple SQEs sharing analysis, Blob Storage sync, Performance Mode for multi-dimension |

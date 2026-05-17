@@ -21,16 +21,16 @@ The ARM template (compiled from Bicep) deploys VariScout to a customer's Azure s
 - App Service Authentication (EasyAuth) with Azure AD
 - Configuration settings (all features enabled)
 
-The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users via EasyAuth (Standard: `User.Read`; Team: `User.Read` + `People.Read`). No Graph API scopes are needed — the Function App and OBO token exchange were removed in ADR-059.
+The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users via EasyAuth (`User.Read` + `People.Read`, both user-consent). No admin consent Graph API scopes are needed — the Function App and OBO token exchange were removed in ADR-059.
 
-**Minimal backend resources** — Standard and Team plans run entirely in the browser. Both plans include Azure AI Services (model hosting), Key Vault (secure secret storage), and App Insights (telemetry). The Team plan additionally provisions Azure Blob Storage (project sync + Foundry IQ knowledge index) and `text-embedding-3-small` deployment for Foundry IQ (ADR-060). The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault and Blob Storage.
+**Single SKU resources** — The Azure App runs entirely in the browser. All deployments include Azure AI Services (model hosting), Key Vault (secure secret storage), App Insights (telemetry), Azure Blob Storage (project sync), and `text-embedding-3-small` deployment for Knowledge Catalyst (Phase 2+, ADR-060). The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault and Blob Storage.
 
-**Conditional variables:**
+**Conditional variables** (kept for backward compatibility; the `variscoutPlan` parameter accepts `'team'` or `'standard'` but all features are provisioned):
 
-| Variable          | Expression                                           | True for        |
-| ----------------- | ---------------------------------------------------- | --------------- |
-| `hasAI`           | `[not(equals(parameters('variscoutPlan'), 'free'))]` | Standard + Team |
-| `hasTeamFeatures` | `[equals(parameters('variscoutPlan'), 'team')]`      | Team only       |
+| Variable          | Expression                                           | Used for                                      |
+| ----------------- | ---------------------------------------------------- | --------------------------------------------- |
+| `hasAI`           | `[not(equals(parameters('variscoutPlan'), 'free'))]` | AI resources (always true in V1)              |
+| `hasTeamFeatures` | `[equals(parameters('variscoutPlan'), 'team')]`      | Blob Storage + embeddings (always true in V1) |
 
 ### Managed Application Package
 
@@ -65,15 +65,11 @@ Before deploying VariScout, the customer must create an App Registration in Azur
 ### Add API Permissions
 
 1. Go to **API permissions > Add a permission > Microsoft Graph > Delegated permissions**
-2. Add permissions based on your plan:
-
-   **Standard plan (€79/month):**
+2. Add permissions (same for all deployments, single SKU):
    - `User.Read` — sign-in and read user profile
+   - `People.Read` — people picker for team assignment
 
-   **Team plan (€199/month) — add all of the above, plus:**
-   - `People.Read` — people picker for action assignment
-
-3. Click **Grant admin consent** (optional — user consent is sufficient for both plans per ADR-059)
+3. Click **Grant admin consent** (optional — user consent is sufficient per ADR-059; zero admin consent required)
 
 ### Create Client Secret
 
@@ -95,11 +91,11 @@ Before deploying VariScout, the customer must create an App Registration in Azur
 
 ### Optional Parameters
 
-| Parameter       | Type   | Default                 | Description                                                                               |
-| --------------- | ------ | ----------------------- | ----------------------------------------------------------------------------------------- |
-| `location`      | string | Resource group location | Azure region for deployment                                                               |
-| `appName`       | string | `variscout-{unique}`    | Name for App Service (3-24)                                                               |
-| `variscoutPlan` | string | `standard`              | Plan: `standard` (local files) or `team` (+ Blob Storage sync, Foundry IQ Knowledge Base) |
+| Parameter       | Type   | Default                 | Description                                                                                    |
+| --------------- | ------ | ----------------------- | ---------------------------------------------------------------------------------------------- |
+| `location`      | string | Resource group location | Azure region for deployment                                                                    |
+| `appName`       | string | `variscout-{unique}`    | Name for App Service (3-24)                                                                    |
+| `variscoutPlan` | string | `team`                  | Plan parameter (kept for template compatibility; single SKU — all features always provisioned) |
 
 ---
 
@@ -130,7 +126,7 @@ Linux B1 plan for hosting the App Service:
 
 ### 2. App Service
 
-Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`. Uses system-assigned managed identity for Key Vault access (Team plan). The client secret is stored as an app setting for EasyAuth to use:
+Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`. Uses system-assigned managed identity for Key Vault access. The client secret is stored as an app setting for EasyAuth to use:
 
 ```json
 {
@@ -205,13 +201,13 @@ Key configuration:
 
 ### 4. AI Services (all plans)
 
-| Resource                 | SKU   | Purpose                                                    | Monthly Cost | Plan                  |
-| ------------------------ | ----- | ---------------------------------------------------------- | ------------ | --------------------- |
-| Azure AI Services        | S0    | Model hosting (gpt-5.4-nano + gpt-5.4-mini)                | ~€15-25      | All plans             |
-| `text-embedding-3-small` | —     | Foundry IQ knowledge index embeddings (1536 dims, ADR-060) | ~€0-1        | Team only             |
-| Azure AI Search Basic    | Basic | Reserved for future cross-project search (not used in v1)  | ~€50-60      | Not provisioned in v1 |
+| Resource                 | SKU   | Purpose                                                       | Monthly Cost | Provisioning          |
+| ------------------------ | ----- | ------------------------------------------------------------- | ------------ | --------------------- |
+| Azure AI Services        | S0    | Model hosting (gpt-5.4-nano + gpt-5.4-mini)                   | ~€15-25      | All Azure App deploys |
+| `text-embedding-3-small` | —     | Knowledge Catalyst embeddings — Phase 2+ (1536 dims, ADR-060) | ~€0-1        | All Azure App deploys |
+| Azure AI Search Basic    | Basic | Reserved for future cross-project search (not used in v1)     | ~€50-60      | Not provisioned in v1 |
 
-AI resources (Azure AI Services, Key Vault, App Insights) are provisioned for both Standard and Team plans via the `hasAI` variable. `text-embedding-3-small` is deployed as part of the Azure AI Services resource for the Team plan via the `hasTeamFeatures` variable. Azure AI Search Basic is listed for reference — Foundry IQ v1 uses embeddings in Blob Storage (brute-force cosine) and does not require Azure AI Search.
+AI resources (Azure AI Services, Key Vault, App Insights) and Blob Storage are provisioned for all Azure App deployments (single SKU). Knowledge Catalyst (Phase 2+) will use embeddings in Blob Storage (brute-force cosine) and may optionally use Azure AI Search.
 
 #### AI Deployment Guardrails
 
@@ -232,11 +228,11 @@ See [Responsible AI Policy](../../05-technical/architecture/responsible-ai-polic
 
 The Node.js server (`server.js`) serves a `/config` endpoint that returns runtime settings from environment variables. This allows Marketplace deployments to configure AI endpoints without rebuilding.
 
-| Variable             | Description                                                 | Plan      |
-| -------------------- | ----------------------------------------------------------- | --------- |
-| `AI_ENDPOINT`        | Azure AI Foundry endpoint                                   | All plans |
-| `AI_EMBEDDING_MODEL` | Embedding deployment name (text-embedding-3-small, ADR-060) | Team      |
-| `STORAGE_ACCOUNT`    | Blob Storage account name for Foundry IQ knowledge index    | Team      |
+| Variable             | Description                                                                |
+| -------------------- | -------------------------------------------------------------------------- |
+| `AI_ENDPOINT`        | Azure AI Foundry endpoint                                                  |
+| `AI_EMBEDDING_MODEL` | Embedding deployment name (text-embedding-3-small, ADR-060)                |
+| `STORAGE_ACCOUNT`    | Blob Storage account name for project sync + Knowledge Catalyst (Phase 2+) |
 
 The client fetches `/config` on startup via `runtimeConfig.ts` and uses the returned values to configure AI service clients. Environment variables without the `VITE_` prefix are invisible to the Vite build — the `/config` endpoint is the only way they reach the client.
 
@@ -267,12 +263,11 @@ The customer provides an app name and selects a region.
 
 ### Plan Selection Step
 
-The customer selects their VariScout plan:
+The customer confirms the single plan:
 
-- **Standard (€79/month)** — Full analysis, local file storage
-- **Team (€199/month)** — + Blob Storage sync, Foundry IQ Knowledge Base, photo evidence, people picker
+- **VariScout (€120/month per tenant)** — Full analysis, CoScout AI, Blob Storage sync, project membership, Knowledge Catalyst, photo evidence, people picker
 
-The selected `variscoutPlan` parameter is passed to the ARM template, which conditionally provisions Team plan resources (Blob Storage, `text-embedding-3-small` deployment) and adjusts EasyAuth login scopes.
+The `variscoutPlan` parameter defaults to `team` (single SKU — all resources always provisioned).
 
 ### Authentication Step
 
@@ -385,19 +380,14 @@ If users can't sign in:
 
 ### Principle of Least Privilege
 
-The template requests only necessary permissions:
+The template requests only necessary permissions (same for all Azure App deployments):
 
-**Standard plan:**
+| Permission    | Scope     | Purpose                           |
+| ------------- | --------- | --------------------------------- |
+| `User.Read`   | Delegated | Get user profile                  |
+| `People.Read` | Delegated | People picker for team assignment |
 
-| Permission  | Scope     | Purpose          |
-| ----------- | --------- | ---------------- |
-| `User.Read` | Delegated | Get user profile |
-
-**Team plan adds:**
-
-| Permission    | Scope     | Purpose                             |
-| ------------- | --------- | ----------------------------------- |
-| `People.Read` | Delegated | People picker for action assignment |
+Zero admin-consent Graph API permissions required per ADR-059.
 
 ### Secret Handling
 

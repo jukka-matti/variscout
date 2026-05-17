@@ -138,7 +138,7 @@ interface ActionItemListProps {
   onUpdate: (actionId: string, updates: Partial<ActionItem>) => void;
   onDelete: (actionId: string) => void;
   onComplete: (actionId: string) => void;
-  enableAssignee?: boolean; // true for Team plan (people picker)
+  enableAssignee?: boolean; // true for Azure App (people picker)
   colorScheme?: ActionItemColorScheme;
 }
 ```
@@ -151,7 +151,7 @@ Each action item row contains:
 | ----------------- | ------------------ | ----------------------------------------------- |
 | Completion        | Checkbox           | Toggles `completedAt` timestamp                 |
 | Action text       | Editable text      | Required, single line                           |
-| Assignee          | People picker      | Team plan only (`enableAssignee`), shows avatar |
+| Assignee          | People picker      | Azure App only (`enableAssignee`), shows avatar |
 | Due date          | Date input         | Optional, native date picker on mobile          |
 | Overdue indicator | `OverdueIndicator` | When `dueDate < now` and not completed          |
 | Delete            | Icon button        | Trash icon, confirms before deletion            |
@@ -212,7 +212,7 @@ interface FindingDetailPanelProps {
   onClose: () => void;
   columnAliases?: Record<string, string>;
   enableActions?: boolean; // false for PWA
-  enableAssignee?: boolean; // true for Team plan
+  enableAssignee?: boolean; // true for Azure App
 }
 ```
 
@@ -611,7 +611,7 @@ A hub is rendered as a named card in the `InvestigationConclusion` area and in t
 
 ### Platform Availability
 
-SuspectedCause hubs are Azure-only (Standard and Team plans). PWA supports `observed → analyzed` finding statuses only and does not expose hub creation.
+SuspectedCause hubs are Azure App only. PWA supports `observed → analyzed` finding statuses only and does not expose hub creation.
 
 See [Investigation Workspace Reframing Design](../../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md) for the full data type and interaction spec.
 

@@ -98,7 +98,7 @@ CoScout is a conversational AI assistant embedded in VariScout, a quality engine
 | Category values      | CSV data values (e.g., "Machine A", "Morning")                                                               |
 | Analyst-written text | Finding descriptions, hypothesis text, action items, process descriptions, problem statements, outcome notes |
 | CoScout conversation | Last 10 messages (user questions + AI responses)                                                             |
-| KB document snippets | Foundry IQ / Remote SharePoint retrieval (400 chars max per document)                                        |
+| KB document snippets | Azure AI Search / Knowledge Catalyst retrieval (Phase 2+, 400 chars max per document)                        |
 
 ### Design decision
 

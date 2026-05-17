@@ -15,7 +15,7 @@ ladders.
 
 This doc captures the principle, the model, and why it's better than the
 enterprise-SaaS default. Companion to [ADR-082](../07-decisions/adr-082-wedge-architecture.md)
-and the [Wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md).
+and the [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md).
 
 ---
 
@@ -266,9 +266,9 @@ unit economics, not a tier on V1.
 
 ## 9. Cross-reference
 
-- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — Wedge
+- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — V1
   architecture decision (the strategic record).
-- [Wedge architecture spec §4](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§4-project-membership-model-new)
+- [V1 architecture spec §4](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§4-project-membership-model-new)
   — Project membership model (canonical V1 design).
 - `packages/core/src/projectMembership/canAccess.ts` — Permission matrix
   source of truth (the only place to update if roles change).

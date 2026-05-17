@@ -4,7 +4,7 @@ title: 'ADR-019: AI Integration (Azure App)'
 
 # ADR-019: AI Integration (Azure App)
 
-**Status:** Accepted. **Pricing revised by [ADR-033](../archive/adrs/adr-033-pricing-simplification.md)** — Team AI tier removed; AI included in all plans, Knowledge Base moved to Team.
+**Status:** Accepted. **Pricing revised by [ADR-033](../archive/adrs/adr-033-pricing-simplification.md)** — Team AI tier removed; AI included in all plans, Knowledge Base moved to Team. **Further superseded by [ADR-082](adr-082-wedge-architecture.md) (2026-05-16):** single €120/month SKU replaces the €79/€199 tier split. The pricing table below preserves the original two-tier model as historical context; the V1 product offers AI optional + Knowledge Base (deferred per ADR-060) in one SKU.
 
 **Date:** 2026-03-14
 

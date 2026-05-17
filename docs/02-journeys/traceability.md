@@ -62,7 +62,7 @@ Bookmark/history → resume work. Azure users land on the Project Dashboard; PWA
 | Step                   | Action                                           | Package                            | Key Components                                              |
 | ---------------------- | ------------------------------------------------ | ---------------------------------- | ----------------------------------------------------------- |
 | 1. Auto-authenticate   | SSO session cookie                               | `apps/azure/src/auth`              | `easyAuth.ts`, `getEasyAuthUser()`                          |
-| 2. Restore analysis    | Load from IndexedDB/OneDrive                     | `@variscout/hooks`                 | `useProjectPersistence`                                     |
+| 2. Restore analysis    | Load from IndexedDB/Blob Storage                 | `@variscout/hooks`                 | `useProjectPersistence`                                     |
 | 3. Land on Dashboard   | Project Dashboard loads (Azure only)             | `apps/azure/src/components`        | `ProjectDashboard`, `panelsStore.activeView`                |
 | 4. Scan project status | Review findings, hypotheses, actions at a glance | `apps/azure/src/components`        | `ProjectStatusCard`, `DashboardSummaryCard`                 |
 | 5a. Continue analysis  | Click "Analysis" workspace tab                   | `apps/azure/src/features/panels`   | `panelsStore.showAnalysis()` (ADR-055)                      |
@@ -76,16 +76,16 @@ Bookmark/history → resume work. Azure users land on the Project Dashboard; PWA
 
 First login → first saved analysis (activation).
 
-| Step                | Action                          | Package                              | Key Components                                                        |
-| ------------------- | ------------------------------- | ------------------------------------ | --------------------------------------------------------------------- |
-| 1. Sign in          | EasyAuth redirect + consent     | `apps/azure/src/auth`                | `easyAuth.ts`                                                         |
-| 2. Load data        | Upload CSV/paste/sample         | `@variscout/core`                    | `parseText()`, `parseFile()`, `detectColumns()`                       |
-| 3. Map columns      | Select outcome + factors        | `@variscout/ui`                      | `ColumnMapping`, `MeasureColumnSelector`                              |
-| 4. View dashboard   | All 4 charts render             | `@variscout/charts`, `@variscout/ui` | `IChart`, `Boxplot`, `Pareto`, `CapabilityHistogram`, `DashboardBase` |
-| 5. First drill-down | Click Boxplot bar → filter      | `@variscout/hooks`                   | `useFilterNavigation`, `useDataState`                                 |
-| 6. Pin finding      | Right-click → "Add observation" | `@variscout/hooks`, `@variscout/ui`  | `useFindings`, `AnnotationContextMenu`, `FindingsPanelBase`           |
-| 7. Add hypothesis   | Link hypothesis to finding      | `@variscout/hooks`                   | `useHypotheses`                                                       |
-| 8. Save             | Persist to IndexedDB/OneDrive   | `@variscout/hooks`                   | `useProjectPersistence`                                               |
+| Step                | Action                            | Package                              | Key Components                                                        |
+| ------------------- | --------------------------------- | ------------------------------------ | --------------------------------------------------------------------- |
+| 1. Sign in          | EasyAuth redirect + consent       | `apps/azure/src/auth`                | `easyAuth.ts`                                                         |
+| 2. Load data        | Upload CSV/paste/sample           | `@variscout/core`                    | `parseText()`, `parseFile()`, `detectColumns()`                       |
+| 3. Map columns      | Select outcome + factors          | `@variscout/ui`                      | `ColumnMapping`, `MeasureColumnSelector`                              |
+| 4. View dashboard   | All 4 charts render               | `@variscout/charts`, `@variscout/ui` | `IChart`, `Boxplot`, `Pareto`, `CapabilityHistogram`, `DashboardBase` |
+| 5. First drill-down | Click Boxplot bar → filter        | `@variscout/hooks`                   | `useFilterNavigation`, `useDataState`                                 |
+| 6. Pin finding      | Right-click → "Add observation"   | `@variscout/hooks`, `@variscout/ui`  | `useFindings`, `AnnotationContextMenu`, `FindingsPanelBase`           |
+| 7. Add hypothesis   | Link hypothesis to finding        | `@variscout/hooks`                   | `useHypotheses`                                                       |
+| 8. Save             | Persist to IndexedDB/Blob Storage | `@variscout/hooks`                   | `useProjectPersistence`                                               |
 
 ### Flow 7: Azure Daily Use
 
@@ -114,7 +114,7 @@ Admin deployment → team onboarding → shared workflows.
 | ------------------ | ------------------------------ | ------------------------- | ---------------------- |
 | 1. Deploy          | ARM template + EasyAuth config | `infra/`                  | `mainTemplate.json`    |
 | 2. Configure Teams | Generate manifest, sideload    | `apps/azure`              | `AdminTeamsSetup`      |
-| 3. Share analysis  | Channel tab + OneDrive sync    | `apps/azure/src/services` | Graph API, SharePoint  |
+| 3. Share analysis  | Teams static tab (view-only)   | `apps/azure/src/services` | EasyAuth, Blob Storage |
 | 4. Team reviews    | Adaptive Cards in Teams        | `apps/azure`              | Status change handlers |
 | 5. Settings        | Theme, accent, AI toggle       | `@variscout/ui`           | `SettingsPanelBase`    |
 
@@ -136,7 +136,7 @@ Field quality engineer on shop floor via Teams mobile.
 
 | Step                 | Action                            | Package            | Key Components                                 |
 | -------------------- | --------------------------------- | ------------------ | ---------------------------------------------- |
-| 1. Open in Teams     | Tab loads in Teams mobile         | `apps/azure`       | Teams SDK                                      |
+| 1. Open in Teams     | Static tab loads in Teams mobile  | `apps/azure`       | EasyAuth (Teams SDK retired per ADR-059)       |
 | 2. Carousel view     | Swipe through charts (<640px)     | `@variscout/ui`    | `DashboardBase` (carousel mode), `useIsMobile` |
 | 3. AI on mobile      | NarrativeBar (tap-expand), chips  | `@variscout/ui`    | `NarrativeBar`, `ChartInsightChip`             |
 | 4. Drill on phone    | Tap category → filter             | `@variscout/hooks` | `useFilterNavigation`                          |
@@ -173,24 +173,24 @@ Field quality engineer on shop floor via Teams mobile.
 
 ### Hooks Package (`@variscout/hooks`)
 
-| Hook                    | Serves Flows | Purpose in Journey                    |
-| ----------------------- | ------------ | ------------------------------------- |
-| `useFilterNavigation`   | 6, 7, 10     | Drill-down with breadcrumb trail      |
-| `useDataState`          | 6, 7, 10     | Shared DataContext state              |
-| `useDataIngestion`      | 6, 7         | File upload and data parsing          |
-| `useFindings`           | 6, 7, 10     | Finding CRUD, status transitions      |
-| `useHypotheses`         | 6, 7         | Hypothesis tree, auto-validation      |
-| `useProjectPersistence` | 5, 6, 7, 8   | IndexedDB + OneDrive save/load        |
-| `useNarration`          | 7, 9, 10     | NarrativeBar state management         |
-| `useChartInsights`      | 7, 9, 10     | Per-chart AI suggestion orchestration |
-| `useAICoScout`          | 7, 9, 10     | CoScout conversation state            |
-| `useAIContext`          | 7, 9         | AI context building                   |
-| `useChartCopy`          | 7            | Chart export (clipboard, PNG, SVG)    |
-| `useVerificationCharts` | 7            | Staged analysis chart toggle          |
-| `useReportSections`     | 7, 10        | Report type detection + composition   |
-| `useLocaleState`        | All          | Locale preference state               |
-| `useTranslation`        | All          | Component-level translation           |
-| `useTier`               | 5            | License tier React hook               |
+| Hook                    | Serves Flows | Purpose in Journey                                        |
+| ----------------------- | ------------ | --------------------------------------------------------- |
+| `useFilterNavigation`   | 6, 7, 10     | Drill-down with breadcrumb trail                          |
+| `useDataState`          | 6, 7, 10     | Shared DataContext state                                  |
+| `useDataIngestion`      | 6, 7         | File upload and data parsing                              |
+| `useFindings`           | 6, 7, 10     | Finding CRUD, status transitions                          |
+| `useHypotheses`         | 6, 7         | Hypothesis tree, auto-validation                          |
+| `useProjectPersistence` | 5, 6, 7, 8   | IndexedDB + Blob Storage save/load                        |
+| `useNarration`          | 7, 9, 10     | NarrativeBar state management                             |
+| `useChartInsights`      | 7, 9, 10     | Per-chart AI suggestion orchestration                     |
+| `useAICoScout`          | 7, 9, 10     | CoScout conversation state                                |
+| `useAIContext`          | 7, 9         | AI context building                                       |
+| `useChartCopy`          | 7            | Chart export (clipboard, PNG, SVG)                        |
+| `useVerificationCharts` | 7            | Staged analysis chart toggle                              |
+| `useReportSections`     | 7, 10        | Report type detection + composition                       |
+| `useLocaleState`        | All          | Locale preference state                                   |
+| `useTranslation`        | All          | Component-level translation                               |
+| `useTier`               | 5            | Channel validation (tier-gating retired V1 — see ADR-082) |
 
 ### UI Package (`@variscout/ui`)
 
@@ -217,13 +217,13 @@ Field quality engineer on shop floor via Teams mobile.
 
 ### Azure App (`apps/azure/`)
 
-| Module                              | Serves Flows  | Purpose in Journey                   |
-| ----------------------------------- | ------------- | ------------------------------------ |
-| `auth/easyAuth.ts`                  | 5, 6, 7, 8, 9 | SSO authentication                   |
-| `services/aiService.ts`             | 7, 9          | AI API calls, caching, model routing |
-| `features/ai/useAIOrchestration.ts` | 7, 9          | AI integration in editor             |
-| `AdminTeamsSetup`                   | 8             | Teams manifest generation            |
-| `services/` (Graph API)             | 8             | OneDrive/SharePoint storage          |
+| Module                              | Serves Flows  | Purpose in Journey                                |
+| ----------------------------------- | ------------- | ------------------------------------------------- |
+| `auth/easyAuth.ts`                  | 5, 6, 7, 8, 9 | SSO authentication                                |
+| `services/aiService.ts`             | 7, 9          | AI API calls, caching, model routing              |
+| `features/ai/useAIOrchestration.ts` | 7, 9          | AI integration in editor                          |
+| `AdminTeamsSetup`                   | 8             | Teams manifest generation                         |
+| `services/` (storage)               | 8             | Blob Storage sync (Graph API retired per ADR-059) |
 
 ### Infrastructure (`infra/`)
 

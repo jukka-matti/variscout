@@ -23,7 +23,7 @@ variscout-lite/
 │   └── ui/            # @variscout/ui - Shared UI utilities
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite)
-│   ├── azure/         # Azure Team App (EasyAuth + OneDrive sync)
+│   ├── azure/         # Azure App (EasyAuth + Blob Storage sync)
 │   └── website/       # Marketing website (Astro + React Islands)
 └── docs/              # Documentation
 ```

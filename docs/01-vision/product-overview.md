@@ -4,7 +4,7 @@ audience: [business, analyst]
 category: methodology
 status: stable
 last-reviewed: 2026-05-16
-related: [wedge, adr-082, philosophy, positioning, specifications, feature-parity, journey]
+related: [adr-082, philosophy, positioning, specifications, feature-parity, journey]
 ---
 
 # VariScout: Product Overview
@@ -15,7 +15,7 @@ related: [wedge, adr-082, philosophy, positioning, specifications, feature-parit
 
 We deliberately chose investigation depth over statistical breadth. Instead of competing with Minitab on test coverage, we built the investigation methodology (Turtiainen 2019) into the product: FRAME → SCOUT → INVESTIGATE → IMPROVE as the journey spine, question-driven EDA as the core workflow, and three evidence types (data, gemba, expert) as the investigation backbone.
 
-Canonical V1 design lives in the [wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md).
+Canonical V1 design lives in the [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md).
 
 ---
 
@@ -167,7 +167,7 @@ variscout-lite/
 
 The following migrate to VariScout Process as a future, separate product. Not "coming soon" inside V1:
 
-- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to single Specialist + project-membership roles
+- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to single Specialist + project-membership roles (V1 spec §3.5; canonical design: [four-personas.md](variscout-process/four-personas.md))
 - Process Hub as a user-visible primary container — V1 keeps Hub internal-only
 - Automated data pipelines (sensor / SCADA / MES / ERP feeds)
 - Multi-Hub portfolio scans + cross-Hub orchestration
@@ -175,14 +175,14 @@ The following migrate to VariScout Process as a future, separate product. Not "c
 - Tier-gating philosophy as a public-facing concept
 - Cross-Azure-AD-tenant invitations (Azure AD guest accounts handle the edge case)
 
-See [wedge spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for the canonical out-of-V1 list.
+See [V1 spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for the canonical out-of-V1 list.
 
 ---
 
 _See also:_
 
-- [Wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
-- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — Wedge architecture decision
+- [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
+- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — V1 architecture decision
 - [USER-JOURNEYS](../USER-JOURNEYS.md) — V1 single-persona spine + project-membership roles
 - [OVERVIEW](../OVERVIEW.md) — What VariScout does in practice
 - [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€120) capability matrix

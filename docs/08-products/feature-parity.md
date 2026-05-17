@@ -4,14 +4,14 @@ audience: [business, product]
 category: strategy
 status: stable
 last-reviewed: 2026-05-16
-related: [tiers, wedge, pricing, modes]
+related: [tiers, pricing, modes]
 ---
 
 # Feature Parity Matrix
 
 Feature availability across the two V1 platforms: **PWA** (free, training/evaluation, session-only) and **Azure** (€120/month, Azure Marketplace Managed Application, persistent, AI-enabled).
 
-Canonical V1 design lives in the [wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md). The legacy Azure Standard (€79) / Azure Team (€199) two-plan model is retired; everything that was previously Standard or Team is now part of the single €120 SKU. Features that need team collaboration (photo evidence, project sharing, Knowledge Catalyst, team assignment) are **project-membership-role-gated inside Azure** rather than tier-gated — see [Project-membership-role gating](#project-membership-role-gating) at the bottom.
+Canonical V1 design lives in the [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md). The legacy Azure Standard (€79) / Azure Team (€199) two-plan model is retired; everything that was previously Standard or Team is now part of the single €120 SKU. Features that need team collaboration (photo evidence, project sharing, Knowledge Catalyst, team assignment) are **project-membership-role-gated inside Azure** rather than tier-gated — see [Project-membership-role gating](#project-membership-role-gating) at the bottom.
 
 ---
 
@@ -159,11 +159,11 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **ChartInsightChip**            |  -  | Optional                  | Per-chart contextual suggestions.                                                                                                           |
 | **CoScoutPanel**                |  -  | ✓                         | Methodology-grounded coaching; tier1/2/3 prompt layering; mode-aware; 27-tool registry.                                                     |
 | **Voice input to CoScout**      |  -  | Optional                  | Azure only. Tap/hold to transcribe into the normal CoScout draft. Replies remain text in v1.                                                |
-| **Knowledge Base**              |  -  | Beta (ADR-060)            | Foundry IQ unified knowledge index. Per-project Blob Storage embeddings replace SharePoint search.                                          |
+| **Knowledge Base**              |  -  | Beta (ADR-060, Phase 2+)  | Azure AI Search unified knowledge index (Phase 2+). Per-project Blob Storage embeddings. SharePoint/Foundry IQ deferred per ADR-059.        |
 | **Knowledge Catalyst**          |  -  | ✓ (membership-role-gated) | Organizational learning — resolved findings feed back into AI memory. Available within a Project; Lead role configures, Members contribute. |
 | **Process description field**   |  -  | Optional                  | Free-text process context for AI grounding.                                                                                                 |
 | **AI visibility toggle**        |  -  | Optional                  | Per-user "Show AI assistance" setting; default ON when endpoint exists.                                                                     |
-| **Knowledge Base Search**       |  -  | Beta (ADR-060)            | Foundry IQ semantic search over per-project knowledge index.                                                                                |
+| **Knowledge Catalyst Search**   |  -  | Beta (ADR-060, Phase 2+)  | Azure AI Search semantic search over per-project knowledge index. Phase 2+.                                                                 |
 | **Findings Export (CSV/JSON)**  |  -  | ✓                         | Download findings as CSV (Excel-compatible) or structured JSON.                                                                             |
 | **Findings Export (AI Report)** |  -  | Optional                  | AI-generated quality engineering report from findings data.                                                                                 |
 | **Admin Hub**                   |  -  | ✓                         | Health checks, plan overview, Teams setup, KB setup, troubleshooting.                                                                       |
@@ -315,11 +315,11 @@ Role-gated features:
 | Knowledge Catalyst contribution  |  ✓   |   ✓    |    -    | Resolved findings feed organizational AI memory. Lead configures; Members contribute. |
 | Findings/Hypothesis edits        |  ✓   |   ✓    |    -    | Sponsor sees them in the Report; cannot edit.                                         |
 | Action edits                     |  ✓   |   ✓    |    -    |                                                                                       |
-| Lifecycle stage transitions      |  ✓   |   -    |    -    | Charter → Approach → Improve → Sustainment moves are Lead-only.                       |
+| Lifecycle stage transitions      |  ✓   |   -    |    -    | Charter → Approach → Sustainment moves are Lead-only (Improve is a top-level tab).    |
 | Report view                      |  ✓   |   ✓    |    ✓    | Sponsor's only access. Audience toggle (Technical / Summary) available to all roles.  |
 | Report Save As / Share           |  ✓   |   ✓    |    -    | Sponsor can view in product; sharing artefacts is a Lead/Member function.             |
 
-Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide — this baseline analysis capability is not gated by project membership. Only the formal Project artifacts (Charter, Approach, Improve, Sustainment, Report) and the team-collaboration features above are membership-scoped.
+Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide — this baseline analysis capability is not gated by project membership. Only the formal Project artifacts (Charter, Approach, Sustainment) and the Improve tab (action tracker) and the team-collaboration features above are membership-scoped.
 
 ---
 
@@ -327,7 +327,7 @@ Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide
 
 The legacy multi-persona / Hub-portfolio framing migrates to **VariScout Process**, a future enterprise product. It is not announced in V1 marketing and is mentioned only when customers ask about enterprise / process-ownership use cases. Deferred scope includes:
 
-- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to a single Improvement Specialist + project-membership roles
+- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to a single Improvement Specialist + project-membership roles (V1 spec §3.5; canonical design: [four-personas.md](../01-vision/variscout-process/four-personas.md))
 - Process Hub as a user-visible primary container — V1 keeps Hub internal-only
 - Process-owner cadence + Current Process State surfaces
 - Multi-Hub portfolio scans + cross-Hub orchestration
@@ -336,7 +336,7 @@ The legacy multi-persona / Hub-portfolio framing migrates to **VariScout Process
 - Five-response-path canvas drill (V1 reduces to 3: Investigate, Quick Action, Charter; Sustainment auto-fires; Handoff folds into Sustainment closure)
 - Trainer / Student / Curious / Evaluator / Admin / Field persona variants — V1 single-persona, addressed via PWA vs Azure tier choice + project-membership role
 
-These aren't lost — they're moved to a separate roadmap. See [USER-JOURNEYS.md](../USER-JOURNEYS.md) "What's out of V1 scope" and the [wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for canonical V1 boundaries.
+These aren't lost — they're moved to a separate roadmap. See [USER-JOURNEYS.md](../USER-JOURNEYS.md) "What's out of V1 scope" and the [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for canonical V1 boundaries.
 
 ---
 
@@ -361,8 +361,8 @@ These aren't lost — they're moved to a separate roadmap. See [USER-JOURNEYS.md
 - [Membership Philosophy](membership-philosophy.md) — How V1 access control works (one product, role-based access inside)
 - [Azure App](azure/index.md)
 - [PWA (Free Training Tool)](pwa/index.md)
-- [Wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
-- [ADR-082: Wedge architecture](../07-decisions/adr-082-wedge-architecture.md)
+- [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
+- [ADR-082: V1 architecture (was: Wedge architecture)](../07-decisions/adr-082-wedge-architecture.md)
 - [ADR-007: Distribution Strategy](../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [ADR-015: Investigation Board](../07-decisions/adr-015-investigation-board.md)
 - [ADR-059: Web-First Deployment Architecture](../07-decisions/adr-059-web-first-deployment-architecture.md)

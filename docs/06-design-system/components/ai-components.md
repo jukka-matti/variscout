@@ -13,7 +13,7 @@ NarrativeBar, ChartInsightChip, and CoScoutPanel for AI-assisted analysis.
 
 ## Availability
 
-Azure App only (Standard and Team plans). All AI components require:
+Azure App only. All AI components require:
 
 1. AI endpoint configured in ARM deployment (`enableAI` parameter)
 2. User Settings toggle "Show AI assistance" set to ON
@@ -598,7 +598,7 @@ Collapsible sidebar in the FindingsWindow popout that provides investigation-awa
 
 ### Availability
 
-Azure App only (Standard and Team plans). Requires AI endpoint configured and "Show AI assistance" toggle ON. Hidden when AI is unavailable — no empty space or placeholder.
+Azure App only. Requires AI endpoint configured and "Show AI assistance" toggle ON. Hidden when AI is unavailable — no empty space or placeholder.
 
 ### Layout
 

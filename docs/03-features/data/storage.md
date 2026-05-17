@@ -111,7 +111,7 @@ These are ephemeral UI states that reset on each session:
 
 ```
 Save:
-  getCurrentState() → AnalysisState JSON → IndexedDB → OneDrive (.vrs)
+  getCurrentState() → AnalysisState JSON → IndexedDB → Blob Storage (.vrs)
 
 Load:
   .vrs JSON → loadProject() → set all state fields → UI renders

@@ -7,18 +7,18 @@ status: stable
 
 # Azure App Storage
 
-Browser persistence with customer-tenant Blob Storage sync for the Team plan.
+Browser persistence with customer-tenant Blob Storage sync (Azure App, single €120 SKU).
 
 ---
 
 ## Overview
 
-Storage behavior depends on the plan:
+The Azure App uses two-tier storage (single €120 SKU, no plan split):
 
-- **Standard plan (€79/month)**: Local-only storage via **IndexedDB** (Dexie.js). All projects are saved and loaded from the browser. No cloud sync.
-- **Team plan (€199/month)**: Two-tier storage - **IndexedDB** (local cache/resilience) + **Azure Blob Storage** (customer-tenant shared sync path). Every save writes to IndexedDB first, then syncs to Blob Storage when online. Loads prefer the cloud version and fall back to local when offline.
+- **IndexedDB** (Dexie.js): Local browser cache + resilience. All projects are saved and loaded from IndexedDB first.
+- **Azure Blob Storage**: Customer-tenant shared sync path. Every save writes to IndexedDB first, then syncs to Blob Storage when online. Loads prefer the cloud version and fall back to local when offline.
 
-Both plans use IndexedDB in the browser. Team uses Blob Storage as the shared team source for projects, Process Hubs, and artifacts.
+Both tiers are available to all Azure App users. Blob Storage is the shared team source for projects, Process Hubs, and artifacts.
 
 ---
 
@@ -38,42 +38,42 @@ Source: `apps/azure/src/db/schema.ts`
 
 ## Save Flow
 
-> The cloud sync steps below apply to the **Team plan only**. Standard plan saves to IndexedDB and stops.
+> The cloud sync steps below apply to the **Azure App**. PWA saves to IndexedDB and stops at step 4.
 
 ```
 User clicks Save
        │
        ▼
-saveToIndexedDB()          ← instant local cache (both plans)
+saveToIndexedDB()          ← instant local cache
        │
-       ├── Online? ──Yes──▶ saveToCloud() via Blob Storage  (Team plan only)
+       ├── Online? ──Yes──▶ saveToCloud() via Blob Storage
        │                           │
        │                    ├── Success → markAsSynced() → status: 'synced'
        │                    └── Failure → addToSyncQueue() → status: 'offline'
        │
-       └── Offline ──────▶ addToSyncQueue() → status: 'offline'  (Team plan only)
+       └── Offline ──────▶ addToSyncQueue() → status: 'offline'
 ```
 
 ---
 
 ## Load Flow
 
-> The cloud load steps below apply to the **Team plan only**. Standard plan loads from IndexedDB directly.
+> The cloud load steps below apply to the **Azure App** (Blob Storage sync).
 
 ```
 loadProject(name)
        │
-       ├── Online? ──Yes──▶ loadFromCloud() via Blob Storage  (Team plan only)
+       ├── Online? ──Yes──▶ loadFromCloud() via Blob Storage  (Azure App)
        │                           │
        │                    ├── Found → cache to IndexedDB → return
        │                    └── Error → fall through to local
        │
-       └── Fallback ──────▶ loadFromIndexedDB() → return  (both plans)
+       └── Fallback ──────▶ loadFromIndexedDB() → return  (all users)
 ```
 
 ---
 
-## Sync Triggers (Team Plan Only)
+## Sync Triggers
 
 Sync to Blob Storage happens on:
 
@@ -108,7 +108,7 @@ Source: `apps/azure/src/services/storage.ts`
 
 ---
 
-## Sync Status States (Team Plan Only)
+## Sync Status States
 
 | Status     | Meaning                                                           |
 | ---------- | ----------------------------------------------------------------- |
@@ -121,7 +121,7 @@ Source: `apps/azure/src/services/storage.ts`
 
 ---
 
-## Blob Storage Structure (Team Plan Only)
+## Blob Storage Structure
 
 ```
 container/
@@ -150,11 +150,11 @@ Files are `.vrs` extension, containing JSON-serialized `AnalysisState` (see `doc
 | Display options      | localStorage | No                     |
 | Theme preference     | localStorage | No                     |
 
-> Standard plan stores all project data in IndexedDB only. The "Synced to Cloud" column applies to the Team plan.
+> All Azure App users have access to Blob Storage sync. PWA users store data locally only.
 
 ---
 
-## Queue Pruning (Team Plan Only)
+## Queue Pruning
 
 Stale sync queue items (older than 30 days) are pruned on app mount via `pruneSyncQueue()`. This prevents unbounded queue growth if the user is offline for extended periods.
 

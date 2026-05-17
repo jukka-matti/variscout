@@ -308,7 +308,7 @@ interface ActionItem {
 ```
 
 - **Action text** — What needs to be done (required)
-- **Assignee** — Person responsible (people picker, optional; Team plan enables team-wide picker)
+- **Assignee** — Person responsible (people picker, optional; Azure App enables team-wide picker via `People.Read`)
 - **Due date** — When the action should be completed (optional)
 - **Completion** — Checkbox to mark done (sets `completedAt` timestamp)
 
@@ -365,7 +365,7 @@ actions taken, effectiveness, Cpk improvement) is available for the AI knowledge
 - Action suggestions: "For similar findings, nozzle replacement has a 90% success rate"
 - Improvement tracking: "Average Cpk improvement for resolved findings: +0.45"
 
-Knowledge base features are Team plan only and require Phase 2 AI deployment.
+Knowledge Catalyst features are Azure App only and require Phase 2 AI deployment.
 
 ### Board View
 
@@ -421,7 +421,7 @@ See [Drill-Down Workflow](drill-down-workflow.md) for detailed drill-down mechan
 
 ### Teams Auto-Posting
 
-When a finding reaches key statuses, VariScout auto-posts to the Teams channel (Team plan only):
+When a finding reaches key statuses, VariScout auto-posts to the Teams channel (Azure App, via planned Teams Incoming Webhook):
 
 **On Analyzed** (with suspected cause + actions):
 

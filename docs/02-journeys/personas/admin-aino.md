@@ -102,7 +102,7 @@ journey
 Admin Hub (shield icon)
 ├── Status (health checks)
 │   ├── Authentication
-│   ├── Blob Storage (Team plan)
+│   ├── Blob Storage (Azure App)
 │   └── AI endpoint
 ├── Plan & Features (feature matrix)
 └── Troubleshooting (diagnostics + Portal links)

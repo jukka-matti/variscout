@@ -85,7 +85,7 @@ flowchart TB
 
     subgraph Persistence["Storage"]
         CTX --> IDB[(IndexedDB)]
-        CTX --> OD[("OneDrive (Team plan)")]
+        CTX --> OD[("Blob Storage (Azure App)")]
     end
 ```
 
@@ -388,10 +388,10 @@ flowchart TB
         IDB[("IndexedDB")]
     end
 
-    subgraph Cloud["Cloud Storage (Team plan only)"]
-        EA["EasyAuth"] --> TK["Access Token"]
-        TK --> GRAPH["Graph API"]
-        GRAPH --> OD[("OneDrive")]
+    subgraph Cloud["Cloud Storage (Azure App)"]
+        EA["EasyAuth"] --> TK["Session Token"]
+        TK --> STAPI["/api/storage-token"]
+        STAPI --> OD[("Blob Storage")]
     end
 
     AS -->|"Dexie.js"| IDB

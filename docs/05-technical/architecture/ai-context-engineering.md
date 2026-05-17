@@ -278,7 +278,7 @@ Already typed in `AIContext.investigation`. Populated from FindingsPanel active 
 
 - **Type:** `{ count: number; hypothesisAreas: string[] }`
 - **Purpose:** CoScout coordinates multi-investigator Teams scenarios
-- **Note:** Only populated in Azure Team plan when findings have author metadata
+- **Note:** Only populated in Azure App when findings have author metadata (project membership context)
 
 ---
 
@@ -337,7 +337,7 @@ stagedComparison?: {
 
 ## 8. Knowledge Documents Context
 
-When the Knowledge Base is available (Azure Team plan):
+When Knowledge Catalyst is available (Azure App, Phase 2+):
 
 ```typescript
 knowledgeDocuments?: Array<{
@@ -514,4 +514,4 @@ Cache keys use `djb2Hash` from `@variscout/core`.
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
 - [ADR-027: AI Collaborator Evolution](../../07-decisions/adr-027-ai-collaborator-evolution.md)
 - [ADR-049: CoScout Knowledge Catalyst](../../07-decisions/adr-049-coscout-context-and-memory.md)
-- [ADR-060: CoScout Intelligence Architecture](../../07-decisions/adr-060-coscout-intelligence-architecture.md) — Pillar 1 (investigation context enrichment), position-aware ordering, Foundry IQ knowledge index
+- [ADR-060: CoScout Intelligence Architecture](../../07-decisions/adr-060-coscout-intelligence-architecture.md) — Pillar 1 (investigation context enrichment), position-aware ordering, Knowledge Catalyst index

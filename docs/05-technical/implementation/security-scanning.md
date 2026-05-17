@@ -70,15 +70,15 @@ VariScout is offline-first with no backend. Key security areas:
 ### Azure EasyAuth (Azure App Only)
 
 - App Service Authentication (EasyAuth) — no MSAL libraries
-- API permissions: Standard plan = `User.Read` only; Team plan adds `People.Read`
+- API permissions: `User.Read` + `People.Read` (both user-consent, zero admin consent)
 - Zero admin-consent scopes (ADR-059)
 - Token store via `/.auth/me` endpoint
 - Periodic background token refresh (45-minute interval) prevents session expiry
 
-### Knowledge Base API Endpoints (Team Plan, ADR-060)
+### Knowledge Catalyst API Endpoints (Azure App, Phase 2+, ADR-060)
 
 - All KB endpoints (`/api/kb-*`) validate EasyAuth token via `x-ms-client-principal` header
-- Team tier enforcement via `requireTeamPlan` middleware
+- Phase availability enforced via ARM feature flag (deployed when AI Foundry is enabled)
 - UUID validation on `projectId` and `documentId` parameters (prevents OData filter injection)
 - Project-level data isolation via server-computed `projectId` filter
 - See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for architecture
@@ -93,7 +93,7 @@ The security audit worker excludes non-application paths (`.venv/`, `node_module
 | ------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------ |
 | Security headers (CSP, HSTS, Permissions-Policy)              | Azure App, PWA, Website | See [deployment.md](deployment.md)                                             |
 | EasyAuth (zero admin-consent, ADR-059)                        | Azure App               | See [authentication.md](../../08-products/azure/authentication.md)             |
-| KB endpoint auth + UUID validation (ADR-060)                  | Azure App (Team plan)   | See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) |
+| KB endpoint auth + UUID validation (ADR-060)                  | Azure App (Phase 2+)    | See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) |
 | Service worker (Workbox via vite-plugin-pwa)                  | PWA                     | See [PWA docs](../../08-products/pwa/index.md)                                 |
 | Supply chain (Dependabot, SHA-pinned actions, CycloneDX SBOM) | CI/CD                   | See [deployment.md](deployment.md)                                             |
 | Transitive dependency overrides (17 overrides)                | All packages            | See "Transitive Dependency Overrides" section above                            |
@@ -105,7 +105,7 @@ The security audit worker excludes non-application paths (`.venv/`, `node_module
 
 - [ ] PWA icons — generate `pwa-192x192.png` and `pwa-512x512.png` (requires image generation)
 - [ ] Penetration testing — engage external vendor before Marketplace GA
-- [ ] Threat model — STRIDE model covering EasyAuth, OBO, OneDrive sync, service worker
+- [ ] Threat model — STRIDE model covering EasyAuth, Blob Storage sync, service worker (OBO/OneDrive retired per ADR-059)
 - [ ] Incident response plan — classification, escalation paths, response procedures
 
 ## When to Run

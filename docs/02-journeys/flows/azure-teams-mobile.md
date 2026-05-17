@@ -165,7 +165,7 @@ When offline or sync is in progress, show a status icon in the phone toolbar are
 [←] [Project name (truncated)] [☁️] [💾] [⋮]
 ```
 
-The sync icon (☁️) is 20px, positioned between the project name and save button. Tap opens a brief toast with sync details. Only shown on Azure Team plan (`isTeamPlan()`).
+The sync icon (☁️) is 20px, positioned between the project name and save button. Tap opens a brief toast with sync details. Shown on Azure App when Blob Storage sync is active.
 
 ---
 

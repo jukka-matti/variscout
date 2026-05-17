@@ -18,6 +18,8 @@ related:
 
 **Date**: 2026-05-05
 
+**Amendment — 2026-05-16:** D5 (tier-feature gating via `isPaidTier()`) superseded by [ADR-082](adr-082-wedge-architecture.md). V1 ships as a single €120 SKU — tier-gating retires. Feature access now uses `canAccess()` from `@variscout/core/projectMembership` where project-role gating is meaningful. The rest of this ADR (D1–D4, shared architecture decisions) remains in force.
+
 **Supersedes**: The "State via React Context (`DataContext`). No Zustand stores in PWA." invariant previously documented in `apps/pwa/CLAUDE.md` (no formal ADR — the rule was an aspirational invariant that drifted silently as the PWA matured).
 
 **Related**:

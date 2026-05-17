@@ -58,9 +58,9 @@ The brainstorm modal opens per cause from the "💡 Brainstorm" button in the Id
 
 See [HMW Brainstorm Modal Design](../../archive/specs/2026-04-03-hmw-brainstorm-modal-design.md) for the full spec.
 
-### Collaborative Sessions (Team Plan)
+### Collaborative Sessions (Azure App)
 
-Team plan users can invite colleagues to brainstorm together in real-time. Ideas appear on all screens via SSE. Team members with the same project open auto-detect active sessions via toast notification.
+Azure App users with project membership can invite colleagues to brainstorm together in real-time. Ideas appear on all screens via SSE. Team members with the same project open auto-detect active sessions via toast notification.
 
 See [ADR-061](../../07-decisions/adr-061-hmw-brainstorm-ideation.md) for architectural decisions.
 
@@ -235,7 +235,7 @@ Key types in `@variscout/core/types`:
 
 ## Platform Availability
 
-The Improvement workspace is Azure-only (Standard and Team plans). The PWA includes finding statuses `observed`, `investigating`, and `analyzed` only — the `improving` and `resolved` statuses, action items, What-If integration, verification, and outcome assessment require the Azure app. See [feature-parity.md](../../08-products/feature-parity.md) for the full comparison.
+The Improvement workspace is Azure-only (single €120 SKU). The PWA includes finding statuses `observed`, `investigating`, and `analyzed` only — the `improving` and `resolved` statuses, action items, What-If integration, verification, and outcome assessment require the Azure app. See [feature-parity.md](../../08-products/feature-parity.md) for the full comparison.
 
 ## Related
 

@@ -114,7 +114,7 @@ VariScout has a minimal attack surface for certification:
 
 - **Browser SPA** — all statistical processing runs in the browser
 - **No backend API** — no server-side code to exploit
-- **Customer-owned storage** — Team sync uses customer-tenant Blob Storage. Standard plan has no cloud sync.
+- **Customer-owned storage** — Azure App uses customer-tenant Blob Storage sync. PWA uses local storage only.
 - **EasyAuth** — authentication handled entirely by Azure App Service platform
 - **HTTPS enforced** — `httpsOnly: true` in ARM template
 - **TLS 1.2 minimum** — `minTlsVersion: "1.2"` in site config

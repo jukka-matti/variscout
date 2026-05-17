@@ -71,7 +71,7 @@ A hypothesis can only be marked as "supported" when at least one validation type
 
 **VariScout capability:**
 
-- **Knowledge Base (Team plan):** Resolved findings with verified outcomes feed a searchable knowledge index. Over time, this builds organizational memory of what causes variation and which corrective actions are effective
+- **Knowledge Catalyst (Azure App, Phase 2+):** Resolved findings with verified outcomes feed a searchable knowledge index. Over time, this builds organizational memory of what causes variation and which corrective actions are effective
 - **Negative learnings:** Ruled-out factors and disproven hypotheses are preserved in the question tree, documenting what was checked and dismissed. This prevents future teams from re-investigating dead ends
 - **Knowledge Catalyst:** The AI assistant (CoScout) draws on the knowledge index to suggest actions based on past successes: "For similar findings, nozzle replacement has a 90% success rate"
 
@@ -164,7 +164,7 @@ The 5-status finding model directly implements the corrective action lifecycle r
 - **Improvement ideation:** Structured brainstorming using four directions (Prevent / Detect / Simplify / Eliminate) with feasibility criteria (removes root cause? can we do it ourselves? can we try small? can we measure it?)
 - **What-If Simulator:** Projects the impact of proposed improvements on Cpk and yield before implementation, enabling evidence-based investment decisions
 - **Cpk before/after verification:** Objective measurement of improvement effectiveness using staged analysis. The projected vs. actual learning loop ("Projected 1.35 → Actual 1.42") builds estimation confidence over time
-- **Knowledge Base contribution (Team plan):** Resolved findings with verified outcomes feed the knowledge index, enabling pattern recognition across investigations: "Average Cpk improvement for resolved findings: +0.45"
+- **Knowledge Catalyst contribution (Azure App, Phase 2+):** Resolved findings with verified outcomes feed the knowledge index, enabling pattern recognition across investigations: "Average Cpk improvement for resolved findings: +0.45"
 
 **Auditor evidence:** Improvement ideas with projections, corrective action completion records, Cpk trend data (before/after), resolved finding outcomes, Knowledge Base index
 
@@ -174,12 +174,12 @@ The 5-status finding model directly implements the corrective action lifecycle r
 
 ISO 9001:2026 adds new emphasis on digitalization, data-driven decision-making, and organizational knowledge management. VariScout directly supports these new requirements:
 
-| 2026 Emphasis             | VariScout Capability                                                                                                                                       |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Digitalization**        | Browser-based tool replacing paper forms and spreadsheets. All investigation data is structured, searchable, and exportable                                |
-| **Data-driven decisions** | Statistical evidence (η², Cpk, p-values) quantifies every claim. AI explains but never replaces statistical authority                                      |
-| **Knowledge management**  | Resolved findings build a searchable knowledge index (Team plan). Negative learnings are preserved. Question trees document the full investigation journey |
-| **Measured outcomes**     | Cpk before/after provides objective verification that improvements are effective, not just implemented                                                     |
+| 2026 Emphasis             | VariScout Capability                                                                                                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Digitalization**        | Browser-based tool replacing paper forms and spreadsheets. All investigation data is structured, searchable, and exportable                                          |
+| **Data-driven decisions** | Statistical evidence (η², Cpk, p-values) quantifies every claim. AI explains but never replaces statistical authority                                                |
+| **Knowledge management**  | Resolved findings build a searchable knowledge index (Azure App, Phase 2+). Negative learnings are preserved. Question trees document the full investigation journey |
+| **Measured outcomes**     | Cpk before/after provides objective verification that improvements are effective, not just implemented                                                               |
 
 ---
 
@@ -230,9 +230,9 @@ VariScout creates the following documented information relevant to ISO 9001:2026
 | **Outcome assessment**  | Effectiveness (yes/no/partial), Cpk before/after, verification notes                                  | Project lifetime |
 | **Improvement ideas**   | Idea text, direction, timeframe, cost, risk, What-If projection                                       | Project lifetime |
 | **Statistical exports** | Chart images (PNG/SVG), data exports (CSV), report PDFs                                               | User-managed     |
-| **Knowledge Base**      | Resolved finding outcomes searchable for future investigations (Team plan)                            | Project lifetime |
+| **Knowledge Catalyst**  | Resolved finding outcomes searchable for future investigations (Azure App, Phase 2+)                  | Project lifetime |
 
-All records are stored in the customer's own infrastructure (browser IndexedDB for Standard; Azure Blob Storage for Team). No audit data leaves the customer's environment.
+All records are stored in the customer's own infrastructure (browser IndexedDB for PWA; Azure Blob Storage for Azure App). No audit data leaves the customer's environment.
 
 ---
 

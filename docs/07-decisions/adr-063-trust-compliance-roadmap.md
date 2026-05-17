@@ -23,9 +23,9 @@ VariScout's customer-tenant deployment model (Azure Managed Application, per ADR
 
 - **Zero shared infrastructure** — every customer gets their own App Service, Storage Account, AI Services, and Key Vault, deployed into their own Azure subscription
 - **No publisher access** — the ARM template does not include `publisherManagement` authorization; the publisher has zero access to customer resources after deployment
-- **No backend API** — Standard plan serves a static SPA via `WEBSITE_RUN_FROM_PACKAGE`; all data processing happens in the browser
-- **Zero admin consent** — both tiers require only `User.Read` (user-consent), reduced from 5 admin-consent Graph API scopes in the previous architecture (ADR-059)
-- **Browser-only data** — Standard plan stores data exclusively in browser IndexedDB; Team plan adds Azure Blob Storage within the customer's own resource group
+- **No backend API** — Azure App serves a static SPA via `WEBSITE_RUN_FROM_PACKAGE` (with a single `/api/storage-token` endpoint for SAS token generation); all data processing happens in the browser
+- **Zero admin consent** — both products require only `User.Read` + `People.Read` (user-consent only), reduced from 5 admin-consent Graph API scopes in the previous architecture (ADR-059)
+- **Browser-only data** — PWA stores data exclusively in browser IndexedDB; Azure App adds Azure Blob Storage within the customer's own resource group (single €120 SKU)
 
 However, formal certification requires significant investment (EUR 30-50K for SOC 2 Type II, EUR 50-80K for ISO 27001) plus ongoing annual audit costs. At the current revenue stage, this investment is premature. The gap is not in security posture but in documentation and brand recognition — InfoSec teams need artifacts they can file in their vendor risk assessment.
 

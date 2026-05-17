@@ -5,7 +5,7 @@ category: strategy
 status: stable
 ---
 
-> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. tier/product summary collapses to PWA + €99 single SKU; VariScout Process noted as future product. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+> **⚠️ Queued for V1 rewrite (Phase C.3)** — see [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. tier/product summary collapses to PWA + €120 single SKU; VariScout Process noted as future product. Full content rewrite queued for Phase C.3 batch 4 (subagent-driven).
 
 ---
 
@@ -24,27 +24,24 @@ Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md):
 ```mermaid
 flowchart LR
     subgraph Paid["Paid Product"]
-        A1[Azure Standard<br/>€79/month]
-        A2[Azure Team<br/>€199/month]
+        A1[Azure App<br/>€120/month]
     end
 
     subgraph Free["Free Product"]
         C[PWA<br/>Free Training Tool]
     end
 
-    C -->|"Need file upload, save, Performance Mode, AI"| A1
-    A1 -->|"Need shared hubs, Blob sync, governance, Knowledge Base & Catalyst"| A2
+    C -->|"Need file upload, save, Performance Mode, AI, project membership"| A1
 ```
 
 ## Product Matrix
 
-| Product                              | Status      | Distribution      | Use Case                                                    | Pricing        |
-| ------------------------------------ | ----------- | ----------------- | ----------------------------------------------------------- | -------------- |
-| **[Azure Standard](azure/index.md)** | **PRIMARY** | Azure Marketplace | Full analysis with CoScout AI, local files                  | €79/month      |
-| **[Azure Team](azure/index.md)**     | **PRIMARY** | Azure Marketplace | + shared Process Hubs, Blob sync, Knowledge Base & Catalyst | €199/month     |
-| [PWA](pwa/index.md)                  | Production  | Direct URL        | Training & education                                        | FREE (forever) |
-| Power BI (archived)                  | Shelved     | —                 | Dashboard integration (not in development)                  | —              |
-| [Website](website/index.md)          | Production  | Public            | Marketing & docs                                            | N/A            |
+| Product                         | Status      | Distribution      | Use Case                                                                     | Pricing        |
+| ------------------------------- | ----------- | ----------------- | ---------------------------------------------------------------------------- | -------------- |
+| **[Azure App](azure/index.md)** | **PRIMARY** | Azure Marketplace | Full analysis, CoScout AI, Blob sync, project membership, Knowledge Catalyst | €120/month     |
+| [PWA](pwa/index.md)             | Production  | Direct URL        | Training & education                                                         | FREE (forever) |
+| Power BI (archived)             | Shelved     | —                 | Dashboard integration (not in development)                                   | —              |
+| [Website](website/index.md)     | Production  | Public            | Marketing & docs                                                             | N/A            |
 
 :::tip[Getting Started]
 **Free**: Start with the [PWA](pwa/index.md) — free training tool with copy-paste input and 16 sample datasets. Upgrade to the [Azure App](azure/index.md) for file upload, save/persistence, Performance Mode, and team features.
@@ -58,10 +55,11 @@ flowchart LR
 ┌─────────────────────────────────────────────────────────────┐
 │  VariScout on Azure Marketplace (PRIMARY)                   │
 │                                                             │
-│  Standard Plan     €79/month    Full analysis + CoScout AI  │
-│  Team Plan         €199/month   + shared hubs, Blob sync,   │
-│                                   Knowledge Base & Catalyst │
-│                                  Unlimited users in tenant  │
+│  VariScout         €120/month   Full analysis + CoScout AI  │
+│                                 + Blob sync, project        │
+│                                   membership, Knowledge     │
+│                                   Catalyst                  │
+│                                 Unlimited users in tenant   │
 │                                                             │
 │  Offer type: Managed Application                           │
 │  Billing: Microsoft (3% fee, monthly)                      │
@@ -92,19 +90,16 @@ flowchart LR
 
 ## Pricing (Azure App)
 
-| Plan     | Price      | Net Revenue         | Includes                                                                    |
-| -------- | ---------- | ------------------- | --------------------------------------------------------------------------- |
-| Standard | €79/month  | €76.63/month (−3%)  | Full analysis, CoScout AI, file upload, save, SSO, local persistence        |
-| Team     | €199/month | €193.03/month (−3%) | + shared Process Hubs, Blob sync, photo evidence, Knowledge Base & Catalyst |
+| SKU       | Price      | Net Revenue         | Includes                                                                                             |
+| --------- | ---------- | ------------------- | ---------------------------------------------------------------------------------------------------- |
+| VariScout | €120/month | €116.40/month (−3%) | Full analysis, CoScout AI, file upload, save, SSO, Blob sync, project membership, Knowledge Catalyst |
 
 | Aspect  | Value                                              |
 | ------- | -------------------------------------------------- |
 | Billing | Monthly (Microsoft handles billing, 3% fee)        |
 | Model   | Per-deployment (one subscription per Azure tenant) |
 
-**Standard** — all chart types, Performance Mode, CoScout AI, Microsoft SSO, local persistence, data stays in customer's Azure tenant.
-
-**Team** — everything in Standard, plus shared Process Hubs, Blob Storage sync, photo evidence, Knowledge Base over customer-owned documents and investigation artifacts, and Knowledge Catalyst.
+**Azure App (single SKU)** — all chart types, Performance Mode, CoScout AI, Microsoft SSO, Blob Storage sync, project membership (Lead / Member / Sponsor), photo evidence, Knowledge Catalyst, and organizational learning. Unlimited users in your Azure tenant. The legacy Standard (€79) / Team (€199) two-plan model is retired per [ADR-082](../07-decisions/adr-082-wedge-architecture.md).
 
 ---
 
@@ -156,7 +151,7 @@ How V1 access control works — one product, role-based access inside. Lead / Me
 ## See Also
 
 - [ADR-007: Azure Marketplace Distribution](../07-decisions/adr-007-azure-marketplace-distribution.md)
-- [ADR-082: Wedge architecture](../07-decisions/adr-082-wedge-architecture.md)
+- [ADR-082: V1 architecture (was: Wedge architecture)](../07-decisions/adr-082-wedge-architecture.md)
 - [Azure Marketplace Guide](azure/marketplace.md)
 - [Membership Philosophy](membership-philosophy.md)
 - [Product Evaluation Narrative](presentations/variscout-product-evaluation-narrative-plan.md)

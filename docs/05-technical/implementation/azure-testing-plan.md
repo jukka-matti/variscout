@@ -39,13 +39,9 @@ Create an App Registration before deploying the app. EasyAuth requires customer-
 
 **API Permissions** (Microsoft Graph → Delegated):
 
-- `User.Read` — sign-in and read user profile (both plans)
-- `Files.ReadWrite.All` — read and write OneDrive + SharePoint files (Team plan only)
-- `Channel.ReadBasic.All` — resolve channel SharePoint drives (Team plan only)
-- `People.Read` — people picker for @mentions (Team plan only)
-- `ChannelMessage.Send` — post findings to Teams channel (Team plan only)
-- Standard plan: only `User.Read` needed, no admin consent required
-- Team plan: admin consent required for `Files.ReadWrite.All`, `Channel.ReadBasic.All`, `ChannelMessage.Send`
+- `User.Read` — sign-in and read user profile (all Azure App users)
+- `People.Read` — people picker for team assignment (all Azure App users)
+- Zero admin consent required — `Files.ReadWrite.All`, `Channel.ReadBasic.All`, `ChannelMessage.Send` are all removed per ADR-059 (Blob Storage replaces OneDrive/SharePoint sync)
 
 **Client Secret:**
 
@@ -245,9 +241,9 @@ Test the app at `https://<app-name>.azurewebsites.net` in a desktop browser.
 | 11  | **Performance Mode**      | Load multi-column CSV → PerformanceSetupPanel → select measures → Cpk scatter, boxplot, Pareto                             | Column detection, measure selection, channel drill navigation                            |
 | 12  | **Filter navigation**     | Apply factor filters → verify breadcrumbs → navigate back → apply multi-select                                             | Filter chips display, variation % contribution, back navigation, cumulative scope        |
 | 13  | **Findings panel**        | Open findings panel → pin observation from chart → change status (observed→investigating→analyzed) → add comment → What-If | Findings list rendering, status transitions, comment persistence, What-If slider         |
-| 14  | **OneDrive sync**         | Save project → check OneDrive/VariScout/Projects folder → close tab → reopen → verify data loads                           | Sync speed, file appears in OneDrive, data persists across sessions                      |
+| 14  | **Blob Storage sync**     | Save project → check Blob Storage container → close tab → reopen → verify data loads from Blob Storage                     | Sync speed, file appears in Blob Storage, data persists across sessions                  |
 | 15  | **Theme switching**       | Settings → toggle dark/light/system → verify all views adapt                                                               | Color consistency across charts, panels, editor; chrome color adaptation                 |
-| 16  | **Chart export**          | Copy chart to clipboard → paste in document; download PNG; download SVG                                                    | Export quality, correct dimensions (see chart export sizes), branding hidden (paid tier) |
+| 16  | **Chart export**          | Copy chart to clipboard → paste in document; download PNG; download SVG                                                    | Export quality, correct dimensions (see chart export sizes), branding hidden (Azure App) |
 | 17  | **Settings persistence**  | Change display options (Y-axis lock, show specs, chart text size) → reload → verify retained                               | localStorage reliability, all toggle states restored                                     |
 | 18  | **Factor management**     | Click "Factors" in nav bar → ColumnMapping opens in edit mode → add/remove factor → Apply → verify filter cleanup          | State consistency, orphaned filters cleaned, cancel preserves data                       |
 | 19  | **Data table editing**    | Open data table → edit cell values → verify charts update                                                                  | Inline editing UX, bi-directional sync, undo behavior                                    |
@@ -273,7 +269,7 @@ The Azure app includes an admin page (`AdminTeamsSetup.tsx`) that generates a Te
 | 5   | **Full workflow in Teams** | Load sample → drill by factor → set specs → export chart                                       | Iframe constraints, scrolling behavior, popup/modal rendering                                              |
 | 6   | **Responsive in Teams**    | Resize Teams window → check chart responsiveness → try narrow sidebar mode                     | Layout adaptation, breakpoints, chart readability at small sizes                                           |
 | 7   | **Findings popout**        | Open findings panel → click popout to new window                                               | `window.open` behavior in Teams (may be blocked), fallback behavior                                        |
-| 8   | **OneDrive sync in Teams** | Save project in Teams tab → verify appears in OneDrive                                         | Same Graph API flow as standalone, verify token available                                                  |
+| 8   | **Blob Storage sync**      | Save project → verify persists to Blob Storage (OneDrive/Graph API retired per ADR-059)        | Blob SAS URL flow via EasyAuth token                                                                       |
 
 ---
 
@@ -324,7 +320,7 @@ Fill this form during and after testing. Rate items 1–5 (1=poor, 5=excellent) 
 | Add Data dropdown clarity                        | /5              |
 | Data merge behavior (append vs replace)          | /5              |
 
-### OneDrive Sync
+### Blob Storage Sync
 
 | Criterion                                        | Rating / Answer |
 | ------------------------------------------------ | --------------- |
@@ -333,7 +329,7 @@ Fill this form during and after testing. Rate items 1–5 (1=poor, 5=excellent) 
 | Offline → online sync behavior                   |                 |
 | Error messages clarity                           | /5              |
 | Sync speed                                       |                 |
-| File visible in OneDrive folder?                 | yes / no        |
+| File visible in Blob Storage container?          | yes / no        |
 
 ### Teams Integration
 
@@ -377,8 +373,8 @@ Document these with testers so they don't report them as bugs:
 | Limitation                   | Detail                                                                                                                    | Workaround / Timeline                                                                                 |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Teams SSO**                | `*.azurewebsites.net` domains don't support seamless Teams SSO. Users see a one-time login redirect.                      | Custom domain needed for seamless SSO. Not blocking for testing.                                      |
-| **Storage scope**            | Standard plan: local files only (no cloud sync). Team plan: OneDrive personal + SharePoint channel storage.               | Standard needs only `User.Read`. Team needs `Files.ReadWrite.All` + `Channel.ReadBasic.All`.          |
-| **Local dev**                | Graph API unavailable on localhost. Auth returns mock user, OneDrive sync is no-op.                                       | Expected behavior per `easyAuth.ts` — test sync only on deployed instance.                            |
+| **Storage scope**            | Azure App: IndexedDB (local) + Blob Storage sync (cloud). No Graph API permissions required (ADR-059).                    | Blob Storage SAS token generation requires deployed instance (not localhost).                         |
+| **Local dev**                | Blob Storage SAS token endpoint unavailable on localhost. Auth returns mock user, sync is no-op.                          | Expected behavior per `easyAuth.ts` — test Blob Storage sync only on deployed instance.               |
 | **Admin consent**            | `User.Read` + `Files.ReadWrite` don't require admin consent by default, but org Entra ID policies may block user consent. | If blocked, tenant admin grants consent via App Registration → API permissions → Grant admin consent. |
 | **Performance Mode in PWA**  | PWA detection modal shows "available in Azure App" — Performance Mode is Azure-only.                                      | Expected behavior — PWA is free tier.                                                                 |
 | **Client secret expiration** | Test secret expires based on chosen duration. Production deployments should use 24-month secrets.                         | Set calendar reminder to rotate before expiration.                                                    |
@@ -445,7 +441,7 @@ The Azure app has 9 Playwright spec files in `apps/azure/e2e/` plus a shared hel
 **Not covered by automation** (require deployed Azure environment):
 
 - C-1 live auth (EasyAuth redirect — mocked in Playwright)
-- C-14 OneDrive sync (requires Graph API token)
+- C-14 Blob Storage sync (requires Blob SAS token — OneDrive/Graph API retired per ADR-059)
 - C-23 Presentation mode (partial — visual verification needed)
 - All section D (Teams integration — requires Teams Admin Center)
 
@@ -462,7 +458,7 @@ pnpm --filter @variscout/azure-app test:e2e
 
 - [ARM Template Documentation](../../08-products/azure/arm-template.md) — template parameters and App Registration setup
 - [Authentication (EasyAuth)](../../08-products/azure/authentication.md) — auth flow, endpoints, token management
-- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) — sync architecture and storage structure
+- [Blob Storage Sync](../../08-products/azure/blob-storage-sync.md) — sync architecture and storage structure
 - [Marketplace Submission Checklist](../../08-products/azure/submission-checklist.md) — full submission tracker
 - [Deployment Guide](deployment.md) — build commands and deployment workflows
 - [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md) — distribution strategy

@@ -202,9 +202,9 @@ The /product/enterprise page must answer:
 
 ### 3. Pricing
 
-- From €79/month (Standard), €199/month (Team) — unlimited users in your tenant
-- No per-user fees, no hidden costs
-- Two plans: Standard (full analysis with CoScout AI, local storage), Team (+ Teams, OneDrive, Knowledge Base)
+- Azure App: €120/month per tenant — unlimited users, no per-user fees
+- Includes full analysis with CoScout AI, Blob Storage sync, project membership, Knowledge Catalyst
+- No hidden costs
 
 ### 4. Support
 
@@ -218,14 +218,14 @@ The /product/enterprise page must answer:
 
 Key principle: **No sales calls required**
 
-| Step           | How It Works                                                 |
-| -------------- | ------------------------------------------------------------ |
-| Discover       | Website, referral, content                                   |
-| Evaluate       | PWA (free), documentation, case studies                      |
-| Purchase       | Azure Marketplace (from €79/month, 2 plans, unlimited users) |
-| Deploy         | Managed Application (automatic)                              |
-| Support        | Documentation + email (support@rdmaic.com)                   |
-| Implementation | Your existing consultants can help                           |
+| Step           | How It Works                                                |
+| -------------- | ----------------------------------------------------------- |
+| Discover       | Website, referral, content                                  |
+| Evaluate       | PWA (free), documentation, case studies                     |
+| Purchase       | Azure Marketplace (€120/month, single SKU, unlimited users) |
+| Deploy         | Managed Application (automatic)                             |
+| Support        | Documentation + email (support@rdmaic.com)                  |
+| Implementation | Your existing consultants can help                          |
 
 ---
 
@@ -302,7 +302,7 @@ Once Olivia's team deploys via Azure Marketplace, the journey continues in-app:
 | [Azure Daily Use](azure-daily-use.md)                   | Gary (daily user) | Repeat analysis, Performance Mode, exports               |
 | [Azure Team Collaboration](azure-team-collaboration.md) | Olivia (admin)    | Teams setup, sharing, onboarding colleagues              |
 
-Users who tried the [PWA](return-visitor.md) before purchasing will find the same analysis workflow — skills transfer directly. The key differences are persistence (IndexedDB on Standard; + OneDrive sync on Team plan), file upload, Performance Mode, and 6-factor support.
+Users who tried the [PWA](return-visitor.md) before purchasing will find the same analysis workflow — skills transfer directly. The key differences are persistence (IndexedDB on PWA; + Blob Storage sync on Azure App), file upload, Performance Mode, and 6-factor support.
 
 ---
 

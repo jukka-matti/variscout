@@ -48,7 +48,7 @@ The Investigation workspace has a `Map | Wall` view toggle in its header (persis
 
 ## Tier availability
 
-Azure-only (Standard and Team tiers). Shipped via PRs #75 and #76, merged 2026-04-24. PWA does not include the Wall; PWA's investigation flow stays Map-only by design.
+Azure-only (single €120 SKU). Shipped via PRs #75 and #76, merged 2026-04-24. PWA does not include the Wall; PWA's investigation flow stays Map-only by design.
 
 ## See also
 

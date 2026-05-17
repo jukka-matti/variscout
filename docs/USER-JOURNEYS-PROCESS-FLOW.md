@@ -4,12 +4,12 @@ audience: [engineer, analyst]
 category: reference
 status: design
 last-reviewed: 2026-05-16
-related: [process-flow, journey, bottleneck, design-only, wedge]
+related: [process-flow, journey, bottleneck, design-only]
 ---
 
 # Process Flow Mode — User Journey
 
-Under the [wedge pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Process Flow mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. The methodology below is unchanged; persona variants have collapsed to one. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
+Under the [V1 pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Process Flow mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. The methodology below is unchanged; persona variants have collapsed to one. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
 
 This mode is designed but not yet coded. The journey described below is the intended experience when implementation ships.
 
@@ -51,7 +51,7 @@ Inside a Project, the Specialist as project Lead pins station-level Findings and
 
 ## Design reference
 
-- **Wedge canon:** [wedge architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md)
+- **V1 canon:** [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md)
 - **Spec:** `docs/superpowers/specs/2026-04-07-process-flow-analysis-mode-design.md`
 - **ADR:** (no ADR yet — Process Flow mode is pre-implementation)
 - **Code:** No implementation yet. Planned entry points: `packages/core/src/processFlow/` (detection, FlowConfig, computeFlowData), `packages/charts/src/FlowBoxplot/` (new chart component), `packages/core/src/analysisStrategy.ts` (strategy registration)

@@ -10,7 +10,7 @@ status: stable
 Living tracker for Azure Marketplace Managed Application submission. Single source of truth for what's done, what's pending, and what's blocking.
 
 **Target offer type:** Azure Application → Managed Application
-**Pricing:** Two plans: Standard €79/month, Team €199/month
+**Pricing:** Single SKU: €120/month, Azure tenant-wide
 
 ---
 
@@ -71,37 +71,37 @@ The ARM template uses `WEBSITE_RUN_FROM_PACKAGE` to deploy the app as a static z
 
 ## 5. Listing Content
 
-| Item                                 | Status         | Notes                                                                             |
-| ------------------------------------ | -------------- | --------------------------------------------------------------------------------- |
-| Offer name                           | ✅ Draft ready | "VariScout - Statistical Process Control for Quality Teams"                       |
-| Short description (≤100 chars)       | ✅ Draft ready | See `marketplace.md`                                                              |
-| Long description (≤3000 chars)       | ✅ Draft ready | See `marketplace.md` — review before submission                                   |
-| Logo (216×216 PNG)                   | ⬜ Not done    | Required for Partner Center listing                                               |
-| Logo (48×48 PNG)                     | ⬜ Not done    | Small icon for search results                                                     |
-| Screenshots (5–10, min 1280×720 PNG) | ⬜ Not done    | Performance Dashboard, I-Chart, Capability, Boxplot, Pareto, Drill-Down, OneDrive |
-| Video (optional)                     | ⬜ Not started | 2–3 min product overview recommended                                              |
-| Categories selected                  | ⬜ Not done    | Analytics, Business Intelligence, or IT & Management Tools                        |
-| Search keywords                      | ⬜ Not done    | SPC, quality control, statistical process control, Cpk, variation                 |
+| Item                                 | Status         | Notes                                                                                      |
+| ------------------------------------ | -------------- | ------------------------------------------------------------------------------------------ |
+| Offer name                           | ✅ Draft ready | "VariScout - Statistical Process Control for Quality Teams"                                |
+| Short description (≤100 chars)       | ✅ Draft ready | See `marketplace.md`                                                                       |
+| Long description (≤3000 chars)       | ✅ Draft ready | See `marketplace.md` — review before submission                                            |
+| Logo (216×216 PNG)                   | ⬜ Not done    | Required for Partner Center listing                                                        |
+| Logo (48×48 PNG)                     | ⬜ Not done    | Small icon for search results                                                              |
+| Screenshots (5–10, min 1280×720 PNG) | ⬜ Not done    | Performance Dashboard, I-Chart, Capability, Boxplot, Pareto, Drill-Down, Blob Storage sync |
+| Video (optional)                     | ⬜ Not started | 2–3 min product overview recommended                                                       |
+| Categories selected                  | ⬜ Not done    | Analytics, Business Intelligence, or IT & Management Tools                                 |
+| Search keywords                      | ⬜ Not done    | SPC, quality control, statistical process control, Cpk, variation                          |
 
 ---
 
 ## 6. App Readiness
 
-| Item                                  | Status                | Notes                                                               |
-| ------------------------------------- | --------------------- | ------------------------------------------------------------------- |
-| EasyAuth login works                  | ✅ Done               | `apps/azure/src/auth/easyAuth.ts` — tested locally with mock        |
-| OneDrive save/load works              | ✅ Done               | `apps/azure/src/services/storage.ts` — Graph API via EasyAuth token |
-| All chart types render                | ✅ Done               | I-Chart, Boxplot, Pareto, Capability, Performance charts            |
-| Performance Mode works                | ✅ Done               | Multi-channel Cpk analysis                                          |
-| CSV/Excel file upload works           | ✅ Done               | Parser in `@variscout/core`                                         |
-| CSV export works                      | ✅ Done               | `downloadCSV` in `@variscout/core`                                  |
-| Theme switching works                 | ✅ Done               | Light/dark/system via ThemeContext                                  |
-| Sample datasets load                  | ✅ Done               | Via `@variscout/data` package                                       |
-| Manual data entry works               | ✅ Done               | ManualEntryBase from `@variscout/ui`                                |
-| Production build succeeds             | ✅ Done               | `pnpm --filter @variscout/azure-app build`                          |
-| No console errors in production build | ⬜ Needs verification | Run build and check browser console                                 |
-| `npm audit` clean                     | ⬜ Needs verification | No high/critical vulnerabilities in production dependencies         |
-| CSP headers verified                  | ⬜ Needs verification | Content Security Policy appropriate for SPA + Graph API calls       |
+| Item                                  | Status                | Notes                                                                                                            |
+| ------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| EasyAuth login works                  | ✅ Done               | `apps/azure/src/auth/easyAuth.ts` — tested locally with mock                                                     |
+| Blob Storage save/load works          | ⬜ In progress        | `apps/azure/src/services/storage.ts` — Blob SAS URLs via EasyAuth token (OneDrive/Graph API retired per ADR-059) |
+| All chart types render                | ✅ Done               | I-Chart, Boxplot, Pareto, Capability, Performance charts                                                         |
+| Performance Mode works                | ✅ Done               | Multi-channel Cpk analysis                                                                                       |
+| CSV/Excel file upload works           | ✅ Done               | Parser in `@variscout/core`                                                                                      |
+| CSV export works                      | ✅ Done               | `downloadCSV` in `@variscout/core`                                                                               |
+| Theme switching works                 | ✅ Done               | Light/dark/system via ThemeContext                                                                               |
+| Sample datasets load                  | ✅ Done               | Via `@variscout/data` package                                                                                    |
+| Manual data entry works               | ✅ Done               | ManualEntryBase from `@variscout/ui`                                                                             |
+| Production build succeeds             | ✅ Done               | `pnpm --filter @variscout/azure-app build`                                                                       |
+| No console errors in production build | ⬜ Needs verification | Run build and check browser console                                                                              |
+| `npm audit` clean                     | ⬜ Needs verification | No high/critical vulnerabilities in production dependencies                                                      |
+| CSP headers verified                  | ⬜ Needs verification | Content Security Policy appropriate for SPA + Graph API calls                                                    |
 
 ---
 
@@ -173,5 +173,5 @@ pnpm test
 - [Marketplace Guide](marketplace.md) — offer type, pricing, listing content
 - [ARM Template](arm-template.md) — full template documentation
 - [Authentication](authentication.md) — EasyAuth setup and configuration
-- [OneDrive Sync](blob-storage-sync.md) — storage integration details
+- [Blob Storage Sync](blob-storage-sync.md) — storage integration details
 - [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md) — distribution strategy decision

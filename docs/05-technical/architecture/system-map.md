@@ -24,14 +24,14 @@ C4Context
     System(variscout, "VariScout", "Offline-first structured investigation platform (PWA + Azure App)")
 
     System_Ext(azuread, "Azure AD", "EasyAuth identity provider")
-    System_Ext(onedrive, "Microsoft OneDrive", "Cloud file sync via Graph API")
-    System_Ext(teams, "Microsoft Teams", "Channel tabs, SSO, photo capture")
-    System_Ext(aisearch, "Azure AI Search", "AI-powered analysis suggestions")
+    System_Ext(blobstorage, "Azure Blob Storage", "Project sync via Blob SAS URLs (Azure App)")
+    System_Ext(teams, "Microsoft Teams", "Optional static tab (no extra permissions)")
+    System_Ext(aisearch, "Azure AI Search", "AI-powered analysis suggestions (Phase 2+)")
 
     Rel(analyst, variscout, "Uploads data, reviews charts, investigates variation")
     Rel(variscout, azuread, "Authenticates via EasyAuth")
-    Rel(variscout, onedrive, "Syncs projects (Team plan)")
-    Rel(variscout, teams, "Embeds as channel tab, captures photos")
+    Rel(variscout, blobstorage, "Syncs projects via Blob Storage (Azure App)")
+    Rel(variscout, teams, "Optional static tab (no permissions required)")
     Rel(variscout, aisearch, "Queries for AI-assisted analysis")
 ```
 
@@ -51,7 +51,7 @@ flowchart TB
         ui["@variscout/ui<br/><i>Shared UI components</i>"]
         hooks["@variscout/hooks<br/><i>Shared React hooks</i>"]
         charts["@variscout/charts<br/><i>React + Visx charts</i>"]
-        core["@variscout/core<br/><i>Pure logic, stats, parser, tier</i>"]
+        core["@variscout/core<br/><i>Pure logic, stats, parser, projectMembership</i>"]
         data["@variscout/data<br/><i>Sample datasets</i>"]
     end
 
@@ -61,9 +61,9 @@ flowchart TB
 
     subgraph external["External Systems"]
         azuread["Azure AD"]
-        onedrive["OneDrive"]
-        teams["Teams"]
-        aisearch["Azure AI Search"]
+        blobstorage["Azure Blob Storage"]
+        teams["Teams (static tab only)"]
+        aisearch["Azure AI Search (Phase 2+)"]
     end
 
     %% App dependencies
@@ -77,7 +77,7 @@ flowchart TB
     charts --> core
 
     %% External integrations (Azure app only)
-    azure -.-> azuread & onedrive & teams & aisearch
+    azure -.-> azuread & blobstorage & teams & aisearch
     arm -.-> azure
 ```
 
@@ -90,21 +90,21 @@ flowchart TB
 
 ## Package Responsibilities
 
-| Package             | Role                                                                | Key exports                                                              | Docs                                           |
-| ------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------- |
-| `@variscout/core`   | Statistics engine, CSV/Excel parser, tier system, glossary, types   | `calculateStats`, `parseCSV`, `getTier`, `GlossaryTerm`                  | [shared-packages.md](shared-packages.md)       |
-| `@variscout/charts` | Visx chart components (I-Chart, Boxplot, Pareto, Performance suite) | `IChart`, `Boxplot`, `ParetoChart`, `PerformanceIChart`, `useChartTheme` | [component-patterns.md](component-patterns.md) |
-| `@variscout/data`   | Pre-computed sample datasets for demo and testing                   | `coffeeSample`, `journeySample`, `bottleneckSample`                      | [shared-packages.md](shared-packages.md)       |
-| `@variscout/hooks`  | Shared React hooks for state, navigation, data transforms           | `useDataState`, `useFilterNavigation`, `useChartScale`, `useTier`        | [component-patterns.md](component-patterns.md) |
-| `@variscout/ui`     | Shared UI components with colorScheme theming pattern               | `StatsPanelBase`, `FindingsLog`, `DashboardGrid`, `WhatIfSimulator`      | [component-patterns.md](component-patterns.md) |
+| Package             | Role                                                                     | Key exports                                                              | Docs                                           |
+| ------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ---------------------------------------------- |
+| `@variscout/core`   | Statistics engine, CSV/Excel parser, project membership, glossary, types | `calculateStats`, `parseCSV`, `canAccess`, `GlossaryTerm`                | [shared-packages.md](shared-packages.md)       |
+| `@variscout/charts` | Visx chart components (I-Chart, Boxplot, Pareto, Performance suite)      | `IChart`, `Boxplot`, `ParetoChart`, `PerformanceIChart`, `useChartTheme` | [component-patterns.md](component-patterns.md) |
+| `@variscout/data`   | Pre-computed sample datasets for demo and testing                        | `coffeeSample`, `journeySample`, `bottleneckSample`                      | [shared-packages.md](shared-packages.md)       |
+| `@variscout/hooks`  | Shared React hooks for state, navigation, data transforms                | `useDataState`, `useFilterNavigation`, `useChartScale`                   | [component-patterns.md](component-patterns.md) |
+| `@variscout/ui`     | Shared UI components with colorScheme theming pattern                    | `StatsPanelBase`, `FindingsLog`, `DashboardGrid`, `WhatIfSimulator`      | [component-patterns.md](component-patterns.md) |
 
 ## App Responsibilities
 
-| App            | Distribution      | Technology              | Key characteristics                                                |
-| -------------- | ----------------- | ----------------------- | ------------------------------------------------------------------ |
-| `apps/pwa`     | Public URL (free) | React + Vite PWA        | Session-only storage, 3 factors max, 50K rows                      |
-| `apps/azure`   | Azure Marketplace | React + Vite + EasyAuth | IndexedDB + OneDrive sync, 6 factors, 250K rows, Teams integration |
-| `apps/website` | Public URL        | Astro + React Islands   | Static marketing site with embedded chart demos                    |
+| App            | Distribution      | Technology              | Key characteristics                                                            |
+| -------------- | ----------------- | ----------------------- | ------------------------------------------------------------------------------ |
+| `apps/pwa`     | Public URL (free) | React + Vite PWA        | Session-only storage, 3 factors max, 50K rows                                  |
+| `apps/azure`   | Azure Marketplace | React + Vite + EasyAuth | IndexedDB + Blob Storage sync, 6 factors, 250K rows, optional Teams static tab |
+| `apps/website` | Public URL        | Astro + React Islands   | Static marketing site with embedded chart demos                                |
 
 ## Infrastructure
 

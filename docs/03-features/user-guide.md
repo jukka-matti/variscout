@@ -534,7 +534,7 @@ A: Yes! After visiting once, the app caches itself via Service Worker for offlin
 
 A: All data stays in your browser — nothing is sent to any server.
 
-- **Azure App**: Save analyses to IndexedDB + sync to OneDrive. Click **"Save"** in the toolbar.
+- **Azure App**: Save analyses to IndexedDB + sync to Azure Blob Storage. Click **"Save"** in the toolbar.
 - **PWA (Free)**: Session-only — data lives in memory and is cleared on refresh. No save feature.
 
 ### Export

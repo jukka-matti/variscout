@@ -66,7 +66,7 @@ Project members must be in the same Azure AD tenant as the buyer. Cross-org coll
 
 Mode resolution lives in `packages/core/src/analysisStrategy.ts`. CoScout's methodology coaching adapts per mode.
 
-## The two paid tiers (V1)
+## Products (V1)
 
 | Tier      | Distribution                          | Price          | What you get                                                                                                                                                                                            |
 | --------- | ------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

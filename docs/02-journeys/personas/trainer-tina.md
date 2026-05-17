@@ -155,7 +155,7 @@ journey
 
 - Curriculum integration materials
 - Custom branding for training organizations
-- Azure App recommendation for client teams (from €79/month)
+- Azure App recommendation for client teams (€120/month per tenant)
 - Co-marketing with training courses
 
 ---

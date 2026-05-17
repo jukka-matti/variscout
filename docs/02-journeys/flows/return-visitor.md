@@ -78,7 +78,7 @@ flowchart LR
 
     subgraph Scenario C [New Device / Session]
         C1[New device or tab] --> C2{Platform?}
-        C2 -->|Azure| C3[SSO → analyses from OneDrive]
+        C2 -->|Azure| C3[SSO → analyses from Blob Storage]
         C2 -->|PWA| C4[Fresh start — paste or sample]
     end
 ```
@@ -183,7 +183,7 @@ Users who need persistence should use the [Azure App](azure-daily-use.md).
 | Auth session      | EasyAuth/cookie | Until cleared |
 | Saved analyses    | IndexedDB       | Until deleted |
 | Analysis settings | IndexedDB       | Per dataset   |
-| Cloud backup      | OneDrive        | User-managed  |
+| Cloud backup      | Blob Storage    | User-managed  |
 
 See [Azure Daily Use](azure-daily-use.md) for the Azure return experience.
 
@@ -209,7 +209,7 @@ See [Azure Daily Use](azure-daily-use.md) for the Azure return experience.
 ### Scenario C: New Device / New Session
 
 1. User goes to variscout.com on new device (or returns after closing the tab)
-2. **Azure App:** Signs in via SSO — saved analyses load from OneDrive
+2. **Azure App:** Signs in via SSO — saved analyses load from Blob Storage
 3. **PWA:** Fresh start — no previous data (session-only, no persistence)
 4. PWA users paste data or load a sample to begin again
 
@@ -236,11 +236,11 @@ But return visitors:
 
 For free tier users returning:
 
-| Trigger              | Prompt                                         |
-| -------------------- | ---------------------------------------------- |
-| File upload attempt  | "Upload files with Azure App — from €79/month" |
-| Save/project attempt | "Save projects with Azure App"                 |
-| Performance Mode     | "Performance Mode available in Azure App"      |
+| Trigger              | Prompt                                                |
+| -------------------- | ----------------------------------------------------- |
+| File upload attempt  | "Upload files with Azure App — €120/month per tenant" |
+| Save/project attempt | "Save projects with Azure App"                        |
+| Performance Mode     | "Performance Mode available in Azure App"             |
 
 Upgrade prompts should be helpful, not blocking.
 
@@ -278,14 +278,14 @@ Upgrade prompts should be helpful, not blocking.
 
 ## Azure App Return Experience
 
-Azure App return visitors have a fundamentally different experience from PWA users — SSO, saved analyses, and OneDrive sync.
+Azure App return visitors have a fundamentally different experience from PWA users — SSO, saved analyses, and Blob Storage sync.
 
 For the full Azure return workflow, see [Azure Daily Use](azure-daily-use.md). Key differences:
 
 | Aspect          | PWA Return                   | Azure App Return                         |
 | --------------- | ---------------------------- | ---------------------------------------- |
 | Authentication  | None                         | SSO auto-login (EasyAuth session cookie) |
-| Previous work   | Lost (session-only)          | Loads from IndexedDB / OneDrive          |
+| Previous work   | Lost (session-only)          | Loads from IndexedDB / Blob Storage      |
 | Data input      | Paste, manual entry, samples | Upload, paste, manual entry, samples     |
 | Upgrade prompts | Yes (at capability limits)   | N/A (full features)                      |
 
@@ -320,7 +320,7 @@ The `HomeScreen` (`apps/pwa/src/components/HomeScreen.tsx`) includes a subtle "N
 
 **PWA:** Session-only — all analysis data lives in React state. Closing the tab loses everything. Theme preference persists via localStorage.
 
-**Azure App:** IndexedDB for local persistence, OneDrive for cloud sync. Auth tokens managed by EasyAuth (platform-level). Clear browser data = lose local cache, but OneDrive backup remains.
+**Azure App:** IndexedDB for local persistence, Blob Storage for cloud sync. Auth tokens managed by EasyAuth (platform-level). Clear browser data = lose local cache, but Blob Storage backup remains.
 
 ### No Account Migration Needed
 

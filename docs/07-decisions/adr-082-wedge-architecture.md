@@ -10,6 +10,8 @@ title: 'ADR-082: Wedge architecture — single-product VariScout'
 **Partially supersedes:** [Coherence audit spec (2026-05-14)](../superpowers/specs/2026-05-14-variscout-coherence-design.md) — Session A retires for V1, Session B amends, Session C refocuses
 
 > **Price amended 2026-05-17: €99 → €120/month.** The original decision priced the single SKU at €99; revised upward to €120 before any customer exposure. All current-truth price references below read €120; the §Migration section preserves €79/€199 as historical-context migration math.
+>
+> **Nav + stage amended 2026-05-16 (Improve-tab amendment, [spec](../superpowers/specs/2026-05-16-improve-tab-amendment-design.md)):** The "What V1 builds" table below describes the original 6-tab / 4-stage design. The shipped V1 is **7-tab nav** (Improve restored as top-level verb tab with active-IP cascade) + **3-stage Project** (Charter → Approach → Sustainment; Improve is a verb tab, not a stage; Handoff folds into Sustainment closure). Canvas response paths reduced from 5 to 3 unchanged.
 
 ## Context
 

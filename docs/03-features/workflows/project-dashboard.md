@@ -171,7 +171,7 @@ When a user reopens a project, VariScout compares the project's `lastModified` t
 if (lastModified > lastViewedAt) → show WhatsNewSection
 ```
 
-`lastViewedAt` is written to `.meta.json` at the moment the project is opened. If the project was modified by a teammate (via OneDrive sync, Team plan) or by the same user on another device since the last visit, the condition triggers.
+`lastViewedAt` is written to `.meta.json` at the moment the project is opened. If the project was modified by a teammate (via Blob Storage sync) or by the same user on another device since the last visit, the condition triggers.
 
 `WhatsNewSection` renders at the top of the Project Dashboard before the main status columns. It summarizes changes since `lastViewedAt`:
 

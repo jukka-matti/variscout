@@ -21,28 +21,28 @@ How AI augments each phase of the VariScout journey. This is the entry point for
 
 The journey behaves differently depending on which AI mode is active. Modes are orthogonal to phases — any mode works at any phase.
 
-| Mode                    | Available On                                               | What Changes                                                                                                                                |
-| ----------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| **No AI**               | PWA (always), Azure without AI Foundry, or user toggle OFF | Dashboard shows deterministic insights only. All AI UI hidden with zero layout disruption.                                                  |
-| **AI Enabled**          | Azure Standard/Team with AI Foundry deployed               | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts. Actionable suggestions with analyst confirmation. |
-| **AI + Knowledge Base** | Azure Team (€199/month) only                               | Adds organizational document search (Foundry IQ) in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries.                 |
+| Mode                        | Available On                                               | What Changes                                                                                                                                                     |
+| --------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No AI**                   | PWA (always), Azure without AI Foundry, or user toggle OFF | Dashboard shows deterministic insights only. All AI UI hidden with zero layout disruption.                                                                       |
+| **AI Enabled**              | Azure App with AI Foundry deployed                         | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts. Actionable suggestions with analyst confirmation.                      |
+| **AI + Knowledge Catalyst** | Azure App with AI Foundry + Phase 2+ feature               | Adds organizational document search (Azure AI Search) in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries. SharePoint/Foundry IQ deferred. |
 
-**Mode ≠ Tier:** AI is a horizontal capability, not tier-gated. A Standard customer who deploys AI Foundry gets Mode 2. Only the Knowledge Base (Mode 3) is Team exclusive.
+**Mode ≠ Plan:** AI is a horizontal capability included in the single €120 SKU. Knowledge Catalyst (Mode 3) requires Phase 2 AI deployment.
 
-**Availability:** Azure App only (Standard and Team plans). Requires AI endpoint configured in ARM deployment AND user Settings toggle "Show AI assistance" set to ON. PWA never has AI.
+**Availability:** Azure App only. Requires AI endpoint configured in ARM deployment AND user Settings toggle "Show AI assistance" set to ON. PWA never has AI.
 
 ---
 
 ## Four Context Layers
 
-| Layer   | What                | Source                                                                                  | When                            |
-| ------- | ------------------- | --------------------------------------------------------------------------------------- | ------------------------------- |
-| Layer 1 | Analysis state      | `buildAIContext()` from DataContext                                                     | Always (Mode 2+)                |
-| Layer 2 | Process context     | User-entered description + auto-inferred factor roles                                   | Optional (Mode 2+)              |
-| Layer 3 | Knowledge grounding | ~47 glossary terms + 11 methodology concepts                                            | Always (Mode 2+)                |
-| Layer 4 | Team documents      | Foundry IQ unified knowledge index (Blob Storage — documents + investigation artifacts) | On-demand, SCOUT+ (Mode 3 only) |
+| Layer   | What                | Source                                                                               | When                            |
+| ------- | ------------------- | ------------------------------------------------------------------------------------ | ------------------------------- |
+| Layer 1 | Analysis state      | `buildAIContext()` from DataContext                                                  | Always (Mode 2+)                |
+| Layer 2 | Process context     | User-entered description + auto-inferred factor roles                                | Optional (Mode 2+)              |
+| Layer 3 | Knowledge grounding | ~47 glossary terms + 11 methodology concepts                                         | Always (Mode 2+)                |
+| Layer 4 | Team documents      | Azure AI Search / Knowledge Catalyst (Phase 2+ — Blob Storage documents + artifacts) | On-demand, SCOUT+ (Mode 3 only) |
 
-Layers 1-3 are always in the prompt. Layer 4 is injected only when the user clicks "Search Knowledge Base?" in CoScout. See [AI Context Engineering](ai-context-engineering.md) for token budgets and prompt tier structure.
+Layers 1-3 are always in the prompt. Layer 4 is injected only when the user clicks "Search Knowledge Catalyst?" in CoScout. _V1: Layer 4 not active; Foundry IQ deferred._ See [AI Context Engineering](ai-context-engineering.md) for token budgets and prompt tier structure.
 
 ---
 
@@ -87,7 +87,7 @@ The Investigation Diamond (Initial → Diverging → Validating → Converging) 
 
 > **Note on reasoning effort:** Investigation Diamond phases map to journey phases for reasoning effort: Initial/Diverging → SCOUT (`'low'`), Validating/Converging → INVESTIGATE (`'medium'`). The effort level is set by `getCoScoutReasoningEffort(journeyPhase)` from `@variscout/core`.
 
-**Knowledge Base (Mode 3):** "Search Knowledge Base?" button in CoScout triggers Foundry IQ (unified knowledge index — Blob Storage documents + investigation artifacts, per ADR-060). Returns project-scoped results with source attribution. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for knowledge features (beta).
+**Knowledge Catalyst (Mode 3, Phase 2+):** "Search Knowledge Catalyst?" button in CoScout triggers Azure AI Search (Blob Storage documents + investigation artifacts, per ADR-060). Returns project-scoped results with source attribution. _Not active in V1; Foundry IQ/SharePoint deferred._ See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for knowledge features (beta).
 
 **Investigation Sidebar:** Shows deterministic suggested questions from `buildSuggestedQuestions()` (works in all modes). With AI, adds AI-generated follow-up questions.
 
@@ -104,7 +104,7 @@ Plan → Do → Check → Act. AI shifts to action planning and outcome verifica
 | PDCA Step | AI Assistance                                                                                                                     |
 | --------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | **Plan**  | CoScout helps brainstorm improvements, compare effort vs impact. Improvement ideas on findings get What-If projections.           |
-| **Do**    | Corrective actions tracked. Teams auto-posting on analyzed + resolved findings (Team plan).                                       |
+| **Do**    | Corrective actions tracked. Teams auto-posting on analyzed + resolved findings (Azure App, planned Teams Webhook).                |
 | **Check** | NarrativeBar summarizes staged comparison: mean shift, Cpk delta, violation reduction. CoScout grounded in before/after evidence. |
 | **Act**   | Outcome assessment. "Effective" / "Not effective" / "Partial" with Cpk before/after auto-filled from staged data.                 |
 
@@ -118,13 +118,13 @@ Plan → Do → Check → Act. AI shifts to action planning and outcome verifica
 
 **Tool availability in IMPROVE:**
 
-| Tool                                                       | Availability        | Notes                                      |
-| ---------------------------------------------------------- | ------------------- | ------------------------------------------ |
-| Read tools (get_chart_data, get_statistical_summary, etc.) | Always              |                                            |
-| SCOUT+ tools (apply_filter, create_finding, etc.)          | Available           | Filters useful for before/after comparison |
-| create_hypothesis, suggest_action                          | Available           | Actions are the primary IMPROVE tool       |
-| share_finding, publish_report                              | Team plan only      | Sharing at investigation milestones        |
-| notify_action_owners                                       | IMPROVE + Team only | Notify assignees after actions finalized   |
+| Tool                                                       | Availability                | Notes                                      |
+| ---------------------------------------------------------- | --------------------------- | ------------------------------------------ |
+| Read tools (get_chart_data, get_statistical_summary, etc.) | Always                      |                                            |
+| SCOUT+ tools (apply_filter, create_finding, etc.)          | Available                   | Filters useful for before/after comparison |
+| create_hypothesis, suggest_action                          | Available                   | Actions are the primary IMPROVE tool       |
+| share_finding, publish_report                              | Azure App (planned Webhook) | Sharing at investigation milestones        |
+| notify_action_owners                                       | Azure App, IMPROVE phase    | Notify assignees after actions finalized   |
 
 **NarrativeBar in IMPROVE:** Verification behavior is context-driven (triggered by staged comparison data), not phase-driven. The NarrativeBar shows before/after comparison when `stagedComparison` is present in the AI context, regardless of which phase label is active.
 
@@ -296,7 +296,7 @@ VariScout's Finding system builds a measurement-backed knowledge base from norma
 | Occurrence (1-10 guess)              | η² effect size (actual)                 |
 | Recommended action (rarely verified) | Corrective action with Cpk before/after |
 
-After 50+ investigations, the AI has genuine organizational knowledge. Investigation artifacts (findings, questions, ideas) are indexed automatically in Foundry IQ (Blob Storage) — no manual publishing step needed. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md).
+After 50+ investigations, the AI has genuine organizational knowledge. Investigation artifacts (findings, questions, ideas) are indexed automatically in Azure AI Search / Knowledge Catalyst (Phase 2+) — no manual publishing step needed. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md).
 
 ---
 

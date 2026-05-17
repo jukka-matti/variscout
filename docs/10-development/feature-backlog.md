@@ -5,7 +5,7 @@ category: reference
 status: draft
 ---
 
-> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. backlog items referencing Improve tab / tier-gating / persona routing retire under the wedge; archive retro-active items; new items added for Project membership ACLs + MeasurementPlan entity. This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+> **⚠️ Queued for V1 rewrite (Phase C.3)** — see [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. Backlog items referencing Improve tab / tier-gating / persona routing retire for V1; archive retro-active items; new items added for Project membership ACLs + MeasurementPlan entity. Full content rewrite queued for Phase C.3 batch 4 (subagent-driven).
 
 ---
 

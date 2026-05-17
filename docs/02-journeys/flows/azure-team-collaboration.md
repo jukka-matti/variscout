@@ -49,8 +49,8 @@ flowchart TD
     F --> G[Team members sign in via SSO]
     G --> H[Each user gets local storage or cloud sync]
     H --> I{Collaboration}
-    I -->|Standard| J[Share via file export or chart copy]
-    I -->|Team plan| J2[Channel tabs + deep links + OneDrive]
+    I -->|File share| J[Share via file export or chart copy]
+    I -->|Cloud sync| J2[Blob Storage sync + channel tabs + deep links]
     I -->|Teams tab| K[Admin generates Teams manifest]
     K --> L[Sideload manifest to Teams]
     L --> M[VariScout appears as Teams tab]
@@ -71,8 +71,8 @@ journey
       First team member logs in: 5: User
       Consent to permissions: 3: User
     section Collaborate
-      Standard: local file storage: 5: User
-      Team: cloud sync + channel sharing: 4: User
+      Azure App: Blob Storage + cloud sync: 5: User
+      Channel sharing + deep links: 4: User
       Set up Teams tab: 4: Admin
     section Establish
       Team uses daily: 5: User
@@ -89,14 +89,14 @@ The admin (Olivia or IT) deploys VariScout to the organization's Azure tenant.
 
 **Pre-requisite**: Create an App Registration in Azure AD:
 
-| Step | Action                                                                                                       |
-| ---- | ------------------------------------------------------------------------------------------------------------ |
-| 1    | Go to Azure AD → App Registrations → New                                                                     |
-| 2    | Name: "VariScout" (or any name)                                                                              |
-| 3    | Add redirect URI (configured during deployment)                                                              |
-| 4    | API permissions: `User.Read` (Standard plan). Team plan adds `Files.ReadWrite.All` + `Channel.ReadBasic.All` |
-| 5    | Create a client secret                                                                                       |
-| 6    | Note the Client ID and Client Secret                                                                         |
+| Step | Action                                                                                           |
+| ---- | ------------------------------------------------------------------------------------------------ |
+| 1    | Go to Azure AD → App Registrations → New                                                         |
+| 2    | Name: "VariScout" (or any name)                                                                  |
+| 3    | Add redirect URI (configured during deployment)                                                  |
+| 4    | API permissions: `User.Read` + `People.Read` (both user-consent, zero admin consent per ADR-059) |
+| 5    | Create a client secret                                                                           |
+| 6    | Note the Client ID and Client Secret                                                             |
 
 **Deploy from Azure Marketplace:**
 
@@ -116,55 +116,43 @@ There is no user provisioning. Anyone in the Azure AD tenant can access the app:
 1. Admin shares the App Service URL (email, Teams message, intranet)
 2. Team member opens the URL
 3. EasyAuth redirects to Azure AD sign-in (existing work account)
-4. First-time consent: `User.Read` (Standard). Team plan: admin pre-consents cloud permissions
+4. First-time consent: `User.Read` (user consent only — zero admin consent required per ADR-059)
 5. App loads — ready to use
 
 **No separate accounts, no invitations, no license assignment.** The Managed Application covers unlimited users in the tenant.
 
 ### 3. Data Storage
 
-Storage depends on the plan:
+All Azure App users share the same storage architecture (single SKU, no plan split):
 
-**Standard plan** — local files only:
+**Azure App** — local + Blob Storage:
 
-- Projects saved to IndexedDB + local files via File System Access API
-- No cloud sync, no OneDrive
-- Offline-first: full functionality without internet
-
-**Team plan** — local files + cloud sync:
-
-```
-User's OneDrive/
-└── VariScout/
-    └── Projects/
-        ├── analysis-001.vrs
-        └── ...
-
-Channel Files/VariScout/     ← channel tab storage (SharePoint)
-├── Projects/
-│   └── shared-analysis.vrs
-└── Photos/
-    └── ...
-```
-
-- Personal OneDrive sync for personal tabs and browser access
-- SharePoint channel storage for channel tabs (shared with team)
-- Sync via Graph API with `Files.ReadWrite.All` permission
+- Projects saved to IndexedDB (browser) + synced to Azure Blob Storage in customer's resource group
+- Blob Storage accessed via SAS tokens (`/api/storage-token`); zero admin-consent Graph API permissions
 - Offline-first: works without internet, syncs when reconnected
+
+```
+Azure Blob Storage (customer's resource group)/
+variscout-projects/
+├── {projectId}/
+│   ├── analysis.json
+│   ├── metadata.json
+│   └── photos/{findingId}/{photoId}.jpg
+└── _index.json
+```
+
+See [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md) for the Blob Storage architecture.
 
 ### 4. Sharing Analyses
 
-| Sharing method            | Plan | How                                                         |
-| ------------------------- | ---- | ----------------------------------------------------------- |
-| Channel tab (shared .vrs) | Team | Analyses stored in channel SharePoint — team sees same data |
-| Teams deep links          | Team | Share chart/finding URLs via Teams native dialog            |
-| Share OneDrive file       | Team | Right-click `.vrs` file in OneDrive → Share with colleague  |
-| Export and send           | Both | CSV export → email/Teams attachment                         |
-| Copy chart                | Both | Copy chart as PNG → paste into email/presentation           |
+| Sharing method            | How                                                              |
+| ------------------------- | ---------------------------------------------------------------- |
+| Channel tab (shared .vrs) | Analyses stored in Blob Storage — team members see the same data |
+| Teams deep links          | Share chart/finding URLs via Teams chat                          |
+| Export and send           | CSV export → email/Teams attachment                              |
+| Copy chart                | Copy chart as PNG → paste into email/presentation                |
 
-**Standard plan**: Sharing via file export or chart copy. No cloud-based sharing.
-
-**Team plan**: Channel tabs provide built-in team collaboration — all channel members access the same analysis. Deep links allow sharing specific charts or findings via Teams chat.
+**Azure App**: Channel tabs provide built-in team collaboration via Blob Storage — all project members access the same analysis. Deep links allow sharing specific charts or findings via Teams chat.
 
 ### 5. Teams Integration
 
@@ -183,18 +171,18 @@ Team members can then add VariScout to any Teams channel as a tab — SSO flows 
 
 If the admin enabled AI during deployment, all team members have access to AI-assisted analysis features:
 
-| Feature                 | Plan | Phase | Description                                                                                     |
-| ----------------------- | ---- | ----- | ----------------------------------------------------------------------------------------------- |
-| **NarrativeBar**        | Both | 1     | Plain-language summary at dashboard bottom, visible to all users                                |
-| **ChartInsightChip**    | Both | 2     | Per-chart suggestions (e.g., "Drill Machine A (47%)")                                           |
-| **CoScoutPanel**        | Both | 3     | Conversational AI for deeper questions                                                          |
-| **Team knowledge base** | Team | 2+    | Resolved findings accumulate as searchable organizational knowledge                             |
-| **Document retrieval**  | Team | 3     | CoScoutPanel can reference team SOPs, fault trees, and past investigations via Azure AI Search  |
-| **Shared AI insights**  | Both | 1+    | NarrativeBar and ChartInsightChip content visible to all team members viewing the same analysis |
+| Feature                | Phase | Description                                                                                          |
+| ---------------------- | ----- | ---------------------------------------------------------------------------------------------------- |
+| **NarrativeBar**       | 1     | Plain-language summary at dashboard bottom, visible to all users                                     |
+| **ChartInsightChip**   | 2     | Per-chart suggestions (e.g., "Drill Machine A (47%)")                                                |
+| **CoScoutPanel**       | 3     | Conversational AI for deeper questions                                                               |
+| **Knowledge Catalyst** | 2+    | Resolved findings accumulate as searchable organizational knowledge (Blob Storage + Azure AI Search) |
+| **Document retrieval** | 3     | CoScoutPanel references team SOPs, fault trees, past investigations via Azure AI Search (Phase 2+)   |
+| **Shared AI insights** | 1+    | NarrativeBar and ChartInsightChip visible to all project members viewing the same analysis           |
 
-**Team knowledge base (Phase 2+):** Published scouting reports -- with KPIs, findings, corrective actions, and measured outcomes -- are uploaded to the team's SharePoint folder and become searchable via Remote SharePoint knowledge sources. After 50+ published reports, the AI has genuine organizational knowledge backed by measurement data. CoScoutPanel can answer questions like "Have we seen this pattern before?" by retrieving past investigations on demand.
+**Knowledge Catalyst (Phase 2+):** Published investigation reports — with findings, corrective actions, and measured outcomes — are indexed to Azure AI Search in the customer's tenant. CoScoutPanel can answer questions like "Have we seen this pattern before?" by retrieving past investigations on demand. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for the architecture (supersedes the earlier SharePoint Knowledge Base approach; Foundry IQ deferred per ADR-059).
 
-**Document retrieval (Phase 3):** On the Team plan, CoScoutPanel can reference quality documents stored in the Teams channel SharePoint (fault trees, SOPs, control plans). Users click the "Search Knowledge Base?" button in CoScout to trigger on-demand search with per-user SharePoint permissions.
+**Document retrieval (Phase 3):** CoScoutPanel references quality documents (SOPs, fault trees, control plans) stored in Azure AI Search. Users click "Search Knowledge Base?" in CoScout to trigger on-demand search with per-user Blob Storage permissions.
 
 Each user controls their own AI visibility via the "Show AI assistance" toggle in Settings. AI features are always optional — the app works identically without them.
 
@@ -228,7 +216,7 @@ CUSTOMER TENANT                        VARISCOUT (Publisher)
 │  Azure AD            │               │  No access to:     │
 │  (authenticates)     │               │  - Customer data   │
 │                      │               │  - User identities │
-│  OneDrive            │               │  - App resources   │
+│  Blob Storage        │               │  - App resources   │
 │  (stores analyses)   │               │  - AI prompts/data │
 │                      │               │  - Usage telemetry │
 │  Azure AI Foundry    │               │                    │
@@ -241,34 +229,31 @@ When AI is enabled, Azure AI Foundry resources are deployed in the customer's te
 
 - Publisher management is disabled — zero access to customer deployment
 - No telemetry or outbound calls to publisher systems
-- Data survives subscription cancellation (analyses remain on device or in OneDrive/SharePoint)
+- Data survives subscription cancellation (analyses remain on device or in Blob Storage)
 
 ---
 
 ## Permissions Summary
 
-| Permission              | Type      | Plan | Who consents | Purpose                           |
-| ----------------------- | --------- | ---- | ------------ | --------------------------------- |
-| `User.Read`             | Delegated | Both | Each user    | Display user name & email         |
-| `Files.ReadWrite.All`   | Delegated | Team | Tenant admin | OneDrive + SharePoint file sync   |
-| `Channel.ReadBasic.All` | Delegated | Team | Tenant admin | Resolve channel SharePoint drives |
+| Permission    | Type      | Who consents | Purpose                           |
+| ------------- | --------- | ------------ | --------------------------------- |
+| `User.Read`   | Delegated | Each user    | Display user name & email         |
+| `People.Read` | Delegated | Each user    | People picker for team assignment |
 
-**Standard plan**: No admin consent required — users consent to `User.Read` on first login.
-
-**Team plan**: Requires one-time tenant admin consent for `Files.ReadWrite.All` and `Channel.ReadBasic.All`. No `Sites.ReadWrite.All`, no mail access.
+**Azure App (single SKU)**: Zero admin-consent Graph API permissions required. `Files.ReadWrite.All` and `Channel.ReadBasic.All` are removed — Blob Storage in the customer's resource group replaces OneDrive/SharePoint sync. See [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md).
 
 ---
 
 ## Success Metrics
 
-| Metric                                | Target  |
-| ------------------------------------- | ------- |
-| Deployment → first team login         | < 1 day |
-| Team members active (month 1)         | > 50%   |
-| Analyses saved per user (month 1)     | > 3     |
-| Teams tab adoption (if set up)        | Track   |
-| OneDrive sharing between team members | Track   |
-| Return rate (week 2)                  | > 60%   |
+| Metric                            | Target  |
+| --------------------------------- | ------- |
+| Deployment → first team login     | < 1 day |
+| Team members active (month 1)     | > 50%   |
+| Analyses saved per user (month 1) | > 3     |
+| Teams tab adoption (if set up)    | Track   |
+| Blob Storage sync reliability     | Track   |
+| Return rate (week 2)              | > 60%   |
 
 ---
 
@@ -278,7 +263,7 @@ When AI is enabled, Azure AI Foundry resources are deployed in the customer's te
 - [How It Works](../../08-products/azure/how-it-works.md) — end-to-end architecture
 - [ARM Template](../../08-products/azure/arm-template.md) — deployment resources
 - [Authentication](../../08-products/azure/authentication.md) — EasyAuth details
-- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) — sync and offline behavior
+- [Blob Storage Sync](../../08-products/azure/blob-storage-sync.md) — sync and offline behavior
 - [AI Setup](azure-ai-setup.md) — admin flow for enabling AI features
 - [Enterprise Evaluation](enterprise.md) — how Olivia evaluated before deploying
 - [First Analysis](azure-first-analysis.md) — what team members experience on day one
