@@ -19,6 +19,7 @@ export const STATUS = [
   'raw',
   'review',
   'living',
+  'named-future',
 ];
 
 export const CATEGORY = [
