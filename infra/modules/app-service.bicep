@@ -72,10 +72,6 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
           value: packageUrl
         }
         {
-          name: 'VITE_LICENSE_TIER'
-          value: 'enterprise'
-        }
-        {
           name: 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET'
           value: clientSecret
         }

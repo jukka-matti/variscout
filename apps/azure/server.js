@@ -27,7 +27,7 @@ if (aiEndpoint) {
 if (searchEndpoint) {
   try { connectSrc += ` ${new URL(searchEndpoint).origin}`; } catch { /* ignore */ }
 }
-// Blob Storage endpoint for Team plan cloud sync
+// Blob Storage endpoint for cloud sync
 const storageAccountForCsp = process.env.STORAGE_ACCOUNT_NAME || '';
 if (storageAccountForCsp) {
   connectSrc += ` https://${storageAccountForCsp}.blob.core.windows.net`;
@@ -131,7 +131,7 @@ app.get('/config', (_req, res) => {
   res.status(200).end(JSON.stringify(config));
 });
 
-// SAS token generation for Blob Storage (Team plan cloud sync)
+// SAS token generation for Blob Storage (cloud sync)
 app.post('/api/storage-token', async (req, res) => {
   const principal = req.headers['x-ms-client-principal'];
   // LOCAL_DEV bypass blocked on App Service (WEBSITE_SITE_NAME is set by Azure)
@@ -205,7 +205,7 @@ app.post('/api/storage-token', async (req, res) => {
   }
 });
 
-// ── Knowledge Base API (Team plan only, ADR-060) ──────────────────────────────
+// ── Knowledge Base API (ADR-060) ─────────────────────────────────────────────
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -511,7 +511,7 @@ app.get('/api/kb-download', requireAuth, async (req, res) => {
   }
 });
 
-// ─── Brainstorm Sessions (Team plan, SSE-based collaboration) ────────────────
+// ─── Brainstorm Sessions (SSE-based collaboration) ───────────────────────────
 
 const brainstormSessions = new Map(); // sessionId → session object
 const brainstormClients = new Map();  // sessionId → Set<res>

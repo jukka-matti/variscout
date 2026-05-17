@@ -669,10 +669,6 @@
                       "value": "[parameters('packageUrl')]"
                     },
                     {
-                      "name": "VITE_LICENSE_TIER",
-                      "value": "enterprise"
-                    },
-                    {
                       "name": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET",
                       "value": "[parameters('clientSecret')]"
                     },
