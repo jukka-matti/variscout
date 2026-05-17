@@ -6,7 +6,7 @@ status: deferred
 related: [getting-started, learning, case-studies]
 ---
 
-> **⚠️ Queued for wedge rewrite (2026-05-16)** — see [wedge spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. PWA + Standard + Team tutorials collapse to PWA + €99; Improve tutorial retargets to Improve stage (inside Projects detail). This doc has a wedge-marker header only; full content rewrite is queued for Phase C.3 batch 4 (subagent-driven).
+> **⚠️ Queued for V1 rewrite (Phase C.3)** — see [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. PWA + Standard + Team tutorials collapse to PWA + €120 single SKU; Improve tutorial retargets to Improve tab (top-level verb). Full content rewrite queued for Phase C.3 batch 4 (subagent-driven).
 
 ---
 

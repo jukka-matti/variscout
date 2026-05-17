@@ -106,7 +106,7 @@ Each mode doc strips personas to the single Specialist and references code groun
 
 The legacy multi-persona / Hub-centric framing migrates to **VariScout Process**, a future enterprise product:
 
-- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to single Specialist + project-membership roles (wedge spec §3.5; canonical design: [four-personas.md](01-vision/variscout-process/four-personas.md))
+- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to single Specialist + project-membership roles (V1 spec §3.5; canonical design: [four-personas.md](01-vision/variscout-process/four-personas.md))
 - Process Hub as a user-visible primary container — V1 keeps Hub internal-only
 - Process-owner cadence + Current Process State surfaces — defers
 - Multi-Hub portfolio scans + cross-Hub orchestration — defers

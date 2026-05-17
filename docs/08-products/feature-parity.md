@@ -4,7 +4,7 @@ audience: [business, product]
 category: strategy
 status: stable
 last-reviewed: 2026-05-16
-related: [tiers, wedge, pricing, modes]
+related: [tiers, pricing, modes]
 ---
 
 # Feature Parity Matrix

@@ -4,7 +4,7 @@ audience: [engineer, analyst]
 category: reference
 status: stable
 last-reviewed: 2026-05-16
-related: [capability, journey, cpk, spc, subgroup, wedge]
+related: [capability, journey, cpk, spc, subgroup]
 ---
 
 # Capability Mode — User Journey

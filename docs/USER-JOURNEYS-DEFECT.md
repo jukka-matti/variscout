@@ -4,7 +4,7 @@ audience: [engineer, analyst]
 category: reference
 status: stable
 last-reviewed: 2026-05-16
-related: [defect, journey, ppm, event-rates, copq, wedge]
+related: [defect, journey, ppm, event-rates, copq]
 ---
 
 # Defect Analysis Mode — User Journey

@@ -4,12 +4,12 @@ audience: [analyst, engineer]
 category: reference
 status: stable
 last-reviewed: 2026-05-16
-related: [wedge, adr-082, product-overview, feature-parity, journey]
+related: [adr-082, product-overview, feature-parity, journey]
 ---
 
 # VariScout — Product Spec
 
-**Version:** 3.0 (wedge)
+**Version:** 3.0 (V1)
 **Date:** 2026-05-16
 **Status:** Stable
 
@@ -52,17 +52,17 @@ Seven tabs, in workflow order:
 [Home] [Project] [Process] [Analyze] [Investigation] [Improve] [Report]
 ```
 
-| Tab               | Function                                                                                             |
-| ----------------- | ---------------------------------------------------------------------------------------------------- |
-| **Home**          | Active-IP launchpad + project queue                                                                  |
-| **Project**       | Current project detail — Charter / Approach / Sustainment stages                                     |
-| **Process**       | Canvas / process map (State + Edit modes per wedge §3.3)                                             |
-| **Analyze**       | EDA / charts / Factor Intelligence                                                                   |
-| **Investigation** | Wall + Evidence Map → suspected causes                                                               |
-| **Improve**       | Active-IP-scoped action tracker; PDCA workbench behind **"Advanced" toggle** (wedge spec §3.5 amend) |
-| **Report**        | Narrative output for Sponsor signoff                                                                 |
+| Tab               | Function                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
+| **Home**          | Active-IP launchpad + project queue                                                               |
+| **Project**       | Current project detail — Charter / Approach / Sustainment stages                                  |
+| **Process**       | Canvas / process map (State + Edit modes per V1 spec §3.3)                                        |
+| **Analyze**       | EDA / charts / Factor Intelligence                                                                |
+| **Investigation** | Wall + Evidence Map → suspected causes                                                            |
+| **Improve**       | Active-IP-scoped action tracker; PDCA workbench behind **"Advanced" toggle** (V1 spec §3.5 amend) |
+| **Report**        | Narrative output for Sponsor signoff                                                              |
 
-Improve is a top-level verb tab with active-IP cascade (2026-05-16 amendment — wedge spec §3.5). Project detail runs three stages: Charter → Approach → Sustainment. Handoff folds into Sustainment closure.
+Improve is a top-level verb tab with active-IP cascade (2026-05-16 amendment — V1 spec §3.5). Project detail runs three stages: Charter → Approach → Sustainment. Handoff folds into Sustainment closure.
 
 ---
 
@@ -89,7 +89,7 @@ Improve is a top-level verb tab with active-IP cascade (2026-05-16 amendment —
 
 ## Two analyst modes — both first-class
 
-V1 serves two distinct workflows, both as primary use cases (per [wedge spec §3.0](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§30-two-analyst-modes--both-first-class)):
+V1 serves two distinct workflows, both as primary use cases (per [V1 spec §3.0](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§30-two-analyst-modes--both-first-class)):
 
 1. **Quick analysis (exploratory)** — Specialist pastes data, explores in Analyze + Investigation, saves Findings. _No Project required._ Free PWA supports this in session-only mode; Azure adds persistence and CoScout.
 2. **Project-anchored investigation** — Specialist creates a Project (or promotes a quick analysis via "+ Promote to Project"). The Charter ceremony adds problem statement, member invites, optional refined goal. Project runs Charter → Approach → Sustainment (3 stages); the Improve tab provides the action tracker scoped to the active project, producing a Sponsor-signoff-ready Report.
@@ -114,7 +114,7 @@ Handoff stage is folded into Sustainment closure (single end-of-project decision
 
 ## Investigation Wall + Measurement Plans
 
-The Investigation Wall is the canonical Hypothesis-driven surface. V1 extends the Wall with one new sub-entity per Hypothesis: **Measurement Plan** (per [wedge spec §3.6](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§36-investigation-wall--measurement-plans)).
+The Investigation Wall is the canonical Hypothesis-driven surface. V1 extends the Wall with one new sub-entity per Hypothesis: **Measurement Plan** (per [V1 spec §3.6](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§36-investigation-wall--measurement-plans)).
 
 Both investigation starting points converge on the Wall:
 
@@ -261,7 +261,7 @@ Deferred to V2 inside V1 (not Process):
 - What-If simulator (may re-emerge in Analyze later if customer demand surfaces)
 - Idea board / action conversion
 
-See [wedge spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for the canonical out-of-V1 list.
+See [V1 spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for the canonical out-of-V1 list.
 
 ---
 
@@ -273,8 +273,8 @@ See [wedge spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-d
 
 ## See Also
 
-- [Wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
-- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — Wedge architecture decision
+- [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
+- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — V1 architecture decision
 - [Product Overview](../01-vision/product-overview.md)
 - [Market Analysis](../01-vision/market-analysis.md)
 - [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€99) matrix

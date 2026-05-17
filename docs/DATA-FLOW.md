@@ -119,7 +119,7 @@ Parse → transform → stats → persist → sync → display → AI. Every bou
 - ADR-050 Wide-form stack columns
 - ADR-059 Web-first deployment architecture
 - ADR-069 Three-boundary numeric safety
-- ADR-082 Wedge architecture (single-SKU + project-membership ACL)
+- ADR-082 V1 architecture (single-SKU + project-membership ACL)
 - docs/05-technical/architecture/data-flow.md
 - docs/05-technical/architecture/data-pipeline-map.md
 - docs/08-products/azure/blob-storage-sync.md

@@ -4,7 +4,7 @@ audience: [engineer, analyst]
 category: reference
 status: design
 last-reviewed: 2026-05-16
-related: [process-flow, journey, bottleneck, design-only, wedge]
+related: [process-flow, journey, bottleneck, design-only]
 ---
 
 # Process Flow Mode — User Journey

@@ -4,7 +4,7 @@ audience: [engineer, analyst]
 category: reference
 status: stable
 last-reviewed: 2026-05-16
-related: [performance, journey, multi-channel, cpk, drill-down, wedge]
+related: [performance, journey, multi-channel, cpk, drill-down]
 ---
 
 # Performance Mode — User Journey

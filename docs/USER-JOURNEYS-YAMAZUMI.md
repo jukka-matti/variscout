@@ -4,7 +4,7 @@ audience: [engineer, analyst]
 category: reference
 status: stable
 last-reviewed: 2026-05-16
-related: [yamazumi, journey, lean, cycle-time, takt, wedge]
+related: [yamazumi, journey, lean, cycle-time, takt]
 ---
 
 # Yamazumi Mode — User Journey
