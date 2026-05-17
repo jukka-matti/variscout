@@ -13,7 +13,7 @@ related: [adr-082, product-overview, feature-parity, journey]
 **Date:** 2026-05-16
 **Status:** Stable
 
-Canonical V1 design lives in the [wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md). This doc enumerates the V1 feature surface; tier-gating is collapsed to a single Azure SKU, and team-collaboration features are project-membership-role-gated inside that SKU. See [feature-parity.md](../08-products/feature-parity.md) for the PWA vs Azure matrix.
+Canonical V1 design lives in the [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md). This doc enumerates the V1 feature surface; tier-gating is collapsed to a single Azure SKU, and team-collaboration features are project-membership-role-gated inside that SKU. See [feature-parity.md](../08-products/feature-parity.md) for the PWA vs Azure matrix.
 
 ---
 
