@@ -246,7 +246,7 @@ The Azure app includes a development-only tier switching component at `apps/azur
 
 - [How It Works](how-it-works.md) — end-to-end architecture guide
 - [Azure Marketplace Guide](marketplace.md)
-- [Pricing](pricing-tiers.md)
+- [Pricing](../../archive/products/pricing-tiers.md) (archived — superseded by single €120 SKU per ADR-082)
 - [ARM Template](arm-template.md)
 - [Authentication (EasyAuth)](authentication.md)
 - [Blob Storage Sync](blob-storage-sync.md)

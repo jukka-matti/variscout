@@ -317,5 +317,5 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 ## See Also
 
 - [Azure Marketplace Guide](../08-products/azure/marketplace.md)
-- [Pricing Tiers](../08-products/azure/pricing-tiers.md)
+- [Pricing Tiers](../archive/products/pricing-tiers.md) (archived — superseded by single €120 SKU per ADR-082)
 - [ARM Template](../08-products/azure/arm-template.md)

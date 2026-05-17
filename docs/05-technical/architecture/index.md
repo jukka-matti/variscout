@@ -12,26 +12,26 @@ Detailed architecture documents for VariScout's technical design.
 
 ## Documents
 
-| Document                                                        | Purpose                                            |
-| --------------------------------------------------------------- | -------------------------------------------------- |
-| [Offline-First](offline-first.md)                               | Service worker, caching strategy, PWA capabilities |
-| [Monorepo](monorepo.md)                                         | pnpm workspaces structure, package boundaries      |
-| [Shared Packages](shared-packages.md)                           | Cross-platform code sharing patterns               |
-| [Data Flow](data-flow.md)                                       | Data pipeline from input through stats to charts   |
-| [Component Patterns](component-patterns.md)                     | colorScheme pattern, Base component extraction     |
-| [AI Architecture](ai-architecture.md)                           | AI Foundry integration, prompt templates, phases   |
-| [AI Context Engineering](ai-context-engineering.md)             | Context assembly, pipeline reference, module map   |
-| [AI Journey Integration](ai-journey-integration.md)             | AI × journey overview and entry point              |
-| [AIX Design System](aix-design-system.md)                       | AI governance, tone, trust, interaction patterns   |
-| [Knowledge Model](knowledge-model.md)                           | Unified glossary terms + methodology concepts      |
-| [The Journey Model](mental-model-hierarchy.md)                  | Journey-as-spine with per-phase methods            |
-| [Journey Phase Screen Mapping](journey-phase-screen-mapping.md) | Phase-to-screen-to-component traceability          |
-| [System Map](system-map.md)                                     | Visual package/app topology (C4 L1)                |
-| [Data Pipeline Map](data-pipeline-map.md)                       | End-to-end data flow with TypeScript interfaces    |
-| [Store Interactions](store-interactions.md)                     | Zustand cross-store coupling analysis (ADR-041)    |
-| [Sub-Path Exports](sub-path-exports.md)                         | 17 sub-path export API for @variscout/core         |
-| [Component Map](component-map.md)                               | L3 component views per package                     |
-| [Tier & Plan Gating](tier-gating.md)                            | Tier/plan gating system for feature access control |
+| Document                                                        | Purpose                                                                                        |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [Offline-First](offline-first.md)                               | Service worker, caching strategy, PWA capabilities                                             |
+| [Monorepo](monorepo.md)                                         | pnpm workspaces structure, package boundaries                                                  |
+| [Shared Packages](shared-packages.md)                           | Cross-platform code sharing patterns                                                           |
+| [Data Flow](data-flow.md)                                       | Data pipeline from input through stats to charts                                               |
+| [Component Patterns](component-patterns.md)                     | colorScheme pattern, Base component extraction                                                 |
+| [AI Architecture](ai-architecture.md)                           | AI Foundry integration, prompt templates, phases                                               |
+| [AI Context Engineering](ai-context-engineering.md)             | Context assembly, pipeline reference, module map                                               |
+| [AI Journey Integration](ai-journey-integration.md)             | AI × journey overview and entry point                                                          |
+| [AIX Design System](aix-design-system.md)                       | AI governance, tone, trust, interaction patterns                                               |
+| [Knowledge Model](knowledge-model.md)                           | Unified glossary terms + methodology concepts                                                  |
+| [The Journey Model](mental-model-hierarchy.md)                  | Journey-as-spine with per-phase methods                                                        |
+| [Journey Phase Screen Mapping](journey-phase-screen-mapping.md) | Phase-to-screen-to-component traceability                                                      |
+| [System Map](system-map.md)                                     | Visual package/app topology (C4 L1)                                                            |
+| [Data Pipeline Map](data-pipeline-map.md)                       | End-to-end data flow with TypeScript interfaces                                                |
+| [Store Interactions](store-interactions.md)                     | Zustand cross-store coupling analysis (ADR-041)                                                |
+| [Sub-Path Exports](sub-path-exports.md)                         | 17 sub-path export API for @variscout/core                                                     |
+| [Component Map](component-map.md)                               | L3 component views per package                                                                 |
+| [Tier & Plan Gating](../../archive/technical/tier-gating.md)    | Tier/plan gating system — archived 2026-05-17; superseded by project-membership ACLs (ADR-082) |
 
 ## See Also
 

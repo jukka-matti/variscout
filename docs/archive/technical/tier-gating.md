@@ -2,9 +2,13 @@
 title: Tier & Plan Gating System
 audience: [developer]
 category: architecture
-status: stable
+status: archived
 related: [pricing, marketplace, feature-flags]
 ---
+
+> **ARCHIVED 2026-05-17** — This document describes the `LicenseTier` / `MarketplacePlan` two-dimension gating system (free / enterprise × standard / team). Under VariScout V1 (single €120/month SKU per [ADR-082](../../07-decisions/adr-082-wedge-architecture.md)), plan-based feature gating (`hasTeamFeatures()`, `hasKnowledgeBase()`, `isTeamPlan()`) retires; all tenant users share the same capability set. The `free` tier for the PWA remains; the `standard`/`team` plan split does not.
+>
+> Preserved here for institutional knowledge; the V1 access model uses project-membership ACLs (Lead / Member / Sponsor) defined in [membership-philosophy.md](../../08-products/membership-philosophy.md).
 
 # Tier & Plan Gating System
 

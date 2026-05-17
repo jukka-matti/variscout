@@ -2,8 +2,12 @@
 title: 'Pricing'
 audience: [admin, architect]
 category: reference
-status: stable
+status: archived
 ---
+
+> **ARCHIVED 2026-05-17** — This pricing reference describes the €79 Standard / €199 Team two-plan model, which is superseded by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) (single €120/month SKU, project-membership ACLs replace plan-based feature gating). Tier-gating code (`hasTeamFeatures()`, `hasKnowledgeBase()`) retires under V1; all project members get the same capability set.
+>
+> Preserved here for institutional knowledge; current pricing is defined in ADR-082 and the [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md).
 
 # Pricing
 
@@ -207,7 +211,7 @@ The ARM template uses a `VARISCOUT_PLAN` environment variable (`standard` or `te
 
 ## See Also
 
-- [Azure Marketplace Guide](marketplace.md)
-- [Products Overview](../index.md)
+- [Azure Marketplace Guide](../../08-products/azure/marketplace.md)
+- [Products Overview](../../08-products/index.md)
 - [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [ADR-016: Teams Integration](../../archive/adrs/adr-016-teams-integration.md)
