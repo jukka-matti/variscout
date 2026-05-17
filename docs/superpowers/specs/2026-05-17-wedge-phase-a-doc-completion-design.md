@@ -253,7 +253,7 @@ After PRs 2-4 (Phase C AMEND → ARCHIVE → DELETE) merge:
 
 This design produces **four PRs**, each promoted via `superpowers:writing-plans` and executed via `superpowers:subagent-driven-development`.
 
-- **PR 1 (Phase A)**: one Sonnet implementer dispatch with internal Architect → Migration → Validator phases + per-anchor commits. Escalate to Opus for any single anchor stalling on content (e.g., business-bible needing strategic framing). Opus final-branch review.
+- **PR 1 (Phase A)**: see [`2026-05-17-pr-1-wedge-phase-a-doc-completion.md`](../plans/2026-05-17-pr-1-wedge-phase-a-doc-completion.md) — one Sonnet implementer dispatch with internal Architect → Migration → Validator phases + per-anchor commits. Escalate to Opus for any single anchor stalling on content (e.g., business-bible needing strategic framing). Opus final-branch review.
 - **PR 2 (Phase C AMEND)**: parallel Explore audit produces the triage table; one Sonnet implementer dispatch executes the AMEND-bucket surgical edits. Mostly find-and-replace; small judgment density. Opus final-branch review.
 - **PR 3 (Phase C ARCHIVE)**: Sonnet implementer moves superseded docs to `docs/archive/` with supersession headers. Mechanical work. Sonnet final-branch review acceptable (low complexity).
 - **PR 4 (Phase C DELETE)**: Sonnet implementer `git rm`s flagged-for-deletion docs. Smallest PR. Sonnet final-branch review acceptable.
