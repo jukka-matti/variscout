@@ -4,12 +4,12 @@ audience: [engineer, analyst]
 category: reference
 status: stable
 last-reviewed: 2026-05-16
-related: [personas, flows, journey, modes, wedge]
+related: [personas, flows, journey, modes, v1-architecture]
 ---
 
 # VariScout User Journeys — V1 Single-Persona Spine
 
-Under the wedge pivot ([wedge spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md)), VariScout V1 serves **one persona** — the **Improvement Specialist** — with project-membership roles applied inside individual projects. The legacy 10-persona spine retires for V1 and migrates to **VariScout Process**, the future enterprise product.
+Under V1 ([V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md)), VariScout serves **one persona** — the **Improvement Specialist** — with project-membership roles applied inside individual projects. The legacy 10-persona spine retires for V1 and migrates to **VariScout Process**, the future enterprise product.
 
 This doc captures: how the Specialist enters, how they work, how they bring teammates in, and which mode-specific docs to read next.
 
@@ -45,7 +45,7 @@ Project members must share the same Azure AD tenant. Cross-org collaboration is 
 
 ## Two entry shapes — both first-class
 
-**Quick analysis (exploratory).** Specialist pastes data → explores in Analyze → optionally creates Findings → optionally groups them into Hypotheses on the Investigation Wall. No project created. Free PWA supports session-only; Azure (€99/mo) adds persistence and CoScout.
+**Quick analysis (exploratory).** Specialist pastes data → explores in Analyze → optionally creates Findings → optionally groups them into Hypotheses on the Investigation Wall. No project created. Free PWA supports session-only; Azure (€120/mo) adds persistence and CoScout.
 
 **Project-anchored investigation.** Specialist creates a Project (or promotes a quick analysis to a Project via "+ Promote to Project"). The Charter ceremony adds problem statement, member invites, and optional refined goal. Project lifecycle runs Charter → Approach → Improve → Sustainment, producing a Report a Sponsor can sign off.
 
@@ -80,7 +80,7 @@ VariScout's job is to connect those levels into durable process understanding wi
 
 ## Hypothesis-first vs data-first investigation
 
-Both starting points converge on the **Investigation Wall** (per [wedge spec §3.6](superpowers/specs/2026-05-16-wedge-architecture-design.md#§36-investigation-wall--measurement-plans)).
+Both starting points converge on the **Investigation Wall** (per [V1 spec §3.6](superpowers/specs/2026-05-16-wedge-architecture-design.md#§36-investigation-wall--measurement-plans)).
 
 | Start                            | Path                                                                                                                                                                                                                     |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -118,7 +118,7 @@ These aren't lost — they're moved to a separate roadmap item. V1 marketing doe
 
 ## Where to go next
 
-- **Canonical V1 design**: [wedge architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md)
+- **Canonical V1 design**: [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md)
 - Overview: [OVERVIEW.md](OVERVIEW.md)
 - Data lifecycle: [DATA-FLOW.md](DATA-FLOW.md)
 - Glossary: [glossary.md](glossary.md)
