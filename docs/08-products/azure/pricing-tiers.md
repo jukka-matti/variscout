@@ -7,7 +7,7 @@ status: stable
 
 # Pricing
 
-VariScout Azure App pricing structure — two plans differentiated by storage, collaboration, and knowledge capabilities. Per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md), AI is included in all plans. ADR-072 defines the current Process Hub and Blob Storage direction.
+VariScout Azure App pricing structure — two plans differentiated by storage, collaboration, and knowledge capabilities. Per [ADR-033](../../archive/adrs/adr-033-pricing-simplification.md), AI is included in all plans. ADR-072 defines the current Process Hub and Blob Storage direction.
 
 ---
 
@@ -83,7 +83,7 @@ Team adds everything needed for shared quality workflows: customer-tenant Blob S
 
 ### Why Two Plans
 
-Per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md), the original three-plan model was simplified to two plans. AI is included in all plans (removing the Team AI upsell friction), and the knowledge features (Knowledge Base + Knowledge Catalyst) moved to Team where they pair naturally with team collaboration features.
+Per [ADR-033](../../archive/adrs/adr-033-pricing-simplification.md), the original three-plan model was simplified to two plans. AI is included in all plans (removing the Team AI upsell friction), and the knowledge features (Knowledge Base + Knowledge Catalyst) moved to Team where they pair naturally with team collaboration features.
 
 - Standard at €79 removes admin-consent friction and now includes AI
 - Team at €199 captures the collaboration + knowledge value that teams are willing to pay for

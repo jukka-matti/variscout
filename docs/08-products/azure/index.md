@@ -13,7 +13,7 @@ VariScout for Microsoft 365 enterprises - the paid product line, distributed via
 
 ## Overview
 
-The Azure App is the **only paid VariScout product**, available in two plans per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md):
+The Azure App is the **only paid VariScout product**, available in two plans per [ADR-033](../../archive/adrs/adr-033-pricing-simplification.md) (archived — superseded by ADR-082 single-SKU):
 
 - **Standard (€79/month)**: Full analysis features with CoScout AI, IndexedDB persistence, EasyAuth SSO
 - **Team (€199/month)**: Everything in Standard + customer-tenant Blob Storage sync, shared Process Hubs, Knowledge Base, and organizational learning

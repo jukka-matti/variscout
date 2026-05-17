@@ -112,5 +112,5 @@ if (result.showWarning) showPerformanceWarning();
 ## Related
 
 - [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md)
-- [ADR-033: Pricing Simplification](../../07-decisions/adr-033-pricing-simplification.md)
+- [ADR-033: Pricing Simplification](../../archive/adrs/adr-033-pricing-simplification.md)
 - [Feature Parity Matrix](../../08-products/feature-parity.md)
