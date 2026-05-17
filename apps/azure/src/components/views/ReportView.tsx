@@ -86,8 +86,6 @@ import ParetoChart from '../charts/ParetoChart';
 
 interface ReportViewProps {
   onClose: () => void;
-  onShareReport?: () => void;
-  canShareViaTeams?: boolean;
   // AI enhancement
   aiEnabled?: boolean;
   narrative?: string | null;
@@ -148,8 +146,6 @@ const REPORT_MAP_SIZE = { width: REPORT_CHART_MAX_WIDTH, height: 400 } as const;
 
 const ReportView: React.FC<ReportViewProps> = ({
   onClose,
-  onShareReport,
-  canShareViaTeams,
   aiEnabled,
   narrative,
   activeIPScope,
@@ -1413,8 +1409,6 @@ const ReportView: React.FC<ReportViewProps> = ({
           onScrollToSection={handleScrollToSection}
           renderSection={renderSection}
           onPrintReport={handlePrint}
-          onShareReport={onShareReport ?? (() => undefined)}
-          shareLinkGate="available"
           onClose={onClose}
           activeIPContextChip={
             activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
@@ -1425,7 +1419,6 @@ const ReportView: React.FC<ReportViewProps> = ({
               />
             ) : null
           }
-          canShareViaTeams={canShareViaTeams}
         />
       </div>
     </ErrorBoundary>

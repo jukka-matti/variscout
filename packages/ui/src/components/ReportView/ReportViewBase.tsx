@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, FileText, Copy, Share2, Printer } from 'lucide-react';
+import { X, FileText, Copy, Printer } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import type { MessageCatalog } from '@variscout/core';
 
@@ -33,7 +33,6 @@ type ReportType = 'analysis-snapshot' | 'investigation-report' | 'improvement-st
 type ReportWorkspace = 'analysis' | 'findings' | 'improvement';
 type AudienceMode = 'technical' | 'summary';
 export type ReportAudienceMode = 'overview' | 'technical';
-export type ShareLinkGate = 'available' | 'locked';
 
 interface SectionDescriptor {
   id: string;
@@ -58,11 +57,8 @@ export interface ReportViewBaseProps {
   renderSection: (section: SectionDescriptor) => React.ReactNode;
   onCopyAllCharts?: () => void;
   onPrintReport?: () => void;
-  onShareReport?: () => void;
-  shareLinkGate?: ShareLinkGate;
   onClose: () => void;
   activeIPContextChip?: React.ReactNode;
-  canShareViaTeams?: boolean;
   colorScheme?: Partial<ReportViewBaseColorScheme>;
   /** Ref to attach to the scrollable content area (for measuring width) */
   contentRef?: React.RefObject<HTMLDivElement | null>;
@@ -137,11 +133,8 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   renderSection,
   onCopyAllCharts,
   onPrintReport,
-  onShareReport,
-  shareLinkGate,
   onClose,
   activeIPContextChip,
-  canShareViaTeams,
   colorScheme,
   contentRef,
 }) => {
@@ -258,35 +251,6 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               {t('report.action.saveAsPdf')}
             </button>
           )}
-          {canShareViaTeams && onShareReport && (
-            <button
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              onClick={onShareReport}
-            >
-              <Share2 size={14} />
-              {t('report.action.shareReport')}
-            </button>
-          )}
-          {shareLinkGate && onShareReport && (
-            <button
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
-                shareLinkGate === 'available'
-                  ? 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                  : 'text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 cursor-not-allowed'
-              }`}
-              onClick={shareLinkGate === 'available' ? onShareReport : undefined}
-              disabled={shareLinkGate === 'locked'}
-              title={shareLinkGate === 'locked' ? 'Available in VariScout for Azure' : undefined}
-            >
-              <Share2 size={14} />
-              <span>Share link</span>
-              {shareLinkGate === 'locked' ? (
-                <span className="ml-auto text-[0.625rem] font-medium uppercase tracking-wide">
-                  VariScout for Azure
-                </span>
-              ) : null}
-            </button>
-          )}
         </div>
       </aside>
 
@@ -383,7 +347,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
         </header>
 
         {/* Mobile action bar (visible below lg breakpoint, mirrors sidebar actions) */}
-        {(onPrintReport || (canShareViaTeams && onShareReport)) && (
+        {onPrintReport && (
           <div
             className="lg:hidden flex items-center gap-1 px-4 py-2 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-x-auto"
             data-export-hide
@@ -406,32 +370,6 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               >
                 <Printer size={14} />
                 {t('report.action.saveAsPdf')}
-              </button>
-            )}
-            {canShareViaTeams && onShareReport && (
-              <button
-                className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
-                onClick={onShareReport}
-                style={{ minHeight: 44 }}
-              >
-                <Share2 size={14} />
-                {t('report.action.shareReport')}
-              </button>
-            )}
-            {shareLinkGate && onShareReport && (
-              <button
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg transition-colors whitespace-nowrap ${
-                  shareLinkGate === 'available'
-                    ? 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                    : 'text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800'
-                }`}
-                onClick={shareLinkGate === 'available' ? onShareReport : undefined}
-                disabled={shareLinkGate === 'locked'}
-                style={{ minHeight: 44 }}
-              >
-                <Share2 size={14} />
-                Share link
-                {shareLinkGate === 'locked' ? <span>VariScout for Azure</span> : null}
               </button>
             )}
           </div>
