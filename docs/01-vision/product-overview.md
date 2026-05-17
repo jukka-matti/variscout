@@ -21,11 +21,11 @@ Canonical V1 design lives in the [wedge architecture spec](../superpowers/specs/
 
 ## Two products on a roadmap
 
-VariScout ships as **two products on a roadmap**: the wedge first, the platform later.
+VariScout ships as **two products on a roadmap**: VariScout V1 first, the platform later.
 
 | Product                        | Audience                                                                                  | Status                                                                                                                    |
 | ------------------------------ | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **VariScout (V1, this doc)**   | Improvement specialists running projects with their team                                  | **Ship-target.** One persona, one €99 SKU, project-scoped membership, Azure-tenant-wide.                                  |
+| **VariScout (V1, this doc)**   | Improvement specialists running projects with their team                                  | **Ship-target.** One persona, one €120 SKU, project-scoped membership, Azure-tenant-wide.                                 |
 | **VariScout Process** (future) | Enterprises with ongoing process ownership, multi-project portfolios, 4-persona workflows | Internal roadmap commitment only. Not announced in V1 marketing; mentioned when customers ask about enterprise use cases. |
 
 The breadth-first features (Hub portfolios, automated data pipelines, Process Owner cadence, 4-persona routing) are not lost — they migrate to VariScout Process as a separate product. V1 is the focused, coherent thing: **the project tool an improvement specialist invites their team to.**
@@ -90,12 +90,12 @@ Mode resolution lives in `packages/core/src/analysisStrategy.ts`. CoScout's meth
 
 ## Pricing (V1)
 
-Single SKU. No tier-gating inside Azure; team-collaboration features are project-membership-role-gated within the €99 plan.
+Single SKU. No tier-gating inside Azure; team-collaboration features are project-membership-role-gated within the €120 plan.
 
-| Tier      | Distribution                          | Price         | What you get                                                                                                                                                                   |
-| --------- | ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **PWA**   | Public URL                            | Free          | Full analysis, session-only, no persistence. Training, education, evaluation.                                                                                                  |
-| **Azure** | Azure Marketplace Managed Application | **€99/month** | Full product, Azure tenant-wide, unlimited org users, unlimited projects. Persistence (IndexedDB + Blob), CoScout AI, project membership ACLs, Report sharing. Voice optional. |
+| Tier      | Distribution                          | Price          | What you get                                                                                                                                                                   |
+| --------- | ------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **PWA**   | Public URL                            | Free           | Full analysis, session-only, no persistence. Training, education, evaluation.                                                                                                  |
+| **Azure** | Azure Marketplace Managed Application | **€120/month** | Full product, Azure tenant-wide, unlimited org users, unlimited projects. Persistence (IndexedDB + Blob), CoScout AI, project membership ACLs, Report sharing. Voice optional. |
 
 This supersedes the legacy €79 Standard + €199 Team split (see [feature-parity.md](../08-products/feature-parity.md) for the consolidated matrix).
 
@@ -184,7 +184,7 @@ _See also:_
 - [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — Wedge architecture decision
 - [USER-JOURNEYS](../USER-JOURNEYS.md) — V1 single-persona spine + project-membership roles
 - [OVERVIEW](../OVERVIEW.md) — What VariScout does in practice
-- [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€99) capability matrix
+- [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€120) capability matrix
 - [Architecture](../05-technical/architecture.md) — Technical architecture details
 - [Specifications](../03-features/specifications.md) — Detailed functional specifications
 - [Constitution](constitution.md) — 10 principles, terminology enforcement
