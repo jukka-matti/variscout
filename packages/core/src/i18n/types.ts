@@ -930,15 +930,6 @@ export interface MessageCatalog {
   'report.workspace.improvement': string;
   'report.action.copyAllCharts': string;
   'report.action.saveAsPdf': string;
-  'report.action.shareReport': string;
-  'report.action.publishToSharePoint': string;
-  'report.action.publishedToSharePoint': string;
-  'report.publish.rendering': string;
-  'report.publish.uploading': string;
-  'report.publish.exists': string;
-  'report.publish.replace': string;
-  'report.publish.failed': string;
-  'report.publish.tryAgain': string;
   'report.selectedCount': string;
   'report.bestProjectedCpk': string;
   'report.meetsTarget': string;

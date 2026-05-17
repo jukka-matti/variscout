@@ -22,6 +22,9 @@ const showCharterMock = vi.hoisted(() => vi.fn());
 const capturedWallCanvasProps = vi.hoisted(() => ({
   current: null as Record<string, unknown> | null,
 }));
+const capturedFindingsLogProps = vi.hoisted(() => ({
+  current: null as Record<string, unknown> | null,
+}));
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -79,7 +82,10 @@ vi.mock('@variscout/ui', async importOriginal => {
     QuestionChecklist: () => <div data-testid="question-checklist" />,
     InvestigationPhaseBadge: () => null,
     InvestigationConclusion: () => null,
-    FindingsLog: () => <div data-testid="findings-log" />,
+    FindingsLog: (props: Record<string, unknown>) => {
+      capturedFindingsLogProps.current = props;
+      return <div data-testid="findings-log" />;
+    },
     QuestionLinkPrompt: () => null,
     useWallIsMobile: () => false,
     WallCanvas: (props: { hubs: unknown[]; planningProps?: Record<string, unknown> }) => {
@@ -187,6 +193,7 @@ vi.mock('@variscout/core/stats', () => ({
 
 import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
+import { usePanelsStore } from '../../../features/panels/panelsStore';
 import { InvestigationWorkspace } from '../InvestigationWorkspace';
 
 // ── 3. Minimal props factory ───────────────────────────────────────────────
@@ -371,6 +378,66 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
     it('does not pass planningProps to WallCanvas when omitted', () => {
       render(<InvestigationWorkspace {...makeMinimalProps()} />);
       expect(capturedWallCanvasProps.current?.planningProps).toBeUndefined();
+    });
+  });
+
+  describe('canAccess photo gate (wedge spec §3.1 — Sponsor is read-only)', () => {
+    const makeMember = (userId: string, role: 'lead' | 'member' | 'sponsor') => ({
+      id: `pm-${userId}`,
+      createdAt: 1,
+      deletedAt: null,
+      userId,
+      displayName: userId,
+      role,
+      invitedAt: 1,
+    });
+
+    beforeEach(() => {
+      capturedFindingsLogProps.current = null;
+      // Switch to 'findings' view so FindingsLog renders (not InvestigationMapView)
+      usePanelsStore.getState().setInvestigationViewMode('findings');
+    });
+
+    it('Lead member receives onAddPhoto when handleAddPhoto is provided', () => {
+      const handleAddPhoto = vi.fn();
+      const props = makeMinimalProps();
+      render(
+        <InvestigationWorkspace
+          {...props}
+          handleAddPhoto={handleAddPhoto}
+          userId="lead@org"
+          members={[makeMember('lead@org', 'lead')]}
+        />
+      );
+      expect(capturedFindingsLogProps.current?.onAddPhoto).toBeDefined();
+    });
+
+    it('Sponsor member receives onAddPhoto=undefined even when handleAddPhoto is provided', () => {
+      const handleAddPhoto = vi.fn();
+      const props = makeMinimalProps();
+      render(
+        <InvestigationWorkspace
+          {...props}
+          handleAddPhoto={handleAddPhoto}
+          userId="sponsor@org"
+          members={[makeMember('sponsor@org', 'sponsor')]}
+        />
+      );
+      expect(capturedFindingsLogProps.current?.onAddPhoto).toBeUndefined();
+    });
+
+    it('null userId always yields onAddPhoto=undefined', () => {
+      const handleAddPhoto = vi.fn();
+      const props = makeMinimalProps();
+      render(
+        <InvestigationWorkspace
+          {...props}
+          handleAddPhoto={handleAddPhoto}
+          userId={null}
+          members={[makeMember('lead@org', 'lead')]}
+        />
+      );
+      expect(capturedFindingsLogProps.current?.onAddPhoto).toBeUndefined();
     });
   });
 });
