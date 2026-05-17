@@ -18,13 +18,6 @@ param clientSecret string
 @description('URL to the VariScout application deployment package')
 param packageUrl string = 'https://variscout.blob.${environment().suffixes.storage}/releases/variscout-azure-latest.zip'
 
-@description('VariScout plan: \'standard\' (local files, AI included), \'team\' (+ Blob Storage cloud sync)')
-@allowed([
-  'standard'
-  'team'
-])
-param variscoutPlan string = 'standard'
-
 // --- Derived names ---
 var appServicePlanName = '${appName}-plan'
 var webAppName = appName
@@ -33,31 +26,24 @@ var aiServicesName = '${appName}-ai'
 var searchServiceName = '${appName}-search'
 var keyVaultName = 'kv-${take(appName, 17)}-${take(uniqueString(resourceGroup().id), 4)}'
 
-// --- Feature flags ---
-var hasTeamFeatures = (variscoutPlan == 'team')
-// hasAI is always true for current allowed plans (standard, team).
-// Kept as a variable for future-proofing if a 'free' plan tier is introduced.
-var hasAI = (variscoutPlan != 'free')
 var aiSearchIndex = 'findings'
 
-// --- AI Services (conditional: standard + team) ---
-module aiServices 'modules/ai-services.bicep' = if (hasAI) {
+// --- AI Services ---
+module aiServices 'modules/ai-services.bicep' = {
   name: 'aiServices'
   params: {
     location: location
     aiServicesName: aiServicesName
     appInsightsName: appInsightsName
-    variscoutPlan: variscoutPlan
   }
 }
 
-// --- Search Service (conditional: team only) ---
-module search 'modules/search.bicep' = if (hasTeamFeatures) {
+// --- Search Service ---
+module search 'modules/search.bicep' = {
   name: 'search'
   params: {
     location: location
     searchServiceName: searchServiceName
-    variscoutPlan: variscoutPlan
   }
 }
 
@@ -68,23 +54,20 @@ module appService 'modules/app-service.bicep' = {
     location: location
     appServicePlanName: appServicePlanName
     webAppName: webAppName
-    variscoutPlan: variscoutPlan
     clientId: clientId
     clientSecret: clientSecret
     packageUrl: packageUrl
-    hasAI: hasAI
-    hasTeamFeatures: hasTeamFeatures
-    aiEndpoint: hasAI ? aiServices.outputs.aiEndpoint : ''
-    appInsightsConnectionString: hasAI ? aiServices.outputs.appInsightsConnectionString : ''
+    aiEndpoint: aiServices.outputs.aiEndpoint
+    appInsightsConnectionString: aiServices.outputs.appInsightsConnectionString
     searchServiceName: searchServiceName
     aiSearchIndex: aiSearchIndex
-    storageAccountName: hasTeamFeatures ? 'variscout${uniqueString(resourceGroup().id)}' : ''
+    storageAccountName: 'variscout${uniqueString(resourceGroup().id)}'
     storageContainerName: 'variscout-projects'
   }
 }
 
-// --- Blob Storage (conditional: team only) ---
-module storage 'modules/storage.bicep' = if (hasTeamFeatures) {
+// --- Blob Storage ---
+module storage 'modules/storage.bicep' = {
   name: 'storage'
   params: {
     location: location
@@ -92,23 +75,21 @@ module storage 'modules/storage.bicep' = if (hasTeamFeatures) {
   }
 }
 
-// --- Key Vault (conditional: standard + team) ---
-module keyVault 'modules/key-vault.bicep' = if (hasAI) {
+// --- Key Vault ---
+module keyVault 'modules/key-vault.bicep' = {
   name: 'keyVault'
   params: {
     location: location
     keyVaultName: keyVaultName
-    variscoutPlan: variscoutPlan
-    hasTeamFeatures: hasTeamFeatures
     clientSecret: clientSecret
-    aiServicesApiKey: hasAI ? aiServices.outputs.aiServicesApiKey : ''
-    searchApiKey: hasTeamFeatures ? search.outputs.searchAdminKey : ''
+    aiServicesApiKey: aiServices.outputs.aiServicesApiKey
+    searchApiKey: search.outputs.searchAdminKey
     webAppPrincipalId: appService.outputs.principalId
   }
 }
 
 // --- Outputs ---
 output appUrl string = 'https://${appService.outputs.defaultHostName}'
-output aiEndpoint string = hasAI ? aiServices.outputs.aiEndpoint : ''
-output searchEndpoint string = hasTeamFeatures ? 'https://${searchServiceName}.search.windows.net' : ''
-output appInsightsConnectionString string = hasAI ? aiServices.outputs.appInsightsConnectionString : ''
+output aiEndpoint string = aiServices.outputs.aiEndpoint
+output searchEndpoint string = 'https://${searchServiceName}.search.windows.net'
+output appInsightsConnectionString string = aiServices.outputs.appInsightsConnectionString

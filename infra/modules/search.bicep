@@ -4,12 +4,8 @@ param location string
 @description('Name for the AI Search service')
 param searchServiceName string
 
-@description('VariScout plan identifier')
-param variscoutPlan string
-
 var tags = {
   product: 'VariScout'
-  plan: variscoutPlan
 }
 
 resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
