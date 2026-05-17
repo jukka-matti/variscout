@@ -149,11 +149,13 @@ projects they sponsor. They do not see Charter, Approach, Sustainment internals,
 content.
 
 Sponsor signoff at lifecycle gates (Charter approval, Sustainment closure)
-is handled **out-of-band at V1** — the Lead presents the Report in a meeting
-or by email, the Sponsor approves verbally or by reply, the Lead records the
-signoff in the relevant stage's notes. This loses the in-app audit trail but
-keeps V1 scope minimal. Re-evaluate adding in-app Sponsor signoff in V2 if
-customer demand surfaces.
+lives **outside the product at V1 — by design, not as a placeholder.** The
+Lead presents the Report; the Sponsor approves verbally, by email, or in
+their existing organizational signoff workflow; the Lead records the signoff
+in the relevant stage's notes. Audit trail and in-app Sponsor signoff are
+VariScout Process features. In V1, the value of VariScout is the analysis +
+investigation rigor that makes any signoff conversation faster and more
+defensible; the signoff workflow itself is intentionally not productized.
 
 Vocabulary note: "Sponsor" is the canonical Six Sigma / Lean / CI term for the
 executive who authorizes and underwrites the project. The "Champion"
