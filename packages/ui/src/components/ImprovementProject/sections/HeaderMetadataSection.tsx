@@ -20,6 +20,11 @@ export interface HeaderMetadataSectionProps {
   onInvestigationIdChange?: (id: string | undefined) => void;
 }
 
+// Charter team[] documents the DMAIC governance roles for the project (Champion,
+// executive Sponsor, Process Owner, etc.). These are NOT ACL roles — the wedge V1
+// project-membership ACL lives in `members[]` with 3 roles (Lead/Member/Sponsor)
+// gated via `canAccess()` from `@variscout/core/projectMembership` per ADR-082.
+// The two role models legitimately coexist: documentary metadata vs access control.
 const TEAM_ROLES: Array<{ value: TeamRole; label: string }> = [
   { value: 'champion', label: 'Champion' },
   { value: 'sponsor', label: 'Sponsor' },
