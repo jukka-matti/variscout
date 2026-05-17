@@ -39,7 +39,7 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 
 - Entry point is `assembleCoScoutPrompt()`; `buildCoScoutSystemPrompt()` in `ai/prompts/coScout/legacy.ts` is deprecated (test backward-compat only).
 - Tier 1 (role + glossary) must stay session-invariant — it is the prompt-cacheable prefix (Azure AI Foundry, ≥1024 tokens). Moving content tier1 ↔ tier3 breaks cache hit rate or embeds ephemeral state.
-- Every tool in `ai/prompts/coScout/tools/registry.ts` MUST declare `phases`; team-only tools also set `tier: 'team'`. Ungated tools leak across phases/tiers (e.g., team tool appearing in PWA free).
+- Every tool in `ai/prompts/coScout/tools/registry.ts` MUST declare `phases`. The `tier` field is an internal prompt-cache phasing signal per ADR-068 (Tier 1 session-invariant vs Tier 3 per-session) — NOT customer-facing pricing tier. Ungated tools (missing `phases`) leak across investigation phases.
 - CoScout references chart elements via REF markers (`REF:boxplot:productLine`), never raw data values — upholds customer-owned-data + contribution-not-causation framing.
 
 ## i18n loading invariants
