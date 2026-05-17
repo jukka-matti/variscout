@@ -46,7 +46,7 @@ Both apps use Vite with shared chunking via `config/viteChunks.ts`:
 | `vendor-d3`      | d3-\* modules               | Large, shared by charts                         |
 | `vendor-visx`    | @visx/\* modules            | Chart rendering library                         |
 | `vendor-icons`   | lucide-react                | Icon library                                    |
-| `vendor-teams`   | @microsoft/teams-js         | Azure-only, large                               |
+| `vendor-teams`   | @microsoft/teams-js         | **Retired in V1 (ADR-059)** — Teams SDK removed |
 | `vendor-storage` | dexie                       | Azure-only, IndexedDB                           |
 | `locale-{code}`  | i18n message catalogs       | Per-language code-split (English stays in main) |
 

@@ -636,31 +636,26 @@ The `@variscout/charts` `BoxplotBase` component accepts optional `variationPct` 
 - Shows "↓ drill here" indicator when `variationPct ≥ variationThreshold`
 - Red highlighting for high-impact factors
 
-## 12. Teams SDK Integration (Azure App)
+## 12. Teams Static Tab (Azure App)
 
-The Azure app detects whether it's running inside Microsoft Teams and adapts behavior:
+> **V1 note (ADR-059):** The Teams SDK (`@microsoft/teams-js`) is removed in V1. `useTeamsContext()`, `useTeamsShare.ts`, `TeamsTabConfig.tsx`, and `getTeamsSsoToken()` are retired. The Azure App now surfaces as a standard iframe static tab in Teams — no SDK, no SSO token, no special Teams permissions. `AdminTeamsSetup.tsx` remains for generating the Teams manifest `.zip`.
+
+The Azure App can be pinned as a Teams channel tab via a standard manifest. Users authenticate via EasyAuth (browser redirect) inside the Teams iframe.
 
 ```
-app.initialize() → app.getContext()
-├── Success → Teams mode (isTeams: true)
-│   ├── channelTab → show channel name in header
-│   ├── personalTab → personal tab UX
-│   └── SSO token via authentication.getAuthToken()
-└── Failure → Browser mode (existing EasyAuth flow)
+Teams iframe loads App Service URL
+└── EasyAuth handles auth (standard browser redirect inside iframe)
+    └── App loads — no Teams SDK required
 ```
 
-### Context Detection
+### Tab Setup
 
-**Key module**: `apps/azure/src/teams/teamsContext.ts`
+**Key module**: `apps/azure/src/teams/AdminTeamsSetup.tsx`
 
-| Concept             | Implementation                                                   |
-| ------------------- | ---------------------------------------------------------------- |
-| Context detection   | `initTeams()` — called on app startup, caches result             |
-| Channel type        | `channelType` — detects standard, private, or shared channels    |
-| React hook          | `useTeamsContext()` — provides context + loading state           |
-| SSO token           | `getTeamsSsoToken()` — client-side token (not Graph-ready)       |
-| Tab configuration   | `TeamsTabConfig.tsx` — shown when adding channel tab             |
-| Manifest generation | `AdminTeamsSetup.tsx` — generates `.zip` with `configurableTabs` |
+| Concept             | Implementation                                                         |
+| ------------------- | ---------------------------------------------------------------------- |
+| Manifest generation | `AdminTeamsSetup.tsx` — generates `.zip` with static tab configuration |
+| CSP frame-ancestors | `server.js` allows `teams.microsoft.com` + `*.teams.microsoft.com`     |
 
 **Access**: All Azure App users get full feature access (single €120 SKU — plan gating retired per ADR-082). The Teams static tab works without requiring Teams SDK permissions (`User.Read` + `People.Read` only).
 
@@ -689,17 +684,17 @@ Photos are immutable once uploaded (no edit/delete). Thumbnails (~50KB base64) e
 
 ### Deep Links and Sharing
 
-| Module             | Purpose                                                 |
-| ------------------ | ------------------------------------------------------- |
-| `deepLinks.ts`     | Build and parse deep link URLs for charts/findings      |
-| `useTeamsShare.ts` | Wraps `sharing.shareWebContent` + `pages.shareDeepLink` |
-| `shareContent.ts`  | Finding/chart payload builders for share dialog         |
+| Module             | Purpose                                                                                                          |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `deepLinks.ts`     | Build and parse deep link URLs for charts/findings                                                               |
+| `useTeamsShare.ts` | **Retired in V1 (ADR-059)** — Teams SDK `sharing` API removed; deep link sharing via standard browser share/copy |
+| `shareContent.ts`  | Finding/chart payload builders for share dialog                                                                  |
 
 ### User Identity
 
-`getCurrentUser.ts` extracts user identity from the Teams JWT (UPN claim) with EasyAuth fallback. Enables author tracking on findings and comments.
+`getCurrentUser.ts` extracts user identity from the EasyAuth JWT (UPN claim). Enables author tracking on findings and comments.
 
-See [ADR-016](../archive/adrs/adr-016-teams-integration.md) for the full Teams integration design.
+See [ADR-059](../07-decisions/adr-059-web-first-deployment-architecture.md) for the V1 web-first architecture. ADR-016 (Teams integration) is archived.
 
 ## 13. Performance Budget
 

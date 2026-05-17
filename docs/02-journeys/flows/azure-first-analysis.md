@@ -41,7 +41,7 @@ status: stable
 | ------------------- | ------------------------------------ | ---------------- |
 | IT deployment email | App Service URL                      | EasyAuth sign-in |
 | Colleague link      | Direct URL                           | EasyAuth sign-in |
-| Teams tab           | Teams sideloaded app                 | App (SSO)        |
+| Teams tab           | Teams static tab (no SDK)            | App (SSO)        |
 | Bookmark            | Browser bookmark after first session | App (SSO)        |
 
 ---

@@ -136,7 +136,7 @@ Field quality engineer on shop floor via Teams mobile.
 
 | Step                 | Action                            | Package            | Key Components                                 |
 | -------------------- | --------------------------------- | ------------------ | ---------------------------------------------- |
-| 1. Open in Teams     | Tab loads in Teams mobile         | `apps/azure`       | Teams SDK                                      |
+| 1. Open in Teams     | Static tab loads in Teams mobile  | `apps/azure`       | EasyAuth (Teams SDK retired per ADR-059)       |
 | 2. Carousel view     | Swipe through charts (<640px)     | `@variscout/ui`    | `DashboardBase` (carousel mode), `useIsMobile` |
 | 3. AI on mobile      | NarrativeBar (tap-expand), chips  | `@variscout/ui`    | `NarrativeBar`, `ChartInsightChip`             |
 | 4. Drill on phone    | Tap category → filter             | `@variscout/hooks` | `useFilterNavigation`                          |
