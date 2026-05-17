@@ -26,9 +26,19 @@ related:
 
 ## Scope check — single PR, atomic surface change
 
-This PR makes a wide but shallow sweep: ~33 files, mostly 1–3 line conditional deletions. The atomicity comes from the public-API change to `@variscout/core` (deleting `isPaidTier` + `hasTeamFeatures` exports) — once the barrel drops them, every consumer must update in the same PR or `tsc` fails.
+This PR makes a wide but shallow sweep: ~50 files (revised from ~33 after pre-flight grep on 2026-05-17), mostly 1–3 line conditional deletions. The atomicity comes from the public-API change to `@variscout/core` (deleting `isPaidTier` + `hasTeamFeatures` + 22 more exports) — once the barrel drops them, every consumer must update in the same PR or `tsc` fails.
 
-**Slice-size note:** 7 implementation tasks + 1 controller task = 8 (at slice-size cap per `feedback_slice_size_cap`). The Apps Sweep (Task 3) is a wide-but-shallow sub-batch of ~25 files; the implementer dispatch must accept this as "single conceptual unit" rather than split.
+**Slice-size note:** 7 implementation tasks + 1 controller task = 8 (at slice-size cap per `feedback_slice_size_cap`). The Apps Sweep (Task 3) is a wide-but-shallow sub-batch of ~50 files (originally estimated at 25; reality is ~2× wider including the CoScout AI prompt system + `AdminPlanTab` + `UpgradePrompt` + 6 chart wrappers + `PerformanceSetupPanel*`); the implementer dispatch must accept this as "single conceptual unit" rather than split. Per `feedback_atomic_sweep_one_dispatch`: dispatch ONE Opus implementer with internal **Architect → Migration → Validator** phases + per-category commits, NOT 6-8 sub-dispatches. Justification: Anthropic 2026 subagent guidance + Augment single-vs-multi-agent research + Martin Fowler codemod best practices all converge on single-agent-with-internal-structure for sequential same-worktree mechanical sweeps where subagents wouldn't need to communicate.
+
+### Task 3 dispatch shape (Architect → Migration → Validator)
+
+The single Opus dispatch follows three internal phases:
+
+1. **Architect** — implementer first produces a file-by-category map (grep + classify by A/A-storage/B/C/D/E/F/G class — see Task 3 below for class definitions). Commits as a working note (first commit's message body).
+2. **Migration** — one commit per category. Commit subject names the category (e.g., `feat(wedge): A-class pure-deletion sweep`, `feat(wedge): B-class canAccess rewires`). Preserves rollback granularity.
+3. **Validator** — after each category commit: fresh `tsc --noEmit` on affected packages + targeted `pnpm --filter <pkg> test --run`. Numbers reported per category in the status message.
+
+End-of-task: single two-stage Opus review pair (spec + quality) walks the commits per-category, not the diff as one blob.
 
 ---
 
