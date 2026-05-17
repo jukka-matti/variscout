@@ -38,7 +38,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 - **`displayName = email.split('@')[0]` truncation for dotted email locals** — Task 8's `IPDetailPage.handleMemberInvite` derives `displayName` from the email (e.g., `first.last@org` → `first.last`). V1-acceptable since the modal has no Name field, but produces awkward strings for users with dotted email locals. Promotion: gated on either (a) Name field added to `InviteModal`, or (b) `useInvitationSync` returning real Graph displayName.
 
-- **Sponsor placeholder copy in `IPDetailPage`** — `data-testid="sponsor-report-panel"` placeholder points the Sponsor to "the top navigation Report tab." The wording "top navigation" is generic; if the V1 6-tab nav lands a localized label, the placeholder should reference the actual tab label. Promotion: PR-WV1-5 (nav reorder + tier-gating retirement sweep) — pick up when nav labels are finalized.
+- **Sponsor placeholder copy in `IPDetailPage`** — `data-testid="sponsor-report-panel"` placeholder points the Sponsor to "the top navigation Report tab." V1 nav is 7 tabs (`Home · Project · Process · Analyze · Investigation · Improve · Report`); the "Report" label is already final. Placeholder copy can reference "the Report tab" directly. Promotion: PR-WV1-5 (nav reorder + tier-gating retirement sweep).
 
 ### 2026-05-17: Survey-rule layer still emits 'handoff' surface prompts
 

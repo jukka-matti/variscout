@@ -245,7 +245,7 @@ ARR figures revised from the prior €79 baseline; see [market-analysis.md](../0
 
 Migrates to **VariScout Process** (future enterprise product, not announced in V1 marketing):
 
-- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 has single Specialist + membership roles
+- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 has single Specialist + membership roles (V1 spec §3.5; canonical design: [four-personas.md](../01-vision/variscout-process/four-personas.md))
 - Process Hub as a user-visible primary container
 - Automated data pipelines (sensor / SCADA / MES / ERP feeds)
 - Multi-Hub portfolio scans + cross-Hub orchestration
