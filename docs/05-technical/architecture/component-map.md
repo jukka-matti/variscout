@@ -95,7 +95,7 @@ flowchart TB
     subgraph core["@variscout/core"]
         stats["Statistics Engine<br/><small>stats.ts</small><br/><small>calculateStats, mean, stddev,<br/>Cp, Cpk, ANOVA, Nelson rules</small>"]
         parser["CSV/Excel Parser<br/><small>parser.ts</small><br/><small>parseCSV, parseExcel,<br/>detectColumns, keyword detection</small>"]
-        tier["Tier System<br/><small>tier.ts</small><br/><small>getTier, isPaidTier,<br/>channel limits, plan gating</small>"]
+        tier["Channel Limits<br/><small>tier.ts</small><br/><small>validateChannelCount only<br/>(isPaidTier retired V1)</small>"]
         nav["Navigation<br/><small>navigation.ts</small><br/><small>drill path, filter types,<br/>breadcrumb state</small>"]
         types["Types<br/><small>types.ts</small><br/><small>StatsResult, DataRow,<br/>Finding, AnalysisState</small>"]
         variation["Variation Analysis<br/><small>variation/</small><br/><small>contributions, simulation,<br/>decomposition, Total SS</small>"]
@@ -175,13 +175,13 @@ flowchart TB
 
 ## @variscout/hooks
 
-Shared React hooks organized by concern. Depends on `@variscout/core` for types, statistics utilities, and tier logic.
+Shared React hooks organized by concern. Depends on `@variscout/core` for types, statistics utilities, and project-membership access logic.
 
 ```mermaid
 flowchart TB
     subgraph state["State & Data (8)"]
         datastate["useDataState"]
-        usetier["useTier"]
+        usetier["useTier (retired V1)"]
         dataingestion["useDataIngestion"]
         columnclass["useColumnClassification"]
         drillpath["useDrillPath"]

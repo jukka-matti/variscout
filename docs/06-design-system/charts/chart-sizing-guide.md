@@ -139,13 +139,14 @@ Dashboard export uses `height: 0` (auto) — temporarily sets `overflow: visible
 
 ## Branding Footer
 
-`ChartSourceBar` renders a "VARISCOUT" branding footer on free-tier charts.
+`ChartSourceBar` renders a "VARISCOUT" branding footer on PWA charts (hidden on Azure App via `shouldShowBranding()`).
 
 ```tsx
 import { getSourceBarHeight } from '@variscout/charts';
-import { isPaidTier } from '@variscout/core/tier';
+// V1: isPaidTier() retired — use shouldShowBranding() from @variscout/core/tier
+import { shouldShowBranding } from '@variscout/core/tier';
 
-const showBranding = !isPaidTier();
+const showBranding = shouldShowBranding();
 const extraBottom = getSourceBarHeight(showBranding);
 const margins = getResponsiveMargins(width, 'ichart', extraBottom);
 ```

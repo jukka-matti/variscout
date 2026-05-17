@@ -36,26 +36,26 @@ When a consumer writes `import { Finding } from '@variscout/core/findings'`, the
 
 ## Current Sub-Paths (18)
 
-| Sub-Path                          | Module              | Key Exports                                                               |
-| --------------------------------- | ------------------- | ------------------------------------------------------------------------- |
-| `@variscout/core`                 | Root barrel         | Everything (backwards compatible)                                         |
-| `@variscout/core/stats`           | stats/              | calculateStats, calculateAnova, calculateBoxplotStats, calculateKDE, lttb |
-| `@variscout/core/ai`              | ai/                 | responsesApi, buildAIContext, actionTools, chartInsights                  |
-| `@variscout/core/parser`          | parser/             | parseText, detectColumns, validateData                                    |
-| `@variscout/core/findings`        | findings/           | Finding types, factories, helpers, migration                              |
-| `@variscout/core/variation`       | variation/          | Variation tracking, simulation, suggestions                               |
-| `@variscout/core/yamazumi`        | yamazumi/           | Yamazumi aggregation, classification, detection                           |
-| `@variscout/core/export`          | export.ts           | CSV export, PDF metadata                                                  |
-| `@variscout/core/tier`            | tier.ts             | configureTier, getTier, isPaidTier, feature gates                         |
-| `@variscout/core/types`           | types.ts            | All TypeScript domain types                                               |
-| `@variscout/core/navigation`      | navigation.ts       | Navigation utilities                                                      |
-| `@variscout/core/glossary`        | glossary/           | Knowledge model, term definitions                                         |
-| `@variscout/core/responsive`      | responsive.ts       | getResponsiveMargins, getResponsiveFonts, getResponsiveTickCount          |
-| `@variscout/core/i18n`            | i18n/               | registerLocaleLoaders, preloadLocale, getMessage, formatMessage           |
-| `@variscout/core/performance`     | performance.ts      | Multi-measure performance analysis                                        |
-| `@variscout/core/time`            | time.ts             | Time column detection and extraction                                      |
-| `@variscout/core/projectMetadata` | projectMetadata.ts  | Project metadata computation                                              |
-| `@variscout/core/strategy`        | analysisStrategy.ts | resolveMode, getStrategy, AnalysisModeStrategy (ADR-047)                  |
+| Sub-Path                          | Module              | Key Exports                                                                                                             |
+| --------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `@variscout/core`                 | Root barrel         | Everything (backwards compatible)                                                                                       |
+| `@variscout/core/stats`           | stats/              | calculateStats, calculateAnova, calculateBoxplotStats, calculateKDE, lttb                                               |
+| `@variscout/core/ai`              | ai/                 | responsesApi, buildAIContext, actionTools, chartInsights                                                                |
+| `@variscout/core/parser`          | parser/             | parseText, detectColumns, validateData                                                                                  |
+| `@variscout/core/findings`        | findings/           | Finding types, factories, helpers, migration                                                                            |
+| `@variscout/core/variation`       | variation/          | Variation tracking, simulation, suggestions                                                                             |
+| `@variscout/core/yamazumi`        | yamazumi/           | Yamazumi aggregation, classification, detection                                                                         |
+| `@variscout/core/export`          | export.ts           | CSV export, PDF metadata                                                                                                |
+| `@variscout/core/tier`            | tier.ts             | `validateChannelCount` only (V1: `isPaidTier`, `configureTier`, etc. retired — use `@variscout/core/projectMembership`) |
+| `@variscout/core/types`           | types.ts            | All TypeScript domain types                                                                                             |
+| `@variscout/core/navigation`      | navigation.ts       | Navigation utilities                                                                                                    |
+| `@variscout/core/glossary`        | glossary/           | Knowledge model, term definitions                                                                                       |
+| `@variscout/core/responsive`      | responsive.ts       | getResponsiveMargins, getResponsiveFonts, getResponsiveTickCount                                                        |
+| `@variscout/core/i18n`            | i18n/               | registerLocaleLoaders, preloadLocale, getMessage, formatMessage                                                         |
+| `@variscout/core/performance`     | performance.ts      | Multi-measure performance analysis                                                                                      |
+| `@variscout/core/time`            | time.ts             | Time column detection and extraction                                                                                    |
+| `@variscout/core/projectMetadata` | projectMetadata.ts  | Project metadata computation                                                                                            |
+| `@variscout/core/strategy`        | analysisStrategy.ts | resolveMode, getStrategy, AnalysisModeStrategy (ADR-047)                                                                |
 
 ## When to Use Sub-Paths vs Root
 

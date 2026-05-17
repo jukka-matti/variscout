@@ -404,7 +404,7 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 **Possible directions:**
 
 - Hub-maturity signal: thread `mode: 'cadence' | 'first-time' | 'demo'` through `CanvasWorkspace` → `Canvas` → `CanvasStepOverlay`. Compute from `assignmentsComplete && stepsAuthored && hasPriorSnapshot`.
-- Tier gate: check `isPaidTier()` per ADR-078 D5 for Charter / Sustainment / Handoff. Render with a tier-upgrade hint instead of `disabled` when free tier.
+- Access gate: check `canAccess()` from `@variscout/core/projectMembership` for Charter / Sustainment features. `isPaidTier()` retired in V1 (single SKU) — see ADR-082.
 - First-time-Hub copy: dimmed CTAs with tooltip "Available once your Hub has cadence" (or similar).
 - Mode boundary: separate "mode" (drill-down content) from "tier" (paid feature gating); they are conflated in the current code.
 
@@ -470,9 +470,9 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 
 **Possible directions:**
 
-- Each surface component reads `useTier()` directly and renders team-features as paid-only controls (button-level gating, not surface-level).
-- Shared pattern: a `<TeamFeatureGate feature="signoff">` wrapper component in `@variscout/ui` so the gating contract is uniform across surfaces.
-- Telemetry: track tier-feature impressions to inform pricing.
+- Each surface component uses `canAccess()` from `@variscout/core/projectMembership` and renders project-role-gated controls at button level (not surface-level). `useTier()` is retired in V1 (single SKU, see ADR-082).
+- Shared pattern: a `<MembershipFeatureGate feature="signoff">` wrapper component in `@variscout/ui` so the gating contract is uniform across surfaces.
+- Telemetry: track feature impressions to inform pricing.
 
 **Promotion path:** Per-surface, ride along with each response-path's V1 form slice.
 

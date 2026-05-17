@@ -173,24 +173,24 @@ Field quality engineer on shop floor via Teams mobile.
 
 ### Hooks Package (`@variscout/hooks`)
 
-| Hook                    | Serves Flows | Purpose in Journey                    |
-| ----------------------- | ------------ | ------------------------------------- |
-| `useFilterNavigation`   | 6, 7, 10     | Drill-down with breadcrumb trail      |
-| `useDataState`          | 6, 7, 10     | Shared DataContext state              |
-| `useDataIngestion`      | 6, 7         | File upload and data parsing          |
-| `useFindings`           | 6, 7, 10     | Finding CRUD, status transitions      |
-| `useHypotheses`         | 6, 7         | Hypothesis tree, auto-validation      |
-| `useProjectPersistence` | 5, 6, 7, 8   | IndexedDB + OneDrive save/load        |
-| `useNarration`          | 7, 9, 10     | NarrativeBar state management         |
-| `useChartInsights`      | 7, 9, 10     | Per-chart AI suggestion orchestration |
-| `useAICoScout`          | 7, 9, 10     | CoScout conversation state            |
-| `useAIContext`          | 7, 9         | AI context building                   |
-| `useChartCopy`          | 7            | Chart export (clipboard, PNG, SVG)    |
-| `useVerificationCharts` | 7            | Staged analysis chart toggle          |
-| `useReportSections`     | 7, 10        | Report type detection + composition   |
-| `useLocaleState`        | All          | Locale preference state               |
-| `useTranslation`        | All          | Component-level translation           |
-| `useTier`               | 5            | License tier React hook               |
+| Hook                    | Serves Flows | Purpose in Journey                                        |
+| ----------------------- | ------------ | --------------------------------------------------------- |
+| `useFilterNavigation`   | 6, 7, 10     | Drill-down with breadcrumb trail                          |
+| `useDataState`          | 6, 7, 10     | Shared DataContext state                                  |
+| `useDataIngestion`      | 6, 7         | File upload and data parsing                              |
+| `useFindings`           | 6, 7, 10     | Finding CRUD, status transitions                          |
+| `useHypotheses`         | 6, 7         | Hypothesis tree, auto-validation                          |
+| `useProjectPersistence` | 5, 6, 7, 8   | IndexedDB + OneDrive save/load                            |
+| `useNarration`          | 7, 9, 10     | NarrativeBar state management                             |
+| `useChartInsights`      | 7, 9, 10     | Per-chart AI suggestion orchestration                     |
+| `useAICoScout`          | 7, 9, 10     | CoScout conversation state                                |
+| `useAIContext`          | 7, 9         | AI context building                                       |
+| `useChartCopy`          | 7            | Chart export (clipboard, PNG, SVG)                        |
+| `useVerificationCharts` | 7            | Staged analysis chart toggle                              |
+| `useReportSections`     | 7, 10        | Report type detection + composition                       |
+| `useLocaleState`        | All          | Locale preference state                                   |
+| `useTranslation`        | All          | Component-level translation                               |
+| `useTier`               | 5            | Channel validation (tier-gating retired V1 — see ADR-082) |
 
 ### UI Package (`@variscout/ui`)
 

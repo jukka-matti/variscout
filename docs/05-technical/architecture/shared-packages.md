@@ -118,7 +118,7 @@ import {
   // State management
   useDataState,
   useDataIngestion,
-  useTier,
+  // useTier — retired in V1; use canAccess() from @variscout/core/projectMembership
 
   // Navigation & filtering
   useFilterNavigation,

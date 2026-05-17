@@ -90,13 +90,13 @@ flowchart TB
 
 ## Package Responsibilities
 
-| Package             | Role                                                                | Key exports                                                              | Docs                                           |
-| ------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------- |
-| `@variscout/core`   | Statistics engine, CSV/Excel parser, tier system, glossary, types   | `calculateStats`, `parseCSV`, `getTier`, `GlossaryTerm`                  | [shared-packages.md](shared-packages.md)       |
-| `@variscout/charts` | Visx chart components (I-Chart, Boxplot, Pareto, Performance suite) | `IChart`, `Boxplot`, `ParetoChart`, `PerformanceIChart`, `useChartTheme` | [component-patterns.md](component-patterns.md) |
-| `@variscout/data`   | Pre-computed sample datasets for demo and testing                   | `coffeeSample`, `journeySample`, `bottleneckSample`                      | [shared-packages.md](shared-packages.md)       |
-| `@variscout/hooks`  | Shared React hooks for state, navigation, data transforms           | `useDataState`, `useFilterNavigation`, `useChartScale`, `useTier`        | [component-patterns.md](component-patterns.md) |
-| `@variscout/ui`     | Shared UI components with colorScheme theming pattern               | `StatsPanelBase`, `FindingsLog`, `DashboardGrid`, `WhatIfSimulator`      | [component-patterns.md](component-patterns.md) |
+| Package             | Role                                                                     | Key exports                                                              | Docs                                           |
+| ------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ---------------------------------------------- |
+| `@variscout/core`   | Statistics engine, CSV/Excel parser, project membership, glossary, types | `calculateStats`, `parseCSV`, `canAccess`, `GlossaryTerm`                | [shared-packages.md](shared-packages.md)       |
+| `@variscout/charts` | Visx chart components (I-Chart, Boxplot, Pareto, Performance suite)      | `IChart`, `Boxplot`, `ParetoChart`, `PerformanceIChart`, `useChartTheme` | [component-patterns.md](component-patterns.md) |
+| `@variscout/data`   | Pre-computed sample datasets for demo and testing                        | `coffeeSample`, `journeySample`, `bottleneckSample`                      | [shared-packages.md](shared-packages.md)       |
+| `@variscout/hooks`  | Shared React hooks for state, navigation, data transforms                | `useDataState`, `useFilterNavigation`, `useChartScale`                   | [component-patterns.md](component-patterns.md) |
+| `@variscout/ui`     | Shared UI components with colorScheme theming pattern                    | `StatsPanelBase`, `FindingsLog`, `DashboardGrid`, `WhatIfSimulator`      | [component-patterns.md](component-patterns.md) |
 
 ## App Responsibilities
 
