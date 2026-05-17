@@ -189,7 +189,7 @@ The four-segment market analysis below is **retained as the target market for Va
 
 ### Process Layer D — Multi-Persona Process Ownership
 
-**Who:** Enterprises running the 4-persona model (Process Owner / Project Lead / SME / Frontline) with automated data pipelines and Hub-level cadence monitoring. This is the canonical VariScout Process audience.
+**Who:** Enterprises running the 4-persona model (Process Owner / Project Lead / SME / Frontline) with automated data pipelines and Hub-level cadence monitoring. This is the canonical VariScout Process audience. See [four-personas.md](variscout-process/four-personas.md) for the full design; wedge spec §3.5 documents V1 collapse.
 
 | Aspect       | Value                                                              |
 | ------------ | ------------------------------------------------------------------ |

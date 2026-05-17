@@ -327,7 +327,7 @@ Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide
 
 The legacy multi-persona / Hub-portfolio framing migrates to **VariScout Process**, a future enterprise product. It is not announced in V1 marketing and is mentioned only when customers ask about enterprise / process-ownership use cases. Deferred scope includes:
 
-- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to a single Improvement Specialist + project-membership roles
+- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to a single Improvement Specialist + project-membership roles (wedge spec §3.5; canonical design: [four-personas.md](../01-vision/variscout-process/four-personas.md))
 - Process Hub as a user-visible primary container — V1 keeps Hub internal-only
 - Process-owner cadence + Current Process State surfaces
 - Multi-Hub portfolio scans + cross-Hub orchestration

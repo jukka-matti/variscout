@@ -167,7 +167,7 @@ variscout-lite/
 
 The following migrate to VariScout Process as a future, separate product. Not "coming soon" inside V1:
 
-- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to single Specialist + project-membership roles
+- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to single Specialist + project-membership roles (wedge spec §3.5; canonical design: [four-personas.md](variscout-process/four-personas.md))
 - Process Hub as a user-visible primary container — V1 keeps Hub internal-only
 - Automated data pipelines (sensor / SCADA / MES / ERP feeds)
 - Multi-Hub portfolio scans + cross-Hub orchestration
