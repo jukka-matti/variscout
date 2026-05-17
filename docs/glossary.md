@@ -80,7 +80,7 @@ Vocabulary introduced by the wedge pivot (`docs/superpowers/specs/2026-05-16-wed
 
 ### Project
 
-A formal investigation initiated by an analyst to drive process improvement. Wraps an existing Hub (the data container) with formal lifecycle — Charter → Approach → Improve → Sustainment — and project-membership ACLs (Lead / Member / Sponsor). Optional: tenant users can paste data and analyze without creating a Project; promotion via "+ Promote to Project" inherits all prior Hub state.
+A formal investigation initiated by an analyst to drive process improvement. Wraps an existing Hub (the data container) with formal lifecycle — Charter → Approach → Sustainment — and project-membership ACLs (Lead / Member / Sponsor). Improvement actions are tracked in the top-level Improve tab (not a Project stage). Optional: tenant users can paste data and analyze without creating a Project; promotion via "+ Promote to Project" inherits all prior Hub state.
 
 **Related:** [Process Hub](#process-hub), [Promote to Project](#promote-to-project), [Lead](#lead), [Member](#member), [Sponsor](#sponsor)
 
@@ -141,7 +141,7 @@ A bookmarked chart observation + analyst note. Status: `observed` → `analyzed`
 The 3 V1 response paths surfaced from a canvas step-card drill in the Process tab:
 
 - **Investigate** — opens the Investigation Wall + Evidence Map scoped to the focal step.
-- **Quick Action** — creates a tracked action item in the active project's Improve stage (or prompts to select / create a Project if none active).
+- **Quick Action** — creates a tracked action item in the active project's Improve tab (or prompts to select / create a Project if none active).
 - **Charter** — creates a new Project with this step / focal data as initial Charter-stage context (same as "Promote to Project" but launched from canvas).
 
 The Sustainment path auto-fires per [ADR-080](07-decisions/adr-080-sustainment-auto-fire-pattern.md); the Handoff path is deleted everywhere (folded into Sustainment closure).
