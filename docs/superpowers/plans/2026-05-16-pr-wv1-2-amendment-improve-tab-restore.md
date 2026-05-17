@@ -19,7 +19,7 @@ related:
 
 **Tech Stack:** TypeScript + React 18 + Zustand + Vitest + React Testing Library.
 
-**Canonical spec:** [`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`](../specs/2026-05-16-improve-tab-amendment-design.md).
+**Canonical spec:** [`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`](../../archive/specs/2026-05-16-improve-tab-amendment-design.md).
 
 **Parent sub-plan (historical):** `docs/superpowers/plans/2026-05-16-pr-wv1-2-improve-workspace.md` — Tasks 0-5 stand verbatim per the amendment spec; this plan covers the rework needed on top.
 

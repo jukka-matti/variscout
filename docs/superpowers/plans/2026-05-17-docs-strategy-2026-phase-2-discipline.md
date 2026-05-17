@@ -1443,15 +1443,15 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 
 ## Always-load entry points
 
-- [decision-log.md](decision-log.md) — temporal index over canonical doc changes. Read BEFORE re-opening any topic.
-- [OVERVIEW.md](OVERVIEW.md) — what VariScout does + the FRAME → SCOUT → INVESTIGATE → IMPROVE journey.
-- [USER-JOURNEYS.md](USER-JOURNEYS.md) — V1 single persona (Improvement Specialist) + 3 project-membership roles (Lead / Member / Sponsor).
-- [DATA-FLOW.md](DATA-FLOW.md) — parse → transform → stats → persist → sync → display → AI pipeline.
+- `decision-log.md` — temporal index over canonical doc changes. Read BEFORE re-opening any topic. (Implementer: use real markdown-link syntax in the final llms.txt content; plain-text-only here to keep this plan file's dead-link check green per `feedback_doc_validation_hooks`.)
+- `OVERVIEW.md` — what VariScout does + the FRAME → SCOUT → INVESTIGATE → IMPROVE journey.
+- `USER-JOURNEYS.md` — V1 single persona (Improvement Specialist) + 3 project-membership roles (Lead / Member / Sponsor).
+- `DATA-FLOW.md` — parse → transform → stats → persist → sync → display → AI pipeline.
 
 ## Canonical V1 strategic direction
 
-- [superpowers/specs/2026-05-16-wedge-architecture-design.md](superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 single-SKU design. 7-tab nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`). Improve as top-level verb tab with active-IP cascade. 3 personas per Project (Lead/Member/Sponsor). €120/mo single SKU.
-- [07-decisions/adr-082-wedge-architecture.md](07-decisions/adr-082-wedge-architecture.md) — V1 architectural record. Partial supersession of ADR-007 + ADR-033.
+- `superpowers/specs/2026-05-16-wedge-architecture-design.md` — V1 single-SKU design. 7-tab nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`). Improve as top-level verb tab with active-IP cascade. 3 personas per Project (Lead/Member/Sponsor). €120/mo single SKU.
+- `07-decisions/adr-082-wedge-architecture.md` — V1 architectural record. Partial supersession of ADR-007 + ADR-033.
 
 ## Agent-context entry points
 

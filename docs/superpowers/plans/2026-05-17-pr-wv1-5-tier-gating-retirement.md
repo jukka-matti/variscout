@@ -76,7 +76,7 @@ End-of-task: single two-stage Opus review pair (spec + quality) walks the commit
 - `packages/hooks/src/useTier.ts` — delete entirely; consumers either inline whatever they need or use `useUserRole` + `canAccess`. Find consumers via `grep -rn "useTier" packages/ apps/` first.
 - Test files (8 total) — drop `vi.mock` overrides for the deleted functions.
 
-**Nav reorder + renames (Task 6) — per [2026-05-16 amendment](../specs/2026-05-16-improve-tab-amendment-design.md):**
+**Nav reorder + renames (Task 6) — per [2026-05-16 amendment](../../archive/specs/2026-05-16-improve-tab-amendment-design.md):**
 
 - `apps/azure/src/components/AppHeader.tsx` (lines 410–471) — current tabs: `Overview · Frame · Analysis · Investigation · Improve · Projects · Report`. Target: `Home · Project · Process · Analyze · Investigation · Improve · Report` (7 tabs). Renames: Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project (singular). Reorder: Project moves from slot 6 → slot 2. Improve stays (slot 6 in new order, between Investigation and Report). Update `data-testid` values: `view-toggle-overview`→`view-toggle-home`, `view-toggle-frame`→`view-toggle-process`, `view-toggle-analysis`→`view-toggle-analyze`, `view-toggle-projects`→`view-toggle-project`.
 - `apps/pwa/src/components/layout/AppHeader.tsx` (lines 96–104) — `PHASE_TABS` array. Current 7 entries: `home / frame / analysis / investigation / improvement / projects / report`. Target: `home / project / process / analyze / investigation / improvement / report` (PhaseId union changes: `frame`→`process`, `analysis`→`analyze`, `projects`→`project`). i18n labelKeys: `workspace.frame`→`workspace.process`, `workspace.analysis`→`workspace.analyze`. NOTE: `workspace.project` (singular) i18n key already exists per PR-WV1-2 amendment Task 6 — verify before editing.
@@ -529,7 +529,7 @@ git commit -m "feat(wedge): drop tier-upgrade UI copy + unused i18n keys"
 
 ## Task 6: Nav reorder + tab renames (7-tab amendment)
 
-**Per [2026-05-16 amendment](../specs/2026-05-16-improve-tab-amendment-design.md):** Improve stays as a top-level verb tab. Projects → Project (singular). 7 tabs total in workflow order.
+**Per [2026-05-16 amendment](../../archive/specs/2026-05-16-improve-tab-amendment-design.md):** Improve stays as a top-level verb tab. Projects → Project (singular). 7 tabs total in workflow order.
 
 **Files:**
 
