@@ -1,6 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { configureTier } from '@variscout/core/tier';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessHub, SustainmentRecord } from '@variscout/core';
@@ -8,10 +7,6 @@ import IPDetailTeamRail from '../IPDetailTeamRail';
 
 const hour = 60 * 60 * 1000;
 const now = Date.UTC(2026, 4, 15, 12, 0, 0);
-
-afterEach(() => {
-  configureTier(null);
-});
 
 function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject {
   return {
@@ -115,21 +110,9 @@ describe('IPDetailTeamRail', () => {
     expect(dialog).toHaveTextContent('System updated Background · 7h ago');
   });
 
-  it('locks request approval on free tier and enables it on paid tier', () => {
+  it('exposes an active Request approval button (wedge V1 single SKU)', () => {
     const onRequestSignoff = vi.fn();
-    const { rerender } = render(
-      <IPDetailTeamRail ip={makeIP()} activeHub={activeHub} onRequestSignoff={onRequestSignoff} />
-    );
-
-    const locked = screen.getByRole('button', { name: 'Request approval locked' });
-    expect(locked).toBeDisabled();
-    expect(locked).toHaveAttribute(
-      'title',
-      'Approval requests are available on paid VariScout plans.'
-    );
-
-    configureTier('enterprise');
-    rerender(
+    render(
       <IPDetailTeamRail ip={makeIP()} activeHub={activeHub} onRequestSignoff={onRequestSignoff} />
     );
     fireEvent.click(screen.getByRole('button', { name: 'Request approval' }));

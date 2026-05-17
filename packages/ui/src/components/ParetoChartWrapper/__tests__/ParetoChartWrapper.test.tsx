@@ -77,10 +77,7 @@ vi.mock('@variscout/charts', () => {
 
 // Mock @variscout/core to avoid sub-path resolution issues in vitest
 vi.mock('@variscout/core', () => {
-  return {
-    shouldShowBranding: () => false,
-    getBrandingText: () => 'VariScout',
-  };
+  return {};
 });
 
 // Mock @variscout/core/pareto (sub-path) — only types are used at runtime

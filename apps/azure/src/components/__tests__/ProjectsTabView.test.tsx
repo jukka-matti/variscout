@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ProcessHub } from '@variscout/core';
-import { configureTier } from '@variscout/core/tier';
 import { getImprovementProjectInitialState, useImprovementProjectStore } from '@variscout/stores';
 import ProjectsTabView from '../ProjectsTabView';
 
@@ -17,7 +16,6 @@ const baseHub: ProcessHub = {
 
 describe('ProjectsTabView', () => {
   beforeEach(() => {
-    configureTier(null);
     useImprovementProjectStore.setState(getImprovementProjectInitialState());
   });
 
@@ -76,7 +74,6 @@ describe('ProjectsTabView', () => {
   });
 
   it('updates the project store and emits a patch from detail signoff actions', () => {
-    configureTier('enterprise');
     const onProjectPatch = vi.fn();
     const hub: ProcessHub = {
       ...baseHub,
@@ -124,7 +121,6 @@ describe('ProjectsTabView', () => {
   });
 
   it('threads currentUserId into IPDetailPage — charter team section is visible', () => {
-    configureTier('enterprise');
     // Use 'draft' status so charter is the default active stage (deriveStageState returns
     // charter: 'current' for drafts, approach: 'current' for active which shifts the default).
     const hub: ProcessHub = {
@@ -164,7 +160,6 @@ describe('ProjectsTabView', () => {
   });
 
   it('onMembersChange flows through applyProjectPatch for the Azure app', () => {
-    configureTier('enterprise');
     const onProjectPatch = vi.fn();
     const hub: ProcessHub = {
       ...baseHub,

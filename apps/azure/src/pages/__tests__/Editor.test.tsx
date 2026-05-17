@@ -108,9 +108,6 @@ vi.mock('@variscout/core', async importOriginal => {
     downloadCSV: vi.fn(),
     getNelsonRule2ViolationPoints: vi.fn(() => []),
     calculateStats: vi.fn(() => ({ mean: 10, ucl: 12, lcl: 8 })),
-    hasTeamFeatures: vi.fn(() => false),
-    isTeamPlan: vi.fn(() => false),
-    hasKnowledgeBase: vi.fn(() => false),
     isPreviewEnabled: vi.fn(() => false),
     buildSuggestedQuestions: vi.fn(() => []),
     computeIdeaImpact: vi.fn(() => null),
@@ -415,7 +412,7 @@ describe('Editor', () => {
     renderEditor();
 
     expect(screen.getByText('Start Your Analysis')).toBeInTheDocument();
-    expect(screen.getByText('Upload File')).toBeInTheDocument();
+    expect(screen.getByText('Open from SharePoint')).toBeInTheDocument();
     expect(screen.getByText('Manual Entry')).toBeInTheDocument();
     expect(screen.getByText('Sample Datasets')).toBeInTheDocument();
   });
@@ -425,10 +422,10 @@ describe('Editor', () => {
     expect(screen.getByText('My Analysis')).toBeInTheDocument();
   });
 
-  it('hides sync status indicator on Standard plan', () => {
+  it('shows sync status indicator (wedge V1 — sync is always enabled)', () => {
     renderEditor();
 
-    expect(screen.queryByText('Synced')).not.toBeInTheDocument();
+    expect(screen.getByText('Synced')).toBeInTheDocument();
   });
 
   it('shows Stats sidebar toggle when data is loaded in analysis view', () => {

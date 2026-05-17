@@ -81,13 +81,12 @@ vi.mock('../../db/schema', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Mock: @variscout/core — hasTeamFeatures defaults to true (cloud sync tests)
+// Mock: @variscout/core — buildProjectMetadata
 // ---------------------------------------------------------------------------
 vi.mock('@variscout/core', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/core')>();
   return {
     ...actual,
-    hasTeamFeatures: () => true,
     buildProjectMetadata: () => ({
       phase: 'scout',
       findingCounts: {},

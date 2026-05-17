@@ -206,34 +206,28 @@ describe('tool schema strictness', () => {
 
   for (const phase of allPhases) {
     it(`all tools in phase "${phase}" have strict: true`, () => {
-      const tools = buildCoScoutTools({ phase, isTeamPlan: true });
+      const tools = buildCoScoutTools({ phase });
       for (const tool of tools) {
         expect(tool.parameters.strict).toBe(true);
       }
     });
 
     it(`all tools in phase "${phase}" have additionalProperties: false`, () => {
-      const tools = buildCoScoutTools({ phase, isTeamPlan: true });
+      const tools = buildCoScoutTools({ phase });
       for (const tool of tools) {
         expect(tool.parameters.additionalProperties).toBe(false);
       }
     });
   }
 
-  it('all tools are available in improve phase with team plan', () => {
-    const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    // 6 read + 6 scout+ + 5 investigate+ + 2 map tools (suggest_causal_link, highlight_map_pattern) + 2 team sharing + 2 improve-only = 23
+  it('all tools are available in improve phase (wedge V1 single SKU)', () => {
+    const tools = buildCoScoutTools({ phase: 'improve' });
+    // 6 read + 6 scout+ + 5 investigate+ + 2 map tools (suggest_causal_link, highlight_map_pattern) + 2 sharing + 2 improve-only = 23
     expect(tools.length).toBe(23);
   });
 
-  it('non-team plan excludes team-only tools', () => {
-    const teamTools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    const standardTools = buildCoScoutTools({ phase: 'improve', isTeamPlan: false });
-    expect(standardTools.length).toBeLessThan(teamTools.length);
-  });
-
   it('every tool has a name and description', () => {
-    const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
+    const tools = buildCoScoutTools({ phase: 'improve' });
     for (const tool of tools) {
       expect(tool.name).toBeTruthy();
       expect(tool.description).toBeTruthy();
@@ -241,7 +235,7 @@ describe('tool schema strictness', () => {
   });
 
   it('every tool has type "function"', () => {
-    const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
+    const tools = buildCoScoutTools({ phase: 'improve' });
     for (const tool of tools) {
       expect(tool.type).toBe('function');
     }
@@ -249,7 +243,7 @@ describe('tool schema strictness', () => {
 
   it('all action tool names from buildCoScoutTools have no duplicates', () => {
     // Get all unique tool names from the improve phase (has all tools)
-    const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
+    const tools = buildCoScoutTools({ phase: 'improve' });
     const toolNames = tools.map(t => t.name);
 
     // Verify no duplicate tool names

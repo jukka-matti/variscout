@@ -8,15 +8,6 @@ vi.mock('@variscout/charts', () => ({
   ),
 }));
 
-vi.mock('@variscout/core', async importOriginal => {
-  const actual = await importOriginal<typeof import('@variscout/core')>();
-  return {
-    ...actual,
-    shouldShowBranding: () => false,
-    getBrandingText: () => '',
-  };
-});
-
 import { CapabilityHistogram } from '../index';
 
 describe('CapabilityHistogram', () => {
