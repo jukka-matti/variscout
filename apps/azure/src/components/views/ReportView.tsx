@@ -83,7 +83,6 @@ import {
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
-import { usePublishReport } from '../../hooks/usePublishReport';
 
 interface ReportViewProps {
   onClose: () => void;
@@ -677,26 +676,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   const processName = activeIPScope
     ? `IP Report: ${activeIPScope.title}`
     : processContext?.issueStatement || outcome || 'Analysis';
-
-  // Publish to SharePoint (ADR-026)
-  const {
-    publish,
-    publishReplace,
-    status: publishStatus,
-    error: publishError,
-    publishedUrl,
-    reset: publishReset,
-  } = usePublishReport({
-    projectName: processName,
-    processName: processContext?.description,
-    reportType,
-    sections: derivedSections,
-    questions: reportQuestions,
-    processContext: processContext ?? undefined,
-    stats: stats ?? undefined,
-    sampleCount: filteredData.length,
-    aiNarrative: narrative ?? undefined,
-  });
 
   // ---------------------------------------------------------------------------
   // Print / Save as PDF
@@ -1436,12 +1415,6 @@ const ReportView: React.FC<ReportViewProps> = ({
           onPrintReport={handlePrint}
           onShareReport={onShareReport ?? (() => undefined)}
           shareLinkGate="available"
-          onPublishToSharePoint={publish}
-          onPublishReplace={publishReplace}
-          publishStatus={publishStatus}
-          publishError={publishError}
-          onPublishReset={publishReset}
-          publishedUrl={publishedUrl}
           onClose={onClose}
           activeIPContextChip={
             activeIPTitle && onOpenActiveIP && onExitActiveIP ? (

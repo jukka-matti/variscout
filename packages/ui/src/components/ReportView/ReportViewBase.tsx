@@ -1,16 +1,5 @@
 import React from 'react';
-import {
-  X,
-  FileText,
-  Copy,
-  Share2,
-  Upload,
-  Loader2,
-  Check,
-  AlertCircle,
-  ExternalLink,
-  Printer,
-} from 'lucide-react';
+import { X, FileText, Copy, Share2, Printer } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import type { MessageCatalog } from '@variscout/core';
 
@@ -71,13 +60,6 @@ export interface ReportViewBaseProps {
   onPrintReport?: () => void;
   onShareReport?: () => void;
   shareLinkGate?: ShareLinkGate;
-  onPublishToSharePoint?: () => void;
-  onPublishReplace?: () => void;
-  publishStatus?: 'idle' | 'rendering' | 'uploading' | 'success' | 'error' | 'exists';
-  publishError?: string | null;
-  onPublishReset?: () => void;
-  /** SharePoint web URL of the published report (shown as clickable link on success) */
-  publishedUrl?: string | null;
   onClose: () => void;
   activeIPContextChip?: React.ReactNode;
   canShareViaTeams?: boolean;
@@ -157,12 +139,6 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   onPrintReport,
   onShareReport,
   shareLinkGate,
-  onPublishToSharePoint,
-  onPublishReplace,
-  publishStatus,
-  publishError,
-  onPublishReset,
-  publishedUrl,
   onClose,
   activeIPContextChip,
   canShareViaTeams,
@@ -311,80 +287,6 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               ) : null}
             </button>
           )}
-          {onPublishToSharePoint && (
-            <>
-              {(!publishStatus || publishStatus === 'idle') && (
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                  onClick={onPublishToSharePoint}
-                >
-                  <Upload size={14} />
-                  {t('report.action.publishToSharePoint')}
-                </button>
-              )}
-              {(publishStatus === 'rendering' || publishStatus === 'uploading') && (
-                <div className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 dark:text-blue-400">
-                  <Loader2 size={14} className="animate-spin" />
-                  {publishStatus === 'rendering'
-                    ? t('report.publish.rendering')
-                    : t('report.publish.uploading')}
-                </div>
-              )}
-              {publishStatus === 'success' &&
-                (publishedUrl ? (
-                  <a
-                    href={publishedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:underline"
-                  >
-                    <Check size={14} />
-                    {t('report.action.publishedToSharePoint')}
-                    <ExternalLink size={12} />
-                  </a>
-                ) : (
-                  <div className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 dark:text-green-400">
-                    <Check size={14} />
-                    {t('report.action.publishedToSharePoint')}
-                  </div>
-                ))}
-              {publishStatus === 'exists' && onPublishReplace && onPublishReset && (
-                <div className="space-y-1">
-                  <p className="px-3 py-1 text-xs text-amber-600 dark:text-amber-400">
-                    {t('report.publish.exists')}
-                  </p>
-                  <div className="flex gap-1 px-3">
-                    <button
-                      className="flex-1 px-2 py-1 text-xs text-white bg-amber-500 hover:bg-amber-600 rounded transition-colors"
-                      onClick={onPublishReplace}
-                    >
-                      {t('report.publish.replace')}
-                    </button>
-                    <button
-                      className="flex-1 px-2 py-1 text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors"
-                      onClick={onPublishReset}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-              {publishStatus === 'error' && onPublishReset && (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 px-3 py-1 text-sm text-red-600 dark:text-red-400">
-                    <AlertCircle size={14} />
-                    {publishError || t('report.publish.failed')}
-                  </div>
-                  <button
-                    className="w-full px-3 py-1 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
-                    onClick={onPublishReset}
-                  >
-                    {t('report.publish.tryAgain')}
-                  </button>
-                </div>
-              )}
-            </>
-          )}
         </div>
       </aside>
 
@@ -481,7 +383,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
         </header>
 
         {/* Mobile action bar (visible below lg breakpoint, mirrors sidebar actions) */}
-        {(onPrintReport || (canShareViaTeams && onShareReport) || onPublishToSharePoint) && (
+        {(onPrintReport || (canShareViaTeams && onShareReport)) && (
           <div
             className="lg:hidden flex items-center gap-1 px-4 py-2 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-x-auto"
             data-export-hide
@@ -531,30 +433,6 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
                 Share link
                 {shareLinkGate === 'locked' ? <span>VariScout for Azure</span> : null}
               </button>
-            )}
-            {onPublishToSharePoint && (!publishStatus || publishStatus === 'idle') && (
-              <button
-                className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
-                onClick={onPublishToSharePoint}
-                style={{ minHeight: 44 }}
-              >
-                <Upload size={14} />
-                {t('report.action.publishToSharePoint')}
-              </button>
-            )}
-            {(publishStatus === 'rendering' || publishStatus === 'uploading') && (
-              <span className="flex items-center gap-1.5 px-3 py-2 text-xs text-blue-600 dark:text-blue-400 whitespace-nowrap">
-                <Loader2 size={14} className="animate-spin" />
-                {publishStatus === 'rendering'
-                  ? t('report.publish.rendering')
-                  : t('report.publish.uploading')}
-              </span>
-            )}
-            {publishStatus === 'success' && (
-              <span className="flex items-center gap-1.5 px-3 py-2 text-xs text-green-600 dark:text-green-400 whitespace-nowrap">
-                <Check size={14} />
-                {t('report.action.publishedToSharePoint')}
-              </span>
             )}
           </div>
         )}
