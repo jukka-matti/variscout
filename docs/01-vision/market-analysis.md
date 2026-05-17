@@ -204,8 +204,8 @@ VariScout Process is not announced in V1 marketing. The roadmap commitment exist
 
 ## See Also
 
-- [Wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
-- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — Wedge architecture decision (supersedes ADR-007 + ADR-033 in part)
+- [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
+- [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — V1 architecture decision (supersedes ADR-007 + ADR-033 in part)
 - [Product Overview](product-overview.md) — What VariScout V1 does
 - [Philosophy](philosophy.md) — EDA for process improvement
 - [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€120) capability matrix

@@ -22,7 +22,7 @@ Canonical V1 design lives in the [V1 architecture spec](../superpowers/specs/202
 Structured investigation for process improvement. Question-driven analysis that guides teams from concern to measured result — combining data analysis, gemba observations, and expert knowledge in one investigation flow, assisted by AI.
 
 - **PWA (Free):** No AI, no API keys, no persistence — a pure training tool where the struggle is the point. Direct URL distribution.
-- **Azure (€99/month):** Full product. CoScout AI included, persistence in customer's Azure tenant, project membership ACLs, Report sharing. Azure Marketplace Managed Application.
+- **Azure (€120/month):** Full product. CoScout AI included, persistence in customer's Azure tenant, project membership ACLs, Report sharing. Azure Marketplace Managed Application.
 
 **Tagline:** _"Cut through your watermelons — without the cloud."_
 
@@ -129,9 +129,9 @@ Measurement Plan fields (V1): factor, method, sample size, owner, status, hypoth
 
 ## Azure CoScout — AI assistant
 
-CoScout is included in the €99 Azure SKU; PWA never has AI. CoScout coaches methodology, asks targeted questions, surfaces references, proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override.
+CoScout is included in the €120 Azure SKU; PWA never has AI. CoScout coaches methodology, asks targeted questions, surfaces references, proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override.
 
-| Feature                   | PWA |  Azure (€99)  | Description                                                          |
+| Feature                   | PWA | Azure (€120)  | Description                                                          |
 | ------------------------- | :-: | :-----------: | -------------------------------------------------------------------- |
 | NarrativeBar              |  —  |   Optional    | Plain-language analysis summary                                      |
 | ChartInsightChip          |  —  |   Optional    | Per-chart contextual suggestions                                     |
@@ -146,12 +146,12 @@ AI is always optional, dismissable, and controlled by a user-visible Settings to
 
 ## Pricing
 
-Single Azure SKU. Team-collaboration features are **project-membership-role-gated** inside the €99 plan, not tier-gated.
+Single Azure SKU. Team-collaboration features are **project-membership-role-gated** inside the €120 plan, not tier-gated.
 
-| Product | Distribution                          | Pricing       | Status      |
-| ------- | ------------------------------------- | ------------- | ----------- |
-| Azure   | Azure Marketplace Managed Application | **€99/month** | **PRIMARY** |
-| PWA     | Public URL                            | FREE          | Production  |
+| Product | Distribution                          | Pricing        | Status      |
+| ------- | ------------------------------------- | -------------- | ----------- |
+| Azure   | Azure Marketplace Managed Application | **€120/month** | **PRIMARY** |
+| PWA     | Public URL                            | FREE           | Production  |
 
 ### Free (PWA)
 
@@ -161,7 +161,7 @@ Single Azure SKU. Team-collaboration features are **project-membership-role-gate
 - Session-only storage (no save)
 - No AI
 
-### Azure (€99/month)
+### Azure (€120/month)
 
 - All features, unlimited org users tenant-wide
 - EasyAuth (Microsoft SSO), file upload, save/persistence (IndexedDB + Blob Storage)
@@ -197,7 +197,7 @@ Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide
 
 | Aspect         | Minitab              | VariScout V1                          |
 | -------------- | -------------------- | ------------------------------------- |
-| Price          | ~€135–155/user/month | €99/month, unlimited org users        |
+| Price          | ~€135–155/user/month | €120/month, unlimited org users       |
 | Installation   | Desktop software     | Browser (no install)                  |
 | Learning curve | Steep                | Methodology-led, minimal              |
 | Feature depth  | Deep (30 years)      | Focused (improvement-loop essentials) |
@@ -231,11 +231,11 @@ Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide
 
 ### Business Metrics
 
-| Metric               | Year 1 Target                 |
-| -------------------- | ----------------------------- |
-| ARR                  | ~€60K (50 tenants × €99 × 12) |
-| Support tickets/user | < 0.1                         |
-| Churn rate           | < 20%                         |
+| Metric               | Year 1 Target                  |
+| -------------------- | ------------------------------ |
+| ARR                  | ~€72K (50 tenants × €120 × 12) |
+| Support tickets/user | < 0.1                          |
+| Churn rate           | < 20%                          |
 
 ARR figures revised from the prior €79 baseline; see [market-analysis.md](../01-vision/market-analysis.md) for SAM → SOM narrowing.
 
@@ -267,7 +267,7 @@ See [V1 spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-desi
 
 ## Summary
 
-> **VariScout V1** is the project tool an improvement specialist invites their team to. Question-driven analysis with four linked views reveals hidden variation; the Investigation Wall + Measurement Plans hold the hypothesis-driven work; the Improve stage tracks actions; Sustainment closes the loop with measured Cpk delta. Free PWA for learning the methodology; **€99/month Azure tenant-wide** for the full product with CoScout AI, project membership ACLs, and Sponsor-signoff Reports.
+> **VariScout V1** is the project tool an improvement specialist invites their team to. Question-driven analysis with four linked views reveals hidden variation; the Investigation Wall + Measurement Plans hold the hypothesis-driven work; the Improve stage tracks actions; Sustainment closes the loop with measured Cpk delta. Free PWA for learning the methodology; **€120/month Azure tenant-wide** for the full product with CoScout AI, project membership ACLs, and Sponsor-signoff Reports.
 
 ---
 
@@ -277,7 +277,7 @@ See [V1 spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-desi
 - [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — V1 architecture decision
 - [Product Overview](../01-vision/product-overview.md)
 - [Market Analysis](../01-vision/market-analysis.md)
-- [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€99) matrix
+- [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€120) matrix
 - [USER-JOURNEYS](../USER-JOURNEYS.md) — V1 single-persona spine
 - [ADR-019: AI Integration](../07-decisions/adr-019-ai-integration.md)
 - [ADR-080: Sustainment auto-fire pattern](../07-decisions/adr-080-sustainment-auto-fire-pattern.md)

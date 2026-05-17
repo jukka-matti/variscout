@@ -9,7 +9,7 @@ related: [defect, journey, ppm, event-rates, copq]
 
 # Defect Analysis Mode — User Journey
 
-Under the [wedge pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Defect mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. Defect methodology is unchanged; persona variants have collapsed to one. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
+Under the [V1 pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Defect mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. Defect methodology is unchanged; persona variants have collapsed to one. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
 
 ## What the Specialist wants
 
@@ -45,7 +45,7 @@ Inside a Project, the Specialist as project Lead pins these Findings, captures H
 
 ## Design reference
 
-- **Wedge canon:** [wedge architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md)
+- **V1 canon:** [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md)
 - **Spec:** `docs/superpowers/specs/2026-04-16-defect-analysis-mode-design.md`, `docs/superpowers/specs/2026-04-16-defect-evidence-map-integration-design.md`
 - **ADR:** (defect mode registered in `analysisStrategy.ts` under ADR-047 strategy pattern)
 - **Code:** `packages/core/src/defect/` (detectDefectFormat, computeDefectRates, types), `packages/hooks/src/useDefectTransform.ts`, `packages/hooks/src/useDefectSummary.ts`, `packages/hooks/src/useDefectEvidenceMap.ts`, `packages/ui/src/components/DefectDetectedModal/`, `packages/ui/src/components/DefectSummary/`, `packages/data/src/samples/manufacturing-defects.ts`

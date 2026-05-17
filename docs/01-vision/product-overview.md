@@ -15,7 +15,7 @@ related: [adr-082, philosophy, positioning, specifications, feature-parity, jour
 
 We deliberately chose investigation depth over statistical breadth. Instead of competing with Minitab on test coverage, we built the investigation methodology (Turtiainen 2019) into the product: FRAME → SCOUT → INVESTIGATE → IMPROVE as the journey spine, question-driven EDA as the core workflow, and three evidence types (data, gemba, expert) as the investigation backbone.
 
-Canonical V1 design lives in the [wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md).
+Canonical V1 design lives in the [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md).
 
 ---
 
@@ -175,7 +175,7 @@ The following migrate to VariScout Process as a future, separate product. Not "c
 - Tier-gating philosophy as a public-facing concept
 - Cross-Azure-AD-tenant invitations (Azure AD guest accounts handle the edge case)
 
-See [wedge spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for the canonical out-of-V1 list.
+See [V1 spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for the canonical out-of-V1 list.
 
 ---
 

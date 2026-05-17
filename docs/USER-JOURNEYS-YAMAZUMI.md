@@ -9,7 +9,7 @@ related: [yamazumi, journey, lean, cycle-time, takt]
 
 # Yamazumi Mode — User Journey
 
-Under the [wedge pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Yamazumi mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. The lean methodology below is unchanged; persona variants (industrial engineer / Lean lead / kaizen facilitator) have collapsed to one Specialist. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
+Under the [V1 pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Yamazumi mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. The lean methodology below is unchanged; persona variants (industrial engineer / Lean lead / kaizen facilitator) have collapsed to one Specialist. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
 
 ## What the Specialist wants
 
@@ -41,7 +41,7 @@ Inside a Project, the Specialist as project Lead pins these station-level Findin
 
 ## Design reference
 
-- **Wedge canon:** [wedge architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md)
+- **V1 canon:** [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md)
 - **Spec:** `docs/archive/specs/2026-03-20-yamazumi-analysis-mode-design.md`, `docs/archive/specs/2026-03-21-yamazumi-reporting-design.md`
 - **ADR:** [`adr-034-yamazumi-analysis-mode.md`](07-decisions/adr-034-yamazumi-analysis-mode.md)
 - **Code:** `packages/core/src/yamazumi/` (detection, classification, aggregation), `packages/charts/src/YamazumiChart/` (YamazumiChart, YamazumiChartBase), `packages/ui/src/components/YamazumiSummaryPanel/`, `packages/hooks/src/useYamazumiData.ts`

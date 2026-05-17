@@ -11,7 +11,7 @@ related: [tiers, pricing, modes]
 
 Feature availability across the two V1 platforms: **PWA** (free, training/evaluation, session-only) and **Azure** (€120/month, Azure Marketplace Managed Application, persistent, AI-enabled).
 
-Canonical V1 design lives in the [wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md). The legacy Azure Standard (€79) / Azure Team (€199) two-plan model is retired; everything that was previously Standard or Team is now part of the single €120 SKU. Features that need team collaboration (photo evidence, project sharing, Knowledge Catalyst, team assignment) are **project-membership-role-gated inside Azure** rather than tier-gated — see [Project-membership-role gating](#project-membership-role-gating) at the bottom.
+Canonical V1 design lives in the [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md). The legacy Azure Standard (€79) / Azure Team (€199) two-plan model is retired; everything that was previously Standard or Team is now part of the single €120 SKU. Features that need team collaboration (photo evidence, project sharing, Knowledge Catalyst, team assignment) are **project-membership-role-gated inside Azure** rather than tier-gated — see [Project-membership-role gating](#project-membership-role-gating) at the bottom.
 
 ---
 
@@ -327,7 +327,7 @@ Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide
 
 The legacy multi-persona / Hub-portfolio framing migrates to **VariScout Process**, a future enterprise product. It is not announced in V1 marketing and is mentioned only when customers ask about enterprise / process-ownership use cases. Deferred scope includes:
 
-- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to a single Improvement Specialist + project-membership roles (wedge spec §3.5; canonical design: [four-personas.md](../01-vision/variscout-process/four-personas.md))
+- 4-persona model (Process Owner / Project Lead / SME / Frontline) — V1 collapses to a single Improvement Specialist + project-membership roles (V1 spec §3.5; canonical design: [four-personas.md](../01-vision/variscout-process/four-personas.md))
 - Process Hub as a user-visible primary container — V1 keeps Hub internal-only
 - Process-owner cadence + Current Process State surfaces
 - Multi-Hub portfolio scans + cross-Hub orchestration
@@ -336,7 +336,7 @@ The legacy multi-persona / Hub-portfolio framing migrates to **VariScout Process
 - Five-response-path canvas drill (V1 reduces to 3: Investigate, Quick Action, Charter; Sustainment auto-fires; Handoff folds into Sustainment closure)
 - Trainer / Student / Curious / Evaluator / Admin / Field persona variants — V1 single-persona, addressed via PWA vs Azure tier choice + project-membership role
 
-These aren't lost — they're moved to a separate roadmap. See [USER-JOURNEYS.md](../USER-JOURNEYS.md) "What's out of V1 scope" and the [wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for canonical V1 boundaries.
+These aren't lost — they're moved to a separate roadmap. See [USER-JOURNEYS.md](../USER-JOURNEYS.md) "What's out of V1 scope" and the [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for canonical V1 boundaries.
 
 ---
 
@@ -361,8 +361,8 @@ These aren't lost — they're moved to a separate roadmap. See [USER-JOURNEYS.md
 - [Membership Philosophy](membership-philosophy.md) — How V1 access control works (one product, role-based access inside)
 - [Azure App](azure/index.md)
 - [PWA (Free Training Tool)](pwa/index.md)
-- [Wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
-- [ADR-082: Wedge architecture](../07-decisions/adr-082-wedge-architecture.md)
+- [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
+- [ADR-082: V1 architecture (was: Wedge architecture)](../07-decisions/adr-082-wedge-architecture.md)
 - [ADR-007: Distribution Strategy](../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [ADR-015: Investigation Board](../07-decisions/adr-015-investigation-board.md)
 - [ADR-059: Web-First Deployment Architecture](../07-decisions/adr-059-web-first-deployment-architecture.md)

@@ -151,7 +151,7 @@ How V1 access control works — one product, role-based access inside. Lead / Me
 ## See Also
 
 - [ADR-007: Azure Marketplace Distribution](../07-decisions/adr-007-azure-marketplace-distribution.md)
-- [ADR-082: Wedge architecture](../07-decisions/adr-082-wedge-architecture.md)
+- [ADR-082: V1 architecture (was: Wedge architecture)](../07-decisions/adr-082-wedge-architecture.md)
 - [Azure Marketplace Guide](azure/marketplace.md)
 - [Membership Philosophy](membership-philosophy.md)
 - [Product Evaluation Narrative](presentations/variscout-product-evaluation-narrative-plan.md)
