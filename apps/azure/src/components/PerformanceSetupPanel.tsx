@@ -1,19 +1,18 @@
 /**
  * PerformanceSetupPanel - Azure wrapper for PerformanceSetupPanelBase
  *
- * Connects the shared base component to Azure DataContext and tier system.
- * Includes channel limit validation and upgrade prompts.
+ * Connects the shared base component to Azure stores and the platform
+ * channel-limit validation (1500-channel cap, ADR-082 wedge V1).
  */
 
 import React, { useMemo, useCallback } from 'react';
 import {
   PerformanceSetupPanelBase,
   performanceSetupPanelDefaultColorScheme,
-  type PerformanceSetupPanelTierProps,
+  type PerformanceSetupPanelChannelLimitProps,
 } from '@variscout/ui';
-import { useTier } from '@variscout/hooks';
 import { useProjectStore } from '@variscout/stores';
-import { detectChannelColumns } from '@variscout/core';
+import { detectChannelColumns, MAX_CHANNELS, validateChannelCount } from '@variscout/core';
 
 interface PerformanceSetupPanelProps {
   /** 'inline' for PerformanceDashboard, 'modal' for dialog */
@@ -48,9 +47,6 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
   const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
   const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
 
-  // Tier information for channel limit validation
-  const { tier, maxChannels, upgradeUrl, validateChannels } = useTier();
-
   // Detect available numeric columns
   const availableColumns = useMemo(() => {
     if (rawData.length === 0) return [];
@@ -60,15 +56,13 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
   const hasData = rawData.length > 0;
   const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
 
-  // Tier props for base component
-  const tierProps: PerformanceSetupPanelTierProps = useMemo(
+  // Platform channel-limit validation props for the base component
+  const channelLimit: PerformanceSetupPanelChannelLimitProps = useMemo(
     () => ({
-      tier,
-      maxChannels,
-      upgradeUrl,
-      validateChannels,
+      maxChannels: MAX_CHANNELS,
+      validateChannels: validateChannelCount,
     }),
-    [tier, maxChannels, upgradeUrl, validateChannels]
+    []
   );
 
   const handleEnable = useCallback(
@@ -100,7 +94,7 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
       onCancel={onCancel}
       onOpenSettings={onOpenSettings}
       colorScheme={performanceSetupPanelDefaultColorScheme}
-      tierProps={tierProps}
+      channelLimit={channelLimit}
     />
   );
 };

@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Activity, AlertTriangle, RefreshCw, Settings, X, Info } from 'lucide-react';
 import { MeasureColumnSelector } from '../MeasureColumnSelector';
-import { UpgradePrompt } from '../UpgradePrompt';
-import type { ChannelInfo, LicenseTier } from '@variscout/core';
+import type { ChannelInfo } from '@variscout/core';
 
 /**
  * Color scheme for PerformanceSetupPanel component
@@ -77,15 +76,11 @@ export interface ChannelValidation {
 }
 
 /**
- * Tier-related props for PerformanceSetupPanelBase
+ * Channel-limit validation props (e.g. for the platform 1500-channel hard cap).
  */
-export interface TierProps {
-  /** Current tier (free, individual, team, enterprise) */
-  tier: LicenseTier;
-  /** Maximum channels allowed for tier */
+export interface ChannelLimitProps {
+  /** Maximum channels allowed */
   maxChannels: number;
-  /** URL for upgrade flow */
-  upgradeUrl: string;
   /** Function to validate channel count */
   validateChannels: (count: number) => ChannelValidation;
 }
@@ -121,19 +116,19 @@ export interface PerformanceSetupPanelBaseProps {
   onOpenSettings?: () => void;
   /** Color scheme for styling */
   colorScheme?: PerformanceSetupPanelColorScheme;
-  /** Tier-related props (optional - for Azure) */
-  tierProps?: TierProps;
+  /** Channel-limit validation props (optional - apps that enforce the platform cap). */
+  channelLimit?: ChannelLimitProps;
 }
 
 /**
  * Base component for Performance Mode setup panel
  *
  * Renders the setup UI for configuring multi-measure analysis.
- * Tier validation and context data are provided via props.
+ * Apps that enforce the platform channel cap pass `channelLimit` props.
  *
  * @example
  * ```tsx
- * // Basic usage (PWA - no tier)
+ * // Basic usage (PWA - no channel limit)
  * <PerformanceSetupPanelBase
  *   variant="inline"
  *   availableColumns={columns}
@@ -143,14 +138,14 @@ export interface PerformanceSetupPanelBaseProps {
  *   colorScheme={pwaColorScheme}
  * />
  *
- * // With tier validation (Azure)
+ * // With platform channel-limit validation (Azure)
  * <PerformanceSetupPanelBase
  *   variant="inline"
  *   availableColumns={columns}
  *   hasData={true}
  *   hasSpecs={true}
  *   onEnable={(cols, label, cpkTargetPerChannel) => { ... }}
- *   tierProps={{ tier, maxChannels, upgradeUrl, validateChannels }}
+ *   channelLimit={{ maxChannels, validateChannels }}
  * />
  * ```
  */
@@ -166,7 +161,7 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
   onCancel,
   onOpenSettings,
   colorScheme = defaultColorScheme,
-  tierProps,
+  channelLimit,
 }) => {
   // Local state for editing
   const [selectedColumns, setSelectedColumns] = useState<string[]>(initialSelection ?? []);
@@ -184,11 +179,11 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
     }
   }, [availableColumns, selectedColumns.length]);
 
-  // Tier-based channel limit validation (if tier props provided)
+  // Platform channel-limit validation (if channelLimit props provided)
   const channelValidation = useMemo<ChannelValidation | null>(() => {
-    if (!tierProps) return null;
-    return tierProps.validateChannels(selectedColumns.length);
-  }, [selectedColumns.length, tierProps]);
+    if (!channelLimit) return null;
+    return channelLimit.validateChannels(selectedColumns.length);
+  }, [selectedColumns.length, channelLimit]);
 
   const isValid =
     selectedColumns.length >= 3 && (!channelValidation || !channelValidation.exceeded);
@@ -290,16 +285,23 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
         </p>
       </div>
 
-      {/* Channel limit exceeded warning (tier validation) */}
-      {tierProps && channelValidation?.exceeded && (
-        <UpgradePrompt
-          tier={tierProps.tier}
-          feature="channel analysis"
-          currentCount={channelValidation.current}
-          maxAllowed={channelValidation.max}
-          upgradeUrl={tierProps.upgradeUrl}
-          variant="banner"
-        />
+      {/* Channel limit exceeded warning */}
+      {channelLimit && channelValidation?.exceeded && (
+        <div
+          className="flex items-start gap-3 p-3 rounded-lg bg-red-600/10 border border-red-600/30"
+          role="alert"
+        >
+          <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm text-red-300">
+              Too many channels selected ({channelValidation.current} of {channelValidation.max}{' '}
+              max)
+            </p>
+            <p className={`text-xs ${colorScheme.textSecondary} mt-1`}>
+              Reduce the selection to at most {channelValidation.max} channels to continue.
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Performance warning (soft limit at 700 channels) */}
@@ -346,9 +348,9 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
             <label className={`text-sm font-medium ${colorScheme.textSecondary}`}>
               Select Measure Columns
             </label>
-            {tierProps && (
+            {channelLimit && (
               <span className={`text-xs ${colorScheme.textMuted}`}>
-                ({selectedColumns.length}/{tierProps.maxChannels} max)
+                ({selectedColumns.length}/{channelLimit.maxChannels} max)
               </span>
             )}
           </div>
