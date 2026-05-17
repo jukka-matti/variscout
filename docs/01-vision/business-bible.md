@@ -302,7 +302,15 @@ matters more than the optionality of "more SKU per customer."
   to one sentence; customer success doesn't need plan-mapping.
 - 2026 SaaS counter-evidence is mounting (Linear, Basecamp, Plausible all
   single-SKU and growing) — the tier-ladder norm is not as load-bearing as
-  the SaaS-playbook canon suggests.
+  the SaaS-playbook canon suggests. Specific data points worth re-verifying
+  before V1 launch: Linear scaled from $0 to a reported $130M+ ARR (2019–2024)
+  on a single per-user/month plan with no enterprise tier until late in that
+  arc — the ladder was added at scale, not used to drive initial growth.
+  Plausible has publicly reported sustained 30%+ year-over-year ARR growth on
+  a flat single-tier price structure that varies only by site volume, not by
+  feature gates. Both citations should be sourced against the vendors' own
+  public reporting before being used in external marketing; cited here as
+  defensible patterns, not as audited numbers.
 - The retired H10 ("Team AI Premium Justifies Itself") was already
   superseded by ADR-033's two-tier collapse; the V1 single-SKU pivot takes
   the simplification one further step.
@@ -490,9 +498,11 @@ tenant. Customer-owned is preserved at every loop.
 
 ## 6. Three preconditions before V1 engineering commits
 
-Per the V1 architecture spec §8, three strategic checks must clear before
-engineering work commits — and these are the same checks that test H6 + H10
-economically before the codebase reorganizes around them.
+VariScout will not commit V1 engineering until these three gates clear. Per the
+V1 architecture spec §8, they are not a checklist — they are the bet test.
+Failing any one of them is grounds to revise the V1 plan, not to soften the
+bar. The same three gates economically stress-test H6 + H10 before the codebase
+reorganizes around them.
 
 ### 6.1 Migration math (30-minute exercise)
 
@@ -513,14 +523,18 @@ If a meaningful slice of pipeline depends on cross-org collaboration, the
 SaaS distribution path becomes a precondition, not a future option — and
 that's a re-scope, not a tweak.
 
-### 6.3 One customer validation conversation
+### 6.3 Customer validation — the bet test
 
-Pitch the V1 product to one real improvement specialist (existing customer or
-warm prospect). Verify "yes, that's the product I want." 30-minute call.
+Pitch the V1 product end-to-end to a real improvement specialist (Six Sigma
+BB, CI engineer, or quality manager — the named ICP). The gate fails if they
+cannot articulate, in their own words, "yes, that's the product I want for
+my team." A 30-minute call is the minimum-viable bet test, not the standard
+— multiple specialist conversations strengthen the signal, and a single soft
+"sure, sounds interesting" is not a pass.
 
 If they push back hard on something foundational ("I really need
 process-owner monitoring," "I really need cross-tenant collaboration"),
-pause and revisit.
+pause and revisit the V1 plan — don't reframe the pushback as an edge case.
 
 These three checks test the economic + ICP + product-fit assumptions of the
 V1 plan before code-level commitment.
