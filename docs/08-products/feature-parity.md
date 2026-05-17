@@ -315,11 +315,11 @@ Role-gated features:
 | Knowledge Catalyst contribution  |  ✓   |   ✓    |    -    | Resolved findings feed organizational AI memory. Lead configures; Members contribute. |
 | Findings/Hypothesis edits        |  ✓   |   ✓    |    -    | Sponsor sees them in the Report; cannot edit.                                         |
 | Action edits                     |  ✓   |   ✓    |    -    |                                                                                       |
-| Lifecycle stage transitions      |  ✓   |   -    |    -    | Charter → Approach → Improve → Sustainment moves are Lead-only.                       |
+| Lifecycle stage transitions      |  ✓   |   -    |    -    | Charter → Approach → Sustainment moves are Lead-only (Improve is a top-level tab).    |
 | Report view                      |  ✓   |   ✓    |    ✓    | Sponsor's only access. Audience toggle (Technical / Summary) available to all roles.  |
 | Report Save As / Share           |  ✓   |   ✓    |    -    | Sponsor can view in product; sharing artefacts is a Lead/Member function.             |
 
-Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide — this baseline analysis capability is not gated by project membership. Only the formal Project artifacts (Charter, Approach, Improve, Sustainment, Report) and the team-collaboration features above are membership-scoped.
+Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide — this baseline analysis capability is not gated by project membership. Only the formal Project artifacts (Charter, Approach, Sustainment) and the Improve tab (action tracker) and the team-collaboration features above are membership-scoped.
 
 ---
 

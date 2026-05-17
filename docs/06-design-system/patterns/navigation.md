@@ -390,7 +390,7 @@ Escape priority is handled by `useAppPanels` — it dismisses panels in reverse-
 
 ## 8. Portfolio and Dashboard Navigation (Azure)
 
-The Azure app has three navigation layers: **Portfolio** (project selection), **Project Dashboard** (Overview landing page), and **Workspace tabs** (Overview | Analysis | Investigation | Improvement | Report). Within a loaded project, the Dashboard and workspaces are controlled by `panelsStore.activeView` (ADR-055).
+The Azure app top-level nav is `[Home] [Project] [Process] [Analyze] [Investigation] [Improve] [Report]` (7 tabs, V1). Within a loaded project, the internal panel/workspace view is controlled by `panelsStore.activeView` (ADR-055) — values: `'dashboard'`, `'analysis'`, `'investigation'`, `'improvement'`, `'report'`.
 
 ### First-run experience (zero saved projects)
 

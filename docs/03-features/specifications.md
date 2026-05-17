@@ -46,22 +46,23 @@ The legacy multi-persona segmentation (Process Owner / Frontline / SME / Project
 
 ## V1 Navigation
 
-Six tabs, in workflow order:
+Seven tabs, in workflow order:
 
 ```
-[Home] [Projects] [Process] [Analyze] [Investigation] [Report]
+[Home] [Project] [Process] [Analyze] [Investigation] [Improve] [Report]
 ```
 
-| Tab               | Function                                                                         |
-| ----------------- | -------------------------------------------------------------------------------- |
-| **Home**          | Project queue + active-IP launchpad                                              |
-| **Projects**      | Current project's status overview; **Improve is a stage inside Projects detail** |
-| **Process**       | Canvas / process map (State + Edit modes per wedge §3.3)                         |
-| **Analyze**       | EDA / charts / Factor Intelligence                                               |
-| **Investigation** | Wall + Evidence Map → suspected causes                                           |
-| **Report**        | Narrative output for Sponsor signoff                                             |
+| Tab               | Function                                                                                             |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| **Home**          | Active-IP launchpad + project queue                                                                  |
+| **Project**       | Current project detail — Charter / Approach / Sustainment stages                                     |
+| **Process**       | Canvas / process map (State + Edit modes per wedge §3.3)                                             |
+| **Analyze**       | EDA / charts / Factor Intelligence                                                                   |
+| **Investigation** | Wall + Evidence Map → suspected causes                                                               |
+| **Improve**       | Active-IP-scoped action tracker; PDCA workbench behind **"Advanced" toggle** (wedge spec §3.5 amend) |
+| **Report**        | Narrative output for Sponsor signoff                                                                 |
 
-Improve was previously a top-level tab; it is now a stage inside Projects detail (Charter → Approach → Improve → Sustainment). Handoff folds into Sustainment closure.
+Improve is a top-level verb tab with active-IP cascade (2026-05-16 amendment — wedge spec §3.5). Project detail runs three stages: Charter → Approach → Sustainment. Handoff folds into Sustainment closure.
 
 ---
 
@@ -91,7 +92,7 @@ Improve was previously a top-level tab; it is now a stage inside Projects detail
 V1 serves two distinct workflows, both as primary use cases (per [wedge spec §3.0](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§30-two-analyst-modes--both-first-class)):
 
 1. **Quick analysis (exploratory)** — Specialist pastes data, explores in Analyze + Investigation, saves Findings. _No Project required._ Free PWA supports this in session-only mode; Azure adds persistence and CoScout.
-2. **Project-anchored investigation** — Specialist creates a Project (or promotes a quick analysis via "+ Promote to Project"). The Charter ceremony adds problem statement, member invites, optional refined goal. Project runs Charter → Approach → Improve → Sustainment, producing a Sponsor-signoff-ready Report.
+2. **Project-anchored investigation** — Specialist creates a Project (or promotes a quick analysis via "+ Promote to Project"). The Charter ceremony adds problem statement, member invites, optional refined goal. Project runs Charter → Approach → Sustainment (3 stages); the Improve tab provides the action tracker scoped to the active project, producing a Sponsor-signoff-ready Report.
 
 Internally, paste data lands in a data container (called a Hub in code) that is tenant-wide. The UI does not surface "Hub" as a noun — users see only Project and Process.
 
@@ -99,16 +100,15 @@ Internally, paste data lands in a data container (called a Hub in code) that is 
 
 ## Project lifecycle (V1)
 
-Inside Projects detail, four stages run in sequence:
+Inside Project detail, three stages run in sequence:
 
 | Stage           | Function                                                                                                                                                                             | Default UI                                                                                  |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
 | **Charter**     | Wrap an existing analysis with project ceremony — problem statement, member invites, optional refined goal. Inherits the Hub's framing (outcome, factors, process map) on promotion. | Problem statement form + Invite modal + inherited Hub-context summary.                      |
 | **Approach**    | Investigation strategy → produces suspected causes. Anchor surface is the **Investigation Wall** (Hypotheses + Findings + Measurement Plans).                                        | SuspectedCause-anchored hierarchy; links to Wall + Evidence Map.                            |
-| **Improve**     | Action tracker. Improvement actions + quick actions, owner/due/status, linked to suspected causes.                                                                                   | Simple action list by default; PDCA workbench available behind an **"Advanced" toggle**.    |
-| **Sustainment** | "Did it work?" + close project.                                                                                                                                                      | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up. |
+| **Sustainment** | "Did it work?" + close project. Action completion + Cpk delta + drift check.                                                                                                         | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up. |
 
-Handoff stage is absorbed into Sustainment closure (single end-of-project decision moment). Canvas response paths reduce from 5 to 3 (Investigate / Quick Action / Charter); Sustainment auto-fires per ADR-080.
+Handoff stage is folded into Sustainment closure (single end-of-project decision moment). The Improve tab (top-level verb) hosts the action tracker + PDCA workbench scoped to the active project. Canvas response paths reduce from 5 to 3 (Investigate / Quick Action / Charter); Sustainment auto-fires per ADR-080.
 
 ---
 
@@ -187,7 +187,7 @@ Inside the €120 SKU, team-collaboration features are gated by project-membersh
 | **Member**  | SME, analyst, frontline contributor, quality engineer   | Full edit within project surfaces (findings, hypotheses, actions, photo evidence, Knowledge Catalyst contribution); no membership mgmt |
 | **Sponsor** | Executive sponsor / Champion                            | **Report-only at V1**; signoff handled out-of-band (email, e-sign, meeting). In-product signoff workflow defers post-V1.               |
 
-Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide — this baseline analysis capability is not gated by project membership. Only Project artifacts (Charter, Approach, Improve, Sustainment, Report) and team-collaboration features are membership-scoped. See [feature-parity.md "Project-membership-role gating"](../08-products/feature-parity.md#project-membership-role-gating) for the role × feature matrix.
+Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide — this baseline analysis capability is not gated by project membership. Only Project artifacts (Charter, Approach, Sustainment) and Improve tab actions and team-collaboration features are membership-scoped. See [feature-parity.md "Project-membership-role gating"](../08-products/feature-parity.md#project-membership-role-gating) for the role × feature matrix.
 
 ---
 
