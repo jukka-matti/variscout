@@ -552,8 +552,7 @@ doc and in the V1 architecture spec as a named-future commitment so that:
   validates.
 
 The expected sequence: V1 reaches ~500 customer validation (real revenue at
-€120 × N), then VariScout Process design opens. Until then, Process is a
-commitment, not a build.
+€120 × N), then VariScout Process design opens. Until then, VariScout Process is a commitment to the customer who actually needs it — not a build.
 
 ---
 

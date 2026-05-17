@@ -186,9 +186,9 @@ This is the primary data-isolation boundary inside V1. ACL enforcement points
 
 ---
 
-## 5. Where the gate lives — inside the surface, not at entry
+## 5. Where access checks live — inside the surface, not at entry
 
-A core architectural rule: **access-gate inside each surface, not at surface
+A core architectural rule: **access check inside each surface, not at surface
 entry.**
 
 Concretely: when an unauthorized user navigates to (say) a Project's
@@ -254,7 +254,7 @@ This doc replaces the prior **Tier Philosophy** doc that captured the
 Standard (€79) / Team (€199) tier ladder. The principle "PWA teaches, paid
 produces" survives. The "two paid plans capability maturity model" retires.
 The "tier-gate inside surfaces, not at entry CTAs" rule survives, recast as
-"membership-gate inside surfaces, not at entry CTAs."
+"membership access check inside surfaces, not at entry CTAs."
 
 VariScout Process (the future enterprise product per [ADR-082](../07-decisions/adr-082-wedge-architecture.md))
 may reintroduce a higher SKU. That will be a different product with different

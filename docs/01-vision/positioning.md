@@ -70,6 +70,8 @@ Four claims VariScout makes that competitors cannot.
 
 ### 3.1 Structured investigation, not statistical verification
 
+Statistical verification asks _did the change work_; structured investigation asks _what could be going on and how do we know_. VariScout is for the second question.
+
 VariScout is built around a published, peer-reviewed methodology — Turtiainen
 (2019), _"Mental Model for Exploratory Data Analysis Applications for
 Structured Problem-Solving"_ (LUT University), validated by nine Lean Six Sigma

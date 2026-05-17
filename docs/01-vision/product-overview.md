@@ -58,20 +58,21 @@ Mode-specific tooling varies inside each phase; the spine never changes.
 
 ## V1 navigation
 
-Six tabs, in workflow order:
+Seven tabs, in workflow order:
 
 ```
-[Home] [Projects] [Process] [Analyze] [Investigation] [Report]
+[Home] [Project] [Process] [Analyze] [Investigation] [Improve] [Report]
 ```
 
 1. **Home** — pick what you're working on (project queue + active-IP launchpad)
-2. **Projects** — current project's status overview (Improve is a stage inside Projects detail)
+2. **Project** — current project's status overview (Charter → Approach → Sustainment stages)
 3. **Process** — canvas / process map (spatial substrate, State + Edit modes)
 4. **Analyze** — EDA / charts / Factor Intelligence
 5. **Investigation** — Wall + Evidence Map → suspected causes
-6. **Report** — narrative output for Sponsor signoff
+6. **Improve** — improvement actions, tracked and owned (active-IP cascade from Home)
+7. **Report** — narrative output for Sponsor signoff
 
-The Improve stage lives **inside Projects detail**, not as a top-level tab. Projects detail runs four stages: Charter → Approach → Improve → Sustainment. Handoff is folded into Sustainment closure.
+Improve is a top-level verb tab with active-IP cascade (not buried inside Project detail). Project detail runs three stages: Charter → Approach → Sustainment. Handoff is folded into Sustainment closure.
 
 ---
 
