@@ -6,6 +6,8 @@ date: 2026-04-17
 
 # Agent-Facing Documentation Architecture — Phase 1 (Foundation) Implementation Plan
 
+> **V1 (2026-05-16) amendment — historical record.** This delivered plan describes the Phase 1 scaffolding work that shipped in April 2026. Task 7's `docs/USER-JOURNEYS.md` draft (10 personas + 6 modes + 3 tiers) reflects the pre-wedge product surface. Under V1 the persona model collapses to a single **Improvement Specialist** and tiers collapse to a single **€120/month SKU** per [ADR-082](../../07-decisions/adr-082-wedge-architecture.md); the live `docs/USER-JOURNEYS.md` was rewritten in Phase A (PR #191). The 10-persona draft below is preserved as historical context. Canonical persona artifact: [`docs/01-vision/variscout-process/four-personas.md`](../../01-vision/variscout-process/four-personas.md) (named-future).
+
 **Baseline:** [docs/09-baseline/2026-04-17-agent-docs-baseline.md](../../09-baseline/2026-04-17-agent-docs-baseline.md)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

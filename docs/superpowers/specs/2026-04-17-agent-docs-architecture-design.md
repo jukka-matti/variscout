@@ -9,6 +9,8 @@ related:
 
 # Agent-Facing Documentation Architecture (A++)
 
+> **V1 (2026-05-16) amendment — historical record.** This delivered spec describes the agent-docs architecture as designed in April 2026. The 5-layer model + skills + Tier 1/2 narrative split shipped and remain in force. The **"10 personas × 14 use cases × 3 tiers" complexity claim** (§Context + §"Tier 1 human narrative docs" table) reflects the pre-wedge product surface; under V1 the persona model collapses to a single **Improvement Specialist**, tiers collapse to a single **€120/month SKU**, and `docs/USER-JOURNEYS.md` was rewritten in Phase A (PR #191) accordingly. The 10-persona content below is preserved as historical context per [ADR-082](../../07-decisions/adr-082-wedge-architecture.md); the canonical persona artifact is now [`docs/01-vision/variscout-process/four-personas.md`](../../01-vision/variscout-process/four-personas.md) (named-future), and V1's persona is named in the wedge spec §3.5.
+
 ## Context
 
 **Current state.** Always-loaded agent context totals ~1,080 lines per turn: `CLAUDE.md` (181) + `.claude/rules/*.md` (724, six files) + `MEMORY.md` routing entries (~175). `docs/` holds 455 markdown files — 71 ADRs, 64 specs, 65 archived, ~250 other.
