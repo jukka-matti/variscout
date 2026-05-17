@@ -329,9 +329,9 @@ Full analytical capability.
 The price sits above the retired €79 Standard and below the retired €199
 Team. Reasoning:
 
-- €99/year=€1,188 was below the typical SME purchasing threshold but only
-  marginally; €120/mo=€1,440/year sits slightly above, which the V1 product
-  scope (full DMAIC arc, project membership, Knowledge Catalyst) justifies.
+- €120/mo = €1,440/year sits slightly above the typical €1,000 SME purchasing
+  threshold, which the V1 product scope (full DMAIC arc, project membership,
+  Knowledge Catalyst) justifies.
 - A team of 3+ on VariScout is still <10% the cost of Minitab seats.
 - Customer-deployed AI Foundry resources are the customer's Azure cost, not
   ours — VariScout's marginal serving cost stays near zero.

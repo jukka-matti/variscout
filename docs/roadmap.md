@@ -135,7 +135,7 @@ When the §3 sequence becomes ambiguous, pick by:
 - Investigations: [`docs/investigations.md`](investigations.md)
 - **Wedge architecture spec (canonical V1 design, 2026-05-16):** [`docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`](superpowers/specs/2026-05-16-wedge-architecture-design.md)
 - **ADR-082 (Wedge architecture, supersedes ADR-007 + ADR-033 in part):** [`docs/07-decisions/adr-082-wedge-architecture.md`](07-decisions/adr-082-wedge-architecture.md)
-- Vision spec: [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](superpowers/specs/2026-05-03-variscout-vision-design.md) (status: accepted — note: Hub-centric framing predates wedge; will be amended in Phase A canonical anchor pass)
+- Vision spec: [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](superpowers/specs/2026-05-03-variscout-vision-design.md) (status: accepted — note: Hub-centric framing predates the V1 single-SKU pivot; queued for Phase C amend)
 - Data-Flow Foundation spec: [`docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`](superpowers/specs/2026-05-06-data-flow-foundation-design.md) (status: delivered for F1-F4; F5 subsumed by RPS V1)
 - Canvas Migration spec: [`docs/superpowers/specs/2026-05-04-canvas-migration-design.md`](superpowers/specs/2026-05-04-canvas-migration-design.md) (PR1-PR9 SHIPPED)
 - **RPS V1 spec: [`docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md`](superpowers/specs/2026-05-09-response-path-system-v1-design.md)** (status: delivered; 10 of 10 PRs shipped 2026-05-13)

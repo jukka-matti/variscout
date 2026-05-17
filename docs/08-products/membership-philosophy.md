@@ -208,9 +208,9 @@ Why this matters:
   there's no "this is a paid feature" badge anywhere. Pedagogy and product
   coherence both benefit.
 
-This rule predates the wedge (originally written for tier-gating) and
-survived the membership shift because the principle is about UX coherence,
-not access mechanism.
+This rule predates the V1 single-SKU pivot (originally written for
+tier-gating) and survived the membership shift because the principle is
+about UX coherence, not access mechanism.
 
 ---
 
