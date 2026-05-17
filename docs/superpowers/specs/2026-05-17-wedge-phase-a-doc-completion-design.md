@@ -61,14 +61,15 @@ Two-product framing holistically — VariScout (today) + VariScout Process (name
 
 ### Scope: 4 sequenced PRs (Phase A + Phase C execution)
 
-Execute as four PRs from this brainstorm, in order:
+Execute as **five PRs** from this brainstorm, in order:
 
-1. **PR 1 — Phase A**: 7 anchor rewrites + audit-caught drift fixes + Phase C plan artifact (~12-14 files). Smallest, focused, customer-anchor-coherence delivered immediately.
-2. **PR 2 — Phase C AMEND**: surgical edits across docs flagged by the audit's stale-pattern detection. Estimated ~100-200 files. Mostly find-and-replace at known line numbers.
-3. **PR 3 — Phase C ARCHIVE**: move superseded docs to `docs/archive/` with supersession headers. Estimated ~50-100 files. Per `feedback_consolidation_replace_not_umbrella`: archive over delete.
-4. **PR 4 — Phase C DELETE**: remove dead docs with no institutional value (stale scratch notes, broken plan files). Estimated ~10-30 files.
+1. **PR 1 — Phase A**: 7 anchor rewrites + audit-caught drift fixes + Phase C plan artifact (~12-14 files). **Opus implementer** (HIGH-criticality canonical-anchor content). Smallest, focused, customer-anchor-coherence delivered immediately.
+2. **PR 1.5 — VariScout Process multi-file capture (preserved, NOT agent-canonical)**: aggregates existing team-product thinking from ≥10 source specs into a multi-file directory at `docs/01-vision/variscout-process/` (~6-8 files, ~1000-1500 lines, status: `named-future`). Opus implementer. Inbound link from `docs/decision-log.md` only — NOT from `llms.txt`, NOT from Phase A anchors. Agents reading the canonical anchor graph won't be steered there; future humans find it via the decision-log breadcrumb. Phase A anchors keep "VariScout Process — named-future enterprise platform" mention without link.
+3. **PR 2 — Phase C AMEND**: surgical edits across docs flagged by the audit's stale-pattern detection. Estimated ~100-200 files. Mostly find-and-replace at known line numbers.
+4. **PR 3 — Phase C ARCHIVE**: move superseded docs to `docs/archive/` with supersession headers. Estimated ~50-100 files. Per `feedback_consolidation_replace_not_umbrella`: archive over delete.
+5. **PR 4 — Phase C DELETE**: remove dead docs with no institutional value (stale scratch notes, broken plan files). Estimated ~10-30 files.
 
-KEEP-bucket docs need no PR. Each PR is reviewable + revertable. Total estimated effort: ~5-7 days across all four PRs.
+KEEP-bucket docs need no PR. Each PR is reviewable + revertable. Total estimated effort: ~3-4 weeks across all five PRs (Process spec is the longest tail). **Phase C executes after Phase A directly** — no customer-validation precondition (the 500+ customer milestone gates the VariScout Process _product_, not the doc cleanup sweep).
 
 Phase C audit (parallel Explore agents per stale-pattern) runs between PR 1 merge and PR 2 implementer dispatch — produces the triage table that drives PRs 2-4.
 
