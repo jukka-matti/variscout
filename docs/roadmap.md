@@ -7,9 +7,9 @@ last-reviewed: 2026-05-16
 related:
   - docs/decision-log.md
   - docs/investigations.md
-  - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
+  - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md
-  - docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md
+  - docs/archive/specs/2026-05-09-response-path-system-v1-design.md
   - docs/superpowers/plans/2026-05-09-response-path-system-v1.md
 ---
 
@@ -135,10 +135,10 @@ When the §3 sequence becomes ambiguous, pick by:
 - Investigations: [`docs/investigations.md`](investigations.md)
 - **Wedge architecture spec (canonical V1 design, 2026-05-16):** [`docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`](superpowers/specs/2026-05-16-wedge-architecture-design.md)
 - **ADR-082 (Wedge architecture, supersedes ADR-007 + ADR-033 in part):** [`docs/07-decisions/adr-082-wedge-architecture.md`](07-decisions/adr-082-wedge-architecture.md)
-- Vision spec: [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](superpowers/specs/2026-05-03-variscout-vision-design.md) (status: accepted — note: Hub-centric framing predates the V1 single-SKU pivot; queued for Phase C amend)
+- Vision spec (archived): [`docs/archive/specs/2026-05-03-variscout-vision-design.md`](archive/specs/2026-05-03-variscout-vision-design.md) (status: archived — superseded by wedge spec 2026-05-16)
 - Data-Flow Foundation spec: [`docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`](superpowers/specs/2026-05-06-data-flow-foundation-design.md) (status: delivered for F1-F4; F5 subsumed by RPS V1)
-- Canvas Migration spec: [`docs/superpowers/specs/2026-05-04-canvas-migration-design.md`](superpowers/specs/2026-05-04-canvas-migration-design.md) (PR1-PR9 SHIPPED)
-- **RPS V1 spec: [`docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md`](superpowers/specs/2026-05-09-response-path-system-v1-design.md)** (status: delivered; 10 of 10 PRs shipped 2026-05-13)
+- Canvas Migration spec (archived): [`docs/archive/specs/2026-05-04-canvas-migration-design.md`](archive/specs/2026-05-04-canvas-migration-design.md) (PR1-PR9 SHIPPED; migration complete)
+- **RPS V1 spec (archived): [`docs/archive/specs/2026-05-09-response-path-system-v1-design.md`](archive/specs/2026-05-09-response-path-system-v1-design.md)** (status: archived; 10 of 10 PRs shipped 2026-05-13; 5-path design superseded by wedge 3-path reduction)
 - **RPS V1 plan: [`docs/superpowers/plans/2026-05-09-response-path-system-v1.md`](superpowers/plans/2026-05-09-response-path-system-v1.md)** (status: delivered; 10 of 10 PRs shipped 2026-05-13)
 - PR8 master plan: [`docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md`](superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md) (CLOSED)
 - Workflow rules: `feedback_full_vision_spec`, `feedback_honor_vision_commitments`, `feedback_step_back_for_system_design`, `feedback_drop_methodology_bridges`, `feedback_process_owner_reality_chain`, `feedback_survey_cross_phase_layer`, `feedback_verify_methodology_before_gating`, `feedback_tier_gate_inside_surface`, `feedback_slice_size_cap`, `feedback_subagent_driven_default`, `feedback_pwa_philosophy`

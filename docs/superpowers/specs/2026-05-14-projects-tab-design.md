@@ -6,8 +6,8 @@ status: draft
 last-reviewed: 2026-05-14
 related:
   - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
-  - docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md
-  - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
+  - docs/archive/specs/2026-05-09-response-path-system-v1-design.md
+  - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/01-vision/methodology.md
   - docs/01-vision/constitution.md
   - docs/03-features/workflows/analysis-journey-map.md
@@ -658,8 +658,8 @@ Don't block design; want concrete answers in the plan.
 ### VariScout context
 
 - [VariScout Coherence design](./2026-05-14-variscout-coherence-design.md) — parent spec (amended)
-- [Response Path System V1](./2026-05-09-response-path-system-v1-design.md) — IP entity definition (6 sections, multi-level Goal)
-- [VariScout Vision](./2026-05-03-variscout-vision-design.md) — 5 response paths origin (§2.4)
+- [Response Path System V1](../../archive/specs/2026-05-09-response-path-system-v1-design.md) — IP entity definition (6 sections, multi-level Goal)
+- [VariScout Vision](../../archive/specs/2026-05-03-variscout-vision-design.md) — 5 response paths origin (§2.4)
 - [`docs/01-vision/methodology.md`](../../01-vision/methodology.md) — FRAME → SCOUT → INVESTIGATE → IMPROVE spine; nested methodology hierarchy
 - [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) — P5 (multiple suspected causes); P7 (three evidence types)
 - [`docs/03-features/workflows/analysis-journey-map.md`](../../03-features/workflows/analysis-journey-map.md) — Phase 4 IMPROVE (PDCA)
@@ -675,7 +675,7 @@ Don't block design; want concrete answers in the plan.
 
 ### Methodology heritage (internal-only; not UI copy)
 
-- QC Story / Toyota TBP narrative — referenced via [2026-05-08 IP V1 spec (superseded)](./2026-05-08-improvement-project-v1-design.md); influence on Report Overview's 7-section arc.
+- QC Story / Toyota TBP narrative — referenced via [2026-05-08 IP V1 spec (superseded)](../../archive/specs/2026-05-08-improvement-project-v1-design.md); influence on Report Overview's 7-section arc.
 - [2026-03-22 mode-aware reports (archived)](../../archive/specs/2026-03-22-mode-aware-reports-design.md) — "Did It Work? / Learning Loop" section heritage.
 
 ### Brainstorming artifacts

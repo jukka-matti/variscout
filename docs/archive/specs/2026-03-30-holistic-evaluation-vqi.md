@@ -2,9 +2,13 @@
 title: 'Holistic Evaluation: VariScout Quality Index (VQI)'
 audience: [analyst, engineer]
 category: reference
-status: active
+status: archived
 related: [evaluation, ai-experience, maturity-model, competitive-analysis, architecture]
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). This 2026-03-30 evaluation assessed VariScout quality pre-wedge pivot; the VQI scoring framework and AI-era quality criteria it defined were valid at time of writing but the surface model (tier structure, persona model, nav) has been superseded.
+>
+> **Preserved here** for institutional knowledge — the world-class product evaluation criteria and methodology remain relevant for future VariScout Process scope (see [docs/01-vision/variscout-process/](../../01-vision/variscout-process/index.md)).
 
 # VariScout Holistic Evaluation: World-Class in the AI Era
 

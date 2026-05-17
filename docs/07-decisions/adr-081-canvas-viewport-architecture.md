@@ -111,7 +111,7 @@ This scope boundary is locked at the ADR level because reopening it would invali
 
 ## References
 
-- Vision spec §5.4 + §2.1 + §3.1: [`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../superpowers/specs/2026-05-03-variscout-vision-design.md)
+- Vision spec §5.4 + §2.1 + §3.1: [`docs/archive/specs/2026-05-03-variscout-vision-design.md`](../archive/specs/2026-05-03-variscout-vision-design.md)
 - Methodology: [`docs/01-vision/methodology.md`](../01-vision/methodology.md) §2.1
 - Design spec (8f, this work): [`docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md`](../superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md)
 - ADR-068 (CoScout cognitive redesign — already assumed level-aware coaching from `currentLevel`)

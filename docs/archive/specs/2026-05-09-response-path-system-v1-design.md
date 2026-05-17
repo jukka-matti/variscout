@@ -2,7 +2,7 @@
 title: Response Path System V1 — Design
 audience: [product, engineer, designer]
 category: design-spec
-status: delivered
+status: archived
 last-reviewed: 2026-05-13
 supersedes:
   - docs/superpowers/specs/2026-05-08-improvement-project-v1-design.md
@@ -17,6 +17,10 @@ related:
   - docs/07-decisions/adr-070-frame-workspace.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). RPS V1 shipped 5 response paths; the wedge reduces V1 to 3 canvas-drill paths (Investigate, Quick Action, Charter) with Sustainment auto-firing and Handoff retired entirely per wedge spec §3.3.4.
+>
+> **Preserved here** for institutional knowledge — the original 5-path design intent informs future VariScout Process scope (see [docs/01-vision/variscout-process/](../../01-vision/variscout-process/index.md)).
 
 > **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). RPS V1 shipped 5 response paths off a Process Hub. Under the wedge, **3 paths** surface at V1 from canvas drill (Investigate, Quick Action, Charter). Sustainment auto-fires per [ADR-080](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md); **Handoff is deleted everywhere** and its close-project logic folds into Sustainment closure per wedge spec §3.2 + §3.3.4. All shipped RPS V1 code stays — the wedge gates the canvas drill-down menu to 3 paths rather than deleting infrastructure.
 

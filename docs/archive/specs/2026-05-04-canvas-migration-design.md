@@ -2,7 +2,7 @@
 title: Canvas Migration Strategy — strangler-pattern phased delivery + three-layer state separation
 audience: [product, engineer, designer]
 category: design-spec
-status: active
+status: archived
 last-reviewed: 2026-05-05
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
@@ -12,6 +12,10 @@ related:
   - docs/07-decisions/adr-077-snapshot-provenance-and-match-summary-wedge.md
   - docs/investigations.md
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The strangler-pattern canvas migration strategy completed delivery (PRs #160–#168); the migrated canvas is now the live substrate for the Process tab. This spec documents the migration design rationale and three-layer state separation decisions; the shipped architecture is captured in [ADR-078](../../07-decisions/adr-078-pwa-azure-architecture-alignment.md).
+>
+> **Preserved here** for institutional knowledge — the migration pattern and state-separation decisions inform future product decisions, especially for VariScout Process scope (see [docs/01-vision/variscout-process/](../../01-vision/variscout-process/index.md)).
 
 # Canvas Migration Strategy
 

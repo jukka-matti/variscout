@@ -158,7 +158,7 @@ See design spec `docs/archive/specs/2026-04-02-web-first-deployment-architecture
 ## Amendment — 2026-05-03: PWA local Hub-of-one (IndexedDB persistence stays browser-tenant-only)
 
 The 2026-05-03 product vision spec
-([`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../superpowers/specs/2026-05-03-variscout-vision-design.md))
+([`docs/archive/specs/2026-05-03-variscout-vision-design.md`](../archive/specs/2026-05-03-variscout-vision-design.md))
 §7 commits PWA to a **local Hub-of-one**: a single Process Hub persisted in
 IndexedDB, surviving page refresh and offline use. Same Canvas UX as the Azure
 tier (build map, set specs, run analysis, return later, data persists).

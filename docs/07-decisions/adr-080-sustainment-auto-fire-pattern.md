@@ -19,7 +19,7 @@ related:
 
 ## Context
 
-RPS V1 (`docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md`) ships five response paths off a single Process Hub: Quick Action, Wall Detective-pack, Improvement Project (Charter), Sustainment, Handoff. The last three share a lifecycle shape — the response is not a single user action but a multi-step process that:
+RPS V1 (`docs/archive/specs/2026-05-09-response-path-system-v1-design.md`) ships five response paths off a single Process Hub: Quick Action, Wall Detective-pack, Improvement Project (Charter), Sustainment, Handoff. The last three share a lifecycle shape — the response is not a single user action but a multi-step process that:
 
 1. **Starts implicitly** from an upstream state transition (e.g., Improvement Project enters Sustain phase) rather than an explicit "create" click,
 2. **Surfaces follow-up nudges** asynchronously as conditions drift (drift-detection survey rules, time-since-last-check, evidence gaps),
@@ -64,7 +64,7 @@ Three temptations to anticipate when the pattern is re-applied:
 
 ## References
 
-- RPS V1 spec [`docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md`](../superpowers/specs/2026-05-09-response-path-system-v1-design.md) §D14 (five response paths), §D9 (tier gate at signoff).
+- RPS V1 spec [`docs/archive/specs/2026-05-09-response-path-system-v1-design.md`](../archive/specs/2026-05-09-response-path-system-v1-design.md) §D14 (five response paths), §D9 (tier gate at signoff).
 - RPS V1 plan [`docs/superpowers/plans/2026-05-09-response-path-system-v1.md`](../superpowers/plans/2026-05-09-response-path-system-v1.md) §PR-RPS-9 ledger line 2231 (originating ask) + §PR-RPS-10 (Handoff applies the same shape).
 - PR #154 (PR-RPS-9 Sustainment V1, squash `5f95e6fd`) — first instance.
 - PR #155 (PR-RPS-10 Handoff V1, squash `12e1257b`) — second instance.

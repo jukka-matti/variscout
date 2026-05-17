@@ -1,7 +1,11 @@
 ---
 title: 'Evaluation Report: PR #33 — ADR-049 CoScout Context & Process Memory'
-status: active
+status: archived
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). This evaluation report covered ADR-049 (CoScout Context & Process Memory) as implemented in PR #33; the ADR and its implementation remain in force, but this evaluation doc was a point-in-time review and does not reflect subsequent architectural changes under the wedge (single-SKU, project-membership ACL, 7-tab nav).
+>
+> **Preserved here** for institutional knowledge — the AI architecture evaluation criteria inform future CoScout capability decisions for VariScout Process scope (see [docs/01-vision/variscout-process/](../../01-vision/variscout-process/index.md)).
 
 # Evaluation Report: PR #33 — ADR-049 CoScout Context & Process Memory
 

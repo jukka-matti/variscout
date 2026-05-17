@@ -2,8 +2,8 @@
 title: Improvement Project V1 — Design (SUPERSEDED 2026-05-09)
 audience: [product, engineer, designer]
 category: design-spec
-status: superseded
-superseded-by: docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md
+status: archived
+superseded-by: docs/archive/specs/2026-05-09-response-path-system-v1-design.md
 last-reviewed: 2026-05-09
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
@@ -14,6 +14,10 @@ related:
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
   - docs/07-decisions/adr-059-web-first-deployment-architecture.md
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded first by [RPS V1 spec](2026-05-09-response-path-system-v1-design.md) (2026-05-09), then by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) (2026-05-16). The Improvement Project concept survives as the "Charter" canvas response path and the Improve tab in V1; the QC Story / TBP-shaped 8-section narrative design is preserved here as heritage for VariScout Process scope.
+>
+> **Preserved here** for institutional knowledge — the original design intent informs future product decisions, especially for VariScout Process scope (see [docs/01-vision/variscout-process/](../../01-vision/variscout-process/index.md)).
 
 # Improvement Project V1 — Design
 

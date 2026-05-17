@@ -2,7 +2,7 @@
 title: VariScout — Product Vision
 audience: [product, engineer, designer, analyst, business]
 category: strategy
-status: accepted
+status: archived
 last-reviewed: 2026-05-03
 supersedes:
   - docs/archive/specs/2026-04-27-process-learning-operating-model-design.md
@@ -13,6 +13,10 @@ related:
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
   - docs/07-decisions/adr-070-frame-workspace.md
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). This vision defined the 5-path RPS, multi-Hub portfolio scope, and Process Hub as the central artifact; the wedge narrows V1 to 3 canvas-drill response paths, retires multi-Hub portfolio, and repositions Hub as an internal data container. The core vision (canvas-as-product, three-level methodology, distributed not centralized) is preserved and refined in the wedge.
+>
+> **Preserved here** for institutional knowledge — the original design intent informs future product decisions, especially for VariScout Process scope (see [docs/01-vision/variscout-process/](../../01-vision/variscout-process/index.md)).
 
 > **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). Under the wedge, §2.4 response paths reduce from 5 to 3 at V1 (Investigate, Quick Action, Charter). Sustainment auto-fires per [ADR-080](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md); Handoff is deleted everywhere and folds into Sustainment closure per wedge spec §3.2. Multi-Hub portfolio scope retires for V1; Hub stays as the internal data container only. The vision's core (canvas-as-product, three-level methodology, response paths as routing pattern) is preserved.
 

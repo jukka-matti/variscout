@@ -144,7 +144,7 @@ is configured. Engine layer shipped as PR #103.
 ## Amendment — 2026-05-03 (Superseded by Canvas; FRAME workspace retired as a top-level route)
 
 The 2026-05-03 product vision spec
-([`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../superpowers/specs/2026-05-03-variscout-vision-design.md))
+([`docs/archive/specs/2026-05-03-variscout-vision-design.md`](../archive/specs/2026-05-03-variscout-vision-design.md))
 **retires the FRAME workspace as a top-level navigation tab.** The Canvas
 absorbs both Frame and Analysis as a single continuous surface; the river-styled
 SIPOC metaphor is dropped as a user-facing visual; "tributary" terminology is

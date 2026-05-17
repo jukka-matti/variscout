@@ -70,7 +70,7 @@ See `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`.
 ## Amendment — 2026-05-03: Modes and levels are orthogonal axes
 
 The 2026-05-03 product vision spec
-([`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`](../superpowers/specs/2026-05-03-variscout-vision-design.md))
+([`docs/archive/specs/2026-05-03-variscout-vision-design.md`](../archive/specs/2026-05-03-variscout-vision-design.md))
 §5.4 sharpens the mode/level relationship into an explicit
 **orthogonality**:
 
