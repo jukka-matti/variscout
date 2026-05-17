@@ -14,7 +14,7 @@ related:
 
 # Process Measurement System (PMS) — stable measures + cadence + Current Process State
 
-> **Status: named-future capture.** PMS is the cadence-review substrate for the Process Owner persona. Stable measure definitions + Evidence Sources + Snapshots + Signal Cards + Survey readiness + cadence rules combine into the latest structured read of a process — **Current Process State**. The V1 wedge defers this surface explicitly; the engine pieces are partly shipped today, the cadence-review surface is named-future.
+> **Status: named-future capture.** PMS is the cadence-review substrate for the Process Owner persona. Stable measure definitions + Evidence Sources + Snapshots + Signal Cards + Survey readiness + cadence rules combine into the latest structured read of a process — **Current Process State**. V1 defers this surface explicitly; the engine pieces are partly shipped today, the cadence-review surface is named-future.
 
 ## §1 What PMS is, and what it isn't
 

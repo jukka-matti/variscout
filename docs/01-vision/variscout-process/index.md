@@ -16,11 +16,11 @@ related:
 
 # VariScout Process — named-future capture
 
-> **Status: named-future.** This is preserved institutional knowledge, not a product commitment. VariScout Process is the second product on the two-product roadmap — gated on V1 (the wedge specialist tool) reaching ~500 customers. Nothing in this directory is in active development; nothing here ships under the V1 SKU; nothing here changes the V1 codebase. Read this when designing for V1 and a question surfaces that sounds like a process-owner / team / enterprise need — the answer is almost certainly here, and the answer is almost certainly "later, in Process."
+> **Status: named-future.** This is preserved institutional knowledge, not a product commitment. VariScout Process is the second product on the two-product roadmap — gated on V1 (the specialist tool) reaching ~500 customers. Nothing in this directory is in active development; nothing here ships under the V1 SKU; nothing here changes the V1 codebase. Read this when designing for V1 and a question surfaces that sounds like a process-owner / team / enterprise need — the answer is almost certainly here, and the answer is almost certainly "later, in Process."
 
 ## §1 Why this directory exists
 
-The 2026-05-16 wedge pivot was a deliberate narrowing. The pre-wedge design corpus (~10 specs, ~3000 lines, March–May 2026) had converged on a four-persona, multi-Hub, auto-pipeline, monitoring-shaped product. Validating it against the actual ICP — improvement specialists running structured investigations with their teams — revealed that the breadth was the problem, not the solution. The wedge collapsed the surface area: one persona (Specialist), one container (Project wrapping an internal Hub), one ingestion path (manual paste + file upload), one SKU (€120/mo Azure tenant-wide), one positioning sentence ("structured investigation for process improvement").
+The 2026-05-16 wedge pivot was a deliberate narrowing. The pre-wedge design corpus (~10 specs, ~3000 lines, March–May 2026) had converged on a four-persona, multi-Hub, auto-pipeline, monitoring-shaped product. Validating it against the actual ICP — improvement specialists running structured investigations with their teams — revealed that the breadth was the problem, not the solution. V1 collapsed the surface area: one persona (Specialist), one container (Project wrapping an internal Hub), one ingestion path (manual paste + file upload), one SKU (€120/mo Azure tenant-wide), one positioning sentence ("structured investigation for process improvement").
 
 But the design work behind the breadth was not wrong. It was early. The wedge spec §7 named eight specific capabilities as deferred — not "coming soon inside V1" but "a separate product on the roadmap when V1 validates." That product is **VariScout Process**.
 
@@ -49,7 +49,7 @@ VariScout Process activates when V1 reaches roughly **500 paying customers**. Th
 2. **Engineering capacity for a second product.** Building Process while V1 still has known gaps (V2 measurement system additions, signoff workflows, multi-project coordination at specialist scope) starves both. 500 customers funds a second product team.
 3. **Customer-pull evidence that process ownership is the next layer.** If specialist customers consistently ask for process-owner monitoring as their next purchase, the deferred design becomes a validated commitment. If they ask for something else, this capture stays preserved and the roadmap turns.
 
-This is honest framing: VariScout Process is gated on V1 working. If V1 doesn't validate the wedge, the deferred design doesn't activate. Nothing in this directory entitles itself to a build slot.
+This is honest framing: VariScout Process is gated on V1 working. If V1 doesn't validate, the deferred design doesn't activate. Nothing in this directory entitles itself to a build slot.
 
 ## §4 V1-vs-Process boundary — one-paragraph summary
 
@@ -109,4 +109,4 @@ This sequence is not in any spec. It is a reading of which capabilities depend o
 
 ---
 
-> Process is not coming soon. Process is preserved. The wedge is the bet; this directory is the long game.
+> Process is not coming soon. Process is preserved. V1 is the bet; this directory is the long game.

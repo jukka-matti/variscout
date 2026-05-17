@@ -14,7 +14,7 @@ related:
 
 # Monitoring — drift detection, alerts, process-owner views
 
-> **Status: named-future capture.** Process-owner monitoring is the "ongoing watching" half of process ownership — drift detection, alert routing, capability snapshots over time, decisions queue at cadence. The V1 wedge defers monitoring as a process-owner concept. V1 keeps Sustainment auto-fire (ADR-080) which is the only V1 monitoring shape; everything else is Process.
+> **Status: named-future capture.** Process-owner monitoring is the "ongoing watching" half of process ownership — drift detection, alert routing, capability snapshots over time, decisions queue at cadence. V1 defers monitoring as a process-owner concept. V1 keeps Sustainment auto-fire (ADR-080) which is the only V1 monitoring shape; everything else is Process.
 
 ## §1 What monitoring is, and what it isn't
 
@@ -163,12 +163,12 @@ What V1 keeps: the ADR-080 Sustainment auto-fire pattern (project-bounded), the 
 
 ## §9 Why this retired from V1
 
-The wedge pivot collapsed monitoring because:
+The V1 pivot collapsed monitoring because:
 
 1. **Monitoring is a process-owner concept.** V1's single Specialist persona doesn't have a monitoring job — they have an investigation job. Specialists don't open VariScout to scan; they open it to analyze.
 2. **The cadence layer requires PMS.** Without the Process Measurement System ([measurement-system.md](measurement-system.md)), there's no cadence to monitor on; drift detection has nothing to compare against beyond the Specialist's most recent manual paste.
 3. **Alert routing requires the persona model.** Without 4 personas, there's no routing problem — everything goes to the Specialist. The routing decisions (who sees what) only matter when more than one persona is in the product.
-4. **Scope discipline.** V1 needs to ship as the smallest defensible anatomy. Monitoring is a large surface area (multiple views, multiple persona routes, drift-detection engine integration); shipping it before V1 validates would dilute the wedge.
+4. **Scope discipline.** V1 needs to ship as the smallest defensible anatomy. Monitoring is a large surface area (multiple views, multiple persona routes, drift-detection engine integration); shipping it before V1 validates would dilute V1's scope.
 
 Monitoring activates in Process when the four-persona model + PMS layer + auto-ingestion are all in place — they're a prerequisite set, not independent capabilities. Activation order matters: introduce Process Owner persona first ([four-personas.md §9](four-personas.md)), then PMS, then the Hub-overview surface, then drift detection on top.
 

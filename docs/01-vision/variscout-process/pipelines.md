@@ -18,7 +18,7 @@ related:
 
 ## §1 Why Process needs auto-ingestion
 
-V1's data path is **manual**: the Specialist pastes data, uploads a CSV, or starts from a sample dataset. This works for V1's wedge because the Specialist controls when data enters the product — they paste before they analyze, the rhythm matches their workflow.
+V1's data path is **manual**: the Specialist pastes data, uploads a CSV, or starts from a sample dataset. This works for V1 because the Specialist controls when data enters the product — they paste before they analyze, the rhythm matches their workflow.
 
 Process Owners operate differently. They don't paste data when they want to analyze; they need the data to **already be there** when they open the product at cadence. A Process Owner who has to ask the data team for an extract every Monday morning is not in a cadence loop — they're in an interruption loop. The Process tab opens, Current Process State is current, decisions surface — or it doesn't, and the product fails its persona's job.
 

@@ -18,9 +18,9 @@ related:
 
 ## §1 How to read this doc
 
-V1 (the wedge specialist tool) ships today. VariScout Process is named-future. Most pre-wedge design work created **shared substrate** — code that ships in V1 but was originally designed for process-owner / multi-hub / enterprise scope. Drawing the line for each capability prevents two failure modes:
+V1 (the specialist tool) ships today. VariScout Process is named-future. Most pre-wedge design work created **shared substrate** — code that ships in V1 but was originally designed for process-owner / multi-hub / enterprise scope. Drawing the line for each capability prevents two failure modes:
 
-1. **Scope creep into V1.** A specialist asks "can I monitor capability across multiple processes?" — that sounds reasonable, but answering "yes" smuggles Process-scope behavior into V1 and breaks the wedge.
+1. **Scope creep into V1.** A specialist asks "can I monitor capability across multiple processes?" — that sounds reasonable, but answering "yes" smuggles Process-scope behavior into V1 and breaks the V1 scope.
 2. **Throwing away shipped value.** When Process activates, the team will benefit from extending capabilities already coded rather than rebuilding from scratch. Knowing which V1 capabilities have Process-shaped headroom guides Phase 1 of Process activation.
 
 The table format below is the contract. For each capability: **V1 shape** (what ships today, at specialist scope) vs **Process shape** (what activates when Process activates).
@@ -71,7 +71,7 @@ These are the capabilities that exist in V1 code today and have explicit Process
 
 ## §3 V1-only capabilities (Process inherits or transforms)
 
-These capabilities are V1's wedge anatomy. They don't survive into Process unchanged.
+These capabilities are V1's anatomy. They don't survive into Process unchanged.
 
 ### §3.1 Project as foundational unit
 
@@ -120,4 +120,4 @@ V1 ships what one specialist needs to investigate one project with their invited
 
 Anything that smells like "ongoing watching," "multi-project orchestration," "persona-aware default behavior," "cross-Hub anything," or "automation that runs while no one is looking" is a Process feature. Anything that's "this specialist, this project, this evidence, this team I invited" is V1.
 
-When the smell-test fails: **default to V1 deferral, not Process backport.** If specialists are asking for it inside V1, the wedge spec has likely already named the deferral path. Check [wedge spec §7 + §10](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) before adding.
+When the smell-test fails: **default to V1 deferral, not Process backport.** If specialists are asking for it inside V1, the V1 architecture spec has likely already named the deferral path. Check [wedge spec §7 + §10](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) before adding.

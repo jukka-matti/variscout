@@ -27,7 +27,7 @@ Six of the original ten were buyer-evaluators, education-funnel students, tenant
 
 That left four product-user personas. The Coherence brainstorm tested "could it be three?" by considering whether SME-flavored work could be absorbed into the analyst persona. The conclusion was no: three of the four personas map cleanly to Constitution P7's three evidence types (Data / Gemba / Expert), and dropping the fourth left expert-evidence creation as "whoever happens to be in the RACI C role" — structurally vague. The four are minimal.
 
-The Process Engineer persona was renamed from the pre-wedge "SME" label after the wedge pivot. The 2026-05-16 conversation surfaced that "SME" reads as a RACI role, not a persona — and the persona-vs-role confusion was the single most consequential terminology lock in Coherence Session A. **Process Engineer** is the canonical persona name in the named-future Process product. It captures the same role (expert input on artifacts; consulting on investigations from other Leads) while disambiguating from RACI.
+The Process Engineer persona was renamed from the pre-wedge "SME" label after the V1 pivot. The 2026-05-16 conversation surfaced that "SME" reads as a RACI role, not a persona — and the persona-vs-role confusion was the single most consequential terminology lock in Coherence Session A. **Process Engineer** is the canonical persona name in the named-future Process product. It captures the same role (expert input on artifacts; consulting on investigations from other Leads) while disambiguating from RACI.
 
 ## §2 The four personas
 
@@ -163,10 +163,10 @@ This pattern exists in V1's project membership model (Lead / Member / Sponsor on
 
 ## §8 Why this retired from V1
 
-The wedge pivot collapsed to one persona because:
+The V1 pivot collapsed to one persona because:
 
 1. **Single-buyer onramp.** The V1 ICP is the Specialist buying the tool for their team. Persona-aware routing requires the buyer to set up tenant-wide persona assignments, which is enterprise IT work — incompatible with a self-service Azure Marketplace deployment for a single specialist.
-2. **Engineering scope.** Persona infrastructure (tenant-admin persona assignment UI, persona-aware default routing across every surface, persona-adaptive Home variants) is multi-PR engineering work. The wedge committed to ship V1 with the smallest defensible anatomy.
+2. **Engineering scope.** Persona infrastructure (tenant-admin persona assignment UI, persona-aware default routing across every surface, persona-adaptive Home variants) is multi-PR engineering work. V1 committed to ship with the smallest defensible anatomy.
 3. **Methodology purity.** With one persona, every surface serves the same primary verb (analyze + improve). Multiple personas multiply the design surface (every screen has 4× the UX variants); V1 deliberately accepts the design constraint that comes with one persona.
 
 The four-persona model migrates to Process intact. The infrastructure to support it (persona-aware routing, persona-adaptive Homes, RACI engagement-profile model, copy-density tiers) is Process scope, not V1.
