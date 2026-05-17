@@ -349,6 +349,6 @@ This keeps standards centralized while allowing delivery to spread across consul
 - [Market Analysis](market-analysis.md) — TAM, competitive positioning, pricing comparison
 - [Trainer Network](trainer-network.md) — Simplified ecosystem model for trainers and Master Trainers
 - [UX Research](../02-journeys/ux-research.md) — Persona interviews, JTBD
-- [Tier Philosophy](../08-products/tier-philosophy.md) — Why features are gated where they are
+- [Membership Philosophy](../08-products/membership-philosophy.md) — How V1 access control works (one product, role-based access inside)
 - [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md) — Distribution strategy
 - [ADR-019](../07-decisions/adr-019-ai-integration.md) — AI integration decision

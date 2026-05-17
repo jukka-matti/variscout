@@ -75,8 +75,9 @@ Add a Print/PDF export to the Report View, available on all Azure plans
 
 ### Tier gating
 
-Local file export requires no cloud infrastructure. Per tier-philosophy
-Principle 5 ("Infrastructure Reflects Value"), this belongs at Standard.
+Local file export requires no cloud infrastructure. Per membership-philosophy
+§5 ("inside the surface, not at entry"), local export is part of the single
+SKU and not access-gated.
 
 The upgrade trigger to Team remains intact: PDF is a static snapshot. Teams deep
 links provide live, real-time access. "I need my team to see this in real-time"
@@ -105,5 +106,5 @@ still drives Standard → Team.
 ## Related
 
 - [ADR-024: Scouting Report](../archive/adrs/adr-024-scouting-report.md) — Report View design
-- [Tier Philosophy](../08-products/tier-philosophy.md) — Feature gating principles
+- [Membership Philosophy](../08-products/membership-philosophy.md) — Access model principles
 - [Feature Parity](../08-products/feature-parity.md) — Complete feature matrix
