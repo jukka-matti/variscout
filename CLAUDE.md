@@ -18,6 +18,7 @@ Shared agent map: `docs/llms.txt`
 - `pnpm test` — all packages (turbo)
 - `pnpm build` — all packages + apps
 - `claude --chrome` — enable the **official [Claude for Chrome extension](https://claude.com/claude-for-chrome)** for browser-assisted E2E (drives your real Chrome with your login state).
+- Local test cheatsheet (`--ui`, `--changed`, `--bail`, `--reporter=verbose`): see `docs/05-technical/implementation/testing.md` § "Local TDD cheatsheet".
 
 ## Where to look
 

@@ -1,10 +1,11 @@
 import '@testing-library/jest-dom';
-// Install fake-indexeddb globally so tests that pull in Dexie-backed stores
-// (e.g. canvasViewportStore via Canvas.test.tsx in packages/ui) don't hang
-// waiting for an IndexedDB that jsdom doesn't provide. Previously only the
-// stores package + the dedicated canvasViewportStore.test.ts registered this,
-// so the @variscout/ui suite stalled on Canvas.test.tsx under concurrent
-// turbo load (decision-log line 57, 2026-05-14).
+// Install fake-indexeddb globally for ALL test files that load this shared
+// setup. Any test that transitively imports a Dexie-backed store — most
+// notably `useCanvasViewportStore` (which Canvas tests in packages/ui pull
+// in) — will hang silently in jsdom without an IndexedDB implementation.
+// The hang has no stack trace: the test never starts. Decision-log line 57
+// (2026-05-14) and `.claude/rules/testing.md` document the trap.
+// Do NOT remove this import — leaving the shim global is cheap insurance.
 import 'fake-indexeddb/auto';
 import { vi } from 'vitest';
 
