@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
-import * as CoreModule from '@variscout/core';
+import { calculateAnova } from '@variscout/core';
 import * as UseFilterNavigationModule from '../../hooks/useFilterNavigation';
 import { useProjectStore, getProjectInitialState } from '@variscout/stores';
 
@@ -148,7 +148,7 @@ describe('Dashboard', () => {
   });
 
   it('does not render AnovaResults when calculation returns null', () => {
-    vi.spyOn(CoreModule, 'calculateAnova').mockReturnValue(null);
+    vi.mocked(calculateAnova).mockReturnValue(null);
 
     render(<Dashboard />);
 

@@ -250,5 +250,58 @@ export default [
       }],
     },
   },
+  // Tier-gating retirement guard (ADR-082, wedge V1):
+  // Prevents reintroduction of retired tier/plan functions and types.
+  // Use canAccess(userId, members, action) from @variscout/core/projectMembership
+  // for role-based access; otherwise just delete the conditional.
+  {
+    files: ['packages/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@variscout/core',
+              importNames: [
+                'isPaidTier',
+                'hasTeamFeatures',
+                'shouldShowBranding',
+                'getBrandingText',
+                'getSignatureText',
+                'hasKnowledgeBase',
+                'isTeamPlan',
+                'configureTier',
+                'configurePlan',
+                'getTier',
+                'getPlan',
+                'getMaxChannels',
+                'getTierLimits',
+                'isChannelLimitExceeded',
+                'shouldShowChannelWarning',
+                'getTierDescription',
+                'getUpgradeUrl',
+                'isUpgradeUrlPlaceholder',
+                'BRANDING_COLORS',
+                'DEFAULT_PLAN',
+                'DEFAULT_TIER',
+                'TIER_LIMITS',
+                'LicenseTier',
+                'MarketplacePlan',
+              ],
+              message:
+                'Tier gating retired in wedge V1 (ADR-082). Use canAccess(userId, members, action) from @variscout/core/projectMembership for role-based access; otherwise just delete the conditional.',
+            },
+            {
+              name: '@variscout/hooks',
+              importNames: ['useTier'],
+              message:
+                'useTier hook retired in wedge V1. Use direct MAX_CHANNELS / validateChannelCount imports from @variscout/core if you need channel-limit info.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   prettier,
 ];
