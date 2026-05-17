@@ -13,7 +13,9 @@ status: stable
 
 **Supersedes**: ADR-016 (Microsoft Teams Integration), ADR-018 (Channel @Mention Workflow)
 
-**Related**: ADR-007 (Marketplace Distribution), ADR-033 (Pricing Simplification), ADR-058 (Deployment Lifecycle)
+**Related**: ADR-007 (Marketplace Distribution), ADR-033 (Pricing Simplification), ADR-058 (Deployment Lifecycle), ADR-082 (Wedge architecture — single €120/month SKU replaces the Standard/Team tier split documented below)
+
+> **V1 (2026-05-16) amendment:** The "Tier Model (Preserved)" section below describes the pre-V1 €79 Standard / €199 Team split. V1 ships as a single €120/month SKU (Azure tenant-wide, project-membership ACLs) per [ADR-082](adr-082-wedge-architecture.md). The web-first deployment architecture (EasyAuth, Blob Storage, browser capture, no Teams SDK) is unchanged.
 
 ---
 

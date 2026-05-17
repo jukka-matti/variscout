@@ -7,11 +7,11 @@ status: stable
 
 # Glossary
 
-> **⚠️ Updated 2026-05-16 for the wedge pivot** ([wedge spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md)). Vocabulary changes:
+> **⚠️ Updated 2026-05-16 for the V1 pivot** ([V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md)). Vocabulary changes:
 >
 > - **New section: Project & membership terms** — Lead, Member, Sponsor, Measurement Plan, Promote to Project, canvas response paths.
 > - **Process Hub** amended — stays as internal data container, not surfaced as a user-visible noun in V1 UI.
-> - **Stage 5 modal** marked wedge-changed — Mode B Stage 5 ceremony retires under the wedge; investigation entry happens via Wall + Promote-to-Project CTA.
+> - **Stage 5 modal** marked V1-changed — Mode B Stage 5 ceremony retires under V1; investigation entry happens via Wall + Promote-to-Project CTA.
 > - **Retired terms table expanded** — Reviewer role, Team tier, Improve tab (top-level), Handoff stage, Handoff response path, Process Owner / SME / Frontline personas.
 
 Statistical, quality, and methodology terms used across VariScout. **This is the canonical home for VariScout terminology.** Process narrative lives in [`docs/01-vision/methodology.md`](01-vision/methodology.md) and the [product vision spec](archive/specs/2026-05-03-variscout-vision-design.md); both cross-reference this glossary rather than re-defining terms.
@@ -185,7 +185,7 @@ Sidecar metadata `{ source: string; joinKey: string }` attached via a `Map<rowIn
 - **Investigation entry** happens via the Investigation Wall directly (create a Hypothesis on the Wall, optionally from a quick-analysis Finding).
 - **Project entry** happens via "+ New Project" / [Promote to Project](#promote-to-project), which inherits the analyst's current Hub state.
 
-The original Stage 5 modal collected issue description + question + hypothesis draft and created Investigation + Question entities. That ceremony is replaced by the more granular Wall-based Hypothesis + Finding creation under the wedge. Historical reference: framing-layer spec §5.5 (`docs/archive/specs/2026-05-03-framing-layer-design.md`).
+The original Stage 5 modal collected issue description + question + hypothesis draft and created Investigation + Question entities. That ceremony is replaced by the more granular Wall-based Hypothesis + Finding creation under V1. Historical reference: framing-layer spec §5.5 (`docs/archive/specs/2026-05-03-framing-layer-design.md`).
 
 **See:** [Promote to Project](#promote-to-project), [Hypothesis (Investigation Wall)](#hypothesis-investigation-wall)
 
