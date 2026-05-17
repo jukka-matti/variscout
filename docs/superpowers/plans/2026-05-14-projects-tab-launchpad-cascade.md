@@ -7,7 +7,7 @@ last-reviewed: 2026-05-15
 spec: docs/superpowers/specs/2026-05-14-projects-tab-design.md
 related:
   - docs/superpowers/specs/2026-05-14-projects-tab-design.md
-  - docs/superpowers/plans/2026-05-14-projects-tab-foundation.md
+  - docs/archive/plans/2026-05-14-projects-tab-foundation.md
   - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
 ---
 

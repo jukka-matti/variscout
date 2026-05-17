@@ -2,13 +2,17 @@
 title: Data-Flow Foundation F1+F2 Implementation Plan — type-level normalization + repository pattern
 audience: [engineer]
 category: implementation
-status: active
+status: archived
 last-reviewed: 2026-05-06
 related:
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
   - docs/decision-log.md
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The F1+F2 data-flow foundation delivered per the plan; this implementation plan's work is complete and folded into main. The pre-wedge type-level normalization + repository pattern remains in force; the wedge supersedes the tier-gating and multi-persona scope assumptions.
+>
+> **Preserved here** for institutional knowledge — the F1+F2 implementation patterns and slice-4 retro learnings inform future engineering decisions.
 
 # Data-Flow Foundation F1+F2 Implementation Plan
 

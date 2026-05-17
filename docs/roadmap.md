@@ -10,7 +10,7 @@ related:
   - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md
   - docs/archive/specs/2026-05-09-response-path-system-v1-design.md
-  - docs/superpowers/plans/2026-05-09-response-path-system-v1.md
+  - docs/archive/plans/2026-05-09-response-path-system-v1.md
 ---
 
 # VariScout — Roadmap
@@ -139,6 +139,6 @@ When the §3 sequence becomes ambiguous, pick by:
 - Data-Flow Foundation spec: [`docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`](superpowers/specs/2026-05-06-data-flow-foundation-design.md) (status: delivered for F1-F4; F5 subsumed by RPS V1)
 - Canvas Migration spec (archived): [`docs/archive/specs/2026-05-04-canvas-migration-design.md`](archive/specs/2026-05-04-canvas-migration-design.md) (PR1-PR9 SHIPPED; migration complete)
 - **RPS V1 spec (archived): [`docs/archive/specs/2026-05-09-response-path-system-v1-design.md`](archive/specs/2026-05-09-response-path-system-v1-design.md)** (status: archived; 10 of 10 PRs shipped 2026-05-13; 5-path design superseded by wedge 3-path reduction)
-- **RPS V1 plan: [`docs/superpowers/plans/2026-05-09-response-path-system-v1.md`](superpowers/plans/2026-05-09-response-path-system-v1.md)** (status: delivered; 10 of 10 PRs shipped 2026-05-13)
+- **RPS V1 plan (archived): [`docs/archive/plans/2026-05-09-response-path-system-v1.md`](archive/plans/2026-05-09-response-path-system-v1.md)** (status: archived; 10 of 10 PRs shipped 2026-05-13)
 - PR8 master plan: [`docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md`](superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md) (CLOSED)
 - Workflow rules: `feedback_full_vision_spec`, `feedback_honor_vision_commitments`, `feedback_step_back_for_system_design`, `feedback_drop_methodology_bridges`, `feedback_process_owner_reality_chain`, `feedback_survey_cross_phase_layer`, `feedback_verify_methodology_before_gating`, `feedback_tier_gate_inside_surface`, `feedback_slice_size_cap`, `feedback_subagent_driven_default`, `feedback_pwa_philosophy`

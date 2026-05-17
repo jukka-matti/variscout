@@ -65,7 +65,7 @@ Three temptations to anticipate when the pattern is re-applied:
 ## References
 
 - RPS V1 spec [`docs/archive/specs/2026-05-09-response-path-system-v1-design.md`](../archive/specs/2026-05-09-response-path-system-v1-design.md) §D14 (five response paths), §D9 (tier gate at signoff).
-- RPS V1 plan [`docs/superpowers/plans/2026-05-09-response-path-system-v1.md`](../superpowers/plans/2026-05-09-response-path-system-v1.md) §PR-RPS-9 ledger line 2231 (originating ask) + §PR-RPS-10 (Handoff applies the same shape).
+- RPS V1 plan [`docs/archive/plans/2026-05-09-response-path-system-v1.md`](../archive/plans/2026-05-09-response-path-system-v1.md) §PR-RPS-9 ledger line 2231 (originating ask) + §PR-RPS-10 (Handoff applies the same shape).
 - PR #154 (PR-RPS-9 Sustainment V1, squash `5f95e6fd`) — first instance.
 - PR #155 (PR-RPS-10 Handoff V1, squash `12e1257b`) — second instance.
 - Companion feedback memories: `feedback_tier_gate_inside_surface`, `feedback_hidden_vs_disabled_cta`, `feedback_drop_methodology_bridges`, `feedback_no_backcompat_clean_architecture`.

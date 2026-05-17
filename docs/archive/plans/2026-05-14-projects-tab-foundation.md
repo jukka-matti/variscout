@@ -2,14 +2,18 @@
 title: Projects Tab + IP Detail Page Foundation — Implementation Plan
 audience: [engineer]
 category: implementation
-status: active
+status: archived
 last-reviewed: 2026-05-14
 spec: docs/superpowers/specs/2026-05-14-projects-tab-design.md
 related:
   - docs/superpowers/specs/2026-05-14-projects-tab-design.md
   - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
-  - docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md
+  - docs/archive/specs/2026-05-09-response-path-system-v1-design.md
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The Projects tab foundation plan was written before the wedge restructured stage naming (Charter→Approach→Sustainment, Handoff folded into Sustainment), introduced the Improve verb tab, and defined project-membership ACLs. Wedge PRs #182–#187 delivered the equivalent functionality under the revised architecture.
+>
+> **Preserved here** for institutional knowledge — the IP detail page composition patterns and stage-tab design decisions inform future VariScout Process scope (see [docs/01-vision/variscout-process/](../../01-vision/variscout-process/index.md)).
 
 # Projects Tab + IP Detail Page Foundation — Implementation Plan
 

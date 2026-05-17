@@ -6,8 +6,8 @@ status: delivered
 last-reviewed: 2026-05-07
 related:
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md
-  - docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2.md
-  - docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2-audit.md
+  - docs/archive/plans/2026-05-06-data-flow-foundation-f1-f2.md
+  - docs/archive/plans/2026-05-06-data-flow-foundation-f1-f2-audit.md
   - docs/07-decisions/adr-077-snapshot-provenance-and-match-summary-wedge.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
   - docs/decision-log.md
@@ -515,8 +515,8 @@ Per `superpowers:subagent-driven-development`. **Sonnet workhorse ≥ 70%.** One
 
 - **Spec:** [`docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`](../specs/2026-05-06-data-flow-foundation-design.md) §5 "Ingestion — F3.5 dedicated slice"
 - **Companion plans:**
-  - F1+F2 plan ([`docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2.md`](2026-05-06-data-flow-foundation-f1-f2.md)) — Audit pattern + per-task subagent flow precedent
-  - F1+F2 P0 audit ([`docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2-audit.md`](2026-05-06-data-flow-foundation-f1-f2-audit.md)) — entity inventories
+  - F1+F2 plan ([`docs/archive/plans/2026-05-06-data-flow-foundation-f1-f2.md`](../../archive/plans/2026-05-06-data-flow-foundation-f1-f2.md)) — Audit pattern + per-task subagent flow precedent
+  - F1+F2 P0 audit ([`docs/archive/plans/2026-05-06-data-flow-foundation-f1-f2-audit.md`](../../archive/plans/2026-05-06-data-flow-foundation-f1-f2-audit.md)) — entity inventories
 - **Architectural foundations:**
   - ADR-077 (snapshot provenance + match-summary wedge) — `RowProvenanceTag` shape from F1+F2 P1.3 amendment; F3.5 closes the `snapshotId = ''` placeholder gap
   - ADR-078 (PWA + Azure architecture alignment) — D2 tier-agnostic state shapes; F3.5's asymmetric persistence + symmetric call sites honors this

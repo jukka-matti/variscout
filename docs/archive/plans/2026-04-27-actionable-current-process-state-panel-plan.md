@@ -1,7 +1,11 @@
 ---
 title: Actionable Current Process State Panel — Implementation Plan
-status: delivered
+status: archived
 ---
+
+> **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The Actionable Current Process State Panel was delivered in PRs #98/#99 (2026-04-27). The panel's response-path routing model predates the wedge's 3-path reduction; the Process Hub surface this panel lived in is now internal-data-container-only in V1.
+>
+> **Preserved here** for institutional knowledge — the response-path routing patterns inform future VariScout Process scope (see [docs/01-vision/variscout-process/](../../01-vision/variscout-process/index.md)).
 
 # Actionable Current Process State Panel — Implementation Plan
 

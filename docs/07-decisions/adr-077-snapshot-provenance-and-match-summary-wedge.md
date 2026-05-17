@@ -163,7 +163,7 @@ Accepted (2026-05-04). Delivered in slice 3 (PR #123). The `existingRange` wirin
 
 ## Amendment — 2026-05-06
 
-**Context**: F1+F2 data-flow foundation refactor (task P1.3, plan `docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2.md`, design spec `docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`).
+**Context**: F1+F2 data-flow foundation refactor (task P1.3, plan `docs/archive/plans/2026-05-06-data-flow-foundation-f1-f2.md`, design spec `docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md`).
 
 **Changes to D6:**
 
