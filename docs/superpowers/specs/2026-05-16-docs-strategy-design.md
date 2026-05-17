@@ -29,7 +29,9 @@ But the system is **scaling its own friction**:
 - **Lifecycle under-engineered**: no freshness signal, no read telemetry, no spec ↔ implementation drift sensor.
 - **Agent Context (AX-dev surface) under-engineered**: 2 skills + 6 globally-loaded rules (path-scoping broken upstream). By 2026 conventions, a project this size has 15+ task-typed skills.
 
-The fix is not "more documentation infrastructure" — it's **less, but living**: simpler metadata, atomic decomposition of bloat sources, addendum threads instead of rewrites, agent-queryable retrieval, continuous freshness, expanded skill inventory.
+The fix is not "more documentation infrastructure" — it's **less, but living**: simpler metadata, atomic decomposition of bloat sources, **single-source-of-truth discipline by doc type** (§2.7), agent-queryable retrieval, continuous freshness, expanded skill inventory.
+
+**Why doc-type discipline specifically**: a real failure mode surfaced during execution — a mid-flight design change to the wedge spec was captured as a _separate_ `*-amendment-design.md` spec file instead of editing the canonical spec in place. A new session reading only the wedge spec saw stale content and went down a wrong path. The amendment file was discoverable in principle (it was in `docs/superpowers/specs/`) but invisible in practice (no link from the canonical it amended). Convention alone doesn't prevent this — it has to be mechanically enforced (§2.7 + revised Play 2b).
 
 ---
 
@@ -121,16 +123,91 @@ Nested package `CLAUDE.md` files stay in `packages/*/` and `apps/*/` (progressiv
 
 ### 2.6 Per-purpose treatment
 
-| Purpose           | Shape                                                                        | Tooling                                                                                       | Lifecycle treatment                                            |
-| ----------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| **orient**        | ≤6 canonical narrative docs                                                  | Addendum threads; pinned amendments                                                           | Stable; manually reviewed quarterly                            |
-| **decide**        | Atomic cards                                                                 | `pnpm docs:find/get/related`; supersession chains                                             | Card-tier; continuous via Steward                              |
-| **design**        | Living specs with `implements:` ADR back-link                                | Spec ↔ impl drift sensor (cited symbols → AST check, Playwright selector check for UX-Design) | Living → archive on ship; `draft → active → superseded`        |
-| **build**         | Skills (procedures) + ephemeral plans + package CLAUDE.md procedure sections | `.claude/skills/`; subagent-driven-development                                                | Skills: living; Plans: ephemeral; patterns in nested CLAUDE.md |
-| **system**        | Auto-generated where possible (deps, exports), narrated where not            | `pnpm docs:gen-arch` from package.json + tsconfig                                             | Living; auto-regenerate on push                                |
-| **constrain**     | Rules + linting + tests (NOT prose)                                          | ESLint + pre-commit + denylist scripts                                                        | Stable; rules removed only via ADR                             |
-| **agent-context** | Progressive disclosure: root → nested → skills → cards                       | Skill auto-load by description; CLAUDE.md size budget; routing skill replaces static catalog  | Living; weekly size check; skill inventory growth              |
-| **remember**      | Chronological cards + selected transcript promotions                         | `docs/cards/` for B+I; `docs/ephemeral/transcripts/` for selected plans                       | Append-only; never edited (amendments via thread)              |
+| Purpose           | Shape                                                                                               | Tooling                                                                                                                                | Lifecycle treatment                                                                        |
+| ----------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **orient**        | ≤6 canonical narrative docs                                                                         | Addendum threads; pinned amendments                                                                                                    | Stable; manually reviewed quarterly                                                        |
+| **decide**        | Atomic cards                                                                                        | `pnpm docs:find/get/related`; supersession chains                                                                                      | Card-tier; continuous via Steward                                                          |
+| **design**        | Living specs with `implements:` ADR back-link; **edit in place** (no `*-amendment-*.md` side files) | Spec ↔ impl drift sensor (cited symbols → AST check, Playwright selector check for UX-Design); `delivered-by:` frontmatter links to PR | `draft → active → delivered → superseded → archived` (body always reflects current intent) |
+| **build**         | Skills (procedures) + ephemeral plans + package CLAUDE.md procedure sections                        | `.claude/skills/`; subagent-driven-development                                                                                         | Skills: living; Plans: ephemeral; patterns in nested CLAUDE.md                             |
+| **system**        | Auto-generated where possible (deps, exports), narrated where not                                   | `pnpm docs:gen-arch` from package.json + tsconfig                                                                                      | Living; auto-regenerate on push                                                            |
+| **constrain**     | Rules + linting + tests (NOT prose)                                                                 | ESLint + pre-commit + denylist scripts                                                                                                 | Stable; rules removed only via ADR                                                         |
+| **agent-context** | Progressive disclosure: root → nested → skills → cards                                              | Skill auto-load by description; CLAUDE.md size budget; routing skill replaces static catalog                                           | Living; weekly size check; skill inventory growth                                          |
+| **remember**      | Chronological cards + selected transcript promotions; **append-only**, never edit prior entries     | `docs/cards/` for B+I; `docs/ephemeral/transcripts/` for selected plans                                                                | Append-only; new entry supersedes old when reality changes                                 |
+
+### 2.7 Doc discipline: SSoT by doc type
+
+The 8-purpose × 4-tier foundation defines WHERE docs live. This section defines HOW they update — which is just as important for keeping the corpus coherent. **Without this discipline, the metadata gains are erased by amendment-of-amendment drift.**
+
+#### Core principle
+
+Different doc types are NOT updated the same way:
+
+- **Design specs are current-state SoT.** The body at any moment IS the truth. Edit in place when intent changes.
+- **ADRs are point-in-time decisions.** Preserve original reasoning. Append `## Amendment — YYYY-MM-DD` blocks for clarifications. New ADR for fundamental reframings.
+- **Decision-log is chronological.** Append-only. Never edit prior entries. New entry supersedes old.
+- **Generated docs are mechanical projections of source.** Auto-rebuilt by scripts. Never hand-edited. `.prettierignore` excludes.
+- **Plan files are ephemeral session transcripts.** Live in `~/.claude/plans/`, not in repo. Selective promotion to `docs/ephemeral/transcripts/` for landmark sessions.
+
+#### Anti-patterns (mechanically forbidden)
+
+| Anti-pattern                                                                     | Why wrong                                                                            | Right pattern                                                                                     | Enforcement                                                            |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `*-amendment-design.md`, `*-revision-design.md`, `*-update-design.md` side files | Orphan amendments drift from canonical; readers must mentally merge body + side file | Edit canonical spec in place + decision-log entry                                                 | Validator HARD-FAILs on filenames matching these patterns              |
+| Editing ADR body after `status: accepted`                                        | Loses original decision context                                                      | `## Amendment — YYYY-MM-DD` block at bottom OR new ADR                                            | Validator WARNs on diff to ADR body without amendment-block syntax     |
+| Editing prior decision-log entries                                               | Breaks chronological record                                                          | New entry that supersedes old (with `[supersedes <prior-entry-date>]` marker)                     | Validator WARNs on git diff to lines older than 7 days in decision-log |
+| Hand-editing `*-generated.md` files                                              | Out-of-sync with source; next regen wipes edits                                      | Update the generator; regenerate                                                                  | `.prettierignore` + pre-push staleness check                           |
+| Putting active-decision content only in plan files                               | Plan files live in `~/.claude/plans/`, not in repo; future sessions don't see them   | Land decisions in canonical home (ADR / spec / decision-log) before merging the PR they came from | Reviewer convention; investigations.md tracks gaps                     |
+| Renaming or moving canonical docs without a `supersedes:` chain                  | Breaks inbound links + obscures lineage                                              | `git mv` + add `supersedes:` to the new path's frontmatter + `redirect-to:` banner at old         | Validator checks `supersedes:` chain integrity                         |
+
+#### Decision-log as temporal index
+
+Every change to a canonical doc (spec body edit, ADR amendment, supersession) gets a decision-log entry that says:
+
+- **What** changed (which canonical doc + section)
+- **Why** (link to brainstorm transcript, plan, or PR)
+- **Supersession** (what's now stale vs what's still valid)
+- **Commit reference** (so future readers can git archaeology)
+
+This makes the decision-log the chronological backbone over the canonical doc set. The canonical docs themselves are always "as of now"; the log tells you "what changed when and why".
+
+#### Edit-in-place mechanics (for design specs)
+
+When editing a canonical spec mid-flight:
+
+1. Make the edit.
+2. Update `last-verified: <today>` frontmatter; bump `verified-against-commit: <sha>` after commit.
+3. Add decision-log entry citing the section change with a `[supersedes <doc>#<section>]` marker.
+4. Commit with message capturing both the spec edit + the log entry.
+5. (If during active build) flag the change in the build PR description so reviewers see it.
+
+This makes mid-flight changes auditable without polluting the spec body with amendment scar tissue.
+
+#### Spec lifecycle states (explicit)
+
+`status:` transitions for design specs:
+
+| Status       | Meaning                                                                   | Body update pattern                                                             |
+| ------------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `draft`      | Designing; not yet building                                               | Edit freely; no `last-verified` discipline yet                                  |
+| `active`     | Designed; build underway                                                  | Edit in place when intent changes; bump `last-verified`                         |
+| `delivered`  | Shipped; `delivered-by: PR #N` set; `code-locations: [...]` if applicable | Body describes current state of shipped feature; edit only when feature evolves |
+| `superseded` | Replaced by another spec via `supersedes:` chain                          | Frozen; redirect banner at top pointing to successor                            |
+| `archived`   | Historical reference only                                                 | Frozen; moved to `docs/archive/`; no longer cited from canonical surfaces       |
+
+Transitions are explicit + auditable (frontmatter diff is the signal).
+
+#### Why this prevents "specs over specs"
+
+The user's concern: superpowers methodology creates plan files + design specs + implementation; over time, artifacts accumulate. The fix isn't fewer artifacts — it's clearer ownership:
+
+- **Plan files**: ephemeral; never become canonical
+- **Design specs**: ONE per concept; edit in place during build; supersede only for material reframings
+- **ADRs**: point-in-time decisions; capture reasoning at time T; rarely rewritten
+- **Decision-log**: chronological index over the canonical set; the temporal "what changed when"
+
+At any moment, the question "what is the current intended state of X?" has exactly ONE answer: the canonical spec for X. No mental merging. No side-spec hunting. No "what supersedes what" archaeology in plain reading.
+
+This is the discipline. Without it, the 8-purpose × 4-tier foundation is just metadata gymnastics. With it, the corpus stays coherent as it scales.
 
 ---
 
@@ -165,16 +242,37 @@ Each play is independently shippable. Sequence is deliberate (P1 unlocks P2; P3 
 - `MEMORY.md` index lines (over 24.4KB limit) → shrink each to ≤100 chars (currently 200–400). Existing topic files in `~/.claude/memory` already atomic; mirror or symlink into `docs/cards/memory/` for cross-context discoverability.
 - `investigations.md` (61KB) → closed investigations → `docs/cards/investigations/inv-<YYYYMMDD>-<slug>.md`. Open investigations stay in `docs/ephemeral/investigations/`.
 
-**2b — Addendum threads (2 days)**:
+**2b — SSoT discipline by doc type (~2 days)** [**SAFE-PARALLEL — can ship now, no folder-mv dependency**]
 
-- Convention: living-tier docs (specs, ADRs, design docs, cards) get a `## Amendments` section at the bottom. Dated, sourced entries:
-  ```
-  ## Amendments
-  - 2026-05-16 — Wedge pivot (PR #182): supersedes §4 (multi-Hub portfolio).
-    Single product for improvement specialists; §4.1 retained, §4.2–§4.5 archived.
-  ```
-- `scripts/check-doc-frontmatter.mjs` extended to validate amendment section format (date format, source link, body present).
-- One-shot script: convert existing "PARTIALLY SUPERSEDED" prefixes in MEMORY.md + scattered docs → dated amendment entries with sources from `git log` / decision-log.
+Codifies §2.7 into mechanical enforcement. Differentiates by doc type instead of applying one universal "addendum thread" pattern (the original 2b proposal that the wedge-amendment incident revealed as wrong-shape — see §1 Context).
+
+**Deliverables**:
+
+- New convention doc `docs/agent-context/doc-discipline.md` (TEMP location; Play 1b moves to `docs/living/agent-context/`). Distills §2.7: doc-type table + anti-pattern table + edit-in-place mechanics + spec lifecycle states. Loaded by `agent-context-quickstart` skill as session-start read.
+
+- `scripts/check-doc-frontmatter.mjs` extension:
+  - **HARD-FAIL** on filenames matching `*-amendment-*.md`, `*-revision-*.md`, `*-update-*.md`, `*-followup-*.md` under `docs/superpowers/specs/`. Error: "Anti-pattern: edit the canonical spec in place. See `docs/agent-context/doc-discipline.md` §Anti-patterns. If genuinely intentional (rare), document rationale in decision-log + add filename to `.docs-discipline-allowlist`."
+  - **WARN** on design-spec body diffs that add a `## Amendment` heading (allowed for ADRs only; design specs are edit-in-place).
+  - **WARN** on design-spec `status: delivered` without `delivered-by:` frontmatter (proves spec-to-PR linkage).
+  - **WARN** on `## Amendment` heading in ADR body that lacks date-prefix `YYYY-MM-DD` (format check).
+  - **WARN** on `git diff` to lines older than 7 days in `docs/decision-log.md` (append-only convention).
+
+- `agent-context-quickstart` skill (already shipped Play 3a): add step 4 "Read `docs/agent-context/doc-discipline.md`" — subagents dispatched to edit any canonical doc get discipline rules on session start.
+
+- Decision-log entry convention: add `[supersedes <doc>#<section>]` marker pattern (machine-readable; greppable). Documented in doc-discipline.md.
+
+- Migration of existing scar tissue: one-shot grep for existing "PARTIALLY SUPERSEDED" / "AMENDED" prefixes in canonical specs → for each, replace prefix with proper edit-in-place + decision-log entry. (Not for ADRs — those use the existing amendment-block convention.)
+
+**Why this prevents the failure mode**: anyone (human or agent) attempting `2026-05-16-improve-tab-amendment-design.md` hits CI fail. They must edit the canonical spec in place. Convention + validator together encode the principle mechanically. New session reading the canonical spec sees current truth; no mental merging; no orphan-side-spec hunting.
+
+**Exit criteria**:
+
+- Validator extension shipped + tested against current corpus (zero false positives on existing files)
+- `doc-discipline.md` exists; `agent-context-quickstart` skill loads it
+- Manual spot-check: try creating `*-amendment-*.md` in a feature branch — CI fails as expected
+- One representative existing canonical spec gets `delivered-by:` field added (proves the convention against `status: delivered` warning)
+
+**Why now (safe-parallel)**: this is convention + validator only. No file moves, no decompositions, no shared-aggregate edits. Zero conflict risk with active wedge engineering. Ship before Plays 2a/c/d/e (which are blocked on Play 1b folder restructure).
 
 **2c — Toolbox scripts (3 days)**:
 
@@ -251,14 +349,31 @@ New canonical `docs/living/design/coscout-ax-design.md` with `topic: [ax, coscou
 
 ## 4. Migration Sequence
 
-| Week  | Phase / Plays            | Effort         | Output                                                                          |
-| ----- | ------------------------ | -------------- | ------------------------------------------------------------------------------- |
-| **0** | **Phase A quick wins**   | ~3 hours       | Wedge content consolidated; zero-infra warm-up                                  |
-| 1     | Play 1                   | 3 days         | Folder restructure + schema collapse; fossil archive                            |
-| 1–3   | Play 2 (2a–2e)           | 2 weeks        | Cards & Threads kernel; atomic decomposition; toolbox; Steward loop             |
-| 3     | Play 3 + Play 6          | 3 + 2 days     | Skills inventory (Tier 1 first); INVARIANTS.md synthesis                        |
-| 4     | Play 4                   | 1 week         | Remaining Agent 2 moves; tier-philosophy archive; USER-JOURNEYS variant lineage |
-| 5     | Play 5 + Play 7 + Play 8 | 2 + 3 + 2 days | Telemetry + System auto-gen + CoScout AX consolidation                          |
+> **Status as of 2026-05-17**: Phase A + Plays 1a, 3a, 6, 7, 8 SHIPPED via [PR #184](https://github.com/jukka-matti/variscout/pull/184) (13 commits, all safe-parallel with active wedge V1 engineering). Play 1 was split into 1a (foundation + schema collapse, shipped) + 1b (521-doc folder restructure, deferred). Play 2 was split into 2b (SSoT discipline, **now safe-parallel — ship next**) + 2a/2c/2d/2e (cards + toolbox + steward, deferred). Plays 1b, 2a/c/d/e, 4 await post-wedge-V1 quiet window. The revised 2b is the lesson from the wedge-amendment incident baked back into the strategy — see §1 Context.
+
+### Ideal sequence (with current split + deferrals annotated)
+
+| Week  | Phase / Plays                                         | Effort     | Status                      | Output                                                                                                               |
+| ----- | ----------------------------------------------------- | ---------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **0** | **Phase A quick wins**                                | ~3 hours   | ✅ SHIPPED                  | Wedge content consolidated; zero-infra warm-up                                                                       |
+| 1     | Play 1a (foundation artifacts + schema collapse)      | 1 day      | ✅ SHIPPED                  | Memo + spec + ADR-083; 22→4 STATUS; alias maps; frontmatter backfill                                                 |
+| 1     | Play 1b (521-doc folder restructure)                  | 2 days     | ⏸ DEFERRED                  | `git mv` to `docs/stable/` + `docs/living/<purpose>/` + `docs/cards/`. Wait for quiet wedge window.                  |
+| 1     | **Play 2b (SSoT discipline by doc type)**             | ~2 days    | 🟡 **NEXT (safe-parallel)** | Validator forbidding `*-amendment-*.md`; `doc-discipline.md` convention; lifecycle state enforcement. **Ship now.**  |
+| 1–3   | Play 2 (2a + 2c + 2d + 2e: cards + toolbox + steward) | ~1.5 weeks | ⏸ DEFERRED                  | Blocked on Play 1b substrate + quiet repo (decomposing decision-log while wedge amends it = constant rework).        |
+| 3     | Play 3a (Tier 1 agent-context skills)                 | 1 day      | ✅ SHIPPED                  | `agent-context-quickstart`, `package-router`, `store-state-glossary` — closes 4% agent-context gap                   |
+| 3     | Play 3b (Tier 2 procedure skills, ~15 skills)         | 3 days+    | ⏸ later session             | `ship-ui-primitive`, `add-chart`, `migrate-store`, etc. Build as dispatch logs justify (data-driven prioritization). |
+| 3     | Play 6 (invariants rename + INVARIANTS.md)            | 1 day      | ✅ SHIPPED                  | `.claude/rules/` → `.claude/invariants/`; 15 hard + 10 soft + 6 topic-scoped synthesized                             |
+| 4     | Play 4 (one-canonical consolidation)                  | 1 week     | ⏸ DEFERRED                  | Agent 2's remaining 4 of 8 moves. Blocked on Play 1b + Play 2.                                                       |
+| 5     | Play 5 (telemetry + 90-day cohort report)             | 2 days     | ⏸ blocked on 2c             | Toolbox query logging → cohort report. Useful after 2c lands.                                                        |
+| 5     | Play 7 (`pnpm docs:gen-arch`)                         | 1 day      | ✅ SHIPPED                  | Dep graph + sub-path export map + Tailwind @source coverage; pre-push staleness check                                |
+| 5     | Play 8 (CoScout AX-design consolidation)              | 1 day      | ✅ SHIPPED                  | Canonical `coscout-ax-design.md`; cross-links from ADR-060/068/069 + prompt invariant                                |
+
+### Lessons baked back into the strategy (2026-05-17)
+
+- **Original Play 2b ("addendum threads on living docs") was wrong-shape** — discovered when a wedge-spec amendment was captured as a separate `*-amendment-design.md` file, invisible to a new session reading only the canonical wedge spec. Revised 2b differentiates by doc type (§2.7).
+- **Mid-session TaskStop pivot worked cleanly** — when wedge-conflict surfaced, killed in-flight Play 1 subagent + `git reset --hard` to safe commit; split into safe (1a) + deferred (1b). See `feedback_taskstop_subagent_pivot`.
+- **Auto-generated docs need `.prettierignore`** — pre-push staleness check vs lint-staged prettier conflict during Play 7. See `feedback_autogen_doc_prettierignore`.
+- **Doc-strategy work itself was the testbed** — Play 1 subagent dispatched without checking active parallel writers (wedge V1 engineering); user surfaced; corrected. See `feedback_parallel_workstream_conflict_check`.
 
 ---
 
@@ -340,12 +455,15 @@ Highest-overlap pair: decision-log "Wedge pivot" entry (~2000 words) vs ADR-082 
 
 ## 10. Risks & Mitigations
 
-| Risk                                                                | Mitigation                                                                                                                |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Mass `git mv` breaks link resolution across 521 docs                | `scripts/check-dead-links.sh` runs as gate; staged batches per purpose; fix broken links per batch                        |
-| Frontmatter migration loses metadata                                | `docs-frontmatter-fix.mjs` runs dry-first; diff inspected; backup branch before merge                                     |
-| Atomic decomposition of `decision-log.md` loses context             | Generated view preserves narrative; manual review of 5 sample decisions post-decomposition                                |
-| Steward loop produces noisy false-positives                         | Conservative first cut (only flag cards where cited symbols are gone); tune threshold post-Play-5                         |
-| 15 skills is too many to maintain                                   | Start with 8 highest-frequency tasks; add others as dispatch logs justify; `pnpm docs:cohort-report` tracks unused skills |
-| AX-design doc for CoScout duplicates ADR content                    | Strict citation discipline: AX-design doc states current state + tradeoffs; ADRs remain decision provenance               |
-| Schema collapse breaks downstream tooling assuming 22 STATUS values | `docs-frontmatter-fix.mjs` maps old → new; transitional alias period (old values warn but pass) for 1 cycle               |
+| Risk                                                                             | Mitigation                                                                                                                                                                                               |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mass `git mv` breaks link resolution across 521 docs                             | `scripts/check-dead-links.sh` runs as gate; staged batches per purpose; fix broken links per batch                                                                                                       |
+| Frontmatter migration loses metadata                                             | `docs-frontmatter-fix.mjs` runs dry-first; diff inspected; backup branch before merge                                                                                                                    |
+| Atomic decomposition of `decision-log.md` loses context                          | Generated view preserves narrative; manual review of 5 sample decisions post-decomposition                                                                                                               |
+| Steward loop produces noisy false-positives                                      | Conservative first cut (only flag cards where cited symbols are gone); tune threshold post-Play-5                                                                                                        |
+| 15 skills is too many to maintain                                                | Start with 8 highest-frequency tasks; add others as dispatch logs justify; `pnpm docs:cohort-report` tracks unused skills                                                                                |
+| AX-design doc for CoScout duplicates ADR content                                 | Strict citation discipline: AX-design doc states current state + tradeoffs; ADRs remain decision provenance                                                                                              |
+| Schema collapse breaks downstream tooling assuming 22 STATUS values              | `docs-frontmatter-fix.mjs` maps old → new; transitional alias period (old values warn but pass) for 1 cycle                                                                                              |
+| Doc-discipline drift if not mechanically enforced (the wedge-amendment incident) | Play 2b validator HARD-FAILs `*-amendment-*.md` filenames; WARNs on body-diff anti-patterns; `agent-context-quickstart` loads `doc-discipline.md` on session start so every subagent gets the rules cold |
+| Validator false positives block legitimate work                                  | `.docs-discipline-allowlist` escape hatch for rare intentional exceptions; documented in `doc-discipline.md`; allowlist additions require decision-log entry citing the rationale                        |
+| Spec body becomes stale during long active-status periods                        | `last-verified` frontmatter + Play 5 cohort report flags `living`-tier specs unverified >90 days; Steward loop (Play 2e) proposes amendment thread or `delivered` transition                             |

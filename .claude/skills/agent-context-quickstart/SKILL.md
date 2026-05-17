@@ -25,11 +25,12 @@ Loads a 5-minute orientation document covering:
 ## How to Use
 
 1. Read the onboarding doc at `docs/agent-context/onboarding-quick-start.md` (in the repo root).
-2. Note the 6-tab nav (`Home · Projects · Process · Analyze · Investigation · Report`) and that "Improve" is a stage inside Projects, not a tab.
+2. Note the 6-tab nav (`Home · Projects · Process · Analyze · Investigation · Report`) and that "Improve" is a stage inside Projects, not a tab. (Verify against any recent amendments in `docs/decision-log.md` — the wedge area is actively evolving.)
 3. Read `.claude/INVARIANTS.md` for the full invariant index — canonical homes + enforcement mechanisms for every hard and soft rule. The onboarding doc §Hard Invariants gives the quick summary; INVARIANTS.md gives the authoritative detail.
-4. Scan the Common Pitfalls section in the onboarding doc — check each against your planned edits before proceeding.
-5. If your task involves a specific package, invoke the `package-router` skill next.
-6. If your task reads or writes store state, invoke the `store-state-glossary` skill next.
+4. **If your task involves editing ANY canonical doc** (design spec, ADR, decision-log, etc.): read `docs/agent-context/doc-discipline.md`. It defines the SSoT-by-doc-type rules — design specs edit-in-place, ADRs use amendment-blocks-at-bottom, decision-log appends. Anti-pattern: creating `*-amendment-*.md` side files (HARD-FAILed by validator when Play 2b ships).
+5. Scan the Common Pitfalls section in the onboarding doc — check each against your planned edits before proceeding.
+6. If your task involves a specific package, invoke the `package-router` skill next.
+7. If your task reads or writes store state, invoke the `store-state-glossary` skill next.
 
 ## Key Facts (memorize these)
 
@@ -46,9 +47,11 @@ Loads a 5-minute orientation document covering:
 - Never "root cause" language (use "contribution" / "suspected cause" / "mechanism")
 - Never `'ordinal' | 'disordinal'` confusion — never call interactions "moderator" or "primary"
 
-## Supporting Document
+## Supporting Documents
 
-Full 5-minute onboarding: `docs/agent-context/onboarding-quick-start.md`
+- Full 5-minute onboarding: `docs/agent-context/onboarding-quick-start.md`
+- Invariants index: `.claude/INVARIANTS.md`
+- **Doc-update discipline (when editing any canonical doc): `docs/agent-context/doc-discipline.md`**
 
 Related skills:
 - `package-router` — which package CLAUDE.md to load for your work area
