@@ -1,19 +1,19 @@
 # VariScout
 
-> Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. PWA (free) + Azure Marketplace (€99/mo, single tier — wedge pivot 2026-05-16). VariScout Process (enterprise platform) named-future.
+> Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. PWA (free) + Azure Marketplace (€120/mo, single SKU per Azure tenant). VariScout Process (enterprise platform) named-future, not announced in V1 marketing.
 
 Entry points for AI agents working in this repo. Humans should start at `docs/index.md`.
 
 ## Strategic direction (read first)
 
-- [superpowers/specs/2026-05-16-wedge-architecture-design.md](superpowers/specs/2026-05-16-wedge-architecture-design.md): **canonical V1 design** — single-product VariScout for improvement specialists; 6-tab workflow nav (`Home · Projects · Process · Analyze · Investigation · Report`); Improve as a stage inside Projects detail; 3 canvas response paths; single persona collapse; project membership ACLs.
-- [07-decisions/adr-082-wedge-architecture.md](07-decisions/adr-082-wedge-architecture.md): **wedge architectural record** — partial supersession of ADR-007 + ADR-033. Two-product roadmap (VariScout V1 + VariScout Process future).
+- [superpowers/specs/2026-05-16-wedge-architecture-design.md](superpowers/specs/2026-05-16-wedge-architecture-design.md): **canonical V1 design** — single-product VariScout for improvement specialists; 7-tab workflow nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`) per the 2026-05-16 Improve-tab amendment; Improve as a top-level verb tab with active-IP cascade; 3 canvas response paths; single persona collapse; project membership ACLs (Lead / Member / Sponsor); €120/mo single SKU.
+- [07-decisions/adr-082-wedge-architecture.md](07-decisions/adr-082-wedge-architecture.md): **V1 single-SKU architectural record** — partial supersession of ADR-007 + ADR-033. Two-product roadmap (VariScout V1 + VariScout Process future).
 
 ## Core orientation
 
 - [decision-log.md](decision-log.md): living decision tracker — open questions, named-future features, session backlog, journey state. Read this before re-opening any topic; it captures decisions that would otherwise live only in plan files.
-- [OVERVIEW.md](OVERVIEW.md): what VariScout does, the FRAME → SCOUT → INVESTIGATE → IMPROVE journey, six analysis modes, three distribution tiers.
-- [USER-JOURNEYS.md](USER-JOURNEYS.md): ten personas, unified journey spine, process learning levels, and analysis-mode experiences.
+- [OVERVIEW.md](OVERVIEW.md): what VariScout does, the FRAME → SCOUT → INVESTIGATE → IMPROVE journey, six analysis modes, single €120/mo SKU + free PWA funnel.
+- [USER-JOURNEYS.md](USER-JOURNEYS.md): V1 single-persona spine (Improvement Specialist), project-membership roles (Lead / Member / Sponsor), unified journey spine, process learning levels.
 - [DATA-FLOW.md](DATA-FLOW.md): parse → transform → stats → persist → sync → display → AI pipeline. Three numeric-safety boundaries.
 - [superpowers/specs/2026-04-27-product-method-roadmap-design.md](superpowers/specs/2026-04-27-product-method-roadmap-design.md): product-method maturity roadmap across Process Hub, Current Process State, Process Measurement System, process learning memory, and CoScout context.
 - [superpowers/specs/2026-04-27-process-learning-operating-model-design.md](superpowers/specs/2026-04-27-process-learning-operating-model-design.md): process learning operating model; Process Measurement System, Current Process State, response paths, and the three-level outcome / flow / local-mechanism methodology (faithful to the existing Y / X / x EDA spine).
