@@ -89,7 +89,7 @@ const violations = {
   casingDrift: [],
   malformedYaml: [],
   antiPatternFilename: [],
-  missingSupersededBanner: [],
+  missingStatusBanner: [],
   missingSupersedesBanner: [],
   // Warnings (old-value aliases) — don't fail the build
   aliasedStatus: [],
@@ -200,13 +200,13 @@ function check(file) {
   if (!ALLOWLIST.has(rel)) {
     const bodyHead = extractBodyHead(src, BANNER_BODY_LINES);
     if (fm.status === 'superseded' && !SUPERSEDED_BANNER_RE.test(bodyHead)) {
-      violations.missingSupersededBanner.push(
+      violations.missingStatusBanner.push(
         `${rel}: status=superseded but no '> SUPERSEDED ...' banner in first ${BANNER_BODY_LINES} body lines. See docs/agent-context/doc-discipline.md §Reader-first banners.`,
       );
     }
     if (fm.status === 'archived' && !ARCHIVED_BANNER_RE.test(bodyHead)) {
-      violations.missingSupersededBanner.push(
-        `${rel}: status=archived but no '> ARCHIVED ...' banner in first ${BANNER_BODY_LINES} body lines.`,
+      violations.missingStatusBanner.push(
+        `${rel}: status=archived but no '> ARCHIVED ...' banner in first ${BANNER_BODY_LINES} body lines. See docs/agent-context/doc-discipline.md §Reader-first banners.`,
       );
     }
     const supersedesList = asArray(fm.supersedes).filter(Boolean);
@@ -236,7 +236,7 @@ const hardViolationTotal =
   violations.casingDrift.length +
   violations.malformedYaml.length +
   violations.antiPatternFilename.length +
-  violations.missingSupersededBanner.length +
+  violations.missingStatusBanner.length +
   violations.missingSupersedesBanner.length;
 
 const warningTotal = violations.aliasedStatus.length + violations.aliasedAudience.length;
@@ -273,7 +273,7 @@ function report() {
     show('Casing drift (auto-fixable)', violations.casingDrift);
     show('Malformed YAML', violations.malformedYaml);
     show('Anti-pattern filename (edit canonical spec in place)', violations.antiPatternFilename);
-    show('Missing superseded/archived banner', violations.missingSupersededBanner);
+    show('Missing superseded/archived banner', violations.missingStatusBanner);
     show('Missing supersedes banner', violations.missingSupersedesBanner);
   }
 
