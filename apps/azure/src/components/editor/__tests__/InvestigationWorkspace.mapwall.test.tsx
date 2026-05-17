@@ -439,5 +439,19 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
       );
       expect(capturedFindingsLogProps.current?.onAddPhoto).toBeUndefined();
     });
+
+    it('empty members array (quick-analysis flow) receives onAddPhoto regardless of role check', () => {
+      const handleAddPhoto = vi.fn();
+      const props = makeMinimalProps();
+      render(
+        <InvestigationWorkspace
+          {...props}
+          handleAddPhoto={handleAddPhoto}
+          userId="any@org"
+          members={[]}
+        />
+      );
+      expect(capturedFindingsLogProps.current?.onAddPhoto).toBeDefined();
+    });
   });
 });
