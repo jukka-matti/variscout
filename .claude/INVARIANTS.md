@@ -221,7 +221,7 @@ Load these when working in the relevant area — they provide more detail than t
 
 The following soft invariants lack a mechanical enforcement mechanism. Gaps are logged in `docs/investigations.md`.
 
-- `Math.random()` ban: enforced by convention only; no ESLint rule. A `no-math-random` rule scoped to `packages/core/src/**` + `**/__tests__/**` would close this.
+- ~~`Math.random()` ban: enforced by convention only; no ESLint rule.~~ **RESOLVED 2026-05-17 via PR #198** — Tier 1 Math.random retirement + ESLint guard shipped. Now mechanically enforced.
 - `@source` directives: no build-time check; only visual regression surfaces it. A `pnpm docs:gen-arch`-style check for Tailwind source maps could close this (Play 7 candidate).
 
 ---

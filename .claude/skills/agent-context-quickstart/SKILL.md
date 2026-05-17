@@ -34,9 +34,9 @@ Loads a 5-minute orientation document covering:
 
 ## Key Facts (memorize these)
 
-**Current direction**: Wedge V1 — single-product, single SKU (€99/mo), single persona (improvement specialist). Canonical: ADR-082 + wedge spec (`docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`).
+**Current direction**: Single-SKU V1 (formerly "wedge") — single-product, single SKU (€120/mo), ICP = improvement specialist. Within each Project, **3 personas** (Lead / Member / Sponsor) — per-project ACLs, no cross-AD-tenant invites. Canonical: ADR-082 + V1 architecture spec (`docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`).
 
-**6 tabs**: `Home · Projects · Process · Analyze · Investigation · Report`. Improve = stage inside Projects. Many older docs predate this; treat as historical.
+**7 tabs**: `Home · Project · Process · Analyze · Investigation · Improve · Report`. Improve = top-level verb tab with active-IP cascade (per 2026-05-16 Improve-tab amendment; earlier "stage inside Projects" framing superseded). Many older docs predate this; treat as historical.
 
 **Package dependency direction**: `core → hooks → ui → apps`. Never import upward.
 

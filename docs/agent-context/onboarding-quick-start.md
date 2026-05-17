@@ -20,15 +20,21 @@ VariScout is a **browser-based structured investigation tool for process improve
 
 ## Current Strategic Direction (wedge pivot 2026-05-16)
 
-Single-product tool, one persona (improvement specialist), one SKU (€99/mo Azure tenant-wide).
+Single-product tool for improvement specialists (the ICP), one SKU (€120/mo Azure tenant-wide). Tier-gating fully retired — no more `isPaidTier()` checks.
 
-**6-tab workflow nav**: `Home · Projects · Process · Analyze · Investigation · Report`
+**Within each Project, 3 personas** with different access:
 
-- "Improve" is a **stage inside Projects detail** (not a separate tab)
-- 4 stages: Charter → Approach → Improve → Sustainment
+- **Lead** — full edit + manages membership
+- **Member** — full edit within project surfaces
+- **Sponsor** — Report-only at V1; signoff handled out-of-band
+
+**7-tab workflow nav**: `Home · Project · Process · Analyze · Investigation · Improve · Report`
+
+- "Improve" is a **top-level verb tab** with active-IP cascade (restored from earlier "stage inside Projects" framing per the 2026-05-16 Improve-tab amendment)
+- Project stages (inside Projects detail): Charter → Approach → Sustainment (Handoff folded into Sustainment)
 - Hub = a single process investigation unit
-- Project-membership ACLs; no cross-AD-tenant invites
-- VariScout Process (enterprise, multi-Hub portfolio) is named-future only
+- Per-project ACLs; no cross-AD-tenant invites
+- VariScout Process (enterprise, multi-Hub portfolio, 4-persona) is named-future only — see `docs/01-vision/variscout-process/`
 
 Canonical sources: [wedge spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md). Many older docs predate this pivot — treat as historical until Phase C audit.
 
