@@ -121,7 +121,7 @@ data leaving the laptop. Try-before-buy without paperwork.
 VariScout V1 is a single product at a single price (see §6). Every paid
 customer gets the full analytical capability — charts, modes, CoScout, Report,
 Sustainment. What's _membership-gated_ is access to a specific Project's
-formal artifacts (Charter, Approach, Improve, Sustainment, Report). That
+formal artifacts (Charter, Approach, Sustainment, Report). That
 gating happens _inside_ the product via project-membership ACLs (Lead /
 Member / Sponsor), not at sales-conversation entry via tier choice.
 
@@ -140,8 +140,9 @@ controls. Question-driven, evidence-based, AI-assisted, customer-owned.
 
 The methodology nests:
 
-- **Project** is the formal container (Charter → Approach → Improve →
-  Sustainment), invited team, Report.
+- **Project** is the formal container (Charter → Approach → Sustainment),
+  invited team, Report. Improvement actions are owned by the **Improve tab** —
+  a top-level verb tab scoped to the active project, not a stage inside it.
 - **FRAME → SCOUT → INVESTIGATE → IMPROVE** explains how one investigation is
   done inside a Project (or as quick analysis without one).
 - **Questions** drive the reasoning. Each question can be answered by data,
@@ -181,13 +182,13 @@ The methodology nests:
 
 The investigation journey is encoded in the workflow:
 
-| Phase           | Question                   | Lens                                                                                          | Surface                        |
-| --------------- | -------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------ |
-| **FRAME**       | What am I looking at?      | Column mapping, factor selection, outcome spec, process map                                   | Process tab (Edit mode)        |
-| **SCOUT**       | Where does variation live? | Four Lenses (I-Chart, Boxplot, Pareto, Stats), linked filtering                               | Analyze tab                    |
-| **INVESTIGATE** | Why is this happening?     | Hypothesis Wall, Measurement Plans, Evidence Map, three evidence types                        | Investigation tab              |
-| **IMPROVE**     | What do we do about it?    | Action tracker (simple by default), PDCA workbench (Advanced), sustainment + Cpk verification | Improve stage (inside Project) |
-| **REPORT**      | What did we learn?         | Audience-adapted reports, audit trail, Sponsor-ready                                          | Report tab                     |
+| Phase           | Question                   | Lens                                                                                          | Surface                 |
+| --------------- | -------------------------- | --------------------------------------------------------------------------------------------- | ----------------------- |
+| **FRAME**       | What am I looking at?      | Column mapping, factor selection, outcome spec, process map                                   | Process tab (Edit mode) |
+| **SCOUT**       | Where does variation live? | Four Lenses (I-Chart, Boxplot, Pareto, Stats), linked filtering                               | Analyze tab             |
+| **INVESTIGATE** | Why is this happening?     | Hypothesis Wall, Measurement Plans, Evidence Map, three evidence types                        | Investigation tab       |
+| **IMPROVE**     | What do we do about it?    | Action tracker (simple by default), PDCA workbench (Advanced), sustainment + Cpk verification | Improve tab (top-level) |
+| **REPORT**      | What did we learn?         | Audience-adapted reports, audit trail, Sponsor-ready                                          | Report tab              |
 
 Each phase serves a different purpose — discovery, understanding, verification.
 The same tool serves all phases; the surface changes the lens.
@@ -271,7 +272,7 @@ Access control moves _inside_ the product as project-membership ACLs. See
 | ------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Project lead (BB/MBB)** | "I run improvement projects with my team"       | Charter to Sustainment lifecycle. Invite Members + Sponsor. Investigation Wall with Measurement Plans. Cpk before/after proves the fix. €120/mo, unlimited team.    |
 | **Quality engineer (GB)** | "I need more than Excel, less than Minitab"     | Four Lenses with linked filtering. Question-driven investigation. Capability + control limits. €120/mo Azure tenant-wide.                                           |
-| **CI / OpEx lead**        | "I need a tool for the team's improvement work" | One product everyone can use. PDCA in the Improve stage. Three evidence types. Knowledge Catalyst accumulates across projects.                                      |
+| **CI / OpEx lead**        | "I need a tool for the team's improvement work" | One product everyone can use. PDCA in the Improve tab. Three evidence types. Knowledge Catalyst accumulates across projects.                                        |
 | **Trainer / consultant**  | "I need a tool that teaches the methodology"    | Free PWA teaches structured EDA — same methodology, same lenses. The guided investigation builds statistical intuition.                                             |
 | **Sponsor / Champion**    | "Did the project work? What did we learn?"      | Report-only access. Cpk delta, action completion, sustainment evidence. Signoff out-of-band at V1; full audit trail in the Report.                                  |
 | **IT / Procurement**      | "Is this safe? Customer-owned? One vendor?"     | Azure Marketplace Managed Application. Customer-owned data + customer-deployed AI Foundry. Zero admin-consent permissions. One SKU, one billing path, no surprises. |

@@ -340,7 +340,7 @@ Team. Reasoning:
 
 - Full analytical surface (every chart mode, capability, ANOVA, OLS, Evidence
   Map, control limits).
-- Full Project lifecycle (Charter → Approach → Improve → Sustainment), Report,
+- Full Project lifecycle (Charter → Approach → Sustainment), Report,
   signoff workflow.
 - CoScout AI (NarrativeBar, ChartInsightChips, conversation, voice input),
   customer deploys their own Azure AI Foundry.

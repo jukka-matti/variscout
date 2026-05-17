@@ -47,7 +47,7 @@ Project members must share the same Azure AD tenant. Cross-org collaboration is 
 
 **Quick analysis (exploratory).** Specialist pastes data → explores in Analyze → optionally creates Findings → optionally groups them into Hypotheses on the Investigation Wall. No project created. Free PWA supports session-only; Azure (€120/mo) adds persistence and CoScout.
 
-**Project-anchored investigation.** Specialist creates a Project (or promotes a quick analysis to a Project via "+ Promote to Project"). The Charter ceremony adds problem statement, member invites, and optional refined goal. Project lifecycle runs Charter → Approach → Improve → Sustainment, producing a Report a Sponsor can sign off.
+**Project-anchored investigation.** Specialist creates a Project (or promotes a quick analysis to a Project via "+ Promote to Project"). The Charter ceremony adds problem statement, member invites, and optional refined goal. Project lifecycle runs Charter → Approach → Sustainment, producing a Report a Sponsor can sign off.
 
 The two entry shapes share the same methodology and the same canvas — the difference is whether the work is wrapped in formal lifecycle.
 
@@ -60,7 +60,7 @@ Every investigation, whether quick or project-anchored, follows:
 - **FRAME.** State the problem (data-first or hypothesis-first). The process map gets sketched. CoScout helps articulate.
 - **SCOUT.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
 - **INVESTIGATE.** Specialist picks suspected causes — data-derived, gemba-observed, or expert-supplied — and examines each with Evidence Map, statistics, and targeted Questions. The Investigation Wall accumulates Findings linked to Hypotheses. Measurement Plans capture what evidence still needs collection.
-- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the Improve stage (action tracker), then Sustainment ("did it work? + close").
+- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the **Improve tab** (action tracker) — top-level verb tab scoped to the active project — then Sustainment ("did it work? + close").
 
 Mode-specific tooling varies inside each phase; the spine never changes.
 

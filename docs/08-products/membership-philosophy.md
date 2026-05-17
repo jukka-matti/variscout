@@ -25,7 +25,7 @@ and the [Wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architec
 
 VariScout V1 ships as a single SKU at €120/month per Azure tenant. That €120
 buys the full analytical surface — every chart mode, every CoScout feature,
-the entire Project lifecycle (Charter → Approach → Improve → Sustainment),
+the entire Project lifecycle (Charter → Approach → Sustainment),
 the Report, the Knowledge Catalyst, voice input, the works. Unlimited org
 users, unlimited projects.
 
@@ -82,7 +82,7 @@ a project member or not.
 
 Project-scoped membership creates a defensible privacy boundary that
 tenant-wide access cannot. Users not invited to Project X cannot see Project
-X's Charter, Approach, Improve, Sustainment, or Report — even though they're
+X's Charter, Approach, Sustainment, Improve tab, or Report — even though they're
 in the same Azure tenant as the buyer. This is sellable to GDPR-concerned
 buyers, SOC2-audited orgs, and quality-paranoid manufacturing customers
 where investigation data names internal failure modes that shouldn't be
@@ -135,9 +135,9 @@ allowed and creates a co-lead arrangement.
 Real-world counterpart: SME, analyst, frontline operator, quality engineer
 contributing to the work.
 
-Member has full edit on Charter, Approach, Improve, and Sustainment stages,
-and can read the Report. Member cannot manage other members — invites and
-role changes go through a Lead.
+Member has full edit on the Charter, Approach, and Sustainment stages plus the
+Improve tab, and can read the Report. Member cannot manage other members —
+invites and role changes go through a Lead.
 
 ### 3.3 Sponsor
 
@@ -145,8 +145,8 @@ Real-world counterpart: executive sponsor, Champion, steering committee
 member, divisional VP.
 
 Sponsor has **Report-only** access at V1. They see the Report tab for
-projects they sponsor. They do not see Charter, Approach, Improve, or
-Sustainment internals.
+projects they sponsor. They do not see Charter, Approach, Sustainment internals, or Improve tab
+content.
 
 Sponsor signoff at lifecycle gates (Charter approval, Sustainment closure)
 is handled **out-of-band at V1** — the Lead presents the Report in a meeting
@@ -169,7 +169,7 @@ V1 has **two access scopes** that work together:
 | Scope                          | Who has access                              | What's gated                                                                                                               |
 | ------------------------------ | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | **Hub-level (tenant-wide)**    | Anyone in the Azure tenant (all paid users) | The shared data container — paste data, outcome spec, process map, factors. Quick analysis works here without any Project. |
-| **Project-level (membership)** | Only invited members of a specific Project  | Project-formal data — Charter content, Approach Hypotheses + Plans, Improve action tracker, Sustainment closure, Report.   |
+| **Project-level (membership)** | Only invited members of a specific Project  | Project-formal data — Charter content, Approach Hypotheses + Plans, Sustainment closure, Improve tab actions, Report.      |
 
 A Lead can promote any quick analysis into a Project; that Project then locks
 its formal artifacts to its membership while leaving the underlying Hub data

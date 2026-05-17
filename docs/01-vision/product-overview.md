@@ -37,7 +37,7 @@ The breadth-first features (Hub portfolios, automated data pipelines, Process Ow
 The Specialist works in two modes, both first-class:
 
 - **Quick analysis.** Paste data, explore in charts, save findings. No project ceremony required. Free PWA supports session-only use; Azure tier adds persistence and CoScout.
-- **Project-anchored investigation.** Create a Project (Charter ceremony), invite teammates (Lead / Member / Sponsor roles), run the formal lifecycle Charter → Approach → Improve → Sustainment. Each project produces a Report a Sponsor can sign off.
+- **Project-anchored investigation.** Create a Project (Charter ceremony), invite teammates (Lead / Member / Sponsor roles), run the formal lifecycle Charter → Approach → Sustainment. Each project produces a Report a Sponsor can sign off.
 
 Internally, paste data lands in a **data container** (called a Hub in code) that is tenant-wide — anyone in the buyer's Azure tenant can analyze without creating a Project. The Project is the optional formal wrapper that adds membership ACLs and lifecycle ceremony. The UI does not surface "Hub" as a noun; users see only Project and Process.
 
@@ -50,7 +50,7 @@ Both modes follow the same methodological spine:
 - **FRAME.** State the problem (data-first or hypothesis-first entry). Process map gets sketched in the Process tab Edit mode.
 - **SCOUT.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
 - **INVESTIGATE.** Specialist picks suspected causes — data-derived, gemba-observed, or expert-supplied — and examines each with Evidence Map, statistics, and targeted Questions. The Investigation Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection (hypothesis-first path).
-- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the Improve stage (action tracker), then Sustainment ("did it work? + close").
+- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this surfaces in the **Improve tab** (action tracker) — top-level verb tab scoped to the active project — then Sustainment ("did it work? + close").
 
 Mode-specific tooling varies inside each phase; the spine never changes.
 
@@ -123,7 +123,7 @@ Processing happens in the browser. When data moves (Blob Storage sync, AI calls,
 5. **Linked exploration** — Charts talk to each other through filtering.
 6. **Fast to first insight** — Under 30 seconds from paste.
 7. **Export-ready outputs** — Professional charts and signoff-ready Report.
-8. **Simple over complete** — Do fewer things, do them well. Progressive disclosure for power features (e.g., PDCA workbench behind an "Advanced" toggle in the Improve stage).
+8. **Simple over complete** — Do fewer things, do them well. Progressive disclosure for power features (e.g., PDCA workbench behind an "Advanced" toggle in the Improve tab).
 
 ---
 
