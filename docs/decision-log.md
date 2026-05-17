@@ -28,6 +28,9 @@ When in doubt: capture, don't invent. Record the decision; link to its source ar
 
 Decisions we keep relitigating. Each entry: short statement, rationale, closing artifact, date pinned.
 
+- **2026-05-17 — Docs-toolbox skill + llms.txt → router transformation.** `new spec`: `.claude/skills/docs-toolbox/SKILL.md`. `spec edit`: `docs/llms.txt` [supersedes prior static catalog].
+  Why: subagents need a single auto-triggered skill that surfaces `pnpm docs:find/get/related/recent/verify/amend`; llms.txt becomes a router pointing at the four canonical skills (quickstart, toolbox, package-router, store-state-glossary) + always-load docs. Commit: <TBD>. PR: <TBD>. Related: [[2026-05-16-docs-strategy-design]].
+
 - **2026-05-17 — Doc-discipline validator `--diff` mode shipped.** `spec edit`: `scripts/check-doc-frontmatter.mjs` — added decision-log append-only WARN (>7-day-old line edits) + edit-type vocabulary parser + `## Amendment` heading WARN in design specs + `delivered-by` without `Delivered` banner WARN.
   Why: completes the mechanical half of `docs/agent-context/doc-discipline.md` §Decision-log as temporal index + §Edit-in-place mechanics. Pre-commit/pre-push hook `--diff` wiring is a follow-up (out of scope for Phase 2). Commit: <TBD>. PR: <TBD>. Related: [[2026-05-16-docs-strategy-design]], [[doc-discipline]].
 
@@ -305,5 +308,3 @@ Every major user journey with current state, so shipped features without a journ
 
 - **Last chrome-walked dates for the four shipped per-mode journeys (Yamazumi / Performance / Defect / Capability)** are recorded as "unknown"; the plan didn't enumerate specific chrome-walk dates per mode, and no audit memory pinpoints them. Future audit pass (Process tier framing consistency or doc-hygiene sweep) is the natural place to populate these.
 - **Phase 6 v2 / S5 appears in §3 Named-Future** as a deferred feature, which matches the plan's framing. It is not also added to §4 Session Backlog as a doc-update because the work is implementation-shaped, not doc-shaped — listed only once in the implementation-row.
-- **2026-05-17 — Docs-toolbox skill + llms.txt → router transformation.** `new spec`: `.claude/skills/docs-toolbox/SKILL.md`. `spec edit`: `docs/llms.txt` [supersedes prior static catalog].
-  Why: subagents need a single auto-triggered skill that surfaces `pnpm docs:find/get/related/recent/verify/amend`; llms.txt becomes a router pointing at the four canonical skills (quickstart, toolbox, package-router, store-state-glossary) + always-load docs. Commit: <TBD>. PR: <TBD>. Related: [[2026-05-16-docs-strategy-design]].

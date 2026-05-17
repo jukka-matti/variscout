@@ -64,7 +64,7 @@ pnpm docs:verify 2026-05-16-wedge-architecture-design
 ### "Adding an amendment block to an ADR"
 
 ```bash
-pnpm docs:amend adr-082-wedge-architecture "Nav amended — see [[2026-05-16-improve-tab-amendment]]"
+pnpm docs:amend adr-082-wedge-architecture "Nav amended — see [[2026-05-16-improve-tab-amendment-design]]"
 ```
 
 (Design specs **do not** get amendment blocks — edit them in place + log to `docs/decision-log.md`. See `docs/agent-context/doc-discipline.md` §Edit-in-place mechanics.)
