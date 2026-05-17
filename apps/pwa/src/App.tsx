@@ -771,6 +771,31 @@ function AppMain() {
     [panels]
   );
 
+  // Reverse of handlePhaseChange — maps panelsStore.activeView to the wedge-V1 PhaseId vocabulary.
+  const activeViewToPhase = useCallback((view: typeof panels.activeView): PhaseId | undefined => {
+    switch (view) {
+      case 'home':
+        return 'home';
+      case 'projects':
+        return 'project';
+      case 'frame':
+        return 'process';
+      case 'analysis':
+        return 'analyze';
+      case 'investigation':
+        return 'investigation';
+      case 'improvement':
+        return 'improvement';
+      case 'report':
+        return 'report';
+      case 'charter':
+      case 'sustainment':
+        return undefined; // out-of-phase views — no tab highlighted
+      default:
+        return undefined;
+    }
+  }, []);
+
   // Wall-variant propose-hypothesis CTA
   const wallViewMode = useCanvasViewportStore(s => s.viewMode);
   const createHubFromFinding = useInvestigationStore(s => s.createHubFromFinding);
@@ -1071,7 +1096,7 @@ function AppMain() {
             !importFlow.isMapping &&
             panels.activeView !== 'charter' &&
             panels.activeView !== 'sustainment'
-              ? panels.activeView
+              ? activeViewToPhase(panels.activeView)
               : undefined
           }
           onPhaseChange={handlePhaseChange}
