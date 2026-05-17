@@ -21,11 +21,11 @@ Canonical V1 design lives in the [wedge architecture spec](../superpowers/specs/
 
 ## Two products on a roadmap
 
-VariScout ships as **two products on a roadmap**: the wedge first, the platform later.
+VariScout ships as **two products on a roadmap**: VariScout V1 first, the platform later.
 
 | Product                        | Audience                                                                                  | Status                                                                                                                    |
 | ------------------------------ | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **VariScout (V1, this doc)**   | Improvement specialists running projects with their team                                  | **Ship-target.** One persona, one €99 SKU, project-scoped membership, Azure-tenant-wide.                                  |
+| **VariScout (V1, this doc)**   | Improvement specialists running projects with their team                                  | **Ship-target.** One persona, one €120 SKU, project-scoped membership, Azure-tenant-wide.                                 |
 | **VariScout Process** (future) | Enterprises with ongoing process ownership, multi-project portfolios, 4-persona workflows | Internal roadmap commitment only. Not announced in V1 marketing; mentioned when customers ask about enterprise use cases. |
 
 The breadth-first features (Hub portfolios, automated data pipelines, Process Owner cadence, 4-persona routing) are not lost — they migrate to VariScout Process as a separate product. V1 is the focused, coherent thing: **the project tool an improvement specialist invites their team to.**
@@ -37,7 +37,7 @@ The breadth-first features (Hub portfolios, automated data pipelines, Process Ow
 The Specialist works in two modes, both first-class:
 
 - **Quick analysis.** Paste data, explore in charts, save findings. No project ceremony required. Free PWA supports session-only use; Azure tier adds persistence and CoScout.
-- **Project-anchored investigation.** Create a Project (Charter ceremony), invite teammates (Lead / Member / Sponsor roles), run the formal lifecycle Charter → Approach → Improve → Sustainment. Each project produces a Report a Sponsor can sign off.
+- **Project-anchored investigation.** Create a Project (Charter ceremony), invite teammates (Lead / Member / Sponsor roles), run the formal lifecycle Charter → Approach → Sustainment. Each project produces a Report a Sponsor can sign off.
 
 Internally, paste data lands in a **data container** (called a Hub in code) that is tenant-wide — anyone in the buyer's Azure tenant can analyze without creating a Project. The Project is the optional formal wrapper that adds membership ACLs and lifecycle ceremony. The UI does not surface "Hub" as a noun; users see only Project and Process.
 
@@ -50,7 +50,7 @@ Both modes follow the same methodological spine:
 - **FRAME.** State the problem (data-first or hypothesis-first entry). Process map gets sketched in the Process tab Edit mode.
 - **SCOUT.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
 - **INVESTIGATE.** Specialist picks suspected causes — data-derived, gemba-observed, or expert-supplied — and examines each with Evidence Map, statistics, and targeted Questions. The Investigation Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection (hypothesis-first path).
-- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the Improve stage (action tracker), then Sustainment ("did it work? + close").
+- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this surfaces in the **Improve tab** (action tracker) — top-level verb tab scoped to the active project — then Sustainment ("did it work? + close").
 
 Mode-specific tooling varies inside each phase; the spine never changes.
 
@@ -58,20 +58,21 @@ Mode-specific tooling varies inside each phase; the spine never changes.
 
 ## V1 navigation
 
-Six tabs, in workflow order:
+Seven tabs, in workflow order:
 
 ```
-[Home] [Projects] [Process] [Analyze] [Investigation] [Report]
+[Home] [Project] [Process] [Analyze] [Investigation] [Improve] [Report]
 ```
 
 1. **Home** — pick what you're working on (project queue + active-IP launchpad)
-2. **Projects** — current project's status overview (Improve is a stage inside Projects detail)
+2. **Project** — current project's status overview (Charter → Approach → Sustainment stages)
 3. **Process** — canvas / process map (spatial substrate, State + Edit modes)
 4. **Analyze** — EDA / charts / Factor Intelligence
 5. **Investigation** — Wall + Evidence Map → suspected causes
-6. **Report** — narrative output for Sponsor signoff
+6. **Improve** — improvement actions, tracked and owned (active-IP cascade from Home)
+7. **Report** — narrative output for Sponsor signoff
 
-The Improve stage lives **inside Projects detail**, not as a top-level tab. Projects detail runs four stages: Charter → Approach → Improve → Sustainment. Handoff is folded into Sustainment closure.
+Improve is a top-level verb tab with active-IP cascade (not buried inside Project detail). Project detail runs three stages: Charter → Approach → Sustainment. Handoff is folded into Sustainment closure.
 
 ---
 
@@ -90,12 +91,12 @@ Mode resolution lives in `packages/core/src/analysisStrategy.ts`. CoScout's meth
 
 ## Pricing (V1)
 
-Single SKU. No tier-gating inside Azure; team-collaboration features are project-membership-role-gated within the €99 plan.
+Single SKU. No tier-gating inside Azure; team-collaboration features are project-membership-role-gated within the €120 plan.
 
-| Tier      | Distribution                          | Price         | What you get                                                                                                                                                                   |
-| --------- | ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **PWA**   | Public URL                            | Free          | Full analysis, session-only, no persistence. Training, education, evaluation.                                                                                                  |
-| **Azure** | Azure Marketplace Managed Application | **€99/month** | Full product, Azure tenant-wide, unlimited org users, unlimited projects. Persistence (IndexedDB + Blob), CoScout AI, project membership ACLs, Report sharing. Voice optional. |
+| Tier      | Distribution                          | Price          | What you get                                                                                                                                                                   |
+| --------- | ------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **PWA**   | Public URL                            | Free           | Full analysis, session-only, no persistence. Training, education, evaluation.                                                                                                  |
+| **Azure** | Azure Marketplace Managed Application | **€120/month** | Full product, Azure tenant-wide, unlimited org users, unlimited projects. Persistence (IndexedDB + Blob), CoScout AI, project membership ACLs, Report sharing. Voice optional. |
 
 This supersedes the legacy €79 Standard + €199 Team split (see [feature-parity.md](../08-products/feature-parity.md) for the consolidated matrix).
 
@@ -122,7 +123,7 @@ Processing happens in the browser. When data moves (Blob Storage sync, AI calls,
 5. **Linked exploration** — Charts talk to each other through filtering.
 6. **Fast to first insight** — Under 30 seconds from paste.
 7. **Export-ready outputs** — Professional charts and signoff-ready Report.
-8. **Simple over complete** — Do fewer things, do them well. Progressive disclosure for power features (e.g., PDCA workbench behind an "Advanced" toggle in the Improve stage).
+8. **Simple over complete** — Do fewer things, do them well. Progressive disclosure for power features (e.g., PDCA workbench behind an "Advanced" toggle in the Improve tab).
 
 ---
 
@@ -184,7 +185,7 @@ _See also:_
 - [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — Wedge architecture decision
 - [USER-JOURNEYS](../USER-JOURNEYS.md) — V1 single-persona spine + project-membership roles
 - [OVERVIEW](../OVERVIEW.md) — What VariScout does in practice
-- [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€99) capability matrix
+- [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€120) capability matrix
 - [Architecture](../05-technical/architecture.md) — Technical architecture details
 - [Specifications](../03-features/specifications.md) — Detailed functional specifications
 - [Constitution](constitution.md) — 10 principles, terminology enforcement

@@ -358,7 +358,7 @@ These aren't lost — they're moved to a separate roadmap. See [USER-JOURNEYS.md
 ## See Also
 
 - [Products Overview](index.md)
-- [Tier Philosophy](tier-philosophy.md) — Why features are gated where they are
+- [Membership Philosophy](membership-philosophy.md) — How V1 access control works (one product, role-based access inside)
 - [Azure App](azure/index.md)
 - [PWA (Free Training Tool)](pwa/index.md)
 - [Wedge architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy

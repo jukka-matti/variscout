@@ -145,17 +145,18 @@ This ensures:
 
 ---
 
-## Tier Philosophy
+## Membership Philosophy
 
-Why features are gated where they are — the reasoning behind VariScout's product tiers, upgrade triggers, and capability maturity model.
+How V1 access control works — one product, role-based access inside. Lead / Member / Sponsor ACL replaces the prior multi-tier feature-gating model.
 
-[:octicons-arrow-right-24: Tier Philosophy](tier-philosophy.md)
+[:octicons-arrow-right-24: Membership Philosophy](membership-philosophy.md)
 
 ---
 
 ## See Also
 
 - [ADR-007: Azure Marketplace Distribution](../07-decisions/adr-007-azure-marketplace-distribution.md)
+- [ADR-082: Wedge architecture](../07-decisions/adr-082-wedge-architecture.md)
 - [Azure Marketplace Guide](azure/marketplace.md)
-- [Tier Philosophy](tier-philosophy.md)
+- [Membership Philosophy](membership-philosophy.md)
 - [Product Evaluation Narrative](presentations/variscout-product-evaluation-narrative-plan.md)

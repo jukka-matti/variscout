@@ -3,13 +3,13 @@ title: VariScout Data Lifecycle
 audience: [engineer]
 category: architecture
 status: stable
-last-reviewed: 2026-04-24
+last-reviewed: 2026-05-17
 related: [data-flow, persistence, sync, customer-owned, blob-storage, indexeddb, easyauth]
 ---
 
 # VariScout Data Lifecycle
 
-Data enters VariScout in the browser, stays in the browser for analysis, and — on paid tiers — can sync to storage **in the customer's own Azure tenant**. No data ever touches VariScout-operated cloud infrastructure. This is the **customer-owned data** principle, and every architectural decision downstream respects it.
+Data enters VariScout in the browser, stays in the browser for analysis, and — on the Azure tier — can sync to storage **in the customer's own Azure tenant**. No data ever touches VariScout-operated cloud infrastructure. This is the **customer-owned data** principle, and every architectural decision downstream respects it (ADR-059).
 
 ## 1. Parse boundary (B1 — the first numeric gate)
 
@@ -47,24 +47,32 @@ Other modes pass raw parsed data straight to stats.
 
 Two-pass best subsets with interaction screening (ADR-067) drives Evidence Map. NIST Longley benchmark validates regression against Minitab/JMP.
 
-## 4. Persistence (varies by tier)
+## 4. Persistence
 
-| Tier           | Storage                      | Scope                                                         |
-| -------------- | ---------------------------- | ------------------------------------------------------------- |
-| PWA            | None                         | Session-only. Refresh = data gone. Intentional.               |
-| Azure Standard | IndexedDB (local to browser) | Project lives on the user's device. Persists across sessions. |
-| Azure Team     | IndexedDB + Blob Storage     | Same as Standard, plus cross-device sync.                     |
+VariScout V1 is a single SKU (€120/month, Azure tenant-wide). There is no tier-based feature split in persistence — the distinction is between the **PWA capability** (session-only, no backend required, offline-first funnel) and the **Azure capability** (full persistence, team sync, CoScout AI). Both are first-class capabilities of the single product.
+
+| Capability   | Storage                      | Scope                                                        |
+| ------------ | ---------------------------- | ------------------------------------------------------------ |
+| PWA          | None                         | Session-only. Refresh = data gone. Intentional.              |
+| Azure        | IndexedDB (local to browser) | Project and Hub data persists across sessions on the device. |
+| Azure + Blob | IndexedDB + Blob Storage     | Same as Azure, plus cross-device sync within the tenant.     |
 
 IndexedDB schema in `apps/azure/src/db/schema.ts` (Dexie). `services/localDb.ts` is the facade. sessionStore from `@variscout/stores` persists UI session state via middleware; document-level persistence goes through `useProjectActions` (domain stores).
 
-Evidence Source objects now exist in core as the first implementation slice:
+## 5. Project-membership ACL as data-isolation layer
+
+Hub-level data (the tenant-wide internal container backing the Process tab and paste data) is accessible to any authenticated user in the Azure tenant. **Project-level data** (Charter, Approach, Improve, Sustainment, Report artifacts) is **membership-gated**: only users explicitly invited to a Project can access it, regardless of their presence in the tenant (ADR-082 §4.4).
+
+Access checks are role-based: `canAccess(userId, members, action)` from `@variscout/core/projectMembership`. Roles are Lead (full edit + manage membership), Member (full edit), Sponsor (Report-only). This is the primary data-isolation boundary for project-formal artifacts.
+
+Evidence Source objects exist in core as the first implementation slice:
 `EvidenceSource`, `DataProfileDefinition`, `EvidenceSnapshot`, and
 `ProfileApplication`. The current persisted Azure UI support is still narrow
 and profile-specific; ordinary process datasets do not yet have a general
 promotion path from one-off project to recurring Evidence Source or Current
 Process State review.
 
-## 5. Sync (Azure Team only)
+## 6. Sync (Azure — Blob Storage)
 
 `services/cloudSync.ts` pushes/pulls project documents to/from Blob Storage in the **customer's tenant**. Flow:
 
@@ -80,11 +88,11 @@ evidence storage emerging through the first Evidence Source implementation
 slice. The logical namespace remains:
 `process-hubs/{hubId}/evidence-sources/{sourceId}/snapshots/{snapshotId}/...`.
 
-## 6. Display boundary (B3 — the third numeric gate)
+## 7. Display boundary (B3 — the third numeric gate)
 
 UI code never calls `.toFixed()` on stat values. `formatStatistic()` from `@variscout/core/i18n` guards every displayed number with `Number.isFinite()` and locale-aware formatting. ESLint enforces this (in Phase 3 of the doc architecture migration; currently a text convention).
 
-## 7. AI boundary (CoScout)
+## 8. AI boundary (CoScout)
 
 CoScout calls leave the browser but stay in the customer's tenant (Azure OpenAI endpoint provisioned in the customer's subscription). Prompts include investigation state (findings, hubs, causal links, evidence map topology) but **never raw data rows beyond what the user has exposed in charts**. Visual grounding markers (ADR-057) reference chart elements by ID, not data. Tool calls (27-tool registry) return structured diffs the user confirms before applying.
 
@@ -97,13 +105,13 @@ Azure voice input uses the same tenant boundary:
 
 There is no persisted audio object in IndexedDB or Blob Storage, and PWA keeps the microphone disabled.
 
-## 8. Telemetry (App Insights — Azure only)
+## 9. Telemetry (App Insights — Azure only)
 
 `apps/azure/src/lib/appInsights.ts`. Logs structural events (mode changes, feature usage counts, durations) — **never PII, never raw data**. Telemetry violations are a priority fix.
 
 ## Trust chain summary
 
-Parse → transform → stats → persist → sync → display → AI. Every boundary either validates or passes through, never silently corrupts. Three numeric gates (B1, B2, B3) guarantee no `NaN`/`Infinity` reaches the user. Customer-owned principle guarantees no data leaves customer tenant. Voice input, when enabled on Azure tiers, follows the same rule: audio is transient, transcript is durable.
+Parse → transform → stats → persist → sync → display → AI. Every boundary either validates or passes through, never silently corrupts. Three numeric gates (B1, B2, B3) guarantee no `NaN`/`Infinity` reaches the user. Customer-owned principle guarantees no data leaves customer tenant. Project-membership ACLs (ADR-082 §4) scope project-formal data to invited members. Voice input, when enabled on Azure, follows the same rule: audio is transient, transcript is durable.
 
 ## Reference
 
@@ -111,6 +119,7 @@ Parse → transform → stats → persist → sync → display → AI. Every bou
 - ADR-050 Wide-form stack columns
 - ADR-059 Web-first deployment architecture
 - ADR-069 Three-boundary numeric safety
+- ADR-082 Wedge architecture (single-SKU + project-membership ACL)
 - docs/05-technical/architecture/data-flow.md
 - docs/05-technical/architecture/data-pipeline-map.md
 - docs/08-products/azure/blob-storage-sync.md

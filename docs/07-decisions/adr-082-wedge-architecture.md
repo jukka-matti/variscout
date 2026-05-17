@@ -6,8 +6,10 @@ title: 'ADR-082: Wedge architecture — single-product VariScout'
 
 **Status:** Accepted
 **Date:** 2026-05-16
-**Supersedes (in part):** ADR-007 (Azure Marketplace distribution — single SKU replaces tiered), ADR-033 (€79/€199 tier split — single €99 SKU)
+**Supersedes (in part):** ADR-007 (Azure Marketplace distribution — single SKU replaces tiered), ADR-033 (€79/€199 tier split — single €120 SKU)
 **Partially supersedes:** [Coherence audit spec (2026-05-14)](../superpowers/specs/2026-05-14-variscout-coherence-design.md) — Session A retires for V1, Session B amends, Session C refocuses
+
+> **Price amended 2026-05-17: €99 → €120/month.** The original decision priced the single SKU at €99; revised upward to €120 before any customer exposure. All current-truth price references below read €120; the §Migration section preserves €79/€199 as historical-context migration math.
 
 ## Context
 
@@ -34,7 +36,7 @@ Split VariScout into two products on a roadmap. Ship the wedge first.
 - **Collaboration**: Project Lead invites org users _per project_ (not tenant-wide).
 - **Persona model**: One — Specialist. Project-membership roles: **Lead** (full edit + manages membership), **Member** (full edit), **Sponsor** (Report-only access; signoff out-of-band at V1).
 - **Investigation model**: Investigation Wall is the canonical Hypothesis-driven surface. Extended with **Measurement Plan** sub-entity per Hypothesis — supports hypothesis-first investigation (plan → collect → finding → confirm/refute) without a separate Measure stage. Both data-first and hypothesis-first starting points converge on the Wall.
-- **Pricing**: **€99/month**, single SKU, Azure tenant-wide, unlimited org users, unlimited projects.
+- **Pricing**: **€120/month**, single SKU, Azure tenant-wide, unlimited org users, unlimited projects.
 - **Distribution**: Azure Marketplace Managed Application + in-app project membership ACLs (Hub-level data tenant-wide; Project-level data membership-gated).
 - **Privacy boundary**: Project-scoped membership within Azure AD tenant. Cross-AD-tenant invitations explicitly out of scope.
 
@@ -64,11 +66,11 @@ Split VariScout into two products on a roadmap. Ship the wedge first.
 
 ### Pricing rationale
 
-€99/month single SKU is chosen because:
+€120/month single SKU is chosen because:
 
-- Honors ADR-033's strategic hypothesis **H6** ("per-deployment beats per-seat") — €99 is still per-deployment.
-- Sits between the retired €79 Standard and €199 Team, weighted slightly toward Standard to keep the SME purchasing-threshold logic (€99/mo = €1,188/year, just above the €1,000 SME threshold but acceptable given the upgraded V1 product scope — Standard's investigation-only role expands to full DMAIC arc).
-- Eliminates the Standard vs Team decision moment, simplifying sales conversation to "€99/month, Azure tenant-wide, invite your team per project."
+- Honors ADR-033's strategic hypothesis **H6** ("per-deployment beats per-seat") — €120 is still per-deployment.
+- Sits above the retired €79 Standard and below the retired €199 Team. €120/mo = €1,440/year sits slightly above the €1,000 SME purchasing threshold, accepted given the V1 product scope (full DMAIC arc, project membership ACLs, Knowledge Catalyst) compared to the prior Standard's investigation-only role.
+- Eliminates the Standard vs Team decision moment, simplifying sales conversation to "€120/month, Azure tenant-wide, invite your team per project."
 - Single SKU = single billing path = no tier-gating UX engineering.
 
 ### Privacy and ACL rationale
@@ -84,8 +86,8 @@ The Azure AD tenant boundary is the outer scope: cross-AD-tenant invites would r
 Customers currently on €79 Standard or €199 Team need a migration path. Modeled options (to be settled per spec §8.1 precondition):
 
 - Grandfather existing customers at current price for N months.
-- Upgrade €79 → €99 (real but small churn risk).
-- Downgrade €199 → €99 (price decrease — material revenue hit per affected account; requires financial sensitivity check).
+- Upgrade €79 → €120 (price increase; real churn risk — sensitivity check required).
+- Downgrade €199 → €120 (price decrease — material revenue hit per affected account; requires financial sensitivity check).
 - Sunset window with one-time conversion offer.
 
 ### Engineering
@@ -114,7 +116,7 @@ Archive over delete: institutional knowledge preserved in `docs/archive/`.
 
 Three strategic checks must clear before engineering work commits (see wedge spec §8):
 
-1. **Migration math** — 30-minute financial sensitivity on €79 → €99 (small price increase) and €199 → €99 (real revenue hit per account).
+1. **Migration math** — 30-minute financial sensitivity on €79 → €120 (price increase) and €199 → €120 (real revenue hit per account).
 2. **Azure AD invitation constraint accepted as feature** — confirm V1 ICP doesn't depend on cross-org collaboration.
 3. **One customer validation conversation** — 30-minute pitch to a real specialist, confirm "yes, that's the product I want."
 
@@ -133,7 +135,7 @@ If any block, pause and revisit.
 ### Negative
 
 - **Walking away from breadth-first vision** — Hub portfolios, process ownership, multi-source pipelines, 4-persona model all defer to a separate, unscheduled product.
-- **Lower V1 ARPU** — no €199 Team upgrade lever; only €99 SKU until VariScout Process ships.
+- **Lower V1 ARPU** — no €199 Team upgrade lever; only €120 SKU until VariScout Process ships.
 - **Existing customer migration cost** — price changes are real money; grandfathering reduces but doesn't eliminate revenue impact.
 - **Azure AD constraint** — customers needing external collaborators (consulting MBBs, multi-org SMEs) are out of V1 ICP.
 - **VariScout Process becomes a real commitment** — once named on the roadmap, it's a promise customers can ask about.

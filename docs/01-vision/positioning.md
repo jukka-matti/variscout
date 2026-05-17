@@ -3,305 +3,389 @@ title: 'Positioning Bible'
 audience: [analyst, engineer]
 category: reference
 status: stable
+last-reviewed: 2026-05-17
 related: [strategy, positioning, methodology, category, messaging]
 ---
 
 # Positioning Bible
 
-> **⚠️ AMENDED 2026-05-16 by the [wedge pivot](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md).**
->
-> Tagline unchanged: _"Structured investigation for process improvement"_ still holds for V1. What changed: VariScout splits into **two products on a roadmap** — V1 (a single-tier project tool for improvement specialists, €99/mo, project-membership ACLs) ships first; VariScout Process (enterprise process ownership, Hub portfolios, 4-persona model, auto pipelines) defers to a future, separate product. V1 marketing leads with "the project tool an improvement specialist invites their team to" — _not_ the breadth-first platform vision this doc captured in March–April 2026.
->
-> This doc's strategic framing predates the wedge. Pieces still in force: the category positioning (investigation, not statistical verification), the workspace-tabs-as-published-opinion principle. Pieces under amendment: the 4-persona breadth narrative, the Hub-centric framing, the Standard/Team tier story. Full Phase C audit will resolve which sections survive verbatim vs. amend vs. archive.
+How we talk about VariScout — at every level, to every audience. The strategic
+home for category language, audience messaging, and the long-term moat.
+
+Companion to the [Constitution](constitution.md) (what we believe), the
+[Business Bible](business-bible.md) (how we grow), and the canonical V1
+architecture spec at [`docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`](../superpowers/specs/2026-05-16-wedge-architecture-design.md) plus [ADR-082](../07-decisions/adr-082-wedge-architecture.md).
 
 ---
 
-How we talk about VariScout — at every level, to every audience. A living document that captures the strategic inflection of March–April 2026 and guides all future messaging, product decisions, and documentation.
+## 1. The category
 
-Companion to the [Constitution](constitution.md) (what we believe) and the [Business Bible](business-bible.md) (how we grow).
+> **Structured investigation for process improvement.**
 
----
+VariScout is not a chart tool. It is not a dashboard. It is not a statistics
+package. It is the structured investigation layer that turns operational data
+into shared process understanding, verified improvements, and sustained
+controls. Every chart, every AI nudge, every collaboration surface serves the
+investigation — not the other way around.
 
-## 1. The Inflection Point
+Most existing tools assume the practitioner already knows what to look for.
+They compute what you ask for and stop. VariScout guides the work from
+"something's wrong" through "here's where variation lives," "here's what
+explains it," and "here's proof the fix held." The methodology does the
+structuring so the analyst can focus on thinking.
 
-In March 2026, VariScout stopped being a chart tool with investigation features and became an investigation platform that happens to have great charts.
-
-596 commits across three weeks (March 15 – April 2) delivered six architectural decisions that together represent a category shift:
-
-- **ADR-055**: Investigation promoted from a 320px sidebar to a full-width workspace tab. Five workspace tabs (Overview | Analysis | Investigation | Improvement | Report) now mirror the investigation journey directly in navigation.
-- **ADR-056**: Process Intelligence panel redesigned with Questions | Journal | Stats tabs — making the investigation methodology visible in the UI.
-- **ADR-057**: CoScout visual grounding — AI now points at chart elements, not just explains in text.
-- **ADR-059**: Teams SDK removed, admin-consent permissions eliminated. Zero enterprise friction.
-- **ADR-060**: Five-pillar CoScout intelligence architecture — hot context, investigation retrieval, external documents, question interaction, mode-aware methodology coaching.
-
-The workspace tabs aren't UI. They're a published opinion about how process improvement works.
-
-### The Watson Moment
-
-On March 29, an MBB expert sat down with VariScout and visitor/tourism data — not manufacturing data. In four minutes, he naturally followed question-driven investigation:
-
-1. I-Chart on "total" → saw seasonal pattern
-2. Created "summer visitors" factor → boxplot by month
-3. The question emerged naturally: "For those summer months, which countries have the highest amount?"
-4. The gap: "I'm not able to answer with the current data structure"
-5. The benchmark: "I can do it in Minitab"
-6. The teaching moment: "This is the kind of test you have to do"
-
-He didn't need coaching. The Four Lenses naturally generated the questions. The questions naturally led deeper. The methodology validated itself on non-manufacturing data in real time.
-
-In the same session, he articulated the core philosophy:
-
-> "Don't search for the function first. Don't search for the equation first. Search for which variables make a difference by contributing to the overall explanation of variation and which ones don't."
-
-That quote is VariScout in one sentence.
+This is the category VariScout owns: structured investigation, evidence-based,
+AI-assisted, customer-owned. No incumbent occupies this slot today.
 
 ---
 
-## 2. What VariScout Is
+## 2. Who VariScout is for
 
-### Core Positioning Statement
+The V1 audience is the **improvement specialist** — quality engineers, Lean
+practitioners, Six Sigma belts (Green Belt / Black Belt / Master Black Belt),
+CI engineers, process analysts, and consulting MBBs running projects with their
+team.
 
-**VariScout is a team improvement workspace for turning operational data into shared process understanding, verified improvements, and sustained controls — question-driven, evidence-based, and AI-assisted.**
+What unifies them: their job is to _find and reduce variation in process data,
+then verify the fix worked_. They lead projects. They invite SMEs, frontline
+operators, and analysts into the work. They report up to a Sponsor who expects
+a defensible story with numbers behind it.
 
-The planned Process Hub direction sharpens this positioning. A Process Hub is the organizational home for one production line, service queue, value stream, or business process. It lets the process owner and improvement team see what is being investigated, what is changing, who owns the work, what is waiting for verification, and which learnings need to be sustained.
+VariScout V1 delivers the whole sentence for one project lead and their
+invited team — paste data, frame the process, investigate, drive action, prove
+it worked, hand it off. No statistics degree required. No enterprise sales
+motion required. Azure Marketplace install, invite, work.
 
-Process Hub also gives VariScout a clear monitoring boundary: VariScout helps teams monitor process performance at an improvement cadence, detect meaningful change signals, identify where variation is concentrated, and turn those signals into faster investigation, action, verification, and sustained control. It can support control inside VariScout or help teams operationalize controls in live systems, but it does not become the 24/7 operational monitoring platform.
+What V1 is not built for: a process owner monitoring 30 production lines, an
+enterprise running portfolio-level operational excellence programs across
+sites, or an org needing automated pipelines from MES / SCADA / ERP. Those
+needs belong to a different customer with a different mental model — and to a
+different product (see §8).
 
-The methodology is nested: Process Hub organizes the work over time, FRAME →
-SCOUT → INVESTIGATE → IMPROVE explains how one investigation is done, Evidence
-Sources bring recurring Snapshots into hub cadence, questions drive the
-reasoning, and Survey checks whether the current evidence is ready for the next
-move. Data Profiles are deterministic adapters behind recognized Evidence
-Sources. Signal Cards and process moments make that readiness more trustworthy
-as the roadmap matures.
+---
 
-### What VariScout Is Not
+## 3. The differentiated promise
 
-- **Not a dashboard tool.** Dashboards show what happened. VariScout helps you figure out why and guides you to fix it.
-- **Not a statistics package.** Statistics are one evidence type. VariScout structures the investigation around them.
-- **Not an AI analytics tool.** AI assists. The methodology and the team drive the investigation.
-- **Not a 24/7 operational monitoring system.** VariScout reviews performance at an improvement cadence; live alerts, shift-critical escalation, and real-time control loops stay in operational systems.
+Four claims VariScout makes that competitors cannot.
 
-### Multi-Level Pitch
+### 3.1 Structured investigation, not statistical verification
+
+Statistical verification asks _did the change work_; structured investigation asks _what could be going on and how do we know_. VariScout is for the second question.
+
+VariScout is built around a published, peer-reviewed methodology — Turtiainen
+(2019), _"Mental Model for Exploratory Data Analysis Applications for
+Structured Problem-Solving"_ (LUT University), validated by nine Lean Six Sigma
+Master Black Belt experts across manufacturing, healthcare, and service
+industries. The flow is canonical:
+
+```
+Issue (vague)
+  → Questions generated from data + Factor Intelligence
+    → Findings (evidence-backed answers)
+      → Hypotheses (mechanisms you can disconfirm)
+        → Actions (tracked, owned, due-dated)
+          → Verified Cpk improvement
+```
+
+The flow is the product. The charts serve the flow. The AI serves the flow.
+The collaboration serves the flow.
+
+### 3.2 Three evidence types — data, gemba, expert
+
+No variation problem is solved from a desk alone (Constitution §7). VariScout
+treats data evidence (η², R²adj, ANOVA, Cpk), gemba evidence (go-and-see
+observations, photos from the floor, walk-the-process notes), and expert
+knowledge (SME judgment, captured methodically) as three first-class evidence
+types. Each Hypothesis on the Investigation Wall can carry all three. None
+ranks above the others.
+
+Most tools force everything through "the numbers." VariScout structures the
+investigation around the methodology, then lets the right evidence answer the
+question at hand.
+
+### 3.3 Customer-owned data, browser-only processing
+
+Data enters in the browser, stays in the browser for analysis, and — on the
+Azure tier — syncs to storage in the customer's own Azure tenant. No data ever
+touches VariScout-operated cloud infrastructure (ADR-059). CoScout's AI calls
+go to Azure OpenAI endpoints provisioned in the customer's subscription, never
+the vendor's. This isn't a privacy bullet point — it is the load-bearing
+architectural decision that makes VariScout sellable into regulated and
+quality-sensitive industries without an enterprise procurement cycle.
+
+The same principle makes the free PWA possible: no backend, no signup, no
+data leaving the laptop. Try-before-buy without paperwork.
+
+### 3.4 One product, role-based access inside
+
+VariScout V1 is a single product at a single price (see §6). Every paid
+customer gets the full analytical capability — charts, modes, CoScout, Report,
+Sustainment. What's _membership-gated_ is access to a specific Project's
+formal artifacts (Charter, Approach, Sustainment, Report). That
+gating happens _inside_ the product via project-membership ACLs (Lead /
+Member / Sponsor), not at sales-conversation entry via tier choice.
+
+This is a deliberate counter-positioning move against the enterprise SaaS norm
+of feature-gated tiers. See [Membership Philosophy](../08-products/membership-philosophy.md).
+
+---
+
+## 4. What VariScout is — and is not
+
+### What VariScout is
+
+VariScout is a **team improvement workspace** for turning operational data
+into shared process understanding, verified improvements, and sustained
+controls. Question-driven, evidence-based, AI-assisted, customer-owned.
+
+The methodology nests:
+
+- **Project** is the formal container (Charter → Approach → Sustainment),
+  invited team, Report. Improvement actions are owned by the **Improve tab** —
+  a top-level verb tab scoped to the active project, not a stage inside it.
+- **FRAME → SCOUT → INVESTIGATE → IMPROVE** explains how one investigation is
+  done inside a Project (or as quick analysis without one).
+- **Questions** drive the reasoning. Each question can be answered by data,
+  gemba, or expert evidence — and each Hypothesis can be confirmed or
+  disconfirmed against the same three.
+
+### What VariScout is not
+
+- **Not a dashboard tool.** Dashboards show what happened. VariScout helps you
+  figure out why and guides you to fix it.
+- **Not a statistics package.** Statistics are one evidence type. VariScout
+  structures the investigation around them.
+- **Not an AI analytics tool.** AI assists. The methodology and the team
+  drive the investigation.
+- **Not a 24/7 operational monitoring system.** VariScout reviews performance
+  at an improvement cadence; live alerts, shift-critical escalation, and
+  real-time control loops stay in operational systems.
+- **Not feature-gated across tiers.** One paid product; access scoped per
+  project, not per feature.
+
+### Multi-level pitch
 
 | Context                 | Pitch                                                                                                                                                                                                                                 |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **One sentence**        | VariScout helps teams turn process data into shared understanding, verified improvement, and sustained control.                                                                                                                       |
-| **Process Hub**         | Monitor performance. Detect change. Focus investigation. Verify action. Sustain control.                                                                                                                                              |
-| **Dinner / elevator**   | Your team chooses the process, adds the data, and VariScout shows where the problems are. Then the team checks what is really happening, assigns actions, verifies whether the change worked, and captures what should be sustained.  |
-| **Website hero**        | Turn operational data into structured team improvement. Build current understanding, check suspected mechanisms with data and gemba evidence, prove fixes worked, and hand learning back to the process.                              |
+| **One sentence**        | VariScout helps improvement teams turn process data into shared understanding, verified improvement, and sustained control.                                                                                                           |
+| **Project lead**        | Charter a project. Invite your team. Frame the process, scout the variation, investigate suspected causes, drive action, prove the Cpk improvement held. Sponsor gets a Report.                                                       |
+| **Elevator**            | A single Azure Marketplace install for your improvement team. Paste data, find where variation lives, investigate with data + gemba + expert evidence, act, verify. Same product everywhere.                                          |
+| **Website hero**        | Turn operational data into structured team improvement. Build current understanding, check suspected mechanisms with data and gemba evidence, prove fixes worked, hand learning back to the process.                                  |
 | **Marketplace listing** | Structured improvement workspace for process teams. Question-driven analysis guides teams from concern to measured result by combining data analysis, gemba observations, expert knowledge, action tracking, and AI-assisted context. |
-| **Internal strategy**   | VariScout is the first tool that embodies structured EDA investigation as a team process-improvement workspace. The methodology (Turtiainen 2019) is the product. AI augments; Process Hub gives the organizational container.        |
+| **Internal strategy**   | VariScout is the first tool that ships structured EDA investigation as a team workspace. The methodology (Turtiainen 2019) is the product. AI augments. Project membership is the access model.                                       |
 
 ---
 
-## 3. The Investigation Method
+## 5. The investigation method
 
-### Process Hub — Investigation in Organizational Context
+### 5.1 Four phases — investigation as navigation
 
-The planned Process Hub direction makes the process, line, queue, or business flow the default context. The Process Hub does not replace the investigation method. It collects multiple investigations around the same process so the process owner can see active work, ownership, planned changes, verification gaps, and sustainment/control decisions.
+The investigation journey is encoded in the workflow:
 
-Inside a Process Hub, investigations can be:
+| Phase           | Question                   | Lens                                                                                          | Surface                 |
+| --------------- | -------------------------- | --------------------------------------------------------------------------------------------- | ----------------------- |
+| **FRAME**       | What am I looking at?      | Column mapping, factor selection, outcome spec, process map                                   | Process tab (Edit mode) |
+| **SCOUT**       | Where does variation live? | Four Lenses (I-Chart, Boxplot, Pareto, Stats), linked filtering                               | Analyze tab             |
+| **INVESTIGATE** | Why is this happening?     | Hypothesis Wall, Measurement Plans, Evidence Map, three evidence types                        | Investigation tab       |
+| **IMPROVE**     | What do we do about it?    | Action tracker (simple by default), PDCA workbench (Advanced), sustainment + Cpk verification | Improve tab (top-level) |
+| **REPORT**      | What did we learn?         | Audience-adapted reports, audit trail, Sponsor-ready                                          | Report tab              |
 
-- **Quick** — a small local team issue with lightweight action and verification.
-- **Focused** — several checks or one mechanism branch.
-- **Chartered** — formal LSSGB/DMAIC-style work with sponsor, target, and report.
+Each phase serves a different purpose — discovery, understanding, verification.
+The same tool serves all phases; the surface changes the lens.
 
-This is how VariScout fits existing management systems: ERP, MES, QMS, CRM, and workflow tools remain systems of record; VariScout is the structured improvement layer that turns their data and the team's evidence into shared learning, verified change, and sustained control.
+### 5.2 Question-driven EDA — the methodological core
 
-Evidence Sources make that fit explicit. The process owner reviews recurring
-Snapshots in the hub; customer data teams or consultants provide exports to
-documented contracts; VariScout applies deterministic Data Profiles when it
-recognizes the source shape. VariScout does not build customer-specific
-integrations.
+The investigation starts from questions, not theories (Constitution §5).
+Multiple suspected causes are correct outcomes, not failures. The question
+tree tracks status: Open → Investigating → Answered / Ruled Out. Each answered
+question sharpens the problem statement.
 
-### Four Phases — Investigation as Navigation
+> "Don't search for the function first. Don't search for the equation first.
+> Search for which variables make a difference by contributing to the overall
+> explanation of variation and which ones don't." — MBB expert, March 29 2026
+> validation session.
 
-The investigation journey is encoded in the workspace tabs:
+That quote is VariScout in one sentence. Understand which variables
+contribute, then model. Not the other way around.
 
-| Phase           | Question                   | Lens                                                                                      | Workspace           |
-| --------------- | -------------------------- | ----------------------------------------------------------------------------------------- | ------------------- |
-| **FRAME**       | What am I looking at?      | Column mapping, factor selection, analysis brief                                          | Overview → Analysis |
-| **SCOUT**       | Where does variation live? | Four Lenses (I-Chart, Boxplot, Pareto, Stats), linked filtering                           | Analysis            |
-| **INVESTIGATE** | Why is this happening?     | Question tree, three evidence types, CoScout collaboration                                | Investigation       |
-| **IMPROVE**     | What do we do about it?    | Design thinking: synthesis → ideation → risk prioritization → PDCA actions → verification | Improvement         |
-| **REPORT**      | What did we learn?         | Knowledge capture, audit trail, audience-adapted reports                                  | Report              |
+### 5.3 Hypothesis-first or data-first — both first class
 
-Each phase serves a different purpose — discovery (where does variation live?), understanding (why is this factor significant?), and verification (did the fix work?). The same tool serves all phases; the workspace changes the lens.
+Two starting points converge on the same Investigation Wall:
 
-### Three Evidence Types — Investigation Beyond the Desk
+| Start                            | Path                                                                                                                                                                                         |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Data-first (exploratory)**     | Paste → explore in Analyze → notice patterns → create Findings → group into Hypotheses on the Wall                                                                                           |
+| **Hypothesis-first (deductive)** | Open Wall → create Hypothesis (no Findings yet) → add Measurement Plans → coordinate collection out-of-product → re-ingest data → Findings auto-link to Plans → Hypothesis status progresses |
 
-No variation problem is solved from a desk alone (Constitution §7):
-
-1. **Data evidence** — η², R²adj, ANOVA, Cpk. Automatic, computed from the dataset. The statistical engine is the authority.
-2. **Gemba evidence** — Go-and-see observations, photos from the process, site visits. The physical world provides context that data cannot.
-3. **Expert knowledge** — Team members contributing domain expertise, validating findings. The people who run the process know things the data doesn't show.
-
-These three types converge in the question tree: each question can be validated by data, gemba, or expert evidence. The investigation isn't complete until the evidence types corroborate.
-
-Teams can also upload organizational documents — SOPs, FMEAs, control plans, previous investigation reports — that become searchable context for CoScout. The AI draws on both the live investigation and the organization's accumulated process knowledge.
-
-### Question-Driven EDA (Turtiainen 2019)
-
-The investigation methodology is grounded in _"Mental Model for Exploratory Data Analysis Applications for Structured Problem-Solving"_ (LUT University, 2019), validated by nine Lean Six Sigma Master Black Belt experts across multiple industries.
-
-The core flow:
-
-```
-Issue Statement (vague)
-    → Questions generated from data + Factor Intelligence
-        → Findings (evidence-backed answers)
-            → Problem Statement (precise, actionable)
-                → Improvement actions with measured outcomes
-```
-
-- Investigation starts from questions, not theories (Constitution §5)
-- Multiple suspected causes are correct outcomes, not failures
-- The question tree tracks status: Open → Investigating → Answered / Ruled Out
-- Each answered question sharpens the problem statement
-
-This methodology works identically on manufacturing data (fill weight variation), healthcare data (patient wait times), service data (call handle times), government data (processing times), and any domain with repeated measurements and factors.
+The Measurement Plan sub-entity (per the V1 architecture spec §3.6, [Investigation Wall + Measurement Plans](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§36-investigation-wall--measurement-plans))
+supports recurring data collection without forcing a separate "Measure" stage.
 
 ---
 
-## 4. The Competitive Frame
+## 6. Pricing and access
 
-VariScout occupies a space that existing tools leave empty:
+### 6.1 The single SKU
 
-| Tool                   | What it does well                         | What it doesn't do                                                         |
-| ---------------------- | ----------------------------------------- | -------------------------------------------------------------------------- |
-| **Minitab / JMP**      | Computes statistical tests with precision | Doesn't guide which test to run or structure the investigation journey     |
-| **Power BI / Tableau** | Creates interactive dashboards            | Doesn't help investigate why or track questions to evidence-backed answers |
-| **Excel**              | Stores and charts data flexibly           | No investigation structure, no linked filtering, no evidence capture       |
-| **InfinityQS**         | Monitors production quality at scale      | Enterprise-heavy implementation, no question-driven investigation          |
-| **VariScout**          | **Guides structured investigation**       | The methodology is the product                                             |
+**VariScout** ships at **€120/month per Azure tenant.** Unlimited org users.
+Unlimited projects. Full analytical capability. Single billing path. Single
+sales conversation.
 
-### The Unique Combination
+Distributed via Azure Marketplace Managed Application — the customer deploys
+into their own Azure subscription, owns the data, owns the AI Foundry
+resources, owns the Blob storage. VariScout, the vendor, never touches
+customer data.
 
-No other tool combines all of these in one flow:
+### 6.2 The PWA as funnel
 
-1. **Structured EDA methodology** — question-driven investigation with a published, peer-reviewed foundation
-2. **Four simultaneous linked views** — I-Chart, Boxplot, Pareto, Stats with cross-chart filtering
-3. **Question-driven investigation** — questions generated from data, tracked to answers
-4. **Three evidence types** — data, gemba observations, and expert knowledge
-5. **AI collaboration** — CoScout explains, suggests, remembers, and points at charts. Teams upload SOPs, FMEAs, and process documents that CoScout searches during investigation — organizational knowledge becomes part of the conversation.
-6. **Design thinking for improvement** — Improvement actions emerge through structured ideation: synthesis of root causes, idea generation and grouping, risk-based prioritization (3×3 matrix), and conversion to tracked PDCA actions. The creative problem-solving is as structured as the analytical investigation.
-7. **Measured improvement** — Cpk before/after, verified outcomes, organizational knowledge
+The free PWA stays. Same charts, same methodology, same investigation
+structure — session-only storage, no file upload, no CoScout. It teaches
+structured investigation. The "magic moment" of linked filtering happens on
+the free tier without paywall friction. When the analyst hits the natural
+ceiling ("I need to save this. I need my team in here. I need the AI to
+explain this."), the Azure product is one Marketplace click away.
 
-### The Core Differentiator
+The PWA is not a degraded paid product. It is a learning tool by design.
 
-Most tools assume the practitioner already knows what to look for. VariScout guides the investigation from "something's wrong" to "here's proof it's fixed." The methodology does the structuring so the analyst can focus on thinking.
+### 6.3 Why a single SKU
 
----
+Per [ADR-082](../07-decisions/adr-082-wedge-architecture.md), the V1
+go-to-market collapses the prior Standard / Team tier split into one price.
+Reasons:
 
-## 5. Audience-Specific Messaging
+- **Sales conversation is one sentence.** "€120/month, Azure tenant-wide,
+  invite your team per project." No tier decision moment.
+- **Customer success doesn't need plan-mapping.** Every customer is on the
+  same surface; support is consistent.
+- **Engineering doesn't carry tier-gating UX.** ~28 files of `isPaidTier()` /
+  `hasTeamFeatures()` retire.
+- **Per-deployment pricing honors ADR-033 H6.** €120 is still per-deployment
+  — collaboration is unpenalized.
 
-| Audience                 | What they care about                              | Lead with                                                                                                                                      |
-| ------------------------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Business leader**      | "My process isn't performing. Why?"               | Guides you from concern to measured result — no statistics degree needed. Paste your data, see where problems are, investigate with your team. |
-| **Quality engineer**     | "I need more than Excel but less than Minitab"    | Four Lenses with linked filtering. Question-driven investigation. Unlimited users from €79/month.                                              |
-| **OpEx / LSS leader**    | "I need tools for my team's improvement projects" | PDCA built into the investigation flow. Three evidence types. Team collaboration. AI knowledge that accumulates across projects.               |
-| **Trainer / consultant** | "I need a tool that teaches the methodology"      | Free PWA teaches structured EDA — same methodology, same lenses. The guided investigation builds statistical intuition.                        |
-| **IT / Procurement**     | "Is this safe? Is it worth it?"                   | Zero admin-consent permissions. Customer-owned data in their Azure tenant. Browser-based, offline-capable. Unlimited users per deployment.     |
-
-### Audience-Journey Mapping
-
-| Audience             | Entry point           | First experience                                                                | Upgrade trigger                           |
-| -------------------- | --------------------- | ------------------------------------------------------------------------------- | ----------------------------------------- |
-| **Business leader**  | Direct link, referral | Paste data → see where variation lives → understand the investigation structure | "My team needs to do this systematically" |
-| **Quality engineer** | Google, LinkedIn      | PWA with sample data → linked filtering "magic moment" → own data               | "I need to save this and come back to it" |
-| **OpEx leader**      | Referral, case study  | Team demo → see investigation + improvement flow → pilot project                | "This captures the full PDCA cycle"       |
-| **Trainer**          | LinkedIn, conference  | PWA in training session → students learn through guided investigation           | "I want to embed this in my curriculum"   |
+Access control moves _inside_ the product as project-membership ACLs. See
+[Membership Philosophy](../08-products/membership-philosophy.md).
 
 ---
 
-## 6. The Product Ladder
+## 7. Audience-specific messaging
 
-The positioning flows through product tiers as ascending levels of investigation capability:
-
-| Tier                  | Role in the story              | What it proves                                                                                                                                          |
-| --------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PWA (Free)**        | Learn structured investigation | The methodology works on any data. The Four Lenses reveal what Excel can't. Guided frustration builds statistical intuition. The struggle is the point. |
-| **Standard (€79/mo)** | Do it professionally           | Save investigations. Full analysis suite with all modes. AI assists the investigation. Persistence between sessions. Up to 6 factors, 250K rows.        |
-| **Team (€199/mo)**    | Do it as an organization       | Shared investigations. Gemba photos from the floor. Knowledge base that accumulates. AI that remembers what worked across projects. Unlimited users.    |
-
-### Upgrade Triggers
-
-The upgrade isn't about features — it's about **scale of impact**:
-
-- **Free → Standard**: "I want to save this investigation and come back to it." The analyst hits the PWA's session-only limitation after their first real investigation.
-- **Standard → Team**: "My team needs to see this. The operator on the floor needs to add their observations." The investigation outgrows a single analyst.
-
-AI features (NarrativeBar, ChartInsightChips, CoScout) are included in all Azure plans — the customer deploys their own Azure AI Foundry resources. The Team plan adds the Knowledge Base layer that turns individual investigations into organizational learning.
+| Audience                  | What they care about                            | Lead with                                                                                                                                                           |
+| ------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Project lead (BB/MBB)** | "I run improvement projects with my team"       | Charter to Sustainment lifecycle. Invite Members + Sponsor. Investigation Wall with Measurement Plans. Cpk before/after proves the fix. €120/mo, unlimited team.    |
+| **Quality engineer (GB)** | "I need more than Excel, less than Minitab"     | Four Lenses with linked filtering. Question-driven investigation. Capability + control limits. €120/mo Azure tenant-wide.                                           |
+| **CI / OpEx lead**        | "I need a tool for the team's improvement work" | One product everyone can use. PDCA in the Improve tab. Three evidence types. Knowledge Catalyst accumulates across projects.                                        |
+| **Trainer / consultant**  | "I need a tool that teaches the methodology"    | Free PWA teaches structured EDA — same methodology, same lenses. The guided investigation builds statistical intuition.                                             |
+| **Sponsor / Champion**    | "Did the project work? What did we learn?"      | Report-only access. Cpk delta, action completion, sustainment evidence. Signoff out-of-band at V1; full audit trail in the Report.                                  |
+| **IT / Procurement**      | "Is this safe? Customer-owned? One vendor?"     | Azure Marketplace Managed Application. Customer-owned data + customer-deployed AI Foundry. Zero admin-consent permissions. One SKU, one billing path, no surprises. |
 
 ---
 
-## 7. The Knowledge Flywheel
+## 8. Two products on a roadmap
 
-### The Long-Term Moat (H9)
+V1 is **VariScout**: the project tool an improvement specialist invites their
+team to. €120/mo, Azure tenant-wide, project-membership ACLs.
 
-> After 50+ resolved findings, CoScout has genuine organizational knowledge. "Last time this happened on Line 3, we changed the nozzle spacing and Cpk went from 0.6 to 1.4."
+A future second product, **VariScout Process**, addresses a distinct customer
+— enterprises with ongoing process ownership across multiple lines or sites,
+needing automated data pipelines, multi-persona routing (Process Owner /
+Project Lead / SME / Frontline), and Hub-portfolio orchestration. Different
+audience. Different unit economics. Different sales motion.
 
-### How It Works
+VariScout Process is **not announced in V1 marketing**. It is named in this
+positioning doc because the team building VariScout needs to know what V1
+defers without losing — and so customers asking "do you handle the
+process-ownership use case?" hear a coherent answer ("not in V1; we're
+building that as a separate product"). When V1 reaches 500+ customer
+validation, VariScout Process becomes the expansion story.
 
-1. **Team investigates** — questions generated, evidence gathered, findings carry Cpk values and verified outcomes (not subjective RPN scores)
-2. **Findings resolve** — resolved findings feed the knowledge base with measurement-backed outcomes
-3. **Next investigation** — CoScout suggests based on organizational history, not just current data
-4. **Improvement measured** — Cpk before/after proves the fix worked. Knowledge is verified, not assumed.
+What V1 explicitly defers to VariScout Process:
 
-### Why This Is Defensible
+- Process Hub as a user-visible primary container (V1 keeps Hub internal-only)
+- 4-persona routing + persona-adaptive Home variants
+- Automated data pipelines (sensor / SCADA / ERP feeds)
+- Multi-Hub portfolio scans + cross-Hub orchestration
+- Process-owner cadence monitoring as a separate surface
+- Cross-Azure-AD-tenant invitations (V1 enforces tenant boundary as a privacy
+  feature)
 
-- **Customer-owned**: Knowledge stays in the customer's Azure tenant. No vendor lock-in on data.
-- **Measurement-backed**: Traditional FMEA uses subjective 1-10 RPN scores. VariScout findings carry actual Cpk values and verified outcomes.
-- **Investigation-structured**: Knowledge isn't raw documents — it's question → evidence → conclusion → outcome chains, enriched by uploaded SOPs and FMEAs that provide organizational context.
-- **Accumulating**: Each resolved finding makes the next investigation faster. The moat deepens with usage.
-
-### The Flywheel
-
-```
-Structured investigation
-    → Evidence-backed findings
-        → Measured improvement (Cpk before/after)
-            → Knowledge base grows
-                → AI suggests from history
-                    → Next investigation is faster
-                        → More resolved findings
-                            → Deeper knowledge
-```
-
-No competitor captures the full PDCA cycle with verified outcomes feeding an AI knowledge base.
+These aren't lost. They are deferred to the customer who actually needs them.
 
 ---
 
-## 8. Methodology as Brand
+## 9. The Knowledge flywheel
 
-### The Academic Foundation
+The long-term moat is organizational knowledge measured by improvement
+outcomes, not subjective scores.
 
-VariScout's investigation methodology is grounded in published, peer-reviewed academic research:
+> After 50+ resolved findings in a tenant, CoScout has genuine organizational
+> memory: "Last time variation spiked on Line 3, the team changed nozzle
+> spacing and Cpk went from 0.6 to 1.4." That memory is durable, vendor-locked
+> only by methodology fit, and grows monotonically with project completion.
 
-- **Turtiainen (2019)**: _"Mental Model for Exploratory Data Analysis Applications for Structured Problem-Solving"_ — Master's thesis, LUT University. Validated by nine Lean Six Sigma Master Black Belt experts across manufacturing, healthcare, and service industries.
-- **Builds on**: Shewhart's control charts (1924), Tukey's Exploratory Data Analysis (1977), Juran's Pareto principle (1950s), Watson's structured EDA approach (2015).
-- **The methodology is published and peer-reviewed.** The product is the implementation.
+How it accumulates:
 
-### Expert Validation
+1. **Team investigates** — questions generated, evidence gathered, findings
+   carry Cpk values and verified outcomes (not subjective RPN scores).
+2. **Project closes** — Sustainment verifies the fix held. The Report
+   captures the chain: question → evidence → conclusion → action → outcome.
+3. **Next investigation** — CoScout suggests from the tenant's history, not
+   from generic best practices.
+4. **Improvement compounds** — each closed project makes the next faster.
+
+Why it's defensible:
+
+- **Customer-owned.** Knowledge stays in the customer's tenant. No vendor
+  lock-in on the data layer.
+- **Measurement-backed.** Traditional FMEA uses subjective 1–10 RPN scores.
+  VariScout findings carry actual Cpk values and verified outcomes.
+- **Investigation-structured.** Knowledge isn't raw documents — it's
+  question → evidence → conclusion → outcome chains, enriched by uploaded
+  SOPs and FMEAs that provide organizational context.
+- **Accumulating.** Each resolved finding makes the next investigation
+  faster. The moat deepens with usage.
+
+No competitor captures the full PDCA cycle with verified outcomes feeding an
+AI knowledge layer.
+
+---
+
+## 10. Methodology as brand
+
+### The academic foundation
+
+VariScout's investigation methodology is grounded in published, peer-reviewed
+academic research:
+
+- **Turtiainen (2019)**: _"Mental Model for Exploratory Data Analysis
+  Applications for Structured Problem-Solving"_ — Master's thesis, LUT
+  University. Validated by nine Lean Six Sigma Master Black Belt experts
+  across manufacturing, healthcare, and service industries.
+- **Builds on**: Shewhart's control charts (1924), Tukey's Exploratory Data
+  Analysis (1977), Juran's Pareto principle (1950s), Watson's structured EDA
+  approach (2015).
+- **The methodology is published and peer-reviewed.** The product is the
+  implementation.
+
+### Expert validation
 
 The March 29, 2026 expert testing sessions demonstrated that:
 
-1. The question-driven investigation methodology works on non-manufacturing data (visitor/tourism) without modification
+1. The question-driven investigation methodology works on non-manufacturing
+   data (visitor / tourism) without modification
 2. An MBB expert naturally follows the investigation flow without coaching
 3. The Four Lenses generate questions that lead to deeper investigation
-4. The probability plot serves as a process diagnostic tool (inflection points = process transitions, steepness = capability)
+4. The probability plot serves as a process diagnostic tool (inflection points
+   = process transitions, steepness = capability)
 
-Key teaching from the sessions:
+### The brand proposition
 
-> "Don't search for the function first. Don't search for the equation first. Search for which variables make a difference by contributing to the overall explanation of variation and which ones don't. So that's best subsets regression. That's what you teach first."
+VariScout is the only tool that ships a validated EDA investigation
+methodology as a product. The investigation structure is not a feature bolted
+onto a chart tool — it is the product. The charts, the AI, the collaboration,
+the knowledge base all serve the investigation.
 
-This teaching progression — understanding before modeling, variables before functions — is the design philosophy behind VariScout's Factor Intelligence and progressive stratification.
+The methodology works on any data with repeated measurements and factors.
+Manufacturing, healthcare, logistics, government services, education — the
+questions are different, the investigation structure is the same.
 
-### The Brand Proposition
-
-VariScout is the only tool that implements a validated EDA methodology as a product. The investigation structure is not a feature bolted onto a chart tool — it is the product. The charts, the AI, the collaboration, the knowledge base all serve the investigation.
-
-The methodology works on any data with repeated measurements and factors. Manufacturing, healthcare, logistics, government services, education — the questions are different, the investigation structure is the same.
-
-**The methodology is the brand. The investigation is the product. The knowledge is the moat.**
+**The methodology is the brand. The investigation is the product. The
+knowledge is the moat.**
