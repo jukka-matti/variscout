@@ -141,12 +141,88 @@ Total: ~3-5 days from audit kick-off to PR 5 merge.
 
 ## Triage table
 
-TBD — populated by PR 2 audit dispatch. Format:
+**Audit completed 2026-05-17** via 8 parallel Explore agents. Raw aggregate: ~1800 hits across ~200 files (with overlap; many files have hits across multiple stale-pattern categories).
 
-```
-| file | line | pattern | bucket | proposed action | rationale |
-| ---- | ---- | ------- | ------ | --------------- | --------- |
-```
+### Per-vector aggregate
+
+| #   | Vector                                        | Raw hits | Files | KEEP | AMEND                                       | ARCHIVE                             | DELETE                                     |
+| --- | --------------------------------------------- | -------- | ----- | ---- | ------------------------------------------- | ----------------------------------- | ------------------------------------------ |
+| 1   | Multi-tier pricing (€79/€199/Standard/Team)   | 522      | 161   | 87   | ~186 in ~170 files                          | ~200 hits across ~22 files          | 0                                          |
+| 2   | Retired tier-gating symbols (isPaidTier etc.) | 154      | 35    | ~110 | ~40 across ~12 files                        | 2 (already archived; no action)     | 0                                          |
+| 3   | SharePoint / OneDrive / ADRs 026+030          | ~420     | ~90   | ~18  | ~200-250 across 30-40 files                 | 0 new (all 16 already in /archive/) | 0                                          |
+| 4   | Teams SDK references                          | 75       | 34    | 27   | 7                                           | 0                                   | 1 section (architecture.md §12, ~77 lines) |
+| 5   | 4-persona model                               | 105      | 20    | 85   | 4                                           | 1 (coherence design)                | 3 lines (legacy "10 personas")             |
+| 6   | 6-tab nav + 4-stage Project                   | 20       | 10    | 13   | 5                                           | 0                                   | 0                                          |
+| 7   | Handoff stage                                 | 438      | 45    | ~100 | ~30                                         | ~145 lines across ~13 files         | 0                                          |
+| 8   | "Wedge" word in customer-facing docs          | 82       | 20    | 11   | 71 (mostly link-display + frontmatter tags) | 0                                   | 0                                          |
+
+### ARCHIVE candidates (whole-file — needs explicit user approval)
+
+These ~25-30 files should move to `docs/archive/<subfolder>/` with supersession headers pointing to current truth. Per `feedback_consolidation_replace_not_umbrella`: archive over delete.
+
+**Pre-wedge specs (~20 files):**
+
+- `docs/superpowers/specs/2026-05-14-variscout-coherence-design.md` (Sessions A/B/C — already marked SUPERSEDED in header; physical move)
+- `docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md` (5-path RPS; reduced to 3 by wedge)
+- `docs/superpowers/plans/2026-05-09-response-path-system-v1.md` (5-path implementation)
+- `docs/superpowers/plans/2026-05-14-projects-tab-foundation.md` (4-stage IP detail; amended by wedge to 3)
+- `docs/superpowers/plans/2026-05-07-canvas-pr8-8a-mode-aware-ctas.md` (5-path CTA wiring)
+- `docs/superpowers/specs/2026-05-08-improvement-project-v1-design.md` (already marked SUPERSEDED)
+- `docs/superpowers/plans/2026-05-08-improvement-project-v1.md` (impl of superseded spec)
+- `docs/superpowers/specs/2026-05-03-variscout-vision-design.md` (pre-wedge full vision)
+- `docs/superpowers/specs/2026-04-29-consolidated-method-and-surface-overview-design.md`
+- `docs/superpowers/specs/2026-05-04-canvas-migration-design.md`
+- `docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2.md`
+- `docs/superpowers/plans/2026-05-06-data-flow-foundation-f1-f2-audit.md`
+- `docs/superpowers/plans/2026-05-06-canvas-pr4c-pr6-followup.md`
+- `docs/superpowers/plans/2026-04-27-actionable-current-process-state-panel-plan.md`
+- `docs/superpowers/specs/2026-04-02-knowledge-tab-design.md` (KB deferred to Process)
+- `docs/superpowers/specs/2026-03-30-holistic-evaluation-vqi.md`
+- `docs/superpowers/specs/2026-03-24-adr049-evaluation-report.md`
+- `docs/superpowers/specs/2026-03-17-documentation-methodology-upgrade-design.md`
+- `docs/superpowers/specs/2026-03-24-coscout-knowledge-catalyst-design.md`
+- `docs/superpowers/specs/2026-03-22-mobile-ux-improvements-design.md`
+- `docs/superpowers/specs/2026-03-19-knowledge-base-folder-search-design.md`
+- `docs/superpowers/specs/2026-03-17-teams-compliance-audit.md`
+- `docs/superpowers/specs/2026-03-16-ai-integration-evaluation.md`
+- `docs/superpowers/specs/2026-04-02-web-first-implementation-design.md`
+- `docs/superpowers/specs/2026-04-02-web-first-deployment-architecture-design.md`
+- `docs/superpowers/specs/2026-04-03-hmw-brainstorm-modal-design.md`
+- `docs/superpowers/specs/2026-03-22-sharing-continuity-design.md`
+- `docs/superpowers/specs/2026-03-22-teams-entry-experience-design.md`
+
+**Pre-wedge ADRs (1 file, decision-history candidate):**
+
+- `docs/07-decisions/adr-033-pricing-simplification.md` — superseded by ADR-082; move to `docs/archive/adrs/`
+
+**Pre-wedge product docs (1 file):**
+
+- `docs/08-products/azure/pricing-tiers.md` — entire two-tier pricing doc
+
+**Pre-wedge technical architecture (1 file):**
+
+- `docs/05-technical/architecture/tier-gating.md` — entire tier-gating API reference; obsolete post-wedge
+
+### DELETE candidates (rare — section/line-level only)
+
+- `docs/05-technical/architecture.md` lines 640–716 (Section 12 "Teams SDK Integration") — orphaned ~77-line spec describing OBO token exchange + Teams context detection, all removed by ADR-059
+- `docs/superpowers/plans/2026-04-17-agent-docs-architecture-phase1-foundation.md` lines 1004, 1024, 1382 — legacy "10 personas" (education funnel artifact, not product UX)
+- `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md` lines 37, 100 — same "10 personas" legacy
+
+### AMEND batches (PR 3 work) — organized by stale-pattern category
+
+PR 3 implementer dispatches surgical edits across these 8 categories. Detailed file:line targets per category come from the 8 audit reports (preserved in session memory; implementer re-runs targeted greps to confirm).
+
+| Batch                                                                                                        | Approx files | Stale pattern → current truth replacement |
+| ------------------------------------------------------------------------------------------------------------ | ------------ | ----------------------------------------- |
+| A — pricing strings (€79/€199 → €120, "Standard plan" → "single SKU")                                        | ~80-100      | Per audit 1                               |
+| B — retired symbol refs (isPaidTier → canAccess / projectMembership)                                         | ~12-15       | Per audit 2                               |
+| C — SharePoint refs (add "Deferred per ADR-060" markers for KB; ADR-004/ADR-023 citations for OneDrive sync) | ~30-40       | Per audit 3                               |
+| D — Teams SDK refs (add retirement markers per ADR-059)                                                      | ~7           | Per audit 4                               |
+| E — 4-persona model link adds (cite wedge spec §3.5; "Process only" disambiguators)                          | ~4           | Per audit 5                               |
+| F — 6-tab nav → 7-tab + 3-stage Project clarifications                                                       | ~5           | Per audit 6                               |
+| G — Handoff stage scope headers (Process docs clarification + wedge supersession notes on shipped specs)     | ~10          | Per audit 7                               |
+| H — "Wedge" word → "V1" / "V1 pivot" + frontmatter tag removal                                               | ~20          | Per audit 8                               |
 
 ## Followups from this plan's audit findings
 
