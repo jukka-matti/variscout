@@ -92,9 +92,12 @@ const VALID_PRINCIPAL = Buffer.from(
 let request: ReturnType<typeof supertest>;
 
 beforeAll(async () => {
-  // Set env vars so module-level constants in server.js have correct values
+  // Set env vars so module-level constants in server.js have correct values.
+  // Single-SKU: server.js still reads VITE_VARISCOUT_PLAN internally for KB routing;
+  // set to the full-feature value so KB endpoints are accessible in all tests.
+  // The VITE_VARISCOUT_PLAN concept retires with server.js cleanup in a follow-up PR.
   process.env.NODE_ENV = 'test';
-  process.env.VITE_VARISCOUT_PLAN = 'standard';
+  process.env.VITE_VARISCOUT_PLAN = 'team';
   process.env.STORAGE_ACCOUNT_NAME = 'teststorage';
   process.env.STORAGE_CONTAINER_NAME = 'test-container';
   // Use connection string path so we avoid DefaultAzureCredential flow
@@ -196,59 +199,9 @@ describe('POST /api/storage-token — auth validation', () => {
   });
 });
 
-// ── Team Tier Enforcement ────────────────────────────────────────────────────
-
-describe('KB endpoints — team plan enforcement (VITE_VARISCOUT_PLAN=standard)', () => {
-  // plan is already 'standard' from beforeAll; these calls supply auth header
-
-  it('POST /api/kb-upload with auth but non-team plan → 403', async () => {
-    const res = await request
-      .post('/api/kb-upload')
-      .set('x-ms-client-principal', VALID_PRINCIPAL)
-      .field('projectId', VALID_UUID);
-    expect(res.status).toBe(403);
-    const body = JSON.parse(res.text);
-    expect(body.error).toMatch(/team plan/i);
-  });
-
-  it('POST /api/kb-search with auth but non-team plan → 403', async () => {
-    const res = await request
-      .post('/api/kb-search')
-      .set('x-ms-client-principal', VALID_PRINCIPAL)
-      .send({ projectId: VALID_UUID, query: 'quality control' });
-    expect(res.status).toBe(403);
-    const body = JSON.parse(res.text);
-    expect(body.error).toMatch(/team plan/i);
-  });
-
-  it('GET /api/kb-list with auth but non-team plan → 403', async () => {
-    const res = await request
-      .get(`/api/kb-list?projectId=${VALID_UUID}`)
-      .set('x-ms-client-principal', VALID_PRINCIPAL);
-    expect(res.status).toBe(403);
-  });
-
-  it('DELETE /api/kb-delete with auth but non-team plan → 403', async () => {
-    const res = await request
-      .delete('/api/kb-delete')
-      .set('x-ms-client-principal', VALID_PRINCIPAL)
-      .send({ projectId: VALID_UUID, documentId: VALID_UUID, fileName: 'test.pdf' });
-    expect(res.status).toBe(403);
-  });
-});
-
 // ── UUID Validation ──────────────────────────────────────────────────────────
-// Temporarily switch to team plan to reach UUID validation logic
 
 describe('UUID validation on KB endpoints', () => {
-  beforeAll(() => {
-    process.env.VITE_VARISCOUT_PLAN = 'team';
-  });
-
-  afterAll(() => {
-    process.env.VITE_VARISCOUT_PLAN = 'standard';
-  });
-
   it('POST /api/kb-search with invalid projectId → 400 with message', async () => {
     const res = await request
       .post('/api/kb-search')
@@ -293,15 +246,10 @@ describe('UUID validation on KB endpoints', () => {
   });
 });
 
-// ── Happy Paths (team plan + mocked Blob) ───────────────────────────────────
+// ── Happy Paths (mocked Blob) ────────────────────────────────────────────────
 
-describe('KB happy paths with team plan + mocked Blob Storage', () => {
-  beforeAll(() => {
-    process.env.VITE_VARISCOUT_PLAN = 'team';
-  });
-
+describe('KB happy paths with mocked Blob Storage', () => {
   afterAll(() => {
-    process.env.VITE_VARISCOUT_PLAN = 'standard';
     vi.clearAllMocks();
   });
 
@@ -372,14 +320,6 @@ describe('KB happy paths with team plan + mocked Blob Storage', () => {
 // ── Missing required fields ──────────────────────────────────────────────────
 
 describe('KB endpoints — missing required fields', () => {
-  beforeAll(() => {
-    process.env.VITE_VARISCOUT_PLAN = 'team';
-  });
-
-  afterAll(() => {
-    process.env.VITE_VARISCOUT_PLAN = 'standard';
-  });
-
   it('POST /api/kb-search without query → 400', async () => {
     const res = await request
       .post('/api/kb-search')
