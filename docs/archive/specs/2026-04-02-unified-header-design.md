@@ -12,6 +12,8 @@ supersedes: 2026-04-01-header-redesign-design.md (extends Phase 2)
 
 # Unified Header — App + Project Merge
 
+> 🔄 **Supersedes** `2026-04-01-header-redesign-design.md` (extends Phase 2 header redesign).
+
 Merge the App header (56px) and ProjectHeader (44px) into a single adaptive 44px bar. Eliminate the Save button in favor of auto-save with file-name-based auto-naming. Move user/logout/admin into the Settings panel.
 
 ## Problem

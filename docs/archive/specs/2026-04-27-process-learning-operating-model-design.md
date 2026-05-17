@@ -27,6 +27,8 @@ date: 2026-04-27
 
 # Process Learning Operating Model
 
+> ⚠️ **SUPERSEDED** by [VariScout Product Vision (2026-05-03)](../specs/2026-05-03-variscout-vision-design.md). Historical record only.
+
 ## Summary
 
 VariScout should be designed as a process learning system, not as a collection

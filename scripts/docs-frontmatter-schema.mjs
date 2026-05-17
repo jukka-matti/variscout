@@ -123,6 +123,33 @@ export const schema = {
   },
 };
 
+// === Doc-discipline constants (Phase 2 — Play 2b) ===
+// Loaded by check-doc-frontmatter.mjs; kept here so the validator + toolbox
+// scripts share a single source of truth.
+
+// Anti-pattern filename glob: forbidden under docs/superpowers/specs/.
+// (Archive dir is exempt because the file is no longer canonical-claimant.)
+export const ANTI_PATTERN_FILENAME_RE = /(-amendment-|-revision-|-update-|-followup-).*\.md$/;
+export const ANTI_PATTERN_SCOPE_PREFIX = 'docs/superpowers/specs/';
+
+// Banner-presence checks: lenient regex against first BANNER_BODY_LINES of body.
+// Matches markdown blockquote lines that mention the status keyword.
+export const BANNER_BODY_LINES = 15;
+export const SUPERSEDED_BANNER_RE = /^>.*\b(SUPERSEDED|Superseded|superseded)\b/m;
+export const ARCHIVED_BANNER_RE = /^>.*\b(ARCHIVED|Archived|archived)\b/m;
+export const DELIVERED_BANNER_RE = /^>.*\b(Delivered|DELIVERED|delivered)\b/m;
+
+// Canonical edit-type vocabulary for decision-log entries (consumed by T2 + T3).
+// Match exactly (case-sensitive) per discipline doc.
+export const EDIT_TYPES = [
+  'spec edit',
+  'ADR amendment',
+  'new ADR',
+  'supersession',
+  'archived',
+  'new spec',
+];
+
 // === Path classifier ===
 // Updated for Play 1 new folder structure.
 // Old paths are kept for backward-compat during transition.

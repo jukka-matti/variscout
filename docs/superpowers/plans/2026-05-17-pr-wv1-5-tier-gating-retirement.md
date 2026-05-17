@@ -5,7 +5,7 @@ last-reviewed: 2026-05-17
 parent: docs/superpowers/plans/2026-05-16-wedge-implementation.md
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
-  - docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md
+  - docs/archive/specs/2026-05-16-improve-tab-amendment-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
   - docs/superpowers/plans/2026-05-16-pr-wv1-4-canvas-paths-persona-deletion.md
 ---
@@ -14,7 +14,7 @@ related:
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` to implement this plan task-by-task. Sonnet for implementer + reviewers; Opus for the final-branch code review only. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Retire `isPaidTier()` / `hasTeamFeatures()` and the related tier/plan gating across the codebase (~33 source files post-WV1-4) under the wedge V1 single €99 SKU. Keep channel-limit constants but drop the tier dimension. Reorder + rename the 7-tab nav to the amended workflow order — `Home · Project · Process · Analyze · Investigation · Improve · Report` — with renames (Overview→Home, Frame→Process, Analysis→Analyze, Projects→**Project** singular). **Improve tab is preserved** as a top-level verb tab per the 2026-05-16 amendment (`docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`); only reorder + renames apply.
+**Goal:** Retire `isPaidTier()` / `hasTeamFeatures()` and the related tier/plan gating across the codebase (~33 source files post-WV1-4) under the wedge V1 single €99 SKU. Keep channel-limit constants but drop the tier dimension. Reorder + rename the 7-tab nav to the amended workflow order — `Home · Project · Process · Analyze · Investigation · Improve · Report` — with renames (Overview→Home, Frame→Process, Analysis→Analyze, Projects→**Project** singular). **Improve tab is preserved** as a top-level verb tab per the 2026-05-16 amendment (`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`); only reorder + renames apply.
 
 **Architecture:** Wedge V1 sells one SKU at €99/mo. All previously-tier-gated features become always-on for every customer. Where the gating was a stand-in for role-based access (e.g., signoff, audit, RACI), it switches to `canAccess(userId, members, action)` from PR-WV1-1. Where it gated genuine team-licensing features (cloud sync, knowledge base, AI multi-author), the gating just deletes — those features become baseline. The nav reorder lands Project in slot 2 (active-IP entry point, cascade root) and keeps Improve between Investigation and Report per the amendment's verb-tab pattern.
 
@@ -804,7 +804,7 @@ git push origin feat/wedge-pr-wv1-5-tier-gating
 gh pr create --title "feat(wedge): PR-WV1-5 — tier-gating retirement + nav reorder" --body "$(cat <<'EOF'
 ## Summary
 
-Retire `isPaidTier()` / `hasTeamFeatures()` and the tier/plan gating across the codebase (33 files post-WV1-4) under the wedge V1 single €99 SKU. Reorder + rename the 7-tab nav to amended workflow order Home · Project · Process · Analyze · Investigation · Improve · Report (per `docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`).
+Retire `isPaidTier()` / `hasTeamFeatures()` and the tier/plan gating across the codebase (33 files post-WV1-4) under the wedge V1 single €99 SKU. Reorder + rename the 7-tab nav to amended workflow order Home · Project · Process · Analyze · Investigation · Improve · Report (per `docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`).
 
 ## What changed
 
@@ -818,7 +818,7 @@ Retire `isPaidTier()` / `hasTeamFeatures()` and the tier/plan gating across the 
 - Cloud sync, Knowledge Base, AI multi-author, photo handlers, branding: all baseline.
 - B-class role-based access (publish, edit-improve) replaced with `canAccess(userId, members, action)` from PR-WV1-1.
 
-**Nav (Azure + PWA) — per 2026-05-16 amendment (`docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`):**
+**Nav (Azure + PWA) — per 2026-05-16 amendment (`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`):**
 - 7 tabs preserved; renames + reorder only.
 - Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project (singular).
 - Improve tab **kept** as top-level verb tab (active-IP cascade); moves between Investigation and Report.

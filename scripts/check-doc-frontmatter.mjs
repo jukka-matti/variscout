@@ -16,6 +16,11 @@ import {
   AUDIENCE_ALIAS_MAP,
   PURPOSE,
   TIER,
+  ANTI_PATTERN_FILENAME_RE,
+  ANTI_PATTERN_SCOPE_PREFIX,
+  SUPERSEDED_BANNER_RE,
+  ARCHIVED_BANNER_RE,
+  BANNER_BODY_LINES,
 } from './docs-frontmatter-schema.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -23,6 +28,28 @@ const DOCS = join(ROOT, 'docs');
 const CUTOFF_DATE = process.env.CUTOFF_DATE ?? '2026-05-15';
 const TODAY = new Date().toISOString().slice(0, 10);
 const REPORT_MODE = process.argv.includes('--report');
+
+// === Allowlist loader ===
+// .docs-discipline-allowlist at repo root. One path per line; # comments skipped.
+// Listed paths are exempt from the filename + banner checks.
+
+function loadAllowlist() {
+  const file = join(ROOT, '.docs-discipline-allowlist');
+  try {
+    const src = readFileSync(file, 'utf8');
+    const set = new Set();
+    for (const raw of src.split('\n')) {
+      const line = raw.trim();
+      if (!line || line.startsWith('#')) continue;
+      set.add(line);
+    }
+    return set;
+  } catch {
+    return new Set();
+  }
+}
+
+const ALLOWLIST = loadAllowlist();
 
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
@@ -41,6 +68,16 @@ function extractFrontmatter(src) {
   return src.slice(4, end);
 }
 
+function extractBodyHead(src, lineCount) {
+  // Skip frontmatter block; return first lineCount lines of body, joined.
+  let body = src;
+  if (src.startsWith('---\n') || src.startsWith('---\r\n')) {
+    const end = src.indexOf('\n---', 4);
+    if (end >= 0) body = src.slice(end + 4); // past trailing '\n'
+  }
+  return body.split('\n').slice(0, lineCount).join('\n');
+}
+
 function asArray(v) {
   return Array.isArray(v) ? v : v == null ? [] : [v];
 }
@@ -51,6 +88,9 @@ const violations = {
   unknownEnum: [],
   casingDrift: [],
   malformedYaml: [],
+  antiPatternFilename: [],
+  missingSupersededBanner: [],
+  missingSupersedesBanner: [],
   // Warnings (old-value aliases) — don't fail the build
   aliasedStatus: [],
   aliasedAudience: [],
@@ -62,6 +102,20 @@ const violations = {
 function check(file) {
   const rel = relative(ROOT, file);
   const src = readFileSync(file, 'utf8');
+
+  // Anti-pattern filename HARD-FAIL (skip if allowlisted). Runs first because
+  // it doesn't depend on frontmatter being present.
+  if (
+    rel.startsWith(ANTI_PATTERN_SCOPE_PREFIX) &&
+    ANTI_PATTERN_FILENAME_RE.test(rel) &&
+    !ALLOWLIST.has(rel)
+  ) {
+    violations.antiPatternFilename.push(
+      `${rel}: anti-pattern filename. Edit the canonical spec in place + add a decision-log entry. See docs/agent-context/doc-discipline.md §Anti-patterns. If genuinely intentional (rare), add the path to .docs-discipline-allowlist with rationale.`,
+    );
+    // Don't return — still validate the rest so the implementer sees all issues at once.
+  }
+
   const rawFm = extractFrontmatter(src);
   const kind = classify(rel);
   const rules = schema[kind];
@@ -141,6 +195,35 @@ function check(file) {
   if (fm['tier'] == null || fm['tier'] === '') {
     violations.missingTier.push(rel);
   }
+
+  // Banner checks (skip if allowlisted).
+  if (!ALLOWLIST.has(rel)) {
+    const bodyHead = extractBodyHead(src, BANNER_BODY_LINES);
+    if (fm.status === 'superseded' && !SUPERSEDED_BANNER_RE.test(bodyHead)) {
+      violations.missingSupersededBanner.push(
+        `${rel}: status=superseded but no '> SUPERSEDED ...' banner in first ${BANNER_BODY_LINES} body lines. See docs/agent-context/doc-discipline.md §Reader-first banners.`,
+      );
+    }
+    if (fm.status === 'archived' && !ARCHIVED_BANNER_RE.test(bodyHead)) {
+      violations.missingSupersededBanner.push(
+        `${rel}: status=archived but no '> ARCHIVED ...' banner in first ${BANNER_BODY_LINES} body lines.`,
+      );
+    }
+    const supersedesList = asArray(fm.supersedes).filter(Boolean);
+    if (supersedesList.length > 0) {
+      const head = bodyHead.toLowerCase();
+      // Match supersede, supersedes, superseded — no trailing \b so partial word forms match.
+      const mentionsSupersedeWord = /\bsupersede|\breplaces\b|\bsuccessor of\b/.test(head);
+      const mentionsPredecessor = supersedesList.some((id) =>
+        head.includes(String(id).toLowerCase()),
+      );
+      if (!mentionsSupersedeWord && !mentionsPredecessor) {
+        violations.missingSupersedesBanner.push(
+          `${rel}: supersedes:[${supersedesList.join(', ')}] set but banner doesn't mention what's superseded. See docs/agent-context/doc-discipline.md §Reader-first banners.`,
+        );
+      }
+    }
+  }
 }
 
 const files = walk(DOCS);
@@ -151,7 +234,10 @@ const hardViolationTotal =
   violations.missingRequired.length +
   violations.unknownEnum.length +
   violations.casingDrift.length +
-  violations.malformedYaml.length;
+  violations.malformedYaml.length +
+  violations.antiPatternFilename.length +
+  violations.missingSupersededBanner.length +
+  violations.missingSupersedesBanner.length;
 
 const warningTotal = violations.aliasedStatus.length + violations.aliasedAudience.length;
 
@@ -186,6 +272,9 @@ function report() {
     show('Unknown enum value (hard-fail)', violations.unknownEnum);
     show('Casing drift (auto-fixable)', violations.casingDrift);
     show('Malformed YAML', violations.malformedYaml);
+    show('Anti-pattern filename (edit canonical spec in place)', violations.antiPatternFilename);
+    show('Missing superseded/archived banner', violations.missingSupersededBanner);
+    show('Missing supersedes banner', violations.missingSupersedesBanner);
   }
 
   show('Aliased status (transitional — run docs-frontmatter-fix.mjs)', violations.aliasedStatus, 5, true);

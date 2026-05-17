@@ -6,7 +6,7 @@ category: design-spec
 audience: [designer, engineer, analyst]
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
-  - docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md
+  - docs/archive/specs/2026-05-16-improve-tab-amendment-design.md
   - docs/superpowers/specs/2026-04-19-investigation-wall-design.md
   - docs/superpowers/plans/2026-05-16-wedge-implementation.md
   - docs/superpowers/plans/2026-05-16-pr-wv1-3a-membership-cleanup.md
