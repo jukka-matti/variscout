@@ -8,6 +8,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { parse as parseYaml } from 'yaml';
 import {
   schema,
@@ -20,14 +21,19 @@ import {
   ANTI_PATTERN_SCOPE_PREFIX,
   SUPERSEDED_BANNER_RE,
   ARCHIVED_BANNER_RE,
+  DELIVERED_BANNER_RE,
   BANNER_BODY_LINES,
 } from './docs-frontmatter-schema.mjs';
+import { parseEntry, isEntryHeaderLine } from './docs-toolbox/lib/edit-types.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const DOCS = join(ROOT, 'docs');
 const CUTOFF_DATE = process.env.CUTOFF_DATE ?? '2026-05-15';
 const TODAY = new Date().toISOString().slice(0, 10);
 const REPORT_MODE = process.argv.includes('--report');
+const DIFF_MODE = process.argv.includes('--diff');
+const DIFF_BASE = process.env.DIFF_BASE ?? 'origin/main';
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 // === Allowlist loader ===
 // .docs-discipline-allowlist at repo root. One path per line; # comments skipped.
@@ -94,6 +100,11 @@ const violations = {
   // Warnings (old-value aliases) — don't fail the build
   aliasedStatus: [],
   aliasedAudience: [],
+  // Diff-mode WARNs (--diff only) — don't fail the build
+  diffWarnDecisionLogOldLine: [],
+  diffWarnSpecAmendmentHeading: [],
+  diffWarnNonCanonicalEditType: [],
+  diffWarnDeliveredNoBanner: [],
   // Report-only stats
   missingPurpose: [],
   missingTier: [],
@@ -223,11 +234,99 @@ function check(file) {
         );
       }
     }
+
+    // Design-spec WARN: delivered-by frontmatter set but no ✅ Delivered banner.
+    // This is a per-file check (not diff-mode) so it fires on every run.
+    const isDesignSpec =
+      rel.startsWith('docs/superpowers/specs/') ||
+      rel === 'docs/01-vision/coscout-ax-design.md';
+    if (isDesignSpec && fm['delivered-by']) {
+      if (!DELIVERED_BANNER_RE.test(bodyHead)) {
+        violations.diffWarnDeliveredNoBanner.push(
+          `${rel}: delivered-by=${fm['delivered-by']} set but no '> ... Delivered ...' banner in first ${BANNER_BODY_LINES} body lines. See docs/agent-context/doc-discipline.md §Banner templates.`,
+        );
+      }
+    }
   }
 }
 
 const files = walk(DOCS);
 for (const f of files) check(f);
+
+// === Diff-mode checks ===
+// Runs only when --diff is passed. Uses execFileSync (not shell-based execution)
+// to avoid injection. DIFF_BASE is passed as a single argv element.
+
+function runDiffChecks() {
+  let raw;
+  try {
+    raw = execFileSync('git', ['diff', '-U0', DIFF_BASE], { encoding: 'utf8' });
+  } catch (err) {
+    console.error(
+      `⚠ --diff mode: could not diff against ${DIFF_BASE} (${err.message}). Skipping diff checks.`,
+    );
+    return;
+  }
+  parseDiff(raw);
+}
+
+function parseDiff(diffText) {
+  const today = new Date();
+  let currentFile = null;
+  for (const line of diffText.split('\n')) {
+    const fileMatch = /^diff --git a\/(.+) b\/.+$/.exec(line);
+    if (fileMatch) {
+      currentFile = fileMatch[1];
+      continue;
+    }
+    if (!currentFile) continue;
+
+    // Decision-log: WARN on removed (-) lines whose entry date is >7 days old.
+    if (currentFile === 'docs/decision-log.md' && line.startsWith('-') && !line.startsWith('---')) {
+      const removed = line.slice(1);
+      const parsed = parseEntry(removed);
+      if (parsed) {
+        const entryDate = new Date(parsed.date + 'T00:00:00Z');
+        if (today - entryDate > SEVEN_DAYS_MS) {
+          violations.diffWarnDecisionLogOldLine.push(
+            `${currentFile}: editing decision-log entry from ${parsed.date} ("${parsed.title}") — entries >7 days old are append-only by convention. New supersession entry preferred. See docs/agent-context/doc-discipline.md §Decision-log as temporal index.`,
+          );
+        }
+      }
+    }
+
+    // Decision-log: WARN on added (+) entries missing canonical edit-type.
+    if (
+      currentFile === 'docs/decision-log.md' &&
+      line.startsWith('+') &&
+      !line.startsWith('+++')
+    ) {
+      const added = line.slice(1);
+      if (isEntryHeaderLine(added)) {
+        const parsed = parseEntry(added);
+        if (parsed && parsed.editType === null) {
+          violations.diffWarnNonCanonicalEditType.push(
+            `${currentFile}: new entry "${parsed.title}" missing canonical edit-type vocabulary. Use one of: spec edit | ADR amendment | new ADR | supersession | archived | new spec.`,
+          );
+        }
+      }
+    }
+
+    // Design specs: WARN on added "## Amendment" headings (allowed for ADRs only).
+    if (
+      line.startsWith('+## Amendment') &&
+      (currentFile.startsWith('docs/superpowers/specs/') ||
+        currentFile === 'docs/01-vision/coscout-ax-design.md')
+    ) {
+      violations.diffWarnSpecAmendmentHeading.push(
+        `${currentFile}: added '## Amendment' heading in a design spec. Design specs edit in place; amendment blocks are ADR-only. See docs/agent-context/doc-discipline.md §Edit-in-place mechanics.`,
+      );
+    }
+  }
+}
+
+if (DIFF_MODE) runDiffChecks();
+
 
 const hardViolationTotal =
   violations.missingFrontmatter.length +
@@ -239,7 +338,13 @@ const hardViolationTotal =
   violations.missingStatusBanner.length +
   violations.missingSupersedesBanner.length;
 
-const warningTotal = violations.aliasedStatus.length + violations.aliasedAudience.length;
+const warningTotal =
+  violations.aliasedStatus.length +
+  violations.aliasedAudience.length +
+  violations.diffWarnDecisionLogOldLine.length +
+  violations.diffWarnSpecAmendmentHeading.length +
+  violations.diffWarnNonCanonicalEditType.length +
+  violations.diffWarnDeliveredNoBanner.length;
 
 function report() {
   if (REPORT_MODE) {
@@ -279,6 +384,10 @@ function report() {
 
   show('Aliased status (transitional — run docs-frontmatter-fix.mjs)', violations.aliasedStatus, 5, true);
   show('Aliased audience (transitional — run docs-frontmatter-fix.mjs)', violations.aliasedAudience, 5, true);
+  show('Decision-log: edit on entry >7 days old (use new supersession entry)', violations.diffWarnDecisionLogOldLine, 5, true);
+  show('Decision-log: non-canonical edit-type vocabulary', violations.diffWarnNonCanonicalEditType, 5, true);
+  show('Design spec: ## Amendment heading added (ADR-only pattern)', violations.diffWarnSpecAmendmentHeading, 5, true);
+  show('Design spec: delivered-by set without Delivered banner', violations.diffWarnDeliveredNoBanner, 5, true);
 
   if (hardViolationTotal > 0) {
     console.error(
@@ -288,7 +397,12 @@ function report() {
   }
 
   if (warningTotal > 0 && hardViolationTotal === 0) {
-    console.log(`✓ Frontmatter check: ${files.length} docs validated, ${warningTotal} transitional alias warning(s). Run docs-frontmatter-fix.mjs to resolve.`);
+    const aliasCount = violations.aliasedStatus.length + violations.aliasedAudience.length;
+    const diffWarnCount = warningTotal - aliasCount;
+    const parts = [];
+    if (aliasCount > 0) parts.push(`${aliasCount} transitional alias warning(s)`);
+    if (diffWarnCount > 0) parts.push(`${diffWarnCount} diff warning(s)`);
+    console.log(`✓ Frontmatter check: ${files.length} docs validated, ${parts.join(', ')}. Run docs-frontmatter-fix.mjs to resolve aliases.`);
   }
 }
 

@@ -28,6 +28,9 @@ When in doubt: capture, don't invent. Record the decision; link to its source ar
 
 Decisions we keep relitigating. Each entry: short statement, rationale, closing artifact, date pinned.
 
+- **2026-05-17 — Doc-discipline validator `--diff` mode shipped.** `spec edit`: `scripts/check-doc-frontmatter.mjs` — added decision-log append-only WARN (>7-day-old line edits) + edit-type vocabulary parser + `## Amendment` heading WARN in design specs + `delivered-by` without `Delivered` banner WARN.
+  Why: completes the mechanical half of `docs/agent-context/doc-discipline.md` §Decision-log as temporal index + §Edit-in-place mechanics. Pre-commit/pre-push hook `--diff` wiring is a follow-up (out of scope for Phase 2). Commit: <TBD>. PR: <TBD>. Related: [[2026-05-16-docs-strategy-design]], [[doc-discipline]].
+
 - **2026-05-17 — Doc-discipline Play 2b validator extension shipped.** `archived`: `docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md` → `docs/archive/specs/` [supersedes: incorporated into canonical wedge spec].
   Why: anti-pattern `*-amendment-*.md` filename in `docs/superpowers/specs/` violates SSoT-by-doc-type discipline (canonical wedge spec is the always-current authority); validator now HARD-FAILs new attempts. Commit: <TBD>. PR: <TBD>. Related: [[2026-05-16-docs-strategy-design]], [[doc-discipline]].
 
