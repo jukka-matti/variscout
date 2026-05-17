@@ -269,7 +269,7 @@ Each result carries `sourceType` metadata. CoScout cites results with source con
 | Blob Storage for documents                      | ~€0.02                              |
 | **Total**                                       | **~€70/month**                      |
 
-Added to Team tier (€199/month) = 35% uplift, justified by professional-grade knowledge search.
+Included in the Azure App single SKU (€120/month); no separate tier required. Knowledge Catalyst is a Phase 2+ feature on the same deployment.
 
 ### KnowledgeAdapter Fallback
 

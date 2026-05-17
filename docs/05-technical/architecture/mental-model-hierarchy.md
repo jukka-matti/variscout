@@ -265,13 +265,13 @@ Foundational statistical concept. In code: control limits are calculated; spec l
 
 The journey behaves differently depending on which AI mode is active. Modes are orthogonal to phases — any mode works at any phase.
 
-| Mode                    | Available On                                               | What Changes                                                                                                                                                     |
-| ----------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **No AI**               | PWA (always), Azure without AI Foundry, or user toggle OFF | Dashboard shows deterministic insights only. All AI UI hidden with zero layout disruption.                                                                       |
-| **AI Enabled**          | Azure Standard/Team with AI Foundry deployed               | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts. Actionable suggestions (drill, pin finding) with analyst confirmation. |
-| **AI + Knowledge Base** | Azure Team (€199/month) only                               | Adds organizational document search (Foundry IQ) in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries.                                      |
+| Mode                        | Available On                                               | What Changes                                                                                                                                                     |
+| --------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No AI**                   | PWA (always), Azure without AI Foundry, or user toggle OFF | Dashboard shows deterministic insights only. All AI UI hidden with zero layout disruption.                                                                       |
+| **AI Enabled**              | Azure App with AI Foundry deployed                         | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts. Actionable suggestions (drill, pin finding) with analyst confirmation. |
+| **AI + Knowledge Catalyst** | Azure App, Phase 2+ (Foundry IQ configured)                | Adds organizational document search (Foundry IQ) in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries.                                      |
 
-**Mode ≠ Tier:** AI is a horizontal capability, not tier-gated. A Standard customer who deploys AI Foundry gets Mode 2. Only the Knowledge Base (Mode 3) is Team exclusive.
+**Mode ≠ Plan:** AI is a horizontal capability included in the single €120 SKU. Knowledge Catalyst (Mode 3) requires Phase 2 AI deployment.
 
 **In code:** `showAI` visibility check, `aiEndpointConfigured` flag, `AdminKnowledgeSetup` preview gate.
 

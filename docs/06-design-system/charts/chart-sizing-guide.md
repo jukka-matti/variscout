@@ -150,7 +150,7 @@ const extraBottom = getSourceBarHeight(showBranding);
 const margins = getResponsiveMargins(width, 'ichart', extraBottom);
 ```
 
-Hidden for Standard and Team plans.
+Hidden for Azure App users (shown on PWA only).
 
 ## LTTB Point Decimation
 

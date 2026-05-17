@@ -332,12 +332,12 @@ After 50+ investigations, the AI has genuine organizational knowledge — measur
 
 All AI resources are conditional on `parameters('enableAI')`:
 
-| Resource                   | Type                                                           | Purpose                                              |
-| -------------------------- | -------------------------------------------------------------- | ---------------------------------------------------- |
-| AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: OpenAI, SKU: S0) | Azure AI Foundry host                                |
-| Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-nano for narration + chips (reasoning: none) |
-| Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-mini for CoScout + reports (reasoning: low)  |
-| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Foundry IQ unified knowledge index (Team plan only)  |
+| Resource                   | Type                                                           | Purpose                                                  |
+| -------------------------- | -------------------------------------------------------------- | -------------------------------------------------------- |
+| AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: OpenAI, SKU: S0) | Azure AI Foundry host                                    |
+| Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-nano for narration + chips (reasoning: none)     |
+| Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-mini for CoScout + reports (reasoning: low)      |
+| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Foundry IQ unified knowledge index (Azure App, Phase 2+) |
 
 `createUiDefinition.json` additions:
 
@@ -462,7 +462,7 @@ The `buildAIContext()` function in `@variscout/core` is the structured bridge be
 
 ## Team-Aware AI Context
 
-When running in a Teams channel tab (Azure Team plan), the AI context includes team collaboration metadata.
+When running in the Azure App with project membership, the AI context includes team collaboration metadata.
 
 | Field                              | Type       | Source                                                              | Purpose                                    |
 | ---------------------------------- | ---------- | ------------------------------------------------------------------- | ------------------------------------------ |
@@ -681,9 +681,9 @@ Every CoScout session receives the full investigation context via the `buildAICo
 - Findings with status, hypotheses, actions, outcomes
 - Hypothesis tree with validation and ideas
 - Statistics, filters, drill path, violations
-- Knowledge Base results (Team plan)
+- Knowledge Catalyst results (Azure App, Phase 2+)
 
-When an analyst creates findings, hypotheses, and actions during a CoScout conversation, that knowledge is captured in the investigation model — which persists in `AnalysisState` (IndexedDB, optionally OneDrive sync). The conversation itself is disposable because its substance is already captured in structured form.
+When an analyst creates findings, hypotheses, and actions during a CoScout conversation, that knowledge is captured in the investigation model — which persists in `AnalysisState` (IndexedDB + Blob Storage sync on Azure App). The conversation itself is disposable because its substance is already captured in structured form.
 
 This approach was validated by industry research (ADR-049):
 

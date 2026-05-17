@@ -41,7 +41,7 @@ Tools are gated by journey phase (FRAME / SCOUT / INVESTIGATE / IMPROVE) rather 
 - Hypothesis and action tools in INVESTIGATE (root cause)
 - Sharing and notification tools in IMPROVE (closing the loop)
 
-Plan-level gating is a secondary filter: sharing tools require Team plan regardless of phase.
+Platform gating is a secondary filter: sharing tools require Azure App (not available on PWA) regardless of phase.
 
 ### 3. Entry Scenario Routing
 

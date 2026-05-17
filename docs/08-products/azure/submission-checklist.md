@@ -10,7 +10,7 @@ status: stable
 Living tracker for Azure Marketplace Managed Application submission. Single source of truth for what's done, what's pending, and what's blocking.
 
 **Target offer type:** Azure Application → Managed Application
-**Pricing:** Two plans: Standard €79/month, Team €199/month
+**Pricing:** Single SKU: €120/month, Azure tenant-wide
 
 ---
 

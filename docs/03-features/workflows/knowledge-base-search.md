@@ -16,7 +16,7 @@ Search your team's documents and investigation artifacts from CoScout to acceler
 
 The Knowledge Base feature allows CoScout to search a unified knowledge index for relevant documents and investigation artifacts when answering questions. This brings both institutional documents and the team's accumulated investigation knowledge into every conversation.
 
-**Plan requirement**: Team (€199/month)
+**Plan requirement**: Azure App (€120/month, Phase 2+)
 **Status**: Beta (opt-in via Admin > Knowledge Base)
 **Architecture**: [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md)
 
@@ -73,7 +73,7 @@ The Knowledge Base search degrades gracefully:
 
 1. Navigate to **Admin > Knowledge Base** (BookOpen icon in header)
 2. Verify all status checks are green:
-   - Team plan active
+   - Azure App active (Phase 2+ feature)
    - Search endpoint configured (via ARM template — Foundry IQ service)
    - Beta feature enabled
 3. Upload organizational documents (SOPs, procedures, reference docs) via the document upload UI — Foundry IQ connects to Blob Storage automatically; no Remote SharePoint knowledge source configuration needed

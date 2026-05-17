@@ -71,19 +71,21 @@ VariScout is a **no-backend, offline-first** application. All statistical comput
 
 ### Data Recovery
 
-**Standard plan (IndexedDB only)**:
+**Azure App (IndexedDB + Blob Storage)**:
 
-- Data exists only in the user's browser
+- Data stored in user's browser (IndexedDB) and in Azure Blob Storage in the customer's resource group
+- Blob Storage provides native versioning and soft-delete (configure in customer's Storage Account)
+- Sync queue (`storage.ts`) tracks pending uploads
+- Conflict resolution: ETag-based optimistic concurrency
+- Recovery: clear IndexedDB, re-sync from Blob Storage
+- Users can also export projects as `.vrs` files for local backup
+
+**PWA (IndexedDB only)**:
+
+- Data exists only in the user's browser (session + IndexedDB)
 - No server-side backup exists by design (data sovereignty)
 - Users can export projects as JSON files for local backup
 - Browser data loss = data loss (inform users in documentation)
-
-**Team plan (IndexedDB + OneDrive)**:
-
-- OneDrive provides native file versioning (recoverable from Recycle Bin for 93 days)
-- Sync queue (`storage.ts`) tracks pending uploads
-- Conflict resolution: last-write-wins with conflict detection
-- Recovery: clear IndexedDB, re-sync from OneDrive
 
 ## Infrastructure as Code
 

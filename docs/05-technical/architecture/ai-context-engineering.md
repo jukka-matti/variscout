@@ -278,7 +278,7 @@ Already typed in `AIContext.investigation`. Populated from FindingsPanel active 
 
 - **Type:** `{ count: number; hypothesisAreas: string[] }`
 - **Purpose:** CoScout coordinates multi-investigator Teams scenarios
-- **Note:** Only populated in Azure Team plan when findings have author metadata
+- **Note:** Only populated in Azure App when findings have author metadata (project membership context)
 
 ---
 
@@ -337,7 +337,7 @@ stagedComparison?: {
 
 ## 8. Knowledge Documents Context
 
-When the Knowledge Base is available (Azure Team plan):
+When Knowledge Catalyst is available (Azure App, Phase 2+):
 
 ```typescript
 knowledgeDocuments?: Array<{

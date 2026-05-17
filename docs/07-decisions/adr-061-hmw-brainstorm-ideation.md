@@ -14,7 +14,7 @@ The Improvement workspace mixes divergent (brainstorming) and convergent (evalua
 
 Design thinking research (IDEO, Stanford d.school) shows that separating divergent and convergent phases produces better ideas — mixing them causes self-censorship and premature convergence.
 
-Additionally, Team plan users lack real-time collaboration features for group brainstorming sessions.
+Additionally, Azure App users (single €120 SKU) lack real-time collaboration features for group brainstorming sessions.
 
 ## Decision
 
@@ -82,7 +82,7 @@ Votes during the Select step show anonymous counts only. No voter names or avata
 - [ ] CoScout brainstorm coaching section with silence rules
 - [ ] Collaborative session: create, join (auto-detect + link), live SSE, vote, close
 - [ ] 4 server endpoints: create, idea, stream, active
-- [ ] Auto-detect toast for Team plan users with project open
+- [ ] Auto-detect toast for Azure App users with project open
 - [ ] Unit tests for `generateHMWPrompts()`, tool definition, hooks
 - [ ] Component tests for BrainstormModal, BrainstormQuadrant, VoteButton
 - [ ] Documentation updated: improvement-workspace.md, investigation-to-action.md, feature-parity.md, CLAUDE.md

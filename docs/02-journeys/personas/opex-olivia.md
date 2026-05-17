@@ -154,15 +154,15 @@ The /product/enterprise page must answer:
 
 ### 3. Pricing
 
-- Standard: €79/month — all analysis features with CoScout AI, local file storage
-- Team: €199/month — adds OneDrive/SharePoint, Teams integration, Knowledge Base
-- All plans: unlimited users in your tenant, no per-user fees
+- Azure App: €120/month per tenant — all analysis features, CoScout AI, Blob Storage sync, project membership, Knowledge Catalyst
+- PWA: free — analysis + training, session-only
+- Unlimited users in your tenant, no per-user fees
 
 ### 4. Support
 
 - Documentation-first
-- Community support (free tier)
-- Email support (paid tier)
+- Community support (free / PWA)
+- Email support (Azure App)
 - "Your existing LSS/IT consultants can assist"
 
 ---

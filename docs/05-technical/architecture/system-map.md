@@ -30,8 +30,8 @@ C4Context
 
     Rel(analyst, variscout, "Uploads data, reviews charts, investigates variation")
     Rel(variscout, azuread, "Authenticates via EasyAuth")
-    Rel(variscout, onedrive, "Syncs projects (Team plan)")
-    Rel(variscout, teams, "Embeds as channel tab, captures photos")
+    Rel(variscout, blobstorage, "Syncs projects via Blob Storage (Azure App)")
+    Rel(variscout, teams, "Optional static tab (no permissions required)")
     Rel(variscout, aisearch, "Queries for AI-assisted analysis")
 ```
 

@@ -122,13 +122,13 @@ Both functions are deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME
 
 Infrastructure is defined in Bicep (`infra/main.bicep`) with modular resource definitions:
 
-| Module                      | Resources                                       |
-| --------------------------- | ----------------------------------------------- |
-| `modules/app-service.bicep` | App Service Plan + Web App + EasyAuth           |
-| `modules/ai-services.bicep` | Azure AI Foundry (OpenAI) + model deployments   |
-| `modules/key-vault.bicep`   | Key Vault + RBAC authorization                  |
-| `modules/search.bicep`      | Azure AI Search (Team plan only)                |
-| `modules/functions.bicep`   | Function App for OBO token exchange (Team plan) |
+| Module                      | Resources                                      |
+| --------------------------- | ---------------------------------------------- |
+| `modules/app-service.bicep` | App Service Plan + Web App + EasyAuth          |
+| `modules/ai-services.bicep` | Azure AI Foundry (OpenAI) + model deployments  |
+| `modules/key-vault.bicep`   | Key Vault + RBAC authorization                 |
+| `modules/search.bicep`      | Azure AI Search (Azure App, Phase 2+ optional) |
+| `modules/functions.bicep`   | [Removed per ADR-059 — OBO flow retired]       |
 
 The compiled `mainTemplate.json` is auto-generated for Azure Marketplace packaging:
 
@@ -157,8 +157,7 @@ The Azure App is published to Azure Marketplace as a **Managed Application**:
 ```
 Azure Marketplace
 └── VariScout (Managed Application)
-    ├── Standard Plan (€79/month, full analysis, local files)
-    └── Team Plan (€199/month, + Teams, OneDrive, SharePoint, Knowledge Base)
+    └── VariScout (€120/month per tenant, single SKU — full analysis + CoScout AI + Blob Storage + project membership)
 ```
 
 ### Publication Process
@@ -170,13 +169,13 @@ Azure Marketplace
 
 2. **Create Azure Application Offer**
    - Offer type: Managed Application
-   - Two plans: Standard (€79/month) and Team (€199/month)
+   - Single plan: VariScout (€120/month per tenant)
    - Upload deployment package (.zip with mainTemplate.json + createUiDefinition.json)
    - Publisher management: Disabled (zero access)
    - Customer access: Enabled (full control)
 
 3. **Configure Pricing**
-   - Set monthly prices (Standard €79, Team €199)
+   - Set monthly price: €120/month per tenant
    - Configure regional pricing (EUR, USD, GBP)
    - Microsoft handles VAT and billing (3% fee)
 
@@ -196,7 +195,7 @@ Customers deploy via Azure Marketplace (which uses the compiled ARM template) or
 az deployment group create \
   --resource-group rg-variscout \
   --template-file main.bicep \
-  --parameters appName=variscout clientId=<id> clientSecret=<secret> variscoutPlan=standard
+  --parameters appName=variscout clientId=<id> clientSecret=<secret>
 ```
 
 The Marketplace deployment package contains the compiled `mainTemplate.json` (auto-generated from `main.bicep`) and `createUiDefinition.json`. See [ARM Template Documentation](../../08-products/azure/arm-template.md) for template details.
@@ -218,8 +217,8 @@ The staging environment is deployed via GitHub Actions with OIDC authentication 
 - Security headers on every response: CSP, HSTS (1 year, includeSubDomains), X-Content-Type-Options, Referrer-Policy, Permissions-Policy
 - Dynamic `connect-src` in CSP: includes AI endpoint and AI Search endpoint
 - Runtime config endpoint (`GET /config`): serves plan, AI endpoints, App Insights connection string
-- SAS token endpoint (`POST /api/storage-token`): Blob Storage access for Team plan
-- KB endpoints (`POST /api/kb-upload`, `POST /api/kb-search`, `GET /api/kb-list`, `DELETE /api/kb-delete`, `GET /api/kb-download`): Knowledge Base management (Team plan, ADR-060)
+- SAS token endpoint (`POST /api/storage-token`): Blob Storage access (Azure App)
+- KB endpoints (`POST /api/kb-upload`, `POST /api/kb-search`, `GET /api/kb-list`, `DELETE /api/kb-delete`, `GET /api/kb-download`): Knowledge Catalyst management (Azure App, Phase 2+, ADR-060)
 - Health endpoint (`GET /health` → 200)
 - SIGTERM graceful shutdown (closes server, exits cleanly)
 - Listens on `process.env.PORT` (set by App Service)
@@ -305,7 +304,7 @@ Customer deployments will include an Update Handler Function that enables self-s
 
 - App Service Plan (B1 Linux)
 - App Service (`variscout-staging`) with EasyAuth (AAD)
-- App Registration ("VariScout Staging") with `User.Read` + `Files.ReadWrite` permissions (Files.ReadWrite only needed for Team plan)
+- App Registration ("VariScout Staging") with `User.Read` + `People.Read` permissions (both user-consent, zero admin consent required per ADR-059)
 - Separate App Registration ("VariScout CI/CD") with federated credential for GitHub Actions OIDC
 
 **One-time setup**: See [Azure Staging Setup](#azure-staging-setup) below.
@@ -363,12 +362,12 @@ Security headers (CSP, Permissions-Policy) configured in `apps/pwa/vercel.json`.
 
 The customer creates an App Registration before deployment (the ARM template references it via `clientId` and `clientSecret` parameters):
 
-| Permission        | Type      | Purpose               | Plan      |
-| ----------------- | --------- | --------------------- | --------- |
-| `User.Read`       | Delegated | Get user profile      | All       |
-| `Files.ReadWrite` | Delegated | OneDrive project sync | Team only |
+| Permission    | Type      | Purpose                           |
+| ------------- | --------- | --------------------------------- |
+| `User.Read`   | Delegated | Get user profile (display name)   |
+| `People.Read` | Delegated | People picker for team assignment |
 
-> **Note**: Standard plan deployments only require `User.Read`. The `Files.ReadWrite` permission is needed only for Team plan OneDrive sync. Standard plan stores data locally in IndexedDB.
+> **Note**: Zero admin consent required. `Files.ReadWrite.All` and `Channel.ReadBasic.All` are removed — Blob Storage replaces OneDrive/SharePoint sync per [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md).
 
 ---
 
@@ -466,12 +465,12 @@ az ad app create --display-name "VariScout Staging" --sign-in-audience AzureADMy
 az ad app update --id $CLIENT_ID \
   --web-redirect-uris "https://variscout-staging.azurewebsites.net/.auth/login/aad/callback"
 
-# Graph API permissions: User.Read (all plans) + Files.ReadWrite (Team plan OneDrive sync)
+# Graph API permissions: User.Read + People.Read (both user-consent, zero admin consent — ADR-059)
 az ad app permission add --id $CLIENT_ID \
   --api 00000003-0000-0000-c000-000000000000 \
   --api-permissions "e1fe6dd8-ba31-4d61-89e7-88639da4683d=Scope" \
-                    "5c28c081-612b-4536-8c00-47d2f7f0de0a=Scope"
-# Note: Files.ReadWrite is only used by Team plan. Standard plan stores data locally in IndexedDB.
+                    "ba47897c-39ec-4d83-8086-ee8256182833=Scope"
+# Note: Files.ReadWrite.All removed — Blob Storage replaces OneDrive sync per ADR-059.
 
 az ad app credential reset --id $CLIENT_ID --display-name "EasyAuth-Staging" --years 2
 # → note password as CLIENT_SECRET (shown once)

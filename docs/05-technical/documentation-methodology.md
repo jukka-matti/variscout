@@ -292,11 +292,11 @@ This table is the master spec for:
 - NarrativeBar provides passive guidance at each phase
 - ChartInsightChips highlight actionable patterns on charts
 
-**With Teams (Azure Team plan):**
+**With Teams (Azure App, optional static tab):**
 
 - Channel tabs = shared navigation context (multiple analysts, same journey)
-- Photo evidence at Investigate phase (Teams camera API)
-- OneDrive sync = persistent journey state across devices
+- Photo evidence at Investigate phase (browser camera input per ADR-059)
+- Blob Storage sync = persistent journey state across devices
 
 ---
 

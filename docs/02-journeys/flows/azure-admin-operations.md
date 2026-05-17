@@ -107,7 +107,7 @@ After the ARM template deploys and the app is live, Aino verifies that all integ
 | -------------- | ------------------------- | ------------------------------------------- |
 | Authentication | `GET /.auth/me`           | EasyAuth configured, user has valid session |
 | User Profile   | `GET /me`                 | User.Read permission granted                |
-| Blob Storage   | `POST /api/storage-token` | SAS token generation working (Team plan)    |
+| Blob Storage   | `POST /api/storage-token` | SAS token generation working (Azure App)    |
 | AI Endpoint    | `GET {endpoint}`          | AI Services reachable                       |
 
 Each check shows: green (pass), red (fail with error message), or grey (not applicable for current plan).
@@ -180,7 +180,7 @@ After a plan upgrade:
 
 ### 5. Integration Lifecycle
 
-**Blob Storage access (Team plan):**
+**Blob Storage access (Azure App):**
 
 - New team members need `Storage Blob Data Contributor` RBAC role on the Storage Account
 - Assign via Azure Portal → Storage Account → Access control (IAM)

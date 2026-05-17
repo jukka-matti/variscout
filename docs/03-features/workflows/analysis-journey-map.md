@@ -232,7 +232,7 @@ The diamond closes at Converging. What follows — improvement ideation, correct
 
 1. **Generate questions** -- Factor Intelligence generates ranked questions from R²adj analysis. Upfront hypotheses from FRAME's analysis brief become questions in the checklist. CoScout (when available) adds context-derived questions from the issue statement and factor roles.
 2. **Answer with data** -- Use ANOVA results and drill-down filtering to answer each question. Auto-answering uses eta-squared thresholds (R²adj < 5% = ruled out). Clicking any question switches the dashboard to show the relevant evidence.
-3. **Gemba observation** -- Go to the process and observe. Azure Team plan supports photo evidence (EXIF-stripped).
+3. **Gemba observation** -- Go to the process and observe. Azure App supports photo evidence (EXIF-stripped) via browser camera input.
 4. **Expert input** -- Add comments and notes from domain experts to findings.
 5. **Converge** -- Create SuspectedCause hubs that group related answered questions into named mechanism stories. The Problem Statement updates live as hubs are named — Q1 (measure) and Q2 (direction) were answered in FRAME, Q3 (scope) fills in as each hub is created. Ruled-out factors are preserved as negative learnings. Classify findings (key-driver vs low-impact).
 
@@ -248,10 +248,10 @@ The diamond closes at Converging. What follows — improvement ideation, correct
 
 ### Tier Differences
 
-| Dimension             | PWA (Free)                            | Azure (Standard / Team)      |
+| Dimension             | PWA (Free)                            | Azure App (€120/month)       |
 | --------------------- | ------------------------------------- | ---------------------------- |
 | Finding statuses      | 3 (observed, investigating, analyzed) | 5 (all statuses)             |
-| Photo evidence        | No                                    | Team plan only               |
+| Photo evidence        | No                                    | Yes (browser camera input)   |
 | Hypothesis management | Full                                  | Full                         |
 | Board view            | 3 columns                             | 5 columns with drag-and-drop |
 
@@ -314,12 +314,12 @@ flowchart TD
 
 ### Tier Differences
 
-| Dimension         | PWA (Free) | Azure (Standard / Team)              |
+| Dimension         | PWA (Free) | Azure App (€120/month)               |
 | ----------------- | ---------- | ------------------------------------ |
 | What-If Simulator | Available  | Available                            |
 | Action tracking   | Limited    | Full (improving + resolved statuses) |
 | Staged analysis   | Available  | Available                            |
-| Outcome recording | No         | Team plan                            |
+| Outcome recording | No         | Yes (Azure App)                      |
 
 ### CoScout in Improve
 

@@ -294,7 +294,7 @@ import { ChartCard } from '@variscout/charts';
 
 ## ChartSignature
 
-Painter-style "VariScout" signature mark rendered as SVG text. Only visible for free tier (branding required); hidden for paid tiers via `shouldShowBranding()` from `@variscout/core`.
+Painter-style "VariScout" signature mark rendered as SVG text. Only visible on PWA (branding required); hidden for Azure App users via `shouldShowBranding()` from `@variscout/core`.
 
 **Source:** `packages/charts/src/ChartSignature.tsx`
 

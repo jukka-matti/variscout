@@ -9,13 +9,13 @@ status: stable
 
 Analysis synchronization with Azure Blob Storage for team collaboration.
 
-> **Team plan only.** Blob Storage sync requires the Azure Team plan (€199/month). The Azure Standard plan (€79/month) uses local storage (IndexedDB + `.vrs` file export) — no cloud sync.
+> **Azure App.** Blob Storage sync is included in the single €120/month SKU. PWA uses local storage only (IndexedDB + `.vrs` file export).
 
 ---
 
 ## Overview
 
-Team tier projects are stored in an Azure Blob Storage container provisioned in the customer's own resource group. This replaces the previous OneDrive/SharePoint sync (ADR-016, superseded by ADR-059) and provides:
+Azure App projects are stored in an Azure Blob Storage container provisioned in the customer's own resource group. This replaces the previous OneDrive/SharePoint sync (ADR-016, superseded by ADR-059) and provides:
 
 - **Zero Graph API permissions** — uses Azure RBAC instead
 - **No admin consent** — access managed via standard Azure role assignments

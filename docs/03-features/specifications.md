@@ -173,13 +173,13 @@ Single Azure SKU. Team-collaboration features are **project-membership-role-gate
 - Report sharing + Sponsor read-only access
 - Azure Marketplace Managed Application deployment
 
-The €79 Standard + €199 Team split is retired (see [ADR-082](../07-decisions/adr-082-wedge-architecture.md)). Everything previously in either tier is now part of the single €99 SKU.
+The €79 Standard + €199 Team split is retired (see [ADR-082](../07-decisions/adr-082-wedge-architecture.md)). Everything previously in either tier is now part of the single €120 SKU.
 
 ---
 
 ## Project membership roles
 
-Inside the €99 SKU, team-collaboration features are gated by project-membership role rather than priced into a separate tier. Project members must share the same Azure AD tenant as the buyer (cross-AD-tenant invites are out of V1 scope — a deliberate privacy boundary).
+Inside the €120 SKU, team-collaboration features are gated by project-membership role rather than priced into a separate tier. Project members must share the same Azure AD tenant as the buyer (cross-AD-tenant invites are out of V1 scope — a deliberate privacy boundary).
 
 | Role        | Real-world counterpart                                  | Capabilities                                                                                                                           |
 | ----------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |

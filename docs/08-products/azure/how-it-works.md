@@ -213,9 +213,9 @@ Storage remains in the customer's Azure tenant. IndexedDB is the browser cache/r
 
 ---
 
-## Process Hub Collaboration (Team Plan)
+## Process Hub Collaboration (Azure App)
 
-The Team plan adds a shared Process Hub layer. The same browser app can be opened directly or as an optional Teams static tab, but storage and collaboration do not depend on the Teams SDK.
+The Azure App includes a shared Process Hub layer. The same browser app can be opened directly or as an optional Teams static tab, but storage and collaboration do not depend on the Teams SDK.
 
 ```
 User opens VariScout
@@ -266,7 +266,7 @@ CUSTOMER TENANT                          PUBLISHER (VariScout)
 │  (authenticates users) │               │  - Customer data   │
 │                        │               │  - App resources   │
 │  Azure Blob Storage    │               │  - User identities │
-│  (Team plan sync)      │               │  - Usage telemetry │
+│  (Azure App sync)      │               │  - Usage telemetry │
 │                        │               │                    │
 └────────────────────────┘               └────────────────────┘
 ```

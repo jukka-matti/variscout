@@ -521,14 +521,14 @@ Components use `window.innerWidth` with resize listeners to conditionally render
 
 ## 9. Theme System
 
-VariScout supports light/dark theming for paid tiers via a coordinated system:
+VariScout supports light/dark theming for the Azure App via a coordinated system:
 
 ### Theme Detection
 
 Theme is controlled via the `data-theme` attribute on `<html>`:
 
 - `data-theme="dark"` - Dark mode (default for free tier)
-- `data-theme="light"` - Light mode (paid tiers: Individual/Team/Enterprise)
+- `data-theme="light"` - Light mode (Azure App)
 
 ### Chart Theme Hook
 
