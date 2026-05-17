@@ -26,6 +26,16 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Testing strategy — Tier 2 + Tier 3 deferred work
+
+**Surfaced by:** Wedge V1 post-launch testing audit, 2026-05-17 (PR #197 + PR #198 + plan in `~/.claude/plans/`).
+
+**Description:** Tier 1 testing improvements shipped as [PR #198](https://github.com/jukka-matti/variscout/pull/198) (Math.random retirement + ESLint guard + fake-indexeddb docs + local TDD cheatsheet). Tier 2 (Vitest Projects migration) and Tier 3 (branded-type architecture guards / Vitest pool profiling / scheduled nightly Playwright + optional CI coverage) are preserved as a planning artifact rather than scheduled. The full plan including triggers-for-execution, file-level scope, and sequencing lives at [`docs/superpowers/plans/2026-05-17-testing-strategy-tier2-3-deferred.md`](superpowers/plans/2026-05-17-testing-strategy-tier2-3-deferred.md).
+
+**Possible directions:** See the linked plan doc — each tier has its own trigger condition. CI work (Tier 3c) is explicitly user-deferred ("for ci, we want to keep it local for now"); revisit only if policy changes.
+
+**Promotion path:** When any single tier item becomes worth scheduling, dispatch via `superpowers:subagent-driven-development` per the linked plan. The plan is intentionally written so any one item can ship independently.
+
 ### PR-WV1-1 — architecture-review follow-ups (project membership foundation)
 
 **Surfaced by:** system-architect (Opus) review on `feat/wedge-pr-wv1-1-project-membership` 2026-05-16, after the 10-task implementation sub-plan completed. CRITICAL (app-side wiring gap) was fixed in commit `695091e3` before merge; 3 IMPORTANT items deferred to PR-WV1-2 via `decision-log.md` 2026-05-16 wedge-amendment; 2 items below are smaller follow-ups outside the wedge implementation sequence.
