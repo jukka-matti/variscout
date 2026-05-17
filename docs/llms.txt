@@ -2,71 +2,43 @@
 
 > Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. PWA (free) + Azure Marketplace (€120/mo, single SKU per Azure tenant). VariScout Process (enterprise platform) named-future, not announced in V1 marketing.
 
-Entry points for AI agents working in this repo. Humans should start at `docs/index.md`.
+Entry points for AI agents working in this repo. Humans should start at [`docs/index.md`](index.md).
 
-## Strategic direction (read first)
+## Router: pick the right surface
 
-- [superpowers/specs/2026-05-16-wedge-architecture-design.md](superpowers/specs/2026-05-16-wedge-architecture-design.md): **canonical V1 design** — single-product VariScout for improvement specialists; 7-tab workflow nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`) per the 2026-05-16 Improve-tab amendment; Improve as a top-level verb tab with active-IP cascade; 3 canvas response paths; single persona collapse; project membership ACLs (Lead / Member / Sponsor); €120/mo single SKU.
-- [07-decisions/adr-082-wedge-architecture.md](07-decisions/adr-082-wedge-architecture.md): **V1 single-SKU architectural record** — partial supersession of ADR-007 + ADR-033. Two-product roadmap (VariScout V1 + VariScout Process future).
+**Need orientation?** Invoke the `agent-context-quickstart` skill — 5-minute project briefing covering wedge V1 direction, hard invariants, ESLint-enforced rules, common pitfalls.
 
-## Core orientation
+**Need to find a doc?** Invoke the `docs-toolbox` skill — `pnpm docs:find / docs:get / docs:related / docs:recent` retrieval surface.
 
-- [decision-log.md](decision-log.md): living decision tracker — open questions, named-future features, session backlog, journey state. Read this before re-opening any topic; it captures decisions that would otherwise live only in plan files.
-- [OVERVIEW.md](OVERVIEW.md): what VariScout does, the FRAME → SCOUT → INVESTIGATE → IMPROVE journey, six analysis modes, single €120/mo SKU + free PWA funnel.
-- [USER-JOURNEYS.md](USER-JOURNEYS.md): V1 single-persona spine (Improvement Specialist), project-membership roles (Lead / Member / Sponsor), unified journey spine, process learning levels.
-- [DATA-FLOW.md](DATA-FLOW.md): parse → transform → stats → persist → sync → display → AI pipeline. Three numeric-safety boundaries.
-- [superpowers/specs/2026-04-27-product-method-roadmap-design.md](superpowers/specs/2026-04-27-product-method-roadmap-design.md): product-method maturity roadmap across Process Hub, Current Process State, Process Measurement System, process learning memory, and CoScout context.
-- [superpowers/specs/2026-04-27-process-learning-operating-model-design.md](superpowers/specs/2026-04-27-process-learning-operating-model-design.md): process learning operating model; Process Measurement System, Current Process State, response paths, and the three-level outcome / flow / local-mechanism methodology (faithful to the existing Y / X / x EDA spine).
-- [superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md](superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md): canonical Evidence Sources, Data Profiles, Snapshots, and Profile Applications design.
-- [superpowers/specs/2026-04-27-layered-process-view-design.md](superpowers/specs/2026-04-27-layered-process-view-design.md): three-band visual language (Outcome / Process Flow / Operations) for FRAME, Process Hub, and multi-hub.
-- [superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md](superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md): investigation scope (B1/B2 unified), drill patterns (Hub→Step shipped; Step→Channels existing; Step→Sub-flow + Org Hub-of-Hubs designed), governance, and the no-statistical-roll-up policy.
-- [superpowers/specs/2026-04-29-multi-level-scout-design.md](superpowers/specs/2026-04-29-multi-level-scout-design.md): multi-level SCOUT — level-spanning surface architecture (L1 outcome / L2 flow / L3 mechanism lensed across SCOUT, FRAME, Hub Capability, Investigation Wall, Evidence Map) plus the timeline-window primitive; boundary policy at [07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md](07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md).
-- [07-decisions/adr-076-frame-b0-lightweight-render.md](07-decisions/adr-076-frame-b0-lightweight-render.md): FRAME branches on scope — investigator (b0, lightweight Y/X picker) vs author (b1/b2, river-styled SIPOC canvas — ADR-070). `detectScopeFromMap(map)` is the dispatch point. No auto-pick, no upfront warnings in b0.
-- [01-vision/trainer-network.md](01-vision/trainer-network.md): lightweight trainer ecosystem model for VariScout growth, certification, and directory routing.
+**Need to know which package CLAUDE.md to load?** Invoke the `package-router` skill.
 
-## Architecture
+**Need to read/write Zustand store state?** Invoke the `store-state-glossary` skill.
 
-- [Decisions (ADRs, live)](07-decisions/): current architectural decisions. Start at `07-decisions/index.md`.
-- [Decisions (archived)](archive/adrs/): superseded decisions preserved for traceability.
-- [Designs (specs)](superpowers/specs/): active design work. Start at `superpowers/specs/index.md`.
+**Editing any canonical doc?** Read [`docs/agent-context/doc-discipline.md`](agent-context/doc-discipline.md) FIRST. SSoT-by-doc-type rules: design specs edit in place; ADRs append `## Amendment` blocks at bottom; decision-log appends. `*-amendment-*.md` filenames are HARD-FAILed by the validator under `docs/superpowers/specs/`.
 
-## Agent-specific context
+## Always-load entry points
 
-- `../AGENTS.md`: Codex entrypoint for root project instructions and Codex-only ruflo usage.
-- `../CLAUDE.md`: Claude entrypoint for root project instructions and Claude-only automation.
-- `../packages/*/CLAUDE.md` and `../apps/*/CLAUDE.md`: per-package context, loaded on demand.
-- `../.claude/rules/`: path-scoped rules that load automatically when editing specific code areas (stats, charts, CoScout prompts, Azure storage, tests, i18n).
-- `../.claude/skills/`: task-triggered workflow skills.
-- `05-technical/implementation/ruflo-workflow.md`: Codex-only ruflo workflow.
-- `05-technical/implementation/codex-ruflo-workflow.md`: Codex-specific MCP and workflow notes.
-- `05-technical/implementation/codex-only-ruflo-migration.md`: checklist for moving other projects to Codex-only Ruflo ownership.
+- [`decision-log.md`](decision-log.md) — temporal index over canonical doc changes. Read BEFORE re-opening any topic.
+- [`OVERVIEW.md`](OVERVIEW.md) — what VariScout does + the FRAME → SCOUT → INVESTIGATE → IMPROVE journey.
+- [`USER-JOURNEYS.md`](USER-JOURNEYS.md) — V1 single persona (Improvement Specialist) + 3 project-membership roles (Lead / Member / Sponsor).
+- [`DATA-FLOW.md`](DATA-FLOW.md) — parse → transform → stats → persist → sync → display → AI pipeline.
 
-## Reference
+## Canonical V1 strategic direction
 
-- [Timeline Windows in Investigations](03-features/analysis/timeline-window-investigations.md): user-facing reference for the four window kinds and where the picker lives.
-- [Multi-Level Dashboard](03-features/analysis/multi-level-dashboard.md): user-facing reference for how SCOUT spans levels and links to Hub Capability / Evidence Map / Investigation Wall.
-- [Timeline Window & Multi-Level Routing Architecture](05-technical/architecture/timeline-window-architecture.md): engineer-facing reference for `dataRouter`, `detectScope`, TimelineWindow, throughput, drift detection.
-- [Glossary](03-features/learning/glossary.md): domain terms, statistical vocabulary.
-- [Feature parity matrix](08-products/feature-parity.md): PWA (free) vs Azure App (€120/month single SKU); project-membership-role-gated features inside Azure.
-- [Statistics reference](05-technical/statistics-reference.md): formulas, NIST validation, citations.
+- [`superpowers/specs/2026-05-16-wedge-architecture-design.md`](superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 single-SKU design. 7-tab nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`). Improve as top-level verb tab with active-IP cascade. 3 personas per Project (Lead/Member/Sponsor). €120/mo single SKU.
+- [`07-decisions/adr-082-wedge-architecture.md`](07-decisions/adr-082-wedge-architecture.md) — V1 architectural record. Partial supersession of ADR-007 + ADR-033.
 
-## FRAME b0 lightweight render (ADR-076)
+## Agent-context entry points
 
-Priority entry points for the b0 (investigator archetype) FRAME surface — paste data → ColumnMapping → Y/X picker → "See the data →".
-
-- `../packages/ui/src/components/FrameViewB0/`: b0 lightweight composition — stacks Y picker, optional inline spec editor, X picker, process-steps disclosure expander, and the "See the data →" CTA.
-- `../packages/ui/src/components/ColumnCandidateChip/`: chip primitive shared by Y and X picker sections.
-- `../packages/ui/src/components/YPickerSection/`: Y picker — surfaces ranked Y candidates from `rankYCandidates`; "+ add spec" affordance opens the inline editor.
-- `../packages/ui/src/components/XPickerSection/`: X picker — appears after Y is selected; multi-select; auto-detected run-order column hidden.
-- `../packages/ui/src/components/InlineSpecEditor/`: popover-style spec editor anchored under the Y row; edits USL / LSL / target / cpkTarget; suggestion seeded from mean ± 3σ.
-- `../packages/ui/src/components/ProcessStepsExpander/`: disclosure that embeds the existing `LayeredProcessViewWithCapability` canvas with `showGaps={false}`. Adding the first step flips scope b0 → b2 and the canvas takes over.
-- `../packages/ui/src/components/SeeTheDataCta/`: primary CTA to advance to the Analysis tab; disabled until a Y is selected.
-- `../packages/core/src/parser/yLikelihood.ts`: `rankYCandidates` heuristic — 16 case-insensitive name patterns + rich-variation bonus, capped; never auto-picks.
-- `../packages/core/src/scopeDetection.ts`: `detectScopeFromMap(map)` — b0/b1/b2 dispatch from `ProcessMap.nodes.length`. Mirrors `detectScope(investigation)` for surfaces that have a map but no `nodeMappings` yet (PWA + Azure FRAME entry).
+- [`../AGENTS.md`](../AGENTS.md) — Codex entrypoint.
+- [`../CLAUDE.md`](../CLAUDE.md) — Claude entrypoint.
+- `../packages/*/CLAUDE.md` + `../apps/*/CLAUDE.md` — per-package context, loaded on demand.
+- `../.claude/skills/` — task-triggered skills. See router above.
+- [`../.claude/INVARIANTS.md`](../.claude/INVARIANTS.md) — full invariant index with canonical homes + enforcement mechanisms.
 
 ## Tooling
 
-- `pnpm docs:check`: runs diagram health, orphan detection, dead-link scan, Codex Ruflo version drift, frontmatter schema validation.
-- `pnpm codex:ruflo-check`: verifies active Codex Ruflo registration/version and prints repair commands if missing, disabled, or stale.
-- `scripts/audit-doc-references.mjs`: reference-map tool for load-bearing audits (see `docs/09-baseline/2026-04-17-doc-audit.md`).
-- Frontmatter schema: `scripts/docs-frontmatter-schema.mjs` (warn mode until 2026-05-15).
+- `pnpm docs:check` — diagram health + dead-link scan + frontmatter schema validation.
+- `pnpm docs:check:frontmatter` — schema + discipline checks alone.
+- `node scripts/check-doc-frontmatter.mjs --diff` — diff-mode checks (decision-log append-only, design-spec `## Amendment`, delivered-by banner).
+- See [`../.claude/skills/docs-toolbox/SKILL.md`](../.claude/skills/docs-toolbox/SKILL.md) for the retrieval surface.
