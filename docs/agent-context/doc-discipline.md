@@ -70,6 +70,103 @@ When editing a canonical spec mid-flight:
 4. **Commit** with message covering both the spec edit and the log entry.
 5. **(If during build PR)** flag the change in the PR description so reviewers see it.
 
+## Reader-first banners at the top
+
+**Frontmatter alone is not enough.** Frontmatter (`status:`, `supersedes:`, `last-verified:`) is for tooling — machine-readable. Readers (humans + agents) need a **human-readable banner at the top** of the body, immediately after the H1.
+
+Industry convention: status at top, amendments at bottom (for ADRs only).
+
+### When a banner is required
+
+| Condition                                                                    | Banner required at top                                         |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `status: superseded`                                                         | YES — redirect to successor; tell reader "this is not current" |
+| `status: archived`                                                           | YES — historical reference only                                |
+| `supersedes: [<id>]` set + recent supersession                               | YES — note what this replaces, link the predecessor            |
+| Material in-place edit to a `status: active` design spec in the last 30 days | YES — note what section changed + link decision-log            |
+| `status: delivered` with `delivered-by: PR #N`                               | RECOMMENDED — note shipped state + link the PR                 |
+| ADR with one or more `## Amendment` blocks                                   | YES — note in the top status line that amendments exist below  |
+| Fresh `status: draft` or unchanged `status: active`                          | NOT required — body speaks for itself                          |
+
+### Banner templates
+
+**Superseded spec** (after H1):
+
+```
+> ⚠️ **SUPERSEDED 2026-MM-DD** by [`<new-spec>`](path). Preserved for historical reference.
+> For current intent, see the successor. Reason: <one-line rationale>.
+```
+
+**Spec with recent material in-place edit**:
+
+```
+> 🔄 **Last material edit 2026-MM-DD** — §<section> rewritten: <one-sentence what>.
+> See `decision-log` entry for the matching date for rationale.
+```
+
+**Active build**:
+
+```
+> 🟡 **Active build** — implementation underway via [`PR #N`](https://github.com/.../pull/N).
+> Spec body reflects current intent; verify against PR for delivery progress.
+```
+
+**Delivered**:
+
+```
+> ✅ **Delivered 2026-MM-DD** via [`PR #N`](url). Body describes shipped state; edit when feature evolves.
+> Code: `packages/<...>`, `apps/<...>`.
+```
+
+**ADR with amendments**:
+
+```
+> ✅ **Accepted 2026-MM-DD** | Amended 2026-MM-DD, 2026-MM-DD (see Amendments at bottom).
+```
+
+**Archived**:
+
+```
+> 🗄 **Archived 2026-MM-DD**. Historical reference only. Successor: [`<doc>`](path) or N/A.
+```
+
+### Why this matters (the wedge-amendment incident)
+
+When the wedge spec's §3.1 was amended on 2026-05-16, the canonical spec did NOT get a `🔄 Last material edit` banner. A fresh session reading the wedge spec saw no signal — body read as canonical truth, §3.1 said "Improve removed", subagent went down the wrong path. The amendment file existed (`2026-05-16-improve-tab-amendment-design.md`) but was invisible without active discovery.
+
+A banner at the top of the wedge spec would have made the divergence immediately visible to any reader.
+
+### Wikilinks don't substitute for banners
+
+`[[name]]` references are bidirectional in the graph but **passive at read time**. A reader sees them only if they:
+
+- Navigate the link (active)
+- Check a backlinks panel (requires tool support + active intent)
+- Run `pnpm docs:related <id>` (when Play 2 toolbox ships)
+
+Banners are **active** — the reader sees them whether they want to or not. Use banners for "you must know this before reading the body" signals; use wikilinks for "you may want to explore this".
+
+### Banner + frontmatter both
+
+The rule: if the frontmatter signals a condition that affects reader interpretation, the banner repeats it in human-readable form. Don't pick one over the other.
+
+| Information             | Frontmatter (tooling)                                       | Banner (reader)                                 |
+| ----------------------- | ----------------------------------------------------------- | ----------------------------------------------- |
+| Doc is superseded       | `status: superseded` + `supersedes: [...]`                  | "⚠️ SUPERSEDED" + link                          |
+| Doc was recently edited | `last-verified: <today>` + `verified-against-commit: <sha>` | "🔄 Last material edit" if user-relevant change |
+| Doc is delivered        | `status: delivered` + `delivered-by: PR #N`                 | "✅ Delivered" + PR link + code paths           |
+
+### Enforcement (Play 2b validator extensions)
+
+When Play 2b ships, the validator will (in addition to the filename anti-pattern check):
+
+- HARD-FAIL: `status: superseded` without `> SUPERSEDED` banner in first 10 lines of body
+- HARD-FAIL: `supersedes: [<id>]` without banner mentioning what's being superseded
+- WARN: `status: delivered` without `> Delivered` banner or `delivered-by:` frontmatter
+- WARN: design spec with `last-verified` >30 days behind current HEAD + status `active` (suggests freshness banner OR transition to `delivered`)
+
+---
+
 ## Decision-log as temporal index
 
 Every change to a canonical doc — spec body edit, ADR amendment, supersession — gets a decision-log entry. The decision-log is the chronological backbone over the canonical doc set: canonical docs themselves are always "as of now"; the log tells you "what changed when and why".
