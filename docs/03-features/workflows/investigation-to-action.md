@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Investigation to Action Workflow
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [findings, what-if, hypothesis, improvement-actions]
 ---
 

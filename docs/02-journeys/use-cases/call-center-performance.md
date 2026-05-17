@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Call Center Performance Analysis'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Call Center Performance Analysis

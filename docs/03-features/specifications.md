@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: VariScout Product Spec
-audience: [analyst, engineer]
+audience: human
 category: reference
-status: stable
+status: active
 last-reviewed: 2026-05-16
 related: [adr-082, product-overview, feature-parity, journey]
 ---

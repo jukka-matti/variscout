@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: Canvas Viewport Architecture (8f) — Implementation Plan
-audience: [engineer]
+audience: human
 category: implementation
-status: delivered
+status: active
 last-reviewed: 2026-05-13
 related:
   - docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md

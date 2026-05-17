@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Website Design Philosophy'
-audience: [business, designer]
+audience: human
 category: strategy
-status: stable
+status: active
 ---
 
 # Website Design Philosophy

@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-002: Visx for Chart Components'
 ---
 

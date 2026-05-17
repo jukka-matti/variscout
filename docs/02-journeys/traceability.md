@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Journey Traceability Index
-audience: [analyst, engineer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [flows, hooks, components, packages]
 ---
 

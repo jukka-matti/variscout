@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-053: Question-Driven Investigation'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [investigation, eda-mental-model, factor-intelligence, question-driven-eda]
 ---
 

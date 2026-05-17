@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Product-Method Roadmap (SUPERSEDED)
-audience: [product, designer, engineer, analyst, manager]
+audience: human
 category: design-spec
 status: superseded
 superseded-by: docs/superpowers/specs/2026-05-03-variscout-vision-design.md

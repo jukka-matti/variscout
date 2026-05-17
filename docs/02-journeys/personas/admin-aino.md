@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Admin Aino'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Admin Aino

@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-003: IndexedDB for PWA Storage'
 ---
 

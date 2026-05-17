@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Statistics Panel
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [capability, probability-plot, specs, analysis-dashboard]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-031: Report Export — Print/PDF for All Azure Plans'
-audience: [analyst, engineer]
+audience: human
 category: architecture
-status: accepted
+status: active
 date: 2026-03-19
 related: [report-view, export, pdf, print, scouting-report]
 ---

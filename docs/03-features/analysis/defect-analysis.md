@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Defect Analysis
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [defect, pareto, aggregation, failure-mode, evidence-map]
 ---
 

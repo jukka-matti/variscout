@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'COPQ Drill-Down'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # COPQ Drill-Down

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-075: PWA atomic deploy + update policy'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: accepted
+status: active
 date: 2026-05-02
 related:
   - adr-058-deployment-lifecycle

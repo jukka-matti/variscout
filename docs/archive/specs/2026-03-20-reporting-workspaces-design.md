@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Reporting Workspaces Design
-audience: [engineer, analyst, manager]
+audience: human
 category: workflow
-status: delivered
+status: active
 related:
   [report, workspaces, analysis, findings, improvement, audience, two-voices, adr-024, adr-031]
 ---

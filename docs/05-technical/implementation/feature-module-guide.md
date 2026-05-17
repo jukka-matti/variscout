@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Feature Module Guide
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 related: [zustand, feature-sliced-design, adr-041, adr-045]
 ---
 

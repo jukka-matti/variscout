@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Analyst Workflows
-audience: [analyst]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [four-lenses, drill-down, investigation]
 ---
 

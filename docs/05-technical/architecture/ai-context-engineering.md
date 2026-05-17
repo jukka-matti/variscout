@@ -1,9 +1,11 @@
 ---
+tier: living
+purpose: system
 title: 'AI Context Engineering & Pipeline Reference'
 scope: Prompt tiers, context layers, token budgets, phase-aware filtering, caching
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [ai-architecture, ai-journey-integration, aix-design-system]
 points_to:
   - ai-architecture.md (system architecture, data flow, hook composition)

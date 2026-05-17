@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Evidence Sources And Data Profiles - Process Hub Evidence Workflow
-audience: [product, designer, engineer]
+audience: human
 category: design-spec
-status: in-progress
+status: active
 related:
   [process-hub, evidence-sources, data-profiles, snapshots, customer-owned-data, agent-review-log]
 date: 2026-04-26

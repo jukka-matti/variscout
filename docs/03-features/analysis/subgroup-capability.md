@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Subgroup Capability Analysis
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [cp, cpk, rational-subgrouping, i-chart]
 ---
 

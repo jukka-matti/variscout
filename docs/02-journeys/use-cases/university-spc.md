@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'University SPC Course'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # University SPC Course

@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Data-Flow Foundation F3.5 Ingestion Audit
-audience: [engineer]
+audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-06

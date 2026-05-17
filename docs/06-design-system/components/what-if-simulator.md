@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'What-If Simulator'
-audience: [designer, developer]
+audience: human
 category: components
-status: stable
+status: active
 ---
 
 # What-If Simulator

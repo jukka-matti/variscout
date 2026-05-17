@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Process Flow Analysis Mode
-audience: [analyst, engineer]
+audience: human
 category: analysis
 status: draft
 related: [process-flow, yamazumi, output-rate, bottleneck, lead-time, theory-of-constraints]

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Capability Histograms'
-audience: [designer, developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Capability Histograms

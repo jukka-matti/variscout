@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Canvas Wall Overlay — PR8 sub-PR 8e design (Spec 4 extension)
-audience: [engineer, product, designer]
+audience: human
 category: design-spec
-status: delivered
+status: active
 last-reviewed: 2026-05-08
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md

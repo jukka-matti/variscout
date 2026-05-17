@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Implementation
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # Implementation

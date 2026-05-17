@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Navigation Audit — Findings & Action Items
-audience: [developer, designer]
+audience: human
 category: architecture
-status: delivered
+status: active
 related: [navigation, mobile, teams, accessibility, onboarding]
 date: 2026-03-17
 ---

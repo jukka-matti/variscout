@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Canvas Viewport 8f — Followup Workstream Implementation Plan
-audience: [engineer]
+audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-13

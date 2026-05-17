@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Process Flow + Yamazumi Integration
-audience: [analyst, engineer]
+audience: human
 category: design-spec
 status: draft
 related:

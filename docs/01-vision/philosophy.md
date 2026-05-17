@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'EDA for Process Improvement'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # EDA for Process Improvement

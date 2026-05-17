@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: VariScout — What It Does In Practice
-audience: [engineer, analyst]
+audience: human
 category: reference
-status: stable
+status: active
 last-reviewed: 2026-05-16
 related: [product-overview, modes, single-sku, coscout, journey, v1-architecture]
 ---

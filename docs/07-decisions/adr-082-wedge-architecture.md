@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-082: Wedge architecture — single-product VariScout'
 ---
 

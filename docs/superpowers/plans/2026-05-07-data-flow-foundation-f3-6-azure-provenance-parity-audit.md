@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Data-Flow Foundation F3.6-β Audit — Azure persistence + cloud-sync surface
-audience: [engineer]
+audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-07

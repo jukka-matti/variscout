@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Flow 10: Azure App — Admin Operations'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Flow 10: Azure App — Admin Operations

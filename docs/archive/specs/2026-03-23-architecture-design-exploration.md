@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: 'Architecture Design Exploration'
-audience: [developer]
+audience: human
 category: architecture
-status: delivered
+status: active
 related: [adr-045, ddd, feature-sliced-design, strategy-pattern, domain-events]
 ---
 

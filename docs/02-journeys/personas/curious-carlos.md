@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Curious Carlos'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Curious Carlos

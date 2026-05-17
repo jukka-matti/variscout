@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Multi-Zone Oven Temperature Control Case Study'
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: reference
+status: active
 ---
 
 # Multi-Zone Oven Temperature Control Case Study

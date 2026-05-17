@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Variation Bar (Removed — ADR-062)'
-audience: [designer, developer]
+audience: human
 category: components
-status: stable
+status: active
 ---
 
 # Variation Bar (Removed)

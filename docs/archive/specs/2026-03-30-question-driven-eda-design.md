@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Question-Driven EDA — CoScout Analysis Planning
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: delivered
+status: active
 related: [eda-mental-model, coscout, factor-intelligence, investigation, findings]
 ---
 

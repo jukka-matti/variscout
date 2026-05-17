@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Investigation Spine — Three Threads, Five Sentences, One Story'
-audience: [analyst, engineer]
+audience: human
 category: architecture
-status: delivered
+status: active
 related:
   [
     investigation,

@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-065: Evidence Map & Causal Graph Visualization'
 ---
 

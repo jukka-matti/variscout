@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Responsive Charts'
-audience: [designer, developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Responsive Charts

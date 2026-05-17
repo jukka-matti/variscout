@@ -1,12 +1,16 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-068: CoScout Cognitive Redesign'
-audience: [engineer]
+audience: human
 category: architecture
-status: stable
-related: [coscout, ai-integration, prompt-caching, tiered-prompts]
+status: active
+related: [coscout, ai-integration, prompt-caching, tiered-prompts, coscout-ax-design]
 ---
 
 # ADR-068: CoScout Cognitive Redesign
+
+> See canonical AX design at [coscout-ax-design](../01-vision/coscout-ax-design.md) for the consolidated persona, tier-gating, safety, and prompt engineering overview. This ADR is the decision provenance for the modular prompt architecture, tier model, and phase-adaptive assembly.
 
 **Status:** Accepted  
 **Date:** 2026-04-05  

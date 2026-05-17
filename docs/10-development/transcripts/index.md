@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: build
 title: Transcripts & Expert Interviews
-audience: [developer, product]
+audience: human
 category: reference
-status: raw
+status: draft
 ---
 
 # Transcripts & Expert Interviews

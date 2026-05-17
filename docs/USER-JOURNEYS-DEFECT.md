@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Defect Analysis Mode — User Journey
-audience: [engineer, analyst]
+audience: human
 category: reference
-status: stable
+status: active
 last-reviewed: 2026-05-16
 related: [defect, journey, ppm, event-rates, copq]
 ---

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Nelson Rules
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [control-chart, i-chart, special-cause, runs]
 ---
 

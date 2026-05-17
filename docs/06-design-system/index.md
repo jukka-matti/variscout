@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'VariScout Design System'
-audience: [designer, developer]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # VariScout Design System

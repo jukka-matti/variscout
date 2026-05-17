@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: F4 audit — touch surface verified pre-implementation
-audience: [engineer]
+audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-07

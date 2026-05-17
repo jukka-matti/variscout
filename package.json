@@ -23,7 +23,8 @@
     "docs:sync": "bash scripts/sync-monorepo-counts.sh",
     "codex:ruflo-check": "bash scripts/check-codex-ruflo.sh",
     "check:boundaries": "bash scripts/check-level-boundaries.sh",
-    "check:i18n": "npx tsx scripts/check-i18n.ts"
+    "check:i18n": "npx tsx scripts/check-i18n.ts",
+    "docs:gen-arch": "node scripts/docs/gen-arch.mjs"
   },
   "lint-staged": {
     "**/*.{ts,tsx}": [

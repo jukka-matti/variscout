@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Disaster Recovery
-audience: [developer, admin]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [deployment, azure, infrastructure]
 ---
 

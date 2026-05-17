@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Zustand Store Interaction Graph
-audience: [developer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [zustand, feature-stores, adr-041, state-management]
 ---
 

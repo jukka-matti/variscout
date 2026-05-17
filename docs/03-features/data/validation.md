@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Data Validation
-audience: [analyst, engineer]
+audience: human
 category: data
-status: stable
+status: active
 related: [parser, quality-checks, data-input]
 ---
 

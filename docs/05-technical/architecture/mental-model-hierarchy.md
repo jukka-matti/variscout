@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Mental Model Hierarchy
-audience: [developer, analyst]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [methodology, journey, investigation, ai, report]
 ---
 

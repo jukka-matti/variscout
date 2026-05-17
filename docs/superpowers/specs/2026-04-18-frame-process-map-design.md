@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: FRAME Workspace & Visual Process Map
-audience: [engineer, product]
+audience: human
 category: architecture
-status: delivered
+status: active
 related:
   [
     frame-workspace,

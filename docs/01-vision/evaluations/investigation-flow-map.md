@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Investigation Flow Map: Pizza Delivery'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # Investigation Flow Map: Pizza Delivery

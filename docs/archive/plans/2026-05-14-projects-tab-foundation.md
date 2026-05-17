@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Projects Tab + IP Detail Page Foundation — Implementation Plan
-audience: [engineer]
+audience: human
 category: implementation
 status: archived
 last-reviewed: 2026-05-14

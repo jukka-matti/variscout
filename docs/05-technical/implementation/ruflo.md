@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Ruflo Development Tooling'
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # Ruflo Development Tooling

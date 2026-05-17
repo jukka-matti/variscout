@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: VariScout Product Evaluation Deck Narrative Plan
-audience: [product, manager, analyst]
+audience: human
 category: strategy
 status: draft
 date: 2026-04-27

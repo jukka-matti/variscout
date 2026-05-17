@@ -1,8 +1,10 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'Multi-level SCOUT V1 — load-bearing decisions'
-audience: [engineer, architect]
+audience: human
 category: implementation
-status: accepted
+status: active
 date: 2026-04-29
 related:
   - multi-level-scout-design

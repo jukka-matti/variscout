@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Framing Layer V1 Slice 1 — Locked Decisions
-audience: [engineer]
+audience: human
 category: implementation
 status: draft
 date: 2026-05-03

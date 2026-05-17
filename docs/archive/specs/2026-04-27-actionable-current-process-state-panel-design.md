@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Actionable Current Process State Panel
-audience: engineer
+audience: human
 category: design-spec
 status: draft
 related:

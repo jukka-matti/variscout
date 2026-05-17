@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Production-Line-Glance — Engine Layer (Plan A)
-status: delivered
+status: active
 ---
 
 # Production-Line-Glance — Engine Layer (Plan A)

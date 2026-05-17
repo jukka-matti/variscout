@@ -1,11 +1,16 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-060: CoScout Intelligence Architecture'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
+related: [coscout-ax-design]
 ---
 
 # ADR-060: CoScout Intelligence Architecture
+
+> See canonical AX design at [coscout-ax-design](../01-vision/coscout-ax-design.md) for the consolidated persona, tier-gating, safety, and prompt engineering overview. This ADR is the decision provenance and engineering detail for the five-pillar knowledge architecture.
 
 **Status:** Accepted
 **Date:** 2026-04-02

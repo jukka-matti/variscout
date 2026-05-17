@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'When to Stop'
-audience: [business, product]
+audience: human
 category: strategy
-status: reference
+status: active
 ---
 
 # When to Stop

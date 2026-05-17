@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-014: Defer Regression to Phase 2'
 ---
 

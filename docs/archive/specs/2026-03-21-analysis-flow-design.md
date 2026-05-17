@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: Analysis Flow Documentation + Capability Mode Features
 status: draft
 ---

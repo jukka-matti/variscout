@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-013: Architecture Evaluation — DDD and AI Swarms'
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Process Flow Mode — User Journey
-audience: [engineer, analyst]
+audience: human
 category: reference
-status: design
+status: draft
 last-reviewed: 2026-05-16
 related: [process-flow, journey, bottleneck, design-only]
 ---

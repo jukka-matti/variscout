@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'UX Research: VariScout Lite'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # UX Research: VariScout Lite

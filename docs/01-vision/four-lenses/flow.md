@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'FLOW Lens: Boxplot'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # FLOW Lens: Boxplot

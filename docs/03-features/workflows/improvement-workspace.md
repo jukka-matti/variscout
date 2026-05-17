@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Improvement Workspace
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [improvement, pdca, prioritization, what-if, actions, verification]
 ---
 

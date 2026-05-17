@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Azure / AI Foundry / Teams Platform Opportunities
-audience: [developer, product]
+audience: human
 category: strategy
 status: active
 related: [azure, ai, teams, platform]

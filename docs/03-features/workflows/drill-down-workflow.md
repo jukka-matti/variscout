@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Drill-Down Analysis Workflow
-audience: [analyst]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [drill-down, filter-chips, eta-squared, r-squared-adj, factor-intelligence]
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Case Study: "Do We Really Need a New Machine?"'
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: reference
+status: active
 ---
 
 # Case Study: "Do We Really Need a New Machine?"

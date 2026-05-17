@@ -1,10 +1,12 @@
 # VariScout
 
-Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. **V1 strategic direction (single-SKU pivot 2026-05-16, amended 2026-05-16 Improve-tab):** single-product tool for improvement specialists; €120/mo Azure tenant-wide; 7-tab workflow nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`); Improve is a top-level verb tab with active-IP cascade; project-membership ACLs (no cross-AD-tenant invites). Canonical: [V1 architecture spec](docs/superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](docs/07-decisions/adr-082-wedge-architecture.md). VariScout Process (enterprise) is named-future. Many docs pre-date this pivot — Phase A canonical-anchor cleanup landed 2026-05-17; Phase C holistic audit scheduled post-customer-validation.
+Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. **V1 strategic direction (single-SKU pivot 2026-05-16, amended 2026-05-16 Improve-tab):** single-product tool for improvement specialists; €120/mo Azure tenant-wide; 7-tab workflow nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`); Improve is a top-level verb tab with active-IP cascade; **3 personas within each Project** (Lead / Member / Sponsor — per-project ACLs, no cross-AD-tenant invites). Canonical: [V1 architecture spec](docs/superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](docs/07-decisions/adr-082-wedge-architecture.md). VariScout Process (enterprise) is named-future. Many docs pre-date this pivot — Phase A canonical-anchor cleanup landed 2026-05-17; Phase C holistic audit scheduled post-customer-validation.
 
 Shared agent map: `docs/llms.txt`
 
 ## Invariants
+
+Full index with canonical homes + enforcement mechanisms: `.claude/INVARIANTS.md`.
 
 - Browser-only processing; data stays in customer's tenant (ADR-059). Deterministic stats engine is authority; CoScout (AI) adds context. No statistical roll-up across heterogeneous units — distributions, not aggregates (ADR-073).
 - 6 Zustand stores split across 3 layers per ADR-078 + F4 (3 Document, 2 Annotation, 1 View); no DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
@@ -29,7 +31,7 @@ Shared agent map: `docs/llms.txt`
 - **Agent manifest**: `docs/llms.txt` — map of priority entry points.
 - **Decisions (why)**: `docs/07-decisions/` (live) + `docs/archive/adrs/` (superseded).
 - **Designs (what)**: `docs/superpowers/specs/` (active) + `docs/archive/specs/` (delivered/historical).
-- **Claude-only rules + skills**: `.claude/rules/` = short cross-cutting non-negotiables (currently load globally). `.claude/skills/` = workflows only — VariScout editing patterns live in nested `CLAUDE.md`. Doc workflow: spec frontmatter SSOT in `scripts/docs-frontmatter-schema.mjs`; new docs need ≥1 inbound link.
+- **Invariants + skills**: `.claude/invariants/` = short cross-cutting non-negotiables (currently load globally). See `.claude/INVARIANTS.md` for the synthesizing index. `.claude/skills/` = workflows only — VariScout editing patterns live in nested `CLAUDE.md`. Doc workflow: spec frontmatter SSOT in `scripts/docs-frontmatter-schema.mjs`; new docs need ≥1 inbound link.
 
 ## Workflow
 

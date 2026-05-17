@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-012: PWA Browser-Only, Zero Data Collection'
 ---
 

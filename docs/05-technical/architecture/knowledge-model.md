@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Knowledge Model Architecture'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # Knowledge Model Architecture

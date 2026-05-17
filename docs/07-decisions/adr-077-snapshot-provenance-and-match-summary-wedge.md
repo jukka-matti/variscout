@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-077: Snapshot-level provenance + match-summary wedge for paste-into-existing-Hub'
-audience: [product, designer, engineer, analyst]
+audience: human
 category: architecture
-status: accepted
+status: active
 date: 2026-05-04
 related:
   - adr-073-no-statistical-rollup-across-heterogeneous-units

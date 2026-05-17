@@ -1,10 +1,12 @@
 ---
+tier: living
+purpose: system
 title: Documentation Methodology
 description: How VariScout's 100+ docs are organized — grounded in Diataxis, C4, Docs-as-Code, and the 4-phase analysis journey
 journey-phase: [all]
-audience: [developer, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Documentation Methodology

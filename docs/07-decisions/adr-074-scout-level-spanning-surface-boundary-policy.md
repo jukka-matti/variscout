@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-074: SCOUT level-spanning surface — boundary policy'
-audience: [product, designer, engineer, analyst]
+audience: human
 category: architecture
-status: accepted
+status: active
 date: 2026-04-29
 related:
   - adr-073-no-statistical-rollup-across-heterogeneous-units

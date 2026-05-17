@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: build
 title: 'Project Status Audit — 2026-04-16'
-audience: [engineer, developer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [audit, state-of-product, adr, specs, feature-parity]
 ---
 

@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: Trainer Network
-audience: [business, analyst]
+audience: human
 category: reference
 status: draft
 related: [training, ecosystem, directory, growth, market-analysis, business-bible]

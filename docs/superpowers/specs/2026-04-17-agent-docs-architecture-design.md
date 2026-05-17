@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Agent-Facing Documentation Architecture (A++)
-audience: [engineer]
+audience: human
 category: architecture
-status: delivered
+status: active
 related:
   [claude-md, skills, documentation, governance, agent-context, progressive-disclosure, opus-4-7]
 ---

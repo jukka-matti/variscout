@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Authentication (EasyAuth)'
-audience: [admin, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # Authentication (EasyAuth)

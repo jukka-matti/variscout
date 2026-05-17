@@ -1,10 +1,12 @@
 ---
+tier: living
+purpose: system
 title: System Map
 description: Visual architecture overview of VariScout's packages, apps, and external integrations
 journey-phase: [all]
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # System Map

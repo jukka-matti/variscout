@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Codex + Ruflo Workflow'
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # Codex + Ruflo Workflow
@@ -48,7 +50,7 @@ Codex does not receive the passive Claude hook guidance, so retrieval should be 
 ### During Implementation
 
 - Use repo docs and package `CLAUDE.md` files for local context.
-- Treat `.claude/rules/` and `.claude/skills/` as Claude-oriented assets. Do not add Ruflo or Claude Flow skills there.
+- Treat `.claude/invariants/` and `.claude/skills/` as Claude-oriented assets. Do not add Ruflo or Claude Flow skills there.
 - Use standard repo commands for validation: `pnpm test`, `pnpm build`, and `bash scripts/pr-ready-check.sh`.
 - If you want Claude-like startup context, rely on `AGENTS.md` plus `pnpm codex:ruflo-check`; do not assume Claude hooks or statusline behavior exists in Codex.
 

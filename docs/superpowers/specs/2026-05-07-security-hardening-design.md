@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Security Hardening Concept — Azure VariScout (hub authz + SAS scope + login guardrails)
-audience: [product, engineer]
+audience: human
 category: design-spec
 status: draft
 last-reviewed: 2026-05-07

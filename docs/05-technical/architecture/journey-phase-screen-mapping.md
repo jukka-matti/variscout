@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Journey Phase → Screen Mapping
-audience: [analyst, engineer]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [journey-phase, mental-model-hierarchy, analysis-journey-map]
 ---
 

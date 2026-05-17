@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Hospital Ward Case - ABB/Practitioner Context'
-audience: [analyst, engineer]
+audience: human
 category: learning
-status: reference
+status: active
 ---
 
 # Hospital Ward Case - ABB/Practitioner Context

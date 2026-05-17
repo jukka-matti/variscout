@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Agent Docs Architecture Baseline (Pre-Phase 1)
-audience: [engineer]
+audience: human
 category: reference
-status: reference
+status: active
 last-reviewed: 2026-04-17
 related: [claude-md, skills, migration, measurement]
 ---

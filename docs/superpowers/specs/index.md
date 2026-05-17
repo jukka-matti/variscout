@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: 'Design Specs (superpowers)'
-status: reference
+status: active
 ---
 
 # Design Specs (superpowers)

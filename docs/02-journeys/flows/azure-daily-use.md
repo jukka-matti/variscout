@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Flow 7: Azure App — Daily Use'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Flow 7: Azure App — Daily Use

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Shared UI Library Strategy'
-audience: [developer, architect]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # Shared UI Library Strategy

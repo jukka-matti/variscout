@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Decision Trees
-audience: [analyst]
+audience: human
 category: workflow
-status: stable
+status: active
 related: [chart-selection, workflow-guidance]
 journey-phase: scout
 ---

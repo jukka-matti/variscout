@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Header Redesign — Merged Toolbar + Workspace Tabs
 date: 2026-04-01
 status: superseded
-audience: [developer, designer]
+audience: human
 category: design-spec
 related: [header, toolbar, workspace-tabs, auto-save, report-workspace, navigation, panels]
 ---

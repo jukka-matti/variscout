@@ -1,7 +1,9 @@
 ---
+tier: living
+purpose: design
 title: 'Filter Breadcrumb Navigation'
 status: draft
-audience: [analyst, engineer]
+audience: human
 category: navigation
 ---
 

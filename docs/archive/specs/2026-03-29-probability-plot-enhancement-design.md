@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: 'Probability Plot Enhancement Design'
 status: draft
 ---

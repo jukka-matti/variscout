@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Improvement Workspace PDCA Extension
-audience: [developer, analyst]
+audience: human
 category: architecture
 status: superseded
 superseded-by: 2026-04-02-improvement-hub-design.md

@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Documentation Methodology Upgrade — Lessons from tblsum
-audience: [engineer, analyst]
+audience: human
 category: architecture
 status: draft
 date: 2026-03-17

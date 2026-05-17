@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: 'Knowledge Base: Document Upload, Folder Selection & Permissions Design'
-audience: [engineer, analyst]
+audience: human
 category: architecture
-status: delivered
+status: active
 related: [knowledge-base, sharepoint, coscout, adr-026]
 ---
 

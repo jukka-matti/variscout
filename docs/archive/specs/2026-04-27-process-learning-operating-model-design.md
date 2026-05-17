@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Process Learning Operating Model (SUPERSEDED)
-audience: [product, designer, engineer, analyst]
+audience: human
 category: design-spec
 status: superseded
 superseded-by: docs/superpowers/specs/2026-05-03-variscout-vision-design.md

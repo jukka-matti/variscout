@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'How It Works'
-audience: [admin, architect]
+audience: human
 category: reference
-status: stable
+status: active
 ---
 
 # How It Works

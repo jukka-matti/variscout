@@ -1,10 +1,12 @@
 ---
+tier: living
+purpose: design
 title: Investigation Lifecycle Map
 description: State diagrams for investigation diamond phases and Finding status lifecycle with transition triggers and CoScout behavior
 journey-phase: investigate
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Investigation Lifecycle Map

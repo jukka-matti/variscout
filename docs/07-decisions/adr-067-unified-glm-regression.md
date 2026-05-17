@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-067: Unified GLM Regression Engine'
-status: accepted
+status: active
 date: 2026-04-05
 ---
 

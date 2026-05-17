@@ -1,10 +1,12 @@
 ---
+tier: living
+purpose: build
 title: MBB Investigation Spine Validation
 type: interview
 language: en
 date: 2026-03-29
-status: delivered
-audience: [developer, product]
+status: active
+audience: human
 category: reference
 ---
 

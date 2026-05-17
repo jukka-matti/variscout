@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-054: Mode-Aware Question Strategy'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 related: [question-driven-eda, factor-intelligence, strategy-pattern, yamazumi, capability]
 ---
 

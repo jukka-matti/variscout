@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Field Fiona'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Field Fiona

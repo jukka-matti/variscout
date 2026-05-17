@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Features
-audience: [analyst, engineer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [analysis, workflows, data, navigation, learning]
 ---
 

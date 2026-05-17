@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Data Features
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 ---
 
 # Data Features

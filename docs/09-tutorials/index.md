@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Tutorials
-audience: [analyst, engineer]
+audience: human
 category: tutorial
-status: deferred
+status: superseded
 related: [getting-started, learning, case-studies]
 ---
 

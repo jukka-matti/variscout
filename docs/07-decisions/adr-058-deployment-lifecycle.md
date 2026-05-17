@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-058: Deployment Lifecycle & Self-Service Update System'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # ADR-058: Deployment Lifecycle & Self-Service Update System

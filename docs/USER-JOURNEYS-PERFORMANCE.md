@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Performance Mode — User Journey
-audience: [engineer, analyst]
+audience: human
 category: reference
-status: stable
+status: active
 last-reviewed: 2026-05-16
 related: [performance, journey, multi-channel, cpk, drill-down]
 ---

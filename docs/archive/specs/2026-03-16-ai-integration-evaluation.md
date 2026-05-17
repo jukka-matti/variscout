@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: 'AI Integration Quality Evaluation'
-status: delivered
+status: active
 ---
 
 # AI Integration Quality Evaluation — VariScout

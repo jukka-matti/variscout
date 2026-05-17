@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: HMW Brainstorm Modal + Collaborative Sessions
-audience: [analyst, engineer]
+audience: human
 category: workflow
-status: delivered
+status: active
 related: [improvement, brainstorm, hmw, coscout, collaboration, ideation]
 ---
 

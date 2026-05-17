@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: Projects tab + IP Detail (Lifecycle) page + Home active-IP launchpad
-audience: [product, engineer, designer]
+audience: human
 category: design-spec
 status: draft
 last-reviewed: 2026-05-14

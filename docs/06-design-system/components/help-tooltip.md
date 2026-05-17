@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Help Tooltips
-audience: [analyst, engineer]
+audience: human
 category: components
-status: stable
+status: active
 related: [glossary, contextual-help, onboarding]
 ---
 

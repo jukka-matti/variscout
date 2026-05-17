@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: Timeline Window & Multi-Level Routing Architecture
-audience: [developer]
+audience: human
 category: architecture
-status: delivered
+status: active
 related: [analysis-strategy, dashboard-layout, data-pipeline-map, mental-model-hierarchy]
 ---
 

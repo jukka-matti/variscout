@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Flow 9: Azure App — AI Setup'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Flow 9: Azure App — AI Setup

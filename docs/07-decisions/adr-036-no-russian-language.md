@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-036: No Russian Language Support'
 ---
 
@@ -36,6 +38,7 @@ English, following the standard `detectLocale()` fallback chain.
 > **VariScout does not support the Russian language.**
 
 This applies to:
+
 - UI localization (message catalogs, translated strings)
 - Browser language auto-detection
 - Number/date formatting via `Intl` APIs

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Supplier PPAP Capability Studies'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Supplier PPAP Capability Studies

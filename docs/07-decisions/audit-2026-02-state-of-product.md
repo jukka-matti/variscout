@@ -1,4 +1,6 @@
 ---
+tier: living
+purpose: decide
 title: 'State-of-the-Product Audit — February 2026'
 ---
 

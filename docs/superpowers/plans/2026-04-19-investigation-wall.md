@@ -1,6 +1,8 @@
 ---
+tier: ephemeral
+purpose: build
 title: Investigation Wall Implementation Plan
-status: in-progress
+status: active
 date: 2026-04-19
 ---
 

@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'Drill-Down: Progressive Variation Analysis'
-audience: [business, analyst]
+audience: human
 category: methodology
-status: stable
+status: active
 ---
 
 # Drill-Down: Progressive Variation Analysis

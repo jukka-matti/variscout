@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Trainer Tina'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Trainer Tina

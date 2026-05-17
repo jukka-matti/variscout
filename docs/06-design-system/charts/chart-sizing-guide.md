@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Chart Sizing Guide
-audience: [developer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [charts, visx, responsive, layout]
 ---
 

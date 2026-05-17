@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: 'EDA Mental Model Reference — Turtiainen (2019)'
-audience: [analyst, engineer]
+audience: human
 category: reference
-status: stable
+status: active
 related: [eda-mental-model, methodology, investigation]
 ---
 

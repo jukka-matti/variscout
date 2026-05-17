@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: remember
 title: Improvement Hub Redesign
-audience: [developer, analyst]
+audience: human
 category: architecture
-status: delivered
+status: active
 related: [improvement, prioritization, what-if, pdca, actions, verification, matrix, risk]
 ---
 

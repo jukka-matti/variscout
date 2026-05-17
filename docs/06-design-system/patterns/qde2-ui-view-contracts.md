@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: QDE 2.0 UI View Contracts
-audience: [designer, developer, product]
+audience: human
 category: reference
 status: draft
 related:

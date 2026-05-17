@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: design
 title: 'VQI Re-Evaluation: Post-ADR-053 Scoring + Activation Improvements'
-audience: [analyst, engineer]
+audience: human
 category: reference
 status: active
 related: [evaluation, ai-experience, question-driven-eda, coscout, prompt-engineering]

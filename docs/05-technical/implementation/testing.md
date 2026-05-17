@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Testing Strategy'
-audience: [developer]
+audience: human
 category: implementation
-status: stable
+status: active
 ---
 
 # Testing Strategy
@@ -957,7 +959,7 @@ Validated as correctly scoped entry point. No action needed.
 
 ## Related Documentation
 
-- `.claude/rules/testing.md` - Quick reference testing rules (in project root)
+- `.claude/invariants/testing.md` - Quick reference testing invariants (in project root)
 
 ---
 

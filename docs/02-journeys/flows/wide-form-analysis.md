@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Flow: Wide-Form Data Analysis'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Flow: Wide-Form Data Analysis

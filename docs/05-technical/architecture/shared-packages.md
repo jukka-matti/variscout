@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: 'Shared Packages'
-audience: [developer, architect]
+audience: human
 category: architecture
-status: stable
+status: active
 ---
 
 # Shared Packages

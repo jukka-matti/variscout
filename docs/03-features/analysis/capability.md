@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: Capability Analysis
-audience: [analyst, engineer]
+audience: human
 category: analysis
-status: stable
+status: active
 related: [cpk, cp, normal-distribution, sigma-estimation, specification-limits]
 ---
 

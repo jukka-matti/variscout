@@ -1,6 +1,8 @@
 ---
+tier: living
+purpose: decide
 title: 'ADR-076: FRAME b0 lightweight render — investigator vs author archetypes'
-audience: [product, designer, engineer, analyst]
+audience: human
 category: architecture
 status: superseded
 superseded-by: docs/superpowers/specs/2026-05-04-canvas-migration-design.md

@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: design
 title: 'Flow 5: Return Visitor → App'
-audience: [product, designer]
+audience: human
 category: workflow
-status: stable
+status: active
 ---
 
 # Flow 5: Return Visitor → App
