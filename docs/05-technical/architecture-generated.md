@@ -70,7 +70,7 @@ Sub-path exports declared in `package.json#exports` and corresponding TypeScript
 | Package | `package.json` exports | `tsconfig.json` paths |
 |---------|------------------------|----------------------|
 | `@variscout/charts` | `.`, `./Boxplot`, `./CapabilityHistogram`, `./ChartSourceBar`, `./IChart`, `./ParetoChart`, `./ProbabilityPlot` | _(none)_ |
-| `@variscout/core` | `.`, `./actions`, `./ai`, `./canvas`, `./capability`, `./defect`, `./evidenceMap`, `./evidenceSources`, `./export`, `./findings`, `./frame`, `./glossary`, `./i18n`, `./identity`, `./improvementProject`, `./matchSummary`, `./navigation`, `./pareto`, `./parser`, `./performance`, `./persistence`, `./processHub`, `./processMoments`, `./projectMetadata`, `./responsive`, `./signalCards`, `./stats`, `./strategy`, `./survey`, `./tier`, `./time`, `./types`, `./ui-types`, `./variation`, `./yamazumi` | _(none)_ |
+| `@variscout/core` | `.`, `./actions`, `./ai`, `./canvas`, `./capability`, `./defect`, `./evidenceMap`, `./evidenceSources`, `./export`, `./findings`, `./frame`, `./glossary`, `./i18n`, `./identity`, `./improvementProject`, `./matchSummary`, `./measurementPlan`, `./navigation`, `./pareto`, `./parser`, `./performance`, `./persistence`, `./processHub`, `./processMoments`, `./projectMembership`, `./projectMetadata`, `./responsive`, `./signalCards`, `./stats`, `./strategy`, `./survey`, `./tier`, `./time`, `./types`, `./ui-types`, `./variation`, `./yamazumi` | `@variscout/core/measurementPlan`, `@variscout/core/projectMembership` |
 | `@variscout/data` | `.`, `./computed`, `./samples` | _(none)_ |
 | `@variscout/hooks` | `.` | _(none)_ |
 | `@variscout/stores` | `.` | _(none)_ |
