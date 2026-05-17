@@ -11,6 +11,8 @@ related: [2026-05-16-docs-strategy-memo, adr-083-eight-purpose-doc-taxonomy]
 
 # VariScout Docs Strategy 2026 — Full Design
 
+> 🟡 **Active build via [`PR #184`](https://github.com/jukka-matti/variscout/pull/184)** | 🔄 **Last material edit 2026-05-17** — §2.7 expanded with "Reader-first banners at the top" (template matrix + Play 2b validator extensions for banner enforcement). Per the principle this spec defines: frontmatter alone is insufficient — this banner signals reader-relevant changes since the spec was first shipped.
+
 _1-page CTO memo: [2026-05-16-docs-strategy-memo.md](2026-05-16-docs-strategy-memo.md). Schema change ADR: [ADR-083](../../07-decisions/adr-083-eight-purpose-doc-taxonomy.md)._
 
 ---
@@ -176,11 +178,31 @@ When editing a canonical spec mid-flight:
 
 1. Make the edit.
 2. Update `last-verified: <today>` frontmatter; bump `verified-against-commit: <sha>` after commit.
-3. Add decision-log entry citing the section change with a `[supersedes <doc>#<section>]` marker.
-4. Commit with message capturing both the spec edit + the log entry.
-5. (If during active build) flag the change in the build PR description so reviewers see it.
+3. If the edit is material (changes intent or supersedes a section), **add a status banner at the top** of the body (after the H1) — see below.
+4. Add decision-log entry citing the section change with a `[supersedes <doc>#<section>]` marker.
+5. Commit with message capturing both the spec edit + the log entry.
+6. (If during active build) flag the change in the build PR description so reviewers see it.
 
 This makes mid-flight changes auditable without polluting the spec body with amendment scar tissue.
+
+#### Reader-first banners at the top
+
+**Frontmatter alone is not enough** — frontmatter is for tooling; readers (humans + agents) need a human-readable banner at the TOP of the body, right after the H1. This is the active signal a fresh-session reader sees first.
+
+Required when: `status: superseded`, `status: archived`, `supersedes:` set, material in-place edit in the last 30 days, ADR with amendments below. Recommended for: `status: delivered` (link the shipping PR + code paths).
+
+The wedge-amendment incident proved why: the wedge spec was amended on 2026-05-16 but never got a banner. A fresh session reading only the wedge spec saw no signal → went down the wrong path. A `🔄 Last material edit 2026-05-16 — §3.1 rewritten (Improve tab retained)` banner at the top would have made the divergence immediately visible.
+
+**Pattern**: status banner at TOP for "you must know this before reading the body"; amendment blocks at BOTTOM (ADRs only) for "history accumulates here". Wikilinks (`[[name]]`) are **passive** at read time and don't substitute for banners — they preserve graph structure, not reading priority.
+
+Concrete banner templates + the full required/recommended matrix live in [`docs/agent-context/doc-discipline.md` §Reader-first banners](../../agent-context/doc-discipline.md). Loaded by `agent-context-quickstart` skill on session start so every subagent gets the templates cold.
+
+**Enforcement (Play 2b validator extensions)**:
+
+- HARD-FAIL: `status: superseded` without `> SUPERSEDED` banner in first 10 lines of body
+- HARD-FAIL: `supersedes: [<id>]` set without banner mentioning what's being superseded
+- WARN: `status: delivered` without delivery banner OR `delivered-by:` frontmatter
+- WARN: `status: active` design spec with `last-verified` >30 days behind HEAD (suggests freshness banner or transition to `delivered`)
 
 #### Spec lifecycle states (explicit)
 
