@@ -412,6 +412,8 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 
 **Resolution:** PR8-8a — `computeCtaState` helper + 2-state CTA rendering (`active` / `prerequisite-locked`). All five paths free-tier-active per Q2 (tier reframe). Charter has no workflow prerequisite per DMAIC Define-phase research. Stub destinations ship for Charter / Sustainment / Handoff; full surfaces deferred to per-path slices listed below.
 
+> **Wedge V1 supersession (2026-05-16):** Canvas response paths collapse from 5 → 3 (Investigate / Quick Action / Charter). Sustainment auto-fires (ADR-080); Handoff path is retired (folded into Sustainment). `computeCtaState` and stub destinations for Sustainment / Handoff are now dead code — removal deferred to a dedicated deletion sweep.
+
 ---
 
 ### Charter authoring V1 → Improvement Project V1 [PROMOTED 2026-05-08]
@@ -446,27 +448,31 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 
 ---
 
-### Handoff workflow V1
+### Handoff workflow V1 [WEDGE SCOPE NOTE — folded into Sustainment]
 
 **Surfaced by:** PR8-8a amendment review, 2026-05-07.
 
-**Description:** PR8-8a ships a Handoff stub destination only. The CTA's prerequisite signal (`sustainmentConfirmed`) is hardcoded `false` in FrameView until the data model lands. The full surface — transferring ownership of a confirmed-sustained improvement to the process owner with a control plan — is deferred.
+> **Wedge V1 (2026-05-16):** The Handoff response path is retired. Canvas exposes 3 paths (Investigate / Quick Action / Charter); Sustainment auto-fires per ADR-080 and absorbs end-of-project close logic. The Handoff stub code + prerequisite signal are dead code; clean-up deferred to a dedicated deletion PR.
 
-**Possible directions:**
+**Description (historical):** PR8-8a shipped a Handoff stub destination only. The CTA's prerequisite signal (`sustainmentConfirmed`) is hardcoded `false` in FrameView until the data model lands. The full surface — transferring ownership of a confirmed-sustained improvement to the process owner with a control plan — is deferred.
+
+**Possible directions (if Handoff is restored in VariScout Process):**
 
 - "Sustainment confirmed" signal: needs concrete definition. Likely `SustainmentRecord.latestReviewId` populated AND review marked `confirmed-sustained`.
 - Control plan: who owns the process post-handoff; what triggers escalation; reaction plan if metrics drift.
-- Free-tier vs paid-tier split: free can document the handoff; paid gets RACI / signoff / change-notification flow.
+- Process-role split: Process Owner receives the handoff; out-of-scope for V1 Specialist-only model.
 
-**Promotion path:** Standalone slice when prioritized. Sequence after Sustainment workflow (handoff requires confirmed sustainment).
+**Promotion path:** VariScout Process (named-future — requires Process Owner persona from [four-personas.md](01-vision/variscout-process/four-personas.md)).
 
 ---
 
-### Team-collaboration features inside Charter / Sustainment / Handoff surfaces
+### Team-collaboration features inside Charter / Sustainment / Handoff surfaces [WEDGE SCOPE NOTE]
 
 **Surfaced by:** PR8-8a amendment review, 2026-05-07.
 
-**Description:** Per Q2 (tier reframe), the five response-path CTAs are tier-active in PWA + Azure. The team-collaboration tier-gate that DOES apply lives **inside** each surface: signoff buttons, audit trail, alerts setup, RACI, change notifications. PR8-8a defers wiring this layer until the surface forms ship.
+> **Wedge V1 (2026-05-16):** Handoff surface is retired (folded into Sustainment). This entry covers Charter + Sustainment only. The five-CTA model reduces to 3 V1 paths; Q2 tier reframe still applies for the remaining surfaces. The pattern (project-role gating via `canAccess()` inside surfaces) remains valid — the `useTier()` references are retired per ADR-082.
+
+**Description:** The team-collaboration role-gate lives **inside** each surface: signoff buttons, audit trail, alerts setup, RACI, change notifications. PR8-8a defers wiring this layer until the surface forms ship.
 
 **Possible directions:**
 
