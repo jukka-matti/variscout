@@ -228,8 +228,8 @@ function makeMinimalProps(): React.ComponentProps<typeof InvestigationWorkspace>
     handleProjectIdea: noOp,
     handleAddCommentWithAuthor: noOp as never,
     handleAddPhoto: undefined,
-    handleCaptureFromTeams: undefined,
-    isTeamsCamera: false,
+    userId: 'lead@org',
+    members: [],
     aiOrch: {
       handleAskCoScoutFromCategory: noOp,
     } as never,
