@@ -38,7 +38,7 @@ import {
 import type { UseFindingsReturn, UseQuestionsReturn } from '@variscout/hooks';
 import type { BestSubsetsResult, FactorMainEffect } from '@variscout/core/stats';
 import type { Question } from '@variscout/core/findings';
-import { evaluateSurvey, hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
+import { evaluateSurvey, isPreviewEnabled } from '@variscout/core';
 import type { SurveyRecommendation } from '@variscout/core/survey';
 import { useInvestigationStore, useProjectStore } from '@variscout/stores';
 import { usePanelsStore } from '../../features/panels/panelsStore';
@@ -134,11 +134,11 @@ export const PISection: React.FC<PISectionProps> = ({
   const { filteredData } = useFilteredData();
   const { stats } = useAnalysisStats();
 
-  // Document Shelf (Team tier + KB preview gate)
-  const isTeamWithKB = hasKnowledgeBase() && isPreviewEnabled('knowledge-base');
+  // Document Shelf (KB preview gate)
+  const isKBAvailable = isPreviewEnabled('knowledge-base');
   const documentShelf = useDocumentShelf({
     projectId: projectId ?? undefined,
-    enabled: isTeamWithKB,
+    enabled: isKBAvailable,
   });
 
   // Spec editor overlay state
@@ -279,7 +279,7 @@ export const PISection: React.FC<PISectionProps> = ({
     },
   ];
 
-  if (isTeamWithKB) {
+  if (isKBAvailable) {
     tabs.push({
       id: 'docs',
       label: 'Docs',
