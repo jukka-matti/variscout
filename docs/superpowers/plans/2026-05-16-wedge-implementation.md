@@ -12,7 +12,9 @@ related:
 
 > **For agentic workers:** REQUIRED SUB-SKILL — Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan. Each PR below should be expanded into its own **bite-sized sub-plan** via a follow-up `superpowers:writing-plans` invocation before execution begins.
 
-**Goal:** Migrate the VariScout codebase from the current Hub-centric, 4-persona, 2-tier architecture to the V1 wedge anatomy: 6-tab workflow nav, Improve as a stage, project-membership ACLs (Lead / Member / Sponsor), MeasurementPlan entity on the Investigation Wall, persona-routing deletion, canvas response paths reduced to 3, tier-gating retirement, single €99 SKU.
+> ⚠️ **AMENDED 2026-05-16** — see [`docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`](../specs/2026-05-16-improve-tab-amendment-design.md). The nav is **7 tabs** (`Home · Project · Process · Analyze · Investigation · Improve · Report`), not 6. **Improve stays as a top-level verb tab**, NOT a stage. **Projects → Project** (singular). Project detail has **3 stages** (`Charter · Approach · Sustainment`), not 4. Every reference below to "6-tab nav", "Improve as a stage", or "Projects (plural)" is superseded by the amendment.
+
+**Goal:** Migrate the VariScout codebase from the current Hub-centric, 4-persona, 2-tier architecture to the V1 wedge anatomy: **7-tab workflow nav (per amendment)**, Improve as a **top-level verb tab (per amendment)**, project-membership ACLs (Lead / Member / Sponsor), MeasurementPlan entity on the Investigation Wall, persona-routing deletion, canvas response paths reduced to 3, tier-gating retirement, single €99 SKU.
 
 **Architecture:** Six engineering PRs in sequence with light parallelism. Foundation PR (data model + membership) lands first so downstream PRs can depend on it. Improve workspace migration is the largest single PR. Tier-gating retirement is a wide sweep best done as its own focused PR.
 
@@ -288,7 +290,9 @@ Invoke `superpowers:writing-plans` on this PR's scope.
 
 ## PR-WV1-5 — Tier-Gating Retirement + Nav Reorder
 
-**Scope:** Sweep ~28 files using `isPaidTier()` / `hasTeamFeatures()` and retire tier-gating logic under single SKU. Where access-gating is still meaningful, replace with project-membership ACL check (per PR-WV1-1). Reorder the 6-tab nav to workflow order: `Home · Projects · Process · Analyze · Investigation · Report`.
+> ⚠️ **AMENDED** — target nav is the 7-tab amendment (see top-of-file): `Home · Project · Process · Analyze · Investigation · Improve · Report`. NO Improve-tab deletion. Project (singular).
+
+**Scope:** Sweep ~33 files using `isPaidTier()` / `hasTeamFeatures()` and retire tier-gating logic under single SKU. Where access-gating is still meaningful, replace with project-membership ACL check (per PR-WV1-1). Reorder + rename the 7-tab nav to workflow order: `Home · Project · Process · Analyze · Investigation · Improve · Report` (renames: Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project).
 
 ### File structure
 
@@ -304,7 +308,7 @@ Invoke `superpowers:writing-plans` on this PR's scope.
 - `packages/ui/src/components/ReportView.tsx` — drop tier-gated layout
 - `packages/hooks/src/usePhotoComments.ts` — drop tier-gating
 - `packages/core/src/limits.ts` — `validateChannelCount` — keep platform limit but drop tier dimension
-- `packages/ui/src/components/AppHeader/Nav.tsx` — reorder tabs to `Home · Projects · Process · Analyze · Investigation · Report`
+- `apps/azure/src/components/AppHeader.tsx` + `apps/pwa/src/components/layout/AppHeader.tsx` — reorder + rename tabs to `Home · Project · Process · Analyze · Investigation · Improve · Report` (7 tabs per amendment)
 
 ### Tasks
 
@@ -312,7 +316,7 @@ Invoke `superpowers:writing-plans` on this PR's scope.
 2. **For each file (subagent-parallelizable):** delete the tier check; if access-gating was meaningful, replace with `canAccess(user, project, action)` from PR-WV1-1; else delete branch.
 3. **Update consumer tests** for each retired file.
 4. **Channel-limit refactor** — keep platform limit (1500 in Azure, 5 in PWA) but drop tier as a dimension.
-5. **Nav reorder** — `[Home] [Process] [Analyze] [Investigation] [Improve] [Projects] [Report]` (legacy 7-tab) → `[Home] [Projects] [Process] [Analyze] [Investigation] [Report]` (6-tab workflow order). Improve tab already deleted in PR-WV1-2; this PR just reorders.
+5. **Nav reorder + renames (per amendment)** — current `[Overview] [Frame] [Analysis] [Investigation] [Improve] [Projects] [Report]` (Azure) / `[Home] [Frame] [Analysis] [Investigation] [Improve] [Projects] [Report]` (PWA) → target `[Home] [Project] [Process] [Analyze] [Investigation] [Improve] [Report]` (7 tabs workflow order; Improve stays). Renames: Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project (singular). RTL tests update accordingly.
 6. **Browser walk** — every formerly-tier-gated surface works correctly; nav order matches workflow.
 
 ### Dependencies

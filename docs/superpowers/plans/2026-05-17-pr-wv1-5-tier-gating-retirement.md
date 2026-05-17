@@ -5,6 +5,7 @@ last-reviewed: 2026-05-17
 parent: docs/superpowers/plans/2026-05-16-wedge-implementation.md
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
+  - docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
   - docs/superpowers/plans/2026-05-16-pr-wv1-4-canvas-paths-persona-deletion.md
 ---
@@ -13,13 +14,13 @@ related:
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` to implement this plan task-by-task. Sonnet for implementer + reviewers; Opus for the final-branch code review only. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Retire `isPaidTier()` / `hasTeamFeatures()` and the related tier/plan gating across the codebase (~33 source files post-WV1-4) under the wedge V1 single €99 SKU. Keep channel-limit constants but drop the tier dimension. Reorder the 7-tab nav to the 6-tab workflow order — `Home · Projects · Process · Analyze · Investigation · Report` — with renames (Overview→Home, Frame→Process, Analysis→Analyze) and the Improve tab deletion.
+**Goal:** Retire `isPaidTier()` / `hasTeamFeatures()` and the related tier/plan gating across the codebase (~33 source files post-WV1-4) under the wedge V1 single €99 SKU. Keep channel-limit constants but drop the tier dimension. Reorder + rename the 7-tab nav to the amended workflow order — `Home · Project · Process · Analyze · Investigation · Improve · Report` — with renames (Overview→Home, Frame→Process, Analysis→Analyze, Projects→**Project** singular). **Improve tab is preserved** as a top-level verb tab per the 2026-05-16 amendment (`docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`); only reorder + renames apply.
 
-**Architecture:** Wedge V1 sells one SKU at €99/mo. All previously-tier-gated features become always-on for every customer. Where the gating was a stand-in for role-based access (e.g., signoff, audit, RACI), it switches to `canAccess(userId, members, action)` from PR-WV1-1. Where it gated genuine team-licensing features (cloud sync, knowledge base, AI multi-author), the gating just deletes — those features become baseline. The nav reorder lands Projects in slot 2 reflecting the project-centric V1 workflow.
+**Architecture:** Wedge V1 sells one SKU at €99/mo. All previously-tier-gated features become always-on for every customer. Where the gating was a stand-in for role-based access (e.g., signoff, audit, RACI), it switches to `canAccess(userId, members, action)` from PR-WV1-1. Where it gated genuine team-licensing features (cloud sync, knowledge base, AI multi-author), the gating just deletes — those features become baseline. The nav reorder lands Project in slot 2 (active-IP entry point, cascade root) and keeps Improve between Investigation and Report per the amendment's verb-tab pattern.
 
 **Tech Stack:** TypeScript + Vite + React 18 + Vitest + `@testing-library/react`. Architecture invariants per ADR-082 (wedge V1) + ADR-073/074 unchanged.
 
-**Dependencies:** PR-WV1-1 merged (`canAccess` available), PR-WV1-2 merged (Improve stage now inside Projects), PR-WV1-4 merged (handoff retired; `HandoffForm.tsx` and `HandoffPanel.tsx` files already deleted — DO NOT touch them in this PR).
+**Dependencies:** PR-WV1-1 merged (`canAccess` available), PR-WV1-2 merged (Improve restored as top-level verb tab via 2026-05-16 amendment; `ImproveStage` component routed from Improve tab handler), PR-WV1-4 merged (handoff retired; `HandoffForm.tsx` and `HandoffPanel.tsx` files already deleted — DO NOT touch them in this PR).
 
 ---
 
@@ -65,10 +66,11 @@ This PR makes a wide but shallow sweep: ~33 files, mostly 1–3 line conditional
 - `packages/hooks/src/useTier.ts` — delete entirely; consumers either inline whatever they need or use `useUserRole` + `canAccess`. Find consumers via `grep -rn "useTier" packages/ apps/` first.
 - Test files (8 total) — drop `vi.mock` overrides for the deleted functions.
 
-**Nav reorder (Task 6):**
+**Nav reorder + renames (Task 6) — per [2026-05-16 amendment](../specs/2026-05-16-improve-tab-amendment-design.md):**
 
-- `apps/azure/src/components/AppHeader.tsx` (lines ~412–462 + after) — tab list reorder + 4 renames + Improve deletion.
-- `apps/pwa/src/components/layout/AppHeader.tsx` (lines 96–104) — `PHASE_TABS` array reorder + label changes. Uses i18n keys, so `workspace.*` keys may need updates in `packages/core/src/i18n/locales/*.ts`.
+- `apps/azure/src/components/AppHeader.tsx` (lines 410–471) — current tabs: `Overview · Frame · Analysis · Investigation · Improve · Projects · Report`. Target: `Home · Project · Process · Analyze · Investigation · Improve · Report` (7 tabs). Renames: Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project (singular). Reorder: Project moves from slot 6 → slot 2. Improve stays (slot 6 in new order, between Investigation and Report). Update `data-testid` values: `view-toggle-overview`→`view-toggle-home`, `view-toggle-frame`→`view-toggle-process`, `view-toggle-analysis`→`view-toggle-analyze`, `view-toggle-projects`→`view-toggle-project`.
+- `apps/pwa/src/components/layout/AppHeader.tsx` (lines 96–104) — `PHASE_TABS` array. Current 7 entries: `home / frame / analysis / investigation / improvement / projects / report`. Target: `home / project / process / analyze / investigation / improvement / report` (PhaseId union changes: `frame`→`process`, `analysis`→`analyze`, `projects`→`project`). i18n labelKeys: `workspace.frame`→`workspace.process`, `workspace.analysis`→`workspace.analyze`. NOTE: `workspace.project` (singular) i18n key already exists per PR-WV1-2 amendment Task 6 — verify before editing.
+- `packages/core/src/i18n/locales/*.ts` — rename i18n keys `workspace.frame`→`workspace.process`, `workspace.analysis`→`workspace.analyze` across all locale files. `workspace.project` key already exists.
 
 **ESLint enforcement (Task 7):**
 
@@ -515,93 +517,158 @@ git commit -m "feat(wedge): drop tier-upgrade UI copy + unused i18n keys"
 
 ---
 
-## Task 6: Nav reorder + tab renames + Improve tab deletion
+## Task 6: Nav reorder + tab renames (7-tab amendment)
+
+**Per [2026-05-16 amendment](../specs/2026-05-16-improve-tab-amendment-design.md):** Improve stays as a top-level verb tab. Projects → Project (singular). 7 tabs total in workflow order.
 
 **Files:**
 
-- Modify: `apps/azure/src/components/AppHeader.tsx` (tab list around lines 412–462+)
-- Modify: `apps/pwa/src/components/layout/AppHeader.tsx` (`PHASE_TABS` lines 96–104)
-- Modify: i18n locales (`packages/core/src/i18n/locales/*.ts`) — update `workspace.frame` → `workspace.process`, etc.
-- Modify: any test asserting on tab labels or ordering (`grep -rln "view-toggle-overview\|view-toggle-frame\|view-toggle-analysis\|view-toggle-improvement"` packages/ apps/`)
+- Modify: `apps/azure/src/components/AppHeader.tsx` (tab list lines 410–471)
+- Modify: `apps/pwa/src/components/layout/AppHeader.tsx` (`PHASE_TABS` lines 96–104 + `PhaseId` union)
+- Modify: i18n locales (`packages/core/src/i18n/locales/*.ts`) — rename `workspace.frame` → `workspace.process`, `workspace.analysis` → `workspace.analyze`
+- Modify: any test asserting on tab labels or testids (`grep -rln "view-toggle-overview\|view-toggle-frame\|view-toggle-analysis\|view-toggle-projects" packages/ apps/`)
 
-**Target order:** `Home · Projects · Process · Analyze · Investigation · Report` (6 tabs)
+**Target order:** `Home · Project · Process · Analyze · Investigation · Improve · Report` (7 tabs)
 
-**Mapping (per Explore inventory):**
+**Mapping (verified against current code 2026-05-17):**
 
-| Current (Azure + PWA)         | New           | Action                                               |
-| ----------------------------- | ------------- | ---------------------------------------------------- |
-| Overview / home               | Home          | Rename Azure copy to "Home"; PWA already says "Home" |
-| Frame / frame                 | Process       | Rename + move to slot 3                              |
-| Analysis / analysis           | Analyze       | Rename + keep slot 4                                 |
-| Investigation / investigation | Investigation | Keep slot 5                                          |
-| Improve / improvement         | DELETE        | Deletion                                             |
-| Projects / projects           | Projects      | Move to slot 2                                       |
-| Report / report               | Report        | Keep last slot                                       |
+| Current (Azure) | Current (PWA PhaseId)  | Target label  | Target PhaseId  | Action                                          |
+| --------------- | ---------------------- | ------------- | --------------- | ----------------------------------------------- |
+| Overview        | `home` (labels "Home") | Home          | `home`          | Azure copy rename to "Home"; PWA already OK     |
+| Frame           | `frame`                | Process       | `process`       | Rename copy + PhaseId; testid → process; slot 3 |
+| Analysis        | `analysis`             | Analyze       | `analyze`       | Rename copy + PhaseId; testid → analyze; slot 4 |
+| Investigation   | `investigation`        | Investigation | `investigation` | Keep; slot 5                                    |
+| Improve         | `improvement`          | Improve       | `improvement`   | **Keep** (per amendment); move to slot 6        |
+| Projects        | `projects`             | Project       | `project`       | Rename to singular; testid → project; slot 2    |
+| Report          | `report`               | Report        | `report`        | Keep; slot 7                                    |
 
 - [ ] **Step 1: Update PWA `PHASE_TABS`**
 
-Replace `packages/pwa/src/components/layout/AppHeader.tsx` lines 96–104 with the new 6-tab list in target order:
+Replace `apps/pwa/src/components/layout/AppHeader.tsx` lines 96–104 with the 7-tab list in target order:
 
 ```typescript
-const PHASE_TABS: { id: PhaseId; labelKey: keyof MessageCatalog }[] = [
-  { id: 'home', labelKey: 'workspace.home' },
-  { id: 'projects', labelKey: 'workspace.project' },
+const PHASE_TABS: { id: PhaseId; label?: string; labelKey?: keyof MessageCatalog }[] = [
+  { id: 'home', label: 'Home' },
+  { id: 'project', labelKey: 'workspace.project' },
   { id: 'process', labelKey: 'workspace.process' },
-  { id: 'analysis', labelKey: 'workspace.analyze' },
+  { id: 'analyze', labelKey: 'workspace.analyze' },
   { id: 'investigation', labelKey: 'workspace.investigation' },
+  { id: 'improvement', labelKey: 'workspace.improve' },
   { id: 'report', labelKey: 'workspace.report' },
 ];
 ```
 
-Note: `'frame'` becomes `'process'` and `'analysis'` stays as the PhaseId but the i18n label is `workspace.analyze`. Decide based on what the `PhaseId` union allows — if `'process'` is not a valid PhaseId yet, you must:
+The `PhaseId` union (defined in `apps/pwa/src/...` — find via `grep -rn "PhaseId\s*=" apps/pwa/`) needs `'frame'` → `'process'`, `'analysis'` → `'analyze'`, `'projects'` → `'project'`. Update every consumer of these PhaseId values (route switches, router config, useActiveIPContext consumers, etc.).
 
-1. Add `'process'` to the `PhaseId` union type (find it in `packages/hooks/` or similar).
-2. Update any router / route-config that switches on `'frame'` to `'process'`.
+**Reachability check first** (per `feedback_plan_call_site_reachability`): before renaming PhaseIds, run `grep -rn "'frame'\|'analysis'\|'projects'" apps/pwa/src/ --include="*.ts" --include="*.tsx" | head -30`. If the cascade exceeds 15 consumers, the rename becomes a larger refactor than this task's slice budget allows — STOP and re-scope (split into Task 6a label-only + Task 6b PhaseId rename) before proceeding.
 
-If touching the union cascades into 10+ files, you may keep `'frame'` as the internal PhaseId and only change the display label. Document the choice.
+`workspace.project` (singular) labelKey already exists from PR-WV1-2 amendment Task 6 — no new key needed. `workspace.improve` labelKey stays unchanged.
 
-Drop the `'improvement'` entry entirely.
+- [ ] **Step 2: Update Azure `AppHeader.tsx` tab JSX**
 
-- [ ] **Step 2: Update Azure `AppHeader.tsx` tab list**
+Edit `apps/azure/src/components/AppHeader.tsx` lines 410–471. Replace the 7-tab block with the reordered + renamed version:
 
-Find the tab JSX list around lines 412–462+. Replace with 6 tabs in target order. Update the `data-testid` values:
+```tsx
+<nav className="flex items-center flex-1 min-w-0 overflow-x-auto" data-testid="view-toggle">
+  <button
+    className={tabClass(activeView === 'dashboard')}
+    onClick={() => usePanelsStore.getState().showDashboard()}
+    data-testid="view-toggle-home"
+  >
+    Home
+  </button>
+  <button
+    className={tabClass(activeView === 'projects')}
+    onClick={() => usePanelsStore.getState().showProjects()}
+    data-testid="view-toggle-project"
+  >
+    Project
+  </button>
+  <button
+    className={tabClass(activeView === 'frame')}
+    onClick={() => usePanelsStore.getState().showFrame()}
+    data-testid="view-toggle-process"
+  >
+    Process
+  </button>
+  <button
+    className={tabClass(activeView === 'analysis')}
+    onClick={() => usePanelsStore.getState().showAnalysis()}
+    data-testid="view-toggle-analyze"
+  >
+    Analyze
+  </button>
+  <button
+    className={tabClass(activeView === 'investigation')}
+    onClick={() => usePanelsStore.getState().showInvestigation()}
+    data-testid="view-toggle-investigation"
+  >
+    Investigation
+    {openQuestionCount != null && openQuestionCount > 0 && (
+      <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+        {openQuestionCount}
+      </span>
+    )}
+  </button>
+  <button
+    className={tabClass(activeView === 'improvement')}
+    onClick={() => usePanelsStore.getState().showImprovement()}
+    data-testid="view-toggle-improvement"
+  >
+    Improve
+    {selectedIdeaCount != null && selectedIdeaCount > 0 && (
+      <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+        {selectedIdeaCount}
+      </span>
+    )}
+  </button>
+  <button
+    className={tabClass(activeView === 'report')}
+    onClick={() => usePanelsStore.getState().showReport()}
+    data-testid="view-toggle-report"
+  >
+    Report
+  </button>
+</nav>
+```
+
+Notes:
+
+- `activeView` discriminants stay as their existing `usePanelsStore` values (`'dashboard'`, `'frame'`, `'analysis'`, `'investigation'`, `'improvement'`, `'projects'`, `'report'`). Only display copy + testid change. Renaming `activeView` enums cascades into the panels store + reducer + tests — out of scope for this task; keep the internal vocabulary stable, change only the user-facing surface.
+- If a later cleanup PR wants to align internal `activeView` enums with the display vocabulary, that's a separate refactor.
+
+- [ ] **Step 3: Update i18n keys**
+
+In each file under `packages/core/src/i18n/locales/*.ts`:
+
+- Rename key `workspace.frame` → `workspace.process` (value still translates to "Process" in each locale's language)
+- Rename key `workspace.analysis` → `workspace.analyze` (value translates to "Analyze" in each locale)
+- Keep `workspace.improve`, `workspace.investigation`, `workspace.project`, `workspace.report` unchanged
+
+Run `ls packages/core/src/i18n/locales/` to enumerate files. Apply the same 2 renames in each.
+
+- [ ] **Step 4: Update consumers + tests**
+
+```bash
+grep -rln 'view-toggle-overview\|view-toggle-frame\|view-toggle-analysis\|view-toggle-projects' packages/ apps/ --include="*.tsx" --include="*.ts"
+```
+
+Each test referencing the old testids gets updated:
 
 - `view-toggle-overview` → `view-toggle-home`
 - `view-toggle-frame` → `view-toggle-process`
 - `view-toggle-analysis` → `view-toggle-analyze`
-- `view-toggle-investigation` (unchanged)
-- `view-toggle-improvement` → DELETE
-- `view-toggle-projects` (unchanged; move to slot 2)
-- `view-toggle-report` (unchanged; move to slot 6)
+- `view-toggle-projects` → `view-toggle-project`
+- `view-toggle-improvement` (unchanged — Improve stays)
+- `view-toggle-report` (unchanged)
 
-Move the Projects tab JSX to slot 2 + drop the Improve tab JSX. Update any handler names (e.g., `showFrame()` → `showProcess()`) — find the handlers via `grep -n "showFrame\|showImprovement" apps/azure/src/`.
-
-- [ ] **Step 3: Update i18n keys**
-
-In `packages/core/src/i18n/locales/en.ts` (and any other locales):
-
-- Rename `workspace.frame` → `workspace.process` (value: `'Process'`)
-- Rename `workspace.analysis` → `workspace.analyze` (value: `'Analyze'`)
-- Add `workspace.home` (value: `'Home'`) if not present
-- Drop `workspace.improve` / `workspace.improvement` keys
-
-Check each locale file (`en.ts`, `de.ts`, `es.ts`, `zhHans.ts`, etc.) — apply the same key changes.
-
-- [ ] **Step 4: Update consumers + tests**
-
-Grep for `data-testid="view-toggle-*"` callers:
+E2E tests in `apps/pwa/e2e/` + `apps/azure/e2e/` (if any survive after PR-WV1-4's e2e deletion):
 
 ```bash
-grep -rn 'view-toggle-overview\|view-toggle-frame\|view-toggle-analysis\|view-toggle-improvement' packages/ apps/ --include="*.tsx" --include="*.ts"
+grep -rn "view-toggle-overview\|view-toggle-frame\|view-toggle-analysis\|view-toggle-projects" apps/pwa/e2e/ apps/azure/e2e/ 2>/dev/null
 ```
 
-Each test referencing the old testids gets updated. E2E tests in `apps/pwa/e2e/` may also need updates — search:
-
-```bash
-grep -rn "view-toggle-overview\|view-toggle-frame\|view-toggle-improvement" apps/pwa/e2e/ apps/azure/e2e/ 2>/dev/null
-```
-
-Update each occurrence.
+Update each.
 
 - [ ] **Step 5: Run nav-related tests**
 
@@ -617,7 +684,7 @@ All must PASS.
 
 ```bash
 git add -A
-git commit -m "feat(wedge): nav reorder + renames (6-tab workflow order)"
+git commit -m "feat(wedge): nav reorder + renames (7-tab workflow order per amendment)"
 ```
 
 ---
@@ -727,7 +794,7 @@ git push origin feat/wedge-pr-wv1-5-tier-gating
 gh pr create --title "feat(wedge): PR-WV1-5 — tier-gating retirement + nav reorder" --body "$(cat <<'EOF'
 ## Summary
 
-Retire `isPaidTier()` / `hasTeamFeatures()` and the tier/plan gating across the codebase (33 files post-WV1-4) under the wedge V1 single €99 SKU. Reorder the 7-tab nav to the 6-tab workflow order Home · Projects · Process · Analyze · Investigation · Report.
+Retire `isPaidTier()` / `hasTeamFeatures()` and the tier/plan gating across the codebase (33 files post-WV1-4) under the wedge V1 single €99 SKU. Reorder + rename the 7-tab nav to amended workflow order Home · Project · Process · Analyze · Investigation · Improve · Report (per `docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`).
 
 ## What changed
 
@@ -741,11 +808,12 @@ Retire `isPaidTier()` / `hasTeamFeatures()` and the tier/plan gating across the 
 - Cloud sync, Knowledge Base, AI multi-author, photo handlers, branding: all baseline.
 - B-class role-based access (publish, edit-improve) replaced with `canAccess(userId, members, action)` from PR-WV1-1.
 
-**Nav (Azure + PWA):**
-- 7 → 6 tabs.
-- Overview→Home, Frame→Process, Analysis→Analyze renames.
-- Improve tab deleted (workflow lives inside Projects detail per PR-WV1-2).
-- Projects moves to slot 2 (project-centric V1 workflow).
+**Nav (Azure + PWA) — per 2026-05-16 amendment (`docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`):**
+- 7 tabs preserved; renames + reorder only.
+- Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project (singular).
+- Improve tab **kept** as top-level verb tab (active-IP cascade); moves between Investigation and Report.
+- Project moves to slot 2 (active-IP entry point, cascade root).
+- Final order: `Home · Project · Process · Analyze · Investigation · Improve · Report`.
 
 **ESLint guard:**
 - `no-restricted-imports` rule blocks re-introduction of the retired tier functions.
