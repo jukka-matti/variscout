@@ -5,7 +5,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getEasyAuthUser, isLocalDev } from '../auth/easyAuth';
 import { errorService } from '@variscout/ui';
-import { hasTeamFeatures } from '@variscout/core';
 import type {
   EvidenceSnapshot,
   EvidenceSource,
@@ -302,12 +301,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return; // Do not attempt cloud sync if local save failed
       }
 
-      // Standard plan: local-only storage, no cloud sync
-      if (!hasTeamFeatures()) {
-        setSyncStatus({ status: 'saved', message: 'Saved locally' });
-        return;
-      }
-
       if (!navigator.onLine) {
         await addToSyncQueue({ project, name, location });
         setSyncStatus({
@@ -434,11 +427,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const loadProject = useCallback(
     async (name: string, location: StorageLocation): Promise<Project | null> => {
-      // Standard plan: local-only storage
-      if (!hasTeamFeatures()) {
-        return loadFromIndexedDB(name);
-      }
-
       if (navigator.onLine) {
         try {
           const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
@@ -504,11 +492,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const userId = user?.userId || user?.email || 'local';
     const localProjects = await listFromIndexedDB(userId);
 
-    // Standard plan: local-only storage, no cloud merge
-    if (!hasTeamFeatures()) {
-      return localProjects;
-    }
-
     if (!navigator.onLine || isLocalDev()) {
       return localProjects;
     }
@@ -549,7 +532,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const listProcessHubs = useCallback(async (): Promise<ProcessHub[]> => {
     const localHubs = await listProcessHubsFromIndexedDB();
 
-    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+    if (!navigator.onLine || isLocalDev()) {
       return localHubs;
     }
 
@@ -577,7 +560,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Route IndexedDB write through azureHubRepository.dispatch (F1+F2 P6).
     await azureHubRepository.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub });
 
-    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+    if (!navigator.onLine || isLocalDev()) {
       return;
     }
 
@@ -597,7 +580,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const listEvidenceSources = useCallback(async (hubId: string): Promise<EvidenceSource[]> => {
     const localSources = await listEvidenceSourcesFromIndexedDB(hubId);
 
-    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+    if (!navigator.onLine || isLocalDev()) {
       return localSources;
     }
 
@@ -623,7 +606,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Route IndexedDB write through azureHubRepository.dispatch (F1+F2 P6).
     await azureHubRepository.dispatch({ kind: 'EVIDENCE_SOURCE_ADD', hubId: source.hubId, source });
 
-    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+    if (!navigator.onLine || isLocalDev()) {
       return;
     }
 
@@ -644,7 +627,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     async (hubId: string, sourceId: string): Promise<EvidenceSnapshot[]> => {
       const localSnapshots = await listEvidenceSnapshotsFromIndexedDB(hubId, sourceId);
 
-      if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+      if (!navigator.onLine || isLocalDev()) {
         return localSnapshots;
       }
 
@@ -687,7 +670,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         provenance: [],
       });
 
-      if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+      if (!navigator.onLine || isLocalDev()) {
         return;
       }
 
@@ -710,7 +693,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     async (hubId: string): Promise<SustainmentRecord[]> => {
       const localRecords = await listSustainmentRecordsFromIndexedDB(hubId);
 
-      if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+      if (!navigator.onLine || isLocalDev()) {
         return localRecords;
       }
 
@@ -737,7 +720,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const saveSustainmentRecord = useCallback(async (record: SustainmentRecord): Promise<void> => {
     await saveSustainmentRecordToIndexedDB(record);
 
-    if (hasTeamFeatures() && navigator.onLine && !isLocalDev()) {
+    if (navigator.onLine && !isLocalDev()) {
       try {
         await saveSustainmentRecordToCloud('blob-sas', record);
       } catch (error) {
@@ -763,7 +746,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const saveSustainmentReview = useCallback(async (review: SustainmentReview): Promise<void> => {
     await saveSustainmentReviewToIndexedDB(review);
 
-    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+    if (!navigator.onLine || isLocalDev()) {
       return;
     }
 
@@ -788,7 +771,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const saveControlHandoff = useCallback(async (handoff: ControlHandoff): Promise<void> => {
     await saveControlHandoffToIndexedDB(handoff);
 
-    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+    if (!navigator.onLine || isLocalDev()) {
       return;
     }
 
@@ -809,8 +792,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     const handleOnline = async () => {
-      // Standard plan: no background cloud sync
-      if (!hasTeamFeatures()) return;
       if (isSyncingRef.current) return;
       isSyncingRef.current = true;
 
