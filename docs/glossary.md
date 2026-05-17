@@ -14,7 +14,7 @@ status: stable
 > - **Stage 5 modal** marked wedge-changed — Mode B Stage 5 ceremony retires under the wedge; investigation entry happens via Wall + Promote-to-Project CTA.
 > - **Retired terms table expanded** — Reviewer role, Team tier, Improve tab (top-level), Handoff stage, Handoff response path, Process Owner / SME / Frontline personas.
 
-Statistical, quality, and methodology terms used across VariScout. **This is the canonical home for VariScout terminology.** Process narrative lives in [`docs/01-vision/methodology.md`](01-vision/methodology.md) and the [product vision spec](superpowers/specs/2026-05-03-variscout-vision-design.md); both cross-reference this glossary rather than re-defining terms.
+Statistical, quality, and methodology terms used across VariScout. **This is the canonical home for VariScout terminology.** Process narrative lives in [`docs/01-vision/methodology.md`](01-vision/methodology.md) and the [product vision spec](archive/specs/2026-05-03-variscout-vision-design.md); both cross-reference this glossary rather than re-defining terms.
 
 ---
 
