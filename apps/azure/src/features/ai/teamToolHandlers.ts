@@ -1,8 +1,9 @@
 /**
- * Navigation + team-only tool handlers.
+ * Navigation + team tool handlers.
  *
- * navigate_to is hybrid (auto-execute or proposal). Team tools are
- * conditionally included when isTeamPlan() is true.
+ * navigate_to is hybrid (auto-execute or proposal). Wedge V1 single SKU
+ * (ADR-082) — every customer has these tools available; the team-tier gate
+ * was retired in PR-WV1-5.
  */
 import type { Finding, FilterAction, ActionProposal, ToolHandlerMap } from '@variscout/core';
 import { hashFilterStack, generateProposalId } from '@variscout/core';

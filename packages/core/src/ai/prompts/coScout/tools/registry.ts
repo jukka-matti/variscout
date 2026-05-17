@@ -27,8 +27,6 @@ export interface ToolRegistryEntry {
   phases: JourneyPhase[];
   /** Optional: restrict to specific analysis modes */
   modes?: AnalysisMode[];
-  /** Optional: restrict to team tier */
-  tier?: 'team';
   /** Optional: dynamic availability condition */
   condition?: (ctx: {
     investigationPhase?: InvestigationPhase;
@@ -828,7 +826,6 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     },
     classification: 'action',
     phases: ['investigate', 'improve'],
-    tier: 'team',
   },
 
   publish_report: {
@@ -846,7 +843,6 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     },
     classification: 'action',
     phases: ['investigate', 'improve'],
-    tier: 'team',
   },
 
   // ── IMPROVE-only team tool ───────────────────────────────────────────
@@ -872,7 +868,6 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     },
     classification: 'action',
     phases: ['improve'],
-    tier: 'team',
   },
 };
 
@@ -882,18 +877,17 @@ export type ToolName = keyof typeof TOOL_REGISTRY;
 // ── Phase/mode/tier filter ─────────────────────────────────────────────
 
 /**
- * Filter the tool registry to produce the tools array for a given phase/mode/tier.
+ * Filter the tool registry to produce the tools array for a given phase/mode.
  *
  * @param phase - Current journey phase
  * @param mode - Current analysis mode (unused for now, reserved for future mode-specific tools)
- * @param options - Tier, investigation phase, and existing hubs for dynamic gating
+ * @param options - Investigation phase and existing hubs for dynamic gating
  * @returns Filtered array of ToolDefinition for the Responses API
  */
 export function getToolsForPhase(
   phase: JourneyPhase,
   mode: AnalysisMode,
   options?: {
-    isTeamPlan?: boolean;
     investigationPhase?: InvestigationPhase;
     existingHubs?: Hypothesis[];
   }
@@ -904,8 +898,6 @@ export function getToolsForPhase(
       if (!entry.phases.includes(phase)) return false;
       // Mode check
       if (entry.modes && !entry.modes.includes(mode)) return false;
-      // Tier check
-      if (entry.tier === 'team' && !options?.isTeamPlan) return false;
       // Dynamic condition
       if (
         entry.condition &&

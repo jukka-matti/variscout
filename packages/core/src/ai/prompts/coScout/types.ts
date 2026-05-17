@@ -42,6 +42,4 @@ export interface AssembleCoScoutPromptOptions {
   surface?: CoScoutSurface;
   /** Full AI context for dynamic content */
   context?: AIContext;
-  /** Whether user is on Team plan */
-  isTeamPlan?: boolean;
 }

@@ -140,7 +140,6 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
           mode: context.analysisMode ?? 'standard',
           surface: 'fullPanel',
           context,
-          isTeamPlan: toolsOptions?.isTeamPlan,
         });
         const instructions = [tiers.tier1Static, tiers.tier2SemiStatic, tiers.tier3Dynamic]
           .filter(Boolean)

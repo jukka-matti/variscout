@@ -29,8 +29,6 @@ export interface BuildCoScoutToolsOptions {
   phase?: JourneyPhase;
   /** Current investigation phase — used for fine-grained tool gating within INVESTIGATE */
   investigationPhase?: InvestigationPhase;
-  /** Whether user is on Team plan (enables sharing tools) */
-  isTeamPlan?: boolean;
   /** Existing Hypothesis hubs — enables connect_hub_evidence when non-empty */
   existingHubs?: Hypothesis[];
 }
@@ -43,7 +41,7 @@ export interface BuildCoScoutToolsOptions {
  * ADR-029: Extended from 3 to 13 tools with action tool support.
  */
 export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolDefinition[] {
-  const { phase, investigationPhase, isTeamPlan, existingHubs } = options;
+  const { phase, investigationPhase, existingHubs } = options;
 
   // Read tools — always available
   const tools: ToolDefinition[] = [
@@ -680,45 +678,43 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
       });
     }
 
-    // Team-only sharing tools (INVESTIGATE+)
-    if (isTeamPlan) {
-      tools.push(
-        {
-          type: 'function',
-          name: 'share_finding',
-          description:
-            'Propose posting a finding summary to the Teams channel. Shows a preview before sending. Only use at investigation milestones.',
-          parameters: {
-            type: 'object',
-            properties: {
-              finding_id: {
-                type: 'string',
-                description: 'ID of the finding to share',
-              },
+    // Sharing tools (INVESTIGATE+)
+    tools.push(
+      {
+        type: 'function',
+        name: 'share_finding',
+        description:
+          'Propose posting a finding summary to the Teams channel. Shows a preview before sending. Only use at investigation milestones.',
+        parameters: {
+          type: 'object',
+          properties: {
+            finding_id: {
+              type: 'string',
+              description: 'ID of the finding to share',
             },
-            required: ['finding_id'],
-            additionalProperties: false,
-            strict: true,
           },
+          required: ['finding_id'],
+          additionalProperties: false,
+          strict: true,
         },
-        {
-          type: 'function',
-          name: 'publish_report',
-          description:
-            'Propose publishing the current scouting report to SharePoint. Shows report type and section count before publishing.',
-          parameters: {
-            type: 'object',
-            properties: {},
-            additionalProperties: false,
-            strict: true,
-          },
-        }
-      );
-    }
+      },
+      {
+        type: 'function',
+        name: 'publish_report',
+        description:
+          'Propose publishing the current scouting report to SharePoint. Shows report type and section count before publishing.',
+        parameters: {
+          type: 'object',
+          properties: {},
+          additionalProperties: false,
+          strict: true,
+        },
+      }
+    );
   }
 
   // IMPROVE-only tools
-  if (phase === 'improve' && isTeamPlan) {
+  if (phase === 'improve') {
     tools.push({
       type: 'function',
       name: 'notify_action_owners',
@@ -756,7 +752,6 @@ export function buildCoScoutInput(
   userMessage: string,
   options?: {
     journeyPhase?: JourneyPhase;
-    isTeamPlan?: boolean;
     images?: Array<{ dataUrl: string }>;
   }
 ): {
@@ -1487,7 +1482,7 @@ export function buildCoScoutMessages(
   context: AIContext,
   history: CoScoutMessage[],
   userMessage: string,
-  options?: { journeyPhase?: JourneyPhase; isTeamPlan?: boolean }
+  options?: { journeyPhase?: JourneyPhase }
 ): Array<{ role: 'user' | 'assistant' | 'system'; content: string }> {
   const messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
 
