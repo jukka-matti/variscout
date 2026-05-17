@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.41.2.15936",
-      "templateHash": "12153852212273664232"
+      "templateHash": "6295644595870357195"
     },
     "description": "Deploys VariScout Azure App as a Managed Application with App Service and EasyAuth"
   },
@@ -44,14 +44,6 @@
       "metadata": {
         "description": "URL to the VariScout application deployment package"
       }
-    },
-    "variscoutPlan": {
-      "type": "string",
-      "defaultValue": "standard",
-      "allowedValues": ["standard", "team"],
-      "metadata": {
-        "description": "VariScout plan: 'standard' (local files, AI included), 'team' (+ Blob Storage cloud sync)"
-      }
     }
   },
   "variables": {
@@ -61,13 +53,10 @@
     "aiServicesName": "[format('{0}-ai', parameters('appName'))]",
     "searchServiceName": "[format('{0}-search', parameters('appName'))]",
     "keyVaultName": "[format('kv-{0}-{1}', take(parameters('appName'), 17), take(uniqueString(resourceGroup().id), 4))]",
-    "hasTeamFeatures": "[equals(parameters('variscoutPlan'), 'team')]",
-    "hasAI": "[not(equals(parameters('variscoutPlan'), 'free'))]",
     "aiSearchIndex": "findings"
   },
   "resources": [
     {
-      "condition": "[variables('hasAI')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "aiServices",
@@ -85,9 +74,6 @@
           },
           "appInsightsName": {
             "value": "[variables('appInsightsName')]"
-          },
-          "variscoutPlan": {
-            "value": "[parameters('variscoutPlan')]"
           }
         },
         "template": {
@@ -97,7 +83,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "9998799619300140152"
+              "templateHash": "17751362721649786589"
             }
           },
           "parameters": {
@@ -118,20 +104,13 @@
               "metadata": {
                 "description": "Name for the App Insights resource"
               }
-            },
-            "variscoutPlan": {
-              "type": "string",
-              "metadata": {
-                "description": "VariScout plan identifier"
-              }
             }
           },
           "variables": {
             "tags": {
               "product": "VariScout",
-              "plan": "[parameters('variscoutPlan')]"
-            },
-            "tagsWithManaged": "[union(variables('tags'), createObject('managedBy', 'AzureMarketplace'))]"
+              "managedBy": "AzureMarketplace"
+            }
           },
           "resources": [
             {
@@ -139,7 +118,7 @@
               "apiVersion": "2020-02-02",
               "name": "[parameters('appInsightsName')]",
               "location": "[parameters('location')]",
-              "tags": "[variables('tagsWithManaged')]",
+              "tags": "[variables('tags')]",
               "kind": "web",
               "properties": {
                 "Application_Type": "web",
@@ -213,7 +192,6 @@
               ]
             },
             {
-              "condition": "[equals(parameters('variscoutPlan'), 'team')]",
               "type": "Microsoft.CognitiveServices/accounts/deployments",
               "apiVersion": "2025-09-01",
               "name": "[format('{0}/{1}', parameters('aiServicesName'), 'embeddings')]",
@@ -269,7 +247,6 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "search",
@@ -284,9 +261,6 @@
           },
           "searchServiceName": {
             "value": "[variables('searchServiceName')]"
-          },
-          "variscoutPlan": {
-            "value": "[parameters('variscoutPlan')]"
           }
         },
         "template": {
@@ -296,7 +270,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "14559692104416700257"
+              "templateHash": "9144890717314126229"
             }
           },
           "parameters": {
@@ -311,18 +285,11 @@
               "metadata": {
                 "description": "Name for the AI Search service"
               }
-            },
-            "variscoutPlan": {
-              "type": "string",
-              "metadata": {
-                "description": "VariScout plan identifier"
-              }
             }
           },
           "variables": {
             "tags": {
-              "product": "VariScout",
-              "plan": "[parameters('variscoutPlan')]"
+              "product": "VariScout"
             }
           },
           "resources": [
@@ -546,9 +513,6 @@
           "webAppName": {
             "value": "[variables('webAppName')]"
           },
-          "variscoutPlan": {
-            "value": "[parameters('variscoutPlan')]"
-          },
           "clientId": {
             "value": "[parameters('clientId')]"
           },
@@ -558,21 +522,21 @@
           "packageUrl": {
             "value": "[parameters('packageUrl')]"
           },
-          "hasAI": {
-            "value": "[variables('hasAI')]"
+          "aiEndpoint": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiEndpoint.value]"
           },
-          "hasTeamFeatures": {
-            "value": "[variables('hasTeamFeatures')]"
+          "appInsightsConnectionString": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.appInsightsConnectionString.value]"
           },
-          "aiEndpoint": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiEndpoint.value), createObject('value', ''))]",
-          "appInsightsConnectionString": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.appInsightsConnectionString.value), createObject('value', ''))]",
           "searchServiceName": {
             "value": "[variables('searchServiceName')]"
           },
           "aiSearchIndex": {
             "value": "[variables('aiSearchIndex')]"
           },
-          "storageAccountName": "[if(variables('hasTeamFeatures'), createObject('value', format('variscout{0}', uniqueString(resourceGroup().id))), createObject('value', ''))]",
+          "storageAccountName": {
+            "value": "[format('variscout{0}', uniqueString(resourceGroup().id))]"
+          },
           "storageContainerName": {
             "value": "variscout-projects"
           }
@@ -584,7 +548,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "15202335362362110931"
+              "templateHash": "11174324699927518763"
             }
           },
           "parameters": {
@@ -606,12 +570,6 @@
                 "description": "Name for the Web App"
               }
             },
-            "variscoutPlan": {
-              "type": "string",
-              "metadata": {
-                "description": "VariScout plan identifier"
-              }
-            },
             "clientId": {
               "type": "string",
               "metadata": {
@@ -630,28 +588,16 @@
                 "description": "URL to the VariScout application deployment package"
               }
             },
-            "hasAI": {
-              "type": "bool",
-              "metadata": {
-                "description": "Whether AI features are enabled"
-              }
-            },
-            "hasTeamFeatures": {
-              "type": "bool",
-              "metadata": {
-                "description": "Whether Team plan features are enabled"
-              }
-            },
             "aiEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "AI endpoint URL (empty if AI disabled)"
+                "description": "AI endpoint URL"
               }
             },
             "appInsightsConnectionString": {
               "type": "string",
               "metadata": {
-                "description": "App Insights connection string (empty if AI disabled)"
+                "description": "App Insights connection string"
               }
             },
             "searchServiceName": {
@@ -670,7 +616,7 @@
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Storage Account name for Blob Storage (Team plan)"
+                "description": "Storage Account name for Blob Storage"
               }
             },
             "storageContainerName": {
@@ -684,7 +630,6 @@
           "variables": {
             "tags": {
               "product": "VariScout",
-              "plan": "[parameters('variscoutPlan')]",
               "managedBy": "AzureMarketplace"
             }
           },
@@ -732,16 +677,12 @@
                       "value": "[parameters('clientSecret')]"
                     },
                     {
-                      "name": "VITE_VARISCOUT_PLAN",
-                      "value": "[parameters('variscoutPlan')]"
-                    },
-                    {
                       "name": "AI_ENDPOINT",
                       "value": "[parameters('aiEndpoint')]"
                     },
                     {
                       "name": "AI_SEARCH_ENDPOINT",
-                      "value": "[if(parameters('hasTeamFeatures'), format('https://{0}.search.windows.net', parameters('searchServiceName')), '')]"
+                      "value": "[format('https://{0}.search.windows.net', parameters('searchServiceName'))]"
                     },
                     {
                       "name": "AI_SEARCH_INDEX",
@@ -749,11 +690,11 @@
                     },
                     {
                       "name": "AI_SEARCH_KB_INDEX",
-                      "value": "[if(parameters('hasTeamFeatures'), 'knowledge-base', '')]"
+                      "value": "knowledge-base"
                     },
                     {
                       "name": "AI_EMBEDDING_DEPLOYMENT",
-                      "value": "[if(parameters('hasTeamFeatures'), 'embeddings', '')]"
+                      "value": "embeddings"
                     },
                     {
                       "name": "STORAGE_ACCOUNT_NAME",
@@ -799,9 +740,7 @@
                       "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
                     },
                     "login": {
-                      "loginParameters": [
-                        "[if(parameters('hasTeamFeatures'), 'scope=openid profile email User.Read People.Read', 'scope=openid profile email User.Read')]"
-                      ]
+                      "loginParameters": ["scope=openid profile email User.Read People.Read"]
                     }
                   }
                 },
@@ -842,7 +781,6 @@
       "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'aiServices')]"]
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "storage",
@@ -955,7 +893,6 @@
       "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'appService')]"]
     },
     {
-      "condition": "[variables('hasAI')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "keyVault",
@@ -971,17 +908,15 @@
           "keyVaultName": {
             "value": "[variables('keyVaultName')]"
           },
-          "variscoutPlan": {
-            "value": "[parameters('variscoutPlan')]"
-          },
-          "hasTeamFeatures": {
-            "value": "[variables('hasTeamFeatures')]"
-          },
           "clientSecret": {
             "value": "[parameters('clientSecret')]"
           },
-          "aiServicesApiKey": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiServicesApiKey.value), createObject('value', ''))]",
-          "searchApiKey": "[if(variables('hasTeamFeatures'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'search'), '2025-04-01').outputs.searchAdminKey.value), createObject('value', ''))]",
+          "aiServicesApiKey": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiServicesApiKey.value]"
+          },
+          "searchApiKey": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'search'), '2025-04-01').outputs.searchAdminKey.value]"
+          },
           "webAppPrincipalId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appService'), '2025-04-01').outputs.principalId.value]"
           }
@@ -993,7 +928,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "13218944735884948703"
+              "templateHash": "1983284424636265829"
             }
           },
           "parameters": {
@@ -1007,18 +942,6 @@
               "type": "string",
               "metadata": {
                 "description": "Name for the Key Vault"
-              }
-            },
-            "variscoutPlan": {
-              "type": "string",
-              "metadata": {
-                "description": "VariScout plan identifier"
-              }
-            },
-            "hasTeamFeatures": {
-              "type": "bool",
-              "metadata": {
-                "description": "Whether Team plan features are enabled"
               }
             },
             "clientSecret": {
@@ -1036,7 +959,7 @@
             "searchApiKey": {
               "type": "securestring",
               "metadata": {
-                "description": "Search admin key to store (empty if not Team plan)"
+                "description": "Search admin key to store"
               }
             },
             "webAppPrincipalId": {
@@ -1049,7 +972,6 @@
           "variables": {
             "tags": {
               "product": "VariScout",
-              "plan": "[parameters('variscoutPlan')]",
               "managedBy": "AzureMarketplace"
             },
             "keyVaultSecretsUserRole": "4633458b-17de-408a-b874-0445c86b69e6"
@@ -1103,7 +1025,6 @@
               "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
             },
             {
-              "condition": "[parameters('hasTeamFeatures')]",
               "type": "Microsoft.KeyVault/vaults/secrets",
               "apiVersion": "2024-11-01",
               "name": "[format('{0}/{1}', parameters('keyVaultName'), 'search-api-key')]",
@@ -1138,15 +1059,15 @@
     },
     "aiEndpoint": {
       "type": "string",
-      "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiEndpoint.value, '')]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiEndpoint.value]"
     },
     "searchEndpoint": {
       "type": "string",
-      "value": "[if(variables('hasTeamFeatures'), format('https://{0}.search.windows.net', variables('searchServiceName')), '')]"
+      "value": "[format('https://{0}.search.windows.net', variables('searchServiceName'))]"
     },
     "appInsightsConnectionString": {
       "type": "string",
-      "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.appInsightsConnectionString.value, '')]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.appInsightsConnectionString.value]"
     }
   }
 }
