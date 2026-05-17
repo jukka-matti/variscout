@@ -7,22 +7,15 @@ param aiServicesName string
 @description('Name for the App Insights resource')
 param appInsightsName string
 
-@description('VariScout plan identifier')
-param variscoutPlan string
-
 var tags = {
   product: 'VariScout'
-  plan: variscoutPlan
-}
-
-var tagsWithManaged = union(tags, {
   managedBy: 'AzureMarketplace'
-})
+}
 
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: appInsightsName
   location: location
-  tags: tagsWithManaged
+  tags: tags
   kind: 'web'
   properties: {
     Application_Type: 'web'
@@ -91,7 +84,7 @@ resource reasoningDeployment 'Microsoft.CognitiveServices/accounts/deployments@2
   ]
 }
 
-resource embeddingDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-09-01' = if (variscoutPlan == 'team') {
+resource embeddingDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-09-01' = {
   parent: aiServices
   name: 'embeddings'
   sku: {

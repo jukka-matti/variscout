@@ -7,9 +7,6 @@ param appServicePlanName string
 @description('Name for the Web App')
 param webAppName string
 
-@description('VariScout plan identifier')
-param variscoutPlan string
-
 @description('Client ID of the Azure AD App Registration')
 param clientId string
 
@@ -20,16 +17,10 @@ param clientSecret string
 @description('URL to the VariScout application deployment package')
 param packageUrl string
 
-@description('Whether AI features are enabled')
-param hasAI bool
-
-@description('Whether Team plan features are enabled')
-param hasTeamFeatures bool
-
-@description('AI endpoint URL (empty if AI disabled)')
+@description('AI endpoint URL')
 param aiEndpoint string
 
-@description('App Insights connection string (empty if AI disabled)')
+@description('App Insights connection string')
 param appInsightsConnectionString string
 
 @description('Search service name (for URL construction)')
@@ -38,7 +29,7 @@ param searchServiceName string
 @description('AI Search index name')
 param aiSearchIndex string
 
-@description('Storage Account name for Blob Storage (Team plan)')
+@description('Storage Account name for Blob Storage')
 param storageAccountName string = ''
 
 @description('Storage container name')
@@ -46,7 +37,6 @@ param storageContainerName string = 'variscout-projects'
 
 var tags = {
   product: 'VariScout'
-  plan: variscoutPlan
   managedBy: 'AzureMarketplace'
 }
 
@@ -82,16 +72,8 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
           value: packageUrl
         }
         {
-          name: 'VITE_LICENSE_TIER'
-          value: 'enterprise'
-        }
-        {
           name: 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET'
           value: clientSecret
-        }
-        {
-          name: 'VITE_VARISCOUT_PLAN'
-          value: variscoutPlan
         }
         {
           name: 'AI_ENDPOINT'
@@ -99,7 +81,7 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
         }
         {
           name: 'AI_SEARCH_ENDPOINT'
-          value: hasTeamFeatures ? 'https://${searchServiceName}.search.windows.net' : ''
+          value: 'https://${searchServiceName}.search.windows.net'
         }
         {
           name: 'AI_SEARCH_INDEX'
@@ -107,11 +89,11 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
         }
         {
           name: 'AI_SEARCH_KB_INDEX'
-          value: hasTeamFeatures ? 'knowledge-base' : ''
+          value: 'knowledge-base'
         }
         {
           name: 'AI_EMBEDDING_DEPLOYMENT'
-          value: hasTeamFeatures ? 'embeddings' : ''
+          value: 'embeddings'
         }
         {
           name: 'STORAGE_ACCOUNT_NAME'
@@ -158,9 +140,7 @@ resource authSettings 'Microsoft.Web/sites/config@2024-04-01' = {
         }
         login: {
           loginParameters: [
-            hasTeamFeatures
-              ? 'scope=openid profile email User.Read People.Read'
-              : 'scope=openid profile email User.Read'
+            'scope=openid profile email User.Read People.Read'
           ]
         }
       }

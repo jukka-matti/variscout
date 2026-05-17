@@ -4,12 +4,6 @@ param location string
 @description('Name for the Key Vault')
 param keyVaultName string
 
-@description('VariScout plan identifier')
-param variscoutPlan string
-
-@description('Whether Team plan features are enabled')
-param hasTeamFeatures bool
-
 @description('Client secret value to store')
 @secure()
 param clientSecret string
@@ -18,7 +12,7 @@ param clientSecret string
 @secure()
 param aiServicesApiKey string
 
-@description('Search admin key to store (empty if not Team plan)')
+@description('Search admin key to store')
 @secure()
 param searchApiKey string
 
@@ -27,7 +21,6 @@ param webAppPrincipalId string
 
 var tags = {
   product: 'VariScout'
-  plan: variscoutPlan
   managedBy: 'AzureMarketplace'
 }
 
@@ -77,7 +70,7 @@ resource clientSecretSecret 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = {
   }
 }
 
-resource searchApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = if (hasTeamFeatures) {
+resource searchApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = {
   parent: keyVault
   name: 'search-api-key'
   properties: {
