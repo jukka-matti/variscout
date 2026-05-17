@@ -40,14 +40,6 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 - **Sponsor placeholder copy in `IPDetailPage`** — `data-testid="sponsor-report-panel"` placeholder points the Sponsor to "the top navigation Report tab." V1 nav is 7 tabs (`Home · Project · Process · Analyze · Investigation · Improve · Report`); the "Report" label is already final. Placeholder copy can reference "the Report tab" directly. Promotion: PR-WV1-5 (nav reorder + tier-gating retirement sweep).
 
-### 2026-05-17: Survey-rule layer still emits 'handoff' surface prompts
-
-`packages/core/src/survey/handoff.ts:69` produces `surveyInboxRules` entries with `surface: 'handoff'`, which now route through the `showHandoff → showSustainment` alias in panelsStore. Wedge V1 (PR-WV1-4) retired the canvas-CTA handoff path; the survey rule layer is intentionally out-of-scope per ADR-082. **Follow-up**: in a later wedge cleanup PR, retire the survey rule too (or rename to `surface: 'sustainment'` + reword the prompt text). Source: Opus review of PR #187 (2026-05-17).
-
-**Surfaced by:** Opus final code review of PR #187 (feat/wedge-pr-wv1-4-canvas-persona), 2026-05-17.
-
-**Promotion path:** Wedge cleanup PR post-V1 stabilisation — rename `surface: 'handoff'` → `surface: 'sustainment'` and reword prompt copy, or retire the rule entirely if the survey cadence no longer fits the Sustainment stage flow.
-
 ### Durable cross-device invitation persistence
 
 **Surfaced by:** PR-WV1-3a Implementation 2026-05-16.

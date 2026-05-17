@@ -1,5 +1,5 @@
 import React from 'react';
-import { Briefcase, MessageSquare, Send, ShieldCheck, Zap, type LucideIcon } from 'lucide-react';
+import { Briefcase, MessageSquare, ShieldCheck, Zap, type LucideIcon } from 'lucide-react';
 
 import { MultiLinkPicker, type ContextLinkItem } from './MultiLinkPicker';
 
@@ -7,8 +7,7 @@ export type ContextSurfaceType =
   | 'improvement-projects'
   | 'wall-threads'
   | 'quick-actions'
-  | 'sustainment'
-  | 'handoff';
+  | 'sustainment';
 
 export interface ContextLinkGroup<TItem extends ContextLinkItem = ContextLinkItem> {
   surfaceType: ContextSurfaceType;
@@ -28,7 +27,6 @@ const SURFACE_META: Record<ContextSurfaceType, { label: string; Icon: LucideIcon
   'wall-threads': { label: 'Wall threads', Icon: MessageSquare },
   'quick-actions': { label: 'Quick actions', Icon: Zap },
   sustainment: { label: 'Sustainment', Icon: ShieldCheck },
-  handoff: { label: 'Handoff', Icon: Send },
 };
 
 const formatCount = (count: number) => `${count} linked ${count === 1 ? 'item' : 'items'}`;

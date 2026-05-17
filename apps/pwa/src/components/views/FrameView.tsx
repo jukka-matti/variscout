@@ -175,20 +175,20 @@ const FrameView: React.FC = () => {
       },
       { surfaceType: 'quick-actions', items: [] },
       {
+        // Wedge V1 (ADR-082) folds Handoff into Sustainment-closure; control handoffs surface here too.
         surfaceType: 'sustainment',
-        items: liveSustainmentRecords.map(record => ({
-          id: record.id,
-          label: record.title,
-          description: record.status,
-        })),
-      },
-      {
-        surfaceType: 'handoff',
-        items: controlHandoffs.map(handoff => ({
-          id: handoff.id,
-          label: handoff.systemName || handoff.operationalOwner.displayName || 'Handoff',
-          description: handoff.status,
-        })),
+        items: [
+          ...liveSustainmentRecords.map(record => ({
+            id: record.id,
+            label: record.title,
+            description: record.status,
+          })),
+          ...controlHandoffs.map(handoff => ({
+            id: handoff.id,
+            label: handoff.systemName || handoff.operationalOwner.displayName || 'Handoff',
+            description: handoff.status,
+          })),
+        ],
       },
     ];
   }, [
@@ -307,10 +307,6 @@ const FrameView: React.FC = () => {
       usePanelsStore.getState().showSustainment(prompt.action?.opensId);
       return;
     }
-    if (surface === 'handoff') {
-      usePanelsStore.getState().showHandoff(prompt.action?.opensId);
-      return;
-    }
     if (surface === 'improvement-projects') {
       usePanelsStore.getState().showCharter();
       return;
@@ -334,7 +330,8 @@ const FrameView: React.FC = () => {
         return;
       }
       if (controlHandoffs.some(handoff => handoff.id === item.id)) {
-        usePanelsStore.getState().showHandoff(item.id);
+        // Wedge V1 (ADR-082) folds Handoff into Sustainment-closure.
+        usePanelsStore.getState().showSustainment(item.id);
         return;
       }
       usePanelsStore.getState().showInvestigation();

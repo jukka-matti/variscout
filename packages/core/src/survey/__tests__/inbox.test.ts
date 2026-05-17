@@ -106,7 +106,7 @@ describe('surveyInboxRules', () => {
         severity: 'warning',
         action: {
           label: 'Open handoff',
-          opensSurface: 'handoff',
+          opensSurface: 'sustainment',
           opensId: 'handoff-stale',
         },
         sourceHint: expect.objectContaining({

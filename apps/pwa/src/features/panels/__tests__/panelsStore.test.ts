@@ -161,12 +161,6 @@ describe('panelsStore', () => {
       usePanelsStore.getState().showSustainment();
       expect(usePanelsStore.getState().activeView).toBe('sustainment');
     });
-
-    it('showHandoff redirects to sustainment (handoff folded into sustainment in wedge V1)', () => {
-      usePanelsStore.getState().showHandoff('sr-1');
-      expect(usePanelsStore.getState().activeView).toBe('sustainment');
-      expect(usePanelsStore.getState().sustainmentTargetId).toBe('sr-1');
-    });
   });
 
   describe('Projects tab', () => {

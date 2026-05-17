@@ -175,7 +175,7 @@ export type SurveyHintKind =
  */
 export interface SurveyHint {
   kind: SurveyHintKind;
-  surface: 'wall' | 'improvementProject' | 'sustainment' | 'handoff' | 'inbox';
+  surface: 'wall' | 'improvementProject' | 'sustainment' | 'inbox';
   /** ID of the entity this hint targets (hypothesisId, ipId, etc.) */
   targetEntityId: string;
   message: string;

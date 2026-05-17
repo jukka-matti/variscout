@@ -10,7 +10,6 @@ const showImprovementMock = vi.fn();
 const showInvestigationMock = vi.fn();
 const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
-const showHandoffMock = vi.fn();
 const expandToQuestionMock = vi.fn();
 const setWallViewModeMock = vi.fn();
 const setInvestigationViewModeMock = vi.fn();
@@ -210,7 +209,6 @@ vi.mock('../../../features/panels/panelsStore', () => ({
       showInvestigation: showInvestigationMock,
       showCharter: showCharterMock,
       showSustainment: showSustainmentMock,
-      showHandoff: showHandoffMock,
       setInvestigationViewMode: setInvestigationViewModeMock,
     }),
   }),
@@ -252,7 +250,6 @@ describe('FrameView (Azure shell)', () => {
     showInvestigationMock.mockClear();
     showCharterMock.mockClear();
     showSustainmentMock.mockClear();
-    showHandoffMock.mockClear();
     expandToQuestionMock.mockClear();
     setWallViewModeMock.mockClear();
     setInvestigationViewModeMock.mockClear();
