@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Response Path System V1 — Implementation Plan
-audience: [engineer]
+audience: human
 category: implementation
 status: archived
 last-reviewed: 2026-05-13

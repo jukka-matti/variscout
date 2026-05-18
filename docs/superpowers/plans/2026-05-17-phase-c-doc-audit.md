@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'Phase C — Holistic Doc Audit → Triage → Apply'
 status: draft
 last-reviewed: 2026-05-17

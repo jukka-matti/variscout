@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'PR 1 — Wedge V1 Phase A Doc Completion'
 status: draft
 last-reviewed: 2026-05-17

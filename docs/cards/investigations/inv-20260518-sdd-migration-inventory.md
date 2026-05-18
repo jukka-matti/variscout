@@ -96,6 +96,10 @@ The first real feature through the new SDD lifecycle. Spec: [`docs/archive/specs
 
 **Dogfood result**: ✓ lifecycle works end-to-end. The discipline caught 3 broken cross-refs (azure-teams-mobile, azure-admin-operations, arm-template) when personas moved — exactly the kind of drift the new validator HARD-FAIL on broken cross-refs is designed to catch. Fixed inline as part of Apply.
 
+## Phase 2 — Validator noise cleanup (post-SDD refactor)
+
+Spec: [`docs/superpowers/specs/2026-05-18-post-sdd-phase-2-validator-noise-cleanup-design.md`](../../superpowers/specs/2026-05-18-post-sdd-phase-2-validator-noise-cleanup-design.md). The original plan premise was wrong: archive specs are already exempt from `errorSpecMissingImplements` by validator scoping (active-specs-only). Real Phase 2 work was running the long-deferred `scripts/docs-frontmatter-fix.mjs` codemod (ADR-083) to resolve **65 transitional alias warnings** (`stable`→`active`, `developer`/`analyst`/etc.→`human`, etc.) + backfill `purpose:`/`tier:` on ~50 docs that lacked them.
+
 ## SDD migration complete
 
 All five PRs landed. Discipline is now mechanically enforced:

@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: 'Pipelines — auto-ingestion, multi-source profile join, scheduled refresh'
-audience: [product, engineer, designer]
+audience: human
 category: strategy
 status: named-future
 last-reviewed: 2026-05-17

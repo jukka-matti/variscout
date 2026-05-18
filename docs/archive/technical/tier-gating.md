@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Tier & Plan Gating System
-audience: [developer]
+audience: human
 category: architecture
 status: archived
 related: [pricing, marketplace, feature-flags]

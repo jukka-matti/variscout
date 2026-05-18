@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: 'Process Measurement System (PMS) — stable measures + cadence + Current Process State'
-audience: [product, designer, engineer, quality-manager]
+audience: human
 category: methodology
 status: named-future
 last-reviewed: 2026-05-17

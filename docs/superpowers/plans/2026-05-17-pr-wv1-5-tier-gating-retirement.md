@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'PR-WV1-5 — Tier-Gating Retirement + Nav Reorder'
 status: draft
 last-reviewed: 2026-05-17

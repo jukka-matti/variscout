@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: 'Four personas — Process Owner / Process Engineer / Specialist / Leader'
-audience: [product, designer, business]
+audience: human
 category: strategy
 status: named-future
 last-reviewed: 2026-05-17

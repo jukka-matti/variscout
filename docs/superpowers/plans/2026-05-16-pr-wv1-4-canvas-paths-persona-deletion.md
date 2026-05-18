@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'PR-WV1-4 — Canvas Response Paths (5→3) + Handoff Retirement'
 status: draft
 last-reviewed: 2026-05-16

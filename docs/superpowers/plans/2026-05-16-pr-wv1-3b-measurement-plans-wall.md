@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'PR-WV1-3b — MeasurementPlan + Investigation Wall integration (bite-sized plan)'
 status: draft
 last-reviewed: 2026-05-16

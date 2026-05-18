@@ -1,9 +1,11 @@
 ---
+tier: living
+purpose: design
 title: 'PR-WV1-3 — MeasurementPlan + Invitation lifecycle + ActionItem CRUD design'
 status: draft
 last-reviewed: 2026-05-16
 category: design-spec
-audience: [designer, engineer, analyst]
+audience: human
 implements:
   - docs/03-features/workflows/investigation-wall.md
   - docs/03-features/workflows/investigation-to-action.md

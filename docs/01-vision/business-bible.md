@@ -1,8 +1,10 @@
 ---
+tier: stable
+purpose: orient
 title: Business Bible
-audience: [analyst, engineer, business]
+audience: human
 category: reference
-status: stable
+status: active
 last-reviewed: 2026-05-17
 related: [strategy, hypotheses, value-levers, flywheel, pricing, single-sku]
 layer: L1

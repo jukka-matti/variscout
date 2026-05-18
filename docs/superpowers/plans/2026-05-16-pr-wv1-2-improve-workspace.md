@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'PR-WV1-2 — Improve Workspace Migration (bite-sized plan)'
 status: draft
 last-reviewed: 2026-05-16

@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: VariScout — Product Vision
-audience: [product, engineer, designer, analyst, business]
+audience: human
 category: strategy
 status: archived
 last-reviewed: 2026-05-03

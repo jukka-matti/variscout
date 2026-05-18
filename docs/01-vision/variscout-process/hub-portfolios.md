@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: 'Hub portfolios — multi-hub orchestration + drill semantics'
-audience: [product, engineer, designer]
+audience: human
 category: strategy
 status: named-future
 last-reviewed: 2026-05-17

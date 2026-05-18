@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: 'Monitoring — drift detection, alerts, process-owner views'
-audience: [product, designer, engineer, quality-manager]
+audience: human
 category: strategy
 status: named-future
 last-reviewed: 2026-05-17

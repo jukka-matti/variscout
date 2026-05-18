@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: Actionable Current Process State Panel — Implementation Plan
 status: archived
 layer: spec

@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: 'Three-level methodology — Outcome / Process Flow / Local Mechanism'
-audience: [product, designer, engineer, analyst, quality-manager]
+audience: human
 category: methodology
 status: named-future
 last-reviewed: 2026-05-17

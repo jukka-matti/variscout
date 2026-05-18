@@ -1,4 +1,6 @@
 ---
+tier: stable
+purpose: remember
 title: 'Wedge V1 Phase A Doc Completion + Phase C Audit Plan Artifact'
 status: archived
 last-reviewed: 2026-05-17

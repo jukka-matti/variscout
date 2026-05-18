@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: 'V1-vs-Process scope line — feature boundary'
-audience: [product, designer, engineer]
+audience: human
 category: strategy
 status: named-future
 last-reviewed: 2026-05-17

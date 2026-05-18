@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: 'VariScout Process — Named-Future Capture'
-audience: [product, designer, engineer, business]
+audience: human
 category: strategy
 status: named-future
 last-reviewed: 2026-05-17

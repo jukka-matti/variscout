@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'PR-WV1-2 amendment — restore Improve as top-level verb tab + Project singular (bite-sized plan)'
 status: draft
 last-reviewed: 2026-05-16

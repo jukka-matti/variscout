@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: 'Pricing'
-audience: [admin, architect]
+audience: human
 category: reference
 status: archived
 ---

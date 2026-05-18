@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: VariScout — Consolidated Method And Surface Overview
-audience: [product, designer, engineer, analyst]
+audience: human
 category: design-spec
 status: archived
 related:

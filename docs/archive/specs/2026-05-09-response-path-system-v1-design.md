@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Response Path System V1 — Design
-audience: [product, engineer, designer]
+audience: human
 category: design-spec
 status: archived
 last-reviewed: 2026-05-13
