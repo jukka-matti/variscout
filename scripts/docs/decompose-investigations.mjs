@@ -279,7 +279,7 @@ function buildStubContent() {
     '- **Open / active**: [`docs/ephemeral/investigations.md`](ephemeral/investigations.md) — the live queue.',
     '- **Closed / archived**: [`docs/cards/investigations/`](cards/investigations/) — atomic cards, one per closed investigation.',
     '',
-    'Edit the open list directly in `ephemeral/investigations.md`. When an entry closes, add a `[RESOLVED YYYY-MM-DD]` (or `[PROMOTED ...]` / `[WEDGE SCOPE NOTE ...]`) marker to its `###` title — next `pnpm docs:rebuild` (Phase 3 A4) moves it to a card.',
+    'Edit the open list directly in `ephemeral/investigations.md`. When an entry closes, add a `[RESOLVED YYYY-MM-DD]` (or `[PROMOTED ...]` / `[WEDGE SCOPE NOTE ...]` / `[LOGGED YYYY-MM-DD]`) marker to its `###` title — next `pnpm docs:rebuild` (Phase 3 A4) moves it to a card.',
     '',
     'For background: [docs-strategy-2026 design](superpowers/specs/2026-05-16-docs-strategy-design.md).',
     '',
@@ -373,6 +373,16 @@ function main() {
   }
 
   const raw = readFileSync(SRC, 'utf8');
+
+  // Stub-detection guard: if the source is the post-migration stub (no
+  // `## Active investigations` section), this is a re-run after the
+  // one-shot migration already happened. Exit cleanly. Use pnpm docs:rebuild
+  // (A4) for ongoing maintenance.
+  if (!/^## Active investigations/m.test(raw)) {
+    console.log('decompose-investigations: source is the post-migration stub — already migrated. Use pnpm docs:rebuild for maintenance.');
+    process.exit(0);
+  }
+
   const entries = parseEntries(raw);
 
   if (entries.length === 0) {
