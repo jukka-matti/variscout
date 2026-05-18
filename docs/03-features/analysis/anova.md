@@ -26,7 +26,18 @@ Process improvement teams need to test whether a categorical factor (supplier, s
 
 ## Intent diagram
 
-TBD — Mermaid data-flow (DataRow[] → groupDataByFactor → calculateAnovaFromGroups → AnovaResult → Boxplot ANOVA panel) to be added in M3 audit or on next edit.
+```mermaid
+flowchart LR
+    Rows[DataRow with factor + outcome columns] --> Group[groupDataByFactor]
+    Group --> Map["Map factor to outcome values"]
+    Map --> SS["Compute SSB / SSW + df"]
+    SS --> F[F-statistic: MSB / MSW]
+    F --> P[fDistributionPValue]
+    Map --> Eta["eta-squared = SSB / SS_total"]
+    P --> Result[AnovaResult: groups, fStatistic, pValue, etaSquared, insight]
+    Eta --> Result
+    Result --> Boxplot[Boxplot ANOVA panel]
+```
 
 ## Acceptance signals
 

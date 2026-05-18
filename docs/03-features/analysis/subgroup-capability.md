@@ -33,6 +33,31 @@ Time-based subgrouping uses extracted time columns from FRAME (TimeExtractionPan
 
 See [Analysis Flow](../workflows/analysis-flow.md) for the complete two-thread analysis journey.
 
+## Intent diagram
+
+```
+┌──────────────────────────────────────────────────┐
+│ Capability Index                                 │
+│                                                  │
+│ ══════════════════════════════════════════ UCL   │
+│        ◯                                         │
+│   ●    │    ●    ●         ◯              ◯     │
+│   │    │    │    │    ●    │              │     │
+│ ──●────◯────●────●────│────●──────────●──────  x̄│
+│              gap        │                        │
+│ ══════════════════════════════════════════ LCL   │
+│                                                  │
+│ Subgroup index (Batch / Shift / fixed-n)         │
+│                          [VariScout n=N]         │
+└──────────────────────────────────────────────────┘
+  ● Cpk (actual)   ◯ Cp (potential)
+  │ centering gap connector
+```
+
+Grey vertical connectors visualize centering loss per subgroup pair. Long lines indicate capable-but-off-center processes. Per-series control limits (UCL/LCL) detect capability instability — when the Cpk series is out of control, the overall Ppk is misleading.
+
+---
+
 ## Dual Cp/Cpk Series
 
 The I-Chart in Capability mode shows **both Cp and Cpk** as two series on the same chart:

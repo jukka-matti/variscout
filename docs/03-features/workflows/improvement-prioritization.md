@@ -70,6 +70,21 @@ Small(1):     Low         Medium       High
 
 ## Workflow
 
+### Intent diagram
+
+```mermaid
+flowchart LR
+    A[Brainstorm ideas<br/>+ direction] --> B[Quick assessment<br/>timeframe + cost]
+    B --> C{Quantify<br/>benefit?}
+    C -->|yes| D[What-If projection<br/>Cpk / yield]
+    C -->|no| E
+    D --> E{Risk<br/>warranted?}
+    E -->|yes| F[Risk matrix<br/>2-axis]
+    E -->|no| G
+    F --> G[Prioritization matrix<br/>select best set]
+    G --> H[Convert to Actions<br/>assignees + due dates]
+```
+
 The improvement prioritization follows a natural sequence:
 
 1. **Brainstorm ideas** — Add ideas to supported hypotheses with text + direction (creative phase)

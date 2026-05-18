@@ -25,7 +25,25 @@ In process-flow mode, improvement teams need to know which steps in a process co
 
 ## Intent diagram
 
-TBD — Mermaid wireframe (descending bars + cumulative line + Others-tail bar + click-to-node-id behaviour) to be added in M3 audit or on next edit.
+```text
+┌────────────────────────────────────────────────────────────────┐
+│  StepErrorPareto — process steps ranked by error count         │
+├────────────────────────────────────────────────────────────────┤
+│  errors ─┤ ███                                  ─── 100%       │
+│          │ ███                              ____/             │
+│          │ ███  ___                       _/   cumulative %   │
+│          │ ███ ███                      _/                    │
+│          │ ███ ███ ___                _/                       │
+│          │ ███ ███ ███ ___          _/                         │
+│          │ ███ ███ ███ ███ ___ _ _ /  ░░░ (Others tail)        │
+│          │ ███ ███ ███ ███ ███ ░░░                             │
+│          └──┬───┬───┬───┬───┬───┬──── nodeId via labelToNodeId │
+│            Weld Assy Test Pack ... Others                      │
+│                                                                │
+│  sortAndFilterSteps -> aggregateAndCompute (top                │
+│  PARETO_MAX_CATEGORIES=20 + Others; click -> onStepClick(id)). │
+└────────────────────────────────────────────────────────────────┘
+```
 
 ## Acceptance signals
 

@@ -25,7 +25,31 @@ Process owners overseeing many canonical nodes (lines, cells, SKUs) need to see 
 
 ## Intent diagram
 
-TBD — Mermaid wireframe (one boxplot per node + target ticks + confidence badges) to be added in M3 audit or on next edit.
+```text
+┌────────────────────────────────────────────────────────────┐
+│  CapabilityBoxplot — per-node Cpk distribution             │
+├────────────────────────────────────────────────────────────┤
+│  Cpk ─┤                                                    │
+│       │    ┌──┐                                            │
+│       │    │  │                                            │
+│       │ ───┤  ├───  ─ ─ ─ ─ ─  target tick (per-node)      │
+│       │    │ ─│                                            │
+│       │    │  │       ┌──┐                                 │
+│       │    └──┘       │  │     • • •                       │
+│       │            ───┤  ├──   (jittered dots, n<7)        │
+│       │               │ ─│                                 │
+│       │               └──┘                                 │
+│       │            ─ ─ ─ ─ ─ target tick                   │
+│       │  Cpk=0                                             │
+│       └────────┬────────┬────────┬─────                    │
+│              Line A   Line B   Line C                      │
+│              [trust]   [n!]    [n!]    sample-confidence   │
+│                                                            │
+│  One category per canonical node; each box summarises      │
+│  perContextResults[].cpk via calculateBoxplotStats.        │
+│  Never collapse per-context Cpks (ADR-073).                │
+└────────────────────────────────────────────────────────────┘
+```
 
 ## Acceptance signals
 

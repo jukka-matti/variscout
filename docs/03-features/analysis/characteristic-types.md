@@ -19,6 +19,27 @@ Quality characteristics come in three types. VariScout detects the type from spe
 
 ---
 
+## Intent diagram
+
+```mermaid
+flowchart TD
+    Start([Spec limits + optional override]) --> Override{characteristicType<br/>explicitly set?}
+    Override -- yes --> Use[Use stored type]
+    Override -- no --> InferName{Column name<br/>keyword match?}
+    InferName -- "defect / reject /<br/>scrap / fail / error" --> Smaller[smallerIsBetter]
+    InferName -- "yield / uptime /<br/>throughput / recovery" --> Larger[largerIsBetter]
+    InferName -- none --> InferLimits{Which limits set?}
+    InferLimits -- USL + LSL --> Nominal[nominalIsBest]
+    InferLimits -- USL only --> Smaller
+    InferLimits -- LSL only --> Larger
+    Use --> Apply[Type drives:<br/>I-Chart violation colour<br/>Boxplot direction colour<br/>What-If preset selection<br/>One-sided Cp/Cpk formula]
+    Nominal --> Apply
+    Smaller --> Apply
+    Larger --> Apply
+```
+
+---
+
 ## The Three Types
 
 | Type                  | Goal                     | Example                             | Spec Pattern |

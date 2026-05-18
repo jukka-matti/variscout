@@ -25,7 +25,26 @@ Performance Mode needs a single configuration surface where users pick multiple 
 
 ## Intent diagram
 
-TBD — Mermaid wireframe to be added in M3 audit or on next edit.
+Multi-channel selection + single Cpk target → fan-out per column on submit:
+
+```
+┌────────────────────────── Performance Mode Setup ──────────────────────────┐
+│ Measure channels:  ☑ Head_1  ☑ Head_2  ☑ Head_3  ☐ Head_4   (3 selected)   │
+│ Label:             [ Head_____________ ]                                   │
+│ Cpk target:        [ 1.33 ▾ ]   ← single value, applied to all channels    │
+│                                                                            │
+│                                          [ Cancel ]  [ Enable Performance ]│
+└────────────────────────────────────────────────────────────────────────────┘
+                                                       │
+                                                       ▼
+                onEnable(columns, label, cpkTargetPerChannel)
+                  cpkTargetPerChannel = { Head_1: 1.33, Head_2: 1.33, Head_3: 1.33 }
+                                                       │
+                                                       ▼
+                Consumer fans out: for each col → setMeasureSpec(col, { cpkTarget })
+```
+
+No project-wide `setCpkTarget` from this surface — every channel writes through `measureSpecs[col]` so resolution stays per-characteristic.
 
 ## Acceptance signals
 

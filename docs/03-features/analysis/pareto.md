@@ -36,6 +36,31 @@ The Pareto reveals:
 
 ---
 
+## Intent diagram
+
+```
+┌──────────────────────────────────────────────┐
+│ Count                                  Cum % │
+│                                              │
+│ ████                                  ─ ─ ─  │
+│ ████          ╱─────────────────────  100%   │
+│ ████  ████  ╱                                │
+│ ████  ████╱                          ─ 80%─ ─│
+│ ████  ████  ████                             │
+│ ████  ████  ████  ████  ████                 │
+│ ████  ████  ████  ████  ████  ████  Others   │
+│  A     B     C     D     E     F     (≤20)   │
+│                                              │
+│  Sorted ↓ desc      [VariScout n=N]          │
+└──────────────────────────────────────────────┘
+   Bars = category count   Line = cumulative %
+   80% marker = vital-few threshold
+```
+
+`ParetoChartBase` sorts categories descending, draws `<Bar>` for counts and `<LinePath>` for the cumulative-% line on a secondary right axis. The 80% marker is a horizontal guide. Click any bar → `onBarClick(category)` filters the dashboard.
+
+---
+
 ## Key Elements
 
 | Element         | Description                        |

@@ -89,6 +89,25 @@ U002,   NG,     M3,      Day
 
 ---
 
+## Intent diagram
+
+```mermaid
+flowchart LR
+  A[Raw data] --> B{detectDefectMode}
+  B -->|event log| C[group by unit x type]
+  B -->|pre-aggregated| D[pass-through]
+  B -->|pass/fail| E[group by unit, fail %]
+  C --> F[DefectTransformResult<br/>data + outcomeColumn + factors]
+  D --> F
+  E --> F
+  F --> G[Four Lenses on rates]
+  G --> H[I-Chart, Boxplot, Pareto, Summary]
+  H --> I[Pareto bar click]
+  I -->|drill type| F
+```
+
+---
+
 ## Chart Slots
 
 | Slot | Lens    | Chart               | What It Shows                                                              |

@@ -54,6 +54,31 @@ Override the default at any time via the picker in the dashboard chrome. The cho
 
 ---
 
+## Intent diagram
+
+```mermaid
+sequenceDiagram
+  actor Analyst
+  participant Picker as TimelineWindowPicker
+  participant Hook as useTimelineWindow
+  participant Router as strategy.dataRouter
+  participant Metrics as capability/throughput/drift
+  participant Finding
+  Analyst->>Picker: pick kind (fixed/rolling/open-ended/cumulative)
+  Picker->>Hook: setWindow(TimelineWindow)
+  Hook->>Router: window + raw rows
+  Router->>Router: applyWindow(rows, window)
+  Router->>Metrics: filtered rows
+  Metrics-->>Analyst: charts update
+  Analyst->>Finding: save Finding
+  Finding->>Finding: record WindowContext
+  Note over Finding: later re-open
+  Finding->>Finding: computeFindingWindowDrift vs current
+  Finding-->>Analyst: drift flag if Δ > 20%
+```
+
+---
+
 ## How the choice flows through
 
 1. The picker writes to the active investigation (or the hub-time surface) via `useTimelineWindow`.

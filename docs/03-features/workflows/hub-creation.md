@@ -25,7 +25,24 @@ A new investigation needs a ProcessHub bound before column mapping confirms — 
 
 ## Intent diagram
 
-TBD — Mermaid flowchart (Stage 1 goal → provision → Stage 3 mapping confirm) to be added in M3 audit or on next edit.
+```mermaid
+sequenceDiagram
+    actor U as Lead
+    participant Form as HubGoalForm (Stage 1)
+    participant Hook as useNewHubProvision
+    participant Hub as ProcessHub core
+    participant Map as ColumnMapping (Stage 3)
+    U->>Form: state processGoal +<br/>outcomes + scope dims
+    Form->>Hook: submit framing
+    Hook->>Hub: provision ProcessHub<br/>(processGoal, outcomes,<br/>primaryScopeDimensions)
+    Hub-->>Hook: processHubId
+    Hook-->>Map: route to mapping<br/>(first entry)
+    U->>Map: confirm column bindings
+    Map-->>U: Charter ready,<br/>Approach unlocks
+    Note over Form,Map: Re-edit path<br/>(isMappingReEdit) skips<br/>Stage 1, lands on Map
+```
+
+Mode-B framing: Stage 1 captures intent, `useNewHubProvision` persists a real `ProcessHub` before Stage 3, and re-entry skips back to ColumnMapping when `isMappingReEdit === true`.
 
 ## Acceptance signals
 

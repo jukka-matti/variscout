@@ -25,7 +25,18 @@ Process Hub Capability and Investigation surfaces need a compact, always-visible
 
 ## Intent diagram
 
-TBD — Mermaid wireframe to be added in M3 audit or on next edit.
+Single horizontal toolbar row above the chart grid — fuses stats, scope, and actions into one compact line:
+
+```
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ [▦ Layout ▾] [Factors (3)] │ μ 12.4  σ 0.8  Cpk 1.21 │ [Shift=A,B +1] (n=240) │
+│                                                       [Cpk target: 1.33 ▾]    │
+│                                                       [⇩ Export] [▶ Present]  │
+└───────────────────────────────────────────────────────────────────────────────┘
+   ^left-controls            ^stats-fragment   ^filter-chips        ^right-actions
+```
+
+Cpk values colored via `gradeCpk(cpk, target)` (target-relative, not literature 1.33/1.67). `columnLabel` makes scope visible ("Cpk 1.21 for Weight"). `onCpkTargetCommit` enables inline quick-tweak without leaving the bar.
 
 ## Acceptance signals
 

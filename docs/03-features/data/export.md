@@ -25,7 +25,23 @@ VariScout serializes outbound state across three channels: CSV via `@variscout/c
 
 ## Intent diagram
 
-TBD — Mermaid data-flow to be added in M3 audit or on next edit.
+```mermaid
+flowchart LR
+    Hub[(ProcessHub<br/>state)]
+    Rows[(filtered rows)]
+    Hub --> CSV[escapeCSVValue +<br/>getSpecStatus]
+    Rows --> CSV
+    Hub --> VRS[vrsExport<br/>VRS_VERSION 1.0]
+    Hub --> PNG[chart region<br/>PDF / PNG]
+    CSV --> CSVFile[*.csv]
+    VRS --> VRSFile[*.vrs JSON]
+    PNG --> ImgFile[*.pdf / *.png]
+    CSVFile --> User((Analyst))
+    VRSFile --> User
+    ImgFile --> User
+```
+
+Three outbound channels, all driven from the in-memory `ProcessHub`. CSV stamps per-row spec status + neutralizes formula injection; `.vrs` carries the full hub blob (optionally with `rawData`) for round-trip via `vrsImport`; chart-region PDF/PNG goes through the Azure app's chart-export plumbing.
 
 ## Acceptance signals
 

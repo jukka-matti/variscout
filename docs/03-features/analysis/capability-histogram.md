@@ -25,7 +25,27 @@ Practitioners need to see the shape of a process distribution against its spec l
 
 ## Intent diagram
 
-TBD — Mermaid wireframe (bars + USL/LSL/target lines + mean marker + ChartSourceBar branding) to be added in M3 audit or on next edit.
+```text
+┌──────────────────────────────────────────────────────────────┐
+│  CapabilityHistogram — distribution vs spec limits           │
+├──────────────────────────────────────────────────────────────┤
+│   count ─┤                                                   │
+│          │           ┌─┐ ┌─┐                                 │
+│          │         ┌─┤ ├─┤ ├─┐                               │
+│          │       ┌─┤ │ │ │ │ ├─┐                             │
+│          │     ┌─┤ │ │ │ │ │ │ ├─┐                           │
+│          │     │ │ │ │ │ │ │ │ │ │                           │
+│          ├─────┴─┴─┴─┴─┴─┴─┴─┴─┴─┴────                       │
+│          ┊  LSL    │mean│  target           USL              │
+│          ┊         ┊    ┊                    ┊               │
+│          (red bin) (in-spec bins green)  (red bin)           │
+│                                                              │
+│  15 d3 bin bars, fill via isWithinSpec(midpoint).            │
+│  LSL/USL = dashed spec line; target = dashed; mean = solid.  │
+│  xDomainOverride extends past data for Y-axis-lock parity.   │
+│  ChartSourceBar at bottom (showBranding).                    │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ## Acceptance signals
 

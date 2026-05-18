@@ -25,7 +25,25 @@ A Process Hub aggregates rows from heterogeneous origins (pasted spreadsheets, s
 
 ## Intent diagram
 
-TBD — Mermaid data-flow (source → snapshot → provenance) to be added in M3 audit or on next edit.
+Source registry → ingest produces `EvidenceSnapshot` → snapshot carries provenance for every row + cursor tracks freshness:
+
+```mermaid
+flowchart LR
+    S1["EvidenceSource<br/>name, cadence, profileId"]
+    S2["EvidenceSource<br/>another origin"]
+
+    S1 -->|ingest| SN["EvidenceSnapshot<br/>hubId, sourceId,<br/>capturedAt, importedAt,<br/>provenance: RowProvenanceTag[]"]
+    S2 -->|ingest| SN
+
+    SN --> RP["RowProvenanceTag per row<br/>ADR-077 envelope facet"]
+    SN --> LS["EvidenceLatestSignal<br/>severity: green / amber / red"]
+
+    SN --> C["EvidenceSourceCursor<br/>lastSeenSnapshotId,<br/>lastSeenAt — diff-on-open"]
+
+    C -.next ingest.-> SN
+```
+
+`EvidenceSnapshot.provenance` is the canonical home for row-source metadata (ADR-077 amendment 2026-05-07 — sidecar Map retired). Cadence drives staleness signals on the Investigation Wall; `EvidenceLatestSignal` surfaces severity-tagged readings without re-running stats.
 
 ## Acceptance signals
 

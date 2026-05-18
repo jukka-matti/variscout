@@ -25,7 +25,26 @@ A drifting Cpk could come from widening variation (Cp loss) or from the mean dri
 
 ## Intent diagram
 
-TBD — Mermaid wireframe (time-series line + zero target line + per-snapshot points + I-Chart-style control limits) to be added in M3 audit or on next edit.
+```text
+┌────────────────────────────────────────────────────────────┐
+│  CapabilityGapTrendChart — Δ(Cp-Cpk) over time             │
+├────────────────────────────────────────────────────────────┤
+│  Δ(Cp-Cpk) ─┤                              ─── UCL         │
+│             │     •                                        │
+│             │  •     ●            ●                        │
+│             │•   •     ●     ●  ●                          │
+│             │       •     ●    ●                           │
+│   target=0  ┼─────────────────────────────  centered       │
+│             │                                              │
+│             │                              ─── LCL         │
+│             └────────┬─────────┬─────────┬──── snapshot    │
+│                     T0        T1        T2                 │
+│                                                            │
+│  Wraps IChartBase with specs={target: 0}, label            │
+│  "Δ(Cp-Cpk)". Centering loss visible separately from       │
+│  spread loss; positive trend = drift off-centre.           │
+└────────────────────────────────────────────────────────────┘
+```
 
 ## Acceptance signals
 

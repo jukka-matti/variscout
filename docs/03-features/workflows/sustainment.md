@@ -25,7 +25,23 @@ Sustainment domain types live in `packages/core/src/sustainment.ts` (`Sustainmen
 
 ## Intent diagram
 
-TBD — Mermaid flowchart (Approach signoff → Sustainment review cadence → Verdict) to be added in M3 audit or on next edit.
+```mermaid
+flowchart LR
+    Approach[Approach signoff<br/>fix shipped] --> Surface[Control handoff<br/>MES / SCADA /<br/>QMS / Work instr.]
+    Surface --> Cadence{Cadence}
+    Cadence -->|weekly| Rev[Sustainment review]
+    Cadence -->|monthly| Rev
+    Cadence -->|quarterly| Rev
+    Cadence -->|annual| Rev
+    Rev --> Verdict{Verdict}
+    Verdict -->|holding| Continue[Continue monitor +<br/>CoScout auto-fire]
+    Verdict -->|drifting| Reopen[Reopen Approach<br/>new finding]
+    Verdict -->|broken| Reopen
+    Verdict -->|inconclusive| MoreData[Extend window +<br/>collect more data]
+    Continue --> Cadence
+```
+
+Third Project stage in the wedge V1 `Charter → Approach → Sustainment` model. `SustainmentVerdict` drives the branch (`holding | drifting | broken | inconclusive`); CoScout auto-fires on Sustainment events per ADR-080.
 
 ## Acceptance signals
 

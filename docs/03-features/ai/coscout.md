@@ -25,7 +25,31 @@ CoScout assembly is centralized in `assembleCoScoutPrompt()` (replacing the depr
 
 ## Intent diagram
 
-TBD — Mermaid sequence to be added in M3 audit or on next edit.
+User trigger → context assembly → tiered prompt → Responses API. Tier 1 stays session-invariant (Azure prompt cache hit); response-path routing dispatches the right canvas action on return:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant V as Canvas / Tab UI
+    participant O as useAIOrchestration
+    participant S as aiStore
+    participant A as assembleCoScoutPrompt
+    participant API as Azure AI Foundry
+    participant D as Response-path dispatcher
+
+    U->>V: Trigger (quickAsk / contextClick / canvas tile)
+    V->>O: dispatch({ surface, phase, mode, hub })
+    O->>S: aggregate AIContext (stats results, scope, KB hits)
+    O->>A: assembleCoScoutPrompt({ phase, mode, context })
+    A-->>O: { tier1Static, tier2SemiStatic, tier3Dynamic, tools }
+    O->>API: Responses API (system=tier1, user=tier2+tier3, tools)
+    API-->>O: stream + tool_calls (REF markers embedded)
+    O->>D: route by ProcessStateResponsePath<br/>(monitor / quick-action / focused-investigation /<br/>chartered-project / measurement-system-work)
+    D-->>V: canvas action + sustainment auto-fire (ADR-080)
+```
+
+Numeric claims come from the deterministic stats engine, never recomputed by the LLM (P5 / contribution-not-causation).
 
 ## Acceptance signals
 

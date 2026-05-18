@@ -23,6 +23,25 @@ Capability Analysis is VariScout's tool for the **VALUE** lens - comparing proce
 
 ---
 
+## Intent diagram
+
+```mermaid
+flowchart LR
+    Data[Numeric values + USL/LSL/target] --> MR["Moving range MR-bar"]
+    MR --> Sigma["sigma_within = MR-bar / d2 (d2=1.128)"]
+    Data --> Mean[Mean]
+    Sigma --> Cp["Cp = (USL - LSL) / (6 sigma_within)"]
+    Sigma --> Cpk["Cpk = min(CPU, CPL)"]
+    Mean --> Cpk
+    Cpk --> Resolve[resolveCpkTarget cascade]
+    Resolve --> Grade["gradeCpk -> green / amber / red"]
+    Cp --> Stats[Capability result]
+    Cpk --> Stats
+    Grade --> Bar[ProcessHealthBar + chart banding]
+```
+
+---
+
 ## Purpose
 
 _"Are we measuring what the customer actually experiences? Do we meet their specs?"_

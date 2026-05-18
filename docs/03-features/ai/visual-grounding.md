@@ -17,6 +17,33 @@ serves:
 
 Visual grounding connects CoScout's text references to the corresponding chart elements, eliminating the cognitive load of manually finding referenced elements.
 
+## Intent diagram
+
+REF marker round-trip — CoScout emits inline marker → parser → RefLink click → chart receives highlight intent → 3-phase lifecycle:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant LLM as CoScout
+    participant P as parseRefMarkers
+    participant L as RefLink
+    participant H as useVisualGrounding
+    participant C as Chart (Boxplot/Pareto/I-Chart)
+
+    LLM-->>P: "...see [REF:boxplot:productLine]Line A[/REF]..."
+    P-->>L: render inline link with chart-type icon
+    Note over L,H: Auto-highlight first REF<br/>after 100ms (zero-click)
+    L->>H: onRefActivate({ type, id })
+    H->>C: highlightedTarget = { type, id, phase: 'glow' }
+    C-->>C: paint pulse (3s glow)
+    H->>C: phase: 'settled'
+    C-->>C: subtle outline (10s)
+    H->>C: phase: 'clear'
+    C-->>C: highlight removed
+```
+
+When `onRefActivate` is absent (e.g., PWA — no AI), RefLink degrades to plain text. Malformed markers also render as plain text. See [ADR-057](../../07-decisions/adr-057-coscout-visual-grounding.md).
+
 ## How It Works
 
 When CoScout mentions a chart element (e.g., a boxplot category or a Pareto bar), the AI wraps the reference in `[REF:type:id]display text[/REF]` markers. The UI renders these as clickable blue links with a chart-type icon.

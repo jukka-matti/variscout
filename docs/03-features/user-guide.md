@@ -18,6 +18,30 @@ serves:
 
 This guide covers advanced features and workflows in VariScout Lite, focusing on interactive customization and specification management.
 
+## Intent diagram
+
+User-facing customization surfaces and where to find each — three entry points for specs, in-place aliasing, and post-import data editing:
+
+```mermaid
+flowchart LR
+    A[Data loaded] --> B{What to customize?}
+    B -->|Column names| C[ColumnMapping screen<br/>pencil icon on card]
+    B -->|Axis / category labels| D[Click axis label<br/>inline editor]
+    B -->|Spec limits| E[Three entry points]
+    B -->|Cell values| F[Data Table Editor<br/>click cell + Tab/Enter]
+    B -->|Chart display| G[Settings Panel<br/>top-right gear icon]
+
+    E --> E1[ColumnMapping → 'Set Spec Limits']
+    E --> E2[Stats Panel → inline 'Set a target']
+    E --> E3[I-Chart header → Specs dropdown]
+
+    E1 --> R[Charts re-render<br/>Cp/Cpk/Pass-rate]
+    E2 --> R
+    E3 --> R
+```
+
+All customization is non-destructive (aliasing) or local-copy (data editor → Apply Changes). Spec limits apply on blur — no separate Apply button.
+
 ## Interactive Chart Customization
 
 VariScout Lite allows you to customize chart labels and axis names directly on the dashboard without altering your original data source. This is called **Aliasing**.

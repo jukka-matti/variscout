@@ -23,6 +23,33 @@ The Boxplot is VariScout's tool for the **FLOW** lens - comparing variation acro
 
 ---
 
+## Intent diagram
+
+```text
+┌────────────────────────────────────────────────────────┐
+│  Boxplot — factor comparison surface                   │
+├────────────────────────────────────────────────────────┤
+│                                                        │
+│  Value ─┤    ┌──┐                                      │
+│         │    │  │     ┌──┐    ─── target               │
+│         │ ───┤  ├──   │  │                             │
+│         │    │ ─│     │ ─│    ─── USL (spec)           │
+│         │    │  │  ───┤  ├──                           │
+│         │    └──┘     │  │                             │
+│         │             └──┘    ─── LSL (spec)           │
+│         │   • outlier                                  │
+│         └──────┬──────┬──────                          │
+│              Mach A  Mach B  Mach C                    │
+│                                                        │
+│  Box = IQR · median line · whiskers = 1.5×IQR          │
+│  Fill = direction colour (green/amber/red) when specs  │
+│  N<7 per category -> jittered dots (BoxplotBase)       │
+│  ANOVA panel: F, p, eta-squared below chart            │
+└────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## Purpose
 
 _"Which upstream inputs explain the variation I see downstream?"_

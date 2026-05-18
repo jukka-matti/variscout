@@ -25,7 +25,28 @@ Exported and on-screen charts need a compact, consistent badge that attributes t
 
 ## Intent diagram
 
-TBD — Mermaid wireframe to be added in M3 audit or on next edit.
+```
+┌──────────────────────────────────────────────────┐
+│                                                  │
+│            Chart render area                     │
+│                                                  │
+│   (data points / bars / lines from <Group>)      │
+│                                                  │
+│                                                  │
+│                                                  │
+│                                                  │
+│                              ╭─────────────────╮ │
+│                              │ ● VariScout n=N │ │ ← floating
+│                              ╰─────────────────╯ │   pill badge
+└──────────────────────────────────────────────────┘
+  width=140  height=20  rx=10 (pill)
+  fill: chromeColors.barBackground @ opacity 0.8
+  stroke: chromeColors.tooltipBorder
+  text: labelPrimary (brand) + labelMuted (n=)
+  accent dot: caller-provided accentColor
+```
+
+Rendered inside the chart's `<svg>` as a final `<Group>`. Anchored bottom-right via `width - BADGE_WIDTH`. `getSourceBarHeight()` returns 28px so consumers reserve vertical margin in `useChartLayout`.
 
 ## Acceptance signals
 

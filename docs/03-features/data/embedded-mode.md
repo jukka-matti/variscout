@@ -25,7 +25,36 @@ The PWA exposes an iframe-embeddable focus view via `EmbedFocusView` in `apps/pw
 
 ## Intent diagram
 
-TBD — Mermaid sequence (host page ↔ iframe) to be added in M3 audit or on next edit.
+Host page ↔ iframe bidirectional postMessage protocol. Origin validation happens on the first inbound message; `ready` is emitted only after a validated parent origin is known:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant H as Host Page
+    participant I as iframe (PWA)
+    participant V as EmbedFocusView
+    participant U as useEmbedMessaging
+
+    H->>I: postMessage(EmbedMessage, '*')
+    I->>U: window 'message' event
+    U->>U: isValidOrigin(event.origin)?
+    Note over U: First valid msg →<br/>store parentOriginRef
+    U-->>H: 'ready' (back to validated origin)
+
+    H->>U: { action: 'highlight-chart', payload: { chartId: 'boxplot' } }
+    U->>V: setHighlightedChart('boxplot')
+    V-->>V: render pulse / glow / border
+    U-->>H: 'highlight-applied' { success: true }
+
+    Note over V: User clicks a chart
+    V->>U: notifyChartClicked('ichart')
+    U-->>H: 'chart-clicked' { chartId: 'ichart' }
+
+    H->>U: 'scroll-to-chart' → scrollIntoView({ behavior: 'smooth' })
+    Note over U: Esc clears highlight + notifies host
+```
+
+Customer data never leaves the iframe — only highlight intent and chart-click events cross the boundary.
 
 ## Acceptance signals
 

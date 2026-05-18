@@ -65,6 +65,29 @@ Analyze multiple measurement channels (fill heads, cavities, nozzles) in a singl
 
 ---
 
+## Intent diagram
+
+```mermaid
+sequenceDiagram
+  actor Analyst
+  participant Strategy as analysisStrategy
+  participant Core as calculateChannelResults
+  participant Health as classifyChannelHealth
+  participant Charts as Performance charts
+  Analyst->>Strategy: import wide-format data
+  Strategy->>Strategy: detect multi-channel columns
+  Strategy->>Core: data + measureColumns + specs
+  Core->>Health: per-channel Cp/Cpk
+  Health-->>Core: 'excellent'|'good'|'marginal'|'poor'
+  Core-->>Charts: ChannelResult[]
+  Charts->>Analyst: Pareto ranks worst first
+  Analyst->>Charts: click worst channel
+  Charts->>Strategy: filter to channel
+  Strategy->>Analyst: standard tools on subset
+```
+
+---
+
 ## Data Format
 
 Performance Mode works with wide-format data:

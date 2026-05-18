@@ -25,7 +25,26 @@ Canvas surfaces need to display the currently active scope filters (time window,
 
 ## Intent diagram
 
-TBD — Mermaid wireframe to be added in M3 audit or on next edit.
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Canvas chrome                                                │
+│ ╭───────────────────╮ ╭──────────────────╮ ╭───────────────╮ │
+│ │ ● Last 30 days  ✕ │ │ ● Line: A, B   ✕ │ │ ● Pareto by  ✕│ │
+│ ╰───────────────────╯ ╰──────────────────╯ │   Defect      │ │
+│        purple                  blue        ╰───────────────╯ │
+│   (time window)            (scope filter)       amber        │
+│                                              (Pareto group)  │
+│                                                              │
+│                                       n = 1 248  ◀ ProcessHealthBar
+└──────────────────────────────────────────────────────────────┘
+   Chip renders ONLY when state is active:
+   - window.kind !== 'cumulative'
+   - scopeFilter.values.length > 0
+   - paretoGroupBy !== ''
+   All three inactive → component returns null
+```
+
+`CanvasFilterChips` is a pure-presentational component. The `n=` sample count is owned by the adjacent `ProcessHealthBar`, not by the chips themselves. Each chip's `✕` clear button only renders when the matching `onClear*` prop is provided.
 
 ## Acceptance signals
 

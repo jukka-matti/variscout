@@ -27,6 +27,35 @@ VariScout no longer treats "stats" as one monolithic panel in the main Analysis 
 
 ---
 
+## Intent diagram
+
+```text
+┌──────────────────────────────────────────────────────────────────────┐
+│ ProcessHealthBar (top strip)                                         │
+│ [Layout] [Factors(n)] │ x̄=12.4  σ=0.8  n=200 │ filter chips │ Cpk: 1.21│
+├──────────────────────────────────────────────────────────────────────┤
+│                                       │                              │
+│  I-Chart                              │  Adaptive lens               │
+│  (hero — chart-local controls only,   │  ┌──────────────────────┐    │
+│   no duplicated x̄/σ in header)        │  │ Probability │ Cap... │    │
+│                                       │  │             │ Pareto │    │
+│  •  •   •                             │  ├──────────────────────┤    │
+│ • • • • • •  ─── UCL                  │  │  Histogram +         │    │
+│ ─────────── x̄                         │  │  USL/LSL/target      │    │
+│ •   •  • • •  ─── LCL                 │  │  (labelled           │    │
+│                                       │  │   Distribution OR    │    │
+│                                       │  │   Capability based   │    │
+│                                       │  │   on spec presence)  │    │
+│                                       │  └──────────────────────┘    │
+├──────────────────────────────────────────────────────────────────────┤
+│ Side panel / secondary stats (sidebars + focused-chart export)        │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+Adaptive-lens tabs by context: no specs + no subgroup -> Probability + Distribution; specs + no subgroup -> Probability + Capability; subgroup adds Pareto.
+
+---
+
 ## Normal Laptop View
 
 In the laptop-first Analysis dashboard:

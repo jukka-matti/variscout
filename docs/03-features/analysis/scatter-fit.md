@@ -26,7 +26,28 @@ When a factor is continuous (temperature, pressure, speed), the user needs to se
 
 ## Intent diagram
 
-TBD — Mermaid wireframe (scatter dots + fit curve + prediction band + optimum marker + x/y axis labels) to be added in M3 audit or on next edit.
+```text
+┌──────────────────────────────────────────────────────────┐
+│  ScatterFit — continuous-factor relationship             │
+├──────────────────────────────────────────────────────────┤
+│  yLabel ─┤                                               │
+│          │       •                                       │
+│          │    •      ░░░ prediction band (10% opacity)   │
+│          │  •  ░░░░░░░░░░░░                              │
+│          │░░░░•─────●──────── ← fitted line (linear /    │
+│          │░░░  •  ░░│░░░░░░     quadratic)               │
+│          │   •   ░░░│░░  •                               │
+│          │ •      ░░│░     •                             │
+│          │           │  ← optimum marker (quadratic)     │
+│          │           ┊                                   │
+│          └───────────┊──────── xLabel                    │
+│                   x_opt (dashed vertical)                │
+│                                                          │
+│  Fill: chartColors.pass when isSignificant=true,         │
+│  axisSecondary when false. Consumed by                   │
+│  FactorPreviewOverlay; fit math lives in @variscout/core.│
+└──────────────────────────────────────────────────────────┘
+```
 
 ## Acceptance signals
 

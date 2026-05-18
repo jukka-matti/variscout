@@ -36,6 +36,29 @@ Five horizontal bands stack vertically inside the Investigation workspace canvas
 
 A collapsed "missing evidence" digest bar sits below the canvas. Per-hypothesis warning badges are the primary gap signal; the digest bar is a secondary expandable list.
 
+## Intent diagram
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│ Problem │ CTS: cycle_time_s    Cpk 0.74   events/wk 12              │
+├─────────────────────────────────────────────────────────────────────┤
+│ Waterline ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+│                              ┌───AND───┐                            │
+│ Hypothesis  ┌──────────────┐ │    ▼    │ ┌──────────────┐  ⚠ gap   │
+│             │ Hub: Nozzle  │ │         │ │ Hub: Shift   │           │
+│             │ wear         │ │   OR    │ │ handover     │           │
+│             │ [mini I-Ch.] │ │         │ │ [mini boxpl.]│           │
+│             │ HOLDS 3/4    │ │         │ │ HOLDS 1/3    │           │
+│             └──────┬───────┘ └────┬────┘ └──────┬───────┘           │
+│ Evidence    F#12 ──┘    Q#7 ──┘  gemba ──┘   best-subset card       │
+├─────────────────────────────────────────────────────────────────────┤
+│ Tributaries │ machine │ shift │ operator(dim) │ material            │
+└─────────────────────────────────────────────────────────────────────┘
+  Missing-evidence digest (collapsed) ▾   │  Map │ Wall ◀── view toggle
+```
+
+Five horizontal bands stack inside the Investigation workspace canvas; hub cards reposition via @dnd-kit and `wallLayoutStore` persists layout per project.
+
 ## How it sits alongside Evidence Map
 
 The Investigation workspace has a `Map | Wall` view toggle in its header (persisted per project). Map remains the default — ADR-066 stands. Both views read the same investigation graph; switching is non-destructive and instant.

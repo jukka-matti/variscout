@@ -96,6 +96,10 @@ The first real feature through the new SDD lifecycle. Spec: [`docs/archive/specs
 
 **Dogfood result**: ✓ lifecycle works end-to-end. The discipline caught 3 broken cross-refs (azure-teams-mobile, azure-admin-operations, arm-template) when personas moved — exactly the kind of drift the new validator HARD-FAIL on broken cross-refs is designed to catch. Fixed inline as part of Apply.
 
+## Phase 3 — L3 intent diagrams + knowledge-base-search fill (post-SDD refactor)
+
+Spec: [`docs/superpowers/specs/2026-05-18-post-sdd-phase-3-l3-intent-diagrams-design.md`](../../superpowers/specs/2026-05-18-post-sdd-phase-3-l3-intent-diagrams-design.md). Closed the 36-doc intent-diagram WARN bucket via 4 parallel coder subagents — each batched ~9 docs and grounded diagrams in actual `packages/{core,charts,ui,hooks}/src/` code. Mix of Mermaid `flowchart`/`sequenceDiagram` (for engine + workflow) and ASCII wireframes with box-drawing chars (for ui). `knowledge-base-search.md` got the deeper L3 fill (Problem / Capability / Mermaid / Acceptance / Out-of-scope / Links).
+
 ## Phase 2 — Validator noise cleanup (post-SDD refactor)
 
 Spec: [`docs/archive/specs/2026-05-18-post-sdd-phase-2-validator-noise-cleanup-design.md`](../../archive/specs/2026-05-18-post-sdd-phase-2-validator-noise-cleanup-design.md) (archived 2026-05-18 via PR-PSDD-2 commit `1fd67cb6`). The original plan premise was wrong: archive specs are already exempt from `errorSpecMissingImplements` by validator scoping (active-specs-only). Real Phase 2 work was running the long-deferred `scripts/docs-frontmatter-fix.mjs` codemod (ADR-083) to resolve **65 transitional alias warnings** (`stable`→`active`, `developer`/`analyst`/etc.→`human`, etc.) + backfill `purpose:`/`tier:` on ~50 docs that lacked them.

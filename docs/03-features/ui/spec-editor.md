@@ -25,7 +25,31 @@ Each measured column needs editable specification limits (USL / LSL / target) pl
 
 ## Intent diagram
 
-TBD — Mermaid wireframe to be added in M3 audit or on next edit.
+Single per-column form, surfaces inline (popover desktop / bottom-sheet mobile):
+
+```
+┌────── Spec Editor — Weight ─────── ✕ ──┐
+│  LIMITS                                │
+│  USL        [ 12.5  ]                  │
+│  LSL        [ 11.5  ]                  │
+│  Target     [ 12.0  ]                  │
+│                                        │
+│  CHARACTERISTIC TYPE                   │
+│  ( ) Auto (inferred: two-sided)        │
+│  (•) Two-sided   ( ) Upper   ( ) Lower │
+│                                        │
+│  ADVANCED                              │
+│  ☑ Custom Cpk target [ 1.50 ]          │
+│                                        │
+│             [ Cancel ]  [ Save ]       │
+└────────────────────────────────────────┘
+         │
+         ▼ onSave({ usl, lsl, target, characteristicType, cpkTarget })
+         ▼
+   setMeasureSpec(outcome, partial)   ← from @variscout/stores
+```
+
+One form, one column. `SpecsPopover` (deleted) is forbidden — `SpecEditor` is the canonical per-characteristic surface.
 
 ## Acceptance signals
 

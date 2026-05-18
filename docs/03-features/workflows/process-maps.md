@@ -16,6 +16,22 @@ serves:
 
 Scannable, step-by-step maps showing exactly how many user actions each analysis workflow requires.
 
+## Intent diagram
+
+```mermaid
+flowchart LR
+    Load[Load data<br/>paste / upload] --> Start[Start analysis<br/>map columns]
+    Start --> Scan[Scan I-Chart]
+    Scan --> Stable{Stable?}
+    Stable -->|blue| Capable[Capability check<br/>Cp / Cpk]
+    Stable -->|red| Drill[Drill factors<br/>ANOVA η²]
+    Drill --> Filter[Filter top factor]
+    Filter --> Capable
+    Capable --> Save[Export / Save]
+```
+
+Each named flow below (Stability / Root Cause / Capability / Process Investigation / Predict Improvement) is a slice of this skeleton with step counts attached. Read the HTML process-maps for click budgets; read this diagram for branching logic.
+
 ## How to Read These Maps
 
 Each map is a horizontal flow of step boxes connected by arrows. Every box shows:
