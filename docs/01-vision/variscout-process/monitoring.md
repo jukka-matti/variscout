@@ -10,6 +10,7 @@ related:
   - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md
+layer: L1
 ---
 
 # Monitoring — drift detection, alerts, process-owner views

@@ -13,6 +13,7 @@ related:
   - docs/07-decisions/adr-076-frame-b0-lightweight-render.md
   - docs/07-decisions/adr-077-snapshot-provenance-and-match-summary-wedge.md
   - docs/investigations.md
+layer: spec
 ---
 
 > **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The strangler-pattern canvas migration strategy completed delivery (PRs #160–#168); the migrated canvas is now the live substrate for the Process tab. This spec documents the migration design rationale and three-layer state separation decisions; the shipped architecture is captured in [ADR-078](../../07-decisions/adr-078-pwa-azure-architecture-alignment.md).

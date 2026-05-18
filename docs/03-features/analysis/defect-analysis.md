@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [defect, pareto, aggregation, failure-mode, evidence-map]
+layer: L3
 ---
 
 # Defect Analysis

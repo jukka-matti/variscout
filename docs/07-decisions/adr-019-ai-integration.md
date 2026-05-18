@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-019: AI Integration (Azure App)'
+layer: L5
 ---
 
 # ADR-019: AI Integration (Azure App)

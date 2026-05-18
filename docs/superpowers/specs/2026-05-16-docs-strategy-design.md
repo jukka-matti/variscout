@@ -7,6 +7,7 @@ tier: living
 audience: both
 topic: [docs-strategy, meta, schema]
 related: [2026-05-16-docs-strategy-memo, adr-083-eight-purpose-doc-taxonomy]
+layer: spec
 ---
 
 # VariScout Docs Strategy 2026 — Full Design

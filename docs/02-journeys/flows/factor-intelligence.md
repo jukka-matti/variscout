@@ -6,6 +6,7 @@ journey-phase: [scout, investigate]
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow: Factor Intelligence

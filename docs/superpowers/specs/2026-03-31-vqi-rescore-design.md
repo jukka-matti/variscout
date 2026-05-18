@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: active
 related: [evaluation, ai-experience, question-driven-eda, coscout, prompt-engineering]
+layer: spec
 ---
 
 # VQI Re-Evaluation: Post-ADR-053 Scoring + Activation Improvements

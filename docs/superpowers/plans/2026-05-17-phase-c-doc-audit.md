@@ -7,6 +7,7 @@ related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
   - docs/superpowers/plans/2026-05-17-pr-1-wedge-phase-a-doc-completion.md
+layer: spec
 ---
 
 # Phase C — Holistic Doc Audit → Triage → Apply

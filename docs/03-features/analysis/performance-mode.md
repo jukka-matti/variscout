@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [multi-channel, cpk-comparison, wide-format]
+layer: L3
 ---
 
 # Performance Mode

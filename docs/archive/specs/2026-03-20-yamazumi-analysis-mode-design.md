@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [yamazumi, lean, time-study, waste, value-stream, takt-time, activity-type]
+layer: spec
 ---
 
 # Yamazumi Analysis Mode

@@ -5,6 +5,7 @@ title: 'Codex + Ruflo Workflow'
 audience: human
 category: implementation
 status: active
+layer: L4
 ---
 
 # Codex + Ruflo Workflow

@@ -6,6 +6,7 @@ audience: human
 category: learning
 status: active
 related: [glossary, terminology, help-tooltips, knowledge-model]
+layer: L3
 ---
 
 # Glossary & Knowledge Model

@@ -8,6 +8,7 @@ status: active
 last-reviewed: 2026-05-07
 related:
   - docs/superpowers/plans/2026-05-07-data-flow-foundation-f3-6-azure-provenance-parity.md
+layer: spec
 ---
 
 # F3.6-β Chrome Walk Script

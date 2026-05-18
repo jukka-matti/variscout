@@ -5,6 +5,7 @@ title: 'Path Dependency'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Path Dependency

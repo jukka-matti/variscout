@@ -5,6 +5,7 @@ category: reference
 status: stable
 last-reviewed: 2026-05-17
 related: [strategy, hypotheses, value-levers, flywheel, pricing, single-sku]
+layer: L1
 ---
 
 # Business Bible

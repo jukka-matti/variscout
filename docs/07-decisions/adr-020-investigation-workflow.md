@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-020: Investigation Workflow Enhancement'
+layer: L5
 ---
 
 # ADR-020: Investigation Workflow Enhancement

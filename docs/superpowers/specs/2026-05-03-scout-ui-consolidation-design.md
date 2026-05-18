@@ -11,6 +11,7 @@ related:
   - multi-level-scout
   - process-learning-operating-model
   - investigation-scope-and-drill-semantics
+layer: spec
 ---
 
 # Scout UI consolidation — design

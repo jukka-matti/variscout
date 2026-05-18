@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: draft
 related: [coscout, azure, voice-input, findings, shop-floor, customer-owned-data]
+layer: spec
 ---
 
 # CoScout Voice Input v1

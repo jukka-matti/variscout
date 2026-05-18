@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [ai-context-engineering, ai-architecture, adr-060, adr-049]
+layer: L4
 ---
 
 # CoScout Prompt Architecture

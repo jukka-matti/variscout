@@ -4,6 +4,7 @@ purpose: build
 title: 'Agent Docs Architecture — Phase 1: Foundation'
 status: active
 date: 2026-04-17
+layer: spec
 ---
 
 # Agent-Facing Documentation Architecture — Phase 1 (Foundation) Implementation Plan

@@ -15,6 +15,7 @@ related:
     process-learning,
   ]
 date: 2026-04-29
+layer: spec
 ---
 
 # Investigation Scope and Drill Semantics

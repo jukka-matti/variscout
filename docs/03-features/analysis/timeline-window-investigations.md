@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [multi-level-dashboard, capability, process-hub-capability, staged-analysis]
+layer: L3
 ---
 
 # Timeline Windows in Investigations

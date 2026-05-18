@@ -11,6 +11,7 @@ related:
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
   - docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md
   - docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
+layer: spec
 ---
 
 # Canvas Hypothesis-Arrow Drawing Implementation Plan

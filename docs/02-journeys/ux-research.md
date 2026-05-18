@@ -5,6 +5,7 @@ title: 'UX Research: VariScout Lite'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # UX Research: VariScout Lite

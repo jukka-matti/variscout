@@ -4,6 +4,7 @@ purpose: remember
 title: Data View Consolidation
 status: active
 related: [data-table, process-intelligence-panel, dashboard-layout, performance]
+layer: spec
 ---
 
 # Data View Consolidation

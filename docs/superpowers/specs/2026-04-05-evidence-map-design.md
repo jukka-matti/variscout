@@ -7,6 +7,7 @@ date: 2026-04-05
 audience: human
 category: architecture
 related: [best-subsets, factor-intelligence, investigation-spine, causal-graph, pop-out-window]
+layer: spec
 ---
 
 > **See also:** [Evidence Map as Analysis Spine](2026-04-05-evidence-map-spine-design.md) — extends this spec with phase-by-phase integration, PI Panel deep linking, and Investigation workspace redesign.

@@ -100,6 +100,9 @@ const violations = {
   // Warnings (old-value aliases) — don't fail the build
   aliasedStatus: [],
   aliasedAudience: [],
+  // SDD M1 WARNs (flip to HARD-FAIL in M5) — don't fail the build today
+  warnL3MissingKind: [],
+  warnSpecMissingImplements: [],
   // Diff-mode WARNs (--diff only) — don't fail the build
   diffWarnDecisionLogOldLine: [],
   diffWarnSpecAmendmentHeading: [],
@@ -248,6 +251,28 @@ function check(file) {
       }
     }
   }
+
+  // === SDD M1 WARN rules (flip to HARD-FAIL in M5) ===
+  // 1. L3 docs without `kind:` — design says kind is mandatory at L3.
+  // 2. Design specs (under docs/superpowers/specs/, not archived) without `implements:`.
+  // Both warn-only today so retrofit doesn't break the build.
+
+  if (fm.layer === 'L3' && (fm.kind == null || fm.kind === '')) {
+    violations.warnL3MissingKind.push(
+      `${rel}: layer=L3 but no kind: (ui|workflow|engine|infrastructure). See docs/superpowers/specs/2026-05-18-spec-driven-development-design.md §L3 Features.`,
+    );
+  }
+
+  const isActiveDesignSpec =
+    rel.startsWith('docs/superpowers/specs/') && !rel.endsWith('/index.md');
+  if (isActiveDesignSpec) {
+    const implementsList = asArray(fm.implements).filter(Boolean);
+    if (implementsList.length === 0) {
+      violations.warnSpecMissingImplements.push(
+        `${rel}: design spec missing implements: (non-empty array of L1/L2/L3 paths). See docs/superpowers/specs/2026-05-18-spec-driven-development-design.md §Design-Spec Lifecycle.`,
+      );
+    }
+  }
 }
 
 const files = walk(DOCS);
@@ -344,7 +369,9 @@ const warningTotal =
   violations.diffWarnDecisionLogOldLine.length +
   violations.diffWarnSpecAmendmentHeading.length +
   violations.diffWarnNonCanonicalEditType.length +
-  violations.diffWarnDeliveredNoBanner.length;
+  violations.diffWarnDeliveredNoBanner.length +
+  violations.warnL3MissingKind.length +
+  violations.warnSpecMissingImplements.length;
 
 function report() {
   if (REPORT_MODE) {
@@ -384,6 +411,8 @@ function report() {
 
   show('Aliased status (transitional — run docs-frontmatter-fix.mjs)', violations.aliasedStatus, 5, true);
   show('Aliased audience (transitional — run docs-frontmatter-fix.mjs)', violations.aliasedAudience, 5, true);
+  show('SDD M1 — L3 missing kind: (HARD-FAIL after M5)', violations.warnL3MissingKind, 5, true);
+  show('SDD M1 — design spec missing implements: (HARD-FAIL after M5)', violations.warnSpecMissingImplements, 5, true);
   show('Decision-log: edit on entry >7 days old (use new supersession entry)', violations.diffWarnDecisionLogOldLine, 5, true);
   show('Decision-log: non-canonical edit-type vocabulary', violations.diffWarnNonCanonicalEditType, 5, true);
   show('Design spec: ## Amendment heading added (ADR-only pattern)', violations.diffWarnSpecAmendmentHeading, 5, true);

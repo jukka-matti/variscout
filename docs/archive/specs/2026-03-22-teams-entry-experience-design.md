@@ -3,6 +3,7 @@ tier: stable
 purpose: remember
 title: 'Teams Entry Experience Redesign'
 status: superseded
+layer: spec
 ---
 
 # Teams Entry Experience Redesign

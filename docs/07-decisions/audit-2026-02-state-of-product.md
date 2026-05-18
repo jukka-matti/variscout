@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'State-of-the-Product Audit — February 2026'
+layer: L5
 ---
 
 # State-of-the-Product Audit — February 2026

@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [yamazumi, lean, time-study, takt-time, waste]
+layer: L3
 ---
 
 # Yamazumi Analysis

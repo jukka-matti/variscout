@@ -5,6 +5,7 @@ title: 'Filter Breadcrumb Navigation'
 status: draft
 audience: human
 category: navigation
+layer: L3
 ---
 
 # Filter Breadcrumb Navigation

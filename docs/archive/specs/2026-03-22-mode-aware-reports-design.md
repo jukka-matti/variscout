@@ -6,6 +6,7 @@ audience: human
 category: workflow
 status: active
 related: [report-view, analysis-mode, capability, performance, yamazumi, two-voices]
+layer: spec
 ---
 
 # Mode-Aware Reports

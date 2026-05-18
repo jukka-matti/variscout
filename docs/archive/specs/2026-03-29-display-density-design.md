@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: draft
 related: [accessibility, typography, settings, density]
+layer: spec
 ---
 
 # Display Density — Global UI Scaling

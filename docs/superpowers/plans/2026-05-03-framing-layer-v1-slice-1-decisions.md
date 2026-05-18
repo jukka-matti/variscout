@@ -9,6 +9,7 @@ date: 2026-05-03
 related:
   - docs/superpowers/plans/2026-05-03-framing-layer-v1-slice-1.md
   - docs/archive/specs/2026-05-03-framing-layer-design.md
+layer: spec
 ---
 
 # Locked Decisions — Slice 1

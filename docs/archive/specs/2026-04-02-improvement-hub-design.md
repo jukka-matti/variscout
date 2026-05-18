@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [improvement, prioritization, what-if, pdca, actions, verification, matrix, risk]
+layer: spec
 ---
 
 # Improvement Hub Redesign

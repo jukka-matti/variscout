@@ -13,6 +13,7 @@ related:
   - adr-066-evidence-map-investigation-center
   - adr-070-frame-workspace
   - multi-level-scout-design
+layer: L5
 ---
 
 # ADR-074: SCOUT level-spanning surface — boundary policy

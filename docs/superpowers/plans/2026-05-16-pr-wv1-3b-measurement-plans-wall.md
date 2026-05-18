@@ -7,6 +7,7 @@ related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/superpowers/plans/2026-05-16-pr-wv1-3a-membership-cleanup.md
   - docs/superpowers/plans/2026-05-16-wedge-implementation.md
+layer: spec
 ---
 
 # PR-WV1-3b — MeasurementPlan + Investigation Wall Implementation Plan

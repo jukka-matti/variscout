@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-010: Defer Gage R&R from Azure App v1'
+layer: L5
 ---
 
 # ADR-010: Defer Gage R&R from Azure App v1

@@ -5,6 +5,7 @@ title: 'CHANGE Lens: I-Chart'
 audience: human
 category: methodology
 status: active
+layer: L1
 ---
 
 # CHANGE Lens: I-Chart

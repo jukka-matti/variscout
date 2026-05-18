@@ -19,6 +19,7 @@ related:
     subgroup-capability,
     coscout-optional,
   ]
+layer: spec
 ---
 
 # FRAME Workspace & Visual Process Map

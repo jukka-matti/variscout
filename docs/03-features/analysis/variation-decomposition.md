@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [eta-squared, r-squared-adj, anova, factor-intelligence]
+layer: L3
 ---
 
 # Variation Decomposition

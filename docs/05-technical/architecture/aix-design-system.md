@@ -10,6 +10,7 @@ related: [ai-architecture, ai-context-engineering, ai-journey-integration, knowl
 points_to:
   - ai-architecture.md (system architecture, data flow, cost controls)
   - ai-context-engineering.md (prompt tiers, token budgets, caching)
+layer: L4
 ---
 
 # AIX Design System

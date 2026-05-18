@@ -16,6 +16,7 @@ related:
     customer-owned-data,
   ]
 date: 2026-04-26
+layer: spec
 ---
 
 # Agent Review Log Profile

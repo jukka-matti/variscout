@@ -11,6 +11,7 @@ related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/decision-log.md
 last-reviewed: 2026-05-08
+layer: spec
 ---
 
 > **DELIVERED 2026-05-08 via PR #143** (squash-merge `b19f9f76`). Plan file committed post-merge as historical record. Code/spec/test changes were included in the squash; this plan was on the branch but not in the merge commit's diff.

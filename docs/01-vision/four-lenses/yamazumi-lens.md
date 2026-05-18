@@ -5,6 +5,7 @@ title: 'Yamazumi Lens: Composition'
 audience: human
 category: methodology
 status: active
+layer: L1
 ---
 
 # Yamazumi Lens: Composition

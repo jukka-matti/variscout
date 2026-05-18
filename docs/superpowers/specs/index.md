@@ -3,6 +3,7 @@ tier: living
 purpose: design
 title: 'Design Specs (superpowers)'
 status: active
+layer: spec
 ---
 
 # Design Specs (superpowers)

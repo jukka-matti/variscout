@@ -20,6 +20,7 @@ related:
     adr-070,
   ]
 date: 2026-04-28
+layer: spec
 ---
 
 > **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). Under the wedge, this surface reframes from Hub rollup to **project-scoped Capability view**. Multi-line portfolio scope and cross-process aggregation defer to **VariScout Process**. The per-step capability methodology + context-aware specs design is unchanged; only the data scope tightens to a single project's process.

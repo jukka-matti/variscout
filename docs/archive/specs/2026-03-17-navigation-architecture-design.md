@@ -7,6 +7,7 @@ category: architecture
 status: draft
 related: [navigation, mobile, teams, accessibility, phase-detection, toolbar]
 date: 2026-03-17
+layer: spec
 ---
 
 # Navigation Architecture + Invisible Phase Intelligence

@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: draft
 related: [deployment, ci-cd, azure-marketplace, managed-application, update-mechanism]
+layer: spec
 ---
 
 # Deployment Lifecycle & Self-Service Update System

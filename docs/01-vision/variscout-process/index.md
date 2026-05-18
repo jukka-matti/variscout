@@ -12,6 +12,7 @@ related:
   - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
   - docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md
   - docs/superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md
+layer: L1
 ---
 
 # VariScout Process — named-future capture

@@ -7,6 +7,7 @@ category: architecture
 status: active
 related:
   [claude-md, skills, documentation, governance, agent-context, progressive-disclosure, opus-4-7]
+layer: spec
 ---
 
 # Agent-Facing Documentation Architecture (A++)

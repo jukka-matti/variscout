@@ -14,6 +14,7 @@ related:
     investigation-spine-design,
   ]
 benchmark: Minitab Best Subsets with two-way interactions, JMP Fit Model
+layer: spec
 ---
 
 # Interaction Effects — Two-Pass Best Subsets

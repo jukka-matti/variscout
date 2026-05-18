@@ -13,6 +13,7 @@ related:
     production-line-glance-charts,
   ]
 date: 2026-04-28
+layer: spec
 ---
 
 # Production-Line-Glance — C2 LayeredProcessView Operations Band Implementation Plan

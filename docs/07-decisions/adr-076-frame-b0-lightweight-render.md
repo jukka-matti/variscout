@@ -14,6 +14,7 @@ related:
   - adr-053-question-driven-investigation
   - frame-process-map-design
   - investigation-scope-and-drill-semantics-design
+layer: L5
 ---
 
 # ADR-076: FRAME b0 lightweight render — investigator vs author archetypes

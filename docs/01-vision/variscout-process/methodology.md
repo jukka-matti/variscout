@@ -11,6 +11,7 @@ related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
+layer: L1
 ---
 
 # Three-level methodology — Outcome / Process Flow / Local Mechanism

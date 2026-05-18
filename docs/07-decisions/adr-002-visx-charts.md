@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-002: Visx for Chart Components'
+layer: L5
 ---
 
 # ADR-002: Visx for Chart Components

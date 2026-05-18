@@ -11,6 +11,7 @@ related:
   - adr-070-frame-workspace
   - adr-078-pwa-azure-architecture-alignment
   - decision-log
+layer: L5
 ---
 
 # ADR-080: Sustainment auto-fire + Inbox prompt + signoff-gated lifecycle pattern

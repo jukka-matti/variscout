@@ -8,6 +8,7 @@ status: active
 last-reviewed: 2026-05-15
 related:
   - docs/superpowers/specs/2026-05-14-projects-tab-design.md
+layer: spec
 ---
 
 # Projects Tab Report Implementation Plan

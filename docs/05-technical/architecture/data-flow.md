@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [context-api, filter-stack, stats-pipeline]
+layer: L4
 ---
 
 # Data Flow Architecture

@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [control-chart, i-chart, special-cause, runs]
+layer: L3
 ---
 
 # Nelson Rules

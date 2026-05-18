@@ -6,6 +6,7 @@ audience: human
 category: workflow
 status: active
 related: [four-lenses, drill-down, investigation]
+layer: L3
 ---
 
 # Analyst Workflows

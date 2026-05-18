@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-034: Yamazumi Analysis Mode'
+layer: L5
 ---
 
 # ADR-034: Yamazumi Analysis Mode

@@ -10,6 +10,7 @@ related:
   - multi-level-scout-design
   - investigation-scope-and-drill-semantics
   - adr-074-scout-level-spanning-surface-boundary-policy
+layer: spec
 ---
 
 # Multi-level SCOUT V1 — Load-Bearing Decisions

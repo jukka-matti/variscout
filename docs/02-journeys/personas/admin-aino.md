@@ -4,10 +4,14 @@ purpose: design
 title: 'Admin Aino'
 audience: human
 category: workflow
-status: active
+status: archived
+layer: L2
+last-reviewed: 2026-05-18
 ---
 
 # Admin Aino
+
+> **Legacy V0 persona — archived 2026-05-18.** Azure admin work is covered by the ACL feature in V1, not modeled as a persona. V1 wedge uses 3 in-project personas (Lead / Member / Sponsor); see [`personas/`](.). Retained as historical reference.
 
 | Attribute         | Detail                                                                                                            |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------- |

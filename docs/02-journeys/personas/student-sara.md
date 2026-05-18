@@ -4,10 +4,14 @@ purpose: design
 title: 'Student Sara'
 audience: human
 category: workflow
-status: active
+status: archived
+layer: L2
+last-reviewed: 2026-05-18
 ---
 
 # Student Sara
+
+> **Legacy V0 persona — archived 2026-05-18.** Educational use is named-future for **VariScout Education**, not V1. V1 wedge uses 3 in-project personas (Lead / Member / Sponsor); see [`personas/`](.). Retained as historical reference.
 
 | Attribute         | Detail                                                        |
 | ----------------- | ------------------------------------------------------------- |

@@ -7,6 +7,7 @@ category: architecture
 status: active
 date: 2026-03-19
 related: [ai, safety, compliance, eu-ai-act, guardrails]
+layer: L4
 ---
 
 # Responsible AI Policy — VariScout

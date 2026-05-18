@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [hooks, context-injection, color-scheme]
+layer: L4
 ---
 
 # Component Patterns

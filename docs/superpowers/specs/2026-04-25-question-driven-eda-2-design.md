@@ -21,6 +21,7 @@ related:
     agent-review-log,
   ]
 date: 2026-04-25
+layer: spec
 ---
 
 # Question-Driven EDA 2.0

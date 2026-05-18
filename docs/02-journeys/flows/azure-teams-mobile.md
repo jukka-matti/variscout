@@ -5,6 +5,7 @@ title: 'Azure Mobile Flow'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Azure Mobile Flow

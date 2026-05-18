@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [control-limits, nelson-rules, stability, time-series]
+layer: L3
 ---
 
 # I-Chart (Individuals Chart)

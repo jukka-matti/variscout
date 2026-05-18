@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [vital-few, contribution-percentage, drill-down]
+layer: L3
 ---
 
 # Pareto Chart

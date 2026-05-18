@@ -18,6 +18,7 @@ related:
     adr-066,
     adr-067,
   ]
+layer: spec
 ---
 
 # CoScout Cognitive Redesign

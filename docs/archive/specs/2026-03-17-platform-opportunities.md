@@ -7,6 +7,7 @@ category: strategy
 status: active
 related: [azure, ai, teams, platform]
 date: 2026-03-17
+layer: spec
 ---
 
 > **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Pre-wedge platform brainstorm; premise superseded by the wedge product split (V1 specialist tool + future VariScout Process enterprise platform).

@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [timeline-window-investigations, capability, process-hub-capability, stats-panel]
+layer: L3
 ---
 
 # Multi-Level Dashboard

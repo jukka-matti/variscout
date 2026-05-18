@@ -5,6 +5,7 @@ title: 'Monorepo Architecture'
 audience: human
 category: architecture
 status: active
+layer: L4
 ---
 
 # Monorepo Architecture

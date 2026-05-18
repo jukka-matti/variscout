@@ -17,6 +17,7 @@ related:
     question-driven-eda,
     hmw-brainstorm,
   ]
+layer: spec
 ---
 
 # Investigation Wall — River-Roots Design

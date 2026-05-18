@@ -7,6 +7,7 @@ category: analysis
 status: active
 last-reviewed: 2026-04-29
 related: [production-line-glance, process-hub, capability, hub-cadence-review]
+layer: L3
 ---
 
 # Process Hub Capability Tab

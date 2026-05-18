@@ -23,6 +23,7 @@ supersedes:
   - adr-007-azure-marketplace-distribution.md (in part — single SKU replaces tiered model)
   - adr-033-pricing-simplification.md (in part — €120 single tier replaces €79/€199 split)
   - 2026-05-14-variscout-coherence-design.md (Session A retires for V1; Session B nav amends; Session C refocuses)
+layer: spec
 ---
 
 # Wedge architecture — single-product VariScout for improvement specialists

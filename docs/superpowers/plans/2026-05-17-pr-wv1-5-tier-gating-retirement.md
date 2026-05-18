@@ -8,6 +8,7 @@ related:
   - docs/archive/specs/2026-05-16-improve-tab-amendment-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
   - docs/superpowers/plans/2026-05-16-pr-wv1-4-canvas-paths-persona-deletion.md
+layer: spec
 ---
 
 # PR-WV1-5 — Tier-Gating Retirement + Nav Reorder Implementation Plan

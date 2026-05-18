@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [adr-059, adr-060, adr-026, adr-049, adr-033, web-first, knowledge-base, blob-storage]
+layer: spec
 ---
 
 # Web-First Implementation Design

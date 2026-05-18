@@ -13,6 +13,7 @@ related:
   - docs/archive/plans/2026-05-06-canvas-pr4c-pr6-followup.md
   - docs/decision-log.md
   - docs/investigations.md
+layer: spec
 ---
 
 # Canvas Migration PR8 — Vision Alignment Master Plan

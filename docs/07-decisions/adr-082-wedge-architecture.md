@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-082: Wedge architecture — single-product VariScout'
+layer: L5
 ---
 
 # ADR-082: Wedge architecture — single-product VariScout for improvement specialists

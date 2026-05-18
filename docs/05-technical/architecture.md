@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [monorepo, offline-first, pwa, azure]
+layer: L4
 ---
 
 # VariScout: Architecture Overview

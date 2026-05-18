@@ -4,10 +4,14 @@ purpose: design
 title: 'Curious Carlos'
 audience: human
 category: workflow
-status: active
+status: archived
+layer: L2
+last-reviewed: 2026-05-18
 ---
 
 # Curious Carlos
+
+> **Legacy V0 persona — archived 2026-05-18.** Free-tier explorer doesn't apply to V1 (single SKU, paid Azure tenant). V1 wedge uses 3 in-project personas (Lead / Member / Sponsor); see [`personas/`](.). Retained as historical reference.
 
 | Attribute         | Detail                                        |
 | ----------------- | --------------------------------------------- |

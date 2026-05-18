@@ -4,10 +4,14 @@ purpose: design
 title: 'Field Fiona'
 audience: human
 category: workflow
-status: active
+status: archived
+layer: L2
+last-reviewed: 2026-05-18
 ---
 
 # Field Fiona
+
+> **Legacy V0 persona — archived 2026-05-18.** Mobile field UX is V2 scope. V1 wedge uses 3 in-project personas (Lead / Member / Sponsor); see [`personas/`](.). Retained as historical reference.
 
 | Attribute         | Detail                                             |
 | ----------------- | -------------------------------------------------- |

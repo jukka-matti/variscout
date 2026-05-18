@@ -8,6 +8,7 @@ related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
   - docs/superpowers/specs/2026-05-14-projects-tab-design.md
+layer: spec
 ---
 
 # Wedge V1 Implementation Plan — Master Sequencer

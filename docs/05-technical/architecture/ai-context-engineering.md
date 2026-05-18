@@ -10,6 +10,7 @@ related: [ai-architecture, ai-journey-integration, aix-design-system]
 points_to:
   - ai-architecture.md (system architecture, data flow, hook composition)
   - aix-design-system.md (governance, tone, confidence calibration)
+layer: L4
 ---
 
 # AI Context Engineering & Pipeline Reference

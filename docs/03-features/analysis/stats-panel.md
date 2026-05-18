@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [capability, probability-plot, specs, analysis-dashboard]
+layer: L3
 ---
 
 # Statistics Panel

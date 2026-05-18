@@ -8,6 +8,7 @@ status: draft
 last-reviewed: 2026-05-15
 related:
   - docs/superpowers/specs/2026-05-14-projects-tab-design.md
+layer: spec
 ---
 
 # Team Workspace Right Rail V1 Implementation Plan

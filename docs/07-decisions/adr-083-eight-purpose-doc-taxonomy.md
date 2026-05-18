@@ -7,6 +7,7 @@ tier: living
 audience: both
 topic: [docs-strategy, schema, meta]
 related: [2026-05-16-docs-strategy-design, 2026-05-16-docs-strategy-memo]
+layer: L5
 ---
 
 # ADR-083: Eight-purpose doc taxonomy + four-tier velocity

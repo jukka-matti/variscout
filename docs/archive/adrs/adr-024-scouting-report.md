@@ -8,6 +8,7 @@ status: superseded
 superseded-by: adr-037
 date: 2026-03-16
 related: [report-view, presentation, qc-story, copy-workflow, teams-sharing]
+layer: L5
 ---
 
 # ADR-024: Scouting Report — Dynamic Analysis Report View

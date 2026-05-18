@@ -11,6 +11,7 @@ related:
   - multi-level-scout-v1-decisions
   - adr-074-scout-level-spanning-surface-boundary-policy
   - investigation-scope-and-drill-semantics
+layer: spec
 ---
 
 # Multi-level SCOUT V1 (first slice) — Implementation Plan

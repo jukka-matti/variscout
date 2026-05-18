@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-028: Responses API Migration'
+layer: L5
 ---
 
 # ADR-028: Responses API Migration

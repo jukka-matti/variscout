@@ -6,6 +6,7 @@ audience: human
 category: data
 status: active
 related: [parser, csv, excel, paste, file-upload]
+layer: L3
 ---
 
 # Data Input

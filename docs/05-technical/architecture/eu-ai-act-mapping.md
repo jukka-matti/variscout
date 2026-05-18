@@ -7,6 +7,7 @@ category: architecture
 status: active
 date: 2026-03-19
 related: [ai, compliance, eu-ai-act, regulation]
+layer: L4
 ---
 
 # EU AI Act Classification & Mapping — VariScout

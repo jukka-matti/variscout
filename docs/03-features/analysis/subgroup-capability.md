@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [cp, cpk, rational-subgrouping, i-chart]
+layer: L3
 ---
 
 # Subgroup Capability Analysis

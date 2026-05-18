@@ -2,6 +2,7 @@
 tier: stable
 purpose: remember
 title: 'ADR-026: Knowledge Base Strategy — SharePoint-First with Remote Retrieval'
+layer: L5
 ---
 
 # ADR-026: Knowledge Base Strategy — SharePoint-First with Remote Retrieval

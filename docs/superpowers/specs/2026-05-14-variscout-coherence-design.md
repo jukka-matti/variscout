@@ -23,6 +23,7 @@ related:
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
   - docs/07-decisions/adr-077-row-provenance-tagging.md
   - docs/07-decisions/adr-081-canvas-viewport-architecture.md
+layer: spec
 ---
 
 # VariScout Coherence — Persona + Surface + Vocabulary Design

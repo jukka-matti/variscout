@@ -17,6 +17,7 @@ related:
     adr-037,
     adr-071,
   ]
+layer: spec
 ---
 
 > **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Two product profiles (Engagement vs Operations) + identity/engagement layers defer to **VariScout Process**. V1 has single Specialist persona + project-membership roles (Lead / Member / Reviewer) per wedge spec §4.

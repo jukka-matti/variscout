@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-029: AI Action Tools for CoScout'
+layer: L5
 ---
 
 # ADR-029: AI Action Tools for CoScout

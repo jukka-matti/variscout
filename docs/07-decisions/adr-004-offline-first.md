@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-004: Offline-First Architecture'
+layer: L5
 ---
 
 # ADR-004: Offline-First Architecture

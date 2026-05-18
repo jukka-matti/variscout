@@ -19,6 +19,7 @@ related:
   - docs/archive/plans/2026-05-14-projects-tab-foundation.md
   - docs/superpowers/plans/2026-05-14-projects-tab-launchpad-cascade.md
   - docs/superpowers/plans/2026-05-14-projects-tab-report.md
+layer: spec
 ---
 
 # Projects tab + IP Detail (Lifecycle) page + Home active-IP launchpad

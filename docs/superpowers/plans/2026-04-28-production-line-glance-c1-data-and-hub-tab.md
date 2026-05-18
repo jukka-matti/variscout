@@ -13,6 +13,7 @@ related:
     production-line-glance-engine,
   ]
 date: 2026-04-28
+layer: spec
 ---
 
 # Production-Line-Glance — C1 Data Layer + Hub Capability Tab Implementation Plan

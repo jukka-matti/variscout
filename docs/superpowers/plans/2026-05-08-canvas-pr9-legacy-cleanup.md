@@ -10,6 +10,7 @@ related:
   - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
   - docs/decision-log.md
+layer: spec
 ---
 
 # Canvas Migration PR9 — Legacy Cleanup Implementation Plan

@@ -11,6 +11,7 @@ related:
   - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/archive/specs/2026-05-04-canvas-migration-design.md
   - docs/investigations.md
+layer: spec
 ---
 
 # Canvas PR8 sub-PR 8b — Drift indicator + time-series mini-chart Implementation Plan

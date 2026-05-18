@@ -6,6 +6,7 @@ related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/archive/specs/2026-05-16-improve-tab-amendment-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
+layer: spec
 ---
 
 # Wedge V1 Phase A Doc Completion + Phase C Audit Plan Artifact

@@ -5,6 +5,7 @@ title: "Four Scenarios: When the Voices Align (or Don't)"
 audience: human
 category: methodology
 status: active
+layer: L1
 ---
 
 # Four Scenarios: When the Voices Align (or Don't)

@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-046: Event-Driven Architecture — mitt Event Bus'
+layer: L5
 ---
 
 # ADR-046: Event-Driven Architecture — mitt Event Bus

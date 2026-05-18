@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [cpk, cp, normal-distribution, sigma-estimation, specification-limits]
+layer: L3
 ---
 
 # Capability Analysis

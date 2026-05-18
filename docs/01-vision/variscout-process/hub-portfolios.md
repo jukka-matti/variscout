@@ -10,6 +10,7 @@ related:
   - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
   - docs/superpowers/specs/2026-04-28-production-line-glance-design.md
   - docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md
+layer: L1
 ---
 
 # Hub portfolios — multi-hub orchestration + drill semantics

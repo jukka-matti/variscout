@@ -11,6 +11,7 @@ related:
   - docs/superpowers/specs/2026-05-14-projects-tab-design.md
   - docs/archive/plans/2026-05-14-projects-tab-foundation.md
   - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
+layer: spec
 ---
 
 # Projects Tab Plan 2 — Active-IP Launchpad + Context Cascade

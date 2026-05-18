@@ -8,6 +8,7 @@ related:
   - docs/archive/specs/2026-05-09-response-path-system-v1-design.md
   - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/archive/plans/2026-05-07-canvas-pr8-8a-mode-aware-ctas.md
+layer: spec
 ---
 
 > **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The 10-PR RPS V1 implementation plan delivered all 5 response paths; the wedge then reduced V1 canvas-drill to 3 paths (Investigate, Quick Action, Charter). The 54-task plan is preserved here as institutional knowledge for the implementation patterns; delivered PRs #144/#147–#155.

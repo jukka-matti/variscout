@@ -10,6 +10,7 @@ related:
   - docs/archive/specs/2026-04-29-consolidated-method-and-surface-overview-design.md
   - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
+layer: L1
 ---
 
 # Process Measurement System (PMS) — stable measures + cadence + Current Process State

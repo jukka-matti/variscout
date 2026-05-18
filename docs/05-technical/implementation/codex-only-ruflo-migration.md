@@ -5,6 +5,7 @@ title: Codex-Only Ruflo Migration Guide
 audience: human
 category: implementation
 status: active
+layer: L4
 ---
 
 # Codex-Only Ruflo Migration Guide

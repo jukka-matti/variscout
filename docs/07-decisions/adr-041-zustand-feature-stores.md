@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-041: Zustand Feature Stores'
+layer: L5
 ---
 
 # ADR-041: Zustand Feature Stores

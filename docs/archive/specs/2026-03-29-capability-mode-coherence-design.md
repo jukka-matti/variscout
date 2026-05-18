@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [capability, cpk, boxplot, i-chart, process-health-bar]
+layer: spec
 ---
 
 # Capability Mode Coherence

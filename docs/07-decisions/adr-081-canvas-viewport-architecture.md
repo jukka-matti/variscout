@@ -13,6 +13,7 @@ related:
   - adr-076-frame-b0-lightweight-render
   - adr-078-pwa-azure-architecture-alignment
   - canvas-viewport-architecture-design
+layer: L5
 ---
 
 # ADR-081: Canvas viewport architecture — levels-as-pan/zoom (8f)

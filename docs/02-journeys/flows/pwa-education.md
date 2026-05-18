@@ -5,6 +5,7 @@ title: 'PWA Education Flow'
 status: draft
 audience: human
 category: workflow
+layer: L2
 ---
 
 # PWA Education Flow

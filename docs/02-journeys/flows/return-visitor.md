@@ -5,6 +5,7 @@ title: 'Flow 5: Return Visitor → App'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow 5: Return Visitor → App

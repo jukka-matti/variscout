@@ -14,6 +14,7 @@ related:
   - ../../07-decisions/adr-070-frame-workspace.md
   - ../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md
   - ../../07-decisions/adr-059-web-first-deployment.md
+layer: spec
 ---
 
 # Phase 3 — H1 Closure + H2 Launch

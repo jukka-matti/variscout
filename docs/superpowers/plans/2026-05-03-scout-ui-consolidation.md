@@ -3,6 +3,7 @@ tier: ephemeral
 purpose: build
 title: Scout UI / Navigation consolidation
 status: active
+layer: spec
 ---
 
 # Scout UI / Navigation consolidation

@@ -5,6 +5,7 @@ title: 'Power BI Competitive Benchmark'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Power BI Competitive Benchmark

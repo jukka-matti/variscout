@@ -14,6 +14,7 @@ related:
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
   - docs/07-decisions/adr-076-frame-b0-lightweight-render.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
+layer: spec
 ---
 
 # Canvas Viewport Architecture — Design (8f)

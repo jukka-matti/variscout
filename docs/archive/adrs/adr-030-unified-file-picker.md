@@ -4,6 +4,7 @@ purpose: remember
 title: 'ADR-030: Unified File Picker (OneDrive v8)'
 status: superseded
 date: 2026-03-19
+layer: L5
 ---
 
 # ADR-030: Unified File Picker (OneDrive File Picker v8)

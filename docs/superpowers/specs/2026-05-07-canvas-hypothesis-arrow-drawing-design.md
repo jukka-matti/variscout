@@ -14,6 +14,7 @@ related:
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
   - docs/decision-log.md
   - docs/investigations.md
+layer: spec
 ---
 
 # Canvas Hypothesis-Arrow Drawing

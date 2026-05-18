@@ -19,6 +19,7 @@ related:
     accessibility,
   ]
 date: 2026-04-25
+layer: spec
 ---
 
 # Claude Design UI Concept Extraction

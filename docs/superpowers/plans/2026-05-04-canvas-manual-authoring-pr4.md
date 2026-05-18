@@ -11,6 +11,7 @@ related:
   - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
   - docs/decision-log.md
   - docs/investigations.md
+layer: spec
 ---
 
 # Manual Canvas Authoring (PR4) Implementation Plan

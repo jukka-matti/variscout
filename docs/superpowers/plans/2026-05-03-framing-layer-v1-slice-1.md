@@ -10,6 +10,7 @@ related:
   - docs/archive/specs/2026-05-03-framing-layer-design.md
   - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/decision-log.md
+layer: spec
 ---
 
 # Framing Layer V1 Slice 1 — Foundation

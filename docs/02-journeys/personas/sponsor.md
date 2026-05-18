@@ -1,0 +1,82 @@
+---
+title: 'Sponsor Persona Journey'
+purpose: design
+tier: living
+status: active
+audience: both
+layer: L2
+last-reviewed: 2026-05-18
+---
+
+# Sponsor Persona Journey
+
+> **V1 in-project persona** — one of three persona roles a teammate plays inside a single Project (Lead / Member / Sponsor). The Sponsor approves and reviews; they do not edit content. The market-facing buyer persona (Improvement Specialist) lives in L1 ([`docs/01-vision/product-overview.md`](../../01-vision/product-overview.md)).
+
+## Persona statement
+
+The **Sponsor** is the executive accountable for the Project's outcome. They authorize the Charter, hold the team accountable through Sustainment, and accept the final Report. They do not run the analysis, propose hypotheses, or own action items — those are Lead and Member work. The Sponsor's interaction is read-mostly + approval gates.
+
+Real-world counterparts: VP of Operations, Plant Manager, Quality Director, executive Champion. The Sponsor often has many Projects in flight; their VariScout time is bounded.
+
+A Sponsor is invited to specific Projects. They see only those on Home. They never edit canvas, hypotheses, or measurement plans. Their gestures are: open, read, approve, sign off.
+
+## JTBD
+
+> **When I** sponsor a Project, **I want to** approve the Charter + review Sustainment cadence, **so I can** hold the team accountable for the improvement outcome.
+
+Supporting jobs:
+
+- When the Lead opens a Project, I want to confirm the problem is worth solving and the scope is right.
+- When the team commits to improvement actions, I want to know what success looks like + when to expect results.
+- When Sustainment surfaces a drift signal, I want to see it without digging through the Wall.
+- When the Project is done, I want a Report I can share upward and to my peers.
+
+## Sequence across the 7-tab nav
+
+```mermaid
+sequenceDiagram
+    actor Sponsor
+    participant Home as Home
+    participant Project as Project
+    participant Process as Process
+    participant Analyze as Analyze
+    participant Investigation as Investigation
+    participant Improve as Improve
+    participant Report as Report
+
+    Sponsor->>Home: Open VariScout, see Projects I sponsor
+    Sponsor->>Project: Open Project (read Charter)
+    Note over Project: Sponsor signs off Charter scope<br/>(approval gate)
+    Sponsor-->>Analyze: (no interaction)
+    Sponsor-->>Investigation: (no interaction)
+    Sponsor->>Improve: Review proposed actions + owners
+    Note over Improve: Sponsor sees active-IP cascade<br/>(read-only), approves IP scope
+    Sponsor->>Report: Read interim status during Sustainment
+    Note over Report: Sustainment drift signal<br/>surfaces to Sponsor
+    Sponsor->>Report: Sign off final Report (approval gate)
+```
+
+The Sponsor's flow skips Analyze and Investigation entirely — those tabs are working surfaces for Lead and Members. The Sponsor's touch-points are **Home** (project list), **Project** (Charter sign-off), **Improve** (action review), and **Report** (interim + final review).
+
+## Feature touch-points
+
+- [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Charter sign-off, view roster + stage progression
+- [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — Read action items + active-IP scope (no edit)
+- [Sustainment](../../03-features/workflows/sustainment.md) — Drift signals surface to Sponsor when they need attention
+
+Supporting reference: [`flows/enterprise.md`](../flows/enterprise.md), [`flows/azure-team-collaboration.md`](../flows/azure-team-collaboration.md).
+
+## Outcomes / success signals
+
+A Sponsor has succeeded when:
+
+- **Charter is approved.** Sponsor agreed the problem is worth solving and the scope is correct.
+- **Action plan is sanctioned.** Sponsor saw the proposed improvement actions and accepted them.
+- **Drift is visible.** During Sustainment, the Sponsor sees signals without digging — surfaced to Home or via the Report.
+- **Final Report is signed off.** Sponsor accepts the outcome and can share it upward.
+
+Failure modes the journey is designed to prevent:
+
+- Sponsor editing analysis content they shouldn't (ACL gates: Sponsor is read-only outside approval surfaces)
+- Sponsor missing drift signals (Sustainment surfaces them to the Sponsor explicitly, not buried in the Wall)
+- Sign-off conducted out-of-band with no audit trail (Report sign-off is in-product; downstream audit lives with the Project)

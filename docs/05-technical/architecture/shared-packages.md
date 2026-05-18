@@ -5,6 +5,7 @@ title: 'Shared Packages'
 audience: human
 category: architecture
 status: active
+layer: L4
 ---
 
 # Shared Packages

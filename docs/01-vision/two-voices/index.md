@@ -5,6 +5,7 @@ title: 'Two Voices: Control Limits vs Specification Limits'
 audience: human
 category: methodology
 status: active
+layer: L1
 ---
 
 # Two Voices: Control Limits vs Specification Limits

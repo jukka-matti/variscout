@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [anova, eta-squared, violin-mode, factor-comparison]
+layer: L3
 ---
 
 # Boxplot

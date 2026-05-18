@@ -7,6 +7,7 @@ category: workflow
 status: active
 related: [chart-selection, workflow-guidance]
 journey-phase: scout
+layer: L3
 ---
 
 # Decision Trees

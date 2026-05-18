@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-048: ESLint Boundary Enforcement'
+layer: L5
 ---
 
 # ADR-048: ESLint Boundary Enforcement

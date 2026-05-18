@@ -7,6 +7,7 @@ category: architecture
 status: superseded
 superseded-by: 2026-04-02-improvement-hub-design.md
 related: [improvement, pdca, actions, verification, outcome]
+layer: spec
 ---
 
 # Improvement Workspace PDCA Extension

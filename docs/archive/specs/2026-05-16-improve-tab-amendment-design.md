@@ -10,6 +10,7 @@ topic: [wedge, nav, ax]
 related:
   - 2026-05-16-wedge-architecture-design
   - adr-082-wedge-architecture
+layer: spec
 ---
 
 # Wedge V1 amendment — Improve as top-level verb tab, Project as singular noun

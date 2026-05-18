@@ -8,6 +8,11 @@
 - Functional components only. Props interfaces named `{ComponentName}Props`.
 - Use semantic Tailwind classes (`bg-surface-secondary`, `text-content`, `border-edge`) that adapt to `data-theme`. No per-component color-scheme props.
 
+## Color discipline (V1)
+
+- **Surfaces**: Tailwind 50-300 only — never 700+ fills. **Text/strokes**: 400-700 paired with darker 600-800 for label contrast (`feedback_green_400_light_contrast`).
+- No dark mode, no deep saturation. Canonical invariant: `.claude/INVARIANTS.md` §Visual design + `docs/01-vision/constitution.md` §V1 Wedge Principles.
+
 ## Invariants
 
 - Naming: `*Base` = shared primitive in @variscout/ui (props-based, no app logic). `*WrapperBase` = app-level composition (combines hooks + Base + app UI). App wrappers in apps/*/ import `*WrapperBase`or`\*Base` and add ~50 lines of app-specific wiring.

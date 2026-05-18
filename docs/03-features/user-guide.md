@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: active
 related: [chart-customization, specifications, axis-editing]
+layer: L3
 ---
 
 # VariScout Lite: User Guide

@@ -10,6 +10,7 @@ related:
   - docs/superpowers/specs/2026-04-28-production-line-glance-design.md
   - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
   - docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md
+layer: L1
 ---
 
 # V1-vs-Process scope line — feature boundary

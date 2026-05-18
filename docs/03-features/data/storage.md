@@ -6,6 +6,7 @@ audience: human
 category: data
 status: active
 related: [indexeddb, blob-storage, browser-cache, analysis-state]
+layer: L3
 ---
 
 # Project Persistence

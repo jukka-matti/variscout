@@ -11,6 +11,7 @@ related:
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md
   - docs/07-decisions/adr-077-snapshot-provenance-and-match-summary-wedge.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
+layer: spec
 ---
 
 # F3.5 Ingestion Audit

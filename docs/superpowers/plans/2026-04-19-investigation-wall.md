@@ -4,6 +4,7 @@ purpose: build
 title: Investigation Wall Implementation Plan
 status: active
 date: 2026-04-19
+layer: spec
 ---
 
 # Investigation Wall Implementation Plan

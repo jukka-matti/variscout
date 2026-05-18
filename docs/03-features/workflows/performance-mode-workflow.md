@@ -7,6 +7,7 @@ category: workflow
 status: active
 related: [performance-mode, multi-channel, cpk]
 journey-phase: scout
+layer: L3
 ---
 
 # Performance Mode Workflow

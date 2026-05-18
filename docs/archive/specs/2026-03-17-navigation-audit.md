@@ -7,6 +7,7 @@ category: architecture
 status: active
 related: [navigation, mobile, teams, accessibility, onboarding]
 date: 2026-03-17
+layer: spec
 ---
 
 # Navigation Audit — Findings & Action Items

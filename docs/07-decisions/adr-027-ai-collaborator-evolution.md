@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-027: AI Collaborator Evolution'
+layer: L5
 ---
 
 # ADR-027: AI Collaborator Evolution

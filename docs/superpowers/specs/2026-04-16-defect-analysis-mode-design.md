@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [defect, pareto, aggregation, mode, strategy-pattern, copq]
+layer: spec
 ---
 
 # Defect Analysis Mode

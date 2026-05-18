@@ -7,6 +7,7 @@ date: 2026-04-04
 audience: human
 category: architecture
 related: [state-management, zustand, persistence, collaboration, DDD]
+layer: spec
 ---
 
 # Zustand-First State Architecture

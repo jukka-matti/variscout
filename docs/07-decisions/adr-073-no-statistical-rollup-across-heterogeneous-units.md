@@ -4,6 +4,7 @@ purpose: decide
 title: 'ADR-073: No Statistical Roll-Up Across Heterogeneous Units'
 status: active
 date: 2026-04-29
+layer: L5
 ---
 
 # ADR-073: No Statistical Roll-Up Across Heterogeneous Units

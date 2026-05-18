@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [statistics, factor-analysis, best-subsets, strategy-pattern]
+layer: L5
 ---
 
 # ADR-052: Factor Intelligence — Progressive Factor Analysis

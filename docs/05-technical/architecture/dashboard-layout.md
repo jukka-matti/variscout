@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [dashboard, layout, css-grid, responsive, charts]
+layer: L4
 ---
 
 # Dashboard Layout Architecture

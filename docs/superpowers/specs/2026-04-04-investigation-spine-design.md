@@ -18,6 +18,7 @@ related:
     coscout,
     yamazumi,
   ]
+layer: spec
 ---
 
 # Investigation Spine

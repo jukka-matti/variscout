@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [best-subsets, factor-intelligence, evidence-map, what-if]
+layer: L3
 ---
 
 # Regression Methodology

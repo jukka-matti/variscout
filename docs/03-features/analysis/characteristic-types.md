@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [continuous, attribute, measurement-type]
+layer: L3
 ---
 
 # Characteristic Type Awareness

@@ -3,6 +3,7 @@ tier: living
 purpose: decide
 title: 'ADR-033: Pricing Simplification'
 status: archived
+layer: L5
 ---
 
 > **ARCHIVED 2026-05-17** — This ADR's tier model (€79 Standard / €199 Team) is fully superseded by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md), which collapses to a single €120/month SKU with project-membership ACLs replacing plan-based feature gating. The strategic rationale for simplification (fewer tiers, clear value story) and the H6 hypothesis ("per-deployment beats per-seat") are preserved as design heritage.

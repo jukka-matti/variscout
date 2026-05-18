@@ -5,6 +5,7 @@ category: implementation
 status: deferred
 date: 2026-05-17
 related: [testing, vitest, projects, ci, playwright]
+layer: spec
 ---
 
 # Testing Strategy — Tier 2 + Tier 3 (Deferred Work)

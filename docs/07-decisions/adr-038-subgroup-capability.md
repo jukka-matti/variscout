@@ -4,6 +4,7 @@ purpose: decide
 title: 'ADR-038: Subgroup Capability Analysis (Cp/Cpk per Subgroup)'
 status: active
 date: 2026-03-21
+layer: L5
 ---
 
 # ADR-038: Subgroup Capability Analysis

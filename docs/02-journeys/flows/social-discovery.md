@@ -5,6 +5,7 @@ title: 'Flow 2: Social Discovery → Case → Product'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow 2: Social Discovery → Case → Product

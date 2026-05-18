@@ -12,6 +12,7 @@ related:
   - docs/superpowers/plans/2026-05-16-pr-wv1-3a-membership-cleanup.md
   - docs/superpowers/plans/2026-05-16-pr-wv1-3b-measurement-plans-wall.md
   - docs/07-decisions/adr-082-wedge-architecture.md
+layer: spec
 ---
 
 # PR-WV1-3 — MeasurementPlan + Invitation lifecycle + ActionItem CRUD design

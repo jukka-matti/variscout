@@ -12,6 +12,7 @@ related:
   - adr-075-pwa-atomic-deploy-and-update-policy
   - docs/decision-log.md
   - docs/archive/specs/2026-05-04-canvas-migration-design.md
+layer: L5
 ---
 
 # ADR-078: PWA + Azure architecture alignment — same product, gated tiers

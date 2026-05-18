@@ -12,6 +12,7 @@ related:
   - docs/archive/specs/2026-05-03-framing-layer-design.md
   - docs/decision-log.md
   - docs/investigations.md
+layer: spec
 ---
 
 # Manual Canvas Authoring

@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [defect, evidence-map, regression, cross-type, investigation]
+layer: spec
 ---
 
 # Defect Mode Evidence Map Integration

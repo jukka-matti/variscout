@@ -12,6 +12,7 @@ related:
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
   - docs/decision-log.md
   - docs/investigations.md
+layer: spec
 ---
 
 # Data-Flow Foundation F4 — three-layer state codification

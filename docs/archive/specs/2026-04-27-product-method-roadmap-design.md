@@ -19,6 +19,7 @@ related:
     coscout,
   ]
 date: 2026-04-27
+layer: spec
 ---
 
 # Product-Method Roadmap

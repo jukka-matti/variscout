@@ -8,6 +8,7 @@ status: active
 related:
   [process-hub, evidence-sources, data-profiles, snapshots, customer-owned-data, agent-review-log]
 date: 2026-04-26
+layer: spec
 ---
 
 # Evidence Sources And Data Profiles

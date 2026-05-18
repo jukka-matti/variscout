@@ -5,6 +5,7 @@ title: Integrations
 audience: human
 category: architecture
 status: active
+layer: L4
 ---
 
 # Integrations

@@ -11,6 +11,7 @@ related:
   - docs/superpowers/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
   - docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
+layer: spec
 ---
 
 # Canvas Wall Overlay Implementation Plan

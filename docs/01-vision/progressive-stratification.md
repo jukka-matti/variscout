@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [drill-down, filter-chips, eta-squared, r-squared-adj, factor-intelligence]
+layer: L1
 ---
 
 # Progressive Stratification

@@ -5,6 +5,7 @@ title: 'Patient Wait Time Variation'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Patient Wait Time Variation

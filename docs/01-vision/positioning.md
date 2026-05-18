@@ -5,6 +5,7 @@ category: reference
 status: stable
 last-reviewed: 2026-05-17
 related: [strategy, positioning, methodology, category, messaging]
+layer: L1
 ---
 
 # Positioning Bible

@@ -12,6 +12,7 @@ related:
   - ../../07-decisions/adr-070-frame-workspace.md
   - ../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md
   - ../../07-decisions/adr-059-web-first-deployment.md
+layer: spec
 ---
 
 > **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Decisions queue + State-mode content methodology absorbed by Coherence §4 + wedge spec §3.3.2. Hub-level Process-Owner-anchored framing retires; multi-Hub state aggregation defers to **VariScout Process**.

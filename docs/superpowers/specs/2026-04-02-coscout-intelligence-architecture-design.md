@@ -22,6 +22,7 @@ related:
     coscout,
     question-driven-eda,
   ]
+layer: spec
 ---
 
 # CoScout Intelligence Architecture

@@ -6,6 +6,7 @@ audience: human
 category: implementation
 status: active
 related: [shared-packages, ui-package, colorScheme]
+layer: L4
 ---
 
 # Component Extraction Guide

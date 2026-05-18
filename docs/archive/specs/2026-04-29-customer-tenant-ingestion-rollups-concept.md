@@ -16,6 +16,7 @@ related:
     hub-of-hubs,
   ]
 date: 2026-04-29
+layer: spec
 ---
 
 > **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Tenant-level auto-ingestion pipelines defer to **VariScout Process** (auto-pipelines feeding Hub-level storage). V1 supports manual paste + file upload only.

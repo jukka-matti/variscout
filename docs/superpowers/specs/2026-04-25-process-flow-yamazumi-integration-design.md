@@ -18,6 +18,7 @@ related:
     improvement,
   ]
 date: 2026-04-25
+layer: spec
 ---
 
 # Process Flow + Yamazumi Integration

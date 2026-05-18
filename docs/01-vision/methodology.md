@@ -5,6 +5,7 @@ title: 'VariScout Methodology'
 audience: human
 category: methodology
 status: active
+layer: L1
 ---
 
 # VariScout Methodology

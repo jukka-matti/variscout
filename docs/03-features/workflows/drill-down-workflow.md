@@ -6,6 +6,7 @@ audience: human
 category: workflow
 status: active
 related: [drill-down, filter-chips, eta-squared, r-squared-adj, factor-intelligence]
+layer: L3
 ---
 
 # Drill-Down Analysis Workflow

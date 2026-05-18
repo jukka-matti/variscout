@@ -5,6 +5,7 @@ title: 'Flow 1: SEO Learner → Product'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow 1: SEO Learner → Product

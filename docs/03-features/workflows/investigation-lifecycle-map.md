@@ -7,6 +7,7 @@ journey-phase: investigate
 audience: human
 category: workflow
 status: active
+layer: L3
 ---
 
 # Investigation Lifecycle Map

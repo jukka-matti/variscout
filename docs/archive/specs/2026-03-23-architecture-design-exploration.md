@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [adr-045, ddd, feature-sliced-design, strategy-pattern, domain-events]
+layer: spec
 ---
 
 # Architecture Design Exploration

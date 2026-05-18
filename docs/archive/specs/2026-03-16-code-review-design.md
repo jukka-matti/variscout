@@ -5,6 +5,7 @@ title: Systematic Code Review — VariScout Lite
 date: 2026-03-16
 type: code-review
 status: active
+layer: spec
 ---
 
 # Systematic Code Review — VariScout Lite

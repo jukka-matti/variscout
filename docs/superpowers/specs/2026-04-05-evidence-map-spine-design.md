@@ -8,6 +8,7 @@ audience: human
 category: architecture
 related:
   [evidence-map, factor-intelligence, investigation-spine, pi-panel, coscout, probability-plot]
+layer: spec
 ---
 
 # Evidence Map as Analysis Spine

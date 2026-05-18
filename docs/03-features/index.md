@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: active
 related: [analysis, workflows, data, navigation, learning]
+layer: L3
 ---
 
 > **⚠️ Queued for V1 rewrite (Phase C.3)** — see [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. feature index reframes from persona/tier organization to single-product view; tier-gating table retires. Full content rewrite queued for Phase C.3 batch 4 (subagent-driven).

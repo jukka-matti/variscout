@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [zustand, feature-stores, adr-041, state-management]
+layer: L4
 ---
 
 # Zustand Store Interactions

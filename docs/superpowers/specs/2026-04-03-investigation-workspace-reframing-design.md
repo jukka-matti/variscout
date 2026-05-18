@@ -14,6 +14,7 @@ related:
     problem-statement,
     improvement,
   ]
+layer: spec
 ---
 
 # Investigation Workspace Reframing

@@ -10,6 +10,7 @@ related:
   - docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md
   - docs/07-decisions/adr-081-canvas-viewport-architecture.md
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
+layer: spec
 ---
 
 # Canvas Viewport Architecture (8f) Implementation Plan

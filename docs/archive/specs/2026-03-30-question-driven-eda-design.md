@@ -6,6 +6,7 @@ audience: human
 category: workflow
 status: active
 related: [eda-mental-model, coscout, factor-intelligence, investigation, findings]
+layer: spec
 ---
 
 # Question-Driven EDA — CoScout Analysis Planning

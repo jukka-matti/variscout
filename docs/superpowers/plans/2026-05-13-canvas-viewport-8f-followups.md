@@ -13,6 +13,7 @@ related:
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
   - docs/decision-log.md
   - docs/investigations.md
+layer: spec
 ---
 
 # Canvas Viewport 8f — Followup Workstream

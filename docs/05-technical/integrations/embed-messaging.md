@@ -5,6 +5,7 @@ title: 'PWA Embed Messaging Protocol'
 audience: human
 category: implementation
 status: active
+layer: L4
 ---
 
 # PWA Embed Messaging Protocol

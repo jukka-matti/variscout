@@ -6,6 +6,7 @@ journey-phase: [scout, investigate, improve]
 audience: human
 category: workflow
 status: active
+layer: L3
 ---
 
 # Knowledge Base Search

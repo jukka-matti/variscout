@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-050: Wide-Form Data Support — Stack Columns'
+layer: L5
 ---
 
 # ADR-050: Wide-Form Data Support — Stack Columns

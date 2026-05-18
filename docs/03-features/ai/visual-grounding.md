@@ -6,6 +6,7 @@ audience: human
 category: ai
 status: active
 related: [coscout, visual-grounding, ref-markers]
+layer: L3
 ---
 
 # CoScout Visual Grounding

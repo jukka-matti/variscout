@@ -14,6 +14,7 @@ related:
   - docs/07-decisions/adr-068-coscout-cognitive-redesign.md
   - docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
+layer: spec
 ---
 
 # VariScout Framing Layer

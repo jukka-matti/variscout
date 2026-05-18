@@ -6,6 +6,7 @@ audience: human
 category: workflow
 status: active
 related: [question-tree, investigation-phases, investigation-diamond, factor-intelligence]
+layer: L3
 ---
 
 # Question-Driven Investigation Flow

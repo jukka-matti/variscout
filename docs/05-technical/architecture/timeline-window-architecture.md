@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [analysis-strategy, dashboard-layout, data-pipeline-map, mental-model-hierarchy]
+layer: L4
 ---
 
 # Timeline Window & Multi-Level Routing Architecture

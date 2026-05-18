@@ -8,6 +8,7 @@ category: workflow
 status: active
 related: [capability, subgroup-capability, progressive-stratification, investigation-diamond]
 journey-phase: [all]
+layer: L3
 ---
 
 # Analysis Flow

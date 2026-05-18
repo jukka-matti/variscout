@@ -6,6 +6,7 @@ audience: human
 category: analysis
 status: active
 related: [normal-distribution, anderson-darling, qq-plot]
+layer: L3
 ---
 
 # Probability Plot

@@ -12,6 +12,7 @@ related:
   - docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
   - docs/07-decisions/adr-070-frame-workspace.md
+layer: spec
 ---
 
 > **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). This vision defined the 5-path RPS, multi-Hub portfolio scope, and Process Hub as the central artifact; the wedge narrows V1 to 3 canvas-drill response paths, retires multi-Hub portfolio, and repositions Hub as an internal data container. The core vision (canvas-as-product, three-level methodology, distributed not centralized) is preserved and refined in the wedge.

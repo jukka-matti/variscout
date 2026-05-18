@@ -6,6 +6,7 @@ audience: human
 category: navigation
 status: active
 related: [filter-chips, progressive-stratification, eta-squared, chart-interaction]
+layer: L3
 ---
 
 # Progressive Filtering

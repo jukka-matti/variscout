@@ -11,6 +11,7 @@ related:
   - 2026-04-26-evidence-sources-data-profiles-design.md
 date: 2026-04-26
 delivered: 2026-04-27
+layer: spec
 ---
 
 > **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Lifecycle semantics (implicit start, asynchronous nudges, signoff-gated close) preserved in [ADR-080](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md) (extended 2026-05-16). Phase 6 framing retires: Handoff folds into Sustainment closure per wedge spec §3.2; signoff is gated by project-membership role (Lead/Reviewer) under single SKU.

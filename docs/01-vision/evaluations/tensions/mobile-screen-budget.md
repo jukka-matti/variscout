@@ -5,6 +5,7 @@ title: 'Mobile Screen Budget'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Mobile Screen Budget

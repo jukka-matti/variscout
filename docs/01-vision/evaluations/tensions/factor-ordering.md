@@ -5,6 +5,7 @@ title: 'Factor Ordering'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Factor Ordering

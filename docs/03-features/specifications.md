@@ -7,6 +7,7 @@ category: reference
 status: active
 last-reviewed: 2026-05-16
 related: [adr-082, product-overview, feature-parity, journey]
+layer: L3
 ---
 
 # VariScout — Product Spec

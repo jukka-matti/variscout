@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-003: IndexedDB for PWA Storage'
+layer: L5
 ---
 
 # ADR-003: IndexedDB for PWA Storage

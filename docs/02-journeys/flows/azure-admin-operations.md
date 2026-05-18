@@ -5,6 +5,7 @@ title: 'Flow 10: Azure App — Admin Operations'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow 10: Azure App — Admin Operations

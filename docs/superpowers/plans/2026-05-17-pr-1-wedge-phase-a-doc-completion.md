@@ -6,6 +6,7 @@ parent: docs/superpowers/specs/2026-05-17-wedge-phase-a-doc-completion-design.md
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
+layer: spec
 ---
 
 # PR 1 — Wedge V1 Phase A Doc Completion Implementation Plan

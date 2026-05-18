@@ -6,6 +6,7 @@ audience: human
 category: workflow
 status: active
 related: [findings, what-if, hypothesis, improvement-actions]
+layer: L3
 ---
 
 # Investigation to Action Workflow

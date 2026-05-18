@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [evidence-map, evidence-map-spine, investigation, coscout, causal-link]
+layer: spec
 ---
 
 # Evidence Map Edge Interactions
