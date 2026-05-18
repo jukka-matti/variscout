@@ -19,7 +19,7 @@ Statistical analysis capabilities and chart types.
 - [Boxplot](boxplot.md)
 - [Capability Analysis](capability.md)
 - [Capability Boxplot](capability-boxplot.md)
-- [Capability Gap Trend Chart](gap-trend-chart.md)
+- [Capability Gap Trend Chart](capability-gap-trend-chart.md)
 - [Capability Histogram](capability-histogram.md)
 - [Characteristic Types](characteristic-types.md)
 - [Defect Analysis](defect-analysis.md)

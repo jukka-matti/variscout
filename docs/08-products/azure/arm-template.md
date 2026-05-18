@@ -431,5 +431,5 @@ Zero admin-consent Graph API permissions required per ADR-059.
 - [Azure Marketplace Guide](marketplace.md)
 - [Pricing](../../archive/products/pricing-tiers.md) (archived — superseded by single €120 SKU per ADR-082)
 - [Authentication](authentication.md)
-- [Admin Aino](../../02-journeys/personas/admin-aino.md) — IT Admin persona (deployment + troubleshooting)
+- [Admin Aino](../../archive/journeys/personas/admin-aino.md) — IT Admin persona (deployment + troubleshooting)
 - [Azure ARM Template Reference](https://docs.microsoft.com/azure/azure-resource-manager/templates/)
