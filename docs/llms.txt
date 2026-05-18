@@ -28,6 +28,7 @@ Entry points for AI agents working in this repo. Humans should start at [`docs/i
 
 - [`superpowers/specs/2026-05-16-wedge-architecture-design.md`](superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 single-SKU design. 7-tab nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`). Improve as top-level verb tab with active-IP cascade. 3 personas per Project (Lead/Member/Sponsor). €120/mo single SKU.
 - [`07-decisions/adr-082-wedge-architecture.md`](07-decisions/adr-082-wedge-architecture.md) — V1 architectural record. Partial supersession of ADR-007 + ADR-033.
+- [`07-decisions/adr-084-capability-indices-cp-cpk-only.md`](07-decisions/adr-084-capability-indices-cp-cpk-only.md) — VariScout publishes only Cp/Cpk; Pp/Ppk are intentionally excluded from the product (educational comparison text retained on the marketing site).
 
 ## SDD 5-Layer Routing
 
