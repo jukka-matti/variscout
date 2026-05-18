@@ -14,8 +14,6 @@ export interface SystemOutcomeModel {
   bins: ReturnType<typeof computeHistogramBins>;
   cp?: number;
   cpk?: number;
-  pp?: number;
-  ppk?: number;
   conformancePercentage: number;
   outOfSpecPercentage: number;
   drift: { label: string; tone: string };
@@ -44,8 +42,6 @@ export function buildSystemOutcomeModel({
     bins: computeHistogramBins(values),
     cp: stats.cp,
     cpk: stats.cpk,
-    pp: stats.pp,
-    ppk: stats.ppk,
     conformancePercentage: 100 - stats.outOfSpecPercentage,
     outOfSpecPercentage: stats.outOfSpecPercentage,
     drift: driftLabel(values),
