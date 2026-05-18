@@ -7,6 +7,10 @@ category: analysis
 status: active
 related: [multi-level-dashboard, capability, process-hub-capability, staged-analysis]
 layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Timeline Windows in Investigations

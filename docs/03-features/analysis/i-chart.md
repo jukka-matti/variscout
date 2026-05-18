@@ -7,6 +7,10 @@ category: analysis
 status: active
 related: [control-limits, nelson-rules, stability, time-series]
 layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # I-Chart (Individuals Chart)

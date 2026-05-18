@@ -8,6 +8,10 @@ status: active
 related: [performance-mode, multi-channel, cpk]
 journey-phase: scout
 layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Performance Mode Workflow

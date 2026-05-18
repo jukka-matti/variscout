@@ -7,6 +7,10 @@ category: workflow
 status: active
 related: [four-lenses, change, failure, flow, value]
 layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Four Lenses Analysis Workflow

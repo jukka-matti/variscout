@@ -7,6 +7,10 @@ category: analysis
 status: active
 related: [anova, eta-squared, violin-mode, factor-comparison]
 layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Boxplot

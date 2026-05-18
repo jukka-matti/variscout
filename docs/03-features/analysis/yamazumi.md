@@ -7,6 +7,10 @@ category: analysis
 status: active
 related: [yamazumi, lean, time-study, takt-time, waste]
 layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Yamazumi Analysis

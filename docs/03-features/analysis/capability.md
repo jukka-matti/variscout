@@ -7,6 +7,10 @@ category: analysis
 status: active
 related: [cpk, cp, normal-distribution, sigma-estimation, specification-limits]
 layer: L3
+kind: engine
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Capability Analysis

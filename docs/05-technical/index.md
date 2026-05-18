@@ -91,6 +91,17 @@ Build, deploy, test, and operate:
 | [Codex AI Tooling (ruflo)](implementation/ruflo.md)      | Codex-only AI development workflow tooling |
 | [Statistics Reference](statistics-reference.md)          | Exact formulas, algorithms, implementation |
 
+### Engineering Design Docs (L4)
+
+Per-feature engineering design docs (SDD L4 — HOW it's built). Each backs a corresponding L3 capability spec under `docs/03-features/`.
+
+| Document                                          | Backs L3                                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [SCOUT Level-Spanning](scout-level-spanning.md)   | [Multi-Level Dashboard](../03-features/analysis/multi-level-dashboard.md)       |
+| [Hub Capability Tab](hub-capability-tab.md)       | [Process Hub Capability Tab](../03-features/analysis/process-hub-capability.md) |
+| [Regression GLM Engine](regression-glm-engine.md) | [Regression Methodology](../03-features/analysis/regression-methodology.md)     |
+| [Persistence Engine](persistence-engine.md)       | [Project Persistence](../03-features/data/storage.md)                           |
+
 ### Integrations
 
 Cross-product and embedding:

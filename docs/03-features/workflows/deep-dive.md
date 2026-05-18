@@ -7,6 +7,11 @@ category: workflow
 status: active
 related: [investigation, drill-down, variation-decomposition]
 layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
+  - docs/02-journeys/personas/sponsor.md
 ---
 
 # Deep Dive Workflow

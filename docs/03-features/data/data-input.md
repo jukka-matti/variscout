@@ -7,6 +7,10 @@ category: data
 status: active
 related: [parser, csv, excel, paste, file-upload]
 layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Data Input

@@ -7,6 +7,11 @@ category: workflow
 status: active
 related: [investigation, findings, hypotheses, coscout, azure, navigation]
 layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
+  - docs/02-journeys/personas/sponsor.md
 ---
 
 # Project Dashboard

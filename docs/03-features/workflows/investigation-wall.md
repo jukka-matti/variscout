@@ -8,6 +8,10 @@ status: active
 last-reviewed: 2026-04-29
 related: [investigation-spine, evidence-map, suspected-cause, question-driven-eda, hmw-brainstorm]
 layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Investigation Wall

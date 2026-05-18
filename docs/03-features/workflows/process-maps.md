@@ -6,6 +6,10 @@ audience: human
 category: workflow
 status: active
 layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Visual Process Maps

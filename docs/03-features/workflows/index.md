@@ -7,6 +7,9 @@ category: workflow
 status: active
 related: [four-lenses, drill-down, investigation]
 layer: L3
+kind: infrastructure
+serves:
+  - docs/02-journeys/ia-nav-model.md
 ---
 
 # Analyst Workflows

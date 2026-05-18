@@ -7,6 +7,10 @@ category: analysis
 status: active
 related: [cp, cpk, rational-subgrouping, i-chart]
 layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Subgroup Capability Analysis

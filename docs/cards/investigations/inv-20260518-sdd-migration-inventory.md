@@ -82,6 +82,17 @@ M0 substantively cleared. Working tree carries:
 
 Next: PR-SDD-1 (M1 frontmatter retrofit + M2 L1 reconcile + L2 reshape).
 
+## Execution log
+
+- **PR-SDD-0 (commit `d9c880dc`, 2026-05-18)** — M0 inventory + Option A 24 L3 stubs. Code-coverage 56.7% → 86% strict (100% stub).
+- **PR-SDD-1 (commit `1d649a21`, 2026-05-18)** — M1 schema retrofit + M2 L1 reconcile + L2 reshape. 447 docs gained `layer:` frontmatter. `constitution.md` extended with V1 Wedge Principles. 4 new L2 files (lead/member/sponsor + IA nav). 10 legacy personas reclassified.
+- **PR-SDD-2 (commit `<pending>`, 2026-05-18)** — M3 L3 audit + reshape. 39 capability docs gained `kind:` + `serves:`. 4 implementation-notes split to L4 `docs/05-technical/` (scout-level-spanning, hub-capability-tab, regression-glm-engine, persistence-engine). 2 navigation stubs folded into `progressive-filtering.md` + deleted. 4 index files closed with `kind: infrastructure`. **L3-missing-kind warnings: 95 → 0.** Only M4 work remains.
+
+## What's left
+
+- **M4** — 45 design specs need `implements:` retrofit (incremental, per-spec judgment)
+- **M5** — flip validator from WARN to HARD-FAIL; add Steward drift checks; local-override superpowers skill files; PR template; update `doc-discipline.md` + `llms.txt` with 5-layer routing
+
 ## Table 1 — Code → Feature coverage
 
 90 shipped capabilities enumerated. Coverage column: ✓ documented · ⚠ partial · ✗ undocumented.

@@ -7,6 +7,10 @@ category: analysis
 status: active
 related: [capability, probability-plot, specs, analysis-dashboard]
 layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Statistics Panel

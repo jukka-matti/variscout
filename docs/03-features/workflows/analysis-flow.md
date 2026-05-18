@@ -9,6 +9,10 @@ status: active
 related: [capability, subgroup-capability, progressive-stratification, investigation-diamond]
 journey-phase: [all]
 layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Analysis Flow

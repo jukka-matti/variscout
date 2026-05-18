@@ -6,6 +6,9 @@ audience: human
 category: ui
 status: active
 layer: L3
+kind: infrastructure
+serves:
+  - docs/02-journeys/ia-nav-model.md
 ---
 
 # UI Features

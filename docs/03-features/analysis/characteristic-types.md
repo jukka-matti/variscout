@@ -7,6 +7,10 @@ category: analysis
 status: active
 related: [continuous, attribute, measurement-type]
 layer: L3
+kind: engine
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Characteristic Type Awareness

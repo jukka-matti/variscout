@@ -564,5 +564,4 @@ This is **designed but not implemented** on main. The branch code is 38+ commits
 - [ADR-043: Teams Entry Experience](../../archive/adrs/adr-043-teams-entry-experience.md) — historical Portfolio, ProjectCard, deep links design decisions
 - [ADR-055: Workspace-Based Navigation](../../07-decisions/adr-055-workspace-navigation.md) — Workspace tabs, investigation workspace, state model
 - [Accessibility Foundations](../foundations/accessibility.md) — full accessibility guidelines
-- [Filter Chips](../../03-features/navigation/breadcrumbs.md) — detailed filter chip design
-- [Drill-Down](../../03-features/navigation/drill-down.md) — drill-down methodology and decision thresholds
+- [Progressive Filtering](../../03-features/navigation/progressive-filtering.md) — filter chip design, drill-down methodology, decision thresholds, and breadcrumb-as-chip-stack model

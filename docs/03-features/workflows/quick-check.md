@@ -7,6 +7,10 @@ category: workflow
 status: active
 related: [monitoring, shift-check, i-chart]
 layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Quick Check Workflow

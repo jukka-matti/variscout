@@ -7,6 +7,10 @@ category: analysis
 status: active
 related: [defect, pareto, aggregation, failure-mode, evidence-map]
 layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Defect Analysis

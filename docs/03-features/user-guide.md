@@ -7,6 +7,11 @@ category: reference
 status: active
 related: [chart-customization, specifications, axis-editing]
 layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
+  - docs/02-journeys/personas/sponsor.md
 ---
 
 # VariScout Lite: User Guide

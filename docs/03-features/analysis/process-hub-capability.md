@@ -5,51 +5,65 @@ title: 'Process Hub Capability Tab'
 audience: human
 category: analysis
 status: active
-last-reviewed: 2026-04-29
+last-reviewed: 2026-05-18
 related: [production-line-glance, process-hub, capability, hub-cadence-review]
 layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Process Hub Capability Tab
 
-The Process Hub Capability tab is the process-owner cadence-review surface for hub-level capability. Olivia (OpEx) and Gary (Green Belt) use it to answer "is this hub meeting its capability target across its steps, where is the gap widening, and which step deserves attention this week?" without leaving the Hub view.
+The Process Hub Capability tab is the process-owner cadence-review surface for hub-level capability. Olivia (OpEx) and Gary (Green Belt) use it to answer "is this hub meeting its capability target across its steps, where is the gap widening, and which step deserves attention this week?" — without leaving the Hub view, and without ever seeing a single aggregated hub-level Cpk number.
 
-## Where it lives
+## Problem
 
-Azure-only, mounted under the Process Hub view as a workspace tab (route: `/hub/:hubId/capability`). The PWA does not have Hub IA today; this tab is part of the Azure-tier hub-first operating spine. Shipped via PR #106 (Plan C1).
+A hub contains many steps, each with its own spec context. Process owners need a weekly cadence view: which steps are on target, which are drifting, and which contribute most to defect volume. Aggregating across heterogeneous specs into a single hub-level Cpk hides the heterogeneity (ADR-073). The tab solves this by showing the per-step Cpk **distribution** — the analyst's eye does the pattern recognition.
 
-## Four chart slots
+## Capability claim
 
-The tab embeds the [`ProductionLineGlanceDashboard`](../../superpowers/specs/2026-04-28-production-line-glance-design.md) primitive in a fixed 2x2 grid:
+When a process owner opens the Capability tab on a Hub, four charts render the per-step Cpk trend, the Cp-Cpk centering gap over time, the per-step Cpk distribution, and the per-step error Pareto — all within a hub-level URL-shareable filter context. Clicking any step opens the investigation that maps it (Drill A); unmapped scopes surface a non-blocking B0 banner to FRAME.
 
-| Slot         | Chart                     | Reads                                                               |
-| ------------ | ------------------------- | ------------------------------------------------------------------- |
-| Top-left     | **Cpk vs target i-chart** | Per-step Cpk trend with target overlay; "are we hitting the bar?"   |
-| Top-right    | **Cp-Cpk gap trend**      | Centering loss over time; "is the gap widening or closing?"         |
-| Bottom-left  | **Per-step Cpk boxplot**  | Distribution of Cpk across steps; reveals heterogeneity at a glance |
-| Bottom-right | **Per-step error Pareto** | Which steps contribute most to defect/error volume                  |
+## Intent diagram (2x2 chart grid)
 
-The boxplot is the load-bearing visualization: it shows the per-step Cpk _distribution_ without collapsing it into a mean. See [ADR-073](../../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md).
+```
+┌─ Hub Capability tab (route: /hub/:hubId/capability) ────────────────┐
+│  Filter strip (URL-serialized)                                      │
+├──────────────────────────────────┬──────────────────────────────────┤
+│  Cpk vs target i-chart           │  Cp-Cpk gap trend                │
+│  (per-step trend + target)       │  (centering loss over time)      │
+├──────────────────────────────────┼──────────────────────────────────┤
+│  Per-step Cpk boxplot            │  Per-step error Pareto           │
+│  (load-bearing distribution view)│  (defect-volume contribution)    │
+└──────────────────────────────────┴──────────────────────────────────┘
+   ↳ Drill A on any step → investigation that maps that step
+```
 
-## Filter strip
+The boxplot is the load-bearing visualization: it shows the per-step Cpk _distribution_ without collapsing it into a mean.
 
-A hub-level context-filter strip sits above the grid. Filter state is URL-serialized so cadence reviews can share the exact lens. The filter limits which (canonical-node × context-tuple) cells the dashboard reads; it never aggregates across heterogeneous spec contexts.
+## Acceptance signals
 
-## B0 migration banner
-
-When the hub contains investigations whose nodes are not yet mapped to canonical steps (B0 unmapped scope), a non-blocking banner appears above the dashboard pointing at the FRAME mapper. The dashboard still renders for the mapped portion.
-
-## Drill A semantics
-
-Clicking a step in any of the four charts opens the investigation that maps that step (Drill A: Hub → Step → Investigation). If no investigation maps the step, the drill becomes a "create investigation here" affordance. Drill A semantics are normative across all production-line-glance surfaces; see the [investigation-scope-and-drill-semantics design](../../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md).
+- Opening the tab on a hub with mapped steps renders all four charts.
+- A hub with unmapped nodes (B0 scope) shows a non-blocking banner linking to the FRAME mapper; the dashboard still renders for the mapped portion.
+- Clicking a step in any chart opens the mapping investigation (Drill A). If no investigation maps it, the drill becomes "create investigation here".
+- The tab never displays a single hub-level Cpk number — confirmed structurally by the architecture test (no `meanCapability` / `aggregateCpk` import anywhere in the tab subtree).
+- URL-serialized filter state round-trips: paste a shared URL → identical filter strip state.
 
 ## Coexistence with Performance mode
 
 Performance mode (per-channel Cpk inside one investigation) is _within-step_: how do the cavities/heads/lanes of a single station compare? The Hub Capability tab is _across-step_: how do the steps of a hub compare? Both can be open at once for the same hub; they answer different questions.
 
-## No-aggregation principle
+## Out of scope
 
-The tab never displays a single hub-level Cpk number. Per-step Cpks come from heterogeneous spec contexts and are not arithmetic-combinable; the boxplot shows their distribution and the analyst's eye does the pattern recognition. The engine exposes no `meanCapability` / `aggregateCpk` primitive. This is the structural enforcement described in [ADR-073](../../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md).
+- Any hub-level aggregate Cpk number (ADR-073 invariant).
+- PWA support — Hub IA is Azure-only today.
+- New Drill B / C semantics — Drill A is the only drill type the tab supports.
+
+## Engineering detail
+
+See [`05-technical/hub-capability-tab.md`](../../05-technical/hub-capability-tab.md) for the route mount, slot contract, B0 banner mechanism, no-aggregation structural enforcement, and testing approach.
 
 ## See also
 
