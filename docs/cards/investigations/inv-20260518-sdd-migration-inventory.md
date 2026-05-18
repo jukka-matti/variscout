@@ -98,7 +98,7 @@ The first real feature through the new SDD lifecycle. Spec: [`docs/archive/specs
 
 ## Phase 2 — Validator noise cleanup (post-SDD refactor)
 
-Spec: [`docs/superpowers/specs/2026-05-18-post-sdd-phase-2-validator-noise-cleanup-design.md`](../../superpowers/specs/2026-05-18-post-sdd-phase-2-validator-noise-cleanup-design.md). The original plan premise was wrong: archive specs are already exempt from `errorSpecMissingImplements` by validator scoping (active-specs-only). Real Phase 2 work was running the long-deferred `scripts/docs-frontmatter-fix.mjs` codemod (ADR-083) to resolve **65 transitional alias warnings** (`stable`→`active`, `developer`/`analyst`/etc.→`human`, etc.) + backfill `purpose:`/`tier:` on ~50 docs that lacked them.
+Spec: [`docs/archive/specs/2026-05-18-post-sdd-phase-2-validator-noise-cleanup-design.md`](../../archive/specs/2026-05-18-post-sdd-phase-2-validator-noise-cleanup-design.md) (archived 2026-05-18 via PR-PSDD-2 commit `1fd67cb6`). The original plan premise was wrong: archive specs are already exempt from `errorSpecMissingImplements` by validator scoping (active-specs-only). Real Phase 2 work was running the long-deferred `scripts/docs-frontmatter-fix.mjs` codemod (ADR-083) to resolve **65 transitional alias warnings** (`stable`→`active`, `developer`/`analyst`/etc.→`human`, etc.) + backfill `purpose:`/`tier:` on ~50 docs that lacked them.
 
 ## SDD migration complete
 

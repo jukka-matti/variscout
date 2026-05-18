@@ -2,9 +2,10 @@
 title: 'Post-SDD Phase 2 — Validator noise cleanup'
 purpose: design
 tier: living
-status: draft
+status: archived
 audience: human
 layer: spec
+delivered-by: 2026-05-18
 implements:
   - docs/agent-context/doc-discipline.md
   - scripts/docs-frontmatter-schema.mjs
@@ -14,6 +15,8 @@ last-reviewed: 2026-05-18
 ---
 
 # Post-SDD Phase 2 — Validator noise cleanup
+
+> **🗄 Archived 2026-05-18 — Delivered via PR-PSDD-2 (commit `1fd67cb6`).** Codemod applied; 65 alias warnings cleared; 853 docs validate green.
 
 ## Context
 
