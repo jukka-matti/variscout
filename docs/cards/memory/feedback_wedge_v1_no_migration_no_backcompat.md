@@ -7,8 +7,9 @@ status: active
 date: 2026-05-18
 topic: [memory, feedback]
 related: []
-verified-against-commit: 6f51f080
+verified-against-commit: c6cf0f8c5
 last-verified: 2026-05-18
+source-hash: 1fac5e006f0ee1ff
 origin-session-id: beeecb0e-3c3a-423f-ac5e-8b429351f010
 ---
 
