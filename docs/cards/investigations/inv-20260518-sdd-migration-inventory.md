@@ -98,7 +98,7 @@ The first real feature through the new SDD lifecycle. Spec: [`docs/archive/specs
 
 ## Phase 3 — L3 intent diagrams + knowledge-base-search fill (post-SDD refactor)
 
-Spec: [`docs/superpowers/specs/2026-05-18-post-sdd-phase-3-l3-intent-diagrams-design.md`](../../superpowers/specs/2026-05-18-post-sdd-phase-3-l3-intent-diagrams-design.md). Closed the 36-doc intent-diagram WARN bucket via 4 parallel coder subagents — each batched ~9 docs and grounded diagrams in actual `packages/{core,charts,ui,hooks}/src/` code. Mix of Mermaid `flowchart`/`sequenceDiagram` (for engine + workflow) and ASCII wireframes with box-drawing chars (for ui). `knowledge-base-search.md` got the deeper L3 fill (Problem / Capability / Mermaid / Acceptance / Out-of-scope / Links).
+Spec: [`docs/archive/specs/2026-05-18-post-sdd-phase-3-l3-intent-diagrams-design.md`](../../archive/specs/2026-05-18-post-sdd-phase-3-l3-intent-diagrams-design.md) (archived 2026-05-18 via PR-PSDD-3 commit `439d7c7d`). Closed the 36-doc intent-diagram WARN bucket via 4 parallel coder subagents — each batched ~9 docs and grounded diagrams in actual `packages/{core,charts,ui,hooks}/src/` code. Mix of Mermaid `flowchart`/`sequenceDiagram` (for engine + workflow) and ASCII wireframes with box-drawing chars (for ui). `knowledge-base-search.md` got the deeper L3 fill (Problem / Capability / Mermaid / Acceptance / Out-of-scope / Links).
 
 ## Phase 2 — Validator noise cleanup (post-SDD refactor)
 

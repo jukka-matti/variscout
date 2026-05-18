@@ -2,9 +2,10 @@
 title: 'Post-SDD Phase 3 — L3 intent diagrams + knowledge-base-search fill'
 purpose: design
 tier: living
-status: draft
+status: archived
 audience: human
 layer: spec
+delivered-by: 2026-05-18
 implements:
   - docs/03-features/ai/coscout.md
   - docs/03-features/ai/visual-grounding.md
@@ -46,6 +47,8 @@ last-reviewed: 2026-05-18
 ---
 
 # Post-SDD Phase 3 — L3 intent diagrams + knowledge-base-search fill
+
+> **🗄 Archived 2026-05-18 — Delivered via PR-PSDD-3 (commit `439d7c7d`).** 36 intent diagrams added; intent-diagram WARN count 36 → 0; knowledge-base-search filled to full L3 contract.
 
 ## Context
 
