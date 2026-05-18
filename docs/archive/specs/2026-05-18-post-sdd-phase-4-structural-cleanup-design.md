@@ -2,9 +2,10 @@
 title: 'Post-SDD Phase 4 — Structural cleanup'
 purpose: design
 tier: living
-status: draft
+status: archived
 audience: human
 layer: spec
+delivered-by: 2026-05-18
 implements:
   - docs/archive/baselines/2026-04-17-doc-audit.md
   - docs/archive/baselines/2026-04-17-agent-docs-baseline.md
@@ -21,6 +22,8 @@ last-reviewed: 2026-05-18
 ---
 
 # Post-SDD Phase 4 — Structural cleanup
+
+> **🗄 Archived 2026-05-18 — Delivered via PR-PSDD-4 (commit `07926382`).** 4 archive subdirs created; 73 docs gained layer:; 4 broken refs caught + fixed; 9 ZERO warnings/errors after final validate. Post-SDD refactor complete.
 
 ## Context
 

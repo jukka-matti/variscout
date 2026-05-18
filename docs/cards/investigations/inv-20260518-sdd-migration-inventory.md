@@ -98,7 +98,7 @@ The first real feature through the new SDD lifecycle. Spec: [`docs/archive/specs
 
 ## Phase 4 — Structural cleanup (post-SDD refactor)
 
-Spec: [`docs/superpowers/specs/2026-05-18-post-sdd-phase-4-structural-cleanup-design.md`](../../superpowers/specs/2026-05-18-post-sdd-phase-4-structural-cleanup-design.md). Archived `docs/09-baseline/` (2 files), `docs/10-development/transcripts/` (5+1 files), `docs/10-development/discussions/` (5 files), `docs/10-development/project-status-audit-2026-04-16.md` under `docs/archive/{baselines,transcripts,discussions,audits}/`. Extended `scripts/docs/retrofit-layer.mjs` with 4 new path mappings (04-cases → L1; 06-design-system + 08-products + 10-development → L5); retrofit added `layer:` to 73 more docs. Caught + fixed 4 broken inbound refs to moved files (adr-052 + factor-intelligence flow + feature-backlog + phase1 plan).
+Spec: [`docs/archive/specs/2026-05-18-post-sdd-phase-4-structural-cleanup-design.md`](../../archive/specs/2026-05-18-post-sdd-phase-4-structural-cleanup-design.md) (archived 2026-05-18 via PR-PSDD-4 commit `07926382`). Archived `docs/09-baseline/` (2 files), `docs/10-development/transcripts/` (5+1 files), `docs/10-development/discussions/` (5 files), `docs/10-development/project-status-audit-2026-04-16.md` under `docs/archive/{baselines,transcripts,discussions,audits}/`. Extended `scripts/docs/retrofit-layer.mjs` with 4 new path mappings (04-cases → L1; 06-design-system + 08-products + 10-development → L5); retrofit added `layer:` to 73 more docs. Caught + fixed 4 broken inbound refs to moved files (adr-052 + factor-intelligence flow + feature-backlog + phase1 plan).
 
 ## Phase 3 — L3 intent diagrams + knowledge-base-search fill (post-SDD refactor)
 
