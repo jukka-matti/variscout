@@ -5,6 +5,7 @@ title: 'ARM Template Documentation'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # ARM Template Documentation

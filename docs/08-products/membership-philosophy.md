@@ -7,6 +7,7 @@ category: reference
 status: active
 last-reviewed: 2026-05-17
 related: [access-control, project-membership, acl, single-sku]
+layer: L5
 ---
 
 # Membership Philosophy

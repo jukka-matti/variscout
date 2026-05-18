@@ -96,6 +96,10 @@ The first real feature through the new SDD lifecycle. Spec: [`docs/archive/specs
 
 **Dogfood result**: ✓ lifecycle works end-to-end. The discipline caught 3 broken cross-refs (azure-teams-mobile, azure-admin-operations, arm-template) when personas moved — exactly the kind of drift the new validator HARD-FAIL on broken cross-refs is designed to catch. Fixed inline as part of Apply.
 
+## Phase 4 — Structural cleanup (post-SDD refactor)
+
+Spec: [`docs/superpowers/specs/2026-05-18-post-sdd-phase-4-structural-cleanup-design.md`](../../superpowers/specs/2026-05-18-post-sdd-phase-4-structural-cleanup-design.md). Archived `docs/09-baseline/` (2 files), `docs/10-development/transcripts/` (5+1 files), `docs/10-development/discussions/` (5 files), `docs/10-development/project-status-audit-2026-04-16.md` under `docs/archive/{baselines,transcripts,discussions,audits}/`. Extended `scripts/docs/retrofit-layer.mjs` with 4 new path mappings (04-cases → L1; 06-design-system + 08-products + 10-development → L5); retrofit added `layer:` to 73 more docs. Caught + fixed 4 broken inbound refs to moved files (adr-052 + factor-intelligence flow + feature-backlog + phase1 plan).
+
 ## Phase 3 — L3 intent diagrams + knowledge-base-search fill (post-SDD refactor)
 
 Spec: [`docs/archive/specs/2026-05-18-post-sdd-phase-3-l3-intent-diagrams-design.md`](../../archive/specs/2026-05-18-post-sdd-phase-3-l3-intent-diagrams-design.md) (archived 2026-05-18 via PR-PSDD-3 commit `439d7c7d`). Closed the 36-doc intent-diagram WARN bucket via 4 parallel coder subagents — each batched ~9 docs and grounded diagrams in actual `packages/{core,charts,ui,hooks}/src/` code. Mix of Mermaid `flowchart`/`sequenceDiagram` (for engine + workflow) and ASCII wireframes with box-drawing chars (for ui). `knowledge-base-search.md` got the deeper L3 fill (Problem / Capability / Mermaid / Acceptance / Out-of-scope / Links).

@@ -39,6 +39,11 @@ function layerForPath(relPath) {
   if (relPath.startsWith('docs/superpowers/plans/')) return 'spec';
   if (relPath.startsWith('docs/archive/specs/')) return 'spec';
   if (relPath.startsWith('docs/archive/plans/')) return 'spec';
+  // Phase 4 additions (SDD post-migration structural cleanup, 2026-05-18):
+  if (relPath.startsWith('docs/04-cases/')) return 'L1'; // teaching content; vision-adjacent
+  if (relPath.startsWith('docs/06-design-system/')) return 'L5'; // long-lived foundation
+  if (relPath.startsWith('docs/08-products/')) return 'L5'; // ops/GTM (pricing, ISO-9001, marketplace)
+  if (relPath.startsWith('docs/10-development/')) return 'L5'; // development reference
   return null;
 }
 

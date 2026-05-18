@@ -5,6 +5,7 @@ title: 'Shared Chart Components'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Shared Chart Components

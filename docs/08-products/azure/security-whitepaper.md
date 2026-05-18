@@ -6,6 +6,7 @@ audience: human
 category: compliance
 status: active
 date: 2026-04-03
+layer: L5
 ---
 
 # VariScout Security Whitepaper

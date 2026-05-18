@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: draft
 related: [signal-cards, mechanism-branches, investigation-workspace, coscout, accessibility]
+layer: L5
 ---
 
 # Signal And Branch Components

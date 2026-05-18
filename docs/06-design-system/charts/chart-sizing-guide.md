@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: active
 related: [charts, visx, responsive, layout]
+layer: L5
 ---
 
 # Chart Sizing Guide

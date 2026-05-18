@@ -5,6 +5,7 @@ title: 'Chart Colors'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Chart Colors

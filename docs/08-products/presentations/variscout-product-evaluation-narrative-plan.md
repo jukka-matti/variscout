@@ -6,6 +6,7 @@ audience: human
 category: strategy
 status: draft
 date: 2026-04-27
+layer: L5
 ---
 
 # VariScout Product Evaluation Deck

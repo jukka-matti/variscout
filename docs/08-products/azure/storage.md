@@ -5,6 +5,7 @@ title: 'Azure App Storage'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Azure App Storage

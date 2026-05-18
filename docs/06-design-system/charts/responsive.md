@@ -5,6 +5,7 @@ title: 'Responsive Charts'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Responsive Charts

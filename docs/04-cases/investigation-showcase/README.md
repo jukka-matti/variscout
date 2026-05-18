@@ -6,6 +6,7 @@ audience: human
 category: workflow
 status: active
 related: [investigation, findings, questions, suspected-cause, regression]
+layer: L1
 ---
 
 # Investigation Showcase: Fill Weight

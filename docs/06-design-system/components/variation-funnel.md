@@ -5,6 +5,7 @@ title: 'Variation Bar (Removed — ADR-062)'
 audience: human
 category: components
 status: active
+layer: L5
 ---
 
 # Variation Bar (Removed)

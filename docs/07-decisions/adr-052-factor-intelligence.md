@@ -123,5 +123,5 @@ Since **ADR-062** (Apr 2026), R²adj is the primary factor ranking metric throug
 - [ADR-047: Analysis Mode Strategy Pattern](adr-047-analysis-mode-strategy.md)
 - [ADR-054: Mode-Aware Question Strategy](adr-054-mode-aware-question-strategy.md)
 - [ADR-062: Standard ANOVA Metrics](adr-062-standard-anova-metrics.md)
-- [Factor Intelligence Design Document](../10-development/discussions/2026-03-29-factor-intelligence-design.md)
+- [Factor Intelligence Design Document](../archive/discussions/2026-03-29-factor-intelligence-design.md)
 - [Analysis Journey Map](../03-features/workflows/analysis-journey-map.md)

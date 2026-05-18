@@ -5,6 +5,7 @@ title: 'Azure Marketplace Guide'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Azure Marketplace Guide

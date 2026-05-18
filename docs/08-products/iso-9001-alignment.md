@@ -6,6 +6,7 @@ audience: human
 category: compliance
 status: active
 date: 2026-04-03
+layer: L5
 ---
 
 # ISO 9001:2026 Alignment Guide

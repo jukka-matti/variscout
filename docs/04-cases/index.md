@@ -5,6 +5,7 @@ title: 'VaRiScout Lite Case Studies'
 audience: human
 category: learning
 status: active
+layer: L1
 ---
 
 # VaRiScout Lite Case Studies

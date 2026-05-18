@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: active
 related: [dashboard, boxplot, pareto, probability-plot, capability]
+layer: L5
 ---
 
 # Analysis Dashboard Pattern

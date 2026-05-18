@@ -5,6 +5,7 @@ title: 'Chart Hooks'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Chart Hooks

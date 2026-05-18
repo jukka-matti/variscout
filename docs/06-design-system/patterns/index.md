@@ -5,6 +5,7 @@ title: Patterns
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Patterns

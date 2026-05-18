@@ -5,6 +5,7 @@ title: 'What-If Simulator'
 audience: human
 category: components
 status: active
+layer: L5
 ---
 
 # What-If Simulator

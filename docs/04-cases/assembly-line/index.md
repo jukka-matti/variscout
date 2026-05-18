@@ -5,6 +5,7 @@ title: 'Assembly Line Case - PCB Assembly'
 audience: human
 category: learning
 status: active
+layer: L1
 ---
 
 # Assembly Line Case - PCB Assembly

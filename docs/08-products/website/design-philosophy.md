@@ -5,6 +5,7 @@ title: 'Website Design Philosophy'
 audience: human
 category: strategy
 status: active
+layer: L5
 ---
 
 # Website Design Philosophy

@@ -5,6 +5,7 @@ title: 'Packaging Line Case'
 audience: human
 category: learning
 status: active
+layer: L1
 ---
 
 # Packaging Line Case

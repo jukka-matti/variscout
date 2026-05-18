@@ -6,6 +6,7 @@ category: compliance
 status: active
 date: 2026-03-17
 audience: human
+layer: L5
 ---
 
 # AI Safety Report — CoScout
