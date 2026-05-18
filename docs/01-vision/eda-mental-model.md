@@ -6,6 +6,7 @@ audience: human
 category: methodology
 status: active
 related: [methodology, four-lenses, progressive-stratification, factor-intelligence, investigation]
+layer: L1
 ---
 
 # EDA Mental Model — Question-Driven Analysis

@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: Response Path System V1 — Design
-audience: [product, engineer, designer]
+audience: human
 category: design-spec
 status: archived
 last-reviewed: 2026-05-13
@@ -16,6 +18,7 @@ related:
   - docs/07-decisions/adr-066-evidence-map-investigation-center.md
   - docs/07-decisions/adr-070-frame-workspace.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
+layer: spec
 ---
 
 > **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). RPS V1 shipped 5 response paths; the wedge reduces V1 to 3 canvas-drill paths (Investigate, Quick Action, Charter) with Sustainment auto-firing and Handoff retired entirely per wedge spec §3.3.4.

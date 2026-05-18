@@ -9,6 +9,7 @@ last-reviewed: 2026-05-07
 related:
   - docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md
+layer: spec
 ---
 
 # F4 — three-layer state codification (Document / Annotation / View) Implementation Plan

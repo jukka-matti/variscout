@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: draft
 related: [deployment, trust, enterprise, marketplace, collaboration, teams, storage, permissions]
+layer: spec
 ---
 
 # Web-First Deployment Architecture

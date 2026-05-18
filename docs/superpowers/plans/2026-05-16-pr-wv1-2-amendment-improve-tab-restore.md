@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'PR-WV1-2 amendment — restore Improve as top-level verb tab + Project singular (bite-sized plan)'
 status: draft
 last-reviewed: 2026-05-16
@@ -7,6 +9,7 @@ related:
   - docs/superpowers/plans/2026-05-16-pr-wv1-2-improve-workspace.md
   - docs/superpowers/plans/2026-05-16-wedge-implementation.md
   - docs/07-decisions/adr-082-wedge-architecture.md
+layer: spec
 ---
 
 # PR-WV1-2 amendment — restore Improve as top-level verb tab + Project singular Implementation Plan

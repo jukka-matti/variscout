@@ -7,6 +7,7 @@ date: 2026-04-05
 audience: human
 category: analysis
 related: [best-subsets, factor-intelligence, evidence-map, what-if, ols, glm]
+layer: spec
 ---
 
 # Continuous Regression Design

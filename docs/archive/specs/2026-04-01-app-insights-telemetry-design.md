@@ -4,6 +4,7 @@ purpose: remember
 title: Application Insights Telemetry Design
 status: active
 related: [app-insights, telemetry, security, observability]
+layer: spec
 ---
 
 # Application Insights Telemetry Design

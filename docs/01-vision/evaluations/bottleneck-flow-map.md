@@ -5,6 +5,7 @@ title: 'Investigation Flow Map: Bottleneck Detection'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Investigation Flow Map: Bottleneck Detection

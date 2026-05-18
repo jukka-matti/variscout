@@ -7,6 +7,7 @@ category: strategy
 status: active
 last-reviewed: 2026-05-16
 related: [tiers, pricing, modes]
+layer: L5
 ---
 
 # Feature Parity Matrix

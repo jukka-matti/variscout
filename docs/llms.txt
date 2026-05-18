@@ -28,6 +28,21 @@ Entry points for AI agents working in this repo. Humans should start at [`docs/i
 
 - [`superpowers/specs/2026-05-16-wedge-architecture-design.md`](superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 single-SKU design. 7-tab nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`). Improve as top-level verb tab with active-IP cascade. 3 personas per Project (Lead/Member/Sponsor). €120/mo single SKU.
 - [`07-decisions/adr-082-wedge-architecture.md`](07-decisions/adr-082-wedge-architecture.md) — V1 architectural record. Partial supersession of ADR-007 + ADR-033.
+- [`07-decisions/adr-084-capability-indices-cp-cpk-only.md`](07-decisions/adr-084-capability-indices-cp-cpk-only.md) — VariScout publishes only Cp/Cpk; Pp/Ppk are intentionally excluded from the product (educational comparison text retained on the marketing site).
+
+## SDD 5-Layer Routing
+
+Per the spec-driven-development design ([`superpowers/specs/2026-05-18-spec-driven-development-design.md`](superpowers/specs/2026-05-18-spec-driven-development-design.md)), agents should read by layer:
+
+- **Need WHY** (vision, principles, market story) → [`01-vision/`](01-vision/) (`constitution.md`, `philosophy.md`, `methodology.md`, `product-overview.md`, `business-bible.md`)
+- **Need WHO does WHAT** (in-product personas + journeys) → [`02-journeys/personas/`](02-journeys/personas/) (`lead.md`, `member.md`, `sponsor.md`) + [`02-journeys/ia-nav-model.md`](02-journeys/ia-nav-model.md)
+- **Need WHAT system has** (feature capabilities) → [`03-features/`](03-features/) (capability descriptions); each L3 doc carries `kind: ui|workflow|engine|infrastructure` + `serves: [L2 paths]`
+- **Need HOW it's built** (engineering design, when complex) → [`05-technical/`](05-technical/) (only present for non-trivial implementations)
+- **Need WHY decision survived** (immutable records) → [`07-decisions/`](07-decisions/) (ADRs)
+
+Design specs ([`superpowers/specs/`](superpowers/specs/)) are change-proposal artifacts with `implements:` pointing to L1/L2/L3 deltas. After delivery, they archive to [`archive/specs/`](archive/specs/). Cards ([`cards/`](cards/)) are atomic memory across layers.
+
+Validator HARD-FAILs (M5+): missing `implements:` on specs, missing `kind:` on L3 docs, broken `implements:` paths. See [`agent-context/doc-discipline.md`](agent-context/doc-discipline.md) §Design-spec lifecycle.
 
 ## Agent-context entry points
 

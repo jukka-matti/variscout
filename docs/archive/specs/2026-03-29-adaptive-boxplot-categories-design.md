@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [boxplot, charts, wide-form, responsive]
+layer: spec
 ---
 
 # Adaptive Boxplot Category Limits

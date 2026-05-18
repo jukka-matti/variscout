@@ -11,6 +11,13 @@ related:
   - multi-level-scout
   - process-learning-operating-model
   - investigation-scope-and-drill-semantics
+layer: spec
+implements:
+  - docs/02-journeys/ia-nav-model.md
+  - docs/03-features/ui/health-bar.md
+  - docs/03-features/ui/filter-bar.md
+  - docs/03-features/ui/chart-source-bar.md
+  - docs/03-features/workflows/analysis-flow.md
 ---
 
 # Scout UI consolidation — design

@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: draft
 related: [investigation-wall, question-driven-eda, accessibility, ai-independent-ux, signal-cards]
+layer: L5
 ---
 
 # Investigation Workspace Pattern

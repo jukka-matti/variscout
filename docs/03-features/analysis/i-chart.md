@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [control-limits, nelson-rules, stability, time-series]
+layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # I-Chart (Individuals Chart)
@@ -30,6 +35,30 @@ The I-Chart reveals:
 - Trends, shifts, cycles
 - Points outside control limits (UCL/LCL)
 - Dynamic behavior: wear, degradation, seasonal effects
+
+---
+
+## Intent diagram
+
+```
+┌─────────────────────────────────────────────────┐
+│ Value (yAxisLabel)                              │
+│                                                 │
+│ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  USL │
+│ ════════════════════════════════════════════ UCL│
+│        ●                ◆ ◆ ◆ ◆           ●    │
+│   ●        ●    ●  ●            ■ ■ ■           │
+│ ──────●────────●─────────────────────────── x̄  │
+│   ●        ●        ●     ●           ●        │
+│ ════════════════════════════════════════════ LCL│
+│ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  LSL │
+│                                                 │
+│ Time order (index) →           [VariScout n=N] │
+└─────────────────────────────────────────────────┘
+   ● spec/control violation  ◆ Rule 2  ■ Rule 3
+```
+
+Layered by `IChartBase`: `ControlLines` paints UCL/LCL/mean, `DataPoints` renders circles, `NelsonSequenceOverlay` overlays Rule 2/3 runs, `ChartSourceBar` adds the bottom-right `n=` badge.
 
 ---
 

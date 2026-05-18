@@ -7,6 +7,11 @@ category: workflow
 status: active
 last-reviewed: 2026-04-29
 related: [investigation-spine, evidence-map, suspected-cause, question-driven-eda, hmw-brainstorm]
+layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Investigation Wall
@@ -30,6 +35,29 @@ Five horizontal bands stack vertically inside the Investigation workspace canvas
 | **Tributary footer** | Live chip row from `processMap.tributaries`; each chip labeled with column and referencing hypotheses (derived); orphan tributaries dimmed                                  |
 
 A collapsed "missing evidence" digest bar sits below the canvas. Per-hypothesis warning badges are the primary gap signal; the digest bar is a secondary expandable list.
+
+## Intent diagram
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│ Problem │ CTS: cycle_time_s    Cpk 0.74   events/wk 12              │
+├─────────────────────────────────────────────────────────────────────┤
+│ Waterline ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+│                              ┌───AND───┐                            │
+│ Hypothesis  ┌──────────────┐ │    ▼    │ ┌──────────────┐  ⚠ gap   │
+│             │ Hub: Nozzle  │ │         │ │ Hub: Shift   │           │
+│             │ wear         │ │   OR    │ │ handover     │           │
+│             │ [mini I-Ch.] │ │         │ │ [mini boxpl.]│           │
+│             │ HOLDS 3/4    │ │         │ │ HOLDS 1/3    │           │
+│             └──────┬───────┘ └────┬────┘ └──────┬───────┘           │
+│ Evidence    F#12 ──┘    Q#7 ──┘  gemba ──┘   best-subset card       │
+├─────────────────────────────────────────────────────────────────────┤
+│ Tributaries │ machine │ shift │ operator(dim) │ material            │
+└─────────────────────────────────────────────────────────────────────┘
+  Missing-evidence digest (collapsed) ▾   │  Map │ Wall ◀── view toggle
+```
+
+Five horizontal bands stack inside the Investigation workspace canvas; hub cards reposition via @dnd-kit and `wallLayoutStore` persists layout per project.
 
 ## How it sits alongside Evidence Map
 
@@ -55,6 +83,6 @@ Azure-only (single €120 SKU). Shipped via PRs #75 and #76, merged 2026-04-24. 
 ## See also
 
 - [Investigation Wall design spec](../../superpowers/specs/2026-04-19-investigation-wall-design.md) — full design, including non-goals (live presence, per-step Cpk).
-- [Evidence Map design](../../superpowers/specs/2026-04-05-evidence-map-design.md) — the factor-centric companion projection.
+- [Evidence Map design](../../archive/specs/2026-04-05-evidence-map-design.md) — the factor-centric companion projection.
 - [Investigation Spine](../../superpowers/specs/2026-04-04-investigation-spine-design.md) — three threads, the methodology backbone the Wall plugs into.
 - [Methodology — three projections](../../01-vision/methodology.md) — how Map / Wall / Question framework relate as projections of one graph.

@@ -6,11 +6,37 @@ audience: human
 category: analysis
 status: active
 related: [eta-squared, r-squared-adj, anova, factor-intelligence]
+layer: L3
+kind: engine
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Variation Decomposition
 
 How VariScout uses standard ANOVA metrics for factor ranking and investigation guidance.
+
+---
+
+## Intent diagram
+
+```mermaid
+flowchart LR
+  A[Filtered data<br/>x_ij + factor j] --> B[Grand mean x̄]
+  A --> C[Group means x̄_j]
+  B --> D[SS_Total<br/>Σ x_ij − x̄²]
+  C --> E[SS_Between<br/>Σ n_j x̄_j − x̄²]
+  A --> F[SS_Within<br/>Σ x_ij − x̄_j²]
+  D --> G[η²<br/>SS_Between / SS_Total]
+  E --> G
+  G --> H[ANOVA panel<br/>single-factor effect]
+  D --> I[R²adj<br/>1 − 1−R² n−1/n−p−1]
+  C --> I
+  I --> J[Factor Intelligence<br/>Best Subsets ranking]
+```
+
+`packages/core/src/stats/anova.ts` computes η² for the ANOVA panel; `packages/core/src/variation/` runs Best Subsets across factor combinations and ranks by R²adj. Both share the same SS_Total / SS_Between / SS_Within decomposition; they answer different questions at different drill-down depths.
 
 ---
 

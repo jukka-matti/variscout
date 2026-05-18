@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [navigation, workspaces, investigation, panels, question-driven-eda]
+layer: L5
 ---
 
 # ADR-055: Workspace-Based Navigation

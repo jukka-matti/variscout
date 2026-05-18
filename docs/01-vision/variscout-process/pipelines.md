@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: 'Pipelines — auto-ingestion, multi-source profile join, scheduled refresh'
-audience: [product, engineer, designer]
+audience: human
 category: strategy
 status: named-future
 last-reviewed: 2026-05-17
@@ -10,6 +12,7 @@ related:
   - docs/superpowers/specs/2026-04-26-agent-review-log-process-hub-design.md
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
+layer: L1
 ---
 
 # Pipelines — auto-ingestion, multi-source profile join, scheduled refresh

@@ -5,6 +5,7 @@ title: 'Hospital Ward Case - ABB/Practitioner Context'
 audience: human
 category: learning
 status: active
+layer: L1
 ---
 
 # Hospital Ward Case - ABB/Practitioner Context

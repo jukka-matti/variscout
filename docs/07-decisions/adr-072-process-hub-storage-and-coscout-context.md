@@ -4,6 +4,7 @@ purpose: decide
 title: 'ADR-072: Process Hub Storage and CoScout Context Boundary'
 status: active
 date: 2026-04-26
+layer: L5
 ---
 
 # ADR-072: Process Hub Storage and CoScout Context Boundary

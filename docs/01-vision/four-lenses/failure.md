@@ -5,6 +5,7 @@ title: 'FAILURE Lens: Pareto'
 audience: human
 category: methodology
 status: active
+layer: L1
 ---
 
 # FAILURE Lens: Pareto

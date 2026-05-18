@@ -6,6 +6,7 @@ audience: human
 category: workflow
 status: active
 related: [improvement, brainstorm, hmw, coscout, collaboration, ideation]
+layer: spec
 ---
 
 # HMW Brainstorm Modal + Collaborative Sessions

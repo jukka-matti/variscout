@@ -11,6 +11,7 @@ points_to:
   - ai-architecture.md (system architecture, packages, auth, data flow, cost controls)
   - ai-context-engineering.md (prompt tiers, context layers, token budgets, caching)
   - aix-design-system.md (governance, tone, confidence calibration, interaction patterns)
+layer: L4
 ---
 
 # AI Journey Integration

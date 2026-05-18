@@ -7,6 +7,7 @@ category: architecture
 status: active
 date: 2026-03-20
 related: [report-view, workspace, audience-toggle, qc-story]
+layer: L5
 ---
 
 # ADR-037: Reporting Workspaces

@@ -6,6 +6,7 @@ audience: human
 category: workflow
 status: draft
 related: [yamazumi, reporting, lean, findings]
+layer: spec
 ---
 
 # Yamazumi-Aware Reporting View

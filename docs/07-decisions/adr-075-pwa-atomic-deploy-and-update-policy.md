@@ -9,6 +9,7 @@ date: 2026-05-02
 related:
   - adr-058-deployment-lifecycle
   - adr-059-web-first-deployment-architecture
+layer: L5
 ---
 
 # ADR-075: PWA atomic deploy + update policy

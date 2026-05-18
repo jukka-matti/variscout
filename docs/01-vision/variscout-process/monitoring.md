@@ -1,15 +1,18 @@
 ---
+tier: stable
+purpose: orient
 title: 'Monitoring — drift detection, alerts, process-owner views'
-audience: [product, designer, engineer, quality-manager]
+audience: human
 category: strategy
 status: named-future
 last-reviewed: 2026-05-17
 parent: docs/01-vision/variscout-process/index.md
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
-  - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
+  - docs/archive/specs/2026-05-14-variscout-coherence-design.md
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md
+layer: L1
 ---
 
 # Monitoring — drift detection, alerts, process-owner views
@@ -179,4 +182,4 @@ Monitoring activates in Process when the four-persona model + PMS layer + auto-i
 - The persona × surface routing that determines who sees which alert: [four-personas.md](four-personas.md).
 - The PMS layer that produces Current Process State for drift detection to read: [measurement-system.md](measurement-system.md).
 - The Hub-of-hubs portfolio overview that the Leader persona's monitoring view renders: [hub-portfolios.md §3](hub-portfolios.md).
-- The Coherence persona-aware State-mode design that originally specified Process Owner monitoring: [Coherence spec §4](../../superpowers/specs/2026-05-14-variscout-coherence-design.md).
+- The Coherence persona-aware State-mode design that originally specified Process Owner monitoring: [Coherence spec §4](../../archive/specs/2026-05-14-variscout-coherence-design.md).

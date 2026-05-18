@@ -5,6 +5,7 @@ title: 'Authentication (EasyAuth)'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Authentication (EasyAuth)

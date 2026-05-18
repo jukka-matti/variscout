@@ -6,6 +6,12 @@ audience: human
 category: workflow
 status: active
 related: [improvement, pdca, prioritization, what-if, actions, verification]
+layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
+  - docs/02-journeys/personas/sponsor.md
 ---
 
 # Improvement Workspace

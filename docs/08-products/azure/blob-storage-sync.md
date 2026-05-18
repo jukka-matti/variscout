@@ -5,6 +5,7 @@ title: 'Blob Storage Sync'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Blob Storage Sync

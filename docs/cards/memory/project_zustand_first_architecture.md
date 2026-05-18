@@ -15,7 +15,7 @@ source-hash: fe5673b394bfe4f7
 > 🤖 **Generated mirror** of `~/.claude/memory/project_zustand_first_architecture.md`. Edit there, not here. Card synced by `scripts/docs/sync-memory-cards.mjs`; re-run via `pnpm docs:rebuild` (Phase 3 A4).
 
 Zustand-first architecture replacing DataContext god object. Fully delivered including editor view migration:
-- `docs/superpowers/specs/2026-04-04-zustand-first-state-architecture-design.md` (status: delivered)
+- `docs/archive/specs/2026-04-04-zustand-first-state-architecture-design.md` (status: delivered)
 - `docs/superpowers/specs/2026-04-04-zustand-direct-store-access-design.md` (status: delivered)
 - `docs/superpowers/specs/2026-04-06-editor-architecture-simplification-design.md` (status: delivered)
 

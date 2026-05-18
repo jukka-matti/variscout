@@ -8,11 +8,12 @@ status: archived
 date: 2026-05-06
 related:
   - docs/archive/specs/2026-05-04-canvas-migration-design.md
-  - docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md
+  - docs/archive/specs/2026-05-04-manual-canvas-authoring-design.md
   - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/decision-log.md
   - docs/investigations.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
+layer: spec
 ---
 
 > **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The PR4c-PR6 retrospective followup captured canvas-migration cleanup items; most were resolved in subsequent PRs. The tier-gating and 5-path CTAs addressed here were later replaced by the wedge.
@@ -296,7 +297,7 @@ After this followup lands, the canvas migration sequence is **honestly documente
 ## References
 
 - `docs/superpowers/specs/2026-05-04-canvas-migration-design.md` — the migration sequence (will be amended in T3.3)
-- `docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md` — Spec 2 (PR4a/4b/4c)
+- `docs/archive/specs/2026-05-04-manual-canvas-authoring-design.md` — Spec 2 (PR4a/4b/4c)
 - `docs/superpowers/specs/2026-05-03-variscout-vision-design.md` — vision spec commitments (§3.4, §5.2-5.6)
 - `docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md` — PWA + Azure architecture alignment
 - `docs/decision-log.md` — Tier 4 entry lands here

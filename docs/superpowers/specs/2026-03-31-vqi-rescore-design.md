@@ -6,6 +6,12 @@ audience: human
 category: reference
 status: active
 related: [evaluation, ai-experience, question-driven-eda, coscout, prompt-engineering]
+layer: spec
+implements:
+  - docs/01-vision/coscout-ax-design.md
+  - docs/01-vision/eda-mental-model.md
+  - docs/03-features/ai/coscout.md
+  - docs/03-features/workflows/question-driven-investigation.md
 ---
 
 # VQI Re-Evaluation: Post-ADR-053 Scoring + Activation Improvements

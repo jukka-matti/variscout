@@ -5,6 +5,7 @@ title: 'ADR-057: CoScout Visual Grounding'
 audience: human
 category: architecture
 status: active
+layer: L5
 ---
 
 # ADR-057: CoScout Visual Grounding

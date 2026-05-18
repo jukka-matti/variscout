@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [pi-panel, questions, journal, investigation, findings, stats-panel]
+layer: L5
 ---
 
 # ADR-056: Process Intelligence Panel Redesign

@@ -5,6 +5,7 @@ title: 'Customer Complaint Investigation'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Customer Complaint Investigation

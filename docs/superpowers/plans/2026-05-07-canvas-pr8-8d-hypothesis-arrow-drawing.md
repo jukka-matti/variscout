@@ -7,17 +7,18 @@ category: implementation
 status: active
 last-reviewed: 2026-05-07
 related:
-  - docs/superpowers/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md
+  - docs/archive/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
-  - docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md
+  - docs/archive/specs/2026-05-04-manual-canvas-authoring-design.md
   - docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
+layer: spec
 ---
 
 # Canvas Hypothesis-Arrow Drawing Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended per master-plan D6) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. **Sonnet for ≥70% of dispatches** (implementer + per-task spec/quality reviewers); **Opus only for the final code-reviewer** sweep before merge.
 >
-> **Spec:** [`docs/superpowers/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md`](../specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md). Read it for design rationale; this plan is the executable shape.
+> **Spec:** [`docs/archive/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md`](../../archive/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md). Read it for design rationale; this plan is the executable shape.
 >
 > **Worktree:** Per `feedback_one_worktree_per_agent`, create `.worktrees/canvas-pr8-8d-hypothesis-arrow-drawing/` via `superpowers:using-git-worktrees` BEFORE dispatching the first task. Branch name: `canvas-pr8-8d-hypothesis-arrow-drawing`.
 
@@ -2084,7 +2085,7 @@ Then per master plan §6:
 git push -u origin canvas-pr8-8d-hypothesis-arrow-drawing
 gh pr create --title "PR8-8d: canvas hypothesis-arrow drawing" --body "$(cat <<'EOF'
 ## Summary
-- Implements user-authored hypothesis-arrow drawing per vision §3.4 + spec [`docs/superpowers/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md`]
+- Implements user-authored hypothesis-arrow drawing per vision §3.4 + spec [`docs/archive/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md`]
 - Custom pointer-event state machine; top-level mode-agnostic tool; auto-enables Hypotheses overlay
 - Replaces Codex's inline count badge with StepNodeMarker pip per Q3 (closes spec deviation)
 - Remove affordance in step overlay drilldown per Q5

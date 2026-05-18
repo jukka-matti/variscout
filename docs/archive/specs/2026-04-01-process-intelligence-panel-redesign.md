@@ -7,6 +7,7 @@ status: active
 audience: human
 category: design-spec
 related: [stats-panel, questions, journal, findings, investigation, pi-panel, adr-056]
+layer: spec
 ---
 
 # Process Intelligence Panel Redesign

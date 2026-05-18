@@ -13,6 +13,7 @@ related:
   - docs/07-decisions/adr-077-snapshot-provenance-and-match-summary-wedge.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
   - docs/decision-log.md
+layer: spec
 ---
 
 # Data-Flow Foundation F3.5 Implementation Plan

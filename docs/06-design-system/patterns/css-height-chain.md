@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: active
 related: [layout, flexbox, css-grid, dashboard]
+layer: L5
 ---
 
 # CSS Height Chain Pattern

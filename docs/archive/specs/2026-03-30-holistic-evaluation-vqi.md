@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: archived
 related: [evaluation, ai-experience, maturity-model, competitive-analysis, architecture]
+layer: spec
 ---
 
 > **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). This 2026-03-30 evaluation assessed VariScout quality pre-wedge pivot; the VQI scoring framework and AI-era quality criteria it defined were valid at time of writing but the surface model (tier structure, persona model, nav) has been superseded.

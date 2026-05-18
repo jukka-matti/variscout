@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [vital-few, contribution-percentage, drill-down]
+layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Pareto Chart
@@ -28,6 +33,31 @@ The Pareto reveals:
 - The vital few vs trivial many (80/20 rule)
 - Hidden patterns in "generic scrap buckets"
 - Whether failure modes are being masked
+
+---
+
+## Intent diagram
+
+```
+┌──────────────────────────────────────────────┐
+│ Count                                  Cum % │
+│                                              │
+│ ████                                  ─ ─ ─  │
+│ ████          ╱─────────────────────  100%   │
+│ ████  ████  ╱                                │
+│ ████  ████╱                          ─ 80%─ ─│
+│ ████  ████  ████                             │
+│ ████  ████  ████  ████  ████                 │
+│ ████  ████  ████  ████  ████  ████  Others   │
+│  A     B     C     D     E     F     (≤20)   │
+│                                              │
+│  Sorted ↓ desc      [VariScout n=N]          │
+└──────────────────────────────────────────────┘
+   Bars = category count   Line = cumulative %
+   80% marker = vital-few threshold
+```
+
+`ParetoChartBase` sorts categories descending, draws `<Bar>` for counts and `<LinePath>` for the cumulative-% line on a secondary right axis. The 80% marker is a horizontal guide. Click any bar → `onBarClick(category)` filters the dashboard.
 
 ---
 

@@ -32,6 +32,18 @@ export const STATUS = ['draft', 'active', 'named-future', 'superseded', 'archive
 
 export const AUDIENCE = ['human', 'agent', 'both'];
 
+// === SDD 5-layer authoring stack (2026-05-18) ===
+// L1=Vision · L2=Journeys · L3=Features · L4=Engineering · L5=ADRs · spec=design-spec.
+// `layer:` is optional today (M1 WARN-only); flips to HARD-FAIL after M5.
+
+export const LAYER = ['L1', 'L2', 'L3', 'L4', 'L5', 'spec'];
+
+// `kind:` applies to L3 only and gates the intent-diagram type.
+// ui → ASCII/Mermaid wireframe · workflow → sequence · engine → flowchart/data-flow
+// infrastructure → "no surface" disclosure (see L4 design doc).
+
+export const KIND = ['ui', 'workflow', 'engine', 'infrastructure'];
+
 // === Alias maps for the transitional cycle (old → new) ===
 // Old values warn but pass; after Play 2 they hard-fail.
 
@@ -85,8 +97,20 @@ export const schema = {
       'verified-against-commit',
       'supersedes',
       'date',
+      'layer',
+      'kind',
+      'serves',
+      'last-reviewed',
+      'surfaced-date',
     ],
-    enums: { status: STATUS, audience: AUDIENCE, purpose: PURPOSE, tier: TIER },
+    enums: {
+      status: STATUS,
+      audience: AUDIENCE,
+      purpose: PURPOSE,
+      tier: TIER,
+      layer: LAYER,
+      kind: KIND,
+    },
   },
   adr: {
     required: ['title'],
@@ -102,8 +126,9 @@ export const schema = {
       'verified-against-commit',
       'supersedes',
       'superseded-by',
+      'layer',
     ],
-    enums: { status: STATUS, audience: AUDIENCE, purpose: PURPOSE, tier: TIER },
+    enums: { status: STATUS, audience: AUDIENCE, purpose: PURPOSE, tier: TIER, layer: LAYER },
   },
   spec: {
     required: ['title', 'status'],
@@ -118,8 +143,12 @@ export const schema = {
       'supersedes',
       'date',
       'type',
+      'layer',
+      'implements',
+      'last-reviewed',
+      'delivered-by',
     ],
-    enums: { status: STATUS, audience: AUDIENCE, purpose: PURPOSE, tier: TIER },
+    enums: { status: STATUS, audience: AUDIENCE, purpose: PURPOSE, tier: TIER, layer: LAYER },
   },
 };
 

@@ -5,6 +5,7 @@ title: 'Tableau Competitive Benchmark'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Tableau Competitive Benchmark

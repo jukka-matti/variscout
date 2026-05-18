@@ -6,6 +6,11 @@ audience: human
 category: workflow
 status: active
 related: [question-tree, investigation-phases, investigation-diamond, factor-intelligence]
+layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Question-Driven Investigation Flow

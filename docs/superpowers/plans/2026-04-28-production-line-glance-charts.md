@@ -7,6 +7,7 @@ category: implementation
 status: active
 related: [production-line-glance-design, production-line-glance-engine]
 date: 2026-04-28
+layer: spec
 ---
 
 # Production-Line-Glance — Chart Components Layer (Plan B)

@@ -7,6 +7,7 @@ category: compliance
 status: archived
 related: [teams, accessibility, azure, navigation]
 date: 2026-03-17
+layer: spec
 ---
 
 # Teams App Store + Microsoft Patterns Compliance Audit

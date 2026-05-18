@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: active
 related: [eda-mental-model, methodology, investigation]
+layer: L1
 ---
 
 # EDA Mental Model Reference — Turtiainen (2019)

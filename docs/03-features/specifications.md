@@ -7,6 +7,10 @@ category: reference
 status: active
 last-reviewed: 2026-05-16
 related: [adr-082, product-overview, feature-parity, journey]
+layer: L3
+kind: infrastructure
+serves:
+  - docs/02-journeys/ia-nav-model.md
 ---
 
 # VariScout — Product Spec

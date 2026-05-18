@@ -4,6 +4,7 @@ purpose: decide
 title: 'ADR-044: Architectural Review (March 2026)'
 status: active
 date: 2026-03-23
+layer: L5
 ---
 
 # ADR-044: Architectural Review

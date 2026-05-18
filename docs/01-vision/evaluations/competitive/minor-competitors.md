@@ -5,6 +5,7 @@ title: 'Minor Competitor Profiles'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Minor Competitor Profiles

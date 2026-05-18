@@ -4,6 +4,7 @@ purpose: build
 title: CoScout Intelligence Architecture (ADR-060) Implementation Plan
 status: active
 spec: 2026-04-02-coscout-intelligence-architecture-design.md
+layer: spec
 ---
 
 # CoScout Intelligence Architecture (ADR-060) Implementation Plan

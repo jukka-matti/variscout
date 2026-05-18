@@ -5,6 +5,7 @@ title: 'First-Time Explorer Flow'
 status: draft
 audience: human
 category: workflow
+layer: L2
 ---
 
 # First-Time Explorer Flow

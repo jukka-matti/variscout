@@ -5,6 +5,7 @@ title: 'Flow: Wide-Form Data Analysis'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow: Wide-Form Data Analysis

@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [deployment, azure, infrastructure]
+layer: L4
 ---
 
 # Disaster Recovery

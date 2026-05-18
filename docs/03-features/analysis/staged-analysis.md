@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [before-after, stage-column, intervention]
+layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Staged Analysis

@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-036: No Russian Language Support'
+layer: L5
 ---
 
 # ADR-036: No Russian Language Support

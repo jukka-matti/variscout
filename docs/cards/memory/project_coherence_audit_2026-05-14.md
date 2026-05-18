@@ -19,7 +19,7 @@ origin-session-id: 8a0d548d-3c45-481b-9b1b-61670c23b480
 
 **Trigger:** User reflection "we have nice pieces, but they are not holistically yet here." Triggered 5-agent audit (vision intent / shipped reality / open tensions / persona reality / doc inventory + archaeology) over `~/.claude/plans/lets-reflect-on-what-calm-music.md`.
 
-**Status 2026-05-14:** Sessions A (persona model) + B (surface model + vocabulary) brainstormed and locked. Coherence spec **draft** written at `docs/superpowers/specs/2026-05-14-variscout-coherence-design.md` (status: draft). Session C (pedagogy + first 60s + visual identity + persona-name finalization) pending — when complete, spec moves to `status: accepted`.
+**Status 2026-05-14:** Sessions A (persona model) + B (surface model + vocabulary) brainstormed and locked. Coherence spec **draft** written at `docs/archive/specs/2026-05-14-variscout-coherence-design.md` (status: draft). Session C (pedagogy + first 60s + visual identity + persona-name finalization) pending — when complete, spec moves to `status: accepted`.
 
 ## Headline finding
 
@@ -106,11 +106,11 @@ Brainstorm series via `superpowers:brainstorming`. Three sessions:
 - **Session B — Vocabulary + IA + Journey spine** (Frame→Canvas rename, three-spines reconciliation, Mode/Lens lock)
 - **Session C — Methodology narrative + pedagogy + empty states**
 
-Output: `docs/superpowers/specs/2026-05-14-variscout-coherence-design.md`. Drives 10 downstream plans (P1-P10).
+Output: `docs/archive/specs/2026-05-14-variscout-coherence-design.md`. Drives 10 downstream plans (P1-P10).
 
 ## Critical references
 
-- **Coherence spec (this work's primary deliverable):** `docs/superpowers/specs/2026-05-14-variscout-coherence-design.md` (status: draft; Sessions A+B captured; Session C pending)
+- **Coherence spec (this work's primary deliverable):** `docs/archive/specs/2026-05-14-variscout-coherence-design.md` (status: draft; Sessions A+B captured; Session C pending)
 - Plan file: `~/.claude/plans/lets-reflect-on-what-calm-music.md` (approved 2026-05-14)
 - RACI spec: `docs/superpowers/specs/2026-04-25-engagement-profile-raci-design.md` (draft, defines 5 roles + 6 identity anchors)
 - Vision: `docs/superpowers/specs/2026-05-03-variscout-vision-design.md` (accepted)

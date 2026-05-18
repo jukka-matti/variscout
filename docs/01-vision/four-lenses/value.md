@@ -5,6 +5,7 @@ title: 'VALUE Lens: Capability Histogram'
 audience: human
 category: methodology
 status: active
+layer: L1
 ---
 
 # VALUE Lens: Capability Histogram

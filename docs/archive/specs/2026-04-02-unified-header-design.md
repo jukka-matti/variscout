@@ -8,6 +8,7 @@ audience: human
 category: design-spec
 related: [header, navigation, auto-save, settings, responsive, workspace-tabs]
 supersedes: 2026-04-01-header-redesign-design.md (extends Phase 2)
+layer: spec
 ---
 
 # Unified Header — App + Project Merge

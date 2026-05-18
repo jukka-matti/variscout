@@ -6,6 +6,11 @@ audience: human
 category: data
 status: active
 related: [parser, quality-checks, data-input]
+layer: L3
+kind: engine
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Data Validation

@@ -5,6 +5,7 @@ title: 'Flow 6: Azure App — First Analysis'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow 6: Azure App — First Analysis

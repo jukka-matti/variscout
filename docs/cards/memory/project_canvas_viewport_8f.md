@@ -19,7 +19,7 @@ Closes vision §5.4 — the last unmet vision-spec commitment after PR8 sub-PRs 
 
 ## Status (2026-05-13)
 
-- **Spec** (`status: delivered`): `docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md`.
+- **Spec** (`status: delivered`): `docs/archive/specs/2026-05-13-canvas-viewport-architecture-design.md`.
 - **Plan** (`status: delivered`): `docs/superpowers/plans/2026-05-13-canvas-viewport-architecture.md`.
 - **ADR-081** (`status: accepted`): `docs/07-decisions/adr-081-canvas-viewport-architecture.md`. 5 irreversible commitments.
 - **ADR-074 Amendment 2026-05-13**: Canvas-as-viewport-surface — may embed owner-surface components, may not reimplement.

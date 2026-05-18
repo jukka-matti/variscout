@@ -5,6 +5,7 @@ title: 'Website Content Architecture'
 audience: human
 category: strategy
 status: active
+layer: L5
 ---
 
 # Website Content Architecture

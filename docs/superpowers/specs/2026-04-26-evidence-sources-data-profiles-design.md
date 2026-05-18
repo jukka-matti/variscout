@@ -8,6 +8,12 @@ status: active
 related:
   [process-hub, evidence-sources, data-profiles, snapshots, customer-owned-data, agent-review-log]
 date: 2026-04-26
+layer: spec
+implements:
+  - docs/03-features/data/evidence-sources.md
+  - docs/03-features/data/data-input.md
+  - docs/03-features/data/validation.md
+  - docs/03-features/workflows/hub-creation.md
 ---
 
 # Evidence Sources And Data Profiles

@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-017: Fluent 2 Design Principle Alignment'
+layer: L5
 ---
 
 # ADR-017: Fluent 2 Design Principle Alignment

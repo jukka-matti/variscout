@@ -6,6 +6,7 @@ audience: human
 category: implementation
 status: active
 related: [zustand, feature-sliced-design, adr-041, adr-045]
+layer: L4
 ---
 
 # Feature Module Guide

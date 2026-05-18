@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-011: AI Development Tooling (ruflo)'
+layer: L5
 ---
 
 # ADR-011: AI Development Tooling (ruflo)

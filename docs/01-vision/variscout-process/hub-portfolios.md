@@ -1,15 +1,18 @@
 ---
+tier: stable
+purpose: orient
 title: 'Hub portfolios — multi-hub orchestration + drill semantics'
-audience: [product, engineer, designer]
+audience: human
 category: strategy
 status: named-future
 last-reviewed: 2026-05-17
 parent: docs/01-vision/variscout-process/index.md
 related:
-  - docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md
-  - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
+  - docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md
+  - docs/archive/specs/2026-04-29-multi-level-scout-design.md
   - docs/superpowers/specs/2026-04-28-production-line-glance-design.md
   - docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md
+layer: L1
 ---
 
 # Hub portfolios — multi-hub orchestration + drill semantics
@@ -131,7 +134,7 @@ The Process Owner's primary daily action is scanning the Process tab State mode 
 
 ## §8 Cross-references
 
-- The four drill operations are originally specified in [Investigation Scope and Drill Semantics §3](../../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md). The named-future portions (Drill C, Org Hub-of-Hubs) are captured here.
+- The four drill operations are originally specified in [Investigation Scope and Drill Semantics §3](../../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md). The named-future portions (Drill C, Org Hub-of-Hubs) are captured here.
 - The Hub-of-hubs aggregation rule is locked by [ADR-073](../../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md) (no statistical rollup across heterogeneous units).
-- The multi-level architecture that drills operate on lives in [methodology.md](methodology.md) and [Multi-level SCOUT spec](../../superpowers/specs/2026-04-29-multi-level-scout-design.md).
+- The multi-level architecture that drills operate on lives in [methodology.md](methodology.md) and [Multi-level SCOUT spec](../../archive/specs/2026-04-29-multi-level-scout-design.md).
 - The per-`(node × context)` Cpk engine that Drill A renders is the production-line-glance engine — see [Production Line Glance design](../../superpowers/specs/2026-04-28-production-line-glance-design.md).

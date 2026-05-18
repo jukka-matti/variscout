@@ -7,6 +7,7 @@ category: architecture
 status: active
 date: 2026-03-16
 related: [staged-analysis, findings, investigation-workflow, ai-context]
+layer: L5
 ---
 
 # ADR-023: Verification Experience — Data Lifecycle, Staged Comparison, and the "Did It Work?" Interaction

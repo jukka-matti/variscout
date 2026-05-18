@@ -56,6 +56,13 @@ pnpm --filter @variscout/core test
 
 Float assertions use `toBeCloseTo(expected, precision)`. NIST regression tests in `src/stats/__tests__/nistLongley.test.ts` validate the OLS QR solver against Minitab/JMP reference outputs to 9 significant digits — never weaken the threshold. Two-pass best-subsets only screens interactions among Pass-1 winners (hierarchical constraint per ADR-067) — never enumerate all factor pairs.
 
+## Core sub-domains
+
+Agents searching code may miss these — they live in `core` despite "package-like" names:
+
+- `src/ai/` — CoScout prompts + 5 V1 response paths; entry: `assembleCoScoutPrompt()`. ADR-080 (Sustainment auto-fire).
+- `src/projectMembership/` — pure-TS ACL: `canAccess()`, `ROLE_PERMISSIONS`, `ProjectAction` union. Pairs with `useProjectMembershipStore` per wedge V1 (ADR-082). Used by both PWA + Azure.
+
 ## Related
 
 - ADR-045 Modular architecture (DDD-lite)

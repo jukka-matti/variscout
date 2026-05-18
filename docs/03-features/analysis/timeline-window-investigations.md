@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [multi-level-dashboard, capability, process-hub-capability, staged-analysis]
+layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Timeline Windows in Investigations
@@ -49,6 +54,31 @@ Override the default at any time via the picker in the dashboard chrome. The cho
 
 ---
 
+## Intent diagram
+
+```mermaid
+sequenceDiagram
+  actor Analyst
+  participant Picker as TimelineWindowPicker
+  participant Hook as useTimelineWindow
+  participant Router as strategy.dataRouter
+  participant Metrics as capability/throughput/drift
+  participant Finding
+  Analyst->>Picker: pick kind (fixed/rolling/open-ended/cumulative)
+  Picker->>Hook: setWindow(TimelineWindow)
+  Hook->>Router: window + raw rows
+  Router->>Router: applyWindow(rows, window)
+  Router->>Metrics: filtered rows
+  Metrics-->>Analyst: charts update
+  Analyst->>Finding: save Finding
+  Finding->>Finding: record WindowContext
+  Note over Finding: later re-open
+  Finding->>Finding: computeFindingWindowDrift vs current
+  Finding-->>Analyst: drift flag if Δ > 20%
+```
+
+---
+
 ## How the choice flows through
 
 1. The picker writes to the active investigation (or the hub-time surface) via `useTimelineWindow`.
@@ -72,6 +102,6 @@ The window is the same primitive used by re-upload (append-mode merge) so additi
 
 - [Multi-Level Dashboard](multi-level-dashboard.md) — how SCOUT spans levels and where the timeline picker sits.
 - [Timeline Window Architecture](../../05-technical/architecture/timeline-window-architecture.md) — the engineer-facing contract.
-- [Multi-level SCOUT design spec](../../superpowers/specs/2026-04-29-multi-level-scout-design.md) — full design context.
+- [Multi-level SCOUT design spec](../../archive/specs/2026-04-29-multi-level-scout-design.md) — full design context.
 - [ADR-074](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md) — surface boundary policy.
 - [Staged Analysis](staged-analysis.md) — the related but distinct "phases inside one window" pattern.

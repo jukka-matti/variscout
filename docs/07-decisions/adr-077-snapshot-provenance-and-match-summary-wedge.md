@@ -10,6 +10,7 @@ related:
   - adr-073-no-statistical-rollup-across-heterogeneous-units
   - adr-074-scout-level-spanning-surface-boundary-policy
   - archive/specs/2026-05-03-framing-layer-design
+layer: L5
 ---
 
 # ADR-077: Snapshot-level provenance + match-summary wedge for paste-into-existing-Hub

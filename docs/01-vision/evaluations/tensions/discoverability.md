@@ -5,6 +5,7 @@ title: 'Discoverability'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Discoverability

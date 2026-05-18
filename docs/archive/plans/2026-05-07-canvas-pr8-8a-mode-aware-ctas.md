@@ -10,6 +10,7 @@ related:
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
   - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/investigations.md
+layer: spec
 ---
 
 > **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The PR8-8a mode-aware CTAs plan implemented a 5-path tier-gating model; the wedge retired tier-gating (single €120 SKU) and reduced canvas-drill to 3 paths. The PR delivered (wedge PR-WV1-4 retired the tier-gate and per-persona-mode logic).

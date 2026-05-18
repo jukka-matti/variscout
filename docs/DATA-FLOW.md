@@ -1,8 +1,10 @@
 ---
+tier: living
+purpose: system
 title: VariScout Data Lifecycle
-audience: [engineer]
+audience: human
 category: architecture
-status: stable
+status: active
 last-reviewed: 2026-05-17
 related: [data-flow, persistence, sync, customer-owned, blob-storage, indexeddb, easyauth]
 ---

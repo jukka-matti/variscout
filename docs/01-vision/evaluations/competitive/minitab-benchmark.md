@@ -5,6 +5,7 @@ title: 'Minitab Competitive Benchmark'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Minitab Competitive Benchmark

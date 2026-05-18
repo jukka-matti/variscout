@@ -5,6 +5,7 @@ title: 'Azure App (Primary Product)'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Azure App (Primary Product)

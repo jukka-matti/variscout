@@ -2,6 +2,7 @@
 tier: stable
 purpose: remember
 title: 'ADR-064: SuspectedCause Hub Model & Investigation Reframing'
+layer: L5
 ---
 
 > **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). The SuspectedCause _concept_ survives — it anchors the Approach stage hierarchy in V1 (per wedge spec §3.2). What retires is the Hub-as-foundational framing: multi-Hub process-learning migrates to **VariScout Process**, the future enterprise product. Wedge V1 uses Project as the foundational unit; suspected causes live within a project's Approach stage.

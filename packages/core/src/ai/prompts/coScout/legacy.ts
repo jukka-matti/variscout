@@ -1189,7 +1189,7 @@ In-control: ${cs.cpkInControl}/${cs.subgroupCount} subgroups`;
     capSection += `
 
 Interpretation guidance:
-- If ALL subgroups in control → capability is stable, overall Ppk is representative
+- If ALL subgroups in control → capability is stable, overall Cpk is representative
 - If subgroups OUT OF CONTROL → capability is shifting; investigate WHICH subgroups and WHEN
 - Large Cp-Cpk gap → process is capable but off-center; investigate centering drift
 - Low Cpk with high Cp → the spread is fine, the mean is shifting

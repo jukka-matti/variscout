@@ -2,6 +2,7 @@
 tier: stable
 purpose: remember
 title: 'ADR-006: Edition System'
+layer: L5
 ---
 
 # ADR-006: Edition System

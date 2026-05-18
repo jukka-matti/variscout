@@ -10,6 +10,7 @@ related:
   - multi-level-scout-design
   - investigation-scope-and-drill-semantics
   - adr-074-scout-level-spanning-surface-boundary-policy
+layer: spec
 ---
 
 # Multi-level SCOUT V1 — Load-Bearing Decisions
@@ -99,7 +100,7 @@ export interface ProcessHubInvestigationMetadata {
 
 - **Deferred to:** Task 7 (Router Implementation)
 - **Lock point:** The router API will accept either the resolved `SpecRule` directly or a lookup tuple + resolver function. The shape is determined by how `dataRouter` is called from the strategy layer.
-- **Reference:** `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §4 defines lookup keys as `Record<string, string | null>`.
+- **Reference:** `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §4 defines lookup keys as `Record<string, string | null>`.
 
 ### Ambiguity #3: `ChartVariantId` taxonomy
 
@@ -117,7 +118,7 @@ export interface ProcessHubInvestigationMetadata {
 
 ## Related Documents
 
-- Spec: `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md`
-- Scope spec: `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md`
+- Spec: `docs/archive/specs/2026-04-29-multi-level-scout-design.md`
+- Scope spec: `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md`
 - Implementation plan: `docs/superpowers/plans/2026-04-29-multi-level-scout-v1.md`
 - Boundary policy (ADR-074): `docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md`

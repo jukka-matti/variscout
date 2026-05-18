@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: orient
 title: 'V1-vs-Process scope line — feature boundary'
-audience: [product, designer, engineer]
+audience: human
 category: strategy
 status: named-future
 last-reviewed: 2026-05-17
@@ -8,8 +10,9 @@ parent: docs/01-vision/variscout-process/index.md
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/superpowers/specs/2026-04-28-production-line-glance-design.md
-  - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
-  - docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md
+  - docs/archive/specs/2026-04-29-multi-level-scout-design.md
+  - docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md
+layer: L1
 ---
 
 # V1-vs-Process scope line — feature boundary
@@ -103,12 +106,12 @@ These do not exist in V1 code and have no V1 surface. They activate only in Proc
 
 | Capability                                                                   | Source spec                                                                                                                                                                                                                                                       | One sentence                                                                                                                    |
 | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **4-persona model** (Process Owner / Process Engineer / Specialist / Leader) | [Coherence §3](../../superpowers/specs/2026-05-14-variscout-coherence-design.md), [four-personas.md](four-personas.md)                                                                                                                                            | Persona-aware tenant routing replaces the V1 single-Specialist model.                                                           |
+| **4-persona model** (Process Owner / Process Engineer / Specialist / Leader) | [Coherence §3](../../archive/specs/2026-05-14-variscout-coherence-design.md), [four-personas.md](four-personas.md)                                                                                                                                                | Persona-aware tenant routing replaces the V1 single-Specialist model.                                                           |
 | **Process Measurement System (PMS)**                                         | [Evidence Sources spec](../../superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md), [Consolidated method §4](../../archive/specs/2026-04-29-consolidated-method-and-surface-overview-design.md), [measurement-system.md](measurement-system.md) | Stable measure definitions + Evidence Sources + Snapshots + cadence rules combining into Current Process State.                 |
 | **Auto-ingestion pipelines** (sensor / SCADA / ERP / hourly feeds)           | [Evidence Sources spec](../../superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md), [pipelines.md](pipelines.md)                                                                                                                                | Automated recurring evidence feeding Hub-level storage. V1 is paste / file only.                                                |
 | **Multi-source profile join** at Hub scale                                   | [Framing Layer spec](../../archive/specs/2026-05-03-variscout-vision-design.md), [pipelines.md](pipelines.md)                                                                                                                                                     | Multiple sources contributing to one canonical map via Data Profiles. V1's MatchSummary primitives operate per-project.         |
 | **Process Owner monitoring dashboard**                                       | [Vision spec §5](../../archive/specs/2026-05-03-variscout-vision-design.md), [monitoring.md](monitoring.md)                                                                                                                                                       | State-mode cadence-review surface separate from the per-project Process tab — Hub-overview shape, drift signals, alert routing. |
-| **Hub-of-hubs portfolio view**                                               | [Investigation scope spec §6](../../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md), [hub-portfolios.md §3](hub-portfolios.md)                                                                                                    | Plant > Line > Station rendered as side-by-side child Hub cards. Per-Hub local computation, never cross-Hub arithmetic.         |
+| **Hub-of-hubs portfolio view**                                               | [Investigation scope spec §6](../../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md), [hub-portfolios.md §3](hub-portfolios.md)                                                                                                        | Plant > Line > Station rendered as side-by-side child Hub cards. Per-Hub local computation, never cross-Hub arithmetic.         |
 | **Knowledge Catalyst at Hub scale**                                          | [Wedge spec §7](../../superpowers/specs/2026-05-16-wedge-architecture-design.md)                                                                                                                                                                                  | Cross-project pattern memory federated across an org's full process portfolio.                                                  |
 | **Gage R&R / formal MSA workflow**                                           | [Wedge spec §3.6.5](../../superpowers/specs/2026-05-16-wedge-architecture-design.md)                                                                                                                                                                              | Measurement-system-assessment UI + MSA calculator. V1's `msaRequired?` flag is informational only.                              |
 | **Statistical sample-size calculator**                                       | [Wedge spec §3.6.5](../../superpowers/specs/2026-05-16-wedge-architecture-design.md)                                                                                                                                                                              | Power-analysis helper for Measurement Plans. V1 sample size is manual entry.                                                    |

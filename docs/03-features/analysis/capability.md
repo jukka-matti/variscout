@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [cpk, cp, normal-distribution, sigma-estimation, specification-limits]
+layer: L3
+kind: engine
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Capability Analysis
@@ -15,6 +20,25 @@ related: [cpk, cp, normal-distribution, sigma-estimation, specification-limits]
 > **Journey phase:** SCOUT (VALUE lens) — specification-aware comparison to customer requirements.
 
 Capability Analysis is VariScout's tool for the **VALUE** lens - comparing process output to customer specifications.
+
+---
+
+## Intent diagram
+
+```mermaid
+flowchart LR
+    Data[Numeric values + USL/LSL/target] --> MR["Moving range MR-bar"]
+    MR --> Sigma["sigma_within = MR-bar / d2 (d2=1.128)"]
+    Data --> Mean[Mean]
+    Sigma --> Cp["Cp = (USL - LSL) / (6 sigma_within)"]
+    Sigma --> Cpk["Cpk = min(CPU, CPL)"]
+    Mean --> Cpk
+    Cpk --> Resolve[resolveCpkTarget cascade]
+    Resolve --> Grade["gradeCpk -> green / amber / red"]
+    Cp --> Stats[Capability result]
+    Cpk --> Stats
+    Grade --> Bar[ProcessHealthBar + chart banding]
+```
 
 ---
 

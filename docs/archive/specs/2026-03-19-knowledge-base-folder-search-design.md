@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [knowledge-base, sharepoint, coscout, adr-026]
+layer: spec
 ---
 
 # Knowledge Base: Document Upload, Folder Selection & Permissions

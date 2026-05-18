@@ -4,10 +4,14 @@ purpose: design
 title: 'Engineer Eeva'
 audience: human
 category: workflow
-status: active
+status: named-future
+layer: L2
+last-reviewed: 2026-05-18
 ---
 
 # Engineer Eeva
+
+> **Legacy V0 persona** — named-future for **VariScout Process** (future enterprise tier). V1 wedge uses 3 in-project personas (Lead / Member / Sponsor); see [`personas/`](.). Retained as historical reference.
 
 | Attribute         | Detail                                                                                                                          |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |

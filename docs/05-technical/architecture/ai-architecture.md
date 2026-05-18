@@ -7,6 +7,7 @@ category: architecture
 status: active
 scope: System architecture, packages, auth, ARM, data flow, hook composition, cost controls, testing
 related: [ai-journey-integration, ai-context-engineering, aix-design-system, knowledge-model]
+layer: L4
 ---
 
 # AI Architecture

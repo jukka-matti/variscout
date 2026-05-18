@@ -7,6 +7,7 @@ category: methodology
 status: active
 last-reviewed: 2026-05-16
 related: [adr-082, philosophy, positioning, specifications, feature-parity, journey]
+layer: L1
 ---
 
 # VariScout: Product Overview
@@ -154,7 +155,7 @@ variscout-lite/
 │   ├── charts/            # @variscout/charts - Visx chart components
 │   ├── data/              # @variscout/data - Sample datasets with pre-computed chart data
 │   ├── hooks/             # @variscout/hooks - Shared React hooks
-│   ├── stores/            # @variscout/stores - 6 Zustand stores across 3 layers (ADR-078)
+│   ├── stores/            # @variscout/stores - 9 Zustand stores across 3 layers (ADR-078)
 │   └── ui/                # @variscout/ui - Shared UI components
 ├── apps/
 │   ├── pwa/               # PWA (React + Vite) — free training tool, session-only

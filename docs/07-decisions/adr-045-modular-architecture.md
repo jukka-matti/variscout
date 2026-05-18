@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-045: Modular Architecture — DDD-Lite with Feature-Sliced Design'
+layer: L5
 ---
 
 # ADR-045: Modular Architecture — DDD-Lite with Feature-Sliced Design

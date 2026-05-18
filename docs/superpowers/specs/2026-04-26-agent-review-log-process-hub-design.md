@@ -16,6 +16,11 @@ related:
     customer-owned-data,
   ]
 date: 2026-04-26
+layer: spec
+implements:
+  - docs/01-vision/methodology.md
+  - docs/03-features/data/evidence-sources.md
+  - docs/03-features/workflows/hub-creation.md
 ---
 
 # Agent Review Log Profile

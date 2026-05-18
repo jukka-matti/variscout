@@ -7,6 +7,7 @@ category: methodology
 status: active
 last-reviewed: 2026-05-16
 related: [adr-082, product-overview, positioning, pricing, feature-parity]
+layer: L1
 ---
 
 # Market Analysis & TAM Estimate

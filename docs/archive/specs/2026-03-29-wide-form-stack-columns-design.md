@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [column-mapping, parser, data-ingestion, performance-mode]
+layer: spec
 ---
 
 # Wide-Form Data Support — Stack Columns

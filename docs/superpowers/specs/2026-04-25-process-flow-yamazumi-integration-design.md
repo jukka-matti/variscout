@@ -18,6 +18,12 @@ related:
     improvement,
   ]
 date: 2026-04-25
+layer: spec
+implements:
+  - docs/01-vision/methodology.md
+  - docs/03-features/analysis/yamazumi.md
+  - docs/03-features/workflows/process-maps.md
+  - docs/03-features/workflows/improvement-workspace.md
 ---
 
 # Process Flow + Yamazumi Integration
@@ -53,7 +59,7 @@ This spec makes the connection explicit and grounds the Finlandia "discovered pr
 - IMPROVE runs kaizen/PDCA and verifies with lean metrics.
 
 The investigation behavior is specified further in
-[Question-Driven EDA 2.0](2026-04-25-question-driven-eda-2-design.md):
+[Question-Driven EDA 2.0](../../archive/specs/2026-04-25-question-driven-eda-2-design.md):
 Process Flow and Yamazumi outputs should become clues and next moves inside
 Mechanism Branches, not isolated chart-mode artifacts.
 

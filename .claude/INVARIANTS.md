@@ -156,7 +156,7 @@ Enforcement tiers:
 
 ### Architecture shape
 
-- **6 Zustand stores across 3 layers** — Document (×3): `useProjectStore`, `useInvestigationStore`, `useCanvasStore`; Annotation (×2): `useCanvasViewportStore`, `usePreferencesStore`, `useActiveIPStore`; View (×1): `useViewStore`. No DataContext.
+- **9 Zustand stores across 3 layers** — Document (×4): `useProjectStore`, `useInvestigationStore`, `useCanvasStore`, `useImprovementProjectStore`; Annotation (×4): `useCanvasViewportStore` (per-hub), `usePreferencesStore` (per-user), `useActiveIPStore` (per-user), `useProjectMembershipStore` (per-user); View (×1): `useViewStore`. No DataContext.
   - Canonical: [ADR-078](../docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md) + `packages/stores/CLAUDE.md`.
   - Enforced: `packages/stores/src/__tests__/layerBoundary.test.ts` (structural-absence guard on layer names).
 
@@ -177,8 +177,20 @@ Enforcement tiers:
   - Enforced: convention + code review.
 
 - **Strategy pattern for modes** — `resolveMode()` + `getStrategy()` is the sole source of truth for mode-specific behavior. No cascading mode ternaries.
-  - Canonical: [Constitution §10](../docs/01-vision/constitution.md) + `packages/core/CLAUDE.md`.
+  - Canonical: [Constitution §15](../docs/01-vision/constitution.md) + `packages/core/CLAUDE.md`.
   - Enforced: convention + code review.
+
+### Visual design
+
+VariScout V1 uses **only light shades** in the UI palette:
+
+- **Surfaces**: Tailwind 50-300 utilities (`bg-blue-100`, `bg-stone-200`, etc.) — no 700+ fills.
+- **Text + strokes**: Tailwind 400-700 utilities, paired with darker text (600-800) for accessibility per [`feedback_green_400_light_contrast`](../docs/cards/memory/feedback_green_400_light_contrast.md).
+- **No dark mode in V1.** Re-evaluate post-wedge.
+- **No deep-saturated fills.** Clinical/paper-document feel.
+
+Canonical homes: [Constitution §V1 Wedge Principles](../docs/01-vision/constitution.md) + [`packages/ui/CLAUDE.md`](../packages/ui/CLAUDE.md) §Color discipline.
+Enforcement: convention-only today (M5 may add a Steward grep check for Tailwind 700+ surface utilities).
 
 ### Chart components (soft)
 

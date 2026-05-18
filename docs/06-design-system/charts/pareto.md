@@ -5,6 +5,7 @@ title: 'Pareto Charts'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Pareto Charts

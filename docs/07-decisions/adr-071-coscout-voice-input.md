@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-071: CoScout Voice Input'
+layer: L5
 ---
 
 # ADR-071: CoScout Voice Input

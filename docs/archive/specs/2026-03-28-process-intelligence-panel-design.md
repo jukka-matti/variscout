@@ -7,6 +7,7 @@ status: superseded
 audience: human
 category: design-spec
 related: [stats-panel, what-if, target-discovery, sidebar, process-health-bar]
+layer: spec
 ---
 
 # Process Intelligence Panel

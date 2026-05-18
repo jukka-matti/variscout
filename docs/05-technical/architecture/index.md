@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [monorepo, offline-first, data-flow, ai-architecture]
+layer: L4
 ---
 
 # Architecture Documentation

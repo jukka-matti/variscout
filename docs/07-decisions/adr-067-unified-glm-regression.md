@@ -4,6 +4,7 @@ purpose: decide
 title: 'ADR-067: Unified GLM Regression Engine'
 status: active
 date: 2026-04-05
+layer: L5
 ---
 
 # ADR-067: Unified GLM Regression Engine

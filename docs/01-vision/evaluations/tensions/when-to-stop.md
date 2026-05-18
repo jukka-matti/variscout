@@ -5,6 +5,7 @@ title: 'When to Stop'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # When to Stop

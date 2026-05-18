@@ -3,6 +3,7 @@ tier: stable
 purpose: remember
 title: Analysis Flow Documentation + Capability Mode Features
 status: draft
+layer: spec
 ---
 
 # Analysis Flow Documentation + Capability Mode Features

@@ -13,6 +13,7 @@ related:
   - docs/archive/plans/2026-05-06-canvas-pr4c-pr6-followup.md
   - docs/decision-log.md
   - docs/investigations.md
+layer: spec
 ---
 
 # Canvas Migration PR8 — Vision Alignment Master Plan
@@ -131,7 +132,7 @@ Two bundled sub-items per the canvas migration spec table (8b absorbs 8c per the
 
 ### 8d — Hypothesis-arrow drawing affordance (~8 tasks) — plan at [`2026-05-07-canvas-pr8-8d-hypothesis-arrow-drawing.md`](2026-05-07-canvas-pr8-8d-hypothesis-arrow-drawing.md)
 
-> **Status (2026-05-08):** SHIPPED via PR #140 (merge commit `dfcab3c4`). Design lock at [`docs/superpowers/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md`](../specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md) (Spec 4 extension); 8-task TDD-shaped implementation plan executed via `superpowers:subagent-driven-development` per master plan D6. Notable spec deviations from this master-plan summary: Q6 — tool placement is top-level + mode-agnostic, NOT mode-2 toolbar; Q7 — active-tool state is View, NOT Annotation.
+> **Status (2026-05-08):** SHIPPED via PR #140 (merge commit `dfcab3c4`). Design lock at [`docs/archive/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md`](../../archive/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md) (Spec 4 extension); 8-task TDD-shaped implementation plan executed via `superpowers:subagent-driven-development` per master plan D6. Notable spec deviations from this master-plan summary: Q6 — tool placement is top-level + mode-agnostic, NOT mode-2 toolbar; Q7 — active-tool state is View, NOT Annotation.
 
 Vision §3.4: _"users may optionally draw a hypothesis arrow from one column (or one step) to another."_ Mode-2 (structural authoring) toolbar gains a "Draw hypothesis" tool. Click source step/column → drag → release on target → opens an inline form ("I suspect [X] affects [Y]" + free-text `because...`). Promoted (evidence-crossed-threshold) → node markers ON the affected step. Draft → faint dashed arrows (current `useCanvasInvestigationOverlays` already projects `CausalLink`s as faint arrows; that read-side stays).
 

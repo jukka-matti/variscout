@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'PR-WV1-4 — Canvas Response Paths (5→3) + Handoff Retirement'
 status: draft
 last-reviewed: 2026-05-16
@@ -7,6 +9,7 @@ related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md
   - docs/07-decisions/adr-082-wedge-architecture.md
+layer: spec
 ---
 
 # PR-WV1-4 — Canvas Response Paths (5→3) + Handoff Retirement Implementation Plan

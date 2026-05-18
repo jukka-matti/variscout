@@ -22,6 +22,12 @@ related:
     coscout,
     question-driven-eda,
   ]
+layer: spec
+implements:
+  - docs/01-vision/coscout-ax-design.md
+  - docs/01-vision/eda-mental-model.md
+  - docs/03-features/ai/coscout.md
+  - docs/03-features/workflows/knowledge-base-search.md
 ---
 
 # CoScout Intelligence Architecture

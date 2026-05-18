@@ -9,6 +9,7 @@ last-reviewed: 2026-05-07
 related:
   - docs/superpowers/plans/2026-05-07-data-flow-foundation-f4-three-layer-state.md
   - docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
+layer: spec
 ---
 
 # F4 audit replay — 2026-05-07

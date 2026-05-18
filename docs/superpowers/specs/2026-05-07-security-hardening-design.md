@@ -16,6 +16,11 @@ related:
   - docs/07-decisions/adr-079-etag-optimistic-concurrency-paid-tier-hub-writes.md
   - docs/08-products/azure/security-whitepaper.md
   - docs/decision-log.md
+layer: spec
+implements:
+  - docs/01-vision/constitution.md
+  - docs/03-features/data/acl.md
+  - docs/03-features/data/cloud-sync.md
 ---
 
 # Security Hardening Concept — Azure VariScout

@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [methodology, journey, investigation, ai, report]
+layer: L4
 ---
 
 # The Journey Model

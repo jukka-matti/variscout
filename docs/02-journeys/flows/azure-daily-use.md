@@ -5,6 +5,7 @@ title: 'Flow 7: Azure App — Daily Use'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow 7: Azure App — Daily Use

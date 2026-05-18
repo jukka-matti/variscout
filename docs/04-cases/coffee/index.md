@@ -5,6 +5,7 @@ title: 'Coffee Washing Station Case'
 audience: human
 category: learning
 status: active
+layer: L1
 ---
 
 # Coffee Washing Station Case

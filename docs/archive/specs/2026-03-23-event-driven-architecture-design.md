@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: superseded
 related: [domain-events, strategy-pattern, eslint-boundaries, zustand, mitt]
+layer: spec
 ---
 
 # Event-Driven Architecture Transition

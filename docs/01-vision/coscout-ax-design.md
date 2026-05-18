@@ -7,6 +7,7 @@ topic: [ax, coscout, design]
 status: active
 related: [adr-060, adr-068, adr-069, coscout-prompts-invariant]
 last-verified: 2026-05-16
+layer: L1
 ---
 
 # CoScout AX Design (canonical)
@@ -34,11 +35,11 @@ CoScout is an **investigator, not an analyst**. Voice principles:
 
 V1 has 3 project-membership roles (Lead / Member / Sponsor — per `2026-05-16-wedge-architecture-design`). CoScout adapts the framing (not the analysis) per role:
 
-| Active role  | Tone adjustment                                                                                                                                            |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Lead**     | Methodology-coaching tone: surfaces next-step suggestions framed as questions ("Have we checked stability before capability?"); references the three-level methodology model when context allows. |
-| **Member**   | Task-completion tone: surfaces actionable next steps in second person ("Pick the Y you care about; I'll wait."); collapses methodology framing into one-line context.                              |
-| **Sponsor**  | Outcome-framed summaries: leads with "Here's where the project stands" + improvement-magnitude framing; suppresses tool-action prompts (Sponsor is read-only by ACL).                             |
+| Active role | Tone adjustment                                                                                                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Lead**    | Methodology-coaching tone: surfaces next-step suggestions framed as questions ("Have we checked stability before capability?"); references the three-level methodology model when context allows. |
+| **Member**  | Task-completion tone: surfaces actionable next steps in second person ("Pick the Y you care about; I'll wait."); collapses methodology framing into one-line context.                             |
+| **Sponsor** | Outcome-framed summaries: leads with "Here's where the project stands" + improvement-magnitude framing; suppresses tool-action prompts (Sponsor is read-only by ACL).                             |
 
 Role-detection is via active `ProjectMember.role` (per ADR-082's ACL model). Default to Member tone if role is ambiguous (e.g., user is viewing a project they don't belong to, read-only paths).
 

@@ -5,6 +5,7 @@ title: 'Supplier Performance Comparison'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Supplier Performance Comparison

@@ -1,10 +1,13 @@
 ---
+tier: stable
+purpose: orient
 title: Membership Philosophy
-audience: [analyst, engineer, business]
+audience: human
 category: reference
-status: stable
+status: active
 last-reviewed: 2026-05-17
 related: [access-control, project-membership, acl, single-sku]
+layer: L5
 ---
 
 # Membership Philosophy

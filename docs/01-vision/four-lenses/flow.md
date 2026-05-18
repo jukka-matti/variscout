@@ -5,6 +5,7 @@ title: 'FLOW Lens: Boxplot'
 audience: human
 category: methodology
 status: active
+layer: L1
 ---
 
 # FLOW Lens: Boxplot

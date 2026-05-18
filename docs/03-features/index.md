@@ -6,10 +6,10 @@ audience: human
 category: reference
 status: active
 related: [analysis, workflows, data, navigation, learning]
----
-
-> **⚠️ Queued for V1 rewrite (Phase C.3)** — see [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. feature index reframes from persona/tier organization to single-product view; tier-gating table retires. Full content rewrite queued for Phase C.3 batch 4 (subagent-driven).
-
+layer: L3
+kind: infrastructure
+serves:
+  - docs/02-journeys/ia-nav-model.md
 ---
 
 # Features
@@ -104,11 +104,25 @@ How users explore and filter data:
 
 Data handling and storage:
 
-| Feature                          | Description             |
-| -------------------------------- | ----------------------- |
-| [Data Input](data/data-input.md) | File upload and parsing |
-| [Validation](data/validation.md) | Data quality checks     |
-| [Storage](data/storage.md)       | IndexedDB persistence   |
+| Feature                                      | Description                                   |
+| -------------------------------------------- | --------------------------------------------- |
+| [Data Input](data/data-input.md)             | File upload and parsing                       |
+| [Validation](data/validation.md)             | Data quality checks                           |
+| [Storage](data/storage.md)                   | IndexedDB persistence                         |
+| [Cloud Sync](data/cloud-sync.md)             | Azure Blob persistence + team-tier sync       |
+| [ETag Concurrency](data/etag-concurrency.md) | Optimistic concurrency control for hub writes |
+| [Access Control](data/acl.md)                | Per-project Lead/Member/Sponsor ACLs          |
+
+---
+
+## Architecture Layers
+
+Cross-cutting infrastructure capabilities:
+
+| Layer                                 | Description                                             |
+| ------------------------------------- | ------------------------------------------------------- |
+| [Stores Overview](stores-overview.md) | 9 Zustand stores across 3 layers per ADR-078 + F4       |
+| [Hooks Overview](hooks-overview.md)   | `@variscout/hooks` — shared React hooks bridging layers |
 
 ---
 

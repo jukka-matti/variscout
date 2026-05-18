@@ -5,6 +5,7 @@ title: 'Evaluations: Progressive Stratification Tensions & Patterns'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Evaluations: Progressive Stratification Tensions & Patterns

@@ -6,6 +6,11 @@ audience: human
 category: workflow
 status: active
 related: [monitoring, shift-check, i-chart]
+layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Quick Check Workflow
@@ -13,6 +18,24 @@ related: [monitoring, shift-check, i-chart]
 <!-- journey-phase: scout -->
 
 A 5-minute analysis pattern for daily/shift-level monitoring.
+
+## Intent diagram
+
+```mermaid
+flowchart LR
+    Paste[Paste data<br/>2 actions] --> Analyze[Analyze<br/>1 click]
+    Analyze --> Map[Map columns<br/>3 clicks]
+    Map --> IChart{I-Chart<br/>any reds?}
+    IChart -->|no| Cpk{Cpk vs target}
+    IChart -->|yes| Alert[ALERT: stop +<br/>document + escalate]
+    Cpk -->|≥ 1.33| OK[Log OK +<br/>continue]
+    Cpk -->|1.0 – 1.33| Yellow[Monitor:<br/>increase cadence]
+    Cpk -->|< 1.0| Alert
+    OK --> Boxplot[Boxplot scan<br/>unexpected η²?]
+    Boxplot --> Pareto[Pareto scan<br/>new defect?]
+```
+
+Five-step pattern: I-Chart → Capability → Boxplot → Pareto → Document. Green/Yellow/Red escalation gates branch out from Cpk and I-Chart reads.
 
 <div class="process-map">
   <div class="process-step">

@@ -18,6 +18,7 @@ related:
     adr-070,
   ]
 date: 2026-04-27
+layer: spec
 ---
 
 > **⚠️ Archived 2026-05-16** — superseded by the [wedge pivot](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). Three-band visual language (Outcome / Process Flow / Operations) is realized as Canvas L1/L2/L3 viewport architecture per [ADR-081](../../07-decisions/adr-081-canvas-viewport-architecture.md) + wedge spec §3.3.3/§3.3.5. Hub-level multi-process portfolio scope retires; defers to **VariScout Process**.

@@ -13,6 +13,7 @@ related:
   - adr-076-frame-b0-lightweight-render
   - adr-078-pwa-azure-architecture-alignment
   - canvas-viewport-architecture-design
+layer: L5
 ---
 
 # ADR-081: Canvas viewport architecture — levels-as-pan/zoom (8f)
@@ -27,7 +28,7 @@ Vision spec §5.4 commits the Canvas surface to express the three methodology le
 
 Today the Canvas is a DOM grid with `overflow: auto` scroll. The only pan/zoom in the product lives inside the Investigation Wall (`WallCanvas` → CSS transform on an SVG `<g>`, state in `wallLayoutStore`). Three levels exist in our methodology (defined in `docs/01-vision/methodology.md` §2.1) but live on three different surfaces (SCOUT for L1, Hub Capability + Canvas for L2, Evidence Map + Wall for L3). There is no unified pan/zoom navigation between them.
 
-A 2026-05-13 brainstorm session locked the architecture for 8f. This ADR codifies the **irreversible commitments** from that brainstorm. UX-level details (exact LOD threshold values, animation timing, field lists per level) live in the design spec `docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md` and are tunable in chrome walks.
+A 2026-05-13 brainstorm session locked the architecture for 8f. This ADR codifies the **irreversible commitments** from that brainstorm. UX-level details (exact LOD threshold values, animation timing, field lists per level) live in the design spec `docs/archive/specs/2026-05-13-canvas-viewport-architecture-design.md` and are tunable in chrome walks.
 
 ## Decision
 
@@ -115,7 +116,7 @@ This scope boundary is locked at the ADR level because reopening it would invali
 
 - Vision spec §5.4 + §2.1 + §3.1: [`docs/archive/specs/2026-05-03-variscout-vision-design.md`](../archive/specs/2026-05-03-variscout-vision-design.md)
 - Methodology: [`docs/01-vision/methodology.md`](../01-vision/methodology.md) §2.1
-- Design spec (8f, this work): [`docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md`](../superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md)
+- Design spec (8f, this work): [`docs/archive/specs/2026-05-13-canvas-viewport-architecture-design.md`](../archive/specs/2026-05-13-canvas-viewport-architecture-design.md)
 - ADR-068 (CoScout cognitive redesign — already assumed level-aware coaching from `currentLevel`)
 - ADR-073 (No statistical roll-up — the binding L1 constraint)
 - ADR-074 (Level-spanning surface boundary policy — amended by this ADR)

@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [normal-distribution, anderson-darling, qq-plot]
+layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Probability Plot

@@ -5,6 +5,7 @@ title: 'Multi-Zone Oven Temperature Control Case Study'
 audience: human
 category: learning
 status: active
+layer: L1
 ---
 
 # Multi-Zone Oven Temperature Control Case Study

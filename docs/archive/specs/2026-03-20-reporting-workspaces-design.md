@@ -7,6 +7,7 @@ category: workflow
 status: active
 related:
   [report, workspaces, analysis, findings, improvement, audience, two-voices, adr-024, adr-031]
+layer: spec
 ---
 
 # Reporting Workspaces Design

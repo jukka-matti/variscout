@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [anova, eta-squared, violin-mode, factor-comparison]
+layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Boxplot
@@ -15,6 +20,33 @@ related: [anova, eta-squared, violin-mode, factor-comparison]
 > **Journey phase:** SCOUT (FLOW lens) — factor comparison to discover where variation concentrates.
 
 The Boxplot is VariScout's tool for the **FLOW** lens - comparing variation across factors.
+
+---
+
+## Intent diagram
+
+```text
+┌────────────────────────────────────────────────────────┐
+│  Boxplot — factor comparison surface                   │
+├────────────────────────────────────────────────────────┤
+│                                                        │
+│  Value ─┤    ┌──┐                                      │
+│         │    │  │     ┌──┐    ─── target               │
+│         │ ───┤  ├──   │  │                             │
+│         │    │ ─│     │ ─│    ─── USL (spec)           │
+│         │    │  │  ───┤  ├──                           │
+│         │    └──┘     │  │                             │
+│         │             └──┘    ─── LSL (spec)           │
+│         │   • outlier                                  │
+│         └──────┬──────┬──────                          │
+│              Mach A  Mach B  Mach C                    │
+│                                                        │
+│  Box = IQR · median line · whiskers = 1.5×IQR          │
+│  Fill = direction colour (green/amber/red) when specs  │
+│  N<7 per category -> jittered dots (BoxplotBase)       │
+│  ANOVA panel: F, p, eta-squared below chart            │
+└────────────────────────────────────────────────────────┘
+```
 
 ---
 

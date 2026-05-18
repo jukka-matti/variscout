@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [stats-engine, numerical-safety, nan-defense, safe-math, coscout-ax-design]
+layer: L5
 ---
 
 # ADR-069: Three-Boundary Numeric Safety

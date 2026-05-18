@@ -20,6 +20,13 @@ related:
     adr-070,
   ]
 date: 2026-04-28
+layer: spec
+implements:
+  - docs/01-vision/methodology.md
+  - docs/03-features/analysis/capability.md
+  - docs/03-features/analysis/subgroup-capability.md
+  - docs/03-features/analysis/process-hub-capability.md
+  - docs/03-features/analysis/multi-level-dashboard.md
 ---
 
 > **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). Under the wedge, this surface reframes from Hub rollup to **project-scoped Capability view**. Multi-line portfolio scope and cross-process aggregation defer to **VariScout Process**. The per-step capability methodology + context-aware specs design is unchanged; only the data scope tightens to a single project's process.
@@ -30,7 +37,7 @@ date: 2026-04-28
 
 ## Scope
 
-This dashboard is the first surface expressing the broader [Investigation Scope and Drill Semantics](./2026-04-29-investigation-scope-and-drill-semantics-design.md) design (Drill A: Hub→Step pattern).
+This dashboard is the first surface expressing the broader [Investigation Scope and Drill Semantics](../../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) design (Drill A: Hub→Step pattern).
 
 This is a **design spec**, not an implementation plan. It defines the data model, drill semantics, governance model, specs/context structure, and UI surface placement for a per-step capability dashboard primitive that closes Watson's Cp/Cpk aggregation-safety gap (devil's-advocate critique A3, D3) by structural design rather than by guard rule. The same primitive serves as the implementation of the Layered Process View Operations band V2, the Product-Method Roadmap H2 line 2 capability cards, and the Global-Process-Owner cross-hub analytical view.
 
@@ -394,7 +401,7 @@ Each step lands as its own PR per `feedback_no_backcompat_clean_architecture.md`
 
 ## References
 
-- Multi-level SCOUT design: `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md` — the level-spanning surface architecture that lenses the per-(node × context) capability surface this spec ships; ADR-074 captures the boundary policy (`docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md`).
+- Multi-level SCOUT design: `docs/archive/specs/2026-04-29-multi-level-scout-design.md` — the level-spanning surface architecture that lenses the per-(node × context) capability surface this spec ships; ADR-074 captures the boundary policy (`docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md`).
 - Devil's-advocate critique: `~/.claude/plans/i-would-need-to-drifting-hummingbird.md` (objections A2, A3, A4 — the three Watson methodology gains addressed by W1' + W2 + W3)
 - Operating model: `docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md` (lines 274–276, 282–289, 291–293, 456 for locality + ownership + aggregation framing)
 - Layered Process View: `docs/superpowers/specs/2026-04-27-layered-process-view-design.md` (lines 83–102 — Operations band V2 spec)

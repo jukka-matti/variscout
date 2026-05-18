@@ -5,6 +5,7 @@ title: 'Investigation Flow Map: Hospital Ward (Aggregation Trap)'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Investigation Flow Map: Hospital Ward (Aggregation Trap)

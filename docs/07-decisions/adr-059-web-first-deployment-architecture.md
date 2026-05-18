@@ -5,6 +5,7 @@ title: 'ADR-059: Web-First Deployment Architecture'
 audience: human
 category: architecture
 status: active
+layer: L5
 ---
 
 # ADR-059: Web-First Deployment Architecture

@@ -7,6 +7,7 @@ category: implementation
 status: active
 date: 2026-04-26
 related: [question-driven-eda-2, survey, mechanism-branches, signal-cards, process-map]
+layer: spec
 ---
 
 # QDE 2.0 Survey Foundation Phase Plan

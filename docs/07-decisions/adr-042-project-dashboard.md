@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-042: Project Dashboard'
+layer: L5
 ---
 
 # ADR-042: Project Dashboard

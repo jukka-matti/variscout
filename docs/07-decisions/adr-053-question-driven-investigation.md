@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [investigation, eda-mental-model, factor-intelligence, question-driven-eda]
+layer: L5
 ---
 
 # ADR-053: Question-Driven Investigation

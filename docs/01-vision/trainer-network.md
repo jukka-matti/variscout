@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: draft
 related: [training, ecosystem, directory, growth, market-analysis, business-bible]
+layer: L1
 ---
 
 # Trainer Network

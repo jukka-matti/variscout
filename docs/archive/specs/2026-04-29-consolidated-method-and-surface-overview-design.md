@@ -1,6 +1,8 @@
 ---
+tier: stable
+purpose: remember
 title: VariScout — Consolidated Method And Surface Overview
-audience: [product, designer, engineer, analyst]
+audience: human
 category: design-spec
 status: archived
 related:
@@ -18,6 +20,7 @@ related:
     constitution,
   ]
 date: 2026-04-29
+layer: spec
 ---
 
 > **Status:** ARCHIVED 2026-05-17 — superseded by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). This 2026-04-29 state-of-the-union snapshot predates the wedge pivot; the nav, persona model, and surface overview it describes have been superseded by the 7-tab V1 nav, single Specialist persona, and project-membership ACL model.
@@ -538,7 +541,7 @@ built):
 
 ### Scope + drill + capability surfaces
 
-- `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md`
+- `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md`
 - `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`
 - `docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md`
 - `docs/superpowers/specs/2026-04-27-layered-process-view-design.md`
@@ -547,17 +550,17 @@ built):
 ### Investigation Wall + Evidence Map + workflows
 
 - `docs/superpowers/specs/2026-04-19-investigation-wall-design.md`
-- `docs/superpowers/specs/2026-04-05-evidence-map-design.md`
-- `docs/superpowers/specs/2026-04-05-evidence-map-spine-design.md`
-- `docs/superpowers/specs/2026-04-07-evidence-map-edge-interactions-design.md`
+- `docs/archive/specs/2026-04-05-evidence-map-design.md`
+- `docs/archive/specs/2026-04-05-evidence-map-spine-design.md`
+- `docs/archive/specs/2026-04-07-evidence-map-edge-interactions-design.md`
 - `docs/superpowers/specs/2026-04-04-investigation-spine-design.md`
 
 ### Mode-specific
 
-- `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
+- `docs/archive/specs/2026-04-25-question-driven-eda-2-design.md`
 - `docs/superpowers/specs/2026-04-07-process-flow-analysis-mode-design.md`
-- `docs/superpowers/specs/2026-04-16-defect-analysis-mode-design.md`
-- `docs/superpowers/specs/2026-04-16-defect-evidence-map-integration-design.md`
+- `docs/archive/specs/2026-04-16-defect-analysis-mode-design.md`
+- `docs/archive/specs/2026-04-16-defect-evidence-map-integration-design.md`
 - `docs/superpowers/specs/2026-04-25-process-flow-yamazumi-integration-design.md`
 - `docs/USER-JOURNEYS-CAPABILITY.md`
 - `docs/USER-JOURNEYS-DEFECT.md`
@@ -569,7 +572,7 @@ built):
 
 - `docs/superpowers/specs/2026-04-02-coscout-intelligence-architecture-design.md`
 - `docs/superpowers/specs/2026-04-24-coscout-voice-input-design.md`
-- `docs/superpowers/specs/2026-03-19-ai-action-tools-design.md`
+- `docs/archive/specs/2026-03-19-ai-action-tools-design.md`
 
 ### Phase 6 sustainment
 

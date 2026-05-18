@@ -6,6 +6,12 @@ audience: human
 category: workflow
 status: active
 related: [findings, what-if, hypothesis, improvement-actions]
+layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
+  - docs/02-journeys/personas/sponsor.md
 ---
 
 # Investigation to Action Workflow
@@ -13,6 +19,23 @@ related: [findings, what-if, hypothesis, improvement-actions]
 <!-- journey-phase: investigate, improve -->
 
 From variation discovery to projected improvement — the analyst workflow.
+
+## Intent diagram
+
+```mermaid
+flowchart LR
+    Drill[Drill factors<br/>ANOVA η²] --> Pin[Pin findings<br/>observed]
+    Pin --> Inv[Investigating<br/>blue]
+    Inv --> Anly[Analyzed<br/>+ SuspectedCauseHub]
+    Anly --> Syn[Convergence<br/>synthesis]
+    Syn --> Ideas[Brainstorm ideas<br/>Prevent / Detect /<br/>Simplify / Eliminate]
+    Ideas --> Proj[What-If projection<br/>Cpk / yield]
+    Proj --> Conv[Convert to Action<br/>auto-fire improving]
+    Conv --> Resv[Resolved<br/>outcome verified]
+    Resv -.->|Phase 2| KB[(Knowledge Base)]
+```
+
+Investigation diamond (diverge → validate → converge) feeds the IMPROVE phase: synthesis anchors the improvement workspace, ideas carry What-If projections, conversion auto-fires `analyzed → improving`, and verified outcomes feed the team Knowledge Base (Azure Team).
 
 <div class="process-map">
   <div class="process-step">

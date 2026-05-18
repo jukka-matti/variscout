@@ -6,11 +6,12 @@ audience: human
 category: implementation
 status: active
 last-reviewed: 2026-05-15
-spec: docs/superpowers/specs/2026-05-14-projects-tab-design.md
+spec: docs/archive/specs/2026-05-14-projects-tab-design.md
 related:
-  - docs/superpowers/specs/2026-05-14-projects-tab-design.md
+  - docs/archive/specs/2026-05-14-projects-tab-design.md
   - docs/archive/plans/2026-05-14-projects-tab-foundation.md
-  - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
+  - docs/archive/specs/2026-05-14-variscout-coherence-design.md
+layer: spec
 ---
 
 # Projects Tab Plan 2 — Active-IP Launchpad + Context Cascade

@@ -5,6 +5,7 @@ title: 'Individual Control Charts (I-Chart)'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Individual Control Charts (I-Chart)

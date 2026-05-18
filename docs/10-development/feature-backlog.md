@@ -5,6 +5,7 @@ title: Feature Backlog
 audience: human
 category: reference
 status: draft
+layer: L5
 ---
 
 > **⚠️ Queued for V1 rewrite (Phase C.3)** — see [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. Backlog items referencing Improve tab / tier-gating / persona routing retire for V1; archive retro-active items; new items added for Project membership ACLs + MeasurementPlan entity. Full content rewrite queued for Phase C.3 batch 4 (subagent-driven).
@@ -104,7 +105,7 @@ Items where the gap vs. current behavior isn't fully clear, or where user demand
 
 ## Probability Plot — Phases A & B (Completed)
 
-Detailed analysis: [discussions/2026-03-29-probability-plot-analysis.md](discussions/2026-03-29-probability-plot-analysis.md)
+Detailed analysis: [archive/discussions/2026-03-29-probability-plot-analysis.md](../archive/discussions/2026-03-29-probability-plot-analysis.md)
 
 ### Phase A — Quick wins (UX polish)
 

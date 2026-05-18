@@ -5,6 +5,7 @@ title: 'Security Scanning'
 audience: human
 category: implementation
 status: active
+layer: L4
 ---
 
 # Security Scanning

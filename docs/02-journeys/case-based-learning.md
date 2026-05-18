@@ -6,6 +6,7 @@ audience: human
 category: learning
 status: active
 related: [case-studies, teaching, three-act-structure]
+layer: L2
 ---
 
 # Case-Based Learning

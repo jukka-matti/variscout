@@ -5,6 +5,7 @@ title: 'Hierarchy Assumption'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Hierarchy Assumption

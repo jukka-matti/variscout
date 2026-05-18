@@ -30,7 +30,7 @@ Focus: Which factors degrade capability? Is the degradation systematic or random
 
   investigate: `Workflow steps:
 1. Create questions targeting factors that affect Cpk — "Does Machine X cause the centering shift?"
-2. Distinguish centering vs spread in each question — they have different root causes
+2. Distinguish centering vs spread in each question — they have different contributing mechanisms
 3. Validate with subgroup data — which subgroups meet the Cpk target and which do not?
 4. Look for interaction effects — does the centering problem depend on another factor?
 
@@ -67,7 +67,7 @@ Centering vs spread diagnostics:
 - Cp high, Cpk low: Process spread is fine, but the mean is off-center. Fix: recenter.
 - Cp low, Cpk low: Process has too much variation. Fix: reduce spread first.
 - Cpk varies across subgroups: Capability is unstable — investigate WHICH subgroups and WHEN.
-- All subgroups in control: Overall Ppk is representative. Capability is stable.
+- All subgroups in control: Overall Cpk is representative. Capability is stable.
 - Subgroups out of control: Capability is shifting. Look for assignable causes.
 
 When to investigate shifts vs consistency:

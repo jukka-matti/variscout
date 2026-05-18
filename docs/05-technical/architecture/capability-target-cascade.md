@@ -7,6 +7,7 @@ category: architecture
 status: active
 related: [analysis-strategy, dashboard-layout, capability]
 last-reviewed: 2026-04-30
+layer: L4
 ---
 
 # Capability Target Cascade

@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-015: Investigation Board — Finding Status & Comments'
+layer: L5
 ---
 
 # ADR-015: Investigation Board — Finding Status & Comments

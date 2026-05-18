@@ -7,6 +7,12 @@ journey-phase: investigate
 audience: human
 category: workflow
 status: active
+layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
+  - docs/02-journeys/personas/sponsor.md
 ---
 
 # Investigation Lifecycle Map

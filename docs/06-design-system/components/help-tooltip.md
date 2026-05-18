@@ -6,6 +6,7 @@ audience: human
 category: components
 status: active
 related: [glossary, contextual-help, onboarding]
+layer: L5
 ---
 
 # Help Tooltips

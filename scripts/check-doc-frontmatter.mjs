@@ -4,7 +4,7 @@
 // Old STATUS/AUDIENCE values warn; unknown PURPOSE/TIER hard-fail when present.
 // --report mode includes count of docs missing purpose + tier fields.
 
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
@@ -100,6 +100,13 @@ const violations = {
   // Warnings (old-value aliases) — don't fail the build
   aliasedStatus: [],
   aliasedAudience: [],
+  // SDD HARD-FAILs (flipped from WARN in M5, 2026-05-18) — block the build
+  errorL3MissingKind: [],
+  errorSpecMissingImplements: [],
+  errorBrokenImplementsPath: [],
+  errorBrokenServesPath: [],
+  // SDD WARNs (heuristic; HARD-FAIL once L3 bodies are filled in M3+ next-edit)
+  warnL3MissingIntentDiagram: [],
   // Diff-mode WARNs (--diff only) — don't fail the build
   diffWarnDecisionLogOldLine: [],
   diffWarnSpecAmendmentHeading: [],
@@ -248,6 +255,69 @@ function check(file) {
       }
     }
   }
+
+  // === SDD HARD-FAIL rules (flipped from WARN in M5, 2026-05-18) ===
+  // 1. L3 docs without `kind:` — design says kind is mandatory at L3.
+  // 2. Active design specs without `implements:` — propose-apply-archive contract.
+  // 3. implements: paths that don't exist on disk — broken cross-refs.
+  // Plus 1 heuristic WARN: L3 (ui|workflow|engine) without intent diagram.
+
+  if (fm.layer === 'L3' && (fm.kind == null || fm.kind === '')) {
+    violations.errorL3MissingKind.push(
+      `${rel}: layer=L3 but no kind: (ui|workflow|engine|infrastructure). See docs/superpowers/specs/2026-05-18-spec-driven-development-design.md §L3 Features.`,
+    );
+  }
+
+  const isActiveDesignSpec =
+    rel.startsWith('docs/superpowers/specs/') && !rel.endsWith('/index.md');
+  const implementsList = asArray(fm.implements).filter(Boolean);
+  if (isActiveDesignSpec) {
+    if (implementsList.length === 0) {
+      violations.errorSpecMissingImplements.push(
+        `${rel}: design spec missing implements: (non-empty array of L1/L2/L3 paths). See docs/superpowers/specs/2026-05-18-spec-driven-development-design.md §Design-Spec Lifecycle.`,
+      );
+    }
+  }
+
+  // implements: path-exists check (applies to ANY doc with implements:, not just specs).
+  for (const target of implementsList) {
+    const targetPath = join(ROOT, String(target));
+    if (!existsSync(targetPath)) {
+      violations.errorBrokenImplementsPath.push(
+        `${rel}: implements: '${target}' does not exist on disk.`,
+      );
+    }
+  }
+
+  // serves: path-exists check (mirrors implements; applies to L3 + L4 + design specs).
+  const servesList = asArray(fm.serves).filter(Boolean);
+  for (const target of servesList) {
+    const targetPath = join(ROOT, String(target));
+    if (!existsSync(targetPath)) {
+      violations.errorBrokenServesPath.push(
+        `${rel}: serves: '${target}' does not exist on disk.`,
+      );
+    }
+  }
+
+  // L3 intent-diagram heuristic (WARN — many stubs lack diagrams pending next-edit work).
+  // Skip kind: infrastructure (those carry "no surface" disclosure per the spec).
+  const intentBearingKinds = new Set(['ui', 'workflow', 'engine']);
+  if (
+    fm.layer === 'L3' &&
+    intentBearingKinds.has(fm.kind) &&
+    fm.status !== 'archived' &&
+    fm.status !== 'named-future'
+  ) {
+    // Heuristic: at least one ```mermaid block OR an ASCII-art block with │ or ─.
+    const hasMermaid = /```mermaid\b/.test(src);
+    const hasAsciiArt = /```[a-z]*\n[\s\S]*?[│─][\s\S]*?```/m.test(src);
+    if (!hasMermaid && !hasAsciiArt) {
+      violations.warnL3MissingIntentDiagram.push(
+        `${rel}: L3 (kind=${fm.kind}) missing intent diagram (no \`\`\`mermaid block, no ASCII-art block). See spec §L3 Features.`,
+      );
+    }
+  }
 }
 
 const files = walk(DOCS);
@@ -336,7 +406,11 @@ const hardViolationTotal =
   violations.malformedYaml.length +
   violations.antiPatternFilename.length +
   violations.missingStatusBanner.length +
-  violations.missingSupersedesBanner.length;
+  violations.missingSupersedesBanner.length +
+  violations.errorL3MissingKind.length +
+  violations.errorSpecMissingImplements.length +
+  violations.errorBrokenImplementsPath.length +
+  violations.errorBrokenServesPath.length;
 
 const warningTotal =
   violations.aliasedStatus.length +
@@ -344,7 +418,8 @@ const warningTotal =
   violations.diffWarnDecisionLogOldLine.length +
   violations.diffWarnSpecAmendmentHeading.length +
   violations.diffWarnNonCanonicalEditType.length +
-  violations.diffWarnDeliveredNoBanner.length;
+  violations.diffWarnDeliveredNoBanner.length +
+  violations.warnL3MissingIntentDiagram.length;
 
 function report() {
   if (REPORT_MODE) {
@@ -384,6 +459,11 @@ function report() {
 
   show('Aliased status (transitional — run docs-frontmatter-fix.mjs)', violations.aliasedStatus, 5, true);
   show('Aliased audience (transitional — run docs-frontmatter-fix.mjs)', violations.aliasedAudience, 5, true);
+  show('SDD — L3 missing kind: (HARD-FAIL)', violations.errorL3MissingKind, 10, false);
+  show('SDD — design spec missing implements: (HARD-FAIL)', violations.errorSpecMissingImplements, 10, false);
+  show('SDD — implements: path does not exist (HARD-FAIL)', violations.errorBrokenImplementsPath, 10, false);
+  show('SDD — serves: path does not exist (HARD-FAIL)', violations.errorBrokenServesPath, 10, false);
+  show('SDD — L3 (ui/workflow/engine) missing intent diagram (WARN — next-edit work)', violations.warnL3MissingIntentDiagram, 5, true);
   show('Decision-log: edit on entry >7 days old (use new supersession entry)', violations.diffWarnDecisionLogOldLine, 5, true);
   show('Decision-log: non-canonical edit-type vocabulary', violations.diffWarnNonCanonicalEditType, 5, true);
   show('Design spec: ## Amendment heading added (ADR-only pattern)', violations.diffWarnSpecAmendmentHeading, 5, true);

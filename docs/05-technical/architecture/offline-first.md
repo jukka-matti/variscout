@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [service-worker, indexeddb, cache-api]
+layer: L4
 ---
 
 # Offline-First Architecture

@@ -3,6 +3,7 @@ tier: ephemeral
 purpose: build
 title: Phase 3 — H1 Closure + H2 Launch — Implementation Plan
 status: active
+layer: spec
 ---
 
 # Phase 3 — H1 Closure + H2 Launch — Implementation Plan

@@ -5,6 +5,7 @@ title: 'Flow 9: Azure App — AI Setup'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow 9: Azure App — AI Setup

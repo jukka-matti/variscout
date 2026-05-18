@@ -14,6 +14,12 @@ related:
     problem-statement,
     improvement,
   ]
+layer: spec
+implements:
+  - docs/01-vision/eda-mental-model.md
+  - docs/01-vision/methodology.md
+  - docs/03-features/workflows/investigation-wall.md
+  - docs/03-features/workflows/question-driven-investigation.md
 ---
 
 # Investigation Workspace Reframing

@@ -11,6 +11,7 @@ related:
   - adr-077-snapshot-provenance-and-match-summary-wedge
   - adr-078-pwa-azure-architecture-alignment
   - decision-log
+layer: L5
 ---
 
 # ADR-079: ETag optimistic concurrency for paid-tier hub-blob writes

@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: active
 related: [modal, capability, performance, yamazumi, analysis-mode]
+layer: L5
 ---
 
 # Detection Modals

@@ -5,6 +5,7 @@ title: 'Case Study: "Do We Really Need a New Machine?"'
 audience: human
 category: learning
 status: active
+layer: L1
 ---
 
 # Case Study: "Do We Really Need a New Machine?"

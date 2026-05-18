@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [philosophy, methodology, architecture, journey]
+layer: L1
 ---
 
 # VariScout Constitution
@@ -30,10 +31,24 @@ Non-negotiable principles that govern every architectural decision and implement
 
 7. **Three evidence types** — Investigation questions are validated by data (auto η²/R²adj), gemba (go-and-see with photo evidence), or expert knowledge. Collaboration routes tasks and observations to the right people (web links, shared Blob Storage, future channel webhooks). No variation problem is solved from a desk alone.
 
+## V1 Wedge Principles
+
+These principles encode the 2026-05-16 single-SKU pivot. They scope V1; VariScout Process (enterprise) is named-future. Canonical source: [2026-05-16 Wedge Architecture design spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md).
+
+8. **Single-product specialist tool** — V1 ships as one SKU: €120/mo Azure tenant-wide, sold to improvement specialists. No tier ladder, no portfolio rollouts in V1. VariScout Process (multi-Hub enterprise) is named-future and out of V1 scope.
+
+9. **Three in-project personas** — Lead, Member, Sponsor — per-project ACLs scoped to a single Azure AD tenant (no cross-tenant invites). These are in-product roles, distinct from the buyer/ICP "Improvement Specialist" (which lives in market positioning, not in-product journeys). Project membership replaces the legacy 10-persona model for V1.
+
+10. **7-tab workflow nav** — `Home · Project · Process · Analyze · Investigation · Improve · Report`. The order matches the investigator's day. Improve is a top-level verb tab with active-IP cascade (`useActiveIPContext(sessionHub)` + `<NoActiveProjectGuidance>` empty state pattern) — not a sub-step of another tab.
+
+11. **Light-colors-only UI palette** — Tailwind 50-300 utilities for surfaces; 400-700 for text and strokes. No dark mode in V1. No deep-saturated fills. Pair every light surface with darker text (600-800) for accessibility per the [`feedback_green_400_light_contrast`](../cards/memory/feedback_green_400_light_contrast.md) precedent. Rationale: clinical/paper-document feel; accessibility-first. Agent-canonical home: [`.claude/INVARIANTS.md`](../../.claude/INVARIANTS.md) §Visual design; build-time enforcement: [`packages/ui/CLAUDE.md`](../../packages/ui/CLAUDE.md) §Color discipline.
+
+12. **Real product specs first, then code** — Design specs in `docs/superpowers/specs/` propose deltas to L1/L2/L3 product docs (`docs/01-vision/`, `docs/02-journeys/`, `docs/03-features/`); those targets are updated BEFORE code lands. After delivery, design specs archive to `docs/archive/specs/`; the product docs become the durable record. See the [Spec-Driven Development design](../superpowers/specs/2026-05-18-spec-driven-development-design.md) for the full lifecycle.
+
 ## Architecture
 
-8. **Deterministic first, AI enhances** — The statistical engine computes the answer. CoScout adds language, context, and suggestions. The analyst confirms before any action executes. Conclusions are reproducible and auditable.
+13. **Deterministic first, AI enhances** — The statistical engine computes the answer. CoScout adds language, context, and suggestions. The analyst confirms before any action executes. Conclusions are reproducible and auditable.
 
-9. **Shared packages, props-based** — `@variscout/core` (pure TypeScript, no React), `@variscout/charts` and `@variscout/ui` (React, props-only, no context dependency). Apps wire context. Dependencies flow strictly downward.
+14. **Shared packages, props-based** — `@variscout/core` (pure TypeScript, no React), `@variscout/charts` and `@variscout/ui` (React, props-only, no context dependency). Apps wire context. Dependencies flow strictly downward.
 
-10. **Strategy pattern for modes** — `resolveMode()` + `getStrategy()` is the sole source of truth for mode-specific behavior (chart slots, KPI type, question strategy, AI coaching). No cascading mode ternaries.
+15. **Strategy pattern for modes** — `resolveMode()` + `getStrategy()` is the sole source of truth for mode-specific behavior (chart slots, KPI type, question strategy, AI coaching). No cascading mode ternaries.

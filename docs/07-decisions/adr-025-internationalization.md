@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-025: Internationalization Architecture'
+layer: L5
 ---
 
 # ADR-025: Internationalization Architecture

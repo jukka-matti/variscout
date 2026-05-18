@@ -122,7 +122,7 @@ export const concepts: readonly Concept[] = [
     definition:
       'Plotting Cp/Cpk per subgroup reveals whether capability itself is stable — not just meeting a single threshold.',
     description:
-      'A single Ppk number hides when and how capability shifts. By calculating Cp and Cpk for each rational subgroup and plotting them on an I-Chart, the analyst sees capability over time. The gap between Cp (potential) and Cpk (actual) shows centering loss. An in-control Cpk I-Chart means the overall Ppk is representative; out-of-control signals show the process capability is shifting and the Ppk is misleading.',
+      'A single Cpk number hides when and how capability shifts. By calculating Cp and Cpk for each rational subgroup (using σ̂ within-subgroup variation) and plotting them on an I-Chart, the analyst sees capability over time. The gap between Cp (potential) and Cpk (actual) shows centering loss. When the Cpk I-Chart is in control, σ̂_within is a faithful summary of the process, so the overall Cpk is representative; when it is out of control, capability is shifting and the headline Cpk is misleading — investigate which subgroups changed and when.',
     conceptCategory: 'principle',
     learnMorePath: '/learn/subgroup-capability',
     relations: [

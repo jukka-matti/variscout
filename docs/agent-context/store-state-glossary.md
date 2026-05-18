@@ -11,7 +11,7 @@ verified-against-commit: 5ee58dc9
 
 # VariScout Store State Glossary
 
-7 Zustand stores across 3 layers (ADR-078 + F4, shipped 2026-05-07). Read this before reading or mutating any store state.
+9 Zustand stores across 3 layers (ADR-078 + F4, shipped 2026-05-07; wedge V1 additions 2026-05-16). Read this before reading or mutating any store state.
 
 **Authoritative source**: `packages/stores/CLAUDE.md` + `packages/stores/src/*.ts`.
 
@@ -23,15 +23,15 @@ verified-against-commit: 5ee58dc9
 
 | Layer               | Role                                                                | Portability test                       | Middleware                                               |
 | ------------------- | ------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------- |
-| **Document** (×3)   | Portable project data — another analyst importing this hub needs it | `Yes → Document`                       | persist middleware (hub repository dispatch)             |
-| **Annotation** (×3) | Survives reload but not portable; scoped per-hub or per-user        | `Reload yes, portable no → Annotation` | persist middleware (Dexie or idb-keyval or localStorage) |
+| **Document** (×4)   | Portable project data — another analyst importing this hub needs it | `Yes → Document`                       | persist middleware (hub repository dispatch)             |
+| **Annotation** (×4) | Survives reload but not portable; scoped per-hub or per-user        | `Reload yes, portable no → Annotation` | persist middleware (Dexie or idb-keyval or localStorage) |
 | **View** (×1)       | Transient — does not survive reload                                 | `No → View`                            | no persist middleware                                    |
 
 **ADR-074 boundary**: cross-investigation aggregation is forbidden. `investigationStore` never aggregates across multiple hubs.
 
 ---
 
-## Document Layer (3 stores)
+## Document Layer (4 stores)
 
 ### `useProjectStore`
 
@@ -105,7 +105,27 @@ Owns the FRAME / Process Hub canvas document. The canvas is the substrate for th
 
 ---
 
-## Annotation Layer (3 stores)
+### `useImprovementProjectStore`
+
+**Location**: `packages/stores/src/improvementProjectStore.ts`
+**Persistence**: per-Project state via hub repository / `.vrs` (Document-layer dispatch)
+**`STORE_LAYER`**: `'document'`
+
+Owns the user's **Projects** — the V1 user-facing top-level unit of work (the noun the UI shows in the `[Projects]` tab and Charter ceremony per wedge spec §3.0–3.2). The user creates multiple Projects over time; each Project wraps **one internal `ProcessHub` 1:1**. "Hub" survives as the internal data container but is demoted from user-visible primary concept; **multi-Hub orchestration / Hub portfolios are deferred to VariScout Process (future separate product), NOT V1**.
+
+Renames the deleted `useImprovementStore` from the F4 era with the wedge V1 data shape: `metadata.title` (required), `metadata.members?: ProjectMember[]` (Lead/Member/Sponsor per §4.1), `status: 'draft' | 'active' | 'closed'`, Charter → Approach → Improve → Sustainment lifecycle (§3.2). The code type is `ImprovementProject` (legacy code name kept for the entity type; "Project" is the user-facing label).
+
+| Field           | Type                                         | Description                                                                                                                                                                                                                                                                        |
+| --------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `projectsByHub` | `Record<ProcessHubId, ImprovementProject[]>` | Current shape: Projects grouped by their internal Hub. **Migration-in-progress per wedge spec §6** — store keys are being re-keyed from `ProcessHubId` to `ProjectId` for project-scoped state. In V1 each Hub maps to one Project (1:1); the `Record` shape is a legacy holdover. |
+
+**Key actions**: `setProjectsForHub(hubId, projects)`, `getProjectsForHub(hubId)`, `upsertProject(project)`, `removeProject(projectId)`.
+
+**Wedge V1 link**: this store is the substrate for the top-level Improve tab and the active-Project cascade (every verb tab uses `useActiveIPContext(sessionHub)` to resolve the user's active Project). Membership mutation goes through `upsertProject` after `useProjectMembershipStore.acceptInvite` cascades.
+
+---
+
+## Annotation Layer (4 stores — 1 per-hub + 3 per-user)
 
 ### `useCanvasViewportStore`
 
@@ -148,7 +168,7 @@ Durable per-user preferences that survive reload but are not portable to other a
 | `budgetConfig`         | `BudgetConfig`   | Improvement budget configuration                                                                              |
 | `isIPTeamRailExpanded` | `boolean`        | Whether the IP team rail is expanded                                                                          |
 
-**Deleted stores**: `useSessionStore` and `useImprovementStore` were deleted in F4 (2026-05-07). Never re-introduce them. Preferences → `usePreferencesStore`; transient view state → `useViewStore`; improvement plan state → `usePreferencesStore` (relocated in F4).
+**Renamed / deleted stores**: `useSessionStore` was deleted in F4 (2026-05-07; durable half → `usePreferencesStore`, transient half → `useViewStore`). `useImprovementStore` was renamed to `useImprovementProjectStore` post-wedge-V1 with a per-IP data shape (`projectsByHub`); do not re-introduce the F4 name. Improvement preferences (matrix axis, budget) live in `usePreferencesStore`; the IP records themselves live in the renamed store.
 
 ---
 
@@ -165,6 +185,24 @@ Tracks the active improvement project per hub per user. Scoped to prevent cross-
 | `activeIPs` | `Record<string, ActiveIPState>` | Map of storage key → `{ ipId, setAt }` |
 
 **Key actions**: `getActiveIP(scope)`, `setActiveIP(scope, ipId)`, `clearActiveIP(scope)`, `rehydrateActiveIP(scope)`.
+
+---
+
+### `useProjectMembershipStore`
+
+**Location**: `packages/stores/src/useProjectMembershipStore.ts`
+**Persistence**: localStorage (Zustand `persist` middleware), key `'variscout:projectMembership'`
+**`STORE_LAYER`**: `'annotation-per-user'`
+
+Per-user pending-invitation queue for the wedge V1 collaboration model (Lead/Member/Sponsor). Holds only invitations that have not yet been accepted; accepted invites cascade into `useImprovementProjectStore` via `MembershipAction` (membership data lives on the IP record, not here).
+
+| Field            | Type           | Description                                                           |
+| ---------------- | -------------- | --------------------------------------------------------------------- |
+| `pendingInvites` | `Invitation[]` | Invitations awaiting accept/revoke; populated by Lead's invite action |
+
+**Key actions**: `addPendingInvite(inv)`, `acceptInvite(id)` (cascades to `useImprovementProjectStore.upsertProject`), `revokeInvite(id)`.
+
+**Cross-store note**: `acceptInvite` reaches into `useImprovementProjectStore.getState().projectsByHub` to find the target IP and dispatch an `INVITATION_ACCEPT` `MembershipAction`. This is an allowed cross-store imperative call — reactive subscriptions between the two stores remain forbidden.
 
 ---
 

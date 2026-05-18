@@ -5,6 +5,7 @@ title: 'Bottleneck Case - ESTIEM'
 audience: human
 category: learning
 status: active
+layer: L1
 ---
 
 # Bottleneck Case - ESTIEM

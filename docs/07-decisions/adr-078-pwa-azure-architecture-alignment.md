@@ -12,6 +12,7 @@ related:
   - adr-075-pwa-atomic-deploy-and-update-policy
   - docs/decision-log.md
   - docs/archive/specs/2026-05-04-canvas-migration-design.md
+layer: L5
 ---
 
 # ADR-078: PWA + Azure architecture alignment — same product, gated tiers
@@ -167,6 +168,32 @@ Future tier gates anticipated:
 **Compile-time tier gating** (separate builds with feature flags excluding paid features). Rejected for V1. Runtime `isPaidTier()` checks are simpler, easier to test, and match the precedent (chart branding already uses runtime). Compile-time gating becomes relevant if bundle size becomes a real PWA concern; defer until that smell surfaces.
 
 ---
+
+## Amendment — 2026-05-18 — Stores reality
+
+Surfaced during SDD M0 subagent grounding (2026-05-18, `docs/cards/investigations/inv-20260518-sdd-migration-inventory.md`). The D1 stores table above documents 5 stores + 1 "future" (`useCanvasStore`). Actual `packages/stores/src/index.ts` exports **9 stores** across the F4 three-layer model + wedge V1 additions.
+
+**Actual stores (verified 2026-05-18)**:
+
+| Store                        | Layer               | Origin                                                                                |
+| ---------------------------- | ------------------- | ------------------------------------------------------------------------------------- |
+| `useProjectStore`            | Document            | ADR-078 D1 (unchanged)                                                                |
+| `useInvestigationStore`      | Document            | ADR-078 D1 (unchanged)                                                                |
+| `useImprovementProjectStore` | Document            | **Renames** `useImprovementStore` from D1 post-wedge V1                               |
+| `useCanvasStore`             | Document            | D1 "future" — shipped via 8f viewport architecture                                    |
+| `useCanvasViewportStore`     | Annotation-per-hub  | New — viewport split per ADR-081 (8f canvas) (`STORE_LAYER='annotation-per-hub'`)     |
+| `useActiveIPStore`           | Annotation-per-user | New — wedge V1 active-IP cascade (`STORE_LAYER='annotation-per-user'`)                |
+| `useProjectMembershipStore`  | Annotation-per-user | New — wedge V1 per-project ACLs                                                       |
+| `usePreferencesStore`        | Annotation-per-user | **Replaces** D1's `useSessionStore` (durable half) per F4                             |
+| `useViewStore`               | View (no persist)   | **Replaces** D1's `useWallLayoutStore` + D1's `useSessionStore` transient half per F4 |
+
+**Three-layer framing** (per `docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md`): Document (×4), Annotation (×4 — 1 per-hub + 3 per-user), View (×1 — transient, no persist).
+
+**Renames vs original ADR-078**: `useImprovementStore → useImprovementProjectStore` (wedge V1 scoping); `useSessionStore → usePreferencesStore` (durable) + `useViewStore` (transient half) per F4; `useWallLayoutStore → useViewStore` (folded into the transient layer).
+
+**Net additions**: `useActiveIPStore`, `useProjectMembershipStore` (both wedge V1); `useCanvasViewportStore` (8f viewport split).
+
+D1's "same domain stores in PWA + Azure" architectural decision is preserved; the stores list itself drifted. Future updates to the stores list should land in this amendment block or supersede this ADR entirely.
 
 ## References
 

@@ -6,6 +6,10 @@ audience: human
 category: learning
 status: active
 related: [glossary, terminology, help-tooltips, knowledge-model]
+layer: L3
+kind: infrastructure
+serves:
+  - docs/02-journeys/ia-nav-model.md
 ---
 
 # Glossary & Knowledge Model

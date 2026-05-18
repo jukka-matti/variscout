@@ -7,6 +7,12 @@ category: analysis
 status: draft
 related: [process-flow, yamazumi, output-rate, bottleneck, lead-time, theory-of-constraints]
 date: 2026-04-07
+layer: spec
+implements:
+  - docs/01-vision/methodology.md
+  - docs/03-features/analysis/yamazumi.md
+  - docs/03-features/analysis/i-chart.md
+  - docs/03-features/workflows/process-maps.md
 ---
 
 # Process Flow Analysis Mode

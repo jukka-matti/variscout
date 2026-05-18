@@ -7,6 +7,7 @@ status: active
 audience: human
 category: design-spec
 related: [header, toolbar, stats-panel, navigation, panels, layout, workspaces]
+layer: spec
 ---
 
 # Dashboard Chrome Redesign

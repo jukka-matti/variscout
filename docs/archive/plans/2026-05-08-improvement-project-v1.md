@@ -11,6 +11,7 @@ related:
   - docs/archive/specs/2026-05-08-improvement-project-v1-design.md
   - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/archive/plans/2026-05-07-canvas-pr8-8a-mode-aware-ctas.md
+layer: spec
 ---
 
 > **Status:** ARCHIVED 2026-05-17 — superseded first by [RPS V1 plan](2026-05-09-response-path-system-v1.md) (2026-05-09), then by [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) (2026-05-16). The standalone Improvement Project implementation plan was folded into the RPS V1 system-level plan when the 5-path architecture superseded it.

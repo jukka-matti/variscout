@@ -1,4 +1,6 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'PR-WV1-3a — Membership lifecycle + ActionItem CRUD (bite-sized plan)'
 status: draft
 last-reviewed: 2026-05-16
@@ -7,6 +9,7 @@ related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/superpowers/plans/2026-05-16-wedge-implementation.md
   - docs/07-decisions/adr-082-wedge-architecture.md
+layer: spec
 ---
 
 # PR-WV1-3a — Membership lifecycle + ActionItem CRUD Implementation Plan

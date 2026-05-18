@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [capability, probability-plot, specs, analysis-dashboard]
+layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Statistics Panel
@@ -19,6 +24,35 @@ VariScout no longer treats "stats" as one monolithic panel in the main Analysis 
 - **Top strip (`ProcessHealthBar`)** — fast summary and spec shortcut
 - **Adaptive lens** — Probability plus Distribution/Capability, and optional Pareto
 - **Detailed side panel / secondary views** — deeper stats, data, questions, or what-if tools where supported
+
+---
+
+## Intent diagram
+
+```text
+┌──────────────────────────────────────────────────────────────────────┐
+│ ProcessHealthBar (top strip)                                         │
+│ [Layout] [Factors(n)] │ x̄=12.4  σ=0.8  n=200 │ filter chips │ Cpk: 1.21│
+├──────────────────────────────────────────────────────────────────────┤
+│                                       │                              │
+│  I-Chart                              │  Adaptive lens               │
+│  (hero — chart-local controls only,   │  ┌──────────────────────┐    │
+│   no duplicated x̄/σ in header)        │  │ Probability │ Cap... │    │
+│                                       │  │             │ Pareto │    │
+│  •  •   •                             │  ├──────────────────────┤    │
+│ • • • • • •  ─── UCL                  │  │  Histogram +         │    │
+│ ─────────── x̄                         │  │  USL/LSL/target      │    │
+│ •   •  • • •  ─── LCL                 │  │  (labelled           │    │
+│                                       │  │   Distribution OR    │    │
+│                                       │  │   Capability based   │    │
+│                                       │  │   on spec presence)  │    │
+│                                       │  └──────────────────────┘    │
+├──────────────────────────────────────────────────────────────────────┤
+│ Side panel / secondary stats (sidebars + focused-chart export)        │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+Adaptive-lens tabs by context: no specs + no subgroup -> Probability + Distribution; specs + no subgroup -> Probability + Capability; subgroup adds Pareto.
 
 ---
 

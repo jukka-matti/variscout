@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-082: Wedge architecture — single-product VariScout'
+layer: L5
 ---
 
 # ADR-082: Wedge architecture — single-product VariScout for improvement specialists
@@ -9,7 +10,7 @@ title: 'ADR-082: Wedge architecture — single-product VariScout'
 **Status:** Accepted
 **Date:** 2026-05-16
 **Supersedes (in part):** ADR-007 (Azure Marketplace distribution — single SKU replaces tiered), ADR-033 (€79/€199 tier split — single €120 SKU)
-**Partially supersedes:** [Coherence audit spec (2026-05-14)](../superpowers/specs/2026-05-14-variscout-coherence-design.md) — Session A retires for V1, Session B amends, Session C refocuses
+**Partially supersedes:** [Coherence audit spec (2026-05-14)](../archive/specs/2026-05-14-variscout-coherence-design.md) — Session A retires for V1, Session B amends, Session C refocuses
 
 > **Price amended 2026-05-17: €99 → €120/month.** The original decision priced the single SKU at €99; revised upward to €120 before any customer exposure. All current-truth price references below read €120; the §Migration section preserves €79/€199 as historical-context migration math.
 >
@@ -158,7 +159,7 @@ Mitigation in all three cases: the three preconditions are exactly the checks th
 - Decision log entry: `docs/decision-log.md` 2026-05-16
 - ADR-007 (superseded in part — pricing section): `docs/07-decisions/adr-007-azure-marketplace-distribution.md`
 - ADR-033 (superseded — tier model, archived 2026-05-17): `docs/archive/adrs/adr-033-pricing-simplification.md`
-- Coherence audit (partially superseded — Session A retires, Sessions B+C refocus): `docs/superpowers/specs/2026-05-14-variscout-coherence-design.md`
-- Projects tab design (to be amended — stage list change): `docs/superpowers/specs/2026-05-14-projects-tab-design.md`
+- Coherence audit (partially superseded — Session A retires, Sessions B+C refocus): `docs/archive/specs/2026-05-14-variscout-coherence-design.md`
+- Projects tab design (to be amended — stage list change): `docs/archive/specs/2026-05-14-projects-tab-design.md`
 - ADR-080 (preserved — Sustainment auto-fire pattern): `docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md`
 - ADR-081 (preserved — canvas viewport architecture): `docs/07-decisions/adr-081-canvas-viewport-architecture.md`

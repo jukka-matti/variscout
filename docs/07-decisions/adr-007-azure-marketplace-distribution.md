@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-007: Azure Marketplace Distribution Strategy'
+layer: L5
 ---
 
 # ADR-007: Azure Marketplace Distribution Strategy

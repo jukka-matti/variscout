@@ -6,6 +6,11 @@ audience: human
 category: navigation
 status: active
 related: [filter-chips, progressive-stratification, eta-squared, chart-interaction]
+layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Progressive Filtering
@@ -239,6 +244,14 @@ const handleMultiSelect = (factor: string, value: string, currentValues: string[
 7. **Remove filter** — Click X or use "Remove Filter" in dropdown
 
 ---
+
+## Drill-down navigation
+
+Drill-down is the underlying interaction model that progressive filtering implements: analysts narrow analysis scope by clicking boxplot categories or Pareto bars to add successive factor filters to the drill-down path. The mechanics, decision thresholds, and stopping rules are covered in §1 above; the step-by-step procedure (with the Coffee Case Study) lives in [Drill-Down Analysis Workflow](../workflows/drill-down-workflow.md).
+
+## Breadcrumbs
+
+In V1 the drill-down path is rendered as **filter chips** (§3 above), not a traditional breadcrumb trail — chips carry sample counts and per-factor multi-select, which a breadcrumb string cannot. The term "breadcrumb" is retained only in the [Drill-Down Analysis Workflow](../workflows/drill-down-workflow.md) "Navigating Back" guidance as a shorthand for the chip stack: clicking a chip's X removes that level of the path, and "Clear all" returns to the unfiltered view.
 
 ## See Also
 

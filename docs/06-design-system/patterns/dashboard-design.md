@@ -6,6 +6,7 @@ audience: human
 category: reference
 status: active
 related: [analysis-dashboard, layout, dashboard, presentation-mode]
+layer: L5
 ---
 
 # Dashboard Design Principles

@@ -5,6 +5,7 @@ title: 'Design Brief: Guided Investigation'
 audience: human
 category: strategy
 status: active
+layer: L1
 ---
 
 # Design Brief: Guided Investigation

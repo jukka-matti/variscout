@@ -7,6 +7,7 @@ category: architecture
 status: draft
 date: 2026-03-17
 related: [documentation, business-strategy, tiers, ai-integration, user-journeys]
+layer: spec
 ---
 
 # Documentation Methodology Upgrade

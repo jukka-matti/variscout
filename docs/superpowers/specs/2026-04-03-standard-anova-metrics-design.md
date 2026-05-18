@@ -6,6 +6,11 @@ status: draft
 date: 2026-04-03
 related-adr: ADR-062
 related: [anova, eta-squared, variation-decomposition, factor-intelligence, question-driven-eda]
+layer: spec
+implements:
+  - docs/03-features/analysis/anova.md
+  - docs/03-features/analysis/variation-decomposition.md
+  - docs/03-features/analysis/regression-methodology.md
 ---
 
 # Standard ANOVA Metrics & Category Total SS Removal

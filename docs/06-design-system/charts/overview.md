@@ -5,6 +5,7 @@ title: 'Chart Styling Overview'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Chart Styling Overview

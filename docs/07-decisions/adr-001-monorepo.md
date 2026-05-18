@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-001: Monorepo with pnpm Workspaces'
+layer: L5
 ---
 
 # ADR-001: Monorepo with pnpm Workspaces

@@ -6,6 +6,7 @@ journey-phase: [scout, investigate]
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow: Factor Intelligence
@@ -203,6 +204,6 @@ These gates prevent premature conclusions — analysts must pass through the tea
 
 - [Analysis Journey Map](../../03-features/workflows/analysis-journey-map.md) — the 4-phase journey context
 - [ADR-052: Factor Intelligence](../../07-decisions/adr-052-factor-intelligence.md) — design decision
-- [Factor Intelligence Design Doc](../../10-development/discussions/2026-03-29-factor-intelligence-design.md) — full 5-layer vision
+- [Factor Intelligence Design Doc](../../archive/discussions/2026-03-29-factor-intelligence-design.md) — full 5-layer vision
 - [Azure Daily Use](azure-daily-use.md) — how Factor Intelligence fits into daily analysis
 - [Azure First Analysis](azure-first-analysis.md) — first-time user experience

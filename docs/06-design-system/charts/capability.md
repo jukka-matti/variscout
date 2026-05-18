@@ -5,6 +5,7 @@ title: 'Capability Histograms'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Capability Histograms

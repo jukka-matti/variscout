@@ -5,6 +5,7 @@ title: 'Azure Mobile Flow'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Azure Mobile Flow
@@ -17,7 +18,7 @@ How quality engineers use VariScout on their phones via the mobile browser.
 
 ## Persona
 
-[Field Fiona](../personas/field-fiona.md) — Field Quality Engineer who reviews charts during morning meetings and on the shop floor.
+[Field Fiona](../../archive/journeys/personas/field-fiona.md) — Field Quality Engineer who reviews charts during morning meetings and on the shop floor.
 
 ---
 

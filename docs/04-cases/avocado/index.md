@@ -5,6 +5,7 @@ title: 'Avocado Coating Case'
 audience: human
 category: learning
 status: active
+layer: L1
 ---
 
 # Avocado Coating Case

@@ -10,6 +10,7 @@ related:
   - 2026-05-16-docs-strategy-design
   - 2026-05-16-docs-strategy-memo
   - adr-083-eight-purpose-doc-taxonomy
+layer: spec
 ---
 
 # Docs Strategy 2026 — Phase 2 (Discipline + Toolbox + Alignment) Implementation Plan
@@ -106,15 +107,15 @@ Every shell-out in scripts/ MUST use `execFileSync('cmd', [...args])` from `node
 
 Per `feedback_subagent_driven_default` + commit `bb296898`:
 
-| Task | Model      | Reason                                                                  |
-| ---- | ---------- | ----------------------------------------------------------------------- |
-| T1   | **Sonnet** | Well-specified script extension + one scar-tissue file move (1-2 files) |
-| T2   | **Sonnet** | Same script + diff-mode addition (1 file + 1 helper)                    |
-| T3   | **Sonnet** | 4 new self-contained scripts, conventional shape                        |
-| T4   | **Sonnet** | 2 new self-contained scripts, frontmatter mutation                      |
-| T5   | **Sonnet** | One SKILL.md + one llms.txt rewrite — content authoring, no code         |
-| T6   | **Sonnet** | 3 doc edits in canonical homes, low judgment density                     |
-| Final review | **Opus** | Cross-task integration check + dogfood verification                  |
+| Task         | Model      | Reason                                                                  |
+| ------------ | ---------- | ----------------------------------------------------------------------- |
+| T1           | **Sonnet** | Well-specified script extension + one scar-tissue file move (1-2 files) |
+| T2           | **Sonnet** | Same script + diff-mode addition (1 file + 1 helper)                    |
+| T3           | **Sonnet** | 4 new self-contained scripts, conventional shape                        |
+| T4           | **Sonnet** | 2 new self-contained scripts, frontmatter mutation                      |
+| T5           | **Sonnet** | One SKILL.md + one llms.txt rewrite — content authoring, no code        |
+| T6           | **Sonnet** | 3 doc edits in canonical homes, low judgment density                    |
+| Final review | **Opus**   | Cross-task integration check + dogfood verification                     |
 
 Each task gets a fresh Sonnet implementer + Sonnet spec reviewer + Sonnet quality reviewer (two-stage review). Final pass is one Opus reviewer over the whole branch before PR.
 
@@ -134,7 +135,6 @@ Each task gets a fresh Sonnet implementer + Sonnet spec reviewer + Sonnet qualit
 - Modify: `docs/decision-log.md` (append entry per discipline)
 
 - [ ] **Step 1.1: Read context.** Read these in order so the rules are clear:
-
   1. `docs/agent-context/doc-discipline.md` — full discipline rules (esp. §"Reader-first banners" and §"Enforcement")
   2. `docs/superpowers/specs/2026-05-16-docs-strategy-design.md` §2.7 — design rationale
   3. `scripts/check-doc-frontmatter.mjs` — current validator (you're extending it)
@@ -249,7 +249,7 @@ function check(file) {
     !ALLOWLIST.has(rel)
   ) {
     violations.antiPatternFilename.push(
-      `${rel}: anti-pattern filename. Edit the canonical spec in place + add a decision-log entry. See docs/agent-context/doc-discipline.md §Anti-patterns. If genuinely intentional (rare), add the path to .docs-discipline-allowlist with rationale.`,
+      `${rel}: anti-pattern filename. Edit the canonical spec in place + add a decision-log entry. See docs/agent-context/doc-discipline.md §Anti-patterns. If genuinely intentional (rare), add the path to .docs-discipline-allowlist with rationale.`
     );
     // Don't return — still validate the rest so the implementer sees all issues at once.
   }
@@ -261,24 +261,24 @@ function check(file) {
     const bodyHead = extractBodyHead(src, BANNER_BODY_LINES);
     if (fm.status === 'superseded' && !SUPERSEDED_BANNER_RE.test(bodyHead)) {
       violations.missingSupersededBanner.push(
-        `${rel}: status=superseded but no '> SUPERSEDED ...' banner in first ${BANNER_BODY_LINES} body lines. See docs/agent-context/doc-discipline.md §Reader-first banners.`,
+        `${rel}: status=superseded but no '> SUPERSEDED ...' banner in first ${BANNER_BODY_LINES} body lines. See docs/agent-context/doc-discipline.md §Reader-first banners.`
       );
     }
     if (fm.status === 'archived' && !ARCHIVED_BANNER_RE.test(bodyHead)) {
       violations.missingSupersededBanner.push(
-        `${rel}: status=archived but no '> ARCHIVED ...' banner in first ${BANNER_BODY_LINES} body lines.`,
+        `${rel}: status=archived but no '> ARCHIVED ...' banner in first ${BANNER_BODY_LINES} body lines.`
       );
     }
     const supersedesList = asArray(fm.supersedes).filter(Boolean);
     if (supersedesList.length > 0) {
       const head = bodyHead.toLowerCase();
       const mentionsSupersedeWord = /\b(supersede|replaces|successor of)\b/.test(head);
-      const mentionsPredecessor = supersedesList.some((id) =>
-        head.includes(String(id).toLowerCase()),
+      const mentionsPredecessor = supersedesList.some(id =>
+        head.includes(String(id).toLowerCase())
       );
       if (!mentionsSupersedeWord && !mentionsPredecessor) {
         violations.missingSupersedesBanner.push(
-          `${rel}: supersedes:[${supersedesList.join(', ')}] set but banner doesn't mention what's superseded. See docs/agent-context/doc-discipline.md §Reader-first banners.`,
+          `${rel}: supersedes:[${supersedesList.join(', ')}] set but banner doesn't mention what's superseded. See docs/agent-context/doc-discipline.md §Reader-first banners.`
         );
       }
     }
@@ -469,7 +469,7 @@ import { EDIT_TYPES } from '../../docs-frontmatter-schema.mjs';
 
 const ENTRY_HEADER_RE = /^-\s*\*?\*?(\d{4}-\d{2}-\d{2})\*?\*?\s+—\s+(.*?)\.\s*(.*)/;
 const EDIT_TYPE_RE = new RegExp(
-  `\\\`?(${EDIT_TYPES.map((t) => t.replace(/ /g, '\\s+')).join('|')})\\\`?\\s*:`,
+  `\\\`?(${EDIT_TYPES.map(t => t.replace(/ /g, '\\s+')).join('|')})\\\`?\\s*:`
 );
 
 export function parseEntry(line) {
@@ -530,7 +530,9 @@ function runDiffChecks() {
     // single argv argument; git resolves it as a rev.
     raw = execFileSync('git', ['diff', '-U0', DIFF_BASE], { encoding: 'utf8' });
   } catch (err) {
-    console.error(`⚠ --diff mode: could not diff against ${DIFF_BASE} (${err.message}). Skipping diff checks.`);
+    console.error(
+      `⚠ --diff mode: could not diff against ${DIFF_BASE} (${err.message}). Skipping diff checks.`
+    );
     return;
   }
   parseDiff(raw);
@@ -555,7 +557,7 @@ function parseDiff(diffText) {
         const entryDate = new Date(parsed.date + 'T00:00:00Z');
         if (today - entryDate > SEVEN_DAYS_MS) {
           violations.diffWarnDecisionLogOldLine.push(
-            `${currentFile}: editing decision-log entry from ${parsed.date} ("${parsed.title}") — entries >7 days old are append-only by convention. New supersession entry preferred. See docs/agent-context/doc-discipline.md §Decision-log as temporal index.`,
+            `${currentFile}: editing decision-log entry from ${parsed.date} ("${parsed.title}") — entries >7 days old are append-only by convention. New supersession entry preferred. See docs/agent-context/doc-discipline.md §Decision-log as temporal index.`
           );
         }
       }
@@ -568,7 +570,7 @@ function parseDiff(diffText) {
         const parsed = parseEntry(added);
         if (parsed && parsed.editType === null) {
           violations.diffWarnNonCanonicalEditType.push(
-            `${currentFile}: new entry "${parsed.title}" missing canonical edit-type vocabulary. Use one of: spec edit | ADR amendment | new ADR | supersession | archived | new spec.`,
+            `${currentFile}: new entry "${parsed.title}" missing canonical edit-type vocabulary. Use one of: spec edit | ADR amendment | new ADR | supersession | archived | new spec.`
           );
         }
       }
@@ -581,7 +583,7 @@ function parseDiff(diffText) {
         currentFile === 'docs/01-vision/coscout-ax-design.md')
     ) {
       violations.diffWarnSpecAmendmentHeading.push(
-        `${currentFile}: added '## Amendment' heading in a design spec. Design specs edit in place; amendment blocks are ADR-only. See docs/agent-context/doc-discipline.md §Edit-in-place mechanics.`,
+        `${currentFile}: added '## Amendment' heading in a design spec. Design specs edit in place; amendment blocks are ADR-only. See docs/agent-context/doc-discipline.md §Edit-in-place mechanics.`
       );
     }
   }
@@ -605,10 +607,30 @@ const warningTotal =
 Add `show(...)` calls for the new warning lists in `report()`:
 
 ```js
-show('Decision-log: edit on entry >7 days old (use new supersession entry)', violations.diffWarnDecisionLogOldLine, 5, true);
-show('Decision-log: non-canonical edit-type vocabulary', violations.diffWarnNonCanonicalEditType, 5, true);
-show('Design spec: ## Amendment heading added (ADR-only pattern)', violations.diffWarnSpecAmendmentHeading, 5, true);
-show('Design spec: delivered-by set without ✅ Delivered banner', violations.diffWarnDeliveredNoBanner, 5, true);
+show(
+  'Decision-log: edit on entry >7 days old (use new supersession entry)',
+  violations.diffWarnDecisionLogOldLine,
+  5,
+  true
+);
+show(
+  'Decision-log: non-canonical edit-type vocabulary',
+  violations.diffWarnNonCanonicalEditType,
+  5,
+  true
+);
+show(
+  'Design spec: ## Amendment heading added (ADR-only pattern)',
+  violations.diffWarnSpecAmendmentHeading,
+  5,
+  true
+);
+show(
+  'Design spec: delivered-by set without ✅ Delivered banner',
+  violations.diffWarnDeliveredNoBanner,
+  5,
+  true
+);
 ```
 
 - [ ] **Step 2.3: Add the `delivered-by` banner check** (per-file, NOT diff-mode). In the `check(file)` function, after the supersedes banner check:
@@ -616,13 +638,12 @@ show('Design spec: delivered-by set without ✅ Delivered banner', violations.di
 ```js
 // Design-spec WARN: delivered-by frontmatter set but no ✅ Delivered banner
 const isDesignSpec =
-  rel.startsWith('docs/superpowers/specs/') ||
-  rel === 'docs/01-vision/coscout-ax-design.md';
+  rel.startsWith('docs/superpowers/specs/') || rel === 'docs/01-vision/coscout-ax-design.md';
 if (isDesignSpec && fm['delivered-by'] && !ALLOWLIST.has(rel)) {
   const bodyHead = extractBodyHead(src, BANNER_BODY_LINES);
   if (!DELIVERED_BANNER_RE.test(bodyHead)) {
     violations.diffWarnDeliveredNoBanner.push(
-      `${rel}: delivered-by=${fm['delivered-by']} set but no '✅ Delivered' banner in first ${BANNER_BODY_LINES} body lines. See docs/agent-context/doc-discipline.md §Banner templates.`,
+      `${rel}: delivered-by=${fm['delivered-by']} set but no '✅ Delivered' banner in first ${BANNER_BODY_LINES} body lines. See docs/agent-context/doc-discipline.md §Banner templates.`
     );
   }
 }
@@ -828,7 +849,10 @@ function excerpt(body, keyword) {
   const idx = body.toLowerCase().indexOf(keyword);
   if (idx < 0) return '';
   const start = Math.max(0, idx - 40);
-  return body.slice(start, idx + keyword.length + 80).replace(/\s+/g, ' ').slice(0, 140);
+  return body
+    .slice(start, idx + keyword.length + 80)
+    .replace(/\s+/g, ' ')
+    .slice(0, 140);
 }
 
 const files = walk(DOCS);
@@ -855,7 +879,8 @@ for (const hit of out) {
   if (hit.excerpt) console.log(`  …${hit.excerpt}…`);
   console.log('');
 }
-if (hits.length > out.length) console.log(`(+ ${hits.length - out.length} more — increase --limit to see all)`);
+if (hits.length > out.length)
+  console.log(`(+ ${hits.length - out.length} more — increase --limit to see all)`);
 ```
 
 - [ ] **Step 3.3: Create `get.mjs`.** Print a full doc by id or path.
@@ -1265,7 +1290,9 @@ const isAdr =
   rel.startsWith('docs/archive/adrs/') ||
   rel.startsWith('docs/living/decide/');
 if (!isAdr) {
-  console.error(`${rel}: amend.mjs is ADR-only. Design specs edit in place; see docs/agent-context/doc-discipline.md §Edit-in-place mechanics.`);
+  console.error(
+    `${rel}: amend.mjs is ADR-only. Design specs edit in place; see docs/agent-context/doc-discipline.md §Edit-in-place mechanics.`
+  );
   process.exit(1);
 }
 
@@ -1333,7 +1360,7 @@ EOF
 
 - [ ] **Step 5.1: Create `.claude/skills/docs-toolbox/SKILL.md`.** Match the format of `.claude/skills/agent-context-quickstart/SKILL.md` for tone + length. Auto-trigger description must mention: "search docs", "find related docs", "verify spec freshness", "amend ADR", "retrieve documentation".
 
-```markdown
+````markdown
 ---
 name: 'Docs Toolbox'
 description: 'Use when searching the docs corpus, finding related specs/ADRs, listing recent changes, verifying spec freshness, or amending ADRs. Provides the `pnpm docs:find / docs:get / docs:related / docs:recent / docs:verify / docs:amend` retrieval surface so subagents can locate canonical homes for any concept without grep-walking 500+ files.'
@@ -1356,15 +1383,15 @@ Skip this skill for: editing prose inside a doc you already have open; one-off `
 
 ## Tool surface
 
-| Command                                            | What it does                                                                                                |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `pnpm docs:find --purpose=X --topic=Y --tier=Z`    | Filter docs by frontmatter fields. `--keyword=K` adds keyword filter. `--limit=N` caps output.              |
-| `pnpm docs:get <id-or-path>`                       | Print the full doc.                                                                                          |
-| `pnpm docs:related <id>`                           | Forward + backward neighbors (frontmatter `related:` + body `[[wikilinks]]`).                               |
-| `pnpm docs:recent --since=YYYY-MM-DD`              | New docs + decision-log entries since cutoff.                                                                |
-| `pnpm docs:recent --since=YYYY-MM-DD --amendments` | Restrict decision-log to entries with canonical edit-types (spec edit / ADR amendment / etc.).               |
-| `pnpm docs:verify <id>`                            | Bump `last-verified` + `verified-against-commit` after re-reading.                                          |
-| `pnpm docs:amend <adr-id> "<summary>"`             | Append a dated `## Amendment` block to an ADR. HARD-FAILS on design specs.                                  |
+| Command                                            | What it does                                                                                   |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `pnpm docs:find --purpose=X --topic=Y --tier=Z`    | Filter docs by frontmatter fields. `--keyword=K` adds keyword filter. `--limit=N` caps output. |
+| `pnpm docs:get <id-or-path>`                       | Print the full doc.                                                                            |
+| `pnpm docs:related <id>`                           | Forward + backward neighbors (frontmatter `related:` + body `[[wikilinks]]`).                  |
+| `pnpm docs:recent --since=YYYY-MM-DD`              | New docs + decision-log entries since cutoff.                                                  |
+| `pnpm docs:recent --since=YYYY-MM-DD --amendments` | Restrict decision-log to entries with canonical edit-types (spec edit / ADR amendment / etc.). |
+| `pnpm docs:verify <id>`                            | Bump `last-verified` + `verified-against-commit` after re-reading.                             |
+| `pnpm docs:amend <adr-id> "<summary>"`             | Append a dated `## Amendment` block to an ADR. HARD-FAILS on design specs.                     |
 
 ## Task kits
 
@@ -1375,6 +1402,7 @@ pnpm docs:find --keyword="X"                  # broad search
 pnpm docs:find --purpose=design --topic=X     # narrow by purpose+topic
 pnpm docs:find --purpose=decide --keyword=X   # decisions about X (ADRs + decision-log entries)
 ```
+````
 
 ### "What's recently changed?"
 
@@ -1418,7 +1446,8 @@ The toolbox is the retrieval half; `docs/agent-context/doc-discipline.md` is the
 ## Implementation
 
 Scripts live in `scripts/docs-toolbox/` and are wired via root `package.json`. Shared helpers at `scripts/docs-toolbox/lib/frontmatter.mjs` (parse + wikilinks) and `scripts/docs-toolbox/lib/edit-types.mjs` (decision-log entry parser + canonical edit-type vocabulary). The toolbox operates on the current FLAT corpus; Phase 3 will add `docs/cards/` substrate without breaking these commands.
-```
+
+````
 
 - [ ] **Step 5.2: Rewrite `docs/llms.txt` from catalog → router.** Replace the entire file content with a short router. Run `git grep -l 'docs/llms.txt'` first — there may be inbound links that need to stay alive. Keep the always-load section comprehensive enough that those links resolve.
 
@@ -1467,7 +1496,7 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 - `pnpm docs:check:frontmatter` — schema + discipline checks alone.
 - `node scripts/check-doc-frontmatter.mjs --diff` — diff-mode checks (decision-log append-only, design-spec `## Amendment`, delivered-by banner).
 - See `.claude/skills/docs-toolbox/SKILL.md` for the retrieval surface.
-```
+````
 
 - [ ] **Step 5.3: Append T5 decision-log entry.**
 
@@ -1548,11 +1577,11 @@ CoScout is an **investigator, not an analyst**. Voice principles (unchanged from
 
 V1 has 3 project-membership roles (Lead / Member / Sponsor — per `2026-05-16-wedge-architecture-design`). CoScout adapts the framing (not the analysis) per role:
 
-| Active role  | Tone adjustment                                                                                                                                            |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Lead**     | Methodology-coaching tone: surfaces next-step suggestions framed as questions ("Have we checked stability before capability?"); references the three-level methodology model when context allows. |
-| **Member**   | Task-completion tone: surfaces actionable next steps in second person ("Pick the Y you care about; I'll wait."); collapses methodology framing into one-line context.                              |
-| **Sponsor**  | Outcome-framed summaries: leads with "Here's where the project stands" + improvement-magnitude framing; suppresses tool-action prompts (Sponsor is read-only by ACL).                             |
+| Active role | Tone adjustment                                                                                                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Lead**    | Methodology-coaching tone: surfaces next-step suggestions framed as questions ("Have we checked stability before capability?"); references the three-level methodology model when context allows. |
+| **Member**  | Task-completion tone: surfaces actionable next steps in second person ("Pick the Y you care about; I'll wait."); collapses methodology framing into one-line context.                             |
+| **Sponsor** | Outcome-framed summaries: leads with "Here's where the project stands" + improvement-magnitude framing; suppresses tool-action prompts (Sponsor is read-only by ACL).                             |
 
 Role-detection is via active `ProjectMember.role` (per ADR-082's ACL model). Default to Member tone if role is ambiguous (e.g., user is viewing a project they don't belong to, read-only paths).
 

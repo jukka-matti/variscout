@@ -7,6 +7,7 @@ status: superseded
 audience: human
 category: design-spec
 related: [header, toolbar, workspace-tabs, auto-save, report-workspace, navigation, panels]
+layer: spec
 ---
 
 > **Superseded by [Unified Header](2026-04-02-unified-header-design.md)** — extends this spec by additionally merging the App header into a single adaptive bar.

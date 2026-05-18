@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [defect, pareto, aggregation, failure-mode, evidence-map]
+layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Defect Analysis
@@ -84,6 +89,25 @@ U002,   NG,     M3,      Day
 
 ---
 
+## Intent diagram
+
+```mermaid
+flowchart LR
+  A[Raw data] --> B{detectDefectMode}
+  B -->|event log| C[group by unit x type]
+  B -->|pre-aggregated| D[pass-through]
+  B -->|pass/fail| E[group by unit, fail %]
+  C --> F[DefectTransformResult<br/>data + outcomeColumn + factors]
+  D --> F
+  E --> F
+  F --> G[Four Lenses on rates]
+  G --> H[I-Chart, Boxplot, Pareto, Summary]
+  H --> I[Pareto bar click]
+  I -->|drill type| F
+```
+
+---
+
 ## Chart Slots
 
 | Slot | Lens    | Chart               | What It Shows                                                              |
@@ -148,8 +172,8 @@ When detected, `DefectDetectedModal` asks the user to confirm mode and configure
 
 ## Design Specs
 
-- [Defect Analysis Mode Design](../../superpowers/specs/2026-04-16-defect-analysis-mode-design.md) — full mode architecture
-- [Defect Evidence Map Integration](../../superpowers/specs/2026-04-16-defect-evidence-map-integration-design.md) — three-view Evidence Map model
+- [Defect Analysis Mode Design](../../archive/specs/2026-04-16-defect-analysis-mode-design.md) — full mode architecture
+- [Defect Evidence Map Integration](../../archive/specs/2026-04-16-defect-evidence-map-integration-design.md) — three-view Evidence Map model
 
 ## Key Files
 

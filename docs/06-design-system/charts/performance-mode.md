@@ -5,6 +5,7 @@ title: 'Performance Mode Charts'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # Performance Mode Charts

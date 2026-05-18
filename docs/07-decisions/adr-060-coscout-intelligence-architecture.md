@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [coscout-ax-design]
+layer: L5
 ---
 
 # ADR-060: CoScout Intelligence Architecture

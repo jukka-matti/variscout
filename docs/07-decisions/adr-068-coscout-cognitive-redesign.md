@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [coscout, ai-integration, prompt-caching, tiered-prompts, coscout-ax-design]
+layer: L5
 ---
 
 # ADR-068: CoScout Cognitive Redesign

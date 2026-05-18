@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-061: HMW Brainstorm & Collaborative Ideation'
+layer: L5
 ---
 
 # ADR-061: HMW Brainstorm & Collaborative Ideation

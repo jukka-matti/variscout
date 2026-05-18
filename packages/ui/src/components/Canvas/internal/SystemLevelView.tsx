@@ -237,7 +237,7 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
           </div>
 
           <section
-            className="grid gap-3 rounded-lg border border-edge bg-surface p-4 sm:grid-cols-5"
+            className="grid gap-3 rounded-lg border border-edge bg-surface p-4 sm:grid-cols-4"
             data-testid="outcome-capability"
           >
             <div>
@@ -247,14 +247,6 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
             <div>
               <div className="text-xs text-content-muted">Cpk</div>
               <div className="text-lg font-semibold text-content">{formatMetric(model.cpk)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-content-muted">Pp</div>
-              <div className="text-lg font-semibold text-content">{formatMetric(model.pp)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-content-muted">Ppk</div>
-              <div className="text-lg font-semibold text-content">{formatMetric(model.ppk)}</div>
             </div>
             <div>
               <div className="text-xs text-content-muted">

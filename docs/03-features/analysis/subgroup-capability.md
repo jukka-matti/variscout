@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [cp, cpk, rational-subgrouping, i-chart]
+layer: L3
+kind: ui
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Subgroup Capability Analysis
@@ -27,6 +32,31 @@ Capability mode is a view toggle within the SCOUT phase of the analysis journey.
 Time-based subgrouping uses extracted time columns from FRAME (TimeExtractionPanel with minute-interval support), ensuring subgroups appear as Boxplot-filterable categories and work seamlessly with findings. For fixed-size subgroups where a specific subgroup fails, the analyst can use the Brush → Create Factor flow to isolate problematic data points for deeper investigation.
 
 See [Analysis Flow](../workflows/analysis-flow.md) for the complete two-thread analysis journey.
+
+## Intent diagram
+
+```
+┌──────────────────────────────────────────────────┐
+│ Capability Index                                 │
+│                                                  │
+│ ══════════════════════════════════════════ UCL   │
+│        ◯                                         │
+│   ●    │    ●    ●         ◯              ◯     │
+│   │    │    │    │    ●    │              │     │
+│ ──●────◯────●────●────│────●──────────●──────  x̄│
+│              gap        │                        │
+│ ══════════════════════════════════════════ LCL   │
+│                                                  │
+│ Subgroup index (Batch / Shift / fixed-n)         │
+│                          [VariScout n=N]         │
+└──────────────────────────────────────────────────┘
+  ● Cpk (actual)   ◯ Cp (potential)
+  │ centering gap connector
+```
+
+Grey vertical connectors visualize centering loss per subgroup pair. Long lines indicate capable-but-off-center processes. Per-series control limits (UCL/LCL) detect capability instability — when the Cpk series is out of control, the overall Ppk is misleading.
+
+---
 
 ## Dual Cp/Cpk Series
 

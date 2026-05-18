@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [journey-phase, mental-model-hierarchy, analysis-journey-map]
+layer: L4
 ---
 
 # Journey Phase → Screen Mapping

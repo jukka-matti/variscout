@@ -3,6 +3,7 @@ tier: stable
 purpose: remember
 title: 'Probability Plot Enhancement Design'
 status: draft
+layer: spec
 ---
 
 # Probability Plot Enhancement Design

@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-049: CoScout Knowledge Catalyst — Visual Context & Active Insight Capture'
+layer: L5
 ---
 
 # ADR-049: CoScout Knowledge Catalyst — Visual Context & Active Insight Capture

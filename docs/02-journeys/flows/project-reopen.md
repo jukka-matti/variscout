@@ -6,6 +6,7 @@ audience: human
 category: workflow
 status: active
 related: [return-visitor, azure-daily-use, project-dashboard, adr-042, adr-043]
+layer: L2
 ---
 
 # Flow: Portfolio → Open Saved Project → Project Dashboard → Analysis

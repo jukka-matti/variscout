@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-047: Analysis Mode Strategy Pattern'
+layer: L5
 ---
 
 # ADR-047: Analysis Mode Strategy Pattern

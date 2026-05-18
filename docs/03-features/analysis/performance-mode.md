@@ -6,6 +6,11 @@ audience: human
 category: analysis
 status: active
 related: [multi-channel, cpk-comparison, wide-format]
+layer: L3
+kind: workflow
+serves:
+  - docs/02-journeys/personas/lead.md
+  - docs/02-journeys/personas/member.md
 ---
 
 # Performance Mode
@@ -57,6 +62,29 @@ Analyze multiple measurement channels (fill heads, cavities, nozzles) in a singl
 3. **Overview** - See all channels in Performance Pareto
 4. **Drill** - Click worst performer to see details
 5. **Analyze** - Use standard tools on filtered data
+
+---
+
+## Intent diagram
+
+```mermaid
+sequenceDiagram
+  actor Analyst
+  participant Strategy as analysisStrategy
+  participant Core as calculateChannelResults
+  participant Health as classifyChannelHealth
+  participant Charts as Performance charts
+  Analyst->>Strategy: import wide-format data
+  Strategy->>Strategy: detect multi-channel columns
+  Strategy->>Core: data + measureColumns + specs
+  Core->>Health: per-channel Cp/Cpk
+  Health-->>Core: 'excellent'|'good'|'marginal'|'poor'
+  Core-->>Charts: ChannelResult[]
+  Charts->>Analyst: Pareto ranks worst first
+  Analyst->>Charts: click worst channel
+  Charts->>Strategy: filter to channel
+  Strategy->>Analyst: standard tools on subset
+```
 
 ---
 

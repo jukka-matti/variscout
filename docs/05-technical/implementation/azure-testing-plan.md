@@ -5,6 +5,7 @@ title: 'Azure App Testing Plan — rdmaic Organization'
 audience: human
 category: implementation
 status: active
+layer: L4
 ---
 
 # Azure App Testing Plan — rdmaic Organization

@@ -7,6 +7,7 @@ category: architecture
 status: active
 related:
   [anova, factor-intelligence, question-driven-investigation, variation-decomposition, eta-squared]
+layer: L5
 ---
 
 # ADR-062: Standard ANOVA Metrics & Category Total SS Removal

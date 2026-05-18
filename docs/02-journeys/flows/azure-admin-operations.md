@@ -5,6 +5,7 @@ title: 'Flow 10: Azure App — Admin Operations'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow 10: Azure App — Admin Operations
@@ -250,7 +251,7 @@ See [Authentication — App Roles](../../08-products/azure/authentication.md#adm
 
 ## See Also
 
-- [Admin Aino](../personas/admin-aino.md) — the IT Admin persona
+- [Admin Aino](../../archive/journeys/personas/admin-aino.md) — the IT Admin persona
 - [Flow 8: Team Collaboration](azure-team-collaboration.md) — initial deployment and team setup
 - [Flow 9: AI Setup](azure-ai-setup.md) — AI resource provisioning
 - [ARM Template](../../08-products/azure/arm-template.md) — deployment resources

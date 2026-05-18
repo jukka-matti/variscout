@@ -7,6 +7,7 @@ category: implementation
 status: active
 date: 2026-04-25
 related: [question-driven-eda-2, mechanism-branches, investigation-wall]
+layer: spec
 ---
 
 # QDE 2.0 Branch Workspace Phase Plan

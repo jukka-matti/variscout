@@ -7,12 +7,13 @@ category: implementation
 status: active
 last-reviewed: 2026-05-13
 related:
-  - docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md
+  - docs/archive/specs/2026-05-13-canvas-viewport-architecture-design.md
   - docs/superpowers/plans/2026-05-13-canvas-viewport-architecture.md
   - docs/07-decisions/adr-081-canvas-viewport-architecture.md
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
   - docs/decision-log.md
   - docs/investigations.md
+layer: spec
 ---
 
 # Canvas Viewport 8f — Followup Workstream
@@ -186,7 +187,7 @@ Read `adding-i18n-messages` skill first. Mirror existing typed-catalog patterns 
 
 ### Amend-path tasks (if chosen)
 
-- T3.A.1: Update spec §10 matrix in `docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md` — mark the 6 additional cells deferred-V2 with rationale
+- T3.A.1: Update spec §10 matrix in `docs/archive/specs/2026-05-13-canvas-viewport-architecture-design.md` — mark the 6 additional cells deferred-V2 with rationale
 - T3.A.2: If the disable rationale is irreversible (e.g., methodology blocks the data shape), add `## Amendment — 2026-05-13` block to ADR-081
 - T3.A.3: Decision-log entry "lens × level matrix amended" with the chosen rationale
 

@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [question-driven-eda, factor-intelligence, strategy-pattern, yamazumi, capability]
+layer: L5
 ---
 
 # ADR-054: Mode-Aware Question Strategy

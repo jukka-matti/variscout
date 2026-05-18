@@ -2,6 +2,7 @@
 tier: living
 purpose: decide
 title: 'ADR-008: Website Content Architecture'
+layer: L5
 ---
 
 # ADR-008: Website Content Architecture

@@ -1,13 +1,18 @@
 ---
+tier: ephemeral
+purpose: build
 title: 'Testing Strategy — Tier 2 + Tier 3 (Deferred)'
-audience: [developer]
+audience: human
 category: implementation
-status: deferred
+status: superseded
 date: 2026-05-17
 related: [testing, vitest, projects, ci, playwright]
+layer: spec
 ---
 
 # Testing Strategy — Tier 2 + Tier 3 (Deferred Work)
+
+> **SUPERSEDED 2026-05-18** — `status:` was `deferred`; ADR-083 alias map resolves `deferred → superseded`. The plan remains preserved here as deferred work; no live alternative exists yet. Reverse this banner if `deferred` becomes a canonical STATUS again.
 
 **Status:** Planned, not scheduled. Surfaced 2026-05-17 during the wedge V1 post-launch testing audit. Tier 1 shipped as PR #198 (`9f7d731b`). Tier 2 + Tier 3 below preserved here so they're discoverable when the right window opens.
 

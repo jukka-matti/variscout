@@ -2,6 +2,7 @@
 tier: stable
 purpose: remember
 title: 'ADR-022: Knowledge Layer Architecture'
+layer: L5
 ---
 
 # ADR-022: Knowledge Layer Architecture

@@ -1,9 +1,15 @@
 ---
+tier: living
+purpose: design
 title: 'PR-WV1-3 — MeasurementPlan + Invitation lifecycle + ActionItem CRUD design'
 status: draft
 last-reviewed: 2026-05-16
 category: design-spec
-audience: [designer, engineer, analyst]
+audience: human
+implements:
+  - docs/03-features/workflows/investigation-wall.md
+  - docs/03-features/workflows/investigation-to-action.md
+  - docs/03-features/data/acl.md
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/archive/specs/2026-05-16-improve-tab-amendment-design.md
@@ -12,6 +18,7 @@ related:
   - docs/superpowers/plans/2026-05-16-pr-wv1-3a-membership-cleanup.md
   - docs/superpowers/plans/2026-05-16-pr-wv1-3b-measurement-plans-wall.md
   - docs/07-decisions/adr-082-wedge-architecture.md
+layer: spec
 ---
 
 # PR-WV1-3 — MeasurementPlan + Invitation lifecycle + ActionItem CRUD design

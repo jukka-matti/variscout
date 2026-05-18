@@ -6,6 +6,7 @@ audience: human
 category: architecture
 status: active
 related: [core-package, tree-shaking, bounded-contexts]
+layer: L4
 ---
 
 # Sub-Path Exports

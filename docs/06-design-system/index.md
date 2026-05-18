@@ -5,6 +5,7 @@ title: 'VariScout Design System'
 audience: human
 category: reference
 status: active
+layer: L5
 ---
 
 # VariScout Design System

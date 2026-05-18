@@ -5,6 +5,7 @@ title: 'Products'
 audience: human
 category: strategy
 status: active
+layer: L5
 ---
 
 > **⚠️ Queued for V1 rewrite (Phase C.3)** — see [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md) for V1 canonical anatomy. tier/product summary collapses to PWA + €120 single SKU; VariScout Process noted as future product. Full content rewrite queued for Phase C.3 batch 4 (subagent-driven).

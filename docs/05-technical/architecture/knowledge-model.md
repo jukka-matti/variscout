@@ -5,6 +5,7 @@ title: 'Knowledge Model Architecture'
 audience: human
 category: architecture
 status: active
+layer: L4
 ---
 
 # Knowledge Model Architecture

@@ -7,6 +7,11 @@ date: 2026-04-04
 audience: human
 category: architecture
 related: [state-management, zustand, DDD, CQRS, persistence]
+layer: spec
+implements:
+  - docs/01-vision/constitution.md
+  - docs/03-features/stores-overview.md
+  - docs/03-features/hooks-overview.md
 ---
 
 # Zustand Direct Store Access — Full DataContext Replacement

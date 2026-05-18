@@ -5,6 +5,7 @@ title: 'Flow 8: Azure App — Team Collaboration'
 audience: human
 category: workflow
 status: active
+layer: L2
 ---
 
 # Flow 8: Azure App — Team Collaboration
