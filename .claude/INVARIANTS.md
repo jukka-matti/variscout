@@ -156,7 +156,7 @@ Enforcement tiers:
 
 ### Architecture shape
 
-- **6 Zustand stores across 3 layers** — Document (×3): `useProjectStore`, `useInvestigationStore`, `useCanvasStore`; Annotation (×2): `useCanvasViewportStore`, `usePreferencesStore`, `useActiveIPStore`; View (×1): `useViewStore`. No DataContext.
+- **9 Zustand stores across 3 layers** — Document (×4): `useProjectStore`, `useInvestigationStore`, `useCanvasStore`, `useImprovementProjectStore`; Annotation (×4): `useCanvasViewportStore` (per-hub), `usePreferencesStore` (per-user), `useActiveIPStore` (per-user), `useProjectMembershipStore` (per-user); View (×1): `useViewStore`. No DataContext.
   - Canonical: [ADR-078](../docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md) + `packages/stores/CLAUDE.md`.
   - Enforced: `packages/stores/src/__tests__/layerBoundary.test.ts` (structural-absence guard on layer names).
 

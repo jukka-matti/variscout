@@ -66,7 +66,7 @@ Canonical sources: [wedge spec](../superpowers/specs/2026-05-16-wedge-architectu
 Violating any of these is a hard error. ESLint enforces the language ones. Full index with canonical homes + enforcement mechanisms: [`.claude/INVARIANTS.md`](../../.claude/INVARIANTS.md).
 
 1. **Browser-only processing** — data never leaves the customer's tenant. No server-side aggregation, no external API calls with row data (ADR-059).
-2. **6 Zustand stores across 3 layers** — Document (×3): `useProjectStore`, `useInvestigationStore`, `useCanvasStore`; Annotation (×2): `useCanvasViewportStore`, `usePreferencesStore`; extra Annotation: `useActiveIPStore`; View (×1): `useViewStore`. No DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
+2. **9 Zustand stores across 3 layers** — Document (×4): `useProjectStore`, `useInvestigationStore`, `useCanvasStore`, `useImprovementProjectStore`; Annotation (×4): `useCanvasViewportStore` (per-hub), `usePreferencesStore` (per-user), `useActiveIPStore` (per-user), `useProjectMembershipStore` (per-user); View (×1): `useViewStore`. No DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
 3. **No statistical roll-up across heterogeneous units** — distributions, not aggregates; no Cpk arithmetic across different spec limits (ADR-073).
 4. **Language**: never write "root cause" — use "contribution" / "suspected cause" / "mechanism". Never call interactions "moderator/primary" — use `'ordinal'` / `'disordinal'`. ESLint rules enforce both.
 

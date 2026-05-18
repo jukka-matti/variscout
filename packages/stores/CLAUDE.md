@@ -1,16 +1,18 @@
 # @variscout/stores
 
-7 Zustand stores across 3 layers (ADR-078 + F4, 2026-05-07):
+9 Zustand stores across 3 layers (ADR-078 + F4, 2026-05-07; wedge V1 additions 2026-05-16):
 
-| Layer           | Store                    | Persistence                                                                                   |
-| --------------- | ------------------------ | --------------------------------------------------------------------------------------------- |
-| Document (×3)   | `useProjectStore`        | consumer-side serialisation via `useProjectActions`                                           |
-| Document        | `useInvestigationStore`  | session-only today; future `HubRepository.dispatch`                                           |
-| Document        | `useCanvasStore`         | `dispatch(CanvasAction)` + hub repository                                                     |
-| Annotation hub  | `useCanvasViewportStore` | Dexie DB `variscout-canvas-viewport` (R12 ESLint exception, STORE_LAYER='annotation-per-hub') |
-| Annotation user | `usePreferencesStore`    | idb-keyval, key `'variscout-preferences'`                                                     |
-| Annotation user | `useActiveIPStore`       | localStorage, key `variscout:activeIP:{hubId}:{userId}` with encoded scope parts              |
-| View            | `useViewStore`           | NONE — transient                                                                              |
+| Layer           | Store                        | Persistence                                                                                         |
+| --------------- | ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| Document (×4)   | `useProjectStore`            | consumer-side serialisation via `useProjectActions`                                                 |
+| Document        | `useInvestigationStore`      | session-only today; future `HubRepository.dispatch`                                                 |
+| Document        | `useCanvasStore`             | `dispatch(CanvasAction)` + hub repository                                                           |
+| Document        | `useImprovementProjectStore` | V1 user-facing Project entity (multiple per user, each wraps one Hub 1:1; `STORE_LAYER='document'`) |
+| Annotation hub  | `useCanvasViewportStore`     | Dexie DB `variscout-canvas-viewport` (R12 ESLint exception, STORE_LAYER='annotation-per-hub')       |
+| Annotation user | `usePreferencesStore`        | idb-keyval, key `'variscout-preferences'`                                                           |
+| Annotation user | `useActiveIPStore`           | localStorage, key `variscout:activeIP:{hubId}:{userId}` with encoded scope parts                    |
+| Annotation user | `useProjectMembershipStore`  | localStorage per-user; wedge V1 per-project ACLs + pending invites                                  |
+| View            | `useViewStore`               | NONE — transient                                                                                    |
 
 **Boundary rule (portability test):** another analyst importing this hub needs it? Yes → Document. Survives reload but not portable → Annotation. Doesn't survive reload → View. `__tests__/layerBoundary.test.ts` enforces middleware presence/absence.
 
@@ -31,13 +33,7 @@
 - Persistence: `suspectedCauses` + `causalLinks` serialize via `useProjectActions` into `.vrs` (Apr 2026 fix). New investigation entities also need `apps/azure/src/db/schema.ts` + `useEditorDataFlow.ts` updates.
 - Sustainment (RPS V1, ADR-080) auto-fires once a `SuspectedCause` is `confirmed` AND the matching improvement is "implemented". `sustainmentRecords`, `sustainmentReviews`, `controlHandoffs` are NOT yet HubAction-dispatched — direct `apps/azure/src/services/localDb.ts` writes (R13 allow-listed). F5 may unify.
 
-## Test command
-
-```bash
-pnpm --filter @variscout/stores test
-```
-
-## Testing
+## Testing (`pnpm --filter @variscout/stores test`)
 
 Per-package `src/__tests__/setup.ts` (NOT root `test/setup.ts`) — mocks `idb-keyval` with an in-memory Map for Zustand persist + clears it between tests. New Dexie-backed stores: mirror `canvasViewportStore.test.ts:1` and `import 'fake-indexeddb/auto'` at file top.
 

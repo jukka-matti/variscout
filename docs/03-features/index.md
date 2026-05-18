@@ -121,7 +121,7 @@ Cross-cutting infrastructure capabilities:
 
 | Layer                                 | Description                                             |
 | ------------------------------------- | ------------------------------------------------------- |
-| [Stores Overview](stores-overview.md) | 7 Zustand stores across 3 layers per ADR-078 + F4       |
+| [Stores Overview](stores-overview.md) | 9 Zustand stores across 3 layers per ADR-078 + F4       |
 | [Hooks Overview](hooks-overview.md)   | `@variscout/hooks` — shared React hooks bridging layers |
 
 ---
