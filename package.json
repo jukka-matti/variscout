@@ -27,6 +27,7 @@
     "docs:rebuild": "node scripts/docs/rebuild-views.mjs",
     "docs:recent": "node scripts/docs-toolbox/recent.mjs",
     "docs:related": "node scripts/docs-toolbox/related.mjs",
+    "docs:steward": "node scripts/docs-steward.mjs",
     "docs:sync": "bash scripts/sync-monorepo-counts.sh",
     "docs:verify": "node scripts/docs-toolbox/verify.mjs",
     "codex:ruflo-check": "bash scripts/check-codex-ruflo.sh",
