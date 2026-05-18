@@ -111,8 +111,8 @@ describe('SystemLevelView', () => {
     expect(screen.getByTestId('outcome-time-series')).toBeInTheDocument();
     expect(screen.getByTestId('outcome-capability')).toHaveTextContent('Cp');
     expect(screen.getByTestId('outcome-capability')).toHaveTextContent('Cpk');
-    expect(screen.getByTestId('outcome-capability')).toHaveTextContent('Pp');
-    expect(screen.getByTestId('outcome-capability')).toHaveTextContent('Ppk');
+    // ADR-084: Pp/Ppk must not leak back into the L1 row.
+    expect(screen.getByTestId('outcome-capability')).not.toHaveTextContent(/\bPpk?\b/);
     expect(screen.getByTestId('inbox-digest')).toHaveTextContent('1 prompt');
     expect(screen.getByTestId('active-investigations-summary')).toHaveTextContent(
       '2 open questions'
