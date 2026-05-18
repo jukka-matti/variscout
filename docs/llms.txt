@@ -18,7 +18,8 @@ Entry points for AI agents working in this repo. Humans should start at [`docs/i
 
 ## Always-load entry points
 
-- [`decision-log.md`](decision-log.md) — temporal index over canonical doc changes. Read BEFORE re-opening any topic.
+- [`decision-log.md`](decision-log.md) — temporal index over canonical doc changes. Read BEFORE re-opening any topic. **Phase 3: now a generated aggregate from `cards/decisions/`; §1/§2/§3 emitted from cards, §4/§5 hand-authored inside HTML markers. Edit cards (or §4/§5 markers), not the aggregate.**
+- [`cards/decisions/`](cards/decisions/) — atomic decision cards (one decision per file). Queryable via `pnpm docs:find --tier=card --purpose=decide`.
 - [`OVERVIEW.md`](OVERVIEW.md) — what VariScout does + the FRAME → SCOUT → INVESTIGATE → IMPROVE journey.
 - [`USER-JOURNEYS.md`](USER-JOURNEYS.md) — V1 single persona (Improvement Specialist) + 3 project-membership roles (Lead / Member / Sponsor).
 - [`DATA-FLOW.md`](DATA-FLOW.md) — parse → transform → stats → persist → sync → display → AI pipeline.

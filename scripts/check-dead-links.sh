@@ -15,12 +15,21 @@ while IFS= read -r line; do
   link=$(echo "$line" | cut -d: -f2- | grep -oE '\]\([^)]+\.md[^)]*\)' | sed 's/^](//;s/)$//' | head -1)
   [ -z "$link" ] && continue
 
-  # Skip docs/archive/ as a link source — archived docs are frozen historical
-  # references; their internal cross-refs may use paths that were valid at the
-  # time of authoring but break after the file was moved into archive/.
-  # Links INTO docs/archive/ from live docs are still checked.
+  # Skip docs/archive/ and docs/cards/ as link sources:
+  # - Archived docs are frozen historical references; their internal cross-refs
+  #   may use paths that were valid at the time of authoring but break after the
+  #   file was moved into archive/.
+  # - Card directories (Phase 3 decomposition) are an atomic substrate, not a
+  #   navigational surface. Cards inherit prose-link refs from their source bulk
+  #   files (decision-log, investigations, ~/.claude/memory atoms); validating
+  #   those file-relative from each card location would require path-rewriting
+  #   in every decompose script. The aggregate (decision-log.md), the ephemeral
+  #   queue, and the source atoms are still validated; cards are queryable, not
+  #   navigated.
+  # Links INTO archive/ or cards/ from live docs are still checked.
   case "$src" in
     */docs/archive/*) continue ;;
+    */docs/cards/*) continue ;;
   esac
 
   # Strip anchor
