@@ -4,17 +4,17 @@ purpose: design
 title: VariScout Coherence — Persona + Surface + Vocabulary Design
 audience: human
 category: design-spec
-status: draft
+status: archived
 last-reviewed: 2026-05-14
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md
   - docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md
-  - docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md
+  - docs/archive/specs/2026-05-13-canvas-viewport-architecture-design.md
   - docs/superpowers/specs/2026-04-25-process-hub-design.md
   - docs/superpowers/specs/2026-04-25-process-hub-use-cases.md
   - docs/superpowers/specs/2026-04-25-engagement-profile-raci-design.md
-  - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
+  - docs/archive/specs/2026-04-29-multi-level-scout-design.md
   - docs/archive/specs/2026-05-03-framing-layer-design.md
   - docs/01-vision/constitution.md
   - docs/01-vision/methodology.md
@@ -24,7 +24,14 @@ related:
   - docs/07-decisions/adr-077-row-provenance-tagging.md
   - docs/07-decisions/adr-081-canvas-viewport-architecture.md
 layer: spec
+implements:
+  - docs/01-vision/positioning.md
+  - docs/02-journeys/ia-nav-model.md
+  - docs/07-decisions/adr-082-wedge-architecture.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to coherence (Session A persona, Session B nav vocabulary, Session C visual identity + a11y); deltas absorbed into [`docs/01-vision/positioning.md`](../../01-vision/positioning.md) + [`docs/02-journeys/ia-nav-model.md`](../../02-journeys/ia-nav-model.md) + [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) (Sessions A nav layout + persona model superseded by wedge). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # VariScout Coherence — Persona + Surface + Vocabulary Design
 

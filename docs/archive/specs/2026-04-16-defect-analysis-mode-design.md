@@ -4,10 +4,16 @@ purpose: design
 title: Defect Analysis Mode
 audience: human
 category: analysis
-status: active
+status: archived
 related: [defect, pareto, aggregation, mode, strategy-pattern, copq]
 layer: spec
+implements:
+  - docs/03-features/analysis/defect-analysis.md
+  - docs/03-features/analysis/pareto.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to defect mode (rate-based transformation, mode-specific strategy, defect-aware Four Lenses); deltas absorbed into [`docs/03-features/analysis/defect-analysis.md`](../../03-features/analysis/defect-analysis.md) + [`docs/03-features/analysis/pareto.md`](../../03-features/analysis/pareto.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Defect Analysis Mode
 

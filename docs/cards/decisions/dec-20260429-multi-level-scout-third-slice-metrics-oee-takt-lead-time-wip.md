@@ -9,11 +9,12 @@ verified-against-commit: 6f51f080
 last-verified: 2026-05-18
 supersedes: []
 ---
+
 > **Decision card** — extracted from `docs/decision-log.md` §3 on 2026-05-18. Aggregate view: [`decision-log.md`](../../decision-log.md) (generated).
 
 # Multi-level SCOUT third-slice metrics (OEE / takt / lead time / WIP + cross-investigation hypothesis frequency)
 
-**Source:** [`docs/superpowers/specs/2026-04-29-multi-level-scout-design.md`](superpowers/specs/2026-04-29-multi-level-scout-design.md) §8 Sequencing — third slice
+**Source:** [`docs/archive/specs/2026-04-29-multi-level-scout-design.md`](archive/specs/2026-04-29-multi-level-scout-design.md) §8 Sequencing — third slice
 
 **Defer date:** 2026-04-29
 

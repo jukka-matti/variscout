@@ -2,7 +2,7 @@
 title: 'PR 1 — Wedge V1 Phase A Doc Completion'
 status: draft
 last-reviewed: 2026-05-17
-parent: docs/superpowers/specs/2026-05-17-wedge-phase-a-doc-completion-design.md
+parent: docs/archive/specs/2026-05-17-wedge-phase-a-doc-completion-design.md
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
@@ -19,7 +19,7 @@ layer: spec
 
 **Tech Stack:** Markdown + YAML frontmatter. No code changes. Validators: `pnpm lint` (lint-staged prettier + ADR-074 + CLAUDE.md SSOT + doc-graph + frontmatter + dead-link). No browser walk per `feedback_wedge_v1_no_migration_no_backcompat`.
 
-**Spec:** [`docs/superpowers/specs/2026-05-17-wedge-phase-a-doc-completion-design.md`](../specs/2026-05-17-wedge-phase-a-doc-completion-design.md)
+**Spec:** [`docs/archive/specs/2026-05-17-wedge-phase-a-doc-completion-design.md`](../../archive/specs/2026-05-17-wedge-phase-a-doc-completion-design.md)
 
 ---
 
@@ -678,7 +678,7 @@ git commit -m "docs(wedge): drift fix — packages/core/CLAUDE.md tool-registry 
 title: 'Phase C — Holistic Doc Audit → Triage → Apply'
 status: draft
 last-reviewed: 2026-05-17
-parent: docs/superpowers/specs/2026-05-17-wedge-phase-a-doc-completion-design.md
+parent: docs/archive/specs/2026-05-17-wedge-phase-a-doc-completion-design.md
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md

@@ -4,11 +4,17 @@ purpose: design
 title: Agent-Facing Documentation Architecture (A++)
 audience: human
 category: architecture
-status: active
+status: archived
 related:
   [claude-md, skills, documentation, governance, agent-context, progressive-disclosure, opus-4-7]
 layer: spec
+implements:
+  - docs/05-technical/documentation-methodology.md
+  - docs/05-technical/architecture/ai-context-engineering.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to the agent-facing documentation architecture (nested CLAUDE.md, skills, progressive disclosure, hooks for governance); deltas absorbed into [`docs/05-technical/documentation-methodology.md`](../../05-technical/documentation-methodology.md) + [`docs/05-technical/architecture/ai-context-engineering.md`](../../05-technical/architecture/ai-context-engineering.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Agent-Facing Documentation Architecture (A++)
 

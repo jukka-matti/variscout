@@ -5,6 +5,10 @@ title: Phase 3 — H1 Closure + H2 Launch
 audience: human
 category: design-spec
 status: draft
+implements:
+  - docs/01-vision/business-bible.md
+  - docs/01-vision/positioning.md
+  - docs/01-vision/methodology.md
 related:
   - 2026-04-27-actionable-current-process-state-panel-design.md
   - 2026-04-27-product-method-roadmap-design.md

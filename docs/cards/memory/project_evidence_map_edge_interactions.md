@@ -41,4 +41,4 @@ Evidence Map Edge Interactions: making statistical relationship edges interactiv
 
 **Two-spec approach:** Spec A (UI interactions, delivered Apr 7). Spec B (OLS interaction terms for all factor types, delivered Apr 7) — see `project_continuous_regression.md` for the two-pass best subsets with interaction screening.
 
-**How to apply:** UI spec at `docs/superpowers/specs/2026-04-07-evidence-map-edge-interactions-design.md`. Interaction engine spec at `docs/superpowers/specs/2026-04-07-interaction-effects-design.md`.
+**How to apply:** UI spec at `docs/archive/specs/2026-04-07-evidence-map-edge-interactions-design.md`. Interaction engine spec at `docs/superpowers/specs/2026-04-07-interaction-effects-design.md`.

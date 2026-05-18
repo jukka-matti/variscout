@@ -1,13 +1,20 @@
 ---
 title: 'Wedge V1 Phase A Doc Completion + Phase C Audit Plan Artifact'
-status: draft
+status: archived
 last-reviewed: 2026-05-17
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/archive/specs/2026-05-16-improve-tab-amendment-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
 layer: spec
+implements:
+  - docs/01-vision/positioning.md
+  - docs/01-vision/business-bible.md
+  - docs/07-decisions/adr-082-wedge-architecture.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to wedge V1 Phase A doc completion (rewriting 10 canonical anchors before engineering, scoping Phase C audit); deltas absorbed into the canonical anchor docs (OVERVIEW, USER-JOURNEYS, DATA-FLOW, positioning, business-bible, tier-philosophy, roadmap, decision-log, root CLAUDE.md, llms.txt) and [ADR-082](../../07-decisions/adr-082-wedge-architecture.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Wedge V1 Phase A Doc Completion + Phase C Audit Plan Artifact
 

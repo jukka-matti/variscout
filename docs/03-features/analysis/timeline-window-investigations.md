@@ -77,6 +77,6 @@ The window is the same primitive used by re-upload (append-mode merge) so additi
 
 - [Multi-Level Dashboard](multi-level-dashboard.md) — how SCOUT spans levels and where the timeline picker sits.
 - [Timeline Window Architecture](../../05-technical/architecture/timeline-window-architecture.md) — the engineer-facing contract.
-- [Multi-level SCOUT design spec](../../superpowers/specs/2026-04-29-multi-level-scout-design.md) — full design context.
+- [Multi-level SCOUT design spec](../../archive/specs/2026-04-29-multi-level-scout-design.md) — full design context.
 - [ADR-074](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md) — surface boundary policy.
 - [Staged Analysis](staged-analysis.md) — the related but distinct "phases inside one window" pattern.

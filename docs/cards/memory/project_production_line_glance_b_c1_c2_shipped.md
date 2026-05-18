@@ -91,7 +91,7 @@ e4a1774b  spec: production-line-glance surface wiring (Plan C)
 
 ## References
 
-- **Canonical drill-semantics spec (added 2026-04-29)**: `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` — promotes the locked decisions from this work into a versioned spec. Drill A (this dashboard) is one of four navigation patterns; B1/B2 unified scope model defined; ADR-073 captures the no-aggregation policy at decision-record durability.
+- **Canonical drill-semantics spec (added 2026-04-29)**: `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` — promotes the locked decisions from this work into a versioned spec. Drill A (this dashboard) is one of four navigation patterns; B1/B2 unified scope model defined; ADR-073 captures the no-aggregation policy at decision-record durability.
 - Surface-wiring spec: `docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md`
 - C1 plan: `docs/superpowers/plans/2026-04-28-production-line-glance-c1-data-and-hub-tab.md`
 - C2 plan: `docs/superpowers/plans/2026-04-28-production-line-glance-c2-layered-view.md`

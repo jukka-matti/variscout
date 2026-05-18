@@ -28,7 +28,7 @@ layer: spec
 
 The methodology spec has been written, verified, and committed.
 
-- Spec: `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
+- Spec: `docs/archive/specs/2026-04-25-question-driven-eda-2-design.md`
 - Companion spec: `docs/superpowers/specs/2026-04-25-process-flow-yamazumi-integration-design.md`
 - UI concept extraction: `docs/superpowers/specs/2026-04-25-claude-design-ui-concept-extraction.md`
 - Branch workspace phase plan:
@@ -109,7 +109,7 @@ Recommended implementation slices:
 
 Read these before planning:
 
-- `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
+- `docs/archive/specs/2026-04-25-question-driven-eda-2-design.md`
 - `docs/superpowers/specs/2026-04-25-claude-design-ui-concept-extraction.md`
 - `docs/06-design-system/patterns/investigation-workspaces.md`
 - `docs/06-design-system/patterns/qde2-ui-view-contracts.md`

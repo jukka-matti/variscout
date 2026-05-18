@@ -2,13 +2,20 @@
 tier: living
 purpose: design
 title: 'Zustand-First State Architecture'
-status: active
+status: archived
 date: 2026-04-04
 audience: human
 category: architecture
 related: [state-management, zustand, persistence, collaboration, DDD]
 layer: spec
+implements:
+  - docs/03-features/stores-overview.md
+  - docs/05-technical/architecture/store-interactions.md
+  - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to the Zustand-first state architecture (4 domain stores, persist middleware, Yjs CRDT layer); deltas absorbed into [`docs/03-features/stores-overview.md`](../../03-features/stores-overview.md), [`docs/05-technical/architecture/store-interactions.md`](../../05-technical/architecture/store-interactions.md), and [ADR-078](../../07-decisions/adr-078-pwa-azure-architecture-alignment.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Zustand-First State Architecture
 

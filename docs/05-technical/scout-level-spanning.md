@@ -103,7 +103,7 @@ Re-rendering the workspace per level (a single pane that swaps mode) was rejecte
 
 ## See also
 
-- [Multi-level SCOUT design spec](../superpowers/specs/2026-04-29-multi-level-scout-design.md)
-- [Investigation Scope and Drill Semantics](../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) — B0/B1/B2 scope, Drill A/B/C
+- [Multi-level SCOUT design spec](../archive/specs/2026-04-29-multi-level-scout-design.md)
+- [Investigation Scope and Drill Semantics](../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) — B0/B1/B2 scope, Drill A/B/C
 - [ADR-074 — surface boundary policy](../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md)
 - [Timeline Window Architecture](architecture/timeline-window-architecture.md)

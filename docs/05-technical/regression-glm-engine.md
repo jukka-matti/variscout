@@ -227,7 +227,7 @@ The Prediction Profiler uses the fitted regression model to project outcomes for
 | ------------------------------------- | ------------------------------------------------------------------------------ |
 | ANOVA and η² (one-factor analysis)    | [Variation Decomposition](../03-features/analysis/variation-decomposition.md)  |
 | Factor Intelligence ranking           | [Factor Intelligence](../02-journeys/flows/factor-intelligence.md)             |
-| Evidence Map spatial layout           | [Evidence Map](../superpowers/specs/2026-04-05-evidence-map-design.md)         |
+| Evidence Map spatial layout           | [Evidence Map](../archive/specs/2026-04-05-evidence-map-design.md)             |
 | What-If Simulator (direct adjustment) | [Investigation to Action](../03-features/workflows/investigation-to-action.md) |
 | Implementation reference              | [Statistics Technical Reference](statistics-reference.md)                      |
 | ADR decision record                   | [ADR-067](../07-decisions/adr-067-unified-glm-regression.md)                   |

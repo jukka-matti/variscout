@@ -18,6 +18,11 @@ related:
   ]
 date: 2026-04-28
 layer: spec
+implements:
+  - docs/03-features/analysis/process-hub-capability.md
+  - docs/03-features/analysis/multi-level-dashboard.md
+  - docs/03-features/analysis/subgroup-capability.md
+  - docs/03-features/workflows/process-maps.md
 ---
 
 > **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). Under the wedge, this surface wiring reframes from Hub rollup to **project-scoped Capability view**. Per-step capability wiring is unchanged; the data router scopes to the active project's process. Multi-Hub portfolio integration defers to **VariScout Process**.
@@ -28,11 +33,11 @@ layer: spec
 
 ## Scope
 
-Surface wiring (Plans A/B/C) implements [Investigation Scope and Drill Semantics](./2026-04-29-investigation-scope-and-drill-semantics-design.md). Plan D (Org Hub-of-Hubs) cross-hub view is designed there.
+Surface wiring (Plans A/B/C) implements [Investigation Scope and Drill Semantics](../../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md). Plan D (Org Hub-of-Hubs) cross-hub view is designed there.
 
 This is a **design spec**, not an implementation plan. It defines how the production-line-glance dashboard primitives (delivered in Plan A engine + Plan B charts) are wired into three live surfaces — LayeredProcessView Operations band, Process Hub view, and FRAME workspace — together with the data layer, filter semantics, and B0 migration UX.
 
-The cross-hub context-filtered view at the Org Hub-of-Hubs is **out of scope** for this surface-wiring spec (Plan D); its design lives in [Investigation Scope and Drill Semantics](./2026-04-29-investigation-scope-and-drill-semantics-design.md) §6 Cross-hub context analysis. LayeredProcessView snapshot mode (deferred to H3 per `project_phase_2_v2_closure.md`) is **out of scope**. Plan C operates on live single-hub data only.
+The cross-hub context-filtered view at the Org Hub-of-Hubs is **out of scope** for this surface-wiring spec (Plan D); its design lives in [Investigation Scope and Drill Semantics](../../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) §6 Cross-hub context analysis. LayeredProcessView snapshot mode (deferred to H3 per `project_phase_2_v2_closure.md`) is **out of scope**. Plan C operates on live single-hub data only.
 
 ## Summary
 
@@ -262,7 +267,7 @@ Each sub-plan ships as its own PR per `feedback_no_backcompat_clean_architecture
 
 ## References
 
-- Multi-level SCOUT design: `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md` — level-spanning surface architecture that lenses the L2 capability surfaces wired here; companion ADR-074 (`docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md`).
+- Multi-level SCOUT design: `docs/archive/specs/2026-04-29-multi-level-scout-design.md` — level-spanning surface architecture that lenses the L2 capability surfaces wired here; companion ADR-074 (`docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md`).
 - Production-line-glance design: `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`
 - Engine plan (Plan A): `docs/superpowers/plans/2026-04-28-production-line-glance-engine.md` (merged as PR #103)
 - Charts plan (Plan B): `docs/superpowers/plans/2026-04-28-production-line-glance-charts.md` (merged as PR #105)

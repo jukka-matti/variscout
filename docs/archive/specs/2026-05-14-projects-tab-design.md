@@ -4,10 +4,10 @@ purpose: design
 title: Projects tab + IP Detail (Lifecycle) page + Home active-IP launchpad
 audience: human
 category: design-spec
-status: draft
+status: archived
 last-reviewed: 2026-05-14
 related:
-  - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
+  - docs/archive/specs/2026-05-14-variscout-coherence-design.md
   - docs/archive/specs/2026-05-09-response-path-system-v1-design.md
   - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/01-vision/methodology.md
@@ -20,7 +20,14 @@ related:
   - docs/superpowers/plans/2026-05-14-projects-tab-launchpad-cascade.md
   - docs/superpowers/plans/2026-05-14-projects-tab-report.md
 layer: spec
+implements:
+  - docs/03-features/workflows/project-dashboard.md
+  - docs/03-features/workflows/improvement-workspace.md
+  - docs/03-features/workflows/sustainment.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to the Projects tab + IP Detail (Lifecycle) page + Home active-IP launchpad (Charter/Approach/Improve/Sustainment stages, active-IP cascade); deltas absorbed into the project-dashboard + improvement-workspace + sustainment workflow docs. See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Projects tab + IP Detail (Lifecycle) page + Home active-IP launchpad
 

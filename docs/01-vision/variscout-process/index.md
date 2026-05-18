@@ -7,10 +7,10 @@ last-reviewed: 2026-05-17
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/decision-log.md
-  - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
+  - docs/archive/specs/2026-05-14-variscout-coherence-design.md
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
-  - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
-  - docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md
+  - docs/archive/specs/2026-04-29-multi-level-scout-design.md
+  - docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md
   - docs/superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md
 layer: L1
 ---

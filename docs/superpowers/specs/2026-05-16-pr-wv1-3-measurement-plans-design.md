@@ -4,6 +4,10 @@ status: draft
 last-reviewed: 2026-05-16
 category: design-spec
 audience: [designer, engineer, analyst]
+implements:
+  - docs/03-features/workflows/investigation-wall.md
+  - docs/03-features/workflows/investigation-to-action.md
+  - docs/03-features/data/acl.md
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/archive/specs/2026-05-16-improve-tab-amendment-design.md

@@ -7,7 +7,7 @@ category: implementation
 status: active
 last-reviewed: 2026-05-13
 related:
-  - docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md
+  - docs/archive/specs/2026-05-13-canvas-viewport-architecture-design.md
   - docs/07-decisions/adr-081-canvas-viewport-architecture.md
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
 layer: spec
@@ -19,7 +19,7 @@ layer: spec
 
 **Status:** Delivered 2026-05-13 via PRs #156, #158, #160, #162, #164, and #165.
 
-**Goal:** Implement Canvas viewport architecture per [spec 2026-05-13](../specs/2026-05-13-canvas-viewport-architecture-design.md) + [ADR-081](../../07-decisions/adr-081-canvas-viewport-architecture.md). Three methodology levels (System / Process Flow / Local Mechanism) become a pan/zoom canvas — no separate level picker. Closes vision §5.4, the last unmet vision-spec commitment.
+**Goal:** Implement Canvas viewport architecture per [spec 2026-05-13](../../archive/specs/2026-05-13-canvas-viewport-architecture-design.md) + [ADR-081](../../07-decisions/adr-081-canvas-viewport-architecture.md). Three methodology levels (System / Process Flow / Local Mechanism) become a pan/zoom canvas — no separate level picker. Closes vision §5.4, the last unmet vision-spec commitment.
 
 **Architecture:** Unified `useCanvasViewportStore` (generalize today's `wallLayoutStore`) + `d3-zoom` for input math + `LODSwitcher` React primitive + pluggable per-level renderers (Wall stays SVG-native; Canvas-L2 stays DOM-native; new L1 and L3 renderers are DOM-native). Industry-standard pattern (Figma, Google Maps, VS Code, Notion, Visx all ship the same shape).
 
@@ -2569,7 +2569,7 @@ Verify:
 
 - [ ] **Step 3: Final Opus cross-cutting code review.**
 
-Dispatch an Opus subagent with explicit prompt: check the entire 8f workstream against [the spec](../specs/2026-05-13-canvas-viewport-architecture-design.md) + [ADR-081](../../07-decisions/adr-081-canvas-viewport-architecture.md). Verify all 13 locked decisions land. Per `feedback_code_review_subagent_must_checkout_pr_branch`, STEP 0 is `git fetch && git checkout canvas-viewport-8f`.
+Dispatch an Opus subagent with explicit prompt: check the entire 8f workstream against [the spec](../../archive/specs/2026-05-13-canvas-viewport-architecture-design.md) + [ADR-081](../../07-decisions/adr-081-canvas-viewport-architecture.md). Verify all 13 locked decisions land. Per `feedback_code_review_subagent_must_checkout_pr_branch`, STEP 0 is `git fetch && git checkout canvas-viewport-8f`.
 
 - [ ] **Step 4: Merge.**
 
@@ -2577,7 +2577,7 @@ Dispatch an Opus subagent with explicit prompt: check the entire 8f workstream a
 
 ```bash
 # Promote spec + plan to delivered (in main, after PR6 merges):
-# Edit docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md:
+# Edit docs/archive/specs/2026-05-13-canvas-viewport-architecture-design.md:
 #   status: accepted → delivered
 # Edit docs/superpowers/plans/2026-05-13-canvas-viewport-architecture.md:
 #   status: active → delivered

@@ -9,12 +9,16 @@ last-reviewed: 2026-05-08
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
-  - docs/superpowers/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md
+  - docs/archive/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md
   - docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
   - docs/decision-log.md
   - docs/investigations.md
 layer: spec
+implements:
+  - docs/03-features/ui/canvas-frame.md
+  - docs/03-features/workflows/investigation-wall.md
+  - docs/03-features/workflows/process-maps.md
 ---
 
 # Canvas Wall Overlay

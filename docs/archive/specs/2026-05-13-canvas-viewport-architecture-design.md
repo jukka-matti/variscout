@@ -4,7 +4,7 @@ purpose: design
 title: Canvas Viewport Architecture — Design (8f)
 audience: human
 category: design-spec
-status: active
+status: archived
 last-reviewed: 2026-05-13
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
@@ -15,7 +15,13 @@ related:
   - docs/07-decisions/adr-076-frame-b0-lightweight-render.md
   - docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md
 layer: spec
+implements:
+  - docs/03-features/ui/canvas-frame.md
+  - docs/07-decisions/adr-081-canvas-viewport-architecture.md
+delivered-by: PR-#165
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to canvas viewport architecture (8f: useCanvasViewportStore, d3-zoom, LODSwitcher, pluggable renderers, level-as-zoom); deltas absorbed into [`docs/03-features/ui/canvas-frame.md`](../../03-features/ui/canvas-frame.md) + [ADR-081](../../07-decisions/adr-081-canvas-viewport-architecture.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Canvas Viewport Architecture — Design (8f)
 

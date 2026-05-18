@@ -6,10 +6,10 @@ audience: human
 category: implementation
 status: archived
 last-reviewed: 2026-05-14
-spec: docs/superpowers/specs/2026-05-14-projects-tab-design.md
+spec: docs/archive/specs/2026-05-14-projects-tab-design.md
 related:
-  - docs/superpowers/specs/2026-05-14-projects-tab-design.md
-  - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
+  - docs/archive/specs/2026-05-14-projects-tab-design.md
+  - docs/archive/specs/2026-05-14-variscout-coherence-design.md
   - docs/archive/specs/2026-05-09-response-path-system-v1-design.md
 layer: spec
 ---

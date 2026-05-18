@@ -32,7 +32,7 @@ origin-session-id: 809b9904-f153-4cbe-92db-29203843b759
 - Rationale: Skills are designed for capabilities (workflows w/ progressive disclosure), not codebase conventions — encoding "edit X this way" as a Skill is anti-pattern (Claude under-triggers). Nested CLAUDE.md is the only deterministic per-area auto-load. See [[skills-for-capabilities-not-conventions]] for the durable rule.
 - Bug fixed: `apps/pwa/CLAUDE.md` was actively misleading — listed `useSessionStore` + `useImprovementStore` as active stores months after F4 deleted them (2026-05-07).
 
-**Phases 1-7 (Apr 2026)** — shipped the original A++ architecture (12 skills + nested CLAUDE.mds + ESLint plugin + pre-commit hooks + frontmatter validation). Detailed phase-by-phase history is in `git log --grep "agent-docs"` and the design spec `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md`. Key persisting deliverables from those phases:
+**Phases 1-7 (Apr 2026)** — shipped the original A++ architecture (12 skills + nested CLAUDE.mds + ESLint plugin + pre-commit hooks + frontmatter validation). Detailed phase-by-phase history is in `git log --grep "agent-docs"` and the design spec `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md`. Key persisting deliverables from those phases:
 
 - `eslint-plugin-variscout` with 4 AST rules (`no-tofixed-on-stats`, `no-hardcoded-chart-colors`, `no-root-cause-language`, `no-interaction-moderator`).
 - Pre-commit hooks: `check-ssot.sh`, `check-claude-md-size.sh` (per-file budgets), `check-dead-links.sh`.

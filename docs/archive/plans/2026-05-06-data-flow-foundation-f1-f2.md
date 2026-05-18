@@ -924,7 +924,7 @@ Audit landed at commit before R-revisions; output at [`2026-05-06-data-flow-foun
 - **Architectural foundation:** [`docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md`](../../07-decisions/adr-078-pwa-azure-architecture-alignment.md)
 - **Companion patterns:**
   - Canvas Migration spec ([`docs/archive/specs/2026-05-04-canvas-migration-design.md`](../../archive/specs/2026-05-04-canvas-migration-design.md)) — discriminated-union action pattern precedent
-  - Manual Canvas Authoring spec ([`docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md`](../specs/2026-05-04-manual-canvas-authoring-design.md)) — canvas action surface that consolidates into `CanvasAction`
+  - Manual Canvas Authoring spec ([`docs/archive/specs/2026-05-04-manual-canvas-authoring-design.md`](../specs/2026-05-04-manual-canvas-authoring-design.md)) — canvas action surface that consolidates into `CanvasAction`
 - **Workflow rules:**
   - `feedback_no_backcompat_clean_architecture` — atomic refactors, required props, no optionality pollution
   - `feedback_fix_absorbed_violations_at_seam` — fix `Math.random` in `findings/factories.ts:24` at the seam

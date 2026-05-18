@@ -8,7 +8,7 @@ parent: docs/01-vision/variscout-process/index.md
 related:
   - docs/superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md
   - docs/archive/specs/2026-04-29-consolidated-method-and-surface-overview-design.md
-  - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
+  - docs/archive/specs/2026-04-29-multi-level-scout-design.md
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
 layer: L1
 ---

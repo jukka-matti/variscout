@@ -200,7 +200,7 @@ Direct fixes committed as part of this audit:
 
 1. `apps/pwa/src/hooks/__tests__/pasteFlowReducer.test.ts` — added missing `defectDetection: null` field to initial-state expectation (test was stale after defect mode delivery on 2026-04-16)
 2. `docs/superpowers/specs/2026-04-04-investigation-spine-design.md` — frontmatter `status: draft` → `status: delivered`
-3. `docs/superpowers/specs/2026-04-05-evidence-map-design.md` — frontmatter `status: draft` → `status: delivered`
+3. `docs/archive/specs/2026-04-05-evidence-map-design.md` — frontmatter `status: draft` → `status: delivered`
 4. `docs/superpowers/specs/index.md` — header-redesign row: `Delivered` → `Superseded` (matches file frontmatter and ADR-055 lineage)
 5. `docs/superpowers/specs/index.md` — code-review row: `Active` → `Delivered` (matches file frontmatter, it's an audit report)
 6. `docs/superpowers/specs/index.md` — **added 33 missing spec rows** with correct statuses and ADR links

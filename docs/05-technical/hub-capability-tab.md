@@ -63,7 +63,7 @@ When the hub contains investigations whose nodes are not yet mapped to canonical
 
 ## Drill A semantics
 
-Clicking a step in any of the four charts opens the investigation that maps that step (Drill A: Hub → Step → Investigation). If no investigation maps the step, the drill becomes a "create investigation here" affordance. Drill A semantics are normative across all production-line-glance surfaces; see the [investigation-scope-and-drill-semantics design](../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md).
+Clicking a step in any of the four charts opens the investigation that maps that step (Drill A: Hub → Step → Investigation). If no investigation maps the step, the drill becomes a "create investigation here" affordance. Drill A semantics are normative across all production-line-glance surfaces; see the [investigation-scope-and-drill-semantics design](../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md).
 
 ## Coexistence with Performance mode
 
@@ -87,6 +87,6 @@ A "Hub Capability Score" rolling all step Cpks into a single number was explicit
 ## See also
 
 - [Production-Line-Glance design](../superpowers/specs/2026-04-28-production-line-glance-design.md) — the dashboard primitive.
-- [Investigation Scope and Drill Semantics](../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) — B0/B1/B2 scope, Drill A/B/C.
+- [Investigation Scope and Drill Semantics](../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) — B0/B1/B2 scope, Drill A/B/C.
 - [ADR-073](../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md) — no statistical roll-up across heterogeneous units.
 - [Process Hub design](../archive/specs/2026-04-25-process-hub-design.md) — the operating spine the tab plugs into.

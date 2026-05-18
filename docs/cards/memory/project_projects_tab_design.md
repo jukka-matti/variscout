@@ -17,7 +17,7 @@ origin-session-id: 48ffadda-ce5c-4326-b6c8-8a9535b18cbb
 
 # Projects tab + IP Detail design — 2026-05-14
 
-**Spec:** `docs/superpowers/specs/2026-05-14-projects-tab-design.md` (status: draft, committed `2f4cff53`).
+**Spec:** `docs/archive/specs/2026-05-14-projects-tab-design.md` (status: draft, committed `2f4cff53`).
 **Parent:** [[project_coherence_audit_2026-05-14]] — resolves §15 carry-forward "IP detail page details".
 
 ## Six locked decisions

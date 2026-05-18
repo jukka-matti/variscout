@@ -4,10 +4,16 @@ purpose: design
 title: AI Action Tools Design Spec
 audience: human
 category: architecture
-status: active
+status: archived
 related: [ai-tools, coscout, function-calling, action-proposal]
 layer: spec
+implements:
+  - docs/03-features/ai/coscout.md
+  - docs/07-decisions/adr-029-ai-action-tools.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to CoScout's action tool surface (10 new tools, proposal pattern, phase-gating, entry scenario routing); deltas absorbed into [`docs/03-features/ai/coscout.md`](../../03-features/ai/coscout.md) and [ADR-029](../../07-decisions/adr-029-ai-action-tools.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # AI Action Tools Design Spec
 

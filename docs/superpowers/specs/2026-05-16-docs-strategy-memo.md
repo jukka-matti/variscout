@@ -9,6 +9,8 @@ audience: both
 topic: [docs-strategy, meta]
 related: [2026-05-16-docs-strategy-design, adr-083-eight-purpose-doc-taxonomy]
 layer: spec
+implements:
+  - docs/01-vision/constitution.md
 ---
 
 # VariScout Docs Strategy 2026 — Memo

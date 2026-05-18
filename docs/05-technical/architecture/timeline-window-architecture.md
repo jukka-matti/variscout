@@ -166,6 +166,6 @@ ADR-074 declares structural-absence rules per surface. A CI script ships at `scr
 
 - [ADR-074 — SCOUT level-spanning surface boundary policy](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md)
 - [ADR-073 — no statistical roll-up across heterogeneous units](../../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md)
-- [Multi-level SCOUT design spec](../../superpowers/specs/2026-04-29-multi-level-scout-design.md)
+- [Multi-level SCOUT design spec](../../archive/specs/2026-04-29-multi-level-scout-design.md)
 - [Dashboard Layout Architecture](dashboard-layout.md)
 - [Mental Model Hierarchy](mental-model-hierarchy.md)

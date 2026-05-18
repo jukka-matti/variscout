@@ -7,7 +7,7 @@ last-reviewed: 2026-05-17
 parent: docs/01-vision/variscout-process/index.md
 related:
   - docs/01-vision/methodology.md
-  - docs/superpowers/specs/2026-04-29-multi-level-scout-design.md
+  - docs/archive/specs/2026-04-29-multi-level-scout-design.md
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
@@ -149,7 +149,7 @@ In Process, the locality rule extends to the Hub-of-hubs view — child Hubs ren
 ## §8 Cross-references
 
 - The canonical statement of the three levels is in [`docs/01-vision/methodology.md`](../methodology.md) lines 76-100 (the original methodology doc, pre-wedge).
-- The multi-level surface architecture (how the levels become navigable in software) is in [Multi-level SCOUT design](../../superpowers/specs/2026-04-29-multi-level-scout-design.md).
+- The multi-level surface architecture (how the levels become navigable in software) is in [Multi-level SCOUT design](../../archive/specs/2026-04-29-multi-level-scout-design.md).
 - The level × owner-surface boundary policy is [ADR-074](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md).
 - The locality-rule + structural-absence enforcement is [ADR-073](../../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md).
 - The PMS layer that operationalizes the methodology at cadence is [measurement-system.md](measurement-system.md).

@@ -4,7 +4,7 @@ purpose: design
 title: Investigation Scope and Drill Semantics
 audience: human
 category: design-spec
-status: active
+status: archived
 related:
   [
     process-hub,
@@ -16,7 +16,14 @@ related:
   ]
 date: 2026-04-29
 layer: spec
+implements:
+  - docs/05-technical/scout-level-spanning.md
+  - docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md
+  - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to investigation scope + drill semantics (locality rule via structural absence, per-step Cpk boxplot, spec-rule lookup model); deltas absorbed into [ADR-073](../../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md) + [ADR-074](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Investigation Scope and Drill Semantics
 
@@ -460,7 +467,7 @@ ties back to the locked decisions, not to delivery convenience.
 
 - Multi-level SCOUT design (consumes the B0/B1/B2 scope and Drill A/B/C
   semantics defined here as the level-spanning surface model):
-  `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md`
+  `docs/archive/specs/2026-04-29-multi-level-scout-design.md`
 - Production-line-glance design:
   `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`
 - Production-line-glance surface wiring (Plan A/B/C/D framing):

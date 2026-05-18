@@ -4,7 +4,7 @@ purpose: design
 title: Manual Canvas Authoring — Spec 2 of 5 canvas-detail specs
 audience: human
 category: design-spec
-status: active
+status: archived
 last-reviewed: 2026-05-04
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
@@ -13,7 +13,14 @@ related:
   - docs/decision-log.md
   - docs/investigations.md
 layer: spec
+implements:
+  - docs/03-features/ui/canvas-frame.md
+  - docs/03-features/workflows/process-maps.md
+  - docs/03-features/stores-overview.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to manual canvas authoring (γ″ two-mode authoring, B4 visibility-based mode toggle, C1 state-history snapshots, canvasStore fifth domain, accessibility); deltas absorbed into [`docs/03-features/ui/canvas-frame.md`](../../03-features/ui/canvas-frame.md) + [`docs/03-features/workflows/process-maps.md`](../../03-features/workflows/process-maps.md) + [`docs/03-features/stores-overview.md`](../../03-features/stores-overview.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Manual Canvas Authoring
 

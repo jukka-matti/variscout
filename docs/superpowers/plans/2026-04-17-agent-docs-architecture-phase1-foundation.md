@@ -21,7 +21,7 @@ layer: spec
 
 **Tech Stack:** Markdown-only. Anthropic YAML frontmatter for skills (`name`, `description`). Vitest (existing test suite must keep passing — 5792 tests). pnpm workspaces. No runtime code changes.
 
-**Reference spec:** `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md`
+**Reference spec:** `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md`
 
 ---
 
@@ -253,7 +253,7 @@ name: editing-evidence-map
 description: Use when editing packages/charts/src/EvidenceMap/ or apps/azure/src/components/editor/InvestigationMapView.tsx. 3-layer SVG architecture (statistical / investigation / synthesis), props-based (no context), interactions (click, right-click, context menus), edge detail + promote-to-causal, popout sync via usePopoutChannel, mobile patterns (enableZoom, EdgeSheet).
 ---
 
-<!-- Body to be populated in Phase 2. Reference: docs/superpowers/specs/2026-04-05-evidence-map-design.md, 2026-04-07-evidence-map-edge-interactions-design.md -->
+<!-- Body to be populated in Phase 2. Reference: docs/archive/specs/2026-04-05-evidence-map-design.md, 2026-04-07-evidence-map-edge-interactions-design.md -->
 ```
 
 - [ ] **Step 7: Create SKILL.md for `editing-investigation-workflow`**
@@ -292,7 +292,7 @@ name: editing-analysis-modes
 description: Use when editing mode resolution, strategy pattern, or mode-specific features across yamazumi, performance, defect, process-flow, or capability modes. resolveMode() + getStrategy() in @variscout/core/strategy, chart slot mapping per mode, CoScout methodology coaching per mode, mode transforms (computeYamazumiData, computeDefectRates), adding a new analysis mode end-to-end. Mode-specific details in YAMAZUMI.md, PERFORMANCE.md, DEFECT.md, PROCESS-FLOW.md reference files.
 ---
 
-<!-- Body and mode reference files (YAMAZUMI.md, PERFORMANCE.md, DEFECT.md, PROCESS-FLOW.md) to be populated in Phase 2. Reference: ADR-047, ADR-034, docs/superpowers/specs/2026-04-16-defect-analysis-mode-design.md -->
+<!-- Body and mode reference files (YAMAZUMI.md, PERFORMANCE.md, DEFECT.md, PROCESS-FLOW.md) to be populated in Phase 2. Reference: ADR-047, ADR-034, docs/archive/specs/2026-04-16-defect-analysis-mode-design.md -->
 ```
 
 - [ ] **Step 10: Create SKILL.md for `writing-tests`**
@@ -392,7 +392,7 @@ git add .claude/skills/
 git commit -m "chore(agent-arch): scaffold 12 skill folders with frontmatter-only SKILL.md
 
 Phase 1 Foundation — fully additive. Bodies to be populated in Phase 2.
-Reference: docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md"
+Reference: docs/archive/specs/2026-04-17-agent-docs-architecture-design.md"
 ```
 
 ---
@@ -724,7 +724,7 @@ pnpm --filter @variscout/stores test
 ## Related
 
 - ADR-041 Zustand feature stores
-- docs/superpowers/specs/2026-04-04-zustand-first-state-architecture-design.md
+- docs/archive/specs/2026-04-04-zustand-first-state-architecture-design.md
 - docs/superpowers/specs/2026-04-04-zustand-direct-store-access-design.md
 
 ````
@@ -1290,7 +1290,7 @@ Sources: `docs/03-features/analysis/performance-mode.md`, `docs/03-features/work
 
 - [ ] **Step 3: Write `docs/USER-JOURNEYS-DEFECT.md`**
 
-Sources: `docs/superpowers/specs/2026-04-16-defect-analysis-mode-design.md`, `docs/superpowers/specs/2026-04-16-defect-evidence-map-integration-design.md`. Focus on: quality engineer tracking PPM, raw event log entry, `detectDefectFormat()` → `DefectDetectedModal`, `computeDefectRates()` transform, Pareto by defect type, cross-type Evidence Map. Mention the three-view model (single-type / cross-type / merged).
+Sources: `docs/archive/specs/2026-04-16-defect-analysis-mode-design.md`, `docs/archive/specs/2026-04-16-defect-evidence-map-integration-design.md`. Focus on: quality engineer tracking PPM, raw event log entry, `detectDefectFormat()` → `DefectDetectedModal`, `computeDefectRates()` transform, Pareto by defect type, cross-type Evidence Map. Mention the three-view model (single-type / cross-type / merged).
 
 - [ ] **Step 4: Write `docs/USER-JOURNEYS-CAPABILITY.md`**
 
@@ -1474,7 +1474,7 @@ Phase 2 (population + switchover) to follow in a separate plan."
 
 ## Self-Review Notes
 
-This plan was self-reviewed against `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md`:
+This plan was self-reviewed against `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md`:
 
 **Spec coverage:**
 

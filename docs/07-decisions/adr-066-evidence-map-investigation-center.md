@@ -97,4 +97,4 @@ The 4-chart Watson EDA dashboard (I-Chart, Boxplot, Pareto, Stats) is unchanged.
 - `packages/hooks/src/useEvidenceMapData.ts` — exploredFactors computation
 - `packages/core/src/ai/buildAIContext.ts` — evidenceMapTopology passthrough
 - `packages/ui/src/components/` — FactorPreviewOverlay, NodeContextMenu, CausalLinkCreator, ReportEvidenceMap
-- Design spec: `docs/superpowers/specs/2026-04-05-evidence-map-spine-design.md`
+- Design spec: `docs/archive/specs/2026-04-05-evidence-map-spine-design.md`

@@ -13,6 +13,10 @@ related:
   - docs/decision-log.md
   - docs/investigations.md
 layer: spec
+implements:
+  - docs/03-features/stores-overview.md
+  - docs/03-features/hooks-overview.md
+  - docs/03-features/data/cloud-sync.md
 ---
 
 # Data-Flow Foundation F4 — three-layer state codification

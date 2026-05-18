@@ -8,6 +8,8 @@ status: draft
 related: [agent-docs-architecture, docs-governance, frontmatter-enforcement]
 last-reviewed: 2026-04-17
 layer: spec
+implements:
+  - docs/01-vision/constitution.md
 ---
 
 # Doc Prune — Load-Bearing Audit (Phase 5)

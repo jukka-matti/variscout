@@ -32,13 +32,13 @@ layer: L5
 [ADR-064](../archive/adrs/adr-064-suspected-cause-hub-model.md) (SuspectedCause hub model),
 [ADR-066](adr-066-evidence-map-investigation-center.md) (Evidence Map as investigation center),
 [ADR-070](adr-070-frame-workspace.md) (FRAME workspace as L2 authoring owner),
-[Multi-level SCOUT design](../superpowers/specs/2026-04-29-multi-level-scout-design.md) (the spec this policy companions)
+[Multi-level SCOUT design](../archive/specs/2026-04-29-multi-level-scout-design.md) (the spec this policy companions)
 
 ---
 
 ## Context
 
-VariScout's methodology assigns three levels — system / outcome (L1), flow / process model (L2), and local mechanism / evidence (L3) — to phases. FRAME owns L2 authoring (river-styled SIPOC; column mapping). SCOUT owns L1 outcome reading. INVESTIGATE owns L3 mechanism case-building. IMPROVE owns response paths. The Multi-level SCOUT design (`docs/superpowers/specs/2026-04-29-multi-level-scout-design.md`) promotes levels from a phase-only assignment to a **level-spanning surface architecture**: each surface keeps its primary level (its job-to-be-done) and gains lensed access to the other two via links to the surface that owns each level.
+VariScout's methodology assigns three levels — system / outcome (L1), flow / process model (L2), and local mechanism / evidence (L3) — to phases. FRAME owns L2 authoring (river-styled SIPOC; column mapping). SCOUT owns L1 outcome reading. INVESTIGATE owns L3 mechanism case-building. IMPROVE owns response paths. The Multi-level SCOUT design (`docs/archive/specs/2026-04-29-multi-level-scout-design.md`) promotes levels from a phase-only assignment to a **level-spanning surface architecture**: each surface keeps its primary level (its job-to-be-done) and gains lensed access to the other two via links to the surface that owns each level.
 
 Without a structural boundary policy, the level-spanning architecture drifts toward duplication. Concrete temptations the policy prevents:
 
@@ -136,4 +136,4 @@ The "no re-rendering / no recomputing" rule still binds. Concretely:
 
 The verification scripts in §Verification above gain a Canvas-aware exception: Canvas may import owner-surface components, but it may not implement parallel ones. The same `rg` patterns continue to enforce no parallel `factorNetwork` / `outcomeBoxplot` / etc. inside `Canvas/`; the difference is that Canvas's directory becomes an allowed import target for those components, not a forbidden one.
 
-Design spec: [`docs/superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md`](../superpowers/specs/2026-05-13-canvas-viewport-architecture-design.md). Companion ADR: [ADR-081](adr-081-canvas-viewport-architecture.md). Amendment status: accepted.
+Design spec: [`docs/archive/specs/2026-05-13-canvas-viewport-architecture-design.md`](../archive/specs/2026-05-13-canvas-viewport-architecture-design.md). Companion ADR: [ADR-081](adr-081-canvas-viewport-architecture.md). Amendment status: accepted.

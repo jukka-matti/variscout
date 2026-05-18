@@ -7,6 +7,10 @@ category: architecture
 status: draft
 related: [deployment, ci-cd, azure-marketplace, managed-application, update-mechanism]
 layer: spec
+implements:
+  - docs/01-vision/business-bible.md
+  - docs/03-features/data/cloud-sync.md
+  - docs/03-features/data/embedded-mode.md
 ---
 
 # Deployment Lifecycle & Self-Service Update System

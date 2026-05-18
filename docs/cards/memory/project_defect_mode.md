@@ -21,7 +21,7 @@ Defect analysis mode added Apr 16, 2026. Follows strategy pattern (ADR-047).
 
 **Why:** Re-aggregation after filter = different calculation from standard mode (not just row subset). All charts consume transformed working dataset.
 
-**How to apply:** When working on defect mode features, read the design spec first: `docs/superpowers/specs/2026-04-16-defect-analysis-mode-design.md`. Key files: `packages/core/src/defect/`, `packages/hooks/src/useDefectTransform.ts`, `packages/hooks/src/useDefectSummary.ts`.
+**How to apply:** When working on defect mode features, read the design spec first: `docs/archive/specs/2026-04-16-defect-analysis-mode-design.md`. Key files: `packages/core/src/defect/`, `packages/hooks/src/useDefectTransform.ts`, `packages/hooks/src/useDefectSummary.ts`.
 
 All three phases delivered (Apr 16, 2026):
 - Phase 1: Core types, detection, transform, modal, summary, CoScout coaching, PWA integration
@@ -32,6 +32,6 @@ Evidence Map integration delivered: three-view model (All Defects, Per-Type, Cro
 - `useDefectEvidenceMap` hook with lazy cache + progressive cross-type matrix
 - `DefectTypeSelector` pill tabs, `CrossTypeEvidenceMap` SVG, `InsufficientDataState`
 - Wired into Azure (InvestigationMapView) and PWA (MobileDashboard)
-- Design spec: `docs/superpowers/specs/2026-04-16-defect-evidence-map-integration-design.md`
+- Design spec: `docs/archive/specs/2026-04-16-defect-evidence-map-integration-design.md`
 
 Documentation fully updated: feature parity matrix, specs index, feature doc (`docs/03-features/analysis/defect-analysis.md`), navigation patterns, CoScout prompt architecture. All pushed to main Apr 16, 2026.

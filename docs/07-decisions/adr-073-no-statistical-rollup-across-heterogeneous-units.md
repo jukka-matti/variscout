@@ -18,7 +18,7 @@ layer: L5
 **Related**:
 [ADR-010](adr-010-gagerr-deferral.md) (statistical rigour as credibility floor),
 [ADR-069](adr-069-three-boundary-numeric-safety.md) (structural enforcement of numeric safety),
-[Investigation Scope and Drill Semantics](../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) (the spec this policy companions)
+[Investigation Scope and Drill Semantics](../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) (the spec this policy companions)
 
 ---
 

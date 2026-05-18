@@ -153,8 +153,8 @@ When detected, `DefectDetectedModal` asks the user to confirm mode and configure
 
 ## Design Specs
 
-- [Defect Analysis Mode Design](../../superpowers/specs/2026-04-16-defect-analysis-mode-design.md) — full mode architecture
-- [Defect Evidence Map Integration](../../superpowers/specs/2026-04-16-defect-evidence-map-integration-design.md) — three-view Evidence Map model
+- [Defect Analysis Mode Design](../../archive/specs/2026-04-16-defect-analysis-mode-design.md) — full mode architecture
+- [Defect Evidence Map Integration](../../archive/specs/2026-04-16-defect-evidence-map-integration-design.md) — three-view Evidence Map model
 
 ## Key Files
 

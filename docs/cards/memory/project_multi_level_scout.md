@@ -40,7 +40,7 @@ Lands the architectural reframe of how the dashboard spans the three methodology
 
 ## Source artifacts
 
-- **Spec:** `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md` (status: `draft`; flips to `delivered` when V1 ships)
+- **Spec:** `docs/archive/specs/2026-04-29-multi-level-scout-design.md` (status: `draft`; flips to `delivered` when V1 ships)
 - **ADR:** `docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md` (status: `accepted`) — boundary policy: each level has exactly one owner surface; structural-absence enforcement (mirrors ADR-073's pattern); verification via `scripts/check-level-boundaries.sh` (lands in V1 Task 15)
 - **Implementation plan:** `docs/superpowers/plans/2026-04-29-multi-level-scout-v1.md` — 16 tasks for the first slice
 - **Locked decisions:** `docs/superpowers/plans/2026-04-29-multi-level-scout-v1-decisions.md` — six "Open in spec" ambiguities resolved
@@ -70,5 +70,5 @@ For V2: the three "do later" items above are the load-bearing follow-ups.
 
 - ADR-073 (no roll-up across heterogeneous units) — same enforcement mechanism (structural absence)
 - ADR-049 (Knowledge Catalyst, investigation-as-memory) — depends on this policy; drift detection feeds it
-- `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` — defines B0/B1/B2 scope; `detectScope()` mirrors `detectYamazumiFormat()` / `detectDefectFormat()` patterns
+- `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` — defines B0/B1/B2 scope; `detectScope()` mirrors `detectYamazumiFormat()` / `detectDefectFormat()` patterns
 - `docs/superpowers/specs/2026-04-25-process-hub-design.md` — Hub Capability tab is the L2-flow primary owner per ADR-074

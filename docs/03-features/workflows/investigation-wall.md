@@ -60,6 +60,6 @@ Azure-only (single €120 SKU). Shipped via PRs #75 and #76, merged 2026-04-24. 
 ## See also
 
 - [Investigation Wall design spec](../../superpowers/specs/2026-04-19-investigation-wall-design.md) — full design, including non-goals (live presence, per-step Cpk).
-- [Evidence Map design](../../superpowers/specs/2026-04-05-evidence-map-design.md) — the factor-centric companion projection.
+- [Evidence Map design](../../archive/specs/2026-04-05-evidence-map-design.md) — the factor-centric companion projection.
 - [Investigation Spine](../../superpowers/specs/2026-04-04-investigation-spine-design.md) — three threads, the methodology backbone the Wall plugs into.
 - [Methodology — three projections](../../01-vision/methodology.md) — how Map / Wall / Question framework relate as projections of one graph.

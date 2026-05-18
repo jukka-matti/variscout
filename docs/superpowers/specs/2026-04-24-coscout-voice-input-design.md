@@ -7,6 +7,10 @@ category: architecture
 status: draft
 related: [coscout, azure, voice-input, findings, shop-floor, customer-owned-data]
 layer: spec
+implements:
+  - docs/01-vision/coscout-ax-design.md
+  - docs/03-features/ai/coscout.md
+  - docs/03-features/data/embedded-mode.md
 ---
 
 # CoScout Voice Input v1

@@ -2,14 +2,21 @@
 tier: living
 purpose: design
 title: Evidence Map as Analysis Spine
-status: active
+status: archived
 date: 2026-04-05
 audience: human
 category: architecture
 related:
   [evidence-map, factor-intelligence, investigation-spine, pi-panel, coscout, probability-plot]
 layer: spec
+implements:
+  - docs/03-features/analysis/multi-level-dashboard.md
+  - docs/03-features/workflows/investigation-lifecycle-map.md
+  - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to the Evidence Map as the persistent visual narrative across FRAME→SCOUT→INVESTIGATE→IMPROVE→REPORT; deltas absorbed into the multi-level SCOUT + investigation-lifecycle docs. See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Evidence Map as Analysis Spine
 

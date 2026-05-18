@@ -539,7 +539,7 @@ built):
 
 ### Scope + drill + capability surfaces
 
-- `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md`
+- `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md`
 - `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`
 - `docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md`
 - `docs/superpowers/specs/2026-04-27-layered-process-view-design.md`
@@ -548,17 +548,17 @@ built):
 ### Investigation Wall + Evidence Map + workflows
 
 - `docs/superpowers/specs/2026-04-19-investigation-wall-design.md`
-- `docs/superpowers/specs/2026-04-05-evidence-map-design.md`
-- `docs/superpowers/specs/2026-04-05-evidence-map-spine-design.md`
-- `docs/superpowers/specs/2026-04-07-evidence-map-edge-interactions-design.md`
+- `docs/archive/specs/2026-04-05-evidence-map-design.md`
+- `docs/archive/specs/2026-04-05-evidence-map-spine-design.md`
+- `docs/archive/specs/2026-04-07-evidence-map-edge-interactions-design.md`
 - `docs/superpowers/specs/2026-04-04-investigation-spine-design.md`
 
 ### Mode-specific
 
-- `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
+- `docs/archive/specs/2026-04-25-question-driven-eda-2-design.md`
 - `docs/superpowers/specs/2026-04-07-process-flow-analysis-mode-design.md`
-- `docs/superpowers/specs/2026-04-16-defect-analysis-mode-design.md`
-- `docs/superpowers/specs/2026-04-16-defect-evidence-map-integration-design.md`
+- `docs/archive/specs/2026-04-16-defect-analysis-mode-design.md`
+- `docs/archive/specs/2026-04-16-defect-evidence-map-integration-design.md`
 - `docs/superpowers/specs/2026-04-25-process-flow-yamazumi-integration-design.md`
 - `docs/USER-JOURNEYS-CAPABILITY.md`
 - `docs/USER-JOURNEYS-DEFECT.md`
@@ -570,7 +570,7 @@ built):
 
 - `docs/superpowers/specs/2026-04-02-coscout-intelligence-architecture-design.md`
 - `docs/superpowers/specs/2026-04-24-coscout-voice-input-design.md`
-- `docs/superpowers/specs/2026-03-19-ai-action-tools-design.md`
+- `docs/archive/specs/2026-03-19-ai-action-tools-design.md`
 
 ### Phase 6 sustainment
 

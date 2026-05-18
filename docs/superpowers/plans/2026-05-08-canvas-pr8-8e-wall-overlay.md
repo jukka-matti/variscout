@@ -8,7 +8,7 @@ status: active
 last-reviewed: 2026-05-08
 related:
   - docs/superpowers/specs/2026-05-08-canvas-wall-overlay-design.md
-  - docs/superpowers/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md
+  - docs/archive/specs/2026-05-07-canvas-hypothesis-arrow-drawing-design.md
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
   - docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
 layer: spec

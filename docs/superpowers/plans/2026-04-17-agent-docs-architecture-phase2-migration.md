@@ -17,7 +17,7 @@ layer: spec
 
 **Tech Stack:** Markdown only. Pre-commit hook `pnpm docs:check` runs on each commit. Vitest suite (5818 tests) must stay green throughout.
 
-**Reference spec:** `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md`
+**Reference spec:** `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md`
 **Predecessor plan:** `docs/superpowers/plans/2026-04-17-agent-docs-architecture-phase1-foundation.md` (delivered 2026-04-17, baseline at `docs/09-baseline/2026-04-17-agent-docs-baseline.md`)
 
 ---
@@ -410,9 +410,9 @@ Co-Authored-By: ruflo <ruv@ruv.net>"
 
 **Sources:**
 
-- `docs/superpowers/specs/2026-04-05-evidence-map-design.md`
-- `docs/superpowers/specs/2026-04-05-evidence-map-spine-design.md`
-- `docs/superpowers/specs/2026-04-07-evidence-map-edge-interactions-design.md`
+- `docs/archive/specs/2026-04-05-evidence-map-design.md`
+- `docs/archive/specs/2026-04-05-evidence-map-spine-design.md`
+- `docs/archive/specs/2026-04-07-evidence-map-edge-interactions-design.md`
 - `packages/charts/src/EvidenceMap/` (implementation)
 - `apps/azure/src/components/editor/InvestigationMapView.tsx` (host integration)
 
@@ -600,8 +600,8 @@ Co-Authored-By: ruflo <ruv@ruv.net>"
 - `docs/07-decisions/adr-047-analysis-mode-strategy.md`
 - `docs/07-decisions/adr-034-yamazumi-analysis-mode.md`
 - `docs/07-decisions/adr-038-subgroup-capability.md`
-- `docs/superpowers/specs/2026-04-16-defect-analysis-mode-design.md`
-- `docs/superpowers/specs/2026-04-16-defect-evidence-map-integration-design.md`
+- `docs/archive/specs/2026-04-16-defect-analysis-mode-design.md`
+- `docs/archive/specs/2026-04-16-defect-evidence-map-integration-design.md`
 - `packages/core/src/analysisStrategy.ts` (resolveMode + getStrategy)
 - `packages/core/src/yamazumi/` (mode transform)
 - `packages/core/src/defect/` (mode transform)
@@ -932,7 +932,7 @@ EOF
 
 ## Self-Review Notes
 
-Self-reviewed against `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md` and the Phase 1 delivery:
+Self-reviewed against `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md` and the Phase 1 delivery:
 
 **Spec coverage:**
 

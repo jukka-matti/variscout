@@ -145,7 +145,7 @@ Several capabilities are intentionally absent from the engine API. Each absence 
 References:
 
 - ADR-073 — no-aggregation policy (structural absence for cross-investigation / cross-hub Cp/Cpk).
-- [Investigation Scope and Drill Semantics](../superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) — Watson locality (§1) and cross-hub context-filtered view (§6).
+- [Investigation Scope and Drill Semantics](../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) — Watson locality (§1) and cross-hub context-filtered view (§6).
 - ADR-010 — Gage R&R / MSA deferral.
 - `feedback_aggregation_heterogeneous_specs.md` (memory) — the heterogeneous-physics hazard generalizes to any heterogeneity dimension.
 

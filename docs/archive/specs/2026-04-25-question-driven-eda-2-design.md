@@ -4,7 +4,7 @@ purpose: design
 title: Question-Driven EDA 2.0 — Current Understanding, Mechanism Branches, and Signal Cards
 audience: human
 category: design-spec
-status: active
+status: archived
 related:
   [
     eda-mental-model,
@@ -22,7 +22,14 @@ related:
   ]
 date: 2026-04-25
 layer: spec
+implements:
+  - docs/01-vision/eda-mental-model.md
+  - docs/03-features/workflows/question-driven-investigation.md
+  - docs/03-features/workflows/investigation-wall.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to the question-driven EDA methodology (Current Understanding, Mechanism Branches, Signal Cards, mode inference); deltas absorbed into [`docs/01-vision/eda-mental-model.md`](../../01-vision/eda-mental-model.md) + the question-driven-investigation + investigation-wall workflow docs. See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Question-Driven EDA 2.0
 

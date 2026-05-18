@@ -7,7 +7,7 @@ category: implementation
 status: draft
 date: 2026-05-04
 related:
-  - docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md
+  - docs/archive/specs/2026-05-04-manual-canvas-authoring-design.md
   - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
   - docs/decision-log.md
   - docs/investigations.md
@@ -27,7 +27,7 @@ layer: spec
 ## Prerequisites
 
 - **Canvas migration PR1+PR2+PR3** must be merged to main first (PR #126 covers this bundle). PR4's branches rebase onto main after that lands.
-- **Spec 2** at `docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md` (on main as of `01de9177`).
+- **Spec 2** at `docs/archive/specs/2026-05-04-manual-canvas-authoring-design.md` (on main as of `01de9177`).
 
 ## Plan revisions (2026-05-05)
 
@@ -174,7 +174,7 @@ CI=1 pnpm --filter @variscout/core test packages/core/src/canvas/__tests__/types
  * Discriminated-union of all canvas authoring actions.
  *
  * Each action is the unit of merge for future CRDT (V2+ multiplayer).
- * Per Spec 2 Decision D + G — see docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md.
+ * Per Spec 2 Decision D + G — see docs/archive/specs/2026-05-04-manual-canvas-authoring-design.md.
  */
 export type CanvasAction =
   | { kind: 'PLACE_CHIP_ON_STEP'; chipId: string; stepId: string }

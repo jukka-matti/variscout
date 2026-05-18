@@ -20,7 +20,7 @@ layer: spec
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Land the first delivery slice of the Multi-level SCOUT design (`docs/superpowers/specs/2026-04-29-multi-level-scout-design.md` §8) — the architecture (strategy + `dataRouter`), the timeline window primitive, scope detection, the new throughput module (`computeOutputRate` + `computeBottleneck`), the drift detector, append-mode for re-upload, and the `ProductionLineGlanceDashboard` refactor onto the strategy pattern. Findings record their window context as a passive footer. ADR-074 gets a structural-absence boundary check script.
+**Goal:** Land the first delivery slice of the Multi-level SCOUT design (`docs/archive/specs/2026-04-29-multi-level-scout-design.md` §8) — the architecture (strategy + `dataRouter`), the timeline window primitive, scope detection, the new throughput module (`computeOutputRate` + `computeBottleneck`), the drift detector, append-mode for re-upload, and the `ProductionLineGlanceDashboard` refactor onto the strategy pattern. Findings record their window context as a passive footer. ADR-074 gets a structural-absence boundary check script.
 
 **Architecture:** The existing strategy pattern in `packages/core/src/analysisStrategy.ts:51-160` stays unchanged at the slot level. We extend `AnalysisModeStrategy` with a `dataRouter` function that takes `{scope, phase, window, context}` and returns `{hook, transforms[], chartVariants}`. A new `TimelineWindow` filter type joins the existing filter pipeline (`useFilteredData`, `FilterContextBar`) — applied to the parser-detected `timeColumn` (`packages/core/src/parser/detection.ts:154`). New L2 metrics live in `packages/core/src/throughput/` (mirrors `defect/` / `yamazumi/`). Drift lives in `packages/core/src/findings/drift.ts`. No new chart components; existing time-aware charts (`IChart`, `Boxplot`, `ParetoChart`) consume window-filtered data.
 
@@ -115,7 +115,7 @@ layer: spec
 
 **Lifecycle (final task):**
 
-- `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md` — status `draft` → `delivered`.
+- `docs/archive/specs/2026-04-29-multi-level-scout-design.md` — status `draft` → `delivered`.
 - `docs/decision-log.md` — close V1 implementation row.
 - `docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md` — strike "to be added" note.
 
@@ -537,7 +537,7 @@ export type Scope = 'b0' | 'b1' | 'b2';
  * - b1: 2+ nodeMappings (multi-step investigation)
  * - b2: 1 nodeMapping (single-step deep dive)
  *
- * Per docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md §2.
+ * Per docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md §2.
  * Mirrors the existing detectYamazumiFormat() / detectDefectFormat() pattern.
  */
 export function detectScope(investigation: Investigation): Scope {
@@ -1932,7 +1932,7 @@ git commit -m "chore: ADR-074 boundary check script + pre-commit wiring"
 - Modify: `docs/USER-JOURNEYS.md` and `docs/USER-JOURNEYS-CAPABILITY.md`.
 - Modify: `docs/llms.txt` — add the new feature + architecture doc paths.
 - Modify: `packages/{core,hooks,ui,charts}/CLAUDE.md`, `apps/{azure,pwa}/CLAUDE.md` — per-package mentions.
-- Modify: `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md` — `status: draft` → `status: delivered`; update `last-reviewed: 2026-04-29`.
+- Modify: `docs/archive/specs/2026-04-29-multi-level-scout-design.md` — `status: draft` → `status: delivered`; update `last-reviewed: 2026-04-29`.
 - Modify: `docs/decision-log.md` — close V1 implementation row in §4 (state `done`, Closed `2026-04-29`); update SCOUT Journey Map row to `shipped (multi-level V1)` with chrome-walk date.
 - Modify: `docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md` — strike "to be added" note now that the script ships.
 
@@ -1975,7 +1975,7 @@ Edit `apps/azure/CLAUDE.md` and `apps/pwa/CLAUDE.md` (mention the multi-level su
 
 - [x] **Step 16.6: Lifecycle updates**
 
-In `docs/superpowers/specs/2026-04-29-multi-level-scout-design.md`: change `status: draft` to `status: delivered`. Update `last-reviewed`.
+In `docs/archive/specs/2026-04-29-multi-level-scout-design.md`: change `status: draft` to `status: delivered`. Update `last-reviewed`.
 
 In `docs/decision-log.md`: §4 Session Backlog — close "Multi-level SCOUT V1 implementation plan + execution" with Closed `2026-04-29`. §5 User Journey Map — update SCOUT row with `shipped (multi-level V1)` + chrome-walk date.
 
@@ -2007,7 +2007,7 @@ git push -u origin feat/multi-level-scout-v1
 gh pr create --title "Multi-level SCOUT V1 (first slice)" --body "$(cat <<'BODY'
 ## Summary
 
-Lands the first delivery slice of the Multi-level SCOUT design (`docs/superpowers/specs/2026-04-29-multi-level-scout-design.md`).
+Lands the first delivery slice of the Multi-level SCOUT design (`docs/archive/specs/2026-04-29-multi-level-scout-design.md`).
 
 - TimelineWindow primitive + applyWindow + scope detection + append-mode
 - AnalysisModeStrategy.dataRouter (no chart changes)

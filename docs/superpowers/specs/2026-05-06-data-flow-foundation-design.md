@@ -9,7 +9,7 @@ last-reviewed: 2026-05-06
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
-  - docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md
+  - docs/archive/specs/2026-05-04-manual-canvas-authoring-design.md
   - docs/archive/specs/2026-05-03-framing-layer-design.md
   - docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md
   - docs/07-decisions/adr-077-snapshot-provenance-and-match-summary-wedge.md
@@ -17,6 +17,12 @@ related:
   - docs/decision-log.md
   - docs/investigations.md
 layer: spec
+implements:
+  - docs/01-vision/constitution.md
+  - docs/03-features/stores-overview.md
+  - docs/03-features/hooks-overview.md
+  - docs/03-features/data/cloud-sync.md
+  - docs/03-features/data/etag-concurrency.md
 ---
 
 # Data-Flow Foundation
@@ -397,7 +403,7 @@ These are **one-time** costs. Production deployment is out-of-scope for F1-F6; i
 - **Architectural foundation:** ADR-078 (PWA + Azure architecture alignment) — locks "same product, gated tiers" framing α.
 - **Companion specs:**
   - Canvas Migration (`docs/superpowers/specs/2026-05-04-canvas-migration-design.md`) — strangler-fig + three-layer state precedent; this spec generalizes Decision 2.
-  - Manual Canvas Authoring (`docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md`) — canvas action-shape is the prototype for D4.
+  - Manual Canvas Authoring (`docs/archive/specs/2026-05-04-manual-canvas-authoring-design.md`) — canvas action-shape is the prototype for D4.
   - Vision (`docs/superpowers/specs/2026-05-03-variscout-vision-design.md`) — destination informing F-series ordering.
   - Framing Layer (archived, `docs/archive/specs/2026-05-03-framing-layer-design.md`) — slice 4 introduced `investigation.metadata` annotation pattern (D5 codifies).
 - **Constraints:**

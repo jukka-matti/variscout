@@ -4,7 +4,7 @@ purpose: design
 title: Multi-level SCOUT — design
 audience: human
 category: design-spec
-status: active
+status: archived
 date: 2026-04-29
 last-reviewed: 2026-04-30
 related:
@@ -17,7 +17,14 @@ related:
   - investigation-wall
   - knowledge-catalyst
 layer: spec
+implements:
+  - docs/05-technical/scout-level-spanning.md
+  - docs/03-features/analysis/multi-level-dashboard.md
+  - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to multi-level SCOUT (L1 outcome / L2 flow / L3 mechanism, AnalysisModeStrategy data router, per-project scoping post-wedge); deltas absorbed into [`docs/05-technical/scout-level-spanning.md`](../../05-technical/scout-level-spanning.md) + [ADR-074](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 > **⚠️ Amended 2026-05-16** by [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) + the [wedge architecture spec](./2026-05-16-wedge-architecture-design.md). Under the wedge, multi-level SCOUT operates **per project** (not per Hub) for V1. L2 = the project's process; portfolio-spanning / multi-Hub SCOUT defers to **VariScout Process**, the future enterprise product. The level-spanning architecture (L1 outcome / L2 flow / L3 mechanism) and AnalysisModeStrategy data router pattern are unchanged. The `useCanvasViewportStore` keying changes from `ProcessHubId` to `ProjectId` (when project-scoped) per wedge spec §6.
 
@@ -33,7 +40,7 @@ VariScout's methodology names three levels of process understanding (`docs/01-vi
 2. **Flow / process model** — what flows through which steps, at what rate, with which waits, handoffs, and bottlenecks.
 3. **Local mechanism / evidence** — the physics, recipe, equipment, material, operator, environment, subgrouping behind the flow.
 
-Today, the four-lens SCOUT dashboard reads only Level 1. Level 2 (flow) lives in FRAME's river-styled SIPOC (`docs/superpowers/specs/2026-04-18-frame-process-map-design.md` §"Visual shape — river-styled SIPOC blend") and the just-shipped Hub Capability tab, delivered through Plans B/C/C1/C2 — PRs #103/#105/#106/#107, the production-line-glance dashboard primitive whose architecture is captured in `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`. Level 3 (mechanism) lives in INVESTIGATE: SuspectedCause hubs (ADR-064), the Evidence Map (`docs/superpowers/specs/2026-04-05-evidence-map-design.md`, ADR-066), and the Investigation Wall (`docs/superpowers/specs/2026-04-19-investigation-wall-design.md`).
+Today, the four-lens SCOUT dashboard reads only Level 1. Level 2 (flow) lives in FRAME's river-styled SIPOC (`docs/superpowers/specs/2026-04-18-frame-process-map-design.md` §"Visual shape — river-styled SIPOC blend") and the just-shipped Hub Capability tab, delivered through Plans B/C/C1/C2 — PRs #103/#105/#106/#107, the production-line-glance dashboard primitive whose architecture is captured in `docs/superpowers/specs/2026-04-28-production-line-glance-design.md`. Level 3 (mechanism) lives in INVESTIGATE: SuspectedCause hubs (ADR-064), the Evidence Map (`docs/archive/specs/2026-04-05-evidence-map-design.md`, ADR-066), and the Investigation Wall (`docs/superpowers/specs/2026-04-19-investigation-wall-design.md`).
 
 The level-spanning surfaces exist; the seams between them are still hand-walked. Analysts who want to move from "Cpk is off" (Level 1) through "which step is contributing?" (Level 2) to "is this the same SuspectedCause we saw three months ago?" (Level 3) context-switch surfaces and lose investigation thread continuity. Each surface owns its level; none lenses the others.
 
@@ -68,7 +75,7 @@ type TimelineWindow =
   | { kind: 'cumulative' };
 ```
 
-The window is persisted on the investigation. The exact attachment point (extending `ProcessContext` versus a sibling field on the investigation envelope) is flagged for review in §"Open in spec" — it interacts with `nodeMappings` placement (see `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §2 lines 70-82) and should not be guessed here.
+The window is persisted on the investigation. The exact attachment point (extending `ProcessContext` versus a sibling field on the investigation envelope) is flagged for review in §"Open in spec" — it interacts with `nodeMappings` placement (see `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §2 lines 70-82) and should not be guessed here.
 
 Application is via the **existing filter pipeline**: `FilterContextBar` plus `useFilteredData` (exported from `packages/hooks/src/index.ts:525`). The timeline picker is one more filter type, applied to `timeColumn` rather than to a stratifier column. The existing time-aware charts — `IChart`, `PerformanceIChart`, `CapabilityGapTrendChart` — already render time on the X axis; they receive window-filtered data. **Zero new chart components.**
 
@@ -106,7 +113,7 @@ interface AnalysisModeStrategy {
 
 The hook returns window-filtered rows. The transforms compute level-appropriate metrics (see §3). The existing chart components consume already-shaped data and do not change. The dashboard becomes polymorphic across `(mode × scope × phase × window)` without new surfaces.
 
-**Scope detection.** A new pure function `detectScope(investigation): 'b0' | 'b1' | 'b2'` mirrors the existing detector pattern (compare `detectYamazumiFormat` and `detectDefectFormat`). It reads `nodeMappings` cardinality per the rule in `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §2 lines 86-92:
+**Scope detection.** A new pure function `detectScope(investigation): 'b0' | 'b1' | 'b2'` mirrors the existing detector pattern (compare `detectYamazumiFormat` and `detectDefectFormat`). It reads `nodeMappings` cardinality per the rule in `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §2 lines 86-92:
 
 - `nodeMappings` empty or absent → `b0` (legacy, investigation-level specs).
 - `nodeMappings.length > 1` → `b1` (multi-step).
@@ -259,7 +266,7 @@ The four FRAME-resident helpers feed `detectScope()` at FRAME — when the analy
 
 ## §6 Relationship to Drill semantics + Plan D
 
-The Drill A / B / C / Org-view framework is defined in `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §3.
+The Drill A / B / C / Org-view framework is defined in `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §3.
 
 - **Drill A — Hub → Step.** Shipped via Plans B/C/C1/C2. The cross-surface navigation contract in §3 of this spec extends Drill A (Hub Capability step click → embedded SCOUT-mini) without altering the Drill A primitive.
 - **Drill B — Step → Channels in Performance mode.** Already part of Performance mode's strategy entry at `packages/core/src/analysisStrategy.ts:96-116`. Unchanged.
@@ -326,13 +333,13 @@ Each slice lands as its own PR series per `feedback_no_backcompat_clean_architec
 
 ### Surface specs
 
-- `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` — B0/B1/B2 scope (§2), Drill A/B/C and Org view (§3), specs and context model (§4), governance (§5).
+- `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` — B0/B1/B2 scope (§2), Drill A/B/C and Org view (§3), specs and context model (§4), governance (§5).
 - `docs/superpowers/specs/2026-04-25-process-hub-design.md` — hub workspace, Hub Capability tab.
 - `docs/superpowers/specs/2026-04-19-investigation-wall-design.md` — L3 hypothesis canvas.
 - `docs/superpowers/specs/2026-04-28-production-line-glance-design.md` — dashboard primitive (Plans B/C/C1/C2 architectural home).
 - `docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md` — surface-wiring framing.
 - `docs/superpowers/specs/2026-04-18-frame-process-map-design.md` — FRAME canonical-map.
-- `docs/superpowers/specs/2026-04-05-evidence-map-design.md` — Evidence Map primary spec.
+- `docs/archive/specs/2026-04-05-evidence-map-design.md` — Evidence Map primary spec.
 
 ### Decision log
 
@@ -374,10 +381,10 @@ The design summary instructed that these be captured rather than guessed. Each i
 
 1. **Where `TimelineWindow` attaches.** §2.B says "persisted on the investigation," with two candidate attachment points:
    - Extending `ProcessContext` (`packages/core/src/ai/types.ts:29-58`), alongside `processMap`, `factorRoles`, `suspectedCauses`. This co-locates window with the rest of FRAME-shaped context.
-   - A sibling field on the investigation envelope (the wrapper around `ProcessContext`), alongside `nodeMappings` (introduced by `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §2 lines 70-82).
+   - A sibling field on the investigation envelope (the wrapper around `ProcessContext`), alongside `nodeMappings` (introduced by `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §2 lines 70-82).
      The brainstorm did not lock this. Resolution belongs in the implementation-plan session, where the exact persistence field can be checked against `nodeMappings` placement to keep the investigation envelope coherent.
 
-2. **`SpecLookupContext` shape inside `RouterArgs`.** §2.C names `context: SpecLookupContext` without giving its concrete type. The scope-and-drill spec defines lookup keys as `Record<string, string | null>` (the `when` clause shape at `docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §4). Whether the router receives the resolved `SpecRule` directly or the lookup tuple plus a resolver function is a router-API decision deferred to implementation.
+2. **`SpecLookupContext` shape inside `RouterArgs`.** §2.C names `context: SpecLookupContext` without giving its concrete type. The scope-and-drill spec defines lookup keys as `Record<string, string | null>` (the `when` clause shape at `docs/archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md` §4). Whether the router receives the resolved `SpecRule` directly or the lookup tuple plus a resolver function is a router-API decision deferred to implementation.
 
 3. **`ChartVariantId` taxonomy.** §2.C uses `ChartVariantId` as the slot-fill type without enumerating the variant keys. The current `ChartSlotType` union at `packages/core/src/analysisStrategy.ts:18-32` lists 14 variants (ichart, capability-ichart, cpk-scatter, yamazumi-chart, boxplot, distribution-boxplot, yamazumi-ichart, pareto, cpk-pareto, yamazumi-pareto, stats, histogram, yamazumi-summary, defect-summary). Whether `ChartVariantId` is exactly `ChartSlotType` or a superset extending it for window-aware variants is an implementation-time question.
 

@@ -6,7 +6,7 @@ status: named-future
 last-reviewed: 2026-05-17
 parent: docs/01-vision/variscout-process/index.md
 related:
-  - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
+  - docs/archive/specs/2026-05-14-variscout-coherence-design.md
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/01-vision/constitution.md
 layer: L1

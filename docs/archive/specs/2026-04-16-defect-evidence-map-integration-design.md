@@ -4,10 +4,16 @@ purpose: design
 title: Defect Mode Evidence Map Integration
 audience: human
 category: analysis
-status: active
+status: archived
 related: [defect, evidence-map, regression, cross-type, investigation]
 layer: spec
+implements:
+  - docs/03-features/analysis/defect-analysis.md
+  - docs/03-features/analysis/multi-level-dashboard.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to defect-mode Evidence Map integration (Y-decomposition not X-expansion, three-view model: all-defects / per-type / cross-type); deltas absorbed into the defect-analysis + multi-level-dashboard feature docs. See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Defect Mode Evidence Map Integration
 

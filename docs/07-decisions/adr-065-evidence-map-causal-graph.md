@@ -95,4 +95,4 @@ Pure function computes positions from R²adj — same data → same layout every
 - `packages/hooks/src/useEvidenceMapTimeline.ts` — chronological frame building for report replay
 - `packages/ui/src/components/EvidenceMapSheet/` — mobile bottom sheets (node + edge)
 - `packages/stores/src/investigationStore.ts` — CausalLink CRUD with cycle detection
-- Design spec: `docs/superpowers/specs/2026-04-05-evidence-map-design.md`
+- Design spec: `docs/archive/specs/2026-04-05-evidence-map-design.md`

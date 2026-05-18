@@ -4,10 +4,16 @@ purpose: design
 title: Evidence Map Edge Interactions — Statistical Edge → Investigation Bridge
 audience: human
 category: architecture
-status: active
+status: archived
 related: [evidence-map, evidence-map-spine, investigation, coscout, causal-link]
 layer: spec
+implements:
+  - docs/03-features/analysis/multi-level-dashboard.md
+  - docs/03-features/workflows/investigation-to-action.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to the Evidence Map edge interactions (statistical→hypothesis bridge, 3 relationship types, hover/click/action progressive disclosure); deltas absorbed into the multi-level dashboard + investigation-to-action workflows. See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Evidence Map Edge Interactions
 

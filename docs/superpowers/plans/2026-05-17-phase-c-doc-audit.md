@@ -2,7 +2,7 @@
 title: 'Phase C — Holistic Doc Audit → Triage → Apply'
 status: draft
 last-reviewed: 2026-05-17
-parent: docs/superpowers/specs/2026-05-17-wedge-phase-a-doc-completion-design.md
+parent: docs/archive/specs/2026-05-17-wedge-phase-a-doc-completion-design.md
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
@@ -163,7 +163,7 @@ These ~25-30 files should move to `docs/archive/<subfolder>/` with supersession 
 
 **Pre-wedge specs (~20 files):**
 
-- `docs/superpowers/specs/2026-05-14-variscout-coherence-design.md` (Sessions A/B/C — already marked SUPERSEDED in header; physical move)
+- `docs/archive/specs/2026-05-14-variscout-coherence-design.md` (Sessions A/B/C — already marked SUPERSEDED in header; physical move)
 - `docs/superpowers/specs/2026-05-09-response-path-system-v1-design.md` (5-path RPS; reduced to 3 by wedge)
 - `docs/superpowers/plans/2026-05-09-response-path-system-v1.md` (5-path implementation)
 - `docs/superpowers/plans/2026-05-14-projects-tab-foundation.md` (4-stage IP detail; amended by wedge to 3)
@@ -208,7 +208,7 @@ These ~25-30 files should move to `docs/archive/<subfolder>/` with supersession 
 
 - `docs/05-technical/architecture.md` lines 640–716 (Section 12 "Teams SDK Integration") — orphaned ~77-line spec describing OBO token exchange + Teams context detection, all removed by ADR-059
 - `docs/superpowers/plans/2026-04-17-agent-docs-architecture-phase1-foundation.md` lines 1004, 1024, 1382 — legacy "10 personas" (education funnel artifact, not product UX)
-- `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md` lines 37, 100 — same "10 personas" legacy
+- `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md` lines 37, 100 — same "10 personas" legacy
 
 ### AMEND batches (PR 3 work) — organized by stale-pattern category
 
@@ -241,7 +241,7 @@ audit surfaces ADRs that should move from `docs/07-decisions/` to
   decision driving the cleanup.
 - [PR 1 plan (Phase A)](2026-05-17-pr-1-wedge-phase-a-doc-completion.md) —
   Predecessor plan; Phase A closed pre-Phase-C.
-- [PR 1 spec (Phase A + C combined design)](../specs/2026-05-17-wedge-phase-a-doc-completion-design.md)
+- [PR 1 spec (Phase A + C combined design)](../../archive/specs/2026-05-17-wedge-phase-a-doc-completion-design.md)
   — Spec that scoped both Phase A and Phase C as a coordinated sweep.
 - `feedback_consolidation_replace_not_umbrella` — Bias toward replace/archive,
   not umbrella docs.

@@ -2,13 +2,19 @@
 tier: living
 purpose: design
 title: Evidence Map — Data Relationship Visualization
-status: active
+status: archived
 date: 2026-04-05
 audience: human
 category: architecture
 related: [best-subsets, factor-intelligence, investigation-spine, causal-graph, pop-out-window]
 layer: spec
+implements:
+  - docs/03-features/analysis/multi-level-dashboard.md
+  - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to the Evidence Map (factor-node graph, CausalLinks, deterministic R²adj-based layout, 3-layer composition); deltas absorbed into Multi-level SCOUT + [ADR-074](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 > **See also:** [Evidence Map as Analysis Spine](2026-04-05-evidence-map-spine-design.md) — extends this spec with phase-by-phase integration, PI Panel deep linking, and Investigation workspace redesign.
 >

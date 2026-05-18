@@ -4,18 +4,24 @@ purpose: design
 title: Canvas Hypothesis-Arrow Drawing — PR8 sub-PR 8d design (Spec 4 extension)
 audience: human
 category: design-spec
-status: active
+status: archived
 last-reviewed: 2026-05-07
 related:
   - docs/archive/specs/2026-05-03-variscout-vision-design.md
   - docs/archive/specs/2026-05-04-canvas-migration-design.md
-  - docs/superpowers/specs/2026-05-04-manual-canvas-authoring-design.md
+  - docs/archive/specs/2026-05-04-manual-canvas-authoring-design.md
   - docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md
   - docs/superpowers/plans/2026-05-07-canvas-pr8-vision-alignment-master.md
   - docs/decision-log.md
   - docs/investigations.md
 layer: spec
+implements:
+  - docs/03-features/ui/canvas-frame.md
+  - docs/03-features/workflows/investigation-wall.md
+delivered-by: 2026-05-18
 ---
+
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to canvas hypothesis-arrow drawing (PR8 sub-PR 8d: drawing gesture, inline form, draft vs promoted hypothesis visual primitives); deltas absorbed into [`docs/03-features/ui/canvas-frame.md`](../../03-features/ui/canvas-frame.md) + [`docs/03-features/workflows/investigation-wall.md`](../../03-features/workflows/investigation-wall.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Canvas Hypothesis-Arrow Drawing
 

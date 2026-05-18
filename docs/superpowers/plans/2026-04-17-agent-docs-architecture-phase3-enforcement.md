@@ -17,7 +17,7 @@ layer: spec
 
 **Tech Stack:** ESLint 9 flat-config plugin, Node 20+ hooks written as `bash` (to match existing `scripts/check-*.sh` convention), Vitest for plugin rule tests. Pre-commit integration via existing `.husky/pre-commit` and `scripts/check-doc-health.sh`. Pre-edit advisories via `.claude/settings.json` Claude Code hook config.
 
-**Reference spec:** `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md`
+**Reference spec:** `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md`
 **Predecessor plans:**
 
 - Phase 1 — `docs/superpowers/plans/2026-04-17-agent-docs-architecture-phase1-foundation.md` (delivered 2026-04-17)
@@ -55,7 +55,7 @@ layer: spec
 - `.husky/pre-commit` — invoke `scripts/check-ssot.sh` + `scripts/check-claude-md-size.sh` + `scripts/check-dead-links.sh` (warn mode initially)
 - `.claude/settings.json` — add 2 pre-edit advisory hooks (ADR frontmatter `last-reviewed`, spec/doc missing frontmatter)
 - `docs/09-baseline/2026-04-17-agent-docs-baseline.md` — append "Phase 3 Completion" section
-- `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md` — update Implementation Plans section with Phase 3 link (this plan)
+- `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md` — update Implementation Plans section with Phase 3 link (this plan)
 - `/MEMORY.md` (user-level, at `/Users/jukka-mattiturtiainen/.claude/projects/-Users-jukka-mattiturtiainen-Projects-VariScout-lite/memory/MEMORY.md`) — only edited if audit finds doc-routing duplicates (likely no-op per spec drift)
 
 **Deleted:**
@@ -1371,7 +1371,7 @@ EOF
 **Files:**
 
 - Audit: `/Users/jukka-mattiturtiainen/.claude/projects/-Users-jukka-mattiturtiainen-Projects-VariScout-lite/memory/MEMORY.md` (user-level, 92 lines at plan-write time)
-- Modify: `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md` (update Implementation Plans section with Phase 3 link)
+- Modify: `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md` (update Implementation Plans section with Phase 3 link)
 - Modify: `docs/09-baseline/2026-04-17-agent-docs-baseline.md` (append "Phase 3 Completion" section)
 
 **Goal:** Honestly scope MEMORY.md per the spec's drift: audit rather than mass-delete. The spec says "remove doc-routing entries"; the actual MEMORY.md contains almost no doc-routing entries — it's all session-state/project-state memories organized by category. This task verifies and documents that finding rather than forcing a deletion.
@@ -1395,7 +1395,7 @@ If the audit surfaces any entries that say "see CLAUDE.md for X" or duplicate ro
 
 - [ ] **Step 3: Update spec's Implementation Plans section**
 
-Edit `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md` lines ~457-463. Replace:
+Edit `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md` lines ~457-463. Replace:
 
 ```markdown
 - Phase 3: Enforcement + cleanup (ESLint + hooks + rules/ + archive/ deletion) — plan to be written after Phase 2 ships
@@ -1475,7 +1475,7 @@ Expected:
 - [ ] **Step 6: Final commit**
 
 ```bash
-git add docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md docs/09-baseline/2026-04-17-agent-docs-baseline.md
+git add docs/archive/specs/2026-04-17-agent-docs-architecture-design.md docs/09-baseline/2026-04-17-agent-docs-baseline.md
 git commit -m "$(cat <<'EOF'
 docs(agent-arch): Phase 3 Enforcement + Cleanup complete
 
@@ -1538,7 +1538,7 @@ EOF
 
 ## Self-Review Notes
 
-Self-reviewed against `docs/superpowers/specs/2026-04-17-agent-docs-architecture-design.md` Phase 3 scope (lines 342-352) and success metrics table (line 376-384).
+Self-reviewed against `docs/archive/specs/2026-04-17-agent-docs-architecture-design.md` Phase 3 scope (lines 342-352) and success metrics table (line 376-384).
 
 **Spec coverage:**
 

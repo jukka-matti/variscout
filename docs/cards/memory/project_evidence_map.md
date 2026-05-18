@@ -53,4 +53,4 @@ Evidence Map: spatial visualization of factor relationships and causal investiga
 
 **Apr 7 edge interactions:** Statistical edges now fully interactive — click→EdgeDetailCard (stats + type badge + 3 actions), right-click→EdgeContextMenu, promote-to-causal flow, mobile action buttons. See `project_evidence_map_edge_interactions.md` for details.
 
-**How to apply:** Design specs at docs/superpowers/specs/2026-04-05-evidence-map-design.md (component architecture), docs/superpowers/specs/2026-04-05-evidence-map-spine-design.md (spine integration), docs/superpowers/specs/2026-04-07-evidence-map-edge-interactions-design.md (edge interactions).
+**How to apply:** Design specs at docs/archive/specs/2026-04-05-evidence-map-design.md (component architecture), docs/archive/specs/2026-04-05-evidence-map-spine-design.md (spine integration), docs/archive/specs/2026-04-07-evidence-map-edge-interactions-design.md (edge interactions).

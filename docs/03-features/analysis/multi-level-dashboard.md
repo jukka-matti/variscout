@@ -72,7 +72,7 @@ See [`05-technical/scout-level-spanning.md`](../../05-technical/scout-level-span
 ## See also
 
 - [Timeline Windows in Investigations](timeline-window-investigations.md)
-- [Multi-level SCOUT design spec](../../superpowers/specs/2026-04-29-multi-level-scout-design.md)
+- [Multi-level SCOUT design spec](../../archive/specs/2026-04-29-multi-level-scout-design.md)
 - [ADR-074 — surface boundary policy](../../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md)
 - [Process Hub Capability](process-hub-capability.md)
 - [Statistics Panel](stats-panel.md)
