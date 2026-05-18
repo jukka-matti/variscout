@@ -201,6 +201,15 @@ const stale = [];
 const untouchedReferenced = [];
 const citationDrift = [];
 const missingSensor = [];
+const stalledSpecs = []; // SDD M5 — active specs with no implements: target touched in 30+ days
+
+// SDD stalled-spec threshold (days).
+const SDD_STALLED_DAYS = 30;
+
+// Compute "30 days ago" once for the whole pass.
+const thirtyDaysAgo = new Date(Date.now() - SDD_STALLED_DAYS * 24 * 60 * 60 * 1000)
+  .toISOString()
+  .slice(0, 10);
 
 for (const d of docs) {
   const sha = d.fm['verified-against-commit'];
@@ -278,6 +287,32 @@ for (const d of docs) {
   }
 }
 
+// ---------- Category 5: stalled active specs (SDD M5) ----------------------
+// Spec with status:active AND implements: array AND no commits to ANY
+// implements: target in 30+ days → propose Archive.
+// Runs OUTSIDE the missing-sensor early-exit because some specs may lack
+// verified-against-commit but still need this drift check.
+for (const d of docs) {
+  if (d.category !== 'spec') continue;
+  if (d.fm.status !== 'active' && d.fm.status !== 'draft') continue;
+  if (d.rel.startsWith('docs/archive/')) continue;
+
+  const implementsList = asArray(d.fm.implements).filter(Boolean);
+  if (implementsList.length === 0) continue;
+
+  let touchedTarget = null;
+  for (const target of implementsList) {
+    const out = gitSafe(['log', '--oneline', `--since=${thirtyDaysAgo}`, '--', String(target)]);
+    if (out.trim()) {
+      touchedTarget = String(target);
+      break;
+    }
+  }
+  if (!touchedTarget) {
+    stalledSpecs.push({ doc: d, implementsList });
+  }
+}
+
 // ---------- Report ---------------------------------------------------------
 
 const lines = [];
@@ -288,7 +323,7 @@ const byCat = { card: 0, spec: 0, adr: 0, other: 0 };
 for (const d of docs) if (d.fm['verified-against-commit']) byCat[d.category]++;
 
 const totalFlagged =
-  stale.length + untouchedReferenced.length + citationDrift.length;
+  stale.length + untouchedReferenced.length + citationDrift.length + stalledSpecs.length;
 
 const allEmpty = totalFlagged === 0;
 
@@ -364,6 +399,23 @@ if (allEmpty) {
     }
   }
   push();
+
+  // ---- SDD stalled active specs (Category 5) ----------------------------
+  push(`## Stalled active specs (${stalledSpecs.length})`);
+  push();
+  if (stalledSpecs.length === 0) {
+    push('_None._');
+  } else {
+    push(
+      `Active design specs whose \`implements:\` targets had no commits in ${SDD_STALLED_DAYS}+ days. Per SDD Propose→Apply→Archive lifecycle, these are likely delivered (archive) or abandoned (supersede). Suggested action: \`git mv\` to \`docs/archive/specs/\` with Delivered banner, OR mark \`status: superseded\`.`,
+    );
+    push();
+    for (const s of stalledSpecs) {
+      const impSummary = s.implementsList.slice(0, 3).join(', ') + (s.implementsList.length > 3 ? '…' : '');
+      push(`- **${s.doc.id}** — implements: \`${impSummary}\`; no target touched since \`${thirtyDaysAgo}\`.`);
+    }
+  }
+  push();
 }
 
 // ---- Missing sensor (always shown if any) -------------------------------
@@ -403,7 +455,7 @@ push('## Scan stats');
 push();
 push(`- Total docs scanned: ${docs.length}`);
 push(`- Docs with \`verified-against-commit\`: ${withSensor}`);
-push(`- Docs flagged (stale + untouched-referenced + citation-drift): ${totalFlagged}`);
+push(`- Docs flagged (stale + untouched-referenced + citation-drift + stalled-specs): ${totalFlagged}`);
 push(`- Docs missing sensor: ${missingSensor.length}`);
 push(`- Scan duration: ${elapsedS}s`);
 push(

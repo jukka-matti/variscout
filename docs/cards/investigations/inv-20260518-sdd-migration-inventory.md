@@ -87,11 +87,22 @@ Next: PR-SDD-1 (M1 frontmatter retrofit + M2 L1 reconcile + L2 reshape).
 - **PR-SDD-0 (commit `d9c880dc`, 2026-05-18)** — M0 inventory + Option A 24 L3 stubs. Code-coverage 56.7% → 86% strict (100% stub).
 - **PR-SDD-1 (commit `1d649a21`, 2026-05-18)** — M1 schema retrofit + M2 L1 reconcile + L2 reshape. 447 docs gained `layer:` frontmatter. `constitution.md` extended with V1 Wedge Principles. 4 new L2 files (lead/member/sponsor + IA nav). 10 legacy personas reclassified.
 - **PR-SDD-2 (commit `6205383d`, 2026-05-18)** — M3 L3 audit + reshape. 39 capability docs gained `kind:` + `serves:`. 4 implementation-notes split to L4 `docs/05-technical/` (scout-level-spanning, hub-capability-tab, regression-glm-engine, persistence-engine). 2 navigation stubs folded into `progressive-filtering.md` + deleted. 4 index files closed with `kind: infrastructure`. **L3-missing-kind warnings: 95 → 0.**
-- **PR-SDD-3 (commit `<pending>`, 2026-05-18)** — M4 active specs retrofit. 24 active specs gained `implements:` arrays (2 anchored to constitution.md as fallback for meta-governance specs). 17 delivered specs archived to `docs/archive/specs/` via `git mv` with `status: archived`, Delivered banners, `delivered-by: 2026-05-18`, and `implements:` for traceability. 122 inbound refs updated across docs/ + .claude/. 4 remaining can't-retrofit specs (claude-design / h1-h2-launch / docs-strategy-memo / pr-wv1-3-measurement-plans) gained `implements:` inline. **spec-missing-implements warnings: 45 → 0.** All SDD M1 WARN buckets now empty; M5 can flip to HARD-FAIL safely.
+- **PR-SDD-3 (commit `6f67d964`, 2026-05-18)** — M4 active specs retrofit. 24 active specs gained `implements:` arrays (2 anchored to constitution.md as fallback for meta-governance specs). 17 delivered specs archived to `docs/archive/specs/` via `git mv` with `status: archived`, Delivered banners, `delivered-by: 2026-05-18`, and `implements:` for traceability. 122 inbound refs updated across docs/ + .claude/. 4 remaining can't-retrofit specs (claude-design / h1-h2-launch / docs-strategy-memo / pr-wv1-3-measurement-plans) gained `implements:` inline. **spec-missing-implements warnings: 45 → 0.** All SDD M1 WARN buckets now empty; M5 can flip to HARD-FAIL safely.
+- **PR-SDD-4 (commit `<pending>`, 2026-05-18)** — M5 enforcement go-live. Validator HARD-FAIL flipped on: `errorL3MissingKind`, `errorSpecMissingImplements`, `errorBrokenImplementsPath`, `errorBrokenServesPath`. Added intent-diagram heuristic WARN (36 violations — next-edit work). Steward gained Category 5 (stalled active specs — 30+ days without implements: target touch; quiet now because of recent migration activity). Local skill overrides created under `.claude/skills/superpowers/` for brainstorming + writing-plans + subagent-driven-development (each ~40 lines, thin override). New `.github/pull_request_template.md` with SDD checklist. `docs/agent-context/doc-discipline.md` extended with Propose→Apply→Archive section (~60 lines). `docs/llms.txt` gained 5-layer routing section. **SDD migration complete.**
 
-## What's left
+## SDD migration complete
 
-- **M5** — flip validator from WARN to HARD-FAIL; add Steward drift checks; local-override superpowers skill files; PR template; update `doc-discipline.md` + `llms.txt` with 5-layer routing
+All five PRs landed. Discipline is now mechanically enforced:
+
+- L3 docs without `kind:` → HARD-FAIL
+- Design specs without `implements:` → HARD-FAIL
+- `implements:` / `serves:` paths that don't exist → HARD-FAIL
+- L3 (ui/workflow/engine) without intent diagram → WARN (next-edit work)
+- Active specs >30 days without implements: target touch → Steward Issue
+
+Brainstorm → Apply → Archive lifecycle is documented in `docs/agent-context/doc-discipline.md`. Skill overrides ensure new brainstorms produce specs with `implements:` and new plans dispatch Apply tasks first.
+
+Next: dogfood the loop with the first new feature post-M5 to validate end-to-end.
 
 ## Table 1 — Code → Feature coverage
 
