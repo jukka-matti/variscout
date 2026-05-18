@@ -24,6 +24,7 @@
     "docs:find": "node scripts/docs-toolbox/find.mjs",
     "docs:gen-arch": "node scripts/docs/gen-arch.mjs",
     "docs:get": "node scripts/docs-toolbox/get.mjs",
+    "docs:rebuild": "node scripts/docs/rebuild-views.mjs",
     "docs:recent": "node scripts/docs-toolbox/recent.mjs",
     "docs:related": "node scripts/docs-toolbox/related.mjs",
     "docs:sync": "bash scripts/sync-monorepo-counts.sh",
