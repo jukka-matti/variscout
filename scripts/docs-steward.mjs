@@ -295,16 +295,20 @@ const allEmpty = totalFlagged === 0;
 push(`# Docs Steward Report — ${today}`);
 push();
 
+// byCat.{card,spec,adr} counts only docs *with* verified-against-commit
+// (sensored subset); docs.length is the total in-scope count (incl. missing-
+// sensor). Print both for clarity.
+const sensoredTotal = byCat.card + byCat.spec + byCat.adr;
 if (allEmpty) {
   push(
-    `Scanned ${docs.length} docs (${byCat.card} cards, ${byCat.spec} specs, ${byCat.adr} ADRs with \`verified-against-commit\`). HEAD: \`${headShort}\`.`,
+    `Scanned ${docs.length} docs total; ${sensoredTotal} with \`verified-against-commit\` (${byCat.card} cards, ${byCat.spec} specs, ${byCat.adr} ADRs). HEAD: \`${headShort}\`.`,
   );
   push();
   push('**All canonical docs are fresh.** ✨');
   push();
 } else {
   push(
-    `Scanned ${docs.length} docs (cards: ${byCat.card}, specs: ${byCat.spec}, ADRs: ${byCat.adr}) with \`verified-against-commit\` frontmatter. HEAD: \`${headShort}\`.`,
+    `Scanned ${docs.length} docs total; ${sensoredTotal} with \`verified-against-commit\` (${byCat.card} cards, ${byCat.spec} specs, ${byCat.adr} ADRs). HEAD: \`${headShort}\`.`,
   );
   push();
 

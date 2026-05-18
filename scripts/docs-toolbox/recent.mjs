@@ -11,7 +11,7 @@
 //   1. Decision cards added or last-verified since <since>   — from docs/cards/decisions/
 //   2. Decision-log §4 backlog updates since <since>         — from aggregate §4 table rows
 //   3. Other docs since <since>                              — docs/** excluding cards
-//   4. Decision-log entries since <since>                    — legacy bullet entries (§1/§2/§3)
+//   4. Legacy decision-log entries since <since>            — bullet entries (§1/§2/§3, back-compat with cards)
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
@@ -183,8 +183,8 @@ for (const d of otherDocs.slice(0, 30)) {
 }
 if (otherDocs.length > 30) console.log(`(+ ${otherDocs.length - 30} more)`);
 
-// Group 4: Legacy entries (§1/§2/§3 bullet entries — now also in cards)
-console.log(`\n# Decision-log entries since ${args.since} (${legacyEntries.length})\n`);
+// Group 4: Legacy entries (§1/§2/§3 bullet entries — now also in cards; kept for back-compat)
+console.log(`\n# Legacy decision-log entries since ${args.since} (${legacyEntries.length})\n`);
 for (const e of legacyEntries) {
   console.log(`- ${e.date} — ${e.title}${e.editType ? ` [${e.editType}]` : ''}`);
 }

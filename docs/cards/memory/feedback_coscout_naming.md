@@ -7,8 +7,9 @@ status: active
 date: 2026-05-18
 topic: [memory, feedback]
 related: []
-verified-against-commit: 6f51f080
+verified-against-commit: c6cf0f8c5
 last-verified: 2026-05-18
+source-hash: 400a00c2c2db31ed
 ---
 
 > 🤖 **Generated mirror** of `~/.claude/memory/feedback_coscout_naming.md`. Edit there, not here. Card synced by `scripts/docs/sync-memory-cards.mjs`; re-run via `pnpm docs:rebuild` (Phase 3 A4).

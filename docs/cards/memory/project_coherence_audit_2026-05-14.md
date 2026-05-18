@@ -7,8 +7,9 @@ status: active
 date: 2026-05-18
 topic: [memory, project]
 related: []
-verified-against-commit: 6f51f080
+verified-against-commit: c6cf0f8c5
 last-verified: 2026-05-18
+source-hash: b43dabb7a4a5d508
 origin-session-id: 8a0d548d-3c45-481b-9b1b-61670c23b480
 ---
 

@@ -27,10 +27,11 @@
 // Output: docs/cards/memory/<basename>.md  (~181 files)
 // Orphan cleanup: any OUT_DIR/*.md not in current source set is removed.
 
-import { readdirSync, writeFileSync, mkdirSync, unlinkSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 
 import { readDoc } from '../docs-toolbox/lib/frontmatter.mjs';
 
@@ -173,7 +174,29 @@ function extractFields(frontmatter) {
 // Card content builder.
 // ---------------------------------------------------------------------------
 
-function buildCard(basename, frontmatter, body) {
+function sourceHash(srcPath) {
+  // 16-char hex prefix of sha256 over raw source bytes. Stable signal for
+  // "did the source atom change?" — used to skip rewriting mirror cards
+  // whose source is identical to the last sync (prevents Steward false-
+  // positive flood from rebuild re-stamps).
+  return createHash('sha256').update(readFileSync(srcPath)).digest('hex').slice(0, 16);
+}
+
+function readExistingSourceHash(outPath) {
+  // Returns the `source-hash:` value from an existing mirror card's
+  // frontmatter, or null if the file is missing / unparseable / lacks the
+  // field. Used to short-circuit rewrites when source content matches.
+  if (!existsSync(outPath)) return null;
+  try {
+    const raw = readFileSync(outPath, 'utf8');
+    const m = raw.match(/^source-hash:\s*([a-f0-9]+)\s*$/m);
+    return m ? m[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+function buildCard(basename, frontmatter, body, srcHash) {
   const { name, description, type, originSessionId } = extractFields(frontmatter);
 
   const title = name || basename.replace(/\.md$/, '');
@@ -218,6 +241,7 @@ function buildCard(basename, frontmatter, body) {
     `related: []`,
     `verified-against-commit: ${SHA}`,
     `last-verified: ${today}`,
+    `source-hash: ${srcHash}`,
   ];
   if (originLine !== null) {
     fmLines.push(originLine);
@@ -242,11 +266,25 @@ function run() {
 
   const srcSet = new Set(srcFiles);
   let synced = 0;
+  let unchanged = 0;
   let skipped = 0;
 
   for (const basename of srcFiles) {
     const srcPath = join(SRC_DIR, basename);
     const outPath = join(OUT_DIR, basename);
+
+    // Hash-guard short-circuit: if mirror exists and its `source-hash`
+    // matches the current source content hash, the atom hasn't changed
+    // since the last sync — skip rewrite entirely. Preserves the existing
+    // `verified-against-commit` + `last-verified` stamps, preventing
+    // spurious Steward "stale" flags after rebuild commits that don't
+    // touch the source atom.
+    const srcHash = sourceHash(srcPath);
+    const existingHash = readExistingSourceHash(outPath);
+    if (existingHash === srcHash) {
+      unchanged += 1;
+      continue;
+    }
 
     let parsed;
     try {
@@ -285,7 +323,7 @@ function run() {
 
     let content;
     try {
-      content = buildCard(basename, frontmatter, body);
+      content = buildCard(basename, frontmatter, body, srcHash);
     } catch (err) {
       process.stderr.write(`WARN: skipping ${basename} — build error: ${err.message}\n`);
       skipped += 1;
@@ -309,8 +347,9 @@ function run() {
   }
 
   const skipNote = skipped > 0 ? ` (${skipped} skipped with warnings)` : '';
+  const unchangedNote = unchanged > 0 ? `, ${unchanged} unchanged (hash match)` : '';
   process.stdout.write(
-    `Synced ${synced} memory atoms → docs/cards/memory/ (cleaned ${cleaned} orphans)${skipNote}.\n`,
+    `Synced ${synced} memory atoms${unchangedNote} → docs/cards/memory/ (cleaned ${cleaned} orphans)${skipNote}.\n`,
   );
 }
 
