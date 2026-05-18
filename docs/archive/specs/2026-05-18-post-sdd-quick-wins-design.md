@@ -2,7 +2,7 @@
 title: 'Post-SDD Phase 1 — Quick Wins'
 purpose: design
 tier: living
-status: draft
+status: archived
 audience: human
 layer: spec
 implements:
@@ -18,7 +18,10 @@ implements:
   - docs/02-journeys/personas/index.md
   - packages/core/CLAUDE.md
 last-reviewed: 2026-05-18
+delivered-by: 2026-05-18
 ---
+
+> **🗄 Archived 2026-05-18 — Delivered via PR-PSDD-1 (commit `4eab4aae`).** All 5 deltas applied; implements: targets reflect delivered state. Spec retained for traceability; current state is in the implements: paths above.
 
 # Post-SDD Phase 1 — Quick Wins
 

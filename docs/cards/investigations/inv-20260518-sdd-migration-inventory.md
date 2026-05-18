@@ -92,7 +92,9 @@ Next: PR-SDD-1 (M1 frontmatter retrofit + M2 L1 reconcile + L2 reshape).
 
 ## Phase 1 dogfood (post-SDD refactor — first feature post-migration)
 
-The first real feature through the new SDD lifecycle. Spec: [`docs/superpowers/specs/2026-05-18-post-sdd-quick-wins-design.md`](../../superpowers/specs/2026-05-18-post-sdd-quick-wins-design.md). Bundles 5 quick-win deltas surfaced by M0 grounding: ADR-078 stores amendment (9 stores reality), `gap-trend-chart.md` → `capability-gap-trend-chart.md` rename, removal of obsolete Phase C.3 warning, archive of 5 legacy V0 personas, Core sub-domains signpost in `packages/core/CLAUDE.md`. Apply + commit happens in one PR; spec archives immediately after with Delivered banner.
+The first real feature through the new SDD lifecycle. Spec: [`docs/archive/specs/2026-05-18-post-sdd-quick-wins-design.md`](../../archive/specs/2026-05-18-post-sdd-quick-wins-design.md) (archived 2026-05-18 after delivery via PR-PSDD-1, commit `4eab4aae`). Bundled 5 quick-win deltas: ADR-078 stores amendment (9 stores reality), `gap-trend-chart.md` → `capability-gap-trend-chart.md` rename, removal of obsolete Phase C.3 warning, archive of 5 legacy V0 personas to `docs/archive/journeys/personas/`, Core sub-domains signpost in `packages/core/CLAUDE.md`.
+
+**Dogfood result**: ✓ lifecycle works end-to-end. The discipline caught 3 broken cross-refs (azure-teams-mobile, azure-admin-operations, arm-template) when personas moved — exactly the kind of drift the new validator HARD-FAIL on broken cross-refs is designed to catch. Fixed inline as part of Apply.
 
 ## SDD migration complete
 
