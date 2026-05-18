@@ -15,16 +15,22 @@
     "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\" \"apps/*/src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"packages/*/src/**/*.{ts,tsx}\" \"apps/*/src/**/*.{ts,tsx}\"",
     "prepare": "husky",
+    "docs:amend": "node scripts/docs-toolbox/amend.mjs",
     "docs:dev": "pnpm --filter @variscout/docs dev",
     "docs:build": "pnpm --filter @variscout/docs build",
     "docs:preview": "pnpm --filter @variscout/docs preview",
     "docs:check": "bash scripts/check-diagram-health.sh && bash scripts/check-doc-health.sh",
     "docs:check:frontmatter": "node scripts/check-doc-frontmatter.mjs",
+    "docs:find": "node scripts/docs-toolbox/find.mjs",
+    "docs:gen-arch": "node scripts/docs/gen-arch.mjs",
+    "docs:get": "node scripts/docs-toolbox/get.mjs",
+    "docs:recent": "node scripts/docs-toolbox/recent.mjs",
+    "docs:related": "node scripts/docs-toolbox/related.mjs",
     "docs:sync": "bash scripts/sync-monorepo-counts.sh",
+    "docs:verify": "node scripts/docs-toolbox/verify.mjs",
     "codex:ruflo-check": "bash scripts/check-codex-ruflo.sh",
     "check:boundaries": "bash scripts/check-level-boundaries.sh",
-    "check:i18n": "npx tsx scripts/check-i18n.ts",
-    "docs:gen-arch": "node scripts/docs/gen-arch.mjs"
+    "check:i18n": "npx tsx scripts/check-i18n.ts"
   },
   "lint-staged": {
     "**/*.{ts,tsx}": [

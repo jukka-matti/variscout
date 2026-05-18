@@ -8,6 +8,8 @@ date: 2026-03-22
 
 # ADR-043: Teams Entry Experience
 
+> ⚠️ **SUPERSEDED** by [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md) and [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md). Historical Teams-first entry direction only.
+
 **Status**: Superseded by [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md) and [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md). Historical Teams-first entry direction only.
 
 **Date**: 2026-03-22

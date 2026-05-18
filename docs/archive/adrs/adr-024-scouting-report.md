@@ -12,6 +12,8 @@ related: [report-view, presentation, qc-story, copy-workflow, teams-sharing]
 
 # ADR-024: Scouting Report — Dynamic Analysis Report View
 
+> ⚠️ **SUPERSEDED** by [ADR-037](../../07-decisions/adr-037-reporting-workspaces.md). Historical record only.
+
 **Status**: Superseded by [ADR-037](../../07-decisions/adr-037-reporting-workspaces.md)
 
 **Date**: 2026-03-16

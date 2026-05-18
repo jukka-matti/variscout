@@ -8,6 +8,8 @@ date: 2026-03-19
 
 # ADR-030: Unified File Picker (OneDrive File Picker v8)
 
+> ⚠️ **SUPERSEDED** by [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md) and [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md). Historical OneDrive/SharePoint file-picker direction only.
+
 ## Status
 
 Superseded by [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md) and [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md). Historical OneDrive/SharePoint file-picker direction only.

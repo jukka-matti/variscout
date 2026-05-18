@@ -7,7 +7,7 @@ category: design-spec
 status: draft
 last-reviewed: 2026-05-16
 related:
-  - docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md
+  - docs/archive/specs/2026-05-16-improve-tab-amendment-design.md
   - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
   - docs/superpowers/specs/2026-05-14-projects-tab-design.md
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
@@ -540,5 +540,5 @@ Is there anything in the V1 anatomy that doesn't earn its keep? The brainstorm p
 
 ## §15 Amendments
 
-- **2026-05-16 (Improve-tab amendment)**: 6-tab nav → 7-tab nav restoring Improve as a top-level verb tab with active-IP cascade; Sustainment+Handoff folded → Improve+Sustainment stages (3 stages inside Project: Charter → Approach → Sustainment); 5 response paths → 3. See [`docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`](2026-05-16-improve-tab-amendment-design.md).
+- **2026-05-16 (Improve-tab amendment)**: 6-tab nav → 7-tab nav restoring Improve as a top-level verb tab with active-IP cascade; Sustainment+Handoff folded → Improve+Sustainment stages (3 stages inside Project: Charter → Approach → Sustainment); 5 response paths → 3. See [`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`](../../archive/specs/2026-05-16-improve-tab-amendment-design.md) (archived 2026-05-17; content now canonical in this spec).
 - **2026-05-17 (Price amendment)**: §5.1 single SKU price €99/month → **€120/month**. Revised upward before any customer exposure. All downstream surfaces (marketplace.md, README, .env.example) updated in PR-WV1-6. §5.4 / §8.1 migration math preserves €79/€199 as historical-context; the migration target reads €120.

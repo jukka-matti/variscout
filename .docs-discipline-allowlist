@@ -1,0 +1,11 @@
+# Doc-discipline allowlist
+#
+# One path per line. Listed paths are exempt from the validator's
+# anti-pattern filename + banner checks.
+#
+# Adding a path requires a decision-log entry citing the rationale
+# (see docs/agent-context/doc-discipline.md §Enforcement).
+#
+# Format: paths are relative to repo root.
+#
+# (Empty by design — Phase 2 ships with zero entries.)

@@ -3,7 +3,7 @@ title: 'PR-WV1-2 amendment — restore Improve as top-level verb tab + Project s
 status: draft
 last-reviewed: 2026-05-16
 related:
-  - docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md
+  - docs/archive/specs/2026-05-16-improve-tab-amendment-design.md
   - docs/superpowers/plans/2026-05-16-pr-wv1-2-improve-workspace.md
   - docs/superpowers/plans/2026-05-16-wedge-implementation.md
   - docs/07-decisions/adr-082-wedge-architecture.md
@@ -19,7 +19,7 @@ related:
 
 **Tech Stack:** TypeScript + React 18 + Zustand + Vitest + React Testing Library.
 
-**Canonical spec:** [`docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`](../specs/2026-05-16-improve-tab-amendment-design.md).
+**Canonical spec:** [`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`](../../archive/specs/2026-05-16-improve-tab-amendment-design.md).
 
 **Parent sub-plan (historical):** `docs/superpowers/plans/2026-05-16-pr-wv1-2-improve-workspace.md` — Tasks 0-5 stand verbatim per the amendment spec; this plan covers the rework needed on top.
 
@@ -1032,7 +1032,7 @@ Add a new "Amendment 2026-05-16 — PR-WV1-2 shipped (Improve restored as top-le
 - Improve tab activates active-IP cascade pattern from PR-PT-7: empty state when no active IP, scoped tracker when active.
 - Preserves decision-log §(3): cross-IP idea board / action conversion still retire. The Improve tab is single-IP-scoped, not free-roaming.
 - Remaining PR-WV1-1 followups: (a) `INVITATION_ACCEPT` / `INVITATION_REVOKE` action kinds → still owed to PR-WV1-3. (c) Per-user persistence key on `useProjectMembershipStore` → still owed to PR-WV1-5.
-- Canonical artifact: `docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`.
+- Canonical artifact: `docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`.
 
 - [ ] **Step 6: Commit the decision-log amendment**
 
@@ -1064,7 +1064,7 @@ Also absorbs two of PR-WV1-1's deferred items:
 
 ## Spec amendment
 
-`docs/superpowers/specs/2026-05-16-improve-tab-amendment-design.md`
+`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`
 
 ## Master plan
 

@@ -11,6 +11,8 @@ related: [improvement, pdca, actions, verification, outcome]
 
 # Improvement Workspace PDCA Extension
 
+> ⚠️ **SUPERSEDED** by [Improvement Hub Redesign](2026-04-02-improvement-hub-design.md). Historical record only.
+
 **Superseded by [Improvement Hub Redesign](2026-04-02-improvement-hub-design.md)** which incorporates all PDCA content within a broader workspace redesign.
 
 ## Context

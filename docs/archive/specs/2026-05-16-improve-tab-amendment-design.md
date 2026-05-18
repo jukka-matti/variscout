@@ -1,19 +1,20 @@
 ---
 title: 'Wedge V1 amendment — Improve as top-level verb tab, Project as singular noun'
-status: draft
-last-reviewed: 2026-05-16
-category: design-spec
-audience: [designer, engineer]
+status: archived
+date: 2026-05-16
+last-verified: 2026-05-17
+purpose: remember
+tier: ephemeral
+audience: agent
+topic: [wedge, nav, ax]
 related:
-  - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
-  - docs/superpowers/specs/2026-05-14-variscout-coherence-design.md
-  - docs/superpowers/specs/2026-05-14-projects-tab-design.md
-  - docs/07-decisions/adr-082-wedge-architecture.md
-  - docs/superpowers/plans/2026-05-16-wedge-implementation.md
-  - docs/superpowers/plans/2026-05-16-pr-wv1-2-improve-workspace.md
+  - 2026-05-16-wedge-architecture-design
+  - adr-082-wedge-architecture
 ---
 
 # Wedge V1 amendment — Improve as top-level verb tab, Project as singular noun
+
+> 🗄 **Archived 2026-05-17** — the Improve-tab amendment is now incorporated into the canonical [wedge architecture spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) (7-tab nav, Improve as top-level verb tab). This file preserves the point-in-time amendment narrative for institutional knowledge. Phase 2 doc-discipline forbids `*-amendment-*.md` files under `docs/superpowers/specs/`; relocated to `docs/archive/specs/`.
 
 ## Context
 
