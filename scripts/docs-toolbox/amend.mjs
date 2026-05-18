@@ -7,9 +7,10 @@
 // HARD-FAILS if the target is a design spec (those edit in place, not via
 // amendment blocks). See docs/agent-context/doc-discipline.md.
 
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readDoc } from './lib/frontmatter.mjs';
 
 const ROOT = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const DOCS = join(ROOT, 'docs');
@@ -31,13 +32,38 @@ function findById(dir, id, out = []) {
   return out;
 }
 
-const matches = findById(DOCS, id.replace(/\.md$/, ''));
-if (matches.length !== 1) {
-  console.error(`Not found or ambiguous: ${id} (${matches.length} matches)`);
+// Allow direct relative-path argument (e.g. docs/cards/decisions/foo.md) so the
+// caller can bypass id-walk and still hit the rejection guards below.
+let target;
+const directPath = join(ROOT, id.endsWith('.md') ? id : `${id}.md`);
+if (existsSync(directPath)) {
+  target = directPath;
+} else {
+  const matches = findById(DOCS, id.replace(/\.md$/, ''));
+  if (matches.length !== 1) {
+    console.error(`Not found or ambiguous: ${id} (${matches.length} matches)`);
+    process.exit(1);
+  }
+  target = matches[0];
+}
+const rel = relative(ROOT, target);
+
+// Card rejection — path check (primary guard).
+if (rel.startsWith('docs/cards/')) {
+  console.error(
+    `${rel}: cards are append-only by definition. Supersede via a new card with \`supersedes: [<prior-id>]\` frontmatter. See docs/agent-context/doc-discipline.md §Cards.`,
+  );
   process.exit(1);
 }
-const target = matches[0];
-const rel = relative(ROOT, target);
+
+// Card rejection — frontmatter check (defense in depth for cards stored outside docs/cards/).
+const targetDoc = readDoc(target);
+if (targetDoc.frontmatter.tier === 'card') {
+  console.error(
+    `${rel}: cards are append-only by definition. Supersede via a new card with \`supersedes: [<prior-id>]\` frontmatter. See docs/agent-context/doc-discipline.md §Cards.`,
+  );
+  process.exit(1);
+}
 
 const isAdr =
   rel.startsWith('docs/07-decisions/') ||

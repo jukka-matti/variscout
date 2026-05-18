@@ -149,6 +149,8 @@ export const EDIT_TYPES = [
   'supersession',
   'archived',
   'new spec',
+  'card added',
+  'card superseded',
 ];
 
 // === Path classifier ===
