@@ -16,7 +16,7 @@
 // aggregate view, investigations.md, memory cards, or run any commits.
 //
 // Run:    node scripts/docs/decompose-decision-log.mjs
-// Output: docs/cards/decisions/dec-YYYYMMDD-<slug>.md  (~25-30 files)
+// Output: docs/cards/decisions/dec-YYYYMMDD-<slug>.md  (~68 files: 41 §1 + 13 §2 + 14 §3)
 // Idempotent: re-running produces identical output modulo `last-verified`.
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
@@ -181,7 +181,7 @@ function buildFrontmatter({ title, status, date, topics }) {
 
 function buildBody({ sectionNumber, title, content }) {
   return [
-    `> Decision card — extracted from \`docs/decision-log.md\` §${sectionNumber} on ${today}. Aggregate view: [\`decision-log.md\`](../../decision-log.md) (generated).`,
+    `> **Decision card** — extracted from \`docs/decision-log.md\` §${sectionNumber} on ${today}. Aggregate view: [\`decision-log.md\`](../../decision-log.md) (generated).`,
     '',
     `# ${title}`,
     '',
