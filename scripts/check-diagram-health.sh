@@ -227,6 +227,7 @@ if (( INCREMENTAL )); then
     file="$ROOT/$staged_path"
     [[ ! -f "$file" ]] && continue  # non-existent file — skip cleanly
     [[ "$staged_path" == *"/archive/"* ]] && continue
+    [[ "$staged_path" == *"/cards/"* ]] && continue
     [[ "$staged_path" == *"/node_modules/"* ]] && continue
 
     basename=$(basename "$file")
@@ -265,9 +266,14 @@ else
   ORPHAN_COUNT=0
   while IFS= read -r file; do
     basename=$(basename "$file")
-    # Skip index files, archive, and known standalone files
+    # Skip index files, archive, cards, and known standalone files.
+    # Cards (Phase 3 atomic substrate: docs/cards/{decisions,investigations,memory}/)
+    # are a queryable hash-map surface, not a tree-shaped navigation graph.
+    # They're discovered via `pnpm docs:find / docs:related` (frontmatter
+    # `related:` + body `[[wikilinks]]`), not by prose inbound refs.
     [[ "$basename" == "index.md" ]] && continue
     [[ "$file" == *"/archive/"* ]] && continue
+    [[ "$file" == *"/cards/"* ]] && continue
     [[ "$file" == *"/node_modules/"* ]] && continue
 
     # Get relative path from docs/
@@ -326,6 +332,7 @@ if (( INCREMENTAL )); then
     file="$ROOT/$staged_path"
     [[ ! -f "$file" ]] && continue  # non-existent — skip cleanly
     [[ "$staged_path" == *"/archive/"* ]] && continue
+    [[ "$staged_path" == *"/cards/"* ]] && continue
     [[ "$staged_path" == *"/node_modules/"* ]] && continue
 
     dir=$(dirname "$file")
@@ -349,6 +356,7 @@ if (( INCREMENTAL )); then
 else
   while IFS= read -r file; do
     [[ "$file" == *"/archive/"* ]] && continue
+    [[ "$file" == *"/cards/"* ]] && continue
     [[ "$file" == *"/node_modules/"* ]] && continue
     dir=$(dirname "$file")
 

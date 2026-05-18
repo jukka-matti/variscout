@@ -201,7 +201,10 @@ function buildCardContent({ cleanTitle, closureType, closureDate, surfacedByPr, 
     '',
   );
 
-  const banner = `> **Investigation card** — extracted from \`docs/investigations.md\` on ${today} (closed: ${closureType} ${closureDate}). Live queue: [\`ephemeral/investigations.md\`](../../ephemeral/investigations.md). Card index: [\`cards/investigations/\`](../investigations/).`;
+  // Banner includes "Archived" verbatim to satisfy ARCHIVED_BANNER_RE (Phase 2
+  // discipline: status=archived docs need a reader-first banner in first 15
+  // body lines per scripts/docs-frontmatter-schema.mjs#ARCHIVED_BANNER_RE).
+  const banner = `> **Archived investigation card** — closed ${closureDate} (${closureType}); extracted from \`docs/investigations.md\` on ${today}. Live queue: [\`ephemeral/investigations.md\`](../../ephemeral/investigations.md). Card index: [\`cards/investigations/\`](../investigations/).`;
 
   return [
     frontmatterLines.join('\n'),
@@ -250,8 +253,21 @@ function buildEphemeralContent(openEntries) {
     '',
   ].join('\n');
 
+  // Rewrite file-relative paths in entry bodies. Original entries lived in
+  // `docs/investigations.md` (at `docs/`), so paths like `superpowers/plans/X`
+  // resolved file-relative to `docs/superpowers/plans/X`. Now that entries
+  // move into `docs/ephemeral/investigations.md` (one level deeper), the same
+  // paths must prepend `../` to keep resolving. Affects markdown link URLs
+  // matching common docs/ top-level subdirs.
+  const SUBDIRS = ['01-vision', '02-journeys', '03-features', '04-cases', '05-technical', '06-design-system', '07-decisions', '08-products', '09-baseline', '09-tutorials', '10-development', 'agent-context', 'archive', 'cards', 'ephemeral', 'superpowers'];
+  const subdirAlt = SUBDIRS.join('|');
+  const pathRewriteRe = new RegExp(`\\]\\((${subdirAlt})\\/`, 'g');
+
   const entriesText = openEntries
-    .map((e) => `### ${e.rawTitle}\n\n${e.body.trimEnd()}\n`)
+    .map((e) => {
+      const rewritten = e.body.replace(pathRewriteRe, '](../$1/');
+      return `### ${e.rawTitle}\n\n${rewritten.trimEnd()}\n`;
+    })
     .join('\n---\n\n');
 
   return header + entriesText + '\n';

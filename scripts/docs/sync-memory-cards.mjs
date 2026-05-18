@@ -191,8 +191,19 @@ function buildCard(basename, frontmatter, body) {
 
   const banner = `> 🤖 **Generated mirror** of \`~/.claude/memory/${basename}\`. Edit there, not here. Card synced by \`scripts/docs/sync-memory-cards.mjs\`; re-run via \`pnpm docs:rebuild\` (Phase 3 A4).`;
 
-  // Ensure body has no leading newline (readDoc strips one, but be defensive).
-  const bodyContent = body.replace(/^\r?\n/, '');
+  // Body sanitization for the mirrored card:
+  // 1. Strip leading newline (readDoc usually strips this, defensive).
+  // 2. Strip backticks from inside markdown link URLs — user-memory atoms
+  //    written before Phase 3 used `[`text`](`url`)` with backticks INSIDE the
+  //    URL portion, which trips dead-link validators. Standard markdown puts
+  //    backticks only in the link TEXT, never the URL.
+  // Note: relative-path rewrites (e.g., `docs/foo` → `../../foo`) are NOT
+  // applied here. `docs/cards/**` is excluded from dead-link source-scan by
+  // `scripts/check-dead-links.sh` (cards are a queryable substrate, not a
+  // navigational surface).
+  const bodyContent = body
+    .replace(/^\r?\n/, '')
+    .replace(/\]\(`([^)`\s]+)`\)/g, ']($1)');
 
   // Build frontmatter lines, conditionally including origin-session-id.
   const fmLines = [
