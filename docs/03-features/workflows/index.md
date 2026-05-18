@@ -103,6 +103,14 @@ Search organizational knowledge from past analyses to accelerate current investi
 
 Prioritization matrix (impact vs timeframe), cost/risk assessment, and idea comparison for selecting the best improvements to convert into corrective actions (Azure only).
 
+### [Process Hub Creation](hub-creation.md)
+
+Stage 1 (HubGoalForm) → provisioning → Stage 3 (ColumnMapping) flow for binding a ProcessHub before the first investigation begins.
+
+### [Sustainment Phase](sustainment.md)
+
+Post-improvement monitoring within a Project — cadence reviews, holding/drifting/broken verdicts, control handoffs to MES / SCADA / QMS / work instruction surfaces.
+
 ## Time-Boxed Scenarios
 
 ### [Quick Check (5 Minutes)](quick-check.md)

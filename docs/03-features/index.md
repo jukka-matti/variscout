@@ -104,11 +104,25 @@ How users explore and filter data:
 
 Data handling and storage:
 
-| Feature                          | Description             |
-| -------------------------------- | ----------------------- |
-| [Data Input](data/data-input.md) | File upload and parsing |
-| [Validation](data/validation.md) | Data quality checks     |
-| [Storage](data/storage.md)       | IndexedDB persistence   |
+| Feature                                      | Description                                   |
+| -------------------------------------------- | --------------------------------------------- |
+| [Data Input](data/data-input.md)             | File upload and parsing                       |
+| [Validation](data/validation.md)             | Data quality checks                           |
+| [Storage](data/storage.md)                   | IndexedDB persistence                         |
+| [Cloud Sync](data/cloud-sync.md)             | Azure Blob persistence + team-tier sync       |
+| [ETag Concurrency](data/etag-concurrency.md) | Optimistic concurrency control for hub writes |
+| [Access Control](data/acl.md)                | Per-project Lead/Member/Sponsor ACLs          |
+
+---
+
+## Architecture Layers
+
+Cross-cutting infrastructure capabilities:
+
+| Layer                                 | Description                                             |
+| ------------------------------------- | ------------------------------------------------------- |
+| [Stores Overview](stores-overview.md) | 7 Zustand stores across 3 layers per ADR-078 + F4       |
+| [Hooks Overview](hooks-overview.md)   | `@variscout/hooks` — shared React hooks bridging layers |
 
 ---
 
