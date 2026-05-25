@@ -56,7 +56,8 @@ describe('HomeScreen — PendingInvitesBanner integration', () => {
   });
 
   it('renders the banner when pending invites exist', () => {
-    useProjectMembershipStore.setState({ pendingInvites: [inviteA] });
+    // PWA uses 'analyst@local' as the stable per-user membership key (see HomeScreen.tsx).
+    useProjectMembershipStore.setState({ invitesByUser: { 'analyst@local': [inviteA] } });
     render(<HomeScreen {...defaultProps} />);
     expect(screen.getByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });

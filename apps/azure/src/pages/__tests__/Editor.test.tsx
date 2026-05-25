@@ -555,7 +555,9 @@ describe('Editor', () => {
   });
 
   it('renders the invitations banner when pending invites exist', () => {
-    useProjectMembershipStore.setState({ pendingInvites: [inviteA] });
+    // Editor reads currentUser.email as the membership user id (see Editor.tsx).
+    // getCurrentUser is mocked to resolve 'test@test.com' at file top.
+    useProjectMembershipStore.setState({ invitesByUser: { 'test@test.com': [inviteA] } });
     renderEditor();
     expect(screen.getByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });

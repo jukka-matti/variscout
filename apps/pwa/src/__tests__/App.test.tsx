@@ -141,7 +141,8 @@ describe('PendingInvitesBanner — mounted in App.tsx Home view (active-IP launc
     // Put the app on the Home view so panels.activeView === 'home' triggers.
     usePanelsStore.setState({ ...initialPanelsState, activeView: 'home' });
     // Seed one pending invitation so the banner renders (non-null).
-    useProjectMembershipStore.setState({ pendingInvites: [testInvite] });
+    // PWA uses 'analyst@local' as the stable per-user membership key (see App.tsx).
+    useProjectMembershipStore.setState({ invitesByUser: { 'analyst@local': [testInvite] } });
   });
 
   afterEach(() => {
