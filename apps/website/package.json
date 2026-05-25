@@ -10,22 +10,22 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/react": "^5.0.4",
+    "@astrojs/react": "^5.0.5",
     "@astrojs/sitemap": "^3.7.2",
-    "@tailwindcss/vite": "^4.2.4",
+    "@tailwindcss/vite": "^4.3.0",
     "@variscout/charts": "workspace:*",
     "@variscout/core": "workspace:*",
     "@variscout/data": "workspace:*",
     "@variscout/ui": "workspace:*",
-    "astro": "^6.1.10",
+    "astro": "^6.3.7",
     "lucide-astro": "^0.556.0",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "tailwindcss": "^4.2.4"
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
-    "@types/react": "^19.2.14",
+    "@types/react": "^19.2.15",
     "@types/react-dom": "^19.0.3"
   }
 }

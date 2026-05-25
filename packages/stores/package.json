@@ -12,9 +12,9 @@
   "dependencies": {
     "@variscout/core": "workspace:*",
     "dexie": "^4.4.2",
-    "idb-keyval": "^6.2.1",
-    "immer": "^11.1.4",
-    "zustand": "^5.0.0"
+    "idb-keyval": "^6.2.4",
+    "immer": "^11.1.8",
+    "zustand": "^5.0.13"
   },
   "devDependencies": {
     "fake-indexeddb": "^6.2.5",
