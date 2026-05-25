@@ -35,8 +35,11 @@ describe('activeIPPresentation', () => {
     expect(getIPStageLabel(makeIP({ status: 'draft' }))).toBe('Charter');
   });
 
-  it('labels active projects by section readiness', () => {
+  it('labels active projects with no approach work as Approach', () => {
     expect(getIPStageLabel(makeIP())).toBe('Approach');
+  });
+
+  it('labels active projects with approach work as Sustainment', () => {
     expect(
       getIPStageLabel(
         makeIP({
@@ -44,11 +47,45 @@ describe('activeIPPresentation', () => {
             background: {},
             investigationLineage: {},
             approach: { actionItemIds: ['a-1'] },
+            outcomeReference: {},
+          },
+        })
+      )
+    ).toBe('Sustainment');
+  });
+
+  it('labels closed projects as Sustainment (not Handoff)', () => {
+    expect(getIPStageLabel(makeIP({ status: 'closed' }))).toBe('Sustainment');
+  });
+
+  it('labels projects with sustainmentRecordId as Sustainment', () => {
+    expect(
+      getIPStageLabel(
+        makeIP({
+          sections: {
+            background: {},
+            investigationLineage: {},
+            approach: {},
             outcomeReference: { sustainmentRecordId: 'sr-1' },
           },
         })
       )
-    ).toBe('Handoff');
+    ).toBe('Sustainment');
+  });
+
+  it('labels projects with controlHandoffId as Sustainment', () => {
+    expect(
+      getIPStageLabel(
+        makeIP({
+          sections: {
+            background: {},
+            investigationLineage: {},
+            approach: {},
+            outcomeReference: { controlHandoffId: 'ch-1' },
+          },
+        })
+      )
+    ).toBe('Sustainment');
   });
 
   it('derives urgent lines with deterministic fallbacks', () => {
@@ -66,6 +103,11 @@ describe('activeIPPresentation', () => {
         })
       )
     ).toBe('Cadence tick due after sustainment setup');
+  });
+
+  it('gives a meaningful urgent line for closed projects referencing handoff/control plan', () => {
+    const urgentLine = getIPUrgentLine(makeIP({ status: 'closed' }));
+    expect(urgentLine.toLowerCase()).toMatch(/control plan|handoff/);
   });
 
   it('builds recent activity fallback rows when no feed exists', () => {

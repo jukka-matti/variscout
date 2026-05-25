@@ -2,7 +2,7 @@ import type { ImprovementProject } from '@variscout/core/improvementProject';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export type ActiveIPStageLabel = 'Charter' | 'Approach' | 'Sustainment' | 'Handoff';
+export type ActiveIPStageLabel = 'Charter' | 'Approach' | 'Sustainment';
 
 export interface ActiveIPPresentation {
   id: ImprovementProject['id'];
@@ -24,7 +24,7 @@ export function getIPStageLabel(ip: ImprovementProject): ActiveIPStageLabel {
   const hasOutcomeReference =
     Boolean(ip.sections.outcomeReference.sustainmentRecordId) ||
     Boolean(ip.sections.outcomeReference.controlHandoffId);
-  if (ip.status === 'closed' || hasOutcomeReference) return 'Handoff';
+  if (ip.status === 'closed' || hasOutcomeReference) return 'Sustainment';
 
   const hasApproachWork =
     Boolean(ip.sections.approach.narrative?.trim()) ||
@@ -44,8 +44,9 @@ export function getIPUrgentLine(ip: ImprovementProject): string {
   }
 
   if (stage === 'Approach') return 'Pat awaiting your Approach signoff';
-  if (stage === 'Sustainment') return 'Cadence tick due after sustainment setup';
-  return "Control plan pending Pat's acknowledgment";
+  // Sustainment: two sub-reasons — closed/handoff-pending vs ongoing sustainment cadence
+  if (ip.status === 'closed') return "Control plan pending Pat's acknowledgment";
+  return 'Cadence tick due after sustainment setup';
 }
 
 function formatRelativeUpdatedAt(ip: ImprovementProject, now: number): string {
