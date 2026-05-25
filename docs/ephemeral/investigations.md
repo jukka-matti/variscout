@@ -25,6 +25,29 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 ---
 
 ## Active investigations
+
+### `@variscout/ui` vitest full-suite hang (pr-ready-check blocker)
+
+**Surfaced by:** Lane B Phase 1 controller verification (PR #203), 2026-05-19.
+
+**Description:** `bash scripts/pr-ready-check.sh` hangs indefinitely on its first step (`pnpm test` via turbo). Sampling the worker via macOS `sample(1)`:
+
+- Under turbo: V8 hot in `Object.defineProperty` / `OrdinaryDefineOwnProperty` flood — vitest mock/spy installation loop. STAT=`R`, CPU=101%, observed 57+ minutes.
+- Without turbo (direct `pnpm --filter @variscout/ui test -- --run`): different signature — V8 hot in `MicrotaskQueue::RunMicrotasks` → `PromiseFulfillReactionJob` → `AsyncFunctionAwaitResolveClosure` → deep `InterpreterEntryTrampoline` recursion. Promise reaction loop. Same STAT=`R`, CPU=102%, observed 3+ minutes before kill.
+
+Other packages are clean: `@variscout/core` (3397 pass, 18s), `@variscout/hooks` (1203 pass, 87s), `@variscout/stores` (281 pass, 5s), `@variscout/charts` (170 pass, 30s). The implementer's targeted `pnpm --filter @variscout/ui test -- --run SystemLevelView` ran the affected Phase-1 file cleanly in **1.91s** on the same tree, ruling out the Pp/Ppk deletion as causal. The hang is in _some other_ ui test file the targeted filter doesn't load.
+
+**Possible directions:**
+
+- **Bisect by directory** to identify the offending test file: run `pnpm --filter @variscout/ui test -- --run --exclude '**/<dir>/**'` iteratively (or split-half by test path). Likely candidates: components that use `setInterval`/`setTimeout` heavily, async Zustand selectors, or React 19 strict-mode double-render loops with effect-driven setState.
+- **Vitest pool profiling** (already deferred — see Tier 3 entry below). The two distinct hang signatures (defineProperty vs microtask) under different runners suggest the underlying suite has multiple flakes, not one root cause.
+- **Compare against `main`** (= `b46041dd` after PR #203 merge): if `main` hangs the same way without Phase 1 changes, it's confirmed pre-existing. Cheap diagnostic — run from a fresh `git worktree add .worktrees/main-suite-check main` and try `pnpm --filter @variscout/ui test -- --run`.
+- **Workaround for controllers** (logged as `feedback_pr_ready_check_vitest_hang`): skip `pr-ready-check.sh` for tightly-scoped refactors; use per-package vitest + `check-level-boundaries.sh` + `docs:check` + targeted `pnpm --filter @variscout/ui build` (for cross-package type-export checks) as the equivalent verification.
+
+**Promotion path:** Bisect → identify the offending test(s) → either fix them or quarantine via `.skip` with a tracked TODO. When fixed, this entry closes with `[RESOLVED YYYY-MM-DD]` and `pr-ready-check.sh` becomes reliable again. If quarantining, file a separate investigation for the underlying flake.
+
+---
+
 ### Testing strategy — Tier 2 + Tier 3 deferred work
 
 **Surfaced by:** Wedge V1 post-launch testing audit, 2026-05-17 (PR #197 + PR #198 + plan in `~/.claude/plans/`).
@@ -479,4 +502,3 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 **Promotion path:** small follow-up PR. About 2 tasks: helper + UI swap.
 
 **Resolution [2026-05-08]:** `computeHistogramBins(values, rule?)` helper added in `@variscout/core/stats` (Sturges default, Scott option). `CanvasStepMiniChart` histogram branch now renders one bar per bin with bin counts as heights, replacing the first-12-raw-values normalization. Empty bins floor at 8% height so the bin axis stays legible — this replaces the prior 15% floor (which was tuned for 12 raw-value pseudo-bars; 8% reads more honestly when bin counts can legitimately be zero).
-
