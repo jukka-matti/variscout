@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { IPContextChip } from '../IPContextChip';
-import { normalizeColor } from '../../../../../../test/utils';
+import { normalizeColor } from '../../../test-utils/color';
 
 describe('IPContextChip', () => {
   it('renders the exact working-in-IP text with separate title and exit controls', () => {

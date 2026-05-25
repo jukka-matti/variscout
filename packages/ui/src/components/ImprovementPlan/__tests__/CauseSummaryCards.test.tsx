@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CauseSummaryCards } from '../CauseSummaryCards';
 import type { CauseSummaryCardData, CauseSummaryCardsProps } from '../CauseSummaryCards';
-import { normalizeColor } from '../../../../../../test/utils';
+import { normalizeColor } from '../../../test-utils/color';
 
 const makeCause = (overrides: Partial<CauseSummaryCardData> = {}): CauseSummaryCardData => ({
   id: 'cause-1',
