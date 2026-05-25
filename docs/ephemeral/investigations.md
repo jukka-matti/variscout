@@ -26,6 +26,36 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Docs site sidebar drift: 5 dead refs + 5 unlisted personas
+
+**Surfaced by:** PR #207 fixing the `pnpm build` failure on `@variscout/docs`, 2026-05-25.
+
+**Description:** Build was failing because `apps/docs/astro.config.mjs` referenced 5 slugs with no corresponding content file. Starlight resolves `slug: 'foo/bar'` to either `foo/bar.md` OR `foo/bar/index.md` — initial audit missed the directory-index resolution and over-counted to 25 dead refs; an Opus reviewer caught the false positives during PR #207 review (reverted 19 incorrect removals — those slugs all point to existing `index.md` files like `04-cases/avocado/index.md`).
+
+**The 5 actually-dead slugs**, all removed in PR #207:
+
+| Slug                                          | Most likely cause                                                                     |
+| --------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `02-journeys/personas/green-belt-gary`        | wedge V1 persona retirement                                                           |
+| `02-journeys/personas/curious-carlos`         | wedge V1 persona retirement                                                           |
+| `02-journeys/personas/student-sara`           | wedge V1 persona retirement                                                           |
+| `08-products/azure/pricing-tiers`             | superseded by tier-gating retirement (per memory `feedback_tier_gate_inside_surface`) |
+| `07-decisions/adr-033-pricing-simplification` | ADR moved to archive or never landed                                                  |
+
+**Secondary drift (other direction)**: 5 files in `02-journeys/personas/` are not in the sidebar — `analyst-alex.md`, `engineer-eeva.md`, `lead.md`, `member.md`, `sponsor.md`. The last three are the wedge V1 project roles (Lead / Member / Sponsor per `docs/superpowers/specs/2026-05-16-wedge-architecture-design.md` §4); the other two appear to be unsurfaced marketing personas.
+
+**Possible directions for the secondary drift:**
+
+- **Surface the wedge V1 project roles** under a new "Project Roles" sidebar group, separate from "Personas" (which would stay GTM-only).
+- **Surface analyst-alex + engineer-eeva** under Personas if current; archive otherwise.
+- **Audit all 5 with marketing/product** — likely the right answer.
+
+**Promotion path:** Decision required from marketing/product on the secondary-drift personas. Promote to `docs/decision-log.md` when locked. Not blocking — site builds today.
+
+**Process lesson** (for the originating PR's controller): when auditing a docs-tool sidebar, model the tool's slug-resolution rules accurately before flagging entries as dead. Starlight's directory-index rule was the trap here.
+
+---
+
 ### `@variscout/ui` vitest full-suite hang (pr-ready-check blocker) [RESOLVED 2026-05-25]
 
 **Surfaced by:** Lane B Phase 1 controller verification (PR #203), 2026-05-19.
