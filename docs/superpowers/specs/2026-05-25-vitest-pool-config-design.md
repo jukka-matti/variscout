@@ -9,6 +9,7 @@ last-reviewed: 2026-05-25
 implements:
   - docs/05-technical/implementation/testing.md
 related:
+  - docs/superpowers/plans/2026-05-25-vitest-pool-config-tuning.md
   - docs/ephemeral/investigations.md
   - packages/hooks/CLAUDE.md
   - test/setup.ts
