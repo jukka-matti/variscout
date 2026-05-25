@@ -26,11 +26,13 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
-### `@variscout/ui` vitest full-suite hang (pr-ready-check blocker) [QUARANTINED 2026-05-25]
+### `@variscout/ui` vitest full-suite hang (pr-ready-check blocker) [RESOLVED 2026-05-25]
 
 **Surfaced by:** Lane B Phase 1 controller verification (PR #203), 2026-05-19.
 
-**STATUS 2026-05-25 — QUARANTINED:** Bisect narrowed the hang to a single file: `packages/ui/src/components/Canvas/__tests__/Canvas.test.tsx` (50 tests). Verbose reporter (`--reporter=verbose`) shows WallCanvas.test.tsx (the alphabetically adjacent file vitest sequences before it via positional `Canvas.test` substring match) completing all 36 tests, then total silence — no test inside Canvas.test.tsx ever reports starting. This points to a **module-init / mock-resolution deadlock** rather than a single failing test (consistent with the original microtask-recursion signature). Quarantined via `describe.skip` with `TODO(inv-vitest-hang)` link back to this entry. `pnpm --filter @variscout/ui test -- --run` now completes in 116.93s (222 passed, 1 file skipped, 51 tests skipped); `scripts/pr-ready-check.sh` reliable again.
+**STATUS 2026-05-25 — RESOLVED:** Wholesale-rewrote `Canvas.test.tsx` (1500 lines → ~575 lines) on branch `fix/canvas-test-quarantine-vitest-hang`. **Actual root cause:** the legacy file imported the real `@variscout/hooks` package — its transitive graph (`useCanvasViewportInput`, `useCanvasHypothesisDrawing`, `useCanvasKeyboard`, `useChipDragAndDrop`, …) deadlocked vitest's mock-resolution during module init. The fresh file mirrors `CanvasWorkspace.test.tsx`'s full `vi.mock('@variscout/hooks', ...)` factory (~365 lines, the proven non-hang pattern), keeps the 4 component mocks (`@variscout/charts` via `importOriginal`, `../../InvestigationWall` synthetic, `@dnd-kit/core` synthetic, `../internal/LocalMechanismView` synthetic), and covers Canvas-direct concerns only: smoke render, L2 step cards, step-click → 3 wedge-V1 response-path CTAs render, Charter callback fires with stepId, Charter hides when handler absent (per `responsePathCta.ts` "hide, don't tease" rule), mobile Wall-shortcut visibility. Deeper response-path coverage stays in `internal/__tests__/CanvasStepOverlay.test.tsx` (unit) and `CanvasWorkspace.test.tsx:1093` (workspace integration). Earlier `importOriginal`-only hypothesis (from an Explore subagent on the same date) was insufficient — verified hung at 240s after that change; the `@variscout/hooks` mock was the missing piece.
+
+**Verification:** isolated file 6/6 passing in 3.19s; full `@variscout/ui` suite 223 files / 2140 tests in 86.59s (down from 117s baseline with quarantine); `scripts/pr-ready-check.sh` green end-to-end.
 
 **Bisect log (2026-05-25, controller: Opus):**
 
@@ -47,7 +49,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 Root-cause diagnosis deferred — likely candidates per stack signature: a `vi.mock` factory with `await import('react')` interacting with the heavy transitive import graph of `Canvas/index.tsx` (which pulls @variscout/charts + InvestigationWall + LocalMechanismView + the store family). 50 tests of Canvas integration coverage are dark until this is fixed.
 
-**Promotion path:** When fixed, remove `describe.skip` in `Canvas.test.tsx` and close this entry with `[RESOLVED YYYY-MM-DD]`. If unfixed for >2 weeks, promote to a focused dev-tooling brainstorm (per `feedback_pr_ready_check_vitest_hang`).
+**Promotion path:** CLOSED 2026-05-25 — entry retained as historical record; promotion path no longer applicable. If a _new_ heavy-mock test file is added with similar import shape (real `@variscout/hooks` + Canvas-like component graph) and starts hanging, the bisect playbook in `feedback_pr_ready_check_vitest_hang` still applies — but the structural lesson (mirror `CanvasWorkspace.test.tsx`'s hooks-mock pattern from the start) is now the durable answer.
 
 **Description:** `bash scripts/pr-ready-check.sh` hangs indefinitely on its first step (`pnpm test` via turbo). Sampling the worker via macOS `sample(1)`:
 
