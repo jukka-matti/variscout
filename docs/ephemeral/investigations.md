@@ -26,25 +26,37 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
-### `@variscout/ui` vitest full-suite hang (pr-ready-check blocker)
+### `@variscout/ui` vitest full-suite hang (pr-ready-check blocker) [RESOLVED 2026-05-25]
 
 **Surfaced by:** Lane B Phase 1 controller verification (PR #203), 2026-05-19.
+
+**STATUS 2026-05-25 — RESOLVED:** Wholesale-rewrote `Canvas.test.tsx` (1500 lines → ~575 lines) on branch `fix/canvas-test-quarantine-vitest-hang`. **Actual root cause:** the legacy file imported the real `@variscout/hooks` package — its transitive graph (`useCanvasViewportInput`, `useCanvasHypothesisDrawing`, `useCanvasKeyboard`, `useChipDragAndDrop`, …) deadlocked vitest's mock-resolution during module init. The fresh file mirrors `CanvasWorkspace.test.tsx`'s full `vi.mock('@variscout/hooks', ...)` factory (~365 lines, the proven non-hang pattern), keeps the 4 component mocks (`@variscout/charts` via `importOriginal`, `../../InvestigationWall` synthetic, `@dnd-kit/core` synthetic, `../internal/LocalMechanismView` synthetic), and covers Canvas-direct concerns only: smoke render, L2 step cards, step-click → 3 wedge-V1 response-path CTAs render, Charter callback fires with stepId, Charter hides when handler absent (per `responsePathCta.ts` "hide, don't tease" rule), mobile Wall-shortcut visibility. Deeper response-path coverage stays in `internal/__tests__/CanvasStepOverlay.test.tsx` (unit) and `CanvasWorkspace.test.tsx:1093` (workspace integration). Earlier `importOriginal`-only hypothesis (from an Explore subagent on the same date) was insufficient — verified hung at 240s after that change; the `@variscout/hooks` mock was the missing piece.
+
+**Verification:** isolated file 6/6 passing in 3.19s; full `@variscout/ui` suite 223 files / 2140 tests in 86.59s (down from 117s baseline with quarantine); `scripts/pr-ready-check.sh` green end-to-end.
+
+**Bisect log (2026-05-25, controller: Opus):**
+
+| Iter | Filter                                                                     | Files        | Result          | Outcome                |
+| ---- | -------------------------------------------------------------------------- | ------------ | --------------- | ---------------------- |
+| 0    | Sanity: `SystemLevelView`                                                  | 1            | passes 2.96s    | tooling OK             |
+| 1    | `InvestigationWall ReportView ImprovementPlan IPDetail ImprovementProject` | 84           | passes 17.90s   | offender NOT in these  |
+| 2    | `Canvas`                                                                   | ~28          | hangs (SIGKILL) | offender in Canvas fam |
+| 3    | `Canvas/internal`                                                          | 22           | passes 8.93s    | offender NOT in here   |
+| 4    | `Canvas/__tests__`                                                         | 3            | hangs (SIGKILL) | narrowed to 3 files    |
+| 5a   | `Canvas.test`                                                              | 1+wallcanvas | hangs           | **offender**           |
+| 5b   | `CanvasProcessMap`                                                         | 1            | passes 4.69s    | not it                 |
+| 5c   | `CanvasWorkspace`                                                          | 1            | passes 6.16s    | not it                 |
+
+Root-cause diagnosis deferred — likely candidates per stack signature: a `vi.mock` factory with `await import('react')` interacting with the heavy transitive import graph of `Canvas/index.tsx` (which pulls @variscout/charts + InvestigationWall + LocalMechanismView + the store family). 50 tests of Canvas integration coverage are dark until this is fixed.
+
+**Promotion path:** CLOSED 2026-05-25 — entry retained as historical record; promotion path no longer applicable. If a _new_ heavy-mock test file is added with similar import shape (real `@variscout/hooks` + Canvas-like component graph) and starts hanging, the bisect playbook in `feedback_pr_ready_check_vitest_hang` still applies — but the structural lesson (mirror `CanvasWorkspace.test.tsx`'s hooks-mock pattern from the start) is now the durable answer.
 
 **Description:** `bash scripts/pr-ready-check.sh` hangs indefinitely on its first step (`pnpm test` via turbo). Sampling the worker via macOS `sample(1)`:
 
 - Under turbo: V8 hot in `Object.defineProperty` / `OrdinaryDefineOwnProperty` flood — vitest mock/spy installation loop. STAT=`R`, CPU=101%, observed 57+ minutes.
 - Without turbo (direct `pnpm --filter @variscout/ui test -- --run`): different signature — V8 hot in `MicrotaskQueue::RunMicrotasks` → `PromiseFulfillReactionJob` → `AsyncFunctionAwaitResolveClosure` → deep `InterpreterEntryTrampoline` recursion. Promise reaction loop. Same STAT=`R`, CPU=102%, observed 3+ minutes before kill.
 
-Other packages are clean: `@variscout/core` (3397 pass, 18s), `@variscout/hooks` (1203 pass, 87s), `@variscout/stores` (281 pass, 5s), `@variscout/charts` (170 pass, 30s). The implementer's targeted `pnpm --filter @variscout/ui test -- --run SystemLevelView` ran the affected Phase-1 file cleanly in **1.91s** on the same tree, ruling out the Pp/Ppk deletion as causal. The hang is in _some other_ ui test file the targeted filter doesn't load.
-
-**Possible directions:**
-
-- **Bisect by directory** to identify the offending test file: run `pnpm --filter @variscout/ui test -- --run --exclude '**/<dir>/**'` iteratively (or split-half by test path). Likely candidates: components that use `setInterval`/`setTimeout` heavily, async Zustand selectors, or React 19 strict-mode double-render loops with effect-driven setState.
-- **Vitest pool profiling** (already deferred — see Tier 3 entry below). The two distinct hang signatures (defineProperty vs microtask) under different runners suggest the underlying suite has multiple flakes, not one root cause.
-- **Compare against `main`** (= `b46041dd` after PR #203 merge): if `main` hangs the same way without Phase 1 changes, it's confirmed pre-existing. Cheap diagnostic — run from a fresh `git worktree add .worktrees/main-suite-check main` and try `pnpm --filter @variscout/ui test -- --run`.
-- **Workaround for controllers** (logged as `feedback_pr_ready_check_vitest_hang`): skip `pr-ready-check.sh` for tightly-scoped refactors; use per-package vitest + `check-level-boundaries.sh` + `docs:check` + targeted `pnpm --filter @variscout/ui build` (for cross-package type-export checks) as the equivalent verification.
-
-**Promotion path:** Bisect → identify the offending test(s) → either fix them or quarantine via `.skip` with a tracked TODO. When fixed, this entry closes with `[RESOLVED YYYY-MM-DD]` and `pr-ready-check.sh` becomes reliable again. If quarantining, file a separate investigation for the underlying flake.
+Other packages are clean: `@variscout/core` (3397 pass, 18s), `@variscout/hooks` (1203 pass, 87s), `@variscout/stores` (281 pass, 5s), `@variscout/charts` (170 pass, 30s). The implementer's targeted `pnpm --filter @variscout/ui test -- --run SystemLevelView` ran the affected Phase-1 file cleanly in **1.91s** on the same tree, ruling out the Pp/Ppk deletion as causal. The hang is in _some other_ ui test file the targeted filter doesn't load. _(2026-05-25: bisect confirmed offender = `Canvas/__tests__/Canvas.test.tsx` — see STATUS block above.)_
 
 ---
 

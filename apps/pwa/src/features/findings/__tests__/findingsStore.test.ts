@@ -3,8 +3,9 @@ import { useFindingsStore, groupFindingsByChart } from '../findingsStore';
 import type { Finding } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
 
+let findingIdCounter = 0;
 const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
-  id: `f-${Math.random()}`,
+  id: `f-${++findingIdCounter}`,
   text: 'test finding',
   createdAt: 1714000000000,
   deletedAt: null,
