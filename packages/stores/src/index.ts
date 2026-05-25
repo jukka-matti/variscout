@@ -103,6 +103,7 @@ export type { DocumentSnapshot } from './documentSnapshot';
 export {
   useProjectMembershipStore,
   getProjectMembershipInitialState,
+  projectMembershipStorageKey,
   STORE_LAYER as PROJECT_MEMBERSHIP_STORE_LAYER,
 } from './useProjectMembershipStore';
 export type {

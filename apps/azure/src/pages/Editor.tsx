@@ -382,10 +382,14 @@ export const Editor: React.FC<EditorProps> = ({
   const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
   const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
 
-  // Project membership store (annotation-per-user — pending invitations)
-  const pendingInvites = useProjectMembershipStore(s => s.pendingInvites);
-  const acceptInvite = useProjectMembershipStore(s => s.acceptInvite);
-  const revokeInvite = useProjectMembershipStore(s => s.revokeInvite);
+  // Project membership store (annotation-per-user — per-user localStorage key).
+  // currentUser loads async; fall back to '' until resolved (getPendingInvites returns []).
+  const membershipUserId = currentUser?.email ?? '';
+  const pendingInvites = useProjectMembershipStore(s => s.getPendingInvites(membershipUserId));
+  const membershipAcceptInvite = useProjectMembershipStore(s => s.acceptInvite);
+  const membershipRevokeInvite = useProjectMembershipStore(s => s.revokeInvite);
+  const acceptInvite = (id: string) => membershipAcceptInvite(membershipUserId, id);
+  const revokeInvite = (id: string) => membershipRevokeInvite(membershipUserId, id);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();

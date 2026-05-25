@@ -1,79 +1,181 @@
 /**
  * useProjectMembershipStore — pending invitation queue for project membership.
  *
- * Layer: Annotation (per-user axis). Persists to localStorage via Zustand
- * `persist` middleware under the 'variscout:projectMembership' key.
+ * Layer: Annotation (per-user axis). Persists to localStorage under the key
+ * `variscout:projectMembership:{userId}` — one partition per authenticated user,
+ * matching the pattern used by useActiveIPStore (see activeIPStore.ts).
  *
  * Consumer pattern (selectors required — never bare useStore()):
- *   const pendingInvites = useProjectMembershipStore(s => s.pendingInvites);
+ *   const invites = useProjectMembershipStore(s => s.getPendingInvites(userId));
  *
  * See packages/stores/CLAUDE.md for layer boundary rules.
  */
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { Invitation } from '@variscout/core/projectMembership';
 import { reduceProjectMembers, type MembershipAction } from '@variscout/core/projectMembership';
 import { useImprovementProjectStore } from './improvementProjectStore';
 
 export const STORE_LAYER = 'annotation-per-user' as const;
 
+/** In-memory state: per-user arrays keyed by the encoded localStorage key. */
 export interface ProjectMembershipState {
-  pendingInvites: Invitation[];
+  invitesByUser: Record<string, Invitation[]>;
 }
 
 export interface ProjectMembershipActions {
-  addPendingInvite: (inv: Invitation) => void;
-  acceptInvite: (id: string) => void;
-  revokeInvite: (id: string) => void;
+  getPendingInvites: (userId: string) => Invitation[];
+  addPendingInvite: (userId: string, inv: Invitation) => void;
+  acceptInvite: (userId: string, id: string) => void;
+  revokeInvite: (userId: string, id: string) => void;
+  rehydrateInvites: (userId: string) => void;
 }
 
 export type ProjectMembershipStore = ProjectMembershipState & ProjectMembershipActions;
 
 export function getProjectMembershipInitialState(): ProjectMembershipState {
-  return { pendingInvites: [] };
+  return { invitesByUser: {} };
 }
 
-export const useProjectMembershipStore = create<ProjectMembershipStore>()(
-  persist(
-    set => ({
-      ...getProjectMembershipInitialState(),
+/** Builds the per-user localStorage key. Components/services supply the userId. */
+export function projectMembershipStorageKey(userId: string): string {
+  return `variscout:projectMembership:${encodeURIComponent(userId)}`;
+}
 
-      addPendingInvite: inv => set(s => ({ pendingInvites: [...s.pendingInvites, inv] })),
+// ---------------------------------------------------------------------------
+// Storage helpers — mirrors activeIPStore.ts defensive pattern.
+// ---------------------------------------------------------------------------
 
-      acceptInvite: id =>
-        set(s => {
-          const invitation = s.pendingInvites.find(i => i.id === id);
-          if (!invitation) return s;
+function getLocalStorage(): Storage | null {
+  try {
+    return typeof globalThis.localStorage === 'undefined' ? null : globalThis.localStorage;
+  } catch {
+    return null;
+  }
+}
 
-          // Find the target project across all hub buckets
-          const allProjects = Object.values(
-            useImprovementProjectStore.getState().projectsByHub
-          ).flat();
-          const target = allProjects.find(p => p.id === invitation.projectId);
+function readStorageItem(key: string): string | null {
+  const storage = getLocalStorage();
+  if (!storage) return null;
+  try {
+    return storage.getItem(key);
+  } catch {
+    return null;
+  }
+}
 
-          if (target) {
-            const action: MembershipAction = {
-              kind: 'INVITATION_ACCEPT',
-              projectId: invitation.projectId,
-              invitation,
-              acceptedAt: Date.now(),
-            };
-            const currentMembers = target.metadata.members ?? [];
-            const nextMembers = reduceProjectMembers(currentMembers, action);
-            useImprovementProjectStore.getState().upsertProject({
-              ...target,
-              metadata: { ...target.metadata, members: nextMembers },
-            });
-          }
+function writeStorageItem(key: string, invites: Invitation[]): void {
+  const storage = getLocalStorage();
+  if (!storage) return;
+  try {
+    storage.setItem(key, JSON.stringify(invites));
+  } catch {
+    // In-memory state still represents the user's current view for this tab.
+  }
+}
 
-          return { pendingInvites: s.pendingInvites.filter(i => i.id !== id) };
-        }),
+function removeStorageItem(key: string): void {
+  const storage = getLocalStorage();
+  if (!storage) return;
+  try {
+    storage.removeItem(key);
+  } catch {
+    // Best effort only.
+  }
+}
 
-      revokeInvite: id => set(s => ({ pendingInvites: s.pendingInvites.filter(i => i.id !== id) })),
-    }),
-    { name: 'variscout:projectMembership' }
-  )
-);
+function isInvitationArray(value: unknown): value is Invitation[] {
+  return Array.isArray(value);
+}
+
+// ---------------------------------------------------------------------------
+// Store
+// ---------------------------------------------------------------------------
+
+export const useProjectMembershipStore = create<ProjectMembershipStore>()((set, get) => ({
+  ...getProjectMembershipInitialState(),
+
+  getPendingInvites: userId => {
+    const key = projectMembershipStorageKey(userId);
+    return get().invitesByUser[key] ?? [];
+  },
+
+  addPendingInvite: (userId, inv) => {
+    const key = projectMembershipStorageKey(userId);
+    const current = get().invitesByUser[key] ?? [];
+    const next = [...current, inv];
+    writeStorageItem(key, next);
+    set(state => ({ invitesByUser: { ...state.invitesByUser, [key]: next } }));
+  },
+
+  acceptInvite: (userId, id) => {
+    const key = projectMembershipStorageKey(userId);
+    const current = get().invitesByUser[key] ?? [];
+    const invitation = current.find(i => i.id === id);
+    if (!invitation) return;
+
+    // Find the target project across all hub buckets
+    const allProjects = Object.values(useImprovementProjectStore.getState().projectsByHub).flat();
+    const target = allProjects.find(p => p.id === invitation.projectId);
+
+    if (target) {
+      const action: MembershipAction = {
+        kind: 'INVITATION_ACCEPT',
+        projectId: invitation.projectId,
+        invitation,
+        acceptedAt: Date.now(),
+      };
+      const currentMembers = target.metadata.members ?? [];
+      const nextMembers = reduceProjectMembers(currentMembers, action);
+      useImprovementProjectStore.getState().upsertProject({
+        ...target,
+        metadata: { ...target.metadata, members: nextMembers },
+      });
+    }
+
+    const next = current.filter(i => i.id !== id);
+    writeStorageItem(key, next);
+    set(state => ({ invitesByUser: { ...state.invitesByUser, [key]: next } }));
+  },
+
+  revokeInvite: (userId, id) => {
+    const key = projectMembershipStorageKey(userId);
+    const current = get().invitesByUser[key] ?? [];
+    const next = current.filter(i => i.id !== id);
+    writeStorageItem(key, next);
+    set(state => ({ invitesByUser: { ...state.invitesByUser, [key]: next } }));
+  },
+
+  rehydrateInvites: userId => {
+    const key = projectMembershipStorageKey(userId);
+    const raw = readStorageItem(key);
+    if (raw === null) {
+      set(state => {
+        const { [key]: _removed, ...invitesByUser } = state.invitesByUser;
+        return { invitesByUser };
+      });
+      return;
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (!isInvitationArray(parsed)) {
+        removeStorageItem(key);
+        set(state => {
+          const { [key]: _removed, ...invitesByUser } = state.invitesByUser;
+          return { invitesByUser };
+        });
+        return;
+      }
+      set(state => ({ invitesByUser: { ...state.invitesByUser, [key]: parsed } }));
+    } catch {
+      removeStorageItem(key);
+      set(state => {
+        const { [key]: _removed, ...invitesByUser } = state.invitesByUser;
+        return { invitesByUser };
+      });
+    }
+  },
+}));
 
 // Expose getInitialState on the store instance for the canonical test reset pattern:
 // `useProjectMembershipStore.setState(useProjectMembershipStore.getInitialState())`

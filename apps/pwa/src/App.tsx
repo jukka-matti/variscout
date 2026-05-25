@@ -243,10 +243,16 @@ function AppMain() {
   const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
   const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
 
-  // Project membership store — pending invitations for the Home view banner
-  const pendingInvites = useProjectMembershipStore(s => s.pendingInvites);
-  const acceptInvite = useProjectMembershipStore(s => s.acceptInvite);
-  const revokeInvite = useProjectMembershipStore(s => s.revokeInvite);
+  // Project membership store — pending invitations for the Home view banner.
+  // PWA is single-user; use 'analyst@local' as the stable per-user key.
+  const PWA_MEMBERSHIP_USER_ID = 'analyst@local';
+  const pendingInvites = useProjectMembershipStore(s =>
+    s.getPendingInvites(PWA_MEMBERSHIP_USER_ID)
+  );
+  const membershipAcceptInvite = useProjectMembershipStore(s => s.acceptInvite);
+  const membershipRevokeInvite = useProjectMembershipStore(s => s.revokeInvite);
+  const acceptInvite = (id: string) => membershipAcceptInvite(PWA_MEMBERSHIP_USER_ID, id);
+  const revokeInvite = (id: string) => membershipRevokeInvite(PWA_MEMBERSHIP_USER_ID, id);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
