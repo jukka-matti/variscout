@@ -438,6 +438,77 @@ vi.mock('../charts/IChart', () => ({
 }));
 ```
 
+### Cross-DOM-impl patterns (jsdom + happy-dom)
+
+`@variscout/charts`, `@variscout/hooks`, and `@variscout/ui` use `environment: 'happy-dom'` (per [vitest pool tuning, PR #208](../../superpowers/specs/2026-05-25-vitest-pool-config-design.md)) for ~2.6–2.8x faster test runs. happy-dom and jsdom diverge on subtle API details; use the patterns below to write tests that work in BOTH (improves robustness regardless of DOM impl).
+
+**1. `navigator.clipboard` — use `defineProperty`, not `assign`:**
+
+```typescript
+// ✅ Works in both — defineProperty respects getter-only properties
+Object.defineProperty(navigator, 'clipboard', {
+  value: { write: vi.fn(), writeText: vi.fn() },
+  configurable: true,
+});
+
+// ❌ Throws in happy-dom (navigator.clipboard is getter-only)
+Object.assign(navigator, { clipboard: { write: vi.fn() } });
+```
+
+**2. Storage spies — spy on the instance, not `Storage.prototype`:**
+
+```typescript
+// ✅ Works in both — happy-dom's localStorage doesn't share Storage.prototype
+const getItemSpy = vi.spyOn(window.localStorage, 'getItem').mockReturnValue('1');
+
+// ❌ Only works in jsdom; happy-dom doesn't intercept prototype-level spies
+vi.spyOn(Storage.prototype, 'getItem').mockReturnValue('1');
+```
+
+**3. "Blocked storage" tests — use `vi.stubGlobal`, not throwing spies:**
+
+```typescript
+// ✅ stubGlobal swaps the whole object; unstubAllGlobals restores cleanly
+vi.stubGlobal('sessionStorage', {
+  getItem: vi.fn(() => {
+    throw new Error('blocked');
+  }),
+  setItem: vi.fn(() => {
+    throw new Error('blocked');
+  }),
+  removeItem: vi.fn(() => {
+    throw new Error('blocked');
+  }),
+  clear: vi.fn(),
+  key: vi.fn(),
+  length: 0,
+});
+// ... assertions
+vi.unstubAllGlobals();
+
+// ❌ happy-dom doesn't restore instance-spies via restoreAllMocks → cross-test pollution
+vi.spyOn(window.sessionStorage, 'getItem').mockImplementation(() => {
+  throw new Error('blocked');
+});
+```
+
+**4. Inline color assertions — use `normalizeColor` helper:**
+
+```typescript
+// ✅ Works in both — normalizes hex → rgb before comparison
+import { normalizeColor } from '../../../test-utils/color'; // path relative to ui test
+expect(normalizeColor(chip.style.color)).toBe('rgb(79, 70, 229)');
+
+// ❌ jsdom returns 'rgb(79, 70, 229)', happy-dom returns '#4f46e5' (source format)
+expect(chip.style.color).toBe('rgb(79, 70, 229)');
+```
+
+`normalizeColor` lives at `packages/ui/src/test-utils/color.ts`. Copy or extract to a per-package test-utils if a hooks/charts test needs it.
+
+**5. Built-in polyfills (don't duplicate per-test):**
+
+The shared `test/setup.ts` polyfills cover happy-dom API gaps for `window.confirm`, `SVGPoint.matrixTransform` (with both DOMMatrix `a/b/c/d` aliases AND `m11/m21/m12/m22` canonical names), and `MouseEvent` / `WheelEvent` constructor patches (happy-dom 20.x silently drops `clientX`/`clientY` from init options). If a new happy-dom gap surfaces, add the polyfill to `test/setup.ts` (gated behind `typeof X !== 'undefined'` so jsdom-mode takes the real impl).
+
 ### Common Pitfalls
 
 **Mock ordering (OOM prevention):** When mocking dependencies of imported components, place `vi.mock()` calls **before** the component import. This ensures stable mock references and prevents infinite re-render loops in `useEffect` dependency arrays.

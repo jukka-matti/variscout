@@ -164,6 +164,50 @@ const rng = seedrandom('test-seed');
 const randomValue = rng();  // Always the same sequence
 ```
 
+### Cross-DOM-impl patterns (happy-dom packages)
+
+`@variscout/charts`, `@variscout/hooks`, `@variscout/ui` use `environment: 'happy-dom'` (per PR #208 — ~2.6–2.8x faster). happy-dom diverges from jsdom on some API details; use these patterns to write tests that work in BOTH.
+
+**`navigator.clipboard` — defineProperty, not assign** (happy-dom: getter-only):
+
+```typescript
+Object.defineProperty(navigator, 'clipboard', {
+  value: { write: vi.fn(), writeText: vi.fn() },
+  configurable: true,
+});
+```
+
+**Storage spies — spy on the instance, not `Storage.prototype`** (happy-dom: different prototype chain):
+
+```typescript
+vi.spyOn(window.localStorage, 'getItem').mockReturnValue('1');
+// NOT: vi.spyOn(Storage.prototype, 'getItem')
+```
+
+**"Blocked storage" tests — use `vi.stubGlobal`** (happy-dom: instance-spies don't restore via `restoreAllMocks`):
+
+```typescript
+vi.stubGlobal('sessionStorage', {
+  getItem: vi.fn(() => { throw new Error('blocked'); }),
+  setItem: vi.fn(() => { throw new Error('blocked'); }),
+  removeItem: vi.fn(() => { throw new Error('blocked'); }),
+  clear: vi.fn(), key: vi.fn(), length: 0,
+});
+// ... assertions
+vi.unstubAllGlobals();
+```
+
+**Inline color assertions — use `normalizeColor` helper** (jsdom normalizes `#hex → rgb()` on read, happy-dom preserves source format):
+
+```typescript
+import { normalizeColor } from '../../../test-utils/color';
+expect(normalizeColor(chip.style.color)).toBe('rgb(79, 70, 229)');
+```
+
+`normalizeColor` lives at `packages/ui/src/test-utils/color.ts`. Copy or extract to a per-package test-utils if a hooks/charts test needs it.
+
+**Built-in polyfills** (shared `test/setup.ts`): `window.confirm`, `SVGPoint.matrixTransform` (DOMMatrix `a/b/c/d` aliases + `m11/m21/m12/m22` canonical), `MouseEvent`/`WheelEvent` constructor patch (happy-dom 20.x silently drops `clientX`/`clientY` from init). If a new happy-dom gap surfaces, add the polyfill there (gated behind `typeof X !== 'undefined'` for jsdom-mode passthrough). Full rationale: `docs/superpowers/specs/2026-05-25-vitest-pool-config-design.md`.
+
 ## E2E data-testid selectors
 
 Key `data-testid` attributes for Playwright E2E tests:
@@ -215,7 +259,7 @@ Full protocol details: `docs/05-technical/implementation/testing.md#feature-veri
 ## Gotchas
 
 - **vi.mock() placement** — Put mocks BEFORE any component import that uses them, not after. Importing the component first causes infinite render loops.
-- **Flaky timeout** — `packages/hooks/src/__tests__/index.test.ts` can time out under concurrent Turbo load; passes when run in isolation. Known flake, not a real bug.
+- **Flaky timeout** — `packages/hooks/src/__tests__/index.test.ts` historically timed out under concurrent Turbo load; root cause (per-file JSDOM init contention) addressed by PR #208 (`pool: 'threads' + happy-dom`). Note retirement pending 3 clean turbo runs of pr-ready-check on post-merge main.
 - **i18n loaders silent failure** — Tests that preload locales without first registering loaders will silently pass with empty catalogs. Always call `registerLocaleLoaders()` before `preloadLocale()`.
 - **Math.random() flakiness** — Never use `Math.random()` in stats tests. Use deterministic seeded PRNGs. Code review will catch this.
 - **getByRole over getByTestId** — Prefer role-based queries. Test IDs are a last resort for elements without accessible roles. Role-based queries also verify accessibility.
