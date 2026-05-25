@@ -573,8 +573,12 @@ export const Editor: React.FC<EditorProps> = ({
   const pendingInvites = useProjectMembershipStore(s => s.getPendingInvites(membershipUserId));
   const membershipAcceptInvite = useProjectMembershipStore(s => s.acceptInvite);
   const membershipRevokeInvite = useProjectMembershipStore(s => s.revokeInvite);
+  const rehydrateInvites = useProjectMembershipStore(s => s.rehydrateInvites);
   const acceptInvite = (id: string) => membershipAcceptInvite(membershipUserId, id);
   const revokeInvite = (id: string) => membershipRevokeInvite(membershipUserId, id);
+  useEffect(() => {
+    if (membershipUserId) rehydrateInvites(membershipUserId);
+  }, [membershipUserId, rehydrateInvites]);
 
   // Data flow hook
   const activeHub = processHubs.find(h => h.id === processContext?.processHubId);

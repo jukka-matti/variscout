@@ -251,8 +251,12 @@ function AppMain() {
   );
   const membershipAcceptInvite = useProjectMembershipStore(s => s.acceptInvite);
   const membershipRevokeInvite = useProjectMembershipStore(s => s.revokeInvite);
+  const rehydrateInvites = useProjectMembershipStore(s => s.rehydrateInvites);
   const acceptInvite = (id: string) => membershipAcceptInvite(PWA_MEMBERSHIP_USER_ID, id);
   const revokeInvite = (id: string) => membershipRevokeInvite(PWA_MEMBERSHIP_USER_ID, id);
+  useEffect(() => {
+    rehydrateInvites(PWA_MEMBERSHIP_USER_ID);
+  }, [rehydrateInvites]);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();

@@ -407,6 +407,7 @@ describe('Editor', () => {
     // Reset stores to clean state
     seedStores();
     useProjectMembershipStore.setState(getProjectMembershipInitialState());
+    localStorage.removeItem(projectMembershipStorageKey('test@test.com'));
   });
 
   it('renders empty state when rawData is empty', () => {
@@ -558,11 +559,13 @@ describe('Editor', () => {
   it('renders the invitations banner when pending invites exist', async () => {
     // Editor reads currentUser.email as the membership user id (see Editor.tsx);
     // getCurrentUser is mocked to resolve 'test@test.com' at file top.
-    // invitesByUser is keyed by the full storage key (URL-encoded), not the raw userId.
-    // Banner appears only after the async getCurrentUser() resolves — use findBy.
-    useProjectMembershipStore.setState({
-      invitesByUser: { [projectMembershipStorageKey('test@test.com')]: [inviteA] },
-    });
+    // Seed BOTH localStorage and in-memory state: Editor mounts a useEffect that
+    // calls `rehydrateInvites(userId)`, which reads from localStorage and would
+    // otherwise clobber an in-memory-only seed. Banner appears only after the
+    // async getCurrentUser() resolves — use findBy.
+    const membershipKey = projectMembershipStorageKey('test@test.com');
+    localStorage.setItem(membershipKey, JSON.stringify([inviteA]));
+    useProjectMembershipStore.setState({ invitesByUser: { [membershipKey]: [inviteA] } });
     renderEditor();
     expect(await screen.findByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });
