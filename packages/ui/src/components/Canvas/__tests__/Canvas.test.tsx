@@ -18,6 +18,13 @@
  * chip rail visibility by mode, Wall overlay toggle visibility, and one
  * wedge-V1 integration check (step click → overlay shows 3 CTAs with
  * correct testids per wedge spec §3.3.4).
+ *
+ * Note: the `useHypothesisDrawTool`, `useCanvasKeyboard`, and
+ * `useCanvasHypothesisDrawing` mocks below are intentional no-op stubs — none
+ * of the 6 tests here exercise hypothesis drawing or canvas keyboard
+ * shortcuts. If you add coverage for those flows, copy the richer stateful
+ * implementations from `CanvasWorkspace.test.tsx` instead of expanding the
+ * stubs in place.
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
