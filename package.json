@@ -59,6 +59,7 @@
     "eslint-plugin-variscout": "workspace:*",
     "fake-indexeddb": "^6.2.5",
     "globals": "^17.5.0",
+    "happy-dom": "^20.9.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.3.3",
     "prettier": "^3.8.3",
