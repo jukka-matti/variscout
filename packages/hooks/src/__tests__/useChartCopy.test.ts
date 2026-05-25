@@ -95,9 +95,11 @@ describe('useChartCopy', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.clearAllMocks();
 
-    // Mock clipboard API
-    Object.assign(navigator, {
-      clipboard: { write: vi.fn().mockResolvedValue(undefined) },
+    // Mock clipboard API. Use defineProperty so it works in both jsdom
+    // (writable property) and happy-dom (getter-only by default).
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { write: vi.fn().mockResolvedValue(undefined) },
+      configurable: true,
     });
 
     // Mock URL.createObjectURL / revokeObjectURL

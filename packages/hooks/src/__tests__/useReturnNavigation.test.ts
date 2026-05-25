@@ -93,7 +93,7 @@ describe('useReturnNavigation', () => {
   });
 
   it('fails closed and clears invalid JSON when consuming', () => {
-    const removeSpy = vi.spyOn(window.sessionStorage.__proto__, 'removeItem');
+    const removeSpy = vi.spyOn(window.sessionStorage, 'removeItem');
     window.sessionStorage.setItem(RETURN_NAVIGATION_STORAGE_KEY, '{not-json');
     const { result } = renderHook(() => useReturnNavigation());
 
@@ -103,14 +103,26 @@ describe('useReturnNavigation', () => {
   });
 
   it('does not throw when sessionStorage is unavailable', () => {
-    const getItem = vi.spyOn(window.sessionStorage.__proto__, 'getItem').mockImplementation(() => {
+    // Use vi.stubGlobal to swap the entire sessionStorage with a throwing
+    // proxy. happy-dom doesn't cleanly restore individual instance-spies
+    // (vi.restoreAllMocks leaves the patched methods in place), which causes
+    // cross-test pollution. unstubAllGlobals via afterEach is reliable.
+    const getItem = vi.fn(() => {
       throw new Error('blocked');
     });
-    vi.spyOn(window.sessionStorage.__proto__, 'setItem').mockImplementation(() => {
+    const setItem = vi.fn(() => {
       throw new Error('blocked');
     });
-    vi.spyOn(window.sessionStorage.__proto__, 'removeItem').mockImplementation(() => {
+    const removeItem = vi.fn(() => {
       throw new Error('blocked');
+    });
+    vi.stubGlobal('sessionStorage', {
+      getItem,
+      setItem,
+      removeItem,
+      clear: vi.fn(),
+      key: vi.fn(),
+      length: 0,
     });
     const { result } = renderHook(() => useReturnNavigation());
 
@@ -124,6 +136,8 @@ describe('useReturnNavigation', () => {
     expect(() => result.current.clearReturnTarget()).not.toThrow();
     expect(result.current.consumeReturnTarget()).toBeNull();
     expect(getItem).toHaveBeenCalledWith(RETURN_NAVIGATION_STORAGE_KEY);
+
+    vi.unstubAllGlobals();
   });
 
   it('navigates without consuming so the destination can restore after remount', () => {

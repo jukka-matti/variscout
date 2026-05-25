@@ -26,8 +26,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (globalThis as any).ClipboardItem = MockClipboardItem;
-  Object.assign(navigator, {
-    clipboard: { write: mockWrite, writeText: mockWriteText },
+  // Use defineProperty (not assign) — happy-dom marks navigator.clipboard as
+  // getter-only; assign throws there. defineProperty works in both DOM impls.
+  Object.defineProperty(navigator, 'clipboard', {
+    value: { write: mockWrite, writeText: mockWriteText },
+    configurable: true,
   });
 });
 
