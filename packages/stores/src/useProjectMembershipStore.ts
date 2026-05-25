@@ -87,6 +87,13 @@ function isInvitationArray(value: unknown): value is Invitation[] {
   return Array.isArray(value);
 }
 
+// Stable reference for empty-invite fallback. Returning a fresh `[]` from
+// `getPendingInvites` causes React infinite-render loops when consumed as a
+// Zustand selector (`useProjectMembershipStore(s => s.getPendingInvites(uid))`):
+// every render produces a new array reference, fails the snapshot equality
+// check, and triggers a re-render. Mirror activeIPStore's null-fallback shape.
+const EMPTY_INVITES: readonly Invitation[] = Object.freeze([]);
+
 // ---------------------------------------------------------------------------
 // Store
 // ---------------------------------------------------------------------------
@@ -96,7 +103,7 @@ export const useProjectMembershipStore = create<ProjectMembershipStore>()((set, 
 
   getPendingInvites: userId => {
     const key = projectMembershipStorageKey(userId);
-    return get().invitesByUser[key] ?? [];
+    return get().invitesByUser[key] ?? (EMPTY_INVITES as Invitation[]);
   },
 
   addPendingInvite: (userId, inv) => {

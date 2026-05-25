@@ -13,6 +13,7 @@ import {
   usePreferencesStore,
   useProjectMembershipStore,
   getProjectMembershipInitialState,
+  projectMembershipStorageKey,
 } from '@variscout/stores';
 import type { Invitation } from '@variscout/core/projectMembership';
 
@@ -554,11 +555,15 @@ describe('Editor', () => {
     expect(screen.queryByRole('region', { name: /pending invitations/i })).not.toBeInTheDocument();
   });
 
-  it('renders the invitations banner when pending invites exist', () => {
-    // Editor reads currentUser.email as the membership user id (see Editor.tsx).
+  it('renders the invitations banner when pending invites exist', async () => {
+    // Editor reads currentUser.email as the membership user id (see Editor.tsx);
     // getCurrentUser is mocked to resolve 'test@test.com' at file top.
-    useProjectMembershipStore.setState({ invitesByUser: { 'test@test.com': [inviteA] } });
+    // invitesByUser is keyed by the full storage key (URL-encoded), not the raw userId.
+    // Banner appears only after the async getCurrentUser() resolves — use findBy.
+    useProjectMembershipStore.setState({
+      invitesByUser: { [projectMembershipStorageKey('test@test.com')]: [inviteA] },
+    });
     renderEditor();
-    expect(screen.getByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });
 });

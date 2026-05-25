@@ -54,7 +54,11 @@ import App from '../App';
 import { LocaleProvider } from '../context/LocaleContext';
 import { registerLocaleLoaders, type MessageCatalog } from '@variscout/core';
 import { usePanelsStore, initialPanelsState } from '../features/panels/panelsStore';
-import { useProjectStore, useProjectMembershipStore } from '@variscout/stores';
+import {
+  useProjectStore,
+  useProjectMembershipStore,
+  projectMembershipStorageKey,
+} from '@variscout/stores';
 
 // Register locale loaders (mirrors main.tsx) so useTranslation works.
 registerLocaleLoaders(
@@ -141,8 +145,11 @@ describe('PendingInvitesBanner — mounted in App.tsx Home view (active-IP launc
     // Put the app on the Home view so panels.activeView === 'home' triggers.
     usePanelsStore.setState({ ...initialPanelsState, activeView: 'home' });
     // Seed one pending invitation so the banner renders (non-null).
-    // PWA uses 'analyst@local' as the stable per-user membership key (see App.tsx).
-    useProjectMembershipStore.setState({ invitesByUser: { 'analyst@local': [testInvite] } });
+    // PWA uses 'analyst@local' as the stable per-user membership key (see App.tsx);
+    // invitesByUser is keyed by the full storage key (URL-encoded), not the raw userId.
+    useProjectMembershipStore.setState({
+      invitesByUser: { [projectMembershipStorageKey('analyst@local')]: [testInvite] },
+    });
   });
 
   afterEach(() => {
