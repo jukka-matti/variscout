@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CauseSummaryCards } from '../CauseSummaryCards';
 import type { CauseSummaryCardData, CauseSummaryCardsProps } from '../CauseSummaryCards';
+import { normalizeColor } from '../../../../../../test/utils';
 
 const makeCause = (overrides: Partial<CauseSummaryCardData> = {}): CauseSummaryCardData => ({
   id: 'cause-1',
@@ -101,7 +102,8 @@ describe('CauseSummaryCards', () => {
   it('applies cause color as inline style on dot', () => {
     render(<CauseSummaryCards causes={[makeCause({ id: 'cause-1', color: '#ef4444' })]} />);
     const dot = screen.getByTestId('cause-dot-cause-1') as HTMLElement;
-    expect(dot.style.backgroundColor).toBe('rgb(239, 68, 68)');
+    // Normalize CSS color — jsdom returns 'rgb()', happy-dom preserves '#hex'.
+    expect(normalizeColor(dot.style.backgroundColor)).toBe('rgb(239, 68, 68)');
   });
 
   it('renders the scroll container with snap classes', () => {

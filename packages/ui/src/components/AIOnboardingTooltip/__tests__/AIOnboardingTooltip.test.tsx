@@ -9,8 +9,10 @@ describe('AIOnboardingTooltip', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(null);
-    setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {});
+    // Spy on the localStorage instance, not Storage.prototype — happy-dom's
+    // localStorage doesn't share the same prototype chain as jsdom's.
+    getItemSpy = vi.spyOn(window.localStorage, 'getItem').mockReturnValue(null);
+    setItemSpy = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {});
   });
 
   afterEach(() => {

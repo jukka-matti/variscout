@@ -191,7 +191,10 @@ describe('useAICoScout', () => {
   describe('copyLastResponse', () => {
     it('copies last assistant message to clipboard', async () => {
       const writeText = vi.fn().mockResolvedValue(undefined);
-      Object.assign(navigator, { clipboard: { writeText } });
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText },
+        configurable: true,
+      });
 
       mockStreamFn.mockImplementation(
         async (

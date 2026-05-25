@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { IPContextChip } from '../IPContextChip';
+import { normalizeColor } from '../../../../../../test/utils';
 
 describe('IPContextChip', () => {
   it('renders the exact working-in-IP text with separate title and exit controls', () => {
@@ -25,7 +26,9 @@ describe('IPContextChip', () => {
     expect(chip.style.background).toBe('rgba(99, 102, 241, 0.06)');
     expect(chip.style.border).toBe('1px solid rgba(99, 102, 241, 0.2)');
     expect(chip.style.borderRadius).toBe('999px');
-    expect(chip.style.color).toBe('rgb(79, 70, 229)');
+    // Normalize CSS color — jsdom returns 'rgb(79, 70, 229)', happy-dom preserves '#4f46e5'.
+    // Both represent the same color; test what the component renders, not the DOM impl's format.
+    expect(normalizeColor(chip.style.color)).toBe('rgb(79, 70, 229)');
   });
 
   it('calls title and exit callbacks without nesting interactive elements', () => {
