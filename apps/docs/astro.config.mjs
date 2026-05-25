@@ -167,20 +167,8 @@ export default defineConfig({
                   collapsed: true,
                   items: [
                     {
-                      label: 'Green Belt Gary',
-                      slug: '02-journeys/personas/green-belt-gary',
-                    },
-                    {
-                      label: 'Curious Carlos',
-                      slug: '02-journeys/personas/curious-carlos',
-                    },
-                    {
                       label: 'OpEx Olivia',
                       slug: '02-journeys/personas/opex-olivia',
-                    },
-                    {
-                      label: 'Student Sara',
-                      slug: '02-journeys/personas/student-sara',
                     },
                     {
                       label: 'Evaluator Erik',
@@ -730,10 +718,6 @@ export default defineConfig({
                       slug: '08-products/azure/arm-template',
                     },
                     {
-                      label: 'Pricing Tiers',
-                      slug: '08-products/azure/pricing-tiers',
-                    },
-                    {
                       label: 'Submission Checklist',
                       slug: '08-products/azure/submission-checklist',
                     },
@@ -856,10 +840,6 @@ export default defineConfig({
             {
               label: 'ADR-032 Evidence Communication',
               slug: '07-decisions/adr-032-evidence-communication',
-            },
-            {
-              label: 'ADR-033 Pricing',
-              slug: '07-decisions/adr-033-pricing-simplification',
             },
             {
               label: 'ADR-034 Yamazumi',
