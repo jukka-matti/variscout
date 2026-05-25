@@ -92,8 +92,14 @@ describe('layer boundary', () => {
   });
 
   it('persist-backed annotation-per-user stores DO import persist from zustand/middleware', () => {
+    // Two valid persistence patterns for annotation-per-user stores:
+    //   (a) Zustand `persist` middleware (preferencesStore)
+    //   (b) Manual localStorage with per-user key (activeIPStore, useProjectMembershipStore)
+    // The manual pattern is required when persistence needs a per-user (or
+    // per-user-and-hub) key that isn't known at store-construction time.
+    const MANUAL_STORAGE_STORES = new Set(['activeIPStore.ts', 'useProjectMembershipStore.ts']);
     files
-      .filter(f => f.layer === 'annotation-per-user' && f.filename !== 'activeIPStore.ts')
+      .filter(f => f.layer === 'annotation-per-user' && !MANUAL_STORAGE_STORES.has(f.filename))
       .forEach(f => {
         expect(f.source).toMatch(
           /import\s+\{[^}]*\bpersist\b[^}]*\}\s+from\s+['"]zustand\/middleware['"]/
@@ -101,13 +107,16 @@ describe('layer boundary', () => {
       });
   });
 
-  it('activeIPStore is annotation-per-user localStorage state without Document-layer persistence', () => {
-    const activeIPStore = files.find(f => f.filename === 'activeIPStore.ts');
-    expect(activeIPStore).toBeDefined();
-    expect(activeIPStore?.layer).toBe('annotation-per-user');
-    expect(activeIPStore?.source).toMatch(/\blocalStorage\b/);
-    expect(activeIPStore?.source).not.toMatch(/from\s+['"]dexie['"]/);
-    expect(activeIPStore?.source).not.toMatch(/HubAction|dispatch\(/);
+  it('manual-localStorage annotation-per-user stores use per-key localStorage without Document-layer persistence', () => {
+    const MANUAL_STORAGE_STORES = ['activeIPStore.ts', 'useProjectMembershipStore.ts'];
+    MANUAL_STORAGE_STORES.forEach(filename => {
+      const store = files.find(f => f.filename === filename);
+      expect(store).toBeDefined();
+      expect(store?.layer).toBe('annotation-per-user');
+      expect(store?.source).toMatch(/\blocalStorage\b/);
+      expect(store?.source).not.toMatch(/from\s+['"]dexie['"]/);
+      expect(store?.source).not.toMatch(/HubAction|dispatch\(/);
+    });
   });
 
   it('document stores do NOT import persist from zustand/middleware', () => {
