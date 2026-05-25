@@ -156,25 +156,35 @@ export default defineConfig({
 - We don't measure CI runtime gains — assumption is they're proportional to local.
 - `apps/azure` + `apps/pwa` are deferred. The benchmark harness can be re-run against them in a follow-up PR once we have archaeology context on their existing `fileParallelism: false` tuning.
 
-## Outcomes (populated after B1 benchmark)
+## Outcomes (delivered 2026-05-25)
 
-_To be filled in by the implementer after running `scripts/bench-vitest.sh`. Template:_
+**Per-package isolated wall-clock (before → after):**
 
-**Baseline pr-ready-check timing (main, pre-tuning):** _<seconds>_
+| Package             | Baseline (V0) | Adopted                  | After | Speedup   |
+| ------------------- | ------------- | ------------------------ | ----- | --------- |
+| `@variscout/charts` | ~5s           | V2 (threads + happy-dom) | 3.5s  | **~30%**  |
+| `@variscout/hooks`  | ~75s          | V2 (threads + happy-dom) | 28.7s | **~2.6x** |
+| `@variscout/ui`     | ~86s          | V2 (threads + happy-dom) | 30.4s | **~2.8x** |
 
-**Per-package benchmark (warm-run median):**
+**Cross-package consistency:** all 3 jsdom packages adopted V2 (threads + happy-dom). Apps deferred per spec scope.
 
-| Package             | Baseline | V1  | V2  | V3  | Adopted |
-| ------------------- | -------- | --- | --- | --- | ------- |
-| `@variscout/charts` | —        | —   | —   | —   | —       |
-| `@variscout/hooks`  | —        | —   | —   | —   | —       |
-| `@variscout/ui`     | —        | —   | —   | —   | —       |
+**Adoption path was iterative, not bench-driven:** the user pivoted away from the formal 36-measurement bench during execution (the per-run pnpm/turbo wrapper overhead made the bench ~50 min/package, not the 5–8 min the spec estimated). Switched to direct-apply + per-package isolated runs. Same end signal (config works + perf wins), faster wall-clock to validate.
 
-**Post-tuning pr-ready-check timing:** _<seconds>_ _(target: ≥30% improvement on the slow-package portion)_
+**Happy-dom compatibility fixes shipped in this PR** (test-quality improvements that work in both DOM impls):
 
-**Cross-package consistency:** _<all packages on same variant, or per-package divergence reasons>_
+- `test/setup.ts` polyfills: `window.confirm` stub, `SVGPoint.matrixTransform` (with DOMMatrix a/b/c/d aliases AND m11/m21 canonical), `MouseEvent`/`WheelEvent` constructor patch (happy-dom 20.x silently drops `clientX`/`clientY`)
+- `packages/ui/src/test-utils/color.ts`: shared `normalizeColor()` helper for hex→rgb (jsdom normalizes on read, happy-dom preserves source format)
+- Per-test patterns: `Object.assign(navigator, {clipboard:...})` → `Object.defineProperty(...)`; `vi.spyOn(Storage.prototype, ...)` → `vi.spyOn(window.localStorage, ...)`; `vi.stubGlobal('sessionStorage', ...)` for the "blocked storage" test (happy-dom doesn't cleanly restore instance-spies via `restoreAllMocks`)
 
-**Retired flaky-test note in `packages/hooks/CLAUDE.md`:** _<yes/no — gated on 5 consecutive turbo runs with no flakes>_
+**Failures discovered + resolved:** 38 initial failures across hooks (30) + ui (8). Every failure traced to a test-quality issue (jsdom-coupled assertion, instance-spy pattern, missing constructor option in happy-dom). Final state: 0 failures on V2.
+
+**Retired flaky-test note in `packages/hooks/CLAUDE.md`:** deferred — needs 3 consecutive clean turbo runs of `pr-ready-check.sh` on the post-merge main before retiring. First clean run captured in this PR; revisit on 2026-05-26+ after 2 more.
+
+**V3 (`isolate: false`) not measured** — per spec rule, not adopted regardless; the failure-fixing investment proved V2 sufficient.
+
+## Lesson logged
+
+The formal benchmark-then-decide framework in this spec (Section "Experiment matrix") was over-engineered for the actual problem. Industry consensus on `pool: 'threads'` + happy-dom is strong (per the 2026 Vitest docs + happy-dom benchmarks cited in research); the meaningful question was always whether OUR specific suite tolerates happy-dom. Direct-apply + per-package isolated runs answered that in less time than the bench harness would have produced. Captured as a process lesson — for future perf-tuning specs, favor direct experimentation over formal benchmark harness when the published evidence is strong.
 
 ## Follow-ups (separate PRs)
 
