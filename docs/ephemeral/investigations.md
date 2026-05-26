@@ -551,6 +551,171 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 
 ---
 
+### Sponsor visibility too restrictive — should see Analyze + Investigation read-only throughout
+
+**Surfaced by:** 2026-05-26 customer-hat walkthrough session (Spec 2 brainstorm) — user reacting to the Promote-to-Project / Charter design: _"sponsor can see things throughout the project, not just in the end!!"_
+
+**Description:** `docs/02-journeys/personas/sponsor.md:61` claims the Sponsor _"skips Analyze and Investigation entirely — those tabs are working surfaces for Lead and Members."_ The corresponding sequence diagram in `sponsor.md:38–59` shows `Sponsor-->>Analyze: (no interaction)` and `Sponsor-->>Investigation: (no interaction)`. The persona × tab matrix in `ia-nav-model.md:96–104` has `(no touch)` for Sponsor on those tabs. Real-world executive sponsorship varies — engaged sponsors want continuous visibility (read what the team is finding, ask informed questions, spot drift early); bounded-time sponsors stick to approval gates. Forcing the "skips entirely" framing in the journey doc misrepresents the product's capability and excludes engaged sponsors from the work surface.
+
+**Evidence:**
+
+- `docs/02-journeys/personas/sponsor.md:61` — _"The Sponsor's flow skips Analyze and Investigation entirely"_ (contradicts real sponsor practice for engaged sponsors)
+- `docs/02-journeys/personas/sponsor.md:38–59` — sequence diagram shows `(no interaction)` on Analyze + Investigation
+- `docs/02-journeys/ia-nav-model.md:96–104` — persona × tab matrix has Sponsor as `(no touch)` on those rows
+- `docs/02-journeys/personas/sponsor.md:23` (same doc) says _"They never edit canvas, hypotheses, or measurement plans. Their gestures are: open, read, approve, sign off."_ — this text correctly distinguishes "never edit" from "never see," but the sequence diagram + matrix collapse the two into "no interaction." Internal contradiction within the same persona doc.
+
+**Doc claim vs reality:**
+
+- Doc claim (sequence + matrix): Sponsor doesn't interact with Analyze or Investigation at all
+- Reality intended (same doc, persona statement): Sponsor reads everything; only their _write actions_ are limited to approval gates
+- Product capability: read-only is a natural fall-through of the wedge V1 ACL model (`canAccess()` denies edit, read is permitted) — the restriction is in the docs, not the product
+
+**Possible directions:**
+
+- **Update the matrix in `ia-nav-model.md`**: change `(no touch)` to `Read` for Sponsor on Analyze + Investigation rows.
+- **Update the sequence diagram in `sponsor.md`**: replace the dotted `(no interaction)` arrows with solid `Sponsor->>Analyze: Read (optional)` / `Sponsor->>Investigation: Read (optional)`.
+- **Update the prose in `sponsor.md:61`**: remove "skips Analyze and Investigation entirely" and replace with something like _"The Sponsor reads Analyze + Investigation when they want to engage with the analysis directly; their active gestures are bounded to Charter approval, Improve sanction, and Report sign-off."_
+- **Architectural framing (no doc change needed)**: this is actually a clean consequence of the State/Edit mode split we locked earlier in this session. Sponsor = State mode everywhere + 2 gated writes; Lead = State + Edit + advance. Worth surfacing in the design as a positive design choice rather than a "Sponsor restriction."
+
+**Promotion path:** Doc-only PR touching `personas/sponsor.md` (prose + sequence) + `ia-nav-model.md` (matrix). Walkthrough HTML at `/tmp/variscout-walkthrough.html` also needs the matrix + sequence update.
+
+**Severity:** **vision violation** — incorrectly characterizes a real product capability and demotes engaged sponsors out of the work surface. The internal contradiction within `sponsor.md` itself (statement says "read-mostly" but sequence says "no interaction") is evidence that the journey doc was authored without careful read-through. Same pattern as the other walkthrough findings — corpus authored faster than reviewed.
+
+**Meta-note:** Fifth structural finding from today's customer-hat walkthrough. None caught by the morning's 5-lens audit. Pattern continues to confirm `feedback_audit_findings_need_design_triage` — audits inherit the corpus's blind spots; customer-hat reading catches what audits can't.
+
+---
+
+### Tab vocabulary positioning question: Explore / Analyze / Control vs Analyze / Investigation / Sustainment
+
+**Surfaced by:** 2026-05-26 customer-hat walkthrough session — user proposing: _"how about if analyze, would be explore (like exploratory data analysis) and investigate would be analyze and then sustainment control?"_
+
+**Description:** User-proposed rename across three nav/lifecycle surfaces: **Analyze tab → Explore** (matching Tukey's EDA vocabulary, universal stats language); **Investigation tab → Analyze** (matching DMAIC's Analyze phase, which it actually is — cause identification + hypothesis testing); **Sustainment stage → Control** (matching DMAIC's Control phase). The proposal exposes a real semantic overlap in current naming (_"Analyze" and "Investigation" both describe analysis activities_) and improves LSS practitioner pattern-matching. But it directly contradicts the deliberate prior choice captured in `feedback_drop_methodology_bridges`: _"VariScout-native vocabulary over external bridges (DMAIC/QC Story/TBP/A3); UI copy plain English; lineage in design specs only."_ This is **not a label-fix; it's an identity-level vocabulary decision** that affects positioning, marketing copy, onboarding cognitive cost, and product differentiation from generic DMAIC tools.
+
+**Evidence:**
+
+- Current tab vocabulary `docs/02-journeys/ia-nav-model.md:42–77`: Home / Project / Process / **Analyze** / **Investigation** / Improve / Report. Sustainment is the closing stage of the Project lifecycle, not a tab.
+- Semantic overlap demonstrated in same file: Analyze tab description (`:59–62`) — _"canvas-based exploratory data analysis. The Four Lenses … emerge here. Findings created on the canvas link forward to Hypotheses on the Wall."_ Investigation tab description (`:64–67`) — _"Investigation Wall — Hypotheses, evidence, Measurement Plans. The accumulation surface where Findings cluster into Hypotheses, evidence is triangulated."_ Both describe analytical work; the distinction (exploration-of-data vs hypothesis-testing) is real but the labels don't carry it.
+- Prior team decision: `feedback_drop_methodology_bridges.md` explicitly retires DMAIC-bridge vocabulary in favor of native FRAME / SCOUT / INVESTIGATE / IMPROVE methodology layer + plain-English UI tabs.
+- Methodology layer per `docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md` — FRAME / SCOUT / INVESTIGATE / IMPROVE are _under-the-hood_ methodology phases, not tab labels.
+
+**Trade-offs (not pre-decided here):**
+
+- **Rename → Explore / Analyze / Control**: clearer Explore/Analyze separation; instant DMAIC pattern-match for LSS buyers (the wedge V1 ICP); "Control" is plain-English + unambiguously C-of-DMAIC; "Sustainment" is unusual vocabulary. Onboarding cost drops.
+- **Keep Analyze / Investigation / Sustainment**: differentiates from generic DMAIC tools (positioning); preserves the _"we have an opinion about methodology that goes beyond DMAIC"_ posture; "Sustainment" has product-personality vs the bureaucratic "Control."
+- **Partial move — rename Analyze → Explore only**: cheapest clarity win. "Explore" is universal stats vocabulary (Tukey 1977), not DMAIC-specific. Resolves the semantic-overlap-with-Investigation concern. Doesn't commit to full DMAIC alignment. Investigation and Sustainment stay native. Lowest commitment-to-positioning-shift.
+
+**Possible directions:**
+
+- **Promote to a positioning / vocabulary design session.** Pair the conversation with the JTBD-shape finding (Lead JTBD is lifecycle-framed vs activity-framed) — both go to the heart of _"what is VariScout's voice and stance?"_ Decide consciously whether `feedback_drop_methodology_bridges` still holds under the wedge V1 ICP sharpening.
+- **Or take the partial Explore rename** as a clarity fix that doesn't commit positioning-wise. Update `ia-nav-model.md`, `personas/*.md`, `USER-JOURNEYS.md`, i18n keys (`workspace.analyze` → `workspace.explore`), and walkthrough HTML. Defer Investigation→Analyze and Sustainment→Control to the positioning session.
+- **L1 vision cross-check.** Whatever's decided, `docs/01-vision/product-overview.md` + positioning copy + marketing materials should reflect it consistently. Vocabulary debt across L1/L2/L3 is what creates the current "we say one thing in spec, another in UI" muddle.
+
+**Promotion path:** Should NOT be a quick rename. Promote to a vocabulary design session (companion to tasks #11 + #12 — same shape: customer-hat reading caught a finding that's deeper than a label fix). Possibly merge into a single "wedge V1 substrate cleanup design session" covering tab names + JTBD shape + Project=IP terminology, since all four findings from today's walkthrough are vocabulary/conceptual-model at root.
+
+**Severity:** **vision violation** — tab labels are the most visible vocabulary surface in the entire product. Wrong choice compounds with every customer demo, every marketing page, every onboarding doc, every CoScout prompt that references "the Analyze tab." Right choice creates immediate clarity for the wedge V1 ICP. This is the highest-leverage naming decision in the wedge V1 surface area.
+
+**Meta-note:** fourth structural finding from today's walkthrough; fourth one the 5-lens audit missed. Pattern is now unambiguous — customer-hat reading is a _qualitatively different_ validation activity from audit-style consistency checking. Audits validate the corpus is internally consistent with itself; customer-hat reading validates the corpus is internally consistent with how a real buyer thinks. Both are needed; today's audit covered only the first.
+
+---
+
+### Project = ImprovementProject in code; docs still use legacy "IP promoted from hypothesis" framing
+
+**Surfaced by:** 2026-05-26 customer-hat walkthrough session — user reacting to the active-IP cascade section: _"is this really the right framing of an active improvement project? … improvement project is like lss gb project etc. so once we formalize an investigation into a project and then we would like in the end to improve the process, right?"_
+
+**Description:** The journey docs frame "Project" and "Improvement Project (IP)" as two distinct things, with IP described as _"promoted from a validated hypothesis"_ and Project as the container that holds at-most-one-active-IP. **The code disagrees.** `ImprovementProject` in `packages/core/src/improvementProject/types.ts:93` is a single entity that carries everything an LSS Green Belt project file holds — title, business case, financial impact, members (Lead/Member/Sponsor), goal (outcome + factor controls + mechanism), background section, investigation lineage (hypothesisIds, findingIds), approach (improvement ideas, action items), outcome reference (Sustainment + control handoff), signoff. Status enum (`draft → active → closed`) maps directly to the lifecycle Charter / Approach / Sustainment. The wedge V1 intent (`project_wedge_v1` memory) is **one Project per Hub 1:1; Project = ImprovementProject; created via Charter ceremony, not via hypothesis promotion**. Hypotheses are _inside_ the project (in `sections.investigationLineage.hypothesisIds`), not parent to it. The doc framing inverts the relationship.
+
+**Evidence:**
+
+- Code: `packages/core/src/improvementProject/types.ts:93–110` — `ImprovementProject` extends EntityBase with hubId (1:1), status (Charter/Approach/Sustainment lifecycle), metadata.members (wedge V1 roster), goal, sections (background/investigationLineage/approach/outcomeReference), signoff. Investigation lineage stores hypothesis IDs _inside_ the project, confirming hypotheses are children of the project, not parents.
+- Legacy store shape: `packages/stores/src/improvementProjectStore.ts:8` — `projectsByHub: Record<HubId, ImprovementProject[]>` (list per hub) is the pre-wedge "multiple IPs per Hub" model. The wedge V1 commits to 1:1 per `project_sdd_architectural_findings` memory and `project_wedge_v1` — _"each Project wraps one internal Hub 1:1; … `projectsByHub: Record<ProcessHubId, ImprovementProject[]>` flagged as legacy holdover; spec §6 commits to re-keying by `ProjectId` for project-scoped state."_ Re-keying is committed but not done.
+- Doc legacy framing: `docs/02-journeys/ia-nav-model.md:79–92` — _"An active IP is an Improvement Project the Lead has promoted from a validated hypothesis. At most one IP is active per Project at a time."_ Both clauses are wrong: (a) IPs are created via Charter ceremony, not hypothesis promotion; (b) "at most one IP per Project" implies Project ⊃ IP nesting, which contradicts the 1:1 wedge V1 intent.
+- Lead journey reinforces the muddle: `docs/02-journeys/personas/lead.md:55–56` — _"Promote validated hypothesis → Active IP. Active-IP cascade lights up downstream tabs."_ Same inverted relationship.
+- Active-IP store: `packages/stores/src/activeIPStore.ts:8,18,23` — tracks one `ipId` per `(hubId, userId)` scope. This is **project selection**, not a downstream cascade artifact. Naming it "active IP" obscures that it's just "which Project is the user currently focused on."
+
+**Doc claim vs reality:**
+
+- Doc: Project and IP are different concepts; IP is a sub-unit promoted from a validated hypothesis; multiple IPs can exist within a Project (at most one active).
+- Reality (code + wedge intent): Project = ImprovementProject. One entity. Created by Charter ceremony. One per Hub 1:1. Hypotheses live _inside_ it. "Active IP" is just project selection — which Project the user is currently focused on.
+
+**Possible directions:**
+
+- **Rename and reframe "active-IP cascade" → "active Project context"** in `ia-nav-model.md`. Explain it as project selection (user has multiple Projects, picks one, verb tabs scope to it), not a downstream-from-hypothesis cascade.
+- **Fix the "promoted from validated hypothesis" framing** in `ia-nav-model.md` and `personas/lead.md`. Replace with "elevated into a Project via Charter" or similar — Charter creates the Project; hypotheses are investigated inside it.
+- **Drop "IP" as a separate user-facing term.** Use "Project" everywhere. Reserve "ImprovementProject" / "IP" for code-internal type names with a JSDoc note: _"ImprovementProject is the typed name for what the UI calls a Project."_
+- **Complete the store re-key** (separate PR — actual code change): migrate `projectsByHub: Record<HubId, IP[]>` → `projectsById: Record<ProjectId, ImprovementProject>` per the deferred wedge spec §6 commitment. This is the actual structural fix; the doc fixes propagate from it.
+- **Cross-check L1 vision docs** — `docs/01-vision/product-overview.md` and positioning copy — for the same Project-vs-IP muddle. The market-facing copy should consistently say "improvement project."
+
+**Promotion path:** Two PRs. (1) Doc-only PR: terminology cleanup across `ia-nav-model.md`, `personas/lead.md`, `personas/index.md`, `USER-JOURNEYS.md`, plus the walkthrough HTML. Lands quickly. (2) Code PR: complete the `projectsByHub → projectsById` re-key per wedge spec §6 commitment. This is the structural fix that closes out the wedge V1 migration. May want a brainstorm session before locking the re-key scope (companion to tasks #11 + #12 — same pattern of "doc-flagged finding has code structural debt underneath").
+
+**Severity:** **vision violation** — the IP-vs-Project muddle distorts the mental model at the heart of the product. Every customer conversation, every onboarding doc, every roadmap discussion has to navigate "is this thing a Project or an IP?" The wedge V1 amendment intended to collapse the two (one Project = one IP); the docs and store shape haven't followed. This is exactly the kind of conceptual debt that compounds: every new feature touches the IP/Project surface and inherits the ambiguity. Touching it now (before more engineering builds on the muddle) is much cheaper than fixing it after.
+
+**Meta-note:** the 2026-05-26 5-lens audit did not catch this either. The lenses validated wedge V1 surface alignment (7 tabs ✓, 3 stages ✓, 3 personas ✓) but never questioned the conceptual model below the surface. This is the third structural finding the customer-hat walkthrough has surfaced that the audit missed (after mode-1 invisibility and Lead JTBD shape). The pattern is consistent: audits check that what's documented matches what's coded; only customer-perspective reading checks that what's documented is the _right thing_ to document. Reinforces `feedback_audit_findings_need_design_triage` — audits inherit the corpus's blind spots.
+
+---
+
+### Lead JTBD is lifecycle-framed; should be activity-framed (analyst craft, not project management)
+
+**Surfaced by:** 2026-05-26 customer-hat walkthrough session — user reacting to Lead's JTBD section: _"jobs to be done, we have actually a few, framing yes, then i want to do the drill down and understand the different causes and hypothesis can be used in that, as well as the regression things etc. and we also have the improvement actions, and thinking about those with team."_
+
+**Description:** The Lead persona JTBD in `docs/02-journeys/personas/lead.md` is structured as **one master goal + three supporting jobs**, with the master goal being lifecycle management (_"drive a Project through Charter → Approach → Sustainment"_). The customer-hat reading names **three to four distinct first-class jobs**, with the lifecycle as a structural container rather than the JTBD itself: (1) frame the problem, (2) drill / hypothesis-test / regression to find contributions, (3) design + commit improvement actions with the team, (4) verify the fix via Sustainment. The current framing optimizes for _"did we finish the project properly?"_; the restructured framing optimizes for _"did we get the analysis right + commit good actions?"_ — closer to how a real Black Belt or CI engineer would describe what they're hiring VariScout for.
+
+**Evidence:**
+
+- Current Lead JTBD: `docs/02-journeys/personas/lead.md:23–31` — master JTBD is lifecycle-shaped; supporting bullets compress framing / hypothesis / Sustainment into helper roles under "drive the lifecycle".
+- Member JTBD already activity-shaped (`personas/member.md:25–33`): _"contribute hypothesis evidence, measurement plan rows, or action items"_ — three distinct activities. Member is fine.
+- Sponsor JTBD lifecycle-shaped (`personas/sponsor.md:25–34`) but Sponsor's actual work is narrow enough (approve / review / sign off) that lifecycle framing fits. Sponsor is fine.
+- Activity surface is real in the product: regression / factor intelligence (best-subsets R²adj per `packages/core/CLAUDE.md` strategy section + ADR-067) is a first-class analytical tool the JTBD doesn't surface; collaborative ideation under Improve tab (`<ImprovementWorkspaceBase>`, PR-WV1-2) is the team-thinking surface the current JTBD elides.
+
+**Doc claim vs reality:** Doc frames the Lead JTBD as project-management work. Reality: the Lead is doing analyst-craft work (framing → drilling → designing actions → verifying), and the lifecycle is the container that holds those jobs. The lifecycle framing risks under-surfacing the analytical depth (regression, factor intelligence, hypothesis primitives) that's actually what differentiates VariScout from project-management tools.
+
+**Possible directions:**
+
+- **Restructure Lead JTBD** to name 3–4 first-class jobs (Frame / Drill / Improve-with-team / Verify) with the lifecycle named as the container, not the JTBD itself. Each job gets a "When I… I want to… so I can…" statement.
+- **Resurface analytical primitives** in the Lead journey narrative — explicitly mention regression / best-subsets / factor intelligence as part of the Drill job, not buried in supporting feature touch-points.
+- **Promote "thinking with the team"** from a Member-side concern to a Lead-side first-class job — collaborative ideation is a verb the Lead drives, not just a Member contribution surface.
+- **Consider whether the L1 buyer persona (Improvement Specialist) JTBD** in `docs/01-vision/product-overview.md` has the same shape problem; if it's also lifecycle-framed, the restructure should propagate up.
+
+**Promotion path:** Doc-only PR touching `docs/02-journeys/personas/lead.md` + possibly `docs/01-vision/product-overview.md`. Should be paired with a walkthrough-HTML refresh so future customer-hat sessions render the restructured JTBD. NOT a design session — the analytical primitives the user named (regression, hypothesis, Improvement actions, team collaboration) all exist in the product; this is journey-doc framing, not unresolved design.
+
+**Severity:** **vision violation** — JTBD framing shapes every downstream product decision (where to invest, what to surface, how to position). Lifecycle-framed JTBD risks positioning VariScout as a project-management tool when the actual differentiation is analyst-craft depth. This is the kind of frame-level mistake that distorts roadmap decisions over months.
+
+**Meta-note:** the 2026-05-26 5-lens audit did not catch this — Lens B audited the persona ACL split (Lead/Member/Sponsor) and validated wedge alignment but never asked whether the JTBDs were the right _shape_. The audit lenses inherit the doc's own framing assumptions. Audits validate consistency-within-frame; they don't question the frame itself. Worth keeping in mind when scoping future audits — every lens has the corpus's blind spots built into its scope.
+
+---
+
+### L2 journey corpus silent on wedge spec mode-1 (quick-analyze) workflow
+
+**Surfaced by:** 2026-05-26 customer-hat walkthrough session — user reading the active-IP cascade section of the rendered journey walkthrough caught it: _"we have also the case when we have just data, which needs to be analyzed."_
+
+**Description:** Wedge spec §3.0 commits to **two first-class modes**: (1) quick-analyze with no Project required (paste data → Four Lenses → optional Findings/Hypotheses, served by PWA session-only + Azure persistent), and (2) project-anchored investigation with Charter ceremony, lifecycle, and ACLs. The L2 journey corpus only documents mode 2. Mode 1 — the PWA free-tier evaluation onramp that the L1 Improvement Specialist buyer persona enters through — has no journey representation.
+
+**Evidence:**
+
+- Spec commits to both modes: `docs/superpowers/specs/2026-05-16-wedge-architecture-design.md` §3.0 (lines 76–87) — _"V1 serves two distinct workflows, both as primary use cases… Tenant users can paste data and analyze without ever creating a Project."_
+- Lead journey opens with Project: `docs/02-journeys/personas/lead.md:46–47` — _"Open VariScout (project list) → Create / select Project (Charter)."_
+- Member journey assumes invitation: `docs/02-journeys/personas/member.md:48` — _"see Projects I'm in."_
+- Sponsor journey same: `docs/02-journeys/personas/sponsor.md:49` — _"see Projects I sponsor."_
+- IA nav model locks cascade to post-Charter mode: `docs/02-journeys/ia-nav-model.md:79–92` — _"An active IP is an Improvement Project the Lead has promoted from a validated hypothesis."_ No acknowledgement of the pre-Project state.
+- Use cases mode-ambiguous: `docs/02-journeys/use-cases/{bottleneck-analysis,batch-consistency}.md` describe Finding capture + Hypothesis creation but never specify mode-1 vs mode-2 context.
+- Persona index: `docs/02-journeys/personas/index.md` lists three personas but doesn't note they only apply post-Promote-to-Project.
+- Canonical L2 anchor: `docs/USER-JOURNEYS.md` — no pre-Project journey section.
+
+**Doc claim vs reality:** Wedge spec promises two first-class modes. L2 corpus documents one (mode 2). Mode 1 — the actual evaluation onramp for new users — is invisible to anyone reading the journey corpus.
+
+**Possible directions:**
+
+- Add a **Quick Analyze (no Project)** journey to `docs/02-journeys/` as a sibling to the three persona journeys, explicitly marked as role-less and Project-less. Sequence: Home (paste data / open sample) → Process (optional process map) → Analyze (Four Lenses, create Findings) → Investigation (cluster into Hypotheses, optional) → **+ Promote to Project** bridge — Charter inherits Hub state (data, outcome, factors, process map, Findings, Hypotheses, viewport).
+- Add a preamble to `docs/USER-JOURNEYS.md` + `docs/02-journeys/personas/index.md`: _"The three personas below apply once a Project exists. Pre-Project quick-analyze flow → see [link to new journey]."_
+- Add a precondition note to `ia-nav-model.md` active-IP cascade section: _"The cascade applies once a Project exists with an active IP. Pre-Project state has no IP and no cascade — every tab operates on the current Hub directly."_
+- Annotate the two existing use-cases to specify which mode the narrative starts in (or show the bridge: starts in mode 1, promotes to mode 2 at the Hypothesis step).
+- Update the walkthrough artifact (`/tmp/variscout-walkthrough.html`) to render the Quick Analyze panel alongside the three personas.
+
+**Promotion path:** Doc-only PR touching ~5–6 files in `docs/02-journeys/` + `docs/USER-JOURNEYS.md`. Pair with a walkthrough-HTML refresh so future customer-hat sessions render both modes. Should NOT be promoted to a design session — mode 1 is already specified in the wedge spec; this is journey-doc propagation, not unresolved design.
+
+**Severity:** **vision violation** — mode 1 is the PWA free-tier evaluation onramp (the entry point for the canonical "Improvement Specialist" buyer persona per L1). Hiding it in L2 means the journey corpus implicitly optimizes for post-purchase mode 2 while the actual buyer evaluates in mode 1. Every "is X discoverable?" sanity-check downstream of this corpus has been implicitly mode-2-oriented — including today's 5-lens audit, which never asked whether the quick-analyze flow was documented at all.
+
+---
+
 ### Pinning Findings: PWA wires at App root, Azure wires via Editor + orchestration hook
 
 **STATUS 2026-05-26 — doc-half closed:** per-app persistence note added to `docs/02-journeys/use-cases/{bottleneck-analysis,batch-consistency}.md` and to feature-parity Sustainment + Investigation Wall rows. Architectural convergence (lift `useFindingsOrchestration` into `packages/hooks/` so both apps share one orchestrator) remains open — that's the code-half. Keeping this entry open until the hook convergence decision lands or is explicitly deferred.
