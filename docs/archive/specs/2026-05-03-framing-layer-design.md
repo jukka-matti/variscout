@@ -4,10 +4,11 @@ purpose: remember
 title: VariScout Framing Layer — Hub Creation, Data Ingestion, and Investigation Entry
 audience: human
 category: design-spec
-status: active
-last-reviewed: 2026-05-04
+status: archived
+last-reviewed: 2026-05-26
 related:
-  - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
+  - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
+  - docs/07-decisions/adr-082-wedge-architecture.md
   - docs/decision-log.md
   - docs/glossary.md
   - docs/07-decisions/adr-059-web-first-deployment-architecture.md
@@ -18,6 +19,8 @@ layer: spec
 ---
 
 # VariScout Framing Layer
+
+> **Archived 2026-05-26 under wedge V1 (ADR-082).** Slices 1–3 delivered (Mode B Stages 1–3, canvas first paint, Mode A.1 reopen, PWA opt-in IndexedDB persistence, `.vrs` export/import, A.2-paste match-summary card, multi-source via shared keys + per-row provenance, Stage 5 modal). Slice 4 partial-delivered: §9 defect anchoring + canvas Pareto + Y-adapts-to-mode primitives shipped (`StepDefectIndicator`, `useCanvasFilters`, `CanvasFilterChips`, `ScopeFilter` type, `setScopeFilter` in `CanvasWorkspace`); §9.2 per-step mini-Pareto mounting and the Pareto-bar-click → `StageFiveModal` chain were **retired as unwired scaffolding** (see commit `748fa382`) — wedge V1's 3 canvas response paths trigger from canvas L2→L3, not from chart bar-clicks. See [wedge V1 spec](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) §3.3.4 for the response-path model that supersedes the slice-4 chain. The remaining shipped surfaces are live in production; future "investigation-bound canvas-filter mount" work, if ever needed, must be re-designed under the wedge response-path model rather than reviving this spec.
 
 > **First of five canvas-detail specs** decomposed from the 2026-05-03 vision §8 walkthrough. Covers Hub creation, data ingestion, and investigation entry — everything _before_ canvas authoring proper. Inherits the 12 locked decisions from the §8 resolution. Sibling specs (deferred): Spec 2 manual canvas authoring, Spec 3 cards / drill-down / mode lenses, Spec 4 canvas overlays + Wall sync, Spec 5 IndexedDB persistence schema.
 
