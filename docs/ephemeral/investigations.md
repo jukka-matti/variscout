@@ -375,6 +375,8 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 
 ### P2.5 deferral: per-step mini-Pareto chips on LayeredProcessView step cards
 
+**STATUS: archived 2026-05-26.** Retired under wedge V1 (ADR-082). `useStepDefectPareto` deleted in commit `748fa382` (no production consumer; only its own tests). `StepDefectIndicator` retained — `CanvasStepCard` already uses it directly. Per-step mini-Pareto on `ProcessMapBase` nodes was a slice-4 idea that doesn't map to wedge V1's canvas L2→L3 response-path model; if needed later, re-design under wedge response paths rather than reviving this entry. See `docs/decision-log.md` §1 "Framing Layer slice 4 archive" 2026-05-26.
+
 **Surfaced by:** slice 4 task P2.5, 2026-05-04 (branch `framing-layer-v1-slice-4`).
 
 **Description:** Slice 4 ships `useStepDefectPareto` (data hook) and `StepDefectIndicator` (visual primitive) but defers visual mounting onto `ProcessMapBase` nodes / tributary chips. The Operations band currently shows `ProductionLineGlanceDashboard` (a 2×2 grid with a `StepErrorPareto` slot) — feeding `useStepDefectPareto` output into `errorSteps` is the simplest mounting path and can be done without node-rendering surgery. Per-node-card chip mounting requires `ProcessMapBase` to expose an injectable slot per node, which is out of slice 4 budget. Spec acceptance §9.2 "per-step mini-Pareto" is considered partially met by the data + primitive availability.
@@ -390,6 +392,8 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 ---
 
 ### Canvas-filter app-level integration + E2E (slice 4 P3.6 / P4.2 / P4.3 follow-up)
+
+**STATUS: archived 2026-05-26.** Retired under wedge V1 (ADR-082). `ParetoMakeScopeButton` + `onMakeInvestigationScope` + `onScopeFilterClick` deleted in commit `748fa382` — PWA + Azure never passed the callbacks, so the chain was unreachable. Wedge V1 §3.3.4 commits to 3 canvas response paths (Investigate / Quick Action / Charter) triggering from canvas L2→L3 — NOT from chart bar-clicks, so the Pareto→Stage5 chain doesn't map. `useCanvasFilters` + `useSessionCanvasFilters` + `CanvasFilterChips` + `ScopeFilter` type are retained — they have live consumers in `CanvasWorkspace`. The "promotion path" note below (about a future "wire canvas-filter writers" PR) is retired. See `docs/decision-log.md` §1 "Framing Layer slice 4 archive" 2026-05-26.
 
 **Surfaced by:** slice 4 tasks P3.6, P4.2, P4.3, 2026-05-04 (branch `framing-layer-v1-slice-4`).
 

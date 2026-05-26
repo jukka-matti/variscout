@@ -825,10 +825,6 @@ export type { JoinKeySuggestionProps } from './components/MatchSummaryCard/JoinK
 export { CanvasFilterChips } from './components/CanvasFilterChips';
 export type { CanvasFilterChipsProps } from './components/CanvasFilterChips';
 
-// Pareto make-scope button (framing layer — scope-to-investigation affordance, spec §9.2)
-export { ParetoMakeScopeButton, buildIssueStatement } from './components/ParetoMakeScopeButton';
-export type { ParetoMakeScopeButtonProps } from './components/ParetoMakeScopeButton';
-
 export { LogActionModal, RecentActivityPanel } from './components/QuickAction';
 export type {
   LogActionModalProps,
