@@ -10,7 +10,7 @@ const baseIP: ImprovementProject = {
   deletedAt: null,
   status: 'draft',
   metadata: { title: 'X' },
-  goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 } },
+  goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
   sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
 };
 

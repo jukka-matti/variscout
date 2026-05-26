@@ -502,9 +502,9 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     // UPDATE applies the deep-merge contract documented on
     // `improvementProjectActions.ts`:
     //   - objects shallow-merge one level (metadata, goal, signoff)
-    //   - nested metadata.financialImpact + goal.outcomeGoal also shallow-merge
+    //   - nested metadata.financialImpact also shallow-merges
     //   - sections shallow-merge per sub-section key (missing keys preserved)
-    //   - all arrays REPLACE wholesale
+    //   - all arrays REPLACE wholesale (including goal.outcomeGoals)
     //   - id, createdAt, hubId, deletedAt, updatedAt are not caller-controllable
     //   - updatedAt is set by THIS handler to Date.now()
     // -----------------------------------------------------------------------
@@ -544,9 +544,8 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
           ? {
               ...existing.goal,
               ...patch.goal,
-              ...(patch.goal.outcomeGoal
-                ? { outcomeGoal: { ...existing.goal.outcomeGoal, ...patch.goal.outcomeGoal } }
-                : {}),
+              // outcomeGoals[] replaces wholesale (consistent with other arrays).
+              outcomeGoals: patch.goal.outcomeGoals ?? existing.goal.outcomeGoals,
             }
           : existing.goal,
         sections: patch.sections

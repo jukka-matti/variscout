@@ -12,7 +12,7 @@ const baseIP: ImprovementProject = {
   deletedAt: null,
   status: 'draft',
   metadata: { title: 'X' },
-  goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 } },
+  goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
   sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
 };
 
@@ -25,7 +25,7 @@ describe('CharterOverview', () => {
   it('shows Goal as pending when outcomeSpecId empty and target falsy', () => {
     const ip: ImprovementProject = {
       ...baseIP,
-      goal: { outcomeGoal: { outcomeSpecId: '', target: 0 } },
+      goal: { outcomeGoals: [{ outcomeSpecId: '', target: 0 }] },
     };
     render(<CharterOverview ip={ip} onOpenInvestigation={() => {}} onOpenAnalyze={() => {}} />);
     expect(screen.getByTestId('kpi-goal')).toHaveTextContent(/not yet set/i);

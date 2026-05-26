@@ -7,11 +7,11 @@ import type { ImprovementProject } from '../improvementProject';
  * `IMPROVEMENT_PROJECT_UPDATE` deep-merges the patch into the existing entity:
  *   - objects shallow-merge one level: `metadata`, `goal`, `signoff`, and the
  *     four `sections` are independently shallow-merged when supplied.
- *   - nested objects inside `metadata` (`financialImpact`) and `goal` (`outcomeGoal`)
- *     also shallow-merge if both sides are present.
+ *   - nested object `metadata.financialImpact` also shallow-merges if both
+ *     sides are present.
  *   - all arrays REPLACE wholesale: callers pass the full new value for
- *     `metadata.members[]`, `goal.factorControls[]`, `goal.mechanismGoals[]`, and
- *     all FK arrays inside `sections.*`.
+ *     `metadata.members[]`, `goal.outcomeGoals[]`, `goal.factorControls[]`,
+ *     `goal.mechanismGoals[]`, and all FK arrays inside `sections.*`.
  *   - `id`, `createdAt`, `hubId` are immutable (excluded from patch typing).
  *   - `updatedAt` is set to `Date.now()` by the persistence handler, not by the caller.
  *   - `deletedAt` is managed exclusively by `IMPROVEMENT_PROJECT_ARCHIVE`; supplying it

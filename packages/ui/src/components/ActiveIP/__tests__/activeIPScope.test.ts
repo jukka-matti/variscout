@@ -44,7 +44,7 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
     deletedAt: null,
     status: 'active',
     metadata: { title: 'Lift fill Cpk' },
-    goal: { outcomeGoal: { outcomeSpecId: 'outcome-weight', target: 1.33 } },
+    goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-weight', target: 1.33 }] },
     sections: {
       background: {},
       investigationLineage: { hypothesisIds: ['h-1'], findingIds: ['f-1'] },
@@ -60,7 +60,7 @@ describe('activeIPScope', () => {
     const labels = deriveActiveIPScopeLabels(
       makeIP({
         goal: {
-          outcomeGoal: { outcomeSpecId: 'outcome-weight', target: 1.33 },
+          outcomeGoals: [{ outcomeSpecId: 'outcome-weight', target: 1.33 }],
           factorControls: [{ factor: 'Head', targetCondition: '5-8' }],
         },
       }),
@@ -79,7 +79,7 @@ describe('activeIPScope', () => {
       deriveActiveIPCanvasFocus(
         makeIP({
           goal: {
-            outcomeGoal: { outcomeSpecId: 'outcome-weight', target: 1.33 },
+            outcomeGoals: [{ outcomeSpecId: 'outcome-weight', target: 1.33 }],
             factorControls: [{ factor: 'Head', targetCondition: '5-8' }],
           },
         }),
@@ -90,7 +90,7 @@ describe('activeIPScope', () => {
       deriveActiveIPCanvasFocus(
         makeIP({
           goal: {
-            outcomeGoal: { outcomeSpecId: 'outcome-weight', target: 1.33 },
+            outcomeGoals: [{ outcomeSpecId: 'outcome-weight', target: 1.33 }],
             mechanismGoals: [{ description: 'Stabilize fill valve' }],
           },
         }),

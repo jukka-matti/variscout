@@ -45,7 +45,8 @@ const ApproachOverview: React.FC<ApproachOverviewProps> = ({
             Goal · Y
           </div>
           <div className="mt-1 font-mono text-sm text-content">
-            {ip.goal.outcomeGoal.baseline ?? '—'} → {ip.goal.outcomeGoal.target}
+            {/* Legacy first-outcome read — multi-outcome KPI is a later phase (PR-CCJ-C1). */}
+            {ip.goal.outcomeGoals[0]?.baseline ?? '—'} → {ip.goal.outcomeGoals[0]?.target ?? '—'}
           </div>
         </div>
         <div className="rounded-md border border-edge p-3">
@@ -58,7 +59,10 @@ const ApproachOverview: React.FC<ApproachOverviewProps> = ({
           <div className="text-[10px] font-semibold uppercase tracking-wide text-content-tertiary">
             Next milestone
           </div>
-          <div className="mt-1 text-xs text-content">{ip.goal.outcomeGoal.deadline ?? '—'}</div>
+          <div className="mt-1 text-xs text-content">
+            {/* Legacy first-outcome read — multi-outcome UI is later phases (Spec 2 §3.2.2 / PR-CCJ-C1). */}
+            {ip.goal.outcomeGoals[0]?.deadline ?? '—'}
+          </div>
         </div>
       </div>
 

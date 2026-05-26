@@ -53,9 +53,8 @@ function mergeProjectPatch(
       ? {
           ...project.goal,
           ...patch.goal,
-          ...(patch.goal.outcomeGoal
-            ? { outcomeGoal: { ...project.goal.outcomeGoal, ...patch.goal.outcomeGoal } }
-            : {}),
+          // outcomeGoals[] replaces wholesale (consistent with other arrays in the contract).
+          outcomeGoals: patch.goal.outcomeGoals ?? project.goal.outcomeGoals,
         }
       : project.goal,
     signoff: patch.signoff ? { ...(project.signoff ?? {}), ...patch.signoff } : project.signoff,

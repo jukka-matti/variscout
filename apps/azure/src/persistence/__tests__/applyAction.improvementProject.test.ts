@@ -13,8 +13,8 @@
 //   1. CREATE inserts the project row into db.improvementProjects
 //   2. CREATE with a missing hub throws (loud failure)
 //   3. UPDATE metadata-only — deep-merge preserves non-supplied metadata keys
-//   4. UPDATE goal-only — outcomeGoal shallow-merge preserves outcomeSpecId;
-//      factorControls array replaces wholesale
+//   4. UPDATE goal-only — outcomeGoals[] replaces wholesale (per the deep-merge
+//      contract amendment in PR-CCJ-A3); factorControls[] also replaces wholesale
 //   5. UPDATE sections — partial supply preserves other sub-section keys and
 //      shallow-merges the supplied sub-section
 //   6. UPDATE sets updatedAt to Date.now() (timing-safe)
@@ -66,10 +66,12 @@ function makeProject(
       title: 'Default Title',
     },
     goal: {
-      outcomeGoal: {
-        outcomeSpecId: 'out-default',
-        target: 1.33,
-      },
+      outcomeGoals: [
+        {
+          outcomeSpecId: 'out-default',
+          target: 1.33,
+        },
+      ],
     },
     sections: {
       background: {},
@@ -151,11 +153,11 @@ describe('applyAction (Azure) — IMPROVEMENT_PROJECT_UPDATE', () => {
     expect(row?.metadata).toEqual({ title: 'B', businessCase: 'orig' });
   });
 
-  it('goal-only patch: outcomeGoal preserved; factorControls replaces wholesale', async () => {
+  it('goal-only patch: outcomeGoals[] + factorControls[] both replace wholesale', async () => {
     await db.processHubs.put(makeHub('hub-3'));
     const project = makeProject('proj-3', 'hub-3', {
       goal: {
-        outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 },
+        outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }],
       },
     });
     await applyAction({ kind: 'IMPROVEMENT_PROJECT_CREATE', hubId: 'hub-3', project });
@@ -165,14 +167,14 @@ describe('applyAction (Azure) — IMPROVEMENT_PROJECT_UPDATE', () => {
       projectId: 'proj-3',
       patch: {
         goal: {
-          outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 }, // same outcomeGoal
+          outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }], // same outcomes list
           factorControls: [{ factor: 'X', targetCondition: '95±2' }],
         },
       },
     });
 
     const row = await db.improvementProjects.get('proj-3');
-    expect(row?.goal.outcomeGoal.outcomeSpecId).toBe('o-1');
+    expect(row?.goal.outcomeGoals).toEqual([{ outcomeSpecId: 'o-1', target: 1.33 }]);
     expect(row?.goal.factorControls).toEqual([{ factor: 'X', targetCondition: '95±2' }]);
   });
 

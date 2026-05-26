@@ -13,7 +13,7 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
     hubId: 'hub-1',
     status: 'active',
     metadata: { title: 'Heads 5-8 Cpk shortfall' },
-    goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', target: 1.33 } },
+    goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
     sections: {
       background: {},
       investigationLineage: {},

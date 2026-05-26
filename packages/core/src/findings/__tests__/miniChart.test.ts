@@ -107,7 +107,7 @@ const ip = (overrides: Partial<ImprovementProject> = {}): ImprovementProject =>
     status: 'active',
     metadata: { title: 'Fill Cpk lift', investigationId: 'inv-1' },
     goal: {
-      outcomeGoal: { outcomeSpecId: 'fill', target: 1.33 },
+      outcomeGoals: [{ outcomeSpecId: 'fill', target: 1.33 }],
       factorControls: [],
     },
     sections: {
@@ -127,7 +127,7 @@ describe('deriveIPReportMiniChartType', () => {
     const chartType = deriveIPReportMiniChartType({
       ip: ip({
         goal: {
-          outcomeGoal: { outcomeSpecId: 'fill', target: 1.33 },
+          outcomeGoals: [{ outcomeSpecId: 'fill', target: 1.33 }],
           factorControls: [
             { factor: 'nozzle.temp', targetCondition: '95±2°C', linkedHypothesisId: 'h1' },
           ],
@@ -156,7 +156,7 @@ describe('deriveIPReportMiniChartType', () => {
     const chartType = deriveIPReportMiniChartType({
       ip: ip({
         goal: {
-          outcomeGoal: { outcomeSpecId: 'fill', target: 1.33 },
+          outcomeGoals: [{ outcomeSpecId: 'fill', target: 1.33 }],
           mechanismGoals: [{ description: 'Nozzle wear', linkedFindingIds: ['f1'] }],
         },
       }),
@@ -185,7 +185,7 @@ describe('deriveIPReportMiniChartType', () => {
     const chartType = deriveIPReportMiniChartType({
       ip: ip({
         goal: {
-          outcomeGoal: { outcomeSpecId: 'fill', target: 1.33 },
+          outcomeGoals: [{ outcomeSpecId: 'fill', target: 1.33 }],
           mechanismGoals: [{ description: 'Nozzle wear', linkedFindingIds: ['f1'] }],
         },
       }),

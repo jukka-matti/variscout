@@ -29,7 +29,7 @@ const improvementProject = (overrides: Partial<ImprovementProject>): Improvement
     hubId: 'hub-1',
     status: 'closed',
     metadata: { title: 'Reduce mix temperature drift' },
-    goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', target: 1.33 } },
+    goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
     sections: {
       background: {},
       investigationLineage: {},

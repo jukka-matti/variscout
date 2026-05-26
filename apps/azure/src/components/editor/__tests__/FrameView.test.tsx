@@ -637,7 +637,7 @@ describe('FrameView (Azure shell)', () => {
             hubId: 'hub-1',
             status: 'closed',
             metadata: { title: 'Reduce rework' },
-            goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', target: 98 } },
+            goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 98 }] },
             sections: {
               background: {},
               investigationLineage: {},

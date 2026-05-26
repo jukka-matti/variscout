@@ -57,10 +57,12 @@ function makeProject(id: string, hubId: string, title: string): ImprovementProje
     status: 'draft',
     metadata: { title },
     goal: {
-      outcomeGoal: {
-        outcomeSpecId: 'outcome-1',
-        target: 1.33,
-      },
+      outcomeGoals: [
+        {
+          outcomeSpecId: 'outcome-1',
+          target: 1.33,
+        },
+      ],
     },
     sections: {
       background: {},
@@ -116,7 +118,9 @@ describe('ImprovementProjectPanel (Azure)', () => {
           status: 'draft',
           metadata: expect.objectContaining({ title: 'Improve First pass yield' }),
           goal: expect.objectContaining({
-            outcomeGoal: expect.objectContaining({ outcomeSpecId: 'outcome-1', target: 98 }),
+            outcomeGoals: expect.arrayContaining([
+              expect.objectContaining({ outcomeSpecId: 'outcome-1', target: 98 }),
+            ]),
           }),
         }),
       })

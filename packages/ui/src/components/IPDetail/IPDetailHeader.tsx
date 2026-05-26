@@ -30,8 +30,12 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
   const overflow = members.length - visible.length;
 
   const goalSummary = (() => {
-    const Ytarget = ip.goal.outcomeGoal.target;
-    const baseline = ip.goal.outcomeGoal.baseline;
+    // Legacy first-outcome read — multi-outcome header summary is a later phase
+    // (Spec 2 §3.2.2 / PR-CCJ-C1).
+    const first = ip.goal.outcomeGoals[0];
+    if (!first) return 'No outcome target';
+    const Ytarget = first.target;
+    const baseline = first.baseline;
     if (baseline !== undefined) {
       return `Lift outcome from ${baseline} → ${Ytarget}`;
     }

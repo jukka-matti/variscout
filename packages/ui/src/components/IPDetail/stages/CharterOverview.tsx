@@ -20,7 +20,9 @@ interface CharterOverviewProps {
 }
 
 function isGoalSet(ip: ImprovementProject): boolean {
-  return ip.goal.outcomeGoal.target > 0 && ip.goal.outcomeGoal.outcomeSpecId !== '';
+  // Legacy first-outcome check — multi-outcome KPI is a later phase (Spec 2 §3.2.2 / PR-CCJ-C1).
+  const first = ip.goal.outcomeGoals[0];
+  return !!first && first.target > 0 && first.outcomeSpecId !== '';
 }
 
 const CharterOverview: React.FC<CharterOverviewProps> = ({
@@ -78,7 +80,8 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
           </div>
           {goalSet ? (
             <div className="mt-1 font-mono text-sm text-content">
-              Target {ip.goal.outcomeGoal.target}
+              {/* Legacy first-outcome read — multi-outcome UI is later phases (Spec 2 §3.2.2 / PR-CCJ-C1). */}
+              Target {ip.goal.outcomeGoals[0]?.target}
             </div>
           ) : (
             <>

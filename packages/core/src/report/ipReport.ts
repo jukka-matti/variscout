@@ -203,14 +203,17 @@ export function deriveIPCauseRows(input: {
           ip: input.ip,
           hypothesis,
           linkedFindings: causeFindings,
-          outcome: input.ip.goal.outcomeGoal.outcomeSpecId,
+          // Legacy first-outcome access — multi-outcome report rendering is a later phase
+          // (Spec 2 §3.2.2 / PR-CCJ-C1).
+          outcome: input.ip.goal.outcomeGoals[0]?.outcomeSpecId ?? '',
         }),
       };
     });
 }
 
 function goalItems(ip: ImprovementProject): string[] {
-  const items = [`Outcome target: ${ip.goal.outcomeGoal.target}`];
+  // Multi-outcome aware: one "Outcome target: X" line per outcome.
+  const items = ip.goal.outcomeGoals.map(g => `Outcome target: ${g.target}`);
   for (const control of ip.goal.factorControls ?? []) {
     items.push(`${control.factor}: ${control.targetCondition}`);
   }
@@ -312,7 +315,11 @@ function capabilitySummary(
   projects: readonly ImprovementProject[]
 ): HubCapabilitySummary {
   if (projects.length === 0) return { kind: 'empty', label: 'No Improvement Projects yet' };
-  const outcomeSpecIds = unique(projects.map(project => project.goal.outcomeGoal.outcomeSpecId));
+  // Flatten the outcome-spec lists across all projects, then dedupe.
+  // Multi-outcome IPs contribute multiple spec ids; missing first entries are skipped.
+  const outcomeSpecIds = unique(
+    projects.flatMap(project => project.goal.outcomeGoals.map(g => g.outcomeSpecId))
+  );
   if (outcomeSpecIds.length === 1) {
     const outcome = hub.outcomes?.find(candidate => candidate.id === outcomeSpecIds[0]);
     return { kind: 'single-spec', label: outcome?.columnName ?? outcomeSpecIds[0] };

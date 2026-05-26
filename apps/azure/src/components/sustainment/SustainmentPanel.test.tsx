@@ -50,7 +50,7 @@ function makeProject(overrides: Partial<ImprovementProject> = {}): ImprovementPr
     status: 'closed',
     metadata: { title: 'Reduce defects', investigationId: 'inv-1' },
     goal: {
-      outcomeGoal: { outcomeSpecId: 'outcome-1', target: 98 },
+      outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 98 }],
       freeText: 'Hold first pass yield at 98%.',
     },
     sections: {
@@ -162,7 +162,7 @@ describe('SustainmentPanel (Azure)', () => {
       id: 'ip-second',
       metadata: { title: 'Second', investigationId: 'inv-2' },
       goal: {
-        outcomeGoal: { outcomeSpecId: 'outcome-2', target: 99 },
+        outcomeGoals: [{ outcomeSpecId: 'outcome-2', target: 99 }],
         freeText: 'Hold the second target.',
       },
     });

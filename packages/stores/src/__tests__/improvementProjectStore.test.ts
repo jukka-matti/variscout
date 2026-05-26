@@ -12,10 +12,12 @@ function makeProject(id: string, hubId: string): ImprovementProject {
     status: 'draft',
     metadata: { title: `Project ${id}` },
     goal: {
-      outcomeGoal: {
-        outcomeSpecId: `outcome-${id}`,
-        target: 1.33,
-      },
+      outcomeGoals: [
+        {
+          outcomeSpecId: `outcome-${id}`,
+          target: 1.33,
+        },
+      ],
     },
     sections: {
       background: {},

@@ -30,7 +30,7 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
         },
       ],
     },
-    goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', baseline: 0.8, target: 1.33 } },
+    goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', baseline: 0.8, target: 1.33 }] },
     sections: {
       background: { updatedAt: now - 7 * hour },
       investigationLineage: { hypothesisIds: ['hyp-1'], updatedAt: now - 6 * hour },

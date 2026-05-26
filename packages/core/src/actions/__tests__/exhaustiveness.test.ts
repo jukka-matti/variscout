@@ -180,7 +180,7 @@ describe('IMPROVEMENT_PROJECT actions', () => {
         deletedAt: null,
         status: 'draft',
         metadata: { title: 't' },
-        goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1 } },
+        goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1 }] },
         sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
         updatedAt: 0,
       },

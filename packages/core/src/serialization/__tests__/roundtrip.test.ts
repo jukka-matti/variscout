@@ -82,12 +82,14 @@ describe('vrs roundtrip — improvementProjects', () => {
       ],
     },
     goal: {
-      outcomeGoal: {
-        outcomeSpecId: 'outcome-1',
-        baseline: 0.91,
-        target: 1.33,
-        deadline: '2026-09-01',
-      },
+      outcomeGoals: [
+        {
+          outcomeSpecId: 'outcome-1',
+          baseline: 0.91,
+          target: 1.33,
+          deadline: '2026-09-01',
+        },
+      ],
       factorControls: [
         { factor: 'NOZZLE.TEMP', targetCondition: 'in control 95±2°C', linkedHypothesisId: 'h-1' },
       ],
@@ -113,7 +115,7 @@ describe('vrs roundtrip — improvementProjects', () => {
     deletedAt: null,
     status: 'draft',
     metadata: { title: 'Operator training' },
-    goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', target: 1.33 } },
+    goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
     sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
     updatedAt: 1_714_000_000_000,
   };
