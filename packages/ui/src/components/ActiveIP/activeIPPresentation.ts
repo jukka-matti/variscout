@@ -38,7 +38,9 @@ export function getIPUrgentLine(ip: ImprovementProject): string {
   const stage = getIPStageLabel(ip);
 
   if (stage === 'Charter') {
-    return ip.goal.outcomeGoal.target === undefined
+    // Legacy first-outcome check — multi-outcome activity copy is a later phase
+    // (Spec 2 §3.2.2 / PR-CCJ-C1).
+    return ip.goal.outcomeGoals[0]?.target === undefined
       ? 'Goal not yet set'
       : 'Pat awaiting Charter signoff';
   }
@@ -61,7 +63,7 @@ export function getIPRecentActivityFallback(ip: ImprovementProject, now = Date.n
   return [
     `${ip.metadata.title} opened · Day ${getIPDayCounter(ip, now)}`,
     `${stage} stage active · ${formatRelativeUpdatedAt(ip, now)}`,
-    `Target set to ${ip.goal.outcomeGoal.target} · current goal`,
+    `Target set to ${ip.goal.outcomeGoals[0]?.target ?? '—'} · current goal`,
   ];
 }
 

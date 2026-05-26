@@ -20,7 +20,7 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
       investigationId: 'inv-1',
     },
     goal: {
-      outcomeGoal: { outcomeSpecId: 'outcome-1', baseline: 0.8, target: 1.33 },
+      outcomeGoals: [{ outcomeSpecId: 'outcome-1', baseline: 0.8, target: 1.33 }],
       updatedAt: now - 8 * hour,
     },
     sections: {
@@ -159,7 +159,7 @@ describe('deriveIPActivityEvents', () => {
     const events = deriveIPActivityEvents({
       ip: makeIP({
         updatedAt: now - 5 * 60 * 1000,
-        goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', baseline: 0.8, target: 1.33 } },
+        goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', baseline: 0.8, target: 1.33 }] },
       }),
       now,
     });

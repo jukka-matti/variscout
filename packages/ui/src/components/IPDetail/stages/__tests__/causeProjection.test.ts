@@ -16,7 +16,7 @@ const ip: ImprovementProject = {
   status: 'active',
   metadata: { title: 'X' },
   goal: {
-    outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 },
+    outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }],
     factorControls: [
       { factor: 'NOZZLE.TEMP', targetCondition: 'in control 95±2°C', linkedHypothesisId: 'h-1' },
       { factor: 'VISCOSITY', targetCondition: 'in spec all lots', linkedHypothesisId: 'h-2' },

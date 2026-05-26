@@ -41,7 +41,7 @@ function makeIP(
     deletedAt: null,
     updatedAt: NOW,
     metadata: { title: id },
-    goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 } },
+    goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
     sections: {
       background: {},
       investigationLineage: {},

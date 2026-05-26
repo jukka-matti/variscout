@@ -14,7 +14,7 @@ function makeIP(id: string, title: string, updatedAt = now): ImprovementProject 
     deletedAt: null,
     status: 'active',
     metadata: { title },
-    goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 } },
+    goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
     sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
   };
 }

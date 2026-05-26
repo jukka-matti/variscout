@@ -24,8 +24,10 @@ interface ImprovementProjectPanelProps {
 type ProjectPatch = {
   status?: ImprovementProject['status'];
   metadata?: Partial<ImprovementProjectMetadata>;
-  goal?: Partial<Omit<ImprovementProjectGoal, 'outcomeGoal'>> & {
-    outcomeGoal?: Partial<ImprovementProjectOutcomeGoal>;
+  /** Goal patch: outcomeGoals[] replaces wholesale (no shallow-merge of array elements).
+   *  Consumers reconstruct the full list when applying a per-outcome edit. */
+  goal?: Partial<Omit<ImprovementProjectGoal, 'outcomeGoals'>> & {
+    outcomeGoals?: ImprovementProjectOutcomeGoal[];
   };
   sections?: Partial<ImprovementProject['sections']>;
   signoff?: Partial<ImprovementProjectSignoff>;
@@ -68,10 +70,12 @@ function buildDraftProject(hub: ProcessHub): ImprovementProject {
     status: 'draft',
     metadata: { title },
     goal: {
-      outcomeGoal: {
-        outcomeSpecId: firstOutcome?.id ?? `${hub.id}:draft-outcome`,
-        target: firstOutcome?.target ?? 1,
-      },
+      outcomeGoals: [
+        {
+          outcomeSpecId: firstOutcome?.id ?? `${hub.id}:draft-outcome`,
+          target: firstOutcome?.target ?? 1,
+        },
+      ],
       freeText: firstOutcome
         ? `Draft outcome target for ${firstOutcome.columnName}.`
         : 'Draft outcome target to define during framing.',
@@ -97,9 +101,9 @@ function mergeProjectPatch(project: ImprovementProject, patch: ProjectPatch): Im
       ? {
           ...project.goal,
           ...patch.goal,
-          outcomeGoal: patch.goal.outcomeGoal
-            ? { ...project.goal.outcomeGoal, ...patch.goal.outcomeGoal }
-            : project.goal.outcomeGoal,
+          // outcomeGoals[] replaces wholesale (consistent with factorControls[] /
+          // mechanismGoals[]) — see improvementProjectActions.ts JSDoc.
+          outcomeGoals: patch.goal.outcomeGoals ?? project.goal.outcomeGoals,
         }
       : project.goal,
     sections: patch.sections
@@ -131,9 +135,8 @@ function toRepositoryPatch(
       ? {
           ...project.goal,
           ...patch.goal,
-          outcomeGoal: patch.goal.outcomeGoal
-            ? { ...project.goal.outcomeGoal, ...patch.goal.outcomeGoal }
-            : project.goal.outcomeGoal,
+          // outcomeGoals[] replaces wholesale.
+          outcomeGoals: patch.goal.outcomeGoals ?? project.goal.outcomeGoals,
         }
       : undefined,
     signoff: patch.signoff ? { ...(project.signoff ?? {}), ...patch.signoff } : undefined,
@@ -292,16 +295,27 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
               updateSelectedProject({ metadata: { investigationId } }),
           }}
           goalProps={{
-            ...selectedProject.goal,
+            // Legacy first-outcome edit shape — GoalSection edits one outcome at a time;
+            // multi-outcome editor is later phases (Spec 2 §3.2.2 / PR-CCJ-C1).
+            outcomeGoal: selectedProject.goal.outcomeGoals[0],
+            freeText: selectedProject.goal.freeText,
+            factorControls: selectedProject.goal.factorControls,
+            mechanismGoals: selectedProject.goal.mechanismGoals,
             outcomeOptions: outcomes.map(outcome => ({
               id: outcome.id,
               label: outcome.columnName,
               target: outcome.target,
             })),
-            onOutcomeGoalChange: outcomeGoal =>
-              updateSelectedProject({
-                goal: { outcomeGoal },
-              }),
+            onOutcomeGoalChange: outcomeGoalPatch => {
+              const existing = selectedProject.goal.outcomeGoals[0] ?? {
+                outcomeSpecId: '',
+                target: 0,
+              };
+              // Rebuild the list, replacing the first outcome.
+              const merged = { ...existing, ...outcomeGoalPatch };
+              const nextGoals = [merged, ...selectedProject.goal.outcomeGoals.slice(1)];
+              updateSelectedProject({ goal: { outcomeGoals: nextGoals } });
+            },
             onFreeTextChange: freeText => updateSelectedProject({ goal: { freeText } }),
             onFactorControlsChange: factorControls =>
               updateSelectedProject({

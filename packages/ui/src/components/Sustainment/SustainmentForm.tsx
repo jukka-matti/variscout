@@ -72,7 +72,9 @@ function GoalCarryForward({ goal }: { goal?: ImprovementProjectGoal }) {
     return <p className="text-sm text-content/60">No carried-forward goal.</p>;
   }
 
-  const outcome = goal.outcomeGoal;
+  // Legacy first-outcome read — multi-outcome rendering is later phases
+  // (Spec 2 §3.2.2 / PR-CCJ-C1).
+  const outcome = goal.outcomeGoals[0];
   const factorControls = goal.factorControls ?? [];
   const mechanismGoals = goal.mechanismGoals ?? [];
 
@@ -82,19 +84,25 @@ function GoalCarryForward({ goal }: { goal?: ImprovementProjectGoal }) {
         <h3 id="sustainment-goal-y-heading" className="text-sm font-semibold text-content">
           Y-level outcome target
         </h3>
-        <dl className="grid gap-2 text-sm">
-          <div>
-            <dt className="text-content/60">Outcome spec</dt>
-            <dd className="font-medium text-content">{outcome.outcomeSpecId}</dd>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {outcome.baseline !== undefined && (
-              <span className={metadataClassName}>Baseline {outcome.baseline}</span>
-            )}
-            <span className={metadataClassName}>Target {outcome.target}</span>
-            {outcome.deadline && <span className={metadataClassName}>Due {outcome.deadline}</span>}
-          </div>
-        </dl>
+        {outcome ? (
+          <dl className="grid gap-2 text-sm">
+            <div>
+              <dt className="text-content/60">Outcome spec</dt>
+              <dd className="font-medium text-content">{outcome.outcomeSpecId}</dd>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {outcome.baseline !== undefined && (
+                <span className={metadataClassName}>Baseline {outcome.baseline}</span>
+              )}
+              <span className={metadataClassName}>Target {outcome.target}</span>
+              {outcome.deadline && (
+                <span className={metadataClassName}>Due {outcome.deadline}</span>
+              )}
+            </div>
+          </dl>
+        ) : (
+          <p className="text-sm text-content/60">No outcome target set.</p>
+        )}
         {goal.freeText && <p className="text-sm text-content/70">{goal.freeText}</p>}
       </section>
 

@@ -32,7 +32,7 @@
         "status": "active",
         "metadata": { "title": "Fill Cpk lift" },
         "goal": {
-          "outcomeGoal": { "outcomeSpecId": "outcome-weight", "target": 1.33 },
+          "outcomeGoals": [{ "outcomeSpecId": "outcome-weight", "target": 1.33 }],
           "factorControls": [{ "factor": "shift", "targetCondition": "morning stable" }]
         },
         "sections": {
@@ -51,7 +51,7 @@
         "status": "draft",
         "metadata": { "title": "Evening drift charter" },
         "goal": {
-          "outcomeGoal": { "outcomeSpecId": "outcome-weight", "target": 1.33 }
+          "outcomeGoals": [{ "outcomeSpecId": "outcome-weight", "target": 1.33 }]
         },
         "sections": {
           "background": {},

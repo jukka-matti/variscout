@@ -13,12 +13,14 @@ const record: SustainmentRecord = {
   status: 'confirmed-sustained',
   title: 'Reduce scrap sustained',
   goal: {
-    outcomeGoal: {
-      outcomeSpecId: 'reject-rate',
-      baseline: 8.4,
-      target: 3.2,
-      deadline: '2026-06-30',
-    },
+    outcomeGoals: [
+      {
+        outcomeSpecId: 'reject-rate',
+        baseline: 8.4,
+        target: 3.2,
+        deadline: '2026-06-30',
+      },
+    ],
     factorControls: [{ factor: 'Oven temperature', targetCondition: 'Keep between 180 and 185 C' }],
     mechanismGoals: [{ description: 'Operators follow first-piece confirmation' }],
     freeText: 'Hold the improved reject-rate baseline through ramp-up.',

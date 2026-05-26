@@ -46,7 +46,7 @@ describe('ProjectsTabView', () => {
           deletedAt: null,
           status: 'active',
           metadata: { title: 'Heads 5-8 Cpk shortfall' },
-          goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', target: 1.33 } },
+          goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
           sections: {
             background: {},
             investigationLineage: {},
@@ -83,7 +83,7 @@ describe('ProjectsTabView', () => {
           deletedAt: null,
           status: 'active',
           metadata: { title: 'Heads 5-8 Cpk shortfall' },
-          goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', target: 1.33 } },
+          goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
           sections: {
             background: {},
             investigationLineage: {},
@@ -130,7 +130,7 @@ describe('ProjectsTabView', () => {
           deletedAt: null,
           status: 'draft',
           metadata: { title: 'PWA project' },
-          goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 } },
+          goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
           sections: {
             background: {},
             investigationLineage: {},
@@ -167,7 +167,7 @@ describe('ProjectsTabView', () => {
           deletedAt: null,
           status: 'draft',
           metadata: { title: 'PWA members test' },
-          goal: { outcomeGoal: { outcomeSpecId: 'o-1', target: 1.33 } },
+          goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
           sections: {
             background: {},
             investigationLineage: {},

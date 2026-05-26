@@ -23,9 +23,12 @@ function formatDate(value: number): string {
 }
 
 function resolveOutcomeLabel(ip: ImprovementProject, hub?: ProcessHub | null): string | null {
-  const outcomeSpecId = ip.goal.outcomeGoal.outcomeSpecId;
+  // Legacy first-outcome label — multi-outcome scope labels are a later phase
+  // (Spec 2 §3.2.2 / PR-CCJ-C1; step-bound outcomes feed L3 view).
+  const outcomeSpecId = ip.goal.outcomeGoals[0]?.outcomeSpecId;
+  if (!outcomeSpecId) return null;
   const outcome = hub?.outcomes?.find(candidate => candidate.id === outcomeSpecId);
-  return outcome?.columnName ?? outcomeSpecId ?? null;
+  return outcome?.columnName ?? outcomeSpecId;
 }
 
 export function deriveActiveIPScopeLabels(
