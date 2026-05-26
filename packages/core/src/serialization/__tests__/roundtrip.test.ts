@@ -69,7 +69,17 @@ describe('vrs roundtrip — improvementProjects', () => {
       title: 'Heads 5-8 lift',
       businessCase: 'Expected $80k/yr',
       financialImpact: { amount: 80000, currency: 'USD' },
-      team: [{ role: 'projectLead', person: { displayName: 'A. Lead' } }],
+      members: [
+        {
+          id: 'pm-lead',
+          createdAt: 1_714_000_000_000,
+          deletedAt: null,
+          userId: 'a.lead@org',
+          displayName: 'A. Lead',
+          role: 'lead',
+          invitedAt: 1_714_000_000_000,
+        },
+      ],
     },
     goal: {
       outcomeGoal: {
