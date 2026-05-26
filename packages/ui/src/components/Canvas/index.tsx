@@ -91,6 +91,8 @@ import type { LogActionPayload } from '../QuickAction';
 export type ProductionLineGlanceOpsMode = 'spatial' | 'full';
 // Re-exported from CanvasLevelRouter to avoid circular imports
 export type { CanvasAuthoringMode, CanvasL3Archetype } from './internal/CanvasLevelRouter';
+export { EditModeShell } from './EditMode';
+export type { EditModeShellProps } from './EditMode';
 
 type CanvasQuestionOption = { id: string; text: string };
 
