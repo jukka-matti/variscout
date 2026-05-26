@@ -99,6 +99,8 @@ The data exists in the MES or a cycle time spreadsheet, but it's displayed as av
 
 Once Station 2's setup procedure is identified as the root cause, the investigation continues in VariScout:
 
+> **Per-app note on pinning:** in **Azure**, a pinned Finding is durable cloud state immediately (persisted to tenant blob via `useFindingsOrchestration` → `AzureHubRepository`). In **PWA**, a pinned Finding lives in session state and is preserved across reloads only via `.vrs` export/import. The pin gesture itself is identical; the persistence commitment differs.
+
 1. **Finding pinned:** "Station 2 dominates cycle time spread (η² = 28%)" — captured via right-click on the Boxplot category with full filter context
 2. **Hypothesis created:** "Station 2 changeover procedure causes inconsistency" — auto-validated via η² (Station explains 28%, supported)
 3. **Improvement idea added:** "Standardize Station 2 setup with new checklist" — What-If projection shows Cpk improving from 0.85 to 1.3 if Station 2 variation is halved

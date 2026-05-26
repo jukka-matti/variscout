@@ -78,47 +78,51 @@ _"Structured investigation for process improvement"_ — the tagline still works
 V1 serves two distinct workflows, both as primary use cases:
 
 1. **Quick analysis (exploratory)** — analyst pastes data, explores in charts, optionally creates Findings and Hypotheses. _No Project required._ Free PWA supports this in session-only mode; Azure tier adds persistence and collaboration.
-2. **Project-anchored investigation** — analyst (or anyone in the tenant) creates a Project (Charter ceremony). The Project wraps an existing Hub with formal lifecycle (Charter → Approach → Improve → Sustainment) and project-membership ACLs.
+2. **Project-anchored investigation** — analyst (or anyone in the tenant) creates a Project (Charter ceremony). The Project wraps an existing Hub with formal lifecycle (Charter → Approach → Sustainment) and project-membership ACLs.
 
 **Hub goes internal, not retired.** The "Hub" (the data container holding paste data + outcome + process map + factors) survives as the internal data architecture. It is _not_ surfaced as a user-visible noun in V1 — only "Project" and "Process" appear in the UI. Tenant users can paste data and analyze without ever creating a Project. Projects are the optional formal wrapper.
 
-**Promotion path.** At any moment during quick analysis, the analyst can promote their work to a Project via a "+ New Project" / "Promote to Project" CTA (available in Home, Analyze, Investigation, and from canvas drill per §3.3.4). The newly-created Project's Charter inherits the current Hub state — data, outcome, factors, framing narrative, any Findings, any Hypotheses, current canvas viewport — and asks only for project-formal metadata: problem statement, member invites, optional refined goal. Nothing already done gets lost.
+**Promotion path.** At any moment during quick analysis, the analyst can promote their work to a Project via a "+ New Project" / "Promote to Project" CTA (available in Home, Analyze, Investigation, and from canvas drill per §3.3.4). The newly-created Project's Charter inherits the current Hub state — data, outcome, factors, framing narrative, any Findings, any Hypotheses, current canvas viewport — and asks only for project-formal metadata: issue statement, member invites, optional refined goal. Nothing already done gets lost.
 
 This split — Hub internal, Project optional — preserves the free-PWA fast-paste-and-analyze flow that's central to VariScout's onramp, while making formal project ceremony available when the work justifies it.
 
-### §3.1 Nav: 6 tabs, in workflow order
+### §3.1 Nav: 7 tabs, in workflow order
 
 ```
-[Home] [Projects] [Process] [Analyze] [Investigation] [Report]
+[Home] [Project] [Process] [Analyze] [Investigation] [Improve] [Report]
 ```
 
 Left-to-right matches the specialist's flow:
 
 1. **Home** — pick what you're working on (project queue + active-IP launchpad)
-2. **Projects** — current project's status overview (the IP detail page is here)
+2. **Project** — active project's status overview (the IP detail page is here; singular per the active-IP-centric cascade)
 3. **Process** — canvas / process map (spatial substrate)
 4. **Analyze** — EDA / charts / Factor Intelligence
 5. **Investigation** — Wall + Evidence Map → suspected causes
-6. **Report** — narrative output
+6. **Improve** — action tracker for the active IP (default action list; PDCA workbench behind Advanced toggle per §3.4)
+7. **Report** — narrative output
 
-The **Improve tab is removed as a top-level surface**. Improve becomes a stage _inside Projects detail_.
+**Improve is a top-level verb tab** with active-IP cascade — same scoping pattern as Analyze and Investigation. Empty-state when no active IP routes to Home via `<NoActiveProjectGuidance>`. (Earlier wedge drafts removed Improve as a tab and folded it into Project detail; the 2026-05-16 amendment restored it — see §15.)
 
 This order supersedes the Coherence §4 nav (which placed Process between Home and Analyze and put Projects later). Workflow-order grouping is stronger than the verb-noun grouping rationale Coherence used.
 
-### §3.2 Projects detail: 4 stages
+### §3.2 Project detail: 3 stages
 
-`Charter → Approach → Improve → Sustainment`
+`Charter → Approach → Sustainment`
 
-Handoff stage is **folded into Sustainment closure**. Single end-of-project decision moment.
+Improve is **not** a stage — it lives as a top-level verb tab (§3.1) with active-IP cascade, so the action tracker is always one click away regardless of which Project-stage panel is open. Handoff is **folded into Sustainment closure**. Single end-of-project decision moment.
 
 **Charter is optional.** Quick analysis (per §3.0) does not require a Project; this stage list only applies when the analyst formalizes work into a Project. Charter inherits any prior Hub-level framing, Findings, and Hypotheses on promotion (see §3.0 promotion path).
 
-| Stage           | Function                                                                                                                                                                                              | UI                                                                                                                                                                                                                          |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Charter**     | Wrap an existing Hub with project ceremony — problem statement, member invites, optional refined goal. Inherits the Hub's framing (outcome spec, data, factors, process map) rather than re-doing it. | Problem statement form + Invite modal + (read-only) inherited Hub context summary. _Existing data paste / framing primitives stay at Hub level, not re-mounted inside Charter._                                             |
-| **Approach**    | Investigation strategy → produces suspected causes. Anchor surface is the **Investigation Wall** (see §3.6 — Hypotheses + Findings + Measurement Plans).                                              | SuspectedCause-anchored hierarchy; links to Wall + Evidence Map                                                                                                                                                             |
-| **Improve**     | Action tracker                                                                                                                                                                                        | Single-list UI (default): improvement actions + quick actions, owner/due/status, linked to suspected causes. **PDCA workbench + What-If accessible via an "Advanced" toggle** (progressive disclosure, not a parallel mode) |
-| **Sustainment** | "Did it work?" + close project                                                                                                                                                                        | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up                                                                                                                                  |
+| Stage           | Function                                                                                                                                                                                            | UI                                                                                                                                                                            |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Charter**     | Wrap an existing Hub with project ceremony — issue statement, member invites, optional refined goal. Inherits the Hub's framing (outcome spec, data, factors, process map) rather than re-doing it. | Issue statement form + Invite modal + (read-only) inherited Hub context summary. _Existing data paste / framing primitives stay at Hub level, not re-mounted inside Charter._ |
+| **Approach**    | Investigation strategy → produces suspected causes. Anchor surface is the **Investigation Wall** (see §3.6 — Hypotheses + Findings + Measurement Plans).                                            | SuspectedCause-anchored hierarchy; links to Wall + Evidence Map                                                                                                               |
+| **Sustainment** | "Did it work?" + close project                                                                                                                                                                      | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up                                                                                    |
+
+Improvement actions, PDCA workbench, and What-If live in the **Improve tab** (§3.4), not under a Project stage panel.
+
+**Issue Statement vs Problem Statement.** What the user types at Charter is an **Issue Statement** (free-text, ≤ 500 chars — captured by `AnalysisBrief.issueStatement` in `packages/core/src/findings/types.ts`). The structured **Problem Statement** is auto-synthesized later in the Approach stage via `buildProblemStatement()` from `packages/core/src/findings/problemStatement.ts`, using Watson's 3 Questions framework, with maturity stages (`partial` → `actionable` → `with-causes`). The Approved Problem Statement (locked by Lead) is what the Report renders. Distinct concepts at distinct lifecycle stages.
 
 ### §3.3 Process tab — canvas substrate + State/Edit modes + Specialist content
 
@@ -161,12 +165,11 @@ Pan/zoom navigation between levels per 8f Canvas Viewport Architecture (`useCanv
 
 Click a step card on Canvas L2 → drill to L3 focal-step detail → 3 response-path CTAs surface:
 
+- **Capture as Finding** → records a Hub-level Finding scoped to this step (no IP commitment required; for "I noticed something" observations). Same data primitive that chart-drill Findings use.
 - **Investigate** → opens Wall + Evidence Map scoped to step
-- **Quick Action** → creates tracked item in active IP's Improve stage (or prompts to select / create an IP if none active)
 - **Charter** → creates a new IP with this step / focal data as initial Charter-stage context
 
-Sustainment auto-fires per ADR-080 (no canvas-launch needed — fires when the project's Improve stage actions complete or when sustainment cadence triggers fire).
-Handoff path **deleted everywhere** (folded into Sustainment closure per §3.2).
+The user-intent gradient across the three paths is **record → explore → commit**. Sustainment auto-fires per ADR-080 (no canvas-launch needed — fires when the project's Improve stage actions complete or when sustainment cadence triggers fire). Handoff path **deleted everywhere** (folded into Sustainment closure per §3.2).
 
 #### §3.3.5 Level × View × Focus model — Process tab owns Level + View
 
@@ -192,11 +195,11 @@ When the Specialist activates an IP (Home launchpad or Projects tab selection), 
 
 Process tab shows the structural slice; Analyze tab shows the statistical slice. The IP's `focusLevel` determines both. When no IP is active (free-roaming), Process tab defaults to L1 of the whole process.
 
-### §3.4 Improve mode default + "Advanced" disclosure
+### §3.4 Improve tab default + "Advanced" disclosure
 
-The default Improve stage UI is a simple action list (action title, owner, due, status, linked suspected cause). One row per action; two action categories (improvement, quick).
+The default **Improve tab** UI is a simple action list (action title, owner, due, status, linked suspected cause). One row per action; two action categories (improvement, quick). The tab is active-IP-scoped: with no active IP, it routes to Home via `<NoActiveProjectGuidance>`. Production primitive: `<ImprovementWorkspaceBase>` (see PR-WV1-2; the earlier `<ImproveStageAdvanced>` skeleton was retired in favor of the shared base per `feedback_reuse_production_primitives`).
 
-The PDCA workbench survives as an **Advanced view** — accessible via a single toggle. Not a parallel mode. Power features earn visibility through user action, not menu space. The What-If simulator and the idea board / action conversion features retire (What-If may re-emerge in Analyze later if customer demand surfaces; idea board does not).
+The PDCA workbench survives as an **Advanced view** — accessible via a single toggle inside the Improve tab. Not a parallel mode. Power features earn visibility through user action, not menu space. The What-If simulator and the idea board / action conversion features retire (What-If may re-emerge in Analyze later if customer demand surfaces; idea board does not).
 
 **Reason:** Two equal modes is two products in one tab. Pick one as default, hide the other behind progressive disclosure. Selected default = simple, because the wedge's promise is focus and clarity.
 
@@ -279,13 +282,23 @@ Membership ACLs replace persona routing. Membership is **per project**, not per 
 
 ### §4.1 Roles within a project
 
-| Role        | Real-world counterpart       | Capabilities                                                                 | Manages membership? |
-| ----------- | ---------------------------- | ---------------------------------------------------------------------------- | ------------------- |
-| **Lead**    | Black Belt / Project Lead    | Full edit; manages membership; sets project lifecycle stage                  | Yes                 |
-| **Member**  | SMEs / analysts / frontline  | Full edit within the project's working surfaces                              | No                  |
-| **Sponsor** | Executive sponsor / Champion | **Report-only access at V1.** Sees the Report tab for projects they sponsor. | No                  |
+V1 uses a **2-tier ACL model**:
 
-**Sponsor scope at V1 is read-only on the Report tab.** Signoff at gates (Charter approval, Sustainment closure) is handled out-of-band — Lead presents the report in a meeting or email, Sponsor approves verbally / by reply, Lead records the signoff in the relevant stage's notes. This loses the in-app audit trail but keeps V1 scope minimal. Re-evaluate adding in-app Sponsor signoff in V2 if customer demand surfaces.
+| Tier              | Roles                  | Capabilities                                                                                                                                                  | Manages membership? |
+| ----------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| **Lead**          | Lead (1 per project)   | Edits everything (canvas authoring, hypotheses creation + closure, Report compilation); advances stages; manages membership.                                  | Yes                 |
+| **Everyone else** | Member + Sponsor roles | Reads everywhere; edits contributions (Findings, evidence on hypotheses, action items, improvement ideas, comments). Functionally identical at the ACL layer. | No                  |
+
+**No in-product approval gates.** Signoff (Charter approval, Sustainment closure, Report sign-off) is **out-of-band** per wedge V1 — Lead presents in a meeting or email, Sponsor approves verbally / by reply, Lead records the signoff as a note in the relevant stage. This loses the in-app audit trail but keeps V1 scope minimal. Re-evaluate adding in-app Sponsor signoff in V2 if customer demand surfaces. (This aligns with the note at line 288 in the original draft.)
+
+**Sponsor is identity + notification routing, not permission gating.** The Sponsor label persists because it carries real meaning:
+
+- **Identity / accountability** — _"Project X is sponsored by Jane Doe (VP Operations)"_ — shown in Charter + Report attribution.
+- **Notification routing** — drift signals during Sustainment route to the Sponsor explicitly.
+- **Inbox filtering** — Sponsor's inbox surfaces signoff-relevant items differently from a Member's contribution queue.
+- **Real-world signoff workflow** — the Sponsor approves out-of-band; the Lead records the result.
+
+The persona docs describe different intent (Lead drives, Member contributes, Sponsor approves and reviews); the ACL does not enforce a Member/Sponsor distinction — both read everywhere and edit contributions.
 
 **Vocabulary note:** "Sponsor" is the canonical Six Sigma / Lean / CI term for the executive who authorizes and underwrites the project. The "Champion" terminology (GE-school Six Sigma) is equivalent; V1 uses Sponsor for unambiguity.
 
@@ -316,7 +329,7 @@ ACL enforcement points (eventual implementation):
 
 - `useProjectMembershipStore` — new annotation-layer store
 - Auth checks at `core/project/*` read paths
-- Sponsor role check at Report rendering (Sponsors see only the Report for projects they sponsor)
+- Role check at structural writes: Lead-only for canvas authoring, hypothesis creation + closure, stage advancement, Report compilation (2-tier per §4.1)
 - UI: project list filters to memberships; invite modal in Charter stage
 
 ### §4.5 Tier-gating retires
@@ -364,9 +377,9 @@ The migration economics are a precondition (§8) — to be settled before engine
 | PDCA workbench, What-If                                                  | **Retained as "Advanced" view** inside Improve stage. Simple action tracker is default; Advanced is one toggle. No parallel modes.                                                                                         |
 | Idea board, action conversion                                            | Retired. Direct action creation only.                                                                                                                                                                                      |
 | Projects detail stages                                                   | Rename Sustainment+Handoff → Improve+Sustainment. New Improve stage component (action list, reuses extracted primitives). Handoff stage UI deleted; close-project logic folds into Sustainment screen.                     |
-| Canvas response paths                                                    | Reduce from 5 to 3 (Investigate, Quick Action, Charter). Handoff path deleted everywhere. Sustainment auto-fire pattern (ADR-080) preserved.                                                                               |
+| Canvas response paths                                                    | Reduce from 5 to 3 (Capture as Finding, Investigate, Charter). Handoff path deleted everywhere. Sustainment auto-fire pattern (ADR-080) preserved.                                                                         |
 | Persona routing                                                          | `personaRole` logic deleted. Home renders single shape. Inbox simplifies.                                                                                                                                                  |
-| **Project membership ACLs (new)**                                        | New data model: `ProjectMember`, `Invitation`, role enum (Lead/Member/Sponsor). Auth checks at every project-scoped read; Sponsor restricted to Report-only. Medium build.                                                 |
+| **Project membership ACLs (new)**                                        | New data model: `ProjectMember`, `Invitation`, role enum (Lead/Member/Sponsor). 2-tier ACL: Lead edits everything; Member + Sponsor read everywhere + edit contributions. No in-product approval gates. Medium build.      |
 | **MeasurementPlan entity (new)**                                         | New data model: `MeasurementPlan` (factor, method, sampleSize, owner, status, hypothesisId, linkedFindingIds, msaRequired flag). UI: Plans panel on each Hypothesis card in the Investigation Wall. Small-to-medium build. |
 | `useCanvasViewportStore` keying                                          | Re-key from `ProcessHubId` to `ProjectId` (when project-scoped) or stays Hub-keyed (when free-roaming / quick analysis). Migration for stored viewport state.                                                              |
 | `ProcessHub` data model                                                  | **Stays as the internal data container** (the tenant-wide Hub backing Process tab + paste data + outcome + factors). Demoted from user-visible primary concept; not surfaced as a noun in V1 UI.                           |
@@ -492,7 +505,7 @@ Stated clearly so subsequent specs / plans don't reintroduce by accident:
 - What-If simulator (retired; may re-emerge in Analyze later)
 - Idea board / action conversion (retired)
 - 4-persona Home variants (retired)
-- In-app Sponsor signoff workflow (Sponsor sees Report-only; signoff out-of-band at V1)
+- In-app Sponsor signoff workflow (signoff out-of-band at V1; Sponsor reads everywhere but no in-product approval gates per §4.1)
 - Separate Measure stage in Projects detail (measurement planning integrates into the Investigation Wall per §3.6, no 5th stage)
 - Gage R&R / formal MSA workflow (MSA-required flag is informational only in V1)
 - Statistical sample-size calculator (manual entry only)
@@ -516,7 +529,7 @@ Stated clearly so subsequent specs / plans don't reintroduce by accident:
 - **Quick-analysis flow (no project):** paste data → analyze in Analyze + Investigation tabs → save Findings → optionally create Hypotheses → save `.vrs` or persist. End to end without creating a Project.
 - **Project-anchored flow (golden path):** quick-analyze → "+ Promote to Project" → Charter inherits Hub state → Approach (Investigation Wall with Measurement Plans) → Improve actions → Sustainment closure → Report. End to end in <30 minutes with seeded sample data.
 - **Hypothesis-first flow:** open Investigation Wall → create Hypothesis with no Findings → add Measurement Plan rows → simulate collection (re-paste new data) → Findings auto-suggest link to Plan → Hypothesis transitions `proposed` → `evidenced` → `confirmed`.
-- **Collaboration flow:** Project Lead invites a Member, both edit the same project simultaneously; Sponsor sees only the Report tab for the project.
+- **Collaboration flow:** Project Lead invites a Member, both edit the same project simultaneously; Sponsor reads all tabs but edits only contributions (Findings, evidence, action items, comments) per 2-tier ACL (§4.1).
 - **Membership ACL test:** org user not invited to Project A cannot see Project A's project-formal data (Charter / Approach / Improve / Sustainment / Report) via direct URL access. Hub-level data (paste data, outcome, process map) is tenant-wide and accessible.
 - **Coherence audit re-run** after amendment: no orphaned references to Improve top-level tab, Handoff stage, PDCA workbench-as-default, What-If, 4-persona Home variants.
 - **ESLint architecture tests pass** (ADR-073 + ADR-074 boundaries unchanged).

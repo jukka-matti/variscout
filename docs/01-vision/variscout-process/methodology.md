@@ -104,7 +104,7 @@ The pre-wedge VariScout vision named five response paths for any current state o
 4. Sustainment
 5. Handoff
 
-V1 reduced to **three canvas response paths** (Investigate, Quick Action, Charter), with Sustainment auto-firing per [ADR-080](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md) and Handoff folded into Sustainment closure.
+V1 reduced to **three canvas response paths** (Capture as Finding, Investigate, Charter), with Sustainment auto-firing per [ADR-080](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md) and Handoff folded into Sustainment closure.
 
 **Process likely re-expands.** The original five-path framing serves multi-persona reality better than three. Specifically:
 
@@ -120,7 +120,7 @@ Within any one Improvement Project, the investigation traces this lifecycle:
 1. **Frame.** Author / inherit the canonical map. Set CTQ specs. Identify the outcome measure(s). (V1: this is the Process tab Edit mode + Charter; Process: same, with the Hub's canonical map as starting point.)
 2. **Scout.** Read Current Process State at L1, identify where to investigate. (V1: per-project state; Process: cadence-driven Current Process State from PMS.)
 3. **Investigate.** L3 mechanism work — Hypotheses, Findings, factor analysis on the Investigation Wall + Evidence Map.
-4. **Improve.** Action authoring + tracking. Quick Actions or improvement-project-scoped change packages.
+4. **Improve.** Action authoring + tracking. Capture as Finding observations or improvement-project-scoped change packages.
 5. **Sustain.** Did it work? Schedule cadence to verify it stays so.
 
 This lifecycle is **shared across V1 and Process**. The wrapping context differs (V1: project as primary; Process: project nested under a Hub on a cadence-review surface), but the methodology is identical.

@@ -147,9 +147,7 @@ invites and role changes go through a Lead.
 Real-world counterpart: executive sponsor, Champion, steering committee
 member, divisional VP.
 
-Sponsor has **Report-only** access at V1. They see the Report tab for
-projects they sponsor. They do not see Charter, Approach, Sustainment internals, or Improve tab
-content.
+Sponsor shares the same ACL tier as Member at V1: reads everywhere across the projects they sponsor (all tabs), and can edit contributions (findings, evidence, action items, ideas, comments). Sponsor is preserved as identity / notification routing and Report attribution label, not for permission gating.
 
 Sponsor signoff at lifecycle gates (Charter approval, Sustainment closure)
 lives **outside the product at V1 — by design, not as a placeholder.** The

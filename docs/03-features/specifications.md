@@ -114,7 +114,7 @@ Inside Project detail, three stages run in sequence:
 | **Approach**    | Investigation strategy → produces suspected causes. Anchor surface is the **Investigation Wall** (Hypotheses + Findings + Measurement Plans).                                        | SuspectedCause-anchored hierarchy; links to Wall + Evidence Map.                            |
 | **Sustainment** | "Did it work?" + close project. Action completion + Cpk delta + drift check.                                                                                                         | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up. |
 
-Handoff stage is folded into Sustainment closure (single end-of-project decision moment). The Improve tab (top-level verb) hosts the action tracker + PDCA workbench scoped to the active project. Canvas response paths reduce from 5 to 3 (Investigate / Quick Action / Charter); Sustainment auto-fires per ADR-080.
+Handoff stage is folded into Sustainment closure (single end-of-project decision moment). The Improve tab (top-level verb) hosts the action tracker + PDCA workbench scoped to the active project. Canvas response paths reduce from 5 to 3 (Capture as Finding / Investigate / Charter); Sustainment auto-fires per ADR-080.
 
 ---
 
@@ -187,11 +187,11 @@ The €79 Standard + €199 Team split is retired (see [ADR-082](../07-decisions
 
 Inside the €120 SKU, team-collaboration features are gated by project-membership role rather than priced into a separate tier. Project members must share the same Azure AD tenant as the buyer (cross-AD-tenant invites are out of V1 scope — a deliberate privacy boundary).
 
-| Role        | Real-world counterpart                                  | Capabilities                                                                                                                           |
-| ----------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Lead**    | Black Belt / project lead / analyst running the project | Full edit; manages membership; configures Knowledge Catalyst; sets lifecycle stage; invites Members and Sponsors                       |
-| **Member**  | SME, analyst, frontline contributor, quality engineer   | Full edit within project surfaces (findings, hypotheses, actions, photo evidence, Knowledge Catalyst contribution); no membership mgmt |
-| **Sponsor** | Executive sponsor / Champion                            | **Report-only at V1**; signoff handled out-of-band (email, e-sign, meeting). In-product signoff workflow defers post-V1.               |
+| Role        | Real-world counterpart                                  | Capabilities                                                                                                                                                       |
+| ----------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Lead**    | Black Belt / project lead / analyst running the project | Full edit; manages membership; configures Knowledge Catalyst; sets lifecycle stage; invites Members and Sponsors                                                   |
+| **Member**  | SME, analyst, frontline contributor, quality engineer   | Full edit within project surfaces (findings, hypotheses, actions, photo evidence, Knowledge Catalyst contribution); no membership mgmt                             |
+| **Sponsor** | Executive sponsor / Champion                            | Reads everywhere + edits contributions (2-tier ACL with Member); signoff handled out-of-band (email, e-sign, meeting). In-product signoff workflow defers post-V1. |
 
 Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide — this baseline analysis capability is not gated by project membership. Only Project artifacts (Charter, Approach, Sustainment) and Improve tab actions and team-collaboration features are membership-scoped. See [feature-parity.md "Project-membership-role gating"](../08-products/feature-parity.md#project-membership-role-gating) for the role × feature matrix.
 
@@ -260,7 +260,7 @@ Migrates to **VariScout Process** (future enterprise product, not announced in V
 
 Deferred to V2 inside V1 (not Process):
 
-- In-app Sponsor signoff workflow (Sponsor is Report-only at V1; signoff out-of-band)
+- In-app Sponsor signoff workflow (2-tier ACL: Sponsor reads everywhere + edits contributions at V1; signoff out-of-band)
 - Formal MSA / Gage R&R workflow
 - Statistical sample-size calculator
 - Cross-Azure-AD-tenant invitations (Azure AD guest accounts handle the edge case)

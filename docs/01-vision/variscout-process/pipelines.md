@@ -103,7 +103,7 @@ Snapshots are what Current Process State and the Hub cadence-board reason over:
 - Where variation / defects / wait / burden / unsafe outcomes concentrate
 - Whether an action has enough post-change evidence for verification
 - Whether a sustainment item still needs review in VariScout
-- Whether the right response path is Quick Action, Focused Investigation, Charter, Sustainment, or Handoff
+- Whether the right response path is Capture as Finding, Investigate, Charter, Sustainment, or Handoff
 
 The same cadence-board supports both **daily huddles** (latest Snapshot + open investigation metadata) and **weekly process reviews** (Snapshot history compare across the last N cycles). See [measurement-system.md §2](measurement-system.md) for the three-timescale shape.
 

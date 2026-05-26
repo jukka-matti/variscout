@@ -12,6 +12,8 @@ last-reviewed: 2026-05-18
 
 > **V1 in-project persona** — one of three persona roles a teammate plays inside a single Project (Lead / Member / Sponsor). The Lead drives the Project end-to-end. The market-facing buyer persona (Improvement Specialist) lives in L1 ([`docs/01-vision/product-overview.md`](../../01-vision/product-overview.md)); this file is the in-product journey.
 
+> **App scope** — Lead/Member/Sponsor role gating applies to the **Azure tenant SKU**. The **PWA** (free tier) is single-user open-access by design and does not enforce roles. See [`../../08-products/feature-parity.md`](../../08-products/feature-parity.md).
+
 ## Persona statement
 
 The **Lead** opens the Project, runs the methodology, and signs off each stage. They own the canvas, the Investigation Wall, the Improvement Plan, and the Sustainment cadence. Real-world counterparts: Black Belt, project lead, CI engineer, quality manager driving a specific improvement. The Lead invites Members for SME content + analytical contribution, and surfaces the work to a Sponsor for accountability.
@@ -50,7 +52,7 @@ sequenceDiagram
     Lead->>Investigation: Group Findings into Hypotheses
     Note over Investigation: Lead defines Measurement Plans,<br/>tags suspected contributions
     Investigation->>Investigation: Members contribute evidence
-    Lead->>Improve: Promote validated hypothesis → Active IP
+    Lead->>Improve: Elevate work into a Project via Charter (hypotheses inherited as context if any)
     Note over Improve: Active-IP cascade lights up<br/>downstream tabs (Project / Process /<br/>Analyze / Investigation filtered to IP)
     Lead->>Improve: Define improvement actions, owners, dates
     Lead->>Improve: Advance to Sustainment (cadence + drift watch)
@@ -58,7 +60,7 @@ sequenceDiagram
     Report->>Lead: Sponsor reviews + signs off
 ```
 
-The **active-IP cascade** is Lead-owned: when the Lead promotes a hypothesis to an active Improvement Project, downstream tabs scope to that IP until the Lead changes it. Members and Sponsors see the cascade but cannot alter the active-IP selection.
+The **active-IP cascade** is Lead-owned: when the Lead selects an Improvement Project as their active working focus, downstream tabs scope to that IP until the Lead changes it. Members and Sponsors see the cascade but cannot alter the active-IP selection.
 
 ## Feature touch-points
 

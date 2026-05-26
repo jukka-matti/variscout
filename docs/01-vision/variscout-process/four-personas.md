@@ -96,7 +96,7 @@ The Specialist in Process is essentially the same persona as V1's Specialist, wi
 
 **What they see in Process that V1 doesn't surface.**
 
-- **Portfolio overview.** Hub-of-hubs side-by-side rendering at the top of their default landing. V1 has no portfolio surface; the Sponsor in V1 sees Report-only for projects they sponsor.
+- **Portfolio overview.** Hub-of-hubs side-by-side rendering at the top of their default landing. V1 has no portfolio surface; the Sponsor in V1 reads everywhere within the projects they sponsor (same ACL tier as Member), but has no cross-project portfolio view.
 - **Sponsor signoff queue.** In-app Sponsor signoff workflow (named-future per [wedge spec §4.1](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) and [scope-line.md §4](scope-line.md)). V1 handles signoff out-of-band.
 - **Cross-Hub drift roll-up — visual, never arithmetic.** The Leader's overview honors ADR-073: distributions per Hub, never an averaged cross-Hub Cpk. The signal is the visual comparison; no `meanCpkAcrossHubs()` exists or will exist.
 

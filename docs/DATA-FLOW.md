@@ -65,7 +65,7 @@ IndexedDB schema in `apps/azure/src/db/schema.ts` (Dexie). `services/localDb.ts`
 
 Hub-level data (the tenant-wide internal container backing the Process tab and paste data) is accessible to any authenticated user in the Azure tenant. **Project-level data** (Charter, Approach, Sustainment stages + Improve tab artifacts + Report) is **membership-gated**: only users explicitly invited to a Project can access it, regardless of their presence in the tenant (ADR-082 §4.4).
 
-Access checks are role-based: `canAccess(userId, members, action)` from `@variscout/core/projectMembership`. Roles are Lead (full edit + manage membership), Member (full edit), Sponsor (Report-only). This is the primary data-isolation boundary for project-formal artifacts.
+Access checks are role-based: `canAccess(userId, members, action)` from `@variscout/core/projectMembership`. Roles are Lead (full edit + advance stages + close hypotheses + manage membership), Member + Sponsor (read everywhere + edit contributions: Findings, evidence, action items, ideas, comments). Per Spec 2 §7. This is the primary data-isolation boundary for project-formal artifacts.
 
 Evidence Source objects exist in core as the first implementation slice:
 `EvidenceSource`, `DataProfileDefinition`, `EvidenceSnapshot`, and

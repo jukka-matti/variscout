@@ -7,7 +7,10 @@
  *
  * ACL gate:
  *   - members.length === 0  → open-access (V1 single-user scenario)
- *   - otherwise             → canAccess(currentUserId, members, 'edit-approach')
+ *   - otherwise             → canAccess(currentUserId, members, 'edit-contributions')
+ *
+ * Measurement plans are contributions per the 2-tier ACL — Lead + Member +
+ * Sponsor can add/link plans.
  *
  * Dispatch pattern: callbacks bubble up to parent (WallCanvas → app) exactly
  * as existing onSelectHub / onComposeGate / onPromoteQuestion do. No new
@@ -84,7 +87,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // ACL gate — open-access when no members configured (V1 single-user scenario)
   const canEdit =
     members.length === 0 ||
-    (currentUserId !== null && canAccess(currentUserId, members, 'edit-approach'));
+    (currentUserId !== null && canAccess(currentUserId, members, 'edit-contributions'));
 
   // Plans section is positioned below CARD_H + PLANS_GAP from card's (x, y).
   // HypothesisCard is anchored at center-top (cx = x, top = y), so card spans

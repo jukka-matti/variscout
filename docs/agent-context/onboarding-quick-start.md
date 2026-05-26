@@ -26,7 +26,7 @@ Single-product tool for improvement specialists (the ICP), one SKU (€120/mo Az
 
 - **Lead** — full edit + manages membership
 - **Member** — full edit within project surfaces
-- **Sponsor** — Report-only at V1; signoff handled out-of-band
+- **Sponsor** — reads everywhere + edits contributions (2-tier ACL with Member); signoff handled out-of-band
 
 **7-tab workflow nav**: `Home · Project · Process · Analyze · Investigation · Improve · Report`
 

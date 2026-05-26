@@ -16,7 +16,9 @@ layer: L5
 
 # ADR-080: Sustainment auto-fire + Inbox prompt + signoff-gated lifecycle pattern
 
-**Status**: Accepted
+**Status**: Accepted — auto-fire pattern deferred to F5 (see Implementation status below)
+
+**Implementation status (added 2026-05-26):** the auto-fire dispatch pattern this ADR prescribes is **not yet implemented**. Sustainment records are currently written via the documented R13 exception in `packages/stores/CLAUDE.md` — direct `saveSustainmentRecordToIndexedDB` writes rather than HubAction → reducer co-located auto-fire. The user-visible Sustainment flow is functional (UI exists in both apps; see [feature-parity Sustainment rows](../08-products/feature-parity.md)), but the architectural pattern described below is aspirational until F5 lands. PWA Sustainment is session-only (does not round-trip through `.vrs`); Azure Sustainment is durable via the same R13 path. Surfaced by the 2026-05-26 user-journey audit (`docs/decision-log.md` §1 2026-05-26 entry).
 
 **Amendment — 2026-05-16:** Extended by [ADR-082](adr-082-wedge-architecture.md). The Phase 6 / Sustainment-Control-Handoff design (formerly `docs/superpowers/specs/2026-04-26-phase-6-sustainment-control-handoff-design.md`, now archived) is **subsumed by this ADR's auto-fire pattern + the wedge spec §3.2 Sustainment stage**. Under the wedge: (a) Handoff is folded into Sustainment closure (no separate stage); (b) Sustainment auto-fires when Improve-stage actions complete or sustainment cadence triggers fire; (c) the closure screen is the single end-of-project decision moment ("did it work? + close"). The Phase 6 spec's lifecycle semantics (implicit start, asynchronous nudges, signoff-gated close) are preserved here; only its Hub-anchored multi-phase framing retires. Signoff is no longer tier-gated (single SKU); it is gated by **project-membership role** (Reviewer / Lead per wedge spec §4) — visible to all members; actively writable by Lead, signable by Reviewer.
 

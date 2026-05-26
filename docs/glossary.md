@@ -100,7 +100,7 @@ Project membership role. Member is an analyst, SME, frontline contributor, or qu
 
 ### Sponsor
 
-Project membership role. Typically an executive sponsor or Champion of the project. **At V1, Sponsor has Report-only access** to projects they sponsor — they see the Report tab, no other project surfaces. Signoff at gates (Charter approval, Sustainment closure) is handled out-of-band in V1 (Lead presents the report in a meeting or by email; Sponsor approves verbally; Lead records the signoff in the relevant stage's notes). In-app Sponsor signoff workflow defers to V2 if customer demand surfaces.
+Project membership role. Typically an executive sponsor or Champion of the project. **At V1, Sponsor sits in the same ACL tier as Member** — reads everywhere, edits contributions (Findings, evidence on hypotheses, action items, improvement ideas, comments). The Sponsor role is preserved as a label for identity, accountability, and notification routing (drift signals route to Sponsor; Report attribution shows Sponsor; the Sponsor's inbox surfaces sign-off-relevant items) — not for permission gating. Signoff at gates (Charter approval, Sustainment closure, Report sign-off) is handled out-of-band in V1 (Lead presents in a meeting or by email; Sponsor approves verbally / by reply; Lead records the signoff in the relevant stage's notes). No in-product approval gates. In-app Sponsor signoff workflow defers to V2 if customer demand surfaces.
 
 **Vocabulary note:** "Sponsor" is canonical Six Sigma / Lean / CI terminology. "Champion" (GE-school Six Sigma) is equivalent; V1 uses Sponsor for unambiguity.
 
@@ -138,12 +138,12 @@ A bookmarked chart observation + analyst note. Status: `observed` → `analyzed`
 
 **Related:** [Hypothesis (Investigation Wall)](#hypothesis-investigation-wall), [Measurement Plan](#measurement-plan)
 
-### Canvas response paths (Investigate / Quick Action / Charter)
+### Canvas response paths (Capture as Finding / Investigate / Charter)
 
 The 3 V1 response paths surfaced from a canvas step-card drill in the Process tab:
 
+- **Capture as Finding** — lightweight observation capture; records a Hub-level Finding scoped to a process step or chart context; no IP commitment required. Same data primitive that chart-drill Findings use.
 - **Investigate** — opens the Investigation Wall + Evidence Map scoped to the focal step.
-- **Quick Action** — creates a tracked action item in the active project's Improve tab (or prompts to select / create a Project if none active).
 - **Charter** — creates a new Project with this step / focal data as initial Charter-stage context (same as "Promote to Project" but launched from canvas).
 
 The Sustainment path auto-fires per [ADR-080](07-decisions/adr-080-sustainment-auto-fire-pattern.md); the Handoff path is deleted everywhere (folded into Sustainment closure).

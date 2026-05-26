@@ -548,3 +548,385 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 **Promotion path:** small follow-up PR. About 2 tasks: helper + UI swap.
 
 **Resolution [2026-05-08]:** `computeHistogramBins(values, rule?)` helper added in `@variscout/core/stats` (Sturges default, Scott option). `CanvasStepMiniChart` histogram branch now renders one bar per bin with bin counts as heights, replacing the first-12-raw-values normalization. Empty bins floor at 8% height so the bin axis stays legible — this replaces the prior 15% floor (which was tuned for 12 raw-value pseudo-bars; 8% reads more honestly when bin counts can legitimately be zero).
+
+---
+
+### Sponsor visibility too restrictive — should see Analyze + Investigation read-only throughout
+
+**Surfaced by:** 2026-05-26 customer-hat walkthrough session (Spec 2 brainstorm) — user reacting to the Promote-to-Project / Charter design: _"sponsor can see things throughout the project, not just in the end!!"_
+
+**Description:** `docs/02-journeys/personas/sponsor.md:61` claims the Sponsor _"skips Analyze and Investigation entirely — those tabs are working surfaces for Lead and Members."_ The corresponding sequence diagram in `sponsor.md:38–59` shows `Sponsor-->>Analyze: (no interaction)` and `Sponsor-->>Investigation: (no interaction)`. The persona × tab matrix in `ia-nav-model.md:96–104` has `(no touch)` for Sponsor on those tabs. Real-world executive sponsorship varies — engaged sponsors want continuous visibility (read what the team is finding, ask informed questions, spot drift early); bounded-time sponsors stick to approval gates. Forcing the "skips entirely" framing in the journey doc misrepresents the product's capability and excludes engaged sponsors from the work surface.
+
+**Evidence:**
+
+- `docs/02-journeys/personas/sponsor.md:61` — _"The Sponsor's flow skips Analyze and Investigation entirely"_ (contradicts real sponsor practice for engaged sponsors)
+- `docs/02-journeys/personas/sponsor.md:38–59` — sequence diagram shows `(no interaction)` on Analyze + Investigation
+- `docs/02-journeys/ia-nav-model.md:96–104` — persona × tab matrix has Sponsor as `(no touch)` on those rows
+- `docs/02-journeys/personas/sponsor.md:23` (same doc) says _"They never edit canvas, hypotheses, or measurement plans. Their gestures are: open, read, approve, sign off."_ — this text correctly distinguishes "never edit" from "never see," but the sequence diagram + matrix collapse the two into "no interaction." Internal contradiction within the same persona doc.
+
+**Doc claim vs reality:**
+
+- Doc claim (sequence + matrix): Sponsor doesn't interact with Analyze or Investigation at all
+- Reality intended (same doc, persona statement): Sponsor reads everything; only their _write actions_ are limited to approval gates
+- Product capability: read-only is a natural fall-through of the wedge V1 ACL model (`canAccess()` denies edit, read is permitted) — the restriction is in the docs, not the product
+
+**Possible directions:**
+
+- **Update the matrix in `ia-nav-model.md`**: change `(no touch)` to `Read` for Sponsor on Analyze + Investigation rows.
+- **Update the sequence diagram in `sponsor.md`**: replace the dotted `(no interaction)` arrows with solid `Sponsor->>Analyze: Read (optional)` / `Sponsor->>Investigation: Read (optional)`.
+- **Update the prose in `sponsor.md:61`**: remove "skips Analyze and Investigation entirely" and replace with something like _"The Sponsor reads Analyze + Investigation when they want to engage with the analysis directly; their active gestures are bounded to Charter approval, Improve sanction, and Report sign-off."_
+- **Architectural framing (no doc change needed)**: this is actually a clean consequence of the State/Edit mode split we locked earlier in this session. Sponsor = State mode everywhere + 2 gated writes; Lead = State + Edit + advance. Worth surfacing in the design as a positive design choice rather than a "Sponsor restriction."
+
+**Promotion path:** Doc-only PR touching `personas/sponsor.md` (prose + sequence) + `ia-nav-model.md` (matrix). Walkthrough HTML at `/tmp/variscout-walkthrough.html` also needs the matrix + sequence update.
+
+**Severity:** **vision violation** — incorrectly characterizes a real product capability and demotes engaged sponsors out of the work surface. The internal contradiction within `sponsor.md` itself (statement says "read-mostly" but sequence says "no interaction") is evidence that the journey doc was authored without careful read-through. Same pattern as the other walkthrough findings — corpus authored faster than reviewed.
+
+**Meta-note:** Fifth structural finding from today's customer-hat walkthrough. None caught by the morning's 5-lens audit. Pattern continues to confirm `feedback_audit_findings_need_design_triage` — audits inherit the corpus's blind spots; customer-hat reading catches what audits can't.
+
+---
+
+### Tab vocabulary positioning question: Explore / Analyze / Control vs Analyze / Investigation / Sustainment
+
+**Surfaced by:** 2026-05-26 customer-hat walkthrough session — user proposing: _"how about if analyze, would be explore (like exploratory data analysis) and investigate would be analyze and then sustainment control?"_
+
+**Description:** User-proposed rename across three nav/lifecycle surfaces: **Analyze tab → Explore** (matching Tukey's EDA vocabulary, universal stats language); **Investigation tab → Analyze** (matching DMAIC's Analyze phase, which it actually is — cause identification + hypothesis testing); **Sustainment stage → Control** (matching DMAIC's Control phase). The proposal exposes a real semantic overlap in current naming (_"Analyze" and "Investigation" both describe analysis activities_) and improves LSS practitioner pattern-matching. But it directly contradicts the deliberate prior choice captured in `feedback_drop_methodology_bridges`: _"VariScout-native vocabulary over external bridges (DMAIC/QC Story/TBP/A3); UI copy plain English; lineage in design specs only."_ This is **not a label-fix; it's an identity-level vocabulary decision** that affects positioning, marketing copy, onboarding cognitive cost, and product differentiation from generic DMAIC tools.
+
+**Evidence:**
+
+- Current tab vocabulary `docs/02-journeys/ia-nav-model.md:42–77`: Home / Project / Process / **Analyze** / **Investigation** / Improve / Report. Sustainment is the closing stage of the Project lifecycle, not a tab.
+- Semantic overlap demonstrated in same file: Analyze tab description (`:59–62`) — _"canvas-based exploratory data analysis. The Four Lenses … emerge here. Findings created on the canvas link forward to Hypotheses on the Wall."_ Investigation tab description (`:64–67`) — _"Investigation Wall — Hypotheses, evidence, Measurement Plans. The accumulation surface where Findings cluster into Hypotheses, evidence is triangulated."_ Both describe analytical work; the distinction (exploration-of-data vs hypothesis-testing) is real but the labels don't carry it.
+- Prior team decision: `feedback_drop_methodology_bridges.md` explicitly retires DMAIC-bridge vocabulary in favor of native FRAME / SCOUT / INVESTIGATE / IMPROVE methodology layer + plain-English UI tabs.
+- Methodology layer per `docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md` — FRAME / SCOUT / INVESTIGATE / IMPROVE are _under-the-hood_ methodology phases, not tab labels.
+
+**Trade-offs (not pre-decided here):**
+
+- **Rename → Explore / Analyze / Control**: clearer Explore/Analyze separation; instant DMAIC pattern-match for LSS buyers (the wedge V1 ICP); "Control" is plain-English + unambiguously C-of-DMAIC; "Sustainment" is unusual vocabulary. Onboarding cost drops.
+- **Keep Analyze / Investigation / Sustainment**: differentiates from generic DMAIC tools (positioning); preserves the _"we have an opinion about methodology that goes beyond DMAIC"_ posture; "Sustainment" has product-personality vs the bureaucratic "Control."
+- **Partial move — rename Analyze → Explore only**: cheapest clarity win. "Explore" is universal stats vocabulary (Tukey 1977), not DMAIC-specific. Resolves the semantic-overlap-with-Investigation concern. Doesn't commit to full DMAIC alignment. Investigation and Sustainment stay native. Lowest commitment-to-positioning-shift.
+
+**Possible directions:**
+
+- **Promote to a positioning / vocabulary design session.** Pair the conversation with the JTBD-shape finding (Lead JTBD is lifecycle-framed vs activity-framed) — both go to the heart of _"what is VariScout's voice and stance?"_ Decide consciously whether `feedback_drop_methodology_bridges` still holds under the wedge V1 ICP sharpening.
+- **Or take the partial Explore rename** as a clarity fix that doesn't commit positioning-wise. Update `ia-nav-model.md`, `personas/*.md`, `USER-JOURNEYS.md`, i18n keys (`workspace.analyze` → `workspace.explore`), and walkthrough HTML. Defer Investigation→Analyze and Sustainment→Control to the positioning session.
+- **L1 vision cross-check.** Whatever's decided, `docs/01-vision/product-overview.md` + positioning copy + marketing materials should reflect it consistently. Vocabulary debt across L1/L2/L3 is what creates the current "we say one thing in spec, another in UI" muddle.
+
+**Promotion path:** Should NOT be a quick rename. Promote to a vocabulary design session (companion to tasks #11 + #12 — same shape: customer-hat reading caught a finding that's deeper than a label fix). Possibly merge into a single "wedge V1 substrate cleanup design session" covering tab names + JTBD shape + Project=IP terminology, since all four findings from today's walkthrough are vocabulary/conceptual-model at root.
+
+**Severity:** **vision violation** — tab labels are the most visible vocabulary surface in the entire product. Wrong choice compounds with every customer demo, every marketing page, every onboarding doc, every CoScout prompt that references "the Analyze tab." Right choice creates immediate clarity for the wedge V1 ICP. This is the highest-leverage naming decision in the wedge V1 surface area.
+
+**Meta-note:** fourth structural finding from today's walkthrough; fourth one the 5-lens audit missed. Pattern is now unambiguous — customer-hat reading is a _qualitatively different_ validation activity from audit-style consistency checking. Audits validate the corpus is internally consistent with itself; customer-hat reading validates the corpus is internally consistent with how a real buyer thinks. Both are needed; today's audit covered only the first.
+
+---
+
+### Project = ImprovementProject in code; docs still use legacy "IP promoted from hypothesis" framing
+
+**Surfaced by:** 2026-05-26 customer-hat walkthrough session — user reacting to the active-IP cascade section: _"is this really the right framing of an active improvement project? … improvement project is like lss gb project etc. so once we formalize an investigation into a project and then we would like in the end to improve the process, right?"_
+
+**Description:** The journey docs frame "Project" and "Improvement Project (IP)" as two distinct things, with IP described as _"promoted from a validated hypothesis"_ and Project as the container that holds at-most-one-active-IP. **The code disagrees.** `ImprovementProject` in `packages/core/src/improvementProject/types.ts:93` is a single entity that carries everything an LSS Green Belt project file holds — title, business case, financial impact, members (Lead/Member/Sponsor), goal (outcome + factor controls + mechanism), background section, investigation lineage (hypothesisIds, findingIds), approach (improvement ideas, action items), outcome reference (Sustainment + control handoff), signoff. Status enum (`draft → active → closed`) maps directly to the lifecycle Charter / Approach / Sustainment. The wedge V1 intent (`project_wedge_v1` memory) is **one Project per Hub 1:1; Project = ImprovementProject; created via Charter ceremony, not via hypothesis promotion**. Hypotheses are _inside_ the project (in `sections.investigationLineage.hypothesisIds`), not parent to it. The doc framing inverts the relationship.
+
+**Evidence:**
+
+- Code: `packages/core/src/improvementProject/types.ts:93–110` — `ImprovementProject` extends EntityBase with hubId (1:1), status (Charter/Approach/Sustainment lifecycle), metadata.members (wedge V1 roster), goal, sections (background/investigationLineage/approach/outcomeReference), signoff. Investigation lineage stores hypothesis IDs _inside_ the project, confirming hypotheses are children of the project, not parents.
+- Legacy store shape: `packages/stores/src/improvementProjectStore.ts:8` — `projectsByHub: Record<HubId, ImprovementProject[]>` (list per hub) is the pre-wedge "multiple IPs per Hub" model. The wedge V1 commits to 1:1 per `project_sdd_architectural_findings` memory and `project_wedge_v1` — _"each Project wraps one internal Hub 1:1; … `projectsByHub: Record<ProcessHubId, ImprovementProject[]>` flagged as legacy holdover; spec §6 commits to re-keying by `ProjectId` for project-scoped state."_ Re-keying is committed but not done.
+- Doc legacy framing: `docs/02-journeys/ia-nav-model.md:79–92` — _"An active IP is an Improvement Project the Lead has promoted from a validated hypothesis. At most one IP is active per Project at a time."_ Both clauses are wrong: (a) IPs are created via Charter ceremony, not hypothesis promotion; (b) "at most one IP per Project" implies Project ⊃ IP nesting, which contradicts the 1:1 wedge V1 intent.
+- Lead journey reinforces the muddle: `docs/02-journeys/personas/lead.md:55–56` — _"Promote validated hypothesis → Active IP. Active-IP cascade lights up downstream tabs."_ Same inverted relationship.
+- Active-IP store: `packages/stores/src/activeIPStore.ts:8,18,23` — tracks one `ipId` per `(hubId, userId)` scope. This is **project selection**, not a downstream cascade artifact. Naming it "active IP" obscures that it's just "which Project is the user currently focused on."
+
+**Doc claim vs reality:**
+
+- Doc: Project and IP are different concepts; IP is a sub-unit promoted from a validated hypothesis; multiple IPs can exist within a Project (at most one active).
+- Reality (code + wedge intent): Project = ImprovementProject. One entity. Created by Charter ceremony. One per Hub 1:1. Hypotheses live _inside_ it. "Active IP" is just project selection — which Project the user is currently focused on.
+
+**Possible directions:**
+
+- **Rename and reframe "active-IP cascade" → "active Project context"** in `ia-nav-model.md`. Explain it as project selection (user has multiple Projects, picks one, verb tabs scope to it), not a downstream-from-hypothesis cascade.
+- **Fix the "promoted from validated hypothesis" framing** in `ia-nav-model.md` and `personas/lead.md`. Replace with "elevated into a Project via Charter" or similar — Charter creates the Project; hypotheses are investigated inside it.
+- **Drop "IP" as a separate user-facing term.** Use "Project" everywhere. Reserve "ImprovementProject" / "IP" for code-internal type names with a JSDoc note: _"ImprovementProject is the typed name for what the UI calls a Project."_
+- **Complete the store re-key** (separate PR — actual code change): migrate `projectsByHub: Record<HubId, IP[]>` → `projectsById: Record<ProjectId, ImprovementProject>` per the deferred wedge spec §6 commitment. This is the actual structural fix; the doc fixes propagate from it.
+- **Cross-check L1 vision docs** — `docs/01-vision/product-overview.md` and positioning copy — for the same Project-vs-IP muddle. The market-facing copy should consistently say "improvement project."
+
+**Promotion path:** Two PRs. (1) Doc-only PR: terminology cleanup across `ia-nav-model.md`, `personas/lead.md`, `personas/index.md`, `USER-JOURNEYS.md`, plus the walkthrough HTML. Lands quickly. (2) Code PR: complete the `projectsByHub → projectsById` re-key per wedge spec §6 commitment. This is the structural fix that closes out the wedge V1 migration. May want a brainstorm session before locking the re-key scope (companion to tasks #11 + #12 — same pattern of "doc-flagged finding has code structural debt underneath").
+
+**Severity:** **vision violation** — the IP-vs-Project muddle distorts the mental model at the heart of the product. Every customer conversation, every onboarding doc, every roadmap discussion has to navigate "is this thing a Project or an IP?" The wedge V1 amendment intended to collapse the two (one Project = one IP); the docs and store shape haven't followed. This is exactly the kind of conceptual debt that compounds: every new feature touches the IP/Project surface and inherits the ambiguity. Touching it now (before more engineering builds on the muddle) is much cheaper than fixing it after.
+
+**Meta-note:** the 2026-05-26 5-lens audit did not catch this either. The lenses validated wedge V1 surface alignment (7 tabs ✓, 3 stages ✓, 3 personas ✓) but never questioned the conceptual model below the surface. This is the third structural finding the customer-hat walkthrough has surfaced that the audit missed (after mode-1 invisibility and Lead JTBD shape). The pattern is consistent: audits check that what's documented matches what's coded; only customer-perspective reading checks that what's documented is the _right thing_ to document. Reinforces `feedback_audit_findings_need_design_triage` — audits inherit the corpus's blind spots.
+
+---
+
+### Lead JTBD is lifecycle-framed; should be activity-framed (analyst craft, not project management)
+
+**Surfaced by:** 2026-05-26 customer-hat walkthrough session — user reacting to Lead's JTBD section: _"jobs to be done, we have actually a few, framing yes, then i want to do the drill down and understand the different causes and hypothesis can be used in that, as well as the regression things etc. and we also have the improvement actions, and thinking about those with team."_
+
+**Description:** The Lead persona JTBD in `docs/02-journeys/personas/lead.md` is structured as **one master goal + three supporting jobs**, with the master goal being lifecycle management (_"drive a Project through Charter → Approach → Sustainment"_). The customer-hat reading names **three to four distinct first-class jobs**, with the lifecycle as a structural container rather than the JTBD itself: (1) frame the problem, (2) drill / hypothesis-test / regression to find contributions, (3) design + commit improvement actions with the team, (4) verify the fix via Sustainment. The current framing optimizes for _"did we finish the project properly?"_; the restructured framing optimizes for _"did we get the analysis right + commit good actions?"_ — closer to how a real Black Belt or CI engineer would describe what they're hiring VariScout for.
+
+**Evidence:**
+
+- Current Lead JTBD: `docs/02-journeys/personas/lead.md:23–31` — master JTBD is lifecycle-shaped; supporting bullets compress framing / hypothesis / Sustainment into helper roles under "drive the lifecycle".
+- Member JTBD already activity-shaped (`personas/member.md:25–33`): _"contribute hypothesis evidence, measurement plan rows, or action items"_ — three distinct activities. Member is fine.
+- Sponsor JTBD lifecycle-shaped (`personas/sponsor.md:25–34`) but Sponsor's actual work is narrow enough (approve / review / sign off) that lifecycle framing fits. Sponsor is fine.
+- Activity surface is real in the product: regression / factor intelligence (best-subsets R²adj per `packages/core/CLAUDE.md` strategy section + ADR-067) is a first-class analytical tool the JTBD doesn't surface; collaborative ideation under Improve tab (`<ImprovementWorkspaceBase>`, PR-WV1-2) is the team-thinking surface the current JTBD elides.
+
+**Doc claim vs reality:** Doc frames the Lead JTBD as project-management work. Reality: the Lead is doing analyst-craft work (framing → drilling → designing actions → verifying), and the lifecycle is the container that holds those jobs. The lifecycle framing risks under-surfacing the analytical depth (regression, factor intelligence, hypothesis primitives) that's actually what differentiates VariScout from project-management tools.
+
+**Possible directions:**
+
+- **Restructure Lead JTBD** to name 3–4 first-class jobs (Frame / Drill / Improve-with-team / Verify) with the lifecycle named as the container, not the JTBD itself. Each job gets a "When I… I want to… so I can…" statement.
+- **Resurface analytical primitives** in the Lead journey narrative — explicitly mention regression / best-subsets / factor intelligence as part of the Drill job, not buried in supporting feature touch-points.
+- **Promote "thinking with the team"** from a Member-side concern to a Lead-side first-class job — collaborative ideation is a verb the Lead drives, not just a Member contribution surface.
+- **Consider whether the L1 buyer persona (Improvement Specialist) JTBD** in `docs/01-vision/product-overview.md` has the same shape problem; if it's also lifecycle-framed, the restructure should propagate up.
+
+**Promotion path:** Doc-only PR touching `docs/02-journeys/personas/lead.md` + possibly `docs/01-vision/product-overview.md`. Should be paired with a walkthrough-HTML refresh so future customer-hat sessions render the restructured JTBD. NOT a design session — the analytical primitives the user named (regression, hypothesis, Improvement actions, team collaboration) all exist in the product; this is journey-doc framing, not unresolved design.
+
+**Severity:** **vision violation** — JTBD framing shapes every downstream product decision (where to invest, what to surface, how to position). Lifecycle-framed JTBD risks positioning VariScout as a project-management tool when the actual differentiation is analyst-craft depth. This is the kind of frame-level mistake that distorts roadmap decisions over months.
+
+**Meta-note:** the 2026-05-26 5-lens audit did not catch this — Lens B audited the persona ACL split (Lead/Member/Sponsor) and validated wedge alignment but never asked whether the JTBDs were the right _shape_. The audit lenses inherit the doc's own framing assumptions. Audits validate consistency-within-frame; they don't question the frame itself. Worth keeping in mind when scoping future audits — every lens has the corpus's blind spots built into its scope.
+
+---
+
+### L2 journey corpus silent on wedge spec mode-1 (quick-analyze) workflow
+
+**Surfaced by:** 2026-05-26 customer-hat walkthrough session — user reading the active-IP cascade section of the rendered journey walkthrough caught it: _"we have also the case when we have just data, which needs to be analyzed."_
+
+**Description:** Wedge spec §3.0 commits to **two first-class modes**: (1) quick-analyze with no Project required (paste data → Four Lenses → optional Findings/Hypotheses, served by PWA session-only + Azure persistent), and (2) project-anchored investigation with Charter ceremony, lifecycle, and ACLs. The L2 journey corpus only documents mode 2. Mode 1 — the PWA free-tier evaluation onramp that the L1 Improvement Specialist buyer persona enters through — has no journey representation.
+
+**Evidence:**
+
+- Spec commits to both modes: `docs/superpowers/specs/2026-05-16-wedge-architecture-design.md` §3.0 (lines 76–87) — _"V1 serves two distinct workflows, both as primary use cases… Tenant users can paste data and analyze without ever creating a Project."_
+- Lead journey opens with Project: `docs/02-journeys/personas/lead.md:46–47` — _"Open VariScout (project list) → Create / select Project (Charter)."_
+- Member journey assumes invitation: `docs/02-journeys/personas/member.md:48` — _"see Projects I'm in."_
+- Sponsor journey same: `docs/02-journeys/personas/sponsor.md:49` — _"see Projects I sponsor."_
+- IA nav model locks cascade to post-Charter mode: `docs/02-journeys/ia-nav-model.md:79–92` — _"An active IP is an Improvement Project the Lead has promoted from a validated hypothesis."_ No acknowledgement of the pre-Project state.
+- Use cases mode-ambiguous: `docs/02-journeys/use-cases/{bottleneck-analysis,batch-consistency}.md` describe Finding capture + Hypothesis creation but never specify mode-1 vs mode-2 context.
+- Persona index: `docs/02-journeys/personas/index.md` lists three personas but doesn't note they only apply post-Promote-to-Project.
+- Canonical L2 anchor: `docs/USER-JOURNEYS.md` — no pre-Project journey section.
+
+**Doc claim vs reality:** Wedge spec promises two first-class modes. L2 corpus documents one (mode 2). Mode 1 — the actual evaluation onramp for new users — is invisible to anyone reading the journey corpus.
+
+**Possible directions:**
+
+- Add a **Quick Analyze (no Project)** journey to `docs/02-journeys/` as a sibling to the three persona journeys, explicitly marked as role-less and Project-less. Sequence: Home (paste data / open sample) → Process (optional process map) → Analyze (Four Lenses, create Findings) → Investigation (cluster into Hypotheses, optional) → **+ Promote to Project** bridge — Charter inherits Hub state (data, outcome, factors, process map, Findings, Hypotheses, viewport).
+- Add a preamble to `docs/USER-JOURNEYS.md` + `docs/02-journeys/personas/index.md`: _"The three personas below apply once a Project exists. Pre-Project quick-analyze flow → see [link to new journey]."_
+- Add a precondition note to `ia-nav-model.md` active-IP cascade section: _"The cascade applies once a Project exists with an active IP. Pre-Project state has no IP and no cascade — every tab operates on the current Hub directly."_
+- Annotate the two existing use-cases to specify which mode the narrative starts in (or show the bridge: starts in mode 1, promotes to mode 2 at the Hypothesis step).
+- Update the walkthrough artifact (`/tmp/variscout-walkthrough.html`) to render the Quick Analyze panel alongside the three personas.
+
+**Promotion path:** Doc-only PR touching ~5–6 files in `docs/02-journeys/` + `docs/USER-JOURNEYS.md`. Pair with a walkthrough-HTML refresh so future customer-hat sessions render both modes. Should NOT be promoted to a design session — mode 1 is already specified in the wedge spec; this is journey-doc propagation, not unresolved design.
+
+**Severity:** **vision violation** — mode 1 is the PWA free-tier evaluation onramp (the entry point for the canonical "Improvement Specialist" buyer persona per L1). Hiding it in L2 means the journey corpus implicitly optimizes for post-purchase mode 2 while the actual buyer evaluates in mode 1. Every "is X discoverable?" sanity-check downstream of this corpus has been implicitly mode-2-oriented — including today's 5-lens audit, which never asked whether the quick-analyze flow was documented at all.
+
+---
+
+### Pinning Findings: PWA wires at App root, Azure wires via Editor + orchestration hook
+
+**STATUS 2026-05-26 — doc-half closed:** per-app persistence note added to `docs/02-journeys/use-cases/{bottleneck-analysis,batch-consistency}.md` and to feature-parity Sustainment + Investigation Wall rows. Architectural convergence (lift `useFindingsOrchestration` into `packages/hooks/` so both apps share one orchestrator) remains open — that's the code-half. Keeping this entry open until the hook convergence decision lands or is explicitly deferred.
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens D: Analyze-tab interactions). User-reported observation that "pinning findings happens differently in Azure and PWA" prompted the audit.
+
+**Description:** Both apps wire `handlePinFinding` and pinning is functional in both — an earlier exploration mis-claimed Azure had no wiring (it was reading a hallucinated `apps/azure-app/` path that does not exist; actual path is `apps/azure/`). However, the wiring **architectures genuinely diverge**, and the persistence behaviour after a pin differs in ways the journey docs don't acknowledge.
+
+**Evidence:**
+
+- PWA: `apps/pwa/src/App.tsx:598–609` — `handlePinFinding` defined inline at App root; calls `findingsState.addFinding()` from `useFindings()` hook (`packages/hooks/src/useFindings.ts:141`). Findings live as in-memory session state until `.vrs` export.
+- Azure: `apps/azure/src/features/findings/useFindingsOrchestration.ts:168–185` — `handlePinFinding` defined inside an orchestration hook; consumed at `apps/azure/src/pages/Editor.tsx:964`; passed down `Editor.tsx:2010 → EditorDashboardView.tsx:225 → DashboardSection.tsx:102 → Dashboard.tsx:127/607/759`. Findings flow into `useInvestigationStore` (`packages/stores/src/investigationStore.ts`) and persist via `apps/azure/src/persistence/AzureHubRepository.ts` to Azure Blob with ETag concurrency.
+- Shared: `packages/ui/src/types/findingsCallbacks.ts:11–32` defines `FindingsCallbacks` + `AzureFindingsCallbacks` types — clearly designed for parity.
+- Journey docs: `docs/02-journeys/use-cases/bottleneck-analysis.md` + `batch-consistency.md` describe pinning as a single behaviour ("right-click chart category → Finding pinned"); `docs/USER-JOURNEYS-PROCESS-FLOW.md` + `USER-JOURNEYS-YAMAZUMI.md` describe "Lead pins station-level Findings"; none distinguish per-app persistence.
+
+**Doc claim vs reality:** Journey docs imply that pinning is a single product behaviour. Reality: in PWA a pin is session-only until `.vrs` export; in Azure a pin is durable cloud state immediately, gated by ETag. A user testing PWA-then-Azure would experience two materially different commitments without any explanatory copy.
+
+**Possible directions:**
+
+- Add a per-app behaviour note to the Analyze-tab use-case docs and/or to `docs/USER-JOURNEYS.md` (one sentence each: "PWA: session-only until `.vrs` export. Azure: persisted on-the-fly to tenant blob.").
+- Converge the wiring patterns by lifting `useFindingsOrchestration` into `packages/hooks/` so both apps consume the same orchestrator (eliminates the App-root-vs-Editor architectural split).
+- Status-quo + doc-only: accept the architectural divergence as intentional (Azure has cloud sync to coordinate; PWA does not) and only fix the journey-doc silence.
+
+**Promotion path:** Doc-only fix is a small PR (1–2 files, ~10 lines). Hook convergence is larger (~3 tasks, touches both apps). Decide after triage. Not blocking V1.
+
+**Severity:** functional gap (silent behavioural divergence the journey docs paper over).
+
+---
+
+### Personas docs silent on Azure-vs-PWA app scope [RESOLVED 2026-05-26]
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens B: Persona roles & ACL).
+
+**Description:** `docs/02-journeys/personas/{index,lead,member,sponsor}.md` (refreshed 2026-05-18 for wedge V1) present the three project roles as universal V1 behaviour. In code, only the Azure app enforces them. PWA is single-user open-access by design (free tier, training/learning surface) — `apps/pwa/src/App.tsx` uses a stable `'analyst@local'` user key and `InvestigationView` never calls `canAccess()`. Trainers importing `.vrs` scenarios into PWA, or users moving between the two apps, get no warning that role gating only kicks in on Azure.
+
+**Evidence:**
+
+- Shared role model: `packages/core/src/projectMembership/types.ts:4` (`ProjectRole = 'lead' | 'member' | 'sponsor'`); `packages/core/src/projectMembership/canAccess.ts:11–21` (`ROLE_PERMISSIONS`).
+- Azure enforces: `apps/azure/src/components/editor/InvestigationWorkspace.tsx:104–107` gates photo upload via `canAccess(userId, members, 'edit-approach')`.
+- PWA does not enforce: `apps/pwa/src/components/views/InvestigationView.tsx:53–85` accepts no `userId`/`members` props; no ACL invocation.
+- Personas docs silent on scope: `grep -rn "appliesTo\|azure-only\|pwa-only" docs/02-journeys/personas/` returns nothing.
+- Doc text: `docs/02-journeys/personas/index.md` says "V1 ships 3 personas inside each Project. Per-project ACLs; no cross-AD-tenant invites" — reads as universal.
+
+**Doc claim vs reality:** Personas docs imply role-based ACLs apply to V1. Reality: PWA has no role enforcement; only Azure (€120 tenant SKU) does.
+
+**Possible directions:**
+
+- Add a single "Scope" line at the top of `personas/index.md` and each of `lead.md`/`member.md`/`sponsor.md`: "These project roles apply to the Azure tenant SKU. PWA (free tier) is single-user open-access by design."
+- Promote to a scope note in `docs/USER-JOURNEYS.md` so it shows up before readers click into individual personas.
+- Optionally cross-link to `docs/08-products/feature-parity.md` from the persona docs.
+
+**Promotion path:** Small doc-only PR (1 line per file × 4 files = trivial).
+
+**Severity:** vision violation (V1 product surface presented as universal across apps when role behaviour is not).
+
+---
+
+### Azure Analyze tab omits Pareto from lens-tab switcher
+
+**STATUS 2026-05-26 — promoted to a design session:** the original audit recommendation ("copy PWA's conditional spread into `azureAnalysisLensTabs`") was the wrong move to lock in without revisiting Analyze-tab design principles first. User flagged that an intentional design choice may be hiding behind what looks like drift (`feedback_step_back_for_system_design`, `feedback_check_registry_placeholders_first`). Open questions to answer in the design session: (a) what are the canonical design principles for the Analyze tab? (Four Lenses model, lens-switcher behaviour, per-lens-mode framing.) (b) is Azure's Pareto-outside-the-switcher placement intentional (separate surface for category drill) or accidental drift? (c) is PWA's conditional-tab pattern the canonical UX or a tactical accommodation? (d) does the answer differ by mode (Capability / Performance / Yamazumi / Defect / Process-flow)? Reopen only with a dedicated brainstorm session — do not let drive-by PRs touch the lens-tab switcher in either app until this is settled.
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens D: Analyze-tab interactions).
+
+**Description:** The Analyze tab's lens-tab switcher (Probability / Capability / Pareto) is built differently in the two apps. PWA includes a conditional Pareto tab when a Pareto factor is selected; Azure's equivalent switcher omits the Pareto variant entirely. Azure still renders a Pareto chart elsewhere (`Dashboard.tsx:927–929` conditional on `paretoFactor`), but it's not surfaced through the unified Four-Lenses UX that the journey docs describe.
+
+**Evidence:**
+
+- PWA: `apps/pwa/src/components/Dashboard.tsx:437–470` defines `analysisLensTabs` with `...(paretoFactor ? [{ id: 'pareto', … }] : [])` at line 448.
+- Azure: `apps/azure/src/components/Dashboard.tsx:455–470` defines `azureAnalysisLensTabs` with **no Pareto branch**. Pareto state (`paretoFactor`) exists at line 287 and renders elsewhere, but not via the lens switcher.
+- Journey doc: `docs/03-features/workflows/four-lenses-workflow.md` describes Four Lenses (I-Chart, Boxplot, Pareto, CapabilityHistogram) as uniformly available from Analyze.
+
+**Doc claim vs reality:** Doc says Four Lenses are uniformly available in Analyze. Reality: Azure users can't reach Pareto via the lens-tab UX in the Analyze tab; PWA users can.
+
+**Possible directions:**
+
+- Copy PWA's conditional spread (`...(paretoFactor ? [{ id: 'pareto', … }] : [])`) into `azureAnalysisLensTabs`. Mirror the chart component wiring already used elsewhere in `Dashboard.tsx`.
+- Lift the lens-tab builder into `packages/hooks/` (or `@variscout/ui`) so both apps share one source of truth — eliminates this whole class of divergence.
+
+**Promotion path:** Small targeted PR. About 1–2 tasks (Azure wiring + a test mirroring PWA's).
+
+**Severity:** functional gap (documented capability not reachable in one app's primary UX path).
+
+---
+
+### `ControlHandoff` type + `handoff-updated` activity event survive in code despite wedge "Handoff folded into Sustainment"
+
+**STATUS 2026-05-26 — promoted to a design session (was PR3):** pre-plan grounding revealed that `ControlHandoff` is load-bearing operational data, not stale drift. Core selectors `selectSustainmentReviews` (`packages/core/src/sustainment.ts:328–349`) and `selectSustainmentBuckets` (`:371`) consume `handoffs: ControlHandoff[]` and use the `retainSustainmentReview: boolean` flag to suppress investigations from the Sustainment cadence board. `ControlHandoffSurface` (`:26`) enumerates 9 operational systems (mes-recipe, scada-alarm, qms-procedure, work-instruction, training-record, audit-program, dashboard-only, ticket-queue, other) — the model captures **where control was handed off to** after a project closes. Plus `operationalOwner`, lifecycle states (`pending → acknowledged → operational`), `escalationPath`, `reactionPlan`. Both apps have dedicated editors (`apps/azure/src/components/ControlHandoffEditor.tsx`) and full persistence flows through repositories, applyAction, schema, cloud sync. The audit recommendation ("rename `onStartHandoff` → `onEnterSustainment`, drop `handoff-updated` event, retire ControlHandoff") silently assumes V1 drops the operational-handoff concept — that's a design call, not a cleanup. Open questions: (a) is the wedge "Handoff folded into Sustainment" UI-only or also data-model? (b) does V1 still capture control-handoff state inside Sustainment closure UI? (c) which retention model — keep entity, fold fields into SustainmentRecord, or drop entirely per `feedback_wedge_v1_no_migration_no_backcompat`? Reopen only with a dedicated brainstorm session — companion to the Analyze-tab session (same anti-pattern: audit-finding-as-deletion-recommendation masking design question). See task #12.
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens C: Stage transitions & response paths).
+
+**Description:** The 2026-05-16 wedge V1 amendment folded the Handoff stage into Sustainment closure — wedge spec §3.2 and ADR-082 say there are only three stages (Charter, Approach, Sustainment). The runtime stage enum (`StageStateMap` in `packages/ui/src/components/IPDetail/stageState.ts`) correctly stops at Sustainment. However, the data model still treats `ControlHandoff` as a first-class entity and exposes Handoff in the activity timeline + IP-detail prop surface — meaning the V1 codebase still persists, reads, and reasons about Handoff state as a distinct thing.
+
+**Evidence:**
+
+- `packages/core/src/improvementProject/types.ts:9` imports `ControlHandoff` as a sibling of `SustainmentRecord`; line 82 keeps `controlHandoffId?: ControlHandoff['id']` as a first-class IP field.
+- `packages/core/src/improvementProject/types.ts:107` JSDoc still references "Sustainment or Handoff stages typically".
+- `packages/ui/src/components/IPDetail/activityEvents.ts:14` declares an activity-event kind `'handoff-updated'`; line 177–184 produces events labeled "handoff …".
+- `packages/ui/src/components/IPDetail/IPDetailPage.tsx:53–55` keeps `controlHandoff?: ControlHandoff` prop with comment "Present when handoff stage is active or beyond"; line 258 wires `onStartHandoff={() => setActiveStage('sustainment')}` — a transition handler named for a stage that no longer exists.
+
+**Doc claim vs reality:** Wedge spec + journey docs treat Sustainment as the terminal stage and never reference Handoff. Reality: code still treats Handoff as a separately persisted artefact with its own events and prop surface.
+
+**Possible directions:**
+
+- Rename `ControlHandoff` to something Sustainment-relative (e.g. `SustainmentControlHandover`) and fold the `controlHandoffId` into `SustainmentRecord` so the IP type only references Sustainment.
+- Merge `'handoff-updated'` activity events into `'sustainment-control-recorded'` or similar; update timeline consumers.
+- Rename `onStartHandoff` → `onEnterSustainment` (or remove if the prop is dead — verify call sites first).
+- Or: leave the data model alone and add a JSDoc note explaining that `ControlHandoff` is the persisted artefact of the closure flow within Sustainment — cheaper but keeps the naming dissonance.
+
+**Promotion path:** Likely a dedicated rename/cleanup PR. Touches `packages/core/`, `packages/ui/`, both apps' consumers. Worth pairing with a wedge-V1 terminology sweep — check `feedback_systemic_before_patching` discipline.
+
+**Severity:** functional gap (data model has not caught up with the spec; future readers will be confused).
+
+---
+
+### ADR-080 Sustainment auto-fire deferred — current implementation is direct localDb write (R13 exception)
+
+**STATUS 2026-05-26 — banner added:** "Implementation status" block added to the top of `docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md` documenting the R13-exception deferral. F5 implementation itself remains deferred per `packages/stores/CLAUDE.md` R13. Keeping this entry open until F5 lands or is explicitly retired.
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens C: Stage transitions & response paths).
+
+**Description:** ADR-080 prescribes a co-located auto-fire pattern where, on IP transition to Sustainment, a follow-up reducer fires inside the same dispatch. Today, Sustainment records are written via direct `saveSustainmentRecordToIndexedDB` (the documented R13 exception in `packages/stores/CLAUDE.md`) rather than via the HubAction → reducer auto-fire pattern. Journey docs (`USER-JOURNEYS.md` §stages; `USER-JOURNEYS-YAMAZUMI.md`) describe Sustainment as flowing automatically once an IP reaches that stage, which is true at the user-experience level but not at the architectural level the ADR specifies.
+
+**Evidence:**
+
+- ADR: `docs/07-decisions/adr-080-*` describes auto-fire co-location.
+- Current code: `packages/stores/CLAUDE.md` documents R13 exception (direct localDb writes for Sustainment records). `packages/core/src/sustainment.ts:37–61` defines `SustainmentRecord` entity with no upstream transition reducer.
+- F5 plan: deferred per `packages/stores/CLAUDE.md` R13.
+
+**Doc claim vs reality:** ADR-080 architecturally prescribes auto-fire; F5 implementation is deferred; journey docs describe the user-visible flow as automatic. The journey description is accurate; the ADR is currently aspirational.
+
+**Possible directions:**
+
+- Add a `Status: deferred to F5` banner to ADR-080 referencing the R13 exception so future readers don't assume the pattern is live.
+- Or: implement F5 and retire the R13 exception.
+
+**Promotion path:** Banner is a 1-line ADR amendment. F5 implementation is a multi-task plan.
+
+**Severity:** functional gap (intentional, but undisclosed in the ADR itself).
+
+---
+
+### Wedge spec §3.1 text still says "Improve tab is removed" — superseded by the same spec's §15 amendment [RESOLVED 2026-05-26]
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens C).
+
+**Description:** `docs/superpowers/specs/2026-05-16-wedge-architecture-design.md` §3.1 retains the original wedge-design language saying Improve is removed as a top-level surface. §15 (the 2026-05-16 amendment) restored it. Both apps now ship the Improve tab and journey docs describe a 7-tab nav including Improve. The §3.1 text is now misleading without re-reading §15.
+
+**Evidence:**
+
+- Spec §3.1: text describes 6-tab nav without Improve.
+- Spec §15 (amendment block): restores Improve as top-level verb tab.
+- Code: `apps/azure/src/components/AppHeader.tsx:451–461` renders Improve; `apps/pwa/src/App.tsx:121–124` lazy-loads `ImprovementView` + `ReportView`; both render the 7-tab order from `docs/02-journeys/ia-nav-model.md`.
+
+**Doc claim vs reality:** Internal doc contradiction. §3.1 says Improve is gone; §15 + reality say it's back.
+
+**Possible directions:**
+
+- Per `docs/agent-context/doc-discipline.md`, design specs are edited in place. Update §3.1 to reflect the amendment and cross-reference §15.
+- Or: leave §3.1 untouched and add a "Superseded by §15 amendment" banner at the top of §3.1.
+
+**Promotion path:** Tiny doc edit. 1 file, ~5 lines.
+
+**Severity:** cosmetic (doc-internal inconsistency; not a code drift).
+
+---
+
+### Investigation Wall: shared UI but Azure-only CoScout background pipeline — feature-parity matrix is misleading [RESOLVED 2026-05-26]
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens E: Cross-cutting per-app divergence).
+
+**Description:** `docs/08-products/feature-parity.md:81` lists "Investigation Wall: Azure only". In practice the Wall UI (WallCanvas, hypothesis cards, mini-charts) is shared via `packages/ui/src/components/InvestigationWall/` and renders in both apps. What is genuinely Azure-only is the **CoScout-driven background suggestions pipeline** (best-subsets detection, AI hint emission) in `apps/azure/src/features/investigation/useWallBackgroundJobs.ts`; the PWA equivalent is a deliberate no-op (`apps/pwa/src/features/investigation/useWallBackgroundJobs.ts:20`). The matrix conflates "the AI surface" with "the whole Wall".
+
+**Evidence:**
+
+- Azure: `apps/azure/src/features/investigation/useWallBackgroundJobs.ts:69` — debounced best-subsets + CoScout emit.
+- PWA: `apps/pwa/src/features/investigation/useWallBackgroundJobs.ts:20` — explicit no-op stub.
+- Shared UI: `packages/ui/src/components/InvestigationWall/WallCanvas.tsx` imported by both apps.
+
+**Doc claim vs reality:** Matrix says "Investigation Wall: Azure only". Reality: the Wall UI is shared; only the AI suggestion pipeline is Azure-only.
+
+**Possible directions:**
+
+- Split the feature-parity row: "Investigation Wall UI: both" + "Wall AI background suggestions: Azure only".
+- Or: add a footnote clarifying the distinction.
+
+**Promotion path:** 1-line doc edit.
+
+**Severity:** cosmetic (misleading parity row; no code change needed).
+
+---
+
+### Sustainment persistence asymmetry not disclosed in feature-parity.md [RESOLVED 2026-05-26]
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens E).
+
+**Description:** Both apps wire Sustainment UI (`SustainmentRecordEditor`, `SustainmentPanel`). The persistence story differs significantly — Azure persists Sustainment records via the R13 direct-write exception to IndexedDB + Cloud Blob; PWA's Sustainment is session-only and is not currently part of `.vrs` export per the same R13 path. `docs/08-products/feature-parity.md` does not list Sustainment as a row, so this differential is invisible to anyone reading the parity matrix.
+
+**Evidence:**
+
+- Azure UI: `apps/azure/src/components/SustainmentRecordEditor.tsx`; orchestration in `apps/azure/src/features/panels/panelsStore.ts`.
+- PWA UI: `apps/pwa/src/components/SustainmentPanel.tsx`; lazy-loaded at `apps/pwa/src/App.tsx:122`.
+- Persistence: `packages/stores/CLAUDE.md` documents Sustainment as the R13 exception (direct localDb writes, not yet HubAction-dispatched).
+- Feature-parity: `docs/08-products/feature-parity.md` has no "Sustainment" row.
+
+**Doc claim vs reality:** Parity matrix is silent; both UIs exist; persistence behaviours differ.
+
+**Possible directions:**
+
+- Add a Sustainment row to `feature-parity.md` distinguishing UI (both) from persistence (Azure: durable; PWA: session-only).
+- Couple with the ADR-080 banner (see "ADR-080 Sustainment auto-fire deferred" entry) so the two related drifts are visible together.
+
+**Promotion path:** Small doc edit, 1 file.
+
+**Severity:** functional gap (parity matrix omits a real differential that affects whether `.vrs` round-trips Sustainment state).

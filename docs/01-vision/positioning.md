@@ -277,7 +277,7 @@ Access control moves _inside_ the product as project-membership ACLs. See
 | **Quality engineer (GB)** | "I need more than Excel, less than Minitab"     | Four Lenses with linked filtering. Question-driven investigation. Capability + control limits. €120/mo Azure tenant-wide.                                           |
 | **CI / OpEx lead**        | "I need a tool for the team's improvement work" | One product everyone can use. PDCA in the Improve tab. Three evidence types. Knowledge Catalyst accumulates across projects.                                        |
 | **Trainer / consultant**  | "I need a tool that teaches the methodology"    | Free PWA teaches structured EDA — same methodology, same lenses. The guided investigation builds statistical intuition.                                             |
-| **Sponsor / Champion**    | "Did the project work? What did we learn?"      | Report-only access. Cpk delta, action completion, sustainment evidence. Signoff out-of-band at V1; full audit trail in the Report.                                  |
+| **Sponsor / Champion**    | "Did the project work? What did we learn?"      | Reads everywhere (Cpk delta, action completion, sustainment evidence visible across all tabs). Signoff out-of-band at V1; full audit trail in the Report.           |
 | **IT / Procurement**      | "Is this safe? Customer-owned? One vendor?"     | Azure Marketplace Managed Application. Customer-owned data + customer-deployed AI Foundry. Zero admin-consent permissions. One SKU, one billing path, no surprises. |
 
 ---

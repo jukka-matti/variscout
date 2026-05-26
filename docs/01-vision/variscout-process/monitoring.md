@@ -53,7 +53,7 @@ Each drift type carries:
 - A reference window (the "expected" baseline)
 - A latest window (the "observed" reality)
 - A statistical test or rule that triggered the detection
-- A response-path suggestion (Investigate / Quick Action / Charter / Sustainment)
+- A response-path suggestion (Capture as Finding / Investigate / Charter / Sustainment)
 
 **Sample-size honesty applied.** Drift detection respects the Watson invariants ([methodology.md §3.4](methodology.md)). A drift signal on a measure with n<10 is **suppressed**; the Signal Card shows "needs evidence" instead. A drift signal on n<30 is **badged "trust pending"**. Both prevent the false-positive flood that would otherwise undermine the Process Owner's trust in the queue.
 
@@ -147,7 +147,7 @@ The Sustainment monitoring view per Hub:
 - Drift status vs baseline (sustained / drifting / regressed)
 - Last verification timestamp + next scheduled verification
 
-When a sustained improvement starts drifting, the Process Owner gets a decisions-queue item: "Improvement X is regressing — investigate?" Response paths from there: Investigate (new project), Quick Action (small fix), or Re-Charter (re-open the original project for follow-up).
+When a sustained improvement starts drifting, the Process Owner gets a decisions-queue item: "Improvement X is regressing — investigate?" Response paths from there: Investigate (new project), Capture as Finding (small observation), or Re-Charter (re-open the original project for follow-up).
 
 This is what makes Process improvements **durable** rather than one-shot. V1 ships the Sustainment stage; the cross-project durability monitoring is Process.
 

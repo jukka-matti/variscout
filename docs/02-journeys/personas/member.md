@@ -12,6 +12,8 @@ last-reviewed: 2026-05-18
 
 > **V1 in-project persona** — one of three persona roles a teammate plays inside a single Project (Lead / Member / Sponsor). A Member contributes content within a Project the Lead drives. The market-facing buyer persona (Improvement Specialist) lives in L1 ([`docs/01-vision/product-overview.md`](../../01-vision/product-overview.md)).
 
+> **App scope** — Lead/Member/Sponsor role gating applies to the **Azure tenant SKU**. The **PWA** (free tier) is single-user open-access by design and does not enforce roles. See [`../../08-products/feature-parity.md`](../../08-products/feature-parity.md).
+
 ## Persona statement
 
 The **Member** is invited into a Project to add domain knowledge, gemba observation, or analytical work. They edit hypothesis evidence, contribute measurement plan rows, and own assigned action items — but they do not drive the Project. They cannot sign off the Charter, approve hypothesis closure, or finalize the Report.

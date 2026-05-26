@@ -101,7 +101,7 @@ interface InvestigationWorkspaceProps {
     attachment?: File
   ) => void | Promise<void>;
   handleAddPhoto: ((findingId: string, commentId: string, file: File) => Promise<void>) | undefined;
-  /** userId of the currently signed-in user — used for canAccess('edit-approach') role check. */
+  /** userId of the currently signed-in user — used for canAccess('edit-contributions') role check. */
   userId: string | null;
   /** Members of the active improvement project — used for canAccess role check. Empty = open-access (quick-analysis flow). */
   members: ProjectMember[];
@@ -974,7 +974,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 activeFindingId={highlightedFindingId}
                 onAddPhoto={
                   (members.length === 0 ||
-                    (userId !== null && canAccess(userId, members, 'edit-approach'))) &&
+                    (userId !== null && canAccess(userId, members, 'edit-contributions'))) &&
                   handleAddPhoto
                     ? (fId: string, cId: string, file: File) => {
                         handleAddPhoto(fId, cId, file);

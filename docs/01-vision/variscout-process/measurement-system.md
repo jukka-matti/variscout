@@ -88,7 +88,7 @@ PMS operates on three timescales simultaneously. The cadence rules per measure r
 
 Current Process State is not a single number. It is not a stability label. It is a **structured read** that surfaces what the Process Owner needs to decide on today.
 
-The decisions queue (the indigo-accent cards at the top of the Process tab State mode) is where Current Process State surfaces as **actionable signals**. Each queue item carries a response-path CTA — Investigate / Quick Action / Charter / (auto-fired) Sustainment.
+The decisions queue (the indigo-accent cards at the top of the Process tab State mode) is where Current Process State surfaces as **actionable signals**. Each queue item carries a response-path CTA — Capture as Finding / Investigate / Charter / (auto-fired) Sustainment.
 
 ## §4 Stable measures vs investigation measures
 
@@ -149,7 +149,7 @@ Per the three V1 canvas response paths + the auto-fire Sustainment pattern (ADR-
 | -------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Drift detected on outcome measure                        | Investigate or Charter (Specialist's choice)         | Specialist persona, with cross-project Hypothesis cross-reference surfaced             |
 | Drift detected on multiple measures over multiple cycles | Charter (escalation)                                 | Process Owner signs off; Leader may be Sponsor                                         |
-| Single-cycle out-of-spec breach                          | Quick Action                                         | Specialist responsible for the relevant step                                           |
+| Single-cycle out-of-spec breach                          | Capture as Finding                                   | Specialist responsible for the relevant step                                           |
 | Sustainment cadence interval reached                     | Sustainment auto-fires                               | Project Lead reviews; closes or extends                                                |
 | Capability improvement validated across cycles           | Sustainment closure                                  | Project Lead + Sponsor signoff                                                         |
 | Recurring focus pattern across multiple Snapshots        | Investigate (new project)                            | Specialist accepts assignment; Charter inherits the recurring focus as initial context |
