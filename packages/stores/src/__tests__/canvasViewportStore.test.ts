@@ -1,11 +1,9 @@
 import 'fake-indexeddb/auto';
-import Dexie from 'dexie';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   useCanvasViewportStore,
   persistCanvasViewport,
   rehydrateCanvasViewport,
-  deleteLegacyWallLayoutDb,
   type ProcessHubId,
 } from '../canvasViewportStore';
 
@@ -14,7 +12,6 @@ const HUB_A = 'hub-A' as ProcessHubId;
 const HUB_B = 'hub-B' as ProcessHubId;
 const HUB_1 = 'hub-1' as ProcessHubId;
 const HUB_2 = 'hub-2' as ProcessHubId;
-const HUB_LEGACY = 'hub-legacy-clean-break' as ProcessHubId;
 const HUB_SELECTION = 'hub-selection-boundary' as ProcessHubId;
 
 describe('canvasViewportStore', () => {
@@ -317,59 +314,6 @@ describe('canvasViewportStore — levels, positions, selection, cache', () => {
 describe('canvasViewportStore persistence', () => {
   beforeEach(() => {
     useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
-  });
-
-  it('clean-breaks an existing v1 project-keyed Dexie database before hub-keyed persistence', async () => {
-    // Seed the legacy DB so it exists in IndexedDB.
-    await Dexie.delete('variscout-wall-layout');
-    const legacyDb = new Dexie('variscout-wall-layout');
-    legacyDb.version(1).stores({ snapshots: 'projectId,updatedAt' });
-    await legacyDb.table('snapshots').put({
-      projectId: 'legacy-project',
-      viewMode: 'wall',
-      nodePositions: { stale: { x: 1, y: 2 } },
-      zoom: 3,
-      pan: { x: 4, y: 5 },
-      railOpen: false,
-      updatedAt: 1,
-    });
-    legacyDb.close();
-
-    // Confirm legacy DB is present before cleanup.
-    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(true);
-
-    // Trigger cleanup explicitly (mirrors the module-load side effect).
-    await deleteLegacyWallLayoutDb();
-
-    // Legacy DB must be gone.
-    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(false);
-
-    // Hub-keyed persistence must still work correctly.
-    useCanvasViewportStore.getState().setViewMode('wall');
-    useCanvasViewportStore.getState().setZoom(HUB_LEGACY, 1.75);
-    useCanvasViewportStore.getState().setNodePosition(HUB_LEGACY, 'node-1', { x: 10, y: 20 });
-
-    await expect(persistCanvasViewport(HUB_LEGACY)).resolves.toBeUndefined();
-
-    useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
-    await expect(rehydrateCanvasViewport(HUB_LEGACY)).resolves.toBeUndefined();
-    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
-    expect(useCanvasViewportStore.getState().getViewport(HUB_LEGACY)).toMatchObject({
-      zoom: 1.75,
-      nodePositions: { 'node-1': { x: 10, y: 20 } },
-    });
-  });
-
-  it('is a no-op when no legacy variscout-wall-layout DB exists', async () => {
-    // Ensure legacy DB is absent before test.
-    await Dexie.delete('variscout-wall-layout');
-    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(false);
-
-    // Must not throw when the DB doesn't exist.
-    await expect(deleteLegacyWallLayoutDb()).resolves.toBeUndefined();
-
-    // DB is still absent — cleanup was a true no-op.
-    await expect(Dexie.exists('variscout-wall-layout')).resolves.toBe(false);
   });
 
   it('persists and rehydrates one hub viewport with viewMode and railOpen', async () => {

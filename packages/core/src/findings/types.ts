@@ -308,9 +308,6 @@ export interface ImprovementIdea extends EntityBase {
 /** Four Ideation Directions — replaces old CAPA categories */
 export type IdeaDirection = 'prevent' | 'detect' | 'simplify' | 'eliminate';
 
-/** @deprecated Use IdeaDirection instead */
-export type IdeaCategory = IdeaDirection;
-
 // ============================================================================
 // Question Types (formerly "Hypothesis" — renamed per ADR-053 question-driven model)
 // ============================================================================

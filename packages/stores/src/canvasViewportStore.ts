@@ -309,23 +309,6 @@ class CanvasViewportDB extends Dexie {
 
 const db = new CanvasViewportDB();
 
-const LEGACY_WALL_LAYOUT_DB_NAME = 'variscout-wall-layout';
-
-/**
- * Best-effort cleanup of the pre-8f Dexie database `variscout-wall-layout`.
- * Pre-8f users had a project-keyed store under that name; the 8f workstream
- * renamed and restructured it to `variscout-canvas-viewport` (hub-keyed).
- * Exported for testability; also called once at module load below.
- */
-export function deleteLegacyWallLayoutDb(): Promise<void> {
-  return Dexie.delete(LEGACY_WALL_LAYOUT_DB_NAME).catch(() => {
-    /* legacy DB cleanup is best-effort; ignore errors */
-  });
-}
-
-// Fire-and-forget at module load. Does not block module initialisation.
-void deleteLegacyWallLayoutDb();
-
 export async function persistCanvasViewport(hubId: ProcessHubId): Promise<void> {
   const s = useCanvasViewportStore.getState();
   await db.snapshots.put({

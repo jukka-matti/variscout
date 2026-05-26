@@ -10,14 +10,12 @@
 //   - canvasState.getByHub strips the hubId FK
 //   - evidenceSources.getCursor enforces the [hubId+sourceId] semantic key
 //   - read transactions wrap multi-table joins
-//   - legacy DB cleanup fires Dexie.delete('variscout-pwa') at construction
 //   - empty stub read APIs return [] / undefined safely
 //
 // fake-indexeddb/auto polyfills IndexedDB globally; the real Dexie instance
 // works end-to-end in jsdom.
 
 import 'fake-indexeddb/auto';
-import Dexie from 'dexie';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   EvidenceSource,
@@ -575,31 +573,5 @@ describe('PwaHubRepository — stub read APIs (empty tables until F3.5/F5)', () 
   it('hypotheses.listByInvestigation returns []', async () => {
     const repo = new PwaHubRepository();
     expect(await repo.hypotheses.listByInvestigation('inv-x')).toEqual([]);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Legacy DB cleanup — best-effort fire-and-forget Dexie.delete on construction
-// ---------------------------------------------------------------------------
-
-describe('PwaHubRepository — legacy DB cleanup', () => {
-  it('calls Dexie.delete with the legacy DB name on construction', async () => {
-    const deleteSpy = vi.spyOn(Dexie, 'delete').mockResolvedValue(undefined);
-
-    const repo = new PwaHubRepository();
-    void repo; // keep the instance alive until end-of-test
-
-    expect(deleteSpy).toHaveBeenCalledWith('variscout-pwa');
-    deleteSpy.mockRestore();
-  });
-
-  it('swallows errors from the legacy DB delete (does not throw at construction)', async () => {
-    const deleteSpy = vi.spyOn(Dexie, 'delete').mockRejectedValue(new Error('Simulated IDB error'));
-
-    expect(() => new PwaHubRepository()).not.toThrow();
-
-    // Allow the unhandled-rejection .catch swallow to settle.
-    await new Promise(resolve => setTimeout(resolve, 0));
-    deleteSpy.mockRestore();
   });
 });
