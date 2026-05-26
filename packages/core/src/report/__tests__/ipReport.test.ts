@@ -20,7 +20,7 @@ function project(overrides: Partial<ImprovementProject> = {}): ImprovementProjec
     status: 'active',
     metadata: { title: 'Fill Cpk lift', investigationId: 'inv-1' },
     goal: {
-      outcomeGoal: { outcomeSpecId: 'out-fill', baseline: 0.86, target: 1.33 },
+      outcomeGoals: [{ outcomeSpecId: 'out-fill', baseline: 0.86, target: 1.33 }],
       factorControls: [
         {
           factor: 'shift',
@@ -257,7 +257,7 @@ describe('deriveHubPortfolioReport', () => {
         project({
           id: 'ip-2',
           metadata: { title: 'Scrap reduction', investigationId: 'inv-2' },
-          goal: { outcomeGoal: { outcomeSpecId: 'out-scrap', target: 1 } },
+          goal: { outcomeGoals: [{ outcomeSpecId: 'out-scrap', target: 1 }] },
         }),
       ],
       sustainmentRecords: [sustainment()],

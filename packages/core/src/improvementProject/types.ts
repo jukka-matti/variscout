@@ -30,6 +30,12 @@ export interface ImprovementProjectOutcomeGoal {
   baseline?: number;
   target: number;
   deadline?: string;
+  /** Optional: bind this outcome to a specific process step (step-bound Y).
+   *  If omitted, the outcome is global (whole-process Y, feeds L1 view).
+   *  If present, references a step id in the IP's ProcessMap; feeds L3
+   *  focal-step view. Per Spec 2 §3.3.1 step-bound vs global symmetry —
+   *  outcomes AND factors can both be global or step-bound. */
+  stepId?: string;
 }
 
 export interface ImprovementProjectFactorControl {
@@ -44,7 +50,12 @@ export interface ImprovementProjectMechanismGoal {
 }
 
 export interface ImprovementProjectGoal {
-  outcomeGoal: ImprovementProjectOutcomeGoal; // Y-level required
+  /** List of outcome goals (Y-level). At least one required.
+   *  Multi-outcome supported (e.g., Yield_pct + ScrapRate_pct + GradeA_ratio
+   *  for batch processes per Spec 2 §3.2.2). No formal "primary" concept —
+   *  order in the list is a quiet signal (leftmost = shown first) but no
+   *  hierarchy is enforced. */
+  outcomeGoals: ImprovementProjectOutcomeGoal[];
   factorControls?: ImprovementProjectFactorControl[]; // X-level
   mechanismGoals?: ImprovementProjectMechanismGoal[]; // x-level
   freeText?: string; // fallback when no OutcomeSpec available
