@@ -138,12 +138,12 @@ A bookmarked chart observation + analyst note. Status: `observed` → `analyzed`
 
 **Related:** [Hypothesis (Investigation Wall)](#hypothesis-investigation-wall), [Measurement Plan](#measurement-plan)
 
-### Canvas response paths (Investigate / Quick Action / Charter)
+### Canvas response paths (Capture as Finding / Investigate / Charter)
 
 The 3 V1 response paths surfaced from a canvas step-card drill in the Process tab:
 
+- **Capture as Finding** — lightweight observation capture; records a Hub-level Finding scoped to a process step or chart context; no IP commitment required. Same data primitive that chart-drill Findings use.
 - **Investigate** — opens the Investigation Wall + Evidence Map scoped to the focal step.
-- **Quick Action** — creates a tracked action item in the active project's Improve tab (or prompts to select / create a Project if none active).
 - **Charter** — creates a new Project with this step / focal data as initial Charter-stage context (same as "Promote to Project" but launched from canvas).
 
 The Sustainment path auto-fires per [ADR-080](07-decisions/adr-080-sustainment-auto-fire-pattern.md); the Handoff path is deleted everywhere (folded into Sustainment closure).

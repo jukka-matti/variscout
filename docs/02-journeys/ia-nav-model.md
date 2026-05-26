@@ -37,7 +37,7 @@ flowchart LR
     Improve -. active-IP cascade .-> Investigation
 ```
 
-The solid arrows are the workflow walk (left-to-right). The dotted arrows are the **active-IP cascade**: when the Lead promotes a hypothesis to an active Improvement Project on the Improve tab, the four upstream-of-Improve tabs scope their content to that IP until the Lead changes it.
+The solid arrows are the workflow walk (left-to-right). The dotted arrows are the **active-IP cascade**: when the Lead selects an Improvement Project as their active working focus on the Improve tab, the four upstream-of-Improve tabs scope their content to that IP until the Lead changes it.
 
 ## Tabs
 
@@ -68,7 +68,7 @@ The solid arrows are the workflow walk (left-to-right). The dotted arrows are th
 
 ### Improve
 
-**Purpose**: improvement action tracker scoped to the active Improvement Project (IP). When a validated hypothesis promotes to an IP, Improve becomes the working surface for action items, owners, and target dates. Sustainment lives at the end of Improve's lifecycle.
+**Purpose**: improvement action tracker scoped to the active Improvement Project (IP). When an Improvement Project is active, Improve becomes the working surface for action items, owners, and target dates. Sustainment lives at the end of Improve's lifecycle.
 **Primary action**: create / track improvement actions; advance to Sustainment; close out the IP.
 
 ### Report

@@ -62,7 +62,7 @@ Split VariScout into two products on a roadmap. Ship the wedge first.
 | Projects detail: 4 stages `Charter → Approach → Improve → Sustainment`   | Improve becomes a stage (was a top-level tab); Handoff folds into Sustainment                                                    |
 | Improve UI = simple action tracker by default                            | PDCA workbench retained behind an "Advanced" toggle (progressive disclosure, not a parallel mode)                                |
 | Process tab + canvas + Frame step                                        | Unchanged (canvas is foundational substrate per ADR-081)                                                                         |
-| Canvas response paths from step drill                                    | Reduced from 5 to 3 (Investigate, Quick Action, Charter); Handoff path deleted                                                   |
+| Canvas response paths from step drill                                    | Reduced from 5 to 3 (Capture as Finding, Investigate, Charter); Handoff path deleted                                             |
 | Project membership ACLs                                                  | New data model: `ProjectMember`, `Invitation`, role enum (Lead/Member/Sponsor)                                                   |
 | Investigation Wall + Measurement Plans                                   | Wall extended with `MeasurementPlan` sub-entity per Hypothesis. Supports hypothesis-first flow without a separate Measure stage. |
 | Tier-gating (`isPaidTier()` / `hasTeamFeatures()`)                       | Mostly retires (single SKU); replaced where useful by project-membership checks                                                  |
