@@ -5,8 +5,8 @@
  * saveProject, loadProject, listProjects, deleteProject, renameProject,
  * exportProject, importProject, newProject.
  *
- * Also covers backward-compat for old .vrs files (missing fields,
- * mindmap→findings migration, filter stack reconstruction).
+ * Also covers default-fill for old .vrs files (missing optional fields,
+ * filter stack reconstruction from flat filters).
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
