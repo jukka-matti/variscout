@@ -59,7 +59,13 @@ function priorStepStatsFromSnapshots(
   return new Map(stamps.map(stamp => [stamp.stepId, stamp]));
 }
 
-const FrameView: React.FC = () => {
+interface FrameViewProps {
+  /** Lead-only Edit mode gate. Computed in Editor.tsx from canAccess(currentUserId, members, 'edit').
+   *  When omitted, the workspace defaults to permissive (used by tests + non-membership callers like PWA). */
+  canEditCanvas?: boolean;
+}
+
+const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
@@ -349,6 +355,7 @@ const FrameView: React.FC = () => {
         contextLinkGroups={contextLinkGroups}
         onNavigateContextLink={handleNavigateContextLink}
         priorStepStats={priorStepStats}
+        canEditCanvas={canEditCanvas}
         actionItems={actionItems}
       />
     </div>

@@ -80,6 +80,7 @@ import { resolveCpkTarget } from '@variscout/core/capability';
 import type { BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
+import { canAccess } from '@variscout/core/projectMembership';
 import { Check, X } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
@@ -583,6 +584,14 @@ export const Editor: React.FC<EditorProps> = ({
   // Data flow hook
   const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
   const activeIPContext = useActiveIPContext(activeHub, currentUser?.email);
+  const canEditCanvas = useMemo(() => {
+    const userId = currentUser?.email;
+    if (!userId) return false; // Pre-auth (user still loading) — gate is closed.
+    const members = activeIPContext.activeIP?.metadata.members ?? [];
+    // Wedge V1: no back-compat fallback. An empty members[] has no Lead, so canAccess
+    // returns false and the gate stays closed (per feedback_wedge_v1_no_migration_no_backcompat).
+    return canAccess(userId, members, 'edit');
+  }, [activeIPContext.activeIP, currentUser?.email]);
   const selectedOrActiveProjectId = activeIPContext.activeIP?.id ?? selectedProjectId;
   const activeIPScopeLabels = useMemo(
     () =>
@@ -1848,7 +1857,7 @@ export const Editor: React.FC<EditorProps> = ({
                     surface="Process"
                   />
                 ) : null}
-                <FrameView />
+                <FrameView canEditCanvas={canEditCanvas} />
               </div>
             ) : activeView === 'charter' ? (
               <ImprovementProjectPanel
