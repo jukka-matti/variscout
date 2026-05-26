@@ -12,8 +12,8 @@ import type {
 
 /**
  * Structured representation of the investigation state saved as JSON.
- * The `hypotheses` field is optional so old project files (without hubs)
- * remain valid and are migrated on deserialize.
+ * The `hypotheses` field is optional. Old project files without hubs
+ * deserialize to an empty hubs array (no back-compat migration per wedge V1).
  */
 export interface SerializedInvestigationState {
   findings: Finding[];
