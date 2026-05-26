@@ -18,8 +18,16 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
     status: 'active',
     metadata: {
       title: 'Fill Cpk lift',
-      team: [
-        { role: 'projectLead', person: { displayName: 'Mira Lead', upn: 'mira@example.com' } },
+      members: [
+        {
+          id: 'pm-mira',
+          createdAt: now - 72 * hour,
+          deletedAt: null,
+          userId: 'mira@example.com',
+          displayName: 'Mira Lead',
+          role: 'lead',
+          invitedAt: now - 72 * hour,
+        },
       ],
     },
     goal: { outcomeGoal: { outcomeSpecId: 'outcome-1', baseline: 0.8, target: 1.33 } },

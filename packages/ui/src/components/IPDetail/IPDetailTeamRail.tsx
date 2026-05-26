@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
 import type { ControlHandoff, ProcessHub, SustainmentRecord } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import type { ProjectMember, ProjectRole } from '@variscout/core/projectMembership';
 import IPDetailAvatar from './IPDetailAvatar';
 import { deriveIPActivityEvents, type IPActivityEvent } from './activityEvents';
 
@@ -20,35 +21,40 @@ interface IPDetailTeamRailProps {
   className?: string;
 }
 
-type TeamMember = NonNullable<ImprovementProject['metadata']['team']>[number];
-type TeamRole = TeamMember['role'];
 export type RaciAssignment = 'R' | 'A' | 'C' | 'I';
 
-const ROLE_LABELS: Record<TeamRole, string> = {
-  champion: 'Champion',
+const ROLE_LABELS: Record<ProjectRole, string> = {
+  lead: 'Lead',
+  member: 'Member',
   sponsor: 'Sponsor',
-  projectLead: 'Project lead',
-  teamMember: 'Team member',
-  processOwner: 'Process owner',
 };
 
-const ROLE_RACI_DEFAULTS: Record<TeamRole, RaciAssignment> = {
-  champion: 'A',
-  sponsor: 'A',
-  projectLead: 'R',
-  teamMember: 'C',
-  processOwner: 'A',
-};
-
-export function teamMemberKey(member: TeamMember): string {
-  return member.person.upn ?? member.person.userId ?? member.person.displayName;
+/**
+ * Derive a display-layer RACI tag from the wedge V1 project role. RACI is NOT
+ * stored on the entity in wedge V1 — it is computed for the team-rail chip
+ * (and overridable per-member via raciOverrides for local UI scratchpad use).
+ * Kept local to TeamRail because RACI is a display concern, not a domain rule.
+ */
+function roleToRaci(role: ProjectRole): RaciAssignment {
+  switch (role) {
+    case 'lead':
+      return 'R';
+    case 'sponsor':
+      return 'A';
+    case 'member':
+      return 'C';
+  }
 }
 
-function teamMemberRaci(
-  member: TeamMember,
+export function memberKey(member: ProjectMember): string {
+  return member.userId || member.displayName;
+}
+
+function memberRaci(
+  member: ProjectMember,
   raciOverrides: Record<string, RaciAssignment>
 ): RaciAssignment {
-  return member.raci ?? raciOverrides[teamMemberKey(member)] ?? ROLE_RACI_DEFAULTS[member.role];
+  return raciOverrides[memberKey(member)] ?? roleToRaci(member.role);
 }
 
 function formatDate(timestamp: number): string {
@@ -93,7 +99,7 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
   onApproveSignoff,
   className = 'hidden w-[280px] flex-shrink-0 border-l border-edge bg-slate-50 p-4 text-xs lg:block',
 }) => {
-  const team = ip.metadata.team ?? [];
+  const members = ip.metadata.members ?? [];
   const [activityOpen, setActivityOpen] = useState(false);
   const effectiveNow = now ?? Date.now();
   const events = useMemo(
@@ -115,27 +121,27 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
 
   return (
     <aside className={className} data-testid="ip-detail-team-rail" aria-label="Team workspace">
-      <div className="uppercase tracking-wide text-content-tertiary">Team · {team.length}</div>
-      {team.length === 0 ? (
+      <div className="uppercase tracking-wide text-content-tertiary">Team · {members.length}</div>
+      {members.length === 0 ? (
         <p className="mt-3 text-content-secondary">No team members yet</p>
       ) : (
         <div className="mt-3 space-y-2">
-          {team.map((member, index) => (
+          {members.map((member, index) => (
             <div
-              key={`${member.role}-${member.person.upn ?? member.person.displayName}-${index}`}
+              key={member.id}
               className="flex items-center gap-2 rounded-md border border-edge bg-surface p-2"
               data-testid={`ip-team-row-${index}`}
             >
-              <IPDetailAvatar person={member.person} />
+              <IPDetailAvatar person={{ displayName: member.displayName }} />
               <div className="min-w-0 flex-1">
-                <div className="truncate font-medium text-content">{member.person.displayName}</div>
+                <div className="truncate font-medium text-content">{member.displayName}</div>
                 <div className="text-[11px] text-content-secondary">{ROLE_LABELS[member.role]}</div>
               </div>
               <span
                 className="flex h-6 min-w-6 items-center justify-center rounded-md bg-slate-100 px-2 text-[11px] font-semibold text-content-secondary"
-                aria-label={`RACI ${teamMemberRaci(member, raciOverrides)}`}
+                aria-label={`RACI ${memberRaci(member, raciOverrides)}`}
               >
-                {teamMemberRaci(member, raciOverrides)}
+                {memberRaci(member, raciOverrides)}
               </span>
             </div>
           ))}

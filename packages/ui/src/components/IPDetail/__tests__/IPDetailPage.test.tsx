@@ -1,7 +1,6 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { useState } from 'react';
 import { usePreferencesStore } from '@variscout/stores';
 import IPDetailPage from '../IPDetailPage';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
@@ -59,9 +58,25 @@ describe('IPDetailPage', () => {
       ...ip,
       metadata: {
         ...ip.metadata,
-        team: [
-          { role: 'projectLead', person: { displayName: 'Alex Lead', upn: 'alex@example.com' } },
-          { role: 'teamMember', person: { displayName: 'Blair SME' } },
+        members: [
+          {
+            id: 'pm-lead',
+            createdAt: 1,
+            deletedAt: null,
+            userId: 'alex@example.com',
+            displayName: 'Alex Lead',
+            role: 'lead',
+            invitedAt: 1,
+          },
+          {
+            id: 'pm-member',
+            createdAt: 1,
+            deletedAt: null,
+            userId: 'blair@example.com',
+            displayName: 'Blair SME',
+            role: 'member',
+            invitedAt: 1,
+          },
         ],
       },
     };
@@ -70,78 +85,13 @@ describe('IPDetailPage', () => {
 
     const leadRow = screen.getByTestId('ip-team-row-0');
     expect(within(leadRow).getByText('Alex Lead')).toBeInTheDocument();
-    expect(within(leadRow).getByText('Project lead')).toBeInTheDocument();
+    expect(within(leadRow).getByText('Lead')).toBeInTheDocument();
     expect(within(leadRow).getByText('R')).toBeInTheDocument();
 
     const memberRow = screen.getByTestId('ip-team-row-1');
     expect(within(memberRow).getByText('Blair SME')).toBeInTheDocument();
-    expect(within(memberRow).getByText('Team member')).toBeInTheDocument();
+    expect(within(memberRow).getByText('Member')).toBeInTheDocument();
     expect(within(memberRow).getByText('C')).toBeInTheDocument();
-  });
-
-  it('validates invite name and appends a team member through onTeamChange', () => {
-    const onTeamChange = vi.fn();
-    const rosterIP: ImprovementProject = {
-      ...ip,
-      metadata: {
-        ...ip.metadata,
-        team: [{ role: 'sponsor', person: { displayName: 'Morgan Sponsor' } }],
-      },
-    };
-
-    render(<IPDetailPage ip={rosterIP} onBackToList={() => {}} onTeamChange={onTeamChange} />);
-
-    fireEvent.click(screen.getByTestId('ip-detail-invite'));
-    expect(screen.getByRole('dialog', { name: 'Invite team member' })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save invite' }));
-    expect(screen.getByText('Name is required')).toBeInTheDocument();
-    expect(onTeamChange).not.toHaveBeenCalled();
-
-    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Casey Owner' } });
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'casey@example.com' } });
-    fireEvent.change(screen.getByLabelText('Role'), { target: { value: 'processOwner' } });
-    fireEvent.change(screen.getByLabelText('RACI assignment'), { target: { value: 'I' } });
-    expect(screen.getByTestId('invite-raci-preview')).toHaveTextContent('I');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save invite' }));
-
-    expect(onTeamChange).toHaveBeenCalledWith([
-      { role: 'sponsor', person: { displayName: 'Morgan Sponsor' } },
-      {
-        role: 'processOwner',
-        raci: 'I',
-        person: { displayName: 'Casey Owner', upn: 'casey@example.com' },
-      },
-    ]);
-  });
-
-  it('persists the selected invite RACI with the team member', () => {
-    const StatefulPage = () => {
-      const [currentIP, setCurrentIP] = useState<ImprovementProject>(ip);
-      return (
-        <IPDetailPage
-          key={currentIP.metadata.team?.length ?? 0}
-          ip={currentIP}
-          onBackToList={() => {}}
-          onTeamChange={team =>
-            setCurrentIP({ ...currentIP, metadata: { ...currentIP.metadata, team } })
-          }
-        />
-      );
-    };
-
-    render(<StatefulPage />);
-
-    fireEvent.click(screen.getByTestId('ip-detail-invite'));
-    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Casey Owner' } });
-    fireEvent.change(screen.getByLabelText('Role'), { target: { value: 'processOwner' } });
-    fireEvent.change(screen.getByLabelText('RACI assignment'), { target: { value: 'I' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save invite' }));
-
-    const row = screen.getByTestId('ip-team-row-0');
-    expect(within(row).getByText('Casey Owner')).toBeInTheDocument();
-    expect(within(row).getByText('I')).toBeInTheDocument();
   });
 
   it('defaults tablet team rail to collapsed and remembers expansion preference', () => {
@@ -342,9 +292,10 @@ describe('IPDetailPage', () => {
           onMembersChange={onMembersChange}
         />
       );
-      expect(screen.getByText('Lead Pat')).toBeInTheDocument();
-      expect(screen.getByText('Member Mira')).toBeInTheDocument();
-      fireEvent.click(screen.getByRole('button', { name: 'Remove Member Mira' }));
+      const charterSection = screen.getByTestId('charter-team-section');
+      expect(within(charterSection).getByText('Lead Pat')).toBeInTheDocument();
+      expect(within(charterSection).getByText('Member Mira')).toBeInTheDocument();
+      fireEvent.click(within(charterSection).getByRole('button', { name: 'Remove Member Mira' }));
 
       expect(onMembersChange).toHaveBeenCalledOnce();
       const [remaining] = onMembersChange.mock.calls[0] as [

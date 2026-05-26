@@ -160,9 +160,6 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         onMembersChange={(members: ProjectMember[]) =>
           applyProjectPatch(selected, { metadata: { ...selected.metadata, members } })
         }
-        onTeamChange={team =>
-          applyProjectPatch(selected, { metadata: { ...selected.metadata, team } })
-        }
         onRequestSignoff={() =>
           applyProjectPatch(selected, {
             signoff: {

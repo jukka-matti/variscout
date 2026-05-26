@@ -10,8 +10,7 @@ import IPDetailHeader from './IPDetailHeader';
 import IPDetailStageTabs, { type StageName } from './IPDetailStageTabs';
 import NoAccessRedirect from './NoAccessRedirect';
 import IPDetailModeToggle, { type IPDetailMode } from './IPDetailModeToggle';
-import IPDetailTeamRail, { teamMemberKey, type RaciAssignment } from './IPDetailTeamRail';
-import IPDetailInviteModal from './IPDetailInviteModal';
+import IPDetailTeamRail, { type RaciAssignment } from './IPDetailTeamRail';
 import { deriveStageState, type StageStateInputs } from './stageState';
 import CharterOverview from './stages/CharterOverview';
 import CharterSections from './stages/CharterSections';
@@ -31,8 +30,6 @@ export interface IPDetailPageProps {
   stageStateInputs?: StageStateInputs;
   /** Optional invite handler (Plan 3 wires this). */
   onInviteClick?: () => void;
-  /** Emits the full updated team roster when shared UI appends an invite. */
-  onTeamChange?: (team: NonNullable<ImprovementProject['metadata']['team']>) => void;
   /** Current user's id — used by Charter team section for remove-button gating. */
   currentUserId?: string;
   /** Emits the updated wedge members[] roster after add/remove. Caller dispatches IMPROVEMENT_PROJECT_UPDATE. */
@@ -83,7 +80,6 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   onBackToList,
   stageStateInputs,
   onInviteClick,
-  onTeamChange,
   currentUserId,
   onMembersChange,
   activeHub,
@@ -108,12 +104,11 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   const stages = useMemo(() => deriveStageState(ip, stageStateInputs), [ip, stageStateInputs]);
   const [activeStage, setActiveStage] = useState<StageName>(() => defaultActiveStage(stages));
   const [mode, setMode] = useState<IPDetailMode>('overview');
-  const [inviteOpen, setInviteOpen] = useState(false);
   const [mobileTeamOpen, setMobileTeamOpen] = useState(false);
-  const [raciOverrides, setRaciOverrides] = useState<Record<string, RaciAssignment>>({});
+  // Reserved for per-member RACI override UI; no mutator surfaced in wedge V1.
+  const raciOverrides: Record<string, RaciAssignment> = {};
   const isTabletRailExpanded = usePreferencesStore(s => s.isIPTeamRailExpanded);
   const setTabletRailExpanded = usePreferencesStore(s => s.setIPTeamRailExpanded);
-  const team = ip.metadata.team ?? [];
   const members = ip.metadata.members ?? [];
 
   // ACL guard: only apply when we have an identified user AND an explicit members list.
@@ -127,7 +122,6 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
 
   const handleInviteClick = () => {
     onInviteClick?.();
-    if (onTeamChange) setInviteOpen(true);
   };
 
   const handleMemberInvite = (data: { email: string; role: ProjectRole }) => {
@@ -333,17 +327,6 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
             <IPDetailTeamRail {...railProps} className="block w-full bg-slate-50 p-4 text-xs" />
           </div>
         </div>
-      ) : null}
-      {inviteOpen && onTeamChange ? (
-        <IPDetailInviteModal
-          onClose={() => setInviteOpen(false)}
-          onSubmit={member => {
-            const { raci } = member;
-            if (raci) setRaciOverrides(current => ({ ...current, [teamMemberKey(member)]: raci }));
-            onTeamChange([...team, member]);
-            setInviteOpen(false);
-          }}
-        />
       ) : null}
     </div>
   );
