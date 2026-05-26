@@ -334,6 +334,8 @@ export const ParetoChartWrapperBase = ({
     yMetricContext,
   });
 
+  // Signature mirrors ParetoChartBase.onBarClick (2-arg); ctx.shiftKey is
+  // unused since the onScopeFilterClick branch retired.
   const handleBarClick = (key: string, _ctx?: { shiftKey: boolean }) => {
     if (onDrillDown) {
       onDrillDown(factor, key);
