@@ -54,7 +54,11 @@ import App from '../App';
 import { LocaleProvider } from '../context/LocaleContext';
 import { registerLocaleLoaders, type MessageCatalog } from '@variscout/core';
 import { usePanelsStore, initialPanelsState } from '../features/panels/panelsStore';
-import { useProjectStore, useProjectMembershipStore } from '@variscout/stores';
+import {
+  useProjectStore,
+  useProjectMembershipStore,
+  projectMembershipStorageKey,
+} from '@variscout/stores';
 
 // Register locale loaders (mirrors main.tsx) so useTranslation works.
 registerLocaleLoaders(
@@ -141,7 +145,13 @@ describe('PendingInvitesBanner — mounted in App.tsx Home view (active-IP launc
     // Put the app on the Home view so panels.activeView === 'home' triggers.
     usePanelsStore.setState({ ...initialPanelsState, activeView: 'home' });
     // Seed one pending invitation so the banner renders (non-null).
-    useProjectMembershipStore.setState({ pendingInvites: [testInvite] });
+    // PWA uses 'analyst@local' as the stable per-user membership key (see App.tsx).
+    // Write to BOTH localStorage and in-memory state: App.tsx mounts a useEffect
+    // that calls `rehydrateInvites(userId)`, which reads from localStorage and
+    // would otherwise clobber an in-memory-only seed.
+    const membershipKey = projectMembershipStorageKey('analyst@local');
+    localStorage.setItem(membershipKey, JSON.stringify([testInvite]));
+    useProjectMembershipStore.setState({ invitesByUser: { [membershipKey]: [testInvite] } });
   });
 
   afterEach(() => {
@@ -149,6 +159,7 @@ describe('PendingInvitesBanner — mounted in App.tsx Home view (active-IP launc
     useProjectStore.setState({ rawData: [], outcome: null, factors: [] });
     usePanelsStore.setState(initialPanelsState);
     useProjectMembershipStore.setState(useProjectMembershipStore.getInitialState());
+    localStorage.removeItem(projectMembershipStorageKey('analyst@local'));
   });
 
   it('renders PendingInvitesBanner above the launchpad when on the Home view with pending invites', async () => {

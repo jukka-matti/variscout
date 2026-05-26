@@ -24,7 +24,11 @@ vi.mock('../VrsImportButton', () => ({
 }));
 
 import HomeScreen from '../HomeScreen';
-import { useProjectMembershipStore, getProjectMembershipInitialState } from '@variscout/stores';
+import {
+  useProjectMembershipStore,
+  getProjectMembershipInitialState,
+  projectMembershipStorageKey,
+} from '@variscout/stores';
 import type { Invitation } from '@variscout/core/projectMembership';
 
 const inviteA: Invitation = {
@@ -46,8 +50,11 @@ const defaultProps = {
 };
 
 describe('HomeScreen — PendingInvitesBanner integration', () => {
+  const membershipKey = projectMembershipStorageKey('analyst@local');
+
   beforeEach(() => {
     useProjectMembershipStore.setState(getProjectMembershipInitialState());
+    localStorage.removeItem(membershipKey);
   });
 
   it('does not render the banner when there are no pending invites', () => {
@@ -56,7 +63,12 @@ describe('HomeScreen — PendingInvitesBanner integration', () => {
   });
 
   it('renders the banner when pending invites exist', () => {
-    useProjectMembershipStore.setState({ pendingInvites: [inviteA] });
+    // PWA uses 'analyst@local' as the stable per-user membership key (see HomeScreen.tsx).
+    // Seed BOTH localStorage and in-memory state: HomeScreen mounts a useEffect that
+    // calls `rehydrateInvites(userId)`, which reads from localStorage and would
+    // otherwise clobber an in-memory-only seed.
+    localStorage.setItem(membershipKey, JSON.stringify([inviteA]));
+    useProjectMembershipStore.setState({ invitesByUser: { [membershipKey]: [inviteA] } });
     render(<HomeScreen {...defaultProps} />);
     expect(screen.getByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });

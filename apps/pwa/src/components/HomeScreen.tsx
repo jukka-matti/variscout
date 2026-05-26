@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BarChart2, ClipboardPaste, PenLine, ArrowUpRight } from 'lucide-react';
 import type { SampleDataset } from '@variscout/data';
 import { useTranslation } from '@variscout/hooks';
@@ -30,9 +30,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   resolveProjectName,
 }) => {
   const { t } = useTranslation();
-  const pendingInvites = useProjectMembershipStore(s => s.pendingInvites);
-  const acceptInvite = useProjectMembershipStore(s => s.acceptInvite);
-  const revokeInvite = useProjectMembershipStore(s => s.revokeInvite);
+  // PWA is single-user; use 'analyst@local' as the stable per-user key.
+  const PWA_MEMBERSHIP_USER_ID = 'analyst@local';
+  const pendingInvites = useProjectMembershipStore(s =>
+    s.getPendingInvites(PWA_MEMBERSHIP_USER_ID)
+  );
+  const membershipAcceptInvite = useProjectMembershipStore(s => s.acceptInvite);
+  const membershipRevokeInvite = useProjectMembershipStore(s => s.revokeInvite);
+  const rehydrateInvites = useProjectMembershipStore(s => s.rehydrateInvites);
+  const acceptInvite = (id: string) => membershipAcceptInvite(PWA_MEMBERSHIP_USER_ID, id);
+  const revokeInvite = (id: string) => membershipRevokeInvite(PWA_MEMBERSHIP_USER_ID, id);
+  useEffect(() => {
+    rehydrateInvites(PWA_MEMBERSHIP_USER_ID);
+  }, [rehydrateInvites]);
 
   return (
     <div className="h-full flex flex-col items-center justify-start p-4 sm:p-8 overflow-auto animate-in fade-in duration-500">

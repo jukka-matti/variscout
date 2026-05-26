@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   useProjectMembershipStore,
   getProjectMembershipInitialState,
+  projectMembershipStorageKey,
 } from '../useProjectMembershipStore';
 import type { Invitation } from '@variscout/core/projectMembership';
 import {
@@ -42,6 +43,9 @@ function makeInvite(id: string): Invitation {
   };
 }
 
+const USER_A = 'alice@org';
+const USER_B = 'bob@org';
+
 describe('useProjectMembershipStore', () => {
   beforeEach(() => {
     useProjectMembershipStore.setState(getProjectMembershipInitialState());
@@ -53,35 +57,61 @@ describe('useProjectMembershipStore', () => {
     expect(mod.STORE_LAYER).toBe('annotation-per-user');
   });
 
+  it('builds an encoded per-user localStorage key', () => {
+    expect(projectMembershipStorageKey('alice@example.com')).toBe(
+      'variscout:projectMembership:alice%40example.com'
+    );
+  });
+
   it('initializes with empty pending invites', () => {
-    const { pendingInvites } = useProjectMembershipStore.getState();
-    expect(pendingInvites).toEqual([]);
+    expect(useProjectMembershipStore.getState().getPendingInvites(USER_A)).toEqual([]);
   });
 
   it('adds and lists pending invites', () => {
-    useProjectMembershipStore.getState().addPendingInvite(makeInvite('inv-1'));
-    expect(useProjectMembershipStore.getState().pendingInvites).toHaveLength(1);
+    useProjectMembershipStore.getState().addPendingInvite(USER_A, makeInvite('inv-1'));
+    expect(useProjectMembershipStore.getState().getPendingInvites(USER_A)).toHaveLength(1);
   });
 
   it('removes invite on acceptance', () => {
-    useProjectMembershipStore.getState().addPendingInvite(makeInvite('inv-1'));
-    useProjectMembershipStore.getState().acceptInvite('inv-1');
-    expect(useProjectMembershipStore.getState().pendingInvites).toHaveLength(0);
+    useProjectMembershipStore.getState().addPendingInvite(USER_A, makeInvite('inv-1'));
+    useProjectMembershipStore.getState().acceptInvite(USER_A, 'inv-1');
+    expect(useProjectMembershipStore.getState().getPendingInvites(USER_A)).toHaveLength(0);
   });
 
   it('removes invite on revoke', () => {
-    useProjectMembershipStore.getState().addPendingInvite(makeInvite('inv-1'));
-    useProjectMembershipStore.getState().revokeInvite('inv-1');
-    expect(useProjectMembershipStore.getState().pendingInvites).toHaveLength(0);
+    useProjectMembershipStore.getState().addPendingInvite(USER_A, makeInvite('inv-1'));
+    useProjectMembershipStore.getState().revokeInvite(USER_A, 'inv-1');
+    expect(useProjectMembershipStore.getState().getPendingInvites(USER_A)).toHaveLength(0);
   });
 
   it('does not remove unrelated invites when accepting one', () => {
-    useProjectMembershipStore.getState().addPendingInvite(makeInvite('inv-1'));
-    useProjectMembershipStore.getState().addPendingInvite(makeInvite('inv-2'));
-    useProjectMembershipStore.getState().acceptInvite('inv-1');
-    const { pendingInvites } = useProjectMembershipStore.getState();
+    useProjectMembershipStore.getState().addPendingInvite(USER_A, makeInvite('inv-1'));
+    useProjectMembershipStore.getState().addPendingInvite(USER_A, makeInvite('inv-2'));
+    useProjectMembershipStore.getState().acceptInvite(USER_A, 'inv-1');
+    const pendingInvites = useProjectMembershipStore.getState().getPendingInvites(USER_A);
     expect(pendingInvites).toHaveLength(1);
     expect(pendingInvites[0]!.id).toBe('inv-2');
+  });
+
+  it('isolates pending invites by user — user B sees no invites written by user A', () => {
+    // Write an invite under user A
+    useProjectMembershipStore.getState().addPendingInvite(USER_A, makeInvite('inv-a1'));
+
+    // User B sees nothing
+    expect(useProjectMembershipStore.getState().getPendingInvites(USER_B)).toEqual([]);
+
+    // Switch back to user A — invite still present
+    expect(useProjectMembershipStore.getState().getPendingInvites(USER_A)).toHaveLength(1);
+    expect(useProjectMembershipStore.getState().getPendingInvites(USER_A)[0]!.id).toBe('inv-a1');
+  });
+
+  it('persists invite to per-user localStorage key', () => {
+    useProjectMembershipStore.getState().addPendingInvite(USER_A, makeInvite('inv-1'));
+    const raw = localStorage.getItem(projectMembershipStorageKey(USER_A));
+    expect(raw).not.toBeNull();
+    const parsed = JSON.parse(raw!);
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].id).toBe('inv-1');
   });
 });
 
@@ -117,12 +147,12 @@ describe('useProjectMembershipStore — acceptInvite composite', () => {
       invitedAt: 100,
       status: 'pending',
     };
-    useProjectMembershipStore.getState().addPendingInvite(inv);
+    useProjectMembershipStore.getState().addPendingInvite('mira@org', inv);
 
-    useProjectMembershipStore.getState().acceptInvite('inv-1');
+    useProjectMembershipStore.getState().acceptInvite('mira@org', 'inv-1');
 
     // Pending invite removed
-    expect(useProjectMembershipStore.getState().pendingInvites).toEqual([]);
+    expect(useProjectMembershipStore.getState().getPendingInvites('mira@org')).toEqual([]);
     // Member appended to the target project
     const updated = useImprovementProjectStore.getState().getProjectsForHub('hub-1')[0];
     expect(updated!.metadata.members).toHaveLength(1);
@@ -131,7 +161,9 @@ describe('useProjectMembershipStore — acceptInvite composite', () => {
   });
 
   it('no-ops when the invitation does not exist in pendingInvites', () => {
-    expect(() => useProjectMembershipStore.getState().acceptInvite('missing-id')).not.toThrow();
+    expect(() =>
+      useProjectMembershipStore.getState().acceptInvite('mira@org', 'missing-id')
+    ).not.toThrow();
     expect(useImprovementProjectStore.getState().getProjectsForHub('hub-1')).toEqual([]);
   });
 
@@ -147,9 +179,9 @@ describe('useProjectMembershipStore — acceptInvite composite', () => {
       invitedAt: 100,
       status: 'pending',
     };
-    useProjectMembershipStore.getState().addPendingInvite(inv);
-    useProjectMembershipStore.getState().acceptInvite('inv-1');
-    expect(useProjectMembershipStore.getState().pendingInvites).toEqual([]);
+    useProjectMembershipStore.getState().addPendingInvite('mira@org', inv);
+    useProjectMembershipStore.getState().acceptInvite('mira@org', 'inv-1');
+    expect(useProjectMembershipStore.getState().getPendingInvites('mira@org')).toEqual([]);
   });
 });
 
@@ -171,8 +203,8 @@ describe('useProjectMembershipStore — revokeInvite', () => {
       invitedAt: 100,
       status: 'pending',
     };
-    useProjectMembershipStore.getState().addPendingInvite(inv);
-    useProjectMembershipStore.getState().revokeInvite('inv-2');
-    expect(useProjectMembershipStore.getState().pendingInvites).toEqual([]);
+    useProjectMembershipStore.getState().addPendingInvite('pat@org', inv);
+    useProjectMembershipStore.getState().revokeInvite('pat@org', 'inv-2');
+    expect(useProjectMembershipStore.getState().getPendingInvites('pat@org')).toEqual([]);
   });
 });
