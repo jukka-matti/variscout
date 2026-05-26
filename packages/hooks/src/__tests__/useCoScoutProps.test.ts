@@ -104,7 +104,6 @@ const mockQuestionsState = {
   editIdea: vi.fn(),
   deleteIdea: vi.fn(),
   setIdeaStatus: vi.fn(),
-  setIdeaCategory: vi.fn(),
 } as unknown as UseCoScoutPropsOptions['questionsState'];
 
 const mockHandleExecuteAction = vi.fn();

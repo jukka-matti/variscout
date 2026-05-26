@@ -162,7 +162,7 @@ const IdeaOverflowMenu: React.FC<{
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
-  const direction = idea.direction ?? idea.category;
+  const direction = idea.direction;
 
   return (
     <div className="relative shrink-0" ref={menuRef}>

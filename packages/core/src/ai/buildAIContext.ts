@@ -425,7 +425,6 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
                 projection: idea.projection
                   ? { meanDelta: idea.projection.meanDelta, sigmaDelta: idea.projection.sigmaDelta }
                   : undefined,
-                category: idea.category,
                 direction: idea.direction,
                 timeframe: idea.timeframe,
                 riskLevel: idea.risk?.computed,

@@ -121,16 +121,16 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                     )}
 
                     {/* Direction badge */}
-                    {(idea.direction ?? idea.category) && (
+                    {idea.direction && (
                       <span
-                        className={`text-[0.625rem] px-1 py-0.5 rounded ${DIRECTION_BADGE_COLORS[idea.direction ?? idea.category!] ?? ''}`}
+                        className={`text-[0.625rem] px-1 py-0.5 rounded ${DIRECTION_BADGE_COLORS[idea.direction] ?? ''}`}
                         data-testid={`idea-direction-${idea.id}`}
                       >
-                        {(idea.direction ?? idea.category) === 'prevent'
+                        {idea.direction === 'prevent'
                           ? 'Prevent'
-                          : (idea.direction ?? idea.category) === 'detect'
+                          : idea.direction === 'detect'
                             ? 'Detect'
-                            : (idea.direction ?? idea.category) === 'simplify'
+                            : idea.direction === 'simplify'
                               ? 'Simplify'
                               : 'Eliminate'}
                       </span>

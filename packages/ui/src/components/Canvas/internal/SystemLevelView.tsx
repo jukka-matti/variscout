@@ -33,15 +33,6 @@ export interface SystemLevelViewProps {
    * view MUST NOT accept a step-level spec here and compute L1 Cpk against it.
    */
   measureSpecs?: Record<string, SpecLimits>;
-  /**
-   * Advisory / debug-only override. When provided, takes precedence over
-   * `measureSpecs[map.ctsColumn]`. Intended for tests and temporary wiring
-   * where `measureSpecs` is not yet threaded through. Do NOT use in production
-   * paths to pass step-level specs — that would violate ADR-073.
-   *
-   * @deprecated Thread `measureSpecs` from the canonical store instead.
-   */
-  specLimitsOverride?: SpecLimits;
   onOpenScout?: (hubId: ProcessHubId) => void;
 }
 
@@ -110,16 +101,12 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
   findings = [],
   activeLens,
   measureSpecs,
-  specLimitsOverride,
   onOpenScout,
 }) => {
   const locale = useWallLocale();
   const outcomeLabel = map.ctsColumn ?? 'Outcome not selected';
   // ADR-073: derive from the outcome's own spec entry in measureSpecs.
-  // specLimitsOverride is advisory only (tests/debug); it must not be used to
-  // pass step-level specs — that would compute L1 Cpk against the wrong spec.
-  const resolvedSpecLimits =
-    specLimitsOverride ?? (map.ctsColumn ? measureSpecs?.[map.ctsColumn] : undefined);
+  const resolvedSpecLimits = map.ctsColumn ? measureSpecs?.[map.ctsColumn] : undefined;
   const model = buildSystemOutcomeModel({
     rows,
     outcomeColumn: map.ctsColumn,

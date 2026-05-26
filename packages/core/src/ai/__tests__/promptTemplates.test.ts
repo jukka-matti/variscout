@@ -632,7 +632,7 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).toContain('OVERDUE');
   });
 
-  it('includes idea category in converging phase', () => {
+  it('includes idea direction in converging phase', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: {
         phase: 'converging',

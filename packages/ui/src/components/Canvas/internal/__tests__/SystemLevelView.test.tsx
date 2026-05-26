@@ -152,10 +152,9 @@ describe('SystemLevelView', () => {
   });
 
   /**
-   * ADR-073 contract: L1 Cpk must be computed against the outcome's own spec,
-   * not a step-level spec that leaked through the caller. These tests verify
-   * that measureSpecs[ctsColumn] is authoritative and that specLimitsOverride
-   * cannot silently mis-route a step spec as the outcome spec.
+   * ADR-073 contract: L1 Cpk must be computed against the outcome's own spec.
+   * These tests verify that measureSpecs[ctsColumn] is authoritative and that
+   * a missing key resolves to undefined (no silent fallback to a wrong spec).
    */
   describe('ADR-073 — specLimits anchored to outcome measureSpecs[ctsColumn]', () => {
     it('uses measureSpecs[ctsColumn] to compute Cpk (sanity: correct spec, Cpk renders)', () => {
@@ -178,12 +177,10 @@ describe('SystemLevelView', () => {
       expect(screen.getByTestId('inbox-digest')).not.toHaveTextContent('out of spec');
     });
 
-    it('a specLimitsOverride for a different column CANNOT change the rendered Cpk when measureSpecs is the source of truth', () => {
-      // Simulate the leak scenario: step-level spec for 'Step Mix' (tight limits)
-      // is passed as specLimitsOverride. measureSpecs has the correct outcome spec.
-      // The override takes precedence when explicitly provided — this documents the
-      // known hazard and why callers must NOT pass step-level specs as override in
-      // production. The test asserts the behavior is deterministic (no silent NaN).
+    it('resolves to undefined when measureSpecs has no entry for ctsColumn → Cpk renders as --', () => {
+      // First render with correct measureSpecs to capture the happy-path output for
+      // a sanity comparison; then re-render with a measureSpecs entry keyed by the
+      // wrong column (simulates a caller that forgets to key by the outcome column).
       const { rerender } = render(
         <SystemLevelView
           hubId={h('hub-leak')}
