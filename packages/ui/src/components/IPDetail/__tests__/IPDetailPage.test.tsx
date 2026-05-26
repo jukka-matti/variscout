@@ -203,7 +203,7 @@ describe('IPDetailPage', () => {
       expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
     });
 
-    it('uses canAccess view-report for Sponsor placeholder gating', () => {
+    it('renders Sponsor placeholder when role === sponsor (role-based per 2-tier ACL — Member + Sponsor share permissions; identity drives view)', () => {
       render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="sponsor@org" />);
       expect(screen.getByTestId('sponsor-report-panel')).toBeInTheDocument();
       expect(screen.queryByTestId('stage-tab-charter')).not.toBeInTheDocument();
