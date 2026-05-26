@@ -49,11 +49,11 @@ The data underneath a Project (the Hub) is tenant-wide — anyone in your Azure 
 
 ## Project membership roles
 
-| Role        | Who                                                                    | Access                                         |
-| ----------- | ---------------------------------------------------------------------- | ---------------------------------------------- |
-| **Lead**    | The analyst running the project (typically a belt or project director) | Full edit + manages membership                 |
-| **Member**  | SME, analyst, frontline contributor, quality engineer                  | Full edit within project surfaces              |
-| **Sponsor** | Executive sponsor / Champion                                           | Report-only at V1; signoff handled out-of-band |
+| Role        | Who                                                                    | Access                                                                 |
+| ----------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Lead**    | The analyst running the project (typically a belt or project director) | Full edit + manages membership                                         |
+| **Member**  | SME, analyst, frontline contributor, quality engineer                  | Full edit within project surfaces                                      |
+| **Sponsor** | Executive sponsor / Champion                                           | Reads everywhere (2-tier ACL with Member); signoff handled out-of-band |
 
 Project members must be in the same Azure AD tenant as the buyer. Cross-org collaboration is out of V1 scope (this becomes a deliberate privacy boundary).
 

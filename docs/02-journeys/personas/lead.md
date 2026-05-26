@@ -60,7 +60,7 @@ sequenceDiagram
     Report->>Lead: Sponsor reviews + signs off
 ```
 
-The **active-IP cascade** is Lead-owned: when the Lead promotes a hypothesis to an active Improvement Project, downstream tabs scope to that IP until the Lead changes it. Members and Sponsors see the cascade but cannot alter the active-IP selection.
+The **active-IP cascade** is Lead-owned: when the Lead selects an Improvement Project as their active working focus, downstream tabs scope to that IP until the Lead changes it. Members and Sponsors see the cascade but cannot alter the active-IP selection.
 
 ## Feature touch-points
 

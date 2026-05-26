@@ -39,7 +39,7 @@ Split VariScout into two products on a roadmap. Ship the wedge first.
 - **Two analyst modes**: quick analysis (no project) + project-anchored (formal lifecycle). Both first-class. Promotion path: any quick analysis can become a Project; Charter inherits prior Hub state.
 - **Foundational unit (formal)**: Project (self-contained, invite-scoped). **Hub** stays as the _internal_ data container backing Process tab + paste data; not surfaced as a user-visible noun.
 - **Collaboration**: Project Lead invites org users _per project_ (not tenant-wide).
-- **Persona model**: One — Specialist. Project-membership roles: **Lead** (full edit + manages membership), **Member** (full edit), **Sponsor** (Report-only access; signoff out-of-band at V1).
+- **Persona model**: One — Specialist. Project-membership roles: **Lead** (full edit + manages membership), **Member** (full edit), **Sponsor** — same ACL tier as Member (reads everywhere, edits contributions). Preserved as identity / notification routing / Report attribution label, not for permission gating. Signoff out-of-band at V1 (Lead records as note in stage metadata).
 - **Investigation model**: Investigation Wall is the canonical Hypothesis-driven surface. Extended with **Measurement Plan** sub-entity per Hypothesis — supports hypothesis-first investigation (plan → collect → finding → confirm/refute) without a separate Measure stage. Both data-first and hypothesis-first starting points converge on the Wall.
 - **Pricing**: **€120/month**, single SKU, Azure tenant-wide, unlimited org users, unlimited projects.
 - **Distribution**: Azure Marketplace Managed Application + in-app project membership ACLs (Hub-level data tenant-wide; Project-level data membership-gated).

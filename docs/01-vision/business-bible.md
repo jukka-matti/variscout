@@ -581,7 +581,7 @@ The expected sequence: V1 reaches ~500 customer validation (real revenue at
 | **Quality engineer**     | Google, LinkedIn              | PWA with sample data → linked filtering "magic moment" → own data              | "I need to save this and come back to it"                                            |
 | **CI / OpEx lead**       | Referral, case study          | Team demo → see investigation + improvement flow → pilot project               | "This captures the full PDCA cycle and the team can collaborate at no per-seat cost" |
 | **Trainer / consultant** | LinkedIn, conference          | PWA in training session → students learn through guided investigation          | "I want to embed this in my curriculum"                                              |
-| **Sponsor / Champion**   | Lead presents the Report      | Report-only view of the team's V1 project                                      | "Did the project work? What was the Cpk delta?"                                      |
+| **Sponsor / Champion**   | Lead presents the Report      | Reads everywhere across the team's V1 project (all tabs). Signoff out-of-band. | "Did the project work? What was the Cpk delta?"                                      |
 | **IT / Procurement**     | Direct link                   | Customer-owned data architecture review                                        | "One vendor, one SKU, one Marketplace bill, no admin-consent permissions"            |
 
 ### Trainer Network overlay

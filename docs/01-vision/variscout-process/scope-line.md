@@ -84,7 +84,7 @@ These capabilities are V1's anatomy. They don't survive into Process unchanged.
 
 ### §3.2 Project membership ACLs (Lead / Member / Sponsor)
 
-**V1 shape.** Per-project membership ACLs. Project Lead invites org users from the buyer's Azure AD tenant. Lead / Member / Sponsor roles. Sponsor sees Report-only access. Cross-Azure-AD-tenant invites explicitly out of scope.
+**V1 shape.** Per-project membership ACLs. Project Lead invites org users from the buyer's Azure AD tenant. Lead / Member / Sponsor roles (2-tier ACL: Lead has full edit; Member + Sponsor read everywhere + edit contributions). Sponsor preserved as identity / notification routing, not permission gating. Cross-Azure-AD-tenant invites explicitly out of scope.
 
 **Process inherits.** Project-scoped ACLs still operate. They layer on top of persona-aware tenant-wide routing. A Process Owner persona (tenant-wide read on their assigned Hubs) may or may not be a Lead / Member on a specific project running inside their Hub. The ACL model expands to support cross-Hub Sponsorship and Hub-level membership (the Process Owner of Hub X is implicitly Sponsor on all projects in Hub X). The Azure AD-tenant boundary tightens further or loosens; that's a Process-era distribution decision.
 
