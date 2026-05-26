@@ -16,7 +16,6 @@ import { ParetoChartBase, getScaledFonts } from '@variscout/charts';
 import { useParetoChartData, useTranslation } from '@variscout/hooks';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
 import { AxisEditor } from '../AxisEditor';
-import { ParetoMakeScopeButton } from '../ParetoMakeScopeButton';
 import {
   Eye,
   EyeOff,
@@ -29,7 +28,6 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import type { DataRow, ParetoRow, Finding } from '@variscout/core';
-import type { AnalysisBrief } from '@variscout/core/findings';
 import type { ParetoYMetric, ParetoYMetricId, ComputeParetoYContext } from '@variscout/core/pareto';
 import type { HighlightColor, ParetoMode } from '@variscout/hooks';
 
@@ -92,17 +90,6 @@ export interface ParetoChartWrapperBaseProps {
   /** Callback to switch the Pareto grouping factor (inline dropdown) */
   onFactorSwitch?: (factorName: string) => void;
   /**
-   * When provided, takes precedence over `onFiltersChange` for bar clicks.
-   * Plain click replaces selection (single-bar); shift-click toggles add/remove.
-   * Receiver typically calls `setScopeFilter` via `useCanvasFilters`.
-   *
-   * Precedence order (highest to lowest):
-   *   1. `onDrillDown` — if set, runs and short-circuits everything else.
-   *   2. `onScopeFilterClick` — if set (and no onDrillDown), routes here.
-   *   3. Legacy `onFiltersChange` toggle — default when neither above is set.
-   */
-  onScopeFilterClick?: (factor: string, value: string, ctx: { shiftKey: boolean }) => void;
-  /**
    * Currently-active scope filter values for `factor`. Drives `selectedBars`
    * highlight on the chart. Caller derives this from `useCanvasFilters.scopeFilter`
    * when `scopeFilter.factor === factor`; pass empty array otherwise.
@@ -111,18 +98,6 @@ export interface ParetoChartWrapperBaseProps {
    * the highlight state.
    */
   scopeFilterValues?: ReadonlyArray<string | number>;
-  /**
-   * When provided AND bars are selected (via `scopeFilterValues` or `filters[factor]`),
-   * renders a "Make this the investigation scope" affordance next to the picker header.
-   * On click, builds an {@link AnalysisBrief} with auto-filled `issueStatement` and
-   * emits it via this callback.
-   *
-   * Consumers should wire this to a StageFiveModal opener. Consumer-app integration
-   * (opening StageFiveModal with the brief, creating an Investigation entity via the
-   * appropriate store) is per-app and is currently a follow-up — see slice 4 plan
-   * P4.2 scope notes.
-   */
-  onMakeInvestigationScope?: (brief: AnalysisBrief) => void;
   /**
    * Active Y-axis metric id. When set, takes precedence over `aggregation` for
    * non-count metrics. Forwarded to useParetoChartData.
@@ -310,7 +285,6 @@ export const ParetoChartWrapperBase = ({
   paretoMode,
   separateParetoData,
   onDrillDown,
-  onScopeFilterClick,
   scopeFilterValues,
   showComparison = false,
   onToggleComparison,
@@ -328,7 +302,6 @@ export const ParetoChartWrapperBase = ({
   onUploadPareto,
   availableFactors = [],
   onFactorSwitch,
-  onMakeInvestigationScope,
   yMetric,
   availableYMetrics,
   onYMetricSwitch,
@@ -361,13 +334,9 @@ export const ParetoChartWrapperBase = ({
     yMetricContext,
   });
 
-  const handleBarClick = (key: string, ctx?: { shiftKey: boolean }) => {
+  const handleBarClick = (key: string, _ctx?: { shiftKey: boolean }) => {
     if (onDrillDown) {
       onDrillDown(factor, key);
-      return;
-    }
-    if (onScopeFilterClick) {
-      onScopeFilterClick(factor, key, { shiftKey: ctx?.shiftKey ?? false });
       return;
     }
     // Legacy behavior: toggle filter membership in filters[factor]
@@ -463,18 +432,6 @@ export const ParetoChartWrapperBase = ({
               onSelect={onYMetricSwitch}
             />
           )}
-
-        {onMakeInvestigationScope && (
-          <ParetoMakeScopeButton
-            factor={factor}
-            selectedBars={
-              scopeFilterValues
-                ? scopeFilterValues.map(v => v as string | number)
-                : filters[factor] || []
-            }
-            onCreateInvestigation={onMakeInvestigationScope}
-          />
-        )}
 
         {usingSeparateData && (
           <div className="flex items-center gap-1 text-xs text-amber-500 mr-2">
