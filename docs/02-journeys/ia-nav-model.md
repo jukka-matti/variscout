@@ -78,7 +78,7 @@ The solid arrows are the workflow walk (left-to-right). The dotted arrows are th
 
 ## Active-IP cascade rules
 
-An **active IP** is an Improvement Project the Lead has promoted from a validated hypothesis. At most one IP is active per Project at a time. When an IP is active:
+An **active IP** is the Improvement Project the Lead has selected as their current working focus. IPs are created via Charter ceremony (see Project tab); the active IP is then selected from the Lead's portfolio. At most one IP is active at a time per persona session. When an IP is active:
 
 - **Project tab** filters its Charter / roster view to the IP's scope. The Project-level Charter remains accessible; the IP's working Charter sits underneath.
 - **Process tab** highlights the process steps the IP touches; non-IP scope dims.
@@ -98,8 +98,8 @@ The cascade is the V1 verb-tab pattern — every verb tab follows the same `useA
 | Home          | Edit           | Read          | Read            |
 | Project       | Edit + advance | Read          | Approve         |
 | Process       | Edit           | Read          | Read            |
-| Analyze       | Edit           | Read + Find   | (no touch)      |
-| Investigation | Edit + close   | Edit evidence | (no touch)      |
+| Analyze       | Edit           | Read + Find   | Read            |
+| Investigation | Edit + close   | Edit evidence | Read            |
 | Improve       | Edit + IP      | Edit assigned | Read + sanction |
 | Report        | Compile        | Read          | Sign off        |
 

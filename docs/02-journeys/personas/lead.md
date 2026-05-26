@@ -52,7 +52,7 @@ sequenceDiagram
     Lead->>Investigation: Group Findings into Hypotheses
     Note over Investigation: Lead defines Measurement Plans,<br/>tags suspected contributions
     Investigation->>Investigation: Members contribute evidence
-    Lead->>Improve: Promote validated hypothesis → Active IP
+    Lead->>Improve: Elevate work into a Project via Charter (hypotheses inherited as context if any)
     Note over Improve: Active-IP cascade lights up<br/>downstream tabs (Project / Process /<br/>Analyze / Investigation filtered to IP)
     Lead->>Improve: Define improvement actions, owners, dates
     Lead->>Improve: Advance to Sustainment (cadence + drift watch)

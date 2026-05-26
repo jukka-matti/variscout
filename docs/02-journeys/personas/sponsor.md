@@ -49,8 +49,8 @@ sequenceDiagram
     Sponsor->>Home: Open VariScout, see Projects I sponsor
     Sponsor->>Project: Open Project (read Charter)
     Note over Project: Sponsor signs off Charter scope<br/>(approval gate)
-    Sponsor-->>Analyze: (no interaction)
-    Sponsor-->>Investigation: (no interaction)
+    Sponsor->>Analyze: Read (optional engagement)
+    Sponsor->>Investigation: Read — see Wall, evidence, Measurement Plans
     Sponsor->>Improve: Review proposed actions + owners
     Note over Improve: Sponsor sees active-IP cascade<br/>(read-only), approves IP scope
     Sponsor->>Report: Read interim status during Sustainment
@@ -58,7 +58,7 @@ sequenceDiagram
     Sponsor->>Report: Sign off final Report (approval gate)
 ```
 
-The Sponsor's flow skips Analyze and Investigation entirely — those tabs are working surfaces for Lead and Members. The Sponsor's touch-points are **Home** (project list), **Project** (Charter sign-off), **Improve** (action review), and **Report** (interim + final review).
+The Sponsor reads Analyze + Investigation when they want to engage with the analysis directly. Their active gestures are bounded to approval gates which happen out-of-band per wedge V1 (Lead records the signoff as a note). The Sponsor's primary touch-points are **Home** (project list), **Project** (Charter sign-off), **Improve** (action review), and **Report** (interim + final review).
 
 ## Feature touch-points
 
@@ -79,6 +79,6 @@ A Sponsor has succeeded when:
 
 Failure modes the journey is designed to prevent:
 
-- Sponsor editing analysis content they shouldn't (ACL gates: Sponsor is read-only outside approval surfaces)
+- Sponsor making structural edits they shouldn't (ACL gates: Sponsor cannot author canvas, close hypotheses, compile Report, or advance stages — Lead-only per 2-tier ACL §4.1; Sponsor may contribute Findings, evidence, comments)
 - Sponsor missing drift signals (Sustainment surfaces them to the Sponsor explicitly, not buried in the Wall)
-- Sign-off conducted out-of-band with no audit trail (Report sign-off is in-product; downstream audit lives with the Project)
+- Sign-off untracked (sign-off is out-of-band per wedge V1; Lead records the result as a note in the relevant stage)
