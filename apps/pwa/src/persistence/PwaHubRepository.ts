@@ -53,7 +53,6 @@ import type { HubAction } from '@variscout/core/actions';
 import type { ProcessHub } from '@variscout/core/processHub';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { ActionItem } from '@variscout/core/findings';
-import { migrateImprovementProjectMetadata } from '@variscout/core/improvementProject';
 import { db, type HubRow } from '../db/schema';
 import { applyAction } from './applyAction';
 
@@ -97,11 +96,8 @@ export class PwaHubRepository implements HubRepository {
       this.sustainmentReviews.listByHub(hubMeta.id),
       this.controlHandoffs.listByHub(hubMeta.id),
     ]);
-    const hydrateAt = Date.now();
     const liveOutcomes = outcomes.filter(o => o.deletedAt === null);
-    const liveProjects = improvementProjects
-      .filter(p => p.deletedAt === null)
-      .map(p => migrateImprovementProjectMetadata(p, hydrateAt));
+    const liveProjects = improvementProjects.filter(p => p.deletedAt === null);
     const canonicalProcessMap = canvasRow ? stripHubId(canvasRow) : undefined;
     return {
       ...hubMeta,

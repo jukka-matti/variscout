@@ -28,7 +28,6 @@ import type {
 import type { HubAction } from '@variscout/core/actions';
 import type { ActionItem } from '@variscout/core/findings';
 import type { ProcessHub } from '@variscout/core/processHub';
-import { migrateImprovementProjectMetadata } from '@variscout/core/improvementProject';
 import { db } from '../db/schema';
 import { saveProcessHubToIndexedDB } from '../services/localDb';
 import { applyAction } from './applyAction';
@@ -364,10 +363,7 @@ async function hydrateHub(hub: ProcessHub): Promise<ProcessHub> {
     db.sustainmentReviews.where('hubId').equals(hub.id).toArray(),
     db.controlHandoffs.where('hubId').equals(hub.id).toArray(),
   ]);
-  const hydrateAt = Date.now();
-  const liveIps = ips
-    .filter(p => p.deletedAt === null)
-    .map(p => migrateImprovementProjectMetadata(p, hydrateAt));
+  const liveIps = ips.filter(p => p.deletedAt === null);
   const liveSustainmentRecords = sustainmentRecords.filter(record => record.deletedAt === null);
   const liveSustainmentReviews = sortReviewsDescending(
     sustainmentReviews.filter(review => review.deletedAt === null)

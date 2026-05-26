@@ -1,16 +1,14 @@
 import React from 'react';
 import type { ImprovementProjectMetadata } from '@variscout/core/improvementProject';
+import type { ProjectMember, ProjectRole } from '@variscout/core/projectMembership';
 
-type Team = NonNullable<ImprovementProjectMetadata['team']>;
-type TeamMember = Team[number];
-type TeamRole = TeamMember['role'];
 type FinancialImpact = NonNullable<ImprovementProjectMetadata['financialImpact']>;
 
 export interface HeaderMetadataSectionProps {
   title: string;
   onTitleChange?: (title: string) => void;
-  team?: ImprovementProjectMetadata['team'];
-  onTeamChange?: (team: Team) => void;
+  members?: ProjectMember[];
+  onMembersChange?: (members: ProjectMember[]) => void;
   businessCase?: string;
   onBusinessCaseChange?: (value: string) => void;
   financialImpact?: ImprovementProjectMetadata['financialImpact'];
@@ -20,17 +18,10 @@ export interface HeaderMetadataSectionProps {
   onInvestigationIdChange?: (id: string | undefined) => void;
 }
 
-// Charter team[] documents the DMAIC governance roles for the project (Champion,
-// executive Sponsor, Process Owner, etc.). These are NOT ACL roles — the wedge V1
-// project-membership ACL lives in `members[]` with 3 roles (Lead/Member/Sponsor)
-// gated via `canAccess()` from `@variscout/core/projectMembership` per ADR-082.
-// The two role models legitimately coexist: documentary metadata vs access control.
-const TEAM_ROLES: Array<{ value: TeamRole; label: string }> = [
-  { value: 'champion', label: 'Champion' },
+const MEMBER_ROLES: Array<{ value: ProjectRole; label: string }> = [
+  { value: 'lead', label: 'Lead' },
+  { value: 'member', label: 'Member' },
   { value: 'sponsor', label: 'Sponsor' },
-  { value: 'projectLead', label: 'Project lead' },
-  { value: 'teamMember', label: 'Team member' },
-  { value: 'processOwner', label: 'Process owner' },
 ];
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'SEK', 'NOK', 'DKK'];
@@ -41,15 +32,31 @@ const inputClassName =
 
 const labelClassName = 'text-sm font-medium text-content';
 
-function updateTeamMember(team: Team, index: number, nextMember: TeamMember): Team {
-  return team.map((member, memberIndex) => (memberIndex === index ? nextMember : member));
+function updateMember(
+  members: ProjectMember[],
+  index: number,
+  nextMember: ProjectMember
+): ProjectMember[] {
+  return members.map((m, i) => (i === index ? nextMember : m));
+}
+
+function createBlankMember(now: number): ProjectMember {
+  return {
+    id: `pm-draft-${now}`,
+    createdAt: now,
+    deletedAt: null,
+    userId: '',
+    displayName: '',
+    role: 'member',
+    invitedAt: now,
+  };
 }
 
 export const HeaderMetadataSection: React.FC<HeaderMetadataSectionProps> = ({
   title,
   onTitleChange,
-  team = [],
-  onTeamChange,
+  members = [],
+  onMembersChange,
   businessCase = '',
   onBusinessCaseChange,
   financialImpact,
@@ -98,19 +105,17 @@ export const HeaderMetadataSection: React.FC<HeaderMetadataSectionProps> = ({
           <button
             type="button"
             className="rounded-md border border-edge bg-surface px-3 py-2 text-sm font-medium text-content hover:bg-surface-secondary focus:outline-none focus:ring-2 focus:ring-accent/20"
-            onClick={() =>
-              onTeamChange?.([...team, { role: 'teamMember', person: { displayName: '' } }])
-            }
+            onClick={() => onMembersChange?.([...members, createBlankMember(Date.now())])}
           >
             Add team member
           </button>
         </div>
 
-        {team.length > 0 ? (
+        {members.length > 0 ? (
           <div className="space-y-3">
-            {team.map((member, index) => (
+            {members.map((member, index) => (
               <div
-                key={`${member.role}-${member.person.displayName}-${index}`}
+                key={member.id}
                 className="grid gap-3 rounded-md border border-edge bg-surface-secondary p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
                 data-testid="metadata-team-row"
               >
@@ -120,15 +125,15 @@ export const HeaderMetadataSection: React.FC<HeaderMetadataSectionProps> = ({
                     className={inputClassName}
                     value={member.role}
                     onChange={event =>
-                      onTeamChange?.(
-                        updateTeamMember(team, index, {
+                      onMembersChange?.(
+                        updateMember(members, index, {
                           ...member,
-                          role: event.target.value as TeamRole,
+                          role: event.target.value as ProjectRole,
                         })
                       )
                     }
                   >
-                    {TEAM_ROLES.map(role => (
+                    {MEMBER_ROLES.map(role => (
                       <option key={role.value} value={role.value}>
                         {role.label}
                       </option>
@@ -140,12 +145,12 @@ export const HeaderMetadataSection: React.FC<HeaderMetadataSectionProps> = ({
                   <span className={labelClassName}>Display name</span>
                   <input
                     className={inputClassName}
-                    value={member.person.displayName}
+                    value={member.displayName}
                     onChange={event =>
-                      onTeamChange?.(
-                        updateTeamMember(team, index, {
+                      onMembersChange?.(
+                        updateMember(members, index, {
                           ...member,
-                          person: { ...member.person, displayName: event.target.value },
+                          displayName: event.target.value,
                         })
                       )
                     }
@@ -157,7 +162,7 @@ export const HeaderMetadataSection: React.FC<HeaderMetadataSectionProps> = ({
                     type="button"
                     className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-sm font-medium text-content hover:bg-surface-secondary focus:outline-none focus:ring-2 focus:ring-accent/20"
                     onClick={() =>
-                      onTeamChange?.(team.filter((_, memberIndex) => memberIndex !== index))
+                      onMembersChange?.(members.filter((_, memberIndex) => memberIndex !== index))
                     }
                   >
                     Remove

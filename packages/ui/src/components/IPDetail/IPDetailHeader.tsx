@@ -25,9 +25,9 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
   onOpenTeamWorkspace,
   dayCounter,
 }) => {
-  const team = ip.metadata.team ?? [];
-  const visible = team.slice(0, 5);
-  const overflow = team.length - visible.length;
+  const members = ip.metadata.members ?? [];
+  const visible = members.slice(0, 5);
+  const overflow = members.length - visible.length;
 
   const goalSummary = (() => {
     const Ytarget = ip.goal.outcomeGoal.target;
@@ -72,8 +72,8 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
           <div className="flex">
             {visible.map((member, idx) => (
               <IPDetailAvatar
-                key={`${idx}-${member.person.displayName ?? 'anon'}`}
-                person={member.person}
+                key={member.id}
+                person={{ displayName: member.displayName }}
                 className={idx > 0 ? '-ml-2' : ''}
               />
             ))}

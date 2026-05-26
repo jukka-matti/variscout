@@ -15,13 +15,10 @@ export interface ImprovementProjectMetadata {
   title: string; // required
   businessCase?: string;
   financialImpact?: { amount?: number; currency: string };
-  team?: Array<{
-    role: 'champion' | 'sponsor' | 'projectLead' | 'teamMember' | 'processOwner';
-    /** RACI assignment for the project roster entry. */
-    raci?: 'R' | 'A' | 'C' | 'I';
-    person: ProcessParticipantRef;
-  }>;
-  /** Wedge V1 membership roster. Replaces legacy team[] after migration window. */
+  /** Wedge V1 membership roster (lead / member / sponsor) — the canonical project
+   *  roster. ACL gated via `canAccess()` from `@variscout/core/projectMembership`
+   *  per ADR-082. Optional only for the bootstrap window; future schema work may
+   *  promote to required. */
   members?: ProjectMember[];
   investigationId?: ProcessHubInvestigation['id'];
   /** Improvement actions tracked at the project level. Read-write via reduceActionItems. */
