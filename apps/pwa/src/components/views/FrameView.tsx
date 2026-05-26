@@ -370,6 +370,9 @@ const FrameView: React.FC = () => {
         contextLinkGroups={contextLinkGroups}
         onNavigateContextLink={handleNavigateContextLink}
         priorStepStats={priorStepStats}
+        // PWA has no project-membership model (education tier per apps/pwa/CLAUDE.md);
+        // Edit mode is always reachable. Azure derives this from canAccess(..., 'edit').
+        canEditCanvas={true}
         actionItems={actionItems}
       />
     </div>
