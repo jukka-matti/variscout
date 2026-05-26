@@ -21,6 +21,8 @@ V1 ships 3 personas inside each Project. Per-project ACLs; no cross-AD-tenant in
 
 The market-facing buyer / champion (**Improvement Specialist**) lives in L1: [`../../01-vision/product-overview.md`](../../01-vision/product-overview.md). Inside a Project the Specialist plays one of the three roles above (most often Lead).
 
+**App scope.** These three roles and per-project ACLs apply to the **Azure tenant SKU**. The **PWA** (free tier) is single-user open-access by design — `canAccess()` is not invoked in PWA and any user can edit any artefact. Trainers importing `.vrs` scenarios into PWA, and users moving between the two apps, should expect role gating only on Azure. See [`../../08-products/feature-parity.md`](../../08-products/feature-parity.md).
+
 ## Legacy V0 personas — named-future (VariScout Process)
 
 Five legacy archetypes retained here; they graduate to **VariScout Process** (future enterprise tier — multi-persona collaboration). V1 surface decisions reference Lead / Member / Sponsor only.

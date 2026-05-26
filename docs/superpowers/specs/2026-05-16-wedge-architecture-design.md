@@ -78,7 +78,7 @@ _"Structured investigation for process improvement"_ — the tagline still works
 V1 serves two distinct workflows, both as primary use cases:
 
 1. **Quick analysis (exploratory)** — analyst pastes data, explores in charts, optionally creates Findings and Hypotheses. _No Project required._ Free PWA supports this in session-only mode; Azure tier adds persistence and collaboration.
-2. **Project-anchored investigation** — analyst (or anyone in the tenant) creates a Project (Charter ceremony). The Project wraps an existing Hub with formal lifecycle (Charter → Approach → Improve → Sustainment) and project-membership ACLs.
+2. **Project-anchored investigation** — analyst (or anyone in the tenant) creates a Project (Charter ceremony). The Project wraps an existing Hub with formal lifecycle (Charter → Approach → Sustainment) and project-membership ACLs.
 
 **Hub goes internal, not retired.** The "Hub" (the data container holding paste data + outcome + process map + factors) survives as the internal data architecture. It is _not_ surfaced as a user-visible noun in V1 — only "Project" and "Process" appear in the UI. Tenant users can paste data and analyze without ever creating a Project. Projects are the optional formal wrapper.
 
@@ -86,39 +86,41 @@ V1 serves two distinct workflows, both as primary use cases:
 
 This split — Hub internal, Project optional — preserves the free-PWA fast-paste-and-analyze flow that's central to VariScout's onramp, while making formal project ceremony available when the work justifies it.
 
-### §3.1 Nav: 6 tabs, in workflow order
+### §3.1 Nav: 7 tabs, in workflow order
 
 ```
-[Home] [Projects] [Process] [Analyze] [Investigation] [Report]
+[Home] [Project] [Process] [Analyze] [Investigation] [Improve] [Report]
 ```
 
 Left-to-right matches the specialist's flow:
 
 1. **Home** — pick what you're working on (project queue + active-IP launchpad)
-2. **Projects** — current project's status overview (the IP detail page is here)
+2. **Project** — active project's status overview (the IP detail page is here; singular per the active-IP-centric cascade)
 3. **Process** — canvas / process map (spatial substrate)
 4. **Analyze** — EDA / charts / Factor Intelligence
 5. **Investigation** — Wall + Evidence Map → suspected causes
-6. **Report** — narrative output
+6. **Improve** — action tracker for the active IP (default action list; PDCA workbench behind Advanced toggle per §3.4)
+7. **Report** — narrative output
 
-The **Improve tab is removed as a top-level surface**. Improve becomes a stage _inside Projects detail_.
+**Improve is a top-level verb tab** with active-IP cascade — same scoping pattern as Analyze and Investigation. Empty-state when no active IP routes to Home via `<NoActiveProjectGuidance>`. (Earlier wedge drafts removed Improve as a tab and folded it into Project detail; the 2026-05-16 amendment restored it — see §15.)
 
 This order supersedes the Coherence §4 nav (which placed Process between Home and Analyze and put Projects later). Workflow-order grouping is stronger than the verb-noun grouping rationale Coherence used.
 
-### §3.2 Projects detail: 4 stages
+### §3.2 Project detail: 3 stages
 
-`Charter → Approach → Improve → Sustainment`
+`Charter → Approach → Sustainment`
 
-Handoff stage is **folded into Sustainment closure**. Single end-of-project decision moment.
+Improve is **not** a stage — it lives as a top-level verb tab (§3.1) with active-IP cascade, so the action tracker is always one click away regardless of which Project-stage panel is open. Handoff is **folded into Sustainment closure**. Single end-of-project decision moment.
 
 **Charter is optional.** Quick analysis (per §3.0) does not require a Project; this stage list only applies when the analyst formalizes work into a Project. Charter inherits any prior Hub-level framing, Findings, and Hypotheses on promotion (see §3.0 promotion path).
 
-| Stage           | Function                                                                                                                                                                                              | UI                                                                                                                                                                                                                          |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Charter**     | Wrap an existing Hub with project ceremony — problem statement, member invites, optional refined goal. Inherits the Hub's framing (outcome spec, data, factors, process map) rather than re-doing it. | Problem statement form + Invite modal + (read-only) inherited Hub context summary. _Existing data paste / framing primitives stay at Hub level, not re-mounted inside Charter._                                             |
-| **Approach**    | Investigation strategy → produces suspected causes. Anchor surface is the **Investigation Wall** (see §3.6 — Hypotheses + Findings + Measurement Plans).                                              | SuspectedCause-anchored hierarchy; links to Wall + Evidence Map                                                                                                                                                             |
-| **Improve**     | Action tracker                                                                                                                                                                                        | Single-list UI (default): improvement actions + quick actions, owner/due/status, linked to suspected causes. **PDCA workbench + What-If accessible via an "Advanced" toggle** (progressive disclosure, not a parallel mode) |
-| **Sustainment** | "Did it work?" + close project                                                                                                                                                                        | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up                                                                                                                                  |
+| Stage           | Function                                                                                                                                                                                              | UI                                                                                                                                                                              |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Charter**     | Wrap an existing Hub with project ceremony — problem statement, member invites, optional refined goal. Inherits the Hub's framing (outcome spec, data, factors, process map) rather than re-doing it. | Problem statement form + Invite modal + (read-only) inherited Hub context summary. _Existing data paste / framing primitives stay at Hub level, not re-mounted inside Charter._ |
+| **Approach**    | Investigation strategy → produces suspected causes. Anchor surface is the **Investigation Wall** (see §3.6 — Hypotheses + Findings + Measurement Plans).                                              | SuspectedCause-anchored hierarchy; links to Wall + Evidence Map                                                                                                                 |
+| **Sustainment** | "Did it work?" + close project                                                                                                                                                                        | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up                                                                                      |
+
+Improvement actions, PDCA workbench, and What-If live in the **Improve tab** (§3.4), not under a Project stage panel.
 
 ### §3.3 Process tab — canvas substrate + State/Edit modes + Specialist content
 
@@ -192,11 +194,11 @@ When the Specialist activates an IP (Home launchpad or Projects tab selection), 
 
 Process tab shows the structural slice; Analyze tab shows the statistical slice. The IP's `focusLevel` determines both. When no IP is active (free-roaming), Process tab defaults to L1 of the whole process.
 
-### §3.4 Improve mode default + "Advanced" disclosure
+### §3.4 Improve tab default + "Advanced" disclosure
 
-The default Improve stage UI is a simple action list (action title, owner, due, status, linked suspected cause). One row per action; two action categories (improvement, quick).
+The default **Improve tab** UI is a simple action list (action title, owner, due, status, linked suspected cause). One row per action; two action categories (improvement, quick). The tab is active-IP-scoped: with no active IP, it routes to Home via `<NoActiveProjectGuidance>`. Production primitive: `<ImprovementWorkspaceBase>` (see PR-WV1-2; the earlier `<ImproveStageAdvanced>` skeleton was retired in favor of the shared base per `feedback_reuse_production_primitives`).
 
-The PDCA workbench survives as an **Advanced view** — accessible via a single toggle. Not a parallel mode. Power features earn visibility through user action, not menu space. The What-If simulator and the idea board / action conversion features retire (What-If may re-emerge in Analyze later if customer demand surfaces; idea board does not).
+The PDCA workbench survives as an **Advanced view** — accessible via a single toggle inside the Improve tab. Not a parallel mode. Power features earn visibility through user action, not menu space. The What-If simulator and the idea board / action conversion features retire (What-If may re-emerge in Analyze later if customer demand surfaces; idea board does not).
 
 **Reason:** Two equal modes is two products in one tab. Pick one as default, hide the other behind progressive disclosure. Selected default = simple, because the wedge's promise is focus and clarity.
 

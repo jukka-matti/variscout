@@ -99,6 +99,8 @@ The variables are numerous: raw material lot, reactor vessel, operator, ambient 
 
 Once the Vessel 2 + Supplier B interaction is identified, the process chemist drives the improvement to completion:
 
+> **Per-app note on pinning:** in **Azure**, a pinned Finding is durable cloud state immediately (persisted to tenant blob via `useFindingsOrchestration` → `AzureHubRepository`). In **PWA**, a pinned Finding lives in session state and is preserved across reloads only via `.vrs` export/import. The pin gesture itself is identical; the persistence commitment differs.
+
 1. **Finding pinned:** "Vessel 2 × Supplier B material combination produces worst batches — interaction explains yield failures" — captured from the two-level drill-down Boxplot
 2. **Hypothesis created:** "Vessel 2 reactor lining reacts with Supplier B's higher moisture content" — auto-validated via η² (Vessel × Material Lot interaction confirmed)
 3. **Improvement idea added:** "Pre-dry Supplier B material before loading into Vessel 2" — What-If projection shows Cpk improving from 0.9 to 1.4 if the interaction effect is eliminated

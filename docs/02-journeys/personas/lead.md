@@ -12,6 +12,8 @@ last-reviewed: 2026-05-18
 
 > **V1 in-project persona** — one of three persona roles a teammate plays inside a single Project (Lead / Member / Sponsor). The Lead drives the Project end-to-end. The market-facing buyer persona (Improvement Specialist) lives in L1 ([`docs/01-vision/product-overview.md`](../../01-vision/product-overview.md)); this file is the in-product journey.
 
+> **App scope** — Lead/Member/Sponsor role gating applies to the **Azure tenant SKU**. The **PWA** (free tier) is single-user open-access by design and does not enforce roles. See [`../../08-products/feature-parity.md`](../../08-products/feature-parity.md).
+
 ## Persona statement
 
 The **Lead** opens the Project, runs the methodology, and signs off each stage. They own the canvas, the Investigation Wall, the Improvement Plan, and the Sustainment cadence. Real-world counterparts: Black Belt, project lead, CI engineer, quality manager driving a specific improvement. The Lead invites Members for SME content + analytical contribution, and surfaces the work to a Sponsor for accountability.

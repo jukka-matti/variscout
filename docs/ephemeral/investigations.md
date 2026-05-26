@@ -548,3 +548,220 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 **Promotion path:** small follow-up PR. About 2 tasks: helper + UI swap.
 
 **Resolution [2026-05-08]:** `computeHistogramBins(values, rule?)` helper added in `@variscout/core/stats` (Sturges default, Scott option). `CanvasStepMiniChart` histogram branch now renders one bar per bin with bin counts as heights, replacing the first-12-raw-values normalization. Empty bins floor at 8% height so the bin axis stays legible — this replaces the prior 15% floor (which was tuned for 12 raw-value pseudo-bars; 8% reads more honestly when bin counts can legitimately be zero).
+
+---
+
+### Pinning Findings: PWA wires at App root, Azure wires via Editor + orchestration hook
+
+**STATUS 2026-05-26 — doc-half closed:** per-app persistence note added to `docs/02-journeys/use-cases/{bottleneck-analysis,batch-consistency}.md` and to feature-parity Sustainment + Investigation Wall rows. Architectural convergence (lift `useFindingsOrchestration` into `packages/hooks/` so both apps share one orchestrator) remains open — that's the code-half. Keeping this entry open until the hook convergence decision lands or is explicitly deferred.
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens D: Analyze-tab interactions). User-reported observation that "pinning findings happens differently in Azure and PWA" prompted the audit.
+
+**Description:** Both apps wire `handlePinFinding` and pinning is functional in both — an earlier exploration mis-claimed Azure had no wiring (it was reading a hallucinated `apps/azure-app/` path that does not exist; actual path is `apps/azure/`). However, the wiring **architectures genuinely diverge**, and the persistence behaviour after a pin differs in ways the journey docs don't acknowledge.
+
+**Evidence:**
+
+- PWA: `apps/pwa/src/App.tsx:598–609` — `handlePinFinding` defined inline at App root; calls `findingsState.addFinding()` from `useFindings()` hook (`packages/hooks/src/useFindings.ts:141`). Findings live as in-memory session state until `.vrs` export.
+- Azure: `apps/azure/src/features/findings/useFindingsOrchestration.ts:168–185` — `handlePinFinding` defined inside an orchestration hook; consumed at `apps/azure/src/pages/Editor.tsx:964`; passed down `Editor.tsx:2010 → EditorDashboardView.tsx:225 → DashboardSection.tsx:102 → Dashboard.tsx:127/607/759`. Findings flow into `useInvestigationStore` (`packages/stores/src/investigationStore.ts`) and persist via `apps/azure/src/persistence/AzureHubRepository.ts` to Azure Blob with ETag concurrency.
+- Shared: `packages/ui/src/types/findingsCallbacks.ts:11–32` defines `FindingsCallbacks` + `AzureFindingsCallbacks` types — clearly designed for parity.
+- Journey docs: `docs/02-journeys/use-cases/bottleneck-analysis.md` + `batch-consistency.md` describe pinning as a single behaviour ("right-click chart category → Finding pinned"); `docs/USER-JOURNEYS-PROCESS-FLOW.md` + `USER-JOURNEYS-YAMAZUMI.md` describe "Lead pins station-level Findings"; none distinguish per-app persistence.
+
+**Doc claim vs reality:** Journey docs imply that pinning is a single product behaviour. Reality: in PWA a pin is session-only until `.vrs` export; in Azure a pin is durable cloud state immediately, gated by ETag. A user testing PWA-then-Azure would experience two materially different commitments without any explanatory copy.
+
+**Possible directions:**
+
+- Add a per-app behaviour note to the Analyze-tab use-case docs and/or to `docs/USER-JOURNEYS.md` (one sentence each: "PWA: session-only until `.vrs` export. Azure: persisted on-the-fly to tenant blob.").
+- Converge the wiring patterns by lifting `useFindingsOrchestration` into `packages/hooks/` so both apps consume the same orchestrator (eliminates the App-root-vs-Editor architectural split).
+- Status-quo + doc-only: accept the architectural divergence as intentional (Azure has cloud sync to coordinate; PWA does not) and only fix the journey-doc silence.
+
+**Promotion path:** Doc-only fix is a small PR (1–2 files, ~10 lines). Hook convergence is larger (~3 tasks, touches both apps). Decide after triage. Not blocking V1.
+
+**Severity:** functional gap (silent behavioural divergence the journey docs paper over).
+
+---
+
+### Personas docs silent on Azure-vs-PWA app scope [RESOLVED 2026-05-26]
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens B: Persona roles & ACL).
+
+**Description:** `docs/02-journeys/personas/{index,lead,member,sponsor}.md` (refreshed 2026-05-18 for wedge V1) present the three project roles as universal V1 behaviour. In code, only the Azure app enforces them. PWA is single-user open-access by design (free tier, training/learning surface) — `apps/pwa/src/App.tsx` uses a stable `'analyst@local'` user key and `InvestigationView` never calls `canAccess()`. Trainers importing `.vrs` scenarios into PWA, or users moving between the two apps, get no warning that role gating only kicks in on Azure.
+
+**Evidence:**
+
+- Shared role model: `packages/core/src/projectMembership/types.ts:4` (`ProjectRole = 'lead' | 'member' | 'sponsor'`); `packages/core/src/projectMembership/canAccess.ts:11–21` (`ROLE_PERMISSIONS`).
+- Azure enforces: `apps/azure/src/components/editor/InvestigationWorkspace.tsx:104–107` gates photo upload via `canAccess(userId, members, 'edit-approach')`.
+- PWA does not enforce: `apps/pwa/src/components/views/InvestigationView.tsx:53–85` accepts no `userId`/`members` props; no ACL invocation.
+- Personas docs silent on scope: `grep -rn "appliesTo\|azure-only\|pwa-only" docs/02-journeys/personas/` returns nothing.
+- Doc text: `docs/02-journeys/personas/index.md` says "V1 ships 3 personas inside each Project. Per-project ACLs; no cross-AD-tenant invites" — reads as universal.
+
+**Doc claim vs reality:** Personas docs imply role-based ACLs apply to V1. Reality: PWA has no role enforcement; only Azure (€120 tenant SKU) does.
+
+**Possible directions:**
+
+- Add a single "Scope" line at the top of `personas/index.md` and each of `lead.md`/`member.md`/`sponsor.md`: "These project roles apply to the Azure tenant SKU. PWA (free tier) is single-user open-access by design."
+- Promote to a scope note in `docs/USER-JOURNEYS.md` so it shows up before readers click into individual personas.
+- Optionally cross-link to `docs/08-products/feature-parity.md` from the persona docs.
+
+**Promotion path:** Small doc-only PR (1 line per file × 4 files = trivial).
+
+**Severity:** vision violation (V1 product surface presented as universal across apps when role behaviour is not).
+
+---
+
+### Azure Analyze tab omits Pareto from lens-tab switcher
+
+**STATUS 2026-05-26 — promoted to a design session:** the original audit recommendation ("copy PWA's conditional spread into `azureAnalysisLensTabs`") was the wrong move to lock in without revisiting Analyze-tab design principles first. User flagged that an intentional design choice may be hiding behind what looks like drift (`feedback_step_back_for_system_design`, `feedback_check_registry_placeholders_first`). Open questions to answer in the design session: (a) what are the canonical design principles for the Analyze tab? (Four Lenses model, lens-switcher behaviour, per-lens-mode framing.) (b) is Azure's Pareto-outside-the-switcher placement intentional (separate surface for category drill) or accidental drift? (c) is PWA's conditional-tab pattern the canonical UX or a tactical accommodation? (d) does the answer differ by mode (Capability / Performance / Yamazumi / Defect / Process-flow)? Reopen only with a dedicated brainstorm session — do not let drive-by PRs touch the lens-tab switcher in either app until this is settled.
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens D: Analyze-tab interactions).
+
+**Description:** The Analyze tab's lens-tab switcher (Probability / Capability / Pareto) is built differently in the two apps. PWA includes a conditional Pareto tab when a Pareto factor is selected; Azure's equivalent switcher omits the Pareto variant entirely. Azure still renders a Pareto chart elsewhere (`Dashboard.tsx:927–929` conditional on `paretoFactor`), but it's not surfaced through the unified Four-Lenses UX that the journey docs describe.
+
+**Evidence:**
+
+- PWA: `apps/pwa/src/components/Dashboard.tsx:437–470` defines `analysisLensTabs` with `...(paretoFactor ? [{ id: 'pareto', … }] : [])` at line 448.
+- Azure: `apps/azure/src/components/Dashboard.tsx:455–470` defines `azureAnalysisLensTabs` with **no Pareto branch**. Pareto state (`paretoFactor`) exists at line 287 and renders elsewhere, but not via the lens switcher.
+- Journey doc: `docs/03-features/workflows/four-lenses-workflow.md` describes Four Lenses (I-Chart, Boxplot, Pareto, CapabilityHistogram) as uniformly available from Analyze.
+
+**Doc claim vs reality:** Doc says Four Lenses are uniformly available in Analyze. Reality: Azure users can't reach Pareto via the lens-tab UX in the Analyze tab; PWA users can.
+
+**Possible directions:**
+
+- Copy PWA's conditional spread (`...(paretoFactor ? [{ id: 'pareto', … }] : [])`) into `azureAnalysisLensTabs`. Mirror the chart component wiring already used elsewhere in `Dashboard.tsx`.
+- Lift the lens-tab builder into `packages/hooks/` (or `@variscout/ui`) so both apps share one source of truth — eliminates this whole class of divergence.
+
+**Promotion path:** Small targeted PR. About 1–2 tasks (Azure wiring + a test mirroring PWA's).
+
+**Severity:** functional gap (documented capability not reachable in one app's primary UX path).
+
+---
+
+### `ControlHandoff` type + `handoff-updated` activity event survive in code despite wedge "Handoff folded into Sustainment"
+
+**STATUS 2026-05-26 — scheduled:** scope owned by PR3 of the audit-driven cleanup track (see `docs/decision-log.md` §1 2026-05-26 audit entry). Will land as an atomic-sweep PR per `feedback_atomic_sweep_one_dispatch`.
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens C: Stage transitions & response paths).
+
+**Description:** The 2026-05-16 wedge V1 amendment folded the Handoff stage into Sustainment closure — wedge spec §3.2 and ADR-082 say there are only three stages (Charter, Approach, Sustainment). The runtime stage enum (`StageStateMap` in `packages/ui/src/components/IPDetail/stageState.ts`) correctly stops at Sustainment. However, the data model still treats `ControlHandoff` as a first-class entity and exposes Handoff in the activity timeline + IP-detail prop surface — meaning the V1 codebase still persists, reads, and reasons about Handoff state as a distinct thing.
+
+**Evidence:**
+
+- `packages/core/src/improvementProject/types.ts:9` imports `ControlHandoff` as a sibling of `SustainmentRecord`; line 82 keeps `controlHandoffId?: ControlHandoff['id']` as a first-class IP field.
+- `packages/core/src/improvementProject/types.ts:107` JSDoc still references "Sustainment or Handoff stages typically".
+- `packages/ui/src/components/IPDetail/activityEvents.ts:14` declares an activity-event kind `'handoff-updated'`; line 177–184 produces events labeled "handoff …".
+- `packages/ui/src/components/IPDetail/IPDetailPage.tsx:53–55` keeps `controlHandoff?: ControlHandoff` prop with comment "Present when handoff stage is active or beyond"; line 258 wires `onStartHandoff={() => setActiveStage('sustainment')}` — a transition handler named for a stage that no longer exists.
+
+**Doc claim vs reality:** Wedge spec + journey docs treat Sustainment as the terminal stage and never reference Handoff. Reality: code still treats Handoff as a separately persisted artefact with its own events and prop surface.
+
+**Possible directions:**
+
+- Rename `ControlHandoff` to something Sustainment-relative (e.g. `SustainmentControlHandover`) and fold the `controlHandoffId` into `SustainmentRecord` so the IP type only references Sustainment.
+- Merge `'handoff-updated'` activity events into `'sustainment-control-recorded'` or similar; update timeline consumers.
+- Rename `onStartHandoff` → `onEnterSustainment` (or remove if the prop is dead — verify call sites first).
+- Or: leave the data model alone and add a JSDoc note explaining that `ControlHandoff` is the persisted artefact of the closure flow within Sustainment — cheaper but keeps the naming dissonance.
+
+**Promotion path:** Likely a dedicated rename/cleanup PR. Touches `packages/core/`, `packages/ui/`, both apps' consumers. Worth pairing with a wedge-V1 terminology sweep — check `feedback_systemic_before_patching` discipline.
+
+**Severity:** functional gap (data model has not caught up with the spec; future readers will be confused).
+
+---
+
+### ADR-080 Sustainment auto-fire deferred — current implementation is direct localDb write (R13 exception)
+
+**STATUS 2026-05-26 — banner added:** "Implementation status" block added to the top of `docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md` documenting the R13-exception deferral. F5 implementation itself remains deferred per `packages/stores/CLAUDE.md` R13. Keeping this entry open until F5 lands or is explicitly retired.
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens C: Stage transitions & response paths).
+
+**Description:** ADR-080 prescribes a co-located auto-fire pattern where, on IP transition to Sustainment, a follow-up reducer fires inside the same dispatch. Today, Sustainment records are written via direct `saveSustainmentRecordToIndexedDB` (the documented R13 exception in `packages/stores/CLAUDE.md`) rather than via the HubAction → reducer auto-fire pattern. Journey docs (`USER-JOURNEYS.md` §stages; `USER-JOURNEYS-YAMAZUMI.md`) describe Sustainment as flowing automatically once an IP reaches that stage, which is true at the user-experience level but not at the architectural level the ADR specifies.
+
+**Evidence:**
+
+- ADR: `docs/07-decisions/adr-080-*` describes auto-fire co-location.
+- Current code: `packages/stores/CLAUDE.md` documents R13 exception (direct localDb writes for Sustainment records). `packages/core/src/sustainment.ts:37–61` defines `SustainmentRecord` entity with no upstream transition reducer.
+- F5 plan: deferred per `packages/stores/CLAUDE.md` R13.
+
+**Doc claim vs reality:** ADR-080 architecturally prescribes auto-fire; F5 implementation is deferred; journey docs describe the user-visible flow as automatic. The journey description is accurate; the ADR is currently aspirational.
+
+**Possible directions:**
+
+- Add a `Status: deferred to F5` banner to ADR-080 referencing the R13 exception so future readers don't assume the pattern is live.
+- Or: implement F5 and retire the R13 exception.
+
+**Promotion path:** Banner is a 1-line ADR amendment. F5 implementation is a multi-task plan.
+
+**Severity:** functional gap (intentional, but undisclosed in the ADR itself).
+
+---
+
+### Wedge spec §3.1 text still says "Improve tab is removed" — superseded by the same spec's §15 amendment [RESOLVED 2026-05-26]
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens C).
+
+**Description:** `docs/superpowers/specs/2026-05-16-wedge-architecture-design.md` §3.1 retains the original wedge-design language saying Improve is removed as a top-level surface. §15 (the 2026-05-16 amendment) restored it. Both apps now ship the Improve tab and journey docs describe a 7-tab nav including Improve. The §3.1 text is now misleading without re-reading §15.
+
+**Evidence:**
+
+- Spec §3.1: text describes 6-tab nav without Improve.
+- Spec §15 (amendment block): restores Improve as top-level verb tab.
+- Code: `apps/azure/src/components/AppHeader.tsx:451–461` renders Improve; `apps/pwa/src/App.tsx:121–124` lazy-loads `ImprovementView` + `ReportView`; both render the 7-tab order from `docs/02-journeys/ia-nav-model.md`.
+
+**Doc claim vs reality:** Internal doc contradiction. §3.1 says Improve is gone; §15 + reality say it's back.
+
+**Possible directions:**
+
+- Per `docs/agent-context/doc-discipline.md`, design specs are edited in place. Update §3.1 to reflect the amendment and cross-reference §15.
+- Or: leave §3.1 untouched and add a "Superseded by §15 amendment" banner at the top of §3.1.
+
+**Promotion path:** Tiny doc edit. 1 file, ~5 lines.
+
+**Severity:** cosmetic (doc-internal inconsistency; not a code drift).
+
+---
+
+### Investigation Wall: shared UI but Azure-only CoScout background pipeline — feature-parity matrix is misleading [RESOLVED 2026-05-26]
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens E: Cross-cutting per-app divergence).
+
+**Description:** `docs/08-products/feature-parity.md:81` lists "Investigation Wall: Azure only". In practice the Wall UI (WallCanvas, hypothesis cards, mini-charts) is shared via `packages/ui/src/components/InvestigationWall/` and renders in both apps. What is genuinely Azure-only is the **CoScout-driven background suggestions pipeline** (best-subsets detection, AI hint emission) in `apps/azure/src/features/investigation/useWallBackgroundJobs.ts`; the PWA equivalent is a deliberate no-op (`apps/pwa/src/features/investigation/useWallBackgroundJobs.ts:20`). The matrix conflates "the AI surface" with "the whole Wall".
+
+**Evidence:**
+
+- Azure: `apps/azure/src/features/investigation/useWallBackgroundJobs.ts:69` — debounced best-subsets + CoScout emit.
+- PWA: `apps/pwa/src/features/investigation/useWallBackgroundJobs.ts:20` — explicit no-op stub.
+- Shared UI: `packages/ui/src/components/InvestigationWall/WallCanvas.tsx` imported by both apps.
+
+**Doc claim vs reality:** Matrix says "Investigation Wall: Azure only". Reality: the Wall UI is shared; only the AI suggestion pipeline is Azure-only.
+
+**Possible directions:**
+
+- Split the feature-parity row: "Investigation Wall UI: both" + "Wall AI background suggestions: Azure only".
+- Or: add a footnote clarifying the distinction.
+
+**Promotion path:** 1-line doc edit.
+
+**Severity:** cosmetic (misleading parity row; no code change needed).
+
+---
+
+### Sustainment persistence asymmetry not disclosed in feature-parity.md [RESOLVED 2026-05-26]
+
+**Surfaced by:** 2026-05-26 systematic L2/L3 user-journey audit (Lens E).
+
+**Description:** Both apps wire Sustainment UI (`SustainmentRecordEditor`, `SustainmentPanel`). The persistence story differs significantly — Azure persists Sustainment records via the R13 direct-write exception to IndexedDB + Cloud Blob; PWA's Sustainment is session-only and is not currently part of `.vrs` export per the same R13 path. `docs/08-products/feature-parity.md` does not list Sustainment as a row, so this differential is invisible to anyone reading the parity matrix.
+
+**Evidence:**
+
+- Azure UI: `apps/azure/src/components/SustainmentRecordEditor.tsx`; orchestration in `apps/azure/src/features/panels/panelsStore.ts`.
+- PWA UI: `apps/pwa/src/components/SustainmentPanel.tsx`; lazy-loaded at `apps/pwa/src/App.tsx:122`.
+- Persistence: `packages/stores/CLAUDE.md` documents Sustainment as the R13 exception (direct localDb writes, not yet HubAction-dispatched).
+- Feature-parity: `docs/08-products/feature-parity.md` has no "Sustainment" row.
+
+**Doc claim vs reality:** Parity matrix is silent; both UIs exist; persistence behaviours differ.
+
+**Possible directions:**
+
+- Add a Sustainment row to `feature-parity.md` distinguishing UI (both) from persistence (Azure: durable; PWA: session-only).
+- Couple with the ADR-080 banner (see "ADR-080 Sustainment auto-fire deferred" entry) so the two related drifts are visible together.
+
+**Promotion path:** Small doc edit, 1 file.
+
+**Severity:** functional gap (parity matrix omits a real differential that affects whether `.vrs` round-trips Sustainment state).

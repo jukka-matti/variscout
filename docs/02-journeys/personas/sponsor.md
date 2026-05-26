@@ -12,6 +12,8 @@ last-reviewed: 2026-05-18
 
 > **V1 in-project persona** — one of three persona roles a teammate plays inside a single Project (Lead / Member / Sponsor). The Sponsor approves and reviews; they do not edit content. The market-facing buyer persona (Improvement Specialist) lives in L1 ([`docs/01-vision/product-overview.md`](../../01-vision/product-overview.md)).
 
+> **App scope** — Lead/Member/Sponsor role gating applies to the **Azure tenant SKU**. The **PWA** (free tier) is single-user open-access by design and does not enforce roles. See [`../../08-products/feature-parity.md`](../../08-products/feature-parity.md).
+
 ## Persona statement
 
 The **Sponsor** is the executive accountable for the Project's outcome. They authorize the Charter, hold the team accountable through Sustainment, and accept the final Report. They do not run the analysis, propose hypotheses, or own action items — those are Lead and Member work. The Sponsor's interaction is read-mostly + approval gates.
