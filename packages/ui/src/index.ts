@@ -705,7 +705,13 @@ export {
 export { SubgroupConfigPopover, type SubgroupConfigProps } from './components/SubgroupConfig';
 
 // FRAME workspace — visual Process Map (ADR-070)
-export { Canvas, type CanvasProps, type CanvasAuthoringMode } from './components/Canvas';
+export {
+  Canvas,
+  type CanvasProps,
+  type CanvasAuthoringMode,
+  EditModeShell,
+  type EditModeShellProps,
+} from './components/Canvas';
 export { CanvasWorkspace, type CanvasWorkspaceProps } from './components/Canvas/CanvasWorkspace';
 export {
   ProcessHubCurrentStatePanel,

@@ -11,10 +11,8 @@ export function CanvasModeToggle({ mode, onChange, disabled }: CanvasModeToggleP
   const isAuthor = mode === 'author';
   const Icon = isAuthor ? Unlock : Lock;
   const nextMode: CanvasAuthoringMode = isAuthor ? 'read' : 'author';
-  const label = isAuthor ? 'Lock canvas' : 'Edit canvas';
-  const announcement = isAuthor
-    ? 'Canvas authoring affordances visible'
-    : 'Canvas authoring affordances hidden';
+  const label = isAuthor ? 'Done' : 'Edit map';
+  const announcement = isAuthor ? 'Edit mode active' : 'State mode active';
 
   return (
     <div className="flex items-center gap-2">

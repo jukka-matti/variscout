@@ -26,6 +26,24 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Two "Done" buttons in Edit mode (Process tab)
+
+**Surfaced by:** PR-CCJ-B1 (`feat/wedge-v1-ccj-b1-edit-mode-shell`), 2026-05-26. Branch-level reviewer + Task 4 spec reviewer.
+
+**Description:** When the user is in Process tab Edit mode, two visually distinct "Done" affordances appear simultaneously: (a) the relabeled `CanvasModeToggle` icon button in the canvas chrome with `aria-label="Done"`, and (b) the `EditModeShell` header's visible-text "Done" button. Both call `setAuthoringMode('read')`; behavior is identical, no state divergence. Tests disambiguate via `within(shell)` (`CanvasWorkspaceEditModeShell.test.tsx:233`) and `aria-pressed` (`CanvasWorkspace.test.tsx:906`) — durable scoping using attributes the toggle reliably exposes.
+
+**Possible resolutions (for PR-CCJ-H1 polish):**
+
+- Hide `CanvasModeToggle` when the workspace renders inside `<EditModeShell>` — pass `onModeChange={undefined}` to `<Canvas>` whenever `showEditShell === true` (the existing hide-toggle guard at `Canvas/index.tsx:593` handles this). Keeps the shell's prominent text Done as the canonical exit.
+- Keep both, but visually de-emphasize the toggle when inside the shell so the shell's Done is the obvious affordance.
+- Keep both as-is — the chrome's icon-toggle stays useful for keyboard discoverability of mode-switch even when the shell is present.
+
+**Spec status:** Spec 2 §2.3 names "one Edit map / one Done" conceptually but is silent on the icon-toggle's behavior _while inside_ Edit mode. Not a B1 spec violation; resolution deferred until the shell carries real authoring zones (Phase C+) so the UX seam can be evaluated against the mature shell, not the empty placeholder.
+
+**Promotion path:** Resolve in `docs/superpowers/plans/2026-05-26-canvas-connection-journey-master-plan.md` H1 (PR-CCJ-H1) when polish work begins. Not blocking any subsequent task.
+
+---
+
 ### Docs site sidebar drift: 5 dead refs + 5 unlisted personas
 
 **Surfaced by:** PR #207 fixing the `pnpm build` failure on `@variscout/docs`, 2026-05-25.
