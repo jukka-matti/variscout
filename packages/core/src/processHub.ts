@@ -174,8 +174,8 @@ export const DEFAULT_PROCESS_HUB: ProcessHub = {
  * Maps one canonical-map node onto a column in this investigation's data.
  * `nodeMappings.length === 1` is the B2 shape (investigation IS one step's
  * deep-dive). Length > 1 is the B1 shape (investigation covers multiple
- * steps). Absent/empty is the B0 shape (legacy investigation, falls back to
- * global investigation-level specs).
+ * steps). Absent/empty is the B0 shape (unmapped investigation, falls back
+ * to global investigation-level specs).
  *
  * `specsOverride`, when set, is a flagged local fork — UI shows divergence
  * from canonical for the analyst.

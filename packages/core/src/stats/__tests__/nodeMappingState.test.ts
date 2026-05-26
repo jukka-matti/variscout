@@ -1,23 +1,23 @@
 import { describe, it, expect } from 'vitest';
-import { isLegacyInvestigation, suggestNodeMappings } from '../nodeCapabilityMigration';
+import { isUnmappedInvestigation, suggestNodeMappings } from '../nodeMappingState';
 import type { ProcessHubInvestigationMetadata } from '../../processHub';
 import type { ProcessMap } from '../../frame/types';
 
-describe('isLegacyInvestigation', () => {
+describe('isUnmappedInvestigation', () => {
   it('returns true when nodeMappings is absent', () => {
-    expect(isLegacyInvestigation({})).toBe(true);
-    expect(isLegacyInvestigation({ processHubId: 'h' })).toBe(true);
+    expect(isUnmappedInvestigation({})).toBe(true);
+    expect(isUnmappedInvestigation({ processHubId: 'h' })).toBe(true);
   });
 
   it('returns true when nodeMappings is empty', () => {
-    expect(isLegacyInvestigation({ nodeMappings: [] })).toBe(true);
+    expect(isUnmappedInvestigation({ nodeMappings: [] })).toBe(true);
   });
 
   it('returns false when at least one mapping is present', () => {
     const meta: ProcessHubInvestigationMetadata = {
       nodeMappings: [{ nodeId: 'n1', measurementColumn: 'col' }],
     };
-    expect(isLegacyInvestigation(meta)).toBe(false);
+    expect(isUnmappedInvestigation(meta)).toBe(false);
   });
 });
 

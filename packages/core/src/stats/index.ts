@@ -208,13 +208,13 @@ export type { UIRelationshipType, UIRelationshipInfo } from './relationshipTypeM
 export { mapRelationshipType } from './relationshipTypeMapping';
 
 // Production-line glance engine — node capability, spec lookup, sample confidence,
-// migration helpers (Plan A: engine layer for canonical-map dashboard)
+// node-mapping UI state (Plan A: engine layer for canonical-map dashboard)
 export { calculateNodeCapability } from './nodeCapability';
 export type { NodeCapabilityResult, CalculateNodeCapabilitySource } from './nodeCapability';
 export { lookupSpecRule, ruleMatches, ruleSpecificity } from './specRuleLookup';
 export { sampleConfidenceFor, SAMPLE_CONFIDENCE_THRESHOLDS } from './sampleConfidence';
 export type { SampleConfidence } from './sampleConfidence';
-export { isLegacyInvestigation, suggestNodeMappings } from './nodeCapabilityMigration';
+export { isUnmappedInvestigation, suggestNodeMappings } from './nodeMappingState';
 export { distinctContextValues } from './contextValueOptions';
 export { rollupStepErrors } from './stepErrorAggregation';
 export type { StepErrorRollupInput, StepErrorRollupResult } from './stepErrorAggregation';
