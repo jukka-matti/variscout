@@ -32,6 +32,7 @@ import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/fra
 import { useCanvasStore } from '@variscout/stores';
 import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
 import { Canvas, type CanvasAuthoringMode, type CanvasL3Archetype } from './index';
+import { EditModeShell } from './EditMode';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
 import type { XCandidate } from '../XPickerSection';
@@ -87,6 +88,11 @@ export interface CanvasWorkspaceProps {
   onNavigateContextLink?: (item: ContextLinkItem) => void;
   priorStepStats?: ReadonlyMap<string, StepCapabilityStamp>;
   actionItems?: ActionItem[];
+  /** When false, hides the Edit/State toggle and forces State mode.
+   *  When undefined or true, the toggle is shown and Edit mode is reachable.
+   *  Azure derives this from canAccess(currentUserId, members, 'edit');
+   *  PWA passes true (no membership model). */
+  canEditCanvas?: boolean;
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -218,6 +224,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onNavigateContextLink,
   priorStepStats,
   actionItems = [],
+  canEditCanvas,
 }) => {
   const { t } = useTranslation();
   const fallbackMap = React.useMemo(() => createEmptyMap(), []);
@@ -458,7 +465,26 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const [authoringMode, setAuthoringMode] = React.useState<CanvasAuthoringMode>(() =>
     map.nodes.length > 0 && chips.length === 0 ? 'read' : 'author'
   );
-  const l3Archetype: CanvasL3Archetype = authoringMode === 'author' ? 'b1' : 'b0';
+
+  // When access is revoked at runtime, snap back to State mode so the user
+  // is never stranded in Edit mode without the Done affordance.
+  React.useEffect(() => {
+    if (canEditCanvas === false && authoringMode === 'author') {
+      setAuthoringMode('read');
+    }
+  }, [authoringMode, canEditCanvas]);
+
+  const effectiveAuthoringMode: CanvasAuthoringMode =
+    canEditCanvas === false ? 'read' : authoringMode;
+  const handleAuthoringModeChange = React.useCallback(
+    (next: CanvasAuthoringMode) => {
+      if (canEditCanvas === false) return;
+      setAuthoringMode(next);
+    },
+    [canEditCanvas]
+  );
+
+  const l3Archetype: CanvasL3Archetype = effectiveAuthoringMode === 'author' ? 'b1' : 'b0';
 
   const handleConfirmYSpec = React.useCallback(
     (values: Partial<SpecLimits>) => {
@@ -606,9 +632,9 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       contextLinkGroups={contextLinkGroups}
       onNavigateContextLink={onNavigateContextLink}
       actionItems={actionItems}
-      mode={authoringMode}
+      mode={effectiveAuthoringMode}
       l3Archetype={l3Archetype}
-      onModeChange={setAuthoringMode}
+      onModeChange={canEditCanvas === false ? undefined : handleAuthoringModeChange}
       chips={chips}
       onPlaceChip={handlePlaceChip}
       onCreateStepFromChip={handleCreateStepFromChip}
@@ -623,6 +649,13 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onRedo={handleRedo}
     />
   );
+
+  const handleShellDone = React.useCallback(() => {
+    if (canEditCanvas === false) return;
+    setAuthoringMode('read');
+  }, [canEditCanvas]);
+
+  const showEditShell = effectiveAuthoringMode === 'author' && canEditCanvas !== false;
 
   if (scope === 'b0') {
     return (
@@ -654,7 +687,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           <h2 className="text-lg font-semibold text-content">{t('frame.b1.heading')}</h2>
           <p className="text-sm text-content-secondary">{t('frame.b1.description')}</p>
         </header>
-        {canvasNode}
+        {showEditShell ? (
+          <EditModeShell onDone={handleShellDone}>{canvasNode}</EditModeShell>
+        ) : (
+          canvasNode
+        )}
       </div>
     </div>
   );

@@ -897,13 +897,18 @@ describe('CanvasWorkspace', () => {
     expect(localMechanismPropsRef.current).toMatchObject({ focalStepId: 'step-2' });
     expect(useCanvasViewportStore.getState().getViewport(hubId).focalStepId).toBe('step-2');
 
-    fireEvent.click(screen.getByRole('button', { name: /edit canvas/i }));
+    fireEvent.click(screen.getByRole('button', { name: /edit map/i }));
 
     expect(screen.getByTestId('author-l3-view')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Pack' })).toBeInTheDocument();
     expect(useCanvasViewportStore.getState().getViewport(hubId).focalStepId).toBe('step-2');
 
-    fireEvent.click(screen.getByRole('button', { name: /lock canvas/i }));
+    // In author mode, both EditModeShell and CanvasModeToggle render a "Done"
+    // button (Spec 2 vocab rename). Click the toggle's via aria-pressed scoping.
+    const doneButtons = screen.getAllByRole('button', { name: /done/i });
+    const toggleDone = doneButtons.find(btn => btn.hasAttribute('aria-pressed'));
+    if (!toggleDone) throw new Error('CanvasModeToggle Done button not found');
+    fireEvent.click(toggleDone);
 
     expect(screen.getByTestId('local-mechanism-view')).toBeInTheDocument();
     expect(localMechanismPropsRef.current).toMatchObject({ focalStepId: 'step-2' });
