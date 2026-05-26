@@ -11,7 +11,6 @@ import type {
   Hypothesis,
   HypothesisEvidence,
 } from './types';
-import { createHypothesis } from './factories';
 import type { BestSubsetsResult, BestSubsetResult, LevelChange } from '../stats/bestSubsets';
 import { predictFromModel, predictFromUnifiedModel } from '../stats/bestSubsets';
 
@@ -589,28 +588,4 @@ export function detectEvidenceClusters(
   clusters.sort((a, b) => b.rSquaredAdj - a.rSquaredAdj);
 
   return clusters;
-}
-
-/**
- * Migrate legacy `causeRole: 'suspected-cause'` tags on questions into individual
- * Hypothesis hub instances.
- *
- * One hub is created per question that has `causeRole === 'suspected-cause'` and
- * a non-empty `factor` name. Questions with `ruled-out` or `contributing` roles,
- * or questions without a factor, are skipped.
- *
- * This is a one-time migration helper — new investigations should use the
- * Hypothesis hub model directly.
- *
- * @param questions - All questions in the investigation tree
- * @returns New Hypothesis hubs (one per migrated question)
- */
-export function migrateCauseRolesToHubs(questions: Question[]): Hypothesis[] {
-  const hubs: Hypothesis[] = [];
-  for (const q of questions) {
-    if (q.causeRole !== 'suspected-cause') continue;
-    if (!q.factor) continue;
-    hubs.push(createHypothesis(q.factor, '', [q.id], q.linkedFindingIds ?? []));
-  }
-  return hubs;
 }

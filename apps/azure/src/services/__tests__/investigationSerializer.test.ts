@@ -401,7 +401,9 @@ describe('deserializeInvestigationState', () => {
     expect(result.hypotheses).toEqual([]);
   });
 
-  it('migrates legacy causeRole questions to hubs when hypotheses field absent', () => {
+  it('returns empty hypotheses when hypotheses field is absent (no back-compat migration)', () => {
+    // Per wedge V1 no-back-compat: legacy causeRole questions are NOT migrated
+    // into hubs on deserialize. Investigations without explicit hubs get [].
     const raw = {
       findings: [],
       questions: [
@@ -411,11 +413,7 @@ describe('deserializeInvestigationState', () => {
       ],
     };
     const result = deserializeInvestigationState(raw);
-    // Only 'suspected-cause' questions are migrated
-    expect(result.hypotheses).toHaveLength(2);
-    const names = result.hypotheses.map(h => h.name);
-    expect(names).toContain('Machine');
-    expect(names).toContain('Shift');
+    expect(result.hypotheses).toEqual([]);
   });
 
   it('returns empty hypotheses when old data has no causeRole questions', () => {
@@ -428,8 +426,7 @@ describe('deserializeInvestigationState', () => {
     expect(result.hypotheses).toEqual([]);
   });
 
-  it('does not migrate when hypotheses field is present (even empty)', () => {
-    // Even if questions have causeRole, explicit [] means migration already done
+  it('returns empty hypotheses when hypotheses field is explicitly empty', () => {
     const raw = {
       findings: [],
       questions: [makeQuestion({ causeRole: 'suspected-cause', factor: 'Shift' })],

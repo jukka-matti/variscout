@@ -843,9 +843,6 @@ export {
   filtersEqual,
   findDuplicateFinding,
   findDuplicateBySource,
-  migrateFindingStatus,
-  migrateFindings,
-  migrateActionAssignee,
   isFindingScoped,
   getScopedFindings,
   computeHubEvidence,
@@ -853,7 +850,6 @@ export {
   projectMechanismBranch,
   projectMechanismBranches,
   detectEvidenceClusters,
-  migrateCauseRolesToHubs,
 } from './findings';
 export type { HubProjection, EvidenceCluster } from './findings';
 

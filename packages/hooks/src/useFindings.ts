@@ -5,7 +5,6 @@ import {
   createActionItem,
   findDuplicateFinding,
   findDuplicateBySource,
-  migrateFindings,
   type ActionItem,
   type CommentAttachment,
   type Finding,
@@ -142,9 +141,7 @@ export interface UseFindingsReturn {
 export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn {
   const { initialFindings, onFindingsChange, onStatusChange } = options;
 
-  const [findings, setFindings] = useState<Finding[]>(() =>
-    initialFindings ? migrateFindings(initialFindings) : []
-  );
+  const [findings, setFindings] = useState<Finding[]>(() => initialFindings ?? []);
 
   const addFinding = useCallback(
     (

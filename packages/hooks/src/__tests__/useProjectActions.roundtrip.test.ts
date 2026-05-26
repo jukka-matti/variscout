@@ -9,8 +9,7 @@
  *  2. Investigation roundtrip (findings, questions from investigationStore)
  *  3. Non-default analysis config (mode, specs, displayOptions, paretoMode)
  *  4. filterStack derivation: filterStack → flat filters on load
- *  5. viewState migration: isMindmapOpen → isFindingsOpen
- *  6. newProject resets both stores
+ *  5. newProject resets both stores
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -331,48 +330,7 @@ describe('useProjectActions persistence roundtrip', () => {
   });
 
   // --------------------------------------------------------------------------
-  // 5. viewState migration: isMindmapOpen → isFindingsOpen
-  // --------------------------------------------------------------------------
-
-  it('roundtrip: old .vrs with isMindmapOpen:true loads as isFindingsOpen:true', async () => {
-    const adapter = createInMemoryAdapter();
-
-    // Inject an old-format project directly into the adapter's storage by
-    // using loadProject with a manually-constructed saved project that has
-    // the legacy isMindmapOpen field.
-    const oldStyleState = {
-      rawData: [] as DataRow[],
-      outcome: null,
-      factors: [] as string[],
-      specs: {},
-      filters: {},
-      axisSettings: {},
-      viewState: { isMindmapOpen: true } as Record<string, unknown>,
-    };
-
-    // Bypass the normal save flow to inject a legacy-format state directly
-    let injectedId!: string;
-    await act(async () => {
-      const p = await adapter.saveProject(
-        'Legacy Project',
-        oldStyleState as Omit<AnalysisState, 'version'>
-      );
-      injectedId = p.id;
-    });
-
-    const { result } = renderHook(() => useProjectActions(adapter));
-
-    await act(async () => {
-      await result.current.loadProject(injectedId);
-    });
-
-    const ps = useProjectStore.getState();
-    expect(ps.viewState?.isFindingsOpen).toBe(true);
-    expect((ps.viewState as Record<string, unknown> | null)?.isMindmapOpen).toBeUndefined();
-  });
-
-  // --------------------------------------------------------------------------
-  // 6. newProject resets both stores
+  // 5. newProject resets both stores
   // --------------------------------------------------------------------------
 
   it('newProject: resets projectStore and investigationStore to initial state', async () => {

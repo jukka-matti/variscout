@@ -5,8 +5,8 @@
  * saveProject, loadProject, listProjects, deleteProject, renameProject,
  * exportProject, importProject, newProject.
  *
- * Also covers backward-compat for old .vrs files (missing fields,
- * mindmap→findings migration, filter stack reconstruction).
+ * Also covers default-fill for old .vrs files (missing optional fields,
+ * filter stack reconstruction from flat filters).
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -14,7 +14,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useProjectActions } from '../useProjectActions';
 import { useProjectStore, getProjectInitialState } from '@variscout/stores';
 import { useInvestigationStore, getInvestigationInitialState } from '@variscout/stores';
-import type { PersistenceAdapter, SavedProject, AnalysisState, ViewState } from '../types';
+import type { PersistenceAdapter, SavedProject, AnalysisState } from '../types';
 import type { DataRow, Finding, FilterAction } from '@variscout/core';
 
 // ============================================================================
@@ -358,38 +358,6 @@ describe('useProjectActions', () => {
       expect(ps.filterStack).toEqual([]);
     });
 
-    it('should migrate isMindmapOpen → isFindingsOpen on load', async () => {
-      const persistence = createMockPersistence();
-      const viewState = { isMindmapOpen: true } as ViewState & { isMindmapOpen?: boolean };
-
-      (persistence.loadProject as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: 'proj-4',
-        name: 'Old ViewState',
-        state: {
-          version: '1',
-          rawData: [],
-          outcome: null,
-          factors: [],
-          specs: {},
-          filters: {},
-          axisSettings: {},
-          viewState,
-        },
-        savedAt: '2026-03-01T00:00:00Z',
-        rowCount: 0,
-      });
-
-      const { result } = renderHook(() => useProjectActions(persistence));
-
-      await act(async () => {
-        await result.current.loadProject('proj-4');
-      });
-
-      const ps = useProjectStore.getState();
-      expect(ps.viewState?.isFindingsOpen).toBe(true);
-      expect((ps.viewState as Record<string, unknown>)?.isMindmapOpen).toBeUndefined();
-    });
-
     it('should hydrate investigation store on load', async () => {
       const persistence = createMockPersistence();
       const findings = [makeFinding('f1', 'Finding 1')];
@@ -724,31 +692,6 @@ describe('useProjectActions', () => {
       const ps = useProjectStore.getState();
       expect(ps.filterStack).toEqual(filterStack);
       expect(ps.filters).toEqual({ Machine: ['A'] });
-    });
-
-    it('should migrate viewState isMindmapOpen on import', async () => {
-      const persistence = createMockPersistence();
-      (persistence.importFromFile as ReturnType<typeof vi.fn>).mockResolvedValue({
-        version: '1',
-        rawData: [],
-        outcome: null,
-        factors: [],
-        specs: {},
-        filters: {},
-        axisSettings: {},
-        viewState: { isMindmapOpen: true },
-      });
-
-      const file = new File(['{}'], 'old.vrs');
-      const { result } = renderHook(() => useProjectActions(persistence));
-
-      await act(async () => {
-        await result.current.importProject(file);
-      });
-
-      const ps = useProjectStore.getState();
-      expect(ps.viewState?.isFindingsOpen).toBe(true);
-      expect((ps.viewState as Record<string, unknown>)?.isMindmapOpen).toBeUndefined();
     });
   });
 

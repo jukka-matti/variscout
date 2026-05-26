@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 
-describe('@variscout/core exports — nodeCapability surface', () => {
+describe('@variscout/core exports — node mapping surface', () => {
   it('exposes calculateNodeCapability via the stats sub-path', { timeout: 20_000 }, async () => {
     const stats = await import('@variscout/core/stats');
     expect(typeof stats.calculateNodeCapability).toBe('function');
     expect(typeof stats.lookupSpecRule).toBe('function');
     expect(typeof stats.sampleConfidenceFor).toBe('function');
-    expect(typeof stats.isLegacyInvestigation).toBe('function');
+    expect(typeof stats.isUnmappedInvestigation).toBe('function');
     expect(typeof stats.suggestNodeMappings).toBe('function');
   });
 

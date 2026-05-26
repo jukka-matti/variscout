@@ -464,9 +464,7 @@ export interface FindingProjectionModelContext {
 
 /** Where a chart observation originated — discriminated union by chart type.
  *  `timeLens` carries the global time lens that was active when the finding
- *  was recorded so it can be restored on replay. Required for all new findings;
- *  old on-disk findings without the field rehydrate via `migrateFindings`
- *  with `DEFAULT_TIME_LENS`.
+ *  was recorded so it can be restored on replay. Required for all new findings.
  */
 export type FindingSource =
   | { chart: 'boxplot' | 'pareto'; category: string; timeLens: TimeLens }
