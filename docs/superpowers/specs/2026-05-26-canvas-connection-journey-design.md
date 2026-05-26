@@ -11,6 +11,7 @@ related:
   - docs/archive/specs/2026-05-03-framing-layer-design.md
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
   - docs/superpowers/specs/2026-05-26-framing-layer-v2-master-plan.md
+  - docs/superpowers/plans/2026-05-26-canvas-connection-journey-master-plan.md
   - docs/07-decisions/adr-082-wedge-architecture.md
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
   - docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md
