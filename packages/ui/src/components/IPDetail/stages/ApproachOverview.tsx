@@ -60,6 +60,7 @@ const ApproachOverview: React.FC<ApproachOverviewProps> = ({
             Next milestone
           </div>
           <div className="mt-1 text-xs text-content">
+            {/* Legacy first-outcome read — multi-outcome UI is later phases (Spec 2 §3.2.2 / PR-CCJ-C1). */}
             {ip.goal.outcomeGoals[0]?.deadline ?? '—'}
           </div>
         </div>

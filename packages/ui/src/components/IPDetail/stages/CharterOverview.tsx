@@ -80,6 +80,7 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
           </div>
           {goalSet ? (
             <div className="mt-1 font-mono text-sm text-content">
+              {/* Legacy first-outcome read — multi-outcome UI is later phases (Spec 2 §3.2.2 / PR-CCJ-C1). */}
               Target {ip.goal.outcomeGoals[0]?.target}
             </div>
           ) : (

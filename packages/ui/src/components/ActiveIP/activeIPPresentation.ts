@@ -60,6 +60,7 @@ function formatRelativeUpdatedAt(ip: ImprovementProject, now: number): string {
 
 export function getIPRecentActivityFallback(ip: ImprovementProject, now = Date.now()): string[] {
   const stage = getIPStageLabel(ip);
+  // Legacy first-outcome read — multi-outcome UI is later phases (Spec 2 §3.2.2 / PR-CCJ-C1).
   return [
     `${ip.metadata.title} opened · Day ${getIPDayCounter(ip, now)}`,
     `${stage} stage active · ${formatRelativeUpdatedAt(ip, now)}`,
