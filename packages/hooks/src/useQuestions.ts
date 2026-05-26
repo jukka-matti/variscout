@@ -101,7 +101,7 @@ export interface UseQuestionsReturn {
     updates: Partial<
       Pick<
         ImprovementIdea,
-        'text' | 'timeframe' | 'cost' | 'impactOverride' | 'notes' | 'direction' | 'category'
+        'text' | 'timeframe' | 'cost' | 'impactOverride' | 'notes' | 'direction'
       >
     >
   ) => void;
@@ -539,7 +539,7 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
       updates: Partial<
         Pick<
           ImprovementIdea,
-          'text' | 'timeframe' | 'cost' | 'impactOverride' | 'notes' | 'direction' | 'category'
+          'text' | 'timeframe' | 'cost' | 'impactOverride' | 'notes' | 'direction'
         >
       >
     ) => {

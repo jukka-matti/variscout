@@ -301,8 +301,6 @@ export interface ImprovementIdea extends EntityBase {
   voteCount?: number;
   /** Optional last-edit timestamp used by synthesized V1 activity feed events. */
   updatedAt?: number;
-  /** @deprecated Use `direction` instead. Alias kept for migration. */
-  category?: IdeaDirection;
 }
 
 /** Four Ideation Directions — replaces old CAPA categories */
@@ -372,9 +370,12 @@ export interface Question extends EntityBase {
   ideas?: ImprovementIdea[];
   /**
    * Role in investigation conclusion — multiple 'suspected-cause' allowed per tree.
-   * @deprecated Use Hypothesis membership instead. Retained for backward
-   * compatibility and migration. New investigations should create Hypothesis
-   * hubs and connect questions via questionIds.
+   *
+   * Co-exists with Hypothesis hubs during the hub-model transition. UI surfaces
+   * (ReportView, IdeaGroupCard, FindingsLog, QuestionNode) still read this field
+   * for grouping and display; the canonical mechanism is Hypothesis hub membership
+   * via `questionIds`. Don't remove this field without first refactoring those
+   * consumers to read hub membership instead.
    */
   causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
   /** Source of this question: how it was generated */

@@ -164,7 +164,7 @@ export interface InvestigationActions {
     updates: Partial<
       Pick<
         ImprovementIdea,
-        'text' | 'timeframe' | 'cost' | 'impactOverride' | 'notes' | 'direction' | 'category'
+        'text' | 'timeframe' | 'cost' | 'impactOverride' | 'notes' | 'direction'
       >
     >
   ) => void;
