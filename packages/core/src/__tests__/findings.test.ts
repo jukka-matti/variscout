@@ -14,9 +14,6 @@ import {
   createImprovementIdea,
   getFindingStatus,
   groupFindingsByStatus,
-  migrateFindingStatus,
-  migrateFindings,
-  migrateActionAssignee,
   FINDING_STATUSES,
   FINDING_STATUS_LABELS,
   FINDING_TAGS,
@@ -24,7 +21,7 @@ import {
   PWA_STATUSES,
   computeRiskLevel,
 } from '../findings';
-import type { Finding, FindingAssignee, FindingStatus, FindingSource } from '../findings';
+import type { Finding, FindingSource, FindingStatus } from '../findings';
 import { DEFAULT_TIME_LENS } from '../stats';
 
 describe('filtersEqual', () => {
@@ -245,110 +242,6 @@ describe('status constants', () => {
     for (const s of PWA_STATUSES) {
       expect(FINDING_STATUSES).toContain(s);
     }
-  });
-});
-
-describe('migrateFindingStatus', () => {
-  const makeOldFinding = (status: string, tag?: string): Finding => ({
-    id: 'f-1',
-    text: 'Test',
-    createdAt: 1000,
-    deletedAt: null,
-    investigationId: 'general-unassigned',
-    context: { activeFilters: {}, cumulativeScope: null },
-    evidenceType: 'data',
-    status: status as FindingStatus,
-    tag: tag as Finding['tag'],
-    comments: [],
-    statusChangedAt: 1000,
-  });
-
-  it('migrates confirmed → analyzed + key-driver', () => {
-    const f = migrateFindingStatus(makeOldFinding('confirmed'));
-    expect(f.status).toBe('analyzed');
-    expect(f.tag).toBe('key-driver');
-  });
-
-  it('migrates dismissed → analyzed + low-impact', () => {
-    const f = migrateFindingStatus(makeOldFinding('dismissed'));
-    expect(f.status).toBe('analyzed');
-    expect(f.tag).toBe('low-impact');
-  });
-
-  it('preserves existing tag on confirmed finding', () => {
-    const f = migrateFindingStatus(makeOldFinding('confirmed', 'low-impact'));
-    expect(f.status).toBe('analyzed');
-    expect(f.tag).toBe('low-impact');
-  });
-
-  it('passes through observed unchanged', () => {
-    const original = makeOldFinding('observed');
-    const f = migrateFindingStatus(original);
-    expect(f.status).toBe('observed');
-    expect(f).toBe(original); // same reference
-  });
-
-  it('passes through investigating unchanged', () => {
-    const original = makeOldFinding('investigating');
-    const f = migrateFindingStatus(original);
-    expect(f.status).toBe('investigating');
-    expect(f).toBe(original);
-  });
-
-  it('passes through analyzed unchanged', () => {
-    const original = makeOldFinding('analyzed');
-    const f = migrateFindingStatus(original);
-    expect(f.status).toBe('analyzed');
-    expect(f).toBe(original);
-  });
-});
-
-describe('migrateFindings', () => {
-  it('migrates an array of findings with mixed statuses', () => {
-    const findings: Finding[] = [
-      {
-        id: 'f-1',
-        text: 'A',
-        createdAt: 1000,
-        deletedAt: null,
-        investigationId: 'general-unassigned',
-        status: 'observed' as FindingStatus,
-        context: { activeFilters: {}, cumulativeScope: null },
-        evidenceType: 'data',
-        comments: [],
-        statusChangedAt: 1000,
-      },
-      {
-        id: 'f-2',
-        text: 'B',
-        createdAt: 2000,
-        deletedAt: null,
-        investigationId: 'general-unassigned',
-        status: 'confirmed' as FindingStatus,
-        context: { activeFilters: {}, cumulativeScope: null },
-        evidenceType: 'data',
-        comments: [],
-        statusChangedAt: 2000,
-      },
-      {
-        id: 'f-3',
-        text: 'C',
-        createdAt: 3000,
-        deletedAt: null,
-        investigationId: 'general-unassigned',
-        status: 'dismissed' as FindingStatus,
-        context: { activeFilters: {}, cumulativeScope: null },
-        evidenceType: 'data',
-        comments: [],
-        statusChangedAt: 3000,
-      },
-    ];
-    const migrated = migrateFindings(findings);
-    expect(migrated[0].status).toBe('observed');
-    expect(migrated[1].status).toBe('analyzed');
-    expect(migrated[1].tag).toBe('key-driver');
-    expect(migrated[2].status).toBe('analyzed');
-    expect(migrated[2].tag).toBe('low-impact');
   });
 });
 
@@ -682,80 +575,5 @@ describe('computeRiskLevel', () => {
     expect(computeRiskLevel(3, 1)).toBe('high');
     expect(computeRiskLevel(3, 2)).toBe('high');
     expect(computeRiskLevel(3, 3)).toBe('very-high');
-  });
-});
-
-// ============================================================================
-// migrateActionAssignee Tests
-// ============================================================================
-
-describe('migrateActionAssignee', () => {
-  it('returns undefined for undefined input', () => {
-    expect(migrateActionAssignee(undefined)).toBeUndefined();
-  });
-
-  it('converts a string assignee to FindingAssignee', () => {
-    const result = migrateActionAssignee('Jane');
-    expect(result).toEqual({ upn: 'Jane', displayName: 'Jane' });
-  });
-
-  it('passes through a FindingAssignee object unchanged', () => {
-    const assignee: FindingAssignee = { upn: 'jane@co.com', displayName: 'Jane', userId: 'u-1' };
-    const result = migrateActionAssignee(assignee);
-    expect(result).toBe(assignee); // same reference
-  });
-});
-
-// ============================================================================
-// migrateFindings — action assignee migration
-// ============================================================================
-
-describe('migrateFindings action assignee migration', () => {
-  it('migrates string assignees on actions to FindingAssignee', () => {
-    const findings: Finding[] = [
-      {
-        id: 'f-1',
-        text: 'Test',
-        createdAt: 1000,
-        deletedAt: null,
-        investigationId: 'general-unassigned',
-        context: { activeFilters: {}, cumulativeScope: null },
-        evidenceType: 'data',
-        status: 'improving',
-        comments: [],
-        statusChangedAt: 1000,
-        actions: [
-          {
-            id: 'a-1',
-            text: 'Fix',
-            assignee: 'Bob' as unknown as FindingAssignee,
-            createdAt: 1000,
-            deletedAt: null,
-          },
-        ],
-      },
-    ];
-    const migrated = migrateFindings(findings);
-    expect(migrated[0].actions![0].assignee).toEqual({ upn: 'Bob', displayName: 'Bob' });
-  });
-
-  it('does not alter actions without assignees', () => {
-    const findings: Finding[] = [
-      {
-        id: 'f-1',
-        text: 'Test',
-        createdAt: 1000,
-        deletedAt: null,
-        investigationId: 'general-unassigned',
-        context: { activeFilters: {}, cumulativeScope: null },
-        evidenceType: 'data',
-        status: 'improving',
-        comments: [],
-        statusChangedAt: 1000,
-        actions: [{ id: 'a-1', text: 'Fix', createdAt: 1000, deletedAt: null }],
-      },
-    ];
-    const migrated = migrateFindings(findings);
-    expect(migrated[0].actions![0].assignee).toBeUndefined();
   });
 });
