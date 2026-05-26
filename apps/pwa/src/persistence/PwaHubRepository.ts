@@ -22,15 +22,7 @@
 //     `findings` / `questions` / `causalLinks` / `hypotheses` query the
 //     real (empty) tables. Until F3.5 (evidence) and F5 (investigation
 //     entities) wire writes, these consistently return empty rows.
-//
-// Best-effort legacy DB cleanup:
-//   On first construction, kicks off a fire-and-forget
-//   `Dexie.delete('variscout-pwa').catch(() => {})` to remove the orphaned
-//   pre-F3 IDB database on dev machines. Failures are swallowed — pre-
-//   production, no recovery needed; the new `variscout-pwa-normalized` DB is
-//   already live regardless.
 
-import Dexie from 'dexie';
 import type {
   HubRepository,
   HubReadAPI,
@@ -56,18 +48,7 @@ import type { ActionItem } from '@variscout/core/findings';
 import { db, type HubRow } from '../db/schema';
 import { applyAction } from './applyAction';
 
-const LEGACY_DB_NAME = 'variscout-pwa';
-
 export class PwaHubRepository implements HubRepository {
-  constructor() {
-    // Best-effort cleanup of the pre-F3 IDB database on dev machines. Fire-
-    // and-forget; we do not block construction on its outcome. Failures
-    // (database doesn't exist, browser denies access, etc.) are swallowed.
-    void Dexie.delete(LEGACY_DB_NAME).catch(() => {
-      /* legacy DB cleanup is best-effort; ignore errors */
-    });
-  }
-
   // ---------------------------------------------------------------------------
   // Single write path
   // ---------------------------------------------------------------------------

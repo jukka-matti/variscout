@@ -143,35 +143,6 @@ export function getScopedFindings(findings: Finding[]): Finding[] {
 }
 
 // ============================================================================
-// Hypothesis hub helpers
-// ============================================================================
-
-/**
- * Compute the aggregate evidence contribution for a Hypothesis hub.
- *
- * Sums η² (etaSquared) from each connected question. Falls back to rSquaredAdj
- * when etaSquared is absent. Questions not present in the provided list are
- * silently skipped (e.g. questions from a different investigation scope).
- *
- * @param hub - The Hypothesis hub to compute contribution for
- * @param questions - All questions in scope (e.g. from the investigation store)
- * @returns Aggregate contribution as a decimal (e.g. 0.56 = 56%)
- *
- * @deprecated Use `computeHubEvidence` instead, which uses Best Subsets R²adj
- * for correlated factors and always returns a value ≤ 1.0.
- */
-export function computeHubContribution(hub: Hypothesis, questions: Question[]): number {
-  const hubQuestionIds = new Set(hub.questionIds);
-  let total = 0;
-  for (const q of questions) {
-    if (!hubQuestionIds.has(q.id)) continue;
-    const contribution = q.evidence?.etaSquared ?? q.evidence?.rSquaredAdj ?? 0;
-    total += contribution;
-  }
-  return total;
-}
-
-// ============================================================================
 // Mode-dispatched evidence computation
 // ============================================================================
 

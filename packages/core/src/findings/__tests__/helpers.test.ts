@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  computeHubContribution,
   computeHubEvidence,
   computeHubProjection,
   detectEvidenceClusters,
@@ -73,25 +72,8 @@ function makeSubset(
 }
 
 // ---------------------------------------------------------------------------
-// Tests: contribution + evidence helpers
+// Tests: evidence helpers
 // ---------------------------------------------------------------------------
-
-describe('computeHubContribution', () => {
-  it('sums etaSquared and falls back to rSquaredAdj for linked questions only', () => {
-    const questions = [
-      makeQuestion({ id: 'q1', evidence: { etaSquared: 0.34 } }),
-      makeQuestion({ id: 'q2', evidence: { rSquaredAdj: 0.22 } }),
-      makeQuestion({ id: 'q3', evidence: { etaSquared: 0.5 } }),
-    ];
-    const hub = makeHub({ id: 'h1', questionIds: ['q1', 'q2'] });
-
-    expect(computeHubContribution(hub, questions)).toBeCloseTo(0.56);
-  });
-
-  it('returns zero for a hypothesis with no connected questions', () => {
-    expect(computeHubContribution(makeHub({ id: 'h1', questionIds: [] }), [])).toBe(0);
-  });
-});
 
 describe('migrateCauseRolesToHubs', () => {
   it('creates one proposed hypothesis for each legacy suspected-cause question with a factor', () => {

@@ -313,7 +313,7 @@ export function createFactorFinding(
  * A hypothesis groups one or more questions (and their findings) under a named
  * mechanism, enabling the analyst to synthesize multiple evidence streams into a
  * coherent explanation. The aggregate evidence contribution is computed separately
- * via `computeHubContribution` in helpers.
+ * via `computeHubEvidence` in helpers.
  *
  * @param name - Analyst-chosen label, e.g. "Nozzle wear on night shift"
  * @param synthesis - Free-text explanation connecting the evidence

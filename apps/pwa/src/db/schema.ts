@@ -7,9 +7,9 @@
 //
 // Locked decisions:
 //   1. DB rename, not version chain. The legacy `variscout-pwa` DB is
-//      orphaned in browser storage; `PwaHubRepository` performs a best-effort
-//      `Dexie.delete('variscout-pwa').catch(() => {})` on construction to
-//      clean it up on dev machines.
+//      orphaned in browser storage. Per wedge V1 no-back-compat policy
+//      (no users), the previous best-effort delete-on-construction has been
+//      retired; any stale legacy DB on dev machines is harmless.
 //   2. `version(1)` of the new schema. No `.upgrade()` callback; future schema
 //      work uses normal `version()`/`.upgrade()` chains from this point.
 //   3. canvasState lives in its own table (1:1 with hub). On
