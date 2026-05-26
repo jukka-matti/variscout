@@ -100,7 +100,7 @@ Project membership role. Member is an analyst, SME, frontline contributor, or qu
 
 ### Sponsor
 
-Project membership role. Typically an executive sponsor or Champion of the project. **At V1, Sponsor has Report-only access** to projects they sponsor — they see the Report tab, no other project surfaces. Signoff at gates (Charter approval, Sustainment closure) is handled out-of-band in V1 (Lead presents the report in a meeting or by email; Sponsor approves verbally; Lead records the signoff in the relevant stage's notes). In-app Sponsor signoff workflow defers to V2 if customer demand surfaces.
+Project membership role. Typically an executive sponsor or Champion of the project. **At V1, Sponsor sits in the same ACL tier as Member** — reads everywhere, edits contributions (Findings, evidence on hypotheses, action items, improvement ideas, comments). The Sponsor role is preserved as a label for identity, accountability, and notification routing (drift signals route to Sponsor; Report attribution shows Sponsor; the Sponsor's inbox surfaces sign-off-relevant items) — not for permission gating. Signoff at gates (Charter approval, Sustainment closure, Report sign-off) is handled out-of-band in V1 (Lead presents in a meeting or by email; Sponsor approves verbally / by reply; Lead records the signoff in the relevant stage's notes). No in-product approval gates. In-app Sponsor signoff workflow defers to V2 if customer demand surfaces.
 
 **Vocabulary note:** "Sponsor" is canonical Six Sigma / Lean / CI terminology. "Champion" (GE-school Six Sigma) is equivalent; V1 uses Sponsor for unambiguity.
 
