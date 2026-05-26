@@ -5,7 +5,6 @@ import type {
   HypothesisEvidence,
   HypothesisStatus,
 } from '@variscout/core';
-import { migrateCauseRolesToHubs } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
 // Serialized investigation state (structured JSON for project persistence)
@@ -76,16 +75,18 @@ export function serializeInvestigationState(
 /**
  * Deserialize investigation state from a stored object.
  *
- * Migrations applied on load:
- * 1. If `hypotheses` is absent but questions have `causeRole === 'suspected-cause'`,
- *    those questions are migrated into individual Hypothesis hubs.
- * 2. If a hub has `totalContribution` (legacy numeric field) but no `evidence`,
+ * Field-level normalization applied on load:
+ * 1. If a hub has `totalContribution` (legacy numeric field) but no `evidence`,
  *    a basic `HypothesisEvidence` is synthesised from it.
- * 3. `selectedForImprovement` defaults to `undefined` when absent.
+ * 2. `selectedForImprovement` defaults to `undefined` when absent.
  *
  * Status values are asserted strictly: per RPS V1 spec D15 (no backward
  * compatibility), unknown status values throw rather than being silently
  * translated.
+ *
+ * Per wedge V1 no-back-compat: there is no migration from legacy
+ * `causeRole === 'suspected-cause'` questions to hubs. Investigations without
+ * hubs return an empty hubs array.
  */
 export function deserializeInvestigationState(raw: SerializedInvestigationState): {
   findings: Finding[];
@@ -123,9 +124,8 @@ export function deserializeInvestigationState(raw: SerializedInvestigationState)
     return { findings, questions, hypotheses: migratedHubs };
   }
 
-  // No hubs in stored data — attempt migration from legacy causeRole questions
-  const migratedHubs = migrateCauseRolesToHubs(questions);
-  return { findings, questions, hypotheses: migratedHubs };
+  // No hubs in stored data — return empty hubs array per wedge V1 no-back-compat.
+  return { findings, questions, hypotheses: [] };
 }
 
 // ---------------------------------------------------------------------------

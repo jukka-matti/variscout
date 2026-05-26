@@ -5,8 +5,7 @@
  * computes derived state (questionsMap, ideaImpacts) as useMemo values returned from the hook,
  * and provides DataContext-dependent action callbacks.
  */
-import { useMemo, useCallback, useEffect, useRef } from 'react';
-import { migrateCauseRolesToHubs } from '@variscout/core/findings';
+import { useMemo, useCallback } from 'react';
 import {
   useInvestigationFeatureStore,
   buildQuestionsMap,
@@ -86,32 +85,6 @@ export function useInvestigationOrchestration({
   const hypothesesState = useHypotheses({
     initialHubs: [],
   });
-
-  // One-time migration: if hubs are empty and questions have legacy causeRole markers,
-  // create hubs from those questions. Runs only once per orchestration mount.
-  // Uses resetHubs() so that hook state + store are updated atomically — avoiding
-  // the race where the subsequent onHubsChange sync effect would overwrite the store
-  // with the stale empty array from hook state.
-  const migrationDoneRef = useRef(false);
-  useEffect(() => {
-    if (migrationDoneRef.current) return;
-    if (hypothesesState.hubs.length > 0) {
-      migrationDoneRef.current = true;
-      return;
-    }
-    const questionsWithCauseRole = questionsState.questions.filter(
-      q => q.causeRole === 'suspected-cause'
-    );
-    if (questionsWithCauseRole.length > 0) {
-      const migratedHubs = migrateCauseRolesToHubs(questionsWithCauseRole);
-      if (migratedHubs.length > 0) {
-        hypothesesState.resetHubs(migratedHubs);
-      }
-    }
-    migrationDoneRef.current = true;
-    // Only run once on mount — intentionally omit questionsState.questions from deps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // ── Compute derived data (returned from hook, not synced to store) ────
   const questionsMap = useMemo(

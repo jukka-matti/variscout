@@ -850,7 +850,6 @@ export {
   projectMechanismBranch,
   projectMechanismBranches,
   detectEvidenceClusters,
-  migrateCauseRolesToHubs,
 } from './findings';
 export type { HubProjection, EvidenceCluster } from './findings';
 

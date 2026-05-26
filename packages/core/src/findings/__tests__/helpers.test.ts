@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  computeHubEvidence,
-  computeHubProjection,
-  detectEvidenceClusters,
-  migrateCauseRolesToHubs,
-} from '../helpers';
+import { computeHubEvidence, computeHubProjection, detectEvidenceClusters } from '../helpers';
 import type { Hypothesis, Question } from '../types';
 import type { BestSubsetsResult, BestSubsetResult } from '../../stats/bestSubsets';
 
@@ -74,33 +69,6 @@ function makeSubset(
 // ---------------------------------------------------------------------------
 // Tests: evidence helpers
 // ---------------------------------------------------------------------------
-
-describe('migrateCauseRolesToHubs', () => {
-  it('creates one proposed hypothesis for each legacy suspected-cause question with a factor', () => {
-    const questions = [
-      makeQuestion({
-        id: 'q1',
-        factor: 'Shift',
-        causeRole: 'suspected-cause',
-        linkedFindingIds: ['f1'],
-      }),
-      makeQuestion({ id: 'q2', factor: 'Head', causeRole: 'suspected-cause' }),
-      makeQuestion({ id: 'q3', factor: 'Batch', causeRole: 'ruled-out' }),
-      makeQuestion({ id: 'q4', causeRole: 'suspected-cause' }),
-    ];
-
-    const hubs = migrateCauseRolesToHubs(questions);
-
-    expect(hubs).toHaveLength(2);
-    expect(hubs[0]).toMatchObject({
-      name: 'Shift',
-      questionIds: ['q1'],
-      findingIds: ['f1'],
-      status: 'proposed',
-    });
-    expect(hubs[1]).toMatchObject({ name: 'Head', questionIds: ['q2'], status: 'proposed' });
-  });
-});
 
 describe('computeHubEvidence', () => {
   const bestSubsets = makeBestSubsetsResult(
