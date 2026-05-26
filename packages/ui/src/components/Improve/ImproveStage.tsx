@@ -31,9 +31,10 @@ export function ImproveStage({
 }: ImproveStageProps) {
   // Empty members[] is open-access (mirrors IPDetailPage hasIdentity escape): legacy IPs
   // without wedge membership data fall back to pre-WV1-1 behavior where edits were visible.
+  // Action items are contributions per the 2-tier ACL — Lead + Member + Sponsor can edit.
   const canEdit =
     currentUserId !== undefined &&
-    (members.length === 0 || canAccess(currentUserId, members, 'edit-improve'));
+    (members.length === 0 || canAccess(currentUserId, members, 'edit-contributions'));
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');

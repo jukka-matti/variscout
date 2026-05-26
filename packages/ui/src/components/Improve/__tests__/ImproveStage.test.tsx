@@ -79,7 +79,7 @@ describe('ImproveStage', () => {
     expect(screen.getByText('Mira')).toBeInTheDocument();
   });
 
-  it('renders an Add Action affordance for users with edit-improve', () => {
+  it('renders an Add Action affordance for users with edit-contributions (Lead)', () => {
     render(
       <ImproveStage
         projectId="ip-1"
@@ -94,7 +94,7 @@ describe('ImproveStage', () => {
     expect(screen.getByRole('button', { name: /add action/i })).toBeInTheDocument();
   });
 
-  it('hides Add Action for users without edit-improve (Sponsor)', () => {
+  it('renders Add Action for Sponsor — action items are contributions per 2-tier ACL', () => {
     const mixedMembers: ProjectMember[] = [
       ...leadMembers,
       {
@@ -113,6 +113,21 @@ describe('ImproveStage', () => {
         actions={[]}
         members={mixedMembers}
         currentUserId="sponsor@org"
+        onActionAdd={() => {}}
+        onActionUpdate={() => {}}
+        onActionRemove={() => {}}
+      />
+    );
+    expect(screen.getByRole('button', { name: /add action/i })).toBeInTheDocument();
+  });
+
+  it('hides Add Action for non-members (no canAccess permission at all)', () => {
+    render(
+      <ImproveStage
+        projectId="ip-1"
+        actions={[]}
+        members={leadMembers}
+        currentUserId="stranger@org"
         onActionAdd={() => {}}
         onActionUpdate={() => {}}
         onActionRemove={() => {}}

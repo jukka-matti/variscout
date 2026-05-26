@@ -115,10 +115,12 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   // If currentUserId is absent OR members[] is empty/absent → backward-compatible open access.
   const hasIdentity = currentUserId !== undefined && members.length > 0;
   const isExplicitlyExcluded = hasIdentity && !canAccess(currentUserId, members, 'view-report');
+  // Sponsor detection is role-based per the 2-tier ACL: Member + Sponsor share
+  // ('edit-contributions' + 'view-report'), so canAccess() cannot distinguish them.
+  // The Sponsor-specific "Report-only" surface (header + placeholder, stage tabs
+  // hidden) keys off the explicit role label.
   const isSponsor =
-    hasIdentity &&
-    canAccess(currentUserId, members, 'view-report') &&
-    !canAccess(currentUserId, members, 'edit-charter');
+    hasIdentity && members.find(m => m.userId === currentUserId)?.role === 'sponsor';
 
   const handleInviteClick = () => {
     onInviteClick?.();

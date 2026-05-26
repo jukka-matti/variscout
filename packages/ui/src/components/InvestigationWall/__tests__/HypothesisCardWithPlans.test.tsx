@@ -216,7 +216,7 @@ describe('HypothesisCardWithPlans — + Add Plan button', () => {
     expect(screen.getByRole('button', { name: /add plan/i })).toBeInTheDocument();
   });
 
-  it('hides + Add Plan button when sponsor (canEdit false)', () => {
+  it('shows + Add Plan button for Sponsor — plans are contributions per 2-tier ACL', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         hub={hub}
@@ -232,7 +232,7 @@ describe('HypothesisCardWithPlans — + Add Plan button', () => {
         onEditPlan={vi.fn()}
       />
     );
-    expect(screen.queryByRole('button', { name: /add plan/i })).toBeNull();
+    expect(screen.getByRole('button', { name: /add plan/i })).toBeInTheDocument();
   });
 
   it('shows + Add Plan button with empty members (open-access escape)', () => {
@@ -436,7 +436,7 @@ describe('HypothesisCardWithPlans — LinkFindingPicker', () => {
     expect(onLinkFinding).toHaveBeenCalledWith('mp1', 'f1');
   });
 
-  it('no Link Finding button on chips when canEdit is false (sponsor)', () => {
+  it('shows Link Finding button on chips for Sponsor — link is a contribution per 2-tier ACL', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         hub={hub}
@@ -452,7 +452,7 @@ describe('HypothesisCardWithPlans — LinkFindingPicker', () => {
         onEditPlan={vi.fn()}
       />
     );
-    expect(screen.queryByRole('button', { name: /link finding/i })).toBeNull();
+    expect(screen.getByRole('button', { name: /link finding/i })).toBeInTheDocument();
   });
 });
 

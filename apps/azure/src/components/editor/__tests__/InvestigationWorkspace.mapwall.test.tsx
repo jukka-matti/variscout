@@ -381,7 +381,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
     });
   });
 
-  describe('canAccess photo gate (wedge spec §3.1 — Sponsor is read-only)', () => {
+  describe('canAccess photo gate (2-tier ACL — photos are contributions)', () => {
     const makeMember = (userId: string, role: 'lead' | 'member' | 'sponsor') => ({
       id: `pm-${userId}`,
       createdAt: 1,
@@ -412,7 +412,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
       expect(capturedFindingsLogProps.current?.onAddPhoto).toBeDefined();
     });
 
-    it('Sponsor member receives onAddPhoto=undefined even when handleAddPhoto is provided', () => {
+    it('Sponsor member receives onAddPhoto — photos are contributions per 2-tier ACL', () => {
       const handleAddPhoto = vi.fn();
       const props = makeMinimalProps();
       render(
@@ -421,6 +421,20 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
           handleAddPhoto={handleAddPhoto}
           userId="sponsor@org"
           members={[makeMember('sponsor@org', 'sponsor')]}
+        />
+      );
+      expect(capturedFindingsLogProps.current?.onAddPhoto).toBeDefined();
+    });
+
+    it('Non-member receives onAddPhoto=undefined (no canAccess permission)', () => {
+      const handleAddPhoto = vi.fn();
+      const props = makeMinimalProps();
+      render(
+        <InvestigationWorkspace
+          {...props}
+          handleAddPhoto={handleAddPhoto}
+          userId="stranger@org"
+          members={[makeMember('lead@org', 'lead')]}
         />
       );
       expect(capturedFindingsLogProps.current?.onAddPhoto).toBeUndefined();
