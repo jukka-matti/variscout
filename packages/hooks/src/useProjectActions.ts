@@ -13,7 +13,7 @@
 import { useCallback } from 'react';
 import { useProjectStore, useInvestigationStore } from '@variscout/stores';
 import { filterStackToFilters } from '@variscout/core/navigation';
-import type { AnalysisState, PersistenceAdapter, SavedProject, ViewState } from './types';
+import type { AnalysisState, PersistenceAdapter, SavedProject } from './types';
 import type { SerializedProject } from '@variscout/stores';
 
 // ============================================================================
@@ -36,22 +36,8 @@ export interface ProjectActionsResult {
 // ============================================================================
 
 /**
- * Migrate isMindmapOpen → isFindingsOpen for old .vrs files.
- */
-function migrateViewState(viewState: ViewState | undefined | null): ViewState | null {
-  if (!viewState) return null;
-  const vs = { ...viewState };
-  if ('isMindmapOpen' in vs) {
-    vs.isFindingsOpen =
-      vs.isFindingsOpen ?? ((vs as Record<string, unknown>).isMindmapOpen as boolean | undefined);
-    delete (vs as Record<string, unknown>).isMindmapOpen;
-  }
-  return vs;
-}
-
-/**
  * Build a SerializedProject from AnalysisState for store.loadProject().
- * Pre-processes filter stack and view state migrations.
+ * Pre-processes filter stack.
  */
 function buildSerializedProject(
   projectId: string | null,
@@ -68,8 +54,7 @@ function buildSerializedProject(
     filterStack = [];
   }
 
-  // Pre-process: viewState migration
-  const viewState = migrateViewState(state.viewState);
+  const viewState = state.viewState ?? null;
 
   return {
     projectId: projectId ?? '',
