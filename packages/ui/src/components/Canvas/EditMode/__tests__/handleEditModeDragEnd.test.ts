@@ -4,6 +4,7 @@ import { handleEditModeDragEnd } from '../handleEditModeDragEnd';
 import { encodeColumnDragId } from '../Palette/encodeColumnDragId';
 import { encodeOutcomeDropId } from '../OutcomeZone/encodeOutcomeDropId';
 import { encodeFactorDropId } from '../FactorZone/encodeFactorDropId';
+import { encodeProcessDropId } from '../ProcessZone/encodeProcessDropId';
 
 /**
  * Builds a minimal DragEndEvent shape sufficient for the router.
@@ -26,6 +27,7 @@ describe('handleEditModeDragEnd', () => {
       const onFactorControlAdd = vi.fn();
       handleEditModeDragEnd(dragEndEvent(encodeColumnDragId('Diameter'), encodeOutcomeDropId()), {
         numericValuesByColumn: { Diameter: [10, 10, 10, 11, 11, 12] },
+        categoricalDistinctValuesByColumn: {},
         onOutcomeSpecAdd,
         onFactorControlAdd,
       });
@@ -43,6 +45,7 @@ describe('handleEditModeDragEnd', () => {
         dragEndEvent(encodeColumnDragId('Temperature'), encodeFactorDropId('global')),
         {
           numericValuesByColumn: {},
+          categoricalDistinctValuesByColumn: {},
           onOutcomeSpecAdd,
           onFactorControlAdd,
         }
@@ -59,6 +62,7 @@ describe('handleEditModeDragEnd', () => {
         dragEndEvent(encodeColumnDragId('Pressure'), encodeFactorDropId({ stepId: 's-1' })),
         {
           numericValuesByColumn: {},
+          categoricalDistinctValuesByColumn: {},
           onOutcomeSpecAdd,
           onFactorControlAdd,
         }
@@ -75,6 +79,7 @@ describe('handleEditModeDragEnd', () => {
       const onFactorControlAdd = vi.fn();
       handleEditModeDragEnd(dragEndEvent(encodeColumnDragId('A'), 'step:s-1'), {
         numericValuesByColumn: {},
+        categoricalDistinctValuesByColumn: {},
         onOutcomeSpecAdd,
         onFactorControlAdd,
       });
@@ -87,6 +92,7 @@ describe('handleEditModeDragEnd', () => {
       const onFactorControlAdd = vi.fn();
       handleEditModeDragEnd(dragEndEvent('chip:c-1', encodeOutcomeDropId()), {
         numericValuesByColumn: {},
+        categoricalDistinctValuesByColumn: {},
         onOutcomeSpecAdd,
         onFactorControlAdd,
       });
@@ -99,11 +105,28 @@ describe('handleEditModeDragEnd', () => {
       const onFactorControlAdd = vi.fn();
       handleEditModeDragEnd(dragEndEvent(encodeColumnDragId('A'), undefined), {
         numericValuesByColumn: {},
+        categoricalDistinctValuesByColumn: {},
         onOutcomeSpecAdd,
         onFactorControlAdd,
       });
       expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
       expect(onFactorControlAdd).not.toHaveBeenCalled();
+    });
+
+    it('does not call onOutcomeSpecAdd when a numeric column drops on process-zone:singleton (absent from categoricalDistinctValuesByColumn — falls through but no outcome match either)', () => {
+      // Covers the critical ordering nuance: numeric column → process-zone:singleton
+      // is absent from categoricalDistinctValuesByColumn, so the process route returns
+      // false; it also won't match outcome-zone, so both callbacks remain silent.
+      const onOutcomeSpecAdd = vi.fn();
+      const onStepsReplace = vi.fn();
+      handleEditModeDragEnd(dragEndEvent(encodeColumnDragId('Diameter'), encodeProcessDropId()), {
+        numericValuesByColumn: { Diameter: [10, 11, 12] },
+        categoricalDistinctValuesByColumn: {}, // 'Diameter' absent — numeric column
+        onOutcomeSpecAdd,
+        onStepsReplace,
+      });
+      expect(onStepsReplace).not.toHaveBeenCalled();
+      expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
     });
   });
 
@@ -113,6 +136,7 @@ describe('handleEditModeDragEnd', () => {
       expect(() =>
         handleEditModeDragEnd(dragEndEvent(encodeColumnDragId('A'), encodeOutcomeDropId()), {
           numericValuesByColumn: {},
+          categoricalDistinctValuesByColumn: {},
           onFactorControlAdd,
         })
       ).not.toThrow();
@@ -124,10 +148,33 @@ describe('handleEditModeDragEnd', () => {
       expect(() =>
         handleEditModeDragEnd(dragEndEvent(encodeColumnDragId('A'), encodeFactorDropId('global')), {
           numericValuesByColumn: {},
+          categoricalDistinctValuesByColumn: {},
           onOutcomeSpecAdd,
         })
       ).not.toThrow();
       expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('process routing (short-circuits before outcome)', () => {
+    it('fires onStepsReplace and NOT onOutcomeSpecAdd when a categorical column drops on process-zone:singleton', () => {
+      const onStepsReplace = vi.fn();
+      const onOutcomeSpecAdd = vi.fn();
+      const onFactorControlAdd = vi.fn();
+      handleEditModeDragEnd(dragEndEvent(encodeColumnDragId('Stage'), encodeProcessDropId()), {
+        numericValuesByColumn: {},
+        categoricalDistinctValuesByColumn: { Stage: ['Prep', 'Run', 'Cool'] },
+        onStepsReplace,
+        onOutcomeSpecAdd,
+        onFactorControlAdd,
+      });
+      expect(onStepsReplace).toHaveBeenCalledTimes(1);
+      const [steps, colName] = onStepsReplace.mock.calls[0];
+      expect(colName).toBe('Stage');
+      expect(steps).toHaveLength(3);
+      // Process route consumed the drop; outcome + factor must NOT fire
+      expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
+      expect(onFactorControlAdd).not.toHaveBeenCalled();
     });
   });
 });
