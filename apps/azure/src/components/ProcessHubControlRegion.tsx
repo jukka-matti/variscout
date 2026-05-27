@@ -9,7 +9,7 @@ import {
 } from '@variscout/core';
 import { formatSustainmentVerdict, formatSustainmentDue } from './ProcessHubFormat';
 
-export interface ProcessHubSustainmentRegionProps {
+export interface ProcessHubControlRegionProps {
   cadence: ProcessHubCadenceSummary<ProcessHubAnalyze>;
   rollup: ProcessHubRollup<ProcessHubAnalyze>;
   onOpenInvestigation: (id: string) => void;
@@ -72,7 +72,7 @@ const BucketSection: React.FC<BucketSectionProps> = ({
   </div>
 );
 
-const ProcessHubControlRegion: React.FC<ProcessHubSustainmentRegionProps> = ({
+const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
   cadence: _cadence,
   rollup,
   onOpenInvestigation,

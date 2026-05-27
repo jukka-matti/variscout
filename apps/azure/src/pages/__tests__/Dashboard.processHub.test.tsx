@@ -10,7 +10,7 @@ const mockListProcessHubs = vi.fn();
 const mockSaveProcessHub = vi.fn();
 const mockListEvidenceSources = vi.fn<(hubId: string) => Promise<EvidenceSource[]>>();
 const mockListEvidenceSnapshots = vi.fn(() => Promise.resolve([]));
-const mockListSustainmentRecords = vi.fn();
+const mockListControlRecords = vi.fn();
 const mockListControlHandoffs = vi.fn();
 
 vi.mock('../../services/storage', () => ({
@@ -22,7 +22,7 @@ vi.mock('../../services/storage', () => ({
     saveEvidenceSource: vi.fn(),
     listEvidenceSnapshots: mockListEvidenceSnapshots,
     saveEvidenceSnapshot: vi.fn(),
-    listSustainmentRecords: mockListSustainmentRecords,
+    listControlRecords: mockListControlRecords,
     listControlHandoffs: mockListControlHandoffs,
     syncStatus: { status: 'synced', message: 'Synced' },
   }),
@@ -31,7 +31,7 @@ vi.mock('../../services/storage', () => ({
 beforeEach(() => {
   mockListEvidenceSources.mockResolvedValue([]);
   mockListEvidenceSnapshots.mockResolvedValue([]);
-  mockListSustainmentRecords.mockResolvedValue([]);
+  mockListControlRecords.mockResolvedValue([]);
   mockListControlHandoffs.mockResolvedValue([]);
 });
 
@@ -291,7 +291,7 @@ describe('Dashboard Process Hub home', () => {
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
-    mockListSustainmentRecords.mockResolvedValue([
+    mockListControlRecords.mockResolvedValue([
       {
         id: 'rec-1',
         investigationId: 'line-4-c',

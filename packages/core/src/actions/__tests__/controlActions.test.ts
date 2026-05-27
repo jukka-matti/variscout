@@ -83,7 +83,7 @@ describe('ControlAction', () => {
           operationalOwner: { displayName: 'Owner' },
           handoffDate: 1,
           description: 'Control transfer',
-          retainSustainmentReview: true,
+          retainControlReview: true,
           recordedBy: { displayName: 'Analyst' },
           createdAt: 1,
           deletedAt: null,

@@ -11,7 +11,7 @@ export interface ControlEntryRowProps {
 }
 
 export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ investigationId, hubId }) => {
-  const { listSustainmentRecords } = useStorage();
+  const { listControlRecords } = useStorage();
   const [isEditing, setIsEditing] = useState(false);
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const [existingRecord, setExistingRecord] = useState<ControlRecord | null>(null);
@@ -33,7 +33,7 @@ export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ investigationI
       setExistingRecord(null);
       return;
     }
-    listSustainmentRecords(hubId).then(records => {
+    listControlRecords(hubId).then(records => {
       if (cancelled) return;
       const live = records.find(r => r.investigationId === investigationId && r.deletedAt === null);
       setExistingRecord(live ?? null);
@@ -41,7 +41,7 @@ export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ investigationI
     return () => {
       cancelled = true;
     };
-  }, [investigationId, hubId, listSustainmentRecords, confirmation]);
+  }, [investigationId, hubId, listControlRecords, confirmation]);
 
   if (!investigationId) {
     return (

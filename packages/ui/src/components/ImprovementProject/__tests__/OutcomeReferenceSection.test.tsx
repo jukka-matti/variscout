@@ -5,7 +5,7 @@ import type { ControlHandoff, ControlRecord } from '@variscout/core';
 import { ImprovementProjectForm } from '../ImprovementProjectForm';
 import { OutcomeReferenceSection } from '../sections/OutcomeReferenceSection';
 
-const makeSustainmentRecord = (
+const makeControlRecord = (
   overrides: Partial<ControlRecord & { title?: string }> & Pick<ControlRecord, 'id' | 'cadence'>
 ): ControlRecord & { title?: string } =>
   ({
@@ -28,7 +28,7 @@ const makeHandoff = (
     operationalOwner: { displayName: 'Process Owner' },
     handoffDate: Date.UTC(2026, 5, 15),
     description: 'Control transferred to operating system.',
-    retainSustainmentReview: true,
+    retainControlReview: true,
     recordedBy: { displayName: 'Improvement Lead' },
     ...overrides,
   }) as ControlHandoff;
@@ -47,7 +47,7 @@ describe('OutcomeReferenceSection', () => {
 
     render(
       <OutcomeReferenceSection
-        controlRecord={makeSustainmentRecord({
+        controlRecord={makeControlRecord({
           id: 'sr-1',
           title: 'Mix temperature sustainment',
           cadence: 'monthly',
@@ -103,7 +103,7 @@ describe('OutcomeReferenceSection', () => {
   it('does not render focusable no-op buttons when onNavigate is omitted', () => {
     render(
       <OutcomeReferenceSection
-        controlRecord={makeSustainmentRecord({
+        controlRecord={makeControlRecord({
           id: 'sr-1',
           title: 'Mix temperature sustainment',
           cadence: 'weekly',
@@ -125,7 +125,7 @@ describe('OutcomeReferenceSection', () => {
   it('does not render editable form fields', () => {
     const { container } = render(
       <OutcomeReferenceSection
-        controlRecord={makeSustainmentRecord({
+        controlRecord={makeControlRecord({
           id: 'sr-1',
           title: 'Mix temperature sustainment',
           cadence: 'weekly',
@@ -151,7 +151,7 @@ describe('ImprovementProjectForm outcome reference integration', () => {
     render(
       <ImprovementProjectForm
         outcomeReferenceProps={{
-          controlRecord: makeSustainmentRecord({
+          controlRecord: makeControlRecord({
             id: 'sr-1',
             title: 'Mix temperature sustainment',
             cadence: 'monthly',
@@ -172,7 +172,7 @@ describe('ImprovementProjectForm outcome reference integration', () => {
     render(
       <ImprovementProjectForm
         outcomeReferenceProps={{
-          controlRecord: makeSustainmentRecord({
+          controlRecord: makeControlRecord({
             id: 'sr-1',
             title: 'Mix temperature sustainment',
             cadence: 'monthly',

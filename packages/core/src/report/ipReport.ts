@@ -99,7 +99,7 @@ function linkedFindingIds(ip: ImprovementProject, hypotheses: readonly Hypothesi
   return ids;
 }
 
-function selectSustainmentRecord(
+function selectControlRecord(
   ip: ImprovementProject,
   records: readonly ControlRecord[] | undefined
 ): ControlRecord | undefined {
@@ -137,7 +137,7 @@ export function selectIPReportScope(input: IPReportScopeInput): IPReportScope {
     if (finding.questionId) questionIds.add(finding.questionId);
   }
   const questions = input.questions.filter(question => questionIds.has(question.id));
-  const controlRecord = selectSustainmentRecord(input.ip, input.controlRecords);
+  const controlRecord = selectControlRecord(input.ip, input.controlRecords);
   const controlHandoff = selectControlHandoff(input.ip, input.controlHandoffs, controlRecord);
 
   return { hypotheses, findings, questions, controlRecord, controlHandoff };
@@ -337,7 +337,7 @@ export function deriveHubPortfolioReport(input: {
   const records = (input.hub.controlRecords ?? []).filter(record => record.deletedAt === null);
   const rows = projects
     .map(project => {
-      const record = selectSustainmentRecord(project, records);
+      const record = selectControlRecord(project, records);
       return {
         id: project.id,
         title: project.metadata.title,

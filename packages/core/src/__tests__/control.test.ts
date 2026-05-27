@@ -6,7 +6,7 @@ import {
   isSustainmentOverdue,
   nextDueFromCadence,
   selectSustainmentBuckets,
-  selectSustainmentReviews,
+  selectControlReviews,
   type ControlHandoff,
   type ControlHandoffSurface,
   type ControlHandoffStatus,
@@ -72,7 +72,7 @@ describe('ControlHandoff V1 lifecycle shape', () => {
       operationalOwner: { displayName: 'Process owner' },
       handoffDate: 1_746_352_800_000,
       description: 'Control transferred to operations.',
-      retainSustainmentReview: true,
+      retainControlReview: true,
       recordedBy: { displayName: 'Analyst' },
       acknowledgedAt: 1_746_352_900_000,
       ownerAcknowledgement: {
@@ -391,14 +391,14 @@ function makeHandoff(
     operationalOwner: { userId: 'u-1', displayName: 'Op' },
     handoffDate: 1745625600000, // 2026-04-26T00:00:00.000Z
     description: '',
-    retainSustainmentReview: retain,
+    retainControlReview: retain,
     createdAt: 1745625600000, // 2026-04-26T00:00:00.000Z (formerly recordedAt)
     recordedBy: { userId: 'u-1', displayName: 'Op' },
     deletedAt: null,
   };
 }
 
-describe('selectSustainmentReviews', () => {
+describe('selectControlReviews', () => {
   it('returns only investigations with a due record', () => {
     const due = {
       ...makeRecord('2026-04-25T00:00:00.000Z'),
@@ -424,7 +424,7 @@ describe('selectSustainmentReviews', () => {
       makeInvestigation('inv-3', 'investigating'),
     ];
 
-    const result = selectSustainmentReviews(
+    const result = selectControlReviews(
       investigations,
       [due, future],
       [],
@@ -434,7 +434,7 @@ describe('selectSustainmentReviews', () => {
     expect(result.map(r => r.investigation.id)).toEqual(['inv-1']);
   });
 
-  it('excludes controlled investigations whose ControlHandoff.retainSustainmentReview is false', () => {
+  it('excludes controlled investigations whose ControlHandoff.retainControlReview is false', () => {
     const due = {
       ...makeRecord('2026-04-25T00:00:00.000Z'),
       id: 'rec-1',
@@ -449,7 +449,7 @@ describe('selectSustainmentReviews', () => {
     ];
     const handoffs: ControlHandoff[] = [makeHandoff('inv-1', false)];
 
-    const result = selectSustainmentReviews(
+    const result = selectControlReviews(
       investigations,
       [due],
       handoffs,
@@ -474,7 +474,7 @@ describe('selectSustainmentReviews', () => {
     ];
     const handoffs: ControlHandoff[] = [makeHandoff('inv-1', true)];
 
-    const result = selectSustainmentReviews(
+    const result = selectControlReviews(
       investigations,
       [due],
       handoffs,
@@ -499,7 +499,7 @@ describe('selectSustainmentReviews', () => {
       }),
     ];
 
-    const result = selectSustainmentReviews(
+    const result = selectControlReviews(
       investigations,
       [softDeleted],
       [],

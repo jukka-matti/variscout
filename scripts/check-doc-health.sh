@@ -131,7 +131,7 @@ PATHS_TO_CHECK=(
   "apps/azure/src/lib/appInsights.ts"
   "packages/core/src/glossary/"
   "docs/05-technical/architecture/knowledge-model.md"
-  "docs/03-features/workflows/investigation-to-action.md"
+  "docs/03-features/workflows/analyze-to-action.md"
   "docs/01-vision/eda-mental-model.md"
   "docs/06-design-system/patterns/navigation.md"
   "apps/azure/src/hooks/useEditorDataFlow.ts"

@@ -97,7 +97,7 @@ function makeCursor(
   };
 }
 
-function makeSustainmentRecord(
+function makeControlRecord(
   id: string,
   hubId = 'hub-azure-1',
   overrides: Partial<ControlRecord> = {}
@@ -119,7 +119,7 @@ function makeSustainmentRecord(
   };
 }
 
-function makeSustainmentReview(
+function makeControlReview(
   id: string,
   recordId: string,
   hubId = 'hub-azure-1',
@@ -190,12 +190,12 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
     it('hydrates live sustainment records and reviews from dedicated tables', async () => {
       await db.processHubs.put(makeHub({ id: 'hub-azure-1' }));
       await db.controlRecords.bulkPut([
-        makeSustainmentRecord('sr-live'),
-        makeSustainmentRecord('sr-dead', 'hub-azure-1', { deletedAt: NOW }),
+        makeControlRecord('sr-live'),
+        makeControlRecord('sr-dead', 'hub-azure-1', { deletedAt: NOW }),
       ]);
       await db.controlReviews.bulkPut([
-        makeSustainmentReview('rev-live', 'sr-live'),
-        makeSustainmentReview('rev-dead', 'sr-live', 'hub-azure-1', { deletedAt: NOW }),
+        makeControlReview('rev-live', 'sr-live'),
+        makeControlReview('rev-dead', 'sr-live', 'hub-azure-1', { deletedAt: NOW }),
       ]);
 
       const result = await repo.hubs.get('hub-azure-1');
@@ -239,12 +239,12 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
         makeHub({ id: 'hub-2', name: 'Hub Two' }),
       ]);
       await db.controlRecords.bulkPut([
-        makeSustainmentRecord('sr-1', 'hub-1'),
-        makeSustainmentRecord('sr-2', 'hub-2'),
+        makeControlRecord('sr-1', 'hub-1'),
+        makeControlRecord('sr-2', 'hub-2'),
       ]);
       await db.controlReviews.bulkPut([
-        makeSustainmentReview('rev-1', 'sr-1', 'hub-1'),
-        makeSustainmentReview('rev-2', 'sr-2', 'hub-2'),
+        makeControlReview('rev-1', 'sr-1', 'hub-1'),
+        makeControlReview('rev-2', 'sr-2', 'hub-2'),
       ]);
 
       const result = await repo.hubs.list();
@@ -262,9 +262,9 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
   describe('sustainment read APIs', () => {
     it('controlRecords list/get return only live records for the requested hub', async () => {
       await db.controlRecords.bulkPut([
-        makeSustainmentRecord('sr-live', 'hub-azure-1'),
-        makeSustainmentRecord('sr-dead', 'hub-azure-1', { deletedAt: NOW }),
-        makeSustainmentRecord('sr-other', 'hub-other'),
+        makeControlRecord('sr-live', 'hub-azure-1'),
+        makeControlRecord('sr-dead', 'hub-azure-1', { deletedAt: NOW }),
+        makeControlRecord('sr-other', 'hub-other'),
       ]);
 
       const rows = await repo.controlRecords.listByHub('hub-azure-1');
@@ -276,11 +276,11 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
 
     it('controlReviews list/get return only live reviews for the requested record and hub', async () => {
       await db.controlReviews.bulkPut([
-        makeSustainmentReview('rev-live', 'sr-live', 'hub-azure-1', { reviewedAt: NOW + 1 }),
-        makeSustainmentReview('rev-old', 'sr-live', 'hub-azure-1', { reviewedAt: NOW - 1 }),
-        makeSustainmentReview('rev-dead', 'sr-live', 'hub-azure-1', { deletedAt: NOW }),
-        makeSustainmentReview('rev-other-record', 'sr-other', 'hub-azure-1'),
-        makeSustainmentReview('rev-other-hub', 'sr-live', 'hub-other'),
+        makeControlReview('rev-live', 'sr-live', 'hub-azure-1', { reviewedAt: NOW + 1 }),
+        makeControlReview('rev-old', 'sr-live', 'hub-azure-1', { reviewedAt: NOW - 1 }),
+        makeControlReview('rev-dead', 'sr-live', 'hub-azure-1', { deletedAt: NOW }),
+        makeControlReview('rev-other-record', 'sr-other', 'hub-azure-1'),
+        makeControlReview('rev-other-hub', 'sr-live', 'hub-other'),
       ]);
 
       const rows = await repo.controlReviews.listByRecord('hub-azure-1', 'sr-live');

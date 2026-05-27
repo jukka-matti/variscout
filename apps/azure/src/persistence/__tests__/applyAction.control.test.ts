@@ -180,7 +180,7 @@ function makeHandoff(
     operationalOwner: { displayName: 'Process owner' },
     handoffDate: NOW,
     description: 'Control handoff',
-    retainSustainmentReview: true,
+    retainControlReview: true,
     recordedBy: { displayName: 'Analyst' },
     createdAt: NOW,
     deletedAt: null,

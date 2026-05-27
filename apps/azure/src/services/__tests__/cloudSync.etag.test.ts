@@ -38,10 +38,10 @@ vi.mock('../blobClient', () => ({
   listBlobEvidenceSnapshots: mockListBlobEvidenceSnapshots,
   saveBlobEvidenceSnapshot: mockSaveBlobEvidenceSnapshot,
   updateBlobEvidenceSnapshotsConditional: mockUpdateBlobEvidenceSnapshotsConditional,
-  saveBlobSustainmentRecord: vi.fn().mockResolvedValue(undefined),
-  listBlobSustainmentRecords: vi.fn().mockResolvedValue([]),
+  saveBlobControlRecord: vi.fn().mockResolvedValue(undefined),
+  listBlobControlRecords: vi.fn().mockResolvedValue([]),
   updateBlobSustainmentCatalog: vi.fn().mockResolvedValue(undefined),
-  saveBlobSustainmentReview: vi.fn().mockResolvedValue(undefined),
+  saveBlobControlReview: vi.fn().mockResolvedValue(undefined),
   saveBlobControlHandoff: vi.fn().mockResolvedValue(undefined),
 }));
 

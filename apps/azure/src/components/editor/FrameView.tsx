@@ -34,7 +34,7 @@ import { useAnalyzeFeatureStore } from '../../features/analyze/analyzeStore';
 
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
-const EMPTY_SUSTAINMENT_RECORDS: ControlRecord[] = [];
+const EMPTY_CONTROL_RECORDS: ControlRecord[] = [];
 const EMPTY_CONTROL_HANDOFFS: ControlHandoff[] = [];
 
 function mergeActionItems(
@@ -84,8 +84,8 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
   const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
-  const [controlRecords, setSustainmentRecords] =
-    React.useState<ControlRecord[]>(EMPTY_SUSTAINMENT_RECORDS);
+  const [controlRecords, setControlRecords] =
+    React.useState<ControlRecord[]>(EMPTY_CONTROL_RECORDS);
   const [controlHandoffs, setControlHandoffs] =
     React.useState<ControlHandoff[]>(EMPTY_CONTROL_HANDOFFS);
   const activeHubIdRef = React.useRef<string | null>(activeHubId);
@@ -117,7 +117,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
 
   React.useEffect(() => {
     setActionItems(EMPTY_ACTION_ITEMS);
-    setSustainmentRecords(EMPTY_SUSTAINMENT_RECORDS);
+    setControlRecords(EMPTY_CONTROL_RECORDS);
     setControlHandoffs(EMPTY_CONTROL_HANDOFFS);
 
     if (!activeHubId) {
@@ -134,9 +134,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
         ]);
         if (!cancelled) {
           setActionItems(items);
-          setSustainmentRecords(
-            records.filter((record: ControlRecord) => record.deletedAt === null)
-          );
+          setControlRecords(records.filter((record: ControlRecord) => record.deletedAt === null));
           setControlHandoffs(handoffs.filter(handoff => handoff.deletedAt === null));
         }
       } catch {
@@ -153,7 +151,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
     const improvementProjects = (activeHubId ? (projectsByHub[activeHubId] ?? []) : []).filter(
       project => project.deletedAt === null
     );
-    const liveSustainmentRecords = controlRecords.filter(record => record.deletedAt === null);
+    const liveControlRecords = controlRecords.filter(record => record.deletedAt === null);
 
     return [
       {
@@ -177,7 +175,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
         // Wedge V1 (ADR-082) folds Handoff into Control-closure; control handoffs surface here too.
         surfaceType: 'sustainment',
         items: [
-          ...liveSustainmentRecords.map(record => ({
+          ...liveControlRecords.map(record => ({
             id: record.id,
             label: record.title,
             description: record.status,

@@ -106,7 +106,7 @@ function makeCursor(id: string, hubId: string, sourceId: string): EvidenceSource
   };
 }
 
-function makeSustainmentRecord(
+function makeControlRecord(
   id: string,
   hubId: string,
   overrides: Partial<ControlRecord> = {}
@@ -128,7 +128,7 @@ function makeSustainmentRecord(
   };
 }
 
-function makeSustainmentReview(
+function makeControlReview(
   id: string,
   recordId: string,
   hubId: string,
@@ -360,9 +360,9 @@ describe('PwaHubRepository.sustainment read APIs', () => {
   it('controlRecords list/get return only live records for the requested hub', async () => {
     const repo = new PwaHubRepository();
     await db.controlRecords.bulkPut([
-      makeSustainmentRecord('sr-live', 'hub-s'),
-      makeSustainmentRecord('sr-dead', 'hub-s', { deletedAt: NOW }),
-      makeSustainmentRecord('sr-other', 'hub-other'),
+      makeControlRecord('sr-live', 'hub-s'),
+      makeControlRecord('sr-dead', 'hub-s', { deletedAt: NOW }),
+      makeControlRecord('sr-other', 'hub-other'),
     ]);
 
     const rows = await repo.controlRecords.listByHub('hub-s');
@@ -375,11 +375,11 @@ describe('PwaHubRepository.sustainment read APIs', () => {
   it('controlReviews list/get return only live reviews for the requested record and hub', async () => {
     const repo = new PwaHubRepository();
     await db.controlReviews.bulkPut([
-      makeSustainmentReview('rev-live', 'sr-live', 'hub-s', { reviewedAt: NOW + 1 }),
-      makeSustainmentReview('rev-old', 'sr-live', 'hub-s', { reviewedAt: NOW - 1 }),
-      makeSustainmentReview('rev-dead', 'sr-live', 'hub-s', { deletedAt: NOW }),
-      makeSustainmentReview('rev-other-record', 'sr-other', 'hub-s'),
-      makeSustainmentReview('rev-other-hub', 'sr-live', 'hub-other'),
+      makeControlReview('rev-live', 'sr-live', 'hub-s', { reviewedAt: NOW + 1 }),
+      makeControlReview('rev-old', 'sr-live', 'hub-s', { reviewedAt: NOW - 1 }),
+      makeControlReview('rev-dead', 'sr-live', 'hub-s', { deletedAt: NOW }),
+      makeControlReview('rev-other-record', 'sr-other', 'hub-s'),
+      makeControlReview('rev-other-hub', 'sr-live', 'hub-other'),
     ]);
 
     const rows = await repo.controlReviews.listByRecord('hub-s', 'sr-live');
@@ -393,12 +393,12 @@ describe('PwaHubRepository.sustainment read APIs', () => {
     const repo = new PwaHubRepository();
     await db.hubs.put(makeHub('hub-s'));
     await db.controlRecords.bulkPut([
-      makeSustainmentRecord('sr-live', 'hub-s'),
-      makeSustainmentRecord('sr-dead', 'hub-s', { deletedAt: NOW }),
+      makeControlRecord('sr-live', 'hub-s'),
+      makeControlRecord('sr-dead', 'hub-s', { deletedAt: NOW }),
     ]);
     await db.controlReviews.bulkPut([
-      makeSustainmentReview('rev-live', 'sr-live', 'hub-s'),
-      makeSustainmentReview('rev-dead', 'sr-live', 'hub-s', { deletedAt: NOW }),
+      makeControlReview('rev-live', 'sr-live', 'hub-s'),
+      makeControlReview('rev-dead', 'sr-live', 'hub-s', { deletedAt: NOW }),
     ]);
 
     const hub = await repo.hubs.get('hub-s');

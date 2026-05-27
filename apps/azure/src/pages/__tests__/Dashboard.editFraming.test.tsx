@@ -19,7 +19,7 @@ const mockListProcessHubs = vi.fn();
 const mockSaveProcessHub = vi.fn();
 const mockListEvidenceSources = vi.fn(() => Promise.resolve([]));
 const mockListEvidenceSnapshots = vi.fn(() => Promise.resolve([]));
-const mockListSustainmentRecords = vi.fn(() => Promise.resolve([]));
+const mockListControlRecords = vi.fn(() => Promise.resolve([]));
 const mockListControlHandoffs = vi.fn(() => Promise.resolve([]));
 
 vi.mock('../../services/storage', () => ({
@@ -31,7 +31,7 @@ vi.mock('../../services/storage', () => ({
     saveEvidenceSource: vi.fn(),
     listEvidenceSnapshots: mockListEvidenceSnapshots,
     saveEvidenceSnapshot: vi.fn(),
-    listSustainmentRecords: mockListSustainmentRecords,
+    listControlRecords: mockListControlRecords,
     listControlHandoffs: mockListControlHandoffs,
     syncStatus: { status: 'synced', message: 'Synced' },
   }),
@@ -52,7 +52,7 @@ beforeEach(() => {
   ]);
   mockListEvidenceSources.mockResolvedValue([]);
   mockListEvidenceSnapshots.mockResolvedValue([]);
-  mockListSustainmentRecords.mockResolvedValue([]);
+  mockListControlRecords.mockResolvedValue([]);
   mockListControlHandoffs.mockResolvedValue([]);
   mockSaveProcessHub.mockResolvedValue(undefined);
 });

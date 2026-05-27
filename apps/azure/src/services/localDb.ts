@@ -256,7 +256,7 @@ export async function saveControlRecordToIndexedDB(record: ControlRecord): Promi
   await db.controlRecords.put(record);
 }
 
-export async function listSustainmentRecordsFromIndexedDB(hubId: string): Promise<ControlRecord[]> {
+export async function listControlRecordsFromIndexedDB(hubId: string): Promise<ControlRecord[]> {
   return db.controlRecords.where('hubId').equals(hubId).toArray();
 }
 
@@ -264,9 +264,7 @@ export async function saveControlReviewToIndexedDB(review: ControlReview): Promi
   await db.controlReviews.put(review);
 }
 
-export async function listSustainmentReviewsFromIndexedDB(
-  recordId: string
-): Promise<ControlReview[]> {
+export async function listControlReviewsFromIndexedDB(recordId: string): Promise<ControlReview[]> {
   const rows = await db.controlReviews.where('recordId').equals(recordId).toArray();
   return rows.sort((a, b) => b.reviewedAt - a.reviewedAt);
 }
@@ -316,7 +314,7 @@ export async function recomputeSustainmentProjectionForRecord(
   await updateProjectSustainmentProjectionInIndexedDB(record.investigationId, projection);
 }
 
-export async function tombstoneSustainmentRecordsForInvestigation(
+export async function tombstoneControlRecordsForInvestigation(
   investigationId: string,
   deletedAt: number
 ): Promise<number> {

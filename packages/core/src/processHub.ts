@@ -20,7 +20,7 @@ import {
   isSustainmentDue,
   isSustainmentOverdue,
   selectSustainmentBuckets,
-  selectSustainmentReviews,
+  selectControlReviews,
   type ControlHandoff,
   type SustainmentMetadataProjection,
   type ControlRecord,
@@ -879,7 +879,7 @@ export function buildProcessHubCadence<TInvestigation extends ProcessHubAnalyze>
   const review = buildProcessHubReview(rollup);
   const latestEvidenceSignals = evidenceSignals(rollup);
 
-  const controlReviews = selectSustainmentReviews(
+  const controlReviews = selectControlReviews(
     rollup.investigations,
     rollup.controlRecords,
     rollup.controlHandoffs,

@@ -267,7 +267,7 @@ vi.mock('../../workers/useStatsWorker', () => ({
 vi.mock('../../services/localDb', () => ({
   listProcessHubs: vi.fn(() => Promise.resolve([])),
   saveEvidenceSnapshotToIndexedDB: vi.fn(() => Promise.resolve()),
-  listSustainmentRecordsFromIndexedDB: vi.fn(() => Promise.resolve([])),
+  listControlRecordsFromIndexedDB: vi.fn(() => Promise.resolve([])),
   listReviewRecordsFromIndexedDB: vi.fn(() => Promise.resolve([])),
   listControlHandoffsFromIndexedDB: vi.fn(() => Promise.resolve([])),
 }));

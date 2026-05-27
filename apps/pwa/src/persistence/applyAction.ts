@@ -140,26 +140,26 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
             // joinHub won't resurrect it.
             await db.canvasState.delete(hubMeta.id);
           }
-          const incomingSustainmentRecords = controlRecords ?? [];
-          const incomingRecordIds = new Set(incomingSustainmentRecords.map(record => record.id));
+          const incomingControlRecords = controlRecords ?? [];
+          const incomingRecordIds = new Set(incomingControlRecords.map(record => record.id));
           await db.controlRecords
             .where('hubId')
             .equals(hubMeta.id)
             .filter(record => !incomingRecordIds.has(record.id))
             .delete();
-          if (incomingSustainmentRecords.length > 0) {
-            await db.controlRecords.bulkPut(incomingSustainmentRecords);
+          if (incomingControlRecords.length > 0) {
+            await db.controlRecords.bulkPut(incomingControlRecords);
           }
 
-          const incomingSustainmentReviews = controlReviews ?? [];
-          const incomingReviewIds = new Set(incomingSustainmentReviews.map(review => review.id));
+          const incomingControlReviews = controlReviews ?? [];
+          const incomingReviewIds = new Set(incomingControlReviews.map(review => review.id));
           await db.controlReviews
             .where('hubId')
             .equals(hubMeta.id)
             .filter(review => !incomingReviewIds.has(review.id))
             .delete();
-          if (incomingSustainmentReviews.length > 0) {
-            await db.controlReviews.bulkPut(incomingSustainmentReviews);
+          if (incomingControlReviews.length > 0) {
+            await db.controlReviews.bulkPut(incomingControlReviews);
           }
 
           const incomingControlHandoffs = controlHandoffs ?? [];
@@ -451,7 +451,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
             }));
             await db.rowProvenance.bulkPut(tagsWithSnapshotId);
           }
-          await evaluateSustainmentRecordsForSnapshot(db, action.hubId, action.snapshot);
+          await evaluateControlRecordsForSnapshot(db, action.hubId, action.snapshot);
         }
       );
       return;
@@ -640,7 +640,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
   }
 }
 
-async function evaluateSustainmentRecordsForSnapshot(
+async function evaluateControlRecordsForSnapshot(
   db: PwaDatabase,
   hubId: string,
   snapshot: EvidenceSnapshot

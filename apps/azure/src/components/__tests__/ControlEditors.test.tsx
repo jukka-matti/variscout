@@ -2,17 +2,17 @@ import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-const mockSaveSustainmentRecord = vi.fn();
-const mockSaveSustainmentReview = vi.fn();
+const mockSaveControlRecord = vi.fn();
+const mockSaveControlReview = vi.fn();
 const mockSaveControlHandoff = vi.fn();
-const mockListSustainmentRecords = vi.fn();
+const mockListControlRecords = vi.fn();
 
 vi.mock('../../services/storage', () => ({
   useStorage: () => ({
-    saveSustainmentRecord: mockSaveSustainmentRecord,
-    saveSustainmentReview: mockSaveSustainmentReview,
+    saveControlRecord: mockSaveControlRecord,
+    saveControlReview: mockSaveControlReview,
     saveControlHandoff: mockSaveControlHandoff,
-    listSustainmentRecords: mockListSustainmentRecords,
+    listControlRecords: mockListControlRecords,
   }),
 }));
 
@@ -30,20 +30,20 @@ const FIXTURE_USER: EasyAuthUser = {
 };
 
 beforeEach(() => {
-  mockSaveSustainmentRecord.mockReset();
-  mockSaveSustainmentReview.mockReset();
+  mockSaveControlRecord.mockReset();
+  mockSaveControlReview.mockReset();
   mockSaveControlHandoff.mockReset();
-  mockListSustainmentRecords.mockReset();
-  mockSaveSustainmentRecord.mockResolvedValue(undefined);
-  mockSaveSustainmentReview.mockResolvedValue(undefined);
+  mockListControlRecords.mockReset();
+  mockSaveControlRecord.mockResolvedValue(undefined);
+  mockSaveControlReview.mockResolvedValue(undefined);
   mockSaveControlHandoff.mockResolvedValue(undefined);
-  mockListSustainmentRecords.mockResolvedValue([]);
+  mockListControlRecords.mockResolvedValue([]);
 });
 
 // ── ControlRecordEditor ───────────────────────────────────────────────
 
 describe('ControlRecordEditor', () => {
-  it('fills form, submits, and calls saveSustainmentRecord + onSave with correct payload', async () => {
+  it('fills form, submits, and calls saveControlRecord + onSave with correct payload', async () => {
     const onSave = vi.fn();
     const onCancel = vi.fn();
 
@@ -68,9 +68,9 @@ describe('ControlRecordEditor', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
-    await waitFor(() => expect(mockSaveSustainmentRecord).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockSaveControlRecord).toHaveBeenCalledTimes(1));
 
-    const saved = mockSaveSustainmentRecord.mock.calls[0][0];
+    const saved = mockSaveControlRecord.mock.calls[0][0];
     expect(saved.cadence).toBe('monthly');
     expect(saved.investigationId).toBe('inv-abc');
     expect(saved.hubId).toBe('hub-1');
@@ -212,7 +212,7 @@ describe('ControlRecordEditor', () => {
 
   it('disables Save during async submit and re-enables on completion', async () => {
     let resolveSave: (() => void) | undefined;
-    mockSaveSustainmentRecord.mockImplementation(
+    mockSaveControlRecord.mockImplementation(
       () =>
         new Promise<void>(resolve => {
           resolveSave = resolve;
@@ -262,7 +262,7 @@ describe('ControlReviewLogger', () => {
   };
 
   it('fills form with verdict=holding, submits, updates record with latestVerdict and nextReviewDue', async () => {
-    mockListSustainmentRecords.mockResolvedValue([baseRecord]);
+    mockListControlRecords.mockResolvedValue([baseRecord]);
 
     const onSave = vi.fn();
     render(
@@ -288,9 +288,9 @@ describe('ControlReviewLogger', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
-    await waitFor(() => expect(mockSaveSustainmentReview).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockSaveControlReview).toHaveBeenCalledTimes(1));
 
-    const savedReview = mockSaveSustainmentReview.mock.calls[0][0];
+    const savedReview = mockSaveControlReview.mock.calls[0][0];
     expect(savedReview.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(savedReview.recordId).toBe('rec-1');
     expect(savedReview.investigationId).toBe('inv-abc');
@@ -302,8 +302,8 @@ describe('ControlReviewLogger', () => {
     expect(savedReview.reviewedAt).toBeGreaterThan(0);
 
     // Record should be updated with latestVerdict and nextReviewDue
-    await waitFor(() => expect(mockSaveSustainmentRecord).toHaveBeenCalledTimes(1));
-    const updatedRecord = mockSaveSustainmentRecord.mock.calls[0][0];
+    await waitFor(() => expect(mockSaveControlRecord).toHaveBeenCalledTimes(1));
+    const updatedRecord = mockSaveControlRecord.mock.calls[0][0];
     expect(updatedRecord.latestVerdict).toBe('holding');
     expect(updatedRecord.latestReviewId).toBe(savedReview.id);
     expect(updatedRecord.nextReviewDue).toBeDefined();
@@ -314,7 +314,7 @@ describe('ControlReviewLogger', () => {
 
   it('does not set nextReviewDue on the updated record when cadence is on-demand', async () => {
     const onDemandRecord: ControlRecord = { ...baseRecord, cadence: 'on-demand' };
-    mockListSustainmentRecords.mockResolvedValue([onDemandRecord]);
+    mockListControlRecords.mockResolvedValue([onDemandRecord]);
 
     const onSave = vi.fn();
     render(
@@ -333,8 +333,8 @@ describe('ControlReviewLogger', () => {
     fireEvent.click(screen.getByLabelText('Holding'));
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
-    await waitFor(() => expect(mockSaveSustainmentRecord).toHaveBeenCalledTimes(1));
-    const updatedRecord = mockSaveSustainmentRecord.mock.calls[0][0];
+    await waitFor(() => expect(mockSaveControlRecord).toHaveBeenCalledTimes(1));
+    const updatedRecord = mockSaveControlRecord.mock.calls[0][0];
     expect(updatedRecord.nextReviewDue).toBeUndefined();
   });
 });
@@ -430,10 +430,10 @@ describe('ControlHandoffEditor', () => {
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => expect(mockSaveControlHandoff).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(mockSaveSustainmentRecord).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockSaveControlRecord).toHaveBeenCalledTimes(1));
 
     const savedHandoff = mockSaveControlHandoff.mock.calls[0][0];
-    const updatedRecord = mockSaveSustainmentRecord.mock.calls[0][0];
+    const updatedRecord = mockSaveControlRecord.mock.calls[0][0];
     expect(updatedRecord.id).toBe('rec-1');
     expect(updatedRecord.controlHandoffId).toBe(savedHandoff.id);
   });

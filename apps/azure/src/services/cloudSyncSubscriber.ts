@@ -20,7 +20,7 @@ import { useAnalyzeStore } from '@variscout/stores';
 export function setupCloudSync(onSave: () => void, debounceMs: number = 2000): () => void {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   let projectStoreInitialized = false;
-  let investigationStoreInitialized = false;
+  let analyzeStoreInitialized = false;
 
   function scheduleOrSkip(initialized: boolean): boolean {
     if (!initialized) {
@@ -52,8 +52,8 @@ export function setupCloudSync(onSave: () => void, debounceMs: number = 2000): (
   });
 
   const unsubInvestigation = useAnalyzeStore.subscribe(() => {
-    if (!investigationStoreInitialized) {
-      investigationStoreInitialized = true;
+    if (!analyzeStoreInitialized) {
+      analyzeStoreInitialized = true;
       return;
     }
     scheduleOrSkip(true);

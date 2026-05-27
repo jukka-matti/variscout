@@ -4,7 +4,7 @@ import { nextDueFromCadence } from '@variscout/core';
 import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
-export interface SustainmentReviewLoggerProps {
+export interface ControlReviewLoggerProps {
   recordId: string;
   investigationId: string;
   hubId: string;
@@ -23,7 +23,7 @@ const VERDICTS: { value: ControlVerdict; label: string }[] = [
   { value: 'inconclusive', label: 'Inconclusive' },
 ];
 
-const ControlReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
+const ControlReviewLogger: React.FC<ControlReviewLoggerProps> = ({
   recordId,
   investigationId,
   hubId,
@@ -61,10 +61,10 @@ const ControlReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
       escalatedInvestigationId: escalatedInvestigationId || undefined,
     };
 
-    await storage.saveSustainmentReview(review);
+    await storage.saveControlReview(review);
 
     // Update parent record with latest verdict + recomputed next due
-    const records = await storage.listSustainmentRecords(hubId);
+    const records = await storage.listControlRecords(hubId);
     const parentRecord = records.find(r => r.id === recordId);
     if (parentRecord) {
       const nextDue = nextDueFromCadence(cadence, new Date(nowMs));
@@ -80,7 +80,7 @@ const ControlReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
       } else {
         delete updatedRecord.nextReviewDue;
       }
-      await storage.saveSustainmentRecord(updatedRecord);
+      await storage.saveControlRecord(updatedRecord);
     }
 
     onSave(review);

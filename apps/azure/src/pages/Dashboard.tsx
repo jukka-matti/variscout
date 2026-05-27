@@ -51,7 +51,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     saveProject,
     listEvidenceSources,
     listEvidenceSnapshots,
-    listSustainmentRecords,
+    listControlRecords,
     listControlHandoffs,
     syncStatus,
   } = useStorage();
@@ -60,7 +60,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [projects, setProjects] = useState<CloudProject[]>([]);
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
   const [evidenceSnapshots, setEvidenceSnapshots] = useState<EvidenceSnapshot[]>([]);
-  const [controlRecords, setSustainmentRecords] = useState<ControlRecord[]>([]);
+  const [controlRecords, setControlRecords] = useState<ControlRecord[]>([]);
   const [controlHandoffs, setControlHandoffs] = useState<ControlHandoff[]>([]);
   const [selectedHubId, setSelectedHubId] = useState<string | null>(null);
 
@@ -149,24 +149,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
     async (hubId: string): Promise<void> => {
       try {
         const [records, handoffs] = await Promise.all([
-          listSustainmentRecords(hubId),
+          listControlRecords(hubId),
           listControlHandoffs(hubId),
         ]);
-        setSustainmentRecords(records);
+        setControlRecords(records);
         setControlHandoffs(handoffs);
       } catch (error) {
         console.error('Failed to load sustainment for hub:', error);
-        setSustainmentRecords([]);
+        setControlRecords([]);
         setControlHandoffs([]);
       }
     },
-    [listSustainmentRecords, listControlHandoffs]
+    [listControlRecords, listControlHandoffs]
   );
 
   useEffect(() => {
     if (!selectedHubId) {
       setEvidenceSnapshots([]);
-      setSustainmentRecords([]);
+      setControlRecords([]);
       setControlHandoffs([]);
       return;
     }

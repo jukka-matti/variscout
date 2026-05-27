@@ -10,10 +10,10 @@ import { CollapsibleSection } from '../ImprovementProject/CollapsibleSection';
 export interface ControlFormProps {
   record: ControlRecord;
   reviews?: ControlReview[];
-  onRecordChange?: (patch: SustainmentRecordChangePatch) => void;
+  onRecordChange?: (patch: ControlRecordChangePatch) => void;
 }
 
-export type SustainmentRecordChangePatch = Partial<
+export type ControlRecordChangePatch = Partial<
   Pick<ControlRecord, 'title' | 'targetSummary' | 'cadence'>
 >;
 

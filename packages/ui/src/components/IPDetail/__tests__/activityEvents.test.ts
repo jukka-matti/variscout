@@ -103,7 +103,7 @@ function makeHandoff(overrides: Partial<ControlHandoff> = {}): ControlHandoff {
     operationalOwner: { displayName: 'Jordan Ops', upn: 'jordan@example.com' },
     handoffDate: now,
     description: 'Operational handoff',
-    retainSustainmentReview: true,
+    retainControlReview: true,
     recordedBy: { displayName: 'Mira Lead', upn: 'mira@example.com' },
     ...overrides,
   };

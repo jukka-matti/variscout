@@ -53,7 +53,7 @@ const controlHandoff = (overrides: Partial<ControlHandoff>): ControlHandoff =>
     operationalOwner: { displayName: 'Ops owner' },
     handoffDate: NOW - 8 * DAY_MS,
     description: 'Update procedure controls',
-    retainSustainmentReview: true,
+    retainControlReview: true,
     recordedBy: { displayName: 'Investigator' },
     createdAt: NOW - 8 * DAY_MS,
     deletedAt: null,

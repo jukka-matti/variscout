@@ -58,7 +58,7 @@ function makeProcessMap(overrides: Partial<ProcessMap> = {}): ProcessMap {
   };
 }
 
-function makeSustainmentRecord(id: string, hubId: string): ControlRecord {
+function makeControlRecord(id: string, hubId: string): ControlRecord {
   return {
     id,
     hubId,
@@ -75,7 +75,7 @@ function makeSustainmentRecord(id: string, hubId: string): ControlRecord {
   };
 }
 
-function makeSustainmentReview(id: string, recordId: string, hubId: string): ControlReview {
+function makeControlReview(id: string, recordId: string, hubId: string): ControlReview {
   return {
     id,
     recordId,
@@ -148,8 +148,8 @@ describe('applyAction — HUB_PERSIST_SNAPSHOT', () => {
   });
 
   it('strips sustainment arrays from the hub row and persists them in normalized tables', async () => {
-    const record = makeSustainmentRecord('sr-1', 'hub-s');
-    const review = makeSustainmentReview('rev-1', 'sr-1', 'hub-s');
+    const record = makeControlRecord('sr-1', 'hub-s');
+    const review = makeControlReview('rev-1', 'sr-1', 'hub-s');
     const hub = makeHub('hub-s', {
       controlRecords: [record],
       controlReviews: [review],
@@ -169,14 +169,14 @@ describe('applyAction — HUB_PERSIST_SNAPSHOT', () => {
   });
 
   it('removes stale sustainment rows when re-persisting with a smaller snapshot', async () => {
-    await db.controlRecords.put(makeSustainmentRecord('sr-stale', 'hub-stale'));
-    await db.controlReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-stale'));
+    await db.controlRecords.put(makeControlRecord('sr-stale', 'hub-stale'));
+    await db.controlReviews.put(makeControlReview('rev-stale', 'sr-stale', 'hub-stale'));
 
     await applyAction(db, {
       kind: 'HUB_PERSIST_SNAPSHOT',
       hub: makeHub('hub-stale', {
-        controlRecords: [makeSustainmentRecord('sr-keep', 'hub-stale')],
-        controlReviews: [makeSustainmentReview('rev-keep', 'sr-keep', 'hub-stale')],
+        controlRecords: [makeControlRecord('sr-keep', 'hub-stale')],
+        controlReviews: [makeControlReview('rev-keep', 'sr-keep', 'hub-stale')],
       } as Partial<ProcessHub>),
     });
 
@@ -189,8 +189,8 @@ describe('applyAction — HUB_PERSIST_SNAPSHOT', () => {
   });
 
   it('removes stale sustainment rows when a snapshot omits sustainment arrays', async () => {
-    await db.controlRecords.put(makeSustainmentRecord('sr-stale', 'hub-empty'));
-    await db.controlReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-empty'));
+    await db.controlRecords.put(makeControlRecord('sr-stale', 'hub-empty'));
+    await db.controlReviews.put(makeControlReview('rev-stale', 'sr-stale', 'hub-empty'));
 
     await applyAction(db, {
       kind: 'HUB_PERSIST_SNAPSHOT',

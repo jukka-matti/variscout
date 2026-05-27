@@ -537,7 +537,7 @@ export {
   nextDueFromCadence,
   isSustainmentDue,
   isSustainmentOverdue,
-  selectSustainmentReviews,
+  selectControlReviews,
   selectSustainmentBuckets,
   controlRecordBlobPath,
   controlReviewBlobPath,

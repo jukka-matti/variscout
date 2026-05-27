@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-const mockListSustainmentRecords = vi.fn();
+const mockListControlRecords = vi.fn();
 const mockGetEasyAuthUser = vi.fn();
 
 // vi.mock BEFORE component imports (testing.md invariant)
 vi.mock('../../services/storage', () => ({
   useStorage: () => ({
-    listSustainmentRecords: mockListSustainmentRecords,
+    listControlRecords: mockListControlRecords,
   }),
 }));
 
@@ -42,8 +42,8 @@ vi.mock('../../components/ControlRecordEditor', () => ({
 import { ControlEntryRow } from '../Editor.control';
 
 beforeEach(() => {
-  mockListSustainmentRecords.mockReset();
-  mockListSustainmentRecords.mockResolvedValue([]);
+  mockListControlRecords.mockReset();
+  mockListControlRecords.mockResolvedValue([]);
   mockGetEasyAuthUser.mockReset();
   mockGetEasyAuthUser.mockResolvedValue({
     name: 'Test User',
@@ -89,7 +89,7 @@ describe('ControlEntryRow', () => {
   });
 
   it('shows "Edit" label and passes existingRecord when a live record matches the investigation', async () => {
-    mockListSustainmentRecords.mockResolvedValue([
+    mockListControlRecords.mockResolvedValue([
       {
         id: 'rec-1',
         investigationId: 'inv-123',
@@ -107,7 +107,7 @@ describe('ControlEntryRow', () => {
   });
 
   it('ignores soft-deleted records (deletedAt !== null) — shows "Set up" not "Edit"', async () => {
-    mockListSustainmentRecords.mockResolvedValue([
+    mockListControlRecords.mockResolvedValue([
       {
         id: 'rec-old',
         investigationId: 'inv-123',
@@ -123,7 +123,7 @@ describe('ControlEntryRow', () => {
   });
 
   it('uses "updated" confirmation copy when editing an existing record', async () => {
-    mockListSustainmentRecords.mockResolvedValue([
+    mockListControlRecords.mockResolvedValue([
       {
         id: 'rec-1',
         investigationId: 'inv-123',

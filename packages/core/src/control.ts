@@ -99,7 +99,7 @@ export interface ControlHandoff extends EntityBase {
   handoffDate: number;
   description: string;
   referenceUri?: string;
-  retainSustainmentReview: boolean;
+  retainControlReview: boolean;
   recordedBy: ProcessParticipantRef;
   acknowledgedAt?: number;
   operationalAt?: number;
@@ -310,7 +310,7 @@ export function isSustainmentOverdue(
  * rest of the cadence board surfaces. Keeps the call sites in this file
  * narrow on the `<TInv>` generic.
  */
-function buildSustainmentReviewItem<TInv extends ProcessHubAnalyze>(
+function buildControlReviewItem<TInv extends ProcessHubAnalyze>(
   investigation: TInv,
   reasons: ProcessHubAttentionReason[]
 ): ProcessHubReviewItem<TInv> {
@@ -321,11 +321,11 @@ function buildSustainmentReviewItem<TInv extends ProcessHubAnalyze>(
  * Returns the cadence-board sustainment queue: investigations whose effective
  * status is in SUSTAINMENT_STATUSES (`resolved` or `controlled`), whose record
  * is due (per `isSustainmentDue`), and which are not opted out via a
- * ControlHandoff with `retainSustainmentReview = false`.
+ * ControlHandoff with `retainControlReview = false`.
  *
  * Tombstoned records are excluded by the underlying `isSustainmentDue` check.
  */
-export function selectSustainmentReviews<TInv extends ProcessHubAnalyze>(
+export function selectControlReviews<TInv extends ProcessHubAnalyze>(
   investigations: TInv[],
   records: ControlRecord[],
   handoffs: ControlHandoff[],
@@ -342,18 +342,18 @@ export function selectSustainmentReviews<TInv extends ProcessHubAnalyze>(
       if (!record || !isSustainmentDue(record, now)) return false;
       if (status === 'controlled') {
         const handoff = handoffByInvestigation.get(inv.id);
-        if (handoff && handoff.retainSustainmentReview === false) return false;
+        if (handoff && handoff.retainControlReview === false) return false;
       }
       return true;
     })
-    .map(inv => buildSustainmentReviewItem(inv, ['sustainment-due']));
+    .map(inv => buildControlReviewItem(inv, ['sustainment-due']));
 }
 
 /**
  * Three-bucket projection of the sustainment review queue: items whose record
  * is due-but-not-overdue, overdue (past `graceDays`), and recently-reviewed
  * (latestReviewAt within `recentReviewWindowDays`). Excludes tombstoned and
- * handoff-opted-out records, mirroring `selectSustainmentReviews`.
+ * handoff-opted-out records, mirroring `selectControlReviews`.
  */
 export interface SustainmentBuckets<TInv extends ProcessHubAnalyze> {
   dueNow: ProcessHubReviewItem<TInv>[];
@@ -393,21 +393,21 @@ export function selectSustainmentBuckets<TInv extends ProcessHubAnalyze>(
     if (!record || record.deletedAt !== null) continue;
     if (status === 'controlled') {
       const handoff = handoffByInvestigation.get(inv.id);
-      if (handoff && handoff.retainSustainmentReview === false) continue;
+      if (handoff && handoff.retainControlReview === false) continue;
     }
 
     if (isSustainmentOverdue(record, now, graceDays)) {
-      overdue.push(buildSustainmentReviewItem(inv, ['sustainment-due']));
+      overdue.push(buildControlReviewItem(inv, ['sustainment-due']));
       continue;
     }
     if (isSustainmentDue(record, now)) {
-      dueNow.push(buildSustainmentReviewItem(inv, ['sustainment-due']));
+      dueNow.push(buildControlReviewItem(inv, ['sustainment-due']));
       continue;
     }
     if (record.latestReviewAt) {
       const reviewedMs = new Date(record.latestReviewAt).getTime();
       if (Number.isFinite(reviewedMs) && reviewedMs >= recentCutoffMs) {
-        recentlyReviewed.push(buildSustainmentReviewItem(inv, ['sustainment']));
+        recentlyReviewed.push(buildControlReviewItem(inv, ['sustainment']));
       }
     }
   }

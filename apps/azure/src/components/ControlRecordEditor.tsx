@@ -4,7 +4,7 @@ import { nextDueFromCadence } from '@variscout/core';
 import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
-export interface SustainmentRecordEditorProps {
+export interface ControlRecordEditorProps {
   investigationId: string;
   hubId: string;
   currentUser: EasyAuthUser;
@@ -30,7 +30,7 @@ const suggestDueDate = (cadence: ControlCadence): string => {
   return iso ? iso.slice(0, 10) : '';
 };
 
-const ControlRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
+const ControlRecordEditor: React.FC<ControlRecordEditorProps> = ({
   investigationId,
   hubId,
   currentUser,
@@ -101,7 +101,7 @@ const ControlRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
     };
 
     try {
-      await storage.saveSustainmentRecord(record);
+      await storage.saveControlRecord(record);
       onSave(record);
     } finally {
       setIsSubmitting(false);

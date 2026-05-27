@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ControlForm, type SustainmentRecordChangePatch } from '@variscout/ui';
+import { ControlForm, type ControlRecordChangePatch } from '@variscout/ui';
 import type { ProcessHub, ControlRecord, ControlReview } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { pwaHubRepository } from '../persistence';
@@ -82,10 +82,7 @@ function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): Control
   };
 }
 
-function mergeRecordPatch(
-  record: ControlRecord,
-  patch: SustainmentRecordChangePatch
-): ControlRecord {
+function mergeRecordPatch(record: ControlRecord, patch: ControlRecordChangePatch): ControlRecord {
   return { ...record, ...patch, updatedAt: Date.now() };
 }
 
@@ -192,7 +189,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ activeHub, targetId, onBack
   }, [activeHub, selectedRecord]);
 
   const updateSelectedRecord = useCallback(
-    (patch: SustainmentRecordChangePatch) => {
+    (patch: ControlRecordChangePatch) => {
       if (!selectedRecord) return;
       const next = mergeRecordPatch(selectedRecord, patch);
       setRecords(current => current.map(record => (record.id === next.id ? next : record)));

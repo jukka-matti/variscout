@@ -683,26 +683,26 @@ export const Editor: React.FC<EditorProps> = ({
   };
 
   // Control + Handoff inputs for ProjectsTabView → IPDetailPage
-  const _azureLiveSustainmentRecords = (activeHub?.controlRecords ?? []).filter(
+  const _azureLiveControlRecords = (activeHub?.controlRecords ?? []).filter(
     r => r.deletedAt === null
   );
   const _azureLiveControlHandoffs = (activeHub?.controlHandoffs ?? []).filter(
     h => h.deletedAt === null
   );
-  const projectsSustainmentRecord = _azureLiveSustainmentRecords.find(
+  const projectsControlRecord = _azureLiveControlRecords.find(
     r => r.improvementProjectId === selectedOrActiveProjectId
   );
   const projectsControlHandoff = _azureLiveControlHandoffs.find(
-    h => h.investigationId === (projectsSustainmentRecord?.investigationId ?? '')
+    h => h.investigationId === (projectsControlRecord?.investigationId ?? '')
   );
   const projectsClosureInputs = projectsControlHandoff
     ? {
         controlPlanDocumented: false,
         trainingDelivered: Boolean(projectsControlHandoff.signoff?.approvedBy),
-        cadenceAssigned: Boolean(projectsSustainmentRecord?.cadence),
+        cadenceAssigned: Boolean(projectsControlRecord?.cadence),
         processOwnerAcknowledged: projectsControlHandoff.status !== 'pending',
         trainingRef: projectsControlHandoff.referenceUri,
-        cadenceOwner: projectsSustainmentRecord?.owner?.displayName,
+        cadenceOwner: projectsControlRecord?.owner?.displayName,
       }
     : undefined;
 
@@ -1926,13 +1926,13 @@ export const Editor: React.FC<EditorProps> = ({
                   // to this cause's hypothesis automatically.
                   usePanelsStore.getState().showImprovement();
                 }}
-                controlRecord={projectsSustainmentRecord}
+                controlRecord={projectsControlRecord}
                 controlHandoff={projectsControlHandoff}
                 closureInputs={projectsClosureInputs}
                 onOpenLegacyControl={() =>
                   usePanelsStore
                     .getState()
-                    .showControl(projectsSustainmentRecord?.investigationId ?? undefined)
+                    .showControl(projectsControlRecord?.investigationId ?? undefined)
                 }
                 onNudgeProcessOwner={() => {
                   // Plan 3 will emit EngagementEvent webhook here.

@@ -29,10 +29,10 @@ import {
   saveBlobEvidenceSource,
   updateBlobEvidenceSources,
   updateBlobEvidenceSnapshotsConditional,
-  listBlobSustainmentRecords,
-  saveBlobSustainmentRecord,
+  listBlobControlRecords,
+  saveBlobControlRecord,
   updateBlobSustainmentCatalog,
-  saveBlobSustainmentReview,
+  saveBlobControlReview,
   saveBlobControlHandoff,
 } from './blobClient';
 import type { BlobProjectMetadata } from './blobClient';
@@ -453,32 +453,32 @@ export async function ensureFolderExists(_token: string, _apiBase: unknown): Pro
 
 // ── Control cloud sync ────────────────────────────────────────────────
 
-export async function listSustainmentRecordsFromCloud(
+export async function listControlRecordsFromCloud(
   _token: string,
   hubId: string
 ): Promise<ControlRecord[]> {
-  return wrapBlobCall(() => listBlobSustainmentRecords(hubId));
+  return wrapBlobCall(() => listBlobControlRecords(hubId));
 }
 
-export async function saveSustainmentRecordToCloud(
+export async function saveControlRecordToCloud(
   _token: string,
   record: ControlRecord
 ): Promise<void> {
-  const existing = await listSustainmentRecordsFromCloud(_token, record.hubId);
+  const existing = await listControlRecordsFromCloud(_token, record.hubId);
   const next = existing.some(item => item.id === record.id)
     ? existing.map(item => (item.id === record.id ? record : item))
     : [...existing, record];
   await wrapBlobCall(async () => {
-    await saveBlobSustainmentRecord(record);
+    await saveBlobControlRecord(record);
     await updateBlobSustainmentCatalog(record.hubId, next);
   });
 }
 
-export async function saveSustainmentReviewToCloud(
+export async function saveControlReviewToCloud(
   _token: string,
   review: ControlReview
 ): Promise<void> {
-  await wrapBlobCall(() => saveBlobSustainmentReview(review));
+  await wrapBlobCall(() => saveBlobControlReview(review));
 }
 
 export async function saveControlHandoffToCloud(

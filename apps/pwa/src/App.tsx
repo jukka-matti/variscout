@@ -1011,26 +1011,24 @@ function AppMain() {
   }, [activeIPContext.activeIP, panels.activeView, sessionHub]);
 
   // Control + Handoff inputs for ProjectsTabView → IPDetailPage
-  const _liveSustainmentRecords = (sessionHub?.controlRecords ?? []).filter(
-    r => r.deletedAt === null
-  );
+  const _liveControlRecords = (sessionHub?.controlRecords ?? []).filter(r => r.deletedAt === null);
   const _liveControlHandoffs = (sessionHub?.controlHandoffs ?? []).filter(
     h => h.deletedAt === null
   );
-  const projectsSustainmentRecord = _liveSustainmentRecords.find(
+  const projectsControlRecord = _liveControlRecords.find(
     r => r.improvementProjectId === selectedOrActiveProjectId
   );
   const projectsControlHandoff = _liveControlHandoffs.find(
-    h => h.investigationId === (projectsSustainmentRecord?.investigationId ?? '')
+    h => h.investigationId === (projectsControlRecord?.investigationId ?? '')
   );
   const projectsClosureInputs = projectsControlHandoff
     ? {
         controlPlanDocumented: false,
         trainingDelivered: Boolean(projectsControlHandoff.signoff?.approvedBy),
-        cadenceAssigned: Boolean(projectsSustainmentRecord?.cadence),
+        cadenceAssigned: Boolean(projectsControlRecord?.cadence),
         processOwnerAcknowledged: projectsControlHandoff.status !== 'pending',
         trainingRef: projectsControlHandoff.referenceUri,
-        cadenceOwner: projectsSustainmentRecord?.owner?.displayName,
+        cadenceOwner: projectsControlRecord?.owner?.displayName,
       }
     : undefined;
 
@@ -1407,13 +1405,13 @@ function AppMain() {
                   // to this cause's hypothesis automatically.
                   panels.showImprovement();
                 }}
-                controlRecord={projectsSustainmentRecord}
+                controlRecord={projectsControlRecord}
                 controlHandoff={projectsControlHandoff}
                 closureInputs={projectsClosureInputs}
                 onOpenLegacyControl={() =>
                   usePanelsStore
                     .getState()
-                    .showControl(projectsSustainmentRecord?.investigationId ?? undefined)
+                    .showControl(projectsControlRecord?.investigationId ?? undefined)
                 }
                 onNudgeProcessOwner={() => {
                   // Plan 3 will emit EngagementEvent webhook here.
@@ -1458,7 +1456,7 @@ function AppMain() {
                 hub={sessionHub}
                 activeIP={activeIPContext.activeIP}
                 hypotheses={hypotheses}
-                controlRecords={_liveSustainmentRecords}
+                controlRecords={_liveControlRecords}
                 controlHandoffs={_liveControlHandoffs}
                 activeIPScope={activeIPScope}
                 activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}

@@ -3,14 +3,14 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../../db/schema';
 import {
   saveControlRecordToIndexedDB,
-  listSustainmentRecordsFromIndexedDB,
+  listControlRecordsFromIndexedDB,
   saveControlReviewToIndexedDB,
-  listSustainmentReviewsFromIndexedDB,
+  listControlReviewsFromIndexedDB,
   saveControlHandoffToIndexedDB,
   listControlHandoffsFromIndexedDB,
   buildSustainmentProjection,
   recomputeSustainmentProjectionForRecord,
-  tombstoneSustainmentRecordsForInvestigation,
+  tombstoneControlRecordsForInvestigation,
 } from '../localDb';
 import type {
   ControlRecord,
@@ -48,12 +48,12 @@ describe('sustainment storage round-trip', () => {
 
   it('round-trips a ControlRecord', async () => {
     await saveControlRecordToIndexedDB(makeRecord());
-    const result = await listSustainmentRecordsFromIndexedDB('hub-1');
+    const result = await listControlRecordsFromIndexedDB('hub-1');
     expect(result).toHaveLength(1);
     expect(result[0].cadence).toBe('monthly');
   });
 
-  it('appends SustainmentReviews and reads them ordered by reviewedAt desc', async () => {
+  it('appends ControlReviews and reads them ordered by reviewedAt desc', async () => {
     const r1: ControlReview = {
       id: 'r-1',
       recordId: 'rec-1',
@@ -75,7 +75,7 @@ describe('sustainment storage round-trip', () => {
     await saveControlReviewToIndexedDB(r1);
     await saveControlReviewToIndexedDB(r2);
 
-    const result = await listSustainmentReviewsFromIndexedDB('rec-1');
+    const result = await listControlReviewsFromIndexedDB('rec-1');
     expect(result.map(r => r.id)).toEqual(['r-2', 'r-1']);
   });
 
@@ -90,7 +90,7 @@ describe('sustainment storage round-trip', () => {
       operationalOwner: { userId: 'u-1', displayName: 'Op' },
       handoffDate: 1745625600000, // 2026-04-26T00:00:00.000Z
       description: 'Recipe lock',
-      retainSustainmentReview: false,
+      retainControlReview: false,
       createdAt: 1745625600000, // 2026-04-26T00:00:00.000Z (formerly recordedAt)
       deletedAt: null,
       recordedBy: { userId: 'u-1', displayName: 'Op' },
@@ -159,7 +159,7 @@ describe('sustainment projection recompute', () => {
       operationalOwner: { userId: 'u-1', displayName: 'Op' },
       handoffDate: 1745625600000,
       description: 'Recipe lock',
-      retainSustainmentReview: false,
+      retainControlReview: false,
       createdAt: 1745625600000,
       deletedAt: null,
       recordedBy: { userId: 'u-1', displayName: 'Op' },
@@ -184,7 +184,7 @@ describe('sustainment projection recompute', () => {
       operationalOwner: { userId: 'u-1', displayName: 'Op' },
       handoffDate: 1745625600000,
       description: 'SOP lock',
-      retainSustainmentReview: true,
+      retainControlReview: true,
       createdAt: 1745625600000,
       deletedAt: null,
       recordedBy: { userId: 'u-1', displayName: 'Op' },
@@ -212,10 +212,10 @@ describe('tombstone on investigation reopen', () => {
     await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-1' }));
     await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-2' }));
     const deletedAt = 1745712000000; // 2026-04-27T00:00:00.000Z
-    const updated = await tombstoneSustainmentRecordsForInvestigation('inv-1', deletedAt);
+    const updated = await tombstoneControlRecordsForInvestigation('inv-1', deletedAt);
     expect(updated).toBe(2);
 
-    const records = await listSustainmentRecordsFromIndexedDB('hub-1');
+    const records = await listControlRecordsFromIndexedDB('hub-1');
     expect(records.every(r => r.deletedAt === deletedAt)).toBe(true);
     expect(records.every(r => r.updatedAt === deletedAt)).toBe(true);
   });
@@ -223,17 +223,17 @@ describe('tombstone on investigation reopen', () => {
   it('skips records that are already soft-deleted', async () => {
     const earlyDeletedAt = 1745107200000; // 2026-04-20T00:00:00.000Z
     await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-1', deletedAt: earlyDeletedAt }));
-    const updated = await tombstoneSustainmentRecordsForInvestigation(
+    const updated = await tombstoneControlRecordsForInvestigation(
       'inv-1',
       1745712000000 // 2026-04-27T00:00:00.000Z
     );
     expect(updated).toBe(0);
-    const [record] = await listSustainmentRecordsFromIndexedDB('hub-1');
+    const [record] = await listControlRecordsFromIndexedDB('hub-1');
     expect(record.deletedAt).toBe(earlyDeletedAt); // not overwritten
   });
 
   it('returns 0 when no records exist for the investigation', async () => {
-    const updated = await tombstoneSustainmentRecordsForInvestigation(
+    const updated = await tombstoneControlRecordsForInvestigation(
       'nonexistent',
       1745712000000 // 2026-04-27T00:00:00.000Z
     );
@@ -249,7 +249,7 @@ describe('tombstone on investigation reopen', () => {
     const before = await db.projects.get('inv-1');
     expect(before?.meta?.sustainment).toBeDefined();
 
-    await tombstoneSustainmentRecordsForInvestigation('inv-1', 1745712000000);
+    await tombstoneControlRecordsForInvestigation('inv-1', 1745712000000);
 
     const after = await db.projects.get('inv-1');
     expect(after?.meta?.sustainment).toBeUndefined();
@@ -279,7 +279,7 @@ describe('tombstone on investigation reopen', () => {
       } satisfies ProjectMetadata,
     });
 
-    await tombstoneSustainmentRecordsForInvestigation('inv-1', 1745712000000);
+    await tombstoneControlRecordsForInvestigation('inv-1', 1745712000000);
 
     const after = await db.projects.get('inv-1');
     expect(after?.meta?.sustainment).toBeDefined();

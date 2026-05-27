@@ -58,9 +58,9 @@ import {
   listEvidenceSnapshotsFromCloud,
   saveEvidenceSourceToCloud,
   saveEvidenceSnapshotToCloud,
-  listSustainmentRecordsFromCloud,
-  saveSustainmentRecordToCloud,
-  saveSustainmentReviewToCloud,
+  listControlRecordsFromCloud,
+  saveControlRecordToCloud,
+  saveControlReviewToCloud,
   saveControlHandoffToCloud,
   RETRY_DELAYS,
   MAX_RETRY_DELAY,
@@ -80,14 +80,14 @@ import {
   listEvidenceSnapshotsFromIndexedDB,
   saveEvidenceSourceToIndexedDB,
   saveEvidenceSnapshotToIndexedDB,
-  listSustainmentRecordsFromIndexedDB,
+  listControlRecordsFromIndexedDB,
   saveControlRecordToIndexedDB,
-  listSustainmentReviewsFromIndexedDB,
+  listControlReviewsFromIndexedDB,
   saveControlReviewToIndexedDB,
   listControlHandoffsFromIndexedDB,
   saveControlHandoffToIndexedDB,
   recomputeSustainmentProjectionForRecord,
-  tombstoneSustainmentRecordsForInvestigation,
+  tombstoneControlRecordsForInvestigation,
 } from './localDb';
 import { azureHubRepository } from '../persistence';
 
@@ -103,10 +103,10 @@ interface StorageContextValue {
   saveEvidenceSource: (source: EvidenceSource) => Promise<void>;
   listEvidenceSnapshots: (hubId: string, sourceId: string) => Promise<EvidenceSnapshot[]>;
   saveEvidenceSnapshot: (snapshot: EvidenceSnapshot, sourceCsv?: string) => Promise<void>;
-  listSustainmentRecords: (hubId: string) => Promise<ControlRecord[]>;
-  saveSustainmentRecord: (record: ControlRecord) => Promise<void>;
-  listSustainmentReviews: (recordId: string) => Promise<ControlReview[]>;
-  saveSustainmentReview: (review: ControlReview) => Promise<void>;
+  listControlRecords: (hubId: string) => Promise<ControlRecord[]>;
+  saveControlRecord: (record: ControlRecord) => Promise<void>;
+  listControlReviews: (recordId: string) => Promise<ControlReview[]>;
+  saveControlReview: (review: ControlReview) => Promise<void>;
   listControlHandoffs: (hubId: string) => Promise<ControlHandoff[]>;
   saveControlHandoff: (handoff: ControlHandoff) => Promise<void>;
   syncStatus: SyncStatus;
@@ -284,7 +284,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (wasSustainment && !isSustainment) {
         // Investigation reopened — soft-delete its sustainment records (deletedAt).
         // Use the project name as the investigationId, matching Task 18's keying.
-        await tombstoneSustainmentRecordsForInvestigation(name, Date.now());
+        await tombstoneControlRecordsForInvestigation(name, Date.now());
       }
 
       // Always save to IndexedDB first (instant feedback)
@@ -688,24 +688,24 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     []
   );
 
-  const listSustainmentRecords = useCallback(async (hubId: string): Promise<ControlRecord[]> => {
-    const localRecords = await listSustainmentRecordsFromIndexedDB(hubId);
+  const listControlRecords = useCallback(async (hubId: string): Promise<ControlRecord[]> => {
+    const localRecords = await listControlRecordsFromIndexedDB(hubId);
 
     if (!navigator.onLine || isLocalDev()) {
       return localRecords;
     }
 
     try {
-      const cloudRecords = await listSustainmentRecordsFromCloud('blob-sas', hubId);
+      const cloudRecords = await listControlRecordsFromCloud('blob-sas', hubId);
       for (const record of cloudRecords) {
         await saveControlRecordToIndexedDB(record);
       }
-      return listSustainmentRecordsFromIndexedDB(hubId);
+      return listControlRecordsFromIndexedDB(hubId);
     } catch (error) {
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
         errorService.logWarning('Failed to list sustainment records from cloud', {
           component: 'storage',
-          action: 'listSustainmentRecords',
+          action: 'listControlRecords',
           metadata: { error: error instanceof Error ? error.message : String(error) },
         });
       }
@@ -713,17 +713,17 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
-  const saveSustainmentRecord = useCallback(async (record: ControlRecord): Promise<void> => {
+  const saveControlRecord = useCallback(async (record: ControlRecord): Promise<void> => {
     await saveControlRecordToIndexedDB(record);
 
     if (navigator.onLine && !isLocalDev()) {
       try {
-        await saveSustainmentRecordToCloud('blob-sas', record);
+        await saveControlRecordToCloud('blob-sas', record);
       } catch (error) {
         if (!(error instanceof CloudSyncUnavailableErrorClass)) {
           errorService.logWarning('Failed to save sustainment record to cloud', {
             component: 'storage',
-            action: 'saveSustainmentRecord',
+            action: 'saveControlRecord',
             metadata: { error: error instanceof Error ? error.message : String(error) },
           });
         }
@@ -733,12 +733,12 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     await recomputeSustainmentProjectionForRecord(record);
   }, []);
 
-  const listSustainmentReviews = useCallback(
-    (recordId: string): Promise<ControlReview[]> => listSustainmentReviewsFromIndexedDB(recordId),
+  const listControlReviews = useCallback(
+    (recordId: string): Promise<ControlReview[]> => listControlReviewsFromIndexedDB(recordId),
     []
   );
 
-  const saveSustainmentReview = useCallback(async (review: ControlReview): Promise<void> => {
+  const saveControlReview = useCallback(async (review: ControlReview): Promise<void> => {
     await saveControlReviewToIndexedDB(review);
 
     if (!navigator.onLine || isLocalDev()) {
@@ -746,12 +746,12 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      await saveSustainmentReviewToCloud('blob-sas', review);
+      await saveControlReviewToCloud('blob-sas', review);
     } catch (error) {
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
         errorService.logWarning('Failed to save sustainment review to cloud', {
           component: 'storage',
-          action: 'saveSustainmentReview',
+          action: 'saveControlReview',
           metadata: { error: error instanceof Error ? error.message : String(error) },
         });
       }
@@ -899,10 +899,10 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     saveEvidenceSource,
     listEvidenceSnapshots,
     saveEvidenceSnapshot,
-    listSustainmentRecords,
-    saveSustainmentRecord,
-    listSustainmentReviews,
-    saveSustainmentReview,
+    listControlRecords,
+    saveControlRecord,
+    listControlReviews,
+    saveControlReview,
     listControlHandoffs,
     saveControlHandoff,
     syncStatus,

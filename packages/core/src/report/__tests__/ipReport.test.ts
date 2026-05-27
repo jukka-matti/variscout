@@ -153,7 +153,7 @@ function handoff(overrides: Partial<ControlHandoff> = {}): ControlHandoff {
     operationalOwner: { displayName: 'Pat Owner' },
     handoffDate: now,
     description: 'Recipe control moved into the line SOP.',
-    retainSustainmentReview: true,
+    retainControlReview: true,
     recordedBy: { displayName: 'Mira Lead' },
     createdAt: now,
     deletedAt: null,

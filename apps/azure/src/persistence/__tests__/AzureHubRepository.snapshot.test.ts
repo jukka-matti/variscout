@@ -62,7 +62,7 @@ function makeHub(id: string, ips: ImprovementProject[] = []): ProcessHub {
   };
 }
 
-function makeSustainmentRecord(id: string, hubId: string): ControlRecord {
+function makeControlRecord(id: string, hubId: string): ControlRecord {
   return {
     id,
     hubId,
@@ -79,7 +79,7 @@ function makeSustainmentRecord(id: string, hubId: string): ControlRecord {
   };
 }
 
-function makeSustainmentReview(id: string, recordId: string, hubId: string): ControlReview {
+function makeControlReview(id: string, recordId: string, hubId: string): ControlReview {
   return {
     id,
     recordId,
@@ -172,8 +172,8 @@ describe('AzureHubRepository.dispatch HUB_PERSIST_SNAPSHOT — Dexie integration
 
   it('strips sustainment arrays from the hub blob and writes them to normalized tables', async () => {
     const repo = new AzureHubRepository();
-    const record = makeSustainmentRecord('sr-1', 'hub-5');
-    const review = makeSustainmentReview('rev-1', 'sr-1', 'hub-5');
+    const record = makeControlRecord('sr-1', 'hub-5');
+    const review = makeControlReview('rev-1', 'sr-1', 'hub-5');
     const hub = {
       ...makeHub('hub-5'),
       controlRecords: [record],
@@ -195,15 +195,15 @@ describe('AzureHubRepository.dispatch HUB_PERSIST_SNAPSHOT — Dexie integration
 
   it('cleans up stale sustainment rows absent from the new snapshot', async () => {
     const repo = new AzureHubRepository();
-    await db.controlRecords.put(makeSustainmentRecord('sr-stale', 'hub-6'));
-    await db.controlReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-6'));
+    await db.controlRecords.put(makeControlRecord('sr-stale', 'hub-6'));
+    await db.controlReviews.put(makeControlReview('rev-stale', 'sr-stale', 'hub-6'));
 
     await repo.dispatch({
       kind: 'HUB_PERSIST_SNAPSHOT',
       hub: {
         ...makeHub('hub-6'),
-        controlRecords: [makeSustainmentRecord('sr-keep', 'hub-6')],
-        controlReviews: [makeSustainmentReview('rev-keep', 'sr-keep', 'hub-6')],
+        controlRecords: [makeControlRecord('sr-keep', 'hub-6')],
+        controlReviews: [makeControlReview('rev-keep', 'sr-keep', 'hub-6')],
       } as ProcessHub,
     });
 
@@ -217,8 +217,8 @@ describe('AzureHubRepository.dispatch HUB_PERSIST_SNAPSHOT — Dexie integration
 
   it('cleans up stale sustainment rows when a snapshot omits sustainment arrays', async () => {
     const repo = new AzureHubRepository();
-    await db.controlRecords.put(makeSustainmentRecord('sr-stale', 'hub-7'));
-    await db.controlReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-7'));
+    await db.controlRecords.put(makeControlRecord('sr-stale', 'hub-7'));
+    await db.controlReviews.put(makeControlReview('rev-stale', 'sr-stale', 'hub-7'));
 
     await repo.dispatch({
       kind: 'HUB_PERSIST_SNAPSHOT',

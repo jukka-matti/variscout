@@ -172,7 +172,7 @@ export async function applyAction(action: HubAction): Promise<void> {
             provenance: action.provenance,
           };
           await db.evidenceSnapshots.put(envelope);
-          await evaluateSustainmentRecordsForSnapshot(action.hubId, envelope);
+          await evaluateControlRecordsForSnapshot(action.hubId, envelope);
         }
       );
       return;
@@ -607,7 +607,7 @@ export async function applyAction(action: HubAction): Promise<void> {
   }
 }
 
-async function evaluateSustainmentRecordsForSnapshot(
+async function evaluateControlRecordsForSnapshot(
   hubId: string,
   snapshot: EvidenceSnapshot
 ): Promise<void> {

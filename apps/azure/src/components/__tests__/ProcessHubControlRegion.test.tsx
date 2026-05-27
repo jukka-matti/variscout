@@ -193,7 +193,7 @@ describe('ProcessHubControlRegion', () => {
         operationalOwner: { displayName: 'Alice' },
         handoffDate: 1740787200000, // 2026-03-01T00:00:00.000Z
         description: 'Procedure updated',
-        retainSustainmentReview: true,
+        retainControlReview: true,
         createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z (formerly recordedAt)
         deletedAt: null,
         recordedBy: { displayName: 'Alice' },
@@ -266,7 +266,7 @@ describe('ProcessHubControlRegion', () => {
     expect(screen.getByText('Pasteurizer Temp')).toBeInTheDocument();
   });
 
-  it('hides all sustainment buckets when a controlled investigation has retainSustainmentReview=false', () => {
+  it('hides all sustainment buckets when a controlled investigation has retainControlReview=false', () => {
     const inv = makeInvestigation({
       id: 'inv-5',
       name: 'Pressure Drop',
@@ -300,7 +300,7 @@ describe('ProcessHubControlRegion', () => {
         operationalOwner: { displayName: 'Bob' },
         handoffDate: 1742000000000, // 2026-03-15T~
         description: 'Dashboard monitoring in place',
-        retainSustainmentReview: false,
+        retainControlReview: false,
         createdAt: 1742000000000, // (formerly recordedAt)
         deletedAt: null,
         recordedBy: { displayName: 'Bob' },

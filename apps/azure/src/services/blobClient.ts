@@ -705,11 +705,11 @@ export async function getEtagForProject(projectId: string): Promise<string | nul
 
 // ── Control blobs ─────────────────────────────────────────────────────
 
-export async function listBlobSustainmentRecords(hubId: string): Promise<ControlRecord[]> {
+export async function listBlobControlRecords(hubId: string): Promise<ControlRecord[]> {
   return (await getJsonBlob<ControlRecord[]>(controlCatalogPath(hubId))) ?? [];
 }
 
-export async function saveBlobSustainmentRecord(record: ControlRecord): Promise<void> {
+export async function saveBlobControlRecord(record: ControlRecord): Promise<void> {
   await putJsonBlob(controlRecordBlobPath(record.hubId, record.id), record);
 }
 
@@ -720,7 +720,7 @@ export async function updateBlobSustainmentCatalog(
   await putJsonBlob(controlCatalogPath(hubId), records);
 }
 
-export async function loadBlobSustainmentReview(
+export async function loadBlobControlReview(
   hubId: string,
   recordId: string,
   reviewId: string
@@ -730,7 +730,7 @@ export async function loadBlobSustainmentReview(
   );
 }
 
-export async function saveBlobSustainmentReview(review: ControlReview): Promise<void> {
+export async function saveBlobControlReview(review: ControlReview): Promise<void> {
   await putJsonBlob(controlReviewBlobPath(review.hubId, review.recordId, review.id), review);
 }
 

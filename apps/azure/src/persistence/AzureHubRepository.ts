@@ -69,26 +69,26 @@ export class AzureHubRepository implements HubRepository {
               improvementProjects.map(p => ({ ...p, hubId: action.hub.id }))
             );
           }
-          const incomingSustainmentRecords = controlRecords ?? [];
-          const incomingRecordIds = new Set(incomingSustainmentRecords.map(record => record.id));
+          const incomingControlRecords = controlRecords ?? [];
+          const incomingRecordIds = new Set(incomingControlRecords.map(record => record.id));
           await db.controlRecords
             .where('hubId')
             .equals(action.hub.id)
             .filter(record => !incomingRecordIds.has(record.id))
             .delete();
-          if (incomingSustainmentRecords.length > 0) {
-            await db.controlRecords.bulkPut(incomingSustainmentRecords);
+          if (incomingControlRecords.length > 0) {
+            await db.controlRecords.bulkPut(incomingControlRecords);
           }
 
-          const incomingSustainmentReviews = controlReviews ?? [];
-          const incomingReviewIds = new Set(incomingSustainmentReviews.map(review => review.id));
+          const incomingControlReviews = controlReviews ?? [];
+          const incomingReviewIds = new Set(incomingControlReviews.map(review => review.id));
           await db.controlReviews
             .where('hubId')
             .equals(action.hub.id)
             .filter(review => !incomingReviewIds.has(review.id))
             .delete();
-          if (incomingSustainmentReviews.length > 0) {
-            await db.controlReviews.bulkPut(incomingSustainmentReviews);
+          if (incomingControlReviews.length > 0) {
+            await db.controlReviews.bulkPut(incomingControlReviews);
           }
 
           const incomingControlHandoffs = controlHandoffs ?? [];
@@ -359,16 +359,16 @@ async function hydrateHub(hub: ProcessHub): Promise<ProcessHub> {
     db.controlHandoffs.where('hubId').equals(hub.id).toArray(),
   ]);
   const liveIps = ips.filter(p => p.deletedAt === null);
-  const liveSustainmentRecords = controlRecords.filter(record => record.deletedAt === null);
-  const liveSustainmentReviews = sortReviewsDescending(
+  const liveControlRecords = controlRecords.filter(record => record.deletedAt === null);
+  const liveControlReviews = sortReviewsDescending(
     controlReviews.filter(review => review.deletedAt === null)
   );
   const liveControlHandoffs = controlHandoffs.filter(handoff => handoff.deletedAt === null);
   return {
     ...hub,
     ...(liveIps.length > 0 ? { improvementProjects: liveIps } : {}),
-    ...(liveSustainmentRecords.length > 0 ? { controlRecords: liveSustainmentRecords } : {}),
-    ...(liveSustainmentReviews.length > 0 ? { controlReviews: liveSustainmentReviews } : {}),
+    ...(liveControlRecords.length > 0 ? { controlRecords: liveControlRecords } : {}),
+    ...(liveControlReviews.length > 0 ? { controlReviews: liveControlReviews } : {}),
     ...(liveControlHandoffs.length > 0 ? { controlHandoffs: liveControlHandoffs } : {}),
   };
 }
