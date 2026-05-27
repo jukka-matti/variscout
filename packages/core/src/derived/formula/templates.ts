@@ -55,11 +55,6 @@ function colMinus(column: string) {
   return { kind: 'column' as const, column, sign: '-' as const };
 }
 
-/** Constant term. */
-function constant(value: number) {
-  return { kind: 'constant' as const, value };
-}
-
 /** Build a base FormulaBinding skeleton. */
 function makeBinding(
   overrides: Partial<FormulaBinding> & {
@@ -197,15 +192,17 @@ const dpmo: FormulaTemplate = {
       denominatorCol = cols[1] ?? cols[0];
     }
 
+    // DPMO = (Defects / Samples) × (1,000,000 / opportunities_per_unit).
+    // We encode opportunities_per_unit via multiplier inversion in the UI layer
+    // (Phase 2): default opps_per_unit = 1 → multiplier = 1_000_000; user edits
+    // opps_per_unit = N → multiplier = 1_000_000 / N. Keeps the engine's "sum of
+    // signed terms" model intact (no multiplicative term kind needed).
     return makeBinding({
       name: 'DPMO',
       family: 'dpmo',
       templateId: 'dpmo',
       numerator: [colPlus(numeratorCol)],
-      denominator: [
-        colPlus(denominatorCol),
-        constant(1), // editable opportunities_per_unit placeholder
-      ],
+      denominator: [colPlus(denominatorCol)],
       multiplier: 1_000_000,
     });
   },

@@ -157,10 +157,7 @@ describe('FORMULA_TEMPLATES registry', () => {
     const binding = t.fillFromContext(ctx);
 
     expect(binding.numerator).toEqual([{ kind: 'column', column: 'Defects', sign: '+' }]);
-    expect(binding.denominator).toEqual([
-      { kind: 'column', column: 'Samples', sign: '+' },
-      { kind: 'constant', value: 1 },
-    ]);
+    expect(binding.denominator).toEqual([{ kind: 'column', column: 'Samples', sign: '+' }]);
     expect(binding.multiplier).toBe(1_000_000);
     expect(binding.name).toBe('DPMO');
     expect(binding.templateId).toBe('dpmo');
@@ -177,10 +174,7 @@ describe('FORMULA_TEMPLATES registry', () => {
     const binding = t.fillFromContext(ctx);
 
     expect(binding.numerator).toEqual([{ kind: 'column', column: 'X', sign: '+' }]);
-    expect(binding.denominator).toEqual([
-      { kind: 'column', column: 'Y', sign: '+' },
-      { kind: 'constant', value: 1 },
-    ]);
+    expect(binding.denominator).toEqual([{ kind: 'column', column: 'Y', sign: '+' }]);
     expect(binding.multiplier).toBe(1_000_000);
   });
 
@@ -278,13 +272,12 @@ describe('FORMULA_TEMPLATES registry', () => {
 // Integration: template-generated bindings through evaluateFormulaRow /
 // computeFormulaColumn. Tests verify the engine + registry compose correctly.
 //
-// NOTE on DPMO denominator semantics: the evaluator uses additive sumTerms for
-// all denominator terms, so `[colPlus('Samples'), constant(N)]` evaluates to
-// `Samples + N`, not `Samples * N`. Canonical DPMO = D/(S*O)*1M, but with
-// the current evaluator the constant acts as an additive offset rather than
-// a multiplicative opportunities factor. Tests reflect actual evaluator
-// behaviour; the Phase 2 modal UI should expose this in a user-friendly way
-// and may prompt an evaluator extension for a `kind:'multiply'` term type.
+// NOTE on DPMO opportunities_per_unit semantics: the engine encodes
+// opps_per_unit via multiplier inversion (multiplier = 1_000_000 / opps_per_unit)
+// rather than via an additive constant in the denominator. This keeps the
+// evaluator's "sum of signed terms" model intact while still expressing
+// canonical DPMO = D / (S × O) × 1M. The Phase 2 modal UI surfaces opps_per_unit
+// as an editable input that updates the binding's multiplier on save.
 // ---------------------------------------------------------------------------
 
 describe('template + evaluator integration', () => {
@@ -301,19 +294,15 @@ describe('template + evaluator integration', () => {
     const dpmoTemplate = FORMULA_TEMPLATES.find(t => t.id === 'dpmo')!;
     const binding = dpmoTemplate.fillFromContext(ctx);
 
-    // denominator = Samples + constant(1) = 100 + 1 = 101 (additive evaluator)
-    // result = 3 / 101 * 1_000_000
-    expect(evaluateFormulaRow({ Defects: 3, Samples: 100 }, binding, {}, 0)).toBeCloseTo(
-      (3 / 101) * 1_000_000,
-      5
-    );
+    // canonical DPMO with opps=1: 3 / 100 × 1_000_000 = 30000
+    expect(evaluateFormulaRow({ Defects: 3, Samples: 100 }, binding, {}, 0)).toBe(30000);
   });
 
   // -------------------------------------------------------------------------
   // 2. DPMO end-to-end with custom opportunities multiplier (opp=5)
   // -------------------------------------------------------------------------
 
-  it('2. DPMO evaluates correctly when constant term is edited from 1 to 5', () => {
+  it('2. DPMO evaluates correctly when opportunities_per_unit is set to 5 (multiplier inversion)', () => {
     const ctx: TemplateContext = {
       batchData: null,
       hasLeadTime: false,
@@ -322,22 +311,17 @@ describe('template + evaluator integration', () => {
     const dpmoTemplate = FORMULA_TEMPLATES.find(t => t.id === 'dpmo')!;
     const baseBinding = dpmoTemplate.fillFromContext(ctx);
 
-    // Simulate user editing opportunities_per_unit constant from 1 → 5
+    // Simulate Phase 2 UI: user edits opportunities_per_unit from 1 → 5.
+    // UI updates multiplier from 1_000_000 → 200_000 (= 1_000_000 / 5).
     const editedBinding: FormulaBinding = {
       ...baseBinding,
-      denominator: baseBinding.denominator.map(t =>
-        t.kind === 'constant' ? { ...t, value: 5 } : t
-      ),
+      multiplier: 1_000_000 / 5,
     };
 
-    // denominator = Samples + constant(5) = 100 + 5 = 105 (additive evaluator)
-    // result = 3 / 105 * 1_000_000
-    expect(evaluateFormulaRow({ Defects: 3, Samples: 100 }, editedBinding, {}, 0)).toBeCloseTo(
-      (3 / 105) * 1_000_000,
-      5
-    );
+    // canonical DPMO with opps=5: 3 / (100 × 5) × 1_000_000 = 3 / 500 × 1M = 6000
+    expect(evaluateFormulaRow({ Defects: 3, Samples: 100 }, editedBinding, {}, 0)).toBe(6000);
 
-    // batch via computeFormulaColumn: both rows yield the same ratio
+    // batch via computeFormulaColumn
     const result = computeFormulaColumn(
       [
         { Defects: 3, Samples: 100 },
@@ -346,10 +330,9 @@ describe('template + evaluator integration', () => {
       editedBinding,
       {}
     );
-    // 6 / (200+5) * 1_000_000 = 6/205 * 1M
-    expect(result).not.toBeNull();
-    expect(result![0]).toBeCloseTo((3 / 105) * 1_000_000, 5);
-    expect(result![1]).toBeCloseTo((6 / 205) * 1_000_000, 5);
+    // row 0: 3 / (100 × 5) × 1M = 6000
+    // row 1: 6 / (200 × 5) × 1M = 6000
+    expect(result).toEqual([6000, 6000]);
   });
 
   // -------------------------------------------------------------------------
