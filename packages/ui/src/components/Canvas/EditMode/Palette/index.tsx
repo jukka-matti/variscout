@@ -18,17 +18,24 @@ export interface PaletteProps {
   onReviewAllWarnings?: () => void;
 }
 
-type GroupKey = 'numeric' | 'categorical' | 'time-id' | 'other';
+type GroupKey = 'numeric' | 'categorical' | 'time-id' | 'derived' | 'other';
 
 const GROUP_ORDER: ReadonlyArray<{ key: GroupKey; label: string }> = [
   { key: 'numeric', label: 'Numeric' },
   { key: 'categorical', label: 'Categorical' },
   { key: 'time-id', label: 'Time / ID' },
+  { key: 'derived', label: 'DERIVED FROM TIMINGS' }, // label overridden dynamically per derivationSource
   { key: 'other', label: 'Other' },
 ];
 
-function bucketFor(kind: ParsingInterpretation['kind'] | undefined): GroupKey {
-  switch (kind) {
+function labelForDerivedGroup(profiles: ColumnParsingProfile[]): string {
+  const source = profiles[0]?.derivationSource ?? 'timings';
+  return `DERIVED FROM ${source.toUpperCase()}`;
+}
+
+function bucketFor(profile: ColumnParsingProfile): GroupKey {
+  if (profile.derived) return 'derived';
+  switch (profile.primary?.kind) {
     case 'numeric':
       return 'numeric';
     case 'categorical':
@@ -71,10 +78,11 @@ export const Palette: React.FC<PaletteProps> = ({
     numeric: [],
     categorical: [],
     'time-id': [],
+    derived: [],
     other: [],
   };
   for (const profile of profiles) {
-    buckets[bucketFor(profile.primary?.kind)].push(profile);
+    buckets[bucketFor(profile)].push(profile);
   }
 
   const activeProfile = openOverlay && profiles.find(p => p.columnName === openOverlay.columnName);
@@ -89,7 +97,7 @@ export const Palette: React.FC<PaletteProps> = ({
         <ColumnGroup
           key={key}
           groupKey={key}
-          label={label}
+          label={key === 'derived' ? labelForDerivedGroup(buckets[key]) : label}
           profiles={buckets[key]}
           numericValuesByColumn={numericValuesByColumn}
           onColumnOverrideOpen={(columnName, anchor) =>

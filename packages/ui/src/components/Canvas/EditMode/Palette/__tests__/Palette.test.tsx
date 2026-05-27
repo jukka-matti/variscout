@@ -93,6 +93,115 @@ describe('Palette', () => {
   });
 });
 
+describe('Palette — derived group', () => {
+  it('renders DERIVED FROM TIMINGS group header when derived profiles exist', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Lead_time',
+          derived: true,
+          derivationSource: 'timings',
+          primary: { kind: 'numeric', label: 'numeric · duration', detail: {} },
+        }),
+      ],
+    });
+    const derivedGroup = screen.getByTestId('palette-group-derived');
+    expect(derivedGroup).toBeInTheDocument();
+    expect(derivedGroup).toHaveTextContent('DERIVED FROM TIMINGS');
+  });
+
+  it('does NOT render derived group header when no derived profiles exist', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Speed',
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+      ],
+    });
+    expect(screen.queryByTestId('palette-group-derived')).toBeNull();
+  });
+
+  it('renders derived chips with derived=true in derived group', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Lead_time',
+          derived: true,
+          derivationSource: 'timings',
+          primary: { kind: 'numeric', label: 'numeric · duration', detail: {} },
+        }),
+      ],
+    });
+    expect(screen.getByText('✨')).toBeInTheDocument();
+  });
+
+  it('renders derived group between time-id and other in canonical order', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Speed',
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+        createTestColumnParsingProfile({
+          columnName: 'Lead_time',
+          derived: true,
+          derivationSource: 'timings',
+          primary: { kind: 'numeric', label: 'numeric · duration', detail: {} },
+        }),
+        createTestColumnParsingProfile({
+          columnName: 'Notes',
+          primary: { kind: 'text', label: 'text', detail: {} },
+        }),
+      ],
+    });
+    const groups = screen.getAllByTestId(/^palette-group-/);
+    const testIds = groups.map(g => g.getAttribute('data-testid'));
+    const derivedIdx = testIds.indexOf('palette-group-derived');
+    const otherIdx = testIds.indexOf('palette-group-other');
+    const numericIdx = testIds.indexOf('palette-group-numeric');
+    expect(numericIdx).toBeLessThan(derivedIdx);
+    expect(derivedIdx).toBeLessThan(otherIdx);
+  });
+
+  it('uses default TIMINGS label when derivationSource is undefined on derived profile', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Lead_time',
+          derived: true,
+          // no derivationSource
+          primary: { kind: 'numeric', label: 'numeric · duration', detail: {} },
+        }),
+      ],
+    });
+    const derivedGroup = screen.getByTestId('palette-group-derived');
+    expect(derivedGroup).toHaveTextContent('DERIVED FROM TIMINGS');
+  });
+
+  it('raw (non-derived) profiles still route to their kind-based group', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Speed',
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+        createTestColumnParsingProfile({
+          columnName: 'Lead_time',
+          derived: true,
+          derivationSource: 'timings',
+          primary: { kind: 'numeric', label: 'numeric · duration', detail: {} },
+        }),
+      ],
+    });
+    const numericGroup = screen.getByTestId('palette-group-numeric');
+    expect(numericGroup).toHaveTextContent('Speed');
+    expect(numericGroup).not.toHaveTextContent('Lead_time');
+    const derivedGroup = screen.getByTestId('palette-group-derived');
+    expect(derivedGroup).toHaveTextContent('Lead_time');
+  });
+});
+
 describe('Palette — overlay state + banner', () => {
   const warningProfiles = (n: number) =>
     Array.from({ length: n }, (_, i) =>

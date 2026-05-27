@@ -143,4 +143,11 @@ export interface ColumnParsingProfile {
   alternatives: ParsingAlternative[];
   /** Up to 3 raw→transformed sample pairs (e.g. "182,5" → "182.5"). */
   transformedSamples: Array<{ raw: string; transformed: string }>;
+  /** Whether this profile represents a derived/computed column (NOT a raw column from the data).
+   *  Derived chips render in a separate palette group with a green tint + ✨ marker.
+   *  D1: Task 8 adds the type; Task 10 (CanvasWorkspace integration) populates them. */
+  derived?: boolean;
+  /** When `derived === true`, indicates the source of the derivation. Drives the
+   *  "DERIVED FROM ..." header label in the palette group. */
+  derivationSource?: 'timings' | 'formula' | 'time-decomposition';
 }

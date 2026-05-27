@@ -125,6 +125,44 @@ describe('ColumnChip — visual states', () => {
   });
 });
 
+describe('ColumnChip — derived variant', () => {
+  it('does NOT render ✨ marker when derived is absent (default)', () => {
+    renderChip({ profile: createTestColumnParsingProfile() });
+    expect(screen.queryByText('✨')).toBeNull();
+  });
+
+  it('does NOT render ✨ marker when derived=false', () => {
+    renderChip({ profile: createTestColumnParsingProfile(), derived: false });
+    expect(screen.queryByText('✨')).toBeNull();
+  });
+
+  it('renders ✨ marker when derived=true', () => {
+    renderChip({ profile: createTestColumnParsingProfile(), derived: true });
+    expect(screen.getByText('✨')).toBeInTheDocument();
+  });
+
+  it('applies green tint classes when derived=true', () => {
+    renderChip({ profile: createTestColumnParsingProfile(), derived: true });
+    const chip = screen.getByTestId('column-chip');
+    expect(chip.className).toMatch(/bg-emerald-50/);
+    expect(chip.className).toMatch(/dark:bg-emerald-950/);
+  });
+
+  it('does NOT apply green tint when derived is absent', () => {
+    renderChip({ profile: createTestColumnParsingProfile() });
+    const chip = screen.getByTestId('column-chip');
+    expect(chip.className).not.toMatch(/bg-emerald-50/);
+  });
+
+  it('still shows green tint classes when both dropped=true and derived=true', () => {
+    renderChip({ profile: createTestColumnParsingProfile(), derived: true, dropped: true });
+    const chip = screen.getByTestId('column-chip');
+    expect(chip.className).toMatch(/bg-emerald-50/);
+    expect(chip.className).toMatch(/dark:bg-emerald-950/);
+    expect(chip.className).toMatch(/opacity-50/);
+  });
+});
+
 describe('ColumnChip — sparkline', () => {
   it('renders a sparkline SVG for numeric kind when numericValues provided', () => {
     renderChip({
