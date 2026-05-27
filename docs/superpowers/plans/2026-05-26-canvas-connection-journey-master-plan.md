@@ -298,7 +298,7 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 **Dependencies:** C3 (step model to bind timings to).
 
-**Sub-plan needed:** YES.
+**Sub-plan needed:** YES — drafted 2026-05-27 at [`2026-05-27-canvas-connection-journey-d-1-step-timings.md`](./2026-05-27-canvas-connection-journey-d-1-step-timings.md). Structured as single-PR with 3 internal phases (engine in `core/derived/` · `StepTimingsModal` under `Canvas/EditMode/Workflows/` · toolbar + derived chips + step-box wiring + CanvasWorkspace integration). 10 tasks, mid-execution carve point at Phase 1 → Phase 2 boundary if size strain emerges.
 
 #### PR-CCJ-D2 · Calculated column workflow + ratio engine
 
