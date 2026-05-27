@@ -581,6 +581,95 @@ describe('StepTimingsModal', () => {
     });
   });
 
+  describe('by-column tab: multi-Start same-step + cross-tab mutual exclusion (Task 5 coverage)', () => {
+    it('two columns assigned Start to same step — first assignment wins in Save payload', () => {
+      // Plan §"first-wins for multiple Start columns" — once a step has a Start
+      // column bound, assigning a second column as Start for the same step is a
+      // no-op (the first column's assignment survives). This pins the behavior
+      // documented in ByColumnTable's JSDoc.
+      const steps = [createTestStep({ id: 'mix', name: 'Mix' })];
+      const dateProfiles = [
+        dateProfile('Mix_start'),
+        dateProfile('Alt_start'),
+        dateProfile('Mix_end'),
+      ];
+      const { onSave } = renderModal({ steps, dateProfiles });
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+
+      // First: assign Mix_start as Start for mix
+      fireEvent.change(screen.getByTestId('column-binding-row-Mix_start-step'), {
+        target: { value: 'mix' },
+      });
+      fireEvent.change(screen.getByTestId('column-binding-row-Mix_start-role'), {
+        target: { value: 'start' },
+      });
+      // Then: try to assign Alt_start as Start for mix — should be a no-op
+      fireEvent.change(screen.getByTestId('column-binding-row-Alt_start-step'), {
+        target: { value: 'mix' },
+      });
+      fireEvent.change(screen.getByTestId('column-binding-row-Alt_start-role'), {
+        target: { value: 'start' },
+      });
+      // Assign Mix_end as End for mix (completes the pair)
+      fireEvent.change(screen.getByTestId('column-binding-row-Mix_end-step'), {
+        target: { value: 'mix' },
+      });
+      fireEvent.change(screen.getByTestId('column-binding-row-Mix_end-role'), {
+        target: { value: 'end' },
+      });
+
+      fireEvent.click(screen.getByTestId('step-timings-save'));
+      expect(onSave).toHaveBeenCalledOnce();
+      const bindings = onSave.mock.calls[0]![0] as StepTimingBinding[];
+      expect(bindings).toHaveLength(1);
+      expect(bindings[0]).toMatchObject({
+        kind: 'paired',
+        stepId: 'mix',
+        startColumn: 'Mix_start', // first-wins per JSDoc
+        endColumn: 'Mix_end',
+      });
+    });
+
+    it('by-column role change to Duration on a step with start/end set clears them (cross-tab mutual exclusion)', () => {
+      // User flow: step has paired binding via by-step → switch to by-column →
+      // change role on the End column to Duration → mutual exclusion fires.
+      // Verify via the resulting state visible in by-step pickers + Save payload.
+      const steps = [createTestStep({ id: 'mix', name: 'Mix' })];
+      const dateProfiles = [dateProfile('Mix_start'), dateProfile('Mix_end')];
+      const numericProfiles = [numericProfile('Cycle_time_min')];
+      const { onSave } = renderModal({ steps, dateProfiles, numericProfiles });
+
+      // Auto-detect fills both Mix_start and Mix_end for step `mix`. Confirm.
+      const startSelectBefore = screen.getByTestId(
+        'step-timing-row-mix-start'
+      ) as HTMLSelectElement;
+      expect(startSelectBefore.value).toBe('Mix_start');
+
+      // Switch to by-column and change Mix_end's role from End to Duration.
+      // The role picker exposes Start/End/Duration regardless of column kind;
+      // mutual exclusion fires on the Duration write.
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+      fireEvent.change(screen.getByTestId('column-binding-row-Mix_end-role'), {
+        target: { value: 'duration' },
+      });
+
+      // Switch back to by-step. Mutual exclusion cleared both start and end
+      // pickers for mix.
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-step'));
+      const startSelectAfter = screen.getByTestId('step-timing-row-mix-start') as HTMLSelectElement;
+      const endSelectAfter = screen.getByTestId('step-timing-row-mix-end') as HTMLSelectElement;
+      expect(startSelectAfter.value).toBe('');
+      expect(endSelectAfter.value).toBe('');
+
+      // Save payload confirms: step `mix` now has duration='Mix_end' (even though
+      // Mix_end is a date column — the engine accepts whatever the state holds;
+      // engine assumption is duration values are ms-numeric per Task 2 JSDoc).
+      fireEvent.click(screen.getByTestId('step-timings-save'));
+      const bindings = onSave.mock.calls[0]![0] as StepTimingBinding[];
+      expect(bindings).toEqual([{ kind: 'duration', stepId: 'mix', durationColumn: 'Mix_end' }]);
+    });
+  });
+
   describe('by-column tab: shared state with by-step (Task 5)', () => {
     const steps = [createTestStep({ id: 'prep', name: 'Prep', order: 0 })];
     const sharedDateProfiles = [dateProfile('Prep_start'), dateProfile('Prep_end')];
