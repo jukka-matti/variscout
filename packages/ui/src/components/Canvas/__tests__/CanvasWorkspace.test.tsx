@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import type {
@@ -1534,5 +1534,186 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
     // Open the modal — derived chips still should not appear (Save not clicked).
     fireEvent.click(screen.getByRole('button', { name: /\+ Capture step timings/i }));
     expect(screen.queryByTestId('palette-group-derived')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// D2 Task 10 — kebab calculate-from dispatch
+// ---------------------------------------------------------------------------
+//
+// Exercises the end-to-end calculate-from flow inside Edit mode:
+//   chip kebab → context menu → "Calculate from this column…" →
+//   CalculatedColumnModal opens pre-populated with sourceColumn →
+//   Cancel/Escape closes it → Custom tab Save adds binding + closes.
+//
+// The test dataset keeps Fill_Weight + Bake_Time as numeric columns so the
+// palette renders them in the "Numeric" group and the context menu for numeric
+// chips includes the "Calculate from this column…" item.
+// ---------------------------------------------------------------------------
+
+describe('Task 10 — kebab calculate-from dispatch', () => {
+  const calcWorkspaceMap = (): ProcessMap => ({
+    version: 1,
+    nodes: [{ id: 'seed-step', name: 'Seed', order: 0 }],
+    tributaries: [],
+    createdAt: '2026-05-04T00:00:00.000Z',
+    updatedAt: '2026-05-04T00:00:00.000Z',
+  });
+
+  function renderCalcWorkspace(): void {
+    render(
+      <CanvasWorkspace
+        rawData={rawData as ReadonlyArray<import('@variscout/core').DataRow>}
+        outcome={null}
+        factors={[]}
+        measureSpecs={{}}
+        processContext={{ processMap: calcWorkspaceMap() }}
+        setOutcome={vi.fn()}
+        setFactors={vi.fn()}
+        setMeasureSpec={vi.fn()}
+        setProcessContext={vi.fn()}
+        onSeeData={vi.fn()}
+        canEditCanvas={true}
+      />
+    );
+  }
+
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/');
+    wallIsMobileRef.current = false;
+    localMechanismPropsRef.current = null;
+    dndMockHandlersRef.current = [];
+    useCanvasStore.setState(useCanvasStore.getInitialState());
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    vi.mocked(useSharedWallProps).mockClear();
+    canvasFiltersStateRef.current = {
+      timelineWindow: { kind: 'cumulative' },
+      scopeFilter: undefined,
+      paretoGroupBy: undefined,
+      activeCanvasLens: 'default',
+      activeCanvasOverlays: [],
+      setTimelineWindow: vi.fn(),
+      setScopeFilter: vi.fn(),
+      setParetoGroupBy: vi.fn(),
+      setActiveCanvasLens: vi.fn(),
+      setActiveCanvasOverlays: vi.fn(),
+      toggleCanvasOverlay: vi.fn(),
+      activeCanvasTool: 'select',
+      setActiveCanvasTool: vi.fn(),
+    };
+    vi.mocked(useCanvasStepCards).mockImplementation(() => ({ cards: mockStepCards }));
+    vi.mocked(useCanvasAnalyzeOverlays).mockImplementation(() => ({
+      overlays: mockInvestigationOverlays,
+    }));
+  });
+
+  it('clicking calculate-from on a numeric chip opens CalculatedColumnModal with sourceColumn set', () => {
+    renderCalcWorkspace();
+
+    // Edit mode shell is mounted (canEditCanvas:true + b1/b2 scope).
+    expect(screen.getByTestId('edit-mode-shell')).toBeInTheDocument();
+
+    // No modal yet.
+    expect(screen.queryByTestId('calc-column-backdrop')).toBeNull();
+
+    // Click the kebab (⋮) on the Fill_Weight chip.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for Fill_Weight' }));
+
+    // Menu is open — the "Calculate from this column…" item is visible.
+    const calcItem = screen.getByRole('menuitem', { name: 'Calculate from this column…' });
+    expect(calcItem).toBeInTheDocument();
+
+    // Click the item.
+    fireEvent.click(calcItem);
+
+    // Modal is open with the correct dialog role.
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByTestId('calc-column-backdrop')).toBeInTheDocument();
+
+    // The modal heading "Calculate a new column" is present.
+    expect(screen.getByText('Calculate a new column')).toBeInTheDocument();
+  });
+
+  it('modal onSave adds a FormulaBinding to local state and closes the modal', () => {
+    renderCalcWorkspace();
+
+    // Open the modal via the Fill_Weight kebab.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for Fill_Weight' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Calculate from this column…' }));
+
+    // Modal is open.
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+
+    // Switch to the Custom tab.
+    fireEvent.click(screen.getByTestId('calc-column-tab-custom'));
+
+    // Type a column name. The input has aria-label="Calculated column name".
+    const nameInput = screen.getByRole('textbox', { name: 'Calculated column name' });
+    fireEvent.change(nameInput, { target: { value: 'Fill_ratio' } });
+
+    // Add a numeric column to the numerator so Save is enabled.
+    // PaletteChips inside the modal's custom palette have aria-label={column}.
+    // Scope lookup to within the dialog to avoid ambiguity with main palette chips.
+    const paletteChip = within(dialog).getByRole('button', { name: 'Fill_Weight' });
+    fireEvent.click(paletteChip);
+
+    // Save the binding.
+    const saveBtn = screen.getByTestId('calc-column-custom-save');
+    expect(saveBtn).not.toBeDisabled();
+    fireEvent.click(saveBtn);
+
+    // Modal closes.
+    expect(screen.queryByTestId('calc-column-backdrop')).toBeNull();
+  });
+
+  it('modal Cancel button closes the modal', () => {
+    renderCalcWorkspace();
+
+    // Open the modal.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for Fill_Weight' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Calculate from this column…' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Click Cancel.
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    // Modal is gone.
+    expect(screen.queryByTestId('calc-column-backdrop')).toBeNull();
+  });
+
+  it('Escape key closes the modal', () => {
+    renderCalcWorkspace();
+
+    // Open the modal.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for Fill_Weight' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Calculate from this column…' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Press Escape.
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    // Modal is gone.
+    expect(screen.queryByTestId('calc-column-backdrop')).toBeNull();
+  });
+
+  it('the context menu for a categorical chip does not include calculate-from', () => {
+    renderCalcWorkspace();
+
+    // Machine is categorical in the test dataset.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for Machine' }));
+
+    // "Calculate from this column…" should NOT be in the menu.
+    expect(screen.queryByRole('menuitem', { name: 'Calculate from this column…' })).toBeNull();
+
+    // But "Use as factor" IS present (categorical menu item).
+    expect(screen.getByRole('menuitem', { name: 'Use as factor' })).toBeInTheDocument();
+  });
+
+  it('modal is closed by default (calcModalOpen = null) before any interaction', () => {
+    renderCalcWorkspace();
+
+    expect(screen.queryByTestId('calc-column-backdrop')).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

@@ -21,6 +21,7 @@ import {
   type ColumnAnalysis,
   type DataRow,
   type Finding,
+  type FormulaBinding,
   type ProcessContext,
   type ProcessHubId,
   type ProcessHubAnalyze,
@@ -41,6 +42,7 @@ import { Canvas, type CanvasAuthoringMode, type CanvasL3Archetype } from './inde
 import { EditModeShell } from './EditMode';
 import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCategoricalColumn';
 import { StepTimingsModal } from './EditMode/Workflows/StepTimingsModal';
+import { CalculatedColumnModal } from './EditMode/Workflows/CalculatedColumnModal';
 import { formatDuration } from './EditMode/formatDuration';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
@@ -490,6 +492,21 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const [stepTimings, setStepTimings] = React.useState<StepTimingBinding[]>([]);
   const [stepTimingsModalOpen, setStepTimingsModalOpen] = React.useState(false);
 
+  // D2 Task 10: local state for formula bindings saved via the
+  // CalculatedColumnModal. Task 11 synthesises derived profiles from these
+  // bindings; Task 10 only persists the binding in local state + closes the modal.
+  // TODO(PR-CCJ-E1): persist formulaBindings to ImprovementProject via Charter modal commit.
+  const [formulaBindings, setFormulaBindings] = React.useState<FormulaBinding[]>([]);
+  const [calcModalOpen, setCalcModalOpen] = React.useState<{ sourceColumn?: string } | null>(null);
+
+  const onChipContextMenuSelect = React.useCallback((columnName: string, itemId: string) => {
+    if (itemId === 'calculate-from') {
+      setCalcModalOpen({ sourceColumn: columnName });
+    }
+    // Other itemIds (rename, view-distribution, etc.) are handled at the Palette level
+    // or fall through. CanvasWorkspace only owns calculate-from for now.
+  }, []);
+
   const handleStepsReplace = React.useCallback(
     (next: ExtractedStep[], _sourceColumnName: string) => {
       // TODO(PR-CCJ-E1): persist into ImprovementProject.processSteps via the
@@ -849,6 +866,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
               numericValuesByColumn={numericValuesByColumn}
               steps={processSteps}
               categoricalDistinctValuesByColumn={categoricalDistinctValuesByColumn}
+              onMenuItemSelect={onChipContextMenuSelect}
               onStepsReplace={handleStepsReplace}
               onCaptureStepTimings={() => setStepTimingsModalOpen(true)}
               timingByStepId={timingByStepId}
@@ -864,6 +882,24 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                   setStepTimingsModalOpen(false);
                 }}
                 onClose={() => setStepTimingsModalOpen(false)}
+              />
+            )}
+            {calcModalOpen != null && (
+              <CalculatedColumnModal
+                sourceColumn={calcModalOpen.sourceColumn}
+                rawProfiles={rawProfiles}
+                numericValuesByColumn={numericValuesByColumn}
+                rows={rawData}
+                hasLeadTime={leadTimeColumn !== null}
+                existingDerivedNames={[
+                  ...derivedTimingsProfiles.map(p => p.columnName),
+                  ...formulaBindings.map(b => b.name),
+                ]}
+                onSave={binding => {
+                  setFormulaBindings(prev => [...prev, binding]);
+                  setCalcModalOpen(null);
+                }}
+                onClose={() => setCalcModalOpen(null)}
               />
             )}
           </>
