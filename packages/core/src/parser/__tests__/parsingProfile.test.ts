@@ -49,3 +49,42 @@ describe('parsingProfile — type surface', () => {
     expect(alt.parseCount).toBe(5);
   });
 });
+
+describe('profileColumns — skeleton contract', () => {
+  it('returns empty array for empty data', () => {
+    expect(profileColumns([])).toEqual([]);
+  });
+
+  it('returns one profile per column from the union of all row keys', () => {
+    const rows = [
+      { Speed: '100', Operator: 'A' },
+      { Speed: '102', Operator: 'B' },
+    ];
+    const profiles = profileColumns(rows);
+    expect(profiles.map(p => p.columnName).sort()).toEqual(['Operator', 'Speed']);
+  });
+
+  it('all profiles have the required fields populated', () => {
+    const rows = [{ Speed: '100' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.columnName).toBe('Speed');
+    expect(['ok', 'warning', 'error']).toContain(profile.status);
+    expect(typeof profile.confidence).toBe('number');
+    expect(profile.confidence).toBeGreaterThanOrEqual(0);
+    expect(profile.confidence).toBeLessThanOrEqual(100);
+    expect(Array.isArray(profile.alternatives)).toBe(true);
+    expect(Array.isArray(profile.transformedSamples)).toBe(true);
+  });
+
+  it('produces an error-status profile for an all-null column', () => {
+    const rows = [
+      { Empty: null, Real: '100' },
+      { Empty: null, Real: '200' },
+    ];
+    const profiles = profileColumns(rows);
+    const empty = profiles.find(p => p.columnName === 'Empty');
+    expect(empty?.status).toBe('error');
+    expect(empty?.primary).toBeNull();
+    expect(empty?.confidence).toBe(0);
+  });
+});
