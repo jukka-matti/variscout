@@ -264,7 +264,7 @@ The math was always standard η². Only the label changes.
 
 **Medium-impact updates:**
 
-- `docs/03-features/workflows/investigation-to-action.md`
+- `docs/03-features/workflows/analyze-to-action.md`
 - `docs/03-features/learning/glossary.md`
 - `docs/05-technical/architecture/mental-model-hierarchy.md`
 - `docs/05-technical/architecture/ai-journey-integration.md`

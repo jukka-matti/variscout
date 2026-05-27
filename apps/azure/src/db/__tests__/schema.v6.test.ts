@@ -15,8 +15,8 @@ describe('IndexedDB schema v6', () => {
   it('opens at version 6 from clean state with sustainment stores', async () => {
     await openDb();
     const storeNames = Array.from(db.tables.map(t => t.name));
-    expect(storeNames).toContain('sustainmentRecords');
-    expect(storeNames).toContain('sustainmentReviews');
+    expect(storeNames).toContain('controlRecords');
+    expect(storeNames).toContain('controlReviews');
     expect(storeNames).toContain('controlHandoffs');
   });
 

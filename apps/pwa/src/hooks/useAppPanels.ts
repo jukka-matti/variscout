@@ -17,8 +17,8 @@ export interface UseAppPanelsReturn {
   activeView:
     | 'home'
     | 'frame'
-    | 'analysis'
-    | 'investigation'
+    | 'explore'
+    | 'analyze'
     | 'improvement'
     | 'projects'
     | 'report'
@@ -26,8 +26,8 @@ export interface UseAppPanelsReturn {
     | 'sustainment';
   showFrame: () => void;
   showHome: () => void;
-  showAnalysis: () => void;
-  showInvestigation: () => void;
+  showExplore: () => void;
+  showAnalyze: () => void;
   showImprovement: () => void;
   showProjects: (projectId?: string) => void;
   showReport: () => void;
@@ -50,7 +50,7 @@ export interface UseAppPanelsReturn {
   setHighlightedChartPoint: (v: number | null) => void;
   isDesktop: boolean;
   openSpecEditorRequested: boolean;
-  sustainmentTargetId: string | null;
+  controlTargetId: string | null;
   selectedProjectId: string | null;
   setOpenSpecEditorRequested: (v: boolean) => void;
   openDataTableAtRow: (index: number) => void;
@@ -92,14 +92,14 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
   const openSpecEditorRequested = usePanelsStore(s => s.openSpecEditorRequested);
-  const sustainmentTargetId = usePanelsStore(s => s.sustainmentTargetId);
+  const controlTargetId = usePanelsStore(s => s.controlTargetId);
   const selectedProjectId = usePanelsStore(s => s.selectedProjectId);
 
   // ── Action selectors (stable function references from the store) ──────
   const showFrame = usePanelsStore(s => s.showFrame);
   const showHome = usePanelsStore(s => s.showHome);
-  const showAnalysis = usePanelsStore(s => s.showAnalysis);
-  const showInvestigation = usePanelsStore(s => s.showInvestigation);
+  const showExplore = usePanelsStore(s => s.showExplore);
+  const showAnalyze = usePanelsStore(s => s.showAnalyze);
   const showImprovement = usePanelsStore(s => s.showImprovement);
   const showProjects = usePanelsStore(s => s.showProjects);
   const showReport = usePanelsStore(s => s.showReport);
@@ -183,8 +183,8 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     activeView,
     showHome,
     showFrame,
-    showAnalysis,
-    showInvestigation,
+    showExplore,
+    showAnalyze,
     showImprovement,
     showProjects,
     showReport,
@@ -201,7 +201,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     highlightedChartPoint,
     isDesktop,
     openSpecEditorRequested,
-    sustainmentTargetId,
+    controlTargetId,
     selectedProjectId,
     isPISidebarOpen,
 

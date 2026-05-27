@@ -5,13 +5,20 @@
  * Structure optimized for Azure AI Foundry automatic prompt caching:
  * System prompts place static content (role + glossary) first as a cacheable prefix (≥1,024 tokens),
  * with variable context (stats, filters, findings) in subsequent messages.
+ *
+ * PR-WV1-NAV cleanup deferral (2026-05-27): "investigation" methodology
+ * references in this file are intentionally preserved pending a design call.
+ * The distinction (renamed Analyze tab vs. the methodology word "investigation"
+ * = "the act of inquiry") needs human judgment per CoScout prompt emission
+ * surface. See `docs/ephemeral/investigations.md` § "CoScout AI prompt
+ * vocabulary alignment".
  */
 
 import type {
   AIContext,
   CoScoutMessage,
   JourneyPhase,
-  InvestigationPhase,
+  AnalyzePhase,
   EntryScenario,
 } from '../../types';
 import type { ToolDefinition, MessageContent, InputContentPart } from '../../responsesApi';
@@ -28,7 +35,7 @@ export interface BuildCoScoutToolsOptions {
   /** Current journey phase — determines which tools are available */
   phase?: JourneyPhase;
   /** Current investigation phase — used for fine-grained tool gating within INVESTIGATE */
-  investigationPhase?: InvestigationPhase;
+  analyzePhase?: AnalyzePhase;
   /** Existing Hypothesis hubs — enables connect_hub_evidence when non-empty */
   existingHubs?: Hypothesis[];
 }
@@ -41,7 +48,7 @@ export interface BuildCoScoutToolsOptions {
  * ADR-029: Extended from 3 to 13 tools with action tool support.
  */
 export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolDefinition[] {
-  const { phase, investigationPhase, existingHubs } = options;
+  const { phase, analyzePhase, existingHubs } = options;
 
   // Read tools — always available
   const tools: ToolDefinition[] = [
@@ -296,7 +303,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
   }
 
   // INVESTIGATE+ tools
-  if (phase === 'investigate' || phase === 'improve') {
+  if (phase === 'analyze' || phase === 'improve') {
     tools.push(
       {
         type: 'function',
@@ -609,7 +616,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
     );
 
     // Suspected cause hub tools — phase-gated to validating/converging
-    if (investigationPhase === 'validating' || investigationPhase === 'converging') {
+    if (analyzePhase === 'validating' || analyzePhase === 'converging') {
       tools.push({
         type: 'function',
         name: 'suggest_hypothesis',
@@ -1360,7 +1367,7 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
     }
 
     // Insight capture guidance — INVESTIGATE and IMPROVE phases only (ADR-049)
-    if (options.phase === 'investigate' || options.phase === 'improve') {
+    if (options.phase === 'analyze' || options.phase === 'improve') {
       parts.push(
         `Insight capture guidance (INVESTIGATE/IMPROVE phases):
 - Use suggest_save_finding when the conversation reveals:

@@ -584,7 +584,7 @@ Update all affected documentation to reflect ADR-060 changes. Organized by prior
 - `docs/archive/specs/2026-03-19-knowledge-base-folder-search-design.md` — add "Superseded by ADR-060" update callout
 - `docs/archive/specs/2026-03-24-coscout-knowledge-catalyst-design.md` — add "Extended by ADR-060" note
 - `CLAUDE.md` — add AI knowledge architecture row to task→doc mapping table
-- `docs/03-features/workflows/question-driven-investigation.md` — note about mode-aware completion + answer_question tool
+- `docs/03-features/workflows/question-driven-analyze.md` — note about mode-aware completion + answer_question tool
 
 ## Verification
 

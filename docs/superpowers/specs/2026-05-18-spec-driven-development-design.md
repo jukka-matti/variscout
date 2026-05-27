@@ -105,7 +105,7 @@ The existing schema (`purpose / tier / status / audience`) stays.
 - **V1 ICP (buyer/champion)**: stays in L1 vision (`product-overview.md`), not L2. L2 is in-product journeys; L1 is market story.
 - **Legacy personas (10)**: retire for V1 (mark `status: named-future` or move to `docs/archive/journeys/personas/`). Some (Trainer Tina, Engineer Eeva) graduate to VariScout Process (named-future).
 - **Flows + use-cases**: re-anchor against the 3 V1 personas where applicable. Use-cases stay as L2-adjacent reference.
-- **New L2 file**: `ia-nav-model.md` — Mermaid graph of 7-tab nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`) + active-IP cascade.
+- **New L2 file**: `ia-nav-model.md` — Mermaid graph of 7-tab nav (`Home · Project · Process · Explore · Analyze · Improve · Report`) + active-IP cascade.
 - **`index.md`** becomes a one-page journey index linking the V1 persona files + IA model + use-cases reference.
 
 **Body shape per persona journey file**:

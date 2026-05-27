@@ -254,7 +254,7 @@ To set clear expectations for auditors:
 
 - [Security Whitepaper](azure/security-whitepaper.md) — Security architecture for IT procurement evaluation
 - [ADR-062: Trust & Compliance Roadmap](../07-decisions/adr-063-trust-compliance-roadmap.md) — Phased approach to formal certification
-- [Investigation to Action Workflow](../03-features/workflows/investigation-to-action.md) — Detailed workflow documentation
-- [Question-Driven Investigation](../03-features/workflows/question-driven-investigation.md) — Diamond pattern investigation methodology
+- [Investigation to Action Workflow](../03-features/workflows/analyze-to-action.md) — Detailed workflow documentation
+- [Question-Driven Investigation](../03-features/workflows/question-driven-analyze.md) — Diamond pattern investigation methodology
 - [Staged Analysis](../03-features/analysis/staged-analysis.md) — Before/after verification methodology
 - [EU AI Act Mapping](../05-technical/architecture/eu-ai-act-mapping.md) — AI regulatory classification

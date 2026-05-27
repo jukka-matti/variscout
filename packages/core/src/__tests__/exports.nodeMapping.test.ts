@@ -6,7 +6,7 @@ describe('@variscout/core exports — node mapping surface', () => {
     expect(typeof stats.calculateNodeCapability).toBe('function');
     expect(typeof stats.lookupSpecRule).toBe('function');
     expect(typeof stats.sampleConfidenceFor).toBe('function');
-    expect(typeof stats.isUnmappedInvestigation).toBe('function');
+    expect(typeof stats.isUnmappedAnalyze).toBe('function');
     expect(typeof stats.suggestNodeMappings).toBe('function');
   });
 

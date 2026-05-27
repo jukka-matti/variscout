@@ -10,7 +10,7 @@ const mockListProcessHubs = vi.fn();
 const mockSaveProcessHub = vi.fn();
 const mockListEvidenceSources = vi.fn<(hubId: string) => Promise<EvidenceSource[]>>();
 const mockListEvidenceSnapshots = vi.fn(() => Promise.resolve([]));
-const mockListSustainmentRecords = vi.fn();
+const mockListControlRecords = vi.fn();
 const mockListControlHandoffs = vi.fn();
 
 vi.mock('../../services/storage', () => ({
@@ -22,7 +22,7 @@ vi.mock('../../services/storage', () => ({
     saveEvidenceSource: vi.fn(),
     listEvidenceSnapshots: mockListEvidenceSnapshots,
     saveEvidenceSnapshot: vi.fn(),
-    listSustainmentRecords: mockListSustainmentRecords,
+    listControlRecords: mockListControlRecords,
     listControlHandoffs: mockListControlHandoffs,
     syncStatus: { status: 'synced', message: 'Synced' },
   }),
@@ -31,7 +31,7 @@ vi.mock('../../services/storage', () => ({
 beforeEach(() => {
   mockListEvidenceSources.mockResolvedValue([]);
   mockListEvidenceSnapshots.mockResolvedValue([]);
-  mockListSustainmentRecords.mockResolvedValue([]);
+  mockListControlRecords.mockResolvedValue([]);
   mockListControlHandoffs.mockResolvedValue([]);
 });
 
@@ -50,7 +50,7 @@ function makeProject(): CloudProject {
     modified: '2026-04-24T00:00:00.000Z',
     location: 'personal',
     metadata: {
-      phase: 'investigate',
+      phase: 'analyze',
       findingCounts: {},
       questionCounts: {},
       actionCounts: { total: 1, completed: 0, overdue: 0 },
@@ -58,8 +58,8 @@ function makeProject(): CloudProject {
       hasOverdueTasks: false,
       lastViewedAt: {},
       processHubId: 'line-4',
-      investigationDepth: 'focused',
-      investigationStatus: 'investigating',
+      analyzeDepth: 'focused',
+      analyzeStatus: 'investigating',
       processDescription: 'Line 4 filling process.',
       customerRequirementSummary: 'Fill weight must stay inside customer specs.',
       currentUnderstandingSummary: 'Variation is concentrated on night shift.',
@@ -99,8 +99,8 @@ function makeVerificationProject(): CloudProject {
       hasOverdueTasks: false,
       lastViewedAt: {},
       processHubId: 'line-4',
-      investigationDepth: 'quick',
-      investigationStatus: 'verifying',
+      analyzeDepth: 'quick',
+      analyzeStatus: 'verifying',
       processDescription: 'Line 4 filling process.',
       customerRequirementSummary: 'Fill weight must stay inside customer specs.',
       currentUnderstandingSummary: 'Post-action data is ready for comparison.',
@@ -124,8 +124,8 @@ function makeResolvedProject(): CloudProject {
       hasOverdueTasks: false,
       lastViewedAt: {},
       processHubId: 'line-4',
-      investigationDepth: 'chartered',
-      investigationStatus: 'resolved',
+      analyzeDepth: 'chartered',
+      analyzeStatus: 'resolved',
       processDescription: 'Line 4 filling process.',
       customerRequirementSummary: 'Fill weight must stay inside customer specs.',
       currentUnderstandingSummary: 'Nozzle replacement reduced variation.',
@@ -149,8 +149,8 @@ function makeReadinessProject(index = 1): CloudProject {
       hasOverdueTasks: false,
       lastViewedAt: {},
       processHubId: 'line-4',
-      investigationDepth: 'focused',
-      investigationStatus: 'framing',
+      analyzeDepth: 'focused',
+      analyzeStatus: 'framing',
       surveyReadiness: {
         possibilityStatus: 'ask-for-next',
         powerStatus: 'can-do-with-caution',
@@ -180,7 +180,7 @@ describe('Dashboard Process Hub home', () => {
     const projectCard = screen.getByTestId('project-card');
     expect(hubCard.compareDocumentPosition(projectCard)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
 
-    fireEvent.click(screen.getByLabelText('Start investigation in Line 4'));
+    fireEvent.click(screen.getByLabelText('Start analyze in Line 4'));
     await waitFor(() => expect(onOpenProject).toHaveBeenCalledWith(undefined, 'line-4'));
   });
 
@@ -247,10 +247,10 @@ describe('Dashboard Process Hub home', () => {
     expect(
       within(panel).getAllByText('Compare post-action Cpk after the next batch.').length
     ).toBeGreaterThan(0);
-    expect(within(panel).getAllByText('Sustainment').length).toBeGreaterThan(0);
+    expect(within(panel).getAllByText('Control').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Nozzle replacement verified').length).toBeGreaterThan(0);
     expect(
-      within(panel).getByLabelText('Set up sustainment cadence for Nozzle replacement verified')
+      within(panel).getByLabelText('Set up control cadence for Nozzle replacement verified')
     ).toBeInTheDocument();
 
     fireEvent.click(within(panel).getAllByLabelText('Open review item Night shift overfill')[0]);
@@ -291,7 +291,7 @@ describe('Dashboard Process Hub home', () => {
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
     ]);
-    mockListSustainmentRecords.mockResolvedValue([
+    mockListControlRecords.mockResolvedValue([
       {
         id: 'rec-1',
         investigationId: 'line-4-c',
@@ -316,7 +316,7 @@ describe('Dashboard Process Hub home', () => {
     expect(within(panel).getByTestId('cadence-snapshot-readiness')).toHaveTextContent('7');
     expect(within(panel).getByTestId('cadence-snapshot-verification')).toHaveTextContent('1');
     expect(within(panel).getByTestId('cadence-snapshot-overdue-actions')).toHaveTextContent('1');
-    expect(within(panel).getByTestId('cadence-snapshot-sustainment')).toHaveTextContent('1');
+    expect(within(panel).getByTestId('cadence-snapshot-control')).toHaveTextContent('1');
     expect(within(panel).getByText('+3 more')).toBeInTheDocument();
   });
 
@@ -332,7 +332,7 @@ describe('Dashboard Process Hub home', () => {
     fireEvent.click(screen.getByLabelText('Open Line 4'));
     await screen.findByRole('region', { name: 'Line 4 Current Process State' });
 
-    fireEvent.change(screen.getByPlaceholderText('Search investigations...'), {
+    fireEvent.change(screen.getByPlaceholderText('Search analyzes...'), {
       target: { value: 'zzzz no matching project' },
     });
 
@@ -357,7 +357,7 @@ describe('Dashboard Process Hub home', () => {
     expect(within(panel).getByText('Daily huddle')).toBeInTheDocument();
     expect(within(panel).getByText('Weekly process review')).toBeInTheDocument();
     expect(within(panel).getByText('No latest signals yet')).toBeInTheDocument();
-    expect(within(panel).getByText('No active investigations yet')).toBeInTheDocument();
+    expect(within(panel).getByText('No active analyzes yet')).toBeInTheDocument();
     expect(within(panel).getByText('No active review items yet')).toBeInTheDocument();
     expect(within(panel).getByText('No requirement signal yet')).toBeInTheDocument();
   });

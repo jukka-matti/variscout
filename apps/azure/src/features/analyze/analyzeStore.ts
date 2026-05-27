@@ -1,0 +1,99 @@
+import { create } from 'zustand';
+
+// ── Types ───────────────────────────────────────────────────────────────────
+
+export interface QuestionDisplayData {
+  text: string;
+  status: string;
+  factor?: string;
+  level?: string;
+  causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
+}
+
+export interface ProjectionTarget {
+  questionId: string;
+  ideaId: string;
+  ideaText: string;
+  questionText: string;
+}
+
+// ── Pure computation functions (used by orchestration hook) ─────────────────
+
+import type { Question, IdeaImpact, ProcessContext, StatsResult } from '@variscout/core';
+import { computeIdeaImpact } from '@variscout/core';
+
+/** Build a lookup map from Question[] to display data keyed by question ID. */
+export function buildQuestionsMap(questions: Question[]): Record<string, QuestionDisplayData> {
+  const map: Record<string, QuestionDisplayData> = {};
+  for (const h of questions) {
+    map[h.id] = {
+      text: h.text,
+      status: h.status,
+      factor: h.factor,
+      level: h.level,
+      causeRole: h.causeRole,
+    };
+  }
+  return map;
+}
+
+/** Build a lookup map of idea impacts keyed by idea ID. */
+export function buildIdeaImpacts(
+  questions: Question[],
+  processContext: ProcessContext | undefined,
+  stats: StatsResult | null
+): Record<string, IdeaImpact | undefined> {
+  const impacts: Record<string, IdeaImpact | undefined> = {};
+  const target =
+    processContext?.targetMetric && processContext?.targetValue !== undefined
+      ? {
+          metric: processContext.targetMetric,
+          value: processContext.targetValue,
+          direction: processContext.targetDirection ?? 'minimize',
+        }
+      : undefined;
+  const currentStats = stats
+    ? { mean: stats.mean, sigma: stats.stdDev, cpk: stats.cpk }
+    : undefined;
+
+  for (const h of questions) {
+    if (h.ideas) {
+      for (const idea of h.ideas) {
+        impacts[idea.id] = computeIdeaImpact(idea, target, currentStats);
+      }
+    }
+  }
+  return impacts;
+}
+
+// ── State ───────────────────────────────────────────────────────────────────
+
+interface AnalyzeStoreState {
+  /** Current projection target for What-If round-trip */
+  projectionTarget: ProjectionTarget | null;
+  /** Question ID to expand/scroll-to in the investigation tree (null = none) */
+  expandedQuestionId: string | null;
+}
+
+// ── Actions ─────────────────────────────────────────────────────────────────
+
+interface AnalyzeStoreActions {
+  /** Set or clear the projection target for What-If round-trip */
+  setProjectionTarget: (target: ProjectionTarget | null) => void;
+  /** Expand and scroll-to a question in the investigation tree (null = clear) */
+  expandToQuestion: (id: string | null) => void;
+}
+
+export type AnalyzeStore = AnalyzeStoreState & AnalyzeStoreActions;
+
+// ── Store ───────────────────────────────────────────────────────────────────
+
+export const useAnalyzeFeatureStore = create<AnalyzeStore>(set => ({
+  // Initial state
+  projectionTarget: null,
+  expandedQuestionId: null,
+
+  // Actions
+  setProjectionTarget: (target: ProjectionTarget | null) => set({ projectionTarget: target }),
+  expandToQuestion: id => set({ expandedQuestionId: id }),
+}));

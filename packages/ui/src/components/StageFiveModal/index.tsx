@@ -97,7 +97,7 @@ export function StageFiveModal({
             type="button"
             onClick={submit}
             className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded"
-            data-testid="stage-five-open-investigation"
+            data-testid="stage-five-open-analyze"
           >
             Open investigation &rarr;
           </button>

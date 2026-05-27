@@ -21,8 +21,8 @@ import type {
   EvidenceSource,
   EvidenceSnapshot,
   EvidenceSourceCursor,
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
 } from '@variscout/core';
 import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
 import type { ProcessMap } from '@variscout/core/frame';
@@ -106,11 +106,11 @@ function makeCursor(id: string, hubId: string, sourceId: string): EvidenceSource
   };
 }
 
-function makeSustainmentRecord(
+function makeControlRecord(
   id: string,
   hubId: string,
-  overrides: Partial<SustainmentRecord> = {}
-): SustainmentRecord {
+  overrides: Partial<ControlRecord> = {}
+): ControlRecord {
   return {
     id,
     hubId,
@@ -128,12 +128,12 @@ function makeSustainmentRecord(
   };
 }
 
-function makeSustainmentReview(
+function makeControlReview(
   id: string,
   recordId: string,
   hubId: string,
-  overrides: Partial<SustainmentReview> = {}
-): SustainmentReview {
+  overrides: Partial<ControlReview> = {}
+): ControlReview {
   return {
     id,
     recordId,
@@ -165,8 +165,8 @@ beforeEach(async () => {
     db.questions.clear(),
     db.causalLinks.clear(),
     db.hypotheses.clear(),
-    db.sustainmentRecords.clear(),
-    db.sustainmentReviews.clear(),
+    db.controlRecords.clear(),
+    db.controlReviews.clear(),
   ]);
 });
 
@@ -329,8 +329,8 @@ describe('PwaHubRepository.hubs', () => {
     expect(tableArray).toContain(db.hubs);
     expect(tableArray).toContain(db.outcomes);
     expect(tableArray).toContain(db.canvasState);
-    expect(tableArray).toContain(db.sustainmentRecords);
-    expect(tableArray).toContain(db.sustainmentReviews);
+    expect(tableArray).toContain(db.controlRecords);
+    expect(tableArray).toContain(db.controlReviews);
   });
 
   it('hubs.list wraps reads in a db.transaction across the three joined tables', async () => {
@@ -347,64 +347,64 @@ describe('PwaHubRepository.hubs', () => {
     expect(tableArray).toContain(db.hubs);
     expect(tableArray).toContain(db.outcomes);
     expect(tableArray).toContain(db.canvasState);
-    expect(tableArray).toContain(db.sustainmentRecords);
-    expect(tableArray).toContain(db.sustainmentReviews);
+    expect(tableArray).toContain(db.controlRecords);
+    expect(tableArray).toContain(db.controlReviews);
   });
 });
 
 // ---------------------------------------------------------------------------
-// sustainmentRecords / sustainmentReviews
+// controlRecords / controlReviews
 // ---------------------------------------------------------------------------
 
 describe('PwaHubRepository.sustainment read APIs', () => {
-  it('sustainmentRecords list/get return only live records for the requested hub', async () => {
+  it('controlRecords list/get return only live records for the requested hub', async () => {
     const repo = new PwaHubRepository();
-    await db.sustainmentRecords.bulkPut([
-      makeSustainmentRecord('sr-live', 'hub-s'),
-      makeSustainmentRecord('sr-dead', 'hub-s', { deletedAt: NOW }),
-      makeSustainmentRecord('sr-other', 'hub-other'),
+    await db.controlRecords.bulkPut([
+      makeControlRecord('sr-live', 'hub-s'),
+      makeControlRecord('sr-dead', 'hub-s', { deletedAt: NOW }),
+      makeControlRecord('sr-other', 'hub-other'),
     ]);
 
-    const rows = await repo.sustainmentRecords.listByHub('hub-s');
+    const rows = await repo.controlRecords.listByHub('hub-s');
 
     expect(rows.map(row => row.id)).toEqual(['sr-live']);
-    expect((await repo.sustainmentRecords.get('sr-live'))?.id).toBe('sr-live');
-    expect(await repo.sustainmentRecords.get('sr-dead')).toBeUndefined();
+    expect((await repo.controlRecords.get('sr-live'))?.id).toBe('sr-live');
+    expect(await repo.controlRecords.get('sr-dead')).toBeUndefined();
   });
 
-  it('sustainmentReviews list/get return only live reviews for the requested record and hub', async () => {
+  it('controlReviews list/get return only live reviews for the requested record and hub', async () => {
     const repo = new PwaHubRepository();
-    await db.sustainmentReviews.bulkPut([
-      makeSustainmentReview('rev-live', 'sr-live', 'hub-s', { reviewedAt: NOW + 1 }),
-      makeSustainmentReview('rev-old', 'sr-live', 'hub-s', { reviewedAt: NOW - 1 }),
-      makeSustainmentReview('rev-dead', 'sr-live', 'hub-s', { deletedAt: NOW }),
-      makeSustainmentReview('rev-other-record', 'sr-other', 'hub-s'),
-      makeSustainmentReview('rev-other-hub', 'sr-live', 'hub-other'),
+    await db.controlReviews.bulkPut([
+      makeControlReview('rev-live', 'sr-live', 'hub-s', { reviewedAt: NOW + 1 }),
+      makeControlReview('rev-old', 'sr-live', 'hub-s', { reviewedAt: NOW - 1 }),
+      makeControlReview('rev-dead', 'sr-live', 'hub-s', { deletedAt: NOW }),
+      makeControlReview('rev-other-record', 'sr-other', 'hub-s'),
+      makeControlReview('rev-other-hub', 'sr-live', 'hub-other'),
     ]);
 
-    const rows = await repo.sustainmentReviews.listByRecord('hub-s', 'sr-live');
+    const rows = await repo.controlReviews.listByRecord('hub-s', 'sr-live');
 
     expect(rows.map(row => row.id)).toEqual(['rev-live', 'rev-old']);
-    expect((await repo.sustainmentReviews.get('rev-live'))?.id).toBe('rev-live');
-    expect(await repo.sustainmentReviews.get('rev-dead')).toBeUndefined();
+    expect((await repo.controlReviews.get('rev-live'))?.id).toBe('rev-live');
+    expect(await repo.controlReviews.get('rev-dead')).toBeUndefined();
   });
 
   it('hubs.get hydrates live sustainment records and reviews without deleted rows', async () => {
     const repo = new PwaHubRepository();
     await db.hubs.put(makeHub('hub-s'));
-    await db.sustainmentRecords.bulkPut([
-      makeSustainmentRecord('sr-live', 'hub-s'),
-      makeSustainmentRecord('sr-dead', 'hub-s', { deletedAt: NOW }),
+    await db.controlRecords.bulkPut([
+      makeControlRecord('sr-live', 'hub-s'),
+      makeControlRecord('sr-dead', 'hub-s', { deletedAt: NOW }),
     ]);
-    await db.sustainmentReviews.bulkPut([
-      makeSustainmentReview('rev-live', 'sr-live', 'hub-s'),
-      makeSustainmentReview('rev-dead', 'sr-live', 'hub-s', { deletedAt: NOW }),
+    await db.controlReviews.bulkPut([
+      makeControlReview('rev-live', 'sr-live', 'hub-s'),
+      makeControlReview('rev-dead', 'sr-live', 'hub-s', { deletedAt: NOW }),
     ]);
 
     const hub = await repo.hubs.get('hub-s');
 
-    expect(hub?.sustainmentRecords?.map(record => record.id)).toEqual(['sr-live']);
-    expect(hub?.sustainmentReviews?.map(review => review.id)).toEqual(['rev-live']);
+    expect(hub?.controlRecords?.map(record => record.id)).toEqual(['sr-live']);
+    expect(hub?.controlReviews?.map(review => review.id)).toEqual(['rev-live']);
   });
 });
 

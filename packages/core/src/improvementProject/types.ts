@@ -3,10 +3,10 @@ import type {
   ProcessHub,
   OutcomeSpec,
   ProcessParticipantRef,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
 } from '../processHub';
 import type { Hypothesis, Finding, ImprovementIdea, ActionItem } from '../findings/types';
-import type { SustainmentRecord, ControlHandoff } from '../sustainment';
+import type { ControlRecord, ControlHandoff } from '../control';
 import type { ProjectMember } from '../projectMembership/types';
 
 export type ImprovementProjectStatus = 'draft' | 'active' | 'closed';
@@ -20,7 +20,7 @@ export interface ImprovementProjectMetadata {
    *  per ADR-082. Optional only for the bootstrap window; future schema work may
    *  promote to required. */
   members?: ProjectMember[];
-  investigationId?: ProcessHubInvestigation['id'];
+  investigationId?: ProcessHubAnalyze['id'];
   /** Improvement actions tracked at the project level. Read-write via reduceActionItems. */
   actions?: ActionItem[];
 }
@@ -89,7 +89,7 @@ export interface ImprovementProjectApproachSection {
 }
 
 export interface ImprovementProjectOutcomeReferenceSection {
-  sustainmentRecordId?: SustainmentRecord['id'];
+  sustainmentRecordId?: ControlRecord['id'];
   controlHandoffId?: ControlHandoff['id'];
   /** Optional last-edit timestamp used by synthesized V1 activity feed events. */
   updatedAt?: number;
@@ -115,7 +115,7 @@ export interface ImprovementProject extends EntityBase {
   updatedAt: number;
   signoff?: ImprovementProjectSignoff;
   /** Optional analyst-authored lessons-learned narrative. Authored in
-   *  Sections mode (Sustainment or Handoff stages typically); surfaces in
+   *  Sections mode (Control or Handoff stages typically); surfaces in
    *  the Report Overview "What we standardized + learned" section. */
   reflection?: string;
 }

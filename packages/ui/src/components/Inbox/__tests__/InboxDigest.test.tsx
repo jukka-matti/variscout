@@ -8,14 +8,14 @@ const prompts: SurveyInboxPrompt[] = [
   {
     id: 'inbox:sustainment-drift:sustain-1',
     severity: 'critical',
-    message: 'Sustainment drift detected for reject-rate control.',
+    message: 'Control drift detected for reject-rate control.',
     action: { label: 'Review sustainment', opensSurface: 'sustainment', opensId: 'sustain-1' },
     sourceHint: {
       kind: 'drift-detection',
       severity: 'critical',
       surface: 'inbox',
       targetEntityId: 'sustain-1',
-      message: 'Sustainment drift detected for reject-rate control.',
+      message: 'Control drift detected for reject-rate control.',
       action: {
         label: 'Review sustainment',
         opensSurface: 'sustainment',
@@ -45,9 +45,7 @@ describe('InboxDigest', () => {
     expect(screen.getByText('2 prompts')).toBeInTheDocument();
     expect(screen.getByText('critical')).toBeInTheDocument();
     expect(screen.getByText('warning')).toBeInTheDocument();
-    expect(
-      screen.getByText('Sustainment drift detected for reject-rate control.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Control drift detected for reject-rate control.')).toBeInTheDocument();
     expect(screen.getByText('Weekly sustainment review is due.')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Review sustainment' }));

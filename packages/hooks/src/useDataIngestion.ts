@@ -37,7 +37,7 @@ import {
   type TimeExtractionConfig,
   type Finding,
   type Question,
-  type InvestigationCategory,
+  type AnalyzeCategory,
   type Hypothesis,
   type CausalLink,
   type SubgroupConfig,
@@ -75,7 +75,7 @@ export interface DataIngestionActions {
   /** Set pre-populated questions (for showcase/demo datasets) */
   setQuestions?: (questions: Question[]) => void;
   /** Set pre-populated investigation categories (for showcase/demo datasets) */
-  setCategories?: (categories: InvestigationCategory[]) => void;
+  setCategories?: (categories: AnalyzeCategory[]) => void;
   /** Replace Hypothesis hubs with a seeded set (showcase/demo datasets) */
   setHypotheses?: (hubs: Hypothesis[]) => void;
   /** Replace CausalLinks with a seeded set (showcase/demo datasets) */

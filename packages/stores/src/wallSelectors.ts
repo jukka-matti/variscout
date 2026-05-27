@@ -1,5 +1,5 @@
 /**
- * wallSelectors — pure derivation functions over investigationStore + projectStore data.
+ * wallSelectors — pure derivation functions over analyzeStore + projectStore data.
  *
  * No React, no Zustand, no side effects. Safe to test without a store instance.
  *

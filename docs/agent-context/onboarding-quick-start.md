@@ -28,7 +28,7 @@ Single-product tool for improvement specialists (the ICP), one SKU (€120/mo Az
 - **Member** — full edit within project surfaces
 - **Sponsor** — reads everywhere + edits contributions (2-tier ACL with Member); signoff handled out-of-band
 
-**7-tab workflow nav**: `Home · Project · Process · Analyze · Investigation · Improve · Report`
+**7-tab workflow nav**: `Home · Project · Process · Explore · Analyze · Improve · Report`
 
 - "Improve" is a **top-level verb tab** with active-IP cascade (restored from earlier "stage inside Projects" framing per the 2026-05-16 Improve-tab amendment)
 - Project stages (inside Projects detail): Charter → Approach → Sustainment (Handoff folded into Sustainment)

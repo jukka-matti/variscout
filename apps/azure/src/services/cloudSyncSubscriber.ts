@@ -1,10 +1,10 @@
 import { useProjectStore } from '@variscout/stores';
-import { useInvestigationStore } from '@variscout/stores';
+import { useAnalyzeStore } from '@variscout/stores';
 
 /**
  * Set up store subscriptions that auto-save when project state changes.
  *
- * Subscribes to `useProjectStore` and `useInvestigationStore`. On any state
+ * Subscribes to `useProjectStore` and `useAnalyzeStore`. On any state
  * change the gate is checked (`rawData.length > 0 && projectId !== null`); if
  * open, the `onSave` callback is debounced by `debounceMs` (default 2000 ms).
  *
@@ -20,7 +20,7 @@ import { useInvestigationStore } from '@variscout/stores';
 export function setupCloudSync(onSave: () => void, debounceMs: number = 2000): () => void {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   let projectStoreInitialized = false;
-  let investigationStoreInitialized = false;
+  let analyzeStoreInitialized = false;
 
   function scheduleOrSkip(initialized: boolean): boolean {
     if (!initialized) {
@@ -51,9 +51,9 @@ export function setupCloudSync(onSave: () => void, debounceMs: number = 2000): (
     scheduleOrSkip(true);
   });
 
-  const unsubInvestigation = useInvestigationStore.subscribe(() => {
-    if (!investigationStoreInitialized) {
-      investigationStoreInitialized = true;
+  const unsubInvestigation = useAnalyzeStore.subscribe(() => {
+    if (!analyzeStoreInitialized) {
+      analyzeStoreInitialized = true;
       return;
     }
     scheduleOrSkip(true);

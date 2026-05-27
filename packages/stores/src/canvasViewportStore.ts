@@ -3,7 +3,7 @@
  *
  * Holds per-hub viewport snapshots plus session/global wall UI state. Persisted
  * to IndexedDB per hubId via Dexie. Not a domain store — domain facts live in
- * investigationStore and canvasStore.
+ * analyzeStore and canvasStore.
  */
 
 // R12 exception: separate Dexie DB for cross-app canvas viewport UI state.

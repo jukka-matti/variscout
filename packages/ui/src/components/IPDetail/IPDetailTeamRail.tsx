@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
-import type { ControlHandoff, ProcessHub, SustainmentRecord } from '@variscout/core';
+import type { ControlHandoff, ProcessHub, ControlRecord } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProjectMember, ProjectRole } from '@variscout/core/projectMembership';
 import IPDetailAvatar from './IPDetailAvatar';
@@ -12,7 +12,7 @@ interface IPDetailTeamRailProps {
   activeHub?: ProcessHub;
   ideas?: readonly ImprovementIdea[];
   actions?: readonly ActionItem[];
-  sustainmentRecord?: SustainmentRecord;
+  controlRecord?: ControlRecord;
   controlHandoff?: ControlHandoff;
   now?: number;
   onRequestSignoff?: () => void;
@@ -91,7 +91,7 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
   activeHub,
   ideas = [],
   actions = [],
-  sustainmentRecord,
+  controlRecord,
   controlHandoff,
   now,
   onRequestSignoff,
@@ -108,11 +108,11 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
         ip,
         ideas,
         actions,
-        sustainmentRecord,
+        controlRecord,
         controlHandoff,
         now: effectiveNow,
       }),
-    [actions, controlHandoff, effectiveNow, ideas, ip, sustainmentRecord]
+    [actions, controlHandoff, effectiveNow, ideas, ip, controlRecord]
   );
   const recentEvents = events.slice(0, 5);
   const approver = activeHub?.processOwner;

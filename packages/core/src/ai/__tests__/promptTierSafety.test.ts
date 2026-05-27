@@ -30,7 +30,7 @@ const RICH_CONTEXT: AIContext = {
 describe('Prompt tier safety', () => {
   it('tier1Static NEVER contains stats values', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'standard',
       surface: 'fullPanel',
       context: RICH_CONTEXT,
@@ -42,7 +42,7 @@ describe('Prompt tier safety', () => {
 
   it('tier1Static NEVER contains filter state', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'standard',
       surface: 'fullPanel',
       context: RICH_CONTEXT,
@@ -53,7 +53,7 @@ describe('Prompt tier safety', () => {
 
   it('tier1Static NEVER contains finding/hub text', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'standard',
       surface: 'fullPanel',
       context: RICH_CONTEXT,
@@ -76,7 +76,7 @@ describe('Prompt tier safety', () => {
       },
     });
     const rich = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'standard',
       surface: 'fullPanel',
       context: RICH_CONTEXT,
@@ -86,7 +86,7 @@ describe('Prompt tier safety', () => {
 
   it('tier2SemiStatic contains investigation context when present', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'standard',
       surface: 'fullPanel',
       context: RICH_CONTEXT,
@@ -96,7 +96,7 @@ describe('Prompt tier safety', () => {
 
   it('every tool in tools array has a name and type', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'standard',
       surface: 'fullPanel',
       context: RICH_CONTEXT,

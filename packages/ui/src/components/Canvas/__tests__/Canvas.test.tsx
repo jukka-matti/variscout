@@ -32,7 +32,7 @@ import React from 'react';
 import type { Finding, ScopeFilter, TimelineWindow } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import type {
-  CanvasInvestigationOverlayModel,
+  CanvasAnalyzeOverlayModel,
   CanvasLensId,
   CanvasOverlayId,
   CanvasStepCardModel,
@@ -59,7 +59,7 @@ vi.mock('@variscout/charts', async importOriginal => {
   };
 });
 
-vi.mock('../../InvestigationWall', async () => {
+vi.mock('../../AnalyzeWall', async () => {
   const React = await import('react');
   return {
     useWallIsMobile: () => wallIsMobileRef.current,
@@ -272,7 +272,7 @@ vi.mock('@variscout/hooks', () => ({
     tf: (key: string, values?: Record<string, unknown>) =>
       values ? `${key} ${Object.values(values).join(' ')}` : key,
   }),
-  useHasInvestigationContent: vi.fn(() => hasInvestigationContentRef.current),
+  useHasAnalyzeContent: vi.fn(() => hasInvestigationContentRef.current),
   useSharedWallProps: vi.fn(
     ({
       findings,
@@ -378,7 +378,7 @@ const baseStepCards: CanvasStepCardModel[] = [
   },
 ];
 
-const investigationOverlays: CanvasInvestigationOverlayModel = {
+const investigationOverlays: CanvasAnalyzeOverlayModel = {
   byStep: {
     'step-1': {
       stepId: 'step-1',

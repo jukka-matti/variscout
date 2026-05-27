@@ -114,18 +114,14 @@ describe('SystemLevelView', () => {
     // ADR-084: Pp/Ppk must not leak back into the L1 row.
     expect(screen.getByTestId('outcome-capability')).not.toHaveTextContent(/\bPpk?\b/);
     expect(screen.getByTestId('inbox-digest')).toHaveTextContent('1 prompt');
-    expect(screen.getByTestId('active-investigations-summary')).toHaveTextContent(
-      '2 open questions'
-    );
-    expect(screen.getByTestId('active-investigations-summary')).toHaveTextContent(
-      '2 active hypotheses'
-    );
-    expect(screen.getByTestId('active-investigations-summary')).toHaveTextContent('1 open finding');
+    expect(screen.getByTestId('active-analyzes-summary')).toHaveTextContent('2 open questions');
+    expect(screen.getByTestId('active-analyzes-summary')).toHaveTextContent('2 active hypotheses');
+    expect(screen.getByTestId('active-analyzes-summary')).toHaveTextContent('1 open finding');
     expect(screen.getByRole('button', { name: /Open SCOUT/i })).toBeDisabled();
     expect(screen.queryByText('Quick Action')).not.toBeInTheDocument();
     expect(screen.queryByText('Focused Investigation')).not.toBeInTheDocument();
     expect(screen.queryByText('Improvement Project')).not.toBeInTheDocument();
-    expect(screen.queryByText('Sustainment')).not.toBeInTheDocument();
+    expect(screen.queryByText('Control')).not.toBeInTheDocument();
     expect(screen.queryByText('Handoff')).not.toBeInTheDocument();
   });
 

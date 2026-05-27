@@ -571,7 +571,7 @@ Returns `OptimalFactorResult[]` with factor, variationPct (η² × 100), bestVal
 ## Part 13 — What-If Simulation
 
 > Source: `packages/core/src/variation/simulation.ts`
-> User docs: [Investigation to Action](../03-features/workflows/investigation-to-action.md)
+> User docs: [Investigation to Action](../03-features/workflows/analyze-to-action.md)
 
 ### Direct Adjustment
 
@@ -632,7 +632,7 @@ The `simulateFromModel()` function and `getFactorBaselines()` exist in the codeb
 ## Part 14 — Investigation & Findings System
 
 > Sources: `packages/hooks/src/useFindings.ts`, `packages/hooks/src/useHypotheses.ts`, `packages/ui/src/components/FindingsWindow/`, `packages/ui/src/components/FindingsLog/`
-> User docs: [Investigation to Action](../03-features/workflows/investigation-to-action.md), [Hypothesis Investigation](../03-features/workflows/question-driven-investigation.md)
+> User docs: [Investigation to Action](../03-features/workflows/analyze-to-action.md), [Hypothesis Investigation](../03-features/workflows/question-driven-analyze.md)
 
 ### Architecture
 

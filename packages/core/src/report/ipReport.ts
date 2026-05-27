@@ -2,7 +2,7 @@ import type { Finding, Hypothesis, Question } from '../findings/types';
 import { deriveIPReportMiniChartType, type IPReportMiniChartType } from '../findings/miniChart';
 import type { ImprovementProject } from '../improvementProject';
 import type { ProcessHub } from '../processHub';
-import type { ControlHandoff, SustainmentRecord } from '../sustainment';
+import type { ControlHandoff, ControlRecord } from '../control';
 
 export const D13_OVERVIEW_SECTION_TITLES = [
   'Executive summary',
@@ -21,7 +21,7 @@ export interface IPReportScopeInput {
   hypotheses: readonly Hypothesis[];
   findings: readonly Finding[];
   questions: readonly Question[];
-  sustainmentRecords?: readonly SustainmentRecord[];
+  controlRecords?: readonly ControlRecord[];
   controlHandoffs?: readonly ControlHandoff[];
 }
 
@@ -29,7 +29,7 @@ export interface IPReportScope {
   hypotheses: Hypothesis[];
   findings: Finding[];
   questions: Question[];
-  sustainmentRecord?: SustainmentRecord;
+  controlRecord?: ControlRecord;
   controlHandoff?: ControlHandoff;
 }
 
@@ -99,10 +99,10 @@ function linkedFindingIds(ip: ImprovementProject, hypotheses: readonly Hypothesi
   return ids;
 }
 
-function selectSustainmentRecord(
+function selectControlRecord(
   ip: ImprovementProject,
-  records: readonly SustainmentRecord[] | undefined
-): SustainmentRecord | undefined {
+  records: readonly ControlRecord[] | undefined
+): ControlRecord | undefined {
   const live = (records ?? []).filter(record => record.deletedAt === null);
   return (
     live.find(record => record.id === ip.sections.outcomeReference.sustainmentRecordId) ??
@@ -114,12 +114,12 @@ function selectSustainmentRecord(
 function selectControlHandoff(
   ip: ImprovementProject,
   handoffs: readonly ControlHandoff[] | undefined,
-  sustainmentRecord?: SustainmentRecord
+  controlRecord?: ControlRecord
 ): ControlHandoff | undefined {
   const live = (handoffs ?? []).filter(handoff => handoff.deletedAt === null);
   return (
     live.find(handoff => handoff.id === ip.sections.outcomeReference.controlHandoffId) ??
-    live.find(handoff => handoff.id === sustainmentRecord?.controlHandoffId) ??
+    live.find(handoff => handoff.id === controlRecord?.controlHandoffId) ??
     live.find(handoff => handoff.investigationId === ip.metadata.investigationId)
   );
 }
@@ -137,10 +137,10 @@ export function selectIPReportScope(input: IPReportScopeInput): IPReportScope {
     if (finding.questionId) questionIds.add(finding.questionId);
   }
   const questions = input.questions.filter(question => questionIds.has(question.id));
-  const sustainmentRecord = selectSustainmentRecord(input.ip, input.sustainmentRecords);
-  const controlHandoff = selectControlHandoff(input.ip, input.controlHandoffs, sustainmentRecord);
+  const controlRecord = selectControlRecord(input.ip, input.controlRecords);
+  const controlHandoff = selectControlHandoff(input.ip, input.controlHandoffs, controlRecord);
 
-  return { hypotheses, findings, questions, sustainmentRecord, controlHandoff };
+  return { hypotheses, findings, questions, controlRecord, controlHandoff };
 }
 
 function selectedIdeaText(question: Question): string | undefined {
@@ -165,11 +165,9 @@ function actionProgressLabel(actions: NonNullable<Finding['actions']>): string {
   return `${done} of ${actions.length} actions done`;
 }
 
-function verificationLabel(record?: SustainmentRecord): string {
+function verificationLabel(record?: ControlRecord): string {
   if (!record) return 'Verification pending';
-  const verdict = record.latestVerdict
-    ? `Sustainment ${record.latestVerdict}`
-    : 'Sustainment pending';
+  const verdict = record.latestVerdict ? `Control ${record.latestVerdict}` : 'Control pending';
   return `${verdict} · ${record.consecutiveOnTargetTicks ?? 0} ticks`;
 }
 
@@ -178,7 +176,7 @@ export function deriveIPCauseRows(input: {
   hypotheses: readonly Hypothesis[];
   findings: readonly Finding[];
   questions: readonly Question[];
-  sustainmentRecord?: SustainmentRecord;
+  controlRecord?: ControlRecord;
 }): IPCauseRow[] {
   const hypothesisIds = linkedHypothesisIds(input.ip);
   return input.hypotheses
@@ -197,7 +195,7 @@ export function deriveIPCauseRows(input: {
         synthesis: hypothesis.synthesis,
         selectedIdea: causeQuestions.map(selectedIdeaText).find(Boolean),
         actionProgressLabel: actionProgressLabel(actions),
-        verificationLabel: verificationLabel(input.sustainmentRecord),
+        verificationLabel: verificationLabel(input.controlRecord),
         findingCount: causeFindings.length,
         miniChartType: deriveIPReportMiniChartType({
           ip: input.ip,
@@ -228,7 +226,7 @@ export function deriveIPReportNarrative(input: {
   hypotheses: readonly Hypothesis[];
   findings: readonly Finding[];
   questions: readonly Question[];
-  sustainmentRecord?: SustainmentRecord;
+  controlRecord?: ControlRecord;
   controlHandoff?: ControlHandoff;
 }): IPReportOverviewSection[] {
   const causeRows = deriveIPCauseRows(input);
@@ -267,9 +265,9 @@ export function deriveIPReportNarrative(input: {
     {
       title: 'Did it work?',
       items: [
-        verificationLabel(input.sustainmentRecord),
-        ...(input.sustainmentRecord?.nextReviewDue
-          ? [`Next review: ${input.sustainmentRecord.nextReviewDue}`]
+        verificationLabel(input.controlRecord),
+        ...(input.controlRecord?.nextReviewDue
+          ? [`Next review: ${input.controlRecord.nextReviewDue}`]
           : []),
       ],
     },
@@ -294,16 +292,16 @@ function daysSince(start: number, now: number): number {
   return Math.max(0, Math.floor((now - start) / 86_400_000));
 }
 
-function lastActivity(ip: ImprovementProject, record?: SustainmentRecord): number {
+function lastActivity(ip: ImprovementProject, record?: ControlRecord): number {
   return Math.max(ip.updatedAt, record?.updatedAt ?? 0);
 }
 
-function cadenceLabel(record?: SustainmentRecord): string {
+function cadenceLabel(record?: ControlRecord): string {
   if (!record) return 'No cadence';
   return record.nextReviewDue ? `${record.cadence} · due ${record.nextReviewDue}` : record.cadence;
 }
 
-function driftLabel(record?: SustainmentRecord): string {
+function driftLabel(record?: ControlRecord): string {
   if (!record) return 'No sustainment record';
   if (record.status === 'drifted' || record.latestVerdict === 'drifting') return 'Drift detected';
   if (record.latestVerdict === 'holding') return 'Holding';
@@ -336,10 +334,10 @@ export function deriveHubPortfolioReport(input: {
 }): HubPortfolioReport {
   const now = input.now ?? Date.now();
   const projects = liveProjects(input.hub.improvementProjects);
-  const records = (input.hub.sustainmentRecords ?? []).filter(record => record.deletedAt === null);
+  const records = (input.hub.controlRecords ?? []).filter(record => record.deletedAt === null);
   const rows = projects
     .map(project => {
-      const record = selectSustainmentRecord(project, records);
+      const record = selectControlRecord(project, records);
       return {
         id: project.id,
         title: project.metadata.title,

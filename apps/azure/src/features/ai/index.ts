@@ -15,7 +15,7 @@ export {
   type UseAIDerivedStateReturn,
 } from './useAIDerivedState';
 export {
-  useInvestigationIndexing,
+  useAnalyzeIndexing,
   type UseInvestigationIndexingOptions,
   type UseInvestigationIndexingReturn,
-} from './useInvestigationIndexing';
+} from './useAnalyzeIndexing';

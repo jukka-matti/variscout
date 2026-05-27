@@ -684,8 +684,8 @@ The AI report option only appears when `onGenerateAIReport` is provided (injecte
 
 ## See Also
 
-- [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — Workflow documentation
-- [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Architectural decisions
+- [Investigation to Action](../../03-features/workflows/analyze-to-action.md) — Workflow documentation
+- [ADR-015: Investigation Board](../../07-decisions/adr-015-analyze-board.md) — Architectural decisions
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Knowledge base dependency
 - [What-If Simulator](what-if-simulator.md) — Complementary improvement projection tool
 - [Panels and Drawers](../patterns/panels-and-drawers.md) — Panel patterns

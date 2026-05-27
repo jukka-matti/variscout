@@ -378,20 +378,20 @@ Architecture decision record documenting:
 
 #### Critical (substantial rewrite)
 
-| Document                                                      | Change                                                                                                                     |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `docs/01-vision/methodology.md`                               | Section 3: "Hypothesis Investigation" → "Question-Driven Investigation"; add Issue vs. Problem Statement; question sources |
-| `docs/03-features/workflows/question-driven-investigation.md` | ~~Rename to `question-driven-investigation.md`~~ (done); reframe entire doc from hypotheses to questions                   |
-| `docs/05-technical/architecture/mental-model-hierarchy.md`    | "Hypothesis Thread" → "Investigation Thread"; update SCOUT/INVESTIGATE phase descriptions                                  |
-| `docs/07-decisions/adr-020-investigation-workflow.md`         | Add "Semantic Reframing" section; multiple suspected causes; question lifecycle                                            |
+| Document                                                   | Change                                                                                                                     |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `docs/01-vision/methodology.md`                            | Section 3: "Hypothesis Investigation" → "Question-Driven Investigation"; add Issue vs. Problem Statement; question sources |
+| `docs/03-features/workflows/question-driven-analyze.md`    | ~~Rename to `question-driven-investigation.md`~~ (done); reframe entire doc from hypotheses to questions                   |
+| `docs/05-technical/architecture/mental-model-hierarchy.md` | "Hypothesis Thread" → "Investigation Thread"; update SCOUT/INVESTIGATE phase descriptions                                  |
+| `docs/07-decisions/adr-020-investigation-workflow.md`      | Add "Semantic Reframing" section; multiple suspected causes; question lifecycle                                            |
 
 #### Major (significant section updates)
 
-| Document                                                    | Change                                                                              |
-| ----------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `docs/03-features/workflows/investigation-lifecycle-map.md` | Phase descriptions: hypothesis → question language; update sub-flow                 |
-| `docs/03-features/workflows/analysis-journey-map.md`        | FRAME: Issue Statement; SCOUT: question generation; INVESTIGATE: question answering |
-| `docs/05-technical/architecture/ai-journey-integration.md`  | CoScout behavior per phase: question generation + follow-ups                        |
+| Document                                                   | Change                                                                              |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `docs/03-features/workflows/analyze-lifecycle-map.md`      | Phase descriptions: hypothesis → question language; update sub-flow                 |
+| `docs/03-features/workflows/analysis-journey-map.md`       | FRAME: Issue Statement; SCOUT: question generation; INVESTIGATE: question answering |
+| `docs/05-technical/architecture/ai-journey-integration.md` | CoScout behavior per phase: question generation + follow-ups                        |
 
 #### Moderate (terminology + reference updates)
 

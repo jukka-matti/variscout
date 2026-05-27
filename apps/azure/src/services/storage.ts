@@ -9,8 +9,8 @@ import type {
   EvidenceSnapshot,
   EvidenceSource,
   ProcessHub,
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
   ControlHandoff,
 } from '@variscout/core';
 import {
@@ -58,9 +58,9 @@ import {
   listEvidenceSnapshotsFromCloud,
   saveEvidenceSourceToCloud,
   saveEvidenceSnapshotToCloud,
-  listSustainmentRecordsFromCloud,
-  saveSustainmentRecordToCloud,
-  saveSustainmentReviewToCloud,
+  listControlRecordsFromCloud,
+  saveControlRecordToCloud,
+  saveControlReviewToCloud,
   saveControlHandoffToCloud,
   RETRY_DELAYS,
   MAX_RETRY_DELAY,
@@ -80,14 +80,14 @@ import {
   listEvidenceSnapshotsFromIndexedDB,
   saveEvidenceSourceToIndexedDB,
   saveEvidenceSnapshotToIndexedDB,
-  listSustainmentRecordsFromIndexedDB,
-  saveSustainmentRecordToIndexedDB,
-  listSustainmentReviewsFromIndexedDB,
-  saveSustainmentReviewToIndexedDB,
+  listControlRecordsFromIndexedDB,
+  saveControlRecordToIndexedDB,
+  listControlReviewsFromIndexedDB,
+  saveControlReviewToIndexedDB,
   listControlHandoffsFromIndexedDB,
   saveControlHandoffToIndexedDB,
   recomputeSustainmentProjectionForRecord,
-  tombstoneSustainmentRecordsForInvestigation,
+  tombstoneControlRecordsForInvestigation,
 } from './localDb';
 import { azureHubRepository } from '../persistence';
 
@@ -103,10 +103,10 @@ interface StorageContextValue {
   saveEvidenceSource: (source: EvidenceSource) => Promise<void>;
   listEvidenceSnapshots: (hubId: string, sourceId: string) => Promise<EvidenceSnapshot[]>;
   saveEvidenceSnapshot: (snapshot: EvidenceSnapshot, sourceCsv?: string) => Promise<void>;
-  listSustainmentRecords: (hubId: string) => Promise<SustainmentRecord[]>;
-  saveSustainmentRecord: (record: SustainmentRecord) => Promise<void>;
-  listSustainmentReviews: (recordId: string) => Promise<SustainmentReview[]>;
-  saveSustainmentReview: (review: SustainmentReview) => Promise<void>;
+  listControlRecords: (hubId: string) => Promise<ControlRecord[]>;
+  saveControlRecord: (record: ControlRecord) => Promise<void>;
+  listControlReviews: (recordId: string) => Promise<ControlReview[]>;
+  saveControlReview: (review: ControlReview) => Promise<void>;
   listControlHandoffs: (hubId: string) => Promise<ControlHandoff[]>;
   saveControlHandoff: (handoff: ControlHandoff) => Promise<void>;
   syncStatus: SyncStatus;
@@ -275,17 +275,16 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       // Detect investigation-status transition out of SUSTAINMENT_STATUSES
       const oldStatus = (
-        existingRecord?.data as { processContext?: { investigationStatus?: string } } | undefined
-      )?.processContext?.investigationStatus;
-      const newStatus = (
-        project as { processContext?: { investigationStatus?: string } } | undefined
-      )?.processContext?.investigationStatus;
+        existingRecord?.data as { processContext?: { analyzeStatus?: string } } | undefined
+      )?.processContext?.analyzeStatus;
+      const newStatus = (project as { processContext?: { analyzeStatus?: string } } | undefined)
+        ?.processContext?.analyzeStatus;
       const wasSustainment = oldStatus === 'resolved' || oldStatus === 'controlled';
       const isSustainment = newStatus === 'resolved' || newStatus === 'controlled';
       if (wasSustainment && !isSustainment) {
         // Investigation reopened — soft-delete its sustainment records (deletedAt).
         // Use the project name as the investigationId, matching Task 18's keying.
-        await tombstoneSustainmentRecordsForInvestigation(name, Date.now());
+        await tombstoneControlRecordsForInvestigation(name, Date.now());
       }
 
       // Always save to IndexedDB first (instant feedback)
@@ -689,45 +688,42 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     []
   );
 
-  const listSustainmentRecords = useCallback(
-    async (hubId: string): Promise<SustainmentRecord[]> => {
-      const localRecords = await listSustainmentRecordsFromIndexedDB(hubId);
+  const listControlRecords = useCallback(async (hubId: string): Promise<ControlRecord[]> => {
+    const localRecords = await listControlRecordsFromIndexedDB(hubId);
 
-      if (!navigator.onLine || isLocalDev()) {
-        return localRecords;
+    if (!navigator.onLine || isLocalDev()) {
+      return localRecords;
+    }
+
+    try {
+      const cloudRecords = await listControlRecordsFromCloud('blob-sas', hubId);
+      for (const record of cloudRecords) {
+        await saveControlRecordToIndexedDB(record);
       }
-
-      try {
-        const cloudRecords = await listSustainmentRecordsFromCloud('blob-sas', hubId);
-        for (const record of cloudRecords) {
-          await saveSustainmentRecordToIndexedDB(record);
-        }
-        return listSustainmentRecordsFromIndexedDB(hubId);
-      } catch (error) {
-        if (!(error instanceof CloudSyncUnavailableErrorClass)) {
-          errorService.logWarning('Failed to list sustainment records from cloud', {
-            component: 'storage',
-            action: 'listSustainmentRecords',
-            metadata: { error: error instanceof Error ? error.message : String(error) },
-          });
-        }
-        return localRecords;
+      return listControlRecordsFromIndexedDB(hubId);
+    } catch (error) {
+      if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+        errorService.logWarning('Failed to list sustainment records from cloud', {
+          component: 'storage',
+          action: 'listControlRecords',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
       }
-    },
-    []
-  );
+      return localRecords;
+    }
+  }, []);
 
-  const saveSustainmentRecord = useCallback(async (record: SustainmentRecord): Promise<void> => {
-    await saveSustainmentRecordToIndexedDB(record);
+  const saveControlRecord = useCallback(async (record: ControlRecord): Promise<void> => {
+    await saveControlRecordToIndexedDB(record);
 
     if (navigator.onLine && !isLocalDev()) {
       try {
-        await saveSustainmentRecordToCloud('blob-sas', record);
+        await saveControlRecordToCloud('blob-sas', record);
       } catch (error) {
         if (!(error instanceof CloudSyncUnavailableErrorClass)) {
           errorService.logWarning('Failed to save sustainment record to cloud', {
             component: 'storage',
-            action: 'saveSustainmentRecord',
+            action: 'saveControlRecord',
             metadata: { error: error instanceof Error ? error.message : String(error) },
           });
         }
@@ -737,26 +733,25 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     await recomputeSustainmentProjectionForRecord(record);
   }, []);
 
-  const listSustainmentReviews = useCallback(
-    (recordId: string): Promise<SustainmentReview[]> =>
-      listSustainmentReviewsFromIndexedDB(recordId),
+  const listControlReviews = useCallback(
+    (recordId: string): Promise<ControlReview[]> => listControlReviewsFromIndexedDB(recordId),
     []
   );
 
-  const saveSustainmentReview = useCallback(async (review: SustainmentReview): Promise<void> => {
-    await saveSustainmentReviewToIndexedDB(review);
+  const saveControlReview = useCallback(async (review: ControlReview): Promise<void> => {
+    await saveControlReviewToIndexedDB(review);
 
     if (!navigator.onLine || isLocalDev()) {
       return;
     }
 
     try {
-      await saveSustainmentReviewToCloud('blob-sas', review);
+      await saveControlReviewToCloud('blob-sas', review);
     } catch (error) {
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
-        errorService.logWarning('Failed to save sustainment review to cloud', {
+        errorService.logWarning('Failed to save control review to cloud', {
           component: 'storage',
-          action: 'saveSustainmentReview',
+          action: 'saveControlReview',
           metadata: { error: error instanceof Error ? error.message : String(error) },
         });
       }
@@ -904,10 +899,10 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     saveEvidenceSource,
     listEvidenceSnapshots,
     saveEvidenceSnapshot,
-    listSustainmentRecords,
-    saveSustainmentRecord,
-    listSustainmentReviews,
-    saveSustainmentReview,
+    listControlRecords,
+    saveControlRecord,
+    listControlReviews,
+    saveControlReview,
     listControlHandoffs,
     saveControlHandoff,
     syncStatus,

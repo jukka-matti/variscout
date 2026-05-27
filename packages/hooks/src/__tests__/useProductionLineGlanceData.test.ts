@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useProductionLineGlanceData } from '../useProductionLineGlanceData';
-import type { ProcessHub, ProcessHubInvestigation, DataRow } from '@variscout/core';
+import type { ProcessHub, ProcessHubAnalyze, DataRow } from '@variscout/core';
 
 const map = {
   version: 1 as const,
@@ -44,7 +44,7 @@ function makeMember(opts: {
   id: string;
   rows: DataRow[];
   nodeMappings: Array<{ nodeId: string; measurementColumn: string }>;
-}): ProcessHubInvestigation & { rows: DataRow[] } {
+}): ProcessHubAnalyze & { rows: DataRow[] } {
   return {
     id: opts.id,
     name: `Inv ${opts.id}`,
@@ -58,7 +58,7 @@ function makeMember(opts: {
     },
     rows: opts.rows,
     reviewSignal: { ok: 0, review: 0, alarm: 0 },
-  } as unknown as ProcessHubInvestigation & { rows: DataRow[] };
+  } as unknown as ProcessHubAnalyze & { rows: DataRow[] };
 }
 
 describe('useProductionLineGlanceData', () => {
@@ -77,7 +77,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub,
         members: [m],
-        rowsByInvestigation: rowsByInv,
+        rowsByAnalyze: rowsByInv,
         contextFilter: {},
       })
     );
@@ -93,7 +93,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub,
         members: [m],
-        rowsByInvestigation: new Map([['i1', []]]),
+        rowsByAnalyze: new Map([['i1', []]]),
         contextFilter: {},
       })
     );
@@ -115,7 +115,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub,
         members: [m],
-        rowsByInvestigation: new Map([['i1', rows]]),
+        rowsByAnalyze: new Map([['i1', rows]]),
         contextFilter: {},
       })
     );
@@ -138,7 +138,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub,
         members: [m],
-        rowsByInvestigation: new Map([['i1', rows]]),
+        rowsByAnalyze: new Map([['i1', rows]]),
         contextFilter: { product: 'A' },
       })
     );
@@ -153,7 +153,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub: noMapHub,
         members: [],
-        rowsByInvestigation: new Map(),
+        rowsByAnalyze: new Map(),
         contextFilter: {},
       })
     );
@@ -176,7 +176,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub,
         members: [m],
-        rowsByInvestigation: new Map([['i1', rows]]),
+        rowsByAnalyze: new Map([['i1', rows]]),
         contextFilter: {},
         defectColumns: ['defect'],
       })

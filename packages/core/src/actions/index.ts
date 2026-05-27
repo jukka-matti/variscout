@@ -1,7 +1,7 @@
 export type { OutcomeAction } from './outcomeActions';
 export type { EvidenceAction } from './evidenceActions';
 export type { EvidenceSourceAction } from './evidenceSourceActions';
-export type { InvestigationAction } from './investigationActions';
+export type { AnalyzeAction } from './analyzeActions';
 export type { FindingAction } from './findingActions';
 export type { QuestionAction } from './questionActions';
 export type { CausalLinkAction } from './causalLinkActions';
@@ -11,7 +11,7 @@ export type { CanvasAction } from './canvasActions';
 export type { ImprovementProjectAction } from './improvementProjectActions';
 export type { ActionItemAction, ActionItemPatch } from './actionItemActions';
 export { reduceActionItems } from './actionItemActions';
-export type { SustainmentAction } from './sustainmentActions';
+export type { ControlAction } from './controlActions';
 export type { ControlHandoffAction } from './controlHandoffActions';
 export type { HubAction } from './HubAction';
 export type { MembershipAction, ProjectMemberPatch } from '../projectMembership/actions';

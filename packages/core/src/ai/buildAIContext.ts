@@ -1,10 +1,17 @@
 /**
  * Assembles the structured AI context from current analysis state.
+ *
+ * PR-WV1-NAV cleanup deferral (2026-05-27): "investigation" methodology
+ * references in this file are intentionally preserved pending a design call.
+ * The distinction (renamed Analyze tab vs. the methodology word "investigation"
+ * = "the act of inquiry") needs human judgment per CoScout prompt emission
+ * surface. See `docs/ephemeral/investigations.md` § "CoScout AI prompt
+ * vocabulary alignment".
  */
 
-import type { AIContext, ProcessContext, TargetMetric, InvestigationPhase } from './types';
+import type { AIContext, ProcessContext, TargetMetric, AnalyzePhase } from './types';
 import type { InsightChartType } from './chartInsights';
-import type { Finding, Question, InvestigationCategory, Hypothesis } from '../findings';
+import type { Finding, Question, AnalyzeCategory, Hypothesis } from '../findings';
 import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { computeOptimum } from '../stats/safeMath';
@@ -35,7 +42,7 @@ export interface BuildAIContextOptions {
   stats?: AIStatsInput;
   filters?: Record<string, (string | number)[]>;
   /** Dynamic investigation categories */
-  categories?: InvestigationCategory[];
+  categories?: AnalyzeCategory[];
   violations?: {
     outOfControl: number;
     aboveUSL: number;
@@ -156,7 +163,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
   const glossaryCategories: GlossaryCategory[] = ['methodology'];
   if (stats?.cp !== undefined || stats?.cpk !== undefined) glossaryCategories.push('capability');
   if (Object.keys(filters).length > 0) glossaryCategories.push('statistics');
-  if (findings && findings.length > 0) glossaryCategories.push('investigation');
+  if (findings && findings.length > 0) glossaryCategories.push('analyze');
 
   const context: AIContext = {
     process,
@@ -693,7 +700,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 export function detectInvestigationPhase(
   questions: Question[],
   findings?: Finding[]
-): InvestigationPhase {
+): AnalyzePhase {
   if (questions.length === 0) return 'initial';
 
   const hasChildren = questions.some(q => q.parentId);

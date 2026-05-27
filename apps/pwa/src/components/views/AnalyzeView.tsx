@@ -1,0 +1,485 @@
+/**
+ * AnalyzeView - Question-driven investigation workspace for PWA
+ *
+ * Simplified version of Azure's AnalyzeWorkspace:
+ * - Left panel: QuestionChecklist + AnalyzePhaseBadge + AnalyzeConclusion
+ * - Center: Map/Wall toggle → FindingsLog (list/board/tree) | WallCanvas
+ * - No CoScout (PWA has no AI)
+ * - No Teams integration (no photos, no assignees)
+ * - 3-status findings (not 5)
+ */
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  QuestionChecklist,
+  AnalyzePhaseBadge,
+  AnalyzeConclusion,
+  FindingsLog,
+  WallCanvas,
+  CommandPalette,
+  Minimap,
+  CANVAS_W,
+  CANVAS_H,
+  ActiveIPScopeRibbon,
+  useWallKeyboard,
+  useWallIsMobile,
+} from '@variscout/ui';
+import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
+import {
+  useResizablePanel,
+  useReturnNavigation,
+  type UseFindingsReturn,
+  type UseQuestionsReturn,
+} from '@variscout/hooks';
+import type { WallCanvasPlanningProps } from '@variscout/ui';
+import { type FindingStatus, type Question } from '@variscout/core';
+import { detectInvestigationPhase } from '@variscout/core/ai';
+import { getStrategy } from '@variscout/core/strategy';
+import type { ResolvedMode } from '@variscout/core/strategy';
+import { detectColumns } from '@variscout/core/parser';
+import type { ColumnTypeMap } from '@variscout/core/findings';
+import type { DrillStep } from '@variscout/hooks';
+import { GripVertical } from 'lucide-react';
+import { useCanvasViewportStore, useProjectStore, useAnalyzeStore } from '@variscout/stores';
+import type { ProcessHubId } from '@variscout/core/processHub';
+import { useFindingsStore } from '../../features/findings/findingsStore';
+import {
+  useAnalyzeFeatureStore,
+  type QuestionDisplayData,
+} from '../../features/analyze/analyzeStore';
+import { usePanelsStore } from '../../features/panels/panelsStore';
+
+const DEFAULT_WALL_PAN = { x: 0, y: 0 };
+
+interface AnalyzeViewProps {
+  activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
+  activeIPLineage?: ActiveIPLineageIds | null;
+  canvasViewportHubId: ProcessHubId;
+  // Data context
+  filteredData: Record<string, unknown>[];
+  outcome: string | null;
+  factors: string[];
+  // Findings
+  findingsState: UseFindingsReturn;
+  handleRestoreFinding: (id: string) => void;
+  handleSetFindingStatus: (id: string, status: FindingStatus) => void;
+  drillPath: DrillStep[];
+  // Questions
+  questionsState: UseQuestionsReturn;
+  handleCreateQuestion: (findingId: string, text: string, factor?: string, level?: string) => void;
+  // Question generation
+  factorIntelQuestions: Question[];
+  handleQuestionClick: (question: Question) => void;
+  // Column aliases
+  columnAliases: Record<string, string>;
+  // Strategy
+  resolvedMode: ResolvedMode;
+  // Derived investigation data (from orchestration hook)
+  questionsMap: Record<string, QuestionDisplayData>;
+  ideaImpacts: Record<string, import('@variscout/core').IdeaImpact | undefined>;
+  /**
+   * Optional measurement-plan affordances threaded into WallCanvas.
+   * When provided, hub cards render HypothesisCardWithPlans.
+   * When omitted (default), hub cards render bare HypothesisCard.
+   */
+  planningProps?: WallCanvasPlanningProps;
+}
+
+const AnalyzeView: React.FC<AnalyzeViewProps> = ({
+  activeIPScope,
+  activeIPLineage,
+  canvasViewportHubId,
+  findingsState,
+  handleRestoreFinding,
+  handleSetFindingStatus,
+  drillPath,
+  questionsState,
+  handleCreateQuestion,
+  factorIntelQuestions,
+  handleQuestionClick,
+  columnAliases,
+  resolvedMode,
+  questionsMap,
+  ideaImpacts,
+  planningProps,
+}) => {
+  const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
+
+  // Map/Wall sub-toggle (mirrors Azure AnalyzeWorkspace)
+  const wallViewMode = useCanvasViewportStore(s => s.viewMode);
+  const setWallViewMode = useCanvasViewportStore(s => s.setViewMode);
+  // Phase 13 scale features — thread store values into WallCanvas so zoom,
+  // pan, and tributary clustering survive re-renders and route through the
+  // existing undo/persist infrastructure.
+  const wallHubId = canvasViewportHubId;
+  const wallZoom = useCanvasViewportStore(s => s.viewports[wallHubId]?.zoom ?? 1);
+  const wallPan = useCanvasViewportStore(s => s.viewports[wallHubId]?.pan ?? DEFAULT_WALL_PAN);
+  const setWallPan = useCanvasViewportStore(s => s.setPan);
+  const wallGroupByTributary = useCanvasViewportStore(
+    s => s.viewports[wallHubId]?.groupByTributary ?? false
+  );
+  const setWallGroupByTributary = useCanvasViewportStore(s => s.setGroupByTributary);
+  const returnNavigation = useReturnNavigation();
+  const returnTarget = returnNavigation.peekReturnTarget();
+  const canReturnToImprovementProject = returnTarget?.sourceSurface === 'improvement-project';
+  const processMap = useProjectStore(s => s.processContext?.processMap);
+  const rawData = useProjectStore(s => s.rawData);
+  const outcome = useProjectStore(s => s.outcome);
+  // Undefined when no rows are loaded so WallCanvas keeps the missing-column
+  // badge suppressed (rather than flagging every hub against an empty set).
+  const wallActiveColumns = useMemo<string[] | undefined>(
+    () => (rawData.length > 0 ? Object.keys(rawData[0]) : undefined),
+    [rawData]
+  );
+  const columnTypes = useMemo<ColumnTypeMap>(() => {
+    if (rawData.length === 0) return {};
+    const det = detectColumns(rawData);
+    const map: ColumnTypeMap = {};
+    for (const c of det.columnAnalysis) map[c.name] = c.type;
+    return map;
+  }, [rawData]);
+  const hubs = useAnalyzeStore(s => s.hypotheses);
+  const wallFindings = useAnalyzeStore(s => s.findings);
+  const wallQuestions = useAnalyzeStore(s => s.questions);
+  const scopedHubIds = useMemo(
+    () => new Set(activeIPLineage?.hypothesisIds ?? []),
+    [activeIPLineage]
+  );
+  const scopedFindingIds = useMemo(
+    () => new Set(activeIPLineage?.findingIds ?? []),
+    [activeIPLineage]
+  );
+  const scopedWallHubs = useMemo(
+    () => (activeIPScope ? hubs.filter(h => scopedHubIds.has(h.id)) : hubs),
+    [activeIPScope, hubs, scopedHubIds]
+  );
+  const scopedWallFindings = useMemo(
+    () => (activeIPScope ? wallFindings.filter(f => scopedFindingIds.has(f.id)) : wallFindings),
+    [activeIPScope, scopedFindingIds, wallFindings]
+  );
+  const scopedWallQuestionIds = useMemo(() => {
+    if (!activeIPScope) return null;
+    const ids = new Set<string>();
+    for (const hub of scopedWallHubs) {
+      for (const id of hub.questionIds) ids.add(id);
+    }
+    for (const finding of scopedWallFindings) {
+      if (finding.questionId) ids.add(finding.questionId);
+    }
+    return ids;
+  }, [activeIPScope, scopedWallFindings, scopedWallHubs]);
+  const scopedWallQuestions = useMemo(
+    () =>
+      scopedWallQuestionIds
+        ? wallQuestions.filter(q => scopedWallQuestionIds.has(q.id))
+        : wallQuestions,
+    [scopedWallQuestionIds, wallQuestions]
+  );
+
+  // Investigation phase detection (deterministic)
+  const analyzePhase = useMemo(
+    () => detectInvestigationPhase(questionsState.questions, findingsState.findings),
+    [questionsState.questions, findingsState.findings]
+  );
+
+  const strategy = getStrategy(resolvedMode);
+
+  // Left panel resizable
+  const leftPanel = useResizablePanel('variscout-pwa-analyze-left-width', 220, 400, 280, 'left');
+
+  // View mode (list/board/tree)
+  const [viewMode, setViewMode] = useState<'list' | 'board' | 'tree'>('board');
+
+  // Phase 13 — ⌘K command palette trigger. Only active when Wall is visible.
+  // Phase 14.1 — Minimap + palette gate on desktop only; MobileCardList
+  // takes over below 768px and overlay controls would collide with it.
+  const wallIsMobile = useWallIsMobile();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  useWallKeyboard({
+    onSearch: () => {
+      if (wallViewMode === 'wall' && !wallIsMobile) setPaletteOpen(true);
+    },
+  });
+
+  // Phase 13 — resolve a CommandPalette result id to a canvas-space pan target.
+  // Positioning mirrors WallCanvas's deterministic layout (hubs row at y=400,
+  // questions row at y=900). WallCanvas doesn't expose node positions, so this
+  // recomputation is a controlled duplication — refactor if the layout ever
+  // becomes dynamic.
+  const handlePanToNode = useCallback(
+    (nodeId: string) => {
+      const hubIndex = scopedWallHubs.findIndex(h => h.id === nodeId);
+      if (hubIndex >= 0) {
+        const hubSpacing = CANVAS_W / (scopedWallHubs.length + 1);
+        setWallPan(wallHubId, {
+          x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
+          y: CANVAS_H / 2 - 400,
+        });
+        return;
+      }
+      const questionIndex = scopedWallQuestions.findIndex(q => q.id === nodeId);
+      if (questionIndex >= 0) {
+        setWallPan(wallHubId, {
+          x: CANVAS_W / 2 - (200 + questionIndex * 240),
+          y: CANVAS_H / 2 - 900,
+        });
+      }
+    },
+    [scopedWallHubs, wallHubId, scopedWallQuestions, setWallPan]
+  );
+
+  const handleReturnToImprovementProject = useCallback(() => {
+    const target = returnNavigation.consumeReturnTarget();
+    if (target?.sourceSurface === 'improvement-project') {
+      usePanelsStore.getState().showCharter();
+    }
+  }, [returnNavigation]);
+
+  // Categorize questions for AnalyzeConclusion
+  const { hypotheses, contributing, ruledOut } = useMemo(() => {
+    const suspected: Question[] = [];
+    const contrib: Question[] = [];
+    const ruled: Question[] = [];
+    for (const q of questionsState.questions) {
+      if (q.causeRole === 'suspected-cause') suspected.push(q);
+      else if (q.causeRole === 'contributing') contrib.push(q);
+      else if (q.causeRole === 'ruled-out') ruled.push(q);
+    }
+    return { hypotheses: suspected, contributing: contrib, ruledOut: ruled };
+  }, [questionsState.questions]);
+
+  const drillFactors = useMemo(() => drillPath.map(d => d.factor), [drillPath]);
+
+  // Question click: switch back to Analysis workspace with factor focused
+  const handleQuestionClickWithSwitch = (question: Question) => {
+    handleQuestionClick(question);
+    usePanelsStore.getState().showExplore();
+  };
+
+  return (
+    <div className="flex flex-1 min-h-0 flex-col">
+      {activeIPScope ? (
+        <ActiveIPScopeRibbon
+          title={activeIPScope.title}
+          labels={activeIPScope.labels}
+          surface="Analyze"
+        />
+      ) : null}
+      <div className="flex flex-1 min-h-0 relative">
+        {/* Left panel: Question checklist + phase + conclusions */}
+        <div
+          className="relative hidden md:flex flex-col border-r border-edge overflow-hidden bg-surface flex-shrink-0"
+          style={{ width: leftPanel.width }}
+        >
+          {/* Phase badge */}
+          {analyzePhase && (
+            <div className="px-3 pt-3 pb-1 flex-shrink-0">
+              <AnalyzePhaseBadge phase={analyzePhase} />
+            </div>
+          )}
+
+          {/* Question checklist */}
+          <div className="flex-1 overflow-y-auto px-3 py-2">
+            <QuestionChecklist
+              questions={factorIntelQuestions}
+              onQuestionClick={handleQuestionClickWithSwitch}
+              evidenceLabel={strategy.questionStrategy.evidenceLabel}
+            />
+          </div>
+
+          {/* Investigation conclusion */}
+          {(hypotheses.length > 0 || ruledOut.length > 0) && (
+            <div className="border-t border-edge px-3 py-2 flex-shrink-0">
+              <AnalyzeConclusion
+                hypotheses={hypotheses}
+                ruledOut={ruledOut}
+                contributing={contributing}
+                hasConclusions={hypotheses.length > 0}
+              />
+            </div>
+          )}
+
+          {/* Resize handle */}
+          <div
+            className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/30 transition-colors z-10"
+            onMouseDown={leftPanel.handleMouseDown}
+          >
+            <GripVertical
+              size={12}
+              className="absolute top-1/2 -translate-y-1/2 -right-1.5 text-content-tertiary"
+            />
+          </div>
+        </div>
+
+        {/* Center: Map/Wall toggle + content */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+          {/* Header toolbar */}
+          <div className="flex items-center gap-1 px-3 py-2 border-b border-edge bg-surface flex-shrink-0">
+            {/* Map/Wall primary toggle */}
+            <div
+              role="group"
+              aria-label="Analyze view mode"
+              className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
+            >
+              {(['map', 'wall'] as const).map(mode => (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={wallViewMode === mode}
+                  onClick={() => setWallViewMode(mode)}
+                  className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                    wallViewMode === mode
+                      ? 'bg-surface-secondary text-content'
+                      : 'text-content-secondary hover:text-content'
+                  }`}
+                >
+                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* List/board/tree sub-toggle (only in Map/Findings view) */}
+            {wallViewMode === 'map' && (
+              <>
+                <div className="w-px h-4 bg-edge mx-1" />
+                {(['list', 'board', 'tree'] as const).map(mode => (
+                  <button
+                    key={mode}
+                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                      viewMode === mode
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                        : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
+                    }`}
+                    onClick={() => setViewMode(mode)}
+                  >
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </button>
+                ))}
+              </>
+            )}
+
+            {/* Wall-only: group-by-tributary toggle */}
+            {wallViewMode === 'wall' && processMap && (
+              <>
+                <div className="w-px h-4 bg-edge mx-1" />
+                <button
+                  type="button"
+                  aria-pressed={wallGroupByTributary}
+                  onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
+                  className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                    wallGroupByTributary
+                      ? 'bg-surface-secondary text-content'
+                      : 'text-content-secondary hover:text-content'
+                  }`}
+                >
+                  Group by tributary
+                </button>
+              </>
+            )}
+
+            {canReturnToImprovementProject && (
+              <button
+                type="button"
+                onClick={handleReturnToImprovementProject}
+                className="ml-1 rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                Back to Improvement Project
+              </button>
+            )}
+
+            <span className="ml-auto text-xs text-content-tertiary">
+              {scopedWallFindings.length} finding
+              {scopedWallFindings.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+
+          {/* Content */}
+          {wallViewMode === 'wall' ? (
+            <div className="relative flex-1 flex flex-col min-h-0">
+              <WallCanvas
+                hubId={wallHubId}
+                hubs={scopedWallHubs}
+                findings={scopedWallFindings}
+                questions={scopedWallQuestions}
+                processMap={processMap}
+                problemCpk={0}
+                eventsPerWeek={0}
+                activeColumns={wallActiveColumns}
+                rows={rawData}
+                columnTypes={columnTypes}
+                outcomeColumn={outcome}
+                zoom={wallZoom}
+                pan={wallPan}
+                groupByTributary={Boolean(processMap && wallGroupByTributary)}
+                planningProps={planningProps}
+              />
+              {/* Minimap + CommandPalette are desktop-only. WallCanvas
+                self-gates to MobileCardList below 768px. */}
+              {!wallIsMobile && (
+                <>
+                  <div className="absolute bottom-4 right-4 pointer-events-auto">
+                    <Minimap
+                      hubs={scopedWallHubs}
+                      questions={scopedWallQuestions}
+                      zoom={wallZoom}
+                      pan={wallPan}
+                      onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
+                    />
+                  </div>
+                  <CommandPalette
+                    open={paletteOpen}
+                    onClose={() => setPaletteOpen(false)}
+                    onPanTo={handlePanToNode}
+                    hubs={scopedWallHubs}
+                    questions={scopedWallQuestions}
+                    findings={scopedWallFindings}
+                  />
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto px-3 py-2">
+              <FindingsLog
+                findings={scopedWallFindings}
+                onEditFinding={findingsState.editFinding}
+                onDeleteFinding={findingsState.deleteFinding}
+                onRestoreFinding={handleRestoreFinding}
+                viewMode={viewMode}
+                questions={scopedWallQuestions}
+                onSelectQuestion={(q: Question) =>
+                  useAnalyzeFeatureStore.getState().expandToQuestion(q.id)
+                }
+                onAddSubQuestion={questionsState.addSubQuestion}
+                factors={drillFactors}
+                getChildrenSummary={questionsState.getChildrenSummary}
+                onSetFindingStatus={handleSetFindingStatus}
+                onSetFindingTag={findingsState.setFindingTag}
+                onAddComment={(id: string, text: string) =>
+                  findingsState.addFindingComment(id, text)
+                }
+                columnAliases={columnAliases}
+                activeFindingId={highlightedFindingId}
+                onCreateQuestion={handleCreateQuestion}
+                questionsMap={questionsMap}
+                onSetValidationTask={questionsState.setValidationTask}
+                onCompleteTask={questionsState.completeTask}
+                onSetManualStatus={questionsState.setManualStatus}
+                onAddAction={findingsState.addAction}
+                onCompleteAction={findingsState.completeAction}
+                onDeleteAction={findingsState.deleteAction}
+                onSetOutcome={findingsState.setOutcome}
+                ideaImpacts={ideaImpacts}
+                onAddIdea={questionsState.addIdea}
+                onUpdateIdea={questionsState.updateIdea}
+                onRemoveIdea={questionsState.removeIdea}
+                onSelectIdea={questionsState.selectIdea}
+                onSetCauseRole={questionsState.setCauseRole}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AnalyzeView;

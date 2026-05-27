@@ -14,7 +14,7 @@ import type { ProcessMap } from '@variscout/core/frame';
 import type { CanvasLensId, CanvasStepCardModel } from '@variscout/hooks';
 import { buildSystemOutcomeModel } from '../../DashboardBase/internal/systemOutcomeModel';
 import { InboxDigest, type InboxDigestPrompt } from '../../Inbox';
-import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
+import { useWallLocale } from '../../AnalyzeWall/hooks/useWallLocale';
 
 export interface SystemLevelViewProps {
   hubId: ProcessHubId;
@@ -270,10 +270,10 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
 
           <section
             className="rounded-lg border border-edge bg-surface p-4"
-            data-testid="active-investigations-summary"
+            data-testid="active-analyzes-summary"
           >
             <h3 className="text-sm font-semibold text-content">
-              {getMessage(locale, 'canvas.system.activeInvestigations')}
+              {getMessage(locale, 'canvas.system.activeAnalyzes')}
             </h3>
             <p className="mt-2 text-sm text-content-muted">{model.activeSummary}</p>
           </section>

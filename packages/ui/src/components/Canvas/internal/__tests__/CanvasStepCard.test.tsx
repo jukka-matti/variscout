@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { CanvasStepCardModel, CanvasStepInvestigationOverlay } from '@variscout/hooks';
+import type { CanvasStepCardModel, CanvasStepAnalyzeOverlay } from '@variscout/hooks';
 import { CanvasStepCard } from '../CanvasStepCard';
 
 const baseCard: CanvasStepCardModel = {
@@ -25,7 +25,7 @@ const baseCard: CanvasStepCardModel = {
   },
 };
 
-const detailedOverlay: CanvasStepInvestigationOverlay = {
+const detailedOverlay: CanvasStepAnalyzeOverlay = {
   stepId: 'step-1',
   questions: [],
   findings: [
@@ -50,7 +50,7 @@ const detailedOverlay: CanvasStepInvestigationOverlay = {
   investigationCounts: { open: 1, supported: 1, refuted: 0 },
 };
 
-const overlayWithPromoted: CanvasStepInvestigationOverlay = {
+const overlayWithPromoted: CanvasStepAnalyzeOverlay = {
   stepId: 'step-1',
   questions: [],
   findings: [],

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ControlHandoff, ControlHandoffSurface, SustainmentRecord } from '@variscout/core';
+import type { ControlHandoff, ControlHandoffSurface, ControlRecord } from '@variscout/core';
 import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
@@ -9,7 +9,7 @@ export interface ControlHandoffEditorProps {
   currentUser: EasyAuthUser;
   existingHandoff?: ControlHandoff;
   recordedByDisplayName: string;
-  relatedRecord?: SustainmentRecord;
+  relatedRecord?: ControlRecord;
   onSave: (handoff: ControlHandoff) => void;
   onCancel: () => void;
 }
@@ -54,8 +54,8 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
   );
   const [description, setDescription] = useState(existingHandoff?.description ?? '');
   const [referenceUri, setReferenceUri] = useState(existingHandoff?.referenceUri ?? '');
-  const [retainSustainmentReview, setRetainSustainmentReview] = useState(
-    existingHandoff?.retainSustainmentReview ?? true
+  const [retainControlReview, setRetainControlReview] = useState(
+    existingHandoff?.retainControlReview ?? true
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,7 +77,7 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
       handoffDate: new Date(handoffDate + 'T00:00:00.000Z').getTime(),
       description,
       referenceUri: referenceUri || undefined,
-      retainSustainmentReview,
+      retainControlReview,
       createdAt: existingHandoff?.createdAt ?? nowMs,
       deletedAt: existingHandoff?.deletedAt ?? null,
       recordedBy: existingHandoff?.recordedBy ?? {
@@ -89,7 +89,7 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
     await storage.saveControlHandoff(handoff);
 
     if (relatedRecord && relatedRecord.controlHandoffId !== handoff.id) {
-      await storage.saveSustainmentRecord({
+      await storage.saveControlRecord({
         ...relatedRecord,
         controlHandoffId: handoff.id,
         updatedAt: nowMs,
@@ -216,14 +216,14 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
       <div className="flex items-center gap-2">
         <input
           id="che-retain-review"
-          aria-label="Retain sustainment review"
+          aria-label="Retain control review"
           type="checkbox"
-          checked={retainSustainmentReview}
-          onChange={e => setRetainSustainmentReview(e.target.checked)}
+          checked={retainControlReview}
+          onChange={e => setRetainControlReview(e.target.checked)}
           className="h-4 w-4 rounded border-edge"
         />
         <label className="text-xs font-medium text-content-secondary" htmlFor="che-retain-review">
-          Retain sustainment review after handoff
+          Retain control review after handoff
         </label>
       </div>
 

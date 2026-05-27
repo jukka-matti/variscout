@@ -3,7 +3,7 @@ import type {
   Question,
   QuestionStatus,
   Finding,
-  InvestigationCategory,
+  AnalyzeCategory,
   ImprovementIdea,
   IdeaImpact,
 } from '@variscout/core';
@@ -46,7 +46,7 @@ export interface QuestionTreeViewProps {
   /** Search filter text */
   searchFilter?: string;
   /** Investigation categories for three-level grouping (Category -> Factor -> Question) */
-  categories?: InvestigationCategory[];
+  categories?: AnalyzeCategory[];
   /** Factor name -> eta-squared percentage (for variation display on factor/category headers) */
   factorVariations?: Record<string, number>;
   // --- Validation Task (passed through to QuestionNode) ---
@@ -84,7 +84,7 @@ export interface QuestionTreeViewProps {
 
 /** Category group for tree rendering */
 interface CategoryGroup {
-  category: InvestigationCategory;
+  category: AnalyzeCategory;
   factorGroups: Map<string, Question[]>;
 }
 

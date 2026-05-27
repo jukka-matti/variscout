@@ -4,9 +4,9 @@ import type { ProcessHub } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import {
   getImprovementProjectInitialState,
-  getInvestigationInitialState,
+  getAnalyzeInitialState,
   useImprovementProjectStore,
-  useInvestigationStore,
+  useAnalyzeStore,
 } from '@variscout/stores';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import ImprovementProjectPanel from '../ImprovementProjectPanel';
@@ -106,7 +106,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   window.sessionStorage.clear();
   useImprovementProjectStore.setState(getImprovementProjectInitialState());
-  useInvestigationStore.setState(getInvestigationInitialState());
+  useAnalyzeStore.setState(getAnalyzeInitialState());
 });
 
 describe('ImprovementProjectPanel (PWA)', () => {
@@ -155,8 +155,8 @@ describe('ImprovementProjectPanel (PWA)', () => {
   it('opens Wall from linked lineage and stores the Improvement Project return target', async () => {
     const onOpenWall = vi.fn();
     const project = makeProject('ip-1', 'hub-1', 'Reduce rework');
-    useInvestigationStore.setState({
-      ...getInvestigationInitialState(),
+    useAnalyzeStore.setState({
+      ...getAnalyzeInitialState(),
       hypotheses: [
         {
           id: 'h-1',

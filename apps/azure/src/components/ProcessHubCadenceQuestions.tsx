@@ -1,10 +1,10 @@
 import React from 'react';
 import { ClipboardCheck } from 'lucide-react';
-import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
+import type { ProcessHubAnalyze, ProcessHubRollup } from '@variscout/core';
 import { processQuestionAnswers, sustainmentBandAnswer } from './ProcessHubFormat';
 
 interface ProcessHubCadenceQuestionsProps {
-  rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  rollup: ProcessHubRollup<ProcessHubAnalyze>;
 }
 
 const QuestionBand: React.FC<{ question: string; answer: string }> = ({ question, answer }) => (

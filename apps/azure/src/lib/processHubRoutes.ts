@@ -8,10 +8,10 @@ export function actionToHref(action: ResponsePathAction): string | null {
   switch (action.kind) {
     case 'unsupported':
       return null;
-    case 'open-investigation':
-      return `/editor/${action.investigationId}?intent=${action.intent}`;
-    case 'open-sustainment': {
-      return `/editor/${action.investigationId}/sustainment`;
+    case 'open-analyze':
+      return `/editor/${action.analyzeId}?intent=${action.intent}`;
+    case 'open-control': {
+      return `/editor/${action.analyzeId}/sustainment`;
     }
     default:
       return assertNever(action);

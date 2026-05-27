@@ -5,7 +5,7 @@ import type {
   CanvasLensId,
   CanvasOverlayId,
   CanvasStepCardModel,
-  CanvasStepInvestigationOverlay,
+  CanvasStepAnalyzeOverlay,
 } from '@variscout/hooks';
 import { StepDefectIndicator } from '../../StepDefectIndicator';
 import { CanvasStepDriftIndicator } from './CanvasStepDriftIndicator';
@@ -17,7 +17,7 @@ interface CanvasStepCardProps {
   zoom: number;
   activeLens: CanvasLensId;
   activeOverlays?: CanvasOverlayId[];
-  investigationOverlay?: CanvasStepInvestigationOverlay;
+  investigationOverlay?: CanvasStepAnalyzeOverlay;
   activeCanvasTool: CanvasToolId;
   onOpen: (stepId: string, element: HTMLElement) => void;
   onStepSpecsRequest?: (column: string, stepId: string) => void;

@@ -17,7 +17,7 @@ related:
 layer: spec
 implements:
   - docs/03-features/ui/canvas-frame.md
-  - docs/03-features/workflows/investigation-wall.md
+  - docs/03-features/workflows/analyze-wall.md
   - docs/03-features/workflows/process-maps.md
 ---
 

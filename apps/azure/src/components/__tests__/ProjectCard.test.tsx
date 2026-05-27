@@ -58,10 +58,10 @@ describe('ProjectCard', () => {
   });
 
   it('renders phase badge when metadata is present', () => {
-    const project = makeProject({ metadata: makeMetadata({ phase: 'investigate' }) });
+    const project = makeProject({ metadata: makeMetadata({ phase: 'analyze' }) });
     render(<ProjectCard {...defaultProps} project={project} />);
     expect(screen.getByTestId('project-card-phase-badge')).toBeInTheDocument();
-    expect(screen.getByTestId('project-card-phase-badge')).toHaveTextContent('INVESTIGATE');
+    expect(screen.getByTestId('project-card-phase-badge')).toHaveTextContent('ANALYZE');
   });
 
   it('does not render phase badge without metadata', () => {

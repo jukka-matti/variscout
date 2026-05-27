@@ -370,7 +370,7 @@ These aren't lost — they're moved to a separate roadmap. See [USER-JOURNEYS.md
 - [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 canonical anatomy
 - [ADR-082: V1 architecture (was: Wedge architecture)](../07-decisions/adr-082-wedge-architecture.md)
 - [ADR-007: Distribution Strategy](../07-decisions/adr-007-azure-marketplace-distribution.md)
-- [ADR-015: Investigation Board](../07-decisions/adr-015-investigation-board.md)
+- [ADR-015: Investigation Board](../07-decisions/adr-015-analyze-board.md)
 - [ADR-059: Web-First Deployment Architecture](../07-decisions/adr-059-web-first-deployment-architecture.md)
 - [ADR-019: AI Integration](../07-decisions/adr-019-ai-integration.md)
 - [AI Components](../06-design-system/components/ai-components.md)

@@ -361,7 +361,7 @@ git commit -m "docs(wedge): update roadmap.md — V1 SHIPPED + VariScout Process
 
 **Goal:** verify the wedge V1 framing is current. Likely minimal change — root CLAUDE.md was updated in our session (commits `bb296898` + `df3e9d81`). Verify:
 
-- 7-tab nav order matches: `Home · Project · Process · Analyze · Investigation · Improve · Report`
+- 7-tab nav order matches: `Home · Project · Process · Explore · Analyze · Improve · Report`
 - ADR references point to ADR-082
 - Single-SKU + project-membership mentions are current
 - "Wedge" is OK in workflow/feedback sections (developer-facing); should NOT be in user-positioning sections
@@ -417,7 +417,7 @@ cat docs/llms.txt
 
 - [ ] **Step 2: Update the price + nav description on lines 3 + 9 (verify exact line numbers first)**
 
-Use the Edit tool. The "€99/mo, single tier — wedge pivot 2026-05-16" → "€120/mo, single SKU per Azure tenant". The "6-tab workflow nav (`Home · Projects · Process · Analyze · Investigation · Report`); Improve as a stage inside Projects detail" → "7-tab workflow nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`); Improve as top-level verb tab per the 2026-05-16 amendment".
+Use the Edit tool. The "€99/mo, single tier — wedge pivot 2026-05-16" → "€120/mo, single SKU per Azure tenant". The "6-tab workflow nav (`Home · Projects · Process · Analyze · Investigation · Report`); Improve as a stage inside Projects detail" → "7-tab workflow nav (`Home · Project · Process · Explore · Analyze · Improve · Report`); Improve as top-level verb tab per the 2026-05-16 amendment".
 
 - [ ] **Step 3: Verify**
 

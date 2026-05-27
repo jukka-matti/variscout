@@ -52,19 +52,18 @@ const HeaderIconButton: React.FC<HeaderIconButtonProps> = ({
 /**
  * PhaseId — UI-layer enum for the 7-tab workflow nav.
  *
- * Per wedge V1 amendment (2026-05-16), the canonical order is:
- *   Home · Project · Process · Analyze · Investigation · Improve · Report
+ * Per wedge V1 vocabulary rename (2026-05-27), the canonical order is:
+ *   Home · Project · Process · Explore · Analyze · Improve · Report
  *
- * NOTE: PhaseId values are intentionally distinct from `panelsStore.activeView`
- * (which remains `'frame'`/`'analysis'`/`'projects'` for store-internal stability).
- * The mapping `phase → panels.show*()` lives in `App.tsx#handlePhaseChange`.
+ * NOTE: PhaseId values map to `panelsStore.activeView` via
+ * `App.tsx#handlePhaseChange` (e.g. 'explore' → panels.showExplore()).
  */
 export type PhaseId =
   | 'home'
   | 'project'
   | 'process'
+  | 'explore'
   | 'analyze'
-  | 'investigation'
   | 'improvement'
   | 'report';
 
@@ -103,14 +102,14 @@ interface AppHeaderProps {
  * - Logo clickable → new analysis (home screen)
  * - Data panel toggle persists
  */
-// Order per wedge V1 amendment (2026-05-16):
-//   Home · Project · Process · Analyze · Investigation · Improve · Report
+// Order per wedge V1 vocabulary rename (2026-05-27):
+//   Home · Project · Process · Explore · Analyze · Improve · Report
 const PHASE_TABS: { id: PhaseId; label?: string; labelKey?: keyof MessageCatalog }[] = [
   { id: 'home', label: 'Home' },
   { id: 'project', labelKey: 'workspace.project' },
   { id: 'process', labelKey: 'workspace.process' },
+  { id: 'explore', labelKey: 'workspace.explore' },
   { id: 'analyze', labelKey: 'workspace.analyze' },
-  { id: 'investigation', labelKey: 'workspace.investigation' },
   { id: 'improvement', labelKey: 'workspace.improve' },
   { id: 'report', labelKey: 'workspace.report' },
 ];

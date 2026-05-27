@@ -178,7 +178,7 @@ Future spec path: `docs/superpowers/specs/YYYY-MM-DD-control-plan-design.md`.
 - ADR-070 — FRAME workspace
 - `docs/01-vision/constitution.md` — P2 (optional, never blocks workflow)
 - `docs/superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md` — Issue → Problem journey foundation
-- `docs/03-features/workflows/question-driven-investigation.md` — analyst-side workflow guide
+- `docs/03-features/workflows/question-driven-analyze.md` — analyst-side workflow guide
 
 ## Resume notes
 

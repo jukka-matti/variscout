@@ -1,14 +1,13 @@
 import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { ControlHandoff, SustainmentRecord } from '@variscout/core';
+import type { ControlHandoff, ControlRecord } from '@variscout/core';
 import { ImprovementProjectForm } from '../ImprovementProjectForm';
 import { OutcomeReferenceSection } from '../sections/OutcomeReferenceSection';
 
-const makeSustainmentRecord = (
-  overrides: Partial<SustainmentRecord & { title?: string }> &
-    Pick<SustainmentRecord, 'id' | 'cadence'>
-): SustainmentRecord & { title?: string } =>
+const makeControlRecord = (
+  overrides: Partial<ControlRecord & { title?: string }> & Pick<ControlRecord, 'id' | 'cadence'>
+): ControlRecord & { title?: string } =>
   ({
     createdAt: 1,
     deletedAt: null,
@@ -16,7 +15,7 @@ const makeSustainmentRecord = (
     investigationId: 'inv-1',
     hubId: 'hub-1',
     ...overrides,
-  }) as SustainmentRecord & { title?: string };
+  }) as ControlRecord & { title?: string };
 
 const makeHandoff = (
   overrides: Partial<ControlHandoff> & Pick<ControlHandoff, 'id' | 'surface' | 'systemName'>
@@ -29,7 +28,7 @@ const makeHandoff = (
     operationalOwner: { displayName: 'Process Owner' },
     handoffDate: Date.UTC(2026, 5, 15),
     description: 'Control transferred to operating system.',
-    retainSustainmentReview: true,
+    retainControlReview: true,
     recordedBy: { displayName: 'Improvement Lead' },
     ...overrides,
   }) as ControlHandoff;
@@ -39,7 +38,7 @@ describe('OutcomeReferenceSection', () => {
     render(<OutcomeReferenceSection />);
 
     expect(
-      screen.getByText('Sustainment: not yet started - set up after Improvement closes.')
+      screen.getByText('Control: not yet started - set up after Improvement closes.')
     ).toBeInTheDocument();
   });
 
@@ -48,7 +47,7 @@ describe('OutcomeReferenceSection', () => {
 
     render(
       <OutcomeReferenceSection
-        sustainmentRecord={makeSustainmentRecord({
+        controlRecord={makeControlRecord({
           id: 'sr-1',
           title: 'Mix temperature sustainment',
           cadence: 'monthly',
@@ -70,7 +69,7 @@ describe('OutcomeReferenceSection', () => {
 
     fireEvent.click(card);
 
-    expect(onNavigate).toHaveBeenCalledWith({ kind: 'sustainmentRecord', id: 'sr-1' });
+    expect(onNavigate).toHaveBeenCalledWith({ kind: 'controlRecord', id: 'sr-1' });
   });
 
   it('renders handoff summary metadata and clicking calls onNavigate with its target', () => {
@@ -104,7 +103,7 @@ describe('OutcomeReferenceSection', () => {
   it('does not render focusable no-op buttons when onNavigate is omitted', () => {
     render(
       <OutcomeReferenceSection
-        sustainmentRecord={makeSustainmentRecord({
+        controlRecord={makeControlRecord({
           id: 'sr-1',
           title: 'Mix temperature sustainment',
           cadence: 'weekly',
@@ -126,7 +125,7 @@ describe('OutcomeReferenceSection', () => {
   it('does not render editable form fields', () => {
     const { container } = render(
       <OutcomeReferenceSection
-        sustainmentRecord={makeSustainmentRecord({
+        controlRecord={makeControlRecord({
           id: 'sr-1',
           title: 'Mix temperature sustainment',
           cadence: 'weekly',
@@ -152,7 +151,7 @@ describe('ImprovementProjectForm outcome reference integration', () => {
     render(
       <ImprovementProjectForm
         outcomeReferenceProps={{
-          sustainmentRecord: makeSustainmentRecord({
+          controlRecord: makeControlRecord({
             id: 'sr-1',
             title: 'Mix temperature sustainment',
             cadence: 'monthly',
@@ -173,7 +172,7 @@ describe('ImprovementProjectForm outcome reference integration', () => {
     render(
       <ImprovementProjectForm
         outcomeReferenceProps={{
-          sustainmentRecord: makeSustainmentRecord({
+          controlRecord: makeControlRecord({
             id: 'sr-1',
             title: 'Mix temperature sustainment',
             cadence: 'monthly',

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import type { ControlHandoff, SustainmentRecord } from '@variscout/core';
+import type { ControlHandoff, ControlRecord } from '@variscout/core';
 import { deriveIPActivityEvents } from '../activityEvents';
 
 const hour = 60 * 60 * 1000;
@@ -70,7 +70,7 @@ function makeAction(overrides: Partial<ActionItem> = {}): ActionItem {
   };
 }
 
-function makeSustainment(overrides: Partial<SustainmentRecord> = {}): SustainmentRecord {
+function makeSustainment(overrides: Partial<ControlRecord> = {}): ControlRecord {
   return {
     id: 'sus-1',
     createdAt: now - 4 * hour,
@@ -103,7 +103,7 @@ function makeHandoff(overrides: Partial<ControlHandoff> = {}): ControlHandoff {
     operationalOwner: { displayName: 'Jordan Ops', upn: 'jordan@example.com' },
     handoffDate: now,
     description: 'Operational handoff',
-    retainSustainmentReview: true,
+    retainControlReview: true,
     recordedBy: { displayName: 'Mira Lead', upn: 'mira@example.com' },
     ...overrides,
   };
@@ -115,7 +115,7 @@ describe('deriveIPActivityEvents', () => {
       ip: makeIP(),
       ideas: [makeIdea()],
       actions: [makeAction()],
-      sustainmentRecord: makeSustainment(),
+      controlRecord: makeSustainment(),
       controlHandoff: makeHandoff(),
       now,
     });

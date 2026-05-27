@@ -2,22 +2,22 @@
  * Tests for CoScout context formatters (Tier 2 semi-static context).
  */
 import { describe, it, expect } from 'vitest';
-import { formatInvestigationContext } from '../prompts/coScout/context/investigation';
+import { formatAnalyzeContext } from '../prompts/coScout/context/analyze';
 import { formatDataContext } from '../prompts/coScout/context/dataContext';
 import { formatKnowledgeContext } from '../prompts/coScout/context/knowledgeContext';
 import type { AIContext } from '../types';
 
-describe('formatInvestigationContext', () => {
+describe('formatAnalyzeContext', () => {
   it('returns empty string for undefined investigation', () => {
-    expect(formatInvestigationContext(undefined)).toBe('');
+    expect(formatAnalyzeContext(undefined)).toBe('');
   });
 
   it('returns empty string for empty investigation object', () => {
-    expect(formatInvestigationContext({})).toBe('');
+    expect(formatAnalyzeContext({})).toBe('');
   });
 
   it('includes problem statement with stage', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       liveStatement: 'Moisture content is too high in batches from Line A',
       problemStatementStage: 'actionable',
     });
@@ -27,14 +27,14 @@ describe('formatInvestigationContext', () => {
   });
 
   it('falls back to problemStatement.fullText when liveStatement is missing', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       problemStatement: { fullText: 'Cpk below 1.0 on diameter' },
     });
     expect(result).toContain('Cpk below 1.0 on diameter');
   });
 
   it('includes current understanding and problem condition', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       currentUnderstanding: {
         summary:
           'Issue / concern: Fill weight too high.\nProblem condition: Cpk is 0.87 against target 1.33.',
@@ -55,7 +55,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('includes question count summary with status breakdown', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       questionTree: [
         { id: 'q1', text: 'Is Roast Level significant?', status: 'answered', factor: 'Roast' },
         { id: 'q2', text: 'Is Grind significant?', status: 'open', factor: 'Grind' },
@@ -75,7 +75,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('uses ONLY hypothesisHubs, not legacy hypotheses', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       // Legacy causeRole-based hypotheses — should be IGNORED
       hypotheses: [
         {
@@ -113,7 +113,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('includes Evidence Map topology summary', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       evidenceMapTopology: {
         factorNodes: [
           { factor: 'Roast', rSquaredAdj: 0.35, explored: true, questionCount: 2, findingCount: 1 },
@@ -143,7 +143,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('includes causal links', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       causalLinks: [
         {
           id: 'cl1',
@@ -162,7 +162,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('includes coverage percentage', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       coveragePercent: 68,
       questionsChecked: 5,
       questionsTotal: 8,
@@ -173,7 +173,7 @@ describe('formatInvestigationContext', () => {
 
   // Phase transition tests (Task 3)
   it('includes phase transition announcement when previousPhase differs from phase', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       phase: 'validating',
       previousPhase: 'diverging',
       transitionReason:
@@ -184,7 +184,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('omits phase transition when previousPhase equals phase', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       phase: 'validating',
       previousPhase: 'validating',
       transitionReason: 'Should not appear',
@@ -194,7 +194,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('omits phase transition when previousPhase is absent', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       phase: 'validating',
       transitionReason: 'Should not appear',
     });
@@ -203,7 +203,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('includes transition announcement without reason when transitionReason is absent', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       phase: 'converging',
       previousPhase: 'validating',
     });
@@ -212,7 +212,7 @@ describe('formatInvestigationContext', () => {
 
   // Evidence sufficiency tests (Task 4)
   it('includes evidence warning for hub when coveragePercent < 25', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       coveragePercent: 12,
       questionsChecked: 2,
       questionsTotal: 5,
@@ -235,7 +235,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('omits evidence warning when coveragePercent >= 25', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       coveragePercent: 45,
       hypothesisHubs: [
         {
@@ -252,7 +252,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('uses per-hub evidence.value when coveragePercent is absent and value < 0.25', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       hypothesisHubs: [
         {
           id: 'hub1',
@@ -271,7 +271,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('omits evidence warning when per-hub evidence.value >= 0.25 and coveragePercent absent', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       hypothesisHubs: [
         {
           id: 'hub1',
@@ -288,7 +288,7 @@ describe('formatInvestigationContext', () => {
   });
 
   it('omits open question count suffix when questionsTotal and questionsChecked are absent', () => {
-    const result = formatInvestigationContext({
+    const result = formatAnalyzeContext({
       coveragePercent: 8,
       hypothesisHubs: [
         {

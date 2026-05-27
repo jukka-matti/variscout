@@ -30,13 +30,13 @@ Focus: Name the concern in lean terms. Which stations exceed takt? Where is wast
 
 Focus: Systematic waste hunting. Start with the biggest bars, drill into their composition.`,
 
-  investigate: `Workflow steps:
+  analyze: `Workflow steps:
 1. Create questions targeting waste sources — "Why does Station 3 have 15 seconds of changeover waste?"
 2. Validate with gemba observation — go to the station and time the activities directly
-3. Classify root causes: method waste vs material waste vs waiting waste
-4. Look for shared causes across stations — does the same waste type appear in multiple steps?
+3. Classify contributions: method waste vs material waste vs waiting waste
+4. Look for shared contributions across stations — does the same waste type appear in multiple steps?
 
-Focus: Waste classification and root cause. Think lean: which of the 8 wastes is this?`,
+Focus: Waste classification and contribution. Think lean: which of the 8 wastes is this?`,
 
   improve: `Workflow steps:
 1. Target kaizen at the highest-waste station first — eliminate, simplify, combine, reduce

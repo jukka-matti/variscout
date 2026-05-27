@@ -4,11 +4,8 @@ export {
   updateFindingsPopout,
 } from './FindingsWindow';
 
-export { InvestigationSidebar, type InvestigationSidebarProps } from './InvestigationSidebar';
+export { AnalyzeSidebar, type AnalyzeSidebarProps } from './AnalyzeSidebar';
 
 export { QuestionChecklist, type QuestionChecklistProps } from './QuestionChecklist';
 
-export {
-  InvestigationConclusion,
-  type InvestigationConclusionProps,
-} from './InvestigationConclusion';
+export { AnalyzeConclusion, type AnalyzeConclusionProps } from './AnalyzeConclusion';

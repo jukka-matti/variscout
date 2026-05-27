@@ -146,7 +146,7 @@ The 3 V1 response paths surfaced from a canvas step-card drill in the Process ta
 - **Investigate** — opens the Investigation Wall + Evidence Map scoped to the focal step.
 - **Charter** — creates a new Project with this step / focal data as initial Charter-stage context (same as "Promote to Project" but launched from canvas).
 
-The Sustainment path auto-fires per [ADR-080](07-decisions/adr-080-sustainment-auto-fire-pattern.md); the Handoff path is deleted everywhere (folded into Sustainment closure).
+The Sustainment path auto-fires per [ADR-080](07-decisions/adr-080-control-auto-fire-pattern.md); the Handoff path is deleted everywhere (folded into Sustainment closure).
 
 **Related:** [Project](#project), [Promote to Project](#promote-to-project), [Measurement Plan](#measurement-plan)
 

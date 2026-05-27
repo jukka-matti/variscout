@@ -31,7 +31,7 @@ import type { ResolvedMode } from '@variscout/core/strategy';
 
 export type { ProcessProjection, CenteringOpportunity, SpecSuggestion };
 
-export type JourneyPhase = 'frame' | 'scout' | 'investigate' | 'improve';
+export type JourneyPhase = 'frame' | 'scout' | 'analyze' | 'improve';
 
 /**
  * Lean projection metrics for yamazumi mode.

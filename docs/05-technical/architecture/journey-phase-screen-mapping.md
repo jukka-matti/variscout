@@ -135,4 +135,4 @@ Phase detection uses `useJourneyPhase` hook from `@variscout/hooks`:
 
 - [analysis-journey-map.md](../../03-features/workflows/analysis-journey-map.md) — Conceptual journey definition
 - [mental-model-hierarchy.md](./mental-model-hierarchy.md) — The Journey Model
-- [investigation-to-action.md](../../03-features/workflows/investigation-to-action.md) — INVESTIGATE/IMPROVE workflow
+- [investigation-to-action.md](../../03-features/workflows/analyze-to-action.md) — INVESTIGATE/IMPROVE workflow

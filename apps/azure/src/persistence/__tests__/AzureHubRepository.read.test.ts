@@ -24,8 +24,8 @@ import type {
   EvidenceSource,
   EvidenceSnapshot,
   EvidenceSourceCursor,
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
 } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
@@ -97,11 +97,11 @@ function makeCursor(
   };
 }
 
-function makeSustainmentRecord(
+function makeControlRecord(
   id: string,
   hubId = 'hub-azure-1',
-  overrides: Partial<SustainmentRecord> = {}
-): SustainmentRecord {
+  overrides: Partial<ControlRecord> = {}
+): ControlRecord {
   return {
     id,
     hubId,
@@ -119,12 +119,12 @@ function makeSustainmentRecord(
   };
 }
 
-function makeSustainmentReview(
+function makeControlReview(
   id: string,
   recordId: string,
   hubId = 'hub-azure-1',
-  overrides: Partial<SustainmentReview> = {}
-): SustainmentReview {
+  overrides: Partial<ControlReview> = {}
+): ControlReview {
   return {
     id,
     recordId,
@@ -153,8 +153,8 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
     await db.evidenceSnapshots.clear();
     await db.evidenceSourceCursors.clear();
     await db.improvementProjects.clear();
-    await db.sustainmentRecords.clear();
-    await db.sustainmentReviews.clear();
+    await db.controlRecords.clear();
+    await db.controlReviews.clear();
   });
 
   afterEach(async () => {
@@ -163,8 +163,8 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
     await db.evidenceSnapshots.clear();
     await db.evidenceSourceCursors.clear();
     await db.improvementProjects.clear();
-    await db.sustainmentRecords.clear();
-    await db.sustainmentReviews.clear();
+    await db.controlRecords.clear();
+    await db.controlReviews.clear();
   });
 
   // ---- hubs.get ----
@@ -189,19 +189,19 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
 
     it('hydrates live sustainment records and reviews from dedicated tables', async () => {
       await db.processHubs.put(makeHub({ id: 'hub-azure-1' }));
-      await db.sustainmentRecords.bulkPut([
-        makeSustainmentRecord('sr-live'),
-        makeSustainmentRecord('sr-dead', 'hub-azure-1', { deletedAt: NOW }),
+      await db.controlRecords.bulkPut([
+        makeControlRecord('sr-live'),
+        makeControlRecord('sr-dead', 'hub-azure-1', { deletedAt: NOW }),
       ]);
-      await db.sustainmentReviews.bulkPut([
-        makeSustainmentReview('rev-live', 'sr-live'),
-        makeSustainmentReview('rev-dead', 'sr-live', 'hub-azure-1', { deletedAt: NOW }),
+      await db.controlReviews.bulkPut([
+        makeControlReview('rev-live', 'sr-live'),
+        makeControlReview('rev-dead', 'sr-live', 'hub-azure-1', { deletedAt: NOW }),
       ]);
 
       const result = await repo.hubs.get('hub-azure-1');
 
-      expect(result?.sustainmentRecords?.map(record => record.id)).toEqual(['sr-live']);
-      expect(result?.sustainmentReviews?.map(review => review.id)).toEqual(['rev-live']);
+      expect(result?.controlRecords?.map(record => record.id)).toEqual(['sr-live']);
+      expect(result?.controlReviews?.map(review => review.id)).toEqual(['rev-live']);
     });
   });
 
@@ -238,56 +238,56 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
         makeHub({ id: 'hub-1', name: 'Hub One' }),
         makeHub({ id: 'hub-2', name: 'Hub Two' }),
       ]);
-      await db.sustainmentRecords.bulkPut([
-        makeSustainmentRecord('sr-1', 'hub-1'),
-        makeSustainmentRecord('sr-2', 'hub-2'),
+      await db.controlRecords.bulkPut([
+        makeControlRecord('sr-1', 'hub-1'),
+        makeControlRecord('sr-2', 'hub-2'),
       ]);
-      await db.sustainmentReviews.bulkPut([
-        makeSustainmentReview('rev-1', 'sr-1', 'hub-1'),
-        makeSustainmentReview('rev-2', 'sr-2', 'hub-2'),
+      await db.controlReviews.bulkPut([
+        makeControlReview('rev-1', 'sr-1', 'hub-1'),
+        makeControlReview('rev-2', 'sr-2', 'hub-2'),
       ]);
 
       const result = await repo.hubs.list();
       const byId = new Map(result.map(hub => [hub.id, hub]));
 
-      expect(byId.get('hub-1')?.sustainmentRecords?.map(record => record.id)).toEqual(['sr-1']);
-      expect(byId.get('hub-1')?.sustainmentReviews?.map(review => review.id)).toEqual(['rev-1']);
-      expect(byId.get('hub-2')?.sustainmentRecords?.map(record => record.id)).toEqual(['sr-2']);
-      expect(byId.get('hub-2')?.sustainmentReviews?.map(review => review.id)).toEqual(['rev-2']);
+      expect(byId.get('hub-1')?.controlRecords?.map(record => record.id)).toEqual(['sr-1']);
+      expect(byId.get('hub-1')?.controlReviews?.map(review => review.id)).toEqual(['rev-1']);
+      expect(byId.get('hub-2')?.controlRecords?.map(record => record.id)).toEqual(['sr-2']);
+      expect(byId.get('hub-2')?.controlReviews?.map(review => review.id)).toEqual(['rev-2']);
     });
   });
 
-  // ---- sustainmentRecords / sustainmentReviews ----
+  // ---- controlRecords / controlReviews ----
 
   describe('sustainment read APIs', () => {
-    it('sustainmentRecords list/get return only live records for the requested hub', async () => {
-      await db.sustainmentRecords.bulkPut([
-        makeSustainmentRecord('sr-live', 'hub-azure-1'),
-        makeSustainmentRecord('sr-dead', 'hub-azure-1', { deletedAt: NOW }),
-        makeSustainmentRecord('sr-other', 'hub-other'),
+    it('controlRecords list/get return only live records for the requested hub', async () => {
+      await db.controlRecords.bulkPut([
+        makeControlRecord('sr-live', 'hub-azure-1'),
+        makeControlRecord('sr-dead', 'hub-azure-1', { deletedAt: NOW }),
+        makeControlRecord('sr-other', 'hub-other'),
       ]);
 
-      const rows = await repo.sustainmentRecords.listByHub('hub-azure-1');
+      const rows = await repo.controlRecords.listByHub('hub-azure-1');
 
       expect(rows.map(row => row.id)).toEqual(['sr-live']);
-      expect((await repo.sustainmentRecords.get('sr-live'))?.id).toBe('sr-live');
-      expect(await repo.sustainmentRecords.get('sr-dead')).toBeUndefined();
+      expect((await repo.controlRecords.get('sr-live'))?.id).toBe('sr-live');
+      expect(await repo.controlRecords.get('sr-dead')).toBeUndefined();
     });
 
-    it('sustainmentReviews list/get return only live reviews for the requested record and hub', async () => {
-      await db.sustainmentReviews.bulkPut([
-        makeSustainmentReview('rev-live', 'sr-live', 'hub-azure-1', { reviewedAt: NOW + 1 }),
-        makeSustainmentReview('rev-old', 'sr-live', 'hub-azure-1', { reviewedAt: NOW - 1 }),
-        makeSustainmentReview('rev-dead', 'sr-live', 'hub-azure-1', { deletedAt: NOW }),
-        makeSustainmentReview('rev-other-record', 'sr-other', 'hub-azure-1'),
-        makeSustainmentReview('rev-other-hub', 'sr-live', 'hub-other'),
+    it('controlReviews list/get return only live reviews for the requested record and hub', async () => {
+      await db.controlReviews.bulkPut([
+        makeControlReview('rev-live', 'sr-live', 'hub-azure-1', { reviewedAt: NOW + 1 }),
+        makeControlReview('rev-old', 'sr-live', 'hub-azure-1', { reviewedAt: NOW - 1 }),
+        makeControlReview('rev-dead', 'sr-live', 'hub-azure-1', { deletedAt: NOW }),
+        makeControlReview('rev-other-record', 'sr-other', 'hub-azure-1'),
+        makeControlReview('rev-other-hub', 'sr-live', 'hub-other'),
       ]);
 
-      const rows = await repo.sustainmentReviews.listByRecord('hub-azure-1', 'sr-live');
+      const rows = await repo.controlReviews.listByRecord('hub-azure-1', 'sr-live');
 
       expect(rows.map(row => row.id)).toEqual(['rev-live', 'rev-old']);
-      expect((await repo.sustainmentReviews.get('rev-live'))?.id).toBe('rev-live');
-      expect(await repo.sustainmentReviews.get('rev-dead')).toBeUndefined();
+      expect((await repo.controlReviews.get('rev-live'))?.id).toBe('rev-live');
+      expect(await repo.controlReviews.get('rev-dead')).toBeUndefined();
     });
   });
 

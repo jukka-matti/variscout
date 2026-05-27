@@ -219,7 +219,7 @@ The chart copy and export features (clipboard, PNG, SVG) produce presentation-re
 | Topic                                      | Document                                                                    |
 | ------------------------------------------ | --------------------------------------------------------------------------- |
 | UX rationale for drill-down                | [Progressive Stratification](../../01-vision/progressive-stratification.md) |
-| Investigation workflow (Findings, What-If) | [Investigation to Action](../workflows/investigation-to-action.md)          |
+| Investigation workflow (Findings, What-If) | [Investigation to Action](../workflows/analyze-to-action.md)                |
 | Boxplot ANOVA display                      | [Boxplot](boxplot.md)                                                       |
 | Factor Intelligence                        | [Factor Intelligence](../../02-journeys/flows/factor-intelligence.md)       |
 | Regression methodology                     | [Regression Methodology](regression-methodology.md)                         |

@@ -99,7 +99,7 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
         </div>
 
         {/* Investigation KPI */}
-        <div className="rounded-md border border-edge p-3" data-testid="kpi-investigation">
+        <div className="rounded-md border border-edge p-3" data-testid="kpi-analyze">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-content-tertiary">
             Investigation
           </div>
@@ -119,7 +119,7 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
             type="button"
             onClick={onOpenInvestigation}
             className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-100"
-            data-testid="charter-continue-investigation"
+            data-testid="charter-continue-analyze"
           >
             Investigation · {hypoCount} hypotheses
           </button>

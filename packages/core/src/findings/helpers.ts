@@ -6,7 +6,7 @@ import type {
   FindingStatus,
   FindingContext,
   FindingSource,
-  InvestigationCategory,
+  AnalyzeCategory,
   Question,
   Hypothesis,
   HypothesisEvidence,
@@ -102,9 +102,9 @@ export function findDuplicateBySource(
  * Get the category that a factor belongs to, or undefined if uncategorized.
  */
 export function getCategoryForFactor(
-  categories: InvestigationCategory[],
+  categories: AnalyzeCategory[],
   factorName: string
-): InvestigationCategory | undefined {
+): AnalyzeCategory | undefined {
   return categories.find(c => c.factorNames.includes(factorName));
 }
 

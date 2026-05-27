@@ -16,17 +16,17 @@ import CharterOverview from './stages/CharterOverview';
 import CharterSections from './stages/CharterSections';
 import ApproachOverview from './stages/ApproachOverview';
 import ApproachSections from './stages/ApproachSections';
-import SustainmentOverview, { type SustainmentClosureInputs } from './stages/SustainmentOverview';
-import SustainmentSections from './stages/SustainmentSections';
+import ControlOverview, { type ControlClosureInputs } from './stages/ControlOverview';
+import ControlSections from './stages/ControlSections';
 import type { CauseProjectionInputs, CauseRow } from './stages/causeProjection';
 import type { ImprovementProjectFormProps } from '../ImprovementProject/ImprovementProjectForm';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
-import type { SustainmentRecord, ControlHandoff, ProcessHub } from '@variscout/core';
+import type { ControlRecord, ControlHandoff, ProcessHub } from '@variscout/core';
 
 export interface IPDetailPageProps {
   ip: ImprovementProject;
   onBackToList: () => void;
-  /** Optional stage-state inputs (derived from linked SustainmentRecord + ControlHandoff at the caller). */
+  /** Optional stage-state inputs (derived from linked ControlRecord + ControlHandoff at the caller). */
   stageStateInputs?: StageStateInputs;
   /** Optional invite handler (Plan 3 wires this). */
   onInviteClick?: () => void;
@@ -39,25 +39,23 @@ export interface IPDetailPageProps {
   /** Optional day counter passed to header. */
   dayCounter?: number;
   /** Jump-out handler — called from per-stage "Continue in" buttons. */
-  onJumpOut?: (
-    target: 'investigation' | 'analyze' | 'process' | 'improve-workbench' | 'report'
-  ) => void;
+  onJumpOut?: (target: 'analyze' | 'explore' | 'process' | 'improve-workbench' | 'report') => void;
   /** Props for Charter Sections (Sections-mode form). */
   charterFormProps?: ImprovementProjectFormProps;
   /** Cause projection inputs for the Approach stage. */
   approachInputs?: CauseProjectionInputs;
   /** Called when user clicks "Open in Improve workbench" on a cause. */
   onOpenCauseWorkbench?: (cause: CauseRow) => void;
-  /** Linked SustainmentRecord. Present when status === 'closed' or beyond. */
-  sustainmentRecord?: SustainmentRecord;
+  /** Linked ControlRecord. Present when status === 'closed' or beyond. */
+  controlRecord?: ControlRecord;
   /** Linked ControlHandoff. Present when handoff stage is active or beyond. */
   controlHandoff?: ControlHandoff;
-  /** Closure checklist inputs for SustainmentOverview (folded in from former Handoff stage). */
-  closureInputs?: SustainmentClosureInputs;
-  /** Per-cause in-control rows for Sustainment Overview. */
+  /** Closure checklist inputs for ControlOverview (folded in from former Handoff stage). */
+  closureInputs?: ControlClosureInputs;
+  /** Per-cause in-control rows for Control Overview. */
   sustainmentPerCauseRows?: Array<{ factor: string; inControl: boolean; observation?: string }>;
-  /** "Open legacy Sustainment panel" handler. */
-  onOpenLegacySustainment?: () => void;
+  /** "Open legacy Control panel" handler. */
+  onOpenLegacyControl?: () => void;
   /** "Nudge owner" handler (Plan 3 wires actual notification). */
   onNudgeProcessOwner?: () => void;
   /** Activity/signoff inputs for the team rail. */
@@ -88,11 +86,11 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   charterFormProps,
   approachInputs,
   onOpenCauseWorkbench,
-  sustainmentRecord,
+  controlRecord,
   controlHandoff,
   closureInputs,
   sustainmentPerCauseRows,
-  onOpenLegacySustainment,
+  onOpenLegacyControl,
   onNudgeProcessOwner: _onNudgeProcessOwner,
   ideas,
   actions,
@@ -162,7 +160,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
     activeHub,
     ideas,
     actions,
-    sustainmentRecord,
+    controlRecord,
     controlHandoff,
     now,
     onRequestSignoff,
@@ -222,7 +220,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
           {activeStage === 'charter' && mode === 'overview' && (
             <CharterOverview
               ip={ip}
-              onOpenInvestigation={() => onJumpOut?.('investigation')}
+              onOpenInvestigation={() => onJumpOut?.('analyze')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               currentUserId={currentUserId}
               onInvite={onMembersChange ? handleMemberInvite : undefined}
@@ -237,7 +235,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               ip={ip}
               causeInputs={approachInputs}
               onOpenWorkbench={cause => onOpenCauseWorkbench?.(cause)}
-              onOpenWall={() => onJumpOut?.('investigation')}
+              onOpenWall={() => onJumpOut?.('analyze')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               onOpenProcess={() => onJumpOut?.('process')}
             />
@@ -254,9 +252,9 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               Approach stage needs hypothesis + idea + action inputs (wired in PR-PT-4.4).
             </p>
           )}
-          {activeStage === 'sustainment' && mode === 'overview' && sustainmentRecord && (
-            <SustainmentOverview
-              record={sustainmentRecord}
+          {activeStage === 'sustainment' && mode === 'overview' && controlRecord && (
+            <ControlOverview
+              record={controlRecord}
               onStartHandoff={() => setActiveStage('sustainment')}
               onOpenProcess={() => onJumpOut?.('process')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
@@ -266,16 +264,16 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               onOpenReport={() => onJumpOut?.('report')}
             />
           )}
-          {activeStage === 'sustainment' && mode === 'sections' && sustainmentRecord && (
-            <SustainmentSections
-              record={sustainmentRecord}
-              onOpenLegacy={() => onOpenLegacySustainment?.()}
+          {activeStage === 'sustainment' && mode === 'sections' && controlRecord && (
+            <ControlSections
+              record={controlRecord}
+              onOpenLegacy={() => onOpenLegacyControl?.()}
               controlHandoff={controlHandoff}
             />
           )}
-          {activeStage === 'sustainment' && !sustainmentRecord && (
+          {activeStage === 'sustainment' && !controlRecord && (
             <p className="text-sm text-content-secondary">
-              No Sustainment record linked yet. Close the IP (Approach stage) to auto-create one per
+              No Control record linked yet. Close the IP (Approach stage) to auto-create one per
               ADR-080.
             </p>
           )}

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   isCharterReady,
-  isSustainmentReady,
+  isControlReady,
   type WorkflowReadinessSignals,
 } from '../responsePathReadiness';
 
@@ -21,18 +21,18 @@ describe('isCharterReady', () => {
   });
 });
 
-describe('isSustainmentReady', () => {
+describe('isControlReady', () => {
   it('returns false when no intervention and not demo', () => {
-    expect(isSustainmentReady(empty)).toBe(false);
+    expect(isControlReady(empty)).toBe(false);
   });
   it('returns true when an intervention exists', () => {
-    expect(isSustainmentReady({ ...empty, hasIntervention: true })).toBe(true);
+    expect(isControlReady({ ...empty, hasIntervention: true })).toBe(true);
   });
   it('returns true in demo mode regardless of intervention state', () => {
-    expect(isSustainmentReady({ ...empty, isDemo: true })).toBe(true);
+    expect(isControlReady({ ...empty, isDemo: true })).toBe(true);
   });
   it('isDemo: false is equivalent to omitting it', () => {
-    expect(isSustainmentReady({ ...empty, isDemo: false })).toBe(false);
-    expect(isSustainmentReady({ ...empty, hasIntervention: true, isDemo: false })).toBe(true);
+    expect(isControlReady({ ...empty, isDemo: false })).toBe(false);
+    expect(isControlReady({ ...empty, hasIntervention: true, isDemo: false })).toBe(true);
   });
 });

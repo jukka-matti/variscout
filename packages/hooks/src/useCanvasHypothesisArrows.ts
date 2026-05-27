@@ -1,10 +1,7 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { CanvasLensId, CanvasStepCardModel } from './useCanvasStepCards';
-import type {
-  CanvasInvestigationOverlayModel,
-  CanvasOverlayId,
-} from './useCanvasInvestigationOverlays';
+import type { CanvasAnalyzeOverlayModel, CanvasOverlayId } from './useCanvasAnalyzeOverlays';
 
 export type ArrowSegment = {
   id: string;
@@ -30,7 +27,7 @@ function areArrowSegmentsEqual(left: ArrowSegment[], right: ArrowSegment[]): boo
 
 export interface UseCanvasHypothesisArrowsArgs {
   resolvedOverlays: readonly CanvasOverlayId[];
-  investigationOverlays: CanvasInvestigationOverlayModel | undefined;
+  investigationOverlays: CanvasAnalyzeOverlayModel | undefined;
   cardSurfaceRef: RefObject<HTMLElement | null>;
   resolvedLens: CanvasLensId;
   stepCards: readonly CanvasStepCardModel[];

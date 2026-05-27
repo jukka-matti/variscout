@@ -9,7 +9,7 @@ import type { ProjectMember, ProjectRole } from './types';
  * identity / notification-routing label, not an ACL boundary.
  *
  * `'approve-*'` actions are intentionally absent — signoff at Charter approval
- * and Sustainment closure is **out-of-band** in V1 per wedge spec line 288.
+ * and Control closure is **out-of-band** in V1 per wedge spec line 288.
  * Lead records the signoff result as a note in the relevant stage's metadata;
  * no in-product approval CTA exists.
  *

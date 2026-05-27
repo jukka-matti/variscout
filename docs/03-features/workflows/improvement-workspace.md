@@ -18,7 +18,7 @@ serves:
 
 The Improvement workspace is the IMPROVE phase of the analyst's journey (FRAME → SCOUT → INVESTIGATE → **IMPROVE**). It is Azure-only and covers the full PDCA cycle: Plan (ideate, prioritize, project), Do (actions), Check (verification), and Act (outcome assessment).
 
-See [Investigation to Action](investigation-to-action.md) for how findings and suspected causes flow into this workspace, and [Improvement Prioritization](improvement-prioritization.md) for the evaluation dimensions (timeframe, cost, risk, benefit) and matrix preset details.
+See [Investigation to Action](analyze-to-action.md) for how findings and suspected causes flow into this workspace, and [Improvement Prioritization](improvement-prioritization.md) for the evaluation dimensions (timeframe, cost, risk, benefit) and matrix preset details.
 
 ## Overview
 
@@ -247,9 +247,9 @@ The Improvement workspace is Azure-only (single €120 SKU). The PWA includes fi
 
 ## Related
 
-- [Investigation to Action](investigation-to-action.md) — Finding status lifecycle, ideation methodology, action items
+- [Investigation to Action](analyze-to-action.md) — Finding status lifecycle, ideation methodology, action items
 - [Improvement Prioritization](improvement-prioritization.md) — Evaluation dimensions, matrix presets, budget fitting
-- [Question-Driven Investigation](question-driven-investigation.md) — How suspected causes are identified before entering this workspace
+- [Question-Driven Investigation](question-driven-analyze.md) — How suspected causes are identified before entering this workspace
 - [Staged Analysis](../analysis/staged-analysis.md) — Verification with before/after data
 - [ADR-035](../../07-decisions/adr-035-improvement-prioritization.md) — Prioritization decision record
 - [Improvement Hub Design](../../archive/specs/2026-04-02-improvement-hub-design.md) — Full design spec

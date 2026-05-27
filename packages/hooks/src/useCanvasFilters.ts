@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import type {
-  ProcessHubInvestigation,
-  ProcessHubInvestigationMetadata,
+  ProcessHubAnalyze,
+  ProcessHubAnalyzeMetadata,
   ScopeFilter,
   TimelineWindow,
 } from '@variscout/core';
@@ -15,15 +15,15 @@ export interface UseCanvasFiltersArgs {
    * not a fresh object literal each render); returned values are memoized on the
    * relevant metadata identity.
    */
-  investigation: Pick<ProcessHubInvestigation, 'id' | 'metadata'>;
+  investigation: Pick<ProcessHubAnalyze, 'id' | 'metadata'>;
   /**
    * Persistence callback. Receives `investigationId` and the new metadata patch.
    * Caller wires this to its existing persist-investigation-metadata flow.
-   * The patch is a Partial<ProcessHubInvestigationMetadata> containing ONLY the
+   * The patch is a Partial<ProcessHubAnalyzeMetadata> containing ONLY the
    * field(s) that changed in the last call — so the caller can apply it as a
    * shallow merge over the current metadata.
    */
-  onChange: (investigationId: string, patch: Partial<ProcessHubInvestigationMetadata>) => void;
+  onChange: (investigationId: string, patch: Partial<ProcessHubAnalyzeMetadata>) => void;
 }
 
 export interface UseCanvasFiltersResult {

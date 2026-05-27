@@ -10,15 +10,15 @@ import type { Finding, FindingStatus, Question, QuestionStatus } from './finding
 import type { JourneyPhase, ProcessContext } from './ai/types';
 import type { HubReviewSignal } from './processReviewSignal';
 import {
-  investigationStatusFromJourneyPhase,
+  analyzeStatusFromJourneyPhase,
   normalizeProcessHubId,
-  type InvestigationDepth,
-  type InvestigationStatus,
+  type AnalyzeDepth,
+  type AnalyzeStatus,
   type ProcessParticipantRef,
   type ProcessHubProcessMapSummary,
   type ProcessHubSurveyReadinessSummary,
 } from './processHub';
-import type { SustainmentMetadataProjection } from './sustainment';
+import type { ControlMetadataProjection } from './control';
 import type { ProcessStateNote } from './processStateNote';
 
 export interface ProjectMetadata {
@@ -39,12 +39,12 @@ export interface ProjectMetadata {
    * Preserved from existing metadata — not modified by buildProjectMetadata.
    */
   lastViewedAt: Record<string, number>;
-  /** Primary Process Hub for this investigation. Legacy projects default to General / Unassigned. */
+  /** Primary Process Hub for this analyze. Legacy projects default to General / Unassigned. */
   processHubId?: string;
   /** Lightweight depth marker for hub rollups. */
-  investigationDepth?: InvestigationDepth;
+  analyzeDepth?: AnalyzeDepth;
   /** Investigation-level status for hub rollups. */
-  investigationStatus?: InvestigationStatus;
+  analyzeStatus?: AnalyzeStatus;
   /** Process description snapshot for deterministic hub context assembly. */
   processDescription?: string;
   /** Customer requirement / CTS snapshot for deterministic hub context assembly. */
@@ -55,7 +55,7 @@ export interface ProjectMetadata {
   surveyReadiness?: ProcessHubSurveyReadinessSummary;
   /** Person accountable for the process/work-system health. */
   processOwner?: ProcessParticipantRef;
-  /** Person driving the investigation day to day. */
+  /** Person driving the analyze day to day. */
   investigationOwner?: ProcessParticipantRef;
   /** Sponsor/accountable stakeholder for larger work. */
   sponsor?: ProcessParticipantRef;
@@ -69,8 +69,9 @@ export interface ProjectMetadata {
   nextMove?: string;
   /** Latest lightweight review signal shown on Process Hub cards. */
   reviewSignal?: HubReviewSignal;
-  /** Lightweight projection of the active SustainmentRecord for this project. */
-  sustainment?: SustainmentMetadataProjection;
+  /** Lightweight projection of the active ControlRecord for this project.
+   *  Field name `sustainment` preserved — matches persisted ProjectMetadata schema. */
+  sustainment?: ControlMetadataProjection;
   /**
    * Team notes for current-state items, copied from processContext.stateNotes
    * so the Dashboard rollup can surface them without loading the full project.
@@ -91,7 +92,7 @@ function detectPhase(hasData: boolean, findings: Finding[]): JourneyPhase {
   if (!hasData) return 'frame';
   const hasActions = findings.some(f => f.actions && f.actions.length > 0);
   if (hasActions) return 'improve';
-  if (findings.length > 0) return 'investigate';
+  if (findings.length > 0) return 'analyze';
   return 'scout';
 }
 
@@ -200,9 +201,8 @@ export function buildProjectMetadata(
     hasOverdueTasks,
     lastViewedAt: existingLastViewedAt ?? {},
     processHubId: normalizeProcessHubId(processContext?.processHubId),
-    investigationDepth: processContext?.investigationDepth,
-    investigationStatus:
-      processContext?.investigationStatus ?? investigationStatusFromJourneyPhase(phase),
+    analyzeDepth: processContext?.analyzeDepth,
+    analyzeStatus: processContext?.analyzeStatus ?? analyzeStatusFromJourneyPhase(phase),
     processDescription: processContext?.description,
     customerRequirementSummary:
       processContext?.processMap?.ctsColumn ?? processContext?.measurement ?? undefined,

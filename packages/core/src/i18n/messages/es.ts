@@ -51,7 +51,7 @@ export const es: MessageCatalog = {
   'panel.findings': 'Hallazgos',
   'panel.dataTable': 'Tabla de datos',
   'panel.whatIf': 'Qué pasaría si',
-  'panel.investigation': 'Investigación',
+  'panel.analyze': 'Investigación',
   'panel.coScout': 'CoScout',
   'panel.drillPath': 'Ruta de desglose',
 
@@ -94,12 +94,12 @@ export const es: MessageCatalog = {
   'display.showSpecs': 'Mostrar especificaciones',
 
   // Investigation
-  'investigation.brief': 'Resumen de investigación',
-  'investigation.assignedToMe': 'Asignado a mí',
-  'investigation.question': 'Question',
-  'investigation.questions': 'Questions',
-  'investigation.pinAsFinding': 'Fijar como hallazgo',
-  'investigation.addObservation': 'Agregar observación',
+  'analyze.brief': 'Resumen de investigación',
+  'analyze.assignedToMe': 'Asignado a mí',
+  'analyze.question': 'Question',
+  'analyze.questions': 'Questions',
+  'analyze.pinAsFinding': 'Fijar como hallazgo',
+  'analyze.addObservation': 'Agregar observación',
 
   // Empty states
   'empty.noData': 'No hay datos disponibles',
@@ -243,19 +243,19 @@ export const es: MessageCatalog = {
   'chart.violation.nelson2': 'Regla de Nelson 2 — racha de {count}',
   'chart.violation.nelson3': 'Regla de Nelson 3 — tendencia de {count}',
 
-  // Investigation sidebar
-  'investigation.phaseInitial': 'Recopilar observaciones iniciales',
-  'investigation.phaseDiverging': 'Explorar múltiples hipótesis',
-  'investigation.phaseValidating': 'Probar y validar hipótesis',
-  'investigation.phaseConverging': 'Identificar la causa raíz',
-  'investigation.phaseImproving': 'Implementar y verificar cambios',
-  'investigation.pdcaTitle': 'Lista de verificación',
-  'investigation.verifyChart': 'Gráfico I estable después del cambio',
-  'investigation.verifyStats': 'Cpk cumple el objetivo',
-  'investigation.verifyBoxplot': 'Dispersión del diagrama de cajas reducida',
-  'investigation.verifySideEffects': 'Sin efectos secundarios observados',
-  'investigation.verifyOutcome': 'Resultado sostenido en el tiempo',
-  'investigation.uninvestigated': 'Factores no investigados',
+  // Analyze sidebar
+  'analyze.phaseInitial': 'Recopilar observaciones iniciales',
+  'analyze.phaseDiverging': 'Explorar múltiples hipótesis',
+  'analyze.phaseValidating': 'Probar y validar hipótesis',
+  'analyze.phaseConverging': 'Identificar la causa raíz',
+  'analyze.phaseImproving': 'Implementar y verificar cambios',
+  'analyze.pdcaTitle': 'Lista de verificación',
+  'analyze.verifyChart': 'Gráfico I estable después del cambio',
+  'analyze.verifyStats': 'Cpk cumple el objetivo',
+  'analyze.verifyBoxplot': 'Dispersión del diagrama de cajas reducida',
+  'analyze.verifySideEffects': 'Sin efectos secundarios observados',
+  'analyze.verifyOutcome': 'Resultado sostenido en el tiempo',
+  'analyze.unanalyzed': 'Factores no investigados',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Aplicar filtro',
@@ -403,8 +403,8 @@ export const es: MessageCatalog = {
   'charType.larger': 'Mayor es mejor',
   'charType.largerDesc': 'Más alto es mejor (p. ej., rendimiento)',
 
-  // Investigation prompt
-  'investigation.trackingPrompt':
+  // Analyze prompt
+  'analyze.trackingPrompt':
     'Seguimiento de su investigación — abra el panel de investigación para ver el panorama completo.',
 
   // Mobile category sheet
@@ -590,8 +590,8 @@ export const es: MessageCatalog = {
 
   // Workspace navigation
   'workspace.process': 'Process',
+  'workspace.explore': 'Explore',
   'workspace.analyze': 'Analyze',
-  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
   'workspace.improve': 'Improve',
@@ -801,7 +801,7 @@ export const es: MessageCatalog = {
   'report.question.ruledOut': 'Ruled Out',
   'report.question.open': 'Open',
   'report.type.analysisSnapshot': 'Analysis Snapshot',
-  'report.type.investigationReport': 'Investigation Report',
+  'report.type.analyzeReport': 'Analyze Report',
   'report.type.improvementStory': 'Improvement Story',
   'report.sections': 'Sections',
   'report.audience.technical': 'Technical',
@@ -977,7 +977,7 @@ export const es: MessageCatalog = {
   'frame.b0.aria.yCandidates': 'Y candidate chips', // TODO(i18n): translate
   'frame.b0.aria.selectedXs': 'Selected X chips', // TODO(i18n): translate
   'frame.b0.aria.availableXs': 'Available X chips', // TODO(i18n): translate
-  'frame.canvasOverlay.cta.sustainment.notReady':
+  'frame.canvasOverlay.cta.control.notReady':
     "Available after you've implemented a process change to monitor",
   'frame.canvasOverlay.cta.handoff.notReady':
     'Available after sustainment monitoring confirms gains',
@@ -1017,7 +1017,7 @@ export const es: MessageCatalog = {
 
   // TODO(i18n): translate canvas.* keys
   // Canvas — SystemLevelView
-  'canvas.system.activeInvestigations': 'Active investigations',
+  'canvas.system.activeAnalyzes': 'Active investigations',
   'canvas.system.conformance': 'Conformance',
   'canvas.system.inbox': 'Inbox',
   'canvas.system.lensLabel': 'Lens: {lens}',
@@ -1082,18 +1082,18 @@ export const es: MessageCatalog = {
   'canvas.localMechanism.etaSquaredLabel': 'eta² {value}',
   'canvas.localMechanism.evidenceMap': 'Local evidence map',
   'canvas.localMechanism.factorContribution': 'Factor contribution evidence',
-  'canvas.localMechanism.investigationWall': 'Investigation wall',
+  'canvas.localMechanism.analyzeWall': 'Investigation wall',
   'canvas.localMechanism.logActionAria': 'Log action for {column}',
   'canvas.localMechanism.noNumericValues': 'No numeric values',
   'canvas.localMechanism.openChartAria': 'Open {column} details mini chart',
   'canvas.localMechanism.openColumnAria': 'Open {column} details',
   'canvas.localMechanism.quickActionTitle': '{column} quick action',
-  'canvas.localMechanism.focusedInvestigation': 'Investigate',
+  'canvas.localMechanism.focusedAnalyze': 'Investigate',
   'canvas.localMechanism.charter': 'Charter',
-  'canvas.localMechanism.sustainment': 'Sustain',
+  'canvas.localMechanism.control': 'Control',
   'canvas.localMechanism.handoff': 'Handoff',
-  'canvas.localMechanism.focusedInvestigationAria': 'Start focused investigation for {column}',
+  'canvas.localMechanism.focusedAnalyzeAria': 'Start focused analysis for {column}',
   'canvas.localMechanism.charterAria': 'Open improvement charter for {column}',
-  'canvas.localMechanism.sustainmentAria': 'Open sustainment for {column}',
+  'canvas.localMechanism.controlAria': 'Open control for {column}',
   'canvas.localMechanism.handoffAria': 'Open handoff for {column}',
 };

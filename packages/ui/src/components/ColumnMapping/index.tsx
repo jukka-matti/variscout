@@ -33,7 +33,7 @@ import type {
   DataQualityReport,
   DataRow,
   TimeExtractionConfig,
-  InvestigationCategory,
+  AnalyzeCategory,
   TargetMetric,
   StackConfig,
   StackSuggestion,
@@ -72,7 +72,7 @@ export interface ColumnMappingConfirmPayload {
    * Investigation categories inferred from factor selection (edit mode).
    * Used by the downstream investigation store for category grouping.
    */
-  categories?: InvestigationCategory[];
+  categories?: AnalyzeCategory[];
   /** Analysis brief from Azure full-brief fields. */
   brief?: AnalysisBrief;
   /**
@@ -118,7 +118,7 @@ export interface ColumnMappingProps {
   onCancel: () => void;
   onBack?: () => void;
   /** Pre-existing investigation categories (from project load / previous mapping) */
-  initialCategories?: InvestigationCategory[];
+  initialCategories?: AnalyzeCategory[];
   // Validation integration
   dataQualityReport?: DataQualityReport | null;
   onViewExcludedRows?: () => void;
@@ -578,7 +578,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
       group.push(factorName);
       catGroups.set(categoryName, group);
     }
-    let categories: InvestigationCategory[] | undefined;
+    let categories: AnalyzeCategory[] | undefined;
     if (catGroups.size > 0) {
       categories = [];
       let idx = 0;
@@ -725,7 +725,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                   {/* Questions */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-400">{t('investigation.questions')}</span>
+                      <span className="text-xs text-slate-400">{t('analyze.questions')}</span>
                     </div>
                     {briefQuestions.map((hyp, idx) => (
                       <div

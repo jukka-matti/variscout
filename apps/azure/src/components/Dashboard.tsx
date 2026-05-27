@@ -576,7 +576,7 @@ const Dashboard = ({
           <ActiveIPScopeRibbon
             title={activeIPScope.title}
             labels={activeIPScope.labels}
-            surface="Analyze"
+            surface="Explore"
           />
         ) : null}
         {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}

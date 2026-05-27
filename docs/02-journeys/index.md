@@ -17,13 +17,13 @@ WHO does WHAT inside VariScout V1. Three in-project personas, one 7-tab navigati
 
 V1 ships 3 personas within each Project. Per-project ACLs; no cross-AD-tenant invites.
 
-- [**Lead**](personas/lead.md) — drives Charter → Approach → Sustainment; owns the active-IP cascade
+- [**Lead**](personas/lead.md) — drives Charter → Approach → Control; owns the active-IP cascade
 - [**Member**](personas/member.md) — contributes hypothesis evidence, measurement rows, action items
-- [**Sponsor**](personas/sponsor.md) — approves Charter; reviews Sustainment + signs off Report
+- [**Sponsor**](personas/sponsor.md) — approves Charter; reviews Control + signs off Report
 
 ## Information architecture
 
-- [**IA Nav Model**](ia-nav-model.md) — the 7-tab navigation (`Home · Project · Process · Analyze · Investigation · Improve · Report`) and the active-IP cascade rules.
+- [**IA Nav Model**](ia-nav-model.md) — the 7-tab navigation (`Home · Project · Process · Explore · Analyze · Improve · Report`) and the active-IP cascade rules.
 
 ## Supporting reference
 

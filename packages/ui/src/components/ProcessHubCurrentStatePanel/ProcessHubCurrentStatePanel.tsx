@@ -53,16 +53,16 @@ const LENS_LABELS: Record<ProcessStateLens, string> = {
   flow: 'Flow',
   conversion: 'Conversion',
   measurement: 'Measurement',
-  sustainment: 'Sustainment',
+  sustainment: 'Control',
 };
 
 const RESPONSE_LABELS: Record<ProcessStateResponsePath, string> = {
   monitor: 'Monitor',
   'quick-action': 'Quick action',
-  'focused-investigation': 'Focused investigation',
+  'focused-analyze': 'Focused investigation',
   'chartered-project': 'Chartered project',
   'measurement-system-work': 'Measurement system work',
-  'sustainment-review': 'Sustainment review',
+  'control-review': 'Control review',
 };
 
 const SEVERITY_LABELS: Record<ProcessStateSeverity, string> = {
@@ -203,8 +203,8 @@ const StateItemCard: React.FC<{
       unsupportedReason = action.reason;
       tooltipText = UNSUPPORTED_TOOLTIP[action.reason];
       break;
-    case 'open-investigation':
-    case 'open-sustainment':
+    case 'open-analyze':
+    case 'open-control':
       tooltipText = undefined;
       break;
     default:

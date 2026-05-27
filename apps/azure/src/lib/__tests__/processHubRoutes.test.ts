@@ -15,8 +15,8 @@ describe('actionToHref', () => {
 
   it('builds /editor/:id?intent=focused for open-investigation/focused', () => {
     const action: ResponsePathAction = {
-      kind: 'open-investigation',
-      investigationId: 'inv-123',
+      kind: 'open-analyze',
+      analyzeId: 'inv-123',
       intent: 'focused',
     };
     expect(actionToHref(action)).toBe('/editor/inv-123?intent=focused');
@@ -24,8 +24,8 @@ describe('actionToHref', () => {
 
   it('builds /editor/:id?intent=chartered for open-investigation/chartered', () => {
     const action: ResponsePathAction = {
-      kind: 'open-investigation',
-      investigationId: 'inv-abc',
+      kind: 'open-analyze',
+      analyzeId: 'inv-abc',
       intent: 'chartered',
     };
     expect(actionToHref(action)).toBe('/editor/inv-abc?intent=chartered');
@@ -33,8 +33,8 @@ describe('actionToHref', () => {
 
   it('builds /editor/:id?intent=quick for open-investigation/quick', () => {
     const action: ResponsePathAction = {
-      kind: 'open-investigation',
-      investigationId: 'inv-q',
+      kind: 'open-analyze',
+      analyzeId: 'inv-q',
       intent: 'quick',
     };
     expect(actionToHref(action)).toBe('/editor/inv-q?intent=quick');
@@ -42,8 +42,8 @@ describe('actionToHref', () => {
 
   it('builds /editor/:id/sustainment for open-sustainment', () => {
     const action: ResponsePathAction = {
-      kind: 'open-sustainment',
-      investigationId: 'inv-s',
+      kind: 'open-control',
+      analyzeId: 'inv-s',
     };
     expect(actionToHref(action)).toBe('/editor/inv-s/sustainment');
   });
@@ -51,19 +51,19 @@ describe('actionToHref', () => {
   it('snapshot — URL shapes are stable', () => {
     expect({
       focused: actionToHref({
-        kind: 'open-investigation',
-        investigationId: 'X',
+        kind: 'open-analyze',
+        analyzeId: 'X',
         intent: 'focused',
       }),
       chartered: actionToHref({
-        kind: 'open-investigation',
-        investigationId: 'X',
+        kind: 'open-analyze',
+        analyzeId: 'X',
         intent: 'chartered',
       }),
-      quick: actionToHref({ kind: 'open-investigation', investigationId: 'X', intent: 'quick' }),
+      quick: actionToHref({ kind: 'open-analyze', analyzeId: 'X', intent: 'quick' }),
       sustainment: actionToHref({
-        kind: 'open-sustainment',
-        investigationId: 'X',
+        kind: 'open-control',
+        analyzeId: 'X',
       }),
       unsupportedPlanned: actionToHref({ kind: 'unsupported', reason: 'planned' }),
       unsupportedInfo: actionToHref({ kind: 'unsupported', reason: 'informational' }),

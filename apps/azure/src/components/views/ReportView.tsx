@@ -6,7 +6,7 @@
  * Investigation Report, Improvement Story) with Technical/Summary audience modes.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useProjectStore, useAnalyzeStore } from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
@@ -177,10 +177,10 @@ const ReportView: React.FC<ReportViewProps> = ({
   const { stats } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const performanceResult = usePerformanceAnalysis();
-  const findings = useInvestigationStore(s => s.findings);
-  const questions = useInvestigationStore(s => s.questions);
-  const causalLinks = useInvestigationStore(s => s.causalLinks);
-  const hypotheses = useInvestigationStore(s => s.hypotheses);
+  const findings = useAnalyzeStore(s => s.findings);
+  const questions = useAnalyzeStore(s => s.questions);
+  const causalLinks = useAnalyzeStore(s => s.causalLinks);
+  const hypotheses = useAnalyzeStore(s => s.hypotheses);
   const scopedFindingIds = useMemo(
     () => new Set(activeIPLineage?.findingIds ?? []),
     [activeIPLineage]
@@ -227,13 +227,13 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses,
             findings,
             questions,
-            sustainmentRecords: activeHub?.sustainmentRecords,
+            controlRecords: activeHub?.controlRecords,
             controlHandoffs: activeHub?.controlHandoffs,
           })
         : null,
     [
       activeHub?.controlHandoffs,
-      activeHub?.sustainmentRecords,
+      activeHub?.controlRecords,
       activeIP,
       findings,
       hypotheses,
@@ -248,7 +248,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             questions: ipReportScope.questions,
-            sustainmentRecord: ipReportScope.sustainmentRecord,
+            controlRecord: ipReportScope.controlRecord,
             controlHandoff: ipReportScope.controlHandoff,
           })
         : [],
@@ -262,7 +262,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             questions: ipReportScope.questions,
-            sustainmentRecord: ipReportScope.sustainmentRecord,
+            controlRecord: ipReportScope.controlRecord,
           })
         : [],
     [activeIP, ipReportScope]

@@ -9,7 +9,7 @@ import type { Finding, FilterAction, ActionProposal, ToolHandlerMap } from '@var
 import { hashFilterStack, generateProposalId } from '@variscout/core';
 import { usePanelsStore } from '../panels/panelsStore';
 import { useFindingsStore } from '../findings/findingsStore';
-import { useInvestigationFeatureStore } from '../investigation/investigationStore';
+import { useAnalyzeFeatureStore } from '../analyze/analyzeStore';
 
 export type NavigationTarget =
   | 'dashboard'
@@ -72,19 +72,19 @@ export function buildNavTeamToolHandlers({
           panels.showDashboard();
           break;
         case 'finding':
-          panels.showInvestigation();
+          panels.showAnalyze();
           if (targetId) {
             useFindingsStore.getState().setHighlightedFindingId(targetId);
           }
           break;
         case 'question':
-          panels.showInvestigation();
+          panels.showAnalyze();
           if (targetId) {
-            useInvestigationFeatureStore.getState().expandToQuestion(targetId);
+            useAnalyzeFeatureStore.getState().expandToQuestion(targetId);
           }
           break;
         case 'chart':
-          panels.showAnalysis();
+          panels.showExplore();
           if (chartType) {
             panels.setPendingChartFocus(chartType);
           }

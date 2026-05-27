@@ -21,15 +21,15 @@ import type {
   FindingTag,
   Question,
   ProcessContext,
-  InvestigationPhase,
+  AnalyzePhase,
 } from '@variscout/core';
 import FindingsLog from '../FindingsLog/FindingsLog';
 import FindingBoardColumns from '../FindingsLog/FindingBoardColumns';
 import { copyFindingsToClipboard } from '../FindingsLog/export';
 import BriefHeader from '../FindingsPanel/BriefHeader';
 import FindingDetailPanel from '../FindingsPanel/FindingDetailPanel';
-import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
-import { InvestigationSidebar } from './InvestigationSidebar';
+import { AnalyzePhaseBadge } from '../AnalyzePhaseBadge';
+import { AnalyzeSidebar } from './AnalyzeSidebar';
 
 /**
  * Standalone findings window for dual-screen setups.
@@ -291,7 +291,7 @@ const FindingsWindow: React.FC = () => {
     treeQuestions,
     processContext,
     currentValue,
-    investigationPhase,
+    analyzePhase,
     suggestedQuestions,
     factorRoles,
     aiAvailable,
@@ -323,14 +323,14 @@ const FindingsWindow: React.FC = () => {
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-semibold text-content">
-              {t('panel.investigation')}
+              {t('panel.analyze')}
               {findings.length > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.5 text-[0.625rem] bg-blue-500/20 text-blue-400 rounded">
                   {findings.length}
                 </span>
               )}
             </h1>
-            {investigationPhase && <InvestigationPhaseBadge phase={investigationPhase} />}
+            {analyzePhase && <AnalyzePhaseBadge phase={analyzePhase} />}
           </div>
 
           <div className="flex items-center gap-1">
@@ -462,8 +462,8 @@ const FindingsWindow: React.FC = () => {
 
         {/* Zone 4: Investigation Sidebar (AI-enabled only) */}
         {aiAvailable && (
-          <InvestigationSidebar
-            phase={investigationPhase}
+          <AnalyzeSidebar
+            phase={analyzePhase}
             treeQuestions={treeQuestions}
             factorRoles={factorRoles}
             suggestedQuestions={suggestedQuestions}
@@ -519,7 +519,7 @@ export interface PopoutSyncOptions {
   processContext?: ProcessContext;
   currentValue?: number;
   projectedValue?: number;
-  investigationPhase?: InvestigationPhase;
+  analyzePhase?: AnalyzePhase;
   suggestedQuestions?: string[];
   factorRoles?: Record<string, string>;
   aiAvailable?: boolean;
@@ -544,7 +544,7 @@ function buildSyncData(
     processContext: options?.processContext,
     currentValue: options?.currentValue,
     projectedValue: options?.projectedValue,
-    investigationPhase: options?.investigationPhase,
+    analyzePhase: options?.analyzePhase,
     suggestedQuestions: options?.suggestedQuestions,
     factorRoles: options?.factorRoles,
     aiAvailable: options?.aiAvailable,

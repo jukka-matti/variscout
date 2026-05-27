@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useProjectActions } from '../useProjectActions';
 import { useProjectStore, getProjectInitialState } from '@variscout/stores';
-import { useInvestigationStore, getInvestigationInitialState } from '@variscout/stores';
+import { useAnalyzeStore, getAnalyzeInitialState } from '@variscout/stores';
 import type { PersistenceAdapter, SavedProject, AnalysisState } from '../types';
 import type { DataRow, Finding, FilterAction } from '@variscout/core';
 
@@ -81,7 +81,7 @@ const makeFinding = (id: string, text: string): Finding => ({
 
 beforeEach(() => {
   useProjectStore.setState({ ...getProjectInitialState() });
-  useInvestigationStore.setState({ ...getInvestigationInitialState() });
+  useAnalyzeStore.setState({ ...getAnalyzeInitialState() });
 });
 
 // ============================================================================
@@ -179,8 +179,8 @@ describe('useProjectActions', () => {
     it('should include findings from investigation store', async () => {
       const persistence = createMockPersistence();
       const findings = [makeFinding('f1', 'Test finding')];
-      // Findings are edited in investigationStore (authoritative source)
-      useInvestigationStore.getState().loadInvestigationState({ findings });
+      // Findings are edited in analyzeStore (authoritative source)
+      useAnalyzeStore.getState().loadAnalyzeState({ findings });
 
       const { result } = renderHook(() => useProjectActions(persistence));
 
@@ -197,8 +197,8 @@ describe('useProjectActions', () => {
       const persistence = createMockPersistence();
       useProjectStore.getState().setProcessContext({
         processHubId: 'line-4',
-        investigationDepth: 'focused',
-        investigationStatus: 'investigating',
+        analyzeDepth: 'focused',
+        analyzeStatus: 'investigating',
         nextMove: 'Inspect nozzle wear during night shift.',
       });
 
@@ -211,8 +211,8 @@ describe('useProjectActions', () => {
       const savedState = (persistence.saveProject as ReturnType<typeof vi.fn>).mock.calls[0][1];
       expect(savedState.processContext).toMatchObject({
         processHubId: 'line-4',
-        investigationDepth: 'focused',
-        investigationStatus: 'investigating',
+        analyzeDepth: 'focused',
+        analyzeStatus: 'investigating',
         nextMove: 'Inspect nozzle wear during night shift.',
       });
     });
@@ -398,7 +398,7 @@ describe('useProjectActions', () => {
         await result.current.loadProject('proj-5');
       });
 
-      const is = useInvestigationStore.getState();
+      const is = useAnalyzeStore.getState();
       expect(is.findings).toHaveLength(1);
       expect(is.findings[0].text).toBe('Finding 1');
       expect(is.questions).toHaveLength(1);
@@ -421,8 +421,8 @@ describe('useProjectActions', () => {
           axisSettings: {},
           processContext: {
             processHubId: 'claims-queue',
-            investigationDepth: 'chartered',
-            investigationStatus: 'verifying',
+            analyzeDepth: 'chartered',
+            analyzeStatus: 'verifying',
             nextMove: 'Compare post-action queue time.',
           },
         } satisfies AnalysisState,
@@ -438,8 +438,8 @@ describe('useProjectActions', () => {
 
       expect(useProjectStore.getState().processContext).toMatchObject({
         processHubId: 'claims-queue',
-        investigationDepth: 'chartered',
-        investigationStatus: 'verifying',
+        analyzeDepth: 'chartered',
+        analyzeStatus: 'verifying',
         nextMove: 'Compare post-action queue time.',
       });
     });
@@ -653,7 +653,7 @@ describe('useProjectActions', () => {
       expect(ps.projectId).toBeNull();
       expect(ps.hasUnsavedChanges).toBe(true);
 
-      const is = useInvestigationStore.getState();
+      const is = useAnalyzeStore.getState();
       expect(is.findings).toHaveLength(1);
       expect(is.findings[0].text).toBe('Imported finding');
     });
@@ -707,7 +707,7 @@ describe('useProjectActions', () => {
       useProjectStore.getState().setRawData(sampleData);
       useProjectStore.getState().setOutcome('Weight');
       useProjectStore.getState().setProjectId('proj-1');
-      useInvestigationStore.getState().addFinding('Test', {
+      useAnalyzeStore.getState().addFinding('Test', {
         activeFilters: {},
         cumulativeScope: 0,
         stats: { mean: 10, samples: 100 },
@@ -725,7 +725,7 @@ describe('useProjectActions', () => {
       expect(ps.projectId).toBeNull();
       expect(ps.hasUnsavedChanges).toBe(false);
 
-      const is = useInvestigationStore.getState();
+      const is = useAnalyzeStore.getState();
       expect(is.findings).toEqual([]);
       expect(is.questions).toEqual([]);
       expect(is.categories).toEqual([]);

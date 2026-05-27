@@ -10,7 +10,7 @@ related:
   - adr-073-no-statistical-rollup-across-heterogeneous-units
   - adr-049-coscout-context-and-memory
   - adr-064-suspected-cause-hub-model
-  - adr-066-evidence-map-investigation-center
+  - adr-066-evidence-map-analyze-center
   - adr-070-frame-workspace
   - multi-level-scout-design
 layer: L5
@@ -24,13 +24,13 @@ layer: L5
 
 **Supersedes**: None
 
-**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). Under the wedge, L2 is the **Process** artifact (project-scoped), not a Hub-level rollup. The boundary policy (Investigation tab owns L3 mechanism work; Process tab handles L1+L2; SCOUT spans the surface without reimplementing L1/L3 primitives) is unchanged. Multi-project / portfolio-spanning L2 (Hub portfolio) defers to **VariScout Process**, the future enterprise product.
+**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). Under the wedge, L2 is the **Process** artifact (project-scoped), not a Hub-level rollup. The boundary policy (Analyze tab owns L3 mechanism work; Process tab handles L1+L2; SCOUT spans the surface without reimplementing L1/L3 primitives) is unchanged. Multi-project / portfolio-spanning L2 (Hub portfolio) defers to **VariScout Process**, the future enterprise product. **Amendment — 2026-05-27:** Tab renamed Investigation → Analyze in nav vocabulary sweep (PR-WV1-NAV-2026-05-27); the timing concept "investigation-time" preserved as ADR-074 vocabulary (per-investigation temporal scope), distinct from the tab name.
 
 **Related**:
 [ADR-073](adr-073-no-statistical-rollup-across-heterogeneous-units.md) (locality rule, same enforcement mechanism),
 [ADR-049](adr-049-coscout-context-and-memory.md) (Knowledge Catalyst — investigation as memory, depends on this policy),
 [ADR-064](../archive/adrs/adr-064-suspected-cause-hub-model.md) (SuspectedCause hub model),
-[ADR-066](adr-066-evidence-map-investigation-center.md) (Evidence Map as investigation center),
+[ADR-066](adr-066-evidence-map-analyze-center.md) (Evidence Map as investigation center),
 [ADR-070](adr-070-frame-workspace.md) (FRAME workspace as L2 authoring owner),
 [Multi-level SCOUT design](../archive/specs/2026-04-29-multi-level-scout-design.md) (the spec this policy companions)
 

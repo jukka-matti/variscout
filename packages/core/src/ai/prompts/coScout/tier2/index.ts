@@ -6,7 +6,7 @@
  * corresponding phase or mode is active.
  *
  * Current modules:
- *   - investigationDiscipline: Investigation phase discipline (Map + Wall views)
+ *   - analyzeDiscipline: Investigation phase discipline (Map + Wall views)
  */
 
-export { investigationDisciplinePrompt } from './investigationDiscipline';
+export { analyzeDisciplinePrompt } from './analyzeDiscipline';

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { detectScope, detectScopeFromMap } from '../scopeDetection';
-import type { ProcessHubInvestigation, InvestigationNodeMapping } from '../processHub';
+import type { ProcessHubAnalyze, AnalyzeNodeMapping } from '../processHub';
 
-const makeInvestigation = (nodeMappings?: InvestigationNodeMapping[]): ProcessHubInvestigation => ({
+const makeInvestigation = (nodeMappings?: AnalyzeNodeMapping[]): ProcessHubAnalyze => ({
   id: 'test',
   name: 'Test Investigation',
   createdAt: 1777420800000,

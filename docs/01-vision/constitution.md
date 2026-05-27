@@ -39,7 +39,7 @@ These principles encode the 2026-05-16 single-SKU pivot. They scope V1; VariScou
 
 9. **Three in-project personas** — Lead, Member, Sponsor — per-project ACLs scoped to a single Azure AD tenant (no cross-tenant invites). These are in-product roles, distinct from the buyer/ICP "Improvement Specialist" (which lives in market positioning, not in-product journeys). Project membership replaces the legacy 10-persona model for V1.
 
-10. **7-tab workflow nav** — `Home · Project · Process · Analyze · Investigation · Improve · Report`. The order matches the investigator's day. Improve is a top-level verb tab with active-IP cascade (`useActiveIPContext(sessionHub)` + `<NoActiveProjectGuidance>` empty state pattern) — not a sub-step of another tab.
+10. **7-tab workflow nav** — `Home · Project · Process · Explore · Analyze · Improve · Report`. The order matches the investigator's day. Improve is a top-level verb tab with active-IP cascade (`useActiveIPContext(sessionHub)` + `<NoActiveProjectGuidance>` empty state pattern) — not a sub-step of another tab.
 
 11. **Light-colors-only UI palette** — Tailwind 50-300 utilities for surfaces; 400-700 for text and strokes. No dark mode in V1. No deep-saturated fills. Pair every light surface with darker text (600-800) for accessibility per the [`feedback_green_400_light_contrast`](../cards/memory/feedback_green_400_light_contrast.md) precedent. Rationale: clinical/paper-document feel; accessibility-first. Agent-canonical home: [`.claude/INVARIANTS.md`](../../.claude/INVARIANTS.md) §Visual design; build-time enforcement: [`packages/ui/CLAUDE.md`](../../packages/ui/CLAUDE.md) §Color discipline.
 

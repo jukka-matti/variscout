@@ -37,12 +37,12 @@ implements:
   - docs/03-features/user-guide.md
   - docs/03-features/workflows/hub-creation.md
   - docs/03-features/workflows/improvement-prioritization.md
-  - docs/03-features/workflows/investigation-to-action.md
-  - docs/03-features/workflows/investigation-wall.md
+  - docs/03-features/workflows/analyze-to-action.md
+  - docs/03-features/workflows/analyze-wall.md
   - docs/03-features/workflows/knowledge-base-search.md
   - docs/03-features/workflows/process-maps.md
   - docs/03-features/workflows/quick-check.md
-  - docs/03-features/workflows/sustainment.md
+  - docs/03-features/workflows/control.md
 last-reviewed: 2026-05-18
 ---
 

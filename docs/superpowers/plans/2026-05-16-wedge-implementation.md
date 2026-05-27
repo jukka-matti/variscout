@@ -15,7 +15,7 @@ layer: spec
 
 > **For agentic workers:** REQUIRED SUB-SKILL — Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan. Each PR below should be expanded into its own **bite-sized sub-plan** via a follow-up `superpowers:writing-plans` invocation before execution begins.
 
-> ⚠️ **AMENDED 2026-05-16** — see [`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`](../../archive/specs/2026-05-16-improve-tab-amendment-design.md). The nav is **7 tabs** (`Home · Project · Process · Analyze · Investigation · Improve · Report`), not 6. **Improve stays as a top-level verb tab**, NOT a stage. **Projects → Project** (singular). Project detail has **3 stages** (`Charter · Approach · Sustainment`), not 4. Every reference below to "6-tab nav", "Improve as a stage", or "Projects (plural)" is superseded by the amendment.
+> ⚠️ **AMENDED 2026-05-16** — see [`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`](../../archive/specs/2026-05-16-improve-tab-amendment-design.md). The nav is **7 tabs** (`Home · Project · Process · Explore · Analyze · Improve · Report`), not 6. **Improve stays as a top-level verb tab**, NOT a stage. **Projects → Project** (singular). Project detail has **3 stages** (`Charter · Approach · Sustainment`), not 4. Every reference below to "6-tab nav", "Improve as a stage", or "Projects (plural)" is superseded by the amendment.
 
 **Goal:** Migrate the VariScout codebase from the current Hub-centric, 4-persona, 2-tier architecture to the V1 wedge anatomy: **7-tab workflow nav (per amendment)**, Improve as a **top-level verb tab (per amendment)**, project-membership ACLs (Lead / Member / Sponsor), MeasurementPlan entity on the Investigation Wall, persona-routing deletion, canvas response paths reduced to 3, tier-gating retirement, single €99 SKU.
 
@@ -293,9 +293,9 @@ Invoke `superpowers:writing-plans` on this PR's scope.
 
 ## PR-WV1-5 — Tier-Gating Retirement + Nav Reorder
 
-> ⚠️ **AMENDED** — target nav is the 7-tab amendment (see top-of-file): `Home · Project · Process · Analyze · Investigation · Improve · Report`. NO Improve-tab deletion. Project (singular).
+> ⚠️ **AMENDED** — target nav is the 7-tab amendment (see top-of-file): `Home · Project · Process · Explore · Analyze · Improve · Report`. NO Improve-tab deletion. Project (singular).
 
-**Scope:** Sweep ~33 files using `isPaidTier()` / `hasTeamFeatures()` and retire tier-gating logic under single SKU. Where access-gating is still meaningful, replace with project-membership ACL check (per PR-WV1-1). Reorder + rename the 7-tab nav to workflow order: `Home · Project · Process · Analyze · Investigation · Improve · Report` (renames: Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project).
+**Scope:** Sweep ~33 files using `isPaidTier()` / `hasTeamFeatures()` and retire tier-gating logic under single SKU. Where access-gating is still meaningful, replace with project-membership ACL check (per PR-WV1-1). Reorder + rename the 7-tab nav to workflow order: `Home · Project · Process · Explore · Analyze · Improve · Report` (renames: Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project).
 
 ### File structure
 
@@ -311,7 +311,7 @@ Invoke `superpowers:writing-plans` on this PR's scope.
 - `packages/ui/src/components/ReportView.tsx` — drop tier-gated layout
 - `packages/hooks/src/usePhotoComments.ts` — drop tier-gating
 - `packages/core/src/limits.ts` — `validateChannelCount` — keep platform limit but drop tier dimension
-- `apps/azure/src/components/AppHeader.tsx` + `apps/pwa/src/components/layout/AppHeader.tsx` — reorder + rename tabs to `Home · Project · Process · Analyze · Investigation · Improve · Report` (7 tabs per amendment)
+- `apps/azure/src/components/AppHeader.tsx` + `apps/pwa/src/components/layout/AppHeader.tsx` — reorder + rename tabs to `Home · Project · Process · Explore · Analyze · Improve · Report` (7 tabs per amendment)
 
 ### Tasks
 

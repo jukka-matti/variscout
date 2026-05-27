@@ -28,7 +28,7 @@ Focus: Name what you see. Formulate a clear issue statement grounded in the data
 
 Focus: Systematic factor-by-factor stratification. Evidence strength = R-squared-adj from Best Subsets.`,
 
-  investigate: `Workflow steps:
+  analyze: `Workflow steps:
 1. Create questions for top factors — each question targets a specific factor or level
 2. Validate with three evidence types: data (auto eta-squared), gemba (go-see), expert knowledge
 3. Synthesize answered questions into hypotheses — name the mechanism, not just the factor

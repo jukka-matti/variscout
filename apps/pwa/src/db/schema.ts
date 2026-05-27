@@ -28,14 +28,14 @@
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
 import Dexie, { type Table } from 'dexie';
-import type { ProcessHub, OutcomeSpec, ProcessHubInvestigation } from '@variscout/core/processHub';
+import type { ProcessHub, OutcomeSpec, ProcessHubAnalyze } from '@variscout/core/processHub';
 import type {
   EvidenceSnapshot,
   EvidenceSource,
   EvidenceSourceCursor,
   RowProvenanceTag,
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
   ControlHandoff,
 } from '@variscout/core';
 import type {
@@ -65,11 +65,7 @@ export interface MetaRow {
  */
 export type HubRow = Omit<
   ProcessHub,
-  | 'outcomes'
-  | 'canonicalProcessMap'
-  | 'sustainmentRecords'
-  | 'sustainmentReviews'
-  | 'controlHandoffs'
+  'outcomes' | 'canonicalProcessMap' | 'controlRecords' | 'controlReviews' | 'controlHandoffs'
 >;
 
 /**
@@ -91,15 +87,15 @@ export type EvidenceSnapshotRow = EvidenceSnapshot;
 export type EvidenceSourceRow = EvidenceSource;
 export type EvidenceSourceCursorRow = EvidenceSourceCursor;
 export type RowProvenanceRow = RowProvenanceTag;
-export type InvestigationRow = ProcessHubInvestigation;
+export type InvestigationRow = ProcessHubAnalyze;
 export type FindingRow = Finding;
 export type QuestionRow = Question;
 export type CausalLinkRow = CausalLink;
 export type HypothesisRow = Hypothesis;
 export type ImprovementProjectRow = ImprovementProject;
 export type ActionItemRow = ActionItem & { hubId: ProcessHub['id'] };
-export type SustainmentRecordRow = SustainmentRecord;
-export type SustainmentReviewRow = SustainmentReview;
+export type ControlRecordRow = ControlRecord;
+export type ControlReviewRow = ControlReview;
 export type ControlHandoffRow = ControlHandoff;
 export type MeasurementPlanRow = MeasurementPlan;
 
@@ -121,8 +117,8 @@ export class PwaDatabase extends Dexie {
   hypotheses!: Table<HypothesisRow, string>;
   improvementProjects!: Table<ImprovementProjectRow, string>;
   actionItems!: Table<ActionItemRow, string>;
-  sustainmentRecords!: Table<SustainmentRecordRow, string>;
-  sustainmentReviews!: Table<SustainmentReviewRow, string>;
+  controlRecords!: Table<ControlRecordRow, string>;
+  controlReviews!: Table<ControlReviewRow, string>;
   controlHandoffs!: Table<ControlHandoffRow, string>;
   canvasState!: Table<CanvasStateRow, string>;
   meta!: Table<MetaRow, string>;
@@ -151,8 +147,8 @@ export class PwaDatabase extends Dexie {
         '&id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
     });
     this.version(3).stores({
-      sustainmentRecords: '&id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
-      sustainmentReviews: '&id, recordId, investigationId, hubId, reviewedAt',
+      controlRecords: '&id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
+      controlReviews: '&id, recordId, investigationId, hubId, reviewedAt',
     });
     this.version(4).stores({
       controlHandoffs: '&id, investigationId, hubId, status, handoffDate, deletedAt',
@@ -161,6 +157,18 @@ export class PwaDatabase extends Dexie {
     this.version(5).stores({
       measurementPlans: '&id, hypothesisId, status, deletedAt',
     });
+
+    // Version 6: PR-WV1-NAV — Sustainment → Control vocabulary rename.
+    // Earlier version statements have been rewritten to declare 'controlRecords' /
+    // 'controlReviews' (the new table names) in their stores definitions. For
+    // any existing on-disk v5 database that physically holds tables named
+    // 'sustainmentRecords' / 'sustainmentReviews', Dexie will detect the
+    // schema mismatch and re-initialize on next open.
+    // Per wedge V1 no-back-compat policy (feedback_wedge_v1_no_migration_no_backcompat),
+    // NO upgrade callback is provided — existing v5 rows in the old tables
+    // become unreachable. Accepted because wedge V1 has no real users yet.
+    // This empty stores() call bumps the version to flush any cached schema.
+    this.version(6).stores({});
   }
 }
 

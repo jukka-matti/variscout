@@ -1,18 +1,18 @@
 import type {
   EvidenceLatestSignal,
   EvidenceSnapshot,
-  InvestigationStatus,
-  ProcessHubInvestigation,
+  AnalyzeStatus,
+  ProcessHubAnalyze,
   ProcessHubReviewItem,
   ProcessHubRollup,
-  SustainmentVerdict,
+  ControlVerdict,
   ControlHandoffSurface,
 } from '@variscout/core';
 import { formatStatistic, formatPlural } from '@variscout/core/i18n';
 
 export const formatMetric = (value: number): string => formatStatistic(value, 'en', 2);
 
-export const formatStatus = (status?: InvestigationStatus): string =>
+export const formatStatus = (status?: AnalyzeStatus): string =>
   (status ?? 'scouting').replace(/-/g, ' ');
 
 export const formatChangeSignals = (count: number): string =>
@@ -33,28 +33,24 @@ export const formatLatestActivity = (value: number | null): string => {
 };
 
 export const formatTopFocus = (item: ProcessHubReviewItem): string | null => {
-  const topFocus = item.investigation.metadata?.reviewSignal?.topFocus;
+  const topFocus = item.analyze.metadata?.reviewSignal?.topFocus;
   if (!topFocus) return null;
   return topFocus.value === undefined ? topFocus.factor : `${topFocus.factor} / ${topFocus.value}`;
 };
 
-export const formatHubTopFocus = (
-  rollup: ProcessHubRollup<ProcessHubInvestigation>
-): string | null => {
+export const formatHubTopFocus = (rollup: ProcessHubRollup<ProcessHubAnalyze>): string | null => {
   const topFocus = rollup.reviewSignal?.topFocus;
   if (!topFocus) return null;
   return topFocus.value === undefined ? topFocus.factor : `${topFocus.factor} / ${topFocus.value}`;
 };
 
 export const formatCapability = (item: ProcessHubReviewItem): string | null => {
-  const capability = item.investigation.metadata?.reviewSignal?.capability;
+  const capability = item.analyze.metadata?.reviewSignal?.capability;
   if (capability?.cpk === undefined || capability.cpkTarget === undefined) return null;
   return `Cpk ${formatMetric(capability.cpk)} vs target ${formatMetric(capability.cpkTarget)}`;
 };
 
-export const formatHubCapability = (
-  rollup: ProcessHubRollup<ProcessHubInvestigation>
-): string | null => {
+export const formatHubCapability = (rollup: ProcessHubRollup<ProcessHubAnalyze>): string | null => {
   const capability = rollup.reviewSignal?.capability;
   if (capability?.cpk === undefined || capability.cpkTarget === undefined) return null;
   return `Cpk ${formatMetric(capability.cpk)} vs target ${formatMetric(capability.cpkTarget)}`;
@@ -63,19 +59,17 @@ export const formatHubCapability = (
 const firstDefined = <T>(values: Array<T | undefined>): T | undefined =>
   values.find(value => value !== undefined && value !== null);
 
-export const requirementSummary = (
-  rollup: ProcessHubRollup<ProcessHubInvestigation>
-): string | null =>
+export const requirementSummary = (rollup: ProcessHubRollup<ProcessHubAnalyze>): string | null =>
   firstDefined(
-    rollup.investigations.map(
-      investigation =>
-        investigation.metadata?.customerRequirementSummary ??
-        investigation.metadata?.processMapSummary?.ctsColumn
+    rollup.analyzes.map(
+      analyze =>
+        analyze.metadata?.customerRequirementSummary ??
+        analyze.metadata?.processMapSummary?.ctsColumn
     )
   ) ?? null;
 
 export const processQuestionAnswers = (
-  rollup: ProcessHubRollup<ProcessHubInvestigation>
+  rollup: ProcessHubRollup<ProcessHubAnalyze>
 ): { requirement: string; change: string; focus: string } => {
   const requirement = requirementSummary(rollup);
   const capability = formatHubCapability(rollup);
@@ -96,14 +90,14 @@ export const processQuestionAnswers = (
   };
 };
 
-const VERDICT_LABELS: Record<SustainmentVerdict, string> = {
+const VERDICT_LABELS: Record<ControlVerdict, string> = {
   holding: 'Holding',
   drifting: 'Drifting',
   broken: 'Broken',
   inconclusive: 'Inconclusive',
 };
 
-export const formatSustainmentVerdict = (v: SustainmentVerdict): string => VERDICT_LABELS[v];
+export const formatSustainmentVerdict = (v: ControlVerdict): string => VERDICT_LABELS[v];
 
 export const formatSustainmentDue = (nextReviewDue: string | undefined, now: Date): string => {
   if (!nextReviewDue) return 'No cadence set';
@@ -157,14 +151,13 @@ const formatSnapshotContext = (snapshots: EvidenceSnapshot[] | undefined): strin
 };
 
 export const sustainmentBandAnswer = (
-  rollup: ProcessHubRollup<ProcessHubInvestigation>,
+  rollup: ProcessHubRollup<ProcessHubAnalyze>,
   now: Date
 ): string | null => {
-  const records = rollup.sustainmentRecords ?? [];
-  const sustainmentEligible = rollup.investigations.some(
+  const records = rollup.controlRecords ?? [];
+  const sustainmentEligible = rollup.analyzes.some(
     inv =>
-      inv.metadata?.investigationStatus === 'resolved' ||
-      inv.metadata?.investigationStatus === 'controlled'
+      inv.metadata?.analyzeStatus === 'resolved' || inv.metadata?.analyzeStatus === 'controlled'
   );
   if (!sustainmentEligible) return null;
   const due = records.filter(
@@ -176,11 +169,11 @@ export const sustainmentBandAnswer = (
 
   let base: string;
   if (due === 0 && holdingCount > 0) {
-    base = `${holdingCount} ${holdingCount === 1 ? 'investigation is' : 'investigations are'} holding; no review due.`;
+    base = `${holdingCount} ${holdingCount === 1 ? 'analyze is' : 'analyzes are'} holding; no review due.`;
   } else if (due > 0) {
-    base = `${due} sustainment ${due === 1 ? 'review' : 'reviews'} due now.`;
+    base = `${due} control ${due === 1 ? 'review' : 'reviews'} due now.`;
   } else {
-    return 'Set up sustainment cadence to monitor this.';
+    return 'Set up control cadence to monitor this.';
   }
 
   const snapshotContext = formatSnapshotContext(rollup.evidenceSnapshots);

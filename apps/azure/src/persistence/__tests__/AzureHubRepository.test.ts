@@ -28,7 +28,7 @@ vi.mock('../../services/localDb', () => ({
   listProcessHubsFromIndexedDB: vi.fn(),
   saveEvidenceSourceToIndexedDB: vi.fn(),
   saveEvidenceSnapshotToIndexedDB: vi.fn(),
-  saveSustainmentRecordToIndexedDB: vi.fn(),
+  saveControlRecordToIndexedDB: vi.fn(),
   saveControlHandoffToIndexedDB: vi.fn(),
 }));
 
@@ -55,7 +55,7 @@ vi.mock('../../db/schema', () => ({
       bulkPut: vi.fn().mockResolvedValue([]),
       clear: vi.fn(),
     },
-    sustainmentRecords: {
+    controlRecords: {
       get: vi.fn(),
       where: vi.fn(() => ({
         equals: vi.fn(() => ({ filter: vi.fn(() => ({ delete: vi.fn().mockResolvedValue(0) })) })),
@@ -63,7 +63,7 @@ vi.mock('../../db/schema', () => ({
       bulkPut: vi.fn().mockResolvedValue([]),
       clear: vi.fn(),
     },
-    sustainmentReviews: {
+    controlReviews: {
       get: vi.fn(),
       where: vi.fn(() => ({
         equals: vi.fn(() => ({ filter: vi.fn(() => ({ delete: vi.fn().mockResolvedValue(0) })) })),

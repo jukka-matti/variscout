@@ -1,4 +1,4 @@
-import type { ControlHandoff, SustainmentRecord } from '../sustainment';
+import type { ControlHandoff, ControlRecord } from '../control';
 import type { SurveyHint, SurveyRule } from './types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -15,7 +15,7 @@ function timestamp(value: Date | number | string | undefined): number | undefine
   return undefined;
 }
 
-function isLiveRecord(record: SustainmentRecord): boolean {
+function isLiveRecord(record: ControlRecord): boolean {
   return record.deletedAt === null;
 }
 
@@ -23,11 +23,11 @@ function isLiveHandoff(handoff: ControlHandoff): boolean {
   return handoff.deletedAt === null;
 }
 
-function confirmedAt(record: SustainmentRecord): number {
+function confirmedAt(record: ControlRecord): number {
   return timestamp(record.latestReviewAt) ?? record.updatedAt ?? record.createdAt;
 }
 
-function hasLiveHandoff(record: SustainmentRecord, handoffs: ControlHandoff[]): boolean {
+function hasLiveHandoff(record: ControlRecord, handoffs: ControlHandoff[]): boolean {
   return handoffs.some(
     handoff =>
       isLiveHandoff(handoff) &&
@@ -51,7 +51,7 @@ export const surveyHandoffRules: SurveyRule = ctx => {
 
   const handoffs = ctx.controlHandoffs ?? [];
 
-  for (const record of ctx.sustainmentRecords ?? []) {
+  for (const record of ctx.controlRecords ?? []) {
     if (!isLiveRecord(record)) continue;
     if (record.status !== 'confirmed-sustained') continue;
     if (hasLiveHandoff(record, handoffs)) continue;

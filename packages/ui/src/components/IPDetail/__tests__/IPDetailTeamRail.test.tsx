@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import type { ProcessHub, SustainmentRecord } from '@variscout/core';
+import type { ProcessHub, ControlRecord } from '@variscout/core';
 import IPDetailTeamRail from '../IPDetailTeamRail';
 
 const hour = 60 * 60 * 1000;
@@ -66,7 +66,7 @@ function makeAction(overrides: Partial<ActionItem> = {}): ActionItem {
   };
 }
 
-function makeSustainment(overrides: Partial<SustainmentRecord> = {}): SustainmentRecord {
+function makeSustainment(overrides: Partial<ControlRecord> = {}): ControlRecord {
   return {
     id: 'sus-1',
     createdAt: now - 2 * hour,
@@ -74,7 +74,7 @@ function makeSustainment(overrides: Partial<SustainmentRecord> = {}): Sustainmen
     investigationId: 'inv-1',
     hubId: 'hub-1',
     status: 'pending',
-    title: 'Sustainment check',
+    title: 'Control check',
     improvementProjectId: 'ip-1',
     consecutiveOnTargetTicks: 1,
     hasOverride: false,
@@ -101,14 +101,14 @@ describe('IPDetailTeamRail', () => {
         ip={makeIP({ signoff: { requestedAt: now - 3 * hour } })}
         ideas={[makeIdea()]}
         actions={[makeAction()]}
-        sustainmentRecord={makeSustainment()}
+        controlRecord={makeSustainment()}
         now={now}
       />
     );
 
     const feed = screen.getByTestId('ip-activity-feed');
     expect(within(feed).getAllByRole('listitem')).toHaveLength(5);
-    expect(feed).toHaveTextContent('Pat Process updated sustainment Sustainment check · 15m ago');
+    expect(feed).toHaveTextContent('Pat Process updated sustainment Control check · 15m ago');
     expect(feed).toHaveTextContent('Avery Owner moved action Pilot guide to done · 30m ago');
     expect(feed).not.toHaveTextContent('System updated Background · 7h ago');
 

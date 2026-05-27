@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { calculateNodeCapability } from '../nodeCapability';
-import type { ProcessHub, ProcessHubInvestigation } from '../../processHub';
+import type { ProcessHub, ProcessHubAnalyze } from '../../processHub';
 
 const hub: ProcessHub = {
   id: 'hub-1',
@@ -9,12 +9,7 @@ const hub: ProcessHub = {
   deletedAt: null,
 };
 
-function inv(
-  id: string,
-  nodeId: string,
-  cpk: number | undefined,
-  n: number
-): ProcessHubInvestigation {
+function inv(id: string, nodeId: string, cpk: number | undefined, n: number): ProcessHubAnalyze {
   return {
     id,
     name: `inv-${id}`,
@@ -55,7 +50,7 @@ describe('calculateNodeCapability — children source', () => {
     // own specs. We cannot tell whether siblings used identical specs, so
     // node-level cpk/cp stay undefined — callers render the per-investigation
     // distribution. (Spec line 148.)
-    const members: ProcessHubInvestigation[] = [
+    const members: ProcessHubAnalyze[] = [
       inv('a', 'n-fill', 1.5, 100),
       inv('b', 'n-fill', 1.2, 80),
       inv('c', 'n-press', 1.8, 50), // different node — excluded
@@ -75,7 +70,7 @@ describe('calculateNodeCapability — children source', () => {
   });
 
   it('excludes investigations with no reviewSignal', () => {
-    const members: ProcessHubInvestigation[] = [
+    const members: ProcessHubAnalyze[] = [
       inv('a', 'n-fill', 1.5, 100),
       inv('b', 'n-fill', undefined, 0), // no signal
     ];
@@ -87,7 +82,7 @@ describe('calculateNodeCapability — children source', () => {
   });
 
   it('returns insufficient when no contributors exist', () => {
-    const members: ProcessHubInvestigation[] = [inv('a', 'n-press', 1.5, 100)];
+    const members: ProcessHubAnalyze[] = [inv('a', 'n-press', 1.5, 100)];
     const result = calculateNodeCapability('n-fill', { kind: 'children', hub, members });
     expect(result.n).toBe(0);
     expect(result.cpk).toBeUndefined();
@@ -96,7 +91,7 @@ describe('calculateNodeCapability — children source', () => {
   });
 
   it('excludes members from other hubs', () => {
-    const otherHubInv: ProcessHubInvestigation = {
+    const otherHubInv: ProcessHubAnalyze = {
       ...inv('z', 'n-fill', 0.5, 100),
       metadata: {
         ...inv('z', 'n-fill', 0.5, 100).metadata,

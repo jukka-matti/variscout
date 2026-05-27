@@ -24,6 +24,6 @@ export function isCharterReady(_signals: WorkflowReadinessSignals): boolean {
   return true;
 }
 
-export function isSustainmentReady(signals: WorkflowReadinessSignals): boolean {
+export function isControlReady(signals: WorkflowReadinessSignals): boolean {
   return signals.isDemo === true || signals.hasIntervention;
 }

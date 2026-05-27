@@ -50,10 +50,7 @@ export {
   ReportActivityBreakdown,
   type ReportActivityBreakdownProps,
 } from './ReportActivityBreakdown';
-export {
-  ReportInvestigationSummary,
-  type ReportInvestigationSummaryProps,
-} from './ReportInvestigationSummary';
+export { ReportAnalyzeSummary, type ReportAnalyzeSummaryProps } from './ReportAnalyzeSummary';
 export { ReportDefectKPIGrid, type ReportDefectKPIGridProps } from './ReportDefectKPIGrid';
 export { IPOverviewReport, type IPOverviewReportProps } from './IPOverviewReport';
 export {

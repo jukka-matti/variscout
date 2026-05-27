@@ -26,7 +26,7 @@ export interface QuestionLinkPromptProps {
   findingId: string;
   /** Open questions from the investigation store, to show in the picker. */
   questions: ReadonlyArray<{ id: string; text: string; status: string }>;
-  /** Called when user picks a question. Wrapper calls investigationStore.linkFindingToQuestion. */
+  /** Called when user picks a question. Wrapper calls analyzeStore.linkFindingToQuestion. */
   onLink: (questionId: string) => void;
   /** Called when user clicks Skip (this time only). */
   onSkip: () => void;

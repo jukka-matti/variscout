@@ -202,7 +202,7 @@ describe('context injection resistance', () => {
 // ── Tool schema strictness ──────────────────────────────────────────────
 
 describe('tool schema strictness', () => {
-  const allPhases = ['frame', 'scout', 'investigate', 'improve'] as const;
+  const allPhases = ['frame', 'scout', 'analyze', 'improve'] as const;
 
   for (const phase of allPhases) {
     it(`all tools in phase "${phase}" have strict: true`, () => {

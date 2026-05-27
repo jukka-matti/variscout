@@ -18,8 +18,8 @@ layer: spec
 implements:
   - docs/01-vision/eda-mental-model.md
   - docs/01-vision/methodology.md
-  - docs/03-features/workflows/investigation-wall.md
-  - docs/03-features/workflows/question-driven-investigation.md
+  - docs/03-features/workflows/analyze-wall.md
+  - docs/03-features/workflows/question-driven-analyze.md
 ---
 
 # Investigation Workspace Reframing

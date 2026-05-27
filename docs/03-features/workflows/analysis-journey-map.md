@@ -223,7 +223,7 @@ stateDiagram-v2
 
 ### Investigation Diamond (4 Phases)
 
-> **Diamond views:** [Architecture definition](../../05-technical/architecture/mental-model-hierarchy.md#investigation-diamond-4-phases) · [State machine](investigation-lifecycle-map.md) · [Tree UI & validation](question-driven-investigation.md)
+> **Diamond views:** [Architecture definition](../../05-technical/architecture/mental-model-hierarchy.md#investigation-diamond-4-phases) · [State machine](analyze-lifecycle-map.md) · [Tree UI & validation](question-driven-analyze.md)
 
 The investigation follows the diamond pattern within each finding — a structured learning process:
 
@@ -481,7 +481,7 @@ flowchart TD
 - [Drill-Down Workflow](drill-down-workflow.md) -- progressive stratification using filter chips
 - [Quick Check](quick-check.md) -- 5-minute monitoring protocol
 - [Deep Dive](deep-dive.md) -- 30-minute investigation protocol
-- [Investigation to Action](investigation-to-action.md) -- findings and What-If workflow
-- [Investigation Lifecycle Map](investigation-lifecycle-map.md) -- Investigation diamond state machine detail
+- [Investigation to Action](analyze-to-action.md) -- findings and What-If workflow
+- [Investigation Lifecycle Map](analyze-lifecycle-map.md) -- Investigation diamond state machine detail
 - [Decision Trees](decision-trees.md) -- branching logic for analysis decisions
 - [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) -- how all conceptual frameworks (journey, investigation diamond, report steps, lenses) nest together

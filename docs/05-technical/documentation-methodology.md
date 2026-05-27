@@ -430,5 +430,5 @@ flowchart TB
 - [Analysis Journey Map](../03-features/workflows/analysis-journey-map.md) — the 4-phase journey model
 - [System Map](architecture/system-map.md) — C4 L1/L2 architecture diagrams
 - [Data Pipeline Map](architecture/data-pipeline-map.md) — end-to-end data flow with TypeScript boundaries
-- [Investigation Lifecycle Map](../03-features/workflows/investigation-lifecycle-map.md) — Investigation diamond state machine
+- [Investigation Lifecycle Map](../03-features/workflows/analyze-lifecycle-map.md) — Investigation diamond state machine
 - `scripts/docs-frontmatter-schema.mjs` — frontmatter schema (pre-commit enforced)

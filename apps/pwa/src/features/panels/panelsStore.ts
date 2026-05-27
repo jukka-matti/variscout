@@ -8,8 +8,8 @@ interface PanelsState {
   activeView:
     | 'home'
     | 'frame'
-    | 'analysis'
-    | 'investigation'
+    | 'explore'
+    | 'analyze'
     | 'improvement'
     | 'projects'
     | 'report'
@@ -31,7 +31,7 @@ interface PanelsState {
   showExcludedOnly: boolean;
   showResetConfirm: boolean;
   openSpecEditorRequested: boolean;
-  sustainmentTargetId: string | null;
+  controlTargetId: string | null;
   selectedProjectId: string | null;
 }
 
@@ -41,13 +41,13 @@ interface PanelsActions {
   // Workspace navigation
   showHome: () => void;
   showFrame: () => void;
-  showAnalysis: () => void;
-  showInvestigation: () => void;
+  showExplore: () => void;
+  showAnalyze: () => void;
   showImprovement: () => void;
   showProjects: (projectId?: string) => void;
   showReport: () => void;
   showCharter: () => void;
-  showSustainment: (targetId?: string) => void;
+  showControl: (targetId?: string) => void;
 
   // Simple toggles
   setSettingsOpen: (open: boolean) => void;
@@ -81,7 +81,7 @@ export type PanelsStore = PanelsState & PanelsActions;
 // ── Initial state (exported for testing) ────────────────────────────────────
 
 export const initialPanelsState: PanelsState = {
-  activeView: 'analysis',
+  activeView: 'explore',
   isSettingsOpen: false,
   isDataTableOpen: false,
   isFindingsOpen: false,
@@ -92,7 +92,7 @@ export const initialPanelsState: PanelsState = {
   showExcludedOnly: false,
   showResetConfirm: false,
   openSpecEditorRequested: false,
-  sustainmentTargetId: null,
+  controlTargetId: null,
   selectedProjectId: null,
 };
 
@@ -104,26 +104,25 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // Workspace navigation
   showHome: () => set({ activeView: 'home', isFindingsOpen: false, selectedProjectId: null }),
   showFrame: () => set({ activeView: 'frame', isFindingsOpen: false }),
-  showAnalysis: () => set({ activeView: 'analysis' }),
-  showInvestigation: () => set({ activeView: 'investigation', isFindingsOpen: false }),
+  showExplore: () => set({ activeView: 'explore' }),
+  showAnalyze: () => set({ activeView: 'analyze', isFindingsOpen: false }),
   showImprovement: () => set({ activeView: 'improvement' }),
   showProjects: projectId => set({ activeView: 'projects', selectedProjectId: projectId ?? null }),
   showReport: () => set({ activeView: 'report' }),
   showCharter: () => set({ activeView: 'charter', isFindingsOpen: false }),
-  showSustainment: targetId =>
+  showControl: targetId =>
     set({
       activeView: 'sustainment',
       isFindingsOpen: false,
-      sustainmentTargetId: targetId ?? null,
+      controlTargetId: targetId ?? null,
     }),
 
   // Simple toggles
   setSettingsOpen: open => set({ isSettingsOpen: open }),
   setDataTableOpen: open => set({ isDataTableOpen: open }),
-  setFindingsOpen: open =>
-    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: open })),
+  setFindingsOpen: open => set(s => (s.activeView === 'analyze' ? s : { isFindingsOpen: open })),
   toggleFindings: () =>
-    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: !s.isFindingsOpen })),
+    set(s => (s.activeView === 'analyze' ? s : { isFindingsOpen: !s.isFindingsOpen })),
   setWhatIfOpen: open => set({ isWhatIfOpen: open }),
   togglePISidebar: () => set(s => ({ isPISidebarOpen: !s.isPISidebarOpen })),
 

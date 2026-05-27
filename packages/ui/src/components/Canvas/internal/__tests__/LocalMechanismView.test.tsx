@@ -3,7 +3,7 @@ import React from 'react';
 import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Finding, Hypothesis, ProcessMap, Question } from '@variscout/core';
-import { getInvestigationInitialState, useInvestigationStore } from '@variscout/stores';
+import { getAnalyzeInitialState, useAnalyzeStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import { LocalMechanismView } from '../LocalMechanismView';
 
@@ -32,7 +32,7 @@ vi.mock('@variscout/charts', async () => {
   };
 });
 
-vi.mock('../../../InvestigationWall/WallCanvas', () => ({
+vi.mock('../../../AnalyzeWall/WallCanvas', () => ({
   WallCanvas: (props: {
     mode?: string;
     filterByStepId?: string;
@@ -153,7 +153,7 @@ function renderView(overrides: Partial<React.ComponentProps<typeof LocalMechanis
 
 describe('LocalMechanismView', () => {
   beforeEach(() => {
-    useInvestigationStore.setState(getInvestigationInitialState());
+    useAnalyzeStore.setState(getAnalyzeInitialState());
   });
 
   it('renders one mini-chart per focal step column including ctq without duplicates', () => {
@@ -168,7 +168,7 @@ describe('LocalMechanismView', () => {
 
   it('passes focal step columns to EvidenceMapBase and focuses factor clicks', () => {
     const onOpenInvestigationFocus = vi.fn();
-    useInvestigationStore.setState({
+    useAnalyzeStore.setState({
       questions: [question({ id: 'q-machine', factor: 'Machine' })],
     });
     renderView({ onOpenInvestigationFocus });
@@ -194,7 +194,7 @@ describe('LocalMechanismView', () => {
   it('renders WallCanvas in overlay mode filtered to the focal step and forwards selection callbacks', () => {
     const onSelectWallHub = vi.fn();
     const onOpenWall = vi.fn();
-    useInvestigationStore.setState({ hypotheses: [hub()], questions: [question()] });
+    useAnalyzeStore.setState({ hypotheses: [hub()], questions: [question()] });
 
     renderView({ findings: [{ id: 'f-1' } as Finding], onSelectWallHub, onOpenWall });
 
@@ -220,7 +220,7 @@ describe('LocalMechanismView', () => {
 
     cleanup();
     act(() => {
-      useInvestigationStore.setState({ questions: [question({ factor: 'Machine' })] });
+      useAnalyzeStore.setState({ questions: [question({ factor: 'Machine' })] });
     });
     renderView();
 
@@ -230,7 +230,7 @@ describe('LocalMechanismView', () => {
 
     cleanup();
     act(() => {
-      useInvestigationStore.setState({
+      useAnalyzeStore.setState({
         questions: [],
         hypotheses: [
           hub({
@@ -246,7 +246,7 @@ describe('LocalMechanismView', () => {
 
   it('excludes the outcome column from factor contribution rankings', () => {
     act(() => {
-      useInvestigationStore.setState({ questions: [question({ factor: 'Machine' })] });
+      useAnalyzeStore.setState({ questions: [question({ factor: 'Machine' })] });
     });
 
     renderView({
@@ -284,7 +284,7 @@ describe('LocalMechanismView', () => {
     // Use within first CTA group to target a single column's buttons.
     const firstGroup = ctaGroups[0];
 
-    fireEvent.click(within(firstGroup).getByText('Investigate'));
+    fireEvent.click(within(firstGroup).getByText('Analyze'));
     expect(onFocusedInvestigation).toHaveBeenCalledWith('mix');
 
     fireEvent.click(within(firstGroup).getByText('Charter'));

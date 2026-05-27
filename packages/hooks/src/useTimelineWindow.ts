@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import type { ProcessHubInvestigation, TimelineWindow } from '@variscout/core';
+import type { ProcessHubAnalyze, TimelineWindow } from '@variscout/core';
 
 const DEFAULT_CUMULATIVE: TimelineWindow = { kind: 'cumulative' };
 
@@ -11,7 +11,7 @@ export interface UseTimelineWindowArgs {
    * `metadata.timelineWindow` identity, so a new object every render makes
    * the memo thrash.
    */
-  investigation: Pick<ProcessHubInvestigation, 'id' | 'metadata'>;
+  investigation: Pick<ProcessHubAnalyze, 'id' | 'metadata'>;
   /**
    * Persistence callback. Caller wires this to its existing
    * `persistInvestigation` flow (see apps/azure/src/features/processHub/

@@ -116,7 +116,7 @@ Read these before planning:
 - `docs/06-design-system/components/signal-branch-components.md`
 - `docs/01-vision/eda-mental-model.md`
 - `docs/01-vision/references/turtiainen-2019-eda-mental-model.md`
-- `docs/03-features/workflows/question-driven-investigation.md`
+- `docs/03-features/workflows/question-driven-analyze.md`
 - `docs/superpowers/specs/2026-04-04-investigation-spine-design.md`
 - `docs/superpowers/specs/2026-04-19-investigation-wall-design.md`
 - `docs/superpowers/specs/2026-04-25-process-flow-yamazumi-integration-design.md`

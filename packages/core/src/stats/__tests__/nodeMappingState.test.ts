@@ -1,23 +1,23 @@
 import { describe, it, expect } from 'vitest';
-import { isUnmappedInvestigation, suggestNodeMappings } from '../nodeMappingState';
-import type { ProcessHubInvestigationMetadata } from '../../processHub';
+import { isUnmappedAnalyze, suggestNodeMappings } from '../nodeMappingState';
+import type { ProcessHubAnalyzeMetadata } from '../../processHub';
 import type { ProcessMap } from '../../frame/types';
 
-describe('isUnmappedInvestigation', () => {
+describe('isUnmappedAnalyze', () => {
   it('returns true when nodeMappings is absent', () => {
-    expect(isUnmappedInvestigation({})).toBe(true);
-    expect(isUnmappedInvestigation({ processHubId: 'h' })).toBe(true);
+    expect(isUnmappedAnalyze({})).toBe(true);
+    expect(isUnmappedAnalyze({ processHubId: 'h' })).toBe(true);
   });
 
   it('returns true when nodeMappings is empty', () => {
-    expect(isUnmappedInvestigation({ nodeMappings: [] })).toBe(true);
+    expect(isUnmappedAnalyze({ nodeMappings: [] })).toBe(true);
   });
 
   it('returns false when at least one mapping is present', () => {
-    const meta: ProcessHubInvestigationMetadata = {
+    const meta: ProcessHubAnalyzeMetadata = {
       nodeMappings: [{ nodeId: 'n1', measurementColumn: 'col' }],
     };
-    expect(isUnmappedInvestigation(meta)).toBe(false);
+    expect(isUnmappedAnalyze(meta)).toBe(false);
   });
 });
 

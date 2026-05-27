@@ -28,67 +28,67 @@ describe('deriveResponsePathAction', () => {
     expect(action).toEqual({ kind: 'unsupported', reason: 'planned' });
   });
 
-  it('maps quick-action to open-investigation/quick using defaultInvestigationId', () => {
+  it('maps quick-action to open-analyze/quick using defaultAnalyzeId', () => {
     const action = deriveResponsePathAction(baseItem({ responsePath: 'quick-action' }), DEFAULT_ID);
     expect(action).toEqual({
-      kind: 'open-investigation',
-      investigationId: DEFAULT_ID,
+      kind: 'open-analyze',
+      analyzeId: DEFAULT_ID,
       intent: 'quick',
     });
   });
 
-  it('maps focused-investigation to open-investigation/focused', () => {
+  it('maps focused-analyze to open-analyze/focused', () => {
     const action = deriveResponsePathAction(
-      baseItem({ responsePath: 'focused-investigation' }),
+      baseItem({ responsePath: 'focused-analyze' }),
       DEFAULT_ID
     );
     expect(action).toEqual({
-      kind: 'open-investigation',
-      investigationId: DEFAULT_ID,
+      kind: 'open-analyze',
+      analyzeId: DEFAULT_ID,
       intent: 'focused',
     });
   });
 
-  it('maps chartered-project to open-investigation/chartered', () => {
+  it('maps chartered-project to open-analyze/chartered', () => {
     const action = deriveResponsePathAction(
       baseItem({ responsePath: 'chartered-project' }),
       DEFAULT_ID
     );
     expect(action).toEqual({
-      kind: 'open-investigation',
-      investigationId: DEFAULT_ID,
+      kind: 'open-analyze',
+      analyzeId: DEFAULT_ID,
       intent: 'chartered',
     });
   });
 
-  it('maps sustainment-review to open-sustainment', () => {
+  it('maps control-review to open-control', () => {
     const action = deriveResponsePathAction(
-      baseItem({ responsePath: 'sustainment-review' }),
+      baseItem({ responsePath: 'control-review' }),
       DEFAULT_ID
     );
     expect(action).toEqual({
-      kind: 'open-sustainment',
-      investigationId: DEFAULT_ID,
+      kind: 'open-control',
+      analyzeId: DEFAULT_ID,
     });
   });
 
-  it('uses item.investigationIds[0] when present (queue items)', () => {
+  it('uses item.analyzeIds[0] when present (queue items)', () => {
     const action = deriveResponsePathAction(
       baseItem({
-        responsePath: 'focused-investigation',
-        investigationIds: ['inv-from-item', 'inv-other'],
+        responsePath: 'focused-analyze',
+        analyzeIds: ['inv-from-item', 'inv-other'],
       }),
       DEFAULT_ID
     );
-    expect(action).toMatchObject({ kind: 'open-investigation', investigationId: 'inv-from-item' });
+    expect(action).toMatchObject({ kind: 'open-analyze', analyzeId: 'inv-from-item' });
   });
 
-  it('falls back to defaultInvestigationId when item.investigationIds is empty', () => {
+  it('falls back to defaultAnalyzeId when item.analyzeIds is empty', () => {
     const action = deriveResponsePathAction(
-      baseItem({ responsePath: 'focused-investigation', investigationIds: [] }),
+      baseItem({ responsePath: 'focused-analyze', analyzeIds: [] }),
       DEFAULT_ID
     );
-    expect(action).toMatchObject({ kind: 'open-investigation', investigationId: DEFAULT_ID });
+    expect(action).toMatchObject({ kind: 'open-analyze', analyzeId: DEFAULT_ID });
   });
 
   it('exhaustive switch — adding a new ProcessStateResponsePath without a case is a compile error', () => {

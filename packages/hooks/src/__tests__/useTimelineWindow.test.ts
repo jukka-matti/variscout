@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import type { ProcessHubInvestigation } from '@variscout/core';
+import type { ProcessHubAnalyze } from '@variscout/core';
 import { useTimelineWindow } from '../useTimelineWindow';
 
 const inv = (
   id: string,
-  metadata?: ProcessHubInvestigation['metadata']
-): Pick<ProcessHubInvestigation, 'id' | 'metadata'> => ({ id, metadata });
+  metadata?: ProcessHubAnalyze['metadata']
+): Pick<ProcessHubAnalyze, 'id' | 'metadata'> => ({ id, metadata });
 
 describe('useTimelineWindow', () => {
   it('returns cumulative default when metadata.timelineWindow is absent', () => {

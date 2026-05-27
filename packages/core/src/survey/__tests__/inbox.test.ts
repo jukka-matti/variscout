@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { surveyInboxRules } from '../inbox';
 import type { ImprovementProject } from '../../improvementProject';
-import type { ControlHandoff, SustainmentRecord } from '../../sustainment';
+import type { ControlHandoff, ControlRecord } from '../../control';
 
 const NOW = Date.UTC(2026, 4, 12);
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const sustainmentRecord = (overrides: Partial<SustainmentRecord>): SustainmentRecord =>
+const controlRecord = (overrides: Partial<ControlRecord>): ControlRecord =>
   ({
     id: 'sr-1',
     investigationId: 'inv-1',
@@ -21,7 +21,7 @@ const sustainmentRecord = (overrides: Partial<SustainmentRecord>): SustainmentRe
     deletedAt: null,
     updatedAt: NOW - DAY_MS,
     ...overrides,
-  }) as SustainmentRecord;
+  }) as ControlRecord;
 
 const improvementProject = (overrides: Partial<ImprovementProject>): ImprovementProject =>
   ({
@@ -53,7 +53,7 @@ const controlHandoff = (overrides: Partial<ControlHandoff>): ControlHandoff =>
     operationalOwner: { displayName: 'Ops owner' },
     handoffDate: NOW - 8 * DAY_MS,
     description: 'Update procedure controls',
-    retainSustainmentReview: true,
+    retainControlReview: true,
     recordedBy: { displayName: 'Investigator' },
     createdAt: NOW - 8 * DAY_MS,
     deletedAt: null,
@@ -66,9 +66,9 @@ describe('surveyInboxRules', () => {
       improvementProjects: [
         improvementProject({ id: 'ip-old', metadata: { title: 'A closed project' } }),
       ],
-      sustainmentRecords: [
-        sustainmentRecord({ id: 'sr-info', title: 'B progress', consecutiveOnTargetTicks: 3 }),
-        sustainmentRecord({ id: 'sr-critical', title: 'C drift', status: 'drifted' }),
+      controlRecords: [
+        controlRecord({ id: 'sr-info', title: 'B progress', consecutiveOnTargetTicks: 3 }),
+        controlRecord({ id: 'sr-critical', title: 'C drift', status: 'drifted' }),
       ],
       now: NOW,
     });

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import type { ProcessHubInvestigation, ProcessHubInvestigationMetadata } from '@variscout/core';
+import type { ProcessHubAnalyze, ProcessHubAnalyzeMetadata } from '@variscout/core';
 import { useCanvasFilters } from '../useCanvasFilters';
 
 // ---------------------------------------------------------------------------
@@ -9,8 +9,8 @@ import { useCanvasFilters } from '../useCanvasFilters';
 
 const inv = (
   id: string,
-  metadata?: ProcessHubInvestigationMetadata
-): Pick<ProcessHubInvestigation, 'id' | 'metadata'> => ({ id, metadata });
+  metadata?: ProcessHubAnalyzeMetadata
+): Pick<ProcessHubAnalyze, 'id' | 'metadata'> => ({ id, metadata });
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -31,7 +31,7 @@ describe('useCanvasFilters', () => {
   // 2. Reads existing metadata
   it('reflects all three filter fields when metadata is fully populated', () => {
     const onChange = vi.fn();
-    const metadata: ProcessHubInvestigationMetadata = {
+    const metadata: ProcessHubAnalyzeMetadata = {
       timelineWindow: { kind: 'rolling', windowDays: 14 },
       scopeFilter: { factor: 'Operator', values: ['A', 'B'] },
       paretoGroupBy: 'ShiftGroup',
@@ -115,7 +115,7 @@ describe('useCanvasFilters', () => {
   // 9. Memo thrash protection — same metadata object → same timelineWindow reference
   it('timelineWindow reference is stable when re-rendering with the same metadata object', () => {
     const onChange = vi.fn();
-    const metadata: ProcessHubInvestigationMetadata = {
+    const metadata: ProcessHubAnalyzeMetadata = {
       timelineWindow: { kind: 'rolling', windowDays: 7 },
     };
     const investigation = inv('inv-9', metadata);

@@ -2,10 +2,10 @@ import React from 'react';
 import { ArrowRight, CircleAlert, ClipboardCheck, Layers3, Radar } from 'lucide-react';
 import type {
   EvidenceLatestSignal,
-  InvestigationDepth,
+  AnalyzeDepth,
   ProcessHubCadenceQueue,
   ProcessHubCadenceSummary,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
   ProcessHubReadinessReason,
   ProcessHubReviewItem,
   ProcessHubRollup,
@@ -18,17 +18,17 @@ import {
   formatStatus,
   formatTopFocus,
 } from './ProcessHubFormat';
-import ProcessHubSustainmentRegion from './ProcessHubSustainmentRegion';
+import ProcessHubControlRegion from './ProcessHubControlRegion';
 
 interface ProcessHubCadenceQueuesProps {
-  cadence: ProcessHubCadenceSummary<ProcessHubInvestigation>;
-  rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  cadence: ProcessHubCadenceSummary<ProcessHubAnalyze>;
+  rollup: ProcessHubRollup<ProcessHubAnalyze>;
   onOpenInvestigation: (id: string) => void;
-  onSetupSustainment: (investigationId: string) => void;
+  onSetupControl: (analyzeId: string) => void;
   onLogReview: (recordId: string) => void;
 }
 
-const DEPTH_SECTIONS: Array<{ depth: InvestigationDepth; label: string }> = [
+const DEPTH_SECTIONS: Array<{ depth: AnalyzeDepth; label: string }> = [
   { depth: 'quick', label: 'Quick' },
   { depth: 'focused', label: 'Focused' },
   { depth: 'chartered', label: 'Chartered' },
@@ -41,7 +41,7 @@ const READINESS_REASON_LABELS: Record<ProcessHubReadinessReason, string> = {
   'missing-customer-requirement': 'Clarify customer requirement',
   'survey-gap': 'Survey needs input',
   'verification-gap': 'Plan verification',
-  'sustainment-candidate': 'Review sustainment',
+  'control-candidate': 'Review control',
 };
 
 const EVIDENCE_SIGNAL_CLASS: Record<EvidenceLatestSignal['severity'], string> = {
@@ -65,9 +65,9 @@ const ReviewItemButton: React.FC<{
 }> = ({ item, children, onOpenInvestigation }) => (
   <button
     type="button"
-    onClick={() => onOpenInvestigation(item.investigation.id)}
+    onClick={() => onOpenInvestigation(item.analyze.id)}
     className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
-    aria-label={`Open review item ${item.investigation.name}`}
+    aria-label={`Open review item ${item.analyze.name}`}
   >
     {children}
   </button>
@@ -118,7 +118,7 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
   cadence,
   rollup,
   onOpenInvestigation,
-  onSetupSustainment,
+  onSetupControl,
   onLogReview,
 }) => {
   const hasActiveWork = DEPTH_SECTIONS.some(
@@ -129,13 +129,12 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
     cadence.verification.totalCount > 0 ||
     cadence.actions.totalCount > 0 ||
     cadence.nextMoves.totalCount > 0 ||
-    cadence.sustainment.totalCount > 0;
+    cadence.control.totalCount > 0;
   const hasDailyDecisionItems =
     cadence.verification.totalCount > 0 ||
     cadence.actions.totalCount > 0 ||
     cadence.nextMoves.totalCount > 0;
-  const hasWeeklyDecisionItems =
-    cadence.readiness.totalCount > 0 || cadence.sustainment.totalCount > 0;
+  const hasWeeklyDecisionItems = cadence.readiness.totalCount > 0 || cadence.control.totalCount > 0;
 
   return (
     <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
@@ -156,13 +155,13 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
 
               return (
                 <ReviewItemButton
-                  key={item.investigation.id}
+                  key={item.analyze.id}
                   item={item}
                   onOpenInvestigation={onOpenInvestigation}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-medium text-content">{item.investigation.name}</p>
+                      <p className="text-sm font-medium text-content">{item.analyze.name}</p>
                       <div className="mt-1 flex flex-wrap gap-2 text-xs text-content-secondary">
                         {topFocus && <span>{topFocus}</span>}
                         {item.changeSignalCount > 0 && (
@@ -200,11 +199,11 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
               <QueueSection title="Verification" queue={cadence.verification}>
                 {item => (
                   <ReviewItemButton
-                    key={item.investigation.id}
+                    key={item.analyze.id}
                     item={item}
                     onOpenInvestigation={onOpenInvestigation}
                   >
-                    <p className="text-sm font-medium text-content">{item.investigation.name}</p>
+                    <p className="text-sm font-medium text-content">{item.analyze.name}</p>
                     {item.nextMove && (
                       <p className="mt-1 text-xs text-content-secondary">{item.nextMove}</p>
                     )}
@@ -215,13 +214,13 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
               <QueueSection title="Actions" queue={cadence.actions}>
                 {item => (
                   <ReviewItemButton
-                    key={item.investigation.id}
+                    key={item.analyze.id}
                     item={item}
                     onOpenInvestigation={onOpenInvestigation}
                   >
                     <div className="flex items-center gap-2 text-sm font-medium text-content">
                       <CircleAlert size={14} className="text-amber-400" />
-                      <span>{item.investigation.name}</span>
+                      <span>{item.analyze.name}</span>
                     </div>
                     <p className="mt-1 text-xs text-amber-400">
                       {formatOverdueActions(item.overdueActionCount)}
@@ -233,11 +232,11 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
               <QueueSection title="Next Moves" queue={cadence.nextMoves}>
                 {item => (
                   <ReviewItemButton
-                    key={item.investigation.id}
+                    key={item.analyze.id}
                     item={item}
                     onOpenInvestigation={onOpenInvestigation}
                   >
-                    <p className="text-sm font-medium text-content">{item.investigation.name}</p>
+                    <p className="text-sm font-medium text-content">{item.analyze.name}</p>
                     {item.nextMove && (
                       <p className="mt-1 text-xs text-content-secondary">{item.nextMove}</p>
                     )}
@@ -275,15 +274,13 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
                     <div className="space-y-2">
                       {queue.items.map(item => (
                         <ReviewItemButton
-                          key={item.investigation.id}
+                          key={item.analyze.id}
                           item={item}
                           onOpenInvestigation={onOpenInvestigation}
                         >
-                          <p className="text-sm font-medium text-content">
-                            {item.investigation.name}
-                          </p>
+                          <p className="text-sm font-medium text-content">{item.analyze.name}</p>
                           <p className="mt-1 text-xs text-content-secondary">
-                            {formatStatus(item.investigation.metadata?.investigationStatus)}
+                            {formatStatus(item.analyze.metadata?.analyzeStatus)}
                           </p>
                         </ReviewItemButton>
                       ))}
@@ -300,7 +297,7 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
           </div>
         ) : (
           <p className="rounded-md border border-dashed border-edge px-3 py-3 text-sm text-content-secondary">
-            No active investigations yet
+            No active analyzes yet
           </p>
         )}
 
@@ -312,11 +309,11 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
             <QueueSection title="Readiness" queue={cadence.readiness}>
               {item => (
                 <ReviewItemButton
-                  key={item.investigation.id}
+                  key={item.analyze.id}
                   item={item}
                   onOpenInvestigation={onOpenInvestigation}
                 >
-                  <p className="text-sm font-medium text-content">{item.investigation.name}</p>
+                  <p className="text-sm font-medium text-content">{item.analyze.name}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {item.readinessReasons.map(reason => (
                       <span
@@ -327,7 +324,7 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
                       </span>
                     ))}
                   </div>
-                  {item.investigation.metadata?.surveyReadiness?.topRecommendations.map(
+                  {item.analyze.metadata?.surveyReadiness?.topRecommendations.map(
                     recommendation => (
                       <p key={recommendation} className="mt-1 text-xs text-content-secondary">
                         {recommendation}
@@ -338,11 +335,11 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
               )}
             </QueueSection>
 
-            <ProcessHubSustainmentRegion
+            <ProcessHubControlRegion
               cadence={cadence}
               rollup={rollup}
               onOpenInvestigation={onOpenInvestigation}
-              onSetupSustainment={onSetupSustainment}
+              onSetupControl={onSetupControl}
               onLogReview={onLogReview}
             />
           </div>

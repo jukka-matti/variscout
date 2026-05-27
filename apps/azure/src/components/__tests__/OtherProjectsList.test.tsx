@@ -113,11 +113,11 @@ describe('OtherProjectsList', () => {
 
   it('renders phase badge when metadata is present', () => {
     const project = makeProject('p-2', {
-      metadata: makeMetadata({ phase: 'investigate' }),
+      metadata: makeMetadata({ phase: 'analyze' }),
     });
     render(<OtherProjectsList projects={[project]} currentProjectId="p-1" />);
     expect(screen.getByTestId('other-project-phase-p-2')).toBeInTheDocument();
-    expect(screen.getByTestId('other-project-phase-p-2')).toHaveTextContent('INVESTIGATE');
+    expect(screen.getByTestId('other-project-phase-p-2')).toHaveTextContent('ANALYZE');
   });
 
   it('does not render phase badge without metadata', () => {

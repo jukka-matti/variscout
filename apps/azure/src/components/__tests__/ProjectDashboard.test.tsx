@@ -15,7 +15,7 @@ vi.mock('@variscout/stores', () => ({
     })
   ),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useInvestigationStore: vi.fn((selector: (s: any) => unknown) =>
+  useAnalyzeStore: vi.fn((selector: (s: any) => unknown) =>
     selector({
       findings: [],
       questions: [],
@@ -71,7 +71,7 @@ vi.mock('../../services/storage', () => ({
 import ProjectDashboard from '../ProjectDashboard';
 import ProjectStatusCard from '../ProjectStatusCard';
 import DashboardSummaryCard from '../DashboardSummaryCard';
-import { useProjectStore, useInvestigationStore, usePreferencesStore } from '@variscout/stores';
+import { useProjectStore, useAnalyzeStore, usePreferencesStore } from '@variscout/stores';
 import { useAIStore } from '../../features/ai/aiStore';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ function setStoreState(
     ((selector: (s: any) => unknown) => selector(projectState)) as any // eslint-disable-line @typescript-eslint/no-explicit-any
   );
 
-  vi.mocked(useInvestigationStore).mockImplementation(
+  vi.mocked(useAnalyzeStore).mockImplementation(
     ((selector: (s: any) => unknown) => selector(investigationState)) as any // eslint-disable-line @typescript-eslint/no-explicit-any
   );
 
@@ -174,8 +174,8 @@ describe('ProjectStatusCard', () => {
   });
 
   it('renders phase indicator with correct active phase', () => {
-    render(<ProjectStatusCard {...defaultProps} journeyPhase="investigate" />);
-    expect(screen.getByText('INVESTIGATE')).toBeInTheDocument();
+    render(<ProjectStatusCard {...defaultProps} journeyPhase="analyze" />);
+    expect(screen.getByText('ANALYZE')).toBeInTheDocument();
     expect(screen.getByText('FRAME')).toBeInTheDocument();
     expect(screen.getByText('SCOUT')).toBeInTheDocument();
     expect(screen.getByText('IMPROVE')).toBeInTheDocument();

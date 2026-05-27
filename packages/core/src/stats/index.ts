@@ -214,7 +214,7 @@ export type { NodeCapabilityResult, CalculateNodeCapabilitySource } from './node
 export { lookupSpecRule, ruleMatches, ruleSpecificity } from './specRuleLookup';
 export { sampleConfidenceFor, SAMPLE_CONFIDENCE_THRESHOLDS } from './sampleConfidence';
 export type { SampleConfidence } from './sampleConfidence';
-export { isUnmappedInvestigation, suggestNodeMappings } from './nodeMappingState';
+export { isUnmappedAnalyze, suggestNodeMappings } from './nodeMappingState';
 export { distinctContextValues } from './contextValueOptions';
 export { rollupStepErrors } from './stepErrorAggregation';
 export type { StepErrorRollupInput, StepErrorRollupResult } from './stepErrorAggregation';

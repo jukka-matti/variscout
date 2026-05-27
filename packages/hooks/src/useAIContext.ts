@@ -9,7 +9,7 @@ import type {
   AIContext,
   ProcessContext,
   BuildAIContextOptions,
-  InvestigationCategory,
+  AnalyzeCategory,
   InsightChartType,
   StagedComparison,
   Locale,
@@ -39,7 +39,7 @@ export interface UseAIContextOptions {
   /** Active filters */
   filters?: Record<string, (string | number)[]>;
   /** Dynamic investigation categories */
-  categories?: InvestigationCategory[];
+  categories?: AnalyzeCategory[];
   /** Control/spec violations */
   violations?: {
     outOfControl: number;

@@ -70,9 +70,9 @@ describe('ReportViewBase', () => {
       expect(screen.getByText('Analysis Snapshot')).toBeDefined();
     });
 
-    it('renders Investigation Report badge for investigation-report report type', () => {
+    it('renders Analyze Report badge for investigation-report report type', () => {
       render(<ReportViewBase {...defaultProps({ reportType: 'investigation-report' })} />);
-      expect(screen.getByText('Investigation Report')).toBeDefined();
+      expect(screen.getByText('Analyze Report')).toBeDefined();
     });
 
     it('renders Improvement Story badge for improvement-story report type', () => {

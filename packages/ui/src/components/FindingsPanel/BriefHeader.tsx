@@ -135,7 +135,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
       >
         {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
         <span className="text-sm font-medium text-content truncate flex-1">
-          {processContext?.issueStatement || t('investigation.brief')}
+          {processContext?.issueStatement || t('analyze.brief')}
         </span>
         {questions.length > 0 && (
           <span className="text-[0.625rem] text-content-muted">

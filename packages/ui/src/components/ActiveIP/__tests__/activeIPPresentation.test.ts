@@ -39,7 +39,7 @@ describe('activeIPPresentation', () => {
     expect(getIPStageLabel(makeIP())).toBe('Approach');
   });
 
-  it('labels active projects with approach work as Sustainment', () => {
+  it('labels active projects with approach work as Control', () => {
     expect(
       getIPStageLabel(
         makeIP({
@@ -51,14 +51,14 @@ describe('activeIPPresentation', () => {
           },
         })
       )
-    ).toBe('Sustainment');
+    ).toBe('Control');
   });
 
-  it('labels closed projects as Sustainment (not Handoff)', () => {
-    expect(getIPStageLabel(makeIP({ status: 'closed' }))).toBe('Sustainment');
+  it('labels closed projects as Control (not Handoff)', () => {
+    expect(getIPStageLabel(makeIP({ status: 'closed' }))).toBe('Control');
   });
 
-  it('labels projects with sustainmentRecordId as Sustainment', () => {
+  it('labels projects with sustainmentRecordId as Control', () => {
     expect(
       getIPStageLabel(
         makeIP({
@@ -70,10 +70,10 @@ describe('activeIPPresentation', () => {
           },
         })
       )
-    ).toBe('Sustainment');
+    ).toBe('Control');
   });
 
-  it('labels projects with controlHandoffId as Sustainment', () => {
+  it('labels projects with controlHandoffId as Control', () => {
     expect(
       getIPStageLabel(
         makeIP({
@@ -85,7 +85,7 @@ describe('activeIPPresentation', () => {
           },
         })
       )
-    ).toBe('Sustainment');
+    ).toBe('Control');
   });
 
   it('derives urgent lines with deterministic fallbacks', () => {

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { surveyHandoffRules } from '../handoff';
-import type { ControlHandoff, SustainmentRecord } from '../../sustainment';
+import type { ControlHandoff, ControlRecord } from '../../control';
 
 const NOW = Date.UTC(2026, 4, 12);
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const sustainmentRecord = (overrides: Partial<SustainmentRecord>): SustainmentRecord =>
+const controlRecord = (overrides: Partial<ControlRecord>): ControlRecord =>
   ({
     id: 'sr-1',
     investigationId: 'inv-1',
@@ -20,7 +20,7 @@ const sustainmentRecord = (overrides: Partial<SustainmentRecord>): SustainmentRe
     deletedAt: null,
     updatedAt: NOW - 50 * DAY_MS,
     ...overrides,
-  }) as SustainmentRecord;
+  }) as ControlRecord;
 
 const controlHandoff = (overrides: Partial<ControlHandoff>): ControlHandoff =>
   ({
@@ -33,7 +33,7 @@ const controlHandoff = (overrides: Partial<ControlHandoff>): ControlHandoff =>
     operationalOwner: { displayName: 'Ops owner' },
     handoffDate: NOW - 8 * DAY_MS,
     description: 'Update procedure controls',
-    retainSustainmentReview: true,
+    retainControlReview: true,
     recordedBy: { displayName: 'Investigator' },
     createdAt: NOW - 8 * DAY_MS,
     deletedAt: null,
@@ -43,7 +43,7 @@ const controlHandoff = (overrides: Partial<ControlHandoff>): ControlHandoff =>
 describe('surveyHandoffRules', () => {
   it('prompts for handoff when confirmed sustainment is older than 6 weeks without live handoff', () => {
     const hints = surveyHandoffRules({
-      sustainmentRecords: [sustainmentRecord({ id: 'sr-old', investigationId: 'inv-old' })],
+      controlRecords: [controlRecord({ id: 'sr-old', investigationId: 'inv-old' })],
       controlHandoffs: [],
       now: NOW,
     });
@@ -66,8 +66,8 @@ describe('surveyHandoffRules', () => {
 
   it('does not prompt for old confirmed sustainment when a linked live handoff exists', () => {
     const hints = surveyHandoffRules({
-      sustainmentRecords: [
-        sustainmentRecord({
+      controlRecords: [
+        controlRecord({
           id: 'sr-linked',
           investigationId: 'inv-linked',
           controlHandoffId: 'handoff-linked',

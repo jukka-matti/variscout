@@ -40,7 +40,7 @@ import type { BestSubsetsResult, FactorMainEffect } from '@variscout/core/stats'
 import type { Question } from '@variscout/core/findings';
 import { evaluateSurvey, isPreviewEnabled } from '@variscout/core';
 import type { SurveyRecommendation } from '@variscout/core/survey';
-import { useInvestigationStore, useProjectStore } from '@variscout/stores';
+import { useAnalyzeStore, useProjectStore } from '@variscout/stores';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import SpecEditor from '../settings/SpecEditor';
 
@@ -105,7 +105,7 @@ export const PISection: React.FC<PISectionProps> = ({
   const defectMapping = useProjectStore(s => s.defectMapping);
   const processContext = useProjectStore(s => s.processContext);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
-  const hypotheses = useInvestigationStore(s => s.hypotheses);
+  const hypotheses = useAnalyzeStore(s => s.hypotheses);
 
   // Panel visibility and tab state from panelsStore
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
@@ -256,7 +256,7 @@ export const PISection: React.FC<PISectionProps> = ({
           onLinkObservation={handleLinkObservation}
           highlightedFactor={highlightedFactor}
           onClearHighlight={() => usePanelsStore.getState().setHighlightedFactor(null)}
-          onNavigateToInvestigation={() => usePanelsStore.getState().showInvestigation()}
+          onNavigateToInvestigation={() => usePanelsStore.getState().showAnalyze()}
         />
       ),
     },

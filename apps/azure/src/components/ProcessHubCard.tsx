@@ -1,10 +1,10 @@
 import React from 'react';
 import { ArrowRight, CircleAlert, Plus } from 'lucide-react';
-import type { HubReviewSignal, ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
+import type { HubReviewSignal, ProcessHubAnalyze, ProcessHubRollup } from '@variscout/core';
 import { formatStatistic, formatPlural } from '@variscout/core/i18n';
 
 interface ProcessHubCardProps {
-  rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  rollup: ProcessHubRollup<ProcessHubAnalyze>;
   isSelected?: boolean;
   onOpen: () => void;
   onStartInvestigation: () => void;
@@ -43,10 +43,10 @@ const ProcessHubCard: React.FC<ProcessHubCardProps> = ({
         <button type="button" className="min-w-0 text-left" onClick={onOpen}>
           <h3 className="text-sm font-semibold text-content leading-snug">{hub.name}</h3>
           <p className="mt-1 text-xs text-content-secondary">
-            {rollup.activeInvestigationCount}{' '}
-            {formatPlural(rollup.activeInvestigationCount, {
-              one: 'active investigation',
-              other: 'active investigations',
+            {rollup.activeAnalyzeCount}{' '}
+            {formatPlural(rollup.activeAnalyzeCount, {
+              one: 'active analyze',
+              other: 'active analyzes',
             })}
           </p>
         </button>
@@ -55,8 +55,8 @@ const ProcessHubCard: React.FC<ProcessHubCardProps> = ({
             type="button"
             onClick={onStartInvestigation}
             className="p-1.5 rounded-md text-content-secondary hover:text-content hover:bg-surface-primary"
-            aria-label={`Start investigation in ${hub.name}`}
-            title={`Start investigation in ${hub.name}`}
+            aria-label={`Start analyze in ${hub.name}`}
+            title={`Start analyze in ${hub.name}`}
           >
             <Plus size={16} />
           </button>

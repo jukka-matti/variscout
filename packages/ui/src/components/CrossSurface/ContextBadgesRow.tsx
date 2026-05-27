@@ -26,7 +26,7 @@ const SURFACE_META: Record<ContextSurfaceType, { label: string; Icon: LucideIcon
   'improvement-projects': { label: 'Improvement projects', Icon: Briefcase },
   'wall-threads': { label: 'Wall threads', Icon: MessageSquare },
   'quick-actions': { label: 'Quick actions', Icon: Zap },
-  sustainment: { label: 'Sustainment', Icon: ShieldCheck },
+  sustainment: { label: 'Control', Icon: ShieldCheck },
 };
 
 const formatCount = (count: number) => `${count} linked ${count === 1 ? 'item' : 'items'}`;

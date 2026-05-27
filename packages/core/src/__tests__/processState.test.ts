@@ -6,7 +6,7 @@ import {
 } from '../processHub';
 import { buildCurrentProcessState } from '../processState';
 import type { EvidenceSnapshot, ProcessHub, ProjectMetadata } from '../index';
-import type { ControlHandoff, SustainmentRecord } from '../sustainment';
+import type { ControlHandoff, ControlRecord } from '../control';
 
 function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata {
   return {
@@ -18,7 +18,7 @@ function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata
     hasOverdueTasks: false,
     lastViewedAt: {},
     processHubId: DEFAULT_PROCESS_HUB_ID,
-    investigationStatus: 'scouting',
+    analyzeStatus: 'scouting',
     ...overrides,
   };
 }
@@ -39,8 +39,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'focused',
-          investigationStatus: 'investigating',
+          analyzeDepth: 'focused',
+          analyzeStatus: 'investigating',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
           reviewSignal: {
@@ -66,8 +66,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'quick',
-          investigationStatus: 'scouting',
+          analyzeDepth: 'quick',
+          analyzeStatus: 'scouting',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -80,8 +80,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'chartered',
-          investigationStatus: 'ready-to-improve',
+          analyzeDepth: 'chartered',
+          analyzeStatus: 'ready-to-improve',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -94,8 +94,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'focused',
-          investigationStatus: 'framing',
+          analyzeDepth: 'focused',
+          analyzeStatus: 'framing',
         }),
       },
       {
@@ -106,8 +106,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'quick',
-          investigationStatus: 'verifying',
+          analyzeDepth: 'quick',
+          analyzeStatus: 'verifying',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -120,8 +120,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'quick',
-          investigationStatus: 'improving',
+          analyzeDepth: 'quick',
+          analyzeStatus: 'improving',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
           actionCounts: { total: 2, completed: 0, overdue: 2 },
@@ -135,7 +135,7 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'resolved',
+          analyzeStatus: 'resolved',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -148,7 +148,7 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'controlled',
+          analyzeStatus: 'controlled',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -176,7 +176,7 @@ describe('buildCurrentProcessState', () => {
         ],
       },
     ];
-    const sustainmentRecords: SustainmentRecord[] = [
+    const controlRecords: ControlRecord[] = [
       {
         id: 'rec-1',
         title: 'Sustain resolved-1 gains',
@@ -196,7 +196,7 @@ describe('buildCurrentProcessState', () => {
     const controlHandoffs: ControlHandoff[] = [];
     const [rollup] = buildProcessHubRollups(hubs, investigations, {
       evidenceSnapshots,
-      sustainmentRecords,
+      controlRecords,
       controlHandoffs,
     });
     const cadence = buildProcessHubCadence(rollup, now);
@@ -210,9 +210,9 @@ describe('buildCurrentProcessState', () => {
       measurement: expect.any(Number),
       sustainment: expect.any(Number),
     });
-    expect(state.responsePathCounts['focused-investigation']).toBeGreaterThan(0);
+    expect(state.responsePathCounts['focused-analyze']).toBeGreaterThan(0);
     expect(state.responsePathCounts['measurement-system-work']).toBeGreaterThan(0);
-    expect(state.responsePathCounts['sustainment-review']).toBe(1);
+    expect(state.responsePathCounts['control-review']).toBe(1);
     expect(state.responsePathCounts['quick-action']).toBeGreaterThan(0);
     expect(state.responsePathCounts['chartered-project']).toBe(1);
     expect(state.items).toEqual(
@@ -221,7 +221,7 @@ describe('buildCurrentProcessState', () => {
           id: 'capability-gap',
           lens: 'outcome',
           severity: 'red',
-          responsePath: 'focused-investigation',
+          responsePath: 'focused-analyze',
           metric: {
             cpk: 0.82,
             cpkTarget: 1.33,
@@ -245,7 +245,7 @@ describe('buildCurrentProcessState', () => {
         expect.objectContaining({
           id: 'sustainment',
           lens: 'sustainment',
-          responsePath: 'sustainment-review',
+          responsePath: 'control-review',
         }),
         expect.objectContaining({
           id: 'active:quick',
@@ -253,7 +253,7 @@ describe('buildCurrentProcessState', () => {
         }),
         expect.objectContaining({
           id: 'active:focused',
-          responsePath: 'focused-investigation',
+          responsePath: 'focused-analyze',
         }),
         expect.objectContaining({
           id: 'active:chartered',

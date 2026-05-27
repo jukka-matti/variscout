@@ -1,6 +1,6 @@
 import type {
   ProcessHubAttentionReason,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
   ProcessHubReadinessReason,
   ProcessHubReviewItem,
 } from './processHub';
@@ -8,16 +8,16 @@ import type {
 /**
  * Construct a canonical ProcessHubReviewItem with all fields populated.
  *
- * Lives in a leaf module so both processHub.ts and sustainment.ts can
+ * Lives in a leaf module so both processHub.ts and control.ts can
  * value-import it without creating a runtime cycle. The type imports
  * back to processHub.ts above are erased at compile time.
  */
-export function buildReviewItem<TInvestigation extends ProcessHubInvestigation>(
-  investigation: TInvestigation,
+export function buildReviewItem<TAnalyze extends ProcessHubAnalyze>(
+  analyze: TAnalyze,
   reasons: ProcessHubAttentionReason[],
   readinessReasons: ProcessHubReadinessReason[] = []
-): ProcessHubReviewItem<TInvestigation> {
-  const signal = investigation.metadata?.reviewSignal;
+): ProcessHubReviewItem<TAnalyze> {
+  const signal = analyze.metadata?.reviewSignal;
   const cpk = signal?.capability?.cpk;
   const target = signal?.capability?.cpkTarget;
   let cpkGap: number | undefined;
@@ -27,13 +27,13 @@ export function buildReviewItem<TInvestigation extends ProcessHubInvestigation>(
   }
 
   return {
-    investigation,
+    analyze,
     reasons,
     changeSignalCount: signal?.changeSignals.total ?? 0,
     cpkGap,
     topFocusVariationPct: signal?.topFocus?.variationPct,
-    overdueActionCount: investigation.metadata?.actionCounts?.overdue ?? 0,
-    nextMove: investigation.metadata?.nextMove,
+    overdueActionCount: analyze.metadata?.actionCounts?.overdue ?? 0,
+    nextMove: analyze.metadata?.nextMove,
     readinessReasons,
   };
 }

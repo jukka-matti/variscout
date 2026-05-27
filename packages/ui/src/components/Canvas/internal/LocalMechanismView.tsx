@@ -12,12 +12,12 @@ import type { Locale } from '@variscout/core';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import { EvidenceMapBase } from '@variscout/charts';
 import { useEvidenceMapData } from '@variscout/hooks';
-import { useInvestigationStore } from '@variscout/stores';
+import { useAnalyzeStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
-import { WallCanvas } from '../../InvestigationWall/WallCanvas';
-import { MiniBoxplot } from '../../InvestigationWall/MiniBoxplot';
-import { MiniIChart } from '../../InvestigationWall/MiniIChart';
-import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
+import { WallCanvas } from '../../AnalyzeWall/WallCanvas';
+import { MiniBoxplot } from '../../AnalyzeWall/MiniBoxplot';
+import { MiniIChart } from '../../AnalyzeWall/MiniIChart';
+import { useWallLocale } from '../../AnalyzeWall/hooks/useWallLocale';
 import { LogActionModal, type LogActionPayload } from '../../QuickAction';
 
 export interface LocalMechanismViewProps {
@@ -132,7 +132,7 @@ function collectConditionColumns(condition: NonNullable<Hypothesis['condition']>
 }
 
 function hasInvestigationContext(
-  questions: ReturnType<typeof useInvestigationStore.getState>['questions'],
+  questions: ReturnType<typeof useAnalyzeStore.getState>['questions'],
   hypotheses: Hypothesis[],
   focalStepId: string,
   map: ProcessMap,
@@ -225,12 +225,12 @@ function ColumnMiniChart({
             <button
               type="button"
               className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
-              aria-label={formatMessage(locale, 'canvas.localMechanism.focusedInvestigationAria', {
+              aria-label={formatMessage(locale, 'canvas.localMechanism.focusedAnalyzeAria', {
                 column,
               })}
               onClick={() => onFocusedInvestigation(column)}
             >
-              {getMessage(locale, 'canvas.localMechanism.focusedInvestigation')}
+              {getMessage(locale, 'canvas.localMechanism.focusedAnalyze')}
             </button>
           ) : null}
           {onCharter ? (
@@ -304,9 +304,9 @@ export function LocalMechanismView({
   onCharter,
 }: LocalMechanismViewProps) {
   const locale = useWallLocale();
-  const questions = useInvestigationStore(state => state.questions);
-  const hypotheses = useInvestigationStore(state => state.hypotheses);
-  const causalLinks = useInvestigationStore(state => state.causalLinks);
+  const questions = useAnalyzeStore(state => state.questions);
+  const hypotheses = useAnalyzeStore(state => state.hypotheses);
+  const causalLinks = useAnalyzeStore(state => state.causalLinks);
   const [quickActionColumn, setQuickActionColumn] = React.useState<string | null>(null);
   const safeRows = rows ?? EMPTY_ROWS;
   const dataRows = React.useMemo(() => [...safeRows] as DataRow[], [safeRows]);
@@ -439,7 +439,7 @@ export function LocalMechanismView({
 
       <section className="rounded-md border border-edge bg-surface p-3" data-testid="wall-canvas">
         <h3 className="mb-2 text-sm font-semibold text-content">
-          {getMessage(locale, 'canvas.localMechanism.investigationWall')}
+          {getMessage(locale, 'canvas.localMechanism.analyzeWall')}
         </h3>
         <WallCanvas
           hubId={hubId}

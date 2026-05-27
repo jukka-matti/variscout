@@ -9,7 +9,7 @@ related:
   - docs/superpowers/plans/2026-05-16-wedge-implementation.md
   - docs/superpowers/plans/2026-05-16-pr-wv1-1-project-membership.md
   - docs/07-decisions/adr-082-wedge-architecture.md
-  - docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md
+  - docs/07-decisions/adr-080-control-auto-fire-pattern.md
 layer: spec
 ---
 

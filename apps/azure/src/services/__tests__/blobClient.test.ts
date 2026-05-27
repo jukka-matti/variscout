@@ -9,9 +9,9 @@ import {
   saveBlobEvidenceSource,
   listBlobProcessHubs,
   updateBlobProcessHubs,
-  listBlobSustainmentRecords,
-  saveBlobSustainmentRecord,
-  saveBlobSustainmentReview,
+  listBlobControlRecords,
+  saveBlobControlRecord,
+  saveBlobControlReview,
   saveBlobControlHandoff,
 } from '../blobClient';
 
@@ -375,17 +375,17 @@ describe('blobClient', () => {
     });
   });
 
-  // ── Sustainment blobs ─────────────────────────────────────────────────
+  // ── Control blobs ─────────────────────────────────────────────────
 
-  describe('Sustainment blobs', () => {
-    it('PUTs a SustainmentRecord to the correct path', async () => {
+  describe('Control blobs', () => {
+    it('PUTs a ControlRecord to the correct path', async () => {
       fetchSpy
         .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
         .mockResolvedValueOnce(new Response('', { status: 201 }));
 
-      await saveBlobSustainmentRecord({
+      await saveBlobControlRecord({
         id: 'rec-1',
-        title: 'Sustainment cadence',
+        title: 'Control cadence',
         hubId: 'hub-1',
         investigationId: 'inv-1',
         status: 'pending',
@@ -427,7 +427,7 @@ describe('blobClient', () => {
           )
         );
 
-      const result = await listBlobSustainmentRecords('hub-1');
+      const result = await listBlobControlRecords('hub-1');
 
       expect(result).toHaveLength(1);
       expect(fetchSpy).toHaveBeenLastCalledWith(
@@ -435,12 +435,12 @@ describe('blobClient', () => {
       );
     });
 
-    it('PUTs a SustainmentReview to the per-recordId/reviewId path', async () => {
+    it('PUTs a ControlReview to the per-recordId/reviewId path', async () => {
       fetchSpy
         .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
         .mockResolvedValueOnce(new Response('', { status: 201 }));
 
-      await saveBlobSustainmentReview({
+      await saveBlobControlReview({
         id: 'rev-1',
         recordId: 'rec-1',
         hubId: 'hub-1',
@@ -473,7 +473,7 @@ describe('blobClient', () => {
         operationalOwner: { userId: 'u2', displayName: 'Bob' },
         handoffDate: 1745712000000, // 2026-04-27
         description: 'Procedure handoff',
-        retainSustainmentReview: true,
+        retainControlReview: true,
         createdAt: 1745712000000, // formerly recordedAt
         deletedAt: null,
         recordedBy: { userId: 'u1', displayName: 'Alice' },

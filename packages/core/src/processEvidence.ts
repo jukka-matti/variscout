@@ -36,15 +36,15 @@ export interface LinkFindingsResult {
 export function linkFindingsToStateItems(
   items: readonly ProcessStateItem[],
   findingsByInvestigationId: ReadonlyMap<string, readonly Finding[]>,
-  resolveInvestigationIds: (item: ProcessStateItem) => readonly string[] | undefined
+  resolveAnalyzeIds: (item: ProcessStateItem) => readonly string[] | undefined
 ): LinkFindingsResult {
   const byItemId = new Map<string, readonly Finding[]>();
   const unlinkedItemIds: string[] = [];
   let totalLinked = 0;
 
   for (const item of items) {
-    const investigationIds = resolveInvestigationIds(item);
-    if (!investigationIds || investigationIds.length === 0) {
+    const analyzeIds = resolveAnalyzeIds(item);
+    if (!analyzeIds || analyzeIds.length === 0) {
       byItemId.set(item.id, []);
       unlinkedItemIds.push(item.id);
       continue;
@@ -52,7 +52,7 @@ export function linkFindingsToStateItems(
 
     const seen = new Set<string>();
     const linked: Finding[] = [];
-    for (const invId of investigationIds) {
+    for (const invId of analyzeIds) {
       if (seen.has(invId)) continue;
       seen.add(invId);
       const findings = findingsByInvestigationId.get(invId);

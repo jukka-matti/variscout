@@ -9,7 +9,7 @@ related: [evidence-map, evidence-map-spine, investigation, coscout, causal-link]
 layer: spec
 implements:
   - docs/03-features/analysis/multi-level-dashboard.md
-  - docs/03-features/workflows/investigation-to-action.md
+  - docs/03-features/workflows/analyze-to-action.md
 delivered-by: 2026-05-18
 ---
 

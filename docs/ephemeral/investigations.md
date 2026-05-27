@@ -44,6 +44,50 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
+### CoScout AI prompt vocabulary alignment
+
+**Surfaced by:** PR-WV1-NAV-2026-05-27 spec-reviewer audit on the 13-commit Investigation → Analyze rename sweep.
+
+**Description:** Three CoScout prompt-authoring files emit "investigation" methodology language into LLM context that ultimately appears in user-visible CoScout responses:
+
+- `packages/core/src/ai/prompts/coScout/legacy.ts` (deprecated `buildCoScoutSystemPrompt`)
+- `packages/core/src/ai/prompts/coScout/context/analyze.ts` (Tier 2 context formatter)
+- `packages/core/src/ai/buildAIContext.ts` (AIContext assembly entry)
+
+The rename pass renamed the **Analyze tab** (formerly Investigation tab) + the Sustainment stage → Control. But the methodology word "investigation" — meaning **"the practice of inquiry"** (as in "this requires investigation" = "this requires inquiry") — appears in CoScout prompts both as references to the renamed tab AND as the methodology noun in instructional / pedagogical / framing text. Disambiguating which sites are referring to which is a per-occurrence judgment call that the cleanup pass deferred.
+
+Each of the 3 files carries a top-of-file deferral comment (PR-WV1-NAV cleanup deferral 2026-05-27) preserving the existing prose pending a design call.
+
+**Possible resolution paths:**
+
+- **Strict rename pass** — all "investigation" occurrences in these files become "analyze" (matches the renamed tab name; loses some methodology nuance in instructional copy where the word means "inquiry").
+- **Disambiguate per site** — read each occurrence, decide tab-name vs methodology-word, rename only tab-name sites. Higher fidelity; bigger time investment.
+- **Style-guide ruling** — adopt a project rule that CoScout prompt copy uses "Analyze" for the tab and "analysis" / "explore" for the methodology act (avoids "investigation" entirely). Then rename all 3 files mechanically + write the rule into `.claude/INVARIANTS.md` or the AIX design system doc.
+
+**Promotion path:** Pair with the CoScout prompt design owner; resolve in a follow-up PR (CoScout vocabulary alignment). Not blocking PR-WV1-NAV-2026-05-27 merge.
+
+---
+
+### Foreign-key field name `investigationId` rename deferral
+
+**Surfaced by:** PR-WV1-NAV-2026-05-27 final-branch reviewer audit on the 22-commit Investigation → Analyze vocabulary rename.
+
+**Description:** The wedge V1 vocabulary refresh renamed the `Investigation` entity → `Analyze` across types, stores, hooks, components, i18n, and canonical docs. The **foreign-key field name on related entities** was preserved — i.e. `ControlRecord.investigationId`, `ControlHandoff.investigationId`, and `ImprovementProjectMetadata.investigationId` still carry the `investigationId` token even though the entity those IDs point to is now an `Analyze`.
+
+Renaming the FK token would cascade to ~130 files: ~50 components reading the field, ~30 tests asserting on shapes, persistence read/write (Dexie schema + bumped migration), serializers (`.vrs` export/import), and CoScout AIContext payloads. No observable behavior change — the field is a stable opaque ID and the JSON keys are not user-visible.
+
+The reviewer flagged the asymmetry: the rename pass is otherwise exhaustive (architecture-grep tripwires pass, no `Investigation`-prefixed types remain outside the explicit preservation set), so the surviving FK token reads as drift rather than as a designed exception.
+
+**Possible resolutions:**
+
+- **(a) Accept as design debt.** Document the asymmetry in `.claude/INVARIANTS.md` or the entity-rename rule, and move on. Pro: no further work. Con: future readers will flag it again; the asymmetry is real.
+- **(b) Atomic follow-up sweep.** Ship a single Opus-implementer follow-up PR (per `feedback_atomic_sweep_one_dispatch`) doing the cascade in one commit: Dexie schema bump, persistence shims, all consumer renames, all test fixture updates. Pro: drift closed cleanly. Con: ~130-file PR; per-task review is harder.
+- **(c) Preserve indefinitely as "stable token".** Promote the asymmetry to an explicit invariant: "Entity names evolve with vocabulary; foreign-key tokens stay stable to preserve serialization compatibility." This is the conservative position — many real-world systems take it. Pro: durable answer. Con: only matters if we expect serialization compatibility across vocabulary shifts; wedge V1 has no users yet (`feedback_wedge_v1_no_migration_no_backcompat`) so this rationale is weak.
+
+**Promotion path:** Design call before next major version (V2 or the Process tier). Until then the FK rename is parked. Not blocking the wedge V1 master plan continuation.
+
+---
+
 ### Docs site sidebar drift: 5 dead refs + 5 unlisted personas
 
 **Surfaced by:** PR #207 fixing the `pnpm build` failure on `@variscout/docs`, 2026-05-25.

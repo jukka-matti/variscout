@@ -14,7 +14,7 @@ layer: L5
 **Status:** Accepted
 **Date:** 2026-04-01
 
-**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). The wedge collapses the workspace-tab model from 5 tabs (Overview / Analysis / Investigation / Improvement / Report) → 6 tabs in workflow order: `Home · Projects · Process · Analyze · Investigation · Report`. The Improvement tab is removed as a top-level surface and becomes a _stage_ inside Projects detail. Workspace-based navigation as an architectural pattern survives; the tab list changes. See [wedge spec §3.1](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§31-nav-6-tabs-in-workflow-order).
+**Amendment — 2026-05-16:** Partially superseded by [ADR-082](adr-082-wedge-architecture.md). The wedge collapses the workspace-tab model from 5 tabs (Overview / Analysis / Investigation / Improvement / Report) → 6 tabs in workflow order: `Home · Projects · Process · Explore · Analyze · Report`. The Improvement tab is removed as a top-level surface and becomes a _stage_ inside Projects detail. Workspace-based navigation as an architectural pattern survives; the tab list changes. See [wedge spec §3.1](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§31-nav-6-tabs-in-workflow-order).
 **Decision Makers:** Development team
 **Tags:** navigation, workspaces, panels, investigation, improvement, question-driven-eda
 
@@ -22,17 +22,17 @@ layer: L5
 
 The Azure app has a 2-tab toggle (Overview | Analysis) with `activeView: 'dashboard' | 'editor'` in the panels store. Investigation lives inside a 320-600px Findings sidebar, and Improvement is a full-screen takeover (`isImprovementOpen`). This creates three problems:
 
-1. **Investigation UI outgrew the sidebar.** The question-driven EDA flow (ADR-053) includes issue statement, question checklist with coverage progress, hypothesis tree, findings board, investigation conclusion with suspected causes, and problem statement output. At 320-600px, this is squeezed — the FindingsWindow popout (`?view=findings`) already proves it works better at full width.
+1. **Analyze UI outgrew the sidebar.** The question-driven EDA flow (ADR-053) includes issue statement, question checklist with coverage progress, hypothesis tree, findings board, investigation conclusion with suspected causes, and problem statement output. At 320-600px, this is squeezed — the FindingsWindow popout (`?view=findings`) already proves it works better at full width.
 
 2. **Improvement workspace lacks app-level wiring.** `ImprovementWorkspaceBase`, `SynthesisCard`, `IdeaGroupCard`, and `ImprovementSummaryBar` components exist in `@variscout/ui` but are rendered as a full-screen takeover that bypasses the normal layout. There's no tab to navigate to it — only a button that swaps the entire view.
 
 3. **Desktop doesn't match mobile.** The mobile `MobileTabBar` already has 4 tabs (Analysis | Findings | Improve | More) that map to the three-workspace model. Desktop has no equivalent — workspace switching requires knowing which panel buttons to click.
 
-The three-workspace model (Analysis | Investigation | Improvement) is already documented in `navigation.md`, `mental-model-hierarchy.md`, and the dashboard-chrome-redesign spec (2026-03-28), but has not been implemented as navigable workspace tabs.
+The three-workspace model (Explore | Analyze | Improvement) is already documented in `navigation.md`, `mental-model-hierarchy.md`, and the dashboard-chrome-redesign spec (2026-03-28), but has not been implemented as navigable workspace tabs.
 
 ## Decision
 
-Adopt workspace-based navigation with 5 tabs (Overview | Analysis | Investigation | Improvement | Report) replacing the current 2-tab toggle.
+Adopt workspace-based navigation with 5 tabs (Overview | Explore | Analyze | Improvement | Report) replacing the current 2-tab toggle.
 
 ### 1. State model: `activeView` expands to workspace types
 
@@ -54,15 +54,15 @@ A single 44px `AppHeader` replaces the App header (56px) + EditorToolbar (48px) 
 [Overview] [Analysis v] [Investigation (3)] [Improvement (2)] [Report]
 ```
 
-- Investigation badge shows open question count
+- Analyze badge shows open question count
 - Improvement badge shows selected idea count
 - Analysis tab has dropdown for sub-modes (Standard / Performance / Yamazumi)
 - Report tab replaces the report modal overlay and presentation mode
 - Auto-save (`useAutoSave`) debounces saves on state changes alongside the manual Save button
 
-### 3. Investigation workspace layout
+### 3. Analyze workspace layout
 
-Promotes question-driven EDA (ADR-053) from sidebar to full workspace. The Investigation workspace is the **exclusive surface for SuspectedCause hub creation** — naming hubs, writing synthesis text, connecting questions to hubs, and reviewing hub evidence. The PI panel (available in Analysis workspace) shows hub summaries in read-only mode for quick reference without switching workspaces.
+Promotes question-driven EDA (ADR-053) from sidebar to full workspace. The Analyze workspace is the **exclusive surface for SuspectedCause hub creation** — naming hubs, writing synthesis text, connecting questions to hubs, and reviewing hub evidence. The PI panel (available in Analysis workspace) shows hub summaries in read-only mode for quick reference without switching workspaces.
 
 ```
 +-----------------------+------------------------+--------------+
@@ -90,7 +90,7 @@ Promotes question-driven EDA (ADR-053) from sidebar to full workspace. The Inves
 
 The core interaction loop of question-driven EDA crosses workspaces:
 
-1. **Investigation workspace** → user clicks a question in the left panel
+1. **Analyze workspace** → user clicks a question in the left panel
 2. Set focused question in investigation store (for auto-linking)
 3. **Switch to Analysis workspace** with the relevant factor chart focused
 4. User creates finding in Analysis → auto-links to the focused question (ADR-053 mechanism)
@@ -110,7 +110,7 @@ This round-trip replaces the current pattern of drilling down within the sidebar
 
 ### 6. Findings sidebar remains in Analysis
 
-The Findings sidebar (320-600px, right) continues to work in the Analysis workspace for quick investigation without switching workspaces. The Investigation workspace is for focused, structured investigation; the sidebar is for quick observations while exploring charts.
+The Findings sidebar (320-600px, right) continues to work in the Analysis workspace for quick investigation without switching workspaces. The Analyze workspace is for focused, structured investigation; the sidebar is for quick observations while exploring charts.
 
 ### 7. What-If becomes a modal overlay
 
@@ -150,10 +150,10 @@ Per constitution principle 2 ("Same analysis everywhere, the full journey"), PWA
 
 ### Positive
 
-- Investigation UI gets the space the question-driven EDA flow needs
+- Analyze UI gets the space the question-driven EDA flow needs
 - Desktop navigation aligns with mobile tab model
 - Improvement workspace becomes a proper navigation target (not a hidden takeover)
-- CoScout can coexist with findings in the Investigation workspace
+- CoScout can coexist with findings in the Analyze workspace
 - Question click round-trip gives each step (question → chart → finding) proper layout
 - Workspace tabs provide orientation — analyst always knows where they are in the journey
 
@@ -173,7 +173,7 @@ Per constitution principle 2 ("Same analysis everywhere, the full journey"), PWA
 
 - [ADR-041: Zustand Feature Stores](adr-041-zustand-feature-stores.md) — panelsStore architecture
 - [ADR-042: Project Dashboard](adr-042-project-dashboard.md) — Dashboard as entry point (stays as landing page)
-- [ADR-053: Question-Driven Investigation](adr-053-question-driven-investigation.md) — Investigation flow promoted to workspace
+- [ADR-053: Question-Driven Investigation](adr-053-question-driven-analyze.md) — Investigation flow promoted to workspace
 - [ADR-054: Mode-Aware Question Strategy](adr-054-mode-aware-question-strategy.md) — Questions adapt per analysis mode
 - [Dashboard Chrome Redesign spec](../archive/specs/2026-03-28-dashboard-chrome-redesign.md) — Full design
 - [Navigation Patterns](../06-design-system/patterns/navigation.md) — Three-workspace model documentation

@@ -5,7 +5,7 @@
  * The Investigation Wall renders hypothesis hubs (Hypothesis), each with
  * an optional live team discussion. This hook opens one EventSource per
  * visible hub and dispatches incoming `comment` events to the
- * `investigationStore` via `addHubComment`'s server-idempotent id path, or
+ * `analyzeStore` via `addHubComment`'s server-idempotent id path, or
  * directly via `setState` when the comment is a pure incoming observation
  * from another client (dedup by id prevents self-echo loops).
  *
@@ -26,7 +26,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { useCanvasViewportStore, useInvestigationStore } from '@variscout/stores';
+import { useCanvasViewportStore, useAnalyzeStore } from '@variscout/stores';
 import type { PendingComment } from '@variscout/stores';
 import type { FindingComment } from '@variscout/core/findings';
 
@@ -53,7 +53,7 @@ const RECONNECT_BACKOFF_MS = 1000;
  * Used to dedup incoming SSE echoes against optimistically added comments.
  */
 function mergeIncomingComment(hubId: string, incoming: FindingComment): void {
-  useInvestigationStore.setState(state => ({
+  useAnalyzeStore.setState(state => ({
     hypotheses: state.hypotheses.map(h => {
       if (h.id !== hubId) return h;
       const existing = h.comments ?? [];

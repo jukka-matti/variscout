@@ -20,7 +20,7 @@ import type {
   IdeaImpact,
   CoScoutMessage,
   CoScoutError,
-  InvestigationPhase,
+  AnalyzePhase,
 } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
@@ -156,7 +156,7 @@ export interface FindingsPanelBaseProps {
   coScoutOnStopStreaming?: () => void;
   coScoutError?: CoScoutError | null;
   coScoutOnRetry?: () => void;
-  investigationPhase?: InvestigationPhase;
+  analyzePhase?: AnalyzePhase;
   coScoutSuggestedQuestions?: string[];
 
   /** Current user's UPN for "assigned to me" filtering (Azure Team only) */
@@ -252,7 +252,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   coScoutOnStopStreaming,
   coScoutError,
   coScoutOnRetry,
-  investigationPhase,
+  analyzePhase,
   coScoutSuggestedQuestions,
   currentUserUpn,
   projectedCpkMap,
@@ -521,7 +521,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
             onStopStreaming={coScoutOnStopStreaming}
             error={coScoutError}
             onRetry={coScoutOnRetry}
-            phase={investigationPhase}
+            phase={analyzePhase}
             suggestedQuestions={coScoutSuggestedQuestions}
             isExpanded={coScoutExpanded}
             onToggleExpand={() => setCoScoutExpanded(prev => !prev)}

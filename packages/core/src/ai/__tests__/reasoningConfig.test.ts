@@ -11,23 +11,23 @@ describe('getCoScoutReasoningEffort', () => {
   });
 
   it('returns low for investigate phase with undefined sub-phase', () => {
-    expect(getCoScoutReasoningEffort('investigate')).toBe('low');
+    expect(getCoScoutReasoningEffort('analyze')).toBe('low');
   });
 
   it('returns low for investigate phase with initial sub-phase', () => {
-    expect(getCoScoutReasoningEffort('investigate', 'initial')).toBe('low');
+    expect(getCoScoutReasoningEffort('analyze', 'initial')).toBe('low');
   });
 
   it('returns low for investigate phase with diverging sub-phase', () => {
-    expect(getCoScoutReasoningEffort('investigate', 'diverging')).toBe('low');
+    expect(getCoScoutReasoningEffort('analyze', 'diverging')).toBe('low');
   });
 
   it('returns medium for investigate phase with validating sub-phase', () => {
-    expect(getCoScoutReasoningEffort('investigate', 'validating')).toBe('medium');
+    expect(getCoScoutReasoningEffort('analyze', 'validating')).toBe('medium');
   });
 
   it('returns high for investigate phase with converging sub-phase', () => {
-    expect(getCoScoutReasoningEffort('investigate', 'converging')).toBe('high');
+    expect(getCoScoutReasoningEffort('analyze', 'converging')).toBe('high');
   });
 
   it('returns low for improve phase without staged data', () => {

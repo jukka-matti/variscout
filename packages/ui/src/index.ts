@@ -112,12 +112,12 @@ export {
   FindingsWindow,
   openFindingsPopout,
   updateFindingsPopout,
-  InvestigationSidebar,
-  type InvestigationSidebarProps,
+  AnalyzeSidebar,
+  type AnalyzeSidebarProps,
   QuestionChecklist,
   type QuestionChecklistProps,
-  InvestigationConclusion,
-  type InvestigationConclusionProps,
+  AnalyzeConclusion,
+  type AnalyzeConclusionProps,
 } from './components/FindingsWindow';
 
 export {
@@ -195,7 +195,7 @@ export {
   type ProbabilityPlotTooltipProps,
 } from './components/ProbabilityPlotTooltip';
 
-export * from './components/InvestigationWall';
+export * from './components/AnalyzeWall';
 
 export {
   VerificationCard,
@@ -213,7 +213,7 @@ export { FilterContextBar, type FilterContextBarProps } from './components/Filte
 
 export { SurveyNotebookBase, type SurveyNotebookBaseProps } from './components/SurveyNotebookBase';
 
-export { SustainmentForm, type SustainmentFormProps } from './components/Sustainment';
+export { ControlForm, type ControlFormProps } from './components/Control';
 export { InboxDigest, type InboxDigestProps, type InboxDigestPrompt } from './components/Inbox';
 
 export {
@@ -249,11 +249,11 @@ export {
 } from './components/ChartExportMenu';
 
 export {
-  InvestigationPrompt,
+  AnalyzePrompt,
   investigationPromptDefaultColorScheme,
-  type InvestigationPromptProps,
-  type InvestigationPromptColorScheme,
-} from './components/InvestigationPrompt';
+  type AnalyzePromptProps,
+  type AnalyzePromptColorScheme,
+} from './components/AnalyzePrompt';
 
 export {
   FindingsLog,
@@ -535,8 +535,8 @@ export {
   type ReportPerformanceKPIGridProps,
   ReportActivityBreakdown,
   type ReportActivityBreakdownProps,
-  ReportInvestigationSummary,
-  type ReportInvestigationSummaryProps,
+  ReportAnalyzeSummary,
+  type ReportAnalyzeSummaryProps,
   ReportDefectKPIGrid,
   type ReportDefectKPIGridProps,
   IPOverviewReport,
@@ -592,10 +592,7 @@ export { CoScoutInline, type CoScoutInlineProps } from './components/CoScoutInli
 export { RefLink, type RefLinkProps } from './components/CoScoutPanel/RefLink';
 
 // Investigation Phase Badge
-export {
-  InvestigationPhaseBadge,
-  type InvestigationPhaseBadgeProps,
-} from './components/InvestigationPhaseBadge';
+export { AnalyzePhaseBadge, type AnalyzePhaseBadgeProps } from './components/AnalyzePhaseBadge';
 
 // Preview Badge
 export { PreviewBadge } from './components/PreviewBadge';
@@ -660,7 +657,7 @@ export {
 export * from './components/ActiveIP';
 export * from './components/ImprovementProject';
 export * from './components/projects';
-export * from './components/Sustainment';
+export * from './components/Control';
 export * from './components/Inbox';
 
 // Yamazumi Components
@@ -685,7 +682,7 @@ export {
   type HubCardProps,
   SynthesisPrompt,
   type SynthesisPromptProps,
-} from './components/InvestigationConclusion';
+} from './components/AnalyzeConclusion';
 
 // Process Health Bar
 export { ProcessHealthBar, type ProcessHealthBarProps } from './components/ProcessHealthBar';
@@ -765,7 +762,7 @@ export {
 export { DefectSummary, type DefectSummaryProps } from './components/DefectSummary';
 
 // Investigation components (regression sweet spot, etc.)
-export { SweetSpotCard, type SweetSpotCardProps } from './components/Investigation';
+export { SweetSpotCard, type SweetSpotCardProps } from './components/Analyze';
 
 // Production-line-glance dashboard + filter strip
 export {

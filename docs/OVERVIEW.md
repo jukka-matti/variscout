@@ -16,7 +16,7 @@ VariScout is **structured investigation for process improvement**. A browser-bas
 Two ways to use it, both first-class:
 
 - **Quick analysis.** Paste data, explore in charts, save findings. No project ceremony required. Free PWA supports session-only use; Azure tier adds persistence.
-- **Project-anchored investigation.** Create a Project (Charter ceremony), invite your team (Lead / Member / Sponsor roles), run the formal lifecycle: **Charter → Approach → Sustainment**. Each project produces a report a Sponsor can sign off.
+- **Project-anchored investigation.** Create a Project (Charter ceremony), invite your team (Lead / Member / Sponsor roles), run the formal lifecycle: **Charter → Approach → Control**. Each project produces a report a Sponsor can sign off.
 
 Canonical V1 design lives in the [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md).
 
@@ -29,7 +29,7 @@ Every investigation — whether quick or project-anchored — follows one method
 - **FRAME.** State the problem (data-first or hypothesis-first entry). CoScout helps articulate.
 - **SCOUT.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
 - **INVESTIGATE.** Pick suspected causes — data-derived, gemba-observed, or expert-supplied — and examine each with the Evidence Map, statistics, and targeted questions. The Investigation Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection (hypothesis-first path).
-- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the **Improve tab** (action tracker) — top-level verb tab per the 2026-05-16 amendment — then Sustainment ("did it work? + close").
+- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the **Improve tab** (action tracker) — top-level verb tab per the 2026-05-16 amendment — then Control ("did it work? + close").
 
 The spine never changes. Analysis modes vary the tools used inside each phase.
 
@@ -37,15 +37,15 @@ The spine never changes. Analysis modes vary the tools used inside each phase.
 
 A **Project** wraps a body of analysis with formal lifecycle and team membership. Use it when the work needs to be tracked, when a Sponsor wants a signoff-able report, or when collaborators need scoped access. Skip it when you're exploring or producing a quick analysis for personal use.
 
-| Stage           | Function                                                                                                                                                                                        |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Charter**     | Wrap an existing analysis with project ceremony — problem statement, member invites, optional refined goal. Inherits the Hub's framing (outcome, factors, process map) rather than re-doing it. |
-| **Approach**    | Investigation strategy → produces suspected causes. Anchor surface is the Investigation Wall (Hypotheses + Findings + Measurement Plans).                                                       |
-| **Sustainment** | "Did it work?" closure — Cpk delta + action completion + drift check. Absorbs the legacy Handoff stage.                                                                                         |
+| Stage        | Function                                                                                                                                                                                        |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Charter**  | Wrap an existing analysis with project ceremony — problem statement, member invites, optional refined goal. Inherits the Hub's framing (outcome, factors, process map) rather than re-doing it. |
+| **Approach** | Analyze strategy → produces suspected causes. Anchor surface is the Investigation Wall (Hypotheses + Findings + Measurement Plans).                                                             |
+| **Control**  | "Did it work?" closure — Cpk delta + action completion + drift check. Absorbs the legacy Handoff stage.                                                                                         |
 
 Improvement actions are tracked in the **Improve tab** — a top-level verb tab (not a Project stage) scoped to the active project via active-IP cascade.
 
-The data underneath a Project (the Hub) is tenant-wide — anyone in your Azure tenant can paste data and analyze without creating a Project. The Project's formal artifacts (Charter, Approach, Sustainment, Report) are membership-gated.
+The data underneath a Project (the Hub) is tenant-wide — anyone in your Azure tenant can paste data and analyze without creating a Project. The Project's formal artifacts (Charter, Approach, Control, Report) are membership-gated.
 
 ## Project membership roles
 

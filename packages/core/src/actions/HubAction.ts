@@ -1,7 +1,7 @@
 import type { OutcomeAction } from './outcomeActions';
 import type { EvidenceAction } from './evidenceActions';
 import type { EvidenceSourceAction } from './evidenceSourceActions';
-import type { InvestigationAction } from './investigationActions';
+import type { AnalyzeAction } from './analyzeActions';
 import type { FindingAction } from './findingActions';
 import type { QuestionAction } from './questionActions';
 import type { CausalLinkAction } from './causalLinkActions';
@@ -10,7 +10,7 @@ import type { HubMetaAction } from './hubMetaActions';
 import type { CanvasAction } from './canvasActions';
 import type { ImprovementProjectAction } from './improvementProjectActions';
 import type { ActionItemAction } from './actionItemActions';
-import type { SustainmentAction } from './sustainmentActions';
+import type { ControlAction } from './controlActions';
 import type { ControlHandoffAction } from './controlHandoffActions';
 import type { MeasurementPlanAction } from '../measurementPlan/actions';
 
@@ -23,7 +23,7 @@ export type HubAction =
   | OutcomeAction
   | EvidenceAction
   | EvidenceSourceAction
-  | InvestigationAction
+  | AnalyzeAction
   | FindingAction
   | QuestionAction
   | CausalLinkAction
@@ -32,6 +32,6 @@ export type HubAction =
   | CanvasAction
   | ImprovementProjectAction
   | ActionItemAction
-  | SustainmentAction
+  | ControlAction
   | ControlHandoffAction
   | MeasurementPlanAction;

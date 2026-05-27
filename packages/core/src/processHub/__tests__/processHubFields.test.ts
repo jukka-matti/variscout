@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type {
   ProcessHub,
   OutcomeSpec,
-  ProcessHubInvestigationMetadata,
+  ProcessHubAnalyzeMetadata,
   ScopeFilter,
 } from '../../processHub';
 import {
@@ -160,9 +160,9 @@ describe('isProcessHubComplete', () => {
 
 describe('canvas filter metadata fields', () => {
   it('backward-compat: existing investigation without new fields parses correctly', () => {
-    const metadata: ProcessHubInvestigationMetadata = {
+    const metadata: ProcessHubAnalyzeMetadata = {
       processHubId: 'hub-001',
-      investigationStatus: 'scouting',
+      analyzeStatus: 'scouting',
     };
     expect(metadata.scopeFilter).toBeUndefined();
     expect(metadata.paretoGroupBy).toBeUndefined();
@@ -170,19 +170,19 @@ describe('canvas filter metadata fields', () => {
 
   it('round-trip: scopeFilter and paretoGroupBy survive JSON serialisation', () => {
     const filter: ScopeFilter = { factor: 'product_id', values: ['A', 'B'] };
-    const metadata: ProcessHubInvestigationMetadata = {
+    const metadata: ProcessHubAnalyzeMetadata = {
       processHubId: 'hub-001',
       scopeFilter: filter,
       paretoGroupBy: 'shift',
     };
-    const roundTripped: ProcessHubInvestigationMetadata = JSON.parse(JSON.stringify(metadata));
+    const roundTripped: ProcessHubAnalyzeMetadata = JSON.parse(JSON.stringify(metadata));
     expect(roundTripped.scopeFilter).toEqual({ factor: 'product_id', values: ['A', 'B'] });
     expect(roundTripped.paretoGroupBy).toBe('shift');
   });
 
   it('ScopeFilter.values allows mixed string and number elements', () => {
     const filter: ScopeFilter = { factor: 'line_id', values: [1, 'B'] };
-    const metadata: ProcessHubInvestigationMetadata = {
+    const metadata: ProcessHubAnalyzeMetadata = {
       scopeFilter: filter,
     };
     expect(metadata.scopeFilter?.values).toEqual([1, 'B']);

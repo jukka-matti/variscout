@@ -24,13 +24,13 @@ export type {
 // StageOrderMode is a domain type from @variscout/core, not a UI type
 export type { StageOrderMode } from '@variscout/core';
 export {
-  useInvestigationStore,
-  getInvestigationInitialState,
+  useAnalyzeStore,
+  getAnalyzeInitialState,
   MAX_QUESTION_DEPTH,
   MAX_CHILDREN_PER_PARENT,
   STORE_LAYER as INVESTIGATION_STORE_LAYER,
-} from './investigationStore';
-export type { InvestigationState, InvestigationActions } from './investigationStore';
+} from './analyzeStore';
+export type { AnalyzeState, AnalyzeActions } from './analyzeStore';
 export {
   useCanvasViewportStore,
   getCanvasViewportInitialState,

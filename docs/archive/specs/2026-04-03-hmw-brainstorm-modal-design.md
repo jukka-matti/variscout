@@ -341,6 +341,6 @@ The Improvement workspace is Azure-only (Standard and Team). Collaborative featu
 
 - [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — the existing workspace this integrates with
 - [Improvement Prioritization](../../03-features/workflows/improvement-prioritization.md) — evaluate dimensions and matrix
-- [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — Four Directions methodology, feasibility criteria
+- [Investigation to Action](../../03-features/workflows/analyze-to-action.md) — Four Directions methodology, feasibility criteria
 - [ADR-035](../../07-decisions/adr-035-improvement-prioritization.md) — prioritization decision record
 - [Improvement Hub Design](2026-04-02-improvement-hub-design.md) — full workspace layout spec

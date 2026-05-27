@@ -6,7 +6,7 @@ import type { InsightChartType } from './chartInsights';
 import type { Locale } from '../i18n/types';
 import type { AnalysisMode } from '../types';
 import type { ProcessMap } from '../frame/types';
-import type { InvestigationDepth, InvestigationStatus, ProcessParticipantRef } from '../processHub';
+import type { AnalyzeDepth, AnalyzeStatus, ProcessParticipantRef } from '../processHub';
 import type { EvidenceSource, EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessMomentDefinition } from '../processMoments';
 import type { SignalCard } from '../signalCards';
@@ -77,24 +77,19 @@ export interface CurrentUnderstanding {
 export type EntryScenario = 'problem' | 'exploration' | 'routine';
 
 /** Investigation phase for CoScout context (deterministic detection) */
-export type InvestigationPhase =
-  | 'initial'
-  | 'diverging'
-  | 'validating'
-  | 'converging'
-  | 'improving';
+export type AnalyzePhase = 'initial' | 'diverging' | 'validating' | 'converging' | 'improving';
 
 /** High-level analysis journey phase (doc-canonical, code-detected) */
-export type JourneyPhase = 'frame' | 'scout' | 'investigate' | 'improve';
+export type JourneyPhase = 'frame' | 'scout' | 'analyze' | 'improve';
 
 /** Process context provided by the user for AI grounding */
 export interface ProcessContext {
   /** Durable process context that owns this investigation */
   processHubId?: string;
   /** Investigation depth inside the Process Hub */
-  investigationDepth?: InvestigationDepth;
+  analyzeDepth?: AnalyzeDepth;
   /** Process Hub status for this investigation */
-  investigationStatus?: InvestigationStatus;
+  analyzeStatus?: AnalyzeStatus;
   /** Person accountable for the process/work-system health */
   processOwner?: ProcessParticipantRef;
   /** Person driving this investigation day to day */
@@ -181,7 +176,7 @@ export interface AIContext {
   filters: Array<{
     factor: string;
     values: (string | number)[];
-    /** Dynamic category name (from InvestigationCategory) */
+    /** Dynamic category name (from AnalyzeCategory) */
     category?: string;
   }>;
   /** Control/spec violations */
@@ -286,7 +281,7 @@ export interface AIContext {
       text: string;
       status: string;
       factor?: string;
-      /** Dynamic category name (from InvestigationCategory) */
+      /** Dynamic category name (from AnalyzeCategory) */
       category?: string;
       validationType?: string;
       children?: Array<{

@@ -28,7 +28,7 @@ Focus: Diagnose whether the capability gap is a centering problem or a spread pr
 
 Focus: Which factors degrade capability? Is the degradation systematic or random?`,
 
-  investigate: `Workflow steps:
+  analyze: `Workflow steps:
 1. Create questions targeting factors that affect Cpk — "Does Machine X cause the centering shift?"
 2. Distinguish centering vs spread in each question — they have different contributing mechanisms
 3. Validate with subgroup data — which subgroups meet the Cpk target and which do not?

@@ -6,7 +6,7 @@ import { buildPerformanceWorkflow } from '../prompts/coScout/modes/performance';
 import { buildYamazumiWorkflow } from '../prompts/coScout/modes/yamazumi';
 import type { JourneyPhase } from '../types';
 
-const ALL_PHASES: JourneyPhase[] = ['frame', 'scout', 'investigate', 'improve'];
+const ALL_PHASES: JourneyPhase[] = ['frame', 'scout', 'analyze', 'improve'];
 
 describe('Mode coaching modules', () => {
   describe('buildStandardWorkflow', () => {
@@ -102,7 +102,7 @@ describe('Mode coaching modules', () => {
     });
 
     it('mentions equipment-specific investigation', () => {
-      const result = buildPerformanceWorkflow('investigate');
+      const result = buildPerformanceWorkflow('analyze');
       const lower = result.toLowerCase();
       expect(lower).toContain('equipment');
     });

@@ -30,7 +30,7 @@ class MockEventSourceClass {
 
 vi.stubGlobal('EventSource', MockEventSourceClass);
 
-// ─── Mock investigationStore + canvasViewportStore ────────────────────────────
+// ─── Mock analyzeStore + canvasViewportStore ────────────────────────────
 
 const stateRef = {
   current: {
@@ -68,7 +68,7 @@ const drainPendingCommentsMock = vi.fn(() => {
 });
 
 vi.mock('@variscout/stores', () => ({
-  useInvestigationStore: {
+  useAnalyzeStore: {
     setState: (u: (s: typeof stateRef.current) => typeof stateRef.current) => setStateMock(u),
     getState: () => stateRef.current,
   },

@@ -5,12 +5,7 @@ import {
   normalizeProcessHubId,
   linkFindingsToStateItems,
 } from '@variscout/core';
-import type {
-  ProcessHub,
-  ProcessHubInvestigation,
-  SustainmentRecord,
-  ControlHandoff,
-} from '@variscout/core';
+import type { ProcessHub, ProcessHubAnalyze, ControlRecord, ControlHandoff } from '@variscout/core';
 import type { EvidenceSnapshot } from '@variscout/core';
 import type { Finding } from '@variscout/core';
 import type {
@@ -56,7 +51,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     saveProject,
     listEvidenceSources,
     listEvidenceSnapshots,
-    listSustainmentRecords,
+    listControlRecords,
     listControlHandoffs,
     syncStatus,
   } = useStorage();
@@ -65,7 +60,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [projects, setProjects] = useState<CloudProject[]>([]);
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
   const [evidenceSnapshots, setEvidenceSnapshots] = useState<EvidenceSnapshot[]>([]);
-  const [sustainmentRecords, setSustainmentRecords] = useState<SustainmentRecord[]>([]);
+  const [controlRecords, setControlRecords] = useState<ControlRecord[]>([]);
   const [controlHandoffs, setControlHandoffs] = useState<ControlHandoff[]>([]);
   const [selectedHubId, setSelectedHubId] = useState<string | null>(null);
 
@@ -154,24 +149,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
     async (hubId: string): Promise<void> => {
       try {
         const [records, handoffs] = await Promise.all([
-          listSustainmentRecords(hubId),
+          listControlRecords(hubId),
           listControlHandoffs(hubId),
         ]);
-        setSustainmentRecords(records);
+        setControlRecords(records);
         setControlHandoffs(handoffs);
       } catch (error) {
-        console.error('Failed to load sustainment for hub:', error);
-        setSustainmentRecords([]);
+        console.error('Failed to load control for hub:', error);
+        setControlRecords([]);
         setControlHandoffs([]);
       }
     },
-    [listSustainmentRecords, listControlHandoffs]
+    [listControlRecords, listControlHandoffs]
   );
 
   useEffect(() => {
     if (!selectedHubId) {
       setEvidenceSnapshots([]);
-      setSustainmentRecords([]);
+      setControlRecords([]);
       setControlHandoffs([]);
       return;
     }
@@ -208,9 +203,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         deletedAt: null,
         metadata: project.metadata,
       })),
-      { evidenceSnapshots, sustainmentRecords, controlHandoffs }
+      { evidenceSnapshots, controlRecords, controlHandoffs }
     );
-  }, [evidenceSnapshots, sustainmentRecords, controlHandoffs, processHubs, sortedProjects]);
+  }, [evidenceSnapshots, controlRecords, controlHandoffs, processHubs, sortedProjects]);
 
   const visibleProjects = useMemo(() => {
     const normalizedSearchQuery = searchQuery.trim().toLowerCase();
@@ -228,18 +223,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const selectedHub = selectedHubRollup?.hub ?? processHubs.find(hub => hub.id === selectedHubId);
 
   const handleSetupSustainment = useCallback(
-    (investigationId: string) => {
-      onOpenProject(investigationId);
+    (analyzeId: string) => {
+      onOpenProject(analyzeId);
     },
     [onOpenProject]
   );
 
   const handleLogReview = useCallback(
     (recordId: string) => {
-      const record = sustainmentRecords.find(r => r.id === recordId);
+      const record = controlRecords.find(r => r.id === recordId);
       if (record) onOpenProject(record.investigationId);
     },
-    [sustainmentRecords, onOpenProject]
+    [controlRecords, onOpenProject]
   );
 
   const handleResponsePathAction = useCallback(
@@ -254,12 +249,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         severity: item.severity,
       });
 
-      // Dashboard already exposes onOpenProject for investigation navigation.
-      // For now, route through that callback by extracting the investigation
-      // id from the action. Full URL routing (intent + sustainment surface
+      // Dashboard already exposes onOpenProject for analyze navigation.
+      // For now, route through that callback by extracting the analyze
+      // id from the action. Full URL routing (intent + control surface
       // query params) is a follow-up — see plan PR #4 Task 12 note.
-      if (action.kind === 'open-investigation' || action.kind === 'open-sustainment') {
-        onOpenProject(action.investigationId);
+      if (action.kind === 'open-analyze' || action.kind === 'open-control') {
+        onOpenProject(action.analyzeId);
       }
     },
     [onOpenProject]
@@ -267,26 +262,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const loadFindingsForItem = React.useCallback(
     async (item: ProcessStateItem, hubId: string): Promise<readonly Finding[]> => {
-      // Find the rollup for this hub to know which investigations belong to it
+      // Find the rollup for this hub to know which analyzes belong to it
       const rollup = hubRollups.find(r => r.hub.id === hubId);
       if (!rollup) return [];
 
       // Resolver mirrors the one used in ProcessHubReviewPanel.notesFor:
-      // per-investigation items use item.investigationIds; aggregate items use all
-      const investigationIds =
-        item.investigationIds && item.investigationIds.length > 0
-          ? item.investigationIds
-          : rollup.investigations.map(i => i.id);
+      // per-analyze items use item.analyzeIds; aggregate items use all
+      const analyzeIds =
+        item.analyzeIds && item.analyzeIds.length > 0
+          ? item.analyzeIds
+          : rollup.analyzes.map(i => i.id);
 
-      // Look up each investigation's project name (loadProject uses name+location)
+      // Look up each analyze's project name (loadProject uses name+location)
       const hubProjects = projects.filter(
         p => normalizeProcessHubId(p.metadata?.processHubId) === normalizeProcessHubId(hubId)
       );
 
-      // Load findings from each linked investigation in parallel
+      // Load findings from each linked analyze in parallel
       const findingsByInv = new Map<string, readonly Finding[]>();
       await Promise.all(
-        investigationIds.map(async invId => {
+        analyzeIds.map(async invId => {
           const projectMeta = hubProjects.find(p => (p.id || p.name) === invId);
           if (!projectMeta) return;
           const project = await loadProject(projectMeta.name, projectMeta.location);
@@ -299,7 +294,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       );
 
       // Use the pure aggregator to filter to relevant statuses + match by item
-      const result = linkFindingsToStateItems([item], findingsByInv, () => investigationIds);
+      const result = linkFindingsToStateItems([item], findingsByInv, () => analyzeIds);
       return result.byItemId.get(item.id) ?? [];
     },
     [hubRollups, projects, loadProject]
@@ -338,10 +333,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         findingStatus: finding.status,
       });
       setSheetState(null);
-      // Navigate to the linked investigation. Use the same heuristic as elsewhere:
-      // item.investigationIds[0], falling back to first hub investigation.
+      // Navigate to the linked analyze. Use the same heuristic as elsewhere:
+      // item.analyzeIds[0], falling back to first hub analyze.
       const rollup = hubRollups.find(r => r.hub.id === hubId);
-      const targetInvestigationId = item.investigationIds?.[0] ?? rollup?.investigations[0]?.id;
+      const targetInvestigationId = item.analyzeIds?.[0] ?? rollup?.analyzes[0]?.id;
       if (targetInvestigationId) {
         onOpenProject(targetInvestigationId);
         // Best-effort hash for finding deep-link; editor may or may not honor it yet.
@@ -372,13 +367,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setIsSavingNote(true);
       try {
         const { item, hubId } = notesDrawerState;
-        // Find a target investigation: prefer item's first linked, fall back to
-        // the most-recent investigation in the hub.
+        // Find a target analyze: prefer item's first linked, fall back to
+        // the most-recent analyze in the hub.
         const hubProjects = projects.filter(
           p => normalizeProcessHubId(p.metadata?.processHubId) === normalizeProcessHubId(hubId)
         );
         const targetInvestigationId =
-          item.investigationIds?.[0] ??
+          item.analyzeIds?.[0] ??
           hubProjects.sort((a, b) => (b.modified ?? '').localeCompare(a.modified ?? ''))[0]?.id;
         if (!targetInvestigationId) {
           setNotesDrawerState(null);
@@ -462,7 +457,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           p => normalizeProcessHubId(p.metadata?.processHubId) === normalizeProcessHubId(hubId)
         );
         const targetInvestigationId =
-          item.investigationIds?.[0] ??
+          item.analyzeIds?.[0] ??
           hubProjects.sort((a, b) => (b.modified ?? '').localeCompare(a.modified ?? ''))[0]?.id;
         if (!targetInvestigationId) return;
         const targetProjectMeta = hubProjects.find(p => p.id === targetInvestigationId);
@@ -500,14 +495,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   /**
-   * Persist a mutated ProcessHubInvestigation back to storage.
-   * The investigation is a lightweight projection of the underlying project;
+   * Persist a mutated ProcessHubAnalyze back to storage.
+   * The analyze is a lightweight projection of the underlying project;
    * we load the full project, merge the updated metadata fields (nodeMappings,
    * migrationDeclinedAt), then save it back. Fires-and-forgets; refreshes the
    * project list on success.
    */
   const handlePersistInvestigation = useCallback(
-    (next: ProcessHubInvestigation): void => {
+    (next: ProcessHubAnalyze): void => {
       const projectMeta = projects.find(p => (p.id || p.name) === next.id);
       if (!projectMeta) return;
       void (async () => {
@@ -618,7 +613,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   /**
    * "Edit framing" / "Add framing" CTA: re-open the Editor on the hub's
-   * investigation to surface HubCreationFlow. For incomplete Hubs this
+   * analyze to surface HubCreationFlow. For incomplete Hubs this
    * opens a new Editor entry (Mode B); for complete Hubs it could be used
    * to re-enter Stage 3.  We navigate via onOpenProject with the hub id so
    * the Editor picks up the existing Hub context.
@@ -685,7 +680,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div>
           <h2 className="text-2xl font-bold text-content">Process Hubs</h2>
           <p className="text-content-secondary text-sm mt-1">
-            Scan process contexts and the investigations inside them
+            Scan process contexts and the analyzes inside them
           </p>
         </div>
         <div className="flex items-center gap-3">{getSyncStatusDisplay()}</div>
@@ -698,7 +693,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium sm:w-auto w-full"
         >
           <Plus size={18} />
-          New Investigation
+          New Analyze
         </button>
         <button
           onClick={handleCreateHub}
@@ -736,7 +731,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           />
           <input
             type="text"
-            placeholder="Search investigations..."
+            placeholder="Search analyzes..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-surface-secondary border border-edge rounded-lg text-content placeholder-content-muted focus:outline-none focus:border-blue-500 transition-colors"
@@ -746,7 +741,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           onClick={loadProjects}
           disabled={isLoading}
           className="p-2 text-content-secondary hover:text-content hover:bg-surface-secondary rounded-lg transition-colors disabled:opacity-50"
-          title="Refresh investigations"
+          title="Refresh analyzes"
         >
           <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
         </button>
@@ -761,11 +756,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FolderOpen size={48} className="text-content-muted mb-4" />
           <h3 className="text-lg font-medium text-content mb-2">
-            {projects.length === 0 ? 'No investigations yet' : 'No matching investigations'}
+            {projects.length === 0 ? 'No analyzes yet' : 'No matching analyzes'}
           </h3>
           <p className="text-content-secondary text-sm max-w-md">
             {projects.length === 0
-              ? 'Create your first investigation to start exploring variation data with your team.'
+              ? 'Create your first analyze to start exploring variation data with your team.'
               : "Try adjusting your search or filter to find what you're looking for."}
           </p>
           {projects.length === 0 && (
@@ -775,7 +770,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 <Plus size={18} />
-                New Investigation
+                New Analyze
               </button>
               <button
                 onClick={() => setIsSamplePickerOpen(true)}
@@ -798,7 +793,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   onClick={() => setSelectedHubId(null)}
                   className="text-xs text-content-secondary hover:text-content"
                 >
-                  Show all investigations
+                  Show all analyzes
                 </button>
               )}
             </div>
@@ -821,7 +816,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 rollup={selectedHubRollup}
                 onOpenInvestigation={id => onOpenProject(id)}
                 onStartInvestigation={() => onOpenProject(undefined, selectedHubRollup.hub.id)}
-                onSetupSustainment={handleSetupSustainment}
+                onSetupControl={handleSetupSustainment}
                 onLogReview={handleLogReview}
                 onResponsePathAction={handleResponsePathAction}
                 onRequestAddNote={handleRequestAddNote}

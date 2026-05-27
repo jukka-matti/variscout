@@ -1,15 +1,11 @@
 import React from 'react';
-import type { ProcessHub, SustainmentRecord, ControlHandoff } from '@variscout/core';
+import type { ProcessHub, ControlRecord, ControlHandoff } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { HubAction } from '@variscout/core/actions';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { useImprovementProjectStore } from '@variscout/stores';
 import { IPDetailPage } from '@variscout/ui/ipDetail';
-import type {
-  CauseProjectionInputs,
-  CauseRow,
-  SustainmentClosureInputs,
-} from '@variscout/ui/ipDetail';
+import type { CauseProjectionInputs, CauseRow, ControlClosureInputs } from '@variscout/ui/ipDetail';
 
 // PWA is single-user (no auth). Use a stable session-local identity so
 // wedge ACL guards treat the current user as a member of any project they created.
@@ -19,16 +15,14 @@ interface ProjectsTabViewProps {
   activeHub?: ProcessHub;
   selectedProjectId: string | null;
   onSelectProject: (projectId: string) => void;
-  onJumpOut?: (
-    target: 'investigation' | 'analyze' | 'process' | 'improve-workbench' | 'report'
-  ) => void;
+  onJumpOut?: (target: 'analyze' | 'explore' | 'process' | 'improve-workbench' | 'report') => void;
   approachInputs?: CauseProjectionInputs;
   onOpenCauseWorkbench?: (cause: CauseRow) => void;
-  sustainmentRecord?: SustainmentRecord;
+  controlRecord?: ControlRecord;
   controlHandoff?: ControlHandoff;
   /** Closure checklist derived from controlHandoff (folded in from former Handoff stage). */
-  closureInputs?: SustainmentClosureInputs;
-  onOpenLegacySustainment?: () => void;
+  closureInputs?: ControlClosureInputs;
+  onOpenLegacyControl?: () => void;
   onNudgeProcessOwner?: () => void;
   onProjectPatch?: (
     projectId: ImprovementProject['id'],
@@ -85,10 +79,10 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onJumpOut,
   approachInputs,
   onOpenCauseWorkbench,
-  sustainmentRecord,
+  controlRecord,
   controlHandoff,
   closureInputs,
-  onOpenLegacySustainment,
+  onOpenLegacyControl,
   onNudgeProcessOwner,
   onProjectPatch,
   onNudgeSignoff,
@@ -146,10 +140,10 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         onJumpOut={onJumpOut}
         approachInputs={approachInputs}
         onOpenCauseWorkbench={onOpenCauseWorkbench}
-        sustainmentRecord={sustainmentRecord}
+        controlRecord={controlRecord}
         controlHandoff={controlHandoff}
         closureInputs={closureInputs}
-        onOpenLegacySustainment={onOpenLegacySustainment}
+        onOpenLegacyControl={onOpenLegacyControl}
         onNudgeProcessOwner={onNudgeProcessOwner}
         activeHub={activeHub}
         ideas={approachInputs?.ideas}

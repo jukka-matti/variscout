@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { rollupStepErrors } from '../stepErrorAggregation';
-import type {
-  ProcessHub,
-  ProcessHubInvestigation,
-  ProcessHubInvestigationMetadata,
-} from '../../processHub';
+import type { ProcessHub, ProcessHubAnalyze, ProcessHubAnalyzeMetadata } from '../../processHub';
 import type { ProcessMap } from '../../frame/types';
 import type { DataRow } from '../../types';
 
@@ -31,8 +27,8 @@ const hub: ProcessHub = {
 function makeMember(opts: {
   id: string;
   rows: DataRow[];
-  nodeMappings: ProcessHubInvestigationMetadata['nodeMappings'];
-}): ProcessHubInvestigation {
+  nodeMappings: ProcessHubAnalyzeMetadata['nodeMappings'];
+}): ProcessHubAnalyze {
   return {
     id: opts.id,
     name: `Investigation ${opts.id}`,
@@ -45,7 +41,7 @@ function makeMember(opts: {
       canonicalMapVersion: '2026-04-28',
     } as never,
     rows: opts.rows,
-  } as unknown as ProcessHubInvestigation;
+  } as unknown as ProcessHubAnalyze;
 }
 
 describe('rollupStepErrors', () => {
@@ -139,7 +135,7 @@ describe('rollupStepErrors', () => {
       rows: [{ mixCpk: 1.0, defect: 'crack' }],
       nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }],
     });
-    const meta = (otherHub as { metadata?: ProcessHubInvestigationMetadata }).metadata;
+    const meta = (otherHub as { metadata?: ProcessHubAnalyzeMetadata }).metadata;
     if (meta) (meta as { processHubId: string }).processHubId = 'hub-2';
     const result = rollupStepErrors({
       hub,

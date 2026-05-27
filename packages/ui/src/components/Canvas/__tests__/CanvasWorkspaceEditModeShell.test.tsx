@@ -25,7 +25,7 @@ vi.mock('@variscout/charts', async importOriginal => {
   };
 });
 
-vi.mock('../../InvestigationWall', async () => {
+vi.mock('../../AnalyzeWall', async () => {
   const React = await import('react');
   return {
     useWallIsMobile: () => false,
@@ -118,14 +118,14 @@ vi.mock('@variscout/hooks', () => ({
     contextValueOptions: {},
   })),
   useCanvasStepCards: vi.fn(() => ({ cards: [] })),
-  useCanvasInvestigationOverlays: vi.fn(() => ({
+  useCanvasAnalyzeOverlays: vi.fn(() => ({
     overlays: {
       byStep: {},
       arrows: [],
       unresolved: { questions: [], findings: [], hypotheses: [], causalLinks: [] },
     },
   })),
-  useHasInvestigationContent: vi.fn(() => false),
+  useHasAnalyzeContent: vi.fn(() => false),
   useSharedWallProps: vi.fn(() => ({
     findings: [],
     processMap: null,

@@ -13,7 +13,7 @@ import type {
   FindingTag,
   Question,
   ProcessContext,
-  InvestigationPhase,
+  AnalyzePhase,
   IdeaTimeframe,
   IdeaDirection,
   IdeaCostCategory,
@@ -51,7 +51,7 @@ export interface FindingsSyncData {
   processContext?: ProcessContext;
   currentValue?: number;
   projectedValue?: number;
-  investigationPhase?: InvestigationPhase;
+  analyzePhase?: AnalyzePhase;
   suggestedQuestions?: string[];
   factorRoles?: Record<string, string>;
   aiAvailable?: boolean;

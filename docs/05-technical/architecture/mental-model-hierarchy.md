@@ -386,5 +386,5 @@ See [ADR-042](../../07-decisions/adr-042-project-dashboard.md) and [Journey Phas
 - [Methodology](../../01-vision/methodology.md) — Watson's EDA, Four Lenses, Investigation Diamond, Two Voices
 - [AI Journey Integration](ai-journey-integration.md) — AI layers and experience spectrum
 - [Business Bible](../../01-vision/business-bible.md) — Value Levers
-- [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — Finding Status, Hypothesis lifecycle
+- [Investigation to Action](../../03-features/workflows/analyze-to-action.md) — Finding Status, Hypothesis lifecycle
 - [Journey Phase → Screen Mapping](./journey-phase-screen-mapping.md) — concrete code references per phase

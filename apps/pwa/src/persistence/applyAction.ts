@@ -38,7 +38,7 @@
 
 import type { HubAction } from '@variscout/core/actions';
 import { generateDeterministicId } from '@variscout/core/identity';
-import { applySustainmentTick, type EvidenceSnapshot } from '@variscout/core';
+import { applyControlTick, type EvidenceSnapshot } from '@variscout/core';
 import { reduceMeasurementPlans } from '@variscout/core/measurementPlan';
 import type { PwaDatabase } from '../db/schema';
 
@@ -86,8 +86,8 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
         canonicalProcessMap,
         outcomes,
         improvementProjects,
-        sustainmentRecords,
-        sustainmentReviews,
+        controlRecords,
+        controlReviews,
         controlHandoffs,
         ...hubMeta
       } = action.hub;
@@ -98,8 +98,8 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
           db.outcomes,
           db.canvasState,
           db.improvementProjects,
-          db.sustainmentRecords,
-          db.sustainmentReviews,
+          db.controlRecords,
+          db.controlReviews,
           db.controlHandoffs,
         ],
         async () => {
@@ -140,26 +140,26 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
             // joinHub won't resurrect it.
             await db.canvasState.delete(hubMeta.id);
           }
-          const incomingSustainmentRecords = sustainmentRecords ?? [];
-          const incomingRecordIds = new Set(incomingSustainmentRecords.map(record => record.id));
-          await db.sustainmentRecords
+          const incomingControlRecords = controlRecords ?? [];
+          const incomingRecordIds = new Set(incomingControlRecords.map(record => record.id));
+          await db.controlRecords
             .where('hubId')
             .equals(hubMeta.id)
             .filter(record => !incomingRecordIds.has(record.id))
             .delete();
-          if (incomingSustainmentRecords.length > 0) {
-            await db.sustainmentRecords.bulkPut(incomingSustainmentRecords);
+          if (incomingControlRecords.length > 0) {
+            await db.controlRecords.bulkPut(incomingControlRecords);
           }
 
-          const incomingSustainmentReviews = sustainmentReviews ?? [];
-          const incomingReviewIds = new Set(incomingSustainmentReviews.map(review => review.id));
-          await db.sustainmentReviews
+          const incomingControlReviews = controlReviews ?? [];
+          const incomingReviewIds = new Set(incomingControlReviews.map(review => review.id));
+          await db.controlReviews
             .where('hubId')
             .equals(hubMeta.id)
             .filter(review => !incomingReviewIds.has(review.id))
             .delete();
-          if (incomingSustainmentReviews.length > 0) {
-            await db.sustainmentReviews.bulkPut(incomingSustainmentReviews);
+          if (incomingControlReviews.length > 0) {
+            await db.controlReviews.bulkPut(incomingControlReviews);
           }
 
           const incomingControlHandoffs = controlHandoffs ?? [];
@@ -276,14 +276,14 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
           `SUSTAINMENT_RECORD_CREATE hubId mismatch: action hub '${action.hubId}' does not match record hub '${action.record.hubId}'`
         );
       }
-      await db.sustainmentRecords.add(action.record);
+      await db.controlRecords.add(action.record);
       return;
     }
 
     case 'SUSTAINMENT_RECORD_UPDATE': {
-      const existing = await db.sustainmentRecords.get(action.recordId);
+      const existing = await db.controlRecords.get(action.recordId);
       if (!existing) return;
-      await db.sustainmentRecords.update(action.recordId, {
+      await db.controlRecords.update(action.recordId, {
         ...action.patch,
         updatedAt: Date.now(),
       });
@@ -291,7 +291,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     }
 
     case 'SUSTAINMENT_RECORD_ARCHIVE': {
-      await db.sustainmentRecords.update(action.recordId, {
+      await db.controlRecords.update(action.recordId, {
         deletedAt: Date.now(),
         updatedAt: Date.now(),
       });
@@ -299,7 +299,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     }
 
     case 'SUSTAINMENT_CONFIRM': {
-      await db.sustainmentRecords.update(action.recordId, {
+      await db.controlRecords.update(action.recordId, {
         status: 'confirmed-sustained',
         updatedAt: Date.now(),
       });
@@ -307,7 +307,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     }
 
     case 'SUSTAINMENT_MARK_DRIFTED': {
-      await db.sustainmentRecords.update(action.recordId, {
+      await db.controlRecords.update(action.recordId, {
         status: 'drifted',
         consecutiveOnTargetTicks: 0,
         updatedAt: Date.now(),
@@ -316,10 +316,10 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     }
 
     case 'SUSTAINMENT_TICK_EVALUATED': {
-      await db.transaction('rw', [db.sustainmentRecords, db.sustainmentReviews], async () => {
-        const existing = await db.sustainmentRecords.get(action.record.id);
-        await db.sustainmentRecords.put({ ...existing, ...action.record });
-        await db.sustainmentReviews.put(action.review);
+      await db.transaction('rw', [db.controlRecords, db.controlReviews], async () => {
+        const existing = await db.controlRecords.get(action.record.id);
+        await db.controlRecords.put({ ...existing, ...action.record });
+        await db.controlReviews.put(action.review);
       });
       return;
     }
@@ -422,7 +422,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     case 'EVIDENCE_ADD_SNAPSHOT': {
       await db.transaction(
         'rw',
-        [db.evidenceSnapshots, db.rowProvenance, db.sustainmentRecords, db.sustainmentReviews],
+        [db.evidenceSnapshots, db.rowProvenance, db.controlRecords, db.controlReviews],
         async () => {
           const now = Date.now();
 
@@ -451,7 +451,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
             }));
             await db.rowProvenance.bulkPut(tagsWithSnapshotId);
           }
-          await evaluateSustainmentRecordsForSnapshot(db, action.hubId, action.snapshot);
+          await evaluateControlRecordsForSnapshot(db, action.hubId, action.snapshot);
         }
       );
       return;
@@ -640,13 +640,13 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
   }
 }
 
-async function evaluateSustainmentRecordsForSnapshot(
+async function evaluateControlRecordsForSnapshot(
   db: PwaDatabase,
   hubId: string,
   snapshot: EvidenceSnapshot
 ): Promise<void> {
-  await db.transaction('rw', [db.sustainmentRecords, db.sustainmentReviews], async () => {
-    const liveRecords = await db.sustainmentRecords
+  await db.transaction('rw', [db.controlRecords, db.controlReviews], async () => {
+    const liveRecords = await db.controlRecords
       .where('hubId')
       .equals(hubId)
       .filter(record => record.deletedAt === null && record.lastEvaluatedSnapshotId !== snapshot.id)
@@ -655,8 +655,8 @@ async function evaluateSustainmentRecordsForSnapshot(
     if (liveRecords.length === 0) return;
 
     const now = Date.now();
-    const evaluations = liveRecords.map(record => applySustainmentTick(record, snapshot, now));
-    await db.sustainmentRecords.bulkPut(evaluations.map(evaluation => evaluation.record));
-    await db.sustainmentReviews.bulkPut(evaluations.map(evaluation => evaluation.review));
+    const evaluations = liveRecords.map(record => applyControlTick(record, snapshot, now));
+    await db.controlRecords.bulkPut(evaluations.map(evaluation => evaluation.record));
+    await db.controlReviews.bulkPut(evaluations.map(evaluation => evaluation.review));
   });
 }

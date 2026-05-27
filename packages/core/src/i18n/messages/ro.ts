@@ -49,7 +49,7 @@ export const ro: MessageCatalog = {
   'panel.findings': 'Constatări',
   'panel.dataTable': 'Tabel de date',
   'panel.whatIf': 'Ce-ar fi dacă',
-  'panel.investigation': 'Investigație',
+  'panel.analyze': 'Investigație',
   'panel.coScout': 'CoScout',
   'panel.drillPath': 'Cale de detaliere',
 
@@ -92,12 +92,12 @@ export const ro: MessageCatalog = {
   'display.showSpecs': 'Afișare specificații',
 
   // Investigation
-  'investigation.brief': 'Raport de investigație',
-  'investigation.assignedToMe': 'Atribuite mie',
-  'investigation.question': 'Question',
-  'investigation.questions': 'Questions',
-  'investigation.pinAsFinding': 'Fixare ca constatare',
-  'investigation.addObservation': 'Adăugare observație',
+  'analyze.brief': 'Raport de investigație',
+  'analyze.assignedToMe': 'Atribuite mie',
+  'analyze.question': 'Question',
+  'analyze.questions': 'Questions',
+  'analyze.pinAsFinding': 'Fixare ca constatare',
+  'analyze.addObservation': 'Adăugare observație',
 
   // Empty states
   'empty.noData': 'Nu sunt date disponibile',
@@ -241,19 +241,19 @@ export const ro: MessageCatalog = {
   'chart.violation.nelson2': 'Nelson Rule 2 — run of {count}',
   'chart.violation.nelson3': 'Nelson Rule 3 — trend of {count}',
 
-  // Investigation sidebar
-  'investigation.phaseInitial': 'Gather initial observations',
-  'investigation.phaseDiverging': 'Explore multiple questions',
-  'investigation.phaseValidating': 'Test and validate questions',
-  'investigation.phaseConverging': 'Narrow to contribution',
-  'investigation.phaseImproving': 'Implement and verify changes',
-  'investigation.pdcaTitle': 'Verification Checklist',
-  'investigation.verifyChart': 'I-Chart stable after change',
-  'investigation.verifyStats': 'Cpk meets target',
-  'investigation.verifyBoxplot': 'Boxplot spread reduced',
-  'investigation.verifySideEffects': 'No side effects observed',
-  'investigation.verifyOutcome': 'Outcome sustained over time',
-  'investigation.uninvestigated': 'Uninvestigated Factors',
+  // Analyze sidebar
+  'analyze.phaseInitial': 'Gather initial observations',
+  'analyze.phaseDiverging': 'Explore multiple questions',
+  'analyze.phaseValidating': 'Test and validate questions',
+  'analyze.phaseConverging': 'Narrow to contribution',
+  'analyze.phaseImproving': 'Implement and verify changes',
+  'analyze.pdcaTitle': 'Verification Checklist',
+  'analyze.verifyChart': 'I-Chart stable after change',
+  'analyze.verifyStats': 'Cpk meets target',
+  'analyze.verifyBoxplot': 'Boxplot spread reduced',
+  'analyze.verifySideEffects': 'No side effects observed',
+  'analyze.verifyOutcome': 'Outcome sustained over time',
+  'analyze.unanalyzed': 'Uninvestigated Factors',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -386,7 +386,7 @@ export const ro: MessageCatalog = {
   'charType.smallerDesc': 'Mai scăzut e mai bun (ex. defecte)',
   'charType.larger': 'Mai mare e mai bun',
   'charType.largerDesc': 'Mai ridicat e mai bun (ex. randament)',
-  'investigation.trackingPrompt':
+  'analyze.trackingPrompt':
     'Urmărirea investigației — deschideți panoul de investigație pentru a vedea imaginea completă.',
   'chart.highlight': 'Evidențiere:',
   'chart.highlightRed': 'Roșu',
@@ -537,8 +537,8 @@ export const ro: MessageCatalog = {
 
   // Workspace navigation
   'workspace.process': 'Process',
+  'workspace.explore': 'Explore',
   'workspace.analyze': 'Analyze',
-  'workspace.investigation': 'Investigation',
   'workspace.findings': 'Findings',
   'workspace.improvement': 'Improvement',
   'workspace.improve': 'Improve',
@@ -749,7 +749,7 @@ export const ro: MessageCatalog = {
   'report.question.ruledOut': 'Ruled Out',
   'report.question.open': 'Open',
   'report.type.analysisSnapshot': 'Analysis Snapshot',
-  'report.type.investigationReport': 'Investigation Report',
+  'report.type.analyzeReport': 'Analyze Report',
   'report.type.improvementStory': 'Improvement Story',
   'report.sections': 'Sections',
   'report.audience.technical': 'Technical',
@@ -925,7 +925,7 @@ export const ro: MessageCatalog = {
   'frame.b0.aria.yCandidates': 'Y candidate chips', // TODO(i18n): translate
   'frame.b0.aria.selectedXs': 'Selected X chips', // TODO(i18n): translate
   'frame.b0.aria.availableXs': 'Available X chips', // TODO(i18n): translate
-  'frame.canvasOverlay.cta.sustainment.notReady':
+  'frame.canvasOverlay.cta.control.notReady':
     "Available after you've implemented a process change to monitor",
   'frame.canvasOverlay.cta.handoff.notReady':
     'Available after sustainment monitoring confirms gains',
@@ -965,7 +965,7 @@ export const ro: MessageCatalog = {
 
   // TODO(i18n): translate canvas.* keys
   // Canvas — SystemLevelView
-  'canvas.system.activeInvestigations': 'Active investigations',
+  'canvas.system.activeAnalyzes': 'Active investigations',
   'canvas.system.conformance': 'Conformance',
   'canvas.system.inbox': 'Inbox',
   'canvas.system.lensLabel': 'Lens: {lens}',
@@ -1030,18 +1030,18 @@ export const ro: MessageCatalog = {
   'canvas.localMechanism.etaSquaredLabel': 'eta² {value}',
   'canvas.localMechanism.evidenceMap': 'Local evidence map',
   'canvas.localMechanism.factorContribution': 'Factor contribution evidence',
-  'canvas.localMechanism.investigationWall': 'Investigation wall',
+  'canvas.localMechanism.analyzeWall': 'Investigation wall',
   'canvas.localMechanism.logActionAria': 'Log action for {column}',
   'canvas.localMechanism.noNumericValues': 'No numeric values',
   'canvas.localMechanism.openChartAria': 'Open {column} details mini chart',
   'canvas.localMechanism.openColumnAria': 'Open {column} details',
   'canvas.localMechanism.quickActionTitle': '{column} quick action',
-  'canvas.localMechanism.focusedInvestigation': 'Investigate',
+  'canvas.localMechanism.focusedAnalyze': 'Investigate',
   'canvas.localMechanism.charter': 'Charter',
-  'canvas.localMechanism.sustainment': 'Sustain',
+  'canvas.localMechanism.control': 'Control',
   'canvas.localMechanism.handoff': 'Handoff',
-  'canvas.localMechanism.focusedInvestigationAria': 'Start focused investigation for {column}',
+  'canvas.localMechanism.focusedAnalyzeAria': 'Start focused analysis for {column}',
   'canvas.localMechanism.charterAria': 'Open improvement charter for {column}',
-  'canvas.localMechanism.sustainmentAria': 'Open sustainment for {column}',
+  'canvas.localMechanism.controlAria': 'Open control for {column}',
   'canvas.localMechanism.handoffAria': 'Open handoff for {column}',
 };

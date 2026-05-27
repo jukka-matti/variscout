@@ -811,7 +811,7 @@ describe('buildCoScoutSystemPrompt', () => {
   // Insight capture guidance (ADR-049)
   it('includes insight capture guidance in system prompt for INVESTIGATE phase', () => {
     const prompt = buildCoScoutSystemPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       hasActionTools: true,
     });
     expect(prompt).toContain('suggest_save_finding');
@@ -836,7 +836,7 @@ describe('buildCoScoutSystemPrompt', () => {
 
   it('excludes insight capture guidance when hasActionTools is false', () => {
     const prompt = buildCoScoutSystemPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       hasActionTools: false,
     });
     expect(prompt).not.toContain('Insight capture guidance');
@@ -1618,7 +1618,7 @@ describe('buildCoScoutTools', () => {
   });
 
   it('adds question, action, and sharing tools in INVESTIGATE phase (wedge V1 single SKU)', () => {
-    const tools = buildCoScoutTools({ phase: 'investigate' });
+    const tools = buildCoScoutTools({ phase: 'analyze' });
     expect(tools.find(t => t.name === 'create_question')).toBeDefined();
     expect(tools.find(t => t.name === 'suggest_action')).toBeDefined();
     expect(tools.find(t => t.name === 'share_finding')).toBeDefined();
@@ -1663,7 +1663,7 @@ describe('buildCoScoutTools', () => {
   });
 
   it('includes suggest_improvement_idea in INVESTIGATE phase tools', () => {
-    const tools = buildCoScoutTools({ phase: 'investigate' });
+    const tools = buildCoScoutTools({ phase: 'analyze' });
     expect(tools.find(t => t.name === 'suggest_improvement_idea')).toBeDefined();
   });
 
@@ -1705,7 +1705,7 @@ describe('buildCoScoutTools', () => {
   });
 
   it('includes suggest_save_finding tool in INVESTIGATE phase', () => {
-    const tools = buildCoScoutTools({ phase: 'investigate' });
+    const tools = buildCoScoutTools({ phase: 'analyze' });
     const tool = tools.find(t => t.name === 'suggest_save_finding');
     expect(tool).toBeDefined();
     expect(tool!.parameters.properties).toHaveProperty('insight_text');
@@ -1734,7 +1734,7 @@ describe('buildCoScoutTools', () => {
   });
 
   it('includes answer_question tool in INVESTIGATE phase', () => {
-    const tools = buildCoScoutTools({ phase: 'investigate' });
+    const tools = buildCoScoutTools({ phase: 'analyze' });
     const tool = tools.find(t => t.name === 'answer_question');
     expect(tool).toBeDefined();
     expect(tool?.parameters?.properties).toHaveProperty('question_id');

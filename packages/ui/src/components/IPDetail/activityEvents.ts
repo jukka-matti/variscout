@@ -1,5 +1,5 @@
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
-import type { ControlHandoff, SustainmentRecord } from '@variscout/core';
+import type { ControlHandoff, ControlRecord } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 
 export type IPActivityEventKind =
@@ -27,7 +27,7 @@ export interface DeriveIPActivityEventsInput {
   ip: ImprovementProject;
   ideas?: readonly ImprovementIdea[];
   actions?: readonly ActionItem[];
-  sustainmentRecord?: SustainmentRecord;
+  controlRecord?: ControlRecord;
   controlHandoff?: ControlHandoff;
   now: number;
 }
@@ -163,14 +163,14 @@ export function deriveIPActivityEvents(input: DeriveIPActivityEventsInput): IPAc
     });
   }
 
-  if (input.sustainmentRecord && input.sustainmentRecord.deletedAt === null) {
+  if (input.controlRecord && input.controlRecord.deletedAt === null) {
     pushEvent(events, {
-      id: `${input.sustainmentRecord.id}:updated:${input.sustainmentRecord.updatedAt}`,
+      id: `${input.controlRecord.id}:updated:${input.controlRecord.updatedAt}`,
       kind: 'sustainment-updated',
-      at: input.sustainmentRecord.updatedAt,
-      actor: input.sustainmentRecord.owner?.displayName ?? systemActor,
+      at: input.controlRecord.updatedAt,
+      actor: input.controlRecord.owner?.displayName ?? systemActor,
       verb: 'updated',
-      object: `sustainment ${input.sustainmentRecord.title}`,
+      object: `sustainment ${input.controlRecord.title}`,
     });
   }
 

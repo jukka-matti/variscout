@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useCanvasViewportStore, useInvestigationStore } from '@variscout/stores';
+import { useCanvasViewportStore, useAnalyzeStore } from '@variscout/stores';
 import type { Finding, Question, Hypothesis } from '@variscout/core';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import type { ProcessMap } from '@variscout/core/frame';
@@ -29,8 +29,8 @@ export interface UseSharedWallPropsReturn {
 }
 
 export function useSharedWallProps(args: UseSharedWallPropsArgs): UseSharedWallPropsReturn {
-  const hubs = useInvestigationStore(s => s.hypotheses);
-  const questions = useInvestigationStore(s => s.questions);
+  const hubs = useAnalyzeStore(s => s.hypotheses);
+  const questions = useAnalyzeStore(s => s.questions);
   const zoom = useCanvasViewportStore(s => s.viewports[args.hubId]?.zoom ?? 1);
   const pan = useCanvasViewportStore(s => s.viewports[args.hubId]?.pan ?? DEFAULT_WALL_PAN);
   const groupByTributary = useCanvasViewportStore(

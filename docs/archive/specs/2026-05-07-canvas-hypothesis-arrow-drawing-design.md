@@ -17,11 +17,11 @@ related:
 layer: spec
 implements:
   - docs/03-features/ui/canvas-frame.md
-  - docs/03-features/workflows/investigation-wall.md
+  - docs/03-features/workflows/analyze-wall.md
 delivered-by: 2026-05-18
 ---
 
-> **Archived 2026-05-18 — delivered.** This spec proposed deltas to canvas hypothesis-arrow drawing (PR8 sub-PR 8d: drawing gesture, inline form, draft vs promoted hypothesis visual primitives); deltas absorbed into [`docs/03-features/ui/canvas-frame.md`](../../03-features/ui/canvas-frame.md) + [`docs/03-features/workflows/investigation-wall.md`](../../03-features/workflows/investigation-wall.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
+> **Archived 2026-05-18 — delivered.** This spec proposed deltas to canvas hypothesis-arrow drawing (PR8 sub-PR 8d: drawing gesture, inline form, draft vs promoted hypothesis visual primitives); deltas absorbed into [`docs/03-features/ui/canvas-frame.md`](../../03-features/ui/canvas-frame.md) + [`docs/03-features/workflows/analyze-wall.md`](../../03-features/workflows/analyze-wall.md). See current state at [`docs/01-vision/constitution.md`](../../01-vision/constitution.md) + listed implements: targets.
 
 # Canvas Hypothesis-Arrow Drawing
 

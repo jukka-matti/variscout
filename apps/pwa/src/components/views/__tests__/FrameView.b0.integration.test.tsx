@@ -17,7 +17,7 @@
  *      shown as run-order hint (excluded from picker).
  *   6. Click `Material_Type` chip → setFactors(['Material_Type']).
  *   7. Re-render with factors=['Material_Type'] → click "See the data →"
- *      CTA → panelsStore.showAnalysis() called.
+ *      CTA → panelsStore.showExplore() called.
  *
  * Critical test rule (per .claude/rules/testing.md): vi.mock() BEFORE any
  * component imports — otherwise tests hang in an infinite loop.
@@ -32,7 +32,7 @@ const setOutcomeMock = vi.fn();
 const setFactorsMock = vi.fn();
 const setMeasureSpecMock = vi.fn();
 const setProcessContextMock = vi.fn();
-const showAnalysisMock = vi.fn();
+const showExploreMock = vi.fn();
 
 // 30-row synthetic feather-style dataset — already-parsed numerics so the
 // column-type detector classifies cleanly (parser detection runs at parse
@@ -74,7 +74,7 @@ vi.mock('@variscout/stores', async importOriginal => {
 
 vi.mock('../../../features/panels/panelsStore', () => ({
   usePanelsStore: Object.assign(vi.fn(), {
-    getState: () => ({ showAnalysis: showAnalysisMock }),
+    getState: () => ({ showExplore: showExploreMock }),
   }),
 }));
 
@@ -133,7 +133,7 @@ describe('FrameView b0 — happy-path integration', () => {
     setFactorsMock.mockClear();
     setMeasureSpecMock.mockClear();
     setProcessContextMock.mockClear();
-    showAnalysisMock.mockClear();
+    showExploreMock.mockClear();
     storeStateRef.current = { ...baseStoreState };
   });
 
@@ -194,18 +194,18 @@ describe('FrameView b0 — happy-path integration', () => {
     expect(setFactorsMock).toHaveBeenCalledWith(['Material_Type']);
   });
 
-  it('See-the-data CTA fires panelsStore.showAnalysis() once Y + factors are selected', () => {
+  it('See-the-data CTA fires panelsStore.showExplore() once Y + factors are selected', () => {
     storeStateRef.current = {
       ...baseStoreState,
       outcome: 'Down_Content_%',
       factors: ['Material_Type'],
     };
 
-    // ── Step 7: re-render with Y + X picked → CTA enabled → click → showAnalysis.
+    // ── Step 7: re-render with Y + X picked → CTA enabled → click → showExplore.
     renderFrameView();
     const cta = screen.getByTestId('see-the-data-cta');
     expect(cta.getAttribute('data-disabled')).toBe('false');
     fireEvent.click(cta);
-    expect(showAnalysisMock).toHaveBeenCalledTimes(1);
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
   });
 });

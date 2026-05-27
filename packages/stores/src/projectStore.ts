@@ -19,7 +19,7 @@ import type {
   StageOrderMode,
   ProcessContext,
   EntryScenario,
-  InvestigationCategory,
+  AnalyzeCategory,
   Finding,
   Question,
   Hypothesis,
@@ -96,7 +96,7 @@ export interface SerializedProject {
   viewState?: ViewState | null;
   findings?: Finding[];
   questions?: Question[];
-  categories?: InvestigationCategory[];
+  categories?: AnalyzeCategory[];
   hypotheses?: Hypothesis[];
   causalLinks?: CausalLink[];
 }
@@ -168,7 +168,7 @@ export interface ProjectState {
   // Findings and questions (stored here for serialization; feature stores manage editing)
   findings: Finding[];
   questions: Question[];
-  categories: InvestigationCategory[];
+  categories: AnalyzeCategory[];
 }
 
 export interface ProjectActions {
@@ -237,7 +237,7 @@ export interface ProjectActions {
   // Findings and questions
   setFindings: (findings: Finding[]) => void;
   setQuestions: (questions: Question[]) => void;
-  setCategories: (categories: InvestigationCategory[]) => void;
+  setCategories: (categories: AnalyzeCategory[]) => void;
 }
 
 // ============================================================================

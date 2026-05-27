@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { useCanvasHypothesisArrows } from '../useCanvasHypothesisArrows';
 import type { RefObject } from 'react';
-import type { CanvasInvestigationOverlayModel } from '../useCanvasInvestigationOverlays';
+import type { CanvasAnalyzeOverlayModel } from '../useCanvasAnalyzeOverlays';
 
 type ResizeObserverCallback = (entries: ResizeObserverEntry[]) => void;
 
@@ -28,7 +28,7 @@ function makeOverlays(
   fromStepId: string,
   toStepId: string,
   id = 'link-1'
-): CanvasInvestigationOverlayModel {
+): CanvasAnalyzeOverlayModel {
   return {
     byStep: {},
     arrows: [
