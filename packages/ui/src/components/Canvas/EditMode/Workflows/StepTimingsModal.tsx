@@ -252,7 +252,10 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
   const timedCount = fullyBound.length;
   const timedLabel = `${timedCount} ${timedCount === 1 ? 'step' : 'steps'} timed`;
 
+  const isSaveDisabled = timedCount === 0;
+
   const handleSave = () => {
+    if (isSaveDisabled) return;
     onSave(fullyBound);
   };
 
@@ -380,8 +383,12 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
             <button
               type="button"
               onClick={handleSave}
+              disabled={isSaveDisabled}
+              aria-disabled={isSaveDisabled}
               data-testid="step-timings-save"
-              className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className={`px-4 py-2 text-sm bg-blue-500 text-white rounded-lg transition-colors ${
+                isSaveDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
+              }`}
             >
               {`Save · ${timedLabel} →`}
             </button>
@@ -420,7 +427,7 @@ const ByStepTable: React.FC<{
   if (steps.length === 0) {
     return (
       <p className="text-sm text-content-secondary py-6 px-2">
-        Add steps in the Process zone first, then return here to capture their timing.
+        Drop a categorical column into the process zone first to define steps.
       </p>
     );
   }

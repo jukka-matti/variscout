@@ -205,26 +205,28 @@ describe('StepTimingsModal', () => {
       dateProfile('Fill_end'),
     ];
 
-    it('calls onSave with empty array when no rows are bound', () => {
-      // Use profiles that don't match any step name to avoid auto-fill
+    it('does NOT call onSave when Save is disabled (no rows bound)', () => {
+      // Use profiles that don't match any step name to avoid auto-fill → 0 timed → Save disabled
       const { onSave } = renderModal({
         steps,
         dateProfiles: [dateProfile('X_start'), dateProfile('X_end')],
       });
-      fireEvent.click(screen.getByRole('button', { name: /save/i }));
-      expect(onSave).toHaveBeenCalledOnce();
-      expect(onSave).toHaveBeenCalledWith([]);
+      // Save is disabled, clicking it must be a no-op
+      fireEvent.click(screen.getByTestId('step-timings-save'));
+      expect(onSave).not.toHaveBeenCalled();
     });
 
-    it('excludes partially-bound rows (start only)', () => {
+    it('excludes partially-bound rows (start only) — Save stays disabled, onSave not called', () => {
       // Use non-matching profiles so pickers start at '--'
       const nonMatchingProfiles = [dateProfile('Other_start'), dateProfile('Other_end')];
       const { onSave } = renderModal({ steps, dateProfiles: nonMatchingProfiles });
       fireEvent.change(screen.getByTestId('step-timing-row-mix-start'), {
         target: { value: 'Other_start' },
       });
+      // Partial-paired step (start only) counts as 0 timed → Save disabled
+      expect(screen.getByTestId('step-timings-save')).toBeDisabled();
       fireEvent.click(screen.getByRole('button', { name: /save/i }));
-      expect(onSave).toHaveBeenCalledWith([]);
+      expect(onSave).not.toHaveBeenCalled();
     });
 
     it('includes only fully-bound rows in the onSave payload', () => {
@@ -948,6 +950,153 @@ describe('StepTimingsModal', () => {
         target: { value: 'Cycle_time' },
       });
       expect(screen.getByRole('button', { name: /save · 1 step timed →/i })).toBeInTheDocument();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Task 6: Save disabled state + empty-state copy + cancel exclusivity
+  // ---------------------------------------------------------------------------
+
+  describe('save disabled state (Task 6)', () => {
+    const steps = [
+      createTestStep({ id: 'mix', name: 'Mix' }),
+      createTestStep({ id: 'fill', name: 'Fill' }),
+    ];
+
+    it('Save button is disabled when 0 steps timed', () => {
+      // No date profiles → no auto-fill → 0 timed
+      renderModal({ steps, dateProfiles: [] });
+      const saveBtn = screen.getByTestId('step-timings-save');
+      expect(saveBtn).toBeDisabled();
+      expect(saveBtn).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('clicking disabled Save does NOT call onSave when 0 steps timed', () => {
+      const { onSave } = renderModal({ steps, dateProfiles: [] });
+      const saveBtn = screen.getByTestId('step-timings-save');
+      fireEvent.click(saveBtn);
+      expect(onSave).not.toHaveBeenCalled();
+    });
+
+    it('Save button is enabled when 1+ step is timed', () => {
+      renderModal({
+        steps,
+        dateProfiles: [dateProfile('Mix_start'), dateProfile('Mix_end')],
+      });
+      // Mix auto-filled → 1 step timed
+      const saveBtn = screen.getByTestId('step-timings-save');
+      expect(saveBtn).not.toBeDisabled();
+      expect(saveBtn).not.toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('Save is disabled when steps.length === 0 (empty step list)', () => {
+      renderModal({ steps: [] });
+      const saveBtn = screen.getByTestId('step-timings-save');
+      expect(saveBtn).toBeDisabled();
+      expect(saveBtn).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('Save is disabled when partial step only (start set, no end)', () => {
+      const nonMatchingProfiles = [dateProfile('Other_start'), dateProfile('Other_end')];
+      renderModal({ steps, dateProfiles: nonMatchingProfiles });
+      // Set only start for mix (no end)
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-start'), {
+        target: { value: 'Other_start' },
+      });
+      const saveBtn = screen.getByTestId('step-timings-save');
+      expect(saveBtn).toBeDisabled();
+      expect(saveBtn).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('Save becomes enabled after completing a partial step (adding end)', () => {
+      const nonMatchingProfiles = [dateProfile('Other_start'), dateProfile('Other_end')];
+      const { onSave } = renderModal({ steps, dateProfiles: nonMatchingProfiles });
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-start'), {
+        target: { value: 'Other_start' },
+      });
+      // Still disabled
+      expect(screen.getByTestId('step-timings-save')).toBeDisabled();
+      // Complete the pair
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-end'), {
+        target: { value: 'Other_end' },
+      });
+      const saveBtn = screen.getByTestId('step-timings-save');
+      expect(saveBtn).not.toBeDisabled();
+      // Can now save
+      fireEvent.click(saveBtn);
+      expect(onSave).toHaveBeenCalledOnce();
+    });
+
+    it('shows "Save · 0 steps timed →" footer text when 0 timed', () => {
+      renderModal({ steps, dateProfiles: [] });
+      expect(screen.getByRole('button', { name: /save · 0 steps timed →/i })).toBeInTheDocument();
+    });
+
+    it('shows "Save · 1 step timed →" (singular) when 1 step timed', () => {
+      renderModal({
+        steps,
+        dateProfiles: [dateProfile('Mix_start'), dateProfile('Mix_end')],
+      });
+      expect(screen.getByRole('button', { name: /save · 1 step timed →/i })).toBeInTheDocument();
+    });
+
+    it('shows "Save · 3 steps timed →" when 2 paired + 1 duration timed', () => {
+      const steps3 = [
+        createTestStep({ id: 'mix', name: 'Mix' }),
+        createTestStep({ id: 'fill', name: 'Fill' }),
+        createTestStep({ id: 'pack', name: 'Pack' }),
+      ];
+      renderModal({
+        steps: steps3,
+        dateProfiles: [
+          dateProfile('Mix_start'),
+          dateProfile('Mix_end'),
+          dateProfile('Fill_start'),
+          dateProfile('Fill_end'),
+        ],
+        numericProfiles: [numericProfile('Cycle_time')],
+      });
+      // mix + fill auto-filled (paired); add duration for pack
+      fireEvent.change(screen.getByTestId('step-duration-row-pack-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      expect(screen.getByRole('button', { name: /save · 3 steps timed →/i })).toBeInTheDocument();
+    });
+  });
+
+  describe('cancel exclusivity (Task 6)', () => {
+    const steps = [createTestStep({ id: 'mix', name: 'Mix' })];
+
+    it('Cancel button calls onClose WITHOUT calling onSave', () => {
+      const { onSave, onClose } = renderModal({ steps });
+      fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+      expect(onClose).toHaveBeenCalledOnce();
+      expect(onSave).not.toHaveBeenCalled();
+    });
+
+    it('Cancel is distinct from Save — clicking Save does not call onClose', () => {
+      const { onSave, onClose } = renderModal({
+        steps,
+        dateProfiles: [dateProfile('Mix_start'), dateProfile('Mix_end')],
+      });
+      // 1 step timed → Save enabled
+      fireEvent.click(screen.getByTestId('step-timings-save'));
+      expect(onSave).toHaveBeenCalledOnce();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('empty-state copy (Task 6)', () => {
+    it('shows exact empty-state copy when steps.length === 0', () => {
+      renderModal({ steps: [] });
+      expect(
+        screen.getByText('Drop a categorical column into the process zone first to define steps.')
+      ).toBeInTheDocument();
+    });
+
+    it('does NOT show old empty-state copy', () => {
+      renderModal({ steps: [] });
+      expect(screen.queryByText(/add steps in the process zone first/i)).not.toBeInTheDocument();
     });
   });
 });
