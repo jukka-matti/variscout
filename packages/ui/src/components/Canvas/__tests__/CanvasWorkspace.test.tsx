@@ -66,48 +66,95 @@ vi.mock('../../AnalyzeWall', async () => {
   };
 });
 
-vi.mock('@dnd-kit/core', () => ({
-  DndContext: ({
+// `@dnd-kit/core`'s `DndContext` mock fires synthetic chip-drop events to test
+// Canvas's chip→step routing. CanvasWorkspace nests TWO DndContexts in author
+// mode (EditModeShell's outer column→zone routing + Canvas's inner chip→step
+// routing — see EditModeShell.tsx + Canvas/index.tsx). Each context registers
+// its onDragEnd here; the inline test buttons fire to ALL registered handlers,
+// and each handler filters by id pattern (chip:/column: vs step:/zone:) so the
+// double dispatch is safe. Test buttons render only on the outermost mounted
+// DndContext, so `getByTestId` stays unambiguous.
+const dndMockHandlersRef = vi.hoisted(() => ({
+  current: [] as Array<
+    ((event: { active: { id: string }; over: { id: string } | null }) => void) | undefined
+  >,
+}));
+
+const fireDndMockDragEnd = vi.hoisted(
+  () => (event: { active: { id: string }; over: { id: string } | null }) => {
+    for (const handler of dndMockHandlersRef.current) {
+      handler?.(event);
+    }
+  }
+);
+
+vi.mock('@dnd-kit/core', () => {
+  const RenderingDndContext = ({
     children,
     onDragEnd,
   }: {
     children: React.ReactNode;
     onDragEnd?: (event: { active: { id: string }; over: { id: string } | null }) => void;
-  }) => (
-    <div>
-      <button
-        type="button"
-        data-testid="test-drop-bake-time-on-step-1"
-        onClick={() =>
-          onDragEnd?.({ active: { id: 'chip:Bake_Time' }, over: { id: 'step:step-1' } })
-        }
-      >
-        drop Bake_Time on step-1
-      </button>
-      <button
-        type="button"
-        data-testid="test-drop-machine-on-empty-canvas"
-        onClick={() =>
-          onDragEnd?.({ active: { id: 'chip:Machine' }, over: { id: 'canvas:empty' } })
-        }
-      >
-        drop Machine on empty canvas
-      </button>
-      {children}
-    </div>
-  ),
-  useDraggable: () => ({
-    attributes: {},
-    listeners: {},
-    setNodeRef: vi.fn(),
-    transform: null,
-    isDragging: false,
-  }),
-  useDroppable: () => ({
-    setNodeRef: vi.fn(),
-    isOver: false,
-  }),
-}));
+  }) => {
+    // Register this context's onDragEnd against a stable per-instance slot.
+    const slotRef = React.useRef<number | null>(null);
+    if (slotRef.current === null) {
+      slotRef.current = dndMockHandlersRef.current.length;
+      dndMockHandlersRef.current.push(onDragEnd);
+    } else {
+      dndMockHandlersRef.current[slotRef.current] = onDragEnd;
+    }
+    // Render test buttons only inside the FIRST registered DndContext so
+    // `getByTestId` is unambiguous; clicks dispatch to every registered
+    // handler (each filters by id pattern, so cross-context events no-op).
+    if (slotRef.current !== 0) {
+      return <div>{children}</div>;
+    }
+    return (
+      <div>
+        <button
+          type="button"
+          data-testid="test-drop-bake-time-on-step-1"
+          onClick={() =>
+            fireDndMockDragEnd({
+              active: { id: 'chip:Bake_Time' },
+              over: { id: 'step:step-1' },
+            })
+          }
+        >
+          drop Bake_Time on step-1
+        </button>
+        <button
+          type="button"
+          data-testid="test-drop-machine-on-empty-canvas"
+          onClick={() =>
+            fireDndMockDragEnd({
+              active: { id: 'chip:Machine' },
+              over: { id: 'canvas:empty' },
+            })
+          }
+        >
+          drop Machine on empty canvas
+        </button>
+        {children}
+      </div>
+    );
+  };
+  return {
+    DndContext: RenderingDndContext,
+    useDraggable: () => ({
+      attributes: {},
+      listeners: {},
+      setNodeRef: vi.fn(),
+      transform: null,
+      isDragging: false,
+    }),
+    useDroppable: () => ({
+      setNodeRef: vi.fn(),
+      isOver: false,
+    }),
+  };
+});
 
 vi.mock('../internal/LocalMechanismView', async () => {
   const React = await import('react');
@@ -690,6 +737,7 @@ describe('CanvasWorkspace', () => {
     window.history.replaceState(null, '', '/');
     wallIsMobileRef.current = false;
     localMechanismPropsRef.current = null;
+    dndMockHandlersRef.current = [];
     useCanvasStore.setState(useCanvasStore.getInitialState());
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
     vi.mocked(useSharedWallProps).mockClear();

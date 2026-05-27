@@ -20,8 +20,9 @@ export interface FactorDropArgs {
  * Pure drag-end router for column → factor-zone drops.
  *
  * Returns `true` if the drop was consumed (short-circuit downstream routing),
- * `false` otherwise. Invoked by the parent DndContext owner (Canvas/index.tsx)
- * before the chip-drop handler in the routing chain.
+ * `false` otherwise. Invoked from EditModeShell's own `DndContext.onDragEnd`
+ * (routed via `handleEditModeDragEnd`); Canvas keeps a separate inner
+ * DndContext for chip→step routing.
  *
  * Routing:
  *   - `column:<name>` → `factor-zone:global` ⇒ `onFactorControlAdd(name, undefined)`
