@@ -1,4 +1,6 @@
 import React from 'react';
+import type { ColumnParsingProfile } from '@variscout/core/parser';
+import { Palette } from './Palette';
 
 export interface EditModeShellProps {
   /** Called when the user clicks Done to exit Edit mode (returns to State mode). */
@@ -7,9 +9,24 @@ export interface EditModeShellProps {
    *  (StructuralToolbar + ProcessMapBase via Canvas/CanvasWorkspace). C3 will replace
    *  it with the dedicated process-zone authoring surface. */
   children: React.ReactNode;
+  /** Column parsing profiles to render in the palette zone. Defaults to []. */
+  profiles?: ColumnParsingProfile[];
+  /** Raw numeric values per column, for sparklines. Defaults to {}. */
+  numericValuesByColumn?: Record<string, number[]>;
+  /** Forwarded to the palette's ColumnChips. Popover UI ships in B2.3. */
+  onColumnOverrideOpen?: (columnName: string) => void;
+  /** Forwarded to the palette's ColumnChips. Context menu UI ships in B2.3. */
+  onColumnContextMenuOpen?: (columnName: string) => void;
 }
 
-export const EditModeShell: React.FC<EditModeShellProps> = ({ onDone, children }) => {
+export const EditModeShell: React.FC<EditModeShellProps> = ({
+  onDone,
+  children,
+  profiles = [],
+  numericValuesByColumn = {},
+  onColumnOverrideOpen,
+  onColumnContextMenuOpen,
+}) => {
   return (
     <section
       data-testid="edit-mode-shell"
@@ -35,13 +52,18 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({ onDone, children }
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 md:grid-cols-[14rem_18rem_minmax(0,1fr)]">
         <aside
           data-testid="edit-mode-zone-palette"
-          className="flex flex-col rounded-md border border-dashed border-edge bg-surface-primary p-3"
+          className="flex flex-col gap-2 rounded-md border border-dashed border-edge bg-surface-primary p-3"
           aria-label="Palette zone"
         >
           <h3 className="text-xs font-semibold uppercase tracking-wide text-content-tertiary">
             Palette
           </h3>
-          <p className="mt-2 text-xs text-content-secondary">Column chips arrive in B2.</p>
+          <Palette
+            profiles={profiles}
+            numericValuesByColumn={numericValuesByColumn}
+            onColumnOverrideOpen={onColumnOverrideOpen}
+            onColumnContextMenuOpen={onColumnContextMenuOpen}
+          />
         </aside>
 
         <aside
