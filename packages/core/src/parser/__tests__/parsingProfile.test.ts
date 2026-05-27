@@ -247,6 +247,17 @@ describe('profileColumns — ID heuristic', () => {
     const [profile] = profileColumns(rows);
     expect(profile.primary?.kind).toBe('id');
   });
+
+  it('keeps status ok for leading-zero IDs (plain-numeric should not trigger warning)', () => {
+    // '001'..'004' parse both as ID (leading-zero pattern) AND as plain integers
+    // (regex /^\d+$/ matches). The candidate list must NOT promote this to a
+    // 'mixed format' warning — ID intentionally wins. Status stays ok.
+    const rows = [{ Code: '001' }, { Code: '002' }, { Code: '003' }, { Code: '004' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('id');
+    expect(profile.status).toBe('ok');
+    expect(profile.confidence).toBe(100);
+  });
 });
 
 describe('profileColumns — categorical detection', () => {

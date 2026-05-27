@@ -445,7 +445,7 @@ function profileOneColumn(columnName: string, rows: DataRow[]): ColumnParsingPro
   let status: ParsingStatus;
   if (parseRate < 0.7) {
     status = 'warning';
-  } else if (hasRival && !allNumericFullParse) {
+  } else if (hasRival && !allNumericFullParse && top.interpretation.kind !== 'id') {
     status = 'warning';
   } else if (top.interpretation.kind === 'date' && top.interpretation.detail.ambiguous === true) {
     status = 'warning';
