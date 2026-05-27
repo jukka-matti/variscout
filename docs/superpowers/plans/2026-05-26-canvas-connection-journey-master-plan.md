@@ -200,7 +200,7 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 **Dependencies:** A2 (canAccess) recommended so Edit-mode entry is Lead-only-gated; otherwise can proceed.
 
-**Sub-plan needed:** YES.
+**Sub-plan needed:** YES. Delivered: [`2026-05-26-canvas-connection-journey-b1-edit-mode-shell.md`](./2026-05-26-canvas-connection-journey-b1-edit-mode-shell.md).
 
 #### PR-CCJ-B2 · Column chips + palette + parsing UX
 
