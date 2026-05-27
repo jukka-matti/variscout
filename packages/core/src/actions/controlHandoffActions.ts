@@ -1,5 +1,5 @@
 import type { ProcessHub, ProcessParticipantRef } from '../processHub';
-import type { ControlHandoff } from '../sustainment';
+import type { ControlHandoff } from '../control';
 import type { ImprovementProjectSignoff } from '../improvementProject';
 
 export type ControlHandoffAction =

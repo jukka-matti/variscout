@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Finding, Hypothesis, Question } from '../../findings/types';
 import type { ImprovementProject } from '../../improvementProject';
 import type { ProcessHub } from '../../processHub';
-import type { ControlHandoff, SustainmentRecord } from '../../sustainment';
+import type { ControlHandoff, ControlRecord } from '../../control';
 import {
   D13_OVERVIEW_SECTION_TITLES,
   deriveHubPortfolioReport,
@@ -121,7 +121,7 @@ function question(overrides: Partial<Question> = {}): Question {
   } as Question;
 }
 
-function sustainment(overrides: Partial<SustainmentRecord> = {}): SustainmentRecord {
+function sustainment(overrides: Partial<ControlRecord> = {}): ControlRecord {
   return {
     id: 'sus-1',
     investigationId: 'inv-1',
@@ -168,7 +168,7 @@ describe('selectIPReportScope', () => {
       hypotheses: [hypothesis(), hypothesis({ id: 'hyp-other', findingIds: ['find-other'] })],
       findings: [finding(), finding({ id: 'find-other', questionId: undefined })],
       questions: [question(), question({ id: 'q-other', linkedFindingIds: [] })],
-      sustainmentRecords: [
+      controlRecords: [
         sustainment(),
         sustainment({ id: 'sus-other', improvementProjectId: 'ip-other' }),
       ],
@@ -178,7 +178,7 @@ describe('selectIPReportScope', () => {
     expect(scope.hypotheses.map(h => h.id)).toEqual(['hyp-1']);
     expect(scope.findings.map(f => f.id)).toEqual(['find-1']);
     expect(scope.questions.map(q => q.id)).toEqual(['q-1']);
-    expect(scope.sustainmentRecord?.id).toBe('sus-1');
+    expect(scope.controlRecord?.id).toBe('sus-1');
     expect(scope.controlHandoff?.id).toBe('handoff-1');
   });
 });
@@ -193,7 +193,7 @@ describe('deriveIPReportNarrative', () => {
       ],
       findings: [finding()],
       questions: [question()],
-      sustainmentRecord: sustainment(),
+      controlRecord: sustainment(),
       controlHandoff: handoff(),
     });
 
@@ -214,7 +214,7 @@ describe('deriveIPCauseRows', () => {
       hypotheses: [hypothesis()],
       findings: [finding()],
       questions: [question()],
-      sustainmentRecord: sustainment(),
+      controlRecord: sustainment(),
     });
 
     expect(rows).toEqual([
@@ -223,7 +223,7 @@ describe('deriveIPCauseRows', () => {
         title: 'Night shift nozzle drift',
         selectedIdea: 'Retune night recipe',
         actionProgressLabel: '1 of 1 actions done',
-        verificationLabel: 'Sustainment holding · 4 ticks',
+        verificationLabel: 'Control holding · 4 ticks',
       }),
     ]);
   });
@@ -260,7 +260,7 @@ describe('deriveHubPortfolioReport', () => {
           goal: { outcomeGoals: [{ outcomeSpecId: 'out-scrap', target: 1 }] },
         }),
       ],
-      sustainmentRecords: [sustainment()],
+      controlRecords: [sustainment()],
     };
 
     const report = deriveHubPortfolioReport({ hub, now });

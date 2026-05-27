@@ -1,5 +1,5 @@
 import type { ImprovementProject } from '../improvementProject';
-import type { SustainmentRecord } from '../sustainment';
+import type { ControlRecord } from '../control';
 import type { SurveyHint, SurveyRule } from './types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -14,7 +14,7 @@ function projectClosedAt(project: ImprovementProject): number {
   return project.updatedAt ?? project.createdAt;
 }
 
-function isLiveRecord(record: SustainmentRecord): boolean {
+function isLiveRecord(record: ControlRecord): boolean {
   return record.deletedAt === null;
 }
 
@@ -22,10 +22,7 @@ function isLiveProject(project: ImprovementProject): boolean {
   return project.deletedAt === null;
 }
 
-function hasLinkedLiveSustainment(
-  project: ImprovementProject,
-  records: SustainmentRecord[]
-): boolean {
+function hasLinkedLiveSustainment(project: ImprovementProject, records: ControlRecord[]): boolean {
   const referencedRecordId = project.sections.outcomeReference.sustainmentRecordId;
   return records.some(
     record =>
@@ -35,20 +32,20 @@ function hasLinkedLiveSustainment(
   );
 }
 
-function driftSeverity(record: SustainmentRecord): SurveyHint['severity'] | undefined {
+function driftSeverity(record: ControlRecord): SurveyHint['severity'] | undefined {
   if (record.status === 'drifted' || record.latestVerdict === 'broken') return 'critical';
   if (record.latestVerdict === 'drifting') return 'warning';
   return undefined;
 }
 
-function driftMessage(record: SustainmentRecord, severity: SurveyHint['severity']): string {
+function driftMessage(record: ControlRecord, severity: SurveyHint['severity']): string {
   if (severity === 'critical') return `${record.title} drift detected`;
   return `${record.title} is drifting`;
 }
 
 export const surveySustainmentRules: SurveyRule = ctx => {
   const hints: SurveyHint[] = [];
-  const records = ctx.sustainmentRecords ?? [];
+  const records = ctx.controlRecords ?? [];
   const projects = ctx.improvementProjects ?? [];
 
   for (const record of records.filter(isLiveRecord)) {

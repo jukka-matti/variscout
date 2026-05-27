@@ -6,7 +6,7 @@ import {
 } from '../processHub';
 import { buildCurrentProcessState } from '../processState';
 import type { EvidenceSnapshot, ProcessHub, ProjectMetadata } from '../index';
-import type { ControlHandoff, SustainmentRecord } from '../sustainment';
+import type { ControlHandoff, ControlRecord } from '../control';
 
 function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata {
   return {
@@ -176,7 +176,7 @@ describe('buildCurrentProcessState', () => {
         ],
       },
     ];
-    const sustainmentRecords: SustainmentRecord[] = [
+    const controlRecords: ControlRecord[] = [
       {
         id: 'rec-1',
         title: 'Sustain resolved-1 gains',
@@ -196,7 +196,7 @@ describe('buildCurrentProcessState', () => {
     const controlHandoffs: ControlHandoff[] = [];
     const [rollup] = buildProcessHubRollups(hubs, investigations, {
       evidenceSnapshots,
-      sustainmentRecords,
+      controlRecords,
       controlHandoffs,
     });
     const cadence = buildProcessHubCadence(rollup, now);

@@ -12,7 +12,7 @@ import {
 } from '../processHub';
 import type { ProcessHub, ProjectMetadata } from '../index';
 import type { EvidenceSnapshot } from '../evidenceSources';
-import type { ControlHandoff, SustainmentRecord } from '../sustainment';
+import type { ControlHandoff, ControlRecord } from '../control';
 
 function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata {
   return {
@@ -478,7 +478,7 @@ describe('buildProcessHubCadence', () => {
       },
       {
         id: 'sustain-1',
-        name: 'Sustainment candidate',
+        name: 'Control candidate',
         updatedAt: 1777168800000,
         createdAt: 1777168800000,
         deletedAt: null,
@@ -490,7 +490,7 @@ describe('buildProcessHubCadence', () => {
         }),
       },
     ];
-    const sustainmentRecords: SustainmentRecord[] = [
+    const controlRecords: ControlRecord[] = [
       {
         id: 'rec-sustain-1',
         title: 'Sustain fill-weight gains',
@@ -509,7 +509,7 @@ describe('buildProcessHubCadence', () => {
     ];
     const now = new Date('2026-04-26T12:00:00.000Z');
     const [rollup] = buildProcessHubRollups(hubs, investigations, {
-      sustainmentRecords,
+      controlRecords,
       controlHandoffs: [],
     });
 
@@ -723,7 +723,7 @@ describe('buildProcessHubCadence — sustainment lane', () => {
         }),
       },
     ];
-    const sustainmentRecords: SustainmentRecord[] = [
+    const controlRecords: ControlRecord[] = [
       {
         id: 'rec-due',
         title: 'Sustain fill-weight gains (due)',
@@ -758,7 +758,7 @@ describe('buildProcessHubCadence — sustainment lane', () => {
     const controlHandoffs: ControlHandoff[] = [];
 
     const [rollup] = buildProcessHubRollups(hubs, investigations, {
-      sustainmentRecords,
+      controlRecords,
       controlHandoffs,
     });
     const cadence = buildProcessHubCadence(rollup, now);
@@ -1145,7 +1145,7 @@ describe('buildProcessHubContext — sustainment', () => {
         metadata: makeMetadata({ processHubId: 'hub-1', analyzeStatus: 'resolved' }),
       },
     ];
-    const sustainmentRecords: SustainmentRecord[] = [
+    const controlRecords: ControlRecord[] = [
       {
         id: 'rec-1',
         title: 'Sustain fill-weight gains',
@@ -1165,7 +1165,7 @@ describe('buildProcessHubContext — sustainment', () => {
     ];
 
     const [rollup] = buildProcessHubRollups(hubs, investigations, {
-      sustainmentRecords,
+      controlRecords,
       controlHandoffs: [],
     });
     const context = buildProcessHubContext(rollup, now);

@@ -10,7 +10,7 @@ import type {
 import type { EvidenceSnapshot } from './evidenceSources';
 import type { ImprovementProjectGoal, ImprovementProjectSignoff } from './improvementProject';
 
-export type SustainmentCadence =
+export type ControlCadence =
   | 'weekly'
   | 'biweekly'
   | 'monthly'
@@ -19,8 +19,8 @@ export type SustainmentCadence =
   | 'annual'
   | 'on-demand';
 
-export type SustainmentVerdict = 'holding' | 'drifting' | 'broken' | 'inconclusive';
-export type SustainmentStatus = 'pending' | 'confirmed-sustained' | 'drifted';
+export type ControlVerdict = 'holding' | 'drifting' | 'broken' | 'inconclusive';
+export type ControlStatus = 'pending' | 'confirmed-sustained' | 'drifted';
 export type ControlHandoffStatus = 'pending' | 'acknowledged' | 'operational';
 
 export type ControlHandoffSurface =
@@ -34,14 +34,14 @@ export type ControlHandoffSurface =
   | 'ticket-queue'
   | 'other';
 
-export interface SustainmentRecord extends EntityBase {
+export interface ControlRecord extends EntityBase {
   // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null)
   // deletedAt replaces the former tombstoneAt field (renamed 2026-05-06, P1.4b).
   // Set to a non-null number when the investigation leaves SUSTAINMENT_STATUSES;
   // record is archived but readable.
   investigationId: ProcessHubAnalyze['id'];
   hubId: ProcessHub['id'];
-  status: SustainmentStatus;
+  status: ControlStatus;
   title: string;
   improvementProjectId?: string;
   goal?: ImprovementProjectGoal;
@@ -49,37 +49,37 @@ export interface SustainmentRecord extends EntityBase {
   consecutiveOnTargetTicks: number;
   hasOverride: boolean;
   lastEvaluatedSnapshotId: EvidenceSnapshot['id'] | undefined;
-  cadence: SustainmentCadence;
+  cadence: ControlCadence;
   nextReviewDue?: string;
-  latestVerdict?: SustainmentVerdict;
+  latestVerdict?: ControlVerdict;
   latestReviewAt?: string;
-  latestReviewId?: SustainmentReview['id'];
+  latestReviewId?: ControlReview['id'];
   owner?: ProcessParticipantRef;
   openConcerns?: string;
   controlHandoffId?: ControlHandoff['id'];
   updatedAt: number;
 }
 
-export interface SustainmentSnapshotEvaluation {
-  verdict: SustainmentVerdict;
+export interface ControlSnapshotEvaluation {
+  verdict: ControlVerdict;
   onTarget: boolean | null;
   actionableSignalCount: number;
   nextConsecutiveOnTargetTicks: number;
-  nextStatus: SustainmentStatus;
+  nextStatus: ControlStatus;
   observation: string;
 }
 
-export interface SustainmentReview extends EntityBase {
+export interface ControlReview extends EntityBase {
   // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null).
   // createdAt == reviewedAt at construction (both set to Date.now() when the review is logged).
   // reviewedAt is the domain field for "when was this review conducted";
   // createdAt is the EntityBase lifecycle field. They are set to the same value at creation.
-  recordId: SustainmentRecord['id'];
+  recordId: ControlRecord['id'];
   investigationId: ProcessHubAnalyze['id'];
   hubId: ProcessHub['id'];
   reviewedAt: number;
   reviewer: ProcessParticipantRef;
-  verdict: SustainmentVerdict;
+  verdict: ControlVerdict;
   snapshotId?: EvidenceSnapshot['id'];
   observation?: string;
   escalatedInvestigationId?: ProcessHubAnalyze['id'];
@@ -114,29 +114,29 @@ export interface ControlHandoff extends EntityBase {
 
 export interface SustainmentMetadataProjection {
   recordId: string;
-  cadence: SustainmentCadence;
+  cadence: ControlCadence;
   nextReviewDue?: string;
-  latestVerdict?: SustainmentVerdict;
+  latestVerdict?: ControlVerdict;
   handoffSurface?: ControlHandoffSurface;
 }
 
-function normalizedSustainmentStatus(record: SustainmentRecord): SustainmentStatus {
+function normalizedSustainmentStatus(record: ControlRecord): ControlStatus {
   return record.status ?? 'pending';
 }
 
-function normalizedConsecutiveOnTargetTicks(record: SustainmentRecord): number {
+function normalizedConsecutiveOnTargetTicks(record: ControlRecord): number {
   const ticks = record.consecutiveOnTargetTicks ?? 0;
   return Number.isFinite(ticks) && ticks > 0 ? Math.floor(ticks) : 0;
 }
 
-function normalizedHasOverride(record: SustainmentRecord): boolean {
+function normalizedHasOverride(record: ControlRecord): boolean {
   return record.hasOverride === true;
 }
 
 export function evaluateSustainmentSnapshot(
-  record: SustainmentRecord,
+  record: ControlRecord,
   snapshot: EvidenceSnapshot
-): SustainmentSnapshotEvaluation {
+): ControlSnapshotEvaluation {
   const currentTicks = normalizedConsecutiveOnTargetTicks(record);
   const currentStatus = normalizedSustainmentStatus(record);
   const actionableSignals = (snapshot.latestSignals ?? []).filter(
@@ -179,18 +179,18 @@ export function evaluateSustainmentSnapshot(
     nextStatus,
     observation:
       nextStatus === 'confirmed-sustained'
-        ? 'Sustainment target held for four consecutive ticks.'
+        ? 'Control target held for four consecutive ticks.'
         : 'All actionable sustainment signals are on target.',
   };
 }
 
 export function applySustainmentTick(
-  record: SustainmentRecord,
+  record: ControlRecord,
   snapshot: EvidenceSnapshot,
   now: number = Date.now()
-): { record: SustainmentRecord; review: SustainmentReview } {
+): { record: ControlRecord; review: ControlReview } {
   const evaluation = evaluateSustainmentSnapshot(record, snapshot);
-  const nextRecord: SustainmentRecord = {
+  const nextRecord: ControlRecord = {
     ...record,
     status: evaluation.nextStatus,
     consecutiveOnTargetTicks: evaluation.nextConsecutiveOnTargetTicks,
@@ -201,7 +201,7 @@ export function applySustainmentTick(
     updatedAt: now,
   };
 
-  const review: SustainmentReview = {
+  const review: ControlReview = {
     id: `${record.id}:${snapshot.id}:review`,
     recordId: record.id,
     investigationId: record.investigationId,
@@ -233,7 +233,7 @@ export function applySustainmentTick(
  * Callers that want start-of-day semantics should normalise the anchor
  * before calling.
  */
-export function nextDueFromCadence(cadence: SustainmentCadence, anchor: Date): string | undefined {
+export function nextDueFromCadence(cadence: ControlCadence, anchor: Date): string | undefined {
   if (cadence === 'on-demand') return undefined;
   const result = new Date(anchor.getTime());
   switch (cadence) {
@@ -280,7 +280,7 @@ function addMonthsClamped(date: Date, months: number): void {
  * Returns true when a sustainment record's next review is at or before `now`.
  * Soft-deleted records (deletedAt !== null; formerly tombstoneAt) are never due.
  */
-export function isSustainmentDue(record: SustainmentRecord, now: Date): boolean {
+export function isSustainmentDue(record: ControlRecord, now: Date): boolean {
   if (record.deletedAt !== null) return false;
   if (!record.nextReviewDue) return false;
   return new Date(record.nextReviewDue).getTime() <= now.getTime();
@@ -292,7 +292,7 @@ export function isSustainmentDue(record: SustainmentRecord, now: Date): boolean 
  * overdue — the cliff is exclusive. Soft-deleted records are never overdue.
  */
 export function isSustainmentOverdue(
-  record: SustainmentRecord,
+  record: ControlRecord,
   now: Date,
   graceDays: number = 0
 ): boolean {
@@ -327,7 +327,7 @@ function buildSustainmentReviewItem<TInv extends ProcessHubAnalyze>(
  */
 export function selectSustainmentReviews<TInv extends ProcessHubAnalyze>(
   investigations: TInv[],
-  records: SustainmentRecord[],
+  records: ControlRecord[],
   handoffs: ControlHandoff[],
   now: Date
 ): ProcessHubReviewItem<TInv>[] {
@@ -370,7 +370,7 @@ export interface SustainmentBucketOptions {
 
 export function selectSustainmentBuckets<TInv extends ProcessHubAnalyze>(
   investigations: TInv[],
-  records: SustainmentRecord[],
+  records: ControlRecord[],
   handoffs: ControlHandoff[],
   now: Date,
   options: SustainmentBucketOptions = {}
@@ -421,7 +421,7 @@ function safePathSegment(value: string): string {
   return value.replace(/^\/+|\/+$/g, '').replace(/\.\./g, '');
 }
 
-export function sustainmentRecordBlobPath(hubId: string, recordId: string): string {
+export function controlRecordBlobPath(hubId: string, recordId: string): string {
   return [
     'process-hubs',
     safePathSegment(hubId),
@@ -431,11 +431,7 @@ export function sustainmentRecordBlobPath(hubId: string, recordId: string): stri
   ].join('/');
 }
 
-export function sustainmentReviewBlobPath(
-  hubId: string,
-  recordId: string,
-  reviewId: string
-): string {
+export function controlReviewBlobPath(hubId: string, recordId: string, reviewId: string): string {
   return [
     'process-hubs',
     safePathSegment(hubId),
@@ -456,6 +452,6 @@ export function controlHandoffBlobPath(hubId: string, handoffId: string): string
   ].join('/');
 }
 
-export function sustainmentCatalogPath(hubId: string): string {
+export function controlCatalogPath(hubId: string): string {
   return ['process-hubs', safePathSegment(hubId), 'sustainment', '_index.json'].join('/');
 }

@@ -11,8 +11,8 @@ export type {
   HypothesisReadAPI,
   CanvasStateReadAPI,
   ActionItemReadAPI,
-  SustainmentRecordReadAPI,
-  SustainmentReviewReadAPI,
+  ControlRecordReadAPI,
+  ControlReviewReadAPI,
   ControlHandoffReadAPI,
   MeasurementPlanReadAPI,
 } from './HubRepository';

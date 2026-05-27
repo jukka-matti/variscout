@@ -519,19 +519,19 @@ export type { LinkFindingsResult } from './processEvidence';
 export { deriveResponsePathAction } from './responsePathAction';
 export type { ResponsePathAction } from './responsePathAction';
 
-// Sustainment (Phase 6)
+// Control (Phase 6)
 export type {
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
   ControlHandoff,
   ControlHandoffStatus,
-  SustainmentCadence,
-  SustainmentVerdict,
+  ControlCadence,
+  ControlVerdict,
   ControlHandoffSurface,
   SustainmentMetadataProjection,
   SustainmentBuckets,
   SustainmentBucketOptions,
-} from './sustainment';
+} from './control';
 export {
   applySustainmentTick,
   nextDueFromCadence,
@@ -539,11 +539,11 @@ export {
   isSustainmentOverdue,
   selectSustainmentReviews,
   selectSustainmentBuckets,
-  sustainmentRecordBlobPath,
-  sustainmentReviewBlobPath,
+  controlRecordBlobPath,
+  controlReviewBlobPath,
   controlHandoffBlobPath,
-  sustainmentCatalogPath,
-} from './sustainment';
+  controlCatalogPath,
+} from './control';
 
 // Survey evaluator (QDE 2.0 foundation)
 export { evaluateSurvey, SURVEY_RECOMMENDATION_KIND_LABELS, SURVEY_STATUS_LABELS } from './survey';

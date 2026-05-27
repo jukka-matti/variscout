@@ -18,7 +18,7 @@ import {
   type ProcessHubProcessMapSummary,
   type ProcessHubSurveyReadinessSummary,
 } from './processHub';
-import type { SustainmentMetadataProjection } from './sustainment';
+import type { SustainmentMetadataProjection } from './control';
 import type { ProcessStateNote } from './processStateNote';
 
 export interface ProjectMetadata {
@@ -69,7 +69,7 @@ export interface ProjectMetadata {
   nextMove?: string;
   /** Latest lightweight review signal shown on Process Hub cards. */
   reviewSignal?: HubReviewSignal;
-  /** Lightweight projection of the active SustainmentRecord for this project. */
+  /** Lightweight projection of the active ControlRecord for this project. */
   sustainment?: SustainmentMetadataProjection;
   /**
    * Team notes for current-state items, copied from processContext.stateNotes

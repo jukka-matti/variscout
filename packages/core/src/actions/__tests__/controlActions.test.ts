@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { HubAction } from '../HubAction';
-import type { SustainmentAction } from '../sustainmentActions';
+import type { ControlAction } from '../controlActions';
 
-describe('SustainmentAction', () => {
+describe('ControlAction', () => {
   it('covers all sustainment action kinds and is included in HubAction', () => {
-    const create: SustainmentAction = {
+    const create: ControlAction = {
       kind: 'SUSTAINMENT_RECORD_CREATE',
       hubId: 'hub-1',
       record: {
@@ -22,24 +22,24 @@ describe('SustainmentAction', () => {
         deletedAt: null,
       },
     };
-    const update: SustainmentAction = {
+    const update: ControlAction = {
       kind: 'SUSTAINMENT_RECORD_UPDATE',
       recordId: 'sustainment-1',
       patch: { targetSummary: 'Cpk >= 1.33' },
     };
-    const archive: SustainmentAction = {
+    const archive: ControlAction = {
       kind: 'SUSTAINMENT_RECORD_ARCHIVE',
       recordId: 'sustainment-1',
     };
-    const confirm: SustainmentAction = {
+    const confirm: ControlAction = {
       kind: 'SUSTAINMENT_CONFIRM',
       recordId: 'sustainment-1',
     };
-    const drifted: SustainmentAction = {
+    const drifted: ControlAction = {
       kind: 'SUSTAINMENT_MARK_DRIFTED',
       recordId: 'sustainment-1',
     };
-    const tick: SustainmentAction = {
+    const tick: ControlAction = {
       kind: 'SUSTAINMENT_TICK_EVALUATED',
       record: create.record,
       review: {

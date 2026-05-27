@@ -10,7 +10,7 @@ import type { HubMetaAction } from './hubMetaActions';
 import type { CanvasAction } from './canvasActions';
 import type { ImprovementProjectAction } from './improvementProjectActions';
 import type { ActionItemAction } from './actionItemActions';
-import type { SustainmentAction } from './sustainmentActions';
+import type { ControlAction } from './controlActions';
 import type { ControlHandoffAction } from './controlHandoffActions';
 import type { MeasurementPlanAction } from '../measurementPlan/actions';
 
@@ -32,6 +32,6 @@ export type HubAction =
   | CanvasAction
   | ImprovementProjectAction
   | ActionItemAction
-  | SustainmentAction
+  | ControlAction
   | ControlHandoffAction
   | MeasurementPlanAction;

@@ -274,7 +274,7 @@ export function buildCurrentProcessState<TInvestigation extends ProcessHubAnalyz
       severity: 'amber',
       responsePath: 'sustainment-review',
       source: 'sustainment',
-      label: 'Sustainment review due',
+      label: 'Control review due',
       count: sustainmentReviewItems.length,
       investigationIds: sustainmentReviewItems.map(item => item.investigation.id),
     });

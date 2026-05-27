@@ -23,9 +23,9 @@ import {
   selectSustainmentReviews,
   type ControlHandoff,
   type SustainmentMetadataProjection,
-  type SustainmentRecord,
-  type SustainmentVerdict,
-} from './sustainment';
+  type ControlRecord,
+  type ControlVerdict,
+} from './control';
 
 export { buildReviewItem } from './processHubReview';
 export { isCharterReady, isSustainmentReady } from './responsePathReadiness';
@@ -153,13 +153,13 @@ export interface ProcessHub extends EntityBase {
    */
   improvementProjects?: import('./improvementProject').ImprovementProject[];
   /**
-   * Sustainment entities owned by this hub. In-memory hydrated lists, loaded
+   * Control entities owned by this hub. In-memory hydrated lists, loaded
    * by HubRepository reads from normalized tables. Mutations flow through
    * `SUSTAINMENT_*` / `CONTROL_HANDOFF_*` HubAction kinds; persistence must
    * decompose these out of hub rows before writing.
    */
-  sustainmentRecords?: SustainmentRecord[];
-  sustainmentReviews?: import('./sustainment').SustainmentReview[];
+  controlRecords?: ControlRecord[];
+  controlReviews?: import('./sustainment').ControlReview[];
   controlHandoffs?: import('./sustainment').ControlHandoff[];
 }
 
@@ -229,7 +229,7 @@ export interface ProcessHubAnalyzeMetadata {
    */
   stateNotes?: ProcessStateNote[];
   /**
-   * Lightweight projection of the active SustainmentRecord for this investigation,
+   * Lightweight projection of the active ControlRecord for this investigation,
    * surfaced on the hub for cadence rendering without re-querying the records list.
    * The cycle between processHub.ts and sustainment.ts is broken by `import type`,
    * which is erased at compile time and produces no runtime dependency.
@@ -295,7 +295,7 @@ export interface ProcessHubRollup<TInvestigation extends ProcessHubAnalyze = Pro
   nextMove?: string;
   reviewSignal?: HubReviewSignal;
   evidenceSnapshots: EvidenceSnapshot[];
-  sustainmentRecords: SustainmentRecord[];
+  controlRecords: ControlRecord[];
   controlHandoffs: ControlHandoff[];
 }
 
@@ -466,7 +466,7 @@ export interface ProcessHubContextContract {
     candidates: number;
     due: number;
     overdue: number;
-    verdicts: Partial<Record<SustainmentVerdict, number>>;
+    verdicts: Partial<Record<ControlVerdict, number>>;
   };
   currentState: {
     overallSeverity: ProcessStateSeverity;
@@ -553,7 +553,7 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubAnalyze>
   investigations: TInvestigation[],
   options: {
     evidenceSnapshots?: EvidenceSnapshot[];
-    sustainmentRecords?: SustainmentRecord[];
+    controlRecords?: ControlRecord[];
     controlHandoffs?: ControlHandoff[];
   } = {}
 ): ProcessHubRollup<TInvestigation>[] {
@@ -582,8 +582,8 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubAnalyze>
     grouped.set(hubId, [...(grouped.get(hubId) ?? []), investigation]);
   }
 
-  const groupedSustainment = new Map<string, SustainmentRecord[]>();
-  for (const record of options.sustainmentRecords ?? []) {
+  const groupedSustainment = new Map<string, ControlRecord[]>();
+  for (const record of options.controlRecords ?? []) {
     const hubId = normalizeProcessHubId(record.hubId);
     groupedSustainment.set(hubId, [...(groupedSustainment.get(hubId) ?? []), record]);
   }
@@ -628,7 +628,7 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubAnalyze>
       const evidenceSnapshots = (options.evidenceSnapshots ?? [])
         .filter(snapshot => normalizeProcessHubId(snapshot.hubId) === hub.id)
         .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
-      const sustainmentRecords = groupedSustainment.get(hub.id) ?? [];
+      const controlRecords = groupedSustainment.get(hub.id) ?? [];
       const controlHandoffs = groupedHandoffs.get(hub.id) ?? [];
 
       return {
@@ -648,7 +648,7 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubAnalyze>
         // when no hub-level signal exists.
         reviewSignal: hub.reviewSignal ?? reviewSignalSource?.metadata?.reviewSignal,
         evidenceSnapshots,
-        sustainmentRecords,
+        controlRecords,
         controlHandoffs,
       };
     })
@@ -879,16 +879,16 @@ export function buildProcessHubCadence<TInvestigation extends ProcessHubAnalyze>
   const review = buildProcessHubReview(rollup);
   const latestEvidenceSignals = evidenceSignals(rollup);
 
-  const sustainmentReviews = selectSustainmentReviews(
+  const controlReviews = selectSustainmentReviews(
     rollup.investigations,
-    rollup.sustainmentRecords,
+    rollup.controlRecords,
     rollup.controlHandoffs,
     now
   );
-  const sustainmentItems = [...sustainmentReviews];
+  const sustainmentItems = [...controlReviews];
   const sustainmentBuckets = selectSustainmentBuckets(
     rollup.investigations,
-    rollup.sustainmentRecords,
+    rollup.controlRecords,
     rollup.controlHandoffs,
     now
   );
@@ -942,14 +942,14 @@ function firstDefined<T>(values: T[]): T | undefined {
 }
 
 function buildSustainmentSummary(
-  records: SustainmentRecord[],
+  records: ControlRecord[],
   now: Date,
   candidates: number
 ): ProcessHubContextContract['sustainment'] {
   const liveRecords = records.filter(record => record.deletedAt === null);
   const due = liveRecords.filter(record => isSustainmentDue(record, now)).length;
   const overdue = liveRecords.filter(record => isSustainmentOverdue(record, now, 0)).length;
-  const verdicts: Partial<Record<SustainmentVerdict, number>> = {};
+  const verdicts: Partial<Record<ControlVerdict, number>> = {};
   for (const record of liveRecords) {
     if (record.latestVerdict) {
       verdicts[record.latestVerdict] = (verdicts[record.latestVerdict] ?? 0) + 1;
@@ -1075,7 +1075,7 @@ export function buildProcessHubContext<TInvestigation extends ProcessHubAnalyze>
       waiting: review.verificationQueue.length,
     },
     sustainment: buildSustainmentSummary(
-      rollup.sustainmentRecords,
+      rollup.controlRecords,
       now,
       review.sustainmentQueue.length
     ),

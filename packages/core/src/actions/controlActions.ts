@@ -1,38 +1,38 @@
 import type { EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessHub } from '../processHub';
-import type { SustainmentRecord, SustainmentReview } from '../sustainment';
+import type { ControlRecord, ControlReview } from '../control';
 
-export type SustainmentAction =
+export type ControlAction =
   | {
       kind: 'SUSTAINMENT_RECORD_CREATE';
       hubId: ProcessHub['id'];
-      record: SustainmentRecord;
+      record: ControlRecord;
     }
   | {
       kind: 'SUSTAINMENT_RECORD_UPDATE';
-      recordId: SustainmentRecord['id'];
+      recordId: ControlRecord['id'];
       patch: Partial<
         Omit<
-          SustainmentRecord,
+          ControlRecord,
           'id' | 'createdAt' | 'hubId' | 'investigationId' | 'updatedAt' | 'deletedAt'
         >
       >;
     }
   | {
       kind: 'SUSTAINMENT_RECORD_ARCHIVE';
-      recordId: SustainmentRecord['id'];
+      recordId: ControlRecord['id'];
     }
   | {
       kind: 'SUSTAINMENT_CONFIRM';
-      recordId: SustainmentRecord['id'];
+      recordId: ControlRecord['id'];
     }
   | {
       kind: 'SUSTAINMENT_MARK_DRIFTED';
-      recordId: SustainmentRecord['id'];
+      recordId: ControlRecord['id'];
     }
   | {
       kind: 'SUSTAINMENT_TICK_EVALUATED';
-      record: SustainmentRecord;
-      review: SustainmentReview;
+      record: ControlRecord;
+      review: ControlReview;
       snapshotId?: EvidenceSnapshot['id'];
     };

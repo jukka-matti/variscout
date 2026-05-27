@@ -34,8 +34,8 @@ import type {
   EvidenceSource,
   EvidenceSourceCursor,
   RowProvenanceTag,
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
   ControlHandoff,
 } from '@variscout/core';
 import type {
@@ -65,11 +65,7 @@ export interface MetaRow {
  */
 export type HubRow = Omit<
   ProcessHub,
-  | 'outcomes'
-  | 'canonicalProcessMap'
-  | 'sustainmentRecords'
-  | 'sustainmentReviews'
-  | 'controlHandoffs'
+  'outcomes' | 'canonicalProcessMap' | 'controlRecords' | 'controlReviews' | 'controlHandoffs'
 >;
 
 /**
@@ -98,8 +94,8 @@ export type CausalLinkRow = CausalLink;
 export type HypothesisRow = Hypothesis;
 export type ImprovementProjectRow = ImprovementProject;
 export type ActionItemRow = ActionItem & { hubId: ProcessHub['id'] };
-export type SustainmentRecordRow = SustainmentRecord;
-export type SustainmentReviewRow = SustainmentReview;
+export type ControlRecordRow = ControlRecord;
+export type ControlReviewRow = ControlReview;
 export type ControlHandoffRow = ControlHandoff;
 export type MeasurementPlanRow = MeasurementPlan;
 
@@ -121,8 +117,8 @@ export class PwaDatabase extends Dexie {
   hypotheses!: Table<HypothesisRow, string>;
   improvementProjects!: Table<ImprovementProjectRow, string>;
   actionItems!: Table<ActionItemRow, string>;
-  sustainmentRecords!: Table<SustainmentRecordRow, string>;
-  sustainmentReviews!: Table<SustainmentReviewRow, string>;
+  controlRecords!: Table<ControlRecordRow, string>;
+  controlReviews!: Table<ControlReviewRow, string>;
   controlHandoffs!: Table<ControlHandoffRow, string>;
   canvasState!: Table<CanvasStateRow, string>;
   meta!: Table<MetaRow, string>;
@@ -151,8 +147,8 @@ export class PwaDatabase extends Dexie {
         '&id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
     });
     this.version(3).stores({
-      sustainmentRecords: '&id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
-      sustainmentReviews: '&id, recordId, investigationId, hubId, reviewedAt',
+      controlRecords: '&id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
+      controlReviews: '&id, recordId, investigationId, hubId, reviewedAt',
     });
     this.version(4).stores({
       controlHandoffs: '&id, investigationId, hubId, status, handoffDate, deletedAt',
@@ -160,6 +156,19 @@ export class PwaDatabase extends Dexie {
     // Version 5: PR-WV1-3 — MeasurementPlan dedicated table for Investigation Wall plans.
     this.version(5).stores({
       measurementPlans: '&id, hypothesisId, status, deletedAt',
+    });
+
+    // Version 6: PR-WV1-NAV — Sustainment → Control vocabulary rename.
+    // Renames Dexie tables: 'sustainmentRecords' → 'controlRecords',
+    //                       'sustainmentReviews' → 'controlReviews'.
+    // Per wedge V1 no-back-compat policy (feedback_wedge_v1_no_migration_no_backcompat),
+    // NO upgrade callback is provided — existing v5 rows in the old tables become
+    // unreachable. Accepted because wedge V1 has no real users yet.
+    this.version(6).stores({
+      sustainmentRecords: null, // drop old table
+      sustainmentReviews: null, // drop old table
+      controlRecords: '&id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
+      controlReviews: '&id, recordId, investigationId, hubId, reviewedAt',
     });
   }
 }

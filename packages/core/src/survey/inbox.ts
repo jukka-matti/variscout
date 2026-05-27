@@ -1,5 +1,5 @@
 import { surveyHandoffRules } from './handoff';
-import { surveySustainmentRules } from './sustainment';
+import { surveySustainmentRules } from './control';
 import type { SurveyContext, SurveyHint } from './types';
 
 export interface SurveyInboxPrompt {

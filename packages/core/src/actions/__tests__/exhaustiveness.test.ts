@@ -101,7 +101,7 @@ function _exhaustive(action: HubAction): void {
     // Action Item
     case 'ACTION_ITEM_ADD':
       return;
-    // Sustainment
+    // Control
     case 'SUSTAINMENT_RECORD_CREATE':
       return;
     case 'SUSTAINMENT_RECORD_UPDATE':

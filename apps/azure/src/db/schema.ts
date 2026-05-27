@@ -49,8 +49,8 @@ export class VariScoutDatabase extends Dexie {
   processHubs!: Dexie.Table<ProcessHubRecord, string>;
   evidenceSources!: Dexie.Table<EvidenceSourceRecord, string>;
   evidenceSnapshots!: Dexie.Table<EvidenceSnapshotRecord, string>;
-  sustainmentRecords!: Dexie.Table<import('@variscout/core').SustainmentRecord, string>;
-  sustainmentReviews!: Dexie.Table<import('@variscout/core').SustainmentReview, string>;
+  controlRecords!: Dexie.Table<import('@variscout/core').ControlRecord, string>;
+  controlReviews!: Dexie.Table<import('@variscout/core').ControlReview, string>;
   controlHandoffs!: Dexie.Table<import('@variscout/core').ControlHandoff, string>;
   evidenceSourceCursors!: Dexie.Table<EvidenceSourceCursor, [string, string]>;
   improvementProjects!: Dexie.Table<ImprovementProjectRecord, string>;
@@ -116,8 +116,8 @@ export class VariScoutDatabase extends Dexie {
       processHubs: 'id, name, updatedAt',
       evidenceSources: 'id, hubId, name, profileId, updatedAt',
       evidenceSnapshots: 'id, hubId, sourceId, capturedAt',
-      sustainmentRecords: 'id, investigationId, hubId, nextReviewDue, updatedAt, tombstoneAt',
-      sustainmentReviews: 'id, recordId, investigationId, hubId, reviewedAt',
+      controlRecords: 'id, investigationId, hubId, nextReviewDue, updatedAt, tombstoneAt',
+      controlReviews: 'id, recordId, investigationId, hubId, reviewedAt',
       controlHandoffs: 'id, investigationId, hubId, handoffDate',
     });
 
@@ -138,14 +138,14 @@ export class VariScoutDatabase extends Dexie {
     });
 
     // Version 9: F1 data-flow foundation — P1.4b.
-    // sustainmentRecords: rename indexed field tombstoneAt → deletedAt (EntityBase alignment).
+    // controlRecords: rename indexed field tombstoneAt → deletedAt (EntityBase alignment).
     // All timestamps (createdAt, updatedAt, deletedAt) are now Unix ms numbers.
     this.version(9).stores({
-      sustainmentRecords: 'id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
+      controlRecords: 'id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
     });
 
     // Version 10: PR-RPS-5 — ImprovementProject dedicated table.
-    // Mirrors the sustainmentRecords pattern (dedicated table per entity, hubId-indexed).
+    // Mirrors the controlRecords pattern (dedicated table per entity, hubId-indexed).
     // No upgrade callback needed — new empty table; existing data unaffected.
     this.version(10).stores({
       improvementProjects: 'id, hubId, deletedAt, status, updatedAt',
@@ -160,6 +160,19 @@ export class VariScoutDatabase extends Dexie {
     // Version 12: PR-WV1-3 — MeasurementPlan dedicated table for Investigation Wall plans.
     this.version(12).stores({
       measurementPlans: 'id, hypothesisId, status, deletedAt',
+    });
+
+    // Version 13: PR-WV1-NAV — Sustainment → Control vocabulary rename.
+    // Renames Dexie tables: 'sustainmentRecords' → 'controlRecords',
+    //                       'sustainmentReviews' → 'controlReviews'.
+    // Per wedge V1 no-back-compat policy (feedback_wedge_v1_no_migration_no_backcompat),
+    // NO upgrade callback is provided — existing v12 rows in the old tables become
+    // unreachable. Accepted because wedge V1 has no real Azure customers yet.
+    this.version(13).stores({
+      sustainmentRecords: null, // drop old table
+      sustainmentReviews: null, // drop old table
+      controlRecords: 'id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
+      controlReviews: 'id, recordId, investigationId, hubId, reviewedAt',
     });
   }
 }

@@ -11,7 +11,7 @@ export type { CanvasAction } from './canvasActions';
 export type { ImprovementProjectAction } from './improvementProjectActions';
 export type { ActionItemAction, ActionItemPatch } from './actionItemActions';
 export { reduceActionItems } from './actionItemActions';
-export type { SustainmentAction } from './sustainmentActions';
+export type { ControlAction } from './controlActions';
 export type { ControlHandoffAction } from './controlHandoffActions';
 export type { HubAction } from './HubAction';
 export type { MembershipAction, ProjectMemberPatch } from '../projectMembership/actions';

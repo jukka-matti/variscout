@@ -10,10 +10,10 @@ import {
   type ControlHandoff,
   type ControlHandoffSurface,
   type ControlHandoffStatus,
-  type SustainmentCadence,
-  type SustainmentRecord,
-  type SustainmentVerdict,
-} from '../sustainment';
+  type ControlCadence,
+  type ControlRecord,
+  type ControlVerdict,
+} from '../control';
 import type { EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessHubAnalyze } from '../processHub';
 
@@ -96,7 +96,7 @@ describe('ControlHandoff V1 lifecycle shape', () => {
   });
 });
 
-function makeRecord(nextReviewDue?: string): SustainmentRecord {
+function makeRecord(nextReviewDue?: string): ControlRecord {
   return {
     id: 'rec-1',
     title: 'Sustain fill-weight gains',
@@ -354,9 +354,9 @@ function makeInvestigation(
   status: NonNullable<ProcessHubAnalyze['metadata']>['analyzeStatus'],
   sustainmentProjection?: {
     recordId: string;
-    cadence: SustainmentCadence;
+    cadence: ControlCadence;
     nextReviewDue?: string;
-    latestVerdict?: SustainmentVerdict;
+    latestVerdict?: ControlVerdict;
   }
 ): ProcessHubAnalyze {
   return {
@@ -516,11 +516,11 @@ describe('selectSustainmentBuckets', () => {
   function recordFor(
     investigationId: string,
     nextReviewDue?: string,
-    overrides: Partial<SustainmentRecord> = {}
-  ): SustainmentRecord {
+    overrides: Partial<ControlRecord> = {}
+  ): ControlRecord {
     return {
       id: `rec-${investigationId}`,
-      title: `Sustainment record for ${investigationId}`,
+      title: `Control record for ${investigationId}`,
       investigationId,
       hubId: 'hub-1',
       cadence: 'monthly',

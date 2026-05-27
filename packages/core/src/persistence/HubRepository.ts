@@ -3,7 +3,7 @@ import type { ProcessHub, OutcomeSpec, ProcessHubAnalyze } from '../processHub';
 import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '../evidenceSources';
 import type { Finding, Question, CausalLink, Hypothesis, ActionItem } from '../findings/types';
 import type { ProcessMap } from '../frame/types';
-import type { ControlHandoff, SustainmentRecord, SustainmentReview } from '../sustainment';
+import type { ControlHandoff, ControlRecord, ControlReview } from '../control';
 import type { MeasurementPlan } from '../measurementPlan/types';
 
 export interface HubReadAPI {
@@ -65,18 +65,15 @@ export interface ActionItemReadAPI {
   listByStep(hubId: ProcessHub['id'], stepId: string): Promise<ActionItem[]>;
 }
 
-export interface SustainmentRecordReadAPI {
-  get(id: SustainmentRecord['id']): Promise<SustainmentRecord | undefined>;
-  listByHub(hubId: ProcessHub['id']): Promise<SustainmentRecord[]>;
+export interface ControlRecordReadAPI {
+  get(id: ControlRecord['id']): Promise<ControlRecord | undefined>;
+  listByHub(hubId: ProcessHub['id']): Promise<ControlRecord[]>;
 }
 
-export interface SustainmentReviewReadAPI {
-  get(id: SustainmentReview['id']): Promise<SustainmentReview | undefined>;
-  listByHub(hubId: ProcessHub['id']): Promise<SustainmentReview[]>;
-  listByRecord(
-    hubId: ProcessHub['id'],
-    recordId: SustainmentRecord['id']
-  ): Promise<SustainmentReview[]>;
+export interface ControlReviewReadAPI {
+  get(id: ControlReview['id']): Promise<ControlReview | undefined>;
+  listByHub(hubId: ProcessHub['id']): Promise<ControlReview[]>;
+  listByRecord(hubId: ProcessHub['id'], recordId: ControlRecord['id']): Promise<ControlReview[]>;
 }
 
 export interface ControlHandoffReadAPI {
@@ -111,8 +108,8 @@ export interface HubRepository {
   hypotheses: HypothesisReadAPI;
   canvasState: CanvasStateReadAPI;
   actionItems: ActionItemReadAPI;
-  sustainmentRecords: SustainmentRecordReadAPI;
-  sustainmentReviews: SustainmentReviewReadAPI;
+  controlRecords: ControlRecordReadAPI;
+  controlReviews: ControlReviewReadAPI;
   controlHandoffs: ControlHandoffReadAPI;
   measurementPlans: MeasurementPlanReadAPI;
 }

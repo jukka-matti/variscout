@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { surveySustainmentRules } from '../sustainment';
+import { surveySustainmentRules } from '../control';
 import type { ImprovementProject } from '../../improvementProject';
-import type { SustainmentRecord } from '../../sustainment';
+import type { ControlRecord } from '../../control';
 
 const NOW = Date.UTC(2026, 4, 12);
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const sustainmentRecord = (overrides: Partial<SustainmentRecord>): SustainmentRecord =>
+const controlRecord = (overrides: Partial<ControlRecord>): ControlRecord =>
   ({
     id: 'sr-1',
     investigationId: 'inv-1',
@@ -21,7 +21,7 @@ const sustainmentRecord = (overrides: Partial<SustainmentRecord>): SustainmentRe
     deletedAt: null,
     updatedAt: NOW - DAY_MS,
     ...overrides,
-  }) as SustainmentRecord;
+  }) as ControlRecord;
 
 const improvementProject = (overrides: Partial<ImprovementProject>): ImprovementProject =>
   ({
@@ -45,7 +45,7 @@ const improvementProject = (overrides: Partial<ImprovementProject>): Improvement
 describe('surveySustainmentRules', () => {
   it('emits a critical drift hint for drifted sustainment records', () => {
     const hints = surveySustainmentRules({
-      sustainmentRecords: [sustainmentRecord({ id: 'sr-drifted', status: 'drifted' })],
+      controlRecords: [controlRecord({ id: 'sr-drifted', status: 'drifted' })],
       now: NOW,
     });
 
@@ -67,13 +67,13 @@ describe('surveySustainmentRules', () => {
 
   it('does not emit drift or progress hints for archived sustainment records', () => {
     const hints = surveySustainmentRules({
-      sustainmentRecords: [
-        sustainmentRecord({
+      controlRecords: [
+        controlRecord({
           id: 'sr-archived-drift',
           status: 'drifted',
           deletedAt: NOW - DAY_MS,
         }),
-        sustainmentRecord({
+        controlRecord({
           id: 'sr-archived-progress',
           status: 'pending',
           consecutiveOnTargetTicks: 3,
@@ -88,8 +88,8 @@ describe('surveySustainmentRules', () => {
 
   it('emits a warning drift hint for records whose latest verdict is drifting', () => {
     const hints = surveySustainmentRules({
-      sustainmentRecords: [
-        sustainmentRecord({ id: 'sr-verdict', status: 'pending', latestVerdict: 'drifting' }),
+      controlRecords: [
+        controlRecord({ id: 'sr-verdict', status: 'pending', latestVerdict: 'drifting' }),
       ],
       now: NOW,
     });
@@ -105,8 +105,8 @@ describe('surveySustainmentRules', () => {
 
   it('emits a 3-of-4 progress prompt for pending records with three on-target ticks', () => {
     const hints = surveySustainmentRules({
-      sustainmentRecords: [
-        sustainmentRecord({
+      controlRecords: [
+        controlRecord({
           id: 'sr-progress',
           status: 'pending',
           consecutiveOnTargetTicks: 3,
@@ -130,7 +130,7 @@ describe('surveySustainmentRules', () => {
   it('emits a lifecycle gap for closed improvement projects older than 30 days without live sustainment', () => {
     const hints = surveySustainmentRules({
       improvementProjects: [improvementProject({ id: 'ip-old' })],
-      sustainmentRecords: [],
+      controlRecords: [],
       now: NOW,
     });
 
@@ -155,7 +155,7 @@ describe('surveySustainmentRules', () => {
           updatedAt: NOW - 30 * DAY_MS,
         }),
       ],
-      sustainmentRecords: [],
+      controlRecords: [],
       now: NOW,
     });
 
@@ -165,7 +165,7 @@ describe('surveySustainmentRules', () => {
   it('does not emit lifecycle gaps for archived improvement projects', () => {
     const hints = surveySustainmentRules({
       improvementProjects: [improvementProject({ id: 'ip-archived', deletedAt: NOW - DAY_MS })],
-      sustainmentRecords: [],
+      controlRecords: [],
       now: NOW,
     });
 
@@ -175,8 +175,8 @@ describe('surveySustainmentRules', () => {
   it('does not emit a lifecycle gap when the closed project has linked live sustainment', () => {
     const hints = surveySustainmentRules({
       improvementProjects: [improvementProject({ id: 'ip-linked' })],
-      sustainmentRecords: [
-        sustainmentRecord({
+      controlRecords: [
+        controlRecord({
           id: 'sr-linked',
           status: 'pending',
           improvementProjectId: 'ip-linked',
