@@ -47,6 +47,33 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Decision:** logged for H1 polish; not blocking B2.3 merge.
 
+### `CharacteristicType` SSOT consolidation in `@variscout/core`
+
+**Surfaced by:** PR-CCJ-C1 implementer + Opus reviewer, 2026-05-27.
+
+**Description:** `@variscout/core` has two `CharacteristicType` definitions:
+
+- `packages/core/src/types.ts:121` — legacy `'nominal' | 'smaller' | 'larger'`, used by `SpecEditor`, `CharacteristicTypeSelector`, `inferCharacteristicType()` on `SpecLimits` (PI Panel surface).
+- `packages/core/src/processHub.ts:84` — wedge V1 `'nominalIsBest' | 'smallerIsBetter' | 'largerIsBetter'`, used by `OutcomeSpec` + new Canvas Edit-mode `OutcomeZone` components.
+
+Same semantic concept, different vocab. Both lived in the barrel briefly (PR-CCJ-C1 Task 1 added the duplicate); resolved by importing the wedge V1 union via `@variscout/core/processHub` subpath in new consumers (`b9532636` keeps barrel = legacy). Long-term SSOT consolidation should:
+
+1. Migrate `SpecEditor`, `CharacteristicTypeSelector`, `inferCharacteristicType`, and `SpecLimits` to the wedge V1 vocab.
+2. Retire the legacy type at `types.ts:121`.
+3. Re-add `CharacteristicType` to the barrel (single canonical type).
+
+**Decision:** logged for post-C cleanup (likely H1 polish or a dedicated tooling PR). Not blocking C2/C3 — the subpath import is the correct C-phase pattern.
+
+### Canvas/index.tsx `handleDragEnd` wiring for `handleOutcomeDrop`
+
+**Surfaced by:** PR-CCJ-C1 implementer + Opus reviewer, 2026-05-27.
+
+**Description:** C1 ships `handleOutcomeDrop()` as a pure unit-tested helper at `packages/ui/src/components/Canvas/EditMode/handleOutcomeDrop.ts`, but the parent-level integration at `packages/ui/src/components/Canvas/index.tsx:425` (`useChipDragAndDrop({ handleDragEnd })`) is NOT wired. Until wired, dragging a `column:<name>` chip onto the OutcomeZone fires no callback — UI displays the drop affordance but no `OutcomeCard` materializes.
+
+**Why deferred from C1:** C1 scope was the Edit-mode authoring SURFACE (components + helper + EditModeShell prop surface). The Canvas wiring requires Canvas to accept a new `onOutcomeSpecAdd` prop and route to it from `handleDragEnd`, then consumers (PWA/Azure app) wire `useState<OutcomeSpec[]>` and pass it through. The plan's "Out of scope" section properly defers persistence to E1; without persistence, even with Canvas wiring, drops would be lost on re-render.
+
+**Decision:** C2 (Factors zone) MUST bundle the Canvas wiring for both outcome + factor drop routers in one PR — they share the same `DndContext` and a single `handleDragEnd` extension is cleaner than two staged additions. Tracked as part of C2's scope.
+
 ### Two "Done" buttons in Edit mode (Process tab)
 
 **Surfaced by:** PR-CCJ-B1 (`feat/wedge-v1-ccj-b1-edit-mode-shell`), 2026-05-26. Branch-level reviewer + Task 4 spec reviewer.
