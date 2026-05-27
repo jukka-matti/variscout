@@ -52,4 +52,49 @@ describe('StepBox', () => {
     renderInDnd(<StepBox step={makeStep({ id: 'step-1' })} />);
     expect(screen.getByText(/Drop a column for this step's factor/i)).toBeInTheDocument();
   });
+
+  it('renders timingBadge when provided', () => {
+    const step = makeStep();
+    renderInDnd(
+      <StepBox step={step} timingBadge={<span data-testid="timing-badge-content">⏱ 42m</span>} />
+    );
+    expect(screen.getByTestId('timing-badge-content')).toBeInTheDocument();
+    expect(screen.getByText('⏱ 42m')).toBeInTheDocument();
+  });
+
+  it('renders no timingBadge slot when not provided', () => {
+    const step = makeStep();
+    renderInDnd(<StepBox step={step} />);
+    expect(screen.queryByTestId('timing-badge-content')).not.toBeInTheDocument();
+  });
+
+  it('renders resourceIndicator when provided', () => {
+    const step = makeStep();
+    renderInDnd(
+      <StepBox
+        step={step}
+        resourceIndicator={<span data-testid="resource-indicator-content">× 2 reactors</span>}
+      />
+    );
+    expect(screen.getByTestId('resource-indicator-content')).toBeInTheDocument();
+  });
+
+  it('renders no resourceIndicator slot when not provided', () => {
+    const step = makeStep();
+    renderInDnd(<StepBox step={step} />);
+    expect(screen.queryByTestId('resource-indicator-content')).not.toBeInTheDocument();
+  });
+
+  it('renders both slots together when both provided', () => {
+    const step = makeStep();
+    renderInDnd(
+      <StepBox
+        step={step}
+        timingBadge={<span data-testid="t-badge">⏱ 42m</span>}
+        resourceIndicator={<span data-testid="r-ind">× 2</span>}
+      />
+    );
+    expect(screen.getByTestId('t-badge')).toBeInTheDocument();
+    expect(screen.getByTestId('r-ind')).toBeInTheDocument();
+  });
 });

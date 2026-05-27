@@ -1,5 +1,5 @@
 import { useDroppable } from '@dnd-kit/core';
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
 import { encodeOutcomeDropId } from '../OutcomeZone/encodeOutcomeDropId';
 import { encodeFactorDropId } from '../FactorZone/encodeFactorDropId';
 
@@ -11,9 +11,13 @@ export interface StepBoxStep {
 
 export interface StepBoxProps {
   step: StepBoxStep;
+  /** D1 slot — step timing badge (e.g. "⏱ ~ 42 min"). Rendered at the right edge of the header when provided. */
+  timingBadge?: ReactNode;
+  /** Future slot — resource indicator (e.g. "× 2 reactors"). Rendered after timingBadge when provided. */
+  resourceIndicator?: ReactNode;
 }
 
-export const StepBox: FC<StepBoxProps> = ({ step }) => {
+export const StepBox: FC<StepBoxProps> = ({ step, timingBadge, resourceIndicator }) => {
   const internalY = useDroppable({ id: encodeOutcomeDropId({ stepId: step.id }) });
   const internalX = useDroppable({ id: encodeFactorDropId({ stepId: step.id }) });
 
@@ -27,6 +31,12 @@ export const StepBox: FC<StepBoxProps> = ({ step }) => {
           {step.order + 1}
         </span>
         <span className="truncate text-sm font-medium text-content">{step.name}</span>
+        {timingBadge ? (
+          <span className="ml-auto text-xs text-content-secondary">{timingBadge}</span>
+        ) : null}
+        {resourceIndicator ? (
+          <span className="text-xs text-content-secondary">{resourceIndicator}</span>
+        ) : null}
       </header>
 
       <section
