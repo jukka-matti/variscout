@@ -1,3 +1,12 @@
+---
+tier: ephemeral
+purpose: build
+title: Wedge V1 Nav Vocabulary Rename — Implementation Plan
+status: delivered
+date: 2026-05-27
+layer: spec
+---
+
 # Wedge V1 Nav Vocabulary Rename — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development with the **atomic-sweep dispatch pattern** (`feedback_atomic_sweep_one_dispatch`). This plan is ONE big Opus implementer dispatch with internal Architect → Migration → Validator phases and per-category commits — NOT a per-task subagent dispatch sequence.

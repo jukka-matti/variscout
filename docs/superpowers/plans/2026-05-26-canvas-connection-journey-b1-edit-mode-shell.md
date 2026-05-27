@@ -1,3 +1,12 @@
+---
+tier: ephemeral
+purpose: build
+title: PR-CCJ-B1 · EditModeShell + State/Edit toggle wiring — Implementation Plan
+status: delivered
+date: 2026-05-26
+layer: spec
+---
+
 # PR-CCJ-B1 · EditModeShell + State/Edit toggle wiring — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
