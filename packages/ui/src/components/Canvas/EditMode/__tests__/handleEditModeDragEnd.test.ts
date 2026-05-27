@@ -35,7 +35,7 @@ describe('handleEditModeDragEnd', () => {
         }
       );
       expect(onOutcomeSpecAdd).toHaveBeenCalledTimes(1);
-      expect(onOutcomeSpecAdd).toHaveBeenCalledWith('Diameter', expect.any(Object));
+      expect(onOutcomeSpecAdd).toHaveBeenCalledWith('Diameter', expect.any(Object), undefined);
       expect(onFactorControlAdd).not.toHaveBeenCalled();
     });
   });

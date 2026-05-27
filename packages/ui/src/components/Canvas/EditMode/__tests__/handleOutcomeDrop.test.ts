@@ -15,7 +15,8 @@ describe('handleOutcomeDrop', () => {
     expect(handled).toBe(true);
     expect(onOutcomeSpecAdd).toHaveBeenCalledWith(
       'Diameter',
-      expect.objectContaining({ target: 3, cpkTarget: 1.33 })
+      expect.objectContaining({ target: 3, cpkTarget: 1.33 }),
+      undefined
     );
   });
 
@@ -49,7 +50,47 @@ describe('handleOutcomeDrop', () => {
     expect(handled).toBe(true);
     expect(onOutcomeSpecAdd).toHaveBeenCalledWith(
       'Diameter',
-      expect.objectContaining({ target: undefined, cpkTarget: 1.33 })
+      expect.objectContaining({ target: undefined, cpkTarget: 1.33 }),
+      undefined
     );
+  });
+
+  describe('step-bound outcome drops (C3 Task 6)', () => {
+    it('drop on outcome-zone:singleton emits stepId === undefined', () => {
+      const onOutcomeSpecAdd = vi.fn();
+      const handled = handleOutcomeDrop({
+        ...baseArgs,
+        overId: 'outcome-zone:singleton',
+        onOutcomeSpecAdd,
+      });
+      expect(handled).toBe(true);
+      expect(onOutcomeSpecAdd).toHaveBeenCalledTimes(1);
+      const [, , stepId] = onOutcomeSpecAdd.mock.calls[0];
+      expect(stepId).toBeUndefined();
+    });
+
+    it('drop on outcome-zone:step:step-x emits stepId === "step-x"', () => {
+      const onOutcomeSpecAdd = vi.fn();
+      const handled = handleOutcomeDrop({
+        ...baseArgs,
+        overId: 'outcome-zone:step:step-x',
+        onOutcomeSpecAdd,
+      });
+      expect(handled).toBe(true);
+      expect(onOutcomeSpecAdd).toHaveBeenCalledTimes(1);
+      const [, , stepId] = onOutcomeSpecAdd.mock.calls[0];
+      expect(stepId).toBe('step-x');
+    });
+
+    it('drop on outcome-zone:step: (empty stepId) returns false and does not call callback', () => {
+      const onOutcomeSpecAdd = vi.fn();
+      const handled = handleOutcomeDrop({
+        ...baseArgs,
+        overId: 'outcome-zone:step:',
+        onOutcomeSpecAdd,
+      });
+      expect(handled).toBe(false);
+      expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
+    });
   });
 });

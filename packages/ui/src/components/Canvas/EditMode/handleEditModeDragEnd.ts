@@ -29,7 +29,7 @@ export interface EditModeDragEndArgs {
   numericValuesByColumn: Record<string, number[]>;
   /** Optional until Task 4 wires EditModeShell process-zone props. Default: `{}`. */
   categoricalDistinctValuesByColumn?: Record<string, string[]>;
-  onOutcomeSpecAdd?: (columnName: string, derived: Partial<OutcomeSpec>) => void;
+  onOutcomeSpecAdd?: (columnName: string, derived: Partial<OutcomeSpec>, stepId?: string) => void;
   onFactorControlAdd?: (columnName: string, stepId?: string) => void;
   onStepsReplace?: (steps: ExtractedStep[], sourceColumnName: string) => void;
 }

@@ -41,7 +41,7 @@ export interface EditModeShellProps {
    * {@link handleEditModeDragEnd}. (Canvas keeps a separate inner `DndContext`
    * for chip→step routing; the two contexts operate independently.)
    */
-  onOutcomeSpecAdd?: (columnName: string, derived: Partial<OutcomeSpec>) => void;
+  onOutcomeSpecAdd?: (columnName: string, derived: Partial<OutcomeSpec>, stepId?: string) => void;
   /** Called when the OutcomeSpecsPopover Apply commits a per-spec edit. */
   onOutcomeSpecUpdate?: (specId: string, updated: OutcomeSpec) => void;
   /** Factor controls to render as `<FactorChip>` cards in the FactorZone. Defaults to []. */
