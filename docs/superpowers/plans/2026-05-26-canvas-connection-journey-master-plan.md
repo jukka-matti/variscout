@@ -204,6 +204,8 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 #### PR-CCJ-B2 · Column chips + palette + parsing UX
 
+**Master-of-master sub-plan:** [`2026-05-27-canvas-connection-journey-b2-master-plan.md`](./2026-05-27-canvas-connection-journey-b2-master-plan.md) — decomposes B2 into B2.1 (parser profile API), B2.2 (ColumnChip + Palette), B2.3 (Override popover + Banner + Context menu).
+
 **Scope:** The palette with grouped column chips, parsing detection + status badges, override popover per chip. Largest UI primitive PR.
 
 **Files:**
