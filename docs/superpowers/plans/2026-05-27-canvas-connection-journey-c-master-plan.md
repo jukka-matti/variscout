@@ -90,19 +90,15 @@ Strict ordering: C2 needs C1's `useDroppable` zone conventions + `OutcomeCard`/`
 
 **Sub-plan:** [`2026-05-27-canvas-connection-journey-c-2-factor-zone.md`](./2026-05-27-canvas-connection-journey-c-2-factor-zone.md)
 
-### PR-CCJ-C3 · Process structure zone + emergent step model (UI; own master-of-master)
+### PR-CCJ-C3 · Process structure zone + emergent step model (UI; single PR per 2026-05-27 amendment)
 
 **Scope:** Replaces the children slot of EditModeShell's process zone with a fully drop-aware `<ProcessStructureZone>`. Categorical column drop (3–30 distinct values) → emergent step boxes materialize from those values. Each step box renders internal Y (step-bound outcomes) + internal X (step-bound factors) sections that accept the respective drop ids (`outcome-zone:step:<stepId>`, `factor-zone:step:<stepId>`). Timing badge appears when ≥ 1 step has paired start+end (Phase D feeds the timing model; C3 just renders the placeholder slot).
 
-**Likely sub-splits** (decided when C3 writing-plans runs):
+**Amended 2026-05-27 (user decision):** master-of-master split collapsed to a single PR. The three original sub-splits become internal phase commit boundaries (Phase 1 process zone + materialization · Phase 2 step-bound drop receivers · Phase 3 visual polish + slot reservations). Rationale documented in the sub-plan §Decisions: all three phases touch the same surface (ProcessZone/), Phase 2 extends Phase 1's codec, Phase 3 polishes Phase 2's shell; tight internal coupling + spec-bounded scope justify the slice-cap exception (10 tasks). Two-stage per-task review still applies; final Opus reviewer reads all 10 commits in one pass.
 
-- C3.1 · Emergent step materialization from categorical column drop
-- C3.2 · Step-bound drop targets within step boxes (outcome + factor receivers)
-- C3.3 · Step box visual state + timing badge placeholder slot
+**Size:** 10 tasks across 3 internal phases, single PR.
 
-**Size:** 5–7 days, ~10 tasks total across sub-splits.
-
-**Sub-plan:** TBD — runs `superpowers:writing-plans` after C2 merged.
+**Sub-plan:** [`2026-05-27-canvas-connection-journey-c-3-process-structure-zone.md`](./2026-05-27-canvas-connection-journey-c-3-process-structure-zone.md)
 
 ---
 
