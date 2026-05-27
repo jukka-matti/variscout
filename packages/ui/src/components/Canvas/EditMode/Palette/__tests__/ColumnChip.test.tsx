@@ -70,24 +70,30 @@ describe('ColumnChip — drag handle', () => {
 });
 
 describe('ColumnChip — affordances', () => {
-  it('renders the ▾ override button and fires onOverrideOpen with columnName', () => {
+  it('renders the ▾ override button and fires onOverrideOpen with columnName + anchor', () => {
     const onOverrideOpen = vi.fn();
     renderChip({
       profile: createTestColumnParsingProfile({ columnName: 'Speed' }),
       onOverrideOpen,
     });
     fireEvent.click(screen.getByTestId('column-chip-override-button'));
-    expect(onOverrideOpen).toHaveBeenCalledWith('Speed');
+    expect(onOverrideOpen).toHaveBeenCalledWith(
+      'Speed',
+      expect.objectContaining({ x: expect.any(Number), y: expect.any(Number) })
+    );
   });
 
-  it('renders the ⋮ context button and fires onContextMenuOpen with columnName', () => {
+  it('renders the ⋮ context button and fires onContextMenuOpen with columnName + anchor', () => {
     const onContextMenuOpen = vi.fn();
     renderChip({
       profile: createTestColumnParsingProfile({ columnName: 'Speed' }),
       onContextMenuOpen,
     });
     fireEvent.click(screen.getByTestId('column-chip-context-button'));
-    expect(onContextMenuOpen).toHaveBeenCalledWith('Speed');
+    expect(onContextMenuOpen).toHaveBeenCalledWith(
+      'Speed',
+      expect.objectContaining({ x: expect.any(Number), y: expect.any(Number) })
+    );
   });
 });
 
