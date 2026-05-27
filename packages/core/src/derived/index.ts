@@ -22,3 +22,6 @@ export {
 
 // Task 2 (D3): Time decomposition column engine
 export { computeTimeDecompositionColumns, derivedTimeColumnName } from './timeDecomposition';
+
+// Task 3 (D3): Detect date-kind columns for the time-as-factors system hint
+export { detectTimeColumns, type DetectTimeColumnsResult } from './detectTimeColumns';
