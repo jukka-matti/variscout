@@ -315,7 +315,7 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 **Dependencies:** B2 (column chips to source from).
 
-**Sub-plan needed:** YES — likely produces sub-master.
+**Sub-plan needed:** YES — drafted 2026-05-27 at [`2026-05-27-canvas-connection-journey-d-2-calc-workflow.md`](./2026-05-27-canvas-connection-journey-d-2-calc-workflow.md). Structured as single-PR with 3 internal phases (engine in `core/derived/formula/` · `CalculatedColumnModal` under `Canvas/EditMode/Workflows/` · kebab handler + `SystemHintBanner` + CanvasWorkspace integration). 11 tasks. **Slot UX: click-to-add** (no drag-and-drop in V1) per modern formula-builder industry pattern (Sigma/Airtable/Notion/Hex/Mode). 5 template families (Batch ratios ×4 + DPMO + Throughput + Differences + Custom); conditional logic deferred to V2. Mid-execution carve point at Phase 1 → Phase 2 boundary if size strain emerges.
 
 #### PR-CCJ-D3 · Time-as-factors workflow + time decomposition engine
 
