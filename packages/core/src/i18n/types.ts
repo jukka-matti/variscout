@@ -161,7 +161,7 @@ export interface MessageCatalog {
   'panel.findings': string;
   'panel.dataTable': string;
   'panel.whatIf': string;
-  'panel.investigation': string;
+  'panel.analyze': string;
   'panel.coScout': string;
   'panel.drillPath': string;
 
@@ -204,12 +204,12 @@ export interface MessageCatalog {
   'display.showSpecs': string;
 
   // Investigation
-  'investigation.brief': string;
-  'investigation.assignedToMe': string;
-  'investigation.question': string;
-  'investigation.questions': string;
-  'investigation.pinAsFinding': string;
-  'investigation.addObservation': string;
+  'analyze.brief': string;
+  'analyze.assignedToMe': string;
+  'analyze.question': string;
+  'analyze.questions': string;
+  'analyze.pinAsFinding': string;
+  'analyze.addObservation': string;
 
   // Empty states
   'empty.noData': string;
@@ -358,18 +358,18 @@ export interface MessageCatalog {
   'chart.violation.nelson3': string;
 
   // Investigation sidebar
-  'investigation.phaseInitial': string;
-  'investigation.phaseDiverging': string;
-  'investigation.phaseValidating': string;
-  'investigation.phaseConverging': string;
-  'investigation.phaseImproving': string;
-  'investigation.pdcaTitle': string;
-  'investigation.verifyChart': string;
-  'investigation.verifyStats': string;
-  'investigation.verifyBoxplot': string;
-  'investigation.verifySideEffects': string;
-  'investigation.verifyOutcome': string;
-  'investigation.uninvestigated': string;
+  'analyze.phaseInitial': string;
+  'analyze.phaseDiverging': string;
+  'analyze.phaseValidating': string;
+  'analyze.phaseConverging': string;
+  'analyze.phaseImproving': string;
+  'analyze.pdcaTitle': string;
+  'analyze.verifyChart': string;
+  'analyze.verifyStats': string;
+  'analyze.verifyBoxplot': string;
+  'analyze.verifySideEffects': string;
+  'analyze.verifyOutcome': string;
+  'analyze.unanalyzed': string;
 
   // AI action tool labels
   'ai.tool.applyFilter': string;
@@ -515,7 +515,7 @@ export interface MessageCatalog {
   'charType.largerDesc': string;
 
   // Investigation prompt
-  'investigation.trackingPrompt': string;
+  'analyze.trackingPrompt': string;
 
   // Mobile category sheet
   'chart.highlight': string;
@@ -920,7 +920,7 @@ export interface MessageCatalog {
   'report.question.ruledOut': string;
   'report.question.open': string;
   'report.type.analysisSnapshot': string;
-  'report.type.investigationReport': string;
+  'report.type.analyzeReport': string;
   'report.type.improvementStory': string;
   'report.sections': string;
   'report.audience.technical': string;
@@ -1064,7 +1064,7 @@ export interface MessageCatalog {
   'frame.b0.aria.yCandidates': string;
   'frame.b0.aria.selectedXs': string;
   'frame.b0.aria.availableXs': string;
-  'frame.canvasOverlay.cta.sustainment.notReady': string;
+  'frame.canvasOverlay.cta.control.notReady': string;
   'frame.canvasOverlay.cta.handoff.notReady': string;
   'frame.b1.heading': string;
   'frame.b1.description': string;
@@ -1102,7 +1102,7 @@ export interface MessageCatalog {
   'timeLens.input.anchor': string;
 
   // Canvas — SystemLevelView
-  'canvas.system.activeInvestigations': string;
+  'canvas.system.activeAnalyzes': string;
   'canvas.system.conformance': string;
   'canvas.system.inbox': string;
   'canvas.system.lensLabel': string;
@@ -1165,18 +1165,18 @@ export interface MessageCatalog {
   'canvas.localMechanism.etaSquaredLabel': string;
   'canvas.localMechanism.evidenceMap': string;
   'canvas.localMechanism.factorContribution': string;
-  'canvas.localMechanism.investigationWall': string;
+  'canvas.localMechanism.analyzeWall': string;
   'canvas.localMechanism.logActionAria': string;
   'canvas.localMechanism.noNumericValues': string;
   'canvas.localMechanism.openChartAria': string;
   'canvas.localMechanism.openColumnAria': string;
   'canvas.localMechanism.quickActionTitle': string;
-  'canvas.localMechanism.focusedInvestigation': string;
+  'canvas.localMechanism.focusedAnalyze': string;
   'canvas.localMechanism.charter': string;
-  'canvas.localMechanism.sustainment': string;
+  'canvas.localMechanism.control': string;
   'canvas.localMechanism.handoff': string;
-  'canvas.localMechanism.focusedInvestigationAria': string;
+  'canvas.localMechanism.focusedAnalyzeAria': string;
   'canvas.localMechanism.charterAria': string;
-  'canvas.localMechanism.sustainmentAria': string;
+  'canvas.localMechanism.controlAria': string;
   'canvas.localMechanism.handoffAria': string;
 }

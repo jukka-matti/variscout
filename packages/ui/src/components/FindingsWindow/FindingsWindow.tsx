@@ -323,7 +323,7 @@ const FindingsWindow: React.FC = () => {
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-semibold text-content">
-              {t('panel.investigation')}
+              {t('panel.analyze')}
               {findings.length > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.5 text-[0.625rem] bg-blue-500/20 text-blue-400 rounded">
                   {findings.length}

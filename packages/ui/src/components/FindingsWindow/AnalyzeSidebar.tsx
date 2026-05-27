@@ -38,23 +38,23 @@ export interface AnalyzeSidebarProps {
 }
 
 const phaseDescriptionKeys: Record<string, keyof import('@variscout/core').MessageCatalog> = {
-  initial: 'investigation.phaseInitial',
-  diverging: 'investigation.phaseDiverging',
-  validating: 'investigation.phaseValidating',
-  converging: 'investigation.phaseConverging',
-  improving: 'investigation.phaseImproving',
+  initial: 'analyze.phaseInitial',
+  diverging: 'analyze.phaseDiverging',
+  validating: 'analyze.phaseValidating',
+  converging: 'analyze.phaseConverging',
+  improving: 'analyze.phaseImproving',
 };
 
 /**
- * Read-only investigation sidebar for the FindingsWindow popout.
+ * Read-only analyze sidebar for the FindingsWindow popout.
  * No API calls — "Ask CoScout" copies question to clipboard.
  */
 const VERIFICATION_CHECKLIST_KEYS: Array<keyof import('@variscout/core').MessageCatalog> = [
-  'investigation.verifyChart',
-  'investigation.verifyStats',
-  'investigation.verifyBoxplot',
-  'investigation.verifySideEffects',
-  'investigation.verifyOutcome',
+  'analyze.verifyChart',
+  'analyze.verifyStats',
+  'analyze.verifyBoxplot',
+  'analyze.verifySideEffects',
+  'analyze.verifyOutcome',
 ];
 
 const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
@@ -171,7 +171,7 @@ const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
         {phase === 'improving' && hasStagedData && (
           <div data-testid="verification-checklist">
             <div className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium mb-1.5">
-              {t('investigation.pdcaTitle')}
+              {t('analyze.pdcaTitle')}
             </div>
             <ul className="space-y-1">
               {VERIFICATION_CHECKLIST_KEYS.map((key, i) => (
@@ -191,7 +191,7 @@ const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
         {uncoveredRoles.length > 0 && (
           <div>
             <div className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium mb-1.5">
-              {t('investigation.uninvestigated')}
+              {t('analyze.unanalyzed')}
             </div>
             <div className="space-y-1">
               {uncoveredRoles.map(({ factor, role }) => (

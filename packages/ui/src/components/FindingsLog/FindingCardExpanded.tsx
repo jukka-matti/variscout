@@ -54,7 +54,7 @@ export const QuestionSection: React.FC<QuestionSectionProps> = ({
       >
         {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
         <Target size={10} />
-        <span>{t('investigation.question')}</span>
+        <span>{t('analyze.question')}</span>
         {question && !isOpen && (
           <span
             className={`ml-1 truncate flex-1 ${QUESTION_STATUS_COLORS[question.status] ?? 'text-content-secondary'}`}

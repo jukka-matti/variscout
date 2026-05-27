@@ -49,7 +49,7 @@ export const hi: MessageCatalog = {
   'panel.findings': 'निष्कर्ष',
   'panel.dataTable': 'डेटा तालिका',
   'panel.whatIf': 'क्या होगा अगर',
-  'panel.investigation': 'जांच',
+  'panel.analyze': 'जांच',
   'panel.coScout': 'CoScout',
   'panel.drillPath': 'ड्रिल पथ',
 
@@ -92,12 +92,12 @@ export const hi: MessageCatalog = {
   'display.showSpecs': 'विनिर्देश दिखाएं',
 
   // Investigation
-  'investigation.brief': 'जांच सारांश',
-  'investigation.assignedToMe': 'मुझे सौंपा गया',
-  'investigation.question': 'Question',
-  'investigation.questions': 'Questions',
-  'investigation.pinAsFinding': 'निष्कर्ष के रूप में पिन करें',
-  'investigation.addObservation': 'प्रेक्षण जोड़ें',
+  'analyze.brief': 'जांच सारांश',
+  'analyze.assignedToMe': 'मुझे सौंपा गया',
+  'analyze.question': 'Question',
+  'analyze.questions': 'Questions',
+  'analyze.pinAsFinding': 'निष्कर्ष के रूप में पिन करें',
+  'analyze.addObservation': 'प्रेक्षण जोड़ें',
 
   // Empty states
   'empty.noData': 'कोई डेटा उपलब्ध नहीं',
@@ -241,19 +241,19 @@ export const hi: MessageCatalog = {
   'chart.violation.nelson2': 'Nelson Rule 2 — run of {count}',
   'chart.violation.nelson3': 'Nelson Rule 3 — trend of {count}',
 
-  // Investigation sidebar
-  'investigation.phaseInitial': 'Gather initial observations',
-  'investigation.phaseDiverging': 'Explore multiple questions',
-  'investigation.phaseValidating': 'Test and validate questions',
-  'investigation.phaseConverging': 'Narrow to contribution',
-  'investigation.phaseImproving': 'Implement and verify changes',
-  'investigation.pdcaTitle': 'Verification Checklist',
-  'investigation.verifyChart': 'I-Chart stable after change',
-  'investigation.verifyStats': 'Cpk meets target',
-  'investigation.verifyBoxplot': 'Boxplot spread reduced',
-  'investigation.verifySideEffects': 'No side effects observed',
-  'investigation.verifyOutcome': 'Outcome sustained over time',
-  'investigation.uninvestigated': 'Uninvestigated Factors',
+  // Analyze sidebar
+  'analyze.phaseInitial': 'Gather initial observations',
+  'analyze.phaseDiverging': 'Explore multiple questions',
+  'analyze.phaseValidating': 'Test and validate questions',
+  'analyze.phaseConverging': 'Narrow to contribution',
+  'analyze.phaseImproving': 'Implement and verify changes',
+  'analyze.pdcaTitle': 'Verification Checklist',
+  'analyze.verifyChart': 'I-Chart stable after change',
+  'analyze.verifyStats': 'Cpk meets target',
+  'analyze.verifyBoxplot': 'Boxplot spread reduced',
+  'analyze.verifySideEffects': 'No side effects observed',
+  'analyze.verifyOutcome': 'Outcome sustained over time',
+  'analyze.unanalyzed': 'Uninvestigated Factors',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -400,9 +400,8 @@ export const hi: MessageCatalog = {
   'charType.larger': 'बड़ा बेहतर है',
   'charType.largerDesc': 'अधिक बेहतर है (उदा. उपज)',
 
-  // Investigation prompt
-  'investigation.trackingPrompt':
-    'आपकी जाँच ट्रैक हो रही है — पूरी तस्वीर देखने के लिए जाँच पैनल खोलें।',
+  // Analyze prompt
+  'analyze.trackingPrompt': 'आपकी जाँच ट्रैक हो रही है — पूरी तस्वीर देखने के लिए जाँच पैनल खोलें।',
 
   // Mobile category sheet
   'chart.highlight': 'हाइलाइट:',
@@ -798,7 +797,7 @@ export const hi: MessageCatalog = {
   'report.question.ruledOut': 'Ruled Out',
   'report.question.open': 'Open',
   'report.type.analysisSnapshot': 'Analysis Snapshot',
-  'report.type.investigationReport': 'Investigation Report',
+  'report.type.analyzeReport': 'Analyze Report',
   'report.type.improvementStory': 'Improvement Story',
   'report.sections': 'Sections',
   'report.audience.technical': 'Technical',
@@ -974,7 +973,7 @@ export const hi: MessageCatalog = {
   'frame.b0.aria.yCandidates': 'Y candidate chips', // TODO(i18n): translate
   'frame.b0.aria.selectedXs': 'Selected X chips', // TODO(i18n): translate
   'frame.b0.aria.availableXs': 'Available X chips', // TODO(i18n): translate
-  'frame.canvasOverlay.cta.sustainment.notReady':
+  'frame.canvasOverlay.cta.control.notReady':
     "Available after you've implemented a process change to monitor",
   'frame.canvasOverlay.cta.handoff.notReady':
     'Available after sustainment monitoring confirms gains',
@@ -1014,7 +1013,7 @@ export const hi: MessageCatalog = {
 
   // TODO(i18n): translate canvas.* keys
   // Canvas — SystemLevelView
-  'canvas.system.activeInvestigations': 'Active investigations',
+  'canvas.system.activeAnalyzes': 'Active investigations',
   'canvas.system.conformance': 'Conformance',
   'canvas.system.inbox': 'Inbox',
   'canvas.system.lensLabel': 'Lens: {lens}',
@@ -1079,18 +1078,18 @@ export const hi: MessageCatalog = {
   'canvas.localMechanism.etaSquaredLabel': 'eta² {value}',
   'canvas.localMechanism.evidenceMap': 'Local evidence map',
   'canvas.localMechanism.factorContribution': 'Factor contribution evidence',
-  'canvas.localMechanism.investigationWall': 'Investigation wall',
+  'canvas.localMechanism.analyzeWall': 'Investigation wall',
   'canvas.localMechanism.logActionAria': 'Log action for {column}',
   'canvas.localMechanism.noNumericValues': 'No numeric values',
   'canvas.localMechanism.openChartAria': 'Open {column} details mini chart',
   'canvas.localMechanism.openColumnAria': 'Open {column} details',
   'canvas.localMechanism.quickActionTitle': '{column} quick action',
-  'canvas.localMechanism.focusedInvestigation': 'Investigate',
+  'canvas.localMechanism.focusedAnalyze': 'Investigate',
   'canvas.localMechanism.charter': 'Charter',
-  'canvas.localMechanism.sustainment': 'Sustain',
+  'canvas.localMechanism.control': 'Control',
   'canvas.localMechanism.handoff': 'Handoff',
-  'canvas.localMechanism.focusedInvestigationAria': 'Start focused investigation for {column}',
+  'canvas.localMechanism.focusedAnalyzeAria': 'Start focused analysis for {column}',
   'canvas.localMechanism.charterAria': 'Open improvement charter for {column}',
-  'canvas.localMechanism.sustainmentAria': 'Open sustainment for {column}',
+  'canvas.localMechanism.controlAria': 'Open control for {column}',
   'canvas.localMechanism.handoffAria': 'Open handoff for {column}',
 };

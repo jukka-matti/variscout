@@ -225,12 +225,12 @@ function ColumnMiniChart({
             <button
               type="button"
               className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
-              aria-label={formatMessage(locale, 'canvas.localMechanism.focusedInvestigationAria', {
+              aria-label={formatMessage(locale, 'canvas.localMechanism.focusedAnalyzeAria', {
                 column,
               })}
               onClick={() => onFocusedInvestigation(column)}
             >
-              {getMessage(locale, 'canvas.localMechanism.focusedInvestigation')}
+              {getMessage(locale, 'canvas.localMechanism.focusedAnalyze')}
             </button>
           ) : null}
           {onCharter ? (
@@ -439,7 +439,7 @@ export function LocalMechanismView({
 
       <section className="rounded-md border border-edge bg-surface p-3" data-testid="wall-canvas">
         <h3 className="mb-2 text-sm font-semibold text-content">
-          {getMessage(locale, 'canvas.localMechanism.investigationWall')}
+          {getMessage(locale, 'canvas.localMechanism.analyzeWall')}
         </h3>
         <WallCanvas
           hubId={hubId}

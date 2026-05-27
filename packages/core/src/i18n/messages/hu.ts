@@ -49,7 +49,7 @@ export const hu: MessageCatalog = {
   'panel.findings': 'Megállapítások',
   'panel.dataTable': 'Adattáblázat',
   'panel.whatIf': 'Mi lenne ha',
-  'panel.investigation': 'Vizsgálat',
+  'panel.analyze': 'Vizsgálat',
   'panel.coScout': 'CoScout',
   'panel.drillPath': 'Lebontási útvonal',
 
@@ -92,12 +92,12 @@ export const hu: MessageCatalog = {
   'display.showSpecs': 'Specifikációk megjelenítése',
 
   // Investigation
-  'investigation.brief': 'Vizsgálati jelentés',
-  'investigation.assignedToMe': 'Nekem kiosztott',
-  'investigation.question': 'Question',
-  'investigation.questions': 'Questions',
-  'investigation.pinAsFinding': 'Rögzítés megállapításként',
-  'investigation.addObservation': 'Megfigyelés hozzáadása',
+  'analyze.brief': 'Vizsgálati jelentés',
+  'analyze.assignedToMe': 'Nekem kiosztott',
+  'analyze.question': 'Question',
+  'analyze.questions': 'Questions',
+  'analyze.pinAsFinding': 'Rögzítés megállapításként',
+  'analyze.addObservation': 'Megfigyelés hozzáadása',
 
   // Empty states
   'empty.noData': 'Nincs elérhető adat',
@@ -224,18 +224,18 @@ export const hu: MessageCatalog = {
   'chart.violation.belowLclFavorable': 'Below LCL — favorable shift',
   'chart.violation.nelson2': 'Nelson Rule 2 — run of {count}',
   'chart.violation.nelson3': 'Nelson Rule 3 — trend of {count}',
-  'investigation.phaseInitial': 'Gather initial observations',
-  'investigation.phaseDiverging': 'Explore multiple questions',
-  'investigation.phaseValidating': 'Test and validate questions',
-  'investigation.phaseConverging': 'Narrow to contribution',
-  'investigation.phaseImproving': 'Implement and verify changes',
-  'investigation.pdcaTitle': 'Verification Checklist',
-  'investigation.verifyChart': 'I-Chart stable after change',
-  'investigation.verifyStats': 'Cpk meets target',
-  'investigation.verifyBoxplot': 'Boxplot spread reduced',
-  'investigation.verifySideEffects': 'No side effects observed',
-  'investigation.verifyOutcome': 'Outcome sustained over time',
-  'investigation.uninvestigated': 'Uninvestigated Factors',
+  'analyze.phaseInitial': 'Gather initial observations',
+  'analyze.phaseDiverging': 'Explore multiple questions',
+  'analyze.phaseValidating': 'Test and validate questions',
+  'analyze.phaseConverging': 'Narrow to contribution',
+  'analyze.phaseImproving': 'Implement and verify changes',
+  'analyze.pdcaTitle': 'Verification Checklist',
+  'analyze.verifyChart': 'I-Chart stable after change',
+  'analyze.verifyStats': 'Cpk meets target',
+  'analyze.verifyBoxplot': 'Boxplot spread reduced',
+  'analyze.verifySideEffects': 'No side effects observed',
+  'analyze.verifyOutcome': 'Outcome sustained over time',
+  'analyze.unanalyzed': 'Uninvestigated Factors',
   'ai.tool.applyFilter': 'Apply filter',
   'ai.tool.clearFilters': 'Clear filters',
   'ai.tool.switchFactor': 'Switch factor',
@@ -349,7 +349,7 @@ export const hu: MessageCatalog = {
   'charType.smallerDesc': 'Alacsonyabb a jobb (pl. hibák)',
   'charType.larger': 'Nagyobb a jobb',
   'charType.largerDesc': 'Magasabb a jobb (pl. hozam)',
-  'investigation.trackingPrompt':
+  'analyze.trackingPrompt':
     'Vizsgálatod nyomon követése — nyisd meg a vizsgálati panelt a teljes kép megtekintéséhez.',
   'chart.highlight': 'Kiemelés:',
   'chart.highlightRed': 'Piros',
@@ -714,7 +714,7 @@ export const hu: MessageCatalog = {
   'report.question.ruledOut': 'Ruled Out',
   'report.question.open': 'Open',
   'report.type.analysisSnapshot': 'Analysis Snapshot',
-  'report.type.investigationReport': 'Investigation Report',
+  'report.type.analyzeReport': 'Analyze Report',
   'report.type.improvementStory': 'Improvement Story',
   'report.sections': 'Sections',
   'report.audience.technical': 'Technical',
@@ -889,7 +889,7 @@ export const hu: MessageCatalog = {
   'frame.b0.aria.yCandidates': 'Y candidate chips', // TODO(i18n): translate
   'frame.b0.aria.selectedXs': 'Selected X chips', // TODO(i18n): translate
   'frame.b0.aria.availableXs': 'Available X chips', // TODO(i18n): translate
-  'frame.canvasOverlay.cta.sustainment.notReady':
+  'frame.canvasOverlay.cta.control.notReady':
     "Available after you've implemented a process change to monitor",
   'frame.canvasOverlay.cta.handoff.notReady':
     'Available after sustainment monitoring confirms gains',
@@ -929,7 +929,7 @@ export const hu: MessageCatalog = {
 
   // TODO(i18n): translate canvas.* keys
   // Canvas — SystemLevelView
-  'canvas.system.activeInvestigations': 'Active investigations',
+  'canvas.system.activeAnalyzes': 'Active investigations',
   'canvas.system.conformance': 'Conformance',
   'canvas.system.inbox': 'Inbox',
   'canvas.system.lensLabel': 'Lens: {lens}',
@@ -994,18 +994,18 @@ export const hu: MessageCatalog = {
   'canvas.localMechanism.etaSquaredLabel': 'eta² {value}',
   'canvas.localMechanism.evidenceMap': 'Local evidence map',
   'canvas.localMechanism.factorContribution': 'Factor contribution evidence',
-  'canvas.localMechanism.investigationWall': 'Investigation wall',
+  'canvas.localMechanism.analyzeWall': 'Investigation wall',
   'canvas.localMechanism.logActionAria': 'Log action for {column}',
   'canvas.localMechanism.noNumericValues': 'No numeric values',
   'canvas.localMechanism.openChartAria': 'Open {column} details mini chart',
   'canvas.localMechanism.openColumnAria': 'Open {column} details',
   'canvas.localMechanism.quickActionTitle': '{column} quick action',
-  'canvas.localMechanism.focusedInvestigation': 'Investigate',
+  'canvas.localMechanism.focusedAnalyze': 'Investigate',
   'canvas.localMechanism.charter': 'Charter',
-  'canvas.localMechanism.sustainment': 'Sustain',
+  'canvas.localMechanism.control': 'Control',
   'canvas.localMechanism.handoff': 'Handoff',
-  'canvas.localMechanism.focusedInvestigationAria': 'Start focused investigation for {column}',
+  'canvas.localMechanism.focusedAnalyzeAria': 'Start focused analysis for {column}',
   'canvas.localMechanism.charterAria': 'Open improvement charter for {column}',
-  'canvas.localMechanism.sustainmentAria': 'Open sustainment for {column}',
+  'canvas.localMechanism.controlAria': 'Open control for {column}',
   'canvas.localMechanism.handoffAria': 'Open handoff for {column}',
 };

@@ -725,7 +725,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                   {/* Questions */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-400">{t('investigation.questions')}</span>
+                      <span className="text-xs text-slate-400">{t('analyze.questions')}</span>
                     </div>
                     {briefQuestions.map((hyp, idx) => (
                       <div

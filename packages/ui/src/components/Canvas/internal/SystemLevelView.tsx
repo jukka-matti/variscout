@@ -273,7 +273,7 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
             data-testid="active-analyzes-summary"
           >
             <h3 className="text-sm font-semibold text-content">
-              {getMessage(locale, 'canvas.system.activeInvestigations')}
+              {getMessage(locale, 'canvas.system.activeAnalyzes')}
             </h3>
             <p className="mt-2 text-sm text-content-muted">{model.activeSummary}</p>
           </section>

@@ -96,7 +96,7 @@ const AnalyzePrompt: React.FC<AnalyzePromptProps> = ({
       <Network size={16} className={c.text} />
       <div className="flex-1 min-w-0">
         <button onClick={handleOpen} className={`text-xs ${c.mutedText} text-left`}>
-          {t('investigation.trackingPrompt')}
+          {t('analyze.trackingPrompt')}
         </button>
       </div>
       <button

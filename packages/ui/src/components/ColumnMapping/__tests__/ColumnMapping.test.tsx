@@ -38,7 +38,7 @@ vi.mock('@variscout/hooks', () => {
     'data.applyChanges': 'Apply Changes',
     'data.addQuestion': 'Add question',
     'data.back': 'Back',
-    'investigation.questions': 'Questions',
+    'analyze.questions': 'Questions',
     'quality.allValid': 'All data valid',
     'quality.rowsReady': '{count} rows ready for analysis',
     'quality.rowsExcluded': '{count} rows excluded',

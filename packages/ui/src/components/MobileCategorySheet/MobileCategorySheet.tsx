@@ -304,7 +304,7 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
                   style={{ minHeight: 44 }}
                   data-testid="category-sheet-pin-finding"
                 >
-                  {t('investigation.pinAsFinding')}
+                  {t('analyze.pinAsFinding')}
                 </button>
               </div>
             </>

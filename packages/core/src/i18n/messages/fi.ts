@@ -51,7 +51,7 @@ export const fi: MessageCatalog = {
   'panel.findings': 'Havainnot',
   'panel.dataTable': 'Datataulukko',
   'panel.whatIf': 'Entä jos',
-  'panel.investigation': 'Tutkimus',
+  'panel.analyze': 'Tutkimus',
   'panel.coScout': 'CoScout',
   'panel.drillPath': 'Porautumispolku',
 
@@ -94,12 +94,12 @@ export const fi: MessageCatalog = {
   'display.showSpecs': 'Näytä spesifikaatiot',
 
   // Investigation
-  'investigation.brief': 'Tutkimusraportti',
-  'investigation.assignedToMe': 'Minulle osoitetut',
-  'investigation.question': 'Question',
-  'investigation.questions': 'Questions',
-  'investigation.pinAsFinding': 'Kiinnitä havainnoksi',
-  'investigation.addObservation': 'Lisää havainto',
+  'analyze.brief': 'Tutkimusraportti',
+  'analyze.assignedToMe': 'Minulle osoitetut',
+  'analyze.question': 'Question',
+  'analyze.questions': 'Questions',
+  'analyze.pinAsFinding': 'Kiinnitä havainnoksi',
+  'analyze.addObservation': 'Lisää havainto',
 
   // Empty states
   'empty.noData': 'Ei dataa saatavilla',
@@ -243,19 +243,19 @@ export const fi: MessageCatalog = {
   'chart.violation.nelson2': 'Nelsonin sääntö 2 — jakso {count}',
   'chart.violation.nelson3': 'Nelsonin sääntö 3 — trendi {count}',
 
-  // Investigation sidebar
-  'investigation.phaseInitial': 'Kerää alkuhavainnot',
-  'investigation.phaseDiverging': 'Tutki useita hypoteeseja',
-  'investigation.phaseValidating': 'Testaa ja vahvista hypoteesit',
-  'investigation.phaseConverging': 'Rajaa juurisyyhyn',
-  'investigation.phaseImproving': 'Toteuta ja varmista muutokset',
-  'investigation.pdcaTitle': 'Vahvistustarkistuslista',
-  'investigation.verifyChart': 'I-kaavio vakaa muutoksen jälkeen',
-  'investigation.verifyStats': 'Cpk saavuttaa tavoitteen',
-  'investigation.verifyBoxplot': 'Laatikkokuvaajan hajonta pienentynyt',
-  'investigation.verifySideEffects': 'Sivuvaikutuksia ei havaittu',
-  'investigation.verifyOutcome': 'Tulos säilyy ajan myötä',
-  'investigation.uninvestigated': 'Tutkimattomat tekijät',
+  // Analyze sidebar
+  'analyze.phaseInitial': 'Kerää alkuhavainnot',
+  'analyze.phaseDiverging': 'Tutki useita hypoteeseja',
+  'analyze.phaseValidating': 'Testaa ja vahvista hypoteesit',
+  'analyze.phaseConverging': 'Rajaa juurisyyhyn',
+  'analyze.phaseImproving': 'Toteuta ja varmista muutokset',
+  'analyze.pdcaTitle': 'Vahvistustarkistuslista',
+  'analyze.verifyChart': 'I-kaavio vakaa muutoksen jälkeen',
+  'analyze.verifyStats': 'Cpk saavuttaa tavoitteen',
+  'analyze.verifyBoxplot': 'Laatikkokuvaajan hajonta pienentynyt',
+  'analyze.verifySideEffects': 'Sivuvaikutuksia ei havaittu',
+  'analyze.verifyOutcome': 'Tulos säilyy ajan myötä',
+  'analyze.unanalyzed': 'Tutkimattomat tekijät',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Käytä suodatinta',
@@ -402,8 +402,8 @@ export const fi: MessageCatalog = {
   'charType.larger': 'Suurempi on parempi',
   'charType.largerDesc': 'Korkeampi on parempi (esim. saanto)',
 
-  // Investigation prompt
-  'investigation.trackingPrompt':
+  // Analyze prompt
+  'analyze.trackingPrompt':
     'Tutkimustasi seurataan — avaa tutkimuspaneeli nähdäksesi kokonaiskuvan.',
 
   // Mobile category sheet
@@ -797,7 +797,7 @@ export const fi: MessageCatalog = {
   'report.question.ruledOut': 'Ruled Out',
   'report.question.open': 'Open',
   'report.type.analysisSnapshot': 'Analysis Snapshot',
-  'report.type.investigationReport': 'Investigation Report',
+  'report.type.analyzeReport': 'Analyze Report',
   'report.type.improvementStory': 'Improvement Story',
   'report.sections': 'Sections',
   'report.audience.technical': 'Technical',
@@ -974,7 +974,7 @@ export const fi: MessageCatalog = {
   'frame.b0.aria.yCandidates': 'Y-ehdokassirut',
   'frame.b0.aria.selectedXs': 'Valitut X-sirut',
   'frame.b0.aria.availableXs': 'Saatavilla olevat X-sirut',
-  'frame.canvasOverlay.cta.sustainment.notReady':
+  'frame.canvasOverlay.cta.control.notReady':
     "Available after you've implemented a process change to monitor",
   'frame.canvasOverlay.cta.handoff.notReady':
     'Available after sustainment monitoring confirms gains',
@@ -1015,7 +1015,7 @@ export const fi: MessageCatalog = {
 
   // TODO(i18n): translate canvas.* keys
   // Canvas — SystemLevelView
-  'canvas.system.activeInvestigations': 'Active investigations',
+  'canvas.system.activeAnalyzes': 'Active investigations',
   'canvas.system.conformance': 'Conformance',
   'canvas.system.inbox': 'Inbox',
   'canvas.system.lensLabel': 'Lens: {lens}',
@@ -1080,18 +1080,18 @@ export const fi: MessageCatalog = {
   'canvas.localMechanism.etaSquaredLabel': 'eta² {value}',
   'canvas.localMechanism.evidenceMap': 'Local evidence map',
   'canvas.localMechanism.factorContribution': 'Factor contribution evidence',
-  'canvas.localMechanism.investigationWall': 'Investigation wall',
+  'canvas.localMechanism.analyzeWall': 'Investigation wall',
   'canvas.localMechanism.logActionAria': 'Log action for {column}',
   'canvas.localMechanism.noNumericValues': 'No numeric values',
   'canvas.localMechanism.openChartAria': 'Open {column} details mini chart',
   'canvas.localMechanism.openColumnAria': 'Open {column} details',
   'canvas.localMechanism.quickActionTitle': '{column} quick action',
-  'canvas.localMechanism.focusedInvestigation': 'Investigate',
+  'canvas.localMechanism.focusedAnalyze': 'Investigate',
   'canvas.localMechanism.charter': 'Charter',
-  'canvas.localMechanism.sustainment': 'Sustain',
+  'canvas.localMechanism.control': 'Control',
   'canvas.localMechanism.handoff': 'Handoff',
-  'canvas.localMechanism.focusedInvestigationAria': 'Start focused investigation for {column}',
+  'canvas.localMechanism.focusedAnalyzeAria': 'Start focused analysis for {column}',
   'canvas.localMechanism.charterAria': 'Open improvement charter for {column}',
-  'canvas.localMechanism.sustainmentAria': 'Open sustainment for {column}',
+  'canvas.localMechanism.controlAria': 'Open control for {column}',
   'canvas.localMechanism.handoffAria': 'Open handoff for {column}',
 };

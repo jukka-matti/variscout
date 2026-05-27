@@ -72,7 +72,7 @@ const BADGE_COLORS: Record<ReportType, string> = {
 
 const BADGE_I18N_KEYS: Record<ReportType, keyof MessageCatalog> = {
   'analysis-snapshot': 'report.type.analysisSnapshot',
-  'investigation-report': 'report.type.investigationReport',
+  'investigation-report': 'report.type.analyzeReport',
   'improvement-story': 'report.type.improvementStory',
 };
 
