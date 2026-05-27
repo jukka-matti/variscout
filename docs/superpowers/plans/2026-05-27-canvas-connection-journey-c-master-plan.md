@@ -88,7 +88,7 @@ Strict ordering: C2 needs C1's `useDroppable` zone conventions + `OutcomeCard`/`
 
 **Size:** ~7 tasks.
 
-**Sub-plan:** `2026-05-27-canvas-connection-journey-c-2-factor-zone.md` — written after C1 merged (link added when file lands).
+**Sub-plan:** [`2026-05-27-canvas-connection-journey-c-2-factor-zone.md`](./2026-05-27-canvas-connection-journey-c-2-factor-zone.md)
 
 ### PR-CCJ-C3 · Process structure zone + emergent step model (UI; own master-of-master)
 
