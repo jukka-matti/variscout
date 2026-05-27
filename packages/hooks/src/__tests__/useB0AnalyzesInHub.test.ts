@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useB0InvestigationsInHub } from '../useB0InvestigationsInHub';
-import type { ProcessHubInvestigation, ProcessHubInvestigationMetadata } from '@variscout/core';
+import { useB0AnalyzesInHub } from '../useB0AnalyzesInHub';
+import type { ProcessHubAnalyze, ProcessHubAnalyzeMetadata } from '@variscout/core';
 
-type NodeMappings = NonNullable<ProcessHubInvestigationMetadata['nodeMappings']>;
+type NodeMappings = NonNullable<ProcessHubAnalyzeMetadata['nodeMappings']>;
 
 function inv(opts: {
   id: string;
   hubId: string;
   nodeMappings: NodeMappings;
   declined?: string;
-}): ProcessHubInvestigation {
+}): ProcessHubAnalyze {
   return {
     id: opts.id,
     name: opts.id,
@@ -25,13 +25,13 @@ function inv(opts: {
   };
 }
 
-describe('useB0InvestigationsInHub', () => {
+describe('useB0AnalyzesInHub', () => {
   it('returns investigations with empty nodeMappings', () => {
     const members = [
       inv({ id: 'a', hubId: 'h1', nodeMappings: [] }),
       inv({ id: 'b', hubId: 'h1', nodeMappings: [{ nodeId: 'n1', measurementColumn: 'c' }] }),
     ];
-    const { result } = renderHook(() => useB0InvestigationsInHub({ hubId: 'h1', members }));
+    const { result } = renderHook(() => useB0AnalyzesInHub({ hubId: 'h1', members }));
     expect(result.current.unmapped.map(i => i.id)).toEqual(['a']);
     expect(result.current.count).toBe(1);
   });
@@ -41,7 +41,7 @@ describe('useB0InvestigationsInHub', () => {
       inv({ id: 'a', hubId: 'h1', nodeMappings: [], declined: '2026-04-28T10:00:00Z' }),
       inv({ id: 'b', hubId: 'h1', nodeMappings: [] }),
     ];
-    const { result } = renderHook(() => useB0InvestigationsInHub({ hubId: 'h1', members }));
+    const { result } = renderHook(() => useB0AnalyzesInHub({ hubId: 'h1', members }));
     expect(result.current.unmapped.map(i => i.id)).toEqual(['b']);
   });
 
@@ -50,12 +50,12 @@ describe('useB0InvestigationsInHub', () => {
       inv({ id: 'a', hubId: 'h1', nodeMappings: [] }),
       inv({ id: 'b', hubId: 'h2', nodeMappings: [] }),
     ];
-    const { result } = renderHook(() => useB0InvestigationsInHub({ hubId: 'h1', members }));
+    const { result } = renderHook(() => useB0AnalyzesInHub({ hubId: 'h1', members }));
     expect(result.current.unmapped.map(i => i.id)).toEqual(['a']);
   });
 
   it('returns empty result for empty members', () => {
-    const { result } = renderHook(() => useB0InvestigationsInHub({ hubId: 'h1', members: [] }));
+    const { result } = renderHook(() => useB0AnalyzesInHub({ hubId: 'h1', members: [] }));
     expect(result.current.count).toBe(0);
     expect(result.current.unmapped).toEqual([]);
   });

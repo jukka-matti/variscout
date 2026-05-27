@@ -7,7 +7,7 @@ import {
   coerceCanvasOverlays,
   enabledCanvasOverlays,
   type CanvasOverlayId,
-} from '../useCanvasInvestigationOverlays';
+} from '../useCanvasAnalyzeOverlays';
 
 const map: ProcessMap = {
   version: 1,

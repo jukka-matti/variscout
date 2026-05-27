@@ -2,7 +2,7 @@
  * useHubComputations - Shared hub evidence and projection memos
  *
  * Extracts the identical hub evidence/projection computation blocks from
- * EditorDashboardView.tsx and InvestigationWorkspace.tsx into a single
+ * EditorDashboardView.tsx and AnalyzeWorkspace.tsx into a single
  * shared hook.
  *
  * Computes:
@@ -17,7 +17,7 @@ import type { BestSubsetsResult } from '@variscout/core/stats';
 import type { HubProjection, HypothesisEvidence } from '@variscout/core/findings';
 import type { Question } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
-import { useInvestigationStore, useProjectStore } from '@variscout/stores';
+import { useAnalyzeStore, useProjectStore } from '@variscout/stores';
 
 export interface UseHubComputationsReturn {
   /** Evidence summary per hub (undefined when no hubs exist) */
@@ -39,7 +39,7 @@ export function useHubComputations(
   bestSubsets: BestSubsetsResult | null,
   questions: Question[]
 ): UseHubComputationsReturn {
-  const hubs = useInvestigationStore(s => s.hypotheses);
+  const hubs = useAnalyzeStore(s => s.hypotheses);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const specs = useProjectStore(s => s.specs);
 

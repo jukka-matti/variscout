@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import type { ScopeFilter, TimelineWindow } from '@variscout/core';
 import type { UseCanvasFiltersResult } from './useCanvasFilters';
 import type { CanvasLensId } from './useCanvasStepCards';
-import type { CanvasOverlayId } from './useCanvasInvestigationOverlays';
+import type { CanvasOverlayId } from './useCanvasAnalyzeOverlays';
 import type { CanvasToolId } from './useHypothesisDrawTool';
 
 const DEFAULT_CUMULATIVE: TimelineWindow = { kind: 'cumulative' };

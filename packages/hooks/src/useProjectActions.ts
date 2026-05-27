@@ -5,13 +5,13 @@
  * instead of taking 34 individual getters + 34 setters as props.
  *
  * Takes only a PersistenceAdapter parameter. Reads from useProjectStore.getState()
- * for save/export, writes to stores via loadProject/loadInvestigationState for load/import.
+ * for save/export, writes to stores via loadProject/loadAnalyzeState for load/import.
  *
  * Maintains identical AnalysisState serialization format for backward compatibility.
  */
 
 import { useCallback } from 'react';
-import { useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useProjectStore, useAnalyzeStore } from '@variscout/stores';
 import { filterStackToFilters } from '@variscout/core/navigation';
 import type { AnalysisState, PersistenceAdapter, SavedProject } from './types';
 import type { SerializedProject } from '@variscout/stores';
@@ -101,7 +101,7 @@ function buildSerializedProject(
  */
 function getCurrentStateFromStores(): Omit<AnalysisState, 'version'> {
   const ps = useProjectStore.getState();
-  const is = useInvestigationStore.getState();
+  const is = useAnalyzeStore.getState();
 
   const state: Omit<AnalysisState, 'version'> = {
     rawData: ps.rawData,
@@ -150,7 +150,7 @@ function getCurrentStateFromStores(): Omit<AnalysisState, 'version'> {
   // View state — always include for explicit round-trip
   if (ps.viewState) state.viewState = ps.viewState;
 
-  // Investigation data — read from investigationStore (authoritative source)
+  // Investigation data — read from analyzeStore (authoritative source)
   // projectStore copies are stale after Zustand-first migration
   if (is.findings.length > 0) state.findings = is.findings;
   if (is.questions.length > 0) state.questions = is.questions;
@@ -202,7 +202,7 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
       useProjectStore.getState().loadProject(serialized);
 
       // Hydrate investigation store
-      useInvestigationStore.getState().loadInvestigationState({
+      useAnalyzeStore.getState().loadAnalyzeState({
         findings: state.findings ?? [],
         questions: state.questions ?? [],
         categories: state.categories ?? [],
@@ -273,7 +273,7 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
       useProjectStore.getState().setProjectId(null);
 
       // Hydrate investigation store
-      useInvestigationStore.getState().loadInvestigationState({
+      useAnalyzeStore.getState().loadAnalyzeState({
         findings: state.findings ?? [],
         questions: state.questions ?? [],
         categories: state.categories ?? [],
@@ -290,7 +290,7 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
 
   const newProject = useCallback((): void => {
     useProjectStore.getState().newProject();
-    useInvestigationStore.getState().resetAll();
+    useAnalyzeStore.getState().resetAll();
   }, []);
 
   return {

@@ -18,7 +18,7 @@ import type {
   Hypothesis,
   CausalLink,
   ProcessContext,
-  InvestigationCategory,
+  AnalyzeCategory,
   EntryScenario,
   StackConfig,
 } from '@variscout/core';
@@ -176,7 +176,7 @@ export interface AnalysisState {
 
   // --- Investigation categories (dynamic factor grouping) ---
   /** User-defined categories grouping factor columns */
-  categories?: InvestigationCategory[];
+  categories?: AnalyzeCategory[];
 
   // --- Hypotheses (investigation synthesis) ---
   /** Hypothesis hubs connecting evidence threads */

@@ -6,7 +6,7 @@
  *
  * Covers:
  *  1. Full project roundtrip (rawData, outcome, factors, specs)
- *  2. Investigation roundtrip (findings, questions from investigationStore)
+ *  2. Investigation roundtrip (findings, questions from analyzeStore)
  *  3. Non-default analysis config (mode, specs, displayOptions, paretoMode)
  *  4. filterStack derivation: filterStack → flat filters on load
  *  5. newProject resets both stores
@@ -16,7 +16,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useProjectActions } from '../useProjectActions';
 import { useProjectStore, getProjectInitialState } from '@variscout/stores';
-import { useInvestigationStore, getInvestigationInitialState } from '@variscout/stores';
+import { useAnalyzeStore, getAnalyzeInitialState } from '@variscout/stores';
 import type { PersistenceAdapter, SavedProject, AnalysisState } from '../types';
 import type { DataRow, Finding, Question, FilterAction } from '@variscout/core';
 
@@ -132,7 +132,7 @@ function makeQuestion(id: string, text: string): Question {
 
 beforeEach(() => {
   useProjectStore.setState({ ...getProjectInitialState() });
-  useInvestigationStore.setState({ ...getInvestigationInitialState() });
+  useAnalyzeStore.setState({ ...getAnalyzeInitialState() });
 });
 
 // ============================================================================
@@ -162,7 +162,7 @@ describe('useProjectActions persistence roundtrip', () => {
 
     // Reset stores to initial state
     useProjectStore.setState({ ...getProjectInitialState() });
-    useInvestigationStore.setState({ ...getInvestigationInitialState() });
+    useAnalyzeStore.setState({ ...getAnalyzeInitialState() });
 
     // Verify stores are clean
     expect(useProjectStore.getState().rawData).toEqual([]);
@@ -186,22 +186,22 @@ describe('useProjectActions persistence roundtrip', () => {
   // 2. Investigation roundtrip
   // --------------------------------------------------------------------------
 
-  it('roundtrip: findings and questions from investigationStore survive save → reset → load', async () => {
+  it('roundtrip: findings and questions from analyzeStore survive save → reset → load', async () => {
     const adapter = createInMemoryAdapter();
     const { result } = renderHook(() => useProjectActions(adapter));
 
-    // investigationStore is the authority for findings/questions
+    // analyzeStore is the authority for findings/questions
     const findings = [
       makeFinding('f1', 'Weight spike on Machine B'),
       makeFinding('f2', 'Shift effect'),
     ];
     const questions = [makeQuestion('q1', 'Is Machine B the root cause?')];
 
-    // getCurrentStateFromStores reads investigation data from investigationStore (authoritative)
+    // getCurrentStateFromStores reads investigation data from analyzeStore (authoritative)
     useProjectStore.getState().setRawData(sampleData);
     useProjectStore.getState().setOutcome('Weight');
     useProjectStore.getState().setFactors(['Machine']);
-    useInvestigationStore.getState().loadInvestigationState({ findings, questions });
+    useAnalyzeStore.getState().loadAnalyzeState({ findings, questions });
 
     // Save
     let savedId!: string;
@@ -212,15 +212,15 @@ describe('useProjectActions persistence roundtrip', () => {
 
     // Reset
     useProjectStore.setState({ ...getProjectInitialState() });
-    useInvestigationStore.setState({ ...getInvestigationInitialState() });
+    useAnalyzeStore.setState({ ...getAnalyzeInitialState() });
 
     // Load
     await act(async () => {
       await result.current.loadProject(savedId);
     });
 
-    // investigationStore is hydrated by loadProject
-    const is = useInvestigationStore.getState();
+    // analyzeStore is hydrated by loadProject
+    const is = useAnalyzeStore.getState();
     expect(is.findings).toHaveLength(2);
     expect(is.findings[0].id).toBe('f1');
     expect(is.findings[0].text).toBe('Weight spike on Machine B');
@@ -255,7 +255,7 @@ describe('useProjectActions persistence roundtrip', () => {
 
     // Reset
     useProjectStore.setState({ ...getProjectInitialState() });
-    useInvestigationStore.setState({ ...getInvestigationInitialState() });
+    useAnalyzeStore.setState({ ...getAnalyzeInitialState() });
 
     // Load
     await act(async () => {
@@ -313,7 +313,7 @@ describe('useProjectActions persistence roundtrip', () => {
 
     // Reset
     useProjectStore.setState({ ...getProjectInitialState() });
-    useInvestigationStore.setState({ ...getInvestigationInitialState() });
+    useAnalyzeStore.setState({ ...getAnalyzeInitialState() });
 
     // Load
     await act(async () => {
@@ -333,7 +333,7 @@ describe('useProjectActions persistence roundtrip', () => {
   // 5. newProject resets both stores
   // --------------------------------------------------------------------------
 
-  it('newProject: resets projectStore and investigationStore to initial state', async () => {
+  it('newProject: resets projectStore and analyzeStore to initial state', async () => {
     const adapter = createInMemoryAdapter();
     const { result } = renderHook(() => useProjectActions(adapter));
 
@@ -344,17 +344,17 @@ describe('useProjectActions persistence roundtrip', () => {
     useProjectStore.getState().setProjectId('proj-before');
     useProjectStore.getState().setProjectName('Before Reset');
 
-    useInvestigationStore.getState().addFinding('Must disappear', {
+    useAnalyzeStore.getState().addFinding('Must disappear', {
       activeFilters: {},
       cumulativeScope: 0,
       stats: { mean: 15, samples: 4 },
     });
-    useInvestigationStore.getState().addQuestion('Must disappear too');
+    useAnalyzeStore.getState().addQuestion('Must disappear too');
 
     // Verify seeding worked
     expect(useProjectStore.getState().rawData).toHaveLength(4);
-    expect(useInvestigationStore.getState().findings).toHaveLength(1);
-    expect(useInvestigationStore.getState().questions).toHaveLength(1);
+    expect(useAnalyzeStore.getState().findings).toHaveLength(1);
+    expect(useAnalyzeStore.getState().questions).toHaveLength(1);
 
     // Call newProject
     act(() => {
@@ -370,8 +370,8 @@ describe('useProjectActions persistence roundtrip', () => {
     expect(ps.projectName).toBeNull();
     expect(ps.hasUnsavedChanges).toBe(false);
 
-    // investigationStore should be reset
-    const is = useInvestigationStore.getState();
+    // analyzeStore should be reset
+    const is = useAnalyzeStore.getState();
     expect(is.findings).toEqual([]);
     expect(is.questions).toEqual([]);
     expect(is.categories).toEqual([]);

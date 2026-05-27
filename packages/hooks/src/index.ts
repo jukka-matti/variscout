@@ -423,8 +423,8 @@ export {
 } from './useAsyncStats';
 
 // Investigation content predicate (Wall overlay availability)
-export { useHasInvestigationContent } from './useHasInvestigationContent';
-export type { UseHasInvestigationContentArgs } from './useHasInvestigationContent';
+export { useHasAnalyzeContent } from './useHasAnalyzeContent';
+export type { UseHasInvestigationContentArgs } from './useHasAnalyzeContent';
 
 // Hub Computations (shared evidence + projection memos)
 export { useHubComputations, type UseHubComputationsReturn } from './useHubComputations';
@@ -486,9 +486,9 @@ export {
   buildCanvasInvestigationOverlays,
   coerceCanvasOverlays,
   enabledCanvasOverlays,
-  useCanvasInvestigationOverlays,
-  type CanvasInvestigationFocus,
-  type CanvasInvestigationOverlayModel,
+  useCanvasAnalyzeOverlays,
+  type CanvasAnalyzeFocus,
+  type CanvasAnalyzeOverlayModel,
   type CanvasOverlayCausalLinkItem,
   type CanvasOverlayDefinition,
   type CanvasOverlayFindingItem,
@@ -498,7 +498,7 @@ export {
   type CanvasStepInvestigationOverlay,
   type UseCanvasInvestigationOverlaysArgs,
   type UseCanvasInvestigationOverlaysResult,
-} from './useCanvasInvestigationOverlays';
+} from './useCanvasAnalyzeOverlays';
 
 // Hypothesis Hubs (named mechanism groupings for investigation synthesis)
 export {
@@ -613,11 +613,11 @@ export type {
 } from './useProductionLineGlanceOpsToggle';
 
 // B0 Investigations In Hub (enumerates unmapped + non-dismissed for migration banner)
-export { useB0InvestigationsInHub } from './useB0InvestigationsInHub';
+export { useB0AnalyzesInHub } from './useB0AnalyzesInHub';
 export type {
   UseB0InvestigationsInHubInput,
   UseB0InvestigationsInHubResult,
-} from './useB0InvestigationsInHub';
+} from './useB0AnalyzesInHub';
 
 // Derived hooks (store-first state access)
 export {

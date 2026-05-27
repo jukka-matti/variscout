@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
-import type { ProcessHubInvestigation } from '@variscout/core';
+import type { ProcessHubAnalyze } from '@variscout/core';
 
 export interface UseB0InvestigationsInHubInput {
   hubId: string;
-  members: readonly ProcessHubInvestigation[];
+  members: readonly ProcessHubAnalyze[];
 }
 
 export interface UseB0InvestigationsInHubResult {
-  unmapped: readonly ProcessHubInvestigation[];
+  unmapped: readonly ProcessHubAnalyze[];
   count: number;
 }
 
@@ -16,7 +16,7 @@ export interface UseB0InvestigationsInHubResult {
  * map nodes (`nodeMappings` empty/absent) AND have not been dismissed
  * (`migrationDeclinedAt` unset). Drives the migration banner count.
  */
-export function useB0InvestigationsInHub(
+export function useB0AnalyzesInHub(
   input: UseB0InvestigationsInHubInput
 ): UseB0InvestigationsInHubResult {
   const { hubId, members } = input;

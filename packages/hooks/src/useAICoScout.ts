@@ -136,7 +136,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
         // Build tiered prompt via assembler (Phase 2 migration)
         const tiers = assembleCoScoutPrompt({
           phase: toolsOptions?.phase ?? 'frame',
-          investigationPhase: toolsOptions?.investigationPhase,
+          analyzePhase: toolsOptions?.analyzePhase,
           mode: context.analysisMode ?? 'standard',
           surface: 'fullPanel',
           context,
@@ -175,7 +175,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
               reasoning: {
                 effort: getCoScoutReasoningEffort(
                   toolsOptions?.phase,
-                  toolsOptions?.investigationPhase,
+                  toolsOptions?.analyzePhase,
                   context?.stagedComparison != null
                 ),
               },

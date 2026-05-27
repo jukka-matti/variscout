@@ -65,7 +65,7 @@ export function coerceCanvasOverlays(values: readonly unknown[]): CanvasOverlayI
   return out;
 }
 
-export type CanvasInvestigationFocus =
+export type CanvasAnalyzeFocus =
   | { kind: 'question'; id: string; questionId: string }
   | { kind: 'finding'; id: string; questionId?: string }
   | { kind: 'suspected-cause'; id: string; questionId?: string }
@@ -76,7 +76,7 @@ export interface CanvasOverlayQuestionItem {
   text: string;
   status: Question['status'];
   factor?: string;
-  focus: CanvasInvestigationFocus;
+  focus: CanvasAnalyzeFocus;
 }
 
 export interface CanvasOverlayFindingItem {
@@ -84,7 +84,7 @@ export interface CanvasOverlayFindingItem {
   text: string;
   status: Finding['status'];
   questionId?: string;
-  focus: CanvasInvestigationFocus;
+  focus: CanvasAnalyzeFocus;
 }
 
 export interface CanvasOverlayHypothesisItem {
@@ -92,7 +92,7 @@ export interface CanvasOverlayHypothesisItem {
   name: string;
   status: Hypothesis['status'];
   questionId?: string;
-  focus: CanvasInvestigationFocus;
+  focus: CanvasAnalyzeFocus;
 }
 
 export interface CanvasOverlayCausalLinkItem {
@@ -101,7 +101,7 @@ export interface CanvasOverlayCausalLinkItem {
   toStepId: string;
   label: string;
   questionId?: string;
-  focus: CanvasInvestigationFocus;
+  focus: CanvasAnalyzeFocus;
 }
 
 export interface CanvasStepInvestigationOverlay {
@@ -117,7 +117,7 @@ export interface CanvasStepInvestigationOverlay {
   };
 }
 
-export interface CanvasInvestigationOverlayModel {
+export interface CanvasAnalyzeOverlayModel {
   byStep: Record<string, CanvasStepInvestigationOverlay>;
   arrows: CanvasOverlayCausalLinkItem[];
   unresolved: {
@@ -247,7 +247,7 @@ export function buildCanvasInvestigationOverlays({
   findings = [],
   hypotheses = [],
   causalLinks = [],
-}: BuildCanvasInvestigationOverlaysArgs): CanvasInvestigationOverlayModel {
+}: BuildCanvasInvestigationOverlaysArgs): CanvasAnalyzeOverlayModel {
   const columnMap = stepColumnMap(map);
   const byStep: Record<string, CanvasStepInvestigationOverlay> = {};
   for (const node of map.nodes) byStep[node.id] = emptyStepOverlay(node.id);
@@ -379,10 +379,10 @@ export function buildCanvasInvestigationOverlays({
 }
 
 export interface UseCanvasInvestigationOverlaysResult {
-  overlays: CanvasInvestigationOverlayModel;
+  overlays: CanvasAnalyzeOverlayModel;
 }
 
-export function useCanvasInvestigationOverlays(
+export function useCanvasAnalyzeOverlays(
   args: UseCanvasInvestigationOverlaysArgs
 ): UseCanvasInvestigationOverlaysResult {
   const overlays = useMemo(

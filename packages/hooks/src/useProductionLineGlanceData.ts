@@ -11,8 +11,8 @@ import type {
   DataRow,
   IChartDataPoint,
   ProcessHub,
-  ProcessHubInvestigation,
-  ProcessHubInvestigationMetadata,
+  ProcessHubAnalyze,
+  ProcessHubAnalyzeMetadata,
   StatsResult,
   TimelineWindow,
 } from '@variscout/core';
@@ -26,7 +26,7 @@ export type ProductionLineGlanceHub = Pick<
 
 export interface UseProductionLineGlanceDataInput {
   hub: ProductionLineGlanceHub;
-  members: readonly ProcessHubInvestigation[];
+  members: readonly ProcessHubAnalyze[];
   rowsByInvestigation: ReadonlyMap<string, readonly DataRow[]>;
   contextFilter: SpecLookupContext;
   defectColumns?: readonly string[];
@@ -141,7 +141,7 @@ export function useProductionLineGlanceData(
       if (!node.capabilityScope) continue;
       for (const member of members) {
         if (member.metadata?.processHubId !== hub.id) continue;
-        const meta = member.metadata as ProcessHubInvestigationMetadata;
+        const meta = member.metadata as ProcessHubAnalyzeMetadata;
         if (!meta?.nodeMappings?.some(m => m.nodeId === node.id)) continue;
         const rows = windowedRowsByInvestigation.get(member.id) ?? [];
         const filtered = rows.filter(r => rowMatchesFilter(r, contextFilter));
@@ -168,14 +168,14 @@ export function useProductionLineGlanceData(
   // investigation window logic — so step-error counts honor the same temporal
   // window as the capability boxplot, without rollupStepErrors needing to know
   // about windows.
-  const windowedMembers = useMemo<readonly ProcessHubInvestigation[]>(() => {
+  const windowedMembers = useMemo<readonly ProcessHubAnalyze[]>(() => {
     if (!window) return members;
     return members.map(member => {
       const windowedRows = windowedRowsByInvestigation.get(member.id);
       // Preserve all original member fields; swap rows only when we have
       // a windowed view for it.
       if (!windowedRows) return member;
-      return { ...member, rows: windowedRows } as ProcessHubInvestigation;
+      return { ...member, rows: windowedRows } as ProcessHubAnalyze;
     });
   }, [members, window, windowedRowsByInvestigation]);
 

@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, expectTypeOf } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import {
   getCanvasViewportInitialState,
-  getInvestigationInitialState,
+  getAnalyzeInitialState,
   useCanvasViewportStore,
-  useInvestigationStore,
+  useAnalyzeStore,
 } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import {
@@ -86,7 +86,7 @@ const HUB_ID = 'hub-shared-wall-props' as ProcessHubId;
 const OTHER_HUB_ID = 'hub-other-wall-props' as ProcessHubId;
 
 beforeEach(() => {
-  useInvestigationStore.setState(getInvestigationInitialState());
+  useAnalyzeStore.setState(getAnalyzeInitialState());
   useCanvasViewportStore.setState(getCanvasViewportInitialState());
 });
 
@@ -100,7 +100,7 @@ describe('useSharedWallProps', () => {
     const hub = makeHub({ id: 'hub-1' });
     const question = makeQuestion({ id: 'q-1' });
     const findings = [makeFinding({ id: 'finding-1' })];
-    useInvestigationStore.setState({
+    useAnalyzeStore.setState({
       hypotheses: [hub],
       questions: [question],
     });
@@ -116,8 +116,8 @@ describe('useSharedWallProps', () => {
       })
     );
 
-    expect(result.current.hubs).toBe(useInvestigationStore.getState().hypotheses);
-    expect(result.current.questions).toBe(useInvestigationStore.getState().questions);
+    expect(result.current.hubs).toBe(useAnalyzeStore.getState().hypotheses);
+    expect(result.current.questions).toBe(useAnalyzeStore.getState().questions);
     expect(result.current.findings).toBe(findings);
   });
 
