@@ -2,7 +2,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { useState } from 'react';
 import type { OutcomeSpec } from '@variscout/core';
 import { OutcomeCard } from './OutcomeCard';
-import { SpecsPopover } from './SpecsPopover';
+import { OutcomeSpecsPopover } from './OutcomeSpecsPopover';
 import { encodeOutcomeDropId } from './encodeOutcomeDropId';
 
 export interface OutcomeZoneProps {
@@ -61,7 +61,7 @@ export function OutcomeZone({
         </div>
       )}
       {openSpecs && activeSpec && (
-        <SpecsPopover
+        <OutcomeSpecsPopover
           spec={activeSpec}
           anchor={openSpecs.anchor}
           onApply={updated => {

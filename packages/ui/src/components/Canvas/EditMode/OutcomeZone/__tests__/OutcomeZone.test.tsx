@@ -39,7 +39,7 @@ describe('OutcomeZone', () => {
     expect(screen.getByTestId('outcome-zone')).toBeInTheDocument();
   });
 
-  it('clicking ⚙ on a card opens SpecsPopover', () => {
+  it('clicking ⚙ on a card opens OutcomeSpecsPopover', () => {
     renderZone({ specs: [createTestOutcomeSpec({ id: 'o-1', columnName: 'A' })] });
     fireEvent.click(screen.getByRole('button', { name: /edit specs/i }));
     expect(screen.getByRole('dialog', { name: /edit outcome specs/i })).toBeInTheDocument();

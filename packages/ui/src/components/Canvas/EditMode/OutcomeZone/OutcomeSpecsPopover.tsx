@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { OutcomeSpec } from '@variscout/core';
 import type { CharacteristicType } from '@variscout/core/processHub';
 
-export interface SpecsPopoverProps {
+export interface OutcomeSpecsPopoverProps {
   spec: OutcomeSpec;
   anchor: { x: number; y: number };
   onApply: (updated: OutcomeSpec) => void;
@@ -27,7 +27,7 @@ const TYPE_ORDER: readonly CharacteristicType[] = [
   'largerIsBetter',
 ];
 
-export function SpecsPopover({ spec, anchor, onApply, onClose }: SpecsPopoverProps) {
+export function OutcomeSpecsPopover({ spec, anchor, onApply, onClose }: OutcomeSpecsPopoverProps) {
   const [characteristicType, setCharacteristicType] = useState<CharacteristicType>(
     spec.characteristicType
   );
@@ -161,4 +161,4 @@ export function SpecsPopover({ spec, anchor, onApply, onClose }: SpecsPopoverPro
   );
 }
 
-export default SpecsPopover;
+export default OutcomeSpecsPopover;
