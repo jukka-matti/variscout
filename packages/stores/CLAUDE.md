@@ -30,8 +30,8 @@
 - `SuspectedCause` is a first-class entity (ADR-064), not a question tag. Multiple hubs coexist; each `selectedForImprovement: true` hub triggers one HMW brainstorm in IMPROVE. Legacy `causeRole: 'primary' | 'contributing'` is deprecated.
 - `CausalLink` belongs to `analyzeStore`, never `improvementStore`. Cycle prevention is mandatory: `wouldCreateCycle()` from `@variscout/core/stats` (`causalGraph.ts`); `addCausalLink` calls it internally — don't bypass the store.
 - `FindingSource` (`@variscout/core/findings`) is a discriminated union (`chart` discriminant, 6 variants). Always narrow before accessing variant fields. Breadcrumb-pinned findings have no `source` — guard before access.
-- Persistence: `suspectedCauses` + `causalLinks` serialize via `useProjectActions` into `.vrs` (Apr 2026 fix). New investigation entities also need `apps/azure/src/db/schema.ts` + `useEditorDataFlow.ts` updates.
-- Sustainment (RPS V1, ADR-080) auto-fires once a `SuspectedCause` is `confirmed` AND the matching improvement is "implemented". `sustainmentRecords`, `sustainmentReviews`, `controlHandoffs` are NOT yet HubAction-dispatched — direct `apps/azure/src/services/localDb.ts` writes (R13 allow-listed). F5 may unify.
+- Persistence: `suspectedCauses` + `causalLinks` serialize via `useProjectActions` into `.vrs` (Apr 2026 fix). New analyze entities also need `apps/azure/src/db/schema.ts` + `useEditorDataFlow.ts` updates.
+- Control (RPS V1, ADR-080) auto-fires once a `SuspectedCause` is `confirmed` AND the matching improvement is "implemented". `controlRecords`, `controlReviews`, `controlHandoffs` are NOT yet HubAction-dispatched — direct `apps/azure/src/services/localDb.ts` writes (R13 allow-listed). F5 may unify.
 
 ## Testing (`pnpm --filter @variscout/stores test`)
 

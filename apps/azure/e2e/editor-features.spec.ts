@@ -109,15 +109,15 @@ test.describe('Azure App: What-If Simulator', () => {
   });
 });
 
-test.describe('Azure App: Investigation Mindmap', () => {
-  test('should toggle mindmap panel when investigation button is clicked', async ({ page }) => {
+test.describe('Azure App: Analyze Mindmap', () => {
+  test('should toggle mindmap panel when analyze button is clicked', async ({ page }) => {
     await loadSampleInEditor(page);
 
-    const investigationBtn = page.locator('[data-testid="btn-analyze"]');
+    const analyzeBtn = page.locator('[data-testid="btn-analyze"]');
 
-    // Investigation button is only visible if there are factors
+    // Analyze button is only visible if there are factors
     // Most samples have factors, so it should be visible
-    const isVisible = await investigationBtn.isVisible();
+    const isVisible = await analyzeBtn.isVisible();
     if (!isVisible) {
       // Skip if sample doesn't have factors
       test.skip();
@@ -125,15 +125,15 @@ test.describe('Azure App: Investigation Mindmap', () => {
     }
 
     // Open mindmap panel
-    await investigationBtn.click();
+    await analyzeBtn.click();
 
     // Button should now have active styling
-    await expect(investigationBtn).toHaveClass(/bg-blue-600/);
+    await expect(analyzeBtn).toHaveClass(/bg-blue-600/);
 
     // Close mindmap panel
-    await investigationBtn.click();
+    await analyzeBtn.click();
 
     // Button should no longer have active styling
-    await expect(investigationBtn).not.toHaveClass(/bg-blue-600/);
+    await expect(analyzeBtn).not.toHaveClass(/bg-blue-600/);
   });
 });

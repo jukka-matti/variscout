@@ -32,7 +32,7 @@ The Framing Layer Spec (archived 2026-05-26 under wedge V1) committed to a five-
 
 **Spec 2's scope: the Process tab's Edit mode** — the canvas-based authoring experience where a user pastes data and connects columns to a process model. This pairs with the existing State mode (L1 outcome view / L2 process flow / L3 focal step) shipped via the 8f Canvas Viewport Architecture (`useCanvasViewportStore`, PRs #160–#168). Together the two modes form the Process tab.
 
-This spec was authored 2026-05-26 in a customer-hat brainstorm session that simultaneously surfaced five vision-violation findings about the journey docs themselves (logged separately in `docs/ephemeral/investigations.md`) and reached the design choices captured below. Path B from the wedge spec §3.0 — _"paste data, then promote to Project"_ — is the primary onramp; this spec describes the canvas-onboarding experience that bridges paste to investigation.
+This spec was authored 2026-05-26 in a customer-hat brainstorm session that simultaneously surfaced five vision-violation findings about the journey docs themselves (logged separately in `docs/ephemeral/investigations.md`) and reached the design choices captured below. Path B from the wedge spec §3.0 — _"paste data, then promote to Project"_ — is the primary onramp; this spec describes the canvas-onboarding experience that bridges paste to Analyze.
 
 The session also surfaced **six wedge-spec amendments** required to align the wedge spec body with the design choices here. See §8.
 
@@ -57,7 +57,7 @@ The session also surfaced **six wedge-spec amendments** required to align the we
 - Sub-step decomposition (sequential children inside one logical step) — V2
 - Per-resource timing (separate start/end columns per parallel machine) — V2
 - Step cards + drill-down floating overlays + mode-lens reskinning — Spec 3 (task #11)
-- Canvas overlays for active investigations + Wall sync — Spec 4
+- Canvas overlays for active Analyze entries + Wall sync — Spec 4
 - IndexedDB persistence schema — Spec 5
 - Vocabulary positioning (Explore / Analyze / Control naming) — separate session
 
@@ -106,7 +106,7 @@ Entry: `Edit map` affordance in the Process tab header (per wedge spec §3.3.1) 
 
 Applied four times during the brainstorm session:
 
-1. The wedge spec's staged Mode B (Stages 1, 3, 5) folds into canvas affordances — not separate wizards. Goal narrative is a sidebar drawer; specs entry is a popover on the outcome chip; investigation entry is the existing Stage 5 modal triggered on demand.
+1. The wedge spec's staged Mode B (Stages 1, 3, 5) folds into canvas affordances — not separate wizards. Goal narrative is a sidebar drawer; specs entry is a popover on the outcome chip; Analyze entry is the existing Stage 5 modal triggered on demand.
 2. Parsing correction folds into chip badges + per-chip override popover — not a separate "data cleaning" screen.
 3. Shape detection becomes invisible emergence from connections — not a shape-picker UI.
 4. Bin / time-as-factors / calculated column move from canvas toolbar workflows to per-chip context menu items reachable from both palette AND Explore tab. Same affordance, two access points.
@@ -332,7 +332,7 @@ The code distinguishes these (`packages/core/src/findings/types.ts:872` for `iss
 
 **Issue Statement** (`AnalysisBrief.issueStatement`, ≤ 500 chars, free-text):
 
-- Captured at investigation entry (Stage 5 modal) OR at Charter ceremony
+- Captured at Analyze entry (Stage 5 modal) OR at Charter ceremony
 - Episodic — _"what's happening, what just changed"_
 - Example: _"Reactor B yields 3% lower than Reactor A — investigate root contribution and stabilize."_
 
@@ -532,7 +532,7 @@ User opens an existing Hub from the Hub list. Per Framing Layer §6.1:
 - Latest snapshot's capability badges + drift indicators visible
 - **Defaults to State mode** (L1 / L2 / L3 via pan-zoom)
 - Edit mode is one click away via `Edit map` affordance in Process tab header
-- Stage 5 modal opens on demand via `+ New investigation` button in canvas chrome
+- Stage 5 modal opens on demand via `+ New analyze` button in canvas chrome
 
 The canvas-onboarding experience (Spec 2) is for first-paint and for explicit Edit-mode entry; it does not re-show on every reopen.
 
@@ -689,7 +689,7 @@ Required to align the wedge V1 architecture spec with the design choices here:
 
 Explicitly named so future sessions can pick them up without re-derivation:
 
-1. **Vocabulary positioning** — Explore / Analyze / Control vs Explore / Analyze / Control. Identity-level call. Logged in `docs/ephemeral/investigations.md` as a vision-violation finding; needs its own session.
+1. **Vocabulary positioning — RESOLVED 2026-05-27 (PR-WV1-NAV).** Settled on `Home · Project · Process · Explore · Analyze · Improve · Report`. The previous Investigation tab is now Analyze; the previous Analyze EDA-tab vocabulary moved to Explore; Sustainment stage is now Control. The 13-commit nav vocabulary sweep + this cleanup pass (commits 9a0fb769..32df82f2) implemented the rename.
 2. **Lead JTBD restructure** — activity-framed (Frame / Drill / Improve / Verify) instead of lifecycle-framed (Charter → Approach → Control). Logged as finding; doc-only fix when settled.
 3. **Mode 1 journey doc** — add a pre-Project journey to `docs/02-journeys/`; currently the L2 journey corpus is silent on quick-analyze.
 4. **Project = IP terminology cleanup** — collapse the muddle in code (`projectsByHub` legacy holdover) and docs ("Active IP promoted from hypothesis" wrong framing).

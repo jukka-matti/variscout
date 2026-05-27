@@ -210,7 +210,7 @@ test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point',
     await pasteDataAndAnalyze(page, MODE_B_CSV);
 
     // After fresh paste with new data, Stage 1 (HubGoalForm) always appears for
-    // a new investigation. Use waitFor (polling) so we don't race the React render.
+    // a new Analyze entry. Use waitFor (polling) so we don't race the React render.
     const stage1AfterNewHub = page.getByTestId('hub-creation-stage1');
     try {
       await stage1AfterNewHub.waitFor({ state: 'visible', timeout: 6000 });
