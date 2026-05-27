@@ -1,4 +1,4 @@
-import { parseTimeValue, extractTimeComponents, formatTimeBucket } from '../time';
+import { parseTimeValue, extractTimeComponents } from '../time';
 import type { HourGranularityMinutes, TimeDecompositionBinding, TimeDimension } from './types';
 
 /**
@@ -119,9 +119,13 @@ export function computeTimeDecompositionColumns(
           if (granularity === 60) {
             out[key].push(components.hour ?? null);
           } else {
-            // Sub-hour granularity: formatTimeBucket returns "Mon DD HH:mm" — that's
-            // acceptable as a categorical label for binning.
-            out[key].push(formatTimeBucket(date, 'minute', granularity));
+            // Bucket minute to the granularity floor; pure HH:MM shape per spec.
+            // formatTimeBucket('minute', N) returns "Mon DD HH:mm" (date-prefixed),
+            // but the spec requires just "14:30" — categorical chip label is the bucket alone.
+            const hh = String(date.getHours()).padStart(2, '0');
+            const bucketMin = Math.floor(date.getMinutes() / granularity) * granularity;
+            const mm = String(bucketMin).padStart(2, '0');
+            out[key].push(`${hh}:${mm}`);
           }
           break;
       }

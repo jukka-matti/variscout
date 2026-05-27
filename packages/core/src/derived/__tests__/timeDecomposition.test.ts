@@ -122,22 +122,34 @@ describe('computeTimeDecompositionColumns', () => {
     expect(out['Date.hour'][0]).toMatch(/^\d{2}:00$/);
   });
 
-  it('formats hour at granularity 15 under hour-15min key', () => {
+  it('formats hour at granularity 15 under hour-15min key as pure HH:MM', () => {
     const out = computeTimeDecompositionColumns(
       [{ Date: '2025-01-15T14:30:00Z' }],
       binding({ dimensions: ['hour'], hourGranularityMinutes: 15 })
     );
     expect(Object.keys(out)).toEqual(['Date.hour-15min']);
     expect(out['Date.hour-15min']).toHaveLength(1);
-    expect(out['Date.hour-15min'][0]).not.toBeNull();
+    expect(out['Date.hour-15min'][0]).toMatch(/^\d{2}:(00|15|30|45)$/);
   });
 
-  it('formats hour at granularity 5 under hour-5min key', () => {
+  it('formats hour at granularity 30 under hour-30min key as pure HH:MM', () => {
+    const out = computeTimeDecompositionColumns(
+      [{ Date: '2025-01-15T14:30:00Z' }],
+      binding({ dimensions: ['hour'], hourGranularityMinutes: 30 })
+    );
+    expect(Object.keys(out)).toEqual(['Date.hour-30min']);
+    expect(out['Date.hour-30min']).toHaveLength(1);
+    expect(out['Date.hour-30min'][0]).toMatch(/^\d{2}:(00|30)$/);
+  });
+
+  it('formats hour at granularity 5 under hour-5min key as pure HH:MM', () => {
     const out = computeTimeDecompositionColumns(
       [{ Date: '2025-01-15T14:30:00Z' }],
       binding({ dimensions: ['hour'], hourGranularityMinutes: 5 })
     );
     expect(Object.keys(out)).toEqual(['Date.hour-5min']);
+    expect(out['Date.hour-5min']).toHaveLength(1);
+    expect(out['Date.hour-5min'][0]).toMatch(/^\d{2}:(00|05|10|15|20|25|30|35|40|45|50|55)$/);
   });
 
   it('parses Excel serial date numbers', () => {
