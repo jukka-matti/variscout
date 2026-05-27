@@ -43,6 +43,25 @@ export function evaluateFormulaRow(
   return (numSum / denSum) * binding.multiplier;
 }
 
+/**
+ * Compute a derived numeric column by evaluating `binding` for every row.
+ *
+ * Returns `null` when `binding.numerator.length === 0` — signals the consumer
+ * (CanvasWorkspace) to skip emitting a derived chip entirely. Mirrors the
+ * `number[] | null` contract from `computeLeadTimeColumn` in `../leadTime.ts`.
+ *
+ * Each row's result follows `evaluateFormulaRow`'s NaN-propagation rules.
+ * Consumers should filter NaN with `Number.isFinite` before display.
+ */
+export function computeFormulaColumn(
+  rows: ReadonlyArray<Record<string, unknown>>,
+  binding: FormulaBinding,
+  augmentedColumns: Record<string, number[]>
+): number[] | null {
+  if (binding.numerator.length === 0) return null;
+  return rows.map((row, i) => evaluateFormulaRow(row, binding, augmentedColumns, i));
+}
+
 function sumTerms(
   terms: FormulaTerm[],
   row: Record<string, unknown>,

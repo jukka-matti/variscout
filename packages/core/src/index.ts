@@ -996,4 +996,4 @@ export {
 
 // Formula derivation (CCJ D2 — FormulaBinding types + row evaluator)
 export type { FormulaTerm, FormulaFamily, FormulaBinding } from './derived';
-export { evaluateFormulaRow } from './derived';
+export { evaluateFormulaRow, computeFormulaColumn } from './derived';
