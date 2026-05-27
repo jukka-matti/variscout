@@ -5,6 +5,13 @@
  * Structure optimized for Azure AI Foundry automatic prompt caching:
  * System prompts place static content (role + glossary) first as a cacheable prefix (≥1,024 tokens),
  * with variable context (stats, filters, findings) in subsequent messages.
+ *
+ * PR-WV1-NAV cleanup deferral (2026-05-27): "investigation" methodology
+ * references in this file are intentionally preserved pending a design call.
+ * The distinction (renamed Analyze tab vs. the methodology word "investigation"
+ * = "the act of inquiry") needs human judgment per CoScout prompt emission
+ * surface. See `docs/ephemeral/investigations.md` § "CoScout AI prompt
+ * vocabulary alignment".
  */
 
 import type {

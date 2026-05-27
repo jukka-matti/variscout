@@ -4,6 +4,13 @@
  * Formats investigation state into human-readable text blocks.
  * CRITICAL: Uses ONLY hypothesisHubs — ignores legacy causeRole-based
  * hypotheses from question fields (contradiction resolution #1).
+ *
+ * PR-WV1-NAV cleanup deferral (2026-05-27): "investigation" methodology
+ * references in this file are intentionally preserved pending a design call.
+ * The distinction (renamed Analyze tab vs. the methodology word "investigation"
+ * = "the act of inquiry") needs human judgment per CoScout prompt emission
+ * surface. See `docs/ephemeral/investigations.md` § "CoScout AI prompt
+ * vocabulary alignment".
  */
 
 import type { AIContext } from '../../../types';

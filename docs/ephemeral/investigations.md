@@ -44,6 +44,30 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ---
 
+### CoScout AI prompt vocabulary alignment
+
+**Surfaced by:** PR-WV1-NAV-2026-05-27 spec-reviewer audit on the 13-commit Investigation → Analyze rename sweep.
+
+**Description:** Three CoScout prompt-authoring files emit "investigation" methodology language into LLM context that ultimately appears in user-visible CoScout responses:
+
+- `packages/core/src/ai/prompts/coScout/legacy.ts` (deprecated `buildCoScoutSystemPrompt`)
+- `packages/core/src/ai/prompts/coScout/context/analyze.ts` (Tier 2 context formatter)
+- `packages/core/src/ai/buildAIContext.ts` (AIContext assembly entry)
+
+The rename pass renamed the **Analyze tab** (formerly Investigation tab) + the Sustainment stage → Control. But the methodology word "investigation" — meaning **"the practice of inquiry"** (as in "this requires investigation" = "this requires inquiry") — appears in CoScout prompts both as references to the renamed tab AND as the methodology noun in instructional / pedagogical / framing text. Disambiguating which sites are referring to which is a per-occurrence judgment call that the cleanup pass deferred.
+
+Each of the 3 files carries a top-of-file deferral comment (PR-WV1-NAV cleanup deferral 2026-05-27) preserving the existing prose pending a design call.
+
+**Possible resolution paths:**
+
+- **Strict rename pass** — all "investigation" occurrences in these files become "analyze" (matches the renamed tab name; loses some methodology nuance in instructional copy where the word means "inquiry").
+- **Disambiguate per site** — read each occurrence, decide tab-name vs methodology-word, rename only tab-name sites. Higher fidelity; bigger time investment.
+- **Style-guide ruling** — adopt a project rule that CoScout prompt copy uses "Analyze" for the tab and "analysis" / "explore" for the methodology act (avoids "investigation" entirely). Then rename all 3 files mechanically + write the rule into `.claude/INVARIANTS.md` or the AIX design system doc.
+
+**Promotion path:** Pair with the CoScout prompt design owner; resolve in a follow-up PR (CoScout vocabulary alignment). Not blocking PR-WV1-NAV-2026-05-27 merge.
+
+---
+
 ### Docs site sidebar drift: 5 dead refs + 5 unlisted personas
 
 **Surfaced by:** PR #207 fixing the `pnpm build` failure on `@variscout/docs`, 2026-05-25.

@@ -1,5 +1,12 @@
 /**
  * Assembles the structured AI context from current analysis state.
+ *
+ * PR-WV1-NAV cleanup deferral (2026-05-27): "investigation" methodology
+ * references in this file are intentionally preserved pending a design call.
+ * The distinction (renamed Analyze tab vs. the methodology word "investigation"
+ * = "the act of inquiry") needs human judgment per CoScout prompt emission
+ * surface. See `docs/ephemeral/investigations.md` § "CoScout AI prompt
+ * vocabulary alignment".
  */
 
 import type { AIContext, ProcessContext, TargetMetric, AnalyzePhase } from './types';
