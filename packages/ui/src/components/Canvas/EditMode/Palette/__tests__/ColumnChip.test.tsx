@@ -1,6 +1,6 @@
 import React from 'react';
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { DndContext } from '@dnd-kit/core';
 import { ColumnChip } from '../ColumnChip';
 import { createTestColumnParsingProfile } from '../../../../../test-utils/columnParsingProfile';
@@ -66,5 +66,55 @@ describe('ColumnChip — drag handle', () => {
     renderChip({ profile: createTestColumnParsingProfile({ columnName: 'Speed' }) });
     const draggable = screen.getByTestId('column-chip');
     expect(draggable.getAttribute('data-draggable-id')).toBe(encodeColumnDragId('Speed'));
+  });
+});
+
+describe('ColumnChip — affordances', () => {
+  it('renders the ▾ override button and fires onOverrideOpen with columnName', () => {
+    const onOverrideOpen = vi.fn();
+    renderChip({
+      profile: createTestColumnParsingProfile({ columnName: 'Speed' }),
+      onOverrideOpen,
+    });
+    fireEvent.click(screen.getByTestId('column-chip-override-button'));
+    expect(onOverrideOpen).toHaveBeenCalledWith('Speed');
+  });
+
+  it('renders the ⋮ context button and fires onContextMenuOpen with columnName', () => {
+    const onContextMenuOpen = vi.fn();
+    renderChip({
+      profile: createTestColumnParsingProfile({ columnName: 'Speed' }),
+      onContextMenuOpen,
+    });
+    fireEvent.click(screen.getByTestId('column-chip-context-button'));
+    expect(onContextMenuOpen).toHaveBeenCalledWith('Speed');
+  });
+});
+
+describe('ColumnChip — visual states', () => {
+  it('applies dropped styling when dropped=true', () => {
+    renderChip({ dropped: true });
+    const chip = screen.getByTestId('column-chip');
+    expect(chip.className).toMatch(/opacity-50/);
+    expect(chip.className).toMatch(/bg-surface-secondary/);
+  });
+
+  it('applies ghost-suggested styling and hint pill', () => {
+    renderChip({ ghostSuggested: 'factor' });
+    const chip = screen.getByTestId('column-chip');
+    expect(chip.className).toMatch(/border-dashed/);
+    expect(chip.className).toMatch(/border-cyan-400/);
+    expect(screen.getByTestId('column-chip-hint-pill')).toHaveTextContent(/factor\?/i);
+  });
+
+  it('renders different hint pill copy per ghost role', () => {
+    const { rerender } = renderChip({ ghostSuggested: 'outcome' });
+    expect(screen.getByTestId('column-chip-hint-pill')).toHaveTextContent(/outcome\?/i);
+    rerender(
+      <DndContext>
+        <ColumnChip profile={createTestColumnParsingProfile()} ghostSuggested="process" />
+      </DndContext>
+    );
+    expect(screen.getByTestId('column-chip-hint-pill')).toHaveTextContent(/process\?/i);
   });
 });

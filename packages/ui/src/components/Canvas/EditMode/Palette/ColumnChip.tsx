@@ -23,7 +23,13 @@ const BADGE_BY_STATUS: Record<ParsingStatus, { icon: string; classes: string }> 
   error: { icon: '✗', classes: 'text-red-700 bg-red-50' },
 };
 
-export const ColumnChip: React.FC<ColumnChipProps> = ({ profile }) => {
+export const ColumnChip: React.FC<ColumnChipProps> = ({
+  profile,
+  dropped,
+  ghostSuggested,
+  onOverrideOpen,
+  onContextMenuOpen,
+}) => {
   const draggableId = encodeColumnDragId(profile.columnName);
   const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: draggableId });
   const badge = BADGE_BY_STATUS[profile.status];
@@ -33,13 +39,21 @@ export const ColumnChip: React.FC<ColumnChipProps> = ({ profile }) => {
     ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
     : undefined;
 
+  const chipClasses = [
+    'flex items-center gap-2 rounded-md bg-surface-primary px-2 py-1.5',
+    dropped ? 'opacity-50 bg-surface-secondary border border-edge' : '',
+    ghostSuggested ? 'border-2 border-dashed border-cyan-400' : 'border border-edge',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       data-testid="column-chip"
       data-draggable-id={draggableId}
-      className="flex items-center gap-2 rounded-md border border-edge bg-surface-primary px-2 py-1.5"
+      className={chipClasses}
     >
       <button
         type="button"
@@ -62,6 +76,32 @@ export const ColumnChip: React.FC<ColumnChipProps> = ({ profile }) => {
         <span className="truncate text-xs font-medium text-content">{profile.columnName}</span>
         <span className="truncate text-[10px] text-content-tertiary">{interpretationLabel}</span>
       </div>
+      {ghostSuggested && (
+        <span
+          data-testid="column-chip-hint-pill"
+          className="rounded-full bg-cyan-50 px-1.5 py-0.5 text-[10px] text-cyan-700"
+        >
+          {ghostSuggested}?
+        </span>
+      )}
+      <button
+        type="button"
+        data-testid="column-chip-override-button"
+        className="text-xs text-content-tertiary hover:text-content"
+        aria-label={`Override parsing for ${profile.columnName}`}
+        onClick={() => onOverrideOpen?.(profile.columnName)}
+      >
+        ▾
+      </button>
+      <button
+        type="button"
+        data-testid="column-chip-context-button"
+        className="text-xs text-content-tertiary hover:text-content"
+        aria-label={`Open context menu for ${profile.columnName}`}
+        onClick={() => onContextMenuOpen?.(profile.columnName)}
+      >
+        ⋮
+      </button>
     </div>
   );
 };
