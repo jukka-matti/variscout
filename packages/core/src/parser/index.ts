@@ -27,6 +27,10 @@ export type {
   ParetoRow,
   DetectChannelsOptions,
   DetectWideFormatOptions,
+  ParsingStatus,
+  ParsingInterpretation,
+  ParsingAlternative,
+  ColumnParsingProfile,
 } from './types';
 
 // CSV/text parsing
@@ -59,3 +63,6 @@ export type { StackConfig, StackResult } from './stack';
 // Y-likelihood ranking — orders numeric columns for FRAME b0 Y-picker
 export { rankYCandidates } from './yLikelihood';
 export type { RankedColumn } from './yLikelihood';
+
+// Parsing profile — per-column parse-confidence analysis for canvas palette (B2)
+export { profileColumns } from './parsingProfile';
