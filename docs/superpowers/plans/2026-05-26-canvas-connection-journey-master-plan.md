@@ -331,7 +331,7 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 **Dependencies:** B2.
 
-**Sub-plan needed:** YES.
+**Sub-plan needed:** YES — drafted 2026-05-27 at [`2026-05-27-canvas-connection-journey-d-3-time-as-factors.md`](./2026-05-27-canvas-connection-journey-d-3-time-as-factors.md). Structured as single-PR with 3 internal phases (engine in `core/derived/` + `time.ts` Quarter extension · `TimeAsFactorsModal` under `Canvas/EditMode/Workflows/` · kebab dispatch + CanvasWorkspace integration). 8 tasks. **Six dimensions** (Year · Quarter · Month · Week · Day-of-week · Hour) with Hour having a granularity sub-picker (60/30/15/5 min). **Re-open UX = pre-fill** (Notion/Figma/Linear standard). **Derived chips = categorical strings** (`Date.day-of-week` style dot+kebab naming per spec); introduces parallel `categoricalValuesByColumn` channel alongside D1/D2's `numericValuesByColumn`. D1+D2 already scaffolded every piece of plumbing (derivationSource union, palette bucket, group label, SystemHintBanner cyan variant, menu item ID).
 
 ### Phase E — Promote-to-Project (1 PR, medium)
 
