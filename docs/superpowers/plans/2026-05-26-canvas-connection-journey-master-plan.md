@@ -231,6 +231,8 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 ### Phase C — Three canvas zones (3 PRs, medium)
 
+> **Master-of-master sequencer:** [`2026-05-27-canvas-connection-journey-c-master-plan.md`](./2026-05-27-canvas-connection-journey-c-master-plan.md) — Phase C decomposition + sub-PR dependencies.
+
 #### PR-CCJ-C1 · Outcome zone + specs popover
 
 **Scope:** Outcome zone with multi-outcome cards. Per-card specs popover (target / LSL / USL / cpkTarget). Drag-to-drop column → outcome chip with derived specs from characteristic type.
@@ -245,6 +247,8 @@ Build the canvas authoring shell + the palette that anchors everything else.
 **Dependencies:** A3 (multi-outcome types), B2 (column chips to drop FROM).
 
 **Sub-plan needed:** YES.
+
+**Sub-plan:** [`2026-05-27-canvas-connection-journey-c-1-outcome-zone.md`](./2026-05-27-canvas-connection-journey-c-1-outcome-zone.md)
 
 #### PR-CCJ-C2 · Factors zone + global/step-bound model
 
