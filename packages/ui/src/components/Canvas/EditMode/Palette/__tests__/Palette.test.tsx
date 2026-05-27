@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DndContext } from '@dnd-kit/core';
 import { Palette } from '../index';
+import type { SystemHint } from '../index';
 import { createTestColumnParsingProfile } from '../../../../../test-utils/columnParsingProfile';
 
 const renderPalette = (props: Partial<React.ComponentProps<typeof Palette>>) =>
@@ -316,5 +317,83 @@ describe('Palette — overlay state + banner', () => {
     renderPalette({ profiles: warningProfiles(3), onReviewAllWarnings });
     fireEvent.click(screen.getByRole('button', { name: /review/i }));
     expect(onReviewAllWarnings).toHaveBeenCalled();
+  });
+});
+
+describe('Palette — systemHints', () => {
+  const numericProfile = createTestColumnParsingProfile({
+    columnName: 'Speed',
+    primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+  });
+
+  it('no hints by default — palette-system-hints wrapper not rendered', () => {
+    renderPalette({ profiles: [numericProfile] });
+    expect(screen.queryByTestId('palette-system-hints')).toBeNull();
+  });
+
+  it('empty array — palette-system-hints wrapper not rendered', () => {
+    renderPalette({ profiles: [numericProfile], systemHints: [] });
+    expect(screen.queryByTestId('palette-system-hints')).toBeNull();
+  });
+
+  it('single batch hint renders banner above chip groups', () => {
+    const onCta = vi.fn();
+    const hints: SystemHint[] = [
+      {
+        id: 'batch-1',
+        kind: 'batch',
+        message: '💡 Batch data detected',
+        ctaLabel: 'Calculate yield ratios →',
+        onCta,
+      },
+    ];
+    renderPalette({ profiles: [numericProfile], systemHints: hints });
+
+    const wrapper = screen.getByTestId('palette-system-hints');
+    expect(wrapper).toBeInTheDocument();
+
+    const banner = screen.getByTestId('system-hint-banner-batch');
+    expect(banner).toBeInTheDocument();
+
+    // Banner wrapper appears before chip groups in DOM order
+    const palette = screen.getByTestId('palette');
+    const chipGroup = screen.getByTestId('palette-group-numeric');
+    const wrapperPos = wrapper.compareDocumentPosition(chipGroup);
+    // DOCUMENT_POSITION_FOLLOWING (4) means chipGroup comes after wrapper
+    expect(wrapperPos & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // Also verify palette is the parent that contains both
+    expect(palette.contains(wrapper)).toBe(true);
+    expect(palette.contains(chipGroup)).toBe(true);
+  });
+
+  it('multiple hints render in array order', () => {
+    const hints: SystemHint[] = [
+      { id: 'batch-1', kind: 'batch', message: '💡 Batch data detected' },
+      { id: 'time-1', kind: 'time', message: '💡 6 time columns detected' },
+    ];
+    renderPalette({ profiles: [numericProfile], systemHints: hints });
+
+    const banners = screen.getAllByRole('region', { name: 'System hint' });
+    expect(banners).toHaveLength(2);
+    expect(banners[0].getAttribute('data-testid')).toBe('system-hint-banner-batch');
+    expect(banners[1].getAttribute('data-testid')).toBe('system-hint-banner-time');
+  });
+
+  it('CTA click wires through to hint onCta callback', () => {
+    const onCta = vi.fn();
+    const hints: SystemHint[] = [
+      {
+        id: 'batch-1',
+        kind: 'batch',
+        message: '💡 Batch data detected',
+        ctaLabel: 'Calculate yield ratios →',
+        onCta,
+      },
+    ];
+    renderPalette({ profiles: [numericProfile], systemHints: hints });
+
+    fireEvent.click(screen.getByTestId('system-hint-banner-batch-cta'));
+    expect(onCta).toHaveBeenCalledTimes(1);
   });
 });

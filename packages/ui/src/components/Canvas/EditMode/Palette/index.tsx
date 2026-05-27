@@ -4,10 +4,25 @@ import { ColumnGroup } from './ColumnGroup';
 import { ColumnChipContextMenu } from './ColumnChipContextMenu';
 import { ParsingOverridePopover } from './ParsingOverridePopover';
 import { ParsingBanner } from './ParsingBanner';
+import { SystemHintBanner } from './SystemHintBanner';
+import type { SystemHintKind } from './SystemHintBanner';
+
+export type { SystemHintKind };
+
+export interface SystemHint {
+  id: string;
+  kind: SystemHintKind;
+  message: string;
+  ctaLabel?: string;
+  onCta?: () => void;
+  onDismiss?: () => void;
+}
 
 export interface PaletteProps {
   profiles: ColumnParsingProfile[];
   numericValuesByColumn: Record<string, number[]>;
+  /** Contextual system hints rendered as banners above the chip groups. */
+  systemHints?: SystemHint[];
   /** Notify when a context-menu item is chosen. Routed to no-op by default. */
   onMenuItemSelect?: (columnName: string, itemId: string) => void;
   /** Notify when a user picks a different parsing interpretation. Routed to no-op by default. */
@@ -57,6 +72,7 @@ const WARNING_BANNER_THRESHOLD = 3;
 export const Palette: React.FC<PaletteProps> = ({
   profiles,
   numericValuesByColumn,
+  systemHints,
   onMenuItemSelect,
   onOverrideAccept,
   onApplyToSimilar,
@@ -89,6 +105,21 @@ export const Palette: React.FC<PaletteProps> = ({
 
   return (
     <div className="flex flex-col gap-3" data-testid="palette">
+      {systemHints && systemHints.length > 0 && (
+        <div data-testid="palette-system-hints" className="flex flex-col gap-2 mb-3">
+          {systemHints.map(hint => (
+            <SystemHintBanner
+              key={hint.id}
+              kind={hint.kind}
+              message={hint.message}
+              ctaLabel={hint.ctaLabel}
+              onCta={hint.onCta}
+              onDismiss={hint.onDismiss}
+            />
+          ))}
+        </div>
+      )}
+
       {warningCount >= WARNING_BANNER_THRESHOLD && (
         <ParsingBanner warningCount={warningCount} onReviewAll={() => onReviewAllWarnings?.()} />
       )}
