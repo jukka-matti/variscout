@@ -46,7 +46,7 @@ export function derivedTimeColumnName(
  *
  * Hour at granularity 60 routes through `extractTimeComponents` (returns
  * `"HH:00"` when the date has a time component, `null` otherwise). Other
- * hour granularities route through `formatTimeBucket('minute', N)` directly.
+ * hour granularities bucket the minute directly to `"HH:MM"` shape.
  *
  * All 6 dimensions are extracted in a single pass per row.
  *
