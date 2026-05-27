@@ -77,7 +77,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub,
         members: [m],
-        rowsByInvestigation: rowsByInv,
+        rowsByAnalyze: rowsByInv,
         contextFilter: {},
       })
     );
@@ -93,7 +93,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub,
         members: [m],
-        rowsByInvestigation: new Map([['i1', []]]),
+        rowsByAnalyze: new Map([['i1', []]]),
         contextFilter: {},
       })
     );
@@ -115,7 +115,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub,
         members: [m],
-        rowsByInvestigation: new Map([['i1', rows]]),
+        rowsByAnalyze: new Map([['i1', rows]]),
         contextFilter: {},
       })
     );
@@ -138,7 +138,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub,
         members: [m],
-        rowsByInvestigation: new Map([['i1', rows]]),
+        rowsByAnalyze: new Map([['i1', rows]]),
         contextFilter: { product: 'A' },
       })
     );
@@ -153,7 +153,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub: noMapHub,
         members: [],
-        rowsByInvestigation: new Map(),
+        rowsByAnalyze: new Map(),
         contextFilter: {},
       })
     );
@@ -176,7 +176,7 @@ describe('useProductionLineGlanceData', () => {
       useProductionLineGlanceData({
         hub,
         members: [m],
-        rowsByInvestigation: new Map([['i1', rows]]),
+        rowsByAnalyze: new Map([['i1', rows]]),
         contextFilter: {},
         defectColumns: ['defect'],
       })

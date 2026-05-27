@@ -33,14 +33,14 @@ function makeEmptyCadence(): ProcessHubCadenceSummary<ProcessHubAnalyze> {
   const emptyQueue = { totalCount: 0, hiddenCount: 0, items: [] };
   return {
     hub: HUB,
-    activeInvestigationCount: 0,
+    activeAnalyzeCount: 0,
     latestActivity: null,
     snapshot: {
       active: 0,
       readiness: 0,
       verification: 0,
       overdueActions: 0,
-      sustainment: 0,
+      control: 0,
       latestSignals: 0,
       nextMoves: 0,
     },
@@ -49,7 +49,7 @@ function makeEmptyCadence(): ProcessHubCadenceSummary<ProcessHubAnalyze> {
     readiness: emptyQueue,
     verification: emptyQueue,
     actions: emptyQueue,
-    sustainment: emptyQueue,
+    control: emptyQueue,
     nextMoves: emptyQueue,
     activeWork: {
       quick: emptyQueue,
@@ -59,13 +59,11 @@ function makeEmptyCadence(): ProcessHubCadenceSummary<ProcessHubAnalyze> {
   } as ProcessHubCadenceSummary<ProcessHubAnalyze>;
 }
 
-function makeEmptyRollup(
-  investigations: ProcessHubAnalyze[] = []
-): ProcessHubRollup<ProcessHubAnalyze> {
+function makeEmptyRollup(analyzes: ProcessHubAnalyze[] = []): ProcessHubRollup<ProcessHubAnalyze> {
   return {
     hub: HUB,
-    investigations,
-    activeInvestigationCount: investigations.length,
+    analyzes,
+    activeAnalyzeCount: analyzes.length,
     statusCounts: {},
     depthCounts: {},
     overdueActionCount: 0,
@@ -76,14 +74,11 @@ function makeEmptyRollup(
   } as ProcessHubRollup<ProcessHubAnalyze>;
 }
 
-function makeRecord(
-  investigationId: string,
-  overrides: Partial<ControlRecord> = {}
-): ControlRecord {
+function makeRecord(analyzeId: string, overrides: Partial<ControlRecord> = {}): ControlRecord {
   return {
-    id: `rec-${investigationId}`,
+    id: `rec-${analyzeId}`,
     title: 'Control cadence',
-    investigationId,
+    investigationId: analyzeId,
     hubId: 'hub-1',
     status: 'pending',
     consecutiveOnTargetTicks: 0,
@@ -100,7 +95,7 @@ function makeRecord(
 const noOp = vi.fn();
 
 describe('ProcessHubControlRegion', () => {
-  it('renders the empty-state line when there are no eligible investigations', () => {
+  it('renders the empty-state line when there are no eligible analyzes', () => {
     const cadence = makeEmptyCadence();
     const rollup = makeEmptyRollup([
       makeInvestigation({
@@ -115,20 +110,18 @@ describe('ProcessHubControlRegion', () => {
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={noOp}
-        onSetupSustainment={noOp}
+        onSetupControl={noOp}
         onLogReview={noOp}
       />
     );
 
     expect(
-      screen.getByText(
-        'No sustainment items yet — investigations move here once resolved or controlled.'
-      )
+      screen.getByText('No control items yet — analyzes move here once resolved or controlled.')
     ).toBeInTheDocument();
   });
 
-  it('renders the setup prompt for a resolved investigation with no sustainment metadata', () => {
-    const onSetupSustainment = vi.fn();
+  it('renders the setup prompt for a resolved analyze with no control metadata', () => {
+    const onSetupControl = vi.fn();
     const cadence = makeEmptyCadence();
     const rollup = makeEmptyRollup([
       makeInvestigation({
@@ -143,18 +136,18 @@ describe('ProcessHubControlRegion', () => {
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={noOp}
-        onSetupSustainment={onSetupSustainment}
+        onSetupControl={onSetupControl}
         onLogReview={noOp}
       />
     );
 
     expect(screen.getByText('Syringe Barrel')).toBeInTheDocument();
-    expect(screen.getByText('Set up sustainment cadence')).toBeInTheDocument();
+    expect(screen.getByText('Set up control cadence')).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole('button', { name: /Set up sustainment cadence for Syringe Barrel/ })
+      screen.getByRole('button', { name: /Set up control cadence for Syringe Barrel/ })
     );
-    expect(onSetupSustainment).toHaveBeenCalledWith('inv-2');
+    expect(onSetupControl).toHaveBeenCalledWith('inv-2');
   });
 
   it('renders the overdue bucket when a record is past due, calls onLogReview with the recordId', () => {
@@ -205,18 +198,18 @@ describe('ProcessHubControlRegion', () => {
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={noOp}
-        onSetupSustainment={noOp}
+        onSetupControl={noOp}
         onLogReview={onLogReview}
       />
     );
 
     expect(screen.getByText('Coffee Moisture')).toBeInTheDocument();
     expect(screen.getByText(/Holding/)).toBeInTheDocument();
-    expect(screen.getByTestId('sustainment-overdue')).toBeInTheDocument();
+    expect(screen.getByTestId('control-overdue')).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: /Log overdue sustainment review for Coffee Moisture/,
+        name: /Log overdue control review for Coffee Moisture/,
       })
     );
     expect(onLogReview).toHaveBeenCalledWith('rec-abc');
@@ -257,16 +250,16 @@ describe('ProcessHubControlRegion', () => {
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={noOp}
-        onSetupSustainment={noOp}
+        onSetupControl={noOp}
         onLogReview={noOp}
       />
     );
 
-    expect(screen.getByTestId('sustainment-recently-reviewed')).toBeInTheDocument();
+    expect(screen.getByTestId('control-recently-reviewed')).toBeInTheDocument();
     expect(screen.getByText('Pasteurizer Temp')).toBeInTheDocument();
   });
 
-  it('hides all sustainment buckets when a controlled investigation has retainControlReview=false', () => {
+  it('hides all control buckets when a controlled analyze has retainControlReview=false', () => {
     const inv = makeInvestigation({
       id: 'inv-5',
       name: 'Pressure Drop',
@@ -312,20 +305,18 @@ describe('ProcessHubControlRegion', () => {
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={noOp}
-        onSetupSustainment={noOp}
+        onSetupControl={noOp}
         onLogReview={noOp}
       />
     );
 
-    expect(screen.queryByTestId('sustainment-overdue')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('sustainment-due')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('sustainment-recently-reviewed')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('sustainment-handoff')).not.toBeInTheDocument();
-    expect(screen.queryByText('Set up sustainment cadence')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('control-overdue')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('control-due')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('control-recently-reviewed')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('control-handoff')).not.toBeInTheDocument();
+    expect(screen.queryByText('Set up control cadence')).not.toBeInTheDocument();
     expect(
-      screen.getByText(
-        'No sustainment items yet — investigations move here once resolved or controlled.'
-      )
+      screen.getByText('No control items yet — analyzes move here once resolved or controlled.')
     ).toBeInTheDocument();
   });
 });

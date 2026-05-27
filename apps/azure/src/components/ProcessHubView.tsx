@@ -31,7 +31,7 @@ export interface ProcessHubViewProps {
   rollup: ProcessHubRollup<ProcessHubAnalyze>;
   onOpenInvestigation: (id: string) => void;
   onStartInvestigation: () => void;
-  onSetupSustainment: (investigationId: string) => void;
+  onSetupControl: (analyzeId: string) => void;
   onLogReview: (recordId: string) => void;
   onResponsePathAction: (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => void;
   onRequestAddNote: (item: ProcessStateItem, hubId: string) => void;
@@ -75,7 +75,7 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
 
   const migration = useHubMigrationState({
     hubId: rollup.hub.id,
-    members: rollup.investigations,
+    members: rollup.analyzes,
     canonicalMap: rollup.hub.canonicalProcessMap,
     persistInvestigation,
   });

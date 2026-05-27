@@ -23,7 +23,7 @@ interface ProcessHubReviewPanelProps {
   rollup: ProcessHubRollup<ProcessHubAnalyze>;
   onOpenInvestigation: (id: string) => void;
   onStartInvestigation: () => void;
-  onSetupSustainment: (investigationId: string) => void;
+  onSetupControl: (analyzeId: string) => void;
   onLogReview: (recordId: string) => void;
   onResponsePathAction: (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => void;
   /** Notes wiring */
@@ -61,7 +61,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   rollup,
   onOpenInvestigation,
   onStartInvestigation,
-  onSetupSustainment,
+  onSetupControl,
   onLogReview,
   onResponsePathAction,
   onRequestAddNote,
@@ -93,23 +93,21 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
     ]
   );
 
-  // Pick the most-recently-modified investigation in this hub as the
+  // Pick the most-recently-modified analyze in this hub as the
   // default navigation target for hub-aggregate state items (capability-gap,
-  // change-signals, top-focus). For per-investigation items, the action
-  // uses item.investigationIds[0] instead.
-  const defaultInvestigationId = React.useMemo(() => {
-    const sorted = [...rollup.investigations].sort(
-      (a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0)
-    );
-    // Empty fallback when the rollup has no investigations: deriveResponsePathAction
+  // change-signals, top-focus). For per-analyze items, the action
+  // uses item.analyzeIds[0] instead.
+  const defaultAnalyzeId = React.useMemo(() => {
+    const sorted = [...rollup.analyzes].sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
+    // Empty fallback when the rollup has no analyzes: deriveResponsePathAction
     // will then return unsupported actions for hub-aggregate items, which actionToHref
     // maps to null, producing a silent no-op (correct UX — nothing to navigate to).
     return sorted[0]?.id ?? '';
-  }, [rollup.investigations]);
+  }, [rollup.analyzes]);
 
   const actionFor = React.useCallback(
-    (item: ProcessStateItem) => deriveResponsePathAction(item, defaultInvestigationId),
-    [defaultInvestigationId]
+    (item: ProcessStateItem) => deriveResponsePathAction(item, defaultAnalyzeId),
+    [defaultAnalyzeId]
   );
 
   const handleInboxNavigate = React.useCallback(
@@ -119,13 +117,16 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
       const targetProject = rollup.hub.improvementProjects?.find(
         project => project.id === targetId
       );
+      // 'sustainment' surface key kept intact — matches panelsStore.activeView workspace
+      // identifier + survey/control.ts emitter values (see Group 5 cascade note). The Stage 4
+      // workspace key was deliberately preserved across the renames.
       if (surface === 'sustainment' && targetId) {
         if (rollup.controlRecords.some(record => record.id === targetId)) {
           onLogReview(targetId);
           return;
         }
         if (targetProject?.metadata.investigationId) {
-          onSetupSustainment(targetProject.metadata.investigationId);
+          onSetupControl(targetProject.metadata.investigationId);
           return;
         }
         onOpenInvestigation(targetId);
@@ -140,56 +141,56 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
     [
       onLogReview,
       onOpenInvestigation,
-      onSetupSustainment,
+      onSetupControl,
       rollup.hub.improvementProjects,
       rollup.controlRecords,
     ]
   );
 
-  // Resolver: given a state item, return the investigation IDs whose findings
+  // Resolver: given a state item, return the analyze IDs whose findings
   // should "back" it. Mirrors the spec's Investigation-ID resolver table.
   //
-  // For per-investigation items (queue items), use item.investigationIds[0..N].
+  // For per-analyze items (queue items), use item.analyzeIds[0..N].
   // For hub-aggregate items (capability-gap, change-signals, top-focus, etc.),
-  // fall back to all investigations in the hub.
-  const investigationIdResolver = React.useCallback(
+  // fall back to all analyzes in the hub.
+  const analyzeIdResolver = React.useCallback(
     (item: ProcessStateItem): readonly string[] => {
-      if (item.investigationIds && item.investigationIds.length > 0) {
-        return item.investigationIds;
+      if (item.analyzeIds && item.analyzeIds.length > 0) {
+        return item.analyzeIds;
       }
-      return rollup.investigations.map(inv => inv.id);
+      return rollup.analyzes.map(inv => inv.id);
     },
-    [rollup.investigations]
+    [rollup.analyzes]
   );
 
   // countFor: cheap derivation from rollup metadata (same arithmetic as the
   // PR #99 synthetic-Finding length, but returns the integer directly).
   const countFor = React.useCallback(
     (item: ProcessStateItem): number => {
-      const investigationIds = investigationIdResolver(item);
+      const analyzeIds = analyzeIdResolver(item);
       let total = 0;
-      for (const invId of investigationIds) {
-        const inv = rollup.investigations.find(i => i.id === invId);
+      for (const invId of analyzeIds) {
+        const inv = rollup.analyzes.find(i => i.id === invId);
         const counts = inv?.metadata?.findingCounts ?? {};
         total += (counts.analyzed ?? 0) + (counts.improving ?? 0) + (counts.resolved ?? 0);
       }
       return total;
     },
-    [rollup.investigations, investigationIdResolver]
+    [rollup.analyzes, analyzeIdResolver]
   );
 
-  // Aggregate stateNotes from all linked investigations for an item.
-  // Per-investigation items use item.investigationIds; aggregate items pull
-  // from all hub investigations.
+  // Aggregate stateNotes from all linked analyzes for an item.
+  // Per-analyze items use item.analyzeIds; aggregate items pull
+  // from all hub analyzes.
   const notesFor = React.useCallback(
     (item: ProcessStateItem): readonly ProcessStateNote[] => {
-      const investigationIds =
-        item.investigationIds && item.investigationIds.length > 0
-          ? item.investigationIds
-          : rollup.investigations.map(inv => inv.id);
+      const analyzeIds =
+        item.analyzeIds && item.analyzeIds.length > 0
+          ? item.analyzeIds
+          : rollup.analyzes.map(inv => inv.id);
       const all: ProcessStateNote[] = [];
-      for (const invId of investigationIds) {
-        const inv = rollup.investigations.find(i => i.id === invId);
+      for (const invId of analyzeIds) {
+        const inv = rollup.analyzes.find(i => i.id === invId);
         const notes = inv?.metadata?.stateNotes ?? [];
         for (const note of notes) {
           if (note.itemId === item.id) all.push(note);
@@ -198,7 +199,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
       // Sort by createdAt asc so older notes appear first
       return all.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     },
-    [rollup.investigations]
+    [rollup.analyzes]
   );
 
   const headingId = `process-hub-current-state-${rollup.hub.id}`;
@@ -280,9 +281,9 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         />
         <SnapshotCard
           label="Control"
-          value={cadence.snapshot.sustainment}
-          testId="cadence-snapshot-sustainment"
-          tone={cadence.snapshot.sustainment > 0 ? 'green' : 'default'}
+          value={cadence.snapshot.control}
+          testId="cadence-snapshot-control"
+          tone={cadence.snapshot.control > 0 ? 'green' : 'default'}
         />
       </div>
 
@@ -291,7 +292,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={onOpenInvestigation}
-        onSetupSustainment={onSetupSustainment}
+        onSetupControl={onSetupControl}
         onLogReview={onLogReview}
       />
     </section>

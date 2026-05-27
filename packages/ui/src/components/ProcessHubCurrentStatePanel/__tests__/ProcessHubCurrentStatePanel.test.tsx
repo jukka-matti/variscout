@@ -218,11 +218,11 @@ describe('ProcessHubCurrentStatePanel', () => {
 describe('ProcessHubCurrentStatePanel — actions', () => {
   it('fires onInvoke with the supported action when card is clicked', async () => {
     const supportedAction: ResponsePathAction = {
-      kind: 'open-investigation',
-      investigationId: 'inv-1',
+      kind: 'open-analyze',
+      analyzeId: 'inv-1',
       intent: 'focused',
     };
-    const item = buildItem({ id: 'item-x', responsePath: 'focused-investigation' });
+    const item = buildItem({ id: 'item-x', responsePath: 'focused-analyze' });
     const actions = makeActions({ actionFor: () => supportedAction });
 
     render(
@@ -320,10 +320,10 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
 
   it('makes the supported card keyboard-activatable (Enter key)', () => {
     const action: ResponsePathAction = {
-      kind: 'open-sustainment',
-      investigationId: 'inv-y',
+      kind: 'open-control',
+      analyzeId: 'inv-y',
     };
-    const item = buildItem({ id: 'item-y', responsePath: 'sustainment-review' });
+    const item = buildItem({ id: 'item-y', responsePath: 'control-review' });
     const actions = makeActions({ actionFor: () => action });
 
     render(
@@ -344,8 +344,8 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
 
   it('makes the supported card keyboard-activatable (Space key) per ARIA button conventions', () => {
     const action: ResponsePathAction = {
-      kind: 'open-investigation',
-      investigationId: 'inv-z',
+      kind: 'open-analyze',
+      analyzeId: 'inv-z',
       intent: 'quick',
     };
     const item = buildItem({ id: 'item-z', responsePath: 'quick-action' });
@@ -370,7 +370,7 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
 
 describe('ProcessHubCurrentStatePanel — evidence chip', () => {
   it('shows the chip with finding count when countFor returns non-zero', () => {
-    const item = buildItem({ id: 'item-e1', responsePath: 'focused-investigation' });
+    const item = buildItem({ id: 'item-e1', responsePath: 'focused-analyze' });
     const evidence = makeEvidence({ countFor: () => 3 });
 
     render(
@@ -419,7 +419,7 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
   });
 
   it('fires onChipClick(item) on chip click and stops card propagation', () => {
-    const item = buildItem({ id: 'item-e4', responsePath: 'focused-investigation' });
+    const item = buildItem({ id: 'item-e4', responsePath: 'focused-analyze' });
     const onChipClick = vi.fn();
     const onInvoke = vi.fn();
 
@@ -428,8 +428,8 @@ describe('ProcessHubCurrentStatePanel — evidence chip', () => {
         state={buildState({ items: [item] })}
         actions={{
           actionFor: () => ({
-            kind: 'open-investigation' as const,
-            investigationId: 'inv-x',
+            kind: 'open-analyze' as const,
+            analyzeId: 'inv-x',
             intent: 'focused' as const,
           }),
           onInvoke,

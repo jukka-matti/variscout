@@ -397,14 +397,14 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     return {
       hub: previewHub,
       members: [] as ProcessHubAnalyze[],
-      rowsByInvestigation: new Map<string, ReadonlyArray<DataRow>>(),
+      rowsByAnalyze: new Map<string, ReadonlyArray<DataRow>>(),
     };
   }, [map]);
 
   const data = useProductionLineGlanceData({
     hub: previewRollup.hub,
     members: previewRollup.members,
-    rowsByInvestigation: previewRollup.rowsByInvestigation,
+    rowsByAnalyze: previewRollup.rowsByAnalyze,
     contextFilter: filter.value,
   });
 

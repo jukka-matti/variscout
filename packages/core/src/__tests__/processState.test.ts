@@ -210,9 +210,9 @@ describe('buildCurrentProcessState', () => {
       measurement: expect.any(Number),
       sustainment: expect.any(Number),
     });
-    expect(state.responsePathCounts['focused-investigation']).toBeGreaterThan(0);
+    expect(state.responsePathCounts['focused-analyze']).toBeGreaterThan(0);
     expect(state.responsePathCounts['measurement-system-work']).toBeGreaterThan(0);
-    expect(state.responsePathCounts['sustainment-review']).toBe(1);
+    expect(state.responsePathCounts['control-review']).toBe(1);
     expect(state.responsePathCounts['quick-action']).toBeGreaterThan(0);
     expect(state.responsePathCounts['chartered-project']).toBe(1);
     expect(state.items).toEqual(
@@ -221,7 +221,7 @@ describe('buildCurrentProcessState', () => {
           id: 'capability-gap',
           lens: 'outcome',
           severity: 'red',
-          responsePath: 'focused-investigation',
+          responsePath: 'focused-analyze',
           metric: {
             cpk: 0.82,
             cpkTarget: 1.33,
@@ -245,7 +245,7 @@ describe('buildCurrentProcessState', () => {
         expect.objectContaining({
           id: 'sustainment',
           lens: 'sustainment',
-          responsePath: 'sustainment-review',
+          responsePath: 'control-review',
         }),
         expect.objectContaining({
           id: 'active:quick',
@@ -253,7 +253,7 @@ describe('buildCurrentProcessState', () => {
         }),
         expect.objectContaining({
           id: 'active:focused',
-          responsePath: 'focused-investigation',
+          responsePath: 'focused-analyze',
         }),
         expect.objectContaining({
           id: 'active:chartered',

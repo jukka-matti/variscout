@@ -22,33 +22,33 @@ const m1: ProcessHubAnalyze = {
 } as ProcessHubAnalyze;
 
 describe('useHubProvision', () => {
-  it('returns hub, members, rowsByInvestigation from rollup', () => {
+  it('returns hub, members, rowsByAnalyze from rollup', () => {
     const rollup: ProcessHubRollup<ProcessHubAnalyze> = {
       hub,
-      investigations: [m1],
+      analyzes: [m1],
     } as ProcessHubRollup<ProcessHubAnalyze>;
     const { result } = renderHook(() => useHubProvision({ rollup }));
     expect(result.current.hub).toBe(hub);
     expect(result.current.members).toEqual([m1]);
-    expect(result.current.rowsByInvestigation.get('i1')).toEqual([{ a: 1 }, { a: 2 }]);
+    expect(result.current.rowsByAnalyze.get('i1')).toEqual([{ a: 1 }, { a: 2 }]);
   });
 
   it('returns empty map for rollup with no investigations', () => {
     const rollup = {
       hub,
-      investigations: [],
+      analyzes: [],
     } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     const { result } = renderHook(() => useHubProvision({ rollup }));
-    expect(result.current.rowsByInvestigation.size).toBe(0);
+    expect(result.current.rowsByAnalyze.size).toBe(0);
   });
 
   it('handles investigations without rows (treats as empty array)', () => {
     const noRows = { ...m1, rows: undefined } as ProcessHubAnalyze;
     const rollup: ProcessHubRollup<ProcessHubAnalyze> = {
       hub,
-      investigations: [noRows],
+      analyzes: [noRows],
     } as ProcessHubRollup<ProcessHubAnalyze>;
     const { result } = renderHook(() => useHubProvision({ rollup }));
-    expect(result.current.rowsByInvestigation.get('i1')).toEqual([]);
+    expect(result.current.rowsByAnalyze.get('i1')).toEqual([]);
   });
 });

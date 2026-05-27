@@ -16,7 +16,7 @@ vi.mock('../ProcessHubCapabilityTab', () => ({
 const hub: ProcessHub = { id: 'h1', name: 'Line A' } as ProcessHub;
 const rollup = {
   hub,
-  investigations: [],
+  analyzes: [],
   evidenceSnapshots: [],
 } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
 
@@ -25,7 +25,7 @@ const baseProps = {
   rollup,
   onOpenInvestigation: noop,
   onStartInvestigation: noop,
-  onSetupSustainment: noop,
+  onSetupControl: noop,
   onLogReview: noop,
   onResponsePathAction: noop,
   onRequestAddNote: noop,
@@ -73,7 +73,7 @@ describe('ProcessHubView', () => {
     } as ProcessHub;
     const goalRollup = {
       hub: goalHub,
-      investigations: [],
+      analyzes: [],
       evidenceSnapshots: [],
     } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     render(<ProcessHubView {...baseProps} rollup={goalRollup} />);
@@ -94,7 +94,7 @@ describe('ProcessHubView', () => {
     } as ProcessHub;
     const goalRollup = {
       hub: goalHub,
-      investigations: [],
+      analyzes: [],
       evidenceSnapshots: [],
     } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     render(<ProcessHubView {...baseProps} rollup={goalRollup} onHubGoalChange={onHubGoalChange} />);
@@ -123,7 +123,7 @@ describe('ProcessHubView', () => {
     } as ProcessHub;
     const completeRollup = {
       hub: completeHub,
-      investigations: [],
+      analyzes: [],
       evidenceSnapshots: [],
     } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     const onEditFraming = vi.fn();
@@ -164,7 +164,7 @@ describe('ProcessHubView', () => {
     } as ProcessHub;
     const completeRollup = {
       hub: completeHub,
-      investigations: [],
+      analyzes: [],
       evidenceSnapshots: [],
     } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     render(<ProcessHubView {...baseProps} rollup={completeRollup} />);

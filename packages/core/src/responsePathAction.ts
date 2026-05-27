@@ -3,11 +3,11 @@ import { assertNever } from './types';
 
 export type ResponsePathAction =
   | {
-      kind: 'open-investigation';
-      investigationId: string;
+      kind: 'open-analyze';
+      analyzeId: string;
       intent: 'focused' | 'chartered' | 'quick';
     }
-  | { kind: 'open-sustainment'; investigationId: string }
+  | { kind: 'open-control'; analyzeId: string }
   | { kind: 'unsupported'; reason: 'planned' | 'informational' };
 
 /**
@@ -16,16 +16,16 @@ export type ResponsePathAction =
  * with no current Azure surface — those render as 'Planned' / 'Informational'
  * pills rather than fallback-routing.
  *
- * For items without their own investigation linkage, the caller passes
- * defaultInvestigationId. The Dashboard's heuristic for choosing the
+ * For items without their own analyze linkage, the caller passes
+ * defaultAnalyzeId. The Dashboard's heuristic for choosing the
  * default lives in the Dashboard (typically the rollup's most-recently-
- * updated investigation).
+ * updated analyze).
  */
 export function deriveResponsePathAction(
   item: ProcessStateItem,
-  defaultInvestigationId: string
+  defaultAnalyzeId: string
 ): ResponsePathAction {
-  const investigationId = item.investigationIds?.[0] ?? defaultInvestigationId;
+  const analyzeId = item.analyzeIds?.[0] ?? defaultAnalyzeId;
   const path: ProcessStateResponsePath = item.responsePath;
 
   switch (path) {
@@ -34,13 +34,13 @@ export function deriveResponsePathAction(
     case 'measurement-system-work':
       return { kind: 'unsupported', reason: 'planned' };
     case 'quick-action':
-      return { kind: 'open-investigation', investigationId, intent: 'quick' };
-    case 'focused-investigation':
-      return { kind: 'open-investigation', investigationId, intent: 'focused' };
+      return { kind: 'open-analyze', analyzeId, intent: 'quick' };
+    case 'focused-analyze':
+      return { kind: 'open-analyze', analyzeId, intent: 'focused' };
     case 'chartered-project':
-      return { kind: 'open-investigation', investigationId, intent: 'chartered' };
-    case 'sustainment-review':
-      return { kind: 'open-sustainment', investigationId };
+      return { kind: 'open-analyze', analyzeId, intent: 'chartered' };
+    case 'control-review':
+      return { kind: 'open-control', analyzeId };
     default:
       return assertNever(path);
   }

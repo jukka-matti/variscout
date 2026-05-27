@@ -431,7 +431,7 @@ describe('selectControlReviews', () => {
       new Date('2026-04-26T00:00:00.000Z')
     );
 
-    expect(result.map(r => r.investigation.id)).toEqual(['inv-1']);
+    expect(result.map(r => r.analyze.id)).toEqual(['inv-1']);
   });
 
   it('excludes controlled investigations whose ControlHandoff.retainControlReview is false', () => {
@@ -481,7 +481,7 @@ describe('selectControlReviews', () => {
       new Date('2026-04-26T00:00:00.000Z')
     );
 
-    expect(result.map(r => r.investigation.id)).toEqual(['inv-1']);
+    expect(result.map(r => r.analyze.id)).toEqual(['inv-1']);
   });
 
   it('skips soft-deleted records (deletedAt !== null)', () => {
@@ -544,7 +544,7 @@ describe('selectSustainmentBuckets', () => {
     const record = recordFor('inv-1', '2026-04-26T00:00:00.000Z'); // exactly due, grace=0 → due, not overdue
     const result = selectSustainmentBuckets([inv], [record], [], NOW);
     expect(result.dueNow).toHaveLength(1);
-    expect(result.dueNow[0]?.investigation.id).toBe('inv-1');
+    expect(result.dueNow[0]?.analyze.id).toBe('inv-1');
     expect(result.overdue).toHaveLength(0);
     expect(result.recentlyReviewed).toHaveLength(0);
   });
@@ -576,8 +576,8 @@ describe('selectSustainmentBuckets', () => {
       recordFor('inv-2', '2026-04-18T00:00:00.000Z'),
     ];
     const result = selectSustainmentBuckets([inv1, inv2], records, [], NOW, { graceDays: 7 });
-    expect(result.dueNow.map(r => r.investigation.id)).toEqual(['inv-1']);
-    expect(result.overdue.map(r => r.investigation.id)).toEqual(['inv-2']);
+    expect(result.dueNow.map(r => r.analyze.id)).toEqual(['inv-1']);
+    expect(result.overdue.map(r => r.analyze.id)).toEqual(['inv-2']);
   });
 
   it('places not-yet-due records with recent review in recentlyReviewed', () => {
@@ -591,7 +591,7 @@ describe('selectSustainmentBuckets', () => {
     });
     const result = selectSustainmentBuckets([inv], [record], [], NOW);
     expect(result.recentlyReviewed).toHaveLength(1);
-    expect(result.recentlyReviewed[0]?.investigation.id).toBe('inv-1');
+    expect(result.recentlyReviewed[0]?.analyze.id).toBe('inv-1');
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
   });
@@ -702,9 +702,9 @@ describe('selectSustainmentBuckets', () => {
       }),
     ];
     const result = selectSustainmentBuckets([overdueInv, dueInv, reviewedInv], records, [], NOW);
-    expect(result.overdue.map(r => r.investigation.id)).toEqual(['inv-overdue']);
-    expect(result.dueNow.map(r => r.investigation.id)).toEqual(['inv-due']);
-    expect(result.recentlyReviewed.map(r => r.investigation.id)).toEqual(['inv-reviewed']);
+    expect(result.overdue.map(r => r.analyze.id)).toEqual(['inv-overdue']);
+    expect(result.dueNow.map(r => r.analyze.id)).toEqual(['inv-due']);
+    expect(result.recentlyReviewed.map(r => r.analyze.id)).toEqual(['inv-reviewed']);
     const totalLength =
       result.overdue.length + result.dueNow.length + result.recentlyReviewed.length;
     expect(totalLength).toBe(3);

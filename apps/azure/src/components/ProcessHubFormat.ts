@@ -33,7 +33,7 @@ export const formatLatestActivity = (value: number | null): string => {
 };
 
 export const formatTopFocus = (item: ProcessHubReviewItem): string | null => {
-  const topFocus = item.investigation.metadata?.reviewSignal?.topFocus;
+  const topFocus = item.analyze.metadata?.reviewSignal?.topFocus;
   if (!topFocus) return null;
   return topFocus.value === undefined ? topFocus.factor : `${topFocus.factor} / ${topFocus.value}`;
 };
@@ -45,7 +45,7 @@ export const formatHubTopFocus = (rollup: ProcessHubRollup<ProcessHubAnalyze>): 
 };
 
 export const formatCapability = (item: ProcessHubReviewItem): string | null => {
-  const capability = item.investigation.metadata?.reviewSignal?.capability;
+  const capability = item.analyze.metadata?.reviewSignal?.capability;
   if (capability?.cpk === undefined || capability.cpkTarget === undefined) return null;
   return `Cpk ${formatMetric(capability.cpk)} vs target ${formatMetric(capability.cpkTarget)}`;
 };
@@ -61,10 +61,10 @@ const firstDefined = <T>(values: Array<T | undefined>): T | undefined =>
 
 export const requirementSummary = (rollup: ProcessHubRollup<ProcessHubAnalyze>): string | null =>
   firstDefined(
-    rollup.investigations.map(
-      investigation =>
-        investigation.metadata?.customerRequirementSummary ??
-        investigation.metadata?.processMapSummary?.ctsColumn
+    rollup.analyzes.map(
+      analyze =>
+        analyze.metadata?.customerRequirementSummary ??
+        analyze.metadata?.processMapSummary?.ctsColumn
     )
   ) ?? null;
 
@@ -155,7 +155,7 @@ export const sustainmentBandAnswer = (
   now: Date
 ): string | null => {
   const records = rollup.controlRecords ?? [];
-  const sustainmentEligible = rollup.investigations.some(
+  const sustainmentEligible = rollup.analyzes.some(
     inv =>
       inv.metadata?.analyzeStatus === 'resolved' || inv.metadata?.analyzeStatus === 'controlled'
   );
@@ -169,11 +169,11 @@ export const sustainmentBandAnswer = (
 
   let base: string;
   if (due === 0 && holdingCount > 0) {
-    base = `${holdingCount} ${holdingCount === 1 ? 'investigation is' : 'investigations are'} holding; no review due.`;
+    base = `${holdingCount} ${holdingCount === 1 ? 'analyze is' : 'analyzes are'} holding; no review due.`;
   } else if (due > 0) {
-    base = `${due} sustainment ${due === 1 ? 'review' : 'reviews'} due now.`;
+    base = `${due} control ${due === 1 ? 'review' : 'reviews'} due now.`;
   } else {
-    return 'Set up sustainment cadence to monitor this.';
+    return 'Set up control cadence to monitor this.';
   }
 
   const snapshotContext = formatSnapshotContext(rollup.evidenceSnapshots);

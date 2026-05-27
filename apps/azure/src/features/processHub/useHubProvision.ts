@@ -1,5 +1,5 @@
 /**
- * useHubProvision — selects hub + members + rowsByInvestigation from the
+ * useHubProvision — selects hub + members + rowsByAnalyze from the
  * azure-app data layer.
  *
  * V1 reads from `ProcessHubRollup` which already aggregates the data.
@@ -16,21 +16,21 @@ export interface UseHubProvisionInput {
 export interface UseHubProvisionResult {
   hub: ProcessHub;
   members: readonly ProcessHubAnalyze[];
-  rowsByInvestigation: ReadonlyMap<string, readonly DataRow[]>;
+  rowsByAnalyze: ReadonlyMap<string, readonly DataRow[]>;
 }
 
 export function useHubProvision(input: UseHubProvisionInput): UseHubProvisionResult {
   const { rollup } = input;
   return useMemo<UseHubProvisionResult>(() => {
-    const rowsByInvestigation = new Map<string, readonly DataRow[]>();
-    for (const inv of rollup.investigations) {
+    const rowsByAnalyze = new Map<string, readonly DataRow[]>();
+    for (const inv of rollup.analyzes) {
       const rows = (inv as { rows?: readonly DataRow[] }).rows ?? [];
-      rowsByInvestigation.set(inv.id, rows);
+      rowsByAnalyze.set(inv.id, rows);
     }
     return {
       hub: rollup.hub,
-      members: rollup.investigations,
-      rowsByInvestigation,
+      members: rollup.analyzes,
+      rowsByAnalyze,
     };
   }, [rollup]);
 }

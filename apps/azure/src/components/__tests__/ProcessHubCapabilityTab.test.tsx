@@ -76,7 +76,7 @@ const member = {
 
 const rollup = {
   hub,
-  investigations: [member],
+  analyzes: [member],
 } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
 
 describe('ProcessHubCapabilityTab', () => {
@@ -100,7 +100,7 @@ describe('ProcessHubCapabilityTab', () => {
   it('renders empty-state hint when no mapped investigations', () => {
     const emptyRollup = {
       hub,
-      investigations: [],
+      analyzes: [],
     } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     render(<ProcessHubCapabilityTab rollup={emptyRollup} onHubCpkTargetCommit={vi.fn()} />);
     expect(screen.getByText(/no mapped/i)).toBeInTheDocument();
@@ -124,7 +124,7 @@ describe('ProcessHubCapabilityTab', () => {
     } as unknown as ProcessHub;
     const r = {
       hub: hubWithTarget,
-      investigations: [member],
+      analyzes: [member],
     } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     render(<ProcessHubCapabilityTab rollup={r} onHubCpkTargetCommit={vi.fn()} />);
     const wrapper = screen.getByTestId('hub-capability-cpk-target');
@@ -155,7 +155,7 @@ describe('ProcessHubCapabilityTab', () => {
     } as unknown as ProcessHub;
     const r = {
       hub: hubWithTarget,
-      investigations: [member],
+      analyzes: [member],
     } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     const { container } = render(
       <ProcessHubCapabilityTab rollup={r} onHubCpkTargetCommit={vi.fn()} />

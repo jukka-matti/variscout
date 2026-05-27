@@ -497,7 +497,7 @@ export {
   buildProcessHubContext,
   buildProcessHubReview,
   buildProcessHubRollups,
-  investigationStatusFromJourneyPhase,
+  analyzeStatusFromJourneyPhase,
   isProcessHubComplete,
   normalizeProcessHubId,
 } from './processHub';
@@ -570,7 +570,7 @@ export type {
   ProcessHubCadenceSnapshot,
   ProcessHubCadenceSummary,
   ProcessHubContextContract,
-  ProcessHubContextInvestigation,
+  ProcessHubContextAnalyze,
   ProcessHub,
   ProcessHubAnalyze,
   ProcessHubAnalyzeMetadata,
@@ -682,7 +682,7 @@ export {
 export { searchProjectArtifacts } from './ai';
 export type { SearchProjectOptions, SearchResult } from './ai';
 
-// Wall investigation actions (Phase 3)
+// Wall analyze actions (Phase 3)
 export {
   proposeDisconfirmationMove,
   critiqueAnalyzeState,
@@ -757,7 +757,7 @@ export type {
   MechanismBranchQuestionView,
   MechanismBranchActionStateView,
   MechanismBranchViewModel,
-  // Causal link types (investigation DAG)
+  // Causal link types (analyze DAG)
   CausalLink,
   CausalDirection,
   CausalEvidenceType,

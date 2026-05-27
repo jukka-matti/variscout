@@ -75,7 +75,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
       }>
     ) =>
       ({
-        investigations: investigationStatuses.map(s => ({
+        analyzes: investigationStatuses.map(s => ({
           metadata: s ? { analyzeStatus: s } : undefined,
         })),
         controlRecords: records.map(r => ({ deletedAt: null, ...r })),
@@ -89,9 +89,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
 
     it('returns setup message when eligible but no records', () => {
       const rollup = makeRollup(['resolved'], []);
-      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
-        'Set up sustainment cadence to monitor this.'
-      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('Set up control cadence to monitor this.');
     });
 
     it('returns singular holding message when 1 record is holding and none due', () => {
@@ -99,7 +97,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
         ['controlled'],
         [{ latestVerdict: 'holding', nextReviewDue: '2026-05-01T00:00:00.000Z' }]
       );
-      expect(sustainmentBandAnswer(rollup, NOW)).toBe('1 investigation is holding; no review due.');
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('1 analyze is holding; no review due.');
     });
 
     it('returns plural holding message when 2 records are holding and none due', () => {
@@ -110,9 +108,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
           { latestVerdict: 'holding', nextReviewDue: '2026-05-02T00:00:00.000Z' },
         ]
       );
-      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
-        '2 investigations are holding; no review due.'
-      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('2 analyzes are holding; no review due.');
     });
 
     it('returns singular due message when 1 record is past due', () => {
@@ -120,7 +116,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
         ['resolved'],
         [{ latestVerdict: 'holding', nextReviewDue: '2026-04-25T00:00:00.000Z' }]
       );
-      expect(sustainmentBandAnswer(rollup, NOW)).toBe('1 sustainment review due now.');
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('1 control review due now.');
     });
 
     it('returns plural due message when 2 records are past due', () => {
@@ -131,7 +127,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
           { latestVerdict: 'holding', nextReviewDue: '2026-04-25T00:00:00.000Z' },
         ]
       );
-      expect(sustainmentBandAnswer(rollup, NOW)).toBe('2 sustainment reviews due now.');
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('2 control reviews due now.');
     });
 
     it('ignores soft-deleted records (deletedAt !== null)', () => {
@@ -145,9 +141,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
           },
         ]
       );
-      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
-        'Set up sustainment cadence to monitor this.'
-      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('Set up control cadence to monitor this.');
     });
 
     it('appends latest snapshot signal to the holding answer when snapshot is present', () => {
@@ -162,7 +156,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
         ]
       );
       expect(sustainmentBandAnswer(rollup, NOW)).toBe(
-        '1 investigation is holding; no review due. Latest signal: amber Cpk=1.21 (Apr 26).'
+        '1 analyze is holding; no review due. Latest signal: amber Cpk=1.21 (Apr 26).'
       );
     });
 
@@ -178,7 +172,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
         ]
       );
       expect(sustainmentBandAnswer(rollup, NOW)).toBe(
-        '1 sustainment review due now. Latest signal: red Defect rate=0.08 (Apr 26).'
+        '1 control review due now. Latest signal: red Defect rate=0.08 (Apr 26).'
       );
     });
 
@@ -198,7 +192,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
         ]
       );
       expect(sustainmentBandAnswer(rollup, NOW)).toBe(
-        '1 sustainment review due now. Latest signal: amber New=2.00 (Apr 26).'
+        '1 control review due now. Latest signal: amber New=2.00 (Apr 26).'
       );
     });
 
@@ -213,9 +207,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
           },
         ]
       );
-      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
-        'Set up sustainment cadence to monitor this.'
-      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('Set up control cadence to monitor this.');
     });
 
     it('omits snapshot context when latestSignals is empty', () => {
@@ -224,7 +216,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
         [{ latestVerdict: 'holding', nextReviewDue: '2026-04-25T00:00:00.000Z' }],
         [{ capturedAt: '2026-04-26T08:00:00.000Z', latestSignals: [] }]
       );
-      expect(sustainmentBandAnswer(rollup, NOW)).toBe('1 sustainment review due now.');
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('1 control review due now.');
     });
   });
 

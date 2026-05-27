@@ -10,7 +10,7 @@ import type { Finding, FindingStatus, Question, QuestionStatus } from './finding
 import type { JourneyPhase, ProcessContext } from './ai/types';
 import type { HubReviewSignal } from './processReviewSignal';
 import {
-  investigationStatusFromJourneyPhase,
+  analyzeStatusFromJourneyPhase,
   normalizeProcessHubId,
   type AnalyzeDepth,
   type AnalyzeStatus,
@@ -39,7 +39,7 @@ export interface ProjectMetadata {
    * Preserved from existing metadata — not modified by buildProjectMetadata.
    */
   lastViewedAt: Record<string, number>;
-  /** Primary Process Hub for this investigation. Legacy projects default to General / Unassigned. */
+  /** Primary Process Hub for this analyze. Legacy projects default to General / Unassigned. */
   processHubId?: string;
   /** Lightweight depth marker for hub rollups. */
   analyzeDepth?: AnalyzeDepth;
@@ -55,7 +55,7 @@ export interface ProjectMetadata {
   surveyReadiness?: ProcessHubSurveyReadinessSummary;
   /** Person accountable for the process/work-system health. */
   processOwner?: ProcessParticipantRef;
-  /** Person driving the investigation day to day. */
+  /** Person driving the analyze day to day. */
   investigationOwner?: ProcessParticipantRef;
   /** Sponsor/accountable stakeholder for larger work. */
   sponsor?: ProcessParticipantRef;
@@ -69,7 +69,8 @@ export interface ProjectMetadata {
   nextMove?: string;
   /** Latest lightweight review signal shown on Process Hub cards. */
   reviewSignal?: HubReviewSignal;
-  /** Lightweight projection of the active ControlRecord for this project. */
+  /** Lightweight projection of the active ControlRecord for this project.
+   *  Field name `sustainment` preserved — matches persisted ProjectMetadata schema. */
   sustainment?: SustainmentMetadataProjection;
   /**
    * Team notes for current-state items, copied from processContext.stateNotes
@@ -201,7 +202,7 @@ export function buildProjectMetadata(
     lastViewedAt: existingLastViewedAt ?? {},
     processHubId: normalizeProcessHubId(processContext?.processHubId),
     analyzeDepth: processContext?.analyzeDepth,
-    analyzeStatus: processContext?.analyzeStatus ?? investigationStatusFromJourneyPhase(phase),
+    analyzeStatus: processContext?.analyzeStatus ?? analyzeStatusFromJourneyPhase(phase),
     processDescription: processContext?.description,
     customerRequirementSummary:
       processContext?.processMap?.ctsColumn ?? processContext?.measurement ?? undefined,

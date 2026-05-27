@@ -284,7 +284,7 @@ describe('LocalMechanismView', () => {
     // Use within first CTA group to target a single column's buttons.
     const firstGroup = ctaGroups[0];
 
-    fireEvent.click(within(firstGroup).getByText('Investigate'));
+    fireEvent.click(within(firstGroup).getByText('Analyze'));
     expect(onFocusedInvestigation).toHaveBeenCalledWith('mix');
 
     fireEvent.click(within(firstGroup).getByText('Charter'));

@@ -27,7 +27,7 @@ export type ProductionLineGlanceHub = Pick<
 export interface UseProductionLineGlanceDataInput {
   hub: ProductionLineGlanceHub;
   members: readonly ProcessHubAnalyze[];
-  rowsByInvestigation: ReadonlyMap<string, readonly DataRow[]>;
+  rowsByAnalyze: ReadonlyMap<string, readonly DataRow[]>;
   contextFilter: SpecLookupContext;
   defectColumns?: readonly string[];
   /**
@@ -94,7 +94,7 @@ export function useProductionLineGlanceData(
   const {
     hub,
     members,
-    rowsByInvestigation,
+    rowsByAnalyze,
     contextFilter,
     defectColumns,
     window,
@@ -106,9 +106,9 @@ export function useProductionLineGlanceData(
   // own time column (or none); we never aggregate timestamps across them.
   // Investigations without a known timeColumn pass through unwindowed.
   const windowedRowsByInvestigation = useMemo<ReadonlyMap<string, readonly DataRow[]>>(() => {
-    if (!window) return rowsByInvestigation;
+    if (!window) return rowsByAnalyze;
     const out = new Map<string, readonly DataRow[]>();
-    for (const [invId, rows] of rowsByInvestigation) {
+    for (const [invId, rows] of rowsByAnalyze) {
       const tc = timeColumnByInvestigation?.get(invId);
       if (!tc) {
         out.set(invId, rows);
@@ -118,7 +118,7 @@ export function useProductionLineGlanceData(
       out.set(invId, applyWindow(rows as DataRow[], tc, window));
     }
     return out;
-  }, [rowsByInvestigation, window, timeColumnByInvestigation]);
+  }, [rowsByAnalyze, window, timeColumnByInvestigation]);
 
   // Collect all filtered rows across members for context-value discovery.
   const allFilteredRows = useMemo<DataRow[]>(() => {

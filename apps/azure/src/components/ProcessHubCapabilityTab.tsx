@@ -88,7 +88,7 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
   const data = useProductionLineGlanceData({
     hub: provision.hub,
     members: provision.members,
-    rowsByInvestigation: provision.rowsByInvestigation,
+    rowsByAnalyze: provision.rowsByAnalyze,
     contextFilter: filter.value,
     window,
     // timeColumnByInvestigation is not reachable at hub level in V1; the hook

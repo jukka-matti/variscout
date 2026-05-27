@@ -13,7 +13,7 @@ export interface ProcessHubControlRegionProps {
   cadence: ProcessHubCadenceSummary<ProcessHubAnalyze>;
   rollup: ProcessHubRollup<ProcessHubAnalyze>;
   onOpenInvestigation: (id: string) => void;
-  onSetupSustainment: (investigationId: string) => void;
+  onSetupControl: (analyzeId: string) => void;
   onLogReview: (recordId: string) => void;
 }
 
@@ -53,7 +53,7 @@ const BucketSection: React.FC<BucketSectionProps> = ({
     <div className="space-y-2">
       {items.map(item => (
         <button
-          key={item.investigation.id}
+          key={item.analyze.id}
           type="button"
           onClick={() => onItemClick(item)}
           className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
@@ -61,7 +61,7 @@ const BucketSection: React.FC<BucketSectionProps> = ({
         >
           <div className="flex items-center gap-2 text-sm font-medium text-content">
             {iconForItem}
-            <span>{item.investigation.name}</span>
+            <span>{item.analyze.name}</span>
           </div>
           {renderSubline && (
             <p className="mt-1 text-xs text-content-secondary">{renderSubline(item)}</p>
@@ -76,25 +76,25 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
   cadence: _cadence,
   rollup,
   onOpenInvestigation,
-  onSetupSustainment,
+  onSetupControl,
   onLogReview,
 }) => {
   const renderDate = new Date();
 
   const buckets = selectSustainmentBuckets(
-    rollup.investigations,
+    rollup.analyzes,
     rollup.controlRecords,
     rollup.controlHandoffs,
     renderDate
   );
 
   const dueAndOverdueIds = new Set([
-    ...buckets.dueNow.map(item => item.investigation.id),
-    ...buckets.overdue.map(item => item.investigation.id),
+    ...buckets.dueNow.map(item => item.analyze.id),
+    ...buckets.overdue.map(item => item.analyze.id),
   ]);
-  const reviewedIds = new Set(buckets.recentlyReviewed.map(item => item.investigation.id));
+  const reviewedIds = new Set(buckets.recentlyReviewed.map(item => item.analyze.id));
 
-  const setupCandidates = rollup.investigations.filter(inv => {
+  const setupCandidates = rollup.analyzes.filter(inv => {
     const status = inv.metadata?.analyzeStatus;
     if (status !== 'resolved' && status !== 'controlled') return false;
     if (inv.metadata?.sustainment) return false;
@@ -104,8 +104,8 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
   });
 
   const reviewSubline = (item: ProcessHubReviewItem<ProcessHubAnalyze>): string => {
-    const verdict = item.investigation.metadata?.sustainment?.latestVerdict;
-    const nextReviewDue = item.investigation.metadata?.sustainment?.nextReviewDue;
+    const verdict = item.analyze.metadata?.sustainment?.latestVerdict;
+    const nextReviewDue = item.analyze.metadata?.sustainment?.nextReviewDue;
     return [
       verdict ? formatSustainmentVerdict(verdict) : null,
       formatSustainmentDue(nextReviewDue, renderDate),
@@ -115,11 +115,11 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
   };
 
   const handleReviewClick = (item: ProcessHubReviewItem<ProcessHubAnalyze>) => {
-    const recordId = item.investigation.metadata?.sustainment?.recordId;
+    const recordId = item.analyze.metadata?.sustainment?.recordId;
     if (recordId) {
       onLogReview(recordId);
     } else {
-      onOpenInvestigation(item.investigation.id);
+      onOpenInvestigation(item.analyze.id);
     }
   };
 
@@ -127,7 +127,7 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
     buckets.dueNow.length + buckets.overdue.length + buckets.recentlyReviewed.length;
 
   return (
-    <section className="space-y-3" data-testid="sustainment-region" aria-label="Control region">
+    <section className="space-y-3" data-testid="control-region" aria-label="Control region">
       {buckets.overdue.length > 0 && (
         <BucketSection
           label="Overdue"
@@ -135,10 +135,10 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
           icon={<ShieldAlert size={14} className="text-red-400" />}
           items={buckets.overdue}
           onItemClick={handleReviewClick}
-          itemAriaLabel={item => `Log overdue sustainment review for ${item.investigation.name}`}
+          itemAriaLabel={item => `Log overdue control review for ${item.analyze.name}`}
           iconForItem={<ShieldAlert size={14} className="text-red-400" />}
           renderSubline={reviewSubline}
-          testId="sustainment-overdue"
+          testId="control-overdue"
         />
       )}
 
@@ -149,10 +149,10 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
           icon={<ShieldCheck size={14} className="text-amber-400" />}
           items={buckets.dueNow}
           onItemClick={handleReviewClick}
-          itemAriaLabel={item => `Log sustainment review for ${item.investigation.name}`}
+          itemAriaLabel={item => `Log control review for ${item.analyze.name}`}
           iconForItem={<ShieldCheck size={14} className="text-amber-400" />}
           renderSubline={reviewSubline}
-          testId="sustainment-due"
+          testId="control-due"
         />
       )}
 
@@ -163,20 +163,20 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
           icon={<History size={14} className="text-green-400" />}
           items={buckets.recentlyReviewed}
           onItemClick={handleReviewClick}
-          itemAriaLabel={item => `Open recently reviewed investigation ${item.investigation.name}`}
+          itemAriaLabel={item => `Open recently reviewed analyze ${item.analyze.name}`}
           iconForItem={<ShieldCheck size={14} className="text-green-400" />}
           renderSubline={reviewSubline}
-          testId="sustainment-recently-reviewed"
+          testId="control-recently-reviewed"
         />
       )}
 
       {setupCandidates.length > 0 ? (
-        <div data-testid="sustainment-setup">
+        <div data-testid="control-setup">
           <div className="mb-1 flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <ShieldCheck size={14} className="text-content-muted" />
               <p className="text-xs font-medium uppercase tracking-wide text-content-secondary">
-                Set up sustainment
+                Set up control
               </p>
             </div>
             <span className="text-xs text-content-muted">{setupCandidates.length}</span>
@@ -186,12 +186,12 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
               <button
                 key={inv.id}
                 type="button"
-                onClick={() => onSetupSustainment(inv.id)}
+                onClick={() => onSetupControl(inv.id)}
                 className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
-                aria-label={`Set up sustainment cadence for ${inv.name}`}
+                aria-label={`Set up control cadence for ${inv.name}`}
               >
                 <p className="text-sm font-medium text-content">{inv.name}</p>
-                <p className="mt-1 text-xs text-content-secondary">Set up sustainment cadence</p>
+                <p className="mt-1 text-xs text-content-secondary">Set up control cadence</p>
               </button>
             ))}
           </div>
@@ -199,7 +199,7 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
       ) : (
         totalSustainmentItems === 0 && (
           <p className="text-sm text-content-secondary">
-            No sustainment items yet — investigations move here once resolved or controlled.
+            No control items yet — analyzes move here once resolved or controlled.
           </p>
         )
       )}

@@ -346,7 +346,7 @@ export function selectControlReviews<TInv extends ProcessHubAnalyze>(
       }
       return true;
     })
-    .map(inv => buildControlReviewItem(inv, ['sustainment-due']));
+    .map(inv => buildControlReviewItem(inv, ['control-due']));
 }
 
 /**
@@ -397,17 +397,17 @@ export function selectSustainmentBuckets<TInv extends ProcessHubAnalyze>(
     }
 
     if (isSustainmentOverdue(record, now, graceDays)) {
-      overdue.push(buildControlReviewItem(inv, ['sustainment-due']));
+      overdue.push(buildControlReviewItem(inv, ['control-due']));
       continue;
     }
     if (isSustainmentDue(record, now)) {
-      dueNow.push(buildControlReviewItem(inv, ['sustainment-due']));
+      dueNow.push(buildControlReviewItem(inv, ['control-due']));
       continue;
     }
     if (record.latestReviewAt) {
       const reviewedMs = new Date(record.latestReviewAt).getTime();
       if (Number.isFinite(reviewedMs) && reviewedMs >= recentCutoffMs) {
-        recentlyReviewed.push(buildControlReviewItem(inv, ['sustainment']));
+        recentlyReviewed.push(buildControlReviewItem(inv, ['control']));
       }
     }
   }

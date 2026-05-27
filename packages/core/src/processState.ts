@@ -14,10 +14,10 @@ export type ProcessStateSeverity = 'red' | 'amber' | 'neutral' | 'green';
 export type ProcessStateResponsePath =
   | 'monitor'
   | 'quick-action'
-  | 'focused-investigation'
+  | 'focused-analyze'
   | 'chartered-project'
   | 'measurement-system-work'
-  | 'sustainment-review';
+  | 'control-review';
 
 export type ProcessStateSource =
   | 'review-signal'
@@ -25,7 +25,7 @@ export type ProcessStateSource =
   | 'readiness'
   | 'verification'
   | 'action'
-  | 'sustainment'
+  | 'control'
   | 'active-work';
 
 export interface ProcessStateMetric {
@@ -48,7 +48,7 @@ export interface ProcessStateItem {
   metric?: ProcessStateMetric;
   sourceId?: string;
   count?: number;
-  investigationIds?: string[];
+  analyzeIds?: string[];
 }
 
 export interface CurrentProcessState {
@@ -64,13 +64,13 @@ const LENSES: ProcessStateLens[] = ['outcome', 'flow', 'conversion', 'measuremen
 
 const DEPTH_RESPONSE_PATHS: Record<AnalyzeDepth, ProcessStateResponsePath> = {
   quick: 'quick-action',
-  focused: 'focused-investigation',
+  focused: 'focused-analyze',
   chartered: 'chartered-project',
 };
 
 const DEPTH_LABELS: Record<AnalyzeDepth, string> = {
   quick: 'Quick action queue',
-  focused: 'Focused investigation queue',
+  focused: 'Focused analyze queue',
   chartered: 'Chartered project queue',
 };
 
@@ -135,15 +135,15 @@ function itemSort(a: ProcessStateItem, b: ProcessStateItem): number {
   );
 }
 
-function queueInvestigationIds<TInvestigation extends ProcessHubAnalyze>(
-  items: { investigation: TInvestigation }[]
+function queueAnalyzeIds<TAnalyze extends ProcessHubAnalyze>(
+  items: { analyze: TAnalyze }[]
 ): string[] {
-  return items.map(item => item.investigation.id);
+  return items.map(item => item.analyze.id);
 }
 
-export function buildCurrentProcessState<TInvestigation extends ProcessHubAnalyze>(
-  rollup: ProcessHubRollup<TInvestigation>,
-  cadence: ProcessHubCadenceSummary<TInvestigation>,
+export function buildCurrentProcessState<TAnalyze extends ProcessHubAnalyze>(
+  rollup: ProcessHubRollup<TAnalyze>,
+  cadence: ProcessHubCadenceSummary<TAnalyze>,
   now: Date = new Date()
 ): CurrentProcessState {
   const items: ProcessStateItem[] = [];
@@ -155,7 +155,7 @@ export function buildCurrentProcessState<TInvestigation extends ProcessHubAnalyz
       id: gap === undefined ? 'capability-ok' : 'capability-gap',
       lens: 'outcome',
       severity: capabilitySeverity(gap),
-      responsePath: gap === undefined ? 'monitor' : 'focused-investigation',
+      responsePath: gap === undefined ? 'monitor' : 'focused-analyze',
       source: 'review-signal',
       label: gap === undefined ? 'Capability at target' : 'Capability below target',
       metric: {
@@ -173,7 +173,7 @@ export function buildCurrentProcessState<TInvestigation extends ProcessHubAnalyz
       id: 'change-signals',
       lens: 'conversion',
       severity: changeSignalCount >= 3 ? 'red' : 'amber',
-      responsePath: 'focused-investigation',
+      responsePath: 'focused-analyze',
       source: 'review-signal',
       label: 'Change signals detected',
       count: changeSignalCount,
@@ -187,7 +187,7 @@ export function buildCurrentProcessState<TInvestigation extends ProcessHubAnalyz
       id: 'top-focus',
       lens: 'conversion',
       severity: topFocus.variationPct >= 50 ? 'red' : 'amber',
-      responsePath: 'focused-investigation',
+      responsePath: 'focused-analyze',
       source: 'review-signal',
       label: 'Variation concentration',
       detail:
@@ -221,7 +221,7 @@ export function buildCurrentProcessState<TInvestigation extends ProcessHubAnalyz
       source: 'readiness',
       label: 'Readiness gaps',
       count: cadence.readiness.totalCount,
-      investigationIds: queueInvestigationIds(cadence.readiness.items),
+      analyzeIds: queueAnalyzeIds(cadence.readiness.items),
     });
   }
 
@@ -234,7 +234,7 @@ export function buildCurrentProcessState<TInvestigation extends ProcessHubAnalyz
       source: 'verification',
       label: 'Verification waiting',
       count: cadence.verification.totalCount,
-      investigationIds: queueInvestigationIds(cadence.verification.items),
+      analyzeIds: queueAnalyzeIds(cadence.verification.items),
     });
   }
 
@@ -247,7 +247,7 @@ export function buildCurrentProcessState<TInvestigation extends ProcessHubAnalyz
       source: 'action',
       label: 'Overdue actions',
       count: cadence.snapshot.overdueActions,
-      investigationIds: queueInvestigationIds(cadence.actions.items),
+      analyzeIds: queueAnalyzeIds(cadence.actions.items),
     });
   }
 
@@ -262,21 +262,23 @@ export function buildCurrentProcessState<TInvestigation extends ProcessHubAnalyz
       source: 'active-work',
       label: DEPTH_LABELS[depth],
       count: queue.totalCount,
-      investigationIds: queueInvestigationIds(queue.items),
+      analyzeIds: queueAnalyzeIds(queue.items),
     });
   }
 
-  const sustainmentReviewItems = cadence.sustainment.items;
-  if (sustainmentReviewItems.length > 0) {
+  const controlReviewItems = cadence.control.items;
+  if (controlReviewItems.length > 0) {
     items.push({
+      // 'sustainment' id + lens preserved — matches ProcessStateLens preserve-set
+      // entry (hard rule). Item label uses post-rename 'Control review due'.
       id: 'sustainment',
       lens: 'sustainment',
       severity: 'amber',
-      responsePath: 'sustainment-review',
-      source: 'sustainment',
+      responsePath: 'control-review',
+      source: 'control',
       label: 'Control review due',
-      count: sustainmentReviewItems.length,
-      investigationIds: sustainmentReviewItems.map(item => item.investigation.id),
+      count: controlReviewItems.length,
+      analyzeIds: controlReviewItems.map(item => item.analyze.id),
     });
   }
 

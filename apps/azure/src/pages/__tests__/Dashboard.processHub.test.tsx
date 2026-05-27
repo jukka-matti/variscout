@@ -180,7 +180,7 @@ describe('Dashboard Process Hub home', () => {
     const projectCard = screen.getByTestId('project-card');
     expect(hubCard.compareDocumentPosition(projectCard)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
 
-    fireEvent.click(screen.getByLabelText('Start investigation in Line 4'));
+    fireEvent.click(screen.getByLabelText('Start analyze in Line 4'));
     await waitFor(() => expect(onOpenProject).toHaveBeenCalledWith(undefined, 'line-4'));
   });
 
@@ -250,7 +250,7 @@ describe('Dashboard Process Hub home', () => {
     expect(within(panel).getAllByText('Control').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Nozzle replacement verified').length).toBeGreaterThan(0);
     expect(
-      within(panel).getByLabelText('Set up sustainment cadence for Nozzle replacement verified')
+      within(panel).getByLabelText('Set up control cadence for Nozzle replacement verified')
     ).toBeInTheDocument();
 
     fireEvent.click(within(panel).getAllByLabelText('Open review item Night shift overfill')[0]);
@@ -316,7 +316,7 @@ describe('Dashboard Process Hub home', () => {
     expect(within(panel).getByTestId('cadence-snapshot-readiness')).toHaveTextContent('7');
     expect(within(panel).getByTestId('cadence-snapshot-verification')).toHaveTextContent('1');
     expect(within(panel).getByTestId('cadence-snapshot-overdue-actions')).toHaveTextContent('1');
-    expect(within(panel).getByTestId('cadence-snapshot-sustainment')).toHaveTextContent('1');
+    expect(within(panel).getByTestId('cadence-snapshot-control')).toHaveTextContent('1');
     expect(within(panel).getByText('+3 more')).toBeInTheDocument();
   });
 
@@ -332,7 +332,7 @@ describe('Dashboard Process Hub home', () => {
     fireEvent.click(screen.getByLabelText('Open Line 4'));
     await screen.findByRole('region', { name: 'Line 4 Current Process State' });
 
-    fireEvent.change(screen.getByPlaceholderText('Search investigations...'), {
+    fireEvent.change(screen.getByPlaceholderText('Search analyzes...'), {
       target: { value: 'zzzz no matching project' },
     });
 
@@ -357,7 +357,7 @@ describe('Dashboard Process Hub home', () => {
     expect(within(panel).getByText('Daily huddle')).toBeInTheDocument();
     expect(within(panel).getByText('Weekly process review')).toBeInTheDocument();
     expect(within(panel).getByText('No latest signals yet')).toBeInTheDocument();
-    expect(within(panel).getByText('No active investigations yet')).toBeInTheDocument();
+    expect(within(panel).getByText('No active analyzes yet')).toBeInTheDocument();
     expect(within(panel).getByText('No active review items yet')).toBeInTheDocument();
     expect(within(panel).getByText('No requirement signal yet')).toBeInTheDocument();
   });

@@ -85,19 +85,16 @@ describe('buildProcessHubReview', () => {
 
     const review = buildProcessHubReview(rollup);
 
-    expect(review.whereToFocus.map(item => item.investigation.id)).toEqual(['change-signal']);
+    expect(review.whereToFocus.map(item => item.analyze.id)).toEqual(['change-signal']);
     expect(review.whereToFocus[0]).toMatchObject({
       changeSignalCount: 3,
       cpkGap: 0.51,
       topFocusVariationPct: 42,
       reasons: ['change-signals', 'capability-gap', 'top-focus'],
     });
-    expect(review.verificationQueue.map(item => item.investigation.id)).toEqual(['verify']);
-    expect(review.overdueActionQueue.map(item => item.investigation.id)).toEqual(['verify']);
-    expect(review.nextMoveQueue.map(item => item.investigation.id)).toEqual([
-      'change-signal',
-      'verify',
-    ]);
+    expect(review.verificationQueue.map(item => item.analyze.id)).toEqual(['verify']);
+    expect(review.overdueActionQueue.map(item => item.analyze.id)).toEqual(['verify']);
+    expect(review.nextMoveQueue.map(item => item.analyze.id)).toEqual(['change-signal', 'verify']);
   });
 
   it('sorts focus items by change signals, Cpk gap, top focus, then modified time', () => {
@@ -178,7 +175,7 @@ describe('buildProcessHubReview', () => {
 
     const review = buildProcessHubReview(rollup);
 
-    expect(review.whereToFocus.map(item => item.investigation.id)).toEqual([
+    expect(review.whereToFocus.map(item => item.analyze.id)).toEqual([
       'largest-gap',
       'same-signals-lower-gap',
       'recent',
@@ -192,7 +189,7 @@ describe('buildProcessHubReview', () => {
     const [rollup] = buildProcessHubRollups(hubs, [
       {
         id: 'quiet',
-        name: 'Quiet investigation',
+        name: 'Quiet analyze',
         updatedAt: 1777197600000,
         createdAt: 1777197600000,
         deletedAt: null,
@@ -211,7 +208,7 @@ describe('buildProcessHubReview', () => {
     expect(review.nextMoveQueue).toEqual([]);
   });
 
-  it('groups active cadence work by depth and resolved work into sustainment review', () => {
+  it('groups active cadence work by depth and resolved work into control review', () => {
     const hubs: ProcessHub[] = [
       { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
@@ -281,14 +278,10 @@ describe('buildProcessHubReview', () => {
 
     const review = buildProcessHubReview(rollup);
 
-    expect(review.depthQueues.quick.map(item => item.investigation.id)).toEqual(['quick-check']);
-    expect(review.depthQueues.focused.map(item => item.investigation.id)).toEqual([
-      'focused-check',
-    ]);
-    expect(review.depthQueues.chartered.map(item => item.investigation.id)).toEqual([
-      'chartered-check',
-    ]);
-    expect(review.sustainmentQueue.map(item => item.investigation.id)).toEqual([
+    expect(review.depthQueues.quick.map(item => item.analyze.id)).toEqual(['quick-check']);
+    expect(review.depthQueues.focused.map(item => item.analyze.id)).toEqual(['focused-check']);
+    expect(review.depthQueues.chartered.map(item => item.analyze.id)).toEqual(['chartered-check']);
+    expect(review.controlQueue.map(item => item.analyze.id)).toEqual([
       'resolved-check',
       'controlled-check',
     ]);
@@ -331,7 +324,7 @@ describe('buildProcessHubReview', () => {
         }),
       },
       {
-        id: 'sustainment-candidate',
+        id: 'control-candidate',
         name: 'Nozzle change sustained',
         updatedAt: 1777190400000,
         createdAt: 1777190400000,
@@ -347,10 +340,10 @@ describe('buildProcessHubReview', () => {
 
     const review = buildProcessHubReview(rollup);
 
-    expect(review.readinessQueue.map(item => item.investigation.id)).toEqual([
+    expect(review.readinessQueue.map(item => item.analyze.id)).toEqual([
       'legacy-context',
       'verify-gap',
-      'sustainment-candidate',
+      'control-candidate',
     ]);
     expect(review.readinessQueue[0].readinessReasons).toEqual([
       'missing-process-context',
@@ -358,7 +351,7 @@ describe('buildProcessHubReview', () => {
       'survey-gap',
     ]);
     expect(review.readinessQueue[1].readinessReasons).toEqual(['verification-gap']);
-    expect(review.readinessQueue[2].readinessReasons).toEqual(['sustainment-candidate']);
+    expect(review.readinessQueue[2].readinessReasons).toEqual(['control-candidate']);
   });
 });
 
@@ -367,7 +360,7 @@ describe('buildProcessHubCadence', () => {
     const hubs: ProcessHub[] = [
       { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
-    const investigations = [
+    const analyzes = [
       {
         id: 'signal-1',
         name: 'Newest change signal',
@@ -508,7 +501,7 @@ describe('buildProcessHubCadence', () => {
       },
     ];
     const now = new Date('2026-04-26T12:00:00.000Z');
-    const [rollup] = buildProcessHubRollups(hubs, investigations, {
+    const [rollup] = buildProcessHubRollups(hubs, analyzes, {
       controlRecords,
       controlHandoffs: [],
     });
@@ -520,22 +513,22 @@ describe('buildProcessHubCadence', () => {
       readiness: 7,
       verification: 1,
       overdueActions: 2,
-      sustainment: 1,
+      control: 1,
       latestSignals: 1,
       nextMoves: 0,
     });
     expect(cadence.readiness.totalCount).toBe(7);
     expect(cadence.readiness.hiddenCount).toBe(3);
-    expect(cadence.readiness.items.map(item => item.investigation.id)).toEqual([
+    expect(cadence.readiness.items.map(item => item.analyze.id)).toEqual([
       'ready-1',
       'ready-2',
       'ready-3',
       'ready-4',
     ]);
-    expect(cadence.latestSignals.items.map(item => item.investigation.id)).toEqual(['signal-1']);
-    expect(cadence.verification.items.map(item => item.investigation.id)).toEqual(['verify-1']);
-    expect(cadence.actions.items.map(item => item.investigation.id)).toEqual(['actions-1']);
-    expect(cadence.sustainment.items.map(item => item.investigation.id)).toEqual(['sustain-1']);
+    expect(cadence.latestSignals.items.map(item => item.analyze.id)).toEqual(['signal-1']);
+    expect(cadence.verification.items.map(item => item.analyze.id)).toEqual(['verify-1']);
+    expect(cadence.actions.items.map(item => item.analyze.id)).toEqual(['actions-1']);
+    expect(cadence.control.items.map(item => item.analyze.id)).toEqual(['sustain-1']);
   });
 
   it('orders evidence signals by severity (red > amber > green > neutral) over capturedAt', () => {
@@ -693,13 +686,13 @@ describe('buildProcessHubCadence', () => {
   });
 });
 
-describe('buildProcessHubCadence — sustainment lane', () => {
-  it('populates the sustainment queue from due records and excludes future-due ones', () => {
+describe('buildProcessHubCadence — control lane', () => {
+  it('populates the control queue from due records and excludes future-due ones', () => {
     const hubs: ProcessHub[] = [
       { id: 'hub-1', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
     const now = new Date('2026-04-26T00:00:00.000Z');
-    const investigations = [
+    const analyzes = [
       {
         id: 'inv-due',
         name: 'Due review',
@@ -757,14 +750,14 @@ describe('buildProcessHubCadence — sustainment lane', () => {
     ];
     const controlHandoffs: ControlHandoff[] = [];
 
-    const [rollup] = buildProcessHubRollups(hubs, investigations, {
+    const [rollup] = buildProcessHubRollups(hubs, analyzes, {
       controlRecords,
       controlHandoffs,
     });
     const cadence = buildProcessHubCadence(rollup, now);
 
-    expect(cadence.sustainment.totalCount).toBe(1);
-    expect(cadence.sustainment.items[0].investigation.id).toBe('inv-due');
+    expect(cadence.control.totalCount).toBe(1);
+    expect(cadence.control.items[0].analyze.id).toBe('inv-due');
   });
 });
 
@@ -792,11 +785,11 @@ describe('buildProcessHubRollups', () => {
     expect(orphan?.hub.name).toBe('Unknown hub');
   });
 
-  it('synthesizes a friendly fallback name when an investigation references an unknown hub', () => {
-    const investigations = [
+  it('synthesizes a friendly fallback name when an analyze references an unknown hub', () => {
+    const analyzes = [
       {
-        id: 'orphan-investigation',
-        name: 'Orphan investigation',
+        id: 'orphan-analyze',
+        name: 'Orphan analyze',
         updatedAt: 1777161600000,
         createdAt: 1777161600000,
         deletedAt: null,
@@ -804,19 +797,19 @@ describe('buildProcessHubRollups', () => {
       },
     ];
 
-    const rollups = buildProcessHubRollups([], investigations);
+    const rollups = buildProcessHubRollups([], analyzes);
     const orphan = rollups.find(r => r.hub.id === 'deleted-hub-abc123');
 
     expect(orphan).toBeDefined();
     expect(orphan?.hub.name).toBe('Unknown hub');
   });
 
-  it('groups investigations under their hub and computes deterministic rollups', () => {
+  it('groups analyzes under their hub and computes deterministic rollups', () => {
     const hubs: ProcessHub[] = [
       DEFAULT_PROCESS_HUB,
       { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
-    const investigations = [
+    const analyzes = [
       {
         id: 'legacy',
         name: 'Legacy analysis',
@@ -855,11 +848,11 @@ describe('buildProcessHubRollups', () => {
       },
     ];
 
-    const rollups = buildProcessHubRollups(hubs, investigations);
+    const rollups = buildProcessHubRollups(hubs, analyzes);
 
     expect(rollups).toHaveLength(2);
     expect(rollups[0].hub.id).toBe('line-4');
-    expect(rollups[0].activeInvestigationCount).toBe(2);
+    expect(rollups[0].activeAnalyzeCount).toBe(2);
     expect(rollups[0].statusCounts).toEqual({ investigating: 1, verifying: 1 });
     expect(rollups[0].depthCounts).toEqual({ focused: 1, quick: 1 });
     expect(rollups[0].overdueActionCount).toBe(1);
@@ -871,14 +864,14 @@ describe('buildProcessHubRollups', () => {
     expect(rollups[0].nextMove).toBe('Inspect nozzle wear during night shift.');
 
     expect(rollups[1].hub.id).toBe(DEFAULT_PROCESS_HUB_ID);
-    expect(rollups[1].investigations.map(i => i.id)).toEqual(['legacy']);
+    expect(rollups[1].analyzes.map(i => i.id)).toEqual(['legacy']);
   });
 
   it('uses the newest available review signal for the hub rollup', () => {
     const hubs: ProcessHub[] = [
       { id: 'line-4', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
-    const investigations = [
+    const analyzes = [
       {
         id: 'older',
         name: 'Older signal',
@@ -933,7 +926,7 @@ describe('buildProcessHubRollups', () => {
       },
     ];
 
-    const [rollup] = buildProcessHubRollups(hubs, investigations);
+    const [rollup] = buildProcessHubRollups(hubs, analyzes);
 
     expect(rollup.reviewSignal?.topFocus).toEqual({
       factor: 'Machine',
@@ -942,7 +935,7 @@ describe('buildProcessHubRollups', () => {
     });
   });
 
-  it('builds a deterministic process context contract from hub investigations', () => {
+  it('builds a deterministic process context contract from hub analyzes', () => {
     const hubs: ProcessHub[] = [
       {
         id: 'line-4',
@@ -1034,7 +1027,7 @@ describe('buildProcessHubRollups', () => {
       findings: { total: 3, confirmed: 3 },
       actions: { total: 2, completed: 1, overdue: 1 },
       verification: { waiting: 1 },
-      sustainment: { candidates: 0 },
+      control: { candidates: 0 },
       currentState: {
         overallSeverity: 'red',
         itemCount: expect.any(Number),
@@ -1046,26 +1039,23 @@ describe('buildProcessHubRollups', () => {
           sustainment: 0,
         },
         responsePathCounts: {
-          'focused-investigation': expect.any(Number),
+          'focused-analyze': expect.any(Number),
           'quick-action': expect.any(Number),
         },
         topItems: expect.arrayContaining([
           expect.objectContaining({
             id: 'capability-gap',
             lens: 'outcome',
-            responsePath: 'focused-investigation',
+            responsePath: 'focused-analyze',
           }),
         ]),
       },
     });
-    expect(context.investigations.map(investigation => investigation.id)).toEqual([
-      'line-4-a',
-      'line-4-b',
-    ]);
+    expect(context.analyzes.map(analyze => analyze.id)).toEqual(['line-4-a', 'line-4-b']);
     expect(context.metrics).toEqual([
       {
         name: 'Weight',
-        sourceInvestigationId: 'line-4-a',
+        sourceAnalyzeId: 'line-4-a',
         rowCount: 125,
         cpk: 0.82,
         cpkTarget: 1.33,
@@ -1076,7 +1066,7 @@ describe('buildProcessHubRollups', () => {
         factor: 'Machine',
         value: 'B',
         variationPct: 48,
-        sourceInvestigationId: 'line-4-a',
+        sourceAnalyzeId: 'line-4-a',
       },
     ]);
     expect(context.readinessReasons).toEqual(['verification-gap']);
@@ -1129,13 +1119,13 @@ describe('isProcessHubId', () => {
   });
 });
 
-describe('buildProcessHubContext — sustainment', () => {
+describe('buildProcessHubContext — control', () => {
   it('exposes due, overdue, and verdict counts (no PII)', () => {
     const now = new Date('2026-04-26T00:00:00.000Z');
     const hubs: ProcessHub[] = [
       { id: 'hub-1', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
     ];
-    const investigations = [
+    const analyzes = [
       {
         id: 'inv-1',
         name: 'A',
@@ -1164,15 +1154,15 @@ describe('buildProcessHubContext — sustainment', () => {
       },
     ];
 
-    const [rollup] = buildProcessHubRollups(hubs, investigations, {
+    const [rollup] = buildProcessHubRollups(hubs, analyzes, {
       controlRecords,
       controlHandoffs: [],
     });
     const context = buildProcessHubContext(rollup, now);
 
-    expect(context.sustainment.due).toBe(1);
-    expect(context.sustainment.overdue).toBe(1);
-    expect(context.sustainment.verdicts).toEqual({ holding: 1 });
+    expect(context.control.due).toBe(1);
+    expect(context.control.overdue).toBe(1);
+    expect(context.control.verdicts).toEqual({ holding: 1 });
     // PII boundary: no reviewer field, no observation field, no participant strings
     expect(JSON.stringify(context)).not.toContain('reviewer');
     expect(JSON.stringify(context)).not.toContain('observation');
