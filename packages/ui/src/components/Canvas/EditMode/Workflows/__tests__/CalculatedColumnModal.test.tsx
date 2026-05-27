@@ -355,14 +355,256 @@ describe('CalculatedColumnModal', () => {
     });
   });
 
-  describe('Custom formula tab placeholder', () => {
-    it('shows placeholder text when Custom formula tab is active', () => {
-      renderModal();
+  describe('Custom formula tab', () => {
+    /** Helper: open the Custom tab. Returns the same `utils` shape. */
+    function openCustomTab(opts: RenderOptions = {}) {
+      const utils = renderModal(opts);
       fireEvent.click(screen.getByTestId('calc-column-tab-custom'));
-      const panel = screen.getByRole('tabpanel');
-      expect(panel).toHaveAttribute('id', 'calc-column-panel-custom');
-      expect(screen.getByTestId('calc-column-custom-placeholder')).toBeInTheDocument();
-      expect(screen.getByText(/custom formula builder.*task 6/i)).toBeInTheDocument();
+      return utils;
+    }
+
+    it('renders empty slots + multiplier + name input on Custom tab', () => {
+      openCustomTab();
+
+      // Numerator slot
+      const numerator = screen.getByRole('group', { name: 'Numerator' });
+      expect(numerator).toBeInTheDocument();
+      expect(numerator).toHaveAttribute('data-slot', 'numerator');
+      expect(numerator).toHaveTextContent(/click a column to add to numerator/i);
+
+      // Denominator slot
+      const denominator = screen.getByRole('group', { name: 'Denominator' });
+      expect(denominator).toBeInTheDocument();
+      expect(denominator).toHaveAttribute('data-slot', 'denominator');
+      expect(denominator).toHaveTextContent(/empty = numerator only/i);
+
+      // Multiplier input (default value 1)
+      const multiplier = screen.getByLabelText('Multiplier') as HTMLInputElement;
+      expect(multiplier).toBeInTheDocument();
+      expect(multiplier.value).toBe('1');
+
+      // Name input
+      const nameInput = screen.getByLabelText('Calculated column name') as HTMLInputElement;
+      expect(nameInput).toBeInTheDocument();
+      expect(nameInput.value).toBe('');
+
+      // Save button visible and disabled (name empty + numerator empty)
+      const save = screen.getByTestId('calc-column-custom-save');
+      expect(save).toBeInTheDocument();
+      expect(save).toBeDisabled();
+    });
+
+    it('side palette lists numeric columns as palette chips', () => {
+      openCustomTab({
+        rawProfiles: [numericProfile('A'), numericProfile('B'), numericProfile('Lead_time')],
+        numericValuesByColumn: { A: [1, 2], B: [3, 4], Lead_time: [5, 6] },
+      });
+
+      const aChip = screen.getByRole('button', { name: 'A' });
+      const bChip = screen.getByRole('button', { name: 'B' });
+      const leadChip = screen.getByRole('button', { name: 'Lead_time' });
+
+      expect(aChip).toHaveAttribute('data-palette-chip', 'A');
+      expect(bChip).toHaveAttribute('data-palette-chip', 'B');
+      expect(leadChip).toHaveAttribute('data-palette-chip', 'Lead_time');
+    });
+
+    it('clicking palette chip with numerator focused → term added to numerator', () => {
+      openCustomTab();
+
+      // Focus numerator slot
+      const numerator = screen.getByRole('group', { name: 'Numerator' });
+      fireEvent.click(numerator);
+      expect(numerator).toHaveAttribute('data-focused', 'true');
+
+      // Click palette chip A
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      // Numerator now contains the chip
+      const slottedA = within(numerator).getByText(/A/);
+      expect(slottedA).toBeInTheDocument();
+
+      // Remove (×) button present
+      const removeBtn = within(numerator).getByRole('button', { name: /remove A/i });
+      expect(removeBtn).toBeInTheDocument();
+    });
+
+    it('clicking palette chip with no slot focused → numerator focused + chip added', () => {
+      openCustomTab();
+
+      const numerator = screen.getByRole('group', { name: 'Numerator' });
+      expect(numerator).toHaveAttribute('data-focused', 'false');
+
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      // Numerator now focused AND contains A
+      expect(numerator).toHaveAttribute('data-focused', 'true');
+      const removeBtn = within(numerator).getByRole('button', { name: /remove A/i });
+      expect(removeBtn).toBeInTheDocument();
+    });
+
+    it('clicking palette chip with denominator focused → term added to denominator', () => {
+      openCustomTab();
+
+      const denominator = screen.getByRole('group', { name: 'Denominator' });
+      fireEvent.click(denominator);
+      expect(denominator).toHaveAttribute('data-focused', 'true');
+
+      fireEvent.click(screen.getByRole('button', { name: 'B' }));
+
+      const removeBtn = within(denominator).getByRole('button', { name: /remove B/i });
+      expect(removeBtn).toBeInTheDocument();
+    });
+
+    it('clicking × on a slotted chip removes the term and restores placeholder', () => {
+      openCustomTab();
+
+      // Add A to numerator
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+      const numerator = screen.getByRole('group', { name: 'Numerator' });
+      expect(within(numerator).queryByRole('button', { name: /remove A/i })).toBeInTheDocument();
+
+      // Click remove
+      fireEvent.click(within(numerator).getByRole('button', { name: /remove A/i }));
+
+      // Term gone; placeholder reappears
+      expect(
+        within(numerator).queryByRole('button', { name: /remove A/i })
+      ).not.toBeInTheDocument();
+      expect(numerator).toHaveTextContent(/click a column to add to numerator/i);
+    });
+
+    it('clicking sign toggle on a slotted chip flips + ↔ -', () => {
+      openCustomTab();
+
+      // Add A to numerator (default sign is +)
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+      const numerator = screen.getByRole('group', { name: 'Numerator' });
+      const signBtn = within(numerator).getByTestId('calc-column-sign-toggle-numerator-0');
+      expect(signBtn).toHaveTextContent('+');
+
+      // Click sign toggle
+      fireEvent.click(signBtn);
+
+      // Sign now -
+      expect(signBtn).toHaveTextContent('-');
+    });
+
+    it('multiplier input updates state', () => {
+      openCustomTab();
+      const multiplier = screen.getByLabelText('Multiplier') as HTMLInputElement;
+      expect(multiplier.value).toBe('1');
+
+      fireEvent.change(multiplier, { target: { value: '100' } });
+      expect(multiplier.value).toBe('100');
+
+      fireEvent.change(multiplier, { target: { value: '1000000' } });
+      expect(multiplier.value).toBe('1000000');
+    });
+
+    it('name input updates Save button label', () => {
+      openCustomTab();
+
+      // Add A so name-empty is the only blocker → save label changes once name is set
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      const nameInput = screen.getByLabelText('Calculated column name') as HTMLInputElement;
+      fireEvent.change(nameInput, { target: { value: 'Yield_pct' } });
+
+      const save = screen.getByTestId('calc-column-custom-save');
+      expect(save).toHaveTextContent('Save · "Yield_pct" →');
+    });
+
+    it('Save button is disabled when name is empty (even if numerator has terms)', () => {
+      openCustomTab();
+
+      // Add A — name still empty
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      const save = screen.getByTestId('calc-column-custom-save');
+      expect(save).toBeDisabled();
+    });
+
+    it('Save button is disabled when numerator is empty (even if name is set)', () => {
+      openCustomTab();
+
+      const nameInput = screen.getByLabelText('Calculated column name');
+      fireEvent.change(nameInput, { target: { value: 'Foo' } });
+
+      const save = screen.getByTestId('calc-column-custom-save');
+      expect(save).toBeDisabled();
+    });
+
+    it('Save calls onSave with a custom FormulaBinding', () => {
+      const { onSave } = openCustomTab();
+
+      // Name
+      const nameInput = screen.getByLabelText('Calculated column name');
+      fireEvent.change(nameInput, { target: { value: 'Yield_pct' } });
+
+      // Numerator A
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      // Denominator B
+      const denominator = screen.getByRole('group', { name: 'Denominator' });
+      fireEvent.click(denominator);
+      fireEvent.click(screen.getByRole('button', { name: 'B' }));
+
+      // Multiplier 100
+      const multiplier = screen.getByLabelText('Multiplier');
+      fireEvent.change(multiplier, { target: { value: '100' } });
+
+      // Save
+      fireEvent.click(screen.getByTestId('calc-column-custom-save'));
+
+      expect(onSave).toHaveBeenCalledOnce();
+      const binding = onSave.mock.calls[0][0];
+      expect(binding).toMatchObject({
+        name: 'Yield_pct',
+        numerator: [{ kind: 'column', column: 'A', sign: '+' }],
+        denominator: [{ kind: 'column', column: 'B', sign: '+' }],
+        multiplier: 100,
+        family: 'custom',
+      });
+      expect(binding.id).toBeTruthy();
+      expect(binding.templateId).toBeUndefined();
+    });
+
+    it('Cancel button on Custom tab calls onClose (not onSave)', () => {
+      const { onClose, onSave } = openCustomTab();
+      const cancelBtn = screen.getByRole('button', { name: 'Cancel' });
+      fireEvent.click(cancelBtn);
+      expect(onClose).toHaveBeenCalledOnce();
+      expect(onSave).not.toHaveBeenCalled();
+    });
+
+    it('Tab switching preserves Custom tab state', () => {
+      openCustomTab();
+
+      // Add A to numerator, type name "Foo"
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+      const nameInput = screen.getByLabelText('Calculated column name') as HTMLInputElement;
+      fireEvent.change(nameInput, { target: { value: 'Foo' } });
+
+      // Switch to Templates tab
+      fireEvent.click(screen.getByTestId('calc-column-tab-templates'));
+      expect(screen.queryByLabelText('Calculated column name')).not.toBeInTheDocument();
+
+      // Switch back to Custom
+      fireEvent.click(screen.getByTestId('calc-column-tab-custom'));
+
+      // State preserved
+      const nameAfter = screen.getByLabelText('Calculated column name') as HTMLInputElement;
+      expect(nameAfter.value).toBe('Foo');
+      const numerator = screen.getByRole('group', { name: 'Numerator' });
+      expect(within(numerator).queryByRole('button', { name: /remove A/i })).toBeInTheDocument();
+    });
+
+    it('no constant chips render when terms array is empty', () => {
+      openCustomTab();
+
+      // No element should have data-term-kind="constant"
+      expect(document.querySelector('[data-term-kind="constant"]')).toBeNull();
     });
   });
 });

@@ -1,8 +1,16 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import FocusTrap from 'focus-trap-react';
-import type { FormulaBinding, FormulaTemplate, TemplateContext } from '@variscout/core';
+import type {
+  FormulaBinding,
+  FormulaTemplate,
+  FormulaTerm,
+  TemplateContext,
+} from '@variscout/core';
 import { FORMULA_TEMPLATES, detectBatchData } from '@variscout/core';
 import type { ColumnParsingProfile } from '@variscout/core/parser';
+
+/** Slot identifier for the Custom tab composer. */
+type SlotId = 'numerator' | 'denominator';
 
 export interface CalculatedColumnModalProps {
   /** When provided, the modal treats this column as the kebab origin (e.g. pre-fill DPMO numerator). */
@@ -50,6 +58,26 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>('templates');
 
+  // -------------------------------------------------------------------------
+  // Custom tab state (kept lifted here so tab-switching preserves it).
+  // -------------------------------------------------------------------------
+  const [customName, setCustomName] = useState('');
+  const [customNumerator, setCustomNumerator] = useState<FormulaTerm[]>([]);
+  const [customDenominator, setCustomDenominator] = useState<FormulaTerm[]>([]);
+  const [customMultiplier, setCustomMultiplier] = useState(1);
+  const [focusedSlot, setFocusedSlot] = useState<SlotId | null>(null);
+  // Fly-in animation key — stamped per add. Cleared after the transition window.
+  const [flyInKey, setFlyInKey] = useState<string | null>(null);
+  // Map of palette column → DOMRect used to compute fly-in delta.
+  const paletteRectsRef = useRef<Record<string, DOMRect>>({});
+  // Map of slot → DOMRect for the slot container (target of the fly-in).
+  const slotRectsRef = useRef<Record<SlotId, DOMRect | null>>({
+    numerator: null,
+    denominator: null,
+  });
+  // Per-key fly-in delta (set the frame the chip mounts; cleared via rAF).
+  const [flyInDelta, setFlyInDelta] = useState<{ dx: number; dy: number } | null>(null);
+
   const dialogRef = useRef<HTMLDivElement>(null);
 
   // Auto-focus dialog on mount.
@@ -88,6 +116,111 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
 
   const handleTemplateSelect = (template: FormulaTemplate) => {
     const binding = template.fillFromContext(templateCtx, sourceColumn);
+    onSave(binding);
+  };
+
+  // -------------------------------------------------------------------------
+  // Custom tab handlers.
+  // -------------------------------------------------------------------------
+
+  /** Register a palette chip's bounding rect (called by the chip on mount/render). */
+  const registerPaletteRect = useCallback((column: string, rect: DOMRect | null) => {
+    if (rect) paletteRectsRef.current[column] = rect;
+  }, []);
+
+  /** Register a slot's bounding rect (called by the slot on mount/render). */
+  const registerSlotRect = useCallback((slot: SlotId, rect: DOMRect | null) => {
+    slotRectsRef.current[slot] = rect;
+  }, []);
+
+  const handleAddToSlot = useCallback(
+    (column: string) => {
+      // If no slot focused, default to numerator AND focus it in the same gesture.
+      const target: SlotId = focusedSlot ?? 'numerator';
+      if (focusedSlot === null) setFocusedSlot('numerator');
+
+      const newTerm: FormulaTerm = { kind: 'column', column, sign: '+' };
+      const key = `${target}:${column}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+
+      // Compute fly-in delta from palette chip → slot container. In jsdom both
+      // rects are { x:0, y:0, ...zeroes }, so delta resolves to (0, 0) and the
+      // animation is a no-op — tests stay deterministic.
+      const paletteRect = paletteRectsRef.current[column];
+      const slotRect = slotRectsRef.current[target];
+      if (paletteRect && slotRect) {
+        const dx = paletteRect.left - slotRect.left;
+        const dy = paletteRect.top - slotRect.top;
+        setFlyInDelta({ dx, dy });
+      } else {
+        setFlyInDelta(null);
+      }
+      setFlyInKey(key);
+
+      if (target === 'numerator') {
+        setCustomNumerator(prev => [...prev, newTerm]);
+      } else {
+        setCustomDenominator(prev => [...prev, newTerm]);
+      }
+    },
+    [focusedSlot]
+  );
+
+  // Once the chip mounts with the initial transform, schedule a rAF to clear
+  // the delta — the CSS transition picks up the change and animates to (0, 0).
+  useEffect(() => {
+    if (flyInKey === null || flyInDelta === null) return;
+    const raf = requestAnimationFrame(() => {
+      setFlyInDelta(null);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [flyInKey, flyInDelta]);
+
+  // Clear the fly-in key after the transition completes (220ms ≈ 200ms ease-out
+  // + buffer). Safe to clear even if rAF didn't fire (jsdom path).
+  useEffect(() => {
+    if (flyInKey === null) return;
+    const timeout = setTimeout(() => {
+      setFlyInKey(null);
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [flyInKey]);
+
+  const removeTerm = useCallback((slot: SlotId, index: number) => {
+    const updater = (prev: FormulaTerm[]) => prev.filter((_, i) => i !== index);
+    if (slot === 'numerator') {
+      setCustomNumerator(updater);
+    } else {
+      setCustomDenominator(updater);
+    }
+  }, []);
+
+  const flipSign = useCallback((slot: SlotId, index: number) => {
+    const updater = (prev: FormulaTerm[]): FormulaTerm[] =>
+      prev.map((term, i): FormulaTerm => {
+        if (i !== index) return term;
+        if (term.kind !== 'column') return term;
+        const nextSign: '+' | '-' = term.sign === '+' ? '-' : '+';
+        return { ...term, sign: nextSign };
+      });
+    if (slot === 'numerator') {
+      setCustomNumerator(updater);
+    } else {
+      setCustomDenominator(updater);
+    }
+  }, []);
+
+  const customSaveDisabled = customName.trim().length === 0 || customNumerator.length === 0;
+
+  const handleCustomSave = () => {
+    if (customSaveDisabled) return;
+    const binding: FormulaBinding = {
+      id: crypto.randomUUID(),
+      name: customName,
+      numerator: customNumerator,
+      denominator: customDenominator,
+      multiplier: customMultiplier,
+      family: 'custom',
+    };
     onSave(binding);
   };
 
@@ -179,7 +312,24 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
                 id="calc-column-panel-custom"
                 aria-labelledby="calc-column-tab-custom"
               >
-                <CustomTabPlaceholder />
+                <CustomTabContent
+                  numericColumns={numericColumns}
+                  name={customName}
+                  onNameChange={setCustomName}
+                  numerator={customNumerator}
+                  denominator={customDenominator}
+                  multiplier={customMultiplier}
+                  onMultiplierChange={setCustomMultiplier}
+                  focusedSlot={focusedSlot}
+                  onFocusSlot={setFocusedSlot}
+                  onAddToSlot={handleAddToSlot}
+                  onRemoveTerm={removeTerm}
+                  onFlipSign={flipSign}
+                  flyInKey={flyInKey}
+                  flyInDelta={flyInDelta}
+                  registerPaletteRect={registerPaletteRect}
+                  registerSlotRect={registerSlotRect}
+                />
               </div>
             )}
           </div>
@@ -193,6 +343,20 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
             >
               Cancel
             </button>
+            {activeTab === 'custom' && (
+              <button
+                type="button"
+                onClick={handleCustomSave}
+                disabled={customSaveDisabled}
+                aria-disabled={customSaveDisabled}
+                data-testid="calc-column-custom-save"
+                className={`px-4 py-2 text-sm bg-blue-500 text-white rounded-lg transition-colors ${
+                  customSaveDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
+                }`}
+              >
+                {customName.trim().length > 0 ? `Save · "${customName}" →` : 'Save →'}
+              </button>
+            )}
           </div>
         </div>
       </FocusTrap>
@@ -351,18 +515,309 @@ const TemplateCardBody: React.FC<{
 );
 
 // ---------------------------------------------------------------------------
-// Custom formula tab placeholder
+// Custom formula tab content (Task 6)
 // ---------------------------------------------------------------------------
 
 /**
- * Placeholder panel for Task 6.
+ * Custom formula builder. Click-to-add UX (NOT drag-and-drop per plan §8):
+ * user clicks a slot to focus it, then clicks palette chips to fill the slot.
+ * Each slotted chip carries a sign toggle and a remove button.
  *
- * Task 6 should replace the inner content with the formula builder UI.
- * The panel's role="tabpanel" wrapper lives in the parent (CalculatedColumnModal),
- * so Task 6 only needs to replace this component's returned JSX.
+ * Fly-in animation: when a chip is added we read the palette chip's bounding
+ * rect + the slot's bounding rect, compute a transform delta, and mount the
+ * new chip with `transform: translate(dx, dy)` + `transition: transform 200ms
+ * ease-out`. A rAF clears the delta, the CSS transition picks up the change,
+ * and the chip slides into place. In jsdom both rects return zero-sized boxes
+ * so the delta is (0, 0) and the animation is a no-op (no jank, no jiggle).
  */
-const CustomTabPlaceholder: React.FC = () => (
-  <div data-testid="calc-column-custom-placeholder" className="py-6 px-2">
-    <p className="text-sm text-content-secondary">Custom formula builder — coming in Task 6</p>
-  </div>
-);
+interface CustomTabContentProps {
+  numericColumns: string[];
+  name: string;
+  onNameChange: (name: string) => void;
+  numerator: FormulaTerm[];
+  denominator: FormulaTerm[];
+  multiplier: number;
+  onMultiplierChange: (multiplier: number) => void;
+  focusedSlot: SlotId | null;
+  onFocusSlot: (slot: SlotId) => void;
+  onAddToSlot: (column: string) => void;
+  onRemoveTerm: (slot: SlotId, index: number) => void;
+  onFlipSign: (slot: SlotId, index: number) => void;
+  flyInKey: string | null;
+  flyInDelta: { dx: number; dy: number } | null;
+  registerPaletteRect: (column: string, rect: DOMRect | null) => void;
+  registerSlotRect: (slot: SlotId, rect: DOMRect | null) => void;
+}
+
+const CustomTabContent: React.FC<CustomTabContentProps> = ({
+  numericColumns,
+  name,
+  onNameChange,
+  numerator,
+  denominator,
+  multiplier,
+  onMultiplierChange,
+  focusedSlot,
+  onFocusSlot,
+  onAddToSlot,
+  onRemoveTerm,
+  onFlipSign,
+  flyInKey,
+  flyInDelta,
+  registerPaletteRect,
+  registerSlotRect,
+}) => {
+  return (
+    <div className="flex flex-col gap-4 py-2 px-1">
+      {/* Name input */}
+      <div>
+        <label
+          htmlFor="calc-column-custom-name"
+          className="block text-xs font-medium text-content-secondary mb-1"
+        >
+          Column name
+        </label>
+        <input
+          id="calc-column-custom-name"
+          type="text"
+          aria-label="Calculated column name"
+          placeholder="Calculated_column"
+          value={name}
+          onChange={e => onNameChange(e.target.value)}
+          className="w-full text-sm border border-edge rounded-md px-2 py-1.5 bg-surface focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      </div>
+
+      {/* Composer: slots (left) + multiplier (right) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="sm:col-span-2 flex flex-col gap-2">
+          <FormulaSlot
+            slot="numerator"
+            label="Numerator"
+            placeholder="Click a column to add to numerator"
+            focused={focusedSlot === 'numerator'}
+            terms={numerator}
+            onFocus={() => onFocusSlot('numerator')}
+            onRemove={index => onRemoveTerm('numerator', index)}
+            onFlipSign={index => onFlipSign('numerator', index)}
+            flyInKey={flyInKey}
+            flyInDelta={flyInDelta}
+            registerSlotRect={registerSlotRect}
+          />
+          <div
+            aria-hidden="true"
+            className="text-center text-content-secondary text-sm select-none"
+          >
+            ÷
+          </div>
+          <FormulaSlot
+            slot="denominator"
+            label="Denominator"
+            placeholder="(empty = numerator only)"
+            focused={focusedSlot === 'denominator'}
+            terms={denominator}
+            onFocus={() => onFocusSlot('denominator')}
+            onRemove={index => onRemoveTerm('denominator', index)}
+            onFlipSign={index => onFlipSign('denominator', index)}
+            flyInKey={flyInKey}
+            flyInDelta={flyInDelta}
+            registerSlotRect={registerSlotRect}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label
+            htmlFor="calc-column-custom-multiplier"
+            className="block text-xs font-medium text-content-secondary"
+          >
+            Multiplier
+          </label>
+          <input
+            id="calc-column-custom-multiplier"
+            type="number"
+            aria-label="Multiplier"
+            value={multiplier}
+            onChange={e => {
+              const next = Number(e.target.value);
+              onMultiplierChange(Number.isFinite(next) ? next : 1);
+            }}
+            className="w-full text-sm border border-edge rounded-md px-2 py-1.5 bg-surface focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <p className="text-xs text-content-secondary">
+            × multiplier (e.g. 100 for %, 1,000,000 for DPMO)
+          </p>
+        </div>
+      </div>
+
+      {/* Palette */}
+      <div>
+        <p className="text-xs font-medium text-content-secondary mb-1">Columns</p>
+        {numericColumns.length === 0 ? (
+          <p className="text-sm text-content-secondary py-2">No numeric columns available.</p>
+        ) : (
+          <div data-testid="calc-column-custom-palette" className="flex flex-wrap gap-2">
+            {numericColumns.map(col => (
+              <PaletteChip
+                key={col}
+                column={col}
+                onClick={() => onAddToSlot(col)}
+                registerRect={registerPaletteRect}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+interface PaletteChipProps {
+  column: string;
+  onClick: () => void;
+  registerRect: (column: string, rect: DOMRect | null) => void;
+}
+
+const PaletteChip: React.FC<PaletteChipProps> = ({ column, onClick, registerRect }) => {
+  const ref = useRef<HTMLButtonElement>(null);
+
+  // Re-measure on mount + every render. Cheap on the few-chips count Custom
+  // tab carries; ensures rect is fresh if layout shifts.
+  useEffect(() => {
+    registerRect(column, ref.current?.getBoundingClientRect() ?? null);
+  });
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      data-palette-chip={column}
+      aria-label={column}
+      onClick={onClick}
+      className="text-xs font-medium px-2 py-1 rounded-md border border-edge bg-surface-secondary text-content hover:bg-blue-50 hover:border-blue-300 transition-colors"
+    >
+      {column}
+    </button>
+  );
+};
+
+interface FormulaSlotProps {
+  slot: SlotId;
+  label: string;
+  placeholder: string;
+  focused: boolean;
+  terms: FormulaTerm[];
+  onFocus: () => void;
+  onRemove: (index: number) => void;
+  onFlipSign: (index: number) => void;
+  flyInKey: string | null;
+  flyInDelta: { dx: number; dy: number } | null;
+  registerSlotRect: (slot: SlotId, rect: DOMRect | null) => void;
+}
+
+const FormulaSlot: React.FC<FormulaSlotProps> = ({
+  slot,
+  label,
+  placeholder,
+  focused,
+  terms,
+  onFocus,
+  onRemove,
+  onFlipSign,
+  flyInKey,
+  flyInDelta,
+  registerSlotRect,
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    registerSlotRect(slot, ref.current?.getBoundingClientRect() ?? null);
+  });
+
+  // The newest term (last in the array) is the one that may carry the fly-in
+  // initial transform. Apply to the LAST chip rendered iff flyInKey starts
+  // with this slot's name AND flyInDelta is still set (i.e. rAF hasn't cleared
+  // it yet). We don't need stable per-term IDs for V1 — the last-in-array
+  // chip is the only animation target.
+  const isFlyInTargetForThisSlot =
+    flyInKey !== null && flyInKey.startsWith(`${slot}:`) && flyInDelta !== null;
+
+  return (
+    <div
+      ref={ref}
+      role="group"
+      aria-label={label}
+      data-slot={slot}
+      data-focused={focused}
+      onClick={onFocus}
+      className={`min-h-[44px] rounded-md border-2 px-3 py-2 cursor-text transition-colors ${
+        focused ? 'border-blue-400 bg-blue-50' : 'border-edge bg-surface-secondary'
+      }`}
+    >
+      {terms.length === 0 ? (
+        <p className="text-xs text-content-secondary select-none">{placeholder}</p>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          {terms.map((term, index) => {
+            const isLast = index === terms.length - 1;
+            const applyFlyIn = isLast && isFlyInTargetForThisSlot && flyInDelta;
+            const style: React.CSSProperties = applyFlyIn
+              ? {
+                  transform: `translate(${flyInDelta!.dx}px, ${flyInDelta!.dy}px)`,
+                  transition: 'transform 200ms ease-out',
+                }
+              : { transform: 'translate(0, 0)', transition: 'transform 200ms ease-out' };
+
+            if (term.kind === 'constant') {
+              return (
+                <span
+                  key={index}
+                  data-term-kind="constant"
+                  style={style}
+                  className="inline-flex items-center gap-1 text-xs font-mono px-2 py-1 rounded-md bg-surface border border-edge text-content"
+                >
+                  {term.value}
+                </span>
+              );
+            }
+
+            return (
+              <span
+                key={index}
+                data-term-kind="column"
+                style={style}
+                className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md bg-surface border border-edge text-content"
+              >
+                <button
+                  type="button"
+                  data-sign-toggle={index}
+                  data-testid={`calc-column-sign-toggle-${slot}-${index}`}
+                  aria-label={`Toggle sign for ${term.column}`}
+                  onClick={e => {
+                    e.stopPropagation();
+                    onFlipSign(index);
+                  }}
+                  className="font-mono text-content-secondary hover:text-content"
+                >
+                  {term.sign}
+                </button>
+                <span>{term.column}</span>
+                <button
+                  type="button"
+                  data-remove-term={index}
+                  aria-label={`Remove ${term.column}`}
+                  onClick={e => {
+                    e.stopPropagation();
+                    onRemove(index);
+                  }}
+                  className="text-content-secondary hover:text-red-600"
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
