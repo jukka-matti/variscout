@@ -88,3 +88,42 @@ describe('profileColumns — skeleton contract', () => {
     expect(empty?.confidence).toBe(0);
   });
 });
+
+describe('profileColumns — numeric format detection', () => {
+  it('detects plain integers', () => {
+    const rows = [{ N: '100' }, { N: '203' }, { N: '198' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('numeric');
+    expect(profile.primary?.label).toContain('integer');
+    expect(profile.status).toBe('ok');
+    expect(profile.confidence).toBe(100);
+  });
+
+  it('detects EU decimal (consistent comma, 1–2 trailing digits)', () => {
+    const rows = [{ Speed: '182,5' }, { Speed: '203,1' }, { Speed: '198,7' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('numeric');
+    expect(profile.primary?.label).toContain('EU decimal');
+    expect(profile.primary?.detail).toMatchObject({ decimalSeparator: ',' });
+    expect(profile.transformedSamples).toEqual([
+      { raw: '182,5', transformed: '182.5' },
+      { raw: '203,1', transformed: '203.1' },
+      { raw: '198,7', transformed: '198.7' },
+    ]);
+  });
+
+  it('detects US format (thousands "," + decimal ".")', () => {
+    const rows = [{ Sales: '1,234.5' }, { Sales: '2,001.0' }, { Sales: '987.6' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('numeric');
+    expect(profile.primary?.label).toContain('US');
+    expect(profile.transformedSamples[0]).toEqual({ raw: '1,234.5', transformed: '1234.5' });
+  });
+
+  it('handles already-numeric Excel cells as plain numeric', () => {
+    const rows = [{ Pre: 182.5 }, { Pre: 203.1 }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('numeric');
+    expect(profile.confidence).toBe(100);
+  });
+});
