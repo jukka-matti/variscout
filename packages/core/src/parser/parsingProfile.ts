@@ -182,6 +182,110 @@ function detectDateFormat(values: unknown[]): DateMatch[] {
 }
 
 // ---------------------------------------------------------------------------
+// Detection lane 1b: numeric with affix ($, %, parens)
+// ---------------------------------------------------------------------------
+
+interface AffixMatch {
+  label: string;
+  detail: Record<string, unknown>;
+  parseCount: number;
+  transform: (raw: string) => string;
+}
+
+function detectAffix(values: unknown[]): AffixMatch | null {
+  const strings = values.filter((v): v is string => typeof v === 'string').map(v => v.trim());
+  if (strings.length === 0) return null;
+
+  // Currency prefix: $ € £
+  const currencyMatch = strings.every(s => /^[$€£]\s?-?[\d.,]+$/.test(s));
+  if (currencyMatch) {
+    const prefix = strings[0][0];
+    return {
+      label: `numeric · ${prefix} prefix`,
+      detail: { stripPrefix: prefix, decimalSeparator: '.' },
+      parseCount: strings.length,
+      transform: raw => {
+        const cleaned = raw.replace(/^[$€£]\s?/, '').replace(/,/g, '');
+        const n = Number(cleaned);
+        return Number.isFinite(n) ? String(n) : raw;
+      },
+    };
+  }
+
+  // Percent suffix
+  if (strings.every(s => /^-?[\d.,]+%$/.test(s))) {
+    return {
+      label: 'numeric · % suffix',
+      detail: { stripSuffix: '%' },
+      parseCount: strings.length,
+      transform: raw => {
+        const cleaned = raw.replace(/%$/, '').replace(/,/g, '');
+        const n = Number(cleaned);
+        return Number.isFinite(n) ? String(n) : raw;
+      },
+    };
+  }
+
+  // Parens for negatives (accounting): (45) → -45. Mixed with plain integers OK.
+  const parensOrPlain = strings.every(s => /^(\(\d+(?:\.\d+)?\)|-?\d+(?:\.\d+)?)$/.test(s));
+  const anyParens = strings.some(s => /^\(\d/.test(s));
+  if (parensOrPlain && anyParens) {
+    return {
+      label: 'numeric · parens negative',
+      detail: { parensNegative: true },
+      parseCount: strings.length,
+      transform: raw => {
+        const m = /^\((\d+(?:\.\d+)?)\)$/.exec(raw);
+        if (m) return `-${Number(m[1])}`;
+        const n = Number(raw);
+        return Number.isFinite(n) ? String(n) : raw;
+      },
+    };
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Detection lane 3: ID heuristic (leading-zero numeric OR alphanumeric fixed-width)
+// ---------------------------------------------------------------------------
+
+function detectIdHeuristic(
+  values: unknown[]
+): { label: string; detail: Record<string, unknown> } | null {
+  const strings = values.filter((v): v is string => typeof v === 'string').map(v => v.trim());
+  if (strings.length < 3 || strings.length !== values.length) return null;
+
+  // Pattern A: leading zeros + same width + all numeric content
+  const allFixedWidthNumeric =
+    strings.every(s => /^\d+$/.test(s)) &&
+    strings.every(s => s.length === strings[0].length) &&
+    strings.some(s => s.startsWith('0'));
+
+  // Pattern B: alphanumeric prefix + numeric suffix (fixed-width)
+  const alphaPrefixMatch = strings[0].match(/^([A-Za-z]+)(\d+)$/);
+  const allAlphanumeric =
+    alphaPrefixMatch !== null &&
+    strings.every(s => {
+      const m = s.match(/^([A-Za-z]+)(\d+)$/);
+      return (
+        m !== null && m[1] === alphaPrefixMatch[1] && m[2].length === alphaPrefixMatch[2].length
+      );
+    });
+
+  if (!allFixedWidthNumeric && !allAlphanumeric) return null;
+
+  const uniqueCount = new Set(strings).size;
+  return {
+    label: `id · ${uniqueCount} unique`,
+    detail: {
+      pattern: allAlphanumeric ? 'alphanumeric-fixed-width' : 'numeric-leading-zero',
+      width: strings[0].length,
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 
 function profileOneColumn(columnName: string, rows: DataRow[]): ColumnParsingProfile {
   const allValues = rows.map(r => r[columnName]);
@@ -194,6 +298,25 @@ function profileOneColumn(columnName: string, rows: DataRow[]): ColumnParsingPro
       status: 'error',
       confidence: 0,
       primary: null,
+      alternatives: [],
+      transformedSamples: [],
+    };
+  }
+
+  // Detection lane 0: ID columns (leading-zero numeric OR alphanumeric fixed-width).
+  // Must run before numeric so leading-zero strings ("001") are not captured as integers.
+  const idMatch = detectIdHeuristic(nonNull);
+  if (idMatch) {
+    const primary: ParsingInterpretation = {
+      kind: 'id',
+      label: idMatch.label,
+      detail: idMatch.detail,
+    };
+    return {
+      columnName,
+      status: 'ok',
+      confidence: 100,
+      primary,
       alternatives: [],
       transformedSamples: [],
     };
@@ -219,6 +342,29 @@ function profileOneColumn(columnName: string, rows: DataRow[]): ColumnParsingPro
       const parsed = tryParseNumeric(raw, format);
       return { raw, transformed: parsed === null ? raw : String(parsed) };
     });
+    return {
+      columnName,
+      status: 'ok',
+      confidence: 100,
+      primary,
+      alternatives: [],
+      transformedSamples,
+    };
+  }
+
+  // Detection lane 1b: numeric with affix ($, %, parens)
+  const affix = detectAffix(nonNull);
+  if (affix && affix.parseCount === nonNull.length) {
+    const primary: ParsingInterpretation = {
+      kind: 'numeric',
+      label: affix.label,
+      detail: affix.detail,
+    };
+    const sampleStrings = nonNull.filter((v): v is string => typeof v === 'string').slice(0, 3);
+    const transformedSamples = sampleStrings.map(raw => ({
+      raw,
+      transformed: affix.transform(raw),
+    }));
     return {
       columnName,
       status: 'ok',
@@ -256,8 +402,8 @@ function profileOneColumn(columnName: string, rows: DataRow[]): ColumnParsingPro
     };
   }
 
-  // Detection lanes 3–4 (affix, ID, categorical) land in Tasks 5–6.
-  // Until then, anything not pure numeric/date falls through to a text placeholder.
+  // Detection lane 4+ (categorical) lands in Task 6.
+  // Anything not matched above falls through to a text placeholder.
   return {
     columnName,
     status: 'ok',

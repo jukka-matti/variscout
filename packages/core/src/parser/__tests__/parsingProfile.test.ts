@@ -208,3 +208,43 @@ describe('profileColumns — date format detection', () => {
     }
   });
 });
+
+describe('profileColumns — affix stripping', () => {
+  it('strips currency prefix ($)', () => {
+    const rows = [{ Price: '$45.20' }, { Price: '$67.10' }, { Price: '$1,234.50' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('numeric');
+    expect(profile.primary?.detail).toMatchObject({ stripPrefix: '$' });
+    expect(profile.transformedSamples[0]).toEqual({ raw: '$45.20', transformed: '45.2' });
+  });
+
+  it('strips percent suffix (%)', () => {
+    const rows = [{ Rate: '12%' }, { Rate: '34%' }, { Rate: '56%' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('numeric');
+    expect(profile.primary?.detail).toMatchObject({ stripSuffix: '%' });
+  });
+
+  it('strips accounting parens for negatives', () => {
+    const rows = [{ Net: '(45)' }, { Net: '(67)' }, { Net: '100' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('numeric');
+    expect(profile.primary?.detail).toMatchObject({ parensNegative: true });
+    expect(profile.transformedSamples[0]).toEqual({ raw: '(45)', transformed: '-45' });
+  });
+});
+
+describe('profileColumns — ID heuristic', () => {
+  it('detects ID columns with leading zeros + fixed width', () => {
+    const rows = [{ Code: '001' }, { Code: '002' }, { Code: '003' }, { Code: '004' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('id');
+    expect(profile.primary?.label).toContain('id');
+  });
+
+  it('detects alphanumeric IDs (fixed-width prefix + numeric suffix)', () => {
+    const rows = [{ Code: 'A123' }, { Code: 'A124' }, { Code: 'A125' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('id');
+  });
+});
