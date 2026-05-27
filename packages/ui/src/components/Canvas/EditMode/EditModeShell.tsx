@@ -4,6 +4,7 @@ import type { OutcomeSpec } from '@variscout/core';
 import type { ImprovementProjectFactorControl } from '@variscout/core/improvementProject';
 import type { ColumnParsingProfile, ParsingInterpretation } from '@variscout/core/parser';
 import { Palette } from './Palette';
+import type { SystemHint } from './Palette';
 import { OutcomeZone } from './OutcomeZone';
 import { FactorZone } from './FactorZone';
 import { ProcessStructureZone } from './ProcessZone';
@@ -26,6 +27,13 @@ export interface EditModeShellProps {
    * Defaults to `{}`.
    */
   categoricalDistinctValuesByColumn?: Record<string, string[]>;
+  /**
+   * Contextual system hints rendered above the palette chip groups.
+   * Forwarded unchanged to {@link Palette}. D2 Task 11 wires the batch-detected
+   * banner; future hints (parsing warnings, missing time columns, etc.) can be
+   * appended to the same array. Defaults to `[]`.
+   */
+  systemHints?: SystemHint[];
   /** Forwarded to the palette. Routed to no-op by default. */
   onMenuItemSelect?: (columnName: string, itemId: string) => void;
   /** Forwarded to the palette. Routed to no-op by default. */
@@ -92,6 +100,7 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
   profiles = [],
   numericValuesByColumn = {},
   categoricalDistinctValuesByColumn = {},
+  systemHints,
   onMenuItemSelect,
   onOverrideAccept,
   onApplyToSimilar,
@@ -161,6 +170,7 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
             <Palette
               profiles={profiles}
               numericValuesByColumn={numericValuesByColumn}
+              systemHints={systemHints}
               onMenuItemSelect={onMenuItemSelect}
               onOverrideAccept={onOverrideAccept}
               onApplyToSimilar={onApplyToSimilar}

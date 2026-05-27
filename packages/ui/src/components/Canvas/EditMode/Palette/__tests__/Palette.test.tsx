@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DndContext } from '@dnd-kit/core';
 import { Palette } from '../index';
+import type { SystemHint } from '../index';
 import { createTestColumnParsingProfile } from '../../../../../test-utils/columnParsingProfile';
 
 const renderPalette = (props: Partial<React.ComponentProps<typeof Palette>>) =>
@@ -105,7 +106,7 @@ describe('Palette — derived group', () => {
         }),
       ],
     });
-    const derivedGroup = screen.getByTestId('palette-group-derived');
+    const derivedGroup = screen.getByTestId('palette-group-derived-timings');
     expect(derivedGroup).toBeInTheDocument();
     expect(derivedGroup).toHaveTextContent('DERIVED FROM TIMINGS');
   });
@@ -119,7 +120,8 @@ describe('Palette — derived group', () => {
         }),
       ],
     });
-    expect(screen.queryByTestId('palette-group-derived')).toBeNull();
+    expect(screen.queryByTestId('palette-group-derived-timings')).toBeNull();
+    expect(screen.queryByTestId('palette-group-derived-formula')).toBeNull();
   });
 
   it('renders derived chips with derived=true in derived group', () => {
@@ -157,26 +159,54 @@ describe('Palette — derived group', () => {
     });
     const groups = screen.getAllByTestId(/^palette-group-/);
     const testIds = groups.map(g => g.getAttribute('data-testid'));
-    const derivedIdx = testIds.indexOf('palette-group-derived');
+    const derivedIdx = testIds.indexOf('palette-group-derived-timings');
     const otherIdx = testIds.indexOf('palette-group-other');
     const numericIdx = testIds.indexOf('palette-group-numeric');
     expect(numericIdx).toBeLessThan(derivedIdx);
     expect(derivedIdx).toBeLessThan(otherIdx);
   });
 
-  it('uses default TIMINGS label when derivationSource is undefined on derived profile', () => {
+  it('derived profile with undefined derivationSource routes to fallback group labeled DERIVED', () => {
     renderPalette({
       profiles: [
         createTestColumnParsingProfile({
           columnName: 'Lead_time',
           derived: true,
-          // no derivationSource
+          // no derivationSource — defensive fallback group with neutral label
           primary: { kind: 'numeric', label: 'numeric · duration', detail: {} },
         }),
       ],
     });
-    const derivedGroup = screen.getByTestId('palette-group-derived');
-    expect(derivedGroup).toHaveTextContent('DERIVED FROM TIMINGS');
+    const derivedGroup = screen.getByTestId('palette-group-derived-fallback');
+    expect(derivedGroup).toBeInTheDocument();
+    expect(derivedGroup).toHaveTextContent('DERIVED');
+  });
+
+  it('renders TIMINGS and FORMULA derived groups as separate sections when both kinds present', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Lead_time',
+          derived: true,
+          derivationSource: 'timings',
+          primary: { kind: 'numeric', label: 'numeric · duration', detail: {} },
+        }),
+        createTestColumnParsingProfile({
+          columnName: 'Yield_pct',
+          derived: true,
+          derivationSource: 'formula',
+          primary: { kind: 'numeric', label: 'numeric · derived', detail: {} },
+        }),
+      ],
+    });
+    const timingsGroup = screen.getByTestId('palette-group-derived-timings');
+    const formulaGroup = screen.getByTestId('palette-group-derived-formula');
+    expect(timingsGroup).toHaveTextContent('DERIVED FROM TIMINGS');
+    expect(timingsGroup).toHaveTextContent('Lead_time');
+    expect(timingsGroup).not.toHaveTextContent('Yield_pct');
+    expect(formulaGroup).toHaveTextContent('DERIVED FROM FORMULA');
+    expect(formulaGroup).toHaveTextContent('Yield_pct');
+    expect(formulaGroup).not.toHaveTextContent('Lead_time');
   });
 
   it('raw (non-derived) profiles still route to their kind-based group', () => {
@@ -197,7 +227,7 @@ describe('Palette — derived group', () => {
     const numericGroup = screen.getByTestId('palette-group-numeric');
     expect(numericGroup).toHaveTextContent('Speed');
     expect(numericGroup).not.toHaveTextContent('Lead_time');
-    const derivedGroup = screen.getByTestId('palette-group-derived');
+    const derivedGroup = screen.getByTestId('palette-group-derived-timings');
     expect(derivedGroup).toHaveTextContent('Lead_time');
   });
 });
@@ -316,5 +346,83 @@ describe('Palette — overlay state + banner', () => {
     renderPalette({ profiles: warningProfiles(3), onReviewAllWarnings });
     fireEvent.click(screen.getByRole('button', { name: /review/i }));
     expect(onReviewAllWarnings).toHaveBeenCalled();
+  });
+});
+
+describe('Palette — systemHints', () => {
+  const numericProfile = createTestColumnParsingProfile({
+    columnName: 'Speed',
+    primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+  });
+
+  it('no hints by default — palette-system-hints wrapper not rendered', () => {
+    renderPalette({ profiles: [numericProfile] });
+    expect(screen.queryByTestId('palette-system-hints')).toBeNull();
+  });
+
+  it('empty array — palette-system-hints wrapper not rendered', () => {
+    renderPalette({ profiles: [numericProfile], systemHints: [] });
+    expect(screen.queryByTestId('palette-system-hints')).toBeNull();
+  });
+
+  it('single batch hint renders banner above chip groups', () => {
+    const onCta = vi.fn();
+    const hints: SystemHint[] = [
+      {
+        id: 'batch-1',
+        kind: 'batch',
+        message: '💡 Batch data detected',
+        ctaLabel: 'Calculate yield ratios →',
+        onCta,
+      },
+    ];
+    renderPalette({ profiles: [numericProfile], systemHints: hints });
+
+    const wrapper = screen.getByTestId('palette-system-hints');
+    expect(wrapper).toBeInTheDocument();
+
+    const banner = screen.getByTestId('system-hint-banner-batch');
+    expect(banner).toBeInTheDocument();
+
+    // Banner wrapper appears before chip groups in DOM order
+    const palette = screen.getByTestId('palette');
+    const chipGroup = screen.getByTestId('palette-group-numeric');
+    const wrapperPos = wrapper.compareDocumentPosition(chipGroup);
+    // DOCUMENT_POSITION_FOLLOWING (4) means chipGroup comes after wrapper
+    expect(wrapperPos & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // Also verify palette is the parent that contains both
+    expect(palette.contains(wrapper)).toBe(true);
+    expect(palette.contains(chipGroup)).toBe(true);
+  });
+
+  it('multiple hints render in array order', () => {
+    const hints: SystemHint[] = [
+      { id: 'batch-1', kind: 'batch', message: '💡 Batch data detected' },
+      { id: 'time-1', kind: 'time', message: '💡 6 time columns detected' },
+    ];
+    renderPalette({ profiles: [numericProfile], systemHints: hints });
+
+    const banners = screen.getAllByRole('region', { name: 'System hint' });
+    expect(banners).toHaveLength(2);
+    expect(banners[0].getAttribute('data-testid')).toBe('system-hint-banner-batch');
+    expect(banners[1].getAttribute('data-testid')).toBe('system-hint-banner-time');
+  });
+
+  it('CTA click wires through to hint onCta callback', () => {
+    const onCta = vi.fn();
+    const hints: SystemHint[] = [
+      {
+        id: 'batch-1',
+        kind: 'batch',
+        message: '💡 Batch data detected',
+        ctaLabel: 'Calculate yield ratios →',
+        onCta,
+      },
+    ];
+    renderPalette({ profiles: [numericProfile], systemHints: hints });
+
+    fireEvent.click(screen.getByTestId('system-hint-banner-batch-cta'));
+    expect(onCta).toHaveBeenCalledTimes(1);
   });
 });

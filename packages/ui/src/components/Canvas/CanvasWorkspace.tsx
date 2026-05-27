@@ -9,9 +9,11 @@ import {
   type CanvasAnalyzeFocus,
 } from '@variscout/hooks';
 import {
+  computeFormulaColumn,
   computeLeadTimeColumn,
   computeTotalWorkTimeColumn,
   computeWaitTimeColumn,
+  detectBatchData,
   detectColumns,
   detectScopeFromMap,
   normalizeProcessHubId,
@@ -21,6 +23,7 @@ import {
   type ColumnAnalysis,
   type DataRow,
   type Finding,
+  type FormulaBinding,
   type ProcessContext,
   type ProcessHubId,
   type ProcessHubAnalyze,
@@ -40,7 +43,9 @@ import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/
 import { Canvas, type CanvasAuthoringMode, type CanvasL3Archetype } from './index';
 import { EditModeShell } from './EditMode';
 import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCategoricalColumn';
+import type { SystemHint } from './EditMode/Palette';
 import { StepTimingsModal } from './EditMode/Workflows/StepTimingsModal';
+import { CalculatedColumnModal } from './EditMode/Workflows/CalculatedColumnModal';
 import { formatDuration } from './EditMode/formatDuration';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
@@ -490,6 +495,21 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const [stepTimings, setStepTimings] = React.useState<StepTimingBinding[]>([]);
   const [stepTimingsModalOpen, setStepTimingsModalOpen] = React.useState(false);
 
+  // D2 Task 10: local state for formula bindings saved via the
+  // CalculatedColumnModal. Task 11 synthesises derived profiles from these
+  // bindings; Task 10 only persists the binding in local state + closes the modal.
+  // TODO(PR-CCJ-E1): persist formulaBindings to ImprovementProject via Charter modal commit.
+  const [formulaBindings, setFormulaBindings] = React.useState<FormulaBinding[]>([]);
+  const [calcModalOpen, setCalcModalOpen] = React.useState<{ sourceColumn?: string } | null>(null);
+
+  const onChipContextMenuSelect = React.useCallback((columnName: string, itemId: string) => {
+    if (itemId === 'calculate-from') {
+      setCalcModalOpen({ sourceColumn: columnName });
+    }
+    // Other itemIds (rename, view-distribution, etc.) are handled at the Palette level
+    // or fall through. CanvasWorkspace only owns calculate-from for now.
+  }, []);
+
   const handleStepsReplace = React.useCallback(
     (next: ExtractedStep[], _sourceColumnName: string) => {
       // TODO(PR-CCJ-E1): persist into ImprovementProject.processSteps via the
@@ -559,14 +579,63 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     return profiles;
   }, [leadTimeColumn, totalWorkTimeColumn, waitTimeColumn]);
 
+  // D2 Task 11: augmented-column map exposed to formula evaluation. Formulas
+  // can reference D1's derived Lead_time / Total_work_time / Wait_time columns
+  // alongside raw row fields (the evaluator checks row first, then augmented).
+  const augmentedColumnsForFormulas = React.useMemo<Record<string, number[]>>(() => {
+    const out: Record<string, number[]> = {};
+    if (leadTimeColumn !== null) out['Lead_time'] = leadTimeColumn;
+    if (totalWorkTimeColumn !== null) out['Total_work_time'] = totalWorkTimeColumn;
+    if (waitTimeColumn !== null) out['Wait_time'] = waitTimeColumn;
+    return out;
+  }, [leadTimeColumn, totalWorkTimeColumn, waitTimeColumn]);
+
+  // D2 Task 11: per-binding derived numeric columns. Each entry maps the
+  // binding name to its computed `number[]` (NaN preserved — callers below
+  // filter via Number.isFinite). `computeFormulaColumn` returns null when the
+  // numerator is empty; we skip those entries entirely (no chip, no values).
+  const formulaDerivedColumns = React.useMemo<Record<string, number[]>>(() => {
+    const out: Record<string, number[]> = {};
+    for (const binding of formulaBindings) {
+      const result = computeFormulaColumn([...rawData], binding, augmentedColumnsForFormulas);
+      if (result !== null) {
+        out[binding.name] = result;
+      }
+    }
+    return out;
+  }, [formulaBindings, rawData, augmentedColumnsForFormulas]);
+
+  // D2 Task 11: synthesized profiles for the formula-derived columns. Mirrors
+  // `derivedTimingsProfiles` shape exactly; `derivationSource: 'formula'` drives
+  // the palette's "DERIVED FROM FORMULA" group header.
+  const derivedFormulaProfiles = React.useMemo<ColumnParsingProfile[]>(() => {
+    const profiles: ColumnParsingProfile[] = [];
+    for (const binding of formulaBindings) {
+      if (formulaDerivedColumns[binding.name] === undefined) continue;
+      profiles.push({
+        columnName: binding.name,
+        status: 'ok',
+        confidence: 100,
+        primary: { kind: 'numeric', label: 'numeric · derived', detail: {} },
+        alternatives: [],
+        transformedSamples: [],
+        derived: true,
+        derivationSource: 'formula',
+      });
+    }
+    return profiles;
+  }, [formulaBindings, formulaDerivedColumns]);
+
   const editModeProfiles = React.useMemo<ColumnParsingProfile[]>(
-    () => [...rawProfiles, ...derivedTimingsProfiles],
-    [rawProfiles, derivedTimingsProfiles]
+    () => [...rawProfiles, ...derivedTimingsProfiles, ...derivedFormulaProfiles],
+    [rawProfiles, derivedTimingsProfiles, derivedFormulaProfiles]
   );
 
   // D1 Task 10: numericValuesByColumn — raw numeric columns from columnAnalysis
   // plus the derived timing columns so dropped derived chips have values
   // available to the OutcomeZone / FactorZone drop handlers.
+  // D2 Task 11: extended with formula-derived columns (NaN-filtered) so the
+  // formula-derived chips are draggable like raw numeric columns.
   const numericValuesByColumn = React.useMemo<Record<string, number[]>>(() => {
     const out: Record<string, number[]> = {};
     for (const col of columnAnalysis) {
@@ -583,8 +652,18 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     if (waitTimeColumn !== null) {
       out['Wait_time'] = waitTimeColumn.filter(v => Number.isFinite(v));
     }
+    for (const [name, values] of Object.entries(formulaDerivedColumns)) {
+      out[name] = values.filter(v => Number.isFinite(v));
+    }
     return out;
-  }, [columnAnalysis, rawData, leadTimeColumn, totalWorkTimeColumn, waitTimeColumn]);
+  }, [
+    columnAnalysis,
+    rawData,
+    leadTimeColumn,
+    totalWorkTimeColumn,
+    waitTimeColumn,
+    formulaDerivedColumns,
+  ]);
 
   // D1 Task 10: timingByStepId — per-step average duration (in ms) rendered
   // as a "⏱ ~ <formatted>" badge on the matching `<StepBox>`.
@@ -619,6 +698,27 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     }
     return out;
   }, [stepTimings, rawData]);
+
+  // D2 Task 11: batch-data detection drives the palette's contextual hint
+  // banner. When the heuristic finds input/output mass-balance columns
+  // (`Input_kg`, `GradeA_kg`, etc.), the banner invites the user to open the
+  // CalculatedColumnModal pre-targeted at yield-ratio templates.
+  const batchDataResult = React.useMemo(() => detectBatchData(rawProfiles), [rawProfiles]);
+
+  const systemHints = React.useMemo<SystemHint[]>(() => {
+    const hints: SystemHint[] = [];
+    if (batchDataResult !== null) {
+      hints.push({
+        id: 'batch-detected',
+        kind: 'batch',
+        message:
+          '💡 Batch data detected. Input/output mass columns found — calculate yield ratios?',
+        ctaLabel: 'Calculate yield ratios →',
+        onCta: () => setCalcModalOpen({ sourceColumn: undefined }),
+      });
+    }
+    return hints;
+  }, [batchDataResult]);
 
   // When access is revoked at runtime, snap back to State mode so the user
   // is never stranded in Edit mode without the Done affordance.
@@ -847,8 +947,10 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
               onDone={handleShellDone}
               profiles={editModeProfiles}
               numericValuesByColumn={numericValuesByColumn}
+              systemHints={systemHints}
               steps={processSteps}
               categoricalDistinctValuesByColumn={categoricalDistinctValuesByColumn}
+              onMenuItemSelect={onChipContextMenuSelect}
               onStepsReplace={handleStepsReplace}
               onCaptureStepTimings={() => setStepTimingsModalOpen(true)}
               timingByStepId={timingByStepId}
@@ -864,6 +966,24 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                   setStepTimingsModalOpen(false);
                 }}
                 onClose={() => setStepTimingsModalOpen(false)}
+              />
+            )}
+            {calcModalOpen != null && (
+              <CalculatedColumnModal
+                sourceColumn={calcModalOpen.sourceColumn}
+                rawProfiles={rawProfiles}
+                numericValuesByColumn={numericValuesByColumn}
+                rows={rawData}
+                hasLeadTime={leadTimeColumn !== null}
+                existingDerivedNames={[
+                  ...derivedTimingsProfiles.map(p => p.columnName),
+                  ...derivedFormulaProfiles.map(p => p.columnName),
+                ]}
+                onSave={binding => {
+                  setFormulaBindings(prev => [...prev, binding]);
+                  setCalcModalOpen(null);
+                }}
+                onClose={() => setCalcModalOpen(null)}
               />
             )}
           </>
