@@ -51,4 +51,34 @@ describe('ProcessStructureZone', () => {
     expect(boxes[1]).toHaveAttribute('data-testid', 'step-box-s-2');
     expect(boxes[2]).toHaveAttribute('data-testid', 'step-box-s-3');
   });
+
+  it('renders connector arrows between consecutive steps when 2+ steps', () => {
+    const steps = [
+      createTestStep({ id: 'a', order: 0 }),
+      createTestStep({ id: 'b', order: 1 }),
+      createTestStep({ id: 'c', order: 2 }),
+    ];
+    renderZone({ steps });
+    // 3 steps → 2 connectors
+    expect(screen.getByTestId('process-step-connector-0')).toBeInTheDocument();
+    expect(screen.getByTestId('process-step-connector-1')).toBeInTheDocument();
+    expect(screen.queryByTestId('process-step-connector-2')).not.toBeInTheDocument();
+  });
+
+  it('renders no connector for single step', () => {
+    renderZone({ steps: [createTestStep()] });
+    expect(screen.queryByTestId(/^process-step-connector-/)).not.toBeInTheDocument();
+  });
+
+  it('renders no connector for zero steps', () => {
+    renderZone();
+    expect(screen.queryByTestId(/^process-step-connector-/)).not.toBeInTheDocument();
+  });
+
+  it('connector spans have aria-hidden="true"', () => {
+    const steps = [createTestStep({ id: 'x', order: 0 }), createTestStep({ id: 'y', order: 1 })];
+    renderZone({ steps });
+    const connector = screen.getByTestId('process-step-connector-0');
+    expect(connector).toHaveAttribute('aria-hidden', 'true');
+  });
 });

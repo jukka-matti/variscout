@@ -1,5 +1,5 @@
 import { useDroppable } from '@dnd-kit/core';
-import type { FC } from 'react';
+import React, { type FC } from 'react';
 import { encodeProcessDropId } from './encodeProcessDropId';
 import { StepBox, type StepBoxStep } from './StepBox';
 
@@ -12,23 +12,34 @@ export const ProcessStructureZone: FC<ProcessStructureZoneProps> = ({ steps }) =
 
   const borderClass = isOver ? 'border-2 border-dashed border-cyan-400' : 'border border-edge';
 
+  const sortedSteps = [...steps].sort((a, b) => a.order - b.order);
+
   return (
     <div
       ref={setNodeRef}
       data-testid="process-structure-zone"
       className={`flex min-h-0 flex-1 flex-col gap-2 rounded-md ${borderClass} bg-surface-secondary p-3`}
     >
-      {steps.length === 0 ? (
+      {sortedSteps.length === 0 ? (
         <p className="text-sm text-content-tertiary">
           Drop a categorical column to define process steps
         </p>
       ) : (
-        <div className="flex flex-row flex-wrap items-start gap-2">
-          {[...steps]
-            .sort((a, b) => a.order - b.order)
-            .map(step => (
-              <StepBox key={step.id} step={step} />
-            ))}
+        <div className="flex flex-row flex-wrap items-center gap-2">
+          {sortedSteps.map((step, idx) => (
+            <React.Fragment key={step.id}>
+              <StepBox step={step} />
+              {idx < sortedSteps.length - 1 ? (
+                <span
+                  data-testid={`process-step-connector-${idx}`}
+                  className="text-content-tertiary"
+                  aria-hidden="true"
+                >
+                  →
+                </span>
+              ) : null}
+            </React.Fragment>
+          ))}
         </div>
       )}
     </div>
