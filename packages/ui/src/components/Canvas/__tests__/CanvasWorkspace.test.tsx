@@ -2007,11 +2007,14 @@ describe('D3 Task 7 — kebab use-as-time-factors dispatch', () => {
     fireEvent.click(item);
 
     // Modal opens with the correct dialog role.
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
     expect(screen.getByTestId('time-factors-modal-backdrop')).toBeInTheDocument();
 
-    // Modal title is present.
-    expect(screen.getByText('Use time as factors')).toBeInTheDocument();
+    // Modal title is present inside the dialog. (D3 Task 8 added a banner CTA
+    // labelled "Use time as factors" — scope the title lookup to the dialog so
+    // the assertion remains unambiguous.)
+    expect(within(dialog).getByText('Use time as factors')).toBeInTheDocument();
   });
 
   it('modal opens at Step 2 when the column is in timeColumns (sourceColumn bypass)', () => {
@@ -2129,5 +2132,298 @@ describe('D3 Task 7 — kebab use-as-time-factors dispatch', () => {
 
     // But "Use as continuous factor" IS present (numeric menu item).
     expect(screen.getByRole('menuitem', { name: 'Use as continuous factor' })).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// D3 Task 8 — time-decomposition end-to-end
+// ---------------------------------------------------------------------------
+//
+// Closes the time-as-factors workflow end-to-end:
+//   detectTimeColumns(rawProfiles) → SystemHintBanner appears → banner CTA
+//   opens TimeAsFactorsModal at Step 1 → pick column + check dimensions →
+//   Save → derived chips appear under DERIVED FROM TIME-DECOMPOSITION →
+//   re-open via kebab → pre-filled binding round-trip → banner hides once
+//   every detected date column has a binding.
+//
+// The derived chips render with `.`-containing names (`Order_Date.year`,
+// `Order_Date.day-of-week`, `Order_Date.hour-15min`); the audit at Task 8
+// confirmed no consumer splits column names on `.`, so these names are safe.
+// ---------------------------------------------------------------------------
+
+describe('D3 Task 8 — time-decomposition end-to-end', () => {
+  const decompositionMap = (): ProcessMap => ({
+    version: 1,
+    nodes: [{ id: 'seed-step', name: 'Seed', order: 0 }],
+    tributaries: [],
+    createdAt: '2026-05-04T00:00:00.000Z',
+    updatedAt: '2026-05-04T00:00:00.000Z',
+  });
+
+  // Dataset with one date column + one numeric column. YYYY-MM-DD literals are
+  // recognised by profileColumns as `kind: 'date'` (same parser format used in
+  // the D1 + D3 T7 fixtures above).
+  const singleDateRows = [
+    { Order_Date: '2025-01-15', Value: 100 },
+    { Order_Date: '2025-04-20', Value: 200 },
+    { Order_Date: '2025-12-31', Value: 300 },
+  ];
+
+  // Two date columns — used to exercise plural banner copy + the
+  // "banner hides once everything decomposed" path.
+  const twoDateRows = [
+    { Order_Date: '2025-01-15', Ship_Date: '2025-01-20', Value: 100 },
+    { Order_Date: '2025-04-20', Ship_Date: '2025-04-25', Value: 200 },
+    { Order_Date: '2025-12-31', Ship_Date: '2026-01-05', Value: 300 },
+  ];
+
+  // Numeric-only fixture (no date columns) — drives the "no banner" path.
+  const noDateRows = [
+    { Fill_Weight: 12, Bake_Time: 30 },
+    { Fill_Weight: 13, Bake_Time: 31 },
+    { Fill_Weight: 11, Bake_Time: 29 },
+  ];
+
+  function renderDecompositionWorkspace(
+    rows: ReadonlyArray<Record<string, unknown>> = singleDateRows
+  ): void {
+    render(
+      <CanvasWorkspace
+        rawData={rows as ReadonlyArray<import('@variscout/core').DataRow>}
+        outcome={null}
+        factors={[]}
+        measureSpecs={{}}
+        processContext={{ processMap: decompositionMap() }}
+        setOutcome={vi.fn()}
+        setFactors={vi.fn()}
+        setMeasureSpec={vi.fn()}
+        setProcessContext={vi.fn()}
+        onSeeData={vi.fn()}
+        canEditCanvas={true}
+      />
+    );
+  }
+
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/');
+    wallIsMobileRef.current = false;
+    localMechanismPropsRef.current = null;
+    dndMockHandlersRef.current = [];
+    useCanvasStore.setState(useCanvasStore.getInitialState());
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    vi.mocked(useSharedWallProps).mockClear();
+    canvasFiltersStateRef.current = {
+      timelineWindow: { kind: 'cumulative' },
+      scopeFilter: undefined,
+      paretoGroupBy: undefined,
+      activeCanvasLens: 'default',
+      activeCanvasOverlays: [],
+      setTimelineWindow: vi.fn(),
+      setScopeFilter: vi.fn(),
+      setParetoGroupBy: vi.fn(),
+      setActiveCanvasLens: vi.fn(),
+      setActiveCanvasOverlays: vi.fn(),
+      toggleCanvasOverlay: vi.fn(),
+      activeCanvasTool: 'select',
+      setActiveCanvasTool: vi.fn(),
+    };
+    vi.mocked(useCanvasStepCards).mockImplementation(() => ({ cards: mockStepCards }));
+    vi.mocked(useCanvasAnalyzeOverlays).mockImplementation(() => ({
+      overlays: mockInvestigationOverlays,
+    }));
+  });
+
+  it('system-hint banner appears with singular wording for 1 detected date column', () => {
+    renderDecompositionWorkspace();
+
+    const banner = screen.getByTestId('system-hint-banner-time');
+    expect(banner).toBeInTheDocument();
+    expect(banner).toHaveTextContent(/1 time column detected/i);
+    // Singular wording — must not be "1 time columns detected".
+    expect(banner).not.toHaveTextContent(/1 time columns detected/i);
+  });
+
+  it('system-hint banner uses plural wording for 2+ detected date columns', () => {
+    renderDecompositionWorkspace(twoDateRows);
+
+    const banner = screen.getByTestId('system-hint-banner-time');
+    expect(banner).toBeInTheDocument();
+    expect(banner).toHaveTextContent(/2 time columns detected/i);
+  });
+
+  it('no date columns → no time banner in DOM', () => {
+    renderDecompositionWorkspace(noDateRows);
+
+    expect(screen.queryByTestId('system-hint-banner-time')).toBeNull();
+  });
+
+  it('banner CTA opens the TimeAsFactorsModal at Step 1', () => {
+    renderDecompositionWorkspace(twoDateRows);
+
+    // Click the banner CTA (`Use time as factors`).
+    fireEvent.click(screen.getByTestId('system-hint-banner-time-cta'));
+
+    // Modal opens.
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByTestId('time-factors-modal-backdrop')).toBeInTheDocument();
+
+    // Banner CTA does NOT pre-set sourceColumn, so with multiple date columns
+    // the modal opens at Step 1 (column picker).
+    expect(screen.getByText(/Step 1 of 2/)).toBeInTheDocument();
+  });
+
+  it('saving creates derived chips under DERIVED FROM TIME-DECOMPOSITION', () => {
+    renderDecompositionWorkspace(twoDateRows);
+
+    // Open the modal via the banner.
+    fireEvent.click(screen.getByTestId('system-hint-banner-time-cta'));
+    expect(screen.getByText(/Step 1 of 2/)).toBeInTheDocument();
+
+    // Pick Order_Date and advance to Step 2.
+    fireEvent.click(screen.getByRole('radio', { name: 'Order_Date' }));
+    fireEvent.click(screen.getByRole('button', { name: /Next/i }));
+    expect(screen.getByText(/Step 2 of 2/)).toBeInTheDocument();
+
+    // Check Year + Day of week + Hour, then Save.
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Year' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Day of week' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Hour' }));
+    fireEvent.click(screen.getByRole('button', { name: /Order_Date factors/i }));
+
+    // Modal closes.
+    expect(screen.queryByTestId('time-factors-modal-backdrop')).toBeNull();
+
+    // DERIVED group + 3 chips.
+    const derivedGroup = screen.getByTestId('palette-group-derived-time-decomposition');
+    expect(derivedGroup).toBeInTheDocument();
+    expect(derivedGroup).toHaveTextContent('DERIVED FROM TIME-DECOMPOSITION');
+    expect(derivedGroup).toHaveTextContent('Order_Date.year');
+    expect(derivedGroup).toHaveTextContent('Order_Date.day-of-week');
+    expect(derivedGroup).toHaveTextContent('Order_Date.hour');
+    // Derived marker (✨) renders on each chip.
+    expect(derivedGroup.textContent).toMatch(/✨/);
+  });
+
+  it('round-trip: re-opening the kebab shows pre-filled dimensions and re-saves with new selections', () => {
+    renderDecompositionWorkspace();
+
+    // First save: Year + Day of week + Hour (default 60min granularity).
+    fireEvent.click(screen.getByTestId('system-hint-banner-time-cta'));
+    // Single date column => modal bypasses Step 1 via sourceColumn bypass? Actually
+    // banner CTA does NOT pre-set sourceColumn, but with only one column the
+    // modal still opens at Step 1; pick + Next.
+    if (screen.queryByText(/Step 1 of 2/)) {
+      fireEvent.click(screen.getByRole('radio', { name: 'Order_Date' }));
+      fireEvent.click(screen.getByRole('button', { name: /Next/i }));
+    }
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Year' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Day of week' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Hour' }));
+    fireEvent.click(screen.getByRole('button', { name: /Order_Date factors/i }));
+    expect(screen.queryByTestId('time-factors-modal-backdrop')).toBeNull();
+
+    // Sanity: derived chips present from first save.
+    const derivedAfterFirst = screen.getByTestId('palette-group-derived-time-decomposition');
+    expect(derivedAfterFirst).toHaveTextContent('Order_Date.year');
+    expect(derivedAfterFirst).toHaveTextContent('Order_Date.day-of-week');
+    expect(derivedAfterFirst).toHaveTextContent('Order_Date.hour');
+
+    // Re-open via kebab on the Order_Date chip (raw chip, not derived).
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for Order_Date' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Use as time factors' }));
+
+    // Kebab path pre-sets sourceColumn → modal opens at Step 2.
+    expect(screen.getByText(/Step 2 of 2/)).toBeInTheDocument();
+
+    // Pre-checked from binding: Year + Day of week + Hour. Quarter not checked.
+    expect(screen.getByRole('checkbox', { name: 'Year' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Day of week' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Hour' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Quarter' })).not.toBeChecked();
+
+    // Edit: uncheck Day of week, check Quarter, change Hour granularity to 15min.
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Day of week' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Quarter' }));
+    fireEvent.change(screen.getByLabelText(/Hour granularity/i), { target: { value: '15' } });
+    fireEvent.click(screen.getByRole('button', { name: /Order_Date factors/i }));
+    expect(screen.queryByTestId('time-factors-modal-backdrop')).toBeNull();
+
+    // Palette now reflects the new binding: Year, Quarter, Hour-15min present;
+    // Day-of-week chip gone; plain `Order_Date.hour` chip gone (replaced by
+    // the 15-min variant).
+    const derived = screen.getByTestId('palette-group-derived-time-decomposition');
+    expect(derived).toHaveTextContent('Order_Date.year');
+    expect(derived).toHaveTextContent('Order_Date.quarter');
+    expect(derived).toHaveTextContent('Order_Date.hour-15min');
+    expect(derived).not.toHaveTextContent('Order_Date.day-of-week');
+    // The plain `Order_Date.hour` chip should not exist anymore — only
+    // `Order_Date.hour-15min`. Match the exact chip text by data-draggable-id.
+    const chips = within(derived).getAllByTestId('column-chip');
+    const draggableIds = chips.map(c => c.getAttribute('data-draggable-id'));
+    expect(draggableIds).toContain('column:Order_Date.hour-15min');
+    expect(draggableIds).not.toContain('column:Order_Date.hour');
+  });
+
+  it('banner hides once every detected date column has a binding', () => {
+    renderDecompositionWorkspace();
+
+    // Banner present before any binding.
+    expect(screen.getByTestId('system-hint-banner-time')).toBeInTheDocument();
+
+    // Save a binding for Order_Date (Year only — minimum to make a valid binding).
+    fireEvent.click(screen.getByTestId('system-hint-banner-time-cta'));
+    if (screen.queryByText(/Step 1 of 2/)) {
+      fireEvent.click(screen.getByRole('radio', { name: 'Order_Date' }));
+      fireEvent.click(screen.getByRole('button', { name: /Next/i }));
+    }
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Year' }));
+    fireEvent.click(screen.getByRole('button', { name: /Order_Date factors/i }));
+
+    // Modal closed; banner should now be hidden because the only detected
+    // date column has a binding.
+    expect(screen.queryByTestId('time-factors-modal-backdrop')).toBeNull();
+    expect(screen.queryByTestId('system-hint-banner-time')).toBeNull();
+  });
+
+  it('banner stays visible when only some detected date columns have a binding', () => {
+    renderDecompositionWorkspace(twoDateRows);
+
+    // Bind Order_Date only.
+    fireEvent.click(screen.getByTestId('system-hint-banner-time-cta'));
+    fireEvent.click(screen.getByRole('radio', { name: 'Order_Date' }));
+    fireEvent.click(screen.getByRole('button', { name: /Next/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Year' }));
+    fireEvent.click(screen.getByRole('button', { name: /Order_Date factors/i }));
+
+    // Ship_Date still uncovered → banner remains.
+    expect(screen.getByTestId('system-hint-banner-time')).toBeInTheDocument();
+  });
+
+  it('categorical-values channel flows derived columns from binding to the palette', () => {
+    // The categoricalValuesByColumn prop is a passthrough today (V1 has no
+    // downstream consumer inside Palette). The contract assertion is: after
+    // saving a binding, the derived chip's `data-draggable-id` matches the
+    // canonical derived-column name AND lives in the derived-time-decomposition
+    // bucket — the same bucket that's seeded from `derivedTimeDecompositionProfiles`,
+    // which is built from `timeDecompositionDerivedColumns` (the same source
+    // that feeds `categoricalValuesByColumn`). If the channel is wired, the
+    // chip is present; if it isn't, the chip is absent. This is the indirect
+    // assertion until F1/H1 wires a direct consumer.
+    renderDecompositionWorkspace();
+
+    fireEvent.click(screen.getByTestId('system-hint-banner-time-cta'));
+    if (screen.queryByText(/Step 1 of 2/)) {
+      fireEvent.click(screen.getByRole('radio', { name: 'Order_Date' }));
+      fireEvent.click(screen.getByRole('button', { name: /Next/i }));
+    }
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Year' }));
+    fireEvent.click(screen.getByRole('button', { name: /Order_Date factors/i }));
+
+    const derived = screen.getByTestId('palette-group-derived-time-decomposition');
+    const chips = within(derived).getAllByTestId('column-chip');
+    const yearChip = chips.find(
+      c => c.getAttribute('data-draggable-id') === 'column:Order_Date.year'
+    );
+    expect(yearChip).toBeDefined();
   });
 });

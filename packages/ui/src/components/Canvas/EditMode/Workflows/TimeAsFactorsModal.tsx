@@ -15,7 +15,7 @@ export interface TimeAsFactorsModalProps {
   /** Pre-existing binding — opens directly at Step 2 with the source column locked. */
   existingBinding?: TimeDecompositionBinding;
   /** Raw row dictionaries used for the live preview. */
-  rows: Record<string, unknown>[];
+  rows: ReadonlyArray<Record<string, unknown>>;
   /** Called with the completed binding. */
   onSave: (binding: TimeDecompositionBinding) => void;
   /** Called on Escape + backdrop click + Close button. */
@@ -239,7 +239,7 @@ function previewLabel(dim: TimeDimension): string {
 const Step2Body: React.FC<{
   pickedSource: string | null;
   existingBinding?: TimeDecompositionBinding;
-  rows: Record<string, unknown>[];
+  rows: ReadonlyArray<Record<string, unknown>>;
   reachedStep2ViaStep1: boolean;
   onBack: () => void;
   onSave: (binding: TimeDecompositionBinding) => void;
