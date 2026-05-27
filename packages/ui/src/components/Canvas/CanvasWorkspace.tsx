@@ -33,6 +33,7 @@ import { useCanvasStore } from '@variscout/stores';
 import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
 import { Canvas, type CanvasAuthoringMode, type CanvasL3Archetype } from './index';
 import { EditModeShell } from './EditMode';
+import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCategoricalColumn';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
 import type { XCandidate } from '../XPickerSection';
@@ -466,6 +467,37 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     map.nodes.length > 0 && chips.length === 0 ? 'read' : 'author'
   );
 
+  // C3 Task 4: local state for emergent process steps materialized from a
+  // categorical-column drop on the ProcessStructureZone. The Charter modal
+  // (PR-CCJ-E1) is where these will be persisted onto the ImprovementProject;
+  // until then the local state gives the drop a visible effect for QA + E2E.
+  const [processSteps, setProcessSteps] = React.useState<
+    { id: string; name: string; order: number }[]
+  >([]);
+
+  const handleStepsReplace = React.useCallback(
+    (next: ExtractedStep[], _sourceColumnName: string) => {
+      // TODO(PR-CCJ-E1): persist into ImprovementProject.processSteps via the
+      //   Charter modal commit; sourceColumnName becomes provenance.
+      setProcessSteps(next);
+    },
+    []
+  );
+
+  // C3 Task 4: build the categorical-distinct-values map from the parsed
+  // column analysis. Only `type === 'categorical'` columns participate (numeric
+  // columns are absent and therefore fall through to the OutcomeZone handler in
+  // handleEditModeDragEnd). Mirrors the level extraction used by xCandidates,
+  // scoped to the columns the process-zone drop router can consume.
+  const categoricalDistinctValuesByColumn = React.useMemo<Record<string, string[]>>(() => {
+    const out: Record<string, string[]> = {};
+    for (const col of columnAnalysis) {
+      if (col.type !== 'categorical') continue;
+      out[col.name] = levelsFor(col.name, rawData).map(lv => lv.label);
+    }
+    return out;
+  }, [columnAnalysis, rawData]);
+
   // When access is revoked at runtime, snap back to State mode so the user
   // is never stranded in Edit mode without the Done affordance.
   React.useEffect(() => {
@@ -688,7 +720,12 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           <p className="text-sm text-content-secondary">{t('frame.b1.description')}</p>
         </header>
         {showEditShell ? (
-          <EditModeShell onDone={handleShellDone}>{canvasNode}</EditModeShell>
+          <EditModeShell
+            onDone={handleShellDone}
+            steps={processSteps}
+            categoricalDistinctValuesByColumn={categoricalDistinctValuesByColumn}
+            onStepsReplace={handleStepsReplace}
+          />
         ) : (
           canvasNode
         )}

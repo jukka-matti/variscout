@@ -709,12 +709,15 @@ const mapWithSecondStep = (): ProcessMap => ({
   updatedAt: '2026-05-04T00:01:00.000Z',
 });
 
-const readModeMapWithSecondStep = (): ProcessMap => ({
-  ...mapWithSecondStep(),
-  assignments: { Bake_Time: 'step-1', Machine: 'step-2' },
-});
-
 function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWorkspace>> = {}) {
+  // C3 Task 4: EditModeShell no longer renders the inner Canvas as `children` —
+  // it now owns ProcessStructureZone. The state-mode branch in CanvasWorkspace
+  // still mounts the inner Canvas. Default to `canEditCanvas: false` here so
+  // tests that exercise inner-Canvas behavior (URL routing, lens/overlay
+  // changes, spec callbacks, Wall props, etc.) keep rendering Canvas instead
+  // of falling into the EditModeShell branch (which would mount
+  // ProcessStructureZone, not Canvas). Tests that specifically need
+  // author-mode authoring can override `canEditCanvas: true`.
   const props: React.ComponentProps<typeof CanvasWorkspace> = {
     rawData,
     outcome: 'Fill_Weight',
@@ -726,6 +729,7 @@ function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWo
     setMeasureSpec: vi.fn(),
     setProcessContext: vi.fn(),
     onSeeData: vi.fn(),
+    canEditCanvas: false,
     ...overrides,
   };
   render(<CanvasWorkspace {...props} />);
@@ -775,8 +779,15 @@ describe('CanvasWorkspace', () => {
     expect(screen.queryByTestId('layered-process-view')).toBeNull();
   });
 
+  // C3 Task 4: this test specifically asserts `canvas-authoring-map` which is
+  // the L2 chip-rail authoring surface inside the inner Canvas. With author
+  // mode now routed to EditModeShell + ProcessStructureZone (column→process
+  // drop journey), the inner Canvas's chip-rail authoring is being retired.
+  // Re-render here in read mode (`canEditCanvas: false`) so the inner Canvas
+  // still mounts; assertion on `canvas-authoring-map` is retained because the
+  // L2 authoring map still renders in read mode for state-mode card surface.
   it('renders b1/b2 directly with the card surface and authoring map', () => {
-    renderWorkspace({ processContext: { processMap: mapWithStep() } });
+    renderWorkspace({ processContext: { processMap: mapWithStep() }, canEditCanvas: false });
 
     expect(screen.getByTestId('layered-process-view')).toBeInTheDocument();
     expect(screen.getByTestId('canvas-card-surface')).toBeInTheDocument();
@@ -912,49 +923,6 @@ describe('CanvasWorkspace', () => {
       rows: rawData,
       outcomeColumn: 'Fill_Weight',
     });
-  });
-
-  it('routes author-mode L3 away from the local mechanism view', () => {
-    useCanvasViewportStore.getState().setLevel(h('hub-workspace-l3-author'), 'l3', 'step-1');
-
-    renderWorkspace({
-      canvasViewportHubId: h('hub-workspace-l3-author'),
-      processContext: { processMap: mapWithStep() },
-    });
-
-    expect(screen.queryByTestId('local-mechanism-view')).not.toBeInTheDocument();
-    expect(screen.getByTestId('author-l3-view')).toBeInTheDocument();
-    expect(localMechanismPropsRef.current).toBeNull();
-  });
-
-  it('keeps the same focal step while switching author/read modes in L3', () => {
-    const hubId = h('hub-workspace-l3-mode-switch');
-    useCanvasViewportStore.getState().setLevel(hubId, 'l3', 'step-2');
-
-    renderWorkspace({
-      canvasViewportHubId: hubId,
-      processContext: { processMap: readModeMapWithSecondStep() },
-    });
-
-    expect(localMechanismPropsRef.current).toMatchObject({ focalStepId: 'step-2' });
-    expect(useCanvasViewportStore.getState().getViewport(hubId).focalStepId).toBe('step-2');
-
-    fireEvent.click(screen.getByRole('button', { name: /edit map/i }));
-
-    expect(screen.getByTestId('author-l3-view')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Pack' })).toBeInTheDocument();
-    expect(useCanvasViewportStore.getState().getViewport(hubId).focalStepId).toBe('step-2');
-
-    // In author mode, both EditModeShell and CanvasModeToggle render a "Done"
-    // button (Spec 2 vocab rename). Click the toggle's via aria-pressed scoping.
-    const doneButtons = screen.getAllByRole('button', { name: /done/i });
-    const toggleDone = doneButtons.find(btn => btn.hasAttribute('aria-pressed'));
-    if (!toggleDone) throw new Error('CanvasModeToggle Done button not found');
-    fireEvent.click(toggleDone);
-
-    expect(screen.getByTestId('local-mechanism-view')).toBeInTheDocument();
-    expect(localMechanismPropsRef.current).toMatchObject({ focalStepId: 'step-2' });
-    expect(useCanvasViewportStore.getState().getViewport(hubId).focalStepId).toBe('step-2');
   });
 
   it('wires lens changes through session canvas filters', () => {
@@ -1222,99 +1190,6 @@ describe('CanvasWorkspace', () => {
     });
   });
 
-  it('derives unassigned chips from detected columns excluding outcome, run-order, and assigned columns', () => {
-    renderWorkspace({
-      rawData: Array.from({ length: 51 }, (_, index) => ({
-        Fill_Weight: 12 + (index % 3),
-        Bake_Time: 30 + (index % 5),
-        Oven_Temp: 180 + index,
-        Machine: index % 2 === 0 ? 'A' : 'B',
-        Operator_Note: `batch note ${index}`,
-        Timestamp: `2026-05-01T00:${String(index).padStart(2, '0')}:00.000Z`,
-      })),
-      outcome: 'Fill_Weight',
-      processContext: {
-        processMap: {
-          ...mapWithStep(),
-          assignments: { Machine: 'step-1' },
-        },
-      },
-    });
-
-    expect(screen.getByTestId('chip-rail-item-Oven_Temp')).toBeInTheDocument();
-    expect(screen.getByTestId('chip-rail-item-Bake_Time')).toBeInTheDocument();
-    expect(screen.getByTestId('chip-rail-item-Oven_Temp')).toHaveTextContent('factor');
-    expect(screen.queryByTestId('chip-rail-item-Fill_Weight')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('chip-rail-item-Timestamp')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('chip-rail-item-Machine')).not.toBeInTheDocument();
-  });
-
-  it('persists store-backed chip placement and empty-canvas step creation through setProcessContext', () => {
-    const setProcessContext = vi.fn();
-    renderWorkspace({
-      processContext: { processMap: mapWithStep() },
-      setProcessContext,
-    });
-
-    fireEvent.click(screen.getByTestId('test-drop-bake-time-on-step-1'));
-
-    expect(setProcessContext).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        processMap: expect.objectContaining({
-          assignments: expect.objectContaining({ Bake_Time: 'step-1' }),
-        }),
-      })
-    );
-
-    fireEvent.click(screen.getByTestId('test-drop-machine-on-empty-canvas'));
-    fireEvent.click(screen.getByRole('button', { name: /create step/i }));
-
-    expect(setProcessContext).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        processMap: expect.objectContaining({
-          assignments: expect.objectContaining({
-            Machine: expect.stringMatching(/^step-machine-/),
-          }),
-          nodes: expect.arrayContaining([
-            expect.objectContaining({
-              id: expect.stringMatching(/^step-machine-/),
-              name: 'Machine',
-            }),
-          ]),
-        }),
-      })
-    );
-  });
-
-  it('keeps canvasStore undo history after the persisted map rerenders from the parent', () => {
-    const Harness = () => {
-      const [processContext, setProcessContext] = React.useState<
-        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
-      >({ processMap: mapWithStep() });
-
-      return (
-        <CanvasWorkspace
-          rawData={rawData}
-          outcome="Fill_Weight"
-          factors={[]}
-          measureSpecs={{}}
-          processContext={processContext}
-          setOutcome={vi.fn()}
-          setFactors={vi.fn()}
-          setMeasureSpec={vi.fn()}
-          setProcessContext={next => setProcessContext(next ?? { processMap: mapWithStep() })}
-          onSeeData={vi.fn()}
-        />
-      );
-    };
-
-    render(<Harness />);
-
-    fireEvent.click(screen.getByTestId('test-drop-bake-time-on-step-1'));
-
-    expect(useCanvasStore.getState().historyDepth()).toBe(1);
-  });
-
   it('does not rehydrate or clear history when an equal-signature parent map rerenders', () => {
     const originalHydrate = useCanvasStore.getState().hydrateCanvasDocument;
     const hydrateCanvasDocument = vi.fn(originalHydrate);
@@ -1424,37 +1299,5 @@ describe('CanvasWorkspace', () => {
 
     expect(hydrateCanvasDocument).toHaveBeenCalledTimes(callsAfterInitialHydration + 1);
     expect(useCanvasStore.getState().canonicalMap.nodes).toEqual(mapWithSecondStep().nodes);
-  });
-
-  it('wires authoring mode keyboard toggle and undo through canvasStore', () => {
-    const Harness = () => {
-      const [processContext, setProcessContext] = React.useState<
-        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
-      >({ processMap: mapWithStep() });
-
-      return (
-        <CanvasWorkspace
-          rawData={rawData}
-          outcome="Fill_Weight"
-          factors={[]}
-          measureSpecs={{}}
-          processContext={processContext}
-          setOutcome={vi.fn()}
-          setFactors={vi.fn()}
-          setMeasureSpec={vi.fn()}
-          setProcessContext={next => setProcessContext(next ?? { processMap: mapWithStep() })}
-          onSeeData={vi.fn()}
-        />
-      );
-    };
-
-    render(<Harness />);
-
-    fireEvent.click(screen.getByTestId('test-drop-bake-time-on-step-1'));
-    expect(useCanvasStore.getState().historyDepth()).toBe(1);
-
-    fireEvent.keyDown(window, { key: 'z', metaKey: true });
-
-    expect(useCanvasStore.getState().historyDepth()).toBe(0);
   });
 });
