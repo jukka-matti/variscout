@@ -135,7 +135,7 @@ export interface ProcessHub extends EntityBase {
   primaryScopeDimensions?: string[];
   /**
    * Hub-level review signal — analyst-set defaults that cascade to every
-   * investigation linked to this hub. Currently the only field set by UI is
+   * Analyze entry linked to this hub. Currently the only field set by UI is
    * `capability.cpkTarget` (Hub Capability tab header editor). Other fields
    * remain reserved for future explicit hub-level signals; the rollup-derived
    * read-only signal still fills them when this is undefined.
@@ -171,11 +171,11 @@ export const DEFAULT_PROCESS_HUB: ProcessHub = {
 };
 
 /**
- * Maps one canonical-map node onto a column in this investigation's data.
- * `nodeMappings.length === 1` is the B2 shape (investigation IS one step's
- * deep-dive). Length > 1 is the B1 shape (investigation covers multiple
- * steps). Absent/empty is the B0 shape (unmapped investigation, falls back
- * to global investigation-level specs).
+ * Maps one canonical-map node onto a column in this Analyze entry's data.
+ * `nodeMappings.length === 1` is the B2 shape (Analyze entry IS one step's
+ * deep-dive). Length > 1 is the B1 shape (Analyze entry covers multiple
+ * steps). Absent/empty is the B0 shape (unmapped Analyze entry, falls back
+ * to global analyze-level specs).
  *
  * `specsOverride`, when set, is a flagged local fork — UI shows divergence
  * from canonical for the analyst.
@@ -185,14 +185,14 @@ export const DEFAULT_PROCESS_HUB: ProcessHub = {
 export interface AnalyzeNodeMapping {
   /** ID of the canonical-map node this mapping addresses. */
   nodeId: string;
-  /** Column in this investigation's data carrying the per-step measurement. */
+  /** Column in this Analyze entry's data carrying the per-step measurement. */
   measurementColumn: string;
   /** Optional flagged local spec override (forks from canonical). */
   specsOverride?: SpecLimits;
 }
 
 /**
- * Canvas-wide scope filter applied to the active investigation. Populated when
+ * Canvas-wide scope filter applied to the active Analyze entry. Populated when
  * the user clicks a Pareto bar (or adds a chip explicitly). Drives downstream
  * chart filtering across the canvas surface. Absent → no scope filter.
  *
@@ -223,22 +223,22 @@ export interface ProcessHubAnalyzeMetadata {
   nextMove?: string;
   reviewSignal?: HubReviewSignal;
   /**
-   * Team notes attached to current-state items. Persisted per-investigation
+   * Team notes attached to current-state items. Persisted per-Analyze-entry
    * via the existing Blob-Storage round-trip on project metadata.
    * Re-rendered by Dashboard on mount via the rollup.
    */
   stateNotes?: ProcessStateNote[];
   /**
-   * Lightweight projection of the active ControlRecord for this investigation,
+   * Lightweight projection of the active ControlRecord for this Analyze entry,
    * surfaced on the hub for cadence rendering without re-querying the records list.
-   * The cycle between processHub.ts and sustainment.ts is broken by `import type`,
+   * The cycle between processHub.ts and control.ts is broken by `import type`,
    * which is erased at compile time and produces no runtime dependency.
    */
   sustainment?: SustainmentMetadataProjection;
   /**
-   * Pinned version of the hub's canonicalProcessMap at investigation
+   * Pinned version of the hub's canonicalProcessMap at Analyze-entry
    * creation. Used by `pull-latest` to detect drift. Absent for legacy
-   * investigations or hubs without canonical maps.
+   * entries or hubs without canonical maps.
    */
   canonicalMapVersion?: string;
   /**
@@ -247,7 +247,7 @@ export interface ProcessHubAnalyzeMetadata {
    */
   nodeMappings?: AnalyzeNodeMapping[];
   /**
-   * Optional timeline window applied to this investigation's data when
+   * Optional timeline window applied to this Analyze entry's data when
    * computing findings/charts. Co-located with nodeMappings per Decision #1
    * (see docs/superpowers/plans/2026-04-29-multi-level-scout-v1-decisions.md).
    * Absent → callers should use the mode's default window (typically `cumulative`).
@@ -255,20 +255,20 @@ export interface ProcessHubAnalyzeMetadata {
   timelineWindow?: TimelineWindow;
   /**
    * ISO 8601 timestamp set when the analyst dismisses the B0 migration banner
-   * for this investigation. Dismissed investigations remain B0; the banner
-   * counts only un-dismissed unmapped investigations.
+   * for this Analyze entry. Dismissed entries remain B0; the banner
+   * counts only un-dismissed unmapped entries.
    *
    * See spec: docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md
    * section "B0 migration UX".
    */
   migrationDeclinedAt?: string;
   /**
-   * Per-investigation scope filter — set by Pareto bar click or chip add.
+   * Per-Analyze-entry scope filter — set by Pareto bar click or chip add.
    * See spec §10 + ADR-073. Composable with `timelineWindow`. Absent → no scope filter.
    */
   scopeFilter?: ScopeFilter;
   /**
-   * Per-investigation Pareto group-by column. Default = first primary scope dimension
+   * Per-Analyze-entry Pareto group-by column. Default = first primary scope dimension
    * from the Hub config. Absent → caller picks default at render time.
    */
   paretoGroupBy?: string;
@@ -288,7 +288,7 @@ export interface ProcessHubRollup<TInvestigation extends ProcessHubAnalyze = Pro
   statusCounts: Partial<Record<AnalyzeStatus, number>>;
   depthCounts: Partial<Record<AnalyzeDepth, number>>;
   overdueActionCount: number;
-  /** Unix ms timestamp of the most recently modified investigation, or null if none. */
+  /** Unix ms timestamp of the most recently modified Analyze entry, or null if none. */
   latestActivity: number | null;
   currentUnderstandingSummary?: string;
   problemConditionSummary?: string;
@@ -350,7 +350,7 @@ export interface ProcessHubReviewItem<
 export interface ProcessHubReview<TInvestigation extends ProcessHubAnalyze = ProcessHubAnalyze> {
   hub: ProcessHub;
   activeInvestigationCount: number;
-  /** Unix ms timestamp of the most recently modified investigation, or null if none. */
+  /** Unix ms timestamp of the most recently modified Analyze entry, or null if none. */
   latestActivity: number | null;
   depthQueues: Record<AnalyzeDepth, ProcessHubReviewItem<TInvestigation>[]>;
   whereToFocus: ProcessHubReviewItem<TInvestigation>[];
@@ -387,7 +387,7 @@ export interface ProcessHubCadenceSummary<
 > {
   hub: ProcessHub;
   activeInvestigationCount: number;
-  /** Unix ms timestamp of the most recently modified investigation, or null if none. */
+  /** Unix ms timestamp of the most recently modified Analyze entry, or null if none. */
   latestActivity: number | null;
   snapshot: ProcessHubCadenceSnapshot;
   latestSignals: ProcessHubCadenceQueue<TInvestigation>;
@@ -642,9 +642,9 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubAnalyze>
         currentUnderstandingSummary: summarySource?.metadata?.currentUnderstandingSummary,
         problemConditionSummary: summarySource?.metadata?.problemConditionSummary,
         nextMove: summarySource?.metadata?.nextMove,
-        // Hub-level reviewSignal (analyst-set) wins over investigation-derived.
+        // Hub-level reviewSignal (analyst-set) wins over Analyze-entry-derived.
         // Today only `capability.cpkTarget` is set on the hub directly; the
-        // investigation-derived signal still provides the rest of the fields
+        // Analyze-entry-derived signal still provides the rest of the fields
         // when no hub-level signal exists.
         reviewSignal: hub.reviewSignal ?? reviewSignalSource?.metadata?.reviewSignal,
         evidenceSnapshots,

@@ -403,7 +403,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
 
       {/* ── Center zone: Workspace tabs ── */}
-      {/* Tab order per wedge V1 amendment (2026-05-16): Home · Project · Process · Analyze · Investigation · Improve · Report */}
+      {/* Tab order per wedge V1 amendment (2026-05-16, vocabulary rename 2026-05-27): Home · Project · Process · Explore · Analyze · Improve · Report */}
       {/* Display copy + testids follow the wedge naming; internal `activeView` enum stays stable (panelsStore key). */}
       {hasData && (
         <nav className="flex items-center flex-1 min-w-0 overflow-x-auto" data-testid="view-toggle">
