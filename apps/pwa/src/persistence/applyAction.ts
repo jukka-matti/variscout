@@ -38,7 +38,7 @@
 
 import type { HubAction } from '@variscout/core/actions';
 import { generateDeterministicId } from '@variscout/core/identity';
-import { applySustainmentTick, type EvidenceSnapshot } from '@variscout/core';
+import { applyControlTick, type EvidenceSnapshot } from '@variscout/core';
 import { reduceMeasurementPlans } from '@variscout/core/measurementPlan';
 import type { PwaDatabase } from '../db/schema';
 
@@ -655,7 +655,7 @@ async function evaluateControlRecordsForSnapshot(
     if (liveRecords.length === 0) return;
 
     const now = Date.now();
-    const evaluations = liveRecords.map(record => applySustainmentTick(record, snapshot, now));
+    const evaluations = liveRecords.map(record => applyControlTick(record, snapshot, now));
     await db.controlRecords.bulkPut(evaluations.map(evaluation => evaluation.record));
     await db.controlReviews.bulkPut(evaluations.map(evaluation => evaluation.review));
   });

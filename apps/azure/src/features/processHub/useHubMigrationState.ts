@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useB0AnalyzesInHub, type UseB0InvestigationsInHubResult } from '@variscout/hooks';
+import { useB0AnalyzesInHub, type UseB0AnalyzesInHubResult } from '@variscout/hooks';
 import type { ProcessHubAnalyze, ProcessHubAnalyzeMetadata, ProcessMap } from '@variscout/core';
 import { suggestNodeMappings } from '@variscout/core/stats';
 import type { ProductionLineGlanceMigrationModalEntry } from '@variscout/ui';
@@ -11,7 +11,7 @@ export interface UseHubMigrationStateInput {
   persistInvestigation: (next: ProcessHubAnalyze) => void;
 }
 
-export interface UseHubMigrationStateResult extends UseB0InvestigationsInHubResult {
+export interface UseHubMigrationStateResult extends UseB0AnalyzesInHubResult {
   isModalOpen: boolean;
   openModal: () => void;
   closeModal: () => void;

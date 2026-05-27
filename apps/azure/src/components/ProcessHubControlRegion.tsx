@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldCheck, ShieldAlert, History } from 'lucide-react';
 import {
-  selectSustainmentBuckets,
+  selectControlBuckets,
   type ProcessHubCadenceSummary,
   type ProcessHubAnalyze,
   type ProcessHubReviewItem,
@@ -81,7 +81,7 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
 }) => {
   const renderDate = new Date();
 
-  const buckets = selectSustainmentBuckets(
+  const buckets = selectControlBuckets(
     rollup.analyzes,
     rollup.controlRecords,
     rollup.controlHandoffs,

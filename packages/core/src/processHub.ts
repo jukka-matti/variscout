@@ -17,18 +17,18 @@ import type { SurveyStatus } from './survey/types';
 import type { TimelineWindow } from './timeline';
 import type { SpecLimits } from './types';
 import {
-  isSustainmentDue,
-  isSustainmentOverdue,
-  selectSustainmentBuckets,
+  isControlDue,
+  isControlOverdue,
+  selectControlBuckets,
   selectControlReviews,
   type ControlHandoff,
-  type SustainmentMetadataProjection,
+  type ControlMetadataProjection,
   type ControlRecord,
   type ControlVerdict,
 } from './control';
 
 export { buildReviewItem } from './processHubReview';
-export { isCharterReady, isSustainmentReady } from './responsePathReadiness';
+export { isCharterReady, isControlReady } from './responsePathReadiness';
 export type { WorkflowReadinessSignals } from './responsePathReadiness';
 
 /**
@@ -237,7 +237,7 @@ export interface ProcessHubAnalyzeMetadata {
    * Field name `sustainment` preserved — matches persisted ProjectMetadata
    * schema; cloud blobs already key this projection by `sustainment`.
    */
-  sustainment?: SustainmentMetadataProjection;
+  sustainment?: ControlMetadataProjection;
   /**
    * Pinned version of the hub's canonicalProcessMap at Analyze-entry
    * creation. Used by `pull-latest` to detect drift. Absent for legacy
@@ -877,7 +877,7 @@ export function buildProcessHubCadence<TAnalyze extends ProcessHubAnalyze>(
     now
   );
   const controlItems = [...controlReviews];
-  const controlBuckets = selectSustainmentBuckets(
+  const controlBuckets = selectControlBuckets(
     rollup.analyzes,
     rollup.controlRecords,
     rollup.controlHandoffs,
@@ -938,8 +938,8 @@ function buildControlSummary(
   candidates: number
 ): ProcessHubContextContract['control'] {
   const liveRecords = records.filter(record => record.deletedAt === null);
-  const due = liveRecords.filter(record => isSustainmentDue(record, now)).length;
-  const overdue = liveRecords.filter(record => isSustainmentOverdue(record, now, 0)).length;
+  const due = liveRecords.filter(record => isControlDue(record, now)).length;
+  const overdue = liveRecords.filter(record => isControlOverdue(record, now, 0)).length;
   const verdicts: Partial<Record<ControlVerdict, number>> = {};
   for (const record of liveRecords) {
     if (record.latestVerdict) {

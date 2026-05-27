@@ -179,7 +179,7 @@ export { MAX_CHANNELS, CHANNEL_WARNING_THRESHOLD, validateChannelCount } from '.
 export type { ChannelLimitResult } from './tier';
 
 // Response-path readiness helpers (prerequisite checks for canvas CTAs)
-export { isCharterReady, isSustainmentReady } from './responsePathReadiness';
+export { isCharterReady, isControlReady } from './responsePathReadiness';
 export type { WorkflowReadinessSignals } from './responsePathReadiness';
 
 // Process Hub review signals
@@ -528,17 +528,17 @@ export type {
   ControlCadence,
   ControlVerdict,
   ControlHandoffSurface,
-  SustainmentMetadataProjection,
-  SustainmentBuckets,
-  SustainmentBucketOptions,
+  ControlMetadataProjection,
+  ControlBuckets,
+  ControlBucketOptions,
 } from './control';
 export {
-  applySustainmentTick,
+  applyControlTick,
   nextDueFromCadence,
-  isSustainmentDue,
-  isSustainmentOverdue,
+  isControlDue,
+  isControlOverdue,
   selectControlReviews,
-  selectSustainmentBuckets,
+  selectControlBuckets,
   controlRecordBlobPath,
   controlReviewBlobPath,
   controlHandoffBlobPath,

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
-  applySustainmentTick,
+  applyControlTick,
   evaluateSustainmentSnapshot,
-  isSustainmentDue,
-  isSustainmentOverdue,
+  isControlDue,
+  isControlOverdue,
   nextDueFromCadence,
-  selectSustainmentBuckets,
+  selectControlBuckets,
   selectControlReviews,
   type ControlHandoff,
   type ControlHandoffSurface,
@@ -198,7 +198,7 @@ describe('evaluateSustainmentSnapshot', () => {
   });
 });
 
-describe('applySustainmentTick', () => {
+describe('applyControlTick', () => {
   it('increments consecutiveOnTargetTicks and auto-confirms after four holding ticks', () => {
     const record = { ...makeRecord(), consecutiveOnTargetTicks: 3 };
     const snapshot = makeSnapshot({
@@ -213,7 +213,7 @@ describe('applySustainmentTick', () => {
       ],
     });
 
-    const result = applySustainmentTick(record, snapshot, 1_746_352_800_000);
+    const result = applyControlTick(record, snapshot, 1_746_352_800_000);
 
     expect(result.record.consecutiveOnTargetTicks).toBe(4);
     expect(result.record.status).toBe('confirmed-sustained');
@@ -223,7 +223,7 @@ describe('applySustainmentTick', () => {
   });
 
   it('does not auto-confirm when hasOverride is true', () => {
-    const result = applySustainmentTick(
+    const result = applyControlTick(
       { ...makeRecord(), consecutiveOnTargetTicks: 3, hasOverride: true },
       makeSnapshot({
         latestSignals: [
@@ -244,7 +244,7 @@ describe('applySustainmentTick', () => {
   });
 
   it('resets the counter and marks confirmed records drifted on amber or red signals', () => {
-    const result = applySustainmentTick(
+    const result = applyControlTick(
       {
         ...makeRecord(),
         status: 'confirmed-sustained',
@@ -270,7 +270,7 @@ describe('applySustainmentTick', () => {
   });
 
   it('leaves counter and status unchanged for inconclusive snapshots', () => {
-    const result = applySustainmentTick(
+    const result = applyControlTick(
       { ...makeRecord(), consecutiveOnTargetTicks: 2 },
       makeSnapshot({ latestSignals: [] }),
       1_746_352_800_000
@@ -282,23 +282,23 @@ describe('applySustainmentTick', () => {
   });
 });
 
-describe('isSustainmentDue', () => {
+describe('isControlDue', () => {
   it('returns false when nextReviewDue is undefined', () => {
-    expect(isSustainmentDue(makeRecord(), new Date('2026-04-26T00:00:00.000Z'))).toBe(false);
+    expect(isControlDue(makeRecord(), new Date('2026-04-26T00:00:00.000Z'))).toBe(false);
   });
 
   it('returns true when nextReviewDue is at or before now', () => {
     expect(
-      isSustainmentDue(makeRecord('2026-04-26T00:00:00.000Z'), new Date('2026-04-26T00:00:00.000Z'))
+      isControlDue(makeRecord('2026-04-26T00:00:00.000Z'), new Date('2026-04-26T00:00:00.000Z'))
     ).toBe(true);
     expect(
-      isSustainmentDue(makeRecord('2026-04-25T00:00:00.000Z'), new Date('2026-04-26T00:00:00.000Z'))
+      isControlDue(makeRecord('2026-04-25T00:00:00.000Z'), new Date('2026-04-26T00:00:00.000Z'))
     ).toBe(true);
   });
 
   it('returns false when nextReviewDue is in the future', () => {
     expect(
-      isSustainmentDue(makeRecord('2026-04-27T00:00:00.000Z'), new Date('2026-04-26T00:00:00.000Z'))
+      isControlDue(makeRecord('2026-04-27T00:00:00.000Z'), new Date('2026-04-26T00:00:00.000Z'))
     ).toBe(false);
   });
 
@@ -307,21 +307,21 @@ describe('isSustainmentDue', () => {
       ...makeRecord('2026-04-01T00:00:00.000Z'),
       deletedAt: 1745107200000, // 2026-04-20T00:00:00.000Z
     };
-    expect(isSustainmentDue(record, new Date('2026-04-26T00:00:00.000Z'))).toBe(false);
+    expect(isControlDue(record, new Date('2026-04-26T00:00:00.000Z'))).toBe(false);
   });
 });
 
-describe('isSustainmentOverdue', () => {
+describe('isControlOverdue', () => {
   it('returns false within graceDays of nextReviewDue', () => {
     const record = makeRecord('2026-04-26T00:00:00.000Z');
-    expect(isSustainmentOverdue(record, new Date('2026-04-26T00:00:00.000Z'), 0)).toBe(false);
-    expect(isSustainmentOverdue(record, new Date('2026-05-02T00:00:00.000Z'), 7)).toBe(false);
+    expect(isControlOverdue(record, new Date('2026-04-26T00:00:00.000Z'), 0)).toBe(false);
+    expect(isControlOverdue(record, new Date('2026-05-02T00:00:00.000Z'), 7)).toBe(false);
   });
 
   it('returns true past graceDays', () => {
     const record = makeRecord('2026-04-26T00:00:00.000Z');
-    expect(isSustainmentOverdue(record, new Date('2026-04-27T00:00:00.000Z'), 0)).toBe(true);
-    expect(isSustainmentOverdue(record, new Date('2026-05-04T00:00:00.000Z'), 7)).toBe(true);
+    expect(isControlOverdue(record, new Date('2026-04-27T00:00:00.000Z'), 0)).toBe(true);
+    expect(isControlOverdue(record, new Date('2026-05-04T00:00:00.000Z'), 7)).toBe(true);
   });
 
   it('returns false for soft-deleted records even when past due', () => {
@@ -329,23 +329,23 @@ describe('isSustainmentOverdue', () => {
       ...makeRecord('2026-04-01T00:00:00.000Z'),
       deletedAt: 1745107200000, // 2026-04-20T00:00:00.000Z
     };
-    expect(isSustainmentOverdue(record, new Date('2026-04-26T00:00:00.000Z'), 0)).toBe(false);
+    expect(isControlOverdue(record, new Date('2026-04-26T00:00:00.000Z'), 0)).toBe(false);
   });
 
   it('returns false at the exact graceDays cutoff (exclusive boundary)', () => {
     const record = makeRecord('2026-04-26T00:00:00.000Z');
     // 2026-04-26 + 7 days = 2026-05-03 — at the cutoff, NOT overdue
-    expect(isSustainmentOverdue(record, new Date('2026-05-03T00:00:00.000Z'), 7)).toBe(false);
+    expect(isControlOverdue(record, new Date('2026-05-03T00:00:00.000Z'), 7)).toBe(false);
     // 1ms past the cutoff — overdue
-    expect(isSustainmentOverdue(record, new Date('2026-05-03T00:00:00.001Z'), 7)).toBe(true);
+    expect(isControlOverdue(record, new Date('2026-05-03T00:00:00.001Z'), 7)).toBe(true);
   });
 
   it('clamps negative graceDays to 0 (cannot be more strict than strict)', () => {
     const record = makeRecord('2026-04-26T00:00:00.000Z');
     // -7 graceDays would shrink the cliff inward; clamped to 0
-    expect(isSustainmentOverdue(record, new Date('2026-04-25T00:00:00.000Z'), -7)).toBe(false);
-    expect(isSustainmentOverdue(record, new Date('2026-04-26T00:00:00.000Z'), -7)).toBe(false);
-    expect(isSustainmentOverdue(record, new Date('2026-04-27T00:00:00.000Z'), -7)).toBe(true);
+    expect(isControlOverdue(record, new Date('2026-04-25T00:00:00.000Z'), -7)).toBe(false);
+    expect(isControlOverdue(record, new Date('2026-04-26T00:00:00.000Z'), -7)).toBe(false);
+    expect(isControlOverdue(record, new Date('2026-04-27T00:00:00.000Z'), -7)).toBe(true);
   });
 });
 
@@ -510,7 +510,7 @@ describe('selectControlReviews', () => {
   });
 });
 
-describe('selectSustainmentBuckets', () => {
+describe('selectControlBuckets', () => {
   const NOW = new Date('2026-04-26T00:00:00.000Z');
 
   function recordFor(
@@ -542,7 +542,7 @@ describe('selectSustainmentBuckets', () => {
       cadence: 'monthly',
     });
     const record = recordFor('inv-1', '2026-04-26T00:00:00.000Z'); // exactly due, grace=0 → due, not overdue
-    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    const result = selectControlBuckets([inv], [record], [], NOW);
     expect(result.dueNow).toHaveLength(1);
     expect(result.dueNow[0]?.analyze.id).toBe('inv-1');
     expect(result.overdue).toHaveLength(0);
@@ -555,7 +555,7 @@ describe('selectSustainmentBuckets', () => {
       cadence: 'monthly',
     });
     const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z'); // 1 day past due, grace=0 → overdue
-    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    const result = selectControlBuckets([inv], [record], [], NOW);
     expect(result.overdue).toHaveLength(1);
     expect(result.dueNow).toHaveLength(0);
   });
@@ -575,7 +575,7 @@ describe('selectSustainmentBuckets', () => {
       recordFor('inv-1', '2026-04-19T00:00:00.000Z'),
       recordFor('inv-2', '2026-04-18T00:00:00.000Z'),
     ];
-    const result = selectSustainmentBuckets([inv1, inv2], records, [], NOW, { graceDays: 7 });
+    const result = selectControlBuckets([inv1, inv2], records, [], NOW, { graceDays: 7 });
     expect(result.dueNow.map(r => r.analyze.id)).toEqual(['inv-1']);
     expect(result.overdue.map(r => r.analyze.id)).toEqual(['inv-2']);
   });
@@ -589,7 +589,7 @@ describe('selectSustainmentBuckets', () => {
       latestReviewAt: '2026-04-20T00:00:00.000Z', // 6 days before NOW (within default 14-day window)
       latestVerdict: 'holding',
     });
-    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    const result = selectControlBuckets([inv], [record], [], NOW);
     expect(result.recentlyReviewed).toHaveLength(1);
     expect(result.recentlyReviewed[0]?.analyze.id).toBe('inv-1');
     expect(result.dueNow).toHaveLength(0);
@@ -604,7 +604,7 @@ describe('selectSustainmentBuckets', () => {
     const record = recordFor('inv-1', '2026-05-15T00:00:00.000Z', {
       latestReviewAt: '2026-03-20T00:00:00.000Z', // 37 days back, default window = 14 → out
     });
-    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    const result = selectControlBuckets([inv], [record], [], NOW);
     expect(result.recentlyReviewed).toHaveLength(0);
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
@@ -619,11 +619,11 @@ describe('selectSustainmentBuckets', () => {
       latestReviewAt: '2026-04-15T00:00:00.000Z', // 11 days back
     });
     expect(
-      selectSustainmentBuckets([inv], [record], [], NOW, { recentReviewWindowDays: 10 })
+      selectControlBuckets([inv], [record], [], NOW, { recentReviewWindowDays: 10 })
         .recentlyReviewed
     ).toHaveLength(0);
     expect(
-      selectSustainmentBuckets([inv], [record], [], NOW, { recentReviewWindowDays: 30 })
+      selectControlBuckets([inv], [record], [], NOW, { recentReviewWindowDays: 30 })
         .recentlyReviewed
     ).toHaveLength(1);
   });
@@ -637,7 +637,7 @@ describe('selectSustainmentBuckets', () => {
       deletedAt: 1745020800000, // 2026-04-24T00:00:00.000Z
       latestReviewAt: '2026-04-20T00:00:00.000Z',
     });
-    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    const result = selectControlBuckets([inv], [record], [], NOW);
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
     expect(result.recentlyReviewed).toHaveLength(0);
@@ -650,7 +650,7 @@ describe('selectSustainmentBuckets', () => {
     });
     const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z');
     const handoffs = [makeHandoff('inv-1', false)];
-    const result = selectSustainmentBuckets([inv], [record], handoffs, NOW);
+    const result = selectControlBuckets([inv], [record], handoffs, NOW);
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
   });
@@ -661,7 +661,7 @@ describe('selectSustainmentBuckets', () => {
       cadence: 'monthly',
     });
     const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z');
-    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    const result = selectControlBuckets([inv], [record], [], NOW);
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
     expect(result.recentlyReviewed).toHaveLength(0);
@@ -675,7 +675,7 @@ describe('selectSustainmentBuckets', () => {
       cadence: 'on-demand',
     });
     const record = recordFor('inv-1', undefined, { cadence: 'on-demand' });
-    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    const result = selectControlBuckets([inv], [record], [], NOW);
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
     expect(result.recentlyReviewed).toHaveLength(0);
@@ -701,7 +701,7 @@ describe('selectSustainmentBuckets', () => {
         latestReviewAt: '2026-04-22T00:00:00.000Z', // 4 days back → recentlyReviewed
       }),
     ];
-    const result = selectSustainmentBuckets([overdueInv, dueInv, reviewedInv], records, [], NOW);
+    const result = selectControlBuckets([overdueInv, dueInv, reviewedInv], records, [], NOW);
     expect(result.overdue.map(r => r.analyze.id)).toEqual(['inv-overdue']);
     expect(result.dueNow.map(r => r.analyze.id)).toEqual(['inv-due']);
     expect(result.recentlyReviewed.map(r => r.analyze.id)).toEqual(['inv-reviewed']);

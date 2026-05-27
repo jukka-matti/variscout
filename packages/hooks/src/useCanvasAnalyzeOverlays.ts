@@ -104,7 +104,7 @@ export interface CanvasOverlayCausalLinkItem {
   focus: CanvasAnalyzeFocus;
 }
 
-export interface CanvasStepInvestigationOverlay {
+export interface CanvasStepAnalyzeOverlay {
   stepId: string;
   questions: CanvasOverlayQuestionItem[];
   findings: CanvasOverlayFindingItem[];
@@ -118,7 +118,7 @@ export interface CanvasStepInvestigationOverlay {
 }
 
 export interface CanvasAnalyzeOverlayModel {
-  byStep: Record<string, CanvasStepInvestigationOverlay>;
+  byStep: Record<string, CanvasStepAnalyzeOverlay>;
   arrows: CanvasOverlayCausalLinkItem[];
   unresolved: {
     questions: string[];
@@ -136,9 +136,9 @@ export interface BuildCanvasInvestigationOverlaysArgs {
   causalLinks?: readonly CausalLink[];
 }
 
-export type UseCanvasInvestigationOverlaysArgs = BuildCanvasInvestigationOverlaysArgs;
+export type UseCanvasAnalyzeOverlaysArgs = BuildCanvasInvestigationOverlaysArgs;
 
-function emptyStepOverlay(stepId: string): CanvasStepInvestigationOverlay {
+function emptyStepOverlay(stepId: string): CanvasStepAnalyzeOverlay {
   return {
     stepId,
     questions: [],
@@ -180,7 +180,7 @@ function stepsForColumns(columns: Iterable<string>, columnMap: Map<string, Set<s
 
 function validStepIds(
   steps: readonly string[],
-  byStep: Record<string, CanvasStepInvestigationOverlay>
+  byStep: Record<string, CanvasStepAnalyzeOverlay>
 ): string[] {
   return steps.filter(stepId => Boolean(byStep[stepId]));
 }
@@ -241,7 +241,7 @@ function hubOwnsLink(hub: Hypothesis, link: CausalLink): boolean {
   );
 }
 
-export function buildCanvasInvestigationOverlays({
+export function buildCanvasAnalyzeOverlays({
   map,
   questions = [],
   findings = [],
@@ -249,7 +249,7 @@ export function buildCanvasInvestigationOverlays({
   causalLinks = [],
 }: BuildCanvasInvestigationOverlaysArgs): CanvasAnalyzeOverlayModel {
   const columnMap = stepColumnMap(map);
-  const byStep: Record<string, CanvasStepInvestigationOverlay> = {};
+  const byStep: Record<string, CanvasStepAnalyzeOverlay> = {};
   for (const node of map.nodes) byStep[node.id] = emptyStepOverlay(node.id);
 
   const unresolved = {
@@ -378,15 +378,15 @@ export function buildCanvasInvestigationOverlays({
   return { byStep, arrows, unresolved };
 }
 
-export interface UseCanvasInvestigationOverlaysResult {
+export interface UseCanvasAnalyzeOverlaysResult {
   overlays: CanvasAnalyzeOverlayModel;
 }
 
 export function useCanvasAnalyzeOverlays(
-  args: UseCanvasInvestigationOverlaysArgs
-): UseCanvasInvestigationOverlaysResult {
+  args: UseCanvasAnalyzeOverlaysArgs
+): UseCanvasAnalyzeOverlaysResult {
   const overlays = useMemo(
-    () => buildCanvasInvestigationOverlays(args),
+    () => buildCanvasAnalyzeOverlays(args),
     [args.map, args.questions, args.findings, args.hypotheses, args.causalLinks]
   );
   return { overlays };

@@ -112,7 +112,7 @@ export interface ControlHandoff extends EntityBase {
   signoff?: ImprovementProjectSignoff;
 }
 
-export interface SustainmentMetadataProjection {
+export interface ControlMetadataProjection {
   recordId: string;
   cadence: ControlCadence;
   nextReviewDue?: string;
@@ -184,7 +184,7 @@ export function evaluateSustainmentSnapshot(
   };
 }
 
-export function applySustainmentTick(
+export function applyControlTick(
   record: ControlRecord,
   snapshot: EvidenceSnapshot,
   now: number = Date.now()
@@ -280,7 +280,7 @@ function addMonthsClamped(date: Date, months: number): void {
  * Returns true when a sustainment record's next review is at or before `now`.
  * Soft-deleted records (deletedAt !== null; formerly tombstoneAt) are never due.
  */
-export function isSustainmentDue(record: ControlRecord, now: Date): boolean {
+export function isControlDue(record: ControlRecord, now: Date): boolean {
   if (record.deletedAt !== null) return false;
   if (!record.nextReviewDue) return false;
   return new Date(record.nextReviewDue).getTime() <= now.getTime();
@@ -291,11 +291,7 @@ export function isSustainmentDue(record: ControlRecord, now: Date): boolean {
  * grace day itself (and the due day with default `graceDays = 0`) is NOT
  * overdue — the cliff is exclusive. Soft-deleted records are never overdue.
  */
-export function isSustainmentOverdue(
-  record: ControlRecord,
-  now: Date,
-  graceDays: number = 0
-): boolean {
+export function isControlOverdue(record: ControlRecord, now: Date, graceDays: number = 0): boolean {
   if (record.deletedAt !== null) return false;
   if (!record.nextReviewDue) return false;
   const safeGraceDays = Math.max(0, graceDays);
@@ -320,10 +316,10 @@ function buildControlReviewItem<TInv extends ProcessHubAnalyze>(
 /**
  * Returns the cadence-board sustainment queue: investigations whose effective
  * status is in SUSTAINMENT_STATUSES (`resolved` or `controlled`), whose record
- * is due (per `isSustainmentDue`), and which are not opted out via a
+ * is due (per `isControlDue`), and which are not opted out via a
  * ControlHandoff with `retainControlReview = false`.
  *
- * Tombstoned records are excluded by the underlying `isSustainmentDue` check.
+ * Tombstoned records are excluded by the underlying `isControlDue` check.
  */
 export function selectControlReviews<TInv extends ProcessHubAnalyze>(
   investigations: TInv[],
@@ -339,7 +335,7 @@ export function selectControlReviews<TInv extends ProcessHubAnalyze>(
       const status = inv.metadata?.analyzeStatus;
       if (status !== 'resolved' && status !== 'controlled') return false;
       const record = recordByInvestigation.get(inv.id);
-      if (!record || !isSustainmentDue(record, now)) return false;
+      if (!record || !isControlDue(record, now)) return false;
       if (status === 'controlled') {
         const handoff = handoffByInvestigation.get(inv.id);
         if (handoff && handoff.retainControlReview === false) return false;
@@ -355,26 +351,26 @@ export function selectControlReviews<TInv extends ProcessHubAnalyze>(
  * (latestReviewAt within `recentReviewWindowDays`). Excludes tombstoned and
  * handoff-opted-out records, mirroring `selectControlReviews`.
  */
-export interface SustainmentBuckets<TInv extends ProcessHubAnalyze> {
+export interface ControlBuckets<TInv extends ProcessHubAnalyze> {
   dueNow: ProcessHubReviewItem<TInv>[];
   overdue: ProcessHubReviewItem<TInv>[];
   recentlyReviewed: ProcessHubReviewItem<TInv>[];
 }
 
-export interface SustainmentBucketOptions {
+export interface ControlBucketOptions {
   /** Days past the cliff before counting as overdue. Default 0 (any time strictly after due is overdue). */
   graceDays?: number;
   /** Window before `now` to count a record as recently-reviewed. Default 14 days. */
   recentReviewWindowDays?: number;
 }
 
-export function selectSustainmentBuckets<TInv extends ProcessHubAnalyze>(
+export function selectControlBuckets<TInv extends ProcessHubAnalyze>(
   investigations: TInv[],
   records: ControlRecord[],
   handoffs: ControlHandoff[],
   now: Date,
-  options: SustainmentBucketOptions = {}
-): SustainmentBuckets<TInv> {
+  options: ControlBucketOptions = {}
+): ControlBuckets<TInv> {
   const graceDays = Math.max(0, options.graceDays ?? 0);
   const recentReviewWindowDays = Math.max(0, options.recentReviewWindowDays ?? 14);
   const recentCutoffMs = now.getTime() - recentReviewWindowDays * 24 * 60 * 60 * 1000;
@@ -396,11 +392,11 @@ export function selectSustainmentBuckets<TInv extends ProcessHubAnalyze>(
       if (handoff && handoff.retainControlReview === false) continue;
     }
 
-    if (isSustainmentOverdue(record, now, graceDays)) {
+    if (isControlOverdue(record, now, graceDays)) {
       overdue.push(buildControlReviewItem(inv, ['control-due']));
       continue;
     }
-    if (isSustainmentDue(record, now)) {
+    if (isControlDue(record, now)) {
       dueNow.push(buildControlReviewItem(inv, ['control-due']));
       continue;
     }

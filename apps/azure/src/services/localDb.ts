@@ -19,7 +19,7 @@ import type {
   ProjectMetadata,
   Question,
   SpecLimits,
-  SustainmentMetadataProjection,
+  ControlMetadataProjection,
   ControlRecord,
   ControlReview,
   SurveyEvaluation,
@@ -282,7 +282,7 @@ export async function listControlHandoffsFromIndexedDB(hubId: string): Promise<C
 export function buildSustainmentProjection(
   record: ControlRecord,
   handoff?: ControlHandoff
-): SustainmentMetadataProjection {
+): ControlMetadataProjection {
   return {
     recordId: record.id,
     cadence: record.cadence,
@@ -294,7 +294,7 @@ export function buildSustainmentProjection(
 
 export async function updateProjectSustainmentProjectionInIndexedDB(
   investigationId: string,
-  projection: SustainmentMetadataProjection | undefined
+  projection: ControlMetadataProjection | undefined
 ): Promise<void> {
   const project = await db.projects.get(investigationId);
   if (!project) return;

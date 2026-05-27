@@ -3,7 +3,7 @@ import type { CausalLink, Finding, Question, Hypothesis } from '@variscout/core'
 import type { ProcessMap } from '@variscout/core/frame';
 import {
   CANVAS_OVERLAY_REGISTRY,
-  buildCanvasInvestigationOverlays,
+  buildCanvasAnalyzeOverlays,
   coerceCanvasOverlays,
   enabledCanvasOverlays,
   type CanvasOverlayId,
@@ -128,9 +128,9 @@ describe('CanvasOverlayId — wall overlay', () => {
   });
 });
 
-describe('buildCanvasInvestigationOverlays', () => {
+describe('buildCanvasAnalyzeOverlays', () => {
   it('binds questions through factor columns and findings through active filters', () => {
-    const overlays = buildCanvasInvestigationOverlays({
+    const overlays = buildCanvasAnalyzeOverlays({
       map,
       questions: [question({ id: 'q-machine', factor: 'Machine' })],
       findings: [
@@ -149,7 +149,7 @@ describe('buildCanvasInvestigationOverlays', () => {
   });
 
   it('binds findings through their linked question when active filters do not resolve', () => {
-    const overlays = buildCanvasInvestigationOverlays({
+    const overlays = buildCanvasAnalyzeOverlays({
       map,
       questions: [question({ id: 'q-fill', factor: 'Fill Head' })],
       findings: [finding({ id: 'f-linked', questionId: 'q-fill' })],
@@ -159,7 +159,7 @@ describe('buildCanvasInvestigationOverlays', () => {
   });
 
   it('projects hypotheses from explicit tributary ids before fallback derivation', () => {
-    const overlays = buildCanvasInvestigationOverlays({
+    const overlays = buildCanvasAnalyzeOverlays({
       map,
       hypotheses: [
         hub({
@@ -178,7 +178,7 @@ describe('buildCanvasInvestigationOverlays', () => {
   });
 
   it('uses linked finding filters as suspected-cause fallback derivation', () => {
-    const overlays = buildCanvasInvestigationOverlays({
+    const overlays = buildCanvasAnalyzeOverlays({
       map,
       findings: [
         finding({
@@ -194,11 +194,11 @@ describe('buildCanvasInvestigationOverlays', () => {
   });
 
   it('renders draft causal links as arrows unless a promoted hub owns the link', () => {
-    const draft = buildCanvasInvestigationOverlays({
+    const draft = buildCanvasAnalyzeOverlays({
       map,
       causalLinks: [link({ id: 'link-draft', questionIds: ['q-1'] })],
     });
-    const promoted = buildCanvasInvestigationOverlays({
+    const promoted = buildCanvasAnalyzeOverlays({
       map,
       hypotheses: [hub({ id: 'hub-promoted', questionIds: ['q-1'] })],
       causalLinks: [link({ id: 'link-promoted', questionIds: ['q-1'] })],
@@ -211,7 +211,7 @@ describe('buildCanvasInvestigationOverlays', () => {
   });
 
   it('omits unresolved entities from markers while tracking them for tests/debugging', () => {
-    const overlays = buildCanvasInvestigationOverlays({
+    const overlays = buildCanvasAnalyzeOverlays({
       map,
       questions: [question({ id: 'q-missing', factor: 'Unknown' })],
       findings: [

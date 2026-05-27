@@ -1,6 +1,6 @@
 import { useAnalyzeStore } from '@variscout/stores';
 
-export interface UseHasInvestigationContentArgs {
+export interface UseHasAnalyzeContentArgs {
   findingsCount: number;
 }
 
@@ -14,7 +14,7 @@ export interface UseHasInvestigationContentArgs {
  * V1 findings render as hub evidence, not standalone Wall nodes, so a
  * findings-only graph should not advertise the Wall overlay yet.
  */
-export function useHasAnalyzeContent(args: UseHasInvestigationContentArgs): boolean {
+export function useHasAnalyzeContent(args: UseHasAnalyzeContentArgs): boolean {
   const hubsCount = useAnalyzeStore(state => state.hypotheses.length);
   const openQuestionsCount = useAnalyzeStore(
     state => state.questions.filter(question => question.status === 'open').length

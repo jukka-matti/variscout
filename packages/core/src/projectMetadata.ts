@@ -18,7 +18,7 @@ import {
   type ProcessHubProcessMapSummary,
   type ProcessHubSurveyReadinessSummary,
 } from './processHub';
-import type { SustainmentMetadataProjection } from './control';
+import type { ControlMetadataProjection } from './control';
 import type { ProcessStateNote } from './processStateNote';
 
 export interface ProjectMetadata {
@@ -71,7 +71,7 @@ export interface ProjectMetadata {
   reviewSignal?: HubReviewSignal;
   /** Lightweight projection of the active ControlRecord for this project.
    *  Field name `sustainment` preserved — matches persisted ProjectMetadata schema. */
-  sustainment?: SustainmentMetadataProjection;
+  sustainment?: ControlMetadataProjection;
   /**
    * Team notes for current-state items, copied from processContext.stateNotes
    * so the Dashboard rollup can surface them without loading the full project.

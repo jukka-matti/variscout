@@ -45,7 +45,7 @@ const CLOSURE_ITEMS: ClosureChecklistItem[] = [
   },
 ];
 
-interface SustainmentOverviewProps {
+interface ControlOverviewProps {
   record: ControlRecord;
   onStartHandoff: () => void;
   onOpenProcess: () => void;
@@ -64,7 +64,7 @@ interface SustainmentOverviewProps {
 
 const SUSTAINMENT_THRESHOLD = 4;
 
-const ControlOverview: React.FC<SustainmentOverviewProps> = ({
+const ControlOverview: React.FC<ControlOverviewProps> = ({
   record,
   onStartHandoff,
   onOpenProcess,

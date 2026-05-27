@@ -5,7 +5,7 @@ import type { ActionItem } from '@variscout/core/findings';
 import type {
   CanvasAnalyzeFocus,
   CanvasStepCardModel,
-  CanvasStepInvestigationOverlay,
+  CanvasStepAnalyzeOverlay,
 } from '@variscout/hooks';
 import { computeCtaState, type ResponsePathKind } from './responsePathCta';
 import { ContextBadgesRow, type ContextLinkGroup, type ContextLinkItem } from '../../CrossSurface';
@@ -28,7 +28,7 @@ interface CanvasStepOverlayProps {
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
-  investigationOverlay?: CanvasStepInvestigationOverlay;
+  investigationOverlay?: CanvasStepAnalyzeOverlay;
   onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];

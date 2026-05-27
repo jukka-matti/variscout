@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ControlRecord, ControlHandoff } from '@variscout/core';
 
-interface SustainmentSectionsProps {
+interface ControlSectionsProps {
   record: ControlRecord;
   onOpenLegacy?: () => void;
   /** Optional ControlHandoff entity when closure is in progress. */
@@ -10,7 +10,7 @@ interface SustainmentSectionsProps {
   onOpenLegacyHandoff?: () => void;
 }
 
-const ControlSections: React.FC<SustainmentSectionsProps> = ({
+const ControlSections: React.FC<ControlSectionsProps> = ({
   record,
   onOpenLegacy,
   controlHandoff,

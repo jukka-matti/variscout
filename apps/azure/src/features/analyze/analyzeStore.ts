@@ -68,7 +68,7 @@ export function buildIdeaImpacts(
 
 // ── State ───────────────────────────────────────────────────────────────────
 
-interface InvestigationStoreState {
+interface AnalyzeStoreState {
   /** Current projection target for What-If round-trip */
   projectionTarget: ProjectionTarget | null;
   /** Question ID to expand/scroll-to in the investigation tree (null = none) */
@@ -77,18 +77,18 @@ interface InvestigationStoreState {
 
 // ── Actions ─────────────────────────────────────────────────────────────────
 
-interface InvestigationStoreActions {
+interface AnalyzeStoreActions {
   /** Set or clear the projection target for What-If round-trip */
   setProjectionTarget: (target: ProjectionTarget | null) => void;
   /** Expand and scroll-to a question in the investigation tree (null = clear) */
   expandToQuestion: (id: string | null) => void;
 }
 
-export type InvestigationStore = InvestigationStoreState & InvestigationStoreActions;
+export type AnalyzeStore = AnalyzeStoreState & AnalyzeStoreActions;
 
 // ── Store ───────────────────────────────────────────────────────────────────
 
-export const useAnalyzeFeatureStore = create<InvestigationStore>(set => ({
+export const useAnalyzeFeatureStore = create<AnalyzeStore>(set => ({
   // Initial state
   projectionTarget: null,
   expandedQuestionId: null,
