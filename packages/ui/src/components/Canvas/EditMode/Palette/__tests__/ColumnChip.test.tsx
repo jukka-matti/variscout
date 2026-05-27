@@ -141,11 +141,12 @@ describe('ColumnChip — derived variant', () => {
     expect(screen.getByText('✨')).toBeInTheDocument();
   });
 
-  it('applies green tint classes when derived=true', () => {
+  it('applies green tint class when derived=true', () => {
+    // V1 has no dark mode (packages/ui/CLAUDE.md §"No dark mode, no deep saturation");
+    // bg-emerald-50 on its own is sufficient on the light surface.
     renderChip({ profile: createTestColumnParsingProfile(), derived: true });
     const chip = screen.getByTestId('column-chip');
     expect(chip.className).toMatch(/bg-emerald-50/);
-    expect(chip.className).toMatch(/dark:bg-emerald-950/);
   });
 
   it('does NOT apply green tint when derived is absent', () => {
@@ -154,11 +155,10 @@ describe('ColumnChip — derived variant', () => {
     expect(chip.className).not.toMatch(/bg-emerald-50/);
   });
 
-  it('still shows green tint classes when both dropped=true and derived=true', () => {
+  it('still shows green tint when both dropped=true and derived=true', () => {
     renderChip({ profile: createTestColumnParsingProfile(), derived: true, dropped: true });
     const chip = screen.getByTestId('column-chip');
     expect(chip.className).toMatch(/bg-emerald-50/);
-    expect(chip.className).toMatch(/dark:bg-emerald-950/);
     expect(chip.className).toMatch(/opacity-50/);
   });
 });

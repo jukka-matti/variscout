@@ -104,7 +104,7 @@ export const ColumnChip: React.FC<ColumnChipProps> = ({
 
   const chipClasses = [
     'flex items-center gap-2 rounded-md px-2 py-1.5',
-    derived ? 'bg-emerald-50 dark:bg-emerald-950' : 'bg-surface-primary',
+    derived ? 'bg-emerald-50' : 'bg-surface-primary',
     dropped ? 'opacity-50 bg-surface-secondary border border-edge' : '',
     ghostSuggested ? 'border-2 border-dashed border-cyan-400' : 'border border-edge',
   ]
