@@ -24,7 +24,7 @@ export const EVIDENCE_SUFFICIENCY_THRESHOLD = 0.25;
  *
  * Returns empty string when no investigation context is available.
  */
-export function formatInvestigationContext(
+export function formatAnalyzeContext(
   investigation: AIContext['investigation'] | undefined
 ): string {
   if (!investigation) return '';

@@ -2,9 +2,9 @@
  * Assembles the structured AI context from current analysis state.
  */
 
-import type { AIContext, ProcessContext, TargetMetric, InvestigationPhase } from './types';
+import type { AIContext, ProcessContext, TargetMetric, AnalyzePhase } from './types';
 import type { InsightChartType } from './chartInsights';
-import type { Finding, Question, InvestigationCategory, Hypothesis } from '../findings';
+import type { Finding, Question, AnalyzeCategory, Hypothesis } from '../findings';
 import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { computeOptimum } from '../stats/safeMath';
@@ -35,7 +35,7 @@ export interface BuildAIContextOptions {
   stats?: AIStatsInput;
   filters?: Record<string, (string | number)[]>;
   /** Dynamic investigation categories */
-  categories?: InvestigationCategory[];
+  categories?: AnalyzeCategory[];
   violations?: {
     outOfControl: number;
     aboveUSL: number;
@@ -693,7 +693,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 export function detectInvestigationPhase(
   questions: Question[],
   findings?: Finding[]
-): InvestigationPhase {
+): AnalyzePhase {
   if (questions.length === 0) return 'initial';
 
   const hasChildren = questions.some(q => q.parentId);

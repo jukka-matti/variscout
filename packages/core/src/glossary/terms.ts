@@ -423,10 +423,10 @@ export const glossaryTerms: GlossaryTerm[] = [
     description:
       'Findings are the building blocks of investigation in VariScout. Each finding snapshots the dashboard state (filters, stats, variation context) so the analyst can return to it later. Findings progress through statuses: observed → investigating → analyzed → improving → resolved.',
     category: 'investigation',
-    relatedTerms: ['investigationStatus', 'actionItem', 'keyDriver'],
+    relatedTerms: ['analyzeStatus', 'actionItem', 'keyDriver'],
   },
   {
-    id: 'investigationStatus',
+    id: 'analyzeStatus',
     label: 'Investigation Status',
     definition:
       'Lifecycle stage of a finding: observed, investigating, analyzed, improving, or resolved.',
@@ -453,7 +453,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     description:
       'Action items track the work needed to resolve a finding. Each item has a completion status. When the first action is added to an analyzed finding, it automatically transitions to "improving" status.',
     category: 'investigation',
-    relatedTerms: ['finding', 'correctiveAction', 'investigationStatus'],
+    relatedTerms: ['finding', 'correctiveAction', 'analyzeStatus'],
   },
   {
     id: 'findingOutcome',
@@ -463,7 +463,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     description:
       'The outcome closes the investigation loop. Compare Cpk before and after to quantify improvement. When all actions are complete and an outcome is recorded, the finding transitions to "resolved" status.',
     category: 'investigation',
-    relatedTerms: ['finding', 'actionItem', 'investigationStatus', 'cpk'],
+    relatedTerms: ['finding', 'actionItem', 'analyzeStatus', 'cpk'],
   },
   {
     id: 'processContext',

@@ -7,7 +7,7 @@
  */
 
 import type { AnalysisMode } from '../../../../types';
-import type { InvestigationPhase, EntryScenario } from '../../../types';
+import type { AnalyzePhase, EntryScenario } from '../../../types';
 
 const MODE_QUESTION_GUIDANCE: Record<AnalysisMode, string> = {
   standard: `Question and evidence guidance:
@@ -36,7 +36,7 @@ const MODE_QUESTION_GUIDANCE: Record<AnalysisMode, string> = {
 - Cross-channel questions: "Is the same contribution affecting multiple channels?"`,
 };
 
-const SUB_PHASE_COACHING: Record<InvestigationPhase, string> = {
+const SUB_PHASE_COACHING: Record<AnalyzePhase, string> = {
   initial: `Sub-phase: Initial — The investigation is just starting. Factor Intelligence has ranked which factors to check first. Help the analyst:
 - Review the top-ranked questions from Factor Intelligence.
 - Formulate their concern clearly using Watson's questions (What? Where? When? Scope?).
@@ -70,9 +70,9 @@ const SUB_PHASE_COACHING: Record<InvestigationPhase, string> = {
  * Evidence Map interactions, and hub synthesis. Sub-phase awareness drives the
  * specific guidance CoScout provides.
  */
-export function buildInvestigateCoaching(
+export function buildAnalyzeCoaching(
   mode: AnalysisMode,
-  investigationPhase?: InvestigationPhase,
+  analyzePhase?: AnalyzePhase,
   entryScenario?: EntryScenario
 ): string {
   const parts: string[] = [];
@@ -83,8 +83,8 @@ The analyst is in the INVESTIGATE phase — building questions, gathering eviden
 ${MODE_QUESTION_GUIDANCE[mode]}`);
 
   // Sub-phase specific coaching
-  if (investigationPhase && SUB_PHASE_COACHING[investigationPhase]) {
-    parts.push(SUB_PHASE_COACHING[investigationPhase]);
+  if (analyzePhase && SUB_PHASE_COACHING[analyzePhase]) {
+    parts.push(SUB_PHASE_COACHING[analyzePhase]);
   }
 
   // Question tree mechanics
@@ -105,7 +105,7 @@ ${MODE_QUESTION_GUIDANCE[mode]}`);
 - Use [REF:evidence-edge:LINK_ID]link description[/REF] to highlight a specific causal link on the map.`);
 
   // Hub synthesis coaching (validating + converging)
-  if (investigationPhase === 'validating' || investigationPhase === 'converging') {
+  if (analyzePhase === 'validating' || analyzePhase === 'converging') {
     parts.push(`Hub synthesis coaching:
 - When 2+ answered questions point to the same contribution, use suggest_hypothesis to name the mechanism.
 - Each Hypothesis hub connects related questions and findings into a named mechanism.

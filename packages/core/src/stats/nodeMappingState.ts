@@ -1,5 +1,5 @@
 import type { ProcessMap } from '../frame/types';
-import type { ProcessHubInvestigationMetadata, InvestigationNodeMapping } from '../processHub';
+import type { ProcessHubAnalyzeMetadata, AnalyzeNodeMapping } from '../processHub';
 
 /**
  * Returns true if the investigation has no node mappings yet — i.e., still
@@ -8,7 +8,7 @@ import type { ProcessHubInvestigationMetadata, InvestigationNodeMapping } from '
  * dashboards. This is UI state about the cascade flow, not a back-compat
  * data migration.
  */
-export function isUnmappedInvestigation(meta: ProcessHubInvestigationMetadata): boolean {
+export function isUnmappedAnalyze(meta: ProcessHubAnalyzeMetadata): boolean {
   if (!meta.nodeMappings) return true;
   return meta.nodeMappings.length === 0;
 }
@@ -22,9 +22,9 @@ export function isUnmappedInvestigation(meta: ProcessHubInvestigationMetadata): 
 export function suggestNodeMappings(
   canonicalMap: ProcessMap,
   datasetColumns: readonly string[]
-): InvestigationNodeMapping[] {
+): AnalyzeNodeMapping[] {
   const columnSet = new Set(datasetColumns);
-  const out: InvestigationNodeMapping[] = [];
+  const out: AnalyzeNodeMapping[] = [];
   for (const node of canonicalMap.nodes) {
     if (!node.ctqColumn) continue;
     if (!columnSet.has(node.ctqColumn)) continue;

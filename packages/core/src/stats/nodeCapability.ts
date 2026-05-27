@@ -1,11 +1,7 @@
 import type { DataRow, SpecLimits, SpecLookupContext, SpecRule } from '../types';
 import { toNumericValue } from '../types';
 import type { ProcessMap, ProcessMapNode } from '../frame/types';
-import type {
-  ProcessHubInvestigationMetadata,
-  ProcessHub,
-  ProcessHubInvestigation,
-} from '../processHub';
+import type { ProcessHubAnalyzeMetadata, ProcessHub, ProcessHubAnalyze } from '../processHub';
 import { lookupSpecRule } from './specRuleLookup';
 import { sampleConfidenceFor, type SampleConfidence } from './sampleConfidence';
 import { safeDivide } from './safeMath';
@@ -46,7 +42,7 @@ export type CalculateNodeCapabilitySource =
   | {
       kind: 'column';
       processMap: ProcessMap;
-      investigationMeta: ProcessHubInvestigationMetadata;
+      investigationMeta: ProcessHubAnalyzeMetadata;
       data: readonly DataRow[];
       /**
        * Hub-level context dimensions (e.g. `hub.contextColumns`). Merged with
@@ -59,7 +55,7 @@ export type CalculateNodeCapabilitySource =
   | {
       kind: 'children';
       hub: ProcessHub;
-      members: readonly ProcessHubInvestigation[];
+      members: readonly ProcessHubAnalyze[];
     };
 
 const EMPTY_INSUFFICIENT: NodeCapabilityResult = {
@@ -103,7 +99,7 @@ function findNode(processMap: ProcessMap, nodeId: string): ProcessMapNode | unde
 
 function getMeasurementColumn(
   node: ProcessMapNode,
-  meta: ProcessHubInvestigationMetadata
+  meta: ProcessHubAnalyzeMetadata
 ): string | undefined {
   const mapping = meta.nodeMappings?.find(m => m.nodeId === node.id);
   if (mapping?.measurementColumn) return mapping.measurementColumn;
@@ -112,7 +108,7 @@ function getMeasurementColumn(
 
 function getEffectiveSpecRules(
   node: ProcessMapNode,
-  meta: ProcessHubInvestigationMetadata
+  meta: ProcessHubAnalyzeMetadata
 ): readonly { when?: Record<string, string | null>; specs: SpecLimits }[] {
   const mapping = meta.nodeMappings?.find(m => m.nodeId === node.id);
   if (mapping?.specsOverride) {

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { buildPhaseCoaching } from '../prompts/coScout/phases';
 import { buildFrameCoaching } from '../prompts/coScout/phases/frame';
 import { buildScoutCoaching } from '../prompts/coScout/phases/scout';
-import { buildInvestigateCoaching } from '../prompts/coScout/phases/investigate';
+import { buildAnalyzeCoaching } from '../prompts/coScout/phases/analyze';
 import { buildImproveCoaching } from '../prompts/coScout/phases/improve';
 import type { AnalysisMode } from '../../types';
 
@@ -59,9 +59,9 @@ describe('Phase coaching modules', () => {
     });
   });
 
-  describe('buildInvestigateCoaching', () => {
+  describe('buildAnalyzeCoaching', () => {
     it('mentions "question" and "evidence"', () => {
-      const result = buildInvestigateCoaching('standard');
+      const result = buildAnalyzeCoaching('standard');
       const lower = result.toLowerCase();
       expect(lower).toContain('question');
       expect(lower).toContain('evidence');
@@ -69,33 +69,33 @@ describe('Phase coaching modules', () => {
 
     it('produces non-empty output for all modes', () => {
       for (const mode of ALL_MODES) {
-        const result = buildInvestigateCoaching(mode);
+        const result = buildAnalyzeCoaching(mode);
         expect(result.length).toBeGreaterThan(100);
       }
     });
 
     it('mentions waste for yamazumi mode', () => {
-      const result = buildInvestigateCoaching('yamazumi');
+      const result = buildAnalyzeCoaching('yamazumi');
       expect(result.toLowerCase()).toContain('waste');
     });
 
     it('includes sub-phase coaching for diverging', () => {
-      const result = buildInvestigateCoaching('standard', 'diverging');
+      const result = buildAnalyzeCoaching('standard', 'diverging');
       expect(result.toLowerCase()).toContain('exploring');
     });
 
     it('includes hub synthesis coaching for validating', () => {
-      const result = buildInvestigateCoaching('standard', 'validating');
+      const result = buildAnalyzeCoaching('standard', 'validating');
       expect(result.toLowerCase()).toContain('suggest_hypothesis');
     });
 
     it('includes hub synthesis coaching for converging', () => {
-      const result = buildInvestigateCoaching('standard', 'converging');
+      const result = buildAnalyzeCoaching('standard', 'converging');
       expect(result.toLowerCase()).toContain('connect_hub_evidence');
     });
 
     it('includes Evidence Map coaching', () => {
-      const result = buildInvestigateCoaching('standard');
+      const result = buildAnalyzeCoaching('standard');
       expect(result.toLowerCase()).toContain('evidence map');
       expect(result.toLowerCase()).toContain('causal link');
     });
@@ -144,18 +144,18 @@ describe('Phase coaching modules', () => {
       const scout = buildPhaseCoaching({ phase: 'scout', mode: 'standard' });
       expect(scout).toContain('SCOUT');
 
-      const investigate = buildPhaseCoaching({ phase: 'investigate', mode: 'standard' });
+      const investigate = buildPhaseCoaching({ phase: 'analyze', mode: 'standard' });
       expect(investigate).toContain('INVESTIGATE');
 
       const improve = buildPhaseCoaching({ phase: 'improve', mode: 'standard' });
       expect(improve).toContain('IMPROVE');
     });
 
-    it('passes investigationPhase to investigate coaching', () => {
+    it('passes analyzePhase to investigate coaching', () => {
       const result = buildPhaseCoaching({
-        phase: 'investigate',
+        phase: 'analyze',
         mode: 'standard',
-        investigationPhase: 'validating',
+        analyzePhase: 'validating',
       });
       expect(result).toContain('suggest_hypothesis');
     });
@@ -172,7 +172,7 @@ describe('Phase coaching modules', () => {
 
   describe('no dynamic stats values', () => {
     it('does not contain specific numeric stat values', () => {
-      for (const phase of ['frame', 'scout', 'investigate', 'improve'] as const) {
+      for (const phase of ['frame', 'scout', 'analyze', 'improve'] as const) {
         for (const mode of ALL_MODES) {
           const result = buildPhaseCoaching({ phase, mode });
           // Should not contain dynamically computed values like "Cpk = 1.23" or "eta-squared = 0.42"

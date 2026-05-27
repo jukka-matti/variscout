@@ -53,7 +53,7 @@ describe('buildProjectMetadata — phase detection', () => {
   it('returns "investigate" when findings exist but no actions', () => {
     const findings = [makeFinding(), makeFinding()];
     const result = buildProjectMetadata(findings, [], true, 'local');
-    expect(result.phase).toBe('investigate');
+    expect(result.phase).toBe('analyze');
   });
 
   it('returns "improve" when at least one finding has actions', () => {
@@ -66,7 +66,7 @@ describe('buildProjectMetadata — phase detection', () => {
   it('returns "investigate" when finding has empty actions array', () => {
     const finding = makeFinding({ actions: [] });
     const result = buildProjectMetadata([finding], [], true, 'local');
-    expect(result.phase).toBe('investigate');
+    expect(result.phase).toBe('analyze');
   });
 });
 
@@ -352,7 +352,7 @@ describe('buildProjectMetadata — Process Hub fields', () => {
   it('defaults legacy projects into General / Unassigned', () => {
     const result = buildProjectMetadata([], [], true, 'local');
     expect(result.processHubId).toBe('general-unassigned');
-    expect(result.investigationStatus).toBe('scouting');
+    expect(result.analyzeStatus).toBe('scouting');
   });
 
   it('copies investigation metadata and summaries from processContext', () => {
@@ -374,8 +374,8 @@ describe('buildProjectMetadata — Process Hub fields', () => {
     };
     const result = buildProjectMetadata([], [], true, 'local', undefined, {
       processHubId: 'line-4',
-      investigationDepth: 'focused',
-      investigationStatus: 'investigating',
+      analyzeDepth: 'focused',
+      analyzeStatus: 'investigating',
       description: 'Bottle filling from rinse through palletizing.',
       measurement: 'Fill weight',
       processOwner: { displayName: 'Olivia Owner', upn: 'olivia@example.com' },
@@ -389,8 +389,8 @@ describe('buildProjectMetadata — Process Hub fields', () => {
     });
 
     expect(result.processHubId).toBe('line-4');
-    expect(result.investigationDepth).toBe('focused');
-    expect(result.investigationStatus).toBe('investigating');
+    expect(result.analyzeDepth).toBe('focused');
+    expect(result.analyzeStatus).toBe('investigating');
     expect(result.processDescription).toBe('Bottle filling from rinse through palletizing.');
     expect(result.customerRequirementSummary).toBe('Weight');
     expect(result.processMapSummary).toEqual({

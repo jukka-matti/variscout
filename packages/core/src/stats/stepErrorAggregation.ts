@@ -1,4 +1,4 @@
-import type { ProcessHub, ProcessHubInvestigation } from '../processHub';
+import type { ProcessHub, ProcessHubAnalyze } from '../processHub';
 import type { ProcessMap, ProcessMapNode } from '../frame/types';
 import type { DataRow, SpecLookupContext } from '../types';
 
@@ -6,7 +6,7 @@ export type StepErrorRollupHub = Pick<ProcessHub, 'id' | 'canonicalProcessMap'>;
 
 export interface StepErrorRollupInput {
   hub: StepErrorRollupHub;
-  members: readonly ProcessHubInvestigation[];
+  members: readonly ProcessHubAnalyze[];
   defectColumns?: readonly string[];
   contextFilter?: SpecLookupContext;
 }
@@ -71,7 +71,7 @@ export function rollupStepErrors(input: StepErrorRollupInput): StepErrorRollupRe
     const nodeMappings = member.metadata?.nodeMappings;
     if (!nodeMappings || nodeMappings.length === 0) continue;
 
-    // rows is not on the base ProcessHubInvestigation type; apps attach it at
+    // rows is not on the base ProcessHubAnalyze type; apps attach it at
     // runtime on extended investigation objects. Access via a cast.
     const rows = (member as { rows?: readonly DataRow[] }).rows ?? [];
     if (rows.length === 0) continue;

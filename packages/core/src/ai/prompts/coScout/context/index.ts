@@ -5,6 +5,6 @@
  * data summaries, and knowledge results.
  */
 
-export { formatInvestigationContext } from './investigation';
+export { formatAnalyzeContext } from './analyze';
 export { formatDataContext } from './dataContext';
 export { formatKnowledgeContext } from './knowledgeContext';

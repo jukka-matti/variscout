@@ -6,7 +6,7 @@
  */
 
 import type { ToolDefinition } from '../../responsesApi';
-import type { AIContext, InvestigationPhase, JourneyPhase } from '../../types';
+import type { AIContext, AnalyzePhase, JourneyPhase } from '../../types';
 import type { AnalysisMode } from '../../../types';
 
 /** Surface where CoScout is rendered — affects prompt length and tone */
@@ -35,7 +35,7 @@ export interface AssembleCoScoutPromptOptions {
   /** Current journey phase (frame/scout/investigate/improve) */
   phase?: JourneyPhase;
   /** Current investigation sub-phase */
-  investigationPhase?: InvestigationPhase;
+  analyzePhase?: AnalyzePhase;
   /** Current analysis mode (standard/performance/yamazumi) */
   mode?: AnalysisMode;
   /** Surface where CoScout is rendered */

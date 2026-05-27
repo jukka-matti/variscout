@@ -32,11 +32,11 @@ import type { CoScoutPromptTiers, AssembleCoScoutPromptOptions } from './types';
 import { buildRole } from './role';
 import { buildPhaseCoaching } from './phases';
 import { buildModeWorkflow } from './modes';
-import { formatInvestigationContext, formatDataContext, formatKnowledgeContext } from './context';
+import { formatAnalyzeContext, formatDataContext, formatKnowledgeContext } from './context';
 import { getToolsForPhase } from './tools';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from '../shared';
 import type { Hypothesis } from '../../../findings/types';
-import { investigationDisciplinePrompt } from './tier2';
+import { analyzeDisciplinePrompt } from './tier2';
 
 /**
  * Unified prompt assembler — builds a tiered prompt from modular modules.
@@ -56,7 +56,7 @@ import { investigationDisciplinePrompt } from './tier2';
 export function assembleCoScoutPrompt(
   options: AssembleCoScoutPromptOptions = {}
 ): CoScoutPromptTiers {
-  const { phase = 'frame', investigationPhase, mode = 'standard', context } = options;
+  const { phase = 'frame', analyzePhase, mode = 'standard', context } = options;
 
   // ── Tier 1: Static (cacheable prefix) ──────────────────────────────
   const tier1Parts: string[] = [];
@@ -84,7 +84,7 @@ export function assembleCoScoutPrompt(
     buildPhaseCoaching({
       phase,
       mode,
-      investigationPhase,
+      analyzePhase,
       entryScenario: context?.entryScenario,
     })
   );
@@ -93,12 +93,12 @@ export function assembleCoScoutPrompt(
   tier2Parts.push(buildModeWorkflow(mode, phase));
 
   // Tier 2 discipline coaching — phase-specific targeted guidance
-  if (phase === 'investigate') {
-    tier2Parts.push(investigationDisciplinePrompt);
+  if (phase === 'analyze') {
+    tier2Parts.push(analyzeDisciplinePrompt);
   }
 
   // Investigation context (problem statement, questions, hubs, causal links)
-  const investigationBlock = formatInvestigationContext(context?.investigation);
+  const investigationBlock = formatAnalyzeContext(context?.investigation);
   if (investigationBlock) tier2Parts.push(investigationBlock);
 
   // Data context (active chart, drill scope, top factors, stats)
@@ -122,7 +122,7 @@ export function assembleCoScoutPrompt(
 
   // ── Tools ──────────────────────────────────────────────────────────
   const tools = getToolsForPhase(phase, mode, {
-    investigationPhase,
+    analyzePhase,
     existingHubs: context?.investigation?.hypothesisHubs as Hypothesis[] | undefined,
   });
 

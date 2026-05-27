@@ -1,4 +1,4 @@
-import type { ProcessHubInvestigation } from './processHub';
+import type { ProcessHubAnalyze } from './processHub';
 
 export type Scope = 'b0' | 'b1' | 'b2';
 
@@ -12,7 +12,7 @@ export type Scope = 'b0' | 'b1' | 'b2';
  * Per docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md §2.
  * Mirrors the existing detectYamazumiFormat() / detectDefectFormat() pattern.
  */
-export function detectScope(investigation: ProcessHubInvestigation): Scope {
+export function detectScope(investigation: ProcessHubAnalyze): Scope {
   const mappings = investigation.metadata?.nodeMappings ?? [];
   if (mappings.length === 0) return 'b0';
   if (mappings.length === 1) return 'b2';
@@ -22,7 +22,7 @@ export function detectScope(investigation: ProcessHubInvestigation): Scope {
 /**
  * Classify a project by the cardinality of its `ProcessMap.nodes`.
  *
- * Used by FrameView in surfaces that don't have a `ProcessHubInvestigation`
+ * Used by FrameView in surfaces that don't have a `ProcessHubAnalyze`
  * (PWA + Azure top-level FRAME workspace) — the user has a `processMap` but
  * not yet any `nodeMappings`, so we derive scope structurally from the map.
  *

@@ -1,9 +1,9 @@
 /**
- * Tests for InvestigationCategory types, factory, migration, and inference
+ * Tests for AnalyzeCategory types, factory, migration, and inference
  */
 import { describe, it, expect } from 'vitest';
 import { createInvestigationCategory, getCategoryForFactor, CATEGORY_COLORS } from '../findings';
-import type { InvestigationCategory } from '../findings';
+import type { AnalyzeCategory } from '../findings';
 import { inferCategoryName, CATEGORY_DISPLAY_NAMES } from '../parser/keywords';
 
 // ============================================================================
@@ -55,7 +55,7 @@ describe('createInvestigationCategory', () => {
 // ============================================================================
 
 describe('getCategoryForFactor', () => {
-  const categories: InvestigationCategory[] = [
+  const categories: AnalyzeCategory[] = [
     {
       id: '1',
       name: 'Equipment',

@@ -11,7 +11,7 @@ export type {
   ProblemConditionStatus,
   TargetMetric,
   EntryScenario,
-  InvestigationPhase,
+  AnalyzePhase,
   JourneyPhase,
   AIContext,
   AIErrorType,
@@ -156,12 +156,12 @@ export type {
 // Wall investigation actions (Phase 3)
 export {
   proposeDisconfirmationMove,
-  critiqueInvestigationState,
+  critiqueAnalyzeState,
   detectBestSubsetsCandidates,
 } from './actions';
 export type {
   SuggestedBrush,
-  InvestigationGap,
+  AnalyzeGap,
   CritiqueInput,
   CritiqueResult,
   BestSubsetsCandidate,

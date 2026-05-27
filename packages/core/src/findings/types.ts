@@ -7,7 +7,7 @@ import type { HypothesisCondition } from './hypothesisCondition';
 import type { TimelineWindow } from '../timeline';
 import type { TimeLens } from '../stats/timeLens';
 import type { EntityBase } from '../identity';
-import type { ProcessHubInvestigation, ProcessParticipantRef } from '../processHub';
+import type { ProcessHubAnalyze, ProcessParticipantRef } from '../processHub';
 import type { ProcessMapTributary } from '../frame/types';
 
 // ============================================================================
@@ -353,7 +353,7 @@ export interface Question extends EntityBase {
   /** Timestamp of last update (Unix ms) */
   updatedAt: number;
   /** FK to the owning investigation. Required for normalized storage. */
-  investigationId: ProcessHubInvestigation['id'];
+  investigationId: ProcessHubAnalyze['id'];
 
   // --- Tree structure (sub-questions) ---
   /** Parent question ID — enables tree (sub-questions). Undefined for root questions. */
@@ -570,7 +570,7 @@ export interface Finding extends EntityBase {
   /** When status was last changed */
   statusChangedAt: number;
   /** FK to the owning investigation. Required for normalized storage. */
-  investigationId: ProcessHubInvestigation['id'];
+  investigationId: ProcessHubAnalyze['id'];
   /** Chart observation origin — links finding to a specific chart element */
   source?: FindingSource;
   /** Optional assignee for Team plan @mention workflow */
@@ -606,7 +606,7 @@ export interface Finding extends EntityBase {
  *
  * Three-level investigation tree: Category → Factor → Question
  */
-export interface InvestigationCategory extends EntityBase {
+export interface AnalyzeCategory extends EntityBase {
   /** User-defined name: "Equipment", "Drying Method", "Staff", etc. */
   name: string;
   /** Which factor columns belong to this category (column-name strings, not entity FKs) */
@@ -762,7 +762,7 @@ export interface Hypothesis extends EntityBase {
   /** Updated timestamp (Unix ms) */
   updatedAt: number;
   /** FK to the owning investigation. Required for normalized storage. */
-  investigationId: ProcessHubInvestigation['id'];
+  investigationId: ProcessHubAnalyze['id'];
   /** Mode-aware evidence — contribution stored, projection computed live */
   evidence?: HypothesisEvidence;
   /** Whether this hypothesis is selected for the current improvement round */
@@ -847,7 +847,7 @@ export const CATEGORY_COLORS = [
 /**
  * Composition tree for the Investigation Wall. Leaves reference `Hypothesis`
  * hubs; branches compose them with boolean gates (AND / OR / NOT). Persisted on
- * `investigationStore.problemContributionTree` so team-authored contribution stories
+ * `analyzeStore.problemContributionTree` so team-authored contribution stories
  * survive reload. Terminology: "contribution tree", never "root cause" (P5 amended).
  */
 export type GateNode =

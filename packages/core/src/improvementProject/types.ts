@@ -3,7 +3,7 @@ import type {
   ProcessHub,
   OutcomeSpec,
   ProcessParticipantRef,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
 } from '../processHub';
 import type { Hypothesis, Finding, ImprovementIdea, ActionItem } from '../findings/types';
 import type { SustainmentRecord, ControlHandoff } from '../sustainment';
@@ -20,7 +20,7 @@ export interface ImprovementProjectMetadata {
    *  per ADR-082. Optional only for the bootstrap window; future schema work may
    *  promote to required. */
   members?: ProjectMember[];
-  investigationId?: ProcessHubInvestigation['id'];
+  investigationId?: ProcessHubAnalyze['id'];
   /** Improvement actions tracked at the project level. Read-write via reduceActionItems. */
   actions?: ActionItem[];
 }

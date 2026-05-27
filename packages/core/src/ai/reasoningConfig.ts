@@ -6,7 +6,7 @@
  * and latency.
  */
 
-import type { JourneyPhase, InvestigationPhase } from './types';
+import type { JourneyPhase, AnalyzePhase } from './types';
 
 /**
  * Get the reasoning effort level for CoScout based on journey phase,
@@ -22,12 +22,12 @@ import type { JourneyPhase, InvestigationPhase } from './types';
  */
 export function getCoScoutReasoningEffort(
   phase?: JourneyPhase,
-  investigationPhase?: InvestigationPhase,
+  analyzePhase?: AnalyzePhase,
   hasStagedData?: boolean
 ): 'none' | 'low' | 'medium' | 'high' {
   if (phase === 'improve' && hasStagedData) return 'high';
-  if (phase === 'investigate') {
-    switch (investigationPhase) {
+  if (phase === 'analyze') {
+    switch (analyzePhase) {
       case 'converging':
         return 'high';
       case 'validating':

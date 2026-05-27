@@ -1,9 +1,9 @@
 import type { EvidenceLatestSignal } from './evidenceSources';
 import type {
-  InvestigationDepth,
+  AnalyzeDepth,
   ProcessHub,
   ProcessHubCadenceSummary,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
   ProcessHubRollup,
 } from './processHub';
 
@@ -62,13 +62,13 @@ export interface CurrentProcessState {
 
 const LENSES: ProcessStateLens[] = ['outcome', 'flow', 'conversion', 'measurement', 'sustainment'];
 
-const DEPTH_RESPONSE_PATHS: Record<InvestigationDepth, ProcessStateResponsePath> = {
+const DEPTH_RESPONSE_PATHS: Record<AnalyzeDepth, ProcessStateResponsePath> = {
   quick: 'quick-action',
   focused: 'focused-investigation',
   chartered: 'chartered-project',
 };
 
-const DEPTH_LABELS: Record<InvestigationDepth, string> = {
+const DEPTH_LABELS: Record<AnalyzeDepth, string> = {
   quick: 'Quick action queue',
   focused: 'Focused investigation queue',
   chartered: 'Chartered project queue',
@@ -135,13 +135,13 @@ function itemSort(a: ProcessStateItem, b: ProcessStateItem): number {
   );
 }
 
-function queueInvestigationIds<TInvestigation extends ProcessHubInvestigation>(
+function queueInvestigationIds<TInvestigation extends ProcessHubAnalyze>(
   items: { investigation: TInvestigation }[]
 ): string[] {
   return items.map(item => item.investigation.id);
 }
 
-export function buildCurrentProcessState<TInvestigation extends ProcessHubInvestigation>(
+export function buildCurrentProcessState<TInvestigation extends ProcessHubAnalyze>(
   rollup: ProcessHubRollup<TInvestigation>,
   cadence: ProcessHubCadenceSummary<TInvestigation>,
   now: Date = new Date()
@@ -251,7 +251,7 @@ export function buildCurrentProcessState<TInvestigation extends ProcessHubInvest
     });
   }
 
-  for (const depth of Object.keys(cadence.activeWork) as InvestigationDepth[]) {
+  for (const depth of Object.keys(cadence.activeWork) as AnalyzeDepth[]) {
     const queue = cadence.activeWork[depth];
     if (queue.totalCount === 0) continue;
     items.push({

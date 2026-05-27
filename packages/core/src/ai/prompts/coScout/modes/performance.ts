@@ -28,13 +28,13 @@ Focus: Quantify equipment health. How many channels need attention? Is the probl
 
 Focus: Prioritize which channels to investigate. Look for patterns across channel positions.`,
 
-  investigate: `Workflow steps:
+  analyze: `Workflow steps:
 1. Create questions per worst channel — "Why does Channel 5 show Cpk 0.72?"
-2. Look for common root causes across bad channels — shared upstream factor (e.g., supply pressure)
+2. Look for common contributions across bad channels — shared upstream factor (e.g., supply pressure)
 3. Validate with gemba — physical inspection of the worst-performing channels
 4. Check if the same factors affect multiple channels — interaction effects in the Evidence Map
 
-Focus: Equipment-specific investigation. Same root cause across channels vs independent problems.`,
+Focus: Equipment-specific investigation. Same contribution across channels vs independent problems.`,
 
   improve: `Workflow steps:
 1. For systemic issues (multiple channels affected): fix the shared upstream cause first

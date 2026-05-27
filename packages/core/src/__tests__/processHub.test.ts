@@ -24,7 +24,7 @@ function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata
     hasOverdueTasks: false,
     lastViewedAt: {},
     processHubId: DEFAULT_PROCESS_HUB_ID,
-    investigationStatus: 'scouting',
+    analyzeStatus: 'scouting',
     ...overrides,
   };
 }
@@ -51,7 +51,7 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'investigating',
+          analyzeStatus: 'investigating',
           nextMove: 'Inspect nozzle wear during night shift.',
           reviewSignal: {
             rowCount: 125,
@@ -76,7 +76,7 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'verifying',
+          analyzeStatus: 'verifying',
           actionCounts: { total: 2, completed: 1, overdue: 1 },
           nextMove: 'Compare post-action Cpk after next batch.',
         }),
@@ -198,7 +198,7 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'scouting',
+          analyzeStatus: 'scouting',
         }),
       },
     ]);
@@ -224,8 +224,8 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'quick',
-          investigationStatus: 'scouting',
+          analyzeDepth: 'quick',
+          analyzeStatus: 'scouting',
         }),
       },
       {
@@ -236,8 +236,8 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'focused',
-          investigationStatus: 'investigating',
+          analyzeDepth: 'focused',
+          analyzeStatus: 'investigating',
         }),
       },
       {
@@ -248,8 +248,8 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'chartered',
-          investigationStatus: 'ready-to-improve',
+          analyzeDepth: 'chartered',
+          analyzeStatus: 'ready-to-improve',
         }),
       },
       {
@@ -260,8 +260,8 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'focused',
-          investigationStatus: 'resolved',
+          analyzeDepth: 'focused',
+          analyzeStatus: 'resolved',
           nextMove: 'Review the result during next weekly hub cadence.',
         }),
       },
@@ -273,8 +273,8 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'quick',
-          investigationStatus: 'controlled',
+          analyzeDepth: 'quick',
+          analyzeStatus: 'controlled',
         }),
       },
     ]);
@@ -307,7 +307,7 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'framing',
+          analyzeStatus: 'framing',
           surveyReadiness: {
             possibilityStatus: 'ask-for-next',
             powerStatus: 'can-do-with-caution',
@@ -325,7 +325,7 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'verifying',
+          analyzeStatus: 'verifying',
           processDescription: 'Bottle filling line from rinse to palletizing.',
           customerRequirementSummary: 'Fill weight must stay inside customer specs.',
         }),
@@ -338,7 +338,7 @@ describe('buildProcessHubReview', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'resolved',
+          analyzeStatus: 'resolved',
           processDescription: 'Bottle filling line from rinse to palletizing.',
           customerRequirementSummary: 'Fill weight must stay inside customer specs.',
         }),
@@ -376,7 +376,7 @@ describe('buildProcessHubCadence', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'investigating',
+          analyzeStatus: 'investigating',
           processDescription: 'Bottle filling line.',
           customerRequirementSummary: 'Fill weight inside spec.',
           reviewSignal: {
@@ -402,7 +402,7 @@ describe('buildProcessHubCadence', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'framing',
+          analyzeStatus: 'framing',
         }),
       },
       {
@@ -413,7 +413,7 @@ describe('buildProcessHubCadence', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'framing',
+          analyzeStatus: 'framing',
         }),
       },
       {
@@ -424,7 +424,7 @@ describe('buildProcessHubCadence', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'framing',
+          analyzeStatus: 'framing',
         }),
       },
       {
@@ -435,7 +435,7 @@ describe('buildProcessHubCadence', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'framing',
+          analyzeStatus: 'framing',
         }),
       },
       {
@@ -446,7 +446,7 @@ describe('buildProcessHubCadence', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'framing',
+          analyzeStatus: 'framing',
         }),
       },
       {
@@ -457,7 +457,7 @@ describe('buildProcessHubCadence', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'verifying',
+          analyzeStatus: 'verifying',
           processDescription: 'Bottle filling line.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -470,7 +470,7 @@ describe('buildProcessHubCadence', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'improving',
+          analyzeStatus: 'improving',
           processDescription: 'Bottle filling line.',
           customerRequirementSummary: 'Fill weight inside spec.',
           actionCounts: { total: 2, completed: 0, overdue: 2 },
@@ -484,7 +484,7 @@ describe('buildProcessHubCadence', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'resolved',
+          analyzeStatus: 'resolved',
           processDescription: 'Bottle filling line.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -708,7 +708,7 @@ describe('buildProcessHubCadence — sustainment lane', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'hub-1',
-          investigationStatus: 'resolved',
+          analyzeStatus: 'resolved',
         }),
       },
       {
@@ -719,7 +719,7 @@ describe('buildProcessHubCadence — sustainment lane', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'hub-1',
-          investigationStatus: 'resolved',
+          analyzeStatus: 'resolved',
         }),
       },
     ];
@@ -823,7 +823,7 @@ describe('buildProcessHubRollups', () => {
         updatedAt: 1776643200000,
         createdAt: 1776643200000,
         deletedAt: null,
-        metadata: makeMetadata({ processHubId: undefined, investigationStatus: 'scouting' }),
+        metadata: makeMetadata({ processHubId: undefined, analyzeStatus: 'scouting' }),
       },
       {
         id: 'line-4-a',
@@ -833,8 +833,8 @@ describe('buildProcessHubRollups', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'focused',
-          investigationStatus: 'investigating',
+          analyzeDepth: 'focused',
+          analyzeStatus: 'investigating',
           actionCounts: { total: 2, completed: 0, overdue: 1 },
           currentUnderstandingSummary: 'Variation is concentrated on night shift.',
           problemConditionSummary: 'Cpk is below target on Heads 5-8.',
@@ -849,8 +849,8 @@ describe('buildProcessHubRollups', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'quick',
-          investigationStatus: 'verifying',
+          analyzeDepth: 'quick',
+          analyzeStatus: 'verifying',
         }),
       },
     ];
@@ -962,8 +962,8 @@ describe('buildProcessHubRollups', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'focused',
-          investigationStatus: 'investigating',
+          analyzeDepth: 'focused',
+          analyzeStatus: 'investigating',
           processDescription: 'Bottle filling from rinse through palletizing.',
           customerRequirementSummary: 'Fill weight must stay within 9-15 g.',
           processMapSummary: {
@@ -1001,8 +1001,8 @@ describe('buildProcessHubRollups', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'quick',
-          investigationStatus: 'verifying',
+          analyzeDepth: 'quick',
+          analyzeStatus: 'verifying',
           actionCounts: { total: 2, completed: 1, overdue: 1 },
           currentUnderstandingSummary: 'Post-action data is ready for comparison.',
         }),
@@ -1142,7 +1142,7 @@ describe('buildProcessHubContext — sustainment', () => {
         updatedAt: 1777161600000,
         createdAt: 1777161600000,
         deletedAt: null,
-        metadata: makeMetadata({ processHubId: 'hub-1', investigationStatus: 'resolved' }),
+        metadata: makeMetadata({ processHubId: 'hub-1', analyzeStatus: 'resolved' }),
       },
     ];
     const sustainmentRecords: SustainmentRecord[] = [

@@ -18,7 +18,7 @@ function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata
     hasOverdueTasks: false,
     lastViewedAt: {},
     processHubId: DEFAULT_PROCESS_HUB_ID,
-    investigationStatus: 'scouting',
+    analyzeStatus: 'scouting',
     ...overrides,
   };
 }
@@ -39,8 +39,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'focused',
-          investigationStatus: 'investigating',
+          analyzeDepth: 'focused',
+          analyzeStatus: 'investigating',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
           reviewSignal: {
@@ -66,8 +66,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'quick',
-          investigationStatus: 'scouting',
+          analyzeDepth: 'quick',
+          analyzeStatus: 'scouting',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -80,8 +80,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'chartered',
-          investigationStatus: 'ready-to-improve',
+          analyzeDepth: 'chartered',
+          analyzeStatus: 'ready-to-improve',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -94,8 +94,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'focused',
-          investigationStatus: 'framing',
+          analyzeDepth: 'focused',
+          analyzeStatus: 'framing',
         }),
       },
       {
@@ -106,8 +106,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'quick',
-          investigationStatus: 'verifying',
+          analyzeDepth: 'quick',
+          analyzeStatus: 'verifying',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -120,8 +120,8 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationDepth: 'quick',
-          investigationStatus: 'improving',
+          analyzeDepth: 'quick',
+          analyzeStatus: 'improving',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
           actionCounts: { total: 2, completed: 0, overdue: 2 },
@@ -135,7 +135,7 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'resolved',
+          analyzeStatus: 'resolved',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),
@@ -148,7 +148,7 @@ describe('buildCurrentProcessState', () => {
         deletedAt: null,
         metadata: makeMetadata({
           processHubId: 'line-4',
-          investigationStatus: 'controlled',
+          analyzeStatus: 'controlled',
           processDescription: 'Line 4 filling process.',
           customerRequirementSummary: 'Fill weight inside spec.',
         }),

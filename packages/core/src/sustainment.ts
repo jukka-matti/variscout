@@ -3,7 +3,7 @@ import type { EntityBase } from './identity';
 import type {
   ProcessHub,
   ProcessHubAttentionReason,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
   ProcessHubReviewItem,
   ProcessParticipantRef,
 } from './processHub';
@@ -39,7 +39,7 @@ export interface SustainmentRecord extends EntityBase {
   // deletedAt replaces the former tombstoneAt field (renamed 2026-05-06, P1.4b).
   // Set to a non-null number when the investigation leaves SUSTAINMENT_STATUSES;
   // record is archived but readable.
-  investigationId: ProcessHubInvestigation['id'];
+  investigationId: ProcessHubAnalyze['id'];
   hubId: ProcessHub['id'];
   status: SustainmentStatus;
   title: string;
@@ -75,21 +75,21 @@ export interface SustainmentReview extends EntityBase {
   // reviewedAt is the domain field for "when was this review conducted";
   // createdAt is the EntityBase lifecycle field. They are set to the same value at creation.
   recordId: SustainmentRecord['id'];
-  investigationId: ProcessHubInvestigation['id'];
+  investigationId: ProcessHubAnalyze['id'];
   hubId: ProcessHub['id'];
   reviewedAt: number;
   reviewer: ProcessParticipantRef;
   verdict: SustainmentVerdict;
   snapshotId?: EvidenceSnapshot['id'];
   observation?: string;
-  escalatedInvestigationId?: ProcessHubInvestigation['id'];
+  escalatedInvestigationId?: ProcessHubAnalyze['id'];
 }
 
 export interface ControlHandoff extends EntityBase {
   // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null).
   // recordedAt was renamed to createdAt (P1.4b, 2026-05-06) — they were semantically identical
   // (the system timestamp when this handoff entity was created).
-  investigationId: ProcessHubInvestigation['id'];
+  investigationId: ProcessHubAnalyze['id'];
   hubId: ProcessHub['id'];
   status: ControlHandoffStatus;
   surface: ControlHandoffSurface;
@@ -310,7 +310,7 @@ export function isSustainmentOverdue(
  * rest of the cadence board surfaces. Keeps the call sites in this file
  * narrow on the `<TInv>` generic.
  */
-function buildSustainmentReviewItem<TInv extends ProcessHubInvestigation>(
+function buildSustainmentReviewItem<TInv extends ProcessHubAnalyze>(
   investigation: TInv,
   reasons: ProcessHubAttentionReason[]
 ): ProcessHubReviewItem<TInv> {
@@ -325,7 +325,7 @@ function buildSustainmentReviewItem<TInv extends ProcessHubInvestigation>(
  *
  * Tombstoned records are excluded by the underlying `isSustainmentDue` check.
  */
-export function selectSustainmentReviews<TInv extends ProcessHubInvestigation>(
+export function selectSustainmentReviews<TInv extends ProcessHubAnalyze>(
   investigations: TInv[],
   records: SustainmentRecord[],
   handoffs: ControlHandoff[],
@@ -336,7 +336,7 @@ export function selectSustainmentReviews<TInv extends ProcessHubInvestigation>(
 
   return investigations
     .filter(inv => {
-      const status = inv.metadata?.investigationStatus;
+      const status = inv.metadata?.analyzeStatus;
       if (status !== 'resolved' && status !== 'controlled') return false;
       const record = recordByInvestigation.get(inv.id);
       if (!record || !isSustainmentDue(record, now)) return false;
@@ -355,7 +355,7 @@ export function selectSustainmentReviews<TInv extends ProcessHubInvestigation>(
  * (latestReviewAt within `recentReviewWindowDays`). Excludes tombstoned and
  * handoff-opted-out records, mirroring `selectSustainmentReviews`.
  */
-export interface SustainmentBuckets<TInv extends ProcessHubInvestigation> {
+export interface SustainmentBuckets<TInv extends ProcessHubAnalyze> {
   dueNow: ProcessHubReviewItem<TInv>[];
   overdue: ProcessHubReviewItem<TInv>[];
   recentlyReviewed: ProcessHubReviewItem<TInv>[];
@@ -368,7 +368,7 @@ export interface SustainmentBucketOptions {
   recentReviewWindowDays?: number;
 }
 
-export function selectSustainmentBuckets<TInv extends ProcessHubInvestigation>(
+export function selectSustainmentBuckets<TInv extends ProcessHubAnalyze>(
   investigations: TInv[],
   records: SustainmentRecord[],
   handoffs: ControlHandoff[],
@@ -387,7 +387,7 @@ export function selectSustainmentBuckets<TInv extends ProcessHubInvestigation>(
   const recentlyReviewed: ProcessHubReviewItem<TInv>[] = [];
 
   for (const inv of investigations) {
-    const status = inv.metadata?.investigationStatus;
+    const status = inv.metadata?.analyzeStatus;
     if (status !== 'resolved' && status !== 'controlled') continue;
     const record = recordByInvestigation.get(inv.id);
     if (!record || record.deletedAt !== null) continue;

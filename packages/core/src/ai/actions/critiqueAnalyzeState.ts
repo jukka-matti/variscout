@@ -16,7 +16,7 @@ const MIN_SUPPORTERS_FOR_DISCONFIRMATION_GAP = 3;
 const STALE_DAYS = 7;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-export type InvestigationGap =
+export type AnalyzeGap =
   | { kind: 'missing-disconfirmation'; hubId: string; hubName: string }
   | { kind: 'hub-without-question'; hubId: string; hubName: string }
   | { kind: 'orphan-question'; questionId: string; questionText: string }
@@ -29,11 +29,11 @@ export interface CritiqueInput {
 }
 
 export interface CritiqueResult {
-  gaps: InvestigationGap[];
+  gaps: AnalyzeGap[];
 }
 
-export function critiqueInvestigationState(input: CritiqueInput): CritiqueResult {
-  const gaps: InvestigationGap[] = [];
+export function critiqueAnalyzeState(input: CritiqueInput): CritiqueResult {
+  const gaps: AnalyzeGap[] = [];
   const findingById = new Map(input.findings.map(f => [f.id, f]));
 
   for (const hub of input.hubs) {

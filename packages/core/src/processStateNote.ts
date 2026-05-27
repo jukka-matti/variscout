@@ -24,7 +24,7 @@ export function isProcessStateNoteKind(value: string): value is ProcessStateNote
 /**
  * A single team note attached to a `ProcessStateItem`.
  *
- * Notes are stored on `ProcessHubInvestigationMetadata.stateNotes[]` and
+ * Notes are stored on `ProcessHubAnalyzeMetadata.stateNotes[]` and
  * round-trip through Blob Storage with the rest of the project metadata.
  */
 export interface ProcessStateNote {

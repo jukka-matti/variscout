@@ -33,7 +33,7 @@ Focus: Name the defect problem specifically. Which types dominate? Is the rate c
 
 Focus: Systematic Pareto-driven drill-down. Address the vital few before the trivial many.`,
 
-  investigate: `Workflow steps:
+  analyze: `Workflow steps:
 1. Build question tree around the top defect types and their contributing factors
 2. For each suspected factor, check eta-squared — does it explain significant variation in defect rate?
 3. Use composition analysis: filter to a type, then switch Pareto factor to see which machines/products/shifts contribute

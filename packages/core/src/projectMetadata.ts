@@ -12,8 +12,8 @@ import type { HubReviewSignal } from './processReviewSignal';
 import {
   investigationStatusFromJourneyPhase,
   normalizeProcessHubId,
-  type InvestigationDepth,
-  type InvestigationStatus,
+  type AnalyzeDepth,
+  type AnalyzeStatus,
   type ProcessParticipantRef,
   type ProcessHubProcessMapSummary,
   type ProcessHubSurveyReadinessSummary,
@@ -42,9 +42,9 @@ export interface ProjectMetadata {
   /** Primary Process Hub for this investigation. Legacy projects default to General / Unassigned. */
   processHubId?: string;
   /** Lightweight depth marker for hub rollups. */
-  investigationDepth?: InvestigationDepth;
+  analyzeDepth?: AnalyzeDepth;
   /** Investigation-level status for hub rollups. */
-  investigationStatus?: InvestigationStatus;
+  analyzeStatus?: AnalyzeStatus;
   /** Process description snapshot for deterministic hub context assembly. */
   processDescription?: string;
   /** Customer requirement / CTS snapshot for deterministic hub context assembly. */
@@ -91,7 +91,7 @@ function detectPhase(hasData: boolean, findings: Finding[]): JourneyPhase {
   if (!hasData) return 'frame';
   const hasActions = findings.some(f => f.actions && f.actions.length > 0);
   if (hasActions) return 'improve';
-  if (findings.length > 0) return 'investigate';
+  if (findings.length > 0) return 'analyze';
   return 'scout';
 }
 
@@ -200,9 +200,8 @@ export function buildProjectMetadata(
     hasOverdueTasks,
     lastViewedAt: existingLastViewedAt ?? {},
     processHubId: normalizeProcessHubId(processContext?.processHubId),
-    investigationDepth: processContext?.investigationDepth,
-    investigationStatus:
-      processContext?.investigationStatus ?? investigationStatusFromJourneyPhase(phase),
+    analyzeDepth: processContext?.analyzeDepth,
+    analyzeStatus: processContext?.analyzeStatus ?? investigationStatusFromJourneyPhase(phase),
     processDescription: processContext?.description,
     customerRequirementSummary:
       processContext?.processMap?.ctsColumn ?? processContext?.measurement ?? undefined,

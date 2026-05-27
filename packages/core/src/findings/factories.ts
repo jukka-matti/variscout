@@ -16,7 +16,7 @@ import {
   type QuestionValidationType,
   type ImprovementIdea,
   type PhotoAttachment,
-  type InvestigationCategory,
+  type AnalyzeCategory,
   type Hypothesis,
   type CausalLink,
 } from './types';
@@ -389,15 +389,15 @@ export function createCausalLink(
 }
 
 /**
- * Create a new InvestigationCategory with a unique ID and auto-assigned color.
+ * Create a new AnalyzeCategory with a unique ID and auto-assigned color.
  */
 export function createInvestigationCategory(
   name: string,
   factorNames: string[],
   existingCount: number = 0,
   inferredFrom?: string
-): InvestigationCategory {
-  const category: InvestigationCategory = {
+): AnalyzeCategory {
+  const category: AnalyzeCategory = {
     id: generateDeterministicId(),
     name,
     factorNames,

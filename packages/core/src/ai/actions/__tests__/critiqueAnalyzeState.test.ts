@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { critiqueInvestigationState } from '../critiqueInvestigationState';
+import { critiqueAnalyzeState } from '../critiqueAnalyzeState';
 import type { Hypothesis, Question, Finding } from '@variscout/core';
 
 const FIXED_NOW = Date.parse('2026-04-19T00:00:00Z');
@@ -52,11 +52,11 @@ function finding(id: string, validationStatus?: Finding['validationStatus']): Fi
   };
 }
 
-describe('critiqueInvestigationState', () => {
+describe('critiqueAnalyzeState', () => {
   it('flags hubs with 3+ findings and no contradictor as missing disconfirmation', () => {
     const hubs = [hub('h1', ['f1', 'f2', 'f3'])];
     const findings = [finding('f1'), finding('f2'), finding('f3')];
-    const result = critiqueInvestigationState({ hubs, questions: [], findings });
+    const result = critiqueAnalyzeState({ hubs, questions: [], findings });
     expect(result.gaps.some(g => g.kind === 'missing-disconfirmation' && g.hubId === 'h1')).toBe(
       true
     );
@@ -65,7 +65,7 @@ describe('critiqueInvestigationState', () => {
   it('does not flag hubs that already have a contradictor', () => {
     const hubs = [hub('h1', ['f1', 'f2', 'f3'])];
     const findings = [finding('f1'), finding('f2'), finding('f3', 'contradicts')];
-    const result = critiqueInvestigationState({ hubs, questions: [], findings });
+    const result = critiqueAnalyzeState({ hubs, questions: [], findings });
     expect(result.gaps.some(g => g.kind === 'missing-disconfirmation' && g.hubId === 'h1')).toBe(
       false
     );
@@ -74,14 +74,14 @@ describe('critiqueInvestigationState', () => {
   it('flags hubs with no linked questions', () => {
     const hubs = [hub('h1', ['f1'], /* no questions */ [])];
     const findings = [finding('f1')];
-    const result = critiqueInvestigationState({ hubs, questions: [], findings });
+    const result = critiqueAnalyzeState({ hubs, questions: [], findings });
     expect(result.gaps.some(g => g.kind === 'hub-without-question' && g.hubId === 'h1')).toBe(true);
   });
 
   it('flags orphan open questions not linked to any hub', () => {
     const hubs: Hypothesis[] = [];
     const questions = [question('q1'), question('q2', 'answered')];
-    const result = critiqueInvestigationState({ hubs, questions, findings: [] });
+    const result = critiqueAnalyzeState({ hubs, questions, findings: [] });
     // q1 is open and orphan; q2 is answered (not orphan-flaggable).
     expect(result.gaps.filter(g => g.kind === 'orphan-question').length).toBe(1);
   });
@@ -93,7 +93,7 @@ describe('critiqueInvestigationState', () => {
       { ...question('qStale'), createdAt: staleTs, updatedAt: staleTs },
       { ...question('qFresh'), createdAt: freshTs, updatedAt: freshTs },
     ];
-    const result = critiqueInvestigationState({ hubs: [], questions, findings: [] });
+    const result = critiqueAnalyzeState({ hubs: [], questions, findings: [] });
     expect(result.gaps.some(g => g.kind === 'stale-question' && g.questionId === 'qStale')).toBe(
       true
     );
@@ -103,7 +103,7 @@ describe('critiqueInvestigationState', () => {
   });
 
   it('returns empty gaps array for clean investigation', () => {
-    const result = critiqueInvestigationState({ hubs: [], questions: [], findings: [] });
+    const result = critiqueAnalyzeState({ hubs: [], questions: [], findings: [] });
     expect(result.gaps).toEqual([]);
   });
 });

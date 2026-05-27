@@ -15,7 +15,7 @@ import {
   type SustainmentVerdict,
 } from '../sustainment';
 import type { EvidenceSnapshot } from '../evidenceSources';
-import type { ProcessHubInvestigation } from '../processHub';
+import type { ProcessHubAnalyze } from '../processHub';
 
 describe('nextDueFromCadence', () => {
   it('adds 7 days for weekly cadence anchored to a known timestamp', () => {
@@ -351,14 +351,14 @@ describe('isSustainmentOverdue', () => {
 
 function makeInvestigation(
   id: string,
-  status: NonNullable<ProcessHubInvestigation['metadata']>['investigationStatus'],
+  status: NonNullable<ProcessHubAnalyze['metadata']>['analyzeStatus'],
   sustainmentProjection?: {
     recordId: string;
     cadence: SustainmentCadence;
     nextReviewDue?: string;
     latestVerdict?: SustainmentVerdict;
   }
-): ProcessHubInvestigation {
+): ProcessHubAnalyze {
   return {
     id,
     name: id,
@@ -370,7 +370,7 @@ function makeInvestigation(
       questionCounts: {},
       actionCounts: { total: 0, completed: 0, overdue: 0 },
       processHubId: 'hub-1',
-      investigationStatus: status,
+      analyzeStatus: status,
       sustainment: sustainmentProjection,
     },
   };

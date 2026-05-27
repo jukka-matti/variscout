@@ -11,7 +11,7 @@ import type {
   AIContext,
   CoScoutMessage,
   JourneyPhase,
-  InvestigationPhase,
+  AnalyzePhase,
   EntryScenario,
 } from '../../types';
 import type { ToolDefinition, MessageContent, InputContentPart } from '../../responsesApi';
@@ -28,7 +28,7 @@ export interface BuildCoScoutToolsOptions {
   /** Current journey phase — determines which tools are available */
   phase?: JourneyPhase;
   /** Current investigation phase — used for fine-grained tool gating within INVESTIGATE */
-  investigationPhase?: InvestigationPhase;
+  analyzePhase?: AnalyzePhase;
   /** Existing Hypothesis hubs — enables connect_hub_evidence when non-empty */
   existingHubs?: Hypothesis[];
 }
@@ -41,7 +41,7 @@ export interface BuildCoScoutToolsOptions {
  * ADR-029: Extended from 3 to 13 tools with action tool support.
  */
 export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolDefinition[] {
-  const { phase, investigationPhase, existingHubs } = options;
+  const { phase, analyzePhase, existingHubs } = options;
 
   // Read tools — always available
   const tools: ToolDefinition[] = [
@@ -296,7 +296,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
   }
 
   // INVESTIGATE+ tools
-  if (phase === 'investigate' || phase === 'improve') {
+  if (phase === 'analyze' || phase === 'improve') {
     tools.push(
       {
         type: 'function',
@@ -609,7 +609,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
     );
 
     // Suspected cause hub tools — phase-gated to validating/converging
-    if (investigationPhase === 'validating' || investigationPhase === 'converging') {
+    if (analyzePhase === 'validating' || analyzePhase === 'converging') {
       tools.push({
         type: 'function',
         name: 'suggest_hypothesis',
@@ -1360,7 +1360,7 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
     }
 
     // Insight capture guidance — INVESTIGATE and IMPROVE phases only (ADR-049)
-    if (options.phase === 'investigate' || options.phase === 'improve') {
+    if (options.phase === 'analyze' || options.phase === 'improve') {
       parts.push(
         `Insight capture guidance (INVESTIGATE/IMPROVE phases):
 - Use suggest_save_finding when the conversation reveals:

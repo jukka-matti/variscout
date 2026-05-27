@@ -12,7 +12,7 @@
  */
 
 import type { ToolDefinition } from '../../../responsesApi';
-import type { JourneyPhase, InvestigationPhase } from '../../../types';
+import type { JourneyPhase, AnalyzePhase } from '../../../types';
 import type { AnalysisMode } from '../../../../types';
 import type { Hypothesis } from '../../../../findings/types';
 
@@ -28,10 +28,7 @@ export interface ToolRegistryEntry {
   /** Optional: restrict to specific analysis modes */
   modes?: AnalysisMode[];
   /** Optional: dynamic availability condition */
-  condition?: (ctx: {
-    investigationPhase?: InvestigationPhase;
-    existingHubs?: Hypothesis[];
-  }) => boolean;
+  condition?: (ctx: { analyzePhase?: AnalyzePhase; existingHubs?: Hypothesis[] }) => boolean;
 }
 
 // ── Tool Registry ──────────────────────────────────────────────────────
@@ -60,7 +57,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'investigate', 'improve'],
+    phases: ['frame', 'scout', 'analyze', 'improve'],
   },
 
   get_statistical_summary: {
@@ -77,7 +74,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'investigate', 'improve'],
+    phases: ['frame', 'scout', 'analyze', 'improve'],
   },
 
   search_knowledge_base: {
@@ -97,7 +94,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'investigate', 'improve'],
+    phases: ['frame', 'scout', 'analyze', 'improve'],
   },
 
   get_available_factors: {
@@ -114,7 +111,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'investigate', 'improve'],
+    phases: ['frame', 'scout', 'analyze', 'improve'],
   },
 
   critique_investigation_state: {
@@ -131,7 +128,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['investigate'],
+    phases: ['analyze'],
   },
 
   compare_categories: {
@@ -154,7 +151,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'investigate', 'improve'],
+    phases: ['frame', 'scout', 'analyze', 'improve'],
   },
 
   get_finding_attachment: {
@@ -179,7 +176,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'investigate', 'improve'],
+    phases: ['frame', 'scout', 'analyze', 'improve'],
   },
 
   // ── SCOUT+ action tools ──────────────────────────────────────────────
@@ -202,7 +199,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['scout', 'investigate', 'improve'],
+    phases: ['scout', 'analyze', 'improve'],
   },
 
   switch_factor: {
@@ -225,7 +222,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['scout', 'investigate', 'improve'],
+    phases: ['scout', 'analyze', 'improve'],
   },
 
   clear_filters: {
@@ -242,7 +239,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['scout', 'investigate', 'improve'],
+    phases: ['scout', 'analyze', 'improve'],
   },
 
   create_finding: {
@@ -266,7 +263,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['scout', 'investigate', 'improve'],
+    phases: ['scout', 'analyze', 'improve'],
   },
 
   search_project: {
@@ -307,7 +304,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['scout', 'investigate', 'improve'],
+    phases: ['scout', 'analyze', 'improve'],
   },
 
   navigate_to: {
@@ -350,7 +347,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['scout', 'investigate', 'improve'],
+    phases: ['scout', 'analyze', 'improve'],
   },
 
   // ── INVESTIGATE+ action tools ────────────────────────────────────────
@@ -400,7 +397,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
   },
 
   answer_question: {
@@ -436,7 +433,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
   },
 
   propose_hypothesis_from_finding: {
@@ -463,7 +460,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate'],
+    phases: ['analyze'],
   },
 
   suggest_hypothesis: {
@@ -501,9 +498,8 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
-    condition: ctx =>
-      ctx.investigationPhase === 'validating' || ctx.investigationPhase === 'converging',
+    phases: ['analyze', 'improve'],
+    condition: ctx => ctx.analyzePhase === 'validating' || ctx.analyzePhase === 'converging',
   },
 
   connect_hub_evidence: {
@@ -537,7 +533,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
     condition: ctx => Boolean(ctx.existingHubs && ctx.existingHubs.length > 0),
   },
 
@@ -604,7 +600,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
   },
 
   suggest_action: {
@@ -637,7 +633,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
   },
 
   spark_brainstorm_ideas: {
@@ -684,7 +680,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
   },
 
   suggest_save_finding: {
@@ -723,7 +719,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
   },
 
   // ── Evidence Map tools (INVESTIGATE+) ────────────────────────────────
@@ -765,7 +761,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
   },
 
   highlight_map_pattern: {
@@ -800,7 +796,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
   },
 
   // ── Team-only tools (INVESTIGATE+) ───────────────────────────────────
@@ -825,7 +821,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
   },
 
   publish_report: {
@@ -842,7 +838,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['investigate', 'improve'],
+    phases: ['analyze', 'improve'],
   },
 
   // ── IMPROVE-only team tool ───────────────────────────────────────────
@@ -888,7 +884,7 @@ export function getToolsForPhase(
   phase: JourneyPhase,
   mode: AnalysisMode,
   options?: {
-    investigationPhase?: InvestigationPhase;
+    analyzePhase?: AnalyzePhase;
     existingHubs?: Hypothesis[];
   }
 ): ToolDefinition[] {
@@ -902,7 +898,7 @@ export function getToolsForPhase(
       if (
         entry.condition &&
         !entry.condition({
-          investigationPhase: options?.investigationPhase,
+          analyzePhase: options?.analyzePhase,
           existingHubs: options?.existingHubs,
         })
       )

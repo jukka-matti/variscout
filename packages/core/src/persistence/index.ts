@@ -4,7 +4,7 @@ export type {
   OutcomeReadAPI,
   EvidenceSnapshotReadAPI,
   EvidenceSourceReadAPI,
-  InvestigationReadAPI,
+  AnalyzeReadAPI,
   FindingReadAPI,
   QuestionReadAPI,
   CausalLinkReadAPI,

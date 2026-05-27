@@ -1,6 +1,6 @@
 import type {
   ProcessHubAttentionReason,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
   ProcessHubReadinessReason,
   ProcessHubReviewItem,
 } from './processHub';
@@ -12,7 +12,7 @@ import type {
  * value-import it without creating a runtime cycle. The type imports
  * back to processHub.ts above are erased at compile time.
  */
-export function buildReviewItem<TInvestigation extends ProcessHubInvestigation>(
+export function buildReviewItem<TInvestigation extends ProcessHubAnalyze>(
   investigation: TInvestigation,
   reasons: ProcessHubAttentionReason[],
   readinessReasons: ProcessHubReadinessReason[] = []

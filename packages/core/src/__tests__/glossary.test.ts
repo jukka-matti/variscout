@@ -49,7 +49,7 @@ describe('investigation terms', () => {
   it('includes key investigation terms', () => {
     const ids = investigationTerms.map(t => t.id);
     expect(ids).toContain('finding');
-    expect(ids).toContain('investigationStatus');
+    expect(ids).toContain('analyzeStatus');
     expect(ids).toContain('keyDriver');
     expect(ids).toContain('actionItem');
     expect(ids).toContain('findingOutcome');

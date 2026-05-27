@@ -62,9 +62,9 @@ export function isProcessHubId(value: unknown): value is ProcessHubId {
 export const DEFAULT_PROCESS_HUB_ID: ProcessHubId = 'general-unassigned' as ProcessHubId;
 export const DEFAULT_PROCESS_HUB_NAME = 'General / Unassigned';
 
-export type InvestigationDepth = 'quick' | 'focused' | 'chartered';
+export type AnalyzeDepth = 'quick' | 'focused' | 'chartered';
 
-export type InvestigationStatus =
+export type AnalyzeStatus =
   | 'issue-captured'
   | 'framing'
   | 'scouting'
@@ -182,7 +182,7 @@ export const DEFAULT_PROCESS_HUB: ProcessHub = {
  *
  * See spec: docs/superpowers/specs/2026-04-28-production-line-glance-design.md
  */
-export interface InvestigationNodeMapping {
+export interface AnalyzeNodeMapping {
   /** ID of the canonical-map node this mapping addresses. */
   nodeId: string;
   /** Column in this investigation's data carrying the per-step measurement. */
@@ -207,10 +207,10 @@ export interface ScopeFilter {
   values: ReadonlyArray<string | number>;
 }
 
-export interface ProcessHubInvestigationMetadata {
+export interface ProcessHubAnalyzeMetadata {
   processHubId?: string;
-  investigationDepth?: InvestigationDepth;
-  investigationStatus?: InvestigationStatus;
+  analyzeDepth?: AnalyzeDepth;
+  analyzeStatus?: AnalyzeStatus;
   findingCounts?: Partial<Record<FindingStatus, number>>;
   questionCounts?: Partial<Record<QuestionStatus, number>>;
   actionCounts?: { total: number; completed: number; overdue: number };
@@ -243,9 +243,9 @@ export interface ProcessHubInvestigationMetadata {
   canonicalMapVersion?: string;
   /**
    * Per-node measurement-column mappings. Drives per-(node × context-tuple)
-   * capability computation. See `InvestigationNodeMapping` above.
+   * capability computation. See `AnalyzeNodeMapping` above.
    */
-  nodeMappings?: InvestigationNodeMapping[];
+  nodeMappings?: AnalyzeNodeMapping[];
   /**
    * Optional timeline window applied to this investigation's data when
    * computing findings/charts. Co-located with nodeMappings per Decision #1
@@ -274,21 +274,19 @@ export interface ProcessHubInvestigationMetadata {
   paretoGroupBy?: string;
 }
 
-export interface ProcessHubInvestigation extends EntityBase {
+export interface ProcessHubAnalyze extends EntityBase {
   name: string;
   /** Unix ms timestamp of the last modification. Renamed from the legacy `modified: string` field. */
   updatedAt: number;
-  metadata?: ProcessHubInvestigationMetadata;
+  metadata?: ProcessHubAnalyzeMetadata;
 }
 
-export interface ProcessHubRollup<
-  TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
-> {
+export interface ProcessHubRollup<TInvestigation extends ProcessHubAnalyze = ProcessHubAnalyze> {
   hub: ProcessHub;
   investigations: TInvestigation[];
   activeInvestigationCount: number;
-  statusCounts: Partial<Record<InvestigationStatus, number>>;
-  depthCounts: Partial<Record<InvestigationDepth, number>>;
+  statusCounts: Partial<Record<AnalyzeStatus, number>>;
+  depthCounts: Partial<Record<AnalyzeDepth, number>>;
   overdueActionCount: number;
   /** Unix ms timestamp of the most recently modified investigation, or null if none. */
   latestActivity: number | null;
@@ -337,7 +335,7 @@ export interface ProcessHubSurveyReadinessSummary {
 }
 
 export interface ProcessHubReviewItem<
-  TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
+  TInvestigation extends ProcessHubAnalyze = ProcessHubAnalyze,
 > {
   investigation: TInvestigation;
   reasons: ProcessHubAttentionReason[];
@@ -349,14 +347,12 @@ export interface ProcessHubReviewItem<
   readinessReasons: ProcessHubReadinessReason[];
 }
 
-export interface ProcessHubReview<
-  TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
-> {
+export interface ProcessHubReview<TInvestigation extends ProcessHubAnalyze = ProcessHubAnalyze> {
   hub: ProcessHub;
   activeInvestigationCount: number;
   /** Unix ms timestamp of the most recently modified investigation, or null if none. */
   latestActivity: number | null;
-  depthQueues: Record<InvestigationDepth, ProcessHubReviewItem<TInvestigation>[]>;
+  depthQueues: Record<AnalyzeDepth, ProcessHubReviewItem<TInvestigation>[]>;
   whereToFocus: ProcessHubReviewItem<TInvestigation>[];
   verificationQueue: ProcessHubReviewItem<TInvestigation>[];
   overdueActionQueue: ProcessHubReviewItem<TInvestigation>[];
@@ -379,7 +375,7 @@ export interface ProcessHubCadenceSnapshot {
 }
 
 export interface ProcessHubCadenceQueue<
-  TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
+  TInvestigation extends ProcessHubAnalyze = ProcessHubAnalyze,
 > {
   totalCount: number;
   hiddenCount: number;
@@ -387,7 +383,7 @@ export interface ProcessHubCadenceQueue<
 }
 
 export interface ProcessHubCadenceSummary<
-  TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
+  TInvestigation extends ProcessHubAnalyze = ProcessHubAnalyze,
 > {
   hub: ProcessHub;
   activeInvestigationCount: number;
@@ -405,7 +401,7 @@ export interface ProcessHubCadenceSummary<
   actions: ProcessHubCadenceQueue<TInvestigation>;
   sustainment: ProcessHubCadenceQueue<TInvestigation>;
   nextMoves: ProcessHubCadenceQueue<TInvestigation>;
-  activeWork: Record<InvestigationDepth, ProcessHubCadenceQueue<TInvestigation>>;
+  activeWork: Record<AnalyzeDepth, ProcessHubCadenceQueue<TInvestigation>>;
 }
 
 export interface ProcessHubContextInvestigation {
@@ -413,8 +409,8 @@ export interface ProcessHubContextInvestigation {
   name: string;
   /** Unix ms timestamp of the last modification. */
   updatedAt: number;
-  status: InvestigationStatus;
-  depth?: InvestigationDepth;
+  status: AnalyzeStatus;
+  depth?: AnalyzeDepth;
   currentUnderstandingSummary?: string;
   problemConditionSummary?: string;
   nextMove?: string;
@@ -487,7 +483,7 @@ export interface ProcessHubContextContract {
   readinessReasons: ProcessHubReadinessReason[];
 }
 
-const ACTIVE_STATUSES = new Set<InvestigationStatus>([
+const ACTIVE_STATUSES = new Set<AnalyzeStatus>([
   'issue-captured',
   'framing',
   'scouting',
@@ -497,11 +493,11 @@ const ACTIVE_STATUSES = new Set<InvestigationStatus>([
   'verifying',
 ]);
 
-const INVESTIGATION_DEPTHS: InvestigationDepth[] = ['quick', 'focused', 'chartered'];
+const INVESTIGATION_DEPTHS: AnalyzeDepth[] = ['quick', 'focused', 'chartered'];
 
 const CADENCE_QUEUE_LIMIT = 4;
 
-const SUSTAINMENT_STATUSES = new Set<InvestigationStatus>(['resolved', 'controlled']);
+const SUSTAINMENT_STATUSES = new Set<AnalyzeStatus>(['resolved', 'controlled']);
 
 export function normalizeProcessHubId(processHubId?: string | null): ProcessHubId {
   const trimmed = processHubId?.trim();
@@ -529,20 +525,20 @@ export function isProcessHubComplete(hub: ProcessHub): boolean {
   return hasGoal && hasOutcome;
 }
 
-export function investigationStatusFromJourneyPhase(phase: JourneyPhase): InvestigationStatus {
+export function investigationStatusFromJourneyPhase(phase: JourneyPhase): AnalyzeStatus {
   switch (phase) {
     case 'frame':
       return 'framing';
     case 'scout':
       return 'scouting';
-    case 'investigate':
+    case 'analyze':
       return 'investigating';
     case 'improve':
       return 'improving';
   }
 }
 
-function newestInvestigation<TInvestigation extends ProcessHubInvestigation>(
+function newestInvestigation<TInvestigation extends ProcessHubAnalyze>(
   investigations: TInvestigation[]
 ): TInvestigation | undefined {
   return [...investigations].sort((a, b) => b.updatedAt - a.updatedAt)[0];
@@ -552,7 +548,7 @@ function synthesizeOrphanHub(hubId: string): ProcessHub {
   return { id: hubId, name: 'Unknown hub', createdAt: 0, deletedAt: null };
 }
 
-export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestigation>(
+export function buildProcessHubRollups<TInvestigation extends ProcessHubAnalyze>(
   hubs: ProcessHub[],
   investigations: TInvestigation[],
   options: {
@@ -603,17 +599,17 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
       const hubInvestigations = [...(grouped.get(hub.id) ?? [])].sort(
         (a, b) => b.updatedAt - a.updatedAt
       );
-      const statusCounts: Partial<Record<InvestigationStatus, number>> = {};
-      const depthCounts: Partial<Record<InvestigationDepth, number>> = {};
+      const statusCounts: Partial<Record<AnalyzeStatus, number>> = {};
+      const depthCounts: Partial<Record<AnalyzeDepth, number>> = {};
       let overdueActionCount = 0;
       let activeInvestigationCount = 0;
 
       for (const investigation of hubInvestigations) {
-        const status = investigation.metadata?.investigationStatus ?? 'scouting';
+        const status = investigation.metadata?.analyzeStatus ?? 'scouting';
         statusCounts[status] = (statusCounts[status] ?? 0) + 1;
         if (ACTIVE_STATUSES.has(status)) activeInvestigationCount++;
 
-        const depth = investigation.metadata?.investigationDepth;
+        const depth = investigation.metadata?.analyzeDepth;
         if (depth) depthCounts[depth] = (depthCounts[depth] ?? 0) + 1;
 
         overdueActionCount += investigation.metadata?.actionCounts?.overdue ?? 0;
@@ -670,7 +666,7 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
     });
 }
 
-function modifiedTime(investigation: ProcessHubInvestigation): number {
+function modifiedTime(investigation: ProcessHubAnalyze): number {
   return Number.isFinite(investigation.updatedAt) ? investigation.updatedAt : 0;
 }
 
@@ -682,7 +678,7 @@ function cpkGap(signal?: HubReviewSignal): number | undefined {
   return gap > 0 ? Math.round(gap * 100) / 100 : undefined;
 }
 
-function compareFocusItems<TInvestigation extends ProcessHubInvestigation>(
+function compareFocusItems<TInvestigation extends ProcessHubAnalyze>(
   a: ProcessHubReviewItem<TInvestigation>,
   b: ProcessHubReviewItem<TInvestigation>
 ): number {
@@ -694,14 +690,14 @@ function compareFocusItems<TInvestigation extends ProcessHubInvestigation>(
   );
 }
 
-function compareNewest<TInvestigation extends ProcessHubInvestigation>(
+function compareNewest<TInvestigation extends ProcessHubAnalyze>(
   a: ProcessHubReviewItem<TInvestigation>,
   b: ProcessHubReviewItem<TInvestigation>
 ): number {
   return modifiedTime(b.investigation) - modifiedTime(a.investigation);
 }
 
-function compareOverdue<TInvestigation extends ProcessHubInvestigation>(
+function compareOverdue<TInvestigation extends ProcessHubAnalyze>(
   a: ProcessHubReviewItem<TInvestigation>,
   b: ProcessHubReviewItem<TInvestigation>
 ): number {
@@ -728,12 +724,12 @@ function hasSurveyGap(summary?: ProcessHubSurveyReadinessSummary): boolean {
   );
 }
 
-function readinessReasons<TInvestigation extends ProcessHubInvestigation>(
+function readinessReasons<TInvestigation extends ProcessHubAnalyze>(
   investigation: TInvestigation
 ): ProcessHubReadinessReason[] {
   const reasons: ProcessHubReadinessReason[] = [];
   const metadata = investigation.metadata;
-  const status = metadata?.investigationStatus ?? 'scouting';
+  const status = metadata?.analyzeStatus ?? 'scouting';
 
   if (!metadata) reasons.push('missing-metadata');
   if (normalizeProcessHubId(metadata?.processHubId) === DEFAULT_PROCESS_HUB_ID) {
@@ -764,20 +760,20 @@ function uniqueReadinessReasons(reasons: ProcessHubReadinessReason[]): ProcessHu
   return READINESS_REASON_ORDER.filter(reason => reasons.includes(reason));
 }
 
-export function buildProcessHubReview<TInvestigation extends ProcessHubInvestigation>(
+export function buildProcessHubReview<TInvestigation extends ProcessHubAnalyze>(
   rollup: ProcessHubRollup<TInvestigation>
 ): ProcessHubReview<TInvestigation> {
-  const depthQueues: Record<InvestigationDepth, ProcessHubReviewItem<TInvestigation>[]> = {
+  const depthQueues: Record<AnalyzeDepth, ProcessHubReviewItem<TInvestigation>[]> = {
     quick: [],
     focused: [],
     chartered: [],
   };
 
   for (const investigation of rollup.investigations) {
-    const status = investigation.metadata?.investigationStatus ?? 'scouting';
+    const status = investigation.metadata?.analyzeStatus ?? 'scouting';
     if (!ACTIVE_STATUSES.has(status)) continue;
 
-    const depth = investigation.metadata?.investigationDepth ?? 'quick';
+    const depth = investigation.metadata?.analyzeDepth ?? 'quick';
     depthQueues[depth].push(buildReviewItem(investigation, []));
   }
 
@@ -793,7 +789,7 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
     .sort(compareFocusItems);
 
   const verificationQueue = rollup.investigations
-    .filter(investigation => investigation.metadata?.investigationStatus === 'verifying')
+    .filter(investigation => investigation.metadata?.analyzeStatus === 'verifying')
     .map(investigation => buildReviewItem(investigation, ['verification']))
     .sort(compareNewest);
 
@@ -805,7 +801,7 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
   const nextMoveQueue = rollup.investigations
     .filter(
       investigation =>
-        ACTIVE_STATUSES.has(investigation.metadata?.investigationStatus ?? 'scouting') &&
+        ACTIVE_STATUSES.has(investigation.metadata?.analyzeStatus ?? 'scouting') &&
         investigation.metadata?.nextMove
     )
     .map(investigation => buildReviewItem(investigation, ['next-move']))
@@ -813,7 +809,7 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
 
   const sustainmentQueue = rollup.investigations
     .filter(investigation =>
-      SUSTAINMENT_STATUSES.has(investigation.metadata?.investigationStatus ?? 'scouting')
+      SUSTAINMENT_STATUSES.has(investigation.metadata?.analyzeStatus ?? 'scouting')
     )
     .map(investigation => buildReviewItem(investigation, ['sustainment']))
     .sort(compareNewest);
@@ -841,7 +837,7 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
   };
 }
 
-function cadenceQueue<TInvestigation extends ProcessHubInvestigation>(
+function cadenceQueue<TInvestigation extends ProcessHubAnalyze>(
   items: ProcessHubReviewItem<TInvestigation>[]
 ): ProcessHubCadenceQueue<TInvestigation> {
   return {
@@ -876,7 +872,7 @@ function evidenceSignalQueue(signals: EvidenceLatestSignal[]) {
   };
 }
 
-export function buildProcessHubCadence<TInvestigation extends ProcessHubInvestigation>(
+export function buildProcessHubCadence<TInvestigation extends ProcessHubAnalyze>(
   rollup: ProcessHubRollup<TInvestigation>,
   now: Date = new Date()
 ): ProcessHubCadenceSummary<TInvestigation> {
@@ -962,7 +958,7 @@ function buildSustainmentSummary(
   return { candidates, due, overdue, verdicts };
 }
 
-export function buildProcessHubContext<TInvestigation extends ProcessHubInvestigation>(
+export function buildProcessHubContext<TInvestigation extends ProcessHubAnalyze>(
   rollup: ProcessHubRollup<TInvestigation>,
   now: Date = new Date()
 ): ProcessHubContextContract {
@@ -1051,8 +1047,8 @@ export function buildProcessHubContext<TInvestigation extends ProcessHubInvestig
       id: investigation.id,
       name: investigation.name,
       updatedAt: investigation.updatedAt,
-      status: investigation.metadata?.investigationStatus ?? 'scouting',
-      depth: investigation.metadata?.investigationDepth,
+      status: investigation.metadata?.analyzeStatus ?? 'scouting',
+      depth: investigation.metadata?.analyzeDepth,
       currentUnderstandingSummary: investigation.metadata?.currentUnderstandingSummary,
       problemConditionSummary: investigation.metadata?.problemConditionSummary,
       nextMove: investigation.metadata?.nextMove,

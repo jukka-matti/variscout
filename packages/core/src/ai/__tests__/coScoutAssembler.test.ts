@@ -53,7 +53,7 @@ describe('assembleCoScoutPrompt', () => {
 
   it('tier2SemiStatic contains phase coaching and mode workflow', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'standard',
       surface: 'fullPanel',
       context: MINIMAL_CONTEXT,
@@ -64,7 +64,7 @@ describe('assembleCoScoutPrompt', () => {
 
   it('tier2SemiStatic contains mode workflow for yamazumi', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'yamazumi',
       surface: 'fullPanel',
       context: MINIMAL_CONTEXT,
@@ -74,7 +74,7 @@ describe('assembleCoScoutPrompt', () => {
 
   it('tier1Static contains role but NOT investigation data', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'standard',
       surface: 'fullPanel',
       context: {
@@ -89,7 +89,7 @@ describe('assembleCoScoutPrompt', () => {
 
   it('tier1Static is identical regardless of context', () => {
     const rich = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'standard',
       surface: 'fullPanel',
       context: {
@@ -120,13 +120,13 @@ describe('assembleCoScoutPrompt', () => {
   });
 
   it('tier3Dynamic is empty string (Phase 2 placeholder)', () => {
-    const result = assembleCoScoutPrompt({ phase: 'investigate' });
+    const result = assembleCoScoutPrompt({ phase: 'analyze' });
     expect(result.tier3Dynamic).toBe('');
   });
 
   it('tier2SemiStatic includes investigation context when provided', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'investigate',
+      phase: 'analyze',
       mode: 'standard',
       surface: 'fullPanel',
       context: {

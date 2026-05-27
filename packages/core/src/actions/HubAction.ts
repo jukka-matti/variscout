@@ -1,7 +1,7 @@
 import type { OutcomeAction } from './outcomeActions';
 import type { EvidenceAction } from './evidenceActions';
 import type { EvidenceSourceAction } from './evidenceSourceActions';
-import type { InvestigationAction } from './investigationActions';
+import type { AnalyzeAction } from './analyzeActions';
 import type { FindingAction } from './findingActions';
 import type { QuestionAction } from './questionActions';
 import type { CausalLinkAction } from './causalLinkActions';
@@ -23,7 +23,7 @@ export type HubAction =
   | OutcomeAction
   | EvidenceAction
   | EvidenceSourceAction
-  | InvestigationAction
+  | AnalyzeAction
   | FindingAction
   | QuestionAction
   | CausalLinkAction

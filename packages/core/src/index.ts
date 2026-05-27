@@ -471,7 +471,7 @@ export type {
   ProblemConditionStatus,
   TargetMetric,
   EntryScenario,
-  InvestigationPhase,
+  AnalyzePhase,
   JourneyPhase,
   AITier,
   AIContext,
@@ -562,8 +562,8 @@ export type {
   SurveyTrustItem,
 } from './survey';
 export type {
-  InvestigationDepth,
-  InvestigationStatus,
+  AnalyzeDepth,
+  AnalyzeStatus,
   ProcessHubAttentionReason,
   ScopeFilter,
   ProcessHubCadenceQueue,
@@ -572,8 +572,8 @@ export type {
   ProcessHubContextContract,
   ProcessHubContextInvestigation,
   ProcessHub,
-  ProcessHubInvestigation,
-  ProcessHubInvestigationMetadata,
+  ProcessHubAnalyze,
+  ProcessHubAnalyzeMetadata,
   ProcessHubMetricContext,
   ProcessHubProcessMapSummary,
   ProcessHubReadinessReason,
@@ -685,12 +685,12 @@ export type { SearchProjectOptions, SearchResult } from './ai';
 // Wall investigation actions (Phase 3)
 export {
   proposeDisconfirmationMove,
-  critiqueInvestigationState,
+  critiqueAnalyzeState,
   detectBestSubsetsCandidates,
 } from './ai/actions';
 export type {
   SuggestedBrush,
-  InvestigationGap,
+  AnalyzeGap,
   CritiqueInput,
   CritiqueResult,
   BestSubsetsCandidate,
@@ -733,7 +733,7 @@ export type {
   Question,
   QuestionStatus,
   QuestionValidationType,
-  InvestigationCategory,
+  AnalyzeCategory,
   ImprovementIdea,
   IdeaTimeframe,
   IdeaCostCategory,
@@ -970,7 +970,7 @@ export type {
   OutcomeAction,
   EvidenceAction,
   EvidenceSourceAction,
-  InvestigationAction,
+  AnalyzeAction,
   FindingAction,
   QuestionAction,
   CausalLinkAction,

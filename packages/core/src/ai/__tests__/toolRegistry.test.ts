@@ -72,7 +72,7 @@ describe('TOOL_REGISTRY', () => {
   it('contains all INVESTIGATE+ action tools with investigate in phases', () => {
     for (const name of INVESTIGATE_ACTION_TOOLS) {
       expect(TOOL_REGISTRY[name]).toBeDefined();
-      expect(TOOL_REGISTRY[name].phases).toContain('investigate');
+      expect(TOOL_REGISTRY[name].phases).toContain('analyze');
     }
   });
 
@@ -131,7 +131,7 @@ describe('getToolsForPhase', () => {
   });
 
   it('INVESTIGATE includes create_question and answer_question', () => {
-    const tools = getToolsForPhase('investigate', 'standard');
+    const tools = getToolsForPhase('analyze', 'standard');
     const names = toolNames(tools);
     expect(names).toContain('create_question');
     expect(names).toContain('answer_question');
@@ -140,14 +140,14 @@ describe('getToolsForPhase', () => {
   });
 
   it('includes share_finding + publish_report in INVESTIGATE phase (wedge V1 single SKU)', () => {
-    const tools = getToolsForPhase('investigate', 'standard');
+    const tools = getToolsForPhase('analyze', 'standard');
     const names = toolNames(tools);
     expect(names).toContain('share_finding');
     expect(names).toContain('publish_report');
   });
 
   it('notify_action_owners only in IMPROVE phase', () => {
-    const investigateTools = getToolsForPhase('investigate', 'standard');
+    const investigateTools = getToolsForPhase('analyze', 'standard');
     expect(toolNames(investigateTools)).not.toContain('notify_action_owners');
 
     const improveTools = getToolsForPhase('improve', 'standard');
@@ -156,39 +156,39 @@ describe('getToolsForPhase', () => {
 
   it('suggest_hypothesis requires validating or converging phase', () => {
     // Without investigation phase — excluded
-    const tools1 = getToolsForPhase('investigate', 'standard');
+    const tools1 = getToolsForPhase('analyze', 'standard');
     expect(toolNames(tools1)).not.toContain('suggest_hypothesis');
 
     // With diverging phase — excluded
-    const tools2 = getToolsForPhase('investigate', 'standard', {
-      investigationPhase: 'diverging',
+    const tools2 = getToolsForPhase('analyze', 'standard', {
+      analyzePhase: 'diverging',
     });
     expect(toolNames(tools2)).not.toContain('suggest_hypothesis');
 
     // With validating phase — included
-    const tools3 = getToolsForPhase('investigate', 'standard', {
-      investigationPhase: 'validating',
+    const tools3 = getToolsForPhase('analyze', 'standard', {
+      analyzePhase: 'validating',
     });
     expect(toolNames(tools3)).toContain('suggest_hypothesis');
 
     // With converging phase — included
-    const tools4 = getToolsForPhase('investigate', 'standard', {
-      investigationPhase: 'converging',
+    const tools4 = getToolsForPhase('analyze', 'standard', {
+      analyzePhase: 'converging',
     });
     expect(toolNames(tools4)).toContain('suggest_hypothesis');
   });
 
   it('connect_hub_evidence requires existing hubs', () => {
     // Without hubs — excluded
-    const tools1 = getToolsForPhase('investigate', 'standard');
+    const tools1 = getToolsForPhase('analyze', 'standard');
     expect(toolNames(tools1)).not.toContain('connect_hub_evidence');
 
     // With empty hubs — excluded
-    const tools2 = getToolsForPhase('investigate', 'standard', { existingHubs: [] });
+    const tools2 = getToolsForPhase('analyze', 'standard', { existingHubs: [] });
     expect(toolNames(tools2)).not.toContain('connect_hub_evidence');
 
     // With hubs — included
-    const tools3 = getToolsForPhase('investigate', 'standard', {
+    const tools3 = getToolsForPhase('analyze', 'standard', {
       existingHubs: [
         {
           id: 'hub-1',
@@ -204,7 +204,7 @@ describe('getToolsForPhase', () => {
 
   it('IMPROVE includes both SCOUT+ and INVESTIGATE+ tools', () => {
     const tools = getToolsForPhase('improve', 'standard', {
-      investigationPhase: 'improving',
+      analyzePhase: 'improving',
     });
     const names = toolNames(tools);
     // SCOUT+ tools
@@ -231,7 +231,7 @@ describe('Wall propose_hypothesis_from_finding tool', () => {
   it('registers as an action tool (requires user confirmation)', () => {
     expect(TOOL_REGISTRY.propose_hypothesis_from_finding).toBeDefined();
     expect(TOOL_REGISTRY.propose_hypothesis_from_finding.classification).toBe('action');
-    expect(TOOL_REGISTRY.propose_hypothesis_from_finding.phases).toContain('investigate');
+    expect(TOOL_REGISTRY.propose_hypothesis_from_finding.phases).toContain('analyze');
   });
 
   it('requires finding_id and hypothesis_name parameters', () => {
@@ -245,11 +245,11 @@ describe('Wall critique_investigation_state tool', () => {
   it('registers critique_investigation_state as read tool in investigate phase', () => {
     expect(TOOL_REGISTRY.critique_investigation_state).toBeDefined();
     expect(TOOL_REGISTRY.critique_investigation_state.classification).toBe('read');
-    expect(TOOL_REGISTRY.critique_investigation_state.phases).toContain('investigate');
+    expect(TOOL_REGISTRY.critique_investigation_state.phases).toContain('analyze');
   });
 
   it('getToolsForPhase includes critique_investigation_state when phase is investigate', () => {
-    const tools = getToolsForPhase('investigate', 'standard');
+    const tools = getToolsForPhase('analyze', 'standard');
     expect(tools.some(t => t.name === 'critique_investigation_state')).toBe(true);
   });
 

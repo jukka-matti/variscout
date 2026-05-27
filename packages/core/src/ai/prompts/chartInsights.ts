@@ -25,7 +25,7 @@ export interface ChartInsightData {
   /** Boxplot specifics */
   boxplot?: {
     currentFactor: string;
-    /** Dynamic category name (from InvestigationCategory) */
+    /** Dynamic category name (from AnalyzeCategory) */
     category?: string;
     topCategories: Array<{ name: string; variationPct: number }>;
     nextDrillFactor?: string;

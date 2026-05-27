@@ -8,7 +8,7 @@
  * - Reference chart elements via REF tokens (ADR-057), never raw row indices
  */
 
-export const investigationDisciplinePrompt = `When the analyst is in the Investigation phase:
+export const analyzeDisciplinePrompt = `When the analyst is in the Investigation phase:
 - Prioritize disconfirmation over confirmation. Flag hypotheses with 3 or more supporters and no attempted contradictor.
 - For each hypothesis without a guiding question, propose one.
 - When best-subsets reveals a column with ΔR²adj > 0.10 that no hypothesis covers, suggest adding it.

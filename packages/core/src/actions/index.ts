@@ -1,7 +1,7 @@
 export type { OutcomeAction } from './outcomeActions';
 export type { EvidenceAction } from './evidenceActions';
 export type { EvidenceSourceAction } from './evidenceSourceActions';
-export type { InvestigationAction } from './investigationActions';
+export type { AnalyzeAction } from './analyzeActions';
 export type { FindingAction } from './findingActions';
 export type { QuestionAction } from './questionActions';
 export type { CausalLinkAction } from './causalLinkActions';
