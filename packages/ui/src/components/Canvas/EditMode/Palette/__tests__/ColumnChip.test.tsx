@@ -118,3 +118,37 @@ describe('ColumnChip — visual states', () => {
     expect(screen.getByTestId('column-chip-hint-pill')).toHaveTextContent(/process\?/i);
   });
 });
+
+describe('ColumnChip — sparkline', () => {
+  it('renders a sparkline SVG for numeric kind when numericValues provided', () => {
+    renderChip({
+      profile: createTestColumnParsingProfile({
+        primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+      }),
+      numericValues: [1, 2, 3, 4, 5, 6, 7, 8],
+    });
+    const sparkline = screen.getByTestId('column-chip-sparkline');
+    expect(sparkline.tagName.toLowerCase()).toBe('svg');
+    expect(sparkline.querySelectorAll('rect').length).toBeGreaterThan(0);
+  });
+
+  it('does not render a sparkline for categorical kind', () => {
+    renderChip({
+      profile: createTestColumnParsingProfile({
+        primary: { kind: 'categorical', label: 'categorical · 4 levels', detail: {} },
+      }),
+      numericValues: [1, 2, 3],
+    });
+    expect(screen.queryByTestId('column-chip-sparkline')).toBeNull();
+    expect(screen.queryByTestId('column-chip-sparkline-placeholder')).toBeNull();
+  });
+
+  it('renders a placeholder when numeric kind has no numericValues', () => {
+    renderChip({
+      profile: createTestColumnParsingProfile({
+        primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+      }),
+    });
+    expect(screen.getByTestId('column-chip-sparkline-placeholder')).toBeInTheDocument();
+  });
+});

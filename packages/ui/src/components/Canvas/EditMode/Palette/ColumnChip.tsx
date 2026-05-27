@@ -3,6 +3,65 @@ import { useDraggable } from '@dnd-kit/core';
 import type { ColumnParsingProfile, ParsingStatus } from '@variscout/core/parser';
 import { encodeColumnDragId } from './encodeColumnDragId';
 
+const SPARK_WIDTH = 60;
+const SPARK_HEIGHT = 24;
+const SPARK_BARS = 24;
+
+function binValues(values: number[], binCount: number): number[] {
+  const finite = values.filter(v => Number.isFinite(v));
+  if (finite.length === 0) return [];
+  const min = Math.min(...finite);
+  const max = Math.max(...finite);
+  if (min === max) return [finite.length];
+  const counts = new Array(binCount).fill(0);
+  const range = max - min;
+  for (const v of finite) {
+    const idx = Math.min(binCount - 1, Math.floor(((v - min) / range) * binCount));
+    counts[idx] += 1;
+  }
+  return counts;
+}
+
+const NumericSparkline: React.FC<{ values: number[] }> = ({ values }) => {
+  const bins = binValues(values, SPARK_BARS);
+  if (bins.length === 0) {
+    return (
+      <span
+        data-testid="column-chip-sparkline-placeholder"
+        className="text-[10px] text-content-tertiary"
+      >
+        no data
+      </span>
+    );
+  }
+  const peak = Math.max(...bins);
+  const barWidth = SPARK_WIDTH / bins.length;
+  return (
+    <svg
+      data-testid="column-chip-sparkline"
+      width={SPARK_WIDTH}
+      height={SPARK_HEIGHT}
+      role="presentation"
+      className="text-content-tertiary"
+    >
+      {bins.map((count, i) => {
+        const h = peak === 0 ? 0 : (count / peak) * SPARK_HEIGHT;
+        return (
+          <rect
+            key={i}
+            x={i * barWidth}
+            y={SPARK_HEIGHT - h}
+            width={Math.max(0, barWidth - 1)}
+            height={h}
+            fill="currentColor"
+            opacity={0.6}
+          />
+        );
+      })}
+    </svg>
+  );
+};
+
 export interface ColumnChipProps {
   profile: ColumnParsingProfile;
   /** Optional raw numeric values for the sparkline (numeric kind only). Plumbed by Palette. */
@@ -25,6 +84,7 @@ const BADGE_BY_STATUS: Record<ParsingStatus, { icon: string; classes: string }> 
 
 export const ColumnChip: React.FC<ColumnChipProps> = ({
   profile,
+  numericValues,
   dropped,
   ghostSuggested,
   onOverrideOpen,
@@ -76,6 +136,17 @@ export const ColumnChip: React.FC<ColumnChipProps> = ({
         <span className="truncate text-xs font-medium text-content">{profile.columnName}</span>
         <span className="truncate text-[10px] text-content-tertiary">{interpretationLabel}</span>
       </div>
+      {profile.primary?.kind === 'numeric' &&
+        (numericValues && numericValues.length > 0 ? (
+          <NumericSparkline values={numericValues} />
+        ) : (
+          <span
+            data-testid="column-chip-sparkline-placeholder"
+            className="text-[10px] text-content-tertiary"
+          >
+            no data
+          </span>
+        ))}
       {ghostSuggested && (
         <span
           data-testid="column-chip-hint-pill"
