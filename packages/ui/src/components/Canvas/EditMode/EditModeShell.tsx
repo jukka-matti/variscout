@@ -32,7 +32,7 @@ export interface EditModeShellProps {
    * through OutcomeZone for the parent to invoke after routing.
    */
   onOutcomeSpecAdd?: (columnName: string, derived: Partial<OutcomeSpec>) => void;
-  /** Called when the SpecsPopover Apply commits a per-spec edit. */
+  /** Called when the OutcomeSpecsPopover Apply commits a per-spec edit. */
   onOutcomeSpecUpdate?: (specId: string, updated: OutcomeSpec) => void;
 }
 

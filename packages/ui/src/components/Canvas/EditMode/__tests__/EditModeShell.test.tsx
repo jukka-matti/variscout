@@ -154,7 +154,7 @@ describe('EditModeShell — OutcomeZone wiring (C1)', () => {
     expect(screen.getByText(/factor zone arrives in c2/i)).toBeInTheDocument();
   });
 
-  it('forwards onOutcomeSpecUpdate to OutcomeZone via the SpecsPopover Apply', () => {
+  it('forwards onOutcomeSpecUpdate to OutcomeZone via the OutcomeSpecsPopover Apply', () => {
     const onOutcomeSpecUpdate = vi.fn();
     const spec = createTestOutcomeSpec({ id: 'o-1', columnName: 'A' });
     render(
