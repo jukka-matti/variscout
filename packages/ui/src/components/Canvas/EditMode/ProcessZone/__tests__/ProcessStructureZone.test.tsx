@@ -45,7 +45,8 @@ describe('ProcessStructureZone', () => {
       createTestStep({ id: 's-2', name: 'Process', order: 1 }),
     ];
     renderZone({ steps });
-    const boxes = screen.getAllByTestId(/^step-box-/);
+    // Match root step-box elements only (not internal-* sub-sections)
+    const boxes = screen.getAllByTestId(/^step-box-(?!.*-internal-)/);
     expect(boxes[0]).toHaveAttribute('data-testid', 'step-box-s-1');
     expect(boxes[1]).toHaveAttribute('data-testid', 'step-box-s-2');
     expect(boxes[2]).toHaveAttribute('data-testid', 'step-box-s-3');
