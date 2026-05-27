@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import FocusTrap from 'focus-trap-react';
-import type { StepTimingBinding } from '@variscout/core';
+import type { StepTimingBinding, ColumnParsingProfile } from '@variscout/core';
+import { detectPairedTimingColumns } from '@variscout/core';
 
 export interface StepTimingsModalProps {
   /** Emergent steps from the Process zone (id + display name + order). */
   steps: { id: string; name: string; order: number }[];
-  /** Names of date-kind columns from profiles — populates Start/End pickers. */
-  dateColumns: string[];
+  /** Column parsing profiles from the canvas palette. Date-kind profiles are
+   *  used to populate Start/End pickers and to auto-detect paired timing columns. */
+  dateProfiles: ColumnParsingProfile[];
   /** Pre-existing bindings (for reopening the modal). Defaults to []. */
   initialBindings?: StepTimingBinding[];
   /** Receives ONLY fully-bound (start+end set) rows; partial rows excluded. */
@@ -17,38 +19,99 @@ export interface StepTimingsModalProps {
 
 type TabId = 'by-step' | 'by-column';
 
+/** Tracks which pickers carry auto-detected values, keyed by stepId + side. */
+type AutoDetectFlags = Record<string, { start?: boolean; end?: boolean }>;
+
 /**
- * StepTimingsModal — D1 Task 3 skeleton + By-step layout.
+ * StepTimingsModal — D1 Task 3 skeleton + By-step layout + Task 4 pre-fill.
  *
  * Mirrors `AddActionDialog` for the shell (FocusTrap + fixed backdrop + Escape +
  * click-outside close). Hosts two tabs: **By step** (active by default, this PR)
  * and **By column** (DOM-present placeholder; wired in Task 5).
  *
  * By-step layout: one table row per `step`, each row has a Start ▾ <select>,
- * an End ▾ <select> (both listing only `dateColumns` + an empty `--` option),
- * and a Duration preview cell. Save returns only rows where both Start AND End
- * are set; partials are silently excluded.
+ * an End ▾ <select> (both listing only date-kind columns from `dateProfiles` +
+ * an empty `--` option), and a Duration preview cell. Save returns only rows
+ * where both Start AND End are set; partials are silently excluded.
  *
- * Pre-fill from `detectPairedTimingColumns` lands in Task 4. By-column tab
- * content + duration alternative + mutual exclusion land in Task 5.
+ * Pre-fill: `detectPairedTimingColumns` runs on mount (and on `dateProfiles`/
+ * `steps` change). Detected pairs are applied to pickers unless a saved binding
+ * from `initialBindings` already covers that step (explicit binding wins). A
+ * small cyan-dot indicator appears next to pickers whose value was auto-detected;
+ * the dot clears when the user manually changes that specific picker.
+ *
+ * By-column tab content + duration alternative + mutual exclusion land in Task 5.
  */
 export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
   steps,
-  dateColumns,
+  dateProfiles,
   initialBindings = [],
   onSave,
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>('by-step');
 
+  // Derive the list of date-kind column names for picker options.
+  const dateColumns = useMemo(
+    () => dateProfiles.filter(p => p.primary?.kind === 'date').map(p => p.columnName),
+    [dateProfiles]
+  );
+
+  // Run detection once on mount / when dateProfiles or steps change.
+  const detectedPairs = useMemo(
+    () =>
+      detectPairedTimingColumns(
+        dateProfiles,
+        steps.map(s => ({ id: s.id, name: s.name }))
+      ),
+    [dateProfiles, steps]
+  );
+
+  // Build initial step-binding presence set from initialBindings (paired only).
+  // Steps that appear in initialBindings are NOT pre-filled from detection.
+  const stepsWithInitialBindings = useMemo(() => {
+    const ids = new Set<string>();
+    for (const b of initialBindings) {
+      if (b.kind === 'paired') ids.add(b.stepId);
+    }
+    return ids;
+  }, [initialBindings]);
+
   // Per-step start/end column state. Empty string === "unbound" (matches the
   // empty `--` option's value).
-  const [startByStep, setStartByStep] = useState<Record<string, string>>(() =>
-    buildInitialMap(initialBindings, 'start')
-  );
-  const [endByStep, setEndByStep] = useState<Record<string, string>>(() =>
-    buildInitialMap(initialBindings, 'end')
-  );
+  const [startByStep, setStartByStep] = useState<Record<string, string>>(() => {
+    const base = buildInitialMap(initialBindings, 'start');
+    // Merge auto-detected pairs — only for steps NOT covered by initialBindings.
+    for (const pair of detectedPairs) {
+      if (pair.matchedStepId !== null && !stepsWithInitialBindings.has(pair.matchedStepId)) {
+        base[pair.matchedStepId] = pair.startColumn;
+      }
+    }
+    return base;
+  });
+  const [endByStep, setEndByStep] = useState<Record<string, string>>(() => {
+    const base = buildInitialMap(initialBindings, 'end');
+    // Merge auto-detected pairs — only for steps NOT covered by initialBindings.
+    for (const pair of detectedPairs) {
+      if (pair.matchedStepId !== null && !stepsWithInitialBindings.has(pair.matchedStepId)) {
+        base[pair.matchedStepId] = pair.endColumn;
+      }
+    }
+    return base;
+  });
+
+  // Track which pickers currently carry an auto-detected value.
+  // A picker is "auto-detected" only when it was filled by detection AND not
+  // overridden by initialBindings AND not yet manually changed by the user.
+  const [wasAutoDetected, setWasAutoDetected] = useState<AutoDetectFlags>(() => {
+    const flags: AutoDetectFlags = {};
+    for (const pair of detectedPairs) {
+      if (pair.matchedStepId !== null && !stepsWithInitialBindings.has(pair.matchedStepId)) {
+        flags[pair.matchedStepId] = { start: true, end: true };
+      }
+    }
+    return flags;
+  });
 
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -78,10 +141,20 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
 
   const handleStartChange = useCallback((stepId: string, value: string) => {
     setStartByStep(prev => ({ ...prev, [stepId]: value }));
+    // Clear the auto-detected flag for this picker only.
+    setWasAutoDetected(prev => ({
+      ...prev,
+      [stepId]: { ...prev[stepId], start: false },
+    }));
   }, []);
 
   const handleEndChange = useCallback((stepId: string, value: string) => {
     setEndByStep(prev => ({ ...prev, [stepId]: value }));
+    // Clear the auto-detected flag for this picker only.
+    setWasAutoDetected(prev => ({
+      ...prev,
+      [stepId]: { ...prev[stepId], end: false },
+    }));
   }, []);
 
   // Fully-bound rows = rows where BOTH start and end are non-empty.
@@ -186,6 +259,7 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
                   dateColumns={dateColumns}
                   startByStep={startByStep}
                   endByStep={endByStep}
+                  wasAutoDetected={wasAutoDetected}
                   onStartChange={handleStartChange}
                   onEndChange={handleEndChange}
                 />
@@ -230,15 +304,27 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
  * By-step table — one row per emergent step. Each row exposes a Start ▾ /
  * End ▾ <select> pair (populated from `dateColumns`) and a Duration preview
  * cell (placeholder text in this task; live preview lands later).
+ *
+ * Auto-detected pickers display a small cyan dot (aria-label="Auto-detected")
+ * to signal that the value was supplied by `detectPairedTimingColumns`.
  */
 const ByStepTable: React.FC<{
   steps: { id: string; name: string; order: number }[];
   dateColumns: string[];
   startByStep: Record<string, string>;
   endByStep: Record<string, string>;
+  wasAutoDetected: AutoDetectFlags;
   onStartChange: (stepId: string, value: string) => void;
   onEndChange: (stepId: string, value: string) => void;
-}> = ({ steps, dateColumns, startByStep, endByStep, onStartChange, onEndChange }) => {
+}> = ({
+  steps,
+  dateColumns,
+  startByStep,
+  endByStep,
+  wasAutoDetected,
+  onStartChange,
+  onEndChange,
+}) => {
   if (steps.length === 0) {
     return (
       <p className="text-sm text-content-secondary py-6 px-2">
@@ -261,6 +347,8 @@ const ByStepTable: React.FC<{
         {steps.map(step => {
           const startValue = startByStep[step.id] ?? '';
           const endValue = endByStep[step.id] ?? '';
+          const startAutoDetected = wasAutoDetected[step.id]?.start === true;
+          const endAutoDetected = wasAutoDetected[step.id]?.end === true;
           return (
             <tr
               key={step.id}
@@ -269,22 +357,32 @@ const ByStepTable: React.FC<{
             >
               <td className="py-2 pr-3 text-content font-medium">{step.name}</td>
               <td className="py-2 pr-3">
-                <DateColumnSelect
-                  testId={`step-timing-row-${step.id}-start`}
-                  ariaLabel={`Start column for ${step.name}`}
-                  value={startValue}
-                  dateColumns={dateColumns}
-                  onChange={value => onStartChange(step.id, value)}
-                />
+                <div className="flex items-center gap-1.5">
+                  <DateColumnSelect
+                    testId={`step-timing-row-${step.id}-start`}
+                    ariaLabel={`Start column for ${step.name}`}
+                    value={startValue}
+                    dateColumns={dateColumns}
+                    onChange={value => onStartChange(step.id, value)}
+                  />
+                  {startAutoDetected && (
+                    <AutoDetectedDot testId={`step-timing-row-${step.id}-start-auto-dot`} />
+                  )}
+                </div>
               </td>
               <td className="py-2 pr-3">
-                <DateColumnSelect
-                  testId={`step-timing-row-${step.id}-end`}
-                  ariaLabel={`End column for ${step.name}`}
-                  value={endValue}
-                  dateColumns={dateColumns}
-                  onChange={value => onEndChange(step.id, value)}
-                />
+                <div className="flex items-center gap-1.5">
+                  <DateColumnSelect
+                    testId={`step-timing-row-${step.id}-end`}
+                    ariaLabel={`End column for ${step.name}`}
+                    value={endValue}
+                    dateColumns={dateColumns}
+                    onChange={value => onEndChange(step.id, value)}
+                  />
+                  {endAutoDetected && (
+                    <AutoDetectedDot testId={`step-timing-row-${step.id}-end-auto-dot`} />
+                  )}
+                </div>
               </td>
               <td
                 className="py-2 text-content-secondary"
@@ -299,6 +397,20 @@ const ByStepTable: React.FC<{
     </table>
   );
 };
+
+/**
+ * Cyan-dot indicator shown next to a picker whose value was auto-detected.
+ * Uses bg-cyan-500/80 (mid-tone with slight transparency) as the fill.
+ * Per feedback_green_400_light_contrast the fill is not 400-level alone —
+ * we use 500 which is readable on the light surface.
+ */
+const AutoDetectedDot: React.FC<{ testId: string }> = ({ testId }) => (
+  <span
+    data-testid={testId}
+    aria-label="Auto-detected"
+    className="inline-block w-2 h-2 rounded-full bg-cyan-500/80 flex-shrink-0"
+  />
+);
 
 const DateColumnSelect: React.FC<{
   testId: string;
