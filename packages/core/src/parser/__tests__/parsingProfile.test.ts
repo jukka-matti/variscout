@@ -171,4 +171,40 @@ describe('profileColumns — date format detection', () => {
     expect(profile.primary?.kind).toBe('date');
     expect(profile.status).toBe('warning');
   });
+
+  it('rejects ISO dates with out-of-range fields (month 13)', () => {
+    // '2024-13-01' overflows to Jan 1, 2025 via the Date constructor; round-trip
+    // check must reject it so it doesn't inflate parseCount.
+    const rows = [{ D: '2024-01-15' }, { D: '2024-02-20' }, { D: '2024-13-01' }];
+    const [profile] = profileColumns(rows);
+    // Only 2 of 3 parse as ISO → ISO does not hit 100% → falls through to
+    // either lower-confidence date format or text fallback. Either way, the
+    // column must NOT be classified as a clean ISO date column.
+    if (profile.primary?.kind === 'date') {
+      expect(profile.status).toBe('warning');
+    } else {
+      expect(profile.primary?.kind).not.toBe('date');
+    }
+  });
+
+  it('rejects ISO dates with invalid day-of-month (Feb 30)', () => {
+    const rows = [{ D: '2024-01-15' }, { D: '2024-02-20' }, { D: '2024-02-30' }];
+    const [profile] = profileColumns(rows);
+    if (profile.primary?.kind === 'date') {
+      expect(profile.status).toBe('warning');
+    } else {
+      expect(profile.primary?.kind).not.toBe('date');
+    }
+  });
+
+  it('rejects slash dates with invalid day-of-month (Feb 30)', () => {
+    const rows = [{ D: '15/01/2024' }, { D: '20/02/2024' }, { D: '30/02/2024' }];
+    const [profile] = profileColumns(rows);
+    // 15/01/2024 and 20/02/2024 disambiguate DD/MM; 30/02 should fail round-trip.
+    if (profile.primary?.kind === 'date') {
+      expect(profile.status).toBe('warning');
+    } else {
+      expect(profile.primary?.kind).not.toBe('date');
+    }
+  });
 });

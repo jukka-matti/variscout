@@ -119,22 +119,34 @@ function tryParseDate(value: unknown, format: DateFormat): Date | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   if (format === 'iso') {
-    const isoPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
-    const m = isoPattern.exec(trimmed);
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
     if (!m) return null;
     const [, y, mo, d] = m;
-    const date = new Date(Number(y), Number(mo) - 1, Number(d));
-    return Number.isNaN(date.getTime()) ? null : date;
+    const year = Number(y);
+    const month = Number(mo);
+    const day = Number(d);
+    const date = new Date(year, month - 1, day);
+    if (Number.isNaN(date.getTime())) return null;
+    // Reject Date-constructor silent overflow (e.g. month 13 → Jan next year).
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+      return null;
+    }
+    return date;
   }
-  const slashPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-  const slash = slashPattern.exec(trimmed);
+  const slash = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(trimmed);
   if (!slash) return null;
   const [, a, b, y] = slash;
+  const year = Number(y);
   const day = format === 'ddmmyyyy' ? Number(a) : Number(b);
   const month = format === 'ddmmyyyy' ? Number(b) : Number(a);
   if (day < 1 || day > 31 || month < 1 || month > 12) return null;
-  const date = new Date(Number(y), month - 1, day);
-  return Number.isNaN(date.getTime()) ? null : date;
+  const date = new Date(year, month - 1, day);
+  if (Number.isNaN(date.getTime())) return null;
+  // Same overflow guard for invalid day-of-month (e.g. 30/02).
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null;
+  }
+  return date;
 }
 
 function detectDateFormat(values: unknown[]): DateMatch[] {
