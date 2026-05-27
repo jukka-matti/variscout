@@ -1,11 +1,11 @@
 # VariScout for Codex
 
-Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable.
+Structured analysis for process improvement. Browser-based, customer-owned data, local-cache capable. **V1 strategic direction (single-SKU pivot 2026-05-16):** single-product tool for improvement specialists; €120/mo Azure tenant-wide; 7-tab workflow nav (`Home · Project · Process · Explore · Analyze · Improve · Report`); 3 personas within each Project (Lead / Member / Sponsor). Canonical: [V1 architecture spec](docs/superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](docs/07-decisions/adr-082-wedge-architecture.md).
 
 ## Invariants
 
 - Browser-only processing; data stays in customer's tenant (ADR-059).
-- 5 domain Zustand stores are source of truth (project, investigation, improvement, session, canvas) + 1 cross-app feature store (wallLayout); no DataContext per ADR-078.
+- 9 Zustand stores split across 3 layers per ADR-078 + F4 (Document x4, Annotation x4 — 1 per-hub + 3 per-user, View x1); no DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
 - Deterministic stats engine is authority; CoScout (AI) adds context.
 - Package dependencies flow downward: core -> hooks -> ui -> apps.
 
