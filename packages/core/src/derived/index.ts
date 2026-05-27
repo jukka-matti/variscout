@@ -19,3 +19,6 @@ export {
   computeTotalWorkTimeColumn,
   computeWaitTimeColumn,
 } from './leadTime';
+
+// Task 2 (D3): Time decomposition column engine
+export { computeTimeDecompositionColumns, derivedTimeColumnName } from './timeDecomposition';
