@@ -3,6 +3,14 @@ import type { FormulaBinding, FormulaTerm } from './types';
 /**
  * Evaluate a formula for a single row.
  *
+ * This is a per-row derived-column evaluator (mirroring `computeLeadTimeColumn`
+ * in `../leadTime.ts`), not a stats function. NaN signals "this row's value is
+ * missing or undefined"; consumers like `computeFormulaColumn` keep the array
+ * dense and downstream consumers (CanvasWorkspace's `numericValuesByColumn`)
+ * filter NaN via `Number.isFinite` before display. The `number | undefined`
+ * rule in `packages/core/CLAUDE.md` is scoped to stats functions (mean, stdev,
+ * capability indices) whose outputs flow directly to `formatStatistic`.
+ *
  * Returns NaN when:
  * - Any column referenced is missing from row AND augmentedColumns
  * - Any referenced cell value is not coercible to a finite number
@@ -12,7 +20,8 @@ import type { FormulaBinding, FormulaTerm } from './types';
  * (e.g. '5.5' → 5.5). Empty strings, null, undefined, and non-numeric strings
  * propagate NaN.
  *
- * Empty denominator means: result = numeratorSum × multiplier (no division).
+ * Empty numerator AND empty denominator → 0 × multiplier = 0. Empty denominator
+ * alone → numeratorSum × multiplier (no division performed).
  */
 export function evaluateFormulaRow(
   row: Record<string, unknown>,

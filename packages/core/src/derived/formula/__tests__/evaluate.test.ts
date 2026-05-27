@@ -159,4 +159,21 @@ describe('evaluateFormulaRow', () => {
       expect(Number.isNaN(result)).toBe(true);
     });
   });
+
+  // Empty-terms contract — documents the evaluator's behavior with no terms
+  describe('empty terms contract', () => {
+    it('empty numerator and denominator: result is 0 × multiplier', () => {
+      const b = binding({ numerator: [], denominator: [], multiplier: 100 });
+      expect(evaluateFormulaRow({}, b, NO_AUGMENTED, 0)).toBe(0);
+    });
+
+    it('multiplier of 0 yields 0 (not NaN)', () => {
+      const b = binding({
+        numerator: [{ kind: 'column', column: 'A', sign: '+' }],
+        denominator: [],
+        multiplier: 0,
+      });
+      expect(evaluateFormulaRow({ A: 5 }, b, NO_AUGMENTED, 0)).toBe(0);
+    });
+  });
 });
