@@ -124,7 +124,7 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
           ref={dialogRef}
           role="dialog"
           aria-modal="true"
-          aria-label="Capture step timings"
+          aria-labelledby="step-timings-modal-title"
           tabIndex={-1}
           className="bg-surface rounded-xl border border-edge p-6 max-w-3xl w-full mx-4 shadow-lg max-h-[90vh] flex flex-col"
         >
@@ -142,6 +142,7 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
             <button
               type="button"
               role="tab"
+              id="step-timings-tab-by-step"
               aria-selected={activeTab === 'by-step'}
               aria-controls="step-timings-panel-by-step"
               data-testid="step-timings-tab-by-step"
@@ -157,6 +158,7 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
             <button
               type="button"
               role="tab"
+              id="step-timings-tab-by-column"
               aria-selected={activeTab === 'by-column'}
               aria-controls="step-timings-panel-by-column"
               data-testid="step-timings-tab-by-column"

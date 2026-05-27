@@ -19,6 +19,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import type { StepTimingBinding } from '@variscout/core';
 import { StepTimingsModal } from '../StepTimingsModal';
 import { createTestStep } from '../../../../../test-utils/step';
+import { createTestStepTiming } from '../../../../../test-utils/stepTiming';
 
 function renderModal(overrides: Partial<React.ComponentProps<typeof StepTimingsModal>> = {}) {
   const onSave = vi.fn();
@@ -41,11 +42,15 @@ function renderModal(overrides: Partial<React.ComponentProps<typeof StepTimingsM
 
 describe('StepTimingsModal', () => {
   describe('shell + accessibility', () => {
-    it('renders inside FocusTrap with backdrop, dialog role + aria-label', () => {
+    it('renders inside FocusTrap with backdrop, dialog role + aria-labelledby pointing at the heading', () => {
       renderModal();
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
-      expect(dialog).toHaveAttribute('aria-label', 'Capture step timings');
+      // ARIA accessible name comes from the visible heading via aria-labelledby
+      // (single source of truth — preferred over aria-label per WCAG).
+      const labelId = dialog.getAttribute('aria-labelledby');
+      expect(labelId).toBe('step-timings-modal-title');
+      expect(document.getElementById(labelId!)).toHaveTextContent('Capture step timings');
       // Backdrop testid present for click-outside close
       expect(screen.getByTestId('step-timings-backdrop')).toBeInTheDocument();
     });
@@ -256,7 +261,12 @@ describe('StepTimingsModal', () => {
       const steps = [createTestStep({ id: 'mix', name: 'Mix' })];
       const dateColumns = ['Mix_start', 'Mix_end'];
       const initialBindings: StepTimingBinding[] = [
-        { kind: 'paired', stepId: 'mix', startColumn: 'Mix_start', endColumn: 'Mix_end' },
+        createTestStepTiming({
+          kind: 'paired',
+          stepId: 'mix',
+          startColumn: 'Mix_start',
+          endColumn: 'Mix_end',
+        }),
       ];
       renderModal({ steps, dateColumns, initialBindings });
       const startSelect = screen.getByTestId('step-timing-row-mix-start') as HTMLSelectElement;
