@@ -1479,7 +1479,7 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 
 ## Canonical V1 strategic direction
 
-- `superpowers/specs/2026-05-16-wedge-architecture-design.md` — V1 single-SKU design. 7-tab nav (`Home · Project · Process · Analyze · Investigation · Improve · Report`). Improve as top-level verb tab with active-IP cascade. 3 personas per Project (Lead/Member/Sponsor). €120/mo single SKU.
+- `superpowers/specs/2026-05-16-wedge-architecture-design.md` — V1 single-SKU design. 7-tab nav (`Home · Project · Process · Explore · Analyze · Improve · Report`). Improve as top-level verb tab with active-IP cascade. 3 personas per Project (Lead/Member/Sponsor). €120/mo single SKU.
 - `07-decisions/adr-082-wedge-architecture.md` — V1 architectural record. Partial supersession of ADR-007 + ADR-033.
 
 ## Agent-context entry points
@@ -1599,7 +1599,7 @@ Role-detection is via active `ProjectMember.role` (per ADR-082's ACL model). Def
 Replace with:
 
 ```
-2. Note the **7-tab nav** (`Home · Project · Process · Analyze · Investigation · Improve · Report` — singular "Project") with Improve as a top-level verb tab driven by active-IP cascade. (Verify against any recent amendments in `docs/decision-log.md` — the wedge area is actively evolving.)
+2. Note the **7-tab nav** (`Home · Project · Process · Explore · Analyze · Improve · Report` — singular "Project") with Improve as a top-level verb tab driven by active-IP cascade. (Verify against any recent amendments in `docs/decision-log.md` — the wedge area is actively evolving.)
 ```
 
 - [ ] **Step 6.4: Atomic-deletion dispatch pattern reference.** Check whether the carve-out is already documented in surfaces other than the memory file:

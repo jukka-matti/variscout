@@ -13,7 +13,7 @@ related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/07-decisions/adr-007-azure-marketplace-distribution.md
   - docs/07-decisions/adr-033-pricing-simplification.md
-  - docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md
+  - docs/07-decisions/adr-080-control-auto-fire-pattern.md
   - docs/01-vision/positioning.md
   - docs/01-vision/business-bible.md
   - docs/08-products/tier-philosophy.md

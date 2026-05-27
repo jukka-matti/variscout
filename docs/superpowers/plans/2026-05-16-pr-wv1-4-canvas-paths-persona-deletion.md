@@ -7,7 +7,7 @@ last-reviewed: 2026-05-16
 parent: docs/superpowers/plans/2026-05-16-wedge-implementation.md
 related:
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
-  - docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md
+  - docs/07-decisions/adr-080-control-auto-fire-pattern.md
   - docs/07-decisions/adr-082-wedge-architecture.md
 layer: spec
 ---

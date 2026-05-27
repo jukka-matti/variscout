@@ -1066,7 +1066,7 @@ Fetch original file from Blob Storage via SAS token. Render preview (PDF viewer,
 - Modify: `docs/archive/specs/2026-03-19-knowledge-base-folder-search-design.md`
 - Modify: `docs/archive/specs/2026-03-24-coscout-knowledge-catalyst-design.md`
 - Modify: `CLAUDE.md`
-- Modify: `docs/03-features/workflows/question-driven-investigation.md`
+- Modify: `docs/03-features/workflows/question-driven-analyze.md`
 
 ---
 

@@ -17,7 +17,7 @@ serves:
 
 # Investigation Lifecycle Map
 
-> State machine view of the investigation diamond. For the narrative walkthrough, see [Analysis Journey Map § INVESTIGATE](analysis-journey-map.md#phase-3-investigate). For tree UI interaction, see [Question-Driven Investigation](question-driven-investigation.md).
+> State machine view of the investigation diamond. For the narrative walkthrough, see [Analysis Journey Map § INVESTIGATE](analysis-journey-map.md#phase-3-investigate). For tree UI interaction, see [Question-Driven Investigation](question-driven-analyze.md).
 
 State diagrams for investigation diamond phases, Finding status transitions, and question answering — showing how CoScout adapts its behavior at each stage.
 
@@ -196,7 +196,7 @@ Each investigation concept maps to a specific hook or component in the codebase.
 
 ## Related Documentation
 
-- [Investigation to Action Workflow](investigation-to-action.md) — end-to-end analyst workflow from data load to projection
+- [Investigation to Action Workflow](analyze-to-action.md) — end-to-end analyst workflow from data load to projection
 - [Decision Trees](decision-trees.md) — branching logic for analysis decisions
 - [Drill-Down Workflow](drill-down-workflow.md) — factor drill-down navigation
 - [Four Lenses Workflow](four-lenses-workflow.md) — the four analytical perspectives (Change, Failure, Flow, Value)

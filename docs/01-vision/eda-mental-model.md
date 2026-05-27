@@ -694,7 +694,7 @@ The EDA Mental Model is not a feature — it is the analytical philosophy that i
 - [Turtiainen (2019) — Full Thesis Excerpts](references/turtiainen-2019-eda-mental-model.md) — Key definitions, figure descriptions, case study details
 - [Question-Driven EDA Design Spec](../archive/specs/2026-03-30-question-driven-eda-design.md) — Implementation design for the question-driven investigation flow
 - [ADR-052: Factor Intelligence](../07-decisions/adr-052-factor-intelligence.md) — Architecture decision for the three-layer progressive factor analysis
-- [ADR-053: Question-Driven Investigation](../07-decisions/adr-053-question-driven-investigation.md) — Architecture decision for the question-driven EDA model
+- [ADR-053: Question-Driven Investigation](../07-decisions/adr-053-question-driven-analyze.md) — Architecture decision for the question-driven EDA model
 
 ### 8.3 Related VariScout Methodology Documents
 

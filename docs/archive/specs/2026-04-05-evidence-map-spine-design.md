@@ -11,7 +11,7 @@ related:
 layer: spec
 implements:
   - docs/03-features/analysis/multi-level-dashboard.md
-  - docs/03-features/workflows/investigation-lifecycle-map.md
+  - docs/03-features/workflows/analyze-lifecycle-map.md
   - docs/07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md
 delivered-by: 2026-05-18
 ---

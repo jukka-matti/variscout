@@ -23,7 +23,7 @@ layer: spec
 implements:
   - docs/03-features/workflows/project-dashboard.md
   - docs/03-features/workflows/improvement-workspace.md
-  - docs/03-features/workflows/sustainment.md
+  - docs/03-features/workflows/control.md
 delivered-by: 2026-05-18
 ---
 

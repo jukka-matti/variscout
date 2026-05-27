@@ -11,7 +11,7 @@ date: 2026-05-02
 related:
   - adr-070-frame-workspace
   - adr-074-scout-level-spanning-surface-boundary-policy
-  - adr-053-question-driven-investigation
+  - adr-053-question-driven-analyze
   - frame-process-map-design
   - investigation-scope-and-drill-semantics-design
 layer: L5
@@ -30,7 +30,7 @@ layer: L5
 **Related**:
 [ADR-070](adr-070-frame-workspace.md) (FRAME workspace, river-styled SIPOC canvas — owner of the b1/b2 surface),
 [ADR-074](adr-074-scout-level-spanning-surface-boundary-policy.md) (level-spanning boundary policy — FRAME owns L2 authoring at b1+; b0 is pre-authoring),
-[ADR-053](adr-053-question-driven-investigation.md) (question-driven investigation — b0 is the answer to "I have a CSV and a question, no map yet"),
+[ADR-053](adr-053-question-driven-analyze.md) (question-driven investigation — b0 is the answer to "I have a CSV and a question, no map yet"),
 [FRAME Workspace & Process Map](../superpowers/specs/2026-04-18-frame-process-map-design.md) (the design ADR-070 enacts; b0 is the "data-less / pre-mapping" entry the spec acknowledges),
 [Investigation Scope & Drill Semantics](../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md) (b0/b1/b2 scope taxonomy that this ADR's render strategy specializes on)
 

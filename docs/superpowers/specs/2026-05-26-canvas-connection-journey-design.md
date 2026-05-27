@@ -453,7 +453,7 @@ The bridge from Mode 1 (free analysis) to Mode 2 (formal project). Reachable fro
 | ----------------------- | ---------------------------------------------------------------------------------------- |
 | Home / Project tab      | Nothing — empty start (rare; most projects emerge from existing analysis)                |
 | Explore tab             | Hub state · outcomes / factors set in canvas · current filter scope · Findings           |
-| Investigation tab       | Hub state + active Hypotheses on the Wall + their Findings + evidence                    |
+| Analyze tab             | Hub state + active Hypotheses on the Wall + their Findings + evidence                    |
 | Canvas L3 focal step    | Hub state + focal step + step-bound outcomes/factors + step-scoped findings              |
 | Canvas L2 / Project tab | Whole-Hub state (functionally same as Explore entry; routes via Explore for consistency) |
 
@@ -479,7 +479,7 @@ Behavior on submit:
 - Creates an `ImprovementProject` with `status: 'draft'` (Charter stage)
 - `metadata.title` set; `metadata.members` set (Lead = current user; invited members if any)
 - `sections.investigationLineage.findingIds` populated from inherited Findings (if any)
-- `sections.investigationLineage.hypothesisIds` populated from inherited Hypotheses (if any from Investigation entry)
+- `sections.investigationLineage.hypothesisIds` populated from inherited Hypotheses (if any from Analyze entry)
 - `goal.outcomeGoal` set from current Hub outcome
 - `sections.background.snapshotText` captures the capability summary at this moment
 - Navigates to the Project tab (or to L3 focal step inside the new IP if entered from Canvas L3)
@@ -515,10 +515,10 @@ Subtitle under the button shows the destination preview: _"will land on I-Chart 
 Click a step on L2 → drill to L3 focal-step view → three response-path CTAs surface (per wedge §3.3.4, with one amendment):
 
 1. **Capture as Finding** — lightweight observation; no IP commitment. Records "saw this at this step" as a Hub-level Finding. Replaces the wedge spec's original "Quick Action" (see §8 amendment item 1).
-2. **Investigate** — opens Investigation Wall + Evidence Map pre-scoped to this step.
+2. **Investigate** — opens Analyze Wall + Evidence Map pre-scoped to this step.
 3. **Charter** — opens the Promote-to-Project modal from §4.4 with focal-step context inherited.
 
-Three exits at the granularity of _record → explore → commit_. Sustainment is auto-fired (ADR-080), never a user-triggered response path at L3.
+Three exits at the granularity of _record → explore → commit_. Control is auto-fired (ADR-080), never a user-triggered response path at L3.
 
 ---
 
@@ -606,7 +606,7 @@ That's it. No further role-tier distinctions.
 
 ### §7.2 · No in-product approval gates
 
-Per wedge spec line 288: signoff at gates (Charter approval, Sustainment closure) is **out-of-band** in V1 — Lead presents in a meeting, Sponsor approves verbally / by reply, Lead records the signoff as a note in the relevant stage's metadata. This loses the in-app audit trail but keeps V1 scope minimal.
+Per wedge spec line 288: signoff at gates (Charter approval, Control closure) is **out-of-band** in V1 — Lead presents in a meeting, Sponsor approves verbally / by reply, Lead records the signoff as a note in the relevant stage's metadata. This loses the in-app audit trail but keeps V1 scope minimal.
 
 No in-product "Approve Charter" button. No "Sign off Report" button. No "Sanction IP" button. Re-evaluate adding in-app Sponsor signoff in V2 if customer demand surfaces.
 
@@ -615,7 +615,7 @@ No in-product "Approve Charter" button. No "Sign off Report" button. No "Sanctio
 Sponsor role persists as a label for:
 
 - **Identity / accountability** — _"Project X is sponsored by Jane Doe (VP Operations)"_ — appears in Charter + Report attribution
-- **Notification routing** — drift signals during Sustainment go to Sponsor explicitly
+- **Notification routing** — drift signals during Control go to Sponsor explicitly
 - **Inbox filtering** — Sponsor's inbox surfaces signoff-relevant items differently from a Member's contribution queue
 - **Real-world signoff workflow** — happens out-of-band; Lead records the result
 
@@ -655,9 +655,9 @@ Required to align the wedge V1 architecture spec with the design choices here:
 
 4. **§4.1 + canAccess.ts code — collapse to 2 ACL tiers.** Lead + Everyone-else; drop role-level approval gates (signoff is out-of-band per wedge line 288). See §7.4.
 
-5. **Sponsor persona doc (`docs/02-journeys/personas/sponsor.md:61`) — remove "skips Analyze + Investigation entirely".** Replace with prose around _"Sponsor reads Analyze + Investigation when engaged; active gestures bounded to approval gates which happen out-of-band."_ The persona × tab matrix in `docs/02-journeys/ia-nav-model.md` changes Sponsor's `(no touch)` cells to `Read`.
+5. **Sponsor persona doc (`docs/02-journeys/personas/sponsor.md:61`) — remove "skips Explore + Analyze entirely".** Replace with prose around _"Sponsor reads Explore + Analyze when engaged; active gestures bounded to approval gates which happen out-of-band."_ The persona × tab matrix in `docs/02-journeys/ia-nav-model.md` changes Sponsor's `(no touch)` cells to `Read`.
 
-6. **Tab vocabulary positioning (Explore / Analyze / Control)** — deferred to a separate vocabulary session (task pending). Current spec uses `Analyze / Investigation / Sustainment` per the shipped 7-tab nav; rename may follow.
+6. **Tab vocabulary positioning (Explore / Analyze / Control)** — deferred to a separate vocabulary session (task pending). Current spec uses `Explore / Analyze / Control` per the wedge V1 7-tab nav; rename completed in PR-WV1-NAV (2026-05-27).
 
 ### §8.2 · Code touches
 
@@ -689,14 +689,14 @@ Required to align the wedge V1 architecture spec with the design choices here:
 
 Explicitly named so future sessions can pick them up without re-derivation:
 
-1. **Vocabulary positioning** — Explore / Analyze / Control vs Analyze / Investigation / Sustainment. Identity-level call. Logged in `docs/ephemeral/investigations.md` as a vision-violation finding; needs its own session.
-2. **Lead JTBD restructure** — activity-framed (Frame / Drill / Improve / Verify) instead of lifecycle-framed (Charter → Approach → Sustainment). Logged as finding; doc-only fix when settled.
+1. **Vocabulary positioning** — Explore / Analyze / Control vs Explore / Analyze / Control. Identity-level call. Logged in `docs/ephemeral/investigations.md` as a vision-violation finding; needs its own session.
+2. **Lead JTBD restructure** — activity-framed (Frame / Drill / Improve / Verify) instead of lifecycle-framed (Charter → Approach → Control). Logged as finding; doc-only fix when settled.
 3. **Mode 1 journey doc** — add a pre-Project journey to `docs/02-journeys/`; currently the L2 journey corpus is silent on quick-analyze.
 4. **Project = IP terminology cleanup** — collapse the muddle in code (`projectsByHub` legacy holdover) and docs ("Active IP promoted from hypothesis" wrong framing).
 5. **Spec 3** — step cards + drill-down floating overlays + mode-lens reskinning. Companion task #11 (Analyze-tab Pareto / lens design) lives here.
-6. **Spec 4** — canvas overlays + Investigation Wall sync. Aligns with 3-response-path model.
+6. **Spec 4** — canvas overlays + Analyze Wall sync. Aligns with 3-response-path model.
 7. **Spec 5** — IndexedDB persistence schema.
-8. **ControlHandoff retention** — Sustainment closure data model. Task #12.
+8. **ControlHandoff retention** — Control closure data model. Task #12.
 9. **True branching topology** — different paths through the process based on a categorical (e.g., defective → Rework before Pack; good → straight to Pack). V2.
 10. **Sequential sub-step decomposition** — one step has ordered children (Prep = Heat → Mix → Cool). V2.
 11. **Per-resource timing** — separate start/end columns per parallel machine. V2.

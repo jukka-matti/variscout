@@ -50,7 +50,7 @@ function makeProject(): CloudProject {
     modified: '2026-04-24T00:00:00.000Z',
     location: 'personal',
     metadata: {
-      phase: 'investigate',
+      phase: 'analyze',
       findingCounts: {},
       questionCounts: {},
       actionCounts: { total: 1, completed: 0, overdue: 0 },

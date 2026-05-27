@@ -8,7 +8,7 @@ status: draft
 implements:
   - docs/01-vision/constitution.md
   - docs/03-features/ai/visual-grounding.md
-  - docs/03-features/workflows/investigation-wall.md
+  - docs/03-features/workflows/analyze-wall.md
 related:
   [
     design-system,

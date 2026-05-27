@@ -97,9 +97,9 @@ The `predictFromUnifiedModel()` function in `bestSubsets.ts` accepts mixed facto
 
 ## Related ADRs
 
-| ADR                                                     | Relationship                                                   |
-| ------------------------------------------------------- | -------------------------------------------------------------- |
-| [ADR-014](adr-014-regression-deferral.md)               | Superseded — regression is no longer deferred                  |
-| [ADR-052](adr-052-factor-intelligence.md)               | Factor Intelligence — best subsets now uses the unified engine |
-| [ADR-065](adr-065-evidence-map-causal-graph.md)         | Evidence Map — continuous factor nodes now positioned by R²adj |
-| [ADR-066](adr-066-evidence-map-investigation-center.md) | Evidence Map spine — What-If Profiler uses GLM prediction      |
+| ADR                                               | Relationship                                                   |
+| ------------------------------------------------- | -------------------------------------------------------------- |
+| [ADR-014](adr-014-regression-deferral.md)         | Superseded — regression is no longer deferred                  |
+| [ADR-052](adr-052-factor-intelligence.md)         | Factor Intelligence — best subsets now uses the unified engine |
+| [ADR-065](adr-065-evidence-map-causal-graph.md)   | Evidence Map — continuous factor nodes now positioned by R²adj |
+| [ADR-066](adr-066-evidence-map-analyze-center.md) | Evidence Map spine — What-If Profiler uses GLM prediction      |

@@ -358,7 +358,7 @@ to the devil's-advocate critique in
 5. **Investigation Wall PR #76 status reconciliation.** Memory says PR #76
    OPEN; commit history + `gh pr list` show PR #75 + PR #76 both merged
    2026-04-24. Wall is fully shipped. The reconciliation is a memory-edit
-   task (post plan-mode exit) plus a doc backfill (`docs/03-features/workflows/investigation-wall.md`
+   task (post plan-mode exit) plus a doc backfill (`docs/03-features/workflows/analyze-wall.md`
    stub; feature-parity row; methodology three-projections paragraph). No
    D-tag.
 

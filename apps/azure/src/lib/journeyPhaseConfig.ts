@@ -30,8 +30,8 @@ export const PHASE_CONFIG: Record<string, PhaseConfig> = {
     bgColor: 'bg-green-500/10',
     borderColor: 'border-green-500/30',
   },
-  investigate: {
-    label: 'INVESTIGATE',
+  analyze: {
+    label: 'ANALYZE',
     textColor: 'text-amber-500',
     solidBgColor: 'bg-amber-500',
     bgColor: 'bg-amber-500/10',

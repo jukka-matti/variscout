@@ -23,7 +23,7 @@ V1 ships 3 personas within each Project. Per-project ACLs; no cross-AD-tenant in
 
 ## Information architecture
 
-- [**IA Nav Model**](ia-nav-model.md) — the 7-tab navigation (`Home · Project · Process · Analyze · Investigation · Improve · Report`) and the active-IP cascade rules.
+- [**IA Nav Model**](ia-nav-model.md) — the 7-tab navigation (`Home · Project · Process · Explore · Analyze · Improve · Report`) and the active-IP cascade rules.
 
 ## Supporting reference
 

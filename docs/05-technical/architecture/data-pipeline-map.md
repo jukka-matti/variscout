@@ -312,7 +312,7 @@ flowchart LR
 
 ## 4. AI Pipeline Swim Lane
 
-> **Note**: AI features are shipped behind a preview gate. The pipeline components (NarrativeBar, ChartInsightChips, CoScout) are defined in the knowledge layer but not yet wired to live AI services in the main codebase. See the [investigation lifecycle map](../../03-features/workflows/investigation-lifecycle-map.md) for investigation diamond phase definitions and CoScout behavior per phase.
+> **Note**: AI features are shipped behind a preview gate. The pipeline components (NarrativeBar, ChartInsightChips, CoScout) are defined in the knowledge layer but not yet wired to live AI services in the main codebase. See the [investigation lifecycle map](../../03-features/workflows/analyze-lifecycle-map.md) for investigation diamond phase definitions and CoScout behavior per phase.
 
 ```mermaid
 flowchart LR
@@ -506,5 +506,5 @@ sequenceDiagram
 - [Data Flow](data-flow.md) -- detailed input/validation stages and platform-specific flows
 - [System Map](system-map.md) -- package topology and dependency graph
 - [Component Patterns](component-patterns.md) -- hook integration details and DataContext structure
-- [Investigation Lifecycle Map](../../03-features/workflows/investigation-lifecycle-map.md) -- Investigation diamond phases and CoScout behavior
-- [Investigation to Action](../../03-features/workflows/investigation-to-action.md) -- findings workflow specification
+- [Investigation Lifecycle Map](../../03-features/workflows/analyze-lifecycle-map.md) -- Investigation diamond phases and CoScout behavior
+- [Investigation to Action](../../03-features/workflows/analyze-to-action.md) -- findings workflow specification

@@ -311,7 +311,7 @@ Delivered:
 ## See Also
 
 - [Staged Analysis](../03-features/analysis/staged-analysis.md) — feature documentation
-- [Investigation to Action](../03-features/workflows/investigation-to-action.md) — full investigation workflow
+- [Investigation to Action](../03-features/workflows/analyze-to-action.md) — full investigation workflow
 - [Data Flow Architecture](../05-technical/architecture/data-flow.md) — data pipeline overview
-- [ADR-020: Investigation Workflow](adr-020-investigation-workflow.md) — hypothesis model
+- [ADR-020: Investigation Workflow](adr-020-analyze-workflow.md) — hypothesis model
 - [ADR-019: AI Integration](adr-019-ai-integration.md) — AI architecture

@@ -63,4 +63,4 @@ TBD.
 
 - **Code**: `packages/core/src/ai/`, `packages/core/src/ai/prompts/coScout/`, `apps/azure/src/features/ai/aiStore.ts`, `apps/azure/src/features/ai/useAIOrchestration.ts`
 - **Tests**: `packages/core/src/ai/__tests__/`, `apps/azure/src/features/ai/__tests__/`
-- **Related**: `docs/03-features/ai/visual-grounding.md`, `docs/07-decisions/adr-068-coscout-cognitive-redesign.md`, `docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md`
+- **Related**: `docs/03-features/ai/visual-grounding.md`, `docs/07-decisions/adr-068-coscout-cognitive-redesign.md`, `docs/07-decisions/adr-080-control-auto-fire-pattern.md`

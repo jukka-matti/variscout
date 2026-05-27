@@ -38,7 +38,7 @@ describe('useJourneyPhase', () => {
   it('returns "investigate" when findings exist but none have actions', () => {
     const findings = [makeFinding({ id: 'f-1', text: 'Pattern spotted' })];
     const { result } = renderHook(() => useJourneyPhase(true, findings));
-    expect(result.current).toBe('investigate');
+    expect(result.current).toBe('analyze');
   });
 
   it('returns "improve" when at least one finding has actions', () => {
@@ -69,7 +69,7 @@ describe('useJourneyPhase', () => {
   it('returns "investigate" when findings have empty actions array', () => {
     const findings = [makeFinding({ id: 'f-1', text: 'Empty actions', actions: [] })];
     const { result } = renderHook(() => useJourneyPhase(true, findings));
-    expect(result.current).toBe('investigate');
+    expect(result.current).toBe('analyze');
   });
 
   it('returns "frame" when hasData is false even if findings exist', () => {

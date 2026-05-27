@@ -66,9 +66,9 @@ The **active-IP cascade** is Lead-owned: when the Lead selects an Improvement Pr
 
 - [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Charter authoring, member roster, stage advance
 - [Analysis Flow](../../03-features/workflows/analysis-flow.md) — Four Lenses, canvas-based EDA
-- [Investigation Wall](../../03-features/workflows/investigation-wall.md) — Findings + Hypotheses + Measurement Plans
+- [Investigation Wall](../../03-features/workflows/analyze-wall.md) — Findings + Hypotheses + Measurement Plans
 - [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — Active-IP cascade, action tracker
-- [Sustainment](../../03-features/workflows/sustainment.md) — Cadence, drift detection, close-out
+- [Sustainment](../../03-features/workflows/control.md) — Cadence, drift detection, close-out
 - [Hub Creation](../../03-features/workflows/hub-creation.md) — Process Hub setup (internal substrate)
 
 Supporting reference: [`flows/azure-first-analysis.md`](../flows/azure-first-analysis.md), [`flows/azure-daily-use.md`](../flows/azure-daily-use.md), [`flows/azure-team-collaboration.md`](../flows/azure-team-collaboration.md).

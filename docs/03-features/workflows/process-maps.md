@@ -580,7 +580,7 @@ _Quality is dropping — find out why._
 
 **Outcome:** "Factor X on Level Y causes Z% of variation. Cpk improves from A to B when filtered."
 
-See [Investigation to Action](investigation-to-action.md) for the full three-phase methodology.
+See [Investigation to Action](analyze-to-action.md) for the full three-phase methodology.
 
 ---
 
@@ -702,6 +702,6 @@ _Root cause is known — can we fix it? What would change?_
 
 - [Four Lenses Workflow](four-lenses-workflow.md) — The foundational methodology
 - [Drill-Down Workflow](drill-down-workflow.md) — Progressive stratification mechanics
-- [Investigation to Action](investigation-to-action.md) — Three-phase analyst workflow
+- [Investigation to Action](analyze-to-action.md) — Three-phase analyst workflow
 - [Quick Check](quick-check.md) — 5-minute monitoring pattern
 - [Decision Trees](decision-trees.md) — Which analysis to use when

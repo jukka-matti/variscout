@@ -7,7 +7,7 @@ import type { Finding, JourneyPhase, EntryScenario } from '@variscout/core';
  *
  * - frame: no data loaded yet
  * - scout: data loaded, exploring patterns (no findings yet)
- * - investigate: findings exist, drilling into causes
+ * - analyze: findings exist, drilling into causes
  * - improve: at least one finding has corrective actions
  */
 export function useJourneyPhase(hasData: boolean, findings: Finding[]): JourneyPhase {
@@ -15,7 +15,7 @@ export function useJourneyPhase(hasData: boolean, findings: Finding[]): JourneyP
     if (!hasData) return 'frame';
     const hasActions = findings.some(f => f.actions && f.actions.length > 0);
     if (hasActions) return 'improve';
-    if (findings.length > 0) return 'investigate';
+    if (findings.length > 0) return 'analyze';
     return 'scout';
   }, [hasData, findings]);
 }

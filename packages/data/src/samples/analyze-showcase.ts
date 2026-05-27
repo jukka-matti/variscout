@@ -1,6 +1,6 @@
 import type { SampleDataset } from '../types';
 import { seedRandom, generateNormal, round } from '../utils';
-import type { Finding, Question, Hypothesis, InvestigationCategory } from '@variscout/core';
+import type { Finding, Question, Hypothesis, AnalyzeCategory } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 // ============================================================================
@@ -445,7 +445,7 @@ function buildHypotheses(): Hypothesis[] {
   ];
 }
 
-function buildCategories(): InvestigationCategory[] {
+function buildCategories(): AnalyzeCategory[] {
   return [
     {
       id: IDS.CAT_EQUIPMENT,

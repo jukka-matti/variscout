@@ -105,7 +105,7 @@ fi
 
 # In incremental mode, skip type-value section unless one of the relevant
 # input files is staged.
-TYPE_VALUE_INPUTS='(docs/03-features/workflows/investigation-lifecycle-map\.md|docs/03-features/workflows/analysis-journey-map\.md|packages/core/src/findings\.ts)'
+TYPE_VALUE_INPUTS='(docs/03-features/workflows/analyze-lifecycle-map\.md|docs/03-features/workflows/analysis-journey-map\.md|packages/core/src/findings\.ts)'
 RUN_TYPE_VALUES=1
 if (( INCREMENTAL )); then
   if incremental_has_path "$TYPE_VALUE_INPUTS"; then
@@ -118,24 +118,24 @@ fi
 if (( RUN_TYPE_VALUES )); then
   echo "=== Type Value Checks ==="
 
-  LIFECYCLE_MAP="$ROOT/docs/03-features/workflows/investigation-lifecycle-map.md"
+  LIFECYCLE_MAP="$ROOT/docs/03-features/workflows/analyze-lifecycle-map.md"
   JOURNEY_MAP="$ROOT/docs/03-features/workflows/analysis-journey-map.md"
   FINDINGS_TS="$ROOT/packages/core/src/findings.ts"
 
-  # FindingStatus values → investigation-lifecycle-map.md
+  # FindingStatus values → analyze-lifecycle-map.md
   for status in observed investigating analyzed improving resolved; do
     if ! grep -q "$status" "$LIFECYCLE_MAP" 2>/dev/null; then
-      red "DRIFT: FindingStatus '$status' not found in investigation-lifecycle-map.md"
+      red "DRIFT: FindingStatus '$status' not found in analyze-lifecycle-map.md"
       ERRORS=$((ERRORS + 1))
     else
       green "OK: FindingStatus '$status' in lifecycle map"
     fi
   done
 
-  # InvestigationPhase values → investigation-lifecycle-map.md
+  # InvestigationPhase values → analyze-lifecycle-map.md
   for phase in initial diverging validating converging improving; do
     if ! grep -qi "$phase" "$LIFECYCLE_MAP" 2>/dev/null; then
-      red "DRIFT: InvestigationPhase '$phase' not found in investigation-lifecycle-map.md"
+      red "DRIFT: InvestigationPhase '$phase' not found in analyze-lifecycle-map.md"
       ERRORS=$((ERRORS + 1))
     else
       green "OK: InvestigationPhase '$phase' in lifecycle map"
@@ -152,11 +152,11 @@ if (( RUN_TYPE_VALUES )); then
     fi
   done
 
-  # QuestionStatus values → investigation-lifecycle-map.md
+  # QuestionStatus values → analyze-lifecycle-map.md
   # (Hypothesis was renamed to Question per ADR-053; enum lives in packages/core/src/findings/types.ts)
   for status in open investigating answered ruled-out; do
     if ! grep -qi "\`$status\`" "$LIFECYCLE_MAP" 2>/dev/null; then
-      red "DRIFT: QuestionStatus '$status' not documented in investigation-lifecycle-map.md"
+      red "DRIFT: QuestionStatus '$status' not documented in analyze-lifecycle-map.md"
       ERRORS=$((ERRORS + 1))
     else
       green "OK: QuestionStatus '$status' in lifecycle map"

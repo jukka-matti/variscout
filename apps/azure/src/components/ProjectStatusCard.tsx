@@ -16,7 +16,7 @@ import { PHASE_CONFIG } from '../lib/journeyPhaseConfig';
 export interface ProjectStatusCardProps {
   projectName: string;
   lastEdited?: string;
-  journeyPhase: 'frame' | 'scout' | 'investigate' | 'improve';
+  journeyPhase: 'frame' | 'scout' | 'analyze' | 'improve';
   findings: Finding[];
   questions: Question[];
   filterStack: FilterAction[];
@@ -27,7 +27,7 @@ export interface ProjectStatusCardProps {
   onResumeAnalysis: () => void;
 }
 
-const PHASE_ORDER = ['frame', 'scout', 'investigate', 'improve'] as const;
+const PHASE_ORDER = ['frame', 'scout', 'analyze', 'improve'] as const;
 
 // ── Finding status color dots ────────────────────────────────────────────────
 

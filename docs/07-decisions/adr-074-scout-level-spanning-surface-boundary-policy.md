@@ -10,7 +10,7 @@ related:
   - adr-073-no-statistical-rollup-across-heterogeneous-units
   - adr-049-coscout-context-and-memory
   - adr-064-suspected-cause-hub-model
-  - adr-066-evidence-map-investigation-center
+  - adr-066-evidence-map-analyze-center
   - adr-070-frame-workspace
   - multi-level-scout-design
 layer: L5
@@ -30,7 +30,7 @@ layer: L5
 [ADR-073](adr-073-no-statistical-rollup-across-heterogeneous-units.md) (locality rule, same enforcement mechanism),
 [ADR-049](adr-049-coscout-context-and-memory.md) (Knowledge Catalyst — investigation as memory, depends on this policy),
 [ADR-064](../archive/adrs/adr-064-suspected-cause-hub-model.md) (SuspectedCause hub model),
-[ADR-066](adr-066-evidence-map-investigation-center.md) (Evidence Map as investigation center),
+[ADR-066](adr-066-evidence-map-analyze-center.md) (Evidence Map as investigation center),
 [ADR-070](adr-070-frame-workspace.md) (FRAME workspace as L2 authoring owner),
 [Multi-level SCOUT design](../archive/specs/2026-04-29-multi-level-scout-design.md) (the spec this policy companions)
 

@@ -38,7 +38,7 @@ Workflows describe **what analysts actually DO** inside VariScout—the sequence
 
 The unified 4-phase model: **FRAME → SCOUT → INVESTIGATE → IMPROVE** with CoScout companion across all phases and PDCA loop for re-entry. Start here for the big picture.
 
-### [Investigation Lifecycle Map](investigation-lifecycle-map.md)
+### [Investigation Lifecycle Map](analyze-lifecycle-map.md)
 
 Investigation diamond state diagram for the Investigate phase — hypothesis diamond, finding status lifecycle, and CoScout behavior at each state.
 
@@ -88,14 +88,14 @@ Flowcharts for common analyst questions:
 - Defect concentration
 - Specification compliance
 
-### [Investigation to Action](investigation-to-action.md)
+### [Investigation to Action](analyze-to-action.md)
 
 The two-phase analyst workflow: **Investigate → Project**
 
 1. Findings — drill into factors, pin observations, track investigation status
 2. What-If — scenario modeling for projected improvement
 
-### [Question-Driven Investigation](question-driven-investigation.md)
+### [Question-Driven Investigation](question-driven-analyze.md)
 
 The question tree workflow — form questions, validate with data, track evidence, refine or reject.
 
@@ -111,7 +111,7 @@ Prioritization matrix (impact vs timeframe), cost/risk assessment, and idea comp
 
 Stage 1 (HubGoalForm) → provisioning → Stage 3 (ColumnMapping) flow for binding a ProcessHub before the first investigation begins.
 
-### [Sustainment Phase](sustainment.md)
+### [Sustainment Phase](control.md)
 
 Post-improvement monitoring within a Project — cadence reviews, holding/drifting/broken verdicts, control handoffs to MES / SCADA / QMS / work instruction surfaces.
 
@@ -140,14 +140,14 @@ Systematic investigation for problem-solving:
 
 ## Workflow Selection Guide
 
-| Your Question                | Start Here                                            |
-| ---------------------------- | ----------------------------------------------------- |
-| "Is my process stable?"      | [Four Lenses](four-lenses-workflow.md)                |
-| "What's causing variation?"  | [Drill-Down](drill-down-workflow.md)                  |
-| "Which channel is worst?"    | [Performance Mode](performance-mode-workflow.md)      |
-| "Quick shift check needed"   | [Quick Check](quick-check.md)                         |
-| "Need to solve this problem" | [Deep Dive](deep-dive.md)                             |
-| "Full root cause to action"  | [Investigation to Action](investigation-to-action.md) |
+| Your Question                | Start Here                                       |
+| ---------------------------- | ------------------------------------------------ |
+| "Is my process stable?"      | [Four Lenses](four-lenses-workflow.md)           |
+| "What's causing variation?"  | [Drill-Down](drill-down-workflow.md)             |
+| "Which channel is worst?"    | [Performance Mode](performance-mode-workflow.md) |
+| "Quick shift check needed"   | [Quick Check](quick-check.md)                    |
+| "Need to solve this problem" | [Deep Dive](deep-dive.md)                        |
+| "Full root cause to action"  | [Investigation to Action](analyze-to-action.md)  |
 
 ## Related Documentation
 

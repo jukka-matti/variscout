@@ -286,4 +286,4 @@ See [V1 spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-desi
 - [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€120) matrix
 - [USER-JOURNEYS](../USER-JOURNEYS.md) — V1 single-persona spine
 - [ADR-019: AI Integration](../07-decisions/adr-019-ai-integration.md)
-- [ADR-080: Sustainment auto-fire pattern](../07-decisions/adr-080-sustainment-auto-fire-pattern.md)
+- [ADR-080: Sustainment auto-fire pattern](../07-decisions/adr-080-control-auto-fire-pattern.md)

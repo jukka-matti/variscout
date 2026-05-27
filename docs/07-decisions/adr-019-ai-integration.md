@@ -206,7 +206,7 @@ Key design decisions:
 
 ## See Also
 
-- [ADR-015: Investigation Board](adr-015-investigation-board.md)
+- [ADR-015: Investigation Board](adr-015-analyze-board.md)
 - [ADR-026: SharePoint-First Knowledge Base](../archive/adrs/adr-026-knowledge-base-sharepoint-first.md)
 - [AI Journey Integration](../05-technical/architecture/ai-journey-integration.md)
 - [AI Architecture](../05-technical/architecture/ai-architecture.md)

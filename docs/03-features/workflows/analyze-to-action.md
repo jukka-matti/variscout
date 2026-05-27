@@ -244,7 +244,7 @@ When a finding reaches "Analyzed" status, document why the variation is happenin
 
 A hypothesis links to a specific factor and is automatically validated via ANOVA eta-squared thresholds. For causes that cannot be validated with data (physical inspection, domain expertise), gemba and expert validation types are available.
 
-For structured investigation with multiple competing theories, use the **Question-Driven Investigation Flow** — a diamond pattern of diverge (generate questions), validate (test each), and converge (eliminate contradicted, confirm supported). See [Question-Driven Investigation](question-driven-investigation.md) for the full workflow.
+For structured investigation with multiple competing theories, use the **Question-Driven Investigation Flow** — a diamond pattern of diverge (generate questions), validate (test each), and converge (eliminate contradicted, confirm supported). See [Question-Driven Investigation](question-driven-analyze.md) for the full workflow.
 
 ### SuspectedCause Hub Model (Azure only)
 
@@ -653,10 +653,10 @@ Every step works without AI. CoScout enhances but never gates:
 - [Four Lenses Workflow](four-lenses-workflow.md) — Foundational methodology
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
 - [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
-- [Question-Driven Investigation](question-driven-investigation.md) — Diamond pattern root cause investigation
+- [Question-Driven Investigation](question-driven-analyze.md) — Diamond pattern root cause investigation
 - [Improvement Prioritization](improvement-prioritization.md) — Prioritization matrix, cost/risk assessment, idea comparison
-- [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Architectural decisions
-- [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Hypothesis model decisions
+- [ADR-015: Investigation Board](../../07-decisions/adr-015-analyze-board.md) — Architectural decisions
+- [ADR-020: Investigation Workflow](../../07-decisions/adr-020-analyze-workflow.md) — Hypothesis model decisions
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Knowledge base dependency
 - [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md) — AI × investigation phase touch points
 - [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) — Data lifecycle, staged comparison, verification vision

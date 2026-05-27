@@ -17,7 +17,7 @@ layer: spec
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` to implement this plan task-by-task. Sonnet for implementer + reviewers; Opus for the final-branch code review only. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Retire `isPaidTier()` / `hasTeamFeatures()` and the related tier/plan gating across the codebase (~33 source files post-WV1-4) under the wedge V1 single €99 SKU. Keep channel-limit constants but drop the tier dimension. Reorder + rename the 7-tab nav to the amended workflow order — `Home · Project · Process · Analyze · Investigation · Improve · Report` — with renames (Overview→Home, Frame→Process, Analysis→Analyze, Projects→**Project** singular). **Improve tab is preserved** as a top-level verb tab per the 2026-05-16 amendment (`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`); only reorder + renames apply.
+**Goal:** Retire `isPaidTier()` / `hasTeamFeatures()` and the related tier/plan gating across the codebase (~33 source files post-WV1-4) under the wedge V1 single €99 SKU. Keep channel-limit constants but drop the tier dimension. Reorder + rename the 7-tab nav to the amended workflow order — `Home · Project · Process · Explore · Analyze · Improve · Report` — with renames (Overview→Home, Frame→Process, Analysis→Analyze, Projects→**Project** singular). **Improve tab is preserved** as a top-level verb tab per the 2026-05-16 amendment (`docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`); only reorder + renames apply.
 
 **Architecture:** Wedge V1 sells one SKU at €99/mo. All previously-tier-gated features become always-on for every customer. Where the gating was a stand-in for role-based access (e.g., signoff, audit, RACI), it switches to `canAccess(userId, members, action)` from PR-WV1-1. Where it gated genuine team-licensing features (cloud sync, knowledge base, AI multi-author), the gating just deletes — those features become baseline. The nav reorder lands Project in slot 2 (active-IP entry point, cascade root) and keeps Improve between Investigation and Report per the amendment's verb-tab pattern.
 
@@ -81,7 +81,7 @@ End-of-task: single two-stage Opus review pair (spec + quality) walks the commit
 
 **Nav reorder + renames (Task 6) — per [2026-05-16 amendment](../../archive/specs/2026-05-16-improve-tab-amendment-design.md):**
 
-- `apps/azure/src/components/AppHeader.tsx` (lines 410–471) — current tabs: `Overview · Frame · Analysis · Investigation · Improve · Projects · Report`. Target: `Home · Project · Process · Analyze · Investigation · Improve · Report` (7 tabs). Renames: Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project (singular). Reorder: Project moves from slot 6 → slot 2. Improve stays (slot 6 in new order, between Investigation and Report). Update `data-testid` values: `view-toggle-overview`→`view-toggle-home`, `view-toggle-frame`→`view-toggle-process`, `view-toggle-analysis`→`view-toggle-analyze`, `view-toggle-projects`→`view-toggle-project`.
+- `apps/azure/src/components/AppHeader.tsx` (lines 410–471) — current tabs: `Overview · Frame · Analysis · Investigation · Improve · Projects · Report`. Target: `Home · Project · Process · Explore · Analyze · Improve · Report` (7 tabs). Renames: Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project (singular). Reorder: Project moves from slot 6 → slot 2. Improve stays (slot 6 in new order, between Investigation and Report). Update `data-testid` values: `view-toggle-overview`→`view-toggle-home`, `view-toggle-frame`→`view-toggle-process`, `view-toggle-analysis`→`view-toggle-analyze`, `view-toggle-projects`→`view-toggle-project`.
 - `apps/pwa/src/components/layout/AppHeader.tsx` (lines 96–104) — `PHASE_TABS` array. Current 7 entries: `home / frame / analysis / investigation / improvement / projects / report`. Target: `home / project / process / analyze / investigation / improvement / report` (PhaseId union changes: `frame`→`process`, `analysis`→`analyze`, `projects`→`project`). i18n labelKeys: `workspace.frame`→`workspace.process`, `workspace.analysis`→`workspace.analyze`. NOTE: `workspace.project` (singular) i18n key already exists per PR-WV1-2 amendment Task 6 — verify before editing.
 - `packages/core/src/i18n/locales/*.ts` — rename i18n keys `workspace.frame`→`workspace.process`, `workspace.analysis`→`workspace.analyze` across all locale files. `workspace.project` key already exists.
 
@@ -541,7 +541,7 @@ git commit -m "feat(wedge): drop tier-upgrade UI copy + unused i18n keys"
 - Modify: i18n locales (`packages/core/src/i18n/locales/*.ts`) — rename `workspace.frame` → `workspace.process`, `workspace.analysis` → `workspace.analyze`
 - Modify: any test asserting on tab labels or testids (`grep -rln "view-toggle-overview\|view-toggle-frame\|view-toggle-analysis\|view-toggle-projects" packages/ apps/`)
 
-**Target order:** `Home · Project · Process · Analyze · Investigation · Improve · Report` (7 tabs)
+**Target order:** `Home · Project · Process · Explore · Analyze · Improve · Report` (7 tabs)
 
 **Mapping (verified against current code 2026-05-17):**
 
@@ -807,7 +807,7 @@ git push origin feat/wedge-pr-wv1-5-tier-gating
 gh pr create --title "feat(wedge): PR-WV1-5 — tier-gating retirement + nav reorder" --body "$(cat <<'EOF'
 ## Summary
 
-Retire `isPaidTier()` / `hasTeamFeatures()` and the tier/plan gating across the codebase (33 files post-WV1-4) under the wedge V1 single €99 SKU. Reorder + rename the 7-tab nav to amended workflow order Home · Project · Process · Analyze · Investigation · Improve · Report (per `docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`).
+Retire `isPaidTier()` / `hasTeamFeatures()` and the tier/plan gating across the codebase (33 files post-WV1-4) under the wedge V1 single €99 SKU. Reorder + rename the 7-tab nav to amended workflow order Home · Project · Process · Explore · Analyze · Improve · Report (per `docs/archive/specs/2026-05-16-improve-tab-amendment-design.md`).
 
 ## What changed
 
@@ -826,7 +826,7 @@ Retire `isPaidTier()` / `hasTeamFeatures()` and the tier/plan gating across the 
 - Overview→Home, Frame→Process, Analysis→Analyze, Projects→Project (singular).
 - Improve tab **kept** as top-level verb tab (active-IP cascade); moves between Investigation and Report.
 - Project moves to slot 2 (active-IP entry point, cascade root).
-- Final order: `Home · Project · Process · Analyze · Investigation · Improve · Report`.
+- Final order: `Home · Project · Process · Explore · Analyze · Improve · Report`.
 
 **ESLint guard:**
 - `no-restricted-imports` rule blocks re-introduction of the retired tier functions.

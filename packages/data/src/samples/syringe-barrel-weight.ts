@@ -14,13 +14,7 @@
  */
 import type { SampleDataset } from '../types';
 import { mulberry32 } from '../utils';
-import type {
-  Finding,
-  Question,
-  Hypothesis,
-  CausalLink,
-  InvestigationCategory,
-} from '@variscout/core';
+import type { Finding, Question, Hypothesis, CausalLink, AnalyzeCategory } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 // ============================================================================
@@ -685,7 +679,7 @@ function buildCausalLinks(): CausalLink[] {
   ];
 }
 
-function buildCategories(): InvestigationCategory[] {
+function buildCategories(): AnalyzeCategory[] {
   return [
     {
       id: IDS.CAT_MATERIAL,

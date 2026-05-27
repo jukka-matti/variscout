@@ -55,4 +55,4 @@ TBD.
 
 - **Code**: `packages/core/src/sustainment.ts`, `packages/core/src/actions/sustainmentActions.ts`, `packages/core/src/survey/sustainment.ts`, `apps/azure/src/components/sustainment/`, `apps/azure/src/pages/Editor.sustainment.tsx`
 - **Tests**: `packages/core/src/__tests__/sustainment.test.ts`, `packages/core/src/__tests__/sustainment.paths.test.ts`
-- **Related**: `docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md`, `docs/07-decisions/adr-082-wedge-architecture.md`, `docs/03-features/workflows/improvement-workspace.md`
+- **Related**: `docs/07-decisions/adr-080-control-auto-fire-pattern.md`, `docs/07-decisions/adr-082-wedge-architecture.md`, `docs/03-features/workflows/improvement-workspace.md`

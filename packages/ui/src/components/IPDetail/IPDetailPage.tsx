@@ -39,9 +39,7 @@ export interface IPDetailPageProps {
   /** Optional day counter passed to header. */
   dayCounter?: number;
   /** Jump-out handler — called from per-stage "Continue in" buttons. */
-  onJumpOut?: (
-    target: 'investigation' | 'analyze' | 'process' | 'improve-workbench' | 'report'
-  ) => void;
+  onJumpOut?: (target: 'analyze' | 'explore' | 'process' | 'improve-workbench' | 'report') => void;
   /** Props for Charter Sections (Sections-mode form). */
   charterFormProps?: ImprovementProjectFormProps;
   /** Cause projection inputs for the Approach stage. */
@@ -222,7 +220,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
           {activeStage === 'charter' && mode === 'overview' && (
             <CharterOverview
               ip={ip}
-              onOpenInvestigation={() => onJumpOut?.('investigation')}
+              onOpenInvestigation={() => onJumpOut?.('analyze')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               currentUserId={currentUserId}
               onInvite={onMembersChange ? handleMemberInvite : undefined}
@@ -237,7 +235,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               ip={ip}
               causeInputs={approachInputs}
               onOpenWorkbench={cause => onOpenCauseWorkbench?.(cause)}
-              onOpenWall={() => onJumpOut?.('investigation')}
+              onOpenWall={() => onJumpOut?.('analyze')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               onOpenProcess={() => onJumpOut?.('process')}
             />

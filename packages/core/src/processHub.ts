@@ -159,8 +159,8 @@ export interface ProcessHub extends EntityBase {
    * decompose these out of hub rows before writing.
    */
   controlRecords?: ControlRecord[];
-  controlReviews?: import('./sustainment').ControlReview[];
-  controlHandoffs?: import('./sustainment').ControlHandoff[];
+  controlReviews?: import('./control').ControlReview[];
+  controlHandoffs?: import('./control').ControlHandoff[];
 }
 
 export const DEFAULT_PROCESS_HUB: ProcessHub = {

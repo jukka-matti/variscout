@@ -160,7 +160,7 @@ This does not reopen ADR-053's core decision. Questions remain the primary inves
 - [Design spec: Question-Driven EDA](../archive/specs/2026-03-30-question-driven-eda-design.md)
 - [Investigation Workspace Reframing Design](../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md)
 - [Thesis reference](../01-vision/references/turtiainen-2019-eda-mental-model.md)
-- [ADR-020: Investigation Workflow](adr-020-investigation-workflow.md)
+- [ADR-020: Investigation Workflow](adr-020-analyze-workflow.md)
 - [ADR-029: AI Action Tools](adr-029-ai-action-tools.md)
 - [ADR-049: CoScout Knowledge Catalyst](adr-049-coscout-context-and-memory.md)
 - [ADR-052: Factor Intelligence](adr-052-factor-intelligence.md)

@@ -63,7 +63,7 @@ Member's scope is narrower than Lead's: they touch **Investigation** (hypothesis
 
 ## Feature touch-points
 
-- [Investigation Wall](../../03-features/workflows/investigation-wall.md) — Add evidence to assigned Hypotheses; log Measurement Plan rows
+- [Investigation Wall](../../03-features/workflows/analyze-wall.md) — Add evidence to assigned Hypotheses; log Measurement Plan rows
 - [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — Complete assigned action items under the active IP
 - [Analysis Flow](../../03-features/workflows/analysis-flow.md) — Open datasets linked from the Wall; create Findings tied to a Hypothesis
 - [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Read Charter, see roster, view stage (no edit)

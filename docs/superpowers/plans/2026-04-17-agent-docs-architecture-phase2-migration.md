@@ -454,12 +454,12 @@ Co-Authored-By: ruflo <ruv@ruv.net>"
 
 **Sources:**
 
-- `docs/07-decisions/adr-015-investigation-board.md`
-- `docs/07-decisions/adr-020-investigation-workflow.md`
-- `docs/07-decisions/adr-053-question-driven-investigation.md`
+- `docs/07-decisions/adr-015-analyze-board.md`
+- `docs/07-decisions/adr-020-analyze-workflow.md`
+- `docs/07-decisions/adr-053-question-driven-analyze.md`
 - `docs/07-decisions/adr-064-suspected-cause-hub-model.md`
 - `docs/07-decisions/adr-065-evidence-map-causal-graph.md`
-- `docs/07-decisions/adr-066-evidence-map-investigation-center.md`
+- `docs/07-decisions/adr-066-evidence-map-analyze-center.md`
 - `docs/superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md`
 - `docs/superpowers/specs/2026-04-04-investigation-spine-design.md`
 - `packages/core/src/findings/` (Finding types, factories, helpers)

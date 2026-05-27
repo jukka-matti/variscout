@@ -11,7 +11,7 @@ related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/archive/specs/2026-05-14-variscout-coherence-design.md
   - docs/superpowers/specs/2026-05-16-wedge-architecture-design.md
-  - docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md
+  - docs/07-decisions/adr-080-control-auto-fire-pattern.md
 layer: L1
 ---
 
@@ -177,7 +177,7 @@ Monitoring activates in Process when the four-persona model + PMS layer + auto-i
 
 ## §10 Cross-references
 
-- The ADR-080 Sustainment auto-fire pattern (the V1 surviving piece): [`docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md`](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md).
+- The ADR-080 Sustainment auto-fire pattern (the V1 surviving piece): [`docs/07-decisions/adr-080-control-auto-fire-pattern.md`](../../07-decisions/adr-080-control-auto-fire-pattern.md).
 - The decisions-queue and State-mode design that monitoring populates: [Wedge spec §3.3.2](../../superpowers/specs/2026-05-16-wedge-architecture-design.md) (the V1 State-mode shape that Process expands).
 - The persona × surface routing that determines who sees which alert: [four-personas.md](four-personas.md).
 - The PMS layer that produces Current Process State for drift detection to read: [measurement-system.md](measurement-system.md).

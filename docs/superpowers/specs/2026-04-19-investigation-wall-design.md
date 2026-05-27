@@ -20,9 +20,9 @@ related:
 layer: spec
 implements:
   - docs/01-vision/methodology.md
-  - docs/03-features/workflows/investigation-wall.md
-  - docs/03-features/workflows/question-driven-investigation.md
-  - docs/03-features/workflows/investigation-lifecycle-map.md
+  - docs/03-features/workflows/analyze-wall.md
+  - docs/03-features/workflows/question-driven-analyze.md
+  - docs/03-features/workflows/analyze-lifecycle-map.md
 ---
 
 # Investigation Wall — River-Roots Design

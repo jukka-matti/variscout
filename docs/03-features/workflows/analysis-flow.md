@@ -298,5 +298,5 @@ Complaint data loaded. I-Chart: when did the shift happen? Boxplot: Machine C et
 - [Methodology](../../01-vision/methodology.md) — Watson's EDA, Four Lenses, Two Voices
 - [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) — How all conceptual frameworks nest together
 - [Drill-Down Workflow](drill-down-workflow.md) — Progressive stratification protocol
-- [Investigation to Action](investigation-to-action.md) — Findings, hypothesis trees, What-If
+- [Investigation to Action](analyze-to-action.md) — Findings, hypothesis trees, What-If
 - [Staged Analysis](../analysis/staged-analysis.md) — Before/after comparison methodology

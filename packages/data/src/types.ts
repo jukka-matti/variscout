@@ -35,7 +35,7 @@ export interface SampleInvestigationState {
   questions?: import('@variscout/core').Question[];
   hypotheses?: import('@variscout/core').Hypothesis[];
   causalLinks?: import('@variscout/core').CausalLink[];
-  categories?: import('@variscout/core').InvestigationCategory[];
+  categories?: import('@variscout/core').AnalyzeCategory[];
 }
 
 /** Seed of the FRAME Process Map for a showcase — loadSample writes this to processContext. */

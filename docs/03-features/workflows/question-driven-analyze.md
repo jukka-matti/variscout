@@ -15,7 +15,7 @@ serves:
 
 # Question-Driven Investigation Flow
 
-> How to use the question tree and validation UI. For the diamond lifecycle, see [Investigation Lifecycle Map](investigation-lifecycle-map.md). For the narrative walkthrough, see [Analysis Journey Map § INVESTIGATE](analysis-journey-map.md#phase-3-investigate). For the full EDA methodology, see [EDA Mental Model](../../01-vision/eda-mental-model.md).
+> How to use the question tree and validation UI. For the diamond lifecycle, see [Investigation Lifecycle Map](analyze-lifecycle-map.md). For the narrative walkthrough, see [Analysis Journey Map § INVESTIGATE](analysis-journey-map.md#phase-3-investigate). For the full EDA methodology, see [EDA Mental Model](../../01-vision/eda-mental-model.md).
 
 Structured investigation using the question-driven diamond pattern — generate questions, answer them with evidence, converge on suspected causes.
 
@@ -383,12 +383,12 @@ The analyst can edit the assembled text at any time. Edits are saved to `process
 ## Related Documentation
 
 - [EDA Mental Model](../../01-vision/eda-mental-model.md) — Full question-driven methodology grounded in Turtiainen (2019)
-- [Investigation to Action](investigation-to-action.md) — Full investigation workflow (findings, actions, outcomes)
+- [Investigation to Action](analyze-to-action.md) — Full investigation workflow (findings, actions, outcomes)
 - [Drill-Down Workflow](drill-down-workflow.md) — ANOVA drill-down mechanics
 - [Deep Dive](deep-dive.md) — 30-minute investigation pattern
 - [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md) — CoScout and AI features
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
-- [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Architectural decisions
+- [ADR-020: Investigation Workflow](../../07-decisions/adr-020-analyze-workflow.md) — Architectural decisions
 - [PI Panel Redesign](../../archive/specs/2026-04-01-process-intelligence-panel-redesign.md) — Stats/Questions/Journal tab design (ADR-056)
 
 ## Related: ADR-060 (CoScout Intelligence Architecture)

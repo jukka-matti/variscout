@@ -104,7 +104,7 @@ The pre-wedge VariScout vision named five response paths for any current state o
 4. Sustainment
 5. Handoff
 
-V1 reduced to **three canvas response paths** (Capture as Finding, Investigate, Charter), with Sustainment auto-firing per [ADR-080](../../07-decisions/adr-080-sustainment-auto-fire-pattern.md) and Handoff folded into Sustainment closure.
+V1 reduced to **three canvas response paths** (Capture as Finding, Investigate, Charter), with Sustainment auto-firing per [ADR-080](../../07-decisions/adr-080-control-auto-fire-pattern.md) and Handoff folded into Sustainment closure.
 
 **Process likely re-expands.** The original five-path framing serves multi-persona reality better than three. Specifically:
 

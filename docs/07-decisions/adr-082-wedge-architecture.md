@@ -14,7 +14,7 @@ layer: L5
 
 > **Price amended 2026-05-17: €99 → €120/month.** The original decision priced the single SKU at €99; revised upward to €120 before any customer exposure. All current-truth price references below read €120; the §Migration section preserves €79/€199 as historical-context migration math.
 >
-> **Nav + stage amended 2026-05-16 (Improve-tab amendment, [archived spec](../archive/specs/2026-05-16-improve-tab-amendment-design.md)):** The "What V1 builds" table below describes the original 6-tab / 4-stage design. The shipped V1 is **7-tab nav** (Improve restored as top-level verb tab with active-IP cascade) + **3-stage Project** (Charter → Approach → Sustainment; Improve is a verb tab, not a stage; Handoff folds into Sustainment closure). Canvas response paths reduced from 5 to 3 unchanged.
+> **Nav + stage amended 2026-05-16 (Improve-tab amendment, [archived spec](../archive/specs/2026-05-16-improve-tab-amendment-design.md)):** The "What V1 builds" table below describes the original 6-tab / 4-stage design. The shipped V1 is **7-tab nav** (Improve restored as top-level verb tab with active-IP cascade) + **3-stage Project** (Charter → Approach → Control; Improve is a verb tab, not a stage; Handoff folds into Control closure). Canvas response paths reduced from 5 to 3 unchanged.
 
 ## Context
 
@@ -40,7 +40,7 @@ Split VariScout into two products on a roadmap. Ship the wedge first.
 - **Foundational unit (formal)**: Project (self-contained, invite-scoped). **Hub** stays as the _internal_ data container backing Process tab + paste data; not surfaced as a user-visible noun.
 - **Collaboration**: Project Lead invites org users _per project_ (not tenant-wide).
 - **Persona model**: One — Specialist. Project-membership roles: **Lead** (full edit + manages membership), **Member** (full edit), **Sponsor** — same ACL tier as Member (reads everywhere, edits contributions). Preserved as identity / notification routing / Report attribution label, not for permission gating. Signoff out-of-band at V1 (Lead records as note in stage metadata).
-- **Investigation model**: Investigation Wall is the canonical Hypothesis-driven surface. Extended with **Measurement Plan** sub-entity per Hypothesis — supports hypothesis-first investigation (plan → collect → finding → confirm/refute) without a separate Measure stage. Both data-first and hypothesis-first starting points converge on the Wall.
+- **Analyze model**: Analyze Wall is the canonical Hypothesis-driven surface. Extended with **Measurement Plan** sub-entity per Hypothesis — supports hypothesis-first analysis (plan → collect → finding → confirm/refute) without a separate Measure stage. Both data-first and hypothesis-first starting points converge on the Wall.
 - **Pricing**: **€120/month**, single SKU, Azure tenant-wide, unlimited org users, unlimited projects.
 - **Distribution**: Azure Marketplace Managed Application + in-app project membership ACLs (Hub-level data tenant-wide; Project-level data membership-gated).
 - **Privacy boundary**: Project-scoped membership within Azure AD tenant. Cross-AD-tenant invitations explicitly out of scope.
@@ -56,18 +56,18 @@ Split VariScout into two products on a roadmap. Ship the wedge first.
 
 ### What V1 builds
 
-| Surface                                                                  | Status                                                                                                                           |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| 6-tab nav `Home · Projects · Process · Analyze · Investigation · Report` | Refactored from current 7-tab                                                                                                    |
-| Projects detail: 4 stages `Charter → Approach → Improve → Sustainment`   | Improve becomes a stage (was a top-level tab); Handoff folds into Sustainment                                                    |
-| Improve UI = simple action tracker by default                            | PDCA workbench retained behind an "Advanced" toggle (progressive disclosure, not a parallel mode)                                |
-| Process tab + canvas + Frame step                                        | Unchanged (canvas is foundational substrate per ADR-081)                                                                         |
-| Canvas response paths from step drill                                    | Reduced from 5 to 3 (Capture as Finding, Investigate, Charter); Handoff path deleted                                             |
-| Project membership ACLs                                                  | New data model: `ProjectMember`, `Invitation`, role enum (Lead/Member/Sponsor)                                                   |
-| Investigation Wall + Measurement Plans                                   | Wall extended with `MeasurementPlan` sub-entity per Hypothesis. Supports hypothesis-first flow without a separate Measure stage. |
-| Tier-gating (`isPaidTier()` / `hasTeamFeatures()`)                       | Mostly retires (single SKU); replaced where useful by project-membership checks                                                  |
-| Persona routing (`personaRole`)                                          | Deleted from V1 codebase (migrates to VariScout Process)                                                                         |
-| PWA tier                                                                 | Stays free as try-before-buy funnel                                                                                              |
+| Surface                                                            | Status                                                                                                                           |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| 6-tab nav `Home · Projects · Process · Explore · Analyze · Report` | Refactored from current 7-tab                                                                                                    |
+| Projects detail: 4 stages `Charter → Approach → Improve → Control` | Improve becomes a stage (was a top-level tab); Handoff folds into Control                                                        |
+| Improve UI = simple action tracker by default                      | PDCA workbench retained behind an "Advanced" toggle (progressive disclosure, not a parallel mode)                                |
+| Process tab + canvas + Frame step                                  | Unchanged (canvas is foundational substrate per ADR-081)                                                                         |
+| Canvas response paths from step drill                              | Reduced from 5 to 3 (Capture as Finding, Investigate, Charter); Handoff path deleted                                             |
+| Project membership ACLs                                            | New data model: `ProjectMember`, `Invitation`, role enum (Lead/Member/Sponsor)                                                   |
+| Analyze Wall + Measurement Plans                                   | Wall extended with `MeasurementPlan` sub-entity per Hypothesis. Supports hypothesis-first flow without a separate Measure stage. |
+| Tier-gating (`isPaidTier()` / `hasTeamFeatures()`)                 | Mostly retires (single SKU); replaced where useful by project-membership checks                                                  |
+| Persona routing (`personaRole`)                                    | Deleted from V1 codebase (migrates to VariScout Process)                                                                         |
+| PWA tier                                                           | Stays free as try-before-buy funnel                                                                                              |
 
 ### Pricing rationale
 
@@ -100,7 +100,7 @@ Customers currently on €79 Standard or €199 Team need a migration path. Mode
 ~6–8 PRs, ~3–4 weeks. The recent week's foundation work (PRs #172–#181) is mostly wedge-aligned and stays valid. The main engineering items:
 
 - Delete Improve top-level tab; redirect to Projects detail Improve stage.
-- Rename Projects detail stages (Sustainment+Handoff → Improve+Sustainment); fold Handoff close-logic into Sustainment.
+- Rename Projects detail stages (Control+Handoff → Improve+Control); fold Handoff close-logic into Control.
 - Add Improve stage component with simple list default + Advanced PDCA toggle.
 - Add project membership ACL data model + auth checks.
 - Re-key canvas viewport state from ProcessHubId to ProjectId.
@@ -161,5 +161,5 @@ Mitigation in all three cases: the three preconditions are exactly the checks th
 - ADR-033 (superseded — tier model, archived 2026-05-17): `docs/archive/adrs/adr-033-pricing-simplification.md`
 - Coherence audit (partially superseded — Session A retires, Sessions B+C refocus): `docs/archive/specs/2026-05-14-variscout-coherence-design.md`
 - Projects tab design (to be amended — stage list change): `docs/archive/specs/2026-05-14-projects-tab-design.md`
-- ADR-080 (preserved — Sustainment auto-fire pattern): `docs/07-decisions/adr-080-sustainment-auto-fire-pattern.md`
+- ADR-080 (preserved — Control auto-fire pattern): `docs/07-decisions/adr-080-control-auto-fire-pattern.md`
 - ADR-081 (preserved — canvas viewport architecture): `docs/07-decisions/adr-081-canvas-viewport-architecture.md`

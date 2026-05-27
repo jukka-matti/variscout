@@ -64,7 +64,7 @@ The Sponsor reads Analyze + Investigation when they want to engage with the anal
 
 - [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Charter sign-off, view roster + stage progression
 - [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — Read action items + active-IP scope (no edit)
-- [Sustainment](../../03-features/workflows/sustainment.md) — Drift signals surface to Sponsor when they need attention
+- [Sustainment](../../03-features/workflows/control.md) — Drift signals surface to Sponsor when they need attention
 
 Supporting reference: [`flows/enterprise.md`](../flows/enterprise.md), [`flows/azure-team-collaboration.md`](../flows/azure-team-collaboration.md).
 

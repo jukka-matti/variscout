@@ -13,11 +13,11 @@ layer: L5
 
 **Status:** Accepted
 **Date:** 2026-03-31
-**Extends:** [ADR-053](adr-053-question-driven-investigation.md) (Question-Driven Investigation), [ADR-047](adr-047-analysis-mode-strategy.md) (Strategy Pattern)
+**Extends:** [ADR-053](adr-053-question-driven-analyze.md) (Question-Driven Investigation), [ADR-047](adr-047-analysis-mode-strategy.md) (Strategy Pattern)
 
 ## Context
 
-[ADR-053](adr-053-question-driven-investigation.md) introduced question-driven EDA with two question sources: Factor Intelligence (deterministic, R²adj-based) and CoScout heuristics. [ADR-052](adr-052-factor-intelligence.md) defined a 3-layer factor analysis system using best subsets regression.
+[ADR-053](adr-053-question-driven-analyze.md) introduced question-driven EDA with two question sources: Factor Intelligence (deterministic, R²adj-based) and CoScout heuristics. [ADR-052](adr-052-factor-intelligence.md) defined a 3-layer factor analysis system using best subsets regression.
 
 Both assume a **single analytical model**: continuous outcome variable measured per row, analyzed via ANOVA/regression. This works for Standard and Performance modes but **breaks for Yamazumi** and **under-serves Capability**:
 
@@ -178,7 +178,7 @@ Since **ADR-062** (Apr 2026), the "Category Total SS %" metric for Standard/Capa
 
 ## References
 
-- [ADR-053: Question-Driven Investigation](adr-053-question-driven-investigation.md) — base question model
+- [ADR-053: Question-Driven Investigation](adr-053-question-driven-analyze.md) — base question model
 - [ADR-052: Factor Intelligence](adr-052-factor-intelligence.md) — 3-layer factor analysis
 - [ADR-047: Analysis Mode Strategy Pattern](adr-047-analysis-mode-strategy.md) — strategy registry
 - [ADR-034: Yamazumi Analysis Mode](adr-034-yamazumi-analysis-mode.md) — Yamazumi data model

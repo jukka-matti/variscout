@@ -121,5 +121,5 @@ Delivered in `feature/standard-anova-metrics` branch. Phase 3 (documentation rew
 
 - [ADR-047: Analysis Mode Strategy Pattern](adr-047-analysis-mode-strategy.md)
 - [ADR-052: Factor Intelligence](adr-052-factor-intelligence.md)
-- [ADR-053: Question-Driven Investigation](adr-053-question-driven-investigation.md)
+- [ADR-053: Question-Driven Investigation](adr-053-question-driven-analyze.md)
 - [ADR-054: Mode-Aware Question Strategy](adr-054-mode-aware-question-strategy.md)
