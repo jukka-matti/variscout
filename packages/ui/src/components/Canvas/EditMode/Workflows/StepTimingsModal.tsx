@@ -407,6 +407,7 @@ const ByStepTable: React.FC<{
 const AutoDetectedDot: React.FC<{ testId: string }> = ({ testId }) => (
   <span
     data-testid={testId}
+    role="img"
     aria-label="Auto-detected"
     className="inline-block w-2 h-2 rounded-full bg-cyan-500/80 flex-shrink-0"
   />
