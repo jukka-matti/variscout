@@ -108,3 +108,39 @@ export interface DetectColumnsOptions {
    */
   goalContext?: string;
 }
+
+/**
+ * Per-column parsing analysis for the canvas palette (Spec 2 §3.1.1).
+ * Sibling to ColumnAnalysis — focused on parse-ability, not role detection.
+ */
+export type ParsingStatus = 'ok' | 'warning' | 'error';
+
+export interface ParsingInterpretation {
+  /** Coarse kind for icon + grouping in the palette. */
+  kind: 'numeric' | 'date' | 'categorical' | 'id' | 'text';
+  /** Human-readable label, e.g. "numeric · EU decimal", "DD/MM/YYYY", "categorical · 4 levels". */
+  label: string;
+  /** Interpretation-specific machine-readable detail (decimal separator, date format string, affix, etc). */
+  detail: Record<string, unknown>;
+}
+
+export interface ParsingAlternative {
+  interpretation: ParsingInterpretation;
+  /** How many non-null cells this interpretation successfully parses. */
+  parseCount: number;
+  /** Total non-null cells considered. */
+  totalCount: number;
+}
+
+export interface ColumnParsingProfile {
+  columnName: string;
+  status: ParsingStatus;
+  /** Whole-percent confidence in `primary` (0–100). Equals parseRate × 100 for the primary interpretation. */
+  confidence: number;
+  /** Best-fit interpretation. May be `null` when status is 'error' (no interpretation parses ≥ 1 cell). */
+  primary: ParsingInterpretation | null;
+  /** Other tried interpretations ranked by parseCount desc, excluding the primary. */
+  alternatives: ParsingAlternative[];
+  /** Up to 3 raw→transformed sample pairs (e.g. "182,5" → "182.5"). */
+  transformedSamples: Array<{ raw: string; transformed: string }>;
+}
