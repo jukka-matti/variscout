@@ -1,5 +1,7 @@
 import React from 'react';
+import { useDraggable } from '@dnd-kit/core';
 import type { ColumnParsingProfile, ParsingStatus } from '@variscout/core/parser';
+import { encodeColumnDragId } from './encodeColumnDragId';
 
 export interface ColumnChipProps {
   profile: ColumnParsingProfile;
@@ -22,14 +24,33 @@ const BADGE_BY_STATUS: Record<ParsingStatus, { icon: string; classes: string }> 
 };
 
 export const ColumnChip: React.FC<ColumnChipProps> = ({ profile }) => {
+  const draggableId = encodeColumnDragId(profile.columnName);
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: draggableId });
   const badge = BADGE_BY_STATUS[profile.status];
   const interpretationLabel = profile.primary?.label ?? 'parse failed';
 
+  const style = transform
+    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+    : undefined;
+
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       data-testid="column-chip"
+      data-draggable-id={draggableId}
       className="flex items-center gap-2 rounded-md border border-edge bg-surface-primary px-2 py-1.5"
     >
+      <button
+        type="button"
+        data-testid="column-chip-drag-handle"
+        className="cursor-grab text-xs text-content-tertiary"
+        aria-label={`Drag ${profile.columnName}`}
+        {...attributes}
+        {...listeners}
+      >
+        ⋮⋮
+      </button>
       <span
         data-testid="column-chip-badge"
         className={`inline-flex h-4 w-4 items-center justify-center rounded text-xs ${badge.classes}`}

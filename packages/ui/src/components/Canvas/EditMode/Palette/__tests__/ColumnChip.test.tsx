@@ -51,3 +51,20 @@ describe('ColumnChip — base render', () => {
     expect(screen.getByText(/parse failed/i)).toBeInTheDocument();
   });
 });
+
+import { encodeColumnDragId } from '../encodeColumnDragId';
+
+describe('ColumnChip — drag handle', () => {
+  it('renders a drag handle with cursor-grab', () => {
+    renderChip();
+    const handle = screen.getByTestId('column-chip-drag-handle');
+    expect(handle.className).toMatch(/cursor-grab/);
+    expect(handle).toHaveTextContent('⋮⋮');
+  });
+
+  it('exposes a draggable element with the encoded column id', () => {
+    renderChip({ profile: createTestColumnParsingProfile({ columnName: 'Speed' }) });
+    const draggable = screen.getByTestId('column-chip');
+    expect(draggable.getAttribute('data-draggable-id')).toBe(encodeColumnDragId('Speed'));
+  });
+});
