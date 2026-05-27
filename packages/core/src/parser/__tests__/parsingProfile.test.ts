@@ -126,4 +126,16 @@ describe('profileColumns — numeric format detection', () => {
     expect(profile.primary?.kind).toBe('numeric');
     expect(profile.confidence).toBe(100);
   });
+
+  it('prefers US thousands over EU decimal when comma-only column is ambiguous', () => {
+    // ['1,234', '5,678', '9,012'] parses under both EU (→ 1.234) and US (→ 1234).
+    // No decimal-point or sub-3-digit group disambiguates. Real-world: this is
+    // overwhelmingly US thousands. Tie-break must favor US to avoid silently
+    // shifting values by 3 orders of magnitude.
+    const rows = [{ N: '1,234' }, { N: '5,678' }, { N: '9,012' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('numeric');
+    expect(profile.primary?.label).toContain('US');
+    expect(profile.transformedSamples[0]).toEqual({ raw: '1,234', transformed: '1234' });
+  });
 });

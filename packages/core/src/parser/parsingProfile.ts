@@ -67,7 +67,7 @@ function tryParseNumeric(value: unknown, format: NumericFormat): number | null {
 }
 
 function detectNumericFormat(values: unknown[]): NumericMatch[] {
-  const formats: NumericFormat[] = ['plain', 'eu', 'us'];
+  const formats: NumericFormat[] = ['plain', 'us', 'eu'];
   const matches: NumericMatch[] = [];
   for (const format of formats) {
     let parseCount = 0;
