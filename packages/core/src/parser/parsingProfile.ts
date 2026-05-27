@@ -102,6 +102,75 @@ function detectNumericFormat(values: unknown[]): NumericMatch[] {
   return matches;
 }
 
+// ---------------------------------------------------------------------------
+// Detection lane 2: date formats (ISO + slash variants)
+// ---------------------------------------------------------------------------
+
+type DateFormat = 'iso' | 'ddmmyyyy' | 'mmddyyyy';
+
+interface DateMatch {
+  format: DateFormat;
+  label: string;
+  parseCount: number;
+  ambiguous: boolean;
+}
+
+function tryParseDate(value: unknown, format: DateFormat): Date | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (format === 'iso') {
+    const isoPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const m = isoPattern.exec(trimmed);
+    if (!m) return null;
+    const [, y, mo, d] = m;
+    const date = new Date(Number(y), Number(mo) - 1, Number(d));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const slashPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+  const slash = slashPattern.exec(trimmed);
+  if (!slash) return null;
+  const [, a, b, y] = slash;
+  const day = format === 'ddmmyyyy' ? Number(a) : Number(b);
+  const month = format === 'ddmmyyyy' ? Number(b) : Number(a);
+  if (day < 1 || day > 31 || month < 1 || month > 12) return null;
+  const date = new Date(Number(y), month - 1, day);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function detectDateFormat(values: unknown[]): DateMatch[] {
+  const matches: DateMatch[] = [];
+  const formats: Array<{ key: DateFormat; label: string }> = [
+    { key: 'iso', label: 'ISO date (YYYY-MM-DD)' },
+    { key: 'ddmmyyyy', label: 'DD/MM/YYYY' },
+    { key: 'mmddyyyy', label: 'MM/DD/YYYY' },
+  ];
+  const slashPattern = /^(\d{1,2})\/(\d{1,2})\/\d{4}$/;
+  for (const { key, label } of formats) {
+    let parseCount = 0;
+    let firstPositionMax = 0;
+    let secondPositionMax = 0;
+    for (const v of values) {
+      const d = tryParseDate(v, key);
+      if (d !== null) parseCount++;
+      if (typeof v === 'string') {
+        const slash = slashPattern.exec(v.trim());
+        if (slash) {
+          firstPositionMax = Math.max(firstPositionMax, Number(slash[1]));
+          secondPositionMax = Math.max(secondPositionMax, Number(slash[2]));
+        }
+      }
+    }
+    if (parseCount === 0) continue;
+    // Slash formats are ambiguous when neither position contains a value > 12.
+    const ambiguous = key !== 'iso' && firstPositionMax <= 12 && secondPositionMax <= 12;
+    matches.push({ format: key, label, parseCount, ambiguous });
+  }
+  matches.sort((a, b) => b.parseCount - a.parseCount);
+  return matches;
+}
+
+// ---------------------------------------------------------------------------
+
 function profileOneColumn(columnName: string, rows: DataRow[]): ColumnParsingProfile {
   const allValues = rows.map(r => r[columnName]);
   // '' represents a missing CSV cell (Papa Parse default); exclude alongside null/undefined.
@@ -148,8 +217,35 @@ function profileOneColumn(columnName: string, rows: DataRow[]): ColumnParsingPro
     };
   }
 
-  // Detection lanes 2–4 (affix, date, ID, categorical) land in Tasks 4–6.
-  // Until then, anything not pure numeric falls through to a text placeholder.
+  // Detection lane 2: dates (ISO + DD/MM + MM/DD)
+  const dateMatches = detectDateFormat(nonNull);
+  if (dateMatches.length > 0 && dateMatches[0].parseCount === nonNull.length) {
+    // ISO is preferred when it parses everything; otherwise pick the unambiguous slash format.
+    const iso = dateMatches.find(m => m.format === 'iso');
+    const unambiguousSlash = dateMatches.find(m => m.format !== 'iso' && !m.ambiguous);
+    const top = iso ?? unambiguousSlash ?? dateMatches[0];
+    const primary: ParsingInterpretation = {
+      kind: 'date',
+      label: top.label,
+      detail: { format: top.format, ambiguous: top.ambiguous },
+    };
+    const sampleStrings = nonNull.filter((v): v is string => typeof v === 'string').slice(0, 3);
+    const transformedSamples = sampleStrings.map(raw => {
+      const parsed = tryParseDate(raw, top.format);
+      return { raw, transformed: parsed ? parsed.toISOString().slice(0, 10) : raw };
+    });
+    return {
+      columnName,
+      status: top.ambiguous ? 'warning' : 'ok',
+      confidence: 100,
+      primary,
+      alternatives: [],
+      transformedSamples,
+    };
+  }
+
+  // Detection lanes 3–4 (affix, ID, categorical) land in Tasks 5–6.
+  // Until then, anything not pure numeric/date falls through to a text placeholder.
   return {
     columnName,
     status: 'ok',

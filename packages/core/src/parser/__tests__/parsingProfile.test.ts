@@ -139,3 +139,36 @@ describe('profileColumns — numeric format detection', () => {
     expect(profile.transformedSamples[0]).toEqual({ raw: '1,234', transformed: '1234' });
   });
 });
+
+describe('profileColumns — date format detection', () => {
+  it('detects ISO dates (YYYY-MM-DD)', () => {
+    const rows = [{ D: '2024-01-15' }, { D: '2024-02-20' }, { D: '2024-03-10' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('date');
+    expect(profile.primary?.label).toContain('ISO');
+    expect(profile.status).toBe('ok');
+  });
+
+  it('detects DD/MM/YYYY when at least one value has day > 12', () => {
+    const rows = [{ D: '25/01/2024' }, { D: '15/02/2024' }, { D: '03/03/2024' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('date');
+    expect(profile.primary?.label).toContain('DD/MM/YYYY');
+    expect(profile.status).toBe('ok');
+  });
+
+  it('detects MM/DD/YYYY when at least one value has month-position > 12', () => {
+    const rows = [{ D: '01/25/2024' }, { D: '02/15/2024' }, { D: '03/03/2024' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('date');
+    expect(profile.primary?.label).toContain('MM/DD/YYYY');
+    expect(profile.status).toBe('ok');
+  });
+
+  it('flags ambiguous dates as warning when neither position disambiguates', () => {
+    const rows = [{ D: '01/02/2024' }, { D: '03/04/2024' }, { D: '05/06/2024' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('date');
+    expect(profile.status).toBe('warning');
+  });
+});
