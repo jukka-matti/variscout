@@ -70,6 +70,8 @@ export interface ColumnChipProps {
   dropped?: boolean;
   /** Visual state: system is suggesting a role for this chip. */
   ghostSuggested?: 'factor' | 'outcome' | 'process';
+  /** Visual state: this chip represents a derived/computed column (green tint + ✨ marker). */
+  derived?: boolean;
   /** Called when the ▾ button is clicked. Popover UI lands in B2.3. */
   onOverrideOpen?: (columnName: string, anchor: { x: number; y: number }) => void;
   /** Called when the ⋮ button is clicked. Context-menu UI lands in B2.3. */
@@ -87,6 +89,7 @@ export const ColumnChip: React.FC<ColumnChipProps> = ({
   numericValues,
   dropped,
   ghostSuggested,
+  derived,
   onOverrideOpen,
   onContextMenuOpen,
 }) => {
@@ -100,7 +103,8 @@ export const ColumnChip: React.FC<ColumnChipProps> = ({
     : undefined;
 
   const chipClasses = [
-    'flex items-center gap-2 rounded-md bg-surface-primary px-2 py-1.5',
+    'flex items-center gap-2 rounded-md px-2 py-1.5',
+    derived ? 'bg-emerald-50' : 'bg-surface-primary',
     dropped ? 'opacity-50 bg-surface-secondary border border-edge' : '',
     ghostSuggested ? 'border-2 border-dashed border-cyan-400' : 'border border-edge',
   ]
@@ -133,7 +137,10 @@ export const ColumnChip: React.FC<ColumnChipProps> = ({
         {badge.icon}
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-xs font-medium text-content">{profile.columnName}</span>
+        <span className="truncate text-xs font-medium text-content">
+          {derived && <span aria-hidden="true">✨</span>}
+          {profile.columnName}
+        </span>
         <span className="truncate text-[10px] text-content-tertiary">{interpretationLabel}</span>
       </div>
       {profile.primary?.kind === 'numeric' &&

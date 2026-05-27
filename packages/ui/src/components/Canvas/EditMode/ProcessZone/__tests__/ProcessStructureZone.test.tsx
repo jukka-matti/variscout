@@ -82,3 +82,51 @@ describe('ProcessStructureZone', () => {
     expect(connector).toHaveAttribute('aria-hidden', 'true');
   });
 });
+
+describe('ProcessStructureZone — timingByStepId forward prop (D1 Task 9)', () => {
+  it('accepts timingByStepId prop (defaults to {} — no badges rendered without it)', () => {
+    const steps = [
+      createTestStep({ id: 'mix', order: 0 }),
+      createTestStep({ id: 'fill', order: 1 }),
+    ];
+    renderZone({ steps });
+    expect(screen.queryByTestId('badge')).not.toBeInTheDocument();
+  });
+
+  it('passes timingBadge to the matching StepBox when timingByStepId entry is present', () => {
+    const steps = [
+      createTestStep({ id: 'mix', order: 0 }),
+      createTestStep({ id: 'fill', order: 1 }),
+    ];
+    renderZone({
+      steps,
+      timingByStepId: { mix: <span data-testid="badge">⏱ ~42 min</span> },
+    });
+    // Badge appears inside the mix step box
+    const mixBox = screen.getByTestId('step-box-mix');
+    expect(mixBox).toContainElement(screen.getByTestId('badge'));
+    expect(screen.getByTestId('badge')).toHaveTextContent('⏱ ~42 min');
+  });
+
+  it('does not render a badge for a step absent from timingByStepId', () => {
+    const steps = [
+      createTestStep({ id: 'mix', order: 0 }),
+      createTestStep({ id: 'fill', order: 1 }),
+    ];
+    renderZone({
+      steps,
+      timingByStepId: { mix: <span data-testid="badge">⏱ ~42 min</span> },
+    });
+    // fill step has no badge
+    const fillBox = screen.getByTestId('step-box-fill');
+    expect(fillBox).not.toContainElement(screen.queryByTestId('fill-badge'));
+    // The only badge rendered is for mix
+    expect(screen.getAllByTestId('badge')).toHaveLength(1);
+  });
+
+  it('empty timingByStepId ({}) renders no badges', () => {
+    const steps = [createTestStep({ id: 'a', order: 0 }), createTestStep({ id: 'b', order: 1 })];
+    renderZone({ steps, timingByStepId: {} });
+    expect(screen.queryByTestId('badge')).not.toBeInTheDocument();
+  });
+});

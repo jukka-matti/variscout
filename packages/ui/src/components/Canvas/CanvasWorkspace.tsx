@@ -9,9 +9,13 @@ import {
   type CanvasAnalyzeFocus,
 } from '@variscout/hooks';
 import {
+  computeLeadTimeColumn,
+  computeTotalWorkTimeColumn,
+  computeWaitTimeColumn,
   detectColumns,
   detectScopeFromMap,
   normalizeProcessHubId,
+  parseTimeValue,
   rankYCandidates,
   type CausalLink,
   type ColumnAnalysis,
@@ -23,17 +27,21 @@ import {
   type Question,
   type SpecLimits,
   type StepCapabilityStamp,
+  type StepTimingBinding,
   type Hypothesis,
   type TimelineWindow,
 } from '@variscout/core';
 import { isValidLevel, type CanvasLevel } from '@variscout/core/canvas';
 import type { ActionItem } from '@variscout/core/findings';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
+import { profileColumns, type ColumnParsingProfile } from '@variscout/core/parser';
 import { useCanvasStore } from '@variscout/stores';
 import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
 import { Canvas, type CanvasAuthoringMode, type CanvasL3Archetype } from './index';
 import { EditModeShell } from './EditMode';
 import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCategoricalColumn';
+import { StepTimingsModal } from './EditMode/Workflows/StepTimingsModal';
+import { formatDuration } from './EditMode/formatDuration';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
 import type { XCandidate } from '../XPickerSection';
@@ -475,6 +483,13 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     { id: string; name: string; order: number }[]
   >([]);
 
+  // D1 Task 10: local state for step timing bindings captured via the
+  // StepTimingsModal. Drives the derived Lead_time / Total_work_time /
+  // Wait_time columns + the per-step "⏱ ~ <duration>" timing badges.
+  // TODO(PR-CCJ-E1): persist stepTimings to ImprovementProject via Charter modal commit.
+  const [stepTimings, setStepTimings] = React.useState<StepTimingBinding[]>([]);
+  const [stepTimingsModalOpen, setStepTimingsModalOpen] = React.useState(false);
+
   const handleStepsReplace = React.useCallback(
     (next: ExtractedStep[], _sourceColumnName: string) => {
       // TODO(PR-CCJ-E1): persist into ImprovementProject.processSteps via the
@@ -497,6 +512,113 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     }
     return out;
   }, [columnAnalysis, rawData]);
+
+  // D1 Task 10: per-column parsing profiles for the palette + StepTimingsModal.
+  // Computed from rawData via the parser engine; passed to EditModeShell so the
+  // palette renders raw column chips, and forwarded to StepTimingsModal so it
+  // can pre-fill paired pickers (dateProfiles) + offer duration columns
+  // (numericProfiles).
+  const rawProfiles = React.useMemo<ColumnParsingProfile[]>(() => {
+    if (rawData.length === 0) return [];
+    return profileColumns([...rawData]);
+  }, [rawData]);
+
+  // D1 Task 10: derived Lead_time / Total_work_time / Wait_time columns.
+  // Each engine helper returns `number[] | null`; `null` ⇒ that derivation
+  // doesn't apply (e.g. Lead_time/Wait_time require ≥ 1 paired binding).
+  // Derived profiles are synthesized below and merged into the palette
+  // profile list so the chips appear in the "DERIVED FROM TIMINGS" group.
+  const leadTimeColumn = React.useMemo(
+    () => computeLeadTimeColumn([...rawData], stepTimings),
+    [rawData, stepTimings]
+  );
+  const totalWorkTimeColumn = React.useMemo(
+    () => computeTotalWorkTimeColumn([...rawData], stepTimings),
+    [rawData, stepTimings]
+  );
+  const waitTimeColumn = React.useMemo(
+    () => computeWaitTimeColumn([...rawData], stepTimings),
+    [rawData, stepTimings]
+  );
+
+  const derivedTimingsProfiles = React.useMemo<ColumnParsingProfile[]>(() => {
+    const profiles: ColumnParsingProfile[] = [];
+    const make = (columnName: string): ColumnParsingProfile => ({
+      columnName,
+      status: 'ok',
+      confidence: 100,
+      primary: { kind: 'numeric', label: 'numeric · derived', detail: {} },
+      alternatives: [],
+      transformedSamples: [],
+      derived: true,
+      derivationSource: 'timings',
+    });
+    if (leadTimeColumn !== null) profiles.push(make('Lead_time'));
+    if (totalWorkTimeColumn !== null) profiles.push(make('Total_work_time'));
+    if (waitTimeColumn !== null) profiles.push(make('Wait_time'));
+    return profiles;
+  }, [leadTimeColumn, totalWorkTimeColumn, waitTimeColumn]);
+
+  const editModeProfiles = React.useMemo<ColumnParsingProfile[]>(
+    () => [...rawProfiles, ...derivedTimingsProfiles],
+    [rawProfiles, derivedTimingsProfiles]
+  );
+
+  // D1 Task 10: numericValuesByColumn — raw numeric columns from columnAnalysis
+  // plus the derived timing columns so dropped derived chips have values
+  // available to the OutcomeZone / FactorZone drop handlers.
+  const numericValuesByColumn = React.useMemo<Record<string, number[]>>(() => {
+    const out: Record<string, number[]> = {};
+    for (const col of columnAnalysis) {
+      if (col.type === 'numeric') {
+        out[col.name] = numericValuesFor(col.name, rawData);
+      }
+    }
+    if (leadTimeColumn !== null) {
+      out['Lead_time'] = leadTimeColumn.filter(v => Number.isFinite(v));
+    }
+    if (totalWorkTimeColumn !== null) {
+      out['Total_work_time'] = totalWorkTimeColumn.filter(v => Number.isFinite(v));
+    }
+    if (waitTimeColumn !== null) {
+      out['Wait_time'] = waitTimeColumn.filter(v => Number.isFinite(v));
+    }
+    return out;
+  }, [columnAnalysis, rawData, leadTimeColumn, totalWorkTimeColumn, waitTimeColumn]);
+
+  // D1 Task 10: timingByStepId — per-step average duration (in ms) rendered
+  // as a "⏱ ~ <formatted>" badge on the matching `<StepBox>`.
+  // - Paired binding: mean(end_value - start_value) across rows (skip rows where
+  //   either cell is NaN/unparseable).
+  // - Duration binding: mean(durationColumn value) across rows (skip non-finite).
+  // - When the mean is NaN (all rows missing) ⇒ skip the entry (no badge).
+  const timingByStepId = React.useMemo<Record<string, React.ReactNode>>(() => {
+    const out: Record<string, React.ReactNode> = {};
+    for (const binding of stepTimings) {
+      const perRow: number[] = [];
+      if (binding.kind === 'paired') {
+        for (const row of rawData) {
+          const startDate = parseTimeValue(row[binding.startColumn]);
+          const endDate = parseTimeValue(row[binding.endColumn]);
+          if (startDate === null || endDate === null) continue;
+          perRow.push(endDate.getTime() - startDate.getTime());
+        }
+      } else {
+        for (const row of rawData) {
+          const raw = row[binding.durationColumn];
+          if (typeof raw === 'number' && Number.isFinite(raw)) {
+            perRow.push(raw);
+          }
+        }
+      }
+      if (perRow.length === 0) continue;
+      const mean = perRow.reduce((acc, v) => acc + v, 0) / perRow.length;
+      out[binding.stepId] = (
+        <span className="text-xs text-content-secondary">{`⏱ ~ ${formatDuration(mean)}`}</span>
+      );
+    }
+    return out;
+  }, [stepTimings, rawData]);
 
   // When access is revoked at runtime, snap back to State mode so the user
   // is never stranded in Edit mode without the Done affordance.
@@ -720,12 +842,31 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           <p className="text-sm text-content-secondary">{t('frame.b1.description')}</p>
         </header>
         {showEditShell ? (
-          <EditModeShell
-            onDone={handleShellDone}
-            steps={processSteps}
-            categoricalDistinctValuesByColumn={categoricalDistinctValuesByColumn}
-            onStepsReplace={handleStepsReplace}
-          />
+          <>
+            <EditModeShell
+              onDone={handleShellDone}
+              profiles={editModeProfiles}
+              numericValuesByColumn={numericValuesByColumn}
+              steps={processSteps}
+              categoricalDistinctValuesByColumn={categoricalDistinctValuesByColumn}
+              onStepsReplace={handleStepsReplace}
+              onCaptureStepTimings={() => setStepTimingsModalOpen(true)}
+              timingByStepId={timingByStepId}
+            />
+            {stepTimingsModalOpen && (
+              <StepTimingsModal
+                steps={processSteps}
+                dateProfiles={rawProfiles.filter(p => p.primary?.kind === 'date')}
+                numericProfiles={rawProfiles.filter(p => p.primary?.kind === 'numeric')}
+                initialBindings={stepTimings}
+                onSave={bindings => {
+                  setStepTimings(bindings);
+                  setStepTimingsModalOpen(false);
+                }}
+                onClose={() => setStepTimingsModalOpen(false)}
+              />
+            )}
+          </>
         ) : (
           canvasNode
         )}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import type { OutcomeSpec } from '@variscout/core';
 import type { ImprovementProjectFactorControl } from '@variscout/core/improvementProject';
@@ -9,6 +9,7 @@ import { FactorZone } from './FactorZone';
 import { ProcessStructureZone } from './ProcessZone';
 import type { ExtractedStep } from './ProcessZone/extractStepsFromCategoricalColumn';
 import { handleEditModeDragEnd } from './handleEditModeDragEnd';
+import { EditModeToolbar } from './EditModeToolbar';
 
 export interface EditModeShellProps {
   /** Called when the user clicks Done to exit Edit mode (returns to State mode). */
@@ -71,6 +72,19 @@ export interface EditModeShellProps {
    * column name (for provenance + future undo affordances).
    */
   onStepsReplace?: (steps: ExtractedStep[], sourceColumnName: string) => void;
+  /**
+   * Called when the user clicks the "Capture step timings" toolbar button.
+   * Only wired when `steps.length >= 1`. Task 10 (CanvasWorkspace integration)
+   * connects this to the StepTimingsModal open-state.
+   */
+  onCaptureStepTimings?: () => void;
+  /**
+   * D1 slot — timing badge nodes keyed by step id. Forwarded unchanged to
+   * `<ProcessStructureZone>`, which passes each entry as `timingBadge` to the
+   * matching `<StepBox>`. Task 10 (CanvasWorkspace) computes this map; Task 9
+   * only establishes the conduit. Defaults to `{}`.
+   */
+  timingByStepId?: Record<string, ReactNode>;
 }
 
 export const EditModeShell: React.FC<EditModeShellProps> = ({
@@ -90,6 +104,8 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
   onFactorControlAdd,
   onFactorControlUpdate,
   onStepsReplace,
+  onCaptureStepTimings,
+  timingByStepId = {},
 }) => {
   const onDragEnd = React.useCallback(
     (event: Parameters<typeof handleEditModeDragEnd>[0]) =>
@@ -130,6 +146,8 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
             Done
           </button>
         </header>
+
+        <EditModeToolbar steps={steps} onCaptureStepTimings={onCaptureStepTimings} />
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 md:grid-cols-[14rem_18rem_minmax(0,1fr)]">
           <aside
@@ -177,7 +195,7 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
             className="flex min-h-0 flex-col rounded-md border border-edge bg-surface-primary"
             aria-label="Process structure zone"
           >
-            <ProcessStructureZone steps={steps} />
+            <ProcessStructureZone steps={steps} timingByStepId={timingByStepId} />
           </section>
         </div>
       </section>

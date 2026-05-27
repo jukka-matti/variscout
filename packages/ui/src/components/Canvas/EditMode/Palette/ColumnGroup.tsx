@@ -3,7 +3,7 @@ import type { ColumnParsingProfile } from '@variscout/core/parser';
 import { ColumnChip } from './ColumnChip';
 
 export interface ColumnGroupProps {
-  groupKey: 'numeric' | 'categorical' | 'time-id' | 'other';
+  groupKey: 'numeric' | 'categorical' | 'time-id' | 'derived' | 'other';
   label: string;
   profiles: ColumnParsingProfile[];
   numericValuesByColumn: Record<string, number[]>;
@@ -30,6 +30,7 @@ export const ColumnGroup: React.FC<ColumnGroupProps> = ({
             key={profile.columnName}
             profile={profile}
             numericValues={numericValuesByColumn[profile.columnName]}
+            derived={profile.derived}
             onOverrideOpen={onColumnOverrideOpen}
             onContextMenuOpen={onColumnContextMenuOpen}
           />

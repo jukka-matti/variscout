@@ -1301,3 +1301,238 @@ describe('CanvasWorkspace', () => {
     expect(useCanvasStore.getState().canonicalMap.nodes).toEqual(mapWithSecondStep().nodes);
   });
 });
+
+// ---------------------------------------------------------------------------
+// D1 step timings end-to-end (Task 10)
+// ---------------------------------------------------------------------------
+//
+// Exercises the full step-timings flow inside Edit mode:
+//   drop categorical column → toolbar button enabled → click → modal opens →
+//   pre-fill auto-detects pairs → Save → derived chips appear in palette →
+//   timing badges render on step boxes.
+//
+// Uses paired date columns (`Prep_start`/`Prep_end`, etc.) that
+// `detectPairedTimingColumns` should match by suffix-stripped step name.
+// ---------------------------------------------------------------------------
+
+describe('CanvasWorkspace — D1 step timings end-to-end', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/');
+    wallIsMobileRef.current = false;
+    localMechanismPropsRef.current = null;
+    dndMockHandlersRef.current = [];
+    useCanvasStore.setState(useCanvasStore.getInitialState());
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    vi.mocked(useSharedWallProps).mockClear();
+    canvasFiltersStateRef.current = {
+      timelineWindow: { kind: 'cumulative' },
+      scopeFilter: undefined,
+      paretoGroupBy: undefined,
+      activeCanvasLens: 'default',
+      activeCanvasOverlays: [],
+      setTimelineWindow: vi.fn(),
+      setScopeFilter: vi.fn(),
+      setParetoGroupBy: vi.fn(),
+      setActiveCanvasLens: vi.fn(),
+      setActiveCanvasOverlays: vi.fn(),
+      toggleCanvasOverlay: vi.fn(),
+      activeCanvasTool: 'select',
+      setActiveCanvasTool: vi.fn(),
+    };
+    vi.mocked(useCanvasStepCards).mockImplementation(() => ({ cards: mockStepCards }));
+    vi.mocked(useCanvasAnalyzeOverlays).mockImplementation(() => ({
+      overlays: mockInvestigationOverlays,
+    }));
+  });
+
+  // Sample dataset: 3 categorical Step values (`Prep` / `Mix` / `Pack`) + 3
+  // paired start/end date columns. Step values repeat across rows so
+  // detectColumns classifies it as categorical with `hasVariation: true`.
+  //
+  // Date columns use YYYY-MM-DD literals so the parser classifies them as
+  // `kind: 'date'` (the parser only accepts that ISO subset; full ISO
+  // datetimes fall through to text). The engine's parseTimeValue accepts
+  // the same format and resolves them to per-row epoch ms for the
+  // computeLeadTimeColumn / Total / Wait helpers.
+  const pairedTimingRows = [
+    {
+      Step: 'Prep',
+      Prep_start: '2026-01-01',
+      Prep_end: '2026-01-02',
+      Mix_start: '2026-01-03',
+      Mix_end: '2026-01-05',
+      Pack_start: '2026-01-06',
+      Pack_end: '2026-01-08',
+    },
+    {
+      Step: 'Mix',
+      Prep_start: '2026-02-01',
+      Prep_end: '2026-02-02',
+      Mix_start: '2026-02-03',
+      Mix_end: '2026-02-05',
+      Pack_start: '2026-02-06',
+      Pack_end: '2026-02-08',
+    },
+    {
+      Step: 'Pack',
+      Prep_start: '2026-03-01',
+      Prep_end: '2026-03-02',
+      Mix_start: '2026-03-03',
+      Mix_end: '2026-03-05',
+      Pack_start: '2026-03-06',
+      Pack_end: '2026-03-08',
+    },
+  ];
+
+  // Process map: one step is enough to make `detectScopeFromMap` return b2/b1
+  // (anything other than b0), so CanvasWorkspace renders the b1/b2 branch with
+  // EditModeShell instead of the b0 FrameViewB0 picker. The processSteps that
+  // drive the toolbar + timing-badge flow live in CanvasWorkspace local state,
+  // not in processMap.nodes.
+  const stepTimingsMap = (): ProcessMap => ({
+    version: 1,
+    nodes: [{ id: 'seed-step', name: 'Seed', order: 0 }],
+    tributaries: [],
+    createdAt: '2026-05-04T00:00:00.000Z',
+    updatedAt: '2026-05-04T00:00:00.000Z',
+  });
+
+  function renderEditWorkspace(
+    rows: ReadonlyArray<Record<string, unknown>> = pairedTimingRows
+  ): void {
+    render(
+      <CanvasWorkspace
+        rawData={rows as ReadonlyArray<import('@variscout/core').DataRow>}
+        outcome={null}
+        factors={[]}
+        measureSpecs={{}}
+        processContext={{ processMap: stepTimingsMap() }}
+        setOutcome={vi.fn()}
+        setFactors={vi.fn()}
+        setMeasureSpec={vi.fn()}
+        setProcessContext={vi.fn()}
+        onSeeData={vi.fn()}
+        canEditCanvas={true}
+      />
+    );
+  }
+
+  function dropStepColumnOnProcessZone(): void {
+    act(() => {
+      fireDndMockDragEnd({
+        active: { id: 'column:Step' },
+        over: { id: 'process-zone:singleton' },
+      });
+    });
+  }
+
+  it('happy path — drop categorical → toolbar enabled → modal pre-fills → save → derived chips + badges appear', () => {
+    renderEditWorkspace();
+
+    // Edit mode shell is mounted (canEditCanvas:true + b1/b2 scope).
+    expect(screen.getByTestId('edit-mode-shell')).toBeInTheDocument();
+
+    // Toolbar's "Capture step timings" button is disabled before steps exist.
+    const toolbarButton = screen.getByRole('button', { name: /\+ Capture step timings/i });
+    expect(toolbarButton).toBeDisabled();
+
+    // Drop the `Step` categorical column on the process zone — materializes
+    // 3 emergent steps (Prep / Mix / Pack) into CanvasWorkspace local state.
+    dropStepColumnOnProcessZone();
+
+    // Toolbar button is now enabled.
+    expect(toolbarButton).not.toBeDisabled();
+
+    // No derived chips yet (Save hasn't been called).
+    expect(screen.queryByTestId('palette-group-derived')).toBeNull();
+
+    // Click the toolbar button → modal opens.
+    fireEvent.click(toolbarButton);
+    expect(screen.getByTestId('step-timings-backdrop')).toBeInTheDocument();
+
+    // Modal auto-detection pre-filled the three step rows. Verify the
+    // `Prep` row has its Start picker bound to `Prep_start` (the
+    // `detectPairedTimingColumns` engine matches by suffix-stripped step name).
+    const prepRowStart = screen.getByLabelText(/Start column for Prep/i) as HTMLSelectElement;
+    expect(prepRowStart.value).toBe('Prep_start');
+    const mixRowEnd = screen.getByLabelText(/End column for Mix/i) as HTMLSelectElement;
+    expect(mixRowEnd.value).toBe('Mix_end');
+
+    // Save the modal — fires `onSave(bindings)` with 3 paired bindings.
+    const saveButton = screen.getByTestId('step-timings-save');
+    expect(saveButton).not.toBeDisabled();
+    fireEvent.click(saveButton);
+
+    // Modal closes.
+    expect(screen.queryByTestId('step-timings-backdrop')).toBeNull();
+
+    // Derived palette group now appears with the DERIVED FROM TIMINGS header.
+    const derivedGroup = screen.getByTestId('palette-group-derived');
+    expect(derivedGroup).toBeInTheDocument();
+    expect(derivedGroup).toHaveTextContent('DERIVED FROM TIMINGS');
+
+    // The 3 derived columns are present (all-paired ⇒ all 3 contribute).
+    expect(derivedGroup).toHaveTextContent('Lead_time');
+    expect(derivedGroup).toHaveTextContent('Total_work_time');
+    expect(derivedGroup).toHaveTextContent('Wait_time');
+
+    // Timing badges appear on each step box (`⏱ ~ …`).
+    // detectPairedTimingColumns matches step name → column suffix, so step ids
+    // are `step-Step-0` (Prep) / `step-Step-1` (Mix) / `step-Step-2` (Pack).
+    const prepBox = screen.getByTestId('step-box-step-Step-0');
+    const mixBox = screen.getByTestId('step-box-step-Step-1');
+    const packBox = screen.getByTestId('step-box-step-Step-2');
+    expect(prepBox.textContent).toMatch(/⏱/);
+    expect(mixBox.textContent).toMatch(/⏱/);
+    expect(packBox.textContent).toMatch(/⏱/);
+  });
+
+  it('all-duration case excludes Lead_time but keeps Total_work_time', () => {
+    // Same dataset, but we bind all three steps via duration columns instead
+    // of paired start/end. Lead_time requires ≥ 1 paired binding (spec §3.4)
+    // so it must NOT appear; Total_work_time spans both kinds so it DOES.
+    const durationRows = pairedTimingRows.map(row => ({
+      Step: row.Step,
+      Prep_duration_ms: 600_000, // 10 min
+      Mix_duration_ms: 1_200_000, // 20 min
+      Pack_duration_ms: 900_000, // 15 min
+    }));
+    renderEditWorkspace(durationRows);
+
+    dropStepColumnOnProcessZone();
+
+    const toolbarButton = screen.getByRole('button', { name: /\+ Capture step timings/i });
+    fireEvent.click(toolbarButton);
+
+    // Bind each step to its duration column via the duration alternative section.
+    fireEvent.change(screen.getByTestId('step-duration-row-step-Step-0-picker'), {
+      target: { value: 'Prep_duration_ms' },
+    });
+    fireEvent.change(screen.getByTestId('step-duration-row-step-Step-1-picker'), {
+      target: { value: 'Mix_duration_ms' },
+    });
+    fireEvent.change(screen.getByTestId('step-duration-row-step-Step-2-picker'), {
+      target: { value: 'Pack_duration_ms' },
+    });
+
+    fireEvent.click(screen.getByTestId('step-timings-save'));
+
+    const derivedGroup = screen.getByTestId('palette-group-derived');
+    expect(derivedGroup).toBeInTheDocument();
+    expect(derivedGroup).not.toHaveTextContent('Lead_time');
+    expect(derivedGroup).not.toHaveTextContent('Wait_time');
+    expect(derivedGroup).toHaveTextContent('Total_work_time');
+  });
+
+  it('empty state — no derived chips appear before Save is called', () => {
+    renderEditWorkspace();
+    dropStepColumnOnProcessZone();
+
+    // Steps materialized; modal not opened yet. No derived chips.
+    expect(screen.queryByTestId('palette-group-derived')).toBeNull();
+
+    // Open the modal — derived chips still should not appear (Save not clicked).
+    fireEvent.click(screen.getByRole('button', { name: /\+ Capture step timings/i }));
+    expect(screen.queryByTestId('palette-group-derived')).toBeNull();
+  });
+});

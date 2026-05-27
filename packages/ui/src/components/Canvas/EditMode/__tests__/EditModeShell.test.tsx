@@ -367,3 +367,106 @@ describe('end-to-end drag-end integration (C3 Task 8 — Approach 1)', () => {
     expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
   });
 });
+
+describe('EditModeShell — timingByStepId thread-through (D1 Task 9)', () => {
+  it('forwards timingByStepId badges to the ProcessStructureZone StepBoxes', () => {
+    render(
+      <DndContext>
+        <EditModeShell
+          onDone={vi.fn()}
+          steps={[
+            { id: 'mix', name: 'Mix', order: 0 },
+            { id: 'fill', name: 'Fill', order: 1 },
+          ]}
+          timingByStepId={{ mix: <span data-testid="timing-badge-mix">⏱ ~42 min</span> }}
+        />
+      </DndContext>
+    );
+    const mixBox = screen.getByTestId('step-box-mix');
+    expect(mixBox).toContainElement(screen.getByTestId('timing-badge-mix'));
+    expect(screen.queryByTestId('timing-badge-fill')).not.toBeInTheDocument();
+  });
+
+  it('no badge rendered when timingByStepId is omitted', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={vi.fn()} steps={[{ id: 'mix', name: 'Mix', order: 0 }]} />
+      </DndContext>
+    );
+    // ProcessStructureZone receives default {} → no badge spans beyond normal markup
+    expect(screen.queryByTestId('timing-badge-mix')).not.toBeInTheDocument();
+  });
+});
+
+describe('EditModeShell — EditModeToolbar wiring (D1 Task 7)', () => {
+  it('renders EditModeToolbar between the header and the 3-column grid', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={() => undefined} />
+      </DndContext>
+    );
+    const toolbar = screen.getByRole('toolbar', { name: 'Edit mode toolbar' });
+    expect(toolbar).toBeInTheDocument();
+  });
+
+  it('toolbar button is disabled when steps is empty (default)', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={() => undefined} />
+      </DndContext>
+    );
+    const btn = screen.getByRole('button', { name: /\+ Capture step timings/i });
+    expect(btn).toBeDisabled();
+  });
+
+  it('toolbar button is disabled when steps=[] is passed explicitly', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={() => undefined} steps={[]} />
+      </DndContext>
+    );
+    const btn = screen.getByRole('button', { name: /\+ Capture step timings/i });
+    expect(btn).toBeDisabled();
+  });
+
+  it('toolbar button is enabled when steps has at least one step', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={() => undefined} steps={[{ id: 's1', name: 'Mix', order: 0 }]} />
+      </DndContext>
+    );
+    const btn = screen.getByRole('button', { name: /\+ Capture step timings/i });
+    expect(btn).not.toBeDisabled();
+  });
+
+  it('clicking the toolbar button calls onCaptureStepTimings when steps are present', () => {
+    const onCaptureStepTimings = vi.fn();
+    render(
+      <DndContext>
+        <EditModeShell
+          onDone={() => undefined}
+          steps={[{ id: 's1', name: 'Mix', order: 0 }]}
+          onCaptureStepTimings={onCaptureStepTimings}
+        />
+      </DndContext>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /\+ Capture step timings/i }));
+    expect(onCaptureStepTimings).toHaveBeenCalledTimes(1);
+  });
+
+  it('toolbar appears between the header and the grid (DOM order)', () => {
+    const { container } = render(
+      <DndContext>
+        <EditModeShell onDone={() => undefined} />
+      </DndContext>
+    );
+    const section = container.querySelector('[data-testid="edit-mode-shell"]');
+    const children = Array.from(section?.children ?? []);
+    const headerIdx = children.findIndex(el => el.tagName === 'HEADER');
+    const toolbarIdx = children.findIndex(el => el.getAttribute('role') === 'toolbar');
+    const gridIdx = children.findIndex(el => el.className.includes('grid'));
+    expect(headerIdx).toBeGreaterThanOrEqual(0);
+    expect(toolbarIdx).toBeGreaterThan(headerIdx);
+    expect(gridIdx).toBeGreaterThan(toolbarIdx);
+  });
+});
