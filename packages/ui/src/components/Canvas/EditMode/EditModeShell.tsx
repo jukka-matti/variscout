@@ -1,6 +1,8 @@
 import React from 'react';
+import type { OutcomeSpec } from '@variscout/core';
 import type { ColumnParsingProfile, ParsingInterpretation } from '@variscout/core/parser';
 import { Palette } from './Palette';
+import { OutcomeZone } from './OutcomeZone';
 
 export interface EditModeShellProps {
   /** Called when the user clicks Done to exit Edit mode (returns to State mode). */
@@ -11,7 +13,7 @@ export interface EditModeShellProps {
   children: React.ReactNode;
   /** Column parsing profiles to render in the palette zone. Defaults to []. */
   profiles?: ColumnParsingProfile[];
-  /** Raw numeric values per column, for sparklines. Defaults to {}. */
+  /** Raw numeric values per column, for sparklines and OutcomeZone target seeding. Defaults to {}. */
   numericValuesByColumn?: Record<string, number[]>;
   /** Forwarded to the palette. Routed to no-op by default. */
   onMenuItemSelect?: (columnName: string, itemId: string) => void;
@@ -21,6 +23,17 @@ export interface EditModeShellProps {
   onApplyToSimilar?: (columnName: string, interpretation: ParsingInterpretation) => void;
   /** Forwarded to the palette. Routed to no-op by default. */
   onReviewAllWarnings?: () => void;
+  /** Outcome specs to render as `<OutcomeCard>` chips in the OutcomeZone. Defaults to []. */
+  outcomeSpecs?: OutcomeSpec[];
+  /**
+   * Called when a `column:<name>` drop lands on the OutcomeZone — wired by the
+   * parent `DndContext` (`Canvas/index.tsx`) via {@link handleOutcomeDrop}.
+   * EditModeShell does not own its own DndContext; this prop is plumbed
+   * through OutcomeZone for the parent to invoke after routing.
+   */
+  onOutcomeSpecAdd?: (columnName: string, derived: Partial<OutcomeSpec>) => void;
+  /** Called when the SpecsPopover Apply commits a per-spec edit. */
+  onOutcomeSpecUpdate?: (specId: string, updated: OutcomeSpec) => void;
 }
 
 export const EditModeShell: React.FC<EditModeShellProps> = ({
@@ -32,6 +45,9 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
   onOverrideAccept,
   onApplyToSimilar,
   onReviewAllWarnings,
+  outcomeSpecs = [],
+  onOutcomeSpecAdd,
+  onOutcomeSpecUpdate,
 }) => {
   return (
     <section
@@ -76,15 +92,19 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
 
         <aside
           data-testid="edit-mode-zone-outcomes-factors"
-          className="flex flex-col rounded-md border border-dashed border-edge bg-surface-primary p-3"
+          className="flex flex-col gap-3 rounded-md border border-dashed border-edge bg-surface-primary p-3"
           aria-label="Outcomes and Factors zone"
         >
           <h3 className="text-xs font-semibold uppercase tracking-wide text-content-tertiary">
             Outcomes &amp; Factors
           </h3>
-          <p className="mt-2 text-xs text-content-secondary">
-            Outcome and factor zones arrive in Phase C.
-          </p>
+          <OutcomeZone
+            specs={outcomeSpecs}
+            numericValuesByColumn={numericValuesByColumn}
+            onSpecAdd={onOutcomeSpecAdd ?? (() => {})}
+            onSpecUpdate={onOutcomeSpecUpdate ?? (() => {})}
+          />
+          <p className="text-xs text-content-tertiary">Factor zone arrives in C2.</p>
         </aside>
 
         <section
