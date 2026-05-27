@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { FORMULA_TEMPLATES } from '../templates';
 import type { TemplateContext, FormulaTemplate } from '../templates';
 import type { BatchDataResult } from '../detectBatchData';
+import type { FormulaBinding } from '../types';
+import { computeFormulaColumn, evaluateFormulaRow } from '../evaluate';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -269,5 +271,208 @@ describe('FORMULA_TEMPLATES registry', () => {
     expect(binding.name).toBe('Calculated');
     expect(binding.family).toBe('custom');
     expect(binding.templateId).toBe('custom');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Integration: template-generated bindings through evaluateFormulaRow /
+// computeFormulaColumn. Tests verify the engine + registry compose correctly.
+//
+// NOTE on DPMO denominator semantics: the evaluator uses additive sumTerms for
+// all denominator terms, so `[colPlus('Samples'), constant(N)]` evaluates to
+// `Samples + N`, not `Samples * N`. Canonical DPMO = D/(S*O)*1M, but with
+// the current evaluator the constant acts as an additive offset rather than
+// a multiplicative opportunities factor. Tests reflect actual evaluator
+// behaviour; the Phase 2 modal UI should expose this in a user-friendly way
+// and may prompt an evaluator extension for a `kind:'multiply'` term type.
+// ---------------------------------------------------------------------------
+
+describe('template + evaluator integration', () => {
+  // -------------------------------------------------------------------------
+  // 1. DPMO end-to-end with default opportunities=1
+  // -------------------------------------------------------------------------
+
+  it('1. DPMO with default opportunities_per_unit=1 evaluates correctly', () => {
+    const ctx: TemplateContext = {
+      batchData: null,
+      hasLeadTime: false,
+      numericColumns: ['Defects', 'Samples'],
+    };
+    const dpmoTemplate = FORMULA_TEMPLATES.find(t => t.id === 'dpmo')!;
+    const binding = dpmoTemplate.fillFromContext(ctx);
+
+    // denominator = Samples + constant(1) = 100 + 1 = 101 (additive evaluator)
+    // result = 3 / 101 * 1_000_000
+    expect(evaluateFormulaRow({ Defects: 3, Samples: 100 }, binding, {}, 0)).toBeCloseTo(
+      (3 / 101) * 1_000_000,
+      5
+    );
+  });
+
+  // -------------------------------------------------------------------------
+  // 2. DPMO end-to-end with custom opportunities multiplier (opp=5)
+  // -------------------------------------------------------------------------
+
+  it('2. DPMO evaluates correctly when constant term is edited from 1 to 5', () => {
+    const ctx: TemplateContext = {
+      batchData: null,
+      hasLeadTime: false,
+      numericColumns: ['Defects', 'Samples'],
+    };
+    const dpmoTemplate = FORMULA_TEMPLATES.find(t => t.id === 'dpmo')!;
+    const baseBinding = dpmoTemplate.fillFromContext(ctx);
+
+    // Simulate user editing opportunities_per_unit constant from 1 → 5
+    const editedBinding: FormulaBinding = {
+      ...baseBinding,
+      denominator: baseBinding.denominator.map(t =>
+        t.kind === 'constant' ? { ...t, value: 5 } : t
+      ),
+    };
+
+    // denominator = Samples + constant(5) = 100 + 5 = 105 (additive evaluator)
+    // result = 3 / 105 * 1_000_000
+    expect(evaluateFormulaRow({ Defects: 3, Samples: 100 }, editedBinding, {}, 0)).toBeCloseTo(
+      (3 / 105) * 1_000_000,
+      5
+    );
+
+    // batch via computeFormulaColumn: both rows yield the same ratio
+    const result = computeFormulaColumn(
+      [
+        { Defects: 3, Samples: 100 },
+        { Defects: 6, Samples: 200 },
+      ],
+      editedBinding,
+      {}
+    );
+    // 6 / (200+5) * 1_000_000 = 6/205 * 1M
+    expect(result).not.toBeNull();
+    expect(result![0]).toBeCloseTo((3 / 105) * 1_000_000, 5);
+    expect(result![1]).toBeCloseTo((6 / 205) * 1_000_000, 5);
+  });
+
+  // -------------------------------------------------------------------------
+  // 3. Throughput end-to-end via Lead_time augmented column
+  // -------------------------------------------------------------------------
+
+  it('3. throughput binding computes units/hour using Lead_time augmented column', () => {
+    const ctx: TemplateContext = {
+      batchData: null,
+      hasLeadTime: true,
+      numericColumns: ['Count', 'Lead_time'],
+    };
+    const throughputTemplate = FORMULA_TEMPLATES.find(t => t.id === 'throughput')!;
+    const binding = throughputTemplate.fillFromContext(ctx);
+
+    // 3600000 ms = 1 hour; Count=10 / 3600000 * 3600000 = 10
+    // 7200000 ms = 2 hours; Count=20 / 7200000 * 3600000 = 10
+    const result = computeFormulaColumn([{ Count: 10 }, { Count: 20 }], binding, {
+      Lead_time: [3_600_000, 7_200_000],
+    });
+    expect(result).toEqual([10, 10]);
+  });
+
+  // -------------------------------------------------------------------------
+  // 4. Difference template end-to-end
+  // -------------------------------------------------------------------------
+
+  it('4. difference template computes A - B correctly', () => {
+    const ctx: TemplateContext = {
+      batchData: null,
+      hasLeadTime: false,
+      numericColumns: ['Before', 'After'],
+    };
+    const diffTemplate = FORMULA_TEMPLATES.find(t => t.id === 'difference')!;
+    const binding = diffTemplate.fillFromContext(ctx);
+
+    expect(evaluateFormulaRow({ Before: 10, After: 3 }, binding, {}, 0)).toBe(7);
+    expect(evaluateFormulaRow({ Before: 5, After: 8 }, binding, {}, 0)).toBe(-3);
+  });
+
+  // -------------------------------------------------------------------------
+  // 5. Difference with sourceColumn override
+  // -------------------------------------------------------------------------
+
+  it('5. difference template uses sourceColumn as the positive term when provided', () => {
+    const ctx: TemplateContext = {
+      batchData: null,
+      hasLeadTime: false,
+      numericColumns: ['A', 'B', 'C'],
+    };
+    const diffTemplate = FORMULA_TEMPLATES.find(t => t.id === 'difference')!;
+    const binding = diffTemplate.fillFromContext(ctx, 'B'); // user clicked from B's kebab menu
+
+    // numerator[0] should be B with sign '+'; numerator[1] should be the first column != B
+    expect(binding.numerator[0]).toEqual({ kind: 'column', column: 'B', sign: '+' });
+    expect(binding.numerator[1]?.kind).toBe('column');
+    expect((binding.numerator[1] as { sign: '+' | '-' }).sign).toBe('-');
+  });
+
+  // -------------------------------------------------------------------------
+  // 6. Round-trip preservation (templateId + family survive JSON serialization)
+  // -------------------------------------------------------------------------
+
+  it('6. binding survives JSON serialize/deserialize round-trip', () => {
+    const ctx: TemplateContext = {
+      batchData: {
+        inputColumns: ['Input_kg'],
+        outputColumns: ['Out_kg'],
+        scrapColumns: [],
+        isLikelyBatch: true,
+      },
+      hasLeadTime: false,
+      numericColumns: ['Input_kg', 'Out_kg'],
+    };
+    const template = FORMULA_TEMPLATES.find(t => t.id === 'batchRatio.totalYield')!;
+    const original = template.fillFromContext(ctx);
+
+    const restored: FormulaBinding = JSON.parse(JSON.stringify(original));
+
+    expect(restored.id).toBe(original.id);
+    expect(restored.templateId).toBe('batchRatio.totalYield');
+    expect(restored.family).toBe('batchRatio');
+    expect(restored.numerator).toEqual(original.numerator);
+    expect(restored.denominator).toEqual(original.denominator);
+    expect(restored.multiplier).toBe(original.multiplier);
+    expect(restored.name).toBe(original.name);
+
+    // Restored binding still evaluates correctly: 85/100 * 100 = 85
+    expect(evaluateFormulaRow({ Input_kg: 100, Out_kg: 85 }, restored, {}, 0)).toBe(85);
+  });
+
+  // -------------------------------------------------------------------------
+  // 7. fillFromContext edge case — no keyword match falls back gracefully
+  // -------------------------------------------------------------------------
+
+  it('7. DPMO falls back to numericColumns[0] + [1] when no defect/sample keyword matches', () => {
+    const ctx: TemplateContext = {
+      batchData: null,
+      hasLeadTime: false,
+      numericColumns: ['X', 'Y', 'Z'],
+    };
+    const dpmoTemplate = FORMULA_TEMPLATES.find(t => t.id === 'dpmo')!;
+    const binding = dpmoTemplate.fillFromContext(ctx);
+
+    // No 'defect' or 'sample' keyword match — defaults to first two numeric columns
+    expect((binding.numerator[0] as { column: string }).column).toBe('X');
+    expect((binding.denominator[0] as { column: string }).column).toBe('Y');
+  });
+
+  // -------------------------------------------------------------------------
+  // 8. Throughput picks first non-Lead_time numeric
+  // -------------------------------------------------------------------------
+
+  it('8. throughput picks the first non-Lead_time numeric column as the source', () => {
+    const ctx: TemplateContext = {
+      batchData: null,
+      hasLeadTime: true,
+      numericColumns: ['Lead_time', 'Count', 'Total_work_time'],
+    };
+    const throughputTemplate = FORMULA_TEMPLATES.find(t => t.id === 'throughput')!;
+    const binding = throughputTemplate.fillFromContext(ctx);
+
+    expect((binding.numerator[0] as { column: string }).column).toBe('Count');
+    expect((binding.denominator[0] as { column: string }).column).toBe('Lead_time');
   });
 });
