@@ -1,8 +1,10 @@
 import React from 'react';
 import type { OutcomeSpec } from '@variscout/core';
+import type { ImprovementProjectFactorControl } from '@variscout/core/improvementProject';
 import type { ColumnParsingProfile, ParsingInterpretation } from '@variscout/core/parser';
 import { Palette } from './Palette';
 import { OutcomeZone } from './OutcomeZone';
+import { FactorZone } from './FactorZone';
 
 export interface EditModeShellProps {
   /** Called when the user clicks Done to exit Edit mode (returns to State mode). */
@@ -34,6 +36,22 @@ export interface EditModeShellProps {
   onOutcomeSpecAdd?: (columnName: string, derived: Partial<OutcomeSpec>) => void;
   /** Called when the OutcomeSpecsPopover Apply commits a per-spec edit. */
   onOutcomeSpecUpdate?: (specId: string, updated: OutcomeSpec) => void;
+  /** Factor controls to render as `<FactorChip>` cards in the FactorZone. Defaults to []. */
+  factorControls?: ImprovementProjectFactorControl[];
+  /** Process steps for FactorSpecsPopover's step-binding selector. Defaults to []. */
+  steps?: { id: string; name: string }[];
+  /**
+   * Called when a `column:<name>` drop lands on the FactorZone — wired by the
+   * parent `DndContext` (`Canvas/index.tsx`) via `handleFactorDrop`. EditModeShell
+   * does not own its own DndContext; this prop is plumbed through FactorZone for
+   * the parent to invoke after routing.
+   */
+  onFactorControlAdd?: (columnName: string, stepId?: string) => void;
+  /** Called when the FactorSpecsPopover Apply commits a per-control edit. */
+  onFactorControlUpdate?: (
+    originalFactorName: string,
+    updated: ImprovementProjectFactorControl
+  ) => void;
 }
 
 export const EditModeShell: React.FC<EditModeShellProps> = ({
@@ -48,6 +66,10 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
   outcomeSpecs = [],
   onOutcomeSpecAdd,
   onOutcomeSpecUpdate,
+  factorControls = [],
+  steps = [],
+  onFactorControlAdd,
+  onFactorControlUpdate,
 }) => {
   return (
     <section
@@ -104,7 +126,12 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
             onSpecAdd={onOutcomeSpecAdd ?? (() => {})}
             onSpecUpdate={onOutcomeSpecUpdate ?? (() => {})}
           />
-          <p className="text-xs text-content-tertiary">Factor zone arrives in C2.</p>
+          <FactorZone
+            controls={factorControls}
+            steps={steps}
+            onControlAdd={onFactorControlAdd ?? (() => {})}
+            onControlUpdate={onFactorControlUpdate ?? (() => {})}
+          />
         </aside>
 
         <section
