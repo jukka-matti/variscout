@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * E2E Test: Hospital Ward Investigation Flow
+ * E2E Test: Hospital Ward Analyze Flow
  *
  * Validates the aggregation trap discovery journey:
  * 1. Load hospital-ward sample → verify overall mean looks "fine"

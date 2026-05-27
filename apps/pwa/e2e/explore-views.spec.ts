@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * E2E Test: Analysis View Switching
+ * E2E Test: Explore View Switching
  *
  * Tests that the dashboard view renders correctly with charts.
  */
 
-test.describe('Analysis View Switching', () => {
+test.describe('Explore View Switching', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/?sample=coffee');
 

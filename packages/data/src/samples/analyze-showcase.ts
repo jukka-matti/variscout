@@ -472,12 +472,12 @@ function buildCategories(): InvestigationCategory[] {
 // Export
 // ============================================================================
 
-export const investigationShowcase: SampleDataset = {
+export const analyzeShowcase: SampleDataset = {
   name: 'Showcase: Fill Weight Investigation',
   description:
     'Packaging line fill weight with pre-populated questions, findings, and hypothesis hub. Demonstrates the full investigation workflow.',
   icon: 'microscope',
-  urlKey: 'investigation-showcase',
+  urlKey: 'analyze-showcase',
   category: 'journeys',
   featured: true,
   data: generateFillWeightData(),

@@ -1,7 +1,7 @@
 // Sample dataset exports
 export { nistLongley } from './nistLongley';
 export { injectionMolding } from './injection';
-export { investigationShowcase } from './investigation-showcase';
+export { analyzeShowcase } from './analyze-showcase';
 export { syringeBarrelWeight } from './syringe-barrel-weight';
 export { journey, journeyBefore, journeyAfter } from './journey';
 export { bottleneck } from './bottleneck';
@@ -30,7 +30,7 @@ export type { SampleDataset, SampleConfig, SpecLimits } from '../types';
 // Import all for SAMPLES array
 import { nistLongley } from './nistLongley';
 import { injectionMolding } from './injection';
-import { investigationShowcase } from './investigation-showcase';
+import { analyzeShowcase } from './analyze-showcase';
 import { syringeBarrelWeight } from './syringe-barrel-weight';
 import { journey, journeyBefore, journeyAfter } from './journey';
 import { bottleneck } from './bottleneck';
@@ -87,7 +87,7 @@ export const SAMPLES: SampleDataset[] = [
   // Defect Mode
   manufacturingDefects,
   // Investigation Showcase
-  investigationShowcase,
+  analyzeShowcase,
   syringeBarrelWeight,
   // Journey/Training
   journey,

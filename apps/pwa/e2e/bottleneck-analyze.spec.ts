@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * E2E Test: Bottleneck Investigation Flow
+ * E2E Test: Bottleneck Analyze Flow
  *
  * Validates the core bottleneck detection journey:
  * 1. Load bottleneck sample → verify initial stats
