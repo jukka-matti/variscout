@@ -1004,5 +1004,8 @@ export type { BatchDataResult } from './derived';
 export { FORMULA_TEMPLATES } from './derived';
 export type { FormulaTemplate, TemplateContext } from './derived';
 
-// Time decomposition binding types (CCJ D3 — Time-as-factors)
+// Time decomposition binding types + engine (CCJ D3 — Time-as-factors)
 export type { TimeDimension, HourGranularityMinutes, TimeDecompositionBinding } from './derived';
+export { computeTimeDecompositionColumns, derivedTimeColumnName } from './derived';
+export { detectTimeColumns } from './derived';
+export type { DetectTimeColumnsResult } from './derived';
