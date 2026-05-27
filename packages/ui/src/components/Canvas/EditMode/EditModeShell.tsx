@@ -6,19 +6,25 @@ import type { ColumnParsingProfile, ParsingInterpretation } from '@variscout/cor
 import { Palette } from './Palette';
 import { OutcomeZone } from './OutcomeZone';
 import { FactorZone } from './FactorZone';
+import { ProcessStructureZone } from './ProcessZone';
+import type { ExtractedStep } from './ProcessZone/extractStepsFromCategoricalColumn';
 import { handleEditModeDragEnd } from './handleEditModeDragEnd';
 
 export interface EditModeShellProps {
   /** Called when the user clicks Done to exit Edit mode (returns to State mode). */
   onDone: () => void;
-  /** Process-structure zone content. In B1 this receives the existing canvas chrome
-   *  (StructuralToolbar + ProcessMapBase via Canvas/CanvasWorkspace). C3 will replace
-   *  it with the dedicated process-zone authoring surface. */
-  children: React.ReactNode;
   /** Column parsing profiles to render in the palette zone. Defaults to []. */
   profiles?: ColumnParsingProfile[];
   /** Raw numeric values per column, for sparklines and OutcomeZone target seeding. Defaults to {}. */
   numericValuesByColumn?: Record<string, number[]>;
+  /**
+   * Categorical columns mapped to their ordered distinct values. Forwarded to
+   * {@link handleEditModeDragEnd} so the process-zone drop router can extract
+   * steps from a categorical column drag (C3 Task 2). Numeric columns are
+   * absent from this map and therefore fall through to the outcome handler.
+   * Defaults to `{}`.
+   */
+  categoricalDistinctValuesByColumn?: Record<string, string[]>;
   /** Forwarded to the palette. Routed to no-op by default. */
   onMenuItemSelect?: (columnName: string, itemId: string) => void;
   /** Forwarded to the palette. Routed to no-op by default. */
@@ -40,8 +46,13 @@ export interface EditModeShellProps {
   onOutcomeSpecUpdate?: (specId: string, updated: OutcomeSpec) => void;
   /** Factor controls to render as `<FactorChip>` cards in the FactorZone. Defaults to []. */
   factorControls?: ImprovementProjectFactorControl[];
-  /** Process steps for FactorSpecsPopover's step-binding selector. Defaults to []. */
-  steps?: { id: string; name: string }[];
+  /**
+   * Process steps for the ProcessStructureZone container and the
+   * FactorSpecsPopover step-binding selector. Each step carries `id`, `name`,
+   * and `order` (the render order in the ProcessStructureZone strip).
+   * Defaults to `[]`.
+   */
+  steps?: { id: string; name: string; order: number }[];
   /**
    * Called when a `column:<name>` drop lands on the FactorZone (global or
    * per-step). EditModeShell owns its own `DndContext` and routes column→zone
@@ -53,13 +64,20 @@ export interface EditModeShellProps {
     originalFactorName: string,
     updated: ImprovementProjectFactorControl
   ) => void;
+  /**
+   * Called when a categorical column drop on the ProcessStructureZone produces
+   * a fresh `ExtractedStep[]`. EditModeShell forwards the array (the consumer
+   * decides whether to replace, merge, or persist) along with the source
+   * column name (for provenance + future undo affordances).
+   */
+  onStepsReplace?: (steps: ExtractedStep[], sourceColumnName: string) => void;
 }
 
 export const EditModeShell: React.FC<EditModeShellProps> = ({
   onDone,
-  children,
   profiles = [],
   numericValuesByColumn = {},
+  categoricalDistinctValuesByColumn = {},
   onMenuItemSelect,
   onOverrideAccept,
   onApplyToSimilar,
@@ -71,15 +89,24 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
   steps = [],
   onFactorControlAdd,
   onFactorControlUpdate,
+  onStepsReplace,
 }) => {
   const onDragEnd = React.useCallback(
     (event: Parameters<typeof handleEditModeDragEnd>[0]) =>
       handleEditModeDragEnd(event, {
         numericValuesByColumn,
+        categoricalDistinctValuesByColumn,
         onOutcomeSpecAdd,
         onFactorControlAdd,
+        onStepsReplace,
       }),
-    [numericValuesByColumn, onOutcomeSpecAdd, onFactorControlAdd]
+    [
+      numericValuesByColumn,
+      categoricalDistinctValuesByColumn,
+      onOutcomeSpecAdd,
+      onFactorControlAdd,
+      onStepsReplace,
+    ]
   );
   return (
     <DndContext onDragEnd={onDragEnd}>
@@ -150,7 +177,7 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
             className="flex min-h-0 flex-col rounded-md border border-edge bg-surface-primary"
             aria-label="Process structure zone"
           >
-            {children}
+            <ProcessStructureZone steps={steps} />
           </section>
         </div>
       </section>

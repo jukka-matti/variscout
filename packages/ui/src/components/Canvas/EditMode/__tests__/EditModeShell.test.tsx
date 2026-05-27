@@ -11,9 +11,7 @@ describe('EditModeShell', () => {
   it('renders the three zone placeholders by name', () => {
     render(
       <DndContext>
-        <EditModeShell onDone={() => undefined}>
-          <div data-testid="canvas-slot">canvas</div>
-        </EditModeShell>
+        <EditModeShell onDone={() => undefined} />
       </DndContext>
     );
     expect(screen.getByTestId('edit-mode-shell')).toBeInTheDocument();
@@ -22,25 +20,11 @@ describe('EditModeShell', () => {
     expect(screen.getByTestId('edit-mode-zone-process')).toBeInTheDocument();
   });
 
-  it('renders provided children inside the process zone', () => {
-    render(
-      <DndContext>
-        <EditModeShell onDone={() => undefined}>
-          <div data-testid="canvas-slot">canvas</div>
-        </EditModeShell>
-      </DndContext>
-    );
-    const processZone = screen.getByTestId('edit-mode-zone-process');
-    expect(processZone).toContainElement(screen.getByTestId('canvas-slot'));
-  });
-
   it('exposes a Done button that calls onDone when clicked', () => {
     const onDone = vi.fn();
     render(
       <DndContext>
-        <EditModeShell onDone={onDone}>
-          <div>canvas</div>
-        </EditModeShell>
+        <EditModeShell onDone={onDone} />
       </DndContext>
     );
     const doneButton = screen.getByRole('button', { name: 'Done' });
@@ -51,9 +35,7 @@ describe('EditModeShell', () => {
   it('renders the Edit map header title', () => {
     render(
       <DndContext>
-        <EditModeShell onDone={() => undefined}>
-          <div>canvas</div>
-        </EditModeShell>
+        <EditModeShell onDone={() => undefined} />
       </DndContext>
     );
     expect(screen.getByText('Edit map')).toBeInTheDocument();
@@ -62,9 +44,7 @@ describe('EditModeShell', () => {
   it('labels palette and outcomes-factors zones as B2/C-phase placeholders', () => {
     render(
       <DndContext>
-        <EditModeShell onDone={() => undefined}>
-          <div>canvas</div>
-        </EditModeShell>
+        <EditModeShell onDone={() => undefined} />
       </DndContext>
     );
     expect(screen.getByTestId('edit-mode-zone-palette')).toHaveTextContent(/Palette/);
@@ -81,9 +61,7 @@ describe('EditModeShell — Palette wiring', () => {
     ];
     render(
       <DndContext>
-        <EditModeShell onDone={() => {}} profiles={profiles} numericValuesByColumn={{}}>
-          <div />
-        </EditModeShell>
+        <EditModeShell onDone={() => {}} profiles={profiles} numericValuesByColumn={{}} />
       </DndContext>
     );
     const zone = screen.getByTestId('edit-mode-zone-palette');
@@ -94,9 +72,7 @@ describe('EditModeShell — Palette wiring', () => {
   it('falls back to the empty-state hint when no profiles are passed', () => {
     render(
       <DndContext>
-        <EditModeShell onDone={() => {}}>
-          <div />
-        </EditModeShell>
+        <EditModeShell onDone={() => {}} />
       </DndContext>
     );
     expect(screen.getByTestId('palette-empty')).toBeInTheDocument();
@@ -118,9 +94,7 @@ describe('EditModeShell — Palette callback forwarding', () => {
           ]}
           numericValuesByColumn={{}}
           onMenuItemSelect={onMenuItemSelect}
-        >
-          <div />
-        </EditModeShell>
+        />
       </DndContext>
     );
     fireEvent.click(screen.getByTestId('column-chip-context-button'));
@@ -133,9 +107,7 @@ describe('EditModeShell — OutcomeZone wiring (C1)', () => {
   it('renders OutcomeZone in the outcomes-factors zone (replaces top-half placeholder)', () => {
     render(
       <DndContext>
-        <EditModeShell onDone={vi.fn()} outcomeSpecs={[]}>
-          <div>process content</div>
-        </EditModeShell>
+        <EditModeShell onDone={vi.fn()} outcomeSpecs={[]} />
       </DndContext>
     );
     expect(screen.getByTestId('outcome-zone')).toBeInTheDocument();
@@ -153,9 +125,7 @@ describe('EditModeShell — OutcomeZone wiring (C1)', () => {
           onDone={vi.fn()}
           outcomeSpecs={[spec]}
           onOutcomeSpecUpdate={onOutcomeSpecUpdate}
-        >
-          <div>process content</div>
-        </EditModeShell>
+        />
       </DndContext>
     );
     fireEvent.click(screen.getByRole('button', { name: /edit specs/i }));
@@ -168,9 +138,7 @@ describe('EditModeShell — FactorZone wiring (C2)', () => {
   it('renders FactorZone in outcomes-factors zone (replaces Factor zone arrives in C2 placeholder)', () => {
     render(
       <DndContext>
-        <EditModeShell onDone={vi.fn()} factorControls={[]}>
-          <div>process content</div>
-        </EditModeShell>
+        <EditModeShell onDone={vi.fn()} factorControls={[]} />
       </DndContext>
     );
     expect(screen.getByTestId('factor-zone-global')).toBeInTheDocument();
@@ -183,9 +151,7 @@ describe('EditModeShell — FactorZone wiring (C2)', () => {
         <EditModeShell
           onDone={vi.fn()}
           factorControls={[createTestFactorControl({ factor: 'Temp', targetCondition: 'low' })]}
-        >
-          <div>process content</div>
-        </EditModeShell>
+        />
       </DndContext>
     );
     expect(screen.getByText('Temp')).toBeInTheDocument();
@@ -199,9 +165,7 @@ describe('EditModeShell — FactorZone wiring (C2)', () => {
           onDone={vi.fn()}
           factorControls={[createTestFactorControl({ factor: 'Temp' })]}
           onFactorControlUpdate={onFactorControlUpdate}
-        >
-          <div>process content</div>
-        </EditModeShell>
+        />
       </DndContext>
     );
     fireEvent.click(screen.getByRole('button', { name: /edit factor/i }));
@@ -218,13 +182,56 @@ describe('EditModeShell — FactorZone wiring (C2)', () => {
         <EditModeShell
           onDone={vi.fn()}
           factorControls={[createTestFactorControl()]}
-          steps={[{ id: 's-mix', name: 'Mix' }]}
-        >
-          <div>process content</div>
-        </EditModeShell>
+          steps={[{ id: 's-mix', name: 'Mix', order: 0 }]}
+        />
       </DndContext>
     );
     fireEvent.click(screen.getByRole('button', { name: /edit factor/i }));
     expect(screen.getByRole('option', { name: /^mix/i })).toBeInTheDocument();
+  });
+});
+
+describe('EditModeShell — ProcessStructureZone wiring (C3 Task 4)', () => {
+  it('renders ProcessStructureZone empty-state hint when steps is empty', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={vi.fn()} steps={[]} />
+      </DndContext>
+    );
+    const processZone = screen.getByLabelText('Process structure zone');
+    expect(processZone).toContainElement(screen.getByTestId('process-structure-zone'));
+    expect(
+      screen.getByText(/drop a categorical column to define process steps/i)
+    ).toBeInTheDocument();
+  });
+
+  it('omitting steps still defaults to the empty ProcessStructureZone', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={vi.fn()} />
+      </DndContext>
+    );
+    expect(screen.getByTestId('process-structure-zone')).toBeInTheDocument();
+    expect(
+      screen.getByText(/drop a categorical column to define process steps/i)
+    ).toBeInTheDocument();
+  });
+
+  it('renders a StepBox per step (sorted by order) when steps are present', () => {
+    render(
+      <DndContext>
+        <EditModeShell
+          onDone={vi.fn()}
+          steps={[
+            { id: 'a', name: 'Mix', order: 0 },
+            { id: 'b', name: 'Fill', order: 1 },
+          ]}
+        />
+      </DndContext>
+    );
+    expect(screen.getByTestId('step-box-a')).toBeInTheDocument();
+    expect(screen.getByTestId('step-box-b')).toBeInTheDocument();
+    expect(screen.getByText('Mix')).toBeInTheDocument();
+    expect(screen.getByText('Fill')).toBeInTheDocument();
   });
 });

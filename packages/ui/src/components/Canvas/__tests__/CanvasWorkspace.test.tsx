@@ -715,6 +715,14 @@ const readModeMapWithSecondStep = (): ProcessMap => ({
 });
 
 function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWorkspace>> = {}) {
+  // C3 Task 4: EditModeShell no longer renders the inner Canvas as `children` —
+  // it now owns ProcessStructureZone. The state-mode branch in CanvasWorkspace
+  // still mounts the inner Canvas. Default to `canEditCanvas: false` here so
+  // tests that exercise inner-Canvas behavior (URL routing, lens/overlay
+  // changes, spec callbacks, Wall props, etc.) keep rendering Canvas instead
+  // of falling into the EditModeShell branch (which would mount
+  // ProcessStructureZone, not Canvas). Tests that specifically need
+  // author-mode authoring can override `canEditCanvas: true`.
   const props: React.ComponentProps<typeof CanvasWorkspace> = {
     rawData,
     outcome: 'Fill_Weight',
@@ -726,6 +734,7 @@ function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWo
     setMeasureSpec: vi.fn(),
     setProcessContext: vi.fn(),
     onSeeData: vi.fn(),
+    canEditCanvas: false,
     ...overrides,
   };
   render(<CanvasWorkspace {...props} />);
@@ -775,8 +784,15 @@ describe('CanvasWorkspace', () => {
     expect(screen.queryByTestId('layered-process-view')).toBeNull();
   });
 
+  // C3 Task 4: this test specifically asserts `canvas-authoring-map` which is
+  // the L2 chip-rail authoring surface inside the inner Canvas. With author
+  // mode now routed to EditModeShell + ProcessStructureZone (column→process
+  // drop journey), the inner Canvas's chip-rail authoring is being retired.
+  // Re-render here in read mode (`canEditCanvas: false`) so the inner Canvas
+  // still mounts; assertion on `canvas-authoring-map` is retained because the
+  // L2 authoring map still renders in read mode for state-mode card surface.
   it('renders b1/b2 directly with the card surface and authoring map', () => {
-    renderWorkspace({ processContext: { processMap: mapWithStep() } });
+    renderWorkspace({ processContext: { processMap: mapWithStep() }, canEditCanvas: false });
 
     expect(screen.getByTestId('layered-process-view')).toBeInTheDocument();
     expect(screen.getByTestId('canvas-card-surface')).toBeInTheDocument();
@@ -914,7 +930,13 @@ describe('CanvasWorkspace', () => {
     });
   });
 
-  it('routes author-mode L3 away from the local mechanism view', () => {
+  // C3 Task 4: retired author-mode-inside-Canvas L3 routing. Author mode now
+  // mounts EditModeShell (ProcessStructureZone) instead of inner Canvas, so
+  // `author-l3-view` is unreachable through the workspace path. The L3
+  // mechanism view + author-mode L3 archetype split still exists in the
+  // Canvas component itself; this contract moves to direct Canvas tests
+  // (apps/*/canvas).
+  it.skip('routes author-mode L3 away from the local mechanism view', () => {
     useCanvasViewportStore.getState().setLevel(h('hub-workspace-l3-author'), 'l3', 'step-1');
 
     renderWorkspace({
@@ -927,7 +949,12 @@ describe('CanvasWorkspace', () => {
     expect(localMechanismPropsRef.current).toBeNull();
   });
 
-  it('keeps the same focal step while switching author/read modes in L3', () => {
+  // C3 Task 4: retired — see comment on the sibling skipped test above. Author
+  // mode L3 mounts EditModeShell, not Canvas's L3 author archetype. The
+  // mode-toggle + focal-step-preservation contracts hold but are no longer
+  // observable through this composition; covered by direct Canvas tests +
+  // PR-CCJ-C3 Task 8 E2E.
+  it.skip('keeps the same focal step while switching author/read modes in L3', () => {
     const hubId = h('hub-workspace-l3-mode-switch');
     useCanvasViewportStore.getState().setLevel(hubId, 'l3', 'step-2');
 
@@ -1222,7 +1249,11 @@ describe('CanvasWorkspace', () => {
     });
   });
 
-  it('derives unassigned chips from detected columns excluding outcome, run-order, and assigned columns', () => {
+  // C3 Task 4: retired chip-rail authoring flow. Edit mode now uses
+  // EditModeShell + ProcessStructureZone (column→process drop journey).
+  // Chip-rail derivation + placement persistence will be retested through the
+  // new flow in PR-CCJ-C3 Task 8 (E2E) and PR-CCJ-E1 (Charter modal persistence).
+  it.skip('derives unassigned chips from detected columns excluding outcome, run-order, and assigned columns', () => {
     renderWorkspace({
       rawData: Array.from({ length: 51 }, (_, index) => ({
         Fill_Weight: 12 + (index % 3),
@@ -1249,7 +1280,10 @@ describe('CanvasWorkspace', () => {
     expect(screen.queryByTestId('chip-rail-item-Machine')).not.toBeInTheDocument();
   });
 
-  it('persists store-backed chip placement and empty-canvas step creation through setProcessContext', () => {
+  // C3 Task 4: retired chip-rail authoring flow. The chip→step persistence
+  // path moves into the ImprovementProject Charter modal commit (PR-CCJ-E1);
+  // see Task 8 for the column→process E2E coverage.
+  it.skip('persists store-backed chip placement and empty-canvas step creation through setProcessContext', () => {
     const setProcessContext = vi.fn();
     renderWorkspace({
       processContext: { processMap: mapWithStep() },
@@ -1286,7 +1320,10 @@ describe('CanvasWorkspace', () => {
     );
   });
 
-  it('keeps canvasStore undo history after the persisted map rerenders from the parent', () => {
+  // C3 Task 4: retired chip-rail authoring flow. The canvasStore undo history
+  // contract still holds, but the trigger surface (chip→step drop) is being
+  // retired. Re-tested via the new column→process flow in PR-CCJ-C3 Task 8.
+  it.skip('keeps canvasStore undo history after the persisted map rerenders from the parent', () => {
     const Harness = () => {
       const [processContext, setProcessContext] = React.useState<
         NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
@@ -1426,7 +1463,10 @@ describe('CanvasWorkspace', () => {
     expect(useCanvasStore.getState().canonicalMap.nodes).toEqual(mapWithSecondStep().nodes);
   });
 
-  it('wires authoring mode keyboard toggle and undo through canvasStore', () => {
+  // C3 Task 4: retired chip-rail authoring flow. The keyboard toggle + undo
+  // contract moves into the EditModeShell column→process drop flow.
+  // Re-tested via the new flow in PR-CCJ-C3 Task 8 (E2E).
+  it.skip('wires authoring mode keyboard toggle and undo through canvasStore', () => {
     const Harness = () => {
       const [processContext, setProcessContext] = React.useState<
         NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
