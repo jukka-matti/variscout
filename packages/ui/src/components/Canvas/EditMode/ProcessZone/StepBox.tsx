@@ -1,6 +1,7 @@
 import { useDroppable } from '@dnd-kit/core';
 import type { FC } from 'react';
 import { encodeOutcomeDropId } from '../OutcomeZone/encodeOutcomeDropId';
+import { encodeFactorDropId } from '../FactorZone/encodeFactorDropId';
 
 export interface StepBoxStep {
   id: string;
@@ -14,6 +15,7 @@ export interface StepBoxProps {
 
 export const StepBox: FC<StepBoxProps> = ({ step }) => {
   const internalY = useDroppable({ id: encodeOutcomeDropId({ stepId: step.id }) });
+  const internalX = useDroppable({ id: encodeFactorDropId({ stepId: step.id }) });
 
   return (
     <div
@@ -37,6 +39,16 @@ export const StepBox: FC<StepBoxProps> = ({ step }) => {
         <p className="text-xs text-content-tertiary">
           {"Drop a numeric column for this step's outcome"}
         </p>
+      </section>
+
+      <section
+        ref={internalX.setNodeRef}
+        data-testid={`step-box-${step.id}-internal-x`}
+        className={`mt-2 rounded-sm p-2 ${
+          internalX.isOver ? 'border-2 border-dashed border-cyan-400' : 'border border-edge'
+        }`}
+      >
+        <p className="text-xs text-content-tertiary">{"Drop a column for this step's factor"}</p>
       </section>
     </div>
   );

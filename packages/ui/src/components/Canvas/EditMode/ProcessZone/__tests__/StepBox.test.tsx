@@ -42,4 +42,14 @@ describe('StepBox', () => {
     renderInDnd(<StepBox step={makeStep({ id: 'step-1' })} />);
     expect(screen.getByText(/Drop a numeric column for this step's outcome/i)).toBeInTheDocument();
   });
+
+  it('renders internal-X section with data-testid', () => {
+    renderInDnd(<StepBox step={makeStep({ id: 'step-1' })} />);
+    expect(screen.getByTestId('step-box-step-1-internal-x')).toBeInTheDocument();
+  });
+
+  it('shows internal-X empty hint', () => {
+    renderInDnd(<StepBox step={makeStep({ id: 'step-1' })} />);
+    expect(screen.getByText(/Drop a column for this step's factor/i)).toBeInTheDocument();
+  });
 });

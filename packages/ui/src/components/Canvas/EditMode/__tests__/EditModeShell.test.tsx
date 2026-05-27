@@ -1,11 +1,17 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DndContext } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
 import { EditModeShell } from '../EditModeShell';
 import type { ColumnParsingProfile } from '@variscout/core/parser';
 import { createTestColumnParsingProfile } from '../../../../test-utils/columnParsingProfile';
 import { createTestOutcomeSpec } from '../../../../test-utils/outcomeSpec';
 import { createTestFactorControl } from '../../../../test-utils/factorControl';
+import { handleEditModeDragEnd } from '../handleEditModeDragEnd';
+import { encodeColumnDragId } from '../Palette/encodeColumnDragId';
+import { encodeOutcomeDropId } from '../OutcomeZone/encodeOutcomeDropId';
+import { encodeFactorDropId } from '../FactorZone/encodeFactorDropId';
+import { encodeProcessDropId } from '../ProcessZone/encodeProcessDropId';
 
 describe('EditModeShell', () => {
   it('renders the three zone placeholders by name', () => {
@@ -233,5 +239,131 @@ describe('EditModeShell — ProcessStructureZone wiring (C3 Task 4)', () => {
     expect(screen.getByTestId('step-box-b')).toBeInTheDocument();
     expect(screen.getByText('Mix')).toBeInTheDocument();
     expect(screen.getByText('Fill')).toBeInTheDocument();
+  });
+});
+
+describe('EditModeShell — StepBox internal drop zones smoke test (C3 Task 8)', () => {
+  /**
+   * Smoke test: EditModeShell renders StepBoxes with BOTH internal-Y (outcome)
+   * and internal-X (factor) droppable sections visible. Verifies the full
+   * render pipeline from EditModeShell → ProcessStructureZone → StepBox without
+   * needing to simulate DnD events.
+   */
+  it('renders internal-Y and internal-X sections for each StepBox', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={vi.fn()} steps={[{ id: 's1', name: 'Mix', order: 0 }]} />
+      </DndContext>
+    );
+    expect(screen.getByTestId('step-box-s1-internal-y')).toBeInTheDocument();
+    expect(screen.getByTestId('step-box-s1-internal-x')).toBeInTheDocument();
+  });
+});
+
+/**
+ * End-to-end drag-end integration tests (C3 Task 8 — Approach 1).
+ *
+ * We call `handleEditModeDragEnd` directly — the same pure function that
+ * EditModeShell wires as its DndContext `onDragEnd`. This validates the full
+ * codec-to-callback pipeline (column drag id encoding → zone drop id decoding →
+ * callback dispatch) without needing to mock `@dnd-kit/core`.
+ *
+ * Approach 1 was chosen over Approach 2 (DndContext mock) because:
+ * - The existing EditModeShell tests rely on a real (un-mocked) DndContext for
+ *   fireEvent interactions with OutcomeZone and FactorZone popovers; a
+ *   module-level vi.mock would break those tests.
+ * - handleEditModeDragEnd IS the integration point: EditModeShell does nothing
+ *   more than pass its props into this function on each drag-end event.
+ * - The `handleEditModeDragEnd.test.ts` unit suite already covers no-op cases;
+ *   these tests focus on the per-step stepId extraction paths added in C3.
+ */
+describe('end-to-end drag-end integration (C3 Task 8 — Approach 1)', () => {
+  /** Minimal DragEndEvent shape the router reads. */
+  const makeDragEnd = (activeId: string, overId: string | undefined): DragEndEvent =>
+    ({ active: { id: activeId }, over: overId ? { id: overId } : null }) as unknown as DragEndEvent;
+
+  it('categorical column drop on process-zone:singleton → onStepsReplace fires with extracted steps + source column', () => {
+    const onStepsReplace = vi.fn();
+    const onOutcomeSpecAdd = vi.fn();
+    const onFactorControlAdd = vi.fn();
+
+    handleEditModeDragEnd(makeDragEnd(encodeColumnDragId('Process_step'), encodeProcessDropId()), {
+      numericValuesByColumn: {},
+      categoricalDistinctValuesByColumn: { Process_step: ['Mix', 'Fill'] },
+      onStepsReplace,
+      onOutcomeSpecAdd,
+      onFactorControlAdd,
+    });
+
+    expect(onStepsReplace).toHaveBeenCalledTimes(1);
+    const [steps, sourceColumnName] = onStepsReplace.mock.calls[0];
+    expect(sourceColumnName).toBe('Process_step');
+    expect(steps).toHaveLength(2);
+    expect(steps[0]).toMatchObject({ name: 'Mix', order: 0 });
+    expect(steps[1]).toMatchObject({ name: 'Fill', order: 1 });
+    // Process route short-circuits; outcome + factor must not fire
+    expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
+    expect(onFactorControlAdd).not.toHaveBeenCalled();
+  });
+
+  it('numeric column drop on outcome-zone:step:<stepId> → onOutcomeSpecAdd fires with columnName, derived, and stepId', () => {
+    const onOutcomeSpecAdd = vi.fn();
+    const onFactorControlAdd = vi.fn();
+
+    handleEditModeDragEnd(
+      makeDragEnd(encodeColumnDragId('Temp'), encodeOutcomeDropId({ stepId: 's1' })),
+      {
+        numericValuesByColumn: { Temp: [1, 2, 3] },
+        categoricalDistinctValuesByColumn: {},
+        onOutcomeSpecAdd,
+        onFactorControlAdd,
+      }
+    );
+
+    expect(onOutcomeSpecAdd).toHaveBeenCalledTimes(1);
+    const [columnName, derived, stepId] = onOutcomeSpecAdd.mock.calls[0];
+    expect(columnName).toBe('Temp');
+    expect(derived).toEqual(expect.any(Object));
+    expect(stepId).toBe('s1');
+    expect(onFactorControlAdd).not.toHaveBeenCalled();
+  });
+
+  it('column drop on factor-zone:step:<stepId> → onFactorControlAdd fires with columnName and stepId', () => {
+    const onOutcomeSpecAdd = vi.fn();
+    const onFactorControlAdd = vi.fn();
+
+    handleEditModeDragEnd(
+      makeDragEnd(encodeColumnDragId('Speed'), encodeFactorDropId({ stepId: 's1' })),
+      {
+        numericValuesByColumn: {},
+        categoricalDistinctValuesByColumn: {},
+        onOutcomeSpecAdd,
+        onFactorControlAdd,
+      }
+    );
+
+    expect(onFactorControlAdd).toHaveBeenCalledTimes(1);
+    const [columnName, stepId] = onFactorControlAdd.mock.calls[0];
+    expect(columnName).toBe('Speed');
+    expect(stepId).toBe('s1');
+    expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
+  });
+
+  it('numeric column drop on process-zone:singleton → falls through; neither onStepsReplace nor onOutcomeSpecAdd fires', () => {
+    // Numeric columns are absent from categoricalDistinctValuesByColumn; the
+    // process handler returns false, and the drop id does not match the outcome
+    // zone either — so both callbacks remain silent.
+    const onStepsReplace = vi.fn();
+    const onOutcomeSpecAdd = vi.fn();
+
+    handleEditModeDragEnd(makeDragEnd(encodeColumnDragId('Temp'), encodeProcessDropId()), {
+      numericValuesByColumn: { Temp: [1, 2, 3] },
+      categoricalDistinctValuesByColumn: {}, // 'Temp' absent — numeric column
+      onStepsReplace,
+      onOutcomeSpecAdd,
+    });
+
+    expect(onStepsReplace).not.toHaveBeenCalled();
+    expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
   });
 });
