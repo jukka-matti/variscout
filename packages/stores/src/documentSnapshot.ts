@@ -17,7 +17,7 @@
  * F4 ships only the type. F5+ wires the runtime function.
  */
 import type { ProjectState } from './projectStore';
-import type { InvestigationState } from './investigationStore';
+import type { AnalyzeState } from './analyzeStore';
 import type { CanvasStoreState } from './canvasStore';
 
-export type DocumentSnapshot = ProjectState & InvestigationState & CanvasStoreState;
+export type DocumentSnapshot = ProjectState & AnalyzeState & CanvasStoreState;

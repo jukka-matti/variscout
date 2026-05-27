@@ -95,7 +95,7 @@ describe('useViewStore — rich selection actions (spec D1 relocation from proje
   });
 });
 
-describe('useViewStore.focusedQuestionId (relocated from investigationStore in F4)', () => {
+describe('useViewStore.focusedQuestionId (relocated from analyzeStore in F4)', () => {
   it('starts as null', () => {
     expect(useViewStore.getState().focusedQuestionId).toBeNull();
   });

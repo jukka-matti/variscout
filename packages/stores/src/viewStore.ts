@@ -24,7 +24,7 @@ export interface ViewState {
   /** Modal open/close — closes on reload by intent. */
   isDataTableOpen: boolean;
 
-  /** Question id focused in investigation Wall (relocated from investigationStore). */
+  /** Question id focused in investigation Wall (relocated from analyzeStore). */
   focusedQuestionId: string | null;
 
   /** Idea highlighted in the prioritization matrix (relocated from improvementStore). */

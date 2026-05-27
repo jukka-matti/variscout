@@ -7,7 +7,7 @@
  * here — those stores are allowed to mix layers per current architecture.
  *
  * STORE_LAYER enum has 6 values; today 4 are realised in code:
- *   - 'document' (projectStore, investigationStore, canvasStore)
+ *   - 'document' (projectStore, analyzeStore, canvasStore)
  *   - 'annotation-per-hub' (canvasViewportStore)
  *   - 'annotation-per-user' (preferencesStore, activeIPStore, useProjectMembershipStore)
  *   - 'view' (viewStore)
@@ -44,7 +44,7 @@ interface StoreFile {
 function loadStoreFiles(): StoreFile[] {
   const filenames = [
     'projectStore.ts',
-    'investigationStore.ts',
+    'analyzeStore.ts',
     'canvasStore.ts',
     'canvasViewportStore.ts',
     'preferencesStore.ts',
