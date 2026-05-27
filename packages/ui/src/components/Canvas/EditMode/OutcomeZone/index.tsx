@@ -35,7 +35,7 @@ export function OutcomeZone({
   onSpecAdd: _onSpecAdd,
   onSpecUpdate,
 }: OutcomeZoneProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: encodeOutcomeDropId() });
+  const { setNodeRef, isOver } = useDroppable({ id: encodeOutcomeDropId('singleton') });
   const [openSpecs, setOpenSpecs] = useState<OpenSpecs | null>(null);
 
   const containerBorder = isOver ? 'border-2 border-dashed border-cyan-400' : 'border border-edge';

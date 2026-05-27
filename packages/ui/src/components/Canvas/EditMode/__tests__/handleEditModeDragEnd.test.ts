@@ -25,12 +25,15 @@ describe('handleEditModeDragEnd', () => {
     it('routes a column drop on the outcome zone to onOutcomeSpecAdd', () => {
       const onOutcomeSpecAdd = vi.fn();
       const onFactorControlAdd = vi.fn();
-      handleEditModeDragEnd(dragEndEvent(encodeColumnDragId('Diameter'), encodeOutcomeDropId()), {
-        numericValuesByColumn: { Diameter: [10, 10, 10, 11, 11, 12] },
-        categoricalDistinctValuesByColumn: {},
-        onOutcomeSpecAdd,
-        onFactorControlAdd,
-      });
+      handleEditModeDragEnd(
+        dragEndEvent(encodeColumnDragId('Diameter'), encodeOutcomeDropId('singleton')),
+        {
+          numericValuesByColumn: { Diameter: [10, 10, 10, 11, 11, 12] },
+          categoricalDistinctValuesByColumn: {},
+          onOutcomeSpecAdd,
+          onFactorControlAdd,
+        }
+      );
       expect(onOutcomeSpecAdd).toHaveBeenCalledTimes(1);
       expect(onOutcomeSpecAdd).toHaveBeenCalledWith('Diameter', expect.any(Object));
       expect(onFactorControlAdd).not.toHaveBeenCalled();
@@ -90,7 +93,7 @@ describe('handleEditModeDragEnd', () => {
     it('does not call either callback when the drag source is not a column drag', () => {
       const onOutcomeSpecAdd = vi.fn();
       const onFactorControlAdd = vi.fn();
-      handleEditModeDragEnd(dragEndEvent('chip:c-1', encodeOutcomeDropId()), {
+      handleEditModeDragEnd(dragEndEvent('chip:c-1', encodeOutcomeDropId('singleton')), {
         numericValuesByColumn: {},
         categoricalDistinctValuesByColumn: {},
         onOutcomeSpecAdd,
@@ -134,11 +137,14 @@ describe('handleEditModeDragEnd', () => {
     it('is a no-op when onOutcomeSpecAdd is undefined and the drop targets the outcome zone', () => {
       const onFactorControlAdd = vi.fn();
       expect(() =>
-        handleEditModeDragEnd(dragEndEvent(encodeColumnDragId('A'), encodeOutcomeDropId()), {
-          numericValuesByColumn: {},
-          categoricalDistinctValuesByColumn: {},
-          onFactorControlAdd,
-        })
+        handleEditModeDragEnd(
+          dragEndEvent(encodeColumnDragId('A'), encodeOutcomeDropId('singleton')),
+          {
+            numericValuesByColumn: {},
+            categoricalDistinctValuesByColumn: {},
+            onFactorControlAdd,
+          }
+        )
       ).not.toThrow();
       expect(onFactorControlAdd).not.toHaveBeenCalled();
     });
