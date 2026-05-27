@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHubMigrationState } from '../useHubMigrationState';
-import type { ProcessHubInvestigation, ProcessMap } from '@variscout/core';
+import type { ProcessHubAnalyze, ProcessMap } from '@variscout/core';
 
 const map: ProcessMap = {
   version: 1,
@@ -17,7 +17,7 @@ const member = (
   mappings: unknown[] = [],
   declined?: string,
   rows: Record<string, unknown>[] = []
-): ProcessHubInvestigation =>
+): ProcessHubAnalyze =>
   ({
     id,
     name: id,
@@ -29,7 +29,7 @@ const member = (
     },
     rows,
     reviewSignal: { ok: 0, review: 0, alarm: 0 },
-  }) as unknown as ProcessHubInvestigation;
+  }) as unknown as ProcessHubAnalyze;
 
 describe('useHubMigrationState', () => {
   it('isModalOpen toggles via openModal / closeModal', () => {

@@ -152,7 +152,7 @@ const SustainmentReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
         </label>
         <input
           id="srl-escalated"
-          aria-label="Escalated investigation ID"
+          aria-label="Escalated analyze ID"
           type="text"
           value={escalatedInvestigationId}
           onChange={e => setEscalatedInvestigationId(e.target.value)}

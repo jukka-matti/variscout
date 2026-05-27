@@ -2,12 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProcessHubCapabilityTab } from '../ProcessHubCapabilityTab';
 import { useProjectStore } from '@variscout/stores';
-import type {
-  ProcessHubInvestigation,
-  ProcessHubRollup,
-  ProcessHub,
-  DataRow,
-} from '@variscout/core';
+import type { ProcessHubAnalyze, ProcessHubRollup, ProcessHub, DataRow } from '@variscout/core';
 
 // jsdom polyfills for visx withParentSize (mirrors Plan B integration test)
 type RAFCallback = (time: number) => void;
@@ -77,12 +72,12 @@ const member = {
     product: i < 15 ? 'Coke' : 'Sprite',
   })) as DataRow[],
   reviewSignal: { ok: 0, review: 0, alarm: 0 },
-} as unknown as ProcessHubInvestigation;
+} as unknown as ProcessHubAnalyze;
 
 const rollup = {
   hub,
   investigations: [member],
-} as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+} as unknown as ProcessHubRollup<ProcessHubAnalyze>;
 
 describe('ProcessHubCapabilityTab', () => {
   beforeEach(() => {
@@ -106,7 +101,7 @@ describe('ProcessHubCapabilityTab', () => {
     const emptyRollup = {
       hub,
       investigations: [],
-    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     render(<ProcessHubCapabilityTab rollup={emptyRollup} onHubCpkTargetCommit={vi.fn()} />);
     expect(screen.getByText(/no mapped/i)).toBeInTheDocument();
   });
@@ -130,7 +125,7 @@ describe('ProcessHubCapabilityTab', () => {
     const r = {
       hub: hubWithTarget,
       investigations: [member],
-    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     render(<ProcessHubCapabilityTab rollup={r} onHubCpkTargetCommit={vi.fn()} />);
     const wrapper = screen.getByTestId('hub-capability-cpk-target');
     const input = wrapper.querySelector('input') as HTMLInputElement;
@@ -161,7 +156,7 @@ describe('ProcessHubCapabilityTab', () => {
     const r = {
       hub: hubWithTarget,
       investigations: [member],
-    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     const { container } = render(
       <ProcessHubCapabilityTab rollup={r} onHubCpkTargetCommit={vi.fn()} />
     );

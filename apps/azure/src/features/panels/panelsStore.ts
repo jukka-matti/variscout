@@ -6,8 +6,8 @@ interface PanelsState {
   activeView:
     | 'dashboard'
     | 'frame'
-    | 'analysis'
-    | 'investigation'
+    | 'explore'
+    | 'analyze'
     | 'projects'
     | 'improvement'
     | 'report'
@@ -30,7 +30,7 @@ interface PanelsState {
   /** Factor highlighted from Evidence Map node click (for PI panel scroll-to) */
   highlightedFactor: string | null;
   /** Investigation workspace center view: 'map' (Evidence Map) or 'findings' (FindingsLog) */
-  investigationViewMode: 'map' | 'findings';
+  analyzeViewMode: 'map' | 'findings';
   /** Whether the Factor Preview overlay has been dismissed for this session */
   factorPreviewDismissed: boolean;
   /** Active improvement view: plan (default) or track */
@@ -46,8 +46,8 @@ interface PanelsState {
 interface PanelsActions {
   showDashboard: () => void;
   showFrame: () => void;
-  showAnalysis: () => void;
-  showInvestigation: () => void;
+  showExplore: () => void;
+  showAnalyze: () => void;
   showImprovement: () => void;
   showProjects: (projectId?: string) => void;
   showReport: () => void;
@@ -69,7 +69,7 @@ interface PanelsActions {
   setPIActiveTab: (tab: 'stats' | 'questions' | 'survey' | 'journal') => void;
   setPIOverflowView: (view: 'data' | 'whatif' | null) => void;
   setHighlightedFactor: (factor: string | null) => void;
-  setInvestigationViewMode: (mode: 'map' | 'findings') => void;
+  setAnalyzeViewMode: (mode: 'map' | 'findings') => void;
   dismissFactorPreview: () => void;
   /** Switch between plan and track views */
   setActiveImprovementView: (view: 'plan' | 'track') => void;
@@ -81,8 +81,8 @@ interface PanelsActions {
       activeView?:
         | 'dashboard'
         | 'frame'
-        | 'analysis'
-        | 'investigation'
+        | 'explore'
+        | 'analyze'
         | 'projects'
         | 'improvement'
         | 'report'
@@ -100,7 +100,7 @@ export type PanelsStore = PanelsState & PanelsActions;
 
 export const usePanelsStore = create<PanelsStore>(set => ({
   // Initial state
-  activeView: 'analysis',
+  activeView: 'explore',
   isDataTableOpen: false,
   isFindingsOpen: false, // deprecated — always false; Task 10 will remove consumers
   isCoScoutOpen: false,
@@ -112,7 +112,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   piActiveTab: 'stats',
   piOverflowView: null,
   highlightedFactor: null,
-  investigationViewMode: 'map',
+  analyzeViewMode: 'map',
   factorPreviewDismissed: false,
   activeImprovementView: 'plan',
   highlightedIdeaId: null,
@@ -126,10 +126,10 @@ export const usePanelsStore = create<PanelsStore>(set => ({
       activeView: 'frame',
       isFindingsOpen: false,
     })),
-  showAnalysis: () => set(() => ({ activeView: 'analysis' })),
-  showInvestigation: () =>
+  showExplore: () => set(() => ({ activeView: 'explore' })),
+  showAnalyze: () =>
     set(() => ({
-      activeView: 'investigation',
+      activeView: 'analyze',
       isFindingsOpen: false, // workspace IS the findings view
     })),
   showImprovement: () =>
@@ -152,10 +152,9 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   closeDataTable: () => set({ isDataTableOpen: false }),
 
   // Findings — no-op in investigation workspace (workspace IS the findings view)
-  setFindingsOpen: open =>
-    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: open })),
+  setFindingsOpen: open => set(s => (s.activeView === 'analyze' ? s : { isFindingsOpen: open })),
   toggleFindings: () =>
-    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: !s.isFindingsOpen })),
+    set(s => (s.activeView === 'analyze' ? s : { isFindingsOpen: !s.isFindingsOpen })),
 
   // CoScout
   setCoScoutOpen: open => set({ isCoScoutOpen: open }),
@@ -188,12 +187,12 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   setHighlightedFactor: factor =>
     set(state =>
       factor
-        ? state.activeView === 'investigation'
+        ? state.activeView === 'analyze'
           ? { highlightedFactor: factor } // In Investigation, don't open PI sidebar (QuestionChecklist handles it)
           : { highlightedFactor: factor, piActiveTab: 'questions' as const, isPISidebarOpen: true }
         : { highlightedFactor: null }
     ),
-  setInvestigationViewMode: mode => set(() => ({ investigationViewMode: mode })),
+  setAnalyzeViewMode: mode => set(() => ({ analyzeViewMode: mode })),
   dismissFactorPreview: () => set({ factorPreviewDismissed: true }),
 
   // Improvement view
@@ -202,9 +201,9 @@ export const usePanelsStore = create<PanelsStore>(set => ({
 
   // ViewState initialization — maps legacy values
   initFromViewState: viewState => {
-    let activeView = viewState?.activeView ?? 'analysis';
+    let activeView = viewState?.activeView ?? 'explore';
     // Backward compat: map legacy 'editor' value
-    if ((activeView as string) === 'editor') activeView = 'analysis';
+    if ((activeView as string) === 'editor') activeView = 'explore';
     // Backward compat: map legacy isImprovementOpen flag
     if ((viewState as Record<string, unknown>)?.isImprovementOpen) activeView = 'improvement';
     // Backward compat: map legacy isReportOpen flag

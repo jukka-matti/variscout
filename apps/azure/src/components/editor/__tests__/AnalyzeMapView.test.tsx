@@ -1,5 +1,5 @@
 /**
- * Tests for InvestigationMapView — EdgeMiniChart wiring and enriched CoScout context.
+ * Tests for AnalyzeMapView — EdgeMiniChart wiring and enriched CoScout context.
  *
  * Mock strategy:
  * - @variscout/charts: mock EvidenceMapBase to expose onEdgeClick trigger
@@ -124,7 +124,7 @@ vi.mock('../../../features/panels/panelsStore', () => ({
 
 // ── 2. Component import AFTER mocks ────────────────────────────────────────
 
-import { InvestigationMapView } from '../InvestigationMapView';
+import { AnalyzeMapView } from '../AnalyzeMapView';
 
 // ── 3. Shared test data ────────────────────────────────────────────────────
 
@@ -168,9 +168,9 @@ beforeAll(() => {
 
 // ── 4. Tests ───────────────────────────────────────────────────────────────
 
-describe('InvestigationMapView — EdgeMiniChart wiring', () => {
+describe('AnalyzeMapView — EdgeMiniChart wiring', () => {
   it('renders EdgeDetailCard with SVG when edge is clicked and filteredData is provided', () => {
-    render(<InvestigationMapView mapOptions={minimalMapOptions} filteredData={filteredDataRows} />);
+    render(<AnalyzeMapView mapOptions={minimalMapOptions} filteredData={filteredDataRows} />);
 
     // Trigger the edge click via the mock button
     fireEvent.click(screen.getByTestId('trigger-edge-click'));
@@ -187,7 +187,7 @@ describe('InvestigationMapView — EdgeMiniChart wiring', () => {
 
   it('renders EdgeDetailCard WITHOUT SVG when filteredData is absent', () => {
     render(
-      <InvestigationMapView
+      <AnalyzeMapView
         mapOptions={minimalMapOptions}
         // filteredData deliberately omitted
       />
@@ -204,12 +204,12 @@ describe('InvestigationMapView — EdgeMiniChart wiring', () => {
   });
 });
 
-describe('InvestigationMapView — enriched CoScout context', () => {
+describe('AnalyzeMapView — enriched CoScout context', () => {
   it('passes enriched context string with R²adj= to onAskCoScout when Ask CoScout button is clicked', () => {
     const onAskCoScout = vi.fn();
 
     render(
-      <InvestigationMapView
+      <AnalyzeMapView
         mapOptions={minimalMapOptions}
         filteredData={filteredDataRows}
         onAskCoScout={onAskCoScout}

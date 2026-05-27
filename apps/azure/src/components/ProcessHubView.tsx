@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import type {
   Finding,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
   ProcessHubRollup,
   ProcessStateItem,
   ProcessStateNote,
@@ -28,7 +28,7 @@ import { ProcessHubCapabilityTab } from './ProcessHubCapabilityTab';
 import { useHubMigrationState } from '../features/processHub/useHubMigrationState';
 
 export interface ProcessHubViewProps {
-  rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  rollup: ProcessHubRollup<ProcessHubAnalyze>;
   onOpenInvestigation: (id: string) => void;
   onStartInvestigation: () => void;
   onSetupSustainment: (investigationId: string) => void;
@@ -41,7 +41,7 @@ export interface ProcessHubViewProps {
   loadFindingsForItem: (item: ProcessStateItem, hubId: string) => Promise<readonly Finding[]>;
   onChipClick: (item: ProcessStateItem, hubId: string, count: number) => void;
   onFindingSelect: (item: ProcessStateItem, finding: Finding, hubId: string) => void;
-  persistInvestigation: (next: ProcessHubInvestigation) => void;
+  persistInvestigation: (next: ProcessHubAnalyze) => void;
   /**
    * Persist the hub-level Cpk target default (cascade level "hub"). Writes to
    * `processHub.reviewSignal.capability.cpkTarget`. `undefined` clears it.

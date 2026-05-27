@@ -235,7 +235,7 @@ export function createInvestigationSerializer(options: SerializerOptions) {
       findingsTimer = setTimeout(async () => {
         try {
           const jsonl = serializeFindings(findings);
-          await options.uploadBlob(`${options.projectId}/investigation/findings.jsonl`, jsonl);
+          await options.uploadBlob(`${options.projectId}/analyze/findings.jsonl`, jsonl);
         } catch (err) {
           console.warn('[KB] Failed to serialize findings:', err);
         }
@@ -247,7 +247,7 @@ export function createInvestigationSerializer(options: SerializerOptions) {
       questionsTimer = setTimeout(async () => {
         try {
           const jsonl = serializeQuestions(questions);
-          await options.uploadBlob(`${options.projectId}/investigation/questions.jsonl`, jsonl);
+          await options.uploadBlob(`${options.projectId}/analyze/questions.jsonl`, jsonl);
         } catch (err) {
           console.warn('[KB] Failed to serialize questions:', err);
         }
@@ -259,7 +259,7 @@ export function createInvestigationSerializer(options: SerializerOptions) {
       hypothesesTimer = setTimeout(async () => {
         try {
           const jsonl = serializeHypotheses(hubs);
-          await options.uploadBlob(`${options.projectId}/investigation/hypotheses.jsonl`, jsonl);
+          await options.uploadBlob(`${options.projectId}/analyze/hypotheses.jsonl`, jsonl);
         } catch (err) {
           console.warn('[KB] Failed to serialize hypotheses:', err);
         }

@@ -7,7 +7,7 @@ import {
 } from '@variscout/core';
 import type {
   Finding,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
   ProcessHubRollup,
   ProcessStateItem,
   ProcessStateNote,
@@ -20,7 +20,7 @@ import ProcessHubCadenceQueues from './ProcessHubCadenceQueues';
 import { formatLatestActivity } from './ProcessHubFormat';
 
 interface ProcessHubReviewPanelProps {
-  rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  rollup: ProcessHubRollup<ProcessHubAnalyze>;
   onOpenInvestigation: (id: string) => void;
   onStartInvestigation: () => void;
   onSetupSustainment: (investigationId: string) => void;

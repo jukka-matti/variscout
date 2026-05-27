@@ -4,7 +4,7 @@ import { usePanelsStore } from '../panelsStore';
 /** Reset store to defaults before each test. */
 beforeEach(() => {
   usePanelsStore.setState({
-    activeView: 'analysis',
+    activeView: 'explore',
     isDataTableOpen: false,
     isFindingsOpen: false,
     isCoScoutOpen: false,
@@ -16,7 +16,7 @@ beforeEach(() => {
     piActiveTab: 'stats',
     piOverflowView: null,
     highlightedFactor: null,
-    investigationViewMode: 'map',
+    analyzeViewMode: 'map',
     factorPreviewDismissed: false,
     activeImprovementView: 'plan',
     highlightedIdeaId: null,
@@ -73,13 +73,13 @@ describe('panelsStore', () => {
     });
 
     it('setFindingsOpen is no-op in investigation workspace', () => {
-      usePanelsStore.getState().showInvestigation();
+      usePanelsStore.getState().showAnalyze();
       usePanelsStore.getState().setFindingsOpen(true);
       expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
     });
 
     it('toggleFindings is no-op in investigation workspace', () => {
-      usePanelsStore.getState().showInvestigation();
+      usePanelsStore.getState().showAnalyze();
       usePanelsStore.getState().toggleFindings();
       expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
     });
@@ -222,8 +222,8 @@ describe('panelsStore', () => {
   });
 
   describe('workspace navigation (ADR-055)', () => {
-    it('defaults to analysis', () => {
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
+    it('defaults to explore', () => {
+      expect(usePanelsStore.getState().activeView).toBe('explore');
     });
 
     it('showDashboard sets activeView to dashboard', () => {
@@ -239,20 +239,20 @@ describe('panelsStore', () => {
       expect(s.isFindingsOpen).toBe(false);
     });
 
-    it('showAnalysis sets activeView to analysis', () => {
+    it('showExplore sets activeView to analysis', () => {
       usePanelsStore.getState().showDashboard();
-      usePanelsStore.getState().showAnalysis();
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
+      usePanelsStore.getState().showExplore();
+      expect(usePanelsStore.getState().activeView).toBe('explore');
     });
 
-    it('showInvestigation sets activeView to investigation', () => {
-      usePanelsStore.getState().showInvestigation();
-      expect(usePanelsStore.getState().activeView).toBe('investigation');
+    it('showAnalyze sets activeView to investigation', () => {
+      usePanelsStore.getState().showAnalyze();
+      expect(usePanelsStore.getState().activeView).toBe('analyze');
     });
 
-    it('showInvestigation closes findings sidebar', () => {
+    it('showAnalyze closes findings sidebar', () => {
       usePanelsStore.setState({ isFindingsOpen: true });
-      usePanelsStore.getState().showInvestigation();
+      usePanelsStore.getState().showAnalyze();
       expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
     });
 
@@ -278,10 +278,10 @@ describe('panelsStore', () => {
       expect(usePanelsStore.getState().activeView).toBe('report');
     });
 
-    it('showAnalysis returns from report workspace', () => {
+    it('showExplore returns from report workspace', () => {
       usePanelsStore.getState().showReport();
-      usePanelsStore.getState().showAnalysis();
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
+      usePanelsStore.getState().showExplore();
+      expect(usePanelsStore.getState().activeView).toBe('explore');
     });
   });
 
@@ -349,9 +349,9 @@ describe('panelsStore', () => {
 
     it('maps legacy editor value to analysis', () => {
       usePanelsStore.getState().initFromViewState({
-        activeView: 'editor' as 'analysis',
+        activeView: 'editor' as 'explore',
       });
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
+      expect(usePanelsStore.getState().activeView).toBe('explore');
     });
 
     it('maps legacy isImprovementOpen to improvement workspace', () => {
@@ -367,8 +367,8 @@ describe('panelsStore', () => {
     });
 
     it('restores investigation workspace', () => {
-      usePanelsStore.getState().initFromViewState({ activeView: 'investigation' });
-      expect(usePanelsStore.getState().activeView).toBe('investigation');
+      usePanelsStore.getState().initFromViewState({ activeView: 'analyze' });
+      expect(usePanelsStore.getState().activeView).toBe('analyze');
     });
 
     it('restores improvement workspace', () => {
@@ -381,9 +381,9 @@ describe('panelsStore', () => {
       expect(usePanelsStore.getState().activeView).toBe('report');
     });
 
-    it('defaults to analysis when activeView missing', () => {
+    it('defaults to explore when activeView missing', () => {
       usePanelsStore.getState().initFromViewState({});
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
+      expect(usePanelsStore.getState().activeView).toBe('explore');
     });
 
     it('maps legacy isReportOpen to report workspace', () => {
@@ -421,16 +421,16 @@ describe('panelsStore', () => {
     });
   });
 
-  describe('investigationViewMode', () => {
+  describe('analyzeViewMode', () => {
     it('should default to map', () => {
-      expect(usePanelsStore.getState().investigationViewMode).toBe('map');
+      expect(usePanelsStore.getState().analyzeViewMode).toBe('map');
     });
 
     it('should toggle between map and findings', () => {
-      usePanelsStore.getState().setInvestigationViewMode('findings');
-      expect(usePanelsStore.getState().investigationViewMode).toBe('findings');
-      usePanelsStore.getState().setInvestigationViewMode('map');
-      expect(usePanelsStore.getState().investigationViewMode).toBe('map');
+      usePanelsStore.getState().setAnalyzeViewMode('findings');
+      expect(usePanelsStore.getState().analyzeViewMode).toBe('findings');
+      usePanelsStore.getState().setAnalyzeViewMode('map');
+      expect(usePanelsStore.getState().analyzeViewMode).toBe('map');
     });
   });
 

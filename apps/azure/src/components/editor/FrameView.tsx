@@ -15,11 +15,11 @@ import {
 } from '@variscout/ui';
 import {
   useImprovementProjectStore,
-  useInvestigationStore,
+  useAnalyzeStore,
   useProjectStore,
   useCanvasViewportStore,
 } from '@variscout/stores';
-import type { CanvasInvestigationFocus } from '@variscout/hooks';
+import type { CanvasAnalyzeFocus } from '@variscout/hooks';
 import type {
   ControlHandoff,
   EvidenceSnapshot,
@@ -30,7 +30,7 @@ import { createActionItem, type ActionItem } from '@variscout/core/findings';
 import { surveyInboxRules } from '@variscout/core/survey';
 import { azureHubRepository } from '../../persistence';
 import { usePanelsStore } from '../../features/panels/panelsStore';
-import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
+import { useAnalyzeFeatureStore } from '../../features/analyze/analyzeStore';
 
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
@@ -75,10 +75,10 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
   const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
   const processContext = useProjectStore(s => s.processContext);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
-  const findings = useInvestigationStore(s => s.findings);
-  const questions = useInvestigationStore(s => s.questions);
-  const hypotheses = useInvestigationStore(s => s.hypotheses);
-  const causalLinks = useInvestigationStore(s => s.causalLinks);
+  const findings = useAnalyzeStore(s => s.findings);
+  const questions = useAnalyzeStore(s => s.questions);
+  const hypotheses = useAnalyzeStore(s => s.hypotheses);
+  const causalLinks = useAnalyzeStore(s => s.causalLinks);
   const activeHubId = useProjectStore(s => s.processContext?.processHubId ?? null);
   const projectsByHub = useImprovementProjectStore(s => s.projectsByHub);
   const [priorStepStats, setPriorStepStats] =
@@ -206,7 +206,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
   }, [activeHubId, controlHandoffs, projectsByHub, sustainmentRecords]);
 
   const handleSeeData = React.useCallback(() => {
-    usePanelsStore.getState().showAnalysis();
+    usePanelsStore.getState().showExplore();
   }, []);
 
   const handleLogQuickAction = React.useCallback(
@@ -242,20 +242,19 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
   );
 
   const handleFocusedInvestigation = React.useCallback(() => {
-    usePanelsStore.getState().showInvestigation();
+    usePanelsStore.getState().showAnalyze();
   }, []);
 
   const handleOpenWall = React.useCallback(() => {
     const panelsStore = usePanelsStore.getState();
     useCanvasViewportStore.getState().setViewMode('wall');
-    panelsStore.setInvestigationViewMode('map');
-    panelsStore.showInvestigation();
+    panelsStore.setAnalyzeViewMode('map');
+    panelsStore.showAnalyze();
   }, []);
 
-  const handleOpenInvestigationFocus = React.useCallback((focus: CanvasInvestigationFocus) => {
-    if (focus.questionId)
-      useInvestigationFeatureStore.getState().expandToQuestion(focus.questionId);
-    usePanelsStore.getState().showInvestigation();
+  const handleOpenInvestigationFocus = React.useCallback((focus: CanvasAnalyzeFocus) => {
+    if (focus.questionId) useAnalyzeFeatureStore.getState().expandToQuestion(focus.questionId);
+    usePanelsStore.getState().showAnalyze();
   }, []);
 
   const handleAddCausalLink = React.useCallback(
@@ -265,21 +264,19 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
       whyStatement: string,
       options?: { questionIds?: string[] }
     ) => {
-      const link = useInvestigationStore
-        .getState()
-        .addCausalLink(fromFactor, toFactor, whyStatement);
+      const link = useAnalyzeStore.getState().addCausalLink(fromFactor, toFactor, whyStatement);
 
       if (!link || !options?.questionIds) return;
 
       for (const questionId of options.questionIds) {
-        useInvestigationStore.getState().linkQuestionToCausalLink(link.id, questionId);
+        useAnalyzeStore.getState().linkQuestionToCausalLink(link.id, questionId);
       }
     },
     []
   );
 
   const handleRemoveCausalLink = React.useCallback((linkId: string) => {
-    useInvestigationStore.getState().removeCausalLink(linkId);
+    useAnalyzeStore.getState().removeCausalLink(linkId);
   }, []);
 
   const handleCharter = React.useCallback(() => {
@@ -296,7 +293,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
       usePanelsStore.getState().showCharter();
       return;
     }
-    usePanelsStore.getState().showInvestigation();
+    usePanelsStore.getState().showAnalyze();
   }, []);
 
   const handleNavigateContextLink = React.useCallback(
@@ -320,7 +317,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
         usePanelsStore.getState().showSustainment(item.id);
         return;
       }
-      usePanelsStore.getState().showInvestigation();
+      usePanelsStore.getState().showAnalyze();
     },
     [activeHubId, controlHandoffs, sustainmentRecords]
   );

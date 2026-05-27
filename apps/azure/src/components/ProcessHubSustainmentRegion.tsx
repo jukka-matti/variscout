@@ -3,15 +3,15 @@ import { ShieldCheck, ShieldAlert, History } from 'lucide-react';
 import {
   selectSustainmentBuckets,
   type ProcessHubCadenceSummary,
-  type ProcessHubInvestigation,
+  type ProcessHubAnalyze,
   type ProcessHubReviewItem,
   type ProcessHubRollup,
 } from '@variscout/core';
 import { formatSustainmentVerdict, formatSustainmentDue } from './ProcessHubFormat';
 
 export interface ProcessHubSustainmentRegionProps {
-  cadence: ProcessHubCadenceSummary<ProcessHubInvestigation>;
-  rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  cadence: ProcessHubCadenceSummary<ProcessHubAnalyze>;
+  rollup: ProcessHubRollup<ProcessHubAnalyze>;
   onOpenInvestigation: (id: string) => void;
   onSetupSustainment: (investigationId: string) => void;
   onLogReview: (recordId: string) => void;
@@ -21,11 +21,11 @@ interface BucketSectionProps {
   label: string;
   count: number;
   icon: React.ReactNode;
-  items: ProcessHubReviewItem<ProcessHubInvestigation>[];
-  onItemClick: (item: ProcessHubReviewItem<ProcessHubInvestigation>) => void;
-  itemAriaLabel: (item: ProcessHubReviewItem<ProcessHubInvestigation>) => string;
+  items: ProcessHubReviewItem<ProcessHubAnalyze>[];
+  onItemClick: (item: ProcessHubReviewItem<ProcessHubAnalyze>) => void;
+  itemAriaLabel: (item: ProcessHubReviewItem<ProcessHubAnalyze>) => string;
   iconForItem: React.ReactNode;
-  renderSubline?: (item: ProcessHubReviewItem<ProcessHubInvestigation>) => string;
+  renderSubline?: (item: ProcessHubReviewItem<ProcessHubAnalyze>) => string;
   testId: string;
 }
 
@@ -95,7 +95,7 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
   const reviewedIds = new Set(buckets.recentlyReviewed.map(item => item.investigation.id));
 
   const setupCandidates = rollup.investigations.filter(inv => {
-    const status = inv.metadata?.investigationStatus;
+    const status = inv.metadata?.analyzeStatus;
     if (status !== 'resolved' && status !== 'controlled') return false;
     if (inv.metadata?.sustainment) return false;
     if (dueAndOverdueIds.has(inv.id)) return false;
@@ -103,7 +103,7 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
     return true;
   });
 
-  const reviewSubline = (item: ProcessHubReviewItem<ProcessHubInvestigation>): string => {
+  const reviewSubline = (item: ProcessHubReviewItem<ProcessHubAnalyze>): string => {
     const verdict = item.investigation.metadata?.sustainment?.latestVerdict;
     const nextReviewDue = item.investigation.metadata?.sustainment?.nextReviewDue;
     return [
@@ -114,7 +114,7 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
       .join(' · ');
   };
 
-  const handleReviewClick = (item: ProcessHubReviewItem<ProcessHubInvestigation>) => {
+  const handleReviewClick = (item: ProcessHubReviewItem<ProcessHubAnalyze>) => {
     const recordId = item.investigation.metadata?.sustainment?.recordId;
     if (recordId) {
       onLogReview(recordId);

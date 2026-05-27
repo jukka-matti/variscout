@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProcessHubView } from '../ProcessHubView';
-import type { ProcessHubRollup, ProcessHubInvestigation, ProcessHub } from '@variscout/core';
+import type { ProcessHubRollup, ProcessHubAnalyze, ProcessHub } from '@variscout/core';
 import type { OutcomeSpec } from '@variscout/core/processHub';
 
 vi.mock('../ProcessHubReviewPanel', () => ({
@@ -18,7 +18,7 @@ const rollup = {
   hub,
   investigations: [],
   evidenceSnapshots: [],
-} as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+} as unknown as ProcessHubRollup<ProcessHubAnalyze>;
 
 const noop = vi.fn();
 const baseProps = {
@@ -75,7 +75,7 @@ describe('ProcessHubView', () => {
       hub: goalHub,
       investigations: [],
       evidenceSnapshots: [],
-    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     render(<ProcessHubView {...baseProps} rollup={goalRollup} />);
     expect(screen.getByTestId('goal-banner')).toBeInTheDocument();
   });
@@ -96,7 +96,7 @@ describe('ProcessHubView', () => {
       hub: goalHub,
       investigations: [],
       evidenceSnapshots: [],
-    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     render(<ProcessHubView {...baseProps} rollup={goalRollup} onHubGoalChange={onHubGoalChange} />);
     // GoalBanner enters edit mode on click; saves via Save button
     fireEvent.click(screen.getByTestId('goal-banner'));
@@ -125,7 +125,7 @@ describe('ProcessHubView', () => {
       hub: completeHub,
       investigations: [],
       evidenceSnapshots: [],
-    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     const onEditFraming = vi.fn();
     render(<ProcessHubView {...baseProps} rollup={completeRollup} onEditFraming={onEditFraming} />);
     expect(screen.queryByTestId('hub-framing-prompt')).not.toBeInTheDocument();
@@ -166,7 +166,7 @@ describe('ProcessHubView', () => {
       hub: completeHub,
       investigations: [],
       evidenceSnapshots: [],
-    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     render(<ProcessHubView {...baseProps} rollup={completeRollup} />);
     const pins = screen.getAllByTestId('outcome-pin');
     expect(pins).toHaveLength(2);

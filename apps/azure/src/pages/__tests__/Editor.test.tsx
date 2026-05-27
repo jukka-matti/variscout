@@ -9,7 +9,7 @@ import * as StorageModule from '../../services/storage';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import {
   useProjectStore,
-  useInvestigationStore,
+  useAnalyzeStore,
   usePreferencesStore,
   useProjectMembershipStore,
   getProjectMembershipInitialState,
@@ -189,7 +189,7 @@ vi.mock('@variscout/ui', async importOriginal => {
       </div>
     ),
     DataTableModalBase: () => null,
-    InvestigationPrompt: () => null,
+    AnalyzePrompt: () => null,
     CoScoutPanelBase: () => null,
     AIOnboardingTooltip: () => null,
     SessionClosePrompt: () => null,
@@ -363,11 +363,11 @@ function seedStores(
     hasUnsavedChanges: false,
   } as Partial<ReturnType<typeof useProjectStore.getState>>);
 
-  useInvestigationStore.setState({
+  useAnalyzeStore.setState({
     findings: [],
     questions: [],
     categories: [],
-  } as Partial<ReturnType<typeof useInvestigationStore.getState>>);
+  } as Partial<ReturnType<typeof useAnalyzeStore.getState>>);
 
   usePreferencesStore.setState({
     aiEnabled: false,
@@ -478,28 +478,28 @@ describe('Editor', () => {
     expect(screen.getByTestId('view-toggle')).toBeInTheDocument();
   });
 
-  it('shows analysis view when Analysis tab is clicked', () => {
+  it('shows explore view when Explore tab is clicked', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
       factors: ['Machine'],
     });
 
-    // Click "Analysis" tab to switch to editor view
-    fireEvent.click(screen.getByTestId('view-toggle-analyze'));
+    // Click "Explore" tab to switch to dashboard EDA view
+    fireEvent.click(screen.getByTestId('view-toggle-explore'));
 
     expect(screen.getByTestId('dashboard')).toBeInTheDocument();
   });
 
-  it('shows Add Data button when data is loaded in analysis view', () => {
+  it('shows Add Data button when data is loaded in explore view', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
       factors: ['Machine'],
     });
 
-    // Switch to analysis view (may start in dashboard due to deep link logic)
-    fireEvent.click(screen.getByTestId('view-toggle-analyze'));
+    // Switch to explore view (may start in dashboard due to deep link logic)
+    fireEvent.click(screen.getByTestId('view-toggle-explore'));
 
     expect(screen.getByTestId('btn-add-data')).toBeInTheDocument();
   });

@@ -11,7 +11,7 @@
 
 export type DeepLinkChart = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
-export type DeepLinkMode = 'dashboard' | 'report' | 'improvement' | 'investigation';
+export type DeepLinkMode = 'dashboard' | 'report' | 'improvement' | 'analyze';
 
 export type DeepLinkTab = 'overview';
 
@@ -31,7 +31,7 @@ export interface DeepLinkValidation {
 }
 
 const VALID_CHARTS = new Set<string>(['ichart', 'boxplot', 'pareto', 'stats']);
-const VALID_MODES = new Set<string>(['dashboard', 'report', 'improvement', 'investigation']);
+const VALID_MODES = new Set<string>(['dashboard', 'report', 'improvement', 'analyze']);
 const VALID_TABS = new Set<string>(['overview']);
 
 /** Parse deep link params from a URL search string (e.g. "?project=foo&finding=abc") */

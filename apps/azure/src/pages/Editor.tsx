@@ -7,7 +7,7 @@ import { useProjectLoader } from '../hooks/useProjectLoader';
 import { useProjectOverview } from '../hooks/useProjectOverview';
 import {
   useProjectStore,
-  useInvestigationStore,
+  useAnalyzeStore,
   usePreferencesStore,
   useCanvasViewportStore,
   useProjectMembershipStore,
@@ -70,8 +70,8 @@ import type {
   Finding,
   Question,
   IdeaDirection,
-  InvestigationDepth,
-  InvestigationStatus,
+  AnalyzeDepth,
+  AnalyzeStatus,
   ProcessContext,
   ProcessHub,
 } from '@variscout/core';
@@ -84,10 +84,10 @@ import { canAccess } from '@variscout/core/projectMembership';
 import { Check, X } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
-import { useAIOrchestration, useActionProposals, useInvestigationIndexing } from '../features/ai';
-import { useInvestigationOrchestration } from '../features/investigation';
-import { useCanvasViewportLifecycle } from '../features/investigation/useCanvasViewportLifecycle';
-import { useInvestigationFeatureStore } from '../features/investigation/investigationStore';
+import { useAIOrchestration, useActionProposals, useAnalyzeIndexing } from '../features/ai';
+import { useAnalyzeOrchestration } from '../features/analyze';
+import { useCanvasViewportLifecycle } from '../features/analyze/useCanvasViewportLifecycle';
+import { useAnalyzeFeatureStore } from '../features/analyze/analyzeStore';
 import { useImprovementOrchestration } from '../features/improvement';
 import { useLocale } from '../context/LocaleContext';
 import { usePanelsStore } from '../features/panels/panelsStore';
@@ -110,7 +110,7 @@ import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 import { HubCreationFlow } from '../features/hubCreation';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
-import { InvestigationWorkspace } from '../components/editor/InvestigationWorkspace';
+import { AnalyzeWorkspace } from '../components/editor/AnalyzeWorkspace';
 import FrameView from '../components/editor/FrameView';
 import ImprovementProjectPanel from '../components/charter/ImprovementProjectPanel';
 import SustainmentPanel from '../components/sustainment/SustainmentPanel';
@@ -123,8 +123,8 @@ import { useAIStore } from '../features/ai/aiStore';
 const WhatIfPage = lazyWithRetry(() => import('../components/WhatIfPage'));
 const ReportView = lazyWithRetry(() => import('../components/views/ReportView'));
 
-const INVESTIGATION_DEPTHS: InvestigationDepth[] = ['quick', 'focused', 'chartered'];
-const INVESTIGATION_STATUSES: InvestigationStatus[] = [
+const INVESTIGATION_DEPTHS: AnalyzeDepth[] = ['quick', 'focused', 'chartered'];
+const INVESTIGATION_STATUSES: AnalyzeStatus[] = [
   'issue-captured',
   'framing',
   'scouting',
@@ -158,14 +158,14 @@ function formatStatusLabel(value: string): string {
   return value.replace(/-/g, ' ');
 }
 
-interface InvestigationMetadataPanelProps {
+interface AnalyzeMetadataPanelProps {
   projectId: string | null;
   processContext: ProcessContext | undefined;
   processHubs: ProcessHub[];
   onChange: (context: ProcessContext) => void;
 }
 
-const InvestigationMetadataPanel: React.FC<InvestigationMetadataPanelProps> = ({
+const AnalyzeMetadataPanel: React.FC<AnalyzeMetadataPanelProps> = ({
   projectId,
   processContext,
   processHubs,
@@ -194,10 +194,8 @@ const InvestigationMetadataPanel: React.FC<InvestigationMetadataPanelProps> = ({
         <label className="text-xs text-content-secondary">
           <span className="mb-1 block">Depth</span>
           <select
-            value={context.investigationDepth ?? 'quick'}
-            onChange={event =>
-              update({ investigationDepth: event.target.value as InvestigationDepth })
-            }
+            value={context.analyzeDepth ?? 'quick'}
+            onChange={event => update({ analyzeDepth: event.target.value as AnalyzeDepth })}
             className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
           >
             {INVESTIGATION_DEPTHS.map(depth => (
@@ -210,10 +208,8 @@ const InvestigationMetadataPanel: React.FC<InvestigationMetadataPanelProps> = ({
         <label className="text-xs text-content-secondary">
           <span className="mb-1 block">Status</span>
           <select
-            value={context.investigationStatus ?? 'scouting'}
-            onChange={event =>
-              update({ investigationStatus: event.target.value as InvestigationStatus })
-            }
+            value={context.analyzeStatus ?? 'scouting'}
+            onChange={event => update({ analyzeStatus: event.target.value as AnalyzeStatus })}
             className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
           >
             {INVESTIGATION_STATUSES.map(status => (
@@ -266,8 +262,7 @@ const InvestigationMetadataPanel: React.FC<InvestigationMetadataPanelProps> = ({
           className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
         />
       </label>
-      {(context.investigationStatus === 'resolved' ||
-        context.investigationStatus === 'controlled') && (
+      {(context.analyzeStatus === 'resolved' || context.analyzeStatus === 'controlled') && (
         <SustainmentEntryRow
           investigationId={projectId}
           hubId={context.processHubId ?? DEFAULT_PROCESS_HUB_ID}
@@ -351,11 +346,11 @@ export const Editor: React.FC<EditorProps> = ({
   const processContext = useProjectStore(s => s.processContext) ?? undefined;
 
   // Investigation store (domain — findings/questions/categories)
-  const persistedFindings = useInvestigationStore(s => s.findings);
-  const persistedQuestions = useInvestigationStore(s => s.questions);
-  const hypotheses = useInvestigationStore(s => s.hypotheses);
-  const categories = useInvestigationStore(s => s.categories);
-  const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
+  const persistedFindings = useAnalyzeStore(s => s.findings);
+  const persistedQuestions = useAnalyzeStore(s => s.questions);
+  const hypotheses = useAnalyzeStore(s => s.hypotheses);
+  const categories = useAnalyzeStore(s => s.categories);
+  const linkFindingToQuestion = useAnalyzeStore(s => s.linkFindingToQuestion);
 
   // Measurement plans — loaded from IndexedDB for all hypotheses in the active investigation.
   // Re-loads when the hypothesis list changes. Passed into WallCanvas planningProps.
@@ -411,14 +406,14 @@ export const Editor: React.FC<EditorProps> = ({
   const setProcessContext = useProjectStore(s => s.setProcessContext);
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const setCpkTarget = useProjectStore(s => s.setCpkTarget);
-  const setCategories = useInvestigationStore(s => s.setCategories);
+  const setCategories = useAnalyzeStore(s => s.setCategories);
 
-  // Investigation store setters (via loadInvestigationState for bulk updates)
+  // Investigation store setters (via loadAnalyzeState for bulk updates)
   const setPersistedFindings = useCallback((findings: Finding[]) => {
-    useInvestigationStore.getState().loadInvestigationState({ findings });
+    useAnalyzeStore.getState().loadAnalyzeState({ findings });
   }, []);
   const setPersistedQuestions = useCallback((questions: Question[]) => {
-    useInvestigationStore.getState().loadInvestigationState({ questions });
+    useAnalyzeStore.getState().loadAnalyzeState({ questions });
   }, []);
 
   // Persistence actions (local IndexedDB via adapter)
@@ -552,11 +547,11 @@ export const Editor: React.FC<EditorProps> = ({
       const ps = usePanelsStore.getState();
       if (tab === 'findings') {
         if (isPhone) findingsTriggerRef.current = document.activeElement;
-        ps.showInvestigation();
+        ps.showAnalyze();
       } else if (tab === 'improve') {
         ps.showImprovement();
       } else if (tab === 'analysis') {
-        ps.showAnalysis();
+        ps.showExplore();
       }
     },
     [isPhone]
@@ -743,7 +738,7 @@ export const Editor: React.FC<EditorProps> = ({
   // analyst lands directly on PasteScreen rather than EditorEmptyState.
   useEffect(() => {
     if (!startPasteOnMount) return;
-    usePanelsStore.getState().showAnalysis();
+    usePanelsStore.getState().showExplore();
     dataFlow.startPaste();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -880,33 +875,33 @@ export const Editor: React.FC<EditorProps> = ({
   const handleDashboardNavigate = useCallback((target: string, targetId?: string) => {
     const ps = usePanelsStore.getState();
     if (target === 'finding' && targetId) {
-      ps.showInvestigation();
+      ps.showAnalyze();
       useFindingsStore.getState().setHighlightedFindingId(targetId);
     } else if (target === 'findings' && targetId) {
-      ps.showInvestigation();
+      ps.showAnalyze();
       useFindingsStore.getState().setStatusFilter(targetId);
     } else if (target === 'question' && targetId) {
-      ps.showInvestigation();
-      useInvestigationFeatureStore.getState().expandToQuestion(targetId);
+      ps.showAnalyze();
+      useAnalyzeFeatureStore.getState().expandToQuestion(targetId);
     } else if (target === 'improvement' || target === 'actions') {
       ps.showImprovement();
     } else if (target === 'report') {
       ps.showReport();
     } else if (target === 'coscout') {
-      ps.showAnalysis();
+      ps.showExplore();
       ps.setCoScoutOpen(true);
     } else {
-      ps.showAnalysis();
+      ps.showExplore();
     }
   }, []);
 
   const handleDashboardAddData = useCallback(() => {
-    usePanelsStore.getState().showAnalysis();
+    usePanelsStore.getState().showExplore();
     dataFlow.startAppendPaste();
   }, [dataFlow]);
 
   const handleDashboardResumeAnalysis = useCallback(() => {
-    usePanelsStore.getState().showAnalysis();
+    usePanelsStore.getState().showExplore();
   }, []);
 
   /**
@@ -914,7 +909,7 @@ export const Editor: React.FC<EditorProps> = ({
    * Navigates to the analysis view so PasteScreen is visible, then opens paste.
    */
   const handleNewHub = useCallback(() => {
-    usePanelsStore.getState().showAnalysis();
+    usePanelsStore.getState().showExplore();
     dataFlow.startPaste();
   }, [dataFlow]);
 
@@ -1054,7 +1049,7 @@ export const Editor: React.FC<EditorProps> = ({
   // Wall-variant propose-hypothesis CTA — creates a new Hypothesis hub seeded
   // from the finding and links the finding as the first piece of evidence.
   const wallViewMode = useCanvasViewportStore(s => s.viewMode);
-  const createHubFromFinding = useInvestigationStore(s => s.createHubFromFinding);
+  const createHubFromFinding = useAnalyzeStore(s => s.createHubFromFinding);
   const handleProposeHypothesisFromFinding = useCallback(
     (findingId: string) => {
       createHubFromFinding(findingId);
@@ -1079,7 +1074,7 @@ export const Editor: React.FC<EditorProps> = ({
           dismissAfter: 5000,
         });
       } else {
-        usePanelsStore.getState().showInvestigation();
+        usePanelsStore.getState().showAnalyze();
         setHighlightedFindingId(initialFindingId);
       }
     }
@@ -1096,12 +1091,12 @@ export const Editor: React.FC<EditorProps> = ({
           dismissAfter: 5000,
         });
       } else {
-        usePanelsStore.getState().showInvestigation();
-        useInvestigationFeatureStore.getState().expandToQuestion(initialQuestionId);
+        usePanelsStore.getState().showAnalyze();
+        useAnalyzeFeatureStore.getState().expandToQuestion(initialQuestionId);
       }
     }
-    if (initialMode === 'investigation') {
-      usePanelsStore.getState().showInvestigation();
+    if (initialMode === 'analyze') {
+      usePanelsStore.getState().showAnalyze();
     } else if (initialMode === 'improvement') {
       usePanelsStore.getState().showImprovement();
     } else if (initialMode === 'report') {
@@ -1112,12 +1107,12 @@ export const Editor: React.FC<EditorProps> = ({
       const cleanUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, '', cleanUrl);
       // Deep-linked: stay in analysis view (or investigation/improvement set above)
-      if (!initialMode) usePanelsStore.getState().showAnalysis();
+      if (!initialMode) usePanelsStore.getState().showExplore();
     } else if (projectId) {
       // Project loaded with data, no deep link: honor persisted view or default to dashboard
       const persistedView = viewState?.activeView;
       if (persistedView && persistedView !== 'dashboard') {
-        // Restore persisted workspace (analysis/investigation/improvement)
+        // Restore persisted workspace (analysis/analyze/improvement)
         usePanelsStore.getState().initFromViewState(viewState ?? undefined);
       } else {
         usePanelsStore.getState().showDashboard();
@@ -1179,13 +1174,13 @@ export const Editor: React.FC<EditorProps> = ({
     hypothesesState,
     questionsMap,
     ideaImpacts,
-  } = useInvestigationOrchestration({
+  } = useAnalyzeOrchestration({
     questionsState,
     findingsState,
     processContext,
     stats,
   });
-  const projectionTarget = useInvestigationFeatureStore(s => s.projectionTarget);
+  const projectionTarget = useAnalyzeFeatureStore(s => s.projectionTarget);
 
   // Load sample passed from portfolio "Try a Sample"
   useEffect(() => {
@@ -1203,11 +1198,12 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Investigation indexing for Foundry IQ (ADR-060 Pillar 2)
   // Active only when Team plan + KB preview enabled + project is open
-  const { onFindingsChange: indexFindings, onQuestionsChange: indexQuestions } =
-    useInvestigationIndexing({
+  const { onFindingsChange: indexFindings, onQuestionsChange: indexQuestions } = useAnalyzeIndexing(
+    {
       projectId: projectId ?? undefined,
       enabled: isKnowledgeBaseAvailable(),
-    });
+    }
+  );
 
   const canvasViewportHubId =
     processContext?.processHubId ?? activeHub?.id ?? DEFAULT_PROCESS_HUB_ID;
@@ -1756,7 +1752,7 @@ export const Editor: React.FC<EditorProps> = ({
         </div>
       )}
 
-      <InvestigationMetadataPanel
+      <AnalyzeMetadataPanel
         projectId={projectId}
         processContext={processContext}
         processHubs={processHubs}
@@ -1810,7 +1806,7 @@ export const Editor: React.FC<EditorProps> = ({
               <button
                 type="button"
                 onClick={stageFive.openOnDemand}
-                data-testid="canvas-new-investigation"
+                data-testid="canvas-new-analyze"
                 className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
               >
                 + New investigation
@@ -1865,11 +1861,11 @@ export const Editor: React.FC<EditorProps> = ({
                 onBack={() => usePanelsStore.getState().showFrame()}
                 onOpenWall={() => {
                   useCanvasViewportStore.getState().setViewMode('wall');
-                  usePanelsStore.getState().showInvestigation();
+                  usePanelsStore.getState().showAnalyze();
                 }}
               />
-            ) : activeView === 'investigation' ? (
-              <InvestigationWorkspace
+            ) : activeView === 'analyze' ? (
+              <AnalyzeWorkspace
                 activeIPScope={activeIPScope}
                 activeIPLineage={activeIPLineage}
                 findingsState={scopedFindingsState}
@@ -1913,8 +1909,8 @@ export const Editor: React.FC<EditorProps> = ({
                 }}
                 onJumpOut={target => {
                   const p = usePanelsStore.getState();
-                  if (target === 'investigation') p.showInvestigation();
-                  else if (target === 'analyze') p.showAnalysis();
+                  if (target === 'analyze') p.showAnalyze();
+                  else if (target === 'explore') p.showExplore();
                   else if (target === 'process') p.showFrame();
                   else if (target === 'improve-workbench') p.showImprovement();
                   else if (target === 'report') p.showReport();
@@ -1989,7 +1985,7 @@ export const Editor: React.FC<EditorProps> = ({
             ) : activeView === 'report' ? (
               <Suspense fallback={null}>
                 <ReportView
-                  onClose={() => usePanelsStore.getState().showAnalysis()}
+                  onClose={() => usePanelsStore.getState().showExplore()}
                   aiEnabled={aiEnabled && isAIAvailable()}
                   narrative={aiOrch.narration.narrative}
                   activeIPScope={activeIPScope}

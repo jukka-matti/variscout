@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useHubProvision } from '../useHubProvision';
-import type { ProcessHubRollup, ProcessHubInvestigation, ProcessHub } from '@variscout/core';
+import type { ProcessHubRollup, ProcessHubAnalyze, ProcessHub } from '@variscout/core';
 
 const hub: ProcessHub = {
   id: 'h1',
@@ -10,7 +10,7 @@ const hub: ProcessHub = {
   deletedAt: null,
 };
 
-const m1: ProcessHubInvestigation = {
+const m1: ProcessHubAnalyze = {
   id: 'i1',
   name: 'I1',
   createdAt: 1745798400000,
@@ -19,14 +19,14 @@ const m1: ProcessHubInvestigation = {
   metadata: { processHubId: 'h1', nodeMappings: [] },
   rows: [{ a: 1 }, { a: 2 }],
   reviewSignal: { ok: 0, review: 0, alarm: 0 },
-} as ProcessHubInvestigation;
+} as ProcessHubAnalyze;
 
 describe('useHubProvision', () => {
   it('returns hub, members, rowsByInvestigation from rollup', () => {
-    const rollup: ProcessHubRollup<ProcessHubInvestigation> = {
+    const rollup: ProcessHubRollup<ProcessHubAnalyze> = {
       hub,
       investigations: [m1],
-    } as ProcessHubRollup<ProcessHubInvestigation>;
+    } as ProcessHubRollup<ProcessHubAnalyze>;
     const { result } = renderHook(() => useHubProvision({ rollup }));
     expect(result.current.hub).toBe(hub);
     expect(result.current.members).toEqual([m1]);
@@ -37,17 +37,17 @@ describe('useHubProvision', () => {
     const rollup = {
       hub,
       investigations: [],
-    } as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
     const { result } = renderHook(() => useHubProvision({ rollup }));
     expect(result.current.rowsByInvestigation.size).toBe(0);
   });
 
   it('handles investigations without rows (treats as empty array)', () => {
-    const noRows = { ...m1, rows: undefined } as ProcessHubInvestigation;
-    const rollup: ProcessHubRollup<ProcessHubInvestigation> = {
+    const noRows = { ...m1, rows: undefined } as ProcessHubAnalyze;
+    const rollup: ProcessHubRollup<ProcessHubAnalyze> = {
       hub,
       investigations: [noRows],
-    } as ProcessHubRollup<ProcessHubInvestigation>;
+    } as ProcessHubRollup<ProcessHubAnalyze>;
     const { result } = renderHook(() => useHubProvision({ rollup }));
     expect(result.current.rowsByInvestigation.get('i1')).toEqual([]);
   });

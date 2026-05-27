@@ -15,9 +15,7 @@ interface ProjectsTabViewProps {
   activeHub?: ProcessHub;
   selectedProjectId: string | null;
   onSelectProject: (projectId: string) => void;
-  onJumpOut?: (
-    target: 'investigation' | 'analyze' | 'process' | 'improve-workbench' | 'report'
-  ) => void;
+  onJumpOut?: (target: 'analyze' | 'explore' | 'process' | 'improve-workbench' | 'report') => void;
   approachInputs?: CauseProjectionInputs;
   onOpenCauseWorkbench?: (cause: CauseRow) => void;
   sustainmentRecord?: SustainmentRecord;

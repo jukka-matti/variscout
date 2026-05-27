@@ -33,10 +33,10 @@ import { resolveCpkTarget } from '@variscout/core/capability';
 import { useProjectStore } from '@variscout/stores';
 import type { TimelineWindow } from '@variscout/core';
 import { useHubProvision } from '../features/processHub';
-import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
+import type { ProcessHubAnalyze, ProcessHubRollup } from '@variscout/core';
 
 export interface ProcessHubCapabilityTabProps {
-  rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  rollup: ProcessHubRollup<ProcessHubAnalyze>;
   /**
    * Persist the hub-level Cpk target default. Writes to
    * `processHub.reviewSignal.capability.cpkTarget` (cascade level "hub").
@@ -55,7 +55,7 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
   const filter = useProductionLineGlanceFilter();
 
   // Hub-level window state. Hub doesn't carry its own TimelineWindow envelope
-  // in V1 — `useTimelineWindow` is keyed on a single ProcessHubInvestigation,
+  // in V1 — `useTimelineWindow` is keyed on a single ProcessHubAnalyze,
   // and the hub view aggregates many. Local useState is the correct V1 fit.
   // TODO(multi-level-scout V1.5): default the window to rolling matched to
   // hub.cadence on first mount.

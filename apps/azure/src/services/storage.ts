@@ -275,11 +275,10 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       // Detect investigation-status transition out of SUSTAINMENT_STATUSES
       const oldStatus = (
-        existingRecord?.data as { processContext?: { investigationStatus?: string } } | undefined
-      )?.processContext?.investigationStatus;
-      const newStatus = (
-        project as { processContext?: { investigationStatus?: string } } | undefined
-      )?.processContext?.investigationStatus;
+        existingRecord?.data as { processContext?: { analyzeStatus?: string } } | undefined
+      )?.processContext?.analyzeStatus;
+      const newStatus = (project as { processContext?: { analyzeStatus?: string } } | undefined)
+        ?.processContext?.analyzeStatus;
       const wasSustainment = oldStatus === 'resolved' || oldStatus === 'controlled';
       const isSustainment = newStatus === 'resolved' || newStatus === 'controlled';
       if (wasSustainment && !isSustainment) {

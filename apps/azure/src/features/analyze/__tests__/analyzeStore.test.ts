@@ -1,23 +1,19 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
-  useInvestigationFeatureStore,
-  buildQuestionsMap,
-  buildIdeaImpacts,
-} from '../investigationStore';
+import { useAnalyzeFeatureStore, buildQuestionsMap, buildIdeaImpacts } from '../analyzeStore';
 import type { Question } from '@variscout/core';
 
 /** Reset store to defaults before each test. */
 beforeEach(() => {
-  useInvestigationFeatureStore.setState({
+  useAnalyzeFeatureStore.setState({
     projectionTarget: null,
     expandedQuestionId: null,
   });
 });
 
-describe('investigationStore', () => {
+describe('analyzeStore', () => {
   describe('initial state', () => {
     it('has correct defaults', () => {
-      const s = useInvestigationFeatureStore.getState();
+      const s = useAnalyzeFeatureStore.getState();
       expect(s.projectionTarget).toBeNull();
       expect(s.expandedQuestionId).toBeNull();
     });
@@ -31,23 +27,23 @@ describe('investigationStore', () => {
         ideaText: 'Calibrate head 3',
         questionText: 'Head 3 causes variation',
       };
-      useInvestigationFeatureStore.getState().setProjectionTarget(target);
-      expect(useInvestigationFeatureStore.getState().projectionTarget).toEqual(target);
+      useAnalyzeFeatureStore.getState().setProjectionTarget(target);
+      expect(useAnalyzeFeatureStore.getState().projectionTarget).toEqual(target);
     });
 
     it('clears with null', () => {
-      useInvestigationFeatureStore.getState().setProjectionTarget({
+      useAnalyzeFeatureStore.getState().setProjectionTarget({
         questionId: 'q1',
         ideaId: 'i1',
         ideaText: 'Fix',
         questionText: 'Root cause',
       });
-      useInvestigationFeatureStore.getState().setProjectionTarget(null);
-      expect(useInvestigationFeatureStore.getState().projectionTarget).toBeNull();
+      useAnalyzeFeatureStore.getState().setProjectionTarget(null);
+      expect(useAnalyzeFeatureStore.getState().projectionTarget).toBeNull();
     });
 
     it('overwrites previous target', () => {
-      useInvestigationFeatureStore.getState().setProjectionTarget({
+      useAnalyzeFeatureStore.getState().setProjectionTarget({
         questionId: 'q1',
         ideaId: 'i1',
         ideaText: 'First',
@@ -59,27 +55,27 @@ describe('investigationStore', () => {
         ideaText: 'Second',
         questionText: 'Second question',
       };
-      useInvestigationFeatureStore.getState().setProjectionTarget(newTarget);
-      expect(useInvestigationFeatureStore.getState().projectionTarget).toEqual(newTarget);
+      useAnalyzeFeatureStore.getState().setProjectionTarget(newTarget);
+      expect(useAnalyzeFeatureStore.getState().projectionTarget).toEqual(newTarget);
     });
   });
 
   describe('expandToQuestion', () => {
     it('sets expanded question id', () => {
-      useInvestigationFeatureStore.getState().expandToQuestion('q1');
-      expect(useInvestigationFeatureStore.getState().expandedQuestionId).toBe('q1');
+      useAnalyzeFeatureStore.getState().expandToQuestion('q1');
+      expect(useAnalyzeFeatureStore.getState().expandedQuestionId).toBe('q1');
     });
 
     it('clears with null', () => {
-      useInvestigationFeatureStore.getState().expandToQuestion('q1');
-      useInvestigationFeatureStore.getState().expandToQuestion(null);
-      expect(useInvestigationFeatureStore.getState().expandedQuestionId).toBeNull();
+      useAnalyzeFeatureStore.getState().expandToQuestion('q1');
+      useAnalyzeFeatureStore.getState().expandToQuestion(null);
+      expect(useAnalyzeFeatureStore.getState().expandedQuestionId).toBeNull();
     });
 
     it('changes to different question', () => {
-      useInvestigationFeatureStore.getState().expandToQuestion('q1');
-      useInvestigationFeatureStore.getState().expandToQuestion('q2');
-      expect(useInvestigationFeatureStore.getState().expandedQuestionId).toBe('q2');
+      useAnalyzeFeatureStore.getState().expandToQuestion('q1');
+      useAnalyzeFeatureStore.getState().expandToQuestion('q2');
+      expect(useAnalyzeFeatureStore.getState().expandedQuestionId).toBe('q2');
     });
   });
 });

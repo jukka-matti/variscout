@@ -1,10 +1,10 @@
 import React from 'react';
 import { ArrowRight, CircleAlert, Plus } from 'lucide-react';
-import type { HubReviewSignal, ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
+import type { HubReviewSignal, ProcessHubAnalyze, ProcessHubRollup } from '@variscout/core';
 import { formatStatistic, formatPlural } from '@variscout/core/i18n';
 
 interface ProcessHubCardProps {
-  rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  rollup: ProcessHubRollup<ProcessHubAnalyze>;
   isSelected?: boolean;
   onOpen: () => void;
   onStartInvestigation: () => void;

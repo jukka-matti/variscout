@@ -21,8 +21,8 @@ import { usePanelsStore } from '../features/panels/panelsStore';
 type WorkspaceView =
   | 'dashboard'
   | 'frame'
-  | 'analysis'
-  | 'investigation'
+  | 'explore'
+  | 'analyze'
   | 'projects'
   | 'improvement'
   | 'report';
@@ -105,7 +105,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   syncStatus = { status: 'idle' },
   saveStatus = 'idle',
   hasData = false,
-  activeView = 'analysis',
+  activeView = 'explore',
   openQuestionCount,
   selectedIdeaCount,
   isPISidebarOpen,
@@ -429,18 +429,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             Process
           </button>
           <button
-            className={tabClass(activeView === 'analysis')}
-            onClick={() => usePanelsStore.getState().showAnalysis()}
+            className={tabClass(activeView === 'explore')}
+            onClick={() => usePanelsStore.getState().showExplore()}
+            data-testid="view-toggle-explore"
+          >
+            Explore
+          </button>
+          <button
+            className={tabClass(activeView === 'analyze')}
+            onClick={() => usePanelsStore.getState().showAnalyze()}
             data-testid="view-toggle-analyze"
           >
             Analyze
-          </button>
-          <button
-            className={tabClass(activeView === 'investigation')}
-            onClick={() => usePanelsStore.getState().showInvestigation()}
-            data-testid="view-toggle-investigation"
-          >
-            Investigation
             {openQuestionCount != null && openQuestionCount > 0 && (
               <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
                 {openQuestionCount}
@@ -513,7 +513,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         )}
 
         {/* Primary action: Analysis — Add Data dropdown */}
-        {activeView === 'analysis' && hasData && onAddPasteData && (
+        {activeView === 'explore' && hasData && onAddPasteData && (
           <div
             ref={addDataRef}
             className="relative"

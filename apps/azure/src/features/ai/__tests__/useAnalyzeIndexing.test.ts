@@ -2,11 +2,11 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // vi.mock calls must come before importing the module under test
-vi.mock('../../../services/investigationSerializer');
+vi.mock('../../../services/analyzeSerializer');
 vi.mock('../../../services/blobClient');
 
-import { useInvestigationIndexing } from '../useInvestigationIndexing';
-import { createInvestigationSerializer } from '../../../services/investigationSerializer';
+import { useAnalyzeIndexing } from '../useAnalyzeIndexing';
+import { createInvestigationSerializer } from '../../../services/analyzeSerializer';
 import type { Finding, Question } from '@variscout/core';
 
 const mockOnFindingsChange = vi.fn();
@@ -29,10 +29,10 @@ beforeEach(() => {
   mockCreateInvestigationSerializer.mockReturnValue(mockSerializerInstance);
 });
 
-describe('useInvestigationIndexing', () => {
+describe('useAnalyzeIndexing', () => {
   describe('serializer lifecycle', () => {
     it('creates serializer when enabled and projectId are present', () => {
-      renderHook(() => useInvestigationIndexing({ projectId: 'proj-123', enabled: true }));
+      renderHook(() => useAnalyzeIndexing({ projectId: 'proj-123', enabled: true }));
 
       expect(mockCreateInvestigationSerializer).toHaveBeenCalledOnce();
       expect(mockCreateInvestigationSerializer).toHaveBeenCalledWith(
@@ -41,13 +41,13 @@ describe('useInvestigationIndexing', () => {
     });
 
     it('does not create serializer when disabled', () => {
-      renderHook(() => useInvestigationIndexing({ projectId: 'proj-123', enabled: false }));
+      renderHook(() => useAnalyzeIndexing({ projectId: 'proj-123', enabled: false }));
 
       expect(mockCreateInvestigationSerializer).not.toHaveBeenCalled();
     });
 
     it('does not create serializer when projectId is undefined', () => {
-      renderHook(() => useInvestigationIndexing({ projectId: undefined, enabled: true }));
+      renderHook(() => useAnalyzeIndexing({ projectId: undefined, enabled: true }));
 
       expect(mockCreateInvestigationSerializer).not.toHaveBeenCalled();
     });
@@ -55,7 +55,7 @@ describe('useInvestigationIndexing', () => {
     it('disposes serializer when enabled changes to false', () => {
       const { rerender } = renderHook(
         ({ enabled }: { enabled: boolean }) =>
-          useInvestigationIndexing({ projectId: 'proj-123', enabled }),
+          useAnalyzeIndexing({ projectId: 'proj-123', enabled }),
         { initialProps: { enabled: true } }
       );
 
@@ -68,8 +68,7 @@ describe('useInvestigationIndexing', () => {
 
     it('disposes and recreates serializer when projectId changes', () => {
       const { rerender } = renderHook(
-        ({ projectId }: { projectId: string }) =>
-          useInvestigationIndexing({ projectId, enabled: true }),
+        ({ projectId }: { projectId: string }) => useAnalyzeIndexing({ projectId, enabled: true }),
         { initialProps: { projectId: 'proj-aaa' } }
       );
 
@@ -87,7 +86,7 @@ describe('useInvestigationIndexing', () => {
 
     it('disposes serializer on unmount', () => {
       const { unmount } = renderHook(() =>
-        useInvestigationIndexing({ projectId: 'proj-123', enabled: true })
+        useAnalyzeIndexing({ projectId: 'proj-123', enabled: true })
       );
 
       unmount();
@@ -99,7 +98,7 @@ describe('useInvestigationIndexing', () => {
   describe('callback forwarding', () => {
     it('onFindingsChange forwards to the serializer instance', () => {
       const { result } = renderHook(() =>
-        useInvestigationIndexing({ projectId: 'proj-123', enabled: true })
+        useAnalyzeIndexing({ projectId: 'proj-123', enabled: true })
       );
 
       const findings: Finding[] = [];
@@ -114,7 +113,7 @@ describe('useInvestigationIndexing', () => {
 
     it('onQuestionsChange forwards to the serializer instance', () => {
       const { result } = renderHook(() =>
-        useInvestigationIndexing({ projectId: 'proj-123', enabled: true })
+        useAnalyzeIndexing({ projectId: 'proj-123', enabled: true })
       );
 
       const questions: Question[] = [];
@@ -129,7 +128,7 @@ describe('useInvestigationIndexing', () => {
 
     it('onFindingsChange is a no-op when serializer is not active (disabled)', () => {
       const { result } = renderHook(() =>
-        useInvestigationIndexing({ projectId: 'proj-123', enabled: false })
+        useAnalyzeIndexing({ projectId: 'proj-123', enabled: false })
       );
 
       act(() => {
@@ -141,7 +140,7 @@ describe('useInvestigationIndexing', () => {
 
     it('onQuestionsChange is a no-op when serializer is not active (no projectId)', () => {
       const { result } = renderHook(() =>
-        useInvestigationIndexing({ projectId: undefined, enabled: true })
+        useAnalyzeIndexing({ projectId: undefined, enabled: true })
       );
 
       act(() => {

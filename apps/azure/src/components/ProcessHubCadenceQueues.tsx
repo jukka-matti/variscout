@@ -2,10 +2,10 @@ import React from 'react';
 import { ArrowRight, CircleAlert, ClipboardCheck, Layers3, Radar } from 'lucide-react';
 import type {
   EvidenceLatestSignal,
-  InvestigationDepth,
+  AnalyzeDepth,
   ProcessHubCadenceQueue,
   ProcessHubCadenceSummary,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
   ProcessHubReadinessReason,
   ProcessHubReviewItem,
   ProcessHubRollup,
@@ -21,14 +21,14 @@ import {
 import ProcessHubSustainmentRegion from './ProcessHubSustainmentRegion';
 
 interface ProcessHubCadenceQueuesProps {
-  cadence: ProcessHubCadenceSummary<ProcessHubInvestigation>;
-  rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  cadence: ProcessHubCadenceSummary<ProcessHubAnalyze>;
+  rollup: ProcessHubRollup<ProcessHubAnalyze>;
   onOpenInvestigation: (id: string) => void;
   onSetupSustainment: (investigationId: string) => void;
   onLogReview: (recordId: string) => void;
 }
 
-const DEPTH_SECTIONS: Array<{ depth: InvestigationDepth; label: string }> = [
+const DEPTH_SECTIONS: Array<{ depth: AnalyzeDepth; label: string }> = [
   { depth: 'quick', label: 'Quick' },
   { depth: 'focused', label: 'Focused' },
   { depth: 'chartered', label: 'Chartered' },
@@ -283,7 +283,7 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
                             {item.investigation.name}
                           </p>
                           <p className="mt-1 text-xs text-content-secondary">
-                            {formatStatus(item.investigation.metadata?.investigationStatus)}
+                            {formatStatus(item.investigation.metadata?.analyzeStatus)}
                           </p>
                         </ReviewItemButton>
                       ))}

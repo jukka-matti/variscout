@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
+import type { ProcessHubAnalyze, ProcessHubRollup } from '@variscout/core';
 import {
   formatSustainmentVerdict,
   formatSustainmentDue,
@@ -76,11 +76,11 @@ describe('ProcessHubFormat sustainment helpers', () => {
     ) =>
       ({
         investigations: investigationStatuses.map(s => ({
-          metadata: s ? { investigationStatus: s } : undefined,
+          metadata: s ? { analyzeStatus: s } : undefined,
         })),
         sustainmentRecords: records.map(r => ({ deletedAt: null, ...r })),
         evidenceSnapshots: evidenceSnapshots ?? [],
-      }) as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+      }) as unknown as ProcessHubRollup<ProcessHubAnalyze>;
 
     it('returns null when no investigations are resolved or controlled', () => {
       const rollup = makeRollup(['scouting'], []);

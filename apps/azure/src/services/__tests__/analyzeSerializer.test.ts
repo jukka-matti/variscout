@@ -6,7 +6,7 @@ import {
   serializeInvestigationState,
   deserializeInvestigationState,
   createInvestigationSerializer,
-} from '../investigationSerializer';
+} from '../analyzeSerializer';
 import type { Finding, Question, Hypothesis } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
@@ -456,7 +456,7 @@ describe('deserializeInvestigationState', () => {
     };
     // Cast to bypass TypeScript type-checking — this simulates real stored legacy data
     const result = deserializeInvestigationState(
-      raw as unknown as import('../investigationSerializer').SerializedInvestigationState
+      raw as unknown as import('../analyzeSerializer').SerializedInvestigationState
     );
     expect(result.hypotheses).toHaveLength(1);
     const hub = result.hypotheses[0];
@@ -484,7 +484,7 @@ describe('deserializeInvestigationState', () => {
 
     expect(() =>
       deserializeInvestigationState(
-        raw as unknown as import('../investigationSerializer').SerializedInvestigationState
+        raw as unknown as import('../analyzeSerializer').SerializedInvestigationState
       )
     ).toThrow(/Invalid HypothesisStatus/);
   });
@@ -513,7 +513,7 @@ describe('deserializeInvestigationState', () => {
       ],
     };
     const result = deserializeInvestigationState(
-      raw as unknown as import('../investigationSerializer').SerializedInvestigationState
+      raw as unknown as import('../analyzeSerializer').SerializedInvestigationState
     );
     // evidence wins — totalContribution is ignored when evidence already present
     expect(result.hypotheses[0].evidence).toEqual(existingEvidence);
@@ -610,10 +610,7 @@ describe('createInvestigationSerializer', () => {
     await vi.runAllTimersAsync();
 
     expect(uploadBlob).toHaveBeenCalledTimes(1);
-    expect(uploadBlob).toHaveBeenCalledWith(
-      'proj-1/investigation/findings.jsonl',
-      expect.any(String)
-    );
+    expect(uploadBlob).toHaveBeenCalledWith('proj-1/analyze/findings.jsonl', expect.any(String));
     serializer.dispose();
   });
 
@@ -630,10 +627,7 @@ describe('createInvestigationSerializer', () => {
     await vi.runAllTimersAsync();
 
     expect(uploadBlob).toHaveBeenCalledTimes(1);
-    expect(uploadBlob).toHaveBeenCalledWith(
-      'proj-2/investigation/questions.jsonl',
-      expect.any(String)
-    );
+    expect(uploadBlob).toHaveBeenCalledWith('proj-2/analyze/questions.jsonl', expect.any(String));
     serializer.dispose();
   });
 
@@ -651,10 +645,7 @@ describe('createInvestigationSerializer', () => {
     await vi.runAllTimersAsync();
 
     expect(uploadBlob).toHaveBeenCalledTimes(1);
-    expect(uploadBlob).toHaveBeenCalledWith(
-      'proj-sc/investigation/hypotheses.jsonl',
-      expect.any(String)
-    );
+    expect(uploadBlob).toHaveBeenCalledWith('proj-sc/analyze/hypotheses.jsonl', expect.any(String));
     serializer.dispose();
   });
 
@@ -747,8 +738,8 @@ describe('createInvestigationSerializer', () => {
 
     expect(uploadBlob).toHaveBeenCalledTimes(2);
     const paths = uploadBlob.mock.calls.map(([p]) => p);
-    expect(paths).toContain('proj-7/investigation/findings.jsonl');
-    expect(paths).toContain('proj-7/investigation/questions.jsonl');
+    expect(paths).toContain('proj-7/analyze/findings.jsonl');
+    expect(paths).toContain('proj-7/analyze/questions.jsonl');
     serializer.dispose();
   });
 
@@ -764,9 +755,9 @@ describe('createInvestigationSerializer', () => {
 
     expect(uploadBlob).toHaveBeenCalledTimes(3);
     const paths = uploadBlob.mock.calls.map(([p]) => p);
-    expect(paths).toContain('proj-8/investigation/findings.jsonl');
-    expect(paths).toContain('proj-8/investigation/questions.jsonl');
-    expect(paths).toContain('proj-8/investigation/hypotheses.jsonl');
+    expect(paths).toContain('proj-8/analyze/findings.jsonl');
+    expect(paths).toContain('proj-8/analyze/questions.jsonl');
+    expect(paths).toContain('proj-8/analyze/hypotheses.jsonl');
     serializer.dispose();
   });
 });

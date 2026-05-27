@@ -7,7 +7,7 @@ import {
 } from '@variscout/core';
 import type {
   ProcessHub,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
   SustainmentRecord,
   ControlHandoff,
 } from '@variscout/core';
@@ -500,14 +500,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   /**
-   * Persist a mutated ProcessHubInvestigation back to storage.
+   * Persist a mutated ProcessHubAnalyze back to storage.
    * The investigation is a lightweight projection of the underlying project;
    * we load the full project, merge the updated metadata fields (nodeMappings,
    * migrationDeclinedAt), then save it back. Fires-and-forgets; refreshes the
    * project list on success.
    */
   const handlePersistInvestigation = useCallback(
-    (next: ProcessHubInvestigation): void => {
+    (next: ProcessHubAnalyze): void => {
       const projectMeta = projects.find(p => (p.id || p.name) === next.id);
       if (!projectMeta) return;
       void (async () => {

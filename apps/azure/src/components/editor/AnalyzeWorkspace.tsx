@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   QuestionChecklist,
-  InvestigationPhaseBadge,
-  InvestigationConclusion,
+  AnalyzePhaseBadge,
+  AnalyzeConclusion,
   FindingsLog,
   QuestionLinkPrompt,
   WallCanvas,
@@ -55,32 +55,32 @@ import { wouldCreateCycle } from '@variscout/core/stats';
 import { GripVertical } from 'lucide-react';
 import {
   useProjectStore,
-  useInvestigationStore,
+  useAnalyzeStore,
   usePreferencesStore,
   useCanvasViewportStore,
 } from '@variscout/stores';
 import type { WallCanvasPlanningProps } from '@variscout/ui';
-import { InvestigationMapView } from './InvestigationMapView';
+import { AnalyzeMapView } from './AnalyzeMapView';
 import { CoScoutSection } from './CoScoutSection';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
-  useInvestigationFeatureStore,
+  useAnalyzeFeatureStore,
   type QuestionDisplayData,
-} from '../../features/investigation/investigationStore';
+} from '../../features/analyze/analyzeStore';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import { useAIStore } from '../../features/ai/aiStore';
 import type { UseAIOrchestrationReturn, UseActionProposalsReturn } from '../../features/ai';
-import type { UseInvestigationOrchestrationReturn } from '../../features/investigation/useInvestigationOrchestration';
-import { useWallHubCommentLifecycle } from '../../features/investigation/useWallHubCommentLifecycle';
+import type { UseAnalyzeOrchestrationReturn } from '../../features/analyze/useAnalyzeOrchestration';
+import { useWallHubCommentLifecycle } from '../../features/analyze/useWallHubCommentLifecycle';
 
 const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 
 // Resize panel config (individual args for useResizablePanel)
 
-interface InvestigationWorkspaceProps {
+interface AnalyzeWorkspaceProps {
   activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
   activeIPLineage?: ActiveIPLineageIds | null;
   // Findings
@@ -111,8 +111,8 @@ interface InvestigationWorkspaceProps {
   handleSearchKnowledge: () => void;
   // Column aliases
   columnAliases: Record<string, string>;
-  // Hub model (Hypothesis CRUD from useInvestigationOrchestration)
-  hypothesesState: UseInvestigationOrchestrationReturn['hypothesesState'];
+  // Hub model (Hypothesis CRUD from useAnalyzeOrchestration)
+  hypothesesState: UseAnalyzeOrchestrationReturn['hypothesesState'];
   // Derived investigation data (from orchestration hook)
   questionsMap: Record<string, QuestionDisplayData>;
   ideaImpacts: Record<string, import('@variscout/core').IdeaImpact | undefined>;
@@ -130,11 +130,11 @@ interface InvestigationWorkspaceProps {
 /**
  * Investigation workspace (ADR-055): Three-column layout for question-driven EDA.
  *
- * Left: QuestionChecklist + PhaseBadge + InvestigationConclusion
+ * Left: QuestionChecklist + PhaseBadge + AnalyzeConclusion
  * Center: FindingsLog (list / board / tree)
  * Right: CoScout (optional)
  */
-export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
+export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   activeIPScope,
   activeIPLineage,
   findingsState,
@@ -179,9 +179,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const { filteredData } = useFilteredData();
   const { stats } = useAnalysisStats();
 
-  const investigationViewMode = usePanelsStore(s => s.investigationViewMode);
+  const analyzeViewMode = usePanelsStore(s => s.analyzeViewMode);
   const highlightedFactor = usePanelsStore(s => s.highlightedFactor);
-  const setInvestigationViewMode = usePanelsStore(s => s.setInvestigationViewMode);
+  const setAnalyzeViewMode = usePanelsStore(s => s.setAnalyzeViewMode);
 
   // Map/Wall sub-toggle (within the Evidence Map view)
   const wallViewMode = useCanvasViewportStore(s => s.viewMode);
@@ -216,7 +216,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     return map;
   }, [rawData]);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
-  const causalLinks = useInvestigationStore(s => s.causalLinks);
+  const causalLinks = useAnalyzeStore(s => s.causalLinks);
   const scopedHubIds = useMemo(
     () => new Set(activeIPLineage?.hypothesisIds ?? []),
     [activeIPLineage]
@@ -247,13 +247,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // Question-link prompt for map context menu findings
   const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
   const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
-  const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
-  const mapQuestions = useInvestigationStore(s => s.questions);
+  const linkFindingToQuestion = useAnalyzeStore(s => s.linkFindingToQuestion);
+  const mapQuestions = useAnalyzeStore(s => s.questions);
   const [mapPromptOpen, setMapPromptOpen] = useState(false);
   const [mapPromptFindingId, setMapPromptFindingId] = useState<string>('');
 
   // Investigation phase (deterministic, from question/findings state)
-  const investigationPhase = useMemo(
+  const analyzePhase = useMemo(
     () => detectInvestigationPhase(questionsState.questions, findingsState.findings),
     [questionsState.questions, findingsState.findings]
   );
@@ -451,7 +451,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const viewMode = externalViewMode ?? internalViewMode;
   const handleViewMode = onViewModeChange ?? setInternalViewMode;
 
-  // Categorize questions for InvestigationConclusion
+  // Categorize questions for AnalyzeConclusion
   const { hypotheses, contributing, ruledOut } = useMemo(() => {
     const suspected: Question[] = [];
     const contrib: Question[] = [];
@@ -529,7 +529,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // Question click: switch to Analysis workspace with factor focused (round-trip pattern)
   const handleQuestionClickWithSwitch = (question: Question) => {
     handleQuestionClick(question);
-    usePanelsStore.getState().showAnalysis();
+    usePanelsStore.getState().showExplore();
   };
 
   // ── Hub CRUD callbacks ──────────────────────────────────────────────────
@@ -657,7 +657,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   const handleMapDrillDown = useCallback((factor: string) => {
     usePanelsStore.getState().setHighlightedFactor(factor);
-    usePanelsStore.getState().showAnalysis();
+    usePanelsStore.getState().showExplore();
   }, []);
 
   const handleConfirmCausalLink = useCallback(
@@ -670,7 +670,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
       }
     ) => {
-      useInvestigationStore.getState().addCausalLink(from, to, params.whyStatement, {
+      useAnalyzeStore.getState().addCausalLink(from, to, params.whyStatement, {
         direction: params.direction,
         evidenceType: params.evidenceType,
       });
@@ -679,7 +679,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   );
 
   const handleRemoveCausalLink = useCallback((id: string) => {
-    useInvestigationStore.getState().removeCausalLink(id);
+    useAnalyzeStore.getState().removeCausalLink(id);
   }, []);
 
   const handleUpdateCausalLink = useCallback(
@@ -691,7 +691,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
       }
     ) => {
-      useInvestigationStore.getState().updateCausalLink(id, {
+      useAnalyzeStore.getState().updateCausalLink(id, {
         whyStatement: params.whyStatement,
         direction: params.direction,
         evidenceType: params.evidenceType,
@@ -711,7 +711,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         <ActiveIPScopeRibbon
           title={activeIPScope.title}
           labels={activeIPScope.labels}
-          surface="Investigation"
+          surface="Analyze"
         />
       ) : null}
       <div className="flex flex-1 min-h-0 relative">
@@ -721,9 +721,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           style={{ width: leftPanel.width }}
         >
           {/* Phase badge */}
-          {investigationPhase && (
+          {analyzePhase && (
             <div className="px-3 pt-3 pb-1 flex-shrink-0">
-              <InvestigationPhaseBadge phase={investigationPhase} />
+              <AnalyzePhaseBadge phase={analyzePhase} />
             </div>
           )}
 
@@ -744,7 +744,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           {/* Investigation conclusion */}
           {(hypotheses.length > 0 || ruledOut.length > 0 || scopedHubs.length > 0) && (
             <div className="border-t border-edge px-3 py-2 flex-shrink-0">
-              <InvestigationConclusion
+              <AnalyzeConclusion
                 hypotheses={hypotheses}
                 ruledOut={ruledOut}
                 contributing={contributing}
@@ -791,23 +791,23 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               <button
                 key={mode}
                 className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                  investigationViewMode === mode
+                  analyzeViewMode === mode
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
                     : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
                 }`}
-                onClick={() => setInvestigationViewMode(mode)}
+                onClick={() => setAnalyzeViewMode(mode)}
               >
                 {mode === 'map' ? 'Evidence Map' : 'Findings'}
               </button>
             ))}
 
             {/* Sub-toggle: Map/Wall (only when Evidence Map is active) */}
-            {investigationViewMode === 'map' && (
+            {analyzeViewMode === 'map' && (
               <>
                 <div className="w-px h-4 bg-edge mx-1" />
                 <div
                   role="group"
-                  aria-label="Investigation view mode"
+                  aria-label="Analyze view mode"
                   className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
                 >
                   {(['map', 'wall'] as const).map(mode => (
@@ -855,7 +855,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             )}
 
             {/* Sub-toggle: list/board/tree (only when Findings is active) */}
-            {investigationViewMode === 'findings' && (
+            {analyzeViewMode === 'findings' && (
               <>
                 <div className="w-px h-4 bg-edge mx-1" />
                 {(['list', 'board', 'tree'] as const).map(mode => (
@@ -881,7 +881,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           </div>
 
           {/* Content */}
-          {investigationViewMode === 'map' ? (
+          {analyzeViewMode === 'map' ? (
             wallViewMode === 'wall' ? (
               <div className="relative flex-1 flex flex-col min-h-0">
                 <WallCanvas
@@ -927,7 +927,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 )}
               </div>
             ) : (
-              <InvestigationMapView
+              <AnalyzeMapView
                 mapOptions={{
                   bestSubsets: mapBestSubsets,
                   mainEffects,
@@ -961,9 +961,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 onRestoreFinding={handleRestoreFinding}
                 viewMode={viewMode}
                 questions={questionsState.questions}
-                onSelectQuestion={h =>
-                  useInvestigationFeatureStore.getState().expandToQuestion(h.id)
-                }
+                onSelectQuestion={h => useAnalyzeFeatureStore.getState().expandToQuestion(h.id)}
                 onAddSubQuestion={questionsState.addSubQuestion}
                 factors={drillFactors}
                 getChildrenSummary={questionsState.getChildrenSummary}

@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import ProcessHubSustainmentRegion from '../ProcessHubSustainmentRegion';
 import type {
   ProcessHubCadenceSummary,
-  ProcessHubInvestigation,
+  ProcessHubAnalyze,
   ProcessHubRollup,
   SustainmentRecord,
 } from '@variscout/core';
@@ -17,8 +17,8 @@ const HUB = {
 };
 
 function makeInvestigation(
-  overrides: Partial<ProcessHubInvestigation> & { id: string; name: string }
-): ProcessHubInvestigation {
+  overrides: Partial<ProcessHubAnalyze> & { id: string; name: string }
+): ProcessHubAnalyze {
   return {
     id: overrides.id,
     name: overrides.name,
@@ -29,7 +29,7 @@ function makeInvestigation(
   };
 }
 
-function makeEmptyCadence(): ProcessHubCadenceSummary<ProcessHubInvestigation> {
+function makeEmptyCadence(): ProcessHubCadenceSummary<ProcessHubAnalyze> {
   const emptyQueue = { totalCount: 0, hiddenCount: 0, items: [] };
   return {
     hub: HUB,
@@ -56,12 +56,12 @@ function makeEmptyCadence(): ProcessHubCadenceSummary<ProcessHubInvestigation> {
       focused: emptyQueue,
       chartered: emptyQueue,
     },
-  } as ProcessHubCadenceSummary<ProcessHubInvestigation>;
+  } as ProcessHubCadenceSummary<ProcessHubAnalyze>;
 }
 
 function makeEmptyRollup(
-  investigations: ProcessHubInvestigation[] = []
-): ProcessHubRollup<ProcessHubInvestigation> {
+  investigations: ProcessHubAnalyze[] = []
+): ProcessHubRollup<ProcessHubAnalyze> {
   return {
     hub: HUB,
     investigations,
@@ -73,7 +73,7 @@ function makeEmptyRollup(
     evidenceSnapshots: [],
     sustainmentRecords: [],
     controlHandoffs: [],
-  } as ProcessHubRollup<ProcessHubInvestigation>;
+  } as ProcessHubRollup<ProcessHubAnalyze>;
 }
 
 function makeRecord(
@@ -106,7 +106,7 @@ describe('ProcessHubSustainmentRegion', () => {
       makeInvestigation({
         id: 'inv-1',
         name: 'Fill Weight',
-        metadata: { investigationStatus: 'scouting' },
+        metadata: { analyzeStatus: 'scouting' },
       }),
     ]);
 
@@ -134,7 +134,7 @@ describe('ProcessHubSustainmentRegion', () => {
       makeInvestigation({
         id: 'inv-2',
         name: 'Syringe Barrel',
-        metadata: { investigationStatus: 'resolved' },
+        metadata: { analyzeStatus: 'resolved' },
       }),
     ]);
 
@@ -163,7 +163,7 @@ describe('ProcessHubSustainmentRegion', () => {
       id: 'inv-3',
       name: 'Coffee Moisture',
       metadata: {
-        investigationStatus: 'controlled',
+        analyzeStatus: 'controlled',
         sustainment: {
           recordId: 'rec-abc',
           cadence: 'monthly',
@@ -231,7 +231,7 @@ describe('ProcessHubSustainmentRegion', () => {
       id: 'inv-recent',
       name: 'Pasteurizer Temp',
       metadata: {
-        investigationStatus: 'resolved',
+        analyzeStatus: 'resolved',
         sustainment: {
           recordId: 'rec-recent',
           cadence: 'monthly',
@@ -271,7 +271,7 @@ describe('ProcessHubSustainmentRegion', () => {
       id: 'inv-5',
       name: 'Pressure Drop',
       metadata: {
-        investigationStatus: 'controlled',
+        analyzeStatus: 'controlled',
         sustainment: {
           recordId: 'rec-xyz',
           cadence: 'quarterly',

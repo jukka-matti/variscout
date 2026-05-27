@@ -1,7 +1,7 @@
 /**
  * useWallBackgroundJobs — background best-subsets pipeline + CoScout emit
  *
- * Subscribes to `projectStore.rawData`/`outcome` and `investigationStore.hypotheses`
+ * Subscribes to `projectStore.rawData`/`outcome` and `analyzeStore.hypotheses`
  * and, after a 2000ms debounce, runs `detectBestSubsetsCandidates(rows, outcome,
  * allColumns, citedColumns)`. Results are emitted into `aiStore.wallSuggestions`
  * via `upsertWallSuggestion` under a stable id (`'best-subsets'`) so repeated
@@ -33,7 +33,7 @@
 import { useEffect } from 'react';
 import { detectBestSubsetsCandidates } from '@variscout/core';
 import { collectReferencedColumns } from '@variscout/core';
-import { useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useProjectStore, useAnalyzeStore } from '@variscout/stores';
 import { useAIStore } from '../ai/aiStore';
 
 /** Stable id used so repeated debounced runs replace the same entry. */
@@ -49,7 +49,7 @@ function deriveAllColumns(rows: Record<string, unknown>[], outcome: string): str
 }
 
 function computeCitedColumns(
-  hypotheses: ReturnType<typeof useInvestigationStore.getState>['hypotheses']
+  hypotheses: ReturnType<typeof useAnalyzeStore.getState>['hypotheses']
 ): string[] {
   const cited = new Set<string>();
   for (const hub of hypotheses) {
@@ -77,7 +77,7 @@ export function useWallBackgroundJobs(): void {
         if (cancelled) return;
 
         const projectState = useProjectStore.getState();
-        const investigationState = useInvestigationStore.getState();
+        const investigationState = useAnalyzeStore.getState();
         const aiActions = useAIStore.getState();
 
         const rows = projectState.rawData;
@@ -116,7 +116,7 @@ export function useWallBackgroundJobs(): void {
     });
 
     // Investigation store — fires on any change; filter to hypotheses.
-    const unsubscribeInvestigation = useInvestigationStore.subscribe((state, prev) => {
+    const unsubscribeInvestigation = useAnalyzeStore.subscribe((state, prev) => {
       if (state.hypotheses !== prev.hypotheses) {
         scheduleRun();
       }

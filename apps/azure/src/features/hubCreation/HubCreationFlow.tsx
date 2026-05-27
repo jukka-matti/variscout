@@ -19,7 +19,7 @@ import type {
   ColumnAnalysis,
   DataRow,
   DataQualityReport,
-  InvestigationCategory,
+  AnalyzeCategory,
   StackConfig,
   StackSuggestion,
 } from '@variscout/core';
@@ -42,7 +42,7 @@ export interface HubCreationFlowProps {
   dataQualityReport?: DataQualityReport | null;
   maxFactors?: number;
   isMappingReEdit: boolean;
-  initialCategories?: InvestigationCategory[];
+  initialCategories?: AnalyzeCategory[];
   timeColumn?: string;
   hasTimeComponent?: boolean;
   onTimeExtractionChange?: (config: { extractHour?: boolean; extractDate?: boolean }) => void;

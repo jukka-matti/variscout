@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useProjectStore, useAnalyzeStore } from '@variscout/stores';
 import { setupCloudSync } from '../cloudSyncSubscriber';
 import type { DataRow } from '@variscout/core';
 
@@ -25,7 +25,7 @@ function seedProjectStore() {
 beforeEach(() => {
   vi.useFakeTimers();
   useProjectStore.setState(useProjectStore.getInitialState());
-  useInvestigationStore.setState(useInvestigationStore.getInitialState());
+  useAnalyzeStore.setState(useAnalyzeStore.getInitialState());
 });
 
 afterEach(() => {
@@ -62,7 +62,7 @@ describe('setupCloudSync', () => {
 
     // Prime each store's "first fire" skip
     useProjectStore.setState({ projectName: 'init' });
-    useInvestigationStore.setState({});
+    useAnalyzeStore.setState({});
 
     // Now trigger a second change — gate is closed (rawData empty, no projectId)
     useProjectStore.setState({ projectName: 'changed' });
@@ -87,16 +87,16 @@ describe('setupCloudSync', () => {
     cleanup();
   });
 
-  it('calls onSave after debounce when gate is open (investigationStore change)', () => {
+  it('calls onSave after debounce when gate is open (analyzeStore change)', () => {
     const onSave = vi.fn();
     const cleanup = setupCloudSync(onSave, 500);
 
     // Prime the "skip first" for both stores
     seedProjectStore();
-    useInvestigationStore.setState({});
+    useAnalyzeStore.setState({});
 
     // Second investigation-store change — gate open
-    useInvestigationStore.setState({});
+    useAnalyzeStore.setState({});
     vi.advanceTimersByTime(500);
 
     expect(onSave).toHaveBeenCalledTimes(1);

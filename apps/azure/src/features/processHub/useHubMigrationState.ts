@@ -1,18 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useB0InvestigationsInHub, type UseB0InvestigationsInHubResult } from '@variscout/hooks';
-import type {
-  ProcessHubInvestigation,
-  ProcessHubInvestigationMetadata,
-  ProcessMap,
-} from '@variscout/core';
+import { useB0AnalyzesInHub, type UseB0InvestigationsInHubResult } from '@variscout/hooks';
+import type { ProcessHubAnalyze, ProcessHubAnalyzeMetadata, ProcessMap } from '@variscout/core';
 import { suggestNodeMappings } from '@variscout/core/stats';
 import type { ProductionLineGlanceMigrationModalEntry } from '@variscout/ui';
 
 export interface UseHubMigrationStateInput {
   hubId: string;
-  members: readonly ProcessHubInvestigation[];
+  members: readonly ProcessHubAnalyze[];
   canonicalMap?: ProcessMap;
-  persistInvestigation: (next: ProcessHubInvestigation) => void;
+  persistInvestigation: (next: ProcessHubAnalyze) => void;
 }
 
 export interface UseHubMigrationStateResult extends UseB0InvestigationsInHubResult {
@@ -26,7 +22,7 @@ export interface UseHubMigrationStateResult extends UseB0InvestigationsInHubResu
   handleDecline: (investigationId: string) => void;
 }
 
-function getDatasetColumns(inv: ProcessHubInvestigation): string[] {
+function getDatasetColumns(inv: ProcessHubAnalyze): string[] {
   const rows = (inv as { rows?: ReadonlyArray<Record<string, unknown>> }).rows ?? [];
   if (rows.length === 0) return [];
   const cols = new Set<string>();
@@ -39,7 +35,7 @@ function getDatasetColumns(inv: ProcessHubInvestigation): string[] {
 export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMigrationStateResult {
   const { hubId, members, canonicalMap, persistInvestigation } = input;
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const b0 = useB0InvestigationsInHub({ hubId, members });
+  const b0 = useB0AnalyzesInHub({ hubId, members });
 
   const openModal = useCallback(() => setIsModalOpen(true), []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
@@ -76,11 +72,11 @@ export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMi
       for (const inv of members) {
         const m = byId.get(inv.id);
         if (!m) continue;
-        const existing = (inv as { metadata?: ProcessHubInvestigationMetadata }).metadata;
-        const meta: ProcessHubInvestigationMetadata = existing
+        const existing = (inv as { metadata?: ProcessHubAnalyzeMetadata }).metadata;
+        const meta: ProcessHubAnalyzeMetadata = existing
           ? { ...existing, processHubId: hubId }
           : { processHubId: hubId };
-        const next: ProcessHubInvestigation = {
+        const next: ProcessHubAnalyze = {
           ...inv,
           metadata: {
             ...meta,
@@ -98,11 +94,11 @@ export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMi
     (investigationId: string) => {
       const inv = members.find(m => m.id === investigationId);
       if (!inv) return;
-      const existing = (inv as { metadata?: ProcessHubInvestigationMetadata }).metadata;
-      const meta: ProcessHubInvestigationMetadata = existing
+      const existing = (inv as { metadata?: ProcessHubAnalyzeMetadata }).metadata;
+      const meta: ProcessHubAnalyzeMetadata = existing
         ? { ...existing, processHubId: hubId }
         : { processHubId: hubId };
-      const next: ProcessHubInvestigation = {
+      const next: ProcessHubAnalyze = {
         ...inv,
         metadata: {
           ...meta,

@@ -7,20 +7,15 @@
  * if rows are split across tables.
  */
 import { useMemo } from 'react';
-import type {
-  DataRow,
-  ProcessHub,
-  ProcessHubInvestigation,
-  ProcessHubRollup,
-} from '@variscout/core';
+import type { DataRow, ProcessHub, ProcessHubAnalyze, ProcessHubRollup } from '@variscout/core';
 
 export interface UseHubProvisionInput {
-  rollup: ProcessHubRollup<ProcessHubInvestigation>;
+  rollup: ProcessHubRollup<ProcessHubAnalyze>;
 }
 
 export interface UseHubProvisionResult {
   hub: ProcessHub;
-  members: readonly ProcessHubInvestigation[];
+  members: readonly ProcessHubAnalyze[];
   rowsByInvestigation: ReadonlyMap<string, readonly DataRow[]>;
 }
 

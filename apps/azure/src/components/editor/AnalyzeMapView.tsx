@@ -19,10 +19,10 @@ import { mapRelationshipType } from '@variscout/core/stats';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { ArrowRight, X, Pencil, Trash2 } from 'lucide-react';
 
-interface InvestigationMapViewProps {
+interface AnalyzeMapViewProps {
   /** All options for useEvidenceMapData EXCEPT containerSize (computed internally) */
   mapOptions: Omit<UseEvidenceMapDataOptions, 'containerSize'>;
-  /** Context menu action callbacks (threaded from InvestigationWorkspace) */
+  /** Context menu action callbacks (threaded from AnalyzeWorkspace) */
   onAskQuestion?: (factor: string) => void;
   onCreateFinding?: (factor: string) => void;
   onAskCoScout?: (factor: string) => void;
@@ -56,7 +56,7 @@ interface InvestigationMapViewProps {
   defectEvidenceMap?: UseDefectEvidenceMapResult;
 }
 
-export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
+export const AnalyzeMapView: React.FC<AnalyzeMapViewProps> = ({
   mapOptions,
   onAskQuestion,
   onCreateFinding,

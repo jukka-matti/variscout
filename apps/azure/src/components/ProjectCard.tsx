@@ -56,8 +56,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     ? Object.values(metadata.questionCounts).reduce((sum, n) => sum + n, 0)
     : 0;
   const overdueActions = metadata?.actionCounts.overdue ?? 0;
-  const statusLabel = metadata?.investigationStatus?.replace(/-/g, ' ');
-  const depthLabel = metadata?.investigationDepth;
+  const statusLabel = metadata?.analyzeStatus?.replace(/-/g, ' ');
+  const depthLabel = metadata?.analyzeDepth;
 
   // Location label
   const locationLabel = location === 'team' ? 'Team' : 'Personal';

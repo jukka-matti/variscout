@@ -11,7 +11,7 @@ vi.mock('@variscout/core', async importOriginal => {
 });
 
 import { detectBestSubsetsCandidates } from '@variscout/core';
-import { useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useProjectStore, useAnalyzeStore } from '@variscout/stores';
 import { useAIStore } from '../../ai/aiStore';
 import { useWallBackgroundJobs } from '../useWallBackgroundJobs';
 
@@ -21,7 +21,7 @@ function resetStores(): void {
   // Project store: set minimal shape relevant to the hook.
   useProjectStore.setState({ rawData: [], outcome: null });
   // Investigation store: clear hypotheses.
-  useInvestigationStore.setState({ hypotheses: [] });
+  useAnalyzeStore.setState({ hypotheses: [] });
   // AI store: clear suggestions.
   useAIStore.setState({ wallSuggestions: [] });
 }
@@ -171,7 +171,7 @@ describe('useWallBackgroundJobs (azure)', () => {
 
     act(() => {
       useProjectStore.setState({ rawData: seedRows(20), outcome: 'Weight' });
-      useInvestigationStore.setState({
+      useAnalyzeStore.setState({
         hypotheses: [
           {
             id: 'h1',

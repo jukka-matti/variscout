@@ -1,5 +1,5 @@
 /**
- * useInvestigationIndexing — Wire investigation serializer to Blob Storage
+ * useAnalyzeIndexing — Wire investigation serializer to Blob Storage
  *
  * ADR-060 Pillar 2: Automatically serializes findings and questions to
  * JSONL blobs in Blob Storage so Foundry IQ can index them for CoScout
@@ -13,7 +13,7 @@
  */
 
 import { useRef, useEffect, useCallback } from 'react';
-import { createInvestigationSerializer } from '../../services/investigationSerializer';
+import { createInvestigationSerializer } from '../../services/analyzeSerializer';
 import { uploadTextBlob } from '../../services/blobClient';
 import type { Finding, Question } from '@variscout/core';
 
@@ -31,7 +31,7 @@ export interface UseInvestigationIndexingReturn {
   onQuestionsChange: (questions: Question[]) => void;
 }
 
-export function useInvestigationIndexing({
+export function useAnalyzeIndexing({
   projectId,
   enabled,
 }: UseInvestigationIndexingOptions): UseInvestigationIndexingReturn {

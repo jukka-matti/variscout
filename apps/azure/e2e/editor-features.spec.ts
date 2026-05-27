@@ -113,7 +113,7 @@ test.describe('Azure App: Investigation Mindmap', () => {
   test('should toggle mindmap panel when investigation button is clicked', async ({ page }) => {
     await loadSampleInEditor(page);
 
-    const investigationBtn = page.locator('[data-testid="btn-investigation"]');
+    const investigationBtn = page.locator('[data-testid="btn-analyze"]');
 
     // Investigation button is only visible if there are factors
     // Most samples have factors, so it should be visible

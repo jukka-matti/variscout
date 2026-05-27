@@ -33,8 +33,8 @@ describe('localDb Process Hub support', () => {
         questions: [],
         processContext: {
           processHubId: 'line-4',
-          investigationDepth: 'focused',
-          investigationStatus: 'investigating',
+          analyzeDepth: 'focused',
+          analyzeStatus: 'investigating',
           currentUnderstanding: { summary: 'Night shift variation is concentrated.' },
           problemCondition: { summary: 'Cpk is below target.' },
           nextMove: 'Inspect nozzle wear.',
@@ -56,8 +56,8 @@ describe('localDb Process Hub support', () => {
 
     expect(metadata).toMatchObject({
       processHubId: 'line-4',
-      investigationDepth: 'focused',
-      investigationStatus: 'investigating',
+      analyzeDepth: 'focused',
+      analyzeStatus: 'investigating',
       currentUnderstandingSummary: 'Night shift variation is concentrated.',
       problemConditionSummary: 'Cpk is below target.',
       nextMove: 'Inspect nozzle wear.',
@@ -194,7 +194,7 @@ describe('localDb Process Hub support', () => {
         questions: [],
         processContext: {
           processHubId: 'line-4',
-          investigationDepth: 'focused',
+          analyzeDepth: 'focused',
           description: 'Bottle filling from rinse through palletizing.',
           processMap: {
             version: 1,
@@ -215,7 +215,7 @@ describe('localDb Process Hub support', () => {
     expect(updated).toBe(1);
     expect(projects[0].metadata).toMatchObject({
       processHubId: 'line-4',
-      investigationDepth: 'focused',
+      analyzeDepth: 'focused',
       processDescription: 'Bottle filling from rinse through palletizing.',
       customerRequirementSummary: 'Weight',
       surveyReadiness: {

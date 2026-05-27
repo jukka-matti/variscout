@@ -13,7 +13,7 @@ import type {
   OutcomeReadAPI,
   EvidenceSnapshotReadAPI,
   EvidenceSourceReadAPI,
-  InvestigationReadAPI,
+  AnalyzeReadAPI,
   FindingReadAPI,
   QuestionReadAPI,
   CausalLinkReadAPI,
@@ -233,7 +233,7 @@ export class AzureHubRepository implements HubRepository {
   // F3 normalizes these into dedicated tables (investigations, findings, etc.).
   // ---------------------------------------------------------------------------
 
-  investigations: InvestigationReadAPI = {
+  investigations: AnalyzeReadAPI = {
     // Azure has no dedicated investigations table today; F3 normalizes this.
     async get(_id) {
       return undefined;

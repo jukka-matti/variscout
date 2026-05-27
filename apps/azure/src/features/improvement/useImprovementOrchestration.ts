@@ -21,7 +21,7 @@ import type {
 import { calculateStats, toNumericValue } from '@variscout/core';
 import { calculateStagedComparison, toVerificationData } from '@variscout/core/stats';
 import { assignCauseColors } from '@variscout/core/findings';
-import { useInvestigationFeatureStore } from '../investigation/investigationStore';
+import { useAnalyzeFeatureStore } from '../analyze/analyzeStore';
 import type { UseQuestionsReturn } from '@variscout/hooks';
 import type { MatrixIdea, CauseSummary, TrackedAction, SelectedIdea } from '@variscout/ui';
 import { openImprovementPopout, updateImprovementPopout } from '../../components/ImprovementWindow';
@@ -459,7 +459,7 @@ export function useImprovementOrchestration({
 
   // ── Projection reference context (subset vs complement stats) ───────────
   const projectionReferenceContext = useMemo(() => {
-    const projTarget = useInvestigationFeatureStore.getState().projectionTarget;
+    const projTarget = useAnalyzeFeatureStore.getState().projectionTarget;
     if (!projTarget || !rawData?.length || !outcome) return undefined;
 
     const question = (persistedQuestions ?? []).find(q => q.id === projTarget.questionId);

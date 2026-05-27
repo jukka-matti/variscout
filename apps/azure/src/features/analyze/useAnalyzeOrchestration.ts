@@ -1,20 +1,16 @@
 /**
- * useInvestigationOrchestration - Investigation/question orchestration for Azure Editor
+ * useAnalyzeOrchestration - Investigation/question orchestration for Azure Editor
  *
  * Owns the investigation workflow: calls useQuestions (CRUD engine from @variscout/hooks),
  * computes derived state (questionsMap, ideaImpacts) as useMemo values returned from the hook,
  * and provides DataContext-dependent action callbacks.
  */
 import { useMemo, useCallback } from 'react';
-import {
-  useInvestigationFeatureStore,
-  buildQuestionsMap,
-  buildIdeaImpacts,
-} from './investigationStore';
-import type { QuestionDisplayData } from './investigationStore';
+import { useAnalyzeFeatureStore, buildQuestionsMap, buildIdeaImpacts } from './analyzeStore';
+import type { QuestionDisplayData } from './analyzeStore';
 import { usePanelsStore } from '../panels/panelsStore';
 import { useHypotheses, type HypothesisUpdate } from '@variscout/hooks';
-import { useInvestigationStore } from '@variscout/stores';
+import { useAnalyzeStore } from '@variscout/stores';
 import type {
   Finding,
   FindingProjection,
@@ -35,14 +31,14 @@ interface FindingsStateSlice {
   addAction: (findingId: string, text: string) => void;
 }
 
-export interface UseInvestigationOrchestrationOptions {
+export interface UseAnalyzeOrchestrationOptions {
   questionsState: UseQuestionsReturn;
   findingsState: FindingsStateSlice;
   processContext: ProcessContext | undefined;
   stats: StatsResult | null;
 }
 
-export interface UseInvestigationOrchestrationReturn {
+export interface UseAnalyzeOrchestrationReturn {
   /** Create question and link to finding */
   handleCreateQuestion: (findingId: string, text: string, factor?: string, level?: string) => void;
   /** Open What-If pre-loaded for a specific improvement idea. When inline=true, sets projection target without opening full-page What-If (for left panel embedding). */
@@ -76,18 +72,18 @@ export interface UseInvestigationOrchestrationReturn {
 
 // ── Hook ──────────────────────────────────────────────────────────────────
 
-export function useInvestigationOrchestration({
+export function useAnalyzeOrchestration({
   questionsState,
   findingsState,
   processContext,
   stats,
-}: UseInvestigationOrchestrationOptions): UseInvestigationOrchestrationReturn {
+}: UseAnalyzeOrchestrationOptions): UseAnalyzeOrchestrationReturn {
   // ── Suspected cause hubs ──────────────────────────────────────────────
   // Sync hubs to the domain store so that other components (e.g. EditorDashboardView)
-  // can read them via useInvestigationStore(s => s.hypotheses) without prop threading.
+  // can read them via useAnalyzeStore(s => s.hypotheses) without prop threading.
   const hypothesesState = useHypotheses({
     initialHubs: [],
-    onHubsChange: useInvestigationStore.getState().resetHubs,
+    onHubsChange: useAnalyzeStore.getState().resetHubs,
   });
 
   // ── Compute derived data (returned from hook, not synced to store) ────
@@ -120,7 +116,7 @@ export function useInvestigationOrchestration({
       const question = questionsState.getQuestion(questionId);
       const idea = question?.ideas?.find(i => i.id === ideaId);
       if (question && idea) {
-        useInvestigationFeatureStore.getState().setProjectionTarget({
+        useAnalyzeFeatureStore.getState().setProjectionTarget({
           questionId,
           ideaId,
           ideaText: idea.text,
@@ -136,16 +132,16 @@ export function useInvestigationOrchestration({
 
   // Clear the projection target
   const clearProjectionTarget = useCallback(() => {
-    useInvestigationFeatureStore.getState().setProjectionTarget(null);
+    useAnalyzeFeatureStore.getState().setProjectionTarget(null);
   }, []);
 
   // Save projection from What-If back to idea
   const handleSaveIdeaProjection = useCallback(
     (projection: FindingProjection) => {
-      const target = useInvestigationFeatureStore.getState().projectionTarget;
+      const target = useAnalyzeFeatureStore.getState().projectionTarget;
       if (target) {
         questionsState.setIdeaProjection(target.questionId, target.ideaId, projection);
-        useInvestigationFeatureStore.getState().setProjectionTarget(null);
+        useAnalyzeFeatureStore.getState().setProjectionTarget(null);
         usePanelsStore.getState().setWhatIfOpen(false);
       }
     },

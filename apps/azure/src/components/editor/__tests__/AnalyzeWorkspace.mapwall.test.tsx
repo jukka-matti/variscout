@@ -1,13 +1,13 @@
 /**
- * Tests for Map/Wall toggle wired into InvestigationWorkspace.
+ * Tests for Map/Wall toggle wired into AnalyzeWorkspace.
  *
  * Strategy:
  * - Heavy dependencies (charts, hooks, feature stores) are mocked so we can
- *   render InvestigationWorkspace in isolation without providing the full
+ *   render AnalyzeWorkspace in isolation without providing the full
  *   orchestration props tree.
  * - useCanvasViewportStore is NOT mocked — we use the real store and reset it in
  *   beforeEach per the Zustand testing pattern in .claude/rules/testing.md.
- * - panelsStore is NOT mocked — we toggle investigationViewMode to 'map' in
+ * - panelsStore is NOT mocked — we toggle analyzeViewMode to 'map' in
  *   beforeEach so the Evidence Map tab is the active view.
  *
  * IMPORTANT: vi.mock() calls must appear before any component imports.
@@ -80,8 +80,8 @@ vi.mock('@variscout/ui', async importOriginal => {
   return {
     ...actual,
     QuestionChecklist: () => <div data-testid="question-checklist" />,
-    InvestigationPhaseBadge: () => null,
-    InvestigationConclusion: () => null,
+    AnalyzePhaseBadge: () => null,
+    AnalyzeConclusion: () => null,
     FindingsLog: (props: Record<string, unknown>) => {
       capturedFindingsLogProps.current = props;
       return <div data-testid="findings-log" />;
@@ -99,8 +99,8 @@ vi.mock('@variscout/ui', async importOriginal => {
   };
 });
 
-vi.mock('../InvestigationMapView', () => ({
-  InvestigationMapView: () => <div data-testid="investigation-map-view" />,
+vi.mock('../AnalyzeMapView', () => ({
+  AnalyzeMapView: () => <div data-testid="analyze-map-view" />,
 }));
 
 vi.mock('../CoScoutSection', () => ({
@@ -108,34 +108,34 @@ vi.mock('../CoScoutSection', () => ({
 }));
 
 vi.mock('../../../features/panels/panelsStore', () => {
-  // Minimal mutable stub so we can control investigationViewMode
-  let _investigationViewMode: 'map' | 'findings' = 'map';
+  // Minimal mutable stub so we can control analyzeViewMode
+  let _analyzeViewMode: 'map' | 'findings' = 'map';
   const _highlightedFactor: string | null = null;
 
   const usePanelsStore = (
     selector: (s: {
-      investigationViewMode: 'map' | 'findings';
+      analyzeViewMode: 'map' | 'findings';
       highlightedFactor: string | null;
-      setInvestigationViewMode: (m: 'map' | 'findings') => void;
+      setAnalyzeViewMode: (m: 'map' | 'findings') => void;
     }) => unknown
   ) => {
     const state = {
-      investigationViewMode: _investigationViewMode,
+      analyzeViewMode: _analyzeViewMode,
       highlightedFactor: _highlightedFactor,
-      setInvestigationViewMode: (m: 'map' | 'findings') => {
-        _investigationViewMode = m;
+      setAnalyzeViewMode: (m: 'map' | 'findings') => {
+        _analyzeViewMode = m;
       },
     };
     return selector(state);
   };
   // Expose getState for imperative calls inside the component
   usePanelsStore.getState = () => ({
-    investigationViewMode: _investigationViewMode,
+    analyzeViewMode: _analyzeViewMode,
     highlightedFactor: _highlightedFactor,
-    setInvestigationViewMode: (m: 'map' | 'findings') => {
-      _investigationViewMode = m;
+    setAnalyzeViewMode: (m: 'map' | 'findings') => {
+      _analyzeViewMode = m;
     },
-    showAnalysis: vi.fn(),
+    showExplore: vi.fn(),
     showCharter: showCharterMock,
     showImprovement: vi.fn(),
     setHighlightedFactor: vi.fn(),
@@ -148,8 +148,8 @@ vi.mock('../../../features/findings/findingsStore', () => ({
     selector({ highlightedFindingId: null }),
 }));
 
-vi.mock('../../../features/investigation/investigationStore', () => ({
-  useInvestigationFeatureStore: {
+vi.mock('../../../features/analyze/analyzeStore', () => ({
+  useAnalyzeFeatureStore: {
     getState: () => ({ expandToQuestion: vi.fn() }),
   },
 }));
@@ -194,11 +194,11 @@ vi.mock('@variscout/core/stats', () => ({
 import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import { usePanelsStore } from '../../../features/panels/panelsStore';
-import { InvestigationWorkspace } from '../InvestigationWorkspace';
+import { AnalyzeWorkspace } from '../AnalyzeWorkspace';
 
 // ── 3. Minimal props factory ───────────────────────────────────────────────
 
-function makeMinimalProps(): React.ComponentProps<typeof InvestigationWorkspace> {
+function makeMinimalProps(): React.ComponentProps<typeof AnalyzeWorkspace> {
   const noOp = vi.fn();
   return {
     findingsState: {
@@ -261,7 +261,7 @@ function makeMinimalProps(): React.ComponentProps<typeof InvestigationWorkspace>
 
 // ── 4. Tests ───────────────────────────────────────────────────────────────
 
-describe('InvestigationWorkspace Map/Wall toggle', () => {
+describe('AnalyzeWorkspace Map/Wall toggle', () => {
   beforeEach(() => {
     // Reset canvasViewportStore to initial state (viewMode = 'map')
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
@@ -270,7 +270,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
   });
 
   it('defaults to Map view — Map button has aria-pressed="true"', () => {
-    render(<InvestigationWorkspace {...makeMinimalProps()} />);
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
 
     const mapBtn = screen.getByRole('button', { name: /^map$/i });
     expect(mapBtn.getAttribute('aria-pressed')).toBe('true');
@@ -279,13 +279,13 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
     expect(wallBtn.getAttribute('aria-pressed')).toBe('false');
   });
 
-  it('renders InvestigationMapView by default', () => {
-    render(<InvestigationWorkspace {...makeMinimalProps()} />);
-    expect(screen.getByTestId('investigation-map-view')).toBeTruthy();
+  it('renders AnalyzeMapView by default', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    expect(screen.getByTestId('analyze-map-view')).toBeTruthy();
   });
 
   it('switches to Wall on click and persists state in the store', () => {
-    render(<InvestigationWorkspace {...makeMinimalProps()} />);
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
 
     fireEvent.click(screen.getByRole('button', { name: /^wall$/i }));
 
@@ -296,7 +296,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
     // Pre-set the store to 'wall' to simulate a persisted state
     useCanvasViewportStore.getState().setViewMode('wall');
 
-    render(<InvestigationWorkspace {...makeMinimalProps()} />);
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
 
     const wallBtn = screen.getByRole('button', { name: /^wall$/i });
     expect(wallBtn.getAttribute('aria-pressed')).toBe('true');
@@ -318,7 +318,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
       },
     ] as never;
 
-    render(<InvestigationWorkspace {...props} />);
+    render(<AnalyzeWorkspace {...props} />);
 
     expect(screen.getByTestId('wall-canvas')).toBeInTheDocument();
   });
@@ -334,7 +334,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
       })
     );
 
-    render(<InvestigationWorkspace {...makeMinimalProps()} />);
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Back to Improvement Project' }));
 
@@ -354,7 +354,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
       const onEditPlan = vi.fn();
 
       render(
-        <InvestigationWorkspace
+        <AnalyzeWorkspace
           {...makeMinimalProps()}
           planningProps={{
             plans: [],
@@ -376,7 +376,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
     });
 
     it('does not pass planningProps to WallCanvas when omitted', () => {
-      render(<InvestigationWorkspace {...makeMinimalProps()} />);
+      render(<AnalyzeWorkspace {...makeMinimalProps()} />);
       expect(capturedWallCanvasProps.current?.planningProps).toBeUndefined();
     });
   });
@@ -394,15 +394,15 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
 
     beforeEach(() => {
       capturedFindingsLogProps.current = null;
-      // Switch to 'findings' view so FindingsLog renders (not InvestigationMapView)
-      usePanelsStore.getState().setInvestigationViewMode('findings');
+      // Switch to 'findings' view so FindingsLog renders (not AnalyzeMapView)
+      usePanelsStore.getState().setAnalyzeViewMode('findings');
     });
 
     it('Lead member receives onAddPhoto when handleAddPhoto is provided', () => {
       const handleAddPhoto = vi.fn();
       const props = makeMinimalProps();
       render(
-        <InvestigationWorkspace
+        <AnalyzeWorkspace
           {...props}
           handleAddPhoto={handleAddPhoto}
           userId="lead@org"
@@ -416,7 +416,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
       const handleAddPhoto = vi.fn();
       const props = makeMinimalProps();
       render(
-        <InvestigationWorkspace
+        <AnalyzeWorkspace
           {...props}
           handleAddPhoto={handleAddPhoto}
           userId="sponsor@org"
@@ -430,7 +430,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
       const handleAddPhoto = vi.fn();
       const props = makeMinimalProps();
       render(
-        <InvestigationWorkspace
+        <AnalyzeWorkspace
           {...props}
           handleAddPhoto={handleAddPhoto}
           userId="stranger@org"
@@ -444,7 +444,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
       const handleAddPhoto = vi.fn();
       const props = makeMinimalProps();
       render(
-        <InvestigationWorkspace
+        <AnalyzeWorkspace
           {...props}
           handleAddPhoto={handleAddPhoto}
           userId={null}
@@ -458,7 +458,7 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
       const handleAddPhoto = vi.fn();
       const props = makeMinimalProps();
       render(
-        <InvestigationWorkspace
+        <AnalyzeWorkspace
           {...props}
           handleAddPhoto={handleAddPhoto}
           userId="any@org"
