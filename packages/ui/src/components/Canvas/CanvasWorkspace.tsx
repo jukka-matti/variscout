@@ -11,11 +11,13 @@ import {
 import {
   computeFormulaColumn,
   computeLeadTimeColumn,
+  computeTimeDecompositionColumns,
   computeTotalWorkTimeColumn,
   computeWaitTimeColumn,
   detectBatchData,
   detectColumns,
   detectScopeFromMap,
+  detectTimeColumns,
   normalizeProcessHubId,
   parseTimeValue,
   rankYCandidates,
@@ -24,6 +26,7 @@ import {
   type DataRow,
   type Finding,
   type FormulaBinding,
+  type TimeDecompositionBinding,
   type ProcessContext,
   type ProcessHubId,
   type ProcessHubAnalyze,
@@ -46,6 +49,7 @@ import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCateg
 import type { SystemHint } from './EditMode/Palette';
 import { StepTimingsModal } from './EditMode/Workflows/StepTimingsModal';
 import { CalculatedColumnModal } from './EditMode/Workflows/CalculatedColumnModal';
+import { TimeAsFactorsModal } from './EditMode/Workflows/TimeAsFactorsModal';
 import { formatDuration } from './EditMode/formatDuration';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
@@ -502,12 +506,37 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const [formulaBindings, setFormulaBindings] = React.useState<FormulaBinding[]>([]);
   const [calcModalOpen, setCalcModalOpen] = React.useState<{ sourceColumn?: string } | null>(null);
 
+  // D3 Task 7: local state for time-decomposition bindings captured via the
+  // TimeAsFactorsModal. Each binding maps a date column to the chosen dimensions
+  // (year / quarter / month / week / dayOfWeek / hour). Save handler replaces
+  // any existing binding for the same sourceColumn (dedupe by sourceColumn).
+  // TODO(PR-CCJ-E1): persist timeDecompositionBindings to ImprovementProject via Charter modal commit.
+  const [timeDecompositionBindings, setTimeDecompositionBindings] = React.useState<
+    TimeDecompositionBinding[]
+  >([]);
+  const [timeFactorsModalOpen, setTimeFactorsModalOpen] = React.useState<{
+    sourceColumn?: string;
+  } | null>(null);
+
+  const handleTimeFactorsSave = React.useCallback((binding: TimeDecompositionBinding) => {
+    setTimeDecompositionBindings(prev => [
+      ...prev.filter(b => b.sourceColumn !== binding.sourceColumn),
+      binding,
+    ]);
+    setTimeFactorsModalOpen(null);
+  }, []);
+
   const onChipContextMenuSelect = React.useCallback((columnName: string, itemId: string) => {
     if (itemId === 'calculate-from') {
       setCalcModalOpen({ sourceColumn: columnName });
+      return;
+    }
+    if (itemId === 'use-as-time-factors') {
+      setTimeFactorsModalOpen({ sourceColumn: columnName });
+      return;
     }
     // Other itemIds (rename, view-distribution, etc.) are handled at the Palette level
-    // or fall through. CanvasWorkspace only owns calculate-from for now.
+    // or fall through. CanvasWorkspace only owns calculate-from + use-as-time-factors.
   }, []);
 
   const handleStepsReplace = React.useCallback(
@@ -626,9 +655,50 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     return profiles;
   }, [formulaBindings, formulaDerivedColumns]);
 
+  // D3 Task 8: per-binding derived categorical columns produced by
+  // `computeTimeDecompositionColumns`. Each entry maps the derived column name
+  // (e.g. `Order_Date.year`, `Order_Date.day-of-week`, `Order_Date.hour-15min`)
+  // to its `(string | null)[]` value array. Bindings are merged in order; the
+  // TimeAsFactorsModal save handler dedupes by sourceColumn so a single source
+  // cannot produce conflicting derived names within one render.
+  const timeDecompositionDerivedColumns = React.useMemo<Record<string, (string | null)[]>>(() => {
+    const merged: Record<string, (string | null)[]> = {};
+    for (const binding of timeDecompositionBindings) {
+      const cols = computeTimeDecompositionColumns([...rawData], binding);
+      for (const [key, vals] of Object.entries(cols)) {
+        merged[key] = vals;
+      }
+    }
+    return merged;
+  }, [timeDecompositionBindings, rawData]);
+
+  // D3 Task 8: synthesized profiles for the time-decomposition derived columns.
+  // Mirrors `derivedTimingsProfiles` / `derivedFormulaProfiles` shape; the
+  // `derivationSource: 'time-decomposition'` discriminant drives the palette's
+  // "DERIVED FROM TIME-DECOMPOSITION" group header. Primary kind is
+  // `'categorical'` — derived bucket-labels (Year `2026`, DayOfWeek `Mon`,
+  // Hour `14:00` / `14:30`) are categorical, not numeric.
+  const derivedTimeDecompositionProfiles = React.useMemo<ColumnParsingProfile[]>(() => {
+    return Object.keys(timeDecompositionDerivedColumns).map(columnName => ({
+      columnName,
+      status: 'ok',
+      confidence: 100,
+      primary: { kind: 'categorical', label: 'categorical · derived', detail: {} },
+      alternatives: [],
+      transformedSamples: [],
+      derived: true,
+      derivationSource: 'time-decomposition',
+    }));
+  }, [timeDecompositionDerivedColumns]);
+
   const editModeProfiles = React.useMemo<ColumnParsingProfile[]>(
-    () => [...rawProfiles, ...derivedTimingsProfiles, ...derivedFormulaProfiles],
-    [rawProfiles, derivedTimingsProfiles, derivedFormulaProfiles]
+    () => [
+      ...rawProfiles,
+      ...derivedTimingsProfiles,
+      ...derivedFormulaProfiles,
+      ...derivedTimeDecompositionProfiles,
+    ],
+    [rawProfiles, derivedTimingsProfiles, derivedFormulaProfiles, derivedTimeDecompositionProfiles]
   );
 
   // D1 Task 10: numericValuesByColumn — raw numeric columns from columnAnalysis
@@ -699,11 +769,33 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     return out;
   }, [stepTimings, rawData]);
 
+  // D3 Task 8: categorical-values channel exposed alongside numericValuesByColumn.
+  // V1 scope contains ONLY the time-decomposition derived columns; raw categorical
+  // values continue to flow through `rows`. Downstream Analyze/Explore consumers
+  // light up this prop incrementally in F1/H1.
+  const categoricalValuesByColumn = React.useMemo<Record<string, (string | null)[]>>(() => {
+    return { ...timeDecompositionDerivedColumns };
+  }, [timeDecompositionDerivedColumns]);
+
   // D2 Task 11: batch-data detection drives the palette's contextual hint
   // banner. When the heuristic finds input/output mass-balance columns
   // (`Input_kg`, `GradeA_kg`, etc.), the banner invites the user to open the
   // CalculatedColumnModal pre-targeted at yield-ratio templates.
   const batchDataResult = React.useMemo(() => detectBatchData(rawProfiles), [rawProfiles]);
+
+  // D3 Task 8: time-column detection drives the time-as-factors system hint.
+  // Banner is suppressed once every detected date column already has a
+  // TimeDecompositionBinding (UX micro-polish — stop nagging once everything
+  // has been decomposed).
+  const timeColumnsDetection = React.useMemo(() => detectTimeColumns(rawProfiles), [rawProfiles]);
+
+  // D3 Task 8: memoized list of date-kind column names. Drives the
+  // TimeAsFactorsModal `timeColumns` prop; previously computed inline in JSX
+  // (T7 review nit).
+  const timeColumns = React.useMemo(
+    () => rawProfiles.filter(p => p.primary?.kind === 'date').map(p => p.columnName),
+    [rawProfiles]
+  );
 
   const systemHints = React.useMemo<SystemHint[]>(() => {
     const hints: SystemHint[] = [];
@@ -717,8 +809,23 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
         onCta: () => setCalcModalOpen({ sourceColumn: undefined }),
       });
     }
+    if (timeColumnsDetection !== null) {
+      const allDateColumnsDecomposed = timeColumnsDetection.columns.every(col =>
+        timeDecompositionBindings.some(b => b.sourceColumn === col)
+      );
+      if (!allDateColumnsDecomposed) {
+        const count = timeColumnsDetection.count;
+        hints.push({
+          id: 'time-detected',
+          kind: 'time',
+          message: `${count} time column${count === 1 ? '' : 's'} detected. Use time as factors →`,
+          ctaLabel: 'Use time as factors',
+          onCta: () => setTimeFactorsModalOpen({}),
+        });
+      }
+    }
     return hints;
-  }, [batchDataResult]);
+  }, [batchDataResult, timeColumnsDetection, timeDecompositionBindings]);
 
   // When access is revoked at runtime, snap back to State mode so the user
   // is never stranded in Edit mode without the Done affordance.
@@ -947,6 +1054,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
               onDone={handleShellDone}
               profiles={editModeProfiles}
               numericValuesByColumn={numericValuesByColumn}
+              categoricalValuesByColumn={categoricalValuesByColumn}
               systemHints={systemHints}
               steps={processSteps}
               categoricalDistinctValuesByColumn={categoricalDistinctValuesByColumn}
@@ -984,6 +1092,18 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                   setCalcModalOpen(null);
                 }}
                 onClose={() => setCalcModalOpen(null)}
+              />
+            )}
+            {timeFactorsModalOpen != null && (
+              <TimeAsFactorsModal
+                sourceColumn={timeFactorsModalOpen.sourceColumn}
+                timeColumns={timeColumns}
+                existingBinding={timeDecompositionBindings.find(
+                  b => b.sourceColumn === timeFactorsModalOpen.sourceColumn
+                )}
+                rows={rawData}
+                onSave={handleTimeFactorsSave}
+                onClose={() => setTimeFactorsModalOpen(null)}
               />
             )}
           </>

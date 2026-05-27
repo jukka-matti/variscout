@@ -6,9 +6,22 @@ export * from './formula';
 export type { PairedTimingColumns } from './detectPairedTimingColumns';
 
 // Task 2: Step timing bindings + Lead_time / Total_work_time / Wait_time derivation
-export type { StepTimingBinding, StepTimingsByStepId } from './types';
+// Task 1 (D3): Time decomposition binding types
+export type {
+  StepTimingBinding,
+  StepTimingsByStepId,
+  TimeDimension,
+  HourGranularityMinutes,
+  TimeDecompositionBinding,
+} from './types';
 export {
   computeLeadTimeColumn,
   computeTotalWorkTimeColumn,
   computeWaitTimeColumn,
 } from './leadTime';
+
+// Task 2 (D3): Time decomposition column engine
+export { computeTimeDecompositionColumns, derivedTimeColumnName } from './timeDecomposition';
+
+// Task 3 (D3): Detect date-kind columns for the time-as-factors system hint
+export { detectTimeColumns, type DetectTimeColumnsResult } from './detectTimeColumns';

@@ -20,6 +20,15 @@ export interface EditModeShellProps {
   /** Raw numeric values per column, for sparklines and OutcomeZone target seeding. Defaults to {}. */
   numericValuesByColumn?: Record<string, number[]>;
   /**
+   * Categorical values per column — passthrough channel parallel to
+   * `numericValuesByColumn`. D3 Task 8: V1 scope contains ONLY the
+   * time-decomposition derived columns (raw categorical values continue to
+   * flow via `rows`). Forwarded unchanged to {@link Palette}. Downstream
+   * Analyze/Explore consumers light up this channel incrementally in F1/H1.
+   * Defaults to `{}`.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
+  /**
    * Categorical columns mapped to their ordered distinct values. Forwarded to
    * {@link handleEditModeDragEnd} so the process-zone drop router can extract
    * steps from a categorical column drag (C3 Task 2). Numeric columns are
@@ -99,6 +108,7 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
   onDone,
   profiles = [],
   numericValuesByColumn = {},
+  categoricalValuesByColumn = {},
   categoricalDistinctValuesByColumn = {},
   systemHints,
   onMenuItemSelect,
@@ -170,6 +180,7 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
             <Palette
               profiles={profiles}
               numericValuesByColumn={numericValuesByColumn}
+              categoricalValuesByColumn={categoricalValuesByColumn}
               systemHints={systemHints}
               onMenuItemSelect={onMenuItemSelect}
               onOverrideAccept={onOverrideAccept}

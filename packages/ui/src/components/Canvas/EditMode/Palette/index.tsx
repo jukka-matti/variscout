@@ -21,6 +21,14 @@ export interface SystemHint {
 export interface PaletteProps {
   profiles: ColumnParsingProfile[];
   numericValuesByColumn: Record<string, number[]>;
+  /**
+   * Categorical values per column — passthrough channel parallel to
+   * `numericValuesByColumn`. D3 Task 8: V1 contains ONLY time-decomposition
+   * derived columns (raw categorical values continue to flow via `rows`).
+   * Currently held but not consumed inside Palette; downstream Analyze/Explore
+   * consumers light up incrementally in F1/H1.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
   /** Contextual system hints rendered as banners above the chip groups. */
   systemHints?: SystemHint[];
   /** Notify when a context-menu item is chosen. Routed to no-op by default. */
@@ -94,6 +102,10 @@ const WARNING_BANNER_THRESHOLD = 3;
 export const Palette: React.FC<PaletteProps> = ({
   profiles,
   numericValuesByColumn,
+  // D3 Task 8: categoricalValuesByColumn is a passthrough channel for derived
+  // time-decomposition columns. V1 holds the prop but does not consume it
+  // inside Palette — downstream Analyze/Explore consumers light up in F1/H1.
+  categoricalValuesByColumn: _categoricalValuesByColumn,
   systemHints,
   onMenuItemSelect,
   onOverrideAccept,
