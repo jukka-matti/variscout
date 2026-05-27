@@ -367,3 +367,76 @@ describe('end-to-end drag-end integration (C3 Task 8 — Approach 1)', () => {
     expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
   });
 });
+
+describe('EditModeShell — EditModeToolbar wiring (D1 Task 7)', () => {
+  it('renders EditModeToolbar between the header and the 3-column grid', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={() => undefined} />
+      </DndContext>
+    );
+    const toolbar = screen.getByRole('toolbar', { name: 'Edit mode toolbar' });
+    expect(toolbar).toBeInTheDocument();
+  });
+
+  it('toolbar button is disabled when steps is empty (default)', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={() => undefined} />
+      </DndContext>
+    );
+    const btn = screen.getByRole('button', { name: /\+ Capture step timings/i });
+    expect(btn).toBeDisabled();
+  });
+
+  it('toolbar button is disabled when steps=[] is passed explicitly', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={() => undefined} steps={[]} />
+      </DndContext>
+    );
+    const btn = screen.getByRole('button', { name: /\+ Capture step timings/i });
+    expect(btn).toBeDisabled();
+  });
+
+  it('toolbar button is enabled when steps has at least one step', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={() => undefined} steps={[{ id: 's1', name: 'Mix', order: 0 }]} />
+      </DndContext>
+    );
+    const btn = screen.getByRole('button', { name: /\+ Capture step timings/i });
+    expect(btn).not.toBeDisabled();
+  });
+
+  it('clicking the toolbar button calls onCaptureStepTimings when steps are present', () => {
+    const onCaptureStepTimings = vi.fn();
+    render(
+      <DndContext>
+        <EditModeShell
+          onDone={() => undefined}
+          steps={[{ id: 's1', name: 'Mix', order: 0 }]}
+          onCaptureStepTimings={onCaptureStepTimings}
+        />
+      </DndContext>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /\+ Capture step timings/i }));
+    expect(onCaptureStepTimings).toHaveBeenCalledTimes(1);
+  });
+
+  it('toolbar appears between the header and the grid (DOM order)', () => {
+    const { container } = render(
+      <DndContext>
+        <EditModeShell onDone={() => undefined} />
+      </DndContext>
+    );
+    const section = container.querySelector('[data-testid="edit-mode-shell"]');
+    const children = Array.from(section?.children ?? []);
+    const headerIdx = children.findIndex(el => el.tagName === 'HEADER');
+    const toolbarIdx = children.findIndex(el => el.getAttribute('role') === 'toolbar');
+    const gridIdx = children.findIndex(el => el.className.includes('grid'));
+    expect(headerIdx).toBeGreaterThanOrEqual(0);
+    expect(toolbarIdx).toBeGreaterThan(headerIdx);
+    expect(gridIdx).toBeGreaterThan(toolbarIdx);
+  });
+});
