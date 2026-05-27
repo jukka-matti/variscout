@@ -564,6 +564,7 @@ export type {
 export type {
   AnalyzeDepth,
   AnalyzeStatus,
+  OutcomeSpec,
   ProcessHubAttentionReason,
   ScopeFilter,
   ProcessHubCadenceQueue,
