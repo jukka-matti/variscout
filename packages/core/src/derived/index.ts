@@ -6,7 +6,14 @@ export * from './formula';
 export type { PairedTimingColumns } from './detectPairedTimingColumns';
 
 // Task 2: Step timing bindings + Lead_time / Total_work_time / Wait_time derivation
-export type { StepTimingBinding, StepTimingsByStepId } from './types';
+// Task 1 (D3): Time decomposition binding types
+export type {
+  StepTimingBinding,
+  StepTimingsByStepId,
+  TimeDimension,
+  HourGranularityMinutes,
+  TimeDecompositionBinding,
+} from './types';
 export {
   computeLeadTimeColumn,
   computeTotalWorkTimeColumn,

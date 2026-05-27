@@ -392,6 +392,93 @@ describe('augmentWithTimeColumns', () => {
   });
 });
 
+describe('extractTimeComponents — Quarter extraction', () => {
+  /** Base config with all required fields set to false, to test quarter in isolation */
+  const noOtherExtraction: TimeExtractionConfig = {
+    extractYear: false,
+    extractMonth: false,
+    extractWeek: false,
+    extractDayOfWeek: false,
+    extractHour: false,
+  };
+
+  it('returns Q1 for January', () => {
+    expect(
+      extractTimeComponents(dcv(new Date('2025-01-15')), {
+        ...noOtherExtraction,
+        extractQuarter: true,
+      }).quarter
+    ).toBe('Q1');
+  });
+
+  it('returns Q1 for March (boundary)', () => {
+    expect(
+      extractTimeComponents(dcv(new Date('2025-03-31')), {
+        ...noOtherExtraction,
+        extractQuarter: true,
+      }).quarter
+    ).toBe('Q1');
+  });
+
+  it('returns Q2 for April (boundary)', () => {
+    expect(
+      extractTimeComponents(dcv(new Date('2025-04-01')), {
+        ...noOtherExtraction,
+        extractQuarter: true,
+      }).quarter
+    ).toBe('Q2');
+  });
+
+  it('returns Q2 for May', () => {
+    expect(
+      extractTimeComponents(dcv(new Date('2025-05-15')), {
+        ...noOtherExtraction,
+        extractQuarter: true,
+      }).quarter
+    ).toBe('Q2');
+  });
+
+  it('returns Q3 for July', () => {
+    expect(
+      extractTimeComponents(dcv(new Date('2025-07-15')), {
+        ...noOtherExtraction,
+        extractQuarter: true,
+      }).quarter
+    ).toBe('Q3');
+  });
+
+  it('returns Q4 for October', () => {
+    expect(
+      extractTimeComponents(dcv(new Date('2025-10-15')), {
+        ...noOtherExtraction,
+        extractQuarter: true,
+      }).quarter
+    ).toBe('Q4');
+  });
+
+  it('returns Q4 for December (boundary)', () => {
+    expect(
+      extractTimeComponents(dcv(new Date('2025-12-31')), {
+        ...noOtherExtraction,
+        extractQuarter: true,
+      }).quarter
+    ).toBe('Q4');
+  });
+
+  it('omits quarter when extractQuarter is false', () => {
+    const result = extractTimeComponents(dcv(new Date('2025-01-15')), {
+      ...noOtherExtraction,
+      extractQuarter: false,
+    });
+    expect(result.quarter).toBeUndefined();
+  });
+
+  it('omits quarter when extractQuarter is undefined', () => {
+    const result = extractTimeComponents(dcv(new Date('2025-01-15')), noOtherExtraction);
+    expect(result.quarter).toBeUndefined();
+  });
+});
+
 describe('hasTimeComponent', () => {
   it('detects datetime values', () => {
     const data = [

@@ -18,6 +18,7 @@ export type TimeGranularity = 'minute' | 'hour' | 'day' | 'week';
  */
 export interface TimeComponents {
   year?: string; // "2025"
+  quarter?: string; // "Q1"
   month?: string; // "Jan"
   week?: string; // "W03"
   dayOfWeek?: string; // "Mon"
@@ -29,6 +30,7 @@ export interface TimeComponents {
  */
 export interface TimeExtractionConfig {
   extractYear: boolean;
+  extractQuarter?: boolean;
   extractMonth: boolean;
   extractWeek: boolean;
   extractDayOfWeek: boolean;
@@ -169,6 +171,11 @@ export function extractTimeComponents(
 
   if (config.extractYear) {
     components.year = String(date.getFullYear());
+  }
+
+  if (config.extractQuarter) {
+    const quarterNum = Math.floor(date.getMonth() / 3) + 1;
+    components.quarter = `Q${quarterNum}`;
   }
 
   if (config.extractMonth) {

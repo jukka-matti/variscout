@@ -22,3 +22,18 @@ export type StepTimingBinding =
     };
 
 export type StepTimingsByStepId = Record<string, StepTimingBinding>;
+
+export type TimeDimension = 'year' | 'quarter' | 'month' | 'week' | 'dayOfWeek' | 'hour';
+
+export type HourGranularityMinutes = 60 | 30 | 15 | 5;
+
+export interface TimeDecompositionBinding {
+  /** Stable id for React keys + binding-by-id lookups */
+  id: string;
+  /** The source column name (must be a date-kind column) */
+  sourceColumn: string;
+  /** Which time dimensions to derive */
+  dimensions: TimeDimension[];
+  /** Meaningful only when 'hour' is in dimensions. Defaults to 60 when omitted. */
+  hourGranularityMinutes?: HourGranularityMinutes;
+}
