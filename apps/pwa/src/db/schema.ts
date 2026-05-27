@@ -28,7 +28,7 @@
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
 import Dexie, { type Table } from 'dexie';
-import type { ProcessHub, OutcomeSpec, ProcessHubInvestigation } from '@variscout/core/processHub';
+import type { ProcessHub, OutcomeSpec, ProcessHubAnalyze } from '@variscout/core/processHub';
 import type {
   EvidenceSnapshot,
   EvidenceSource,
@@ -91,7 +91,7 @@ export type EvidenceSnapshotRow = EvidenceSnapshot;
 export type EvidenceSourceRow = EvidenceSource;
 export type EvidenceSourceCursorRow = EvidenceSourceCursor;
 export type RowProvenanceRow = RowProvenanceTag;
-export type InvestigationRow = ProcessHubInvestigation;
+export type InvestigationRow = ProcessHubAnalyze;
 export type FindingRow = Finding;
 export type QuestionRow = Question;
 export type CausalLinkRow = CausalLink;

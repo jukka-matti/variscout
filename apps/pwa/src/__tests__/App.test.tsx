@@ -17,8 +17,8 @@ vi.mock('../components/Dashboard', () => ({
 vi.mock('../components/views/FrameView', () => ({
   default: () => <div data-testid="frame-view-stub">FrameView</div>,
 }));
-vi.mock('../components/views/InvestigationView', () => ({
-  default: () => <div data-testid="investigation-view-stub">InvestigationView</div>,
+vi.mock('../components/views/AnalyzeView', () => ({
+  default: () => <div data-testid="analyze-view-stub">AnalyzeView</div>,
 }));
 vi.mock('../components/views/ImprovementView', () => ({
   default: () => <div data-testid="improvement-view-stub">ImprovementView</div>,

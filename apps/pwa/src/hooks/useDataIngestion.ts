@@ -5,7 +5,7 @@
  */
 
 import { useIsMobile } from '@variscout/ui';
-import { useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useProjectStore, useAnalyzeStore } from '@variscout/stores';
 import type { Hypothesis, CausalLink } from '@variscout/core';
 import {
   useDataIngestion as useDataIngestionBase,
@@ -39,9 +39,9 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setFindings: useProjectStore(s => s.setFindings),
     setQuestions: useProjectStore(s => s.setQuestions),
     setCategories: useProjectStore(s => s.setCategories),
-    setHypotheses: (hubs: Hypothesis[]) => useInvestigationStore.getState().resetHubs(hubs),
+    setHypotheses: (hubs: Hypothesis[]) => useAnalyzeStore.getState().resetHubs(hubs),
     setCausalLinks: (links: CausalLink[]) =>
-      useInvestigationStore.getState().loadInvestigationState({ causalLinks: links }),
+      useAnalyzeStore.getState().loadAnalyzeState({ causalLinks: links }),
     setProcessContext: useProjectStore(s => s.setProcessContext),
     getProcessContext: () => useProjectStore.getState().processContext,
     setSubgroupConfig: useProjectStore(s => s.setSubgroupConfig),

@@ -1,19 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
-  useInvestigationFeatureStore,
-  buildQuestionsMap,
-  buildIdeaImpacts,
-} from '../investigationStore';
+import { useAnalyzeFeatureStore, buildQuestionsMap, buildIdeaImpacts } from '../analyzeStore';
 import type { Question } from '@variscout/core';
 
 beforeEach(() => {
-  useInvestigationFeatureStore.setState({
+  useAnalyzeFeatureStore.setState({
     projectionTarget: null,
     expandedQuestionId: null,
   });
 });
 
-describe('investigationStore', () => {
+describe('analyzeStore', () => {
   it('setProjectionTarget sets and clears', () => {
     const target = {
       questionId: 'q-1',
@@ -21,15 +17,15 @@ describe('investigationStore', () => {
       ideaText: 'Change shift',
       questionText: 'Shift effect',
     };
-    useInvestigationFeatureStore.getState().setProjectionTarget(target);
-    expect(useInvestigationFeatureStore.getState().projectionTarget).toEqual(target);
-    useInvestigationFeatureStore.getState().setProjectionTarget(null);
-    expect(useInvestigationFeatureStore.getState().projectionTarget).toBeNull();
+    useAnalyzeFeatureStore.getState().setProjectionTarget(target);
+    expect(useAnalyzeFeatureStore.getState().projectionTarget).toEqual(target);
+    useAnalyzeFeatureStore.getState().setProjectionTarget(null);
+    expect(useAnalyzeFeatureStore.getState().projectionTarget).toBeNull();
   });
 
   it('expandToQuestion sets expanded ID', () => {
-    useInvestigationFeatureStore.getState().expandToQuestion('q-42');
-    expect(useInvestigationFeatureStore.getState().expandedQuestionId).toBe('q-42');
+    useAnalyzeFeatureStore.getState().expandToQuestion('q-42');
+    expect(useAnalyzeFeatureStore.getState().expandedQuestionId).toBe('q-42');
   });
 });
 

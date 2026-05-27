@@ -88,7 +88,7 @@ export type InvestigationStore = InvestigationStoreState & InvestigationStoreAct
 
 // ── Store ───────────────────────────────────────────────────────────────────
 
-export const useInvestigationFeatureStore = create<InvestigationStore>(set => ({
+export const useAnalyzeFeatureStore = create<InvestigationStore>(set => ({
   // Initial state
   projectionTarget: null,
   expandedQuestionId: null,

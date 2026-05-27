@@ -14,7 +14,7 @@
  * # Emit-target decision (Phase 9.2 deviation note)
  *
  * Mirrors the Azure twin's decision recorded in
- * `apps/azure/src/features/investigation/useWallBackgroundJobs.ts`.
+ * `apps/azure/src/features/analyze/useWallBackgroundJobs.ts`.
  */
 
 export function useWallBackgroundJobs(): void {

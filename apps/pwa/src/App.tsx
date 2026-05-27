@@ -57,7 +57,7 @@ import {
 import type { FindingsActionMessage } from '@variscout/hooks';
 import {
   useProjectStore,
-  useInvestigationStore,
+  useAnalyzeStore,
   usePreferencesStore,
   useCanvasViewportStore,
   useViewStore,
@@ -86,8 +86,8 @@ import { useAppPanels } from './hooks/useAppPanels';
 import { usePanelsStore } from './features/panels/panelsStore';
 import { useFindingsStore, groupFindingsByChart } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
-import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
-import { useCanvasViewportLifecycle } from './features/investigation/useCanvasViewportLifecycle';
+import { useAnalyzeOrchestration } from './features/analyze/useAnalyzeOrchestration';
+import { useCanvasViewportLifecycle } from './features/analyze/useCanvasViewportLifecycle';
 import { useStatsWorker } from './workers/useStatsWorker';
 import { useActiveIPContext } from './hooks/useActiveIPContext';
 
@@ -120,7 +120,7 @@ const ProcessIntelligencePanel = lazyWithRetry(
 const FrameView = lazyWithRetry(() => import('./components/views/FrameView'));
 const ImprovementProjectPanel = lazyWithRetry(() => import('./components/ImprovementProjectPanel'));
 const SustainmentPanel = lazyWithRetry(() => import('./components/SustainmentPanel'));
-const InvestigationView = lazyWithRetry(() => import('./components/views/InvestigationView'));
+const AnalyzeView = lazyWithRetry(() => import('./components/views/AnalyzeView'));
 const ImprovementView = lazyWithRetry(() => import('./components/views/ImprovementView'));
 const ProjectsTabView = lazyWithRetry(() => import('./components/ProjectsTabView'));
 const ReportView = lazyWithRetry(() => import('./components/views/ReportView'));
@@ -213,9 +213,9 @@ function AppMain() {
   const defectMapping = useProjectStore(s => s.defectMapping);
 
   // Investigation store (domain — questions, hypotheses)
-  const questions = useInvestigationStore(s => s.questions);
-  const hypotheses = useInvestigationStore(s => s.hypotheses);
-  const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
+  const questions = useAnalyzeStore(s => s.questions);
+  const hypotheses = useAnalyzeStore(s => s.hypotheses);
+  const linkFindingToQuestion = useAnalyzeStore(s => s.linkFindingToQuestion);
 
   // Measurement plans — loaded from IndexedDB for all current hypotheses.
   // Re-loads whenever the hypothesis list changes (new hub added or removed).
@@ -286,7 +286,7 @@ function AppMain() {
   const setCpkTarget = useProjectStore(s => s.setCpkTarget);
   const setDefectMapping = useProjectStore(s => s.setDefectMapping);
   const setQuestions = useCallback((qs: Question[]) => {
-    useInvestigationStore.getState().loadInvestigationState({ questions: qs });
+    useAnalyzeStore.getState().loadAnalyzeState({ questions: qs });
   }, []);
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
@@ -388,7 +388,7 @@ function AppMain() {
     (rawData.length > 0 ? DEFAULT_PROCESS_HUB_ID : null);
   useCanvasViewportLifecycle(canvasViewportHubId);
 
-  const investigation = useInvestigationOrchestration({
+  const investigation = useAnalyzeOrchestration({
     questionsState,
     findingsState: {
       findings: findingsState.findings,
@@ -407,13 +407,13 @@ function AppMain() {
 
   // Mobile tab bar (phone only, <640px)
   const isPhone = useIsMobile(BREAKPOINTS.phone);
-  const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
+  const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('explore');
 
   // Reset mobile tab and workspace when data is cleared
   useEffect(() => {
     if (rawData.length === 0) {
-      setMobileActiveTab('analysis');
-      panels.showAnalysis();
+      setMobileActiveTab('explore');
+      panels.showExplore();
       // Mode B: reset Stage 1 narrative gate so the next paste flow re-asks.
       setGoalNarrative(null);
     }
@@ -423,9 +423,9 @@ function AppMain() {
     (tab: MobileTab) => {
       setMobileActiveTab(tab);
       if (tab === 'findings') {
-        panels.showInvestigation();
-      } else if (tab === 'analysis') {
-        panels.showAnalysis();
+        panels.showAnalyze();
+      } else if (tab === 'explore') {
+        panels.showExplore();
       } else if (tab === 'improve') {
         panels.showImprovement();
       }
@@ -767,13 +767,13 @@ function AppMain() {
   );
 
   // Phase tab navigation handler (used by AppHeader inline tabs).
-  // PhaseId values follow wedge V1 naming (process / analyze / project); panelsStore enum stays stable.
+  // PhaseId values follow wedge V1 vocabulary (2026-05-27): explore (EDA) / analyze.
   const handlePhaseChange = useCallback(
     (phase: PhaseId) => {
       if (phase === 'home') panels.showHome();
       else if (phase === 'process') panels.showFrame();
-      else if (phase === 'analyze') panels.showAnalysis();
-      else if (phase === 'investigation') panels.showInvestigation();
+      else if (phase === 'explore') panels.showExplore();
+      else if (phase === 'analyze') panels.showAnalyze();
       else if (phase === 'improvement') panels.showImprovement();
       else if (phase === 'project') panels.showProjects();
       else panels.showReport();
@@ -790,10 +790,10 @@ function AppMain() {
         return 'project';
       case 'frame':
         return 'process';
-      case 'analysis':
+      case 'explore':
+        return 'explore';
+      case 'analyze':
         return 'analyze';
-      case 'investigation':
-        return 'investigation';
       case 'improvement':
         return 'improvement';
       case 'report':
@@ -808,7 +808,7 @@ function AppMain() {
 
   // Wall-variant propose-hypothesis CTA
   const wallViewMode = useCanvasViewportStore(s => s.viewMode);
-  const createHubFromFinding = useInvestigationStore(s => s.createHubFromFinding);
+  const createHubFromFinding = useAnalyzeStore(s => s.createHubFromFinding);
   const handleProposeHypothesisFromFinding = useCallback(
     (findingId: string) => {
       createHubFromFinding(findingId);
@@ -1098,7 +1098,7 @@ function AppMain() {
             activeIPContext.clearActiveIP();
             if (panels.activeView === 'projects') panels.showProjects();
           }}
-          hideFindings={panels.activeView === 'investigation'}
+          hideFindings={panels.activeView === 'analyze'}
           activePhase={
             rawData.length > 0 &&
             !importFlow.isPasteMode &&
@@ -1187,7 +1187,7 @@ function AppMain() {
             <button
               type="button"
               onClick={stageFive.openOnDemand}
-              data-testid="canvas-new-investigation"
+              data-testid="canvas-new-analyze"
               className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
             >
               + New investigation
@@ -1345,7 +1345,7 @@ function AppMain() {
                 onBack={panels.showFrame}
                 onOpenWall={() => {
                   useCanvasViewportStore.getState().setViewMode('wall');
-                  panels.showInvestigation();
+                  panels.showAnalyze();
                 }}
               />
             ) : panels.activeView === 'sustainment' ? (
@@ -1354,8 +1354,8 @@ function AppMain() {
                 targetId={panels.sustainmentTargetId ?? undefined}
                 onBack={panels.showFrame}
               />
-            ) : panels.activeView === 'investigation' ? (
-              <InvestigationView
+            ) : panels.activeView === 'analyze' ? (
+              <AnalyzeView
                 activeIPScope={activeIPScope}
                 activeIPLineage={activeIPLineage}
                 canvasViewportHubId={normalizeProcessHubId(canvasViewportHubId)}
@@ -1390,8 +1390,8 @@ function AppMain() {
                   panels.showProjects(id);
                 }}
                 onJumpOut={target => {
-                  if (target === 'investigation') panels.showInvestigation();
-                  else if (target === 'analyze') panels.showAnalysis();
+                  if (target === 'analyze') panels.showAnalyze();
+                  else if (target === 'explore') panels.showExplore();
                   else if (target === 'process') panels.showFrame();
                   else if (target === 'improve-workbench') panels.showImprovement();
                   else if (target === 'report') panels.showReport();
@@ -1444,7 +1444,7 @@ function AppMain() {
               />
             ) : panels.activeView === 'report' ? (
               <ReportView
-                onClose={panels.showAnalysis}
+                onClose={panels.showExplore}
                 stats={stats}
                 specs={specs}
                 findings={findingsState.findings}
@@ -1537,7 +1537,7 @@ function AppMain() {
                 isOpen={panels.isDesktop ? panels.isFindingsPanelOpen : true}
                 onClose={() => {
                   if (isPhone) {
-                    setMobileActiveTab('analysis');
+                    setMobileActiveTab('explore');
                   }
                   panels.handleCloseFindingsPanel();
                   setHighlightedFindingId(null);
@@ -1746,14 +1746,14 @@ function AppMain() {
         <>
           <div
             className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setMobileActiveTab('analysis')}
+            onClick={() => setMobileActiveTab('explore')}
           />
           <div className="fixed bottom-[50px] left-0 right-0 bg-surface-primary border-t border-edge rounded-t-2xl z-50 animate-slide-up safe-area-bottom">
             <div className="py-2">
               <button
                 className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
                 onClick={() => {
-                  setMobileActiveTab('analysis');
+                  setMobileActiveTab('explore');
                   panels.showReport();
                 }}
               >
@@ -1763,7 +1763,7 @@ function AppMain() {
               <button
                 className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
                 onClick={() => {
-                  setMobileActiveTab('analysis');
+                  setMobileActiveTab('explore');
                   panels.setIsWhatIfPageOpen(true);
                 }}
               >
@@ -1773,7 +1773,7 @@ function AppMain() {
               <button
                 className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
                 onClick={() => {
-                  setMobileActiveTab('analysis');
+                  setMobileActiveTab('explore');
                   panels.setIsSettingsOpen(true);
                 }}
               >
@@ -1783,7 +1783,7 @@ function AppMain() {
               <button
                 className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
                 onClick={() => {
-                  setMobileActiveTab('analysis');
+                  setMobileActiveTab('explore');
                   handleExportCSV();
                 }}
               >
@@ -1793,7 +1793,7 @@ function AppMain() {
               <button
                 className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
                 onClick={() => {
-                  setMobileActiveTab('analysis');
+                  setMobileActiveTab('explore');
                   panels.setHighlightRowIndex(null);
                   panels.setIsDataTableOpen(true);
                 }}
@@ -1805,7 +1805,7 @@ function AppMain() {
               <button
                 className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-red-400 hover:bg-surface-secondary transition-colors"
                 onClick={() => {
-                  setMobileActiveTab('analysis');
+                  setMobileActiveTab('explore');
                   panels.handleResetRequest();
                 }}
               >

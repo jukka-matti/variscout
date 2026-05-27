@@ -1,13 +1,13 @@
 /**
- * Tests for Map/Wall toggle wired into PWA InvestigationView.
+ * Tests for Map/Wall toggle wired into PWA AnalyzeView.
  *
  * Strategy:
  * - Heavy dependencies (charts, hooks, feature stores) are mocked so we can
- *   render InvestigationView in isolation without providing the full
+ *   render AnalyzeView in isolation without providing the full
  *   orchestration props tree.
  * - useCanvasViewportStore is NOT mocked — we use the real store and reset it in
  *   beforeEach per the Zustand testing pattern in .claude/rules/testing.md.
- * - useProjectStore / useInvestigationStore are NOT mocked for the toggle
+ * - useProjectStore / useAnalyzeStore are NOT mocked for the toggle
  *   path — we seed processMap via useProjectStore.setState.
  *
  * IMPORTANT: vi.mock() calls must appear before any component imports.
@@ -44,8 +44,8 @@ vi.mock('@variscout/ui', async importOriginal => {
   return {
     ...actual,
     QuestionChecklist: () => <div data-testid="question-checklist" />,
-    InvestigationPhaseBadge: () => null,
-    InvestigationConclusion: () => null,
+    AnalyzePhaseBadge: () => null,
+    AnalyzeConclusion: () => null,
     FindingsLog: () => <div data-testid="findings-log" />,
     useWallIsMobile: () => false,
     WallCanvas: (props: { hubs: unknown[]; planningProps?: Record<string, unknown> }) => {
@@ -76,15 +76,15 @@ vi.mock('../../../features/findings/findingsStore', () => ({
     selector({ highlightedFindingId: null }),
 }));
 
-vi.mock('../../../features/investigation/investigationStore', () => ({
-  useInvestigationFeatureStore: {
+vi.mock('../../../features/analyze/analyzeStore', () => ({
+  useAnalyzeFeatureStore: {
     getState: () => ({ expandToQuestion: vi.fn() }),
   },
 }));
 
 vi.mock('../../../features/panels/panelsStore', () => ({
   usePanelsStore: {
-    getState: () => ({ showAnalysis: vi.fn(), showCharter: showCharterMock }),
+    getState: () => ({ showExplore: vi.fn(), showCharter: showCharterMock }),
   },
 }));
 
@@ -99,15 +99,15 @@ import {
 import { DEFAULT_PROCESS_HUB_ID } from '@variscout/core';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
-import InvestigationView from '../InvestigationView';
+import AnalyzeView from '../AnalyzeView';
 
 const h = (id: string) => id as ProcessHubId;
 
 // ── 3. Minimal props factory ───────────────────────────────────────────────
 
 function makeMinimalProps(
-  overrides: Partial<React.ComponentProps<typeof InvestigationView>> = {}
-): React.ComponentProps<typeof InvestigationView> {
+  overrides: Partial<React.ComponentProps<typeof AnalyzeView>> = {}
+): React.ComponentProps<typeof AnalyzeView> {
   const noOp = vi.fn();
   return {
     canvasViewportHubId: h('hub-test'),
@@ -156,7 +156,7 @@ function makeMinimalProps(
 
 // ── 4. Tests ───────────────────────────────────────────────────────────────
 
-describe('PWA InvestigationView Map/Wall toggle', () => {
+describe('PWA AnalyzeView Map/Wall toggle', () => {
   beforeEach(() => {
     // Reset canvasViewportStore to initial state (viewMode = 'map')
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
@@ -167,7 +167,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
   });
 
   it('defaults to Map view — Map button has aria-pressed="true"', () => {
-    render(<InvestigationView {...makeMinimalProps()} />);
+    render(<AnalyzeView {...makeMinimalProps()} />);
 
     const mapBtn = screen.getByRole('button', { name: /^map$/i });
     expect(mapBtn.getAttribute('aria-pressed')).toBe('true');
@@ -177,12 +177,12 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
   });
 
   it('renders FindingsLog by default (Map mode)', () => {
-    render(<InvestigationView {...makeMinimalProps()} />);
+    render(<AnalyzeView {...makeMinimalProps()} />);
     expect(screen.getByTestId('findings-log')).toBeTruthy();
   });
 
   it('switches to Wall on click and persists state in the store', () => {
-    render(<InvestigationView {...makeMinimalProps()} />);
+    render(<AnalyzeView {...makeMinimalProps()} />);
 
     fireEvent.click(screen.getByRole('button', { name: /^wall$/i }));
 
@@ -202,9 +202,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
       },
     });
 
-    render(
-      <InvestigationView {...makeMinimalProps({ canvasViewportHubId: h('session-hub-1') })} />
-    );
+    render(<AnalyzeView {...makeMinimalProps({ canvasViewportHubId: h('session-hub-1') })} />);
 
     const groupByTributary = screen.getByRole('button', { name: /group by tributary/i });
     fireEvent.click(groupByTributary);
@@ -218,7 +216,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
     // Pre-set the store to 'wall' to simulate persisted state
     useCanvasViewportStore.getState().setViewMode('wall');
 
-    render(<InvestigationView {...makeMinimalProps()} />);
+    render(<AnalyzeView {...makeMinimalProps()} />);
 
     const wallBtn = screen.getByRole('button', { name: /^wall$/i });
     expect(wallBtn.getAttribute('aria-pressed')).toBe('true');
@@ -237,7 +235,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
       },
     });
 
-    render(<InvestigationView {...makeMinimalProps()} />);
+    render(<AnalyzeView {...makeMinimalProps()} />);
 
     // WallCanvas renders (either empty or not, but present)
     expect(
@@ -249,7 +247,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
     useCanvasViewportStore.getState().setViewMode('wall');
     // processMap is null by default after reset
 
-    render(<InvestigationView {...makeMinimalProps()} />);
+    render(<AnalyzeView {...makeMinimalProps()} />);
 
     expect(
       screen.queryByTestId('wall-canvas') ?? screen.queryByTestId('wall-canvas-empty')
@@ -257,7 +255,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
   });
 
   it('list/board/tree sub-toggle is visible in Map mode', () => {
-    render(<InvestigationView {...makeMinimalProps()} />);
+    render(<AnalyzeView {...makeMinimalProps()} />);
     // All three sub-toggle buttons should be present in Map mode
     expect(screen.getByRole('button', { name: /^list$/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /^board$/i })).toBeTruthy();
@@ -267,7 +265,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
   it('list/board/tree sub-toggle is hidden in Wall mode', () => {
     useCanvasViewportStore.getState().setViewMode('wall');
 
-    render(<InvestigationView {...makeMinimalProps()} />);
+    render(<AnalyzeView {...makeMinimalProps()} />);
 
     expect(screen.queryByRole('button', { name: /^list$/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /^board$/i })).toBeNull();
@@ -285,7 +283,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
       })
     );
 
-    render(<InvestigationView {...makeMinimalProps()} />);
+    render(<AnalyzeView {...makeMinimalProps()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Back to Improvement Project' }));
 
@@ -305,7 +303,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
       const onEditPlan = vi.fn();
 
       render(
-        <InvestigationView
+        <AnalyzeView
           {...makeMinimalProps({
             planningProps: {
               plans: [],
@@ -329,7 +327,7 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
     });
 
     it('does not pass planningProps to WallCanvas when omitted', () => {
-      render(<InvestigationView {...makeMinimalProps()} />);
+      render(<AnalyzeView {...makeMinimalProps()} />);
       expect(capturedWallCanvasProps.current?.planningProps).toBeUndefined();
     });
   });

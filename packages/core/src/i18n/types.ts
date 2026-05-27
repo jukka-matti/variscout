@@ -680,8 +680,8 @@ export interface MessageCatalog {
 
   // Workspace navigation (wedge V1 amendment 2026-05-16: Frame → Process, Analysis → Analyze)
   'workspace.process': string;
+  'workspace.explore': string;
   'workspace.analyze': string;
-  'workspace.investigation': string;
   'workspace.improvement': string;
   'workspace.improve': string;
   'workspace.project': string;

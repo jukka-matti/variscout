@@ -29,7 +29,7 @@ import type {
   OutcomeReadAPI,
   EvidenceSnapshotReadAPI,
   EvidenceSourceReadAPI,
-  InvestigationReadAPI,
+  AnalyzeReadAPI,
   FindingReadAPI,
   QuestionReadAPI,
   CausalLinkReadAPI,
@@ -213,7 +213,7 @@ export class PwaHubRepository implements HubRepository {
     },
   };
 
-  investigations: InvestigationReadAPI = {
+  investigations: AnalyzeReadAPI = {
     get: async id => {
       const row = await db.investigations.get(id);
       if (!row || row.deletedAt !== null) return undefined;

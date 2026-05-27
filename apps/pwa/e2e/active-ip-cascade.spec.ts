@@ -35,7 +35,7 @@ test('Home pick IP, chip persists across tabs, Exit IP clears chip', async ({ pa
   );
   await expect(page.getByTestId('active-ip-scope-ribbon')).toContainText('Factor: shift');
 
-  await page.getByTestId('phase-tab-investigation').click();
+  await page.getByTestId('phase-tab-analyze').click();
   await expect(chip).toContainText('Fill Cpk lift');
   await expect(page.getByTestId('active-ip-scope-ribbon')).toContainText(
     'Investigation scoped to Fill Cpk lift'

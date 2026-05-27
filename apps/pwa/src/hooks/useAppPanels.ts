@@ -26,8 +26,8 @@ export interface UseAppPanelsReturn {
     | 'sustainment';
   showFrame: () => void;
   showHome: () => void;
-  showAnalysis: () => void;
-  showInvestigation: () => void;
+  showExplore: () => void;
+  showAnalyze: () => void;
   showImprovement: () => void;
   showProjects: (projectId?: string) => void;
   showReport: () => void;
@@ -98,8 +98,8 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   // ── Action selectors (stable function references from the store) ──────
   const showFrame = usePanelsStore(s => s.showFrame);
   const showHome = usePanelsStore(s => s.showHome);
-  const showAnalysis = usePanelsStore(s => s.showAnalysis);
-  const showInvestigation = usePanelsStore(s => s.showInvestigation);
+  const showExplore = usePanelsStore(s => s.showExplore);
+  const showAnalyze = usePanelsStore(s => s.showAnalyze);
   const showImprovement = usePanelsStore(s => s.showImprovement);
   const showProjects = usePanelsStore(s => s.showProjects);
   const showReport = usePanelsStore(s => s.showReport);
@@ -183,8 +183,8 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     activeView,
     showHome,
     showFrame,
-    showAnalysis,
-    showInvestigation,
+    showExplore,
+    showAnalyze,
     showImprovement,
     showProjects,
     showReport,

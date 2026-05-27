@@ -17,8 +17,8 @@ vi.mock('@variscout/hooks', async () => {
           'panel.findings': 'Findings',
           'panel.whatIf': 'What-If',
           'workspace.process': 'Process',
+          'workspace.explore': 'Explore',
           'workspace.analyze': 'Analyze',
-          'workspace.investigation': 'Investigation',
           'workspace.improve': 'Improve',
           'workspace.project': 'Project',
           'workspace.report': 'Report',
@@ -77,19 +77,19 @@ describe('AppHeader', () => {
 
     it('renders all phase tab buttons inside the app bar', () => {
       const onPhaseChange = vi.fn();
-      render(<AppHeader {...withDataProps} activePhase="analyze" onPhaseChange={onPhaseChange} />);
+      render(<AppHeader {...withDataProps} activePhase="explore" onPhaseChange={onPhaseChange} />);
 
       const nav = screen.getByTestId('phase-tabs-inline');
       expect(nav).toBeTruthy();
 
-      // Order per wedge V1 amendment (2026-05-16):
-      //   Home · Project · Process · Analyze · Investigation · Improve · Report
+      // Order per wedge V1 vocabulary rename (2026-05-27):
+      //   Home · Project · Process · Explore · Analyze · Improve · Report
       const phases: PhaseId[] = [
         'home',
         'project',
         'process',
+        'explore',
         'analyze',
-        'investigation',
         'improvement',
         'report',
       ];
@@ -100,21 +100,19 @@ describe('AppHeader', () => {
 
     it('marks the active phase tab with aria-selected=true (role="tab" pattern)', () => {
       const onPhaseChange = vi.fn();
-      render(
-        <AppHeader {...withDataProps} activePhase="investigation" onPhaseChange={onPhaseChange} />
-      );
-
-      const investigationBtn = screen.getByTestId('phase-tab-investigation');
-      expect(investigationBtn.getAttribute('aria-selected')).toBe('true');
-      expect(investigationBtn.getAttribute('role')).toBe('tab');
+      render(<AppHeader {...withDataProps} activePhase="analyze" onPhaseChange={onPhaseChange} />);
 
       const analyzeBtn = screen.getByTestId('phase-tab-analyze');
-      expect(analyzeBtn.getAttribute('aria-selected')).toBe('false');
+      expect(analyzeBtn.getAttribute('aria-selected')).toBe('true');
+      expect(analyzeBtn.getAttribute('role')).toBe('tab');
+
+      const exploreBtn = screen.getByTestId('phase-tab-explore');
+      expect(exploreBtn.getAttribute('aria-selected')).toBe('false');
     });
 
     it('renders a tablist container for the phase tabs', () => {
       const onPhaseChange = vi.fn();
-      render(<AppHeader {...withDataProps} activePhase="analyze" onPhaseChange={onPhaseChange} />);
+      render(<AppHeader {...withDataProps} activePhase="explore" onPhaseChange={onPhaseChange} />);
 
       const tablist = screen.getByRole('tablist');
       expect(tablist).toBeTruthy();
@@ -122,7 +120,7 @@ describe('AppHeader', () => {
 
     it('calls onPhaseChange with the correct phase id when a tab is clicked', () => {
       const onPhaseChange = vi.fn();
-      render(<AppHeader {...withDataProps} activePhase="analyze" onPhaseChange={onPhaseChange} />);
+      render(<AppHeader {...withDataProps} activePhase="explore" onPhaseChange={onPhaseChange} />);
 
       fireEvent.click(screen.getByTestId('phase-tab-process'));
       expect(onPhaseChange).toHaveBeenCalledWith('process');
@@ -130,8 +128,11 @@ describe('AppHeader', () => {
       fireEvent.click(screen.getByTestId('phase-tab-home'));
       expect(onPhaseChange).toHaveBeenCalledWith('home');
 
-      fireEvent.click(screen.getByTestId('phase-tab-investigation'));
-      expect(onPhaseChange).toHaveBeenCalledWith('investigation');
+      fireEvent.click(screen.getByTestId('phase-tab-analyze'));
+      expect(onPhaseChange).toHaveBeenCalledWith('analyze');
+
+      fireEvent.click(screen.getByTestId('phase-tab-explore'));
+      expect(onPhaseChange).toHaveBeenCalledWith('explore');
 
       fireEvent.click(screen.getByTestId('phase-tab-improvement'));
       expect(onPhaseChange).toHaveBeenCalledWith('improvement');
@@ -150,7 +151,7 @@ describe('AppHeader', () => {
 
     it('phase tabs are rendered inside the header element (not a separate strip)', () => {
       const onPhaseChange = vi.fn();
-      render(<AppHeader {...withDataProps} activePhase="analyze" onPhaseChange={onPhaseChange} />);
+      render(<AppHeader {...withDataProps} activePhase="explore" onPhaseChange={onPhaseChange} />);
 
       const header = document.querySelector('header');
       const nav = screen.getByTestId('phase-tabs-inline');

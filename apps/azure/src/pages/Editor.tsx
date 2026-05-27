@@ -461,12 +461,12 @@ export const Editor: React.FC<EditorProps> = ({
   useTranslation();
 
   // Mobile tab bar state (phone only)
-  const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
+  const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('explore');
   const [isMobileSurveyOpen, setIsMobileSurveyOpen] = useState(false);
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
   // Reset mobile tab when data is cleared
   useEffect(() => {
-    if (rawData.length === 0) setMobileActiveTab('analysis');
+    if (rawData.length === 0) setMobileActiveTab('explore');
   }, [rawData.length]);
 
   useEffect(() => {
@@ -550,7 +550,7 @@ export const Editor: React.FC<EditorProps> = ({
         ps.showAnalyze();
       } else if (tab === 'improve') {
         ps.showImprovement();
-      } else if (tab === 'analysis') {
+      } else if (tab === 'explore') {
         ps.showExplore();
       }
     },
@@ -746,7 +746,7 @@ export const Editor: React.FC<EditorProps> = ({
   // Mobile "More" sheet action handler
   const handleMobileMore = useCallback(
     (action: string) => {
-      setMobileActiveTab('analysis');
+      setMobileActiveTab('explore');
       const ps = usePanelsStore.getState();
       switch (action) {
         case 'report':
@@ -2127,7 +2127,7 @@ export const Editor: React.FC<EditorProps> = ({
       {mobileActiveTab === 'more' && isPhone && (
         <EditorMobileSheet
           onAction={handleMobileMore}
-          onClose={() => setMobileActiveTab('analysis')}
+          onClose={() => setMobileActiveTab('explore')}
         />
       )}
 

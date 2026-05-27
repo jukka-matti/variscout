@@ -1,7 +1,7 @@
 /**
  * MobileTabBar - Bottom tab bar for phone navigation (<640px)
  *
- * 4-tab layout for Azure (Analysis|Findings|Improve|More),
+ * 4-tab layout for Azure (Explore|Findings|Improve|More),
  * 3-tab layout for PWA (no Improve tab).
  * Fixed bottom position with safe-area-bottom for notched phones.
  * 44px minimum touch targets, 50px tab row height.
@@ -11,7 +11,7 @@ import { BarChart3, Pin, Lightbulb, MoreHorizontal } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import type { MessageCatalog } from '@variscout/core';
 
-export type MobileTab = 'analysis' | 'findings' | 'improve' | 'more';
+export type MobileTab = 'explore' | 'findings' | 'improve' | 'more';
 
 export interface MobileTabBarProps {
   activeTab: MobileTab;
@@ -29,7 +29,7 @@ interface TabDef {
 }
 
 const allTabs: TabDef[] = [
-  { id: 'analysis', icon: BarChart3, i18nKey: 'mobile.tab.analysis', fallback: 'Analysis' },
+  { id: 'explore', icon: BarChart3, i18nKey: 'mobile.tab.explore', fallback: 'Explore' },
   { id: 'findings', icon: Pin, i18nKey: 'mobile.tab.findings', fallback: 'Findings' },
   { id: 'improve', icon: Lightbulb, i18nKey: 'mobile.tab.improve', fallback: 'Improve' },
   { id: 'more', icon: MoreHorizontal, i18nKey: 'mobile.tab.more', fallback: 'More' },

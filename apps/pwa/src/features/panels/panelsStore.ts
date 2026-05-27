@@ -8,8 +8,8 @@ interface PanelsState {
   activeView:
     | 'home'
     | 'frame'
-    | 'analysis'
-    | 'investigation'
+    | 'explore'
+    | 'analyze'
     | 'improvement'
     | 'projects'
     | 'report'
@@ -41,8 +41,8 @@ interface PanelsActions {
   // Workspace navigation
   showHome: () => void;
   showFrame: () => void;
-  showAnalysis: () => void;
-  showInvestigation: () => void;
+  showExplore: () => void;
+  showAnalyze: () => void;
   showImprovement: () => void;
   showProjects: (projectId?: string) => void;
   showReport: () => void;
@@ -81,7 +81,7 @@ export type PanelsStore = PanelsState & PanelsActions;
 // ── Initial state (exported for testing) ────────────────────────────────────
 
 export const initialPanelsState: PanelsState = {
-  activeView: 'analysis',
+  activeView: 'explore',
   isSettingsOpen: false,
   isDataTableOpen: false,
   isFindingsOpen: false,
@@ -104,8 +104,8 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // Workspace navigation
   showHome: () => set({ activeView: 'home', isFindingsOpen: false, selectedProjectId: null }),
   showFrame: () => set({ activeView: 'frame', isFindingsOpen: false }),
-  showAnalysis: () => set({ activeView: 'analysis' }),
-  showInvestigation: () => set({ activeView: 'investigation', isFindingsOpen: false }),
+  showExplore: () => set({ activeView: 'explore' }),
+  showAnalyze: () => set({ activeView: 'analyze', isFindingsOpen: false }),
   showImprovement: () => set({ activeView: 'improvement' }),
   showProjects: projectId => set({ activeView: 'projects', selectedProjectId: projectId ?? null }),
   showReport: () => set({ activeView: 'report' }),
@@ -120,10 +120,9 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // Simple toggles
   setSettingsOpen: open => set({ isSettingsOpen: open }),
   setDataTableOpen: open => set({ isDataTableOpen: open }),
-  setFindingsOpen: open =>
-    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: open })),
+  setFindingsOpen: open => set(s => (s.activeView === 'analyze' ? s : { isFindingsOpen: open })),
   toggleFindings: () =>
-    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: !s.isFindingsOpen })),
+    set(s => (s.activeView === 'analyze' ? s : { isFindingsOpen: !s.isFindingsOpen })),
   setWhatIfOpen: open => set({ isWhatIfOpen: open }),
   togglePISidebar: () => set(s => ({ isPISidebarOpen: !s.isPISidebarOpen })),
 

@@ -5,9 +5,9 @@ const setProcessContextMock = vi.fn();
 const setMeasureSpecMock = vi.fn();
 const setOutcomeMock = vi.fn();
 const setFactorsMock = vi.fn();
-const showAnalysisMock = vi.fn();
+const showExploreMock = vi.fn();
 const showImprovementMock = vi.fn();
-const showInvestigationMock = vi.fn();
+const showAnalyzeMock = vi.fn();
 const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
 const expandToQuestionMock = vi.fn();
@@ -83,7 +83,7 @@ function deferred<T>() {
 
 vi.mock('@variscout/stores', () => ({
   useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
-  useInvestigationStore: Object.assign(
+  useAnalyzeStore: Object.assign(
     vi.fn((selector: (s: unknown) => unknown) => selector(investigationStateRef.current)),
     {
       getState: () => investigationStateRef.current,
@@ -205,17 +205,17 @@ vi.mock('@variscout/ui', async () => {
 vi.mock('../../../features/panels/panelsStore', () => ({
   usePanelsStore: Object.assign(vi.fn(), {
     getState: () => ({
-      showAnalysis: showAnalysisMock,
+      showExplore: showExploreMock,
       showImprovement: showImprovementMock,
-      showInvestigation: showInvestigationMock,
+      showAnalyze: showAnalyzeMock,
       showCharter: showCharterMock,
       showSustainment: showSustainmentMock,
     }),
   }),
 }));
 
-vi.mock('../../../features/investigation/investigationStore', () => ({
-  useInvestigationFeatureStore: Object.assign(vi.fn(), {
+vi.mock('../../../features/analyze/analyzeStore', () => ({
+  useAnalyzeFeatureStore: Object.assign(vi.fn(), {
     getState: () => ({
       expandToQuestion: expandToQuestionMock,
     }),
@@ -249,9 +249,9 @@ import FrameView from '../FrameView';
 describe('FrameView (PWA shell)', () => {
   beforeEach(() => {
     hoisted.canvasWorkspaceMock.mockClear();
-    showAnalysisMock.mockClear();
+    showExploreMock.mockClear();
     showImprovementMock.mockClear();
-    showInvestigationMock.mockClear();
+    showAnalyzeMock.mockClear();
     showCharterMock.mockClear();
     showSustainmentMock.mockClear();
     expandToQuestionMock.mockClear();
@@ -451,7 +451,7 @@ describe('FrameView (PWA shell)', () => {
 
     fireEvent.click(screen.getByTestId('see-data'));
 
-    expect(showAnalysisMock).toHaveBeenCalledTimes(1);
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
   });
 
   it('dispatches ACTION_ITEM_ADD when Canvas logs a quick action', async () => {
@@ -554,7 +554,7 @@ describe('FrameView (PWA shell)', () => {
 
     fireEvent.click(screen.getByTestId('focused-investigation'));
 
-    expect(showInvestigationMock).toHaveBeenCalledTimes(1);
+    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
   });
 
   it('opens Investigation and expands a question for overlay focus', () => {
@@ -563,7 +563,7 @@ describe('FrameView (PWA shell)', () => {
     fireEvent.click(screen.getByTestId('overlay-question'));
 
     expect(expandToQuestionMock).toHaveBeenCalledWith('q-1');
-    expect(showInvestigationMock).toHaveBeenCalledTimes(1);
+    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
   });
 
   it('opens Investigation in Wall mode from the Canvas wall drill action', () => {
@@ -572,7 +572,7 @@ describe('FrameView (PWA shell)', () => {
     fireEvent.click(screen.getByTestId('open-wall'));
 
     expect(setWallViewModeMock).toHaveBeenCalledWith('wall');
-    expect(showInvestigationMock).toHaveBeenCalledTimes(1);
+    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
   });
 
   it('wires causal-link mutation callbacks to the investigation store', () => {

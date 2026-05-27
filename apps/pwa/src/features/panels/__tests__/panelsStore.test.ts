@@ -83,20 +83,20 @@ describe('panelsStore', () => {
 
   describe('workspace navigation', () => {
     it('defaults to analysis workspace', () => {
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
+      expect(usePanelsStore.getState().activeView).toBe('explore');
     });
 
-    it('showAnalysis sets workspace to analysis', () => {
-      usePanelsStore.getState().showInvestigation();
-      usePanelsStore.getState().showAnalysis();
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
+    it('showExplore sets workspace to analysis', () => {
+      usePanelsStore.getState().showAnalyze();
+      usePanelsStore.getState().showExplore();
+      expect(usePanelsStore.getState().activeView).toBe('explore');
     });
 
-    it('showInvestigation sets workspace and closes findings panel', () => {
+    it('showAnalyze sets workspace and closes findings panel', () => {
       usePanelsStore.setState({ isFindingsOpen: true });
-      usePanelsStore.getState().showInvestigation();
+      usePanelsStore.getState().showAnalyze();
       const s = usePanelsStore.getState();
-      expect(s.activeView).toBe('investigation');
+      expect(s.activeView).toBe('analyze');
       expect(s.isFindingsOpen).toBe(false);
     });
 
@@ -119,19 +119,19 @@ describe('panelsStore', () => {
     });
 
     it('toggleFindings is no-op in investigation workspace', () => {
-      usePanelsStore.getState().showInvestigation();
+      usePanelsStore.getState().showAnalyze();
       usePanelsStore.getState().toggleFindings();
       expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
     });
 
     it('setFindingsOpen is no-op in investigation workspace', () => {
-      usePanelsStore.getState().showInvestigation();
+      usePanelsStore.getState().showAnalyze();
       usePanelsStore.getState().setFindingsOpen(true);
       expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
     });
 
     it('toggleFindings works in analysis workspace', () => {
-      usePanelsStore.getState().showAnalysis();
+      usePanelsStore.getState().showExplore();
       usePanelsStore.getState().toggleFindings();
       expect(usePanelsStore.getState().isFindingsOpen).toBe(true);
     });

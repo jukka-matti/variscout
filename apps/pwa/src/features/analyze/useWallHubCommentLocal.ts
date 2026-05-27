@@ -4,11 +4,11 @@
  * The PWA has no server (ADR-059: browser-only processing, customer-owned
  * data) — there is no SSE endpoint to subscribe to and no multi-user
  * collaboration surface. Hub comments on the PWA are a single-user local
- * concept: they still flow through investigationStore.addHubComment's
+ * concept: they still flow through analyzeStore.addHubComment's
  * optimistic append path (the store is shared), but the network POST is
  * skipped because projectStore.projectId is null on the PWA.
  *
- * This hook exists purely so InvestigationWorkspace's render tree does not
+ * This hook exists purely so AnalyzeWorkspace's render tree does not
  * branch on app identity — both apps can import a matching hook signature,
  * and the PWA gets a well-documented no-op. Multi-user collaboration is
  * server-gated and stays on the Azure Team plan.

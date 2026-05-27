@@ -1,8 +1,8 @@
 /**
- * InvestigationView - Question-driven investigation workspace for PWA
+ * AnalyzeView - Question-driven investigation workspace for PWA
  *
- * Simplified version of Azure's InvestigationWorkspace:
- * - Left panel: QuestionChecklist + InvestigationPhaseBadge + InvestigationConclusion
+ * Simplified version of Azure's AnalyzeWorkspace:
+ * - Left panel: QuestionChecklist + AnalyzePhaseBadge + AnalyzeConclusion
  * - Center: Map/Wall toggle → FindingsLog (list/board/tree) | WallCanvas
  * - No CoScout (PWA has no AI)
  * - No Teams integration (no photos, no assignees)
@@ -11,8 +11,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   QuestionChecklist,
-  InvestigationPhaseBadge,
-  InvestigationConclusion,
+  AnalyzePhaseBadge,
+  AnalyzeConclusion,
   FindingsLog,
   WallCanvas,
   CommandPalette,
@@ -39,18 +39,18 @@ import { detectColumns } from '@variscout/core/parser';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
-import { useCanvasViewportStore, useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useCanvasViewportStore, useProjectStore, useAnalyzeStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
-  useInvestigationFeatureStore,
+  useAnalyzeFeatureStore,
   type QuestionDisplayData,
-} from '../../features/investigation/investigationStore';
+} from '../../features/analyze/analyzeStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 
 const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 
-interface InvestigationViewProps {
+interface AnalyzeViewProps {
   activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
   activeIPLineage?: ActiveIPLineageIds | null;
   canvasViewportHubId: ProcessHubId;
@@ -84,7 +84,7 @@ interface InvestigationViewProps {
   planningProps?: WallCanvasPlanningProps;
 }
 
-const InvestigationView: React.FC<InvestigationViewProps> = ({
+const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   activeIPScope,
   activeIPLineage,
   canvasViewportHubId,
@@ -104,7 +104,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
 }) => {
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
 
-  // Map/Wall sub-toggle (mirrors Azure InvestigationWorkspace)
+  // Map/Wall sub-toggle (mirrors Azure AnalyzeWorkspace)
   const wallViewMode = useCanvasViewportStore(s => s.viewMode);
   const setWallViewMode = useCanvasViewportStore(s => s.setViewMode);
   // Phase 13 scale features — thread store values into WallCanvas so zoom,
@@ -137,9 +137,9 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
     for (const c of det.columnAnalysis) map[c.name] = c.type;
     return map;
   }, [rawData]);
-  const hubs = useInvestigationStore(s => s.hypotheses);
-  const wallFindings = useInvestigationStore(s => s.findings);
-  const wallQuestions = useInvestigationStore(s => s.questions);
+  const hubs = useAnalyzeStore(s => s.hypotheses);
+  const wallFindings = useAnalyzeStore(s => s.findings);
+  const wallQuestions = useAnalyzeStore(s => s.questions);
   const scopedHubIds = useMemo(
     () => new Set(activeIPLineage?.hypothesisIds ?? []),
     [activeIPLineage]
@@ -176,7 +176,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   );
 
   // Investigation phase detection (deterministic)
-  const investigationPhase = useMemo(
+  const analyzePhase = useMemo(
     () => detectInvestigationPhase(questionsState.questions, findingsState.findings),
     [questionsState.questions, findingsState.findings]
   );
@@ -240,7 +240,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
     }
   }, [returnNavigation]);
 
-  // Categorize questions for InvestigationConclusion
+  // Categorize questions for AnalyzeConclusion
   const { hypotheses, contributing, ruledOut } = useMemo(() => {
     const suspected: Question[] = [];
     const contrib: Question[] = [];
@@ -258,7 +258,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   // Question click: switch back to Analysis workspace with factor focused
   const handleQuestionClickWithSwitch = (question: Question) => {
     handleQuestionClick(question);
-    usePanelsStore.getState().showAnalysis();
+    usePanelsStore.getState().showExplore();
   };
 
   return (
@@ -267,7 +267,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
         <ActiveIPScopeRibbon
           title={activeIPScope.title}
           labels={activeIPScope.labels}
-          surface="Investigation"
+          surface="Analyze"
         />
       ) : null}
       <div className="flex flex-1 min-h-0 relative">
@@ -277,9 +277,9 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
           style={{ width: leftPanel.width }}
         >
           {/* Phase badge */}
-          {investigationPhase && (
+          {analyzePhase && (
             <div className="px-3 pt-3 pb-1 flex-shrink-0">
-              <InvestigationPhaseBadge phase={investigationPhase} />
+              <AnalyzePhaseBadge phase={analyzePhase} />
             </div>
           )}
 
@@ -295,7 +295,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
           {/* Investigation conclusion */}
           {(hypotheses.length > 0 || ruledOut.length > 0) && (
             <div className="border-t border-edge px-3 py-2 flex-shrink-0">
-              <InvestigationConclusion
+              <AnalyzeConclusion
                 hypotheses={hypotheses}
                 ruledOut={ruledOut}
                 contributing={contributing}
@@ -452,7 +452,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
                 viewMode={viewMode}
                 questions={scopedWallQuestions}
                 onSelectQuestion={(q: Question) =>
-                  useInvestigationFeatureStore.getState().expandToQuestion(q.id)
+                  useAnalyzeFeatureStore.getState().expandToQuestion(q.id)
                 }
                 onAddSubQuestion={questionsState.addSubQuestion}
                 factors={drillFactors}
@@ -488,4 +488,4 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   );
 };
 
-export default InvestigationView;
+export default AnalyzeView;

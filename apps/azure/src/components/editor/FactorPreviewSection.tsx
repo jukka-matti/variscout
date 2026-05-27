@@ -73,7 +73,7 @@ export const FactorPreviewSection: React.FC<FactorPreviewSectionProps> = ({ best
 
   const showFactorPreview =
     !factorPreviewDismissed &&
-    activeView === 'analysis' &&
+    activeView === 'explore' &&
     hasFactorIntelligenceForPreview &&
     !evidenceMapDataForPreview.isEmpty;
 

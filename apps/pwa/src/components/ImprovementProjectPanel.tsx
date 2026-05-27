@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ImprovementProjectForm } from '@variscout/ui';
-import { useImprovementProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useImprovementProjectStore, useAnalyzeStore } from '@variscout/stores';
 import { useReturnNavigation } from '@variscout/hooks';
 import type { ProcessHub } from '@variscout/core';
 import type { OutcomeSpec } from '@variscout/core/processHub';
@@ -156,8 +156,8 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
   const projectsByHub = useImprovementProjectStore(state => state.projectsByHub);
   const setProjectsForHub = useImprovementProjectStore(state => state.setProjectsForHub);
   const upsertProject = useImprovementProjectStore(state => state.upsertProject);
-  const hypotheses = useInvestigationStore(state => state.hypotheses);
-  const findings = useInvestigationStore(state => state.findings);
+  const hypotheses = useAnalyzeStore(state => state.hypotheses);
+  const findings = useAnalyzeStore(state => state.findings);
 
   const hubProjects = useMemo(() => liveProjects(activeHub?.improvementProjects), [activeHub]);
   const storeProjects = activeHub ? projectsByHub[activeHub.id] : undefined;
