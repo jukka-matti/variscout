@@ -42,6 +42,8 @@ export interface ImprovementProjectFactorControl {
   factor: string;
   targetCondition: string;
   linkedHypothesisId?: Hypothesis['id'];
+  /** Optional: binds this control to a specific process step. Empty = global. */
+  stepId?: string;
 }
 
 export interface ImprovementProjectMechanismGoal {
