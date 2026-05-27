@@ -1528,9 +1528,9 @@ function AppMain() {
         </div>
 
         {/* Findings Panel (inline desktop, or mobile when findings tab active) */}
-        {/* Hidden when in investigation workspace — the workspace IS the findings view */}
+        {/* Hidden when in analyze workspace — the workspace IS the findings view */}
         <Suspense fallback={null}>
-          {panels.activeView !== 'investigation' &&
+          {panels.activeView !== 'analyze' &&
             (panels.isDesktop || (isPhone && mobileActiveTab === 'findings')) &&
             outcome && (
               <FindingsPanel

@@ -387,7 +387,7 @@ describe('Editor', () => {
     vi.restoreAllMocks();
 
     // Reset panelsStore activeView to default state
-    usePanelsStore.setState({ activeView: 'analysis' });
+    usePanelsStore.setState({ activeView: 'explore' });
 
     // Re-apply storage mock after restoreAllMocks
     vi.mocked(StorageModule.useStorage).mockReturnValue({
@@ -431,7 +431,7 @@ describe('Editor', () => {
   });
 
   it('shows Stats sidebar toggle when data is loaded in analysis view', () => {
-    usePanelsStore.setState({ activeView: 'analysis' });
+    usePanelsStore.setState({ activeView: 'explore' });
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',

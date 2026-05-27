@@ -17,8 +17,8 @@ export interface UseAppPanelsReturn {
   activeView:
     | 'home'
     | 'frame'
-    | 'analysis'
-    | 'investigation'
+    | 'explore'
+    | 'analyze'
     | 'improvement'
     | 'projects'
     | 'report'
