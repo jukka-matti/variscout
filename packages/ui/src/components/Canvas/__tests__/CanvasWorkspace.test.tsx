@@ -1717,3 +1717,193 @@ describe('Task 10 — kebab calculate-from dispatch', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// D2 Task 11 — formula derivation + batch-hint banner end-to-end
+// ---------------------------------------------------------------------------
+//
+// Closes the calc-workflow loop end-to-end:
+//   batch-data detection → SystemHintBanner appears → CTA opens modal →
+//   Templates tab Total yield % → Custom tab pre-fills with `Yield_pct` →
+//   Save → chip appears in palette under DERIVED FROM FORMULA.
+//
+// Uses mass-shaped columns (`Input_kg` + `GradeA_kg` + `GradeB_kg`) so the
+// `detectBatchData` heuristic returns a non-null `BatchDataResult`. The bare
+// numeric dataset (only `Fill_Weight` / `Bake_Time`) is reused to exercise the
+// "no banner" path.
+// ---------------------------------------------------------------------------
+
+describe('Task 11 — formula derivation + batch-hint banner end-to-end', () => {
+  // Process map with a single seed step so `detectScopeFromMap` returns b1/b2
+  // and CanvasWorkspace mounts EditModeShell (rather than the b0 picker).
+  const yieldWorkspaceMap = (): ProcessMap => ({
+    version: 1,
+    nodes: [{ id: 'seed-step', name: 'Seed', order: 0 }],
+    tributaries: [],
+    createdAt: '2026-05-04T00:00:00.000Z',
+    updatedAt: '2026-05-04T00:00:00.000Z',
+  });
+
+  // Mass-shaped rows: detectBatchData buckets `Input_kg` as input,
+  // `GradeA_kg` + `GradeB_kg` as outputs (substring match on "grade"), and
+  // returns isLikelyBatch:true with a non-null result.
+  const batchRows = [
+    { Input_kg: 100, GradeA_kg: 80, GradeB_kg: 15 },
+    { Input_kg: 110, GradeA_kg: 85, GradeB_kg: 18 },
+    { Input_kg: 105, GradeA_kg: 82, GradeB_kg: 16 },
+    { Input_kg: 95, GradeA_kg: 78, GradeB_kg: 14 },
+    { Input_kg: 102, GradeA_kg: 81, GradeB_kg: 17 },
+  ];
+
+  function renderYieldWorkspace(rows: ReadonlyArray<Record<string, unknown>> = batchRows): void {
+    render(
+      <CanvasWorkspace
+        rawData={rows as ReadonlyArray<import('@variscout/core').DataRow>}
+        outcome={null}
+        factors={[]}
+        measureSpecs={{}}
+        processContext={{ processMap: yieldWorkspaceMap() }}
+        setOutcome={vi.fn()}
+        setFactors={vi.fn()}
+        setMeasureSpec={vi.fn()}
+        setProcessContext={vi.fn()}
+        onSeeData={vi.fn()}
+        canEditCanvas={true}
+      />
+    );
+  }
+
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/');
+    wallIsMobileRef.current = false;
+    localMechanismPropsRef.current = null;
+    dndMockHandlersRef.current = [];
+    useCanvasStore.setState(useCanvasStore.getInitialState());
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    vi.mocked(useSharedWallProps).mockClear();
+    canvasFiltersStateRef.current = {
+      timelineWindow: { kind: 'cumulative' },
+      scopeFilter: undefined,
+      paretoGroupBy: undefined,
+      activeCanvasLens: 'default',
+      activeCanvasOverlays: [],
+      setTimelineWindow: vi.fn(),
+      setScopeFilter: vi.fn(),
+      setParetoGroupBy: vi.fn(),
+      setActiveCanvasLens: vi.fn(),
+      setActiveCanvasOverlays: vi.fn(),
+      toggleCanvasOverlay: vi.fn(),
+      activeCanvasTool: 'select',
+      setActiveCanvasTool: vi.fn(),
+    };
+    vi.mocked(useCanvasStepCards).mockImplementation(() => ({ cards: mockStepCards }));
+    vi.mocked(useCanvasAnalyzeOverlays).mockImplementation(() => ({
+      overlays: mockInvestigationOverlays,
+    }));
+  });
+
+  it('with batch data: SystemHintBanner appears with "Calculate yield ratios →" CTA', () => {
+    renderYieldWorkspace();
+
+    // Edit mode shell is mounted.
+    expect(screen.getByTestId('edit-mode-shell')).toBeInTheDocument();
+
+    // Batch banner is rendered above the palette chip groups.
+    const banner = screen.getByTestId('system-hint-banner-batch');
+    expect(banner).toBeInTheDocument();
+    expect(banner).toHaveTextContent(/Batch data detected/i);
+
+    // The CTA button is present with the expected label.
+    const cta = screen.getByTestId('system-hint-banner-batch-cta');
+    expect(cta).toBeInTheDocument();
+    expect(cta).toHaveTextContent(/Calculate yield ratios/i);
+  });
+
+  it('clicking the batch banner CTA opens the modal', () => {
+    renderYieldWorkspace();
+
+    // Modal is closed before interaction.
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    // Click the banner CTA.
+    fireEvent.click(screen.getByTestId('system-hint-banner-batch-cta'));
+
+    // Modal opens — dialog role + aria-labelledby resolves to the modal title.
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveAttribute('aria-labelledby', 'calc-column-modal-title');
+  });
+
+  it('selecting Total yield % template + saving creates a derived chip in the palette', () => {
+    renderYieldWorkspace();
+
+    // Open the modal via the banner CTA.
+    fireEvent.click(screen.getByTestId('system-hint-banner-batch-cta'));
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+
+    // Templates tab is active by default. Click "Use template →" on the
+    // Total yield % card. The template button is inside the recommended card.
+    const totalYieldCard = screen.getByTestId('calc-column-card-batchRatio.totalYield');
+    const useTemplateButton = within(totalYieldCard).getByRole('button', {
+      name: /Use template/i,
+    });
+    fireEvent.click(useTemplateButton);
+
+    // Custom tab is now active; name input is pre-filled with `Yield_pct`.
+    const nameInput = screen.getByRole('textbox', {
+      name: 'Calculated column name',
+    }) as HTMLInputElement;
+    expect(nameInput.value).toBe('Yield_pct');
+
+    // Save button is enabled (name + numerator are pre-filled from template).
+    const saveBtn = screen.getByTestId('calc-column-custom-save');
+    expect(saveBtn).not.toBeDisabled();
+    fireEvent.click(saveBtn);
+
+    // Modal closes.
+    expect(screen.queryByTestId('calc-column-backdrop')).toBeNull();
+
+    // The DERIVED group appears in the palette with the FORMULA source header
+    // and a chip labeled Yield_pct.
+    const derivedGroup = screen.getByTestId('palette-group-derived');
+    expect(derivedGroup).toBeInTheDocument();
+    expect(derivedGroup).toHaveTextContent('DERIVED FROM FORMULA');
+    expect(derivedGroup).toHaveTextContent('Yield_pct');
+
+    // The chip carries the derived marker (✨) — green-tint + sparkle is the
+    // canonical visual differentiator for derived columns (ColumnChip prop
+    // `derived={true}` ⇒ renders ✨ before the column name).
+    expect(derivedGroup.textContent).toMatch(/✨/);
+  });
+
+  it('without batch data: no SystemHintBanner-batch in DOM', () => {
+    // Use the base numeric dataset (Fill_Weight / Bake_Time / Machine) which
+    // has no mass-shaped column names, so detectBatchData returns null.
+    renderYieldWorkspace(rawData);
+
+    expect(screen.queryByTestId('system-hint-banner-batch')).toBeNull();
+  });
+
+  it('formula-derived chip is draggable like a raw numeric column (smoke test)', () => {
+    renderYieldWorkspace();
+
+    // Repeat the Yield_pct creation flow.
+    fireEvent.click(screen.getByTestId('system-hint-banner-batch-cta'));
+    const totalYieldCard = screen.getByTestId('calc-column-card-batchRatio.totalYield');
+    fireEvent.click(within(totalYieldCard).getByRole('button', { name: /Use template/i }));
+    fireEvent.click(screen.getByTestId('calc-column-custom-save'));
+
+    // The derived chip exists in the palette's derived group. Like every other
+    // ColumnChip it carries `data-testid="column-chip"` and a `data-draggable-id`
+    // attribute (encoded as `column:<name>`). The presence of the draggable id
+    // is the smoke-test signal that the chip will participate in the dnd-kit
+    // drag/drop graph the same way raw numeric chips do.
+    const derivedGroup = screen.getByTestId('palette-group-derived');
+    const chips = within(derivedGroup).getAllByTestId('column-chip');
+    expect(chips.length).toBeGreaterThan(0);
+    const yieldChip = chips.find(c => c.textContent?.includes('Yield_pct'));
+    expect(yieldChip).toBeDefined();
+    expect(yieldChip!.getAttribute('data-draggable-id')).toBe('column:Yield_pct');
+  });
+});
