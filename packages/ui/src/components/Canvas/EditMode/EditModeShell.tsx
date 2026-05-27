@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ColumnParsingProfile } from '@variscout/core/parser';
+import type { ColumnParsingProfile, ParsingInterpretation } from '@variscout/core/parser';
 import { Palette } from './Palette';
 
 export interface EditModeShellProps {
@@ -13,10 +13,14 @@ export interface EditModeShellProps {
   profiles?: ColumnParsingProfile[];
   /** Raw numeric values per column, for sparklines. Defaults to {}. */
   numericValuesByColumn?: Record<string, number[]>;
-  /** Forwarded to the palette's ColumnChips. Popover UI ships in B2.3. */
-  onColumnOverrideOpen?: (columnName: string) => void;
-  /** Forwarded to the palette's ColumnChips. Context menu UI ships in B2.3. */
-  onColumnContextMenuOpen?: (columnName: string) => void;
+  /** Forwarded to the palette. Routed to no-op by default. */
+  onMenuItemSelect?: (columnName: string, itemId: string) => void;
+  /** Forwarded to the palette. Routed to no-op by default. */
+  onOverrideAccept?: (columnName: string, interpretation: ParsingInterpretation) => void;
+  /** Forwarded to the palette. Routed to no-op by default. */
+  onApplyToSimilar?: (columnName: string, interpretation: ParsingInterpretation) => void;
+  /** Forwarded to the palette. Routed to no-op by default. */
+  onReviewAllWarnings?: () => void;
 }
 
 export const EditModeShell: React.FC<EditModeShellProps> = ({
@@ -24,8 +28,10 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
   children,
   profiles = [],
   numericValuesByColumn = {},
-  onColumnOverrideOpen,
-  onColumnContextMenuOpen,
+  onMenuItemSelect,
+  onOverrideAccept,
+  onApplyToSimilar,
+  onReviewAllWarnings,
 }) => {
   return (
     <section
@@ -61,8 +67,10 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
           <Palette
             profiles={profiles}
             numericValuesByColumn={numericValuesByColumn}
-            onColumnOverrideOpen={onColumnOverrideOpen}
-            onColumnContextMenuOpen={onColumnContextMenuOpen}
+            onMenuItemSelect={onMenuItemSelect}
+            onOverrideAccept={onOverrideAccept}
+            onApplyToSimilar={onApplyToSimilar}
+            onReviewAllWarnings={onReviewAllWarnings}
           />
         </aside>
 

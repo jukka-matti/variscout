@@ -7,8 +7,8 @@ export interface ColumnGroupProps {
   label: string;
   profiles: ColumnParsingProfile[];
   numericValuesByColumn: Record<string, number[]>;
-  onColumnOverrideOpen?: (columnName: string) => void;
-  onColumnContextMenuOpen?: (columnName: string) => void;
+  onColumnOverrideOpen?: (columnName: string, anchor: { x: number; y: number }) => void;
+  onColumnContextMenuOpen?: (columnName: string, anchor: { x: number; y: number }) => void;
 }
 
 export const ColumnGroup: React.FC<ColumnGroupProps> = ({

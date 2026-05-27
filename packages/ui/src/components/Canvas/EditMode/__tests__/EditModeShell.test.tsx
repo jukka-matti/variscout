@@ -90,3 +90,29 @@ describe('EditModeShell — Palette wiring', () => {
     expect(screen.getByTestId('palette-empty')).toBeInTheDocument();
   });
 });
+
+describe('EditModeShell — Palette callback forwarding', () => {
+  it('forwards onMenuItemSelect from chip context menu through to the host', () => {
+    const onMenuItemSelect = vi.fn();
+    render(
+      <DndContext>
+        <EditModeShell
+          onDone={() => {}}
+          profiles={[
+            createTestColumnParsingProfile({
+              columnName: 'Speed',
+              primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+            }),
+          ]}
+          numericValuesByColumn={{}}
+          onMenuItemSelect={onMenuItemSelect}
+        >
+          <div />
+        </EditModeShell>
+      </DndContext>
+    );
+    fireEvent.click(screen.getByTestId('column-chip-context-button'));
+    fireEvent.click(screen.getByText('Bin into categorical…'));
+    expect(onMenuItemSelect).toHaveBeenCalledWith('Speed', 'bin-into-categorical');
+  });
+});

@@ -71,9 +71,9 @@ export interface ColumnChipProps {
   /** Visual state: system is suggesting a role for this chip. */
   ghostSuggested?: 'factor' | 'outcome' | 'process';
   /** Called when the ▾ button is clicked. Popover UI lands in B2.3. */
-  onOverrideOpen?: (columnName: string) => void;
+  onOverrideOpen?: (columnName: string, anchor: { x: number; y: number }) => void;
   /** Called when the ⋮ button is clicked. Context-menu UI lands in B2.3. */
-  onContextMenuOpen?: (columnName: string) => void;
+  onContextMenuOpen?: (columnName: string, anchor: { x: number; y: number }) => void;
 }
 
 const BADGE_BY_STATUS: Record<ParsingStatus, { icon: string; classes: string }> = {
@@ -160,7 +160,10 @@ export const ColumnChip: React.FC<ColumnChipProps> = ({
         data-testid="column-chip-override-button"
         className="text-xs text-content-tertiary hover:text-content"
         aria-label={`Override parsing for ${profile.columnName}`}
-        onClick={() => onOverrideOpen?.(profile.columnName)}
+        onClick={e => {
+          const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+          onOverrideOpen?.(profile.columnName, { x: rect.left, y: rect.bottom });
+        }}
       >
         ▾
       </button>
@@ -169,7 +172,10 @@ export const ColumnChip: React.FC<ColumnChipProps> = ({
         data-testid="column-chip-context-button"
         className="text-xs text-content-tertiary hover:text-content"
         aria-label={`Open context menu for ${profile.columnName}`}
-        onClick={() => onContextMenuOpen?.(profile.columnName)}
+        onClick={e => {
+          const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+          onContextMenuOpen?.(profile.columnName, { x: rect.left, y: rect.bottom });
+        }}
       >
         ⋮
       </button>
