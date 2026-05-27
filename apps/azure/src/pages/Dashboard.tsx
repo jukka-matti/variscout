@@ -693,7 +693,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium sm:w-auto w-full"
         >
           <Plus size={18} />
-          New Investigation
+          New Analyze
         </button>
         <button
           onClick={handleCreateHub}
@@ -770,7 +770,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 <Plus size={18} />
-                New Investigation
+                New Analyze
               </button>
               <button
                 onClick={() => setIsSamplePickerOpen(true)}

@@ -15,11 +15,11 @@ V1 ships **3 personas within each Project — Lead / Member / Sponsor — per-pr
 
 ## Canonical V1 in-project personas
 
-| Persona     | Role inside a Project                            | Journey file                                                       |
-| ----------- | ------------------------------------------------ | ------------------------------------------------------------------ |
-| **Lead**    | Drives Charter → Approach → Sustainment; owns IP | [02-journeys/personas/lead.md](02-journeys/personas/lead.md)       |
-| **Member**  | Contributes evidence, measurement rows, actions  | [02-journeys/personas/member.md](02-journeys/personas/member.md)   |
-| **Sponsor** | Approves Charter; reviews Sustainment + Report   | [02-journeys/personas/sponsor.md](02-journeys/personas/sponsor.md) |
+| Persona     | Role inside a Project                           | Journey file                                                       |
+| ----------- | ----------------------------------------------- | ------------------------------------------------------------------ |
+| **Lead**    | Drives Charter → Approach → Control; owns IP    | [02-journeys/personas/lead.md](02-journeys/personas/lead.md)       |
+| **Member**  | Contributes evidence, measurement rows, actions | [02-journeys/personas/member.md](02-journeys/personas/member.md)   |
+| **Sponsor** | Approves Charter; reviews Control + Report      | [02-journeys/personas/sponsor.md](02-journeys/personas/sponsor.md) |
 
 The 7-tab navigation (`Home · Project · Process · Explore · Analyze · Improve · Report`) and active-IP cascade are documented in [02-journeys/ia-nav-model.md](02-journeys/ia-nav-model.md).
 

@@ -444,7 +444,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   );
 
   // Left panel resizable
-  const leftPanel = useResizablePanel('variscout-investigation-left-width', 260, 420, 320, 'left');
+  const leftPanel = useResizablePanel('variscout-analyze-left-width', 260, 420, 320, 'left');
 
   // Internal view mode (if not controlled)
   const [internalViewMode, setInternalViewMode] = useState<'list' | 'board' | 'tree'>('board');

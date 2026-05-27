@@ -1188,7 +1188,7 @@ function AppMain() {
               data-testid="canvas-new-analyze"
               className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
             >
-              + New investigation
+              + New analyze
             </button>
             <SaveToBrowserButton currentHub={sessionHub} />
             <VrsExportButton currentHub={sessionHub} currentData={rawData} />

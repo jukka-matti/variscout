@@ -184,13 +184,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   const strategy = getStrategy(resolvedMode);
 
   // Left panel resizable
-  const leftPanel = useResizablePanel(
-    'variscout-pwa-investigation-left-width',
-    220,
-    400,
-    280,
-    'left'
-  );
+  const leftPanel = useResizablePanel('variscout-pwa-analyze-left-width', 220, 400, 280, 'left');
 
   // View mode (list/board/tree)
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'tree'>('board');
@@ -323,7 +317,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
             {/* Map/Wall primary toggle */}
             <div
               role="group"
-              aria-label="Investigation view mode"
+              aria-label="Analyze view mode"
               className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
             >
               {(['map', 'wall'] as const).map(mode => (

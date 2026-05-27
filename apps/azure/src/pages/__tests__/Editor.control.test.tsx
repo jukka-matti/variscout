@@ -85,7 +85,7 @@ describe('ControlEntryRow', () => {
     render(<ControlEntryRow investigationId={null} hubId="hub-1" />);
     const btn = screen.getByRole('button', { name: 'Set up control cadence' });
     expect(btn).toBeDisabled();
-    expect(screen.getByText('Save the investigation first.')).toBeInTheDocument();
+    expect(screen.getByText('Save the analyze first.')).toBeInTheDocument();
   });
 
   it('shows "Edit" label and passes existingRecord when a live record matches the investigation', async () => {

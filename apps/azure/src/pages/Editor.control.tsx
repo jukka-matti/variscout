@@ -53,7 +53,7 @@ export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ investigationI
         >
           Set up control cadence
         </button>
-        <span className="ml-3 text-xs text-content-secondary">Save the investigation first.</span>
+        <span className="ml-3 text-xs text-content-secondary">Save the analyze first.</span>
       </div>
     );
   }

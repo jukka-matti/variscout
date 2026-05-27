@@ -148,7 +148,7 @@ const ControlReviewLogger: React.FC<ControlReviewLoggerProps> = ({
 
       <div>
         <label className="block text-xs font-medium text-content-secondary" htmlFor="srl-escalated">
-          Escalated investigation ID
+          Escalated analyze ID
         </label>
         <input
           id="srl-escalated"

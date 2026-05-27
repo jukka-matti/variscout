@@ -5,7 +5,7 @@ tier: living
 status: active
 audience: both
 layer: L2
-last-reviewed: 2026-05-18
+last-reviewed: 2026-05-27
 ---
 
 # Member Persona Journey
@@ -40,26 +40,26 @@ sequenceDiagram
     participant Home as Home
     participant Project as Project
     participant Process as Process
+    participant Explore as Explore
     participant Analyze as Analyze
-    participant Investigation as Investigation
     participant Improve as Improve
     participant Report as Report
 
     Member->>Home: Open VariScout, see Projects I'm in
     Member->>Project: Open Project (read Charter + roster)
     Member->>Process: View process map (Lead's scope)
-    Member->>Investigation: Open Hypothesis assigned to me
-    Note over Investigation: Member attaches evidence,<br/>logs a Measurement Plan row
-    Member->>Analyze: Open dataset linked from Wall (read-mostly)
-    Note over Analyze: Member may create a Finding<br/>that links back to a Hypothesis
-    Investigation->>Investigation: Lead reviews + accepts evidence
+    Member->>Analyze: Open Hypothesis assigned to me on the Wall
+    Note over Analyze: Member attaches evidence,<br/>logs a Measurement Plan row
+    Member->>Explore: Open dataset linked from Wall (read-mostly)
+    Note over Explore: Member may create a Finding<br/>that links back to a Hypothesis
+    Analyze->>Analyze: Lead reviews + accepts evidence
     Member->>Improve: Open my assigned action item
     Note over Improve: Active-IP cascade visible<br/>(Lead-owned, Member cannot change)
     Member->>Improve: Mark action complete, log result
     Member->>Report: Optionally view Report (no edit)
 ```
 
-Member's scope is narrower than Lead's: they touch **Investigation** (hypothesis evidence), **Improve** (assigned actions), and **Process** (measurement plan rows). Home / Project / Analyze / Report are mostly read for orientation.
+Member's scope is narrower than Lead's: they touch **Analyze** (hypothesis evidence on the Wall), **Improve** (assigned actions), and **Process** (measurement plan rows). Home / Project / Explore / Report are mostly read for orientation.
 
 ## Feature touch-points
 
