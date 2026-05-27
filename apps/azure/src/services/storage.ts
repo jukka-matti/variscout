@@ -749,7 +749,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       await saveControlReviewToCloud('blob-sas', review);
     } catch (error) {
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
-        errorService.logWarning('Failed to save sustainment review to cloud', {
+        errorService.logWarning('Failed to save control review to cloud', {
           component: 'storage',
           action: 'saveControlReview',
           metadata: { error: error instanceof Error ? error.message : String(error) },

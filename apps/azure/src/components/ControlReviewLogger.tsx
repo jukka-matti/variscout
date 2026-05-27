@@ -91,7 +91,7 @@ const ControlReviewLogger: React.FC<ControlReviewLoggerProps> = ({
       className="space-y-3 rounded-md border border-edge bg-surface p-4"
       onSubmit={handleSubmit}
     >
-      <h4 className="text-sm font-semibold text-content">Log sustainment review</h4>
+      <h4 className="text-sm font-semibold text-content">Log control review</h4>
 
       <div>
         <p className="mb-1 text-xs font-medium text-content-secondary">Verdict</p>

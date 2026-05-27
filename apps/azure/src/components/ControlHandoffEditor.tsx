@@ -216,14 +216,14 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
       <div className="flex items-center gap-2">
         <input
           id="che-retain-review"
-          aria-label="Retain sustainment review"
+          aria-label="Retain control review"
           type="checkbox"
           checked={retainControlReview}
           onChange={e => setRetainControlReview(e.target.checked)}
           className="h-4 w-4 rounded border-edge"
         />
         <label className="text-xs font-medium text-content-secondary" htmlFor="che-retain-review">
-          Retain sustainment review after handoff
+          Retain control review after handoff
         </label>
       </div>
 

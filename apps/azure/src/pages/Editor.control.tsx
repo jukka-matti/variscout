@@ -51,7 +51,7 @@ export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ investigationI
           disabled
           className="rounded-md border border-edge bg-surface px-3 py-1.5 text-sm font-medium text-content-secondary opacity-50 cursor-not-allowed"
         >
-          Set up sustainment cadence
+          Set up control cadence
         </button>
         <span className="ml-3 text-xs text-content-secondary">Save the investigation first.</span>
       </div>
@@ -76,7 +76,7 @@ export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ investigationI
     );
   }
 
-  const buttonLabel = existingRecord ? 'Edit sustainment cadence' : 'Set up sustainment cadence';
+  const buttonLabel = existingRecord ? 'Edit control cadence' : 'Set up control cadence';
   const buttonDisabled = !currentUser;
 
   return (

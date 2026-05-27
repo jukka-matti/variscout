@@ -54,20 +54,20 @@ beforeEach(() => {
 });
 
 describe('ControlEntryRow', () => {
-  it('renders the "Set up sustainment cadence" button when investigationId is set and no record exists', async () => {
+  it('renders the "Set up control cadence" button when investigationId is set and no record exists', async () => {
     render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
-    expect(await screen.findByText('Set up sustainment cadence')).toBeInTheDocument();
+    expect(await screen.findByText('Set up control cadence')).toBeInTheDocument();
   });
 
   it('opens ControlRecordEditor when the button is clicked', async () => {
     render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
-    fireEvent.click(await screen.findByText('Set up sustainment cadence'));
+    fireEvent.click(await screen.findByText('Set up control cadence'));
     expect(screen.getByTestId('sustainment-record-editor')).toBeInTheDocument();
   });
 
   it('shows confirmation and hides editor after save', async () => {
     render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
-    fireEvent.click(await screen.findByText('Set up sustainment cadence'));
+    fireEvent.click(await screen.findByText('Set up control cadence'));
     fireEvent.click(screen.getByText('Save'));
     expect(screen.queryByTestId('sustainment-record-editor')).not.toBeInTheDocument();
     expect(screen.getByText('Control cadence saved.')).toBeInTheDocument();
@@ -75,15 +75,15 @@ describe('ControlEntryRow', () => {
 
   it('hides editor when cancel is clicked', async () => {
     render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
-    fireEvent.click(await screen.findByText('Set up sustainment cadence'));
+    fireEvent.click(await screen.findByText('Set up control cadence'));
     fireEvent.click(screen.getByText('Cancel'));
     expect(screen.queryByTestId('sustainment-record-editor')).not.toBeInTheDocument();
-    expect(screen.getByText('Set up sustainment cadence')).toBeInTheDocument();
+    expect(screen.getByText('Set up control cadence')).toBeInTheDocument();
   });
 
   it('renders disabled button with hint when investigationId is null', () => {
     render(<ControlEntryRow investigationId={null} hubId="hub-1" />);
-    const btn = screen.getByRole('button', { name: 'Set up sustainment cadence' });
+    const btn = screen.getByRole('button', { name: 'Set up control cadence' });
     expect(btn).toBeDisabled();
     expect(screen.getByText('Save the investigation first.')).toBeInTheDocument();
   });
@@ -101,8 +101,8 @@ describe('ControlEntryRow', () => {
       },
     ]);
     render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
-    expect(await screen.findByText('Edit sustainment cadence')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Edit sustainment cadence'));
+    expect(await screen.findByText('Edit control cadence')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Edit control cadence'));
     expect(screen.getByTestId('editor-mode')).toHaveTextContent('edit:rec-1');
   });
 
@@ -119,7 +119,7 @@ describe('ControlEntryRow', () => {
       },
     ]);
     render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
-    expect(await screen.findByText('Set up sustainment cadence')).toBeInTheDocument();
+    expect(await screen.findByText('Set up control cadence')).toBeInTheDocument();
   });
 
   it('uses "updated" confirmation copy when editing an existing record', async () => {
@@ -135,7 +135,7 @@ describe('ControlEntryRow', () => {
       },
     ]);
     render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
-    fireEvent.click(await screen.findByText('Edit sustainment cadence'));
+    fireEvent.click(await screen.findByText('Edit control cadence'));
     fireEvent.click(screen.getByText('Save'));
     await waitFor(() => expect(screen.getByText('Control cadence updated.')).toBeInTheDocument());
   });
