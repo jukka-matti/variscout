@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import type { CharacteristicType, OutcomeSpec } from '@variscout/core';
+import type { OutcomeSpec } from '@variscout/core';
+import type { CharacteristicType } from '@variscout/core/processHub';
 
 export interface SpecsPopoverProps {
   spec: OutcomeSpec;

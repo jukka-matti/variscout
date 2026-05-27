@@ -1,4 +1,5 @@
-import type { CharacteristicType, OutcomeSpec } from '@variscout/core';
+import type { OutcomeSpec } from '@variscout/core';
+import type { CharacteristicType } from '@variscout/core/processHub';
 
 export type DerivedSpecs = Pick<OutcomeSpec, 'target' | 'lsl' | 'usl' | 'cpkTarget'>;
 

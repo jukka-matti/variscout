@@ -564,7 +564,6 @@ export type {
 export type {
   AnalyzeDepth,
   AnalyzeStatus,
-  CharacteristicType,
   OutcomeSpec,
   ProcessHubAttentionReason,
   ScopeFilter,
