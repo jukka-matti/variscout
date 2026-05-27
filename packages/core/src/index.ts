@@ -997,3 +997,9 @@ export {
 // Formula derivation (CCJ D2 — FormulaBinding types + row evaluator)
 export type { FormulaTerm, FormulaFamily, FormulaBinding } from './derived';
 export { evaluateFormulaRow, computeFormulaColumn } from './derived';
+
+// Formula derivation (CCJ D2 task 3 — batch detection + template registry)
+export { detectBatchData } from './derived';
+export type { BatchDataResult } from './derived';
+export { FORMULA_TEMPLATES } from './derived';
+export type { FormulaTemplate, TemplateContext } from './derived';
