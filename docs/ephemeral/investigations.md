@@ -26,6 +26,27 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Palette overlays (ColumnChipContextMenu + ParsingOverridePopover) lack viewport clamping
+
+**Surfaced by:** PR-CCJ-B2.3 final Opus branch review, 2026-05-27.
+
+**Description:** `ColumnChipContextMenu.tsx` and `ParsingOverridePopover.tsx` render at the caller-provided `anchor = (rect.left, rect.bottom)` from `ColumnChip`'s ▾ / ⋮ buttons. A chip near the right or bottom viewport edge will paint the overlay partially offscreen. `packages/ui/CLAUDE.md` documents the Evidence Map context-menu pattern as "fixed position, **viewport-clamped**, auto-focus first item, Escape + backdrop-click close" — `EvidenceMapContextMenu/NodeContextMenu.tsx:62-71` uses `useLayoutEffect` to clamp left/top with an 8 px margin. The B2.3 sub-plan explicitly deferred clamping in scope §"Out of scope" with the rationale "trust caller-provided anchor; revisit if real overflow surfaces." The reviewer's flag IS that trigger — no current app wires the palette, but H1 polish should not ship without clamping.
+
+**Possible resolutions (PR-CCJ-H1):**
+
+- Port `NodeContextMenu`'s `useLayoutEffect` clamp pattern to both overlays (~10 lines each).
+- Extract a shared `useClampedAnchor(anchor, ref)` hook in `packages/ui/src/components/Canvas/EditMode/Palette/` so a third overlay variant in C-phase (e.g. specs popover) inherits the behavior.
+
+**Decision:** logged for H1 polish; not blocking B2.3 merge per plan scope.
+
+### ParsingBanner ARIA role — `status` vs `alert`
+
+**Surfaced by:** PR-CCJ-B2.3 final Opus branch review, 2026-05-27.
+
+**Description:** `ParsingBanner.tsx` uses `role="status"` (implies `aria-live="polite"`). For a ⚠ warning copy ("N columns need attention"), `role="alert"` (assertive) is more typical for screen-reader interruption semantics, or `role="region" aria-label="Parsing warnings"`. Spec §3.1 does not pin this. `role="status"` is defensible (banner is a passive status surface that appears after a paste, not an emergency) but worth confirming with accessibility lens in H1.
+
+**Decision:** logged for H1 polish; not blocking B2.3 merge.
+
 ### Two "Done" buttons in Edit mode (Process tab)
 
 **Surfaced by:** PR-CCJ-B1 (`feat/wedge-v1-ccj-b1-edit-mode-shell`), 2026-05-26. Branch-level reviewer + Task 4 spec reviewer.
