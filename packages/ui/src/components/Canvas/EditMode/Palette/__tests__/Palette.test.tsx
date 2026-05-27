@@ -426,3 +426,86 @@ describe('Palette — systemHints', () => {
     expect(onCta).toHaveBeenCalledTimes(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// T6 — time kind SystemHintBanner pass-through (D3 T6)
+// ---------------------------------------------------------------------------
+//
+// Verifies that the 'time' kind SystemHintBanner already wired by D2 renders
+// correctly through Palette's systemHints pass-through and that the CTA fires.
+// No impl change needed — these tests are pure verification coverage.
+
+describe('Palette — time kind system hint (D3 T6)', () => {
+  const numericProfile = createTestColumnParsingProfile({
+    columnName: 'Speed',
+    primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+  });
+
+  it('renders a time-kind SystemHintBanner when a time hint is provided', () => {
+    const onCta = vi.fn();
+    renderPalette({
+      profiles: [numericProfile],
+      systemHints: [
+        {
+          id: 'time-detected',
+          kind: 'time',
+          message: '6 time columns detected. Use time as factors →',
+          ctaLabel: 'Use time as factors',
+          onCta,
+        },
+      ],
+    });
+
+    expect(screen.getByText(/6 time columns detected/i)).toBeInTheDocument();
+    expect(screen.getByTestId('system-hint-banner-time')).toBeInTheDocument();
+  });
+
+  it('time-kind CTA fires onCta callback when clicked', () => {
+    const onCta = vi.fn();
+    renderPalette({
+      profiles: [numericProfile],
+      systemHints: [
+        {
+          id: 'time-detected',
+          kind: 'time',
+          message: '6 time columns detected',
+          ctaLabel: 'Use time as factors',
+          onCta,
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByTestId('system-hint-banner-time-cta'));
+    expect(onCta).toHaveBeenCalledTimes(1);
+  });
+
+  it('time-kind banner carries cyan data-kind attribute', () => {
+    renderPalette({
+      profiles: [numericProfile],
+      systemHints: [
+        {
+          id: 'time-1',
+          kind: 'time',
+          message: 'Time columns detected',
+        },
+      ],
+    });
+
+    const banner = screen.getByTestId('system-hint-banner-time');
+    expect(banner).toBeInTheDocument();
+    expect(banner.getAttribute('data-kind')).toBe('time');
+  });
+
+  it('time hint renders above chip groups (before numeric group in DOM order)', () => {
+    renderPalette({
+      profiles: [numericProfile],
+      systemHints: [{ id: 'time-1', kind: 'time', message: 'Time columns detected' }],
+    });
+
+    const wrapper = screen.getByTestId('palette-system-hints');
+    const chipGroup = screen.getByTestId('palette-group-numeric');
+    // DOCUMENT_POSITION_FOLLOWING (4) means chipGroup comes after wrapper
+    const pos = wrapper.compareDocumentPosition(chipGroup);
+    expect(pos & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+});

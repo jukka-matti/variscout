@@ -1907,3 +1907,227 @@ describe('Task 11 — formula derivation + batch-hint banner end-to-end', () => 
     expect(yieldChip!.getAttribute('data-draggable-id')).toBe('column:Yield_pct');
   });
 });
+
+// ---------------------------------------------------------------------------
+// D3 Task 7 — kebab use-as-time-factors dispatch
+// ---------------------------------------------------------------------------
+//
+// Exercises the end-to-end use-as-time-factors flow inside Edit mode:
+//   chip kebab → context menu → "Use as time factors" →
+//   TimeAsFactorsModal opens pre-populated with sourceColumn →
+//   Cancel/Escape closes it → Save binding → re-click kebab pre-fills Step 2.
+//
+// The test dataset has a date column (`OrderDate`) so the parser classifies it
+// as `kind: 'date'` and the column chip's context menu includes the
+// "Use as time factors" item (DATE menu in columnChipMenuItems.ts).
+// ---------------------------------------------------------------------------
+
+describe('D3 Task 7 — kebab use-as-time-factors dispatch', () => {
+  const timeWorkspaceMap = (): ProcessMap => ({
+    version: 1,
+    nodes: [{ id: 'seed-step', name: 'Seed', order: 0 }],
+    tributaries: [],
+    createdAt: '2026-05-04T00:00:00.000Z',
+    updatedAt: '2026-05-04T00:00:00.000Z',
+  });
+
+  // Dataset with a date column. The parser (profileColumns) recognises
+  // YYYY-MM-DD literals as `kind: 'date'` — the same format used in the
+  // D1 step-timings tests above.
+  const timeRows = [
+    { OrderDate: '2026-01-01', Value: 42 },
+    { OrderDate: '2026-01-02', Value: 45 },
+    { OrderDate: '2026-01-03', Value: 43 },
+  ];
+
+  function renderTimeWorkspace(): void {
+    render(
+      <CanvasWorkspace
+        rawData={timeRows as ReadonlyArray<import('@variscout/core').DataRow>}
+        outcome={null}
+        factors={[]}
+        measureSpecs={{}}
+        processContext={{ processMap: timeWorkspaceMap() }}
+        setOutcome={vi.fn()}
+        setFactors={vi.fn()}
+        setMeasureSpec={vi.fn()}
+        setProcessContext={vi.fn()}
+        onSeeData={vi.fn()}
+        canEditCanvas={true}
+      />
+    );
+  }
+
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/');
+    wallIsMobileRef.current = false;
+    localMechanismPropsRef.current = null;
+    dndMockHandlersRef.current = [];
+    useCanvasStore.setState(useCanvasStore.getInitialState());
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    vi.mocked(useSharedWallProps).mockClear();
+    canvasFiltersStateRef.current = {
+      timelineWindow: { kind: 'cumulative' },
+      scopeFilter: undefined,
+      paretoGroupBy: undefined,
+      activeCanvasLens: 'default',
+      activeCanvasOverlays: [],
+      setTimelineWindow: vi.fn(),
+      setScopeFilter: vi.fn(),
+      setParetoGroupBy: vi.fn(),
+      setActiveCanvasLens: vi.fn(),
+      setActiveCanvasOverlays: vi.fn(),
+      toggleCanvasOverlay: vi.fn(),
+      activeCanvasTool: 'select',
+      setActiveCanvasTool: vi.fn(),
+    };
+    vi.mocked(useCanvasStepCards).mockImplementation(() => ({ cards: mockStepCards }));
+    vi.mocked(useCanvasAnalyzeOverlays).mockImplementation(() => ({
+      overlays: mockInvestigationOverlays,
+    }));
+  });
+
+  it('clicking "use-as-time-factors" on a date chip opens the TimeAsFactorsModal', () => {
+    renderTimeWorkspace();
+
+    // Edit mode shell is mounted (canEditCanvas:true + b1/b2 scope).
+    expect(screen.getByTestId('edit-mode-shell')).toBeInTheDocument();
+
+    // No modal yet.
+    expect(screen.queryByTestId('time-factors-modal-backdrop')).toBeNull();
+
+    // Click the kebab (⋮) on the OrderDate chip.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for OrderDate' }));
+
+    // Menu is open — the "Use as time factors" item is visible.
+    const item = screen.getByRole('menuitem', { name: 'Use as time factors' });
+    expect(item).toBeInTheDocument();
+
+    // Click the item.
+    fireEvent.click(item);
+
+    // Modal opens with the correct dialog role.
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByTestId('time-factors-modal-backdrop')).toBeInTheDocument();
+
+    // Modal title is present.
+    expect(screen.getByText('Use time as factors')).toBeInTheDocument();
+  });
+
+  it('modal opens at Step 2 when the column is in timeColumns (sourceColumn bypass)', () => {
+    renderTimeWorkspace();
+
+    // Open the modal via the OrderDate kebab.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for OrderDate' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Use as time factors' }));
+
+    // OrderDate is the only date column and is passed as sourceColumn,
+    // so the modal bypasses Step 1 and opens directly at Step 2.
+    expect(screen.getByText(/Step 2 of 2/)).toBeInTheDocument();
+    // The Step 2 body renders "Source column: <strong>OrderDate</strong>" — match
+    // the containing text via regex to avoid ambiguity with the palette chip.
+    expect(screen.getByRole('dialog')).toHaveTextContent(/Source column.*OrderDate/i);
+  });
+
+  it('modal Save button with a dimension selected closes the modal', () => {
+    renderTimeWorkspace();
+
+    // Open the modal via the OrderDate kebab.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for OrderDate' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Use as time factors' }));
+
+    // Modal is open at Step 2.
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Check the Year dimension checkbox.
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Year' }));
+
+    // Save — button label includes the column name + count.
+    const saveBtn = screen.getByRole('button', { name: /OrderDate factors/i });
+    expect(saveBtn).not.toBeDisabled();
+    fireEvent.click(saveBtn);
+
+    // Modal closes.
+    expect(screen.queryByTestId('time-factors-modal-backdrop')).toBeNull();
+  });
+
+  it('modal Close button closes the modal', () => {
+    renderTimeWorkspace();
+
+    // Open the modal.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for OrderDate' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Use as time factors' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Click Close.
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    // Modal is gone.
+    expect(screen.queryByTestId('time-factors-modal-backdrop')).toBeNull();
+  });
+
+  it('Escape key closes the modal', () => {
+    renderTimeWorkspace();
+
+    // Open the modal.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for OrderDate' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Use as time factors' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Press Escape.
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    // Modal is gone.
+    expect(screen.queryByTestId('time-factors-modal-backdrop')).toBeNull();
+  });
+
+  it('modal is closed by default before any interaction', () => {
+    renderTimeWorkspace();
+
+    expect(screen.queryByTestId('time-factors-modal-backdrop')).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('re-clicking kebab after Save opens modal at Step 2 pre-filled with existing binding', () => {
+    renderTimeWorkspace();
+
+    // Open the modal → save a binding with Year + Month.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for OrderDate' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Use as time factors' }));
+
+    // Check Year + Month.
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Year' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Month' }));
+
+    // Save.
+    fireEvent.click(screen.getByRole('button', { name: /OrderDate factors/i }));
+
+    // Modal closes.
+    expect(screen.queryByTestId('time-factors-modal-backdrop')).toBeNull();
+
+    // Re-open the modal via the kebab.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for OrderDate' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Use as time factors' }));
+
+    // Modal opens. Because existingBinding is now set, it opens at Step 2.
+    expect(screen.getByText(/Step 2 of 2/)).toBeInTheDocument();
+
+    // The Year + Month checkboxes should be pre-checked from the binding.
+    expect(screen.getByRole('checkbox', { name: 'Year' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Month' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Quarter' })).not.toBeChecked();
+  });
+
+  it('the context menu for a numeric chip does not include use-as-time-factors', () => {
+    renderTimeWorkspace();
+
+    // Value is numeric in the test dataset.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for Value' }));
+
+    // "Use as time factors" should NOT be in the menu.
+    expect(screen.queryByRole('menuitem', { name: 'Use as time factors' })).toBeNull();
+
+    // But "Use as continuous factor" IS present (numeric menu item).
+    expect(screen.getByRole('menuitem', { name: 'Use as continuous factor' })).toBeInTheDocument();
+  });
+});

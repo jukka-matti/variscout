@@ -24,6 +24,7 @@ import {
   type DataRow,
   type Finding,
   type FormulaBinding,
+  type TimeDecompositionBinding,
   type ProcessContext,
   type ProcessHubId,
   type ProcessHubAnalyze,
@@ -46,6 +47,7 @@ import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCateg
 import type { SystemHint } from './EditMode/Palette';
 import { StepTimingsModal } from './EditMode/Workflows/StepTimingsModal';
 import { CalculatedColumnModal } from './EditMode/Workflows/CalculatedColumnModal';
+import { TimeAsFactorsModal } from './EditMode/Workflows/TimeAsFactorsModal';
 import { formatDuration } from './EditMode/formatDuration';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
@@ -502,12 +504,37 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const [formulaBindings, setFormulaBindings] = React.useState<FormulaBinding[]>([]);
   const [calcModalOpen, setCalcModalOpen] = React.useState<{ sourceColumn?: string } | null>(null);
 
+  // D3 Task 7: local state for time-decomposition bindings captured via the
+  // TimeAsFactorsModal. Each binding maps a date column to the chosen dimensions
+  // (year / quarter / month / week / dayOfWeek / hour). Save handler replaces
+  // any existing binding for the same sourceColumn (dedupe by sourceColumn).
+  // TODO(PR-CCJ-E1): persist timeDecompositionBindings to ImprovementProject via Charter modal commit.
+  const [timeDecompositionBindings, setTimeDecompositionBindings] = React.useState<
+    TimeDecompositionBinding[]
+  >([]);
+  const [timeFactorsModalOpen, setTimeFactorsModalOpen] = React.useState<{
+    sourceColumn?: string;
+  } | null>(null);
+
+  const handleTimeFactorsSave = React.useCallback((binding: TimeDecompositionBinding) => {
+    setTimeDecompositionBindings(prev => [
+      ...prev.filter(b => b.sourceColumn !== binding.sourceColumn),
+      binding,
+    ]);
+    setTimeFactorsModalOpen(null);
+  }, []);
+
   const onChipContextMenuSelect = React.useCallback((columnName: string, itemId: string) => {
     if (itemId === 'calculate-from') {
       setCalcModalOpen({ sourceColumn: columnName });
+      return;
+    }
+    if (itemId === 'use-as-time-factors') {
+      setTimeFactorsModalOpen({ sourceColumn: columnName });
+      return;
     }
     // Other itemIds (rename, view-distribution, etc.) are handled at the Palette level
-    // or fall through. CanvasWorkspace only owns calculate-from for now.
+    // or fall through. CanvasWorkspace only owns calculate-from + use-as-time-factors.
   }, []);
 
   const handleStepsReplace = React.useCallback(
@@ -984,6 +1011,20 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                   setCalcModalOpen(null);
                 }}
                 onClose={() => setCalcModalOpen(null)}
+              />
+            )}
+            {timeFactorsModalOpen != null && (
+              <TimeAsFactorsModal
+                sourceColumn={timeFactorsModalOpen.sourceColumn}
+                timeColumns={rawProfiles
+                  .filter(p => p.primary?.kind === 'date')
+                  .map(p => p.columnName)}
+                existingBinding={timeDecompositionBindings.find(
+                  b => b.sourceColumn === timeFactorsModalOpen.sourceColumn
+                )}
+                rows={[...rawData] as Record<string, unknown>[]}
+                onSave={handleTimeFactorsSave}
+                onClose={() => setTimeFactorsModalOpen(null)}
               />
             )}
           </>
