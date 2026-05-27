@@ -224,8 +224,9 @@ describe('CalculatedColumnModal', () => {
       expect(
         screen.queryByTestId('calc-column-card-batchRatio.totalYield')
       ).not.toBeInTheDocument();
-      // throughput should NOT appear (hasLeadTime=false by default)
-      expect(screen.queryByTestId('calc-column-card-throughput')).not.toBeInTheDocument();
+      // throughput appears even when hasLeadTime=false — rendered as disabled
+      // with "Capture step timings first" tooltip so users learn the prerequisite
+      expect(screen.queryByTestId('calc-column-card-throughput')).toBeInTheDocument();
     });
 
     it('each visible card has family label, description, and "Use template →" button', () => {
@@ -264,13 +265,28 @@ describe('CalculatedColumnModal', () => {
   });
 
   describe('Throughput card disabled when no Lead_time', () => {
-    it('throughput card is absent when hasLeadTime=false (isAvailable returns false)', () => {
-      // Throughput isAvailable = ctx => ctx.hasLeadTime, so card should not appear
+    it('throughput card is rendered disabled with tooltip when hasLeadTime=false', () => {
       renderModal({
         rawProfiles: [numericProfile('A'), numericProfile('B')],
         hasLeadTime: false,
       });
-      expect(screen.queryByTestId('calc-column-card-throughput')).not.toBeInTheDocument();
+      const card = screen.getByTestId('calc-column-card-throughput');
+      expect(card).toHaveAttribute('aria-disabled', 'true');
+      expect(card).toHaveAttribute('title', 'Capture step timings first');
+      // Card's CTA button is disabled — clicking does not invoke onSave
+      const btn = within(card).getByRole('button', { name: /use template/i });
+      expect(btn).toBeDisabled();
+    });
+
+    it('throughput disabled card does not call onSave when clicked', () => {
+      const { onSave } = renderModal({
+        rawProfiles: [numericProfile('A'), numericProfile('B')],
+        hasLeadTime: false,
+      });
+      const card = screen.getByTestId('calc-column-card-throughput');
+      const btn = within(card).getByRole('button', { name: /use template/i });
+      fireEvent.click(btn);
+      expect(onSave).not.toHaveBeenCalled();
     });
 
     it('throughput card is present and active when hasLeadTime=true', () => {
@@ -279,11 +295,9 @@ describe('CalculatedColumnModal', () => {
         numericValuesByColumn: { A: [1, 2], B: [3, 4], Lead_time: [5, 6] },
         hasLeadTime: true,
       });
-      const card = screen.queryByTestId('calc-column-card-throughput');
-      expect(card).toBeInTheDocument();
-      // When enabled, should have an active button (not disabled)
-      const btn = within(card!).queryByRole('button', { name: /use template/i });
-      expect(btn).toBeInTheDocument();
+      const card = screen.getByTestId('calc-column-card-throughput');
+      expect(card).not.toHaveAttribute('aria-disabled', 'true');
+      const btn = within(card).getByRole('button', { name: /use template/i });
       expect(btn).not.toBeDisabled();
       expect(btn).not.toHaveAttribute('aria-disabled', 'true');
     });

@@ -229,10 +229,15 @@ const TemplatesTabContent: React.FC<{
   }
 
   // Filter to templates available in this context, excluding the generic 'custom'
-  // template (it belongs to the Custom tab, not the template grid).
-  const availableTemplates = FORMULA_TEMPLATES.filter(
-    t => t.id !== 'custom' && t.isAvailable(templateCtx)
-  );
+  // template (it belongs to the Custom tab, not the template grid). Throughput
+  // is shown even when unavailable so users learn the prerequisite (per
+  // feedback_hidden_vs_disabled_cta: disabled-with-actionable-copy beats hidden
+  // when the user can act to unlock it — here, by capturing step timings).
+  const availableTemplates = FORMULA_TEMPLATES.filter(t => {
+    if (t.id === 'custom') return false;
+    if (t.id === 'throughput') return true;
+    return t.isAvailable(templateCtx);
+  });
 
   if (availableTemplates.length === 0) {
     return (
