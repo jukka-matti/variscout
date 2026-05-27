@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ColumnParsingProfile, ParsingInterpretation } from '@variscout/core/parser';
 import { ColumnGroup } from './ColumnGroup';
+import { ColumnChipContextMenu } from './ColumnChipContextMenu';
+import { ParsingOverridePopover } from './ParsingOverridePopover';
+import { ParsingBanner } from './ParsingBanner';
 
 export interface PaletteProps {
   profiles: ColumnParsingProfile[];
   numericValuesByColumn: Record<string, number[]>;
-  onColumnOverrideOpen?: (columnName: string) => void;
-  onColumnContextMenuOpen?: (columnName: string) => void;
+  /** Notify when a context-menu item is chosen. Routed to no-op by default. */
+  onMenuItemSelect?: (columnName: string, itemId: string) => void;
+  /** Notify when a user picks a different parsing interpretation. Routed to no-op by default. */
+  onOverrideAccept?: (columnName: string, interpretation: ParsingInterpretation) => void;
+  /** Notify when "Apply to similar" is clicked. Routed to no-op by default. */
+  onApplyToSimilar?: (columnName: string, interpretation: ParsingInterpretation) => void;
+  /** Notify when the aggregate-warning banner's Review button is clicked. */
+  onReviewAllWarnings?: () => void;
 }
 
 type GroupKey = 'numeric' | 'categorical' | 'time-id' | 'other';
@@ -32,12 +41,22 @@ function bucketFor(kind: ParsingInterpretation['kind'] | undefined): GroupKey {
   }
 }
 
+type OpenOverlay =
+  | { kind: 'menu'; columnName: string; anchor: { x: number; y: number } }
+  | { kind: 'popover'; columnName: string; anchor: { x: number; y: number } };
+
+const WARNING_BANNER_THRESHOLD = 3;
+
 export const Palette: React.FC<PaletteProps> = ({
   profiles,
   numericValuesByColumn,
-  onColumnOverrideOpen,
-  onColumnContextMenuOpen,
+  onMenuItemSelect,
+  onOverrideAccept,
+  onApplyToSimilar,
+  onReviewAllWarnings,
 }) => {
+  const [openOverlay, setOpenOverlay] = useState<OpenOverlay | null>(null);
+
   if (profiles.length === 0) {
     return (
       <p className="text-xs text-content-tertiary" data-testid="palette-empty">
@@ -45,6 +64,8 @@ export const Palette: React.FC<PaletteProps> = ({
       </p>
     );
   }
+
+  const warningCount = profiles.filter(p => p.status === 'warning').length;
 
   const buckets: Record<GroupKey, ColumnParsingProfile[]> = {
     numeric: [],
@@ -56,8 +77,14 @@ export const Palette: React.FC<PaletteProps> = ({
     buckets[bucketFor(profile.primary?.kind)].push(profile);
   }
 
+  const activeProfile = openOverlay && profiles.find(p => p.columnName === openOverlay.columnName);
+
   return (
     <div className="flex flex-col gap-3" data-testid="palette">
+      {warningCount >= WARNING_BANNER_THRESHOLD && (
+        <ParsingBanner warningCount={warningCount} onReviewAll={() => onReviewAllWarnings?.()} />
+      )}
+
       {GROUP_ORDER.filter(({ key }) => buckets[key].length > 0).map(({ key, label }) => (
         <ColumnGroup
           key={key}
@@ -65,10 +92,35 @@ export const Palette: React.FC<PaletteProps> = ({
           label={label}
           profiles={buckets[key]}
           numericValuesByColumn={numericValuesByColumn}
-          onColumnOverrideOpen={onColumnOverrideOpen}
-          onColumnContextMenuOpen={onColumnContextMenuOpen}
+          onColumnOverrideOpen={(columnName, anchor) =>
+            setOpenOverlay({ kind: 'popover', columnName, anchor })
+          }
+          onColumnContextMenuOpen={(columnName, anchor) =>
+            setOpenOverlay({ kind: 'menu', columnName, anchor })
+          }
         />
       ))}
+
+      {openOverlay?.kind === 'menu' && activeProfile && (
+        <ColumnChipContextMenu
+          columnName={activeProfile.columnName}
+          kind={activeProfile.primary?.kind ?? 'text'}
+          anchor={openOverlay.anchor}
+          onItemSelect={(name, itemId) => onMenuItemSelect?.(name, itemId)}
+          onClose={() => setOpenOverlay(null)}
+        />
+      )}
+
+      {openOverlay?.kind === 'popover' && activeProfile && (
+        <ParsingOverridePopover
+          columnName={activeProfile.columnName}
+          profile={activeProfile}
+          anchor={openOverlay.anchor}
+          onChoose={(name, interpretation) => onOverrideAccept?.(name, interpretation)}
+          onApplyToSimilar={(name, interpretation) => onApplyToSimilar?.(name, interpretation)}
+          onClose={() => setOpenOverlay(null)}
+        />
+      )}
     </div>
   );
 };
