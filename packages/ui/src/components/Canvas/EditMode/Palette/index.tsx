@@ -33,23 +33,45 @@ export interface PaletteProps {
   onReviewAllWarnings?: () => void;
 }
 
-type GroupKey = 'numeric' | 'categorical' | 'time-id' | 'derived' | 'other';
+// Each `derived` profile carries a `derivationSource` discriminant; one bucket
+// is rendered per discriminant so projects with both timings AND formula derived
+// columns get two distinct DERIVED FROM ... sections (e.g., Lead_time alongside
+// Yield_pct). 'derived-fallback' catches the rare case of a derived profile
+// missing derivationSource.
+type GroupKey =
+  | 'numeric'
+  | 'categorical'
+  | 'time-id'
+  | 'derived-timings'
+  | 'derived-formula'
+  | 'derived-time-decomposition'
+  | 'derived-fallback'
+  | 'other';
 
 const GROUP_ORDER: ReadonlyArray<{ key: GroupKey; label: string }> = [
   { key: 'numeric', label: 'Numeric' },
   { key: 'categorical', label: 'Categorical' },
   { key: 'time-id', label: 'Time / ID' },
-  { key: 'derived', label: 'DERIVED FROM TIMINGS' }, // label overridden dynamically per derivationSource
+  { key: 'derived-timings', label: 'DERIVED FROM TIMINGS' },
+  { key: 'derived-formula', label: 'DERIVED FROM FORMULA' },
+  { key: 'derived-time-decomposition', label: 'DERIVED FROM TIME-DECOMPOSITION' },
+  { key: 'derived-fallback', label: 'DERIVED' },
   { key: 'other', label: 'Other' },
 ];
 
-function labelForDerivedGroup(profiles: ColumnParsingProfile[]): string {
-  const source = profiles[0]?.derivationSource ?? 'timings';
-  return `DERIVED FROM ${source.toUpperCase()}`;
-}
-
 function bucketFor(profile: ColumnParsingProfile): GroupKey {
-  if (profile.derived) return 'derived';
+  if (profile.derived) {
+    switch (profile.derivationSource) {
+      case 'timings':
+        return 'derived-timings';
+      case 'formula':
+        return 'derived-formula';
+      case 'time-decomposition':
+        return 'derived-time-decomposition';
+      default:
+        return 'derived-fallback';
+    }
+  }
   switch (profile.primary?.kind) {
     case 'numeric':
       return 'numeric';
@@ -94,7 +116,10 @@ export const Palette: React.FC<PaletteProps> = ({
     numeric: [],
     categorical: [],
     'time-id': [],
-    derived: [],
+    'derived-timings': [],
+    'derived-formula': [],
+    'derived-time-decomposition': [],
+    'derived-fallback': [],
     other: [],
   };
   for (const profile of profiles) {
@@ -128,7 +153,7 @@ export const Palette: React.FC<PaletteProps> = ({
         <ColumnGroup
           key={key}
           groupKey={key}
-          label={key === 'derived' ? labelForDerivedGroup(buckets[key]) : label}
+          label={label}
           profiles={buckets[key]}
           numericValuesByColumn={numericValuesByColumn}
           onColumnOverrideOpen={(columnName, anchor) =>

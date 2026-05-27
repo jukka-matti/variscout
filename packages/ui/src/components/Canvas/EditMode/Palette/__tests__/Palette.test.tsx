@@ -106,7 +106,7 @@ describe('Palette — derived group', () => {
         }),
       ],
     });
-    const derivedGroup = screen.getByTestId('palette-group-derived');
+    const derivedGroup = screen.getByTestId('palette-group-derived-timings');
     expect(derivedGroup).toBeInTheDocument();
     expect(derivedGroup).toHaveTextContent('DERIVED FROM TIMINGS');
   });
@@ -120,7 +120,8 @@ describe('Palette — derived group', () => {
         }),
       ],
     });
-    expect(screen.queryByTestId('palette-group-derived')).toBeNull();
+    expect(screen.queryByTestId('palette-group-derived-timings')).toBeNull();
+    expect(screen.queryByTestId('palette-group-derived-formula')).toBeNull();
   });
 
   it('renders derived chips with derived=true in derived group', () => {
@@ -158,26 +159,54 @@ describe('Palette — derived group', () => {
     });
     const groups = screen.getAllByTestId(/^palette-group-/);
     const testIds = groups.map(g => g.getAttribute('data-testid'));
-    const derivedIdx = testIds.indexOf('palette-group-derived');
+    const derivedIdx = testIds.indexOf('palette-group-derived-timings');
     const otherIdx = testIds.indexOf('palette-group-other');
     const numericIdx = testIds.indexOf('palette-group-numeric');
     expect(numericIdx).toBeLessThan(derivedIdx);
     expect(derivedIdx).toBeLessThan(otherIdx);
   });
 
-  it('uses default TIMINGS label when derivationSource is undefined on derived profile', () => {
+  it('derived profile with undefined derivationSource routes to fallback group labeled DERIVED', () => {
     renderPalette({
       profiles: [
         createTestColumnParsingProfile({
           columnName: 'Lead_time',
           derived: true,
-          // no derivationSource
+          // no derivationSource — defensive fallback group with neutral label
           primary: { kind: 'numeric', label: 'numeric · duration', detail: {} },
         }),
       ],
     });
-    const derivedGroup = screen.getByTestId('palette-group-derived');
-    expect(derivedGroup).toHaveTextContent('DERIVED FROM TIMINGS');
+    const derivedGroup = screen.getByTestId('palette-group-derived-fallback');
+    expect(derivedGroup).toBeInTheDocument();
+    expect(derivedGroup).toHaveTextContent('DERIVED');
+  });
+
+  it('renders TIMINGS and FORMULA derived groups as separate sections when both kinds present', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Lead_time',
+          derived: true,
+          derivationSource: 'timings',
+          primary: { kind: 'numeric', label: 'numeric · duration', detail: {} },
+        }),
+        createTestColumnParsingProfile({
+          columnName: 'Yield_pct',
+          derived: true,
+          derivationSource: 'formula',
+          primary: { kind: 'numeric', label: 'numeric · derived', detail: {} },
+        }),
+      ],
+    });
+    const timingsGroup = screen.getByTestId('palette-group-derived-timings');
+    const formulaGroup = screen.getByTestId('palette-group-derived-formula');
+    expect(timingsGroup).toHaveTextContent('DERIVED FROM TIMINGS');
+    expect(timingsGroup).toHaveTextContent('Lead_time');
+    expect(timingsGroup).not.toHaveTextContent('Yield_pct');
+    expect(formulaGroup).toHaveTextContent('DERIVED FROM FORMULA');
+    expect(formulaGroup).toHaveTextContent('Yield_pct');
+    expect(formulaGroup).not.toHaveTextContent('Lead_time');
   });
 
   it('raw (non-derived) profiles still route to their kind-based group', () => {
@@ -198,7 +227,7 @@ describe('Palette — derived group', () => {
     const numericGroup = screen.getByTestId('palette-group-numeric');
     expect(numericGroup).toHaveTextContent('Speed');
     expect(numericGroup).not.toHaveTextContent('Lead_time');
-    const derivedGroup = screen.getByTestId('palette-group-derived');
+    const derivedGroup = screen.getByTestId('palette-group-derived-timings');
     expect(derivedGroup).toHaveTextContent('Lead_time');
   });
 });

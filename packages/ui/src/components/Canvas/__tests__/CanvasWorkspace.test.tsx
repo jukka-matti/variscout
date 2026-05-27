@@ -1444,7 +1444,7 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
     expect(toolbarButton).not.toBeDisabled();
 
     // No derived chips yet (Save hasn't been called).
-    expect(screen.queryByTestId('palette-group-derived')).toBeNull();
+    expect(screen.queryByTestId('palette-group-derived-timings')).toBeNull();
 
     // Click the toolbar button → modal opens.
     fireEvent.click(toolbarButton);
@@ -1467,7 +1467,7 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
     expect(screen.queryByTestId('step-timings-backdrop')).toBeNull();
 
     // Derived palette group now appears with the DERIVED FROM TIMINGS header.
-    const derivedGroup = screen.getByTestId('palette-group-derived');
+    const derivedGroup = screen.getByTestId('palette-group-derived-timings');
     expect(derivedGroup).toBeInTheDocument();
     expect(derivedGroup).toHaveTextContent('DERIVED FROM TIMINGS');
 
@@ -1517,7 +1517,7 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
 
     fireEvent.click(screen.getByTestId('step-timings-save'));
 
-    const derivedGroup = screen.getByTestId('palette-group-derived');
+    const derivedGroup = screen.getByTestId('palette-group-derived-timings');
     expect(derivedGroup).toBeInTheDocument();
     expect(derivedGroup).not.toHaveTextContent('Lead_time');
     expect(derivedGroup).not.toHaveTextContent('Wait_time');
@@ -1529,11 +1529,11 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
     dropStepColumnOnProcessZone();
 
     // Steps materialized; modal not opened yet. No derived chips.
-    expect(screen.queryByTestId('palette-group-derived')).toBeNull();
+    expect(screen.queryByTestId('palette-group-derived-timings')).toBeNull();
 
     // Open the modal — derived chips still should not appear (Save not clicked).
     fireEvent.click(screen.getByRole('button', { name: /\+ Capture step timings/i }));
-    expect(screen.queryByTestId('palette-group-derived')).toBeNull();
+    expect(screen.queryByTestId('palette-group-derived-timings')).toBeNull();
   });
 });
 
@@ -1866,7 +1866,7 @@ describe('Task 11 — formula derivation + batch-hint banner end-to-end', () => 
 
     // The DERIVED group appears in the palette with the FORMULA source header
     // and a chip labeled Yield_pct.
-    const derivedGroup = screen.getByTestId('palette-group-derived');
+    const derivedGroup = screen.getByTestId('palette-group-derived-formula');
     expect(derivedGroup).toBeInTheDocument();
     expect(derivedGroup).toHaveTextContent('DERIVED FROM FORMULA');
     expect(derivedGroup).toHaveTextContent('Yield_pct');
@@ -1899,7 +1899,7 @@ describe('Task 11 — formula derivation + batch-hint banner end-to-end', () => 
     // attribute (encoded as `column:<name>`). The presence of the draggable id
     // is the smoke-test signal that the chip will participate in the dnd-kit
     // drag/drop graph the same way raw numeric chips do.
-    const derivedGroup = screen.getByTestId('palette-group-derived');
+    const derivedGroup = screen.getByTestId('palette-group-derived-formula');
     const chips = within(derivedGroup).getAllByTestId('column-chip');
     expect(chips.length).toBeGreaterThan(0);
     const yieldChip = chips.find(c => c.textContent?.includes('Yield_pct'));

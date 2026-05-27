@@ -3,7 +3,15 @@ import type { ColumnParsingProfile } from '@variscout/core/parser';
 import { ColumnChip } from './ColumnChip';
 
 export interface ColumnGroupProps {
-  groupKey: 'numeric' | 'categorical' | 'time-id' | 'derived' | 'other';
+  groupKey:
+    | 'numeric'
+    | 'categorical'
+    | 'time-id'
+    | 'derived-timings'
+    | 'derived-formula'
+    | 'derived-time-decomposition'
+    | 'derived-fallback'
+    | 'other';
   label: string;
   profiles: ColumnParsingProfile[];
   numericValuesByColumn: Record<string, number[]>;

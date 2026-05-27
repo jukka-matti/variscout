@@ -423,6 +423,7 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
                   denominator={customDenominator}
                   multiplier={customMultiplier}
                   onMultiplierChange={setCustomMultiplier}
+                  isDpmoTemplate={seededFromTemplate?.templateId === 'dpmo'}
                   focusedSlot={focusedSlot}
                   onFocusSlot={setFocusedSlot}
                   onAddToSlot={handleAddToSlot}
@@ -654,6 +655,14 @@ interface CustomTabContentProps {
   denominator: FormulaTerm[];
   multiplier: number;
   onMultiplierChange: (multiplier: number) => void;
+  /**
+   * When true, render the Opportunities-per-unit input in place of the raw
+   * Multiplier. DPMO encodes opps_per_unit via multiplier inversion
+   * (multiplier = 1_000_000 / opps_per_unit) so the canonical Six Sigma
+   * formula stays correct without polluting the FormulaTerm union with a
+   * multiplicative-constant kind.
+   */
+  isDpmoTemplate: boolean;
   focusedSlot: SlotId | null;
   onFocusSlot: (slot: SlotId) => void;
   onAddToSlot: (column: string) => void;
@@ -682,6 +691,7 @@ const CustomTabContent: React.FC<CustomTabContentProps> = ({
   denominator,
   multiplier,
   onMultiplierChange,
+  isDpmoTemplate,
   focusedSlot,
   onFocusSlot,
   onAddToSlot,
@@ -766,28 +776,58 @@ const CustomTabContent: React.FC<CustomTabContentProps> = ({
           />
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label
-            htmlFor="calc-column-custom-multiplier"
-            className="block text-xs font-medium text-content-secondary"
-          >
-            Multiplier
-          </label>
-          <input
-            id="calc-column-custom-multiplier"
-            type="number"
-            aria-label="Multiplier"
-            value={multiplier}
-            onChange={e => {
-              const next = Number(e.target.value);
-              onMultiplierChange(Number.isFinite(next) ? next : 1);
-            }}
-            className="w-full text-sm border border-edge rounded-md px-2 py-1.5 bg-surface focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <p className="text-xs text-content-secondary">
-            × multiplier (e.g. 100 for %, 1,000,000 for DPMO)
-          </p>
-        </div>
+        {isDpmoTemplate ? (
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="calc-column-custom-opps-per-unit"
+              className="block text-xs font-medium text-content-secondary"
+            >
+              Opportunities per unit
+            </label>
+            <input
+              id="calc-column-custom-opps-per-unit"
+              type="number"
+              min={1}
+              step={1}
+              aria-label="Opportunities per unit"
+              data-testid="calc-column-opps-per-unit"
+              value={multiplier > 0 ? 1_000_000 / multiplier : 1}
+              onChange={e => {
+                const opps = Number(e.target.value);
+                if (Number.isFinite(opps) && opps > 0) {
+                  onMultiplierChange(1_000_000 / opps);
+                }
+              }}
+              className="w-full text-sm border border-edge rounded-md px-2 py-1.5 bg-surface focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <p className="text-xs text-content-secondary">
+              DPMO = defects / (samples × opps) × 1,000,000
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="calc-column-custom-multiplier"
+              className="block text-xs font-medium text-content-secondary"
+            >
+              Multiplier
+            </label>
+            <input
+              id="calc-column-custom-multiplier"
+              type="number"
+              aria-label="Multiplier"
+              value={multiplier}
+              onChange={e => {
+                const next = Number(e.target.value);
+                onMultiplierChange(Number.isFinite(next) ? next : 1);
+              }}
+              className="w-full text-sm border border-edge rounded-md px-2 py-1.5 bg-surface focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <p className="text-xs text-content-secondary">
+              × multiplier (e.g. 100 for %, 1,000,000 for DPMO)
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Palette */}

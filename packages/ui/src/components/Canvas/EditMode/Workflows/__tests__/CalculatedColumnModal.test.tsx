@@ -272,9 +272,11 @@ describe('CalculatedColumnModal', () => {
       const nameInput = screen.getByLabelText('Calculated column name') as HTMLInputElement;
       expect(nameInput.value).toBe('DPMO');
 
-      // Multiplier pre-filled to 1,000,000
-      const multiplierInput = screen.getByLabelText('Multiplier') as HTMLInputElement;
-      expect(Number(multiplierInput.value)).toBe(1_000_000);
+      // DPMO template surfaces opportunities_per_unit (= 1 by default), not the
+      // raw multiplier — the modal inverts opps to compute multiplier internally
+      // (default opps=1 → multiplier=1,000,000).
+      const oppsInput = screen.getByTestId('calc-column-opps-per-unit') as HTMLInputElement;
+      expect(Number(oppsInput.value)).toBe(1);
     });
   });
 
@@ -906,6 +908,82 @@ describe('CalculatedColumnModal', () => {
       expect(emptyState).toHaveTextContent(
         'No numeric columns yet. Paste data with numbers to use calculated columns.'
       );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // DPMO Opportunities-per-unit input (post-review fix — multiplier inversion)
+  // ---------------------------------------------------------------------------
+
+  describe('DPMO opportunities-per-unit input', () => {
+    function pickDpmo(opts: RenderOptions = {}) {
+      const utils = renderModal({
+        rawProfiles: [numericProfile('Defects'), numericProfile('Samples')],
+        ...opts,
+      });
+      const dpmoCard = screen.getByTestId('calc-column-card-dpmo');
+      fireEvent.click(within(dpmoCard).getByRole('button', { name: /use template/i }));
+      return utils;
+    }
+
+    it('renders Opportunities-per-unit input instead of the raw Multiplier when DPMO template is active', () => {
+      pickDpmo();
+      expect(screen.getByTestId('calc-column-opps-per-unit')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Multiplier')).not.toBeInTheDocument();
+    });
+
+    it('Opps-per-unit defaults to 1 (since DPMO template sets multiplier to 1,000,000)', () => {
+      pickDpmo();
+      const input = screen.getByTestId('calc-column-opps-per-unit') as HTMLInputElement;
+      expect(input.value).toBe('1');
+    });
+
+    it('typing opps=5 updates the binding multiplier to 200,000 via inversion', () => {
+      const { onSave } = pickDpmo();
+      const input = screen.getByTestId('calc-column-opps-per-unit') as HTMLInputElement;
+      fireEvent.change(input, { target: { value: '5' } });
+
+      // Save and inspect the binding's multiplier
+      fireEvent.click(screen.getByTestId('calc-column-custom-save'));
+      expect(onSave).toHaveBeenCalledOnce();
+      const binding = onSave.mock.calls[0][0];
+      expect(binding.multiplier).toBe(200_000);
+      expect(binding.templateId).toBe('dpmo');
+      expect(binding.family).toBe('dpmo');
+    });
+
+    it('opps=1 yields multiplier=1,000,000 (canonical default DPMO)', () => {
+      const { onSave } = pickDpmo();
+      // No edit — keep default opps=1
+      fireEvent.click(screen.getByTestId('calc-column-custom-save'));
+      const binding = onSave.mock.calls[0][0];
+      expect(binding.multiplier).toBe(1_000_000);
+    });
+
+    it('opps=0 or negative is ignored (multiplier unchanged)', () => {
+      const { onSave } = pickDpmo();
+      const input = screen.getByTestId('calc-column-opps-per-unit') as HTMLInputElement;
+      // Set to 5 first so we have a known state
+      fireEvent.change(input, { target: { value: '5' } });
+      // Then try 0 — should not divide by zero
+      fireEvent.change(input, { target: { value: '0' } });
+      // Then try -3 — should not produce negative multiplier
+      fireEvent.change(input, { target: { value: '-3' } });
+
+      fireEvent.click(screen.getByTestId('calc-column-custom-save'));
+      const binding = onSave.mock.calls[0][0];
+      // multiplier stays at 1_000_000 / 5 = 200_000 (the last valid value)
+      expect(binding.multiplier).toBe(200_000);
+    });
+
+    it('non-DPMO templates show the raw Multiplier input, NOT opps-per-unit', () => {
+      renderModal({
+        rawProfiles: [numericProfile('A'), numericProfile('B')],
+      });
+      const diffCard = screen.getByTestId('calc-column-card-difference');
+      fireEvent.click(within(diffCard).getByRole('button', { name: /use template/i }));
+      expect(screen.queryByTestId('calc-column-opps-per-unit')).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Multiplier')).toBeInTheDocument();
     });
   });
 });
