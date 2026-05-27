@@ -788,4 +788,124 @@ describe('CalculatedColumnModal', () => {
       expect(screen.queryByTestId('calc-column-live-preview')).not.toBeInTheDocument();
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Task 8 polish — name validation + empty states
+  // ---------------------------------------------------------------------------
+
+  describe('Task 8 polish — name validation + empty states', () => {
+    /** Helper: open the Custom tab. */
+    function openCustomTab(opts: RenderOptions = {}) {
+      const utils = renderModal(opts);
+      fireEvent.click(screen.getByTestId('calc-column-tab-custom'));
+      return utils;
+    }
+
+    it('Save disabled when name duplicates an existing derived column', () => {
+      openCustomTab({ existingDerivedNames: ['Yield_pct', 'Lead_time'] });
+
+      // Add A to numerator so numerator is not empty
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      // Type the duplicate name
+      const nameInput = screen.getByLabelText('Calculated column name');
+      fireEvent.change(nameInput, { target: { value: 'Yield_pct' } });
+
+      // Save button should be disabled
+      const save = screen.getByTestId('calc-column-custom-save');
+      expect(save).toBeDisabled();
+
+      // Inline error visible
+      const error = screen.getByTestId('calc-column-name-error');
+      expect(error).toBeInTheDocument();
+      expect(error).toHaveTextContent('Name already used');
+      expect(error).toHaveAttribute('role', 'alert');
+
+      // aria-invalid + aria-describedby on the name input
+      expect(nameInput).toHaveAttribute('aria-invalid', 'true');
+      expect(nameInput).toHaveAttribute('aria-describedby', 'calc-column-name-error');
+    });
+
+    it('Save enabled with a non-duplicate name; no error shown', () => {
+      openCustomTab({ existingDerivedNames: ['Yield_pct', 'Lead_time'] });
+
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      const nameInput = screen.getByLabelText('Calculated column name');
+      fireEvent.change(nameInput, { target: { value: 'Yield_pct_new' } });
+
+      const save = screen.getByTestId('calc-column-custom-save');
+      expect(save).not.toBeDisabled();
+      expect(screen.queryByTestId('calc-column-name-error')).not.toBeInTheDocument();
+      expect(nameInput).toHaveAttribute('aria-invalid', 'false');
+    });
+
+    it('duplicate guard trims whitespace: trailing space matches', () => {
+      openCustomTab({ existingDerivedNames: ['Yield_pct'] });
+
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      const nameInput = screen.getByLabelText('Calculated column name');
+      fireEvent.change(nameInput, { target: { value: 'Yield_pct ' } });
+
+      // Trailing-space input trims to 'Yield_pct' → duplicate detected
+      expect(screen.getByTestId('calc-column-name-error')).toBeInTheDocument();
+      expect(screen.getByTestId('calc-column-custom-save')).toBeDisabled();
+    });
+
+    it('duplicate guard is case-sensitive: different case is NOT a duplicate', () => {
+      openCustomTab({ existingDerivedNames: ['Yield_pct'] });
+
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      const nameInput = screen.getByLabelText('Calculated column name');
+      fireEvent.change(nameInput, { target: { value: 'yield_pct' } });
+
+      // Different case → not a duplicate → no error, save enabled
+      expect(screen.queryByTestId('calc-column-name-error')).not.toBeInTheDocument();
+      expect(screen.getByTestId('calc-column-custom-save')).not.toBeDisabled();
+    });
+
+    it('Save disabled when name is empty even if not a duplicate; no error message shown', () => {
+      openCustomTab({ existingDerivedNames: ['X'] });
+
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      const nameInput = screen.getByLabelText('Calculated column name');
+      // Name is empty string — not a duplicate, but invalid
+      fireEvent.change(nameInput, { target: { value: '' } });
+
+      expect(screen.getByTestId('calc-column-custom-save')).toBeDisabled();
+      // No duplicate-name error shown for empty input
+      expect(screen.queryByTestId('calc-column-name-error')).not.toBeInTheDocument();
+    });
+
+    it('Save disabled when numerator is empty even if name is unique; no error shown', () => {
+      openCustomTab({ existingDerivedNames: ['X'] });
+
+      // Type a unique name but do NOT add numerator terms
+      const nameInput = screen.getByLabelText('Calculated column name');
+      fireEvent.change(nameInput, { target: { value: 'Foo' } });
+
+      expect(screen.getByTestId('calc-column-custom-save')).toBeDisabled();
+      expect(screen.queryByTestId('calc-column-name-error')).not.toBeInTheDocument();
+    });
+
+    it('Templates tab shows empty-state copy when no numeric columns are present', () => {
+      renderModal({ rawProfiles: [dateProfile('Created')], numericValuesByColumn: {} });
+
+      // Templates tab is active by default
+      const emptyState = screen.getByTestId('calc-column-empty-state');
+      expect(emptyState).toBeInTheDocument();
+      expect(screen.queryByTestId('calc-column-template-grid')).not.toBeInTheDocument();
+    });
+
+    it('Templates empty-state copy matches the canonical wording exactly', () => {
+      renderModal({ rawProfiles: [], numericValuesByColumn: {} });
+      const emptyState = screen.getByTestId('calc-column-empty-state');
+      expect(emptyState).toHaveTextContent(
+        'No numeric columns yet. Paste data with numbers to use calculated columns.'
+      );
+    });
+  });
 });

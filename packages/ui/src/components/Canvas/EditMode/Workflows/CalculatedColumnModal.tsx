@@ -53,7 +53,7 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
   numericValuesByColumn,
   rows,
   hasLeadTime,
-  existingDerivedNames: _existingDerivedNames,
+  existingDerivedNames,
   onSave,
   onClose,
 }) => {
@@ -225,7 +225,10 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
     }
   }, []);
 
-  const customSaveDisabled = customName.trim().length === 0 || customNumerator.length === 0;
+  const trimmedName = customName.trim();
+  const isDuplicateName = trimmedName.length > 0 && existingDerivedNames.includes(trimmedName);
+  const isSaveValid = trimmedName.length > 0 && customNumerator.length > 0 && !isDuplicateName;
+  const customSaveDisabled = !isSaveValid;
 
   const handleCustomSave = () => {
     if (customSaveDisabled) return;
@@ -415,6 +418,7 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
                   numericColumns={numericColumns}
                   name={customName}
                   onNameChange={setCustomName}
+                  isDuplicateName={isDuplicateName}
                   numerator={customNumerator}
                   denominator={customDenominator}
                   multiplier={customMultiplier}
@@ -644,6 +648,8 @@ interface CustomTabContentProps {
   numericColumns: string[];
   name: string;
   onNameChange: (name: string) => void;
+  /** True when the trimmed name matches an entry in existingDerivedNames. */
+  isDuplicateName: boolean;
   numerator: FormulaTerm[];
   denominator: FormulaTerm[];
   multiplier: number;
@@ -671,6 +677,7 @@ const CustomTabContent: React.FC<CustomTabContentProps> = ({
   numericColumns,
   name,
   onNameChange,
+  isDuplicateName,
   numerator,
   denominator,
   multiplier,
@@ -706,8 +713,20 @@ const CustomTabContent: React.FC<CustomTabContentProps> = ({
           placeholder="Calculated_column"
           value={name}
           onChange={e => onNameChange(e.target.value)}
+          aria-invalid={isDuplicateName}
+          aria-describedby={isDuplicateName ? 'calc-column-name-error' : undefined}
           className="w-full text-sm border border-edge rounded-md px-2 py-1.5 bg-surface focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
+        {isDuplicateName && (
+          <p
+            id="calc-column-name-error"
+            data-testid="calc-column-name-error"
+            role="alert"
+            className="text-sm text-red-700"
+          >
+            Name already used
+          </p>
+        )}
       </div>
 
       {/* Composer: slots (left) + multiplier (right) */}
