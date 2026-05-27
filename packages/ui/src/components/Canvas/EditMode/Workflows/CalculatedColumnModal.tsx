@@ -6,8 +6,9 @@ import type {
   FormulaTerm,
   TemplateContext,
 } from '@variscout/core';
-import { FORMULA_TEMPLATES, detectBatchData } from '@variscout/core';
+import { FORMULA_TEMPLATES, detectBatchData, computeFormulaColumn } from '@variscout/core';
 import type { ColumnParsingProfile } from '@variscout/core/parser';
+import { formatFormulaPreview } from '../formatFormulaPreview';
 
 /** Slot identifier for the Custom tab composer. */
 type SlotId = 'numerator' | 'denominator';
@@ -50,7 +51,7 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
   sourceColumn,
   rawProfiles,
   numericValuesByColumn,
-  rows: _rows,
+  rows,
   hasLeadTime,
   existingDerivedNames: _existingDerivedNames,
   onSave,
@@ -65,6 +66,14 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
   const [customNumerator, setCustomNumerator] = useState<FormulaTerm[]>([]);
   const [customDenominator, setCustomDenominator] = useState<FormulaTerm[]>([]);
   const [customMultiplier, setCustomMultiplier] = useState(1);
+
+  // Tracks which template (if any) seeded the Custom tab state.
+  // Sticky: stays set even if user edits terms — round-trip identity matters
+  // more than purity (cleared only when opening a different template or fresh).
+  const [seededFromTemplate, setSeededFromTemplate] = useState<{
+    templateId: string;
+    family: FormulaBinding['family'];
+  } | null>(null);
   const [focusedSlot, setFocusedSlot] = useState<SlotId | null>(null);
   // Fly-in animation key — stamped per add. Cleared after the transition window.
   const [flyInKey, setFlyInKey] = useState<string | null>(null);
@@ -116,7 +125,14 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
 
   const handleTemplateSelect = (template: FormulaTemplate) => {
     const binding = template.fillFromContext(templateCtx, sourceColumn);
-    onSave(binding);
+    // Pre-fill the Custom tab state from the template binding, then switch tabs
+    // so the user can review and edit before saving.
+    setCustomName(binding.name);
+    setCustomNumerator(binding.numerator);
+    setCustomDenominator(binding.denominator);
+    setCustomMultiplier(binding.multiplier);
+    setSeededFromTemplate({ templateId: template.id, family: template.family });
+    setActiveTab('custom');
   };
 
   // -------------------------------------------------------------------------
@@ -219,10 +235,93 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
       numerator: customNumerator,
       denominator: customDenominator,
       multiplier: customMultiplier,
-      family: 'custom',
+      family: seededFromTemplate?.family ?? 'custom',
+      templateId: seededFromTemplate?.templateId,
     };
     onSave(binding);
   };
+
+  // -------------------------------------------------------------------------
+  // Live preview + parse-success counts (Task 7).
+  // -------------------------------------------------------------------------
+
+  /** First 3 rows used for the live preview section. */
+  const sampleRows = useMemo(() => rows.slice(0, 3), [rows]);
+
+  /**
+   * Current binding assembled from Custom tab state — used for both live
+   * preview rendering and parse-success counts computation.
+   */
+  const currentBinding = useMemo<FormulaBinding>(
+    () => ({
+      id: 'preview',
+      name: customName || 'Calculated',
+      numerator: customNumerator,
+      denominator: customDenominator,
+      multiplier: customMultiplier,
+      family: seededFromTemplate?.family ?? 'custom',
+      templateId: seededFromTemplate?.templateId,
+    }),
+    [customName, customNumerator, customDenominator, customMultiplier, seededFromTemplate]
+  );
+
+  /**
+   * Pass the full numericValuesByColumn as augmentedColumns — evaluateFormulaRow
+   * checks row fields first, then falls back to augmented, so raw columns are
+   * not shadowed.
+   */
+  const augmentedColumns = numericValuesByColumn;
+
+  /** Parse-success counts: finite results / div-by-zero / missing cells. */
+  const parseSuccessCounts = useMemo(() => {
+    const total = rows.length;
+    if (customNumerator.length === 0) {
+      return { total, compute: 0, divByZero: 0, missing: 0 };
+    }
+    const results = computeFormulaColumn(rows, currentBinding, augmentedColumns);
+    if (results === null) {
+      return { total, compute: 0, divByZero: 0, missing: 0 };
+    }
+    let compute = 0;
+    let divByZero = 0;
+    let missing = 0;
+    for (let i = 0; i < results.length; i++) {
+      if (Number.isFinite(results[i])) {
+        compute += 1;
+        continue;
+      }
+      // Classify NaN: check if any column in numerator or denominator is missing/uncoercible.
+      const numerNaN = customNumerator.some(t => {
+        if (t.kind === 'constant') return false;
+        const v = rows[i][t.column];
+        if (v === null || v === undefined || v === '') {
+          // Check augmented fallback
+          const aug = augmentedColumns[t.column];
+          if (aug === undefined || !Number.isFinite(aug[i])) return true;
+          return false;
+        }
+        return !Number.isFinite(Number(v));
+      });
+      const denomNaN =
+        customDenominator.length > 0 &&
+        customDenominator.some(t => {
+          if (t.kind === 'constant') return false;
+          const v = rows[i][t.column];
+          if (v === null || v === undefined || v === '') {
+            const aug = augmentedColumns[t.column];
+            if (aug === undefined || !Number.isFinite(aug[i])) return true;
+            return false;
+          }
+          return !Number.isFinite(Number(v));
+        });
+      if (numerNaN || denomNaN) {
+        missing += 1;
+      } else {
+        divByZero += 1;
+      }
+    }
+    return { total, compute, divByZero, missing };
+  }, [rows, currentBinding, augmentedColumns, customNumerator, customDenominator]);
 
   return (
     <div
@@ -329,6 +428,10 @@ export const CalculatedColumnModal: React.FC<CalculatedColumnModalProps> = ({
                   flyInDelta={flyInDelta}
                   registerPaletteRect={registerPaletteRect}
                   registerSlotRect={registerSlotRect}
+                  sampleRows={sampleRows}
+                  currentBinding={currentBinding}
+                  augmentedColumns={augmentedColumns}
+                  parseSuccessCounts={parseSuccessCounts}
                 />
               </div>
             )}
@@ -530,6 +633,13 @@ const TemplateCardBody: React.FC<{
  * and the chip slides into place. In jsdom both rects return zero-sized boxes
  * so the delta is (0, 0) and the animation is a no-op (no jank, no jiggle).
  */
+interface ParseSuccessCounts {
+  total: number;
+  compute: number;
+  divByZero: number;
+  missing: number;
+}
+
 interface CustomTabContentProps {
   numericColumns: string[];
   name: string;
@@ -547,6 +657,14 @@ interface CustomTabContentProps {
   flyInDelta: { dx: number; dy: number } | null;
   registerPaletteRect: (column: string, rect: DOMRect | null) => void;
   registerSlotRect: (slot: SlotId, rect: DOMRect | null) => void;
+  /** First 3 rows for live preview. */
+  sampleRows: ReadonlyArray<Record<string, unknown>>;
+  /** Current binding assembled from state for preview + counts. */
+  currentBinding: FormulaBinding;
+  /** Augmented columns map for formula evaluation. */
+  augmentedColumns: Record<string, number[]>;
+  /** Parse-success counts for all rows. */
+  parseSuccessCounts: ParseSuccessCounts;
 }
 
 const CustomTabContent: React.FC<CustomTabContentProps> = ({
@@ -566,6 +684,10 @@ const CustomTabContent: React.FC<CustomTabContentProps> = ({
   flyInDelta,
   registerPaletteRect,
   registerSlotRect,
+  sampleRows,
+  currentBinding,
+  augmentedColumns,
+  parseSuccessCounts,
 }) => {
   return (
     <div className="flex flex-col gap-4 py-2 px-1">
@@ -667,6 +789,45 @@ const CustomTabContent: React.FC<CustomTabContentProps> = ({
           </div>
         )}
       </div>
+
+      {/* Live preview — shown only when at least one numerator term is present */}
+      {numerator.length > 0 && (
+        <div
+          data-testid="calc-column-live-preview"
+          role="region"
+          aria-label="Live preview"
+          className="rounded-md border border-edge bg-surface-secondary p-3"
+        >
+          <h3 className="text-xs font-semibold text-content-secondary uppercase tracking-wide mb-2">
+            Live preview
+          </h3>
+          <ul className="space-y-1 font-mono text-sm text-content">
+            {sampleRows.map((row, i) => (
+              <li key={i} data-testid={`calc-column-preview-row-${i}`}>
+                Row {i + 1}: {formatFormulaPreview(currentBinding, row, i, augmentedColumns)}
+              </li>
+            ))}
+          </ul>
+          <div
+            data-testid="calc-column-parse-success-counts"
+            className="mt-2 text-xs text-content-secondary"
+          >
+            {parseSuccessCounts.compute} / {parseSuccessCounts.total} rows compute
+            {parseSuccessCounts.divByZero > 0 && (
+              <span data-testid="calc-column-divbyzero">
+                {' · '}
+                {parseSuccessCounts.divByZero} rows with division by zero
+              </span>
+            )}
+            {parseSuccessCounts.missing > 0 && (
+              <span data-testid="calc-column-missing">
+                {' · '}
+                {parseSuccessCounts.missing} rows with missing cells
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

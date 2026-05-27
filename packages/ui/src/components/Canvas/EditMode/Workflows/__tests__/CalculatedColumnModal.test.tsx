@@ -55,6 +55,7 @@ interface RenderOptions {
   sourceColumn?: string;
   rawProfiles?: ColumnParsingProfile[];
   numericValuesByColumn?: Record<string, number[]>;
+  rows?: ReadonlyArray<Record<string, unknown>>;
   hasLeadTime?: boolean;
   existingDerivedNames?: string[];
 }
@@ -75,7 +76,7 @@ function renderModal(opts: RenderOptions = {}) {
       sourceColumn={opts.sourceColumn}
       rawProfiles={rawProfiles}
       numericValuesByColumn={numericValuesByColumn}
-      rows={[]}
+      rows={opts.rows ?? []}
       hasLeadTime={opts.hasLeadTime ?? false}
       existingDerivedNames={opts.existingDerivedNames ?? []}
       onSave={onSave}
@@ -251,16 +252,29 @@ describe('CalculatedColumnModal', () => {
       expect(uniqueIds.size).toBe(ids.length);
     });
 
-    it('clicking a template card button calls onSave with a FormulaBinding', () => {
-      const { onSave } = renderModal({ rawProfiles: [numericProfile('A'), numericProfile('B')] });
+    it('clicking a template card button pre-fills Custom tab and switches to it', () => {
+      const { onSave } = renderModal({
+        rawProfiles: [numericProfile('Defects'), numericProfile('Samples')],
+        numericValuesByColumn: { Defects: [3, 6, 9], Samples: [100, 200, 300] },
+      });
       const dpmoCard = screen.getByTestId('calc-column-card-dpmo');
       const dpmoBtn = within(dpmoCard).getByRole('button', { name: /use template/i });
       fireEvent.click(dpmoBtn);
-      expect(onSave).toHaveBeenCalledOnce();
-      const binding = onSave.mock.calls[0][0];
-      expect(binding).toHaveProperty('id');
-      expect(binding).toHaveProperty('name', 'DPMO');
-      expect(binding).toHaveProperty('family', 'dpmo');
+
+      // onSave NOT called — user reviews in Custom tab first
+      expect(onSave).not.toHaveBeenCalled();
+
+      // Custom tab is now active
+      const customTab = screen.getByTestId('calc-column-tab-custom');
+      expect(customTab).toHaveAttribute('aria-selected', 'true');
+
+      // Name pre-filled
+      const nameInput = screen.getByLabelText('Calculated column name') as HTMLInputElement;
+      expect(nameInput.value).toBe('DPMO');
+
+      // Multiplier pre-filled to 1,000,000
+      const multiplierInput = screen.getByLabelText('Multiplier') as HTMLInputElement;
+      expect(Number(multiplierInput.value)).toBe(1_000_000);
     });
   });
 
@@ -605,6 +619,173 @@ describe('CalculatedColumnModal', () => {
 
       // No element should have data-term-kind="constant"
       expect(document.querySelector('[data-term-kind="constant"]')).toBeNull();
+    });
+
+    // -------------------------------------------------------------------------
+    // Task 7: template pre-fill + live preview + parse-success counts
+    // -------------------------------------------------------------------------
+
+    it('live preview section is absent when numerator is empty', () => {
+      openCustomTab();
+      expect(screen.queryByTestId('calc-column-live-preview')).not.toBeInTheDocument();
+    });
+
+    it('live preview shows sample rows after pre-filling from template', () => {
+      const rows = [
+        { Defects: 3, Samples: 100 },
+        { Defects: 6, Samples: 200 },
+        { Defects: 9, Samples: 300 },
+      ];
+      renderModal({
+        rawProfiles: [numericProfile('Defects'), numericProfile('Samples')],
+        numericValuesByColumn: { Defects: [3, 6, 9], Samples: [100, 200, 300] },
+        rows,
+      });
+
+      // Click DPMO template → switches to Custom tab with pre-filled state
+      const dpmoCard = screen.getByTestId('calc-column-card-dpmo');
+      const dpmoBtn = within(dpmoCard).getByRole('button', { name: /use template/i });
+      fireEvent.click(dpmoBtn);
+
+      // Live preview region present
+      const preview = screen.getByTestId('calc-column-live-preview');
+      expect(preview).toBeInTheDocument();
+
+      // Row 1: 3 / 100 × 1,000,000 = 30,000
+      const row0 = screen.getByTestId('calc-column-preview-row-0');
+      expect(row0.textContent).toContain('Row 1:');
+      expect(row0.textContent).toContain('30,000');
+
+      // Row 2: 6 / 200 × 1,000,000 = 30,000
+      const row1 = screen.getByTestId('calc-column-preview-row-1');
+      expect(row1.textContent).toContain('Row 2:');
+      expect(row1.textContent).toContain('30,000');
+
+      // Maximum 3 rows shown (no row index 3+)
+      expect(screen.queryByTestId('calc-column-preview-row-3')).not.toBeInTheDocument();
+    });
+
+    it('parse-success counts correctly classifies finite / div-by-zero / missing', () => {
+      // 3 valid rows + 2 div-by-zero rows + 1 missing cell.
+      // numericValuesByColumn (augmented) Samples array is only 5 entries, so
+      // index 5 falls out-of-bounds and the evaluator returns NaN for "missing".
+      const rows: Array<Record<string, unknown>> = [
+        { Defects: 3, Samples: 100 },
+        { Defects: 6, Samples: 200 },
+        { Defects: 9, Samples: 300 },
+        { Defects: 1, Samples: 0 }, // div-by-zero
+        { Defects: 2, Samples: 0 }, // div-by-zero
+        { Defects: 5 }, // missing Samples (not in row, augmented OOB)
+      ];
+      renderModal({
+        rawProfiles: [numericProfile('Defects'), numericProfile('Samples')],
+        numericValuesByColumn: {
+          Defects: [3, 6, 9, 1, 2, 5],
+          Samples: [100, 200, 300, 0, 0], // 5 entries — index 5 is out-of-bounds
+        },
+        rows,
+      });
+
+      // Click DPMO template
+      const dpmoCard = screen.getByTestId('calc-column-card-dpmo');
+      fireEvent.click(within(dpmoCard).getByRole('button', { name: /use template/i }));
+
+      const counts = screen.getByTestId('calc-column-parse-success-counts');
+      expect(counts.textContent).toContain('3 / 6 rows compute');
+
+      expect(screen.getByTestId('calc-column-divbyzero').textContent).toContain(
+        '2 rows with division by zero'
+      );
+      expect(screen.getByTestId('calc-column-missing').textContent).toContain(
+        '1 rows with missing cells'
+      );
+    });
+
+    it('round-trip via template + save preserves templateId + family', () => {
+      const { onSave } = renderModal({
+        rawProfiles: [numericProfile('Defects'), numericProfile('Samples')],
+        numericValuesByColumn: { Defects: [3], Samples: [100] },
+      });
+
+      // Click DPMO template → Custom tab
+      const dpmoCard = screen.getByTestId('calc-column-card-dpmo');
+      fireEvent.click(within(dpmoCard).getByRole('button', { name: /use template/i }));
+
+      // Save without editing
+      fireEvent.click(screen.getByTestId('calc-column-custom-save'));
+
+      expect(onSave).toHaveBeenCalledOnce();
+      const binding = onSave.mock.calls[0][0];
+      expect(binding.templateId).toBe('dpmo');
+      expect(binding.family).toBe('dpmo');
+    });
+
+    it('pure custom save (no template): templateId undefined, family custom', () => {
+      const { onSave } = openCustomTab();
+
+      // Add A to numerator
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      // Type name
+      const nameInput = screen.getByLabelText('Calculated column name');
+      fireEvent.change(nameInput, { target: { value: 'Foo' } });
+
+      // Save
+      fireEvent.click(screen.getByTestId('calc-column-custom-save'));
+
+      expect(onSave).toHaveBeenCalledOnce();
+      const binding = onSave.mock.calls[0][0];
+      expect(binding.templateId).toBeUndefined();
+      expect(binding.family).toBe('custom');
+    });
+
+    it('round-trip via template + edit terms then save — templateId sticky', () => {
+      const { onSave } = renderModal({
+        rawProfiles: [numericProfile('Defects'), numericProfile('Samples'), numericProfile('A')],
+        numericValuesByColumn: { Defects: [3], Samples: [100], A: [1] },
+      });
+
+      // Click DPMO template
+      const dpmoCard = screen.getByTestId('calc-column-card-dpmo');
+      fireEvent.click(within(dpmoCard).getByRole('button', { name: /use template/i }));
+
+      // Edit: add A to numerator slot (extra term)
+      const numerator = screen.getByRole('group', { name: 'Numerator' });
+      fireEvent.click(numerator);
+      fireEvent.click(screen.getByRole('button', { name: 'A' }));
+
+      // Save
+      fireEvent.click(screen.getByTestId('calc-column-custom-save'));
+
+      expect(onSave).toHaveBeenCalledOnce();
+      const binding = onSave.mock.calls[0][0];
+      // templateId stays sticky even after editing terms
+      expect(binding.templateId).toBe('dpmo');
+      expect(binding.family).toBe('dpmo');
+    });
+
+    it('live preview hidden when numerator is cleared after pre-fill', () => {
+      const rows = [{ Defects: 3, Samples: 100 }];
+      renderModal({
+        rawProfiles: [numericProfile('Defects'), numericProfile('Samples')],
+        numericValuesByColumn: { Defects: [3], Samples: [100] },
+        rows,
+      });
+
+      // Pre-fill from DPMO template
+      const dpmoCard = screen.getByTestId('calc-column-card-dpmo');
+      fireEvent.click(within(dpmoCard).getByRole('button', { name: /use template/i }));
+
+      // Live preview should be visible (numerator has terms)
+      expect(screen.getByTestId('calc-column-live-preview')).toBeInTheDocument();
+
+      // Remove the Defects term from numerator
+      const numerator = screen.getByRole('group', { name: 'Numerator' });
+      const removeBtn = within(numerator).getByRole('button', { name: /remove Defects/i });
+      fireEvent.click(removeBtn);
+
+      // Live preview should be gone (numerator empty)
+      expect(screen.queryByTestId('calc-column-live-preview')).not.toBeInTheDocument();
     });
   });
 });
