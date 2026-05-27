@@ -1,5 +1,5 @@
 import React from 'react';
-import { useInvestigationStore, useProjectStore } from '@variscout/stores';
+import { useAnalyzeStore, useProjectStore } from '@variscout/stores';
 import { useAnalysisStats, useHubComputations, useImprovementProjections } from '@variscout/hooks';
 import type { BestSubsetsResult } from '@variscout/core/stats';
 import type { Question } from '@variscout/core/findings';
@@ -49,7 +49,7 @@ export interface QuestionsTabContentProps {
  * QuestionsTabContent — store-aware content for the "Questions" tab in the PI Panel.
  *
  * Reads from stores:
- * - questions, findings, hypotheses from useInvestigationStore
+ * - questions, findings, hypotheses from useAnalyzeStore
  * - processContext (issueStatement/currentUnderstanding), cpkTarget from useProjectStore
  * - currentCpk via useAnalysisStats()
  *
@@ -75,9 +75,9 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
   onNavigateToInvestigation,
 }) => {
   // Store reads
-  const questions = useInvestigationStore(s => s.questions);
-  const findings = useInvestigationStore(s => s.findings);
-  const hubs = useInvestigationStore(s => s.hypotheses);
+  const questions = useAnalyzeStore(s => s.questions);
+  const findings = useAnalyzeStore(s => s.findings);
+  const hubs = useAnalyzeStore(s => s.hypotheses);
   const processContext = useProjectStore(s => s.processContext);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const outcome = useProjectStore(s => s.outcome);
@@ -106,7 +106,7 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
 
   // Inline note action — calls store directly
   const handleAddNote = (findingId: string, text: string): void => {
-    useInvestigationStore.getState().addFindingComment(findingId, text);
+    useAnalyzeStore.getState().addFindingComment(findingId, text);
   };
 
   return (

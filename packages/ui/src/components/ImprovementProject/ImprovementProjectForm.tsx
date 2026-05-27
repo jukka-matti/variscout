@@ -8,9 +8,9 @@ import {
 import { BackgroundSection, type BackgroundSectionProps } from './sections/BackgroundSection';
 import { GoalSection, type GoalSectionProps } from './sections/GoalSection';
 import {
-  InvestigationLineageSection,
-  type InvestigationLineageSectionProps,
-} from './sections/InvestigationLineageSection';
+  AnalyzeLineageSection,
+  type AnalyzeLineageSectionProps,
+} from './sections/AnalyzeLineageSection';
 import { ApproachSection, type ApproachSectionProps } from './sections/ApproachSection';
 import {
   OutcomeReferenceSection,
@@ -56,7 +56,7 @@ export interface ImprovementProjectFormProps {
   metadataProps?: HeaderMetadataSectionProps;
   backgroundProps?: BackgroundSectionProps;
   goalProps?: GoalSectionProps;
-  lineageProps?: InvestigationLineageSectionProps;
+  lineageProps?: AnalyzeLineageSectionProps;
   approachProps?: ApproachSectionProps;
   outcomeReferenceProps?: OutcomeReferenceSectionProps;
   sectionContent?: Partial<Record<ImprovementProjectSectionKey, SectionContent>>;
@@ -68,7 +68,7 @@ function renderSectionContent(
   metadataProps?: HeaderMetadataSectionProps,
   backgroundProps?: BackgroundSectionProps,
   goalProps?: GoalSectionProps,
-  lineageProps?: InvestigationLineageSectionProps,
+  lineageProps?: AnalyzeLineageSectionProps,
   approachProps?: ApproachSectionProps,
   outcomeReferenceProps?: OutcomeReferenceSectionProps
 ) {
@@ -89,7 +89,7 @@ function renderSectionContent(
   }
 
   if (content === undefined && key === 'lineage' && lineageProps) {
-    return <InvestigationLineageSection {...lineageProps} />;
+    return <AnalyzeLineageSection {...lineageProps} />;
   }
 
   if (content === undefined && key === 'approach' && approachProps) {

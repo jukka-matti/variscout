@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronUp, Send, Square } from 'lucide-react';
-import type { CoScoutMessage, CoScoutError, InvestigationPhase } from '@variscout/core';
+import type { CoScoutMessage, CoScoutError, AnalyzePhase } from '@variscout/core';
 import { formatForMobile } from '@variscout/core/ai';
-import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
+import { AnalyzePhaseBadge } from '../AnalyzePhaseBadge';
 import { CoScoutMessages, type KnowledgeDocumentResult } from '../CoScoutPanel/CoScoutMessages';
 import { useIsMobile } from '../../hooks';
 
@@ -14,7 +14,7 @@ export interface CoScoutInlineProps {
   onStopStreaming?: () => void;
   error?: CoScoutError | null;
   onRetry?: () => void;
-  phase?: InvestigationPhase;
+  phase?: AnalyzePhase;
   suggestedQuestions?: string[];
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -114,7 +114,7 @@ const CoScoutInline: React.FC<CoScoutInlineProps> = ({
         data-testid="coscout-inline-toggle"
       >
         <span className="text-[0.6875rem] font-medium text-content-secondary">CoScout</span>
-        {phase && <InvestigationPhaseBadge phase={phase} />}
+        {phase && <AnalyzePhaseBadge phase={phase} />}
         <span className="flex-1" />
         {isExpanded ? (
           <ChevronDown size={12} className="text-content-muted" />

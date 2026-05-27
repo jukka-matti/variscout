@@ -1,11 +1,11 @@
 import React from 'react';
-import type { InvestigationPhase } from '@variscout/core';
+import type { AnalyzePhase } from '@variscout/core';
 
-export interface InvestigationPhaseBadgeProps {
-  phase: InvestigationPhase;
+export interface AnalyzePhaseBadgeProps {
+  phase: AnalyzePhase;
 }
 
-const phaseConfig: Record<InvestigationPhase, { label: string; classes: string }> = {
+const phaseConfig: Record<AnalyzePhase, { label: string; classes: string }> = {
   initial: { label: 'Initial', classes: 'bg-slate-500/20 text-slate-400' },
   diverging: { label: 'Diverging', classes: 'bg-amber-500/20 text-amber-400' },
   validating: { label: 'Validating', classes: 'bg-blue-500/20 text-blue-400' },
@@ -13,16 +13,16 @@ const phaseConfig: Record<InvestigationPhase, { label: string; classes: string }
   improving: { label: 'Improving', classes: 'bg-green-500/20 text-green-400' },
 };
 
-const InvestigationPhaseBadge: React.FC<InvestigationPhaseBadgeProps> = ({ phase }) => {
+const AnalyzePhaseBadge: React.FC<AnalyzePhaseBadgeProps> = ({ phase }) => {
   const config = phaseConfig[phase];
   return (
     <span
       className={`inline-flex items-center px-2 py-0.5 text-[0.625rem] font-medium rounded-full ${config.classes}`}
-      data-testid="investigation-phase-badge"
+      data-testid="analyze-phase-badge"
     >
       {config.label}
     </span>
   );
 };
 
-export { InvestigationPhaseBadge };
+export { AnalyzePhaseBadge };

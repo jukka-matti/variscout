@@ -3,7 +3,7 @@ import { formatMessage, getMessage } from '@variscout/core/i18n';
 import type { ProcessMap } from '@variscout/core/frame';
 import { useCanvasViewportStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
-import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
+import { useWallLocale } from '../../AnalyzeWall/hooks/useWallLocale';
 
 export interface NoFocalStepPromptProps {
   hubId: ProcessHubId;

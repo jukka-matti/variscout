@@ -101,7 +101,7 @@ export interface WallCanvasProps {
   /**
    * When provided, enables drag-drop gate composition. Hubs become draggable
    * sources; gate badges become drop targets. Fired on a valid hub→gate
-   * drop — callers should wire this to `investigationStore.composeGate`.
+   * drop — callers should wire this to `analyzeStore.composeGate`.
    * When omitted, drag-drop is disabled (the branch card renders without a
    * draggable wrapper, avoiding unused DndContext overhead).
    */

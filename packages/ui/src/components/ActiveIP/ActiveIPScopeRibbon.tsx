@@ -4,7 +4,7 @@ import type { ActiveIPScopeLabels } from './activeIPScope';
 export interface ActiveIPScopeRibbonProps {
   title: string;
   labels: ActiveIPScopeLabels;
-  surface: 'Process' | 'Analyze' | 'Investigation' | 'Improve' | 'Report';
+  surface: 'Process' | 'Explore' | 'Analyze' | 'Improve' | 'Report';
 }
 
 export function ActiveIPScopeRibbon({ title, labels, surface }: ActiveIPScopeRibbonProps) {

@@ -2,7 +2,7 @@ import React from 'react';
 import { vi, describe, it, expect } from 'vitest';
 
 vi.mock('@variscout/stores', () => ({
-  useInvestigationStore: Object.assign(vi.fn(), {
+  useAnalyzeStore: Object.assign(vi.fn(), {
     getState: () => ({ addFinding: vi.fn(() => ({ id: 'f-test' })), connectFindingToHub: vi.fn() }),
   }),
   usePreferencesStore: Object.assign(vi.fn(), {

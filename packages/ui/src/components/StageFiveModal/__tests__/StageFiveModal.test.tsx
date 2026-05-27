@@ -29,7 +29,7 @@ describe('StageFiveModal', () => {
     expect(screen.getByTestId('stage-five-modal')).toBeInTheDocument();
     expect(screen.getByLabelText(/issue/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/question/i)).toBeInTheDocument();
-    expect(screen.getByTestId('stage-five-open-investigation')).toBeInTheDocument();
+    expect(screen.getByTestId('stage-five-open-analyze')).toBeInTheDocument();
     expect(screen.getByTestId('stage-five-skip')).toBeInTheDocument();
   });
 
@@ -65,7 +65,7 @@ describe('StageFiveModal interactions', () => {
     fireEvent.change(screen.getByTestId('stage-five-question-input'), {
       target: { value: 'Was the new resin lot the cause?' },
     });
-    fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
+    fireEvent.click(screen.getByTestId('stage-five-open-analyze'));
     expect(onOpenInvestigation).toHaveBeenCalledWith({
       issueStatement: 'Defect rate spiked Tuesday',
       questions: [{ text: 'Was the new resin lot the cause?' }],
@@ -113,7 +113,7 @@ describe('StageFiveModal interactions', () => {
         onClose={vi.fn()}
       />
     );
-    fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
+    fireEvent.click(screen.getByTestId('stage-five-open-analyze'));
     expect(onOpenInvestigation).toHaveBeenCalledWith({});
   });
 
@@ -131,7 +131,7 @@ describe('StageFiveModal interactions', () => {
     fireEvent.change(screen.getByTestId('stage-five-issue-input'), {
       target: { value: '   ' },
     });
-    fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
+    fireEvent.click(screen.getByTestId('stage-five-open-analyze'));
     expect(onOpenInvestigation).toHaveBeenCalledWith({});
   });
 
@@ -146,7 +146,7 @@ describe('StageFiveModal interactions', () => {
         onClose={onClose}
       />
     );
-    fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
+    fireEvent.click(screen.getByTestId('stage-five-open-analyze'));
     expect(onClose).not.toHaveBeenCalled();
   });
 
@@ -170,7 +170,7 @@ describe('StageFiveModal interactions', () => {
     fireEvent.change(screen.getByTestId('stage-five-hypothesis-input'), {
       target: { value: 'Resin lot drift' },
     });
-    fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
+    fireEvent.click(screen.getByTestId('stage-five-open-analyze'));
     expect(onOpenInvestigation).toHaveBeenCalledWith({
       issueStatement: 'Issue',
       questions: [{ text: 'Question?' }],
@@ -192,7 +192,7 @@ describe('StageFiveModal interactions', () => {
     fireEvent.change(screen.getByTestId('stage-five-issue-input'), {
       target: { value: 'Issue' },
     });
-    fireEvent.click(screen.getByTestId('stage-five-open-investigation'));
+    fireEvent.click(screen.getByTestId('stage-five-open-analyze'));
     expect(onOpenInvestigation).toHaveBeenCalledWith({
       issueStatement: 'Issue',
     });

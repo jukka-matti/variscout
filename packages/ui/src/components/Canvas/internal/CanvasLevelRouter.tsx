@@ -19,7 +19,7 @@ import type { ProcessHubId } from '@variscout/core/processHub';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import type { Locale } from '@variscout/core';
 import type { ChipRailEntry } from '../../ChipRail';
-import type { CanvasInvestigationFocus } from '@variscout/hooks';
+import type { CanvasAnalyzeFocus } from '@variscout/hooks';
 import type { LogActionPayload } from '../../QuickAction';
 import { LODSwitcher } from './LODSwitcher';
 import { SystemLevelView } from './SystemLevelView';
@@ -76,7 +76,7 @@ export interface CanvasLevelRouterProps {
   activeColumns?: ReadonlyArray<string>;
   onOpenWall?: () => void;
   onSelectWallHub?: (hubId: string) => void;
-  onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
+  onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;

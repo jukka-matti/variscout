@@ -3,7 +3,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { Finding, Hypothesis } from '@variscout/core/findings';
 import { ImprovementProjectForm } from '../ImprovementProjectForm';
-import { InvestigationLineageSection } from '../sections/InvestigationLineageSection';
+import { AnalyzeLineageSection } from '../sections/AnalyzeLineageSection';
 
 const makeHypothesis = (
   overrides: Partial<Hypothesis> & Pick<Hypothesis, 'id' | 'name' | 'status'>
@@ -32,10 +32,10 @@ const makeFinding = (overrides: Partial<Finding> & Pick<Finding, 'id' | 'text'>)
     ...overrides,
   }) as Finding;
 
-describe('InvestigationLineageSection', () => {
+describe('AnalyzeLineageSection', () => {
   it('renders hypothesis chips with name, status, synthesis, and theme metadata', () => {
     render(
-      <InvestigationLineageSection
+      <AnalyzeLineageSection
         hypotheses={[
           makeHypothesis({
             id: 'h-1',
@@ -59,7 +59,7 @@ describe('InvestigationLineageSection', () => {
 
   it('renders finding chips with text, evidence type, and status metadata', () => {
     render(
-      <InvestigationLineageSection
+      <AnalyzeLineageSection
         findings={[
           makeFinding({
             id: 'f-1',
@@ -82,7 +82,7 @@ describe('InvestigationLineageSection', () => {
     const onNavigate = vi.fn();
 
     render(
-      <InvestigationLineageSection
+      <AnalyzeLineageSection
         hypotheses={[makeHypothesis({ id: 'h-1', name: 'Nozzle wear', status: 'evidenced' })]}
         findings={[makeFinding({ id: 'f-1', text: 'Scrap rises after 2 PM' })]}
         onNavigate={onNavigate}
@@ -98,7 +98,7 @@ describe('InvestigationLineageSection', () => {
 
   it('does not render a textbox or narrative editor', () => {
     render(
-      <InvestigationLineageSection
+      <AnalyzeLineageSection
         hypotheses={[makeHypothesis({ id: 'h-1', name: 'Nozzle wear', status: 'evidenced' })]}
         findings={[makeFinding({ id: 'f-1', text: 'Scrap rises after 2 PM' })]}
       />
@@ -109,7 +109,7 @@ describe('InvestigationLineageSection', () => {
 
   it('renders non-interactive chips when no navigation callback is provided', () => {
     render(
-      <InvestigationLineageSection
+      <AnalyzeLineageSection
         hypotheses={[makeHypothesis({ id: 'h-1', name: 'Nozzle wear', status: 'evidenced' })]}
         findings={[makeFinding({ id: 'f-1', text: 'Scrap rises after 2 PM' })]}
       />
@@ -124,8 +124,8 @@ describe('InvestigationLineageSection', () => {
   it('uses unique heading ids when multiple lineage sections render', () => {
     render(
       <div>
-        <InvestigationLineageSection />
-        <InvestigationLineageSection />
+        <AnalyzeLineageSection />
+        <AnalyzeLineageSection />
       </div>
     );
 
@@ -141,7 +141,7 @@ describe('InvestigationLineageSection', () => {
   });
 
   it('renders empty states for no linked hypotheses and no linked findings', () => {
-    render(<InvestigationLineageSection />);
+    render(<AnalyzeLineageSection />);
 
     expect(screen.getByText(/no linked hypotheses yet/i)).toBeInTheDocument();
     expect(screen.getByText(/no linked findings yet/i)).toBeInTheDocument();
@@ -149,7 +149,7 @@ describe('InvestigationLineageSection', () => {
 });
 
 describe('ImprovementProjectForm investigation lineage integration', () => {
-  it('renders InvestigationLineageSection in section four when lineage props are provided', () => {
+  it('renders AnalyzeLineageSection in section four when lineage props are provided', () => {
     render(
       <ImprovementProjectForm
         lineageProps={{

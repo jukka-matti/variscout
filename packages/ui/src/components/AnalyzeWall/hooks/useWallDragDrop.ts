@@ -3,7 +3,7 @@
  *
  * Hubs (HypothesisCard) are draggable; gate badges (GateBadge) are drop
  * targets. Dropping a hub on a gate calls `onDrop({ hubId, gatePath })`,
- * which the caller wires to `composeGate` on investigationStore.
+ * which the caller wires to `composeGate` on analyzeStore.
  *
  * Dropping on another hub is intentionally ignored — we only compose via
  * gates to keep the tree structure intentional. The hook is a thin wrapper

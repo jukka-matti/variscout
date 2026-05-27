@@ -4,12 +4,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Finding, Hypothesis } from '@variscout/core';
 import {
   getCanvasViewportInitialState,
-  getInvestigationInitialState,
+  getAnalyzeInitialState,
   useCanvasViewportStore,
-  useInvestigationStore,
+  useAnalyzeStore,
 } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
-import { useWallIsMobile } from '../../../InvestigationWall';
+import { useWallIsMobile } from '../../../AnalyzeWall';
 import { CanvasWallOverlay } from '../CanvasWallOverlay';
 
 // Cast helper: acceptable inside test files per project convention
@@ -20,7 +20,7 @@ interface D3ZoomElement extends HTMLDivElement {
   __on?: Array<{ type: string; name: string; value: (event: Event) => void }>;
 }
 
-vi.mock('../../../InvestigationWall', () => ({
+vi.mock('../../../AnalyzeWall', () => ({
   useWallIsMobile: vi.fn(),
   WallCanvas: (props: {
     mode?: string;
@@ -134,12 +134,12 @@ function sizeElementForD3Zoom(element: HTMLElement) {
 describe('CanvasWallOverlay', () => {
   beforeEach(() => {
     useWallIsMobileMock.mockReturnValue(false);
-    useInvestigationStore.setState(getInvestigationInitialState());
+    useAnalyzeStore.setState(getAnalyzeInitialState());
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
   });
 
   it('returns null when wall overlay is not active', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay({ activeOverlays: ['hypotheses'] });
 
@@ -154,7 +154,7 @@ describe('CanvasWallOverlay', () => {
 
   it('returns null on mobile', () => {
     useWallIsMobileMock.mockReturnValue(true);
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay();
 
@@ -162,7 +162,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('renders the wrapper and WallCanvas in overlay mode when desktop, wall active, and content exists', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay();
 
@@ -177,7 +177,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('makes the wrapper inert, pointer-events-none, and aria-hidden while drawing hypotheses', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay({ activeCanvasTool: 'draw-hypothesis' });
 
@@ -188,7 +188,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('binds d3 zoom input to the overlay wrapper and wheel updates the hub viewport', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
     useCanvasViewportStore.getState().setZoom(OTHER_HUB_ID, 2);
     useCanvasViewportStore.getState().setPan(OTHER_HUB_ID, { x: -50, y: -50 });
 
@@ -221,7 +221,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('keeps descendant role-button wheel from updating the hub viewport while background wheel still works', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay();
 
@@ -254,7 +254,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('attaches d3 zoom input when the overlay becomes active after initially rendering null', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
 
     const { rerender } = renderOverlay({ activeOverlays: ['hypotheses'] });
     expect(screen.queryByTestId('canvas-wall-overlay')).toBeNull();
@@ -278,7 +278,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('does not pass hubId into overlay WallCanvas to avoid nested d3 zoom bindings', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay();
 
@@ -286,7 +286,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('does not attach d3 zoom input or update the store while drawing hypotheses', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
     useCanvasViewportStore.getState().setPan(HUB_ID, { x: 12, y: -8 });
 
     renderOverlay({ activeCanvasTool: 'draw-hypothesis' });
@@ -311,7 +311,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('does not keep hand-rolled pointer drag panning on the overlay wrapper', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
     useCanvasViewportStore.getState().setPan(HUB_ID, { x: 12, y: -8 });
 
     renderOverlay();
@@ -325,7 +325,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('does not pan while drawing hypotheses', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
     useCanvasViewportStore.getState().setPan(HUB_ID, { x: 12, y: -8 });
 
     renderOverlay({ activeCanvasTool: 'draw-hypothesis' });
@@ -339,7 +339,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('leaves other hub viewport state untouched while drawing hypotheses', () => {
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
     useCanvasViewportStore.getState().setPan(OTHER_HUB_ID, { x: -50, y: -50 });
 
     renderOverlay({ activeCanvasTool: 'draw-hypothesis' });
@@ -359,7 +359,7 @@ describe('CanvasWallOverlay', () => {
     'focus gap',
   ])('funnels the "%s" WallCanvas callback into onOpenWall exactly once', buttonName => {
     const onOpenWall = vi.fn();
-    useInvestigationStore.setState({ hypotheses: [sampleHub] });
+    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
 
     renderOverlay({ onOpenWall });
 
@@ -376,7 +376,7 @@ describe('CanvasWallOverlay', () => {
   });
 
   it('mounts for open question-only content even when there are no hubs', () => {
-    useInvestigationStore.getState().addQuestion('Does shift handoff explain the change?');
+    useAnalyzeStore.getState().addQuestion('Does shift handoff explain the change?');
 
     renderOverlay();
 

@@ -1,12 +1,12 @@
 import React from 'react';
 import {
   useCanvasStepCards,
-  useCanvasInvestigationOverlays,
+  useCanvasAnalyzeOverlays,
   useProductionLineGlanceData,
   useProductionLineGlanceFilter,
   useSessionCanvasFilters,
   useTranslation,
-  type CanvasInvestigationFocus,
+  type CanvasAnalyzeFocus,
 } from '@variscout/hooks';
 import {
   detectColumns,
@@ -19,7 +19,7 @@ import {
   type Finding,
   type ProcessContext,
   type ProcessHubId,
-  type ProcessHubInvestigation,
+  type ProcessHubAnalyze,
   type Question,
   type SpecLimits,
   type StepCapabilityStamp,
@@ -82,7 +82,7 @@ export interface CanvasWorkspaceProps {
     options?: { questionIds?: string[] }
   ) => void;
   onRemoveCausalLink?: (linkId: string) => void;
-  onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
+  onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
   onNavigateContextLink?: (item: ContextLinkItem) => void;
@@ -396,7 +396,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     };
     return {
       hub: previewHub,
-      members: [] as ProcessHubInvestigation[],
+      members: [] as ProcessHubAnalyze[],
       rowsByInvestigation: new Map<string, ReadonlyArray<DataRow>>(),
     };
   }, [map]);
@@ -417,7 +417,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     priorStepStats,
   });
 
-  const { overlays: investigationOverlays } = useCanvasInvestigationOverlays({
+  const { overlays: investigationOverlays } = useCanvasAnalyzeOverlays({
     map,
     questions,
     findings,

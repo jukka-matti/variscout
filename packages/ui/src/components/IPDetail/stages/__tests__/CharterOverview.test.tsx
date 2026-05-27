@@ -40,7 +40,7 @@ describe('CharterOverview', () => {
       },
     };
     render(<CharterOverview ip={ip} onOpenInvestigation={() => {}} onOpenAnalyze={() => {}} />);
-    expect(screen.getByTestId('kpi-investigation')).toHaveTextContent(/2 hypotheses · 3 findings/);
+    expect(screen.getByTestId('kpi-analyze')).toHaveTextContent(/2 hypotheses · 3 findings/);
   });
 
   describe('Team section', () => {

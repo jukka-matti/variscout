@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { InvestigationConclusion } from '../InvestigationConclusion';
+import { AnalyzeConclusion } from '../AnalyzeConclusion';
 import type { Question } from '@variscout/core';
 
 const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
@@ -15,10 +15,10 @@ const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
   ...overrides,
 });
 
-describe('InvestigationConclusion', () => {
+describe('AnalyzeConclusion', () => {
   it('returns null when hasConclusions is false', () => {
     const { container } = render(
-      <InvestigationConclusion
+      <AnalyzeConclusion
         hypotheses={[makeQuestion()]}
         ruledOut={[]}
         contributing={[]}
@@ -38,7 +38,7 @@ describe('InvestigationConclusion', () => {
       }),
     ];
     render(
-      <InvestigationConclusion hypotheses={causes} ruledOut={[]} contributing={[]} hasConclusions />
+      <AnalyzeConclusion hypotheses={causes} ruledOut={[]} contributing={[]} hasConclusions />
     );
     expect(screen.getByTestId('hypothesis-hubs')).toBeDefined();
     expect(screen.getByText('Shift changeover procedure')).toBeDefined();
@@ -54,12 +54,7 @@ describe('InvestigationConclusion', () => {
       }),
     ];
     render(
-      <InvestigationConclusion
-        hypotheses={[]}
-        ruledOut={ruledOut}
-        contributing={[]}
-        hasConclusions
-      />
+      <AnalyzeConclusion hypotheses={[]} ruledOut={ruledOut} contributing={[]} hasConclusions />
     );
     expect(screen.getByTestId('ruled-out')).toBeDefined();
     // The ruled-out items should not be visible until expanded
@@ -72,7 +67,7 @@ describe('InvestigationConclusion', () => {
 
   it('shows problem statement when provided', () => {
     render(
-      <InvestigationConclusion
+      <AnalyzeConclusion
         hypotheses={[]}
         ruledOut={[]}
         contributing={[]}
@@ -95,12 +90,7 @@ describe('InvestigationConclusion', () => {
       }),
     ];
     render(
-      <InvestigationConclusion
-        hypotheses={[]}
-        ruledOut={[]}
-        contributing={contributing}
-        hasConclusions
-      />
+      <AnalyzeConclusion hypotheses={[]} ruledOut={[]} contributing={contributing} hasConclusions />
     );
     expect(screen.getByTestId('contributing-factors')).toBeDefined();
     expect(screen.getByText('Ambient temperature')).toBeDefined();

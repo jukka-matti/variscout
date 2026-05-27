@@ -3,7 +3,7 @@ import FocusTrap from 'focus-trap-react';
 import { formatStatistic } from '@variscout/core/i18n';
 import type { ActionItem } from '@variscout/core/findings';
 import type {
-  CanvasInvestigationFocus,
+  CanvasAnalyzeFocus,
   CanvasStepCardModel,
   CanvasStepInvestigationOverlay,
 } from '@variscout/hooks';
@@ -29,7 +29,7 @@ interface CanvasStepOverlayProps {
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
   investigationOverlay?: CanvasStepInvestigationOverlay;
-  onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
+  onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
   onNavigateContextLink?: (item: ContextLinkItem) => void;

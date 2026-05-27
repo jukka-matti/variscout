@@ -6,7 +6,7 @@ import {
   type CanvasLensDefinition,
   type CanvasLensId,
 } from '@variscout/hooks';
-import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
+import { useWallLocale } from '../../AnalyzeWall/hooks/useWallLocale';
 
 interface CanvasLensPickerProps {
   activeLens: CanvasLensId;

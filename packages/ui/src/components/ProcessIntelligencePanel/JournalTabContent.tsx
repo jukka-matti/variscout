@@ -1,5 +1,5 @@
 import React from 'react';
-import { useInvestigationStore, useProjectStore } from '@variscout/stores';
+import { useAnalyzeStore, useProjectStore } from '@variscout/stores';
 import { useJournalEntries, type JournalEntry } from '@variscout/hooks';
 import JournalTabView from './JournalTabView';
 
@@ -14,7 +14,7 @@ export interface JournalTabContentProps {
  * JournalTabContent — store-aware content for the "Journal" tab in the PI Panel.
  *
  * Reads from stores:
- * - findings, questions from useInvestigationStore
+ * - findings, questions from useAnalyzeStore
  * - processContext (problemStatement) from useProjectStore
  *
  * Computes journal entries via useJournalEntries hook (from @variscout/hooks).
@@ -27,8 +27,8 @@ const JournalTabContent: React.FC<JournalTabContentProps> = ({
   onIncludeInReport,
 }) => {
   // Store reads
-  const findings = useInvestigationStore(s => s.findings);
-  const questions = useInvestigationStore(s => s.questions);
+  const findings = useAnalyzeStore(s => s.findings);
+  const questions = useAnalyzeStore(s => s.questions);
   const processContext = useProjectStore(s => s.processContext);
 
   // Compute journal entries

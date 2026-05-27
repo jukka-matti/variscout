@@ -1,23 +1,23 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ReportInvestigationSummary } from '../ReportInvestigationSummary';
+import { ReportAnalyzeSummary } from '../ReportAnalyzeSummary';
 
-describe('ReportInvestigationSummary', () => {
+describe('ReportAnalyzeSummary', () => {
   it('returns null when no content provided', () => {
-    const { container } = render(<ReportInvestigationSummary />);
+    const { container } = render(<ReportAnalyzeSummary />);
     expect(container.innerHTML).toBe('');
   });
 
   it('renders issue statement', () => {
-    render(<ReportInvestigationSummary issueStatement="Fill weight exceeds USL on Line 3" />);
-    expect(screen.getByTestId('report-investigation-summary')).toBeDefined();
+    render(<ReportAnalyzeSummary issueStatement="Fill weight exceeds USL on Line 3" />);
+    expect(screen.getByTestId('report-analyze-summary')).toBeDefined();
     expect(screen.getByText('Fill weight exceeds USL on Line 3')).toBeDefined();
     expect(screen.getByText('Issue / Concern')).toBeDefined();
   });
 
   it('renders hypotheses with evidence', () => {
     render(
-      <ReportInvestigationSummary
+      <ReportAnalyzeSummary
         hypotheses={[
           {
             text: 'Shift changeover procedure',
@@ -40,7 +40,7 @@ describe('ReportInvestigationSummary', () => {
 
   it('renders negative learnings', () => {
     render(
-      <ReportInvestigationSummary
+      <ReportAnalyzeSummary
         ruledOut={[{ text: 'Tool wear', factor: 'Tool', evidence: { etaSquared: 0.01 } }]}
       />
     );
@@ -50,7 +50,7 @@ describe('ReportInvestigationSummary', () => {
 
   it('renders problem statement', () => {
     render(
-      <ReportInvestigationSummary problemStatement="Mean fill weight increased 3g since January across all lines" />
+      <ReportAnalyzeSummary problemStatement="Mean fill weight increased 3g since January across all lines" />
     );
     expect(screen.getByText('Approved Problem Statement')).toBeDefined();
     expect(screen.getByText(/Mean fill weight increased/)).toBeDefined();
@@ -58,7 +58,7 @@ describe('ReportInvestigationSummary', () => {
 
   it('renders current understanding separately from approved problem statement', () => {
     render(
-      <ReportInvestigationSummary
+      <ReportAnalyzeSummary
         currentUnderstanding="Problem condition: Cpk is 0.87 against target 1.33."
         problemStatement="Mean fill weight increased 3g since January across all lines"
       />

@@ -15,7 +15,7 @@ import type { Hypothesis } from '@variscout/core';
 import type { ChartSelection } from '@variscout/core/findings';
 import type { FindingSource, FindingContext } from '@variscout/core/findings';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
-import { useInvestigationStore, usePreferencesStore } from '@variscout/stores';
+import { useAnalyzeStore, usePreferencesStore } from '@variscout/stores';
 import { useWallLocale } from './hooks/useWallLocale';
 
 // ── Chart slot position constants (mirrors HypothesisCard slot) ────────────
@@ -95,7 +95,7 @@ export function BrushToFindingFlow({
     if (!pendingSelection) return;
 
     const timeLens = usePreferencesStore.getState().timeLens;
-    const store = useInvestigationStore.getState();
+    const store = useAnalyzeStore.getState();
 
     const text = buildPersistedText(pendingSelection, factor);
     const context: FindingContext = { activeFilters: {}, cumulativeScope: null };

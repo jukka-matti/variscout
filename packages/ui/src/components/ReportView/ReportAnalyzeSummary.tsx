@@ -1,5 +1,5 @@
 /**
- * ReportInvestigationSummary — Read-only investigation audit trail for reports.
+ * ReportAnalyzeSummary — Read-only investigation audit trail for reports.
  *
  * Renders the question-driven EDA narrative:
  * - Issue / Concern (original concern)
@@ -31,7 +31,7 @@ interface RuledOutFactor {
   evidence?: { rSquaredAdj?: number; etaSquared?: number };
 }
 
-export interface ReportInvestigationSummaryProps {
+export interface ReportAnalyzeSummaryProps {
   /** Original issue / concern */
   issueStatement?: string;
   /** Stable current understanding summary */
@@ -72,7 +72,7 @@ function renderEvidence(evidence?: { rSquaredAdj?: number; etaSquared?: number }
 // Component
 // ============================================================================
 
-export const ReportInvestigationSummary: React.FC<ReportInvestigationSummaryProps> = ({
+export const ReportAnalyzeSummary: React.FC<ReportAnalyzeSummaryProps> = ({
   issueStatement,
   currentUnderstanding,
   problemStatement,
@@ -91,7 +91,7 @@ export const ReportInvestigationSummary: React.FC<ReportInvestigationSummaryProp
   if (!hasContent) return null;
 
   return (
-    <div data-testid="report-investigation-summary" className="space-y-4">
+    <div data-testid="report-analyze-summary" className="space-y-4">
       {/* Issue / Concern */}
       {issueStatement && (
         <div className="rounded-lg border border-edge bg-surface-elevated p-4">

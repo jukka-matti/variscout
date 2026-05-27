@@ -12,13 +12,13 @@ import {
   useCanvasViewportInput,
   useCanvasViewportShortcuts,
   useCanvasKeyboard,
-  useHasInvestigationContent,
+  useHasAnalyzeContent,
   useChipDragAndDrop,
   useHypothesisDrawTool,
   useCanvasHypothesisDrawing,
   useCanvasHypothesisArrows,
-  type CanvasInvestigationFocus,
-  type CanvasInvestigationOverlayModel,
+  type CanvasAnalyzeFocus,
+  type CanvasAnalyzeOverlayModel,
   type CanvasLensId,
   type CanvasOverlayId,
   type CanvasStepCardModel,
@@ -60,7 +60,7 @@ import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
 import { CanvasModeToggle } from '../CanvasModeToggle';
 import { StructuralToolbar } from '../StructuralToolbar';
 import { CanvasLensPicker } from './internal/CanvasLensPicker';
-import { useWallLocale } from '../InvestigationWall/hooks/useWallLocale';
+import { useWallLocale } from '../AnalyzeWall/hooks/useWallLocale';
 import { CanvasOverlayPicker } from './internal/CanvasOverlayPicker';
 import { HypothesisDrawToolButton } from './internal/HypothesisDrawToolButton';
 import {
@@ -72,7 +72,7 @@ import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/Canv
 import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
 import { sortedProcessSteps } from './internal/NoFocalStepPrompt';
-import { useWallIsMobile } from '../InvestigationWall';
+import { useWallIsMobile } from '../AnalyzeWall';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 import type { LogActionPayload } from '../QuickAction';
 
@@ -224,13 +224,13 @@ export interface CanvasProps {
     whyStatement: string,
     options?: { questionIds?: string[] }
   ) => void;
-  investigationOverlays?: CanvasInvestigationOverlayModel;
+  investigationOverlays?: CanvasAnalyzeOverlayModel;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
   onQuickAction?: (stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
-  onOpenInvestigationFocus?: (focus: CanvasInvestigationFocus) => void;
+  onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
   onNavigateContextLink?: (item: ContextLinkItem) => void;
@@ -321,7 +321,7 @@ export const Canvas: React.FC<CanvasProps> = ({
     [activeOverlays]
   );
   const wallFindings = React.useMemo(() => [...findings], [findings]);
-  const hasInvestigationContent = useHasInvestigationContent({ findingsCount: findings.length });
+  const hasInvestigationContent = useHasAnalyzeContent({ findingsCount: findings.length });
   const wallIsMobile = useWallIsMobile();
   const availableOverlays = React.useMemo<CanvasOverlayId[]>(() => {
     const base: CanvasOverlayId[] = ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings'];

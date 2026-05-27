@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import type { InvestigationPhase } from '@variscout/core';
-import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
+import type { AnalyzePhase } from '@variscout/core';
+import { AnalyzePhaseBadge } from '../AnalyzePhaseBadge';
 
-const phases: { phase: InvestigationPhase; label: string }[] = [
+const phases: { phase: AnalyzePhase; label: string }[] = [
   { phase: 'initial', label: 'Initial' },
   { phase: 'diverging', label: 'Diverging' },
   { phase: 'validating', label: 'Validating' },
@@ -11,16 +11,16 @@ const phases: { phase: InvestigationPhase; label: string }[] = [
   { phase: 'improving', label: 'Improving' },
 ];
 
-describe('InvestigationPhaseBadge', () => {
+describe('AnalyzePhaseBadge', () => {
   phases.forEach(({ phase, label }) => {
     it(`renders "${label}" label for phase "${phase}"`, () => {
-      render(<InvestigationPhaseBadge phase={phase} />);
+      render(<AnalyzePhaseBadge phase={phase} />);
       expect(screen.getByText(label)).toBeDefined();
     });
 
-    it(`has data-testid="investigation-phase-badge" for phase "${phase}"`, () => {
-      render(<InvestigationPhaseBadge phase={phase} />);
-      expect(screen.getByTestId('investigation-phase-badge')).toBeDefined();
+    it(`has data-testid="analyze-phase-badge" for phase "${phase}"`, () => {
+      render(<AnalyzePhaseBadge phase={phase} />);
+      expect(screen.getByTestId('analyze-phase-badge')).toBeDefined();
     });
   });
 });

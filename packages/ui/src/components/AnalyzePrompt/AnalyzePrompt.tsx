@@ -4,7 +4,7 @@ import { useTranslation } from '@variscout/hooks';
 
 const SESSION_KEY = 'variscout_investigation_prompt_dismissed';
 
-export interface InvestigationPromptColorScheme {
+export interface AnalyzePromptColorScheme {
   bg: string;
   border: string;
   text: string;
@@ -12,7 +12,7 @@ export interface InvestigationPromptColorScheme {
   dismissText: string;
 }
 
-export const investigationPromptDefaultColorScheme: InvestigationPromptColorScheme = {
+export const investigationPromptDefaultColorScheme: AnalyzePromptColorScheme = {
   bg: 'bg-blue-500/10',
   border: 'border-blue-500/20',
   text: 'text-blue-300',
@@ -20,7 +20,7 @@ export const investigationPromptDefaultColorScheme: InvestigationPromptColorSche
   dismissText: 'text-content-muted hover:text-content-secondary',
 };
 
-export interface InvestigationPromptProps {
+export interface AnalyzePromptProps {
   /** Current number of applied filters */
   filterCount: number;
   /** Whether the findings panel is already open */
@@ -28,7 +28,7 @@ export interface InvestigationPromptProps {
   /** Open the findings panel */
   onOpenFindings: () => void;
   /** Color scheme */
-  colorScheme?: InvestigationPromptColorScheme;
+  colorScheme?: AnalyzePromptColorScheme;
 }
 
 /**
@@ -37,7 +37,7 @@ export interface InvestigationPromptProps {
  *
  * Dismissed once per session via sessionStorage.
  */
-const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
+const AnalyzePrompt: React.FC<AnalyzePromptProps> = ({
   filterCount,
   isFindingsOpen,
   onOpenFindings,
@@ -110,4 +110,4 @@ const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
   );
 };
 
-export default InvestigationPrompt;
+export default AnalyzePrompt;

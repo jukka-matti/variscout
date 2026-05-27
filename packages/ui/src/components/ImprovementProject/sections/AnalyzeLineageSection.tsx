@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Finding, Hypothesis } from '@variscout/core/findings';
 
-export interface InvestigationLineageSectionProps {
+export interface AnalyzeLineageSectionProps {
   hypotheses?: Hypothesis[];
   findings?: Finding[];
   onNavigate?: (target: { kind: 'hypothesis' | 'finding'; id: string }) => void;
@@ -18,7 +18,7 @@ function formatStatus(status: string | undefined): string | undefined {
   return status?.replaceAll('-', ' ');
 }
 
-export const InvestigationLineageSection: React.FC<InvestigationLineageSectionProps> = ({
+export const AnalyzeLineageSection: React.FC<AnalyzeLineageSectionProps> = ({
   hypotheses = [],
   findings = [],
   onNavigate,

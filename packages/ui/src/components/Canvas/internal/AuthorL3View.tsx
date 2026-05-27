@@ -5,7 +5,7 @@ import type { ProcessMap } from '@variscout/core/frame';
 import { getStepColumnAssignments } from '@variscout/core/frame';
 import { encodeStepDropId } from '@variscout/hooks';
 import { ChipRail, type ChipRailEntry } from '../../ChipRail';
-import { useWallLocale } from '../../InvestigationWall/hooks/useWallLocale';
+import { useWallLocale } from '../../AnalyzeWall/hooks/useWallLocale';
 
 export interface AuthorL3ViewProps {
   hubId: string;

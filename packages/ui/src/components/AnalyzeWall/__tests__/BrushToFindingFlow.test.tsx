@@ -13,7 +13,7 @@ const mockConnectFindingToHub = vi.fn();
 
 vi.mock('@variscout/stores', () => {
   return {
-    useInvestigationStore: Object.assign(
+    useAnalyzeStore: Object.assign(
       vi.fn((selector: (s: unknown) => unknown) => selector({})),
       {
         getState: vi.fn(() => ({

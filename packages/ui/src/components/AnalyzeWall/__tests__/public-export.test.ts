@@ -14,7 +14,7 @@ import type * as UiPublicApi from '../../../index';
 type RemovedExportName = `Wall${'Status'}`;
 type RemovedStatusIsNotExported = RemovedExportName extends keyof typeof UiPublicApi ? false : true;
 
-describe('InvestigationWall public exports', () => {
+describe('AnalyzeWall public exports', () => {
   it('exposes wall components, hooks, constants, and types from @variscout/ui', () => {
     const status: HypothesisStatus = 'needs-disconfirmation';
     const removedStatusIsNotExported: RemovedStatusIsNotExported = true;

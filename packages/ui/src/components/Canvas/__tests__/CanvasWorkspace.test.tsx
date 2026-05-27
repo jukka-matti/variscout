@@ -10,16 +10,12 @@ import type {
 } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import type {
-  CanvasInvestigationOverlayModel,
+  CanvasAnalyzeOverlayModel,
   CanvasLensId,
   CanvasOverlayId,
   CanvasStepCardModel,
 } from '@variscout/hooks';
-import {
-  useCanvasInvestigationOverlays,
-  useCanvasStepCards,
-  useSharedWallProps,
-} from '@variscout/hooks';
+import { useCanvasAnalyzeOverlays, useCanvasStepCards, useSharedWallProps } from '@variscout/hooks';
 import {
   getCanvasViewportInitialState,
   useCanvasStore,
@@ -45,7 +41,7 @@ vi.mock('@variscout/charts', async importOriginal => {
   };
 });
 
-vi.mock('../../InvestigationWall', async () => {
+vi.mock('../../AnalyzeWall', async () => {
   const React = await import('react');
   return {
     useWallIsMobile: () => wallIsMobileRef.current,
@@ -223,7 +219,7 @@ const mockTwoStepCards: CanvasStepCardModel[] = [
   },
 ];
 
-const mockInvestigationOverlays: CanvasInvestigationOverlayModel = {
+const mockInvestigationOverlays: CanvasAnalyzeOverlayModel = {
   byStep: {
     'step-1': {
       stepId: 'step-1',
@@ -487,10 +483,8 @@ vi.mock('@variscout/hooks', () => ({
     contextValueOptions: {},
   })),
   useCanvasStepCards: vi.fn(() => ({ cards: mockStepCards })),
-  useCanvasInvestigationOverlays: vi.fn(() => ({ overlays: mockInvestigationOverlays })),
-  useHasInvestigationContent: vi.fn(
-    ({ findingsCount }: { findingsCount: number }) => findingsCount > 0
-  ),
+  useCanvasAnalyzeOverlays: vi.fn(() => ({ overlays: mockInvestigationOverlays })),
+  useHasAnalyzeContent: vi.fn(({ findingsCount }: { findingsCount: number }) => findingsCount > 0),
   useSharedWallProps: vi.fn(
     ({
       findings,
@@ -720,7 +714,7 @@ describe('CanvasWorkspace', () => {
       toggle: vi.fn(),
     };
     vi.mocked(useCanvasStepCards).mockImplementation(() => ({ cards: mockStepCards }));
-    vi.mocked(useCanvasInvestigationOverlays).mockImplementation(() => ({
+    vi.mocked(useCanvasAnalyzeOverlays).mockImplementation(() => ({
       overlays: mockInvestigationOverlays,
     }));
   });
@@ -1060,7 +1054,7 @@ describe('CanvasWorkspace', () => {
 
   it('forwards causal link removal from the step overlay to the app shell callback', () => {
     const onRemoveCausalLink = vi.fn();
-    vi.mocked(useCanvasInvestigationOverlays).mockReturnValue({
+    vi.mocked(useCanvasAnalyzeOverlays).mockReturnValue({
       overlays: {
         ...mockInvestigationOverlays,
         byStep: {

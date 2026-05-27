@@ -1,15 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import { Copy, Check, PanelRightClose, PanelRightOpen } from 'lucide-react';
-import type { Question, InvestigationPhase } from '@variscout/core';
+import type { Question, AnalyzePhase } from '@variscout/core';
 import { formatForMobile } from '@variscout/core/ai';
 import { useTranslation } from '@variscout/hooks';
 import { useIsMobile } from '../../hooks';
-import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
+import { AnalyzePhaseBadge } from '../AnalyzePhaseBadge';
 import { QuestionChecklist } from './QuestionChecklist';
-import { InvestigationConclusion } from './InvestigationConclusion';
+import { AnalyzeConclusion } from './AnalyzeConclusion';
 
-export interface InvestigationSidebarProps {
-  phase?: InvestigationPhase;
+export interface AnalyzeSidebarProps {
+  phase?: AnalyzePhase;
   treeQuestions?: Question[];
   factorRoles?: Record<string, string>;
   suggestedQuestions?: string[];
@@ -57,7 +57,7 @@ const VERIFICATION_CHECKLIST_KEYS: Array<keyof import('@variscout/core').Message
   'investigation.verifyOutcome',
 ];
 
-const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
+const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
   phase,
   treeQuestions,
   factorRoles,
@@ -130,7 +130,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
 
   if (collapsed) {
     return (
-      <div className="relative flex-shrink-0" data-testid="investigation-sidebar">
+      <div className="relative flex-shrink-0" data-testid="analyze-sidebar">
         {toggleButton}
       </div>
     );
@@ -147,7 +147,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   return (
     <div
       className="relative w-[280px] flex-shrink-0 border-l border-edge bg-surface-secondary overflow-y-auto hidden sm:block"
-      data-testid="investigation-sidebar"
+      data-testid="analyze-sidebar"
     >
       {toggleButton}
 
@@ -159,7 +159,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
               <span className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium">
                 Phase
               </span>
-              <InvestigationPhaseBadge phase={phase} />
+              <AnalyzePhaseBadge phase={phase} />
             </div>
             <p className="text-[0.6875rem] text-content-secondary leading-relaxed">
               {t(phaseDescriptionKeys[phase])}
@@ -227,7 +227,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
 
         {/* Investigation conclusions (hypotheses, ruled out) */}
         {hasConclusionData && (
-          <InvestigationConclusion
+          <AnalyzeConclusion
             hypotheses={hypotheses}
             ruledOut={ruledOut}
             contributing={contributing}
@@ -278,4 +278,4 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   );
 };
 
-export { InvestigationSidebar };
+export { AnalyzeSidebar };

@@ -1,13 +1,13 @@
 import React, { useCallback, useRef } from 'react';
 import {
-  useHasInvestigationContent,
+  useHasAnalyzeContent,
   useCanvasViewportInput,
   useSharedWallProps,
   type CanvasOverlayId,
   type CanvasToolId,
 } from '@variscout/hooks';
 import type { Finding, ProcessMap, ProcessHubId } from '@variscout/core';
-import { WallCanvas, useWallIsMobile } from '../../InvestigationWall';
+import { WallCanvas, useWallIsMobile } from '../../AnalyzeWall';
 
 export interface CanvasWallOverlayProps {
   hubId: ProcessHubId;
@@ -41,7 +41,7 @@ export function CanvasWallOverlay({
 }: CanvasWallOverlayProps) {
   const isMobile = useWallIsMobile();
   const overlayRef = useRef<HTMLDivElement>(null);
-  const hasContent = useHasInvestigationContent({ findingsCount: findings.length });
+  const hasContent = useHasAnalyzeContent({ findingsCount: findings.length });
   const wallProps = useSharedWallProps({
     hubId,
     findings,

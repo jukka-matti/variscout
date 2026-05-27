@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronRight, ClipboardCheck, Sparkles, Check, X, Plus } from 'lucide-react';
 import type { Question, Finding, Hypothesis, HypothesisEvidence } from '@variscout/core';
 import type { HubProjection, EvidenceCluster } from '@variscout/core/findings';
-import { HubComposer, type HubComposerBranchFields } from '../InvestigationConclusion/HubComposer';
-import { HubCard } from '../InvestigationConclusion/HubCard';
-import { SynthesisPrompt } from '../InvestigationConclusion/SynthesisPrompt';
+import { HubComposer, type HubComposerBranchFields } from '../AnalyzeConclusion/HubComposer';
+import { HubCard } from '../AnalyzeConclusion/HubCard';
+import { SynthesisPrompt } from '../AnalyzeConclusion/SynthesisPrompt';
 
 /** Local state for the hub composer inline form */
 interface ComposerState {
@@ -14,7 +14,7 @@ interface ComposerState {
   prefilledFindingIds?: string[];
 }
 
-export interface InvestigationConclusionProps {
+export interface AnalyzeConclusionProps {
   /** Questions marked as hypotheses */
   hypotheses: Question[];
   /** Questions marked as ruled out (negative learnings) */
@@ -79,7 +79,7 @@ function sortByEvidenceDesc(a: Question, b: Question): number {
   return bVal - aVal;
 }
 
-const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
+const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
   hypotheses,
   ruledOut,
   contributing,
@@ -156,7 +156,7 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
   };
 
   return (
-    <div className="space-y-3" data-testid="investigation-conclusion">
+    <div className="space-y-3" data-testid="analyze-conclusion">
       {/* Section header */}
       <div className="flex items-center gap-1.5">
         <ClipboardCheck size={12} className="text-content-muted" />
@@ -426,4 +426,4 @@ const CauseRow: React.FC<{
   );
 };
 
-export { InvestigationConclusion };
+export { AnalyzeConclusion };
