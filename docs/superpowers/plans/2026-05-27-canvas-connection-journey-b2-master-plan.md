@@ -116,7 +116,7 @@ Strict ordering: B2.2 needs B2.1's `ColumnParsingProfile[]` contract. B2.3 needs
 
 **Size:** ~7 tasks.
 
-**Sub-plan:** TBD — written after B2.2 merges.
+**Sub-plan:** [`2026-05-27-canvas-connection-journey-b2-3-popover-banner-menu.md`](./2026-05-27-canvas-connection-journey-b2-3-popover-banner-menu.md) — written after B2.2 merged.
 
 ---
 
