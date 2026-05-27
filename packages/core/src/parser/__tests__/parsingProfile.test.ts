@@ -318,3 +318,46 @@ describe('profileColumns — status determination', () => {
     }
   });
 });
+
+describe('profileColumns — representative dataset', () => {
+  it('profiles a mixed real-world dataset correctly', () => {
+    const rows = [
+      { Date: '2024-01-15', Reactor: 'A', Cycle_min: '42,5', Yield_pct: '95%', Order_id: '00001' },
+      { Date: '2024-01-16', Reactor: 'B', Cycle_min: '41,8', Yield_pct: '94%', Order_id: '00002' },
+      { Date: '2024-01-17', Reactor: 'A', Cycle_min: '43,2', Yield_pct: '96%', Order_id: '00003' },
+      { Date: '2024-01-18', Reactor: 'C', Cycle_min: '40,9', Yield_pct: '93%', Order_id: '00004' },
+    ];
+    const profiles = profileColumns(rows);
+    const byName = Object.fromEntries(profiles.map(p => [p.columnName, p]));
+
+    expect(byName.Date.primary?.kind).toBe('date');
+    expect(byName.Date.primary?.label).toContain('ISO');
+    expect(byName.Reactor.primary?.kind).toBe('categorical');
+    expect(byName.Cycle_min.primary?.kind).toBe('numeric');
+    expect(byName.Cycle_min.primary?.label).toContain('EU decimal');
+    expect(byName.Yield_pct.primary?.kind).toBe('numeric');
+    expect(byName.Yield_pct.primary?.detail).toMatchObject({ stripSuffix: '%' });
+    expect(byName.Order_id.primary?.kind).toBe('id');
+
+    // Status: all should be ok on this clean dataset.
+    for (const profile of profiles) {
+      expect(profile.status).toBe('ok');
+    }
+  });
+
+  it('handles all-null columns as error status', () => {
+    const rows = [
+      { Empty: null, Real: '100' },
+      { Empty: null, Real: '200' },
+    ];
+    const profiles = profileColumns(rows);
+    const empty = profiles.find(p => p.columnName === 'Empty');
+    expect(empty?.status).toBe('error');
+    expect(empty?.primary).toBeNull();
+  });
+
+  it('barrel export surface matches public API contract', async () => {
+    const mod = await import('../index');
+    expect(typeof mod.profileColumns).toBe('function');
+  });
+});

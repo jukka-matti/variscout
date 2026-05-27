@@ -306,10 +306,12 @@ function detectCategorical(
   if (strings.length === 0) return null;
   const unique = new Set(strings);
   const uniqueCount = unique.size;
-  // Categorical heuristic: ≤ 30 distinct values AND ratio of unique/total ≤ 0.5
-  // (catches "A,B,A,C,B,A" but not unique IDs or free-text columns).
+  // Categorical heuristic: ≤ 30 distinct values AND at least one repeated value.
+  // All-unique columns are free-text or IDs, not categorical. The 50% ratio
+  // heuristic is too aggressive for small N (e.g. 3/4 unique = 75% ratio but
+  // classic 3-level factor). Repetition is the reliable signal.
   if (uniqueCount > 30) return null;
-  if (uniqueCount > strings.length * 0.5) return null;
+  if (uniqueCount >= strings.length) return null;
   return {
     label: `categorical · ${uniqueCount} levels`,
     detail: { levels: Array.from(unique) },
