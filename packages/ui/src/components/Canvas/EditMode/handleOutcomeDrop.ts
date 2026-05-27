@@ -29,8 +29,9 @@ export interface OutcomeDropArgs {
  * The popover is the place to switch type after the spec lands.
  *
  * Pure helper: no React, no DOM, no `@dnd-kit/core` runtime. Intended to be
- * called from the parent `DndContext`'s `onDragEnd` (currently
- * `Canvas/index.tsx`); EditModeShell does not own its own DndContext.
+ * called from EditModeShell's own `DndContext.onDragEnd` (routed via
+ * `handleEditModeDragEnd`); Canvas keeps a separate inner DndContext for
+ * chip→step routing.
  */
 export function handleOutcomeDrop({
   activeId,

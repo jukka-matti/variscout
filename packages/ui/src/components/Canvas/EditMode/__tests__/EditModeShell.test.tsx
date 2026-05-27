@@ -5,6 +5,7 @@ import { EditModeShell } from '../EditModeShell';
 import type { ColumnParsingProfile } from '@variscout/core/parser';
 import { createTestColumnParsingProfile } from '../../../../test-utils/columnParsingProfile';
 import { createTestOutcomeSpec } from '../../../../test-utils/outcomeSpec';
+import { createTestFactorControl } from '../../../../test-utils/factorControl';
 
 describe('EditModeShell', () => {
   it('renders the three zone placeholders by name', () => {
@@ -143,17 +144,6 @@ describe('EditModeShell — OutcomeZone wiring (C1)', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('keeps a thinner factor-zone placeholder (C2 slot)', () => {
-    render(
-      <DndContext>
-        <EditModeShell onDone={vi.fn()} outcomeSpecs={[]}>
-          <div>process content</div>
-        </EditModeShell>
-      </DndContext>
-    );
-    expect(screen.getByText(/factor zone arrives in c2/i)).toBeInTheDocument();
-  });
-
   it('forwards onOutcomeSpecUpdate to OutcomeZone via the OutcomeSpecsPopover Apply', () => {
     const onOutcomeSpecUpdate = vi.fn();
     const spec = createTestOutcomeSpec({ id: 'o-1', columnName: 'A' });
@@ -171,5 +161,70 @@ describe('EditModeShell — OutcomeZone wiring (C1)', () => {
     fireEvent.click(screen.getByRole('button', { name: /edit specs/i }));
     fireEvent.click(screen.getByRole('button', { name: /apply/i }));
     expect(onOutcomeSpecUpdate).toHaveBeenCalledWith('o-1', expect.objectContaining({ id: 'o-1' }));
+  });
+});
+
+describe('EditModeShell — FactorZone wiring (C2)', () => {
+  it('renders FactorZone in outcomes-factors zone (replaces Factor zone arrives in C2 placeholder)', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={vi.fn()} factorControls={[]}>
+          <div>process content</div>
+        </EditModeShell>
+      </DndContext>
+    );
+    expect(screen.getByTestId('factor-zone-global')).toBeInTheDocument();
+    expect(screen.queryByText(/factor zone arrives in c2/i)).not.toBeInTheDocument();
+  });
+
+  it('renders FactorChips for provided controls', () => {
+    render(
+      <DndContext>
+        <EditModeShell
+          onDone={vi.fn()}
+          factorControls={[createTestFactorControl({ factor: 'Temp', targetCondition: 'low' })]}
+        >
+          <div>process content</div>
+        </EditModeShell>
+      </DndContext>
+    );
+    expect(screen.getByText('Temp')).toBeInTheDocument();
+  });
+
+  it('forwards onFactorControlUpdate via the FactorSpecsPopover Apply', () => {
+    const onFactorControlUpdate = vi.fn();
+    render(
+      <DndContext>
+        <EditModeShell
+          onDone={vi.fn()}
+          factorControls={[createTestFactorControl({ factor: 'Temp' })]}
+          onFactorControlUpdate={onFactorControlUpdate}
+        >
+          <div>process content</div>
+        </EditModeShell>
+      </DndContext>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /edit factor/i }));
+    fireEvent.click(screen.getByRole('button', { name: /apply/i }));
+    expect(onFactorControlUpdate).toHaveBeenCalledWith(
+      'Temp',
+      expect.objectContaining({ factor: 'Temp' })
+    );
+  });
+
+  it('passes steps to FactorSpecsPopover for step-binding selection', () => {
+    render(
+      <DndContext>
+        <EditModeShell
+          onDone={vi.fn()}
+          factorControls={[createTestFactorControl()]}
+          steps={[{ id: 's-mix', name: 'Mix' }]}
+        >
+          <div>process content</div>
+        </EditModeShell>
+      </DndContext>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /edit factor/i }));
+    expect(screen.getByRole('option', { name: /^mix/i })).toBeInTheDocument();
   });
 });

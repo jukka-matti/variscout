@@ -1,8 +1,12 @@
 import React from 'react';
+import { DndContext } from '@dnd-kit/core';
 import type { OutcomeSpec } from '@variscout/core';
+import type { ImprovementProjectFactorControl } from '@variscout/core/improvementProject';
 import type { ColumnParsingProfile, ParsingInterpretation } from '@variscout/core/parser';
 import { Palette } from './Palette';
 import { OutcomeZone } from './OutcomeZone';
+import { FactorZone } from './FactorZone';
+import { handleEditModeDragEnd } from './handleEditModeDragEnd';
 
 export interface EditModeShellProps {
   /** Called when the user clicks Done to exit Edit mode (returns to State mode). */
@@ -26,14 +30,29 @@ export interface EditModeShellProps {
   /** Outcome specs to render as `<OutcomeCard>` chips in the OutcomeZone. Defaults to []. */
   outcomeSpecs?: OutcomeSpec[];
   /**
-   * Called when a `column:<name>` drop lands on the OutcomeZone — wired by the
-   * parent `DndContext` (`Canvas/index.tsx`) via {@link handleOutcomeDrop}.
-   * EditModeShell does not own its own DndContext; this prop is plumbed
-   * through OutcomeZone for the parent to invoke after routing.
+   * Called when a `column:<name>` drop lands on the OutcomeZone. EditModeShell
+   * owns its own `DndContext` and routes column→zone drops via
+   * {@link handleEditModeDragEnd}. (Canvas keeps a separate inner `DndContext`
+   * for chip→step routing; the two contexts operate independently.)
    */
   onOutcomeSpecAdd?: (columnName: string, derived: Partial<OutcomeSpec>) => void;
   /** Called when the OutcomeSpecsPopover Apply commits a per-spec edit. */
   onOutcomeSpecUpdate?: (specId: string, updated: OutcomeSpec) => void;
+  /** Factor controls to render as `<FactorChip>` cards in the FactorZone. Defaults to []. */
+  factorControls?: ImprovementProjectFactorControl[];
+  /** Process steps for FactorSpecsPopover's step-binding selector. Defaults to []. */
+  steps?: { id: string; name: string }[];
+  /**
+   * Called when a `column:<name>` drop lands on the FactorZone (global or
+   * per-step). EditModeShell owns its own `DndContext` and routes column→zone
+   * drops via {@link handleEditModeDragEnd}.
+   */
+  onFactorControlAdd?: (columnName: string, stepId?: string) => void;
+  /** Called when the FactorSpecsPopover Apply commits a per-control edit. */
+  onFactorControlUpdate?: (
+    originalFactorName: string,
+    updated: ImprovementProjectFactorControl
+  ) => void;
 }
 
 export const EditModeShell: React.FC<EditModeShellProps> = ({
@@ -48,74 +67,94 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
   outcomeSpecs = [],
   onOutcomeSpecAdd,
   onOutcomeSpecUpdate,
+  factorControls = [],
+  steps = [],
+  onFactorControlAdd,
+  onFactorControlUpdate,
 }) => {
+  const onDragEnd = React.useCallback(
+    (event: Parameters<typeof handleEditModeDragEnd>[0]) =>
+      handleEditModeDragEnd(event, {
+        numericValuesByColumn,
+        onOutcomeSpecAdd,
+        onFactorControlAdd,
+      }),
+    [numericValuesByColumn, onOutcomeSpecAdd, onFactorControlAdd]
+  );
   return (
-    <section
-      data-testid="edit-mode-shell"
-      className="flex min-h-0 flex-1 flex-col"
-      aria-label="Edit mode"
-    >
-      <header className="flex items-center justify-between border-b border-edge bg-surface-secondary px-4 py-2">
-        <div className="flex flex-col">
-          <h2 className="text-sm font-semibold text-content">Edit map</h2>
-          <p className="text-xs text-content-secondary">
-            Connect your data to the process structure.
-          </p>
+    <DndContext onDragEnd={onDragEnd}>
+      <section
+        data-testid="edit-mode-shell"
+        className="flex min-h-0 flex-1 flex-col"
+        aria-label="Edit mode"
+      >
+        <header className="flex items-center justify-between border-b border-edge bg-surface-secondary px-4 py-2">
+          <div className="flex flex-col">
+            <h2 className="text-sm font-semibold text-content">Edit map</h2>
+            <p className="text-xs text-content-secondary">
+              Connect your data to the process structure.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onDone}
+            className="rounded-md border border-edge bg-surface-primary px-3 py-1.5 text-xs font-medium text-content hover:bg-surface-tertiary"
+          >
+            Done
+          </button>
+        </header>
+
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 md:grid-cols-[14rem_18rem_minmax(0,1fr)]">
+          <aside
+            data-testid="edit-mode-zone-palette"
+            className="flex flex-col gap-2 rounded-md border border-dashed border-edge bg-surface-primary p-3"
+            aria-label="Palette zone"
+          >
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-content-tertiary">
+              Palette
+            </h3>
+            <Palette
+              profiles={profiles}
+              numericValuesByColumn={numericValuesByColumn}
+              onMenuItemSelect={onMenuItemSelect}
+              onOverrideAccept={onOverrideAccept}
+              onApplyToSimilar={onApplyToSimilar}
+              onReviewAllWarnings={onReviewAllWarnings}
+            />
+          </aside>
+
+          <aside
+            data-testid="edit-mode-zone-outcomes-factors"
+            className="flex flex-col gap-3 rounded-md border border-dashed border-edge bg-surface-primary p-3"
+            aria-label="Outcomes and Factors zone"
+          >
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-content-tertiary">
+              Outcomes &amp; Factors
+            </h3>
+            <OutcomeZone
+              specs={outcomeSpecs}
+              numericValuesByColumn={numericValuesByColumn}
+              onSpecAdd={onOutcomeSpecAdd ?? (() => {})}
+              onSpecUpdate={onOutcomeSpecUpdate ?? (() => {})}
+            />
+            <FactorZone
+              controls={factorControls}
+              steps={steps}
+              onControlAdd={onFactorControlAdd ?? (() => {})}
+              onControlUpdate={onFactorControlUpdate ?? (() => {})}
+            />
+          </aside>
+
+          <section
+            data-testid="edit-mode-zone-process"
+            className="flex min-h-0 flex-col rounded-md border border-edge bg-surface-primary"
+            aria-label="Process structure zone"
+          >
+            {children}
+          </section>
         </div>
-        <button
-          type="button"
-          onClick={onDone}
-          className="rounded-md border border-edge bg-surface-primary px-3 py-1.5 text-xs font-medium text-content hover:bg-surface-tertiary"
-        >
-          Done
-        </button>
-      </header>
-
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 md:grid-cols-[14rem_18rem_minmax(0,1fr)]">
-        <aside
-          data-testid="edit-mode-zone-palette"
-          className="flex flex-col gap-2 rounded-md border border-dashed border-edge bg-surface-primary p-3"
-          aria-label="Palette zone"
-        >
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-content-tertiary">
-            Palette
-          </h3>
-          <Palette
-            profiles={profiles}
-            numericValuesByColumn={numericValuesByColumn}
-            onMenuItemSelect={onMenuItemSelect}
-            onOverrideAccept={onOverrideAccept}
-            onApplyToSimilar={onApplyToSimilar}
-            onReviewAllWarnings={onReviewAllWarnings}
-          />
-        </aside>
-
-        <aside
-          data-testid="edit-mode-zone-outcomes-factors"
-          className="flex flex-col gap-3 rounded-md border border-dashed border-edge bg-surface-primary p-3"
-          aria-label="Outcomes and Factors zone"
-        >
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-content-tertiary">
-            Outcomes &amp; Factors
-          </h3>
-          <OutcomeZone
-            specs={outcomeSpecs}
-            numericValuesByColumn={numericValuesByColumn}
-            onSpecAdd={onOutcomeSpecAdd ?? (() => {})}
-            onSpecUpdate={onOutcomeSpecUpdate ?? (() => {})}
-          />
-          <p className="text-xs text-content-tertiary">Factor zone arrives in C2.</p>
-        </aside>
-
-        <section
-          data-testid="edit-mode-zone-process"
-          className="flex min-h-0 flex-col rounded-md border border-edge bg-surface-primary"
-          aria-label="Process structure zone"
-        >
-          {children}
-        </section>
-      </div>
-    </section>
+      </section>
+    </DndContext>
   );
 };
 
