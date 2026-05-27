@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import FocusTrap from 'focus-trap-react';
-import type { StepTimingBinding, ColumnParsingProfile } from '@variscout/core';
+import type { StepTimingBinding } from '@variscout/core';
 import { detectPairedTimingColumns } from '@variscout/core';
+import type { ColumnParsingProfile } from '@variscout/core/parser';
 
 export interface StepTimingsModalProps {
   /** Emergent steps from the Process zone (id + display name + order). */
@@ -9,9 +10,13 @@ export interface StepTimingsModalProps {
   /** Column parsing profiles from the canvas palette. Date-kind profiles are
    *  used to populate Start/End pickers and to auto-detect paired timing columns. */
   dateProfiles: ColumnParsingProfile[];
+  /** Numeric-kind column profiles. Populate the Duration picker in the alternative
+   *  section (spec §4.3.1 — duration columns are typically numeric like Cycle_time_min). */
+  numericProfiles: ColumnParsingProfile[];
   /** Pre-existing bindings (for reopening the modal). Defaults to []. */
   initialBindings?: StepTimingBinding[];
-  /** Receives ONLY fully-bound (start+end set) rows; partial rows excluded. */
+  /** Receives fully-bound rows: paired (start+end both set) + duration (column set);
+   *  partial-paired rows are excluded. */
   onSave: (bindings: StepTimingBinding[]) => void;
   /** Backdrop click + Escape both invoke this. */
   onClose: () => void;
@@ -19,32 +24,39 @@ export interface StepTimingsModalProps {
 
 type TabId = 'by-step' | 'by-column';
 
+/** Role assignment in the by-column view. */
+type ColumnRole = 'start' | 'end' | 'duration' | '';
+
 /** Tracks which pickers carry auto-detected values, keyed by stepId + side. */
 type AutoDetectFlags = Record<string, { start?: boolean; end?: boolean }>;
 
 /**
- * StepTimingsModal — D1 Task 3 skeleton + By-step layout + Task 4 pre-fill.
+ * StepTimingsModal — full implementation (Tasks 3–5).
  *
  * Mirrors `AddActionDialog` for the shell (FocusTrap + fixed backdrop + Escape +
- * click-outside close). Hosts two tabs: **By step** (active by default, this PR)
- * and **By column** (DOM-present placeholder; wired in Task 5).
+ * click-outside close). Hosts two tabs: **By step** (active by default) and
+ * **By column** (functional in Task 5).
  *
  * By-step layout: one table row per `step`, each row has a Start ▾ <select>,
  * an End ▾ <select> (both listing only date-kind columns from `dateProfiles` +
- * an empty `--` option), and a Duration preview cell. Save returns only rows
- * where both Start AND End are set; partials are silently excluded.
+ * an empty `--` option), and a Duration preview cell. Below the table is the
+ * duration alternative section ("Or use a single duration column").
  *
- * Pre-fill: `detectPairedTimingColumns` runs on mount (and on `dateProfiles`/
- * `steps` change). Detected pairs are applied to pickers unless a saved binding
- * from `initialBindings` already covers that step (explicit binding wins). A
- * small cyan-dot indicator appears next to pickers whose value was auto-detected;
- * the dot clears when the user manually changes that specific picker.
+ * By-column layout: one row per date-kind column. Each row exposes a Step picker
+ * (step names + empty `--`) and a Role picker (Start/End/Duration/`--`). Both
+ * views share the SAME underlying state maps, so switching tabs preserves edits.
  *
- * By-column tab content + duration alternative + mutual exclusion land in Task 5.
+ * Mutual exclusion is enforced in the change handlers:
+ * - Picking a Start or End value → clears that step's duration + its wasAutoDetected flags.
+ * - Picking a Duration value → clears that step's start + end + their wasAutoDetected flags.
+ *
+ * Save emits `StepTimingBinding[]` combining paired + duration bindings;
+ * partial-paired (only Start or only End) are excluded.
  */
 export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
   steps,
   dateProfiles,
+  numericProfiles,
   initialBindings = [],
   onSave,
   onClose,
@@ -55,6 +67,12 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
   const dateColumns = useMemo(
     () => dateProfiles.filter(p => p.primary?.kind === 'date').map(p => p.columnName),
     [dateProfiles]
+  );
+
+  // Derive the list of numeric-kind column names for the duration alternative section.
+  const numericColumns = useMemo(
+    () => numericProfiles.filter(p => p.primary?.kind === 'numeric').map(p => p.columnName),
+    [numericProfiles]
   );
 
   // Run detection once on mount / when dateProfiles or steps change.
@@ -80,7 +98,7 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
   // Per-step start/end column state. Empty string === "unbound" (matches the
   // empty `--` option's value).
   const [startByStep, setStartByStep] = useState<Record<string, string>>(() => {
-    const base = buildInitialMap(initialBindings, 'start');
+    const base = buildInitialStartEndMap(initialBindings, 'start');
     // Merge auto-detected pairs — only for steps NOT covered by initialBindings.
     for (const pair of detectedPairs) {
       if (pair.matchedStepId !== null && !stepsWithInitialBindings.has(pair.matchedStepId)) {
@@ -89,8 +107,9 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
     }
     return base;
   });
+
   const [endByStep, setEndByStep] = useState<Record<string, string>>(() => {
-    const base = buildInitialMap(initialBindings, 'end');
+    const base = buildInitialStartEndMap(initialBindings, 'end');
     // Merge auto-detected pairs — only for steps NOT covered by initialBindings.
     for (const pair of detectedPairs) {
       if (pair.matchedStepId !== null && !stepsWithInitialBindings.has(pair.matchedStepId)) {
@@ -98,6 +117,17 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
       }
     }
     return base;
+  });
+
+  // Per-step duration column state. Initialized from `'duration'` kind initialBindings.
+  const [durationByStep, setDurationByStep] = useState<Record<string, string>>(() => {
+    const map: Record<string, string> = {};
+    for (const b of initialBindings) {
+      if (b.kind === 'duration') {
+        map[b.stepId] = b.durationColumn;
+      }
+    }
+    return map;
   });
 
   // Track which pickers currently carry an auto-detected value.
@@ -113,11 +143,16 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
     return flags;
   });
 
+  // Per-step inline hint state — shown after mutual exclusion triggers.
+  // 'duration-only' = user picked a duration, start/end were cleared.
+  // 'start-end-pair' = user picked start/end, duration was cleared.
+  const [hintByStep, setHintByStep] = useState<
+    Record<string, 'duration-only' | 'start-end-pair' | null>
+  >({});
+
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Auto-focus dialog on mount (mirror AddActionDialog focus pattern; the
-  // first interactive control is a tab, so focusing the dialog lets the
-  // FocusTrap pick up the first focusable child).
+  // Auto-focus dialog on mount (mirror AddActionDialog focus pattern).
   useEffect(() => {
     dialogRef.current?.focus();
   }, []);
@@ -146,6 +181,14 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
       ...prev,
       [stepId]: { ...prev[stepId], start: false },
     }));
+    // Mutual exclusion: picking a Start value clears duration for that step.
+    if (value !== '') {
+      setDurationByStep(prev => {
+        if (!prev[stepId]) return prev;
+        return { ...prev, [stepId]: '' };
+      });
+      setHintByStep(prev => ({ ...prev, [stepId]: 'start-end-pair' }));
+    }
   }, []);
 
   const handleEndChange = useCallback((stepId: string, value: string) => {
@@ -155,23 +198,56 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
       ...prev,
       [stepId]: { ...prev[stepId], end: false },
     }));
+    // Mutual exclusion: picking an End value clears duration for that step.
+    if (value !== '') {
+      setDurationByStep(prev => {
+        if (!prev[stepId]) return prev;
+        return { ...prev, [stepId]: '' };
+      });
+      setHintByStep(prev => ({ ...prev, [stepId]: 'start-end-pair' }));
+    }
   }, []);
 
-  // Fully-bound rows = rows where BOTH start and end are non-empty.
-  const fullyBound = useMemo<StepTimingBinding[]>(() => {
-    return steps
-      .filter(step => {
-        const start = startByStep[step.id];
-        const end = endByStep[step.id];
-        return Boolean(start) && Boolean(end);
-      })
-      .map(step => ({
-        kind: 'paired' as const,
-        stepId: step.id,
-        startColumn: startByStep[step.id]!,
-        endColumn: endByStep[step.id]!,
+  const handleDurationChange = useCallback((stepId: string, value: string) => {
+    setDurationByStep(prev => ({ ...prev, [stepId]: value }));
+    // Mutual exclusion: picking a Duration value clears start + end for that step.
+    if (value !== '') {
+      setStartByStep(prev => {
+        if (!prev[stepId]) return prev;
+        return { ...prev, [stepId]: '' };
+      });
+      setEndByStep(prev => {
+        if (!prev[stepId]) return prev;
+        return { ...prev, [stepId]: '' };
+      });
+      // Also clear the wasAutoDetected flags for start + end on this step.
+      setWasAutoDetected(prev => ({
+        ...prev,
+        [stepId]: { start: false, end: false },
       }));
-  }, [steps, startByStep, endByStep]);
+      setHintByStep(prev => ({ ...prev, [stepId]: 'duration-only' }));
+    } else {
+      setHintByStep(prev => ({ ...prev, [stepId]: null }));
+    }
+  }, []);
+
+  // Fully-bound rows = rows where BOTH start and end are non-empty (paired)
+  // OR where duration is non-empty (duration).
+  const fullyBound = useMemo<StepTimingBinding[]>(() => {
+    const result: StepTimingBinding[] = [];
+    for (const step of steps) {
+      const start = startByStep[step.id] ?? '';
+      const end = endByStep[step.id] ?? '';
+      const duration = durationByStep[step.id] ?? '';
+      if (start && end) {
+        result.push({ kind: 'paired', stepId: step.id, startColumn: start, endColumn: end });
+      } else if (duration) {
+        result.push({ kind: 'duration', stepId: step.id, durationColumn: duration });
+      }
+      // Partial-paired (only start or only end) excluded.
+    }
+    return result;
+  }, [steps, startByStep, endByStep, durationByStep]);
 
   const timedCount = fullyBound.length;
   const timedLabel = `${timedCount} ${timedCount === 1 ? 'step' : 'steps'} timed`;
@@ -263,15 +339,31 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
                   onStartChange={handleStartChange}
                   onEndChange={handleEndChange}
                 />
+                {/* Duration alternative section — always visible below the per-step table */}
+                <DurationAlternativeSection
+                  steps={steps}
+                  numericColumns={numericColumns}
+                  durationByStep={durationByStep}
+                  hintByStep={hintByStep}
+                  onDurationChange={handleDurationChange}
+                />
               </div>
             ) : (
               <div
                 role="tabpanel"
                 id="step-timings-panel-by-column"
                 aria-labelledby="step-timings-tab-by-column"
-                className="text-sm text-content-secondary py-6 px-2"
               >
-                By-column layout coming in a follow-up.
+                <ByColumnTable
+                  steps={steps}
+                  dateColumns={dateColumns}
+                  startByStep={startByStep}
+                  endByStep={endByStep}
+                  durationByStep={durationByStep}
+                  onStartChange={handleStartChange}
+                  onEndChange={handleEndChange}
+                  onDurationChange={handleDurationChange}
+                />
               </div>
             )}
           </div>
@@ -303,7 +395,7 @@ export const StepTimingsModal: React.FC<StepTimingsModalProps> = ({
 /**
  * By-step table — one row per emergent step. Each row exposes a Start ▾ /
  * End ▾ <select> pair (populated from `dateColumns`) and a Duration preview
- * cell (placeholder text in this task; live preview lands later).
+ * cell.
  *
  * Auto-detected pickers display a small cyan dot (aria-label="Auto-detected")
  * to signal that the value was supplied by `detectPairedTimingColumns`.
@@ -399,6 +491,247 @@ const ByStepTable: React.FC<{
 };
 
 /**
+ * Duration alternative section — always visible in the by-step view below the
+ * per-step table. Spec §4.3.1: one row per step, each row has a Duration column
+ * picker (numeric columns only from `numericColumns`).
+ *
+ * Inline hints:
+ * - "Using duration only" — shown when user picks a duration column that cleared start/end.
+ * - "Using start/end pair" — shown when user picks start/end that cleared a duration.
+ */
+const DurationAlternativeSection: React.FC<{
+  steps: { id: string; name: string; order: number }[];
+  numericColumns: string[];
+  durationByStep: Record<string, string>;
+  hintByStep: Record<string, 'duration-only' | 'start-end-pair' | null>;
+  onDurationChange: (stepId: string, value: string) => void;
+}> = ({ steps, numericColumns, durationByStep, hintByStep, onDurationChange }) => (
+  <div className="mt-6 pt-4 border-t border-edge">
+    <h3 className="text-sm font-semibold text-content mb-3">Or use a single duration column</h3>
+    {steps.length === 0 ? null : (
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-xs uppercase tracking-wide text-content-secondary">
+            <th className="py-2 pr-3 font-medium">Step</th>
+            <th className="py-2 pr-3 font-medium">Duration column</th>
+            <th className="py-2 font-medium" />
+          </tr>
+        </thead>
+        <tbody>
+          {steps.map(step => {
+            const durationValue = durationByStep[step.id] ?? '';
+            const hint = hintByStep[step.id] ?? null;
+            return (
+              <tr
+                key={step.id}
+                data-testid={`step-duration-row-${step.id}`}
+                className="border-t border-edge"
+              >
+                <td className="py-2 pr-3 text-content font-medium">{step.name}</td>
+                <td className="py-2 pr-3">
+                  <select
+                    data-testid={`step-duration-row-${step.id}-picker`}
+                    aria-label={`Duration column for ${step.name}`}
+                    value={durationValue}
+                    onChange={e => onDurationChange(step.id, e.target.value)}
+                    className="w-full px-2 py-1.5 bg-surface-secondary border border-edge rounded-lg text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  >
+                    <option value="">--</option>
+                    {numericColumns.map(col => (
+                      <option key={col} value={col}>
+                        {col}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td className="py-2 text-xs text-content-secondary">
+                  {hint === 'duration-only' && (
+                    <span className="text-cyan-700">Using duration only</span>
+                  )}
+                  {hint === 'start-end-pair' && (
+                    <span className="text-cyan-700">Using start/end pair</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    )}
+  </div>
+);
+
+/**
+ * By-column table — one row per date-kind column. Each row has:
+ * - Column name label
+ * - Step picker (step names + empty `--`)
+ * - Role picker (Start / End / Duration / `--`)
+ *
+ * The view DERIVES its row values from the shared `startByStep` / `endByStep` /
+ * `durationByStep` maps, so switching tabs preserves edits.
+ *
+ * Derivation logic (column → step + role):
+ *   For each date column, scan `startByStep` for a step that has this column as its
+ *   start (→ role=Start), then `endByStep` (→ role=End), then `durationByStep`
+ *   (→ role=Duration). First match wins per role; multiple Start columns for the same
+ *   step → the step keeps only the first in iteration order (handled in Save aggregation).
+ *
+ * When the user changes a row's Step or Role picker, the change is translated back
+ * to the shared state via the `onStartChange` / `onEndChange` / `onDurationChange`
+ * handlers so by-step view stays in sync.
+ */
+const ByColumnTable: React.FC<{
+  steps: { id: string; name: string; order: number }[];
+  dateColumns: string[];
+  startByStep: Record<string, string>;
+  endByStep: Record<string, string>;
+  durationByStep: Record<string, string>;
+  onStartChange: (stepId: string, value: string) => void;
+  onEndChange: (stepId: string, value: string) => void;
+  onDurationChange: (stepId: string, value: string) => void;
+}> = ({
+  steps,
+  dateColumns,
+  startByStep,
+  endByStep,
+  durationByStep,
+  onStartChange,
+  onEndChange,
+  onDurationChange,
+}) => {
+  if (dateColumns.length === 0) {
+    return (
+      <p className="text-sm text-content-secondary py-6 px-2">
+        No date columns detected. Add date columns to the canvas palette first.
+      </p>
+    );
+  }
+
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="text-left text-xs uppercase tracking-wide text-content-secondary">
+          <th className="py-2 pr-3 font-medium">Column</th>
+          <th className="py-2 pr-3 font-medium">Step</th>
+          <th className="py-2 font-medium">Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        {dateColumns.map(col => {
+          // Derive the current step + role assignment for this column from shared state.
+          // Scan startByStep, endByStep, durationByStep to find a step that references
+          // this column. Multiple Start columns for the same step → the first column in
+          // iteration order wins for "which step claims this column as Start" (harmless
+          // display; Save aggregation also uses first-wins logic).
+          let derivedStepId = '';
+          let derivedRole: ColumnRole = '';
+          for (const step of steps) {
+            if (startByStep[step.id] === col) {
+              derivedStepId = step.id;
+              derivedRole = 'start';
+              break;
+            }
+          }
+          if (!derivedStepId) {
+            for (const step of steps) {
+              if (endByStep[step.id] === col) {
+                derivedStepId = step.id;
+                derivedRole = 'end';
+                break;
+              }
+            }
+          }
+          if (!derivedStepId) {
+            for (const step of steps) {
+              if (durationByStep[step.id] === col) {
+                derivedStepId = step.id;
+                derivedRole = 'duration';
+                break;
+              }
+            }
+          }
+
+          const handleStepChange = (newStepId: string) => {
+            if (!newStepId) {
+              // Clearing the step → remove whatever role was assigned to this column
+              if (derivedStepId && derivedRole === 'start') onStartChange(derivedStepId, '');
+              if (derivedStepId && derivedRole === 'end') onEndChange(derivedStepId, '');
+              if (derivedStepId && derivedRole === 'duration') onDurationChange(derivedStepId, '');
+              return;
+            }
+            // Assigning to a new step: update the new step's role if a role is already selected
+            if (derivedRole === 'start') {
+              if (derivedStepId) onStartChange(derivedStepId, ''); // unassign from old step
+              onStartChange(newStepId, col);
+            } else if (derivedRole === 'end') {
+              if (derivedStepId) onEndChange(derivedStepId, '');
+              onEndChange(newStepId, col);
+            } else if (derivedRole === 'duration') {
+              if (derivedStepId) onDurationChange(derivedStepId, '');
+              onDurationChange(newStepId, col);
+            }
+            // If no role selected yet, changing step alone doesn't bind anything.
+          };
+
+          const handleRoleChange = (newRole: ColumnRole) => {
+            const targetStepId = derivedStepId;
+            if (!targetStepId) return; // no step selected; role change is a no-op
+            // Clear the old role
+            if (derivedRole === 'start') onStartChange(targetStepId, '');
+            if (derivedRole === 'end') onEndChange(targetStepId, '');
+            if (derivedRole === 'duration') onDurationChange(targetStepId, '');
+            // Apply the new role
+            if (newRole === 'start') onStartChange(targetStepId, col);
+            if (newRole === 'end') onEndChange(targetStepId, col);
+            if (newRole === 'duration') onDurationChange(targetStepId, col);
+          };
+
+          return (
+            <tr
+              key={col}
+              data-testid={`column-binding-row-${col}`}
+              className="border-t border-edge"
+            >
+              <td className="py-2 pr-3 text-content font-medium">{col}</td>
+              <td className="py-2 pr-3">
+                <select
+                  data-testid={`column-binding-row-${col}-step`}
+                  aria-label={`Step for column ${col}`}
+                  value={derivedStepId}
+                  onChange={e => handleStepChange(e.target.value)}
+                  className="w-full px-2 py-1.5 bg-surface-secondary border border-edge rounded-lg text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                >
+                  <option value="">--</option>
+                  {steps.map(step => (
+                    <option key={step.id} value={step.id}>
+                      {step.name}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td className="py-2">
+                <select
+                  data-testid={`column-binding-row-${col}-role`}
+                  aria-label={`Role for column ${col}`}
+                  value={derivedRole}
+                  onChange={e => handleRoleChange(e.target.value as ColumnRole)}
+                  className="w-full px-2 py-1.5 bg-surface-secondary border border-edge rounded-lg text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                >
+                  <option value="">--</option>
+                  <option value="start">Start</option>
+                  <option value="end">End</option>
+                  <option value="duration">Duration</option>
+                </select>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+};
+
+/**
  * Cyan-dot indicator shown next to a picker whose value was auto-detected.
  * Uses bg-cyan-500/80 (mid-tone with slight transparency) as the fill.
  * Per feedback_green_400_light_contrast the fill is not 400-level alone —
@@ -438,8 +771,8 @@ const DateColumnSelect: React.FC<{
 
 /** Build initial start/end maps from `initialBindings`. Only `'paired'` bindings
  *  contribute to By-step row pre-fill; `'duration'` bindings are owned by the
- *  By-column tab (Task 5). */
-function buildInitialMap(
+ *  duration alternative section. */
+function buildInitialStartEndMap(
   initialBindings: StepTimingBinding[],
   side: 'start' | 'end'
 ): Record<string, string> {

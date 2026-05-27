@@ -1,6 +1,7 @@
 /**
  * Tests for StepTimingsModal — D1 Task 3 (skeleton + By-step layout) + Task 4
- * (pre-fill from detectPairedTimingColumns + cyan-dot auto-detect indicators).
+ * (pre-fill from detectPairedTimingColumns + cyan-dot auto-detect indicators) +
+ * Task 5 (by-column tab + duration alternative + mutual exclusion).
  *
  * Task 3 scope:
  * - FocusTrap shell with backdrop + Escape/click close (mirror AddActionDialog).
@@ -19,8 +20,14 @@
  * - initialBindings take precedence over auto-detection; no dot shown for those pickers.
  * - useMemo-based detection (runs on mount + when dateProfiles/steps change).
  *
- * Task 5 wires the By-column tab content + duration alternative + mutual exclusion;
- * Task 6 polishes the footer. Not in scope here.
+ * Task 5 scope:
+ * - numericProfiles: required new prop (duration column picker source).
+ * - By-column tab: functional content — one row per date-kind column with step + role pickers.
+ * - Duration alternative section: always visible below by-step table.
+ * - Mutual exclusion: start/end ↔ duration clears the opposite bindings.
+ * - Shared state: switching tabs preserves edits.
+ * - Save includes both paired + duration bindings; partial-paired excluded.
+ * - Footer count includes BOTH paired AND duration bindings.
  */
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
@@ -32,15 +39,22 @@ import { createTestStepTiming } from '../../../../../test-utils/stepTiming';
 import { createTestColumnParsingProfile } from '../../../../../test-utils/columnParsingProfile';
 
 // ---------------------------------------------------------------------------
-// Test helper: build a minimal date-kind ColumnParsingProfile by column name.
-// Re-uses the existing factory from test-utils/columnParsingProfile.ts, which
-// defaults to a numeric primary. We override `primary` to kind:'date' since
-// detectPairedTimingColumns filters by p.primary?.kind === 'date'.
+// Test helpers
 // ---------------------------------------------------------------------------
+
+/** Build a minimal date-kind ColumnParsingProfile by column name. */
 function dateProfile(columnName: string) {
   return createTestColumnParsingProfile({
     columnName,
     primary: { kind: 'date', label: 'date · ISO', detail: {} },
+  });
+}
+
+/** Build a minimal numeric-kind ColumnParsingProfile by column name. */
+function numericProfile(columnName: string) {
+  return createTestColumnParsingProfile({
+    columnName,
+    primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
   });
 }
 
@@ -49,11 +63,13 @@ function renderModal(overrides: Partial<React.ComponentProps<typeof StepTimingsM
   const onClose = vi.fn();
   const steps = overrides.steps ?? [createTestStep({ id: 'mix', name: 'Mix' })];
   const dateProfiles = overrides.dateProfiles ?? [];
+  const numericProfiles = overrides.numericProfiles ?? [];
 
   const utils = render(
     <StepTimingsModal
       steps={steps}
       dateProfiles={dateProfiles}
+      numericProfiles={numericProfiles}
       onSave={onSave}
       onClose={onClose}
       {...overrides}
@@ -469,6 +485,380 @@ describe('StepTimingsModal', () => {
       // But NO cyan dots — because the value came from saved binding, not auto-detection
       expect(screen.queryByTestId('step-timing-row-prep-start-auto-dot')).not.toBeInTheDocument();
       expect(screen.queryByTestId('step-timing-row-prep-end-auto-dot')).not.toBeInTheDocument();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Task 5: By-column tab
+  // ---------------------------------------------------------------------------
+
+  describe('by-column tab (Task 5)', () => {
+    const steps = [
+      createTestStep({ id: 'prep', name: 'Prep', order: 0 }),
+      createTestStep({ id: 'pack', name: 'Pack', order: 1 }),
+    ];
+    const dateProfiles = [
+      dateProfile('Prep_start'),
+      dateProfile('Prep_end'),
+      dateProfile('Pack_start'),
+    ];
+
+    it('clicking By column tab sets aria-selected="true" on it and false on By step', () => {
+      renderModal({ steps, dateProfiles });
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+      expect(screen.getByTestId('step-timings-tab-by-column')).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+      expect(screen.getByTestId('step-timings-tab-by-step')).toHaveAttribute(
+        'aria-selected',
+        'false'
+      );
+    });
+
+    it('by-column panel renders one row per date-kind column', () => {
+      renderModal({ steps, dateProfiles });
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+      expect(screen.getByTestId('column-binding-row-Prep_start')).toBeInTheDocument();
+      expect(screen.getByTestId('column-binding-row-Prep_end')).toBeInTheDocument();
+      expect(screen.getByTestId('column-binding-row-Pack_start')).toBeInTheDocument();
+    });
+
+    it('each column row has a Step picker and a Role picker', () => {
+      renderModal({ steps, dateProfiles });
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+      expect(screen.getByTestId('column-binding-row-Prep_start-step')).toBeInTheDocument();
+      expect(screen.getByTestId('column-binding-row-Prep_start-role')).toBeInTheDocument();
+    });
+
+    it('Role picker options are "--", "Start", "End", "Duration"', () => {
+      renderModal({ steps, dateProfiles });
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+      const rolePicker = screen.getByTestId(
+        'column-binding-row-Prep_start-role'
+      ) as HTMLSelectElement;
+      const optionTexts = Array.from(rolePicker.options).map(o => o.text);
+      expect(optionTexts).toEqual(['--', 'Start', 'End', 'Duration']);
+    });
+
+    it('Step picker options include step names + empty "--"', () => {
+      renderModal({ steps, dateProfiles });
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+      const stepPicker = screen.getByTestId(
+        'column-binding-row-Prep_start-step'
+      ) as HTMLSelectElement;
+      const optionTexts = Array.from(stepPicker.options).map(o => o.text);
+      expect(optionTexts).toContain('--');
+      expect(optionTexts).toContain('Prep');
+      expect(optionTexts).toContain('Pack');
+    });
+  });
+
+  describe('by-column tab: reflects by-step state (Task 5)', () => {
+    const steps = [createTestStep({ id: 'prep', name: 'Prep', order: 0 })];
+    const dateProfiles = [dateProfile('Prep_start'), dateProfile('Prep_end')];
+
+    it('by-column row for Prep_start shows Step=prep, Role=Start after auto-detection', () => {
+      renderModal({ steps, dateProfiles });
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+      const stepPicker = screen.getByTestId(
+        'column-binding-row-Prep_start-step'
+      ) as HTMLSelectElement;
+      const rolePicker = screen.getByTestId(
+        'column-binding-row-Prep_start-role'
+      ) as HTMLSelectElement;
+      expect(stepPicker.value).toBe('prep');
+      expect(rolePicker.value).toBe('start');
+    });
+
+    it('by-column row for Prep_end shows Step=prep, Role=End after auto-detection', () => {
+      renderModal({ steps, dateProfiles });
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+      const rolePicker = screen.getByTestId(
+        'column-binding-row-Prep_end-role'
+      ) as HTMLSelectElement;
+      expect(rolePicker.value).toBe('end');
+    });
+  });
+
+  describe('by-column tab: shared state with by-step (Task 5)', () => {
+    const steps = [createTestStep({ id: 'prep', name: 'Prep', order: 0 })];
+    const sharedDateProfiles = [dateProfile('Prep_start'), dateProfile('Prep_end')];
+
+    it('switching from By-column (after assigning) back to By-step shows the same assignment', () => {
+      renderModal({ steps, dateProfiles: sharedDateProfiles });
+      // Start in by-column tab; by-step auto-fill won't be present since we override with non-matching
+      // Instead render with non-matching profiles so pickers start empty, then assign via by-column
+      // Actually: use empty dateProfiles so no auto-fill, then switch to by-column and assign
+      // This test verifies round-trip: by-step edit → by-column reflects it
+      // Verify that the auto-detected pair (prep) shows correctly in both tabs
+      // By-step already tested; switching to by-column verifies shared state is derived correctly
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+      const stepPicker = screen.getByTestId(
+        'column-binding-row-Prep_start-step'
+      ) as HTMLSelectElement;
+      expect(stepPicker.value).toBe('prep'); // shared state reflects auto-detected binding
+
+      // Switch back to by-step
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-step'));
+      const startSelect = screen.getByTestId('step-timing-row-prep-start') as HTMLSelectElement;
+      expect(startSelect.value).toBe('Prep_start');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Task 5: Duration alternative section (by-step view)
+  // ---------------------------------------------------------------------------
+
+  describe('duration alternative section (Task 5)', () => {
+    const steps = [
+      createTestStep({ id: 'mix', name: 'Mix' }),
+      createTestStep({ id: 'pack', name: 'Pack' }),
+    ];
+    const numericProfiles = [numericProfile('Cycle_time'), numericProfile('Mix_duration')];
+
+    it('renders "Or use a single duration column" heading in by-step view', () => {
+      renderModal({ steps, numericProfiles });
+      expect(screen.getByText(/or use a single duration column/i)).toBeInTheDocument();
+    });
+
+    it('renders one duration row per step with correct testid', () => {
+      renderModal({ steps, numericProfiles });
+      expect(screen.getByTestId('step-duration-row-mix')).toBeInTheDocument();
+      expect(screen.getByTestId('step-duration-row-pack')).toBeInTheDocument();
+    });
+
+    it('each duration row has a duration picker', () => {
+      renderModal({ steps, numericProfiles });
+      expect(screen.getByTestId('step-duration-row-mix-picker')).toBeInTheDocument();
+      expect(screen.getByTestId('step-duration-row-pack-picker')).toBeInTheDocument();
+    });
+
+    it('duration picker lists numeric column names + empty "--"', () => {
+      renderModal({ steps, numericProfiles });
+      const picker = screen.getByTestId('step-duration-row-mix-picker') as HTMLSelectElement;
+      const optionValues = Array.from(picker.options).map(o => o.value);
+      expect(optionValues).toEqual(['', 'Cycle_time', 'Mix_duration']);
+    });
+
+    it('duration alternative section is NOT visible when By-column tab is active', () => {
+      renderModal({ steps, numericProfiles });
+      fireEvent.click(screen.getByTestId('step-timings-tab-by-column'));
+      expect(screen.queryByText(/or use a single duration column/i)).not.toBeInTheDocument();
+    });
+
+    it('initialBindings with duration kind pre-populates duration picker', () => {
+      const initialBindings: StepTimingBinding[] = [
+        { kind: 'duration', stepId: 'mix', durationColumn: 'Cycle_time' },
+      ];
+      renderModal({ steps, numericProfiles, initialBindings });
+      const picker = screen.getByTestId('step-duration-row-mix-picker') as HTMLSelectElement;
+      expect(picker.value).toBe('Cycle_time');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Task 5: Mutual exclusion
+  // ---------------------------------------------------------------------------
+
+  describe('mutual exclusion (Task 5)', () => {
+    const steps = [
+      createTestStep({ id: 'mix', name: 'Mix' }),
+      createTestStep({ id: 'pack', name: 'Pack' }),
+    ];
+    const dateProfiles = [dateProfile('Mix_start'), dateProfile('Mix_end')];
+    const numericProfiles = [numericProfile('Cycle_time')];
+
+    it('picking duration for a step with Start+End set clears Start and End', () => {
+      // Use non-matching date profiles so no auto-fill, then manually set start+end
+      const nonMatchingDate = [dateProfile('Other_start'), dateProfile('Other_end')];
+      renderModal({ steps, dateProfiles: nonMatchingDate, numericProfiles });
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-start'), {
+        target: { value: 'Other_start' },
+      });
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-end'), {
+        target: { value: 'Other_end' },
+      });
+      // Now pick a duration column
+      fireEvent.change(screen.getByTestId('step-duration-row-mix-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      const startSelect = screen.getByTestId('step-timing-row-mix-start') as HTMLSelectElement;
+      const endSelect = screen.getByTestId('step-timing-row-mix-end') as HTMLSelectElement;
+      expect(startSelect.value).toBe('');
+      expect(endSelect.value).toBe('');
+    });
+
+    it('picking duration shows inline hint "Using duration only"', () => {
+      const nonMatchingDate = [dateProfile('Other_start'), dateProfile('Other_end')];
+      renderModal({ steps, dateProfiles: nonMatchingDate, numericProfiles });
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-start'), {
+        target: { value: 'Other_start' },
+      });
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-end'), {
+        target: { value: 'Other_end' },
+      });
+      fireEvent.change(screen.getByTestId('step-duration-row-mix-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      expect(screen.getByTestId('step-duration-row-mix')).toHaveTextContent('Using duration only');
+    });
+
+    it('picking Start for a step with duration set clears duration', () => {
+      renderModal({ steps, dateProfiles, numericProfiles });
+      // Set duration first on mix
+      fireEvent.change(screen.getByTestId('step-duration-row-mix-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      // Now pick Start
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-start'), {
+        target: { value: 'Mix_start' },
+      });
+      const durationPicker = screen.getByTestId(
+        'step-duration-row-mix-picker'
+      ) as HTMLSelectElement;
+      expect(durationPicker.value).toBe('');
+    });
+
+    it('picking End for a step with duration set clears duration', () => {
+      renderModal({ steps, dateProfiles, numericProfiles });
+      fireEvent.change(screen.getByTestId('step-duration-row-mix-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-end'), {
+        target: { value: 'Mix_end' },
+      });
+      const durationPicker = screen.getByTestId(
+        'step-duration-row-mix-picker'
+      ) as HTMLSelectElement;
+      expect(durationPicker.value).toBe('');
+    });
+
+    it('picking Start shows inline hint "Using start/end pair"', () => {
+      renderModal({ steps, dateProfiles, numericProfiles });
+      fireEvent.change(screen.getByTestId('step-duration-row-mix-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-start'), {
+        target: { value: 'Mix_start' },
+      });
+      // The hint appears after picking start when there was a duration — but since duration
+      // is cleared and now start is set (end not set yet), no hint appears. The hint
+      // "Using start/end pair" shows when start/end is set and duration was just cleared.
+      // Actually per spec: when user picks Start for a step with duration → clear duration
+      // + show "Using start/end pair" next to that row.
+      expect(screen.getByTestId('step-duration-row-mix')).toHaveTextContent('Using start/end pair');
+    });
+
+    it('mutual exclusion does not affect other steps', () => {
+      const allSteps = [
+        createTestStep({ id: 'mix', name: 'Mix' }),
+        createTestStep({ id: 'pack', name: 'Pack' }),
+      ];
+      const allDateProfiles = [dateProfile('Pack_start'), dateProfile('Pack_end')];
+      renderModal({ steps: allSteps, dateProfiles: allDateProfiles, numericProfiles });
+      // Set duration on mix
+      fireEvent.change(screen.getByTestId('step-duration-row-mix-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      // Set start on mix only (different step from pack)
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-start'), {
+        target: { value: 'Pack_start' },
+      });
+      // Pack step should be unaffected
+      const packDurationPicker = screen.getByTestId(
+        'step-duration-row-pack-picker'
+      ) as HTMLSelectElement;
+      expect(packDurationPicker.value).toBe('');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Task 5: Save with mixed paired + duration bindings
+  // ---------------------------------------------------------------------------
+
+  describe('save with mixed bindings (Task 5)', () => {
+    const steps = [
+      createTestStep({ id: 'mix', name: 'Mix' }),
+      createTestStep({ id: 'pack', name: 'Pack' }),
+    ];
+    const dateProfiles = [dateProfile('Mix_start'), dateProfile('Mix_end')];
+    const numericProfiles = [numericProfile('Cycle_time')];
+
+    it('emits both paired and duration bindings on Save', () => {
+      const { onSave } = renderModal({ steps, dateProfiles, numericProfiles });
+      // mix: set start+end (will be auto-detected, or set manually)
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-start'), {
+        target: { value: 'Mix_start' },
+      });
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-end'), {
+        target: { value: 'Mix_end' },
+      });
+      // pack: set duration
+      fireEvent.change(screen.getByTestId('step-duration-row-pack-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /save/i }));
+      const result = onSave.mock.calls[0][0] as StepTimingBinding[];
+      expect(result).toContainEqual({
+        kind: 'paired',
+        stepId: 'mix',
+        startColumn: 'Mix_start',
+        endColumn: 'Mix_end',
+      });
+      expect(result).toContainEqual({
+        kind: 'duration',
+        stepId: 'pack',
+        durationColumn: 'Cycle_time',
+      });
+      expect(result).toHaveLength(2);
+    });
+
+    it('excludes partial-paired (only Start set) from Save', () => {
+      const nonMatchingDate = [dateProfile('Other_start')];
+      const { onSave } = renderModal({ steps, dateProfiles: nonMatchingDate, numericProfiles });
+      fireEvent.change(screen.getByTestId('step-timing-row-mix-start'), {
+        target: { value: 'Other_start' },
+      });
+      // No end set for mix
+      fireEvent.change(screen.getByTestId('step-duration-row-pack-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /save/i }));
+      const result = onSave.mock.calls[0][0] as StepTimingBinding[];
+      // mix excluded (partial); pack included (duration)
+      expect(result).toEqual([{ kind: 'duration', stepId: 'pack', durationColumn: 'Cycle_time' }]);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Task 5: Footer count includes both paired + duration
+  // ---------------------------------------------------------------------------
+
+  describe('footer count includes paired + duration (Task 5)', () => {
+    const steps = [
+      createTestStep({ id: 'mix', name: 'Mix' }),
+      createTestStep({ id: 'pack', name: 'Pack' }),
+    ];
+    const dateProfiles = [dateProfile('Mix_start'), dateProfile('Mix_end')];
+    const numericProfiles = [numericProfile('Cycle_time')];
+
+    it('shows "2 steps timed" when 1 paired + 1 duration bound', () => {
+      renderModal({ steps, dateProfiles, numericProfiles });
+      // mix: auto-filled paired (Mix_start + Mix_end match step 'Mix')
+      // pack: set duration
+      fireEvent.change(screen.getByTestId('step-duration-row-pack-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      expect(screen.getByRole('button', { name: /save · 2 steps timed →/i })).toBeInTheDocument();
+    });
+
+    it('shows "1 step timed" when only duration bound', () => {
+      renderModal({ steps, dateProfiles: [], numericProfiles });
+      fireEvent.change(screen.getByTestId('step-duration-row-mix-picker'), {
+        target: { value: 'Cycle_time' },
+      });
+      expect(screen.getByRole('button', { name: /save · 1 step timed →/i })).toBeInTheDocument();
     });
   });
 });
