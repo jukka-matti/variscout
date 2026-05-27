@@ -79,17 +79,17 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
       surveyInboxRules({
         hub: rollup.hub,
         improvementProjects: rollup.hub.improvementProjects ?? [],
-        sustainmentRecords: rollup.sustainmentRecords,
-        sustainmentReviews: rollup.hub.sustainmentReviews ?? [],
+        controlRecords: rollup.controlRecords,
+        controlReviews: rollup.hub.controlReviews ?? [],
         controlHandoffs: rollup.controlHandoffs,
         now: Date.now(),
       }),
     [
       rollup.hub.id,
       rollup.hub.improvementProjects,
-      rollup.hub.sustainmentReviews,
+      rollup.hub.controlReviews,
       rollup.controlHandoffs,
-      rollup.sustainmentRecords,
+      rollup.controlRecords,
     ]
   );
 
@@ -120,7 +120,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         project => project.id === targetId
       );
       if (surface === 'sustainment' && targetId) {
-        if (rollup.sustainmentRecords.some(record => record.id === targetId)) {
+        if (rollup.controlRecords.some(record => record.id === targetId)) {
           onLogReview(targetId);
           return;
         }
@@ -142,7 +142,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
       onOpenInvestigation,
       onSetupSustainment,
       rollup.hub.improvementProjects,
-      rollup.sustainmentRecords,
+      rollup.controlRecords,
     ]
   );
 
@@ -279,7 +279,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           tone={cadence.snapshot.overdueActions > 0 ? 'amber' : 'default'}
         />
         <SnapshotCard
-          label="Sustainment"
+          label="Control"
           value={cadence.snapshot.sustainment}
           testId="cadence-snapshot-sustainment"
           tone={cadence.snapshot.sustainment > 0 ? 'green' : 'default'}

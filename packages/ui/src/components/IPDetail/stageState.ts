@@ -9,7 +9,7 @@ export interface StageStateMap {
 }
 
 export interface StageStateInputs {
-  /** True when the linked SustainmentRecord has reached confirmed-sustained status. */
+  /** True when the linked ControlRecord has reached confirmed-sustained status. */
   sustainmentConfirmed?: boolean;
 }
 
@@ -18,9 +18,9 @@ export interface StageStateInputs {
  * linked-artifact signals. Used by IPDetailStageTabs to render the visual
  * state (✓ done / current with underline / ○ not-started / ⏸ locked).
  *
- * Stage order: Charter → Approach → Sustainment.
+ * Stage order: Charter → Approach → Control.
  * Improve is a top-level tab (not a project detail stage) per wedge amendment 2026-05-16.
- * Sustainment becomes current when IP is closed.
+ * Control becomes current when IP is closed.
  */
 export function deriveStageState(
   ip: ImprovementProject,

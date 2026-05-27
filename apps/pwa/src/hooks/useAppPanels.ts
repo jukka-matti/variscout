@@ -50,7 +50,7 @@ export interface UseAppPanelsReturn {
   setHighlightedChartPoint: (v: number | null) => void;
   isDesktop: boolean;
   openSpecEditorRequested: boolean;
-  sustainmentTargetId: string | null;
+  controlTargetId: string | null;
   selectedProjectId: string | null;
   setOpenSpecEditorRequested: (v: boolean) => void;
   openDataTableAtRow: (index: number) => void;
@@ -92,7 +92,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
   const openSpecEditorRequested = usePanelsStore(s => s.openSpecEditorRequested);
-  const sustainmentTargetId = usePanelsStore(s => s.sustainmentTargetId);
+  const controlTargetId = usePanelsStore(s => s.controlTargetId);
   const selectedProjectId = usePanelsStore(s => s.selectedProjectId);
 
   // ── Action selectors (stable function references from the store) ──────
@@ -201,7 +201,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     highlightedChartPoint,
     isDesktop,
     openSpecEditorRequested,
-    sustainmentTargetId,
+    controlTargetId,
     selectedProjectId,
     isPISidebarOpen,
 

@@ -375,17 +375,17 @@ describe('blobClient', () => {
     });
   });
 
-  // ── Sustainment blobs ─────────────────────────────────────────────────
+  // ── Control blobs ─────────────────────────────────────────────────
 
-  describe('Sustainment blobs', () => {
-    it('PUTs a SustainmentRecord to the correct path', async () => {
+  describe('Control blobs', () => {
+    it('PUTs a ControlRecord to the correct path', async () => {
       fetchSpy
         .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
         .mockResolvedValueOnce(new Response('', { status: 201 }));
 
       await saveBlobSustainmentRecord({
         id: 'rec-1',
-        title: 'Sustainment cadence',
+        title: 'Control cadence',
         hubId: 'hub-1',
         investigationId: 'inv-1',
         status: 'pending',
@@ -435,7 +435,7 @@ describe('blobClient', () => {
       );
     });
 
-    it('PUTs a SustainmentReview to the per-recordId/reviewId path', async () => {
+    it('PUTs a ControlReview to the per-recordId/reviewId path', async () => {
       fetchSpy
         .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
         .mockResolvedValueOnce(new Response('', { status: 201 }));

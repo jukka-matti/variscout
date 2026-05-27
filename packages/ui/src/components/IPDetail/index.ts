@@ -6,4 +6,4 @@ export type { StageState, StageStateMap, StageStateInputs } from './stageState';
 export { deriveStageState } from './stageState';
 export type { CauseRow, CauseStatus, CauseProjectionInputs } from './stages/causeProjection';
 export { projectCauses } from './stages/causeProjection';
-export type { SustainmentClosureInputs } from './stages/SustainmentOverview';
+export type { ControlClosureInputs } from './stages/ControlOverview';

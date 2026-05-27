@@ -33,7 +33,7 @@ import type {
   StatsResult,
   AnalysisMode,
   DataRow,
-  SustainmentRecord,
+  ControlRecord,
 } from '@variscout/core';
 import {
   deriveHubPortfolioReport,
@@ -63,7 +63,7 @@ interface ReportViewProps {
   hub?: ProcessHub | null;
   activeIP?: ImprovementProject | null;
   hypotheses?: Hypothesis[];
-  sustainmentRecords?: SustainmentRecord[];
+  controlRecords?: ControlRecord[];
   controlHandoffs?: ControlHandoff[];
   activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
   activeIPTitle?: string | null;
@@ -87,7 +87,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   hub,
   activeIP,
   hypotheses = [],
-  sustainmentRecords = [],
+  controlRecords = [],
   controlHandoffs = [],
   activeIPScope,
   activeIPTitle,
@@ -110,11 +110,11 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses,
             findings,
             questions,
-            sustainmentRecords,
+            controlRecords,
             controlHandoffs,
           })
         : null,
-    [activeIP, controlHandoffs, findings, hypotheses, questions, sustainmentRecords]
+    [activeIP, controlHandoffs, findings, hypotheses, questions, controlRecords]
   );
 
   const ipNarrative = useMemo(
@@ -125,7 +125,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             questions: ipReportScope.questions,
-            sustainmentRecord: ipReportScope.sustainmentRecord,
+            controlRecord: ipReportScope.controlRecord,
             controlHandoff: ipReportScope.controlHandoff,
           })
         : [],
@@ -140,7 +140,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             questions: ipReportScope.questions,
-            sustainmentRecord: ipReportScope.sustainmentRecord,
+            controlRecord: ipReportScope.controlRecord,
           })
         : [],
     [activeIP, ipReportScope]

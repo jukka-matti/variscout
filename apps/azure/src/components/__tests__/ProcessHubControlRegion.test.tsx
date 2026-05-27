@@ -1,12 +1,12 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import ProcessHubSustainmentRegion from '../ProcessHubSustainmentRegion';
+import ProcessHubControlRegion from '../ProcessHubControlRegion';
 import type {
   ProcessHubCadenceSummary,
   ProcessHubAnalyze,
   ProcessHubRollup,
-  SustainmentRecord,
+  ControlRecord,
 } from '@variscout/core';
 
 const HUB = {
@@ -71,18 +71,18 @@ function makeEmptyRollup(
     overdueActionCount: 0,
     latestActivity: null,
     evidenceSnapshots: [],
-    sustainmentRecords: [],
+    controlRecords: [],
     controlHandoffs: [],
   } as ProcessHubRollup<ProcessHubAnalyze>;
 }
 
 function makeRecord(
   investigationId: string,
-  overrides: Partial<SustainmentRecord> = {}
-): SustainmentRecord {
+  overrides: Partial<ControlRecord> = {}
+): ControlRecord {
   return {
     id: `rec-${investigationId}`,
-    title: 'Sustainment cadence',
+    title: 'Control cadence',
     investigationId,
     hubId: 'hub-1',
     status: 'pending',
@@ -99,7 +99,7 @@ function makeRecord(
 
 const noOp = vi.fn();
 
-describe('ProcessHubSustainmentRegion', () => {
+describe('ProcessHubControlRegion', () => {
   it('renders the empty-state line when there are no eligible investigations', () => {
     const cadence = makeEmptyCadence();
     const rollup = makeEmptyRollup([
@@ -111,7 +111,7 @@ describe('ProcessHubSustainmentRegion', () => {
     ]);
 
     render(
-      <ProcessHubSustainmentRegion
+      <ProcessHubControlRegion
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={noOp}
@@ -139,7 +139,7 @@ describe('ProcessHubSustainmentRegion', () => {
     ]);
 
     render(
-      <ProcessHubSustainmentRegion
+      <ProcessHubControlRegion
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={noOp}
@@ -175,7 +175,7 @@ describe('ProcessHubSustainmentRegion', () => {
 
     const cadence = makeEmptyCadence();
     const rollup = makeEmptyRollup([inv]);
-    rollup.sustainmentRecords = [
+    rollup.controlRecords = [
       makeRecord('inv-3', {
         id: 'rec-abc',
         nextReviewDue: '2026-04-20T00:00:00.000Z',
@@ -201,7 +201,7 @@ describe('ProcessHubSustainmentRegion', () => {
     ];
 
     render(
-      <ProcessHubSustainmentRegion
+      <ProcessHubControlRegion
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={noOp}
@@ -243,7 +243,7 @@ describe('ProcessHubSustainmentRegion', () => {
 
     const cadence = makeEmptyCadence();
     const rollup = makeEmptyRollup([inv]);
-    rollup.sustainmentRecords = [
+    rollup.controlRecords = [
       makeRecord('inv-recent', {
         id: 'rec-recent',
         nextReviewDue: oneMonthFromNow,
@@ -253,7 +253,7 @@ describe('ProcessHubSustainmentRegion', () => {
     ];
 
     render(
-      <ProcessHubSustainmentRegion
+      <ProcessHubControlRegion
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={noOp}
@@ -282,7 +282,7 @@ describe('ProcessHubSustainmentRegion', () => {
 
     const cadence = makeEmptyCadence();
     const rollup = makeEmptyRollup([inv]);
-    rollup.sustainmentRecords = [
+    rollup.controlRecords = [
       makeRecord('inv-5', {
         id: 'rec-xyz',
         cadence: 'quarterly',
@@ -308,7 +308,7 @@ describe('ProcessHubSustainmentRegion', () => {
     ];
 
     render(
-      <ProcessHubSustainmentRegion
+      <ProcessHubControlRegion
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={noOp}

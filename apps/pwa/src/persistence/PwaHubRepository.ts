@@ -36,8 +36,8 @@ import type {
   HypothesisReadAPI,
   CanvasStateReadAPI,
   ActionItemReadAPI,
-  SustainmentRecordReadAPI,
-  SustainmentReviewReadAPI,
+  ControlRecordReadAPI,
+  ControlReviewReadAPI,
   ControlHandoffReadAPI,
   MeasurementPlanReadAPI,
 } from '@variscout/core/persistence';
@@ -72,9 +72,9 @@ export class PwaHubRepository implements HubRepository {
       db.canvasState.get(hubMeta.id),
       db.improvementProjects.where('hubId').equals(hubMeta.id).toArray(),
     ]);
-    const [sustainmentRecords, sustainmentReviews, controlHandoffs] = await Promise.all([
-      this.sustainmentRecords.listByHub(hubMeta.id),
-      this.sustainmentReviews.listByHub(hubMeta.id),
+    const [controlRecords, controlReviews, controlHandoffs] = await Promise.all([
+      this.controlRecords.listByHub(hubMeta.id),
+      this.controlReviews.listByHub(hubMeta.id),
       this.controlHandoffs.listByHub(hubMeta.id),
     ]);
     const liveOutcomes = outcomes.filter(o => o.deletedAt === null);
@@ -85,8 +85,8 @@ export class PwaHubRepository implements HubRepository {
       ...(liveOutcomes.length > 0 ? { outcomes: liveOutcomes } : {}),
       ...(canonicalProcessMap ? { canonicalProcessMap } : {}),
       ...(liveProjects.length > 0 ? { improvementProjects: liveProjects } : {}),
-      ...(sustainmentRecords.length > 0 ? { sustainmentRecords } : {}),
-      ...(sustainmentReviews.length > 0 ? { sustainmentReviews } : {}),
+      ...(controlRecords.length > 0 ? { controlRecords } : {}),
+      ...(controlReviews.length > 0 ? { controlReviews } : {}),
       ...(controlHandoffs.length > 0 ? { controlHandoffs } : {}),
     } as ProcessHub;
   }
@@ -109,8 +109,8 @@ export class PwaHubRepository implements HubRepository {
           db.outcomes,
           db.canvasState,
           db.improvementProjects,
-          db.sustainmentRecords,
-          db.sustainmentReviews,
+          db.controlRecords,
+          db.controlReviews,
           db.controlHandoffs,
         ],
         async () => {
@@ -129,8 +129,8 @@ export class PwaHubRepository implements HubRepository {
           db.outcomes,
           db.canvasState,
           db.improvementProjects,
-          db.sustainmentRecords,
-          db.sustainmentReviews,
+          db.controlRecords,
+          db.controlReviews,
           db.controlHandoffs,
         ],
         async () => {
@@ -291,30 +291,30 @@ export class PwaHubRepository implements HubRepository {
     },
   };
 
-  sustainmentRecords: SustainmentRecordReadAPI = {
+  controlRecords: ControlRecordReadAPI = {
     get: async id => {
-      const row = await db.sustainmentRecords.get(id);
+      const row = await db.controlRecords.get(id);
       if (!row || row.deletedAt !== null) return undefined;
       return row;
     },
     listByHub: async hubId => {
-      const rows = await db.sustainmentRecords.where('hubId').equals(hubId).toArray();
+      const rows = await db.controlRecords.where('hubId').equals(hubId).toArray();
       return rows.filter(row => row.deletedAt === null);
     },
   };
 
-  sustainmentReviews: SustainmentReviewReadAPI = {
+  controlReviews: ControlReviewReadAPI = {
     get: async id => {
-      const row = await db.sustainmentReviews.get(id);
+      const row = await db.controlReviews.get(id);
       if (!row || row.deletedAt !== null) return undefined;
       return row;
     },
     listByHub: async hubId => {
-      const rows = await db.sustainmentReviews.where('hubId').equals(hubId).toArray();
+      const rows = await db.controlReviews.where('hubId').equals(hubId).toArray();
       return sortReviewsDescending(rows.filter(row => row.deletedAt === null));
     },
     listByRecord: async (hubId, recordId) => {
-      const rows = await db.sustainmentReviews.where('recordId').equals(recordId).toArray();
+      const rows = await db.controlReviews.where('recordId').equals(recordId).toArray();
       return sortReviewsDescending(
         rows.filter(row => row.hubId === hubId && row.deletedAt === null)
       );

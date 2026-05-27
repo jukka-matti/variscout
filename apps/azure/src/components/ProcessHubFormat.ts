@@ -5,7 +5,7 @@ import type {
   ProcessHubAnalyze,
   ProcessHubReviewItem,
   ProcessHubRollup,
-  SustainmentVerdict,
+  ControlVerdict,
   ControlHandoffSurface,
 } from '@variscout/core';
 import { formatStatistic, formatPlural } from '@variscout/core/i18n';
@@ -90,14 +90,14 @@ export const processQuestionAnswers = (
   };
 };
 
-const VERDICT_LABELS: Record<SustainmentVerdict, string> = {
+const VERDICT_LABELS: Record<ControlVerdict, string> = {
   holding: 'Holding',
   drifting: 'Drifting',
   broken: 'Broken',
   inconclusive: 'Inconclusive',
 };
 
-export const formatSustainmentVerdict = (v: SustainmentVerdict): string => VERDICT_LABELS[v];
+export const formatSustainmentVerdict = (v: ControlVerdict): string => VERDICT_LABELS[v];
 
 export const formatSustainmentDue = (nextReviewDue: string | undefined, now: Date): string => {
   if (!nextReviewDue) return 'No cadence set';
@@ -154,7 +154,7 @@ export const sustainmentBandAnswer = (
   rollup: ProcessHubRollup<ProcessHubAnalyze>,
   now: Date
 ): string | null => {
-  const records = rollup.sustainmentRecords ?? [];
+  const records = rollup.controlRecords ?? [];
   const sustainmentEligible = rollup.investigations.some(
     inv =>
       inv.metadata?.analyzeStatus === 'resolved' || inv.metadata?.analyzeStatus === 'controlled'

@@ -24,7 +24,7 @@ import type {
   EvidenceSnapshot,
   StepCapabilityStamp,
   ControlHandoff,
-  SustainmentRecord,
+  ControlRecord,
 } from '@variscout/core';
 import { createActionItem, type ActionItem } from '@variscout/core/findings';
 import { surveyInboxRules } from '@variscout/core/survey';
@@ -35,7 +35,7 @@ import { useAnalyzeFeatureStore } from '../../features/analyze/analyzeStore';
 
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
-const EMPTY_SUSTAINMENT_RECORDS: SustainmentRecord[] = [];
+const EMPTY_SUSTAINMENT_RECORDS: ControlRecord[] = [];
 const EMPTY_CONTROL_HANDOFFS: ControlHandoff[] = [];
 
 function mergeActionItems(
@@ -81,8 +81,8 @@ const FrameView: React.FC = () => {
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
   const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
-  const [sustainmentRecords, setSustainmentRecords] =
-    React.useState<SustainmentRecord[]>(EMPTY_SUSTAINMENT_RECORDS);
+  const [controlRecords, setSustainmentRecords] =
+    React.useState<ControlRecord[]>(EMPTY_SUSTAINMENT_RECORDS);
   const [controlHandoffs, setControlHandoffs] =
     React.useState<ControlHandoff[]>(EMPTY_CONTROL_HANDOFFS);
   const activeHubIdRef = React.useRef<string | null>(activeHubId);
@@ -126,20 +126,20 @@ const FrameView: React.FC = () => {
       try {
         const [items, records, handoffs] = await Promise.all([
           pwaHubRepository.actionItems.listByHub(activeHubId),
-          pwaHubRepository.sustainmentRecords.listByHub(activeHubId),
+          pwaHubRepository.controlRecords.listByHub(activeHubId),
           pwaHubRepository.controlHandoffs.listByHub(activeHubId),
         ]);
         if (!cancelled) {
           setActionItems(items);
           setSustainmentRecords(
-            records.filter((record: SustainmentRecord) => record.deletedAt === null)
+            records.filter((record: ControlRecord) => record.deletedAt === null)
           );
           setControlHandoffs(handoffs.filter(handoff => handoff.deletedAt === null));
         }
       } catch {
         // Session-only hubs may not exist in IndexedDB; keep any in-memory quick actions.
         if (!cancelled) {
-          setSustainmentRecords(activeHub?.sustainmentRecords ?? []);
+          setSustainmentRecords(activeHub?.controlRecords ?? []);
           setControlHandoffs(activeHub?.controlHandoffs ?? []);
         }
       }
@@ -148,13 +148,13 @@ const FrameView: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [activeHub?.controlHandoffs, activeHub?.sustainmentRecords, activeHubId]);
+  }, [activeHub?.controlHandoffs, activeHub?.controlRecords, activeHubId]);
 
   const contextLinkGroups: readonly ContextLinkGroup[] = React.useMemo(() => {
     const improvementProjects = (
       activeHubId ? (projectsByHub[activeHubId] ?? activeHub?.improvementProjects ?? []) : []
     ).filter(project => project.deletedAt === null);
-    const liveSustainmentRecords = sustainmentRecords.filter(record => record.deletedAt === null);
+    const liveSustainmentRecords = controlRecords.filter(record => record.deletedAt === null);
 
     return [
       {
@@ -175,7 +175,7 @@ const FrameView: React.FC = () => {
       },
       { surfaceType: 'quick-actions', items: [] },
       {
-        // Wedge V1 (ADR-082) folds Handoff into Sustainment-closure; control handoffs surface here too.
+        // Wedge V1 (ADR-082) folds Handoff into Control-closure; control handoffs surface here too.
         surfaceType: 'sustainment',
         items: [
           ...liveSustainmentRecords.map(record => ({
@@ -197,7 +197,7 @@ const FrameView: React.FC = () => {
     controlHandoffs,
     hypotheses,
     projectsByHub,
-    sustainmentRecords,
+    controlRecords,
   ]);
 
   const inboxPrompts = React.useMemo(() => {
@@ -208,18 +208,18 @@ const FrameView: React.FC = () => {
     return surveyInboxRules({
       hub: activeHub ?? undefined,
       improvementProjects,
-      sustainmentRecords,
-      sustainmentReviews: activeHub?.sustainmentReviews ?? [],
+      controlRecords,
+      controlReviews: activeHub?.controlReviews ?? [],
       controlHandoffs,
       now: Date.now(),
     });
   }, [
     activeHub?.improvementProjects,
-    activeHub?.sustainmentReviews,
+    activeHub?.controlReviews,
     activeHubId,
     controlHandoffs,
     projectsByHub,
-    sustainmentRecords,
+    controlRecords,
   ]);
 
   const handleSeeData = React.useCallback(() => {
@@ -301,7 +301,7 @@ const FrameView: React.FC = () => {
   const handleInboxNavigate = React.useCallback((prompt: InboxDigestPrompt) => {
     const surface = prompt.action?.opensSurface;
     if (surface === 'sustainment') {
-      usePanelsStore.getState().showSustainment(prompt.action?.opensId);
+      usePanelsStore.getState().showControl(prompt.action?.opensId);
       return;
     }
     if (surface === 'improvement-projects') {
@@ -322,18 +322,18 @@ const FrameView: React.FC = () => {
         usePanelsStore.getState().showCharter();
         return;
       }
-      if (sustainmentRecords.some(record => record.id === item.id)) {
-        usePanelsStore.getState().showSustainment(item.id);
+      if (controlRecords.some(record => record.id === item.id)) {
+        usePanelsStore.getState().showControl(item.id);
         return;
       }
       if (controlHandoffs.some(handoff => handoff.id === item.id)) {
-        // Wedge V1 (ADR-082) folds Handoff into Sustainment-closure.
-        usePanelsStore.getState().showSustainment(item.id);
+        // Wedge V1 (ADR-082) folds Handoff into Control-closure.
+        usePanelsStore.getState().showControl(item.id);
         return;
       }
       usePanelsStore.getState().showAnalyze();
     },
-    [activeHubId, controlHandoffs, sustainmentRecords]
+    [activeHubId, controlHandoffs, controlRecords]
   );
 
   return (

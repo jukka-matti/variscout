@@ -1,8 +1,8 @@
 import React from 'react';
-import type { SustainmentRecord } from '@variscout/core';
+import type { ControlRecord } from '@variscout/core';
 
 /** Closure checklist inputs derived from a ControlHandoff or caller state. */
-export interface SustainmentClosureInputs {
+export interface ControlClosureInputs {
   controlPlanDocumented: boolean;
   trainingDelivered: boolean;
   cadenceAssigned: boolean;
@@ -15,11 +15,11 @@ export interface SustainmentClosureInputs {
 
 interface ClosureChecklistItem {
   key: keyof Pick<
-    SustainmentClosureInputs,
+    ControlClosureInputs,
     'controlPlanDocumented' | 'trainingDelivered' | 'cadenceAssigned' | 'processOwnerAcknowledged'
   >;
   label: string;
-  description: (i: SustainmentClosureInputs) => string;
+  description: (i: ControlClosureInputs) => string;
 }
 
 const CLOSURE_ITEMS: ClosureChecklistItem[] = [
@@ -46,14 +46,14 @@ const CLOSURE_ITEMS: ClosureChecklistItem[] = [
 ];
 
 interface SustainmentOverviewProps {
-  record: SustainmentRecord;
+  record: ControlRecord;
   onStartHandoff: () => void;
   onOpenProcess: () => void;
   onOpenAnalyze: () => void;
   /** Optional: per-cause in-control rows from caller (Plan 4 wires real data). */
   perCauseRows?: Array<{ factor: string; inControl: boolean; observation?: string }>;
   /** Optional closure checklist inputs (folded in from former Handoff stage). */
-  closureInputs?: SustainmentClosureInputs;
+  closureInputs?: ControlClosureInputs;
   /** Called when user clicks "Nudge" on pending process-owner acknowledgment. */
   onNudgeOwner?: () => void;
   /** Called when user clicks "Report · final summary". */
@@ -64,7 +64,7 @@ interface SustainmentOverviewProps {
 
 const SUSTAINMENT_THRESHOLD = 4;
 
-const SustainmentOverview: React.FC<SustainmentOverviewProps> = ({
+const ControlOverview: React.FC<SustainmentOverviewProps> = ({
   record,
   onStartHandoff,
   onOpenProcess,
@@ -132,9 +132,8 @@ const SustainmentOverview: React.FC<SustainmentOverviewProps> = ({
         <div className="space-y-3">
           <div className="rounded-r-md border-l-4 border-[var(--vs-accent)] bg-slate-50 px-4 py-3">
             <div className="text-xs font-semibold uppercase tracking-wide text-[var(--vs-accent)]">
-              Sustainment closure ·{' '}
-              {CLOSURE_ITEMS.filter(it => closureInputs[it.key] === true).length} of{' '}
-              {CLOSURE_ITEMS.length} items complete
+              Control closure · {CLOSURE_ITEMS.filter(it => closureInputs[it.key] === true).length}{' '}
+              of {CLOSURE_ITEMS.length} items complete
             </div>
           </div>
 
@@ -236,4 +235,4 @@ const SustainmentOverview: React.FC<SustainmentOverviewProps> = ({
   );
 };
 
-export default SustainmentOverview;
+export default ControlOverview;

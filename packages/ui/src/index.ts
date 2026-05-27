@@ -213,7 +213,7 @@ export { FilterContextBar, type FilterContextBarProps } from './components/Filte
 
 export { SurveyNotebookBase, type SurveyNotebookBaseProps } from './components/SurveyNotebookBase';
 
-export { SustainmentForm, type SustainmentFormProps } from './components/Sustainment';
+export { ControlForm, type ControlFormProps } from './components/Control';
 export { InboxDigest, type InboxDigestProps, type InboxDigestPrompt } from './components/Inbox';
 
 export {
@@ -657,7 +657,7 @@ export {
 export * from './components/ActiveIP';
 export * from './components/ImprovementProject';
 export * from './components/projects';
-export * from './components/Sustainment';
+export * from './components/Control';
 export * from './components/Inbox';
 
 // Yamazumi Components

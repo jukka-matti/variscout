@@ -162,7 +162,7 @@ export async function applyAction(action: HubAction): Promise<void> {
       // pre-F3.6. Future Azure normalization will revisit.
       await db.transaction(
         'rw',
-        [db.evidenceSnapshots, db.sustainmentRecords, db.sustainmentReviews],
+        [db.evidenceSnapshots, db.controlRecords, db.controlReviews],
         async () => {
           if (action.replacedSnapshotId) {
             await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: Date.now() });
@@ -354,14 +354,14 @@ export async function applyAction(action: HubAction): Promise<void> {
           `SUSTAINMENT_RECORD_CREATE hubId mismatch: action hub '${action.hubId}' does not match record hub '${action.record.hubId}'`
         );
       }
-      await db.sustainmentRecords.add(action.record);
+      await db.controlRecords.add(action.record);
       return;
     }
 
     case 'SUSTAINMENT_RECORD_UPDATE': {
-      const existing = await db.sustainmentRecords.get(action.recordId);
+      const existing = await db.controlRecords.get(action.recordId);
       if (!existing) return;
-      await db.sustainmentRecords.update(action.recordId, {
+      await db.controlRecords.update(action.recordId, {
         ...action.patch,
         updatedAt: Date.now(),
       });
@@ -369,7 +369,7 @@ export async function applyAction(action: HubAction): Promise<void> {
     }
 
     case 'SUSTAINMENT_RECORD_ARCHIVE': {
-      await db.sustainmentRecords.update(action.recordId, {
+      await db.controlRecords.update(action.recordId, {
         deletedAt: Date.now(),
         updatedAt: Date.now(),
       });
@@ -377,7 +377,7 @@ export async function applyAction(action: HubAction): Promise<void> {
     }
 
     case 'SUSTAINMENT_CONFIRM': {
-      await db.sustainmentRecords.update(action.recordId, {
+      await db.controlRecords.update(action.recordId, {
         status: 'confirmed-sustained',
         updatedAt: Date.now(),
       });
@@ -385,7 +385,7 @@ export async function applyAction(action: HubAction): Promise<void> {
     }
 
     case 'SUSTAINMENT_MARK_DRIFTED': {
-      await db.sustainmentRecords.update(action.recordId, {
+      await db.controlRecords.update(action.recordId, {
         status: 'drifted',
         consecutiveOnTargetTicks: 0,
         updatedAt: Date.now(),
@@ -394,10 +394,10 @@ export async function applyAction(action: HubAction): Promise<void> {
     }
 
     case 'SUSTAINMENT_TICK_EVALUATED': {
-      await db.transaction('rw', [db.sustainmentRecords, db.sustainmentReviews], async () => {
-        const existing = await db.sustainmentRecords.get(action.record.id);
-        await db.sustainmentRecords.put({ ...existing, ...action.record });
-        await db.sustainmentReviews.put(action.review);
+      await db.transaction('rw', [db.controlRecords, db.controlReviews], async () => {
+        const existing = await db.controlRecords.get(action.record.id);
+        await db.controlRecords.put({ ...existing, ...action.record });
+        await db.controlReviews.put(action.review);
       });
       return;
     }
@@ -611,8 +611,8 @@ async function evaluateSustainmentRecordsForSnapshot(
   hubId: string,
   snapshot: EvidenceSnapshot
 ): Promise<void> {
-  await db.transaction('rw', [db.sustainmentRecords, db.sustainmentReviews], async () => {
-    const liveRecords = await db.sustainmentRecords
+  await db.transaction('rw', [db.controlRecords, db.controlReviews], async () => {
+    const liveRecords = await db.controlRecords
       .where('hubId')
       .equals(hubId)
       .filter(record => record.deletedAt === null && record.lastEvaluatedSnapshotId !== snapshot.id)
@@ -622,7 +622,7 @@ async function evaluateSustainmentRecordsForSnapshot(
 
     const now = Date.now();
     const evaluations = liveRecords.map(record => applySustainmentTick(record, snapshot, now));
-    await db.sustainmentRecords.bulkPut(evaluations.map(evaluation => evaluation.record));
-    await db.sustainmentReviews.bulkPut(evaluations.map(evaluation => evaluation.review));
+    await db.controlRecords.bulkPut(evaluations.map(evaluation => evaluation.record));
+    await db.controlReviews.bulkPut(evaluations.map(evaluation => evaluation.review));
   });
 }

@@ -105,7 +105,7 @@ import { buildSubPageId } from '../services/deepLinks';
 import { azureHubRepository } from '../persistence';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import { useToast } from '../context/ToastContext';
-import { SustainmentEntryRow } from './Editor.sustainment';
+import { ControlEntryRow } from './Editor.control';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 import { HubCreationFlow } from '../features/hubCreation';
@@ -113,7 +113,7 @@ import { HubCreationFlow } from '../features/hubCreation';
 import { AnalyzeWorkspace } from '../components/editor/AnalyzeWorkspace';
 import FrameView from '../components/editor/FrameView';
 import ImprovementProjectPanel from '../components/charter/ImprovementProjectPanel';
-import SustainmentPanel from '../components/sustainment/SustainmentPanel';
+import ControlPanel from '../components/control/ControlPanel';
 import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
@@ -263,7 +263,7 @@ const AnalyzeMetadataPanel: React.FC<AnalyzeMetadataPanelProps> = ({
         />
       </label>
       {(context.analyzeStatus === 'resolved' || context.analyzeStatus === 'controlled') && (
-        <SustainmentEntryRow
+        <ControlEntryRow
           investigationId={projectId}
           hubId={context.processHubId ?? DEFAULT_PROCESS_HUB_ID}
         />
@@ -500,7 +500,7 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Panel visibility and chart/table sync (Zustand store)
   const activeView = usePanelsStore(s => s.activeView);
-  const sustainmentTargetId = usePanelsStore(s => s.sustainmentTargetId);
+  const controlTargetId = usePanelsStore(s => s.controlTargetId);
   const selectedProjectId = usePanelsStore(s => s.selectedProjectId);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
@@ -682,8 +682,8 @@ export const Editor: React.FC<EditorProps> = ({
     upsertProject({ ...activeIP, metadata: { ...activeIP.metadata, actions: nextActions } });
   };
 
-  // Sustainment + Handoff inputs for ProjectsTabView → IPDetailPage
-  const _azureLiveSustainmentRecords = (activeHub?.sustainmentRecords ?? []).filter(
+  // Control + Handoff inputs for ProjectsTabView → IPDetailPage
+  const _azureLiveSustainmentRecords = (activeHub?.controlRecords ?? []).filter(
     r => r.deletedAt === null
   );
   const _azureLiveControlHandoffs = (activeHub?.controlHandoffs ?? []).filter(
@@ -1782,9 +1782,9 @@ export const Editor: React.FC<EditorProps> = ({
         className="flex-1 flex flex-col min-h-0 bg-surface rounded-xl border border-edge overflow-hidden"
       >
         {activeView === 'sustainment' ? (
-          <SustainmentPanel
+          <ControlPanel
             activeHub={activeHub}
-            targetId={sustainmentTargetId ?? undefined}
+            targetId={controlTargetId ?? undefined}
             onBack={() => usePanelsStore.getState().showFrame()}
           />
         ) : rawData.length === 0 ? (
@@ -1926,13 +1926,13 @@ export const Editor: React.FC<EditorProps> = ({
                   // to this cause's hypothesis automatically.
                   usePanelsStore.getState().showImprovement();
                 }}
-                sustainmentRecord={projectsSustainmentRecord}
+                controlRecord={projectsSustainmentRecord}
                 controlHandoff={projectsControlHandoff}
                 closureInputs={projectsClosureInputs}
-                onOpenLegacySustainment={() =>
+                onOpenLegacyControl={() =>
                   usePanelsStore
                     .getState()
-                    .showSustainment(projectsSustainmentRecord?.investigationId ?? undefined)
+                    .showControl(projectsSustainmentRecord?.investigationId ?? undefined)
                 }
                 onNudgeProcessOwner={() => {
                   // Plan 3 will emit EngagementEvent webhook here.

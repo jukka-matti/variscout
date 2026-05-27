@@ -20,7 +20,7 @@ const ICON: Record<StageState, string> = {
 const LABEL: Record<StageName, string> = {
   charter: 'Charter',
   approach: 'Approach',
-  sustainment: 'Sustainment',
+  sustainment: 'Control',
 };
 
 const STAGE_ORDER: StageName[] = ['charter', 'approach', 'sustainment'];

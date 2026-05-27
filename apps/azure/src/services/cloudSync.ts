@@ -9,8 +9,8 @@ import type {
   EvidenceSource,
   ProcessHub,
   ProjectMetadata,
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
 } from '@variscout/core';
 import { AuthError } from '../auth/easyAuth';
 import { db } from '../db/schema';
@@ -451,18 +451,18 @@ export async function ensureFolderExists(_token: string, _apiBase: unknown): Pro
   // No-op: Blob Storage creates paths implicitly on PUT
 }
 
-// ── Sustainment cloud sync ────────────────────────────────────────────────
+// ── Control cloud sync ────────────────────────────────────────────────
 
 export async function listSustainmentRecordsFromCloud(
   _token: string,
   hubId: string
-): Promise<SustainmentRecord[]> {
+): Promise<ControlRecord[]> {
   return wrapBlobCall(() => listBlobSustainmentRecords(hubId));
 }
 
 export async function saveSustainmentRecordToCloud(
   _token: string,
-  record: SustainmentRecord
+  record: ControlRecord
 ): Promise<void> {
   const existing = await listSustainmentRecordsFromCloud(_token, record.hubId);
   const next = existing.some(item => item.id === record.id)
@@ -476,7 +476,7 @@ export async function saveSustainmentRecordToCloud(
 
 export async function saveSustainmentReviewToCloud(
   _token: string,
-  review: SustainmentReview
+  review: ControlReview
 ): Promise<void> {
   await wrapBlobCall(() => saveBlobSustainmentReview(review));
 }

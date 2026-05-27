@@ -31,7 +31,7 @@ interface PanelsState {
   showExcludedOnly: boolean;
   showResetConfirm: boolean;
   openSpecEditorRequested: boolean;
-  sustainmentTargetId: string | null;
+  controlTargetId: string | null;
   selectedProjectId: string | null;
 }
 
@@ -47,7 +47,7 @@ interface PanelsActions {
   showProjects: (projectId?: string) => void;
   showReport: () => void;
   showCharter: () => void;
-  showSustainment: (targetId?: string) => void;
+  showControl: (targetId?: string) => void;
 
   // Simple toggles
   setSettingsOpen: (open: boolean) => void;
@@ -92,7 +92,7 @@ export const initialPanelsState: PanelsState = {
   showExcludedOnly: false,
   showResetConfirm: false,
   openSpecEditorRequested: false,
-  sustainmentTargetId: null,
+  controlTargetId: null,
   selectedProjectId: null,
 };
 
@@ -110,11 +110,11 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   showProjects: projectId => set({ activeView: 'projects', selectedProjectId: projectId ?? null }),
   showReport: () => set({ activeView: 'report' }),
   showCharter: () => set({ activeView: 'charter', isFindingsOpen: false }),
-  showSustainment: targetId =>
+  showControl: targetId =>
     set({
       activeView: 'sustainment',
       isFindingsOpen: false,
-      sustainmentTargetId: targetId ?? null,
+      controlTargetId: targetId ?? null,
     }),
 
   // Simple toggles

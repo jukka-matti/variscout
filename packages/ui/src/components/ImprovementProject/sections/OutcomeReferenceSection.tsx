@@ -1,10 +1,10 @@
 import React from 'react';
-import type { ControlHandoff, SustainmentRecord } from '@variscout/core';
+import type { ControlHandoff, ControlRecord } from '@variscout/core';
 
 export interface OutcomeReferenceSectionProps {
-  sustainmentRecord?: SustainmentRecord & { title?: string };
+  controlRecord?: ControlRecord & { title?: string };
   controlHandoff?: ControlHandoff;
-  onNavigate?: (target: { kind: 'sustainmentRecord' | 'controlHandoff'; id: string }) => void;
+  onNavigate?: (target: { kind: 'controlRecord' | 'controlHandoff'; id: string }) => void;
 }
 
 const panelClassName = 'rounded-md border border-edge bg-surface-secondary p-4';
@@ -50,7 +50,7 @@ function renderCard(
 }
 
 export const OutcomeReferenceSection: React.FC<OutcomeReferenceSectionProps> = ({
-  sustainmentRecord,
+  controlRecord,
   controlHandoff,
   onNavigate,
 }) => {
@@ -58,8 +58,8 @@ export const OutcomeReferenceSection: React.FC<OutcomeReferenceSectionProps> = (
   const sustainmentHeadingId = `${headingId}-sustainment`;
   const handoffHeadingId = `${headingId}-handoff`;
 
-  const sustainmentTitle = sustainmentRecord?.title?.trim() || 'Linked sustainment record';
-  const nextReviewDate = formatDate(sustainmentRecord?.nextReviewDue);
+  const sustainmentTitle = controlRecord?.title?.trim() || 'Linked sustainment record';
+  const nextReviewDate = formatDate(controlRecord?.nextReviewDue);
   const handoffDate = formatDate(controlHandoff?.handoffDate);
 
   return (
@@ -67,40 +67,40 @@ export const OutcomeReferenceSection: React.FC<OutcomeReferenceSectionProps> = (
       <section className={panelClassName} aria-labelledby={sustainmentHeadingId}>
         <div className="mb-3">
           <h3 id={sustainmentHeadingId} className="text-sm font-semibold text-content">
-            Sustainment
+            Control
           </h3>
         </div>
 
-        {sustainmentRecord ? (
+        {controlRecord ? (
           renderCard(
             <>
               <span className="block font-medium text-content">{sustainmentTitle}</span>
               <span className="mt-2 flex flex-wrap gap-2">
                 <span className={metadataClassName}>
-                  {sustainmentRecord.deletedAt ? 'archived' : 'active'}
+                  {controlRecord.deletedAt ? 'archived' : 'active'}
                 </span>
-                {sustainmentRecord.latestVerdict && (
+                {controlRecord.latestVerdict && (
                   <span className={metadataClassName}>
-                    {formatLabel(sustainmentRecord.latestVerdict)}
+                    {formatLabel(controlRecord.latestVerdict)}
                   </span>
                 )}
-                <span className={metadataClassName}>{formatLabel(sustainmentRecord.cadence)}</span>
+                <span className={metadataClassName}>{formatLabel(controlRecord.cadence)}</span>
               </span>
               <span className="mt-2 flex flex-wrap gap-2 text-xs text-content/70">
                 {nextReviewDate && <span>Next review {nextReviewDate}</span>}
-                {sustainmentRecord.owner?.displayName && (
-                  <span>Owner {sustainmentRecord.owner.displayName}</span>
+                {controlRecord.owner?.displayName && (
+                  <span>Owner {controlRecord.owner.displayName}</span>
                 )}
               </span>
             </>,
             sustainmentTitle,
             onNavigate
-              ? () => onNavigate({ kind: 'sustainmentRecord', id: sustainmentRecord.id })
+              ? () => onNavigate({ kind: 'controlRecord', id: controlRecord.id })
               : undefined
           )
         ) : (
           <p className={emptyClassName}>
-            Sustainment: not yet started - set up after Improvement closes.
+            Control: not yet started - set up after Improvement closes.
           </p>
         )}
       </section>

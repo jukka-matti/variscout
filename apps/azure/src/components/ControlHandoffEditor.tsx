@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ControlHandoff, ControlHandoffSurface, SustainmentRecord } from '@variscout/core';
+import type { ControlHandoff, ControlHandoffSurface, ControlRecord } from '@variscout/core';
 import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
@@ -9,7 +9,7 @@ export interface ControlHandoffEditorProps {
   currentUser: EasyAuthUser;
   existingHandoff?: ControlHandoff;
   recordedByDisplayName: string;
-  relatedRecord?: SustainmentRecord;
+  relatedRecord?: ControlRecord;
   onSave: (handoff: ControlHandoff) => void;
   onCancel: () => void;
 }

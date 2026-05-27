@@ -20,8 +20,8 @@ import type {
   Question,
   SpecLimits,
   SustainmentMetadataProjection,
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
   SurveyEvaluation,
 } from '@variscout/core';
 import { db } from '../db/schema';
@@ -250,26 +250,24 @@ export async function listEvidenceSnapshotsFromIndexedDB(
     .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
 }
 
-// ── Sustainment records, reviews, and control handoffs ─────────────────
+// ── Control records, reviews, and control handoffs ─────────────────
 
-export async function saveSustainmentRecordToIndexedDB(record: SustainmentRecord): Promise<void> {
-  await db.sustainmentRecords.put(record);
+export async function saveControlRecordToIndexedDB(record: ControlRecord): Promise<void> {
+  await db.controlRecords.put(record);
 }
 
-export async function listSustainmentRecordsFromIndexedDB(
-  hubId: string
-): Promise<SustainmentRecord[]> {
-  return db.sustainmentRecords.where('hubId').equals(hubId).toArray();
+export async function listSustainmentRecordsFromIndexedDB(hubId: string): Promise<ControlRecord[]> {
+  return db.controlRecords.where('hubId').equals(hubId).toArray();
 }
 
-export async function saveSustainmentReviewToIndexedDB(review: SustainmentReview): Promise<void> {
-  await db.sustainmentReviews.put(review);
+export async function saveControlReviewToIndexedDB(review: ControlReview): Promise<void> {
+  await db.controlReviews.put(review);
 }
 
 export async function listSustainmentReviewsFromIndexedDB(
   recordId: string
-): Promise<SustainmentReview[]> {
-  const rows = await db.sustainmentReviews.where('recordId').equals(recordId).toArray();
+): Promise<ControlReview[]> {
+  const rows = await db.controlReviews.where('recordId').equals(recordId).toArray();
   return rows.sort((a, b) => b.reviewedAt - a.reviewedAt);
 }
 
@@ -281,10 +279,10 @@ export async function listControlHandoffsFromIndexedDB(hubId: string): Promise<C
   return db.controlHandoffs.where('hubId').equals(hubId).toArray();
 }
 
-// ── Sustainment projection helpers ─────────────────────────────────────
+// ── Control projection helpers ─────────────────────────────────────
 
 export function buildSustainmentProjection(
-  record: SustainmentRecord,
+  record: ControlRecord,
   handoff?: ControlHandoff
 ): SustainmentMetadataProjection {
   return {
@@ -309,7 +307,7 @@ export async function updateProjectSustainmentProjectionInIndexedDB(
 }
 
 export async function recomputeSustainmentProjectionForRecord(
-  record: SustainmentRecord
+  record: ControlRecord
 ): Promise<void> {
   const handoff = record.controlHandoffId
     ? await db.controlHandoffs.get(record.controlHandoffId).catch(() => undefined)
@@ -322,7 +320,7 @@ export async function tombstoneSustainmentRecordsForInvestigation(
   investigationId: string,
   deletedAt: number
 ): Promise<number> {
-  const records = await db.sustainmentRecords
+  const records = await db.controlRecords
     .where('investigationId')
     .equals(investigationId)
     .toArray();
@@ -330,7 +328,7 @@ export async function tombstoneSustainmentRecordsForInvestigation(
   let updated = 0;
   for (const record of records) {
     if (record.deletedAt !== null) continue; // already archived; skip
-    await db.sustainmentRecords.update(record.id, {
+    await db.controlRecords.update(record.id, {
       deletedAt,
       updatedAt: deletedAt,
     });

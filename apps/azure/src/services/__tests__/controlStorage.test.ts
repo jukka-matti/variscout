@@ -2,9 +2,9 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../../db/schema';
 import {
-  saveSustainmentRecordToIndexedDB,
+  saveControlRecordToIndexedDB,
   listSustainmentRecordsFromIndexedDB,
-  saveSustainmentReviewToIndexedDB,
+  saveControlReviewToIndexedDB,
   listSustainmentReviewsFromIndexedDB,
   saveControlHandoffToIndexedDB,
   listControlHandoffsFromIndexedDB,
@@ -13,15 +13,15 @@ import {
   tombstoneSustainmentRecordsForInvestigation,
 } from '../localDb';
 import type {
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
   ControlHandoff,
   ProjectMetadata,
 } from '@variscout/core';
 
-const makeRecord = (overrides: Partial<SustainmentRecord> = {}): SustainmentRecord => ({
+const makeRecord = (overrides: Partial<ControlRecord> = {}): ControlRecord => ({
   id: 'rec-1',
-  title: 'Sustainment cadence',
+  title: 'Control cadence',
   investigationId: 'inv-1',
   hubId: 'hub-1',
   status: 'pending',
@@ -46,15 +46,15 @@ describe('sustainment storage round-trip', () => {
     await db.delete();
   });
 
-  it('round-trips a SustainmentRecord', async () => {
-    await saveSustainmentRecordToIndexedDB(makeRecord());
+  it('round-trips a ControlRecord', async () => {
+    await saveControlRecordToIndexedDB(makeRecord());
     const result = await listSustainmentRecordsFromIndexedDB('hub-1');
     expect(result).toHaveLength(1);
     expect(result[0].cadence).toBe('monthly');
   });
 
   it('appends SustainmentReviews and reads them ordered by reviewedAt desc', async () => {
-    const r1: SustainmentReview = {
+    const r1: ControlReview = {
       id: 'r-1',
       recordId: 'rec-1',
       investigationId: 'inv-1',
@@ -65,15 +65,15 @@ describe('sustainment storage round-trip', () => {
       reviewer: { userId: 'u-1', displayName: 'Alice' },
       verdict: 'holding',
     };
-    const r2: SustainmentReview = {
+    const r2: ControlReview = {
       ...r1,
       id: 'r-2',
       reviewedAt: 1745625600000, // 2026-04-26T00:00:00.000Z
       createdAt: 1745625600000,
     };
 
-    await saveSustainmentReviewToIndexedDB(r1);
-    await saveSustainmentReviewToIndexedDB(r2);
+    await saveControlReviewToIndexedDB(r1);
+    await saveControlReviewToIndexedDB(r2);
 
     const result = await listSustainmentReviewsFromIndexedDB('rec-1');
     expect(result.map(r => r.id)).toEqual(['r-2', 'r-1']);
@@ -134,7 +134,7 @@ describe('sustainment projection recompute', () => {
   it('updates project meta.sustainment when a record is recomputed', async () => {
     await seedProject();
 
-    const record: SustainmentRecord = makeRecord();
+    const record: ControlRecord = makeRecord();
     await recomputeSustainmentProjectionForRecord(record);
 
     const updated = await db.projects.get('inv-1');
@@ -144,7 +144,7 @@ describe('sustainment projection recompute', () => {
   });
 
   it('no-ops when no project matches the investigationId', async () => {
-    const record: SustainmentRecord = makeRecord({ investigationId: 'nonexistent' });
+    const record: ControlRecord = makeRecord({ investigationId: 'nonexistent' });
     await expect(recomputeSustainmentProjectionForRecord(record)).resolves.toBeUndefined();
   });
 
@@ -166,7 +166,7 @@ describe('sustainment projection recompute', () => {
     };
     await saveControlHandoffToIndexedDB(handoff);
 
-    const record: SustainmentRecord = makeRecord({ controlHandoffId: 'h-1' });
+    const record: ControlRecord = makeRecord({ controlHandoffId: 'h-1' });
     const projection = buildSustainmentProjection(record, handoff);
     expect(projection.handoffSurface).toBe('mes-recipe');
   });
@@ -191,7 +191,7 @@ describe('sustainment projection recompute', () => {
     };
     await saveControlHandoffToIndexedDB(handoff);
 
-    const record: SustainmentRecord = makeRecord({ controlHandoffId: 'h-2' });
+    const record: ControlRecord = makeRecord({ controlHandoffId: 'h-2' });
     await recomputeSustainmentProjectionForRecord(record);
 
     const updated = await db.projects.get('inv-1');
@@ -209,8 +209,8 @@ describe('tombstone on investigation reopen', () => {
   });
 
   it('sets deletedAt on all matching records', async () => {
-    await saveSustainmentRecordToIndexedDB(makeRecord({ id: 'rec-1' }));
-    await saveSustainmentRecordToIndexedDB(makeRecord({ id: 'rec-2' }));
+    await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-1' }));
+    await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-2' }));
     const deletedAt = 1745712000000; // 2026-04-27T00:00:00.000Z
     const updated = await tombstoneSustainmentRecordsForInvestigation('inv-1', deletedAt);
     expect(updated).toBe(2);
@@ -222,7 +222,7 @@ describe('tombstone on investigation reopen', () => {
 
   it('skips records that are already soft-deleted', async () => {
     const earlyDeletedAt = 1745107200000; // 2026-04-20T00:00:00.000Z
-    await saveSustainmentRecordToIndexedDB(makeRecord({ id: 'rec-1', deletedAt: earlyDeletedAt }));
+    await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-1', deletedAt: earlyDeletedAt }));
     const updated = await tombstoneSustainmentRecordsForInvestigation(
       'inv-1',
       1745712000000 // 2026-04-27T00:00:00.000Z
@@ -242,7 +242,7 @@ describe('tombstone on investigation reopen', () => {
 
   it('clears project meta.sustainment when records are soft-deleted', async () => {
     await seedProject();
-    await saveSustainmentRecordToIndexedDB(makeRecord({ id: 'rec-1' }));
+    await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-1' }));
     await recomputeSustainmentProjectionForRecord(makeRecord({ id: 'rec-1' }));
 
     // Sanity: projection is set before soft-delete
@@ -260,7 +260,7 @@ describe('tombstone on investigation reopen', () => {
   it('leaves project meta untouched when no records were soft-deleted (idempotent)', async () => {
     await seedProject();
     // Pre-existing soft-deleted record — should not trigger a clear.
-    await saveSustainmentRecordToIndexedDB(
+    await saveControlRecordToIndexedDB(
       makeRecord({ id: 'rec-1', deletedAt: 1745107200000 }) // 2026-04-20T00:00:00.000Z
     );
     await db.projects.update('inv-1', {

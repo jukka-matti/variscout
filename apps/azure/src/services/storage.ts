@@ -9,8 +9,8 @@ import type {
   EvidenceSnapshot,
   EvidenceSource,
   ProcessHub,
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
   ControlHandoff,
 } from '@variscout/core';
 import {
@@ -81,9 +81,9 @@ import {
   saveEvidenceSourceToIndexedDB,
   saveEvidenceSnapshotToIndexedDB,
   listSustainmentRecordsFromIndexedDB,
-  saveSustainmentRecordToIndexedDB,
+  saveControlRecordToIndexedDB,
   listSustainmentReviewsFromIndexedDB,
-  saveSustainmentReviewToIndexedDB,
+  saveControlReviewToIndexedDB,
   listControlHandoffsFromIndexedDB,
   saveControlHandoffToIndexedDB,
   recomputeSustainmentProjectionForRecord,
@@ -103,10 +103,10 @@ interface StorageContextValue {
   saveEvidenceSource: (source: EvidenceSource) => Promise<void>;
   listEvidenceSnapshots: (hubId: string, sourceId: string) => Promise<EvidenceSnapshot[]>;
   saveEvidenceSnapshot: (snapshot: EvidenceSnapshot, sourceCsv?: string) => Promise<void>;
-  listSustainmentRecords: (hubId: string) => Promise<SustainmentRecord[]>;
-  saveSustainmentRecord: (record: SustainmentRecord) => Promise<void>;
-  listSustainmentReviews: (recordId: string) => Promise<SustainmentReview[]>;
-  saveSustainmentReview: (review: SustainmentReview) => Promise<void>;
+  listSustainmentRecords: (hubId: string) => Promise<ControlRecord[]>;
+  saveSustainmentRecord: (record: ControlRecord) => Promise<void>;
+  listSustainmentReviews: (recordId: string) => Promise<ControlReview[]>;
+  saveSustainmentReview: (review: ControlReview) => Promise<void>;
   listControlHandoffs: (hubId: string) => Promise<ControlHandoff[]>;
   saveControlHandoff: (handoff: ControlHandoff) => Promise<void>;
   syncStatus: SyncStatus;
@@ -688,36 +688,33 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     []
   );
 
-  const listSustainmentRecords = useCallback(
-    async (hubId: string): Promise<SustainmentRecord[]> => {
-      const localRecords = await listSustainmentRecordsFromIndexedDB(hubId);
+  const listSustainmentRecords = useCallback(async (hubId: string): Promise<ControlRecord[]> => {
+    const localRecords = await listSustainmentRecordsFromIndexedDB(hubId);
 
-      if (!navigator.onLine || isLocalDev()) {
-        return localRecords;
+    if (!navigator.onLine || isLocalDev()) {
+      return localRecords;
+    }
+
+    try {
+      const cloudRecords = await listSustainmentRecordsFromCloud('blob-sas', hubId);
+      for (const record of cloudRecords) {
+        await saveControlRecordToIndexedDB(record);
       }
-
-      try {
-        const cloudRecords = await listSustainmentRecordsFromCloud('blob-sas', hubId);
-        for (const record of cloudRecords) {
-          await saveSustainmentRecordToIndexedDB(record);
-        }
-        return listSustainmentRecordsFromIndexedDB(hubId);
-      } catch (error) {
-        if (!(error instanceof CloudSyncUnavailableErrorClass)) {
-          errorService.logWarning('Failed to list sustainment records from cloud', {
-            component: 'storage',
-            action: 'listSustainmentRecords',
-            metadata: { error: error instanceof Error ? error.message : String(error) },
-          });
-        }
-        return localRecords;
+      return listSustainmentRecordsFromIndexedDB(hubId);
+    } catch (error) {
+      if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+        errorService.logWarning('Failed to list sustainment records from cloud', {
+          component: 'storage',
+          action: 'listSustainmentRecords',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
       }
-    },
-    []
-  );
+      return localRecords;
+    }
+  }, []);
 
-  const saveSustainmentRecord = useCallback(async (record: SustainmentRecord): Promise<void> => {
-    await saveSustainmentRecordToIndexedDB(record);
+  const saveSustainmentRecord = useCallback(async (record: ControlRecord): Promise<void> => {
+    await saveControlRecordToIndexedDB(record);
 
     if (navigator.onLine && !isLocalDev()) {
       try {
@@ -737,13 +734,12 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   const listSustainmentReviews = useCallback(
-    (recordId: string): Promise<SustainmentReview[]> =>
-      listSustainmentReviewsFromIndexedDB(recordId),
+    (recordId: string): Promise<ControlReview[]> => listSustainmentReviewsFromIndexedDB(recordId),
     []
   );
 
-  const saveSustainmentReview = useCallback(async (review: SustainmentReview): Promise<void> => {
-    await saveSustainmentReviewToIndexedDB(review);
+  const saveSustainmentReview = useCallback(async (review: ControlReview): Promise<void> => {
+    await saveControlReviewToIndexedDB(review);
 
     if (!navigator.onLine || isLocalDev()) {
       return;

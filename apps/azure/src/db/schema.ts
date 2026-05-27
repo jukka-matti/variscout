@@ -163,17 +163,17 @@ export class VariScoutDatabase extends Dexie {
     });
 
     // Version 13: PR-WV1-NAV — Sustainment → Control vocabulary rename.
-    // Renames Dexie tables: 'sustainmentRecords' → 'controlRecords',
-    //                       'sustainmentReviews' → 'controlReviews'.
+    // Earlier version statements have been rewritten to declare 'controlRecords' /
+    // 'controlReviews' (the new table names) in their stores definitions. For
+    // any existing on-disk v12 database that physically holds tables named
+    // 'sustainmentRecords' / 'sustainmentReviews', Dexie will detect the
+    // schema mismatch and re-initialize on next open.
     // Per wedge V1 no-back-compat policy (feedback_wedge_v1_no_migration_no_backcompat),
-    // NO upgrade callback is provided — existing v12 rows in the old tables become
-    // unreachable. Accepted because wedge V1 has no real Azure customers yet.
-    this.version(13).stores({
-      sustainmentRecords: null, // drop old table
-      sustainmentReviews: null, // drop old table
-      controlRecords: 'id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
-      controlReviews: 'id, recordId, investigationId, hubId, reviewedAt',
-    });
+    // NO upgrade callback is provided — existing v12 rows in the old tables
+    // become unreachable. Accepted because wedge V1 has no real Azure
+    // customers yet. This empty stores() call bumps the version to flush any
+    // cached schema and forces Dexie to re-read the final declared shape.
+    this.version(13).stores({});
   }
 }
 

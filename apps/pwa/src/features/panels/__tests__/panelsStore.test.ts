@@ -157,8 +157,8 @@ describe('panelsStore', () => {
       expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
     });
 
-    it('showSustainment sets activeView to sustainment', () => {
-      usePanelsStore.getState().showSustainment();
+    it('showControl sets activeView to sustainment', () => {
+      usePanelsStore.getState().showControl();
       expect(usePanelsStore.getState().activeView).toBe('sustainment');
     });
   });

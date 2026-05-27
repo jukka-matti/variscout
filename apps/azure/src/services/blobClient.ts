@@ -7,10 +7,10 @@ import {
   processHubEvidenceSnapshotsCatalogPath,
   processHubEvidenceSourceBlobPath,
   processHubEvidenceSourcesCatalogPath,
-  sustainmentRecordBlobPath,
-  sustainmentReviewBlobPath,
+  controlRecordBlobPath,
+  controlReviewBlobPath,
   controlHandoffBlobPath,
-  sustainmentCatalogPath,
+  controlCatalogPath,
 } from '@variscout/core';
 import type {
   ControlHandoff,
@@ -18,8 +18,8 @@ import type {
   EvidenceSource,
   ProcessHub,
   ProjectMetadata,
-  SustainmentRecord,
-  SustainmentReview,
+  ControlRecord,
+  ControlReview,
 } from '@variscout/core';
 import type { Project } from './localDb';
 
@@ -703,36 +703,35 @@ export async function getEtagForProject(projectId: string): Promise<string | nul
   return res.headers.get('ETag');
 }
 
-// ── Sustainment blobs ─────────────────────────────────────────────────────
+// ── Control blobs ─────────────────────────────────────────────────────
 
-export async function listBlobSustainmentRecords(hubId: string): Promise<SustainmentRecord[]> {
-  return (await getJsonBlob<SustainmentRecord[]>(sustainmentCatalogPath(hubId))) ?? [];
+export async function listBlobSustainmentRecords(hubId: string): Promise<ControlRecord[]> {
+  return (await getJsonBlob<ControlRecord[]>(controlCatalogPath(hubId))) ?? [];
 }
 
-export async function saveBlobSustainmentRecord(record: SustainmentRecord): Promise<void> {
-  await putJsonBlob(sustainmentRecordBlobPath(record.hubId, record.id), record);
+export async function saveBlobSustainmentRecord(record: ControlRecord): Promise<void> {
+  await putJsonBlob(controlRecordBlobPath(record.hubId, record.id), record);
 }
 
 export async function updateBlobSustainmentCatalog(
   hubId: string,
-  records: SustainmentRecord[]
+  records: ControlRecord[]
 ): Promise<void> {
-  await putJsonBlob(sustainmentCatalogPath(hubId), records);
+  await putJsonBlob(controlCatalogPath(hubId), records);
 }
 
 export async function loadBlobSustainmentReview(
   hubId: string,
   recordId: string,
   reviewId: string
-): Promise<SustainmentReview | null> {
+): Promise<ControlReview | null> {
   return (
-    (await getJsonBlob<SustainmentReview>(sustainmentReviewBlobPath(hubId, recordId, reviewId))) ??
-    null
+    (await getJsonBlob<ControlReview>(controlReviewBlobPath(hubId, recordId, reviewId))) ?? null
   );
 }
 
-export async function saveBlobSustainmentReview(review: SustainmentReview): Promise<void> {
-  await putJsonBlob(sustainmentReviewBlobPath(review.hubId, review.recordId, review.id), review);
+export async function saveBlobSustainmentReview(review: ControlReview): Promise<void> {
+  await putJsonBlob(controlReviewBlobPath(review.hubId, review.recordId, review.id), review);
 }
 
 export async function saveBlobControlHandoff(handoff: ControlHandoff): Promise<void> {

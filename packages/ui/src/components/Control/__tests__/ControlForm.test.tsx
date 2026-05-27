@@ -1,10 +1,10 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import type { SustainmentRecord, SustainmentReview } from '@variscout/core';
-import { SustainmentForm } from '../SustainmentForm';
+import type { ControlRecord, ControlReview } from '@variscout/core';
+import { ControlForm } from '../ControlForm';
 
-const record: SustainmentRecord = {
+const record: ControlRecord = {
   id: 'sustain-1',
   createdAt: Date.UTC(2026, 4, 1),
   deletedAt: null,
@@ -38,7 +38,7 @@ const record: SustainmentRecord = {
   updatedAt: Date.UTC(2026, 4, 12),
 };
 
-const reviews: SustainmentReview[] = [
+const reviews: ControlReview[] = [
   {
     id: 'review-2',
     createdAt: Date.UTC(2026, 4, 12),
@@ -67,9 +67,9 @@ const reviews: SustainmentReview[] = [
   },
 ];
 
-describe('SustainmentForm', () => {
+describe('ControlForm', () => {
   it('renders sustainment sections with status, 3 of 4 ticks, review history, and goal summary', () => {
-    render(<SustainmentForm record={record} reviews={reviews} />);
+    render(<ControlForm record={record} reviews={reviews} />);
 
     expect(screen.getByRole('button', { name: 'Metadata' })).toHaveAttribute(
       'aria-expanded',
@@ -98,7 +98,7 @@ describe('SustainmentForm', () => {
 
   it('calls record update callback for title, target summary, and cadence changes', () => {
     const onRecordChange = vi.fn();
-    render(<SustainmentForm record={record} reviews={[]} onRecordChange={onRecordChange} />);
+    render(<ControlForm record={record} reviews={[]} onRecordChange={onRecordChange} />);
 
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Updated sustainment' } });
     fireEvent.change(screen.getByLabelText('Target summary'), {

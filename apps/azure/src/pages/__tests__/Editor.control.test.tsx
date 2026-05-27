@@ -15,7 +15,7 @@ vi.mock('../../auth/easyAuth', () => ({
   getEasyAuthUser: (...args: unknown[]) => mockGetEasyAuthUser(...args),
 }));
 
-vi.mock('../../components/SustainmentRecordEditor', () => ({
+vi.mock('../../components/ControlRecordEditor', () => ({
   default: ({
     onSave,
     onCancel,
@@ -39,7 +39,7 @@ vi.mock('../../components/SustainmentRecordEditor', () => ({
 }));
 
 // Import the component under test after mocks
-import { SustainmentEntryRow } from '../Editor.sustainment';
+import { ControlEntryRow } from '../Editor.control';
 
 beforeEach(() => {
   mockListSustainmentRecords.mockReset();
@@ -53,28 +53,28 @@ beforeEach(() => {
   });
 });
 
-describe('SustainmentEntryRow', () => {
+describe('ControlEntryRow', () => {
   it('renders the "Set up sustainment cadence" button when investigationId is set and no record exists', async () => {
-    render(<SustainmentEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
     expect(await screen.findByText('Set up sustainment cadence')).toBeInTheDocument();
   });
 
-  it('opens SustainmentRecordEditor when the button is clicked', async () => {
-    render(<SustainmentEntryRow investigationId="inv-123" hubId="hub-1" />);
+  it('opens ControlRecordEditor when the button is clicked', async () => {
+    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
     fireEvent.click(await screen.findByText('Set up sustainment cadence'));
     expect(screen.getByTestId('sustainment-record-editor')).toBeInTheDocument();
   });
 
   it('shows confirmation and hides editor after save', async () => {
-    render(<SustainmentEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
     fireEvent.click(await screen.findByText('Set up sustainment cadence'));
     fireEvent.click(screen.getByText('Save'));
     expect(screen.queryByTestId('sustainment-record-editor')).not.toBeInTheDocument();
-    expect(screen.getByText('Sustainment cadence saved.')).toBeInTheDocument();
+    expect(screen.getByText('Control cadence saved.')).toBeInTheDocument();
   });
 
   it('hides editor when cancel is clicked', async () => {
-    render(<SustainmentEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
     fireEvent.click(await screen.findByText('Set up sustainment cadence'));
     fireEvent.click(screen.getByText('Cancel'));
     expect(screen.queryByTestId('sustainment-record-editor')).not.toBeInTheDocument();
@@ -82,7 +82,7 @@ describe('SustainmentEntryRow', () => {
   });
 
   it('renders disabled button with hint when investigationId is null', () => {
-    render(<SustainmentEntryRow investigationId={null} hubId="hub-1" />);
+    render(<ControlEntryRow investigationId={null} hubId="hub-1" />);
     const btn = screen.getByRole('button', { name: 'Set up sustainment cadence' });
     expect(btn).toBeDisabled();
     expect(screen.getByText('Save the investigation first.')).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe('SustainmentEntryRow', () => {
         deletedAt: null,
       },
     ]);
-    render(<SustainmentEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
     expect(await screen.findByText('Edit sustainment cadence')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Edit sustainment cadence'));
     expect(screen.getByTestId('editor-mode')).toHaveTextContent('edit:rec-1');
@@ -118,7 +118,7 @@ describe('SustainmentEntryRow', () => {
         updatedAt: 1745107200000, // 2026-04-20T00:00:00.000Z
       },
     ]);
-    render(<SustainmentEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
     expect(await screen.findByText('Set up sustainment cadence')).toBeInTheDocument();
   });
 
@@ -134,11 +134,9 @@ describe('SustainmentEntryRow', () => {
         deletedAt: null,
       },
     ]);
-    render(<SustainmentEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
     fireEvent.click(await screen.findByText('Edit sustainment cadence'));
     fireEvent.click(screen.getByText('Save'));
-    await waitFor(() =>
-      expect(screen.getByText('Sustainment cadence updated.')).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText('Control cadence updated.')).toBeInTheDocument());
   });
 });

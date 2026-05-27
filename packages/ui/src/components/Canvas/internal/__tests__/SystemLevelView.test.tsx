@@ -121,7 +121,7 @@ describe('SystemLevelView', () => {
     expect(screen.queryByText('Quick Action')).not.toBeInTheDocument();
     expect(screen.queryByText('Focused Investigation')).not.toBeInTheDocument();
     expect(screen.queryByText('Improvement Project')).not.toBeInTheDocument();
-    expect(screen.queryByText('Sustainment')).not.toBeInTheDocument();
+    expect(screen.queryByText('Control')).not.toBeInTheDocument();
     expect(screen.queryByText('Handoff')).not.toBeInTheDocument();
   });
 

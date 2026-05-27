@@ -17,7 +17,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { ProcessHub } from '@variscout/core/processHub';
-import type { SustainmentRecord, SustainmentReview } from '@variscout/core';
+import type { ControlRecord, ControlReview } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { AzureHubRepository } from '../AzureHubRepository';
 import { db } from '../../db/schema';
@@ -62,7 +62,7 @@ function makeHub(id: string, ips: ImprovementProject[] = []): ProcessHub {
   };
 }
 
-function makeSustainmentRecord(id: string, hubId: string): SustainmentRecord {
+function makeSustainmentRecord(id: string, hubId: string): ControlRecord {
   return {
     id,
     hubId,
@@ -79,7 +79,7 @@ function makeSustainmentRecord(id: string, hubId: string): SustainmentRecord {
   };
 }
 
-function makeSustainmentReview(id: string, recordId: string, hubId: string): SustainmentReview {
+function makeSustainmentReview(id: string, recordId: string, hubId: string): ControlReview {
   return {
     id,
     recordId,
@@ -100,15 +100,15 @@ function makeSustainmentReview(id: string, recordId: string, hubId: string): Sus
 beforeEach(async () => {
   await db.processHubs.clear();
   await db.improvementProjects.clear();
-  await db.sustainmentRecords.clear();
-  await db.sustainmentReviews.clear();
+  await db.controlRecords.clear();
+  await db.controlReviews.clear();
 });
 
 afterEach(async () => {
   await db.processHubs.clear();
   await db.improvementProjects.clear();
-  await db.sustainmentRecords.clear();
-  await db.sustainmentReviews.clear();
+  await db.controlRecords.clear();
+  await db.controlReviews.clear();
 });
 
 // ---------------------------------------------------------------------------
@@ -176,56 +176,56 @@ describe('AzureHubRepository.dispatch HUB_PERSIST_SNAPSHOT — Dexie integration
     const review = makeSustainmentReview('rev-1', 'sr-1', 'hub-5');
     const hub = {
       ...makeHub('hub-5'),
-      sustainmentRecords: [record],
-      sustainmentReviews: [review],
+      controlRecords: [record],
+      controlReviews: [review],
     } as ProcessHub;
 
     await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub });
 
     const hubRow = await db.processHubs.get('hub-5');
-    expect((hubRow as Partial<ProcessHub> | undefined)?.sustainmentRecords).toBeUndefined();
-    expect((hubRow as Partial<ProcessHub> | undefined)?.sustainmentReviews).toBeUndefined();
+    expect((hubRow as Partial<ProcessHub> | undefined)?.controlRecords).toBeUndefined();
+    expect((hubRow as Partial<ProcessHub> | undefined)?.controlReviews).toBeUndefined();
     expect(
-      (await db.sustainmentRecords.where('hubId').equals('hub-5').toArray()).map(r => r.id)
+      (await db.controlRecords.where('hubId').equals('hub-5').toArray()).map(r => r.id)
     ).toEqual(['sr-1']);
     expect(
-      (await db.sustainmentReviews.where('hubId').equals('hub-5').toArray()).map(r => r.id)
+      (await db.controlReviews.where('hubId').equals('hub-5').toArray()).map(r => r.id)
     ).toEqual(['rev-1']);
   });
 
   it('cleans up stale sustainment rows absent from the new snapshot', async () => {
     const repo = new AzureHubRepository();
-    await db.sustainmentRecords.put(makeSustainmentRecord('sr-stale', 'hub-6'));
-    await db.sustainmentReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-6'));
+    await db.controlRecords.put(makeSustainmentRecord('sr-stale', 'hub-6'));
+    await db.controlReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-6'));
 
     await repo.dispatch({
       kind: 'HUB_PERSIST_SNAPSHOT',
       hub: {
         ...makeHub('hub-6'),
-        sustainmentRecords: [makeSustainmentRecord('sr-keep', 'hub-6')],
-        sustainmentReviews: [makeSustainmentReview('rev-keep', 'sr-keep', 'hub-6')],
+        controlRecords: [makeSustainmentRecord('sr-keep', 'hub-6')],
+        controlReviews: [makeSustainmentReview('rev-keep', 'sr-keep', 'hub-6')],
       } as ProcessHub,
     });
 
     expect(
-      (await db.sustainmentRecords.where('hubId').equals('hub-6').toArray()).map(r => r.id)
+      (await db.controlRecords.where('hubId').equals('hub-6').toArray()).map(r => r.id)
     ).toEqual(['sr-keep']);
     expect(
-      (await db.sustainmentReviews.where('hubId').equals('hub-6').toArray()).map(r => r.id)
+      (await db.controlReviews.where('hubId').equals('hub-6').toArray()).map(r => r.id)
     ).toEqual(['rev-keep']);
   });
 
   it('cleans up stale sustainment rows when a snapshot omits sustainment arrays', async () => {
     const repo = new AzureHubRepository();
-    await db.sustainmentRecords.put(makeSustainmentRecord('sr-stale', 'hub-7'));
-    await db.sustainmentReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-7'));
+    await db.controlRecords.put(makeSustainmentRecord('sr-stale', 'hub-7'));
+    await db.controlReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-7'));
 
     await repo.dispatch({
       kind: 'HUB_PERSIST_SNAPSHOT',
       hub: makeHub('hub-7'),
     });
 
-    expect(await db.sustainmentRecords.where('hubId').equals('hub-7').count()).toBe(0);
-    expect(await db.sustainmentReviews.where('hubId').equals('hub-7').count()).toBe(0);
+    expect(await db.controlRecords.where('hubId').equals('hub-7').count()).toBe(0);
+    expect(await db.controlReviews.where('hubId').equals('hub-7').count()).toBe(0);
   });
 });

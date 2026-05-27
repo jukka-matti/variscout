@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { SustainmentCadence, SustainmentRecord } from '@variscout/core';
+import type { ControlCadence, ControlRecord } from '@variscout/core';
 import { nextDueFromCadence } from '@variscout/core';
 import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
@@ -8,12 +8,12 @@ export interface SustainmentRecordEditorProps {
   investigationId: string;
   hubId: string;
   currentUser: EasyAuthUser;
-  existingRecord?: SustainmentRecord;
-  onSave: (record: SustainmentRecord) => void;
+  existingRecord?: ControlRecord;
+  onSave: (record: ControlRecord) => void;
   onCancel: () => void;
 }
 
-const CADENCE_OPTIONS: { value: SustainmentCadence; label: string }[] = [
+const CADENCE_OPTIONS: { value: ControlCadence; label: string }[] = [
   { value: 'weekly', label: 'Weekly' },
   { value: 'biweekly', label: 'Biweekly' },
   { value: 'monthly', label: 'Monthly' },
@@ -25,12 +25,12 @@ const CADENCE_OPTIONS: { value: SustainmentCadence; label: string }[] = [
 
 const todayDateString = (): string => new Date().toISOString().slice(0, 10);
 
-const suggestDueDate = (cadence: SustainmentCadence): string => {
+const suggestDueDate = (cadence: ControlCadence): string => {
   const iso = nextDueFromCadence(cadence, new Date());
   return iso ? iso.slice(0, 10) : '';
 };
 
-const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
+const ControlRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
   investigationId,
   hubId,
   currentUser,
@@ -40,8 +40,8 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
 }) => {
   const storage = useStorage();
 
-  const initialCadence: SustainmentCadence = existingRecord?.cadence ?? 'monthly';
-  const [cadence, setCadence] = useState<SustainmentCadence>(initialCadence);
+  const initialCadence: ControlCadence = existingRecord?.cadence ?? 'monthly';
+  const [cadence, setCadence] = useState<ControlCadence>(initialCadence);
   const [owner, setOwner] = useState(existingRecord?.owner?.displayName ?? currentUser.name ?? '');
   const [nextReviewDue, setNextReviewDue] = useState(
     existingRecord?.nextReviewDue
@@ -53,7 +53,7 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
   const [openConcerns, setOpenConcerns] = useState(existingRecord?.openConcerns ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCadenceChange = (next: SustainmentCadence) => {
+  const handleCadenceChange = (next: ControlCadence) => {
     setCadence(next);
     if (!userEditedDate) {
       setNextReviewDue(suggestDueDate(next));
@@ -71,9 +71,9 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
     setIsSubmitting(true);
 
     const nowMs = Date.now();
-    const record: SustainmentRecord = {
+    const record: ControlRecord = {
       id: existingRecord?.id ?? crypto.randomUUID(),
-      title: existingRecord?.title ?? 'Sustainment cadence',
+      title: existingRecord?.title ?? 'Control cadence',
       investigationId,
       hubId,
       status: existingRecord?.status ?? 'pending',
@@ -113,7 +113,7 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
       className="space-y-3 rounded-md border border-edge bg-surface p-4"
       onSubmit={handleSubmit}
     >
-      <h4 className="text-sm font-semibold text-content">Sustainment record</h4>
+      <h4 className="text-sm font-semibold text-content">Control record</h4>
 
       <div>
         <label className="block text-xs font-medium text-content-secondary" htmlFor="sre-cadence">
@@ -123,7 +123,7 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
           id="sre-cadence"
           aria-label="Cadence"
           value={cadence}
-          onChange={e => handleCadenceChange(e.target.value as SustainmentCadence)}
+          onChange={e => handleCadenceChange(e.target.value as ControlCadence)}
           className="w-full rounded-md border border-edge bg-surface-secondary px-2 py-1 text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         >
@@ -206,4 +206,4 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
   );
 };
 
-export default SustainmentRecordEditor;
+export default ControlRecordEditor;

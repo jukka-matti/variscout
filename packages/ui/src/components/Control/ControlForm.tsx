@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SustainmentCadence, SustainmentRecord, SustainmentReview } from '@variscout/core';
+import type { ControlCadence, ControlRecord, ControlReview } from '@variscout/core';
 import type {
   ImprovementProjectFactorControl,
   ImprovementProjectGoal,
@@ -7,19 +7,19 @@ import type {
 } from '@variscout/core/improvementProject';
 import { CollapsibleSection } from '../ImprovementProject/CollapsibleSection';
 
-export interface SustainmentFormProps {
-  record: SustainmentRecord;
-  reviews?: SustainmentReview[];
+export interface ControlFormProps {
+  record: ControlRecord;
+  reviews?: ControlReview[];
   onRecordChange?: (patch: SustainmentRecordChangePatch) => void;
 }
 
 export type SustainmentRecordChangePatch = Partial<
-  Pick<SustainmentRecord, 'title' | 'targetSummary' | 'cadence'>
+  Pick<ControlRecord, 'title' | 'targetSummary' | 'cadence'>
 >;
 
-export type { SustainmentCadence };
+export type { ControlCadence };
 
-const cadenceOptions: SustainmentCadence[] = [
+const cadenceOptions: ControlCadence[] = [
   'weekly',
   'biweekly',
   'monthly',
@@ -131,7 +131,7 @@ function GoalCarryForward({ goal }: { goal?: ImprovementProjectGoal }) {
   );
 }
 
-export const SustainmentForm: React.FC<SustainmentFormProps> = ({
+export const ControlForm: React.FC<ControlFormProps> = ({
   record,
   reviews = [],
   onRecordChange,
@@ -160,7 +160,7 @@ export const SustainmentForm: React.FC<SustainmentFormProps> = ({
               disabled={isReadOnly}
               value={record.cadence}
               onChange={event =>
-                onRecordChange?.({ cadence: event.currentTarget.value as SustainmentCadence })
+                onRecordChange?.({ cadence: event.currentTarget.value as ControlCadence })
               }
             >
               {cadenceOptions.map(cadence => (

@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SustainmentForm, type SustainmentRecordChangePatch } from '@variscout/ui';
-import type { ProcessHub, SustainmentRecord, SustainmentReview } from '@variscout/core';
+import { ControlForm, type SustainmentRecordChangePatch } from '@variscout/ui';
+import type { ProcessHub, ControlRecord, ControlReview } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import { azureHubRepository } from '../../persistence';
+import { pwaHubRepository } from '../persistence';
 
-interface SustainmentPanelProps {
+interface ControlPanelProps {
   activeHub?: ProcessHub;
   targetId?: string;
   onBack: () => void;
@@ -18,7 +18,7 @@ function makeId(): string {
   return `sr-${Date.now()}`;
 }
 
-function liveRecords(records: SustainmentRecord[] | undefined): SustainmentRecord[] {
+function liveRecords(records: ControlRecord[] | undefined): ControlRecord[] {
   return (records ?? []).filter(record => record.deletedAt === null);
 }
 
@@ -34,17 +34,17 @@ function firstClosedProject(
   return liveClosedProjects[0];
 }
 
-function recordMatchesTarget(record: SustainmentRecord, targetId: string | undefined): boolean {
+function recordMatchesTarget(record: ControlRecord, targetId: string | undefined): boolean {
   return (
     targetId !== undefined && (record.id === targetId || record.improvementProjectId === targetId)
   );
 }
 
 function selectedRecordForTarget(
-  records: SustainmentRecord[],
+  records: ControlRecord[],
   selectedRecordId: string | null,
   targetId: string | undefined
-): SustainmentRecord | null {
+): ControlRecord | null {
   const targetRecord = records.find(record => recordMatchesTarget(record, targetId));
   if (targetRecord) return targetRecord;
   if (records.length === 1) return records[0];
@@ -57,7 +57,7 @@ function firstClosedProjectLegacy(hub: ProcessHub): ImprovementProject | undefin
   );
 }
 
-function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): SustainmentRecord {
+function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): ControlRecord {
   const project = firstClosedProject(hub, preferredProjectId) ?? firstClosedProjectLegacy(hub);
   const now = Date.now();
   const investigationId = project?.metadata.investigationId ?? `${hub.id}:sustainment`;
@@ -83,22 +83,22 @@ function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): Sustain
 }
 
 function mergeRecordPatch(
-  record: SustainmentRecord,
+  record: ControlRecord,
   patch: SustainmentRecordChangePatch
-): SustainmentRecord {
+): ControlRecord {
   return { ...record, ...patch, updatedAt: Date.now() };
 }
 
-const SustainmentPanel: React.FC<SustainmentPanelProps> = ({ activeHub, targetId, onBack }) => {
-  const [records, setRecords] = useState<SustainmentRecord[]>([]);
+const ControlPanel: React.FC<ControlPanelProps> = ({ activeHub, targetId, onBack }) => {
+  const [records, setRecords] = useState<ControlRecord[]>([]);
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
-  const [reviews, setReviews] = useState<SustainmentReview[]>([]);
+  const [reviews, setReviews] = useState<ControlReview[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoadingRecords, setIsLoadingRecords] = useState(Boolean(activeHub));
   const creatingForHubRef = useRef<string | null>(null);
 
   useEffect(() => {
-    setRecords(liveRecords(activeHub?.sustainmentRecords));
+    setRecords(liveRecords(activeHub?.controlRecords));
     setSelectedRecordId(null);
     setReviews([]);
     setIsLoadingRecords(Boolean(activeHub));
@@ -109,13 +109,13 @@ const SustainmentPanel: React.FC<SustainmentPanelProps> = ({ activeHub, targetId
     }
 
     let cancelled = false;
-    void azureHubRepository.sustainmentRecords
+    void pwaHubRepository.controlRecords
       .listByHub(activeHub.id)
-      .then((rows: SustainmentRecord[]) => {
+      .then((rows: ControlRecord[]) => {
         if (!cancelled) setRecords(liveRecords(rows));
       })
       .catch(() => {
-        if (!cancelled) setRecords(liveRecords(activeHub.sustainmentRecords));
+        if (!cancelled) setRecords(liveRecords(activeHub.controlRecords));
       })
       .finally(() => {
         if (!cancelled) setIsLoadingRecords(false);
@@ -142,7 +142,7 @@ const SustainmentPanel: React.FC<SustainmentPanelProps> = ({ activeHub, targetId
     setError(null);
     let cancelled = false;
 
-    void azureHubRepository
+    void pwaHubRepository
       .dispatch({ kind: 'SUSTAINMENT_RECORD_CREATE', hubId: activeHub.id, record })
       .then(() => {
         if (cancelled || creatingForHubRef.current !== createHubId) return;
@@ -170,16 +170,16 @@ const SustainmentPanel: React.FC<SustainmentPanelProps> = ({ activeHub, targetId
     }
 
     let cancelled = false;
-    void azureHubRepository.sustainmentReviews
+    void pwaHubRepository.controlReviews
       .listByRecord(activeHub.id, selectedRecord.id)
-      .then((rows: SustainmentReview[]) => {
+      .then((rows: ControlReview[]) => {
         if (!cancelled)
-          setReviews(rows.filter((review: SustainmentReview) => review.deletedAt === null));
+          setReviews(rows.filter((review: ControlReview) => review.deletedAt === null));
       })
       .catch(() => {
         if (!cancelled) {
           setReviews(
-            (activeHub.sustainmentReviews ?? []).filter(
+            (activeHub.controlReviews ?? []).filter(
               review => review.deletedAt === null && review.recordId === selectedRecord.id
             )
           );
@@ -196,7 +196,7 @@ const SustainmentPanel: React.FC<SustainmentPanelProps> = ({ activeHub, targetId
       if (!selectedRecord) return;
       const next = mergeRecordPatch(selectedRecord, patch);
       setRecords(current => current.map(record => (record.id === next.id ? next : record)));
-      void azureHubRepository
+      void pwaHubRepository
         .dispatch({ kind: 'SUSTAINMENT_RECORD_UPDATE', recordId: selectedRecord.id, patch })
         .catch(() => {
           setError('Could not save the sustainment record changes.');
@@ -211,7 +211,7 @@ const SustainmentPanel: React.FC<SustainmentPanelProps> = ({ activeHub, targetId
     <div className="flex min-h-0 flex-1 flex-col gap-4 bg-surface-primary p-4 text-content">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Sustainment</h2>
+          <h2 className="text-lg font-semibold">Control</h2>
           <p className="text-sm text-content-secondary">{heading}</p>
         </div>
         <button
@@ -248,7 +248,7 @@ const SustainmentPanel: React.FC<SustainmentPanelProps> = ({ activeHub, targetId
           </div>
         </div>
       ) : selectedRecord ? (
-        <SustainmentForm
+        <ControlForm
           record={selectedRecord}
           reviews={reviews}
           onRecordChange={updateSelectedRecord}
@@ -262,4 +262,4 @@ const SustainmentPanel: React.FC<SustainmentPanelProps> = ({ activeHub, targetId
   );
 };
 
-export default SustainmentPanel;
+export default ControlPanel;

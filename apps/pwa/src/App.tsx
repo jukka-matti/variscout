@@ -119,7 +119,7 @@ const ProcessIntelligencePanel = lazyWithRetry(
 );
 const FrameView = lazyWithRetry(() => import('./components/views/FrameView'));
 const ImprovementProjectPanel = lazyWithRetry(() => import('./components/ImprovementProjectPanel'));
-const SustainmentPanel = lazyWithRetry(() => import('./components/SustainmentPanel'));
+const ControlPanel = lazyWithRetry(() => import('./components/ControlPanel'));
 const AnalyzeView = lazyWithRetry(() => import('./components/views/AnalyzeView'));
 const ImprovementView = lazyWithRetry(() => import('./components/views/ImprovementView'));
 const ProjectsTabView = lazyWithRetry(() => import('./components/ProjectsTabView'));
@@ -1010,8 +1010,8 @@ function AppMain() {
     }
   }, [activeIPContext.activeIP, panels.activeView, sessionHub]);
 
-  // Sustainment + Handoff inputs for ProjectsTabView → IPDetailPage
-  const _liveSustainmentRecords = (sessionHub?.sustainmentRecords ?? []).filter(
+  // Control + Handoff inputs for ProjectsTabView → IPDetailPage
+  const _liveSustainmentRecords = (sessionHub?.controlRecords ?? []).filter(
     r => r.deletedAt === null
   );
   const _liveControlHandoffs = (sessionHub?.controlHandoffs ?? []).filter(
@@ -1349,9 +1349,9 @@ function AppMain() {
                 }}
               />
             ) : panels.activeView === 'sustainment' ? (
-              <SustainmentPanel
+              <ControlPanel
                 activeHub={sessionHub ?? undefined}
-                targetId={panels.sustainmentTargetId ?? undefined}
+                targetId={panels.controlTargetId ?? undefined}
                 onBack={panels.showFrame}
               />
             ) : panels.activeView === 'analyze' ? (
@@ -1407,13 +1407,13 @@ function AppMain() {
                   // to this cause's hypothesis automatically.
                   panels.showImprovement();
                 }}
-                sustainmentRecord={projectsSustainmentRecord}
+                controlRecord={projectsSustainmentRecord}
                 controlHandoff={projectsControlHandoff}
                 closureInputs={projectsClosureInputs}
-                onOpenLegacySustainment={() =>
+                onOpenLegacyControl={() =>
                   usePanelsStore
                     .getState()
-                    .showSustainment(projectsSustainmentRecord?.investigationId ?? undefined)
+                    .showControl(projectsSustainmentRecord?.investigationId ?? undefined)
                 }
                 onNudgeProcessOwner={() => {
                   // Plan 3 will emit EngagementEvent webhook here.
@@ -1458,7 +1458,7 @@ function AppMain() {
                 hub={sessionHub}
                 activeIP={activeIPContext.activeIP}
                 hypotheses={hypotheses}
-                sustainmentRecords={_liveSustainmentRecords}
+                controlRecords={_liveSustainmentRecords}
                 controlHandoffs={_liveControlHandoffs}
                 activeIPScope={activeIPScope}
                 activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}

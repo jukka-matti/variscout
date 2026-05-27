@@ -24,7 +24,7 @@ import type {
   ControlHandoff,
   EvidenceSnapshot,
   StepCapabilityStamp,
-  SustainmentRecord,
+  ControlRecord,
 } from '@variscout/core';
 import { createActionItem, type ActionItem } from '@variscout/core/findings';
 import { surveyInboxRules } from '@variscout/core/survey';
@@ -34,7 +34,7 @@ import { useAnalyzeFeatureStore } from '../../features/analyze/analyzeStore';
 
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
-const EMPTY_SUSTAINMENT_RECORDS: SustainmentRecord[] = [];
+const EMPTY_SUSTAINMENT_RECORDS: ControlRecord[] = [];
 const EMPTY_CONTROL_HANDOFFS: ControlHandoff[] = [];
 
 function mergeActionItems(
@@ -84,8 +84,8 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
   const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
-  const [sustainmentRecords, setSustainmentRecords] =
-    React.useState<SustainmentRecord[]>(EMPTY_SUSTAINMENT_RECORDS);
+  const [controlRecords, setSustainmentRecords] =
+    React.useState<ControlRecord[]>(EMPTY_SUSTAINMENT_RECORDS);
   const [controlHandoffs, setControlHandoffs] =
     React.useState<ControlHandoff[]>(EMPTY_CONTROL_HANDOFFS);
   const activeHubIdRef = React.useRef<string | null>(activeHubId);
@@ -129,13 +129,13 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
       try {
         const [items, records, handoffs] = await Promise.all([
           azureHubRepository.actionItems.listByHub(activeHubId),
-          azureHubRepository.sustainmentRecords.listByHub(activeHubId),
+          azureHubRepository.controlRecords.listByHub(activeHubId),
           azureHubRepository.controlHandoffs.listByHub(activeHubId),
         ]);
         if (!cancelled) {
           setActionItems(items);
           setSustainmentRecords(
-            records.filter((record: SustainmentRecord) => record.deletedAt === null)
+            records.filter((record: ControlRecord) => record.deletedAt === null)
           );
           setControlHandoffs(handoffs.filter(handoff => handoff.deletedAt === null));
         }
@@ -153,7 +153,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
     const improvementProjects = (activeHubId ? (projectsByHub[activeHubId] ?? []) : []).filter(
       project => project.deletedAt === null
     );
-    const liveSustainmentRecords = sustainmentRecords.filter(record => record.deletedAt === null);
+    const liveSustainmentRecords = controlRecords.filter(record => record.deletedAt === null);
 
     return [
       {
@@ -174,7 +174,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
       },
       { surfaceType: 'quick-actions', items: [] },
       {
-        // Wedge V1 (ADR-082) folds Handoff into Sustainment-closure; control handoffs surface here too.
+        // Wedge V1 (ADR-082) folds Handoff into Control-closure; control handoffs surface here too.
         surfaceType: 'sustainment',
         items: [
           ...liveSustainmentRecords.map(record => ({
@@ -190,7 +190,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
         ],
       },
     ];
-  }, [activeHubId, controlHandoffs, hypotheses, projectsByHub, sustainmentRecords]);
+  }, [activeHubId, controlHandoffs, hypotheses, projectsByHub, controlRecords]);
 
   const inboxPrompts = React.useMemo(() => {
     const improvementProjects = (activeHubId ? (projectsByHub[activeHubId] ?? []) : []).filter(
@@ -199,11 +199,11 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
 
     return surveyInboxRules({
       improvementProjects,
-      sustainmentRecords,
+      controlRecords,
       controlHandoffs,
       now: Date.now(),
     });
-  }, [activeHubId, controlHandoffs, projectsByHub, sustainmentRecords]);
+  }, [activeHubId, controlHandoffs, projectsByHub, controlRecords]);
 
   const handleSeeData = React.useCallback(() => {
     usePanelsStore.getState().showExplore();
@@ -286,7 +286,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
   const handleInboxNavigate = React.useCallback((prompt: InboxDigestPrompt) => {
     const surface = prompt.action?.opensSurface;
     if (surface === 'sustainment') {
-      usePanelsStore.getState().showSustainment(prompt.action?.opensId);
+      usePanelsStore.getState().showControl(prompt.action?.opensId);
       return;
     }
     if (surface === 'improvement-projects') {
@@ -308,18 +308,18 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
         usePanelsStore.getState().showCharter();
         return;
       }
-      if (sustainmentRecords.some(record => record.id === item.id)) {
-        usePanelsStore.getState().showSustainment(item.id);
+      if (controlRecords.some(record => record.id === item.id)) {
+        usePanelsStore.getState().showControl(item.id);
         return;
       }
       if (controlHandoffs.some(handoff => handoff.id === item.id)) {
-        // Wedge V1 (ADR-082) folds Handoff into Sustainment-closure.
-        usePanelsStore.getState().showSustainment(item.id);
+        // Wedge V1 (ADR-082) folds Handoff into Control-closure.
+        usePanelsStore.getState().showControl(item.id);
         return;
       }
       usePanelsStore.getState().showAnalyze();
     },
-    [activeHubId, controlHandoffs, sustainmentRecords]
+    [activeHubId, controlHandoffs, controlRecords]
   );
 
   return (

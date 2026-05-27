@@ -227,13 +227,13 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses,
             findings,
             questions,
-            sustainmentRecords: activeHub?.sustainmentRecords,
+            controlRecords: activeHub?.controlRecords,
             controlHandoffs: activeHub?.controlHandoffs,
           })
         : null,
     [
       activeHub?.controlHandoffs,
-      activeHub?.sustainmentRecords,
+      activeHub?.controlRecords,
       activeIP,
       findings,
       hypotheses,
@@ -248,7 +248,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             questions: ipReportScope.questions,
-            sustainmentRecord: ipReportScope.sustainmentRecord,
+            controlRecord: ipReportScope.controlRecord,
             controlHandoff: ipReportScope.controlHandoff,
           })
         : [],
@@ -262,7 +262,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             questions: ipReportScope.questions,
-            sustainmentRecord: ipReportScope.sustainmentRecord,
+            controlRecord: ipReportScope.controlRecord,
           })
         : [],
     [activeIP, ipReportScope]

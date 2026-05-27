@@ -5,12 +5,7 @@ import {
   normalizeProcessHubId,
   linkFindingsToStateItems,
 } from '@variscout/core';
-import type {
-  ProcessHub,
-  ProcessHubAnalyze,
-  SustainmentRecord,
-  ControlHandoff,
-} from '@variscout/core';
+import type { ProcessHub, ProcessHubAnalyze, ControlRecord, ControlHandoff } from '@variscout/core';
 import type { EvidenceSnapshot } from '@variscout/core';
 import type { Finding } from '@variscout/core';
 import type {
@@ -65,7 +60,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [projects, setProjects] = useState<CloudProject[]>([]);
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
   const [evidenceSnapshots, setEvidenceSnapshots] = useState<EvidenceSnapshot[]>([]);
-  const [sustainmentRecords, setSustainmentRecords] = useState<SustainmentRecord[]>([]);
+  const [controlRecords, setSustainmentRecords] = useState<ControlRecord[]>([]);
   const [controlHandoffs, setControlHandoffs] = useState<ControlHandoff[]>([]);
   const [selectedHubId, setSelectedHubId] = useState<string | null>(null);
 
@@ -208,9 +203,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         deletedAt: null,
         metadata: project.metadata,
       })),
-      { evidenceSnapshots, sustainmentRecords, controlHandoffs }
+      { evidenceSnapshots, controlRecords, controlHandoffs }
     );
-  }, [evidenceSnapshots, sustainmentRecords, controlHandoffs, processHubs, sortedProjects]);
+  }, [evidenceSnapshots, controlRecords, controlHandoffs, processHubs, sortedProjects]);
 
   const visibleProjects = useMemo(() => {
     const normalizedSearchQuery = searchQuery.trim().toLowerCase();
@@ -236,10 +231,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const handleLogReview = useCallback(
     (recordId: string) => {
-      const record = sustainmentRecords.find(r => r.id === recordId);
+      const record = controlRecords.find(r => r.id === recordId);
       if (record) onOpenProject(record.investigationId);
     },
-    [sustainmentRecords, onOpenProject]
+    [controlRecords, onOpenProject]
   );
 
   const handleResponsePathAction = useCallback(

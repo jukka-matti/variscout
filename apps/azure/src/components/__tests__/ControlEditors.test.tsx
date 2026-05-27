@@ -16,10 +16,10 @@ vi.mock('../../services/storage', () => ({
   }),
 }));
 
-import SustainmentRecordEditor from '../SustainmentRecordEditor';
-import SustainmentReviewLogger from '../SustainmentReviewLogger';
+import ControlRecordEditor from '../ControlRecordEditor';
+import ControlReviewLogger from '../ControlReviewLogger';
 import ControlHandoffEditor from '../ControlHandoffEditor';
-import type { SustainmentRecord } from '@variscout/core';
+import type { ControlRecord } from '@variscout/core';
 import type { EasyAuthUser } from '../../auth/types';
 
 const FIXTURE_USER: EasyAuthUser = {
@@ -40,15 +40,15 @@ beforeEach(() => {
   mockListSustainmentRecords.mockResolvedValue([]);
 });
 
-// ── SustainmentRecordEditor ───────────────────────────────────────────────
+// ── ControlRecordEditor ───────────────────────────────────────────────
 
-describe('SustainmentRecordEditor', () => {
+describe('ControlRecordEditor', () => {
   it('fills form, submits, and calls saveSustainmentRecord + onSave with correct payload', async () => {
     const onSave = vi.fn();
     const onCancel = vi.fn();
 
     render(
-      <SustainmentRecordEditor
+      <ControlRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
@@ -84,7 +84,7 @@ describe('SustainmentRecordEditor', () => {
 
   it('prefills the owner field with currentUser.name when no existing record', () => {
     render(
-      <SustainmentRecordEditor
+      <ControlRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
@@ -100,7 +100,7 @@ describe('SustainmentRecordEditor', () => {
     const onCancel = vi.fn();
 
     render(
-      <SustainmentRecordEditor
+      <ControlRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
@@ -116,7 +116,7 @@ describe('SustainmentRecordEditor', () => {
 
   it('auto-suggests next-review-due from cadence on initial mount (no existing record)', () => {
     render(
-      <SustainmentRecordEditor
+      <ControlRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
@@ -132,7 +132,7 @@ describe('SustainmentRecordEditor', () => {
 
   it('updates next-review-due when cadence changes if user has not edited the date', () => {
     render(
-      <SustainmentRecordEditor
+      <ControlRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
@@ -149,7 +149,7 @@ describe('SustainmentRecordEditor', () => {
 
   it('preserves user-edited next-review-due when cadence changes after manual edit', () => {
     render(
-      <SustainmentRecordEditor
+      <ControlRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
@@ -164,9 +164,9 @@ describe('SustainmentRecordEditor', () => {
   });
 
   it("preserves an existing record's next-review-due when cadence changes (treated as user-set)", () => {
-    const existingRecord: SustainmentRecord = {
+    const existingRecord: ControlRecord = {
       id: 'rec-existing',
-      title: 'Sustainment cadence',
+      title: 'Control cadence',
       investigationId: 'inv-abc',
       hubId: 'hub-1',
       status: 'pending',
@@ -180,7 +180,7 @@ describe('SustainmentRecordEditor', () => {
       deletedAt: null,
     };
     render(
-      <SustainmentRecordEditor
+      <ControlRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
@@ -197,7 +197,7 @@ describe('SustainmentRecordEditor', () => {
 
   it('sets a min attribute equal to today on the next-review-due input', () => {
     render(
-      <SustainmentRecordEditor
+      <ControlRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
@@ -220,7 +220,7 @@ describe('SustainmentRecordEditor', () => {
     );
 
     render(
-      <SustainmentRecordEditor
+      <ControlRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
@@ -242,12 +242,12 @@ describe('SustainmentRecordEditor', () => {
   });
 });
 
-// ── SustainmentReviewLogger ───────────────────────────────────────────────
+// ── ControlReviewLogger ───────────────────────────────────────────────
 
-describe('SustainmentReviewLogger', () => {
-  const baseRecord: SustainmentRecord = {
+describe('ControlReviewLogger', () => {
+  const baseRecord: ControlRecord = {
     id: 'rec-1',
-    title: 'Sustainment cadence',
+    title: 'Control cadence',
     investigationId: 'inv-abc',
     hubId: 'hub-1',
     status: 'pending',
@@ -266,7 +266,7 @@ describe('SustainmentReviewLogger', () => {
 
     const onSave = vi.fn();
     render(
-      <SustainmentReviewLogger
+      <ControlReviewLogger
         recordId="rec-1"
         investigationId="inv-abc"
         hubId="hub-1"
@@ -313,12 +313,12 @@ describe('SustainmentReviewLogger', () => {
   });
 
   it('does not set nextReviewDue on the updated record when cadence is on-demand', async () => {
-    const onDemandRecord: SustainmentRecord = { ...baseRecord, cadence: 'on-demand' };
+    const onDemandRecord: ControlRecord = { ...baseRecord, cadence: 'on-demand' };
     mockListSustainmentRecords.mockResolvedValue([onDemandRecord]);
 
     const onSave = vi.fn();
     render(
-      <SustainmentReviewLogger
+      <ControlReviewLogger
         recordId="rec-1"
         investigationId="inv-abc"
         hubId="hub-1"
@@ -390,9 +390,9 @@ describe('ControlHandoffEditor', () => {
   });
 
   it('updates relatedRecord.controlHandoffId after saving the handoff', async () => {
-    const relatedRecord: SustainmentRecord = {
+    const relatedRecord: ControlRecord = {
       id: 'rec-1',
-      title: 'Sustainment cadence',
+      title: 'Control cadence',
       investigationId: 'inv-abc',
       hubId: 'hub-1',
       status: 'pending',

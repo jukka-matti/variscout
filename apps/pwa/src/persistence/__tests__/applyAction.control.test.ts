@@ -4,7 +4,7 @@ import type {
   ControlHandoff,
   EvidenceSnapshot,
   RowProvenanceTag,
-  SustainmentRecord,
+  ControlRecord,
 } from '@variscout/core';
 import type { ProcessHub } from '@variscout/core/processHub';
 import { applyAction } from '../applyAction';
@@ -24,8 +24,8 @@ function makeHub(id: string): ProcessHub {
 function makeRecord(
   id: string,
   hubId: string,
-  overrides: Partial<SustainmentRecord> = {}
-): SustainmentRecord {
+  overrides: Partial<ControlRecord> = {}
+): ControlRecord {
   return {
     id,
     title: 'Hold improved fill weight',
@@ -77,8 +77,8 @@ function makeTag(id: string): RowProvenanceTag {
 beforeEach(async () => {
   await Promise.all([
     db.hubs.clear(),
-    db.sustainmentRecords.clear(),
-    db.sustainmentReviews.clear(),
+    db.controlRecords.clear(),
+    db.controlReviews.clear(),
     db.controlHandoffs.clear(),
     db.evidenceSnapshots.clear(),
     db.rowProvenance.clear(),
@@ -88,8 +88,8 @@ beforeEach(async () => {
 afterEach(async () => {
   await Promise.all([
     db.hubs.clear(),
-    db.sustainmentRecords.clear(),
-    db.sustainmentReviews.clear(),
+    db.controlRecords.clear(),
+    db.controlReviews.clear(),
     db.controlHandoffs.clear(),
     db.evidenceSnapshots.clear(),
     db.rowProvenance.clear(),
@@ -125,11 +125,11 @@ describe('applyAction — sustainment records', () => {
     });
     await applyAction(db, { kind: 'SUSTAINMENT_RECORD_ARCHIVE', recordId: 'record-1' });
 
-    const stored = await db.sustainmentRecords.get('record-1');
+    const stored = await db.controlRecords.get('record-1');
     expect(stored?.targetSummary).toBe('Cpk >= 1.33');
     expect(stored?.lastEvaluatedSnapshotId).toBe('snapshot-1');
     expect(stored?.deletedAt).toEqual(expect.any(Number));
-    expect(await db.sustainmentReviews.get('review-1')).toMatchObject({
+    expect(await db.controlReviews.get('review-1')).toMatchObject({
       recordId: 'record-1',
       verdict: 'holding',
     });
@@ -146,7 +146,7 @@ describe('applyAction — sustainment records', () => {
       })
     ).rejects.toThrow(/hubId mismatch/);
 
-    expect(await db.sustainmentRecords.get('record-mismatch')).toBeUndefined();
+    expect(await db.controlRecords.get('record-mismatch')).toBeUndefined();
   });
 
   it('evaluates live records when evidence snapshots are added', async () => {
@@ -174,11 +174,11 @@ describe('applyAction — sustainment records', () => {
       provenance: [makeTag('tag-1')],
     });
 
-    const record = await db.sustainmentRecords.get('record-2');
+    const record = await db.controlRecords.get('record-2');
     expect(record?.status).toBe('confirmed-sustained');
     expect(record?.consecutiveOnTargetTicks).toBe(4);
     expect(record?.lastEvaluatedSnapshotId).toBe('snapshot-green');
-    const reviews = await db.sustainmentReviews.where('recordId').equals('record-2').toArray();
+    const reviews = await db.controlReviews.where('recordId').equals('record-2').toArray();
     expect(reviews).toHaveLength(1);
     expect(reviews[0]).toMatchObject({ snapshotId: 'snapshot-green', verdict: 'holding' });
     expect(await db.rowProvenance.where('snapshotId').equals('snapshot-green').count()).toBe(1);

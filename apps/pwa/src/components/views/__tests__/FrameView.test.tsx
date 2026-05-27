@@ -209,7 +209,7 @@ vi.mock('../../../features/panels/panelsStore', () => ({
       showImprovement: showImprovementMock,
       showAnalyze: showAnalyzeMock,
       showCharter: showCharterMock,
-      showSustainment: showSustainmentMock,
+      showControl: showSustainmentMock,
     }),
   }),
 }));
@@ -231,7 +231,7 @@ vi.mock('../../../persistence', () => ({
     actionItems: {
       listByHub: hoisted.actionItemsListByHubMock,
     },
-    sustainmentRecords: {
+    controlRecords: {
       listByHub: hoisted.sustainmentRecordsListByHubMock,
     },
     controlHandoffs: {

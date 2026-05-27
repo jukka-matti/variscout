@@ -1,8 +1,8 @@
 import React from 'react';
-import type { SustainmentRecord, ControlHandoff } from '@variscout/core';
+import type { ControlRecord, ControlHandoff } from '@variscout/core';
 
 interface SustainmentSectionsProps {
-  record: SustainmentRecord;
+  record: ControlRecord;
   onOpenLegacy?: () => void;
   /** Optional ControlHandoff entity when closure is in progress. */
   controlHandoff?: ControlHandoff;
@@ -10,7 +10,7 @@ interface SustainmentSectionsProps {
   onOpenLegacyHandoff?: () => void;
 }
 
-const SustainmentSections: React.FC<SustainmentSectionsProps> = ({
+const ControlSections: React.FC<SustainmentSectionsProps> = ({
   record,
   onOpenLegacy,
   controlHandoff,
@@ -23,12 +23,12 @@ const SustainmentSections: React.FC<SustainmentSectionsProps> = ({
   return (
     <div className="space-y-4">
       <div className="text-xs font-semibold uppercase tracking-wide text-[var(--vs-accent)]">
-        Sustainment record · {record.title}
+        Control record · {record.title}
       </div>
       <p className="rounded-md bg-slate-50 p-3 text-xs text-content-secondary">
-        The Sustainment authoring form (cadence picker, override toggle, latest review) is reachable
-        today via the legacy Sustainment activeView. This Sections-mode embedding will inline the
-        same form in a follow-up plan; for V1 we link out.
+        The Control authoring form (cadence picker, override toggle, latest review) is reachable
+        today via the legacy Control activeView. This Sections-mode embedding will inline the same
+        form in a follow-up plan; for V1 we link out.
       </p>
       <button
         type="button"
@@ -36,7 +36,7 @@ const SustainmentSections: React.FC<SustainmentSectionsProps> = ({
         className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-100"
         data-testid="sustainment-open-legacy"
       >
-        Open legacy Sustainment panel
+        Open legacy Control panel
       </button>
 
       {controlHandoff && (
@@ -63,4 +63,4 @@ const SustainmentSections: React.FC<SustainmentSectionsProps> = ({
   );
 };
 
-export default SustainmentSections;
+export default ControlSections;

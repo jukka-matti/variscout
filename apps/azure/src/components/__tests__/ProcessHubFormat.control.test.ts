@@ -78,7 +78,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
         investigations: investigationStatuses.map(s => ({
           metadata: s ? { analyzeStatus: s } : undefined,
         })),
-        sustainmentRecords: records.map(r => ({ deletedAt: null, ...r })),
+        controlRecords: records.map(r => ({ deletedAt: null, ...r })),
         evidenceSnapshots: evidenceSnapshots ?? [],
       }) as unknown as ProcessHubRollup<ProcessHubAnalyze>;
 

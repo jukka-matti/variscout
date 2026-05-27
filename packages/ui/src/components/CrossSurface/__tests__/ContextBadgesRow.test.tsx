@@ -43,7 +43,7 @@ describe('ContextBadgesRow', () => {
       screen.getByRole('button', { name: 'Improvement projects: 1 linked item' })
     ).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Wall threads: 2 linked items' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Sustainment: 2 linked items' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Control: 2 linked items' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Quick actions: 0 linked items' })).toBeNull();
   });
 

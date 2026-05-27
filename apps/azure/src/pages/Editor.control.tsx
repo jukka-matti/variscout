@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import type { SustainmentRecord } from '@variscout/core';
-import SustainmentRecordEditor from '../components/SustainmentRecordEditor';
+import type { ControlRecord } from '@variscout/core';
+import ControlRecordEditor from '../components/ControlRecordEditor';
 import { getEasyAuthUser } from '../auth/easyAuth';
 import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
-export interface SustainmentEntryRowProps {
+export interface ControlEntryRowProps {
   investigationId: string | null;
   hubId: string;
 }
 
-export const SustainmentEntryRow: React.FC<SustainmentEntryRowProps> = ({
-  investigationId,
-  hubId,
-}) => {
+export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ investigationId, hubId }) => {
   const { listSustainmentRecords } = useStorage();
   const [isEditing, setIsEditing] = useState(false);
   const [confirmation, setConfirmation] = useState<string | null>(null);
-  const [existingRecord, setExistingRecord] = useState<SustainmentRecord | null>(null);
+  const [existingRecord, setExistingRecord] = useState<ControlRecord | null>(null);
   const [currentUser, setCurrentUser] = useState<EasyAuthUser | null>(null);
 
   useEffect(() => {
@@ -64,16 +61,14 @@ export const SustainmentEntryRow: React.FC<SustainmentEntryRowProps> = ({
   if (isEditing && currentUser) {
     return (
       <div className="mt-3">
-        <SustainmentRecordEditor
+        <ControlRecordEditor
           investigationId={investigationId}
           hubId={hubId}
           currentUser={currentUser}
           existingRecord={existingRecord ?? undefined}
           onSave={() => {
             setIsEditing(false);
-            setConfirmation(
-              existingRecord ? 'Sustainment cadence updated.' : 'Sustainment cadence saved.'
-            );
+            setConfirmation(existingRecord ? 'Control cadence updated.' : 'Control cadence saved.');
           }}
           onCancel={() => setIsEditing(false)}
         />

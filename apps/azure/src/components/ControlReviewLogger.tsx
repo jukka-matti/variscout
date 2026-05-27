@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { SustainmentCadence, SustainmentReview, SustainmentVerdict } from '@variscout/core';
+import type { ControlCadence, ControlReview, ControlVerdict } from '@variscout/core';
 import { nextDueFromCadence } from '@variscout/core';
 import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
@@ -11,19 +11,19 @@ export interface SustainmentReviewLoggerProps {
   currentUser: EasyAuthUser;
   reviewerDisplayName: string;
   latestSnapshotId?: string;
-  cadence: SustainmentCadence;
-  onSave: (review: SustainmentReview) => void;
+  cadence: ControlCadence;
+  onSave: (review: ControlReview) => void;
   onCancel: () => void;
 }
 
-const VERDICTS: { value: SustainmentVerdict; label: string }[] = [
+const VERDICTS: { value: ControlVerdict; label: string }[] = [
   { value: 'holding', label: 'Holding' },
   { value: 'drifting', label: 'Drifting' },
   { value: 'broken', label: 'Broken' },
   { value: 'inconclusive', label: 'Inconclusive' },
 ];
 
-const SustainmentReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
+const ControlReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
   recordId,
   investigationId,
   hubId,
@@ -36,7 +36,7 @@ const SustainmentReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
 }) => {
   const storage = useStorage();
 
-  const [verdict, setVerdict] = useState<SustainmentVerdict>('holding');
+  const [verdict, setVerdict] = useState<ControlVerdict>('holding');
   const [observation, setObservation] = useState('');
   const [snapshotId, setSnapshotId] = useState(latestSnapshotId ?? '');
   const [escalatedInvestigationId, setEscalatedInvestigationId] = useState('');
@@ -46,7 +46,7 @@ const SustainmentReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
 
     const nowMs = Date.now();
 
-    const review: SustainmentReview = {
+    const review: ControlReview = {
       id: crypto.randomUUID(),
       recordId,
       investigationId,
@@ -180,4 +180,4 @@ const SustainmentReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
   );
 };
 
-export default SustainmentReviewLogger;
+export default ControlReviewLogger;

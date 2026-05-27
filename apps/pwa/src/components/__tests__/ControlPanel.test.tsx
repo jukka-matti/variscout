@@ -1,17 +1,17 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ProcessHub, SustainmentRecord, SustainmentReview } from '@variscout/core';
+import type { ProcessHub, ControlRecord, ControlReview } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import SustainmentPanel from '../SustainmentPanel';
+import ControlPanel from '../ControlPanel';
 import { pwaHubRepository } from '../../persistence';
 
 vi.mock('@variscout/ui', async () => {
   const React = await import('react');
   return {
-    SustainmentForm: (props: {
-      record: SustainmentRecord;
-      reviews?: SustainmentReview[];
-      onRecordChange?: (patch: Partial<SustainmentRecord>) => void;
+    ControlForm: (props: {
+      record: ControlRecord;
+      reviews?: ControlReview[];
+      onRecordChange?: (patch: Partial<ControlRecord>) => void;
     }) =>
       React.createElement(
         'section',
@@ -34,10 +34,10 @@ vi.mock('@variscout/ui', async () => {
 vi.mock('../../persistence', () => ({
   pwaHubRepository: {
     dispatch: vi.fn().mockResolvedValue(undefined),
-    sustainmentRecords: {
+    controlRecords: {
       listByHub: vi.fn().mockResolvedValue([]),
     },
-    sustainmentReviews: {
+    controlReviews: {
       listByRecord: vi.fn().mockResolvedValue([]),
     },
   },
@@ -79,13 +79,13 @@ function makeHub(projects: ImprovementProject[] = [makeProject()]): ProcessHub {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(pwaHubRepository.dispatch).mockResolvedValue(undefined);
-  vi.mocked(pwaHubRepository.sustainmentRecords.listByHub).mockResolvedValue([]);
-  vi.mocked(pwaHubRepository.sustainmentReviews.listByRecord).mockResolvedValue([]);
+  vi.mocked(pwaHubRepository.controlRecords.listByHub).mockResolvedValue([]);
+  vi.mocked(pwaHubRepository.controlReviews.listByRecord).mockResolvedValue([]);
 });
 
-describe('SustainmentPanel (PWA)', () => {
+describe('ControlPanel (PWA)', () => {
   it('creates a sustainment record for the active hub and carries forward the first closed project goal', async () => {
-    render(<SustainmentPanel activeHub={makeHub()} onBack={vi.fn()} />);
+    render(<ControlPanel activeHub={makeHub()} onBack={vi.fn()} />);
 
     await waitFor(() => expect(pwaHubRepository.dispatch).toHaveBeenCalledTimes(1));
     expect(pwaHubRepository.dispatch).toHaveBeenCalledWith(
@@ -107,7 +107,7 @@ describe('SustainmentPanel (PWA)', () => {
   });
 
   it('selects an existing live record, reads reviews through the repository, and persists edits by dispatch', async () => {
-    const record: SustainmentRecord = {
+    const record: ControlRecord = {
       id: 'sr-1',
       hubId: 'hub-1',
       investigationId: 'inv-1',
@@ -121,8 +121,8 @@ describe('SustainmentPanel (PWA)', () => {
       updatedAt: 1714000000000,
       deletedAt: null,
     };
-    vi.mocked(pwaHubRepository.sustainmentRecords.listByHub).mockResolvedValue([record]);
-    vi.mocked(pwaHubRepository.sustainmentReviews.listByRecord).mockResolvedValue([
+    vi.mocked(pwaHubRepository.controlRecords.listByHub).mockResolvedValue([record]);
+    vi.mocked(pwaHubRepository.controlReviews.listByRecord).mockResolvedValue([
       {
         id: 'review-1',
         recordId: 'sr-1',
@@ -136,7 +136,7 @@ describe('SustainmentPanel (PWA)', () => {
       },
     ]);
 
-    render(<SustainmentPanel activeHub={makeHub()} onBack={vi.fn()} />);
+    render(<ControlPanel activeHub={makeHub()} onBack={vi.fn()} />);
 
     await waitFor(() =>
       expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Reviews 1')
@@ -168,11 +168,7 @@ describe('SustainmentPanel (PWA)', () => {
     });
 
     render(
-      <SustainmentPanel
-        activeHub={makeHub([first, second])}
-        targetId="ip-second"
-        onBack={vi.fn()}
-      />
+      <ControlPanel activeHub={makeHub([first, second])} targetId="ip-second" onBack={vi.fn()} />
     );
 
     await waitFor(() =>

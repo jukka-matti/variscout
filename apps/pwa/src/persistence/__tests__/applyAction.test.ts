@@ -11,7 +11,7 @@
 
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SustainmentRecord, SustainmentReview } from '@variscout/core';
+import type { ControlRecord, ControlReview } from '@variscout/core';
 import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { HubAction } from '@variscout/core/actions';
@@ -58,7 +58,7 @@ function makeProcessMap(overrides: Partial<ProcessMap> = {}): ProcessMap {
   };
 }
 
-function makeSustainmentRecord(id: string, hubId: string): SustainmentRecord {
+function makeSustainmentRecord(id: string, hubId: string): ControlRecord {
   return {
     id,
     hubId,
@@ -75,7 +75,7 @@ function makeSustainmentRecord(id: string, hubId: string): SustainmentRecord {
   };
 }
 
-function makeSustainmentReview(id: string, recordId: string, hubId: string): SustainmentReview {
+function makeSustainmentReview(id: string, recordId: string, hubId: string): ControlReview {
   return {
     id,
     recordId,
@@ -98,8 +98,8 @@ beforeEach(async () => {
   await db.outcomes.clear();
   await db.canvasState.clear();
   await db.actionItems.clear();
-  await db.sustainmentRecords.clear();
-  await db.sustainmentReviews.clear();
+  await db.controlRecords.clear();
+  await db.controlReviews.clear();
   await db.measurementPlans.clear();
 });
 
@@ -108,8 +108,8 @@ afterEach(async () => {
   await db.outcomes.clear();
   await db.canvasState.clear();
   await db.actionItems.clear();
-  await db.sustainmentRecords.clear();
-  await db.sustainmentReviews.clear();
+  await db.controlRecords.clear();
+  await db.controlReviews.clear();
   await db.measurementPlans.clear();
   vi.restoreAllMocks();
 });
@@ -151,54 +151,54 @@ describe('applyAction — HUB_PERSIST_SNAPSHOT', () => {
     const record = makeSustainmentRecord('sr-1', 'hub-s');
     const review = makeSustainmentReview('rev-1', 'sr-1', 'hub-s');
     const hub = makeHub('hub-s', {
-      sustainmentRecords: [record],
-      sustainmentReviews: [review],
+      controlRecords: [record],
+      controlReviews: [review],
     } as Partial<ProcessHub>);
 
     await applyAction(db, { kind: 'HUB_PERSIST_SNAPSHOT', hub });
 
     const hubRow = await db.hubs.get('hub-s');
-    expect((hubRow as Partial<ProcessHub> | undefined)?.sustainmentRecords).toBeUndefined();
-    expect((hubRow as Partial<ProcessHub> | undefined)?.sustainmentReviews).toBeUndefined();
+    expect((hubRow as Partial<ProcessHub> | undefined)?.controlRecords).toBeUndefined();
+    expect((hubRow as Partial<ProcessHub> | undefined)?.controlReviews).toBeUndefined();
     expect(
-      (await db.sustainmentRecords.where('hubId').equals('hub-s').toArray()).map(r => r.id)
+      (await db.controlRecords.where('hubId').equals('hub-s').toArray()).map(r => r.id)
     ).toEqual(['sr-1']);
     expect(
-      (await db.sustainmentReviews.where('hubId').equals('hub-s').toArray()).map(r => r.id)
+      (await db.controlReviews.where('hubId').equals('hub-s').toArray()).map(r => r.id)
     ).toEqual(['rev-1']);
   });
 
   it('removes stale sustainment rows when re-persisting with a smaller snapshot', async () => {
-    await db.sustainmentRecords.put(makeSustainmentRecord('sr-stale', 'hub-stale'));
-    await db.sustainmentReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-stale'));
+    await db.controlRecords.put(makeSustainmentRecord('sr-stale', 'hub-stale'));
+    await db.controlReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-stale'));
 
     await applyAction(db, {
       kind: 'HUB_PERSIST_SNAPSHOT',
       hub: makeHub('hub-stale', {
-        sustainmentRecords: [makeSustainmentRecord('sr-keep', 'hub-stale')],
-        sustainmentReviews: [makeSustainmentReview('rev-keep', 'sr-keep', 'hub-stale')],
+        controlRecords: [makeSustainmentRecord('sr-keep', 'hub-stale')],
+        controlReviews: [makeSustainmentReview('rev-keep', 'sr-keep', 'hub-stale')],
       } as Partial<ProcessHub>),
     });
 
     expect(
-      (await db.sustainmentRecords.where('hubId').equals('hub-stale').toArray()).map(r => r.id)
+      (await db.controlRecords.where('hubId').equals('hub-stale').toArray()).map(r => r.id)
     ).toEqual(['sr-keep']);
     expect(
-      (await db.sustainmentReviews.where('hubId').equals('hub-stale').toArray()).map(r => r.id)
+      (await db.controlReviews.where('hubId').equals('hub-stale').toArray()).map(r => r.id)
     ).toEqual(['rev-keep']);
   });
 
   it('removes stale sustainment rows when a snapshot omits sustainment arrays', async () => {
-    await db.sustainmentRecords.put(makeSustainmentRecord('sr-stale', 'hub-empty'));
-    await db.sustainmentReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-empty'));
+    await db.controlRecords.put(makeSustainmentRecord('sr-stale', 'hub-empty'));
+    await db.controlReviews.put(makeSustainmentReview('rev-stale', 'sr-stale', 'hub-empty'));
 
     await applyAction(db, {
       kind: 'HUB_PERSIST_SNAPSHOT',
       hub: makeHub('hub-empty'),
     });
 
-    expect(await db.sustainmentRecords.where('hubId').equals('hub-empty').count()).toBe(0);
-    expect(await db.sustainmentReviews.where('hubId').equals('hub-empty').count()).toBe(0);
+    expect(await db.controlRecords.where('hubId').equals('hub-empty').count()).toBe(0);
+    expect(await db.controlReviews.where('hubId').equals('hub-empty').count()).toBe(0);
   });
 
   it('persists a hub with no outcomes — outcomes table stays empty', async () => {

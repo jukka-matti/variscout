@@ -53,7 +53,7 @@ const LENS_LABELS: Record<ProcessStateLens, string> = {
   flow: 'Flow',
   conversion: 'Conversion',
   measurement: 'Measurement',
-  sustainment: 'Sustainment',
+  sustainment: 'Control',
 };
 
 const RESPONSE_LABELS: Record<ProcessStateResponsePath, string> = {
@@ -62,7 +62,7 @@ const RESPONSE_LABELS: Record<ProcessStateResponsePath, string> = {
   'focused-investigation': 'Focused investigation',
   'chartered-project': 'Chartered project',
   'measurement-system-work': 'Measurement system work',
-  'sustainment-review': 'Sustainment review',
+  'sustainment-review': 'Control review',
 };
 
 const SEVERITY_LABELS: Record<ProcessStateSeverity, string> = {

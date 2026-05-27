@@ -1,10 +1,10 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import type { SustainmentRecord } from '@variscout/core';
-import SustainmentOverview, { type SustainmentClosureInputs } from '../SustainmentOverview';
+import type { ControlRecord } from '@variscout/core';
+import ControlOverview, { type ControlClosureInputs } from '../ControlOverview';
 
-const record: SustainmentRecord = {
+const record: ControlRecord = {
   id: 'sr-1',
   createdAt: 0,
   deletedAt: null,
@@ -20,22 +20,22 @@ const record: SustainmentRecord = {
   lastEvaluatedSnapshotId: undefined,
 };
 
-const allDone: SustainmentClosureInputs = {
+const allDone: ControlClosureInputs = {
   controlPlanDocumented: true,
   trainingDelivered: true,
   cadenceAssigned: true,
   processOwnerAcknowledged: true,
 };
 
-const pendingAck: SustainmentClosureInputs = {
+const pendingAck: ControlClosureInputs = {
   ...allDone,
   processOwnerAcknowledged: false,
 };
 
-describe('SustainmentOverview', () => {
+describe('ControlOverview', () => {
   it('renders 4 cadence tick pills matching consecutiveOnTargetTicks', () => {
     render(
-      <SustainmentOverview
+      <ControlOverview
         record={record}
         onStartHandoff={() => {}}
         onOpenProcess={() => {}}
@@ -47,7 +47,7 @@ describe('SustainmentOverview', () => {
 
   it('enables Start Handoff CTA when consecutiveOnTargetTicks >= 4', () => {
     render(
-      <SustainmentOverview
+      <ControlOverview
         record={record}
         onStartHandoff={() => {}}
         onOpenProcess={() => {}}
@@ -58,9 +58,9 @@ describe('SustainmentOverview', () => {
   });
 
   it('disables Start Handoff CTA when fewer than 4 ticks', () => {
-    const r2: SustainmentRecord = { ...record, consecutiveOnTargetTicks: 2 };
+    const r2: ControlRecord = { ...record, consecutiveOnTargetTicks: 2 };
     render(
-      <SustainmentOverview
+      <ControlOverview
         record={r2}
         onStartHandoff={() => {}}
         onOpenProcess={() => {}}
@@ -73,7 +73,7 @@ describe('SustainmentOverview', () => {
   it('calls onStartHandoff when CTA clicked', () => {
     const onStart = vi.fn();
     render(
-      <SustainmentOverview
+      <ControlOverview
         record={record}
         onStartHandoff={onStart}
         onOpenProcess={() => {}}
@@ -86,13 +86,13 @@ describe('SustainmentOverview', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Sustainment closure panel (folded in from former Handoff stage)
+// Control closure panel (folded in from former Handoff stage)
 // ---------------------------------------------------------------------------
 
-describe('SustainmentOverview — closure panel', () => {
+describe('ControlOverview — closure panel', () => {
   it('shows 4 of 4 items complete when all done', () => {
     render(
-      <SustainmentOverview
+      <ControlOverview
         record={record}
         onStartHandoff={() => {}}
         onOpenProcess={() => {}}
@@ -105,7 +105,7 @@ describe('SustainmentOverview — closure panel', () => {
 
   it('shows 3 of 4 items complete when process-owner acknowledgment is pending', () => {
     render(
-      <SustainmentOverview
+      <ControlOverview
         record={record}
         onStartHandoff={() => {}}
         onOpenProcess={() => {}}
@@ -119,7 +119,7 @@ describe('SustainmentOverview — closure panel', () => {
   it('calls onNudgeOwner when Nudge clicked on pending acknowledgment', () => {
     const onNudge = vi.fn();
     render(
-      <SustainmentOverview
+      <ControlOverview
         record={record}
         onStartHandoff={() => {}}
         onOpenProcess={() => {}}
@@ -134,13 +134,13 @@ describe('SustainmentOverview — closure panel', () => {
 
   it('does not render closure panel when closureInputs is absent', () => {
     render(
-      <SustainmentOverview
+      <ControlOverview
         record={record}
         onStartHandoff={() => {}}
         onOpenProcess={() => {}}
         onOpenAnalyze={() => {}}
       />
     );
-    expect(screen.queryByText(/Sustainment closure/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Control closure/i)).not.toBeInTheDocument();
   });
 });

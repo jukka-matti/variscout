@@ -72,7 +72,7 @@ const BucketSection: React.FC<BucketSectionProps> = ({
   </div>
 );
 
-const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = ({
+const ProcessHubControlRegion: React.FC<ProcessHubSustainmentRegionProps> = ({
   cadence: _cadence,
   rollup,
   onOpenInvestigation,
@@ -83,7 +83,7 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
 
   const buckets = selectSustainmentBuckets(
     rollup.investigations,
-    rollup.sustainmentRecords,
+    rollup.controlRecords,
     rollup.controlHandoffs,
     renderDate
   );
@@ -127,7 +127,7 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
     buckets.dueNow.length + buckets.overdue.length + buckets.recentlyReviewed.length;
 
   return (
-    <section className="space-y-3" data-testid="sustainment-region" aria-label="Sustainment region">
+    <section className="space-y-3" data-testid="sustainment-region" aria-label="Control region">
       {buckets.overdue.length > 0 && (
         <BucketSection
           label="Overdue"
@@ -144,7 +144,7 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
 
       {buckets.dueNow.length > 0 && (
         <BucketSection
-          label="Sustainment due"
+          label="Control due"
           count={buckets.dueNow.length}
           icon={<ShieldCheck size={14} className="text-amber-400" />}
           items={buckets.dueNow}
@@ -207,4 +207,4 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
   );
 };
 
-export default ProcessHubSustainmentRegion;
+export default ProcessHubControlRegion;

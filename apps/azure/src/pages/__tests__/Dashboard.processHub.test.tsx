@@ -247,7 +247,7 @@ describe('Dashboard Process Hub home', () => {
     expect(
       within(panel).getAllByText('Compare post-action Cpk after the next batch.').length
     ).toBeGreaterThan(0);
-    expect(within(panel).getAllByText('Sustainment').length).toBeGreaterThan(0);
+    expect(within(panel).getAllByText('Control').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Nozzle replacement verified').length).toBeGreaterThan(0);
     expect(
       within(panel).getByLabelText('Set up sustainment cadence for Nozzle replacement verified')

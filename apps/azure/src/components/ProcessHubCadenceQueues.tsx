@@ -18,7 +18,7 @@ import {
   formatStatus,
   formatTopFocus,
 } from './ProcessHubFormat';
-import ProcessHubSustainmentRegion from './ProcessHubSustainmentRegion';
+import ProcessHubControlRegion from './ProcessHubControlRegion';
 
 interface ProcessHubCadenceQueuesProps {
   cadence: ProcessHubCadenceSummary<ProcessHubAnalyze>;
@@ -338,7 +338,7 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
               )}
             </QueueSection>
 
-            <ProcessHubSustainmentRegion
+            <ProcessHubControlRegion
               cadence={cadence}
               rollup={rollup}
               onOpenInvestigation={onOpenInvestigation}
