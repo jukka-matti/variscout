@@ -78,8 +78,8 @@ export const GLOSSARY_CATEGORIES: Record<GlossaryCategory, CategoryMeta> = {
     color: '#f59e0b',
     colorClass: 'text-amber-500',
   },
-  investigation: {
-    name: 'Investigation',
+  analyze: {
+    name: 'Analyze',
     description: 'Tools and workflows for root cause analysis and corrective action tracking',
     icon: '🔍',
     color: '#06b6d4',
@@ -726,7 +726,7 @@ export function getGlossaryByCategory(): Record<GlossaryCategory, GlossaryTerm[]
     statistics: [],
     charts: [],
     methodology: [],
-    investigation: [],
+    analyze: [],
   };
 
   for (const term of glossaryTerms) {

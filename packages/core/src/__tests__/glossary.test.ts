@@ -39,15 +39,15 @@ describe('glossary terms', () => {
   });
 });
 
-describe('investigation terms', () => {
-  const investigationTerms = glossaryTerms.filter(t => t.category === 'investigation');
+describe('analyze terms', () => {
+  const analyzeTerms = glossaryTerms.filter(t => t.category === 'analyze');
 
-  it('has investigation category terms', () => {
-    expect(investigationTerms.length).toBeGreaterThanOrEqual(8);
+  it('has analyze category terms', () => {
+    expect(analyzeTerms.length).toBeGreaterThanOrEqual(8);
   });
 
-  it('includes key investigation terms', () => {
-    const ids = investigationTerms.map(t => t.id);
+  it('includes key analyze terms', () => {
+    const ids = analyzeTerms.map(t => t.id);
     expect(ids).toContain('finding');
     expect(ids).toContain('analyzeStatus');
     expect(ids).toContain('keyDriver');
@@ -75,7 +75,7 @@ describe('getTerm', () => {
     const term = getTerm('finding');
     expect(term).toBeDefined();
     expect(term!.label).toBe('Finding');
-    expect(term!.category).toBe('investigation');
+    expect(term!.category).toBe('analyze');
   });
 
   it('returns undefined for unknown ID', () => {
@@ -84,10 +84,10 @@ describe('getTerm', () => {
 });
 
 describe('getTermsByCategory', () => {
-  it('returns investigation terms', () => {
-    const terms = getTermsByCategory('investigation');
+  it('returns analyze terms', () => {
+    const terms = getTermsByCategory('analyze');
     expect(terms.length).toBeGreaterThanOrEqual(8);
-    expect(terms.every(t => t.category === 'investigation')).toBe(true);
+    expect(terms.every(t => t.category === 'analyze')).toBe(true);
   });
 
   it('returns methodology terms (existing + new)', () => {
@@ -105,14 +105,14 @@ describe('buildGlossaryPrompt', () => {
   });
 
   it('filters by category', () => {
-    const prompt = buildGlossaryPrompt(['investigation']);
+    const prompt = buildGlossaryPrompt(['analyze']);
     expect(prompt).toContain('**Finding**');
     expect(prompt).toContain('**Action Item**');
     expect(prompt).not.toContain('**Cp**:'); // capability term
   });
 
   it('filters by multiple categories', () => {
-    const prompt = buildGlossaryPrompt(['investigation', 'capability']);
+    const prompt = buildGlossaryPrompt(['analyze', 'capability']);
     expect(prompt).toContain('**Finding**');
     expect(prompt).toContain('**Cpk**');
   });

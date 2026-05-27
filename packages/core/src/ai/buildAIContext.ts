@@ -156,7 +156,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
   const glossaryCategories: GlossaryCategory[] = ['methodology'];
   if (stats?.cp !== undefined || stats?.cpk !== undefined) glossaryCategories.push('capability');
   if (Object.keys(filters).length > 0) glossaryCategories.push('statistics');
-  if (findings && findings.length > 0) glossaryCategories.push('investigation');
+  if (findings && findings.length > 0) glossaryCategories.push('analyze');
 
   const context: AIContext = {
     process,

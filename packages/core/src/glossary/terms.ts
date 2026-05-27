@@ -289,7 +289,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     relatedTerms: ['boxplot', 'stdDev'],
   },
 
-  // Investigation (5-status workflow + AI grounding)
+  // Analyze (5-status workflow + AI grounding)
   {
     id: 'controlVsSpec',
     label: 'Control vs Spec Limits',
@@ -374,14 +374,14 @@ export const glossaryTerms: GlossaryTerm[] = [
     relatedTerms: ['cpk', 'cp'],
   },
   {
-    id: 'investigationScope',
-    label: 'Investigation Scope',
+    id: 'analyzeScope',
+    label: 'Analyze Scope',
     definition:
-      'How an investigation maps to canonical process-map nodes — either covering many nodes at once or scoped to a single node.',
+      'How an Analyze entry maps to canonical process-map nodes — either covering many nodes at once or scoped to a single node.',
     description:
-      'Same data model handles both: an investigation has nodeMappings linking measurement columns to process-map nodes. A whole-line investigation maps multiple nodes; a single-machine investigation maps one node. Both are first-class. The dashboard responds appropriately to either scope.',
+      'Same data model handles both: an Analyze entry has nodeMappings linking measurement columns to process-map nodes. A whole-line analysis maps multiple nodes; a single-machine analysis maps one node. Both are first-class. The dashboard responds appropriately to either scope.',
     category: 'methodology',
-    learnMorePath: '/learn/investigation-scope',
+    learnMorePath: '/learn/analyze-scope',
     relatedTerms: [],
   },
 
@@ -391,8 +391,8 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Systematic method to identify the fundamental reason a defect or variation occurred, not just its symptoms.',
     description:
-      'Root cause analysis goes beyond the immediate trigger to find the underlying system failure. VariScout identifies WHERE variation concentrates (contribution, not causation) — root cause analysis answers WHY. The investigation workflow supports this through question-driven investigation, Gemba checks, and findings tracking.',
-    category: 'investigation',
+      'Root cause analysis goes beyond the immediate trigger to find the underlying system failure. VariScout identifies WHERE variation concentrates (contribution, not causation) — root cause analysis answers WHY. The Analyze workflow supports this through question-driven analysis, Gemba checks, and findings tracking.',
+    category: 'analyze',
     relatedTerms: ['specialCause', 'finding', 'correctiveAction'],
   },
   {
@@ -402,7 +402,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       'Action taken to eliminate the cause of a detected nonconformity or other undesirable situation.',
     description:
       'Corrective actions address existing problems. They should target the root cause, not just the symptom. In the 5-status workflow, corrective actions are tracked as action items on findings.',
-    category: 'investigation',
+    category: 'analyze',
     relatedTerms: ['preventiveAction', 'rootCauseAnalysis', 'actionItem'],
   },
   {
@@ -412,27 +412,27 @@ export const glossaryTerms: GlossaryTerm[] = [
       'Action taken to eliminate the cause of a potential nonconformity or other undesirable potential situation.',
     description:
       'Preventive actions address problems before they occur. They emerge from trend analysis and findings review — seeing a process drifting toward a limit before it actually fails.',
-    category: 'investigation',
+    category: 'analyze',
     relatedTerms: ['correctiveAction', 'rootCauseAnalysis'],
   },
   {
     id: 'finding',
     label: 'Finding',
     definition:
-      'An analyst observation bookmarked for investigation — captures filter state, statistics, and context at a specific point in the analysis.',
+      'An analyst observation bookmarked for analysis — captures filter state, statistics, and context at a specific point in the workflow.',
     description:
-      'Findings are the building blocks of investigation in VariScout. Each finding snapshots the dashboard state (filters, stats, variation context) so the analyst can return to it later. Findings progress through statuses: observed → investigating → analyzed → improving → resolved.',
-    category: 'investigation',
+      'Findings are the building blocks of Analyze in VariScout. Each finding snapshots the dashboard state (filters, stats, variation context) so the analyst can return to it later. Findings progress through statuses: observed → investigating → analyzed → improving → resolved.',
+    category: 'analyze',
     relatedTerms: ['analyzeStatus', 'actionItem', 'keyDriver'],
   },
   {
     id: 'analyzeStatus',
-    label: 'Investigation Status',
+    label: 'Analyze Status',
     definition:
       'Lifecycle stage of a finding: observed, investigating, analyzed, improving, or resolved.',
     description:
       'The 5-status workflow tracks a finding from initial observation through root cause analysis to verified resolution. Observed: spotted but not yet explored. Investigating: actively being analyzed. Analyzed: suspected root cause identified with classification tag. Improving: corrective actions in progress. Resolved: actions complete and effectiveness verified.',
-    category: 'investigation',
+    category: 'analyze',
     relatedTerms: ['finding', 'actionItem', 'correctiveAction'],
   },
   {
@@ -442,7 +442,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       'A factor identified as a significant source of variation, worthy of corrective action.',
     description:
       'Key drivers are the factors that matter most. In VariScout, a finding tagged as "key-driver" indicates the analyst has confirmed this factor significantly contributes to process variation and should be addressed.',
-    category: 'investigation',
+    category: 'analyze',
     relatedTerms: ['finding', 'etaSquared'],
   },
   {
@@ -452,7 +452,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       'A specific corrective or preventive task assigned to address a finding, with optional assignee and due date.',
     description:
       'Action items track the work needed to resolve a finding. Each item has a completion status. When the first action is added to an analyzed finding, it automatically transitions to "improving" status.',
-    category: 'investigation',
+    category: 'analyze',
     relatedTerms: ['finding', 'correctiveAction', 'analyzeStatus'],
   },
   {
@@ -461,8 +461,8 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Assessment of whether corrective actions were effective: yes, no, or partially effective.',
     description:
-      'The outcome closes the investigation loop. Compare Cpk before and after to quantify improvement. When all actions are complete and an outcome is recorded, the finding transitions to "resolved" status.',
-    category: 'investigation',
+      'The outcome closes the Analyze loop. Compare Cpk before and after to quantify improvement. When all actions are complete and an outcome is recorded, the finding transitions to "resolved" status.',
+    category: 'analyze',
     relatedTerms: ['finding', 'actionItem', 'analyzeStatus', 'cpk'],
   },
   {
@@ -472,7 +472,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       'Background information about the manufacturing process (product, equipment, materials) that helps AI generate relevant analysis narratives.',
     description:
       'Process context grounds AI assistance in domain knowledge. Describing what you are measuring, what equipment produces it, and what factors matter helps the AI narrator explain statistical findings in terms meaningful to your specific process.',
-    category: 'investigation',
+    category: 'analyze',
     relatedTerms: ['finding', 'stratification'],
   },
 
@@ -601,11 +601,11 @@ export const glossaryTerms: GlossaryTerm[] = [
     id: 'question',
     label: 'Question',
     definition:
-      'An investigation question linked to a specific factor, driving systematic root cause exploration. Answered through data, Gemba observation, or expert input.',
+      'An Analyze question linked to a specific factor, driving systematic root cause exploration. Answered through data, Gemba observation, or expert input.',
     description:
-      'Questions are the building blocks of investigation in VariScout. Each question probes why a particular factor drives variation. Answers can be automatic (η² thresholds: ≥15% answered, <5% ruled out, 5-15% investigating), manual via Gemba inspection, or by expert assessment. Multiple questions form a tree structure for systematic root cause exploration.',
-    category: 'investigation',
-    learnMorePath: '/learn/investigation',
+      'Questions are the building blocks of Analyze in VariScout. Each question probes why a particular factor drives variation. Answers can be automatic (η² thresholds: ≥15% answered, <5% ruled out, 5-15% investigating), manual via Gemba inspection, or by expert assessment. Multiple questions form a tree structure for systematic root cause exploration.',
+    category: 'analyze',
+    learnMorePath: '/learn/analyze',
     relatedTerms: ['finding', 'etaSquared', 'rootCauseAnalysis'],
   },
 ];
