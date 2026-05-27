@@ -87,9 +87,9 @@ Strict ordering: B2.2 needs B2.1's `ColumnParsingProfile[]` contract. B2.3 needs
 - `⋮` button (calls `onContextMenuOpen(columnName)` prop; stubbed in B2.2, wired in B2.3)
 - Chip visual states driven by props: `dropped: boolean`, `ghostSuggested?: 'factor' | 'outcome' | 'process'`
 
-**Size:** ~7 tasks.
+**Size:** ~8 tasks.
 
-**Sub-plan:** TBD — written after B2.1 merges so the consumed contract is locked.
+**Sub-plan:** [`2026-05-27-canvas-connection-journey-b2-2-column-chip-palette.md`](./2026-05-27-canvas-connection-journey-b2-2-column-chip-palette.md) — written after B2.1 merged so the consumed contract is locked.
 
 ### PR-CCJ-B2.3 · Override popover + Banner + Context menu (UI)
 
