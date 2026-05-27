@@ -368,6 +368,36 @@ describe('end-to-end drag-end integration (C3 Task 8 — Approach 1)', () => {
   });
 });
 
+describe('EditModeShell — timingByStepId thread-through (D1 Task 9)', () => {
+  it('forwards timingByStepId badges to the ProcessStructureZone StepBoxes', () => {
+    render(
+      <DndContext>
+        <EditModeShell
+          onDone={vi.fn()}
+          steps={[
+            { id: 'mix', name: 'Mix', order: 0 },
+            { id: 'fill', name: 'Fill', order: 1 },
+          ]}
+          timingByStepId={{ mix: <span data-testid="timing-badge-mix">⏱ ~42 min</span> }}
+        />
+      </DndContext>
+    );
+    const mixBox = screen.getByTestId('step-box-mix');
+    expect(mixBox).toContainElement(screen.getByTestId('timing-badge-mix'));
+    expect(screen.queryByTestId('timing-badge-fill')).not.toBeInTheDocument();
+  });
+
+  it('no badge rendered when timingByStepId is omitted', () => {
+    render(
+      <DndContext>
+        <EditModeShell onDone={vi.fn()} steps={[{ id: 'mix', name: 'Mix', order: 0 }]} />
+      </DndContext>
+    );
+    // ProcessStructureZone receives default {} → no badge spans beyond normal markup
+    expect(screen.queryByTestId('timing-badge-mix')).not.toBeInTheDocument();
+  });
+});
+
 describe('EditModeShell — EditModeToolbar wiring (D1 Task 7)', () => {
   it('renders EditModeToolbar between the header and the 3-column grid', () => {
     render(
