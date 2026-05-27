@@ -1,13 +1,21 @@
 import type { DataRow } from '../types';
-import type { ColumnParsingProfile, ParsingInterpretation } from './types';
+import type {
+  ColumnParsingProfile,
+  ParsingInterpretation,
+  ParsingStatus,
+  ParsingAlternative,
+} from './types';
 
 /**
  * Profile every column in the dataset for parsing confidence + alternatives.
  * Pure function — runs deterministically on raw cell values.
  *
- * Detection lanes (in priority order): numeric formats (plain / EU / US),
- * date formats, affix-stripping, ID heuristics, categorical. Each lane lands
- * across Tasks 3–6 of the B2.1 sub-plan.
+ * Architecture: collects every interpretation that parses ≥ 1 non-null value
+ * from each detection lane (ID → numeric → affix → date → categorical), picks
+ * the candidate with the highest parseCount as `primary`, and reports the rest
+ * as `alternatives` ranked by parseCount. Status downgrades to 'warning' when
+ * parse rate < 70%, when a rival interpretation parses comparably (mixed
+ * format), or when the top interpretation is an ambiguous slash-date.
  */
 export function profileColumns(rows: DataRow[]): ColumnParsingProfile[] {
   if (rows.length === 0) return [];
@@ -286,6 +294,29 @@ function detectIdHeuristic(
 }
 
 // ---------------------------------------------------------------------------
+// Detection lane 4: categorical (low-cardinality string columns)
+// ---------------------------------------------------------------------------
+
+function detectCategorical(
+  values: unknown[]
+): { label: string; detail: Record<string, unknown> } | null {
+  const strings = values
+    .filter((v): v is string | number | boolean => v !== null && v !== undefined)
+    .map(v => String(v));
+  if (strings.length === 0) return null;
+  const unique = new Set(strings);
+  const uniqueCount = unique.size;
+  // Categorical heuristic: ≤ 30 distinct values AND ratio of unique/total ≤ 0.5
+  // (catches "A,B,A,C,B,A" but not unique IDs or free-text columns).
+  if (uniqueCount > 30) return null;
+  if (uniqueCount > strings.length * 0.5) return null;
+  return {
+    label: `categorical · ${uniqueCount} levels`,
+    detail: { levels: Array.from(unique) },
+  };
+}
+
+// ---------------------------------------------------------------------------
 
 function profileOneColumn(columnName: string, rows: DataRow[]): ColumnParsingProfile {
   const allValues = rows.map(r => r[columnName]);
@@ -303,113 +334,142 @@ function profileOneColumn(columnName: string, rows: DataRow[]): ColumnParsingPro
     };
   }
 
-  // Detection lane 0: ID columns (leading-zero numeric OR alphanumeric fixed-width).
-  // Must run before numeric so leading-zero strings ("001") are not captured as integers.
+  // Gather every interpretation that parses ≥ 1 value, with its parseCount.
+  const candidates: Array<{
+    interpretation: ParsingInterpretation;
+    parseCount: number;
+    transform?: (raw: string) => string;
+  }> = [];
+
+  // ID first — leading-zero strings ("001") must beat plain-numeric detection.
   const idMatch = detectIdHeuristic(nonNull);
   if (idMatch) {
-    const primary: ParsingInterpretation = {
-      kind: 'id',
-      label: idMatch.label,
-      detail: idMatch.detail,
-    };
+    candidates.push({
+      interpretation: { kind: 'id', label: idMatch.label, detail: idMatch.detail },
+      parseCount: nonNull.length,
+    });
+  }
+
+  // Numeric (plain / EU / US)
+  const numericMatches = detectNumericFormat(nonNull);
+  for (const m of numericMatches) {
+    const format: NumericFormat =
+      m.detail.decimalSeparator === ','
+        ? 'eu'
+        : m.detail.thousandsSeparator === ','
+          ? 'us'
+          : 'plain';
+    candidates.push({
+      interpretation: { kind: 'numeric', label: m.label, detail: m.detail },
+      parseCount: m.parsed,
+      transform: raw => {
+        const parsed = tryParseNumeric(raw, format);
+        return parsed === null ? raw : String(parsed);
+      },
+    });
+  }
+
+  // Affix-stripping numeric ($, %, parens)
+  const affix = detectAffix(nonNull);
+  if (affix) {
+    candidates.push({
+      interpretation: { kind: 'numeric', label: affix.label, detail: affix.detail },
+      parseCount: affix.parseCount,
+      transform: affix.transform,
+    });
+  }
+
+  // Dates (ISO + slash variants)
+  const dateMatches = detectDateFormat(nonNull);
+  for (const d of dateMatches) {
+    candidates.push({
+      interpretation: {
+        kind: 'date',
+        label: d.label,
+        detail: { format: d.format, ambiguous: d.ambiguous },
+      },
+      parseCount: d.parseCount,
+      transform: raw => {
+        const parsed = tryParseDate(raw, d.format);
+        return parsed ? parsed.toISOString().slice(0, 10) : raw;
+      },
+    });
+  }
+
+  // No structured interpretation matched anything → try categorical / fall back to text.
+  if (candidates.length === 0) {
+    const cat = detectCategorical(nonNull);
+    if (cat) {
+      return {
+        columnName,
+        status: 'ok',
+        confidence: 100,
+        primary: { kind: 'categorical', label: cat.label, detail: cat.detail },
+        alternatives: [],
+        transformedSamples: [],
+      };
+    }
     return {
       columnName,
       status: 'ok',
       confidence: 100,
-      primary,
+      primary: { kind: 'text', label: 'text', detail: {} },
       alternatives: [],
       transformedSamples: [],
     };
   }
 
-  // Detection lane 1: pure numeric (plain / EU / US)
-  const numericMatches = detectNumericFormat(nonNull);
-  if (numericMatches.length > 0 && numericMatches[0].parsed === nonNull.length) {
-    const top = numericMatches[0];
-    const primary: ParsingInterpretation = {
-      kind: 'numeric',
-      label: top.label,
-      detail: top.detail,
-    };
-    const sampleStrings = nonNull.filter((v): v is string => typeof v === 'string').slice(0, 3);
-    const format: NumericFormat =
-      top.detail.decimalSeparator === ','
-        ? 'eu'
-        : top.detail.thousandsSeparator === ','
-          ? 'us'
-          : 'plain';
-    const transformedSamples = sampleStrings.map(raw => {
-      const parsed = tryParseNumeric(raw, format);
-      return { raw, transformed: parsed === null ? raw : String(parsed) };
-    });
-    return {
-      columnName,
-      status: 'ok',
-      confidence: 100,
-      primary,
-      alternatives: [],
-      transformedSamples,
-    };
+  // Stable sort by parseCount desc. Order within ties is determined by the
+  // iteration order above (ID first, then numeric formats in their array order,
+  // then affix, then dates).
+  candidates.sort((a, b) => b.parseCount - a.parseCount);
+  const top = candidates[0];
+  const others = candidates.slice(1);
+
+  const parseRate = top.parseCount / nonNull.length;
+  const confidence = Math.round(parseRate * 100);
+
+  // When all candidates are numeric and every one parses 100% of values, this
+  // is the EU vs US ambiguous-comma case (e.g. "1,234" parses as both). Treat
+  // as ok — the top format (US) is the correct tie-break, no genuine rivalry.
+  const allNumericFullParse =
+    top.interpretation.kind === 'numeric' &&
+    parseRate === 1 &&
+    others.every(o => o.interpretation.kind === 'numeric' && o.parseCount === nonNull.length);
+
+  // Rival = another candidate within 1 of the top's parseCount (mixed-format territory).
+  const hasRival = others.some(
+    o => Math.abs(o.parseCount - top.parseCount) <= 1 && o.parseCount > 0
+  );
+
+  let status: ParsingStatus;
+  if (parseRate < 0.7) {
+    status = 'warning';
+  } else if (hasRival && !allNumericFullParse) {
+    status = 'warning';
+  } else if (top.interpretation.kind === 'date' && top.interpretation.detail.ambiguous === true) {
+    status = 'warning';
+  } else {
+    status = 'ok';
   }
 
-  // Detection lane 1b: numeric with affix ($, %, parens)
-  const affix = detectAffix(nonNull);
-  if (affix && affix.parseCount === nonNull.length) {
-    const primary: ParsingInterpretation = {
-      kind: 'numeric',
-      label: affix.label,
-      detail: affix.detail,
-    };
-    const sampleStrings = nonNull.filter((v): v is string => typeof v === 'string').slice(0, 3);
-    const transformedSamples = sampleStrings.map(raw => ({
-      raw,
-      transformed: affix.transform(raw),
-    }));
-    return {
-      columnName,
-      status: 'ok',
-      confidence: 100,
-      primary,
-      alternatives: [],
-      transformedSamples,
-    };
-  }
+  const sampleStrings = nonNull.filter((v): v is string => typeof v === 'string').slice(0, 3);
+  const transformedSamples = top.transform
+    ? sampleStrings.map(raw => ({ raw, transformed: top.transform!(raw) }))
+    : [];
 
-  // Detection lane 2: dates (ISO + DD/MM + MM/DD)
-  const dateMatches = detectDateFormat(nonNull);
-  if (dateMatches.length > 0 && dateMatches[0].parseCount === nonNull.length) {
-    // ISO is preferred when it parses everything; otherwise pick the unambiguous slash format.
-    const iso = dateMatches.find(m => m.format === 'iso');
-    const unambiguousSlash = dateMatches.find(m => m.format !== 'iso' && !m.ambiguous);
-    const top = iso ?? unambiguousSlash ?? dateMatches[0];
-    const primary: ParsingInterpretation = {
-      kind: 'date',
-      label: top.label,
-      detail: { format: top.format, ambiguous: top.ambiguous },
-    };
-    const sampleStrings = nonNull.filter((v): v is string => typeof v === 'string').slice(0, 3);
-    const transformedSamples = sampleStrings.map(raw => {
-      const parsed = tryParseDate(raw, top.format);
-      return { raw, transformed: parsed ? parsed.toISOString().slice(0, 10) : raw };
-    });
-    return {
-      columnName,
-      status: top.ambiguous ? 'warning' : 'ok',
-      confidence: 100,
-      primary,
-      alternatives: [],
-      transformedSamples,
-    };
-  }
+  const alternatives: ParsingAlternative[] = others.map(o => ({
+    interpretation: o.interpretation,
+    parseCount: o.parseCount,
+    totalCount: nonNull.length,
+  }));
 
-  // Detection lane 4+ (categorical) lands in Task 6.
-  // Anything not matched above falls through to a text placeholder.
   return {
     columnName,
-    status: 'ok',
-    confidence: 100,
-    primary: { kind: 'text', label: 'text', detail: {} },
-    alternatives: [],
-    transformedSamples: [],
+    status,
+    confidence,
+    primary: top.interpretation,
+    alternatives,
+    transformedSamples,
   };
 }

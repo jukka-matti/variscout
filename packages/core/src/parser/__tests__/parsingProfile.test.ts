@@ -248,3 +248,62 @@ describe('profileColumns — ID heuristic', () => {
     expect(profile.primary?.kind).toBe('id');
   });
 });
+
+describe('profileColumns — categorical detection', () => {
+  it('detects categorical columns with limited distinct values', () => {
+    const rows = [{ Op: 'A' }, { Op: 'B' }, { Op: 'A' }, { Op: 'C' }, { Op: 'B' }, { Op: 'A' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.primary?.kind).toBe('categorical');
+    expect(profile.primary?.label).toContain('3 levels');
+  });
+});
+
+describe('profileColumns — status determination', () => {
+  it('marks status warning when parse rate < 70%', () => {
+    const rows = [{ N: '100' }, { N: '200' }, { N: 'abc' }, { N: 'def' }, { N: 'ghi' }];
+    const [profile] = profileColumns(rows);
+    expect(profile.status).toBe('warning');
+    expect(profile.confidence).toBeLessThan(70);
+  });
+
+  it('marks status warning when alternatives parse comparably (mixed format)', () => {
+    const rows = [
+      { Mix: '182,5' },
+      { Mix: '1,234.5' },
+      { Mix: '203,1' },
+      { Mix: '987.6' },
+      { Mix: '100' },
+    ];
+    const [profile] = profileColumns(rows);
+    expect(profile.status).toBe('warning');
+    expect(profile.alternatives.length).toBeGreaterThan(0);
+  });
+
+  it('preserves status ok when parse rate ≥ 90% and no rival interpretation', () => {
+    const rows = [
+      { N: '100' },
+      { N: '200' },
+      { N: '300' },
+      { N: '400' },
+      { N: '500' },
+      { N: '600' },
+      { N: '700' },
+      { N: '800' },
+      { N: '900' },
+      { N: '1000' },
+    ];
+    const [profile] = profileColumns(rows);
+    expect(profile.status).toBe('ok');
+    expect(profile.confidence).toBe(100);
+  });
+
+  it('returns alternatives ranked by parseCount desc', () => {
+    const rows = [{ Mix: '182,5' }, { Mix: '203,1' }, { Mix: '1,234.5' }];
+    const [profile] = profileColumns(rows);
+    if (profile.alternatives.length > 0) {
+      const counts = profile.alternatives.map(a => a.parseCount);
+      const sorted = [...counts].sort((a, b) => b - a);
+      expect(counts).toEqual(sorted);
+    }
+  });
+});
