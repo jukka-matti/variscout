@@ -7,7 +7,8 @@
     "declarationMap": true,
     "paths": {
       "@variscout/core/projectMembership": ["./src/projectMembership/index.ts"],
-      "@variscout/core/measurementPlan": ["./src/measurementPlan/index.ts"]
+      "@variscout/core/measurementPlan": ["./src/measurementPlan/index.ts"],
+      "@variscout/core/exploreRouting": ["./src/exploreRouting/index.ts"]
     }
   },
   "include": ["src"]
