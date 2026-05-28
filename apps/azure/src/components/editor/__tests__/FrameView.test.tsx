@@ -47,6 +47,10 @@ const improvementProjectStateRef: { current: Record<string, unknown> } = {
   current: {
     projectsByHub: {},
     getProjectsForHub: () => [],
+    // E1 T5: FrameView reads `upsertProject` and forwards it to
+    // CanvasWorkspace as `onPersistCanvasState`. Legacy FrameView tests
+    // don't exercise the persist callback — mocked as a no-op.
+    upsertProject: vi.fn(),
   },
 };
 
@@ -270,6 +274,7 @@ describe('FrameView (Azure shell)', () => {
     improvementProjectStateRef.current = {
       projectsByHub: {},
       getProjectsForHub: () => [],
+      upsertProject: vi.fn(),
     };
     storeStateRef.current = {
       rawData: [{ Fill_Weight: 12 }],
@@ -651,6 +656,7 @@ describe('FrameView (Azure shell)', () => {
         ],
       },
       getProjectsForHub: () => [],
+      upsertProject: vi.fn(),
     };
     storeStateRef.current = {
       ...storeStateRef.current,

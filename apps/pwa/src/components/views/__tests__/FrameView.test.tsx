@@ -46,6 +46,10 @@ const improvementProjectStateRef: { current: Record<string, unknown> } = {
   current: {
     projectsByHub: {},
     getProjectsForHub: () => [],
+    // E1 T5: FrameView reads `upsertProject` from the store and forwards it
+    // to CanvasWorkspace as `onPersistCanvasState`. Mocked as a no-op here —
+    // FrameView legacy tests don't exercise the persist callback.
+    upsertProject: vi.fn(),
   },
 };
 
@@ -81,6 +85,20 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 
+// E1 T5: useActiveIPStore is used by useActiveIPContext (imported by FrameView
+// to resolve the active IP). The mock exposes the minimal surface the hook
+// reads: `activeIPs` (selector source) + the three action setters + a no-op
+// `getState()` returning a getActiveIP that always reports no active IP.
+// FrameView tests don't need an active-IP cascade — they cover the legacy
+// CanvasWorkspace wiring; this mock makes useActiveIPContext return null
+// without crashing.
+const noActiveIPStoreState = {
+  activeIPs: {},
+  rehydrateActiveIP: vi.fn(),
+  setActiveIP: vi.fn(),
+  clearActiveIP: vi.fn(),
+  getActiveIP: () => null,
+};
 vi.mock('@variscout/stores', () => ({
   useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
   useAnalyzeStore: Object.assign(
@@ -100,6 +118,12 @@ vi.mock('@variscout/stores', () => ({
       setViewMode: setWallViewModeMock,
     }),
   }),
+  useActiveIPStore: Object.assign(
+    vi.fn((selector: (s: unknown) => unknown) => selector(noActiveIPStoreState)),
+    {
+      getState: () => noActiveIPStoreState,
+    }
+  ),
 }));
 
 vi.mock('@variscout/ui', async () => {
@@ -274,6 +298,7 @@ describe('FrameView (PWA shell)', () => {
     improvementProjectStateRef.current = {
       projectsByHub: {},
       getProjectsForHub: () => [],
+      upsertProject: vi.fn(),
     };
     storeStateRef.current = {
       rawData: [{ Fill_Weight: 12 }],
@@ -658,6 +683,7 @@ describe('FrameView (PWA shell)', () => {
         ],
       },
       getProjectsForHub: () => [],
+      upsertProject: vi.fn(),
     };
 
     render(<FrameView />);

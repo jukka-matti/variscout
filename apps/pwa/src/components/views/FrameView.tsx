@@ -32,6 +32,7 @@ import { pwaHubRepository } from '../../persistence';
 import { useSession } from '../../store/sessionStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useAnalyzeFeatureStore } from '../../features/analyze/analyzeStore';
+import { useActiveIPContext } from '../../hooks/useActiveIPContext';
 
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
@@ -78,6 +79,11 @@ const FrameView: React.FC = () => {
   const activeHubId = activeHub?.id ?? null;
   const canvasViewportHubId = processContext?.processHubId ?? activeHubId;
   const projectsByHub = useImprovementProjectStore(s => s.projectsByHub);
+  const upsertProject = useImprovementProjectStore(s => s.upsertProject);
+  // E1 T5: PWA active-IP cascade for Canvas Edit-mode state.
+  // PWA passes `userId: 'local'` internally to `useActiveIPContext` (no
+  // AD identity in the free tier); the hook still scopes per-hub.
+  const { activeIP } = useActiveIPContext(activeHub);
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
   const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
@@ -369,6 +375,8 @@ const FrameView: React.FC = () => {
         // Edit mode is always reachable. Azure derives this from canAccess(..., 'edit').
         canEditCanvas={true}
         actionItems={actionItems}
+        activeIP={activeIP}
+        onPersistCanvasState={upsertProject}
       />
     </div>
   );
