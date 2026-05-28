@@ -1,5 +1,12 @@
 import { create } from 'zustand';
 
+// ── Types ────────────────────────────────────────────────────────────────────
+
+export interface PendingExploreIntent {
+  focusedChart: 'ichart' | 'boxplot';
+  boxplotFactor?: string;
+}
+
 // ── State ────────────────────────────────────────────────────────────────────
 
 interface PanelsState {
@@ -39,6 +46,8 @@ interface PanelsState {
   highlightedIdeaId: string | null;
   controlTargetId: string | null;
   selectedProjectId: string | null;
+  /** Routing intent set by showExplore(intent); consumed and cleared by Explore-tab landing on mount. */
+  pendingExploreIntent: PendingExploreIntent | null;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -46,7 +55,7 @@ interface PanelsState {
 interface PanelsActions {
   showDashboard: () => void;
   showFrame: () => void;
-  showExplore: () => void;
+  showExplore: (intent?: PendingExploreIntent) => void;
   showAnalyze: () => void;
   showImprovement: () => void;
   showProjects: (projectId?: string) => void;
@@ -75,6 +84,8 @@ interface PanelsActions {
   setActiveImprovementView: (view: 'plan' | 'track') => void;
   /** Set highlighted idea ID for bidirectional matrix<->card navigation */
   setHighlightedIdeaId: (id: string | null) => void;
+  /** Clear the pending explore intent after it has been consumed on mount. */
+  clearPendingExploreIntent: () => void;
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
@@ -118,6 +129,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   highlightedIdeaId: null,
   controlTargetId: null,
   selectedProjectId: null,
+  pendingExploreIntent: null,
 
   // Workspace navigation (ADR-055 + header-redesign spec, extended with 'frame' per ADR-070)
   showDashboard: () => set(() => ({ activeView: 'dashboard' })),
@@ -126,7 +138,8 @@ export const usePanelsStore = create<PanelsStore>(set => ({
       activeView: 'frame',
       isFindingsOpen: false,
     })),
-  showExplore: () => set(() => ({ activeView: 'explore' })),
+  showExplore: intent => set({ activeView: 'explore', pendingExploreIntent: intent ?? null }),
+  clearPendingExploreIntent: () => set({ pendingExploreIntent: null }),
   showAnalyze: () =>
     set(() => ({
       activeView: 'analyze',

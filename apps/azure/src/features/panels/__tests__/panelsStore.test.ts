@@ -21,6 +21,7 @@ beforeEach(() => {
     activeImprovementView: 'plan',
     highlightedIdeaId: null,
     selectedProjectId: null,
+    pendingExploreIntent: null,
   });
 });
 
@@ -282,6 +283,45 @@ describe('panelsStore', () => {
       usePanelsStore.getState().showReport();
       usePanelsStore.getState().showExplore();
       expect(usePanelsStore.getState().activeView).toBe('explore');
+    });
+  });
+
+  describe('showExplore intent payload', () => {
+    it('bare showExplore() sets activeView to explore with null pendingExploreIntent', () => {
+      usePanelsStore.getState().showDashboard();
+      usePanelsStore.getState().showExplore();
+      const s = usePanelsStore.getState();
+      expect(s.activeView).toBe('explore');
+      expect(s.pendingExploreIntent).toBeNull();
+    });
+
+    it('showExplore with boxplot intent sets pendingExploreIntent', () => {
+      usePanelsStore.getState().showExplore({ focusedChart: 'boxplot', boxplotFactor: 'Vessel' });
+      const s = usePanelsStore.getState();
+      expect(s.activeView).toBe('explore');
+      expect(s.pendingExploreIntent).toEqual({ focusedChart: 'boxplot', boxplotFactor: 'Vessel' });
+    });
+
+    it('showExplore with ichart intent sets focusedChart only', () => {
+      usePanelsStore.getState().showExplore({ focusedChart: 'ichart' });
+      const s = usePanelsStore.getState();
+      expect(s.activeView).toBe('explore');
+      expect(s.pendingExploreIntent).toEqual({ focusedChart: 'ichart' });
+      expect(s.pendingExploreIntent?.boxplotFactor).toBeUndefined();
+    });
+
+    it('clearPendingExploreIntent clears intent without changing activeView', () => {
+      usePanelsStore.getState().showExplore({ focusedChart: 'boxplot', boxplotFactor: 'X' });
+      usePanelsStore.getState().clearPendingExploreIntent();
+      const s = usePanelsStore.getState();
+      expect(s.pendingExploreIntent).toBeNull();
+      expect(s.activeView).toBe('explore');
+    });
+
+    it('bare showExplore() overwrites a stale intent (no-stale-intent invariant)', () => {
+      usePanelsStore.getState().showExplore({ focusedChart: 'boxplot', boxplotFactor: 'X' });
+      usePanelsStore.getState().showExplore();
+      expect(usePanelsStore.getState().pendingExploreIntent).toBeNull();
     });
   });
 
