@@ -249,6 +249,14 @@ export interface ProbabilityPlotProps extends BaseChartProps {
     series: ProbabilityPlotSeries | null,
     position: { x: number; y: number }
   ) => void;
+  /**
+   * Optional render-prop slot for chart overlays (e.g., inflection-detection
+   * cut guides). Renders inside the chart <Group> after the data series but
+   * before signature elements. The render prop receives the visx xScale +
+   * computed yRange so the consumer can position overlay elements in chart
+   * pixel space. Backward compatible: default is `undefined`, no overlay.
+   */
+  overlay?: (api: { xScale: (v: number) => number; yRange: [number, number] }) => React.ReactNode;
 }
 
 /**

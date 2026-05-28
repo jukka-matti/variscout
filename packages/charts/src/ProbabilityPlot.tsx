@@ -80,6 +80,7 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
   onSelectionChange,
   onChartContextMenu,
   onSeriesHover,
+  overlay,
 }) => {
   const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
     parentWidth,
@@ -396,6 +397,14 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
             </g>
           );
         })}
+
+        {/* Overlay slot — e.g., inflection-detection cut guides */}
+        {overlay &&
+          xScale &&
+          overlay({
+            xScale: (v: number) => xScale(v) ?? 0,
+            yRange: [0, height],
+          })}
 
         {/* Y Axis (Percent) */}
         <AxisLeft

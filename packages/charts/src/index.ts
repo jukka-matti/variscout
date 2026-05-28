@@ -133,6 +133,9 @@ export type {
 // ScatterFit chart component
 export { default as ScatterFit, ScatterFitBase } from './ScatterFit';
 
+// Inflection overlay primitive
+export { InflectionOverlay, type InflectionOverlayProps } from './InflectionOverlay';
+
 // Performance chart components
 export { default as PerformanceIChart, PerformanceIChartBase } from './PerformanceIChart';
 export { default as PerformanceBoxplot, PerformanceBoxplotBase } from './PerformanceBoxplot';
