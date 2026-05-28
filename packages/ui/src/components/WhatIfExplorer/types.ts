@@ -5,7 +5,6 @@ import type {
   FindingProjection,
   SpecLimits,
 } from '@variscout/core';
-import type { YamazumiBarData } from '@variscout/core/yamazumi';
 import type { ModelScope } from '@variscout/hooks';
 import type { WhatIfReference } from '@variscout/hooks';
 
@@ -75,14 +74,6 @@ export interface WhatIfExplorerProps {
   /** Reference points for benchmarking (current, best, model optimum, etc.) */
   references?: WhatIfReference[];
 
-  // --- Yamazumi mode ---
-  /** Yamazumi activity data */
-  activities?: YamazumiBarData[];
-  /** Takt time target */
-  taktTime?: number;
-  /** Best performer reference for yamazumi */
-  bestReference?: { name: string; time: number };
-
   // --- Performance mode ---
   /** Channel results for performance mode */
   channels?: ChannelResult[];
@@ -136,17 +127,6 @@ export interface BasicEstimatorProps {
   complementStats?: WhatIfComplementStats;
   projectionContext?: WhatIfProjectionContext;
   references?: WhatIfReference[];
-  onProjectionChange?: (projection: FindingProjection) => void;
-  onSaveProjection?: (projection: FindingProjection) => void;
-  className?: string;
-}
-
-/** Props for the yamazumi activity reducer renderer */
-export interface ActivityReducerProps {
-  activities: YamazumiBarData[];
-  taktTime?: number;
-  bestReference?: { name: string; time: number };
-  projectionContext?: WhatIfProjectionContext;
   onProjectionChange?: (projection: FindingProjection) => void;
   onSaveProjection?: (projection: FindingProjection) => void;
   className?: string;

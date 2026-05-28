@@ -408,7 +408,7 @@ describe('QuestionsTabView — evidenceLabel prop', () => {
     expect(evidenceEl).toBeDefined();
   });
 
-  it('passes custom evidenceLabel for yamazumi mode', () => {
+  it('passes custom evidenceLabel for arbitrary mode-specific metric', () => {
     const q = makeQuestion({
       id: 'q1',
       status: 'open',

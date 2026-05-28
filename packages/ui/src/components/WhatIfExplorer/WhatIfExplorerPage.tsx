@@ -11,7 +11,6 @@ import {
   type ChannelResult,
 } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
-import type { YamazumiBarData } from '@variscout/core/yamazumi';
 import type { ModelScope, WhatIfReference } from '@variscout/hooks';
 import { WhatIfExplorer } from './WhatIfExplorer';
 import { computePresets } from './computePresets';
@@ -72,13 +71,6 @@ export interface WhatIfExplorerPageProps {
   /** Reference points for benchmarking */
   references?: WhatIfReference[];
 
-  /** Yamazumi mode: activities */
-  leanActivities?: YamazumiBarData[];
-  /** Yamazumi mode: takt time */
-  leanTaktTime?: number;
-  /** Yamazumi mode: best reference */
-  leanBestReference?: { name: string; time: number };
-
   /** Performance mode: channel results */
   channels?: ChannelResult[];
   /** Performance mode: currently selected channel */
@@ -117,9 +109,6 @@ export function WhatIfExplorerPage({
   availableScopes,
   onScopeChange,
   references,
-  leanActivities,
-  leanTaktTime,
-  leanBestReference,
   channels,
   selectedChannel,
   className,
@@ -189,11 +178,8 @@ export function WhatIfExplorerPage({
     referenceContext?.referenceLabel,
   ]);
 
-  // ── Lean mode detection ───────────────────────────────────────────────
-  const isLeanMode = mode === 'yamazumi' && leanActivities != null && leanActivities.length > 0;
-
   // ── Empty state guard ─────────────────────────────────────────────────
-  if (!isLeanMode && (!outcome || rawData.length === 0)) {
+  if (!outcome || rawData.length === 0) {
     return (
       <div className={`flex flex-col h-full bg-surface text-content ${className ?? ''}`}>
         <div className="flex items-center gap-3 px-4 py-3 border-b border-edge">
@@ -323,22 +309,8 @@ export function WhatIfExplorerPage({
               presets={presets}
               complementStats={complementStats}
               projectionContext={explorerContext}
-              activities={leanActivities}
-              taktTime={leanTaktTime}
-              bestReference={leanBestReference}
               channels={channels}
               selectedChannel={selectedChannel}
-              onSaveProjection={onSaveProjection}
-            />
-          ) : isLeanMode ? (
-            <WhatIfExplorer
-              mode={mode}
-              currentStats={{ mean: 0, stdDev: 0 }}
-              specs={specs}
-              activities={leanActivities}
-              taktTime={leanTaktTime}
-              bestReference={leanBestReference}
-              projectionContext={explorerContext}
               onSaveProjection={onSaveProjection}
             />
           ) : null}

@@ -37,7 +37,6 @@ export {
   type ReportImprovementSummaryProps,
 } from './ReportImprovementSummary';
 export { ReportCpkLearningLoop, type ReportCpkLearningLoopProps } from './ReportCpkLearningLoop';
-export { ReportYamazumiKPIGrid, type ReportYamazumiKPIGridProps } from './ReportYamazumiKPIGrid';
 export {
   ReportCapabilityKPIGrid,
   type ReportCapabilityKPIGridProps,
@@ -46,10 +45,6 @@ export {
   ReportPerformanceKPIGrid,
   type ReportPerformanceKPIGridProps,
 } from './ReportPerformanceKPIGrid';
-export {
-  ReportActivityBreakdown,
-  type ReportActivityBreakdownProps,
-} from './ReportActivityBreakdown';
 export { ReportAnalyzeSummary, type ReportAnalyzeSummaryProps } from './ReportAnalyzeSummary';
 export { ReportDefectKPIGrid, type ReportDefectKPIGridProps } from './ReportDefectKPIGrid';
 export { IPOverviewReport, type IPOverviewReportProps } from './IPOverviewReport';

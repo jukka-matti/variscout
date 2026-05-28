@@ -321,12 +321,6 @@ vi.mock('@variscout/hooks', () => ({
       enabled: false,
       description: 'Future within-step channel lens.',
     },
-    yamazumi: {
-      id: 'yamazumi',
-      label: 'Yamazumi',
-      enabled: false,
-      description: 'Future time-study lens.',
-    },
   },
   CANVAS_OVERLAY_REGISTRY: {
     investigations: {
@@ -405,16 +399,10 @@ vi.mock('@variscout/hooks', () => ({
   ),
   isCanvasLensValidAtLevel: vi.fn(
     (lens: string, level: string) =>
-      !(
-        (lens === 'yamazumi' && level === 'l1') ||
-        (lens === 'process-flow' && (level === 'l1' || level === 'l3'))
-      )
+      !(lens === 'process-flow' && (level === 'l1' || level === 'l3'))
   ),
   suggestCanvasLevelForLens: vi.fn((lens: string, level: string) =>
-    (lens === 'yamazumi' && level === 'l1') ||
-    (lens === 'process-flow' && (level === 'l1' || level === 'l3'))
-      ? 'l2'
-      : level
+    lens === 'process-flow' && (level === 'l1' || level === 'l3') ? 'l2' : level
   ),
   encodeChipDragId: (chipId: string) => `chip:${chipId}`,
   encodeStepDropId: (stepId: string) => `step:${stepId}`,

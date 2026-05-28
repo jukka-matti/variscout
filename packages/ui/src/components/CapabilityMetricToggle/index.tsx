@@ -8,7 +8,7 @@
  * time / across subgroups. Rational-subgroup coaching lives in
  * `CapabilityCoachingPanel`.
  *
- * Follows YamazumiIChartMetricToggle pattern — props-based, no context.
+ * Props-based, no context.
  */
 
 import React from 'react';

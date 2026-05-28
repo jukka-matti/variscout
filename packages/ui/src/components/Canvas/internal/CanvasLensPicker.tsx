@@ -19,7 +19,6 @@ const orderedLenses: CanvasLensDefinition[] = [
   CANVAS_LENS_REGISTRY.defect,
   CANVAS_LENS_REGISTRY['process-flow'],
   CANVAS_LENS_REGISTRY.performance,
-  CANVAS_LENS_REGISTRY.yamazumi,
 ];
 
 export const LENS_LABEL_KEY: Record<CanvasLensId, keyof MessageCatalog> = {
@@ -27,7 +26,6 @@ export const LENS_LABEL_KEY: Record<CanvasLensId, keyof MessageCatalog> = {
   capability: 'canvas.lens.capability.label',
   defect: 'canvas.lens.defect.label',
   performance: 'canvas.lens.performance.label',
-  yamazumi: 'canvas.lens.yamazumi.label',
   'process-flow': 'canvas.lens.processFlow.label',
 };
 
@@ -36,7 +34,6 @@ const LENS_DESC_KEY: Record<CanvasLensId, keyof MessageCatalog> = {
   capability: 'canvas.lens.capability.description',
   defect: 'canvas.lens.defect.description',
   performance: 'canvas.lens.performance.description',
-  yamazumi: 'canvas.lens.yamazumi.description',
   'process-flow': 'canvas.lens.processFlow.description',
 };
 

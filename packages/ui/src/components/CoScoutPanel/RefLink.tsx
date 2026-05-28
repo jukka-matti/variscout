@@ -23,7 +23,6 @@ export const CITATION_TYPES = new Set<string>(['document', 'answer']);
 const CHART_LABELS: Record<string, string> = {
   boxplot: 'Boxplot chart',
   pareto: 'Pareto chart',
-  yamazumi: 'Yamazumi chart',
   ichart: 'I-Chart',
   stats: 'Stats panel',
   finding: 'Finding',
@@ -38,7 +37,6 @@ function getIcon(targetType: string): React.ReactElement {
   switch (targetType) {
     case 'boxplot':
     case 'pareto':
-    case 'yamazumi':
       return <BarChart3 size={11} />;
     case 'ichart':
       return <TrendingUp size={11} />;

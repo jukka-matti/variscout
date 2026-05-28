@@ -527,14 +527,10 @@ export {
   type ReportImprovementSummaryProps,
   ReportCpkLearningLoop,
   type ReportCpkLearningLoopProps,
-  ReportYamazumiKPIGrid,
-  type ReportYamazumiKPIGridProps,
   ReportCapabilityKPIGrid,
   type ReportCapabilityKPIGridProps,
   ReportPerformanceKPIGrid,
   type ReportPerformanceKPIGridProps,
-  ReportActivityBreakdown,
-  type ReportActivityBreakdownProps,
   ReportAnalyzeSummary,
   type ReportAnalyzeSummaryProps,
   ReportDefectKPIGrid,
@@ -659,19 +655,6 @@ export * from './components/ImprovementProject';
 export * from './components/projects';
 export * from './components/Control';
 export * from './components/Inbox';
-
-// Yamazumi Components
-export {
-  YamazumiDetectedModal,
-  type YamazumiDetectedModalProps,
-} from './components/YamazumiDetectedModal';
-export {
-  YamazumiIChartMetricToggle,
-  YamazumiParetoModeDropdown,
-  type YamazumiIChartMetricToggleProps,
-  type YamazumiParetoModeDropdownProps,
-} from './components/YamazumiDisplayToggle';
-export { YamazumiSummaryBar, type YamazumiSummaryBarProps } from './components/YamazumiSummaryBar';
 
 // Investigation Conclusion (Hub model)
 export {

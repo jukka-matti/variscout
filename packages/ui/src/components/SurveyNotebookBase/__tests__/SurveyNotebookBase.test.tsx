@@ -82,12 +82,6 @@ const evaluation: SurveyEvaluation = {
       confidence: 'low',
       reason: 'Only one numeric column found.',
     },
-    yamazumi: {
-      isYamazumiFormat: false,
-      confidence: 'low',
-      suggestedMapping: {},
-      reason: 'No activity type values found.',
-    },
     defect: {
       isDefectFormat: false,
       confidence: 'low',

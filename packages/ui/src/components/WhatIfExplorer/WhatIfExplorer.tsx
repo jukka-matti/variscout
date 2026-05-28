@@ -1,7 +1,6 @@
 import React from 'react';
 import BasicEstimator from './BasicEstimator';
 import ModelInformedEstimator from './ModelInformedEstimator';
-import ActivityReducer from './ActivityReducer';
 import ChannelAdjuster from './ChannelAdjuster';
 import type { WhatIfExplorerProps, ModelScope } from './types';
 
@@ -23,8 +22,6 @@ function getTrustDots(rSquaredAdj: number): { dots: string; colorClass: string; 
 /** Returns a mode badge label. */
 function getModeBadgeLabel(mode: string): string {
   switch (mode) {
-    case 'yamazumi':
-      return 'Lean / Time Study';
     case 'performance':
       return 'Multi-Channel';
     case 'capability':
@@ -95,7 +92,6 @@ function ScopeSelector({ scopes, activeScope, onScopeChange }: ScopeSelectorProp
  * Unified What-If explorer shell. Dispatches to the appropriate renderer
  * based on analysis mode and available data:
  *
- * - yamazumi + activities → ActivityReducer
  * - performance + channels → ChannelAdjuster
  * - model provided → ModelInformedEstimator
  * - else → BasicEstimator (fallback)
@@ -114,9 +110,6 @@ export function WhatIfExplorer({
   availableScopes,
   onScopeChange,
   references,
-  activities,
-  taktTime,
-  bestReference,
   channels,
   selectedChannel,
   presets,
@@ -127,9 +120,8 @@ export function WhatIfExplorer({
   const activeScope = availableScopes?.find(s => s.model === model) ?? availableScopes?.[0];
 
   // Determine which renderer to use
-  const useYamazumi = mode === 'yamazumi' && activities != null && activities.length > 0;
   const usePerformance = mode === 'performance' && channels != null && channels.length > 0;
-  const useModelInformed = !useYamazumi && !usePerformance && model != null;
+  const useModelInformed = !usePerformance && model != null;
 
   // Build trust indicator from model R²adj
   const trustInfo =
@@ -163,18 +155,7 @@ export function WhatIfExplorer({
       )}
 
       {/* Renderer dispatch */}
-      {useYamazumi && (
-        <ActivityReducer
-          activities={activities!}
-          taktTime={taktTime}
-          bestReference={bestReference}
-          projectionContext={projectionContext}
-          onProjectionChange={onProjectionChange}
-          onSaveProjection={onSaveProjection}
-        />
-      )}
-
-      {usePerformance && !useYamazumi && (
+      {usePerformance && (
         <ChannelAdjuster
           currentStats={currentStats}
           specs={specs}
@@ -199,7 +180,7 @@ export function WhatIfExplorer({
         />
       )}
 
-      {!useYamazumi && !usePerformance && !useModelInformed && (
+      {!usePerformance && !useModelInformed && (
         <BasicEstimator
           currentStats={currentStats}
           specs={specs}

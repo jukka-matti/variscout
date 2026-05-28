@@ -45,8 +45,8 @@ export interface QuestionsTabViewProps {
   /**
    * The evidence field used for sorting questions within each group.
    * All question generators store their mode-specific evidence value in rSquaredAdj
-   * (the universal evidence carrier): R²adj for standard, Cpk for capability/performance,
-   * waste% for yamazumi. Default: 'rSquaredAdj'.
+   * (the universal evidence carrier): R²adj for standard, Cpk for capability/performance.
+   * Default: 'rSquaredAdj'.
    */
   evidenceMetric?: string;
   onQuestionClick?: (question: Question) => void;
@@ -188,8 +188,8 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
 
   // Sort each group by R²adj descending.
   // All question generators store their mode-specific evidence value in rSquaredAdj
-  // (the universal evidence carrier): R²adj for standard, Cpk for capability/performance,
-  // waste% for yamazumi. See channelQuestions.ts and yamazumi/questions.ts.
+  // (the universal evidence carrier): R²adj for standard, Cpk for capability/performance.
+  // See channelQuestions.ts.
   for (const group of GROUP_ORDER) {
     grouped[group].sort((a, b) => {
       const aR = a.evidence?.rSquaredAdj ?? -1;
