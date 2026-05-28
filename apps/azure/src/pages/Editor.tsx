@@ -1859,7 +1859,11 @@ export const Editor: React.FC<EditorProps> = ({
                     surface="Process"
                   />
                 ) : null}
-                <FrameView canEditCanvas={canEditCanvas} activeIP={activeIPContext.activeIP} />
+                <FrameView
+                  canEditCanvas={canEditCanvas}
+                  activeIP={activeIPContext.activeIP}
+                  outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
+                />
               </div>
             ) : activeView === 'charter' ? (
               <ImprovementProjectPanel

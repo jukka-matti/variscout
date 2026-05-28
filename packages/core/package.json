@@ -40,7 +40,8 @@
     "./actions": "./src/actions/index.ts",
     "./persistence": "./src/persistence/index.ts",
     "./projectMembership": "./src/projectMembership/index.ts",
-    "./measurementPlan": "./src/measurementPlan/index.ts"
+    "./measurementPlan": "./src/measurementPlan/index.ts",
+    "./exploreRouting": "./src/exploreRouting/index.ts"
   },
   "scripts": {
     "test": "vitest",

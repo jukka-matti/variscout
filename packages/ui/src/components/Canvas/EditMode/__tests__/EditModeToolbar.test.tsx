@@ -1,6 +1,27 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { EditModeToolbar } from '../EditModeToolbar';
+import type { OutcomeSpec } from '@variscout/core/processHub';
+import type { ImprovementProjectFactorControl } from '@variscout/core/improvementProject';
+
+// ─── Minimal fixtures ──────────────────────────────────────────────────────────
+
+function makeOutcomeSpec(columnName: string): OutcomeSpec {
+  return {
+    id: `os-${columnName}`,
+    hubId: 'hub-1',
+    columnName,
+    characteristicType: 'nominalIsBest',
+    createdAt: 0,
+    deletedAt: null,
+  };
+}
+
+function makeFactorControl(factor: string): ImprovementProjectFactorControl {
+  return { factor, targetCondition: 'any' };
+}
+
+// ─── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('EditModeToolbar', () => {
   it('renders a toolbar container with role="toolbar" and aria-label="Edit mode toolbar"', () => {
@@ -43,10 +64,68 @@ describe('EditModeToolbar', () => {
     expect(onCaptureStepTimings).toHaveBeenCalledTimes(1);
   });
 
-  it('does NOT render other toolbar buttons (+ Goal narrative, + Issue / question, → Explore)', () => {
+  it('does NOT render unrelated toolbar buttons (+ Goal narrative, + Issue / question)', () => {
     render(<EditModeToolbar steps={[]} />);
     expect(screen.queryByRole('button', { name: /goal narrative/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /issue.*question/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /explore/i })).not.toBeInTheDocument();
+  });
+
+  // ─── ExploreExitButton integration tests (F1 Task 3) ────────────────────────
+
+  it('renders the → Explore button (Exit to Explore aria-label) at the toolbar right edge', () => {
+    render(<EditModeToolbar steps={[]} />);
+    expect(screen.getByRole('button', { name: /Exit to Explore/i })).toBeInTheDocument();
+  });
+
+  it('→ Explore button is disabled when outcomeSpecs is omitted', () => {
+    render(<EditModeToolbar steps={[]} />);
+    expect(screen.getByRole('button', { name: /Exit to Explore/i })).toBeDisabled();
+  });
+
+  it('→ Explore button is disabled when outcomeSpecs is empty array', () => {
+    render(<EditModeToolbar steps={[]} outcomeSpecs={[]} />);
+    expect(screen.getByRole('button', { name: /Exit to Explore/i })).toBeDisabled();
+  });
+
+  it('→ Explore button is enabled when outcomeSpecs has 1+ entries', () => {
+    render(<EditModeToolbar steps={[]} outcomeSpecs={[makeOutcomeSpec('Yield')]} />);
+    expect(screen.getByRole('button', { name: /Exit to Explore/i })).not.toBeDisabled();
+  });
+
+  it('click fires onExploreExit callback with the derived landing shape', () => {
+    const onExploreExit = vi.fn();
+    render(
+      <EditModeToolbar
+        steps={[]}
+        outcomeSpecs={[makeOutcomeSpec('Yield')]}
+        factorControls={[makeFactorControl('Vessel')]}
+        onExploreExit={onExploreExit}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Exit to Explore/i }));
+
+    expect(onExploreExit).toHaveBeenCalledTimes(1);
+    expect(onExploreExit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isEnabled: true,
+        routeKey: 'y-plus-one-factor',
+        boxplotFactor: 'Vessel',
+      })
+    );
+  });
+
+  it('click is a no-op (no crash) when onExploreExit is omitted and outcomeSpecs populated', () => {
+    render(
+      <EditModeToolbar
+        steps={[]}
+        outcomeSpecs={[makeOutcomeSpec('Yield')]}
+        // intentionally no onExploreExit
+      />
+    );
+    // Should not throw
+    expect(() => {
+      fireEvent.click(screen.getByRole('button', { name: /Exit to Explore/i }));
+    }).not.toThrow();
   });
 });

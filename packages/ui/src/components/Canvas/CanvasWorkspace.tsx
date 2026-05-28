@@ -38,9 +38,11 @@ import {
   type TimelineWindow,
 } from '@variscout/core';
 import { isValidLevel, type CanvasLevel } from '@variscout/core/canvas';
+import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import type { ActionItem } from '@variscout/core/findings';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import type { OutcomeSpec } from '@variscout/core/processHub';
 import { profileColumns, type ColumnParsingProfile } from '@variscout/core/parser';
 import { useCanvasStore } from '@variscout/stores';
 import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
@@ -129,6 +131,29 @@ export interface CanvasWorkspaceProps {
    *  `activeIP` is `null` / `undefined` — handlers guard internally and fall
    *  back to local state. */
   onPersistCanvasState?: (next: ImprovementProject) => void;
+  /**
+   * F1 Task 3: outcome specs owned by the ProcessHub (hub.outcomes).
+   * Threaded from the calling app (Azure FrameView / PWA frame wrapper) which
+   * reads them from the Hub store. Controls the → Explore button soft-gate:
+   * the button is disabled until at least one spec is present. Optional so
+   * callers that predate F1 (test fixtures, FrameViewB0) compile unchanged.
+   */
+  outcomeSpecs?: OutcomeSpec[];
+  /**
+   * F1 Task 6: callback invoked when the user clicks the → Explore button in
+   * Edit-mode toolbar. Called with the derived `ExploreLandingView`; the
+   * caller is responsible for navigating to the Explore tab (and optionally
+   * setting a `pendingExploreIntent` on their panels store).
+   *
+   * @variscout/ui CANNOT import `usePanelsStore` from apps/ — the callback
+   * prop pattern keeps the dependency direction correct (apps→ui, not
+   * ui→apps). Azure FrameView wires this to
+   * `usePanelsStore.getState().showExplore(intent)`. PWA wires it to bare
+   * `usePanelsStore.getState().showExplore()` (no intent payload in PWA V1).
+   * When omitted (test fixtures, FrameViewB0), a no-op default is used so
+   * EditModeToolbar always has a handler.
+   */
+  onExploreExit?: (landing: ExploreLandingView) => void;
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -263,6 +288,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   canEditCanvas,
   activeIP,
   onPersistCanvasState,
+  outcomeSpecs = [],
+  onExploreExit,
 }) => {
   const { t } = useTranslation();
   const fallbackMap = React.useMemo(() => createEmptyMap(), []);
@@ -595,6 +622,24 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       }
     },
     [activeIP, onPersistCanvasState, patchActiveIP]
+  );
+
+  // F1 Task 3: factor controls sourced from the active IP's goal.factorControls.
+  // Falls back to [] when no IP is present (test fixtures, PWA without active-IP
+  // cascade, FrameViewB0 stubs). Read-only; mutations are owned by the IP charter
+  // panel (ImprovementProjectPanel) — CanvasWorkspace does not write factorControls.
+  const factorControls = activeIP?.goal?.factorControls ?? [];
+
+  // F1 Task 6: `onExploreExit` is injected by the calling app (Azure FrameView /
+  // PWA FrameView). @variscout/ui cannot import `usePanelsStore` from apps/ —
+  // the callback-prop pattern keeps the dependency direction correct.
+  // Fall back to a no-op so FrameViewB0 / test wrappers that omit the prop
+  // always give EditModeToolbar a defined handler.
+  const handleExploreExit = React.useCallback(
+    (landing: ExploreLandingView) => {
+      onExploreExit?.(landing);
+    },
+    [onExploreExit]
   );
 
   const handleTimeFactorsSave = React.useCallback(
@@ -1155,6 +1200,9 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
               onStepsReplace={handleStepsReplace}
               onCaptureStepTimings={() => setStepTimingsModalOpen(true)}
               timingByStepId={timingByStepId}
+              outcomeSpecs={outcomeSpecs}
+              factorControls={factorControls}
+              onExploreExit={handleExploreExit}
             />
             {stepTimingsModalOpen && (
               <StepTimingsModal
