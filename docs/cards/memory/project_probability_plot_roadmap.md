@@ -1,15 +1,16 @@
 ---
-title: 'Probability Plot Enhancement Roadmap'
+title: 'probability-plot-enhancement-roadmap'
 description: 'Phased roadmap for probability plot improvements from user testing (signature block, multi-series, inflection detection)'
 purpose: remember
 tier: card
 status: active
-date: 2026-05-18
+date: 2026-05-28
 topic: [memory, project]
 related: []
-verified-against-commit: c6cf0f8c5
-last-verified: 2026-05-18
-source-hash: f937ef5b915540e6
+verified-against-commit: ca45f469
+last-verified: 2026-05-28
+source-hash: 37639e5c67a1ac4a
+origin-session-id: 99006d69-683b-44e8-a807-7a81fd9d2a53
 ---
 
 > 🤖 **Generated mirror** of `~/.claude/memory/project_probability_plot_roadmap.md`. Edit there, not here. Card synced by `scripts/docs/sync-memory-cards.mjs`; re-run via `pnpm docs:rebuild` (Phase 3 A4).
@@ -31,9 +32,9 @@ Probability plot enhancement roadmap defined 2026-03-29 from user testing analys
 - Factor selection linked to Boxplot factor in both PWA and Azure apps ✓ (Apr 5)
 
 **Phase C — Process diagnostics:**
-- Inflection point detection (piecewise linear regression)
-- Annotations on inflection points → Findings
-- Chi-square goodness-of-fit
+- Inflection point detection (piecewise linear regression on prob plot + Anderson-Darling-on-segments confidence) — IN PROGRESS as PR-CCJ-G1 (planned 2026-05-28)
+- Bin column IS the persistent diagnostic artifact (NOT a separate Finding entity); persists as `ImprovementProject.binnedFactorBindings[]`, mirrors D3 time-decomposition binding shape. State B direct-manipulation (drag/add/remove patches IP immediately, no commit step). Selectable as Boxplot + Probability factor for stratification self-validation
+- Chi-square goodness-of-fit (still future)
 
-**Why:** Expert user describes probability plot as a *process diagnostic tool*, not just normality check. Inflection points = process transitions. Multiple overlay by factor enables visual prioritization. This is a differentiating feature vs Minitab.
-**How to apply:** Start with Phase A (quick wins in existing ProbabilityPlot.tsx). Phase B is the high-impact feature. Phase C is advanced.
+**Why:** Expert user describes probability plot as a *process diagnostic tool*, not just normality check. Inflection points = process transitions; the user's downstream move is to stratify by them. The Minitab-differentiating claim is the **piecewise-linear-regression-on-prob-plot algorithm + stratification self-validation loop** — JMP/Minitab deliberately don't auto-suggest cuts (their SPC discipline says bimodal data should trigger stratification by an existing factor, not silent auto-binning). VariScout's wedge: when no existing factor explains the multi-modality, the user can manufacture one via inflection detection — but the algorithm's objective function ("each segment is normally distributed") IS the stratification validation criterion, so the loop closes cleanly. **Findings flow earlier framing retired 2026-05-28:** the bin column carries the diagnostic in its metadata (`sourceColumn` + `cuts` + `detectionMethod` + `detectedAt`); creating a parallel Finding entity duplicates information without adding value. Existing `BrushToFindingFlow` still handles "capture observation without binning" via region-brush — the two flows coexist.
+**How to apply:** Phase A (quick wins) + Phase B (multi-series) already shipped. Phase C inflection binning lands via PR-CCJ-G1 (8 tasks, 2 internal phases, single PR per `feedback_atomic_sweep_one_dispatch`). Chi-square deferred.
