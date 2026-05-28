@@ -61,6 +61,8 @@ import {
   evaluateSurvey,
   getColumnNames,
   normalizeProcessHubId,
+  computeTimeDecompositionColumns,
+  computeBinnedFactorColumn,
 } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
@@ -1299,6 +1301,28 @@ export const Editor: React.FC<EditorProps> = ({
     ]
   );
 
+  // G1 Task 4: derived categorical columns for the active IP's time-decomposition
+  // and binned-factor bindings. Mirrors the CanvasWorkspace.tsx computation so
+  // the Analyze-tab factor pickers include derived columns (e.g. `Reactor_temp_bin`,
+  // `Order_Date.day-of-week`) and the data pipelines can group by them.
+  // Absent or empty when no active IP has bindings configured → backward compat.
+  const categoricalValuesByColumn = useMemo<Record<string, (string | null)[]>>(() => {
+    const activeIP = activeIPContext.activeIP;
+    if (!activeIP) return {};
+    const merged: Record<string, (string | null)[]> = {};
+    for (const binding of activeIP.timeDecompositionBindings ?? []) {
+      const cols = computeTimeDecompositionColumns([...rawData], binding);
+      for (const [key, vals] of Object.entries(cols)) {
+        merged[key] = vals;
+      }
+    }
+    for (const binding of activeIP.binnedFactorBindings ?? []) {
+      const vals = computeBinnedFactorColumn([...rawData], binding);
+      merged[`${binding.sourceColumn}_bin`] = vals;
+    }
+    return merged;
+  }, [activeIPContext.activeIP, rawData]);
+
   useEffect(() => {
     if (activeView !== 'frame' || !activeHub) return;
     if (activeIPContext.activeIP) {
@@ -2036,6 +2060,7 @@ export const Editor: React.FC<EditorProps> = ({
                 projectedCpkMap={improvementProjectedCpkMap}
                 activeIPFactorRequest={activeIPAnalyzeFactorRequest}
                 activeIPScope={activeIPScope}
+                categoricalValuesByColumn={categoricalValuesByColumn}
               />
             )}
           </>

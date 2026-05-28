@@ -28,6 +28,11 @@ export interface UseDashboardChartsProps {
   initialParetoFactor?: string;
   /** Report view state changes for persistence (replaces individual factor callbacks) */
   onViewStateChange?: (partial: Partial<ViewState>) => void;
+  /**
+   * G1 Task 4: derived categorical columns from the active ImprovementProject.
+   * Merged into the factor picker list and used for Boxplot/Probability data extraction.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 export interface UseDashboardChartsResult {
@@ -70,7 +75,12 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   const { filteredData } = useFilteredData();
   const workerApi = useStatsWorker();
 
-  const { initialBoxplotFactor, initialParetoFactor, onViewStateChange } = props ?? {};
+  const {
+    initialBoxplotFactor,
+    initialParetoFactor,
+    onViewStateChange,
+    categoricalValuesByColumn,
+  } = props ?? {};
 
   // Filter navigation — use external if provided, otherwise create local
   const localFilterNav = useFilterNavigation({
@@ -98,6 +108,7 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     initialBoxplotFactor,
     initialParetoFactor,
     workerApi,
+    categoricalValuesByColumn,
   });
 
   // Wrap factor setters to report changes for persistence

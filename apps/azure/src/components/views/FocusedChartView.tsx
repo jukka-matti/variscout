@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
 import { FocusedChartViewBase } from '@variscout/ui';
 import { BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
+import { buildFactorList } from '@variscout/hooks';
 import { Layers } from 'lucide-react';
 import type {
   StageOrderMode,
@@ -81,6 +82,11 @@ interface FocusedChartViewProps {
   paretoHighlightedCategories?: Record<string, HighlightColor>;
   onParetoContextMenu?: (key: string, event: React.MouseEvent) => void;
   paretoFindings?: Finding[];
+  /**
+   * G1 Task 4: derived categorical columns from the active ImprovementProject.
+   * Merged into the boxplot factor list and passed through for data augmentation.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 /**
@@ -88,6 +94,13 @@ interface FocusedChartViewProps {
  * Provides stage column selector via renderHeaderExtra and chart render callbacks.
  */
 const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
+  // G1 Task 4: merge derived categorical column names into the factor list so the
+  // focused-chart factor selector shows derived columns (e.g. `Reactor_temp_bin`).
+  const allFactors = useMemo(
+    () => buildFactorList(props.factors, props.categoricalValuesByColumn),
+    [props.factors, props.categoricalValuesByColumn]
+  );
+
   const stageColumnSelector =
     props.availableStageColumns.length > 0 ? (
       <div className="flex items-center gap-2 ml-2 pl-2 border-l border-edge">
@@ -163,7 +176,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
       }}
       boxplot={{
         factor: props.boxplotFactor,
-        factors: props.factors,
+        factors: allFactors,
         onSetFactor: props.onSetBoxplotFactor,
         filters: props.filters,
         columnAliases: props.columnAliases,
@@ -188,6 +201,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
               findings={props.boxplotFindings}
               onEditFinding={props.onEditFinding}
               onDeleteFinding={props.onDeleteFinding}
+              categoricalValuesByColumn={props.categoricalValuesByColumn}
             />
           ) : null,
       }}

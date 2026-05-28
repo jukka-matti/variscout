@@ -27,6 +27,11 @@ interface BoxplotProps {
   dataOverride?: DataRow[];
   /** Override outcome column (e.g., defect mode outcome) */
   outcomeOverride?: string;
+  /**
+   * G1 Task 4: derived categorical columns from the active ImprovementProject.
+   * Passed through to BoxplotWrapperBase → useBoxplotData for derived factor grouping.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 const Boxplot = ({

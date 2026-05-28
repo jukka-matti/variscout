@@ -85,6 +85,11 @@ interface EditorDashboardViewProps {
     title: string;
     labels: ActiveIPScopeLabels;
   } | null;
+  /**
+   * G1 Task 4: derived categorical columns from the active ImprovementProject.
+   * Merged into the factor picker list and used for Boxplot/ProbabilityPlot data extraction.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -113,6 +118,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   projectedCpkMap,
   activeIPFactorRequest,
   activeIPScope,
+  categoricalValuesByColumn,
 }) => {
   // ── Store selectors ──────────────────────────────────────────────────────
   const factors = useProjectStore(s => s.factors);
@@ -228,6 +234,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           projectedCpkMap={projectedCpkMap}
           activeIPScope={activeIPScope}
           aiAvailable={aiAvailable}
+          categoricalValuesByColumn={categoricalValuesByColumn}
         />
 
         {/* AI onboarding tooltip */}

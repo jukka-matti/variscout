@@ -5,6 +5,7 @@ import { timeLensIndices } from '@variscout/core';
 import type { ProbabilityPlotSeries, DataRow } from '@variscout/core';
 import * as d3 from 'd3-array';
 import { usePreferencesStore } from '@variscout/stores';
+import { augmentLensedRowsWithDerived } from './factorListUtils';
 
 const AD_MIN_SAMPLE = 7;
 
@@ -15,6 +16,14 @@ interface UseProbabilityPlotDataOptions {
   factorColumn?: string;
   /** All data rows for factor grouping */
   rows?: DataRow[];
+  /**
+   * G1 Task 4: derived categorical columns keyed by column name.
+   * When `factorColumn` refers to a derived column (e.g. `Reactor_temp_bin`),
+   * the raw `rows` won't have that key. Providing this map causes each row to be
+   * augmented with its derived value before grouping.
+   * Backward compat: absent or empty → identical to before.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 /**
@@ -38,6 +47,7 @@ export function useProbabilityPlotData({
   values,
   factorColumn,
   rows,
+  categoricalValuesByColumn,
 }: UseProbabilityPlotDataOptions): ProbabilityPlotSeries[] {
   const timeLens = usePreferencesStore(s => s.timeLens);
 
@@ -47,6 +57,11 @@ export function useProbabilityPlotData({
    *
    * When rows are absent (values-only path), derive indices against values.length
    * instead, then slice values directly.
+   *
+   * G1 Task 4: after slicing, augment lensedRows with derived categorical
+   * columns so that factorColumn can refer to a derived key (e.g. Reactor_temp_bin).
+   * Augmentation is index-aligned: categoricalValuesByColumn[col][start+i] →
+   * lensedRows[i]. The start offset is threaded from timeLensIndices.
    */
   const { lensedValues, lensedRows } = useMemo(() => {
     if (!rows || rows.length === 0) {
@@ -60,11 +75,12 @@ export function useProbabilityPlotData({
     // rows+values path: both are parallel arrays of the same length; use a
     // single [start,end) derived from rows.length to slice both identically.
     const { start, end } = timeLensIndices(rows.length, timeLens);
+    const slicedRows = rows.slice(start, end);
     return {
       lensedValues: values.slice(start, end),
-      lensedRows: rows.slice(start, end),
+      lensedRows: augmentLensedRowsWithDerived(slicedRows, categoricalValuesByColumn, start),
     };
-  }, [values, rows, timeLens]);
+  }, [values, rows, timeLens, categoricalValuesByColumn]);
 
   return useMemo(() => {
     if (lensedValues.length === 0) return [];

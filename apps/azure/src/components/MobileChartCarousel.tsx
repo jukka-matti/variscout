@@ -24,7 +24,7 @@ import {
   Send,
   Check,
 } from 'lucide-react';
-import { useEvidenceMapData } from '@variscout/hooks';
+import { useEvidenceMapData, buildFactorList } from '@variscout/hooks';
 import { EvidenceMap } from '@variscout/charts';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
@@ -136,6 +136,11 @@ interface MobileChartCarouselProps {
   }) => void;
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
   onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
+  /**
+   * G1 Task 4: derived categorical columns from the active ImprovementProject.
+   * Passed through to the Boxplot render for derived factor data augmentation.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
@@ -168,6 +173,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   findingsCallbacks,
   onAskCoScout,
   onInvestigateFactor,
+  categoricalValuesByColumn,
 }) => {
   const {
     onAddChartObservation,
@@ -177,6 +183,13 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   } = findingsCallbacks ?? {};
   const [activeView, setActiveView] = useState<ChartView>('ichart');
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
+
+  // G1 Task 4: merge derived categorical column names into the raw factor list so
+  // the mobile factor selector shows derived columns (e.g. `Reactor_temp_bin`).
+  const allFactors = useMemo(
+    () => buildFactorList(factors, categoricalValuesByColumn),
+    [factors, categoricalValuesByColumn]
+  );
 
   // ── Factor Intelligence for Evidence Map (requires 2+ factors) ──
   const hasFactorIntelligence = factors.length >= 2 && !!outcome && filteredData.length > 0;
@@ -612,11 +625,11 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
       )}
 
       {/* Factor Selector (for boxplot/pareto views) */}
-      {(activeView === 'boxplot' || activeView === 'pareto') && factors.length > 0 && (
+      {(activeView === 'boxplot' || activeView === 'pareto') && allFactors.length > 0 && (
         <div className="px-3 py-2 bg-surface/50 border-b border-edge/50 flex justify-center">
           <FactorSelector
             variant="tabs"
-            factors={factors}
+            factors={allFactors}
             selected={activeView === 'boxplot' ? boxplotFactor : paretoFactor}
             onChange={f =>
               activeView === 'boxplot' ? onSetBoxplotFactor(f) : onSetParetoFactor(f)
@@ -642,6 +655,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
                 factor={boxplotFactor}
                 onDrillDown={handleBoxplotDrillDown}
                 highlightedCategories={boxplotHighlights}
+                categoricalValuesByColumn={categoricalValuesByColumn}
               />
             )}
             {activeView === 'pareto' && paretoFactor && (

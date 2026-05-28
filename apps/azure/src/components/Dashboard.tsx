@@ -145,6 +145,14 @@ interface DashboardProps {
     title: string;
     labels: ActiveIPScopeLabels;
   } | null;
+  /**
+   * G1 Task 4: derived categorical columns from the active ImprovementProject.
+   * Keys: derived column names (e.g. `Order_Date.day-of-week`, `Reactor_temp_bin`).
+   * When provided, these columns are included in the Boxplot/Probability factor
+   * pickers and used for data-extraction fall-through.
+   * Backward compat: absent or empty → identical to today.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 const Dashboard = ({
@@ -164,6 +172,7 @@ const Dashboard = ({
   ai = {},
   projectedCpkMap: externalProjectedCpkMap,
   activeIPScope,
+  categoricalValuesByColumn,
 }: DashboardProps) => {
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -314,6 +323,7 @@ const Dashboard = ({
     initialBoxplotFactor: initialViewState?.boxplotFactor,
     initialParetoFactor: initialViewState?.paretoFactor,
     onViewStateChange,
+    categoricalValuesByColumn,
   });
 
   // Build filter chip data from filter stack for breadcrumb display
@@ -472,10 +482,13 @@ const Dashboard = ({
   }, [effectiveData, effectiveOutcome]);
 
   // Probability plot series — linked to boxplot factor for multi-series grouping
+  // G1 Task 4: pass categoricalValuesByColumn so derived factors (e.g. Reactor_temp_bin)
+  // are resolved even though raw filteredData rows don't carry those keys.
   const probabilitySeries = useProbabilityPlotData({
     values: histogramData,
     factorColumn: boxplotFactor,
     rows: filteredData,
+    categoricalValuesByColumn,
   });
 
   // Verify card tabs (Probability / Capability|Distribution)
@@ -789,6 +802,7 @@ const Dashboard = ({
               findingsCallbacks={findingsCallbacks}
               onAskCoScout={onAskCoScoutFromCategory}
               onInvestigateFactor={onInvestigateFactor}
+              categoricalValuesByColumn={categoricalValuesByColumn}
             />
           ) : (
             <div className="flex flex-1 min-h-0">
@@ -946,6 +960,7 @@ const Dashboard = ({
                         outcomeOverride={
                           isDefectMode && defectResult ? (effectiveOutcome ?? undefined) : undefined
                         }
+                        categoricalValuesByColumn={categoricalValuesByColumn}
                       />
                     )}
                   </ErrorBoundary>
@@ -1102,6 +1117,7 @@ const Dashboard = ({
                       paretoHighlightedCategories={paretoHighlights}
                       onParetoContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
                       paretoFindings={chartFindings?.pareto}
+                      categoricalValuesByColumn={categoricalValuesByColumn}
                     />
                   ) : undefined
                 }

@@ -260,6 +260,13 @@ export {
   type UseDashboardChartsBaseResult,
 } from './useDashboardChartsBase';
 
+// Factor list utilities (G1 Task 4 — derived categorical column support)
+export {
+  buildFactorList,
+  augmentRowsWithDerived,
+  augmentLensedRowsWithDerived,
+} from './factorListUtils';
+
 // Locale State
 export {
   useLocaleState,

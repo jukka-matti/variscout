@@ -60,6 +60,11 @@ export interface DashboardSectionProps {
     title: string;
     labels: ActiveIPScopeLabels;
   } | null;
+  /**
+   * G1 Task 4: derived categorical columns from the active ImprovementProject.
+   * Passed through to Dashboard → useDashboardCharts / useProbabilityPlotData / Boxplot.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -82,6 +87,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   projectedCpkMap,
   aiAvailable = false,
   activeIPScope,
+  categoricalValuesByColumn,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
@@ -104,6 +110,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
       findingsCallbacks={findingsCallbacks}
       findings={findingsState.findings}
       onInvestigateFactor={onInvestigateFactor}
+      categoricalValuesByColumn={categoricalValuesByColumn}
       performance={{
         drillFromPerformance: dataFlow.drillFromPerformance,
         onBackToPerformance: dataFlow.handleBackToPerformance,

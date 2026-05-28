@@ -74,6 +74,14 @@ export interface BoxplotWrapperBaseProps {
   isCapabilityMode?: boolean;
   /** Cpk target value for reference line in capability mode */
   cpkTarget?: number;
+  /**
+   * G1 Task 4: derived categorical columns from the active ImprovementProject.
+   * When `factor` refers to a derived column (e.g. `Reactor_temp_bin`), the raw
+   * `filteredData` rows won't carry that key. This map provides the derived values
+   * indexed by original row position so useBoxplotData can augment the rows.
+   * Backward compat: absent or empty → identical to before.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 export const BoxplotWrapperBase = ({
@@ -103,13 +111,17 @@ export const BoxplotWrapperBase = ({
   capabilityData,
   isCapabilityMode,
   cpkTarget,
+  categoricalValuesByColumn,
 }: BoxplotWrapperBaseProps) => {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const { data: rawData, violinData } = useBoxplotData(
     filteredData,
     factor,
     outcome,
-    displayOptions.showViolin
+    displayOptions.showViolin,
+    undefined, // stageColumn
+    undefined, // stageOrder
+    categoricalValuesByColumn
   );
   const standardData = sortBoxplotData(
     rawData,
