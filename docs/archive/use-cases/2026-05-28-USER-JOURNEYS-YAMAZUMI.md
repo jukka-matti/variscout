@@ -1,5 +1,5 @@
 ---
-tier: archived
+tier: stable
 purpose: design
 title: 'Yamazumi Mode — User Journey (archived 2026-05-28)'
 audience: human
