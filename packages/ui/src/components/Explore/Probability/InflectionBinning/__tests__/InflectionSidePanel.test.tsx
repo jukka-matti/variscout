@@ -242,6 +242,75 @@ describe('InflectionSidePanel', () => {
     });
   });
 
+  describe('N<30 row-count guard', () => {
+    it('values.length === 20 → shows insufficient-rows message with count; no banner; no Detect button', () => {
+      const values = Array.from({ length: 20 }, (_, i) => i + 1);
+      const sortedValues = [...values];
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[]}
+          patchBindings={vi.fn()}
+        />
+      );
+      const msg = screen.getByTestId('inflection-insufficient-rows');
+      expect(msg).toBeInTheDocument();
+      expect(msg.textContent).toMatch(/Need ≥30 rows/);
+      expect(msg.textContent).toMatch(/current: 20/);
+      expect(screen.queryByTestId('inflection-banner')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('detect-inflections-button')).not.toBeInTheDocument();
+    });
+
+    it('values.length === 29 → shows insufficient-rows message', () => {
+      const values = Array.from({ length: 29 }, (_, i) => i + 1);
+      const sortedValues = [...values];
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[]}
+          patchBindings={vi.fn()}
+        />
+      );
+      expect(screen.getByTestId('inflection-insufficient-rows')).toBeInTheDocument();
+      expect(screen.queryByTestId('detect-inflections-button')).not.toBeInTheDocument();
+    });
+
+    it('values.length === 30 → shows Detect button; no insufficient-rows message', () => {
+      const values = Array.from({ length: 30 }, (_, i) => i + 1);
+      const sortedValues = [...values];
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[]}
+          patchBindings={vi.fn()}
+        />
+      );
+      expect(screen.getByTestId('detect-inflections-button')).toBeInTheDocument();
+      expect(screen.queryByTestId('inflection-insufficient-rows')).not.toBeInTheDocument();
+    });
+
+    it('values.length === 100 → shows Detect button; no insufficient-rows message', () => {
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[]}
+          patchBindings={vi.fn()}
+        />
+      );
+      expect(screen.getByTestId('detect-inflections-button')).toBeInTheDocument();
+      expect(screen.queryByTestId('inflection-insufficient-rows')).not.toBeInTheDocument();
+    });
+  });
+
   describe('per-segment × tooltip (middle-segment merge semantics)', () => {
     it('1-cut binding: × button has no explanatory title (2 segments — direction unambiguous)', () => {
       const oneCut: BinnedFactorBinding = {

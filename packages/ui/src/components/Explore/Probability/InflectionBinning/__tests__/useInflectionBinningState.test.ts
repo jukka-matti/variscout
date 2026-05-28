@@ -293,6 +293,32 @@ describe('useInflectionBinningState', () => {
     expect(args[0].levelNames).toEqual(['cold', '≥30']);
   });
 
+  // ── canDetect boundary tests ──────────────────────────────────────────────
+
+  it('canDetect is false when valueCount === 0', () => {
+    const { view } = renderBinningHook({ values: [], sortedValues: [] });
+    expect(view.result.current.canDetect).toBe(false);
+  });
+
+  it('canDetect is false when valueCount === 29', () => {
+    const values = Array.from({ length: 29 }, (_, i) => i + 1);
+    const sortedValues = [...values];
+    const { view } = renderBinningHook({ values, sortedValues });
+    expect(view.result.current.canDetect).toBe(false);
+  });
+
+  it('canDetect is true when valueCount === 30', () => {
+    const values = Array.from({ length: 30 }, (_, i) => i + 1);
+    const sortedValues = [...values];
+    const { view } = renderBinningHook({ values, sortedValues });
+    expect(view.result.current.canDetect).toBe(true);
+  });
+
+  it('canDetect is true when valueCount === 100', () => {
+    const { view } = renderBinningHook(); // bimodalFixture has 100 values
+    expect(view.result.current.canDetect).toBe(true);
+  });
+
   it('reset() returns to initial state', () => {
     const { view } = renderBinningHook();
     act(() => view.result.current.dismissBanner());

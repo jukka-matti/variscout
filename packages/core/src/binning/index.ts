@@ -1,4 +1,4 @@
-export { detectInflectionPoints } from './detectInflectionPoints';
+export { detectInflectionPoints, MIN_TOTAL_POINTS } from './detectInflectionPoints';
 export { computeSegmentStats } from './segmentConfidence';
 export { applyCuts } from './applyCuts';
 export type {

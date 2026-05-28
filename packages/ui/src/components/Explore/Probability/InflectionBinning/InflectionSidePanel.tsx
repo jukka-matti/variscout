@@ -99,6 +99,8 @@ export function InflectionSidePanelView({
 }: InflectionSidePanelViewProps) {
   const {
     state,
+    canDetect,
+    valueCount,
     dismissBanner,
     detectInflections,
     addCut: _addCut,
@@ -120,34 +122,42 @@ export function InflectionSidePanelView({
         className="flex flex-col gap-3 border border-edge bg-surface-secondary p-3 text-sm text-content"
         aria-label="Inflection binning"
       >
-        {state.canShowBanner && (
-          <div
-            data-testid="inflection-banner"
-            className="flex items-start gap-2 rounded border border-edge bg-surface-tertiary p-2"
-          >
-            <span aria-hidden="true">💡</span>
-            <p className="flex-1 text-content">
-              We can detect inflection points on this column — try?
-            </p>
+        {!canDetect ? (
+          <p data-testid="inflection-insufficient-rows" className="text-xs text-content-muted">
+            Need ≥30 rows for inflection detection (current: {valueCount})
+          </p>
+        ) : (
+          <>
+            {state.canShowBanner && (
+              <div
+                data-testid="inflection-banner"
+                className="flex items-start gap-2 rounded border border-edge bg-surface-tertiary p-2"
+              >
+                <span aria-hidden="true">💡</span>
+                <p className="flex-1 text-content">
+                  We can detect inflection points on this column — try?
+                </p>
+                <button
+                  type="button"
+                  data-testid="dismiss-inflection-banner"
+                  onClick={dismissBanner}
+                  className="rounded p-0.5 text-content hover:bg-surface-hover"
+                  aria-label="Dismiss inflection suggestion"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <button
               type="button"
-              data-testid="dismiss-inflection-banner"
-              onClick={dismissBanner}
-              className="rounded p-0.5 text-content hover:bg-surface-hover"
-              aria-label="Dismiss inflection suggestion"
+              data-testid="detect-inflections-button"
+              onClick={detectInflections}
+              className="rounded border border-edge bg-surface-secondary px-3 py-1.5 text-sm font-medium text-content hover:bg-surface-hover"
             >
-              ×
+              Detect inflections
             </button>
-          </div>
+          </>
         )}
-        <button
-          type="button"
-          data-testid="detect-inflections-button"
-          onClick={detectInflections}
-          className="rounded border border-edge bg-surface-secondary px-3 py-1.5 text-sm font-medium text-content hover:bg-surface-hover"
-        >
-          Detect inflections
-        </button>
       </aside>
     );
   }

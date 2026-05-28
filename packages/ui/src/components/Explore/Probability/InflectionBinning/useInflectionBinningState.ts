@@ -23,7 +23,11 @@
  */
 
 import { useMemo, useReducer, useCallback } from 'react';
-import { computeSegmentStats, detectInflectionPoints } from '@variscout/core/binning';
+import {
+  computeSegmentStats,
+  detectInflectionPoints,
+  MIN_TOTAL_POINTS,
+} from '@variscout/core/binning';
 import type { BinnedFactorBinding, SegmentStats } from '@variscout/core/binning';
 import { generateDeterministicId } from '@variscout/core';
 import { defaultLevelNames } from './defaultLevelNames';
@@ -54,6 +58,18 @@ export interface UseInflectionBinningStateInput {
 
 export interface UseInflectionBinningStateReturn {
   state: BinningState;
+  /**
+   * True when the value count meets the minimum required for inflection
+   * detection (≥ MIN_TOTAL_POINTS = 30). Purely informational — the UI uses
+   * this to suppress the Detect button and show an informational message
+   * instead. The detection algorithm has its own internal guard.
+   */
+  canDetect: boolean;
+  /**
+   * The number of values passed to the hook. Exposed so the UI can render
+   * a "Need ≥30 rows (current: N)" message without recomputing from props.
+   */
+  valueCount: number;
   // ----- Actions valid from various states -----
   dismissBanner: () => void;
   detectInflections: () => void;
@@ -408,8 +424,13 @@ export function useInflectionBinningState(
     });
   }, [sourceColumn, sortedValues, existingBindings]);
 
+  const valueCount = values.length;
+  const canDetect = valueCount >= MIN_TOTAL_POINTS;
+
   return {
     state,
+    canDetect,
+    valueCount,
     dismissBanner,
     detectInflections,
     dragCut,

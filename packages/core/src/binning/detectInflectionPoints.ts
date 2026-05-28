@@ -66,7 +66,7 @@ import type { InflectionDetectionInput, InflectionDetectionResult } from './type
 import { computeSegmentStats } from './segmentConfidence';
 
 /** Minimum n for any inflection detection to run; below this we return no cuts. */
-const MIN_TOTAL_POINTS = 30;
+export const MIN_TOTAL_POINTS = 30;
 
 /** Minimum points required in EACH side of a candidate split. */
 const MIN_SEGMENT_POINTS = 5;
