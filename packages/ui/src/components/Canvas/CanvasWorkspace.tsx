@@ -981,9 +981,9 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   // `SystemHintItem[]` is adapted to `SystemHint[]` below so the downstream
   // EditModeShell / Palette prop shape is unchanged.
   const systemHintItems = useSystemHints({
-    activeIP: activeIP ?? undefined,
     columnProfiles: rawProfiles,
     dismissedHints: dismissedSystemHints,
+    timeDecompositionBindings,
     onOpenCalc: () => setCalcModalOpen({ sourceColumn: undefined }),
     onOpenTimeAsFactors: () => setTimeFactorsModalOpen({}),
   });
