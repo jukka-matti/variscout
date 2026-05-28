@@ -15,16 +15,9 @@
 
 import type { BoxplotSortBy, BoxplotSortDirection } from '../types';
 import type { StandardIChartMetric } from '../stats/subgroupCapability';
-import type { YamazumiIChartMetric, YamazumiParetoMode } from '../yamazumi/types';
 
 // Re-export referenced types for consumer convenience
-export type {
-  BoxplotSortBy,
-  BoxplotSortDirection,
-  StandardIChartMetric,
-  YamazumiIChartMetric,
-  YamazumiParetoMode,
-};
+export type { BoxplotSortBy, BoxplotSortDirection, StandardIChartMetric };
 
 // ============================================================================
 // Scale & Axis Types
@@ -124,22 +117,11 @@ export type ParetoAggregation = 'count' | 'value';
  */
 export interface ViewState {
   activeView?: 'dashboard' | 'frame' | 'explore' | 'analyze' | 'improvement' | 'report';
-  activeTab?: 'analysis' | 'performance' | 'yamazumi';
+  activeTab?: 'analysis' | 'performance';
   isFindingsOpen?: boolean;
   isWhatIfOpen?: boolean;
-  focusedChart?:
-    | 'ichart'
-    | 'boxplot'
-    | 'pareto'
-    | 'yamazumi'
-    | 'histogram'
-    | 'probability-plot'
-    | null;
+  focusedChart?: 'ichart' | 'boxplot' | 'pareto' | 'histogram' | 'probability-plot' | null;
   boxplotFactor?: string;
   paretoFactor?: string;
   findingsViewMode?: 'list' | 'board' | 'tree';
-  /** Yamazumi I-Chart metric selector */
-  yamazumiIChartMetric?: YamazumiIChartMetric;
-  /** Yamazumi Pareto mode selector */
-  yamazumiParetoMode?: YamazumiParetoMode;
 }

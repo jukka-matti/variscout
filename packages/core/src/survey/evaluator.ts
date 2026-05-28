@@ -11,9 +11,7 @@ import {
   signalWeakLink,
 } from '../signalCards';
 import type { DataRow } from '../types';
-import { detectYamazumiFormat } from '../yamazumi';
 import type { DefectDetection } from '../defect';
-import type { YamazumiDetection } from '../yamazumi';
 import type {
   SurveyDiagnostics,
   SurveyEvaluation,
@@ -39,13 +37,6 @@ const EMPTY_WIDE_FORMAT = {
   metadataColumns: [],
   confidence: 'low' as const,
   reason: 'No data provided',
-};
-
-const EMPTY_YAMAZUMI: YamazumiDetection = {
-  isYamazumiFormat: false,
-  confidence: 'low',
-  suggestedMapping: {},
-  reason: 'No data or columns to analyze',
 };
 
 const EMPTY_DEFECT: DefectDetection = {
@@ -102,9 +93,6 @@ function makeDiagnostics(input: SurveyEvaluationInput): SurveyDiagnostics {
   const hasData = data.length > 0;
   const detectedColumns = hasData ? detectColumns(data) : EMPTY_DETECTED_COLUMNS;
   const wideFormat = hasData ? detectWideFormat(data) : EMPTY_WIDE_FORMAT;
-  const yamazumi = hasData
-    ? detectYamazumiFormat(data, detectedColumns.columnAnalysis)
-    : EMPTY_YAMAZUMI;
   const defect = hasData ? detectDefectFormat(data, detectedColumns.columnAnalysis) : EMPTY_DEFECT;
   const columns = hasData ? Object.keys(data[0] as DataRow) : [];
   const columnKinds = buildColumnKinds(detectedColumns);
@@ -122,8 +110,6 @@ function makeDiagnostics(input: SurveyEvaluationInput): SurveyDiagnostics {
   const timeColumn =
     normalizeColumn(input.timeColumn) ?? normalizeColumn(detectedColumns.timeColumn);
   const processMap = input.processMap ?? input.processContext?.processMap;
-  const yamazumiMapping =
-    input.yamazumiMapping ?? (yamazumi.isYamazumiFormat ? yamazumi.suggestedMapping : undefined);
   const defectMapping =
     input.defectMapping ?? (defect.isDefectFormat ? defect.suggestedMapping : undefined);
 
@@ -133,7 +119,6 @@ function makeDiagnostics(input: SurveyEvaluationInput): SurveyDiagnostics {
     columnKinds,
     outcomeColumn,
     specs: input.specs,
-    yamazumiMapping: yamazumiMapping ?? undefined,
     defectMapping: defectMapping ?? undefined,
     performanceChannels: wideFormat.isWideFormat
       ? wideFormat.channels.map(channel => channel.id)
@@ -161,7 +146,6 @@ function makeDiagnostics(input: SurveyEvaluationInput): SurveyDiagnostics {
     },
     detectedColumns,
     wideFormat,
-    yamazumi,
     defect,
     inferredMode,
     gaps,
@@ -182,12 +166,6 @@ function buildPossibilityItems(
   const subgroupAxes = processMap?.subgroupAxes ?? [];
   const hasSubgroupAxis = subgroupAxes.length > 0;
   const hasTime = Boolean(diagnostics.selected.timeColumn);
-  const yamazumiMapping = input.yamazumiMapping ?? diagnostics.yamazumi.suggestedMapping;
-  const hasYamazumiMapping = Boolean(
-    yamazumiMapping?.activityTypeColumn &&
-    yamazumiMapping?.cycleTimeColumn &&
-    yamazumiMapping?.stepColumn
-  );
   const defectMapping = input.defectMapping ?? diagnostics.defect.suggestedMapping;
   const hasDefectMapping = Boolean(
     (defectMapping?.defectTypeColumn && defectMapping?.countColumn) ||
@@ -218,14 +196,6 @@ function buildPossibilityItems(
       : diagnostics.wideFormat.channels.length > 0
         ? 'ask-for-next'
         : 'cannot-do-yet';
-
-  const yamazumiStatus: SurveyStatus = !hasData
-    ? 'cannot-do-yet'
-    : hasYamazumiMapping
-      ? 'can-do-now'
-      : diagnostics.yamazumi.isYamazumiFormat
-        ? 'can-do-with-caution'
-        : 'ask-for-next';
 
   const defectStatus: SurveyStatus = !hasData
     ? 'cannot-do-yet'
@@ -277,17 +247,6 @@ function buildPossibilityItems(
       detail:
         'Uses the existing wide-format detector to decide whether channel analysis is available.',
       mode: 'performance',
-    },
-    {
-      id: 'yamazumi',
-      instrument: 'Yamazumi',
-      status: yamazumiStatus,
-      requiredColumns: ['step', 'activity type', 'cycle time'],
-      nextUnlock: hasYamazumiMapping
-        ? 'Run lean activity composition and waste questions.'
-        : 'Map step, activity type, and cycle time columns.',
-      detail: diagnostics.yamazumi.reason,
-      mode: 'yamazumi',
     },
     {
       id: 'defect',

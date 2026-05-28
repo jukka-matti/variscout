@@ -14,13 +14,11 @@ import type { AnalysisMode } from '../../../../types';
 import type { JourneyPhase } from '../../../types';
 import { buildStandardWorkflow } from './standard';
 import { buildPerformanceWorkflow } from './performance';
-import { buildYamazumiWorkflow } from './yamazumi';
 import { buildDefectWorkflow } from './defect';
 
 export { buildStandardWorkflow } from './standard';
 export { buildCapabilityWorkflow } from './capability';
 export { buildPerformanceWorkflow } from './performance';
-export { buildYamazumiWorkflow } from './yamazumi';
 export { buildDefectWorkflow } from './defect';
 
 /**
@@ -30,7 +28,7 @@ export { buildDefectWorkflow } from './defect';
  * Standard mode is the default. Capability is a variant of standard with
  * additional centering vs spread diagnostics.
  *
- * @param mode - Current analysis mode (standard, performance, yamazumi)
+ * @param mode - Current analysis mode (standard, performance, defect)
  * @param phase - Current journey phase (frame, scout, investigate, improve)
  * @returns Mode-specific coaching string for inclusion in the system prompt
  */
@@ -40,8 +38,6 @@ export function buildModeWorkflow(mode: AnalysisMode, phase: JourneyPhase): stri
       return buildStandardWorkflow(phase);
     case 'performance':
       return buildPerformanceWorkflow(phase);
-    case 'yamazumi':
-      return buildYamazumiWorkflow(phase);
     case 'defect':
       return buildDefectWorkflow(phase);
     default:

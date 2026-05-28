@@ -55,7 +55,7 @@ describe('buildRole', () => {
   });
 
   it('includes consolidated REF types list', () => {
-    expect(role).toContain('boxplot, ichart, pareto, stats, yamazumi');
+    expect(role).toContain('boxplot, ichart, pareto, stats');
     expect(role).toContain('finding, question, dashboard, improvement');
   });
 

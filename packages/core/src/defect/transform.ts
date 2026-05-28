@@ -1,8 +1,7 @@
 /**
  * Defect data aggregation transform.
  *
- * Converts raw defect data into aggregated rates — defect mode's equivalent
- * of yamazumi's `computeYamazumiData()`.
+ * Converts raw defect data into aggregated rates.
  */
 
 import type { DataRow, DataCellValue } from '../types';
@@ -481,8 +480,7 @@ function transformPassFail(rawData: DataRow[], mapping: DefectMapping): DefectTr
 /**
  * Convert raw defect data into aggregated defect rates.
  *
- * This is the mode transform for defect analysis — defect mode's equivalent
- * of yamazumi's `computeYamazumiData()`.
+ * This is the mode transform for defect analysis.
  *
  * @param rawData - Raw data rows (possibly filtered)
  * @param mapping - Defect column mapping configuration

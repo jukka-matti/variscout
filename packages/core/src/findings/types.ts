@@ -484,7 +484,6 @@ export type FindingSource =
       seriesKey?: string;
       timeLens: TimeLens;
     }
-  | { chart: 'yamazumi'; category: string; activityType?: string; timeLens: TimeLens }
   | { chart: 'coscout'; messageId: string; timeLens: TimeLens };
 
 // ============================================================================
@@ -649,28 +648,14 @@ export interface StatisticalProjectionResult {
   projectedYield?: number;
 }
 
-/** Lean domain projection result (yamazumi) */
-export interface LeanProjectionResult {
-  currentCycleTime: number;
-  currentWaste: number;
-  currentVARatio: number;
-  taktTime?: number;
-  projectedCycleTime: number;
-  projectedWaste: number;
-  projectedVARatio: number;
-  meetsTakt: boolean;
-}
-
 /** Unified projection result — domain-specific */
 export interface ProjectionResult {
-  domain: 'statistical' | 'lean';
+  domain: 'statistical';
   statistical?: StatisticalProjectionResult;
-  lean?: LeanProjectionResult;
   overallImpact?: {
     projectedMean?: number;
     projectedSigma?: number;
     projectedCpk?: number;
-    projectedVARatio?: number;
   };
 }
 
@@ -688,10 +673,10 @@ export interface ProjectionScenario {
 /** Mode-aware evidence on a hypothesis */
 export interface HypothesisEvidence {
   /** Mode active when evidence was computed */
-  mode: 'standard' | 'capability' | 'performance' | 'yamazumi';
+  mode: 'standard' | 'capability' | 'performance';
   /** How much of the problem this mechanism explains */
   contribution: {
-    /** Numeric value: R²adj (0-1), waste % (0-1), Cpk delta, channel Cpk */
+    /** Numeric value: R²adj (0-1), Cpk delta, channel Cpk */
     value: number;
     /** From strategy: 'R²adj', 'Waste %', 'Cpk impact', 'Channel Cpk' */
     label: string;

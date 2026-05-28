@@ -8,7 +8,6 @@ export type RefTargetType =
   | 'ichart'
   | 'pareto'
   | 'stats'
-  | 'yamazumi'
   | 'finding'
   | 'question'
   | 'dashboard'

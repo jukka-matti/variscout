@@ -18,7 +18,6 @@ import { computeOptimum } from '../stats/safeMath';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
 import type { GlossaryCategory } from '../glossary/types';
 import type { AnalysisMode } from '../types';
-import type { YamazumiSummary } from '../yamazumi/types';
 import type { SubgroupCapabilityResult, SubgroupConfig } from '../stats/subgroupCapability';
 import type { Locale } from '../i18n/types';
 import type { BestSubsetsResult } from '../stats/bestSubsets';
@@ -117,8 +116,6 @@ export interface BuildAIContextOptions {
   problemStatementStage?: 'partial' | 'actionable' | 'with-causes';
   /** Live problem statement text */
   liveStatement?: string;
-  /** Yamazumi summary stats (when in yamazumi mode) */
-  yamazumiSummary?: YamazumiSummary;
   /** Subgroup capability data (when capability mode is active) */
   capabilityData?: {
     subgroupResults: SubgroupCapabilityResult[];
@@ -156,7 +153,6 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     maxGlossaryTerms = 40,
     locale,
     analysisMode,
-    yamazumiSummary,
   } = options;
 
   // Determine relevant glossary categories based on state
@@ -226,20 +222,8 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     context.analysisMode = analysisMode;
   }
 
-  if (analysisMode === 'yamazumi' && yamazumiSummary) {
-    context.yamazumi = {
-      vaRatio: yamazumiSummary.vaRatio,
-      processEfficiency: yamazumiSummary.processEfficiency,
-      totalLeadTime: yamazumiSummary.totalLeadTime,
-      wasteTime: yamazumiSummary.wasteTime,
-      waitTime: yamazumiSummary.waitTime,
-      taktTime: yamazumiSummary.taktTime,
-      stepsOverTakt: yamazumiSummary.stepsOverTakt,
-    };
-  }
-
   // Subgroup capability context (standard mode with capability toggle)
-  if (analysisMode !== 'yamazumi' && options.capabilityData) {
+  if (options.capabilityData) {
     const { subgroupResults, cpkStats, cpStats, config } = options.capabilityData;
     const cpkValues = subgroupResults.map(r => r.cpk).filter((v): v is number => v !== undefined);
     const cpValues = subgroupResults.map(r => r.cp).filter((v): v is number => v !== undefined);

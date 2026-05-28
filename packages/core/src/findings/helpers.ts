@@ -83,12 +83,10 @@ export function findDuplicateBySource(
   return findings.find(f => {
     if (!f.source) return false;
     if (f.source.chart !== source.chart) return false;
-    // Category-based charts (boxplot/pareto/yamazumi)
-    if (source.chart === 'boxplot' || source.chart === 'pareto' || source.chart === 'yamazumi') {
+    // Category-based charts (boxplot/pareto)
+    if (source.chart === 'boxplot' || source.chart === 'pareto') {
       return (
-        (f.source.chart === 'boxplot' ||
-          f.source.chart === 'pareto' ||
-          f.source.chart === 'yamazumi') &&
+        (f.source.chart === 'boxplot' || f.source.chart === 'pareto') &&
         f.source.category === source.category
       );
     }
@@ -179,18 +177,6 @@ function computeStatisticalEvidence(
   return Math.min(sum, 1.0);
 }
 
-/** Lean evidence from waste contribution (yamazumi mode) */
-function computeLeanEvidence(questions: Question[], questionIds: string[]): number {
-  // Sum waste contribution from connected questions (capped at 1.0)
-  const hubQIds = new Set(questionIds);
-  let sum = 0;
-  for (const q of questions) {
-    if (!hubQIds.has(q.id)) continue;
-    sum += q.evidence?.etaSquared ?? q.evidence?.rSquaredAdj ?? 0;
-  }
-  return Math.min(sum, 1.0);
-}
-
 /** Channel evidence from channel Cpk (performance mode) */
 function computeChannelEvidence(questions: Question[], questionIds: string[]): number {
   // For now, same fallback as lean — will be refined when channel ranking is implemented
@@ -215,14 +201,12 @@ const evidenceComputers: Record<
 > = {
   standard: (hf, q, qIds, bs) => computeStatisticalEvidence(hf, q, qIds, bs),
   capability: (hf, q, qIds, bs) => computeStatisticalEvidence(hf, q, qIds, bs),
-  yamazumi: (_hf, q, qIds) => computeLeanEvidence(q, qIds),
   performance: (_hf, q, qIds) => computeChannelEvidence(q, qIds),
 };
 
 const EVIDENCE_LABELS: Record<HypothesisEvidence['mode'], string> = {
   standard: 'R²adj',
   capability: 'Cpk impact',
-  yamazumi: 'Waste %',
   performance: 'Channel Cpk',
 };
 
@@ -231,8 +215,8 @@ const EVIDENCE_LABELS: Record<HypothesisEvidence['mode'], string> = {
  *
  * Uses a mode-dispatched function map following the analysisStrategy.ts pattern.
  * Standard and capability modes use Best Subsets R²adj for correlated factors,
- * falling back to a capped sum of individual η² values. Yamazumi and performance
- * modes use mode-appropriate evidence and skip Best Subsets.
+ * falling back to a capped sum of individual η² values. Performance mode
+ * uses mode-appropriate evidence and skips Best Subsets.
  *
  * Duplicate factors across connected questions are deduplicated before lookup
  * to prevent match failures when multiple questions share the same factor.

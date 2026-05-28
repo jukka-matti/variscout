@@ -1214,42 +1214,7 @@ Focus your analysis on:
   const modeToolSet = options.analysisMode
     ? getStrategy(resolveMode(options.analysisMode)).aiToolSet
     : 'standard';
-  if (modeToolSet === 'yamazumi') {
-    parts.push(
-      `## Analysis Mode: Time Study (Yamazumi)
-You are analyzing cycle time composition by activity type across process steps — a lean manufacturing technique.
-
-Terminology:
-- "cycle time" — not "measurement value"
-- "VA ratio" (value-add time / total lead time) — the lean counterpart to Cpk
-- "process efficiency" (VA / (VA + NVA Required)) — excludes pure waste
-- "takt time" (available time / demand) — the lean counterpart to specification limits
-- "takt compliance" (stations below takt / total) — the lean counterpart to pass rate
-- "process steps" or "stations" — not "categories"
-
-Activity types (fixed semantic colors):
-- VA (green): Value-adding work → optimize efficiency
-- NVA Required (amber): Necessary but non-value-adding → reduce through automation/simplification
-- Waste (red): Eliminable waste (muda) → remove entirely
-- Wait (grey): Queue/idle time → eliminate
-
-The four charts show:
-- Yamazumi Chart: Stacked bars showing time composition per step. Bars exceeding takt time are the bottlenecks.
-- I-Chart: Time trend with switchable metric (Total / VA-only / Waste-only). Shows if waste is increasing over time.
-- Pareto: Waste ranking with 5 grouping modes (steps-total, steps-waste, steps-nva, activities, reasons).
-- Summary Bar: VA ratio, process efficiency, lead time, bottleneck station, takt compliance.
-
-Coaching workflow:
-1. "Which steps exceed takt?" → Read the Yamazumi chart. Bars above the takt line are bottlenecks.
-2. "Is the bottleneck real work or waste?" → Check the segment composition. Green (VA) vs red (Waste).
-3. "What type of waste dominates?" → Switch Pareto to "Reasons" mode for waste driver ranking.
-4. "Is waste getting worse?" → Switch I-Chart to Waste-only metric. Look for upward trends.
-5. "Where should kaizen focus?" → The step with the most red (Waste) segments above takt.
-
-After kaizen, use staged analysis to verify: compare before/after VA ratio and takt compliance.
-Never reference Cpk, control limits, or SPC terminology. Use lean language throughout.`
-    );
-  } else if (modeToolSet === 'performance') {
+  if (modeToolSet === 'performance') {
     parts.push(
       `## Analysis Mode: Multi-Channel Performance
 You are analyzing equipment with multiple measurement channels (e.g., fill heads, cavities, spindles, lanes).
@@ -1313,8 +1278,6 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
         'Focus on which factors explain variation. Use R\u00B2adj for ranking. Evidence strength = R\u00B2adj from Best Subsets.',
       capability:
         'Frame questions around Cpk impact. Which factors affect process capability most?',
-      yamazumi:
-        'Focus on waste elimination. Which activities contribute most waste? Think lean: eliminate, simplify, combine, reduce.',
       performance:
         'Focus on channel health. Which channels are worst performers? Same contribution across channels?',
     };
@@ -1657,7 +1620,7 @@ Multiple hypotheses:
 The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.
 
 Visual grounding: When referencing specific chart elements, factors, statistics, findings, questions, or knowledge sources, wrap them in [REF:type:id]display text[/REF] markers. This creates clickable visual links in the UI.
-Valid types: boxplot, ichart, pareto, stats, yamazumi, finding, question, dashboard, improvement, document, answer.
+Valid types: boxplot, ichart, pareto, stats, finding, question, dashboard, improvement, document, answer.
 For stats, use keys: cpk, mean, sigma, cp, samples. For findings/questions, use their IDs.
 For knowledge sources (document, answer): use the source ID returned by the knowledge base search.
 - [REF:document:doc-id]SOP-103 §4.2[/REF] — links to an uploaded document; clicking shows an inline preview with the relevant chunk.

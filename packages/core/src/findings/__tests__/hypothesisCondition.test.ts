@@ -140,16 +140,6 @@ describe('deriveConditionFromFindingSource', () => {
     expect(result).toEqual({ kind: 'leaf', column: 'FILL', op: 'between', value: [100, 110] });
   });
 
-  it('derives eq leaf from yamazumi activity', () => {
-    const source: FindingSource = {
-      chart: 'yamazumi',
-      category: 'Bending',
-      timeLens: { mode: 'cumulative' },
-    };
-    const result = deriveConditionFromFindingSource(source, { activityColumn: 'ACTIVITY' });
-    expect(result).toEqual({ kind: 'leaf', column: 'ACTIVITY', op: 'eq', value: 'Bending' });
-  });
-
   it('returns undefined for coscout findings', () => {
     const source: FindingSource = {
       chart: 'coscout',
@@ -204,15 +194,6 @@ describe('deriveConditionFromFindingSource', () => {
     const source: FindingSource = {
       chart: 'pareto',
       category: 'Supplier',
-      timeLens: { mode: 'cumulative' },
-    };
-    expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();
-  });
-
-  it('returns undefined when activityColumn missing for yamazumi', () => {
-    const source: FindingSource = {
-      chart: 'yamazumi',
-      category: 'Bending',
       timeLens: { mode: 'cumulative' },
     };
     expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();

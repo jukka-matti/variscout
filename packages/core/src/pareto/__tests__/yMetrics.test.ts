@@ -117,61 +117,7 @@ describe('computeParetoY — time', () => {
 });
 
 // ============================================================================
-// 4. cycle-time
-// ============================================================================
-
-describe('computeParetoY — cycle-time', () => {
-  const ROWS: ReadonlyArray<Record<string, unknown>> = [
-    { ct: 30 },
-    { ct: 45 },
-    { ct: NaN },
-    { ct: 20 },
-  ];
-
-  it('sums finite cycle-time values', () => {
-    expect(computeParetoY('cycle-time', ROWS, { cycleTimeColumn: 'ct' })).toBe(95);
-  });
-
-  it('returns 0 for empty rows', () => {
-    expect(computeParetoY('cycle-time', EMPTY, { cycleTimeColumn: 'ct' })).toBe(0);
-  });
-
-  it('throws when cycleTimeColumn is missing', () => {
-    expect(() => computeParetoY('cycle-time', ROWS, {})).toThrow(
-      'computeParetoY: missing context.cycleTimeColumn for metric "cycle-time"'
-    );
-  });
-});
-
-// ============================================================================
-// 5. waste-time
-// ============================================================================
-
-describe('computeParetoY — waste-time', () => {
-  const ROWS: ReadonlyArray<Record<string, unknown>> = [
-    { wt: 5 },
-    { wt: 10 },
-    { wt: 'bad' },
-    { wt: 3 },
-  ];
-
-  it('sums finite waste-time values', () => {
-    expect(computeParetoY('waste-time', ROWS, { wasteTimeColumn: 'wt' })).toBe(18);
-  });
-
-  it('returns 0 for empty rows', () => {
-    expect(computeParetoY('waste-time', EMPTY, { wasteTimeColumn: 'wt' })).toBe(0);
-  });
-
-  it('throws when wasteTimeColumn is missing', () => {
-    expect(() => computeParetoY('waste-time', ROWS, {})).toThrow(
-      'computeParetoY: missing context.wasteTimeColumn for metric "waste-time"'
-    );
-  });
-});
-
-// ============================================================================
-// 6. step-duration
+// 4. step-duration
 // ============================================================================
 
 describe('computeParetoY — step-duration', () => {
@@ -503,16 +449,14 @@ const ALL_IDS = [
   'percent-out-of-spec',
   'mean-minus-target',
   'cpk',
-  'cycle-time',
-  'waste-time',
   'step-duration',
   'throughput',
 ] as const satisfies readonly ParetoYMetricId[];
 
 describe('PARETO_Y_METRICS registry shape', () => {
-  it('has all 11 IDs as keys', () => {
+  it('has all 9 IDs as keys', () => {
     const keys = Object.keys(PARETO_Y_METRICS);
-    expect(keys).toHaveLength(11);
+    expect(keys).toHaveLength(9);
     for (const id of ALL_IDS) {
       expect(keys).toContain(id);
     }

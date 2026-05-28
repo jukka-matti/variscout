@@ -3,7 +3,6 @@ import { buildModeWorkflow } from '../prompts/coScout/modes';
 import { buildStandardWorkflow } from '../prompts/coScout/modes/standard';
 import { buildCapabilityWorkflow } from '../prompts/coScout/modes/capability';
 import { buildPerformanceWorkflow } from '../prompts/coScout/modes/performance';
-import { buildYamazumiWorkflow } from '../prompts/coScout/modes/yamazumi';
 import type { JourneyPhase } from '../types';
 
 const ALL_PHASES: JourneyPhase[] = ['frame', 'scout', 'analyze', 'improve'];
@@ -122,72 +121,6 @@ describe('Mode coaching modules', () => {
     });
   });
 
-  describe('buildYamazumiWorkflow', () => {
-    it('uses takt and waste terminology', () => {
-      const result = buildYamazumiWorkflow('frame');
-      const lower = result.toLowerCase();
-      expect(lower).toContain('takt');
-      expect(lower).toContain('waste');
-    });
-
-    it('uses VA ratio terminology', () => {
-      const result = buildYamazumiWorkflow('frame');
-      const lower = result.toLowerCase();
-      expect(lower).toContain('va ratio');
-    });
-
-    it('does NOT use SPC terms as positive analysis instructions', () => {
-      for (const phase of ALL_PHASES) {
-        const result = buildYamazumiWorkflow(phase);
-        // Yamazumi may reference SPC terms negatively ("Never use Cpk") or as
-        // cross-references ("lean counterpart to Cpk"), but should never use
-        // them as positive diagnostic instructions.
-        // Strip the "Never use..." and "counterpart to..." lines, then check remainder
-        const stripped = result
-          .split('\n')
-          .filter(line => !line.includes('Never use') && !line.includes('counterpart to'))
-          .join('\n');
-        expect(stripped).not.toMatch(/\bCpk\b/);
-        expect(stripped.toLowerCase()).not.toContain('nelson rule');
-        expect(stripped.toLowerCase()).not.toContain('specification limit');
-      }
-    });
-
-    it('explicitly tells CoScout not to use SPC terminology', () => {
-      const result = buildYamazumiWorkflow('frame');
-      const lower = result.toLowerCase();
-      expect(lower).toContain('never use cpk');
-    });
-
-    it('covers waste classification (VA, NVA Required, Waste, Wait)', () => {
-      const result = buildYamazumiWorkflow('frame');
-      expect(result).toContain('VA');
-      expect(result).toContain('NVA Required');
-      expect(result).toContain('Waste');
-      expect(result).toContain('Wait');
-    });
-
-    it('mentions kaizen in improve phase', () => {
-      const result = buildYamazumiWorkflow('improve');
-      const lower = result.toLowerCase();
-      expect(lower).toContain('kaizen');
-    });
-
-    it('produces non-empty output for each phase', () => {
-      for (const phase of ALL_PHASES) {
-        const result = buildYamazumiWorkflow(phase);
-        expect(result.length).toBeGreaterThan(100);
-      }
-    });
-
-    it('does not contain dynamic stats values', () => {
-      for (const phase of ALL_PHASES) {
-        const result = buildYamazumiWorkflow(phase);
-        expect(result).not.toMatch(/\d+\.\d{3,}/);
-      }
-    });
-  });
-
   describe('buildModeWorkflow dispatcher', () => {
     it('dispatches standard mode correctly', () => {
       const result = buildModeWorkflow('standard', 'frame');
@@ -201,14 +134,8 @@ describe('Mode coaching modules', () => {
       expect(result.toLowerCase()).toContain('channel');
     });
 
-    it('dispatches yamazumi mode correctly', () => {
-      const result = buildModeWorkflow('yamazumi', 'frame');
-      expect(result).toContain('Yamazumi');
-      expect(result.toLowerCase()).toContain('takt');
-    });
-
     it('produces non-empty output for all mode x phase combinations', () => {
-      const modes = ['standard', 'performance', 'yamazumi'] as const;
+      const modes = ['standard', 'performance'] as const;
       for (const mode of modes) {
         for (const phase of ALL_PHASES) {
           const result = buildModeWorkflow(mode, phase);

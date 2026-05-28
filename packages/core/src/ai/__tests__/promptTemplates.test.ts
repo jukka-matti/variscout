@@ -743,17 +743,6 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   // Mode-specific terminology and coaching (ADR-047)
-  it('includes yamazumi methodology when analysisMode is yamazumi', () => {
-    const prompt = buildCoScoutSystemPrompt({ analysisMode: 'yamazumi' });
-    expect(prompt).toContain('Time Study (Yamazumi)');
-    expect(prompt).toContain('cycle time');
-    expect(prompt).toContain('VA ratio');
-    expect(prompt).toContain('takt time');
-    expect(prompt).toContain('takt compliance');
-    expect(prompt).toContain('Coaching workflow');
-    expect(prompt).toContain('Activity types');
-  });
-
   it('includes performance methodology when analysisMode is performance', () => {
     const prompt = buildCoScoutSystemPrompt({ analysisMode: 'performance' });
     expect(prompt).toContain('Multi-Channel Performance');
@@ -765,27 +754,15 @@ describe('buildCoScoutSystemPrompt', () => {
 
   it('does not include mode-specific blocks for standard mode', () => {
     const prompt = buildCoScoutSystemPrompt({});
-    expect(prompt).not.toContain('Time Study (Yamazumi)');
     expect(prompt).not.toContain('Multi-Channel Performance');
   });
 
   it('does not include mode-specific blocks when analysisMode is standard', () => {
     const prompt = buildCoScoutSystemPrompt({ analysisMode: 'standard' });
-    expect(prompt).not.toContain('Time Study (Yamazumi)');
     expect(prompt).not.toContain('Multi-Channel Performance');
   });
 
   // Strategy-aware validation method coaching (ADR-060 Pillar 5)
-  it('includes validation method coaching for yamazumi mode', () => {
-    const prompt = buildCoScoutSystemPrompt({
-      analysisMode: 'yamazumi',
-      investigation: { allQuestions: [] },
-    });
-    expect(prompt).toContain('taktCompliance');
-    expect(prompt).toContain('Waste %');
-    expect(prompt).toContain('Which step has the most waste');
-  });
-
   it('includes validation method coaching for performance mode', () => {
     const prompt = buildCoScoutSystemPrompt({
       analysisMode: 'performance',
@@ -804,7 +781,7 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   it('does not include validation coaching when no investigation context', () => {
-    const prompt = buildCoScoutSystemPrompt({ analysisMode: 'yamazumi' });
+    const prompt = buildCoScoutSystemPrompt({ analysisMode: 'performance' });
     expect(prompt).not.toContain('primary evidence metric');
   });
 

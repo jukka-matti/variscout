@@ -20,19 +20,6 @@ const baseMap = (overrides: Partial<ProcessMap> = {}): ProcessMap => ({
 });
 
 describe('inferMode — rule priority', () => {
-  it('fires yamazumi.tripletPresent when all three yamazumi columns are declared', () => {
-    const result = inferMode({
-      yamazumiMapping: {
-        activityTypeColumn: 'Activity_Type',
-        cycleTimeColumn: 'Cycle_Time',
-        stepColumn: 'Step',
-      },
-    });
-    expect(result.mode).toBe('yamazumi');
-    expect(result.rulesSatisfied).toEqual(['yamazumi.tripletPresent']);
-    expect(result.reason).toMatch(/yamazumi/i);
-  });
-
   it('fires defect.typeAndCount when defect type and count columns are declared', () => {
     const result = inferMode({
       defectMapping: {
@@ -137,7 +124,6 @@ describe('inferMode — rule priority', () => {
 
   it('falls back to standard when all mode-specific inputs are partially filled', () => {
     const result = inferMode({
-      yamazumiMapping: { activityTypeColumn: 'Activity_Type' }, // missing cycleTime + step
       defectMapping: { defectTypeColumn: 'Defect_Type' }, // missing count
       performanceChannels: ['Ch1'], // only 1 channel
       outcomeColumn: 'Fill_Weight',
@@ -149,21 +135,6 @@ describe('inferMode — rule priority', () => {
 });
 
 describe('inferMode — rule priority ordering', () => {
-  it('yamazumi beats defect when both mappings are complete (specificity)', () => {
-    const result = inferMode({
-      yamazumiMapping: {
-        activityTypeColumn: 'Activity_Type',
-        cycleTimeColumn: 'Cycle_Time',
-        stepColumn: 'Step',
-      },
-      defectMapping: {
-        defectTypeColumn: 'Defect_Type',
-        countColumn: 'Count',
-      },
-    });
-    expect(result.mode).toBe('yamazumi');
-  });
-
   it('defect beats performance when both would fire', () => {
     const result = inferMode({
       defectMapping: { defectTypeColumn: 'Defect_Type', countColumn: 'Count' },

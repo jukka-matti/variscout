@@ -106,7 +106,7 @@ describe('computeHubEvidence', () => {
     expect(computeHubEvidence(hub, questions, bestSubsets).contribution.value).toBeCloseTo(0.52);
   });
 
-  it('deduplicates duplicate factors and skips Best Subsets for yamazumi mode', () => {
+  it('deduplicates duplicate factors when computing evidence', () => {
     const duplicateFactorQuestions = [
       makeQuestion({ id: 'q1', factor: 'Shift', evidence: { etaSquared: 0.34 } }),
       makeQuestion({ id: 'q2', factor: 'Shift', evidence: { etaSquared: 0.28 } }),
@@ -116,16 +116,6 @@ describe('computeHubEvidence', () => {
     expect(
       computeHubEvidence(duplicateHub, duplicateFactorQuestions, bestSubsets).contribution.value
     ).toBeCloseTo(0.34);
-
-    const yamazumiEvidence = computeHubEvidence(
-      duplicateHub,
-      duplicateFactorQuestions,
-      bestSubsets,
-      'yamazumi'
-    );
-    expect(yamazumiEvidence.mode).toBe('yamazumi');
-    expect(yamazumiEvidence.contribution.label).toBe('Waste %');
-    expect(yamazumiEvidence.contribution.value).toBeCloseTo(0.62);
   });
 });
 

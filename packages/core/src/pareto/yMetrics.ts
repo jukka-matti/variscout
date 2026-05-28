@@ -28,7 +28,6 @@ import { DEFAULT_CPK_TARGET } from '../capability/resolve';
  *   - defect:        count | cost | time
  *   - capability:    cpk-gap | percent-out-of-spec | mean-minus-target | cpk
  *   - performance:   percent-out-of-spec | cpk
- *   - yamazumi:      cycle-time | waste-time
  *   - process-flow:  step-duration | throughput
  *   - universal:     count (also the fallback for standard mode)
  */
@@ -40,8 +39,6 @@ export type ParetoYMetricId =
   | 'percent-out-of-spec'
   | 'mean-minus-target'
   | 'cpk'
-  | 'cycle-time'
-  | 'waste-time'
   | 'step-duration'
   | 'throughput';
 
@@ -113,16 +110,6 @@ export const PARETO_Y_METRICS: Record<ParetoYMetricId, ParetoYMetric> = {
       'A smaller Cpk means worse capability — sort ascending to surface worst groups first.',
     smallerIsWorse: true,
   },
-  'cycle-time': {
-    id: 'cycle-time',
-    label: 'cycle time (sum)',
-    description: 'Sum of the cycle-time column across all rows in the group.',
-  },
-  'waste-time': {
-    id: 'waste-time',
-    label: 'waste time (sum)',
-    description: 'Sum of the waste-time column across all rows in the group.',
-  },
   'step-duration': {
     id: 'step-duration',
     label: 'step duration (sum)',
@@ -165,10 +152,6 @@ export interface ComputeParetoYContext {
   costColumn?: string;
   /** Duration / downtime column name for the 'time' metric (defect mode). */
   durationColumn?: string;
-  /** Cycle-time column name for the 'cycle-time' metric (yamazumi mode). */
-  cycleTimeColumn?: string;
-  /** Waste-time column name for the 'waste-time' metric (yamazumi mode). */
-  wasteTimeColumn?: string;
   /** Step-duration column name for the 'step-duration' metric (process-flow mode). */
   stepDurationColumn?: string;
   /**
@@ -279,8 +262,6 @@ function computeCpkForValues(
  * | count               | 0 (empty group)          | always well-defined                |
  * | cost                | 0                        | no finite rows → sum is 0          |
  * | time                | 0                        | no finite rows → sum is 0          |
- * | cycle-time          | 0                        | no finite rows → sum is 0          |
- * | waste-time          | 0                        | no finite rows → sum is 0          |
  * | step-duration       | 0                        | no finite rows → sum is 0          |
  * | percent-out-of-spec | 0                        | no numeric rows → 0%               |
  * | mean-minus-target   | 0                        | no numeric rows → |0 − target| = 0 |
@@ -328,26 +309,6 @@ export function computeParetoY(
         throw new Error('computeParetoY: missing context.durationColumn for metric "time"');
       }
       return sumColumn(rowsForGroup, context.durationColumn);
-    }
-
-    // -------------------------------------------------------------------------
-    // cycle-time (sum)
-    // -------------------------------------------------------------------------
-    case 'cycle-time': {
-      if (!context.cycleTimeColumn) {
-        throw new Error('computeParetoY: missing context.cycleTimeColumn for metric "cycle-time"');
-      }
-      return sumColumn(rowsForGroup, context.cycleTimeColumn);
-    }
-
-    // -------------------------------------------------------------------------
-    // waste-time (sum)
-    // -------------------------------------------------------------------------
-    case 'waste-time': {
-      if (!context.wasteTimeColumn) {
-        throw new Error('computeParetoY: missing context.wasteTimeColumn for metric "waste-time"');
-      }
-      return sumColumn(rowsForGroup, context.wasteTimeColumn);
     }
 
     // -------------------------------------------------------------------------

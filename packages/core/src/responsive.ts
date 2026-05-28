@@ -35,14 +35,7 @@ export interface ChartFonts {
 /**
  * Supported chart types for margin calculations
  */
-export type ChartType =
-  | 'ichart'
-  | 'boxplot'
-  | 'pareto'
-  | 'histogram'
-  | 'probability'
-  | 'scatter'
-  | 'yamazumi';
+export type ChartType = 'ichart' | 'boxplot' | 'pareto' | 'histogram' | 'probability' | 'scatter';
 
 /**
  * Container breakpoint information
@@ -94,7 +87,6 @@ export function getResponsiveMargins(
     histogram: { top: 20, right: 20, bottom: 40, left: 40 },
     probability: { top: 20, right: 20, bottom: 40, left: 50 },
     scatter: { top: 30, right: 20, bottom: 50, left: 55 },
-    yamazumi: { top: 20, right: 20, bottom: 60, left: 70 },
   };
 
   const base = baseMargins[chartType];

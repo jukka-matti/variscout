@@ -86,18 +86,6 @@ describe('FindingSource timeLens — round-trip per variant', () => {
     expect(deserialized.source?.timeLens).toEqual(ROLLING_LENS);
   });
 
-  it('yamazumi source preserves timeLens after JSON round-trip', () => {
-    const source: FindingSource = {
-      chart: 'yamazumi',
-      category: 'Setup',
-      activityType: 'waste',
-      timeLens: FIXED_LENS,
-    };
-    const finding = makeFindingWith(source);
-    const deserialized: Finding = JSON.parse(JSON.stringify(finding));
-    expect(deserialized.source?.timeLens).toEqual(FIXED_LENS);
-  });
-
   it('coscout source preserves timeLens after JSON round-trip', () => {
     const source: FindingSource = {
       chart: 'coscout',

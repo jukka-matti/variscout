@@ -16,12 +16,6 @@ const MODE_QUESTION_GUIDANCE: Record<AnalysisMode, string> = {
 - When a data-answered question has weak evidence (p >= 0.05), suggest gemba or expert validation.
 - Evidence strength = R-squared-adj contribution from the factor in the regression model.`,
 
-  yamazumi: `Question and evidence guidance:
-- Frame questions around waste elimination: "Does [activity] contribute significant waste at [station]?"
-- Evidence strength = waste percentage contribution. A station with > 20% waste is a strong signal.
-- Questions can be validated by time study observation (gemba) — suggest timing specific activities.
-- Lean questions: "Can this NVA Required activity be automated?", "What causes wait time at this station?"`,
-
   defect: `Question and evidence guidance:
 - Frame questions around defect contribution: "Does [defect type] dominate the defect rate?" and "Does [factor] drive variation in [defect type]?"
 - Evidence strength = R-squared-adj contribution from ANOVA on the aggregated defect rates.

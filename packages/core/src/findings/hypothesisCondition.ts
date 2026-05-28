@@ -46,8 +46,6 @@ export interface FindingSourceColumnHints {
   groupColumn?: string;
   /** The dimension column for pareto (x-axis column). */
   dimensionColumn?: string;
-  /** The activity column for yamazumi. */
-  activityColumn?: string;
   /** The metric column (y-axis) for ichart / probability plot. */
   metricColumn?: string;
   /** Upper anchor for probability-plot between ranges. */
@@ -70,9 +68,6 @@ export function deriveConditionFromFindingSource(
     case 'pareto':
       if (!hints.dimensionColumn) return undefined;
       return { kind: 'leaf', column: hints.dimensionColumn, op: 'eq', value: source.category };
-    case 'yamazumi':
-      if (!hints.activityColumn) return undefined;
-      return { kind: 'leaf', column: hints.activityColumn, op: 'eq', value: source.category };
     case 'ichart':
       if (!hints.metricColumn) return undefined;
       return { kind: 'leaf', column: hints.metricColumn, op: 'gte', value: source.anchorY };

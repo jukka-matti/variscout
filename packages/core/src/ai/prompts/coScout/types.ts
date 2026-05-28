@@ -36,7 +36,7 @@ export interface AssembleCoScoutPromptOptions {
   phase?: JourneyPhase;
   /** Current investigation sub-phase */
   analyzePhase?: AnalyzePhase;
-  /** Current analysis mode (standard/performance/yamazumi) */
+  /** Current analysis mode */
   mode?: AnalysisMode;
   /** Surface where CoScout is rendered */
   surface?: CoScoutSurface;

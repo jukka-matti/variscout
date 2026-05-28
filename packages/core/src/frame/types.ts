@@ -160,12 +160,6 @@ export interface ModeInferenceInput {
   outcomeColumn?: string;
   /** Spec limits for the outcome, if set. */
   specs?: ModeInferenceSpecs;
-  /** Yamazumi column mapping, if yamazumi was previously detected. */
-  yamazumiMapping?: {
-    activityTypeColumn?: string;
-    cycleTimeColumn?: string;
-    stepColumn?: string;
-  };
   /** Defect column mapping, if defect was previously detected. */
   defectMapping?: {
     defectTypeColumn?: string;
@@ -178,11 +172,10 @@ export interface ModeInferenceInput {
 }
 
 /** Resolved mode — matches `analysisStrategy.ts` `ResolvedMode` (kept in sync by design). */
-export type InferredMode = 'standard' | 'capability' | 'yamazumi' | 'performance' | 'defect';
+export type InferredMode = 'standard' | 'capability' | 'performance' | 'defect';
 
 /** Rule identifiers. Stable strings safe to expose in telemetry / tests. */
 export type ModeInferenceRuleId =
-  | 'yamazumi.tripletPresent'
   | 'defect.typeAndCount'
   | 'defect.passFail'
   | 'performance.threeOrMoreChannels'
