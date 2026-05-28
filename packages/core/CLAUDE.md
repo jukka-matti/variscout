@@ -1,6 +1,6 @@
 # @variscout/core
 
-Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, variation, yamazumi, defect, strategy.
+Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, variation, defect, strategy.
 
 ## Hard rules
 
@@ -12,7 +12,7 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 ## Invariants
 
 - Sub-path exports are public API. Adding a new sub-path requires updating `packages/core/package.json` exports field + `tsconfig.json` paths.
-- Available sub-paths: root (barrel), /stats, /ai, /capability, /parser, /processHub (CharacteristicType, OutcomeSpec, ProcessHub, InvestigationStatus, etc.), /findings (incl. `findings/drift.ts`), /variation, /yamazumi, /tier, /types, /i18n, /glossary, /export, /navigation, /responsive, /performance, /time, /timeline (TimelineWindow + applyWindow), /throughput (computeOutputRate, computeBottleneck), /projectMetadata, /strategy, /ui-types, /evidenceMap, /defect.
+- Available sub-paths: root (barrel), /stats, /ai, /capability, /parser, /processHub (CharacteristicType, OutcomeSpec, ProcessHub, InvestigationStatus, etc.), /findings (incl. `findings/drift.ts`), /variation, /tier, /types, /i18n, /glossary, /export, /navigation, /responsive, /performance, /time, /timeline (TimelineWindow + applyWindow), /throughput (computeOutputRate, computeBottleneck), /projectMetadata, /strategy, /ui-types, /evidenceMap, /defect.
 - `resolveMode()` + `getStrategy()` in `src/analysisStrategy.ts` is the mode dispatch point. New analysis modes must register here.
 - The stats engine is the authority for numeric claims. CoScout receives stat results; it does not recompute.
 - Numeric safety has three boundaries (ADR-069): B1 parser rejects NaN via `toNumericValue`; B2 stats functions return `undefined`; B3 display uses `formatStatistic`.
@@ -29,9 +29,9 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 
 ## Strategy + analysis modes
 
-- **Always exactly 4 chart slots** per mode strategy. Never add a 5th — if a mode needs alternate views, add a switcher within a slot (yamazumi Pareto 5-mode, defect Pareto factor-selector). Changing slot count breaks the dashboard layout contract.
-- **`AnalysisMode` (persisted)** = `'standard' | 'performance' | 'yamazumi' | 'defect'`. **`ResolvedMode` (rendering)** adds `'capability'`. Capability is produced by `resolveMode()` from `standardIChartMetric === 'capability'`; never persist it as an `AnalysisMode` value.
-- **Mode transforms run BEFORE stats**, not after. `computeYamazumiData()`, `computeDefectRates()` produce the working dataset; never call the stats engine on raw event-log data in defect mode.
+- **Always exactly 4 chart slots** per mode strategy. Never add a 5th — if a mode needs alternate views, add a switcher within a slot (defect Pareto factor-selector). Changing slot count breaks the dashboard layout contract.
+- **`AnalysisMode` (persisted)** = `'standard' | 'performance' | 'defect'`. **`ResolvedMode` (rendering)** adds `'capability'`. Capability is produced by `resolveMode()` from `standardIChartMetric === 'capability'`; never persist it as an `AnalysisMode` value.
+- **Mode transforms run BEFORE stats**, not after. `computeDefectRates()` produces the working dataset; never call the stats engine on raw event-log data in defect mode.
 - **`isPerformanceMode` is removed** (~67 references deleted). Never re-introduce. Use `analysisMode === 'performance'` if you must branch, or prefer `getStrategy()`.
 - ADR-074 boundary policy applies: SCOUT (investigation-time) and Hub Capability (hub-time, rolling default) link as peers via the strategy's `dataRouter`.
 

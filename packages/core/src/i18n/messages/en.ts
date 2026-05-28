@@ -741,20 +741,6 @@ export const en: MessageCatalog = {
   'improve.convergenceNudge':
     'Your evidence is converging \u2014 summarize what you\u2019ve learned in the Improvement Plan.',
 
-  // Yamazumi (Time Study)
-  'yamazumi.detected.title': 'Time Study Data Detected',
-  'yamazumi.detected.confidence': 'confidence',
-  'yamazumi.detected.description':
-    'Your data contains activity type classifications and cycle times suitable for Yamazumi analysis.',
-  'yamazumi.detected.activityType': 'Activity Type',
-  'yamazumi.detected.cycleTime': 'Cycle Time',
-  'yamazumi.detected.step': 'Process Step',
-  'yamazumi.detected.reason': 'Waste Reason',
-  'yamazumi.detected.taktTime': 'Takt Time (optional)',
-  'yamazumi.detected.taktPlaceholder': 'e.g., 120 seconds',
-  'yamazumi.detected.decline': 'Use Standard Mode',
-  'yamazumi.detected.enable': 'Enable Yamazumi Mode',
-
   // Defect detected modal
   'defect.detected.title': 'Defect Data Detected',
   'defect.detected.confidence': 'confidence',
@@ -769,26 +755,6 @@ export const en: MessageCatalog = {
   'defect.detected.stepOfOrigin': 'Step of origin',
   'defect.detected.stepOfOriginHint':
     'Identifies which step caught each defect. Optional — defects anchor to outcome when not set.',
-
-  'yamazumi.metric.total': 'Total',
-  'yamazumi.metric.va': 'VA',
-  'yamazumi.metric.nva': 'NVA',
-  'yamazumi.metric.waste': 'Waste',
-  'yamazumi.metric.wait': 'Wait',
-  'yamazumi.pareto.steps-total': 'Steps by Total Time',
-  'yamazumi.pareto.steps-waste': 'Steps by Waste Time',
-  'yamazumi.pareto.steps-nva': 'Steps by NVA Time',
-  'yamazumi.pareto.activities': 'Activities by Time',
-  'yamazumi.pareto.reasons': 'Waste Reasons',
-  'yamazumi.summary.vaRatio': 'VA Ratio',
-  'yamazumi.summary.efficiency': 'Process Efficiency',
-  'yamazumi.summary.leadTime': 'Total Lead Time',
-  'yamazumi.summary.takt': 'Takt Time',
-  'yamazumi.summary.setTakt': 'Set',
-  'yamazumi.summary.overTakt': 'steps over takt',
-  'yamazumi.takt': 'Takt',
-  'yamazumi.mode.label': 'Yamazumi',
-  'yamazumi.mode.switch': 'Switch to Yamazumi',
 
   // Report workspace view
   'report.cpkLearningLoop': 'Cpk Learning Loop',
@@ -1049,8 +1015,6 @@ export const en: MessageCatalog = {
   'canvas.lens.performance.label': 'Performance',
   'canvas.lens.processFlow.description': 'Plain process structure without per-card analytics.',
   'canvas.lens.processFlow.label': 'Process flow',
-  'canvas.lens.yamazumi.description': 'Future time-study lens.',
-  'canvas.lens.yamazumi.label': 'Yamazumi',
 
   // Canvas — NoFocalStepPrompt
   'canvas.noFocalStep.ariaLabel': 'Choose a process step',
