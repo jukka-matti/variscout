@@ -15,10 +15,8 @@ import {
   computeTimeDecompositionColumns,
   computeTotalWorkTimeColumn,
   computeWaitTimeColumn,
-  detectBatchData,
   detectColumns,
   detectScopeFromMap,
-  detectTimeColumns,
   normalizeProcessHubId,
   parseTimeValue,
   rankYCandidates,
@@ -51,6 +49,7 @@ import { Canvas, type CanvasAuthoringMode, type CanvasL3Archetype } from './inde
 import { EditModeShell } from './EditMode';
 import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCategoricalColumn';
 import type { SystemHint } from './EditMode/Palette';
+import { useSystemHints } from './EditMode/hooks/useSystemHints';
 import { StepTimingsModal } from './EditMode/Workflows/StepTimingsModal';
 import { CalculatedColumnModal } from './EditMode/Workflows/CalculatedColumnModal';
 import { TimeAsFactorsModal } from './EditMode/Workflows/TimeAsFactorsModal';
@@ -566,6 +565,12 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     sourceColumn?: string;
   } | null>(null);
 
+  // H1 Task 1: dismissed system hints — persisted only for the current session
+  // (component lifetime). Hints reappear on remount; user can re-dismiss.
+  const [dismissedSystemHints, setDismissedSystemHints] = React.useState<Set<string>>(
+    () => new Set()
+  );
+
   // E1 T5: route a per-field patch through `onPersistCanvasState`. Always
   // emits a fully-formed IP (factory contract: `upsertProject` expects the
   // whole object) with `updatedAt` refreshed at the moment of the write.
@@ -958,17 +963,9 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     return { ...timeDecompositionDerivedColumns, ...binnedFactorDerivedColumns };
   }, [timeDecompositionDerivedColumns, binnedFactorDerivedColumns]);
 
-  // D2 Task 11: batch-data detection drives the palette's contextual hint
-  // banner. When the heuristic finds input/output mass-balance columns
-  // (`Input_kg`, `GradeA_kg`, etc.), the banner invites the user to open the
-  // CalculatedColumnModal pre-targeted at yield-ratio templates.
-  const batchDataResult = React.useMemo(() => detectBatchData(rawProfiles), [rawProfiles]);
-
-  // D3 Task 8: time-column detection drives the time-as-factors system hint.
-  // Banner is suppressed once every detected date column already has a
-  // TimeDecompositionBinding (UX micro-polish — stop nagging once everything
-  // has been decomposed).
-  const timeColumnsDetection = React.useMemo(() => detectTimeColumns(rawProfiles), [rawProfiles]);
+  // H1 Task 1: batchDataResult and timeColumnsDetection memos retired — logic
+  // moved into useSystemHints hook. detectBatchData / detectTimeColumns imports
+  // also removed.
 
   // D3 Task 8: memoized list of date-kind column names. Drives the
   // TimeAsFactorsModal `timeColumns` prop; previously computed inline in JSX
@@ -978,35 +975,30 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [rawProfiles]
   );
 
-  const systemHints = React.useMemo<SystemHint[]>(() => {
-    const hints: SystemHint[] = [];
-    if (batchDataResult !== null) {
-      hints.push({
-        id: 'batch-detected',
-        kind: 'batch',
-        message:
-          '💡 Batch data detected. Input/output mass columns found — calculate yield ratios?',
-        ctaLabel: 'Calculate yield ratios →',
-        onCta: () => setCalcModalOpen({ sourceColumn: undefined }),
-      });
-    }
-    if (timeColumnsDetection !== null) {
-      const allDateColumnsDecomposed = timeColumnsDetection.columns.every(col =>
-        timeDecompositionBindings.some(b => b.sourceColumn === col)
-      );
-      if (!allDateColumnsDecomposed) {
-        const count = timeColumnsDetection.count;
-        hints.push({
-          id: 'time-detected',
-          kind: 'time',
-          message: `${count} time column${count === 1 ? '' : 's'} detected. Use time as factors →`,
-          ctaLabel: 'Use time as factors',
-          onCta: () => setTimeFactorsModalOpen({}),
-        });
-      }
-    }
-    return hints;
-  }, [batchDataResult, timeColumnsDetection, timeDecompositionBindings]);
+  // H1 Task 1: useSystemHints replaces the inline batch/time hint memos.
+  // CTAs are wired to the existing modal-opener callbacks. `dismissedSystemHints`
+  // suppresses hints that the user has dismissed for this session. The resulting
+  // `SystemHintItem[]` is adapted to `SystemHint[]` below so the downstream
+  // EditModeShell / Palette prop shape is unchanged.
+  const systemHintItems = useSystemHints({
+    activeIP: activeIP ?? undefined,
+    columnProfiles: rawProfiles,
+    dismissedHints: dismissedSystemHints,
+    onOpenCalc: () => setCalcModalOpen({ sourceColumn: undefined }),
+    onOpenTimeAsFactors: () => setTimeFactorsModalOpen({}),
+  });
+
+  // Adapt SystemHintItem[] → SystemHint[] by injecting the per-hint dismiss
+  // callback. `setDismissedSystemHints` is a stable React state-setter — it
+  // does not change between renders and does not need to be listed in deps.
+  const systemHints = React.useMemo<SystemHint[]>(
+    () =>
+      systemHintItems.map(item => ({
+        ...item,
+        onDismiss: () => setDismissedSystemHints(prev => new Set([...prev, item.id])),
+      })),
+    [systemHintItems, setDismissedSystemHints]
+  );
 
   // When access is revoked at runtime, snap back to State mode so the user
   // is never stranded in Edit mode without the Done affordance.
