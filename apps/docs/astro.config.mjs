@@ -842,7 +842,7 @@ export default defineConfig({
               slug: '07-decisions/adr-032-evidence-communication',
             },
             {
-              label: 'ADR-034 Yamazumi',
+              label: 'ADR-034 Yamazumi (superseded)',
               slug: '07-decisions/adr-034-yamazumi-analysis-mode',
             },
             {

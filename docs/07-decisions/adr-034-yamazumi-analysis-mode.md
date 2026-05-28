@@ -7,11 +7,29 @@ layer: L5
 
 # ADR-034: Yamazumi Analysis Mode
 
-**Status**: Accepted
+**Status**: Superseded
 
-**Date**: 2026-03-20
+> **Superseded 2026-05-28 by [Linked Views Phase 1 spec §6.1](../superpowers/specs/2026-05-28-state-edit-mode-and-ip-scoped-presentation-design.md)** —
+> yamazumi mode removed in wedge V1 via PR-LV1-0. Process-flow mode covers the
+> flow-analysis use case; activity-classified time-study data is deferred to a
+> future pivot-table capability; activity-typed time-study data has a different
+> gathering workflow not aligned with the wedge V1 paste-and-analyze flow.
+> ADR-047 amended in parallel to narrow the AnalysisMode + ResolvedMode unions.
+> Companion use-case doc archived to `docs/archive/use-cases/2026-05-28-USER-JOURNEYS-YAMAZUMI.md`.
 
-## Context
+## Amendment — 2026-05-28
+
+Yamazumi mode (Lean Time Study analysis with VA / NVA Required / Waste / Wait
+stacked-bar charts and takt-time compliance) was the fourth analysis mode in
+the pre-wedge V1 lineup (`standard`, `performance`, `yamazumi`, `defect`).
+Under the 2026-05-16 wedge V1 single-SKU pivot, the canonical analysis mode
+list narrows to **five resolved modes** (`standard`, `capability`,
+`performance`, `defect`, `process-flow`) and **three persisted AnalysisMode
+values** (`standard`, `performance`, `defect`); yamazumi is removed entirely.
+The full deletion sweep landed via PR-LV1-0 (atomic — chart component, hooks,
+dashboards, store fields, strategy registry entry, i18n keys, sample dataset).
+
+## Context (historical, accepted 2026-03-20)
 
 VariScout currently supports two analysis modes:
 

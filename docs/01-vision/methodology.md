@@ -315,8 +315,9 @@ Beyond the standard four-tool view, VariScout supports alternative analysis
 modes that reconfigure the dashboard for specific process questions:
 
 - **Performance Mode** — Multi-channel Cpk comparison for wide-format data (fill heads, cavities, nozzles)
-- **Yamazumi Mode** — Lean time study with stacked activity bars and cycle time decomposition
 - **Capability Mode** — Per-subgroup Cp/Cpk stability analysis on the I-Chart, answering "Are we meeting our Cpk target?" Analysts switch freely between standard and capability views at any drill level. Time-based subgrouping uses extracted time columns from FRAME. See [Analysis Flow](../03-features/workflows/analysis-flow.md) for how these modes interleave through the full journey.
+
+> Yamazumi mode (lean time study with stacked VA / NVA / Waste / Wait activity bars + cycle-time decomposition) was removed in wedge V1 via PR-LV1-0 (2026-05-28). Process-flow mode covers the flow-analysis use case; activity-classified time-study data is deferred to a future pivot-table capability. See [ADR-034](../07-decisions/adr-034-yamazumi-analysis-mode.md) (superseded).
 
 The user-facing question should be "what level of process understanding are we
 working on?" before it becomes "which mode?" Each mode reuses the same chart

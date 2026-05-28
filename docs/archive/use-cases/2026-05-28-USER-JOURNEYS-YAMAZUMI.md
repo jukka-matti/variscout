@@ -1,15 +1,21 @@
 ---
-tier: living
+tier: archived
 purpose: design
-title: Yamazumi Mode — User Journey
+title: 'Yamazumi Mode — User Journey (archived 2026-05-28)'
 audience: human
 category: reference
-status: active
-last-reviewed: 2026-05-16
+status: archived
+last-reviewed: 2026-05-28
 related: [yamazumi, journey, lean, cycle-time, takt]
 ---
 
-# Yamazumi Mode — User Journey
+> **ARCHIVED 2026-05-28** — Yamazumi mode was removed in wedge V1 via PR-LV1-0.
+> See [ADR-034](../../07-decisions/adr-034-yamazumi-analysis-mode.md) (superseded)
+> and [the linked-views Phase 1 spec §6.1](../../superpowers/specs/2026-05-28-state-edit-mode-and-ip-scoped-presentation-design.md)
+> for the rationale (process-flow mode + future pivot-table capability subsume
+> the yamazumi use case). Kept here for historical reference.
+
+# Yamazumi Mode — User Journey (archived)
 
 Under the [V1 pivot](superpowers/specs/2026-05-16-wedge-architecture-design.md) ([ADR-082](07-decisions/adr-082-wedge-architecture.md)), Yamazumi mode serves the single V1 persona — the **Improvement Specialist** — working either solo (quick analysis, no project) or inside a Project. The lean methodology below is unchanged; persona variants (industrial engineer / Lean lead / kaizen facilitator) have collapsed to one Specialist. See [USER-JOURNEYS.md](USER-JOURNEYS.md) for the canonical spine.
 

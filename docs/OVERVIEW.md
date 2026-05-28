@@ -57,14 +57,15 @@ The data underneath a Project (the Hub) is tenant-wide — anyone in your Azure 
 
 Project members must be in the same Azure AD tenant as the buyer. Cross-org collaboration is out of V1 scope (this becomes a deliberate privacy boundary).
 
-## The six analysis modes
+## The five analysis modes
 
 1. **Standard** (default). Continuous measurement data. I-Chart, Boxplot, Pareto, Stats panel. Most common entry point.
 2. **Capability.** Cp/Cpk against specifications. Histogram, probability plot. Optional subgroup capability (ADR-038). Used for process qualification and SPC.
-3. **Yamazumi** (lean). Activity-level cycle time analysis. Stacked bars by VA/NVA/Waste/Wait (fixed colors), takt line, rebalancing targets. Used by industrial engineers and CI leads.
-4. **Performance** (multi-channel). Fill heads, cavities, nozzles. Per-channel Cpk scatter, cross-channel Boxplot comparison, worst-first Pareto. Used by process engineers monitoring multi-stream equipment.
-5. **Defect** (events → rates). Event logs transformed into defect rates per time unit. Pareto of defect types, cross-type Evidence Map. Used by quality engineers tracking PPM.
-6. **Process Flow** (process-level bottleneck analysis and flow diagnostics).
+3. **Performance** (multi-channel). Fill heads, cavities, nozzles. Per-channel Cpk scatter, cross-channel Boxplot comparison, worst-first Pareto. Used by process engineers monitoring multi-stream equipment.
+4. **Defect** (events → rates). Event logs transformed into defect rates per time unit. Pareto of defect types, cross-type Evidence Map. Used by quality engineers tracking PPM.
+5. **Process Flow** (process-level bottleneck analysis and flow diagnostics).
+
+> Yamazumi mode (lean time study with stacked VA/NVA/Waste/Wait bars) was removed in wedge V1 via PR-LV1-0 (2026-05-28). Process-flow mode covers the flow-analysis use case; activity-classified time-study data is deferred to a future pivot-table capability. See [ADR-034](07-decisions/adr-034-yamazumi-analysis-mode.md) (superseded).
 
 Mode resolution lives in `packages/core/src/analysisStrategy.ts`. CoScout's methodology coaching adapts per mode.
 

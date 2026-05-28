@@ -7,8 +7,23 @@ layer: L5
 
 # ADR-047: Analysis Mode Strategy Pattern
 
-**Status:** Accepted
+**Status:** Accepted (amended 2026-05-28)
 **Date:** 2026-03-23
+
+## Amendment — 2026-05-28
+
+Yamazumi mode is removed from the analysis-mode strategy registry as part of
+PR-LV1-0 (linked-views Phase 1 spec §6.1). The mode union narrows to:
+
+- **`AnalysisMode` (persisted)**: `'standard' | 'performance' | 'defect'`
+- **`ResolvedMode` (rendering)**: `'standard' | 'capability' | 'performance' | 'defect'`
+
+The strategy registry now contains four entries (down from five). The
+`QuestionStrategy.generator` `'wasteComposition'` and `evidenceMetric`
+`'wasteContribution'` and `validationMethod` `'taktCompliance'` are also
+retired. `AnalysisModeStrategy.aiToolSet` narrows to
+`'standard' | 'performance'`. See [ADR-034](adr-034-yamazumi-analysis-mode.md)
+(superseded) for the rationale.
 
 ## Context
 
