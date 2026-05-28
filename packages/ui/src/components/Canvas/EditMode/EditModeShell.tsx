@@ -2,6 +2,7 @@ import React, { type ReactNode } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import type { OutcomeSpec } from '@variscout/core';
 import type { ImprovementProjectFactorControl } from '@variscout/core/improvementProject';
+import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import type { ColumnParsingProfile, ParsingInterpretation } from '@variscout/core/parser';
 import { Palette } from './Palette';
 import type { SystemHint } from './Palette';
@@ -96,6 +97,14 @@ export interface EditModeShellProps {
    */
   onCaptureStepTimings?: () => void;
   /**
+   * F1 Task 3: called when the user confirms the → Explore exit from the toolbar.
+   * Threaded from CanvasWorkspace which supplies a console.warn stub in Task 3;
+   * Task 4 replaces the stub with panelsStore.showExplore(intent); Task 6 wires
+   * the real tab navigation. Optional so existing callers that predate F1 (e.g.
+   * EditModeShell test fixtures) continue to work without passing this prop.
+   */
+  onExploreExit?: (landing: ExploreLandingView) => void;
+  /**
    * D1 slot — timing badge nodes keyed by step id. Forwarded unchanged to
    * `<ProcessStructureZone>`, which passes each entry as `timingBadge` to the
    * matching `<StepBox>`. Task 10 (CanvasWorkspace) computes this map; Task 9
@@ -125,6 +134,7 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
   onStepsReplace,
   onCaptureStepTimings,
   timingByStepId = {},
+  onExploreExit,
 }) => {
   const onDragEnd = React.useCallback(
     (event: Parameters<typeof handleEditModeDragEnd>[0]) =>
@@ -166,7 +176,15 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
           </button>
         </header>
 
-        <EditModeToolbar steps={steps} onCaptureStepTimings={onCaptureStepTimings} />
+        <EditModeToolbar
+          steps={steps}
+          onCaptureStepTimings={onCaptureStepTimings}
+          outcomeSpecs={outcomeSpecs}
+          factorControls={factorControls}
+          processSteps={steps}
+          categoricalValuesByColumn={categoricalValuesByColumn}
+          onExploreExit={onExploreExit}
+        />
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 md:grid-cols-[14rem_18rem_minmax(0,1fr)]">
           <aside
