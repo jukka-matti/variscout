@@ -7,7 +7,6 @@ import ProbabilityPlot from './charts/ProbabilityPlot';
 import { useProbabilityPlotData } from '@variscout/hooks';
 import MobileChartCarousel from './MobileChartCarousel';
 import PerformanceDashboard from './PerformanceDashboard';
-import YamazumiDashboard from './YamazumiDashboard';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
 import { useProjectStore, useViewStore } from '@variscout/stores';
@@ -65,10 +64,10 @@ import {
 } from '@variscout/hooks';
 import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
-import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
+import { Activity, BarChart3, Gauge, ArrowLeft, Settings2 } from 'lucide-react';
 import { usePanelsStore } from '../features/panels/panelsStore';
 
-type DashboardTab = 'analysis' | 'performance' | 'yamazumi';
+type DashboardTab = 'analysis' | 'performance';
 
 /** Mode-dispatched tab configuration (ADR-047 pattern). */
 interface ModeTab {
@@ -85,10 +84,6 @@ const modeTabs: Record<ResolvedMode, ModeTab[]> = {
     { id: 'analysis', label: 'Analysis', icon: BarChart3, activeColor: 'bg-blue-600' },
     { id: 'performance', label: 'Performance', icon: Gauge, activeColor: 'bg-blue-600' },
   ],
-  yamazumi: [
-    { id: 'analysis', label: 'Analysis', icon: BarChart3, activeColor: 'bg-blue-600' },
-    { id: 'yamazumi', label: 'Yamazumi', icon: Timer, activeColor: 'bg-amber-600' },
-  ],
   defect: [{ id: 'analysis', label: 'Analysis', icon: BarChart3, activeColor: 'bg-blue-600' }],
 };
 
@@ -97,7 +92,6 @@ const modeDefaultTab: Record<ResolvedMode, DashboardTab | undefined> = {
   standard: undefined,
   capability: undefined,
   performance: undefined,
-  yamazumi: 'yamazumi',
   defect: undefined,
 };
 
@@ -223,7 +217,6 @@ const Dashboard = ({
   const filters = useProjectStore(s => s.filters);
   const setFilters = useProjectStore(s => s.setFilters);
   const analysisMode = useProjectStore(s => s.analysisMode);
-  const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
   const columnAliases = useProjectStore(s => s.columnAliases);
   const stageColumn = useProjectStore(s => s.stageColumn);
   const stageOrderMode = useProjectStore(s => s.stageOrderMode);
@@ -302,7 +295,7 @@ const Dashboard = ({
     }
   }, [drillFromPerformance, setActiveTab]);
 
-  // Auto-switch tab when analysis mode changes (e.g., yamazumi → yamazumi tab)
+  // Auto-switch tab when analysis mode changes
   useEffect(() => {
     const defaultTab = modeDefaultTab[resolvedMode];
     if (defaultTab) {
@@ -401,7 +394,7 @@ const Dashboard = ({
   useEffect(() => {
     if (!hasRestoredFocusedChart && initialViewState?.focusedChart) {
       const chart = initialViewState.focusedChart;
-      // FocusedChart only covers standard charts; skip yamazumi (handled by YamazumiDashboard)
+      // FocusedChart only covers standard charts
       if (chart === 'ichart' || chart === 'boxplot' || chart === 'pareto') {
         setFocusedChart(chart);
       }
@@ -836,18 +829,6 @@ const Dashboard = ({
         <div className="flex-1 overflow-hidden">
           <ErrorBoundary componentName="Performance Dashboard">
             <PerformanceDashboard onDrillToMeasure={onDrillToMeasure} />
-          </ErrorBoundary>
-        </div>
-      )}
-
-      {/* Yamazumi Tab */}
-      {activeTab === 'yamazumi' && yamazumiMapping && (
-        <div className="flex-1 overflow-hidden">
-          <ErrorBoundary componentName="Yamazumi Dashboard">
-            <YamazumiDashboard
-              mapping={yamazumiMapping}
-              onBarClick={key => handleDrillDown(yamazumiMapping.stepColumn, key)}
-            />
           </ErrorBoundary>
         </div>
       )}

@@ -21,7 +21,6 @@ vi.mock('@variscout/core', async importOriginal => {
     detectColumns: vi.fn(),
     validateData: vi.fn(),
     detectWideFormat: vi.fn(),
-    detectYamazumiFormat: vi.fn(),
     detectDefectFormat: vi.fn(),
     // parseTimeValue kept real so timestamp filtering works in overlap-replace tests.
   };
@@ -48,7 +47,6 @@ import {
   detectColumns,
   validateData,
   detectWideFormat,
-  detectYamazumiFormat,
   detectDefectFormat,
 } from '@variscout/core';
 import { classifyPaste } from '@variscout/core/matchSummary';
@@ -170,9 +168,6 @@ beforeEach(() => {
   vi.mocked(detectWideFormat).mockReturnValue({ isWideFormat: false } as unknown as ReturnType<
     typeof detectWideFormat
   >);
-  vi.mocked(detectYamazumiFormat).mockReturnValue({
-    isYamazumiFormat: false,
-  } as unknown as ReturnType<typeof detectYamazumiFormat>);
   vi.mocked(detectDefectFormat).mockReturnValue({ isDefectFormat: false } as unknown as ReturnType<
     typeof detectDefectFormat
   >);

@@ -347,7 +347,6 @@ export const Editor: React.FC<EditorProps> = ({
     measureSpecs,
     projectCpkTarget,
   });
-  const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
   const defectMapping = useProjectStore(s => s.defectMapping);
   const processContext = useProjectStore(s => s.processContext) ?? undefined;
 
@@ -404,7 +403,6 @@ export const Editor: React.FC<EditorProps> = ({
   const setMeasureLabel = useProjectStore(s => s.setMeasureLabel);
   const setColumnAliases = useProjectStore(s => s.setColumnAliases);
   const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
-  const setYamazumiMapping = useProjectStore(s => s.setYamazumiMapping);
   const setDefectMapping = useProjectStore(s => s.setDefectMapping);
   const setFilters = useProjectStore(s => s.setFilters);
   const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
@@ -452,9 +450,6 @@ export const Editor: React.FC<EditorProps> = ({
       if (prompt.hasTimeComponent) {
         dataFlowRef.current?.setTimeExtractionConfig(prev => ({ ...prev, extractHour: true }));
       }
-    },
-    onYamazumiDetected: result => {
-      dataFlowRef.current?.handleYamazumiDetectedFromIngestion(result);
     },
     onDefectDetected: result => {
       dataFlowRef.current?.handleDefectDetectedFromIngestion(result);
@@ -813,7 +808,6 @@ export const Editor: React.FC<EditorProps> = ({
         factorColumns: factors,
         timeColumn,
         specs,
-        yamazumiMapping,
         defectMapping,
         processContext,
         questions: persistedQuestions,
@@ -826,7 +820,6 @@ export const Editor: React.FC<EditorProps> = ({
       factors,
       timeColumn,
       specs,
-      yamazumiMapping,
       defectMapping,
       processContext,
       persistedQuestions,
@@ -1391,7 +1384,6 @@ export const Editor: React.FC<EditorProps> = ({
       (factors.length > 0 || rawData.length >= 10) &&
       !capabilitySuggestionDismissed &&
       !showCapabilitySuggestion &&
-      !dataFlow.yamazumiDetection &&
       !dataFlow.defectDetection
     ) {
       setShowCapabilitySuggestion(true);
@@ -1402,7 +1394,6 @@ export const Editor: React.FC<EditorProps> = ({
     specs,
     capabilitySuggestionDismissed,
     showCapabilitySuggestion,
-    dataFlow.yamazumiDetection,
     dataFlow.defectDetection,
   ]);
 
@@ -2138,23 +2129,6 @@ export const Editor: React.FC<EditorProps> = ({
 
       {/* Detection modals */}
       <EditorModals
-        yamazumiDetection={dataFlow.yamazumiDetection}
-        onEnableYamazumi={taktTime => {
-          const m = dataFlow.yamazumiDetection!.suggestedMapping;
-          setAnalysisMode('yamazumi');
-          setYamazumiMapping({
-            activityTypeColumn: m.activityTypeColumn!,
-            cycleTimeColumn: m.cycleTimeColumn!,
-            stepColumn: m.stepColumn!,
-            activityColumn: m.activityColumn,
-            reasonColumn: m.reasonColumn,
-            productColumn: m.productColumn,
-            waitTimeColumn: m.waitTimeColumn,
-            taktTime,
-          });
-          dataFlow.dismissYamazumiDetection();
-        }}
-        onDeclineYamazumi={() => dataFlow.dismissYamazumiDetection()}
         defectDetection={dataFlow.defectDetection}
         columnNames={getColumnNames(rawData)}
         onEnableDefect={mapping => {

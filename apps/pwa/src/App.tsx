@@ -8,7 +8,6 @@ import {
   FindingsWindow,
   openFindingsPopout,
   updateFindingsPopout,
-  YamazumiDetectedModal,
   PerformanceDetectedModal,
   CapabilitySuggestionModal,
   DefectDetectedModal,
@@ -113,7 +112,6 @@ const WhatIfPage = lazyWithRetry(() => import('./components/WhatIfPage'));
 const SettingsPanel = lazyWithRetry(() => import('./components/settings/SettingsPanel'));
 const DataTableModal = lazyWithRetry(() => import('./components/data/DataTableModal'));
 const FindingsPanel = lazyWithRetry(() => import('./components/FindingsPanel'));
-const YamazumiDashboard = lazyWithRetry(() => import('./components/YamazumiDashboard'));
 const ProcessIntelligencePanel = lazyWithRetry(
   () => import('./components/ProcessIntelligencePanel')
 );
@@ -201,7 +199,6 @@ function AppMain() {
   const filters = useProjectStore(s => s.filters);
   const columnAliases = useProjectStore(s => s.columnAliases);
   const analysisMode = useProjectStore(s => s.analysisMode);
-  const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
   const displayOptions = useProjectStore(s => s.displayOptions);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
@@ -280,7 +277,6 @@ function AppMain() {
   const setColumnAliases = useProjectStore(s => s.setColumnAliases);
   const clearSelection = useViewStore(s => s.clearSelection);
   const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
-  const setYamazumiMapping = useProjectStore(s => s.setYamazumiMapping);
   const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const setCpkTarget = useProjectStore(s => s.setCpkTarget);
@@ -295,9 +291,6 @@ function AppMain() {
   const ingestion = useDataIngestion({
     onWideFormatDetected: result => {
       importFlowRef.current?.handleWideFormatDetected(result);
-    },
-    onYamazumiDetected: result => {
-      importFlowRef.current?.handleYamazumiDetected(result);
     },
     onDefectDetected: result => {
       importFlowRef.current?.handleDefectDetected(result);
@@ -546,7 +539,6 @@ function AppMain() {
       (factors.length > 0 || rawData.length >= 10) &&
       !capabilitySuggestionDismissed &&
       !showCapabilitySuggestion &&
-      !importFlow.yamazumiDetection &&
       !importFlow.wideFormatDetection &&
       !importFlow.defectDetection
     ) {
@@ -558,7 +550,6 @@ function AppMain() {
     factors.length,
     capabilitySuggestionDismissed,
     showCapabilitySuggestion,
-    importFlow.yamazumiDetection,
     importFlow.wideFormatDetection,
     importFlow.defectDetection,
   ]);
@@ -1477,23 +1468,6 @@ function AppMain() {
                     : null
                 }
               />
-            ) : resolveMode(analysisMode) === 'yamazumi' && yamazumiMapping ? (
-              <Suspense fallback={null}>
-                <YamazumiDashboard
-                  mapping={yamazumiMapping}
-                  onBarClick={key =>
-                    filterNav.applyFilter({
-                      type: 'filter',
-                      source: 'pareto',
-                      factor: yamazumiMapping.stepColumn,
-                      values: [key],
-                    })
-                  }
-                  onTaktTimeChange={taktTime =>
-                    setYamazumiMapping({ ...yamazumiMapping, taktTime })
-                  }
-                />
-              </Suspense>
             ) : (
               <Dashboard
                 onPointClick={panels.openDataTableAtRow}
@@ -1597,29 +1571,6 @@ function AppMain() {
             importFlow.handleDismissWideFormat();
           }}
           onDecline={importFlow.handleDismissWideFormat}
-        />
-      )}
-
-      {/* Yamazumi Detection Modal */}
-      {importFlow.yamazumiDetection && (
-        <YamazumiDetectedModal
-          detection={importFlow.yamazumiDetection}
-          onEnable={taktTime => {
-            const m = importFlow.yamazumiDetection!.suggestedMapping;
-            setAnalysisMode('yamazumi');
-            setYamazumiMapping({
-              activityTypeColumn: m.activityTypeColumn!,
-              cycleTimeColumn: m.cycleTimeColumn!,
-              stepColumn: m.stepColumn!,
-              activityColumn: m.activityColumn,
-              reasonColumn: m.reasonColumn,
-              productColumn: m.productColumn,
-              waitTimeColumn: m.waitTimeColumn,
-              taktTime,
-            });
-            importFlow.handleDismissYamazumi();
-          }}
-          onDecline={() => importFlow.handleDismissYamazumi()}
         />
       )}
 

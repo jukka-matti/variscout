@@ -30,9 +30,6 @@ vi.mock('../components/views/ReportView', () => ({
 vi.mock('../components/ProcessIntelligencePanel', () => ({
   default: () => <div data-testid="pi-panel-stub">PI Panel</div>,
 }));
-vi.mock('../components/YamazumiDashboard', () => ({
-  default: () => <div data-testid="yamazumi-stub">Yamazumi</div>,
-}));
 vi.mock('../components/WhatIfPage', () => ({
   default: () => <div data-testid="whatif-stub">What-If</div>,
 }));

@@ -28,11 +28,9 @@ import {
   ReportQuestionSummary,
   ReportImprovementSummary,
   ReportCpkLearningLoop,
-  ReportYamazumiKPIGrid,
   ReportCapabilityKPIGrid,
   ReportPerformanceKPIGrid,
   ReportDefectKPIGrid,
-  ReportActivityBreakdown,
   ReportEvidenceMap,
   ActiveIPScopeRibbon,
   IPContextChip,
@@ -49,7 +47,6 @@ import {
   useBoxplotData,
   useBoxplotWrapperData,
   useIChartData,
-  useYamazumiChartData,
   useCapabilityIChartData,
   useDefectTransform,
   useDefectSummary,
@@ -60,7 +57,6 @@ import type { Finding, ProcessHub, SpecLimits } from '@variscout/core';
 import {
   formatFindingFilters,
   calculateStagedComparison,
-  computeYamazumiSummary,
   computeBestSubsets,
   computeMainEffects,
   computeInteractionEffects,
@@ -73,13 +69,7 @@ import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import type { ResolvedMode } from '@variscout/core/strategy';
-import {
-  IChartBase,
-  BoxplotBase,
-  ParetoChartBase,
-  YamazumiChartBase,
-  EvidenceMapBase,
-} from '@variscout/charts';
+import { IChartBase, BoxplotBase, ParetoChartBase, EvidenceMapBase } from '@variscout/charts';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
@@ -170,7 +160,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   });
   const displayOptions = useProjectStore(s => s.displayOptions);
   const analysisMode = useProjectStore(s => s.analysisMode);
-  const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const stageColumn = useProjectStore(s => s.stageColumn);
   const { filteredData } = useFilteredData();
@@ -295,7 +284,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   const strategy = getStrategy(resolved);
 
   // Boolean aliases — kept for the many binary checks in the render tree
-  const isYamazumi = resolved === 'yamazumi';
   const isCapabilityMode = resolved === 'capability';
 
   const reportMapData = useEvidenceMapData({
@@ -316,23 +304,6 @@ const ReportView: React.FC<ReportViewProps> = ({
     findings: reportFindings,
     hypotheses: reportHypotheses ?? [],
   });
-
-  // ---------------------------------------------------------------------------
-  // Yamazumi mode data
-  // ---------------------------------------------------------------------------
-
-  const yamazumiBarData = useYamazumiChartData({
-    filteredData: isYamazumi ? filteredData : [],
-    mapping: isYamazumi ? (yamazumiMapping ?? null) : null,
-  });
-
-  const yamazumiSummary = useMemo(
-    () =>
-      isYamazumi && yamazumiBarData.length > 0
-        ? computeYamazumiSummary(yamazumiBarData, yamazumiMapping?.taktTime)
-        : null,
-    [isYamazumi, yamazumiBarData, yamazumiMapping?.taktTime]
-  );
 
   // ---------------------------------------------------------------------------
   // Capability mode data
@@ -870,25 +841,10 @@ const ReportView: React.FC<ReportViewProps> = ({
           <HubPortfolioReport report={hubPortfolioReport} />
         )}
 
-        {/* Step 1: Current Condition / Time Composition */}
+        {/* Step 1: Current Condition */}
         {section.id === 'current-condition' && outcome && (
           <div className="space-y-4">
-            {resolved === 'yamazumi' && yamazumiSummary ? (
-              <>
-                <ReportYamazumiKPIGrid summary={yamazumiSummary} />
-                {!isSummary && yamazumiBarData.length > 0 && (
-                  <div style={{ pointerEvents: 'none' }}>
-                    <YamazumiChartBase
-                      data={yamazumiBarData}
-                      taktTime={yamazumiMapping?.taktTime}
-                      parentWidth={REPORT_CHART_WIDTH}
-                      parentHeight={REPORT_CHART_HEIGHT}
-                      showBranding={false}
-                    />
-                  </div>
-                )}
-              </>
-            ) : resolved === 'capability' && capabilityKPIs ? (
+            {resolved === 'capability' && capabilityKPIs ? (
               <>
                 <ReportCapabilityKPIGrid
                   meanCpk={capabilityKPIs.meanCpk}
@@ -1082,19 +1038,8 @@ const ReportView: React.FC<ReportViewProps> = ({
                             {finding.text || 'Observation'}
                           </p>
                         </div>
-                        {/* Yamazumi: show activity breakdown for the step */}
-                        {isYamazumi &&
-                          finding.source &&
-                          'category' in finding.source &&
-                          (() => {
-                            const { category } = finding.source as { category: string };
-                            const barData = yamazumiBarData.find(b => b.key === category);
-                            return barData ? (
-                              <ReportActivityBreakdown stepName={category} barData={barData} />
-                            ) : null;
-                          })()}
                         {/* SPC: show KPI snapshot */}
-                        {!isYamazumi && outcome && (
+                        {outcome && (
                           <FindingChartSnapshot
                             finding={finding}
                             rawData={rawData}
@@ -1107,24 +1052,7 @@ const ReportView: React.FC<ReportViewProps> = ({
                     ))
                   )
                 ) : // Fallback: no findings
-                isYamazumi ? (
-                  // Yamazumi fallback: show yamazumi chart as overview
-                  !isSummary && yamazumiBarData.length > 0 ? (
-                    <div style={{ pointerEvents: 'none' }}>
-                      <YamazumiChartBase
-                        data={yamazumiBarData}
-                        taktTime={yamazumiMapping?.taktTime}
-                        parentWidth={REPORT_CHART_WIDTH}
-                        parentHeight={REPORT_CHART_HEIGHT}
-                        showBranding={false}
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-                      Pin observations on the yamazumi chart to see activity breakdowns here.
-                    </p>
-                  )
-                ) : firstFactor ? (
+                firstFactor ? (
                   // Standard SPC fallback (unchanged)
                   isSummary ? (
                     <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">

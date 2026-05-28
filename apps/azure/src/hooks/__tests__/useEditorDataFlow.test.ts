@@ -15,7 +15,6 @@ vi.mock('@variscout/core', async importOriginal => {
     detectColumns: vi.fn(),
     validateData: vi.fn(),
     detectWideFormat: vi.fn(),
-    detectYamazumiFormat: vi.fn(),
     detectDefectFormat: vi.fn(),
   };
 });
@@ -32,7 +31,6 @@ import {
   detectColumns,
   validateData,
   detectWideFormat,
-  detectYamazumiFormat,
   detectDefectFormat,
 } from '@variscout/core';
 import { detectMergeStrategy, mergeRows, mergeColumns } from '../useDataMerge';
@@ -44,7 +42,6 @@ const mockParseText = parseText as ReturnType<typeof vi.fn>;
 const mockDetectColumns = detectColumns as ReturnType<typeof vi.fn>;
 const mockValidateData = validateData as ReturnType<typeof vi.fn>;
 const mockDetectWideFormat = detectWideFormat as ReturnType<typeof vi.fn>;
-const mockDetectYamazumiFormat = detectYamazumiFormat as ReturnType<typeof vi.fn>;
 const mockDetectDefectFormat = detectDefectFormat as ReturnType<typeof vi.fn>;
 const mockDetectMergeStrategy = detectMergeStrategy as ReturnType<typeof vi.fn>;
 const mockMergeRows = mergeRows as ReturnType<typeof vi.fn>;
@@ -93,7 +90,6 @@ describe('useEditorDataFlow', () => {
       columnAnalysis: [],
     });
     mockValidateData.mockReturnValue({ issues: [], warnings: [] });
-    mockDetectYamazumiFormat.mockReturnValue({ isYamazumiFormat: false, suggestedMapping: {} });
     mockDetectDefectFormat.mockReturnValue({ isDefectFormat: false });
     mockDetectWideFormat.mockReturnValue({ isWideFormat: false, channels: [] });
   });

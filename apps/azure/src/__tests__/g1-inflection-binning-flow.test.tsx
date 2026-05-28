@@ -469,7 +469,6 @@ const mockStoreState = {
   subgroupConfig: { method: 'fixed-size' as const, size: 5 },
   cpkTarget: 1.33,
   analysisMode: 'standard' as const,
-  yamazumiMapping: null,
   selectedPoints: new Set<number>(),
 };
 

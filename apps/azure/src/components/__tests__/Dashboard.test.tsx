@@ -549,7 +549,6 @@ describe('Dashboard', () => {
     cpkTarget: 1.33,
     selectedPoints: new Set<number>(),
     analysisMode: 'standard' as const,
-    yamazumiMapping: null,
     filterStack: [],
   };
 
