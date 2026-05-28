@@ -846,3 +846,6 @@ export * from './components/Improve';
 
 // Explore tab — Probability lens inflection-binning workflow (wedge V1 PR-CCJ-G1)
 export * from './components/Explore/Probability/InflectionBinning';
+
+// Shared confirm dialog primitive (wedge V1 PR-CCJ-H1)
+export { ConfirmDialog, type ConfirmDialogProps } from './components/ConfirmDialog';
