@@ -2,27 +2,33 @@ import React, { useEffect, useRef, useState } from 'react';
 import FocusTrap from 'focus-trap-react';
 
 export interface CreateProjectModalProps {
-  /** Called with the trimmed Title when the user clicks Create. */
-  onSave: (project: { title: string }) => void;
+  /** Called with the trimmed Title and (optionally) trimmed Issue Statement when
+   *  the user clicks Create. The `issueStatement` key is OMITTED entirely when
+   *  the textarea is empty or whitespace-only — consumers can rely on
+   *  `'issueStatement' in payload` as the present/absent signal. */
+  onSave: (project: { title: string; issueStatement?: string }) => void;
   /** Called on Cancel, Escape, and backdrop click. */
   onClose: () => void;
 }
 
 const TITLE_MAX_LENGTH = 80;
+const ISSUE_STATEMENT_MAX_LENGTH = 500;
 
 /**
  * CreateProjectModal — lightweight Create Project flow at Home (PR-CCJ-E1).
  *
- * Skeleton task (T3): renders the modal shell + Title field + validation +
- * Cancel/Create footer. The Issue Statement field (T4) and Home CTA wiring
- * (T4) land in subsequent tasks; this component owns no IP factory or
- * navigation logic.
+ * T4 extends the T3 skeleton with the optional Issue Statement field. The
+ * modal stays presentational — the Home CTA wiring (also T4) owns IP
+ * creation, store mutation, and navigation; this component only assembles
+ * the title + optional issue-statement payload and hands it off via
+ * `onSave`.
  *
  * Mirrors the D-series modal shell — FocusTrap + role="dialog" +
  * aria-labelledby + Escape / backdrop close + Cancel/Create footer.
  */
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ onSave, onClose }) => {
   const [title, setTitle] = useState<string>('');
+  const [issueStatement, setIssueStatement] = useState<string>('');
   const dialogRef = useRef<HTMLDivElement>(null);
 
   // Auto-focus dialog on mount.
@@ -46,11 +52,19 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ onSave, 
   };
 
   const trimmedTitle = title.trim();
+  const trimmedIssueStatement = issueStatement.trim();
   const createDisabled = trimmedTitle.length === 0;
 
   const handleCreate = () => {
     if (createDisabled) return;
-    onSave({ title: trimmedTitle });
+    // Omit `issueStatement` from the payload when whitespace-only — keep the
+    // door open for `expect.not.objectContaining({ issueStatement })` and
+    // `'issueStatement' in payload` consumer checks.
+    if (trimmedIssueStatement.length === 0) {
+      onSave({ title: trimmedTitle });
+    } else {
+      onSave({ title: trimmedTitle, issueStatement: trimmedIssueStatement });
+    }
   };
 
   return (
@@ -63,7 +77,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ onSave, 
         focusTrapOptions={{
           allowOutsideClick: true,
           escapeDeactivates: false,
-          fallbackFocus: '[role="dialog"]',
+          // T3 reviewer nit: focus the Title input on activate so keyboard
+          // users land directly on the primary field instead of the dialog
+          // shell. The selector matches the input by its stable id.
+          fallbackFocus: '#create-project-modal-title-input',
         }}
       >
         <div
@@ -80,8 +97,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ onSave, 
             New project
           </h2>
 
-          {/* Body — Title field */}
-          <div className="flex-1 overflow-auto">
+          {/* Body — Title field + optional Issue Statement */}
+          <div className="flex-1 overflow-auto flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="create-project-modal-title-input"
@@ -100,6 +117,28 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ onSave, 
               />
               <p className="text-xs text-content-secondary mt-1">
                 {title.length}/{TITLE_MAX_LENGTH}
+              </p>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="create-project-modal-issue-statement-input"
+                className="text-sm font-medium text-content"
+              >
+                Issue Statement
+              </label>
+              <p className="text-xs text-content-secondary">
+                What&apos;s happening? Brief description of the situation you&apos;re investigating.
+              </p>
+              <textarea
+                id="create-project-modal-issue-statement-input"
+                value={issueStatement}
+                onChange={e => setIssueStatement(e.target.value)}
+                maxLength={ISSUE_STATEMENT_MAX_LENGTH}
+                rows={3}
+                className="border border-edge rounded-lg px-3 py-2 text-sm text-content bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+              />
+              <p className="text-xs text-content-secondary mt-1">
+                {issueStatement.length}/{ISSUE_STATEMENT_MAX_LENGTH}
               </p>
             </div>
           </div>

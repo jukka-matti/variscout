@@ -114,3 +114,96 @@ describe('CreateProjectModal — footer + validation', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 });
+
+describe('CreateProjectModal — Issue Statement field', () => {
+  it('renders an Issue Statement textarea with helper copy and 0/500 char counter', () => {
+    render(<CreateProjectModal {...baseProps} />);
+    const textarea = screen.getByLabelText(/Issue Statement/i) as HTMLTextAreaElement;
+    expect(textarea).toBeInTheDocument();
+    expect(textarea.tagName).toBe('TEXTAREA');
+    expect(
+      screen.getByText(
+        /What's happening\? Brief description of the situation you're investigating\./i
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('0/500')).toBeInTheDocument();
+  });
+
+  it('applies maxLength={500} to the textarea', () => {
+    render(<CreateProjectModal {...baseProps} />);
+    const textarea = screen.getByLabelText(/Issue Statement/i) as HTMLTextAreaElement;
+    expect(textarea.maxLength).toBe(500);
+  });
+
+  it('updates the Issue Statement char counter as the user types', () => {
+    render(<CreateProjectModal {...baseProps} />);
+    const textarea = screen.getByLabelText(/Issue Statement/i);
+    fireEvent.change(textarea, { target: { value: '1234567890' } }); // 10 chars
+    expect(screen.getByText('10/500')).toBeInTheDocument();
+  });
+
+  it('Create is still enabled when Issue Statement is empty (Title is the only required field)', () => {
+    render(<CreateProjectModal {...baseProps} />);
+    const input = screen.getByLabelText(/Title/i);
+    fireEvent.change(input, { target: { value: 'My project' } });
+    expect(screen.getByRole('button', { name: /Create/i })).toBeEnabled();
+  });
+
+  it('Create OMITS issueStatement from the onSave payload when Issue Statement is empty', () => {
+    const onSave = vi.fn();
+    render(<CreateProjectModal onSave={onSave} onClose={noop} />);
+    const input = screen.getByLabelText(/Title/i);
+    fireEvent.change(input, { target: { value: 'My project' } });
+    fireEvent.click(screen.getByRole('button', { name: /Create/i }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({ title: 'My project' });
+    expect(onSave).toHaveBeenCalledWith(
+      expect.not.objectContaining({ issueStatement: expect.anything() })
+    );
+  });
+
+  it('Create OMITS issueStatement from the onSave payload when Issue Statement is whitespace-only', () => {
+    const onSave = vi.fn();
+    render(<CreateProjectModal onSave={onSave} onClose={noop} />);
+    const input = screen.getByLabelText(/Title/i);
+    fireEvent.change(input, { target: { value: 'My project' } });
+    const textarea = screen.getByLabelText(/Issue Statement/i);
+    fireEvent.change(textarea, { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: /Create/i }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({ title: 'My project' });
+    expect(onSave).toHaveBeenCalledWith(
+      expect.not.objectContaining({ issueStatement: expect.anything() })
+    );
+  });
+
+  it('Create INCLUDES issueStatement when textarea has non-whitespace content', () => {
+    const onSave = vi.fn();
+    render(<CreateProjectModal onSave={onSave} onClose={noop} />);
+    const input = screen.getByLabelText(/Title/i);
+    fireEvent.change(input, { target: { value: 'Yield drop' } });
+    const textarea = screen.getByLabelText(/Issue Statement/i);
+    fireEvent.change(textarea, { target: { value: 'yields are dropping' } });
+    fireEvent.click(screen.getByRole('button', { name: /Create/i }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({
+      title: 'Yield drop',
+      issueStatement: 'yields are dropping',
+    });
+  });
+
+  it('Create trims leading/trailing whitespace on Issue Statement', () => {
+    const onSave = vi.fn();
+    render(<CreateProjectModal onSave={onSave} onClose={noop} />);
+    const input = screen.getByLabelText(/Title/i);
+    fireEvent.change(input, { target: { value: 'My project' } });
+    const textarea = screen.getByLabelText(/Issue Statement/i);
+    fireEvent.change(textarea, { target: { value: '  hello  ' } });
+    fireEvent.click(screen.getByRole('button', { name: /Create/i }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({
+      title: 'My project',
+      issueStatement: 'hello',
+    });
+  });
+});

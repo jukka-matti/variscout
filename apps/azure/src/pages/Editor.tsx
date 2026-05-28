@@ -38,6 +38,7 @@ import {
   ActiveIPScopeRibbon,
   ImproveTabRoot,
   PendingInvitesBanner,
+  CreateProjectModal,
   deriveActiveIPCanvasFocus,
   deriveActiveIPLineageIds,
   deriveActiveIPScopeLabels,
@@ -79,6 +80,7 @@ import type { SurveyRecommendation } from '@variscout/core/survey';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import type { BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
+import { createNewIP } from '@variscout/core/improvementProject';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { canAccess } from '@variscout/core/projectMembership';
 import { Check, X } from 'lucide-react';
@@ -464,6 +466,10 @@ export const Editor: React.FC<EditorProps> = ({
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('explore');
   const [isMobileSurveyOpen, setIsMobileSurveyOpen] = useState(false);
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
+  // Create-Project modal (Home CTA — PR-CCJ-E1 T4). Wedge V1 lightweight
+  // flow replaces the legacy `showCharter()` ceremony; modal owns Title +
+  // optional Issue Statement, Editor owns IP creation + navigation.
+  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
   // Reset mobile tab when data is cleared
   useEffect(() => {
     if (rawData.length === 0) setMobileActiveTab('explore');
@@ -1828,7 +1834,7 @@ export const Editor: React.FC<EditorProps> = ({
                         usePanelsStore.getState().showProjects(projectId);
                       }}
                       onExitIP={() => activeIPContext.clearActiveIP()}
-                      onStartNewIP={() => usePanelsStore.getState().showCharter()}
+                      onStartNewIP={() => setIsCreateProjectModalOpen(true)}
                     />
                   </div>
                 ) : null}
@@ -2247,6 +2253,31 @@ export const Editor: React.FC<EditorProps> = ({
         onSkip={stageFive.close}
         onClose={stageFive.close}
       />
+
+      {/* Create-Project modal — lightweight Home CTA path (PR-CCJ-E1 T4).
+          Wedge V1 single-SKU: on Save, mint a fresh IP via the core factory,
+          set it active, and route to the Process tab (`showFrame`). The
+          legacy `showCharter()` ceremony (5-entry-point variant) is deferred
+          to Task #44 cross-tab presentation. Modal guards on activeHub +
+          currentUser?.email — neither is meaningful otherwise. */}
+      {isCreateProjectModalOpen && activeHub && currentUser?.email ? (
+        <CreateProjectModal
+          onSave={({ title, issueStatement }) => {
+            const newIP = createNewIP({
+              hubId: activeHub.id,
+              title,
+              issueStatement,
+              currentUserId: currentUser.email,
+              currentUserDisplayName: currentUser.name,
+            });
+            upsertProject(newIP);
+            activeIPContext.setActiveIP(newIP.id);
+            setIsCreateProjectModalOpen(false);
+            usePanelsStore.getState().showFrame();
+          }}
+          onClose={() => setIsCreateProjectModalOpen(false)}
+        />
+      ) : null}
 
       {/* Match Summary Card — Mode A.2 paste into existing complete Hub (D9).
           Rendered inline (not over a backdrop) per spec. */}
