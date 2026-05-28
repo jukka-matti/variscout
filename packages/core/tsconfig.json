@@ -8,7 +8,8 @@
     "paths": {
       "@variscout/core/projectMembership": ["./src/projectMembership/index.ts"],
       "@variscout/core/measurementPlan": ["./src/measurementPlan/index.ts"],
-      "@variscout/core/exploreRouting": ["./src/exploreRouting/index.ts"]
+      "@variscout/core/exploreRouting": ["./src/exploreRouting/index.ts"],
+      "@variscout/core/binning": ["./src/binning/index.ts"]
     }
   },
   "include": ["src"]
