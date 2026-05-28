@@ -146,6 +146,7 @@ describe('deriveExploreLandingView', () => {
     });
     expect(result.routeKey).toBe('y-plus-process');
     expect(result.boxplotFactor).toBe('Mixing');
+    expect(result.previewText).toBe('will land on Boxplot by Step');
     expect(result.isEnabled).toBe(true);
   });
 

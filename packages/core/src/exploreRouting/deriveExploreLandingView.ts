@@ -66,14 +66,13 @@ export function deriveExploreLandingView(input: DeriveExploreLandingViewInput): 
   }
 
   const firstOutcomeColumn = outcomeSpecs[0].columnName;
-  const firstStepName = processSteps[0]?.name;
 
   // ── Route 2: y-plus-process (process beats factor count) ───────────────────
   if (processSteps.length > 0) {
     return {
       isEnabled: true,
       focusedChart: 'boxplot',
-      boxplotFactor: firstStepName,
+      boxplotFactor: processSteps[0].name,
       previewText: 'will land on Boxplot by Step',
       routeKey: 'y-plus-process',
     };
