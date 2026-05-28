@@ -767,7 +767,6 @@ export type {
   ProjectionSource,
   ProjectionMethod,
   StatisticalProjectionResult,
-  LeanProjectionResult,
   ProjectionResult,
   ProjectionScenario,
   // Investigation Wall — contribution tree
