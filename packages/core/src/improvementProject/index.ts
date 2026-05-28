@@ -11,6 +11,7 @@ export type {
   ImprovementProjectApproachSection,
   ImprovementProjectOutcomeReferenceSection,
   ImprovementProjectSignoff,
+  ProcessStepEntry,
 } from './types';
 
 export { computeSourceHash, shouldShowDrift } from './snapshot';

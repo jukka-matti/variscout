@@ -8,8 +8,24 @@ import type {
 import type { Hypothesis, Finding, ImprovementIdea, ActionItem } from '../findings/types';
 import type { ControlRecord, ControlHandoff } from '../control';
 import type { ProjectMember } from '../projectMembership/types';
+import type { StepTimingBinding, TimeDecompositionBinding } from '../derived/types';
+import type { FormulaBinding } from '../derived/formula/types';
 
 export type ImprovementProjectStatus = 'draft' | 'active' | 'closed';
+
+/**
+ * Canvas-edited process step entry persisted on the ImprovementProject root
+ * (Canvas Connection Journey E1, CCJ §3.3.3). Structurally mirrors
+ * `ExtractedStep` in `@variscout/ui` (Canvas EditMode/ProcessZone); the two
+ * are reconciled when CanvasWorkspace adopts the IP-blob persistence path.
+ * Kept here so `@variscout/core` can reference process step state without
+ * the forbidden core → ui import.
+ */
+export interface ProcessStepEntry {
+  id: string;
+  name: string;
+  order: number;
+}
 
 export interface ImprovementProjectMetadata {
   title: string; // required
@@ -120,4 +136,41 @@ export interface ImprovementProject extends EntityBase {
    *  Sections mode (Control or Handoff stages typically); surfaces in
    *  the Report Overview "What we standardized + learned" section. */
   reflection?: string;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Canvas Connection Journey — flat root fields (CCJ E1)
+  //
+  // Persisted Canvas Edit-mode state, lifted out of CanvasWorkspace local
+  // useState into the active IP so it survives reloads + scopes per-project.
+  // All optional during the bootstrap window; UI wires + IDB persistence land
+  // in subsequent E1 tasks (this task ships the type extension only).
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Free-text description of the situation being investigated. ≤ 500 chars.
+   *  Authored in the Create Project flow (CCJ E1) and editable from Canvas
+   *  Edit mode. Distinct from `ImprovementProjectGoal.freeText` which is the
+   *  goal-side fallback when no OutcomeSpec is available. */
+  issueStatement?: string;
+
+  /** Canvas-edited process step list (from C3 — Process Structure zone).
+   *  Previously held as local `useState<ExtractedStep[]>` in `CanvasWorkspace`;
+   *  lifted to the IP root so it persists across sessions. Step ids referenced
+   *  by `stepTimings`, `goal.outcomeGoals[].stepId`,
+   *  `goal.factorControls[].stepId`. */
+  processSteps?: ProcessStepEntry[];
+
+  /** Per-step timing bindings (from D1 — Step Timings workflow).
+   *  Paired (start + end columns) drives Lead_time + Total_work_time +
+   *  Wait_time derivation; duration columns contribute to Total_work_time
+   *  only. `stepId` references entries in `processSteps`. */
+  stepTimings?: StepTimingBinding[];
+
+  /** Calculated-column formula bindings (from D2 — Calc workflow).
+   *  Covers DPMO / Yield / Throughput / Difference / Custom families. */
+  formulaBindings?: FormulaBinding[];
+
+  /** Time-as-factors decomposition bindings (from D3 — derive year /
+   *  quarter / month / week / dayOfWeek / hour-bucket columns from a
+   *  date-kind source column). */
+  timeDecompositionBindings?: TimeDecompositionBinding[];
 }
