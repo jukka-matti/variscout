@@ -169,6 +169,12 @@ export class PwaDatabase extends Dexie {
     // become unreachable. Accepted because wedge V1 has no real users yet.
     // This empty stores() call bumps the version to flush any cached schema.
     this.version(6).stores({});
+
+    // Version 7: PR-CCJ-E1 — ImprovementProject extended with issueStatement +
+    // 4 Canvas-state fields. See apps/azure/src/db/schema.ts:177 for the full
+    // rationale. Per wedge V1 no-back-compat policy, no upgrade callback;
+    // additive optional fields deserialize cleanly on existing v6 rows.
+    this.version(7).stores({});
   }
 }
 
