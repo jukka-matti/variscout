@@ -41,6 +41,13 @@ export interface PaletteProps {
   /** Notify when the aggregate-warning banner's Review button is clicked. */
   onReviewAllWarnings?: () => void;
   /**
+   * H1 Task 3: optional callback to focus the paste input from the empty-state
+   * CTA. Only wired when the parent has a paste-input ref available (e.g. a
+   * DataPastePanel textarea). When omitted, the empty state renders without the
+   * "Focus paste input" button.
+   */
+  onFocusPasteInput?: () => void;
+  /**
    * H1 Task 2: ghost-suggested role per column name. Threaded down to each
    * {@link ColumnGroup} and then to {@link ColumnChip}. Columns absent from
    * the map render without a ghost suggestion pill.
@@ -123,14 +130,44 @@ export const Palette: React.FC<PaletteProps> = ({
   onOverrideAccept,
   onApplyToSimilar,
   onReviewAllWarnings,
+  onFocusPasteInput,
 }) => {
   const [openOverlay, setOpenOverlay] = useState<OpenOverlay | null>(null);
 
   if (profiles.length === 0) {
     return (
-      <p className="text-xs text-content-tertiary" data-testid="palette-empty">
-        No columns yet — paste data to get started.
-      </p>
+      <div
+        data-testid="palette-empty"
+        className="flex flex-col items-center gap-2 px-3 py-6 text-center"
+      >
+        {/* Inline paste icon — clipboard glyph */}
+        <svg
+          aria-hidden="true"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-content-muted"
+        >
+          <rect x="8" y="2" width="8" height="4" rx="1" />
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+        </svg>
+        <p className="text-sm text-content-muted">No columns yet — paste data to get started.</p>
+        {onFocusPasteInput && (
+          <button
+            type="button"
+            onClick={onFocusPasteInput}
+            data-testid="palette-empty-paste-cta"
+            className="text-xs font-medium text-cyan-700 underline-offset-2 hover:underline"
+          >
+            Focus paste input
+          </button>
+        )}
+      </div>
     );
   }
 

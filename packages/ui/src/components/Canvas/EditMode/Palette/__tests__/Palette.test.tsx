@@ -80,6 +80,27 @@ describe('Palette', () => {
     expect(screen.getByText(/no columns yet/i)).toBeInTheDocument();
   });
 
+  // H1 Task 3: empty-state CTA polish
+  it('empty state with no onFocusPasteInput: renders SVG icon + paragraph; no CTA button', () => {
+    renderPalette({ profiles: [] });
+    // SVG icon is present (aria-hidden, so query by container)
+    const empty = screen.getByTestId('palette-empty');
+    expect(empty.querySelector('svg')).toBeTruthy();
+    // paragraph text always renders
+    expect(screen.getByText(/no columns yet — paste data to get started/i)).toBeInTheDocument();
+    // CTA button must NOT be present when prop is omitted
+    expect(screen.queryByTestId('palette-empty-paste-cta')).toBeNull();
+  });
+
+  it('empty state with onFocusPasteInput: CTA button renders and fires callback on click', () => {
+    const onFocusPasteInput = vi.fn();
+    renderPalette({ profiles: [], onFocusPasteInput });
+    const cta = screen.getByTestId('palette-empty-paste-cta');
+    expect(cta).toBeInTheDocument();
+    fireEvent.click(cta);
+    expect(onFocusPasteInput).toHaveBeenCalledTimes(1);
+  });
+
   it('passes numericValuesByColumn through to chips', () => {
     renderPalette({
       profiles: [
