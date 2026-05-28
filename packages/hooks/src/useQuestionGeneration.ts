@@ -10,8 +10,6 @@ import {
   generateFollowUpQuestions,
 } from '@variscout/core/stats';
 import type { GeneratedQuestion } from '@variscout/core/stats';
-import type { YamazumiBarData } from '@variscout/core/yamazumi';
-import { generateYamazumiQuestions } from '@variscout/core/yamazumi';
 import type { ChannelInput } from '@variscout/core/stats';
 import { generateChannelRankingQuestions } from '@variscout/core/stats';
 import type { DefectQuestionInput } from '@variscout/core/defect';
@@ -34,10 +32,6 @@ export interface UseQuestionGenerationOptions {
   mode?: ResolvedMode;
   /** Whether question generation is enabled (e.g., false during FRAME) */
   enabled?: boolean;
-  /** Yamazumi bar data — when mode is 'yamazumi' and this is provided, routes to yamazumi generator */
-  yamazumiData?: YamazumiBarData[];
-  /** Optional takt time for takt compliance questions (yamazumi mode only) */
-  taktTime?: number;
   /** Channel capability data — when mode is 'performance' and this is provided, routes to channel ranking generator */
   channelData?: ChannelInput[];
   /** Defect data — when mode is 'defect' and this is provided, routes to defect question generator */
@@ -71,8 +65,6 @@ export function useQuestionGeneration({
   questionsState,
   mode,
   enabled = true,
-  yamazumiData,
-  taktTime,
   channelData,
   defectData,
 }: UseQuestionGenerationOptions): UseQuestionGenerationReturn {
@@ -113,14 +105,7 @@ export function useQuestionGeneration({
     }
 
     // Route question generation based on analysis mode
-    const generated = generateForMode(
-      mode,
-      bestSubsets,
-      channelData,
-      yamazumiData,
-      taktTime,
-      defectData
-    );
+    const generated = generateForMode(mode, bestSubsets, channelData, defectData);
     if (generated.length > 0) {
       generateInitialQuestions(generated);
     }
@@ -133,8 +118,6 @@ export function useQuestionGeneration({
     filteredData.length,
     outcome,
     mode,
-    yamazumiData,
-    taktTime,
     channelData,
     defectData,
     allQuestions,
@@ -255,15 +238,10 @@ function generateForMode(
   mode: ResolvedMode | undefined,
   bestSubsets: BestSubsetsResult | null,
   channelData: ChannelInput[] | undefined,
-  yamazumiData: YamazumiBarData[] | undefined,
-  taktTime: number | undefined,
   defectData: DefectQuestionInput | undefined
 ): GeneratedQuestion[] {
   if (mode === 'performance' && channelData?.length) {
     return generateChannelRankingQuestions(channelData);
-  }
-  if (mode === 'yamazumi' && yamazumiData?.length) {
-    return generateYamazumiQuestions(yamazumiData, taktTime);
   }
   if (mode === 'defect' && defectData?.transformedData.length) {
     return generateDefectAnalysisQuestions(defectData, bestSubsets);

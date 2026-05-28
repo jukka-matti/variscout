@@ -381,17 +381,6 @@ describe('useReportSections — mode-aware titles', () => {
     expect(result.current.sections[1].title).toBe('Which channels are failing?');
   });
 
-  it('uses yamazumi titles when analysisMode is yamazumi (unchanged)', () => {
-    const { result } = renderHook(() =>
-      useReportSections({
-        ...baseOptions,
-        analysisMode: 'yamazumi',
-      })
-    );
-    expect(result.current.sections[0].title).toBe('What does the time composition look like?');
-    expect(result.current.sections[1].title).toBe('What is driving the activity composition?');
-  });
-
   it('uses standard titles by default', () => {
     const { result } = renderHook(() => useReportSections({ ...baseOptions }));
     expect(result.current.sections[0].title).toBe('What does the process look like?');

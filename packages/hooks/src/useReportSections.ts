@@ -52,7 +52,7 @@ export interface UseReportSectionsOptions {
   aiEnabled: boolean;
   /** Audience mode for content level (defaults to 'technical') */
   audienceMode?: AudienceMode;
-  /** Analysis mode — overrides section titles for yamazumi/performance */
+  /** Analysis mode — overrides section titles per mode */
   analysisMode?: AnalysisMode;
   /** True when standard mode I-Chart is showing Cp/Cpk per subgroup */
   isCapabilityMode?: boolean;
@@ -133,7 +133,6 @@ function sectionWorkspace(sectionId: ReportSectionId): ReportWorkspace {
 // ============================================================================
 
 const currentConditionTitles: Record<ResolvedMode, string> = {
-  yamazumi: 'What does the time composition look like?',
   performance: 'How do channels perform?',
   capability: 'Is capability meeting target?',
   standard: 'What does the process look like?',
@@ -141,7 +140,6 @@ const currentConditionTitles: Record<ResolvedMode, string> = {
 };
 
 const driversTitles: Record<ResolvedMode, string> = {
-  yamazumi: 'What is driving the activity composition?',
   performance: 'Which channels are failing?',
   capability: 'What drives capability differences?',
   standard: 'What is driving the variation?',

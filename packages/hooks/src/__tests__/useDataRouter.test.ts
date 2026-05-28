@@ -50,27 +50,4 @@ describe('useDataRouter', () => {
     expect(result.current.transforms).toContain('computeOutputRate');
     expect(result.current.transforms).toContain('computeBottleneck');
   });
-
-  it('routes yamazumi mode to useFilteredData regardless of phase', () => {
-    const { result: inv } = renderHook(() =>
-      useDataRouter({
-        mode: 'yamazumi',
-        scope: 'b1',
-        phase: 'investigation',
-        window: cumulativeWindow,
-        context: {},
-      })
-    );
-    const { result: hub } = renderHook(() =>
-      useDataRouter({
-        mode: 'yamazumi',
-        scope: 'b1',
-        phase: 'hub',
-        window: cumulativeWindow,
-        context: {},
-      })
-    );
-    expect(inv.current.hook).toBe('useFilteredData');
-    expect(hub.current.hook).toBe('useFilteredData');
-  });
 });

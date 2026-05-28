@@ -127,10 +127,8 @@ export interface AnalysisState {
   stageColumn?: string | null;
   /** Stage ordering mode */
   stageOrderMode?: StageOrderMode;
-  /** Analysis mode: standard, performance, or yamazumi */
+  /** Analysis mode */
   analysisMode?: import('@variscout/core').AnalysisMode;
-  /** Yamazumi column role mapping */
-  yamazumiMapping?: import('@variscout/core').YamazumiColumnMapping;
   /** Selected measure columns for Performance Mode */
   measureColumns?: string[];
   /** Active channel drill in Performance Mode */

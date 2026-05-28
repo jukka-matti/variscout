@@ -56,12 +56,11 @@ describe('EXPORT_SIZES', () => {
         'probability',
         'stats',
         'scatter',
-        'yamazumi',
         'dashboard',
         'slide',
       ])
     );
-    expect(Object.keys(EXPORT_SIZES)).toHaveLength(10);
+    expect(Object.keys(EXPORT_SIZES)).toHaveLength(9);
   });
 
   it('has correct dimensions for wide charts', () => {

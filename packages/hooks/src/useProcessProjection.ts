@@ -33,19 +33,6 @@ export type { ProcessProjection, CenteringOpportunity, SpecSuggestion };
 
 export type JourneyPhase = 'frame' | 'scout' | 'analyze' | 'improve';
 
-/**
- * Lean projection metrics for yamazumi mode.
- * Carried alongside statistical fields on ProcessProjection (optional).
- */
-export interface LeanProjectionFields {
-  /** Current cycle time in seconds */
-  currentCT: number;
-  /** Projected cycle time in seconds */
-  projectedCT: number;
-  /** Whether projected CT meets takt time */
-  meetsTakt: boolean;
-}
-
 export interface UseProcessProjectionOptions {
   /** Full unfiltered dataset */
   rawData: DataRow[];
@@ -77,19 +64,8 @@ export interface UseProcessProjectionOptions {
   /** Current worst factor levels (factor → level) for model prediction baseline */
   currentWorstLevels?: Record<string, string>;
 
-  // --- Lean projection (Part D) ---
-
-  /** Analysis mode — when 'yamazumi', lean metrics are used */
+  /** Analysis mode */
   mode?: ResolvedMode;
-  /** Lean stats for yamazumi mode display */
-  leanStats?: { cycleTime: number; vaRatio: number; taktTime?: number };
-  /** Lean projection result for yamazumi mode */
-  leanProjection?: {
-    currentCT: number;
-    projectedCT: number;
-    meetsTakt: boolean;
-    label: string;
-  };
 }
 
 export interface UseProcessProjectionReturn {
@@ -158,9 +134,6 @@ export function useProcessProjection(
     improvementLabel,
     bestSubsetsResult,
     currentWorstLevels,
-    mode,
-    leanStats,
-    leanProjection,
   } = options;
 
   const isDrilling = filterStack.length > 0;
@@ -298,20 +271,6 @@ export function useProcessProjection(
 
   // IMPROVE: Aggregate projection from idea What-If results
   const improvementProjection = useMemo((): ProcessProjection | null => {
-    // Lean path: yamazumi mode improvement projection
-    if (mode === 'yamazumi' && leanProjection && leanStats) {
-      return {
-        currentCpk: 0,
-        projectedCpk: 0,
-        label: leanProjection.label ?? 'from ideas',
-        findingCount: 0,
-        source: 'improvement',
-        currentCT: leanProjection.currentCT,
-        projectedCT: leanProjection.projectedCT,
-        meetsTakt: leanProjection.meetsTakt,
-      };
-    }
-
     if (journeyPhase !== 'improve') return null;
     if (improvementProjectedCpk == null || !hasSpecs || !stats?.cpk) return null;
     return {
@@ -321,16 +280,7 @@ export function useProcessProjection(
       findingCount: 0,
       source: 'improvement',
     };
-  }, [
-    journeyPhase,
-    improvementProjectedCpk,
-    improvementLabel,
-    hasSpecs,
-    stats,
-    mode,
-    leanProjection,
-    leanStats,
-  ]);
+  }, [journeyPhase, improvementProjectedCpk, improvementLabel, hasSpecs, stats]);
 
   // RESOLVED: Actual measured Cpk from finding outcomes
   const resolvedProjection = useMemo((): ProcessProjection | null => {

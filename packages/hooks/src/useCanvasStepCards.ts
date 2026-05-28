@@ -20,13 +20,7 @@ import type { ProcessMap } from '@variscout/core/frame';
 import { detectColumns } from '@variscout/core/parser';
 import { parseTimeValue } from '@variscout/core/time';
 
-export type CanvasLensId =
-  | 'default'
-  | 'capability'
-  | 'defect'
-  | 'performance'
-  | 'yamazumi'
-  | 'process-flow';
+export type CanvasLensId = 'default' | 'capability' | 'defect' | 'performance' | 'process-flow';
 
 export interface CanvasLensDefinition {
   id: CanvasLensId;
@@ -60,12 +54,6 @@ export const CANVAS_LENS_REGISTRY: Record<CanvasLensId, CanvasLensDefinition> = 
     enabled: false,
     description: 'Future within-step channel lens.',
   },
-  yamazumi: {
-    id: 'yamazumi',
-    label: 'Yamazumi',
-    enabled: false,
-    description: 'Future time-study lens.',
-  },
   'process-flow': {
     id: 'process-flow',
     label: 'Process flow',
@@ -85,14 +73,12 @@ export function coerceCanvasLens(value: unknown): CanvasLensId {
 }
 
 export function isCanvasLensValidAtLevel(lens: CanvasLensId, level: CanvasLevel): boolean {
-  if (lens === 'yamazumi' && level === 'l1') return false;
   if (lens === 'process-flow' && (level === 'l1' || level === 'l3')) return false;
   return true;
 }
 
 export function suggestCanvasLevelForLens(lens: CanvasLensId, level: CanvasLevel): CanvasLevel {
   if (isCanvasLensValidAtLevel(lens, level)) return level;
-  if (lens === 'yamazumi') return 'l2';
   if (lens === 'process-flow') return 'l2';
   return 'l2';
 }
