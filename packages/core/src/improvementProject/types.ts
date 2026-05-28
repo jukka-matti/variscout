@@ -10,6 +10,7 @@ import type { ControlRecord, ControlHandoff } from '../control';
 import type { ProjectMember } from '../projectMembership/types';
 import type { StepTimingBinding, TimeDecompositionBinding } from '../derived/types';
 import type { FormulaBinding } from '../derived/formula/types';
+import type { BinnedFactorBinding } from '../binning';
 
 export type ImprovementProjectStatus = 'draft' | 'active' | 'closed';
 
@@ -173,4 +174,13 @@ export interface ImprovementProject extends EntityBase {
    *  quarter / month / week / dayOfWeek / hour-bucket columns from a
    *  date-kind source column). */
   timeDecompositionBindings?: TimeDecompositionBinding[];
+
+  /**
+   * Inflection-detected bin columns. Each binding persists the cuts +
+   * level names + source column for a numeric column the analyst binned
+   * via the Probability lens. Derived bin values are computed on read via
+   * `computeBinnedFactorColumn(rows, binding)` — never persisted (the
+   * binding is canonical, values are pure function of bindings + rows).
+   */
+  binnedFactorBindings?: BinnedFactorBinding[];
 }

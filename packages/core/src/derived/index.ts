@@ -25,3 +25,6 @@ export { computeTimeDecompositionColumns, derivedTimeColumnName } from './timeDe
 
 // Task 3 (D3): Detect date-kind columns for the time-as-factors system hint
 export { detectTimeColumns, type DetectTimeColumnsResult } from './detectTimeColumns';
+
+// G1: Inflection-detected bin column engine
+export { computeBinnedFactorColumn } from './bins';
