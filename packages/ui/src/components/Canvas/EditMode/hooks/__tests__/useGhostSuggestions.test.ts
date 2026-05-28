@@ -37,6 +37,8 @@ function makeCategoricalProfile(columnName: string, confidence: number = 95): Co
 function makeOutcomeSpec(columnName: string): OutcomeSpec {
   return {
     id: `os-${columnName}`,
+    createdAt: 0,
+    deletedAt: null,
     hubId: 'hub-1',
     columnName,
     characteristicType: 'largerIsBetter',
