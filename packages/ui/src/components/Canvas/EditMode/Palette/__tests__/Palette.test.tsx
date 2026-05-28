@@ -80,6 +80,27 @@ describe('Palette', () => {
     expect(screen.getByText(/no columns yet/i)).toBeInTheDocument();
   });
 
+  // H1 Task 3: empty-state CTA polish
+  it('empty state with no onFocusPasteInput: renders SVG icon + paragraph; no CTA button', () => {
+    renderPalette({ profiles: [] });
+    // SVG icon is present (aria-hidden, so query by container)
+    const empty = screen.getByTestId('palette-empty');
+    expect(empty.querySelector('svg')).toBeTruthy();
+    // paragraph text always renders
+    expect(screen.getByText(/no columns yet — paste data to get started/i)).toBeInTheDocument();
+    // CTA button must NOT be present when prop is omitted
+    expect(screen.queryByTestId('palette-empty-paste-cta')).toBeNull();
+  });
+
+  it('empty state with onFocusPasteInput: CTA button renders and fires callback on click', () => {
+    const onFocusPasteInput = vi.fn();
+    renderPalette({ profiles: [], onFocusPasteInput });
+    const cta = screen.getByTestId('palette-empty-paste-cta');
+    expect(cta).toBeInTheDocument();
+    fireEvent.click(cta);
+    expect(onFocusPasteInput).toHaveBeenCalledTimes(1);
+  });
+
   it('passes numericValuesByColumn through to chips', () => {
     renderPalette({
       profiles: [
@@ -532,6 +553,82 @@ describe('Palette — derived-bins group (G1 Task 3)', () => {
     expect(binsGroup).toHaveTextContent('DERIVED FROM BINNING');
     expect(binsGroup).toHaveTextContent('Reactor_temp_bin');
     expect(binsGroup).not.toHaveTextContent('Order_Date.year');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// H1 Task 2 — ghost suggestions wire (Palette integration)
+// ---------------------------------------------------------------------------
+
+describe('Palette — ghostSuggestions', () => {
+  it('renders ghost-suggested chip hint-pill when ghostSuggestions flags the column', () => {
+    // ColumnChip renders data-testid="column-chip-hint-pill" when ghostSuggested is
+    // truthy. That is the stable assertion target exposed by the existing chip.
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'line_yield',
+          status: 'ok',
+          confidence: 95,
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+      ],
+      ghostSuggestions: { line_yield: 'outcome' },
+    });
+
+    // The hint pill should be rendered
+    const pill = screen.getByTestId('column-chip-hint-pill');
+    expect(pill).toBeInTheDocument();
+    // The pill text should display the suggested role
+    expect(pill).toHaveTextContent('outcome?');
+  });
+
+  it('does not render ghost hint-pill when ghostSuggestions maps column to null', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'temperature',
+          status: 'ok',
+          confidence: 95,
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+      ],
+      ghostSuggestions: { temperature: null },
+    });
+
+    expect(screen.queryByTestId('column-chip-hint-pill')).toBeNull();
+  });
+
+  it('does not render ghost hint-pill when ghostSuggestions is omitted', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'temperature',
+          status: 'ok',
+          confidence: 95,
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+      ],
+    });
+
+    expect(screen.queryByTestId('column-chip-hint-pill')).toBeNull();
+  });
+
+  it('renders factor hint-pill text when ghostSuggestions flags column as factor', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'temperature',
+          status: 'ok',
+          confidence: 95,
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+      ],
+      ghostSuggestions: { temperature: 'factor' },
+    });
+
+    const pill = screen.getByTestId('column-chip-hint-pill');
+    expect(pill).toHaveTextContent('factor?');
   });
 });
 

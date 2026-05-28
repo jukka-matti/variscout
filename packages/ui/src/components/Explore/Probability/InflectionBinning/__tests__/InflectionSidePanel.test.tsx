@@ -5,8 +5,8 @@
  * detection algorithm transitions the panel reliably.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
 import { InflectionSidePanel, InflectionSidePanelView } from '../InflectionSidePanel';
@@ -171,16 +171,26 @@ describe('InflectionSidePanel', () => {
     });
 
     describe('Remove binning', () => {
-      let confirmSpy: ReturnType<typeof vi.spyOn>;
-      beforeEach(() => {
-        confirmSpy = vi.spyOn(window, 'confirm');
-      });
-      afterEach(() => {
-        confirmSpy.mockRestore();
+      it('clicking Remove binning opens the ConfirmDialog', async () => {
+        const user = userEvent.setup();
+        const { values, sortedValues } = bimodalFixture();
+        render(
+          <InflectionSidePanel
+            sourceColumn="X"
+            values={values}
+            sortedValues={sortedValues}
+            existingBindings={[existing]}
+            patchBindings={vi.fn()}
+          />
+        );
+        await user.click(screen.getByTestId('remove-binning-button'));
+        const dialog = screen.getByRole('alertdialog');
+        expect(dialog).toBeInTheDocument();
+        // dialog contains the message about losing the dimension
+        expect(within(dialog).getByText(/lose this dimension/)).toBeInTheDocument();
       });
 
-      it('clicking Remove binning + confirming calls patchBindings with empty array', async () => {
-        confirmSpy.mockReturnValue(true);
+      it('clicking Confirm in dialog calls patchBindings with empty array + closes dialog', async () => {
         const user = userEvent.setup();
         const patchBindings = vi.fn();
         const { values, sortedValues } = bimodalFixture();
@@ -194,13 +204,14 @@ describe('InflectionSidePanel', () => {
           />
         );
         await user.click(screen.getByTestId('remove-binning-button'));
-        expect(confirmSpy).toHaveBeenCalledTimes(1);
+        const dialog = screen.getByRole('alertdialog');
+        await user.click(within(dialog).getByRole('button', { name: 'Remove' }));
         expect(patchBindings).toHaveBeenCalledTimes(1);
         expect(patchBindings).toHaveBeenCalledWith([]);
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
       });
 
-      it('clicking Remove binning + cancelling does NOT call patchBindings', async () => {
-        confirmSpy.mockReturnValue(false);
+      it('clicking Cancel in dialog does NOT call patchBindings + closes dialog', async () => {
         const user = userEvent.setup();
         const patchBindings = vi.fn();
         const { values, sortedValues } = bimodalFixture();
@@ -214,8 +225,10 @@ describe('InflectionSidePanel', () => {
           />
         );
         await user.click(screen.getByTestId('remove-binning-button'));
-        expect(confirmSpy).toHaveBeenCalledTimes(1);
+        const dialog = screen.getByRole('alertdialog');
+        await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
         expect(patchBindings).not.toHaveBeenCalled();
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
       });
     });
 
@@ -239,6 +252,75 @@ describe('InflectionSidePanel', () => {
       expect(patchBindings).toHaveBeenCalledTimes(1);
       const args = patchBindings.mock.calls[0][0] as BinnedFactorBinding[];
       expect(args[0].levelNames[0]).toBe('cold');
+    });
+  });
+
+  describe('N<30 row-count guard', () => {
+    it('values.length === 20 → shows insufficient-rows message with count; no banner; no Detect button', () => {
+      const values = Array.from({ length: 20 }, (_, i) => i + 1);
+      const sortedValues = [...values];
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[]}
+          patchBindings={vi.fn()}
+        />
+      );
+      const msg = screen.getByTestId('inflection-insufficient-rows');
+      expect(msg).toBeInTheDocument();
+      expect(msg.textContent).toMatch(/Need ≥30 rows/);
+      expect(msg.textContent).toMatch(/current: 20/);
+      expect(screen.queryByTestId('inflection-banner')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('detect-inflections-button')).not.toBeInTheDocument();
+    });
+
+    it('values.length === 29 → shows insufficient-rows message', () => {
+      const values = Array.from({ length: 29 }, (_, i) => i + 1);
+      const sortedValues = [...values];
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[]}
+          patchBindings={vi.fn()}
+        />
+      );
+      expect(screen.getByTestId('inflection-insufficient-rows')).toBeInTheDocument();
+      expect(screen.queryByTestId('detect-inflections-button')).not.toBeInTheDocument();
+    });
+
+    it('values.length === 30 → shows Detect button; no insufficient-rows message', () => {
+      const values = Array.from({ length: 30 }, (_, i) => i + 1);
+      const sortedValues = [...values];
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[]}
+          patchBindings={vi.fn()}
+        />
+      );
+      expect(screen.getByTestId('detect-inflections-button')).toBeInTheDocument();
+      expect(screen.queryByTestId('inflection-insufficient-rows')).not.toBeInTheDocument();
+    });
+
+    it('values.length === 100 → shows Detect button; no insufficient-rows message', () => {
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[]}
+          patchBindings={vi.fn()}
+        />
+      );
+      expect(screen.getByTestId('detect-inflections-button')).toBeInTheDocument();
+      expect(screen.queryByTestId('inflection-insufficient-rows')).not.toBeInTheDocument();
     });
   });
 
@@ -287,6 +369,120 @@ describe('InflectionSidePanel', () => {
       );
       const middleRemove = screen.getByTestId('inflection-segment-remove-1');
       expect(middleRemove).toHaveAttribute('title', 'Remove the cut before this segment');
+    });
+  });
+
+  describe('aria-describedby + table a11y (Task 6)', () => {
+    it('proposing state with 2 cuts: hidden description renders with correct id and text', () => {
+      const twoCutsValues = (() => {
+        // Generate simple trimodal-like data to get 2 cuts — use bimodal then manually
+        // set cuts via detect. Actually, easier: just render with existingBindings for
+        // a proposing state via ViewHarness or rely on the full detect flow.
+        // Instead, we test via a committed 2-cut binding which also renders the description.
+        return null;
+      })();
+      void twoCutsValues;
+
+      const twoCuts: BinnedFactorBinding = {
+        id: 'binding-2',
+        sourceColumn: 'TestCol',
+        cuts: [20, 40],
+        levelNames: ['<20', '20-40', '≥40'],
+        detectionMethod: 'gap-ratio-v1',
+        detectedAt: '2026-05-28T00:00:00.000Z',
+      };
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="TestCol"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[twoCuts]}
+          patchBindings={vi.fn()}
+        />
+      );
+      // Hidden description element
+      const desc = document.getElementById('segment-table-description-TestCol');
+      expect(desc).not.toBeNull();
+      expect(desc?.textContent).toContain('3 segments derived from TestCol');
+      // Side panel root has matching aria-describedby
+      const panel = screen.getByTestId('inflection-side-panel');
+      expect(panel).toHaveAttribute('aria-describedby', 'segment-table-description-TestCol');
+      // Redundant: verify we're in committed state
+      expect(screen.getByText('TestCol_bin')).toBeInTheDocument();
+    });
+
+    it('proposing state description renders after Detect click', async () => {
+      const user = userEvent.setup();
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="ProposingCol"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[]}
+          patchBindings={vi.fn()}
+        />
+      );
+      await user.click(screen.getByTestId('detect-inflections-button'));
+      const panel = screen.getByTestId('inflection-side-panel');
+      expect(panel).toHaveAttribute('aria-describedby', 'segment-table-description-ProposingCol');
+      const desc = document.getElementById('segment-table-description-ProposingCol');
+      expect(desc).not.toBeNull();
+      expect(desc?.textContent).toContain('segments derived from ProposingCol');
+    });
+
+    it('per-segment × button with 2 cuts: segment index 1 aria-label contains "Remove cut at" and "merge segment 2 into segment 1"', () => {
+      const twoCuts: BinnedFactorBinding = {
+        id: 'binding-2',
+        sourceColumn: 'X',
+        cuts: [20, 40],
+        levelNames: ['<20', '20-40', '≥40'],
+        detectionMethod: 'gap-ratio-v1',
+        detectedAt: '2026-05-28T00:00:00.000Z',
+      };
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[twoCuts]}
+          patchBindings={vi.fn()}
+        />
+      );
+      const seg1Remove = screen.getByTestId('inflection-segment-remove-1');
+      expect(seg1Remove.getAttribute('aria-label')).toContain('Remove cut at');
+      expect(seg1Remove.getAttribute('aria-label')).toContain('merge segment 2 into segment 1');
+    });
+
+    it('per-segment × button with 1 cut: aria-label is "Remove binning"', () => {
+      const oneCut: BinnedFactorBinding = {
+        id: 'binding-1',
+        sourceColumn: 'X',
+        cuts: [30],
+        levelNames: ['<30', '≥30'],
+        detectionMethod: 'gap-ratio-v1',
+        detectedAt: '2026-05-28T00:00:00.000Z',
+      };
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[oneCut]}
+          patchBindings={vi.fn()}
+        />
+      );
+      expect(screen.getByTestId('inflection-segment-remove-0')).toHaveAttribute(
+        'aria-label',
+        'Remove binning'
+      );
+      expect(screen.getByTestId('inflection-segment-remove-1')).toHaveAttribute(
+        'aria-label',
+        'Remove binning'
+      );
     });
   });
 });

@@ -49,6 +49,7 @@ export function InflectionOverlay({
             strokeWidth={1.5}
             strokeDasharray="4,4"
             strokeOpacity={strokeOpacity}
+            className="transition-opacity duration-300 ease-out"
           />
         );
       })}

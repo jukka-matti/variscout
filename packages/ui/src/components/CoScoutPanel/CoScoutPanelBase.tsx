@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ConfirmDialog } from '../ConfirmDialog/ConfirmDialog';
 import {
   GripVertical,
   X,
@@ -133,6 +134,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   const [contextExpanded, setContextExpanded] = useState(false);
   const [pendingImages, setPendingImages] = useState<ImagePreviewItem[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isClearHistoryConfirmOpen, setIsClearHistoryConfirmOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const overflowRef = useRef<HTMLDivElement>(null);
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -309,10 +311,8 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
 
   const handleClearWithConfirm = useCallback(() => {
     setOverflowOpen(false);
-    if (window.confirm('Clear conversation?')) {
-      onClear?.();
-    }
-  }, [onClear]);
+    setIsClearHistoryConfirmOpen(true);
+  }, []);
 
   const handleCopyLastResponse = useCallback(() => {
     setOverflowOpen(false);
@@ -339,6 +339,18 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
 
   return (
     <>
+      <ConfirmDialog
+        isOpen={isClearHistoryConfirmOpen}
+        title="Clear conversation"
+        message="Clear conversation?"
+        confirmLabel="Clear"
+        isDestructive
+        onConfirm={() => {
+          setIsClearHistoryConfirmOpen(false);
+          onClear?.();
+        }}
+        onCancel={() => setIsClearHistoryConfirmOpen(false)}
+      />
       {/* Draggable divider */}
       <div
         className={`w-1 bg-surface-tertiary hover:bg-blue-500 cursor-col-resize flex-shrink-0 flex items-center justify-center transition-colors ${

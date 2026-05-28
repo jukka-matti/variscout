@@ -48,7 +48,7 @@
  */
 
 import React, { useState } from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
 import { computeBinnedFactorColumn } from '@variscout/core';
@@ -597,6 +597,47 @@ describe('PR-CCJ-G1 Task 8 — Inflection-binning Dashboard integration', () => 
     expect(screen.getByTestId('remove-binning-button')).toBeInTheDocument();
     // Banner is absent in committed state.
     expect(screen.queryByTestId('inflection-banner')).not.toBeInTheDocument();
+  });
+
+  // ── Remove binning via ConfirmDialog (H1 wiring) ────────────────────────────
+
+  it('Remove binning button opens ConfirmDialog; confirming transitions back to idle', async () => {
+    const existingBinding: BinnedFactorBinding = {
+      id: 'binding-g1-remove-test',
+      sourceColumn: 'Reactor_temp',
+      cuts: [30],
+      levelNames: ['cold', 'hot'],
+      detectionMethod: 'gap-ratio-v1',
+      detectedAt: '2026-05-28T00:00:00.000Z',
+    };
+
+    render(<DashboardWithBindings initialBindings={[existingBinding]} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('remove-binning-button')).toBeInTheDocument();
+    });
+
+    // Click Remove binning — ConfirmDialog should open
+    act(() => {
+      fireEvent.click(screen.getByTestId('remove-binning-button'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    });
+
+    // Click Confirm within the alertdialog
+    const dialog = screen.getByRole('alertdialog');
+    act(() => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Remove' }));
+    });
+
+    // After confirm: binding deleted → back to idle state (Detect button present)
+    await waitFor(() => {
+      expect(screen.getByTestId('detect-inflections-button')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('remove-binning-button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
   // ── Task #46 closure: bin column visible in factor picker ───────────────────

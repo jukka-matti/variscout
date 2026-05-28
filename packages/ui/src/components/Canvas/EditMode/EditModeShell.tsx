@@ -6,6 +6,7 @@ import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import type { ColumnParsingProfile, ParsingInterpretation } from '@variscout/core/parser';
 import { Palette } from './Palette';
 import type { SystemHint } from './Palette';
+import type { SuggestedRole } from './hooks/useGhostSuggestions';
 import { OutcomeZone } from './OutcomeZone';
 import { FactorZone } from './FactorZone';
 import { ProcessStructureZone } from './ProcessZone';
@@ -44,6 +45,12 @@ export interface EditModeShellProps {
    * appended to the same array. Defaults to `[]`.
    */
   systemHints?: SystemHint[];
+  /**
+   * H1 Task 2: ghost-suggested role per column name. Forwarded unchanged to
+   * {@link Palette}, which threads it down to {@link ColumnChip}. Columns absent
+   * from the map render without a ghost suggestion pill. Defaults to `{}`.
+   */
+  ghostSuggestions?: Record<string, SuggestedRole>;
   /** Forwarded to the palette. Routed to no-op by default. */
   onMenuItemSelect?: (columnName: string, itemId: string) => void;
   /** Forwarded to the palette. Routed to no-op by default. */
@@ -120,6 +127,7 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
   categoricalValuesByColumn = {},
   categoricalDistinctValuesByColumn = {},
   systemHints,
+  ghostSuggestions = {},
   onMenuItemSelect,
   onOverrideAccept,
   onApplyToSimilar,
@@ -200,6 +208,7 @@ export const EditModeShell: React.FC<EditModeShellProps> = ({
               numericValuesByColumn={numericValuesByColumn}
               categoricalValuesByColumn={categoricalValuesByColumn}
               systemHints={systemHints}
+              ghostSuggestions={ghostSuggestions}
               onMenuItemSelect={onMenuItemSelect}
               onOverrideAccept={onOverrideAccept}
               onApplyToSimilar={onApplyToSimilar}

@@ -43,9 +43,20 @@ export function ExploreExitButton(props: ExploreExitButtonProps): React.ReactEle
       >
         → Explore
       </button>
-      <span className="text-xs text-content-muted">
-        {landing.isEnabled ? landing.previewText : 'Set an outcome to unlock Explore'}
-      </span>
+      {landing.isEnabled ? (
+        <span className="text-xs text-content-muted">{landing.previewText}</span>
+      ) : (
+        // H1 Task 3: cyan info pill matching SystemHintBanner's visual rhythm.
+        // The 💡 emoji is used for consistency with SystemHintBanner's KIND_STYLES
+        // convention (existing established pattern in this codebase).
+        <span
+          data-testid="explore-exit-disabled-hint"
+          className="inline-flex items-center gap-1 rounded-md border border-cyan-200 bg-cyan-50 px-2 py-0.5 text-xs text-cyan-800"
+        >
+          <span aria-hidden="true">💡</span>
+          Drop a column on Outcome to enable Explore
+        </span>
+      )}
     </div>
   );
 }

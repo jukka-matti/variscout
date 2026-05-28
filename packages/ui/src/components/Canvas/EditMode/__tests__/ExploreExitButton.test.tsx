@@ -47,7 +47,8 @@ describe('ExploreExitButton', () => {
 
     const btn = screen.getByRole('button', { name: /exit to explore/i });
     expect(btn).toBeDisabled();
-    expect(screen.getByText('Set an outcome to unlock Explore')).toBeInTheDocument();
+    expect(screen.getByTestId('explore-exit-disabled-hint')).toBeInTheDocument();
+    expect(screen.getByText(/Drop a column on Outcome to enable Explore/)).toBeInTheDocument();
     expect(screen.queryByText(/will land on/)).not.toBeInTheDocument();
   });
 
@@ -60,7 +61,7 @@ describe('ExploreExitButton', () => {
     const btn = screen.getByRole('button', { name: /exit to explore/i });
     expect(btn).not.toBeDisabled();
     expect(screen.getByText('will land on I-Chart of Yield')).toBeInTheDocument();
-    expect(screen.queryByText('Set an outcome to unlock Explore')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('explore-exit-disabled-hint')).toBeNull();
   });
 
   // Case 3: disabled click does NOT fire onExit
@@ -197,6 +198,22 @@ describe('ExploreExitButton', () => {
     }
   );
 
+  // H1 Task 3: cyan pill — disabled state renders pill; enabled state does not
+  it('disabled state: cyan pill renders with bg-cyan-50 class and new hint copy', () => {
+    render(<ExploreExitButton {...emptyProps()} />);
+    const pill = screen.getByTestId('explore-exit-disabled-hint');
+    expect(pill).toBeInTheDocument();
+    expect(pill.className).toContain('bg-cyan-50');
+    expect(pill).toHaveTextContent('Drop a column on Outcome to enable Explore');
+  });
+
+  it('enabled state: cyan pill does not render', () => {
+    render(
+      <ExploreExitButton {...emptyProps()} outcomeSpecs={[makeOutcome('Yield')]} onExit={vi.fn()} />
+    );
+    expect(screen.queryByTestId('explore-exit-disabled-hint')).toBeNull();
+  });
+
   // Case 8: aria-label always present
   it('has aria-label="Exit to Explore" when disabled', () => {
     render(<ExploreExitButton {...emptyProps()} />);
@@ -215,8 +232,8 @@ describe('ExploreExitButton', () => {
     const onExit = vi.fn();
     const { rerender } = render(<ExploreExitButton {...emptyProps()} onExit={onExit} />);
 
-    // Initial state: disabled
-    expect(screen.getByText('Set an outcome to unlock Explore')).toBeInTheDocument();
+    // Initial state: disabled — cyan pill is present
+    expect(screen.getByTestId('explore-exit-disabled-hint')).toBeInTheDocument();
     expect(screen.queryByText(/will land on/)).not.toBeInTheDocument();
 
     // Transition: add an outcome
@@ -230,8 +247,8 @@ describe('ExploreExitButton', () => {
       />
     );
 
-    // Enabled state: preview appears, hint disappears
-    expect(screen.queryByText('Set an outcome to unlock Explore')).not.toBeInTheDocument();
+    // Enabled state: preview appears, hint pill disappears
+    expect(screen.queryByTestId('explore-exit-disabled-hint')).toBeNull();
     expect(screen.getByText('will land on I-Chart of Yield')).toBeInTheDocument();
   });
 });

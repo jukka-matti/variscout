@@ -119,4 +119,21 @@ describe('InflectionOverlay', () => {
     const line = getByTestId('inflection-cut-0');
     expect(line.getAttribute('stroke-dasharray')).toBe('4,4');
   });
+
+  it('line elements include transition-opacity duration-300 ease-out className', () => {
+    const { getByTestId } = render(
+      <svg>
+        <InflectionOverlay cuts={[5, 10]} {...defaultProps} />
+      </svg>
+    );
+
+    const line0 = getByTestId('inflection-cut-0');
+    const line1 = getByTestId('inflection-cut-1');
+    expect(line0.getAttribute('class')).toContain('transition-opacity');
+    expect(line0.getAttribute('class')).toContain('duration-300');
+    expect(line0.getAttribute('class')).toContain('ease-out');
+    expect(line1.getAttribute('class')).toContain('transition-opacity');
+    expect(line1.getAttribute('class')).toContain('duration-300');
+    expect(line1.getAttribute('class')).toContain('ease-out');
+  });
 });

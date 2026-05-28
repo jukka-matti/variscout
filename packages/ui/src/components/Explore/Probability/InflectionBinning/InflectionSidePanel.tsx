@@ -39,6 +39,7 @@ import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { BinnedFactorBinding, SegmentStats } from '@variscout/core/binning';
 import { formatStatistic } from '@variscout/core/i18n';
+import { ConfirmDialog } from '../../../ConfirmDialog/ConfirmDialog';
 import {
   useInflectionBinningState,
   type UseInflectionBinningStateReturn,
@@ -99,6 +100,8 @@ export function InflectionSidePanelView({
 }: InflectionSidePanelViewProps) {
   const {
     state,
+    canDetect,
+    valueCount,
     dismissBanner,
     detectInflections,
     addCut: _addCut,
@@ -107,6 +110,7 @@ export function InflectionSidePanelView({
     commit,
     removeBinning,
   } = controller;
+  const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
   // `addCut` is reserved for future direct-canvas affordances (click on the prob
   // plot to add a cut). The panel does not expose a separate "+ Add" control
   // today — V1 ships with detect → drag → remove only.
@@ -120,37 +124,47 @@ export function InflectionSidePanelView({
         className="flex flex-col gap-3 border border-edge bg-surface-secondary p-3 text-sm text-content"
         aria-label="Inflection binning"
       >
-        {state.canShowBanner && (
-          <div
-            data-testid="inflection-banner"
-            className="flex items-start gap-2 rounded border border-edge bg-surface-tertiary p-2"
-          >
-            <span aria-hidden="true">💡</span>
-            <p className="flex-1 text-content">
-              We can detect inflection points on this column — try?
-            </p>
+        {!canDetect ? (
+          <p data-testid="inflection-insufficient-rows" className="text-xs text-content-muted">
+            Need ≥30 rows for inflection detection (current: {valueCount})
+          </p>
+        ) : (
+          <>
+            {state.canShowBanner && (
+              <div
+                data-testid="inflection-banner"
+                className="flex items-start gap-2 rounded border border-edge bg-surface-tertiary p-2"
+              >
+                <span aria-hidden="true">💡</span>
+                <p className="flex-1 text-content">
+                  We can detect inflection points on this column — try?
+                </p>
+                <button
+                  type="button"
+                  data-testid="dismiss-inflection-banner"
+                  onClick={dismissBanner}
+                  className="rounded p-0.5 text-content hover:bg-surface-hover"
+                  aria-label="Dismiss inflection suggestion"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <button
               type="button"
-              data-testid="dismiss-inflection-banner"
-              onClick={dismissBanner}
-              className="rounded p-0.5 text-content hover:bg-surface-hover"
-              aria-label="Dismiss inflection suggestion"
+              data-testid="detect-inflections-button"
+              onClick={detectInflections}
+              className="rounded border border-edge bg-surface-secondary px-3 py-1.5 text-sm font-medium text-content hover:bg-surface-hover"
             >
-              ×
+              Detect inflections
             </button>
-          </div>
+          </>
         )}
-        <button
-          type="button"
-          data-testid="detect-inflections-button"
-          onClick={detectInflections}
-          className="rounded border border-edge bg-surface-secondary px-3 py-1.5 text-sm font-medium text-content hover:bg-surface-hover"
-        >
-          Detect inflections
-        </button>
       </aside>
     );
   }
+
+  const descriptionId = `segment-table-description-${sourceColumn}`;
 
   // ── State B: proposing ───────────────────────────────────────────────────
   if (state.kind === 'proposing') {
@@ -159,7 +173,11 @@ export function InflectionSidePanelView({
         data-testid="inflection-side-panel"
         className="flex flex-col gap-3 border border-edge bg-surface-secondary p-3 text-sm text-content"
         aria-label="Inflection binning"
+        aria-describedby={descriptionId}
       >
+        <p id={descriptionId} className="sr-only">
+          {`${state.segments.length} segments derived from ${sourceColumn}. Each row shows segment range, n, percent share, mean, and Anderson-Darling p-value.`}
+        </p>
         <header className="flex flex-col gap-0.5">
           <h3 className="text-sm font-semibold text-content">Proposed bins from {sourceColumn}</h3>
           <p className="text-xs text-content-secondary">
@@ -171,7 +189,7 @@ export function InflectionSidePanelView({
         <SegmentTable
           segments={state.segments}
           levelNames={state.levelNames}
-          cutCount={state.cuts.length}
+          cuts={state.cuts}
           onRename={renameLevel}
           onRemoveSegment={segmentIdx =>
             removeCut(Math.max(0, segmentIdx === 0 ? 0 : segmentIdx - 1))
@@ -193,45 +211,58 @@ export function InflectionSidePanelView({
 
   // ── State C: committed ───────────────────────────────────────────────────
   const { binding, segments } = state;
-  const handleRemoveBinning = () => {
-    if (window.confirm(CONFIRM_REMOVE_MESSAGE_FN(sourceColumn))) {
-      removeBinning();
-    }
-  };
 
   return (
-    <aside
-      data-testid="inflection-side-panel"
-      className="flex flex-col gap-3 border border-edge bg-surface-secondary p-3 text-sm text-content"
-      aria-label="Inflection binning"
-    >
-      <header className="flex flex-col gap-0.5">
-        <h3 className="text-sm font-semibold text-content">{sourceColumn}_bin</h3>
-        <p className="text-xs text-content-secondary">
-          {binding.cuts.length} cut{binding.cuts.length === 1 ? '' : 's'} · {segments.length} level
-          {segments.length === 1 ? '' : 's'}
-        </p>
-      </header>
-
-      <SegmentTable
-        segments={segments}
-        levelNames={binding.levelNames}
-        cutCount={binding.cuts.length}
-        onRename={renameLevel}
-        onRemoveSegment={segmentIdx =>
-          removeCut(Math.max(0, segmentIdx === 0 ? 0 : segmentIdx - 1))
-        }
-      />
-
-      <button
-        type="button"
-        data-testid="remove-binning-button"
-        onClick={handleRemoveBinning}
-        className="self-end rounded border border-edge bg-surface-secondary px-3 py-1.5 text-sm font-medium text-content hover:bg-surface-hover"
+    <>
+      <aside
+        data-testid="inflection-side-panel"
+        className="flex flex-col gap-3 border border-edge bg-surface-secondary p-3 text-sm text-content"
+        aria-label="Inflection binning"
+        aria-describedby={descriptionId}
       >
-        Remove binning
-      </button>
-    </aside>
+        <p id={descriptionId} className="sr-only">
+          {`${segments.length} segments derived from ${sourceColumn}. Each row shows segment range, n, percent share, mean, and Anderson-Darling p-value.`}
+        </p>
+        <header className="flex flex-col gap-0.5">
+          <h3 className="text-sm font-semibold text-content">{sourceColumn}_bin</h3>
+          <p className="text-xs text-content-secondary">
+            {binding.cuts.length} cut{binding.cuts.length === 1 ? '' : 's'} · {segments.length}{' '}
+            level{segments.length === 1 ? '' : 's'}
+          </p>
+        </header>
+
+        <SegmentTable
+          segments={segments}
+          levelNames={binding.levelNames}
+          cuts={binding.cuts}
+          onRename={renameLevel}
+          onRemoveSegment={segmentIdx =>
+            removeCut(Math.max(0, segmentIdx === 0 ? 0 : segmentIdx - 1))
+          }
+        />
+
+        <button
+          type="button"
+          data-testid="remove-binning-button"
+          onClick={() => setIsRemoveConfirmOpen(true)}
+          className="self-end rounded border border-edge bg-surface-secondary px-3 py-1.5 text-sm font-medium text-content hover:bg-surface-hover"
+        >
+          Remove binning
+        </button>
+      </aside>
+      <ConfirmDialog
+        isOpen={isRemoveConfirmOpen}
+        title="Remove binning"
+        message={CONFIRM_REMOVE_MESSAGE_FN(sourceColumn)}
+        confirmLabel="Remove"
+        isDestructive
+        onConfirm={() => {
+          setIsRemoveConfirmOpen(false);
+          removeBinning();
+        }}
+        onCancel={() => setIsRemoveConfirmOpen(false)}
+      />
+    </>
   );
 }
 
@@ -246,12 +277,11 @@ interface SegmentTableProps {
   segments: SegmentStats[];
   levelNames: string[];
   /**
-   * Total cut count (segments.length − 1 in well-formed states). Used to
-   * decide whether the per-segment × button needs an explanatory tooltip —
-   * with ≥ 2 cuts (i.e. ≥ 3 segments), removing a middle segment's cut
-   * collapses it leftward into segment K-1, which is non-obvious to the user.
+   * The cut positions (sorted ascending) for this binding or proposal. Used
+   * to derive aria-labels on per-segment × buttons and the existing
+   * explanatory `title` attribute for ambiguous merges.
    */
-  cutCount: number;
+  cuts: number[];
   onRename: (levelIndex: number, newName: string) => void;
   onRemoveSegment: (segmentIndex: number) => void;
 }
@@ -259,7 +289,7 @@ interface SegmentTableProps {
 function SegmentTable({
   segments,
   levelNames,
-  cutCount,
+  cuts,
   onRename,
   onRemoveSegment,
 }: SegmentTableProps) {
@@ -271,7 +301,7 @@ function SegmentTable({
           segmentIndex={idx}
           segment={segment}
           levelName={levelNames[idx] ?? ''}
-          ambiguousMerge={cutCount >= 2 && idx > 0}
+          cuts={cuts}
           onRename={newName => onRename(idx, newName)}
           onRemove={() => onRemoveSegment(idx)}
         />
@@ -285,11 +315,15 @@ interface SegmentRowProps {
   segment: SegmentStats;
   levelName: string;
   /**
-   * True when the × button's effect is non-obvious (middle segments with
-   * ≥ 2 cuts in the binding). Renders an explanatory `title` so the user
-   * sees the merge direction on hover.
+   * The sorted cut positions for the current binding or proposal. Used to
+   * derive the × button's `aria-label`:
+   * - 1 cut → "Remove binning" (removing it deletes the binding entirely)
+   * - ≥2 cuts, segmentIndex > 0 → "Remove cut at {cut}, merge segment K+1
+   *   into segment K" (explicit about which cut and the merge direction)
+   * - ≥2 cuts, segmentIndex === 0 → generic fallback (merge is forward)
+   * Also drives the existing `title` tooltip for ambiguous merges.
    */
-  ambiguousMerge: boolean;
+  cuts: number[];
   onRename: (newName: string) => void;
   onRemove: () => void;
 }
@@ -298,10 +332,23 @@ function SegmentRow({
   segmentIndex,
   segment,
   levelName,
-  ambiguousMerge,
+  cuts,
   onRename,
   onRemove,
 }: SegmentRowProps) {
+  const cutCount = cuts.length;
+  const ambiguousMerge = cutCount >= 2 && segmentIndex > 0;
+
+  // Derive aria-label for the × remove button.
+  let removeAriaLabel: string;
+  if (cutCount <= 1) {
+    removeAriaLabel = 'Remove binning';
+  } else if (segmentIndex > 0 && cuts[segmentIndex - 1] !== undefined) {
+    removeAriaLabel = `Remove cut at ${formatStatistic(cuts[segmentIndex - 1])}, merge segment ${segmentIndex + 1} into segment ${segmentIndex}`;
+  } else {
+    // segmentIndex === 0 with ≥2 cuts: removing cut 0 merges forward into segment 2
+    removeAriaLabel = `Remove cut at ${formatStatistic(cuts[0])}, merge segment 1 into segment 2`;
+  }
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(levelName);
 
@@ -374,7 +421,7 @@ function SegmentRow({
         onClick={onRemove}
         data-testid={`inflection-segment-remove-${segmentIndex}`}
         className="rounded p-0.5 text-content-secondary hover:bg-surface-hover hover:text-content"
-        aria-label={`Remove segment ${segmentIndex + 1}`}
+        aria-label={removeAriaLabel}
         title={ambiguousMerge ? 'Remove the cut before this segment' : undefined}
       >
         ×
