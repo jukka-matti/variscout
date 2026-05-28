@@ -35,21 +35,17 @@ export function ExploreExitButton(props: ExploreExitButtonProps): React.ReactEle
         onClick={() => {
           if (landing.isEnabled) onExit(landing);
         }}
-        className={
-          landing.isEnabled
-            ? 'px-3 py-1.5 rounded bg-blue-500 hover:bg-blue-600 text-white font-medium'
-            : 'px-3 py-1.5 rounded bg-surface-secondary text-content-muted cursor-not-allowed'
-        }
+        className={[
+          'px-3 py-1.5 rounded bg-blue-500 text-white font-medium',
+          landing.isEnabled ? 'hover:bg-blue-600' : 'cursor-not-allowed opacity-50',
+        ].join(' ')}
         aria-label="Exit to Explore"
       >
         → Explore
       </button>
-      {!landing.isEnabled && (
-        <span className="text-xs text-content-muted">Set an outcome to unlock Explore</span>
-      )}
-      {landing.isEnabled && (
-        <span className="text-xs text-content-muted">{landing.previewText}</span>
-      )}
+      <span className="text-xs text-content-muted">
+        {landing.isEnabled ? landing.previewText : 'Set an outcome to unlock Explore'}
+      </span>
     </div>
   );
 }

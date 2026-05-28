@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ExploreExitButton } from '../ExploreExitButton';
 import type { ExploreExitButtonProps } from '../ExploreExitButton';
 import type { OutcomeSpec } from '@variscout/core';
@@ -72,13 +73,14 @@ describe('ExploreExitButton', () => {
   });
 
   // Case 4: disabled keyboard Enter does NOT fire onExit
-  it('does not call onExit when button is disabled and Enter is pressed', () => {
+  it('does not call onExit when button is disabled and Enter is pressed', async () => {
+    const user = userEvent.setup();
     const onExit = vi.fn();
     render(<ExploreExitButton {...emptyProps()} onExit={onExit} />);
 
     const btn = screen.getByRole('button', { name: /exit to explore/i });
     btn.focus();
-    fireEvent.keyDown(btn, { key: 'Enter', code: 'Enter' });
+    await user.keyboard('{Enter}');
     expect(onExit).not.toHaveBeenCalled();
   });
 
@@ -109,7 +111,8 @@ describe('ExploreExitButton', () => {
   });
 
   // Case 6: enabled Enter fires onExit (native button Enter-as-click)
-  it('calls onExit when button is enabled and Enter is pressed', () => {
+  it('calls onExit when button is enabled and Enter is pressed', async () => {
+    const user = userEvent.setup();
     const onExit = vi.fn();
     render(
       <ExploreExitButton
@@ -122,11 +125,18 @@ describe('ExploreExitButton', () => {
 
     const btn = screen.getByRole('button', { name: /exit to explore/i });
     btn.focus();
-    fireEvent.keyDown(btn, { key: 'Enter', code: 'Enter' });
-    // Native button fires click on keydown(Enter) — simulate that click
-    fireEvent.click(btn);
+    await user.keyboard('{Enter}');
 
     expect(onExit).toHaveBeenCalledTimes(1);
+    expect(onExit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isEnabled: true,
+        focusedChart: 'boxplot',
+        boxplotFactor: 'Vessel',
+        previewText: 'will land on I-Chart + Boxplot by Vessel',
+        routeKey: 'y-plus-one-factor',
+      })
+    );
   });
 
   // Case 7: preview text reflects route key — table-driven
