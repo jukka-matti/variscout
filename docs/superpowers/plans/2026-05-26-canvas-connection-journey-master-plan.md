@@ -406,7 +406,7 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 **Amended 2026-05-28 — algorithm = gap-ratio detection + Anderson-Darling-on-whole pre-check + piecewise linear regression confidence reporting (NOT the original spec-time PWL+AD-segments which empirically false-positived on skewed unimodal lognormal data); Findings flow skipped (bin column IS the persistent artifact); direct-manipulation State B with no commit step; absorbed Task #46 (Boxplot+Probability factor pickers categoricalValuesByColumn consumer + filter-alignment helper); manual cut V2 deferred. See sub-plan `docs/superpowers/plans/2026-05-28-canvas-connection-journey-g-1-inflection-binning.md`.**
 
-### Phase H — Polish + empty states (1 PR, small)
+### Phase H — Polish + empty states (2 PRs, small + medium)
 
 #### PR-CCJ-H1 · Empty states + system hints + final polish
 
@@ -424,6 +424,31 @@ Build the canvas authoring shell + the palette that anchors everything else.
 **Dependencies:** all earlier phases.
 
 **Sub-plan needed:** YES.
+
+**Amended 2026-05-28** — F1's §4.5 rows 5–6 deferral (multi-outcome Y-tabs + per-step view switcher) carved to new H2 PR — those are substantial Explore-tab feature work needing their own brainstorm; row 6 blocks on Task #45 (State/Edit mode rethink). H1 stays as pure polish + G1 carry-overs (system-hint DETECTION wiring, ghost-suggested DETECTION wiring, palette empty-state CTA, ExploreExitButton cyan info-pill, InflectionSidePanel N<30 guard, InflectionOverlay commit fade transition, InflectionSidePanel aria-describedby, plus a new `<ConfirmDialog>` primitive in `@variscout/ui` that retires two `window.confirm` callers — InflectionSidePanel + CoScoutPanelBase). 8 tasks across 3 internal phases in single PR. All-Sonnet implementer; Opus final branch reviewer. See sub-plan `docs/superpowers/plans/2026-05-28-canvas-connection-journey-h-1-polish.md`.
+
+#### PR-CCJ-H2 · Multi-outcome Y-tabs in Explore + per-step view switcher (Spec §4.5 rows 5–6)
+
+**Scope:** The two routing rows from §4.5 that F1 deferred and H1 carved out. Row 5: multi-outcome Y-selector strip in the Explore tab so analysts can switch between Y's of a multi-outcome IP. Row 6: per-step view switcher in the Explore tab that surfaces step-aware views (Boxplot-by-step vs I-Chart-by-step) when the active IP has a configured process structure.
+
+**Files (anticipated, subject to brainstorm):**
+
+- Create new outcome-selector strip component in Explore tab chrome
+- Create new step-aware view switcher component
+- Extend `panelsStore.pendingExploreIntent` shape to carry multi-outcome + step context
+- Modify `EditorDashboardView.tsx` (Azure) + PWA equivalent for the new mount-time intent handling
+- Tests + e2e for both rows
+
+**Size:** ~5–7 days (estimate; depends on brainstorm outcomes).
+
+**Dependencies:**
+
+- **HARD:** Task #45 (State/Edit mode rethink) — per-step view semantics live in that design session
+- **SOFT:** brainstorm session needed before plan-writing: tabs vs dropdown for Y-selector? URL/state coupling? Coupling with Edit-mode side panel for cross-tab consistency?
+
+**Sub-plan needed:** YES — invoke `superpowers:brainstorming` after Task #45 is decided, then `writing-plans`.
+
+**Tracking:** Task #47.
 
 ---
 
@@ -458,11 +483,12 @@ Phase F — Exit
 Phase G — Inflection binning
 └── G1 Prob plot inflection    [depends: B2; can run parallel to any phase ≥ B]
 
-Phase H — Polish
-└── H1 Empty states + hints    [depends: all earlier]
+Phase H — Polish + carved Explore features
+├── H1 Empty states + hints + G1 polish + ConfirmDialog [depends: all earlier]
+└── H2 §4.5 rows 5–6 (multi-outcome Y-tabs + per-step view) [depends: H1, Task #45]
 ```
 
-**Critical path:** A2 → B1 → B2 → C1 → C2 → C3 → E1 → F1 → H1. About 30–40 working days end-to-end if executed sequentially. With parallelism (Phase D + G + A1/A3 in parallel), probably 22–28 working days.
+**Critical path:** A2 → B1 → B2 → C1 → C2 → C3 → E1 → F1 → H1. About 30–40 working days end-to-end if executed sequentially. With parallelism (Phase D + G + A1/A3 in parallel), probably 22–28 working days. H2 is post-completion expansion gated on Task #45.
 
 ---
 
