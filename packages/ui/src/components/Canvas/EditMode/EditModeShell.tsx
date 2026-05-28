@@ -71,7 +71,7 @@ export interface EditModeShellProps {
    * and `order` (the render order in the ProcessStructureZone strip).
    * Defaults to `[]`.
    */
-  steps?: { id: string; name: string; order: number }[];
+  steps?: ExtractedStep[];
   /**
    * Called when a `column:<name>` drop lands on the FactorZone (global or
    * per-step). EditModeShell owns its own `DndContext` and routes column→zone
