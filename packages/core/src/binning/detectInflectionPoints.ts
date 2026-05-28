@@ -77,9 +77,6 @@ const EDGE_TRIM_FRACTION = 0.1;
 /** Default maximum number of breakpoints to search for. */
 const DEFAULT_MAX_BREAKPOINTS = 2;
 
-/** Default relative-RSS-reduction threshold (kept for backward-compat of the input shape). */
-const DEFAULT_THRESHOLD = 0.1;
-
 /**
  * Anderson-Darling p-value threshold for the WHOLE-SAMPLE normality pre-check.
  * If the whole sample is consistent with normality above this threshold, no
@@ -100,14 +97,7 @@ const GAP_RATIO_THRESHOLD = 20;
  * confidence reporting.
  */
 export function detectInflectionPoints(input: InflectionDetectionInput): InflectionDetectionResult {
-  const {
-    values,
-    maxBreakpoints = DEFAULT_MAX_BREAKPOINTS,
-    // Accepted as part of the input contract; reported as confidence below.
-    // Currently the gap-ratio acceptance is the binding criterion; the RSS
-    // threshold is reserved for future tuning if needed.
-    relativeRSSReductionThreshold: _threshold = DEFAULT_THRESHOLD,
-  } = input;
+  const { values, maxBreakpoints = DEFAULT_MAX_BREAKPOINTS } = input;
 
   // --------------------------------------------------------------------------
   // 1. Guard rails — return no cuts + single segment for degenerate inputs.
@@ -145,6 +135,10 @@ export function detectInflectionPoints(input: InflectionDetectionInput): Inflect
   // 3. Compute confidence as the PWL RSS reduction on the WHOLE prob plot
   //    against the FIRST cut (cuts[0]), clamped to [0, 100].
   // --------------------------------------------------------------------------
+  // Confidence reports RSS reduction against the FIRST cut only (2-segment fit
+  // vs single line). For 2-cut results, this conservatively underreports the
+  // full 3-segment separation quality. Full-partition PWL confidence is a
+  // Task 8 follow-up if UX surfaces show this matters.
   const confidence = computePwlConfidence(sorted, cuts[0]);
   const segments = computeSegmentStats(sorted, cuts);
 
@@ -172,7 +166,7 @@ function detectCutsRecursive(sortedSegment: number[], cutBudget: number): number
   // ----- Compute gaps + median gap. -----------------------------------------
   const gaps = new Float64Array(n - 1);
   for (let i = 1; i < n; i++) gaps[i - 1] = sortedSegment[i] - sortedSegment[i - 1];
-  const sortedGaps = Float64Array.from(gaps).sort();
+  const sortedGaps = gaps.slice().sort();
   const medianGap = sortedGaps[Math.floor(sortedGaps.length / 2)];
   if (!Number.isFinite(medianGap) || medianGap <= 0) return [];
 

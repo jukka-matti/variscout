@@ -126,6 +126,50 @@ describe('detectInflectionPoints', () => {
     expect(result.confidence).toBe(0);
   });
 
+  // ---------------------------------------------------------------------------
+  // GAP_RATIO_THRESHOLD = 20 calibration tests.
+  //
+  // These two tests pin the acceptance boundary. If GAP_RATIO_THRESHOLD is
+  // raised above the borderline gap ratio (~36x) the first test will fail.
+  // If it is lowered below the overlapping peak ratio (~12x) the second test
+  // will start producing a spurious cut.
+  // ---------------------------------------------------------------------------
+
+  it('borderline bimodal (means 10 + 26, σ=2, N=100) — caught at threshold 20× but not at 50×', () => {
+    // Seed 707: gap ratio ≈ 36×; reliably above 20 across all seeds for this
+    // separation (5σ cluster separation → well-resolved gap on prob plot).
+    const rng = mulberry32(707);
+    const values = gaussianMixture(rng, [
+      { mean: 10, std: 2, n: 50 },
+      { mean: 26, std: 2, n: 50 },
+    ]);
+
+    const result = detectInflectionPoints({ values });
+
+    // Algorithm MUST detect this separation at GAP_RATIO_THRESHOLD = 20.
+    expect(result.cuts).toHaveLength(1);
+    // Cut should sit between the cluster means (10..26) with reasonable margin.
+    expect(result.cuts[0]).toBeGreaterThan(14);
+    expect(result.cuts[0]).toBeLessThan(22);
+  });
+
+  it('overlapping bimodal (means 10 + 16, σ=3, N=100) — algorithm correctly rejects ambiguous bimodality', () => {
+    // Seed 808: cluster means only 2σ apart — distributions substantially
+    // overlap; no clean gap on the probability plot. The SPC discipline is to
+    // preserve a single population model rather than stratify noise.
+    const rng = mulberry32(808);
+    const values = gaussianMixture(rng, [
+      { mean: 10, std: 3, n: 50 },
+      { mean: 16, std: 3, n: 50 },
+    ]);
+
+    const result = detectInflectionPoints({ values });
+
+    // No cut should be accepted when the gap ratio is well below 20.
+    expect(result.cuts).toHaveLength(0);
+    expect(result.confidence).toBe(0);
+  });
+
   it('is deterministic: same input → identical output', () => {
     const rng1 = mulberry32(606);
     const values1 = gaussianMixture(rng1, [

@@ -25,7 +25,7 @@ export interface BinnedFactorBinding {
   /** Level names; length === cuts.length + 1. */
   levelNames: string[];
   /** How the cuts were chosen. */
-  detectionMethod: 'piecewise-linear' | 'manual';
+  detectionMethod: 'gap-ratio-v1' | 'manual';
   /** ISO timestamp captured when the binding was created or refreshed. */
   detectedAt: string;
 }
@@ -38,11 +38,6 @@ export interface InflectionDetectionInput {
   values: number[];
   /** Maximum number of breakpoints to search for. Default: 2. */
   maxBreakpoints?: number;
-  /**
-   * Minimum relative RSS reduction required to accept a breakpoint.
-   * Compared against (baselineRSS - segmentedRSS) / baselineRSS. Default: 0.10.
-   */
-  relativeRSSReductionThreshold?: number;
 }
 
 /**
