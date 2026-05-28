@@ -5,8 +5,8 @@
  * detection algorithm transitions the panel reliably.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
 import { InflectionSidePanel, InflectionSidePanelView } from '../InflectionSidePanel';
@@ -171,16 +171,26 @@ describe('InflectionSidePanel', () => {
     });
 
     describe('Remove binning', () => {
-      let confirmSpy: ReturnType<typeof vi.spyOn>;
-      beforeEach(() => {
-        confirmSpy = vi.spyOn(window, 'confirm');
-      });
-      afterEach(() => {
-        confirmSpy.mockRestore();
+      it('clicking Remove binning opens the ConfirmDialog', async () => {
+        const user = userEvent.setup();
+        const { values, sortedValues } = bimodalFixture();
+        render(
+          <InflectionSidePanel
+            sourceColumn="X"
+            values={values}
+            sortedValues={sortedValues}
+            existingBindings={[existing]}
+            patchBindings={vi.fn()}
+          />
+        );
+        await user.click(screen.getByTestId('remove-binning-button'));
+        const dialog = screen.getByRole('alertdialog');
+        expect(dialog).toBeInTheDocument();
+        // dialog contains the message about losing the dimension
+        expect(within(dialog).getByText(/lose this dimension/)).toBeInTheDocument();
       });
 
-      it('clicking Remove binning + confirming calls patchBindings with empty array', async () => {
-        confirmSpy.mockReturnValue(true);
+      it('clicking Confirm in dialog calls patchBindings with empty array + closes dialog', async () => {
         const user = userEvent.setup();
         const patchBindings = vi.fn();
         const { values, sortedValues } = bimodalFixture();
@@ -194,13 +204,14 @@ describe('InflectionSidePanel', () => {
           />
         );
         await user.click(screen.getByTestId('remove-binning-button'));
-        expect(confirmSpy).toHaveBeenCalledTimes(1);
+        const dialog = screen.getByRole('alertdialog');
+        await user.click(within(dialog).getByRole('button', { name: 'Remove' }));
         expect(patchBindings).toHaveBeenCalledTimes(1);
         expect(patchBindings).toHaveBeenCalledWith([]);
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
       });
 
-      it('clicking Remove binning + cancelling does NOT call patchBindings', async () => {
-        confirmSpy.mockReturnValue(false);
+      it('clicking Cancel in dialog does NOT call patchBindings + closes dialog', async () => {
         const user = userEvent.setup();
         const patchBindings = vi.fn();
         const { values, sortedValues } = bimodalFixture();
@@ -214,8 +225,10 @@ describe('InflectionSidePanel', () => {
           />
         );
         await user.click(screen.getByTestId('remove-binning-button'));
-        expect(confirmSpy).toHaveBeenCalledTimes(1);
+        const dialog = screen.getByRole('alertdialog');
+        await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
         expect(patchBindings).not.toHaveBeenCalled();
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
       });
     });
 

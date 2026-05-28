@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import type { CoScoutMessage } from '@variscout/core';
 import type { VoiceInputConfig } from '../../VoiceInput';
 
@@ -346,9 +346,8 @@ describe('CoScoutPanelBase', () => {
       expect(screen.getByTestId('coscout-menu-clear')).toBeDefined();
     });
 
-    it('clear with confirm calls onClear', () => {
+    it('clear opens ConfirmDialog', () => {
       const onClear = vi.fn();
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
 
       render(
         <CoScoutPanelBase
@@ -361,13 +360,31 @@ describe('CoScoutPanelBase', () => {
 
       fireEvent.click(screen.getByTestId('coscout-overflow-menu'));
       fireEvent.click(screen.getByTestId('coscout-menu-clear'));
-      expect(window.confirm).toHaveBeenCalledWith('Clear conversation?');
+      expect(screen.getByRole('alertdialog')).toBeDefined();
+      expect(onClear).not.toHaveBeenCalled();
+    });
+
+    it('confirming clear calls onClear', () => {
+      const onClear = vi.fn();
+
+      render(
+        <CoScoutPanelBase
+          {...defaultProps}
+          messages={messagesWithContent}
+          onClear={onClear}
+          onCopyLastResponse={vi.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('coscout-overflow-menu'));
+      fireEvent.click(screen.getByTestId('coscout-menu-clear'));
+      const dialog = screen.getByRole('alertdialog');
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Clear' }));
       expect(onClear).toHaveBeenCalled();
     });
 
-    it('clear cancelled does not call onClear', () => {
+    it('cancelling clear does not call onClear', () => {
       const onClear = vi.fn();
-      vi.spyOn(window, 'confirm').mockReturnValue(false);
 
       render(
         <CoScoutPanelBase
@@ -380,6 +397,8 @@ describe('CoScoutPanelBase', () => {
 
       fireEvent.click(screen.getByTestId('coscout-overflow-menu'));
       fireEvent.click(screen.getByTestId('coscout-menu-clear'));
+      const dialog = screen.getByRole('alertdialog');
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
       expect(onClear).not.toHaveBeenCalled();
     });
 

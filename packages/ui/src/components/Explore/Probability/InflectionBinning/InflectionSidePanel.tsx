@@ -39,6 +39,7 @@ import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { BinnedFactorBinding, SegmentStats } from '@variscout/core/binning';
 import { formatStatistic } from '@variscout/core/i18n';
+import { ConfirmDialog } from '../../../ConfirmDialog/ConfirmDialog';
 import {
   useInflectionBinningState,
   type UseInflectionBinningStateReturn,
@@ -109,6 +110,7 @@ export function InflectionSidePanelView({
     commit,
     removeBinning,
   } = controller;
+  const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
   // `addCut` is reserved for future direct-canvas affordances (click on the prob
   // plot to add a cut). The panel does not expose a separate "+ Add" control
   // today — V1 ships with detect → drag → remove only.
@@ -209,49 +211,58 @@ export function InflectionSidePanelView({
 
   // ── State C: committed ───────────────────────────────────────────────────
   const { binding, segments } = state;
-  const handleRemoveBinning = () => {
-    if (window.confirm(CONFIRM_REMOVE_MESSAGE_FN(sourceColumn))) {
-      removeBinning();
-    }
-  };
 
   return (
-    <aside
-      data-testid="inflection-side-panel"
-      className="flex flex-col gap-3 border border-edge bg-surface-secondary p-3 text-sm text-content"
-      aria-label="Inflection binning"
-      aria-describedby={descriptionId}
-    >
-      <p id={descriptionId} className="sr-only">
-        {`${segments.length} segments derived from ${sourceColumn}. Each row shows segment range, n, percent share, mean, and Anderson-Darling p-value.`}
-      </p>
-      <header className="flex flex-col gap-0.5">
-        <h3 className="text-sm font-semibold text-content">{sourceColumn}_bin</h3>
-        <p className="text-xs text-content-secondary">
-          {binding.cuts.length} cut{binding.cuts.length === 1 ? '' : 's'} · {segments.length} level
-          {segments.length === 1 ? '' : 's'}
-        </p>
-      </header>
-
-      <SegmentTable
-        segments={segments}
-        levelNames={binding.levelNames}
-        cuts={binding.cuts}
-        onRename={renameLevel}
-        onRemoveSegment={segmentIdx =>
-          removeCut(Math.max(0, segmentIdx === 0 ? 0 : segmentIdx - 1))
-        }
-      />
-
-      <button
-        type="button"
-        data-testid="remove-binning-button"
-        onClick={handleRemoveBinning}
-        className="self-end rounded border border-edge bg-surface-secondary px-3 py-1.5 text-sm font-medium text-content hover:bg-surface-hover"
+    <>
+      <aside
+        data-testid="inflection-side-panel"
+        className="flex flex-col gap-3 border border-edge bg-surface-secondary p-3 text-sm text-content"
+        aria-label="Inflection binning"
+        aria-describedby={descriptionId}
       >
-        Remove binning
-      </button>
-    </aside>
+        <p id={descriptionId} className="sr-only">
+          {`${segments.length} segments derived from ${sourceColumn}. Each row shows segment range, n, percent share, mean, and Anderson-Darling p-value.`}
+        </p>
+        <header className="flex flex-col gap-0.5">
+          <h3 className="text-sm font-semibold text-content">{sourceColumn}_bin</h3>
+          <p className="text-xs text-content-secondary">
+            {binding.cuts.length} cut{binding.cuts.length === 1 ? '' : 's'} · {segments.length}{' '}
+            level{segments.length === 1 ? '' : 's'}
+          </p>
+        </header>
+
+        <SegmentTable
+          segments={segments}
+          levelNames={binding.levelNames}
+          cuts={binding.cuts}
+          onRename={renameLevel}
+          onRemoveSegment={segmentIdx =>
+            removeCut(Math.max(0, segmentIdx === 0 ? 0 : segmentIdx - 1))
+          }
+        />
+
+        <button
+          type="button"
+          data-testid="remove-binning-button"
+          onClick={() => setIsRemoveConfirmOpen(true)}
+          className="self-end rounded border border-edge bg-surface-secondary px-3 py-1.5 text-sm font-medium text-content hover:bg-surface-hover"
+        >
+          Remove binning
+        </button>
+      </aside>
+      <ConfirmDialog
+        isOpen={isRemoveConfirmOpen}
+        title="Remove binning"
+        message={CONFIRM_REMOVE_MESSAGE_FN(sourceColumn)}
+        confirmLabel="Remove"
+        isDestructive
+        onConfirm={() => {
+          setIsRemoveConfirmOpen(false);
+          removeBinning();
+        }}
+        onCancel={() => setIsRemoveConfirmOpen(false)}
+      />
+    </>
   );
 }
 

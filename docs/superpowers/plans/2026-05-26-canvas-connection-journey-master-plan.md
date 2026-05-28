@@ -425,6 +425,8 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 **Sub-plan needed:** YES.
 
+**Delivered 2026-05-28 — see sub-plan `docs/superpowers/plans/2026-05-28-canvas-connection-journey-h-1-polish.md`.**
+
 ---
 
 ## Sequencing + dependencies (Gantt-shaped)
