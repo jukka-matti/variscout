@@ -8,6 +8,7 @@ import React from 'react';
 import {
   CanvasWorkspace,
   InboxDigest,
+  NoActiveProjectGuidance,
   type InboxDigestPrompt,
   type ContextLinkGroup,
   type ContextLinkItem,
@@ -329,6 +330,20 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP }) => {
     [activeHubId, controlHandoffs, controlRecords]
   );
 
+  // E1 T6: Process tab is project-scoped. When no active project is selected,
+  // route the user back to Home instead of rendering Canvas chrome. The
+  // production-runtime path therefore always has a non-null activeIP inside
+  // CanvasWorkspace; the `null` branch in CanvasWorkspace (T5) remains the
+  // pre-E1 bootstrap fallback used by tests + non-membership callers.
+  if (activeIP == null) {
+    return (
+      <NoActiveProjectGuidance
+        onGoHome={() => usePanelsStore.getState().showDashboard()}
+        description="Process work happens inside a project. Pick a project from Home, or create a new one to start editing the Canvas."
+      />
+    );
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="px-4 pt-4">
@@ -361,7 +376,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP }) => {
         priorStepStats={priorStepStats}
         canEditCanvas={canEditCanvas}
         actionItems={actionItems}
-        activeIP={activeIP ?? null}
+        activeIP={activeIP}
         onPersistCanvasState={upsertProject}
       />
     </div>

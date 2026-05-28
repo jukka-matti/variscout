@@ -10,6 +10,7 @@ const showImprovementMock = vi.fn();
 const showAnalyzeMock = vi.fn();
 const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
+const showDashboardMock = vi.fn();
 const expandToQuestionMock = vi.fn();
 const setWallViewModeMock = vi.fn();
 const setAnalyzeViewModeMock = vi.fn();
@@ -109,6 +110,26 @@ vi.mock('@variscout/stores', () => ({
 vi.mock('@variscout/ui', async () => {
   const React = await import('react');
   return {
+    // E1 T6: Process tab "No active project" empty state. The real component
+    // lives in packages/ui; the test stub here is plain DOM so we can assert
+    // the guard branch without pulling Tailwind classes into the test.
+    NoActiveProjectGuidance: (props: {
+      onGoHome: () => void;
+      heading?: string;
+      description?: string;
+      ctaLabel?: string;
+    }) =>
+      React.createElement(
+        'section',
+        { role: 'alert' },
+        React.createElement('h2', null, props.heading ?? 'No active project'),
+        React.createElement('p', null, props.description ?? 'default description'),
+        React.createElement(
+          'button',
+          { type: 'button', onClick: props.onGoHome },
+          props.ctaLabel ?? 'Go to Home'
+        )
+      ),
     InboxDigest: (props: { prompts: unknown[]; onNavigate: (prompt: unknown) => void }) =>
       React.createElement(
         'div',
@@ -213,6 +234,7 @@ vi.mock('../../../features/panels/panelsStore', () => ({
       showAnalyze: showAnalyzeMock,
       showCharter: showCharterMock,
       showControl: showSustainmentMock,
+      showDashboard: showDashboardMock,
       setAnalyzeViewMode: setAnalyzeViewModeMock,
     }),
   }),
@@ -246,6 +268,28 @@ vi.mock('../../../persistence', () => ({
 
 import FrameView from '../FrameView';
 
+// E1 T6: Process tab is project-scoped. FrameView guards CanvasWorkspace
+// behind `activeIP != null`. Legacy tests cover the post-guard wiring; we
+// supply a minimal IP-shaped stub by default so the guard passes. The
+// dedicated "Process empty state" test below renders without the prop to
+// assert the guidance branch.
+const DEFAULT_TEST_IP = {
+  id: 'ip-default',
+  hubId: 'hub-1',
+  status: 'active' as const,
+  metadata: { title: 'Default test project', members: [] },
+  goal: { outcomeGoals: [] },
+  sections: {
+    background: {},
+    investigationLineage: {},
+    approach: {},
+    outcomeReference: {},
+  },
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+} as unknown as Parameters<typeof FrameView>[0]['activeIP'];
+
 describe('FrameView (Azure shell)', () => {
   beforeEach(() => {
     hoisted.canvasWorkspaceMock.mockClear();
@@ -254,6 +298,7 @@ describe('FrameView (Azure shell)', () => {
     showAnalyzeMock.mockClear();
     showCharterMock.mockClear();
     showSustainmentMock.mockClear();
+    showDashboardMock.mockClear();
     expandToQuestionMock.mockClear();
     setWallViewModeMock.mockClear();
     setAnalyzeViewModeMock.mockClear();
@@ -299,7 +344,7 @@ describe('FrameView (Azure shell)', () => {
   });
 
   it('passes app store state into the shared Canvas workspace', () => {
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
     expect(hoisted.canvasWorkspaceMock).toHaveBeenCalledWith(
@@ -349,7 +394,7 @@ describe('FrameView (Azure shell)', () => {
       },
     ]);
 
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     await waitFor(() => expect(hoisted.listByHubMock).toHaveBeenCalledWith('hub-1'));
     await waitFor(() => {
@@ -367,7 +412,7 @@ describe('FrameView (Azure shell)', () => {
     const actionItems = [actionItem('action-1', 'Check oven gasket seating')];
     hoisted.actionItemsListByHubMock.mockResolvedValue(actionItems);
 
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     await waitFor(() => expect(hoisted.actionItemsListByHubMock).toHaveBeenCalledWith('hub-1'));
     await waitFor(() => {
@@ -381,7 +426,7 @@ describe('FrameView (Azure shell)', () => {
       .mockResolvedValueOnce([actionItem('hub-1-action', 'Hub 1 action')])
       .mockResolvedValueOnce([]);
 
-    const { rerender } = render(<FrameView />);
+    const { rerender } = render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     await waitFor(() => {
       const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
@@ -392,7 +437,7 @@ describe('FrameView (Azure shell)', () => {
       ...storeStateRef.current,
       processContext: { currentUnderstanding: 'fill line', processHubId: 'hub-2' },
     };
-    rerender(<FrameView />);
+    rerender(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     await waitFor(() => expect(hoisted.actionItemsListByHubMock).toHaveBeenCalledWith('hub-2'));
     await waitFor(() => {
@@ -406,7 +451,7 @@ describe('FrameView (Azure shell)', () => {
       .mockResolvedValueOnce([actionItem('hub-1-action', 'Hub 1 action')])
       .mockRejectedValueOnce(new Error('hub 2 unavailable'));
 
-    const { rerender } = render(<FrameView />);
+    const { rerender } = render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     await waitFor(() => {
       const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
@@ -417,7 +462,7 @@ describe('FrameView (Azure shell)', () => {
       ...storeStateRef.current,
       processContext: { currentUnderstanding: 'fill line', processHubId: 'hub-2' },
     };
-    rerender(<FrameView />);
+    rerender(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     await waitFor(() => expect(hoisted.actionItemsListByHubMock).toHaveBeenCalledWith('hub-2'));
     await waitFor(() => {
@@ -432,7 +477,7 @@ describe('FrameView (Azure shell)', () => {
       processContext: { currentUnderstanding: 'fill line' },
     };
 
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     expect(hoisted.listByHubMock).not.toHaveBeenCalled();
     expect(hoisted.actionItemsListByHubMock).not.toHaveBeenCalled();
@@ -441,7 +486,7 @@ describe('FrameView (Azure shell)', () => {
   });
 
   it('wires See Data to the Azure Analysis panel action', () => {
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     fireEvent.click(screen.getByTestId('see-data'));
 
@@ -449,7 +494,7 @@ describe('FrameView (Azure shell)', () => {
   });
 
   it('dispatches ACTION_ITEM_ADD when Canvas logs a quick action', async () => {
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     fireEvent.click(screen.getByTestId('quick-action'));
 
@@ -480,7 +525,7 @@ describe('FrameView (Azure shell)', () => {
     hoisted.actionItemsListByHubMock.mockRejectedValue(new Error('refresh unavailable'));
     hoisted.dispatchMock.mockRejectedValue(new Error('refresh unavailable'));
 
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     fireEvent.click(screen.getByTestId('quick-action'));
 
@@ -510,7 +555,7 @@ describe('FrameView (Azure shell)', () => {
       return Promise.resolve([]);
     });
 
-    const { rerender } = render(<FrameView />);
+    const { rerender } = render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     await waitFor(() => expect(hoisted.actionItemsListByHubMock).toHaveBeenCalledWith('hub-1'));
 
@@ -531,7 +576,7 @@ describe('FrameView (Azure shell)', () => {
       ...storeStateRef.current,
       processContext: { currentUnderstanding: 'fill line', processHubId: 'hub-2' },
     };
-    rerender(<FrameView />);
+    rerender(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     await waitFor(() => expect(hoisted.actionItemsListByHubMock).toHaveBeenCalledWith('hub-2'));
     await act(async () => {
@@ -547,7 +592,7 @@ describe('FrameView (Azure shell)', () => {
   });
 
   it('wires Canvas focused investigation response path to the Azure Investigation panel', () => {
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     fireEvent.click(screen.getByTestId('focused-investigation'));
 
@@ -555,7 +600,7 @@ describe('FrameView (Azure shell)', () => {
   });
 
   it('opens Investigation and expands a question for overlay focus', () => {
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     fireEvent.click(screen.getByTestId('overlay-question'));
 
@@ -564,7 +609,7 @@ describe('FrameView (Azure shell)', () => {
   });
 
   it('opens Investigation map in Wall mode from the Canvas wall drill action', () => {
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     fireEvent.click(screen.getByTestId('open-wall'));
 
@@ -574,7 +619,7 @@ describe('FrameView (Azure shell)', () => {
   });
 
   it('wires causal-link mutation callbacks to the investigation store', () => {
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
     expect(props?.onAddCausalLink).toEqual(expect.any(Function));
@@ -596,7 +641,7 @@ describe('FrameView (Azure shell)', () => {
   });
 
   it('wires Canvas charter CTA to the panels-store show action', () => {
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     fireEvent.click(screen.getByTestId('cta-charter'));
 
@@ -621,7 +666,7 @@ describe('FrameView (Azure shell)', () => {
       },
     ]);
 
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     await waitFor(() => {
       const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
@@ -663,10 +708,45 @@ describe('FrameView (Azure shell)', () => {
       processContext: { processHubId: 'hub-1' },
     };
 
-    render(<FrameView />);
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Open inbox prompt' }));
 
     expect(showSustainmentMock).toHaveBeenCalledWith('ip-1');
+  });
+
+  // E1 T6: Process tab "No active project" empty state.
+  describe('Process tab guard (E1 T6)', () => {
+    it('renders NoActiveProjectGuidance instead of CanvasWorkspace when activeIP is null', () => {
+      render(<FrameView activeIP={null} />);
+
+      expect(screen.queryByTestId('canvas-workspace')).not.toBeInTheDocument();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /no active project/i })).toBeInTheDocument();
+      expect(screen.getByText(/process work happens inside a project/i)).toBeInTheDocument();
+      expect(hoisted.canvasWorkspaceMock).not.toHaveBeenCalled();
+    });
+
+    it('renders NoActiveProjectGuidance when activeIP prop is omitted', () => {
+      render(<FrameView />);
+
+      expect(screen.queryByTestId('canvas-workspace')).not.toBeInTheDocument();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    it('invokes panelsStore.showDashboard() when the "Go to Home" CTA is clicked', () => {
+      render(<FrameView activeIP={null} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /go to home/i }));
+
+      expect(showDashboardMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders CanvasWorkspace (not the guidance) when activeIP is non-null', () => {
+      render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+      expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
   });
 });

@@ -8,6 +8,7 @@ import React from 'react';
 import {
   CanvasWorkspace,
   InboxDigest,
+  NoActiveProjectGuidance,
   type InboxDigestPrompt,
   type ContextLinkGroup,
   type ContextLinkItem,
@@ -339,6 +340,21 @@ const FrameView: React.FC = () => {
     },
     [activeHubId, controlHandoffs, controlRecords]
   );
+
+  // E1 T6: Process tab is project-scoped. When no active project is selected,
+  // route the user back to Home instead of rendering Canvas chrome. PWA has no
+  // AD identity in the free tier; `useActiveIPContext` returns `null` whenever
+  // there is no IP for the active hub. The CanvasWorkspace `activeIP: null`
+  // branch (T5) remains as the bootstrap fallback for tests + non-membership
+  // callers, but the production Process tab never reaches it.
+  if (activeIP == null) {
+    return (
+      <NoActiveProjectGuidance
+        onGoHome={() => usePanelsStore.getState().showHome()}
+        description="Process work happens inside a project. Pick a project from Home, or create a new one to start editing the Canvas."
+      />
+    );
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
