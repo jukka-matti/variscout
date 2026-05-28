@@ -338,7 +338,7 @@ vi.mock('@variscout/ui', () => ({
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));
 
-// Hoisted spies for useDashboardCharts setters — exported so tests can assert
+// Hoisted spies for useDashboardCharts setters — shared so tests can assert
 // on intent-driven calls (F1 Task 5). Per feedback_vi_mock_hoist_closure: wrap
 // in closure so the vi.mock factory can read the live refs at hoist time.
 const chartSetterSpies = vi.hoisted(() => ({
@@ -637,10 +637,11 @@ describe('Dashboard', () => {
       render(<Dashboard />);
 
       expect(chartSetterSpies.setFocusedChart).toHaveBeenCalledWith('ichart');
-      // No boxplotFactor in intent → setBoxplotFactor not called by intent
-      // effect. (The Defect-mode auto-switch effect may call it for unrelated
-      // reasons, so assert it was NOT called with the intent's missing factor.)
-      expect(chartSetterSpies.setBoxplotFactor).not.toHaveBeenCalledWith(undefined);
+      // No boxplotFactor in intent → setBoxplotFactor not called at all from
+      // the intent path. useDashboardCharts is mocked wholesale, so the only
+      // route to setBoxplotFactor in this test environment is the intent
+      // effect — the conditional guard at Dashboard.tsx:411 skips it cleanly.
+      expect(chartSetterSpies.setBoxplotFactor).not.toHaveBeenCalled();
       expect(usePanelsStore.getState().pendingExploreIntent).toBeNull();
     });
 
