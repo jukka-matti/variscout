@@ -50,6 +50,7 @@ import { EditModeShell } from './EditMode';
 import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCategoricalColumn';
 import type { SystemHint } from './EditMode/Palette';
 import { useSystemHints } from './EditMode/hooks/useSystemHints';
+import { useGhostSuggestions } from './EditMode/hooks/useGhostSuggestions';
 import { StepTimingsModal } from './EditMode/Workflows/StepTimingsModal';
 import { CalculatedColumnModal } from './EditMode/Workflows/CalculatedColumnModal';
 import { TimeAsFactorsModal } from './EditMode/Workflows/TimeAsFactorsModal';
@@ -1000,6 +1001,20 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [systemHintItems, setDismissedSystemHints]
   );
 
+  // H1 Task 2: ghost suggestions for unbound palette chips.
+  // `outcomeSpecs` comes from the CanvasWorkspace prop (set by the Azure/PWA wrapper).
+  // `factorControls` is derived from activeIP?.goal?.factorControls (line ~642 above).
+  // StepBinding: no unified StepBinding type exists in @variscout/core yet; step
+  // associations live on ImprovementProjectOutcomeGoal.stepId and
+  // ImprovementProjectFactorControl.stepId. Passing empty array for now (graceful
+  // fallback). Deferred to V2 when a StepBinding type is introduced.
+  const ghostSuggestions = useGhostSuggestions({
+    columnProfiles: rawProfiles,
+    outcomeSpecs,
+    factorControls,
+    stepBindingColumns: [],
+  });
+
   // When access is revoked at runtime, snap back to State mode so the user
   // is never stranded in Edit mode without the Done affordance.
   React.useEffect(() => {
@@ -1229,6 +1244,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
               numericValuesByColumn={numericValuesByColumn}
               categoricalValuesByColumn={categoricalValuesByColumn}
               systemHints={systemHints}
+              ghostSuggestions={ghostSuggestions}
               steps={processSteps}
               categoricalDistinctValuesByColumn={categoricalDistinctValuesByColumn}
               onMenuItemSelect={onChipContextMenuSelect}

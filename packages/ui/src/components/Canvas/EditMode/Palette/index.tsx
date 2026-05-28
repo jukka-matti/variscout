@@ -6,6 +6,7 @@ import { ParsingOverridePopover } from './ParsingOverridePopover';
 import { ParsingBanner } from './ParsingBanner';
 import { SystemHintBanner } from './SystemHintBanner';
 import type { SystemHintKind } from './SystemHintBanner';
+import type { SuggestedRole } from '../hooks/useGhostSuggestions';
 
 export type { SystemHintKind };
 
@@ -39,6 +40,12 @@ export interface PaletteProps {
   onApplyToSimilar?: (columnName: string, interpretation: ParsingInterpretation) => void;
   /** Notify when the aggregate-warning banner's Review button is clicked. */
   onReviewAllWarnings?: () => void;
+  /**
+   * H1 Task 2: ghost-suggested role per column name. Threaded down to each
+   * {@link ColumnGroup} and then to {@link ColumnChip}. Columns absent from
+   * the map render without a ghost suggestion pill.
+   */
+  ghostSuggestions?: Record<string, SuggestedRole>;
 }
 
 // Each `derived` profile carries a `derivationSource` discriminant; one bucket
@@ -111,6 +118,7 @@ export const Palette: React.FC<PaletteProps> = ({
   // inside Palette — downstream Analyze/Explore consumers light up in F1/H1.
   categoricalValuesByColumn: _categoricalValuesByColumn,
   systemHints,
+  ghostSuggestions,
   onMenuItemSelect,
   onOverrideAccept,
   onApplyToSimilar,
@@ -173,6 +181,7 @@ export const Palette: React.FC<PaletteProps> = ({
           label={label}
           profiles={buckets[key]}
           numericValuesByColumn={numericValuesByColumn}
+          ghostSuggestions={ghostSuggestions}
           onColumnOverrideOpen={(columnName, anchor) =>
             setOpenOverlay({ kind: 'popover', columnName, anchor })
           }

@@ -536,6 +536,82 @@ describe('Palette — derived-bins group (G1 Task 3)', () => {
 });
 
 // ---------------------------------------------------------------------------
+// H1 Task 2 — ghost suggestions wire (Palette integration)
+// ---------------------------------------------------------------------------
+
+describe('Palette — ghostSuggestions', () => {
+  it('renders ghost-suggested chip hint-pill when ghostSuggestions flags the column', () => {
+    // ColumnChip renders data-testid="column-chip-hint-pill" when ghostSuggested is
+    // truthy. That is the stable assertion target exposed by the existing chip.
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'line_yield',
+          status: 'ok',
+          confidence: 95,
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+      ],
+      ghostSuggestions: { line_yield: 'outcome' },
+    });
+
+    // The hint pill should be rendered
+    const pill = screen.getByTestId('column-chip-hint-pill');
+    expect(pill).toBeInTheDocument();
+    // The pill text should display the suggested role
+    expect(pill).toHaveTextContent('outcome?');
+  });
+
+  it('does not render ghost hint-pill when ghostSuggestions maps column to null', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'temperature',
+          status: 'ok',
+          confidence: 95,
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+      ],
+      ghostSuggestions: { temperature: null },
+    });
+
+    expect(screen.queryByTestId('column-chip-hint-pill')).toBeNull();
+  });
+
+  it('does not render ghost hint-pill when ghostSuggestions is omitted', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'temperature',
+          status: 'ok',
+          confidence: 95,
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+      ],
+    });
+
+    expect(screen.queryByTestId('column-chip-hint-pill')).toBeNull();
+  });
+
+  it('renders factor hint-pill text when ghostSuggestions flags column as factor', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'temperature',
+          status: 'ok',
+          confidence: 95,
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+      ],
+      ghostSuggestions: { temperature: 'factor' },
+    });
+
+    const pill = screen.getByTestId('column-chip-hint-pill');
+    expect(pill).toHaveTextContent('factor?');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // T6 — time kind SystemHintBanner pass-through (D3 T6)
 // ---------------------------------------------------------------------------
 //
