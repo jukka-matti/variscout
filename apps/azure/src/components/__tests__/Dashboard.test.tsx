@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
 import { useProjectStore } from '@variscout/stores';
 import { calculateAnova } from '@variscout/core';
+import { usePanelsStore } from '../../features/panels/panelsStore';
 
 // Mock components
 vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
@@ -337,15 +338,23 @@ vi.mock('@variscout/ui', () => ({
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));
 
+// Hoisted spies for useDashboardCharts setters — exported so tests can assert
+// on intent-driven calls (F1 Task 5). Per feedback_vi_mock_hoist_closure: wrap
+// in closure so the vi.mock factory can read the live refs at hoist time.
+const chartSetterSpies = vi.hoisted(() => ({
+  setBoxplotFactor: vi.fn(),
+  setFocusedChart: vi.fn(),
+}));
+
 // Mock hooks
 vi.mock('../../hooks', () => ({
   useDashboardCharts: () => ({
     boxplotFactor: 'Machine',
-    setBoxplotFactor: vi.fn(),
+    setBoxplotFactor: chartSetterSpies.setBoxplotFactor,
     paretoFactor: 'Machine',
     setParetoFactor: vi.fn(),
     focusedChart: null,
-    setFocusedChart: vi.fn(),
+    setFocusedChart: chartSetterSpies.setFocusedChart,
     handleNextChart: vi.fn(),
     handlePrevChart: vi.fn(),
     showParetoComparison: false,
@@ -529,6 +538,11 @@ describe('Dashboard', () => {
     useProjectStore.setState(
       mockStoreState as unknown as Partial<ReturnType<typeof useProjectStore.getState>>
     );
+    // F1 Task 5: reset chart-setter spies + panelsStore intent so tests don't
+    // leak across each other (panelsStore intent is module-singleton state).
+    chartSetterSpies.setBoxplotFactor.mockClear();
+    chartSetterSpies.setFocusedChart.mockClear();
+    usePanelsStore.setState({ pendingExploreIntent: null });
   });
 
   it('renders Analysis tab by default', () => {
@@ -596,5 +610,70 @@ describe('Dashboard', () => {
 
     const titles = screen.getAllByTestId('editable-title');
     expect(titles.length).toBeGreaterThanOrEqual(3);
+  });
+
+  // ────────────────────────────────────────────────────────────────────────
+  // F1 Task 5: pendingExploreIntent consumer
+  // ────────────────────────────────────────────────────────────────────────
+  describe('pendingExploreIntent consumer', () => {
+    it('applies intent with focusedChart + boxplotFactor on mount', () => {
+      usePanelsStore.setState({
+        pendingExploreIntent: { focusedChart: 'boxplot', boxplotFactor: 'Vessel' },
+      });
+
+      render(<Dashboard />);
+
+      expect(chartSetterSpies.setFocusedChart).toHaveBeenCalledWith('boxplot');
+      expect(chartSetterSpies.setBoxplotFactor).toHaveBeenCalledWith('Vessel');
+      // Intent cleared after consumption
+      expect(usePanelsStore.getState().pendingExploreIntent).toBeNull();
+    });
+
+    it('applies focusedChart-only intent without setting boxplotFactor', () => {
+      usePanelsStore.setState({
+        pendingExploreIntent: { focusedChart: 'ichart' },
+      });
+
+      render(<Dashboard />);
+
+      expect(chartSetterSpies.setFocusedChart).toHaveBeenCalledWith('ichart');
+      // No boxplotFactor in intent → setBoxplotFactor not called by intent
+      // effect. (The Defect-mode auto-switch effect may call it for unrelated
+      // reasons, so assert it was NOT called with the intent's missing factor.)
+      expect(chartSetterSpies.setBoxplotFactor).not.toHaveBeenCalledWith(undefined);
+      expect(usePanelsStore.getState().pendingExploreIntent).toBeNull();
+    });
+
+    it('does nothing when pendingExploreIntent is null on mount', () => {
+      // Default state — no intent set
+      render(<Dashboard />);
+
+      // Neither setter called from the intent effect path.
+      // (setFocusedChart may still be called by the restore effect with a
+      // persisted initialViewState, but we don't pass one here.)
+      expect(chartSetterSpies.setFocusedChart).not.toHaveBeenCalled();
+      // setBoxplotFactor may be called by useDashboardChartsBase factor-sync,
+      // but those calls live behind the mock — only the intent path calls it
+      // here.
+      expect(chartSetterSpies.setBoxplotFactor).not.toHaveBeenCalled();
+    });
+
+    it('intent overrides persisted initialViewState.focusedChart', () => {
+      // Prime intent — restore effect would run first with initialViewState,
+      // but intent useEffect runs in source order after restore and
+      // re-overwrites focusedChart.
+      usePanelsStore.setState({
+        pendingExploreIntent: { focusedChart: 'boxplot', boxplotFactor: 'Operator' },
+      });
+
+      render(<Dashboard initialViewState={{ focusedChart: 'ichart' }} />);
+
+      // Both setters fire — restore writes 'ichart', intent then writes 'boxplot'.
+      // The intent's final call is what matters; assert the most recent call.
+      const calls = chartSetterSpies.setFocusedChart.mock.calls;
+      expect(calls.length).toBeGreaterThanOrEqual(1);
+      expect(calls[calls.length - 1]?.[0]).toBe('boxplot');
+      expect(chartSetterSpies.setBoxplotFactor).toHaveBeenCalledWith('Operator');
+    });
   });
 });

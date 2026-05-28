@@ -62,6 +62,7 @@ import {
 import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
+import { usePanelsStore } from '../features/panels/panelsStore';
 
 type DashboardTab = 'analysis' | 'performance' | 'yamazumi';
 
@@ -386,6 +387,33 @@ const Dashboard = ({
       onViewStateChange?.({ focusedChart });
     }
   }, [focusedChart, hasRestoredFocusedChart, onViewStateChange]);
+
+  // F1 Task 5: Apply pendingExploreIntent set by the Process tab's
+  // ExploreExitButton when the user clicks "→ Explore". The Edit-mode exit
+  // calls `panelsStore.showExplore(intent)` (Task 6 wires the real call);
+  // here we consume the intent on mount and apply it to focused chart +
+  // boxplot factor, then clear it so a remount doesn't re-apply.
+  //
+  // Intent priority: this runs AFTER the persisted-viewState restore above
+  // (source order), so if both fire on the same mount, intent wins — the
+  // restore sets focusedChart from initialViewState first, then this effect
+  // overwrites with the intent's focusedChart and additionally sets the
+  // boxplot factor when present. Tests cover the override case.
+  //
+  // Dep on pendingExploreIntent only (not viewState / boxplotFactor) — the
+  // intent is single-use (cleared after one apply), so refiring on factor
+  // changes would be a bug.
+  const pendingExploreIntent = usePanelsStore(s => s.pendingExploreIntent);
+  const clearPendingExploreIntent = usePanelsStore(s => s.clearPendingExploreIntent);
+  useEffect(() => {
+    if (!pendingExploreIntent) return;
+    setFocusedChart(pendingExploreIntent.focusedChart);
+    if (pendingExploreIntent.boxplotFactor) {
+      setBoxplotFactor(pendingExploreIntent.boxplotFactor);
+    }
+    clearPendingExploreIntent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- single-use intent: only fire when intent transitions to non-null
+  }, [pendingExploreIntent]);
 
   // Process projection intelligence (Phase 2-4)
   const journeyPhase = useJourneyPhase(!!rawData?.length, allFindings ?? []);
