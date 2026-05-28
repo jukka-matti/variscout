@@ -60,14 +60,6 @@ describe('AnalysisModeStrategy.dataRouter', () => {
     expect(result.transforms).toContain('calculateStats');
   });
 
-  it('returns useFilteredData for yamazumi mode regardless of phase', () => {
-    const strategy = getStrategy(resolveMode('yamazumi'));
-    expect(strategy.dataRouter!({ ...baseArgs, phase: 'investigation' }).hook).toBe(
-      'useFilteredData'
-    );
-    expect(strategy.dataRouter!({ ...baseArgs, phase: 'hub' }).hook).toBe('useFilteredData');
-  });
-
   it('returns useFilteredData for defect mode', () => {
     const strategy = getStrategy(resolveMode('defect'));
     const result = strategy.dataRouter!(baseArgs);
@@ -76,7 +68,7 @@ describe('AnalysisModeStrategy.dataRouter', () => {
   });
 
   it('every strategy defines a dataRouter', () => {
-    const modes: ResolvedMode[] = ['standard', 'capability', 'performance', 'yamazumi', 'defect'];
+    const modes: ResolvedMode[] = ['standard', 'capability', 'performance', 'defect'];
     for (const m of modes) {
       const strategy = getStrategy(m);
       expect(strategy.dataRouter, `${m} strategy must have dataRouter`).toBeDefined();

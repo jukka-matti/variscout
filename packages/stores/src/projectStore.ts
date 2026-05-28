@@ -12,7 +12,6 @@ import type {
   DataRow,
   SpecLimits,
   AnalysisMode,
-  YamazumiColumnMapping,
   DefectMapping,
   SubgroupConfig,
   FilterAction,
@@ -79,7 +78,6 @@ export interface SerializedProject {
   measureLabel?: string;
   selectedMeasure?: string | null;
   cpkTarget?: number | undefined;
-  yamazumiMapping?: YamazumiColumnMapping | null;
   defectMapping?: DefectMapping | null;
   subgroupConfig?: SubgroupConfig;
   filters?: Record<string, (string | number)[]>;
@@ -135,9 +133,6 @@ export interface ProjectState {
   measureLabel: string;
   selectedMeasure: string | null;
   cpkTarget: number | undefined;
-
-  // Yamazumi mode
-  yamazumiMapping: YamazumiColumnMapping | null;
 
   // Defect mode
   defectMapping: DefectMapping | null;
@@ -206,8 +201,6 @@ export interface ProjectActions {
   setSelectedMeasure: (measureId: string | null) => void;
   setCpkTarget: (target: number | undefined) => void;
 
-  // Yamazumi mode
-  setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
   // Defect mode
   setDefectMapping: (mapping: DefectMapping | null) => void;
 
@@ -277,7 +270,6 @@ const initialState: ProjectState = {
   measureLabel: 'Measure',
   selectedMeasure: null,
   cpkTarget: undefined,
-  yamazumiMapping: null,
   defectMapping: null,
   subgroupConfig: DEFAULT_SUBGROUP_CONFIG,
   filters: {},
@@ -350,7 +342,6 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
       measureLabel: serialized.measureLabel ?? 'Measure',
       selectedMeasure: serialized.selectedMeasure ?? null,
       cpkTarget: serialized.cpkTarget,
-      yamazumiMapping: serialized.yamazumiMapping ?? null,
       defectMapping: serialized.defectMapping ?? null,
       subgroupConfig: serialized.subgroupConfig ?? DEFAULT_SUBGROUP_CONFIG,
       filters: serialized.filters ?? {},
@@ -410,9 +401,8 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
   setSelectedMeasure: setAndMark(set, 'selectedMeasure'),
   setCpkTarget: setAndMark(set, 'cpkTarget'),
 
-  // --- Yamazumi mode ---
+  // --- Defect mode ---
 
-  setYamazumiMapping: setAndMark(set, 'yamazumiMapping'),
   setDefectMapping: setAndMark(set, 'defectMapping'),
 
   // --- Subgroup capability ---

@@ -3,18 +3,13 @@ import type { TimelineWindow } from './timeline';
 import type { ParetoYMetric, ParetoYMetricId } from './pareto';
 import { PARETO_Y_METRICS } from './pareto';
 
-export type ResolvedMode = 'standard' | 'capability' | 'performance' | 'yamazumi' | 'defect';
+export type ResolvedMode = 'standard' | 'capability' | 'performance' | 'defect';
 
 export interface QuestionStrategy {
-  generator:
-    | 'bestSubsets'
-    | 'bestSubsetsWithSpecs'
-    | 'wasteComposition'
-    | 'channelRanking'
-    | 'defectAnalysis';
-  evidenceMetric: 'rSquaredAdj' | 'cpkImpact' | 'wasteContribution' | 'channelCpk';
+  generator: 'bestSubsets' | 'bestSubsetsWithSpecs' | 'channelRanking' | 'defectAnalysis';
+  evidenceMetric: 'rSquaredAdj' | 'cpkImpact' | 'channelCpk';
   evidenceLabel: string;
-  validationMethod: 'anova' | 'anovaWithSpecs' | 'taktCompliance';
+  validationMethod: 'anova' | 'anovaWithSpecs';
   questionFocus: string;
 }
 
@@ -22,16 +17,12 @@ export type ChartSlotType =
   | 'ichart'
   | 'capability-ichart'
   | 'cpk-scatter'
-  | 'yamazumi-chart'
   | 'boxplot'
   | 'distribution-boxplot'
-  | 'yamazumi-ichart'
   | 'pareto'
   | 'cpk-pareto'
-  | 'yamazumi-pareto'
   | 'stats'
   | 'histogram'
-  | 'yamazumi-summary'
   | 'defect-summary';
 
 /** Named alias for the four chart slots — used by RouterResult.chartVariants. */
@@ -74,7 +65,7 @@ export interface AnalysisModeStrategy {
   metricLabel: (hasSpecs: boolean) => string;
   formatMetricValue?: (v: number) => string;
   aiChartInsightKeys: string[];
-  aiToolSet: 'standard' | 'performance' | 'yamazumi';
+  aiToolSet: 'standard' | 'performance';
   questionStrategy: QuestionStrategy;
   /** V1 Multi-level SCOUT — optional for backward compat; all shipped strategies implement it. */
   dataRouter?: (args: RouterArgs) => RouterResult;
@@ -97,7 +88,6 @@ export function resolveMode(
 ): ResolvedMode {
   if (mode === 'defect') return 'defect';
   if (mode === 'performance') return 'performance';
-  if (mode === 'yamazumi') return 'yamazumi';
   if (opts?.standardIChartMetric === 'capability') return 'capability';
   return 'standard';
 }
@@ -176,33 +166,6 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
         phase === 'hub'
           ? ['calculateChannelStats', 'calculateChannelPerformance']
           : ['calculateChannelStats'],
-    }),
-  },
-  yamazumi: {
-    chartSlots: {
-      slot1: 'yamazumi-chart',
-      slot2: 'yamazumi-ichart',
-      slot3: 'yamazumi-pareto',
-      slot4: 'yamazumi-summary',
-    },
-    kpiComponent: 'yamazumi',
-    reportTitle: 'Time Study Analysis',
-    reportSections: ['current-condition', 'drivers', 'evidence-trail', 'learning-loop'],
-    metricLabel: () => 'VA Ratio',
-    formatMetricValue: (v: number) => `${Math.round(v * 100)}%`,
-    aiChartInsightKeys: ['yamazumi', 'yamazumi-ichart', 'yamazumi-pareto'],
-    aiToolSet: 'yamazumi',
-    questionStrategy: {
-      generator: 'wasteComposition',
-      evidenceMetric: 'wasteContribution',
-      evidenceLabel: 'Waste %',
-      validationMethod: 'taktCompliance',
-      questionFocus: 'Which step has the most waste?',
-    },
-    paretoYOptions: paretoOptions('cycle-time', 'waste-time'),
-    dataRouter: () => ({
-      hook: 'useFilteredData', // hub-time yamazumi not built for V1
-      transforms: ['aggregateYamazumiData', 'classifyYamazumi'],
     }),
   },
   defect: {

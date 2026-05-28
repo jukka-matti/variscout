@@ -135,11 +135,6 @@ describe('projectStore — setAnalysisMode', () => {
     expect(useProjectStore.getState().analysisMode).toBe('performance');
   });
 
-  it('changes analysisMode to yamazumi', () => {
-    useProjectStore.getState().setAnalysisMode('yamazumi');
-    expect(useProjectStore.getState().analysisMode).toBe('yamazumi');
-  });
-
   it('marks unsaved after setAnalysisMode', () => {
     useProjectStore.getState().setAnalysisMode('performance');
     expect(useProjectStore.getState().hasUnsavedChanges).toBe(true);
