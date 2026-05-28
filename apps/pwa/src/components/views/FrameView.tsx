@@ -8,6 +8,7 @@ import React from 'react';
 import {
   CanvasWorkspace,
   InboxDigest,
+  NoActiveProjectGuidance,
   type InboxDigestPrompt,
   type ContextLinkGroup,
   type ContextLinkItem,
@@ -32,6 +33,7 @@ import { pwaHubRepository } from '../../persistence';
 import { useSession } from '../../store/sessionStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useAnalyzeFeatureStore } from '../../features/analyze/analyzeStore';
+import { useActiveIPContext } from '../../hooks/useActiveIPContext';
 
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
@@ -78,6 +80,11 @@ const FrameView: React.FC = () => {
   const activeHubId = activeHub?.id ?? null;
   const canvasViewportHubId = processContext?.processHubId ?? activeHubId;
   const projectsByHub = useImprovementProjectStore(s => s.projectsByHub);
+  const upsertProject = useImprovementProjectStore(s => s.upsertProject);
+  // E1 T5: PWA active-IP cascade for Canvas Edit-mode state.
+  // PWA passes `userId: 'local'` internally to `useActiveIPContext` (no
+  // AD identity in the free tier); the hook still scopes per-hub.
+  const { activeIP } = useActiveIPContext(activeHub);
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
   const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
@@ -334,6 +341,21 @@ const FrameView: React.FC = () => {
     [activeHubId, controlHandoffs, controlRecords]
   );
 
+  // E1 T6: Process tab is project-scoped. When no active project is selected,
+  // route the user back to Home instead of rendering Canvas chrome. PWA has no
+  // AD identity in the free tier; `useActiveIPContext` returns `null` whenever
+  // there is no IP for the active hub. The CanvasWorkspace `activeIP: null`
+  // branch (T5) remains as the bootstrap fallback for tests + non-membership
+  // callers, but the production Process tab never reaches it.
+  if (activeIP == null) {
+    return (
+      <NoActiveProjectGuidance
+        onGoHome={() => usePanelsStore.getState().showHome()}
+        description="Process work happens inside a project. Pick a project from Home, or create a new one to start editing the Canvas."
+      />
+    );
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="px-4 pt-4">
@@ -369,6 +391,8 @@ const FrameView: React.FC = () => {
         // Edit mode is always reachable. Azure derives this from canAccess(..., 'edit').
         canEditCanvas={true}
         actionItems={actionItems}
+        activeIP={activeIP}
+        onPersistCanvasState={upsertProject}
       />
     </div>
   );

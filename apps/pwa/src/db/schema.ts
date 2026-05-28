@@ -169,6 +169,17 @@ export class PwaDatabase extends Dexie {
     // become unreachable. Accepted because wedge V1 has no real users yet.
     // This empty stores() call bumps the version to flush any cached schema.
     this.version(6).stores({});
+
+    // Version 7: PR-CCJ-E1 — ImprovementProject extended with issueStatement +
+    // 4 Canvas-state fields (processSteps, stepTimings, formulaBindings,
+    // timeDecompositionBindings). Stored shape changes but Dexie indexes are
+    // unchanged (new fields are in-row, not indexed). Per wedge V1
+    // no-back-compat policy (feedback_wedge_v1_no_migration_no_backcompat),
+    // NO upgrade callback — existing v6 rows that lack the new fields read
+    // back with `undefined`, which the optional type allows. The bump flushes
+    // cached schema state; no destructive re-init needed because the changes
+    // are purely additive.
+    this.version(7).stores({});
   }
 }
 

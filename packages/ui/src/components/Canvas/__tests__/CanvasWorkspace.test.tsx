@@ -2427,3 +2427,243 @@ describe('D3 Task 8 — time-decomposition end-to-end', () => {
     expect(yearChip).toBeDefined();
   });
 });
+
+// ---------------------------------------------------------------------------
+// E1 Task 5 — activeIP-backed Canvas state
+// ---------------------------------------------------------------------------
+//
+// Exercises the prop-injected `activeIP` + `onPersistCanvasState` wiring that
+// replaces the four `useState` arrays (`processSteps`, `stepTimings`,
+// `formulaBindings`, `timeDecompositionBindings`). When no `activeIP` is
+// supplied, the local-state fallback kicks in (covered by the suites above —
+// every existing modal-save test exercises that branch). The tests below
+// focus on the activeIP-backed branch: read-through + write-through via the
+// persist callback.
+// ---------------------------------------------------------------------------
+
+describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/');
+    wallIsMobileRef.current = false;
+    localMechanismPropsRef.current = null;
+    dndMockHandlersRef.current = [];
+    useCanvasStore.setState(useCanvasStore.getInitialState());
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    vi.mocked(useSharedWallProps).mockClear();
+    canvasFiltersStateRef.current = {
+      timelineWindow: { kind: 'cumulative' },
+      scopeFilter: undefined,
+      paretoGroupBy: undefined,
+      activeCanvasLens: 'default',
+      activeCanvasOverlays: [],
+      setTimelineWindow: vi.fn(),
+      setScopeFilter: vi.fn(),
+      setParetoGroupBy: vi.fn(),
+      setActiveCanvasLens: vi.fn(),
+      setActiveCanvasOverlays: vi.fn(),
+      toggleCanvasOverlay: vi.fn(),
+      activeCanvasTool: 'select',
+      setActiveCanvasTool: vi.fn(),
+    };
+    vi.mocked(useCanvasStepCards).mockImplementation(() => ({ cards: mockStepCards }));
+    vi.mocked(useCanvasAnalyzeOverlays).mockImplementation(() => ({
+      overlays: mockInvestigationOverlays,
+    }));
+  });
+
+  const e1Map = (): ProcessMap => ({
+    version: 1,
+    nodes: [{ id: 'seed-step', name: 'Seed', order: 0 }],
+    tributaries: [],
+    createdAt: '2026-05-04T00:00:00.000Z',
+    updatedAt: '2026-05-04T00:00:00.000Z',
+  });
+
+  const pairedTimingRowsLocal = [
+    {
+      Step: 'Prep',
+      Prep_start: '2026-03-01',
+      Prep_end: '2026-03-02',
+    },
+    {
+      Step: 'Mix',
+      Prep_start: '2026-03-01',
+      Prep_end: '2026-03-02',
+    },
+  ];
+
+  type PersistFn = NonNullable<
+    React.ComponentProps<typeof CanvasWorkspace>['onPersistCanvasState']
+  >;
+  type PersistMock = ReturnType<typeof vi.fn<PersistFn>>;
+
+  function renderWithActiveIP(opts: {
+    activeIP: React.ComponentProps<typeof CanvasWorkspace>['activeIP'];
+    onPersistCanvasState?: PersistMock;
+    rows?: ReadonlyArray<Record<string, unknown>>;
+  }): { onPersist: PersistMock } {
+    const onPersist: PersistMock = opts.onPersistCanvasState ?? vi.fn<PersistFn>();
+    render(
+      <CanvasWorkspace
+        rawData={
+          (opts.rows ?? pairedTimingRowsLocal) as ReadonlyArray<import('@variscout/core').DataRow>
+        }
+        outcome={null}
+        factors={[]}
+        measureSpecs={{}}
+        processContext={{ processMap: e1Map() }}
+        setOutcome={vi.fn()}
+        setFactors={vi.fn()}
+        setMeasureSpec={vi.fn()}
+        setProcessContext={vi.fn()}
+        onSeeData={vi.fn()}
+        canEditCanvas={true}
+        activeIP={opts.activeIP}
+        onPersistCanvasState={onPersist}
+      />
+    );
+    return { onPersist };
+  }
+
+  // Multi-row date dataset — at least 2 distinct values are needed for
+  // `columnAnalysis.hasVariation` to flip true and the chip to render
+  // in the unassigned palette.
+  const dateRowsE1 = [
+    { Order_Date: '2026-01-15', Value: 100 },
+    { Order_Date: '2026-04-20', Value: 200 },
+    { Order_Date: '2026-12-31', Value: 300 },
+  ];
+
+  it('with activeIP=null, modal Save mutates local state and does not fire onPersistCanvasState', async () => {
+    const onPersist: PersistMock = vi.fn<PersistFn>();
+    render(
+      <CanvasWorkspace
+        rawData={dateRowsE1 as ReadonlyArray<import('@variscout/core').DataRow>}
+        outcome={null}
+        factors={[]}
+        measureSpecs={{}}
+        processContext={{ processMap: e1Map() }}
+        setOutcome={vi.fn()}
+        setFactors={vi.fn()}
+        setMeasureSpec={vi.fn()}
+        setProcessContext={vi.fn()}
+        onSeeData={vi.fn()}
+        canEditCanvas={true}
+        activeIP={null}
+        onPersistCanvasState={onPersist}
+      />
+    );
+
+    // Open TimeAsFactorsModal via the date-chip kebab and save a Year binding.
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for Order_Date' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Use as time factors' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Year' }));
+    fireEvent.click(screen.getByRole('button', { name: /Order_Date factors/i }));
+
+    // Local-state path: derived chip appears (proves the binding landed
+    // somewhere), and onPersistCanvasState was NOT invoked.
+    expect(screen.getByTestId('palette-group-derived-time-decomposition')).toBeInTheDocument();
+    expect(onPersist).not.toHaveBeenCalled();
+  });
+
+  it('with activeIP set, TimeAsFactorsModal Save fires onPersistCanvasState with merged binding', async () => {
+    const { createTestIP } = await import('../../../test-utils/improvementProject');
+    const activeIP = createTestIP();
+    const { onPersist } = renderWithActiveIP({
+      activeIP,
+      rows: dateRowsE1,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open context menu for Order_Date' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Use as time factors' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Year' }));
+    fireEvent.click(screen.getByRole('button', { name: /Order_Date factors/i }));
+
+    expect(onPersist).toHaveBeenCalledTimes(1);
+    const persistedIP = onPersist.mock
+      .calls[0][0] as import('@variscout/core/improvementProject').ImprovementProject;
+    expect(persistedIP.id).toBe(activeIP.id);
+    expect(persistedIP.timeDecompositionBindings).toHaveLength(1);
+    expect(persistedIP.timeDecompositionBindings?.[0]?.sourceColumn).toBe('Order_Date');
+    expect(persistedIP.updatedAt).toBeGreaterThanOrEqual(activeIP.updatedAt);
+  });
+
+  it('with activeIP set, CalculatedColumnModal Save fires onPersistCanvasState with new FormulaBinding', async () => {
+    const { createTestIP } = await import('../../../test-utils/improvementProject');
+    const activeIP = createTestIP();
+    const batchRows = [
+      { Input_kg: 100, GradeA_kg: 80, GradeB_kg: 15 },
+      { Input_kg: 110, GradeA_kg: 85, GradeB_kg: 18 },
+      { Input_kg: 105, GradeA_kg: 82, GradeB_kg: 16 },
+      { Input_kg: 95, GradeA_kg: 78, GradeB_kg: 14 },
+      { Input_kg: 102, GradeA_kg: 81, GradeB_kg: 17 },
+    ];
+    const { onPersist } = renderWithActiveIP({ activeIP, rows: batchRows });
+
+    // Use the batch-data system-hint banner → opens CalculatedColumnModal.
+    fireEvent.click(screen.getByTestId('system-hint-banner-batch-cta'));
+    const totalYieldCard = screen.getByTestId('calc-column-card-batchRatio.totalYield');
+    fireEvent.click(within(totalYieldCard).getByRole('button', { name: /Use template/i }));
+    fireEvent.click(screen.getByTestId('calc-column-custom-save'));
+
+    expect(onPersist).toHaveBeenCalledTimes(1);
+    const persistedIP = onPersist.mock
+      .calls[0][0] as import('@variscout/core/improvementProject').ImprovementProject;
+    expect(persistedIP.formulaBindings).toHaveLength(1);
+    expect(persistedIP.formulaBindings?.[0]?.name).toBe('Yield_pct');
+  });
+
+  it('with activeIP set, dropping a categorical column on ProcessZone fires onPersistCanvasState with processSteps', async () => {
+    const { createTestIP } = await import('../../../test-utils/improvementProject');
+    const activeIP = createTestIP();
+    const stepRows = [{ Step: 'Prep' }, { Step: 'Mix' }, { Step: 'Pack' }];
+    const { onPersist } = renderWithActiveIP({ activeIP, rows: stepRows });
+
+    // Drop the Step categorical column on the process-zone target.
+    act(() => {
+      fireDndMockDragEnd({
+        active: { id: 'column:Step' },
+        over: { id: 'process-zone:singleton' },
+      });
+    });
+
+    expect(onPersist).toHaveBeenCalledTimes(1);
+    const persistedIP = onPersist.mock
+      .calls[0][0] as import('@variscout/core/improvementProject').ImprovementProject;
+    expect(persistedIP.processSteps?.map(s => s.name)).toEqual(['Prep', 'Mix', 'Pack']);
+  });
+
+  it('with activeIP pre-populated, the IP-sourced values drive the rendered Canvas state', async () => {
+    const { createTestIP } = await import('../../../test-utils/improvementProject');
+    const { createTestStepTiming } = await import('../../../test-utils/stepTiming');
+    const pairedRows = [
+      {
+        Prep_start: '2026-03-01T08:00:00.000Z',
+        Prep_end: '2026-03-01T09:00:00.000Z',
+      },
+      {
+        Prep_start: '2026-03-02T08:00:00.000Z',
+        Prep_end: '2026-03-02T09:30:00.000Z',
+      },
+    ];
+    const activeIP = createTestIP({
+      processSteps: [{ id: 'step-Step-0', name: 'Prep', order: 0 }],
+      stepTimings: [
+        createTestStepTiming({
+          kind: 'paired',
+          stepId: 'step-Step-0',
+          startColumn: 'Prep_start',
+          endColumn: 'Prep_end',
+        }),
+      ],
+    });
+
+    renderWithActiveIP({ activeIP, rows: pairedRows });
+
+    // The IP-supplied stepTimings drive the DERIVED FROM TIMINGS palette
+    // group: Lead_time / Total_work_time / Wait_time are present.
+    const derivedGroup = screen.getByTestId('palette-group-derived-timings');
+    expect(derivedGroup).toBeInTheDocument();
+    expect(derivedGroup).toHaveTextContent('Lead_time');
+  });
+});

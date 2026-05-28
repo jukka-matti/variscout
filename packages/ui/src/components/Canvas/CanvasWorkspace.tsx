@@ -40,6 +40,7 @@ import {
 import { isValidLevel, type CanvasLevel } from '@variscout/core/canvas';
 import type { ActionItem } from '@variscout/core/findings';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { profileColumns, type ColumnParsingProfile } from '@variscout/core/parser';
 import { useCanvasStore } from '@variscout/stores';
 import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
@@ -111,6 +112,23 @@ export interface CanvasWorkspaceProps {
    *  Azure derives this from canAccess(currentUserId, members, 'edit');
    *  PWA passes true (no membership model). */
   canEditCanvas?: boolean;
+  /** The active ImprovementProject (CCJ E1 T5). When provided, the four
+   *  Canvas-Edit-mode binding arrays (`processSteps`, `stepTimings`,
+   *  `formulaBindings`, `timeDecompositionBindings`) are sourced from this IP
+   *  and writes flow through `onPersistCanvasState`. When `null` /
+   *  `undefined`, the four arrays fall back to local `useState` (legacy
+   *  behaviour preserved for callers that pre-date E1 — e.g. `FrameViewB0`
+   *  test wrappers, fixture-only renders, and PWA wiring before the active-IP
+   *  cascade lands there). Production Azure passes a resolved `activeIP` via
+   *  `FrameView`. */
+  activeIP?: ImprovementProject | null;
+  /** Persist a freshly-patched IP. Called by Canvas Edit-mode handlers
+   *  (modal saves, drag-and-drop step replacement) with `{ ...activeIP,
+   *  <field>: nextValue, updatedAt: now }`. Expected to upsert via the app's
+   *  IP store (`useImprovementProjectStore.upsertProject`). No-op when
+   *  `activeIP` is `null` / `undefined` — handlers guard internally and fall
+   *  back to local state. */
+  onPersistCanvasState?: (next: ImprovementProject) => void;
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -243,6 +261,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   priorStepStats,
   actionItems = [],
   canEditCanvas,
+  activeIP,
+  onPersistCanvasState,
 }) => {
   const { t } = useTranslation();
   const fallbackMap = React.useMemo(() => createEmptyMap(), []);
@@ -484,47 +504,118 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     map.nodes.length > 0 && chips.length === 0 ? 'read' : 'author'
   );
 
-  // C3 Task 4: local state for emergent process steps materialized from a
-  // categorical-column drop on the ProcessStructureZone. The Charter modal
-  // (PR-CCJ-E1) is where these will be persisted onto the ImprovementProject;
-  // until then the local state gives the drop a visible effect for QA + E2E.
-  const [processSteps, setProcessSteps] = React.useState<
-    { id: string; name: string; order: number }[]
-  >([]);
-
-  // D1 Task 10: local state for step timing bindings captured via the
-  // StepTimingsModal. Drives the derived Lead_time / Total_work_time /
-  // Wait_time columns + the per-step "⏱ ~ <duration>" timing badges.
-  // TODO(PR-CCJ-E1): persist stepTimings to ImprovementProject via Charter modal commit.
-  const [stepTimings, setStepTimings] = React.useState<StepTimingBinding[]>([]);
-  const [stepTimingsModalOpen, setStepTimingsModalOpen] = React.useState(false);
-
-  // D2 Task 10: local state for formula bindings saved via the
-  // CalculatedColumnModal. Task 11 synthesises derived profiles from these
-  // bindings; Task 10 only persists the binding in local state + closes the modal.
-  // TODO(PR-CCJ-E1): persist formulaBindings to ImprovementProject via Charter modal commit.
-  const [formulaBindings, setFormulaBindings] = React.useState<FormulaBinding[]>([]);
-  const [calcModalOpen, setCalcModalOpen] = React.useState<{ sourceColumn?: string } | null>(null);
-
-  // D3 Task 7: local state for time-decomposition bindings captured via the
-  // TimeAsFactorsModal. Each binding maps a date column to the chosen dimensions
-  // (year / quarter / month / week / dayOfWeek / hour). Save handler replaces
-  // any existing binding for the same sourceColumn (dedupe by sourceColumn).
-  // TODO(PR-CCJ-E1): persist timeDecompositionBindings to ImprovementProject via Charter modal commit.
-  const [timeDecompositionBindings, setTimeDecompositionBindings] = React.useState<
+  // PR-CCJ-E1 T5: the four Canvas-Edit-mode binding arrays
+  // (`processSteps`, `stepTimings`, `formulaBindings`,
+  // `timeDecompositionBindings`) live on the active `ImprovementProject`
+  // after E1. When `activeIP` is provided, reads come from the IP and writes
+  // flow through `onPersistCanvasState` (the IP store's `upsertProject`).
+  // When `activeIP` is `null` / `undefined` (test fixtures, FrameViewB0
+  // stubs, PWA without active-IP wiring), the local-state fallback below
+  // keeps the modal save flows working in isolation. The fallback is
+  // structural — once `activeIP` is supplied it owns the source of truth and
+  // local state goes unused for those fields.
+  const [localProcessSteps, setLocalProcessSteps] = React.useState<ExtractedStep[]>([]);
+  const [localStepTimings, setLocalStepTimings] = React.useState<StepTimingBinding[]>([]);
+  const [localFormulaBindings, setLocalFormulaBindings] = React.useState<FormulaBinding[]>([]);
+  const [localTimeDecompositionBindings, setLocalTimeDecompositionBindings] = React.useState<
     TimeDecompositionBinding[]
   >([]);
+
+  const processSteps = activeIP?.processSteps ?? localProcessSteps;
+  const stepTimings = activeIP?.stepTimings ?? localStepTimings;
+  const formulaBindings = activeIP?.formulaBindings ?? localFormulaBindings;
+  const timeDecompositionBindings =
+    activeIP?.timeDecompositionBindings ?? localTimeDecompositionBindings;
+
+  const [stepTimingsModalOpen, setStepTimingsModalOpen] = React.useState(false);
+  const [calcModalOpen, setCalcModalOpen] = React.useState<{ sourceColumn?: string } | null>(null);
   const [timeFactorsModalOpen, setTimeFactorsModalOpen] = React.useState<{
     sourceColumn?: string;
   } | null>(null);
 
-  const handleTimeFactorsSave = React.useCallback((binding: TimeDecompositionBinding) => {
-    setTimeDecompositionBindings(prev => [
-      ...prev.filter(b => b.sourceColumn !== binding.sourceColumn),
-      binding,
-    ]);
-    setTimeFactorsModalOpen(null);
-  }, []);
+  // E1 T5: route a per-field patch through `onPersistCanvasState`. Always
+  // emits a fully-formed IP (factory contract: `upsertProject` expects the
+  // whole object) with `updatedAt` refreshed at the moment of the write.
+  // No-op when `activeIP` / `onPersistCanvasState` is missing; callers
+  // dispatch to the local-state setters in that branch instead.
+  const patchActiveIP = React.useCallback(
+    (
+      fieldPatch: Partial<
+        Pick<
+          ImprovementProject,
+          'processSteps' | 'stepTimings' | 'formulaBindings' | 'timeDecompositionBindings'
+        >
+      >
+    ) => {
+      if (!activeIP || !onPersistCanvasState) return;
+      onPersistCanvasState({ ...activeIP, ...fieldPatch, updatedAt: Date.now() });
+    },
+    [activeIP, onPersistCanvasState]
+  );
+
+  const setProcessSteps = React.useCallback(
+    (next: ExtractedStep[]) => {
+      if (activeIP && onPersistCanvasState) {
+        patchActiveIP({ processSteps: next });
+      } else {
+        setLocalProcessSteps(next);
+      }
+    },
+    [activeIP, onPersistCanvasState, patchActiveIP]
+  );
+
+  const setStepTimings = React.useCallback(
+    (next: StepTimingBinding[]) => {
+      if (activeIP && onPersistCanvasState) {
+        patchActiveIP({ stepTimings: next });
+      } else {
+        setLocalStepTimings(next);
+      }
+    },
+    [activeIP, onPersistCanvasState, patchActiveIP]
+  );
+
+  const setFormulaBindings = React.useCallback(
+    (next: FormulaBinding[]) => {
+      if (activeIP && onPersistCanvasState) {
+        patchActiveIP({ formulaBindings: next });
+      } else {
+        setLocalFormulaBindings(next);
+      }
+    },
+    [activeIP, onPersistCanvasState, patchActiveIP]
+  );
+
+  const setTimeDecompositionBindings = React.useCallback(
+    (next: TimeDecompositionBinding[]) => {
+      if (activeIP && onPersistCanvasState) {
+        patchActiveIP({ timeDecompositionBindings: next });
+      } else {
+        setLocalTimeDecompositionBindings(next);
+      }
+    },
+    [activeIP, onPersistCanvasState, patchActiveIP]
+  );
+
+  const handleTimeFactorsSave = React.useCallback(
+    (binding: TimeDecompositionBinding) => {
+      const next = [
+        ...timeDecompositionBindings.filter(b => b.sourceColumn !== binding.sourceColumn),
+        binding,
+      ];
+      setTimeDecompositionBindings(next);
+      setTimeFactorsModalOpen(null);
+    },
+    [timeDecompositionBindings, setTimeDecompositionBindings]
+  );
+
+  const handleCalcModalSave = React.useCallback(
+    (binding: FormulaBinding) => {
+      setFormulaBindings([...formulaBindings, binding]);
+      setCalcModalOpen(null);
+    },
+    [formulaBindings, setFormulaBindings]
+  );
 
   const onChipContextMenuSelect = React.useCallback((columnName: string, itemId: string) => {
     if (itemId === 'calculate-from') {
@@ -541,11 +632,13 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
 
   const handleStepsReplace = React.useCallback(
     (next: ExtractedStep[], _sourceColumnName: string) => {
-      // TODO(PR-CCJ-E1): persist into ImprovementProject.processSteps via the
-      //   Charter modal commit; sourceColumnName becomes provenance.
+      // E1 T5: when activeIP is provided, persist into IP.processSteps via
+      // onPersistCanvasState; otherwise the local-state fallback owns the
+      // value. `_sourceColumnName` is reserved for future provenance metadata
+      // (Charter modal commit) — currently dropped on both branches.
       setProcessSteps(next);
     },
-    []
+    [setProcessSteps]
   );
 
   // C3 Task 4: build the categorical-distinct-values map from the parsed
@@ -1087,10 +1180,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                   ...derivedTimingsProfiles.map(p => p.columnName),
                   ...derivedFormulaProfiles.map(p => p.columnName),
                 ]}
-                onSave={binding => {
-                  setFormulaBindings(prev => [...prev, binding]);
-                  setCalcModalOpen(null);
-                }}
+                onSave={handleCalcModalSave}
                 onClose={() => setCalcModalOpen(null)}
               />
             )}

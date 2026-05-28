@@ -8,6 +8,7 @@ import React from 'react';
 import {
   CanvasWorkspace,
   InboxDigest,
+  NoActiveProjectGuidance,
   type InboxDigestPrompt,
   type ContextLinkGroup,
   type ContextLinkItem,
@@ -26,6 +27,7 @@ import type {
   StepCapabilityStamp,
   ControlRecord,
 } from '@variscout/core';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { createActionItem, type ActionItem } from '@variscout/core/findings';
 import { surveyInboxRules } from '@variscout/core/survey';
 import { azureHubRepository } from '../../persistence';
@@ -63,9 +65,16 @@ interface FrameViewProps {
   /** Lead-only Edit mode gate. Computed in Editor.tsx from canAccess(currentUserId, members, 'edit').
    *  When omitted, the workspace defaults to permissive (used by tests + non-membership callers like PWA). */
   canEditCanvas?: boolean;
+  /** The active ImprovementProject (E1 T5). Resolved by Editor.tsx via
+   *  `useActiveIPContext(activeHub, currentUser?.email)`. Forwarded to
+   *  `CanvasWorkspace` so Canvas Edit-mode state (processSteps / stepTimings /
+   *  formulaBindings / timeDecompositionBindings) reads from + writes to the
+   *  active IP. When `null`, CanvasWorkspace falls back to local state — the
+   *  pre-E1 behaviour preserved for the bootstrap window. */
+  activeIP?: ImprovementProject | null;
 }
 
-const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
+const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP }) => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
@@ -81,6 +90,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
   const activeHubId = useProjectStore(s => s.processContext?.processHubId ?? null);
   const projectsByHub = useImprovementProjectStore(s => s.projectsByHub);
+  const upsertProject = useImprovementProjectStore(s => s.upsertProject);
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
   const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
@@ -320,6 +330,20 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
     [activeHubId, controlHandoffs, controlRecords]
   );
 
+  // E1 T6: Process tab is project-scoped. When no active project is selected,
+  // route the user back to Home instead of rendering Canvas chrome. The
+  // production-runtime path therefore always has a non-null activeIP inside
+  // CanvasWorkspace; the `null` branch in CanvasWorkspace (T5) remains the
+  // pre-E1 bootstrap fallback used by tests + non-membership callers.
+  if (activeIP == null) {
+    return (
+      <NoActiveProjectGuidance
+        onGoHome={() => usePanelsStore.getState().showDashboard()}
+        description="Process work happens inside a project. Pick a project from Home, or create a new one to start editing the Canvas."
+      />
+    );
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="px-4 pt-4">
@@ -352,6 +376,8 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas }) => {
         priorStepStats={priorStepStats}
         canEditCanvas={canEditCanvas}
         actionItems={actionItems}
+        activeIP={activeIP}
+        onPersistCanvasState={upsertProject}
       />
     </div>
   );

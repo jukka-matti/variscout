@@ -1,7 +1,7 @@
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ActionItem } from '@variscout/core/findings';
 import { ImproveStage } from './ImproveStage';
-import { NoActiveProjectGuidance } from './NoActiveProjectGuidance';
+import { NoActiveProjectGuidance } from '../ActiveIP/NoActiveProjectGuidance';
 
 export interface ImproveTabRootProps {
   activeIP: ImprovementProject | null;

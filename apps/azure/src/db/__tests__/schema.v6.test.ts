@@ -114,3 +114,91 @@ describe('IndexedDB schema v6', () => {
     expect(snapshot?.rowCount).toBe(42);
   });
 });
+
+describe('IndexedDB schema v14 (E1)', () => {
+  beforeEach(async () => {
+    await db.delete();
+  });
+
+  afterEach(async () => {
+    await db.delete();
+  });
+
+  it('opens at version 14 from clean state', async () => {
+    await openDb();
+    // Dexie reports `verno` as the highest declared version after open().
+    expect(db.verno).toBe(14);
+  });
+
+  it('opens cleanly without erroring on the v14 statement', async () => {
+    // The v14 statement is an empty `.stores({})` bump with no upgrade
+    // callback (per wedge V1 no-back-compat policy). If a stale upgrade
+    // callback were registered or the version statement were malformed,
+    // openDb() would throw here. Successful open + correct verno is the
+    // implicit proof.
+    await expect(openDb()).resolves.toBeDefined();
+    expect(db.verno).toBe(14);
+  });
+
+  it('round-trips an ImprovementProject blob with the new E1 fields through processHubs', async () => {
+    // Azure's IP isn't a dedicated Dexie table — IPs live as part of the
+    // `processHub.improvementProjects[]` blob. So we exercise that the
+    // blob write/read survives the v14 version bump.
+    await openDb();
+    const hubRecord = {
+      id: 'hub-e1',
+      name: 'Line 7',
+      createdAt: '2026-05-28T00:00:00.000Z',
+      improvementProjects: [
+        {
+          id: 'ip-e1',
+          hubId: 'hub-e1',
+          status: 'draft' as const,
+          metadata: { title: 'E1 round-trip' },
+          goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
+          sections: {
+            background: {},
+            investigationLineage: {},
+            approach: {},
+            outcomeReference: {},
+          },
+          createdAt: 1714000000000,
+          updatedAt: 1714000000000,
+          deletedAt: null,
+          // E1 additive fields:
+          issueStatement: 'yields dropping',
+          processSteps: [{ id: 'step-1', name: 'Mix', order: 0 }],
+          stepTimings: [
+            {
+              kind: 'paired' as const,
+              stepId: 'step-1',
+              startColumn: 'start_ts',
+              endColumn: 'end_ts',
+            },
+          ],
+          formulaBindings: [
+            {
+              id: 'f-1',
+              name: 'Yield_pct',
+              numerator: [{ kind: 'column' as const, column: 'good', sign: '+' as const }],
+              denominator: [{ kind: 'column' as const, column: 'total', sign: '+' as const }],
+              multiplier: 100,
+            },
+          ],
+          timeDecompositionBindings: [
+            { id: 'td-1', sourceColumn: 'date', dimensions: ['year', 'month'] },
+          ],
+        },
+      ],
+    };
+    await db.table('processHubs').put(hubRecord);
+
+    const readBack = await db.table('processHubs').get('hub-e1');
+    const ip = readBack?.improvementProjects?.[0];
+    expect(ip?.issueStatement).toBe('yields dropping');
+    expect(ip?.processSteps).toEqual([{ id: 'step-1', name: 'Mix', order: 0 }]);
+    expect(ip?.stepTimings?.[0]?.kind).toBe('paired');
+    expect(ip?.formulaBindings?.[0]?.name).toBe('Yield_pct');
+    expect(ip?.timeDecompositionBindings?.[0]?.dimensions).toEqual(['year', 'month']);
+  });
+});

@@ -174,6 +174,17 @@ export class VariScoutDatabase extends Dexie {
     // customers yet. This empty stores() call bumps the version to flush any
     // cached schema and forces Dexie to re-read the final declared shape.
     this.version(13).stores({});
+
+    // Version 14: PR-CCJ-E1 — ImprovementProject extended with issueStatement +
+    // 4 Canvas-state fields (processSteps, stepTimings, formulaBindings,
+    // timeDecompositionBindings). Stored shape changes but Dexie indexes are
+    // unchanged (the new fields are in-row, not indexed).
+    // Per wedge V1 no-back-compat policy (feedback_wedge_v1_no_migration_no_backcompat),
+    // NO upgrade callback is provided — existing v13 rows that lack the new
+    // fields read back with `undefined` for them, which the optional type allows.
+    // Bumping the version flushes any cached schema; no destructive re-init
+    // required because the shape changes are additive.
+    this.version(14).stores({});
   }
 }
 

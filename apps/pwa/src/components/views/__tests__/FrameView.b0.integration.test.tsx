@@ -78,6 +78,30 @@ vi.mock('../../../features/panels/panelsStore', () => ({
   }),
 }));
 
+// E1 T6: PWA FrameView guards Canvas chrome behind activeIP != null. This
+// b0 integration test exercises the post-guard b0 (empty processMap) surface,
+// so we supply a minimal IP-shaped stub via the useActiveIPContext mock so
+// the guard passes and Canvas chrome renders.
+const FAKE_ACTIVE_IP_FOR_B0 = {
+  id: 'ip-b0-test',
+  hubId: 'hub-b0-test',
+  status: 'active',
+  metadata: { title: 'b0 integration test project', members: [] },
+  goal: { outcomeGoals: [] },
+  sections: {
+    background: {},
+    investigationLineage: {},
+    approach: {},
+    outcomeReference: {},
+  },
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+};
+vi.mock('../../../hooks/useActiveIPContext', () => ({
+  useActiveIPContext: () => ({ activeIP: FAKE_ACTIVE_IP_FOR_B0 }),
+}));
+
 vi.mock('@variscout/hooks', async () => {
   const actual = await import('@variscout/hooks');
   return {
