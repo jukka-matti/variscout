@@ -1009,3 +1009,6 @@ export type { TimeDimension, HourGranularityMinutes, TimeDecompositionBinding } 
 export { computeTimeDecompositionColumns, derivedTimeColumnName } from './derived';
 export { detectTimeColumns } from './derived';
 export type { DetectTimeColumnsResult } from './derived';
+
+// Binning derived column engine (CCJ G1 — inflection binning)
+export { computeBinnedFactorColumn } from './derived';

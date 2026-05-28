@@ -18,6 +18,7 @@ import {
   useAnalysisStats,
   useStagedAnalysis,
   useProjectActions,
+  filterCategoricalValuesByColumn,
 } from '@variscout/hooks';
 import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
 import { useStatsWorker } from '../workers/useStatsWorker';
@@ -61,6 +62,8 @@ import {
   evaluateSurvey,
   getColumnNames,
   normalizeProcessHubId,
+  computeTimeDecompositionColumns,
+  computeBinnedFactorColumn,
 } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
@@ -83,6 +86,7 @@ import { generateDeterministicId } from '@variscout/core/identity';
 import { createNewIP } from '@variscout/core/improvementProject';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { canAccess } from '@variscout/core/projectMembership';
+import type { BinnedFactorBinding } from '@variscout/core/binning';
 import { Check, X } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
@@ -381,7 +385,7 @@ export const Editor: React.FC<EditorProps> = ({
   const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
 
   // Derived hooks (replaces computed state from useDataState)
-  const { filteredData } = useFilteredData();
+  const { filteredData, filteredIndexMap } = useFilteredData();
   const workerApi = useStatsWorker();
   const { stats } = useAnalysisStats(workerApi);
   const { stagedStats } = useStagedAnalysis();
@@ -687,6 +691,20 @@ export const Editor: React.FC<EditorProps> = ({
     const nextActions = reduceActionItems(currentActions, action);
     upsertProject({ ...activeIP, metadata: { ...activeIP.metadata, actions: nextActions } });
   };
+
+  // G1 Task 7 — inflection-binning patch handler. Synchronous: writes through
+  // upsertProject (Zustand setState) so the activeIP slice updates in the same
+  // tick the inflection state machine expects. Downstream async persistence
+  // (IDB / cloud blob) is the store's concern and fires in the background.
+  // No-op when there is no active IP (the Dashboard already suppresses the
+  // workflow in that case via the absence of onBindingsChange).
+  const handleBinningBindingsChange = useCallback(
+    (next: BinnedFactorBinding[]) => {
+      if (!activeIP) return;
+      upsertProject({ ...activeIP, binnedFactorBindings: next });
+    },
+    [activeIP, upsertProject]
+  );
 
   // Control + Handoff inputs for ProjectsTabView → IPDetailPage
   const _azureLiveControlRecords = (activeHub?.controlRecords ?? []).filter(
@@ -1297,6 +1315,47 @@ export const Editor: React.FC<EditorProps> = ({
       activeIPContext.isIPScoped,
       activeIPScopeLabels?.factorLabels,
     ]
+  );
+
+  // G1 Task 4: derived categorical columns for the active IP's time-decomposition
+  // and binned-factor bindings. Mirrors the CanvasWorkspace.tsx computation so
+  // the Analyze-tab factor pickers include derived columns (e.g. `Reactor_temp_bin`,
+  // `Order_Date.day-of-week`) and the data pipelines can group by them.
+  // Absent or empty when no active IP has bindings configured → backward compat.
+  //
+  // ALIGNMENT: This map is rawData-aligned — `categoricalValuesByColumn[col][i]`
+  // is the derived value for `rawData[i]`. It must be projected onto the filtered
+  // subset (`filteredCategoricalValuesByColumn` below) before being passed to any
+  // hook that operates on `filteredData` (Boxplot / Probability / ANOVA / stats).
+  const categoricalValuesByColumn = useMemo<Record<string, (string | null)[]>>(() => {
+    const activeIP = activeIPContext.activeIP;
+    if (!activeIP) return {};
+    const merged: Record<string, (string | null)[]> = {};
+    for (const binding of activeIP.timeDecompositionBindings ?? []) {
+      const cols = computeTimeDecompositionColumns([...rawData], binding);
+      for (const [key, vals] of Object.entries(cols)) {
+        merged[key] = vals;
+      }
+    }
+    for (const binding of activeIP.binnedFactorBindings ?? []) {
+      const vals = computeBinnedFactorColumn([...rawData], binding);
+      merged[`${binding.sourceColumn}_bin`] = vals;
+    }
+    return merged;
+  }, [activeIPContext.activeIP, rawData]);
+
+  // G1 Task 4 follow-up: project the rawData-aligned channel onto the filtered
+  // subset via filteredIndexMap. After projection `result[col][j]` is the
+  // derived value for `filteredData[j]`. Downstream consumers (Dashboard, Boxplot,
+  // Probability Plot, ANOVA, stats-summary table) operate on filteredData, so
+  // they receive THIS filtered-aligned map — not the raw one. Without active
+  // filters, filteredIndexMap is the identity over the dataset, so projection
+  // is content-equivalent (a fresh array allocation per row count, but values
+  // match raw exactly). The Canvas/EditMode surface keeps using the raw map
+  // because palette chips and bin editors work in rawData space.
+  const filteredCategoricalValuesByColumn = useMemo<Record<string, (string | null)[]>>(
+    () => filterCategoricalValuesByColumn(categoricalValuesByColumn, filteredIndexMap),
+    [categoricalValuesByColumn, filteredIndexMap]
   );
 
   useEffect(() => {
@@ -2036,6 +2095,9 @@ export const Editor: React.FC<EditorProps> = ({
                 projectedCpkMap={improvementProjectedCpkMap}
                 activeIPFactorRequest={activeIPAnalyzeFactorRequest}
                 activeIPScope={activeIPScope}
+                categoricalValuesByColumn={filteredCategoricalValuesByColumn}
+                binnedFactorBindings={activeIP?.binnedFactorBindings ?? undefined}
+                onBindingsChange={activeIP ? handleBinningBindingsChange : undefined}
               />
             )}
           </>

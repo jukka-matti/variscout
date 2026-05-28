@@ -9,6 +9,7 @@ import {
   type CanvasAnalyzeFocus,
 } from '@variscout/hooks';
 import {
+  computeBinnedFactorColumn,
   computeFormulaColumn,
   computeLeadTimeColumn,
   computeTimeDecompositionColumns,
@@ -553,6 +554,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const formulaBindings = activeIP?.formulaBindings ?? localFormulaBindings;
   const timeDecompositionBindings =
     activeIP?.timeDecompositionBindings ?? localTimeDecompositionBindings;
+  // G1: binnedFactorBindings are read-only from activeIP (no local-state
+  // fallback — binning is always persisted via the probability-plot UX which
+  // requires an active IP to be open). Defaults to [] when absent so the
+  // derived-column memos stay stable.
+  const binnedFactorBindings = activeIP?.binnedFactorBindings ?? [];
 
   const [stepTimingsModalOpen, setStepTimingsModalOpen] = React.useState(false);
   const [calcModalOpen, setCalcModalOpen] = React.useState<{ sourceColumn?: string } | null>(null);
@@ -829,14 +835,51 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     }));
   }, [timeDecompositionDerivedColumns]);
 
+  // G1: per-binding derived categorical columns produced by
+  // `computeBinnedFactorColumn`. Each entry maps the derived column name
+  // (`${sourceColumn}_bin`) to its `(string | null)[]` value array.
+  const binnedFactorDerivedColumns = React.useMemo<Record<string, (string | null)[]>>(() => {
+    const merged: Record<string, (string | null)[]> = {};
+    for (const binding of binnedFactorBindings) {
+      const vals = computeBinnedFactorColumn([...rawData], binding);
+      merged[`${binding.sourceColumn}_bin`] = vals;
+    }
+    return merged;
+  }, [binnedFactorBindings, rawData]);
+
+  // G1: synthesized profiles for the bin-derived columns.
+  // Mirrors `derivedTimeDecompositionProfiles` shape; the
+  // `derivationSource: 'bins'` discriminant drives the palette's
+  // "DERIVED FROM BINNING" group header. Primary kind is `'categorical'` —
+  // bin level names (e.g. '<50', '>=50') are categorical labels, not numeric.
+  const derivedBinsProfiles = React.useMemo<ColumnParsingProfile[]>(() => {
+    return Object.keys(binnedFactorDerivedColumns).map(columnName => ({
+      columnName,
+      status: 'ok',
+      confidence: 100,
+      primary: { kind: 'categorical', label: 'categorical · derived', detail: {} },
+      alternatives: [],
+      transformedSamples: [],
+      derived: true,
+      derivationSource: 'bins',
+    }));
+  }, [binnedFactorDerivedColumns]);
+
   const editModeProfiles = React.useMemo<ColumnParsingProfile[]>(
     () => [
       ...rawProfiles,
       ...derivedTimingsProfiles,
       ...derivedFormulaProfiles,
       ...derivedTimeDecompositionProfiles,
+      ...derivedBinsProfiles,
     ],
-    [rawProfiles, derivedTimingsProfiles, derivedFormulaProfiles, derivedTimeDecompositionProfiles]
+    [
+      rawProfiles,
+      derivedTimingsProfiles,
+      derivedFormulaProfiles,
+      derivedTimeDecompositionProfiles,
+      derivedBinsProfiles,
+    ]
   );
 
   // D1 Task 10: numericValuesByColumn — raw numeric columns from columnAnalysis
@@ -907,13 +950,13 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     return out;
   }, [stepTimings, rawData]);
 
-  // D3 Task 8: categorical-values channel exposed alongside numericValuesByColumn.
-  // V1 scope contains ONLY the time-decomposition derived columns; raw categorical
-  // values continue to flow through `rows`. Downstream Analyze/Explore consumers
-  // light up this prop incrementally in F1/H1.
+  // D3 Task 8 / G1: categorical-values channel exposed alongside numericValuesByColumn.
+  // Contains time-decomposition derived columns and bin-derived columns.
+  // Raw categorical values continue to flow through `rows`. Downstream
+  // Analyze/Explore consumers light up this prop incrementally in F1/H1.
   const categoricalValuesByColumn = React.useMemo<Record<string, (string | null)[]>>(() => {
-    return { ...timeDecompositionDerivedColumns };
-  }, [timeDecompositionDerivedColumns]);
+    return { ...timeDecompositionDerivedColumns, ...binnedFactorDerivedColumns };
+  }, [timeDecompositionDerivedColumns, binnedFactorDerivedColumns]);
 
   // D2 Task 11: batch-data detection drives the palette's contextual hint
   // banner. When the heuristic finds input/output mass-balance columns

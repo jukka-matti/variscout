@@ -843,3 +843,6 @@ export * from './components/Home';
 
 // Improve tab orchestration (wedge V1 top-level Improve tab)
 export * from './components/Improve';
+
+// Explore tab — Probability lens inflection-binning workflow (wedge V1 PR-CCJ-G1)
+export * from './components/Explore/Probability/InflectionBinning';

@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { group, quantile, ascending, mean, deviation } from 'd3-array';
-import { calculateKDE, applyTimeLens } from '@variscout/core';
-import type { BoxplotGroupData } from '@variscout/core';
+import { calculateKDE, applyTimeLens, timeLensIndices } from '@variscout/core';
+import type { BoxplotGroupData, DataRow } from '@variscout/core';
 import { usePreferencesStore } from '@variscout/stores';
+import { augmentLensedRowsWithDerived } from './factorListUtils';
 
 /** Pre-computed KDE density data keyed by category */
 export type ViolinDataMap = Map<string, Array<{ value: number; count: number }>>;
@@ -63,22 +64,46 @@ function computeBoxplotGroup(key: string, values: number[]): BoxplotGroupData | 
  *
  * Reads `timeLens` from `usePreferencesStore` and applies `applyTimeLens` to
  * `filteredData` before grouping.
+ *
+ * When `categoricalValuesByColumn` is provided, rows are augmented with derived
+ * categorical columns (time-decomposition + binning) so that derived factors
+ * like `Reactor_temp_bin` can be used as the grouping `factor` even though the
+ * raw dataset rows do not carry that column key.
+ *
+ * ALIGNMENT INVARIANT (G1 Task 4 follow-up): `categoricalValuesByColumn` MUST be
+ * indexed by **filtered-row position**, not raw-row position. That is,
+ * `categoricalValuesByColumn[col][i]` is the derived value for `filteredData[i]`.
+ * The Azure caller projects the rawData-aligned channel onto the filtered subset
+ * via `filterCategoricalValuesByColumn(cvc, filteredIndexMap)` at the
+ * `useFilteredData` boundary before threading it down (see Editor.tsx).
+ * Passing a raw-aligned channel here when filters are active silently
+ * misclassifies rows — the channel and `filteredData` must share the same index space.
+ *
+ * The lens-start offset derived from `timeLensIndices(filteredData.length, ...)`
+ * indexes into the (already filtered-aligned) channel — both arrays are parallel.
+ *
+ * Backward compat: when absent or empty, behaviour is identical to before.
  */
 export function useBoxplotData(
-  filteredData: Record<string, unknown>[],
+  filteredData: DataRow[],
   factor: string,
   outcome: string | null,
   showViolin: boolean = false,
   stageColumn?: string,
-  stageOrder?: string[]
+  stageOrder?: string[],
+  categoricalValuesByColumn?: Record<string, (string | null)[]>
 ): UseBoxplotDataResult {
   const timeLens = usePreferencesStore(s => s.timeLens);
 
-  const lensedData = useMemo(
+  const lensedData = useMemo(() => {
     // timeColumn unused in current applyTimeLens (rows pre-sorted upstream); see Task 2 docstring.
-    () => applyTimeLens(filteredData, timeLens, ''),
-    [filteredData, timeLens]
-  );
+    const lensed = applyTimeLens(filteredData, timeLens, '');
+    // G1 Task 4: augment lensed rows with derived categorical columns.
+    // Use timeLensIndices to derive the precise start offset so that
+    // categoricalValuesByColumn[col][start + i] aligns with lensed[i].
+    const { start } = timeLensIndices(filteredData.length, timeLens);
+    return augmentLensedRowsWithDerived(lensed, categoricalValuesByColumn, start);
+  }, [filteredData, timeLens, categoricalValuesByColumn]);
 
   const data = useMemo(() => {
     if (!outcome) return [];

@@ -2666,4 +2666,32 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     expect(derivedGroup).toBeInTheDocument();
     expect(derivedGroup).toHaveTextContent('Lead_time');
   });
+
+  // G1 Task 3 — bin chip surfaced in palette from activeIP.binnedFactorBindings
+  it('with activeIP carrying binnedFactorBindings, bin chip renders under DERIVED FROM BINNING', async () => {
+    const { createTestIP } = await import('../../../test-utils/improvementProject');
+    const binRows = [{ Reactor_temp: 45 }, { Reactor_temp: 55 }, { Reactor_temp: 60 }];
+    const activeIP = createTestIP({
+      binnedFactorBindings: [
+        {
+          id: 'binding-bin-1',
+          sourceColumn: 'Reactor_temp',
+          cuts: [50],
+          levelNames: ['<50', '>=50'],
+          detectionMethod: 'gap-ratio-v1',
+          detectedAt: '2026-05-28T00:00:00.000Z',
+        },
+      ],
+    });
+
+    renderWithActiveIP({
+      activeIP,
+      rows: binRows,
+    });
+
+    const binsGroup = screen.getByTestId('palette-group-derived-bins');
+    expect(binsGroup).toBeInTheDocument();
+    expect(binsGroup).toHaveTextContent('DERIVED FROM BINNING');
+    expect(binsGroup).toHaveTextContent('Reactor_temp_bin');
+  });
 });

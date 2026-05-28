@@ -18,6 +18,7 @@ import type {
   BoxplotSortDirection,
   StatsWorkerAPI,
 } from '@variscout/core';
+import { augmentRowsWithDerived } from './factorListUtils';
 
 export interface UseDashboardComputedDataOptions {
   /** Full unfiltered dataset */
@@ -36,6 +37,22 @@ export interface UseDashboardComputedDataOptions {
   precomputedBoxplotData?: BoxplotGroupData[];
   /** Worker API for off-thread ANOVA computation (falls back to useTransition when absent) */
   workerApi?: StatsWorkerAPI | null;
+  /**
+   * G1 Task 4 follow-up: derived categorical columns (time-decomposition +
+   * binning), already projected onto the filteredData index space. When
+   * `boxplotFactor` refers to a derived column (e.g. `Reactor_temp_bin`),
+   * the raw `filteredData` rows won't carry that key — rows must be augmented
+   * with their derived values BEFORE grouping for ANOVA + boxplot stats,
+   * otherwise stats-summary table / PI Panel / ANOVA see empty groups.
+   *
+   * ALIGNMENT INVARIANT: `categoricalValuesByColumn[col][i]` MUST be the
+   * derived value for `filteredData[i]` (filtered-row aligned, NOT raw-row
+   * aligned). Use `filterCategoricalValuesByColumn` at the `useFilteredData`
+   * boundary to project a rawData-aligned channel onto the filtered subset.
+   *
+   * Backward compat: absent or empty → identical to before.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 export interface UseDashboardComputedDataResult {
@@ -60,7 +77,18 @@ export function useDashboardComputedData({
   boxplotSortDirection,
   precomputedBoxplotData,
   workerApi,
+  categoricalValuesByColumn,
 }: UseDashboardComputedDataOptions): UseDashboardComputedDataResult {
+  // G1 Task 4 follow-up: augment filteredData rows with derived categorical
+  // columns before factor-based grouping. When the channel is absent or empty,
+  // `augmentRowsWithDerived` returns the same array reference — backward compat
+  // (no allocation on the hot path). When present and the boxplotFactor refers
+  // to a derived column (e.g. `Reactor_temp_bin`), each row gets that key
+  // injected from the channel so ANOVA + boxplot grouping see populated buckets.
+  const augmentedFilteredData = useMemo(
+    () => augmentRowsWithDerived(filteredData, categoricalValuesByColumn),
+    [filteredData, categoricalValuesByColumn]
+  );
   // Computed: available outcome columns (numeric)
   const availableOutcomes = useMemo(() => {
     if (rawData.length === 0) return [];
@@ -102,7 +130,7 @@ export function useDashboardComputedData({
   const generationRef = useRef(0);
 
   useEffect(() => {
-    if (!outcome || !boxplotFactor || filteredData.length === 0) {
+    if (!outcome || !boxplotFactor || augmentedFilteredData.length === 0) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing result when inputs become invalid
       setAnovaResult(null);
       return;
@@ -112,8 +140,10 @@ export function useDashboardComputedData({
 
     if (workerApi) {
       // Async Worker path — extract column arrays for serialization
-      const factorValues = filteredData.map(d => String(d[boxplotFactor]));
-      const outcomeFloat64 = new Float64Array(filteredData.map(d => Number(d[outcome])));
+      // Read factor + outcome off the AUGMENTED rows so derived-factor groupings
+      // are populated (G1 Task 4 follow-up).
+      const factorValues = augmentedFilteredData.map(d => String(d[boxplotFactor]));
+      const outcomeFloat64 = new Float64Array(augmentedFilteredData.map(d => Number(d[outcome])));
 
       Promise.resolve(
         workerApi.computeAnova({
@@ -133,24 +163,24 @@ export function useDashboardComputedData({
     } else {
       // Sync fallback with useTransition
       startTransition(() => {
-        const result = calculateAnova(filteredData, outcome, boxplotFactor);
+        const result = calculateAnova(augmentedFilteredData, outcome, boxplotFactor);
         if (thisGeneration === generationRef.current) {
           setAnovaResult(result);
         }
       });
     }
     // startTransition is stable and does not need to be in the deps array
-  }, [filteredData, outcome, boxplotFactor, workerApi]);
+  }, [augmentedFilteredData, outcome, boxplotFactor, workerApi]);
 
   // Computed: boxplot data (skip when pre-computed data is provided)
   const boxplotData: BoxplotGroupData[] = useMemo(() => {
     if (precomputedBoxplotData) {
       return sortBoxplotData(precomputedBoxplotData, boxplotSortBy, boxplotSortDirection);
     }
-    if (!outcome || !boxplotFactor || filteredData.length === 0) return [];
+    if (!outcome || !boxplotFactor || augmentedFilteredData.length === 0) return [];
 
     const groups = new Map<string, number[]>();
-    for (const row of filteredData) {
+    for (const row of augmentedFilteredData) {
       const key = String(row[boxplotFactor] ?? '');
       const value = Number(row[outcome]);
       if (!isNaN(value)) {
@@ -164,7 +194,7 @@ export function useDashboardComputedData({
     );
     return sortBoxplotData(unsorted, boxplotSortBy, boxplotSortDirection);
   }, [
-    filteredData,
+    augmentedFilteredData,
     outcome,
     boxplotFactor,
     boxplotSortBy,

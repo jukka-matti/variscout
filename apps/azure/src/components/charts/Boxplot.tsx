@@ -27,6 +27,21 @@ interface BoxplotProps {
   dataOverride?: DataRow[];
   /** Override outcome column (e.g., defect mode outcome) */
   outcomeOverride?: string;
+  /**
+   * G1 Task 4: derived categorical columns from the active ImprovementProject.
+   * Passed through to BoxplotWrapperBase → useBoxplotData for derived factor grouping.
+   *
+   * ALIGNMENT (G1 Task 4 follow-up): values MUST be parallel to `filteredData`
+   * (filtered-row aligned, NOT raw-row aligned). The caller in Editor.tsx
+   * projects via `filterCategoricalValuesByColumn` at the `useFilteredData`
+   * boundary.
+   *
+   * Caveat: when `dataOverride` is supplied (e.g. defect mode), the channel
+   * remains aligned to the original `filteredData`, not the override — same
+   * pre-existing fragility as before this fix. Defect mode currently uses raw
+   * factor columns, so this doesn't bite in practice today.
+   */
+  categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
 
 const Boxplot = ({

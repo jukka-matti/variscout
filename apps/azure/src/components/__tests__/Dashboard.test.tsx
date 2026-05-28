@@ -40,6 +40,10 @@ vi.mock('html-to-image', () => ({
 vi.mock('@variscout/charts', () => ({
   calculateBoxplotStats: vi.fn(() => ({ key: 'A', min: 0, max: 10, median: 5, q1: 2.5, q3: 7.5 })),
   BoxplotStatsTable: () => <div data-testid="boxplot-stats-table">Stats Table</div>,
+  // G1 Task 7: InflectionOverlay is forwarded to ProbabilityPlot via render-prop;
+  // Dashboard tests don't render charts directly (chart is mocked) but the
+  // import must resolve.
+  InflectionOverlay: () => null,
 }));
 
 // Mock @variscout/ui
@@ -112,6 +116,22 @@ vi.mock('@variscout/ui', () => ({
   CapabilityMetricToggle: () => <div data-testid="capability-metric-toggle" />,
   SubgroupConfigPopover: () => <div data-testid="subgroup-config-popover" />,
   useGlossary: () => ({ getTerm: () => undefined }),
+  // G1 Task 7: inflection-binning workflow primitives. Mocked as inert
+  // stand-ins — the workflow is exercised by tests in @variscout/ui directly;
+  // Dashboard tests verify only that the chart grid still renders alongside.
+  InflectionSidePanelView: () => <div data-testid="inflection-side-panel">Inflection Panel</div>,
+  useInflectionBinningState: () => ({
+    state: { kind: 'idle' as const, canShowBanner: false },
+    dismissBanner: () => {},
+    detectInflections: () => {},
+    dragCut: () => {},
+    addCut: () => {},
+    removeCut: () => {},
+    renameLevel: () => {},
+    commit: () => {},
+    removeBinning: () => {},
+    reset: () => {},
+  }),
   DashboardChartCard: ({
     id,
     testId,

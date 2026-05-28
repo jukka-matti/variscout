@@ -404,6 +404,8 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 **Sub-plan needed:** YES.
 
+**Amended 2026-05-28 — algorithm = gap-ratio detection + Anderson-Darling-on-whole pre-check + piecewise linear regression confidence reporting (NOT the original spec-time PWL+AD-segments which empirically false-positived on skewed unimodal lognormal data); Findings flow skipped (bin column IS the persistent artifact); direct-manipulation State B with no commit step; absorbed Task #46 (Boxplot+Probability factor pickers categoricalValuesByColumn consumer + filter-alignment helper); manual cut V2 deferred. See sub-plan `docs/superpowers/plans/2026-05-28-canvas-connection-journey-g-1-inflection-binning.md`.**
+
 ### Phase H — Polish + empty states (1 PR, small)
 
 #### PR-CCJ-H1 · Empty states + system hints + final polish

@@ -5,6 +5,7 @@ import type {
   ProcessStepEntry,
 } from '@variscout/core/improvementProject';
 import type { FormulaBinding, StepTimingBinding, TimeDecompositionBinding } from '@variscout/core';
+import type { BinnedFactorBinding } from '@variscout/core/binning';
 
 /**
  * Optional overrides accepted by `createTestIP`.
@@ -25,6 +26,8 @@ export interface CreateTestIPOverrides extends Partial<CreateNewIPInput> {
   formulaBindings?: FormulaBinding[];
   /** Pre-populated `IP.timeDecompositionBindings`. Defaults to omitted. */
   timeDecompositionBindings?: TimeDecompositionBinding[];
+  /** Pre-populated `IP.binnedFactorBindings`. Defaults to omitted. */
+  binnedFactorBindings?: BinnedFactorBinding[];
 }
 
 /**
@@ -36,8 +39,14 @@ export interface CreateTestIPOverrides extends Partial<CreateNewIPInput> {
  * the caller passes them, matching the bootstrap shape an IP starts with.
  */
 export function createTestIP(overrides: CreateTestIPOverrides = {}): ImprovementProject {
-  const { processSteps, stepTimings, formulaBindings, timeDecompositionBindings, ...factoryInput } =
-    overrides;
+  const {
+    processSteps,
+    stepTimings,
+    formulaBindings,
+    timeDecompositionBindings,
+    binnedFactorBindings,
+    ...factoryInput
+  } = overrides;
 
   const base = createNewIP({
     hubId: factoryInput.hubId ?? 'test-hub-1',
@@ -56,5 +65,6 @@ export function createTestIP(overrides: CreateTestIPOverrides = {}): Improvement
     ...(stepTimings !== undefined && { stepTimings }),
     ...(formulaBindings !== undefined && { formulaBindings }),
     ...(timeDecompositionBindings !== undefined && { timeDecompositionBindings }),
+    ...(binnedFactorBindings !== undefined && { binnedFactorBindings }),
   };
 }

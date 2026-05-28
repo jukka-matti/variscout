@@ -428,6 +428,114 @@ describe('Palette — systemHints', () => {
 });
 
 // ---------------------------------------------------------------------------
+// G1 Task 3 — DERIVED FROM BINNING group
+// ---------------------------------------------------------------------------
+
+describe('Palette — derived-bins group (G1 Task 3)', () => {
+  it('renders DERIVED FROM BINNING group header when a bins-derived profile exists', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Reactor_temp_bin',
+          derived: true,
+          derivationSource: 'bins',
+          primary: { kind: 'categorical', label: 'categorical · derived', detail: {} },
+        }),
+      ],
+    });
+    const derivedGroup = screen.getByTestId('palette-group-derived-bins');
+    expect(derivedGroup).toBeInTheDocument();
+    expect(derivedGroup).toHaveTextContent('DERIVED FROM BINNING');
+  });
+
+  it('bin chip appears under the DERIVED FROM BINNING group with ✨ marker', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Reactor_temp_bin',
+          derived: true,
+          derivationSource: 'bins',
+          primary: { kind: 'categorical', label: 'categorical · derived', detail: {} },
+        }),
+      ],
+    });
+    const derivedGroup = screen.getByTestId('palette-group-derived-bins');
+    expect(derivedGroup).toHaveTextContent('Reactor_temp_bin');
+    expect(screen.getByText('✨')).toBeInTheDocument();
+  });
+
+  it('DERIVED FROM BINNING group renders between DERIVED FROM TIME-DECOMPOSITION and DERIVED (fallback)', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Order_Date.year',
+          derived: true,
+          derivationSource: 'time-decomposition',
+          primary: { kind: 'categorical', label: 'categorical · derived', detail: {} },
+        }),
+        createTestColumnParsingProfile({
+          columnName: 'Reactor_temp_bin',
+          derived: true,
+          derivationSource: 'bins',
+          primary: { kind: 'categorical', label: 'categorical · derived', detail: {} },
+        }),
+        createTestColumnParsingProfile({
+          columnName: 'Unknown_derived',
+          derived: true,
+          primary: { kind: 'numeric', label: 'numeric · derived', detail: {} },
+        }),
+      ],
+    });
+    const groups = screen.getAllByTestId(/^palette-group-/);
+    const testIds = groups.map(g => g.getAttribute('data-testid'));
+    const tdIdx = testIds.indexOf('palette-group-derived-time-decomposition');
+    const binsIdx = testIds.indexOf('palette-group-derived-bins');
+    const fallbackIdx = testIds.indexOf('palette-group-derived-fallback');
+    expect(tdIdx).toBeLessThan(binsIdx);
+    expect(binsIdx).toBeLessThan(fallbackIdx);
+  });
+
+  it('does NOT render derived-bins group when no bins-derived profiles exist', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Speed',
+          primary: { kind: 'numeric', label: 'numeric · plain', detail: {} },
+        }),
+      ],
+    });
+    expect(screen.queryByTestId('palette-group-derived-bins')).toBeNull();
+  });
+
+  it('bins and time-decomposition groups render as separate sections', () => {
+    renderPalette({
+      profiles: [
+        createTestColumnParsingProfile({
+          columnName: 'Order_Date.year',
+          derived: true,
+          derivationSource: 'time-decomposition',
+          primary: { kind: 'categorical', label: 'categorical · derived', detail: {} },
+        }),
+        createTestColumnParsingProfile({
+          columnName: 'Reactor_temp_bin',
+          derived: true,
+          derivationSource: 'bins',
+          primary: { kind: 'categorical', label: 'categorical · derived', detail: {} },
+        }),
+      ],
+    });
+    const tdGroup = screen.getByTestId('palette-group-derived-time-decomposition');
+    const binsGroup = screen.getByTestId('palette-group-derived-bins');
+    expect(tdGroup).toHaveTextContent('DERIVED FROM TIME-DECOMPOSITION');
+    expect(tdGroup).toHaveTextContent('Order_Date.year');
+    expect(tdGroup).not.toHaveTextContent('Reactor_temp_bin');
+    expect(binsGroup).toHaveTextContent('DERIVED FROM BINNING');
+    expect(binsGroup).toHaveTextContent('Reactor_temp_bin');
+    expect(binsGroup).not.toHaveTextContent('Order_Date.year');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // T6 — time kind SystemHintBanner pass-through (D3 T6)
 // ---------------------------------------------------------------------------
 //
