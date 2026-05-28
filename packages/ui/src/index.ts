@@ -60,19 +60,12 @@ export {
   type SliderProps,
 } from './components/Slider';
 
-export {
-  LeanDistributionPreview,
-  type LeanDistributionPreviewProps,
-  type LeanActivity,
-} from './components/WhatIfSimulator';
-
 // What-If Explorer (unified)
 export {
   WhatIfExplorer,
   WhatIfExplorerPage,
   BasicEstimator,
   ModelInformedEstimator,
-  ActivityReducer,
   ChannelAdjuster,
   computePresets,
   whatIfSimulatorDefaultColorScheme,
@@ -90,7 +83,6 @@ export type {
   SimulatorPreset as WhatIfSimulatorPreset,
   ModelInformedEstimatorProps,
   BasicEstimatorProps,
-  ActivityReducerProps,
   ChannelAdjusterProps,
 } from './components/WhatIfExplorer';
 
