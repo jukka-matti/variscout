@@ -24,6 +24,14 @@ export interface ProbabilityPlotProps {
   showBranding?: boolean;
   /** Branding text (only used when showBranding=true). Defaults to "VariScout Lite". */
   brandingText?: string;
+  /**
+   * Optional render-prop slot for chart overlays (e.g., inflection-detection
+   * cut guides). Forwarded verbatim to `ProbabilityPlotBase`. The render prop
+   * receives the visx xScale + computed yRange so the consumer can position
+   * overlay elements in chart pixel space. Backward compatible: default is
+   * `undefined`, no overlay.
+   */
+  overlay?: (api: { xScale: (v: number) => number; yRange: [number, number] }) => React.ReactNode;
 }
 
 export const ProbabilityPlot = ({
@@ -36,6 +44,7 @@ export const ProbabilityPlot = ({
   onSeriesHover,
   showBranding: showBrandingProp,
   brandingText: brandingTextProp,
+  overlay,
 }: ProbabilityPlotProps) => {
   const showBranding = showBrandingProp ?? false;
   const brandingText = brandingTextProp ?? 'VariScout Lite';
@@ -56,6 +65,7 @@ export const ProbabilityPlot = ({
       onSelectionChange={onSelectionChange}
       onChartContextMenu={onChartContextMenu}
       onSeriesHover={onSeriesHover}
+      overlay={overlay}
     />
   );
 };

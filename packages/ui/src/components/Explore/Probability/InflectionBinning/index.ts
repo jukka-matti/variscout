@@ -7,8 +7,8 @@
  * @module Explore/Probability/InflectionBinning
  */
 
-export { InflectionSidePanel } from './InflectionSidePanel';
-export type { InflectionSidePanelProps } from './InflectionSidePanel';
+export { InflectionSidePanel, InflectionSidePanelView } from './InflectionSidePanel';
+export type { InflectionSidePanelProps, InflectionSidePanelViewProps } from './InflectionSidePanel';
 
 export { useInflectionBinningState } from './useInflectionBinningState';
 export type {

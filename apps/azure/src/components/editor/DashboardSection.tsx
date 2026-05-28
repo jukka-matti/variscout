@@ -21,6 +21,7 @@ import type { UseAIOrchestrationReturn } from '../../features/ai';
 import type { AzureFindingsCallbacks, ActiveIPScopeLabels } from '@variscout/ui';
 import type { ViewState } from '@variscout/hooks';
 import type { FactorMainEffect } from '@variscout/core/stats';
+import type { BinnedFactorBinding } from '@variscout/core/binning';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -65,6 +66,10 @@ export interface DashboardSectionProps {
    * Passed through to Dashboard → useDashboardCharts / useProbabilityPlotData / Boxplot.
    */
   categoricalValuesByColumn?: Record<string, (string | null)[]>;
+  /** G1 Task 7: existing inflection-binning bindings from the active IP. */
+  binnedFactorBindings?: BinnedFactorBinding[];
+  /** G1 Task 7: synchronous patch handler for `binnedFactorBindings`. */
+  onBindingsChange?: (next: BinnedFactorBinding[]) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -88,6 +93,8 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   aiAvailable = false,
   activeIPScope,
   categoricalValuesByColumn,
+  binnedFactorBindings,
+  onBindingsChange,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
@@ -111,6 +118,8 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
       findings={findingsState.findings}
       onInvestigateFactor={onInvestigateFactor}
       categoricalValuesByColumn={categoricalValuesByColumn}
+      binnedFactorBindings={binnedFactorBindings}
+      onBindingsChange={onBindingsChange}
       performance={{
         drillFromPerformance: dataFlow.drillFromPerformance,
         onBackToPerformance: dataFlow.handleBackToPerformance,

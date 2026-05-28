@@ -86,6 +86,7 @@ import { generateDeterministicId } from '@variscout/core/identity';
 import { createNewIP } from '@variscout/core/improvementProject';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { canAccess } from '@variscout/core/projectMembership';
+import type { BinnedFactorBinding } from '@variscout/core/binning';
 import { Check, X } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
@@ -690,6 +691,20 @@ export const Editor: React.FC<EditorProps> = ({
     const nextActions = reduceActionItems(currentActions, action);
     upsertProject({ ...activeIP, metadata: { ...activeIP.metadata, actions: nextActions } });
   };
+
+  // G1 Task 7 — inflection-binning patch handler. Synchronous: writes through
+  // upsertProject (Zustand setState) so the activeIP slice updates in the same
+  // tick the inflection state machine expects. Downstream async persistence
+  // (IDB / cloud blob) is the store's concern and fires in the background.
+  // No-op when there is no active IP (the Dashboard already suppresses the
+  // workflow in that case via the absence of onBindingsChange).
+  const handleBinningBindingsChange = useCallback(
+    (next: BinnedFactorBinding[]) => {
+      if (!activeIP) return;
+      upsertProject({ ...activeIP, binnedFactorBindings: next });
+    },
+    [activeIP, upsertProject]
+  );
 
   // Control + Handoff inputs for ProjectsTabView → IPDetailPage
   const _azureLiveControlRecords = (activeHub?.controlRecords ?? []).filter(
@@ -2081,6 +2096,8 @@ export const Editor: React.FC<EditorProps> = ({
                 activeIPFactorRequest={activeIPAnalyzeFactorRequest}
                 activeIPScope={activeIPScope}
                 categoricalValuesByColumn={filteredCategoricalValuesByColumn}
+                binnedFactorBindings={activeIP?.binnedFactorBindings ?? undefined}
+                onBindingsChange={activeIP ? handleBinningBindingsChange : undefined}
               />
             )}
           </>

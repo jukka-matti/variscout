@@ -1,12 +1,28 @@
 /**
  * Side panel UI for the Probability lens inflection-binning workflow.
  *
+ * Two layers:
+ *
+ * - `InflectionSidePanelView` (presentation) — accepts a `controller` prop
+ *   (the return of `useInflectionBinningState`) and the `sourceColumn`. Use
+ *   this when the hook is lifted to a parent (Dashboard) so that a sibling
+ *   chart overlay can read the same `state.cuts` without instantiating a
+ *   second state machine.
+ *
+ * - `InflectionSidePanel` (self-contained) — instantiates the hook internally
+ *   from props. This is the convenience API for hosts that don't need to
+ *   share cuts with a sibling.
+ *
  * Renders one of three layouts based on the state machine in
  * `useInflectionBinningState`:
  *
  *   idle      — once-per-session banner + Detect button
  *   proposing — segment table with stats + rename + remove + "Create bin column"
  *   committed — same table + "Remove binning" CTA at the bottom
+ *
+ * Per-segment × button semantics: segment K's × removes cut K-1 (merges
+ * the segment with its left neighbor). When there are ≥ 2 cuts the button
+ * gets an explanatory `title` so the merge direction is explicit.
  *
  * Direct manipulation in committed state: every drag / add / remove / rename
  * patches the active IP immediately (no second confirm step). Matches
@@ -23,7 +39,14 @@ import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { BinnedFactorBinding, SegmentStats } from '@variscout/core/binning';
 import { formatStatistic } from '@variscout/core/i18n';
-import { useInflectionBinningState } from './useInflectionBinningState';
+import {
+  useInflectionBinningState,
+  type UseInflectionBinningStateReturn,
+} from './useInflectionBinningState';
+
+// ============================================================================
+// Self-contained API (existing — preserved for backward compatibility)
+// ============================================================================
 
 export interface InflectionSidePanelProps {
   /** Numeric column being analyzed (the Y of the probability plot). */
@@ -34,20 +57,46 @@ export interface InflectionSidePanelProps {
   sortedValues: number[];
   /** Existing bindings on the active IP. */
   existingBindings: BinnedFactorBinding[];
-  /** Patch handler called for every mutation (commit, drag, add, remove, rename). */
+  /**
+   * Patch handler called for every mutation (commit, drag, add, remove, rename).
+   *
+   * IMPORTANT: this MUST update `existingBindings` synchronously in the same
+   * React tick (i.e., a React `setState` call). The state machine reads
+   * `existingBindings` to map cut mutations onto the new binding shape; an
+   * async-only writer would race with subsequent dispatches. If the upstream
+   * persistence layer is async (e.g., Dexie/Blob), wrap it so that the local
+   * domain store updates immediately and the async write fires in the
+   * background.
+   */
   patchBindings: (next: BinnedFactorBinding[]) => void;
 }
 
-const CONFIRM_REMOVE_MESSAGE_FN = (sourceColumn: string): string =>
-  `Remove the bin column? Charts using ${sourceColumn}_bin as a factor will lose this dimension.`;
+export function InflectionSidePanel(props: InflectionSidePanelProps) {
+  const controller = useInflectionBinningState({
+    sourceColumn: props.sourceColumn,
+    values: props.values,
+    sortedValues: props.sortedValues,
+    existingBindings: props.existingBindings,
+    patchBindings: props.patchBindings,
+  });
+  return <InflectionSidePanelView sourceColumn={props.sourceColumn} controller={controller} />;
+}
 
-export function InflectionSidePanel({
+// ============================================================================
+// Controller-based API (new — for lifted-hook layouts)
+// ============================================================================
+
+export interface InflectionSidePanelViewProps {
+  /** Numeric column being analyzed (the Y of the probability plot). */
+  sourceColumn: string;
+  /** State machine controller — typically `useInflectionBinningState(...)` called by a parent. */
+  controller: UseInflectionBinningStateReturn;
+}
+
+export function InflectionSidePanelView({
   sourceColumn,
-  values,
-  sortedValues,
-  existingBindings,
-  patchBindings,
-}: InflectionSidePanelProps) {
+  controller,
+}: InflectionSidePanelViewProps) {
   const {
     state,
     dismissBanner,
@@ -57,13 +106,7 @@ export function InflectionSidePanel({
     renameLevel,
     commit,
     removeBinning,
-  } = useInflectionBinningState({
-    sourceColumn,
-    values,
-    sortedValues,
-    existingBindings,
-    patchBindings,
-  });
+  } = controller;
   // `addCut` is reserved for future direct-canvas affordances (click on the prob
   // plot to add a cut). The panel does not expose a separate "+ Add" control
   // today — V1 ships with detect → drag → remove only.
@@ -128,6 +171,7 @@ export function InflectionSidePanel({
         <SegmentTable
           segments={state.segments}
           levelNames={state.levelNames}
+          cutCount={state.cuts.length}
           onRename={renameLevel}
           onRemoveSegment={segmentIdx =>
             removeCut(Math.max(0, segmentIdx === 0 ? 0 : segmentIdx - 1))
@@ -172,6 +216,7 @@ export function InflectionSidePanel({
       <SegmentTable
         segments={segments}
         levelNames={binding.levelNames}
+        cutCount={binding.cuts.length}
         onRename={renameLevel}
         onRemoveSegment={segmentIdx =>
           removeCut(Math.max(0, segmentIdx === 0 ? 0 : segmentIdx - 1))
@@ -190,6 +235,9 @@ export function InflectionSidePanel({
   );
 }
 
+const CONFIRM_REMOVE_MESSAGE_FN = (sourceColumn: string): string =>
+  `Remove the bin column? Charts using ${sourceColumn}_bin as a factor will lose this dimension.`;
+
 // ============================================================================
 // Segment table — used in both proposing + committed states
 // ============================================================================
@@ -197,11 +245,24 @@ export function InflectionSidePanel({
 interface SegmentTableProps {
   segments: SegmentStats[];
   levelNames: string[];
+  /**
+   * Total cut count (segments.length − 1 in well-formed states). Used to
+   * decide whether the per-segment × button needs an explanatory tooltip —
+   * with ≥ 2 cuts (i.e. ≥ 3 segments), removing a middle segment's cut
+   * collapses it leftward into segment K-1, which is non-obvious to the user.
+   */
+  cutCount: number;
   onRename: (levelIndex: number, newName: string) => void;
   onRemoveSegment: (segmentIndex: number) => void;
 }
 
-function SegmentTable({ segments, levelNames, onRename, onRemoveSegment }: SegmentTableProps) {
+function SegmentTable({
+  segments,
+  levelNames,
+  cutCount,
+  onRename,
+  onRemoveSegment,
+}: SegmentTableProps) {
   return (
     <ul className="flex flex-col gap-2" data-testid="inflection-segment-table">
       {segments.map((segment, idx) => (
@@ -210,6 +271,7 @@ function SegmentTable({ segments, levelNames, onRename, onRemoveSegment }: Segme
           segmentIndex={idx}
           segment={segment}
           levelName={levelNames[idx] ?? ''}
+          ambiguousMerge={cutCount >= 2 && idx > 0}
           onRename={newName => onRename(idx, newName)}
           onRemove={() => onRemoveSegment(idx)}
         />
@@ -222,11 +284,24 @@ interface SegmentRowProps {
   segmentIndex: number;
   segment: SegmentStats;
   levelName: string;
+  /**
+   * True when the × button's effect is non-obvious (middle segments with
+   * ≥ 2 cuts in the binding). Renders an explanatory `title` so the user
+   * sees the merge direction on hover.
+   */
+  ambiguousMerge: boolean;
   onRename: (newName: string) => void;
   onRemove: () => void;
 }
 
-function SegmentRow({ segmentIndex, segment, levelName, onRename, onRemove }: SegmentRowProps) {
+function SegmentRow({
+  segmentIndex,
+  segment,
+  levelName,
+  ambiguousMerge,
+  onRename,
+  onRemove,
+}: SegmentRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(levelName);
 
@@ -300,6 +375,7 @@ function SegmentRow({ segmentIndex, segment, levelName, onRename, onRemove }: Se
         data-testid={`inflection-segment-remove-${segmentIndex}`}
         className="rounded p-0.5 text-content-secondary hover:bg-surface-hover hover:text-content"
         aria-label={`Remove segment ${segmentIndex + 1}`}
+        title={ambiguousMerge ? 'Remove the cut before this segment' : undefined}
       >
         ×
       </button>

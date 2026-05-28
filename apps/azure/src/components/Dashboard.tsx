@@ -40,6 +40,8 @@ import {
   SubgroupConfigPopover,
   DefectSummary,
   ActiveIPScopeRibbon,
+  InflectionSidePanelView,
+  useInflectionBinningState,
   useIsMobile,
   useGlossary,
   BREAKPOINTS,
@@ -48,7 +50,9 @@ import {
 import { getColumnNames, getEtaSquared } from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
+import type { BinnedFactorBinding } from '@variscout/core/binning';
 import type { AzureFindingsCallbacks, FilterChipData } from '@variscout/ui';
+import { InflectionOverlay } from '@variscout/charts';
 import {
   useAnnotations,
   useFilterHandlers,
@@ -153,6 +157,21 @@ interface DashboardProps {
    * Backward compat: absent or empty → identical to today.
    */
   categoricalValuesByColumn?: Record<string, (string | null)[]>;
+  /**
+   * G1 Task 7: existing inflection-binning bindings from the active IP.
+   * When provided alongside `onBindingsChange`, the Probability lens shows the
+   * inflection-binning workflow (Detect → propose → commit → manage). Without
+   * a writer the workflow is suppressed (read-only consumers).
+   */
+  binnedFactorBindings?: BinnedFactorBinding[];
+  /**
+   * G1 Task 7: synchronous patch handler for `binnedFactorBindings`. MUST update
+   * upstream React state in the same tick (i.e. plain `setState`). Async
+   * persistence (Dexie / Blob sync) is the caller's concern — wrap it so the
+   * domain store updates immediately and the async write fires in the
+   * background, otherwise the inflection state machine races with itself.
+   */
+  onBindingsChange?: (next: BinnedFactorBinding[]) => void;
 }
 
 const Dashboard = ({
@@ -173,6 +192,8 @@ const Dashboard = ({
   projectedCpkMap: externalProjectedCpkMap,
   activeIPScope,
   categoricalValuesByColumn,
+  binnedFactorBindings,
+  onBindingsChange,
 }: DashboardProps) => {
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -491,6 +512,104 @@ const Dashboard = ({
     categoricalValuesByColumn,
   });
 
+  // ── G1 Task 7: inflection-binning workflow ────────────────────────────────
+  // Lift the state machine to Dashboard so the InflectionOverlay (rendered on
+  // the ProbabilityPlot via its `overlay` slot) and the InflectionSidePanelView
+  // (sibling to the VerificationCard) share the same `state.cuts` instance.
+  // Two hooks would mean two diverging state machines — not what we want.
+  //
+  // Suppressed in defect mode: defect rates are aggregated bins already, and
+  // the inflection workflow assumes raw measurement values.
+  //
+  // Suppressed when no writer is supplied (e.g., consumers without an active
+  // IP); in that case the panel + overlay are inert — the chart renders
+  // unchanged. Backward compatible.
+  const inflectionEnabled =
+    !!onBindingsChange && !!effectiveOutcome && !isDefectMode && histogramData.length > 0;
+
+  // Sorted histogram values (memoized) — passed to the hook + reused if we
+  // ever want to share with downstream consumers. Stable identity matters
+  // since the hook depends on `sortedValues` for `applyCutMutation`.
+  const sortedHistogramValues = useMemo(
+    () => [...histogramData].sort((a, b) => a - b),
+    [histogramData]
+  );
+
+  const noopPatchBindings = useCallback((_next: BinnedFactorBinding[]) => {
+    // No-op when the workflow is suppressed; the hook still runs to keep
+    // hook order stable across renders, but its actions are inert.
+    void _next;
+  }, []);
+
+  const binningController = useInflectionBinningState({
+    sourceColumn: effectiveOutcome ?? '',
+    values: histogramData,
+    sortedValues: sortedHistogramValues,
+    existingBindings: binnedFactorBindings ?? [],
+    patchBindings: onBindingsChange ?? noopPatchBindings,
+  });
+
+  // sourceColumn change without unmount: the hook computes initial state once
+  // on mount. When the analyst switches the outcome (Y column) without
+  // remounting Dashboard, we must reset the state machine so it picks up the
+  // bindings + values for the new column.
+  useEffect(() => {
+    if (!inflectionEnabled) return;
+    binningController.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on column change only; controller identity is stable per render
+  }, [effectiveOutcome, inflectionEnabled]);
+
+  // Compute the cuts the overlay should render + the variant. In committed
+  // state the cuts are solid (binding is persisted); in proposing state they
+  // are ghosted (preview only). In idle state no overlay is rendered.
+  const { overlayCuts, overlayVariant } = useMemo<{
+    overlayCuts: number[];
+    overlayVariant: 'solid' | 'ghost';
+  }>(() => {
+    const s = binningController.state;
+    if (s.kind === 'committed') return { overlayCuts: s.binding.cuts, overlayVariant: 'solid' };
+    if (s.kind === 'proposing') return { overlayCuts: s.cuts, overlayVariant: 'ghost' };
+    return { overlayCuts: [], overlayVariant: 'ghost' };
+  }, [binningController.state]);
+
+  // Overlay render-prop forwarded to both ProbabilityPlot call sites. Null
+  // when the workflow is suppressed OR there are no cuts to draw — keeps the
+  // baseline chart untouched.
+  const probabilityOverlay = useMemo(
+    () =>
+      inflectionEnabled && overlayCuts.length > 0
+        ? ({ xScale, yRange }: { xScale: (v: number) => number; yRange: [number, number] }) => (
+            <InflectionOverlay
+              cuts={overlayCuts}
+              xScale={xScale}
+              yRange={yRange}
+              variant={overlayVariant}
+            />
+          )
+        : undefined,
+    [inflectionEnabled, overlayCuts, overlayVariant]
+  );
+
+  // ── Verify card tabs ──────────────────────────────────────────────────────
+  // Probability content combines the chart + (when enabled) the
+  // InflectionSidePanelView as a horizontal sibling. Side panel placement:
+  // right-of-chart on desktop, hidden on phone (carousel layout already runs).
+  const probabilityContent = inflectionEnabled ? (
+    <div className="flex h-full min-h-0 flex-col gap-3 lg:flex-row">
+      <div className="min-w-0 flex-1">
+        <ProbabilityPlot series={probabilitySeries} overlay={probabilityOverlay} />
+      </div>
+      <div className="lg:w-72 lg:flex-shrink-0">
+        <InflectionSidePanelView
+          sourceColumn={effectiveOutcome ?? ''}
+          controller={binningController}
+        />
+      </div>
+    </div>
+  ) : (
+    <ProbabilityPlot series={probabilitySeries} overlay={probabilityOverlay} />
+  );
+
   // Verify card tabs (Probability / Capability|Distribution)
   const hasSpecs = !!(specs.usl !== undefined || specs.lsl !== undefined);
   const azureAnalysisLensTabs: {
@@ -501,7 +620,7 @@ const Dashboard = ({
     {
       id: 'probability',
       label: t('verify.tab.probability'),
-      content: <ProbabilityPlot series={probabilitySeries} />,
+      content: probabilityContent,
     },
     {
       id: 'distribution',
@@ -1050,7 +1169,14 @@ const Dashboard = ({
                         ) : focusedChart === 'probability-plot' &&
                           histogramData.length > 0 &&
                           stats ? (
-                          <ProbabilityPlot series={probabilitySeries} />
+                          // G1 Task 7: forward the same overlay render-prop so
+                          // focused mode shows the inflection cuts. Side panel
+                          // is suppressed in focused mode by design — focused
+                          // view is read-only chart-only.
+                          <ProbabilityPlot
+                            series={probabilitySeries}
+                            overlay={probabilityOverlay}
+                          />
                         ) : null}
                       </DashboardChartCard>
                     </FocusedViewOverlay>

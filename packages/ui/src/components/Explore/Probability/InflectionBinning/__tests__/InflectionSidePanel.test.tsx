@@ -9,7 +9,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
-import { InflectionSidePanel } from '../InflectionSidePanel';
+import { InflectionSidePanel, InflectionSidePanelView } from '../InflectionSidePanel';
+import { useInflectionBinningState } from '../useInflectionBinningState';
 
 // ============================================================================
 // Seeded data fixtures
@@ -239,5 +240,119 @@ describe('InflectionSidePanel', () => {
       const args = patchBindings.mock.calls[0][0] as BinnedFactorBinding[];
       expect(args[0].levelNames[0]).toBe('cold');
     });
+  });
+
+  describe('per-segment × tooltip (middle-segment merge semantics)', () => {
+    it('1-cut binding: × button has no explanatory title (2 segments — direction unambiguous)', () => {
+      const oneCut: BinnedFactorBinding = {
+        id: 'binding-1',
+        sourceColumn: 'X',
+        cuts: [30],
+        levelNames: ['<30', '≥30'],
+        detectionMethod: 'gap-ratio-v1',
+        detectedAt: '2026-05-28T00:00:00.000Z',
+      };
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[oneCut]}
+          patchBindings={vi.fn()}
+        />
+      );
+      const removeBtn = screen.getByTestId('inflection-segment-remove-1');
+      expect(removeBtn).not.toHaveAttribute('title');
+    });
+
+    it('2-cut binding: middle segment × button explains the merge-left semantics via title', () => {
+      const twoCuts: BinnedFactorBinding = {
+        id: 'binding-2',
+        sourceColumn: 'X',
+        cuts: [20, 40],
+        levelNames: ['<20', '20-40', '≥40'],
+        detectionMethod: 'gap-ratio-v1',
+        detectedAt: '2026-05-28T00:00:00.000Z',
+      };
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[twoCuts]}
+          patchBindings={vi.fn()}
+        />
+      );
+      const middleRemove = screen.getByTestId('inflection-segment-remove-1');
+      expect(middleRemove).toHaveAttribute('title', 'Remove the cut before this segment');
+    });
+  });
+});
+
+// ============================================================================
+// InflectionSidePanelView — controller-based API tests
+// ============================================================================
+
+/**
+ * Test harness that calls the hook once at parent level and forwards to View.
+ * Mirrors how Dashboard.tsx wires the lifted-hook integration.
+ */
+function ViewHarness({
+  sourceColumn,
+  values,
+  sortedValues,
+  existingBindings,
+  patchBindings,
+}: {
+  sourceColumn: string;
+  values: number[];
+  sortedValues: number[];
+  existingBindings: BinnedFactorBinding[];
+  patchBindings: (next: BinnedFactorBinding[]) => void;
+}) {
+  const controller = useInflectionBinningState({
+    sourceColumn,
+    values,
+    sortedValues,
+    existingBindings,
+    patchBindings,
+  });
+  return <InflectionSidePanelView sourceColumn={sourceColumn} controller={controller} />;
+}
+
+describe('InflectionSidePanelView (controller-based API)', () => {
+  it('renders idle state from a fresh controller', () => {
+    const { values, sortedValues } = bimodalFixture();
+    render(
+      <ViewHarness
+        sourceColumn="X"
+        values={values}
+        sortedValues={sortedValues}
+        existingBindings={[]}
+        patchBindings={vi.fn()}
+      />
+    );
+    expect(screen.getByTestId('detect-inflections-button')).toBeInTheDocument();
+  });
+
+  it('Detect + Create drive the controller through commit', async () => {
+    const user = userEvent.setup();
+    const patchBindings = vi.fn();
+    const { values, sortedValues } = bimodalFixture();
+    render(
+      <ViewHarness
+        sourceColumn="X"
+        values={values}
+        sortedValues={sortedValues}
+        existingBindings={[]}
+        patchBindings={patchBindings}
+      />
+    );
+    await user.click(screen.getByTestId('detect-inflections-button'));
+    await user.click(screen.getByTestId('create-bin-column-button'));
+    expect(patchBindings).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('X_bin')).toBeInTheDocument();
   });
 });

@@ -37,6 +37,7 @@ import type { AzureFindingsCallbacks, ActiveIPScopeLabels } from '@variscout/ui'
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
 import type { UseActionProposalsReturn } from '../../features/ai';
+import type { BinnedFactorBinding } from '@variscout/core/binning';
 
 import DataTableModal from '../data/DataTableModal';
 import { PISection } from './PISection';
@@ -90,6 +91,10 @@ interface EditorDashboardViewProps {
    * Merged into the factor picker list and used for Boxplot/ProbabilityPlot data extraction.
    */
   categoricalValuesByColumn?: Record<string, (string | null)[]>;
+  /** G1 Task 7: existing inflection-binning bindings from the active IP. */
+  binnedFactorBindings?: BinnedFactorBinding[];
+  /** G1 Task 7: synchronous patch handler for `binnedFactorBindings`. */
+  onBindingsChange?: (next: BinnedFactorBinding[]) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +124,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   activeIPFactorRequest,
   activeIPScope,
   categoricalValuesByColumn,
+  binnedFactorBindings,
+  onBindingsChange,
 }) => {
   // ── Store selectors ──────────────────────────────────────────────────────
   const factors = useProjectStore(s => s.factors);
@@ -235,6 +242,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           activeIPScope={activeIPScope}
           aiAvailable={aiAvailable}
           categoricalValuesByColumn={categoricalValuesByColumn}
+          binnedFactorBindings={binnedFactorBindings}
+          onBindingsChange={onBindingsChange}
         />
 
         {/* AI onboarding tooltip */}
