@@ -171,9 +171,14 @@ export class PwaDatabase extends Dexie {
     this.version(6).stores({});
 
     // Version 7: PR-CCJ-E1 — ImprovementProject extended with issueStatement +
-    // 4 Canvas-state fields. See apps/azure/src/db/schema.ts:177 for the full
-    // rationale. Per wedge V1 no-back-compat policy, no upgrade callback;
-    // additive optional fields deserialize cleanly on existing v6 rows.
+    // 4 Canvas-state fields (processSteps, stepTimings, formulaBindings,
+    // timeDecompositionBindings). Stored shape changes but Dexie indexes are
+    // unchanged (new fields are in-row, not indexed). Per wedge V1
+    // no-back-compat policy (feedback_wedge_v1_no_migration_no_backcompat),
+    // NO upgrade callback — existing v6 rows that lack the new fields read
+    // back with `undefined`, which the optional type allows. The bump flushes
+    // cached schema state; no destructive re-init needed because the changes
+    // are purely additive.
     this.version(7).stores({});
   }
 }
