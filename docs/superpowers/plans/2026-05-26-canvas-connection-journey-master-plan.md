@@ -335,24 +335,28 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 ### Phase E — Promote-to-Project (1 PR, medium)
 
-#### PR-CCJ-E1 · Charter modal + 5 entry points
+#### PR-CCJ-E1 · Lightweight Create Project flow + IP-blob persistence (AMENDED 2026-05-28)
 
-**Scope:** Charter modal with Issue Statement (required) + Title (optional) + Members (optional) + Refined goal (optional). Inherited-context block dynamic per entry point. Wire 5 entry points: Home, Explore, Investigation, Canvas L3, Project tab.
+**Amendment 2026-05-28:** The original 5-entry-point Charter ceremony has been collapsed to a single Home-entry lightweight flow per two design discoveries during E1 brainstorming: (1) "the IP IS the project" (wedge V1 is one-IP-at-a-time, so the 4 Canvas-state arrays become flat fields on `ImprovementProject`, not nested under `canvasState`), (2) "Findings/Hypotheses auto-scope to the active IP, they aren't inherited at Charter time" (the primitives exist robustly in code per [[findings-hypotheses-implementation-reality]], so the §4.4.1 inheritance ceremony evaporates — the deferred design question becomes consistency-of-presentation across verb tabs, logged as **Task #44** for a separate design session). Sub-plan landed at [`2026-05-28-canvas-connection-journey-e-1-create-project.md`](./2026-05-28-canvas-connection-journey-e-1-create-project.md).
 
-**Files:**
+**Scope (amended):** `CreateProjectModal` (Title required + Issue Statement optional one-liner) at Home only. IP type extension with 5 flat root fields (`issueStatement` + `processSteps` + `stepTimings` + `formulaBindings` + `timeDecompositionBindings`). `CanvasWorkspace` refactor to drop the 4 local `useState` arrays in favor of `activeIP`-backed reads + `upsertProject` writes via the existing store action. `NoActiveProjectGuidance` empty state on Process tab. IDB schema bump Azure v13→v14 / PWA v6→v7 with no migration per wedge V1 invariant. No `InheritedContextBlock`, no `entryPointAdapters.ts`, no 5-entry wiring — those are deferred with Task #44.
 
-- Create `packages/ui/src/components/Canvas/EditMode/PromoteToProject/CharterModal.tsx`, `InheritedContextBlock.tsx`, `entryPointAdapters.ts`
-- Modify entry-point hosts to wire the modal:
-  - `apps/azure/src/pages/Home.tsx` (or equivalent)
-  - Explore tab + Investigation tab + Project tab (component paths to be enumerated in the per-PR sub-plan)
-  - Canvas L3 focal step view in `packages/ui/src/components/Canvas/...`
-- Tests for modal + each entry adapter
+**Files (amended):**
 
-**Size:** 5–7 days.
+- Create `packages/ui/src/components/Home/CreateProjectModal.tsx` (+ tests)
+- Create `packages/ui/src/components/Canvas/NoActiveProjectGuidance.tsx` (+ tests)
+- Create `packages/core/src/improvementProject/factories.ts` `createNewIP({...})` (if absent)
+- Modify `packages/core/src/improvementProject/types.ts` — add 5 flat fields
+- Modify `packages/ui/src/components/Canvas/CanvasWorkspace.tsx` — drop 4 useState; activeIP-backed reads
+- Modify `apps/azure/src/components/home/HomeView.tsx` (+ PWA equivalent) — wire "New project" CTA
+- Modify `apps/azure/src/db/schema.ts` (v13→v14) + `apps/pwa/src/db/schema.ts` (v6→v7)
+- Tests across `__tests__/` + e2e Home→Create→Process→edit→persist
 
-**Dependencies:** A3 (multi-outcome IP types), C3 (step context for L3 entry).
+**Size (amended):** 3–4 days. 8 tasks, 3 internal phases. Single PR with carve clause at Phase 2→3 boundary if Task 5 (CanvasWorkspace refactor) surfaces unexpected coupling.
 
-**Sub-plan needed:** YES.
+**Dependencies:** A3 (multi-outcome IP types), D1+D2+D3 (the four binding shapes being persisted).
+
+**Sub-plan:** [`2026-05-28-canvas-connection-journey-e-1-create-project.md`](./2026-05-28-canvas-connection-journey-e-1-create-project.md) (landed 2026-05-28 pre-flight).
 
 ### Phase F — Exit + smart routing (1 PR, small)
 
