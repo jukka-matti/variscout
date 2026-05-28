@@ -105,7 +105,7 @@ PR-LV1-B/C are independent of each other; can run in parallel after LV1-A + LV1-
 - `pnpm test` and `pnpm build` green
 - IDB schema unchanged (no real users — no migration script needed per `feedback_wedge_v1_no_migration_no_backcompat`)
 
-**Sub-plan invocation:** When ready to execute, run `superpowers:writing-plans` with prompt: `"Sub-plan for PR-LV1-0 (yamazumi mode atomic deletion sweep). Reference master plan ./2026-05-28-linked-views-phase-1-master-plan.md and spec ../specs/2026-05-28-state-edit-mode-and-ip-scoped-presentation-design.md §6.1. Internal phases: Architect (map deletion graph + impact) → Migration (delete + amend + archive in dependency order) → Validator (build + test + grep verify)."`
+**Sub-plan:** [`./2026-05-28-pr-lv1-0-remove-yamazumi-mode.md`](./2026-05-28-pr-lv1-0-remove-yamazumi-mode.md) (drafted 2026-05-28; ready for dispatch).
 
 ---
 
