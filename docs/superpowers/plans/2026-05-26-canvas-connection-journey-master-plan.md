@@ -377,6 +377,8 @@ Build the canvas authoring shell + the palette that anchors everything else.
 
 **Sub-plan needed:** YES.
 
+**Amended 2026-05-28 — F1 ships 4 of 6 §4.5 routing rows; multi-outcome Y-tabs + per-step view switcher deferred to H1. Task 5b (D3-derived categorical Boxplot factor wiring) carved as Task #46. See sub-plan `docs/superpowers/plans/2026-05-28-canvas-connection-journey-f-1-explore-exit.md`.**
+
 ### Phase G — Inflection-point binning in Probability Plot (1 PR, medium)
 
 #### PR-CCJ-G1 · Probability plot inflection binning

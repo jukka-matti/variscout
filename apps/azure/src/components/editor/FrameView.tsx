@@ -29,6 +29,8 @@ import type {
 } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { createActionItem, type ActionItem } from '@variscout/core/findings';
+import type { ExploreLandingView } from '@variscout/core/exploreRouting';
+import type { OutcomeSpec } from '@variscout/core/processHub';
 import { surveyInboxRules } from '@variscout/core/survey';
 import { azureHubRepository } from '../../persistence';
 import { usePanelsStore } from '../../features/panels/panelsStore';
@@ -72,9 +74,18 @@ interface FrameViewProps {
    *  active IP. When `null`, CanvasWorkspace falls back to local state — the
    *  pre-E1 behaviour preserved for the bootstrap window. */
   activeIP?: ImprovementProject | null;
+  /**
+   * F1 Task 6: live outcome specs owned by the active ProcessHub
+   * (`hub.outcomes` filtered to `deletedAt === null`). Threaded from
+   * Editor.tsx via `(activeHub?.outcomes ?? []).filter(o => !o.deletedAt)`.
+   * Controls the → Explore button soft-gate inside CanvasWorkspace (disabled
+   * until at least one spec is present). Optional so test callers that
+   * pre-date F1 compile unchanged (defaults to []).
+   */
+  outcomeSpecs?: OutcomeSpec[];
 }
 
-const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP }) => {
+const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeSpecs = [] }) => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
@@ -215,6 +226,19 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP }) => {
 
   const handleSeeData = React.useCallback(() => {
     usePanelsStore.getState().showExplore();
+  }, []);
+
+  // F1 Task 6: real → Explore navigation. `landing.isEnabled` is always true
+  // when this callback is invoked (ExploreExitButton guards the click); the
+  // non-null assertion on `focusedChart` is safe because
+  // `deriveExploreLandingView` only returns `isEnabled: true` when
+  // `focusedChart` is set (see exploreRouting invariant in Task 1 logic).
+  const handleExploreExit = React.useCallback((landing: ExploreLandingView) => {
+    if (!landing.isEnabled) return;
+    usePanelsStore.getState().showExplore({
+      focusedChart: landing.focusedChart!,
+      boxplotFactor: landing.boxplotFactor,
+    });
   }, []);
 
   const handleLogQuickAction = React.useCallback(
@@ -378,6 +402,8 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP }) => {
         actionItems={actionItems}
         activeIP={activeIP}
         onPersistCanvasState={upsertProject}
+        outcomeSpecs={outcomeSpecs}
+        onExploreExit={handleExploreExit}
       />
     </div>
   );

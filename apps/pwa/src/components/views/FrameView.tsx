@@ -27,6 +27,7 @@ import type {
   ControlHandoff,
   ControlRecord,
 } from '@variscout/core';
+import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import { createActionItem, type ActionItem } from '@variscout/core/findings';
 import { surveyInboxRules } from '@variscout/core/survey';
 import { pwaHubRepository } from '../../persistence';
@@ -231,6 +232,14 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showExplore();
   }, []);
 
+  // F1 Task 6: PWA uses bare showExplore() (no intent payload) because the
+  // PWA panelsStore.showExplore takes no arguments in V1. Routing intent
+  // (pendingExploreIntent) is Azure-only for F1; deferred to a PWA-parity task
+  // if/when the PWA Explore tab supports smart landing.
+  const handleExploreExit = React.useCallback((_landing: ExploreLandingView) => {
+    usePanelsStore.getState().showExplore();
+  }, []);
+
   const handleLogQuickAction = React.useCallback(
     (stepId: string, payload: LogActionPayload) => {
       if (!activeHubId) return;
@@ -393,6 +402,8 @@ const FrameView: React.FC = () => {
         actionItems={actionItems}
         activeIP={activeIP}
         onPersistCanvasState={upsertProject}
+        outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
+        onExploreExit={handleExploreExit}
       />
     </div>
   );
