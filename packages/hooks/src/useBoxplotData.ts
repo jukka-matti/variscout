@@ -68,8 +68,20 @@ function computeBoxplotGroup(key: string, values: number[]): BoxplotGroupData | 
  * When `categoricalValuesByColumn` is provided, rows are augmented with derived
  * categorical columns (time-decomposition + binning) so that derived factors
  * like `Reactor_temp_bin` can be used as the grouping `factor` even though the
- * raw dataset rows do not carry that column key. Augmentation is index-aligned:
+ * raw dataset rows do not carry that column key.
+ *
+ * ALIGNMENT INVARIANT (G1 Task 4 follow-up): `categoricalValuesByColumn` MUST be
+ * indexed by **filtered-row position**, not raw-row position. That is,
  * `categoricalValuesByColumn[col][i]` is the derived value for `filteredData[i]`.
+ * The Azure caller projects the rawData-aligned channel onto the filtered subset
+ * via `filterCategoricalValuesByColumn(cvc, filteredIndexMap)` at the
+ * `useFilteredData` boundary before threading it down (see Editor.tsx).
+ * Passing a raw-aligned channel here when filters are active silently
+ * misclassifies rows — the channel and `filteredData` must share the same index space.
+ *
+ * The lens-start offset derived from `timeLensIndices(filteredData.length, ...)`
+ * indexes into the (already filtered-aligned) channel — both arrays are parallel.
+ *
  * Backward compat: when absent or empty, behaviour is identical to before.
  */
 export function useBoxplotData(

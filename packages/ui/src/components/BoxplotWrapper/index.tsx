@@ -78,7 +78,14 @@ export interface BoxplotWrapperBaseProps {
    * G1 Task 4: derived categorical columns from the active ImprovementProject.
    * When `factor` refers to a derived column (e.g. `Reactor_temp_bin`), the raw
    * `filteredData` rows won't carry that key. This map provides the derived values
-   * indexed by original row position so useBoxplotData can augment the rows.
+   * so useBoxplotData can augment the rows before grouping.
+   *
+   * ALIGNMENT INVARIANT (G1 Task 4 follow-up): values MUST be parallel to
+   * `filteredData` — `categoricalValuesByColumn[col][i]` is the derived value for
+   * `filteredData[i]`. The Azure caller projects the rawData-aligned channel onto
+   * the filtered subset via `filterCategoricalValuesByColumn(cvc, filteredIndexMap)`
+   * at the `useFilteredData` boundary before threading it down (see Editor.tsx).
+   *
    * Backward compat: absent or empty → identical to before.
    */
   categoricalValuesByColumn?: Record<string, (string | null)[]>;

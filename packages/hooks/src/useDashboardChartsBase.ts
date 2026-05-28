@@ -47,8 +47,19 @@ export interface UseDashboardChartsBaseOptions {
    * G1 Task 4: derived categorical columns from the active ImprovementProject.
    * Keys are derived column names (e.g. `Order_Date.day-of-week`, `Reactor_temp_bin`).
    * When present, these columns are merged into the factor picker list (raw factors first,
-   * then derived in column-name sort order, deduplicated by name).
-   * Backward compat: absent or empty → identical factor list to before.
+   * then derived in column-name sort order, deduplicated by name) AND threaded into
+   * `useDashboardComputedData` so the stats-summary boxplot data + ANOVA see populated
+   * groups when the chosen factor is a derived column.
+   *
+   * ALIGNMENT INVARIANT (G1 Task 4 follow-up): values MUST be parallel to `filteredData`,
+   * i.e. `categoricalValuesByColumn[col][i]` is the derived value for `filteredData[i]`.
+   * The caller is responsible for projecting any rawData-aligned channel via
+   * `filterCategoricalValuesByColumn` at the `useFilteredData` boundary before passing
+   * it in. The picker list itself only reads `Object.keys`, so the projection is only
+   * required by the row-augmentation paths — but the contract is filtered-aligned for
+   * the whole prop to keep one mental model.
+   *
+   * Backward compat: absent or empty → identical factor list + identical stats to before.
    */
   categoricalValuesByColumn?: Record<string, (string | null)[]>;
 }
@@ -120,6 +131,11 @@ export function useDashboardChartsBase({
   }, [allFactors]);
 
   // ── Computed data ─────────────────────────────────────────────────────
+  // G1 Task 4 follow-up: thread the (filtered-aligned) derived-column channel
+  // into useDashboardComputedData so that ANOVA + boxplot stats see populated
+  // groups when boxplotFactor is a derived column (e.g. Reactor_temp_bin).
+  // Without this, the stats summary table / PI Panel / ANOVA showed empty
+  // groups while the chart itself rendered correctly.
   const { availableOutcomes, availableStageColumns, anovaResult, boxplotData } =
     useDashboardComputedData({
       rawData,
@@ -129,6 +145,7 @@ export function useDashboardChartsBase({
       boxplotSortBy: displayOptions.boxplotSortBy,
       boxplotSortDirection: displayOptions.boxplotSortDirection,
       workerApi,
+      categoricalValuesByColumn,
     });
 
   // ── Chart export ──────────────────────────────────────────────────────

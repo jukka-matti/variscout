@@ -265,6 +265,7 @@ export {
   buildFactorList,
   augmentRowsWithDerived,
   augmentLensedRowsWithDerived,
+  filterCategoricalValuesByColumn,
 } from './factorListUtils';
 
 // Locale State

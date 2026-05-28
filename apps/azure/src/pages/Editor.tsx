@@ -18,6 +18,7 @@ import {
   useAnalysisStats,
   useStagedAnalysis,
   useProjectActions,
+  filterCategoricalValuesByColumn,
 } from '@variscout/hooks';
 import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
 import { useStatsWorker } from '../workers/useStatsWorker';
@@ -383,7 +384,7 @@ export const Editor: React.FC<EditorProps> = ({
   const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
 
   // Derived hooks (replaces computed state from useDataState)
-  const { filteredData } = useFilteredData();
+  const { filteredData, filteredIndexMap } = useFilteredData();
   const workerApi = useStatsWorker();
   const { stats } = useAnalysisStats(workerApi);
   const { stagedStats } = useStagedAnalysis();
@@ -1306,6 +1307,11 @@ export const Editor: React.FC<EditorProps> = ({
   // the Analyze-tab factor pickers include derived columns (e.g. `Reactor_temp_bin`,
   // `Order_Date.day-of-week`) and the data pipelines can group by them.
   // Absent or empty when no active IP has bindings configured → backward compat.
+  //
+  // ALIGNMENT: This map is rawData-aligned — `categoricalValuesByColumn[col][i]`
+  // is the derived value for `rawData[i]`. It must be projected onto the filtered
+  // subset (`filteredCategoricalValuesByColumn` below) before being passed to any
+  // hook that operates on `filteredData` (Boxplot / Probability / ANOVA / stats).
   const categoricalValuesByColumn = useMemo<Record<string, (string | null)[]>>(() => {
     const activeIP = activeIPContext.activeIP;
     if (!activeIP) return {};
@@ -1322,6 +1328,20 @@ export const Editor: React.FC<EditorProps> = ({
     }
     return merged;
   }, [activeIPContext.activeIP, rawData]);
+
+  // G1 Task 4 follow-up: project the rawData-aligned channel onto the filtered
+  // subset via filteredIndexMap. After projection `result[col][j]` is the
+  // derived value for `filteredData[j]`. Downstream consumers (Dashboard, Boxplot,
+  // Probability Plot, ANOVA, stats-summary table) operate on filteredData, so
+  // they receive THIS filtered-aligned map — not the raw one. Without active
+  // filters, filteredIndexMap is the identity over the dataset, so projection
+  // is content-equivalent (a fresh array allocation per row count, but values
+  // match raw exactly). The Canvas/EditMode surface keeps using the raw map
+  // because palette chips and bin editors work in rawData space.
+  const filteredCategoricalValuesByColumn = useMemo<Record<string, (string | null)[]>>(
+    () => filterCategoricalValuesByColumn(categoricalValuesByColumn, filteredIndexMap),
+    [categoricalValuesByColumn, filteredIndexMap]
+  );
 
   useEffect(() => {
     if (activeView !== 'frame' || !activeHub) return;
@@ -2060,7 +2080,7 @@ export const Editor: React.FC<EditorProps> = ({
                 projectedCpkMap={improvementProjectedCpkMap}
                 activeIPFactorRequest={activeIPAnalyzeFactorRequest}
                 activeIPScope={activeIPScope}
-                categoricalValuesByColumn={categoricalValuesByColumn}
+                categoricalValuesByColumn={filteredCategoricalValuesByColumn}
               />
             )}
           </>

@@ -21,6 +21,14 @@ interface UseProbabilityPlotDataOptions {
    * When `factorColumn` refers to a derived column (e.g. `Reactor_temp_bin`),
    * the raw `rows` won't have that key. Providing this map causes each row to be
    * augmented with its derived value before grouping.
+   *
+   * ALIGNMENT INVARIANT (G1 Task 4 follow-up): `categoricalValuesByColumn` MUST
+   * be indexed by **filtered-row position**, parallel to `rows` — that is,
+   * `categoricalValuesByColumn[col][i]` is the derived value for `rows[i]`.
+   * Callers projecting a rawData-aligned channel onto a filtered subset should
+   * use `filterCategoricalValuesByColumn(cvc, filteredIndexMap)` at the
+   * `useFilteredData` boundary first.
+   *
    * Backward compat: absent or empty → identical to before.
    */
   categoricalValuesByColumn?: Record<string, (string | null)[]>;

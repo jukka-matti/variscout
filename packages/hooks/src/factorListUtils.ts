@@ -5,13 +5,22 @@
  * Used by:
  * - useDashboardChartsBase: factor picker (Boxplot + Pareto)
  * - useBoxplotData / useProbabilityPlotData: row augmentation for derived columns
+ * - Editor.tsx (Azure app): project rawData-aligned channel onto filteredData
+ *   via `filterCategoricalValuesByColumn` at the useFilteredData boundary
  *
  * @see categoricalValuesByColumn — Record<colName, (string|null)[]> keyed by
  * derived column name (e.g. `Order_Date.day-of-week`, `Reactor_temp_bin`).
- * Values are parallel to rawData rows (index i → row i).
+ * Values are parallel to rawData rows (index i → row i) until they are
+ * projected onto a filtered subset via `filterCategoricalValuesByColumn`;
+ * after projection they are parallel to filteredData (index j → filteredData[j]).
  */
 
 import type { DataRow } from '@variscout/core';
+
+/** Stable empty channel returned when projecting against an empty input. */
+const EMPTY_CATEGORICAL_VALUES_BY_COLUMN: Record<string, (string | null)[]> = Object.freeze(
+  {}
+) as Record<string, (string | null)[]>;
 
 /**
  * Builds the merged factor list for chart pickers.
@@ -124,4 +133,53 @@ export function augmentLensedRowsWithDerived(
     if (Object.keys(extra).length === 0) return row;
     return { ...row, ...extra } as DataRow;
   });
+}
+
+/**
+ * Projects a rawData-aligned `categoricalValuesByColumn` onto a filtered
+ * row subset via the filtered-index-map produced by `useFilteredData`.
+ *
+ * Rationale (G1 Task 4 follow-up): `categoricalValuesByColumn[col][i]` is
+ * the derived value for `rawData[i]`. Downstream consumers (Boxplot,
+ * Probability Plot, ANOVA, stats summary) operate on `filteredData`, which
+ * is a subset of `rawData`. Without projection, `categoricalValuesByColumn`
+ * misaligns whenever filters are active — silently misclassifying rows.
+ * Project the channel at the `useFilteredData` boundary so all filtered-pipeline
+ * consumers see a `filteredData`-aligned channel.
+ *
+ * @param categoricalValuesByColumn - rawData-aligned channel
+ *   (`cvc[col][i]` = derived value for `rawData[i]`)
+ * @param filteredIndexMap - Map from filtered-row index to rawData-row index,
+ *   as returned by `useFilteredData().filteredIndexMap`
+ * @returns A new channel where `result[col][j]` = `cvc[col][filteredIndexMap.get(j)]`.
+ *   Out-of-bounds entries in `filteredIndexMap` produce `null` at that slot.
+ *   When the input map is empty (no derived columns), returns a stable frozen
+ *   empty reference — keeps memo equality stable across renders.
+ */
+export function filterCategoricalValuesByColumn(
+  categoricalValuesByColumn: Record<string, (string | null)[]>,
+  filteredIndexMap: Map<number, number>
+): Record<string, (string | null)[]> {
+  const keys = Object.keys(categoricalValuesByColumn);
+  if (keys.length === 0) {
+    return EMPTY_CATEGORICAL_VALUES_BY_COLUMN;
+  }
+
+  const filteredLength = filteredIndexMap.size;
+  const result: Record<string, (string | null)[]> = {};
+  for (const col of keys) {
+    const rawVals = categoricalValuesByColumn[col];
+    const projected: (string | null)[] = new Array(filteredLength);
+    for (let j = 0; j < filteredLength; j++) {
+      const rawIdx = filteredIndexMap.get(j);
+      if (rawIdx === undefined) {
+        projected[j] = null;
+        continue;
+      }
+      const v = rawVals[rawIdx];
+      projected[j] = v !== undefined ? v : null;
+    }
+    result[col] = projected;
+  }
+  return result;
 }

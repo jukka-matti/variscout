@@ -7,7 +7,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { buildFactorList, augmentLensedRowsWithDerived } from '../factorListUtils';
+import {
+  buildFactorList,
+  augmentLensedRowsWithDerived,
+  filterCategoricalValuesByColumn,
+} from '../factorListUtils';
 import type { DataRow } from '@variscout/core';
 
 // ── buildFactorList ─────────────────────────────────────────────────────────
@@ -208,5 +212,145 @@ describe('buildFactorList + augmentLensedRowsWithDerived integration', () => {
     }
 
     expect(groups.size).toBe(2);
+  });
+});
+
+// ── filterCategoricalValuesByColumn ─────────────────────────────────────────
+
+describe('filterCategoricalValuesByColumn', () => {
+  it('projects rawData-aligned channel onto filtered subset via index map', () => {
+    // Spec example: cvc = { col: ['a','b','c','d','e'] }, map [0, 2, 4] → { col: ['a','c','e'] }
+    const cvc = { col: ['a', 'b', 'c', 'd', 'e'] as (string | null)[] };
+    const filteredIndexMap = new Map<number, number>([
+      [0, 0],
+      [1, 2],
+      [2, 4],
+    ]);
+    const result = filterCategoricalValuesByColumn(cvc, filteredIndexMap);
+    expect(result).toEqual({ col: ['a', 'c', 'e'] });
+  });
+
+  it('returns a stable frozen reference when the input is empty', () => {
+    const filteredIndexMap = new Map<number, number>([
+      [0, 0],
+      [1, 1],
+    ]);
+    const first = filterCategoricalValuesByColumn({}, filteredIndexMap);
+    const second = filterCategoricalValuesByColumn({}, new Map());
+    // Same reference across calls — supports Zustand snapshot equality
+    expect(first).toBe(second);
+    expect(Object.isFrozen(first)).toBe(true);
+    expect(Object.keys(first)).toEqual([]);
+  });
+
+  it('out-of-bounds rawData index becomes null at that filtered slot', () => {
+    const cvc = { col: ['a', 'b'] as (string | null)[] };
+    // Map points filtered index 1 to rawData index 99 (out of bounds)
+    const filteredIndexMap = new Map<number, number>([
+      [0, 0],
+      [1, 99],
+    ]);
+    const result = filterCategoricalValuesByColumn(cvc, filteredIndexMap);
+    expect(result).toEqual({ col: ['a', null] });
+  });
+
+  it('returns an empty per-column array when the filter selects nothing', () => {
+    const cvc = { col: ['a', 'b', 'c'] as (string | null)[] };
+    const filteredIndexMap = new Map<number, number>();
+    const result = filterCategoricalValuesByColumn(cvc, filteredIndexMap);
+    expect(result).toEqual({ col: [] });
+  });
+
+  it('preserves null values in the projected channel', () => {
+    const cvc = { col: ['a', null, 'c'] as (string | null)[] };
+    const filteredIndexMap = new Map<number, number>([
+      [0, 0],
+      [1, 1],
+      [2, 2],
+    ]);
+    const result = filterCategoricalValuesByColumn(cvc, filteredIndexMap);
+    expect(result).toEqual({ col: ['a', null, 'c'] });
+  });
+
+  it('handles multiple derived columns identically', () => {
+    const cvc = {
+      Reactor_temp_bin: ['<50', '>=50', '<50', '>=50', '<50'] as (string | null)[],
+      'Order_Date.day-of-week': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as (string | null)[],
+    };
+    // Filter selects rows 1, 3 from rawData
+    const filteredIndexMap = new Map<number, number>([
+      [0, 1],
+      [1, 3],
+    ]);
+    const result = filterCategoricalValuesByColumn(cvc, filteredIndexMap);
+    expect(result).toEqual({
+      Reactor_temp_bin: ['>=50', '>=50'],
+      'Order_Date.day-of-week': ['Tue', 'Thu'],
+    });
+  });
+
+  it('identity filter (no rows dropped) preserves channel content', () => {
+    const cvc = { col: ['a', 'b', 'c'] as (string | null)[] };
+    const filteredIndexMap = new Map<number, number>([
+      [0, 0],
+      [1, 1],
+      [2, 2],
+    ]);
+    const result = filterCategoricalValuesByColumn(cvc, filteredIndexMap);
+    expect(result).toEqual({ col: ['a', 'b', 'c'] });
+  });
+
+  it('integration: filtered rows + derived bin column → correct grouping', () => {
+    // Dataset of 6 rows with bin values ['<50','>=50','<50','>=50','<50','>=50']
+    const rawValues = [10, 100, 15, 200, 12, 300];
+    const cvc = {
+      Reactor_temp_bin: ['<50', '>=50', '<50', '>=50', '<50', '>=50'] as (string | null)[],
+    };
+    // Active filter selects rows 1, 3, 5 (all '>=50' bins)
+    const filteredIndexMap = new Map<number, number>([
+      [0, 1],
+      [1, 3],
+      [2, 5],
+    ]);
+    const filteredRows: DataRow[] = [
+      { Value: rawValues[1] },
+      { Value: rawValues[3] },
+      { Value: rawValues[5] },
+    ];
+
+    // After projection
+    const projected = filterCategoricalValuesByColumn(cvc, filteredIndexMap);
+    expect(projected).toEqual({ Reactor_temp_bin: ['>=50', '>=50', '>=50'] });
+
+    // Augment + group (mirrors useBoxplotData)
+    const augmented = augmentLensedRowsWithDerived(filteredRows, projected, 0);
+    const groups = new Map<string, number[]>();
+    for (const row of augmented) {
+      const key = String(row['Reactor_temp_bin']);
+      const vals = groups.get(key) ?? [];
+      vals.push(row['Value'] as number);
+      groups.set(key, vals);
+    }
+    // All 3 filtered rows land in the '>=50' bucket — none misclassified
+    expect(groups.size).toBe(1);
+    expect(groups.get('>=50')).toEqual([100, 200, 300]);
+  });
+
+  it('integration: WITHOUT the filter-aware projection rows would be misclassified', () => {
+    // Documents the bug being fixed: feeding the rawData-aligned channel directly
+    // into augmentLensedRowsWithDerived against filteredData would misclassify rows.
+    const cvc = {
+      Reactor_temp_bin: ['<50', '>=50', '<50', '>=50', '<50', '>=50'] as (string | null)[],
+    };
+    // Filter selects rows 1, 3, 5 (rawData indices) — all '>=50'
+    const filteredRows: DataRow[] = [{ Value: 100 }, { Value: 200 }, { Value: 300 }];
+
+    // BUG REPRO: pass rawData-aligned cvc directly with start=0
+    const buggyAugmented = augmentLensedRowsWithDerived(filteredRows, cvc, 0);
+    // Reads cvc[col][0], cvc[col][1], cvc[col][2] → '<50', '>=50', '<50'
+    // → misclassifies row 100 (was '>=50' in rawData) as '<50'
+    expect(buggyAugmented[0]['Reactor_temp_bin']).toBe('<50'); // ← WRONG vs reality
+    expect(buggyAugmented[2]['Reactor_temp_bin']).toBe('<50'); // ← WRONG vs reality
+    // Documenting the misclassification this PR fixes.
   });
 });
