@@ -231,6 +231,32 @@ const plotData = calculateProbabilityPlotData(values);
 
 ---
 
+## Inflection-Point Binning
+
+<!-- journey-phase: scout -->
+
+When the prob plot shows a visible kink (multi-modal distribution), the analyst can manufacture a categorical _stratification dimension_ directly from the column being plotted. This is the **inflection-point binning** workflow.
+
+**The journey:**
+
+1. Probability lens of Explore tab on a numeric column — analyst sees a kink in the curve
+2. Side panel: `Detect inflections` button (or once-per-session banner suggesting it)
+3. Algorithm runs: **piecewise linear regression** on the `(value, normalQuantile)` point cloud + grid search over candidate breakpoints
+4. Up to 2 inflection points proposed as cyan dashed guides on the plot; side panel surfaces per-segment stats inline: `n / % share / mean / Anderson-Darling p-value`
+5. Analyst drags / removes cuts to refine; numeric-range labels (`<47`, `47–89`, `≥89`) live-update
+6. `Create bin column →` persists a `BinnedFactorBinding` on the active IP; the new column `{source}_bin` appears in the palette under **DERIVED FROM BINNING** and is selectable as a factor in Boxplot + Probability lenses
+7. **Self-validation loop:** the analyst picks the new bin column as the prob plot's stratification factor — one series per level — and confirms each subgroup is individually linear (= normal). The detection objective ("each segment looks normal") IS the stratification validation criterion, so the loop closes by construction
+
+**Direct-manipulation State B:** once committed, dragging a cut on the plot re-derives the bin column live; every chart in the Explore grid that has the bin as factor (Boxplot, Pareto, stratified Probability) updates without a save step. The bin column name stays stable so downstream chart references never break.
+
+**Algorithm choice rationale:** piecewise linear regression on the prob plot is the unique method whose objective function (minimize total RSS across segments fitted to the normal-quantile mapping) matches the stratification validation criterion. KDE-valley detection answers "where's a gap in the density?"; change-point on sorted values answers "where does the sorted sequence shift its mean?" — neither directly tests subgroup-normality, so neither produces a self-validating binning. Anderson-Darling p-value per segment is the confidence signal the analyst reads.
+
+**Methodology positioning vs Minitab/JMP:** SPC vendors deliberately do not auto-suggest cuts (their convention is _"stratify by an existing factor; investigate why the multi-modality exists"_). VariScout preserves that discipline as the primary advice in the [How to Read It](#how-to-read-it) flowchart above. Inflection binning is for the case where **no existing factor explains the multi-modality** — the analyst is willing to manufacture a stratification dimension from the data itself, with the algorithm's segment-normality test acting as the methodological guard. The cyan-dashed guides + segment-AD-p-value table make the algorithm's reasoning legible.
+
+**See also:** [Canvas Connection Journey spec §3.5](../../superpowers/specs/2026-05-26-canvas-connection-journey-design.md), the 2026-05-28 decision-log entry refining §3.5 + §3.5.1.
+
+---
+
 ## See Also
 
 - [Capability](capability.md) - Where normality matters most
