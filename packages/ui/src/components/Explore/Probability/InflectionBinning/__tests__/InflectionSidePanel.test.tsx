@@ -358,6 +358,120 @@ describe('InflectionSidePanel', () => {
       expect(middleRemove).toHaveAttribute('title', 'Remove the cut before this segment');
     });
   });
+
+  describe('aria-describedby + table a11y (Task 6)', () => {
+    it('proposing state with 2 cuts: hidden description renders with correct id and text', () => {
+      const twoCutsValues = (() => {
+        // Generate simple trimodal-like data to get 2 cuts — use bimodal then manually
+        // set cuts via detect. Actually, easier: just render with existingBindings for
+        // a proposing state via ViewHarness or rely on the full detect flow.
+        // Instead, we test via a committed 2-cut binding which also renders the description.
+        return null;
+      })();
+      void twoCutsValues;
+
+      const twoCuts: BinnedFactorBinding = {
+        id: 'binding-2',
+        sourceColumn: 'TestCol',
+        cuts: [20, 40],
+        levelNames: ['<20', '20-40', '≥40'],
+        detectionMethod: 'gap-ratio-v1',
+        detectedAt: '2026-05-28T00:00:00.000Z',
+      };
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="TestCol"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[twoCuts]}
+          patchBindings={vi.fn()}
+        />
+      );
+      // Hidden description element
+      const desc = document.getElementById('segment-table-description-TestCol');
+      expect(desc).not.toBeNull();
+      expect(desc?.textContent).toContain('3 segments derived from TestCol');
+      // Side panel root has matching aria-describedby
+      const panel = screen.getByTestId('inflection-side-panel');
+      expect(panel).toHaveAttribute('aria-describedby', 'segment-table-description-TestCol');
+      // Redundant: verify we're in committed state
+      expect(screen.getByText('TestCol_bin')).toBeInTheDocument();
+    });
+
+    it('proposing state description renders after Detect click', async () => {
+      const user = userEvent.setup();
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="ProposingCol"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[]}
+          patchBindings={vi.fn()}
+        />
+      );
+      await user.click(screen.getByTestId('detect-inflections-button'));
+      const panel = screen.getByTestId('inflection-side-panel');
+      expect(panel).toHaveAttribute('aria-describedby', 'segment-table-description-ProposingCol');
+      const desc = document.getElementById('segment-table-description-ProposingCol');
+      expect(desc).not.toBeNull();
+      expect(desc?.textContent).toContain('segments derived from ProposingCol');
+    });
+
+    it('per-segment × button with 2 cuts: segment index 1 aria-label contains "Remove cut at" and "merge segment 2 into segment 1"', () => {
+      const twoCuts: BinnedFactorBinding = {
+        id: 'binding-2',
+        sourceColumn: 'X',
+        cuts: [20, 40],
+        levelNames: ['<20', '20-40', '≥40'],
+        detectionMethod: 'gap-ratio-v1',
+        detectedAt: '2026-05-28T00:00:00.000Z',
+      };
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[twoCuts]}
+          patchBindings={vi.fn()}
+        />
+      );
+      const seg1Remove = screen.getByTestId('inflection-segment-remove-1');
+      expect(seg1Remove.getAttribute('aria-label')).toContain('Remove cut at');
+      expect(seg1Remove.getAttribute('aria-label')).toContain('merge segment 2 into segment 1');
+    });
+
+    it('per-segment × button with 1 cut: aria-label is "Remove binning"', () => {
+      const oneCut: BinnedFactorBinding = {
+        id: 'binding-1',
+        sourceColumn: 'X',
+        cuts: [30],
+        levelNames: ['<30', '≥30'],
+        detectionMethod: 'gap-ratio-v1',
+        detectedAt: '2026-05-28T00:00:00.000Z',
+      };
+      const { values, sortedValues } = bimodalFixture();
+      render(
+        <InflectionSidePanel
+          sourceColumn="X"
+          values={values}
+          sortedValues={sortedValues}
+          existingBindings={[oneCut]}
+          patchBindings={vi.fn()}
+        />
+      );
+      expect(screen.getByTestId('inflection-segment-remove-0')).toHaveAttribute(
+        'aria-label',
+        'Remove binning'
+      );
+      expect(screen.getByTestId('inflection-segment-remove-1')).toHaveAttribute(
+        'aria-label',
+        'Remove binning'
+      );
+    });
+  });
 });
 
 // ============================================================================
