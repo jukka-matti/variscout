@@ -53,6 +53,7 @@ type GroupKey =
   | 'derived-timings'
   | 'derived-formula'
   | 'derived-time-decomposition'
+  | 'derived-bins'
   | 'derived-fallback'
   | 'other';
 
@@ -63,6 +64,7 @@ const GROUP_ORDER: ReadonlyArray<{ key: GroupKey; label: string }> = [
   { key: 'derived-timings', label: 'DERIVED FROM TIMINGS' },
   { key: 'derived-formula', label: 'DERIVED FROM FORMULA' },
   { key: 'derived-time-decomposition', label: 'DERIVED FROM TIME-DECOMPOSITION' },
+  { key: 'derived-bins', label: 'DERIVED FROM BINNING' },
   { key: 'derived-fallback', label: 'DERIVED' },
   { key: 'other', label: 'Other' },
 ];
@@ -76,6 +78,8 @@ function bucketFor(profile: ColumnParsingProfile): GroupKey {
         return 'derived-formula';
       case 'time-decomposition':
         return 'derived-time-decomposition';
+      case 'bins':
+        return 'derived-bins';
       default:
         return 'derived-fallback';
     }
@@ -131,6 +135,7 @@ export const Palette: React.FC<PaletteProps> = ({
     'derived-timings': [],
     'derived-formula': [],
     'derived-time-decomposition': [],
+    'derived-bins': [],
     'derived-fallback': [],
     other: [],
   };

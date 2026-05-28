@@ -10,6 +10,7 @@ export interface ColumnGroupProps {
     | 'derived-timings'
     | 'derived-formula'
     | 'derived-time-decomposition'
+    | 'derived-bins'
     | 'derived-fallback'
     | 'other';
   label: string;

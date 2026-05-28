@@ -149,5 +149,5 @@ export interface ColumnParsingProfile {
   derived?: boolean;
   /** When `derived === true`, indicates the source of the derivation. Drives the
    *  "DERIVED FROM ..." header label in the palette group. */
-  derivationSource?: 'timings' | 'formula' | 'time-decomposition';
+  derivationSource?: 'timings' | 'formula' | 'time-decomposition' | 'bins';
 }
