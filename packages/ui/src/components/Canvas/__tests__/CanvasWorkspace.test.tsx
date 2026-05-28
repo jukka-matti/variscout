@@ -2535,8 +2535,6 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
   ];
 
   it('with activeIP=null, modal Save mutates local state and does not fire onPersistCanvasState', async () => {
-    const { createTestIP: _ } = await import('../../../test-utils/improvementProject');
-    void _; // silence unused — keeps the dynamic import for symmetry with sibling tests
     const onPersist: PersistMock = vi.fn<PersistFn>();
     render(
       <CanvasWorkspace

@@ -609,6 +609,14 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [timeDecompositionBindings, setTimeDecompositionBindings]
   );
 
+  const handleCalcModalSave = React.useCallback(
+    (binding: FormulaBinding) => {
+      setFormulaBindings([...formulaBindings, binding]);
+      setCalcModalOpen(null);
+    },
+    [formulaBindings, setFormulaBindings]
+  );
+
   const onChipContextMenuSelect = React.useCallback((columnName: string, itemId: string) => {
     if (itemId === 'calculate-from') {
       setCalcModalOpen({ sourceColumn: columnName });
@@ -1172,10 +1180,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                   ...derivedTimingsProfiles.map(p => p.columnName),
                   ...derivedFormulaProfiles.map(p => p.columnName),
                 ]}
-                onSave={binding => {
-                  setFormulaBindings([...formulaBindings, binding]);
-                  setCalcModalOpen(null);
-                }}
+                onSave={handleCalcModalSave}
                 onClose={() => setCalcModalOpen(null)}
               />
             )}
