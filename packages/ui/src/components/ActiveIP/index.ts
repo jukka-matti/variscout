@@ -18,3 +18,7 @@ export {
 export { ActiveIPLaunchpadCard, type ActiveIPLaunchpadCardProps } from './ActiveIPLaunchpadCard';
 export { ActiveIPScopeRibbon, type ActiveIPScopeRibbonProps } from './ActiveIPScopeRibbon';
 export { IPContextChip, type IPContextChipProps } from './IPContextChip';
+export {
+  NoActiveProjectGuidance,
+  type NoActiveProjectGuidanceProps,
+} from './NoActiveProjectGuidance';

@@ -25,6 +25,14 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createNewIP } from '@variscout/core/improvementProject';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
+
+// Named timestamps for the deterministic e2e clock. `MOCK_CREATE_TS` is the
+// value `createNewIP` stamps onto `createdAt` / `updatedAt`;
+// `MOCK_PERSIST_TS` is the strictly-greater value the mocked Canvas modal
+// returns on save so `expect(updatedAt).toBeGreaterThan(...)` is meaningful.
+const MOCK_CREATE_TS = 1_700_000_000_000;
+const MOCK_PERSIST_TS = 2_000_000_000_000;
 
 // ── App-store mocks (mirrors FrameView.test.tsx pattern) ────────────────────
 
@@ -174,7 +182,7 @@ vi.mock('@variscout/ui', async importOriginal => {
                     endColumn: 'Prep_end',
                   },
                 ],
-                updatedAt: 2_000_000_000_000,
+                updatedAt: MOCK_PERSIST_TS,
               });
             },
           },
@@ -285,7 +293,7 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
       issueStatement: payload.issueStatement,
       currentUserId: 'tester@example.com',
       currentUserDisplayName: 'Tester',
-      now: () => 1_700_000_000_000,
+      now: () => MOCK_CREATE_TS,
       id: 'ip-e2e-1',
     });
 
@@ -310,7 +318,14 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
     // ── Step C: FrameView with the new IP renders CanvasWorkspace ──
     // (not the NoActiveProjectGuidance empty-state guard) and forwards the
     // IP downstream. This proves the activeIP cascade from Home → Process.
+    // Wait for CanvasWorkspace to render before asserting so FrameView's
+    // mount effects (snapshot / action-item / control-record loaders
+    // dispatched via the persistence facade) flush, silencing the noisy
+    // "update to FrameView inside a test was not wrapped in act(...)"
+    // warning that would otherwise fire when the loaders resolve after the
+    // render call returns.
     const { rerender, unmount: unmountFrame } = render(<FrameView activeIP={newIP} />);
+    await waitFor(() => expect(hoisted.canvasWorkspaceMock).toHaveBeenCalled());
 
     expect(screen.queryByTestId('no-active-project-guidance')).not.toBeInTheDocument();
     expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
@@ -336,13 +351,7 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
     // The persist callback (the store's upsertProject) received the updated
     // IP with stepTimings populated and a fresh updatedAt.
     await waitFor(() => expect(upsertProjectMock).toHaveBeenCalledTimes(1));
-    const persistedIP = upsertProjectMock.mock.calls[0]![0] as {
-      id: string;
-      stepTimings: Array<{ stepId: string; startColumn: string }>;
-      updatedAt: number;
-      issueStatement?: string;
-      metadata: { title: string };
-    };
+    const persistedIP = upsertProjectMock.mock.calls[0]![0] as ImprovementProject;
     expect(persistedIP.id).toBe('ip-e2e-1');
     expect(persistedIP.metadata.title).toBe('Yield investigation');
     expect(persistedIP.issueStatement).toBe('Reactor B yields 3% lower than Reactor A');
@@ -360,7 +369,9 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
     //           updated IP. The activeIP-backed read path holds: the new
     //           stepTimings array surfaces through CanvasWorkspace, proving
     //           the Canvas state survives a re-render from the store.
-    rerender(<FrameView activeIP={persistedIP as never} />);
+    hoisted.canvasWorkspaceMock.mockClear();
+    rerender(<FrameView activeIP={persistedIP} />);
+    await waitFor(() => expect(hoisted.canvasWorkspaceMock).toHaveBeenCalled());
 
     expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
     expect(screen.queryByTestId('no-active-project-guidance')).not.toBeInTheDocument();
@@ -375,8 +386,11 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
 
     // ── Sanity: when activeIP is null, the Process tab routes back to Home
     //           via NoActiveProjectGuidance (closes the empty-state branch).
+    //           `findBy*` waits for FrameView's mount effects (loaders that
+    //           still fire even on the empty-state branch) to flush, keeping
+    //           the assertion act()-clean.
     render(<FrameView activeIP={null} />);
-    expect(screen.getByTestId('no-active-project-guidance')).toBeInTheDocument();
+    expect(await screen.findByTestId('no-active-project-guidance')).toBeInTheDocument();
     expect(screen.queryByTestId('canvas-workspace')).not.toBeInTheDocument();
   });
 });

@@ -2,10 +2,11 @@
  * NoActiveProjectGuidance — verb-tab empty state when `activeIP == null`.
  *
  * Originally Improve-tab-specific (PR-WV1-2); generalized in E1 T6 to serve
- * the Process tab too. Optional `heading` / `description` / `ctaLabel`
- * overrides let each verb tab supply its own copy while the defaults
- * preserve the Improve consumer's behaviour (no migration needed at
- * `ImproveTabRoot`).
+ * the Process tab too, then relocated under `components/ActiveIP/` in E1 T8
+ * since the component is now generic to any verb-tab whose `activeIP` cascade
+ * may be empty. Optional `heading` / `description` / `ctaLabel` overrides let
+ * each verb tab supply its own copy while the defaults preserve the Improve
+ * consumer's behaviour (no migration needed at `ImproveTabRoot`).
  */
 
 const DEFAULT_HEADING = 'No active project';
