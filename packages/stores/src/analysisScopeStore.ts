@@ -25,7 +25,7 @@ export interface AnalysisScopeState {
 
 export interface AnalysisScopeActions {
   setY: (yColumn: string | undefined) => void;
-  setBoxplotFactor: (factor: string | undefined) => void;
+  setBoxplotFactor: (boxplotFactor: string | undefined) => void;
   setStepId: (stepId: string | undefined) => void;
   addCategoricalValue: (column: string, value: string | number) => void;
   removeCategoricalValue: (column: string, value: string | number) => void;
