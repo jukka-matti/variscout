@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useAnalysisScopeStore } from '@variscout/stores';
 import { createTestFactorControl } from '../../../../../test-utils/factorControl';
