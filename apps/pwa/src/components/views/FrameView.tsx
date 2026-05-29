@@ -80,7 +80,9 @@ const FrameView: React.FC = () => {
   const activeHub = useSession().hub;
   const activeHubId = activeHub?.id ?? null;
   const canvasViewportHubId = processContext?.processHubId ?? activeHubId;
-  const getProjectForHub = useImprovementProjectStore(s => s.getProjectForHub);
+  const liveProject = useImprovementProjectStore(s =>
+    activeHubId ? s.getProjectForHub(activeHubId) : undefined
+  );
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);
   // E1 T5: PWA active-IP cascade for Canvas Edit-mode state.
   // PWA passes `userId: 'local'` internally to `useActiveIPContext` (no
@@ -157,7 +159,6 @@ const FrameView: React.FC = () => {
   }, [activeHub?.controlHandoffs, activeHub?.controlRecords, activeHubId]);
 
   const contextLinkGroups: readonly ContextLinkGroup[] = React.useMemo(() => {
-    const liveProject = activeHubId ? getProjectForHub(activeHubId) : undefined;
     const improvementProjects = liveProject ? [liveProject] : [];
     const liveControlRecords = controlRecords.filter(record => record.deletedAt === null);
 
@@ -196,11 +197,9 @@ const FrameView: React.FC = () => {
         ],
       },
     ];
-  }, [activeHubId, controlHandoffs, hypotheses, getProjectForHub, controlRecords]);
+  }, [activeHubId, controlHandoffs, hypotheses, liveProject, controlRecords]);
 
   const inboxPrompts = React.useMemo(() => {
-    const liveProject = activeHubId ? getProjectForHub(activeHubId) : undefined;
-
     return surveyInboxRules({
       hub: activeHub ?? undefined,
       improvementProject: liveProject,
@@ -209,7 +208,7 @@ const FrameView: React.FC = () => {
       controlHandoffs,
       now: Date.now(),
     });
-  }, [activeHub?.controlReviews, activeHubId, controlHandoffs, getProjectForHub, controlRecords]);
+  }, [activeHub?.controlReviews, activeHubId, controlHandoffs, liveProject, controlRecords]);
 
   const handleSeeData = React.useCallback(() => {
     usePanelsStore.getState().showExplore();

@@ -1,7 +1,8 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import ProjectsTabView from '../ProjectsTabView';
-import type { ProcessHub, ImprovementProject } from '@variscout/core';
+import type { ProcessHub } from '@variscout/core';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { getImprovementProjectInitialState, useImprovementProjectStore } from '@variscout/stores';
 
 const baseHub: ProcessHub = {
