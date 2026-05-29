@@ -1369,9 +1369,14 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
 
   // Process map: one step is enough to make `detectScopeFromMap` return b2/b1
   // (anything other than b0), so CanvasWorkspace renders the b1/b2 branch with
-  // the inlined edit chrome instead of the b0 FrameViewB0 picker. The
-  // processSteps that drive the toolbar + timing-badge flow live in
-  // CanvasWorkspace local state, not in processMap.nodes.
+  // the inlined edit chrome instead of the b0 FrameViewB0 picker.
+  //
+  // IM-0b (ADR-087): the `Step` column drop now authors the CANONICAL map via
+  // canvasStore + persistCanvasStoreMap → setProcessContext. The harness is
+  // therefore STATEFUL — it feeds setProcessContext back into processContext so
+  // the derived `processSteps` (deriveProcessSteps(map)) updates, exactly as a
+  // real parent (Azure/PWA FrameView) does. Emergent step ids use the canvas
+  // `step-${slug}-${seq}` scheme; tests resolve them from the rendered DOM.
   const stepTimingsMap = (): ProcessMap => ({
     version: 1,
     nodes: [{ id: 'seed-step', name: 'Seed', order: 0 }],
@@ -1383,21 +1388,27 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
   function renderEditWorkspace(
     rows: ReadonlyArray<Record<string, unknown>> = pairedTimingRows
   ): void {
-    render(
-      <CanvasWorkspace
-        rawData={rows as ReadonlyArray<import('@variscout/core').DataRow>}
-        outcome={null}
-        factors={[]}
-        measureSpecs={{}}
-        processContext={{ processMap: stepTimingsMap() }}
-        setOutcome={vi.fn()}
-        setFactors={vi.fn()}
-        setMeasureSpec={vi.fn()}
-        setProcessContext={vi.fn()}
-        onSeeData={vi.fn()}
-        canEditCanvas={true}
-      />
-    );
+    function StatefulEditWorkspace(): React.ReactElement {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: stepTimingsMap() });
+      return (
+        <CanvasWorkspace
+          rawData={rows as ReadonlyArray<import('@variscout/core').DataRow>}
+          outcome={null}
+          factors={[]}
+          measureSpecs={{}}
+          processContext={processContext}
+          setOutcome={vi.fn()}
+          setFactors={vi.fn()}
+          setMeasureSpec={vi.fn()}
+          setProcessContext={next => setProcessContext(next ?? { processMap: stepTimingsMap() })}
+          onSeeData={vi.fn()}
+          canEditCanvas={true}
+        />
+      );
+    }
+    render(<StatefulEditWorkspace />);
   }
 
   function dropStepColumnOnProcessZone(): void {
@@ -1409,21 +1420,40 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
     });
   }
 
+  // IM-0b: resolve the canvas-scheme node id of an emergent step by its display
+  // name. Step boxes carry `data-testid="step-box-${id}"` and render the name;
+  // the id is no longer a predictable `step-Step-${idx}` literal.
+  function stepIdByName(name: string): string {
+    const box = screen
+      .getAllByTestId(/^step-box-step-/)
+      .find(
+        el =>
+          el.getAttribute('data-testid')?.endsWith('-internal-y') === false &&
+          el.getAttribute('data-testid')?.endsWith('-internal-x') === false &&
+          el.textContent?.includes(name)
+      );
+    if (!box) throw new Error(`No step box found for "${name}"`);
+    const testId = box.getAttribute('data-testid')!;
+    return testId.replace(/^step-box-/, '');
+  }
+
   it('happy path — drop categorical → toolbar enabled → modal pre-fills → save → derived chips + badges appear', () => {
     renderEditWorkspace();
 
     // Edit mode shell is mounted (canEditCanvas:true + b1/b2 scope).
     expect(screen.getByTestId('edit-mode-shell')).toBeInTheDocument();
 
-    // Toolbar's "Capture step timings" button is disabled before steps exist.
+    // IM-0b: steps derive from the canonical map. The seed map carries one
+    // node ('Seed'), so the toolbar's "Capture step timings" button is already
+    // enabled (a step exists). The drop adds the data-derived steps on top.
     const toolbarButton = screen.getByRole('button', { name: /\+ Capture step timings/i });
-    expect(toolbarButton).toBeDisabled();
+    expect(toolbarButton).not.toBeDisabled();
 
-    // Drop the `Step` categorical column on the process zone — materializes
-    // 3 emergent steps (Prep / Mix / Pack) into CanvasWorkspace local state.
+    // Drop the `Step` categorical column on the process zone — appends 3
+    // emergent rich nodes (Prep / Mix / Pack) onto the canonical map.
     dropStepColumnOnProcessZone();
 
-    // Toolbar button is now enabled.
+    // Toolbar button remains enabled.
     expect(toolbarButton).not.toBeDisabled();
 
     // No derived chips yet (Save hasn't been called).
@@ -1460,11 +1490,12 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
     expect(derivedGroup).toHaveTextContent('Wait_time');
 
     // Timing badges appear on each step box (`⏱ ~ …`).
-    // detectPairedTimingColumns matches step name → column suffix, so step ids
-    // are `step-Step-0` (Prep) / `step-Step-1` (Mix) / `step-Step-2` (Pack).
-    const prepBox = screen.getByTestId('step-box-step-Step-0');
-    const mixBox = screen.getByTestId('step-box-step-Step-1');
-    const packBox = screen.getByTestId('step-box-step-Step-2');
+    // IM-0b: step ids now use the canvas `step-${slug}-${seq}` scheme;
+    // detectPairedTimingColumns still matches by step NAME → column suffix, so
+    // Prep / Mix / Pack get bound. Resolve the ids from the rendered DOM.
+    const prepBox = screen.getByTestId(`step-box-${stepIdByName('Prep')}`);
+    const mixBox = screen.getByTestId(`step-box-${stepIdByName('Mix')}`);
+    const packBox = screen.getByTestId(`step-box-${stepIdByName('Pack')}`);
     expect(prepBox.textContent).toMatch(/⏱/);
     expect(mixBox.textContent).toMatch(/⏱/);
     expect(packBox.textContent).toMatch(/⏱/);
@@ -1488,13 +1519,14 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
     fireEvent.click(toolbarButton);
 
     // Bind each step to its duration column via the duration alternative section.
-    fireEvent.change(screen.getByTestId('step-duration-row-step-Step-0-picker'), {
+    // IM-0b: resolve canvas-scheme ids from the rendered step boxes.
+    fireEvent.change(screen.getByTestId(`step-duration-row-${stepIdByName('Prep')}-picker`), {
       target: { value: 'Prep_duration_ms' },
     });
-    fireEvent.change(screen.getByTestId('step-duration-row-step-Step-1-picker'), {
+    fireEvent.change(screen.getByTestId(`step-duration-row-${stepIdByName('Mix')}-picker`), {
       target: { value: 'Mix_duration_ms' },
     });
-    fireEvent.change(screen.getByTestId('step-duration-row-step-Step-2-picker'), {
+    fireEvent.change(screen.getByTestId(`step-duration-row-${stepIdByName('Pack')}-picker`), {
       target: { value: 'Pack_duration_ms' },
     });
 
@@ -2481,12 +2513,18 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
   >;
   type PersistMock = ReturnType<typeof vi.fn<PersistFn>>;
 
+  type SetProcessContextFn = React.ComponentProps<typeof CanvasWorkspace>['setProcessContext'];
+  type SetProcessContextMock = ReturnType<typeof vi.fn<SetProcessContextFn>>;
+
   function renderWithActiveIP(opts: {
     activeIP: React.ComponentProps<typeof CanvasWorkspace>['activeIP'];
     onPersistCanvasState?: PersistMock;
     rows?: ReadonlyArray<Record<string, unknown>>;
-  }): { onPersist: PersistMock } {
+    /** IM-0b: steps are seeded via the canonical map, not IP.processSteps. */
+    processMap?: ProcessMap;
+  }): { onPersist: PersistMock; setProcessContext: SetProcessContextMock } {
     const onPersist: PersistMock = opts.onPersistCanvasState ?? vi.fn<PersistFn>();
+    const setProcessContext: SetProcessContextMock = vi.fn<SetProcessContextFn>();
     render(
       <CanvasWorkspace
         rawData={
@@ -2495,18 +2533,18 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
         outcome={null}
         factors={[]}
         measureSpecs={{}}
-        processContext={{ processMap: e1Map() }}
+        processContext={{ processMap: opts.processMap ?? e1Map() }}
         setOutcome={vi.fn()}
         setFactors={vi.fn()}
         setMeasureSpec={vi.fn()}
-        setProcessContext={vi.fn()}
+        setProcessContext={setProcessContext}
         onSeeData={vi.fn()}
         canEditCanvas={true}
         activeIP={opts.activeIP}
         onPersistCanvasState={onPersist}
       />
     );
-    return { onPersist };
+    return { onPersist, setProcessContext };
   }
 
   // Multi-row date dataset — at least 2 distinct values are needed for
@@ -2597,11 +2635,17 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     expect(persistedIP.formulaBindings?.[0]?.name).toBe('Yield_pct');
   });
 
-  it('with activeIP set, dropping a categorical column on ProcessZone fires onPersistCanvasState with processSteps', async () => {
+  // IM-0b (ADR-087): dropping a categorical column on the ProcessZone now
+  // authors the CANONICAL rich map (via canvasStore addStepsFromColumn +
+  // persistCanvasStoreMap → setProcessContext), NOT a flat IP.processSteps
+  // list. The new nodes are rich ProcessMapNodes minted with the canvas
+  // `step-${slug}-${seq}` id scheme — the old `step-${columnName}-${idx}`
+  // scheme is retired. IP.processSteps is no longer a stored write target.
+  it('with activeIP set, dropping a categorical column on ProcessZone authors rich map nodes (one id scheme)', async () => {
     const { createTestIP } = await import('../../../test-utils/improvementProject');
     const activeIP = createTestIP();
     const stepRows = [{ Step: 'Prep' }, { Step: 'Mix' }, { Step: 'Pack' }];
-    const { onPersist } = renderWithActiveIP({ activeIP, rows: stepRows });
+    const { onPersist, setProcessContext } = renderWithActiveIP({ activeIP, rows: stepRows });
 
     // Drop the Step categorical column on the process-zone target.
     act(() => {
@@ -2611,10 +2655,20 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
       });
     });
 
-    expect(onPersist).toHaveBeenCalledTimes(1);
-    const persistedIP = onPersist.mock
-      .calls[0][0] as import('@variscout/core/improvementProject').ImprovementProject;
-    expect(persistedIP.processSteps?.map(s => s.name)).toEqual(['Prep', 'Mix', 'Pack']);
+    // Steps are authored on the canonical map (setProcessContext), not on the
+    // IP (onPersistCanvasState) — the IP no longer stores processSteps.
+    expect(onPersist).not.toHaveBeenCalled();
+    expect(setProcessContext).toHaveBeenCalled();
+    const lastCall = setProcessContext.mock.calls.at(-1)![0];
+    const nodes = lastCall!.processMap!.nodes;
+    // e1Map seeds one node ('Seed'); the drop appends Prep / Mix / Pack.
+    expect(nodes.map(n => n.name)).toEqual(['Seed', 'Prep', 'Mix', 'Pack']);
+    // The three new nodes use the canvas id scheme, NOT `step-Step-${idx}`.
+    const newNodeIds = nodes.slice(1).map(n => n.id);
+    for (const id of newNodeIds) {
+      expect(id).toMatch(/^step-[a-z0-9-]+-\d+$/);
+      expect(id).not.toMatch(/^step-Step-\d+$/);
+    }
   });
 
   it('with activeIP pre-populated, the IP-sourced values drive the rendered Canvas state', async () => {
@@ -2630,19 +2684,27 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
         Prep_end: '2026-03-02T09:30:00.000Z',
       },
     ];
+    // IM-0b: the step is seeded on the canonical map (deriveProcessSteps reads
+    // map.nodes); stepTimings.stepId references that canonical node id.
+    const stepSeededMap: ProcessMap = {
+      version: 1,
+      nodes: [{ id: 'step-prep-0', name: 'Prep', order: 0 }],
+      tributaries: [],
+      createdAt: '2026-05-04T00:00:00.000Z',
+      updatedAt: '2026-05-04T00:00:00.000Z',
+    };
     const activeIP = createTestIP({
-      processSteps: [{ id: 'step-Step-0', name: 'Prep', order: 0 }],
       stepTimings: [
         createTestStepTiming({
           kind: 'paired',
-          stepId: 'step-Step-0',
+          stepId: 'step-prep-0',
           startColumn: 'Prep_start',
           endColumn: 'Prep_end',
         }),
       ],
     });
 
-    renderWithActiveIP({ activeIP, rows: pairedRows });
+    renderWithActiveIP({ activeIP, rows: pairedRows, processMap: stepSeededMap });
 
     // The IP-supplied stepTimings drive the DERIVED FROM TIMINGS palette
     // group: Lead_time / Total_work_time / Wait_time are present.

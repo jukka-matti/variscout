@@ -124,25 +124,27 @@ describe('IndexedDB schema v14 (E1)', () => {
     await db.delete();
   });
 
-  it('opens at version 15 from clean state', async () => {
+  it('opens at version 16 from clean state', async () => {
     await openDb();
     // Dexie reports `verno` as the highest declared version after open().
-    expect(db.verno).toBe(15);
+    expect(db.verno).toBe(16);
   });
 
-  it('opens cleanly without erroring on the v15 statement', async () => {
-    // The v15 statement is an empty `.stores({})` bump with no upgrade
+  it('opens cleanly without erroring on the v16 statement', async () => {
+    // The v16 statement is an empty `.stores({})` bump with no upgrade
     // callback (per wedge V1 no-back-compat policy). If a stale upgrade
     // callback were registered or the version statement were malformed,
     // openDb() would throw here. Successful open + correct verno is the
     // implicit proof.
     await expect(openDb()).resolves.toBeDefined();
-    expect(db.verno).toBe(15);
+    expect(db.verno).toBe(16);
   });
 
   it('round-trips an ImprovementProject blob with the new E1 fields through the dedicated improvementProjects table', async () => {
     // IPs live in the dedicated `improvementProjects` Dexie table (1:1 with a hub per IM-0a).
-    // Exercise that the blob write/read survives the v15 version bump.
+    // Exercise that the blob write/read survives the v16 version bump. Note:
+    // processSteps remains a valid optional in-row field for the stored
+    // back-compat shape (IM-0b / ADR-087) even though no write path persists it.
     await openDb();
     const ipRecord = {
       id: 'ip-e1',

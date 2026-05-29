@@ -309,7 +309,9 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
       role: 'lead',
     });
     expect(newIP.goal.outcomeGoals).toEqual([]);
-    // Canvas-Edit-mode fields start absent — populated by later modal saves.
+    // Canvas-Edit-mode binding fields start absent — populated by later modal
+    // saves. processSteps is a read-only projection of the canonical map
+    // (IM-0b / ADR-087); it is never written on the IP, so it stays undefined.
     expect(newIP.processSteps).toBeUndefined();
     expect(newIP.stepTimings).toBeUndefined();
     expect(newIP.formulaBindings).toBeUndefined();
