@@ -164,6 +164,7 @@ describe('handleEditModeDragEnd', () => {
 
   describe('process routing (short-circuits before outcome)', () => {
     it('fires onStepsReplace and NOT onOutcomeSpecAdd when a categorical column drops on process-zone:singleton', () => {
+      // IM-0b: onStepsReplace receives (string[], columnName) — ordered distinct values.
       const onStepsReplace = vi.fn();
       const onOutcomeSpecAdd = vi.fn();
       const onFactorControlAdd = vi.fn();
@@ -175,9 +176,9 @@ describe('handleEditModeDragEnd', () => {
         onFactorControlAdd,
       });
       expect(onStepsReplace).toHaveBeenCalledTimes(1);
-      const [steps, colName] = onStepsReplace.mock.calls[0];
+      const [distinctValues, colName] = onStepsReplace.mock.calls[0];
       expect(colName).toBe('Stage');
-      expect(steps).toHaveLength(3);
+      expect(distinctValues).toEqual(['Prep', 'Run', 'Cool']);
       // Process route consumed the drop; outcome + factor must NOT fire
       expect(onOutcomeSpecAdd).not.toHaveBeenCalled();
       expect(onFactorControlAdd).not.toHaveBeenCalled();
