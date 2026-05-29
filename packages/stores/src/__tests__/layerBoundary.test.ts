@@ -52,6 +52,7 @@ function loadStoreFiles(): StoreFile[] {
     'viewStore.ts',
     'improvementProjectStore.ts',
     'useProjectMembershipStore.ts',
+    'analysisScopeStore.ts',
   ];
   return filenames.map(filename => {
     const path = resolve(SRC, filename);
