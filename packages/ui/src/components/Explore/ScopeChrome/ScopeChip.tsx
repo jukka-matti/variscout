@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import { useAnalysisScopeStore } from '@variscout/stores';
 import { SingleSelectPopover } from '../../SingleSelectPopover';
 import { FilterChipDropdown } from '../../FilterChipDropdown';
-import { createTestFilterChipData } from '../../../test-utils/filterChipFactories';
+import { buildFilterChipData } from '../../filterTypes';
 
 export type ScopeChipKind =
   | {
@@ -170,7 +170,7 @@ export function ScopeChip({ chip, removable }: ScopeChipProps) {
   }
 
   // categorical
-  const chipData = createTestFilterChipData(
+  const chipData = buildFilterChipData(
     chip.column,
     chip.values as (string | number)[],
     chip.availableValues as (string | number)[]

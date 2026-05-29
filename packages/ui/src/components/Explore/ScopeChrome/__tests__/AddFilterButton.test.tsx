@@ -78,4 +78,19 @@ describe('AddFilterButton', () => {
       .categoricalFilters.find(f => f.column === 'operator');
     expect(filter?.values).toContain('op1');
   });
+
+  it('hides itself entirely when no factors remain to filter', () => {
+    // All three factors are already in scope → pickerOptions is empty →
+    // the button hides per `feedback_hidden_vs_disabled_cta`.
+    useAnalysisScopeStore.getState().setCategoricalValues('vessel', ['A']);
+    useAnalysisScopeStore.getState().setCategoricalValues('operator', ['op1']);
+    useAnalysisScopeStore.getState().setCategoricalValues('shift', ['day']);
+    render(
+      <AddFilterButton
+        availableFactors={availableFactors}
+        categoricalValuesByColumn={categoricalValuesByColumn}
+      />
+    );
+    expect(screen.queryByTestId('add-filter-button')).toBeNull();
+  });
 });

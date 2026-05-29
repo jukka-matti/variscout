@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAnalysisScopeStore } from '@variscout/stores';
 import { SingleSelectPopover } from '../../SingleSelectPopover';
 import { FilterChipDropdown } from '../../FilterChipDropdown';
-import { createTestFilterChipData } from '../../../test-utils/filterChipFactories';
+import { buildFilterChipData } from '../../filterTypes';
 
 export interface AddFilterButtonProps {
   readonly availableFactors: ReadonlyArray<{ columnName: string; label: string }>;
@@ -39,6 +39,10 @@ export function AddFilterButton({
     setStage('picking');
   };
 
+  // Hide the button entirely when no factors remain to filter — prefer hiding
+  // over teasing per `feedback_hidden_vs_disabled_cta`.
+  if (stage === 'closed' && pickerOptions.length === 0) return null;
+
   return (
     <span className="inline-flex">
       <button
@@ -64,7 +68,7 @@ export function AddFilterButton({
       )}
       {stage === 'editing' && pickedColumn && (
         <FilterChipDropdown
-          chipData={createTestFilterChipData(
+          chipData={buildFilterChipData(
             pickedColumn,
             [],
             (categoricalValuesByColumn[pickedColumn] ?? []) as (string | number)[]
