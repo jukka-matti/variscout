@@ -289,7 +289,7 @@ PR-LV1-B/C are independent of each other; can run in parallel after LV1-A + LV1-
 - 4-chart dashboard renders (no focusedChart)
 - `pnpm --filter @variscout/ui test` and `build` green
 
-**Sub-plan invocation:** Standard `superpowers:writing-plans` with prompt: `"Sub-plan for PR-LV1-D. Helper + ExploreJumpButton + chip wiring across Outcome/Factor/Step/L2-step. Per spec §4.2–§4.4. ~5–7 tasks. Sonnet implementer."`
+**Sub-plan:** [./2026-05-28-pr-lv1-d-canvas-explore-jump.md](./2026-05-28-pr-lv1-d-canvas-explore-jump.md) (drafted 2026-05-29; ready for dispatch — 7 bite-sized TDD tasks, Sonnet implementer per task).
 
 ---
 
