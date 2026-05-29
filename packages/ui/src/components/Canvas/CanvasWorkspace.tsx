@@ -41,8 +41,16 @@ import { isValidLevel, type CanvasLevel } from '@variscout/core/canvas';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import type { ChipNavigationTarget } from './EditMode/handlers/navigateToExploreForChip';
 import type { ActionItem } from '@variscout/core/findings';
-import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
-import type { ImprovementProject } from '@variscout/core/improvementProject';
+import {
+  createEmptyMap,
+  deriveProcessSteps,
+  detectGaps,
+  type ProcessMap,
+} from '@variscout/core/frame';
+import type {
+  ImprovementProject,
+  ImprovementProjectFactorControl,
+} from '@variscout/core/improvementProject';
 import type { OutcomeSpec } from '@variscout/core/processHub';
 import { profileColumns, type ColumnParsingProfile } from '@variscout/core/parser';
 import { useCanvasStore } from '@variscout/stores';
@@ -329,6 +337,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const placeChipOnStep = useCanvasStore(state => state.placeChipOnStep);
   const createStepFromChip = useCanvasStore(state => state.createStepFromChip);
   const addStep = useCanvasStore(state => state.addStep);
+  const addStepsFromColumn = useCanvasStore(state => state.addStepsFromColumn);
   const removeStep = useCanvasStore(state => state.removeStep);
   const renameStep = useCanvasStore(state => state.renameStep);
   const connectSteps = useCanvasStore(state => state.connectSteps);
@@ -544,24 +553,29 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [columnAnalysis, outcome, runOrderColumn, map.assignments]
   );
 
-  // PR-CCJ-E1 T5: the four Canvas-Edit-mode binding arrays
-  // (`processSteps`, `stepTimings`, `formulaBindings`,
-  // `timeDecompositionBindings`) live on the active `ImprovementProject`
-  // after E1. When `activeIP` is provided, reads come from the IP and writes
-  // flow through `onPersistCanvasState` (the IP store's `upsertProject`).
-  // When `activeIP` is `null` / `undefined` (test fixtures, FrameViewB0
-  // stubs, PWA without active-IP wiring), the local-state fallback below
-  // keeps the modal save flows working in isolation. The fallback is
+  // PR-CCJ-E1 T5: the Canvas-Edit-mode binding arrays (`stepTimings`,
+  // `formulaBindings`, `timeDecompositionBindings`) live on the active
+  // `ImprovementProject` after E1. When `activeIP` is provided, reads come
+  // from the IP and writes flow through `onPersistCanvasState` (the IP store's
+  // `upsertProject`). When `activeIP` is `null` / `undefined` (test fixtures,
+  // FrameViewB0 stubs, PWA without active-IP wiring), the local-state fallback
+  // below keeps the modal save flows working in isolation. The fallback is
   // structural — once `activeIP` is supplied it owns the source of truth and
   // local state goes unused for those fields.
-  const [localProcessSteps, setLocalProcessSteps] = React.useState<ExtractedStep[]>([]);
+  //
+  // IM-0b (ADR-087): `processSteps` is NO LONGER one of these binding arrays.
+  // The rich `ProcessMap` is the single canonical step structure; the step
+  // list is a read-only projection of `map.nodes` via `deriveProcessSteps`.
+  // There is no local-state fallback and no IP write path for steps — the
+  // canvas map (canvasStore → persistCanvasStoreMap → setProcessContext) is
+  // the only step author path.
   const [localStepTimings, setLocalStepTimings] = React.useState<StepTimingBinding[]>([]);
   const [localFormulaBindings, setLocalFormulaBindings] = React.useState<FormulaBinding[]>([]);
   const [localTimeDecompositionBindings, setLocalTimeDecompositionBindings] = React.useState<
     TimeDecompositionBinding[]
   >([]);
 
-  const processSteps = activeIP?.processSteps ?? localProcessSteps;
+  const processSteps = React.useMemo(() => deriveProcessSteps(map), [map]);
   const stepTimings = activeIP?.stepTimings ?? localStepTimings;
   const formulaBindings = activeIP?.formulaBindings ?? localFormulaBindings;
   const timeDecompositionBindings =
@@ -592,27 +606,13 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const patchActiveIP = React.useCallback(
     (
       fieldPatch: Partial<
-        Pick<
-          ImprovementProject,
-          'processSteps' | 'stepTimings' | 'formulaBindings' | 'timeDecompositionBindings'
-        >
+        Pick<ImprovementProject, 'stepTimings' | 'formulaBindings' | 'timeDecompositionBindings'>
       >
     ) => {
       if (!activeIP || !onPersistCanvasState) return;
       onPersistCanvasState({ ...activeIP, ...fieldPatch, updatedAt: Date.now() });
     },
     [activeIP, onPersistCanvasState]
-  );
-
-  const setProcessSteps = React.useCallback(
-    (next: ExtractedStep[]) => {
-      if (activeIP && onPersistCanvasState) {
-        patchActiveIP({ processSteps: next });
-      } else {
-        setLocalProcessSteps(next);
-      }
-    },
-    [activeIP, onPersistCanvasState, patchActiveIP]
   );
 
   const setStepTimings = React.useCallback(
@@ -698,17 +698,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     // Other itemIds (rename, view-distribution, etc.) are handled at the Palette level
     // or fall through. CanvasWorkspace only owns calculate-from + use-as-time-factors.
   }, []);
-
-  const handleStepsReplace = React.useCallback(
-    (next: ExtractedStep[], _sourceColumnName: string) => {
-      // E1 T5: when activeIP is provided, persist into IP.processSteps via
-      // onPersistCanvasState; otherwise the local-state fallback owns the
-      // value. `_sourceColumnName` is reserved for future provenance metadata
-      // (Charter modal commit) — currently dropped on both branches.
-      setProcessSteps(next);
-    },
-    [setProcessSteps]
-  );
 
   // C3 Task 4: build the categorical-distinct-values map from the parsed
   // column analysis. Only `type === 'categorical'` columns participate (numeric
@@ -1195,6 +1184,53 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     />
   );
 
+  // IM-0b (ADR-087): the column-drop-to-process-zone gesture authors the
+  // CANONICAL rich map, not a flat IP.processSteps list. We dispatch the
+  // canvasStore `addStepsFromColumn` action (one rich `ProcessMapNode` per
+  // distinct value, minted with the canvas `step-${slug}-${seq}` id scheme),
+  // then mirror `persistCanvasStoreMap` so the new nodes flow through
+  // `setProcessContext` exactly like every other canvas edit. The pre-extracted
+  // `steps` ids (from `handleProcessStructureDrop`) are intentionally ignored —
+  // only their ordered names are used as the distinct values, retiring the old
+  // `step-${columnName}-${idx}` scheme. One id scheme, one author path.
+  const handleStepsReplace = React.useCallback(
+    (next: ExtractedStep[], sourceColumnName: string) => {
+      addStepsFromColumn(
+        sourceColumnName,
+        next.map(step => step.name)
+      );
+      persistCanvasStoreMap();
+    },
+    [addStepsFromColumn, persistCanvasStoreMap]
+  );
+
+  // IM-0b (ADR-087): wire `onFactorControlAdd` (previously `undefined` — a
+  // silent no-op). Writes `IP.goal.factorControls` via `onPersistCanvasState`,
+  // appending one control per dropped column. `stepId` (set for a per-step
+  // factor zone) is already a canonical `ProcessMap` node id — the FactorZone
+  // step list comes from `processSteps`, which is now a projection of
+  // `map.nodes`. No-op when no active IP is wired.
+  const handleFactorControlAdd = React.useCallback(
+    (columnName: string, stepId?: string) => {
+      if (!activeIP || !onPersistCanvasState) return;
+      const existing = activeIP.goal.factorControls ?? [];
+      if (existing.some(control => control.factor === columnName && control.stepId === stepId)) {
+        return;
+      }
+      const nextControl: ImprovementProjectFactorControl = {
+        factor: columnName,
+        targetCondition: '',
+        ...(stepId !== undefined && { stepId }),
+      };
+      onPersistCanvasState({
+        ...activeIP,
+        goal: { ...activeIP.goal, factorControls: [...existing, nextControl] },
+        updatedAt: Date.now(),
+      });
+    },
+    [activeIP, onPersistCanvasState]
+  );
+
   // PR-LV1-C: drag-end router for the inlined Edit chrome's `DndContext`.
   // Routes `column:<name>` drops to the process / outcome / factor zones;
   // Canvas keeps its own separate `DndContext` for chip→step routing inside
@@ -1205,10 +1241,15 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
         numericValuesByColumn,
         categoricalDistinctValuesByColumn,
         onOutcomeSpecAdd: undefined,
-        onFactorControlAdd: undefined,
+        onFactorControlAdd: handleFactorControlAdd,
         onStepsReplace: handleStepsReplace,
       }),
-    [numericValuesByColumn, categoricalDistinctValuesByColumn, handleStepsReplace]
+    [
+      numericValuesByColumn,
+      categoricalDistinctValuesByColumn,
+      handleFactorControlAdd,
+      handleStepsReplace,
+    ]
   );
 
   // PR-LV1-C: edit chrome surfaces inline whenever the viewer is permitted to
@@ -1315,7 +1356,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                     <FactorZone
                       controls={factorControls}
                       steps={processSteps}
-                      onControlAdd={() => {}}
+                      onControlAdd={handleFactorControlAdd}
                       onControlUpdate={() => {}}
                       onChipExploreJump={onChipExploreJump}
                     />
