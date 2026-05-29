@@ -15,9 +15,9 @@ last-reviewed: 2026-05-18
 
 V1 ships 3 personas inside each Project. Per-project ACLs; no cross-AD-tenant invites.
 
-- [**Lead**](lead.md) — drives Charter → Approach → Sustainment; owns active-IP cascade
+- [**Lead**](lead.md) — drives Charter → Approach → Control; owns active-IP cascade
 - [**Member**](member.md) — contributes evidence, measurement rows, action items
-- [**Sponsor**](sponsor.md) — approves Charter; reviews Sustainment + signs off Report
+- [**Sponsor**](sponsor.md) — approves Charter; reviews Control + signs off Report
 
 The market-facing buyer / champion (**Improvement Specialist**) lives in L1: [`../../01-vision/product-overview.md`](../../01-vision/product-overview.md). Inside a Project the Specialist plays one of the three roles above (most often Lead).
 
