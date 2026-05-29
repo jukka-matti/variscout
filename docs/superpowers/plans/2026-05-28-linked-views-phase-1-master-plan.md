@@ -478,7 +478,7 @@ PR-LV1-B/C are independent of each other; can run in parallel after LV1-A + LV1-
 - Clear scope → pill hides
 - `pnpm --filter @variscout/ui test` and `build` green
 
-**Sub-plan invocation:** Standard `superpowers:writing-plans` with prompt: `"Sub-plan for PR-LV1-H. Small chrome pill subscribing to scope.yColumn. Reuse existing Cpk computation + outcome spec popover. ~3–4 tasks."`
+**Sub-plan:** [./2026-05-28-pr-lv1-h-outcome-summary-pill.md](./2026-05-28-pr-lv1-h-outcome-summary-pill.md) (drafted 2026-05-29; ready for dispatch — 4 bite-sized TDD tasks, Sonnet implementer per task).
 
 ---
 
