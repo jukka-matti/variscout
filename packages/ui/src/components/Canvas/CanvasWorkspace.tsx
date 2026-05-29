@@ -63,7 +63,6 @@ import { FactorZone } from './EditMode/FactorZone';
 import { ProcessStructureZone } from './EditMode/ProcessZone';
 import { EditModeToolbar } from './EditMode/EditModeToolbar';
 import { handleEditModeDragEnd } from './EditMode/handleEditModeDragEnd';
-import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCategoricalColumn';
 import { useSystemHints } from './EditMode/hooks/useSystemHints';
 import { useGhostSuggestions } from './EditMode/hooks/useGhostSuggestions';
 import { StepTimingsModal } from './EditMode/Workflows/StepTimingsModal';
@@ -1193,12 +1192,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   // `steps` ids (from `handleProcessStructureDrop`) are intentionally ignored —
   // only their ordered names are used as the distinct values, retiring the old
   // `step-${columnName}-${idx}` scheme. One id scheme, one author path.
+  // IM-0b: receives ordered distinct values directly (no intermediate
+  // ExtractedStep[] with throwaway ids). addStepsFromColumn mints canonical ids.
   const handleStepsReplace = React.useCallback(
-    (next: ExtractedStep[], sourceColumnName: string) => {
-      addStepsFromColumn(
-        sourceColumnName,
-        next.map(step => step.name)
-      );
+    (distinctValues: string[], sourceColumnName: string) => {
+      addStepsFromColumn(sourceColumnName, distinctValues);
       persistCanvasStoreMap();
     },
     [addStepsFromColumn, persistCanvasStoreMap]
@@ -1208,8 +1206,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   // silent no-op). Writes `IP.goal.factorControls` via `onPersistCanvasState`,
   // appending one control per dropped column. `stepId` (set for a per-step
   // factor zone) is already a canonical `ProcessMap` node id — the FactorZone
-  // step list comes from `processSteps`, which is now a projection of
-  // `map.nodes`. No-op when no active IP is wired.
+  // step list comes from deriveProcessSteps(map) (ADR-087).
+  // No-op when no active IP is wired.
   const handleFactorControlAdd = React.useCallback(
     (columnName: string, stepId?: string) => {
       if (!activeIP || !onPersistCanvasState) return;

@@ -176,8 +176,9 @@ export class VariScoutDatabase extends Dexie {
     this.version(13).stores({});
 
     // Version 14: PR-CCJ-E1 — ImprovementProject extended with issueStatement +
-    // 4 Canvas-state fields (processSteps, stepTimings, formulaBindings,
-    // timeDecompositionBindings). Stored shape changes but Dexie indexes are
+    // 3 Canvas-state binding fields (stepTimings, formulaBindings,
+    // timeDecompositionBindings; processSteps was added here but removed in v16).
+    // Stored shape changes but Dexie indexes are
     // unchanged (the new fields are in-row, not indexed).
     // Per wedge V1 no-back-compat policy (feedback_wedge_v1_no_migration_no_backcompat),
     // NO upgrade callback is provided — existing v13 rows that lack the new
@@ -195,14 +196,13 @@ export class VariScoutDatabase extends Dexie {
 
     // Version 16: IM-0b — process-step model reconciliation (ADR-087). The rich
     // ProcessMap (on ProcessContext.processMap, inside the hub blob) becomes the
-    // single canonical step structure; IP.processSteps is now a read-only
-    // projection (deriveProcessSteps) and no write path persists it. The
-    // improvementProjects Dexie table shape is unchanged — processSteps remains
-    // a valid optional in-row field for the stored back-compat shape. Per wedge
-    // V1 no-users / no-migration stance (ADR-082), NO upgrade callback: any
-    // stored goal.stepId / stepTimings.stepId minted against the old flat
-    // step-${columnName}-${idx} scheme may orphan, which is acceptable
-    // pre-launch. The bump flushes cached schema; no destructive re-init.
+    // single canonical step structure. IP.processSteps was removed from the
+    // ImprovementProject type (it was vestigial — no write path ever persisted
+    // it; the derived projection via deriveProcessSteps is the only read path).
+    // The improvementProjects Dexie table shape is otherwise unchanged; the
+    // field is gone from the type so it can no longer be accidentally written.
+    // Per wedge V1 no-users / no-migration stance (ADR-082), NO upgrade
+    // callback. The bump flushes cached schema; no destructive re-init.
     this.version(16).stores({});
   }
 }

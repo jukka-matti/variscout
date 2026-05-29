@@ -54,11 +54,10 @@ export interface ImprovementProjectOutcomeGoal {
   deadline?: string;
   /** Optional: bind this outcome to a specific process step (step-bound Y).
    *  If omitted, the outcome is global (whole-process Y, feeds L1 view).
-   *  If present, `stepId` references a canonical `ProcessMap` node id (the
-   *  rich map on the IP's 1:1 Hub `ProcessContext.processMap`, surfaced to the
-   *  IP via the derived `processSteps` projection — ADR-087); feeds L3
-   *  focal-step view. Per Spec 2 §3.3.1 step-bound vs global symmetry —
-   *  outcomes AND factors can both be global or step-bound. */
+   *  If present, `stepId` references a canonical `ProcessMap` node id
+   *  (ADR-087); feeds L3 focal-step view. Per Spec 2 §3.3.1 step-bound
+   *  vs global symmetry — outcomes AND factors can both be global or
+   *  step-bound. */
   stepId?: string;
 }
 
@@ -67,7 +66,7 @@ export interface ImprovementProjectFactorControl {
   targetCondition: string;
   linkedHypothesisId?: Hypothesis['id'];
   /** Optional: binds this control to a specific process step. Empty = global.
-   *  When set, `stepId` is a canonical `ProcessMap` node id (ADR-087). */
+   *  When set, `stepId` references a canonical `ProcessMap` node id (ADR-087). */
   stepId?: string;
 }
 
@@ -161,21 +160,10 @@ export interface ImprovementProject extends EntityBase {
    *  goal-side fallback when no OutcomeSpec is available. */
   issueStatement?: string;
 
-  /** @deprecated as a stored field — DO NOT WRITE. Per ADR-087 the rich
-   *  `ProcessMap` (on the IP's 1:1 Hub `ProcessContext.processMap`) is the
-   *  single canonical step structure; the process-step list is a read-only
-   *  projection of `map.nodes` computed on read via `deriveProcessSteps`
-   *  (`@variscout/core/frame`). The field is retained on the type only for the
-   *  bootstrap window / stored back-compat shape — no write path persists it.
-   *  Step ids referenced by `stepTimings`, `goal.outcomeGoals[].stepId`,
-   *  `goal.factorControls[].stepId` all resolve against the canonical node id. */
-  processSteps?: ProcessStepEntry[];
-
   /** Per-step timing bindings (from D1 — Step Timings workflow).
    *  Paired (start + end columns) drives Lead_time + Total_work_time +
    *  Wait_time derivation; duration columns contribute to Total_work_time
-   *  only. `stepId` references a canonical `ProcessMap` node id (ADR-087),
-   *  surfaced via the derived `processSteps` projection. */
+   *  only. `stepId` references a canonical `ProcessMap` node id (ADR-087). */
   stepTimings?: StepTimingBinding[];
 
   /** Calculated-column formula bindings (from D2 — Calc workflow).

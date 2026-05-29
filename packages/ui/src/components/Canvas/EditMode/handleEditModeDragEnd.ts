@@ -6,7 +6,6 @@ import {
   handleProcessStructureDrop,
   type ProcessStructureDropArgs,
 } from './handleProcessStructureDrop';
-import type { ExtractedStep } from './ProcessZone/extractStepsFromCategoricalColumn';
 
 /**
  * Arguments to {@link handleEditModeDragEnd}.
@@ -30,7 +29,9 @@ export interface EditModeDragEndArgs {
   categoricalDistinctValuesByColumn?: Record<string, string[]>;
   onOutcomeSpecAdd?: (columnName: string, derived: Partial<OutcomeSpec>, stepId?: string) => void;
   onFactorControlAdd?: (columnName: string, stepId?: string) => void;
-  onStepsReplace?: (steps: ExtractedStep[], sourceColumnName: string) => void;
+  /** Ordered distinct values for the dropped column; receiver calls
+   *  `addStepsFromColumn(columnName, distinctValues)` (IM-0b). */
+  onStepsReplace?: (distinctValues: string[], sourceColumnName: string) => void;
 }
 
 /**

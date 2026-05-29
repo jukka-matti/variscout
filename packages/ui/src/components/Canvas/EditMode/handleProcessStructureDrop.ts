@@ -1,9 +1,5 @@
 import { decodeColumnDragId } from './Palette/encodeColumnDragId';
 import { isProcessDropId } from './ProcessZone/encodeProcessDropId';
-import {
-  extractStepsFromCategoricalColumn,
-  type ExtractedStep,
-} from './ProcessZone/extractStepsFromCategoricalColumn';
 
 /**
  * Arguments to {@link handleProcessStructureDrop}.
@@ -19,14 +15,18 @@ export interface ProcessStructureDropArgs {
   activeId: string;
   overId: string | undefined;
   categoricalDistinctValuesByColumn: Record<string, string[]>;
-  onStepsReplace: (steps: ExtractedStep[], sourceColumnName: string) => void;
+  /** Called with the ordered distinct values and the source column name.
+   *  The receiver (CanvasWorkspace.handleStepsReplace) passes them straight
+   *  to `addStepsFromColumn` — canonical ids are minted there. The old
+   *  `step-${columnName}-${idx}` pre-mint was discarded on arrival (IM-0b). */
+  onStepsReplace: (distinctValues: string[], sourceColumnName: string) => void;
 }
 
 /**
  * Routes a `column:<name>` → `process-zone:singleton` drag-end into an
- * `onStepsReplace(steps, columnName)` call. Returns `true` when the drop was
- * consumed (so the caller can short-circuit other drop handlers in the same
- * `DndContext`), `false` otherwise.
+ * `onStepsReplace(distinctValues, columnName)` call. Returns `true` when the
+ * drop was consumed (so the caller can short-circuit other drop handlers in
+ * the same `DndContext`), `false` otherwise.
  *
  * Guard sequence:
  *   1. `overId` must be `'process-zone:singleton'` — otherwise not a process drop.
@@ -34,8 +34,8 @@ export interface ProcessStructureDropArgs {
  *   3. The decoded column must appear in `categoricalDistinctValuesByColumn` —
  *      numeric columns are absent and must fall through to the outcome handler.
  *
- * On match: calls `extractStepsFromCategoricalColumn(columnName, distinctValues)`
- * to produce ordered `ExtractedStep[]`, then fires `onStepsReplace`.
+ * On match: passes the ordered distinct values directly to `onStepsReplace` —
+ * no intermediate `ExtractedStep[]` with throwaway ids (IM-0b).
  *
  * Pure helper: no React, no DOM, no `@dnd-kit/core` runtime. Sibling of
  * {@link handleOutcomeDrop} and {@link handleFactorDrop}.
@@ -51,7 +51,6 @@ export function handleProcessStructureDrop({
   if (!columnName) return false;
   const distinctValues = categoricalDistinctValuesByColumn[columnName];
   if (!distinctValues) return false;
-  const steps = extractStepsFromCategoricalColumn(columnName, distinctValues);
-  onStepsReplace(steps, columnName);
+  onStepsReplace(distinctValues, columnName);
   return true;
 }
