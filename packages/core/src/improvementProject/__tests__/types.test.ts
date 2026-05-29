@@ -149,7 +149,7 @@ describe('ImprovementProject', () => {
 
   // CCJ E1 task 1 — root-level Canvas-edit-mode state fields
   describe('Canvas Connection Journey E1 — flat root fields', () => {
-    it('minimal IP without the 5 new fields still type-checks', () => {
+    it('minimal IP without the 4 new fields still type-checks', () => {
       // Sanity: no regression — pre-E1 IPs (no E1 fields) remain valid.
       const ip: ImprovementProject = {
         id: 'ip-1',
@@ -170,16 +170,16 @@ describe('ImprovementProject', () => {
         updatedAt: 0,
       };
       expect(ip.issueStatement).toBeUndefined();
-      expect(ip.processSteps).toBeUndefined();
       expect(ip.stepTimings).toBeUndefined();
       expect(ip.formulaBindings).toBeUndefined();
       expect(ip.timeDecompositionBindings).toBeUndefined();
     });
 
-    it('IP with all 5 new fields type-checks with correct shapes', () => {
-      const stepA: ProcessStepEntry = { id: 'step-A', name: 'Mix', order: 0 };
-      const stepB: ProcessStepEntry = { id: 'step-B', name: 'React', order: 1 };
-      const stepC: ProcessStepEntry = { id: 'step-C', name: 'Pack', order: 2 };
+    it('IP with all 4 new fields type-checks with correct shapes', () => {
+      // ProcessStepEntry is the element type for deriveProcessSteps projections
+      // (ADR-087); it is NOT a stored field on ImprovementProject.
+      const _stepShape: ProcessStepEntry = { id: 'step-A', name: 'Mix', order: 0 };
+      void _stepShape; // type-only usage — ProcessStepEntry shape stays exportable
 
       const timingPaired: StepTimingBinding = {
         kind: 'paired',
@@ -225,14 +225,12 @@ describe('ImprovementProject', () => {
         },
         updatedAt: 0,
         issueStatement: 'Mid-shift yield drops 4% during the 14:00 reactor cleanout window.',
-        processSteps: [stepA, stepB, stepC],
         stepTimings: [timingPaired, timingDuration],
         formulaBindings: [formula],
         timeDecompositionBindings: [timeDecomp],
       };
 
       expect(typeof ip.issueStatement).toBe('string');
-      expect(ip.processSteps).toHaveLength(3);
       expect(ip.stepTimings).toHaveLength(2);
       expect(ip.formulaBindings).toHaveLength(1);
       expect(ip.timeDecompositionBindings).toHaveLength(1);
@@ -246,34 +244,18 @@ describe('ImprovementProject', () => {
       expect(ip.timeDecompositionBindings![0].dimensions).toContain('hour');
     });
 
-    it('processSteps is typed as ProcessStepEntry[] (array, not scalar)', () => {
-      // Type-level assertion: the field is an array of ProcessStepEntry, not a single entry.
-      expectTypeOf<ImprovementProject['processSteps']>().toEqualTypeOf<
-        ProcessStepEntry[] | undefined
-      >();
-      // Element type:
-      expectTypeOf<
-        NonNullable<ImprovementProject['processSteps']>[number]
-      >().toEqualTypeOf<ProcessStepEntry>();
-    });
-
-    it('all 5 new fields are optional on ImprovementProject', () => {
+    it('all 4 new fields are optional on ImprovementProject', () => {
       // Partial<Pick<...>> over only the new fields must be assignable to itself —
       // proving each is optional (Pick on a required field would not allow {} alone).
       type E1Fields = Pick<
         ImprovementProject,
-        | 'issueStatement'
-        | 'processSteps'
-        | 'stepTimings'
-        | 'formulaBindings'
-        | 'timeDecompositionBindings'
+        'issueStatement' | 'stepTimings' | 'formulaBindings' | 'timeDecompositionBindings'
       >;
       const empty: E1Fields = {};
       expect(empty).toEqual({});
 
       // Each individual field is independently optional.
       const onlyIssue: E1Fields = { issueStatement: 'X' };
-      const onlySteps: E1Fields = { processSteps: [{ id: 's', name: 'S', order: 0 }] };
       const onlyTimings: E1Fields = {
         stepTimings: [{ kind: 'duration', stepId: 's', durationColumn: 'c' }],
       };
@@ -284,7 +266,6 @@ describe('ImprovementProject', () => {
         timeDecompositionBindings: [{ id: 't', sourceColumn: 'c', dimensions: ['month'] }],
       };
       expect(onlyIssue.issueStatement).toBe('X');
-      expect(onlySteps.processSteps).toHaveLength(1);
       expect(onlyTimings.stepTimings).toHaveLength(1);
       expect(onlyFormulas.formulaBindings).toHaveLength(1);
       expect(onlyTime.timeDecompositionBindings).toHaveLength(1);
