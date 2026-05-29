@@ -1,9 +1,11 @@
 import { useRef } from 'react';
 import type { OutcomeSpec } from '@variscout/core';
+import { ExploreJumpButton } from '../ExploreJumpButton';
 
 export interface OutcomeCardProps {
   spec: OutcomeSpec;
   onSpecsClick: (anchor: { x: number; y: number }) => void;
+  onExploreJumpClick?: () => void;
 }
 
 const DIRECTION_BY_TYPE: Record<OutcomeSpec['characteristicType'], string> = {
@@ -16,7 +18,7 @@ function formatPill(label: string, value: number | undefined): string {
   return `${label}: ${value !== undefined ? value : '—'}`;
 }
 
-export function OutcomeCard({ spec, onSpecsClick }: OutcomeCardProps) {
+export function OutcomeCard({ spec, onSpecsClick, onExploreJumpClick }: OutcomeCardProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const direction = DIRECTION_BY_TYPE[spec.characteristicType];
 
@@ -26,7 +28,7 @@ export function OutcomeCard({ spec, onSpecsClick }: OutcomeCardProps) {
   };
 
   return (
-    <div className="flex flex-col gap-1 rounded-md border border-edge bg-surface-primary p-3 text-content">
+    <div className="group flex flex-col gap-1 rounded-md border border-edge bg-surface-primary p-3 text-content">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-base font-semibold">{spec.columnName}</span>
@@ -34,15 +36,20 @@ export function OutcomeCard({ spec, onSpecsClick }: OutcomeCardProps) {
             {direction}
           </span>
         </div>
-        <button
-          ref={buttonRef}
-          type="button"
-          aria-label="Edit specs"
-          onClick={handleSpecsClick}
-          className="rounded p-1 text-content-tertiary hover:bg-surface-secondary"
-        >
-          ⚙
-        </button>
+        <div className="flex items-center gap-1">
+          {onExploreJumpClick && (
+            <ExploreJumpButton label={spec.columnName} onClick={onExploreJumpClick} />
+          )}
+          <button
+            ref={buttonRef}
+            type="button"
+            aria-label="Edit specs"
+            onClick={handleSpecsClick}
+            className="rounded p-1 text-content-tertiary hover:bg-surface-secondary"
+          >
+            ⚙
+          </button>
+        </div>
       </div>
       <div className="flex flex-wrap gap-1 text-xs text-content-secondary">
         <span className="rounded bg-surface-secondary px-2 py-0.5">

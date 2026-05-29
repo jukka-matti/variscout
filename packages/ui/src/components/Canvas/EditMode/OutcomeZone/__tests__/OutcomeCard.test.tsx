@@ -67,4 +67,40 @@ describe('OutcomeCard', () => {
       expect.objectContaining({ x: expect.any(Number), y: expect.any(Number) })
     );
   });
+
+  it('renders ExploreJumpButton labeled with columnName when onExploreJumpClick is provided', () => {
+    render(
+      <OutcomeCard
+        spec={createTestOutcomeSpec({ columnName: 'Diameter' })}
+        onSpecsClick={vi.fn()}
+        onExploreJumpClick={vi.fn()}
+      />
+    );
+    expect(screen.getByRole('button', { name: /open diameter in explore/i })).toBeInTheDocument();
+  });
+
+  it('does NOT render ExploreJumpButton when onExploreJumpClick is undefined', () => {
+    render(
+      <OutcomeCard
+        spec={createTestOutcomeSpec({ columnName: 'Diameter' })}
+        onSpecsClick={vi.fn()}
+      />
+    );
+    expect(screen.queryByRole('button', { name: /open diameter in explore/i })).toBeNull();
+  });
+
+  it('clicking ExploreJumpButton fires onExploreJumpClick (and does NOT fire onSpecsClick)', () => {
+    const onExploreJumpClick = vi.fn();
+    const onSpecsClick = vi.fn();
+    render(
+      <OutcomeCard
+        spec={createTestOutcomeSpec({ columnName: 'Diameter' })}
+        onSpecsClick={onSpecsClick}
+        onExploreJumpClick={onExploreJumpClick}
+      />
+    );
+    fireEvent.click(screen.getByTestId('chip-explore-jump'));
+    expect(onExploreJumpClick).toHaveBeenCalledTimes(1);
+    expect(onSpecsClick).not.toHaveBeenCalled();
+  });
 });
