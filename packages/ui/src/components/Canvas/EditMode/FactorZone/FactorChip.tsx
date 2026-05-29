@@ -1,5 +1,7 @@
 import { useRef } from 'react';
 import type { ImprovementProjectFactorControl } from '@variscout/core/improvementProject';
+import { useAnalysisScopeStore } from '@variscout/stores';
+import { useScopeIsEmpty } from '../hooks/useScopeIsEmpty';
 import { ExploreJumpButton } from '../ExploreJumpButton';
 
 export interface FactorChipProps {
@@ -25,9 +27,32 @@ export function FactorChip({ control, onSpecsClick, onExploreJumpClick }: Factor
     ? 'bg-surface-secondary text-content-secondary'
     : 'bg-blue-50 text-blue-700';
 
+  const boxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
+  const categoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const matchingFilter = categoricalFilters.find(f => f.column === control.factor);
+  const isYMatch = boxplotFactor === control.factor;
+  const isInScope = isYMatch || matchingFilter !== undefined;
+  const scopeIsEmpty = useScopeIsEmpty();
+  const shouldDim = !scopeIsEmpty && !isInScope;
+
+  const rootClasses = [
+    'group flex flex-col gap-1 rounded-md border p-3 text-content',
+    isYMatch
+      ? 'border-blue-600 ring-1 ring-blue-500/30 bg-blue-50'
+      : 'border-edge bg-surface-primary',
+    shouldDim ? 'opacity-50' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <div className="group flex flex-col gap-1 rounded-md border border-edge bg-surface-primary p-3 text-content">
+    <div className={rootClasses}>
       <div className="flex items-center justify-between gap-2">
+        {isYMatch && (
+          <span aria-hidden="true" className="text-blue-700">
+            ✓
+          </span>
+        )}
         <span className="text-base font-semibold">{control.factor}</span>
         <div className="flex items-center gap-1">
           {onExploreJumpClick && (
@@ -51,6 +76,11 @@ export function FactorChip({ control, onSpecsClick, onExploreJumpClick }: Factor
         <span className={`rounded px-2 py-0.5 ${bindingPillClasses}`}>
           {isStepBound ? `step ${control.stepId}` : 'global'}
         </span>
+        {matchingFilter && (
+          <span className="rounded bg-amber-50 px-2 py-0.5 text-amber-700">
+            {control.factor} = {matchingFilter.values.join(', ')} only
+          </span>
+        )}
       </div>
     </div>
   );
