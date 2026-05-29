@@ -48,12 +48,23 @@ Three entangled open-thread clusters were settled in the 2026-05-29 holistic bra
 
 The clusters are not independent features; B and C both rest on the entity model A reframes. A combined spec keeps the WHERE≠WHY distinction coherent across all three rather than letting three PRs re-derive it.
 
+### Vocabulary + the Project ↔ Hub model
+
+One entity carries the work: the **Improvement Project (IP)** — "the Project," one LSSGB-style project (`ImprovementProject`, `status: draft → active → closed`). Fixed terms used throughout this spec and the ADRs:
+
+- **Improvement Project (IP)** — _the_ unit. Many per user. The user-facing thing.
+- **"Investigation"** — the **activity** done inside an IP (drill, Wall, Evidence Map; the "investigation surface"). **Not an entity** — there is no `Investigation` type in code, and none is introduced.
+- **Hub** — the IP's **internal substrate** (dataset, process map, findings, measurement plans). **One Project wraps one Hub, 1:1** (decision-log 2026-05-18); multi-Hub portfolios are deferred to the future **VariScout Process** product. The Hub is internal; the user thinks in Projects.
+- **Solo vs collaborative** — a **state** of the IP (has anyone been invited?), not a different entity (§9).
+
+> **Legacy to collapse (IM-0a).** The code still carries 1:many machinery — `ProcessHub.improvementProjects: ImprovementProject[]` (`processHub.ts:154`) and `projectsByHub: Record<hubId, ImprovementProject[]>` — flagged as a holdover by the 2026-05-18 decision. The first prereq (§8 / IM-0a) enforces the 1:1 model and re-keys project-scoped state by `ProjectId`. Hub and IP stay **two entities at a clean 1:1** (Single Responsibility — analytical substrate vs project/lifecycle wrapper; the Hub also holds the deferred VariScout-Process seam). A full Hub→IP merge is a possible future domain-consolidation, not V1.
+
 ### What this spec covers
 
 - The investigation spine: Issue → Outcome → **scope (WHERE)** → **causes (WHY)** → contribution → Measurement Plans (§2).
 - The entity model: dropping `Question`, making the Problem-Statement scope first-class, retiring the `causeRole` taxonomy (§3, [ADR-085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md)).
 - The unified investigation canvas: one bipartite factor↔hypothesis surface with a Focus lens (§4, [ADR-086](../../07-decisions/adr-086-unified-investigation-canvas.md)).
-- Level-native contribution + the cumulative-variation bar (§5, [ADR-088](../../07-decisions/adr-088-level-native-contribution.md)).
+- Level-native contribution, What-If-anchored (§5, [ADR-088](../../07-decisions/adr-088-level-native-contribution.md)).
 - Analysis-surface simplification: retire mode/lens as user axes; Values⇄Capability as the one surviving view; outcome+decomposition (§6, [ADR-089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md)).
 - The iterative Measure⇄Analyze loop and the Measurement-Plan-as-DCP (§7).
 - The process-step model reconciliation (§8, [ADR-087](../../07-decisions/adr-087-process-step-model-reconciliation.md)).
@@ -135,7 +146,7 @@ interface ProblemStatementScope extends EntityBase {
   outcome: string; // the Y this scope sharpens
   predicates: ConditionLeaf[]; // the {factor=level} WHERE — reuse the hypothesisCondition leaf shape
   hypothesisIds: Hypothesis['id'][]; // the MANY causes (WHY) nested within this scope
-  cumulativeContribution?: number; // level-native, anchored to the original problem (§5)
+  whatIfProjection?: number; // optional 'if-fixed' overall-impact projection for this scope (§5) — not a variance multiplication
 }
 ```
 
@@ -145,7 +156,7 @@ Three deliberate calls:
 - **Avoid the name collisions.** `ProblemCondition` (`ai/types.ts:31`) already exists — it is the metric/target _HOW-MUCH_ gap, **not** the WHERE. `ScopeFilter` is single-factor. `ProblemStatementScope` is the new, distinct, compound WHERE; the spec states this so neither existing type is silently overloaded.
 - **Causes nest under the scope.** `Hypothesis.condition` is _retained_ but demoted to the cause's own disconfirmable HOLDS-claim — it no longer carries the scope's where. The net-new `buildConditionFromCategoricalFilters` bridges drill chips → a compound scope condition (the reverse of the existing capture bridge).
 
-> **Open call (pinned in §11):** whether each `ProblemStatementScope` owns its own `GateNode`/`hypothesisIds`, or the existing investigation-global `problemContributionTree` (`analyzeStore.ts`) is _partitioned_ by scope. `gateNodeOps.ts` already composes many causes; the question is the partition key.
+> **Decided — per-scope.** Each `ProblemStatementScope` owns its own `hypothesisIds[]` and its own `GateNode` composition; contribution composes _within_ the scope. This keeps WHERE≠WHY clean and supports many parallel scopes (Machine B∩Night and Line A as separate _where_'s). The investigation-global `problemContributionTree` (`analyzeStore.ts`) is re-homed as per-scope trees; `gateNodeOps.ts` (which already composes many causes) operates per scope.
 
 ### §3.3 · The kept graph
 
@@ -222,15 +233,17 @@ Contribution is **always a native share chosen by the level**, never one univers
 
 > **Critical guard.** "No bespoke SS-share" means _do not surface a sum-of-squares-% contribution metric to the user_ — it would be more formal than the methodology author's own course. It does **not** mean removing the η² engine: `computeMainEffects` / `getEtaSquared` legitimately use `ssBetween/ssTotal` + F-ratios _internally_ (`factorEffects.ts:121`, `anova.ts:25`) and stay. Distinguish engine-internal math from the user-facing number.
 
-### §5.3 · Three contribution surfaces — and only one chains across levels
+### §5.3 · Three contribution surfaces — none multiplied across levels
 
-Contribution appears in three distinct forms; conflating them is the unit-consistency trap (you cannot multiply bottleneck-seconds into a Cpk anchor, and forcing everything onto a Cpk basis would re-introduce the ADR-073/084 hazard). The spec keeps them separate:
+A statistical-validity decision (raised in review): **multiplying marginal η² down a drill is not a valid variance decomposition** — that needs nested ANOVA / variance components, the formal machinery the methodology deliberately avoids — and "two conditions ANDed together → one %" reads as confusing. So contribution is shown three ways, kept distinct, and **nothing is multiplied across levels**:
 
-1. **Level-local native share (display, per lens).** At one level a lens shows its own native quantity — η² / Cpk-per-group / Pareto count-% / regression slope / VA% / bottleneck-sec. It answers "how much _here_?" and is **not chained across levels**.
-2. **The cumulative-variation bar (the one cross-level chain).** Only the **variance-share basis** — the dimensionless η²/variance-fraction in `[0,1]` — chains down the drill, because fractions of variance multiply coherently and anchor to "% of the _original_ problem's variation": **blue < 30% → amber 30–50% → green > 50%** (`eda-mental-model.md §3.3`). **Eligibility rule:** a level participates in the chain only if its contribution is expressible as a variance fraction _within the same homogeneous outcome_; a level whose native share is a non-variance unit (count-%, seconds, slope) shows as a level-local readout and is **not** folded into the bar. Net-new — today η² is global and `LocalMechanismView` recomputes per-step but never chains against the parent level. **Not** `computeCoverage.exploredPercent` (`bestSubsets.ts:1137`) — that is exploration coverage, a different quantity.
-3. **What-If (the actionable "if-fixed" number).** `computeCumulativeProjection` (`variation/projection.ts:110`) already chains `simulateOverallImpact` (`simulation.ts:285`) down scoped findings → a projected overall Cpk. **Reuse it** — do not build a parallel engine. Net-new work = binding it to a live drilled `{factor=level}` condition (today keyed on `Finding.activeFilters`). It is Cpk-based and, like the bar, stays within one homogeneous outcome.
+1. **Level-local native share (per lens, valid in its own context).** η² of a factor _in the current view_ / Cpk-per-group / Pareto count-% / regression slope / VA% / bottleneck-sec. Answers "how much _here_?" — each valid for its own subset; none is chained.
+2. **What-If "if-fixed" — the cross-level "how much of the problem" anchor (valid + already built).** `computeCumulativeProjection` (`variation/projection.ts:110`) chains `simulateOverallImpact` (`simulation.ts:285`) over scoped fixes → a projected overall Cpk: _"bring Machine B∩Night up to the rest and overall Cpk moves 0.7 → 1.2."_ This is a **simulation**, not a variance-decomposition claim — honest, actionable, unit-safe. Net-new work = binding it to the live drill chip (today keyed on `Finding.activeFilters`); the engine is reused, not rebuilt.
+3. **Descriptive coverage (optional, clearly-labelled prevalence).** "This condition holds _N%_ of the units / _X%_ of the defect count." A count/coverage fact, not an inferential share — no validity claim. For "do these factors _together_ explain the spread," the honest number is the **R²adj of the combined model** (`computeBestSubsets`), a real model R² — not a chain.
 
-**Guard (all three):** any cross-level chain stays **within one homogeneous outcome/spec context** (ADR-073) — no Cpk roll-up across heterogeneous units, and the variance-fraction chain never mixes units. Avoid forbidden aggregation names (`architecture.noCrossInvestigationAggregation.test.ts`) and respect `scripts/check-level-boundaries.sh` (ADR-074).
+**The eda-mental-model §3.3 "cumulative-variation bar" is reinterpreted** as the What-If if-fixed projection (or the coverage %), banded blue/amber/green — _not_ a multiplied-η² chain. The §3.3 doc is updated to match (§13). **Not** `computeCoverage.exploredPercent` (`bestSubsets.ts:1137`) — that is exploration coverage, a different quantity.
+
+**Guard:** every cross-level number (What-If, coverage) stays **within one homogeneous outcome/spec context** (ADR-073) — no Cpk roll-up across heterogeneous units. Avoid forbidden aggregation names (`architecture.noCrossInvestigationAggregation.test.ts`); respect `scripts/check-level-boundaries.sh` (ADR-074).
 
 ---
 
@@ -298,7 +311,7 @@ interface MeasurementPlan extends EntityBase {
 
 ## §8 · Process-step model reconciliation (the prereq)
 
-**Canonical decision: [ADR-087](../../07-decisions/adr-087-process-step-model-reconciliation.md). This gates the growth/join logic (§7) and is the first build (IM-0).**
+**Canonical decision: [ADR-087](../../07-decisions/adr-087-process-step-model-reconciliation.md). This gates the growth/join logic (§7); it is the second prereq build (IM-0b), after the Project↔Hub 1:1 collapse (IM-0a, §1).**
 
 There are **three step homes**, not two:
 
@@ -306,11 +319,11 @@ There are **three step homes**, not two:
 2. **Working-copy projection:** `canvasStore.canonicalMap` (`canvasStore.ts:13`), hydrated from #1.
 3. **Flat, separate:** `IP.processSteps: ProcessStepEntry[]` (`improvementProject/types.ts:161`), referenced by `stepTimings.stepId`, `goal.outcomeGoals[].stepId`, `goal.factorControls[].stepId`.
 
-There is **no sync code** between #1 and #3 (grep returns zero), and the IP references a map it doesn't own (#1 lives on `ProcessContext`). Two ID schemes diverge (`step-${slug}-${seq}` vs `step-${columnName}-${idx}`) → a silent orphaning risk for persisted `goal.stepId`.
+There is **no sync code** between #1 and #3 (grep returns zero); the IP's `goal.stepId` references the map on its 1:1 Hub (`ProcessContext`, §1), not on the IP record itself. Two ID schemes diverge (`step-${slug}-${seq}` vs `step-${columnName}-${idx}`) → a silent orphaning risk for persisted `goal.stepId`.
 
 **Decisions:**
 
-- The **rich `ProcessMap` is canonical** and stays **Hub-owned on `ProcessContext`**.
+- The **rich `ProcessMap` is canonical** and stays **Hub-owned on `ProcessContext`** — and since one Project wraps one Hub 1:1 (§1), Hub-owned _is_ Project-owned.
 - **Flat `IP.processSteps` becomes a derived projection** of `map.nodes {id,name,order}`; consumers repoint to the projection.
 - **Unify on one step-ID scheme** with a **no-data-migration IDB version bump** (wedge "no migration, no users" stance — no `migrateX()` helper). The orphaning risk is acceptable pre-launch; state it.
 - Add the **`processLocation` (stepId) join key** (used by the DCP, §7) resolving against the canonical node id.
@@ -323,11 +336,11 @@ There is **no sync code** between #1 and #3 (grep returns zero), and the IP refe
 
 ## §9 · Cluster A — Project = collaboration container
 
-The "quick-analysis vs Project" duality collapses into **one continuous investigation**. **Inviting people is the trigger** that makes it a Project (→ inherently Azure). A solo user who names/saves/closes/reports but never invites has a _saved investigation_; the full solo flow (lifecycle Approach→Control + Cpk verify + Report) lives in the **PWA**. Only collaboration + cloud + CoScout + audit are Azure. No Charter ceremony (already gone — decision-log 2026-05-28).
+The "quick-analysis vs Project" duality collapses: there is **one entity, the Improvement Project (IP)** (§1), and "investigation" is the activity inside it. **Inviting people is the trigger** that turns a solo IP into a collaborative one (→ Azure features). A solo user who names/saves/closes/reports but never invites has a **solo (un-shared) Improvement Project** — still an IP, just not collaborative; the full solo flow (lifecycle Approach→Control + Cpk verify + Report) lives in the **PWA**. Only collaboration + cloud + CoScout + audit are Azure. No Charter ceremony (already gone — decision-log 2026-05-28).
 
-### §9.1 · The invite-trigger needs a predicate (net-new)
+### §9.1 · The invite-trigger needs a durable marker (net-new)
 
-Every saved unit today is an `ImprovementProject` (`status: draft | active | closed`); there is **no solo-vs-Project signal at all**. The spec introduces a predicate — `members.length > 1` (or an explicit `collaboratedAt` marker) — that gates Azure-only surfaces. `isPaidTier()` is **fully deleted** (0 refs; the MEMORY/decision-log note that signoff is "gated with isPaidTier" is stale) — so collaboration-gating is built on the new predicate, not a resurrected tier flag.
+Every saved unit is an `ImprovementProject` (`status: draft | active | closed`); there is **no solo-vs-collaborative signal at all**. **Decided:** an invite **adds the member immediately** (current `PROJECT_MEMBER_ADD` — simple, and in a single Azure AD tenant the invitee is already a colleague) **and sets a durable `collaboratedAt` marker** on first invite. That marker — not a derived `members.length > 1` (which would flip back to solo if a member is removed) — gates the Azure-only surfaces. `isPaidTier()` is **fully deleted** (0 refs; the MEMORY/decision-log "signoff gated by isPaidTier" note is stale), so collaboration-gating rests on `collaboratedAt`, not a tier flag. The formal pending-`Invitation` + accept flow (the wired-but-unused `INVITATION_ACCEPT`) is the natural **VariScout Process** upgrade, not V1.
 
 ### §9.2 · Closure (#12) — optional, non-blocking, hidden solo
 
@@ -354,10 +367,9 @@ Operational-definition and MSA/Gage-R&R are **optional free-text notes** (`opDef
 1. **Overlap apportionment** when two hypothesis conditions share rows (coverage double-counts).
 2. **Measurement-Plan hypothesis-exclusivity** — confirm a plan always requires a `hypothesisId` (no plan on a bare condition). The current type makes `hypothesisId` required + immutable; confirm this is intent.
 3. **Freeze vs auto-sync** a hypothesis's condition at capture (lean: freeze + allow refine).
-4. **Scope ↔ GateNode partition** (§3.2) — per-scope `GateNode`/`hypothesisIds`, or partition the global `problemContributionTree` by scope.
-5. **`setHubStatus` fate** (§4.3) — wire a manual-override UI or delete the orphan.
-6. **`CrossTypeEvidenceMap` fate** (§4.4) — retain as a defect-frame view or retire.
-7. **Two signoff surfaces** (§9.2) — `IP.signoff` vs `ControlHandoff.signoff`; pick canonical.
+4. **`setHubStatus` fate** (§4.3) — wire a manual-override UI or delete the orphan.
+5. **`CrossTypeEvidenceMap` fate** (§4.4) — retain as a defect-frame view or retire.
+6. **Two signoff surfaces** (§9.2) — `IP.signoff` vs `ControlHandoff.signoff`; pick canonical.
 
 These do not block the spec; they are resolved per-PR at execution and graduate to the decision-log when locked.
 
@@ -369,16 +381,17 @@ These do not block the spec; they are resolved per-PR at execution and graduate 
 
 **Net-new (the build list):**
 
-| #   | Net-new work                                                                                                                                                                    | ADR     | Depends on |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ---------- |
-| 1   | Step-model reconciliation: rich-map canonical, flat→projection, one ID scheme, `processLocation`, authoring off `ProcessMapBase`                                                | 087     | — (prereq) |
-| 2   | Drop `Question`; `ProblemStatementScope` first-class; retire `causeRole`; `buildConditionFromCategoricalFilters`                                                                | 085     | — (atomic) |
-| 3   | Measurement-Plan-as-DCP fields (`outcome`/`primaryFactor`/`neededFactors[]`/`scope`/`processLocation`/`opDef`/`msaNote`; drop `msaRequired`)                                    | 085/087 | 1, 2       |
-| 4   | Auto-link engine + re-load cascade (re-ingest → detect → Finding → match → link → progress)                                                                                     | —       | 3          |
-| 5   | Unified bipartite canvas + Focus lens + factor-family LOD + edge bundling + ACH toggle + `ruledOut` flag + disconfirmation-recording UX (+ `HYPOTHESIS_RECORD_DISCONFIRMATION`) | 086     | 2          |
-| 6   | `ProcessLevel` mapping + contribution-to-total + cumulative-variation bar + What-If→drill-chip binding                                                                          | 088     | 1, 2       |
-| 7   | Per-chart measure binding (outcome+decomposition); retire mode/lens picker; Values⇄Capability reframe                                                                           | 089     | 6          |
-| 8   | Cluster A: invite-trigger predicate; optional/non-blocking closure; Azure-gate signoff; #37 journey                                                                             | —       | —          |
+| #   | Net-new work                                                                                                                                                                    | ADR                | Depends on        |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ----------------- |
+| 0   | **Project↔Hub 1:1 collapse** — retire `improvementProjects[]` + `projectsByHub`; re-key project-scoped state by `ProjectId`; one Hub per IP (no `migrateX`)                     | dec-log 2026-05-18 | — (prereq, IM-0a) |
+| 1   | Step-model reconciliation: rich-map canonical, flat→projection, one ID scheme, `processLocation`, authoring off `ProcessMapBase`                                                | 087                | — (prereq)        |
+| 2   | Drop `Question`; `ProblemStatementScope` first-class; retire `causeRole`; `buildConditionFromCategoricalFilters`                                                                | 085                | — (atomic)        |
+| 3   | Measurement-Plan-as-DCP fields (`outcome`/`primaryFactor`/`neededFactors[]`/`scope`/`processLocation`/`opDef`/`msaNote`; drop `msaRequired`)                                    | 085/087            | 1, 2              |
+| 4   | Auto-link engine + re-load cascade (re-ingest → detect → Finding → match → link → progress)                                                                                     | —                  | 3                 |
+| 5   | Unified bipartite canvas + Focus lens + factor-family LOD + edge bundling + ACH toggle + `ruledOut` flag + disconfirmation-recording UX (+ `HYPOTHESIS_RECORD_DISCONFIRMATION`) | 086                | 2                 |
+| 6   | `ProcessLevel` mapping + contribution-to-total + cumulative-variation bar + What-If→drill-chip binding                                                                          | 088                | 1, 2              |
+| 7   | Per-chart measure binding (outcome+decomposition); retire mode/lens picker; Values⇄Capability reframe                                                                           | 089                | 6                 |
+| 8   | Cluster A: invite-trigger predicate; optional/non-blocking closure; Azure-gate signoff; #37 journey                                                                             | —                  | —                 |
 
 ---
 
@@ -388,13 +401,13 @@ Per SDD, this spec's `implements:` clause obliges amending the doc layers. Each 
 
 ### L1 · Vision
 
-| Doc                   | Site                                                                        | Change                                                                                                                                                                                                                                           | When                                         |
-| --------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| `methodology.md`      | `:34` "apply Lean to find WHY"                                              | Keep WHERE≠WHY; drop the "Lean" bridge → "apply further investigation to find WHY".                                                                                                                                                              | apply-phase (085)                            |
-| `methodology.md`      | `:340` "One Graph, Three Projections" (names `SuspectedCause` + `Question`) | Collapse to **two** projections (Evidence Map + Wall) over Finding+Hypothesis+CausalLink; drop `SuspectedCause`/`Question`.                                                                                                                      | apply-phase (085)                            |
-| `methodology.md`      | `:312-326` "Analysis Modes"                                                 | Reframe mode → Frame data-shape + Values⇄Capability view.                                                                                                                                                                                        | apply-phase (089)                            |
-| `eda-mental-model.md` | §2.4, §3.2, §4.x, §7 (built _on_ the Question framework)                    | **Supersession banner + re-home map** (not a 706-line re-spine): point to this spec as canonical for the entity model; map Question → {Factor Intelligence / un-examined factors / Finding+Hypothesis}. Remove stale Yamazumi-as-live-mode (§7). | apply-phase (085/089)                        |
-| `positioning.md`      | §3.4/§4/§7 Sustainment; §5.2 Question-tree                                  | Sustainment→Control (laggard); drop Question-tree status machine.                                                                                                                                                                                | drift-now (Control) / apply-phase (Question) |
+| Doc                   | Site                                                                        | Change                                                                                                                                                                                                                                                                                                                                             | When                                         |
+| --------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `methodology.md`      | `:34` "apply Lean to find WHY"                                              | Keep WHERE≠WHY; drop the "Lean" bridge → "apply further investigation to find WHY".                                                                                                                                                                                                                                                                | apply-phase (085)                            |
+| `methodology.md`      | `:340` "One Graph, Three Projections" (names `SuspectedCause` + `Question`) | Collapse to **two** projections (Evidence Map + Wall) over Finding+Hypothesis+CausalLink; drop `SuspectedCause`/`Question`.                                                                                                                                                                                                                        | apply-phase (085)                            |
+| `methodology.md`      | `:312-326` "Analysis Modes"                                                 | Reframe mode → Frame data-shape + Values⇄Capability view.                                                                                                                                                                                                                                                                                          | apply-phase (089)                            |
+| `eda-mental-model.md` | §2.4, §3.2, §4.x, §7 (built _on_ the Question framework)                    | **Supersession banner + re-home map** (not a 706-line re-spine): point to this spec as canonical for the entity model; map Question → {Factor Intelligence / un-examined factors / Finding+Hypothesis}. Remove stale Yamazumi-as-live-mode (§7); reinterpret §3.3's cumulative-variation bar as the What-If / coverage anchor (not multiplied-η²). | apply-phase (085/089)                        |
+| `positioning.md`      | §3.4/§4/§7 Sustainment; §5.2 Question-tree                                  | Sustainment→Control (laggard); drop Question-tree status machine.                                                                                                                                                                                                                                                                                  | drift-now (Control) / apply-phase (Question) |
 
 ### L2 · Journeys
 
@@ -445,4 +458,4 @@ Per SDD, this spec's `implements:` clause obliges amending the doc layers. Each 
 
 ## §15 · Delivery
 
-Sequenced by the companion master plan (`docs/superpowers/plans/2026-05-29-investigation-surface-master-plan.md`) at PR granularity (IM-0…IM-7), subagent-driven, per-PR sub-plans written as-you-execute. Each PR's Apply phase lands its §13 doc amendments. Build halts at plan-ready for ADR review before IM-0.
+Sequenced by the companion master plan (`docs/superpowers/plans/2026-05-29-investigation-surface-master-plan.md`) at PR granularity (IM-0a, IM-0b, IM-1…IM-7), subagent-driven, per-PR sub-plans written as-you-execute. Each PR's Apply phase lands its §13 doc amendments. Build halts at plan-ready for ADR review before IM-0.

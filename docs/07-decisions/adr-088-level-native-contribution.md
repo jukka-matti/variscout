@@ -77,17 +77,19 @@ process-learning levels — and there is no bespoke, user-facing sum-of-squares 
    condition rather than building a parallel projector. Today it reads `Finding.activeFilters`;
    the net-new wiring feeds it the drill chip's condition instead.
 
-4. **Net-new: contribution-to-total + cumulative-variation bar — variance-fraction basis only.**
-   Add a recompute that multiplies the **variance-share basis** (the dimensionless η²-fraction in
-   `[0,1]`) **down** successive drill levels, plus a cumulative-variation bar anchored to the
-   **original problem** with the banding from `eda-mental-model.md` §3.3
-   (blue `<30%` / amber `30–50%` / green `>50%`). **Only the variance fraction chains** — fractions
-   of variance multiply coherently. Non-variance native shares (Pareto count-%, bottleneck-seconds,
-   regression slope, VA%) are **level-local readouts**, never folded into the cross-level bar:
-   chaining a value that switches units between levels (seconds into a Cpk anchor) is undefined, and
-   coercing everything onto a Cpk basis would re-introduce the ADR-073/084 hazard. A level joins the
-   to-total chain only if its contribution is a variance fraction within the **same homogeneous
-   outcome**. This is the chaining `LocalMechanismView` never performs.
+4. **No multiplied cumulative-variation bar — nothing is chained across levels.** Multiplying
+   marginal η² down a drill is **not a valid variance decomposition** (it would need nested ANOVA /
+   variance components — formal machinery the methodology deliberately avoids), and ANDing two
+   conditions into one "%" reads as confusing. The cross-level "how much of the problem" question is
+   answered two valid ways, neither a multiplication: (a) the **What-If "if-fixed" projection** (#3,
+   a simulation via `computeCumulativeProjection()`), and (b) an optional, clearly-labelled
+   **descriptive coverage %** ("this condition holds N% of the units / X% of the defect count" — a
+   prevalence fact, not an inferential share). For "do these factors _together_ explain the spread,"
+   the honest figure is the **R²adj of the combined model** (`computeBestSubsets()`), a real model
+   R². The level-local native shares (#2) are shown per level and are **not chained**. The
+   `eda-mental-model.md` §3.3 "cumulative-variation bar" (blue `<30%` / amber `30–50%` / green
+   `>50%`) is reinterpreted as the What-If projection or the coverage %, banded — not a multiplied-η²
+   chain — and the §3.3 doc is amended to match.
 
 The intent router (NÄHDÄ / VERRATA / KVANTIFIOIDA / AJALLINEN → which native share) is **derived**
 from Frame + level, not exposed as a user-facing picker.
@@ -109,9 +111,10 @@ from Frame + level, not exposed as a user-facing picker.
 - **Reuse beats a parallel engine.** `computeCumulativeProjection()` already chains
   `simulateOverallImpact()` correctly across scoped fixes. A second projector would be a fork to
   maintain and a second place for the aggregation rules to drift.
-- **The work is additive.** There is no bespoke SS-share primitive to delete — it was never built.
-  The cascade is a thin `ProcessLevel` mapping + the contribution-to-total recompute + the
-  cumulative-variation bar + the What-If wiring.
+- **The work is additive and small.** There is no bespoke SS-share primitive to delete — it was
+  never built — and no multiplied chain to build. The cascade is a thin `ProcessLevel` mapping +
+  wiring the existing What-If projection to the live drill chip + an optional coverage readout +
+  reinterpreting the §3.3 bar.
 
 ## Consequences
 
@@ -125,10 +128,11 @@ from Frame + level, not exposed as a user-facing picker.
 - **`computeCumulativeProjection()` (`projection.ts:110`) is the What-If engine.** New wiring feeds
   it the drilled {factor=level} condition where today it reads `Finding.activeFilters`. No parallel
   projector.
-- **Net-new contribution-to-total recompute** multiplies the **variance-share basis (η²-fraction)**
-  — and only that basis — down drill levels and drives a cumulative-variation bar banded per
-  `eda-mental-model.md` §3.3. Non-variance native shares stay level-local readouts; `LocalMechanismView`
-  gains a parent-anchored variance chain it does not have today.
+- **No net-new cross-level multiplication.** The cross-level anchor is the existing What-If
+  projection (`computeCumulativeProjection()`, reused) plus an optional descriptive coverage %; the
+  `eda-mental-model.md` §3.3 bar is reinterpreted as that anchor, banded blue/amber/green. Level-local
+  native shares are shown per level and never chained. `LocalMechanismView` keeps its per-step η²
+  readout; it does not gain a multiplied parent chain.
 - **Do not conflate** `computeCoverage().exploredPercent` (`bestSubsets.ts:1137`) — an R²adj-weighted
   _exploration coverage_ — with the cumulative-_variation_ bar. Different quantities; the
   exploration number must not be reused as the variation bar's value.
@@ -145,12 +149,12 @@ from Frame + level, not exposed as a user-facing picker.
 
 ### Forward implication
 
-- **Aggregation tripwire.** The chained contribution-to-total must stay **within one homogeneous
-  outcome/spec context** — no Cpk roll-up across heterogeneous units (ADR-073). If the chain is
-  Cpk-based it brushes the design-absence rule: it must avoid names like `aggregateCpk` /
+- **Aggregation tripwire.** Every cross-level number (the What-If projection, any coverage %) must
+  stay **within one homogeneous outcome/spec context** — no Cpk roll-up across heterogeneous units
+  (ADR-073). The What-If projection is Cpk-based, so it must avoid names like `aggregateCpk` /
   `globalCpk` / `portfolioCpk` that `architecture.noCrossInvestigationAggregation.test.ts` guards,
-  and it must respect the level-boundary checks in `scripts/check-level-boundaries.sh` (ADR-074).
-  Implementers should treat the recompute as a within-context chain, not a portfolio aggregate.
+  and respect the level-boundary checks in `scripts/check-level-boundaries.sh` (ADR-074). Treat it
+  as a within-context simulation, not a portfolio aggregate.
 - The `ProcessLevel` mapping is the seam where the level-spanning boundary policy (ADR-074) and the
   intent router meet; future lenses register their native share against a level here.
 
@@ -158,7 +162,7 @@ from Frame + level, not exposed as a user-facing picker.
 
 - The investigation-surface spec (`docs/superpowers/specs/2026-05-29-investigation-surface-design.md`)
   is the design home; this ADR is the decision home for the level-native / no-bespoke-SS-share rule.
-- `eda-mental-model.md` §3.3 is the canonical source for the cumulative-variation banding thresholds.
+- `eda-mental-model.md` §3.3 holds the blue/amber/green banding thresholds — now applied to the What-If projection / coverage anchor, not a multiplied-η² chain (the doc is amended to match, §13 of the spec).
 
 ## Alternatives considered
 
@@ -176,8 +180,9 @@ from Frame + level, not exposed as a user-facing picker.
    (`feedback_prefer_pragmatic_over_formal`).
 5. **Reuse `exploredPercent` as the cumulative-variation bar.** Rejected: it is R²adj-weighted
    exploration coverage, a different quantity from variation-explained-to-total.
-6. **Chain every native share down levels (multiply seconds × Cpk × count-%).** Rejected: the native
-   shares are heterogeneous units; chaining a value that changes units between levels is undefined,
-   and forcing them onto one Cpk basis would re-create the cross-unit aggregation that the ADR-073
-   guard exists to prevent. Only the dimensionless variance fraction participates in the to-total
-   chain; the rest are level-local readouts.
+6. **Build a cumulative bar by multiplying contributions down the drill.** Rejected on
+   statistical-validity grounds: multiplying marginal η² across conditional subsets is not a valid
+   variance decomposition (it would need nested ANOVA / variance components, more formal than the
+   methodology teaches), and chaining heterogeneous-unit shares (seconds, counts, Cpk) is undefined.
+   The honest cross-level numbers are the What-If "if-fixed" simulation and a descriptive coverage %;
+   the level-local native shares are shown per level, not chained.

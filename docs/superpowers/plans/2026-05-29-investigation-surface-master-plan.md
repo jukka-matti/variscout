@@ -1,12 +1,12 @@
 # Investigation Surface — Master Plan (PR sequencer)
 
-> **For agentic workers:** This is a **master sequencer** at PR granularity, not a task-level plan. Per `feedback_master_plan_for_multi_subsystem_specs`, each PR (IM-0…IM-7) gets its own bite-sized sub-plan authored via `superpowers:writing-plans` **at execution time** (one worktree per PR), then executed via `superpowers:subagent-driven-development`. Do not expand this into 5000 lines of 2–5-min steps up front — plan-as-you-execute.
+> **For agentic workers:** This is a **master sequencer** at PR granularity, not a task-level plan. Per `feedback_master_plan_for_multi_subsystem_specs`, each PR (IM-0a…IM-7) gets its own bite-sized sub-plan authored via `superpowers:writing-plans` **at execution time** (one worktree per PR), then executed via `superpowers:subagent-driven-development`. Do not expand this into 5000 lines of 2–5-min steps up front — plan-as-you-execute.
 
 **Goal:** Deliver the unified investigation surface — scope-vs-cause entity model, one bipartite canvas, level-native contribution, Measurement-Plan-as-DCP, and the Project=collaboration closure model — graduated from the 2026-05-29 design.
 
 **Spec:** [`2026-05-29-investigation-surface-design.md`](../specs/2026-05-29-investigation-surface-design.md) · **ADRs:** [085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md)–[089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md).
 
-**Architecture:** ~70% of the substrate is built; the work is reconciliation + re-projection + a handful of net-new engines (auto-link, contribution-to-total, bipartite canvas, invite predicate). Two foundational PRs (IM-0 step-model, IM-1 entity-model) touch different subsystems and run as parallel worktrees; the rest layer on top.
+**Architecture:** ~70% of the substrate is built; the work is reconciliation + re-projection + a handful of net-new engines (auto-link, What-If drill-binding, bipartite canvas, invite marker). Three foundational PRs run first — **IM-0a** (Project↔Hub 1:1 collapse) → **IM-0b** (step-model reconciliation), sequential, ∥ **IM-1** (entity model, a different subsystem); the rest layer on top.
 
 **Tech Stack:** TypeScript monorepo (pnpm + turbo), `@variscout/{core,stores,hooks,charts,ui}` + `apps/{azure,pwa}`, Zustand, Dexie/IDB, Vitest.
 
@@ -28,9 +28,11 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 
 ## §1 · Dependency graph
 
+**Prereq IM-0a** — Project↔Hub 1:1 collapse (retire `improvementProjects[]` / `projectsByHub`, re-key by `ProjectId`; decision-log 2026-05-18) — runs first, then the two foundations below (IM-0b step-model ∥ IM-1 entity-model).
+
 ```
         ┌──────────────────────────────┐        ┌──────────────────────────────┐
-        │ IM-0  step-model reconcile    │        │ IM-1  drop-Question +         │
+        │ IM-0b step-model reconcile    │        │ IM-1  drop-Question +         │
         │       (prereq, ADR-087)       │        │       ProblemStatementScope   │
         │                               │        │       (atomic, ADR-085)       │
         └───────────────┬───────────────┘        └───────┬───────────────┬───────┘
@@ -59,15 +61,28 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
         └──────────────────────────────┘
 ```
 
-**Suggested order:** `IM-0 ∥ IM-1` (parallel worktrees) → review gate on the reconciled foundation → `IM-2 → IM-3`, `IM-4`, `IM-5 → IM-6`, `IM-7` (IM-4/IM-5/IM-7 parallelizable once IM-0+IM-1 land). **Cap each PR at ~6–8 tasks** (`feedback_slice_size_cap`); the atomic IM-1 is the explicit carve-out (one bigger Opus dispatch, not split).
+**Suggested order:** `IM-0a → IM-0b` (data-model prereqs, sequential) ∥ `IM-1` (entity model) → review gate on the reconciled foundation → `IM-2 → IM-3`, `IM-4`, `IM-5 → IM-6`, `IM-7` (IM-4/IM-5/IM-7 parallelizable once the prereqs + IM-1 land). **Cap each PR at ~6–8 tasks** (`feedback_slice_size_cap`); the atomic IM-1 is the explicit carve-out (one bigger Opus dispatch, not split).
 
 ---
 
-## IM-0 · Process-step model reconciliation (PREREQ)
+## IM-0a · Project ↔ Hub 1:1 collapse (PREREQ)
+
+- **Goal:** Enforce the decided **one Project = one Hub (1:1)** model; retire the legacy 1:many machinery; re-key project-scoped state by `ProjectId`. Keep Hub + IP as two entities at a clean 1:1 (SRP — spec §1).
+- **Decision source:** decision-log 2026-05-18 (already committed; this PR executes it).
+- **Depends on:** none. **Gates:** clarifies ownership for IM-0b; backs the §1 terminology.
+- **Key files (grounded):** `packages/core/src/processHub.ts:154` (`improvementProjects: ImprovementProject[]` — retire), `packages/stores/src/improvementProjectStore.ts:8` (`projectsByHub: Record<hubId, ImprovementProject[]>` — re-key by `ProjectId`), `packages/core/src/improvementProject/types.ts:124` (`hubId` back-ref — keep, now 1:1), `apps/{azure,pwa}/src/db/schema.ts` (IDB version bump, no `migrateX`).
+- **Cascade:** bounded — `improvementProjects[]` + `projectsByHub` consumers + the store re-key + IDB bump. No data migration (wedge: no users). Do **not** merge Hub into IP (future domain-consolidation, not V1 — spec §1).
+- **Suggested model:** **Sonnet** (well-bounded cardinality cleanup) + Opus review.
+- **Worktree:** `.worktrees/im-0a-project-hub-1to1`.
+- **Apply-phase docs:** confirm `packages/stores/CLAUDE.md` describes the re-keyed (`ProjectId`) state; spec §1 + decision-log already state the 1:1 model.
+- **Acceptance:** one Hub holds exactly one IP (type + runtime); project-scoped state keyed by `ProjectId`; no `improvementProjects[]` / `projectsByHub` survives; `pnpm build` + vitest green.
+- **Sub-plan note:** migrate every `projectsByHub` reader to the `ProjectId` key; check `.vrs` export/import + report aggregation (`ipReport.ts`) which iterate `hub.improvementProjects`.
+
+## IM-0b · Process-step model reconciliation (PREREQ)
 
 - **Goal:** Make the rich `ProcessMap` the single canonical step structure; `IP.processSteps` becomes a derived read-only projection; one step-id scheme; add the `processLocation` join key.
 - **ADR:** [087](../../07-decisions/adr-087-process-step-model-reconciliation.md).
-- **Depends on:** none. **Gates:** IM-2, IM-5 (and the `processLocation` join everywhere).
+- **Depends on:** IM-0a (runs after the 1:1 collapse — ownership is then unambiguous). **Gates:** IM-2, IM-5 (and the `processLocation` join everywhere).
 - **Key files (grounded):** `packages/core/src/frame/types.ts` (ProcessMap :109 / ProcessMapNode :29), `packages/core/src/ai/types.ts:142` (ProcessContext.processMap), `packages/core/src/improvementProject/types.ts:25,:52,:161,:166` (ProcessStepEntry + flat list + contradictory comments), `packages/stores/src/canvasStore.ts:13,:146` (canonicalMap + id minting), `packages/ui/.../ProcessZone/extractStepsFromCategoricalColumn.ts:23` (rival id scheme), `packages/core/src/frame/stepColumns.ts:40` + `findings/hypothesisCondition.ts:160` (read-only join — leave unchanged), `apps/{azure,pwa}/src/db/schema.ts` (IDB bump).
 - **Cascade:** ~9 flat-model files + ~6 `ProcessStepEntry` consumers + tests; rich-map (~53 files) stays canonical, untouched. IDB **schema-version bump, no `migrateX()`** (wedge stance) — pre-launch orphaning of old flat `stepId`s is acceptable and stated.
 - **Suggested model:** **Opus** (multi-file integration, ID-scheme + IDB judgment, prereq).
@@ -87,7 +102,7 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 - **Worktree:** `.worktrees/im-1-entity-model`.
 - **Apply-phase docs (§13):** `methodology.md:340` (3→2 projections, drop SuspectedCause/Question), `eda-mental-model.md` (supersession banner + re-home map), `analyze-wall.md:19,:70`, `mental-model-hierarchy.md:84,:176`, `packages/stores/CLAUDE.md` (delete the stale "SuspectedCause is first-class" line), `methodology.md:34` ("apply Lean" → "apply further investigation").
 - **Acceptance:** `Question` type gone; `ProblemStatementScope` persisted with `ConditionLeaf[]` predicates + `hypothesisIds[]`; `buildConditionFromCategoricalFilters` covers ranges; causeRole→status/GateNode; `pnpm build` + all package vitest green; no `Question`/`SuspectedCause` symbol survives outside the explicit preservation set.
-- **Sub-plan note:** pin the §11 open call — per-scope `GateNode`/`hypothesisIds` vs partitioning the global `problemContributionTree` by scope — before writing the scope type. Coordinate the `WallCanvas.questions` prop redefinition jointly with IM-4 (do not leave a dangling required prop).
+- **Sub-plan note:** the scope model is **per-scope** (decided) — each `ProblemStatementScope` owns its `hypothesisIds[]` + `GateNode`; the global `problemContributionTree` is re-homed as per-scope trees. Coordinate the `WallCanvas.questions` prop redefinition jointly with IM-4 (do not leave a dangling required prop).
 
 ## IM-2 · Measurement-Plan-as-DCP fields
 
@@ -123,14 +138,14 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 
 ## IM-5 · Level-native contribution + per-chart measure binding
 
-- **Goal:** `ProcessLevel` (Y/X/x) mapped onto `CanvasLevel`; the **variance-fraction-only** contribution-to-total chain + cumulative-variation bar; wire What-If (`computeCumulativeProjection`) to the live drill chip; per-chart measure binding for outcome+decomposition.
+- **Goal:** `ProcessLevel` (Y/X/x) mapped onto `CanvasLevel`; the What-If-anchored cumulative-variation bar (reinterpreted §3.3 — no multiplied-η² chain) + optional coverage %; wire What-If (`computeCumulativeProjection`) to the live drill chip; per-chart measure binding for outcome+decomposition.
 - **ADR:** [088](../../07-decisions/adr-088-level-native-contribution.md) + 089 (per-chart binding).
 - **Depends on:** IM-0 (step-local level) + IM-1 (scope).
 - **Key files (grounded):** `packages/core/src/canvas/viewport.ts:1` (CanvasLevel), `stats/{anova.ts:25,factorEffects.ts:121,bestSubsets.ts:497,subgroupCapability.ts}`, `variation/{projection.ts:110,simulation.ts:285}` (reuse — do not rebuild), `apps/azure/src/components/Dashboard.tsx:216,:465-478` (shared-Y → per-chart binding), `improvementProject/types.ts:45` (outcomeGoals[].stepId), `frame/types.ts` (ProcessMapNode.ctqColumn).
-- **Cascade:** additive (no SS-share primitive to delete) + judgment-heavy Dashboard integration. **Only the variance fraction chains** across levels; heterogeneous native shares stay level-local (spec §5.3). Guarded by ADR-073 tripwire + `check-level-boundaries.sh`.
+- **Cascade:** additive (no SS-share primitive to delete, no multiplied chain to build) + judgment-heavy Dashboard integration. **Nothing is multiplied across levels** — the cross-level anchor reuses the existing What-If projection + optional coverage %; native shares stay level-local (spec §5.3). Guarded by ADR-073 tripwire + `check-level-boundaries.sh`.
 - **Suggested model:** **Opus** (stats correctness + Dashboard multi-file integration + aggregation-guard review).
 - **Apply-phase docs:** `eda-mental-model.md §3.3` banding reference stays canonical.
-- **Acceptance:** cumulative-variation bar (blue<30/amber/green>50) computed on the variance-fraction basis, within one homogeneous outcome; What-If bound to drill chip; I-Chart=outcome / Boxplot=per-step-measures renders (part-whole only — two unrelated Ys rejected); aggregation tripwire + level-boundary checks green; vitest green.
+- **Acceptance:** cumulative-variation bar (blue<30/amber/green>50) driven by the What-If projection / coverage %, within one homogeneous outcome, with **no multiplied-η² chain**; What-If bound to drill chip; I-Chart=outcome / Boxplot=per-step-measures renders (part-whole only — two unrelated Ys rejected); aggregation tripwire + level-boundary checks green; vitest green.
 
 ## IM-6 · Retire mode/lens user-axis + Values⇄Capability
 
@@ -145,20 +160,20 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 
 ## IM-7 · Cluster A — invite predicate + optional/non-blocking closure
 
-- **Goal:** Introduce the collaboration predicate (invite = the trigger); make closure signoff optional, non-blocking, hidden-solo, Azure-only, decoupled from `processOwner`; reconcile the two signoff surfaces; author the #37 solo-investigation journey.
+- **Goal:** Introduce the durable `collaboratedAt` marker (invite = the trigger); make closure signoff optional, non-blocking, hidden-solo, Azure-only, decoupled from `processOwner`; reconcile the two signoff surfaces; author the #37 solo-investigation journey.
 - **ADR:** spec §9 (no dedicated ADR; covered by the wedge ADR-082 lineage).
 - **Depends on:** none (orthogonal).
 - **Key files (grounded):** `packages/core/src/improvementProject/types.ts:15,:117-135` (status + signoff), `projectMembership/canAccess.ts:24-30` (ACL — keep member===sponsor), `packages/ui/.../IPDetail/{IPDetailTeamRail.tsx:118-120,IPDetailPage.tsx:127-145}`, `apps/{azure,pwa}/src/components/ProjectsTabView.tsx:155-176` (signoff wiring — PWA removal/gating), `control.ts` + `controlHandoffActions.ts:37` (reconcile the two signoff surfaces — §11), `tier.ts` (isPaidTier already deleted — build on the new predicate).
-- **Cascade:** small (~6 signoff-prop surfaces + the predicate); a new derived `isCollaborative` (members.length>1) or explicit marker.
+- **Cascade:** small (~6 signoff-prop surfaces + the marker); a durable `collaboratedAt` set on first invite (immediate-add membership) — **not** a derived `members.length>1` (which would flip back to solo if a member is removed).
 - **Suggested model:** **Sonnet** (bounded) — escalate to Opus if the two-signoff reconciliation proves judgment-heavy.
 - **Apply-phase docs:** `ia-nav-model.md:51-52,:81` (sign-off-gate → optional affordance; drop Charter-ceremony framing), `personas/sponsor.md:19,51,58` + `lead.md:55` (de-gatekeeper), `positioning.md` (Sustainment→Control laggard), `control.md` (retitle "Control Phase"), new L2 #37 solo-investigation journey.
-- **Acceptance:** solo investigations never show signoff; collaborative (invited) Projects show optional non-blocking signoff decoupled from processOwner; one canonical signoff surface; Sponsor stays an identity label; vitest green.
+- **Acceptance:** solo (un-shared) IPs never show signoff; collaborative (invited) Projects show optional non-blocking signoff decoupled from processOwner; `collaboratedAt` gates the Azure surfaces; one canonical signoff surface; Sponsor stays an identity label; vitest green.
 
 ---
 
 ## §2 · Self-review
 
-**Spec coverage:** §2 spine → IM-1/IM-2; §3 entity model → IM-1; §4 canvas → IM-4; §5 contribution → IM-5; §6 surfaces → IM-6 (+IM-5 binding); §7 loop/DCP → IM-2/IM-3; §8 step-model → IM-0; §9 Cluster A → IM-7; §10 trust → enforced across (soft caveats, no gate); §11 open questions → pinned in IM-1/IM-4/IM-7 sub-plans; §13 propagation → each PR's Apply-phase row. **No spec section is unmapped.**
+**Spec coverage:** §2 spine → IM-1/IM-2; §3 entity model → IM-1; §4 canvas → IM-4; §5 contribution → IM-5; §6 surfaces → IM-6 (+IM-5 binding); §7 loop/DCP → IM-2/IM-3; §1 Project↔Hub 1:1 → IM-0a; §8 step-model → IM-0b; §9 Cluster A → IM-7; §10 trust → enforced across (soft caveats, no gate); §11 open questions → pinned in IM-1/IM-4/IM-7 sub-plans; §13 propagation → each PR's Apply-phase row. **No spec section is unmapped.**
 
 **Placeholder scan:** none — every PR has grounded file refs + acceptance. Per-PR TDD steps are intentionally deferred to sub-plans (master-plan pattern), not placeholders.
 
@@ -168,4 +183,4 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 
 ## §3 · Plan-ready gate
 
-Build **halts here** for the user's ADR review (per the agreed stopping point) before IM-0/IM-1 are dispatched. On approval: create the two prereq worktrees, author their sub-plans, and execute subagent-driven.
+Build **halts here** for the user's ADR review (per the agreed stopping point) before IM-0a/IM-0b/IM-1 are dispatched. On approval: create the prereq worktrees (IM-0a → IM-0b, ∥ IM-1), author their sub-plans, and execute subagent-driven.

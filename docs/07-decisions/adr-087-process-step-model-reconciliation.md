@@ -76,7 +76,11 @@ Concretely:
 1. **`ProcessMap` stays Hub-owned and canonical** on `ProcessContext.processMap`. It is the
    only structure that carries `ctqColumn`, `capabilityScope`, `tributaries`, and
    `parentStepId` — everything the `processLocation` join, L2/L3 recursion, and
-   column-overlap binding need. We do not churn its ~53-file consumer surface.
+   column-overlap binding need. We do not churn its ~53-file consumer surface. Per the
+   2026-05-18 decision-log, **one Project wraps one Hub 1:1**, so Hub-owned _is_
+   Project-owned; the sibling prereq **IM-0a** enforces that 1:1 (retiring the legacy
+   `improvementProjects[]` / `projectsByHub` machinery and re-keying project-scoped state
+   by `ProjectId`), and this step-model reconciliation runs as **IM-0b**.
 2. **`IP.processSteps` becomes a derived projection** of `map.nodes` (`{ id, name, order }`
    computed on read from the canonical nodes), **not a second source of truth.** Consumers
    that read `IP.processSteps` repoint to the projection. There is no longer anything to keep
