@@ -669,6 +669,19 @@ describe('Dashboard', () => {
       expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('Vessel');
     });
 
+    it('LV1-B: focusedChart-only intent leaves scope.boxplotFactor undefined', () => {
+      usePanelsStore.setState({
+        pendingExploreIntent: { focusedChart: 'ichart' },
+      });
+
+      render(<Dashboard />);
+
+      // The mirror sits inside the same `if (pendingExploreIntent.boxplotFactor)`
+      // guard as the local setBoxplotFactor write. When the intent omits the
+      // factor, the scope-store stays at its initial state.
+      expect(useAnalysisScopeStore.getState().boxplotFactor).toBeUndefined();
+    });
+
     it('applies focusedChart-only intent without setting boxplotFactor', () => {
       usePanelsStore.setState({
         pendingExploreIntent: { focusedChart: 'ichart' },
