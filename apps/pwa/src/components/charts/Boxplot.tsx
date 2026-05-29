@@ -73,6 +73,9 @@ const Boxplot = ({
 
   return (
     <div className="relative h-full w-full">
+      {/* TODO(lv1-f-pwa): Pass onScopeAccumulate={(f,k)=>useAnalysisScopeStore.getState().addCategoricalValue(f,k)}
+          once PWA mounts <ScopeChrome>. See docs/superpowers/plans/2026-05-28-linked-views-phase-1-master-plan.md
+          §PWA-Mount-Deferral (decision 2026-05-29). */}
       <BoxplotWrapperBase
         parentWidth={parentWidth}
         parentHeight={parentHeight}

@@ -707,7 +707,11 @@ const Dashboard = ({
         onCreateFactor={handleCreateFactor}
       />
 
-      {/* TODO(lv1-e-pwa-mount): mount <ScopeChrome> above the Dashboard chart layout when PWA gets pendingExploreIntent parity (or sooner, decoupled). See docs/superpowers/plans/2026-05-28-pr-lv1-e-explore-scope-chrome.md D-LV1E-8. */}
+      {/* DEFERRED(lv1-pwa-mount): Mount <ScopeChrome> when PWA gains a Process tab
+          with a process-steps source. Until then, partial mount (Y/factor/categorical,
+          no step chip) ships dead UI and scope mutations have no visual consumer.
+          See docs/superpowers/plans/2026-05-28-linked-views-phase-1-master-plan.md
+          §PWA-Mount-Deferral (decision 2026-05-29). */}
 
       {/* Dashboard View */}
       <DashboardLayoutBase

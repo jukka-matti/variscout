@@ -54,6 +54,12 @@ export interface BoxplotWrapperBaseProps {
   yDomainMax: number;
   /** Drill-down callback (overrides filter toggle when provided) */
   onDrillDown?: (factor: string, value: string) => void;
+  /**
+   * LV1-F: Linked-views scope accumulation. Fires `(factor, key)` on every box /
+   * whisker click. Caller (Azure thin wrapper) wires this to
+   * `useAnalysisScopeStore.addCategoricalValue`. Spec §5.4.
+   */
+  onScopeAccumulate?: (factor: string, key: string | number) => void;
   /** Render the VariScout source-bar branding when true. Defaults to false. */
   showBranding?: boolean;
   /** Branding text (only used when showBranding=true). Defaults to "VariScout Lite". */
@@ -108,6 +114,7 @@ export const BoxplotWrapperBase = ({
   yDomainMin,
   yDomainMax,
   onDrillDown,
+  onScopeAccumulate,
   showBranding: showBrandingProp,
   brandingText: brandingTextProp,
   highlightedCategories,
@@ -147,6 +154,7 @@ export const BoxplotWrapperBase = ({
   });
 
   const handleBoxClick = (key: string) => {
+    onScopeAccumulate?.(factor, key);
     if (onDrillDown) {
       onDrillDown(factor, key);
     } else {
