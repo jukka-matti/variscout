@@ -192,6 +192,18 @@ export class VariScoutDatabase extends Dexie {
     // is singular). No schema migration needed — the table shape is identical.
     // Bumping the version flushes any cached schema.
     this.version(15).stores({});
+
+    // Version 16: IM-0b — process-step model reconciliation (ADR-087). The rich
+    // ProcessMap (on ProcessContext.processMap, inside the hub blob) becomes the
+    // single canonical step structure; IP.processSteps is now a read-only
+    // projection (deriveProcessSteps) and no write path persists it. The
+    // improvementProjects Dexie table shape is unchanged — processSteps remains
+    // a valid optional in-row field for the stored back-compat shape. Per wedge
+    // V1 no-users / no-migration stance (ADR-082), NO upgrade callback: any
+    // stored goal.stepId / stepTimings.stepId minted against the old flat
+    // step-${columnName}-${idx} scheme may orphan, which is acceptable
+    // pre-launch. The bump flushes cached schema; no destructive re-init.
+    this.version(16).stores({});
   }
 }
 
