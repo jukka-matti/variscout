@@ -817,5 +817,21 @@ export * from './components/Improve';
 // Explore tab — Probability lens inflection-binning workflow (wedge V1 PR-CCJ-G1)
 export * from './components/Explore/Probability/InflectionBinning';
 
+// Explore tab — Scope chrome (SingleSelectPopover + FilterChipDropdown reuse, wedge V1 LV1-E)
+export { ScopeChrome, ScopeChip, AddFilterButton, EmptyStateHint } from './components/Explore';
+export type {
+  ScopeChromeProps,
+  ScopeChipProps,
+  ScopeChipKind,
+  AddFilterButtonProps,
+  EmptyStateHintProps,
+} from './components/Explore';
+export { SingleSelectPopover } from './components/SingleSelectPopover';
+export type {
+  SingleSelectPopoverProps,
+  SingleSelectPopoverOption,
+  SingleSelectPopoverNullOption,
+} from './components/SingleSelectPopover';
+
 // Shared confirm dialog primitive (wedge V1 PR-CCJ-H1)
 export { ConfirmDialog, type ConfirmDialogProps } from './components/ConfirmDialog';

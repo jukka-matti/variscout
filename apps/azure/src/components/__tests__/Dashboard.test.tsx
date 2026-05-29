@@ -360,6 +360,8 @@ vi.mock('@variscout/ui', () => ({
   DefectSummary: () => <div data-testid="defect-summary">Defect Summary</div>,
   useIsMobile: () => false,
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
+  // LV1-E Task 7: ScopeChrome stub — renders data-testid so render-smoke tests work
+  ScopeChrome: () => <div data-testid="scope-chrome">ScopeChrome</div>,
 }));
 
 // Hoisted spies for useDashboardCharts setters — shared so tests can assert
@@ -728,6 +730,54 @@ describe('Dashboard', () => {
       expect(calls.length).toBeGreaterThanOrEqual(1);
       expect(calls[calls.length - 1]?.[0]).toBe('boxplot');
       expect(chartSetterSpies.setBoxplotFactor).toHaveBeenCalledWith('Operator');
+    });
+  });
+
+  // ────────────────────────────────────────────────────────────────────────
+  // LV1-E Task 7: ScopeChrome mount + reverse-mirror effects
+  // ────────────────────────────────────────────────────────────────────────
+  describe('LV1-E: ScopeChrome mount + reverse-mirror effects', () => {
+    it('renders the ScopeChrome stub in the analysis tab (desktop)', () => {
+      // useIsMobile returns false by default (desktop)
+      render(<Dashboard />);
+
+      expect(screen.getByTestId('scope-chrome')).toBeInTheDocument();
+    });
+
+    it('LV1-E reverse-mirror: scope.yColumn change calls setOutcome on projectStore', async () => {
+      render(<Dashboard />);
+
+      // Simulate ScopeChrome writing yColumn into the scope store
+      useAnalysisScopeStore.setState({ yColumn: 'Pressure' });
+
+      // React processes the update; the reverse-mirror useEffect fires
+      await vi.waitFor(() => {
+        expect(useProjectStore.getState().outcome).toBe('Pressure');
+      });
+    });
+
+    it('LV1-E reverse-mirror: scope.boxplotFactor change calls setBoxplotFactor', async () => {
+      render(<Dashboard />);
+
+      // Simulate ScopeChrome writing a new boxplotFactor into the scope store
+      useAnalysisScopeStore.setState({ boxplotFactor: 'Operator' });
+
+      await vi.waitFor(() => {
+        expect(chartSetterSpies.setBoxplotFactor).toHaveBeenCalledWith('Operator');
+      });
+    });
+
+    it('LV1-E reverse-mirror: no-op when scope.yColumn matches current outcome', async () => {
+      // outcome is already 'Result' from mockStoreState
+      useProjectStore.setState({ outcome: 'Result' });
+      render(<Dashboard />);
+
+      const setOutcomeSpy = vi.spyOn(useProjectStore.getState(), 'setOutcome');
+      useAnalysisScopeStore.setState({ yColumn: 'Result' });
+
+      // Give effects time to run (they shouldn't call setOutcome)
+      await new Promise(resolve => setTimeout(resolve, 20));
+      expect(setOutcomeSpy).not.toHaveBeenCalled();
     });
   });
 });

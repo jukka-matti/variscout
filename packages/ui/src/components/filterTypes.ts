@@ -16,3 +16,28 @@ export interface FilterChipData {
     isSelected: boolean;
   }[];
 }
+
+/**
+ * Build a FilterChipData shape from a flat factor + values + availableValues
+ * triple. Used by production consumers that need to feed the FilterChipDropdown
+ * primitive without precomputing the full per-value shape (count + isSelected).
+ *
+ * Defaults `count` to 0 (FilterChipDropdown displays counts; consumers without
+ * count data render `n=0`, which is acceptable for the scope-chrome surface).
+ * `isSelected` is derived from `values.includes(v)`.
+ */
+export function buildFilterChipData(
+  factor: string,
+  values: (string | number)[] = [],
+  availableValues: (string | number)[] = []
+): FilterChipData {
+  return {
+    factor,
+    values,
+    availableValues: availableValues.map(v => ({
+      value: v,
+      count: 0,
+      isSelected: values.includes(v),
+    })),
+  };
+}

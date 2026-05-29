@@ -40,6 +40,7 @@ import {
   DefectSummary,
   ActiveIPScopeRibbon,
   InflectionSidePanelView,
+  ScopeChrome,
   useInflectionBinningState,
   useIsMobile,
   useGlossary,
@@ -152,6 +153,13 @@ interface DashboardProps {
    */
   categoricalValuesByColumn?: Record<string, (string | null)[]>;
   /**
+   * LV1-E Task 7: Process steps from the active ImprovementProject, mapped to
+   * the shape ScopeChrome expects. Absent or empty → ScopeChrome renders the
+   * step chip with no options (graceful no-op; step scope selection is
+   * deferred until the parent threads the full IP context here).
+   */
+  activeIPProcessSteps?: ReadonlyArray<{ stepId: string; label: string }>;
+  /**
    * G1 Task 7: existing inflection-binning bindings from the active IP.
    * When provided alongside `onBindingsChange`, the Probability lens shows the
    * inflection-binning workflow (Detect → propose → commit → manage). Without
@@ -186,6 +194,7 @@ const Dashboard = ({
   projectedCpkMap: externalProjectedCpkMap,
   activeIPScope,
   categoricalValuesByColumn,
+  activeIPProcessSteps = [],
   binnedFactorBindings,
   onBindingsChange,
 }: DashboardProps) => {
@@ -442,6 +451,35 @@ const Dashboard = ({
     clearPendingExploreIntent();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- single-use intent: only fire when intent transitions to non-null
   }, [pendingExploreIntent]);
+
+  // LV1-E Task 7: Reverse-mirror effects — scope store → existing local state.
+  //
+  // When ScopeChrome mutates the analysisScopeStore (e.g. user picks a new Y
+  // column or boxplot factor), these effects propagate the change back into the
+  // existing chart-wiring layer so charts re-render with the new selection.
+  //
+  // Guard pattern: `if (scopeVal !== localVal) setLocal(scopeVal)` prevents
+  // infinite loops. Each dep array contains ONLY the scope-store value — never
+  // the local var — so the effect fires once on store change, not on every
+  // local re-render.
+  const scopeY = useAnalysisScopeStore(s => s.yColumn);
+  const scopeBoxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
+
+  useEffect(() => {
+    if (scopeY && scopeY !== outcome) setOutcome(scopeY);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reverse-mirror: dep on store value only, not local var
+  }, [scopeY]);
+
+  useEffect(() => {
+    if (scopeBoxplotFactor && scopeBoxplotFactor !== boxplotFactor) {
+      setBoxplotFactor(scopeBoxplotFactor);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reverse-mirror: dep on store value only, not local var
+  }, [scopeBoxplotFactor]);
+
+  // TODO(lv1-e-step-mirror): wire stepId mirror when a local stepId state exists.
+  // analysisScopeStore.setStepId is available, but Dashboard has no local stepId
+  // to mirror into as of LV1-E. Add once the chart layer consumes stepId.
 
   // Process projection intelligence (Phase 2-4)
   const journeyPhase = useJourneyPhase(!!rawData?.length, allFindings ?? []);
@@ -860,6 +898,35 @@ const Dashboard = ({
                 Back to Performance
               </button>
             </div>
+          )}
+
+          {/* LV1-E Task 7: ScopeChrome — IP-scoped Y / factor / step / filter chrome.
+              Desktop-only: mobile carousel is compact and doesn't have room for
+              the full chip row. ScopeChrome reads + writes analysisScopeStore
+              natively; reverse-mirror effects above propagate writes back into
+              the existing chart-wiring layer. */}
+          {!isPhone && (
+            <ScopeChrome
+              availableOutcomes={availableOutcomes.map(col => ({
+                columnName: col,
+                label: columnAliases[col] ?? col,
+              }))}
+              availableFactors={effectiveFactors.map(col => ({
+                columnName: col,
+                label: columnAliases[col] ?? col,
+              }))}
+              availableSteps={activeIPProcessSteps}
+              categoricalValuesByColumn={
+                // Filter out nulls: ScopeChrome expects (string | number)[], not (string | null)[]
+                Object.fromEntries(
+                  Object.entries(categoricalValuesByColumn ?? {}).map(([col, vals]) => [
+                    col,
+                    vals.filter((v): v is string => v !== null),
+                  ])
+                )
+              }
+              onNavigateToProcess={() => usePanelsStore.getState().showFrame()}
+            />
           )}
 
           {isPhone ? (
