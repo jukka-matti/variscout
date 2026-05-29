@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: PR-LV1-H — Outcome summary pill in Process tab header
-status: active
+status: delivered
 date: 2026-05-28
 layer: spec
 ---

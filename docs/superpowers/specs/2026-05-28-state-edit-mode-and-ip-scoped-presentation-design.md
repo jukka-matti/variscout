@@ -4,7 +4,7 @@ purpose: design
 title: 'State/Edit mode rethink + cross-tab IP-scoped presentation — linked-views architecture (Phase 1)'
 audience: human
 category: design-spec
-status: draft
+status: delivered
 last-reviewed: 2026-05-28
 layer: spec
 related:

@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: PR-LV1-B — F1 pendingExploreIntent → analysisScopeStore mirror
-status: active
+status: delivered
 date: 2026-05-28
 layer: spec
 ---

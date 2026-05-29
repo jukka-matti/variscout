@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: PR-LV1-G — Canvas live scope visualization
-status: active
+status: delivered
 date: 2026-05-29
 layer: spec
 ---

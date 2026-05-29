@@ -78,7 +78,7 @@ _"Structured investigation for process improvement"_ — the tagline still works
 V1 serves two distinct workflows, both as primary use cases:
 
 1. **Quick analysis (exploratory)** — analyst pastes data, explores in charts, optionally creates Findings and Hypotheses. _No Project required._ Free PWA supports this in session-only mode; Azure tier adds persistence and collaboration.
-2. **Project-anchored investigation** — analyst (or anyone in the tenant) creates a Project (Charter ceremony). The Project wraps an existing Hub with formal lifecycle (Charter → Approach → Sustainment) and project-membership ACLs.
+2. **Project-anchored investigation** — analyst (or anyone in the tenant) creates a Project (Charter ceremony). The Project wraps an existing Hub with formal lifecycle (Charter → Approach → Control) and project-membership ACLs.
 
 **Hub goes internal, not retired.** The "Hub" (the data container holding paste data + outcome + process map + factors) survives as the internal data architecture. It is _not_ surfaced as a user-visible noun in V1 — only "Project" and "Process" appear in the UI. Tenant users can paste data and analyze without ever creating a Project. Projects are the optional formal wrapper.
 
@@ -110,21 +110,23 @@ This order supersedes the Coherence §4 nav (which placed Process between Home a
 
 `Charter → Approach → Sustainment`
 
-Improve is **not** a stage — it lives as a top-level verb tab (§3.1) with active-IP cascade, so the action tracker is always one click away regardless of which Project-stage panel is open. Handoff is **folded into Sustainment closure**. Single end-of-project decision moment.
+Improve is **not** a stage — it lives as a top-level verb tab (§3.1) with active-IP cascade, so the action tracker is always one click away regardless of which Project-stage panel is open. Handoff is **folded into Control closure**. Single end-of-project decision moment.
 
 **Charter is optional.** Quick analysis (per §3.0) does not require a Project; this stage list only applies when the analyst formalizes work into a Project. Charter inherits any prior Hub-level framing, Findings, and Hypotheses on promotion (see §3.0 promotion path).
 
-| Stage           | Function                                                                                                                                                                                            | UI                                                                                                                                                                            |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Charter**     | Wrap an existing Hub with project ceremony — issue statement, member invites, optional refined goal. Inherits the Hub's framing (outcome spec, data, factors, process map) rather than re-doing it. | Issue statement form + Invite modal + (read-only) inherited Hub context summary. _Existing data paste / framing primitives stay at Hub level, not re-mounted inside Charter._ |
-| **Approach**    | Investigation strategy → produces suspected causes. Anchor surface is the **Investigation Wall** (see §3.6 — Hypotheses + Findings + Measurement Plans).                                            | SuspectedCause-anchored hierarchy; links to Wall + Evidence Map                                                                                                               |
-| **Sustainment** | "Did it work?" + close project                                                                                                                                                                      | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up                                                                                    |
+| Stage        | Function                                                                                                                                                                                            | UI                                                                                                                                                                            |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Charter**  | Wrap an existing Hub with project ceremony — issue statement, member invites, optional refined goal. Inherits the Hub's framing (outcome spec, data, factors, process map) rather than re-doing it. | Issue statement form + Invite modal + (read-only) inherited Hub context summary. _Existing data paste / framing primitives stay at Hub level, not re-mounted inside Charter._ |
+| **Approach** | Investigation strategy → produces suspected causes. Anchor surface is the **Investigation Wall** (see §3.6 — Hypotheses + Findings + Measurement Plans).                                            | SuspectedCause-anchored hierarchy; links to Wall + Evidence Map                                                                                                               |
+| **Control**  | "Did it work?" + close project                                                                                                                                                                      | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up                                                                                    |
 
 Improvement actions, PDCA workbench, and What-If live in the **Improve tab** (§3.4), not under a Project stage panel.
 
 **Issue Statement vs Problem Statement.** What the user types at Charter is an **Issue Statement** (free-text, ≤ 500 chars — captured by `AnalysisBrief.issueStatement` in `packages/core/src/findings/types.ts`). The structured **Problem Statement** is auto-synthesized later in the Approach stage via `buildProblemStatement()` from `packages/core/src/findings/problemStatement.ts`, using Watson's 3 Questions framework, with maturity stages (`partial` → `actionable` → `with-causes`). The Approved Problem Statement (locked by Lead) is what the Report renders. Distinct concepts at distinct lifecycle stages.
 
 ### §3.3 Process tab — canvas substrate + State/Edit modes + Specialist content
+
+> **DELIVERED 2026-05-29 by [State/Edit mode rethink + linked-views Phase 1](2026-05-28-state-edit-mode-and-ip-scoped-presentation-design.md)** (PRs #232–#240). The Process tab now uses canvas direct-manipulation (no State/Edit binary); scope-chrome + live cross-tab visualization live in Explore. §3.3 below is preserved as design rationale; refer to the 2026-05-28 spec for shipped reality.
 
 Canvas IS the Process tab's architectural substrate, not a removable surface (locked by Coherence §4.304 + §4.324). 8f viewport architecture (PRs #160–#168) is intact. The §3.3 subsections below port Coherence §4's Process tab design forward into the wedge, with persona references de-personalized (single Specialist replaces the Process Owner / Project Lead split).
 

@@ -4,7 +4,7 @@ purpose: design
 title: 'Canvas Connection Journey — Process tab Edit mode (Spec 2 of Framing Layer V2)'
 audience: human
 category: design-spec
-status: draft
+status: delivered
 last-reviewed: 2026-05-26
 layer: spec
 related:

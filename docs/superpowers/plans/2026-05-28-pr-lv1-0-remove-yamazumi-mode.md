@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: PR-LV1-0 — Remove yamazumi mode (atomic deletion sweep)
-status: active
+status: delivered
 date: 2026-05-28
 layer: spec
 ---

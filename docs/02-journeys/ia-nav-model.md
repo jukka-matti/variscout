@@ -104,3 +104,21 @@ The cascade is the V1 verb-tab pattern — every verb tab follows the same `useA
 | Report  | Compile        | Read          | Sign off        |
 
 See [`personas/lead.md`](personas/lead.md), [`personas/member.md`](personas/member.md), [`personas/sponsor.md`](personas/sponsor.md) for end-to-end per-persona sequences.
+
+## Vocabulary: 5-verb activity frame
+
+Wedge V1 organizes user activities under five verbs:
+
+> **Frame → Explore → Analyze → Improve → Control**
+
+Mapping to the 7-tab nav:
+
+- **Frame** — Process tab (canvas configuration; structure + outcomes + factors)
+- **Explore** — Explore tab (EDA / 4-chart dashboard)
+- **Analyze** — Analyze tab (Investigation Wall / hypotheses)
+- **Improve** — Improve tab (top-level verb tab, active-IP cascade)
+- **Control** — Control stage (verify + handoff closure)
+
+Authoritative definition: [State/Edit mode + IP-scoped presentation spec §3 D6](../superpowers/specs/2026-05-28-state-edit-mode-and-ip-scoped-presentation-design.md). Architecture rationale: [ADR-082 Wedge architecture](../07-decisions/adr-082-wedge-architecture.md).
+
+This activity frame supersedes the earlier 4-verb pre-wedge proposal (`Frame → Scout → Investigate → Improve`).
