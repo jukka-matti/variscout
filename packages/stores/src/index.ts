@@ -75,6 +75,17 @@ export type { HubCommentEntry } from './wallSelectors';
 export { useViewStore, getViewInitialState, STORE_LAYER as VIEW_STORE_LAYER } from './viewStore';
 export type { ViewState as ViewStoreState, ViewActions, ViewStore } from './viewStore';
 export {
+  useAnalysisScopeStore,
+  getAnalysisScopeInitialState,
+  STORE_LAYER as ANALYSIS_SCOPE_STORE_LAYER,
+} from './analysisScopeStore';
+export type {
+  AnalysisScopeState,
+  AnalysisScopeActions,
+  AnalysisScopeStore,
+  CategoricalFilter,
+} from './analysisScopeStore';
+export {
   usePreferencesStore,
   getPreferencesInitialState,
   STORE_LAYER as PREFERENCES_STORE_LAYER,

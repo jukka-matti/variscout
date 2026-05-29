@@ -10,7 +10,7 @@
  *   - 'document' (projectStore, analyzeStore, canvasStore)
  *   - 'annotation-per-hub' (canvasViewportStore)
  *   - 'annotation-per-user' (preferencesStore, activeIPStore, useProjectMembershipStore)
- *   - 'view' (viewStore)
+ *   - 'view' (viewStore, analysisScopeStore)
  * Reserved for future use (no test coverage today, intentional):
  *   - 'annotation-per-project'
  *   - 'annotation-per-investigation'
@@ -52,6 +52,7 @@ function loadStoreFiles(): StoreFile[] {
     'viewStore.ts',
     'improvementProjectStore.ts',
     'useProjectMembershipStore.ts',
+    'analysisScopeStore.ts',
   ];
   return filenames.map(filename => {
     const path = resolve(SRC, filename);
