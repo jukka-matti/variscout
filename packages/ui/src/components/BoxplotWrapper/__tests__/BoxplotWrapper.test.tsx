@@ -89,7 +89,7 @@ const baseProps = {
   onValueLabelsChange: () => {},
   displayOptions: {
     showSpecs: true,
-    boxplotSortBy: 'key' as const,
+    boxplotSortBy: 'name' as const,
     boxplotSortDirection: 'asc' as const,
     showViolin: false,
   },

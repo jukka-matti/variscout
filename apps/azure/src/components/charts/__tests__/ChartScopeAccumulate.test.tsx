@@ -116,7 +116,7 @@ describe('LV1-F: chart-click categorical accumulate (Azure)', () => {
   });
 
   it('Pareto onScopeAccumulate dispatches to scope store with accumulate semantics', () => {
-    render(<ParetoChart factor="vessel" parentWidth={400} parentHeight={300} />);
+    render(<ParetoChart factor="vessel" />);
     fireEvent.click(screen.getByTestId('pareto-accumulate-trigger'));
     expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
       { column: 'vessel', values: ['A'] },
@@ -129,7 +129,7 @@ describe('LV1-F: chart-click categorical accumulate (Azure)', () => {
   });
 
   it('Boxplot onScopeAccumulate dispatches to scope store', () => {
-    render(<Boxplot factor="vessel" parentWidth={400} parentHeight={300} />);
+    render(<Boxplot factor="vessel" />);
     fireEvent.click(screen.getByTestId('boxplot-accumulate-trigger'));
     expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
       { column: 'vessel', values: ['A'] },
