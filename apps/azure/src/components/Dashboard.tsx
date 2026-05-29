@@ -9,7 +9,7 @@ import MobileChartCarousel from './MobileChartCarousel';
 import PerformanceDashboard from './PerformanceDashboard';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
-import { useProjectStore, useViewStore } from '@variscout/stores';
+import { useProjectStore, useViewStore, useAnalysisScopeStore } from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
@@ -434,6 +434,10 @@ const Dashboard = ({
     setFocusedChart(pendingExploreIntent.focusedChart);
     if (pendingExploreIntent.boxplotFactor) {
       setBoxplotFactor(pendingExploreIntent.boxplotFactor);
+      // LV1-B: mirror boxplotFactor into the linked-views scope store so
+      // downstream consumers (LV1-E scope chrome, LV1-G canvas viz) can
+      // subscribe. The local setState above retires when LV1-E ships.
+      useAnalysisScopeStore.getState().setBoxplotFactor(pendingExploreIntent.boxplotFactor);
     }
     clearPendingExploreIntent();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- single-use intent: only fire when intent transitions to non-null
