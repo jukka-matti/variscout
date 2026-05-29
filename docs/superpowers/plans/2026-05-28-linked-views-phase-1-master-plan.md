@@ -442,7 +442,7 @@ This decision also defers LV1-F's PWA chart-click dispatch — PWA thin wrappers
 - Clear scope → all chips render normally
 - `pnpm --filter @variscout/ui test` and `build` green
 
-**Sub-plan invocation:** Standard `superpowers:writing-plans` with prompt: `"Sub-plan for PR-LV1-G. Canvas-side scope subscription + visual markers (✓, dim, categorical badges). Per spec §4.5. ~5–7 tasks."`
+**Sub-plan:** [./2026-05-29-pr-lv1-g-canvas-scope-visualization.md](./2026-05-29-pr-lv1-g-canvas-scope-visualization.md) (drafted 2026-05-29; ready for dispatch — 5 bite-sized TDD tasks, Sonnet implementer per task; V1-compliant color tokens at 600 borders + 500/30 rings + 50 surfaces per `packages/ui/CLAUDE.md` discipline; 📍 emoji replaced with `MapPin` lucide-react icon per no-emoji rule).
 
 ---
 
