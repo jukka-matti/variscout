@@ -1,6 +1,7 @@
 import { useDroppable } from '@dnd-kit/core';
 import { useState } from 'react';
 import type { OutcomeSpec } from '@variscout/core';
+import type { ChipNavigationTarget } from '../handlers/navigateToExploreForChip';
 import { OutcomeCard } from './OutcomeCard';
 import { OutcomeSpecsPopover } from './OutcomeSpecsPopover';
 import { encodeOutcomeDropId } from './encodeOutcomeDropId';
@@ -21,6 +22,8 @@ export interface OutcomeZoneProps {
    */
   onSpecAdd: (columnName: string, derived: Partial<OutcomeSpec>) => void;
   onSpecUpdate: (specId: string, updated: OutcomeSpec) => void;
+  /** LV1-D — fires when user clicks the Explore jump affordance for a chip. */
+  onChipExploreJump?: (target: ChipNavigationTarget) => void;
 }
 
 interface OpenSpecs {
@@ -35,6 +38,7 @@ export function OutcomeZone({
   // Plumbed for Task 7 drag-end chain at DndContext parent; unused inside the zone itself.
   onSpecAdd: _onSpecAdd,
   onSpecUpdate,
+  onChipExploreJump,
 }: OutcomeZoneProps) {
   const { setNodeRef, isOver } = useDroppable({ id: encodeOutcomeDropId('singleton') });
   const [openSpecs, setOpenSpecs] = useState<OpenSpecs | null>(null);
@@ -57,6 +61,11 @@ export function OutcomeZone({
               key={spec.id}
               spec={spec}
               onSpecsClick={anchor => setOpenSpecs({ specId: spec.id, anchor })}
+              onExploreJumpClick={
+                onChipExploreJump
+                  ? () => onChipExploreJump({ kind: 'outcome', columnName: spec.columnName })
+                  : undefined
+              }
             />
           ))}
         </div>

@@ -1,6 +1,6 @@
 import { DndContext } from '@dnd-kit/core';
-import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { createTestStep } from '../../../../../test-utils/step';
 import { ProcessStructureZone, type ProcessStructureZoneProps } from '..';
 
@@ -128,5 +128,22 @@ describe('ProcessStructureZone — timingByStepId forward prop (D1 Task 9)', () 
     const steps = [createTestStep({ id: 'a', order: 0 }), createTestStep({ id: 'b', order: 1 })];
     renderZone({ steps, timingByStepId: {} });
     expect(screen.queryByTestId('badge')).not.toBeInTheDocument();
+  });
+});
+
+describe('ProcessStructureZone — onChipExploreJump threading (LV1-D Task 6)', () => {
+  it('clicking a step Explore button calls onChipExploreJump with { kind: step, stepId }', () => {
+    const onChipExploreJump = vi.fn();
+    render(
+      <DndContext>
+        <ProcessStructureZone
+          steps={[createTestStep({ id: 'step-1', name: 'Pack', order: 0 })]}
+          onChipExploreJump={onChipExploreJump}
+        />
+      </DndContext>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /open pack in explore/i }));
+    expect(onChipExploreJump).toHaveBeenCalledTimes(1);
+    expect(onChipExploreJump).toHaveBeenCalledWith({ kind: 'step', stepId: 'step-1' });
   });
 });

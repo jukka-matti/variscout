@@ -93,4 +93,48 @@ describe('FactorZone', () => {
     fireEvent.click(screen.getByRole('button', { name: /edit factor/i }));
     expect(screen.getByRole('option', { name: /stepone/i })).toBeInTheDocument();
   });
+
+  it('clicking global-factor chip Explore button calls onChipExploreJump WITHOUT stepId', () => {
+    const onChipExploreJump = vi.fn();
+    render(
+      <DndContext>
+        <FactorZone
+          controls={[createTestFactorControl({ factor: 'Vessel', stepId: undefined })]}
+          steps={[]}
+          onControlAdd={vi.fn()}
+          onControlUpdate={vi.fn()}
+          onChipExploreJump={onChipExploreJump}
+        />
+      </DndContext>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /open vessel in explore/i }));
+    expect(onChipExploreJump).toHaveBeenCalledTimes(1);
+    expect(onChipExploreJump).toHaveBeenCalledWith({
+      kind: 'factor',
+      columnName: 'Vessel',
+      stepId: undefined,
+    });
+  });
+
+  it('clicking step-bound-factor chip Explore button calls onChipExploreJump WITH stepId', () => {
+    const onChipExploreJump = vi.fn();
+    render(
+      <DndContext>
+        <FactorZone
+          controls={[createTestFactorControl({ factor: 'Temperature', stepId: 'step-2' })]}
+          steps={[{ id: 'step-2', name: 'Heat' }]}
+          onControlAdd={vi.fn()}
+          onControlUpdate={vi.fn()}
+          onChipExploreJump={onChipExploreJump}
+        />
+      </DndContext>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /open temperature in explore/i }));
+    expect(onChipExploreJump).toHaveBeenCalledTimes(1);
+    expect(onChipExploreJump).toHaveBeenCalledWith({
+      kind: 'factor',
+      columnName: 'Temperature',
+      stepId: 'step-2',
+    });
+  });
 });
