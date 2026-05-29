@@ -55,6 +55,7 @@ import { StepTimingsModal } from './EditMode/Workflows/StepTimingsModal';
 import { CalculatedColumnModal } from './EditMode/Workflows/CalculatedColumnModal';
 import { TimeAsFactorsModal } from './EditMode/Workflows/TimeAsFactorsModal';
 import { formatDuration } from './EditMode/formatDuration';
+import { OutcomeSummaryPill } from './EditMode/Header/OutcomeSummaryPill';
 import { CanvasFilterChips } from '../CanvasFilterChips';
 import { FrameViewB0, type FrameViewB0YCandidate } from '../FrameViewB0';
 import type { XCandidate } from '../XPickerSection';
@@ -1233,8 +1234,13 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     <div className="flex-1 overflow-auto" data-testid="frame-view">
       <div className="mx-auto max-w-6xl">
         <header className="px-4 pt-4">
-          <h2 className="text-lg font-semibold text-content">{t('frame.b1.heading')}</h2>
-          <p className="text-sm text-content-secondary">{t('frame.b1.description')}</p>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-content">{t('frame.b1.heading')}</h2>
+              <p className="text-sm text-content-secondary">{t('frame.b1.description')}</p>
+            </div>
+            <OutcomeSummaryPill rawData={rawData} outcomeSpecs={outcomeSpecs} />
+          </div>
         </header>
         {showEditShell ? (
           <>

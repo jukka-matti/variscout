@@ -17,7 +17,9 @@ import type {
 } from '@variscout/hooks';
 import { useCanvasAnalyzeOverlays, useCanvasStepCards, useSharedWallProps } from '@variscout/hooks';
 import {
+  getAnalysisScopeInitialState,
   getCanvasViewportInitialState,
+  useAnalysisScopeStore,
   useCanvasStore,
   useCanvasViewportStore,
 } from '@variscout/stores';
@@ -757,6 +759,7 @@ describe('CanvasWorkspace', () => {
     vi.mocked(useCanvasAnalyzeOverlays).mockImplementation(() => ({
       overlays: mockInvestigationOverlays,
     }));
+    useAnalysisScopeStore.setState(getAnalysisScopeInitialState());
   });
 
   it('renders b0 with the lightweight picker and collapsed canvas expander', () => {
@@ -1287,6 +1290,12 @@ describe('CanvasWorkspace', () => {
 
     expect(hydrateCanvasDocument).toHaveBeenCalledTimes(callsAfterInitialHydration + 1);
     expect(useCanvasStore.getState().canonicalMap.nodes).toEqual(mapWithSecondStep().nodes);
+  });
+
+  it('LV1-H: renders OutcomeSummaryPill in header when scope.yColumn is set', () => {
+    useAnalysisScopeStore.setState({ yColumn: 'Fill_Weight' });
+    renderWorkspace({ processContext: { processMap: mapWithStep() } });
+    expect(screen.getByTestId('outcome-summary-pill')).toBeInTheDocument();
   });
 });
 
