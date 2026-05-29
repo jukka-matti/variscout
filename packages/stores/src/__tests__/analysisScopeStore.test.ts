@@ -77,3 +77,82 @@ describe('useAnalysisScopeStore — single-value setters', () => {
     expect(useAnalysisScopeStore.getState().stepId).toBe('pack');
   });
 });
+
+describe('useAnalysisScopeStore — addCategoricalValue', () => {
+  it('creates filter entry when column is new', () => {
+    useAnalysisScopeStore.getState().addCategoricalValue('vessel', 'A');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'vessel', values: ['A'] },
+    ]);
+  });
+
+  it('appends value when column already has a filter', () => {
+    useAnalysisScopeStore.getState().addCategoricalValue('vessel', 'A');
+    useAnalysisScopeStore.getState().addCategoricalValue('vessel', 'B');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'vessel', values: ['A', 'B'] },
+    ]);
+  });
+
+  it('is a no-op (dedupe) when value already present', () => {
+    useAnalysisScopeStore.getState().addCategoricalValue('vessel', 'A');
+    useAnalysisScopeStore.getState().addCategoricalValue('vessel', 'A');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'vessel', values: ['A'] },
+    ]);
+  });
+
+  it('handles numeric values', () => {
+    useAnalysisScopeStore.getState().addCategoricalValue('lot', 42);
+    useAnalysisScopeStore.getState().addCategoricalValue('lot', 43);
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'lot', values: [42, 43] },
+    ]);
+  });
+
+  it('keeps multiple columns independent', () => {
+    useAnalysisScopeStore.getState().addCategoricalValue('vessel', 'A');
+    useAnalysisScopeStore.getState().addCategoricalValue('operator', 'Jane');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toHaveLength(2);
+  });
+});
+
+describe('useAnalysisScopeStore — removeCategoricalValue', () => {
+  it('drops the value from the column entry', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'vessel', values: ['A', 'B'] }],
+    });
+    useAnalysisScopeStore.getState().removeCategoricalValue('vessel', 'A');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'vessel', values: ['B'] },
+    ]);
+  });
+
+  it('drops the entire entry when values become empty', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'vessel', values: ['A'] }],
+    });
+    useAnalysisScopeStore.getState().removeCategoricalValue('vessel', 'A');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([]);
+  });
+
+  it('is a no-op when value not present', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'vessel', values: ['A'] }],
+    });
+    useAnalysisScopeStore.getState().removeCategoricalValue('vessel', 'B');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'vessel', values: ['A'] },
+    ]);
+  });
+
+  it('is a no-op when column not present', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'operator', values: ['Jane'] }],
+    });
+    useAnalysisScopeStore.getState().removeCategoricalValue('vessel', 'A');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'operator', values: ['Jane'] },
+    ]);
+  });
+});

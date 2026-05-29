@@ -54,8 +54,38 @@ export const useAnalysisScopeStore = create<AnalysisScopeStore>(set => ({
   setY: yColumn => set({ yColumn }),
   setBoxplotFactor: factor => set({ boxplotFactor: factor }),
   setStepId: stepId => set({ stepId }),
-  addCategoricalValue: notImplemented('addCategoricalValue'),
-  removeCategoricalValue: notImplemented('removeCategoricalValue'),
+  addCategoricalValue: (column, value) =>
+    set(s => {
+      const existing = s.categoricalFilters.find(f => f.column === column);
+      if (existing) {
+        if (existing.values.includes(value)) return {};
+        return {
+          categoricalFilters: s.categoricalFilters.map(f =>
+            f.column === column ? { column, values: [...f.values, value] } : f
+          ),
+        };
+      }
+      return {
+        categoricalFilters: [...s.categoricalFilters, { column, values: [value] }],
+      };
+    }),
+  removeCategoricalValue: (column, value) =>
+    set(s => {
+      const existing = s.categoricalFilters.find(f => f.column === column);
+      if (!existing) return {};
+      if (!existing.values.includes(value)) return {};
+      const remaining = existing.values.filter(v => v !== value);
+      if (remaining.length === 0) {
+        return {
+          categoricalFilters: s.categoricalFilters.filter(f => f.column !== column),
+        };
+      }
+      return {
+        categoricalFilters: s.categoricalFilters.map(f =>
+          f.column === column ? { column, values: remaining } : f
+        ),
+      };
+    }),
   setCategoricalValues: notImplemented('setCategoricalValues'),
   removeCategoricalFilter: notImplemented('removeCategoricalFilter'),
   clearScope: notImplemented('clearScope'),
