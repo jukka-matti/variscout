@@ -2,7 +2,11 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
-import { useProjectStore } from '@variscout/stores';
+import {
+  useProjectStore,
+  useAnalysisScopeStore,
+  getAnalysisScopeInitialState,
+} from '@variscout/stores';
 import { calculateAnova } from '@variscout/core';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 
@@ -562,6 +566,9 @@ describe('Dashboard', () => {
     chartSetterSpies.setBoxplotFactor.mockClear();
     chartSetterSpies.setFocusedChart.mockClear();
     usePanelsStore.setState({ pendingExploreIntent: null });
+    // LV1-B: reset the linked-views scope store between tests so the mirror
+    // assertions can't see leftover state from a prior test's apply-effect.
+    useAnalysisScopeStore.setState(getAnalysisScopeInitialState());
   });
 
   it('renders Analysis tab by default', () => {
@@ -646,6 +653,20 @@ describe('Dashboard', () => {
       expect(chartSetterSpies.setBoxplotFactor).toHaveBeenCalledWith('Vessel');
       // Intent cleared after consumption
       expect(usePanelsStore.getState().pendingExploreIntent).toBeNull();
+    });
+
+    it('LV1-B: mirrors intent.boxplotFactor into useAnalysisScopeStore on mount', () => {
+      usePanelsStore.setState({
+        pendingExploreIntent: { focusedChart: 'boxplot', boxplotFactor: 'Vessel' },
+      });
+
+      render(<Dashboard />);
+
+      // LV1-B contract (spec §5.6): the apply-effect mirrors boxplotFactor
+      // into the linked-views scope store alongside the local Dashboard
+      // setState write. Downstream PRs (LV1-E scope chrome, LV1-G canvas viz)
+      // subscribe to this store; LV1-E will retire the local-state write.
+      expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('Vessel');
     });
 
     it('applies focusedChart-only intent without setting boxplotFactor', () => {
