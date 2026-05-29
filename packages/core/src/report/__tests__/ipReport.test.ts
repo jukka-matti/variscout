@@ -243,6 +243,8 @@ describe('deriveHubPortfolioReport', () => {
           columnName: 'fill',
           characteristicType: 'nominalIsBest',
           target: 10,
+          createdAt: now,
+          deletedAt: null,
         },
         {
           id: 'out-scrap',
@@ -250,6 +252,8 @@ describe('deriveHubPortfolioReport', () => {
           columnName: 'scrap',
           characteristicType: 'smallerIsBetter',
           usl: 2,
+          createdAt: now,
+          deletedAt: null,
         },
       ],
       // 1:1 hub↔project — single project targeting 2 outcome specs triggers distribution summary.
