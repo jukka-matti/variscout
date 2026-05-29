@@ -75,10 +75,6 @@ function unique<T>(values: Iterable<T>): T[] {
   return Array.from(new Set(values));
 }
 
-function liveProjects(projects: readonly ImprovementProject[] | undefined): ImprovementProject[] {
-  return (projects ?? []).filter(project => project.deletedAt === null);
-}
-
 function linkedHypothesisIds(ip: ImprovementProject): Set<string> {
   const ids = new Set(ip.sections.investigationLineage.hypothesisIds ?? []);
   for (const control of ip.goal.factorControls ?? []) {
@@ -333,7 +329,10 @@ export function deriveHubPortfolioReport(input: {
   now?: number;
 }): HubPortfolioReport {
   const now = input.now ?? Date.now();
-  const projects = liveProjects(input.hub.improvementProjects);
+  const projects =
+    input.hub.improvementProject && input.hub.improvementProject.deletedAt === null
+      ? [input.hub.improvementProject]
+      : [];
   const records = (input.hub.controlRecords ?? []).filter(record => record.deletedAt === null);
   const rows = projects
     .map(project => {

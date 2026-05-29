@@ -252,14 +252,15 @@ describe('deriveHubPortfolioReport', () => {
           usl: 2,
         },
       ],
-      improvementProjects: [
-        project(),
-        project({
-          id: 'ip-2',
-          metadata: { title: 'Scrap reduction', investigationId: 'inv-2' },
-          goal: { outcomeGoals: [{ outcomeSpecId: 'out-scrap', target: 1 }] },
-        }),
-      ],
+      // 1:1 hub↔project — single project targeting 2 outcome specs triggers distribution summary.
+      improvementProject: project({
+        goal: {
+          outcomeGoals: [
+            { outcomeSpecId: 'out-fill', target: 1.33 },
+            { outcomeSpecId: 'out-scrap', target: 1 },
+          ],
+        },
+      }),
       controlRecords: [sustainment()],
     };
 
@@ -267,6 +268,6 @@ describe('deriveHubPortfolioReport', () => {
 
     expect(report.capabilitySummary.kind).toBe('distribution');
     expect(report.capabilitySummary.label).toContain('2 outcome specs');
-    expect(report.rows.map(row => row.title)).toEqual(['Fill Cpk lift', 'Scrap reduction']);
+    expect(report.rows.map(row => row.title)).toEqual(['Fill Cpk lift']);
   });
 });

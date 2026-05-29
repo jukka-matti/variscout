@@ -58,7 +58,7 @@ describe('vrs roundtrip', () => {
   });
 });
 
-describe('vrs roundtrip — improvementProjects', () => {
+describe('vrs roundtrip — improvementProject (1:1)', () => {
   const richIP: ImprovementProject = {
     id: 'ip-1',
     hubId: DEFAULT_PROCESS_HUB.id,
@@ -108,45 +108,23 @@ describe('vrs roundtrip — improvementProjects', () => {
     signoff: { requestedAt: 1_714_400_000_000 },
   };
 
-  const minimalIP: ImprovementProject = {
-    id: 'ip-2',
-    hubId: DEFAULT_PROCESS_HUB.id,
-    createdAt: 1_714_000_000_000,
-    deletedAt: null,
-    status: 'draft',
-    metadata: { title: 'Operator training' },
-    goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
-    sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
-    updatedAt: 1_714_000_000_000,
-  };
-
-  it('round-trips hub carrying a populated improvementProjects array', () => {
+  it('round-trips hub carrying a single improvementProject', () => {
     const hub = {
       ...DEFAULT_PROCESS_HUB,
-      improvementProjects: [richIP, minimalIP],
+      improvementProject: richIP,
     };
     const exported = vrsExport(hub);
     const imported = vrsImport(exported);
-    expect(imported.hub.improvementProjects).toEqual([richIP, minimalIP]);
+    expect(imported.hub.improvementProject).toEqual(richIP);
   });
 
-  it('legacy .vrs without improvementProjects imports cleanly with field undefined', () => {
+  it('legacy .vrs without improvementProject imports cleanly with field undefined', () => {
     const legacyJson = JSON.stringify({
       version: VRS_VERSION,
       exportedAt: new Date().toISOString(),
       hub: { ...DEFAULT_PROCESS_HUB },
     });
     const imported = vrsImport(legacyJson);
-    expect(imported.hub.improvementProjects).toBeUndefined();
-  });
-
-  it('empty improvementProjects array round-trips as [] (not undefined)', () => {
-    const hub = {
-      ...DEFAULT_PROCESS_HUB,
-      improvementProjects: [] as ImprovementProject[],
-    };
-    const exported = vrsExport(hub);
-    const imported = vrsImport(exported);
-    expect(imported.hub.improvementProjects).toEqual([]);
+    expect(imported.hub.improvementProject).toBeUndefined();
   });
 });

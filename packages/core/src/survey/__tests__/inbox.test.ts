@@ -63,9 +63,10 @@ const controlHandoff = (overrides: Partial<ControlHandoff>): ControlHandoff =>
 describe('surveyInboxRules', () => {
   it('aggregates sustainment hints into inbox prompts sorted by severity then message and id', () => {
     const prompts = surveyInboxRules({
-      improvementProjects: [
-        improvementProject({ id: 'ip-old', metadata: { title: 'A closed project' } }),
-      ],
+      improvementProject: improvementProject({
+        id: 'ip-old',
+        metadata: { title: 'A closed project' },
+      }),
       controlRecords: [
         controlRecord({ id: 'sr-info', title: 'B progress', consecutiveOnTargetTicks: 3 }),
         controlRecord({ id: 'sr-critical', title: 'C drift', status: 'drifted' }),

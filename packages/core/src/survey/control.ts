@@ -46,7 +46,7 @@ function driftMessage(record: ControlRecord, severity: SurveyHint['severity']): 
 export const surveySustainmentRules: SurveyRule = ctx => {
   const hints: SurveyHint[] = [];
   const records = ctx.controlRecords ?? [];
-  const projects = ctx.improvementProjects ?? [];
+  const projects = ctx.improvementProject ? [ctx.improvementProject] : [];
 
   for (const record of records.filter(isLiveRecord)) {
     const severity = driftSeverity(record);

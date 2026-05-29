@@ -191,7 +191,7 @@ export interface SurveyContext {
   hub?: import('../processHub').ProcessHub;
   hypotheses?: Hypothesis[];
   findings?: Finding[];
-  improvementProjects?: ImprovementProject[];
+  improvementProject?: ImprovementProject;
   controlRecords?: ControlRecord[];
   controlReviews?: ControlReview[];
   controlHandoffs?: ControlHandoff[];
