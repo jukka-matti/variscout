@@ -467,17 +467,7 @@ vi.mock('@variscout/hooks', () => ({
       stepMetricColumns: Record<string, string | undefined>
     ) => (endpoint.kind === 'column' ? endpoint.name : stepMetricColumns[endpoint.id])
   ),
-  useCanvasKeyboard: ({
-    onUndo,
-    onRedo,
-    onToggleMode,
-    onExitAuthorMode,
-  }: {
-    onUndo: () => void;
-    onRedo: () => void;
-    onToggleMode: () => void;
-    onExitAuthorMode: () => void;
-  }) => {
+  useCanvasKeyboard: ({ onUndo, onRedo }: { onUndo: () => void; onRedo: () => void }) => {
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         const key = event.key.toLowerCase();
@@ -486,15 +476,11 @@ vi.mock('@variscout/hooks', () => ({
           else onUndo();
         } else if (event.ctrlKey && key === 'y') {
           onRedo();
-        } else if (key === 'e') {
-          onToggleMode();
-        } else if (event.key === 'Escape') {
-          onExitAuthorMode();
         }
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [onUndo, onRedo, onToggleMode, onExitAuthorMode]);
+    }, [onUndo, onRedo]);
   },
   useCanvasViewportShortcuts: vi.fn(),
   useTranslation: () => ({

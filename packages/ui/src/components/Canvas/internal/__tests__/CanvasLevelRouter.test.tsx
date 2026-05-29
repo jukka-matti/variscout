@@ -53,27 +53,6 @@ vi.mock('../LODSwitcher', () => ({
   ),
 }));
 
-vi.mock('../../../CanvasModeToggle', () => ({
-  CanvasModeToggle: ({
-    mode,
-    onChange,
-    disabled,
-  }: {
-    mode: string;
-    onChange: (next: string) => void;
-    disabled?: boolean;
-  }) => (
-    <button
-      data-testid="mock-canvas-mode-toggle"
-      data-mode={mode}
-      data-disabled={disabled ? 'true' : 'false'}
-      onClick={() => onChange(mode === 'author' ? 'read' : 'author')}
-    >
-      mode toggle
-    </button>
-  ),
-}));
-
 import { isCanvasLensValidAtLevel, suggestCanvasLevelForLens } from '@variscout/hooks';
 import { CanvasLevelRouter } from '../CanvasLevelRouter';
 
@@ -108,7 +87,6 @@ const baseProps = {
   columnTypes: {},
   availableColumns: [],
   resolvedL3Archetype: 'b0' as const,
-  authoringMode: 'read' as const,
 };
 
 describe('CanvasLevelRouter', () => {
@@ -194,38 +172,6 @@ describe('CanvasLevelRouter', () => {
 
     expect(screen.getByTestId('mock-no-focal-step-prompt')).toBeInTheDocument();
     expect(screen.queryByTestId('mock-local-mechanism-view')).not.toBeInTheDocument();
-  });
-
-  it('renders mode toggle in l3 slot when onModeChange is provided', () => {
-    vi.mocked(isCanvasLensValidAtLevel).mockReturnValue(true);
-
-    render(
-      <CanvasLevelRouter
-        {...baseProps}
-        currentLevel="l3"
-        resolvedL3Archetype="b0"
-        onModeChange={vi.fn()}
-        authoringMode="read"
-      />
-    );
-
-    expect(screen.getByTestId('mock-canvas-mode-toggle')).toBeInTheDocument();
-    expect(screen.getByTestId('mock-canvas-mode-toggle')).toHaveAttribute('data-mode', 'read');
-  });
-
-  it('does not render mode toggle in l3 slot when onModeChange is absent', () => {
-    vi.mocked(isCanvasLensValidAtLevel).mockReturnValue(true);
-
-    render(
-      <CanvasLevelRouter
-        {...baseProps}
-        currentLevel="l3"
-        resolvedL3Archetype="b0"
-        onModeChange={undefined}
-      />
-    );
-
-    expect(screen.queryByTestId('mock-canvas-mode-toggle')).not.toBeInTheDocument();
   });
 
   it('passes current level to LODSwitcher', () => {
