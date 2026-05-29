@@ -52,13 +52,13 @@ function makeIP(
   };
 }
 
-function makeHub(id: string, ips: ImprovementProject[] = []): ProcessHub {
+function makeHub(id: string, ip?: ImprovementProject): ProcessHub {
   return {
     id,
     name: `Hub ${id}`,
     createdAt: NOW,
     deletedAt: null,
-    improvementProjects: ips,
+    ...(ip ? { improvementProject: ip } : {}),
   };
 }
 
@@ -116,15 +116,15 @@ afterEach(async () => {
 // ---------------------------------------------------------------------------
 
 describe('AzureHubRepository.dispatch HUB_PERSIST_SNAPSHOT — Dexie integration', () => {
-  it('strips improvementProjects from the hub blob and writes them to the dedicated table', async () => {
+  it('strips improvementProject from the hub blob and writes it to the dedicated table', async () => {
     const repo = new AzureHubRepository();
     const ip = makeIP('ip-1', 'hub-1');
-    await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: makeHub('hub-1', [ip]) });
+    await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: makeHub('hub-1', ip) });
 
-    // The hub row in processHubs must NOT embed improvementProjects
+    // The hub row in processHubs must NOT embed improvementProject
     const hubRow = await db.processHubs.get('hub-1');
     expect(hubRow).toBeDefined();
-    expect((hubRow as Partial<ProcessHub> | undefined)?.improvementProjects).toBeUndefined();
+    expect((hubRow as Partial<ProcessHub> | undefined)?.improvementProject).toBeUndefined();
 
     // The IP must have been written to the dedicated table
     const ipRows = await db.improvementProjects.where('hubId').equals('hub-1').toArray();
@@ -133,9 +133,9 @@ describe('AzureHubRepository.dispatch HUB_PERSIST_SNAPSHOT — Dexie integration
     expect(ipRows[0].hubId).toBe('hub-1');
   });
 
-  it('persists a hub with empty improvementProjects array — IP table stays empty', async () => {
+  it('persists a hub with no improvementProject — IP table stays empty', async () => {
     const repo = new AzureHubRepository();
-    await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: makeHub('hub-2', []) });
+    await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: makeHub('hub-2') });
 
     const hubRow = await db.processHubs.get('hub-2');
     expect(hubRow).toBeDefined();
@@ -163,7 +163,7 @@ describe('AzureHubRepository.dispatch HUB_PERSIST_SNAPSHOT — Dexie integration
     // Dispatch a snapshot that has a different IP (ip-keep) but not ip-stale
     await repo.dispatch({
       kind: 'HUB_PERSIST_SNAPSHOT',
-      hub: makeHub('hub-4', [makeIP('ip-keep', 'hub-4')]),
+      hub: makeHub('hub-4', makeIP('ip-keep', 'hub-4')),
     });
 
     const ipRows = await db.improvementProjects.where('hubId').equals('hub-4').toArray();

@@ -76,7 +76,7 @@ function makeProject(id: string, hubId: string, title: string): ImprovementProje
   };
 }
 
-function makeHub(projects: ImprovementProject[] = []): ProcessHub {
+function makeHub(project?: ImprovementProject): ProcessHub {
   return {
     id: 'hub-1',
     name: 'Paint line',
@@ -93,7 +93,7 @@ function makeHub(projects: ImprovementProject[] = []): ProcessHub {
         deletedAt: null,
       },
     ],
-    improvementProjects: projects,
+    ...(project ? { improvementProject: project } : {}),
   };
 }
 
@@ -129,13 +129,13 @@ describe('ImprovementProjectPanel (Azure)', () => {
     expect(await screen.findByTestId('improvement-project-form')).toHaveTextContent(
       'Improve First pass yield'
     );
-    expect(useImprovementProjectStore.getState().getProjectsForHub('hub-1')).toHaveLength(1);
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')).toBeDefined();
   });
 
   it('selects a single live project without dispatching a create', async () => {
     const project = makeProject('ip-1', 'hub-1', 'Reduce rework');
 
-    render(<ImprovementProjectPanel activeHub={makeHub([project])} onBack={vi.fn()} />);
+    render(<ImprovementProjectPanel activeHub={makeHub(project)} onBack={vi.fn()} />);
 
     expect(azureHubRepository.dispatch).not.toHaveBeenCalled();
     expect(await screen.findByTestId('improvement-project-form')).toHaveTextContent(
@@ -166,7 +166,7 @@ describe('ImprovementProjectPanel (Azure)', () => {
 
     render(
       <ImprovementProjectPanel
-        activeHub={makeHub([project])}
+        activeHub={makeHub(project)}
         onBack={vi.fn()}
         onOpenWall={onOpenWall}
       />

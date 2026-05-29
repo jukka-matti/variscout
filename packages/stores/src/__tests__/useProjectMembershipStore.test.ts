@@ -134,7 +134,7 @@ describe('useProjectMembershipStore — acceptInvite composite', () => {
       goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', baseline: 0.5, target: 1.33 }] },
       sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
     };
-    useImprovementProjectStore.getState().setProjectsForHub('hub-1', [targetProject]);
+    useImprovementProjectStore.getState().setProjectForHub('hub-1', targetProject);
 
     const inv: Invitation = {
       id: 'inv-1',
@@ -154,7 +154,7 @@ describe('useProjectMembershipStore — acceptInvite composite', () => {
     // Pending invite removed
     expect(useProjectMembershipStore.getState().getPendingInvites('mira@org')).toEqual([]);
     // Member appended to the target project
-    const updated = useImprovementProjectStore.getState().getProjectsForHub('hub-1')[0];
+    const updated = useImprovementProjectStore.getState().getProjectForHub('hub-1');
     expect(updated!.metadata.members).toHaveLength(1);
     expect(updated!.metadata.members?.[0]!.userId).toBe('mira@org');
     expect(updated!.metadata.members?.[0]!.role).toBe('member');
@@ -164,7 +164,7 @@ describe('useProjectMembershipStore — acceptInvite composite', () => {
     expect(() =>
       useProjectMembershipStore.getState().acceptInvite('mira@org', 'missing-id')
     ).not.toThrow();
-    expect(useImprovementProjectStore.getState().getProjectsForHub('hub-1')).toEqual([]);
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')).toBeUndefined();
   });
 
   it('still removes the invite when the target project is not in the store', () => {
