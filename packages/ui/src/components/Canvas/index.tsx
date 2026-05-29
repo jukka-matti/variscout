@@ -808,3 +808,7 @@ export const Canvas: React.FC<CanvasProps> = ({
 };
 
 export default Canvas;
+
+export { navigateToExploreForChip } from './EditMode/handlers/navigateToExploreForChip';
+export type { ChipNavigationTarget } from './EditMode/handlers/navigateToExploreForChip';
+export { ExploreJumpButton } from './EditMode/ExploreJumpButton';

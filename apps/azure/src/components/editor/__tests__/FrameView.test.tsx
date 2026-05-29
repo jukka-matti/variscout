@@ -18,6 +18,24 @@ const addCausalLinkMock = vi.fn();
 const linkQuestionToCausalLinkMock = vi.fn();
 const removeCausalLinkMock = vi.fn();
 
+// LV1-D: minimal analysisScopeStore mock — tracks setY mutations so the
+// FrameView integration test can assert the correct yColumn is applied.
+// Must be declared via vi.hoisted so it is available inside vi.mock factories
+// (which are hoisted to the top of the file by Vitest's transform).
+const { analysisScopeRef, analysisScopeStoreMock } = vi.hoisted(() => {
+  const ref: { current: { yColumn?: string } } = { current: {} };
+  const storeMock = {
+    getState: () => ({
+      setY: (yColumn: string | undefined) => {
+        ref.current.yColumn = yColumn;
+      },
+      setBoxplotFactor: (_col: string) => {},
+      setStepId: (_id: string) => {},
+    }),
+  };
+  return { analysisScopeRef: ref, analysisScopeStoreMock: storeMock };
+});
+
 const storeStateRef: { current: Record<string, unknown> } = {
   current: {
     rawData: [],
@@ -105,6 +123,10 @@ vi.mock('@variscout/stores', () => ({
       setViewMode: setWallViewModeMock,
     }),
   }),
+  // LV1-D: useAnalysisScopeStore mock used by navigateToExploreForChip via
+  // FrameView's handleChipExploreJump. getState().setY is the only mutation
+  // path exercised by the integration test (outcome chip → yColumn).
+  useAnalysisScopeStore: analysisScopeStoreMock,
 }));
 
 vi.mock('@variscout/ui', async () => {
@@ -166,6 +188,8 @@ vi.mock('@variscout/ui', async () => {
       priorStepStats?: ReadonlyMap<string, unknown>;
       actionItems?: unknown[];
       contextLinkGroups?: { surfaceType: string; items: { id: string }[] }[];
+      // LV1-D: chip → Explore jump callback
+      onChipExploreJump?: (target: { kind: string; columnName?: string; stepId?: string }) => void;
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -220,8 +244,32 @@ vi.mock('@variscout/ui', async () => {
           'button',
           { type: 'button', 'data-testid': 'cta-charter', onClick: props.onCharter },
           'Charter'
+        ),
+        // LV1-D: simulate a chip Explore-jump so the FrameView integration
+        // test can assert that handleChipExploreJump wires correctly.
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            'data-testid': 'chip-explore-jump-outcome',
+            onClick: () => props.onChipExploreJump?.({ kind: 'outcome', columnName: 'Diameter' }),
+          },
+          'Chip explore jump'
         )
       );
+    },
+    // LV1-D: navigateToExploreForChip — test-double that delegates to the
+    // mocked analysisScopeStore directly (avoids vi.importActual on @variscout/ui).
+    navigateToExploreForChip: (
+      target: { kind: string; columnName?: string; stepId?: string },
+      onNavigateToExplore: () => void
+    ) => {
+      const scope = analysisScopeStoreMock.getState();
+      if (target.kind === 'outcome' && target.columnName) scope.setY(target.columnName);
+      else if (target.kind === 'factor' && target.columnName)
+        scope.setBoxplotFactor(target.columnName);
+      else if (target.kind === 'step' && target.stepId) scope.setStepId(target.stepId);
+      onNavigateToExplore();
     },
   };
 });
@@ -292,6 +340,7 @@ const DEFAULT_TEST_IP = {
 
 describe('FrameView (Azure shell)', () => {
   beforeEach(() => {
+    analysisScopeRef.current = {};
     hoisted.canvasWorkspaceMock.mockClear();
     showExploreMock.mockClear();
     showImprovementMock.mockClear();
@@ -748,5 +797,21 @@ describe('FrameView (Azure shell)', () => {
       expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
+  });
+
+  // LV1-D Task 7: clicking a chip's Explore-jump affordance should mutate
+  // analysisScopeStore.yColumn and switch panelsStore to Explore.
+  it('LV1-D: onChipExploreJump mutates analysisScopeStore and switches to Explore', () => {
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+    // The CanvasWorkspace stub renders a chip-explore-jump-outcome button that
+    // fires onChipExploreJump({ kind: 'outcome', columnName: 'Diameter' }).
+    fireEvent.click(screen.getByTestId('chip-explore-jump-outcome'));
+
+    // analysisScopeStore.setY should have been called via navigateToExploreForChip.
+    expect(analysisScopeRef.current.yColumn).toBe('Diameter');
+    // panelsStore.showExplore should have been called (no intent for chip path).
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
+    expect(showExploreMock).toHaveBeenCalledWith();
   });
 });
