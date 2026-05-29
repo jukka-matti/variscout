@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import ProjectsTabView from '../ProjectsTabView';
-import type { ProcessHub } from '@variscout/core';
+import type { ProcessHub, ImprovementProject } from '@variscout/core';
 import { getImprovementProjectInitialState, useImprovementProjectStore } from '@variscout/stores';
 
 const baseHub: ProcessHub = {
@@ -11,8 +11,28 @@ const baseHub: ProcessHub = {
   updatedAt: 0,
   deletedAt: null,
   outcomes: [],
-  improvementProjects: [],
+  // no improvementProject by default (empty hub)
 };
+
+function makeIP(overrides?: Partial<ImprovementProject>): ImprovementProject {
+  return {
+    id: 'ip-1',
+    hubId: 'hub-1',
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
+    status: 'active',
+    metadata: { title: 'Heads 5-8 Cpk shortfall' },
+    goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
+    sections: {
+      background: {},
+      investigationLineage: {},
+      approach: {},
+      outcomeReference: {},
+    },
+    ...overrides,
+  };
+}
 
 describe('ProjectsTabView', () => {
   beforeEach(() => {
@@ -37,24 +57,7 @@ describe('ProjectsTabView', () => {
     const onStartNewProject = vi.fn();
     const hub: ProcessHub = {
       ...baseHub,
-      improvementProjects: [
-        {
-          id: 'ip-1',
-          hubId: 'hub-1',
-          createdAt: 0,
-          updatedAt: 0,
-          deletedAt: null,
-          status: 'active',
-          metadata: { title: 'Heads 5-8 Cpk shortfall' },
-          goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
-          sections: {
-            background: {},
-            investigationLineage: {},
-            approach: {},
-            outcomeReference: {},
-          },
-        },
-      ],
+      improvementProject: makeIP(),
     };
     render(
       <ProjectsTabView
@@ -74,24 +77,7 @@ describe('ProjectsTabView', () => {
     const hub: ProcessHub = {
       ...baseHub,
       processOwner: { displayName: 'Pat Process', upn: 'pat@example.com' },
-      improvementProjects: [
-        {
-          id: 'ip-1',
-          hubId: 'hub-1',
-          createdAt: 0,
-          updatedAt: 0,
-          deletedAt: null,
-          status: 'active',
-          metadata: { title: 'Heads 5-8 Cpk shortfall' },
-          goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
-          sections: {
-            background: {},
-            investigationLineage: {},
-            approach: {},
-            outcomeReference: {},
-          },
-        },
-      ],
+      improvementProject: makeIP(),
     };
 
     render(
@@ -111,7 +97,7 @@ describe('ProjectsTabView', () => {
         signoff: expect.objectContaining({ requestedAt: expect.any(Number) }),
       })
     );
-    expect(useImprovementProjectStore.getState().getProjectsForHub('hub-1')[0]?.signoff).toEqual(
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.signoff).toEqual(
       expect.objectContaining({ requestedAt: expect.any(Number) })
     );
   });
@@ -121,24 +107,7 @@ describe('ProjectsTabView', () => {
     // charter: 'current' for drafts, approach: 'current' for active which shifts the default).
     const hub: ProcessHub = {
       ...baseHub,
-      improvementProjects: [
-        {
-          id: 'ip-1',
-          hubId: 'hub-1',
-          createdAt: 0,
-          updatedAt: 0,
-          deletedAt: null,
-          status: 'draft',
-          metadata: { title: 'PWA project' },
-          goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
-          sections: {
-            background: {},
-            investigationLineage: {},
-            approach: {},
-            outcomeReference: {},
-          },
-        },
-      ],
+      improvementProject: makeIP({ status: 'draft', metadata: { title: 'PWA project' } }),
     };
 
     render(
@@ -158,24 +127,11 @@ describe('ProjectsTabView', () => {
     const onProjectPatch = vi.fn();
     const hub: ProcessHub = {
       ...baseHub,
-      improvementProjects: [
-        {
-          id: 'ip-1',
-          hubId: 'hub-1',
-          createdAt: 0,
-          updatedAt: 0,
-          deletedAt: null,
-          status: 'draft',
-          metadata: { title: 'PWA members test' },
-          goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
-          sections: {
-            background: {},
-            investigationLineage: {},
-            approach: {},
-            outcomeReference: {},
-          },
-        },
-      ],
+      improvementProject: makeIP({
+        status: 'draft',
+        metadata: { title: 'PWA members test' },
+        goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
+      }),
     };
 
     render(
@@ -206,7 +162,7 @@ describe('ProjectsTabView', () => {
       })
     );
     expect(
-      useImprovementProjectStore.getState().getProjectsForHub('hub-1')[0]?.metadata.members
+      useImprovementProjectStore.getState().getProjectForHub('hub-1')?.metadata.members
     ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ userId: 'lead@example.com', role: 'lead' }),

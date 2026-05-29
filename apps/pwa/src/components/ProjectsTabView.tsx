@@ -33,7 +33,8 @@ interface ProjectsTabViewProps {
 }
 
 function liveProjects(hub: ProcessHub | undefined): ImprovementProject[] {
-  return (hub?.improvementProjects ?? []).filter(p => p.deletedAt === null);
+  const p = hub?.improvementProject;
+  return p && p.deletedAt === null ? [p] : [];
 }
 
 function mergeProjectPatch(
@@ -89,18 +90,20 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onStartNewProject,
 }) => {
   const [now] = React.useState(() => Date.now());
-  const storedProjects = useImprovementProjectStore(s =>
-    activeHub ? s.projectsByHub[activeHub.id] : undefined
+  const storedProject = useImprovementProjectStore(s =>
+    activeHub ? s.getProjectForHub(activeHub.id) : undefined
   );
-  const setProjectsForHub = useImprovementProjectStore(s => s.setProjectsForHub);
+  const setProjectForHub = useImprovementProjectStore(s => s.setProjectForHub);
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);
 
   React.useEffect(() => {
-    if (!activeHub) return;
-    setProjectsForHub(activeHub.id, activeHub.improvementProjects ?? []);
-  }, [activeHub, setProjectsForHub]);
+    if (!activeHub || !activeHub.improvementProject) return;
+    setProjectForHub(activeHub.id, activeHub.improvementProject);
+  }, [activeHub, setProjectForHub]);
 
-  const projects = (storedProjects ?? liveProjects(activeHub)).filter(p => p.deletedAt === null);
+  const projects = storedProject
+    ? [storedProject].filter(p => p.deletedAt === null)
+    : liveProjects(activeHub);
 
   const applyProjectPatch = React.useCallback(
     (

@@ -85,7 +85,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
       const {
         canonicalProcessMap,
         outcomes,
-        improvementProjects,
+        improvementProject,
         controlRecords,
         controlReviews,
         controlHandoffs,
@@ -119,19 +119,17 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
           if (outcomes && outcomes.length > 0) {
             await db.outcomes.bulkPut(outcomes.map(outcome => ({ ...outcome, hubId: hubMeta.id })));
           }
-          // improvementProjects: drop stale rows for this hub, then bulk-put the
-          // incoming snapshot. bulkPut alone is upsert; we delete first to remove
-          // rows that are absent from the incoming snapshot (same invariant as outcomes).
-          const incomingProjectIds = new Set((improvementProjects ?? []).map(p => p.id));
+          // improvementProject: drop stale rows for this hub (at most one under 1:1),
+          // then put the incoming project. Delete first to remove rows absent from the
+          // incoming snapshot (same invariant as outcomes).
+          const incomingProjectIds = new Set(improvementProject ? [improvementProject.id] : []);
           await db.improvementProjects
             .where('hubId')
             .equals(hubMeta.id)
             .filter(p => !incomingProjectIds.has(p.id))
             .delete();
-          if (improvementProjects && improvementProjects.length > 0) {
-            await db.improvementProjects.bulkPut(
-              improvementProjects.map(p => ({ ...p, hubId: hubMeta.id }))
-            );
+          if (improvementProject) {
+            await db.improvementProjects.put({ ...improvementProject, hubId: hubMeta.id });
           }
           if (canonicalProcessMap) {
             await db.canvasState.put({ hubId: hubMeta.id, ...canonicalProcessMap });

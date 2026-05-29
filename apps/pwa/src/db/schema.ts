@@ -180,6 +180,13 @@ export class PwaDatabase extends Dexie {
     // cached schema state; no destructive re-init needed because the changes
     // are purely additive.
     this.version(7).stores({});
+
+    // Version 8: IM-0a — Hub↔Project 1:1 collapse. The improvementProjects
+    // Dexie table is unchanged (still keyed by id, hubId-indexed); the 1:1
+    // invariant is now enforced at the logical layer (ProcessHub.improvementProject
+    // is singular). No schema migration needed — the table shape is identical.
+    // Bumping the version flushes any cached schema.
+    this.version(8).stores({});
   }
 }
 

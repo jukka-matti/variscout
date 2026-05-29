@@ -66,13 +66,13 @@ function makeProject(overrides: Partial<ImprovementProject> = {}): ImprovementPr
   };
 }
 
-function makeHub(projects: ImprovementProject[] = [makeProject()]): ProcessHub {
+function makeHub(project: ImprovementProject | undefined = makeProject()): ProcessHub {
   return {
     id: 'hub-1',
     name: 'Paint line',
     createdAt: 1714000000000,
     deletedAt: null,
-    improvementProjects: projects,
+    ...(project ? { improvementProject: project } : {}),
   };
 }
 
@@ -154,10 +154,6 @@ describe('ControlPanel (PWA)', () => {
   });
 
   it('creates for the prompted closed project when a target id is supplied', async () => {
-    const first = makeProject({
-      id: 'ip-first',
-      metadata: { title: 'First', investigationId: 'inv-1' },
-    });
     const second = makeProject({
       id: 'ip-second',
       metadata: { title: 'Second', investigationId: 'inv-2' },
@@ -167,9 +163,7 @@ describe('ControlPanel (PWA)', () => {
       },
     });
 
-    render(
-      <ControlPanel activeHub={makeHub([first, second])} targetId="ip-second" onBack={vi.fn()} />
-    );
+    render(<ControlPanel activeHub={makeHub(second)} targetId="ip-second" onBack={vi.fn()} />);
 
     await waitFor(() =>
       expect(pwaHubRepository.dispatch).toHaveBeenCalledWith(

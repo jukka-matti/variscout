@@ -1243,7 +1243,9 @@ function AppMain() {
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
                 onImportVrs={handleImportVrs}
                 resolveProjectName={id =>
-                  (sessionHub?.improvementProjects ?? []).find(p => p.id === id)?.metadata.title
+                  sessionHub?.improvementProject?.id === id
+                    ? sessionHub.improvementProject.metadata.title
+                    : undefined
                 }
               />
             ) : panels.activeView === 'home' ? (
@@ -1253,13 +1255,18 @@ function AppMain() {
                   onAccept={acceptInvite}
                   onDecline={revokeInvite}
                   resolveProjectName={id =>
-                    (sessionHub?.improvementProjects ?? []).find(p => p.id === id)?.metadata.title
+                    sessionHub?.improvementProject?.id === id
+                      ? sessionHub.improvementProject.metadata.title
+                      : undefined
                   }
                 />
                 <ActiveIPLaunchpadCard
-                  projects={(sessionHub?.improvementProjects ?? []).filter(
-                    project => project.deletedAt === null
-                  )}
+                  projects={
+                    sessionHub?.improvementProject &&
+                    sessionHub.improvementProject.deletedAt === null
+                      ? [sessionHub.improvementProject]
+                      : []
+                  }
                   activeProjectId={activeIPContext.activeIP?.id ?? null}
                   onSelectIP={projectId => {
                     activeIPContext.setActiveIP(projectId);
