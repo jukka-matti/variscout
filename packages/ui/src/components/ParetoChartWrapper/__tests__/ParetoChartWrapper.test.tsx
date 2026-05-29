@@ -253,3 +253,60 @@ describe('ParetoChartWrapperBase — Y-metric picker', () => {
     expect(opts['yMetricContext']).toBe(ctx);
   });
 });
+
+describe('onScopeAccumulate (LV1-F)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('fires onScopeAccumulate(factor, key) on bar click, alongside legacy filter toggle', () => {
+    const onScopeAccumulate = vi.fn();
+    const onFiltersChange = vi.fn();
+    render(
+      <ParetoChartWrapperBase
+        parentWidth={400}
+        parentHeight={300}
+        factor="vessel"
+        rawData={[]}
+        filteredData={[]}
+        outcome="rate"
+        filters={{}}
+        onFiltersChange={onFiltersChange}
+        columnAliases={{}}
+        onColumnAliasesChange={() => {}}
+        onScopeAccumulate={onScopeAccumulate}
+      />
+    );
+    // Use data-testid selector from the chart stub (bar-A is the first bar from mock data)
+    const firstBar = screen.getByTestId('bar-A');
+    fireEvent.click(firstBar);
+    expect(onScopeAccumulate).toHaveBeenCalledWith('vessel', 'A');
+    // Legacy filter-toggle ALSO fires (no onDrillDown provided)
+    expect(onFiltersChange).toHaveBeenCalled();
+  });
+
+  it('fires onScopeAccumulate alongside onDrillDown when both provided', () => {
+    const onScopeAccumulate = vi.fn();
+    const onDrillDown = vi.fn();
+    render(
+      <ParetoChartWrapperBase
+        parentWidth={400}
+        parentHeight={300}
+        factor="vessel"
+        rawData={[]}
+        filteredData={[]}
+        outcome="rate"
+        filters={{}}
+        onFiltersChange={() => {}}
+        columnAliases={{}}
+        onColumnAliasesChange={() => {}}
+        onDrillDown={onDrillDown}
+        onScopeAccumulate={onScopeAccumulate}
+      />
+    );
+    const firstBar = screen.getByTestId('bar-A');
+    fireEvent.click(firstBar);
+    expect(onScopeAccumulate).toHaveBeenCalledWith('vessel', 'A');
+    expect(onDrillDown).toHaveBeenCalledWith('vessel', 'A');
+  });
+});

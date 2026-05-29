@@ -99,6 +99,13 @@ export interface ParetoChartWrapperBaseProps {
    */
   scopeFilterValues?: ReadonlyArray<string | number>;
   /**
+   * LV1-F: Linked-views scope accumulation. When provided, fires on every bar click
+   * with `(factor, key)` regardless of legacy filter-toggle or `onDrillDown` branches.
+   * Caller (Azure thin wrapper) wires this to `useAnalysisScopeStore.addCategoricalValue`.
+   * Spec §5.4. Scope-store-agnostic at this layer per D-LV1F-3.
+   */
+  onScopeAccumulate?: (factor: string, key: string | number) => void;
+  /**
    * Active Y-axis metric id. When set, takes precedence over `aggregation` for
    * non-count metrics. Forwarded to useParetoChartData.
    */
@@ -285,6 +292,7 @@ export const ParetoChartWrapperBase = ({
   paretoMode,
   separateParetoData,
   onDrillDown,
+  onScopeAccumulate,
   scopeFilterValues,
   showComparison = false,
   onToggleComparison,
@@ -337,6 +345,8 @@ export const ParetoChartWrapperBase = ({
   // Signature mirrors ParetoChartBase.onBarClick (2-arg); ctx.shiftKey is
   // unused since the onScopeFilterClick branch retired.
   const handleBarClick = (key: string, _ctx?: { shiftKey: boolean }) => {
+    // LV1-F: fires unconditionally regardless of legacy/drillDown branches. Spec §5.4.
+    onScopeAccumulate?.(factor, key);
     if (onDrillDown) {
       onDrillDown(factor, key);
       return;
