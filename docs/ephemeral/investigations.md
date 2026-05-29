@@ -88,7 +88,7 @@ Same semantic concept, different vocab. Both lived in the barrel briefly (PR-CCJ
 
 **Spec status:** Spec 2 §2.3 names "one Edit map / one Done" conceptually but is silent on the icon-toggle's behavior _while inside_ Edit mode. Not a B1 spec violation; resolution deferred until the shell carries real authoring zones (Phase C+) so the UX seam can be evaluated against the mature shell, not the empty placeholder.
 
-**Promotion path:** Resolve in `docs/superpowers/plans/2026-05-26-canvas-connection-journey-master-plan.md` H1 (PR-CCJ-H1) when polish work begins. Not blocking any subsequent task.
+**Promotion path:** Resolve in `docs/superpowers/plans/2026-05-26-canvas-connection-journey-master-plan.md` H1 (PR-CCJ-H1) when polish work begins. Not blocking any subsequent task. [RESOLVED 2026-05-28 via PR #236 — LV1-C retired `EditModeShell` + `CanvasModeToggle` + the Done button entirely, eliminating this entry's premise.]
 
 ---
 
