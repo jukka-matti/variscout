@@ -144,14 +144,15 @@ export interface ProcessHub extends EntityBase {
    */
   reviewSignal?: HubReviewSignal;
   /**
-   * Improvement Project entities owned by this hub. In-memory hydrated list,
-   * loaded by the HubRepository on read. Mutations flow through
+   * The single Improvement Project owned by this hub (1:1 invariant per
+   * decision-log 2026-05-18 / IM-0a). In-memory hydrated from the dedicated
+   * `improvementProjects` Dexie table on read. Mutations flow through
    * `IMPROVEMENT_PROJECT_*` HubAction kinds (PR-RPS-5).
    *
    * Inline `import()` type avoids a top-level cycle (improvementProject/types.ts
    * imports ProcessHub).
    */
-  improvementProjects?: import('./improvementProject').ImprovementProject[];
+  improvementProject?: import('./improvementProject').ImprovementProject;
   /**
    * Control entities owned by this hub. In-memory hydrated lists, loaded
    * by HubRepository reads from normalized tables. Mutations flow through

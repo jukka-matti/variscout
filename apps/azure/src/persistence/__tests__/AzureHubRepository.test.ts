@@ -152,21 +152,21 @@ describe('AzureHubRepository dispatch', () => {
     mocks.applyAction.mockResolvedValue(undefined);
   });
 
-  it('HUB_PERSIST_SNAPSHOT calls saveProcessHubToIndexedDB with improvementProjects stripped', async () => {
+  it('HUB_PERSIST_SNAPSHOT calls saveProcessHubToIndexedDB with improvementProject stripped', async () => {
     // Fixture includes improvementProjects so the test actually exercises the
     // decomposition path (without IPs the assertion would pass vacuously because
     // hubWithoutIP === hub structurally when no IPs are present).
     const hubWithIPs = makeHub({
       id: 'hub-azure-1',
       name: 'Bootstrap Hub',
-      improvementProjects: [makeIP('ip-1', 'hub-azure-1')],
+      improvementProject: makeIP('ip-1', 'hub-azure-1'),
     });
     await repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub: hubWithIPs });
 
     expect(mocks.saveProcessHubToIndexedDB).toHaveBeenCalledOnce();
     // saveProcessHubToIndexedDB must receive a hub WITHOUT improvementProjects
     expect(mocks.saveProcessHubToIndexedDB).toHaveBeenCalledWith(
-      expect.not.objectContaining({ improvementProjects: expect.anything() })
+      expect.not.objectContaining({ improvementProject: expect.anything() })
     );
     // The other hub fields must be preserved
     const callArg = mocks.saveProcessHubToIndexedDB.mock.calls[0][0] as ProcessHub;
@@ -180,13 +180,13 @@ describe('AzureHubRepository dispatch', () => {
   });
 
   it('HUB_PERSIST_SNAPSHOT does not throw even when called multiple times', async () => {
-    const hub = makeHub({ improvementProjects: [makeIP('ip-x', 'hub-azure-1')] });
+    const hub = makeHub({ improvementProject: makeIP('ip-x', 'hub-azure-1') });
     await expect(repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub })).resolves.toBeUndefined();
     await expect(repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub })).resolves.toBeUndefined();
     expect(mocks.saveProcessHubToIndexedDB).toHaveBeenCalledTimes(2);
     // Both calls must have received a hub without improvementProjects
     for (const [callArg] of mocks.saveProcessHubToIndexedDB.mock.calls) {
-      expect(callArg).not.toHaveProperty('improvementProjects');
+      expect(callArg).not.toHaveProperty('improvementProject');
     }
   });
 

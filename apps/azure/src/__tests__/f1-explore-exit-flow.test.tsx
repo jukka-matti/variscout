@@ -124,8 +124,8 @@ const investigationStateRef: { current: Record<string, unknown> } = {
 
 const improvementProjectStateRef: { current: Record<string, unknown> } = {
   current: {
-    projectsByHub: {},
-    getProjectsForHub: () => [],
+    projectsById: {},
+    getProjectForHub: () => undefined,
     upsertProject: upsertProjectMock,
   },
 };
@@ -275,8 +275,8 @@ describe('PR-CCJ-F1 Task 6 — → Explore exit wiring e2e', () => {
       setProcessContext: setProcessContextMock,
     };
     improvementProjectStateRef.current = {
-      projectsByHub: {},
-      getProjectsForHub: () => [],
+      projectsById: {},
+      getProjectForHub: () => undefined,
       upsertProject: upsertProjectMock,
     };
   });

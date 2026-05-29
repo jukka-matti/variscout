@@ -129,7 +129,7 @@ describe('surveySustainmentRules', () => {
 
   it('emits a lifecycle gap for closed improvement projects older than 30 days without live sustainment', () => {
     const hints = surveySustainmentRules({
-      improvementProjects: [improvementProject({ id: 'ip-old' })],
+      improvementProject: improvementProject({ id: 'ip-old' }),
       controlRecords: [],
       now: NOW,
     });
@@ -148,13 +148,11 @@ describe('surveySustainmentRules', () => {
 
   it('emits a lifecycle gap when a closed improvement project reaches 30 days without live sustainment', () => {
     const hints = surveySustainmentRules({
-      improvementProjects: [
-        improvementProject({
-          id: 'ip-threshold',
-          createdAt: NOW - 30 * DAY_MS,
-          updatedAt: NOW - 30 * DAY_MS,
-        }),
-      ],
+      improvementProject: improvementProject({
+        id: 'ip-threshold',
+        createdAt: NOW - 30 * DAY_MS,
+        updatedAt: NOW - 30 * DAY_MS,
+      }),
       controlRecords: [],
       now: NOW,
     });
@@ -164,7 +162,7 @@ describe('surveySustainmentRules', () => {
 
   it('does not emit lifecycle gaps for archived improvement projects', () => {
     const hints = surveySustainmentRules({
-      improvementProjects: [improvementProject({ id: 'ip-archived', deletedAt: NOW - DAY_MS })],
+      improvementProject: improvementProject({ id: 'ip-archived', deletedAt: NOW - DAY_MS }),
       controlRecords: [],
       now: NOW,
     });
@@ -174,7 +172,7 @@ describe('surveySustainmentRules', () => {
 
   it('does not emit a lifecycle gap when the closed project has linked live sustainment', () => {
     const hints = surveySustainmentRules({
-      improvementProjects: [improvementProject({ id: 'ip-linked' })],
+      improvementProject: improvementProject({ id: 'ip-linked' }),
       controlRecords: [
         controlRecord({
           id: 'sr-linked',

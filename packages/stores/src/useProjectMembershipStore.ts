@@ -120,8 +120,8 @@ export const useProjectMembershipStore = create<ProjectMembershipStore>()((set, 
     const invitation = current.find(i => i.id === id);
     if (!invitation) return;
 
-    // Find the target project across all hub buckets
-    const allProjects = Object.values(useImprovementProjectStore.getState().projectsByHub).flat();
+    // Find the target project across all projects (keyed by project id)
+    const allProjects = Object.values(useImprovementProjectStore.getState().projectsById);
     const target = allProjects.find(p => p.id === invitation.projectId);
 
     if (target) {

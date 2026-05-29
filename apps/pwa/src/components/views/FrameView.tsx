@@ -80,7 +80,9 @@ const FrameView: React.FC = () => {
   const activeHub = useSession().hub;
   const activeHubId = activeHub?.id ?? null;
   const canvasViewportHubId = processContext?.processHubId ?? activeHubId;
-  const projectsByHub = useImprovementProjectStore(s => s.projectsByHub);
+  const liveProject = useImprovementProjectStore(s =>
+    activeHubId ? s.getProjectForHub(activeHubId) : undefined
+  );
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);
   // E1 T5: PWA active-IP cascade for Canvas Edit-mode state.
   // PWA passes `userId: 'local'` internally to `useActiveIPContext` (no
@@ -157,9 +159,7 @@ const FrameView: React.FC = () => {
   }, [activeHub?.controlHandoffs, activeHub?.controlRecords, activeHubId]);
 
   const contextLinkGroups: readonly ContextLinkGroup[] = React.useMemo(() => {
-    const improvementProjects = (
-      activeHubId ? (projectsByHub[activeHubId] ?? activeHub?.improvementProjects ?? []) : []
-    ).filter(project => project.deletedAt === null);
+    const improvementProjects = liveProject ? [liveProject] : [];
     const liveControlRecords = controlRecords.filter(record => record.deletedAt === null);
 
     return [
@@ -197,36 +197,18 @@ const FrameView: React.FC = () => {
         ],
       },
     ];
-  }, [
-    activeHub?.improvementProjects,
-    activeHubId,
-    controlHandoffs,
-    hypotheses,
-    projectsByHub,
-    controlRecords,
-  ]);
+  }, [activeHubId, controlHandoffs, hypotheses, liveProject, controlRecords]);
 
   const inboxPrompts = React.useMemo(() => {
-    const improvementProjects = (
-      activeHubId ? (projectsByHub[activeHubId] ?? activeHub?.improvementProjects ?? []) : []
-    ).filter(project => project.deletedAt === null);
-
     return surveyInboxRules({
       hub: activeHub ?? undefined,
-      improvementProjects,
+      improvementProject: liveProject,
       controlRecords,
       controlReviews: activeHub?.controlReviews ?? [],
       controlHandoffs,
       now: Date.now(),
     });
-  }, [
-    activeHub?.improvementProjects,
-    activeHub?.controlReviews,
-    activeHubId,
-    controlHandoffs,
-    projectsByHub,
-    controlRecords,
-  ]);
+  }, [activeHub?.controlReviews, activeHubId, controlHandoffs, liveProject, controlRecords]);
 
   const handleSeeData = React.useCallback(() => {
     usePanelsStore.getState().showExplore();
@@ -328,10 +310,7 @@ const FrameView: React.FC = () => {
   const handleNavigateContextLink = React.useCallback(
     (item: ContextLinkItem) => {
       if (
-        useImprovementProjectStore
-          .getState()
-          .getProjectsForHub(activeHubId ?? '')
-          .some(project => project.id === item.id)
+        useImprovementProjectStore.getState().getProjectForHub(activeHubId ?? '')?.id === item.id
       ) {
         usePanelsStore.getState().showCharter();
         return;

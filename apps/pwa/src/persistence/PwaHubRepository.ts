@@ -78,13 +78,13 @@ export class PwaHubRepository implements HubRepository {
       this.controlHandoffs.listByHub(hubMeta.id),
     ]);
     const liveOutcomes = outcomes.filter(o => o.deletedAt === null);
-    const liveProjects = improvementProjects.filter(p => p.deletedAt === null);
+    const liveProject = improvementProjects.find(p => p.deletedAt === null);
     const canonicalProcessMap = canvasRow ? stripHubId(canvasRow) : undefined;
     return {
       ...hubMeta,
       ...(liveOutcomes.length > 0 ? { outcomes: liveOutcomes } : {}),
       ...(canonicalProcessMap ? { canonicalProcessMap } : {}),
-      ...(liveProjects.length > 0 ? { improvementProjects: liveProjects } : {}),
+      ...(liveProject ? { improvementProject: liveProject } : {}),
       ...(controlRecords.length > 0 ? { controlRecords } : {}),
       ...(controlReviews.length > 0 ? { controlReviews } : {}),
       ...(controlHandoffs.length > 0 ? { controlHandoffs } : {}),

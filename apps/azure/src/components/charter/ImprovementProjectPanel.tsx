@@ -42,8 +42,8 @@ type RepositoryProjectPatch = Partial<
 const buttonClassName =
   'rounded-md border border-edge bg-surface px-3 py-2 text-left text-sm font-medium text-content transition-colors hover:bg-surface-secondary focus:outline-none focus:ring-2 focus:ring-ring';
 
-function liveProjects(projects: ImprovementProject[] | undefined): ImprovementProject[] {
-  return (projects ?? []).filter(project => project.deletedAt === null);
+function liveProjects(project: ImprovementProject | undefined): ImprovementProject[] {
+  return project && project.deletedAt === null ? [project] : [];
 }
 
 function liveOutcomes(hub: ProcessHub): OutcomeSpec[] {
@@ -153,25 +153,23 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
   const creatingForHubRef = useRef<string | null>(null);
   const { captureReturnTarget } = useReturnNavigation();
 
-  const projectsByHub = useImprovementProjectStore(state => state.projectsByHub);
-  const setProjectsForHub = useImprovementProjectStore(state => state.setProjectsForHub);
+  const storedProject = useImprovementProjectStore(state =>
+    activeHub ? state.getProjectForHub(activeHub.id) : undefined
+  );
+  const setProjectForHub = useImprovementProjectStore(state => state.setProjectForHub);
   const upsertProject = useImprovementProjectStore(state => state.upsertProject);
   const hypotheses = useAnalyzeStore(state => state.hypotheses);
   const findings = useAnalyzeStore(state => state.findings);
 
-  const hubProjects = useMemo(() => liveProjects(activeHub?.improvementProjects), [activeHub]);
-  const storeProjects = activeHub ? projectsByHub[activeHub.id] : undefined;
   const projects = useMemo(
-    () => liveProjects(storeProjects ?? hubProjects),
-    [hubProjects, storeProjects]
+    () => liveProjects(storedProject ?? activeHub?.improvementProject),
+    [storedProject, activeHub]
   );
 
   useEffect(() => {
-    if (!activeHub) return;
-    if (activeHub.improvementProjects !== undefined) {
-      setProjectsForHub(activeHub.id, hubProjects);
-    }
-  }, [activeHub, hubProjects, setProjectsForHub]);
+    if (!activeHub || !activeHub.improvementProject) return;
+    setProjectForHub(activeHub.id, activeHub.improvementProject);
+  }, [activeHub, setProjectForHub]);
 
   useEffect(() => {
     if (!activeHub || projects.length > 0 || creatingForHubRef.current === activeHub.id) return;

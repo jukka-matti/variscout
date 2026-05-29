@@ -82,8 +82,8 @@ const investigationStateRef: { current: Record<string, unknown> } = {
 
 const improvementProjectStateRef: { current: Record<string, unknown> } = {
   current: {
-    projectsByHub: {},
-    getProjectsForHub: () => [],
+    projectsById: {},
+    getProjectForHub: () => undefined,
     upsertProject: upsertProjectMock,
   },
 };
@@ -253,8 +253,8 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
       setProcessContext: setProcessContextMock,
     };
     improvementProjectStateRef.current = {
-      projectsByHub: {},
-      getProjectsForHub: () => [],
+      projectsById: {},
+      getProjectForHub: () => undefined,
       upsertProject: upsertProjectMock,
     };
   });

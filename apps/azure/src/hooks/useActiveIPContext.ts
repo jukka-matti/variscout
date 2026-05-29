@@ -13,7 +13,8 @@ export interface ActiveIPContext {
 }
 
 function liveProjects(hub: ProcessHub | undefined | null): ImprovementProject[] {
-  return (hub?.improvementProjects ?? []).filter(project => project.deletedAt === null);
+  const p = hub?.improvementProject;
+  return p && p.deletedAt === null ? [p] : [];
 }
 
 function clearedScopeKey(scopeKey: string): string {

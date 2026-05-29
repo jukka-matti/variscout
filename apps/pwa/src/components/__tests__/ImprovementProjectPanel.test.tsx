@@ -81,7 +81,7 @@ function makeProject(
   };
 }
 
-function makeHub(projects: ImprovementProject[] = []): ProcessHub {
+function makeHub(project?: ImprovementProject): ProcessHub {
   return {
     id: 'hub-1',
     name: 'Paint line',
@@ -98,7 +98,7 @@ function makeHub(projects: ImprovementProject[] = []): ProcessHub {
         deletedAt: null,
       },
     ],
-    improvementProjects: projects,
+    ...(project ? { improvementProject: project } : {}),
   };
 }
 
@@ -134,22 +134,19 @@ describe('ImprovementProjectPanel (PWA)', () => {
     expect(await screen.findByTestId('improvement-project-form')).toHaveTextContent(
       'Improve First pass yield'
     );
-    expect(useImprovementProjectStore.getState().getProjectsForHub('hub-1')).toHaveLength(1);
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')).toBeDefined();
     expect(screen.getByRole('button', { name: /back to frame/i })).toBeInTheDocument();
   });
 
-  it('shows a picker before rendering the form when the active hub has multiple live projects', async () => {
-    const first = makeProject('ip-1', 'hub-1', 'Reduce rework');
-    const second = makeProject('ip-2', 'hub-1', 'Improve throughput');
+  it('renders the form directly when the hub has an existing live project (1:1 — no picker)', async () => {
+    const project = makeProject('ip-1', 'hub-1', 'Reduce rework');
 
-    render(<ImprovementProjectPanel activeHub={makeHub([first, second])} onBack={vi.fn()} />);
+    render(<ImprovementProjectPanel activeHub={makeHub(project)} onBack={vi.fn()} />);
 
     expect(pwaHubRepository.dispatch).not.toHaveBeenCalled();
-    expect(screen.queryByTestId('improvement-project-form')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /improve throughput/i }));
-
-    expect(screen.getByTestId('improvement-project-form')).toHaveTextContent('Improve throughput');
+    expect(await screen.findByTestId('improvement-project-form')).toHaveTextContent(
+      'Reduce rework'
+    );
   });
 
   it('opens Wall from linked lineage and stores the Improvement Project return target', async () => {
@@ -175,7 +172,7 @@ describe('ImprovementProjectPanel (PWA)', () => {
 
     render(
       <ImprovementProjectPanel
-        activeHub={makeHub([project])}
+        activeHub={makeHub(project)}
         onBack={vi.fn()}
         onOpenWall={onOpenWall}
       />

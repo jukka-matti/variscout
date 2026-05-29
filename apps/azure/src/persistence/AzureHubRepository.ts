@@ -44,7 +44,7 @@ export class AzureHubRepository implements HubRepository {
     if (action.kind === 'HUB_PERSIST_SNAPSHOT') {
       // improvementProjects live in their own table; decompose them out of the
       // hub blob before saving. Mirrors the PWA HUB_PERSIST_SNAPSHOT decomposition.
-      const { improvementProjects, controlRecords, controlReviews, controlHandoffs, ...hubRow } =
+      const { improvementProject, controlRecords, controlReviews, controlHandoffs, ...hubRow } =
         action.hub;
       await db.transaction(
         'rw',
@@ -57,17 +57,15 @@ export class AzureHubRepository implements HubRepository {
         ],
         async () => {
           await saveProcessHubToIndexedDB(hubRow);
-          // Drop stale rows for this hub, then bulk-put incoming snapshot rows.
-          const incomingProjectIds = new Set((improvementProjects ?? []).map(p => p.id));
+          // Drop stale rows for this hub (at most one under 1:1), then put the incoming project.
+          const incomingProjectIds = new Set(improvementProject ? [improvementProject.id] : []);
           await db.improvementProjects
             .where('hubId')
             .equals(action.hub.id)
             .filter(p => !incomingProjectIds.has(p.id))
             .delete();
-          if (improvementProjects && improvementProjects.length > 0) {
-            await db.improvementProjects.bulkPut(
-              improvementProjects.map(p => ({ ...p, hubId: action.hub.id }))
-            );
+          if (improvementProject) {
+            await db.improvementProjects.put({ ...improvementProject, hubId: action.hub.id });
           }
           const incomingControlRecords = controlRecords ?? [];
           const incomingRecordIds = new Set(incomingControlRecords.map(record => record.id));
@@ -358,7 +356,7 @@ async function hydrateHub(hub: ProcessHub): Promise<ProcessHub> {
     db.controlReviews.where('hubId').equals(hub.id).toArray(),
     db.controlHandoffs.where('hubId').equals(hub.id).toArray(),
   ]);
-  const liveIps = ips.filter(p => p.deletedAt === null);
+  const liveIp = ips.find(p => p.deletedAt === null);
   const liveControlRecords = controlRecords.filter(record => record.deletedAt === null);
   const liveControlReviews = sortReviewsDescending(
     controlReviews.filter(review => review.deletedAt === null)
@@ -366,7 +364,7 @@ async function hydrateHub(hub: ProcessHub): Promise<ProcessHub> {
   const liveControlHandoffs = controlHandoffs.filter(handoff => handoff.deletedAt === null);
   return {
     ...hub,
-    ...(liveIps.length > 0 ? { improvementProjects: liveIps } : {}),
+    ...(liveIp ? { improvementProject: liveIp } : {}),
     ...(liveControlRecords.length > 0 ? { controlRecords: liveControlRecords } : {}),
     ...(liveControlReviews.length > 0 ? { controlReviews: liveControlReviews } : {}),
     ...(liveControlHandoffs.length > 0 ? { controlHandoffs: liveControlHandoffs } : {}),

@@ -71,8 +71,8 @@ const investigationStateRef: { current: Record<string, unknown> } = {
 
 const improvementProjectStateRef: { current: Record<string, unknown> } = {
   current: {
-    projectsByHub: {},
-    getProjectsForHub: () => [],
+    projectsById: {},
+    getProjectForHub: () => undefined,
     // E1 T5: FrameView reads `upsertProject` from the store and forwards it
     // to CanvasWorkspace as `onPersistCanvasState`. Mocked as a no-op here —
     // FrameView legacy tests don't exercise the persist callback.
@@ -354,8 +354,8 @@ describe('FrameView (PWA shell)', () => {
     // tests. The dedicated empty-state test overrides this in its own body.
     activeIPContextRef.current = { activeIP: DEFAULT_TEST_IP };
     improvementProjectStateRef.current = {
-      projectsByHub: {},
-      getProjectsForHub: () => [],
+      projectsById: {},
+      getProjectForHub: () => undefined,
       upsertProject: vi.fn(),
     };
     storeStateRef.current = {
@@ -719,28 +719,25 @@ describe('FrameView (PWA shell)', () => {
   });
 
   it('passes the Inbox sustainment target id when opening a lifecycle prompt', async () => {
-    improvementProjectStateRef.current = {
-      projectsByHub: {
-        'hub-1': [
-          {
-            id: 'ip-1',
-            hubId: 'hub-1',
-            status: 'closed',
-            metadata: { title: 'Reduce rework' },
-            goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 98 }] },
-            sections: {
-              background: {},
-              investigationLineage: {},
-              approach: {},
-              outcomeReference: {},
-            },
-            createdAt: 1,
-            updatedAt: 1,
-            deletedAt: null,
-          },
-        ],
+    const liveIP = {
+      id: 'ip-1',
+      hubId: 'hub-1',
+      status: 'closed',
+      metadata: { title: 'Reduce rework' },
+      goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 98 }] },
+      sections: {
+        background: {},
+        investigationLineage: {},
+        approach: {},
+        outcomeReference: {},
       },
-      getProjectsForHub: () => [],
+      createdAt: 1,
+      updatedAt: 1,
+      deletedAt: null,
+    };
+    improvementProjectStateRef.current = {
+      projectsById: { 'ip-1': liveIP },
+      getProjectForHub: (hubId: string) => (hubId === 'hub-1' ? liveIP : undefined),
       upsertProject: vi.fn(),
     };
 

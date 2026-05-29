@@ -78,7 +78,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
     () =>
       surveyInboxRules({
         hub: rollup.hub,
-        improvementProjects: rollup.hub.improvementProjects ?? [],
+        improvementProject: rollup.hub.improvementProject,
         controlRecords: rollup.controlRecords,
         controlReviews: rollup.hub.controlReviews ?? [],
         controlHandoffs: rollup.controlHandoffs,
@@ -86,7 +86,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
       }),
     [
       rollup.hub.id,
-      rollup.hub.improvementProjects,
+      rollup.hub.improvementProject,
       rollup.hub.controlReviews,
       rollup.controlHandoffs,
       rollup.controlRecords,
@@ -114,9 +114,8 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
     (prompt: InboxDigestPrompt) => {
       const surface = prompt.action?.opensSurface;
       const targetId = prompt.action?.opensId;
-      const targetProject = rollup.hub.improvementProjects?.find(
-        project => project.id === targetId
-      );
+      const targetProject =
+        rollup.hub.improvementProject?.id === targetId ? rollup.hub.improvementProject : undefined;
       // 'sustainment' surface key kept intact — matches panelsStore.activeView workspace
       // identifier + survey/control.ts emitter values (see Group 5 cascade note). The Stage 4
       // workspace key was deliberately preserved across the renames.
@@ -142,7 +141,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
       onLogReview,
       onOpenInvestigation,
       onSetupControl,
-      rollup.hub.improvementProjects,
+      rollup.hub.improvementProject,
       rollup.controlRecords,
     ]
   );

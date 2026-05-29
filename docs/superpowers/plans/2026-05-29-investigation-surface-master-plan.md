@@ -76,6 +76,8 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 
 ## IM-0a · Project ↔ Hub 1:1 collapse (PREREQ)
 
+**Sub-plan:** [`2026-05-29-im-0a-project-hub-1to1.md`](2026-05-29-im-0a-project-hub-1to1.md)
+
 - **Goal:** Enforce the decided **one Project = one Hub (1:1)** model; retire the legacy 1:many machinery; re-key project-scoped state by `ProjectId`. Keep Hub + IP as two entities at a clean 1:1 (SRP — spec §1).
 - **Decision source:** decision-log 2026-05-18 (already committed; this PR executes it).
 - **Depends on:** none. **Gates:** clarifies ownership for IM-0b; backs the §1 terminology.
