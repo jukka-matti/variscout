@@ -4,7 +4,6 @@ import {
   detectColumns,
   validateData,
   detectWideFormat,
-  detectYamazumiFormat,
   detectDefectFormat,
   augmentWithTimeColumns,
   stackColumns,
@@ -15,7 +14,6 @@ import type {
   DataRow,
   DataQualityReport,
   TimeExtractionConfig,
-  YamazumiDetection,
   DefectDetection,
   StackConfig,
   ProcessHub,
@@ -290,10 +288,6 @@ export interface UseEditorDataFlowReturn {
   setTimeExtractionPrompt: (v: { timeColumn: string; hasTimeComponent: boolean } | null) => void;
   timeExtractionConfig: TimeExtractionConfig;
   setTimeExtractionConfig: React.Dispatch<React.SetStateAction<TimeExtractionConfig>>;
-  // Yamazumi detection
-  yamazumiDetection: YamazumiDetection | null;
-  dismissYamazumiDetection: () => void;
-  handleYamazumiDetectedFromIngestion: (result: YamazumiDetection) => void;
   // Defect detection
   defectDetection: DefectDetection | null;
   dismissDefectDetection: () => void;
@@ -364,14 +358,6 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     extractDayOfWeek: true,
     extractHour: false,
   });
-
-  // Yamazumi detection state
-  const [yamazumiDetection, setYamazumiDetection] = useState<YamazumiDetection | null>(null);
-  const dismissYamazumiDetection = useCallback(() => setYamazumiDetection(null), []);
-  const handleYamazumiDetectedFromIngestion = useCallback(
-    (result: YamazumiDetection) => setYamazumiDetection(result),
-    []
-  );
 
   // Defect detection state
   const [defectDetection, setDefectDetection] = useState<DefectDetection | null>(null);
@@ -464,22 +450,16 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       const report = validateData(data, detected.outcome ? [detected.outcome] : []);
       setDataQualityReport(report);
 
-      // Check for Yamazumi format (more specific than wide format)
-      const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
-      if (yamazumiResult.isYamazumiFormat) {
-        setYamazumiDetection(yamazumiResult);
+      // Check for defect format before falling back to wide/standard
+      const defectResult = detectDefectFormat(data, detected.columnAnalysis);
+      if (defectResult.isDefectFormat) {
+        setDefectDetection(defectResult);
       } else {
-        // Check for defect format before falling back to wide/standard
-        const defectResult = detectDefectFormat(data, detected.columnAnalysis);
-        if (defectResult.isDefectFormat) {
-          setDefectDetection(defectResult);
-        } else {
-          const wideFormat = detectWideFormat(data);
-          if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
-            setMeasureColumns(wideFormat.channels.map(c => c.id));
-            setMeasureLabel('Channel');
-            setAnalysisMode('performance');
-          }
+        const wideFormat = detectWideFormat(data);
+        if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
+          setMeasureColumns(wideFormat.channels.map(c => c.id));
+          setMeasureLabel('Channel');
+          setAnalysisMode('performance');
         }
       }
 
@@ -1043,10 +1023,6 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     setTimeExtractionPrompt,
     timeExtractionConfig,
     setTimeExtractionConfig,
-    // Yamazumi detection
-    yamazumiDetection,
-    dismissYamazumiDetection,
-    handleYamazumiDetectedFromIngestion,
     // Defect detection
     defectDetection,
     dismissDefectDetection,

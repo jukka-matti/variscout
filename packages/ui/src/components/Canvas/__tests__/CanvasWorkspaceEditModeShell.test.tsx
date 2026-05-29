@@ -59,7 +59,6 @@ vi.mock('@variscout/hooks', () => ({
     defect: { id: 'defect', label: 'Defect', enabled: true, description: '' },
     'process-flow': { id: 'process-flow', label: 'Process flow', enabled: true, description: '' },
     performance: { id: 'performance', label: 'Performance', enabled: false, description: '' },
-    yamazumi: { id: 'yamazumi', label: 'Yamazumi', enabled: false, description: '' },
   },
   CANVAS_OVERLAY_REGISTRY: {
     investigations: {

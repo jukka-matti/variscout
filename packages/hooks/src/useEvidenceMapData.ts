@@ -95,7 +95,6 @@ export interface UseEvidenceMapDataReturn {
  * TODO: Extend with mode-specific metrics when data is available:
  * - capability: "R²adj=0.34, Cpk +0.4" (needs Cpk impact per factor)
  * - performance: "R²adj=0.34, 3 channels" (needs channel count per factor)
- * - yamazumi: "Waste 28%, +45s" (needs waste contribution per factor)
  * Currently R²adj is shown for all modes as a universal metric.
  */
 function buildMetricLabel(rSquaredAdj: number, _mode: ResolvedMode): string {

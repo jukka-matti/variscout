@@ -101,7 +101,6 @@ export const PISection: React.FC<PISectionProps> = ({
   const timeColumn = useProjectStore(s => s.timeColumn);
   const filters = useProjectStore(s => s.filters);
   const analysisMode = useProjectStore(s => s.analysisMode);
-  const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
   const defectMapping = useProjectStore(s => s.defectMapping);
   const processContext = useProjectStore(s => s.processContext);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
@@ -165,7 +164,6 @@ export const PISection: React.FC<PISectionProps> = ({
         factorColumns: factors,
         timeColumn,
         specs,
-        yamazumiMapping,
         defectMapping,
         processContext: processContext ?? undefined,
         questions: questionsState.questions,
@@ -178,7 +176,6 @@ export const PISection: React.FC<PISectionProps> = ({
       factors,
       timeColumn,
       specs,
-      yamazumiMapping,
       defectMapping,
       processContext,
       questionsState.questions,

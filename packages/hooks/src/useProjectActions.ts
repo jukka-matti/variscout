@@ -75,7 +75,6 @@ function buildSerializedProject(
     measureLabel: state.measureLabel ?? 'Measure',
     selectedMeasure: state.selectedMeasure ?? null,
     cpkTarget: state.cpkTarget,
-    yamazumiMapping: state.yamazumiMapping ?? null,
     subgroupConfig: state.subgroupConfig ?? { method: 'fixed-size', size: 5 },
     filters,
     filterStack,
@@ -127,7 +126,6 @@ function getCurrentStateFromStores(): Omit<AnalysisState, 'version'> {
 
   // Analysis mode — only include non-default values for compact serialization
   if (ps.analysisMode !== 'standard') state.analysisMode = ps.analysisMode;
-  if (ps.yamazumiMapping) state.yamazumiMapping = ps.yamazumiMapping;
   if (
     ps.subgroupConfig &&
     (ps.subgroupConfig.method !== 'fixed-size' || ps.subgroupConfig.size !== 5)

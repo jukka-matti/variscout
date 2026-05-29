@@ -767,7 +767,6 @@ export type {
   ProjectionSource,
   ProjectionMethod,
   StatisticalProjectionResult,
-  LeanProjectionResult,
   ProjectionResult,
   ProjectionScenario,
   // Investigation Wall — contribution tree
@@ -872,31 +871,6 @@ export type {
   IPReportScope,
   IPReportScopeInput,
 } from './report';
-
-// Yamazumi Analysis Mode
-export type {
-  ActivityType,
-  YamazumiColumnMapping,
-  YamazumiSegment,
-  YamazumiBarData,
-  YamazumiSummary,
-  YamazumiIChartMetric,
-  YamazumiParetoMode,
-  YamazumiDetection,
-} from './yamazumi';
-export {
-  ACTIVITY_TYPE_COLORS,
-  ACTIVITY_TYPE_LABELS,
-  ACTIVITY_TYPE_ORDER,
-  classifyActivityType,
-  isActivityTypeValue,
-  computeYamazumiData,
-  computeYamazumiSummary,
-  detectYamazumiFormat,
-  // Lean projection engine
-  projectWasteElimination,
-  projectVAImprovement,
-} from './yamazumi';
 
 // Defect analysis
 export type {

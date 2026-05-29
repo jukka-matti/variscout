@@ -4,7 +4,6 @@ import {
   parseText,
   detectColumns,
   detectWideFormat,
-  detectYamazumiFormat,
   detectDefectFormat,
   stackColumns,
   parseTimeValue,
@@ -12,7 +11,6 @@ import {
   type DataQualityReport,
   type WideFormatDetection,
   type TimeExtractionConfig,
-  type YamazumiDetection,
   type DefectDetection,
   type StackConfig,
   type ProcessHub,
@@ -39,7 +37,6 @@ export interface PasteFlowState {
   isMappingReEdit: boolean;
   isManualEntry: boolean;
   wideFormatDetection: WideFormatDetection | null;
-  yamazumiDetection: YamazumiDetection | null;
   defectDetection: DefectDetection | null;
 }
 
@@ -57,8 +54,6 @@ export type PasteFlowAction =
   | { type: 'CANCEL_MAPPING' }
   | { type: 'WIDE_FORMAT_DETECTED'; detection: WideFormatDetection }
   | { type: 'DISMISS_WIDE_FORMAT' }
-  | { type: 'YAMAZUMI_DETECTED'; detection: YamazumiDetection }
-  | { type: 'DISMISS_YAMAZUMI' }
   | { type: 'DEFECT_DETECTED'; detection: DefectDetection }
   | { type: 'DISMISS_DEFECT' };
 
@@ -69,7 +64,6 @@ export const initialPasteFlowState: PasteFlowState = {
   isMappingReEdit: false,
   isManualEntry: false,
   wideFormatDetection: null,
-  yamazumiDetection: null,
   defectDetection: null,
 };
 
@@ -107,10 +101,6 @@ export function pasteFlowReducer(state: PasteFlowState, action: PasteFlowAction)
       return { ...state, wideFormatDetection: action.detection };
     case 'DISMISS_WIDE_FORMAT':
       return { ...state, wideFormatDetection: null };
-    case 'YAMAZUMI_DETECTED':
-      return { ...state, yamazumiDetection: action.detection };
-    case 'DISMISS_YAMAZUMI':
-      return { ...state, yamazumiDetection: null };
     case 'DEFECT_DETECTED':
       return { ...state, defectDetection: action.detection };
     case 'DISMISS_DEFECT':
@@ -188,9 +178,6 @@ export interface UsePasteImportFlowReturn {
   ) => void;
   handleMappingCancel: () => void;
   handleDismissWideFormat: () => void;
-  yamazumiDetection: YamazumiDetection | null;
-  handleYamazumiDetected: (result: YamazumiDetection) => void;
-  handleDismissYamazumi: () => void;
   defectDetection: DefectDetection | null;
   handleDefectDetected: (result: DefectDetection) => void;
   handleDismissDefect: () => void;
@@ -314,20 +301,13 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       const report = validateData(data, detected.outcome ? [detected.outcome] : []);
       setDataQualityReport(report);
 
-      const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
-      if (yamazumiResult.isYamazumiFormat) {
-        dispatch({ type: 'YAMAZUMI_DETECTED', detection: yamazumiResult });
-      }
-
-      // Check for defect format (only if not already detected as yamazumi)
-      if (!yamazumiResult.isYamazumiFormat) {
-        const defectResult = detectDefectFormat(data, detected.columnAnalysis);
-        if (
-          defectResult.isDefectFormat &&
-          (defectResult.confidence === 'high' || defectResult.confidence === 'medium')
-        ) {
-          dispatch({ type: 'DEFECT_DETECTED', detection: defectResult });
-        }
+      // Check for defect format
+      const defectResult = detectDefectFormat(data, detected.columnAnalysis);
+      if (
+        defectResult.isDefectFormat &&
+        (defectResult.confidence === 'high' || defectResult.confidence === 'medium')
+      ) {
+        dispatch({ type: 'DEFECT_DETECTED', detection: defectResult });
       }
 
       const wideFormat = detectWideFormat(data);
@@ -736,14 +716,6 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     dispatch({ type: 'DISMISS_WIDE_FORMAT' });
   }, []);
 
-  const handleYamazumiDetected = useCallback((result: YamazumiDetection) => {
-    dispatch({ type: 'YAMAZUMI_DETECTED', detection: result });
-  }, []);
-
-  const handleDismissYamazumi = useCallback(() => {
-    dispatch({ type: 'DISMISS_YAMAZUMI' });
-  }, []);
-
   const handleDefectDetected = useCallback((result: DefectDetection) => {
     dispatch({ type: 'DEFECT_DETECTED', detection: result });
   }, []);
@@ -776,9 +748,6 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     handleMappingConfirm,
     handleMappingCancel,
     handleDismissWideFormat,
-    yamazumiDetection: flowState.yamazumiDetection,
-    handleYamazumiDetected,
-    handleDismissYamazumi,
     defectDetection: flowState.defectDetection,
     handleDefectDetected,
     handleDismissDefect,

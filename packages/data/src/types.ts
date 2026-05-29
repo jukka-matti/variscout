@@ -48,22 +48,10 @@ export interface SampleConfig {
   factors: string[];
   /** Specification limits */
   specs: SpecLimits;
-  /** Analysis mode (standard, performance, yamazumi, or defect) */
-  analysisMode?: 'standard' | 'performance' | 'yamazumi' | 'defect';
+  /** Analysis mode (standard, performance, or defect) */
+  analysisMode?: 'standard' | 'performance' | 'defect';
   /** Column names for measure variables (wide format data) */
   measureColumns?: string[];
-  /** Enable Yamazumi analysis mode (time study analysis) */
-  yamazumiMode?: boolean;
-  /** Yamazumi column role mapping */
-  yamazumiMapping?: {
-    activityTypeColumn: string;
-    cycleTimeColumn: string;
-    stepColumn: string;
-    activityColumn?: string;
-    reasonColumn?: string;
-    productColumn?: string;
-    waitTimeColumn?: string;
-  };
   /** Defect column role mapping */
   defectMapping?: {
     dataShape: 'event-log' | 'pre-aggregated' | 'pass-fail';

@@ -914,7 +914,6 @@ const MAX_COMBINATION_QUESTIONS = 5;
 const singleFactorFormatters: Record<ResolvedMode, (factor: string) => string> = {
   standard: f => `Does ${f} explain variation?`,
   capability: f => `Does ${f} affect Cpk?`,
-  yamazumi: f => `Does ${f} explain variation?`,
   performance: f => `Does ${f} affect channel performance?`,
   defect: f => `Does ${f} drive defect rate variation?`,
 };
@@ -922,7 +921,6 @@ const singleFactorFormatters: Record<ResolvedMode, (factor: string) => string> =
 const combinationFormatters: Record<ResolvedMode, (factorList: string) => string> = {
   standard: fl => `Does ${fl} together explain more variation?`,
   capability: fl => `Does ${fl} together affect Cpk more?`,
-  yamazumi: fl => `Does ${fl} together explain more variation?`,
   performance: fl => `Does ${fl} together affect channel performance more?`,
   defect: fl => `Does ${fl} together explain more defect rate variation?`,
 };

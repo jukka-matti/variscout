@@ -18,7 +18,6 @@ const ALL_LENS_IDS: CanvasLensId[] = [
   'defect',
   'process-flow',
   'performance',
-  'yamazumi',
 ];
 
 const ALL_LEVELS: CanvasLevel[] = ['l1', 'l2', 'l3'];
@@ -30,11 +29,10 @@ const LENS_ENGLISH_LABELS: Record<CanvasLensId, string> = {
   defect: 'Defect',
   'process-flow': 'Process flow',
   performance: 'Performance',
-  yamazumi: 'Yamazumi',
 };
 
 describe('CanvasLensPicker', () => {
-  it('renders all six lenses from CANVAS_LENS_REGISTRY', () => {
+  it('renders all five lenses from CANVAS_LENS_REGISTRY', () => {
     render(<CanvasLensPicker activeLens="default" />);
 
     for (const id of ALL_LENS_IDS) {
@@ -136,12 +134,6 @@ describe('isCanvasLensValidAtLevel — 3 × 6 matrix', () => {
     const result = isCanvasLensValidAtLevel(lensId, level);
     expect(typeof result).toBe('boolean');
     expect(isCanvasLensValidAtLevel(lensId, level)).toBe(result);
-  });
-
-  it('yamazumi is invalid at l1, valid at l2 and l3', () => {
-    expect(isCanvasLensValidAtLevel('yamazumi', 'l1')).toBe(false);
-    expect(isCanvasLensValidAtLevel('yamazumi', 'l2')).toBe(true);
-    expect(isCanvasLensValidAtLevel('yamazumi', 'l3')).toBe(true);
   });
 
   it('process-flow is invalid at l1 and l3, valid at l2', () => {

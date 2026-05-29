@@ -48,7 +48,6 @@ describe('canvas lens registry', () => {
       'process-flow',
     ]);
     expect(CANVAS_LENS_REGISTRY.performance.enabled).toBe(false);
-    expect(CANVAS_LENS_REGISTRY.yamazumi.enabled).toBe(false);
   });
 
   it('coerces disabled or unknown lens ids back to default', () => {
@@ -63,7 +62,6 @@ describe('canvas lens registry', () => {
       capability: { l1: true, l2: true, l3: true },
       defect: { l1: true, l2: true, l3: true },
       performance: { l1: true, l2: true, l3: true },
-      yamazumi: { l1: false, l2: true, l3: true },
       'process-flow': { l1: false, l2: true, l3: false },
     } as const;
 
@@ -77,7 +75,6 @@ describe('canvas lens registry', () => {
   });
 
   it('suggests the nearest valid level for disabled lens x level cells', () => {
-    expect(suggestCanvasLevelForLens('yamazumi', 'l1')).toBe('l2');
     expect(suggestCanvasLevelForLens('process-flow', 'l1')).toBe('l2');
     expect(suggestCanvasLevelForLens('process-flow', 'l3')).toBe('l2');
     expect(suggestCanvasLevelForLens('default', 'l1')).toBe('l1');

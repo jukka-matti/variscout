@@ -23,32 +23,19 @@ function hasFiniteSpec(value: number | undefined): boolean {
  *
  * Rules, in priority order (first match wins):
  *
- *   1. yamazumi.tripletPresent — activityType + cycleTime + step columns declared.
- *   2. defect.typeAndCount    — defect type AND count columns declared.
- *   3. defect.passFail        — defect dataShape is 'pass-fail' with a result column.
- *   4. performance.threeOrMoreChannels — 3+ channel columns detected.
- *   5. capability.outcomeSpecsAndSubgroups — outcome + spec (LSL or USL) + at least one
+ *   1. defect.typeAndCount    — defect type AND count columns declared.
+ *   2. defect.passFail        — defect dataShape is 'pass-fail' with a result column.
+ *   3. performance.threeOrMoreChannels — 3+ channel columns detected.
+ *   4. capability.outcomeSpecsAndSubgroups — outcome + spec (LSL or USL) + at least one
  *      subgroup axis declared on the Process Map.
- *   6. standard.fallback — nothing above matched.
+ *   5. standard.fallback — nothing above matched.
  *
  * The caller passes whatever it knows; missing fields simply fail their rules.
  */
 export function inferMode(input: ModeInferenceInput = {}): ModeInferenceResult {
   const rulesSatisfied: ModeInferenceRuleId[] = [];
 
-  // Rule 1 — yamazumi
-  const y = input.yamazumiMapping;
-  if (y && y.activityTypeColumn && y.cycleTimeColumn && y.stepColumn) {
-    rulesSatisfied.push('yamazumi.tripletPresent');
-    return {
-      mode: 'yamazumi',
-      reason:
-        'Yamazumi mapping complete — activity type, cycle time, and step columns all declared.',
-      rulesSatisfied,
-    };
-  }
-
-  // Rule 2 — defect via type + count
+  // Rule 1 — defect via type + count
   const d = input.defectMapping;
   if (d && d.defectTypeColumn && d.countColumn) {
     rulesSatisfied.push('defect.typeAndCount');

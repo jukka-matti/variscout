@@ -9,9 +9,6 @@ vi.mock('../BasicEstimator', () => ({
 vi.mock('../ModelInformedEstimator', () => ({
   default: () => <div data-testid="mock-model-informed-estimator">ModelInformedEstimator</div>,
 }));
-vi.mock('../ActivityReducer', () => ({
-  default: () => <div data-testid="mock-activity-reducer">ActivityReducer</div>,
-}));
 vi.mock('../ChannelAdjuster', () => ({
   default: () => <div data-testid="mock-channel-adjuster">ChannelAdjuster</div>,
 }));
@@ -19,7 +16,6 @@ vi.mock('../ChannelAdjuster', () => ({
 import { WhatIfExplorer } from '../WhatIfExplorer';
 import type { WhatIfExplorerProps, ModelScope } from '../types';
 import type { BestSubsetResult, ChannelResult } from '@variscout/core';
-import type { YamazumiBarData } from '@variscout/core/yamazumi';
 
 // ============================================================================
 // Test fixtures
@@ -46,17 +42,6 @@ function makeModel(rSquaredAdj: number): BestSubsetResult {
 const mockModel = makeModel(0.75);
 const mockModelWeak = makeModel(0.3);
 const mockModelModerate = makeModel(0.55);
-
-const mockActivities: YamazumiBarData[] = [
-  {
-    key: 'Step 1',
-    totalTime: 120,
-    segments: [
-      { activityType: 'va', totalTime: 60, percentage: 50, count: 10 },
-      { activityType: 'waste', totalTime: 60, percentage: 50, count: 10 },
-    ],
-  },
-];
 
 const mockChannels: ChannelResult[] = [
   {
@@ -116,19 +101,10 @@ function renderExplorer(props: Partial<WhatIfExplorerProps> = {}) {
 // ============================================================================
 
 describe('WhatIfExplorer — mode dispatch', () => {
-  it('renders ActivityReducer when mode=yamazumi and activities provided', () => {
-    renderExplorer({ mode: 'yamazumi', activities: mockActivities });
-    expect(screen.getByTestId('mock-activity-reducer')).toBeInTheDocument();
-    expect(screen.queryByTestId('mock-basic-estimator')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('mock-channel-adjuster')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('mock-model-informed-estimator')).not.toBeInTheDocument();
-  });
-
   it('renders ChannelAdjuster when mode=performance and channels provided', () => {
     renderExplorer({ mode: 'performance', channels: mockChannels });
     expect(screen.getByTestId('mock-channel-adjuster')).toBeInTheDocument();
     expect(screen.queryByTestId('mock-basic-estimator')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('mock-activity-reducer')).not.toBeInTheDocument();
     expect(screen.queryByTestId('mock-model-informed-estimator')).not.toBeInTheDocument();
   });
 
@@ -136,7 +112,6 @@ describe('WhatIfExplorer — mode dispatch', () => {
     renderExplorer({ mode: 'standard', model: mockModel });
     expect(screen.getByTestId('mock-model-informed-estimator')).toBeInTheDocument();
     expect(screen.queryByTestId('mock-basic-estimator')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('mock-activity-reducer')).not.toBeInTheDocument();
     expect(screen.queryByTestId('mock-channel-adjuster')).not.toBeInTheDocument();
   });
 
@@ -144,20 +119,7 @@ describe('WhatIfExplorer — mode dispatch', () => {
     renderExplorer({ mode: 'standard' });
     expect(screen.getByTestId('mock-basic-estimator')).toBeInTheDocument();
     expect(screen.queryByTestId('mock-model-informed-estimator')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('mock-activity-reducer')).not.toBeInTheDocument();
     expect(screen.queryByTestId('mock-channel-adjuster')).not.toBeInTheDocument();
-  });
-
-  it('prefers yamazumi renderer over model when mode=yamazumi with both activities and model', () => {
-    renderExplorer({ mode: 'yamazumi', activities: mockActivities, model: mockModel });
-    expect(screen.getByTestId('mock-activity-reducer')).toBeInTheDocument();
-    expect(screen.queryByTestId('mock-model-informed-estimator')).not.toBeInTheDocument();
-  });
-
-  it('falls back to BasicEstimator when mode=yamazumi but no activities', () => {
-    renderExplorer({ mode: 'yamazumi' });
-    expect(screen.getByTestId('mock-basic-estimator')).toBeInTheDocument();
-    expect(screen.queryByTestId('mock-activity-reducer')).not.toBeInTheDocument();
   });
 
   it('falls back to BasicEstimator when mode=performance but no channels', () => {
@@ -242,11 +204,6 @@ describe('WhatIfExplorer — mode badge', () => {
   it('renders mode badge for standard mode', () => {
     const { container } = renderExplorer({ mode: 'standard' });
     expect(container.textContent).toContain('Standard');
-  });
-
-  it('renders mode badge for yamazumi mode', () => {
-    const { container } = renderExplorer({ mode: 'yamazumi', activities: mockActivities });
-    expect(container.textContent).toContain('Lean / Time Study');
   });
 
   it('renders mode badge for performance mode', () => {

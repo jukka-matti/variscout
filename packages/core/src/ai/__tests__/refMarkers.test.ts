@@ -50,7 +50,6 @@ describe('parseRefMarkers', () => {
       'ichart',
       'pareto',
       'stats',
-      'yamazumi',
       'finding',
       'question',
       'dashboard',

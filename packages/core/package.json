@@ -12,7 +12,6 @@
     "./capability": "./src/capability/index.ts",
     "./findings": "./src/findings/index.ts",
     "./variation": "./src/variation/index.ts",
-    "./yamazumi": "./src/yamazumi/index.ts",
     "./export": "./src/export.ts",
     "./tier": "./src/tier.ts",
     "./types": "./src/types.ts",

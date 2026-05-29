@@ -161,12 +161,13 @@ CoScout adapts its coaching per analytical mode. Each mode has a dedicated promp
 | ----------------------------- | ------------------------------------ |
 | Continuous measurement (base) | `docs/USER-JOURNEYS.md`              |
 | Capability (Cp/Cpk)           | `docs/USER-JOURNEYS-CAPABILITY.md`   |
-| Yamazumi (Lean cycle-time)    | `docs/USER-JOURNEYS-YAMAZUMI.md`     |
 | Performance (multi-channel)   | `docs/USER-JOURNEYS-PERFORMANCE.md`  |
 | Defect (events-to-rates)      | `docs/USER-JOURNEYS-DEFECT.md`       |
 | Process-flow / bottleneck     | `docs/USER-JOURNEYS-PROCESS-FLOW.md` |
 
-All six journeys were updated for the wedge pivot (2026-05-16). Each inherits from the base `USER-JOURNEYS.md` and extends with mode-specific chart suite, CoScout coaching, and Specialist workflow.
+The five mode-specific journeys were updated for the wedge pivot (2026-05-16). Each inherits from the base `USER-JOURNEYS.md` and extends with mode-specific chart suite, CoScout coaching, and Specialist workflow.
+
+> Yamazumi mode was removed in wedge V1 via PR-LV1-0 (2026-05-28). The companion journey doc is archived at [`docs/archive/use-cases/2026-05-28-USER-JOURNEYS-YAMAZUMI.md`](../archive/use-cases/2026-05-28-USER-JOURNEYS-YAMAZUMI.md). See [ADR-034](../07-decisions/adr-034-yamazumi-analysis-mode.md) (superseded).
 
 ---
 

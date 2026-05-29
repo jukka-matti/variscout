@@ -97,15 +97,6 @@ export interface ProcessProjection {
     | 'drill'
     | 'model'
     | 'centering';
-
-  // --- Lean fields (yamazumi mode) ---
-
-  /** Current cycle time in seconds (yamazumi only) */
-  currentCT?: number;
-  /** Projected cycle time in seconds (yamazumi only) */
-  projectedCT?: number;
-  /** Whether projected CT meets takt time (yamazumi only) */
-  meetsTakt?: boolean;
 }
 
 /**

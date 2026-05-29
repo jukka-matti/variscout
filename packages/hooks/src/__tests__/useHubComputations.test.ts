@@ -142,17 +142,6 @@ describe('useHubComputations', () => {
       expect(evidence?.mode).toBe('performance');
     });
 
-    it('uses yamazumi mode when analysisMode is yamazumi', () => {
-      const hub = makeHub({ id: 'hub-1', questionIds: [] });
-      useAnalyzeStore.setState({ hypotheses: [hub] });
-      useProjectStore.setState({ analysisMode: 'yamazumi' });
-
-      const { result } = renderHook(() => useHubComputations(null, []));
-
-      const evidence = result.current.hubEvidences?.get('hub-1');
-      expect(evidence?.mode).toBe('yamazumi');
-    });
-
     it('uses standard mode for standard analysisMode', () => {
       const hub = makeHub({ id: 'hub-1', questionIds: [] });
       useAnalyzeStore.setState({ hypotheses: [hub] });

@@ -1,6 +1,6 @@
 # @variscout/charts
 
-React + visx chart components. Standard (I-Chart, Boxplot, Pareto), Performance (multi-channel), Yamazumi, Evidence Map.
+React + visx chart components. Standard (I-Chart, Boxplot, Pareto), Performance (multi-channel), Evidence Map.
 
 ## Hard rules
 

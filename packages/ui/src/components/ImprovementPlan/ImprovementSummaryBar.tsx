@@ -37,14 +37,8 @@ export interface ImprovementSummaryBarProps {
   onAddVerification?: () => void;
   onAssessOutcome?: () => void;
 
-  // --- Lean mode props (yamazumi) ---
-
-  /** Analysis mode — when 'yamazumi', shows lean metrics */
-  analysisMode?: 'standard' | 'capability' | 'yamazumi' | 'performance';
-  /** Projected cycle time in seconds (yamazumi mode) */
-  projectedCycleTime?: number;
-  /** Whether projected CT meets takt time (yamazumi mode) */
-  meetsTakt?: boolean;
+  /** Analysis mode */
+  analysisMode?: 'standard' | 'capability' | 'performance';
 }
 
 type SummaryMode = NonNullable<ImprovementSummaryBarProps['mode']>;
@@ -53,7 +47,6 @@ interface RenderProps extends ImprovementSummaryBarProps {
   t: (key: keyof MessageCatalog) => string;
   tf: (key: keyof MessageCatalog, params: Record<string, string | number>) => string;
   delta: number | undefined;
-  isYamazumi: boolean;
 }
 
 /** Mode-dispatched summary bar renderers (ADR-047 pattern). */
@@ -208,9 +201,6 @@ function renderPlanMixed({
   onViewActions,
   onConvertToActions,
   convertDisabled = false,
-  isYamazumi,
-  projectedCycleTime,
-  meetsTakt,
   t,
   tf,
 }: RenderProps): ReactElement {
@@ -242,39 +232,22 @@ function renderPlanMixed({
 
       {/* Center: projected metric */}
       <div className="flex items-center gap-2">
-        {isYamazumi && projectedCycleTime != null ? (
-          <span data-testid="summary-projected-ct" className="text-sm text-content">
-            {'Projected CT '}
-            <span className="font-mono font-medium">
-              {Number.isFinite(projectedCycleTime) ? projectedCycleTime.toFixed(1) : '—'}s
-            </span>
-            {meetsTakt != null && (
+        {projectedCpk != null && (
+          <span data-testid="summary-projected-cpk" className="text-sm text-content">
+            {tf('improve.projectedCpk', {
+              value: Number.isFinite(projectedCpk) ? projectedCpk.toFixed(2) : '—',
+            })}
+            {delta != null && (
               <span
-                data-testid="summary-takt-compliance"
-                className={`ml-1.5 ${meetsTakt ? 'text-green-500' : 'text-red-400'}`}
+                data-testid="summary-cpk-delta"
+                className={`ml-1.5 text-xs ${delta >= 0 ? 'text-green-500' : 'text-red-400'}`}
               >
-                {meetsTakt ? 'Takt \u2713' : 'Takt \u2717'}
+                {tf('improve.targetDelta', {
+                  delta: `${delta >= 0 ? '+' : ''}${Number.isFinite(delta) ? delta.toFixed(2) : '—'}`,
+                })}
               </span>
             )}
           </span>
-        ) : (
-          projectedCpk != null && (
-            <span data-testid="summary-projected-cpk" className="text-sm text-content">
-              {tf('improve.projectedCpk', {
-                value: Number.isFinite(projectedCpk) ? projectedCpk.toFixed(2) : '—',
-              })}
-              {delta != null && (
-                <span
-                  data-testid="summary-cpk-delta"
-                  className={`ml-1.5 text-xs ${delta >= 0 ? 'text-green-500' : 'text-red-400'}`}
-                >
-                  {tf('improve.targetDelta', {
-                    delta: `${delta >= 0 ? '+' : ''}${Number.isFinite(delta) ? delta.toFixed(2) : '—'}`,
-                  })}
-                </span>
-              )}
-            </span>
-          )
         )}
       </div>
 
@@ -315,9 +288,6 @@ function renderPlan({
   delta,
   onConvertToActions,
   convertDisabled = false,
-  isYamazumi,
-  projectedCycleTime,
-  meetsTakt,
   t,
   tf,
 }: RenderProps): ReactElement {
@@ -367,39 +337,22 @@ function renderPlan({
 
       {/* Right: projected metric + convert button */}
       <div className="flex items-center gap-4">
-        {isYamazumi && projectedCycleTime != null ? (
-          <span data-testid="summary-projected-ct" className="text-sm text-content">
-            {'Projected CT '}
-            <span className="font-mono font-medium">
-              {Number.isFinite(projectedCycleTime) ? projectedCycleTime.toFixed(1) : '—'}s
-            </span>
-            {meetsTakt != null && (
+        {projectedCpk != null && (
+          <span data-testid="summary-projected-cpk" className="text-sm text-content">
+            {tf('improve.projectedCpk', {
+              value: Number.isFinite(projectedCpk) ? projectedCpk.toFixed(2) : '—',
+            })}
+            {delta != null && (
               <span
-                data-testid="summary-takt-compliance"
-                className={`ml-1.5 ${meetsTakt ? 'text-green-500' : 'text-red-400'}`}
+                data-testid="summary-cpk-delta"
+                className={`ml-1.5 text-xs ${delta >= 0 ? 'text-green-500' : 'text-red-400'}`}
               >
-                {meetsTakt ? 'Takt \u2713' : 'Takt \u2717'}
+                {tf('improve.targetDelta', {
+                  delta: `${delta >= 0 ? '+' : ''}${Number.isFinite(delta) ? delta.toFixed(2) : '—'}`,
+                })}
               </span>
             )}
           </span>
-        ) : (
-          projectedCpk != null && (
-            <span data-testid="summary-projected-cpk" className="text-sm text-content">
-              {tf('improve.projectedCpk', {
-                value: Number.isFinite(projectedCpk) ? projectedCpk.toFixed(2) : '—',
-              })}
-              {delta != null && (
-                <span
-                  data-testid="summary-cpk-delta"
-                  className={`ml-1.5 text-xs ${delta >= 0 ? 'text-green-500' : 'text-red-400'}`}
-                >
-                  {tf('improve.targetDelta', {
-                    delta: `${delta >= 0 ? '+' : ''}${Number.isFinite(delta) ? delta.toFixed(2) : '—'}`,
-                  })}
-                </span>
-              )}
-            </span>
-          )
         )}
 
         {onConvertToActions && (
@@ -426,9 +379,8 @@ const modeRenderers: Record<SummaryMode, (props: RenderProps) => ReactElement> =
 
 export const ImprovementSummaryBar: React.FC<ImprovementSummaryBarProps> = props => {
   const { t, tf } = useTranslation();
-  const { projectedCpk, targetCpk, mode = 'plan', analysisMode } = props;
+  const { projectedCpk, targetCpk, mode = 'plan' } = props;
   const delta = projectedCpk != null && targetCpk != null ? projectedCpk - targetCpk : undefined;
-  const isYamazumi = analysisMode === 'yamazumi';
 
-  return modeRenderers[mode]({ ...props, t, tf, delta, isYamazumi });
+  return modeRenderers[mode]({ ...props, t, tf, delta });
 };

@@ -3,7 +3,6 @@ import type { DefectDetection, DefectMapping } from '../defect';
 import type { ProcessContext } from '../ai';
 import type { Finding, Question, Hypothesis } from '../findings';
 import type { DataRow, SpecLimits, WideFormatDetection } from '../types';
-import type { YamazumiColumnMapping, YamazumiDetection } from '../yamazumi';
 import type { Gap, InferredMode, ModeInferenceResult, ProcessMap } from '../frame';
 import type {
   MeasurementStudyStatus,
@@ -112,7 +111,6 @@ export interface SurveyDiagnostics {
   };
   detectedColumns: DetectedColumns;
   wideFormat: WideFormatDetection;
-  yamazumi: YamazumiDetection;
   defect: DefectDetection;
   inferredMode: ModeInferenceResult;
   gaps: Gap[];
@@ -132,7 +130,6 @@ export interface SurveyEvaluationInput {
   factorColumns?: string[];
   timeColumn?: string | null;
   specs?: SpecLimits;
-  yamazumiMapping?: YamazumiColumnMapping | null;
   defectMapping?: DefectMapping | null;
   processMap?: ProcessMap;
   processContext?: Pick<

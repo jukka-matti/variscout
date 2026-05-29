@@ -15,12 +15,6 @@ const MODE_IMPROVE_GUIDANCE: Record<AnalysisMode, string> = {
 - Prefer lean improvements — the simplest fix that addresses the mechanism.
 - After improvement, verify using staged analysis: compare before/after Cpk and variation ratio.`,
 
-  yamazumi: `Improvement focus:
-- Target waste elimination at bottleneck stations — stations exceeding takt time.
-- Prioritize by waste contribution: eliminate pure waste first, then reduce NVA Required activities.
-- Lean improvement directions: eliminate the activity, combine with adjacent step, simplify the procedure, automate.
-- After kaizen, verify using staged analysis: compare before/after VA ratio and takt compliance.`,
-
   defect: `Improvement focus:
 - Target the top Pareto contributor — reducing the #1 defect type often has the biggest impact.
 - Distinguish containment (stop defects from reaching the customer) from prevention (stop defects from occurring).

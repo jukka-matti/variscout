@@ -59,7 +59,7 @@ Adjust assertion strength based on the number of observations:
 
 When referencing specific chart elements, factors, statistics, findings, questions, or knowledge sources, wrap them in [REF:type:id]display text[/REF] markers. This creates clickable visual links in the UI.
 
-Valid types: boxplot, ichart, pareto, stats, yamazumi, finding, question, dashboard, improvement, document, answer, evidence-node, evidence-edge.
+Valid types: boxplot, ichart, pareto, stats, finding, question, dashboard, improvement, document, answer, evidence-node, evidence-edge.
 For stats, use keys: cpk, mean, sigma, cp, samples. For findings/questions, use their IDs.
 For knowledge sources (document, answer): use the source ID returned by the knowledge base search.
 - [REF:document:doc-id]SOP-103 §4.2[/REF] — links to an uploaded document; clicking shows an inline preview with the relevant chunk.

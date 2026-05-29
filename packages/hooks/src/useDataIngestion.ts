@@ -20,15 +20,12 @@ import {
   validateData,
   parseParetoFile,
   detectWideFormat,
-  detectYamazumiFormat,
   detectDefectFormat,
   augmentWithTimeColumns,
   hasTimeComponent,
   type WideFormatDetection,
-  type YamazumiDetection,
   type DefectDetection,
   type AnalysisMode,
-  type YamazumiColumnMapping,
   type DefectMapping,
   type DataQualityReport,
   type ParetoRow,
@@ -68,7 +65,6 @@ export interface DataIngestionActions {
   setMeasureColumns: (columns: string[]) => void;
   setMeasureLabel: (label: string) => void;
   setAnalysisMode: (mode: AnalysisMode) => void;
-  setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
   setDefectMapping?: (mapping: DefectMapping | null) => void;
   /** Set pre-populated findings (for showcase/demo datasets) */
   setFindings?: (findings: Finding[]) => void;
@@ -107,8 +103,6 @@ export interface DataIngestionConfig {
 export interface UseDataIngestionOptions {
   /** Callback when wide-format (multi-measure) data is detected */
   onWideFormatDetected?: (result: WideFormatDetection) => void;
-  /** Callback when Yamazumi (time study) format is detected */
-  onYamazumiDetected?: (result: YamazumiDetection) => void;
   /** Callback when defect data format is detected */
   onDefectDetected?: (result: DefectDetection) => void;
   /** Callback when time column is detected */
@@ -153,7 +147,6 @@ export function useDataIngestion(
 ): UseDataIngestionReturn {
   const {
     onWideFormatDetected,
-    onYamazumiDetected,
     onDefectDetected,
     onTimeColumnDetected,
     getRawData,
@@ -177,7 +170,6 @@ export function useDataIngestion(
     setMeasureColumns,
     setMeasureLabel,
     setAnalysisMode,
-    setYamazumiMapping,
     setDefectMapping,
     setFindings,
     setQuestions,
@@ -231,26 +223,20 @@ export function useDataIngestion(
           const report = validateData(data, detected.outcome ? [detected.outcome] : []);
           setDataQualityReport(report);
 
-          // Check for Yamazumi format (more specific than wide format)
-          const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
-          if (yamazumiResult.isYamazumiFormat && onYamazumiDetected) {
-            onYamazumiDetected(yamazumiResult);
+          // Check for defect format (before wide format — more specific)
+          const defectResult = detectDefectFormat(data, detected.columnAnalysis);
+          if (
+            defectResult.isDefectFormat &&
+            (defectResult.confidence === 'high' || defectResult.confidence === 'medium') &&
+            onDefectDetected
+          ) {
+            onDefectDetected(defectResult);
           } else {
-            // Check for defect format (before wide format — more specific)
-            const defectResult = detectDefectFormat(data, detected.columnAnalysis);
-            if (
-              defectResult.isDefectFormat &&
-              (defectResult.confidence === 'high' || defectResult.confidence === 'medium') &&
-              onDefectDetected
-            ) {
-              onDefectDetected(defectResult);
-            } else {
-              // Check for wide format (multi-measure) data
-              const wideFormat = detectWideFormat(data);
-              if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
-                if (onWideFormatDetected) {
-                  onWideFormatDetected(wideFormat);
-                }
+            // Check for wide format (multi-measure) data
+            const wideFormat = detectWideFormat(data);
+            if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
+              if (onWideFormatDetected) {
+                onWideFormatDetected(wideFormat);
               }
             }
           }
@@ -280,7 +266,6 @@ export function useDataIngestion(
       setFactors,
       setDataQualityReport,
       onWideFormatDetected,
-      onYamazumiDetected,
       onDefectDetected,
       onTimeColumnDetected,
       rowHardLimit,
@@ -337,7 +322,6 @@ export function useDataIngestion(
     setMeasureColumns([]);
     setMeasureLabel('Measure');
     setAnalysisMode('standard');
-    setYamazumiMapping(null);
     if (setDefectMapping) setDefectMapping(null);
   }, [
     setRawData,
@@ -353,7 +337,6 @@ export function useDataIngestion(
     setMeasureColumns,
     setMeasureLabel,
     setAnalysisMode,
-    setYamazumiMapping,
     setDefectMapping,
   ]);
 
@@ -425,18 +408,7 @@ export function useDataIngestion(
         setMeasureLabel('Channel');
       }
       // Set analysis mode based on sample config
-      if (sample.config.yamazumiMode && sample.config.yamazumiMapping) {
-        setAnalysisMode('yamazumi');
-        setYamazumiMapping({
-          activityTypeColumn: sample.config.yamazumiMapping.activityTypeColumn,
-          cycleTimeColumn: sample.config.yamazumiMapping.cycleTimeColumn,
-          stepColumn: sample.config.yamazumiMapping.stepColumn,
-          activityColumn: sample.config.yamazumiMapping.activityColumn,
-          reasonColumn: sample.config.yamazumiMapping.reasonColumn,
-          productColumn: sample.config.yamazumiMapping.productColumn,
-          waitTimeColumn: sample.config.yamazumiMapping.waitTimeColumn,
-        });
-      } else if (sample.config.analysisMode === 'defect' && sample.config.defectMapping) {
+      if (sample.config.analysisMode === 'defect' && sample.config.defectMapping) {
         setAnalysisMode('defect');
         if (setDefectMapping) {
           setDefectMapping({
@@ -448,10 +420,8 @@ export function useDataIngestion(
             unitsProducedColumn: sample.config.defectMapping.unitsProducedColumn,
           });
         }
-        setYamazumiMapping(null);
       } else {
         setAnalysisMode(sample.config.analysisMode ?? 'standard');
-        setYamazumiMapping(null);
         if (setDefectMapping) setDefectMapping(null);
       }
       // Inject or clear pre-populated investigation state (showcase/demo datasets)
@@ -495,7 +465,6 @@ export function useDataIngestion(
       setMeasureColumns,
       setMeasureLabel,
       setAnalysisMode,
-      setYamazumiMapping,
       setDefectMapping,
       setFindings,
       setQuestions,

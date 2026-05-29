@@ -461,16 +461,6 @@ export interface AIContext {
     cpkTarget?: number;
     subgroupsMeetingTarget?: number;
   };
-  /** Yamazumi summary for time study context */
-  yamazumi?: {
-    vaRatio: number;
-    processEfficiency: number;
-    totalLeadTime: number;
-    wasteTime: number;
-    waitTime: number;
-    taktTime?: number;
-    stepsOverTakt: string[];
-  };
   /** Documents from Knowledge Base agentic retrieval (SharePoint, SOPs) */
   knowledgeDocuments?: Array<{
     title: string;

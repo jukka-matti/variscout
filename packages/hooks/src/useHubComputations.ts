@@ -53,9 +53,7 @@ export function useHubComputations(
         ? 'capability'
         : resolved === 'performance'
           ? 'performance'
-          : resolved === 'yamazumi'
-            ? 'yamazumi'
-            : 'standard';
+          : 'standard';
 
     const map = new Map<string, HypothesisEvidence>();
     for (const hub of hubs) {

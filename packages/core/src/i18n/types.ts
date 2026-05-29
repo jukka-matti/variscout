@@ -838,19 +838,6 @@ export interface MessageCatalog {
   // Improvement convergence
   'improve.convergenceNudge': string;
 
-  // Yamazumi (Time Study)
-  'yamazumi.detected.title': string;
-  'yamazumi.detected.confidence': string;
-  'yamazumi.detected.description': string;
-  'yamazumi.detected.activityType': string;
-  'yamazumi.detected.cycleTime': string;
-  'yamazumi.detected.step': string;
-  'yamazumi.detected.reason': string;
-  'yamazumi.detected.taktTime': string;
-  'yamazumi.detected.taktPlaceholder': string;
-  'yamazumi.detected.decline': string;
-  'yamazumi.detected.enable': string;
-
   // Defect detected modal
   'defect.detected.title': string;
   'defect.detected.confidence': string;
@@ -864,26 +851,6 @@ export interface MessageCatalog {
   'defect.detected.enable': string;
   'defect.detected.stepOfOrigin': string;
   'defect.detected.stepOfOriginHint': string;
-
-  'yamazumi.metric.total': string;
-  'yamazumi.metric.va': string;
-  'yamazumi.metric.nva': string;
-  'yamazumi.metric.waste': string;
-  'yamazumi.metric.wait': string;
-  'yamazumi.pareto.steps-total': string;
-  'yamazumi.pareto.steps-waste': string;
-  'yamazumi.pareto.steps-nva': string;
-  'yamazumi.pareto.activities': string;
-  'yamazumi.pareto.reasons': string;
-  'yamazumi.summary.vaRatio': string;
-  'yamazumi.summary.efficiency': string;
-  'yamazumi.summary.leadTime': string;
-  'yamazumi.summary.takt': string;
-  'yamazumi.summary.setTakt': string;
-  'yamazumi.summary.overTakt': string;
-  'yamazumi.takt': string;
-  'yamazumi.mode.label': string;
-  'yamazumi.mode.switch': string;
 
   // Factor Intelligence
   'fi.title': string;
@@ -1131,8 +1098,6 @@ export interface MessageCatalog {
   'canvas.lens.performance.label': string;
   'canvas.lens.processFlow.description': string;
   'canvas.lens.processFlow.label': string;
-  'canvas.lens.yamazumi.description': string;
-  'canvas.lens.yamazumi.label': string;
 
   // Canvas — NoFocalStepPrompt
   'canvas.noFocalStep.ariaLabel': string;

@@ -16,18 +16,13 @@ describe('resolveMode', () => {
     expect(resolveMode('performance')).toBe('performance');
   });
 
-  it('returns yamazumi for yamazumi mode', () => {
-    expect(resolveMode('yamazumi')).toBe('yamazumi');
-  });
-
   it('ignores standardIChartMetric for non-standard modes', () => {
     expect(resolveMode('performance', { standardIChartMetric: 'capability' })).toBe('performance');
-    expect(resolveMode('yamazumi', { standardIChartMetric: 'capability' })).toBe('yamazumi');
   });
 });
 
 describe('getStrategy', () => {
-  const allModes: ResolvedMode[] = ['standard', 'capability', 'performance', 'yamazumi'];
+  const allModes: ResolvedMode[] = ['standard', 'capability', 'performance'];
 
   it.each(allModes)('returns strategy for %s', mode => {
     const strategy = getStrategy(mode);
@@ -56,16 +51,6 @@ describe('getStrategy', () => {
   it('performance metricLabel returns Worst Channel Cpk', () => {
     expect(getStrategy('performance').metricLabel(true)).toBe('Worst Channel Cpk');
   });
-
-  it('yamazumi metricLabel returns VA Ratio', () => {
-    expect(getStrategy('yamazumi').metricLabel(true)).toBe('VA Ratio');
-  });
-
-  it('yamazumi formatMetricValue formats as percentage', () => {
-    const fmt = getStrategy('yamazumi').formatMetricValue;
-    expect(fmt).toBeDefined();
-    expect(fmt!(0.85)).toBe('85%');
-  });
 });
 
 describe('AnalysisModeStrategy.paretoYOptions', () => {
@@ -86,10 +71,6 @@ describe('AnalysisModeStrategy.paretoYOptions', () => {
       expect(ids('performance')).toEqual(['cpk', 'percent-out-of-spec']);
     });
 
-    it('yamazumi: cycle-time → waste-time', () => {
-      expect(ids('yamazumi')).toEqual(['cycle-time', 'waste-time']);
-    });
-
     it('standard: count only', () => {
       expect(ids('standard')).toEqual(['count']);
     });
@@ -108,10 +89,6 @@ describe('AnalysisModeStrategy.paretoYOptions', () => {
       expect(getStrategy('performance').paretoYOptions?.[0].id).toBe('cpk');
     });
 
-    it('yamazumi default is cycle-time', () => {
-      expect(getStrategy('yamazumi').paretoYOptions?.[0].id).toBe('cycle-time');
-    });
-
     it('standard default is count', () => {
       expect(getStrategy('standard').paretoYOptions?.[0].id).toBe('count');
     });
@@ -122,7 +99,6 @@ describe('AnalysisModeStrategy.paretoYOptions', () => {
       ['defect', 3],
       ['capability', 3],
       ['performance', 2],
-      ['yamazumi', 2],
       ['standard', 1],
     ])('%s has %i option(s)', (mode, expectedCount) => {
       expect(getStrategy(mode).paretoYOptions).toHaveLength(expectedCount);
@@ -135,13 +111,7 @@ describe('AnalysisModeStrategy.paretoYOptions', () => {
   });
 
   it('all options reference valid ParetoYMetric objects (have id + label)', () => {
-    const allModes: ResolvedMode[] = [
-      'standard',
-      'capability',
-      'performance',
-      'yamazumi',
-      'defect',
-    ];
+    const allModes: ResolvedMode[] = ['standard', 'capability', 'performance', 'defect'];
     for (const mode of allModes) {
       const opts = getStrategy(mode).paretoYOptions ?? [];
       for (const opt of opts) {

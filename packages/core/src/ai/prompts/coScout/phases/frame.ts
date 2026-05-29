@@ -18,16 +18,6 @@ Help the analyst name what they are seeing. A good issue statement is specific:
 - Bad: "Quality is poor"
 - Good: "Fill weight Cpk is 0.85, below the 1.33 target — variation concentrates in the night shift"`,
 
-  yamazumi: `Chart reading guidance:
-- Yamazumi Chart: Which stacked bars exceed the takt time line? Those are bottleneck stations.
-- I-Chart: Is total cycle time trending up or stable? Switch metric to Waste-only to see if waste is growing.
-- Pareto: Which steps or activities contribute the most total time? Start with steps-total mode.
-- Summary Bar: What is the VA ratio? Below 70% suggests significant waste opportunity.
-
-Help the analyst name the concern in lean terms:
-- Bad: "The line is slow"
-- Good: "Station 3 exceeds takt by 12 seconds — 40% of its cycle is NVA Required (changeover)"`,
-
   defect: `Chart reading guidance:
 - I-Chart: Look at the aggregated defect rate over time. Are there spikes, trends, or shifts? Brush to select spike periods.
 - Boxplot: Which defect types have the highest rate? Which show the most variation? This reveals where to focus.
@@ -40,7 +30,7 @@ Help the analyst name the defect problem clearly:
 
   performance: `Chart reading guidance:
 - Performance Pareto: How many channels are critical (Cpk < 1.0) vs capable (>= 1.33)?
-- Performance I-Chart: Are bad channels clustered or scattered? Clustering suggests a systematic root cause.
+- Performance I-Chart: Are bad channels clustered or scattered? Clustering suggests a systematic contribution.
 - Performance Boxplot: For the worst channels — is the problem centering (mean off-target) or spread (too much variation)?
 - Performance Capability: Drill into the worst channel to see its histogram shape.
 

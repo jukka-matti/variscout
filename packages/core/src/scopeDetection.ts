@@ -10,7 +10,7 @@ export type Scope = 'b0' | 'b1' | 'b2';
  * - b2: nodeMappings.length === 1 (single-step deep dive)
  *
  * Per docs/superpowers/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md §2.
- * Mirrors the existing detectYamazumiFormat() / detectDefectFormat() pattern.
+ * Mirrors the existing detectDefectFormat() pattern.
  */
 export function detectScope(investigation: ProcessHubAnalyze): Scope {
   const mappings = investigation.metadata?.nodeMappings ?? [];

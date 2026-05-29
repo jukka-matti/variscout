@@ -6,7 +6,7 @@ import { buildAnalyzeCoaching } from '../prompts/coScout/phases/analyze';
 import { buildImproveCoaching } from '../prompts/coScout/phases/improve';
 import type { AnalysisMode } from '../../types';
 
-const ALL_MODES: AnalysisMode[] = ['standard', 'yamazumi', 'performance', 'defect'];
+const ALL_MODES: AnalysisMode[] = ['standard', 'performance', 'defect'];
 
 describe('Phase coaching modules', () => {
   describe('buildFrameCoaching', () => {
@@ -20,11 +20,6 @@ describe('Phase coaching modules', () => {
         const result = buildFrameCoaching(mode);
         expect(result.length).toBeGreaterThan(50);
       }
-    });
-
-    it('mentions yamazumi-specific terms for yamazumi mode', () => {
-      const result = buildFrameCoaching('yamazumi');
-      expect(result.toLowerCase()).toContain('takt');
     });
 
     it('mentions channel for performance mode', () => {
@@ -52,11 +47,6 @@ describe('Phase coaching modules', () => {
       const result = buildScoutCoaching('standard', 'problem');
       expect(result.toLowerCase()).toContain('factor intelligence');
     });
-
-    it('mentions waste for yamazumi mode', () => {
-      const result = buildScoutCoaching('yamazumi');
-      expect(result.toLowerCase()).toContain('waste');
-    });
   });
 
   describe('buildAnalyzeCoaching', () => {
@@ -72,11 +62,6 @@ describe('Phase coaching modules', () => {
         const result = buildAnalyzeCoaching(mode);
         expect(result.length).toBeGreaterThan(100);
       }
-    });
-
-    it('mentions waste for yamazumi mode', () => {
-      const result = buildAnalyzeCoaching('yamazumi');
-      expect(result.toLowerCase()).toContain('waste');
     });
 
     it('includes sub-phase coaching for diverging', () => {
@@ -128,11 +113,6 @@ describe('Phase coaching modules', () => {
     it('includes HMW brainstorm coaching', () => {
       const result = buildImproveCoaching('standard');
       expect(result.toLowerCase()).toContain('ideation direction');
-    });
-
-    it('mentions takt for yamazumi mode', () => {
-      const result = buildImproveCoaching('yamazumi');
-      expect(result.toLowerCase()).toContain('takt');
     });
   });
 

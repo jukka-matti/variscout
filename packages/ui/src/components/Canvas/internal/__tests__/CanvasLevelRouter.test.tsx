@@ -125,7 +125,7 @@ describe('CanvasLevelRouter', () => {
     vi.mocked(isCanvasLensValidAtLevel).mockReturnValue(false);
     vi.mocked(suggestCanvasLevelForLens).mockReturnValue('l2');
 
-    render(<CanvasLevelRouter {...baseProps} rawLens="yamazumi" currentLevel="l1" />);
+    render(<CanvasLevelRouter {...baseProps} rawLens="process-flow" currentLevel="l1" />);
 
     expect(screen.getByTestId('canvas-lens-level-empty-state')).toBeInTheDocument();
     expect(screen.queryByTestId('mock-lod-switcher')).not.toBeInTheDocument();

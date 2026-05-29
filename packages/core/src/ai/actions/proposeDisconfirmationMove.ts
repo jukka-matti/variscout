@@ -31,9 +31,7 @@ export function proposeDisconfirmationMove(
 
   // Prefer categorical findings first — they have a clean "opposite" via other categories.
   const categorical = supporters.find(
-    f =>
-      f.source &&
-      (f.source.chart === 'boxplot' || f.source.chart === 'pareto' || f.source.chart === 'yamazumi')
+    f => f.source && (f.source.chart === 'boxplot' || f.source.chart === 'pareto')
   );
   if (categorical?.source && 'category' in categorical.source) {
     const usedCategory = categorical.source.category;

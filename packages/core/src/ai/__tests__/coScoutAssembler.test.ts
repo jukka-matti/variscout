@@ -62,16 +62,6 @@ describe('assembleCoScoutPrompt', () => {
     expect(result.tier2SemiStatic.length).toBeGreaterThan(100);
   });
 
-  it('tier2SemiStatic contains mode workflow for yamazumi', () => {
-    const result = assembleCoScoutPrompt({
-      phase: 'analyze',
-      mode: 'yamazumi',
-      surface: 'fullPanel',
-      context: MINIMAL_CONTEXT,
-    });
-    expect(result.tier2SemiStatic).toContain('takt');
-  });
-
   it('tier1Static contains role but NOT investigation data', () => {
     const result = assembleCoScoutPrompt({
       phase: 'analyze',

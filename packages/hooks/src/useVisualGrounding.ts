@@ -29,10 +29,6 @@ export function resolveHighlightTarget(
       return targetId
         ? { action: 'highlightStat', statKey: targetId }
         : { action: 'expandPanel', panelId: 'stats' };
-    case 'yamazumi':
-      return targetId
-        ? { action: 'highlightCategories', categories: [targetId], chartFocus: 'yamazumi' }
-        : { action: 'focusChart', chartFocus: 'yamazumi' };
     case 'finding':
     case 'question':
       return targetId

@@ -35,7 +35,7 @@ export interface BuildPhaseCoachingOptions {
  * Each phase gets focused coaching that merges the legacy
  * phaseInstructions and investigationPhaseCoaching into one block.
  * The mode parameter controls terminology (e.g., "drill by eta-squared"
- * for standard vs "drill by waste %" for yamazumi).
+ * for standard vs "drill by channel Cpk" for performance).
  */
 export function buildPhaseCoaching(options: BuildPhaseCoachingOptions): string {
   const { phase, mode, analyzePhase, entryScenario } = options;

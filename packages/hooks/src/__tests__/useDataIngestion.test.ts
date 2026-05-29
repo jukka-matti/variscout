@@ -39,7 +39,6 @@ function createMockActions(): DataIngestionActions {
     setMeasureColumns: vi.fn(),
     setMeasureLabel: vi.fn(),
     setAnalysisMode: vi.fn(),
-    setYamazumiMapping: vi.fn(),
   };
 }
 

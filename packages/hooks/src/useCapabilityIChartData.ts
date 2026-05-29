@@ -2,8 +2,8 @@
  * useCapabilityIChartData - Transform raw data into dual-series I-Chart data
  * for subgroup capability analysis (Cp and Cpk per subgroup).
  *
- * Follows useYamazumiIChartData pattern: groups data, computes metric,
- * returns IChartDataPoint[] for the existing IChart component.
+ * Pattern: groups data, computes metric, returns IChartDataPoint[] for
+ * the existing IChart component.
  */
 import type {
   DataRow,

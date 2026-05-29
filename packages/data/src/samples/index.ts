@@ -20,7 +20,6 @@ export { pizza } from './pizza';
 export { sachets } from './sachets';
 export { largeScale } from './large-scale';
 export { ovenZonesData } from './ovenZones';
-export { assemblyLine } from './assembly-line';
 export { finlandArrivals } from './finland-arrivals';
 export { manufacturingDefects } from './manufacturing-defects';
 
@@ -49,7 +48,6 @@ import { pizza } from './pizza';
 import { sachets } from './sachets';
 import { largeScale } from './large-scale';
 import { ovenZonesData } from './ovenZones';
-import { assemblyLine } from './assembly-line';
 import { finlandArrivals } from './finland-arrivals';
 import { manufacturingDefects } from './manufacturing-defects';
 import type { SampleDataset } from '../types';
@@ -80,8 +78,6 @@ export const SAMPLES: SampleDataset[] = [
   // Performance Mode (Multi-Channel Analysis)
   sachets,
   ovenZonesData,
-  // Yamazumi (Time Study)
-  assemblyLine,
   // Wide-Form (Stack Columns)
   finlandArrivals,
   // Defect Mode

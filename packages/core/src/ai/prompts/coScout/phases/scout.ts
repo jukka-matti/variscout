@@ -16,12 +16,6 @@ const MODE_DRILL_GUIDANCE: Record<AnalysisMode, string> = {
 - After filtering, use switch_factor to examine remaining factors within the filtered subset.
 - Create findings for notable patterns: Cpk below target, eta-squared > 15%, out-of-control violations.`,
 
-  yamazumi: `Drill guidance:
-- Compare steps by waste percentage — which steps have the most red (Waste) and amber (NVA Required) segments?
-- Drill into bottleneck stations (bars exceeding takt time) to understand their activity composition.
-- Switch Pareto mode to "Reasons" to see what types of waste dominate across steps.
-- Create findings for: stations exceeding takt, waste hotspots, activities with high NVA ratio.`,
-
   defect: `Drill guidance:
 - Start with the Pareto — which defect type dominates by count, time impact, or cost?
 - Use apply_filter on the top defect type to drill into its drivers.
