@@ -389,7 +389,15 @@ PR-LV1-B/C are independent of each other; can run in parallel after LV1-A + LV1-
 - ScopeChrome categorical chip displays "vessel: A, B"
 - `pnpm test` green
 
-**Sub-plan invocation:** Standard `superpowers:writing-plans` with prompt: `"Sub-plan for PR-LV1-F. Two chart-click handlers (Pareto + Boxplot) → addCategoricalValue. Accumulation behavior. ~4–6 tasks."`
+**Sub-plan:** [./2026-05-29-pr-lv1-f-chart-click-categorical-accumulate.md](./2026-05-29-pr-lv1-f-chart-click-categorical-accumulate.md) (drafted 2026-05-29; ready for dispatch — 4 bite-sized TDD tasks, Sonnet implementer per task; PWA dispatch deferred per §PWA-Mount-Deferral).
+
+## §PWA-Mount-Deferral (decision 2026-05-29)
+
+The PWA `<ScopeChrome>` mount originally tracked as a follow-up to LV1-E is **deferred entirely** until PWA gains a Process tab + canonical `availableSteps` source. Until then, partial mount (Y/factor/categorical, no step chip) ships dead UI and scope mutations have no visual consumer.
+
+This decision also defers LV1-F's PWA chart-click dispatch — PWA thin wrappers (`apps/pwa/src/components/charts/{ParetoChart,Boxplot}.tsx`) get `TODO(lv1-f-pwa)` comments only. Re-evaluate when PWA SKU expands to include Process tab.
+
+**Linked Views Phase 1 effective completion state after LV1-F + LV1-G ship:** 8 of 9 PRs delivered + 1 explicit deferral. Phase 1 closes at 8/9 with the deferral logged in `docs/decision-log.md`.
 
 ---
 
