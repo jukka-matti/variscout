@@ -1,5 +1,6 @@
 import { DndContext } from '@dnd-kit/core';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, beforeEach, expect, it, vi } from 'vitest';
+import { useAnalysisScopeStore } from '@variscout/stores';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { StepBox, type StepBoxStep } from '../StepBox';
@@ -117,5 +118,42 @@ describe('StepBox', () => {
     renderInDnd(<StepBox step={step} onExploreJumpClick={onExploreJumpClick} />);
     fireEvent.click(screen.getByTestId('chip-explore-jump'));
     expect(onExploreJumpClick).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('StepBox scope visualization (LV1-G)', () => {
+  beforeEach(() => {
+    useAnalysisScopeStore.setState(
+      (useAnalysisScopeStore as unknown as { getInitialState: () => object }).getInitialState()
+    );
+  });
+
+  it('renders baseline when scope is empty', () => {
+    const step = makeStep({ id: 'step-1', name: 'Assemble' });
+    const { container } = renderInDnd(<StepBox step={step} />);
+    const root = container.querySelector('[data-testid="step-box-step-1"]') as HTMLElement;
+    expect(root.className).not.toMatch(/border-amber-600/);
+    expect(root.className).not.toMatch(/opacity-50/);
+    expect(screen.queryByText('active')).toBeNull();
+  });
+
+  it('renders amber border + active badge when scope.stepId matches', () => {
+    useAnalysisScopeStore.getState().setStepId('step-1');
+    const step = makeStep({ id: 'step-1', name: 'Assemble' });
+    const { container } = renderInDnd(<StepBox step={step} />);
+    const root = container.querySelector('[data-testid="step-box-step-1"]') as HTMLElement;
+    expect(root.className).toMatch(/border-amber-600/);
+    expect(root.className).toMatch(/ring-amber-500\/30/);
+    expect(root.className).toMatch(/bg-amber-50/);
+    expect(screen.getByText('active')).toBeInTheDocument();
+  });
+
+  it('dims when scope is non-empty and stepId does not match', () => {
+    useAnalysisScopeStore.getState().setStepId('step-other');
+    const step = makeStep({ id: 'step-1', name: 'Assemble' });
+    const { container } = renderInDnd(<StepBox step={step} />);
+    const root = container.querySelector('[data-testid="step-box-step-1"]') as HTMLElement;
+    expect(root.className).toMatch(/opacity-50/);
+    expect(screen.queryByText('active')).toBeNull();
   });
 });

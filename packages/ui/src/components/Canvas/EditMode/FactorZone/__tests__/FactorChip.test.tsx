@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { useAnalysisScopeStore } from '@variscout/stores';
 import { createTestFactorControl } from '../../../../../test-utils/factorControl';
 import { FactorChip } from '../FactorChip';
 
@@ -82,5 +83,75 @@ describe('FactorChip', () => {
     fireEvent.click(screen.getByTestId('chip-explore-jump'));
     expect(onExploreJumpClick).toHaveBeenCalledTimes(1);
     expect(onSpecsClick).not.toHaveBeenCalled();
+  });
+});
+
+describe('FactorChip scope visualization (LV1-G)', () => {
+  beforeEach(() => {
+    useAnalysisScopeStore.setState(useAnalysisScopeStore.getInitialState());
+  });
+
+  it('renders baseline when scope is empty', () => {
+    const { container } = render(
+      <FactorChip
+        control={createTestFactorControl({ factor: 'temperature' })}
+        onSpecsClick={vi.fn()}
+      />
+    );
+    const root = container.firstChild as HTMLElement;
+    expect(root.className).not.toMatch(/border-blue-600/);
+    expect(root.className).not.toMatch(/opacity-50/);
+    expect(screen.queryByText('✓')).toBeNull();
+    expect(screen.queryByText(/only/)).toBeNull();
+  });
+
+  it('renders blue border + ✓ when scope.boxplotFactor matches factor', () => {
+    useAnalysisScopeStore.getState().setBoxplotFactor('temperature');
+    const { container } = render(
+      <FactorChip
+        control={createTestFactorControl({ factor: 'temperature' })}
+        onSpecsClick={vi.fn()}
+      />
+    );
+    const root = container.firstChild as HTMLElement;
+    expect(root.className).toMatch(/border-blue-600/);
+    expect(root.className).toMatch(/ring-blue-500\/30/);
+    expect(root.className).toMatch(/bg-blue-50/);
+    expect(screen.getByText('✓')).toBeInTheDocument();
+  });
+
+  it('renders categorical badge when categoricalFilters has matching column', () => {
+    useAnalysisScopeStore.getState().addCategoricalValue('vessel', 'A');
+    useAnalysisScopeStore.getState().addCategoricalValue('vessel', 'B');
+    const { container } = render(
+      <FactorChip control={createTestFactorControl({ factor: 'vessel' })} onSpecsClick={vi.fn()} />
+    );
+    expect(screen.getByText('vessel = A, B only')).toBeInTheDocument();
+    // categorical match alone keeps chip non-dimmed
+    const root = container.firstChild as HTMLElement;
+    expect(root.className).not.toMatch(/opacity-50/);
+  });
+
+  it('renders both Y marker and categorical badge when both paths match', () => {
+    useAnalysisScopeStore.getState().setBoxplotFactor('vessel');
+    useAnalysisScopeStore.getState().addCategoricalValue('vessel', 'A');
+    render(
+      <FactorChip control={createTestFactorControl({ factor: 'vessel' })} onSpecsClick={vi.fn()} />
+    );
+    expect(screen.getByText('✓')).toBeInTheDocument();
+    expect(screen.getByText('vessel = A only')).toBeInTheDocument();
+  });
+
+  it('dims when scope is non-empty and neither path matches', () => {
+    useAnalysisScopeStore.getState().setY('yield');
+    const { container } = render(
+      <FactorChip
+        control={createTestFactorControl({ factor: 'temperature' })}
+        onSpecsClick={vi.fn()}
+      />
+    );
+    const root = container.firstChild as HTMLElement;
+    expect(root.className).toMatch(/opacity-50/);
+    expect(screen.queryByText('✓')).toBeNull();
   });
 });

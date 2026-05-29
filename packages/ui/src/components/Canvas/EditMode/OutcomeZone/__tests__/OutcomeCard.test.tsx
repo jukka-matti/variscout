@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, beforeEach, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { useAnalysisScopeStore } from '@variscout/stores';
 import { createTestOutcomeSpec } from '../../../../../test-utils/outcomeSpec';
 import { OutcomeCard } from '../OutcomeCard';
 
@@ -102,5 +103,45 @@ describe('OutcomeCard', () => {
     fireEvent.click(screen.getByTestId('chip-explore-jump'));
     expect(onExploreJumpClick).toHaveBeenCalledTimes(1);
     expect(onSpecsClick).not.toHaveBeenCalled();
+  });
+});
+
+describe('OutcomeCard scope visualization (LV1-G)', () => {
+  beforeEach(() => {
+    useAnalysisScopeStore.setState(useAnalysisScopeStore.getInitialState());
+  });
+
+  it('renders baseline (no active border / no ✓) when scope is empty', () => {
+    const { container } = render(
+      <OutcomeCard spec={createTestOutcomeSpec({ columnName: 'yield' })} onSpecsClick={vi.fn()} />
+    );
+    const root = container.firstChild as HTMLElement;
+    expect(root.className).not.toMatch(/border-green-600/);
+    expect(root.className).not.toMatch(/opacity-50/);
+    expect(screen.queryByText('✓')).toBeNull();
+  });
+
+  it('renders active styling when scope.yColumn matches columnName', () => {
+    useAnalysisScopeStore.getState().setY('yield');
+    const { container } = render(
+      <OutcomeCard spec={createTestOutcomeSpec({ columnName: 'yield' })} onSpecsClick={vi.fn()} />
+    );
+    const root = container.firstChild as HTMLElement;
+    expect(root.className).toMatch(/border-green-600/);
+    expect(root.className).toMatch(/ring-green-500\/30/);
+    expect(root.className).toMatch(/bg-green-50/);
+    expect(root.className).not.toMatch(/opacity-50/);
+    expect(screen.getByText('✓')).toBeInTheDocument();
+  });
+
+  it('dims when scope is non-empty AND columnName does not match yColumn', () => {
+    useAnalysisScopeStore.getState().setY('temperature');
+    const { container } = render(
+      <OutcomeCard spec={createTestOutcomeSpec({ columnName: 'yield' })} onSpecsClick={vi.fn()} />
+    );
+    const root = container.firstChild as HTMLElement;
+    expect(root.className).toMatch(/opacity-50/);
+    expect(root.className).not.toMatch(/border-green-600/);
+    expect(screen.queryByText('✓')).toBeNull();
   });
 });
