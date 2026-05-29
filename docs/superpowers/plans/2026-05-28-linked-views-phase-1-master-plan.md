@@ -154,7 +154,7 @@ PR-LV1-B/C are independent of each other; can run in parallel after LV1-A + LV1-
 - `pnpm --filter @variscout/stores build` green
 - Available via `import { useAnalysisScopeStore } from '@variscout/stores'`
 
-**Sub-plan invocation:** When ready, run `superpowers:writing-plans` with prompt: `"Sub-plan for PR-LV1-A. Reference master plan and spec §3 D10 (full TypeScript signatures). Write TDD: tests-first for each action; ZUstand store last. ~4–6 tasks. Sonnet implementer + spec reviewer + code-quality reviewer per task."`
+**Sub-plan:** [`./2026-05-28-pr-lv1-a-analysis-scope-store.md`](./2026-05-28-pr-lv1-a-analysis-scope-store.md) (drafted 2026-05-29; ready for dispatch — 5 bite-sized TDD tasks, Opus implementer per task).
 
 ---
 
