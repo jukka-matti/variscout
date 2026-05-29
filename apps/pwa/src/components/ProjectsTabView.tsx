@@ -127,7 +127,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
     if (!selected) {
       return (
         <div className="p-4 text-sm text-content-secondary" role="alert">
-          Improvement Project {selectedProjectId} not found on this hub.
+          Project {selectedProjectId} not found on this hub.
         </div>
       );
     }
@@ -181,7 +181,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   if (projects.length === 0) {
     return (
       <div className="p-6 text-center">
-        <h2 className="text-lg font-semibold text-content">No Improvement Projects yet</h2>
+        <h2 className="text-lg font-semibold text-content">No Projects yet</h2>
         <p className="mt-2 text-sm text-content-secondary">
           Launch one from a canvas card drill-down, or click below to draft one directly.
         </p>
@@ -190,7 +190,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
           onClick={onStartNewProject}
           className="mt-4 rounded-md bg-[var(--vs-accent)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--vs-accent-hover)]"
         >
-          + Start your first Improvement Project
+          + Start your first Project
         </button>
       </div>
     );
@@ -199,13 +199,13 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   return (
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-content">Improvement Projects</h2>
+        <h2 className="text-lg font-semibold text-content">Projects</h2>
         <button
           type="button"
           onClick={onStartNewProject}
           className="text-sm text-[var(--vs-accent)] hover:text-[var(--vs-accent-hover)]"
         >
-          + New Improvement Project
+          + New Project
         </button>
       </div>
       <ul className="space-y-2">

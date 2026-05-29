@@ -382,7 +382,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 onClick={handleReturnToImprovementProject}
                 className="ml-1 rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
               >
-                Back to Improvement Project
+                Back to Project
               </button>
             )}
 
