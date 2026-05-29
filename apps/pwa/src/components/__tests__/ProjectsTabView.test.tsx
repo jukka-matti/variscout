@@ -29,7 +29,7 @@ describe('ProjectsTabView', () => {
         onStartNewProject={onStartNewProject}
       />
     );
-    fireEvent.click(screen.getByText(/start your first improvement project/i));
+    fireEvent.click(screen.getByText(/start your first project/i));
     expect(onStartNewProject).toHaveBeenCalledTimes(1);
   });
 
@@ -65,7 +65,7 @@ describe('ProjectsTabView', () => {
       />
     );
     expect(screen.getByText('Heads 5-8 Cpk shortfall')).toBeInTheDocument();
-    fireEvent.click(screen.getByText(/new improvement project/i));
+    fireEvent.click(screen.getByText(/new project/i));
     expect(onStartNewProject).toHaveBeenCalledTimes(1);
   });
 

@@ -187,7 +187,7 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
         setSelectedProjectId(project.id);
       })
       .catch(() => {
-        setError('Could not create an improvement project draft.');
+        setError('Could not create a Project draft.');
       })
       .finally(() => {
         creatingForHubRef.current = null;
@@ -211,7 +211,7 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
           patch: toRepositoryPatch(selectedProject, patch),
         })
         .catch(() => {
-          setError('Could not save the improvement project changes.');
+          setError('Could not save the Project changes.');
         });
     },
     [selectedProject, upsertProject]
@@ -245,7 +245,7 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
     <div className="flex min-h-0 flex-1 flex-col gap-4 bg-surface-primary p-4 text-content">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Improvement Project</h2>
+          <h2 className="text-lg font-semibold">Project</h2>
           <p className="text-sm text-content-secondary">{activeHub?.name ?? 'No active hub'}</p>
         </div>
         <button
@@ -259,7 +259,7 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
 
       {!activeHub ? (
         <p className="rounded-md border border-edge bg-surface-secondary p-4 text-sm text-content-secondary">
-          Create or select a Process Hub before opening an improvement project.
+          Create or select a Process Hub before opening a Project.
         </p>
       ) : error ? (
         <p role="alert" className="rounded-md border border-danger/40 bg-danger/10 p-4 text-sm">
@@ -267,7 +267,7 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
         </p>
       ) : projects.length > 1 && !selectedProject ? (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-content">Choose an improvement project</h3>
+          <h3 className="text-sm font-semibold text-content">Choose a Project</h3>
           <div className="grid gap-2 md:grid-cols-2">
             {projects.map(project => (
               <button
@@ -344,7 +344,7 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
         />
       ) : (
         <p className="rounded-md border border-edge bg-surface-secondary p-4 text-sm text-content-secondary">
-          Creating improvement project draft...
+          Creating Project draft...
         </p>
       )}
     </div>

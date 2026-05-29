@@ -336,7 +336,7 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
 
     render(<AnalyzeWorkspace {...makeMinimalProps()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Back to Improvement Project' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Project' }));
 
     expect(showCharterMock).toHaveBeenCalledTimes(1);
     expect(window.sessionStorage.getItem(RETURN_NAVIGATION_STORAGE_KEY)).toBeNull();
