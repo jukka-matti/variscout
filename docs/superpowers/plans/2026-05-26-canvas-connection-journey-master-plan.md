@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: Canvas Connection Journey — Implementation Master Plan
-status: active
+status: delivered
 date: 2026-05-26
 layer: spec
 ---

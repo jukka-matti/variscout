@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: PR-LV1-F — Pareto + Boxplot click → categorical accumulate
-status: active
+status: delivered
 date: 2026-05-29
 layer: spec
 ---

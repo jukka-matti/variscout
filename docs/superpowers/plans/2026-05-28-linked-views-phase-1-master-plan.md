@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: Linked Views Phase 1 — Implementation Master Plan
-status: active
+status: delivered
 date: 2026-05-28
 layer: spec
 ---
