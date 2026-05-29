@@ -185,6 +185,13 @@ export class VariScoutDatabase extends Dexie {
     // Bumping the version flushes any cached schema; no destructive re-init
     // required because the shape changes are additive.
     this.version(14).stores({});
+
+    // Version 15: IM-0a — Hub↔Project 1:1 collapse. The improvementProjects
+    // Dexie table is unchanged (still keyed by id, hubId-indexed); the 1:1
+    // invariant is now enforced at the logical layer (ProcessHub.improvementProject
+    // is singular). No schema migration needed — the table shape is identical.
+    // Bumping the version flushes any cached schema.
+    this.version(15).stores({});
   }
 }
 

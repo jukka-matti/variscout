@@ -1821,7 +1821,9 @@ export const Editor: React.FC<EditorProps> = ({
         onAccept={acceptInvite}
         onDecline={revokeInvite}
         resolveProjectName={id =>
-          (activeHub?.improvementProjects ?? []).find(p => p.id === id)?.metadata.title
+          activeHub?.improvementProject?.id === id
+            ? activeHub.improvementProject.metadata.title
+            : undefined
         }
       />
 
@@ -1875,9 +1877,12 @@ export const Editor: React.FC<EditorProps> = ({
                 {activeHub ? (
                   <div className="p-4 sm:p-6">
                     <ActiveIPLaunchpadCard
-                      projects={(activeHub.improvementProjects ?? []).filter(
-                        project => project.deletedAt === null
-                      )}
+                      projects={
+                        activeHub.improvementProject &&
+                        activeHub.improvementProject.deletedAt === null
+                          ? [activeHub.improvementProject]
+                          : []
+                      }
                       activeProjectId={activeIPContext.activeIP?.id ?? null}
                       onSelectIP={projectId => {
                         activeIPContext.setActiveIP(projectId);

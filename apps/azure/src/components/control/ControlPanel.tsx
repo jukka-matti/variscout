@@ -26,12 +26,11 @@ function firstClosedProject(
   hub: ProcessHub,
   preferredProjectId?: string
 ): ImprovementProject | undefined {
-  const liveClosedProjects = (hub.improvementProjects ?? []).filter(
-    project => project.deletedAt === null && project.status === 'closed'
-  );
-  const preferred = liveClosedProjects.find(project => project.id === preferredProjectId);
-  if (preferred) return preferred;
-  return liveClosedProjects[0];
+  const p = hub.improvementProject;
+  if (!p || p.deletedAt !== null || p.status !== 'closed') return undefined;
+  // With 1:1 there is at most one project; preferred-id check still applies.
+  if (preferredProjectId !== undefined && p.id !== preferredProjectId) return undefined;
+  return p;
 }
 
 function recordMatchesTarget(record: ControlRecord, targetId: string | undefined): boolean {
@@ -52,9 +51,8 @@ function selectedRecordForTarget(
 }
 
 function firstClosedProjectLegacy(hub: ProcessHub): ImprovementProject | undefined {
-  return (hub.improvementProjects ?? []).find(
-    project => project.deletedAt === null && project.status === 'closed'
-  );
+  const p = hub.improvementProject;
+  return p && p.deletedAt === null && p.status === 'closed' ? p : undefined;
 }
 
 function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): ControlRecord {

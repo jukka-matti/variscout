@@ -102,7 +102,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
   const activeHubId = useProjectStore(s => s.processContext?.processHubId ?? null);
-  const projectsByHub = useImprovementProjectStore(s => s.projectsByHub);
+  const getProjectForHub = useImprovementProjectStore(s => s.getProjectForHub);
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
@@ -171,9 +171,8 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
   }, [activeHubId]);
 
   const contextLinkGroups: readonly ContextLinkGroup[] = React.useMemo(() => {
-    const improvementProjects = (activeHubId ? (projectsByHub[activeHubId] ?? []) : []).filter(
-      project => project.deletedAt === null
-    );
+    const liveProject = activeHubId ? getProjectForHub(activeHubId) : undefined;
+    const improvementProjects = liveProject ? [liveProject] : [];
     const liveControlRecords = controlRecords.filter(record => record.deletedAt === null);
 
     return [
@@ -211,20 +210,18 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
         ],
       },
     ];
-  }, [activeHubId, controlHandoffs, hypotheses, projectsByHub, controlRecords]);
+  }, [activeHubId, controlHandoffs, hypotheses, getProjectForHub, controlRecords]);
 
   const inboxPrompts = React.useMemo(() => {
-    const improvementProjects = (activeHubId ? (projectsByHub[activeHubId] ?? []) : []).filter(
-      project => project.deletedAt === null
-    );
+    const liveProject = activeHubId ? getProjectForHub(activeHubId) : undefined;
 
     return surveyInboxRules({
-      improvementProjects,
+      improvementProject: liveProject,
       controlRecords,
       controlHandoffs,
       now: Date.now(),
     });
-  }, [activeHubId, controlHandoffs, projectsByHub, controlRecords]);
+  }, [activeHubId, controlHandoffs, getProjectForHub, controlRecords]);
 
   const handleSeeData = React.useCallback(() => {
     usePanelsStore.getState().showExplore();
@@ -342,10 +339,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
     (item: ContextLinkItem) => {
       const isImprovementProject =
         activeHubId !== null &&
-        useImprovementProjectStore
-          .getState()
-          .getProjectsForHub(activeHubId)
-          .some(project => project.id === item.id);
+        useImprovementProjectStore.getState().getProjectForHub(activeHubId)?.id === item.id;
       if (isImprovementProject) {
         usePanelsStore.getState().showCharter();
         return;
