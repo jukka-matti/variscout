@@ -14,7 +14,7 @@ import type { ExtractedStep } from './ProcessZone/extractStepsFromCategoricalCol
  * The router consumes the active/over ids from a `DragEndEvent` and dispatches
  * to the column→process, column→outcome, and column→factor routers in order.
  * All callbacks are optional — when missing, that route is a no-op (the helper
- * still returns without throwing, so EditModeShell can run with
+ * still returns without throwing, so the inlined edit chrome can run with
  * partially-wired consumers).
  *
  * `numericValuesByColumn` is forwarded to {@link handleOutcomeDrop} for
@@ -22,12 +22,11 @@ import type { ExtractedStep } from './ProcessZone/extractStepsFromCategoricalCol
  *
  * `categoricalDistinctValuesByColumn` is forwarded to
  * {@link handleProcessStructureDrop}. Optional with a default of `{}` so
- * existing consumers (EditModeShell) do not need updating until Task 4 wires
- * the full process-zone props.
+ * partially-wired consumers compile unchanged.
  */
 export interface EditModeDragEndArgs {
   numericValuesByColumn: Record<string, number[]>;
-  /** Optional until Task 4 wires EditModeShell process-zone props. Default: `{}`. */
+  /** Optional. Default: `{}`. */
   categoricalDistinctValuesByColumn?: Record<string, string[]>;
   onOutcomeSpecAdd?: (columnName: string, derived: Partial<OutcomeSpec>, stepId?: string) => void;
   onFactorControlAdd?: (columnName: string, stepId?: string) => void;
@@ -35,10 +34,11 @@ export interface EditModeDragEndArgs {
 }
 
 /**
- * Pure drag-end router for EditModeShell's own `DndContext`.
+ * Pure drag-end router for the inlined edit chrome's `DndContext`
+ * (CanvasWorkspace b1 branch, post PR-LV1-C).
  *
- * EditModeShell owns its own `DndContext` because its draggables (column
- * chips in the Palette) and its droppables (ProcessZone, OutcomeZone,
+ * The inlined edit chrome wraps its own `DndContext` because its draggables
+ * (column chips in the Palette) and its droppables (ProcessZone, OutcomeZone,
  * FactorZone) are siblings of the inner Canvas — Canvas keeps its own
  * separate `DndContext` for chip→step routing, which this helper never touches.
  *
@@ -57,7 +57,7 @@ export interface EditModeDragEndArgs {
  *
  * Pure helper: no React, no DOM, no `@dnd-kit/core` runtime beyond the
  * `DragEndEvent` type. Designed to be called from
- * `<DndContext onDragEnd={...}>` inside EditModeShell.
+ * `<DndContext onDragEnd={...}>` inside the inlined chrome.
  */
 export function handleEditModeDragEnd(
   event: DragEndEvent,

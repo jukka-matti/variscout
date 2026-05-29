@@ -69,13 +69,14 @@ vi.mock('../../AnalyzeWall', async () => {
 });
 
 // `@dnd-kit/core`'s `DndContext` mock fires synthetic chip-drop events to test
-// Canvas's chip→step routing. CanvasWorkspace nests TWO DndContexts in author
-// mode (EditModeShell's outer column→zone routing + Canvas's inner chip→step
-// routing — see EditModeShell.tsx + Canvas/index.tsx). Each context registers
-// its onDragEnd here; the inline test buttons fire to ALL registered handlers,
-// and each handler filters by id pattern (chip:/column: vs step:/zone:) so the
-// double dispatch is safe. Test buttons render only on the outermost mounted
-// DndContext, so `getByTestId` stays unambiguous.
+// Canvas's chip→step routing. CanvasWorkspace nests TWO DndContexts in the
+// edit chrome (the inlined column→zone routing wrapping the b1 chrome +
+// Canvas's inner chip→step routing — see CanvasWorkspace.tsx + Canvas/index.tsx).
+// Each context registers its onDragEnd here; the inline test buttons fire to
+// ALL registered handlers, and each handler filters by id pattern
+// (chip:/column: vs step:/zone:) so the double dispatch is safe. Test buttons
+// render only on the outermost mounted DndContext, so `getByTestId` stays
+// unambiguous.
 const dndMockHandlersRef = vi.hoisted(() => ({
   current: [] as Array<
     ((event: { active: { id: string }; over: { id: string } | null }) => void) | undefined
@@ -686,14 +687,13 @@ const mapWithSecondStep = (): ProcessMap => ({
 });
 
 function renderWorkspace(overrides: Partial<React.ComponentProps<typeof CanvasWorkspace>> = {}) {
-  // C3 Task 4: EditModeShell no longer renders the inner Canvas as `children` —
-  // it now owns ProcessStructureZone. The state-mode branch in CanvasWorkspace
-  // still mounts the inner Canvas. Default to `canEditCanvas: false` here so
-  // tests that exercise inner-Canvas behavior (URL routing, lens/overlay
-  // changes, spec callbacks, Wall props, etc.) keep rendering Canvas instead
-  // of falling into the EditModeShell branch (which would mount
-  // ProcessStructureZone, not Canvas). Tests that specifically need
-  // author-mode authoring can override `canEditCanvas: true`.
+  // PR-LV1-C: the inlined edit chrome renders the ProcessStructureZone (not
+  // the inner Canvas) within the b1 branch when `canEditCanvas !== false`.
+  // Default to `canEditCanvas: false` here so tests that exercise inner-Canvas
+  // behavior (URL routing, lens/overlay changes, spec callbacks, Wall props,
+  // etc.) keep rendering Canvas instead of falling into the inlined edit
+  // chrome branch. Tests that specifically need authoring affordances can
+  // override `canEditCanvas: true`.
   const props: React.ComponentProps<typeof CanvasWorkspace> = {
     rawData,
     outcome: 'Fill_Weight',
@@ -756,13 +756,13 @@ describe('CanvasWorkspace', () => {
     expect(screen.queryByTestId('layered-process-view')).toBeNull();
   });
 
-  // C3 Task 4: this test specifically asserts `canvas-authoring-map` which is
-  // the L2 chip-rail authoring surface inside the inner Canvas. With author
-  // mode now routed to EditModeShell + ProcessStructureZone (column→process
-  // drop journey), the inner Canvas's chip-rail authoring is being retired.
-  // Re-render here in read mode (`canEditCanvas: false`) so the inner Canvas
-  // still mounts; assertion on `canvas-authoring-map` is retained because the
-  // L2 authoring map still renders in read mode for state-mode card surface.
+  // This test asserts `canvas-authoring-map`, the L2 chip-rail authoring
+  // surface inside the inner Canvas. With the inlined edit chrome owning the
+  // ProcessStructureZone column→process drop journey, the inner Canvas's
+  // chip-rail authoring is being retired. Re-render here with
+  // `canEditCanvas: false` so the inner Canvas still mounts; the assertion on
+  // `canvas-authoring-map` is retained because the L2 authoring map still
+  // renders for the read-only card surface.
   it('renders b1/b2 directly with the card surface and authoring map', () => {
     renderWorkspace({ processContext: { processMap: mapWithStep() }, canEditCanvas: false });
 
@@ -1369,9 +1369,9 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
 
   // Process map: one step is enough to make `detectScopeFromMap` return b2/b1
   // (anything other than b0), so CanvasWorkspace renders the b1/b2 branch with
-  // EditModeShell instead of the b0 FrameViewB0 picker. The processSteps that
-  // drive the toolbar + timing-badge flow live in CanvasWorkspace local state,
-  // not in processMap.nodes.
+  // the inlined edit chrome instead of the b0 FrameViewB0 picker. The
+  // processSteps that drive the toolbar + timing-badge flow live in
+  // CanvasWorkspace local state, not in processMap.nodes.
   const stepTimingsMap = (): ProcessMap => ({
     version: 1,
     nodes: [{ id: 'seed-step', name: 'Seed', order: 0 }],
@@ -1718,7 +1718,8 @@ describe('Task 10 — kebab calculate-from dispatch', () => {
 
 describe('Task 11 — formula derivation + batch-hint banner end-to-end', () => {
   // Process map with a single seed step so `detectScopeFromMap` returns b1/b2
-  // and CanvasWorkspace mounts EditModeShell (rather than the b0 picker).
+  // and CanvasWorkspace renders the inlined edit chrome (rather than the b0
+  // picker).
   const yieldWorkspaceMap = (): ProcessMap => ({
     version: 1,
     nodes: [{ id: 'seed-step', name: 'Seed', order: 0 }],
