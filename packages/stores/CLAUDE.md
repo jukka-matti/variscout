@@ -1,18 +1,19 @@
 # @variscout/stores
 
-9 Zustand stores across 3 layers (ADR-078 + F4, 2026-05-07; wedge V1 additions 2026-05-16):
+10 Zustand stores across 3 layers (ADR-078 + F4, 2026-05-07; wedge V1 additions 2026-05-16):
 
-| Layer           | Store                        | Persistence                                                                                         |
-| --------------- | ---------------------------- | --------------------------------------------------------------------------------------------------- |
-| Document (×4)   | `useProjectStore`            | consumer-side serialisation via `useProjectActions`                                                 |
-| Document        | `useAnalyzeStore`            | session-only today; future `HubRepository.dispatch`                                                 |
-| Document        | `useCanvasStore`             | `dispatch(CanvasAction)` + hub repository                                                           |
-| Document        | `useImprovementProjectStore` | V1 user-facing Project entity (multiple per user, each wraps one Hub 1:1; `STORE_LAYER='document'`) |
-| Annotation hub  | `useCanvasViewportStore`     | Dexie DB `variscout-canvas-viewport` (R12 ESLint exception, STORE_LAYER='annotation-per-hub')       |
-| Annotation user | `usePreferencesStore`        | idb-keyval, key `'variscout-preferences'`                                                           |
-| Annotation user | `useActiveIPStore`           | localStorage, key `variscout:activeIP:{hubId}:{userId}` with encoded scope parts                    |
-| Annotation user | `useProjectMembershipStore`  | localStorage per-user; wedge V1 per-project ACLs + pending invites                                  |
-| View            | `useViewStore`               | NONE — transient                                                                                    |
+| Layer           | Store                        | Persistence                                                                                                  |
+| --------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Document (×4)   | `useProjectStore`            | consumer-side serialisation via `useProjectActions`                                                          |
+| Document        | `useAnalyzeStore`            | session-only today; future `HubRepository.dispatch`                                                          |
+| Document        | `useCanvasStore`             | `dispatch(CanvasAction)` + hub repository                                                                    |
+| Document        | `useImprovementProjectStore` | V1 user-facing Project entity (multiple per user, each wraps one Hub 1:1; `STORE_LAYER='document'`)          |
+| Annotation hub  | `useCanvasViewportStore`     | Dexie DB `variscout-canvas-viewport` (R12 ESLint exception, STORE_LAYER='annotation-per-hub')                |
+| Annotation user | `usePreferencesStore`        | idb-keyval, key `'variscout-preferences'`                                                                    |
+| Annotation user | `useActiveIPStore`           | localStorage, key `variscout:activeIP:{hubId}:{userId}` with encoded scope parts                             |
+| Annotation user | `useProjectMembershipStore`  | localStorage per-user; wedge V1 per-project ACLs + pending invites                                           |
+| View            | `useViewStore`               | NONE — transient                                                                                             |
+| View            | `useAnalysisScopeStore`      | NONE — transient (linked-views bridge: Process tab ↔ Explore tab; session-scoped per spec 2026-05-28 §3 D10) |
 
 **Boundary rule (portability test):** another analyst importing this hub needs it? Yes → Document. Survives reload but not portable → Annotation. Doesn't survive reload → View. `__tests__/layerBoundary.test.ts` enforces middleware presence/absence.
 

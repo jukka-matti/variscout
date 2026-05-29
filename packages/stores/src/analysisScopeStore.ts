@@ -43,16 +43,10 @@ export const getAnalysisScopeInitialState = (): AnalysisScopeState => ({
   categoricalFilters: [],
 });
 
-const notImplemented =
-  (name: string) =>
-  (..._args: unknown[]): void => {
-    throw new Error(`useAnalysisScopeStore.${name}: not implemented yet`);
-  };
-
 export const useAnalysisScopeStore = create<AnalysisScopeStore>(set => ({
   ...getAnalysisScopeInitialState(),
   setY: yColumn => set({ yColumn }),
-  setBoxplotFactor: factor => set({ boxplotFactor: factor }),
+  setBoxplotFactor: boxplotFactor => set({ boxplotFactor }),
   setStepId: stepId => set({ stepId }),
   addCategoricalValue: (column, value) =>
     set(s => {
@@ -113,7 +107,7 @@ export const useAnalysisScopeStore = create<AnalysisScopeStore>(set => ({
         categoricalFilters: s.categoricalFilters.filter(f => f.column !== column),
       };
     }),
-  clearScope: notImplemented('clearScope'),
+  clearScope: () => set(getAnalysisScopeInitialState()),
 }));
 
 // Expose getInitialState on the store instance for the canonical test reset

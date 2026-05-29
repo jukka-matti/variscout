@@ -27,12 +27,17 @@ describe('useAnalysisScopeStore — skeleton', () => {
     const b = getAnalysisScopeInitialState();
     expect(a).toEqual(b);
     expect(a).not.toBe(b);
+    expect(a.categoricalFilters).not.toBe(b.categoricalFilters);
   });
 
-  it('exposes getInitialState on the store instance for the canonical reset pattern', () => {
+  it('exposes getInitialState returning the state-only shape (no action keys)', () => {
     const fn = (useAnalysisScopeStore as unknown as { getInitialState: () => unknown })
       .getInitialState;
     expect(typeof fn).toBe('function');
+    const state = fn() as Record<string, unknown>;
+    expect(state).not.toHaveProperty('setY');
+    expect(state).not.toHaveProperty('addCategoricalValue');
+    expect(state).toHaveProperty('categoricalFilters');
   });
 });
 
@@ -70,11 +75,25 @@ describe('useAnalysisScopeStore — single-value setters', () => {
     expect(useAnalysisScopeStore.getState().stepId).toBeUndefined();
   });
 
-  it('setters are independent — setting Y does not touch other fields', () => {
+  it('setting Y does not touch boxplotFactor / stepId', () => {
     useAnalysisScopeStore.setState({ boxplotFactor: 'vessel', stepId: 'pack' });
     useAnalysisScopeStore.getState().setY('yield_pct');
     expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('vessel');
     expect(useAnalysisScopeStore.getState().stepId).toBe('pack');
+  });
+
+  it('setting boxplotFactor does not touch yColumn / stepId', () => {
+    useAnalysisScopeStore.setState({ yColumn: 'yield_pct', stepId: 'pack' });
+    useAnalysisScopeStore.getState().setBoxplotFactor('vessel');
+    expect(useAnalysisScopeStore.getState().yColumn).toBe('yield_pct');
+    expect(useAnalysisScopeStore.getState().stepId).toBe('pack');
+  });
+
+  it('setting stepId does not touch yColumn / boxplotFactor', () => {
+    useAnalysisScopeStore.setState({ yColumn: 'yield_pct', boxplotFactor: 'vessel' });
+    useAnalysisScopeStore.getState().setStepId('pack');
+    expect(useAnalysisScopeStore.getState().yColumn).toBe('yield_pct');
+    expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('vessel');
   });
 });
 
@@ -248,5 +267,31 @@ describe('useAnalysisScopeStore — removeCategoricalFilter', () => {
     expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
       { column: 'operator', values: ['Jane'] },
     ]);
+  });
+});
+
+describe('useAnalysisScopeStore — clearScope', () => {
+  it('resets all fields to the initial state', () => {
+    useAnalysisScopeStore.setState({
+      yColumn: 'yield_pct',
+      boxplotFactor: 'vessel',
+      stepId: 'pack',
+      categoricalFilters: [{ column: 'vessel', values: ['A', 'B'] }],
+    });
+    useAnalysisScopeStore.getState().clearScope();
+    const s = useAnalysisScopeStore.getState();
+    expect(s.yColumn).toBeUndefined();
+    expect(s.boxplotFactor).toBeUndefined();
+    expect(s.stepId).toBeUndefined();
+    expect(s.categoricalFilters).toEqual([]);
+  });
+
+  it('is a no-op when scope already empty', () => {
+    useAnalysisScopeStore.getState().clearScope();
+    const s = useAnalysisScopeStore.getState();
+    expect(s.yColumn).toBeUndefined();
+    expect(s.boxplotFactor).toBeUndefined();
+    expect(s.stepId).toBeUndefined();
+    expect(s.categoricalFilters).toEqual([]);
   });
 });
