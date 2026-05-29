@@ -1,6 +1,7 @@
 import { useDroppable } from '@dnd-kit/core';
 import { useState } from 'react';
 import type { ImprovementProjectFactorControl } from '@variscout/core/improvementProject';
+import type { ChipNavigationTarget } from '../handlers/navigateToExploreForChip';
 import { FactorChip } from './FactorChip';
 import { FactorSpecsPopover } from './FactorSpecsPopover';
 import { encodeFactorDropId } from './encodeFactorDropId';
@@ -14,6 +15,8 @@ export interface FactorZoneProps {
    */
   onControlAdd: (columnName: string, stepId?: string) => void;
   onControlUpdate: (originalFactorName: string, updated: ImprovementProjectFactorControl) => void;
+  /** LV1-D — fires when user clicks the Explore jump affordance for a chip. */
+  onChipExploreJump?: (target: ChipNavigationTarget) => void;
 }
 
 interface OpenPopover {
@@ -26,6 +29,7 @@ export function FactorZone({
   steps,
   onControlAdd: _onControlAdd,
   onControlUpdate,
+  onChipExploreJump,
 }: FactorZoneProps) {
   const { setNodeRef, isOver } = useDroppable({ id: encodeFactorDropId('global') });
   const [openPopover, setOpenPopover] = useState<OpenPopover | null>(null);
@@ -50,6 +54,16 @@ export function FactorZone({
               key={control.factor}
               control={control}
               onSpecsClick={anchor => setOpenPopover({ factorName: control.factor, anchor })}
+              onExploreJumpClick={
+                onChipExploreJump
+                  ? () =>
+                      onChipExploreJump({
+                        kind: 'factor',
+                        columnName: control.factor,
+                        stepId: control.stepId,
+                      })
+                  : undefined
+              }
             />
           ))}
         </div>

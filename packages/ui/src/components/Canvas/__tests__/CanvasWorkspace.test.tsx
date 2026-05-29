@@ -2678,4 +2678,34 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     expect(binsGroup).toHaveTextContent('DERIVED FROM BINNING');
     expect(binsGroup).toHaveTextContent('Reactor_temp_bin');
   });
+
+  // LV1-D Task 7: onChipExploreJump is threaded through CanvasWorkspace to
+  // OutcomeZone → OutcomeCard → ExploreJumpButton. Clicking the button should
+  // fire the callback with the correct target.
+  it('LV1-D: clicking an outcome chip Explore button bubbles to onChipExploreJump', () => {
+    const onChipExploreJump = vi.fn();
+    renderWorkspace({
+      processContext: { processMap: mapWithStep() },
+      canEditCanvas: true,
+      outcomeSpecs: [
+        {
+          id: 'spec-diameter',
+          hubId: 'hub-1',
+          columnName: 'Diameter',
+          characteristicType: 'nominalIsBest' as const,
+          createdAt: 1748476800000,
+          deletedAt: null,
+        },
+      ],
+      onChipExploreJump,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /open diameter in explore/i }));
+
+    expect(onChipExploreJump).toHaveBeenCalledTimes(1);
+    expect(onChipExploreJump).toHaveBeenCalledWith({
+      kind: 'outcome',
+      columnName: 'Diameter',
+    });
+  });
 });

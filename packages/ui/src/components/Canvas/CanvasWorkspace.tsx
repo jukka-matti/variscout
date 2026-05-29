@@ -39,6 +39,7 @@ import {
 } from '@variscout/core';
 import { isValidLevel, type CanvasLevel } from '@variscout/core/canvas';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
+import type { ChipNavigationTarget } from './EditMode/handlers/navigateToExploreForChip';
 import type { ActionItem } from '@variscout/core/findings';
 import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
@@ -162,6 +163,13 @@ export interface CanvasWorkspaceProps {
    * EditModeToolbar always has a handler.
    */
   onExploreExit?: (landing: ExploreLandingView) => void;
+  /**
+   * LV1-D: dispatched when a chip's "Open in Explore" affordance is clicked.
+   * Caller is responsible for mutating analysisScopeStore + switching to the
+   * Explore tab (typically via `navigateToExploreForChip(target, () =>
+   * panelsStore.showExplore())`). PWA leaves this undefined; Azure wires it.
+   */
+  onChipExploreJump?: (target: ChipNavigationTarget) => void;
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -298,6 +306,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onPersistCanvasState,
   outcomeSpecs = [],
   onExploreExit,
+  onChipExploreJump,
 }) => {
   const { t } = useTranslation();
   const fallbackMap = React.useMemo(() => createEmptyMap(), []);
@@ -1301,12 +1310,14 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                       numericValuesByColumn={numericValuesByColumn}
                       onSpecAdd={() => {}}
                       onSpecUpdate={() => {}}
+                      onChipExploreJump={onChipExploreJump}
                     />
                     <FactorZone
                       controls={factorControls}
                       steps={processSteps}
                       onControlAdd={() => {}}
                       onControlUpdate={() => {}}
+                      onChipExploreJump={onChipExploreJump}
                     />
                   </aside>
 
@@ -1315,7 +1326,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                     className="flex min-h-0 flex-col rounded-md border border-edge bg-surface-primary"
                     aria-label="Process structure zone"
                   >
-                    <ProcessStructureZone steps={processSteps} timingByStepId={timingByStepId} />
+                    <ProcessStructureZone
+                      steps={processSteps}
+                      timingByStepId={timingByStepId}
+                      onChipExploreJump={onChipExploreJump}
+                    />
                   </section>
                 </div>
               </section>

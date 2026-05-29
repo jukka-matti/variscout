@@ -81,4 +81,24 @@ describe('OutcomeZone', () => {
     expect(screen.queryByRole('dialog', { name: /edit outcome specs/i })).not.toBeInTheDocument();
     expect(onSpecUpdate).not.toHaveBeenCalled();
   });
+
+  it('clicking a chip Explore button calls onChipExploreJump with { kind: outcome, columnName }', () => {
+    const onChipExploreJump = vi.fn();
+    const onSpecUpdate = vi.fn();
+    const onSpecAdd = vi.fn();
+    render(
+      <DndContext>
+        <OutcomeZone
+          specs={[createTestOutcomeSpec({ columnName: 'Diameter' })]}
+          numericValuesByColumn={{}}
+          onSpecAdd={onSpecAdd}
+          onSpecUpdate={onSpecUpdate}
+          onChipExploreJump={onChipExploreJump}
+        />
+      </DndContext>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /open diameter in explore/i }));
+    expect(onChipExploreJump).toHaveBeenCalledTimes(1);
+    expect(onChipExploreJump).toHaveBeenCalledWith({ kind: 'outcome', columnName: 'Diameter' });
+  });
 });

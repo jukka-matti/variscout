@@ -2,6 +2,7 @@ import { useDroppable } from '@dnd-kit/core';
 import type { FC, ReactNode } from 'react';
 import { encodeOutcomeDropId } from '../OutcomeZone/encodeOutcomeDropId';
 import { encodeFactorDropId } from '../FactorZone/encodeFactorDropId';
+import { ExploreJumpButton } from '../ExploreJumpButton';
 
 export interface StepBoxStep {
   id: string;
@@ -15,16 +16,23 @@ export interface StepBoxProps {
   timingBadge?: ReactNode;
   /** Future slot — resource indicator (e.g. "× 2 reactors"). Rendered after timingBadge when provided. */
   resourceIndicator?: ReactNode;
+  /** LV1-D — fires when user clicks the Explore jump affordance for this step. */
+  onExploreJumpClick?: () => void;
 }
 
-export const StepBox: FC<StepBoxProps> = ({ step, timingBadge, resourceIndicator }) => {
+export const StepBox: FC<StepBoxProps> = ({
+  step,
+  timingBadge,
+  resourceIndicator,
+  onExploreJumpClick,
+}) => {
   const internalY = useDroppable({ id: encodeOutcomeDropId({ stepId: step.id }) });
   const internalX = useDroppable({ id: encodeFactorDropId({ stepId: step.id }) });
 
   return (
     <div
       data-testid={`step-box-${step.id}`}
-      className="flex min-w-0 flex-col rounded-md border border-edge bg-surface-primary p-2"
+      className="group flex min-w-0 flex-col rounded-md border border-edge bg-surface-primary p-2"
     >
       <header className="flex items-center gap-2">
         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-secondary text-xs text-content-secondary">
@@ -37,6 +45,7 @@ export const StepBox: FC<StepBoxProps> = ({ step, timingBadge, resourceIndicator
         {resourceIndicator ? (
           <span className="text-xs text-content-secondary">{resourceIndicator}</span>
         ) : null}
+        {onExploreJumpClick && <ExploreJumpButton label={step.name} onClick={onExploreJumpClick} />}
       </header>
 
       <section

@@ -676,6 +676,9 @@ export { SubgroupConfigPopover, type SubgroupConfigProps } from './components/Su
 
 // FRAME workspace — visual Process Map (ADR-070)
 export { Canvas, type CanvasProps } from './components/Canvas';
+export { navigateToExploreForChip } from './components/Canvas';
+export type { ChipNavigationTarget } from './components/Canvas';
+export { ExploreJumpButton } from './components/Canvas';
 export { CanvasWorkspace, type CanvasWorkspaceProps } from './components/Canvas/CanvasWorkspace';
 export {
   ProcessHubCurrentStatePanel,

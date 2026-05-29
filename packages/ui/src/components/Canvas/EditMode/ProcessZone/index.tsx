@@ -1,5 +1,6 @@
 import { useDroppable } from '@dnd-kit/core';
 import React, { type FC, type ReactNode } from 'react';
+import type { ChipNavigationTarget } from '../handlers/navigateToExploreForChip';
 import { encodeProcessDropId } from './encodeProcessDropId';
 import { StepBox, type StepBoxStep } from './StepBox';
 
@@ -11,11 +12,14 @@ export interface ProcessStructureZoneProps {
    * render no badge (default `{}`).
    */
   timingByStepId?: Record<string, ReactNode>;
+  /** LV1-D — fires when user clicks the Explore jump affordance for a chip. */
+  onChipExploreJump?: (target: ChipNavigationTarget) => void;
 }
 
 export const ProcessStructureZone: FC<ProcessStructureZoneProps> = ({
   steps,
   timingByStepId = {},
+  onChipExploreJump,
 }) => {
   const { setNodeRef, isOver } = useDroppable({ id: encodeProcessDropId() });
 
@@ -37,7 +41,15 @@ export const ProcessStructureZone: FC<ProcessStructureZoneProps> = ({
         <div className="flex flex-row flex-wrap items-center gap-2">
           {sortedSteps.map((step, idx) => (
             <React.Fragment key={step.id}>
-              <StepBox step={step} timingBadge={timingByStepId?.[step.id]} />
+              <StepBox
+                step={step}
+                timingBadge={timingByStepId?.[step.id]}
+                onExploreJumpClick={
+                  onChipExploreJump
+                    ? () => onChipExploreJump({ kind: 'step', stepId: step.id })
+                    : undefined
+                }
+              />
               {idx < sortedSteps.length - 1 ? (
                 <span
                   data-testid={`process-step-connector-${idx}`}

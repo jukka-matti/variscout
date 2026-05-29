@@ -9,6 +9,8 @@ import {
   CanvasWorkspace,
   InboxDigest,
   NoActiveProjectGuidance,
+  navigateToExploreForChip,
+  type ChipNavigationTarget,
   type InboxDigestPrompt,
   type ContextLinkGroup,
   type ContextLinkItem,
@@ -241,6 +243,14 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
     });
   }, []);
 
+  // LV1-D: per-chip "Open in Explore" handler. Mutates analysisScopeStore
+  // (setY / setBoxplotFactor / setStepId) then switches to Explore.
+  // No focusedChart or pendingExploreIntent — spec D8.1 chip path is plain
+  // showExplore() with no intent.
+  const handleChipExploreJump = React.useCallback((target: ChipNavigationTarget) => {
+    navigateToExploreForChip(target, () => usePanelsStore.getState().showExplore());
+  }, []);
+
   const handleLogQuickAction = React.useCallback(
     (stepId: string, payload: LogActionPayload) => {
       if (!activeHubId) return;
@@ -404,6 +414,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
         onPersistCanvasState={upsertProject}
         outcomeSpecs={outcomeSpecs}
         onExploreExit={handleExploreExit}
+        onChipExploreJump={handleChipExploreJump}
       />
     </div>
   );
