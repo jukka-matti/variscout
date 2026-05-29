@@ -1,9 +1,9 @@
 /**
  * Azure Boxplot - Thin wrapper that connects stores to shared BoxplotWrapperBase
  */
-import React from 'react';
+import React, { useCallback } from 'react';
 import { withParentSize } from '@visx/responsive';
-import { useProjectStore } from '@variscout/stores';
+import { useProjectStore, useAnalysisScopeStore } from '@variscout/stores';
 import { useFilteredData, useCapabilityBoxplotData } from '@variscout/hooks';
 import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotWrapperBase } from '@variscout/ui';
@@ -75,6 +75,10 @@ const Boxplot = ({
 
   const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
 
+  const onScopeAccumulate = useCallback((factor: string, key: string | number) => {
+    useAnalysisScopeStore.getState().addCategoricalValue(factor, key);
+  }, []);
+
   const capabilityData = useCapabilityBoxplotData({
     filteredData,
     outcome: outcome ?? '',
@@ -105,6 +109,7 @@ const Boxplot = ({
         capabilityData={isCapabilityMode ? capabilityData : undefined}
         isCapabilityMode={isCapabilityMode}
         cpkTarget={cpkTarget}
+        onScopeAccumulate={onScopeAccumulate}
         {...props}
       />
       {isComputing && (
