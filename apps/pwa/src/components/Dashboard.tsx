@@ -707,6 +707,8 @@ const Dashboard = ({
         onCreateFactor={handleCreateFactor}
       />
 
+      {/* TODO(lv1-e-pwa-mount): mount <ScopeChrome> above the Dashboard chart layout when PWA gets pendingExploreIntent parity (or sooner, decoupled). See docs/superpowers/plans/2026-05-28-pr-lv1-e-explore-scope-chrome.md D-LV1E-8. */}
+
       {/* Dashboard View */}
       <DashboardLayoutBase
         outcome={effectiveOutcome}
