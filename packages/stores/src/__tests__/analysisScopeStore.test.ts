@@ -35,3 +35,45 @@ describe('useAnalysisScopeStore — skeleton', () => {
     expect(typeof fn).toBe('function');
   });
 });
+
+describe('useAnalysisScopeStore — single-value setters', () => {
+  it('setY assigns yColumn', () => {
+    useAnalysisScopeStore.getState().setY('yield_pct');
+    expect(useAnalysisScopeStore.getState().yColumn).toBe('yield_pct');
+  });
+
+  it('setY(undefined) clears yColumn', () => {
+    useAnalysisScopeStore.setState({ yColumn: 'yield_pct' });
+    useAnalysisScopeStore.getState().setY(undefined);
+    expect(useAnalysisScopeStore.getState().yColumn).toBeUndefined();
+  });
+
+  it('setBoxplotFactor assigns boxplotFactor', () => {
+    useAnalysisScopeStore.getState().setBoxplotFactor('vessel');
+    expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('vessel');
+  });
+
+  it('setBoxplotFactor(undefined) clears boxplotFactor', () => {
+    useAnalysisScopeStore.setState({ boxplotFactor: 'vessel' });
+    useAnalysisScopeStore.getState().setBoxplotFactor(undefined);
+    expect(useAnalysisScopeStore.getState().boxplotFactor).toBeUndefined();
+  });
+
+  it('setStepId assigns stepId', () => {
+    useAnalysisScopeStore.getState().setStepId('pack');
+    expect(useAnalysisScopeStore.getState().stepId).toBe('pack');
+  });
+
+  it('setStepId(undefined) clears stepId', () => {
+    useAnalysisScopeStore.setState({ stepId: 'pack' });
+    useAnalysisScopeStore.getState().setStepId(undefined);
+    expect(useAnalysisScopeStore.getState().stepId).toBeUndefined();
+  });
+
+  it('setters are independent — setting Y does not touch other fields', () => {
+    useAnalysisScopeStore.setState({ boxplotFactor: 'vessel', stepId: 'pack' });
+    useAnalysisScopeStore.getState().setY('yield_pct');
+    expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('vessel');
+    expect(useAnalysisScopeStore.getState().stepId).toBe('pack');
+  });
+});

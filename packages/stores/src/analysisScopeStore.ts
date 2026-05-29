@@ -49,11 +49,11 @@ const notImplemented =
     throw new Error(`useAnalysisScopeStore.${name}: not implemented yet`);
   };
 
-export const useAnalysisScopeStore = create<AnalysisScopeStore>(_set => ({
+export const useAnalysisScopeStore = create<AnalysisScopeStore>(set => ({
   ...getAnalysisScopeInitialState(),
-  setY: notImplemented('setY'),
-  setBoxplotFactor: notImplemented('setBoxplotFactor'),
-  setStepId: notImplemented('setStepId'),
+  setY: yColumn => set({ yColumn }),
+  setBoxplotFactor: factor => set({ boxplotFactor: factor }),
+  setStepId: stepId => set({ stepId }),
   addCategoricalValue: notImplemented('addCategoricalValue'),
   removeCategoricalValue: notImplemented('removeCategoricalValue'),
   setCategoricalValues: notImplemented('setCategoricalValues'),
