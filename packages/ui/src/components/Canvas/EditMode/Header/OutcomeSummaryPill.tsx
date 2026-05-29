@@ -36,7 +36,7 @@ export function OutcomeSummaryPill(props: OutcomeSummaryPillProps) {
   const result = useMemo(
     () =>
       outcomeSpec && (outcomeSpec.usl !== undefined || outcomeSpec.lsl !== undefined)
-        ? calculateChannelStats(filtered as DataRow[], yColumn ?? '', {
+        ? calculateChannelStats(filtered as DataRow[], outcomeSpec.columnName, {
             usl: outcomeSpec.usl,
             lsl: outcomeSpec.lsl,
           })
