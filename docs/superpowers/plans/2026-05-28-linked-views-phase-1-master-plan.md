@@ -236,7 +236,7 @@ PR-LV1-B/C are independent of each other; can run in parallel after LV1-A + LV1-
 - `grep -r "authoringMode\|EditModeShell\|handleShellDone" packages/ apps/` → 0 hits
 - Canvas renders identically in author mode; Done button gone; permission gating unchanged
 
-**Sub-plan invocation:** Standard `superpowers:writing-plans` with prompt: `"Sub-plan for PR-LV1-C. Mechanical retirement: delete authoringMode + EditModeShell + Done. Inline ChipRail chrome into CanvasWorkspace. ~4–6 tasks. Sonnet implementer."`
+**Sub-plan:** [./2026-05-28-pr-lv1-c-retire-authoring-mode.md](./2026-05-28-pr-lv1-c-retire-authoring-mode.md) (drafted 2026-05-29; ready for dispatch — atomic-sweep dispatch with single Opus implementer; master plan's Sonnet/4-6-tasks recommendation overridden after grounding revealed tightly coupled deletion cascade, see sub-plan for rationale).
 
 ---
 
