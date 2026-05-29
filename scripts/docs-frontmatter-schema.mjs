@@ -22,7 +22,7 @@ export const PURPOSE = [
 
 export const TIER = ['stable', 'living', 'ephemeral', 'card'];
 
-export const STATUS = ['draft', 'active', 'named-future', 'superseded', 'archived'];
+export const STATUS = ['draft', 'active', 'delivered', 'named-future', 'superseded', 'archived'];
 
 // Free-form topic tags replace CATEGORY enum.
 // Dominant tags from the 2026-05-16 audit (for documentation; not enforced):
@@ -50,7 +50,6 @@ export const KIND = ['ui', 'workflow', 'engine', 'infrastructure'];
 export const STATUS_ALIAS_MAP = {
   accepted: 'active',
   'in-progress': 'active',
-  delivered: 'active',
   reference: 'active',
   template: 'active',
   stable: 'active',
