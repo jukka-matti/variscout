@@ -149,6 +149,57 @@ describe('canvasStore step actions', () => {
   });
 });
 
+describe('canvasStore addStepsFromColumn (IM-0b — column-drop → rich nodes)', () => {
+  it('mints one node per distinct value using the canvas id scheme', () => {
+    useCanvasStore.getState().addStepsFromColumn('Step', ['Prep', 'Mix', 'Pack']);
+
+    const nodes = useCanvasStore.getState().canonicalMap.nodes;
+    expect(nodes.map(n => n.name)).toEqual(['Prep', 'Mix', 'Pack']);
+    expect(nodes.map(n => n.order)).toEqual([0, 1, 2]);
+    // Canvas id scheme `step-${slug}-${seq}` — NOT the retired `step-${columnName}-${idx}`.
+    for (const node of nodes) {
+      expect(node.id).toMatch(/^step-[a-z0-9-]+-\d+$/);
+      expect(node.id).not.toMatch(/^step-Step-\d+$/);
+    }
+    // Ids are unique.
+    expect(new Set(nodes.map(n => n.id)).size).toBe(3);
+  });
+
+  it('appends to existing nodes, continuing the order sequence', () => {
+    const existingId = addStepAndGetId('Receive');
+    useCanvasStore.getState().addStepsFromColumn('Step', ['Prep', 'Mix']);
+
+    const nodes = useCanvasStore.getState().canonicalMap.nodes;
+    expect(nodes.map(n => n.name)).toEqual(['Receive', 'Prep', 'Mix']);
+    expect(nodes.map(n => n.order)).toEqual([0, 1, 2]);
+    expect(nodes[0].id).toBe(existingId);
+  });
+
+  it('is a single undoable change (one history entry, fully reversible)', () => {
+    useCanvasStore.getState().addStepsFromColumn('Step', ['Prep', 'Mix', 'Pack']);
+    expect(useCanvasStore.getState().historyDepth()).toBe(1);
+
+    useCanvasStore.getState().undo();
+    expect(useCanvasStore.getState().canonicalMap.nodes).toEqual([]);
+
+    useCanvasStore.getState().redo();
+    expect(useCanvasStore.getState().canonicalMap.nodes.map(n => n.name)).toEqual([
+      'Prep',
+      'Mix',
+      'Pack',
+    ]);
+  });
+
+  it('is a no-op (no version bump, no history) when distinctValues is empty', () => {
+    const version = useCanvasStore.getState().canonicalMapVersion;
+    useCanvasStore.getState().addStepsFromColumn('Step', []);
+
+    expect(useCanvasStore.getState().canonicalMap.nodes).toEqual([]);
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(version);
+    expect(useCanvasStore.getState().historyDepth()).toBe(0);
+  });
+});
+
 describe('canvasStore document hydration', () => {
   it('hydrates a canvas document without creating history and preserves provided version', () => {
     useCanvasStore.getState().addStep('Draft');
