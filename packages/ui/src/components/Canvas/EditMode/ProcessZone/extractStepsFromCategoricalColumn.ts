@@ -10,7 +10,7 @@ import type { ProcessStepEntry } from '@variscout/core/improvementProject';
  * the forbidden `core → ui` import.
  *
  * Keep the `ExtractedStep` name throughout the Canvas EditMode tree (so
- * `EditModeShell` / `handleEditModeDragEnd` / `handleProcessStructureDrop`
+ * `CanvasWorkspace` / `handleEditModeDragEnd` / `handleProcessStructureDrop`
  * read as a connected story). The IP root persists the same shape.
  */
 export type ExtractedStep = ProcessStepEntry;

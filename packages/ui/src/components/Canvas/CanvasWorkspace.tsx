@@ -1,4 +1,5 @@
 import React from 'react';
+import { DndContext } from '@dnd-kit/core';
 import {
   useCanvasStepCards,
   useCanvasAnalyzeOverlays,
@@ -45,10 +46,15 @@ import type { OutcomeSpec } from '@variscout/core/processHub';
 import { profileColumns, type ColumnParsingProfile } from '@variscout/core/parser';
 import { useCanvasStore } from '@variscout/stores';
 import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
-import { Canvas, type CanvasAuthoringMode, type CanvasL3Archetype } from './index';
-import { EditModeShell } from './EditMode';
-import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCategoricalColumn';
+import { Canvas, type CanvasL3Archetype } from './index';
+import { Palette } from './EditMode/Palette';
 import type { SystemHint } from './EditMode/Palette';
+import { OutcomeZone } from './EditMode/OutcomeZone';
+import { FactorZone } from './EditMode/FactorZone';
+import { ProcessStructureZone } from './EditMode/ProcessZone';
+import { EditModeToolbar } from './EditMode/EditModeToolbar';
+import { handleEditModeDragEnd } from './EditMode/handleEditModeDragEnd';
+import type { ExtractedStep } from './EditMode/ProcessZone/extractStepsFromCategoricalColumn';
 import { useSystemHints } from './EditMode/hooks/useSystemHints';
 import { useGhostSuggestions } from './EditMode/hooks/useGhostSuggestions';
 import { StepTimingsModal } from './EditMode/Workflows/StepTimingsModal';
@@ -529,10 +535,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [columnAnalysis, outcome, runOrderColumn, map.assignments]
   );
 
-  const [authoringMode, setAuthoringMode] = React.useState<CanvasAuthoringMode>(() =>
-    map.nodes.length > 0 && chips.length === 0 ? 'read' : 'author'
-  );
-
   // PR-CCJ-E1 T5: the four Canvas-Edit-mode binding arrays
   // (`processSteps`, `stepTimings`, `formulaBindings`,
   // `timeDecompositionBindings`) live on the active `ImprovementProject`
@@ -714,8 +716,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   }, [columnAnalysis, rawData]);
 
   // D1 Task 10: per-column parsing profiles for the palette + StepTimingsModal.
-  // Computed from rawData via the parser engine; passed to EditModeShell so the
-  // palette renders raw column chips, and forwarded to StepTimingsModal so it
+  // Computed from rawData via the parser engine; passed to the inlined edit
+  // chrome's Palette so the chips render, and forwarded to StepTimingsModal so it
   // can pre-fill paired pickers (dateProfiles) + offer duration columns
   // (numericProfiles).
   const rawProfiles = React.useMemo<ColumnParsingProfile[]>(() => {
@@ -981,7 +983,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   // CTAs are wired to the existing modal-opener callbacks. `dismissedSystemHints`
   // suppresses hints that the user has dismissed for this session. The resulting
   // `SystemHintItem[]` is adapted to `SystemHint[]` below so the downstream
-  // EditModeShell / Palette prop shape is unchanged.
+  // inlined Palette prop shape is unchanged.
   const systemHintItems = useSystemHints({
     columnProfiles: rawProfiles,
     dismissedHints: dismissedSystemHints,
@@ -1016,25 +1018,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     stepBindingColumns: [],
   });
 
-  // When access is revoked at runtime, snap back to State mode so the user
-  // is never stranded in Edit mode without the Done affordance.
-  React.useEffect(() => {
-    if (canEditCanvas === false && authoringMode === 'author') {
-      setAuthoringMode('read');
-    }
-  }, [authoringMode, canEditCanvas]);
-
-  const effectiveAuthoringMode: CanvasAuthoringMode =
-    canEditCanvas === false ? 'read' : authoringMode;
-  const handleAuthoringModeChange = React.useCallback(
-    (next: CanvasAuthoringMode) => {
-      if (canEditCanvas === false) return;
-      setAuthoringMode(next);
-    },
-    [canEditCanvas]
-  );
-
-  const l3Archetype: CanvasL3Archetype = effectiveAuthoringMode === 'author' ? 'b1' : 'b0';
+  // PR-LV1-C: canvas is always directly editable subject to `canEditCanvas`.
+  // When access is revoked (`canEditCanvas === false`), the b0 archetype renders
+  // the read-only L3 view; otherwise the b1 archetype renders the author view.
+  // No mode ceremony — edit affordances appear contextually.
+  const l3Archetype: CanvasL3Archetype = canEditCanvas !== false ? 'b1' : 'b0';
 
   const handleConfirmYSpec = React.useCallback(
     (values: Partial<SpecLimits>) => {
@@ -1182,9 +1170,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       contextLinkGroups={contextLinkGroups}
       onNavigateContextLink={onNavigateContextLink}
       actionItems={actionItems}
-      mode={effectiveAuthoringMode}
       l3Archetype={l3Archetype}
-      onModeChange={canEditCanvas === false ? undefined : handleAuthoringModeChange}
       chips={chips}
       onPlaceChip={handlePlaceChip}
       onCreateStepFromChip={handleCreateStepFromChip}
@@ -1200,12 +1186,26 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     />
   );
 
-  const handleShellDone = React.useCallback(() => {
-    if (canEditCanvas === false) return;
-    setAuthoringMode('read');
-  }, [canEditCanvas]);
+  // PR-LV1-C: drag-end router for the inlined Edit chrome's `DndContext`.
+  // Routes `column:<name>` drops to the process / outcome / factor zones;
+  // Canvas keeps its own separate `DndContext` for chip→step routing inside
+  // the L2 view.
+  const handleEditDragEnd = React.useCallback(
+    (event: Parameters<typeof handleEditModeDragEnd>[0]) =>
+      handleEditModeDragEnd(event, {
+        numericValuesByColumn,
+        categoricalDistinctValuesByColumn,
+        onOutcomeSpecAdd: undefined,
+        onFactorControlAdd: undefined,
+        onStepsReplace: handleStepsReplace,
+      }),
+    [numericValuesByColumn, categoricalDistinctValuesByColumn, handleStepsReplace]
+  );
 
-  const showEditShell = effectiveAuthoringMode === 'author' && canEditCanvas !== false;
+  // PR-LV1-C: edit chrome surfaces inline whenever the viewer is permitted to
+  // edit (canEditCanvas !== false). When access is revoked, the bare canvas
+  // node renders without the palette / outcome / factor / process zones.
+  const showEditChrome = canEditCanvas !== false;
 
   if (scope === 'b0') {
     return (
@@ -1242,25 +1242,84 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
             <OutcomeSummaryPill rawData={rawData} outcomeSpecs={outcomeSpecs} />
           </div>
         </header>
-        {showEditShell ? (
+        {showEditChrome ? (
           <>
-            <EditModeShell
-              onDone={handleShellDone}
-              profiles={editModeProfiles}
-              numericValuesByColumn={numericValuesByColumn}
-              categoricalValuesByColumn={categoricalValuesByColumn}
-              systemHints={systemHints}
-              ghostSuggestions={ghostSuggestions}
-              steps={processSteps}
-              categoricalDistinctValuesByColumn={categoricalDistinctValuesByColumn}
-              onMenuItemSelect={onChipContextMenuSelect}
-              onStepsReplace={handleStepsReplace}
-              onCaptureStepTimings={() => setStepTimingsModalOpen(true)}
-              timingByStepId={timingByStepId}
-              outcomeSpecs={outcomeSpecs}
-              factorControls={factorControls}
-              onExploreExit={handleExploreExit}
-            />
+            <DndContext onDragEnd={handleEditDragEnd}>
+              <section
+                data-testid="edit-mode-shell"
+                className="flex min-h-0 flex-1 flex-col"
+                aria-label="Edit mode"
+              >
+                <header className="flex items-center justify-between border-b border-edge bg-surface-secondary px-4 py-2">
+                  <div className="flex flex-col">
+                    <h2 className="text-sm font-semibold text-content">Edit map</h2>
+                    <p className="text-xs text-content-secondary">
+                      Connect your data to the process structure.
+                    </p>
+                  </div>
+                </header>
+
+                <EditModeToolbar
+                  steps={processSteps}
+                  onCaptureStepTimings={() => setStepTimingsModalOpen(true)}
+                  outcomeSpecs={outcomeSpecs}
+                  factorControls={factorControls}
+                  processSteps={processSteps}
+                  categoricalValuesByColumn={categoricalValuesByColumn}
+                  onExploreExit={handleExploreExit}
+                />
+
+                <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 md:grid-cols-[14rem_18rem_minmax(0,1fr)]">
+                  <aside
+                    data-testid="edit-mode-zone-palette"
+                    className="flex flex-col gap-2 rounded-md border border-dashed border-edge bg-surface-primary p-3"
+                    aria-label="Palette zone"
+                  >
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-content-tertiary">
+                      Palette
+                    </h3>
+                    <Palette
+                      profiles={editModeProfiles}
+                      numericValuesByColumn={numericValuesByColumn}
+                      categoricalValuesByColumn={categoricalValuesByColumn}
+                      systemHints={systemHints}
+                      ghostSuggestions={ghostSuggestions}
+                      onMenuItemSelect={onChipContextMenuSelect}
+                    />
+                  </aside>
+
+                  <aside
+                    data-testid="edit-mode-zone-outcomes-factors"
+                    className="flex flex-col gap-3 rounded-md border border-dashed border-edge bg-surface-primary p-3"
+                    aria-label="Outcomes and Factors zone"
+                  >
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-content-tertiary">
+                      Outcomes &amp; Factors
+                    </h3>
+                    <OutcomeZone
+                      specs={outcomeSpecs}
+                      numericValuesByColumn={numericValuesByColumn}
+                      onSpecAdd={() => {}}
+                      onSpecUpdate={() => {}}
+                    />
+                    <FactorZone
+                      controls={factorControls}
+                      steps={processSteps}
+                      onControlAdd={() => {}}
+                      onControlUpdate={() => {}}
+                    />
+                  </aside>
+
+                  <section
+                    data-testid="edit-mode-zone-process"
+                    className="flex min-h-0 flex-col rounded-md border border-edge bg-surface-primary"
+                    aria-label="Process structure zone"
+                  >
+                    <ProcessStructureZone steps={processSteps} timingByStepId={timingByStepId} />
+                  </section>
+                </div>
+              </section>
+            </DndContext>
             {stepTimingsModalOpen && (
               <StepTimingsModal
                 steps={processSteps}

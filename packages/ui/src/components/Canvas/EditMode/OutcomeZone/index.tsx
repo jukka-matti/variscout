@@ -10,7 +10,8 @@ export interface OutcomeZoneProps {
   /**
    * Numeric values per column, plumbed through for Task 7's drag-end →
    * `deriveDefaultSpecs` chain at the `DndContext` parent. Unused inside the
-   * zone itself; accepted here so EditModeShell can pass through unchanged.
+   * zone itself; accepted here so the inlined edit chrome can pass through
+   * unchanged.
    */
   numericValuesByColumn: Record<string, number[]>;
   /**

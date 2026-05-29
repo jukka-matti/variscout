@@ -42,7 +42,7 @@ export interface EditModeToolbarProps {
 }
 
 /**
- * Full-width toolbar row that sits between the EditModeShell header and the
+ * Full-width toolbar row that sits between the inlined edit chrome header and the
  * 3-column data grid. D1 renders the "Capture step timings" action; F1 adds
  * the → Explore exit button at the right edge.
  *

@@ -18,9 +18,7 @@ describe('useCanvasKeyboard', () => {
     const onUndo = vi.fn();
     const onRedo = vi.fn();
 
-    renderHook(() =>
-      useCanvasKeyboard({ onUndo, onRedo, onToggleMode: vi.fn(), onExitAuthorMode: vi.fn() })
-    );
+    renderHook(() => useCanvasKeyboard({ onUndo, onRedo }));
 
     keydown({ key: 'z', metaKey: true });
     keydown({ key: 'z', ctrlKey: true });
@@ -31,30 +29,12 @@ describe('useCanvasKeyboard', () => {
     expect(onRedo).toHaveBeenCalledTimes(2);
   });
 
-  it('maps E to mode toggle and Escape to exit author mode', () => {
-    const onToggleMode = vi.fn();
-    const onExitAuthorMode = vi.fn();
-
-    renderHook(() =>
-      useCanvasKeyboard({ onUndo: vi.fn(), onRedo: vi.fn(), onToggleMode, onExitAuthorMode })
-    );
-
-    keydown({ key: 'e' });
-    keydown({ key: 'E' });
-    keydown({ key: 'Escape' });
-
-    expect(onToggleMode).toHaveBeenCalledTimes(2);
-    expect(onExitAuthorMode).toHaveBeenCalledTimes(1);
-  });
-
   it('removes the listener on cleanup', () => {
     const onUndo = vi.fn();
     const { unmount } = renderHook(() =>
       useCanvasKeyboard({
         onUndo,
         onRedo: vi.fn(),
-        onToggleMode: vi.fn(),
-        onExitAuthorMode: vi.fn(),
       })
     );
 

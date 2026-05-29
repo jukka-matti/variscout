@@ -26,11 +26,9 @@ import { SystemLevelView } from './SystemLevelView';
 import { AuthorL3View } from './AuthorL3View';
 import { LocalMechanismView } from './LocalMechanismView';
 import { NoFocalStepPrompt } from './NoFocalStepPrompt';
-import { CanvasModeToggle } from '../../CanvasModeToggle';
 import { LENS_LABEL_KEY } from './CanvasLensPicker';
 
 // Defined here to avoid circular import with Canvas/index.tsx
-export type CanvasAuthoringMode = 'author' | 'read';
 export type CanvasL3Archetype = 'b0' | 'b1';
 
 const CANVAS_LEVEL_LABEL_KEY: Record<CanvasLevel, keyof MessageCatalog> = {
@@ -81,11 +79,8 @@ export interface CanvasLevelRouterProps {
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
-  // L3 mode toggle
+  // L3 archetype routing (b0 = read-only LocalMechanismView; b1 = AuthorL3View)
   resolvedL3Archetype: CanvasL3Archetype;
-  authoringMode: CanvasAuthoringMode;
-  disabled?: boolean;
-  onModeChange?: (next: CanvasAuthoringMode) => void;
 }
 
 /**
@@ -130,9 +125,6 @@ export function CanvasLevelRouter({
   onFocusedInvestigation,
   onCharter,
   resolvedL3Archetype,
-  authoringMode,
-  disabled,
-  onModeChange,
 }: CanvasLevelRouterProps): React.JSX.Element {
   const lensValidAtCurrentLevel = isCanvasLensValidAtLevel(rawLens, currentLevel);
   const suggestedLevel = suggestCanvasLevelForLens(rawLens, currentLevel);
@@ -214,11 +206,6 @@ export function CanvasLevelRouter({
 
   const l3Content = (
     <div className="bg-surface-background" data-canvas-level="l3">
-      {onModeChange ? (
-        <div className="flex items-center justify-end border-b border-edge px-4 py-3">
-          <CanvasModeToggle mode={authoringMode} onChange={onModeChange} disabled={disabled} />
-        </div>
-      ) : null}
       {l3ContentBody}
     </div>
   );

@@ -50,14 +50,9 @@ import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlance
 import { ProcessMapBase } from './internal/ProcessMapBase';
 import { CanvasViewport } from './internal/CanvasViewport';
 import { MobileLevelPicker } from './internal/MobileLevelPicker';
-import {
-  CanvasLevelRouter,
-  type CanvasAuthoringMode,
-  type CanvasL3Archetype,
-} from './internal/CanvasLevelRouter';
+import { CanvasLevelRouter, type CanvasL3Archetype } from './internal/CanvasLevelRouter';
 import { ChipRail, type ChipRailEntry } from '../ChipRail';
 import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
-import { CanvasModeToggle } from '../CanvasModeToggle';
 import { StructuralToolbar } from '../StructuralToolbar';
 import { CanvasLensPicker } from './internal/CanvasLensPicker';
 import { useWallLocale } from '../AnalyzeWall/hooks/useWallLocale';
@@ -90,9 +85,7 @@ import type { LogActionPayload } from '../QuickAction';
  */
 export type ProductionLineGlanceOpsMode = 'spatial' | 'full';
 // Re-exported from CanvasLevelRouter to avoid circular imports
-export type { CanvasAuthoringMode, CanvasL3Archetype } from './internal/CanvasLevelRouter';
-export { EditModeShell } from './EditMode';
-export type { EditModeShellProps } from './EditMode';
+export type { CanvasL3Archetype } from './internal/CanvasLevelRouter';
 
 type CanvasQuestionOption = { id: string; text: string };
 
@@ -190,9 +183,7 @@ export interface CanvasProps {
   >;
   rows?: readonly DataRow[];
   filter: ProductionLineGlanceFilterStripProps;
-  mode?: CanvasAuthoringMode;
   l3Archetype?: CanvasL3Archetype;
-  onModeChange?: (next: CanvasAuthoringMode) => void;
   onUndo?: () => void;
   onRedo?: () => void;
   onAddStep?: () => void;
@@ -262,9 +253,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   canvasFilterChips,
   showGaps = true,
   filter,
-  mode: authoringMode = 'author',
   l3Archetype,
-  onModeChange,
   onUndo,
   onRedo,
   onAddStep,
@@ -309,7 +298,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   onOpenColumnDetail,
   rows,
 }) => {
-  const isAuthorMode = authoringMode === 'author';
   const locale = useWallLocale();
   const viewport = useCanvasViewportStore(s =>
     s.viewports[hubId] ? s.getViewport(hubId) : DEFAULT_CANVAS_VIEWPORT
@@ -340,8 +328,13 @@ export const Canvas: React.FC<CanvasProps> = ({
       detectColumns([...rows]).columnAnalysis.map(column => [column.name, column.type])
     );
   }, [rows]);
-  const canPlaceChips = isAuthorMode && !disabled && chips.length > 0;
-  const resolvedL3Archetype: CanvasL3Archetype = l3Archetype ?? (isAuthorMode ? 'b1' : 'b0');
+  // PR-LV1-C: chip placement is always enabled when chips exist and the
+  // surface isn't `disabled`. The State/Edit binary that previously gated
+  // chip placement on author-mode is retired; canvas is always editable
+  // subject to the caller-supplied `disabled` (and CanvasWorkspace's
+  // `canEditCanvas`-derived `l3Archetype`).
+  const canPlaceChips = !disabled && chips.length > 0;
+  const resolvedL3Archetype: CanvasL3Archetype = l3Archetype ?? 'b1';
   const showChipRail = canPlaceChips && viewport.currentLevel === 'l2';
   const [pendingStepChipId, setPendingStepChipId] = React.useState<string | null>(null);
   const [keyboardChipId, setKeyboardChipId] = React.useState<string | null>(null);
@@ -366,15 +359,9 @@ export const Canvas: React.FC<CanvasProps> = ({
     ? chips.find(chip => chip.chipId === keyboardChipId)
     : undefined;
 
-  const toggleMode = React.useCallback(() => {
-    onModeChange?.(authoringMode === 'author' ? 'read' : 'author');
-  }, [authoringMode, onModeChange]);
-
   useCanvasKeyboard({
     onUndo: () => onUndo?.(),
     onRedo: () => onRedo?.(),
-    onToggleMode: toggleMode,
-    onExitAuthorMode: () => onModeChange?.('read'),
   });
 
   const handleCreateStepRequest = React.useCallback(
@@ -560,40 +547,31 @@ export const Canvas: React.FC<CanvasProps> = ({
       data-canvas-level="l2"
       className="flex flex-col bg-surface-background"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-edge px-4 py-2">
-        <div className="flex flex-wrap items-center gap-2">
-          {isAuthorMode ? (
-            <StructuralToolbar
-              selectedStepCount={selectedStepIds.length}
-              onAddStep={() => onAddStep?.()}
-              onGroupSelection={groupSelection}
-              onBranchSelection={branchSelection}
-              onJoinSelection={joinSelection}
-              onUndo={() => onUndo?.()}
-              onRedo={() => onRedo?.()}
-              disabled={disabled}
-            />
-          ) : null}
-          <CanvasLensPicker activeLens={resolvedLens} onChange={onLensChange} />
-          <CanvasOverlayPicker
-            activeOverlays={resolvedOverlays}
-            availableOverlays={pickerAvailableOverlays}
-            onToggle={onOverlayToggle}
-          />
-          {wallIsMobile && hasInvestigationContent && onOpenWall ? (
-            <WallShortcutButton onClick={onOpenWall} disabled={disabled} />
-          ) : null}
-          <HypothesisDrawToolButton
-            activeTool={activeCanvasTool}
-            onChange={next => onCanvasToolChange?.(next)}
-            disabled={disabled}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          {onModeChange ? (
-            <CanvasModeToggle mode={authoringMode} onChange={onModeChange} disabled={disabled} />
-          ) : null}
-        </div>
+      <div className="flex flex-wrap items-center gap-2 border-b border-edge px-4 py-2">
+        <StructuralToolbar
+          selectedStepCount={selectedStepIds.length}
+          onAddStep={() => onAddStep?.()}
+          onGroupSelection={groupSelection}
+          onBranchSelection={branchSelection}
+          onJoinSelection={joinSelection}
+          onUndo={() => onUndo?.()}
+          onRedo={() => onRedo?.()}
+          disabled={disabled}
+        />
+        <CanvasLensPicker activeLens={resolvedLens} onChange={onLensChange} />
+        <CanvasOverlayPicker
+          activeOverlays={resolvedOverlays}
+          availableOverlays={pickerAvailableOverlays}
+          onToggle={onOverlayToggle}
+        />
+        {wallIsMobile && hasInvestigationContent && onOpenWall ? (
+          <WallShortcutButton onClick={onOpenWall} disabled={disabled} />
+        ) : null}
+        <HypothesisDrawToolButton
+          activeTool={activeCanvasTool}
+          onChange={next => onCanvasToolChange?.(next)}
+          disabled={disabled}
+        />
       </div>
 
       {canvasFilterChips ? (
@@ -764,9 +742,6 @@ export const Canvas: React.FC<CanvasProps> = ({
       onFocusedInvestigation={onFocusedInvestigation}
       onCharter={onCharter}
       resolvedL3Archetype={resolvedL3Archetype}
-      authoringMode={authoringMode}
-      disabled={disabled}
-      onModeChange={onModeChange}
     />
   );
   const desktopLevelContent = (

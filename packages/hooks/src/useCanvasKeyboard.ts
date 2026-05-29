@@ -3,8 +3,6 @@ import { useEffect } from 'react';
 export interface UseCanvasKeyboardArgs {
   onUndo: () => void;
   onRedo: () => void;
-  onToggleMode: () => void;
-  onExitAuthorMode: () => void;
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -18,12 +16,13 @@ function isEditableTarget(target: EventTarget | null): boolean {
   );
 }
 
-export function useCanvasKeyboard({
-  onUndo,
-  onRedo,
-  onToggleMode,
-  onExitAuthorMode,
-}: UseCanvasKeyboardArgs): void {
+/**
+ * Canvas-scoped keyboard shortcuts. PR-LV1-C retired the `onToggleMode`
+ * (`E`) + `onExitAuthorMode` (`Escape`) shortcuts when the State/Edit
+ * binary disappeared — canvas is always directly editable, so there is
+ * no mode to toggle.
+ */
+export function useCanvasKeyboard({ onUndo, onRedo }: UseCanvasKeyboardArgs): void {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isEditableTarget(event.target)) return;
@@ -43,19 +42,9 @@ export function useCanvasKeyboard({
         onRedo();
         return;
       }
-
-      if (!command && !event.altKey && !event.shiftKey && key === 'e') {
-        event.preventDefault();
-        onToggleMode();
-        return;
-      }
-
-      if (event.key === 'Escape') {
-        onExitAuthorMode();
-      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onExitAuthorMode, onRedo, onToggleMode, onUndo]);
+  }, [onRedo, onUndo]);
 }
