@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useAnalysisScopeStore } from '@variscout/stores';
 import { SingleSelectPopover } from '../../SingleSelectPopover';
-import { FilterChipDropdown } from '../../FilterChipDropdown/FilterChipDropdown';
+import { FilterChipDropdown } from '../../FilterChipDropdown';
 import { createTestFilterChipData } from '../../../test-utils/filterChipFactories';
 
 export type ScopeChipKind =
