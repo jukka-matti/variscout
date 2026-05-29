@@ -1,8 +1,9 @@
 import { DndContext } from '@dnd-kit/core';
-import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { StepBox, type StepBoxStep } from '../StepBox';
+import { createTestStep } from '../../../../../test-utils/step';
 
 function makeStep(overrides: Partial<StepBoxStep> = {}): StepBoxStep {
   return { id: 'step-1', name: 'Receive', order: 0, ...overrides };
@@ -96,5 +97,25 @@ describe('StepBox', () => {
     );
     expect(screen.getByTestId('t-badge')).toBeInTheDocument();
     expect(screen.getByTestId('r-ind')).toBeInTheDocument();
+  });
+
+  it('renders ExploreJumpButton when onExploreJumpClick is provided', () => {
+    const step = createTestStep({ id: 'step-1', name: 'Pack', order: 0 });
+    renderInDnd(<StepBox step={step} onExploreJumpClick={vi.fn()} />);
+    expect(screen.getByRole('button', { name: /open pack in explore/i })).toBeInTheDocument();
+  });
+
+  it('does NOT render ExploreJumpButton when onExploreJumpClick is undefined', () => {
+    const step = createTestStep({ id: 'step-1', name: 'Pack', order: 0 });
+    renderInDnd(<StepBox step={step} />);
+    expect(screen.queryByRole('button', { name: /open pack in explore/i })).toBeNull();
+  });
+
+  it('clicking ExploreJumpButton fires onExploreJumpClick', () => {
+    const onExploreJumpClick = vi.fn();
+    const step = createTestStep({ id: 'step-1', name: 'Pack', order: 0 });
+    renderInDnd(<StepBox step={step} onExploreJumpClick={onExploreJumpClick} />);
+    fireEvent.click(screen.getByTestId('chip-explore-jump'));
+    expect(onExploreJumpClick).toHaveBeenCalledTimes(1);
   });
 });
