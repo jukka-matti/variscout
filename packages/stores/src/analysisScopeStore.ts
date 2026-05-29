@@ -86,8 +86,33 @@ export const useAnalysisScopeStore = create<AnalysisScopeStore>(set => ({
         ),
       };
     }),
-  setCategoricalValues: notImplemented('setCategoricalValues'),
-  removeCategoricalFilter: notImplemented('removeCategoricalFilter'),
+  setCategoricalValues: (column, values) =>
+    set(s => {
+      const existing = s.categoricalFilters.find(f => f.column === column);
+      if (values.length === 0) {
+        if (!existing) return {};
+        return {
+          categoricalFilters: s.categoricalFilters.filter(f => f.column !== column),
+        };
+      }
+      if (existing) {
+        return {
+          categoricalFilters: s.categoricalFilters.map(f =>
+            f.column === column ? { column, values: [...values] } : f
+          ),
+        };
+      }
+      return {
+        categoricalFilters: [...s.categoricalFilters, { column, values: [...values] }],
+      };
+    }),
+  removeCategoricalFilter: column =>
+    set(s => {
+      if (!s.categoricalFilters.some(f => f.column === column)) return {};
+      return {
+        categoricalFilters: s.categoricalFilters.filter(f => f.column !== column),
+      };
+    }),
   clearScope: notImplemented('clearScope'),
 }));
 

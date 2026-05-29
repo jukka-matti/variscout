@@ -155,4 +155,98 @@ describe('useAnalysisScopeStore — removeCategoricalValue', () => {
       { column: 'operator', values: ['Jane'] },
     ]);
   });
+
+  it('leaves bystander columns untouched', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [
+        { column: 'vessel', values: ['A', 'B'] },
+        { column: 'operator', values: ['Jane'] },
+      ],
+    });
+    useAnalysisScopeStore.getState().removeCategoricalValue('vessel', 'A');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'vessel', values: ['B'] },
+      { column: 'operator', values: ['Jane'] },
+    ]);
+  });
+});
+
+describe('useAnalysisScopeStore — setCategoricalValues', () => {
+  it('replaces full values array for an existing column', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'vessel', values: ['A'] }],
+    });
+    useAnalysisScopeStore.getState().setCategoricalValues('vessel', ['B', 'C']);
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'vessel', values: ['B', 'C'] },
+    ]);
+  });
+
+  it('creates a filter entry for a new column', () => {
+    useAnalysisScopeStore.getState().setCategoricalValues('vessel', ['A', 'B']);
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'vessel', values: ['A', 'B'] },
+    ]);
+  });
+
+  it('empty array drops the entry (matches FilterChipDropdown uncheck-all UX)', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'vessel', values: ['A'] }],
+    });
+    useAnalysisScopeStore.getState().setCategoricalValues('vessel', []);
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([]);
+  });
+
+  it('empty array on a missing column is a no-op', () => {
+    useAnalysisScopeStore.getState().setCategoricalValues('vessel', []);
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([]);
+  });
+
+  it('leaves other columns untouched', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [
+        { column: 'vessel', values: ['A'] },
+        { column: 'operator', values: ['Jane'] },
+      ],
+    });
+    useAnalysisScopeStore.getState().setCategoricalValues('vessel', ['X']);
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'vessel', values: ['X'] },
+      { column: 'operator', values: ['Jane'] },
+    ]);
+  });
+
+  it('copies the input array (caller-mutation safety)', () => {
+    const input: (string | number)[] = ['A', 'B'];
+    useAnalysisScopeStore.getState().setCategoricalValues('vessel', input);
+    input.push('C');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'vessel', values: ['A', 'B'] },
+    ]);
+  });
+});
+
+describe('useAnalysisScopeStore — removeCategoricalFilter', () => {
+  it('drops the entire entry for the column', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [
+        { column: 'vessel', values: ['A', 'B'] },
+        { column: 'operator', values: ['Jane'] },
+      ],
+    });
+    useAnalysisScopeStore.getState().removeCategoricalFilter('vessel');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'operator', values: ['Jane'] },
+    ]);
+  });
+
+  it('is a no-op when column not present', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'operator', values: ['Jane'] }],
+    });
+    useAnalysisScopeStore.getState().removeCategoricalFilter('vessel');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'operator', values: ['Jane'] },
+    ]);
+  });
 });
