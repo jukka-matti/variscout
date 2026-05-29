@@ -348,7 +348,7 @@ PR-LV1-B/C are independent of each other; can run in parallel after LV1-A + LV1-
 - × on chip removes that scope field
 - `pnpm --filter @variscout/ui test` and `build` green
 
-**Sub-plan invocation:** Standard `superpowers:writing-plans` with prompt: `"Sub-plan for PR-LV1-E. Build SingleSelectPopover + ScopeChrome + ScopeChip dispatch + AddFilterButton + EmptyStateHint. FilterChipDropdown reuse via onUpdateFilterValues. ~6–8 tasks. Sonnet implementer; spec § 5.1 has all UX detail."`
+**Sub-plan:** [./2026-05-28-pr-lv1-e-explore-scope-chrome.md](./2026-05-28-pr-lv1-e-explore-scope-chrome.md) (drafted 2026-05-29; ready for dispatch — 7 bite-sized TDD tasks, Sonnet implementer per task, pragmatic-review pattern per LV1-D/LV1-H precedent).
 
 ---
 
