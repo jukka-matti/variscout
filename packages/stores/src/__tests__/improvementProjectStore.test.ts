@@ -153,10 +153,8 @@ function makeExtendedProject(id: string, hubId: string): ImprovementProject {
   return {
     ...makeProject(id, hubId),
     issueStatement: 'yields dropping',
-    processSteps: [
-      { id: 'step-1', name: 'Mix', order: 0 },
-      { id: 'step-2', name: 'Bake', order: 1 },
-    ],
+    // processSteps removed from ImprovementProject (IM-0b / ADR-087) — canonical
+    // step structure lives in ProcessMap; deriveProcessSteps is the read path.
     stepTimings: [
       { kind: 'paired', stepId: 'step-1', startColumn: 'start_ts', endColumn: 'end_ts' },
       { kind: 'duration', stepId: 'step-2', durationColumn: 'bake_ms' },
@@ -192,17 +190,6 @@ describe('improvementProjectStore upsertProject with E1-extended fields', () => 
     const result = useImprovementProjectStore.getState().getProjectForHub('hub-1');
     expect(result).toBeDefined();
     expect(result!.issueStatement).toBe('yields dropping');
-  });
-
-  it('round-trips processSteps on upsert', () => {
-    const project: ImprovementProject = {
-      ...makeProject('ip-e1-steps', 'hub-1'),
-      processSteps: [{ id: 'step-1', name: 'Mix', order: 0 }],
-    };
-    useImprovementProjectStore.getState().upsertProject(project);
-
-    const stored = useImprovementProjectStore.getState().projectsById['ip-e1-steps'];
-    expect(stored!.processSteps).toEqual([{ id: 'step-1', name: 'Mix', order: 0 }]);
   });
 
   it('round-trips stepTimings + formulaBindings + timeDecompositionBindings', () => {
@@ -244,7 +231,6 @@ describe('improvementProjectStore upsertProject with E1-extended fields', () => 
     expect(result).toBeDefined();
     const stored = result!;
     expect(stored.issueStatement).toBeUndefined();
-    expect(stored.processSteps).toBeUndefined();
     expect(stored.stepTimings).toBeUndefined();
     expect(stored.formulaBindings).toBeUndefined();
     expect(stored.timeDecompositionBindings).toBeUndefined();

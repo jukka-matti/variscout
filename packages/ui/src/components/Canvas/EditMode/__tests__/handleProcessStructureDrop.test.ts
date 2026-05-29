@@ -74,7 +74,9 @@ describe('handleProcessStructureDrop', () => {
   });
 
   describe('happy path: consumes drop and fires callback', () => {
-    it('returns true and calls onStepsReplace with extracted steps and column name', () => {
+    it('returns true and calls onStepsReplace with ordered distinct values and column name', () => {
+      // IM-0b: callback receives string[] (ordered distinct values), not ExtractedStep[].
+      // addStepsFromColumn mints canonical ids; no throwaway id premint here.
       const onStepsReplace = vi.fn();
       const result = handleProcessStructureDrop({
         activeId,
@@ -84,15 +86,12 @@ describe('handleProcessStructureDrop', () => {
       });
       expect(result).toBe(true);
       expect(onStepsReplace).toHaveBeenCalledTimes(1);
-      const [steps, columnName] = onStepsReplace.mock.calls[0];
+      const [distinctValues, columnName] = onStepsReplace.mock.calls[0];
       expect(columnName).toBe('Stage');
-      expect(steps).toHaveLength(3);
-      expect(steps[0]).toMatchObject({ name: 'Prep', order: 0 });
-      expect(steps[1]).toMatchObject({ name: 'Run', order: 1 });
-      expect(steps[2]).toMatchObject({ name: 'Cool', order: 2 });
+      expect(distinctValues).toEqual(['Prep', 'Run', 'Cool']);
     });
 
-    it('generates stable deterministic ids from column name + index', () => {
+    it('preserves the original ordering of distinct values', () => {
       const onStepsReplace = vi.fn();
       handleProcessStructureDrop({
         activeId: encodeColumnDragId('Phase'),
@@ -100,10 +99,8 @@ describe('handleProcessStructureDrop', () => {
         categoricalDistinctValuesByColumn: { Phase: ['A', 'B', 'C'] },
         onStepsReplace,
       });
-      const [steps] = onStepsReplace.mock.calls[0];
-      expect(steps[0].id).toBe('step-Phase-0');
-      expect(steps[1].id).toBe('step-Phase-1');
-      expect(steps[2].id).toBe('step-Phase-2');
+      const [distinctValues] = onStepsReplace.mock.calls[0];
+      expect(distinctValues).toEqual(['A', 'B', 'C']);
     });
   });
 });

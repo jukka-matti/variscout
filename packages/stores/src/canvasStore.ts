@@ -42,6 +42,16 @@ export interface CanvasStoreActions {
   reorderChipInStep: (chipId: string, stepId: string, toIndex: number) => void;
   addStep: (stepName: string, position?: { x: number; y: number }) => void;
   createStepFromChip: (chipId: string, stepName: string) => void;
+  /**
+   * Mint one canonical node per distinct value of a categorical column, in
+   * order. IM-0b (ADR-087): the column-drop-to-process-zone gesture retargets
+   * here so it produces RICH `ProcessMapNode`s on the canonical map using the
+   * canvas id scheme (`step-${slug}-${seq}` via `nextStepId`) — retiring the
+   * old flat `step-${columnName}-${idx}` mint. New nodes append after existing
+   * ones, continuing the `order` sequence. One undoable change; no-op (no
+   * version bump) when `distinctValues` is empty.
+   */
+  addStepsFromColumn: (columnName: string, distinctValues: string[]) => void;
   removeStep: (stepId: string) => void;
   renameStep: (stepId: string, newName: string) => void;
   connectSteps: (fromStepId: string, toStepId: string) => void;
@@ -338,6 +348,21 @@ export const useCanvasStore = create<CanvasStore>()(
             });
             draft.canonicalMap.assignments ??= {};
             draft.canonicalMap.assignments[chipId] = id;
+            return true;
+          });
+        },
+
+        addStepsFromColumn: (_columnName, distinctValues) => {
+          applyUndoable('canvas/addStepsFromColumn', draft => {
+            if (distinctValues.length === 0) return false;
+            for (const value of distinctValues) {
+              const id = nextStepId(draft.canonicalMap.nodes, value);
+              draft.canonicalMap.nodes.push({
+                id,
+                name: value,
+                order: draft.canonicalMap.nodes.length,
+              });
+            }
             return true;
           });
         },

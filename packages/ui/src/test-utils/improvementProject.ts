@@ -1,9 +1,5 @@
 import { createNewIP } from '@variscout/core/improvementProject';
-import type {
-  CreateNewIPInput,
-  ImprovementProject,
-  ProcessStepEntry,
-} from '@variscout/core/improvementProject';
+import type { CreateNewIPInput, ImprovementProject } from '@variscout/core/improvementProject';
 import type { FormulaBinding, StepTimingBinding, TimeDecompositionBinding } from '@variscout/core';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
 
@@ -12,15 +8,18 @@ import type { BinnedFactorBinding } from '@variscout/core/binning';
  *
  * Bridges the `createNewIP` factory (which knows about hub / title / member
  * fields) with the Canvas-Edit-mode root fields persisted onto the IP by
- * PR-CCJ-E1 T5 (`processSteps`, `stepTimings`, `formulaBindings`,
- * `timeDecompositionBindings`). The Canvas fields are layered ON TOP of the
- * factory output so tests can hand a single, fully-shaped IP to
- * `CanvasWorkspace` via the `activeIP` prop.
+ * PR-CCJ-E1 T5 (`stepTimings`, `formulaBindings`, `timeDecompositionBindings`).
+ * The Canvas fields are layered ON TOP of the factory output so tests can hand
+ * a single, fully-shaped IP to `CanvasWorkspace` via the `activeIP` prop.
+ *
+ * IM-0b (ADR-087): `processSteps` is NOT a settable override — it is a
+ * read-only projection of the canonical `ProcessMap` (`deriveProcessSteps`).
+ * Seed steps via `processContext.processMap.nodes` (the CanvasWorkspace
+ * `processContext` prop), not via the IP.
  */
 export interface CreateTestIPOverrides extends Partial<CreateNewIPInput> {
-  /** Pre-populated `IP.processSteps`. Defaults to omitted (undefined). */
-  processSteps?: ProcessStepEntry[];
-  /** Pre-populated `IP.stepTimings`. Defaults to omitted. */
+  /** Pre-populated `IP.stepTimings`. Defaults to omitted. `stepId` references a
+   *  canonical `ProcessMap` node id (ADR-087). */
   stepTimings?: StepTimingBinding[];
   /** Pre-populated `IP.formulaBindings`. Defaults to omitted. */
   formulaBindings?: FormulaBinding[];
@@ -40,7 +39,6 @@ export interface CreateTestIPOverrides extends Partial<CreateNewIPInput> {
  */
 export function createTestIP(overrides: CreateTestIPOverrides = {}): ImprovementProject {
   const {
-    processSteps,
     stepTimings,
     formulaBindings,
     timeDecompositionBindings,
@@ -61,7 +59,6 @@ export function createTestIP(overrides: CreateTestIPOverrides = {}): Improvement
 
   return {
     ...base,
-    ...(processSteps !== undefined && { processSteps }),
     ...(stepTimings !== undefined && { stepTimings }),
     ...(formulaBindings !== undefined && { formulaBindings }),
     ...(timeDecompositionBindings !== undefined && { timeDecompositionBindings }),

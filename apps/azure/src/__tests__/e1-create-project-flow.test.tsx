@@ -309,8 +309,9 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
       role: 'lead',
     });
     expect(newIP.goal.outcomeGoals).toEqual([]);
-    // Canvas-Edit-mode fields start absent — populated by later modal saves.
-    expect(newIP.processSteps).toBeUndefined();
+    // Canvas-Edit-mode binding fields start absent — populated by later modal
+    // saves. processSteps was removed from ImprovementProject (IM-0b / ADR-087);
+    // the canonical step structure lives in ProcessMap.
     expect(newIP.stepTimings).toBeUndefined();
     expect(newIP.formulaBindings).toBeUndefined();
     expect(newIP.timeDecompositionBindings).toBeUndefined();

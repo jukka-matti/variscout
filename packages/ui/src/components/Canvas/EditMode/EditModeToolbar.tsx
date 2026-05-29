@@ -22,8 +22,9 @@ export interface EditModeToolbarProps {
    */
   factorControls?: ImprovementProjectFactorControl[];
   /**
-   * F1 Task 3: process steps from activeIP.processSteps ?? localProcessSteps.
-   * Drives the y-plus-process route key. Defaults to [].
+   * F1 Task 3: process steps derived from the canonical ProcessMap
+   * (via deriveProcessSteps — ADR-087). Drives the y-plus-process route key.
+   * Defaults to [].
    */
   processSteps?: ProcessStepEntry[];
   /**

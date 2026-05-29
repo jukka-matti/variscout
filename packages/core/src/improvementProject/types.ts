@@ -15,12 +15,17 @@ import type { BinnedFactorBinding } from '../binning';
 export type ImprovementProjectStatus = 'draft' | 'active' | 'closed';
 
 /**
- * Canvas-edited process step entry persisted on the ImprovementProject root
- * (Canvas Connection Journey E1, CCJ §3.3.3). Structurally mirrors
- * `ExtractedStep` in `@variscout/ui` (Canvas EditMode/ProcessZone); the two
- * are reconciled when CanvasWorkspace adopts the IP-blob persistence path.
- * Kept here so `@variscout/core` can reference process step state without
- * the forbidden core → ui import.
+ * Flat projection of one canonical `ProcessMap` node ({ id, name, order }).
+ *
+ * Per ADR-087 the rich `ProcessMap` / `ProcessMapNode` is the single canonical
+ * step structure; `ProcessStepEntry` is the element type of its read-only
+ * projection (`deriveProcessSteps` in `@variscout/core/frame`). It is NOT a
+ * second source of truth — it carries no `ctqColumn` / `capabilityScope` /
+ * `tributaries` / `parentStepId`; those live on the canonical node. Its `id`
+ * is the canonical node id, so every `stepId` reference resolves against it.
+ *
+ * Kept here (rather than importing from `frame`) so `@variscout/core` consumers
+ * can reference the flat shape without coupling to the full map type.
  */
 export interface ProcessStepEntry {
   id: string;
@@ -49,9 +54,10 @@ export interface ImprovementProjectOutcomeGoal {
   deadline?: string;
   /** Optional: bind this outcome to a specific process step (step-bound Y).
    *  If omitted, the outcome is global (whole-process Y, feeds L1 view).
-   *  If present, references a step id in the IP's ProcessMap; feeds L3
-   *  focal-step view. Per Spec 2 §3.3.1 step-bound vs global symmetry —
-   *  outcomes AND factors can both be global or step-bound. */
+   *  If present, `stepId` references a canonical `ProcessMap` node id
+   *  (ADR-087); feeds L3 focal-step view. Per Spec 2 §3.3.1 step-bound
+   *  vs global symmetry — outcomes AND factors can both be global or
+   *  step-bound. */
   stepId?: string;
 }
 
@@ -59,7 +65,8 @@ export interface ImprovementProjectFactorControl {
   factor: string;
   targetCondition: string;
   linkedHypothesisId?: Hypothesis['id'];
-  /** Optional: binds this control to a specific process step. Empty = global. */
+  /** Optional: binds this control to a specific process step. Empty = global.
+   *  When set, `stepId` references a canonical `ProcessMap` node id (ADR-087). */
   stepId?: string;
 }
 
@@ -153,17 +160,10 @@ export interface ImprovementProject extends EntityBase {
    *  goal-side fallback when no OutcomeSpec is available. */
   issueStatement?: string;
 
-  /** Canvas-edited process step list (from C3 — Process Structure zone).
-   *  Previously held as local `useState<ExtractedStep[]>` in `CanvasWorkspace`;
-   *  lifted to the IP root so it persists across sessions. Step ids referenced
-   *  by `stepTimings`, `goal.outcomeGoals[].stepId`,
-   *  `goal.factorControls[].stepId`. */
-  processSteps?: ProcessStepEntry[];
-
   /** Per-step timing bindings (from D1 — Step Timings workflow).
    *  Paired (start + end columns) drives Lead_time + Total_work_time +
    *  Wait_time derivation; duration columns contribute to Total_work_time
-   *  only. `stepId` references entries in `processSteps`. */
+   *  only. `stepId` references a canonical `ProcessMap` node id (ADR-087). */
   stepTimings?: StepTimingBinding[];
 
   /** Calculated-column formula bindings (from D2 — Calc workflow).

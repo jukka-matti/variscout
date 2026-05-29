@@ -3,25 +3,12 @@ import type { ProcessStepEntry } from '@variscout/core/improvementProject';
 /**
  * `ExtractedStep` is the Canvas-EditMode-side alias for `ProcessStepEntry`.
  *
- * Historically (C3) this was a locally-defined `{ id; name; order }` interface
- * scoped to the ProcessZone drop journey. PR-CCJ-E1 T5 lifted the
- * `processSteps` field onto `ImprovementProject` and aliased the two so the
- * Canvas drop handler + `IP.processSteps` share a single nominal type without
- * the forbidden `core → ui` import.
- *
- * Keep the `ExtractedStep` name throughout the Canvas EditMode tree (so
- * `CanvasWorkspace` / `handleEditModeDragEnd` / `handleProcessStructureDrop`
- * read as a connected story). The IP root persists the same shape.
+ * The type is retained for any external callers that may reference it; the
+ * `extractStepsFromCategoricalColumn` function it accompanied has been retired
+ * in IM-0b. The old function minted `step-${columnName}-${idx}` ids that
+ * `handleStepsReplace` immediately discarded (it only used `step.name` and
+ * re-minted canonical ids via `addStepsFromColumn`). The drop handler now
+ * passes ordered distinct values straight to the callback — no intermediate
+ * `ExtractedStep[]` with throwaway ids.
  */
 export type ExtractedStep = ProcessStepEntry;
-
-export function extractStepsFromCategoricalColumn(
-  columnName: string,
-  distinctValues: string[]
-): ExtractedStep[] {
-  return distinctValues.map((value, idx) => ({
-    id: `step-${columnName}-${idx}`,
-    name: value,
-    order: idx,
-  }));
-}
