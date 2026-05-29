@@ -91,7 +91,9 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 
 ## IM-0b · Process-step model reconciliation (PREREQ)
 
-- **Goal:** Make the rich `ProcessMap` the single canonical step structure; `IP.processSteps` becomes a derived read-only projection; one step-id scheme; add the `processLocation` join key.
+**Sub-plan:** [`2026-05-30-im-0b-step-model.md`](2026-05-30-im-0b-step-model.md)
+
+- **Goal:** Make the rich `ProcessMap` the single canonical step structure; `IP.processSteps` becomes a derived read-only projection; one step-id scheme (retarget the column-drop gesture onto the rich map); wire `onFactorControlAdd`; establish the canonical node-id for the IM-2 `processLocation` join. **Authoring-relocation (ctq / tributaries / capabilityScope off the deprecated `ProcessMapBase`) split to IM-0b-2** — it gates nothing downstream (grounding 2026-05-30).
 - **ADR:** [087](../../07-decisions/adr-087-process-step-model-reconciliation.md).
 - **Depends on:** IM-0a (runs after the 1:1 collapse — ownership is then unambiguous). **Gates:** IM-2, IM-5 (and the `processLocation` join everywhere).
 - **Key files (grounded):** `packages/core/src/frame/types.ts` (ProcessMap :109 / ProcessMapNode :29), `packages/core/src/ai/types.ts:142` (ProcessContext.processMap), `packages/core/src/improvementProject/types.ts:25,:52,:161,:166` (ProcessStepEntry + flat list + contradictory comments), `packages/stores/src/canvasStore.ts:13,:146` (canonicalMap + id minting), `packages/ui/.../ProcessZone/extractStepsFromCategoricalColumn.ts:23` (rival id scheme), `packages/core/src/frame/stepColumns.ts:40` + `findings/hypothesisCondition.ts:160` (read-only join — leave unchanged), `apps/{azure,pwa}/src/db/schema.ts` (IDB bump).
@@ -99,7 +101,7 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 - **Suggested model:** **Opus** (multi-file integration, ID-scheme + IDB judgment, prereq).
 - **Worktree:** `.worktrees/im-0-step-model`.
 - **Apply-phase docs:** resolve the `improvementProject/types.ts:52` vs `:166` comment contradiction → "stepId references a canonical `ProcessMap` node id."
-- **Acceptance:** flat `processSteps` reads resolve through the projection; one id scheme; `processLocation` field exists + resolves; `getStepColumnAssignments` unchanged + green; per-step `capabilityScope` intact (no cross-step roll-up — ADR-073 tripwire green); `pnpm build` + per-package vitest green.
+- **Acceptance:** flat `processSteps` reads resolve through the projection; one id scheme (rival `step-${columnName}-${idx}` retired; column-drop retargeted onto the rich map); `onFactorControlAdd` wired (the `MeasurementPlan.processLocation` field itself ships in IM-2); `getStepColumnAssignments` unchanged + green; per-step `capabilityScope` intact (no cross-step roll-up — ADR-073 tripwire green); `pnpm build` + per-package vitest green.
 - **Sub-plan note:** verify no reader depends on the column-name embedded in the old `step-${columnName}-${idx}` id (the join derives column overlap, not from the id — adr-087 tension).
 
 ## IM-1 · Drop `Question` + `ProblemStatementScope` first-class (ATOMIC)
