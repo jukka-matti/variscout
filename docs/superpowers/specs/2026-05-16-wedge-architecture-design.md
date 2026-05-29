@@ -108,7 +108,7 @@ This order supersedes the Coherence §4 nav (which placed Process between Home a
 
 ### §3.2 Project detail: 3 stages
 
-`Charter → Approach → Sustainment`
+`Charter → Approach → Control`
 
 Improve is **not** a stage — it lives as a top-level verb tab (§3.1) with active-IP cascade, so the action tracker is always one click away regardless of which Project-stage panel is open. Handoff is **folded into Control closure**. Single end-of-project decision moment.
 
