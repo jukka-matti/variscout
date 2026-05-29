@@ -1,3 +1,12 @@
+---
+tier: ephemeral
+purpose: build
+title: 'Investigation Surface — Master Plan (PR sequencer)'
+status: draft
+date: 2026-05-29
+layer: spec
+---
+
 # Investigation Surface — Master Plan (PR sequencer)
 
 > **For agentic workers:** This is a **master sequencer** at PR granularity, not a task-level plan. Per `feedback_master_plan_for_multi_subsystem_specs`, each PR (IM-0a…IM-7) gets its own bite-sized sub-plan authored via `superpowers:writing-plans` **at execution time** (one worktree per PR), then executed via `superpowers:subagent-driven-development`. Do not expand this into 5000 lines of 2–5-min steps up front — plan-as-you-execute.
