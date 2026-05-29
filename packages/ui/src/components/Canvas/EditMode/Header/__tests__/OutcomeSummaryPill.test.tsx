@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { useAnalysisScopeStore, getAnalysisScopeInitialState } from '@variscout/stores';
 import { createTestOutcomeSpec } from '../../../../../test-utils/outcomeSpec';
 import { OutcomeSummaryPill } from '../OutcomeSummaryPill';
@@ -89,5 +89,33 @@ describe('OutcomeSummaryPill', () => {
       <OutcomeSummaryPill rawData={[{ Diameter: 10 }, { Diameter: 11 }]} outcomeSpecs={[spec]} />
     );
     expect(screen.getByTestId('outcome-summary-pill')).toHaveTextContent('Cpk —');
+  });
+
+  it('opens OutcomeSpecsPopover on ↗ click with the current outcomeSpec', () => {
+    useAnalysisScopeStore.setState({ yColumn: 'Diameter' });
+    const spec = createTestOutcomeSpec({ columnName: 'Diameter' });
+    render(<OutcomeSummaryPill rawData={[]} outcomeSpecs={[spec]} />);
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    fireEvent.click(screen.getByTestId('outcome-summary-pill-spec-button'));
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^target$/i)).toHaveValue(spec.target);
+  });
+
+  it('passes onApply through to onOutcomeSpecApply prop and closes popover', () => {
+    useAnalysisScopeStore.setState({ yColumn: 'Diameter' });
+    const spec = createTestOutcomeSpec({ columnName: 'Diameter' });
+    const onApply = vi.fn();
+    render(<OutcomeSummaryPill rawData={[]} outcomeSpecs={[spec]} onOutcomeSpecApply={onApply} />);
+    fireEvent.click(screen.getByTestId('outcome-summary-pill-spec-button'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /apply/i }));
+
+    expect(onApply).toHaveBeenCalledTimes(1);
+    expect(onApply).toHaveBeenCalledWith(expect.objectContaining({ columnName: 'Diameter' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });
