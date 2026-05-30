@@ -879,8 +879,11 @@ describe('WallCanvas', () => {
           }}
         />
       );
-      // The plan chip for 'Nozzle Temp' should appear exactly once (on h1 only)
-      expect(screen.getAllByText(/Nozzle Temp/i).length).toBe(1);
+      // The plan for 'Nozzle Temp' belongs to h1 only. IM-4b renders the factor
+      // in BOTH the data-collection-task header ("collect Nozzle Temp") AND the
+      // embedded chip, so it appears exactly twice — and only under h1 (h2 has
+      // no matching plan, so 0 there → 2 total, proving per-hypothesis filtering).
+      expect(screen.getAllByText(/Nozzle Temp/i).length).toBe(2);
     });
 
     it('filters out soft-deleted plans (deletedAt !== null) — deleted plan chip absent', () => {
@@ -911,8 +914,9 @@ describe('WallCanvas', () => {
           }}
         />
       );
-      // Active plan chip visible; deleted plan chip not visible
-      expect(screen.getByText(/ActiveFactor/i)).toBeInTheDocument();
+      // Active plan visible (factor appears in both the collect-task header and
+      // the chip — IM-4b); deleted plan absent entirely.
+      expect(screen.getAllByText(/ActiveFactor/i).length).toBeGreaterThan(0);
       expect(screen.queryByText(/DeletedFactor/i)).not.toBeInTheDocument();
     });
 
