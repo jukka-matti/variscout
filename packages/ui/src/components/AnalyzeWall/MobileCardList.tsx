@@ -16,6 +16,7 @@ import {
   type HypothesisStatus,
   type Finding,
 } from '@variscout/core';
+import { deriveHypothesisStatus } from '@variscout/core/survey';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
 import { EmptyState } from './EmptyState';
@@ -51,29 +52,6 @@ const STATUS_ACCENT: Record<HypothesisStatus, string> = {
   'needs-disconfirmation': chartColors.warning,
 };
 
-const CANONICAL_HYPOTHESIS_STATUSES = new Set<HypothesisStatus>([
-  'proposed',
-  'evidenced',
-  'confirmed',
-  'refuted',
-  'needs-disconfirmation',
-]);
-
-/**
- * Derive the displayed status. Kept local (instead of imported from
- * WallCanvas) to avoid introducing a shared-helpers file mid-phase — the
- * computation is tiny and the two call sites share nothing else.
- */
-function deriveDisplayStatus(hub: Hypothesis, findings: Finding[]): HypothesisStatus {
-  if (CANONICAL_HYPOTHESIS_STATUSES.has(hub.status)) return hub.status;
-  const supporting = hub.findingIds
-    .map(id => findings.find(f => f.id === id))
-    .filter((f): f is Finding => !!f);
-  const hasContradictor = supporting.some(f => f.validationStatus === 'contradicts');
-  if (supporting.length >= 1 && !hasContradictor) return 'evidenced';
-  return 'proposed';
-}
-
 export const MobileCardList: React.FC<MobileCardListProps> = ({
   hubs,
   findings,
@@ -102,7 +80,7 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
       aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
     >
       {hubs.map(hub => {
-        const status = deriveDisplayStatus(hub, findings);
+        const status = deriveHypothesisStatus(hub, findings);
         const branch = projectMechanismBranch(hub, {
           findings,
           processContext: processMap ? { processMap } : undefined,
