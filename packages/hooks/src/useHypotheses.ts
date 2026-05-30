@@ -14,10 +14,7 @@ export interface UseHypothesesOptions {
 }
 
 export type HypothesisUpdate = Partial<
-  Pick<
-    Hypothesis,
-    'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds' | 'checkQuestionIds'
-  >
+  Pick<Hypothesis, 'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds'>
 >;
 
 export interface UseHypothesesReturn {
@@ -34,18 +31,12 @@ export interface UseHypothesesReturn {
    * Updates hook state and fires onHubsChange so the store stays in sync.
    */
   resetHubs: (newHubs: Hypothesis[]) => void;
-  /** Connect a question to a hub (no-op if already connected) */
-  connectQuestion: (hubId: string, questionId: string) => void;
-  /** Disconnect a question from a hub */
-  disconnectQuestion: (hubId: string, questionId: string) => void;
   /** Connect a finding to a hub (no-op if already connected) */
   connectFinding: (hubId: string, findingId: string) => void;
   /** Disconnect a finding from a hub */
   disconnectFinding: (hubId: string, findingId: string) => void;
   /** Update the status of a hub */
   setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
-  /** Find the hub that contains a given questionId */
-  getHubForQuestion: (questionId: string) => Hypothesis | undefined;
   /** Find the hub that contains a given findingId */
   getHubForFinding: (findingId: string) => Hypothesis | undefined;
 }
@@ -105,40 +96,6 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
     [update]
   );
 
-  const connectQuestion = useCallback(
-    (hubId: string, questionId: string): void => {
-      update(prev =>
-        prev.map(h => {
-          if (h.id !== hubId) return h;
-          if (h.questionIds.includes(questionId)) return h;
-          return {
-            ...h,
-            questionIds: [...h.questionIds, questionId],
-            updatedAt: Date.now(),
-          };
-        })
-      );
-    },
-    [update]
-  );
-
-  const disconnectQuestion = useCallback(
-    (hubId: string, questionId: string): void => {
-      update(prev =>
-        prev.map(h =>
-          h.id !== hubId
-            ? h
-            : {
-                ...h,
-                questionIds: h.questionIds.filter(id => id !== questionId),
-                updatedAt: Date.now(),
-              }
-        )
-      );
-    },
-    [update]
-  );
-
   const connectFinding = useCallback(
     (hubId: string, findingId: string): void => {
       update(prev =>
@@ -188,12 +145,6 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
     [update]
   );
 
-  const getHubForQuestion = useCallback(
-    (questionId: string): Hypothesis | undefined =>
-      hubs.find(h => h.questionIds.includes(questionId)),
-    [hubs]
-  );
-
   const getHubForFinding = useCallback(
     (findingId: string): Hypothesis | undefined => hubs.find(h => h.findingIds.includes(findingId)),
     [hubs]
@@ -205,12 +156,9 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
     updateHub,
     deleteHub,
     resetHubs,
-    connectQuestion,
-    disconnectQuestion,
     connectFinding,
     disconnectFinding,
     setHubStatus,
-    getHubForQuestion,
     getHubForFinding,
   };
 }

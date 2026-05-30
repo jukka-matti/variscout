@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import type { CausalLink, Question, Finding, Hypothesis } from '@variscout/core/findings';
+import type { CausalLink, Finding, Hypothesis } from '@variscout/core/findings';
 
 // ============================================================================
 // Types
@@ -33,8 +33,6 @@ export interface TimelineFrame {
 export interface UseEvidenceMapTimelineOptions {
   /** Causal links with createdAt timestamps */
   causalLinks?: CausalLink[];
-  /** Investigation questions with createdAt timestamps */
-  questions?: Question[];
   /** Findings with createdAt timestamps (numeric, converted to ISO) */
   findings?: Finding[];
   /** Suspected cause hubs with createdAt timestamps */
@@ -68,7 +66,7 @@ export interface UseEvidenceMapTimelineReturn {
 
 interface TimestampedArtifact {
   timestamp: string;
-  type: 'link' | 'question' | 'finding' | 'hub';
+  type: 'link' | 'finding' | 'hub';
   id: string;
   factors: string[];
 }
@@ -76,7 +74,6 @@ interface TimestampedArtifact {
 /** Extract ISO timestamp string from various artifact types. */
 function collectArtifacts(
   causalLinks: CausalLink[],
-  questions: Question[],
   findings: Finding[],
   hypotheses: Hypothesis[]
 ): TimestampedArtifact[] {
@@ -88,16 +85,6 @@ function collectArtifacts(
       timestamp: new Date(link.createdAt).toISOString(),
       type: 'link',
       id: link.id,
-      factors,
-    });
-  }
-
-  for (const q of questions) {
-    const factors = q.factor ? [q.factor] : [];
-    artifacts.push({
-      timestamp: new Date(q.createdAt).toISOString(),
-      type: 'question',
-      id: q.id,
       factors,
     });
   }
@@ -215,7 +202,6 @@ export function useEvidenceMapTimeline(
 ): UseEvidenceMapTimelineReturn {
   const {
     causalLinks = [],
-    questions = [],
     findings = [],
     hypotheses = [],
     intervalMs = 1500,
@@ -228,9 +214,9 @@ export function useEvidenceMapTimeline(
 
   // Compute frames from all investigation artifacts
   const frames = useMemo(() => {
-    const artifacts = collectArtifacts(causalLinks, questions, findings, hypotheses);
+    const artifacts = collectArtifacts(causalLinks, findings, hypotheses);
     return buildFrames(artifacts, maxFrames);
-  }, [causalLinks, questions, findings, hypotheses, maxFrames]);
+  }, [causalLinks, findings, hypotheses, maxFrames]);
 
   // Clear interval on unmount
   useEffect(() => {

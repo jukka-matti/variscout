@@ -217,17 +217,6 @@ export { useFindings, type UseFindingsOptions, type UseFindingsReturn } from './
 // Journal Entries (chronological investigation timeline)
 export { useJournalEntries, type JournalEntry } from './useJournalEntries';
 
-// Questions (investigation questions linked to findings)
-export {
-  useQuestions,
-  MAX_QUESTION_DEPTH,
-  MAX_CHILDREN_PER_PARENT,
-  MAX_TOTAL_QUESTIONS,
-  type ChildrenSummary,
-  type UseQuestionsOptions,
-  type UseQuestionsReturn,
-} from './useQuestions';
-
 // Chart Wrapper Data Hooks (shared computation for app chart wrappers)
 export {
   useBoxplotWrapperData,
@@ -454,13 +443,6 @@ export {
   type CoScoutActionProposalsSlice,
 } from './useCoScoutProps';
 
-// Question Generation (Factor Intelligence → questions pipeline)
-export {
-  useQuestionGeneration,
-  type UseQuestionGenerationOptions,
-  type UseQuestionGenerationReturn,
-} from './useQuestionGeneration';
-
 // Problem Statement (Watson's 3 questions auto-synthesis)
 export {
   useProblemStatement,
@@ -505,9 +487,6 @@ export {
   type UseHypothesesOptions,
   type UseHypothesesReturn,
 } from './useHypotheses';
-
-// Question Reactivity (drill-down factor → active question lookup)
-export { useQuestionReactivity } from './useQuestionReactivity';
 
 // Visual Grounding (CoScout REF marker highlight lifecycle)
 export {

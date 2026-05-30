@@ -5,7 +5,6 @@ import {
   type CurrentUnderstanding,
   type ProblemCondition,
   type ProcessContext,
-  type Question,
   type Hypothesis,
 } from '@variscout/core';
 
@@ -28,7 +27,6 @@ export interface UseCurrentUnderstandingOptions {
   processContext?: ProcessContext | null;
   stats?: CurrentUnderstandingStats | null;
   problemStatement?: CurrentUnderstandingProblemStatementState;
-  questions?: Question[];
   hypothesisHubs?: Hypothesis[];
   scopedPattern?: string | null;
   onCurrentUnderstandingChange?: (
@@ -65,38 +63,6 @@ function currentValueForMetric(
   }
 }
 
-function formatEvidenceLabel(question: Question): string | undefined {
-  const r2 = question.evidence?.rSquaredAdj;
-  if (r2 !== undefined && Number.isFinite(r2)) return `R2adj ${Math.round(r2 * 100)}%`;
-
-  const eta = question.evidence?.etaSquared;
-  if (eta !== undefined && Number.isFinite(eta)) return `eta2 ${Math.round(eta * 100)}%`;
-
-  return undefined;
-}
-
-function mechanismNameFromQuestion(question: Question): string | undefined {
-  if (!question.factor) return undefined;
-  return question.level ? `${question.factor} = ${question.level}` : question.factor;
-}
-
-function activeMechanismsFromQuestions(questions: Question[]) {
-  return questions
-    .filter(question => question.causeRole === 'suspected-cause')
-    .map(question => {
-      const name = mechanismNameFromQuestion(question);
-      if (!name) return null;
-
-      return {
-        id: question.id,
-        name,
-        synthesis: question.text,
-        evidenceLabel: formatEvidenceLabel(question),
-      };
-    })
-    .filter((mechanism): mechanism is NonNullable<typeof mechanism> => mechanism !== null);
-}
-
 function activeMechanismsFromHubs(hubs: Hypothesis[]) {
   return hubs
     .filter(hub => hub.status !== 'refuted')
@@ -110,14 +76,6 @@ function activeMechanismsFromHubs(hubs: Hypothesis[]) {
         evidenceLabel,
       };
     });
-}
-
-function firstScopedPattern(questions: Question[]): string | undefined {
-  const scoped = questions.find(
-    question => question.causeRole === 'suspected-cause' && question.factor
-  );
-  if (!scoped?.factor) return undefined;
-  return scoped.level ? `${scoped.factor} = ${scoped.level}` : scoped.factor;
 }
 
 function signature(
@@ -137,7 +95,6 @@ export function useCurrentUnderstanding({
   processContext,
   stats,
   problemStatement,
-  questions = [],
   hypothesisHubs = [],
   scopedPattern,
   onCurrentUnderstandingChange,
@@ -159,10 +116,7 @@ export function useCurrentUnderstanding({
   ]);
 
   const currentUnderstanding = useMemo(() => {
-    const mechanisms =
-      hypothesisHubs.length > 0
-        ? activeMechanismsFromHubs(hypothesisHubs)
-        : activeMechanismsFromQuestions(questions);
+    const mechanisms = activeMechanismsFromHubs(hypothesisHubs);
     const liveStatement =
       problemStatement?.draft ??
       problemStatement?.liveStatement ??
@@ -171,7 +125,7 @@ export function useCurrentUnderstanding({
     return buildCurrentUnderstanding({
       issueStatement: processContext?.issueStatement,
       problemCondition,
-      scopedPattern: scopedPattern ?? firstScopedPattern(questions),
+      scopedPattern: scopedPattern ?? undefined,
       liveStatement,
       approvedProblemStatement: processContext?.problemStatement,
       activeSuspectedMechanisms: mechanisms,
@@ -183,7 +137,6 @@ export function useCurrentUnderstanding({
     problemStatement?.draft,
     problemStatement?.generatedDraft,
     problemStatement?.liveStatement,
-    questions,
     scopedPattern,
     hypothesisHubs,
   ]);

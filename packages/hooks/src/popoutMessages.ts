@@ -11,7 +11,6 @@ import type {
   Finding,
   FindingStatus,
   FindingTag,
-  Question,
   ProcessContext,
   AnalyzePhase,
   IdeaTimeframe,
@@ -47,7 +46,6 @@ export interface FindingsSyncData {
   findings: Finding[];
   columnAliases?: Record<string, string>;
   drillPath: DrillStep[];
-  treeQuestions?: Question[];
   processContext?: ProcessContext;
   currentValue?: number;
   projectedValue?: number;
@@ -55,7 +53,6 @@ export interface FindingsSyncData {
   suggestedQuestions?: string[];
   factorRoles?: Record<string, string>;
   aiAvailable?: boolean;
-  questions?: Question[];
   issueStatement?: string;
   suggestedIssueStatement?: string;
   problemStatement?: string;
@@ -94,10 +91,10 @@ export interface FindingsAction {
 
 export interface ImprovementSyncData {
   synthesis?: string;
-  questions: Array<{
+  hypotheses: Array<{
     id: string;
-    text: string;
-    causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
+    name: string;
+    status: string;
     factor?: string;
     ideas: ImprovementIdea[];
     linkedFindingName?: string;
@@ -120,27 +117,27 @@ export interface ImprovementActionMessage extends PopoutMessage {
 
 export type ImprovementAction =
   | { action: 'synthesis-change'; text: string }
-  | { action: 'toggle-select'; questionId: string; ideaId: string; selected: boolean }
+  | { action: 'toggle-select'; hypothesisId: string; ideaId: string; selected: boolean }
   | {
       action: 'update-timeframe';
-      questionId: string;
+      hypothesisId: string;
       ideaId: string;
       timeframe: IdeaTimeframe | undefined;
     }
   | {
       action: 'update-direction';
-      questionId: string;
+      hypothesisId: string;
       ideaId: string;
       direction: IdeaDirection | undefined;
     }
   | {
       action: 'update-cost';
-      questionId: string;
+      hypothesisId: string;
       ideaId: string;
       cost: { category: IdeaCostCategory } | undefined;
     }
-  | { action: 'remove-idea'; questionId: string; ideaId: string }
-  | { action: 'add-idea'; questionId: string; text: string }
+  | { action: 'remove-idea'; hypothesisId: string; ideaId: string }
+  | { action: 'add-idea'; hypothesisId: string; text: string }
   | { action: 'convert-to-actions' };
 
 // ============================================================================

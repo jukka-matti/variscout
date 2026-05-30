@@ -21,7 +21,7 @@ import { computeEvidenceMapLayout } from '@variscout/core/stats';
 import type { EvidenceMapLayout, FactorNodeLayout } from '@variscout/core/stats';
 import { findConvergencePoints } from '@variscout/core/stats';
 import type { ResolvedMode } from '@variscout/core/strategy';
-import type { CausalLink, Question, Finding, Hypothesis } from '@variscout/core/findings';
+import type { CausalLink, Finding, Hypothesis } from '@variscout/core/findings';
 import type {
   FactorNodeData,
   RelationshipEdgeData,
@@ -58,8 +58,6 @@ export interface UseEvidenceMapDataOptions {
   mode: ResolvedMode;
   /** Analyst-created causal links (Layer 2) */
   causalLinks?: CausalLink[];
-  /** Investigation questions (Layer 2 evidence counts) */
-  questions?: Question[];
   /** Findings (Layer 2 evidence counts) */
   findings?: Finding[];
   /** Suspected cause hubs (Layer 3 convergence enrichment) */
@@ -138,12 +136,11 @@ function mapFactorNode(
 
 /**
  * Map a CausalLink to CausalEdgeData, enriched with position data
- * from the layout and evidence counts from questions/findings.
+ * from the layout and evidence counts from findings.
  */
 function mapCausalEdge(
   link: CausalLink,
   nodePositions: Map<string, { x: number; y: number }>,
-  questions: Question[],
   findings: Finding[]
 ): CausalEdgeData | null {
   const fromPos = nodePositions.get(link.fromFactor);
@@ -152,10 +149,8 @@ function mapCausalEdge(
   // Skip links that reference factors not in the current layout
   if (!fromPos || !toPos) return null;
 
-  // Count questions and findings linked to this causal link
-  const linkedQuestionIds = new Set(link.questionIds);
+  // Count findings linked to this causal link
   const linkedFindingIds = new Set(link.findingIds);
-  const questionCount = questions.filter(q => linkedQuestionIds.has(q.id)).length;
   const findingCount = findings.filter(f => linkedFindingIds.has(f.id)).length;
 
   return {
@@ -167,7 +162,7 @@ function mapCausalEdge(
     whyStatement: link.whyStatement,
     direction: link.direction,
     evidenceType: link.evidenceType,
-    questionCount,
+    questionCount: 0, // Question entity retired (ADR-085); field kept for interface compat until IM-4
     findingCount,
     fromX: fromPos.x,
     fromY: fromPos.y,
@@ -189,19 +184,15 @@ function mapConvergencePoint(
   if (!pos) return null;
 
   // Find a hypothesis hub that references this factor
-  // A hub is linked if any of its connected question/finding IDs
-  // appear in the incoming links' question/finding IDs
-  const incomingQuestionIds = new Set(cp.incomingLinks.flatMap(l => l.questionIds));
+  // A hub is linked if any of its connected finding IDs
+  // appear in the incoming links' finding IDs
   const incomingFindingIds = new Set(cp.incomingLinks.flatMap(l => l.findingIds));
   const incomingHubIds = new Set(
     cp.incomingLinks.map(l => l.hypothesisId).filter((id): id is string => id !== undefined)
   );
 
   const matchingHub = hypotheses.find(
-    sc =>
-      incomingHubIds.has(sc.id) ||
-      sc.questionIds.some(qId => incomingQuestionIds.has(qId)) ||
-      sc.findingIds.some(fId => incomingFindingIds.has(fId))
+    sc => incomingHubIds.has(sc.id) || sc.findingIds.some(fId => incomingFindingIds.has(fId))
   );
 
   return {
@@ -229,7 +220,6 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
     containerSize,
     mode,
     causalLinks = [],
-    questions = [],
     findings = [],
     hypotheses = [],
   } = options;
@@ -259,11 +249,12 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
 
     const outcomeNode: OutcomeNodeData = layout.outcomeNode;
 
-    // Compute explored factors: factors with at least one answered or ruled-out question
+    // Compute explored factors: factors that appear in at least one finding's activeFilters
+    // (analyst has drilled into the factor and captured a finding about it)
     const exploredSet = new Set<string>();
-    for (const q of questions) {
-      if (q.factor && (q.status === 'answered' || q.causeRole === 'ruled-out')) {
-        exploredSet.add(q.factor);
+    for (const f of findings) {
+      for (const column of Object.keys(f.context?.activeFilters ?? {})) {
+        exploredSet.add(column);
       }
     }
     const hasExploration = exploredSet.size > 0;
@@ -301,7 +292,7 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
 
     // ---- Layer 2: Investigation causal edges ----
     const causalEdges: CausalEdgeData[] = causalLinks
-      .map(link => mapCausalEdge(link, nodePositions, questions, findings))
+      .map(link => mapCausalEdge(link, nodePositions, findings))
       .filter((edge): edge is CausalEdgeData => edge !== null);
 
     // ---- Layer 3: Convergence points ----
@@ -332,7 +323,6 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
     containerSize,
     mode,
     causalLinks,
-    questions,
     findings,
     hypotheses,
   ]);

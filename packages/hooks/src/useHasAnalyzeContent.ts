@@ -16,10 +16,7 @@ export interface UseHasAnalyzeContentArgs {
  */
 export function useHasAnalyzeContent(args: UseHasAnalyzeContentArgs): boolean {
   const hubsCount = useAnalyzeStore(state => state.hypotheses.length);
-  const openQuestionsCount = useAnalyzeStore(
-    state => state.questions.filter(question => question.status === 'open').length
-  );
   const hasHubBackedFindings = hubsCount > 0 && args.findingsCount > 0;
 
-  return hubsCount > 0 || openQuestionsCount > 0 || hasHubBackedFindings;
+  return hubsCount > 0 || hasHubBackedFindings;
 }

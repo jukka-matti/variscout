@@ -16,7 +16,7 @@ import type {
   EntryScenario,
   Hypothesis,
 } from '@variscout/core';
-import type { StatsResult, SpecLimits, Finding, Question, AnalysisMode } from '@variscout/core';
+import type { StatsResult, SpecLimits, Finding, AnalysisMode } from '@variscout/core';
 
 export interface UseAIContextOptions {
   /** Whether AI is enabled */
@@ -43,8 +43,6 @@ export interface UseAIContextOptions {
   };
   /** Current findings */
   findings?: Finding[];
-  /** Current questions for investigation context */
-  questions?: Question[];
   /** Currently active/focused chart */
   activeChart?: InsightChartType;
   /** Variation contributions per factor (η²) */
@@ -100,7 +98,6 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     categories,
     violations,
     findings,
-    questions,
     activeChart,
     variationContributions,
     drillPath,
@@ -129,7 +126,6 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       categories,
       violations,
       findings,
-      questions,
       focusedQuestionId,
       activeChart,
       variationContributions,
@@ -174,7 +170,6 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     categories,
     violations,
     findings,
-    questions,
     activeChart,
     variationContributions,
     drillPath,

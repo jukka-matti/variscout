@@ -14,7 +14,6 @@ import type {
   FilterAction,
   StageOrderMode,
   Finding,
-  Question,
   Hypothesis,
   CausalLink,
   ProcessContext,
@@ -167,10 +166,6 @@ export interface AnalysisState {
   findings?: Finding[];
   /** ID of the active benchmark finding (Phase 3) */
   benchmarkFindingId?: string;
-
-  // --- Questions (causal theories linked to findings) ---
-  /** Investigation questions for investigation workflow */
-  questions?: Question[];
 
   // --- Investigation categories (dynamic factor grouping) ---
   /** User-defined categories grouping factor columns */

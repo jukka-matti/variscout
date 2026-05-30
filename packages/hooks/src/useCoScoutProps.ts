@@ -25,10 +25,9 @@
 import { useCallback, useMemo } from 'react';
 import type { ActionProposal, CoScoutMessage, CoScoutError, StatsResult } from '@variscout/core';
 import type { UseFindingsReturn } from './useFindings';
-import type { UseQuestionsReturn } from './useQuestions';
 import type { UseAICoScoutReturn } from './useAICoScout';
 import type { UseKnowledgeSearchReturn, DocumentResult } from './useKnowledgeSearch';
-import { usePreferencesStore } from '@variscout/stores';
+import { usePreferencesStore, useAnalyzeStore } from '@variscout/stores';
 
 // ---------------------------------------------------------------------------
 // Inline minimal shapes for the aiOrch and actionProposalsState parameters.
@@ -113,8 +112,6 @@ export interface UseCoScoutPropsOptions {
   aiOrch: CoScoutAIOrchSlice;
   /** Findings state for insight capture callbacks */
   findingsState: UseFindingsReturn;
-  /** Questions state for insight capture callbacks */
-  questionsState: UseQuestionsReturn;
   /** Action proposals state for execution/dismissal callbacks */
   actionProposalsState: CoScoutActionProposalsSlice;
   /** Current active filters (for finding context) */
@@ -146,7 +143,6 @@ export function useCoScoutProps(options: UseCoScoutPropsOptions): UseCoScoutProp
   const {
     aiOrch,
     findingsState,
-    questionsState,
     actionProposalsState,
     filters,
     stats,
@@ -155,6 +151,8 @@ export function useCoScoutProps(options: UseCoScoutPropsOptions): UseCoScoutProp
     handleSearchKnowledge,
     handleAddCommentWithAuthor,
   } = options;
+
+  const addIdeaToHypothesis = useAnalyzeStore(s => s.addIdea);
 
   const { coscout, knowledgeSearch, suggestedQuestions, resizeConfig } = aiOrch;
   const { actionProposals, handleExecuteAction, handleDismissAction } = actionProposalsState;
@@ -214,12 +212,12 @@ export function useCoScoutProps(options: UseCoScoutPropsOptions): UseCoScoutProp
     [findingsState, handleAddCommentWithAuthor]
   );
 
-  // Add a comment/idea to a question
+  // Add a comment/idea to a hypothesis hub (addressed by hypothesisId)
   const handleAddCommentToQuestion = useCallback(
-    (questionId: string, text: string) => {
-      questionsState.addIdea(questionId, text);
+    (hypothesisId: string, text: string) => {
+      addIdeaToHypothesis(hypothesisId, text);
     },
-    [questionsState]
+    [addIdeaToHypothesis]
   );
 
   // Insight target lists for SaveInsightDialog
@@ -228,10 +226,7 @@ export function useCoScoutProps(options: UseCoScoutPropsOptions): UseCoScoutProp
     [findingsState.findings]
   );
 
-  const insightQuestions = useMemo(
-    () => questionsState.questions.map(h => ({ id: h.id, text: h.text })),
-    [questionsState.questions]
-  );
+  const insightQuestions: Array<{ id: string; text: string }> = [];
 
   return {
     messages: coscout.messages,

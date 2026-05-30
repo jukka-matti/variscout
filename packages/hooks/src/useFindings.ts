@@ -33,13 +33,8 @@ export interface UseFindingsOptions {
 export interface UseFindingsReturn {
   /** Current findings list */
   findings: Finding[];
-  /** Add a new finding with the given note and context, optionally linked to a chart source and/or question */
-  addFinding: (
-    text: string,
-    context: FindingContext,
-    source?: FindingSource,
-    questionId?: string
-  ) => Finding;
+  /** Add a new finding with the given note and context, optionally linked to a chart source */
+  addFinding: (text: string, context: FindingContext, source?: FindingSource) => Finding;
   /** Update an existing finding's note text */
   editFinding: (id: string, text: string) => void;
   /** Delete a finding */
@@ -144,12 +139,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
   const [findings, setFindings] = useState<Finding[]>(() => initialFindings ?? []);
 
   const addFinding = useCallback(
-    (
-      text: string,
-      context: FindingContext,
-      source?: FindingSource,
-      questionId?: string
-    ): Finding => {
+    (text: string, context: FindingContext, source?: FindingSource): Finding => {
       const finding = createFinding(
         text,
         context.activeFilters,
@@ -159,9 +149,6 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
         source,
         'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
       );
-      if (questionId) {
-        finding.questionId = questionId;
-      }
       setFindings(prev => {
         const next = [finding, ...prev];
         onFindingsChange?.(next);
