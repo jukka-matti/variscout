@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { useAnalyzeStore } from '@variscout/stores';
 import { useCoScoutProps } from '../useCoScoutProps';
 import type { UseCoScoutPropsOptions } from '../useCoScoutProps';
 import type { CoScoutMessage, CoScoutError, ActionProposal } from '@variscout/core';
@@ -346,16 +347,25 @@ describe('useCoScoutProps', () => {
   });
 
   describe('onAddCommentToHypothesis', () => {
-    it('delegates to analyzeStore.addIdea (hypothesis-level commentary)', () => {
-      // onAddCommentToHypothesis now routes to analyzeStore.addIdea directly.
-      // The call does not throw and completes without error.
-      const { result } = renderHook(() => useCoScoutProps(makeOptions()));
+    it('delegates to analyzeStore.addIdea with hypothesis id and text', () => {
+      // onAddCommentToHypothesis routes hypothesis-level commentary to
+      // useAnalyzeStore(s => s.addIdea) (IM-1 re-homed ideas onto Hypothesis).
+      // Spy on the real store action before render so the selector captures it.
+      const original = useAnalyzeStore.getState().addIdea;
+      const mockAddIdea = vi.fn().mockReturnValue(null);
+      useAnalyzeStore.setState({ addIdea: mockAddIdea });
 
-      expect(() => {
+      try {
+        const { result } = renderHook(() => useCoScoutProps(makeOptions()));
+
         act(() => {
           result.current.onAddCommentToHypothesis('hub-1', 'An idea about this hub');
         });
-      }).not.toThrow();
+
+        expect(mockAddIdea).toHaveBeenCalledWith('hub-1', 'An idea about this hub');
+      } finally {
+        useAnalyzeStore.setState({ addIdea: original });
+      }
     });
   });
 

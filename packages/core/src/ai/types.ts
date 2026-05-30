@@ -382,10 +382,6 @@ export interface AIContext {
     };
     /** R²adj-weighted coverage percentage (0-100) */
     coveragePercent?: number;
-    /** Number of questions checked (answered or ruled-out) */
-    questionsChecked?: number;
-    /** Total number of questions */
-    questionsTotal?: number;
     /** Problem statement maturity stage */
     problemStatementStage?: 'partial' | 'actionable' | 'with-causes';
     /** Live problem statement text (auto-synthesized) */

@@ -120,16 +120,8 @@ export function formatAnalyzeContext(
     // Evidence sufficiency warning: check coveragePercent or per-hub rSquaredAdj
     const coverage = investigation.coveragePercent;
     if (coverage !== undefined && coverage < EVIDENCE_SUFFICIENCY_THRESHOLD * 100) {
-      const openCount =
-        investigation.questionsTotal !== undefined && investigation.questionsChecked !== undefined
-          ? investigation.questionsTotal - investigation.questionsChecked
-          : undefined;
-      const openSuffix =
-        openCount !== undefined && openCount > 0
-          ? ` Consider investigating the ${openCount} remaining open question${openCount === 1 ? '' : 's'}.`
-          : '';
       lines.push(
-        `⚠ Evidence note: Combined hypotheses explain ~${Math.round(coverage)}% of variation — significant sources may remain unexplored.${openSuffix}`
+        `⚠ Evidence note: Combined hypotheses explain ~${Math.round(coverage)}% of variation — significant sources may remain unexplored.`
       );
     } else if (coverage === undefined) {
       // Fall back to per-hub rSquaredAdj when coveragePercent is not set
@@ -137,17 +129,8 @@ export function formatAnalyzeContext(
         const hubR2 = hub.evidence?.value;
         if (hubR2 !== undefined && hubR2 < EVIDENCE_SUFFICIENCY_THRESHOLD) {
           const pct = Math.round(hubR2 * 100);
-          const openCount =
-            investigation.questionsTotal !== undefined &&
-            investigation.questionsChecked !== undefined
-              ? investigation.questionsTotal - investigation.questionsChecked
-              : undefined;
-          const openSuffix =
-            openCount !== undefined && openCount > 0
-              ? ` Consider investigating the ${openCount} remaining open question${openCount === 1 ? '' : 's'}.`
-              : '';
           lines.push(
-            `⚠ Evidence note: Hub "${hub.name}" explains ~${pct}% of variation — significant sources may remain unexplored.${openSuffix}`
+            `⚠ Evidence note: Hub "${hub.name}" explains ~${pct}% of variation — significant sources may remain unexplored.`
           );
         }
       }
@@ -200,11 +183,7 @@ export function formatAnalyzeContext(
 
   // Coverage and progress
   if (investigation.coveragePercent !== undefined) {
-    const checked =
-      investigation.questionsChecked !== undefined && investigation.questionsTotal !== undefined
-        ? ` (${investigation.questionsChecked}/${investigation.questionsTotal} questions checked)`
-        : '';
-    lines.push(`Investigation coverage: ${Math.round(investigation.coveragePercent)}%${checked}`);
+    lines.push(`Investigation coverage: ${Math.round(investigation.coveragePercent)}%`);
   }
 
   if (lines.length === 0) return '';

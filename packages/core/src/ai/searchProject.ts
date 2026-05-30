@@ -54,7 +54,7 @@ export function searchProjectArtifacts(options: SearchProjectOptions): SearchRes
         text: f.text,
         status: f.status,
         tag: f.tag,
-        filterContext: Object.keys(f.context.activeFilters).join(', ') || undefined,
+        filterContext: formatFilterContext(f.context?.activeFilters),
         createdAt: new Date(f.createdAt).getTime(),
       });
     }
@@ -105,6 +105,8 @@ export function searchProjectArtifacts(options: SearchProjectOptions): SearchRes
           id: action.id,
           text: action.text,
           status: action.completedAt ? 'completed' : 'open',
+          completed: !!action.completedAt,
+          dueDate: action.dueDate,
           parentFindingText: finding.text,
           createdAt: new Date(finding.createdAt).getTime(),
         });
@@ -112,5 +114,29 @@ export function searchProjectArtifacts(options: SearchProjectOptions): SearchRes
     }
   }
 
+  // Sort: exact match > starts-with > contains, then by recency (entity-agnostic)
+  results.sort((a, b) => {
+    if (!q) return 0;
+    const aLower = a.text.toLowerCase();
+    const bLower = b.text.toLowerCase();
+    const aExact = aLower === q;
+    const bExact = bLower === q;
+    if (aExact !== bExact) return aExact ? -1 : 1;
+    const aStarts = aLower.startsWith(q);
+    const bStarts = bLower.startsWith(q);
+    if (aStarts !== bStarts) return aStarts ? -1 : 1;
+    const aTime = a.createdAt ?? 0;
+    const bTime = b.createdAt ?? 0;
+    return bTime - aTime; // newest first
+  });
+
   return results.slice(0, MAX_RESULTS);
+}
+
+function formatFilterContext(filters?: Record<string, (string | number)[]>): string | undefined {
+  if (!filters) return undefined;
+  const parts = Object.entries(filters)
+    .filter(([, values]) => values.length > 0)
+    .map(([factor, values]) => `${factor} → ${values.join(', ')}`);
+  return parts.length > 0 ? parts.join(', ') : undefined;
 }

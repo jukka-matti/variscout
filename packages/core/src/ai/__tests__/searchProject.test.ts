@@ -324,9 +324,11 @@ describe('searchProjectArtifacts — result shape', () => {
     expect(results).toHaveLength(1);
     const r = results[0];
     expect(r.tag).toBe('key-driver');
-    // filterContext contains the factor column names (keys), not values
+    // filterContext renders factor → values (e.g. "Machine → B, Shift → Night")
     expect(r.filterContext).toContain('Machine');
+    expect(r.filterContext).toContain('B');
     expect(r.filterContext).toContain('Shift');
+    expect(r.filterContext).toContain('Night');
   });
 
   it('hypothesis result includes linkedFindingCount', () => {
@@ -385,6 +387,8 @@ describe('searchProjectArtifacts — result shape', () => {
     const r = results[0];
     // status is derived from completedAt: action is 'completed' when completedAt is set
     expect(r.status).toBe('completed');
+    expect(r.completed).toBe(true);
+    expect(r.dueDate).toBe('2026-03-31');
     expect(r.parentFindingText).toBe('Calibration overdue');
   });
 
@@ -403,6 +407,7 @@ describe('searchProjectArtifacts — result shape', () => {
     expect(results).toHaveLength(1);
     // status is 'open' when completedAt is not set
     expect(results[0].status).toBe('open');
+    expect(results[0].completed).toBe(false);
   });
 });
 
@@ -422,19 +427,47 @@ describe('searchProjectArtifacts — max results cap', () => {
   });
 });
 
-// ── Result order ──────────────────────────────────────────────────────────────
+// ── Result ranking ──────────────────────────────────────────────────────────
 
-describe('searchProjectArtifacts — result order', () => {
-  it('returns results in input order (findings before hypotheses)', () => {
-    const testFindings: Finding[] = [makeFinding({ id: 'f1', text: 'machine issue' })];
-    const testHypotheses: Hypothesis[] = [makeHypothesis({ id: 'h1', name: 'machine drift' })];
+describe('searchProjectArtifacts — result ranking', () => {
+  it('ranks exact match > starts-with > contains (entity-agnostic across types)', () => {
+    // All three match the query "drift" but at different positions:
+    //  - hypothesis "drift" is an EXACT match
+    //  - finding "drift detected in head B" STARTS WITH the query
+    //  - finding "process shows drift" only CONTAINS the query
+    const testFindings: Finding[] = [
+      makeFinding({ id: 'f-contains', text: 'process shows drift' }),
+      makeFinding({ id: 'f-starts', text: 'drift detected in head B' }),
+    ];
+    const testHypotheses: Hypothesis[] = [makeHypothesis({ id: 'h-exact', name: 'drift' })];
     const results = searchProjectArtifacts({
-      query: 'machine',
+      query: 'drift',
       findings: testFindings,
       hypotheses: testHypotheses,
     });
-    expect(results[0].id).toBe('f1'); // findings first
-    expect(results[1].id).toBe('h1'); // then hypotheses
+    expect(results.map(r => r.id)).toEqual(['h-exact', 'f-starts', 'f-contains']);
+  });
+
+  it('breaks ties by recency (newest createdAt first)', () => {
+    // Two findings, neither exact nor starts-with — same match class ("contains").
+    // The newer one must sort first.
+    const older = makeFinding({
+      id: 'f-old',
+      text: 'observed machine variation',
+      createdAt: 1_000,
+    });
+    const newer = makeFinding({
+      id: 'f-new',
+      text: 'noted machine variation',
+      createdAt: 9_000,
+    });
+    const results = searchProjectArtifacts({
+      // input order is older-first to prove the sort (not input order) drives result order
+      query: 'machine variation',
+      findings: [older, newer],
+      hypotheses: [],
+    });
+    expect(results.map(r => r.id)).toEqual(['f-new', 'f-old']);
   });
 });
 
@@ -485,7 +518,7 @@ describe('searchProjectArtifacts — filterContext', () => {
     expect(results[0].filterContext).toBeUndefined();
   });
 
-  it('formats multiple filter entries separated by comma', () => {
+  it('renders factor → values (not just column names)', () => {
     const f = makeFinding({
       id: 'fmc',
       text: 'Multi context finding',
@@ -501,7 +534,14 @@ describe('searchProjectArtifacts — filterContext', () => {
     });
     const ctx = results[0].filterContext;
     expect(ctx).toBeDefined();
+    // both the factor names AND their selected values must appear
     expect(ctx).toContain('Machine');
+    expect(ctx).toContain('A');
+    expect(ctx).toContain('B');
     expect(ctx).toContain('Shift');
+    expect(ctx).toContain('Night');
+    // rendered as "Factor → values"
+    expect(ctx).toContain('Machine → A, B');
+    expect(ctx).toContain('Shift → Night');
   });
 });

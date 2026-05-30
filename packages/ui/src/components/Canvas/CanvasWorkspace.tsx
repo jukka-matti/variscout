@@ -114,6 +114,7 @@ export interface CanvasWorkspaceProps {
     fromFactor: string,
     toFactor: string,
     whyStatement: string,
+    // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
     options?: { questionIds?: string[] }
   ) => void;
   onRemoveCausalLink?: (linkId: string) => void;

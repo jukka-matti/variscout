@@ -23,8 +23,6 @@ const SCOUT_ACTION_TOOLS = [
 ];
 
 const INVESTIGATE_ACTION_TOOLS = [
-  'create_question',
-  'answer_question',
   'suggest_hypothesis',
   'connect_hub_evidence',
   'suggest_improvement_idea',
@@ -125,18 +123,24 @@ describe('getToolsForPhase', () => {
   it('SCOUT does not include INVESTIGATE+ tools', () => {
     const tools = getToolsForPhase('scout', 'standard');
     const names = toolNames(tools);
-    expect(names).not.toContain('create_question');
-    expect(names).not.toContain('answer_question');
     expect(names).not.toContain('suggest_causal_link');
+    expect(names).not.toContain('suggest_improvement_idea');
   });
 
-  it('INVESTIGATE includes create_question and answer_question', () => {
+  it('INVESTIGATE includes the causal-link and map tools', () => {
     const tools = getToolsForPhase('analyze', 'standard');
     const names = toolNames(tools);
-    expect(names).toContain('create_question');
-    expect(names).toContain('answer_question');
     expect(names).toContain('suggest_causal_link');
     expect(names).toContain('highlight_map_pattern');
+  });
+
+  it('retired question tools (create_question/answer_question) are never advertised in any phase', () => {
+    // ADR-085: CoScout questionId plumbing retired with the Question entity (IM-1).
+    for (const phase of ['frame', 'scout', 'analyze', 'improve'] as const) {
+      const names = toolNames(getToolsForPhase(phase, 'standard'));
+      expect(names).not.toContain('create_question');
+      expect(names).not.toContain('answer_question');
+    }
   });
 
   it('includes share_finding + publish_report in INVESTIGATE phase (wedge V1 single SKU)', () => {
@@ -211,7 +215,6 @@ describe('getToolsForPhase', () => {
     expect(names).toContain('apply_filter');
     expect(names).toContain('create_finding');
     // INVESTIGATE+ tools
-    expect(names).toContain('create_question');
     expect(names).toContain('suggest_improvement_idea');
     expect(names).toContain('suggest_action');
   });

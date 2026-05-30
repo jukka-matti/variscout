@@ -376,6 +376,7 @@ const investigationOverlays: CanvasAnalyzeOverlayModel = {
           text: 'Does pressure drive fill?',
           status: 'open',
           factor: 'Pressure',
+          // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
           focus: { kind: 'question', id: 'q-1' },
         },
       ],

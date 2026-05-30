@@ -12,7 +12,6 @@ import {
   Lightbulb,
   BookmarkPlus,
   Navigation,
-  CircleCheck,
   Network,
   Scan,
 } from 'lucide-react';
@@ -41,7 +40,6 @@ const TOOL_CONFIG: Record<
   clear_filters: { labelKey: 'ai.tool.clearFilters', icon: Filter, editable: false },
   switch_factor: { labelKey: 'ai.tool.switchFactor', icon: Filter, editable: false },
   create_finding: { labelKey: 'ai.tool.createFinding', icon: FileText, editable: true },
-  create_question: { labelKey: 'ai.tool.createQuestion', icon: GitBranch, editable: true },
   suggest_action: { labelKey: 'ai.tool.suggestAction', icon: Zap, editable: true },
   suggest_improvement_idea: { labelKey: 'ai.tool.suggestIdea', icon: Lightbulb, editable: true },
   spark_brainstorm_ideas: { labelKey: 'ai.tool.sparkBrainstorm', icon: Lightbulb, editable: true },
@@ -54,7 +52,6 @@ const TOOL_CONFIG: Record<
   publish_report: { labelKey: 'ai.tool.publishReport', icon: FileUp, editable: false },
   notify_action_owners: { labelKey: 'ai.tool.notifyOwners', icon: Bell, editable: false },
   navigate_to: { labelKey: 'ai.tool.navigateTo', icon: Navigation, editable: false },
-  answer_question: { labelKey: 'ai.tool.answerQuestion', icon: CircleCheck, editable: true },
   suggest_hypothesis: {
     labelKey: 'ai.tool.suggestHypothesis',
     icon: GitBranch,
@@ -105,22 +102,6 @@ function formatPreview(
       lines.push(`Switch Boxplot to: ${params.factor}`);
       break;
 
-    case 'create_question': {
-      if (preview.parentText) lines.push(`Under: "${preview.parentText}"`);
-      if (preview.predictedStatus) {
-        lines.push(`Predicted: ${preview.predictedStatus}`);
-        if (preview.etaSquared !== undefined) {
-          lines[lines.length - 1] += ` (η² = ${Math.round((preview.etaSquared as number) * 100)}%)`;
-        }
-      }
-      if (preview.validationType && preview.validationType !== 'data') {
-        lines.push(
-          `Validation: ${preview.validationType}${preview.validationTask ? ` — ${preview.validationTask}` : ''}`
-        );
-      }
-      break;
-    }
-
     case 'suggest_action':
       if (preview.findingText)
         lines.push(`Finding: "${(preview.findingText as string).slice(0, 60)}..."`);
@@ -128,8 +109,8 @@ function formatPreview(
       break;
 
     case 'suggest_improvement_idea': {
-      if (preview.questionText)
-        lines.push(`Question: "${(preview.questionText as string).slice(0, 60)}..."`);
+      if (preview.hypothesisText)
+        lines.push(`Hypothesis: "${(preview.hypothesisText as string).slice(0, 60)}..."`);
       if (preview.direction) {
         const directionLabels: Record<string, string> = {
           prevent: 'Prevent (stop the cause)',

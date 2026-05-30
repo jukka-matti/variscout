@@ -211,6 +211,7 @@ export interface CanvasProps {
     fromFactor: string,
     toFactor: string,
     whyStatement: string,
+    // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
     options?: { questionIds?: string[] }
   ) => void;
   investigationOverlays?: CanvasAnalyzeOverlayModel;
@@ -507,6 +508,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       drawTool.reset();
       if (!fromFactor || !toFactor) return;
       onAddCausalLink?.(fromFactor, toFactor, payload.whyStatement, {
+        // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
         questionIds: payload.questionId ? [payload.questionId] : [],
       });
       onCanvasToolChange?.('select');

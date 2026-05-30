@@ -260,6 +260,7 @@ const mockInvestigationOverlays: CanvasAnalyzeOverlayModel = {
           text: 'Does bake time drive fill weight?',
           status: 'open',
           factor: 'Bake_Time',
+          // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
           focus: { kind: 'question', id: 'q-1' },
         },
       ],

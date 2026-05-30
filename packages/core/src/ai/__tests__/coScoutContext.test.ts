@@ -160,11 +160,10 @@ describe('formatAnalyzeContext', () => {
   it('includes coverage percentage', () => {
     const result = formatAnalyzeContext({
       coveragePercent: 68,
-      questionsChecked: 5,
-      questionsTotal: 8,
     });
     expect(result).toContain('Investigation coverage: 68%');
-    expect(result).toContain('5/8 questions checked');
+    // ADR-085: the Question entity is retired — no "N/M questions checked" suffix.
+    expect(result).not.toContain('questions checked');
   });
 
   // Phase transition tests (Task 3)
@@ -207,11 +206,9 @@ describe('formatAnalyzeContext', () => {
   });
 
   // Evidence sufficiency tests (Task 4)
-  it('includes evidence warning for hub when coveragePercent < 25', () => {
+  it('includes evidence warning when coveragePercent < 25', () => {
     const result = formatAnalyzeContext({
       coveragePercent: 12,
-      questionsChecked: 2,
-      questionsTotal: 5,
       hypothesisHubs: [
         {
           id: 'hub1',
@@ -223,10 +220,10 @@ describe('formatAnalyzeContext', () => {
       ],
     });
     expect(result).toContain('⚠ Evidence note:');
-    expect(result).toContain('Nozzle Wear');
     expect(result).toContain('~12% of variation');
     expect(result).toContain('significant sources may remain unexplored');
-    expect(result).toContain('3 remaining open questions');
+    // ADR-085: no open-question suffix (Question entity retired).
+    expect(result).not.toContain('remaining open question');
   });
 
   it('omits evidence warning when coveragePercent >= 25', () => {
@@ -279,7 +276,7 @@ describe('formatAnalyzeContext', () => {
     expect(result).not.toContain('⚠ Evidence note:');
   });
 
-  it('omits open question count suffix when questionsTotal and questionsChecked are absent', () => {
+  it('never appends an open-question suffix to the evidence note (ADR-085)', () => {
     const result = formatAnalyzeContext({
       coveragePercent: 8,
       hypothesisHubs: [
@@ -294,6 +291,7 @@ describe('formatAnalyzeContext', () => {
     });
     expect(result).toContain('⚠ Evidence note:');
     expect(result).not.toContain('remaining open question');
+    expect(result).not.toContain('open question');
   });
 });
 

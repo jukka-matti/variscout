@@ -583,17 +583,19 @@ describe('applyAction — no-op action kinds', () => {
   });
 
   it('SCOPE_ADD does not mutate any table (IM-1: ProblemStatementScope has no Dexie footprint)', async () => {
-    // IM-1 (ADR-085): the `questions` table was dropped at schema v10.
-    // SCOPE_* is now the no-op action for ProblemStatementScope, which persists
-    // via the analyze blob — not Dexie. QUESTION_* still compiles (backwards
-    // compat in the HubAction union) but is no longer testable via db.questions.
+    // IM-1 (ADR-085): the `questions` table was dropped at schema v10 and
+    // QUESTION_* was removed from the HubAction union entirely (it no longer
+    // exists — hence the `as unknown as HubAction` cast here). SCOPE_* is the
+    // no-op action for ProblemStatementScope, which persists via the analyze
+    // blob — not Dexie. No table holds scopes.
     await applyAction(db, {
       kind: 'SCOPE_ADD',
       investigationId: 'inv-x',
       scope: { id: 'sc-x' },
     } as unknown as HubAction);
 
-    // No table holds scopes — the investigation count stays 0.
+    // No table holds scopes — both findings and investigations stay 0.
+    expect(await db.findings.count()).toBe(0);
     expect(await db.investigations.count()).toBe(0);
   });
 
