@@ -142,6 +142,8 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 
 ## IM-4 · Unified bipartite canvas + disconfirmation-recording UX
 
+> **Detailed design (grounded, 2026-05-30):** [Investigation Wall — unified canvas](../specs/2026-05-30-investigation-wall-unified-canvas-design.md) reframes this as the **Investigation Wall** (drill→Finding→compound-scope→hypotheses), splits delivery into **IM-4a** (wire the spine) + **IM-4b** (unify + multiplicity + collaborate), drops the ACH matrix, keeps scopes flat for V1, and adds hypothesis collaboration (comments + assignable tasks). It supersedes the raw bullet below where they differ.
+
 - **Goal:** One bipartite factor↔hypothesis canvas (Focus lens + factor-family LOD + edge bundling + ACH toggle + `ruledOut` flag); build the disconfirmation-recording write-path.
 - **ADR:** [086](../../07-decisions/adr-086-unified-investigation-canvas.md).
 - **Depends on:** IM-1 (Finding+Hypothesis+CausalLink graph; coordinate the `WallCanvas.questions` prop redefinition).
