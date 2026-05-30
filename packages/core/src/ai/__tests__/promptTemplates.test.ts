@@ -668,7 +668,7 @@ describe('locale wiring in system prompts', () => {
 
   it('assembleCoScoutPrompt includes locale hint in tier1Static', () => {
     const { tier1Static } = assembleCoScoutPrompt({
-      context: { locale: 'pt' },
+      context: { process: {}, filters: [], locale: 'pt' },
     });
     expect(tier1Static).toContain('Respond in Português');
     expect(tier1Static).toContain('CoScout');
@@ -721,7 +721,9 @@ describe('prompt caching threshold', () => {
         `- **Term${i}**: A quality engineering concept used in statistical process control and variation analysis for manufacturing processes`
     ).join('\n');
     const glossary = `## Terminology\n\n${terms}`;
-    const { tier1Static } = assembleCoScoutPrompt({ context: { glossaryFragment: glossary } });
+    const { tier1Static } = assembleCoScoutPrompt({
+      context: { process: {}, filters: [], glossaryFragment: glossary },
+    });
     const estTokens = Math.ceil(tier1Static.length / 4);
     expect(estTokens).toBeGreaterThanOrEqual(1024);
   });

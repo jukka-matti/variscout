@@ -143,6 +143,8 @@ describe('context injection resistance', () => {
     const { tier1Static, tier2SemiStatic } = assembleCoScoutPrompt({
       phase: 'analyze',
       context: {
+        process: {},
+        filters: [],
         investigation: {
           liveStatement: adversarialStatement,
         },
@@ -166,6 +168,8 @@ describe('context injection resistance', () => {
     const { tier1Static, tier2SemiStatic } = assembleCoScoutPrompt({
       phase: 'analyze',
       context: {
+        process: {},
+        filters: [],
         investigation: {
           problemStatement: {
             fullText: adversarialStatement,
@@ -310,6 +314,8 @@ describe('token budget', () => {
     const { tier1Static, tier2SemiStatic } = assembleCoScoutPrompt({
       phase: 'analyze',
       context: {
+        process: {},
+        filters: [],
         investigation: {
           liveStatement: longStatement,
           questionTree: Array.from({ length: 10 }, (_, i) => ({
