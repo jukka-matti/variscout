@@ -120,16 +120,17 @@ export function computeWallLayout(args: WallLayoutArgs): WallLayout {
   }
 
   // ── Per-hub finding positions + edges ──────────────────────────────────
-  // A finding belongs to a hub if it's in that hub's findingIds; it's a counter
-  // when it's also in counterFindingIds. Supporting chips climb LEFT of the hub
-  // anchor; counter chips climb RIGHT — mirroring WallCanvas renderHubEvidence.
+  // Mirrors WallCanvas.renderHubEvidence exactly: SUPPORTING = findingIds minus
+  // counters (climb LEFT of the hub anchor); COUNTER = the counterFindingIds set
+  // (climb RIGHT), independent of whether they also appear in findingIds. Both
+  // count as "linked" so they are NOT treated as orphans.
   const linkedFindingIds = new Set<string>();
   for (const hub of hubs) {
     const hubPos = hubPositions.get(hub.id);
     if (!hubPos) continue; // hub filtered out of a band — skip its evidence
     const counterIds = new Set(hub.counterFindingIds ?? []);
     const supporting = hub.findingIds.filter(id => !counterIds.has(id));
-    const counter = hub.findingIds.filter(id => counterIds.has(id));
+    const counter = [...counterIds];
 
     supporting.forEach((fid, i) => {
       linkedFindingIds.add(fid);
