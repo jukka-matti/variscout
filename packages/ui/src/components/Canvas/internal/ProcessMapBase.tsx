@@ -82,6 +82,21 @@ export interface ProcessMapBaseProps {
   onConnectSteps?: (fromStepId: string, toStepId: string) => void;
   onDisconnectSteps?: (fromStepId: string, toStepId: string) => void;
   onUngroupSubStep?: (stepId: string) => void;
+  /**
+   * IM-0b-2 (ADR-087 §5): rich-map authoring dispatch props. When provided, the
+   * matching internal mutator dispatches the canvasStore-backed callback INSTEAD
+   * of building a `next: ProcessMap` and calling `onChange` directly — making
+   * canvasStore the single authoring authority and retiring the second
+   * persistence path (handleChange -> setProcessContext). When omitted, the
+   * mutator falls back to the legacy `onChange` build (back-compat; the only
+   * production caller — Canvas/index.tsx — wires every prop).
+   */
+  onSetStepCtq?: (stepId: string, ctqColumn: string | undefined) => void;
+  onAddTributary?: (stepId: string, column: string) => void;
+  onRemoveTributary?: (tributaryId: string) => void;
+  onToggleSubgroupAxis?: (tributaryId: string) => void;
+  onAddHunch?: (text: string, pin: { stepId?: string; tributaryId?: string }) => void;
+  onRemoveHunch?: (hunchId: string) => void;
   onKeyboardChipDrop?: (stepId: string) => void;
   keyboardChipLabel?: string | null;
 }
@@ -705,6 +720,12 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   onConnectSteps,
   onDisconnectSteps,
   onUngroupSubStep,
+  onSetStepCtq,
+  onAddTributary,
+  onRemoveTributary,
+  onToggleSubgroupAxis,
+  onAddHunch,
+  onRemoveHunch,
   onKeyboardChipDrop,
   keyboardChipLabel,
 }) => {
@@ -745,6 +766,10 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   };
 
   const setStepCtq = (stepId: string, ctqColumn: string | undefined) => {
+    if (onSetStepCtq) {
+      onSetStepCtq(stepId, ctqColumn);
+      return;
+    }
     update({
       ...map,
       nodes: map.nodes.map(n => (n.id === stepId ? { ...n, ctqColumn } : n)),
@@ -816,11 +841,19 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
     map.nodes.find(node => node.id === stepId)?.name || stepId;
 
   const addTributary = (stepId: string, column: string) => {
+    if (onAddTributary) {
+      onAddTributary(stepId, column);
+      return;
+    }
     const newT: ProcessMapTributary = { id: uid('trib'), stepId, column };
     update({ ...map, tributaries: [...map.tributaries, newT] });
   };
 
   const removeTributary = (tributaryId: string) => {
+    if (onRemoveTributary) {
+      onRemoveTributary(tributaryId);
+      return;
+    }
     update({
       ...map,
       tributaries: map.tributaries.filter(t => t.id !== tributaryId),
@@ -830,6 +863,10 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   };
 
   const toggleSubgroupAxis = (tributaryId: string) => {
+    if (onToggleSubgroupAxis) {
+      onToggleSubgroupAxis(tributaryId);
+      return;
+    }
     const current = map.subgroupAxes ?? [];
     const next = current.includes(tributaryId)
       ? current.filter(id => id !== tributaryId)
@@ -842,11 +879,19 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
   };
 
   const addHunch = (text: string, pin: { stepId?: string; tributaryId?: string }) => {
+    if (onAddHunch) {
+      onAddHunch(text, pin);
+      return;
+    }
     const hunch: ProcessMapHunch = { id: uid('hunch'), text, ...pin };
     update({ ...map, hunches: [...(map.hunches ?? []), hunch] });
   };
 
   const removeHunch = (hunchId: string) => {
+    if (onRemoveHunch) {
+      onRemoveHunch(hunchId);
+      return;
+    }
     update({
       ...map,
       hunches: (map.hunches ?? []).filter(h => h.id !== hunchId),
@@ -891,6 +936,12 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
                 onAddTributary={col => addTributary(step.id, col)}
                 onRemoveTributary={removeTributary}
                 onToggleSubgroupAxis={toggleSubgroupAxis}
+                // IM-0b-2 deferral: the per-step specs editor INTENTIONALLY keeps
+                // routing to `onStepSpecsChange` (→ `setMeasureSpec(column, …)` →
+                // project-wide `measureSpecs`), NOT to a canvasStore action /
+                // `node.capabilityScope`. Per-step capability-scope authoring is
+                // entangled with IM-5/IM-6 + ADR-038/073 — deferred to that
+                // holistic design. See investigations.md "IM-0b-2 deferrals".
                 onCtqSpecsChange={
                   onStepSpecsChange && step.ctqColumn
                     ? next => onStepSpecsChange(step.ctqColumn!, next)

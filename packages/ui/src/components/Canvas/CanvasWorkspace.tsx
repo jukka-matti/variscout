@@ -341,6 +341,14 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const disconnectSteps = useCanvasStore(state => state.disconnectSteps);
   const groupIntoSubStep = useCanvasStore(state => state.groupIntoSubStep);
   const ungroupSubStep = useCanvasStore(state => state.ungroupSubStep);
+  // IM-0b-2 (ADR-087 §5): rich-map authoring actions — canvasStore is now the
+  // single authoring authority for ctqColumn / tributary / subgroupAxis / hunch.
+  const setStepCtq = useCanvasStore(state => state.setStepCtq);
+  const addTributary = useCanvasStore(state => state.addTributary);
+  const removeTributary = useCanvasStore(state => state.removeTributary);
+  const toggleSubgroupAxis = useCanvasStore(state => state.toggleSubgroupAxis);
+  const addHunch = useCanvasStore(state => state.addHunch);
+  const removeHunch = useCanvasStore(state => state.removeHunch);
   const undoCanvas = useCanvasStore(state => state.undo);
   const redoCanvas = useCanvasStore(state => state.redo);
   const mapHydrationSignature = React.useMemo(() => JSON.stringify(map), [map]);
@@ -1102,6 +1110,62 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [persistCanvasStoreMap, ungroupSubStep]
   );
 
+  // IM-0b-2 (ADR-087 §5): rich-map authoring handlers. Each dispatches the
+  // canvasStore action then mirrors `persistCanvasStoreMap()` exactly like
+  // `handleAddStep` — the edit lands on `processContext.processMap` via the
+  // SAME persist path as every step-structure edit, retiring the legacy
+  // ProcessMapBase `onChange` -> setProcessContext path. `persistCanvasStoreMap`
+  // sets `lastHydratedMapSignature.current` to the post-edit map BEFORE calling
+  // `handleChange`, so the resulting `map` change does NOT re-trigger the
+  // hydration effect (no re-hydrate / clobber loop).
+  const handleSetStepCtq = React.useCallback(
+    (stepId: string, ctqColumn: string | undefined) => {
+      setStepCtq(stepId, ctqColumn);
+      persistCanvasStoreMap();
+    },
+    [persistCanvasStoreMap, setStepCtq]
+  );
+
+  const handleAddTributary = React.useCallback(
+    (stepId: string, column: string) => {
+      addTributary(stepId, column);
+      persistCanvasStoreMap();
+    },
+    [addTributary, persistCanvasStoreMap]
+  );
+
+  const handleRemoveTributary = React.useCallback(
+    (tributaryId: string) => {
+      removeTributary(tributaryId);
+      persistCanvasStoreMap();
+    },
+    [persistCanvasStoreMap, removeTributary]
+  );
+
+  const handleToggleSubgroupAxis = React.useCallback(
+    (tributaryId: string) => {
+      toggleSubgroupAxis(tributaryId);
+      persistCanvasStoreMap();
+    },
+    [persistCanvasStoreMap, toggleSubgroupAxis]
+  );
+
+  const handleAddHunch = React.useCallback(
+    (text: string, pin: { stepId?: string; tributaryId?: string }) => {
+      addHunch(text, pin);
+      persistCanvasStoreMap();
+    },
+    [addHunch, persistCanvasStoreMap]
+  );
+
+  const handleRemoveHunch = React.useCallback(
+    (hunchId: string) => {
+      removeHunch(hunchId);
+      persistCanvasStoreMap();
+    },
+    [persistCanvasStoreMap, removeHunch]
+  );
+
   const handleUndo = React.useCallback(() => {
     undoCanvas();
     persistCanvasStoreMap();
@@ -1126,6 +1190,10 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       cpkTarget={ctsSpecs?.cpkTarget}
       onSpecsChange={handleSpecsChange}
       stepSpecs={measureSpecs}
+      // IM-0b-2 deferral: per-step specs route to project-wide `measureSpecs`
+      // (NOT canvasStore / `node.capabilityScope`). Per-step capability-scope
+      // authoring is deferred to the IM-5/IM-6 holistic design (ADR-038/073).
+      // See investigations.md "IM-0b-2 deferrals".
       onStepSpecsChange={(column, next) => setMeasureSpec(column, next)}
       data={data}
       filter={{
@@ -1173,6 +1241,12 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onDisconnectSteps={handleDisconnectSteps}
       onGroupIntoSubStep={handleGroupIntoSubStep}
       onUngroupSubStep={handleUngroupSubStep}
+      onSetStepCtq={handleSetStepCtq}
+      onAddTributary={handleAddTributary}
+      onRemoveTributary={handleRemoveTributary}
+      onToggleSubgroupAxis={handleToggleSubgroupAxis}
+      onAddHunch={handleAddHunch}
+      onRemoveHunch={handleRemoveHunch}
       onUndo={handleUndo}
       onRedo={handleRedo}
     />

@@ -39,6 +39,15 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Promotion path:** the IM-4/IM-5 items graduate (mark `[RESOLVED]`) when those PRs land; the hooks test-tsc + IdeaGroupCard items are opportunistic. **Severity:** low–medium; none block IM-1; primary user flows intact.
 
+### IM-0b-2 deferrals (canvasStore = rich-map authoring authority) [LOGGED 2026-05-30]
+
+**Surfaced by:** IM-0b-2 — making `canvasStore` the single authoring authority for the rich-map fields (`ctqColumn` / tributaries / `subgroupAxes` / hunches). `ProcessMapBase`'s mutators now dispatch new canvasStore-backed props instead of building `next: ProcessMap` + `onChange`. Two scope cuts were deliberately deferred (user-approved minimal direction: migrate the persistence path, preserve behavior, defer the holistic capability question). Full build context: [[investigation-surface-build]] memory + `PLAN-im-0b-2.md`.
+
+- **Net-new per-step `node.capabilityScope` (`SpecRule[]`) authoring — DEFERRED to the IM-5/IM-6 holistic design.** `ProcessMapBase` never wrote `node.capabilityScope`; its per-step specs editor routes to `setMeasureSpec(column, SpecLimits)` → project-wide `measureSpecs` (preserved exactly in IM-0b-2 — see the `// IM-0b-2 deferral:` comments at the `onStepSpecsChange → setMeasureSpec` seam in `ProcessMapBase.tsx` + `CanvasWorkspace.tsx`). Whether/how to author per-step capability scope is entangled with IM-5 (level-native contribution), IM-6 (Values⇄Capability view) and ADR-038/073 — it belongs in that design, not this structural migration. canvasStore therefore gained **no** `setStepCapabilityScope` action.
+- **Full VISUAL retirement of `ProcessMapBase` — DEFERRED; verify the real need at IM-4 planning.** After IM-0b-2 `ProcessMapBase` is a thin dispatcher (all authoring flows through canvasStore), so it's harmless. Rebuilding ctqColumn/tributary/specs/hunch authoring as native Edit-mode zone UI in `ProcessStructureZone` (currently read-only) is speculative until IM-4 confirms the `Canvas/index.tsx` `canvas-authoring-map` panel actually needs removing. Don't rebuild UI speculatively now.
+
+**Promotion path:** the `capabilityScope` authoring item graduates into the IM-5/IM-6 spec when that design lands; the `ProcessMapBase` visual-retirement item is verified (kept or actioned) at IM-4 planning. **Severity:** low; neither blocks IM-0b-2; the structural migration (single authoring authority, second persistence path retired) is complete + behavior-preserving.
+
 ### Investigation-model design direction (Clusters A + B + C) — unified canvas · drill-to-condition · level×lens · Measurement-Plan-as-DCP [PROMOTED 2026-05-29]
 
 **Surfaced by:** Holistic design conversation 2026-05-29 (visual-companion brainstorm, opus). Settled the V1 investigation-model spine across **Cluster A** (PWA/Azure seam, #12 closure) + **Cluster C** (Findings/Hypotheses domain + canvas) + **Cluster B** (analysis surfaces — #11/#50/#51, resolved; see the Cluster B block below). Grounded against code (6 grounding workflows) + the methodology author's GB "Measure" decks (~144 pp).
