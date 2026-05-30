@@ -654,3 +654,6 @@ export {
 
 // Live-document primitives (RPS V1 PR5 — spec §11 D18)
 export { useLiveProjection } from './useLiveProjection';
+
+// IM-3 reactive auto-link cascade (shared by Azure + PWA)
+export { useReingestAutoLink, type UseReingestAutoLinkOptions } from './useReingestAutoLink';
